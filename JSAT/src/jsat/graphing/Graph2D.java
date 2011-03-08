@@ -77,9 +77,6 @@ public class Graph2D extends JComponent
         this.PAD = p;
     }
 
-
-
-
     @Override
     protected void paintComponent(Graphics g)
     {

@@ -35,6 +35,8 @@ import jsat.graphing.ScatterPlot;
 import jsat.graphing.ScatterplotMatrix;
 import jsat.linear.DenseVector;
 import jsat.linear.Vec;
+import jsat.math.Function;
+import jsat.math.SimpleLinearRegression;
 
 /**
  *
@@ -93,6 +95,8 @@ public class MainGUI extends javax.swing.JFrame
         jMenuItemQQData = new javax.swing.JMenuItem();
         jMenu2 = new javax.swing.JMenu();
         jMenuItemSingleVariable = new javax.swing.JMenuItem();
+        jMenu3 = new javax.swing.JMenu();
+        jMenuItemLinearRegress = new javax.swing.JMenuItem();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         getContentPane().setLayout(new java.awt.GridLayout(1, 1));
@@ -182,6 +186,18 @@ public class MainGUI extends javax.swing.JFrame
         jMenu2.add(jMenuItemSingleVariable);
 
         jMenuBar1.add(jMenu2);
+
+        jMenu3.setText("Regression");
+
+        jMenuItemLinearRegress.setText("Linear");
+        jMenuItemLinearRegress.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jMenuItemLinearRegressActionPerformed(evt);
+            }
+        });
+        jMenu3.add(jMenuItemLinearRegress);
+
+        jMenuBar1.add(jMenu3);
 
         setJMenuBar(jMenuBar1);
 
@@ -353,6 +369,42 @@ public class MainGUI extends javax.swing.JFrame
         gd.setVisible(true);
     }//GEN-LAST:event_jMenuItemHistoActionPerformed
 
+    private void jMenuItemLinearRegressActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_jMenuItemLinearRegressActionPerformed
+    {//GEN-HEADEREND:event_jMenuItemLinearRegressActionPerformed
+        if(data.size() < 2)
+        {
+            JOptionPane.showMessageDialog(null, "You need at least 2 sets of data for Linear Regression", "Linear Regression error", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+        
+        DataSetSelection dss = new DataSetSelection(null, "Select data to perform Linear Regression on", titles, new String[]{"Y data", "X data"});
+        int[] axie =  dss.getSelections();
+
+        final double[] ab = SimpleLinearRegression.regres(data.get(axie[0]), data.get(axie[1]));
+        
+        Function linearFunc = new Function() {
+
+            public double f(double... x)
+            {
+                return ab[0] + ab[1]*x[0];
+            }
+        };
+
+        ScatterPlot sp = new ScatterPlot(data.get(axie[1]), data.get(axie[0]));
+
+        sp.setRegressionFunction(linearFunc);
+        sp.setXAxisTtile(titles[axie[1]]);
+        sp.setYAxisTtile(titles[axie[0]]);
+
+        
+        GraphDialog gd = new GraphDialog(null, "y = " + ab[0] + " + " + ab[1] + "x, Linear Regression of " + titles[axie[0]] + " & " + titles[axie[1]], sp);
+
+        gd.setSize(300, 300);
+        gd.setVisible(true);
+
+
+    }//GEN-LAST:event_jMenuItemLinearRegressActionPerformed
+
     /**
     * @param args the command line arguments
     */
@@ -367,10 +419,12 @@ public class MainGUI extends javax.swing.JFrame
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JMenu jMenu1;
     private javax.swing.JMenu jMenu2;
+    private javax.swing.JMenu jMenu3;
     private javax.swing.JMenuBar jMenuBar1;
     private javax.swing.JMenu jMenuFile;
     private javax.swing.JMenuItem jMenuItem1;
     private javax.swing.JMenuItem jMenuItemHisto;
+    private javax.swing.JMenuItem jMenuItemLinearRegress;
     private javax.swing.JMenuItem jMenuItemOpen;
     private javax.swing.JMenuItem jMenuItemQQData;
     private javax.swing.JMenuItem jMenuItemQQDist;
