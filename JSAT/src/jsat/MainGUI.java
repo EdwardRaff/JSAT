@@ -58,7 +58,15 @@ public class MainGUI extends javax.swing.JFrame
         {
             System.out.println("Error setting native LAF: " + e);
         }
-        initComponents(); 
+        initComponents();
+        jMenuItemTest.setEnabled(false);
+        jMenuItemHisto.setEnabled(false);
+        jMenuItemQQData.setEnabled(false);
+        jMenuItemQQDist.setEnabled(false);
+        jMenuItemScatter.setEnabled(false);
+        jMenuItemScatterMatrix.setEnabled(false);
+        jMenuItemTest.setEnabled(false);
+        jMenuItemSingleVariable.setEnabled(false);
         setSize(400, 300);
     }
 
@@ -100,7 +108,8 @@ public class MainGUI extends javax.swing.JFrame
         });
         jMenuFile.add(jMenuItemOpen);
 
-        jMenuItem1.setText("jMenuItem1");
+        jMenuItem1.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_Q, java.awt.event.InputEvent.CTRL_MASK));
+        jMenuItem1.setText("Exit");
         jMenuItem1.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 jMenuItem1ActionPerformed(evt);
@@ -212,8 +221,14 @@ public class MainGUI extends javax.swing.JFrame
                 getContentPane().removeAll();
                 getContentPane().add(new JScrollPane(jt));
                 validate();
-
-
+                jMenuItemTest.setEnabled(true);
+                jMenuItemHisto.setEnabled(true);
+                jMenuItemQQData.setEnabled(true);
+                jMenuItemQQDist.setEnabled(true);
+                jMenuItemScatter.setEnabled(true);
+                jMenuItemScatterMatrix.setEnabled(true);
+                jMenuItemTest.setEnabled(true);
+                jMenuItemSingleVariable.setEnabled(true);
             }
             catch (FileNotFoundException ex)
             {
@@ -228,14 +243,7 @@ public class MainGUI extends javax.swing.JFrame
 
     private void jMenuItem1ActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_jMenuItem1ActionPerformed
     {//GEN-HEADEREND:event_jMenuItem1ActionPerformed
-        JFrame jf = new JFrame("Test");
-
-        jf.add(new ScatterPlot(data.get(0), data.get(1)));
-
-        jf.pack();
-        jf.setSize(300, 300);
-        jf.setVisible(true);
-
+        System.exit(0);
     }//GEN-LAST:event_jMenuItem1ActionPerformed
 
     private void jMenuItemTestActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_jMenuItemTestActionPerformed
