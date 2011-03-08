@@ -28,6 +28,7 @@ import jsat.distributions.ContinousDistribution;
 import jsat.distributions.ExponentialDistribution;
 import jsat.distributions.NormalDistribution;
 import jsat.graphing.Graph2D;
+import jsat.graphing.Histogram;
 import jsat.graphing.QQPlotData;
 import jsat.graphing.QQPlotDistribution;
 import jsat.graphing.ScatterPlot;
@@ -77,6 +78,7 @@ public class MainGUI extends javax.swing.JFrame
         jMenuItem1 = new javax.swing.JMenuItem();
         jMenu1 = new javax.swing.JMenu();
         jMenuItemTest = new javax.swing.JMenuItem();
+        jMenuItemHisto = new javax.swing.JMenuItem();
         jMenuItemScatter = new javax.swing.JMenuItem();
         jMenuItemScatterMatrix = new javax.swing.JMenuItem();
         jMenuItemQQDist = new javax.swing.JMenuItem();
@@ -117,6 +119,14 @@ public class MainGUI extends javax.swing.JFrame
             }
         });
         jMenu1.add(jMenuItemTest);
+
+        jMenuItemHisto.setText("Histogram");
+        jMenuItemHisto.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jMenuItemHistoActionPerformed(evt);
+            }
+        });
+        jMenu1.add(jMenuItemHisto);
 
         jMenuItemScatter.setText("Scatter Plot");
         jMenuItemScatter.addActionListener(new java.awt.event.ActionListener() {
@@ -284,7 +294,7 @@ public class MainGUI extends javax.swing.JFrame
 
     private void jMenuItemQQDataActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_jMenuItemQQDataActionPerformed
     {//GEN-HEADEREND:event_jMenuItemQQDataActionPerformed
-         DataSetSelection dss = new DataSetSelection(null, "Select data to check", titles, new String[]{"X Axis", "Y Axis"});
+        DataSetSelection dss = new DataSetSelection(null, "Select data to check", titles, new String[]{"X Axis", "Y Axis"});
         int[] axie =  dss.getSelections();
 
         QQPlotData qq = new QQPlotData(data.get(axie[0]), data.get(axie[1]));
@@ -323,6 +333,21 @@ public class MainGUI extends javax.swing.JFrame
         sm.setVisible(true);
     }//GEN-LAST:event_jMenuItemScatterMatrixActionPerformed
 
+    private void jMenuItemHistoActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_jMenuItemHistoActionPerformed
+    {//GEN-HEADEREND:event_jMenuItemHistoActionPerformed
+        DataSetSelection dss = new DataSetSelection(null, "Select data to create histogram from", titles, new String[]{"Histogram Data"});
+        int[] axie =  dss.getSelections();
+
+        Histogram hh = new Histogram(data.get(axie[0]));
+
+        hh.setXAxisTtile(titles[axie[0]]);
+
+        GraphDialog gd = new GraphDialog(null, "Histogram of " + titles[axie[0]], hh);
+
+        gd.setSize(300, 300);
+        gd.setVisible(true);
+    }//GEN-LAST:event_jMenuItemHistoActionPerformed
+
     /**
     * @param args the command line arguments
     */
@@ -340,6 +365,7 @@ public class MainGUI extends javax.swing.JFrame
     private javax.swing.JMenuBar jMenuBar1;
     private javax.swing.JMenu jMenuFile;
     private javax.swing.JMenuItem jMenuItem1;
+    private javax.swing.JMenuItem jMenuItemHisto;
     private javax.swing.JMenuItem jMenuItemOpen;
     private javax.swing.JMenuItem jMenuItemQQData;
     private javax.swing.JMenuItem jMenuItemQQDist;
