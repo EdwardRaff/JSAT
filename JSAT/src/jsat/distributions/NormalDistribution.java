@@ -6,6 +6,7 @@
 package jsat.distributions;
 
 import static java.lang.Math.*;
+import jsat.linear.Vec;
 /**
  *
  * @author Edward Raff
@@ -15,8 +16,8 @@ public class NormalDistribution extends ContinousDistribution
     public static final String mu = "\u03BC";
     public static final String sigma = "\u03C3";
 
-    double mean;
-    double stndDev;
+    private double mean;
+    private double stndDev;
 
     public NormalDistribution()
     {
@@ -208,6 +209,16 @@ public class NormalDistribution extends ContinousDistribution
         return new NormalDistribution(mean, stndDev);
     }
 
+    @Override
+    public void setUsingData(Vec data)
+    {
+        mean = data.mean();
+        stndDev = data.standardDeviation();
+    }
 
-
+    @Override
+    public double[] getCurrentVariableValues()
+    {
+        return new double[]{mean, stndDev};
+    }
 }

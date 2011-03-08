@@ -48,11 +48,13 @@ public class DistributionSelectionDialog extends JDialog
                 ContinousDistribution dist = (ContinousDistribution) jc.getSelectedItem();
 
                 vars = dist.getVariables();
+                double[] defaultVals = dist.getCurrentVariableValues();
                 variablePanel.removeAll();
                 variablePanel.setLayout(new GridLayout(vars.length, 1));
-                for(String var : vars)
+                for(int i =0; i < vars.length; i++)
                 {
-                    JTextField jt = new JFormattedTextField(1.0);
+                    String var = vars[i];
+                    JTextField jt = new JFormattedTextField(defaultVals[i]);
                     jt.setBorder(BorderFactory.createTitledBorder(var));
                     variablePanel.add(jt);
                 }

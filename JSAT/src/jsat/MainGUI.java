@@ -278,8 +278,15 @@ public class MainGUI extends javax.swing.JFrame
     private void jMenuItemQQDistActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_jMenuItemQQDistActionPerformed
     {//GEN-HEADEREND:event_jMenuItemQQDistActionPerformed
         DataSetSelection dss = new DataSetSelection(null, "Select data to check", titles, new String[]{"QQ Plot Data"});
-        DistributionSelectionDialog dsd = new DistributionSelectionDialog(null, "Select distribution to compare against", distributions);
+
         int[] axie =  dss.getSelections();
+
+        //Pre set the distributions to have paramaters assuming that they match the data
+        for(int i = 0; i < distributions.length; i++)
+            distributions[i].setUsingData(data.get(axie[0]));
+
+        DistributionSelectionDialog dsd = new DistributionSelectionDialog(null, "Select distribution to compare against", distributions);
+        
         ContinousDistribution dist = dsd.getDistribution();
 
         QQPlotDistribution qq = new QQPlotDistribution(dist, data.get(axie[0]));
@@ -313,9 +320,6 @@ public class MainGUI extends javax.swing.JFrame
         SingleVariableViewDialog svvd = new SingleVariableViewDialog(data, titles);
         svvd.pack();
         svvd.setVisible(true);
-
-
-
     }//GEN-LAST:event_jMenuItemSingleVariableActionPerformed
 
     private void jMenuItemScatterMatrixActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_jMenuItemScatterMatrixActionPerformed

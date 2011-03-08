@@ -2,6 +2,7 @@
 package jsat.distributions;
 
 import java.util.Random;
+import jsat.linear.Vec;
 
 /**
  *
@@ -45,9 +46,20 @@ public abstract class ContinousDistribution
      */
     abstract public String[] getVariables();
 
+    /**
+     * @return the current values of the parameters used by this distribution, in the same order as their names are returned by {@link #getVariables() }
+     */
+    abstract public double[] getCurrentVariableValues();
+
     abstract public void setVariable(String var, double value);
     
     abstract public ContinousDistribution copy();
+
+    /**
+     * Attempts to set the variables used by this distribution based on population sample data, assuming the sample data is from this type of distribution.
+     * @param data the data to use to attempt to fit against
+     */
+    abstract public void setUsingData(Vec data);
 
     @Override
     public String toString()

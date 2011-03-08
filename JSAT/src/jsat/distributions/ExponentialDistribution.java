@@ -1,6 +1,7 @@
 package jsat.distributions;
 
 import static java.lang.Math.*;
+import jsat.linear.Vec;
 
 /**
  *
@@ -90,6 +91,21 @@ public class ExponentialDistribution extends ContinousDistribution
     public ContinousDistribution copy()
     {
         return new ExponentialDistribution(lambda);
+    }
+
+    @Override
+    public void setUsingData(Vec data)
+    {
+        /**
+         * mean of an exponential distribution is lambda^-1
+         */
+        lambda = 1/data.mean();
+    }
+
+    @Override
+    public double[] getCurrentVariableValues()
+    {
+        return new double[] {lambda};
     }
 
 }
