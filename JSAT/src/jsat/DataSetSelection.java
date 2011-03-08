@@ -35,7 +35,7 @@ public class DataSetSelection extends JDialog
         this.reasons = reasons;
         boxs = new JComboBox[reasons.length];
         
-        JPanel optionPanel = new JPanel(new GridLayout(dataSelections.length, 1));
+        JPanel optionPanel = new JPanel(new GridLayout(reasons.length, 1));
         JPanel fullPanel = new JPanel(new BorderLayout());
         
 

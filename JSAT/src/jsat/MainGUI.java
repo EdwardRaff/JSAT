@@ -310,17 +310,10 @@ public class MainGUI extends javax.swing.JFrame
 
     private void jMenuItemSingleVariableActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_jMenuItemSingleVariableActionPerformed
     {//GEN-HEADEREND:event_jMenuItemSingleVariableActionPerformed
-        DataSetSelection dss = new DataSetSelection(null, "Select data to check", titles, new String[]{"Data"});
-        int[] axie =  dss.getSelections();
-        Vec v = data.get(axie[0]);
-        StringBuilder sb = new StringBuilder();
-        sb.append("min: ").append(v.min());
-        sb.append("\nmax: ").append(v.max());
-        sb.append("\nmeadian: ").append(v.median());
-        sb.append("\nmean: ").append(v.mean());
-        sb.append("\n").append(NormalDistribution.sigma).append(": ").append(v.standardDeviation());
+        SingleVariableViewDialog svvd = new SingleVariableViewDialog(data, titles);
+        svvd.pack();
+        svvd.setVisible(true);
 
-        JOptionPane.showMessageDialog(null, sb.toString(),  "Single Variable Statistics for " + titles[axie[0]], JOptionPane.INFORMATION_MESSAGE);
 
 
     }//GEN-LAST:event_jMenuItemSingleVariableActionPerformed
