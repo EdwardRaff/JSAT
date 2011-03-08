@@ -199,7 +199,7 @@ public class MainGUI extends javax.swing.JFrame
             {
                 BufferedReader br = new BufferedReader(new FileReader(file));
 
-                titles = br.readLine().replaceAll(" ","").split(",");
+                titles = br.readLine().replaceAll(" +","").split(",");
                 List<ArrayList<Double>> newData = new ArrayList<ArrayList<Double>>(titles.length);
                 for(int i = 0; i < titles.length; i++)
                     newData.add(new ArrayList<Double>());
@@ -207,7 +207,7 @@ public class MainGUI extends javax.swing.JFrame
 
                 while( (line = br.readLine()) != null)
                 {
-                    String[] tmp = line.replaceAll(" ","").split(",");
+                    String[] tmp = line.replaceAll(" +","").split(",");
                     for(int i = 0; i < titles.length; i++)
                         newData.get(i).add(Double.parseDouble(tmp[i]));
                 }
