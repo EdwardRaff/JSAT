@@ -31,6 +31,7 @@ import jsat.graphing.Graph2D;
 import jsat.graphing.QQPlotData;
 import jsat.graphing.QQPlotDistribution;
 import jsat.graphing.ScatterPlot;
+import jsat.graphing.ScatterplotMatrix;
 import jsat.linear.DenseVector;
 import jsat.linear.Vec;
 
@@ -77,6 +78,7 @@ public class MainGUI extends javax.swing.JFrame
         jMenu1 = new javax.swing.JMenu();
         jMenuItemTest = new javax.swing.JMenuItem();
         jMenuItemScatter = new javax.swing.JMenuItem();
+        jMenuItemScatterMatrix = new javax.swing.JMenuItem();
         jMenuItemQQDist = new javax.swing.JMenuItem();
         jMenuItemQQData = new javax.swing.JMenuItem();
         jMenu2 = new javax.swing.JMenu();
@@ -123,6 +125,14 @@ public class MainGUI extends javax.swing.JFrame
             }
         });
         jMenu1.add(jMenuItemScatter);
+
+        jMenuItemScatterMatrix.setText("Scatter Matrix");
+        jMenuItemScatterMatrix.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jMenuItemScatterMatrixActionPerformed(evt);
+            }
+        });
+        jMenu1.add(jMenuItemScatterMatrix);
 
         jMenuItemQQDist.setText("QQ Plot Distribution");
         jMenuItemQQDist.addActionListener(new java.awt.event.ActionListener() {
@@ -305,6 +315,14 @@ public class MainGUI extends javax.swing.JFrame
 
     }//GEN-LAST:event_jMenuItemSingleVariableActionPerformed
 
+    private void jMenuItemScatterMatrixActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_jMenuItemScatterMatrixActionPerformed
+    {//GEN-HEADEREND:event_jMenuItemScatterMatrixActionPerformed
+        ScatterplotMatrix sm = new ScatterplotMatrix(null, "Scatter Matrix", data, titles);
+
+        sm.setSize(600, 600);
+        sm.setVisible(true);
+    }//GEN-LAST:event_jMenuItemScatterMatrixActionPerformed
+
     /**
     * @param args the command line arguments
     */
@@ -326,6 +344,7 @@ public class MainGUI extends javax.swing.JFrame
     private javax.swing.JMenuItem jMenuItemQQData;
     private javax.swing.JMenuItem jMenuItemQQDist;
     private javax.swing.JMenuItem jMenuItemScatter;
+    private javax.swing.JMenuItem jMenuItemScatterMatrix;
     private javax.swing.JMenuItem jMenuItemSingleVariable;
     private javax.swing.JMenuItem jMenuItemTest;
     private javax.swing.JFileChooser jfc;

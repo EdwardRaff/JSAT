@@ -72,6 +72,12 @@ public class Graph2D extends JComponent
         this.yMax = yMax;
     }
 
+    public void setPadding(int p)
+    {
+        this.PAD = p;
+    }
+
+
 
 
     @Override
@@ -85,6 +91,9 @@ public class Graph2D extends JComponent
         int h = getHeight();
 
         FontMetrics fm = g2.getFontMetrics();
+
+        if(PAD == 0)//No padding, dont draw borders!
+            return;
 
         g2.setColor(Color.black);
          // Draw horizontal.
