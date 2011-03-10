@@ -141,4 +141,29 @@ public class SpecialMath
 
         return NormalDistribution.invcdf(x/2, 0, 1)/-sqrt(2.0);
     }
+
+    /**
+     * Computes the Beta function B(z,w)
+     * @param z
+     * @param w
+     * @return B(z,w)
+     */
+    public static double beta(double z, double w)
+    {
+
+        /*
+         * The beta function is defined by
+         *
+         *           Gamma(z) Gamma(w)
+         * B(z, w) = -----------------
+         *             Gamma(z + w)
+         *
+         * However, the definition is numericaly unstable (large value / large value to small result & small input).
+         * Taking the log of each size and then exponentiating gives a more stable method of computing the result
+         *
+         *            lnGamma(z) + lnGamma(w) - lnGamma(z + w)
+         * B(z, w) = e
+         */
+        return exp(lnGamma(z)+lnGamma(w)-lnGamma(z+w));
+    }
 }
