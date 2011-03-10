@@ -10,6 +10,11 @@ import static java.lang.Math.*;
 public class Romberg
 {
 
+    public static double romb(Function f, double a, double b)
+    {
+        return romb(f, a, b, 20);
+    }
+
     public static double romb(Function f, double a, double b, int max)
     {
         // see http://en.wikipedia.org/wiki/Romberg's_method
