@@ -166,4 +166,188 @@ public class SpecialMath
          */
         return exp(lnGamma(z)+lnGamma(w)-lnGamma(z+w));
     }
+
+    /**
+     * Copmutes the regularized gamma function
+     * @param a any value of a >= 0
+     * @param z any value > 0
+     * @return 
+     */
+    public static double gammaQ(double a, double z)
+    {
+        /**
+         * a=0.15, |rel error| is ~ 3e-15 for most values of x, with a bad spot of |rel error| ~ 3e-11 when x ~= 5.75
+         */
+        return exp(a*log(z)-z-lnGamma(a))/gammaQ.lentz(a, z);
+    }
+    
+    public static double lnLowIncGamma(double a, double x)
+    {
+
+        /*
+         * We compute the log of the lower incomplete gamma function by taking the log of
+         *
+         *                   oo
+         *                  =====
+         *            -x  a \         Gamma(a)      n
+         * y(a, x) = e   x   >    ---------------- x
+         *                  /     Gamma(a + 1 + n)
+         *                  =====
+         *                  n = 0
+         *
+         * Which becomes
+         *
+         *
+         *                                   / oo                      \
+         *                                   |=====                    |
+         *                                   |\         Gamma(a)      n|
+         * log(y(a, x)) = -x + log(x) a + log| >    ---------------- x |
+         *                                   |/     Gamma(a + 1 + n)   |
+         *                                   |=====                    |
+         *                                   \n = 0                    /
+         *
+         * To reduce over flow of the gammas and exponentation in the summation, we compute the sum as
+         *
+         *  oo
+         * =====
+         * \      LogGamma(a) - LogGamma(a + 1 + n) + ln(x) n
+         *  >    e
+         * /
+         * =====
+         * n = 0
+         *
+         * Testin with x=0.5 to 100 (in increments of 0.5)
+         * a=0.15, max relative error is ~ 6e-13, with x < 30 having a relative error smaller than 5e-14
+         * a=0.5, maximum relative and absolute eror is ~1.5e-12 and ~1.5e-12 repsectivly, the error starts getting above e-15 when x = 25, and x=50 the error is up to 2.2e-13
+         * a=10, maximum relative and absolute eror is ~4e-14 and ~4e-13 repsectivly, the error starts getting abovee-15 when x = 49. For x near zero (up to x ~ 2.5) the error is higher before droping, ~10^-14
+         * a=25, maximum relative error is ~9.99e-15. From x~ 0 to 14, the error is worse, then droping to ~e-16 .
+         * a=50, accuracy starting to degrad badly. From x~ 0 to 18 the error goes from 1.3 to 1e-7, the erro grows at an exponential rate as x -> 0. As x-> Infinity the error gets back down to ~5e-16
+         */
+
+        //Sumation first
+
+        double lnGa = lnGamma(a);
+        /**
+         * This value will be updated by the property Gamma(z+1) = Gamma(z) * z, which - when taken the log of, is <br>
+         * LnGamma(z+1) = LnGamma(z) + ln(z)
+         */
+        double lnGan = lnGa+log(a);
+        double n = 0;
+        /**
+         * this is the n * ln(x)  term. it will be updated by adding the log of x at each step
+         */
+        double lnXN = 0;
+        double lnX = log(x);
+
+        //Set up, now start summing
+        double term = exp(lnGa - lnGan + lnXN);
+        double sum = term;
+        while(term > 1e-15)
+        {
+            n++;
+            lnXN += lnX;
+            lnGan += log(a+n);
+
+            term = exp(lnGa - lnGan + lnXN);
+
+            sum += term;
+        }
+
+        //now the rest
+
+        return -x + lnX*a +log(sum);
+    }
+    
+    public static double lnLowIncGamma1(double a, double x)
+    {
+        double inter = lowIncGamma.lentz(a,x);
+        if(inter <= 1e-16)//The result was ~0, in which case Gamma[a,z] ~= Gamma[a]
+            return lnGamma(a);
+        return a*log(x)-x-log(inter);
+    }
+    
+    private static final ContinuedFraction lowIncGamma = new ContinuedFraction()
+    {
+
+        @Override
+        public double getA(int pos, double... args)
+        {
+
+            if (pos % 2 == 0)
+            {
+                pos /= 2;//the # of the even term
+
+                return pos * args[1];
+            }
+            else
+            {
+                pos = (pos + 0) / 2;
+
+                return -(args[0] + pos) * args[1];
+            }
+        }
+
+        @Override
+        public double getB(int pos, double... args)
+        {
+
+            return args[0] + pos;
+        }
+    };
+
+    /**
+     * See http://functions.wolfram.com/GammaBetaErf/GammaRegularized/10/0003/
+     */
+    private static final ContinuedFraction gammaQ = new ContinuedFraction()
+    {
+
+        @Override
+        public double getA(int pos, double... args)
+        {
+            return pos*(args[0]-pos);
+        }
+
+        @Override
+        public double getB(int pos, double... args)
+        {
+
+            return (1 +pos*2) - args[0] + args[1];
+        }
+    };
+    
+    private static final ContinuedFraction upIncGamma = new ContinuedFraction()
+    {
+
+        @Override
+        public double getA(int pos, double... args)
+        {
+
+            if (pos % 2 == 0)
+            {
+                pos /= 2;//the # of the even term
+
+                return pos;
+            }
+            else
+            {
+                pos = (pos + 1) / 2;
+
+                return pos - args[0];
+            }
+        }
+
+        @Override
+        public double getB(int pos, double... args)
+        {
+
+            if (pos % 2 == 0)
+            {
+                return args[1];
+            }
+            else
+            {
+                return 1;
+            }
+        }
+    };
 }
