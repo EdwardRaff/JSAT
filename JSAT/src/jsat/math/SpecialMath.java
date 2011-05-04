@@ -176,12 +176,52 @@ public class SpecialMath
     public static double gammaQ(double a, double z)
     {
         /**
+         * On the range of x from 0.5 to 50
          * a=0.15, |rel error| is ~ 3e-15 for most values of x, with a bad spot of |rel error| ~ 3e-11 when x ~= 5.75
+         * a=0.5, max |rel error| is 3.9e-15
+         * a=1, max |rel error| is 4e-15, rel error groining as x -> infinity
+         * a=5, max |rel error| is 7e-13, but only near x ~= 0, most is in the range 3e-15
+         * a=10, max |rel error| is 4e-6, but only near x ~= 0, most is in the range 3e-15
          */
         return exp(a*log(z)-z-lnGamma(a))/gammaQ.lentz(a, z);
     }
     
-    public static double lnLowIncGamma(double a, double x)
+    public static double gammaP(double a, double z)
+    {
+        /*
+         * This method is currently usntable for values of z that grow larger, so it is not currently in use
+         * return exp(a*log(z)-z-lnGamma(a))/gammaP.lentz(a,z);
+         */
+        return 1 - gammaQ(a, z);
+    }
+    
+    public static double gammaIncUp(double a, double z)
+    {
+        /**
+         * On the range of x from 0.5 to 50
+         * a=0.15, max |rel error| is ~1.3e-11, but only in a small range x ~= 11. Otherwise rel error ~ 2e-15
+         * a=0.5, max |rel error| is ~3.6e-15, less in all places otherwise
+         * a=1, max |rel error| is ~4e-15, rel error grows as x-> infinity
+         * a=5, max |rel error| is 7e-13, but only near x ~= 0, most is in the range 2e-15
+         * a=10, max |rel error| is 4.9e-6, but only near x ~= 0, most is in the range 5e-15
+         */
+        return exp(a*log(z)-z)/upIncGamma.lentz(a,z);
+    }
+    
+    public static double gammaIncLow(double a, double z)
+    {
+        /**
+         * On the range of x from 0.5 to 50
+         * a=0.15, see a=1
+         * a=0.5, see a=1
+         * a=1, max |rel error| is ~1.7e-13, rel error starts at 1e-15 and grows to the max as z increases
+         * a=5, max |rel error| is 3e-13, but only near x ~= 0. for x > epsilon error starts at 5e-15 and grows with z up to 1e-13
+         * a=10, max |rel error| is 2e-7, but only near x ~= 0, most is in the range 5e-15, grows to 5e-14 as z-> infinity
+         */
+        return exp(lnLowIncGamma(a, z));
+    }
+    
+    private static double lnLowIncGamma(double a, double x)
     {
 
         /*
@@ -258,7 +298,7 @@ public class SpecialMath
         return -x + lnX*a +log(sum);
     }
     
-    public static double lnLowIncGamma1(double a, double x)
+    private static double lnLowIncGamma1(double a, double x)
     {
         double inter = lowIncGamma.lentz(a,x);
         if(inter <= 1e-16)//The result was ~0, in which case Gamma[a,z] ~= Gamma[a]
@@ -315,39 +355,58 @@ public class SpecialMath
         }
     };
     
+    /**
+     * Using the formula from http://functions.wolfram.com/GammaBetaErf/GammaRegularized/10/0005/
+     * 
+     * Note the formula is given in terms of gammaQ
+     * 
+     * Note: this continued fraction seems to be unstable as x grows, so not currently in use
+     */
+    private static final ContinuedFraction gammaP = new ContinuedFraction()
+    {
+
+        @Override
+        public double getA(int pos, double... args)
+        {
+            if(pos % 2 == 0)//even step
+            {
+                pos/=2;
+                return args[1]*pos;
+            }
+            //Else its an odd step
+            pos/=2;
+            return -args[1]*(args[0]+pos);
+        }
+
+        @Override
+        public double getB(int pos, double... args)
+        {
+            return args[0] + pos;
+        }
+    };
+    
+    /**
+     * continued fraction generated from mathematica
+     * 
+     * f(a,z) = e^-x*x^a / CF
+     * 
+     * a_k = (a-k)k
+     * b_k = 1+k*2-a+x
+     * 
+     */
     private static final ContinuedFraction upIncGamma = new ContinuedFraction()
     {
 
         @Override
         public double getA(int pos, double... args)
         {
-
-            if (pos % 2 == 0)
-            {
-                pos /= 2;//the # of the even term
-
-                return pos;
-            }
-            else
-            {
-                pos = (pos + 1) / 2;
-
-                return pos - args[0];
-            }
+            return (args[0]-pos)*pos;
         }
 
         @Override
         public double getB(int pos, double... args)
         {
-
-            if (pos % 2 == 0)
-            {
-                return args[1];
-            }
-            else
-            {
-                return 1;
-            }
+            return (1+pos*2)-args[0]+args[1];
         }
     };
 }

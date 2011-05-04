@@ -69,13 +69,14 @@ public class Main {
         for(double x = 0.5; x < 50; x+=0.5)
         {
 //            System.out.print(SpecialMath.lnLowIncGamma(a, x) + ",");
-            System.out.print(Double.toString(SpecialMath.gammaQ(a, x)).replaceAll("E", "*10^") + ",");
+            System.out.print(Double.toString(SpecialMath.gammaIncLow(a, x)).replaceAll("E", "*10^") + ",");
 //            System.out.print(x + ",");
             
         }
         System.out.println();
         for(double x = 0.5; x < 50; x+=0.5)
         {
+//            System.out.print(Double.toString(1-SpecialMath.gammaQ(a, x)).replaceAll("E", "*10^") + ",");
 //            System.out.print(Math.exp(SpecialMath.lnLowIncGamma1(a, x)) + ",");
 //            double tmp  = SpecialMath.lnLowIncGamma1(a, x);
 //            if( Double.isNaN(tmp))
