@@ -14,10 +14,23 @@ import static java.lang.Math.*;
 public class SpecialMath
 {
 
+    /**
+     * The gamma function is a generalization of the factorial function. 
+     * This method provides the gamma function for values from -Infinity to Infinity.
+     * <br>Special Values: 
+     * <ul>
+     * <li>{@link Double#NaN} returned if z = 0 or z = {@link Double#NEGATIVE_INFINITY}</li>
+     * </ul>
+     * @param z any real value
+     * @return Γ(z)
+     */
     public static double gamma(double z)
     {
         if(z == 0)//It is actualy infinity*I, where I - sqrt(-1).
             return Double.NaN;
+        else if(z == Double.POSITIVE_INFINITY)
+            return z;
+                
         else if(z < 0)
         {
             /*
@@ -67,10 +80,27 @@ public class SpecialMath
         return result*pow(z+5.5, z+0.5)*exp(-(z+5.5));
     }
 
+    /**
+     * Computes the natural logarithm of {@link #gamma(double) }. 
+     * This method is more numerically stable than taking the log of the result of Γ(z). 
+     * 
+     * <br>Special Values: 
+     * <ul>
+     * <li>{@link Double#POSITIVE_INFINITY} returned if z <= 0</li>
+     * <li>{@link Double#NaN} returned if z = {@link Double#NEGATIVE_INFINITY}</li>
+     * </ul>
+     * 
+     * @param z any real number value
+     * @return Log(Γ(z))
+     */
     public static double lnGamma(double z)
     {
-        if(z <= 0)
-            throw new ArithmeticException("Log gamma takes only positive arguments");
+        if(z == Double.NEGATIVE_INFINITY)
+            return Double.NaN;
+        else if(z == Double.POSITIVE_INFINITY)
+            return z;
+        else if(z <= 0)
+            return Double.POSITIVE_INFINITY;
 
         /*
          * Lanczos approximation for the log of the gamma function, with |error| < 10^-15 for all z > 0 (Almost full double precision)
@@ -168,13 +198,18 @@ public class SpecialMath
     }
 
     /**
-     * Copmutes the regularized gamma function
-     * @param a any value of a >= 0
+     * Computes the regularized gamma function Q(a,z) = Γ(a,z)/Γ(a). <br> 
+     * This method is more numerically stable and accurate than computing
+     * it via the direct method, and is always in the range [0,1]. <br><br>
+     * Note: The this method returns {@link Double#NaN} for a<0, though real values of Q(a,z) do exist
+     * @param a any value >= 0
      * @param z any value > 0
-     * @return 
+     * @return Q(a,z)
      */
     public static double gammaQ(double a, double z)
     {
+        if(z<= 0 || a < 0 )
+            return Double.NaN;
         /**
          * On the range of x from 0.5 to 50
          * a=0.15, |rel error| is ~ 3e-15 for most values of x, with a bad spot of |rel error| ~ 3e-11 when x ~= 5.75
@@ -186,8 +221,19 @@ public class SpecialMath
         return exp(a*log(z)-z-lnGamma(a))/gammaQ.lentz(a, z);
     }
     
+    /**
+     * Returns the regularized gamma function P(a,z) = γ(a,z)/Γ(a). <br>
+     * This method is more numerically stable and accurate than computing
+     * it via the direct method, and is always in the range [0,1]. <br><br>
+     * Note: The this method returns {@link Double#NaN} for a<0, though real values of P(a,z) do exist
+     * @param a any value >= 0
+     * @param z any value > 0
+     * @return P(a,z)
+     */
     public static double gammaP(double a, double z)
     {
+        if(z<= 0 || a < 0)
+            return Double.NaN;
         /*
          * This method is currently usntable for values of z that grow larger, so it is not currently in use
          * return exp(a*log(z)-z-lnGamma(a))/gammaP.lentz(a,z);
@@ -195,8 +241,18 @@ public class SpecialMath
         return 1 - gammaQ(a, z);
     }
     
+    /**
+     * Computes the incomplete gamma function, Γ(a,z). 
+     * <br>
+     * Returns {@link Double#NaN} for z <= 0
+     * @param a any value (-Infinity, Infinity)
+     * @param z any value > 0
+     * @return Γ(a,z)
+     */
     public static double gammaIncUp(double a, double z)
     {
+        if(z <= 0)
+            return Double.NaN;
         /**
          * On the range of x from 0.5 to 50
          * a=0.15, max |rel error| is ~1.3e-11, but only in a small range x ~= 11. Otherwise rel error ~ 2e-15
@@ -208,8 +264,18 @@ public class SpecialMath
         return exp(a*log(z)-z)/upIncGamma.lentz(a,z);
     }
     
+    /**
+     * Computes the lower incomplete gamma function, γ(a,z). 
+     * <br>
+     * Returns {@link Double#NaN} for z <= 0
+     * @param a any value (-Infinity, Infinity)
+     * @param z any value > 0
+     * @return γ(a,z)
+     */
     public static double gammaIncLow(double a, double z)
     {
+         if(z <= 0)
+            return Double.NaN;
         /**
          * On the range of x from 0.5 to 50
          * a=0.15, see a=1
@@ -356,11 +422,12 @@ public class SpecialMath
     };
     
     /**
-     * Using the formula from http://functions.wolfram.com/GammaBetaErf/GammaRegularized/10/0005/
+     * Using the formula from http://functions.wolfram.com/GammaBetaErf/GammaRegularized/10/0009/
      * 
      * Note the formula is given in terms of gammaQ
      * 
-     * Note: this continued fraction seems to be unstable as x grows, so not currently in use
+     * {@link #gammaQ} is accurate for P and Q for the range of z > 0, this is used for z <= 0
+     * 
      */
     private static final ContinuedFraction gammaP = new ContinuedFraction()
     {
@@ -374,7 +441,7 @@ public class SpecialMath
                 return args[1]*pos;
             }
             //Else its an odd step
-            pos/=2;
+            pos= (pos+1)/2;
             return -args[1]*(args[0]+pos);
         }
 

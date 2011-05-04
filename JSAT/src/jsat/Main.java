@@ -64,12 +64,12 @@ public class Main {
         
                 
 
-        double a = 0.15;
+        double a = -11;
 
-        for(double x = 0.5; x < 50; x+=0.5)
+        for(double x = 0.5; x < 10.5; x+=0.5)
         {
 //            System.out.print(SpecialMath.lnLowIncGamma(a, x) + ",");
-            System.out.print(Double.toString(SpecialMath.gammaIncLow(a, x)).replaceAll("E", "*10^") + ",");
+            System.out.print(Double.toString(SpecialMath.gammaIncUp(a,x)).replaceAll("E", "*10^") + ",");
 //            System.out.print(x + ",");
             
         }
