@@ -162,6 +162,19 @@ public class DenseVector implements Vec<DenseVector>
 
     public double standardDeviation()
     {
+        return sqrt(variance());
+    }
+
+    public DenseVector sortedCopy()
+    {
+        ArrayList<Double> copy = new ArrayList<Double>(array);
+        Collections.sort(copy);
+
+        return new DenseVector(copy);
+    }
+
+    public double variance()
+    {
         double mu = mean();
         double tmp = 0;
 
@@ -171,15 +184,7 @@ public class DenseVector implements Vec<DenseVector>
         for(double x : array)
             tmp += pow(x-mu, 2)/N;
         
-        return sqrt(tmp);
-    }
-
-    public DenseVector sortedCopy()
-    {
-        ArrayList<Double> copy = new ArrayList<Double>(array);
-        Collections.sort(copy);
-
-        return new DenseVector(copy);
+        return tmp;
     }
     
 }

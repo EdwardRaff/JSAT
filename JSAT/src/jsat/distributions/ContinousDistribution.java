@@ -10,10 +10,10 @@ import jsat.linear.Vec;
  */
 public abstract class ContinousDistribution
 {
-    abstract public double pdf(double d);
+    abstract public double pdf(double x);
     abstract public double invPdf(double d);
-    abstract public double cdf(double d);
-    abstract public double invCdf(double d);
+    abstract public double cdf(double x);
+    abstract public double invCdf(double p);
 
     /**
      * The minimum value for which the {@link #pdf(double) } is meant to return a value. Note that {@link Double#NEGATIVE_INFINITY} is a valid return value.
@@ -27,7 +27,22 @@ public abstract class ContinousDistribution
      */
     abstract public double max();
 
-    abstract public String getDescriptiveName();
+    public String getDescriptiveName()
+    {
+        StringBuilder sb = new StringBuilder(getDistributionName());
+        sb.append("(");
+        String[] vars = getVariables();
+        double[] vals = getCurrentVariableValues();
+        
+        sb.append(vars[0]).append(" = ").append(vals[0]);
+        
+        for(int i  = 1; i < vars.length; i++)
+            sb.append(", ").append(vars[i]).append(" = ").append(vals[i]);
+        
+        sb.append(")");
+        
+        return sb.toString();
+    }
 
     abstract public String getDistributionName();
 

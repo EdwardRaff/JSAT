@@ -25,6 +25,7 @@ public interface Vec<V extends Vec>
     public double sum();
     public double mean();
     public double standardDeviation();
+    public double variance();
     public double median();
 
 

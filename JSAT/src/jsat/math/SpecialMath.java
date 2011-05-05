@@ -242,6 +242,69 @@ public class SpecialMath
     }
     
     /**
+     * Finds the value <tt>x</tt> such that {@link #gammaP P(a,x)} = <tt>p</tt>. 
+     * @param a any real value 
+     * @param p and value in the range [0, 1]
+     * @return the inverse
+     */
+    public static double invGammaP(double p, double a)
+    {
+        //Method from Numerical Recipies 3rd edition p 263
+        if(p < 0 || p > 1)
+            throw new ArithmeticException("Probability p must be in the range [0,1], "+ p + "is not valid");
+        //First an estimate must be obtained
+        double am1 = a-1;
+        double lnGamA = lnGamma(a);
+        double x;//the to be returned
+        double afac = 1;//ONLY used when a>1
+        double lna1 =1;//ONLY used when a>1
+        if(a > 1)
+        {
+            lna1 = log(am1);
+            afac = exp(am1*(lna1-1)-lnGamA);
+            double pp = (p < 0.5) ? p : 1-p;
+            double t = sqrt(-2*log(pp));
+            //Now our inital estimate
+            x = (2.30753+t*0.27061)/(1.+t*(0.99229+t*0.04481)) - t;
+            if(p < 0.5)
+                x = -x;
+            x = max(1e-3, a * pow(1.0 - (1.0/(9.*a)) - x/(3.*sqrt(a))  , 3) );//if the estimate is too small, increase it
+            
+        }
+        else
+        {
+            double t = 1.0 - a*(0.253+a*0.12);
+            if(p < t)
+                x = pow(p/t, 1.0/a);
+            else
+                x = 1-log(1-(p-t)/(t-t));
+        }
+        
+        //Estimate obtained, now refinement
+        for(int j = 0; j < 12; j++)
+        {
+            if (x <= 0)//x is very small, return 0 b/c rounding errors and loss of precision will make accuracy imposible
+                return 0;
+            double err = gammaP(a, x) - p;
+            double t;
+            if(a > 1)
+                t = afac*exp(-(x-am1)+am1*(log(x)-lna1));
+            else
+                t = exp(-x+am1*log(x)-lnGamA);
+            
+            double u = err/t;
+            t = u / (1-0.5*min(1 , u*(am1/x - 1)) );//Halley's method
+            x -= t;
+            if(x <= 0)//bais x from going negative (means we are getting a bad value)
+                x = (x+t)/2;
+            if(abs(t) < 1e-8*x)
+                break;//the error is the (1e-8)^2, if we reach this point we have already converged
+        }
+        
+        return x;
+    }
+    
+    /**
      * Computes the incomplete gamma function, Γ(a,z). 
      * <br>
      * Returns {@link Double#NaN} for z <= 0
