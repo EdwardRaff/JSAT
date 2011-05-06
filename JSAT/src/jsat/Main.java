@@ -1,12 +1,14 @@
 
 package jsat;
 
+import jsat.math.rootFinding.Secant;
 import jsat.distributions.NormalDistribution;
 import jsat.math.ContinuedFraction;
 import jsat.math.Function;
 import jsat.math.SpecialMath;
 import jsat.math.integration.Romberg;
 import jsat.math.integration.Trapezoidal;
+import jsat.math.rootFinding.Bisection;
 import static java.lang.Math.*;
 import static jsat.math.SpecialMath.*;
 
@@ -27,7 +29,7 @@ public class Main {
 
             public double f(double... x)
             {
-                return Math.exp(-x[0]*x[0])*2/Math.sqrt(Math.PI);
+                return Math.cos(x[0]);
             }
         };
 //        System.out.println(Trapezoidal.trapz(func, 0, 1, 1000));
@@ -79,16 +81,17 @@ public class Main {
 //        System.out.println((exp(a*log(z)-z-lnGamma(a))/gammaQ.lentzO(x,a,b) + exp(a*log(z)-z-lnGamma(a))/gammaQ.lentzE(x,a,b))/2);
 //        System.out.println(exp(a*log(z)-z-lnGamma(a))/gammaQ.lentzBackward(x,a,b));
 
-        System.out.println();
+//        Bisection.root(0, 100, func, 2.0);
+        System.out.println(Secant.root(1, Math.PI, func, 0.2));
         
 
-        for(double x = 0.025; x <= 1; x+=0.025)
-        {
-//            System.out.print(SpecialMath.lnLowIncGamma(a, x) + ","); 296
-            System.out.print(Double.toString(SpecialMath.betaIncReg(x, 80, 100)).replaceAll("E", "*10^") + ",");
-//            System.out.print(x + ",");
-            
-        }
+//        for(double x = 0.025; x <= 1; x+=0.025)
+//        {
+////            System.out.print(SpecialMath.lnLowIncGamma(a, x) + ","); 296
+//            System.out.print(Double.toString(SpecialMath.betaIncReg(x, 80, 100)).replaceAll("E", "*10^") + ",");
+////            System.out.print(x + ",");
+//            
+//        }
         System.out.println();
 
 

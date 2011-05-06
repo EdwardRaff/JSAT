@@ -236,7 +236,7 @@ public class SpecialMath
         
         return exp(numer)/regIncBeta.lentz(x,a,b);
     }
-
+    
     /**
      * Computes the regularized gamma function Q(a,z) = Γ(a,z)/Γ(a). <br> 
      * This method is more numerically stable and accurate than computing
