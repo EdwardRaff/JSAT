@@ -180,7 +180,11 @@ public class SpecialMath
      */
     public static double beta(double z, double w)
     {
-
+        return exp(lnBeta(z, w));
+    }
+    
+    private static double lnBeta(double z, double w)
+    {
         /*
          * The beta function is defined by
          *
@@ -194,7 +198,43 @@ public class SpecialMath
          *            lnGamma(z) + lnGamma(w) - lnGamma(z + w)
          * B(z, w) = e
          */
-        return exp(lnGamma(z)+lnGamma(w)-lnGamma(z+w));
+        return lnGamma(z)+lnGamma(w)-lnGamma(z+w);
+    }
+    
+    /**
+     * Computes the regularized incomplete beta function, I(x; a, b). The result of which is always in the range [0, 1]
+     * 
+     * @param x any value in the range [0, 1]
+     * @param a any value >= 0
+     * @param b any value >= 0
+     * @return the result in a range of [0,1]
+     */
+    public static double betaIncReg(double x, double a, double b)
+    {
+        if(a <= 0 || b <= 0)
+            throw new ArithmeticException("a and b must be > 0, not" + a+ ", and " + b);
+        if(x == 0 || x == 1)
+            return x;
+        else if(x < 0 || x > 1)
+            throw new ArithmeticException("x must be in the range [0,1], not " + x);
+        
+        //We use this identity to make sure that our continued fraction is always in a range for which it converges faster
+        if(x > (a+1)/(a+b+2) || (1-x) < (b+1)/(a+b+2) )
+            return 1-betaIncReg(1-x, b, a);
+        
+        
+        /*
+         * All values are from x = 0 to x = 1, in 0.025 increments
+         * a = 0.5, b = 0.5: max rel error ~ 2.2e-15
+         * a = 0.5, b = 5: max rel error ~ 2e-15
+         * a = 5, b = 0.5: max rel error ~ 1.5e-14 @ x ~= 7.75, otherwise rel error ~ 2e-15
+         * a = 8, b = 10: max rel error ~ 9e-15, rel error is clearly not uniform but always small
+         * a = 80, b = 100: max rel error ~ 1.2e-14, rel error is clearly not uniform but always small
+         */
+        
+        double numer = a*log(x)+b*log(1-x)-(log(a)+lnBeta(a, b));
+        
+        return exp(numer)/regIncBeta.lentz(x,a,b);
     }
 
     /**
@@ -537,6 +577,35 @@ public class SpecialMath
         public double getB(int pos, double... args)
         {
             return (1+pos*2)-args[0]+args[1];
+        }
+    };
+    
+    /**
+     * See http://dlmf.nist.gov/8.17
+     */
+    private static final ContinuedFraction regIncBeta = new ContinuedFraction() {
+
+        @Override
+        public double getA(int pos, double... args)
+        {
+            if(pos % 2 == 0)
+            {
+                pos /=2;
+                return pos*(args[2]-pos)*args[0]/ ( (args[1] + 2*pos-1)*(args[1] + 2*pos) );
+            }
+            
+            pos = (pos-1)/2;
+            
+            double numer  = -(args[1] + pos)*(args[1]+args[2]+pos)*args[0];
+            double denom = (args[1] + 2*pos)*(args[1]+1+2*pos);
+            
+            return numer/denom;
+        }
+
+        @Override
+        public double getB(int pos, double... args)
+        {
+            return 1.0;
         }
     };
 }
