@@ -2,6 +2,7 @@
 package jsat.math.rootFinding;
 
 import jsat.math.Function;
+import static java.lang.Math.*;
 
 /**
  *
@@ -32,16 +33,29 @@ public class Bisection
         if(b <= a)
             throw new ArithmeticException("a musbt be < b for Bisection to work");
         
-        double x = args[0];
+        double s = args[0];
+        args[0] = b;
+        double fb = f.f(args)-s;
+        args[0] = a;
+        double fa = f.f(args)-s;
    
         while(b - a > 2*1e-15)
         {
             args[0] = (a+b)*0.5;
+            double ftmp = f.f(args)-s;
             
-            if(f.f(args) > x)
+            if(fa*ftmp < 0)
+            {
                 b = args[0];
-            else
+                fb = ftmp;
+            }
+            else if(fb * ftmp < 0)
+            {
                 a = args[0];
+                fa = ftmp;
+            }
+            else
+                break;//We converged
         }
         
         return (a+b)*0.5;

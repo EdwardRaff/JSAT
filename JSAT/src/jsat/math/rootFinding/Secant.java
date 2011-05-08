@@ -53,9 +53,6 @@ public class Secant
             x0 = x1;
             fx0 = fx1;
             x1 = nextX;
-            
-            System.out.println("\t" + x1);
-            
         }
         
         return x1;

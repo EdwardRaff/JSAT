@@ -1,6 +1,7 @@
 
 package jsat;
 
+import jsat.math.rootFinding.Zeroin;
 import jsat.math.rootFinding.Secant;
 import jsat.distributions.NormalDistribution;
 import jsat.math.ContinuedFraction;
@@ -9,6 +10,7 @@ import jsat.math.SpecialMath;
 import jsat.math.integration.Romberg;
 import jsat.math.integration.Trapezoidal;
 import jsat.math.rootFinding.Bisection;
+import jsat.math.rootFinding.RiddersMethod;
 import static java.lang.Math.*;
 import static jsat.math.SpecialMath.*;
 
@@ -82,7 +84,10 @@ public class Main {
 //        System.out.println(exp(a*log(z)-z-lnGamma(a))/gammaQ.lentzBackward(x,a,b));
 
 //        Bisection.root(0, 100, func, 2.0);
-        System.out.println(Secant.root(1, Math.PI, func, 0.2));
+        
+        System.out.println(Zeroin.root(1, Math.PI, func, 0.2));
+        System.out.println(Bisection.root(1, Math.PI, func, 0.2));
+        System.out.println(RiddersMethod.root(1, Math.PI, func, 0.2));
         
 
 //        for(double x = 0.025; x <= 1; x+=0.025)
