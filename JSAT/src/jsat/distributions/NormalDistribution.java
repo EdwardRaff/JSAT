@@ -161,6 +161,7 @@ public class NormalDistribution extends ContinousDistribution
         return 0.5+s*exp(-.5*q-0.91893853320467274178);
     }
 
+    @Override
     public String getDescriptiveName()
     {
         return "Normal(\u03BC=" + mean + ", \u03C3=" + stndDev + ")";

@@ -11,7 +11,7 @@ import jsat.linear.Vec;
 public abstract class ContinousDistribution
 {
     abstract public double pdf(double x);
-    abstract public double invPdf(double d);
+    abstract public double invPdf(double p);
     abstract public double cdf(double x);
     abstract public double invCdf(double p);
 

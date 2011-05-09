@@ -2,18 +2,24 @@
 package jsat.distributions;
 
 import jsat.linear.Vec;
+import static java.lang.Math.*;
+import static jsat.math.SpecialMath.*;
+
+
 
 /**
- *347
+ * 
  * @author Edward Raff
  */
 public class StudentT extends ContinousDistribution
 {
-    double df, mu, sig;
+    double df;
+    double mu;
+    double sig;
 
-    public StudentT(double df, double mu)
+    public StudentT(double df)
     {
-        this(df, mu, 1);
+        this(df, 0, 1);
     }
 
     public StudentT(double df, double mu, double sig)
@@ -25,9 +31,13 @@ public class StudentT extends ContinousDistribution
 
     
     @Override
-    public double pdf(double d)
+    public double pdf(double t)
     {
-        throw new UnsupportedOperationException("Not supported yet.");
+        
+        double leftSide = lnGamma((df+1)/2) - lnGamma(df/2) - lnGamma(df*PI)/2 - log(sig);
+        double rightSide = -(df+1)/2*log(1+pow((t-mu)/sig, 2)/df);
+        
+        return exp(leftSide+rightSide);
     }
 
     @Override
@@ -37,69 +47,103 @@ public class StudentT extends ContinousDistribution
     }
 
     @Override
-    public double cdf(double d)
+    public double cdf(double t)
     {
-        throw new UnsupportedOperationException("Not supported yet.");
+        double x = df/(df + pow((t-mu)/sig, 2));
+        
+        double p =  betaIncReg(x, df/2, 0.5)/2;
+        
+        if( t > mu)
+            return 1 - p;
+        else 
+            return p;
     }
 
     @Override
-    public double invCdf(double d)
+    public double invCdf(double p)
     {
-        throw new UnsupportedOperationException("Not supported yet.");
+        if(p < 0 || p > 1)
+            throw new ArithmeticException("Probability must be in the range [0,1], not " + p);
+        double x = invBetaIncReg(2*min(p,1-p), df/2, 0.5);
+        x = sig*sqrt(df*(1-x)/x);
+
+        if(p >= 0.5)
+            return mu+x;
+        else
+            return mu-x;
     }
 
     @Override
     public double min()
     {
-        throw new UnsupportedOperationException("Not supported yet.");
+        return Double.NEGATIVE_INFINITY;
     }
 
     @Override
     public double max()
     {
-        throw new UnsupportedOperationException("Not supported yet.");
+        return Double.POSITIVE_INFINITY;
     }
 
     @Override
     public String getDescriptiveName()
     {
-        throw new UnsupportedOperationException("Not supported yet.");
+        return "Student-T(df=" + df +", \u03BC=" + mu + ", \u03C3=" + sig + ")";
     }
 
     @Override
     public String getDistributionName()
     {
-        throw new UnsupportedOperationException("Not supported yet.");
+        return "Student-T";
     }
 
     @Override
     public String[] getVariables()
     {
-        throw new UnsupportedOperationException("Not supported yet.");
+        return new String[]{"df", NormalDistribution.mu, NormalDistribution.sigma};
     }
 
     @Override
     public double[] getCurrentVariableValues()
     {
-        throw new UnsupportedOperationException("Not supported yet.");
+        return new double[]{df, mu, sig};
     }
 
     @Override
     public void setVariable(String var, double value)
     {
-        throw new UnsupportedOperationException("Not supported yet.");
+        if (var.equals("df"))
+            if (value > 0)
+                df = value;
+            else
+                throw new ArithmeticException("Degrees of Fredom must be greater than 0");
+        else if (var.equals(NormalDistribution.mu))
+            mu = value;
+        else if (var.equals(NormalDistribution.sigma))
+            if (value > 0)
+                sig = value;
+            else
+                throw new ArithmeticException("Standard deviation must be greater than zero");
+                        
     }
 
     @Override
     public ContinousDistribution copy()
     {
-        throw new UnsupportedOperationException("Not supported yet.");
+        return new StudentT(df, mu, sig);
     }
 
     @Override
     public void setUsingData(Vec data)
     {
-        throw new UnsupportedOperationException("Not supported yet.");
+        /*
+         * While not true in every use of the t-distribution, 
+         * we assume degrees of fredom is n-1 if n is the number of samples
+         * 
+         */
+        df = data.length()-1;
+        mu = data.mean();
+        sig = sqrt(data.variance()*df/(df-2));
     }
     
 }
