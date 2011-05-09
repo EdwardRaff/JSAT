@@ -85,9 +85,7 @@ public class Main {
 
 //        Bisection.root(0, 100, func, 2.0);
         
-        System.out.println(Zeroin.root(1, Math.PI, func, 0.2));
-        System.out.println(Bisection.root(1, Math.PI, func, 0.2));
-        System.out.println(RiddersMethod.root(1, Math.PI, func, 0.2));
+        System.out.println(SpecialMath.invBetaIncReg(0.1234, 50, 2));
         
 
 //        for(double x = 0.025; x <= 1; x+=0.025)

@@ -5,6 +5,7 @@
 package jsat.math;
 
 import jsat.distributions.NormalDistribution;
+import jsat.math.rootFinding.RiddersMethod;
 import static java.lang.Math.*;
 
 /**
@@ -202,7 +203,7 @@ public class SpecialMath
     }
     
     /**
-     * Computes the regularized incomplete beta function, I(x; a, b). The result of which is always in the range [0, 1]
+     * Computes the regularized incomplete beta function, I<sub>x</sub>(a, b). The result of which is always in the range [0, 1]
      * 
      * @param x any value in the range [0, 1]
      * @param a any value >= 0
@@ -235,6 +236,33 @@ public class SpecialMath
         double numer = a*log(x)+b*log(1-x)-(log(a)+lnBeta(a, b));
         
         return exp(numer)/regIncBeta.lentz(x,a,b);
+    }
+    
+    private static final Function betaIncRegFunc = new Function() {
+
+        public double f(double... x)
+        {
+            return betaIncReg(x[0], x[1], x[2]);
+            
+        }
+    };
+    
+    /**
+     * Computes the inverse of the incomplete beta function,
+     * I<sub>p</sub><sup>-1</sup>(a,b), such that {@link #betaIncReg(double, double, double) I<sub>x</sub>(a, b) } = <tt>p</tt>. 
+     * The returned value, x, will always be in the range [0,1].
+     * The input <tt>p</tt>, must also be in the range [0,1]. 
+     * 
+     * @param p any value in the range [0,1]
+     * @param a any value >= 0
+     * @param b any value >= 0
+     * @return the value x, such that {@link #betaIncReg(double, double, double) I<sub>x</sub>(a, b) }  will return p. 
+     */
+    public static double invBetaIncReg(double p, double a, double b)
+    {
+        if(p < 0 || p > 1)
+            throw new ArithmeticException("The value p must be in the range [0,1], not" + p);
+        return RiddersMethod.root(0, 1, betaIncRegFunc, p, a, b);
     }
     
     /**
