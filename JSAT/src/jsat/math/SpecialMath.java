@@ -184,7 +184,7 @@ public class SpecialMath
         return exp(lnBeta(z, w));
     }
     
-    private static double lnBeta(double z, double w)
+    public static double lnBeta(double z, double w)
     {
         /*
          * The beta function is defined by
