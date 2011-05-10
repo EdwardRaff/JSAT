@@ -14,6 +14,32 @@ import static java.lang.Math.*;
  */
 public class SpecialMath
 {
+    
+    public static double invXlnX(double y)
+    {
+        //Method from Numerical Recipies, 3rd edition
+        if(y >= 0 || y <= -exp(-1))
+            throw new ArithmeticException("Inverse value can not be computed for the range [-e^-1, 0]");
+        double u;
+        
+        if(y < -0.2)
+            u = log(exp(-1) - sqrt(2*exp(-1)* (y+exp(-1)) ) );
+        else
+            u = 10;
+        double previousT = 0, t;
+        do
+        {
+            t = (log(y/u)-u)*(u/(1+u));
+            u += t;
+            if (t < 1e-8 && abs(t + previousT) < 0.01 * abs(t))
+                break;
+            previousT = t;
+        }
+        while (abs(t / u) < 1e-15);
+        
+        return exp(u);
+
+    }
 
     /**
      * The gamma function is a generalization of the factorial function. 
