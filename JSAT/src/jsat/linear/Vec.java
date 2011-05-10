@@ -5,7 +5,7 @@ package jsat.linear;
  *
  * @author Edward Raff
  */
-public interface Vec<V extends Vec>
+public interface Vec
 {
     public int length();
 
@@ -13,12 +13,14 @@ public interface Vec<V extends Vec>
 
     public void set(int index, double val);
     
-    public V add(V b);
-    public V subtract(V b);
-    public V multiply(V b);
-    public V divide(V b);
+    public Vec add(double c);
+    public Vec add(Vec b);
+    public Vec subtract(double c);
+    public Vec subtract(Vec b);
+    public Vec multiply(double c);
+    public Vec divide(double c);
 
-    public V sortedCopy();
+    public Vec sortedCopy();
 
     public double min();
     public double max();
@@ -27,6 +29,8 @@ public interface Vec<V extends Vec>
     public double standardDeviation();
     public double variance();
     public double median();
+    
+    public double dot(Vec v);
 
 
 

@@ -2,6 +2,7 @@
 package jsat.linear;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 
 import static java.lang.Math.*;
@@ -10,112 +11,58 @@ import static java.lang.Math.*;
  *
  * @author Edward Raff
  */
-public class DenseVector implements Vec<DenseVector>
+public class DenseVector implements Vec
 {
-    private ArrayList<Double> array;
+    private double[] array;
 
-    public DenseVector()
-    {
-        array = new ArrayList<Double>();
-    }
 
     public DenseVector(int initalSize)
     {
-        array = new ArrayList<Double>(initalSize);
-        for(int i = 0; i < initalSize; i++)
-            array.add(0.0);
+        array = new double[initalSize];
     }
 
     public DenseVector(ArrayList<Double> array)
     {
+        this.array = new double[array.size()];
+        for(int i = 0; i < array.size(); i++)
+            this.array[i] = array.get(i);
+    }
+
+    protected DenseVector(double[] array)
+    {
         this.array = array;
     }
     
+    
     public int length()
     {
-        return array.size();
+        return array.length;
     }
 
     public double get(int index)
     {
-        return array.get(index);
+        return array[index];
     }
 
     public void set(int index, double val)
     {
-        array.set(index, val);
-    }
-
-    public DenseVector add(DenseVector b)
-    {
-        if(b.length() != this.length())
-            throw new ArithmeticException("Vectors are of uneven length");
-        ArrayList<Double> result = new ArrayList<Double>(length());
-        for(int i = 0; i < length(); i++)
-            result.add(this.get(i)+b.get(i));
-
-        return new DenseVector(result);
-    }
-
-    public DenseVector subtract(DenseVector b)
-    {
-        if(b.length() != this.length())
-            throw new ArithmeticException("Vectors are of uneven length");
-        ArrayList<Double> result = new ArrayList<Double>(length());
-        for(int i = 0; i < length(); i++)
-            result.add(this.get(i)-b.get(i));
-
-        return new DenseVector(result);
-    }
-
-    public DenseVector multiply(DenseVector b)
-    {
-        if(b.length() != this.length())
-            throw new ArithmeticException("Vectors are of uneven length");
-        ArrayList<Double> result = new ArrayList<Double>(length());
-        for(int i = 0; i < length(); i++)
-            result.add(this.get(i)*b.get(i));
-
-        return new DenseVector(result);
-    }
-
-    public DenseVector divide(DenseVector b)
-    {
-        if(b.length() != this.length())
-            throw new ArithmeticException("Vectors are of uneven length");
-        ArrayList<Double> result = new ArrayList<Double>(length());
-        for(int i = 0; i < length(); i++)
-            result.add(this.get(i)/b.get(i));
-        
-        return new DenseVector(result);
-    }
-
-    public double dot(DenseVector b)
-    {
-        if(b.length() != this.length())
-            throw new ArithmeticException("Vectors are of uneven length");
-        double sum = 0;
-
-        for(int i = 0; i < length(); i++)
-            sum += this.get(i)*b.get(i);
-
-        return sum;
+        array[index] = val;
     }
 
     public double min()
     {
-        double result = array.get(0);
-        for(int i = 1; i < array.size(); i++)
-            result = Math.min(result, array.get(i));
+        double result = array[0];
+        for(int i = 1; i < array.length; i++)
+            result = Math.min(result, array[i]);
 
         return result;
     }
 
     public double max()
     {
-        double result = array.get(0);
-        for(int i = 1; i < array.size(); i++)
-            result = Math.max(result, array.get(i));
+        double result = array[0];
+        for(int i = 1; i < array.length; i++)
+            result = Math.max(result, array[i]);
 
         return result;
     }
@@ -145,14 +92,14 @@ public class DenseVector implements Vec<DenseVector>
 
     public double median()
     {
-        ArrayList<Double> copy = new ArrayList<Double>(array);
+        double[] copy = Arrays.copyOf(array, array.length);
 
-        Collections.sort(copy);
+        Arrays.sort(copy); 
 
-        if(copy.size() % 2 == 1)
-            return copy.get(copy.size()/2);
+        if(copy.length % 2 == 1)
+            return copy[copy.length/2];
         else
-            return copy.get(copy.size()/2)/2+copy.get(copy.size()/2)/2;//Divisions by 2 then add is more numericaly stable
+            return copy[copy.length/2]/2+copy[copy.length/2+1]/2;//Divisions by 2 then add is more numericaly stable
     }
 
     public double mean()
@@ -167,8 +114,9 @@ public class DenseVector implements Vec<DenseVector>
 
     public DenseVector sortedCopy()
     {
-        ArrayList<Double> copy = new ArrayList<Double>(array);
-        Collections.sort(copy);
+        double[] copy = Arrays.copyOf(array, array.length);
+
+        Arrays.sort(copy); 
 
         return new DenseVector(copy);
     }
@@ -185,6 +133,98 @@ public class DenseVector implements Vec<DenseVector>
             tmp += pow(x-mu, 2)/N;
         
         return tmp;
+    }
+
+    public double dot(Vec v)
+    {
+        if(this.length() != v.length())
+            throw new ArithmeticException("Vectors must have the same length");
+        
+        if(v instanceof SparceVector)//Let sparce do it, same both ways and sparce can do it efficently
+            return ((SparceVector) v).dot(this);
+        
+        double dot = 0;
+        for(int i = 0; i < length(); i++)
+            dot += array[i] * v.get(i);
+        
+        return dot;
+    }
+
+    public DenseVector deepCopy()
+    {
+        return new DenseVector(Arrays.copyOf(array, array.length));
+    }
+
+    public Vec add(double c)
+    {
+        DenseVector dv = new DenseVector(Arrays.copyOf(array, array.length));
+        
+        for(int i = 0; i < length(); i++)
+            dv.array[i] += c;
+        
+        return dv;
+    }
+
+    public Vec subtract(double c)
+    {
+        DenseVector dv = new DenseVector(Arrays.copyOf(array, array.length));
+        
+        for(int i = 0; i < length(); i++)
+            dv.array[i] -= c;
+        
+        return dv;
+    }
+
+    public Vec multiply(double c)
+    {
+        DenseVector dv = new DenseVector(Arrays.copyOf(array, array.length));
+        
+        for(int i = 0; i < length(); i++)
+            dv.array[i] *= c;
+        
+        return dv;
+    }
+
+    public Vec divide(double c)
+    {
+        DenseVector dv = new DenseVector(Arrays.copyOf(array, array.length));
+        
+        for(int i = 0; i < length(); i++)
+            dv.array[i] /= c;
+        
+        return dv;
+    }
+
+    public Vec add(Vec v)
+    {
+        if(this.length() != v.length())
+            throw new ArithmeticException("Vectors must have the same length");
+
+        
+        if(v instanceof SparceVector)//Sparce knows how to do this efficently
+            return ((SparceVector) v).add(this);
+        
+        //Else also dense
+        
+        double[] ret = new double[length()];
+        for(int i = 0; i < ret.length; i++)
+            ret[i] = array[i] + v.get(i);
+            
+        return new DenseVector(ret);
+    }
+
+    public Vec subtract(Vec v)
+    {
+        if(this.length() != v.length())
+            throw new ArithmeticException("Vectors must have the same length");
+        
+        //Subtractio isnt as clever...
+        
+        double[] ret = new double[length()];
+        for(int i = 0; i < ret.length; i++)
+            ret[i] = array[i] - v.get(i);
+            
+        return new DenseVector(ret);
     }
     
 }

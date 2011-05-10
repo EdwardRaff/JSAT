@@ -4,6 +4,7 @@ package jsat;
 import jsat.math.rootFinding.Zeroin;
 import jsat.math.rootFinding.Secant;
 import jsat.distributions.NormalDistribution;
+import jsat.linear.SparceVector;
 import jsat.math.ContinuedFraction;
 import jsat.math.Function;
 import jsat.math.SpecialMath;
@@ -67,6 +68,17 @@ public class Main {
             }
         };
         
+        SparceVector sv1 = new SparceVector(4) ;
+        SparceVector sv2 = new SparceVector(4) ;
+        sv1.set(0, PI);
+        sv1.set(3, PI);
+        
+        sv2.set(1, 2);
+        sv2.set(3, -2);
+        
+        System.out.println(sv1);
+        System.out.println(sv2);
+        System.out.println(sv1.add(sv2));
                 
 //        double a = 0.5;
 //        double b = 5;
