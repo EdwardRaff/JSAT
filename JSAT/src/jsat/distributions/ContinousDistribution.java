@@ -11,7 +11,6 @@ import jsat.linear.Vec;
 public abstract class ContinousDistribution
 {
     abstract public double pdf(double x);
-    abstract public double invPdf(double p);
     abstract public double cdf(double x);
     abstract public double invCdf(double p);
 
@@ -75,6 +74,17 @@ public abstract class ContinousDistribution
      * @param data the data to use to attempt to fit against
      */
     abstract public void setUsingData(Vec data);
+    
+    
+    abstract public double mean();
+    abstract public double median();
+    abstract public double mode();
+    abstract public double variance();
+    public double standardDeviation()
+    {
+        return Math.sqrt(variance());
+    }
+    
 
     @Override
     public String toString()

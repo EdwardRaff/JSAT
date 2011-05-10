@@ -222,4 +222,36 @@ public class NormalDistribution extends ContinousDistribution
     {
         return new double[]{mean, stndDev};
     }
+
+    @Override
+    public double mean()
+    {
+        return mean;
+    }
+
+    @Override
+    public double median()
+    {
+        return mean;
+    }
+
+    @Override
+    public double mode()
+    {
+        return mean;
+    }
+
+    @Override
+    public double variance()
+    {
+        return stndDev*stndDev;
+    }
+
+    @Override
+    public double standardDeviation()
+    {
+        return stndDev;
+    }
+    
+    
 }

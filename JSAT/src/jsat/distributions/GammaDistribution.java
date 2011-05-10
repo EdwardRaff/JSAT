@@ -39,11 +39,6 @@ public class GammaDistribution extends ContinousDistribution
         return exp(p1+p2+p3);
     }
 
-    @Override
-    public double invPdf(double d)
-    {
-        throw new UnsupportedOperationException("Not supported yet.");
-    }
 
     @Override
     public double cdf(double x)
@@ -117,6 +112,32 @@ public class GammaDistribution extends ContinousDistribution
          */
         theta = data.variance()/data.mean();
         k = data.mean()/theta;
+    }
+
+    @Override
+    public double mean()
+    {
+        return k * theta;
+    }
+
+    @Override
+    public double median()
+    {
+        return invGammaP(k, 0.5)*theta;
+    }
+
+    @Override
+    public double mode()
+    {
+        if(k < 1)
+            throw new ArithmeticException("No mode for k < 1");
+        return (k-1)*theta;
+    }
+
+    @Override
+    public double variance()
+    {
+        return k * theta*theta;
     }
     
 }

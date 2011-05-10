@@ -28,11 +28,6 @@ public class ExponentialDistribution extends ContinousDistribution
         return lambda*exp(-lambda*d);
     }
 
-    @Override
-    public double invPdf(double d)
-    {
-        return exp(lambda*d)/lambda;
-    }
 
     @Override
     public double cdf(double d)
@@ -106,6 +101,30 @@ public class ExponentialDistribution extends ContinousDistribution
     public double[] getCurrentVariableValues()
     {
         return new double[] {lambda};
+    }
+
+    @Override
+    public double mean()
+    {
+        return 1/lambda;
+    }
+
+    @Override
+    public double median()
+    {
+        return 1/lambda * log(2);
+    }
+
+    @Override
+    public double mode()
+    {
+        return 0;
+    }
+
+    @Override
+    public double variance()
+    {
+        return pow(lambda, -2);
     }
 
 }

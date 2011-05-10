@@ -23,12 +23,6 @@ public class Kolmogorov extends ContinousDistribution
     }
 
     @Override
-    public double invPdf(double p)
-    {
-        throw new UnsupportedOperationException("Not supported yet.");
-    }
-
-    @Override
     public double cdf(double x)
     {
         if(x < 0)
@@ -112,6 +106,30 @@ public class Kolmogorov extends ContinousDistribution
 
     @Override
     public void setUsingData(Vec data)
+    {
+        throw new UnsupportedOperationException("Not supported yet.");
+    }
+
+    @Override
+    public double mean()
+    {
+        throw new UnsupportedOperationException("Not supported yet.");
+    }
+
+    @Override
+    public double median()
+    {
+        throw new UnsupportedOperationException("Not supported yet.");
+    }
+
+    @Override
+    public double mode()
+    {
+        throw new UnsupportedOperationException("Not supported yet.");
+    }
+
+    @Override
+    public double variance()
     {
         throw new UnsupportedOperationException("Not supported yet.");
     }

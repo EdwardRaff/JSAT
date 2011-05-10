@@ -42,12 +42,6 @@ public class Weibull extends ContinousDistribution
     }
 
     @Override
-    public double invPdf(double p)
-    {
-        throw new UnsupportedOperationException("Not supported yet.");
-    }
-
-    @Override
     public double cdf(double x)
     {
         return 1 - exp(-pow(x/gam, k));
@@ -115,6 +109,33 @@ public class Weibull extends ContinousDistribution
     {
         //TODO how do you solve for this sucker? I dont know. 
         throw new UnsupportedOperationException("Not supported yet.");
+    }
+
+    @Override
+    public double mean()
+    {
+        return gam * gamma(1+1/k);
+    }
+
+    @Override
+    public double median()
+    {
+        return pow(log(2), 1/k)*gam;
+    }
+
+    @Override
+    public double mode()
+    {
+        if(k <= 1)
+            throw new ArithmeticException("Mode only exists for k > 1");
+        
+        return gam * pow( (k-1)/k, 1/k);
+    }
+
+    @Override
+    public double variance()
+    {
+        return gam*gam * gamma(1+2/k) - pow(median(),2);
     }
     
 }

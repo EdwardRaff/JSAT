@@ -38,11 +38,6 @@ public class FisherSendor extends ContinousDistribution
         return exp(leftSide+rightSide);
     }
 
-    @Override
-    public double invPdf(double p)
-    {
-        throw new UnsupportedOperationException("Not supported yet.");
-    }
 
     @Override
     public double cdf(double x)
@@ -137,5 +132,38 @@ public class FisherSendor extends ContinousDistribution
         double denom = -2*v2sqr - 16*var + 20*v2*var - 8*v2sqr*var + v2sqr*v2*var;
         
         v1 = 2*(-2*v2sqr + v2sqr*v2)/denom;
+    }
+
+    @Override
+    public double mean()
+    {
+        if(v2 < 2)
+            throw new ArithmeticException("No mean for v2 < 2");
+        
+        return v2/(v2-2);
+    }
+
+    @Override
+    public double median()
+    {
+        throw new UnsupportedOperationException("Not known how to compute");
+    }
+
+    @Override
+    public double mode()
+    {
+        if(v1 < 2)
+            throw new ArithmeticException("No mode for v1 < 2");
+        
+        return (v1-2)/v1*v2/(v2+2);
+    }
+
+    @Override
+    public double variance()
+    {
+        if(v2 < 4)
+            throw new ArithmeticException("No variance for v2 < 4");
+        
+        return 2 * v2*v2*(v1+v2-2) / (v1*pow(v2-2,2)*(v2-4));
     }
 }

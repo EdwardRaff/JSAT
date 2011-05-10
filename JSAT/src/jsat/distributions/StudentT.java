@@ -40,11 +40,6 @@ public class StudentT extends ContinousDistribution
         return exp(leftSide+rightSide);
     }
 
-    @Override
-    public double invPdf(double d)
-    {
-        throw new UnsupportedOperationException("Not supported yet.");
-    }
 
     @Override
     public double cdf(double t)
@@ -144,6 +139,30 @@ public class StudentT extends ContinousDistribution
         df = data.length()-1;
         mu = data.mean();
         sig = sqrt(data.variance()*df/(df-2));
+    }
+
+    @Override
+    public double mean()
+    {
+        return mu;
+    }
+
+    @Override
+    public double median()
+    {
+        return mu;
+    }
+
+    @Override
+    public double mode()
+    {
+        return mu;
+    }
+
+    @Override
+    public double variance()
+    {
+        return df/(df-2)*sig*sig;
     }
     
 }

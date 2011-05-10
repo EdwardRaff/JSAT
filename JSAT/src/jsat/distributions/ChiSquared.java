@@ -40,11 +40,6 @@ public class ChiSquared extends ContinousDistribution
         return exp((df/2-1)*log(x)-x/2-df/2*log(2)+lnGamma(df/2));
     }
 
-    @Override
-    public double invPdf(double d)
-    {
-        throw new UnsupportedOperationException("Not supported yet.");
-    }
 
     @Override
     public double cdf(double x)
@@ -110,5 +105,31 @@ public class ChiSquared extends ContinousDistribution
     {
         df = ceil(data.variance()/2);
     }
+
+    @Override
+    public double mean()
+    {
+        return df;
+    }
+
+    @Override
+    public double median()
+    {
+        //2*InvGammaP(df/2,1/2)
+        return invGammaP(df/2, 0.5)*2;
+    }
+
+    @Override
+    public double mode()
+    {
+        return max(df-2, 0);
+    }
+
+    @Override
+    public double variance()
+    {
+        return 2 * df;
+    }
+
     
 }
