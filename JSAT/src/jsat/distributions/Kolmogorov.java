@@ -77,37 +77,37 @@ public class Kolmogorov extends ContinousDistribution
     @Override
     public String getDistributionName()
     {
-        throw new UnsupportedOperationException("Not supported yet.");
+        return "Kolmogorov";
     }
 
     @Override
     public String[] getVariables()
     {
-        throw new UnsupportedOperationException("Not supported yet.");
+        return new String[]{};
     }
 
     @Override
     public double[] getCurrentVariableValues()
     {
-        throw new UnsupportedOperationException("Not supported yet.");
+        return new double[]{};
     }
 
     @Override
     public void setVariable(String var, double value)
     {
-        throw new UnsupportedOperationException("Not supported yet.");
+        
     }
 
     @Override
     public ContinousDistribution copy()
     {
-        throw new UnsupportedOperationException("Not supported yet.");
+        return new Kolmogorov();
     }
 
     @Override
     public void setUsingData(Vec data)
     {
-        throw new UnsupportedOperationException("Not supported yet.");
+        
     }
 
     @Override
