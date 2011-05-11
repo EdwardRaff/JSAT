@@ -95,7 +95,7 @@ public class StudentT extends ContinousDistribution
     @Override
     public String[] getVariables()
     {
-        return new String[]{"df", NormalDistribution.mu, NormalDistribution.sigma};
+        return new String[]{"df", Normal.mu, Normal.sigma};
     }
 
     @Override
@@ -112,9 +112,9 @@ public class StudentT extends ContinousDistribution
                 df = value;
             else
                 throw new ArithmeticException("Degrees of Fredom must be greater than 0");
-        else if (var.equals(NormalDistribution.mu))
+        else if (var.equals(Normal.mu))
             mu = value;
-        else if (var.equals(NormalDistribution.sigma))
+        else if (var.equals(Normal.sigma))
             if (value > 0)
                 sig = value;
             else

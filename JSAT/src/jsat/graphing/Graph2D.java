@@ -11,7 +11,7 @@ import java.awt.RenderingHints;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Line2D;
 import javax.swing.JComponent;
-import jsat.distributions.NormalDistribution;
+import jsat.distributions.Normal;
 import jsat.math.Function;
 
 /**

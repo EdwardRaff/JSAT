@@ -25,8 +25,8 @@ import javax.swing.JTable;
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 import jsat.distributions.ContinousDistribution;
-import jsat.distributions.ExponentialDistribution;
-import jsat.distributions.NormalDistribution;
+import jsat.distributions.Exponential;
+import jsat.distributions.Normal;
 import jsat.graphing.Graph2D;
 import jsat.graphing.Histogram;
 import jsat.graphing.QQPlotData;
@@ -44,7 +44,7 @@ import jsat.math.SimpleLinearRegression;
  */
 public class MainGUI extends javax.swing.JFrame
 {
-    ContinousDistribution[] distributions = new ContinousDistribution[] {new NormalDistribution(), new ExponentialDistribution()};
+    ContinousDistribution[] distributions = new ContinousDistribution[] {new Normal(), new Exponential()};
     
     String[] titles;
     List<Vec> data;

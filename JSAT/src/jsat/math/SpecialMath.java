@@ -4,7 +4,7 @@
 
 package jsat.math;
 
-import jsat.distributions.NormalDistribution;
+import jsat.distributions.Normal;
 import jsat.math.rootFinding.RiddersMethod;
 import static java.lang.Math.*;
 
@@ -164,7 +164,7 @@ public class SpecialMath
         * where cdf is the cdf of the normal distribution
         */
 
-        return 2 * NormalDistribution.cdf(x * sqrt(2.0), 0, 1)-1; 
+        return 2 * Normal.cdf(x * sqrt(2.0), 0, 1)-1; 
     }
 
     public static double invErf(double x)
@@ -175,7 +175,7 @@ public class SpecialMath
         * where invcdf is the inverse cdf of the normal distribution
         */
 
-        return NormalDistribution.invcdf(x/2+0.5, 0, 1)/sqrt(2.0);
+        return Normal.invcdf(x/2+0.5, 0, 1)/sqrt(2.0);
     }
 
     public static double erfc(double x)
@@ -185,7 +185,7 @@ public class SpecialMath
         *
         * where cdf is the cdf of the normal distribution
         */
-        return 2 * NormalDistribution.cdf(-x * sqrt(2.0), 0, 1);
+        return 2 * Normal.cdf(-x * sqrt(2.0), 0, 1);
     }
 
     public static double invErfc(double x)
@@ -196,7 +196,7 @@ public class SpecialMath
         * where invcdf is the inverse cdf of the normal distribution
         */
 
-        return NormalDistribution.invcdf(x/2, 0, 1)/-sqrt(2.0);
+        return Normal.invcdf(x/2, 0, 1)/-sqrt(2.0);
     }
 
     /**

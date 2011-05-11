@@ -11,7 +11,7 @@ import jsat.linear.Vec;
  *
  * @author Edward Raff
  */
-public class NormalDistribution extends ContinousDistribution
+public class Normal extends ContinousDistribution
 {
     public static final String mu = "\u03BC";
     public static final String sigma = "\u03C3";
@@ -19,12 +19,12 @@ public class NormalDistribution extends ContinousDistribution
     private double mean;
     private double stndDev;
 
-    public NormalDistribution()
+    public Normal()
     {
         this(0, 1);
     }
 
-    public NormalDistribution(double mean, double stndDev)
+    public Normal(double mean, double stndDev)
     {
         if(stndDev <= 0)
             throw new RuntimeException("Standerd deviation of the normal distribution needs to be greater than zero");
@@ -207,7 +207,7 @@ public class NormalDistribution extends ContinousDistribution
     @Override
     public ContinousDistribution copy()
     {
-        return new NormalDistribution(mean, stndDev);
+        return new Normal(mean, stndDev);
     }
 
     @Override

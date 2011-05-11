@@ -3,7 +3,7 @@ package jsat;
 
 import jsat.math.rootFinding.Zeroin;
 import jsat.math.rootFinding.Secant;
-import jsat.distributions.NormalDistribution;
+import jsat.distributions.Normal;
 import jsat.linear.SparceVector;
 import jsat.math.ContinuedFraction;
 import jsat.math.Function;

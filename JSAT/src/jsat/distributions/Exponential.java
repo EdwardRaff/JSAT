@@ -7,15 +7,15 @@ import jsat.linear.Vec;
  *
  * @author Edward Raff
  */
-public class ExponentialDistribution extends ContinousDistribution
+public class Exponential extends ContinousDistribution
 {
     private double lambda;
 
-    public ExponentialDistribution()
+    public Exponential()
     {
     }
 
-    public ExponentialDistribution(double lambda)
+    public Exponential(double lambda)
     {
         if(lambda <= 0)
             throw new RuntimeException("The rate parameter must be greater than zero");
@@ -85,7 +85,7 @@ public class ExponentialDistribution extends ContinousDistribution
     @Override
     public ContinousDistribution copy()
     {
-        return new ExponentialDistribution(lambda);
+        return new Exponential(lambda);
     }
 
     @Override
