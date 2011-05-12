@@ -116,7 +116,12 @@ public class DenseVector implements Vec
         for(double xi : array)
             tmp += pow(xi-mean, 3);
         
-        return tmp / (pow(standardDeviation(), 3) * (array.length-1) );
+        double s1 = tmp / (pow(standardDeviation(), 3) * (array.length-1) );
+        
+        if(array.length >= 3)//We can use the bias corrected formula
+            return sqrt(array.length*(array.length-1))/(array.length-2)*s1;
+        
+        return s1;
     }
 
     public double kurtosis()

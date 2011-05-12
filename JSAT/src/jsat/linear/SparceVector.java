@@ -276,7 +276,12 @@ public class SparceVector implements Vec
         //All the zero's we arent storing
         tmp += pow(-mean, 3)*(length-used);
         
-        return tmp / (pow(standardDeviation(), 3) * (length-1) );
+        double s1 = tmp / (pow(standardDeviation(), 3) * (length-1) );
+        
+        if(length >= 3)//We can use the bias corrected formula
+            return sqrt(length*(length-1))/(length-2)*s1;
+        
+        return s1;
     }
 
     public double kurtosis()
