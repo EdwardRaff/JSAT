@@ -79,7 +79,23 @@ public abstract class ContinousDistribution
     abstract public double mean();
     abstract public double median();
     abstract public double mode();
+    /**
+     * Computes the variance of the distribution. Not all distributions have a 
+     * finite variance for all parameter values. {@link Double#NaN NaN} may be 
+     * returned if the variance is not defined for the current values of the distribution. 
+     * {@link Double#POSITIVE_INFINITY Infinity} is a possible value to be returned
+     * by some distributions. 
+     * 
+     * @return the variance of the distribution. 
+     */
     abstract public double variance();
+    /**
+     * Computes the skewness of the distribution. Not all distributions have a 
+     * finite skewness for all parameter values. {@link Double#NaN NaN} may be 
+     * returned if the skewness is not defined for the current values of the distribution.
+     * 
+     * @return the skewness of the distribution. 
+     */
     abstract public double skewness();
     public double standardDeviation()
     {

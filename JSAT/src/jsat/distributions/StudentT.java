@@ -162,6 +162,10 @@ public class StudentT extends ContinousDistribution
     @Override
     public double variance()
     {
+        if(df<=1)
+            return Double.NaN;
+        else if(1 < df && df <= 2)
+            return Double.POSITIVE_INFINITY;
         return df/(df-2)*sig*sig;
     }
 
