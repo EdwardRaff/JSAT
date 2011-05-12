@@ -107,6 +107,30 @@ public class DenseVector implements Vec
         return sum()/length();
     }
 
+    public double skewness()
+    {
+        double mean = mean();
+        
+        double tmp = 0;
+        
+        for(double xi : array)
+            tmp += pow(xi-mean, 3);
+        
+        return tmp / (pow(standardDeviation(), 3) * (array.length-1) );
+    }
+
+    public double kurtosis()
+    {
+        double mean = mean();
+        
+        double tmp = 0;
+        
+        for(double xi : array)
+            tmp += pow(xi-mean, 4);
+        
+        return tmp / (pow(standardDeviation(), 4) * (array.length-1) ) - 3;
+    }
+    
     public double standardDeviation()
     {
         return sqrt(variance());

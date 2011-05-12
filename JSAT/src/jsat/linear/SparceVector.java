@@ -2,6 +2,7 @@
 package jsat.linear;
 
 import java.util.Arrays;
+import static java.lang.Math.*;
 
 /**
  *
@@ -261,6 +262,36 @@ public class SparceVector implements Vec
     public double median()
     {
         throw new UnsupportedOperationException("Not supported yet.");
+    }
+    
+    public double skewness()
+    {
+        double mean = mean();
+        
+        double tmp = 0;
+        
+        for(int i = 0; i < used; i++)
+            tmp += pow(values[i]-mean, 3);
+        
+        //All the zero's we arent storing
+        tmp += pow(-mean, 3)*(length-used);
+        
+        return tmp / (pow(standardDeviation(), 3) * (length-1) );
+    }
+
+    public double kurtosis()
+    {
+        double mean = mean();
+        
+        double tmp = 0;
+        
+        for(int i = 0; i < used; i++)
+            tmp += pow(values[i]-mean, 4);
+        
+        //All the zero's we arent storing
+        tmp += pow(-mean, 4)*(length-used);
+        
+        return tmp / (pow(standardDeviation(), 4) * (length-1) ) - 3;
     }
 
     public double dot(Vec v)

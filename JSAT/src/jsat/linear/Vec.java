@@ -29,6 +29,8 @@ public interface Vec
     public double standardDeviation();
     public double variance();
     public double median();
+    public double skewness();
+    public double kurtosis();
     
     public double dot(Vec v);
 
