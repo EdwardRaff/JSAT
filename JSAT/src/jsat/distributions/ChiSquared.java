@@ -5,6 +5,7 @@ import jsat.linear.Vec;
 
 import static java.lang.Math.*;
 import static jsat.math.SpecialMath.*;
+
 /**
  *
  * @author Edward Raff
@@ -122,7 +123,7 @@ public class ChiSquared extends ContinousDistribution
     @Override
     public double mode()
     {
-        return max(df-2, 0);
+        return Math.max(df-2, 0.0);
     }
 
     @Override

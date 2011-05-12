@@ -59,7 +59,7 @@ public class StudentT extends ContinousDistribution
     {
         if(p < 0 || p > 1)
             throw new ArithmeticException("Probability must be in the range [0,1], not " + p);
-        double x = invBetaIncReg(2*min(p,1-p), df/2, 0.5);
+        double x = invBetaIncReg(2*Math.min(p,1-p), df/2, 0.5);
         x = sig*sqrt(df*(1-x)/x);
 
         if(p >= 0.5)
