@@ -127,4 +127,10 @@ public class Exponential extends ContinousDistribution
         return pow(lambda, -2);
     }
 
+    @Override
+    public double skewness()
+    {
+        return 2;
+    }
+
 }

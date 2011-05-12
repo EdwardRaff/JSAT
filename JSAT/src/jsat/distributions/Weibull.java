@@ -173,5 +173,13 @@ public class Weibull extends ContinousDistribution
     {
         return gam*gam * gamma(1+2/k) - pow(median(),2);
     }
+
+    @Override
+    public double skewness()
+    {
+        double mu = mean();
+        double stnDev = standardDeviation();
+        return (gamma(1 + 3/k)*pow(gam, 3)-3*mu*pow(stnDev, 2)-pow(mu, 3))/pow(stnDev, 3);
+    }
     
 }

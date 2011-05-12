@@ -252,6 +252,11 @@ public class Normal extends ContinousDistribution
     {
         return stndDev;
     }
-    
+
+    @Override
+    public double skewness()
+    {
+        return 0;
+    }
     
 }

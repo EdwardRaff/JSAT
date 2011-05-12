@@ -139,5 +139,11 @@ public class Gamma extends ContinousDistribution
     {
         return k * theta*theta;
     }
+
+    @Override
+    public double skewness()
+    {
+        return 2 / sqrt(k);
+    }
     
 }

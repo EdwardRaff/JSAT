@@ -80,6 +80,7 @@ public abstract class ContinousDistribution
     abstract public double median();
     abstract public double mode();
     abstract public double variance();
+    abstract public double skewness();
     public double standardDeviation()
     {
         return Math.sqrt(variance());

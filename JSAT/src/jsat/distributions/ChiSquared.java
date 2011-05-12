@@ -132,5 +132,10 @@ public class ChiSquared extends ContinousDistribution
         return 2 * df;
     }
 
+    @Override
+    public double skewness()
+    {
+        return sqrt(8/df);
+    }
     
 }

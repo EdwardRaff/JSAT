@@ -164,5 +164,13 @@ public class StudentT extends ContinousDistribution
     {
         return df/(df-2)*sig*sig;
     }
+
+    @Override
+    public double skewness()
+    {
+        if(df <= 3)//Undefined for df <= 3
+            return Double.NaN;
+        return 0;
+    }
     
 }

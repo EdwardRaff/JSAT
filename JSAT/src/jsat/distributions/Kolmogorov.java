@@ -133,5 +133,11 @@ public class Kolmogorov extends ContinousDistribution
     {
         throw new UnsupportedOperationException("Not supported yet.");
     }
+
+    @Override
+    public double skewness()
+    {
+        throw new UnsupportedOperationException("Not supported yet.");
+    }
     
 }

@@ -166,4 +166,16 @@ public class FisherSendor extends ContinousDistribution
         
         return 2 * v2*v2*(v1+v2-2) / (v1*pow(v2-2,2)*(v2-4));
     }
+
+    @Override
+    public double skewness()
+    {
+        
+        if(v2 <= 6)//Does not have a skewness for d2 <= 6
+            return Double.NaN;
+        double num = (2*v1+v2-2)*sqrt(8*(v2-4));
+        double denom = (v2-6)*sqrt(v1*(v1+v2-2));
+        
+        return num/denom;
+    }
 }
