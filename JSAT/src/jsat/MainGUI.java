@@ -380,7 +380,7 @@ public class MainGUI extends javax.swing.JFrame
         DataSetSelection dss = new DataSetSelection(null, "Select data to perform Linear Regression on", titles, new String[]{"Y data", "X data"});
         int[] axie =  dss.getSelections();
 
-        final double[] ab = SimpleLinearRegression.regres(data.get(axie[0]), data.get(axie[1]));
+        final double[] ab = SimpleLinearRegression.regres(data.get(axie[1]), data.get(axie[0]));
         
         Function linearFunc = new Function() {
 

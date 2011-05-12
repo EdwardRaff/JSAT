@@ -1,7 +1,9 @@
 
 package jsat.distributions;
 
+import jsat.linear.DenseVector;
 import jsat.linear.Vec;
+import jsat.math.SimpleLinearRegression;
 import static java.lang.Math.*;
 import static jsat.math.SpecialMath.*;
 /**
@@ -107,8 +109,42 @@ public class Weibull extends ContinousDistribution
     @Override
     public void setUsingData(Vec data)
     {
-        //TODO how do you solve for this sucker? I dont know. 
-        throw new UnsupportedOperationException("Not supported yet.");
+        /* Method of parameter esstimation is more complex than for 
+         * other distirbutions, see 
+         * http://www.qualitydigest.com/jan99/html/body_weibull.html 
+         * for the method used
+         */
+        
+        Vec sData = data.sortedCopy();
+        DenseVector ranks = new DenseVector(sData.length());
+        for(int i = 0; i < sData.length(); i++)
+        {
+            //Get the median rank
+            double tmp = (i+1.0)/sData.length();
+
+            tmp = 1/(1-tmp);
+            
+            tmp = log(log(tmp));
+            
+            ranks.set(i, tmp);
+            
+            sData.set(i, log(sData.get(i)));
+        }
+        
+        
+        double[] s = SimpleLinearRegression.regres(sData, ranks);
+        
+        //The shape parameter is approximatly the slope
+        
+        gam = s[1];
+        
+        /*
+         * We can now compute alpha directly. 
+         * Note the page use y = m x + b, instead of y = b x + a
+         * 
+         */
+        
+        k = exp(-s[0]/gam);
     }
 
     @Override
