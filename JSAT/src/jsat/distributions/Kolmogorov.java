@@ -2,6 +2,8 @@
 package jsat.distributions;
 
 import jsat.linear.Vec;
+import jsat.math.Function;
+import jsat.math.rootFinding.RiddersMethod;
 import static java.lang.Math.*;
 import static jsat.math.SpecialMath.*;
 /**
@@ -27,8 +29,10 @@ public class Kolmogorov extends ContinousDistribution
     {
         if(x < 0)
             throw new ArithmeticException("Invalid value of x, x must be > 0, not " + x);
-        if(x == 0)
+        else if(x == 0)
             return 0;
+        else if(x >= 5)//By this point, floating point isnt accurate enough to distinguish between 1.0 and the true value.
+            return 1;
         
         /* 
          * Uses 2 formulas, see http://en.wikipedia.org/wiki/Kolmogorov%E2%80%93Smirnov_test#Kolmogorov_distribution
@@ -38,28 +42,39 @@ public class Kolmogorov extends ContinousDistribution
          * according to Numerical Recipies, 3rd Edition p(334-335)
          */
         double tmp = 0;
+        double x2 = x*x;
         if(x < 1.18)
         {
             
             for(int j = 1; j <= 3; j++ )
-                tmp += exp( -pow(2*j-1,2)*PI*PI / (8*x*x) );
+                tmp += exp( -pow(2*j-1,2)*PI*PI / (8*x2) );
             
             return sqrt(2*PI)/x *tmp;
         }
         else
         {
-            for(int j = 1; j <= 3; j++ )
-                tmp += exp(-2*j*j*x*x)*pow(-1,j-1);
+//            for(int j = 1; j <= 3; j++ )
+//                tmp += exp(-2*j*j*x*x)*pow(-1,j-1);
+            
+            tmp = exp(-2*x2) + exp(-18*x2) - exp(-8*x2);//In order of 1st, 3rd, and 2nd to reduce chances of cancelation
             
             return 1 - 2*tmp;
         }
         
     }
 
+    private final Function fCDF = new Function() {
+
+        public double f(double... x)
+        {
+            return cdf(x[0]);
+        }
+    };
+    
     @Override
     public double invCdf(double p)
     {
-        throw new UnsupportedOperationException("Not supported yet.");
+        return RiddersMethod.root(0, 5, fCDF, p);
     }
 
     @Override

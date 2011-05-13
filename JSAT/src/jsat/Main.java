@@ -1,6 +1,7 @@
 
 package jsat;
 
+import jsat.distributions.Kolmogorov;
 import jsat.math.rootFinding.Zeroin;
 import jsat.math.rootFinding.Secant;
 import jsat.distributions.Normal;
@@ -79,6 +80,10 @@ public class Main {
         System.out.println(sv1);
         System.out.println(sv2);
         System.out.println(sv1.add(sv2));
+        
+        Kolmogorov k = new Kolmogorov();
+        System.out.println(k.cdf(5)); 
+        System.out.println(1-k.invCdf(0.95/Math.sqrt(20.0)));
                 
 //        double a = 0.5;
 //        double b = 5;
@@ -96,7 +101,7 @@ public class Main {
 
 //        Bisection.root(0, 100, func, 2.0);
         
-        System.out.println(SpecialMath.invBetaIncReg(0.1234, 50, 2));
+//        System.out.println(SpecialMath.invBetaIncReg(0.1234, 50, 2));
         
 
 //        for(double x = 0.025; x <= 1; x+=0.025)
