@@ -31,6 +31,16 @@ public class Weibull extends ContinousDistribution
         this.beta = gam;
     }
 
+    
+    public double reliability(double x)
+    {
+        return exp(-pow(x/alpha, beta));
+    }
+    
+    public double failureRate(double x)
+    {
+        return beta/alpha * pow(x/alpha, beta-1);
+    }
 
     
     @Override
