@@ -55,10 +55,14 @@ public class KSTest
         for(int i = 0; i < v.length(); i++)
         {
             //ECDF(x) - F(x)
-            if(v.get(i) >= cd.min() )//If its not interface the valid set of values, we have to assume its not possible - so zero (the original max, so no update)
+            if(v.get(i) >= cd.min() && v.get(i) <= cd.max() )
             {
                 double tmp = (i+1.0)/v.length() - cd.cdf(v.get(i));
                 max = Math.max(max, Math.abs(tmp));
+            }
+            else//The data dose not fit in the rang eof the distribution
+            {
+                max = Math.max(max, Math.abs((i+1.0)/v.length()));
             }
         }
         
