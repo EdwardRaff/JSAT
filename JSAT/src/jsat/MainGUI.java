@@ -21,6 +21,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
+import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
@@ -35,6 +36,7 @@ import jsat.distributions.FisherSendor;
 import jsat.distributions.Gamma;
 import jsat.distributions.Kolmogorov;
 import jsat.distributions.Normal;
+import jsat.distributions.Uniform;
 import jsat.distributions.Weibull;
 import jsat.graphing.Graph2D;
 import jsat.graphing.Histogram;
@@ -57,7 +59,8 @@ public class MainGUI extends javax.swing.JFrame
     ContinousDistribution[] distributions = new ContinousDistribution[] 
     { 
         new Normal(), new Exponential(), new ChiSquared(10), 
-        new Gamma(2, 1), new FisherSendor(10, 10), new Weibull(2, 1)
+        new Gamma(2, 1), new FisherSendor(10, 10), new Weibull(2, 1), 
+        new Uniform(0, 1)
     };
     
     String[] titles;
@@ -477,9 +480,18 @@ public class MainGUI extends javax.swing.JFrame
         JList jl = new JList(possible);
 
         JFrame jf = new JFrame("Possiible Distribution matches for " + titles[axie[0]]);
-        JPanel jp = new JPanel(new GridLayout(1, 1));
-        jp.add(new JScrollPane(jl));
-        jf.setContentPane(jp);
+        if(possible.length > 0)
+        {
+            JPanel jp = new JPanel(new GridLayout(1, 1));
+            jp.add(new JScrollPane(jl));
+            jf.setContentPane(jp);
+        }
+        else//No distribution match
+        {
+            JPanel jp = new JPanel(new GridLayout(1, 1));
+            jp.add(new JLabel("No known distribution seems to match this data set"));
+            jf.setContentPane(jp);
+        }
         jf.setVisible(true);
         jf.pack();
         
