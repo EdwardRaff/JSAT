@@ -474,8 +474,6 @@ public class MainGUI extends javax.swing.JFrame
             possible[i] = pValues.get(i).getMatch().getDescriptiveName();
         
         
-        System.out.println(Arrays.toString(possible));
-        
         JList jl = new JList(possible);
 
         JFrame jf = new JFrame("Possiible Distribution matches for " + titles[axie[0]]);
