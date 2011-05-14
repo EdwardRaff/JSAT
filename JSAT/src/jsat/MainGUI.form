@@ -95,6 +95,28 @@
             <Property name="text" type="java.lang.String" value="Statistics"/>
           </Properties>
           <SubComponents>
+            <Menu class="javax.swing.JMenu" name="jMenu4">
+              <Properties>
+                <Property name="text" type="java.lang.String" value="Tests"/>
+              </Properties>
+              <SubComponents>
+                <Menu class="javax.swing.JMenu" name="jMenu5">
+                  <Properties>
+                    <Property name="text" type="java.lang.String" value="Goodness of Fit"/>
+                  </Properties>
+                  <SubComponents>
+                    <MenuItem class="javax.swing.JMenuItem" name="jMenuKSSearch">
+                      <Properties>
+                        <Property name="text" type="java.lang.String" value=" Kolmogorov Search"/>
+                      </Properties>
+                      <Events>
+                        <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="jMenuKSSearchActionPerformed"/>
+                      </Events>
+                    </MenuItem>
+                  </SubComponents>
+                </Menu>
+              </SubComponents>
+            </Menu>
             <MenuItem class="javax.swing.JMenuItem" name="jMenuItemSingleVariable">
               <Properties>
                 <Property name="text" type="java.lang.String" value="Single Variable"/>

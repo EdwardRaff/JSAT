@@ -55,8 +55,11 @@ public class KSTest
         for(int i = 0; i < v.length(); i++)
         {
             //ECDF(x) - F(x)
-            double tmp = (i+1.0)/v.length() - cd.cdf(v.get(i));
-            max = Math.max(max, Math.abs(tmp));
+            if(v.get(i) >= cd.min() )//If its not interface the valid set of values, we have to assume its not possible - so zero (the original max, so no update)
+            {
+                double tmp = (i+1.0)/v.length() - cd.cdf(v.get(i));
+                max = Math.max(max, Math.abs(tmp));
+            }
         }
         
         

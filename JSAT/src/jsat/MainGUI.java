@@ -7,6 +7,7 @@
 
 package jsat;
 
+import java.awt.GridLayout;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -14,19 +15,27 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
+import javax.swing.JList;
 import javax.swing.JOptionPane;
+import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
+import jsat.distributions.ChiSquared;
 import jsat.distributions.ContinousDistribution;
 import jsat.distributions.Exponential;
+import jsat.distributions.FisherSendor;
+import jsat.distributions.Gamma;
+import jsat.distributions.Kolmogorov;
 import jsat.distributions.Normal;
+import jsat.distributions.Weibull;
 import jsat.graphing.Graph2D;
 import jsat.graphing.Histogram;
 import jsat.graphing.QQPlotData;
@@ -37,6 +46,7 @@ import jsat.linear.DenseVector;
 import jsat.linear.Vec;
 import jsat.math.Function;
 import jsat.math.SimpleLinearRegression;
+import jsat.testing.goodnessoffit.KSTest;
 
 /**
  *
@@ -44,7 +54,11 @@ import jsat.math.SimpleLinearRegression;
  */
 public class MainGUI extends javax.swing.JFrame
 {
-    ContinousDistribution[] distributions = new ContinousDistribution[] {new Normal(), new Exponential()};
+    ContinousDistribution[] distributions = new ContinousDistribution[] 
+    { 
+        new Normal(), new Exponential(), new ChiSquared(10), 
+        new Gamma(2, 1), new FisherSendor(10, 10), new Weibull(2, 1)
+    };
     
     String[] titles;
     List<Vec> data;
@@ -94,6 +108,9 @@ public class MainGUI extends javax.swing.JFrame
         jMenuItemQQDist = new javax.swing.JMenuItem();
         jMenuItemQQData = new javax.swing.JMenuItem();
         jMenu2 = new javax.swing.JMenu();
+        jMenu4 = new javax.swing.JMenu();
+        jMenu5 = new javax.swing.JMenu();
+        jMenuKSSearch = new javax.swing.JMenuItem();
         jMenuItemSingleVariable = new javax.swing.JMenuItem();
         jMenu3 = new javax.swing.JMenu();
         jMenuItemLinearRegress = new javax.swing.JMenuItem();
@@ -176,6 +193,22 @@ public class MainGUI extends javax.swing.JFrame
         jMenuBar1.add(jMenu1);
 
         jMenu2.setText("Statistics");
+
+        jMenu4.setText("Tests");
+
+        jMenu5.setText("Goodness of Fit");
+
+        jMenuKSSearch.setText(" Kolmogorov Search");
+        jMenuKSSearch.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jMenuKSSearchActionPerformed(evt);
+            }
+        });
+        jMenu5.add(jMenuKSSearch);
+
+        jMenu4.add(jMenu5);
+
+        jMenu2.add(jMenu4);
 
         jMenuItemSingleVariable.setText("Single Variable");
         jMenuItemSingleVariable.addActionListener(new java.awt.event.ActionListener() {
@@ -405,6 +438,97 @@ public class MainGUI extends javax.swing.JFrame
 
     }//GEN-LAST:event_jMenuItemLinearRegressActionPerformed
 
+    private void jMenuKSSearchActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_jMenuKSSearchActionPerformed
+    {//GEN-HEADEREND:event_jMenuKSSearchActionPerformed
+        DataSetSelection dss = new DataSetSelection(null, "Select data to attempt to detect the distribution of",
+                titles, new String[]{"Data Set"});
+        
+        
+        int[] axie = dss.getSelections();
+        for (int i = 0; i < distributions.length; i++)
+            try
+            {
+                distributions[i].setUsingData(data.get(axie[0]));
+            }
+            catch (RuntimeException ex)
+            {
+            }
+        
+        KSTest ks = new KSTest(data.get(axie[0])) ;
+        List<ProbailityMatch<ContinousDistribution>> pValues = 
+                new ArrayList<ProbailityMatch<ContinousDistribution>>(distributions.length);
+        
+        for (int i = 0; i < distributions.length; i++)
+        {
+            double p = ks.testDist(distributions[i]);
+            if(p >= 0.05)
+                pValues.add(new ProbailityMatch<ContinousDistribution>(p, distributions[i]));
+        }
+        
+        Collections.sort(pValues);
+        Collections.reverse(pValues); 
+        
+        
+        String[] possible = new String[pValues.size()];
+        for(int i = 0; i < pValues.size(); i++)
+            possible[i] = pValues.get(i).getMatch().getDescriptiveName();
+        
+        
+        System.out.println(Arrays.toString(possible));
+        
+        JList jl = new JList(possible);
+
+        JFrame jf = new JFrame("Possiible Distribution matches for " + titles[axie[0]]);
+        JPanel jp = new JPanel(new GridLayout(1, 1));
+        jp.add(new JScrollPane(jl));
+        jf.setContentPane(jp);
+        jf.setVisible(true);
+        jf.pack();
+        
+    }//GEN-LAST:event_jMenuKSSearchActionPerformed
+
+    
+    class ProbailityMatch<T> implements Comparable<ProbailityMatch>
+    {
+        double probability;
+        T match;
+
+        public ProbailityMatch(double probability, T match)
+        {
+            this.probability = probability;
+            this.match = match;
+        }
+        
+        
+        
+        public int compareTo(ProbailityMatch t)
+        {
+            return new Double(probability).compareTo(t.probability);
+        }
+
+        public double getProbability()
+        {
+            return probability;
+        }
+
+        public void setProbability(double probability)
+        {
+            this.probability = probability;
+        }
+
+        public T getMatch()
+        {
+            return match;
+        }
+
+        public void setMatch(T match)
+        {
+            this.match = match;
+        }
+        
+        
+    }
+    
     /**
     * @param args the command line arguments
     */
@@ -420,6 +544,8 @@ public class MainGUI extends javax.swing.JFrame
     private javax.swing.JMenu jMenu1;
     private javax.swing.JMenu jMenu2;
     private javax.swing.JMenu jMenu3;
+    private javax.swing.JMenu jMenu4;
+    private javax.swing.JMenu jMenu5;
     private javax.swing.JMenuBar jMenuBar1;
     private javax.swing.JMenu jMenuFile;
     private javax.swing.JMenuItem jMenuItem1;
@@ -432,6 +558,7 @@ public class MainGUI extends javax.swing.JFrame
     private javax.swing.JMenuItem jMenuItemScatterMatrix;
     private javax.swing.JMenuItem jMenuItemSingleVariable;
     private javax.swing.JMenuItem jMenuItemTest;
+    private javax.swing.JMenuItem jMenuKSSearch;
     private javax.swing.JFileChooser jfc;
     // End of variables declaration//GEN-END:variables
 

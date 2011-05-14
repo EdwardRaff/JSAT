@@ -15,11 +15,11 @@ public class Weibull extends ContinousDistribution
     /**
      * Shape parameter
      */
-    double k;
+    double alpha;
     /**
      * Scale parameter
      */
-    double gam;
+    double beta;
 
     public Weibull(double k, double gam)
     {
@@ -27,8 +27,8 @@ public class Weibull extends ContinousDistribution
             throw new ArithmeticException("k must be > 0 not " + k );
         if(gam <= 0)
             throw new ArithmeticException("k must be > 0 not " + gam );
-        this.k = k;
-        this.gam = gam;
+        this.alpha = k;
+        this.beta = gam;
     }
 
 
@@ -39,20 +39,20 @@ public class Weibull extends ContinousDistribution
         if(x < 0)
             return 0;
         
-        return k/gam * pow(x/gam, k-1)*exp(-pow(x/gam, k));
+        return alpha/beta * pow(x/beta, alpha-1)*exp(-pow(x/beta, alpha));
         
     }
 
     @Override
     public double cdf(double x)
     {
-        return 1 - exp(-pow(x/gam, k));
+        return 1 - exp(-pow(x/beta, alpha));
     }
 
     @Override
     public double invCdf(double p)
     {
-        return gam*pow(-log(1-p),1/k);
+        return beta*pow(-log(1-p),1/alpha);
     }
 
     @Override
@@ -76,26 +76,26 @@ public class Weibull extends ContinousDistribution
     @Override
     public String[] getVariables()
     {
-        return new String[]{"k", "gam"};
+        return new String[]{"alpha", "beta"};
     }
 
     @Override
     public double[] getCurrentVariableValues()
     {
-        return new double[]{k, gam};
+        return new double[]{alpha, beta};
     }
 
     @Override
     public void setVariable(String var, double value)
     {
-        if (var.equals("k"))
+        if (var.equals("alpha"))
             if (value > 0)
-                k = value;
+                alpha = value;
             else
                 throw new ArithmeticException("k must be > 0 not " + value);
-        else if (var.equals("gam"))
+        else if (var.equals("beta"))
             if (value > 0)
-                gam = value;
+                beta = value;
             else
                 throw new ArithmeticException("gam must be > 0 not " + value );
     }
@@ -103,7 +103,7 @@ public class Weibull extends ContinousDistribution
     @Override
     public ContinousDistribution copy()
     {
-        return new Weibull(k, gam);
+        return new Weibull(alpha, beta);
     }
 
     @Override
@@ -112,7 +112,7 @@ public class Weibull extends ContinousDistribution
         /* Method of parameter esstimation is more complex than for 
          * other distirbutions, see 
          * http://www.qualitydigest.com/jan99/html/body_weibull.html 
-         * for the method used
+         * for the method used. NOTE the above article has alpha and beta in oposite order
          */
         
         Vec sData = data.sortedCopy();
@@ -120,12 +120,12 @@ public class Weibull extends ContinousDistribution
         for(int i = 0; i < sData.length(); i++)
         {
             //Get the median rank
-            double tmp = (i+1.0)/sData.length();
+            double tmp = (i+1.0-0.3)/(sData.length()+0.4);
 
             tmp = 1/(1-tmp);
             
             tmp = log(log(tmp));
-            
+                        
             ranks.set(i, tmp);
             
             sData.set(i, log(sData.get(i)));
@@ -136,7 +136,7 @@ public class Weibull extends ContinousDistribution
         
         //The shape parameter is approximatly the slope
         
-        gam = s[1];
+        alpha = s[1];
         
         /*
          * We can now compute alpha directly. 
@@ -144,34 +144,34 @@ public class Weibull extends ContinousDistribution
          * 
          */
         
-        k = exp(-s[0]/gam);
+        beta = exp(-s[0]/alpha);
     }
 
     @Override
     public double mean()
     {
-        return gam * gamma(1+1/k);
+        return beta * gamma(1+1/alpha);
     }
 
     @Override
     public double median()
     {
-        return pow(log(2), 1/k)*gam;
+        return pow(log(2), 1/alpha)*beta;
     }
 
     @Override
     public double mode()
     {
-        if(k <= 1)
+        if(alpha <= 1)
             throw new ArithmeticException("Mode only exists for k > 1");
         
-        return gam * pow( (k-1)/k, 1/k);
+        return beta * pow( (alpha-1)/alpha, 1/alpha);
     }
 
     @Override
     public double variance()
     {
-        return gam*gam * gamma(1+2/k) - pow(median(),2);
+        return beta*beta * gamma(1+2/alpha) - pow(median(),2);
     }
 
     @Override
@@ -179,7 +179,7 @@ public class Weibull extends ContinousDistribution
     {
         double mu = mean();
         double stnDev = standardDeviation();
-        return (gamma(1 + 3/k)*pow(gam, 3)-3*mu*pow(stnDev, 2)-pow(mu, 3))/pow(stnDev, 3);
+        return (gamma(1 + 3/alpha)*pow(beta, 3)-3*mu*pow(stnDev, 2)-pow(mu, 3))/pow(stnDev, 3);
     }
     
 }

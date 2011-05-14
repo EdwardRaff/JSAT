@@ -5,6 +5,7 @@ import jsat.distributions.Kolmogorov;
 import jsat.math.rootFinding.Zeroin;
 import jsat.math.rootFinding.Secant;
 import jsat.distributions.Normal;
+import jsat.distributions.Weibull;
 import jsat.linear.SparceVector;
 import jsat.math.ContinuedFraction;
 import jsat.math.Function;
@@ -41,49 +42,12 @@ public class Main {
 //        System.out.println(0.8427007929497149);
         
         
-        ContinuedFraction cf2 = new ContinuedFraction() {
-
-            @Override
-            public double getA(int pos, double... args)
-            {
-
-                if(pos % 2 == 0)
-                {
-                    pos /= 2;//the # of the even term
-                    
-                    return pos*args[1];
-                }
-                else
-                {
-                    pos/=2;
-                    
-                    return -(args[0]+pos)*args[1];
-                }
-            }
-
-            @Override
-            public double getB(int pos, double... args)
-            {
-                
-                return args[0];
-            }
-        };
+        Weibull wb = new Weibull(10, 2);
         
-        SparceVector sv1 = new SparceVector(4) ;
-        SparceVector sv2 = new SparceVector(4) ;
-        sv1.set(0, PI);
-        sv1.set(3, PI);
         
-        sv2.set(1, 2);
-        sv2.set(3, -2);
+        System.out.println(wb.cdf(2));
+        System.out.println(wb.invCdf(wb.cdf(2)));
         
-        System.out.println(sv1);
-        System.out.println(sv2);
-        System.out.println(sv1.add(sv2));
-        
-        Kolmogorov k = new Kolmogorov();
-        System.out.println(k.cdf(5)); 
-        System.out.println(1-k.invCdf(0.95/Math.sqrt(20.0)));
                 
 //        double a = 0.5;
 //        double b = 5;
