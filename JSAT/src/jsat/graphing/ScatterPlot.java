@@ -23,7 +23,7 @@ public class ScatterPlot extends Graph2D
 
     public ScatterPlot(Vec xValues, Vec yValues)
     {
-        super(xValues.min()-2, xValues.max()+2, yValues.min()-2, yValues.max()+2);
+        super(xValues.min(), xValues.max(), yValues.min(), yValues.max());
         this.xValues = xValues;
         this.yValues = yValues;
         regressionFunction = null;
