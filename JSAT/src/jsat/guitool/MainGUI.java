@@ -35,6 +35,7 @@ import jsat.distributions.Exponential;
 import jsat.distributions.FisherSendor;
 import jsat.distributions.Gamma;
 import jsat.distributions.Kolmogorov;
+import jsat.distributions.LogNormal;
 import jsat.distributions.Normal;
 import jsat.distributions.Uniform;
 import jsat.distributions.Weibull;
@@ -58,7 +59,7 @@ public class MainGUI extends javax.swing.JFrame
 {
     ContinousDistribution[] distributions = new ContinousDistribution[] 
     { 
-        new Normal(), new Exponential(), new ChiSquared(10), 
+        new Normal(), new LogNormal(), new Exponential(), new ChiSquared(10), 
         new Gamma(2, 1), new FisherSendor(10, 10), new Weibull(2, 1), 
         new Uniform(0, 1)
     };
