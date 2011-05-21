@@ -32,6 +32,16 @@ public class Normal extends ContinousDistribution
         this.stndDev = stndDev;
     }
 
+    public void setMean(double mean)
+    {
+        this.mean = mean;
+    }
+
+    public void setStndDev(double stndDev)
+    {
+        this.stndDev = stndDev;
+    }
+    
     public static double cdf(double x, double mu, double sigma)
     {
         return cdfApproxMarsaglia2004(zTransform(x, mu, sigma));
