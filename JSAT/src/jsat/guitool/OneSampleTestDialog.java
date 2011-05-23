@@ -16,7 +16,7 @@ import javax.swing.JTextField;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import jsat.linear.Vec;
-import jsat.testing.OneSampleTest;
+import jsat.testing.onesample.OneSampleTest;
 import jsat.testing.StatisticTest.H1;
 
 /**

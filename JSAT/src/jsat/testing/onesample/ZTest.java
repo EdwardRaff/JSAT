@@ -1,5 +1,5 @@
 
-package jsat.testing;
+package jsat.testing.onesample;
 
 import jsat.distributions.Normal;
 import jsat.linear.Vec;
@@ -38,6 +38,7 @@ public class ZTest implements OneSampleTest
     public ZTest(H1 h1, double sampleMean, double sampleDev, int sampleSize)
     {
         this.h1 = h1;
+        this.hypoMean = 0;
         this.sampleMean = sampleMean;
         this.sampleDev = sampleDev;
         this.sampleSize = sampleSize;

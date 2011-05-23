@@ -30,6 +30,17 @@ public class StudentT extends ContinousDistribution
     }
 
     
+    /**
+     * Sets the degrees of freedom used by the test.
+     * 
+     * @param df the new value for the degrees of freedom. 
+     */
+    public void setDf(double df)
+    {
+        this.df = df;
+    }
+
+    
     @Override
     public double pdf(double t)
     {

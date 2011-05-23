@@ -1,7 +1,8 @@
 
-package jsat.testing;
+package jsat.testing.onesample;
 
 import jsat.linear.Vec;
+import jsat.testing.StatisticTest;
 
 /**
  *

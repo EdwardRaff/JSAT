@@ -49,8 +49,9 @@ import jsat.linear.DenseVector;
 import jsat.linear.Vec;
 import jsat.math.Function;
 import jsat.math.SimpleLinearRegression;
-import jsat.testing.ZTest;
+import jsat.testing.onesample.ZTest;
 import jsat.testing.goodnessoffit.KSTest;
+import jsat.testing.onesample.TTest;
 
 /**
  *
@@ -118,6 +119,7 @@ public class MainGUI extends javax.swing.JFrame
         jMenuKSSearch = new javax.swing.JMenuItem();
         jMenu6 = new javax.swing.JMenu();
         jMenuItemOneSampZ = new javax.swing.JMenuItem();
+        jMenuItemOneSamT = new javax.swing.JMenuItem();
         jMenuItemSingleVariable = new javax.swing.JMenuItem();
         jMenu3 = new javax.swing.JMenu();
         jMenuItemLinearRegress = new javax.swing.JMenuItem();
@@ -224,6 +226,14 @@ public class MainGUI extends javax.swing.JFrame
             }
         });
         jMenu6.add(jMenuItemOneSampZ);
+
+        jMenuItemOneSamT.setText("T-Test");
+        jMenuItemOneSamT.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jMenuItemOneSamTActionPerformed(evt);
+            }
+        });
+        jMenu6.add(jMenuItemOneSamT);
 
         jMenu4.add(jMenu6);
 
@@ -521,6 +531,14 @@ public class MainGUI extends javax.swing.JFrame
         dia.setVisible(true);
     }//GEN-LAST:event_jMenuItemOneSampZActionPerformed
 
+    private void jMenuItemOneSamTActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_jMenuItemOneSamTActionPerformed
+    {//GEN-HEADEREND:event_jMenuItemOneSamTActionPerformed
+        OneSampleTestDialog dia = new OneSampleTestDialog(new TTest(), titles, data);
+        
+        dia.setSize(300, 300);
+        dia.setVisible(true);
+    }//GEN-LAST:event_jMenuItemOneSamTActionPerformed
+
     
     class ProbailityMatch<T> implements Comparable<ProbailityMatch>
     {
@@ -586,6 +604,7 @@ public class MainGUI extends javax.swing.JFrame
     private javax.swing.JMenuItem jMenuItem1;
     private javax.swing.JMenuItem jMenuItemHisto;
     private javax.swing.JMenuItem jMenuItemLinearRegress;
+    private javax.swing.JMenuItem jMenuItemOneSamT;
     private javax.swing.JMenuItem jMenuItemOneSampZ;
     private javax.swing.JMenuItem jMenuItemOpen;
     private javax.swing.JMenuItem jMenuItemQQData;
