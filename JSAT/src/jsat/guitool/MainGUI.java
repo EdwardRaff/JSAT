@@ -52,6 +52,7 @@ import jsat.math.SimpleLinearRegression;
 import jsat.testing.onesample.ZTest;
 import jsat.testing.goodnessoffit.KSTest;
 import jsat.testing.onesample.TTest;
+import jsat.utils.ProbailityMatch;
 
 /**
  *
@@ -539,48 +540,6 @@ public class MainGUI extends javax.swing.JFrame
         dia.setVisible(true);
     }//GEN-LAST:event_jMenuItemOneSamTActionPerformed
 
-    
-    class ProbailityMatch<T> implements Comparable<ProbailityMatch>
-    {
-        double probability;
-        T match;
-
-        public ProbailityMatch(double probability, T match)
-        {
-            this.probability = probability;
-            this.match = match;
-        }
-        
-        
-        
-        public int compareTo(ProbailityMatch t)
-        {
-            return new Double(probability).compareTo(t.probability);
-        }
-
-        public double getProbability()
-        {
-            return probability;
-        }
-
-        public void setProbability(double probability)
-        {
-            this.probability = probability;
-        }
-
-        public T getMatch()
-        {
-            return match;
-        }
-
-        public void setMatch(T match)
-        {
-            this.match = match;
-        }
-        
-        
-    }
-    
     /**
     * @param args the command line arguments
     */

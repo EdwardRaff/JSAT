@@ -34,6 +34,8 @@ public interface Vec
     
     public double dot(Vec v);
 
+    @Override
+    public String toString();
 
 
 }

@@ -1,6 +1,7 @@
 
 package jsat.classifiers;
 
+import jsat.linear.DenseVector;
 import jsat.linear.Vec;
 
 /**
@@ -24,15 +25,15 @@ public class DataPoint
     {
         return categoricalValues.length > 0;
     }
+
+    public Vec getNumericalValues()
+    {
+        return numericalValues;
+    }
     
     public boolean containsNumericalData()
     {
         return numericalValues != null && numericalValues.length() > 0;
-    }
-    
-    public Vec getNominalValues()
-    {
-        return numericalValues;
     }
     
     public int numNominalValues()
@@ -50,6 +51,12 @@ public class DataPoint
         return categoricalValues.length;
     }
     
+    /**
+     * 
+     * @param i the i'th categorical variable
+     * @return the value of the i'th categorical variable
+     * 
+     */
     public int getCategoricalValue(int i)
     {
         return categoricalValues[i];
@@ -59,5 +66,25 @@ public class DataPoint
     {
         return categoricalData;
     }
+
+    @Override
+    public String toString()
+    {
+        StringBuilder sb = new StringBuilder("Numerical: ");
+        sb.append(numericalValues.toString());
+        
+        sb.append(" Categorical: ");
+        
+        for(int i  = 0; i < categoricalValues.length; i++)
+        {
+            sb.append(categoricalData[i].catName(categoricalValues[i]));
+            sb.append(",");
+        }
+            
+        
+        return sb.toString();
+    }
+    
+    
     
 }

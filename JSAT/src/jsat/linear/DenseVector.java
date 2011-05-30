@@ -255,5 +255,11 @@ public class DenseVector implements Vec
             
         return new DenseVector(ret);
     }
+
+    @Override
+    public String toString()
+    {
+        return Arrays.toString(array);
+    }
     
 }

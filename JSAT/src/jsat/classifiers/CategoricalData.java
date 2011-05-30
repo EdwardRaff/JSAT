@@ -8,6 +8,7 @@ package jsat.classifiers;
 public class CategoricalData
 {
     private int n;//Number of different categories
+    private String[] catNames;
 
     /**
      * 
@@ -16,13 +17,14 @@ public class CategoricalData
     public CategoricalData(int n)
     {
         this.n = n;
+        catNames = null;
     }
 
     /**
      * 
      * @return the number of possible categories there are for this category
      */
-    public int getN()
+    public int getNumOfCategories()
     {
         return n;
     }
@@ -33,6 +35,14 @@ public class CategoricalData
             return false;
         
         return true;
+    }
+    
+    public String catName(int i)
+    {
+        if(catNames != null)
+            return catNames[i];
+        else
+            return Integer.toString(i);
     }
     
     
