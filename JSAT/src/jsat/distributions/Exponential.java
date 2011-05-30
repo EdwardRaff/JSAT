@@ -13,12 +13,13 @@ public class Exponential extends ContinousDistribution
 
     public Exponential()
     {
+        this(1);
     }
 
     public Exponential(double lambda)
     {
         if(lambda <= 0)
-            throw new RuntimeException("The rate parameter must be greater than zero");
+            throw new RuntimeException("The rate parameter must be greater than zero, not " + lambda);
         this.lambda = lambda;
     }
 
@@ -95,6 +96,8 @@ public class Exponential extends ContinousDistribution
          * mean of an exponential distribution is lambda^-1
          */
         lambda = 1/data.mean();
+        if(lambda <= 0)
+            lambda = 1;
     }
 
     @Override
