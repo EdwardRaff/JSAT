@@ -304,6 +304,10 @@ public class SpecialMath
     {
         if(z<= 0 || a < 0 )
             return Double.NaN;
+        
+        if(z < a+1)
+            return 1-gammaPSeries(a, z);
+        
         /**
          * On the range of x from 0.5 to 50
          * a=0.15, |rel error| is ~ 3e-15 for most values of x, with a bad spot of |rel error| ~ 3e-11 when x ~= 5.75
@@ -313,6 +317,24 @@ public class SpecialMath
          * a=10, max |rel error| is 4e-6, but only near x ~= 0, most is in the range 3e-15
          */
         return exp(a*log(z)-z-lnGamma(a))/gammaQ.lentz(a, z);
+    }
+    
+    public static double gammaPSeries(double a, double z)
+    {
+        double ap = a;
+        double sum;
+        double del = sum = 1.0/a;
+        
+        do
+        {
+            ap += 1.0;
+            del *= z/ap;
+            sum += del;
+            if(abs(del) < abs(sum)*1e-15)
+                return sum*exp(-z+a*log(z)-lnGamma(a));
+        }
+        while(true);
+        
     }
     
     /**
@@ -328,6 +350,10 @@ public class SpecialMath
     {
         if(z<= 0 || a < 0)
             return Double.NaN;
+        
+        if(z < a+1)
+            return gammaPSeries(a, z);
+        
         /*
          * This method is currently usntable for values of z that grow larger, so it is not currently in use
          * return exp(a*log(z)-z-lnGamma(a))/gammaP.lentz(a,z);
