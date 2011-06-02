@@ -125,43 +125,7 @@ public class NaiveBayes implements Classifier
     
     public void trainC(ClassificationDataSet dataSet)
     {
-        
         trainC(dataSet, new FakeExecutor());
-//        int nCat = dataSet.getPredicting().getNumOfCategories();
-//        apriori = new double[nCat][dataSet.getNumCategoricalVars()][];
-//        distributions = new ContinousDistribution[nCat][dataSet.getNumNumericalVars()] ;
-//        
-//        //Go through each classification
-//        for(int i = 0; i < nCat; i++)
-//        {
-//            //Set ditribution for the numerical values
-//            for(int j = 0; j < dataSet.getNumNumericalVars(); j++)
-//                distributions[i][j] = getBestDistribution(dataSet.getSampleVariableVector(i, j));
-//            
-//            
-//            
-//            List<DataPoint> dataSamples = dataSet.getSamples(i);
-//            
-//            //Iterate through the categorical variables
-//            for(int j = 0; j < dataSet.getNumCategoricalVars(); j++)
-//            {
-//                apriori[i][j] = new double[dataSet.getCategories()[j].getNumOfCategories()];
-//                    
-//                
-//                for(DataPoint point : dataSamples)//Count each occurance
-//                {
-//                    apriori[i][j][point.getCategoricalValue(j)]++;
-//                }
-//                
-//                //Convert the coutns to apriori probablities by dividing the count by the total occurances
-//                double sum = 0;
-//                for(int z = 0; z < apriori[i][j].length; z++)
-//                    sum += apriori[i][j][z];
-//                for(int z = 0; z < apriori[i][j].length; z++)
-//                    apriori[i][j][z] /= sum;
-//            }
-//        }
-        
     }
     
     
