@@ -4,6 +4,9 @@ package jsat;
 import java.util.List;
 import java.io.File;
 import java.util.Collections;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadFactory;
 import javax.xml.crypto.dsig.spec.C14NMethodParameterSpec;
 import jsat.classifiers.ClassificationDataSet;
 import jsat.classifiers.Classifier;
@@ -57,7 +60,16 @@ public class Main {
         
         Classifier classifier = new NaiveBayes();
         
-        int wrong = 0, right = 0;
+        int wrong = 0, right = 0, threads = Runtime.getRuntime().availableProcessors();
+        ExecutorService threadPool = Executors.newFixedThreadPool(threads, new ThreadFactory() {
+
+            public Thread newThread(Runnable r)
+            {
+                Thread thrd = new Thread(r);
+                thrd.setDaemon(true);
+                return thrd;
+            }
+        });
         
         for(int i = 0; i < lcds.size(); i++)
         {
@@ -65,7 +77,8 @@ public class Main {
             ClassificationDataSet testSet = lcds.get(i);
             
             
-            classifier.trainC(trainSet);
+//            classifier.trainC(trainSet);
+            classifier.trainC(trainSet, threadPool);
             
             for(int j = 0; j < testSet.getPredicting().getNumOfCategories(); j++)
             {
@@ -78,6 +91,7 @@ public class Main {
             
             
         }
+        
         
         System.out.println("right = " + right + "\twrong = " + wrong + "\t%correct = " + ((double)right)/(wrong+right));
         System.out.println("Yo");

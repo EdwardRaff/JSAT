@@ -2,6 +2,9 @@
 package jsat.classifiers;
 
 import java.util.List;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import jsat.distributions.ChiSquared;
 import jsat.distributions.ContinousDistribution;
 import jsat.distributions.Exponential;
@@ -13,6 +16,7 @@ import jsat.distributions.Uniform;
 import jsat.distributions.Weibull;
 import jsat.linear.Vec;
 import jsat.testing.goodnessoffit.KSTest;
+import jsat.utils.FakeExecutor;
 
 /**
  *
@@ -80,12 +84,20 @@ public class NaiveBayes implements Classifier
     
     private ContinousDistribution getBestDistribution(Vec v)
     {
+        //Thread Safety, copy the possible distributions
+        
+        ContinousDistribution[] possDistCopy = new ContinousDistribution[possibleDistributions.length];
+        
+        for(int i = 0; i < possibleDistributions.length; i++)
+            possDistCopy[i] = possibleDistributions[i].copy();
+        
+        
         KSTest ksTest = new KSTest(v);
         
         ContinousDistribution bestDist = null;
         double bestProb = 0;
         
-        for(ContinousDistribution cd : possibleDistributions)
+        for(ContinousDistribution cd : possDistCopy)
         {
             try
             {
@@ -113,16 +125,130 @@ public class NaiveBayes implements Classifier
     
     public void trainC(ClassificationDataSet dataSet)
     {
+        
+        trainC(dataSet, new FakeExecutor());
+//        int nCat = dataSet.getPredicting().getNumOfCategories();
+//        apriori = new double[nCat][dataSet.getNumCategoricalVars()][];
+//        distributions = new ContinousDistribution[nCat][dataSet.getNumNumericalVars()] ;
+//        
+//        //Go through each classification
+//        for(int i = 0; i < nCat; i++)
+//        {
+//            //Set ditribution for the numerical values
+//            for(int j = 0; j < dataSet.getNumNumericalVars(); j++)
+//                distributions[i][j] = getBestDistribution(dataSet.getSampleVariableVector(i, j));
+//            
+//            
+//            
+//            List<DataPoint> dataSamples = dataSet.getSamples(i);
+//            
+//            //Iterate through the categorical variables
+//            for(int j = 0; j < dataSet.getNumCategoricalVars(); j++)
+//            {
+//                apriori[i][j] = new double[dataSet.getCategories()[j].getNumOfCategories()];
+//                    
+//                
+//                for(DataPoint point : dataSamples)//Count each occurance
+//                {
+//                    apriori[i][j][point.getCategoricalValue(j)]++;
+//                }
+//                
+//                //Convert the coutns to apriori probablities by dividing the count by the total occurances
+//                double sum = 0;
+//                for(int z = 0; z < apriori[i][j].length; z++)
+//                    sum += apriori[i][j][z];
+//                for(int z = 0; z < apriori[i][j].length; z++)
+//                    apriori[i][j][z] /= sum;
+//            }
+//        }
+        
+    }
+    
+    
+    
+    /**
+     * Runnable task for selecting the right distribution for each task 
+     */
+    private class DistributionSelectRunable implements Runnable
+    {
+        int i;
+        int j;
+        Vec v;
+        CountDownLatch countDown;
+
+        public DistributionSelectRunable(int i, int j, Vec v, CountDownLatch countDown)
+        {
+            this.i = i;
+            this.j = j;
+            this.v = v;
+            this.countDown = countDown;
+        }
+
+        
+        
+        public void run()
+        {
+            distributions[i][j] = getBestDistribution(v);
+            countDown.countDown();
+        }
+        
+    }
+    
+    private class AprioriCounterRunable implements Runnable
+    {
+        int i;
+        int j;
+        List<DataPoint> dataSamples;
+        CountDownLatch latch;
+
+        public AprioriCounterRunable(int i, int j, List<DataPoint> dataSamples, CountDownLatch latch)
+        {
+            this.i = i;
+            this.j = j;
+            this.dataSamples = dataSamples;
+            this.latch = latch;
+        }
+        
+        
+        
+        public void run()
+        {
+            for (DataPoint point : dataSamples)//Count each occurance
+            {
+                apriori[i][j][point.getCategoricalValue(j)]++;
+            }
+
+            //Convert the coutns to apriori probablities by dividing the count by the total occurances
+            double sum = 0;
+            for (int z = 0; z < apriori[i][j].length; z++)
+                sum += apriori[i][j][z];
+            for (int z = 0; z < apriori[i][j].length; z++)
+                apriori[i][j][z] /= sum;
+            latch.countDown();
+        }
+        
+    }
+
+    public void trainC(ClassificationDataSet dataSet, ExecutorService threadPool)
+    {
         int nCat = dataSet.getPredicting().getNumOfCategories();
         apriori = new double[nCat][dataSet.getNumCategoricalVars()][];
         distributions = new ContinousDistribution[nCat][dataSet.getNumNumericalVars()] ;
+        
+        
+        int totalWorkers = nCat*(dataSet.getNumNumericalVars() + dataSet.getNumCategoricalVars());
+        CountDownLatch latch = new CountDownLatch(totalWorkers);
+        
         
         //Go through each classification
         for(int i = 0; i < nCat; i++)
         {
             //Set ditribution for the numerical values
             for(int j = 0; j < dataSet.getNumNumericalVars(); j++)
-                distributions[i][j] = getBestDistribution(dataSet.getSampleVariableVector(i, j));
+            {
+                Runnable rn = new DistributionSelectRunable(i, j, dataSet.getSampleVariableVector(i, j), latch);
+                threadPool.submit(rn);
+            }
             
             
             
@@ -132,27 +258,26 @@ public class NaiveBayes implements Classifier
             for(int j = 0; j < dataSet.getNumCategoricalVars(); j++)
             {
                 apriori[i][j] = new double[dataSet.getCategories()[j].getNumOfCategories()];
+                
+                //Laplace correction, put in an extra occurance for each variable
+                for(int z = 0; z < apriori[i][j].length; z++)
+                    apriori[i][j][z] = 1;
                     
-                
-                for(DataPoint point : dataSamples)//Count each occurance
-                {
-                    apriori[i][j][point.getCategoricalValue(j)]++;
-                }
-                
-                //Convert the coutns to apriori probablities by dividing the count by the total occurances
-                double sum = 0;
-                for(int z = 0; z < apriori[i][j].length; z++)
-                    sum += apriori[i][j][z];
-                for(int z = 0; z < apriori[i][j].length; z++)
-                    apriori[i][j][z] /= sum;
+                Runnable rn = new AprioriCounterRunable(i, j, dataSamples, latch);
+                threadPool.submit(rn);
             }
-            
-            
-            
-            
-            
         }
         
+        
+        //Wait for all the threads to finish
+        try
+        {
+            latch.await();
+        }
+        catch (InterruptedException ex)
+        {
+            ex.printStackTrace();
+        }
     }
     
 }
