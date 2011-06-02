@@ -285,5 +285,53 @@ public class DenseVector implements Vec
     {
         return Arrays.toString(array);
     }
+
+    public void mutableAdd(double c)
+    {
+        clearCaches();
+        for(int i = 0; i < array.length; i++)
+            array[i] += c;
+    }
+
+    public void mutableAdd(Vec b)
+    {
+        if(this.length() !=  b.length())
+            throw new ArithmeticException("Can not add vectors of unequal length");
+        
+        clearCaches();
+        for(int i = 0; i < array.length; i++)
+            array[i] += b.get(i);
+    }
+
+    public void mutableSubtract(double c)
+    {
+        clearCaches();
+        for(int i = 0; i < array.length; i++)
+            array[i] -= c;
+    }
+
+    public void mutableSubtract(Vec b)
+    {
+        if(this.length() !=  b.length())
+            throw new ArithmeticException("Can not add vectors of unequal length");
+        
+        clearCaches();
+        for(int i = 0; i < array.length; i++)
+            array[i] -= b.get(i);
+    }
+
+    public void mutableMultiply(double c)
+    {
+        clearCaches();
+        for(int i = 0; i < array.length; i++)
+            array[i] *= c;
+    }
+
+    public void mutableDivide(double c)
+    {
+        clearCaches();
+        for(int i = 0; i < array.length; i++)
+            array[i] /= c;
+    }
     
 }

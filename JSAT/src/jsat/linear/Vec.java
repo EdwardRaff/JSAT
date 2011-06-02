@@ -19,6 +19,13 @@ public interface Vec
     public Vec subtract(Vec b);
     public Vec multiply(double c);
     public Vec divide(double c);
+    
+    public void mutableAdd(double c);
+    public void mutableAdd(Vec b);
+    public void mutableSubtract(double c);
+    public void mutableSubtract(Vec b);
+    public void mutableMultiply(double c);
+    public void mutableDivide(double c);
 
     public Vec sortedCopy();
 
@@ -32,6 +39,11 @@ public interface Vec
     public double skewness();
     public double kurtosis();
     
+    /**
+     * 
+     * @param v the other vector
+     * @return  the dot product of this vector and another
+     */
     public double dot(Vec v);
 
     @Override

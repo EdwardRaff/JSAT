@@ -2,6 +2,7 @@
 package jsat.linear;
 
 import java.util.Arrays;
+import java.util.HashSet;
 import static java.lang.Math.*;
 
 /**
@@ -329,7 +330,7 @@ public class SparceVector implements Vec
     public double dot(Vec v)
     {
         double dot = 0;
-
+        
         if(v instanceof SparceVector)
         {
             SparceVector b = (SparceVector) v;
@@ -374,7 +375,7 @@ public class SparceVector implements Vec
             if(p < used && indexes[p] == i)
                 sb.append(values[p++]);
             else
-                sb.append("0");
+                sb.append("0.0");
         }
         sb.append("]");
         
@@ -419,6 +420,132 @@ public class SparceVector implements Vec
             sv.values[i] -= c;
         
         return sv;
+    }
+
+    public void mutableAdd(double c)
+    {
+        clearCaches();
+        /* This NOT the most efficient way to implement this. 
+         * But adding a constant to every value in a sparce 
+         * vector defeats its purpos. 
+         */
+        for(int i = 0; i < length(); i++)
+            this.set(i, get(i) + c);
+    }
+
+    public void mutableAdd(Vec v)
+    {
+        if(v instanceof SparceVector)
+        {
+            SparceVector b = (SparceVector) v;
+            int p1 = 0, p2 = 0;
+            while (p1 < used && p2 < b.used)
+            {
+                int a1 = indexes[p1], a2 = b.indexes[p2];
+                if (a1 == a2)
+                {
+                    values[p1] += b.values[p2];
+                    p1++;
+                    p2++;
+                }
+                else if (a1 > a2)
+                {
+                    //0 + some value is that value, set it 
+                    this.set(a2, b.values[p2]);
+                    /*
+                     * p2 must be increment becase were moving to the next value
+                     * 
+                     * p1 must be be incremented becase a2 was less thenn the current index. 
+                     * So the inseration occured before p1, so for indexes[p1] to == a1, 
+                     * p1 must be incremented
+                     * 
+                     */
+                    p1++;
+                    p2++;
+                }
+                else//a1 < a2, thats adding 0 to this vector, nothing to do. 
+                {
+                    p1++;
+                }
+            }
+        }
+        else
+        {
+            //Else it is dense
+            for(int i = 0; i < length(); i++)
+                this.set(i, this.get(i) + v.get(i));
+        }
+        
+    }
+
+    public void mutableSubtract(double c)
+    {
+        clearCaches();
+        /* 
+         * See comment in mutableAdd(double c)
+         */
+        for(int i = 0; i < length(); i++)
+            this.set(i, get(i) - c);
+    }
+
+    public void mutableSubtract(Vec v)
+    {
+        if(v instanceof SparceVector)
+        {
+            SparceVector b = (SparceVector) v;
+            int p1 = 0, p2 = 0;
+            while (p1 < used && p2 < b.used)
+            {
+                int a1 = indexes[p1], a2 = b.indexes[p2];
+                if (a1 == a2)
+                {
+                    values[p1] -= b.values[p2];
+                    p1++;
+                    p2++;
+                }
+                else if (a1 > a2)
+                {
+                    //0 + some value is that value, set it 
+                    this.set(a2, -b.values[p2]);
+                    /*
+                     * p2 must be increment becase were moving to the next value
+                     * 
+                     * p1 must be be incremented becase a2 was less thenn the current index. 
+                     * So the inseration occured before p1, so for indexes[p1] to == a1, 
+                     * p1 must be incremented
+                     * 
+                     */
+                    p1++;
+                    p2++;
+                }
+                else//a1 < a2, thats subtracting 0 from this vector, nothing to do. 
+                {
+                    p1++;
+                }
+            }
+        }
+        else
+        {
+            //Else it is dense
+            for(int i = 0; i < length(); i++)
+                this.set(i, this.get(i) - v.get(i));
+        }
+    }
+
+    public void mutableMultiply(double c)
+    {
+        clearCaches();
+        
+        for(int i = 0; i < used; i++)//0*c = 0, so we can do this sparcly
+            values[i] *= c;
+    }
+
+    public void mutableDivide(double c)
+    {
+        clearCaches();
+        
+        for(int i = 0; i < used; i++)//0/c = 0, so we can do this sparcly
+            values[i] /= c;
     }
     
     
