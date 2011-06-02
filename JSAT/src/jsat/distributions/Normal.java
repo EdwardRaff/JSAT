@@ -44,6 +44,9 @@ public class Normal extends ContinousDistribution
     
     public static double cdf(double x, double mu, double sigma)
     {
+        if (Double.isNaN(x) || Double.isInfinite(x))
+            throw new ArithmeticException("X is not a real number");
+        
         return cdfApproxMarsaglia2004(zTransform(x, mu, sigma));
     }
 
