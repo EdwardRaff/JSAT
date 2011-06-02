@@ -346,5 +346,33 @@ public class DenseVector implements Vec
         
         return Math.pow(norm, 1.0/p);
     }
+
+    public Vec copy()
+    {
+        DenseVector copy = new DenseVector(length());
+        
+        System.arraycopy(this.array, 0, copy.array, 0, length());
+        
+        return copy;
+    }
+
+    public Vec normalized()
+    {
+        Vec copy = this.copy();
+        copy.normalize();
+        return copy;
+    }
+
+    public void normalize()
+    {
+        double sum = 0;
+
+        for(int i = 0; i < array.length; i++)
+            sum += array[i]*array[i];
+        
+        sum = Math.sqrt(sum);
+
+        mutableDivide(sum); 
+    }
     
 }

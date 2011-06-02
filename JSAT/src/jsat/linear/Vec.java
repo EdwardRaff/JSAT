@@ -39,6 +39,10 @@ public interface Vec
     public double skewness();
     public double kurtosis();
     
+    public Vec copy();
+    public Vec normalized();
+    public void normalize();
+    
     
     /**
      * Returns the p-norm distance between this and another vector y. 

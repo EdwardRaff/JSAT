@@ -42,6 +42,7 @@ public class SparceVector implements Vec
     
     public SparceVector(int length, int capacity)
     {
+        this.used = 0;
         this.length = length;
         this.indexes = new int[capacity];
         this.values = new double[capacity];
@@ -559,6 +560,36 @@ public class SparceVector implements Vec
             norm += Math.pow(Math.abs(this.get(i) -y.get(i)), p);
         
         return Math.pow(norm, 1.0/p);
+    }
+
+    public Vec copy()
+    {
+        SparceVector copy = new SparceVector(length, used);
+        
+        System.arraycopy(this.values, 0, copy.values, 0, this.used);
+        System.arraycopy(this.indexes, 0, copy.indexes, 0, this.used);
+        copy.used = this.used;
+        
+        return copy;
+    }
+
+    public Vec normalized()
+    {
+        Vec copy = this.copy();
+        copy.normalize();
+        return copy;
+    }
+
+    public void normalize()
+    {
+        double sum = 0;
+
+        for(int i = 0; i < used; i++)
+            sum += values[i]*values[i];
+        
+        sum = Math.sqrt(sum);
+
+        mutableDivide(sum); 
     }
     
     
