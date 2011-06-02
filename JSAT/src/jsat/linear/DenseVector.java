@@ -333,5 +333,18 @@ public class DenseVector implements Vec
         for(int i = 0; i < array.length; i++)
             array[i] /= c;
     }
+
+    public double pNormDist(double p, Vec y)
+    {
+        if(this.length() != y.length())
+            throw new ArithmeticException("Vectors must be of the same length");
+        
+        double norm = 0;
+        //TODO this could be done more efficently if y is a sparce vector
+        for(int i = 0; i < length(); i++)
+            norm += Math.pow(Math.abs(array[i]-y.get(i)), p);
+        
+        return Math.pow(norm, 1.0/p);
+    }
     
 }

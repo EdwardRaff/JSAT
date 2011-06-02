@@ -547,6 +547,19 @@ public class SparceVector implements Vec
         for(int i = 0; i < used; i++)//0/c = 0, so we can do this sparcly
             values[i] /= c;
     }
+
+    public double pNormDist(double p, Vec y)
+    {
+        if(this.length() != y.length())
+            throw new ArithmeticException("Vectors must be of the same length");
+        
+        double norm = 0;
+        //TODO this could be done much more efficently if y is a sparce vector & for this
+        for(int i = 0; i < length(); i++)
+            norm += Math.pow(Math.abs(this.get(i) -y.get(i)), p);
+        
+        return Math.pow(norm, 1.0/p);
+    }
     
     
     

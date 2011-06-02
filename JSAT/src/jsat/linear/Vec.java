@@ -39,6 +39,15 @@ public interface Vec
     public double skewness();
     public double kurtosis();
     
+    
+    /**
+     * Returns the p-norm distance between this and another vector y. 
+     * @param p the distance type. 2 is the common value
+     * @param y the other vector to compare against
+     * @return the p-norm distance
+     */
+    public double pNormDist(double p, Vec y);
+    
     /**
      * 
      * @param v the other vector
