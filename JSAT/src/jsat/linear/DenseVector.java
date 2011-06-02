@@ -14,7 +14,10 @@ import static java.lang.Math.*;
 public class DenseVector implements Vec
 {
     private double[] array;
-
+    private Double sumCache = null;
+    private Double varianceCache = null;
+    private Double minCache = null;
+    private Double maxCache = null;
 
     public DenseVector(int initalSize)
     {
@@ -34,6 +37,17 @@ public class DenseVector implements Vec
     }
     
     
+    /**
+     * nulls out the cached summary statistics, should be called every time the data set changes
+     */
+    private void clearCaches()
+    {
+        sumCache = null;
+        varianceCache = null;
+        minCache = null;
+        maxCache = null;
+    }
+    
     public int length()
     {
         return array.length;
@@ -46,29 +60,37 @@ public class DenseVector implements Vec
 
     public void set(int index, double val)
     {
+        clearCaches();
         array[index] = val;
     }
 
     public double min()
     {
+        if(minCache != null)
+            return minCache;
+        
         double result = array[0];
         for(int i = 1; i < array.length; i++)
             result = Math.min(result, array[i]);
 
-        return result;
+        return (minCache = result);
     }
 
     public double max()
     {
+        if(maxCache != null)
+            return maxCache;
         double result = array[0];
         for(int i = 1; i < array.length; i++)
             result = Math.max(result, array[i]);
 
-        return result;
+        return (maxCache = result);
     }
 
     public double sum()
     {
+        if(sumCache != null)
+            return sumCache;
         /*
          * Uses Kahan summation algorithm, which is more accurate then
          * naively summing the values in floating point. Though it
@@ -87,7 +109,7 @@ public class DenseVector implements Vec
             sum = t;
         }
 
-        return sum;
+        return (sumCache = sum);
     }
 
     public double median()
@@ -152,6 +174,8 @@ public class DenseVector implements Vec
 
     public double variance()
     {
+        if(varianceCache != null)
+            return varianceCache;
         double mu = mean();
         double tmp = 0;
 
@@ -161,7 +185,7 @@ public class DenseVector implements Vec
         for(double x : array)
             tmp += pow(x-mu, 2)/N;
         
-        return tmp;
+        return (varianceCache = tmp);
     }
 
     public double dot(Vec v)

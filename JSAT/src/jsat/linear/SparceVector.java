@@ -27,6 +27,10 @@ public class SparceVector implements Vec
      */
     private double[] values;
     
+    private Double sumCache = null;
+    private Double varianceCache = null;
+    private Double minCache = null;
+    private Double maxCache = null;
     
     public SparceVector(int length)
     {
@@ -42,6 +46,16 @@ public class SparceVector implements Vec
         this.values = new double[capacity];
     }
     
+    /**
+     * nulls out the cached summary statistics, should be called every time the data set changes
+     */
+    private void clearCaches()
+    {
+        sumCache = null;
+        varianceCache = null;
+        minCache = null;
+        maxCache = null;
+    }
     
     public int length()
     {
@@ -74,6 +88,8 @@ public class SparceVector implements Vec
         if(index > length-1 || index < 0)
             throw new ArithmeticException("Can not set an index larger then the array");
 
+        
+        clearCaches();
         int insertLocation = Arrays.binarySearch(indexes, 0, used, index);
         if(insertLocation >= 0)
             values[insertLocation] = val;
@@ -194,24 +210,32 @@ public class SparceVector implements Vec
 
     public double min()
     {
+        if(minCache != null)
+            return minCache;
         double result = 0;
         for(int i = 0; i < used; i++)
             result = Math.min(result, values[i]);
 
-        return result;
+        return (minCache = result);
     }
 
     public double max()
     {
+        if(maxCache != null)
+            return maxCache;
+        
         double result = 0;
         for(int i = 0; i < used; i++)
             result = Math.max(result, values[i]);
 
-        return result;
+        return (maxCache = result);
     }
 
     public double sum()
     {
+        if(sumCache != null)
+            return sumCache;
+        
         /*
          * Uses Kahan summation algorithm, which is more accurate then
          * naively summing the values in floating point. Though it
@@ -230,7 +254,7 @@ public class SparceVector implements Vec
             sum = t;
         }
 
-        return sum;
+        return (sumCache = sum);
     }
 
     public double mean()
@@ -245,6 +269,9 @@ public class SparceVector implements Vec
 
     public double variance()
     {
+        if(varianceCache != null)
+            return varianceCache;
+        
         double mu = mean();
         double tmp = 0;
 
@@ -256,7 +283,7 @@ public class SparceVector implements Vec
         //Now add all the zeros into it
         tmp +=  (length()-used) * Math.pow(0-mu, 2)/N;
         
-        return tmp;
+        return (varianceCache = tmp);
     }
 
     public double median()
