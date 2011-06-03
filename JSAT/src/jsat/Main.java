@@ -12,13 +12,17 @@ import jsat.classifiers.ClassificationDataSet;
 import jsat.classifiers.Classifier;
 import jsat.classifiers.DataPoint;
 import jsat.classifiers.NaiveBayes;
+import jsat.classifiers.NearestNeighbour;
 import jsat.distributions.Gamma;
 import jsat.distributions.Kolmogorov;
 import jsat.math.rootFinding.Zeroin;
 import jsat.math.rootFinding.Secant;
 import jsat.distributions.Normal;
 import jsat.distributions.Weibull;
+import jsat.distributions.kernels.LinearKernel;
+import jsat.distributions.kernels.PolynomialKernel;
 import jsat.linear.SparceVector;
+import jsat.linear.distancemetrics.KernelDistance;
 import jsat.math.ContinuedFraction;
 import jsat.math.Function;
 import jsat.math.SpecialMath;
@@ -58,10 +62,11 @@ public class Main {
         List<ClassificationDataSet> lcds = cds.cvSet(5);
         
         
-        Classifier classifier = new NaiveBayes();
+//        Classifier classifier = new NaiveBayes();
+        Classifier classifier = new NearestNeighbour(1, false, new KernelDistance(new PolynomialKernel(2.0/3)));
         
         int wrong = 0, right = 0, threads = Runtime.getRuntime().availableProcessors();
-        ExecutorService threadPool = Executors.newFixedThreadPool(threads, new ThreadFactory() {
+        ExecutorService threadPool = Executors.newFixedThreadPool(threads, new ThreadFactory() { 
 
             public Thread newThread(Runnable r)
             {

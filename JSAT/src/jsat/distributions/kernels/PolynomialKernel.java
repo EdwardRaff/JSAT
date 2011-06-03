@@ -13,8 +13,6 @@ public class PolynomialKernel implements KernelFunction
 
     public PolynomialKernel(double d)
     {
-        if(d < 1)
-            throw new ArithmeticException("Polynomial needs a degree >= 1");
         this.d = d;
     }
 
