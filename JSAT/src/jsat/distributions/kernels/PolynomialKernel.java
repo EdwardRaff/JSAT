@@ -18,7 +18,7 @@ public class PolynomialKernel implements KernelFunction
 
     public double eval(Vec a, Vec b)
     {
-        return Math.pow(a.dot(b), d);
+        return Math.pow(1+a.dot(b), d);
     }
 
     @Override
