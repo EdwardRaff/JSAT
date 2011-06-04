@@ -5,26 +5,15 @@ import jsat.linear.Vec;
 
 /**
  *
- * k(x,y) = x.y + x
- * 
  * @author Edward Raff
  */
-public class LinearKernel implements KernelFunction
+public class RationalQuadraticKernel implements KernelFunction
 {
-
     private double c;
 
-    public LinearKernel(double c)
+    public RationalQuadraticKernel(double c)
     {
         this.c = c;
-    }
-
-    /**
-     * Defaults c = 0 
-     */
-    public LinearKernel()
-    {
-        this(0);
     }
 
     public void setC(double c)
@@ -37,18 +26,10 @@ public class LinearKernel implements KernelFunction
         return c;
     }
     
-    
     public double eval(Vec a, Vec b)
     {
-        return a.dot(b) + c;
+        double dist = Math.pow(a.pNormDist(2, b), 2);
+        return 1-dist/(dist+c);
     }
-
-    @Override
-    public String toString()
-    {
-        return "Linear";
-    }
-    
-    
     
 }

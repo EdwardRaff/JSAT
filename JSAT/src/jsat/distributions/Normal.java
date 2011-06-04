@@ -39,6 +39,8 @@ public class Normal extends ContinousDistribution
 
     public void setStndDev(double stndDev)
     {
+        if(stndDev <= 0)
+            throw new ArithmeticException("The standard devation can not be <= 0");
         this.stndDev = stndDev;
     }
     
@@ -210,10 +212,7 @@ public class Normal extends ContinousDistribution
         if(var.equals(mu))
             mean = value;
         else if(var.equals(sigma))
-            if(value > 0)
-                stndDev = value;
-            else
-                throw new RuntimeException("Standard deviation must be greater than zero");
+            setStndDev(value);
 
     }
 
@@ -227,7 +226,7 @@ public class Normal extends ContinousDistribution
     public void setUsingData(Vec data)
     {
         mean = data.mean();
-        stndDev = data.standardDeviation();
+        setStndDev(data.standardDeviation());
     }
 
     @Override

@@ -3,8 +3,10 @@ package jsat.classifiers;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Random;
+import java.util.Set;
 import jsat.linear.DenseVector;
 import jsat.linear.Vec;
 
@@ -28,7 +30,7 @@ public class ClassificationDataSet //extends DataSet
      */
     protected CategoricalData predicting;
     private int numOfSamples = 0;
-
+    
     /**
      * Contains a list of data points that have already been classified according to {@link #predicting}
      */
@@ -116,6 +118,35 @@ public class ClassificationDataSet //extends DataSet
         }
         
         return cds;
+    }
+    
+    /**
+     * 
+     * @param i the i'th data point in this set
+     * @return the ith data point in this set
+     */
+    public DataPoint getDataPoint(int i)
+    {
+        if(i >= getSampleSize())
+            throw new IndexOutOfBoundsException("There are not that many samples in the data set");
+        int set = 0;
+        
+        while(i >= classifiedExamples.get(set).size())
+            i -= classifiedExamples.get(set++).size();
+        
+        return classifiedExamples.get(set).get(i);
+    }
+    
+    public int getDataPointCategory(int i)
+    {
+        if(i >= getSampleSize())
+            throw new IndexOutOfBoundsException("There are not that many samples in the data set");
+        int set = 0;
+        
+        while(i >= classifiedExamples.get(set).size())
+            i -= classifiedExamples.get(set++).size();
+        
+        return set;
     }
     
     

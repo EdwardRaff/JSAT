@@ -118,7 +118,16 @@ public class NaiveBayes implements Classifier
         }
         
         ///Return the best distribution, or if somehow everythign went wrong, a normal distribution
-        return bestDist == null ? new Normal(v.mean(), v.standardDeviation()) : bestDist.copy();
+        try
+        {
+            return bestDist == null ? new Normal(v.mean(), v.standardDeviation()) : bestDist.copy();
+        }
+        catch (RuntimeException ex)//Mostly likely occurs if all values are all zero
+        {
+            if(v.standardDeviation() == 0)
+                return new Normal(v.mean(), 0.1);
+            throw new ArithmeticException("Catistrophic faulure getting a distribution");
+        }
     }
     
     

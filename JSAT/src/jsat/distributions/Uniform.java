@@ -23,7 +23,9 @@ public class Uniform extends ContinousDistribution
     @Override
     public double pdf(double x)
     {
-        if(a <=  x && x <= b)
+        if(a == b && a == x)
+            return 0;
+        else if(a <=  x && x <= b)
             return 1/(b-a);
         else
             return 0;
@@ -32,9 +34,11 @@ public class Uniform extends ContinousDistribution
     @Override
     public double cdf(double x)
     {
-        if(a <= x)
+        if(a < x)
             return 0;
         else if( x >= b)
+            return 1;
+        else if(a == b && a == x)
             return 1;
         else
             return (x-a)/(b-a);
@@ -45,6 +49,9 @@ public class Uniform extends ContinousDistribution
     {
         if( p < 0 || p > 1)
             throw new ArithmeticException("Probability must be interface the range [0,1], not " + p);
+        
+        if(a == b && p == 1)
+            return a;
         
         return a + p*(b-a);
     }

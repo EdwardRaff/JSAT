@@ -13,14 +13,17 @@ import jsat.classifiers.Classifier;
 import jsat.classifiers.DataPoint;
 import jsat.classifiers.NaiveBayes;
 import jsat.classifiers.NearestNeighbour;
+import jsat.classifiers.svm.PlatSMO;
 import jsat.distributions.Gamma;
 import jsat.distributions.Kolmogorov;
 import jsat.math.rootFinding.Zeroin;
 import jsat.math.rootFinding.Secant;
 import jsat.distributions.Normal;
+import jsat.distributions.Uniform;
 import jsat.distributions.Weibull;
 import jsat.distributions.kernels.LinearKernel;
 import jsat.distributions.kernels.PolynomialKernel;
+import jsat.distributions.kernels.RBFKernel;
 import jsat.linear.SparceVector;
 import jsat.linear.distancemetrics.KernelDistance;
 import jsat.math.ContinuedFraction;
@@ -49,7 +52,10 @@ public class Main {
 //        String sFile = "/Users/Edward Raff/Desktop/datasets-UCI/UCI/vehicle.arff";
 //        String sFile = "/Users/Edward Raff/Desktop/datasets-UCI/UCI/balance-scale.arff";
 //        String sFile = "/Users/Edward Raff/Desktop/datasets-UCI/UCI/glass.arff";
-        String sFile = "/Users/Edward Raff/Desktop/datasets-UCI/UCI/waveform-5000.arff";
+//        String sFile = "/Users/Edward Raff/Desktop/datasets-UCI/UCI/waveform-5000.arff";
+//        String sFile = "/Users/Edward Raff/Desktop/datasets-UCI/UCI/sonar.arff";
+        String sFile = "/Users/Edward Raff/Desktop/datasets-UCI/UCI/ionosphere.arff";
+//        String sFile = "/Users/Edward Raff/Desktop/datasets-UCI/UCI/diabetes.arff";
         
 //        String sFile = "/Users/Edward Raff/Desktop/datasets-UCI/UCI/vote.arff";
 
@@ -63,7 +69,8 @@ public class Main {
         
         
 //        Classifier classifier = new NaiveBayes();
-        Classifier classifier = new NearestNeighbour(1, false, new KernelDistance(new PolynomialKernel(2.0/3)));
+//        Classifier classifier = new NearestNeighbour(3, false);
+        Classifier classifier = new PlatSMO(new LinearKernel());
         
         int wrong = 0, right = 0, threads = Runtime.getRuntime().availableProcessors();
         ExecutorService threadPool = Executors.newFixedThreadPool(threads, new ThreadFactory() { 
@@ -82,8 +89,8 @@ public class Main {
             ClassificationDataSet testSet = lcds.get(i);
             
             
-//            classifier.trainC(trainSet);
-            classifier.trainC(trainSet, threadPool);
+            classifier.trainC(trainSet);
+//            classifier.trainC(trainSet, threadPool);
             
             for(int j = 0; j < testSet.getPredicting().getNumOfCategories(); j++)
             {
