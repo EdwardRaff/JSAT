@@ -1,5 +1,5 @@
 
-package jsat.text;
+package jsat.text.stemming;
 
 /**
  *

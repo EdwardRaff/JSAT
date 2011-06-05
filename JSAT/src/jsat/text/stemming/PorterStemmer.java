@@ -1,12 +1,12 @@
 
-package jsat.text;
+package jsat.text.stemming;
 
 /**
  * Implements Porter's stemming algorithm http://tartarus.org/~martin/PorterStemmer/def.txt . <br>
  * Implemented for ease of understanding and legibility rather than performance.
  * @author Edward Raff
  */
-public class PorterStemming implements Stemmer
+public class PorterStemmer implements Stemmer
 {
 
     public String stem(String s)
