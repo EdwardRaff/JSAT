@@ -1,7 +1,6 @@
 
 package jsat.distributions.kernels;
 
-import com.sun.org.apache.xml.internal.serializer.ToStream;
 import jsat.linear.Vec;
 
 /**

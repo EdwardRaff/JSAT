@@ -3,6 +3,7 @@ package jsat;
 
 import java.util.List;
 import java.io.File;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -33,6 +34,7 @@ import jsat.math.integration.Romberg;
 import jsat.math.integration.Trapezoidal;
 import jsat.math.rootFinding.Bisection;
 import jsat.math.rootFinding.RiddersMethod;
+import jsat.utils.IndexTable;
 import static java.lang.Math.*;
 import static jsat.math.SpecialMath.*;
 
@@ -47,15 +49,17 @@ public class Main {
      */
     public static void main(String[] args)
     {
-        
+        String path = "C:\\Users\\Edward Raff\\Desktop\\UCI\\nominal\\";
 //        String sFile = "/Users/Edward Raff/Desktop/datasets-UCI/UCI/iris.arff";
 //        String sFile = "/Users/Edward Raff/Desktop/datasets-UCI/UCI/vehicle.arff";
-//        String sFile = "/Users/Edward Raff/Desktop/datasets-UCI/UCI/balance-scale.arff";
-//        String sFile = "/Users/Edward Raff/Desktop/datasets-UCI/UCI/glass.arff";
-//        String sFile = "/Users/Edward Raff/Desktop/datasets-UCI/UCI/waveform-5000.arff";
-//        String sFile = "/Users/Edward Raff/Desktop/datasets-UCI/UCI/sonar.arff";
-        String sFile = "/Users/Edward Raff/Desktop/datasets-UCI/UCI/ionosphere.arff";
-//        String sFile = "/Users/Edward Raff/Desktop/datasets-UCI/UCI/diabetes.arff";
+//        String sFile = path + "balance-scale.arff";
+//        String sFile = path + "glass.arff";
+//        String sFile = path + "waveform-5000.arff";
+        String sFile = path + "sonar.arff";
+//        String sFile = path + "ionosphere.arff";
+//        String sFile = path + "diabetes.arff";
+//        String sFile = path + "breast-w.arff";
+//        String sFile = path + "heart-statlog.arff";
         
 //        String sFile = "/Users/Edward Raff/Desktop/datasets-UCI/UCI/vote.arff";
 
@@ -65,12 +69,12 @@ public class Main {
         
         ClassificationDataSet cds = new ClassificationDataSet(dataPoints, dataPoints.get(0).numCategoricalValues()-1); 
         
-        List<ClassificationDataSet> lcds = cds.cvSet(5);
+        List<ClassificationDataSet> lcds = cds.cvSet(10);
         
         
-//        Classifier classifier = new NaiveBayes();
+        Classifier classifier = new NaiveBayes();
 //        Classifier classifier = new NearestNeighbour(3, false);
-        Classifier classifier = new PlatSMO(new LinearKernel());
+//        Classifier classifier = new PlatSMO(new RBFKernel(4));
         
         int wrong = 0, right = 0, threads = Runtime.getRuntime().availableProcessors();
         ExecutorService threadPool = Executors.newFixedThreadPool(threads, new ThreadFactory() { 

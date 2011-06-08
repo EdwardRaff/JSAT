@@ -87,7 +87,7 @@ public class SparceVector implements Vec
 
     public void set(int index, double val)
     {
-        if(index > length-1 || index < 0)
+        if(index > length()-1 || index < 0)
             throw new ArithmeticException("Can not set an index larger then the array");
 
         
