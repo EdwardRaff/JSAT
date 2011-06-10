@@ -2,6 +2,7 @@
 package jsat.classifiers;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
@@ -47,12 +48,7 @@ public class NearestNeighbour implements  Classifier
         this.weighted = weighted;
         this.distanceMetric = distanceMetric;
     }
-    
-    
-    
-    
-    
-    
+     
     public CategoricalResults classify(DataPoint data)
     {
         if(dataPoints == null)
@@ -125,5 +121,18 @@ public class NearestNeighbour implements  Classifier
             dataPoints.addAll(some); 
         }
         
+    }
+
+    public Classifier copy()
+    {
+        NearestNeighbour copy = new NearestNeighbour(k, weighted, distanceMetric);
+        
+        copy.classification = Arrays.copyOf(classification, classification.length);
+        copy.dataPoints = new ArrayList<DataPoint>(dataPoints.size());
+        
+        copy.dataPoints.addAll(this.dataPoints);
+        copy.predicting = this.predicting;
+        
+        return copy;
     }
 }

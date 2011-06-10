@@ -12,4 +12,6 @@ public interface Classifier
     public CategoricalResults classify(DataPoint data);
     public void trainC(ClassificationDataSet dataSet, ExecutorService threadPool);
     public void trainC(ClassificationDataSet dataSet);
+    
+    public Classifier copy();
 }

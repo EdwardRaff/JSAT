@@ -14,6 +14,7 @@ import jsat.classifiers.Classifier;
 import jsat.classifiers.DataPoint;
 import jsat.classifiers.NaiveBayes;
 import jsat.classifiers.NearestNeighbour;
+import jsat.classifiers.OneVSAll;
 import jsat.classifiers.svm.PlatSMO;
 import jsat.distributions.Gamma;
 import jsat.distributions.Kolmogorov;
@@ -50,12 +51,14 @@ public class Main {
     public static void main(String[] args)
     {
         String path = "C:\\Users\\Edward Raff\\Desktop\\UCI\\nominal\\";
-//        String sFile = "/Users/Edward Raff/Desktop/datasets-UCI/UCI/iris.arff";
+//        String sFile = path + "iris.arff";
 //        String sFile = "/Users/Edward Raff/Desktop/datasets-UCI/UCI/vehicle.arff";
 //        String sFile = path + "balance-scale.arff";
 //        String sFile = path + "glass.arff";
 //        String sFile = path + "waveform-5000.arff";
-        String sFile = path + "sonar.arff";
+        String sFile = path + "wine.arff";
+        
+//        String sFile = path + "sonar.arff";
 //        String sFile = path + "ionosphere.arff";
 //        String sFile = path + "diabetes.arff";
 //        String sFile = path + "breast-w.arff";
@@ -72,9 +75,10 @@ public class Main {
         List<ClassificationDataSet> lcds = cds.cvSet(10);
         
         
-        Classifier classifier = new NaiveBayes();
+//        Classifier classifier = new NaiveBayes();
 //        Classifier classifier = new NearestNeighbour(3, false);
 //        Classifier classifier = new PlatSMO(new RBFKernel(4));
+        Classifier classifier = new OneVSAll(new PlatSMO(new RBFKernel(12.5))); 
         
         int wrong = 0, right = 0, threads = Runtime.getRuntime().availableProcessors();
         ExecutorService threadPool = Executors.newFixedThreadPool(threads, new ThreadFactory() { 
@@ -99,13 +103,13 @@ public class Main {
             for(int j = 0; j < testSet.getPredicting().getNumOfCategories(); j++)
             {
                 for (DataPoint dp : testSet.getSamples(j))
+                {
                     if (classifier.classify(dp).mostLikely() == j)
                         right++;
                     else
                         wrong++;
+                }
             }
-            
-            
         }
         
         

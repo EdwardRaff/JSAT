@@ -1,6 +1,7 @@
 
 package jsat.classifiers;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
@@ -136,7 +137,11 @@ public class NaiveBayes implements Classifier
     {
         trainC(dataSet, new FakeExecutor());
     }
-    
+
+    public Classifier copy()
+    {
+        throw new UnsupportedOperationException("Not Yet Implemeneted");
+    }
     
     
     /**

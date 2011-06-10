@@ -8,6 +8,7 @@ import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import jsat.classifiers.CategoricalResults;
 import jsat.classifiers.ClassificationDataSet;
+import jsat.classifiers.Classifier;
 import jsat.classifiers.DataPoint;
 import jsat.distributions.kernels.KernelFunction;
 import jsat.linear.Vec;
@@ -29,13 +30,12 @@ public class PlatSMO extends SupportVectorMachine
     
     protected double[] alpha;
     protected double[] error;
-    protected double bias;
     //Examine step may require a source of randomnes
     private Random rand;
     
     
     protected double[] label;
-
+    
     public PlatSMO(KernelFunction kf)
     {
         super(kf, CacheMode.FULL);
@@ -76,6 +76,7 @@ public class PlatSMO extends SupportVectorMachine
 
         vecs = new Vec[dataSet.getSampleSize()];
         label = new double[vecs.length];
+        b = 0;
         for(int i = 0; i < vecs.length; i++)
         {
             DataPoint dataPoint = dataSet.getDataPoint(i);
@@ -361,7 +362,20 @@ public class PlatSMO extends SupportVectorMachine
         return sum-b;
     }
 
-    
-    
-    
+    public Classifier copy()
+    {
+        PlatSMO copy = new PlatSMO(this.getKernel());
+        
+        copy.C = this.C;
+        copy.alpha = Arrays.copyOf(this.alpha, this.alpha.length);
+        copy.b = this.b;
+        copy.epsilon = this.epsilon;
+        copy.error = Arrays.copyOf(this.error, this.error.length);
+        copy.label = Arrays.copyOf(this.label, this.label.length);
+        copy.tolerance = this.tolerance;
+        copy.vecs = Arrays.copyOf(this.vecs, this.vecs.length);
+        
+        return copy;
+    }
+
 }
