@@ -68,11 +68,7 @@ public class NearestNeighbour implements  Classifier
             Vec v = dataPoints.get(i).getNumericalValues();
             double distance = distanceMetric.dist(v, data.getNumericalValues());
             
-            //Normaly the weigth by this method we choose the highest value isntead of the lowest
-            //But we dont want to change our BoundedSOrtedSet
-            //So we change the signs, so the |largest| will be at the front of the list
-            if(weighted)
-                distance = -Math.exp(-distance);
+            
             
             closestMatches.add(new ProbailityMatch<Integer>(distance, classification[i]));
         }
@@ -85,6 +81,13 @@ public class NearestNeighbour implements  Classifier
             if(weighted)
             {
                 double prob = pm.getProbability();
+                
+                //Normaly the weigth by this method we choose the highest value isntead of the lowest
+                //But we dont want to change our BoundedSOrtedSet
+                //So we change the signs, so the |largest| will be at the front of the list
+                if(weighted)
+                    prob = -Math.exp(-prob);
+                
                 divisor += prob;
                 results.setProb(pm.getMatch(), results.getProb(pm.getMatch()) + prob);//Sum weights
             }
@@ -120,7 +123,6 @@ public class NearestNeighbour implements  Classifier
                 classification[dataPoints.size()+z] = i;
             dataPoints.addAll(some); 
         }
-        
     }
 
     public Classifier copy()

@@ -14,6 +14,7 @@ import jsat.classifiers.Classifier;
 import jsat.classifiers.DataPoint;
 import jsat.classifiers.NaiveBayes;
 import jsat.classifiers.NearestNeighbour;
+import jsat.classifiers.NearestNeighbourKDTree;
 import jsat.classifiers.OneVSAll;
 import jsat.classifiers.svm.PlatSMO;
 import jsat.distributions.Gamma;
@@ -55,8 +56,8 @@ public class Main {
 //        String sFile = "/Users/Edward Raff/Desktop/datasets-UCI/UCI/vehicle.arff";
 //        String sFile = path + "balance-scale.arff";
 //        String sFile = path + "glass.arff";
-//        String sFile = path + "waveform-5000.arff";
-        String sFile = path + "wine.arff";
+        String sFile = path + "waveform-5000.arff";
+//        String sFile = path + "wine.arff";
         
 //        String sFile = path + "sonar.arff";
 //        String sFile = path + "ionosphere.arff";
@@ -76,9 +77,10 @@ public class Main {
         
         
 //        Classifier classifier = new NaiveBayes();
-//        Classifier classifier = new NearestNeighbour(3, false);
+        Classifier classifier = new NearestNeighbour(3, true);
+//        Classifier classifier = new NearestNeighbourKDTree(3, true); 
 //        Classifier classifier = new PlatSMO(new RBFKernel(4));
-        Classifier classifier = new OneVSAll(new PlatSMO(new RBFKernel(12.5))); 
+//        Classifier classifier = new OneVSAll(new PlatSMO(new RBFKernel(12.5))); 
         
         int wrong = 0, right = 0, threads = Runtime.getRuntime().availableProcessors();
         ExecutorService threadPool = Executors.newFixedThreadPool(threads, new ThreadFactory() { 

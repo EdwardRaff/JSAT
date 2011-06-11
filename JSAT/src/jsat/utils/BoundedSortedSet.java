@@ -2,6 +2,7 @@
 package jsat.utils;
 
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.TreeSet;
 
 /**
@@ -19,9 +20,13 @@ public class BoundedSortedSet<V> extends TreeSet<V>
         super();
         this.max = max;
     }
-    
-    
 
+    public BoundedSortedSet(int max, Comparator<? super  V> cmp)
+    {
+        super(cmp);
+        this.max = max;
+    }
+    
     @Override
     public boolean add(V e)
     {
