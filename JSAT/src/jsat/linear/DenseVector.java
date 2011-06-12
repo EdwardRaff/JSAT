@@ -347,6 +347,16 @@ public class DenseVector implements Vec
         return Math.pow(norm, 1.0/p);
     }
 
+    public double pNorm(double p)
+    {
+        double norm = 0;
+        //TODO this could be done more efficently if y is a sparce vector
+        for(int i = 0; i < length(); i++)
+            norm += Math.pow(Math.abs(array[i]), p);
+        
+        return Math.pow(norm, 1.0/p);
+    }
+    
     public Vec copy()
     {
         DenseVector copy = new DenseVector(length());

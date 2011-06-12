@@ -562,6 +562,16 @@ public class SparceVector implements Vec
         return Math.pow(norm, 1.0/p);
     }
 
+    public double pNorm(double p)
+    {
+        double norm = 0;
+        
+        for(int i = 0; i < used; i++)
+            norm += Math.pow(Math.abs(values[i]), p);
+        
+        return Math.pow(norm, 1.0/p);
+    }
+    
     public Vec copy()
     {
         SparceVector copy = new SparceVector(length, used);
@@ -591,7 +601,5 @@ public class SparceVector implements Vec
 
         mutableDivide(sum); 
     }
-    
-    
     
 }

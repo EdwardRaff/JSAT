@@ -52,6 +52,8 @@ public interface Vec
      */
     public double pNormDist(double p, Vec y);
     
+    public double pNorm(double p);
+    
     /**
      * 
      * @param v the other vector

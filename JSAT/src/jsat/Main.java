@@ -28,7 +28,11 @@ import jsat.distributions.kernels.LinearKernel;
 import jsat.distributions.kernels.PolynomialKernel;
 import jsat.distributions.kernels.RBFKernel;
 import jsat.linear.SparceVector;
+import jsat.linear.distancemetrics.ChebyshevDistance;
+import jsat.linear.distancemetrics.CosineDistance;
+import jsat.linear.distancemetrics.EuclideanDistance;
 import jsat.linear.distancemetrics.KernelDistance;
+import jsat.linear.distancemetrics.ManhattanDistance;
 import jsat.math.ContinuedFraction;
 import jsat.math.Function;
 import jsat.math.SpecialMath;
@@ -77,12 +81,13 @@ public class Main {
         
         
 //        Classifier classifier = new NaiveBayes();
-        Classifier classifier = new NearestNeighbour(3, true);
-//        Classifier classifier = new NearestNeighbourKDTree(3, true); 
+//        Classifier classifier = new NearestNeighbour(3, false);
+        Classifier classifier = new NearestNeighbourKDTree(3, false); 
 //        Classifier classifier = new PlatSMO(new RBFKernel(4));
 //        Classifier classifier = new OneVSAll(new PlatSMO(new RBFKernel(12.5))); 
         
         int wrong = 0, right = 0, threads = Runtime.getRuntime().availableProcessors();
+        long trainingTime = 0, classificationTime = 0;
         ExecutorService threadPool = Executors.newFixedThreadPool(threads, new ThreadFactory() { 
 
             public Thread newThread(Runnable r)
@@ -99,24 +104,30 @@ public class Main {
             ClassificationDataSet testSet = lcds.get(i);
             
             
-            classifier.trainC(trainSet);
-//            classifier.trainC(trainSet, threadPool);
+
+            long startTrain = System.currentTimeMillis();
+//            classifier.trainC(trainSet);
+            classifier.trainC(trainSet, threadPool);
+            trainingTime += (System.currentTimeMillis() - startTrain);
             
             for(int j = 0; j < testSet.getPredicting().getNumOfCategories(); j++)
             {
                 for (DataPoint dp : testSet.getSamples(j))
                 {
+                    long stratClass = System.currentTimeMillis();
                     if (classifier.classify(dp).mostLikely() == j)
                         right++;
                     else
                         wrong++;
+                    classificationTime += (System.currentTimeMillis() - stratClass);
                 }
             }
         }
         
         
         System.out.println("right = " + right + "\twrong = " + wrong + "\t%correct = " + ((double)right)/(wrong+right));
-        System.out.println("Yo");
+        System.out.println("Time spent training is: " + trainingTime/1000.0 + " seconds");
+        System.out.println("Time spent classifiying is: " + classificationTime/1000.0 + " seconds");
         
 //        Gamma gam = new Gamma(188.80827627270023, 0.026570162948900487);
 //        
