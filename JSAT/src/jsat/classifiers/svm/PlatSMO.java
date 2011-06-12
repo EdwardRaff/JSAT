@@ -1,6 +1,7 @@
 
 package jsat.classifiers.svm;
 
+import jsat.distributions.kernels.KernelTrick;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Random;
@@ -10,7 +11,6 @@ import jsat.classifiers.CategoricalResults;
 import jsat.classifiers.ClassificationDataSet;
 import jsat.classifiers.Classifier;
 import jsat.classifiers.DataPoint;
-import jsat.distributions.kernels.KernelFunction;
 import jsat.linear.Vec;
 import static java.lang.Math.*;
 
@@ -36,7 +36,7 @@ public class PlatSMO extends SupportVectorMachine
     
     protected double[] label;
     
-    public PlatSMO(KernelFunction kf)
+    public PlatSMO(KernelTrick kf)
     {
         super(kf, CacheMode.FULL);
         rand = new Random();

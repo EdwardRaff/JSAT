@@ -7,7 +7,7 @@ import jsat.linear.Vec;
  * k(x,y) = (alpha * x.y + c)^d
  * @author Edward Raff
  */
-public class PolynomialKernel implements KernelFunction 
+public class PolynomialKernel implements KernelTrick 
 {
     private double d;
     private double alpha;

@@ -7,7 +7,7 @@ import jsat.linear.Vec;
  *
  * @author Edward Raff
  */
-public class SigmoidKernel implements KernelFunction
+public class SigmoidKernel implements KernelTrick
 {
     double alpha;
     double c;

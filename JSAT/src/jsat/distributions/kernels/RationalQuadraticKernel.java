@@ -7,7 +7,7 @@ import jsat.linear.Vec;
  *
  * @author Edward Raff
  */
-public class RationalQuadraticKernel implements KernelFunction
+public class RationalQuadraticKernel implements KernelTrick
 {
     private double c;
 

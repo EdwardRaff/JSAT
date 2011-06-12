@@ -7,7 +7,7 @@ import jsat.linear.Vec;
  *
  * @author Edward Raff
  */
-public class RBFKernel implements KernelFunction
+public class RBFKernel implements KernelTrick
 {
     private double sigma;
 

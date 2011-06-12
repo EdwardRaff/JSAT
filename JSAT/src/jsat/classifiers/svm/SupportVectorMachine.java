@@ -2,7 +2,7 @@
 package jsat.classifiers.svm;
 
 import jsat.classifiers.Classifier;
-import jsat.distributions.kernels.KernelFunction;
+import jsat.distributions.kernels.KernelTrick;
 import jsat.linear.Vec;
 
 /**
@@ -11,7 +11,7 @@ import jsat.linear.Vec;
  */
 public abstract class SupportVectorMachine implements Classifier
 {
-    private KernelFunction kernel;
+    private KernelTrick kernel;
     protected Vec[] vecs;
     private CacheMode cacheMode;
     
@@ -19,13 +19,13 @@ public abstract class SupportVectorMachine implements Classifier
     
     public enum CacheMode {NONE, FULL};
 
-    public SupportVectorMachine(KernelFunction kernel, CacheMode cacheMode)
+    public SupportVectorMachine(KernelTrick kernel, CacheMode cacheMode)
     {
         this.cacheMode = cacheMode;
         this.kernel = kernel;
     }
     
-    public void setKernel(KernelFunction kernel)
+    public void setKernel(KernelTrick kernel)
     {
         this.kernel = kernel;
     }
@@ -55,7 +55,7 @@ public abstract class SupportVectorMachine implements Classifier
 
     
     
-    public KernelFunction getKernel()
+    public KernelTrick getKernel()
     {
         return kernel;
     }

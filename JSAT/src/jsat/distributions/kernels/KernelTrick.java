@@ -7,7 +7,7 @@ import jsat.linear.Vec;
  *
  * @author Edward Raff
  */
-public interface KernelFunction
+public interface KernelTrick
 {
     /**
      * Evaluate this kernel function for the two given vectors. 

@@ -2,7 +2,7 @@
 package jsat.linear.distancemetrics;
 
 import jsat.classifiers.NearestNeighbour;
-import jsat.distributions.kernels.KernelFunction;
+import jsat.distributions.kernels.KernelTrick;
 import jsat.distributions.kernels.PolynomialKernel;
 import jsat.distributions.kernels.RBFKernel;
 import jsat.linear.Vec;
@@ -13,9 +13,9 @@ import jsat.linear.Vec;
  */
 public class KernelDistance implements DistanceMetric
 {
-    KernelFunction kf;
+    KernelTrick kf;
 
-    public KernelDistance(KernelFunction kf)
+    public KernelDistance(KernelTrick kf)
     {
         this.kf = kf;
     }

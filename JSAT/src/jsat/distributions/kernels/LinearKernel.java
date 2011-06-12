@@ -9,7 +9,7 @@ import jsat.linear.Vec;
  * 
  * @author Edward Raff
  */
-public class LinearKernel implements KernelFunction
+public class LinearKernel implements KernelTrick
 {
 
     private double c;
