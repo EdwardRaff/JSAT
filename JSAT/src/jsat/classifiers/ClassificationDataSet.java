@@ -291,4 +291,13 @@ public class ClassificationDataSet //extends DataSet
         return numNumerVals;
     }
     
+    public List<DataPointPair<Integer>> getAsDPPList()
+    {
+        List<DataPointPair<Integer>> dataPoints = new ArrayList<DataPointPair<Integer>>(getSampleSize());
+        for(int i = 0; i < predicting.getNumOfCategories(); i++)
+            for(DataPoint dp : classifiedExamples.get(i))
+                dataPoints.add(new DataPointPair<Integer>(dp, i));
+        
+        return dataPoints;
+    }
 }

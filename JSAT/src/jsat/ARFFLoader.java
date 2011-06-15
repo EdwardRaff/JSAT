@@ -80,7 +80,7 @@ public class ARFFLoader
                         line = line.replaceFirst("'.+?'", "placeHolder");
                     String[] tmp = line.split("\\s+", 2);
                     
-                    if(tmp[1].trim().equals("real") || tmp[1].trim().startsWith("integer"))
+                    if(tmp[1].trim().equals("real") || tmp[1].trim().equals("numeric") || tmp[1].trim().startsWith("integer"))
                     {
                         numReal++;
                         isReal.add(true);

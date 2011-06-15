@@ -17,6 +17,7 @@ import jsat.classifiers.NearestNeighbour;
 import jsat.classifiers.NearestNeighbourKDTree;
 import jsat.classifiers.OneVSAll;
 import jsat.classifiers.svm.PlatSMO;
+import jsat.classifiers.trees.ID3;
 import jsat.distributions.Gamma;
 import jsat.distributions.Kolmogorov;
 import jsat.math.rootFinding.Zeroin;
@@ -60,7 +61,7 @@ public class Main {
 //        String sFile = "/Users/Edward Raff/Desktop/datasets-UCI/UCI/vehicle.arff";
 //        String sFile = path + "balance-scale.arff";
 //        String sFile = path + "glass.arff";
-        String sFile = path + "waveform-5000.arff";
+//        String sFile = path + "waveform-5000.arff";
 //        String sFile = path + "wine.arff";
         
 //        String sFile = path + "sonar.arff";
@@ -68,8 +69,14 @@ public class Main {
 //        String sFile = path + "diabetes.arff";
 //        String sFile = path + "breast-w.arff";
 //        String sFile = path + "heart-statlog.arff";
+//        String sFile = path + "optdigits.arff";
+        String sFile = path + "pendigits.arff";//Excelent example for advanced kNN. Naive: 40s, KDTree: 0.55
         
-//        String sFile = "/Users/Edward Raff/Desktop/datasets-UCI/UCI/vote.arff";
+        
+        //Categorical datasets with all categorical attributes
+//        String sFile = path + "vote.arff";
+//        String sFile = path + "nursery.arff";
+//        String sFile = path + "mfeat-pixel.arff";//240 attributes! WOW
 
         File f = new File(sFile);
         
@@ -85,6 +92,8 @@ public class Main {
         Classifier classifier = new NearestNeighbourKDTree(3, false); 
 //        Classifier classifier = new PlatSMO(new RBFKernel(4));
 //        Classifier classifier = new OneVSAll(new PlatSMO(new RBFKernel(12.5))); 
+        
+//        Classifier classifier = new ID3();
         
         int wrong = 0, right = 0, threads = Runtime.getRuntime().availableProcessors();
         long trainingTime = 0, classificationTime = 0;
