@@ -142,7 +142,11 @@ public class NaiveBayes implements Classifier
     {
         throw new UnsupportedOperationException("Not Yet Implemeneted");
     }
-    
+
+    public boolean supportsWeightedData()
+    {
+        return false;
+    }
     
     /**
      * Runnable task for selecting the right distribution for each task 

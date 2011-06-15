@@ -13,5 +13,7 @@ public interface Classifier
     public void trainC(ClassificationDataSet dataSet, ExecutorService threadPool);
     public void trainC(ClassificationDataSet dataSet);
     
+    public boolean supportsWeightedData();
+    
     public Classifier copy();
 }

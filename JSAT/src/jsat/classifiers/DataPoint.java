@@ -1,7 +1,6 @@
 
 package jsat.classifiers;
 
-import jsat.linear.DenseVector;
 import jsat.linear.Vec;
 
 /**
@@ -10,15 +9,32 @@ import jsat.linear.Vec;
  */
 public class DataPoint
 {
+    private double weight;
     protected Vec numericalValues;
     protected int[] categoricalValues;
     protected CategoricalData[] categoricalData;
 
     public DataPoint(Vec numericalValues, int[] categoricalValues, CategoricalData[] categoricalData)
     {
+        this(numericalValues, categoricalValues, categoricalData, 1);
+    }
+    
+    public DataPoint(Vec numericalValues, int[] categoricalValues, CategoricalData[] categoricalData, double weight)
+    {
         this.numericalValues = numericalValues;
         this.categoricalValues = categoricalValues;
         this.categoricalData = categoricalData;
+        this.weight = weight;
+    }
+
+    public double getWeight()
+    {
+        return weight;
+    }
+
+    public void setWeight(double weight)
+    {
+        this.weight = weight;
     }
     
     public boolean containsCategoricalData()
@@ -85,6 +101,11 @@ public class DataPoint
         return sb.toString();
     }
     
+    
+//    public DataPoint copy()
+//    {
+//        
+//    }
     
     
 }

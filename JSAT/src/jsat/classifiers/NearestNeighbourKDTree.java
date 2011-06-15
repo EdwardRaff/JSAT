@@ -29,6 +29,7 @@ public class NearestNeighbourKDTree implements Classifier
     private CategoricalData predicting;
     
     List<DataPointPair<Double>> dataPoints;
+
     private enum Mode {REGRESSION, CLASSIFICATION};
     /**
      * If we are in classification mode, the double is an integer that indicates class.
@@ -244,5 +245,10 @@ public class NearestNeighbourKDTree implements Classifier
     public Classifier copy()
     {
         throw new UnsupportedOperationException("Not supported yet.");
+    }
+    
+    public boolean supportsWeightedData()
+    {
+        return false;
     }
 }

@@ -137,4 +137,9 @@ public class NearestNeighbour implements  Classifier
         
         return copy;
     }
+
+    public boolean supportsWeightedData()
+    {
+        return false;
+    }
 }

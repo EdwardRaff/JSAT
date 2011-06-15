@@ -378,4 +378,9 @@ public class PlatSMO extends SupportVectorMachine
         return copy;
     }
 
+    public boolean supportsWeightedData()
+    {
+        return false;
+    }
+
 }
