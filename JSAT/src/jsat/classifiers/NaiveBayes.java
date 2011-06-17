@@ -1,23 +1,13 @@
 
 package jsat.classifiers;
 
-import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import jsat.distributions.ChiSquared;
 import jsat.distributions.ContinousDistribution;
-import jsat.distributions.Exponential;
-import jsat.distributions.FisherSendor;
-import jsat.distributions.Gamma;
-import jsat.distributions.LogNormal;
-import jsat.distributions.Normal;
-import jsat.distributions.Uniform;
-import jsat.distributions.Weibull;
 import jsat.linear.Vec;
-import jsat.testing.goodnessoffit.KSTest;
 import jsat.utils.FakeExecutor;
+import static jsat.distributions.DistributionSearch.*;
 
 /**
  *
@@ -74,65 +64,7 @@ public class NaiveBayes implements Classifier
         return results;
     }
 
-    
-    ContinousDistribution[] possibleDistributions = new ContinousDistribution[] 
-    { 
-        new Normal(), 
-        new LogNormal(), new Exponential(),
-        new Gamma(2, 1), new FisherSendor(10, 10), new Weibull(2, 1), 
-        new Uniform(0, 1)
-    };
-    
-    private ContinousDistribution getBestDistribution(Vec v)
-    {
-        //Thread Safety, copy the possible distributions
         
-        ContinousDistribution[] possDistCopy = new ContinousDistribution[possibleDistributions.length];
-        
-        for(int i = 0; i < possibleDistributions.length; i++)
-            possDistCopy[i] = possibleDistributions[i].copy();
-        
-        
-        KSTest ksTest = new KSTest(v);
-        
-        ContinousDistribution bestDist = null;
-        double bestProb = 0;
-        
-        for(ContinousDistribution cd : possDistCopy)
-        {
-            try
-            {
-                cd.setUsingData(v);
-                double prob = ksTest.testDist(cd);
-                
-                if(prob > bestProb)
-                {
-                    bestDist = cd;
-                    bestProb = prob;
-                }
-                
-            }
-            catch(Exception ex)
-            {
-                
-            }
-        }
-        
-        ///Return the best distribution, or if somehow everythign went wrong, a normal distribution
-        try
-        {
-            return bestDist == null ? new Normal(v.mean(), v.standardDeviation()) : bestDist.copy();
-        }
-        catch (RuntimeException ex)//Mostly likely occurs if all values are all zero
-        {
-            if(v.standardDeviation() == 0)
-                return new Normal(v.mean(), 0.1);
-            throw new ArithmeticException("Catistrophic faulure getting a distribution");
-        }
-    }
-    
-    
-    
     public void trainC(ClassificationDataSet dataSet)
     {
         trainC(dataSet, new FakeExecutor());
