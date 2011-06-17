@@ -1,9 +1,13 @@
 
-package jsat.classifiers;
+package jsat.classifiers.bayesian;
 
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
+import jsat.classifiers.CategoricalResults;
+import jsat.classifiers.ClassificationDataSet;
+import jsat.classifiers.Classifier;
+import jsat.classifiers.DataPoint;
 import jsat.distributions.ContinousDistribution;
 import jsat.linear.Vec;
 import jsat.utils.FakeExecutor;

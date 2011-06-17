@@ -1,11 +1,17 @@
 
-package jsat.classifiers;
+package jsat.classifiers.knn;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
+import jsat.classifiers.CategoricalData;
+import jsat.classifiers.CategoricalResults;
+import jsat.classifiers.ClassificationDataSet;
+import jsat.classifiers.Classifier;
+import jsat.classifiers.DataPoint;
+import jsat.classifiers.DataPointPair;
 import jsat.linear.DenseVector;
 import jsat.linear.SparceVector;
 import jsat.linear.Vec;

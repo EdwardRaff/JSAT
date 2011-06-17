@@ -89,6 +89,16 @@ public class ClassificationDataSet //extends DataSet
             classifiedExamples.add(new ArrayList<DataPoint>());
     }
     
+    public void applyTransform(DataTransform dt)
+    {
+        for(int i = 0; i < classifiedExamples.size(); i++)
+            for(int j = 0; j < classifiedExamples.get(i).size(); j++)
+                classifiedExamples.get(i).set(j, dt.transform(classifiedExamples.get(i).get(j)));
+        
+        numNumerVals = classifiedExamples.get(0).get(0).numNominalValues();
+        categories = classifiedExamples.get(0).get(0).getCategoricalData();
+    }
+    
     /**
      * 
      * @param list a list of data sets

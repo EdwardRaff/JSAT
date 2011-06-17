@@ -1,7 +1,7 @@
 
 package jsat.linear.distancemetrics;
 
-import jsat.classifiers.NearestNeighbour;
+import jsat.classifiers.knn.NearestNeighbour;
 import jsat.distributions.kernels.KernelTrick;
 import jsat.distributions.kernels.PolynomialKernel;
 import jsat.distributions.kernels.RBFKernel;
