@@ -52,7 +52,7 @@ public class DataPoint
         return numericalValues != null && numericalValues.length() > 0;
     }
     
-    public int numNominalValues()
+    public int numNumericalValues()
     {
         return numericalValues == null ? 0 : numericalValues.length();
     }

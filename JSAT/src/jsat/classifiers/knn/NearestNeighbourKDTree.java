@@ -231,7 +231,7 @@ public class NearestNeighbourKDTree implements Classifier
     {
         if(data == null || data.isEmpty())
             return null;
-        int mod = data.get(0).getDataPoint().numNominalValues();
+        int mod = data.get(0).getDataPoint().numNumericalValues();
         
         int axi = depth % mod;
         

@@ -51,7 +51,7 @@ public class ClassificationDataSet //extends DataSet
             categories[i] = i >= predicting ? 
                     tmp.getCategoricalData()[i+1] : tmp.getCategoricalData()[i];
         }
-        numNumerVals = tmp.numNominalValues();
+        numNumerVals = tmp.numNumericalValues();
         this.predicting = tmp.getCategoricalData()[predicting];
         
         classifiedExamples = new ArrayList<List<DataPoint>>(this.predicting.getNumOfCategories());
@@ -95,7 +95,7 @@ public class ClassificationDataSet //extends DataSet
             for(int j = 0; j < classifiedExamples.get(i).size(); j++)
                 classifiedExamples.get(i).set(j, dt.transform(classifiedExamples.get(i).get(j)));
         
-        numNumerVals = classifiedExamples.get(0).get(0).numNominalValues();
+        numNumerVals = classifiedExamples.get(0).get(0).numNumericalValues();
         categories = classifiedExamples.get(0).get(0).getCategoricalData();
     }
     
