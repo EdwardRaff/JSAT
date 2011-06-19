@@ -13,6 +13,7 @@ import jsat.classifiers.ClassificationDataSet;
 import jsat.classifiers.Classifier;
 import jsat.classifiers.DataPoint;
 import jsat.classifiers.NominalToNumeric;
+import jsat.classifiers.NumericalToHistogram;
 import jsat.classifiers.bayesian.NaiveBayes;
 import jsat.classifiers.knn.NearestNeighbour;
 import jsat.classifiers.knn.NearestNeighbourKDTree;
@@ -69,13 +70,13 @@ public class Main {
 //        String sFile = path + "ionosphere.arff";
 //        String sFile = path + "diabetes.arff";
 //        String sFile = path + "breast-w.arff";
-//        String sFile = path + "heart-statlog.arff";
+        String sFile = path + "heart-statlog.arff";
 //        String sFile = path + "optdigits.arff";
 //        String sFile = path + "pendigits.arff";//Excelent example for advanced kNN. Naive: 40s, KDTree: 0.55
         
         
         //Categorical datasets with all categorical attributes
-        String sFile = path + "vote.arff";
+//        String sFile = path + "vote.arff";
 //        String sFile = path + "nursery.arff";
 //        String sFile = path + "mfeat-pixel.arff";//240 attributes! WOW
 
@@ -85,15 +86,16 @@ public class Main {
         
         ClassificationDataSet cds = new ClassificationDataSet(dataPoints, dataPoints.get(0).numCategoricalValues()-1); 
         //Possible Filters
-        cds.applyTransform(new NominalToNumeric(cds.getNumNumericalVars(), cds.getCategories()));
+//        cds.applyTransform(new NominalToNumeric(cds.getNumNumericalVars(), cds.getCategories()));
+//        cds.applyTransform(new NumericalToHistogram(cds));
         
         List<ClassificationDataSet> lcds = cds.cvSet(10);
         
         
-//        Classifier classifier = new NaiveBayes();
+        Classifier classifier = new NaiveBayes();
 //        Classifier classifier = new NearestNeighbour(3, false);
-        Classifier classifier = new NearestNeighbourKDTree(3, false); 
-//        Classifier classifier = new PlatSMO(new RBFKernel(2));
+//        Classifier classifier = new NearestNeighbourKDTree(3, false); 
+//        Classifier classifier = new PlatSMO(new RBFKernel(4));
 //        Classifier classifier = new OneVSAll(new PlatSMO(new RBFKernel(12.5))); 
         
 //        Classifier classifier = new ID3();
