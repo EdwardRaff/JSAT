@@ -2,11 +2,8 @@
 package jsat.classifiers;
 
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Random;
-import java.util.Set;
 import jsat.linear.DenseVector;
 import jsat.linear.Vec;
 
@@ -246,7 +243,7 @@ public class ClassificationDataSet //extends DataSet
      */
     public List<DataPoint> getSamples(int category)
     {
-        return classifiedExamples.get(category);
+        return new ArrayList<DataPoint>(classifiedExamples.get(category));
     }
     
     /**
