@@ -42,6 +42,8 @@ public class SparceVector implements Vec
     
     public SparceVector(int length, int capacity)
     {
+        if(length < 0)
+            throw new ArithmeticException("You can not have a negative dimension vector");
         this.used = 0;
         this.length = length;
         this.indexes = new int[capacity];

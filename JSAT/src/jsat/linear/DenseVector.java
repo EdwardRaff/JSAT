@@ -19,9 +19,11 @@ public class DenseVector implements Vec
     private Double minCache = null;
     private Double maxCache = null;
 
-    public DenseVector(int initalSize)
+    public DenseVector(int length)
     {
-        array = new double[initalSize];
+        if(length < 0)
+            throw new ArithmeticException("You can not have a negative dimension vector");
+        array = new double[length];
     }
 
     public DenseVector(ArrayList<Double> array)
