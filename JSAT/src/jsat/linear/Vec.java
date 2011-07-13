@@ -17,14 +17,18 @@ public interface Vec
     public Vec add(Vec b);
     public Vec subtract(double c);
     public Vec subtract(Vec b);
+    public Vec pairwiseMultiply(Vec b);
     public Vec multiply(double c);
+    public Vec pairwiseDivide(Vec b);
     public Vec divide(double c);
     
     public void mutableAdd(double c);
     public void mutableAdd(Vec b);
     public void mutableSubtract(double c);
     public void mutableSubtract(Vec b);
+    public void mutablePairwiseMultiply(Vec b);
     public void mutableMultiply(double c);
+    public void mutablePairwiseDivide(Vec b);
     public void mutableDivide(double c);
 
     public Vec sortedCopy();

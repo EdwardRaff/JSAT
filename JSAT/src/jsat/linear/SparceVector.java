@@ -603,5 +603,49 @@ public class SparceVector implements Vec
 
         mutableDivide(sum); 
     }
+
+    public Vec pairwiseMultiply(Vec b)
+    {
+        if(this.length() != b.length())
+            throw new ArithmeticException("Vectors must have the same length");
+        SparceVector toRet = (SparceVector) this.copy();
+        
+        toRet.mutablePairwiseMultiply(b);
+        
+        return toRet;
+    }
+
+    public Vec pairwiseDivide(Vec b)
+    {
+        if(this.length() != b.length())
+            throw new ArithmeticException("Vectors must have the same length");
+        SparceVector toRet = (SparceVector) this.copy();
+        
+        toRet.mutablePairwiseDivide(b);
+        
+        return toRet;
+    }
+
+    public void mutablePairwiseMultiply(Vec b)
+    {
+        if(this.length() != b.length())
+            throw new ArithmeticException("Vectors must have the same length");
+        clearCaches();
+        
+        //TODO a space , sparce optimized version could be done
+        for(int i = 0; i <= used; i++)
+            values[i] *= b.get(indexes[i]);//zeros stay zero
+    }
+
+    public void mutablePairwiseDivide(Vec b)
+    {
+        if(this.length() != b.length())
+            throw new ArithmeticException("Vectors must have the same length");
+        clearCaches();
+        
+        //TODO a space , sparce optimized version could be done
+        for(int i = 0; i <= used; i++)
+            values[i] /= b.get(indexes[i]);//zeros stay zero
+    }
     
 }

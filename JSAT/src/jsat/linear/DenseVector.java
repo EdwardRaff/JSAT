@@ -386,5 +386,47 @@ public class DenseVector implements Vec
 
         mutableDivide(sum); 
     }
+
+    public Vec pairwiseMultiply(Vec b)
+    {
+        if(this.length() != b.length())
+            throw new ArithmeticException("Vectors must have the same length");
+        
+        if(b instanceof SparceVector)//Let the sparce class do it efficently
+            return b.pairwiseMultiply(this);
+        Vec toReturn = b.copy();
+        for(int i = 0; i < b.length(); i++)
+            b.set(i, b.get(i)*array[i]);
+        
+        return toReturn;
+    }
+
+    public Vec pairwiseDivide(Vec b)
+    {
+        if(this.length() != b.length())
+            throw new ArithmeticException("Vectors must have the same length");
+        
+        double[] vals = new double[this.length()];
+        for(int i = 0; i < vals.length; i++)
+            vals[i] = array[i] / b.get(i);
+        
+        return new DenseVector(vals);
+    }
+
+    public void mutablePairwiseMultiply(Vec b)
+    {
+        if(this.length() != b.length())
+            throw new ArithmeticException("Vectors must have the same length");
+        for(int i = 0; i < length(); i++)
+            this.array[i] *= b.get(i);
+    }
+
+    public void mutablePairwiseDivide(Vec b)
+    {
+        if(this.length() != b.length())
+            throw new ArithmeticException("Vectors must have the same length");
+        for(int i = 0; i < length(); i++)
+            this.array[i] /= b.get(i);
+    }
     
 }
