@@ -22,13 +22,13 @@ public class OnLineStatistics
    //Intermediat value updated at each step, variance computed from it
    private double m2, m3, m4;
 
+   private Double min, max;
+   
     public OnLineStatistics()
     {
         this(0, 0, 0, 0, 0);
     }
 
-   
-   
     public OnLineStatistics(int n, double mean, double variance, double skew, double kurt)
     {
         this.n = n;
@@ -41,9 +41,8 @@ public class OnLineStatistics
         }
         else
             m2 = m3 = m4 = 0;
+        min = max  = null;
     }
-   
-   
    
    
    public void add(double x)
@@ -62,6 +61,14 @@ public class OnLineStatistics
        m4 += term1 * delta_n2 * (n*n - 3*n + 3) + 6 * delta_n2 * m2 - 4 * delta_n * m3;
        m3 += term1 * delta_n * (n - 2) - 3 * delta_n * m2;
        m2 += delta*(x-mean);
+       
+       if(min == null)
+           min = max = x;
+       else
+       {
+           min = Math.min(min, x);
+           max = Math.max(max, x);
+       }
    }
 
    public double getMean()
@@ -88,4 +95,15 @@ public class OnLineStatistics
    {
        return (n*m4) / (m2*m2) - 3;
    }
+   
+   public double getMin()
+   {
+       return min;
+   }
+   
+   public double getMax()
+   {
+       return max;
+   }
+   
 }
