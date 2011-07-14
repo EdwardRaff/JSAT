@@ -52,6 +52,19 @@ public class CategoricalResults
             probabilities[i]/=c;
     }
     
+    /**
+     * Adjusts the probabilities by dividing each value by the total sum, so 
+     * that all values are in the range [0, 1]
+     */
+    public void normalize()
+    {
+        double sum = 0;
+        for(double d : probabilities)
+            sum += d;
+        if(sum != 0)
+            divideConst(sum);
+    }
+    
     public double getProb(int cat)
     {
         return probabilities[cat];
