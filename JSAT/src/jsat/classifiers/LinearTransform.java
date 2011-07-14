@@ -23,16 +23,14 @@ public class LinearTransform implements DataTransform
      */
     Vec mutliplyConstants;
 
-    public LinearTransform()
+    public LinearTransform(ClassificationDataSet cds)
     {
-        this(1, 0);
+        this(cds, 1, 0);
     }
 
-    
-    
-    public LinearTransform(double A, double B)
+    public LinearTransform(ClassificationDataSet cds, double A, double B)
     {
-        if(A == B)
+         if(A == B)
             throw new RuntimeException("Values must be different");
         else if(B > A)
         {
@@ -42,12 +40,8 @@ public class LinearTransform implements DataTransform
         }
         this.A = A;
         this.B = B;
-    }
-    
-    
-    
-    public LinearTransform(ClassificationDataSet cds)
-    {
+        
+        
         mins = new DenseVector(cds.getNumNumericalVars());
         Vec maxs = new DenseVector(mins.length());
         mutliplyConstants = new DenseVector(mins.length());
