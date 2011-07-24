@@ -183,8 +183,9 @@ public class DenseMatrix extends Matrix
         DenseVector result = new DenseVector(rows());
         for(int i = 0; i < rows(); i++)
         {
+            //The Dense construcure does not copy the matrix, it just takes the refernce -making it fast
             DenseVector row = new DenseVector(matrix[i]);
-            result.set(i, row.dot(b));
+            result.set(i, row.dot(b));//We use the dot product in this way so that if the incoming matrix is sparce, we can take advantage of save computaitons
         }
         
         return result;
