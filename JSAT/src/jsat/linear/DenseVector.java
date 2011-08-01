@@ -390,7 +390,7 @@ public class DenseVector implements Vec
     public Vec pairwiseMultiply(Vec b)
     {
         if(this.length() != b.length())
-            throw new ArithmeticException("Vectors must have the same length");
+            throw new ArithmeticException("Vectors must have the same length, " + this.length() + ", " + b.length());
         
         if(b instanceof SparceVector)//Let the sparce class do it efficently
             return b.pairwiseMultiply(this);

@@ -1,10 +1,16 @@
 
 package jsat.linear;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.Callable;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Future;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import static java.lang.Math.*;
 
 /**
  *
@@ -12,8 +18,24 @@ import java.util.logging.Logger;
  */
 public class DenseMatrix extends Matrix
 {
-    double[][] matrix;
+    private final double[][] matrix;
 
+    /**
+     * Creates a new matrix based off the given vectors. 
+     * @param a the first Vector, this new Matrix will have as many rows as the length of this vector
+     * @param b the second Vector, this new Matrix will have as many columns as this length of this vector
+     */
+    public DenseMatrix(Vec a, Vec b)
+    {
+        matrix = new double[a.length()][b.length()];
+        for(int i = 0; i < a.length(); i++)
+        {
+            Vec rowVals = b.multiply(a.get(i));
+            for(int j = 0; j < b.length(); j++)
+                matrix[i][j] = rowVals.get(j);
+        }
+    }
+    
     public DenseMatrix(int rows, int cols)
     {
         matrix = new double[rows][cols];
@@ -83,11 +105,11 @@ public class DenseMatrix extends Matrix
     
     private class MuttableAddConstRun implements Runnable
     {
-        CountDownLatch latch;
-        int row;
-        double constant;
+        final CountDownLatch latch;
+        final double[] row;
+        final double constant;
 
-        public MuttableAddConstRun(CountDownLatch latch, int row, double constant)
+        public MuttableAddConstRun(CountDownLatch latch, double[] row, double constant)
         {
             this.latch = latch;
             this.row = row;
@@ -96,8 +118,8 @@ public class DenseMatrix extends Matrix
 
         public void run()
         {
-            for(int j = 0; j < matrix[row].length; j++)
-                matrix[row][j] += constant;
+            for(int j = 0; j < row.length; j++)
+                row[j] += constant;
             latch.countDown();
         }
     }
@@ -108,7 +130,7 @@ public class DenseMatrix extends Matrix
         CountDownLatch latch = new CountDownLatch(rows());
         
         for(int i = 0; i < rows(); i++)
-            threadPool.submit(new MuttableAddConstRun(latch, i, c));
+            threadPool.submit(new MuttableAddConstRun(latch, matrix[i], c));
         
         try
         {
@@ -177,7 +199,7 @@ public class DenseMatrix extends Matrix
     public Vec multiply(Vec b)
     {
         if(this.cols() != b.length())
-            throw new ArithmeticException("Matrix dimensions do not agree");
+            throw new ArithmeticException("Matrix dimensions do not agree, [" + rows() +"," + cols() + "] x [" + b.length() + ",1]" );
         
         
         DenseVector result = new DenseVector(rows());
@@ -191,28 +213,23 @@ public class DenseMatrix extends Matrix
         return result;
     }
     
-    private class vecMultiRun implements Runnable
+    private class VecMultiRun implements Callable<Double>
     {
-        final CountDownLatch latch;
-        final Vec destination;
-        final int rowNumber;
         final Vec row;
         final Vec b;
 
-        public vecMultiRun(CountDownLatch latch, Vec destination, int rowNumber, Vec row, Vec b)
+        public VecMultiRun(Vec row, Vec b)
         {
-            this.latch = latch;
-            this.destination = destination;
-            this.rowNumber = rowNumber;
             this.row = row;
             this.b = b;
         }
-        
-        public void run()
+
+        public Double call() throws Exception
         {
-             destination.set(rowNumber, row.dot(b));
-             latch.countDown();
+            return row.dot(b);
         }
+       
+        
         
     }
 
@@ -222,28 +239,39 @@ public class DenseMatrix extends Matrix
         if(this.cols() != b.length())
             throw new ArithmeticException("Matrix dimensions do not agree");
         
-        CountDownLatch latch = new CountDownLatch(rows());
         DenseVector result = new DenseVector(rows());
         
+        List<Future<Double>> vecVals = new ArrayList<Future<Double>>(rows());
         for(int i = 0; i < rows(); i++)
         {
             DenseVector row = new DenseVector(matrix[i]);
-            threadPool.submit(new vecMultiRun(latch, result, i, row, b));
+            vecVals.add(threadPool.submit(new VecMultiRun(row, b)));
         }
+        
         try
         {
-            latch.await();
+            for (int i = 0; i < vecVals.size(); i++)
+            {
+                result.set(i, vecVals.get(i).get());
+            }
         }
-        catch (InterruptedException ex)
+        catch (InterruptedException interruptedException)
         {
-            Logger.getLogger(DenseMatrix.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        catch (ExecutionException executionException)
+        {
+            
         }
         
         return result;
     }
 
-    @Override
-    public Matrix multiply(Matrix b)
+    /**
+     * 
+     * @param b
+     * @return 
+     */
+    private Matrix pureRowOrderMultiply(Matrix b)
     {
         if(!canMultiply(this, b))
             throw new ArithmeticException("Matrix dimensions do not agree");
@@ -280,6 +308,119 @@ public class DenseMatrix extends Matrix
         return result;
     }
     
+    public Matrix blockMultiply(Matrix b)
+    {
+        if(!canMultiply(this, b))
+            throw new ArithmeticException("Matrix dimensions do not agree");
+        DenseMatrix result = new DenseMatrix(this.rows(), b.cols());
+        ///Should choose step size such that 2*stepSize^2 * dataTypeSize <= CacheSize
+        int stepSize = 128;//value good for 8mb cache
+        
+        int iLimit = result.rows();
+        int jLimit = result.cols();
+        int kLimit = this.cols();
+        
+        for(int i0 = 0; i0 < iLimit; i0+=stepSize)
+            for(int k0 = 0; k0 < kLimit; k0+=stepSize)
+                for(int j0 = 0; j0 < jLimit; j0+=stepSize)
+                {
+                    for(int i = i0; i < min(i0+stepSize, iLimit); i++)
+                    {
+                        double[] c_row_i = result.matrix[i];
+                        
+                        for(int k = k0; k < min(k0+stepSize, kLimit); k++)
+                        {
+                            double a = this.matrix[i][k];
+                            
+                            for(int j = j0; j < min(j0+stepSize, jLimit); j++)
+                                c_row_i[j] += a * b.get(k, j);
+                        }
+                    }
+                }
+        
+        return result;
+    }
+    
+    private class BlockMultRun implements Runnable
+    {
+        final CountDownLatch latch;
+        final DenseMatrix result;
+        final Matrix b;
+        final int stepSize;
+        final int kLimit, jLimit, iLimit;
+        final int i0;
+
+        public BlockMultRun(CountDownLatch latch, DenseMatrix result, Matrix b, int stepSize, int kLimit, int jLimit, int iLimit, int i0)
+        {
+            this.latch = latch;
+            this.result = result;
+            this.b = b;
+            this.stepSize = stepSize;
+            this.kLimit = kLimit;
+            this.jLimit = jLimit;
+            this.iLimit = iLimit;
+            this.i0 = i0;
+        }
+        
+        public void run()
+        {
+            for(int k0 = 0; k0 < kLimit; k0+=stepSize)
+                for(int j0 = 0; j0 < jLimit; j0+=stepSize)
+                    for(int i = i0; i < min(i0+stepSize, iLimit); i++)
+                    {
+                        double[] c_row_i = result.matrix[i];
+                        
+                        for(int k = k0; k < min(k0+stepSize, kLimit); k++)
+                        {
+                            double a = matrix[i][k];
+                            
+                            for(int j = j0; j < min(j0+stepSize, jLimit); j++)
+                                c_row_i[j] += a * b.get(k, j);
+                        }
+                    }
+            
+            latch.countDown();
+        }
+        
+    }
+    
+    public Matrix blockMultiply(Matrix b, ExecutorService threadPool)
+    {
+        if(!canMultiply(this, b))
+            throw new ArithmeticException("Matrix dimensions do not agree");
+        DenseMatrix result = new DenseMatrix(this.rows(), b.cols());
+        
+        ///Should choose step size such that 2*stepSize^2 * dataTypeSize <= CacheSize
+        int stepSize = 128;//value good for 8mb cache
+        
+        
+        
+        int iLimit = result.rows();
+        int jLimit = result.cols();
+        int kLimit = this.cols();
+        
+        CountDownLatch latch = new CountDownLatch( (iLimit/stepSize + (iLimit%stepSize > 0 ? 1 : 0)) );
+        
+        for(int i0 = 0; i0 < iLimit; i0+=stepSize)
+            threadPool.submit(new BlockMultRun(latch, result, b, stepSize, kLimit, jLimit, iLimit, i0));
+        try
+        {
+            latch.await();
+        }
+        catch (InterruptedException ex)
+        {
+            Logger.getLogger(DenseMatrix.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        
+        return result;
+    }
+    
+    @Override
+    public Matrix multiply(Matrix b)
+    {
+        return pureRowOrderMultiply(b);
+    }
+    
     /**
      * this is a direct conversion of the outer most loop of {@link #multiply(jsat.linear.Matrix) } 
      */
@@ -301,12 +442,12 @@ public class DenseMatrix extends Matrix
 
         public void run()
         {
-            for(int k = 0; k < cols(); k++)
-            {
-                double a = Arowi[k];
-                for(int j = 0; j < Crowi.length; j++)
-                    Crowi[j] += a*b.get(k, j);
-            }
+                for(int k = 0; k < cols(); k++)
+                {
+                    double a = Arowi[k];
+                    for(int j = 0; j < Crowi.length; j++)
+                        Crowi[j] += a*b.get(k, j);
+                }
             latch.countDown();
         }
     }
@@ -386,6 +527,18 @@ public class DenseMatrix extends Matrix
 
     }
 
+    @Override
+    public Matrix transpose()
+    {
+        DenseMatrix transpose = new DenseMatrix(cols(), rows());
+        
+        for(int i = 0; i < rows(); i++)
+            for(int j = 0; j < cols(); j++)
+                transpose.matrix[j][i] = this.matrix[i][j];
+        
+        return transpose;
+    }
+    
     @Override
     public double get(int i, int j)
     {

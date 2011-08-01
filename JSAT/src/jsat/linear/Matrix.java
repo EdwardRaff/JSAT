@@ -98,6 +98,8 @@ public abstract class Matrix
     abstract public void mutableMultiply(double c);
     abstract public void mutableMultiply(double c, ExecutorService threadPool);
     
+    abstract public Matrix transpose();
+    
     abstract public double get(int i, int j);
     abstract public void set(int i, int j, double value);
     
