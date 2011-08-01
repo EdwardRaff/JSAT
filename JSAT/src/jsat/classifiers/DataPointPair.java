@@ -1,6 +1,8 @@
 
 package jsat.classifiers;
 
+import jsat.linear.Vec;
+
 /**
  *
  * This class exists so that any data point can be arbitrarily paired with some value
@@ -35,5 +37,14 @@ public class DataPointPair<P>
     public P getPair()
     {
         return pair;
+    }
+    
+    /**
+     * The same as calling {@link DataPoint#getNumericalValues() } on {@link #getDataPoint() }.
+     * @return the Vec related to the data point in this pair. 
+     */
+    public Vec getVector()
+    {
+        return dataPoint.getNumericalValues();
     }
 }

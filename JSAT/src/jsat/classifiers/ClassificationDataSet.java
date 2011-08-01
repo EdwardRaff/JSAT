@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Random;
 import jsat.linear.DenseVector;
 import jsat.linear.Vec;
+import jsat.math.OnLineStatistics;
 
 /**
  *
@@ -261,6 +262,29 @@ public class ClassificationDataSet //extends DataSet
             vec.set(i, categoryList.get(i).getNumericalValues().get(n));
         
         return vec;
+    }
+    
+    /**
+     * Returns summary statistics computed in an online fashion for each numeric
+     * variable. This consumes less memory, but can be less numerically stable. 
+     * 
+     * @return an array of summary statistics
+     */
+    public OnLineStatistics[] singleVarStats()
+    {
+        OnLineStatistics[] stats = new OnLineStatistics[numNumerVals];
+        for(int i = 0; i < stats.length; i++)
+            stats[i] = new OnLineStatistics();
+        
+        for(List<DataPoint> list : classifiedExamples)
+            for(DataPoint dp: list)
+            {
+                Vec v = dp.getNumericalValues();
+                for(int i = 0; i < numNumerVals; i++)
+                    stats[i].add(v.get(i));
+            }
+        
+        return stats;
     }
     
     /**
