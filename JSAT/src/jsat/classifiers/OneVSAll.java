@@ -90,5 +90,10 @@ public class OneVSAll implements Classifier
     {
         throw new UnsupportedOperationException("Not supported yet.");
     }
+
+    public boolean supportsWeightedData()
+    {
+        return baseClassifier.supportsWeightedData();
+    }
     
 }
