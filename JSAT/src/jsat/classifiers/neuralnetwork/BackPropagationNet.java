@@ -16,7 +16,6 @@ import jsat.linear.DenseVector;
 import jsat.linear.Matrix;
 import jsat.linear.SparceVector;
 import jsat.linear.Vec;
-import jsat.math.FastMath;
 import jsat.utils.FakeExecutor;
 
 /**
