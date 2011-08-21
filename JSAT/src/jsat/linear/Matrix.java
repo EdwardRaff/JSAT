@@ -145,6 +145,49 @@ public abstract class Matrix
     {
         return a.cols() == b.rows();
     }
+
+    @Override
+    public boolean equals(Object obj)
+    {
+        if(obj == null || !(obj instanceof Matrix))
+            return false;
+        Matrix that = (Matrix) obj;
+        
+        if(this.rows() != that.rows() || this.cols() != that.cols())
+            return false;
+        
+        for(int i = 0; i < rows(); i++)
+            for(int j = 0; j < cols(); j++)
+                if(this.get(i, j) != that.get(i, j))
+                    return false;
+        
+        return true;
+    }
     
-    
+    /**
+     * Performs the same as {@link #equals(java.lang.Object) }, but allows a
+     * leniency in the results. This is use full for when some amount of 
+     * numerical error in calculation is expected
+     * 
+     * @param obj the other matrix 
+     * @param range the acceptable difference between two cell values
+     * @return true if the difference between the values of each matrix element are less than or equal to <tt>range</tt>
+     */
+    public boolean equalsRange(Object obj, double range)
+    {
+        if(obj == null || !(obj instanceof Matrix))
+            return false;
+        Matrix that = (Matrix) obj;
+        
+        if(this.rows() != that.rows() || this.cols() != that.cols())
+            return false;
+        
+        for(int i = 0; i < rows(); i++)
+            for(int j = 0; j < cols(); j++)
+                if(Math.abs(this.get(i, j)-that.get(i, j)) > range)
+                    return false;
+        
+        return true;
+    }
+
 }

@@ -41,6 +41,23 @@ public class DenseMatrix extends Matrix
         matrix = new double[rows][cols];
     }
     
+    /**
+     * Creates a new matrix that is a copy of the given matrix. 
+     * An error will be throw if the rows of the given matrix 
+     * are not all the same size
+     * 
+     * @param matrix the matrix to copy the values of
+     */
+    public DenseMatrix(double[][] matrix)
+    {
+        this.matrix = new double[matrix.length][matrix[0].length];
+        for(int i = 0; i < this.matrix.length; i++)
+            if(matrix[i].length != this.matrix[i].length)//The matrix we were given better have rows of the same length!
+                throw new RuntimeException("Given matrix was not of consistent size (rows have diffrent lengths)");
+            else
+                System.arraycopy(matrix[i], 0, this.matrix[i], 0, this.matrix[i].length);
+    }
+    
     private class MuttableAddRun implements Runnable
     {
         CountDownLatch latch;
@@ -308,7 +325,7 @@ public class DenseMatrix extends Matrix
         return result;
     }
     
-    public Matrix blockMultiply(Matrix b)
+    private Matrix blockMultiply(Matrix b)
     {
         if(!canMultiply(this, b))
             throw new ArithmeticException("Matrix dimensions do not agree");
@@ -384,7 +401,7 @@ public class DenseMatrix extends Matrix
         
     }
     
-    public Matrix blockMultiply(Matrix b, ExecutorService threadPool)
+    private Matrix blockMultiply(Matrix b, ExecutorService threadPool)
     {
         if(!canMultiply(this, b))
             throw new ArithmeticException("Matrix dimensions do not agree");
