@@ -1,6 +1,7 @@
 
 package jsat.linear;
 
+import java.util.Random;
 import java.util.concurrent.ExecutorService;
 
 /**
@@ -98,6 +99,9 @@ public abstract class Matrix
     abstract public void mutableMultiply(double c);
     abstract public void mutableMultiply(double c, ExecutorService threadPool);
     
+    abstract public Matrix[] lup();
+    abstract public Matrix[] lup(ExecutorService threadPool);
+    
     abstract public Matrix transpose();
     
     abstract public double get(int i, int j);
@@ -112,6 +116,8 @@ public abstract class Matrix
     {
         return rows() == cols();
     }
+    
+    abstract public void swapRows(int r1, int r2);
     
     abstract public Matrix copy();
 
@@ -189,5 +195,29 @@ public abstract class Matrix
         
         return true;
     }
+    
+    abstract public void zeroOut();
 
+    /**
+     * Creates a new identity matrix with k rows and columns. 
+     * @param k the number of rows / columns
+     * @return I_k
+     */
+    public static Matrix eye(int k)
+    {
+        DenseMatrix eye = new DenseMatrix(k, k);
+        for(int i = 0; i < k; i++ )
+            eye.set(i, i, 1);
+        return eye;
+    }
+    
+    public static DenseMatrix random(int rows, int cols, Random rand)
+    {
+        DenseMatrix m = new DenseMatrix(rows, cols);
+        for(int i = 0; i < rows; i++)
+            for(int j = 0; j < cols; j++)
+                m.set(i, j, rand.nextDouble());
+        
+        return m;
+    }
 }

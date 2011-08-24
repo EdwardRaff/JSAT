@@ -2,6 +2,7 @@
 package jsat.linear;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CountDownLatch;
@@ -18,6 +19,8 @@ import static java.lang.Math.*;
  */
 public class DenseMatrix extends Matrix
 {
+    private static final int maxThreads = Runtime.getRuntime().availableProcessors();
+    
     private final double[][] matrix;
 
     /**
@@ -57,7 +60,7 @@ public class DenseMatrix extends Matrix
             else
                 System.arraycopy(matrix[i], 0, this.matrix[i], 0, this.matrix[i].length);
     }
-    
+   
     private class MuttableAddRun implements Runnable
     {
         CountDownLatch latch;
@@ -593,6 +596,204 @@ public class DenseMatrix extends Matrix
         return  ((long) matrix.length )*matrix[0].length;
     }
 
+    @Override
+    public void swapRows(int r1, int r2)
+    {
+        if(r1 >= rows() || r2 >= rows())
+            throw new ArithmeticException("Can not swap row, matrix is smaller then requested");
+        else if(r1 < 0 || r2 < 0)
+            throw new ArithmeticException("Can not swap row, there are no negative row indices");
+        double[] tmp = matrix[r1];
+        matrix[r1] = matrix[r2];
+        matrix[r2] = tmp;
+    }
+    
+    @Override
+    public void zeroOut()
+    {
+        for(int i = 0; i < rows(); i++)
+            Arrays.fill(matrix[i], 0);
+    }
+    
+    public Matrix[] lup()
+    {
+        Matrix[] lup = new Matrix[3];
+        
+        Matrix P = eye(rows());
+        DenseMatrix L;
+        DenseMatrix U = this;
+        
+        //Initalization is a little wierd b/c we want to handle rectangular cases as well!
+        if(rows() > cols())//In this case, we will be changing U before returning it (have to make it smaller, but we can still avoid allocating extra space
+            L = new DenseMatrix(rows(), cols());
+        else
+            L = new DenseMatrix(rows(), rows());
+        
+        
+        for(int k = 0; k < Math.min(rows(), cols()); k++)
+        {
+            //Partial pivoting, find the largest value in this colum and move it to the top! 
+            //Find the largest magintude value in the colum k, row j
+            int largestRow = k;
+            double largestVal = Math.abs(U.matrix[k][k]);
+            for(int j = k+1; j < U.rows(); j++)
+            {
+                double rowJLeadVal = Math.abs(U.matrix[j][k]);
+                if(rowJLeadVal > largestVal)
+                {
+                    largestRow = j;
+                    largestVal = rowJLeadVal;
+                }
+            }
+            
+            //SWAP!
+            U.swapRows(largestRow, k);
+            P.swapRows(largestRow, k);
+            L.swapRows(largestRow, k);
+            
+            
+            L.matrix[k][k] = 1;
+            //Seting up L 
+            for(int i = k+1; i < U.rows(); i++)
+            {
+                L.matrix[i][k] = U.matrix[i][k]/U.matrix[k][k];
+                for(int j = k+1; j < U.cols(); j++)
+                {
+                    U.matrix[i][j] -= L.matrix[i][k]*U.matrix[k][j];
+                }
+            }
+            
+            for(int j = 0; j < k; j++)
+                U.matrix[k][j] = 0;
+        }
+        
+        
+        if(rows() > cols())//Clean up!
+        {
+            //We need to change U to a square nxn matrix in this case, we can safely drop the last 2 columns!
+            double[][] newU = new double[cols()][];
+            System.arraycopy(U.matrix, 0, newU, 0, newU.length);
+            U = new DenseMatrix(newU);//We have made U point at a new object, but the array is still pointing at the same rows! 
+        }
+        
+        lup[0] = L;
+        lup[1] = U;
+        lup[2] = P;
+        
+        return lup;
+    }
+    
+    private class LUProwRun implements Runnable
+    {
+        final CountDownLatch latch;
+        final DenseMatrix L;
+        final DenseMatrix U;
+        final int k, threadNumber;
+
+        public LUProwRun(CountDownLatch latch, DenseMatrix L, DenseMatrix U, int k, int threadNumber)
+        {
+            this.latch = latch;
+            this.L = L;
+            this.U = U;
+            this.k = k;
+            this.threadNumber = threadNumber;
+        }
+       
+        
+        
+        public void run()
+        {
+            for(int i = k+1+threadNumber; i < U.rows(); i+=maxThreads)
+            {
+                L.matrix[i][k] = U.matrix[i][k]/U.matrix[k][k];
+                for(int j = k+1; j < U.cols(); j++)
+                {
+                    U.matrix[i][j] -= L.matrix[i][k]*U.matrix[k][j];
+                }
+            }
+            latch.countDown();
+        }
+        
+    }
+    
+    @Override
+    public Matrix[] lup(ExecutorService threadPool)
+    {
+        Matrix[] lup = new Matrix[3];
+        
+        Matrix P = eye(rows());
+        DenseMatrix L;
+        DenseMatrix U = this;
+        
+        //Initalization is a little wierd b/c we want to handle rectangular cases as well!
+        if(rows() > cols())//In this case, we will be changing U before returning it (have to make it smaller, but we can still avoid allocating extra space
+            L = new DenseMatrix(rows(), cols());
+        else
+            L = new DenseMatrix(rows(), rows());
+        
+        
+        
+        
+        for(int k = 0; k < Math.min(rows(), cols()); k++)
+        {
+            //Partial pivoting, find the largest value in this colum and move it to the top! 
+            //Find the largest magintude value in the colum k, row j
+            int largestRow = k;
+            double largestVal = Math.abs(U.matrix[k][k]);
+            for(int j = k+1; j < U.rows(); j++)
+            {
+                double rowJLeadVal = Math.abs(U.matrix[j][k]);
+                if(rowJLeadVal > largestVal)
+                {
+                    largestRow = j;
+                    largestVal = rowJLeadVal;
+                }
+            }
+            
+            //SWAP!
+            U.swapRows(largestRow, k);
+            P.swapRows(largestRow, k);
+            L.swapRows(largestRow, k);
+            
+            CountDownLatch latch = new CountDownLatch(maxThreads);
+            L.matrix[k][k] = 1;
+            //Seting up L 
+            for(int threadNumber = 0; threadNumber < maxThreads; threadNumber++)
+                threadPool.submit(new LUProwRun(latch, L, U, k, threadNumber));
+            
+            
+            try
+            {
+                latch.await();
+            }
+            catch (InterruptedException ex)
+            {
+                
+            }
+        }
+        
+        
+        //Zero out the bottom rows
+        for(int k = 0; k < Math.min(rows(), cols()); k++)
+            for(int j = 0; j < k; j++)
+                U.matrix[k][j] = 0;
+        
+        
+        if(rows() > cols())//Clean up!
+        {
+            //We need to change U to a square nxn matrix in this case, we can safely drop the last 2 columns!
+            double[][] newU = new double[cols()][];
+            System.arraycopy(U.matrix, 0, newU, 0, newU.length);
+            U = new DenseMatrix(newU);//We have made U point at a new object, but the array is still pointing at the same rows! 
+        }
+        
+        lup[0] = L;
+        lup[1] = U;
+        lup[2] = P;
+        
+        return lup;
+    }
+    
     @Override
     public Matrix copy()
     {

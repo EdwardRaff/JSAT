@@ -5,6 +5,7 @@ import java.util.List;
 import java.io.File;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Random;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
@@ -30,6 +31,8 @@ import jsat.distributions.Weibull;
 import jsat.distributions.kernels.LinearKernel;
 import jsat.distributions.kernels.PolynomialKernel;
 import jsat.distributions.kernels.RBFKernel;
+import jsat.linear.DenseMatrix;
+import jsat.linear.Matrix;
 import jsat.linear.SparceVector;
 import jsat.linear.distancemetrics.ChebyshevDistance;
 import jsat.linear.distancemetrics.CosineDistance;
@@ -58,6 +61,54 @@ public class Main {
      */
     public static void main(String[] args)
     {
+        int threads = Runtime.getRuntime().availableProcessors();
+        ExecutorService threadPool = Executors.newFixedThreadPool(threads, new ThreadFactory() { 
+
+            public Thread newThread(Runnable r)
+            {
+                Thread thrd = new Thread(r);
+                thrd.setDaemon(true);
+                return thrd;
+            }
+        });
+        
+        DenseMatrix A = new DenseMatrix(new double[][] 
+        {
+            {1, 5, 4, 8, 9},
+            {1, 5, 7, 3, 7},
+            {0, 3, 8, 5, 6},
+            {3, 8, 0, 7, 0},
+            {1, 9, 2, 9, 6}
+        } );
+        
+        
+        DenseMatrix C = new DenseMatrix(new double[][] 
+        {
+            {1, 6, 8, 3, 1, 5, 10},
+            {5, 5, 3, 7, 2, 10, 0},
+            {8, 0, 5, 7, 9, 1, 8},
+            {9, 3, 2, 7, 2, 4, 8},
+            {1, 2, 6, 5, 8, 1, 9}
+        } );
+        
+        
+//        Matrix[] lup = ((DenseMatrix) C.transpose()).lup();
+//        
+//        for(Matrix m : lup)
+//            System.out.println(m);
+//        
+//        System.out.println(lup[0].multiply(lup[1]));
+        
+        
+        DenseMatrix bigMatrix = Matrix.random(4000, 4000, new Random(3));
+        
+        long start = System.currentTimeMillis();
+//        bigMatrix.lup(threadPool);
+        bigMatrix.multiply(bigMatrix, threadPool);
+        long stop = System.currentTimeMillis();
+        System.out.println( (stop - start)/1000.0 + " seconds" );
+        
+        
         String path = "C:\\Users\\Edward Raff\\Desktop\\UCI\\nominal\\";
 //        String sFile = path + "iris.arff";
 //        String sFile = "/Users/Edward Raff/Desktop/datasets-UCI/UCI/vehicle.arff";
@@ -100,17 +151,9 @@ public class Main {
         
 //        Classifier classifier = new ID3();
         
-        int wrong = 0, right = 0, threads = Runtime.getRuntime().availableProcessors();
+        int wrong = 0, right = 0;
         long trainingTime = 0, classificationTime = 0;
-        ExecutorService threadPool = Executors.newFixedThreadPool(threads, new ThreadFactory() { 
-
-            public Thread newThread(Runnable r)
-            {
-                Thread thrd = new Thread(r);
-                thrd.setDaemon(true);
-                return thrd;
-            }
-        });
+        
         
         for(int i = 0; i < lcds.size(); i++)
         {
