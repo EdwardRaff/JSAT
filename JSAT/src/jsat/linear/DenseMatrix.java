@@ -63,21 +63,24 @@ public class DenseMatrix extends Matrix
    
     private class MuttableAddRun implements Runnable
     {
-        CountDownLatch latch;
-        int row;
-        Matrix otherSource;
+        final CountDownLatch latch;
+        final Matrix b;
+        final int threadId;
 
-        public MuttableAddRun(CountDownLatch latch, int row, Matrix otherSource)
+        public MuttableAddRun(CountDownLatch latch, Matrix b, int threadId)
         {
             this.latch = latch;
-            this.row = row;
-            this.otherSource = otherSource;
+            this.b = b;
+            this.threadId = threadId;
         }
+        
+        
 
         public void run()
         {
-            for(int j = 0; j < matrix[row].length; j++)
-                matrix[row][j] += otherSource.get(row, j);
+            for(int i = 0+threadId; i < rows(); i+=maxThreads)
+                for(int j = 0; j < cols(); j++)
+                    matrix[i][j] += b.get(i, j);
             latch.countDown();
         }
     }
@@ -99,10 +102,10 @@ public class DenseMatrix extends Matrix
         if(!sameDimensions(this, b))
             throw new ArithmeticException("Matrix dimensions do not agree");
         
-        CountDownLatch latch = new CountDownLatch(rows());
+        CountDownLatch latch = new CountDownLatch(maxThreads);
         
-        for(int i = 0; i < rows(); i++)
-            threadPool.submit(new MuttableAddRun(latch, i, b));
+        for(int threadId = 0; threadId < maxThreads; threadId++)
+            threadPool.submit(new MuttableAddRun(latch, b, threadId));
         
         try
         {
@@ -126,20 +129,21 @@ public class DenseMatrix extends Matrix
     private class MuttableAddConstRun implements Runnable
     {
         final CountDownLatch latch;
-        final double[] row;
         final double constant;
+        final int threadID;
 
-        public MuttableAddConstRun(CountDownLatch latch, double[] row, double constant)
+        public MuttableAddConstRun(CountDownLatch latch, double constant, int threadID)
         {
             this.latch = latch;
-            this.row = row;
             this.constant = constant;
+            this.threadID = threadID;
         }
-
+        
         public void run()
         {
-            for(int j = 0; j < row.length; j++)
-                row[j] += constant;
+            for(int i = 0+threadID; i < rows(); i+=maxThreads)
+                for(int j = 0; j < cols(); j++)
+                    matrix[i][j] += constant;
             latch.countDown();
         }
     }
@@ -147,10 +151,10 @@ public class DenseMatrix extends Matrix
     @Override
     public void mutableAdd(double c, ExecutorService threadPool)
     {
-        CountDownLatch latch = new CountDownLatch(rows());
+        CountDownLatch latch = new CountDownLatch(maxThreads);
         
-        for(int i = 0; i < rows(); i++)
-            threadPool.submit(new MuttableAddConstRun(latch, matrix[i], c));
+        for(int threadID = 0; threadID < maxThreads; threadID++)
+            threadPool.submit(new MuttableAddConstRun(latch, c, threadID));
         
         try
         {
@@ -165,21 +169,22 @@ public class DenseMatrix extends Matrix
     
     private class MuttableSubRun implements Runnable
     {
-        CountDownLatch latch;
-        int row;
-        Matrix otherSource;
+        final CountDownLatch latch;
+        final int threadID;
+        final Matrix b;
 
-        public MuttableSubRun(CountDownLatch latch, int row, Matrix otherSource)
+        public MuttableSubRun(CountDownLatch latch, int threadID, Matrix b)
         {
             this.latch = latch;
-            this.row = row;
-            this.otherSource = otherSource;
+            this.threadID = threadID;
+            this.b = b;
         }
 
         public void run()
         {
-            for(int j = 0; j < matrix[row].length; j++)
-                matrix[row][j] -= otherSource.get(row, j);
+            for(int i = 0+threadID; i < rows(); i+=maxThreads)
+                for(int j = 0; j < cols(); j++)
+                    matrix[i][j] -= b.get(i, j);
             latch.countDown();
         }
     }
@@ -201,10 +206,10 @@ public class DenseMatrix extends Matrix
         if(!sameDimensions(this, b))
             throw new ArithmeticException("Matrix dimensions do not agree");
         
-        CountDownLatch latch = new CountDownLatch(rows());
+        CountDownLatch latch = new CountDownLatch(maxThreads);
         
-        for(int i = 0; i < rows(); i++)
-            threadPool.submit(new MuttableSubRun(latch, i, b));
+        for(int threadID = 0; threadID < maxThreads; threadID++)
+            threadPool.submit(new MuttableSubRun(latch, threadID, b));
         try
         {
             latch.await();
@@ -448,26 +453,37 @@ public class DenseMatrix extends Matrix
     {
         
         final CountDownLatch latch;
-        final double[] Arowi;
-        final double[] Crowi;
-        final Matrix b;
+        final DenseMatrix A, result;
+        final Matrix B;
+        final int threadID;
 
-        public MultRun(CountDownLatch latch, double[] Arowi, double[] Crowi, Matrix b)
+        public MultRun(CountDownLatch latch, DenseMatrix A, DenseMatrix result, Matrix B, int threadID)
         {
             this.latch = latch;
-            this.Arowi = Arowi;
-            this.Crowi = Crowi;
-            this.b = b;
+            this.A = A;
+            this.result = result;
+            this.B = B;
+            this.threadID = threadID;
         }
-
+        
         public void run()
         {
-                for(int k = 0; k < cols(); k++)
+
+            //Pull out the index operations to hand optimize for speed. 
+            double[] Arowi;
+            double[] Crowi;
+            for(int i = 0+threadID; i < result.rows(); i+=maxThreads)
+            {
+                Arowi = A.matrix[i];
+                Crowi = result.matrix[i];
+
+                for(int k = 0; k < A.cols(); k++)
                 {
                     double a = Arowi[k];
                     for(int j = 0; j < Crowi.length; j++)
-                        Crowi[j] += a*b.get(k, j);
+                        Crowi[j] += a*B.get(k, j);
                 }
+            }
             latch.countDown();
         }
     }
@@ -478,15 +494,11 @@ public class DenseMatrix extends Matrix
         if(!canMultiply(this, b))
             throw new ArithmeticException("Matrix dimensions do not agree");
         DenseMatrix result = new DenseMatrix(this.rows(), b.cols());
-        CountDownLatch cdl = new CountDownLatch(this.rows());
+        CountDownLatch cdl = new CountDownLatch(maxThreads);
         
-        for (int i = 0; i < result.rows(); i++)
-        {
-            double[] Arowi = this.matrix[i];
-            double[] Crowi = result.matrix[i];
-
-            threadPool.submit(new MultRun(cdl, Arowi, Crowi, b));
-        }
+        for (int threadID = 0; threadID < maxThreads; threadID++)
+            threadPool.submit(new MultRun(cdl, this, result, b, threadID));
+            
         try
         {
             cdl.await();
@@ -511,20 +523,21 @@ public class DenseMatrix extends Matrix
     private class MultConstant implements Runnable
     {
         final CountDownLatch latch;
-        final double[] row;
         final double c;
+        final int threadID;
 
-        public MultConstant(CountDownLatch latch, double[] row, double c)
+        public MultConstant(CountDownLatch latch, double c, int threadID)
         {
             this.latch = latch;
-            this.row = row;
             this.c = c;
+            this.threadID = threadID;
         }
 
         public void run()
         {
-            for(int j = 0; j < row.length; j++)
-                row[j] *= c;
+            for(int i = 0+threadID; i < rows(); i+=maxThreads)
+                for(int j = 0; j < cols(); j++)
+                    matrix[i][j] *= c;
             latch.countDown();
         }
         
@@ -533,9 +546,9 @@ public class DenseMatrix extends Matrix
     @Override
     public void mutableMultiply(double c, ExecutorService threadPool)
     {
-        CountDownLatch latch = new CountDownLatch(matrix.length);
-        for(int i = 0; i < matrix.length; i++)
-            threadPool.submit(new MultConstant(latch, matrix[i], c));
+        CountDownLatch latch = new CountDownLatch(maxThreads);
+        for(int threadID = 0; threadID < maxThreads; threadID++)
+            threadPool.submit(new MultConstant(latch, c, threadID));
         try
         {
             latch.await();
@@ -730,8 +743,6 @@ public class DenseMatrix extends Matrix
             L = new DenseMatrix(rows(), cols());
         else
             L = new DenseMatrix(rows(), rows());
-        
-        
         
         
         for(int k = 0; k < Math.min(rows(), cols()); k++)
