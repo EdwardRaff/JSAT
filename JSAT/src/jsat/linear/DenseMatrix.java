@@ -11,6 +11,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import jsat.utils.SystemInfo;
 import static java.lang.Math.*;
 
 /**
@@ -389,20 +390,20 @@ public class DenseMatrix extends Matrix
         
         public void run()
         {
-            for(int k0 = 0; k0 < kLimit; k0+=stepSize)
-                for(int j0 = 0; j0 < jLimit; j0+=stepSize)
-                    for(int i = i0; i < min(i0+stepSize, iLimit); i++)
-                    {
-                        double[] c_row_i = result.matrix[i];
-                        
-                        for(int k = k0; k < min(k0+stepSize, kLimit); k++)
+                for(int k0 = 0; k0 < kLimit; k0+=stepSize)
+                    for(int j0 = 0; j0 < jLimit; j0+=stepSize)
+                        for(int i = i0; i < min(i0+stepSize, iLimit); i++)
                         {
-                            double a = matrix[i][k];
-                            
-                            for(int j = j0; j < min(j0+stepSize, jLimit); j++)
-                                c_row_i[j] += a * b.get(k, j);
+                            double[] c_row_i = result.matrix[i];
+
+                            for(int k = k0; k < min(k0+stepSize, kLimit); k++)
+                            {
+                                double a = matrix[i][k];
+
+                                for(int j = j0; j < min(j0+stepSize, jLimit); j++)
+                                    c_row_i[j] += a * b.get(k, j);
+                            }
                         }
-                    }
             
             latch.countDown();
         }
@@ -416,7 +417,7 @@ public class DenseMatrix extends Matrix
         DenseMatrix result = new DenseMatrix(this.rows(), b.cols());
         
         ///Should choose step size such that 2*stepSize^2 * dataTypeSize <= CacheSize
-        int stepSize = 128;//value good for 8mb cache
+        int stepSize = (int)Math.sqrt(SystemInfo.L2CacheSize/(8*2));
         
         
         
