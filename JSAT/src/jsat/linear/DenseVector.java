@@ -1,9 +1,8 @@
 
 package jsat.linear;
 
-import java.util.ArrayList;
+import java.util.List;
 import java.util.Arrays;
-import java.util.Collections;
 
 import static java.lang.Math.*;
 
@@ -26,7 +25,7 @@ public class DenseVector implements Vec
         array = new double[length];
     }
 
-    public DenseVector(ArrayList<Double> array)
+    public DenseVector(List<Double> array)
     {
         this.array = new double[array.size()];
         for(int i = 0; i < array.size(); i++)
