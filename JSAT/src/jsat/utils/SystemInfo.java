@@ -19,7 +19,7 @@ import java.util.logging.Logger;
  */
 public class SystemInfo
 {
-    
+    public final static int LogicalCores = Runtime.getRuntime().availableProcessors();
     public final static String OS_String = System.getProperty("os.name");
     
     /**
