@@ -4,6 +4,7 @@
  */
 package jsat.linear;
 
+import java.util.Arrays;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
@@ -326,7 +327,17 @@ public class DenseMatrixTest
     @Test
     public void testMultiply_Vec()
     {
-        fail("Not yet implemented");
+        DenseVector b = new DenseVector(Arrays.asList(4.0, 5.0, 2.0, 6.0, 7.0));
+        
+        DenseVector z = new DenseVector(Arrays.asList(2.0, 1.0, 2.0, 3.0, 4.0, 5.0, 0.0));
+        
+        DenseVector Ab = new DenseVector(Arrays.asList(148.0, 110.0, 103.0, 94.0, 149.0));
+        
+        assertEquals(Ab, A.multiply(b));
+        
+        DenseVector Cz = new DenseVector(Arrays.asList(62.0, 100.0, 88.0, 74.0, 68.0));
+        
+        assertEquals(Cz, C.multiply(z));
     }
 
     /**
@@ -335,7 +346,17 @@ public class DenseMatrixTest
     @Test
     public void testMultiply_Vec_ExecutorService()
     {
-        fail("Not yet implemented");
+        DenseVector b = new DenseVector(Arrays.asList(4.0, 5.0, 2.0, 6.0, 7.0));
+        
+        DenseVector z = new DenseVector(Arrays.asList(2.0, 1.0, 2.0, 3.0, 4.0, 5.0, 0.0));
+        
+        DenseVector Ab = new DenseVector(Arrays.asList(148.0, 110.0, 103.0, 94.0, 149.0));
+        
+        assertEquals(Ab, A.multiply(b, threadpool));
+        
+        DenseVector Cz = new DenseVector(Arrays.asList(62.0, 100.0, 88.0, 74.0, 68.0));
+        
+        assertEquals(Cz, C.multiply(z, threadpool));
     }
     
     /**
@@ -540,8 +561,38 @@ public class DenseMatrixTest
     public void testSwapRows()
     {
         System.out.println("swapRows");
-        // TODO review the generated test code and remove the default call to fail.
-        fail("The test case is a prototype.");
+        
+        Matrix Expected = new DenseMatrix(new double[][] 
+        {
+            {5, 5, 3, 7, 2, 10, 0},
+            {1, 2, 6, 5, 8, 1, 9},
+            {8, 0, 5, 7, 9, 1, 8},
+            {9, 3, 2, 7, 2, 4, 8},
+            {1, 6, 8, 3, 1, 5, 10}
+        } );
+        
+        Matrix test = C.copy();
+        
+        
+        test.swapRows(1, 0);
+        test.swapRows(1, 0);
+        assertEquals(C, test);
+        test.swapRows(0, 1);
+        test.swapRows(0, 1);
+        assertEquals(C, test);
+        test.swapRows(3, 3);
+        assertEquals(C, test);
+        
+        
+        test.swapRows(0, 4);
+        test.swapRows(0, 1);
+        assertEquals(Expected, test);
+        
+        
+        test = C.copy();
+        test.swapRows(4, 0);
+        test.swapRows(1, 0);
+        assertEquals(Expected, test);
     }
 
     /**
@@ -551,8 +602,13 @@ public class DenseMatrixTest
     public void testZeroOut()
     {
         System.out.println("zeroOut");
-        // TODO review the generated test code and remove the default call to fail.
-        fail("The test case is a prototype.");
+        
+        Matrix test = C.copy();
+        test.zeroOut();
+        
+        for(int i = 0; i < test.rows(); i++)
+            for(int j = 0; j < test.cols(); j++)
+                assertEquals(0, test.get(i, j), 0);
     }
 
     /**
