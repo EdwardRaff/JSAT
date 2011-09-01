@@ -563,110 +563,16 @@ public class DenseMatrixTest
     {
         System.out.println("lup");
         
-        DenseMatrix A_L = new DenseMatrix(new double[][] 
-        {
-            {1.0000,         0,         0,         0,         0},
-            {0.3333,    1.0000,         0,         0,         0},
-            {     0,    0.4737,    1.0000,         0,         0},
-            {0.3333,    0.3684,    0.8881,    1.0000,         0},
-            {0.3333,    0.3684,    0.4627,   -0.6885,    1.0000}
-        } );
-        
-        DenseMatrix A_U = new DenseMatrix(new double[][] 
-        {
-            {3.0000,    8.0000,         0,    7.0000,         0},
-            {     0,    6.3333,    2.0000,    6.6667,    6.0000},
-            {     0,         0,    7.0526,    1.8421,    3.1579},
-            {     0,         0,         0,   -3.4254,    1.9851},
-            {     0,         0,         0,         0,    6.6950}
-        } );
-        
-        DenseMatrix A_P = new DenseMatrix(new double[][] 
-        {
-            {0,     0,     0,     1,     0},
-            {0,     0,     0,     0,     1},
-            {0,     0,     1,     0,     0},
-            {0,     1,     0,     0,     0},
-            {1,     0,     0,     0,     0}
-        } );
-        
-        DenseMatrix C_L = new DenseMatrix(new double[][] 
-        {
-            {1.0000,         0,         0,         0,         0},
-            {0.1111,    1.0000,         0,         0,         0},
-            {0.8889,   -0.4706,    1.0000,         0,         0},
-            {0.1111,    0.2941,    0.5071,    1.0000,         0},
-            {0.5556,    0.5882,   -0.3903,    0.9515,    1.0000}
-        } );
-        
-        DenseMatrix C_U = new DenseMatrix(new double[][] 
-        {
-            {9.0000,    3.0000,    2.0000,    7.0000,    2.0000,    4.0000,    8.0000},
-            {     0,    5.6667,    7.7778,    2.2222,    0.7778,    4.5556,    9.1111},
-            {     0,         0,    6.8824,    1.8235,    7.5882,   -0.4118,    5.1765},
-            {     0,         0,         0,    2.6439,    3.7009,   -0.5755,    2.8063},
-            {     0,         0,         0,         0,   -0.1282,    5.4849,  -10.4537}
-        } );
-        
-        DenseMatrix C_P = new DenseMatrix(new double[][] 
-        {
-            {0,     0,     0,     1,     0},
-            {1,     0,     0,     0,     0},
-            {0,     0,     1,     0,     0},
-            {0,     0,     0,     0,     1},
-            {0,     1,     0,     0,     0}
-        } );
-        
-        DenseMatrix CT_L = new DenseMatrix(new double[][] 
-        {
-            {1.0000,         0,         0,         0,         0},
-            {0.5000,    1.0000,         0,         0,         0},
-            {0.1000,    0.2000,    1.0000,         0,         0},
-            {0.1000,    0.5000,    0.9886,    1.0000,         0},
-            {0.8000,    0.3000,   -0.0568,   -0.6176,    1.0000},
-            {0.6000,    0.5000,   -0.3750,   -0.1925,   -0.0441},
-            {0.3000,    0.7000,    0.7614,    0.5256,   -0.5687}
-        } );
-        
-        DenseMatrix CT_U = new DenseMatrix(new double[][] 
-        {
-            {10.0000,         0,    8.0000,    8.0000,    9.0000},
-            {      0,   10.0000,   -3.0000,         0,   -3.5000},
-            {      0,         0,    8.8000,    1.2000,    7.8000},
-            {      0,         0,         0,    7.0136,   -5.8614},
-            {      0,         0,         0,         0,   -3.3270}
-        } );
-        
-        DenseMatrix CT_P = new DenseMatrix(new double[][] 
-        {
-            {0,     0,     0,     0,     0,     0,     1},
-            {0,     0,     0,     0,     0,     1,     0},
-            {0,     0,     0,     0,     1,     0,     0},
-            {1,     0,     0,     0,     0,     0,     0},
-            {0,     0,     1,     0,     0,     0,     0}, 
-            {0,     1,     0,     0,     0,     0,     0},
-            {0,     0,     0,     1,     0,     0,     0}
-        } );
-        
         Matrix[] lup;
         
         lup = A.copy().lup();
-        assertTrue(lup[0].equalsRange(A_L, 0.0001));
-        assertTrue(lup[1].equalsRange(A_U, 0.0001));
-        assertTrue(lup[2].equalsRange(A_P, 0.0001));
         assertTrue(lup[2].multiply(A).equalsRange(lup[0].multiply(lup[1]), 1e-14));
         
         lup = C.copy().lup();
-        assertTrue(lup[0].equalsRange(C_L, 0.0001));
-        assertTrue(lup[1].equalsRange(C_U, 0.0001));
-        assertTrue(lup[2].equalsRange(C_P, 0.0001));
         assertTrue(lup[2].multiply(C).equalsRange(lup[0].multiply(lup[1]), 1e-14));
         
         
         lup = C.transpose().lup();
-        assertTrue(lup[0].equalsRange(CT_L, 0.0001));
-        assertTrue(lup[1].equalsRange(CT_U, 0.0001));
-        assertTrue(lup[2].equalsRange(CT_P, 0.0001));
         assertTrue(lup[2].multiply(C.transpose()).equalsRange(lup[0].multiply(lup[1]), 1e-14));
     }
 
@@ -677,110 +583,17 @@ public class DenseMatrixTest
     public void testLup_ExecutorService()
     {
         System.out.println("lup");
-        DenseMatrix A_L = new DenseMatrix(new double[][] 
-        {
-            {1.0000,         0,         0,         0,         0},
-            {0.3333,    1.0000,         0,         0,         0},
-            {     0,    0.4737,    1.0000,         0,         0},
-            {0.3333,    0.3684,    0.8881,    1.0000,         0},
-            {0.3333,    0.3684,    0.4627,   -0.6885,    1.0000}
-        } );
-        
-        DenseMatrix A_U = new DenseMatrix(new double[][] 
-        {
-            {3.0000,    8.0000,         0,    7.0000,         0},
-            {     0,    6.3333,    2.0000,    6.6667,    6.0000},
-            {     0,         0,    7.0526,    1.8421,    3.1579},
-            {     0,         0,         0,   -3.4254,    1.9851},
-            {     0,         0,         0,         0,    6.6950}
-        } );
-        
-        DenseMatrix A_P = new DenseMatrix(new double[][] 
-        {
-            {0,     0,     0,     1,     0},
-            {0,     0,     0,     0,     1},
-            {0,     0,     1,     0,     0},
-            {0,     1,     0,     0,     0},
-            {1,     0,     0,     0,     0}
-        } );
-        
-        DenseMatrix C_L = new DenseMatrix(new double[][] 
-        {
-            {1.0000,         0,         0,         0,         0},
-            {0.1111,    1.0000,         0,         0,         0},
-            {0.8889,   -0.4706,    1.0000,         0,         0},
-            {0.1111,    0.2941,    0.5071,    1.0000,         0},
-            {0.5556,    0.5882,   -0.3903,    0.9515,    1.0000}
-        } );
-        
-        DenseMatrix C_U = new DenseMatrix(new double[][] 
-        {
-            {9.0000,    3.0000,    2.0000,    7.0000,    2.0000,    4.0000,    8.0000},
-            {     0,    5.6667,    7.7778,    2.2222,    0.7778,    4.5556,    9.1111},
-            {     0,         0,    6.8824,    1.8235,    7.5882,   -0.4118,    5.1765},
-            {     0,         0,         0,    2.6439,    3.7009,   -0.5755,    2.8063},
-            {     0,         0,         0,         0,   -0.1282,    5.4849,  -10.4537}
-        } );
-        
-        DenseMatrix C_P = new DenseMatrix(new double[][] 
-        {
-            {0,     0,     0,     1,     0},
-            {1,     0,     0,     0,     0},
-            {0,     0,     1,     0,     0},
-            {0,     0,     0,     0,     1},
-            {0,     1,     0,     0,     0}
-        } );
-        
-        DenseMatrix CT_L = new DenseMatrix(new double[][] 
-        {
-            {1.0000,         0,         0,         0,         0},
-            {0.5000,    1.0000,         0,         0,         0},
-            {0.1000,    0.2000,    1.0000,         0,         0},
-            {0.1000,    0.5000,    0.9886,    1.0000,         0},
-            {0.8000,    0.3000,   -0.0568,   -0.6176,    1.0000},
-            {0.6000,    0.5000,   -0.3750,   -0.1925,   -0.0441},
-            {0.3000,    0.7000,    0.7614,    0.5256,   -0.5687}
-        } );
-        
-        DenseMatrix CT_U = new DenseMatrix(new double[][] 
-        {
-            {10.0000,         0,    8.0000,    8.0000,    9.0000},
-            {      0,   10.0000,   -3.0000,         0,   -3.5000},
-            {      0,         0,    8.8000,    1.2000,    7.8000},
-            {      0,         0,         0,    7.0136,   -5.8614},
-            {      0,         0,         0,         0,   -3.3270}
-        } );
-        
-        DenseMatrix CT_P = new DenseMatrix(new double[][] 
-        {
-            {0,     0,     0,     0,     0,     0,     1},
-            {0,     0,     0,     0,     0,     1,     0},
-            {0,     0,     0,     0,     1,     0,     0},
-            {1,     0,     0,     0,     0,     0,     0},
-            {0,     0,     1,     0,     0,     0,     0}, 
-            {0,     1,     0,     0,     0,     0,     0},
-            {0,     0,     0,     1,     0,     0,     0}
-        } );
         
         Matrix[] lup;
         
         lup = A.copy().lup(threadpool);
-        assertTrue(lup[0].equalsRange(A_L, 0.0001));
-        assertTrue(lup[1].equalsRange(A_U, 0.0001));
-        assertTrue(lup[2].equalsRange(A_P, 0.0001));
         assertTrue(lup[2].multiply(A, threadpool).equalsRange(lup[0].multiply(lup[1], threadpool), 1e-14));
         
         lup = C.copy().lup(threadpool);
-        assertTrue(lup[0].equalsRange(C_L, 0.0001));
-        assertTrue(lup[1].equalsRange(C_U, 0.0001));
-        assertTrue(lup[2].equalsRange(C_P, 0.0001));
         assertTrue(lup[2].multiply(C, threadpool).equalsRange(lup[0].multiply(lup[1], threadpool), 1e-14));
         
         
         lup = C.transpose().lup(threadpool);
-        assertTrue(lup[0].equalsRange(CT_L, 0.0001));
-        assertTrue(lup[1].equalsRange(CT_U, 0.0001));
-        assertTrue(lup[2].equalsRange(CT_P, 0.0001));
         assertTrue(lup[2].multiply(C.transpose(), threadpool).equalsRange(lup[0].multiply(lup[1], threadpool), 1e-14));
     }
 }
