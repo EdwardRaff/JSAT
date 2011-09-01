@@ -427,5 +427,23 @@ public class DenseVector implements Vec
         for(int i = 0; i < length(); i++)
             this.array[i] /= b.get(i);
     }
+
+    @Override
+    public boolean equals(Object obj)
+    {
+        if(!(obj instanceof Vec))
+            return false;
+        Vec otherVec = (Vec) obj;
+        
+        if(this.length() != otherVec.length())
+            return false;
+        for(int i = 0; i < length(); i++)
+            if(this.get(i) != otherVec.get(i))
+                return false;
+        
+        return true;
+    }
+    
+    
     
 }

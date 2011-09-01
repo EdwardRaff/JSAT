@@ -648,4 +648,20 @@ public class SparceVector implements Vec
             values[i] /= b.get(indexes[i]);//zeros stay zero
     }
     
+    @Override
+    public boolean equals(Object obj)
+    {
+        if(!(obj instanceof Vec))
+            return false;
+        Vec otherVec = (Vec) obj;
+        
+        if(this.length() != otherVec.length())
+            return false;
+        //TODO exploit sparceness to check faster
+        for(int i = 0; i < length(); i++)
+            if(this.get(i) != otherVec.get(i))
+                return false;
+        
+        return true;
+    }
 }
