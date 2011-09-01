@@ -641,44 +641,46 @@ public class DenseMatrix extends Matrix
         if(rows() > cols())//In this case, we will be changing U before returning it (have to make it smaller, but we can still avoid allocating extra space
             L = new DenseMatrix(rows(), cols());
         else
-            L = new DenseMatrix(rows(), rows());
+            L = new DenseMatrix(rows(), rows());        
         
-        
-        for(int k = 0; k < Math.min(rows(), cols()); k++)
+        for(int i = 0; i < U.rows(); i++)
         {
-            //Partial pivoting, find the largest value in this colum and move it to the top! 
-            //Find the largest magintude value in the colum k, row j
-            int largestRow = k;
-            double largestVal = Math.abs(U.matrix[k][k]);
-            for(int j = k+1; j < U.rows(); j++)
+            //If rectangular, we still need to loop through to update ther est of L - even though we wont make many other changes
+            if(i < U.cols())
             {
-                double rowJLeadVal = Math.abs(U.matrix[j][k]);
-                if(rowJLeadVal > largestVal)
+                //Partial pivoting, find the largest value in this colum and move it to the top! 
+                //Find the largest magintude value in the colum k, row j
+                int largestRow = i;
+                double largestVal = Math.abs(U.matrix[i][i]);
+                for (int j = i + 1; j < U.rows(); j++)
                 {
-                    largestRow = j;
-                    largestVal = rowJLeadVal;
+                    double rowJLeadVal = Math.abs(U.matrix[j][i]);
+                    if (rowJLeadVal > largestVal)
+                    {
+                        largestRow = j;
+                        largestVal = rowJLeadVal;
+                    }
                 }
-            }
-            
-            //SWAP!
-            U.swapRows(largestRow, k);
-            P.swapRows(largestRow, k);
-            L.swapRows(largestRow, k);
-            
-            
-            L.matrix[k][k] = 1;
+
+                //SWAP!
+                U.swapRows(largestRow, i);
+                P.swapRows(largestRow, i);
+                L.swapRows(largestRow, i);
+                
+                L.matrix[i][i] = 1;
+            }   
+
             //Seting up L 
-            for(int i = k+1; i < U.rows(); i++)
+            for(int k = 0; k < Math.min(i, U.cols()); k++)
             {
                 L.matrix[i][k] = U.matrix[i][k]/U.matrix[k][k];
+                U.matrix[i][k] = 0;
+
                 for(int j = k+1; j < U.cols(); j++)
                 {
                     U.matrix[i][j] -= L.matrix[i][k]*U.matrix[k][j];
                 }
             }
-            
-            for(int j = 0; j < k; j++)
-                U.matrix[k][j] = 0;
         }
         
         
