@@ -1,6 +1,7 @@
 
 package jsat.linear;
 
+import java.util.List;
 import java.util.Arrays;
 import java.util.HashSet;
 import static java.lang.Math.*;
@@ -38,7 +39,22 @@ public class SparceVector implements Vec
         this(length, 10);
     }
 
-    
+    public SparceVector(List<Double> vals)
+    {
+        this(vals.size());
+        int z = 0;
+        for(int i = 0; i < vals.size(); i++)
+            if(vals.get(i) != 0)
+            {
+                if(z >= indexes.length)
+                {
+                    indexes = Arrays.copyOf(indexes, indexes.length*3/2);
+                    values = Arrays.copyOf(values, values.length*3/2);
+                }
+                indexes[z] = i;
+                values[z++] = vals.get(i);
+            }
+    }
     
     public SparceVector(int length, int capacity)
     {
@@ -557,9 +573,53 @@ public class SparceVector implements Vec
             throw new ArithmeticException("Vectors must be of the same length");
         
         double norm = 0;
-        //TODO this could be done much more efficently if y is a sparce vector & for this
-        for(int i = 0; i < length(); i++)
-            norm += Math.pow(Math.abs(this.get(i) -y.get(i)), p);
+        
+        int z = 0;
+        for (int i = 0; i < length(); i++)
+        {
+            if(y instanceof  SparceVector)
+            {
+                SparceVector b = (SparceVector) y;
+                int p1 = 0, p2 = 0;
+                while (p1 < this.used && p2 < b.used)
+                {
+                    int a1 = indexes[p1], a2 = b.indexes[p2];
+                    if (a1 == a2)
+                    {
+                        norm += Math.pow(Math.abs(this.values[p1] - b.values[p2]), p);
+                        p1++;
+                        p2++;
+                    }
+                    else if (a1 > a2)
+                    {
+                        norm += Math.pow(Math.abs(b.values[p2]), p);
+                        /*
+                         * p2 must be increment becase were moving to the next value
+                         * 
+                         * p1 must be be incremented becase a2 was less thenn the current index. 
+                         * So the inseration occured before p1, so for indexes[p1] to == a1, 
+                         * p1 must be incremented
+                         * 
+                         */
+                        p1++;
+                        p2++;
+                    }
+                    else//a1 < a2, this vec has a value, other does not
+                    {
+                        norm += Math.pow(Math.abs(this.values[p1]), p);
+                        p1++;
+                    }
+                }
+                
+            }
+            //Move through until we hit the next null element, comparing the other vec to zero
+            while (z < used && indexes[z] > i)
+                norm += Math.pow(Math.abs(-y.get(i)), p);
+
+            //We made it! (or are at the end). Is our non zero value the same?
+            if (z < used && indexes[z] == i)
+                norm += Math.pow(Math.abs(values[z] - y.get(i)), p);
+        }
         
         return Math.pow(norm, 1.0/p);
     }
@@ -657,10 +717,22 @@ public class SparceVector implements Vec
         
         if(this.length() != otherVec.length())
             return false;
-        //TODO exploit sparceness to check faster
-        for(int i = 0; i < length(); i++)
-            if(this.get(i) != otherVec.get(i))
-                return false;
+        
+        
+            int z = 0;
+            for(int i = 0; i < length(); i++)
+            {
+                //Move through until we hit the next null element, comparing the other vec to zero
+                while(z < used && indexes[z] > i)
+                    if(otherVec.get(i++) != 0)
+                        return false;
+                
+                //We made it! (or are at the end). Is our non zero value the same?
+                if(z < used && indexes[z] == i)
+                    if(values[z++] != otherVec.get(i))
+                        return false;
+            }
+        
         
         return true;
     }
