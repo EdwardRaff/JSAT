@@ -70,5 +70,7 @@ public interface Vec
     
     @Override
     public boolean equals(Object obj);
+    
+    public boolean equals(Object obj, double range);
 
 }

@@ -443,7 +443,20 @@ public class DenseVector implements Vec
         
         return true;
     }
-    
-    
-    
+
+    public boolean equals(Object obj, double range)
+    {
+        if(!(obj instanceof Vec))
+            return false;
+        Vec otherVec = (Vec) obj;
+        range = Math.abs(range);
+        
+        if(this.length() != otherVec.length())
+            return false;
+        for(int i = 0; i < length(); i++)
+            if(Math.abs(this.get(i)-otherVec.get(i)) > range)
+                return false;
+        
+        return true;
+    }
 }

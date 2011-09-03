@@ -736,4 +736,33 @@ public class SparceVector implements Vec
         
         return true;
     }
+
+    public boolean equals(Object obj, double range)
+    {
+        if(!(obj instanceof Vec))
+            return false;
+        Vec otherVec = (Vec) obj;
+        range = Math.abs(range);
+        
+        if(this.length() != otherVec.length())
+            return false;
+        
+
+        int z = 0;
+        for (int i = 0; i < length(); i++)
+        {
+            //Move through until we hit the next null element, comparing the other vec to zero
+            while (z < used && indexes[z] > i)
+                if (Math.abs(otherVec.get(i++)) > range)//We are zero!
+                    return false;
+
+            //We made it! (or are at the end). Is our non zero value the same?
+            if (z < used && indexes[z] == i)
+                if (Math.abs(values[z++] - otherVec.get(i)) > range)
+                    return false;
+        }
+
+
+        return true;
+    }
 }
