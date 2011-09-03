@@ -622,14 +622,14 @@ public class DenseMatrixTest
         Matrix[] lup;
         
         lup = A.copy().lup();
-        assertTrue(lup[2].multiply(A).equalsRange(lup[0].multiply(lup[1]), 1e-14));
+        assertTrue(lup[2].multiply(A).equals(lup[0].multiply(lup[1]), 1e-14));
         
         lup = C.copy().lup();
-        assertTrue(lup[2].multiply(C).equalsRange(lup[0].multiply(lup[1]), 1e-14));
+        assertTrue(lup[2].multiply(C).equals(lup[0].multiply(lup[1]), 1e-14));
         
         
         lup = C.transpose().lup();
-        assertTrue(lup[2].multiply(C.transpose()).equalsRange(lup[0].multiply(lup[1]), 1e-14));
+        assertTrue(lup[2].multiply(C.transpose()).equals(lup[0].multiply(lup[1]), 1e-14));
     }
 
     /**
@@ -643,13 +643,13 @@ public class DenseMatrixTest
         Matrix[] lup;
         
         lup = A.copy().lup(threadpool);
-        assertTrue(lup[2].multiply(A, threadpool).equalsRange(lup[0].multiply(lup[1], threadpool), 1e-14));
+        assertTrue(lup[2].multiply(A, threadpool).equals(lup[0].multiply(lup[1], threadpool), 1e-14));
         
         lup = C.copy().lup(threadpool);
-        assertTrue(lup[2].multiply(C, threadpool).equalsRange(lup[0].multiply(lup[1], threadpool), 1e-14));
+        assertTrue(lup[2].multiply(C, threadpool).equals(lup[0].multiply(lup[1], threadpool), 1e-14));
         
         
         lup = C.transpose().lup(threadpool);
-        assertTrue(lup[2].multiply(C.transpose(), threadpool).equalsRange(lup[0].multiply(lup[1], threadpool), 1e-14));
+        assertTrue(lup[2].multiply(C.transpose(), threadpool).equals(lup[0].multiply(lup[1], threadpool), 1e-14));
     }
 }

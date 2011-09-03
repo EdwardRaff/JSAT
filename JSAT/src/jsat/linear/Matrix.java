@@ -179,7 +179,7 @@ public abstract class Matrix
      * @param range the acceptable difference between two cell values
      * @return true if the difference between the values of each matrix element are less than or equal to <tt>range</tt>
      */
-    public boolean equalsRange(Object obj, double range)
+    public boolean equals(Object obj, double range)
     {
         if(obj == null || !(obj instanceof Matrix))
             return false;
