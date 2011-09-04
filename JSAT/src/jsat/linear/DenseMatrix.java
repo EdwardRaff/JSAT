@@ -699,35 +699,46 @@ public class DenseMatrix extends Matrix
         return lup;
     }
     
-    private class LUProwRun implements Runnable
+    private class LUProwRun implements Callable<Integer>
     {
-        final CountDownLatch latch;
         final DenseMatrix L;
         final DenseMatrix U;
         final int k, threadNumber;
+        double largestSeen = Double.MIN_VALUE;
+        int largestIndex ;
 
-        public LUProwRun(CountDownLatch latch, DenseMatrix L, DenseMatrix U, int k, int threadNumber)
+        public LUProwRun(DenseMatrix L, DenseMatrix U, int k, int threadNumber)
         {
-            this.latch = latch;
             this.L = L;
             this.U = U;
             this.k = k;
+            largestIndex = k+1;
             this.threadNumber = threadNumber;
         }
        
-        
-        
-        public void run()
+        /**
+         * Returns the index of the row with the largest absolute value we ever saw in column k+1
+         */
+        public Integer call() throws Exception
         {
             for(int i = k+1+threadNumber; i < U.rows(); i+=maxThreads)
             {
                 L.matrix[i][k] = U.matrix[i][k]/U.matrix[k][k];
-                for(int j = k+1; j < U.cols(); j++)
+
+                //We perform the first iteration of the loop outside, as we want to cache its value for searching later
+                U.matrix[i][k+1] -= L.matrix[i][k]*U.matrix[k][k+1];
+                if(Math.abs(U.matrix[i][k+1]) > largestSeen)
+                {
+                    largestSeen = Math.abs(U.matrix[i][k+1]);
+                    largestIndex = i;
+                }
+                for(int j = k+2; j < U.cols(); j++)
                 {
                     U.matrix[i][j] -= L.matrix[i][k]*U.matrix[k][j];
                 }
             }
-            latch.countDown();
+            
+            return largestIndex;
         }
         
     }
@@ -747,21 +758,49 @@ public class DenseMatrix extends Matrix
         else
             L = new DenseMatrix(rows(), rows());
         
-        
+        List<Future<Integer>> bigIndecies = new ArrayList<Future<Integer>>(maxThreads);
         for(int k = 0; k < Math.min(rows(), cols()); k++)
         {
             //Partial pivoting, find the largest value in this colum and move it to the top! 
             //Find the largest magintude value in the colum k, row j
             int largestRow = k;
             double largestVal = Math.abs(U.matrix[k][k]);
-            for(int j = k+1; j < U.rows(); j++)
-            {
-                double rowJLeadVal = Math.abs(U.matrix[j][k]);
-                if(rowJLeadVal > largestVal)
+            if(bigIndecies.isEmpty())
+                for(int j = k+1; j < U.rows(); j++)
                 {
-                    largestRow = j;
-                    largestVal = rowJLeadVal;
+                    double rowJLeadVal = Math.abs(U.matrix[j][k]);
+                    if(rowJLeadVal > largestVal)
+                    {
+                        largestRow = j;
+                        largestVal = rowJLeadVal;
+                    }
                 }
+            else
+            {
+                for(Future<Integer> fut : bigIndecies)
+                {
+                    try
+                    {
+                        int j = fut.get();
+                        double rowJLeadVal = Math.abs(U.matrix[j][k]);
+                        if(rowJLeadVal > largestVal)
+                        {
+                            largestRow = j;
+                            largestVal = rowJLeadVal;
+                        }
+                    }
+                    catch (InterruptedException ex)
+                    {
+                        Logger.getLogger(DenseMatrix.class.getName()).log(Level.SEVERE, null, ex);
+                    }
+                    catch (ExecutionException ex)
+                    {
+                        Logger.getLogger(DenseMatrix.class.getName()).log(Level.SEVERE, null, ex);
+                    }
+                    
+                }
+                
+                bigIndecies.clear();
             }
             
             //SWAP!
@@ -769,21 +808,10 @@ public class DenseMatrix extends Matrix
             P.swapRows(largestRow, k);
             L.swapRows(largestRow, k);
             
-            CountDownLatch latch = new CountDownLatch(maxThreads);
             L.matrix[k][k] = 1;
             //Seting up L 
             for(int threadNumber = 0; threadNumber < maxThreads; threadNumber++)
-                threadPool.submit(new LUProwRun(latch, L, U, k, threadNumber));
-            
-            
-            try
-            {
-                latch.await();
-            }
-            catch (InterruptedException ex)
-            {
-                
-            }
+                bigIndecies.add(threadPool.submit(new LUProwRun(L, U, k, threadNumber)));
         }
         
         
