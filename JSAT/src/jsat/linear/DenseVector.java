@@ -10,9 +10,9 @@ import static java.lang.Math.*;
  *
  * @author Edward Raff
  */
-public class DenseVector implements Vec
+public class DenseVector extends Vec
 {
-    private double[] array;
+    protected  double[] array;
     private Double sumCache = null;
     private Double varianceCache = null;
     private Double minCache = null;
@@ -237,6 +237,29 @@ public class DenseVector implements Vec
             dv.array[i] *= c;
         
         return dv;
+    }
+    
+    @Override
+    public Vec multiply(Matrix A)
+    {
+        DenseVector v = new DenseVector(this.length());
+        
+        multiply(v, A);
+        
+        return v;
+    }
+    
+    public void multiply(DenseVector dest, Matrix A)
+    {
+        if(this.length() != A.rows())
+            throw new ArithmeticException("Vector x Matrix dimensions do not agree");
+        
+        if(dest.length() != this.length())
+            throw new ArithmeticException("Destination vector is not the right size");
+        
+        for(int i = 0; i < this.length(); i++)
+            for(int j = 0; j < A.cols(); j++)
+                dest.array[j] += this.array[i] * A.get(i, j);
     }
 
     public Vec divide(double c)

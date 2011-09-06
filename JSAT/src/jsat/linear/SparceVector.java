@@ -10,7 +10,7 @@ import static java.lang.Math.*;
  *
  * @author Edward Raff
  */
-public class SparceVector implements Vec
+public class SparceVector extends  Vec
 {
     /**
      * Length of the vector
@@ -19,15 +19,15 @@ public class SparceVector implements Vec
     /**
      * number of indices used in this vector
      */
-    private int used;
+    protected int used;
     /**
      * The mapping to true index values
      */
-    private int[] indexes;
+    protected int[] indexes;
     /**
      * The Corresponding values for each index
      */
-    private double[] values;
+    protected double[] values;
     
     private Double sumCache = null;
     private Double varianceCache = null;
@@ -411,6 +411,24 @@ public class SparceVector implements Vec
         return sv;
     }
 
+    @Override
+    public Vec multiply(Matrix A)
+    {
+        if(this.length() != A.rows())
+            throw new ArithmeticException("Vector x Matrix dimensions do not agree");
+        
+        DenseVector v = new DenseVector(this.length());
+        for(int i = 0; i < used; i++)
+        {
+            double val = this.values[i];
+            int index = this.indexes[i];
+            for(int j = 0; j < A.cols(); j++)
+                v.array[j] += val * A.get(index, j);
+        }
+        
+        return v;
+    }
+    
     public Vec divide(double c)
     {
         SparceVector sv = new SparceVector(length, used);
@@ -765,4 +783,6 @@ public class SparceVector implements Vec
 
         return true;
     }
+
+    
 }
