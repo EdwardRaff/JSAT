@@ -197,6 +197,23 @@ public abstract class Matrix
     }
     
     abstract public void zeroOut();
+    
+    /**
+     * Alters the Matrix C such that, C = C + c * a * b<sup>T</sup>
+     * @param C the matrix to update
+     * @param a the first vector
+     * @param b the second vector
+     * @param c the constant to multiply computations by 
+     */
+    public static void OuterProductUpdate(Matrix C, Vec a, Vec b, double c)
+    {
+        for(int i = 0; i < a.length(); i++)
+        {
+            double rowCosnt = c*a.get(i);
+            for(int j = 0; j < b.length(); j++)
+                C.set(i, j, C.get(i, j) + rowCosnt * b.get(j) ); 
+        }
+    }
 
     /**
      * Creates a new identity matrix with k rows and columns. 
