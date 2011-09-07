@@ -88,7 +88,7 @@ public class SystemInfo
             String[] vals = output.split("\\s+");//Seperate into 2 seperate numbers, first is total L2 cahce, 2nd is # CPU cores
             L2CacheSize = (Integer.valueOf(vals[0]) / Integer.valueOf(vals[1]))*1024 ; //the value is in KB, we want it in bytes
         }
-        else if(isMac() || isLinux())
+        else if(isLinux())
         {
             String output = null;
             try
@@ -119,6 +119,34 @@ public class SystemInfo
                 size*=1024*1024;
             
             L2CacheSize = size;
+        }
+        else if(isMac())
+        {
+            String output = null;
+            try
+            {
+                //Nix, use /proc/cpuinfo
+                Process pr = Runtime.getRuntime().exec("sysctl -a hw");
+                
+                BufferedReader br = new BufferedReader(new InputStreamReader(pr.getInputStream()));
+
+                String line = null;
+//                StringBuilder sb = new StringBuilder();
+                while( (line = br.readLine()) != null)
+                {
+                    if(line.contains("l1icachesize") && output == null)//We just need one line that says "cache size" 
+                        output = line;
+                }
+                
+            }
+            catch (IOException ex)
+            {
+                Logger.getLogger(SystemInfo.class.getName()).log(Level.SEVERE, null, ex);
+            }
+            
+            String[] vals = output.split("\\s+");
+            L2CacheSize = Integer.parseInt(vals[1]);
+            
         }
         else//We dont know what we are running on. 
             L2CacheSize = 0;//TODO is there a way to approximate this? 
