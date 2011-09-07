@@ -20,6 +20,10 @@ import static java.lang.Math.*;
  */
 public class DenseMatrix extends Matrix
 {
+    /**
+     * Step size if the computation accesses 2*NB2^2 * dataTypeSize data
+     */
+    private static int NB2 = (int) sqrt(SystemInfo.L2CacheSize/(8*2));
     private static final int maxThreads = Runtime.getRuntime().availableProcessors();
     
     private final double[][] matrix;
@@ -339,26 +343,25 @@ public class DenseMatrix extends Matrix
         if(!canMultiply(this, b))
             throw new ArithmeticException("Matrix dimensions do not agree");
         DenseMatrix result = new DenseMatrix(this.rows(), b.cols());
-        ///Should choose step size such that 2*stepSize^2 * dataTypeSize <= CacheSize
-        int stepSize = 128;//value good for 8mb cache
+        ///Should choose step size such that 2*NB2^2 * dataTypeSize <= CacheSize
         
         int iLimit = result.rows();
         int jLimit = result.cols();
         int kLimit = this.cols();
         
-        for(int i0 = 0; i0 < iLimit; i0+=stepSize)
-            for(int k0 = 0; k0 < kLimit; k0+=stepSize)
-                for(int j0 = 0; j0 < jLimit; j0+=stepSize)
+        for(int i0 = 0; i0 < iLimit; i0+=NB2)
+            for(int k0 = 0; k0 < kLimit; k0+=NB2)
+                for(int j0 = 0; j0 < jLimit; j0+=NB2)
                 {
-                    for(int i = i0; i < min(i0+stepSize, iLimit); i++)
+                    for(int i = i0; i < min(i0+NB2, iLimit); i++)
                     {
                         double[] c_row_i = result.matrix[i];
                         
-                        for(int k = k0; k < min(k0+stepSize, kLimit); k++)
+                        for(int k = k0; k < min(k0+NB2, kLimit); k++)
                         {
                             double a = this.matrix[i][k];
                             
-                            for(int j = j0; j < min(j0+stepSize, jLimit); j++)
+                            for(int j = j0; j < min(j0+NB2, jLimit); j++)
                                 c_row_i[j] += a * b.get(k, j);
                         }
                     }
@@ -372,39 +375,39 @@ public class DenseMatrix extends Matrix
         final CountDownLatch latch;
         final DenseMatrix result;
         final Matrix b;
-        final int stepSize;
-        final int kLimit, jLimit, iLimit;
-        final int i0;
-
-        public BlockMultRun(CountDownLatch latch, DenseMatrix result, Matrix b, int stepSize, int kLimit, int jLimit, int iLimit, int i0)
+        final int kLimit, jLimit, iLimit, threadID;
+        
+        public BlockMultRun(CountDownLatch latch, DenseMatrix result, Matrix b, int threadID)
         {
             this.latch = latch;
             this.result = result;
             this.b = b;
-            this.stepSize = stepSize;
-            this.kLimit = kLimit;
-            this.jLimit = jLimit;
-            this.iLimit = iLimit;
-            this.i0 = i0;
+            this.kLimit = cols();
+            this.jLimit = result.cols();
+            this.iLimit = result.cols();
+            this.threadID = threadID;
         }
         
         public void run()
         {
-                for(int k0 = 0; k0 < kLimit; k0+=stepSize)
-                    for(int j0 = 0; j0 < jLimit; j0+=stepSize)
-                        for(int i = i0; i < min(i0+stepSize, iLimit); i++)
+            for(int i0 = NB2*threadID; i0 < iLimit; i0+=NB2*maxThreads)
+                for(int k0 = 0; k0 < kLimit; k0+=NB2)
+                    for(int j0 = 0; j0 < jLimit; j0+=NB2)
+                    {
+                        for(int i = i0; i < min(i0+NB2, iLimit); i++)
                         {
                             double[] c_row_i = result.matrix[i];
 
-                            for(int k = k0; k < min(k0+stepSize, kLimit); k++)
+                            for(int k = k0; k < min(k0+NB2, kLimit); k++)
                             {
                                 double a = matrix[i][k];
 
-                                for(int j = j0; j < min(j0+stepSize, jLimit); j++)
+                                for(int j = j0; j < min(j0+NB2, jLimit); j++)
                                     c_row_i[j] += a * b.get(k, j);
                             }
                         }
-            
+                    }
+
             latch.countDown();
         }
         
@@ -416,19 +419,10 @@ public class DenseMatrix extends Matrix
             throw new ArithmeticException("Matrix dimensions do not agree");
         DenseMatrix result = new DenseMatrix(this.rows(), b.cols());
         
-        ///Should choose step size such that 2*stepSize^2 * dataTypeSize <= CacheSize
-        int stepSize = (int)Math.sqrt(SystemInfo.L2CacheSize/(8*2));
+        CountDownLatch latch = new CountDownLatch(maxThreads);
         
-        
-        
-        int iLimit = result.rows();
-        int jLimit = result.cols();
-        int kLimit = this.cols();
-        
-        CountDownLatch latch = new CountDownLatch( (iLimit/stepSize + (iLimit%stepSize > 0 ? 1 : 0)) );
-        
-        for(int i0 = 0; i0 < iLimit; i0+=stepSize)
-            threadPool.submit(new BlockMultRun(latch, result, b, stepSize, kLimit, jLimit, iLimit, i0));
+        for(int threadID = 0; threadID < maxThreads; threadID++)
+            threadPool.submit(new BlockMultRun(latch, result, b, threadID));
         try
         {
             latch.await();
@@ -492,6 +486,8 @@ public class DenseMatrix extends Matrix
     @Override
     public Matrix multiply(Matrix b, ExecutorService threadPool)
     {
+        if(this.rows()/NB2 >= maxThreads)//Perform block execution only when we have a large enough matrix to keep ever core busy!
+            return blockMultiply(b, threadPool);
         if(!canMultiply(this, b))
             throw new ArithmeticException("Matrix dimensions do not agree");
         DenseMatrix result = new DenseMatrix(this.rows(), b.cols());
