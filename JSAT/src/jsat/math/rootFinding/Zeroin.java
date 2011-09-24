@@ -9,6 +9,21 @@ import static java.lang.Math.*;
  */
 public class Zeroin
 {
+    /**
+     * Performs a root finding search on the function f(x) = s.
+     * 
+     * @param a the minimum value in the range to look for the solution
+     * @param b the maximum value in the range to look for the solution
+     * @param f the function to use
+     * @param args the first value of this function must be the value s, 
+     * that we want to f(x) = s. All subsiquent arguments will be passed
+     * to the function f in given order, and the first argument will be 
+     * adjusted. Ie: the search is for f(x, v1, v2, v3 ..) = s, where 
+     * all v will be heald constant.
+     * 
+     * @return the value x, such that f(x) = s
+     * @throws ArithmeticException if the desired value is not in the given range 
+     */
     public static double root(double a, double b, Function f, double... args)
     {
         if(args.length < 1)
@@ -32,7 +47,7 @@ public class Zeroin
         double fb = f.f(args)-shift;
         
         if(fa * fb >= 0)
-            throw new ArithmeticException("The given search interval doe snot appear to contain the desired root");
+            throw new ArithmeticException("The given search interval doe snot appear to contain the desired root " + shift);
         
         if(abs(fa) < abs(fb)) //swap
         {
