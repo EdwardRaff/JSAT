@@ -116,7 +116,7 @@ public class Normal extends ContinousDistribution
 
         //Refining step
 
-        double e = cdf(result, mu, sigma) - p;
+        double e = cdf(result, 0, 1) - p;
         double u = e*sqrt(2*PI)*exp(result*result/2);
         result = result - u / (1 + result*u/2);
 
