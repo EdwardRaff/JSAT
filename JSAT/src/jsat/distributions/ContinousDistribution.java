@@ -2,7 +2,10 @@
 package jsat.distributions;
 
 import java.util.Random;
+import jsat.linear.DenseVector;
 import jsat.linear.Vec;
+import jsat.math.Function;
+import jsat.math.rootFinding.Zeroin;
 
 /**
  *
@@ -13,6 +16,24 @@ public abstract class ContinousDistribution
     abstract public double pdf(double x);
     abstract public double cdf(double x);
     abstract public double invCdf(double p);
+    
+    
+    /**
+     * This method is provided as a quick helper function, as any CDF has a 1 to 1 mapping with
+     * an inverse, CDF<sup>.-1</sup>. This does a search for that value, and should only be used 
+     * if the quantile function will be used infrequently or no alternative is available. 
+     * @param p the [0,1] probability value 
+     * @param cdf a function that provides the CDF we want to emulate the inverse of 
+     * @return the quantile function, CDF<sup>-1</sup>(p) = x
+     */
+    protected double invCdf(double p, Function cdf)
+    {
+        if(p < 0 || p > 1)
+            throw new ArithmeticException("Value of p must be in the range [0,1], not " + p);
+        double a = Double.isInfinite(min()) ? Double.MIN_VALUE : min();
+        double b = Double.isInfinite(max()) ? Double.MAX_VALUE : max();
+        return Zeroin.root(a, b, cdf, p);
+    }
 
     /**
      * The minimum value for which the {@link #pdf(double) } is meant to return a value. Note that {@link Double#NEGATIVE_INFINITY} is a valid return value.
@@ -75,9 +96,28 @@ public abstract class ContinousDistribution
      */
     abstract public void setUsingData(Vec data);
     
+    public double[] sample(int numSamples, Random rand)
+    {
+        double[] samples = new double[numSamples];
+        for(int i = 0; i < samples.length; i++)
+            samples[i] = invCdf(rand.nextDouble());
+        
+        return samples;
+    }
+    
+    public DenseVector sampleVec(int numSamples, Random rand)
+    {
+        return DenseVector.toDenseVec(sample(numSamples, rand));
+    }
     
     abstract public double mean();
-    abstract public double median();
+    
+    public double median()
+    {
+        //P( x < m) = P(x > m) = 0.5, the x is the median. This is asking for the CDF(x) = 0.5, x is the median. so Q(0.5) = x
+        return invCdf(0.5);
+    }
+    
     abstract public double mode();
     /**
      * Computes the variance of the distribution. Not all distributions have a 

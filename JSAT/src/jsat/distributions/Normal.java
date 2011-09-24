@@ -60,7 +60,7 @@ public class Normal extends ContinousDistribution
     public static double invcdf(double x, double mu, double sigma)
     {
         if(x < 0 || x > 1)
-            throw new RuntimeException("Inverse of a probability requires a probablity in the range [0,1]");
+            throw new RuntimeException("Inverse of a probability requires a probablity in the range [0,1], not " + x);
         //http://home.online.no/~pjacklam/notes/invnorm/
         double a[] =
         {
