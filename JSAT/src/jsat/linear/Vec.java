@@ -1,6 +1,8 @@
 
 package jsat.linear;
 
+import jsat.math.Function;
+
 /**
  *
  * @author Edward Raff
@@ -15,7 +17,10 @@ public abstract class Vec
     
     abstract public Vec add(double c);
     abstract public Vec add(Vec b);
-    abstract public Vec subtract(double c);
+    public Vec subtract(double c)
+    {
+        return add(-c);
+    }
     abstract public Vec subtract(Vec b);
     abstract public Vec pairwiseMultiply(Vec b);
     abstract public Vec multiply(double c);
@@ -25,7 +30,10 @@ public abstract class Vec
     
     abstract public void mutableAdd(double c);
     abstract public void mutableAdd(Vec b);
-    abstract public void mutableSubtract(double c);
+    public void mutableSubtract(double c)
+    {
+        mutableAdd(-c);
+    }
     abstract public void mutableSubtract(Vec b);
     abstract public void mutablePairwiseMultiply(Vec b);
     abstract public void mutableMultiply(double c);
@@ -55,6 +63,11 @@ public abstract class Vec
     abstract public Vec normalized();
     abstract public void normalize();
     
+    public void applyFunction(Function f)
+    {
+        for(int i = 0; i < length(); i++)
+            set(i, f.f(get(i)));
+    }
     
     /**
      * Returns the p-norm distance between this and another vector y. 

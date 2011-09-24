@@ -219,6 +219,7 @@ public class DenseVector extends Vec
         return dv;
     }
 
+    @Override
     public Vec subtract(double c)
     {
         DenseVector dv = new DenseVector(Arrays.copyOf(array, array.length));
@@ -327,6 +328,7 @@ public class DenseVector extends Vec
             array[i] += b.get(i);
     }
 
+    @Override
     public void mutableSubtract(double c)
     {
         clearCaches();
@@ -481,5 +483,18 @@ public class DenseVector extends Vec
                 return false;
         
         return true;
+    }
+    
+    /**
+     * Returns a new dense vector backed by the given array. This is a weak
+     * reference, the given array should no longer be altered - as it will 
+     * effect the values of the dense vector. 
+     * 
+     * @param array the array to use as the backing of a dense vector
+     * @return a Dense Vector that is backed using the given array
+     */
+    public static DenseVector toDenseVec(double[] array)
+    {
+        return new DenseVector(array);
     }
 }
