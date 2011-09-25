@@ -1,0 +1,133 @@
+
+package jsat.distributions;
+
+import jsat.linear.Vec;
+import jsat.text.GreekLetters;
+import static java.lang.Math.*;
+import static jsat.math.SpecialMath.*;
+/**
+ *
+ * @author Edward Raff
+ */
+public class MaxwellBoltzmann extends ContinousDistribution
+{
+    /**
+     * shape
+     */
+    double sigma;
+
+    public MaxwellBoltzmann()
+    {
+        this(1);
+    }
+    
+    public MaxwellBoltzmann(double sigma)
+    {
+        setSigma(sigma);
+    }
+    
+    final public void setSigma(double sigma)
+    {
+        if(sigma <= 0)
+             throw new ArithmeticException("shape parameter must be > 0, not " + sigma);
+        this.sigma = sigma;
+    }
+    
+    @Override
+    public double pdf(double x)
+    {
+        if(x <= 0)
+            return 0;
+        double x2 = x*x;
+        return sqrt(2/PI)*x2*exp(-x2/(2*sigma*sigma))/(sigma*sigma*sigma);
+    }
+
+    @Override
+    public double cdf(double x)
+    {
+        return erf(x/(sqrt(2)*sigma))-sqrt(2/PI)*x*exp(-(x*x)/(2*sigma*sigma))/sigma;
+    }
+
+    @Override
+    public double invCdf(double p)
+    {
+        if(p < 0 || p > 1)
+            throw new ArithmeticException("probability must be in the range [0,1], not " + p);
+        
+        return sqrt(2)*sigma*sqrt(invGammaP(p, 3.0/2.0));
+    }
+
+    @Override
+    public double min()
+    {
+        return 0;
+    }
+
+    @Override
+    public double max()
+    {
+        return Double.POSITIVE_INFINITY;
+    }
+
+    @Override
+    public String getDistributionName()
+    {
+        return "Maxwell–Boltzmann";
+    }
+
+    @Override
+    public String[] getVariables()
+    {
+        return new String[] {GreekLetters.sigma};
+    }
+
+    @Override
+    public double[] getCurrentVariableValues()
+    {
+        return new double[] {sigma};
+    }
+
+    @Override
+    public void setVariable(String var, double value)
+    {
+        if(var.equals(GreekLetters.sigma))
+            setSigma(value);
+    }
+
+    @Override
+    public ContinousDistribution copy()
+    {
+        return new MaxwellBoltzmann(sigma);
+    }
+
+    @Override
+    public void setUsingData(Vec data)
+    {
+        setSigma(data.mean()/sqrt(2));
+    }
+
+    @Override
+    public double mean()
+    {
+        return 2*sqrt(2/PI)*sigma;
+    }
+
+    @Override
+    public double mode()
+    {
+        return sqrt(2)*sigma;
+    }
+
+    @Override
+    public double variance()
+    {
+        return sigma*sigma*(3*PI-8)/PI;
+    }
+
+    @Override
+    public double skewness()
+    {
+        return 2*sqrt(2)*(16-5*PI)/pow(3*PI-8, 3.0/2.0);
+    }
+    
+}

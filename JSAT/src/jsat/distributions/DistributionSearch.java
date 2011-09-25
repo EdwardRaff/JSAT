@@ -15,7 +15,8 @@ public class DistributionSearch
         new Normal(), 
         new LogNormal(), new Exponential(),
         new Gamma(2, 1), new FisherSendor(10, 10), new Weibull(2, 1), 
-        new Uniform(0, 1)
+        new Uniform(0, 1), new Logistic(3, 2), new MaxwellBoltzmann(), 
+        new Pareto(), new Rayleigh(2)
     };
     
     /**
@@ -26,6 +27,11 @@ public class DistributionSearch
      * @return the distribution that provides the best fit to the data that this method could find.
      */
     public static ContinousDistribution getBestDistribution(Vec v)
+    {
+        return getBestDistribution(v, possibleDistributions);
+    }
+    
+    public static ContinousDistribution getBestDistribution(Vec v, ContinousDistribution... possibleDistributions)
     {
         //Thread Safety, copy the possible distributions
         
