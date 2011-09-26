@@ -497,4 +497,10 @@ public class DenseVector extends Vec
     {
         return new DenseVector(array);
     }
+
+    @Override
+    public double[] arrayCopy()
+    {
+        return Arrays.copyOf(array, array.length);
+    }
 }

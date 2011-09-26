@@ -93,5 +93,7 @@ public abstract class Vec
     abstract public boolean equals(Object obj);
     
     abstract public boolean equals(Object obj, double range);
+    
+    abstract public double[] arrayCopy();
 
 }

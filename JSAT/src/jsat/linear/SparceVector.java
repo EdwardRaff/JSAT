@@ -784,5 +784,16 @@ public class SparceVector extends  Vec
         return true;
     }
 
+    @Override
+    public double[] arrayCopy()
+    {
+        double[] array = new double[length()];
+        
+        for(int i = 0; i < used; i++)
+            array[indexes[i]] = values[i];
+        
+        return array;
+    }
+
     
 }
