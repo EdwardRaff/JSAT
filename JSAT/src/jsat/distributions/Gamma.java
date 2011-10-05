@@ -25,6 +25,13 @@ public class Gamma extends ContinousDistribution
     {
         if(x < 0)
             return 0;
+        
+        return exp(logPdf(x));
+    }
+
+    @Override
+    public double logPdf(double x)
+    {
         /*
          *  k - 1    / -x  \
          * x      exp|-----|
@@ -40,9 +47,8 @@ public class Gamma extends ContinousDistribution
         double p4 = -x/theta;
         double p5 = -log(x);
         
-        return exp(p1+p2+p3+p4+p5);
+        return p1+p2+p3+p4+p5;
     }
-
 
     @Override
     public double cdf(double x)

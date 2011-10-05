@@ -13,6 +13,10 @@ import jsat.math.rootFinding.Zeroin;
  */
 public abstract class ContinousDistribution
 {
+    public double logPdf(double x)
+    {
+        return Math.log(pdf(x));
+    }
     abstract public double pdf(double x);
     abstract public double cdf(double x);
     abstract public double invCdf(double p);

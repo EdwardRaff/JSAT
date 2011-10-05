@@ -4,6 +4,7 @@ package jsat.distributions;
 import jsat.linear.DenseVector;
 import jsat.linear.Vec;
 import jsat.math.SimpleLinearRegression;
+import jsat.text.GreekLetters;
 import static java.lang.Math.*;
 import static jsat.math.SpecialMath.*;
 /**
@@ -20,15 +21,13 @@ public class Weibull extends ContinousDistribution
      * Scale parameter
      */
     double beta;
+    
+    private double logAlpha, logBeta;
 
-    public Weibull(double k, double gam)
+    public Weibull(double alpha, double beta)
     {
-        if(k <= 0)
-            throw new ArithmeticException("k must be > 0 not " + k );
-        if(gam <= 0)
-            throw new ArithmeticException("k must be > 0 not " + gam );
-        this.alpha = k;
-        this.beta = gam;
+        setAlpha(alpha);
+        setBeta(beta);
     }
 
     
@@ -42,6 +41,13 @@ public class Weibull extends ContinousDistribution
         return beta/alpha * pow(x/alpha, beta-1);
     }
 
+    @Override
+    public double logPdf(double x)
+    {
+        return logAlpha-logBeta+(alpha-1)*log(x/beta) -pow(x/beta, alpha) ;
+    }
+
+    
     
     @Override
     public double pdf(double x)
@@ -86,7 +92,7 @@ public class Weibull extends ContinousDistribution
     @Override
     public String[] getVariables()
     {
-        return new String[]{"alpha", "beta"};
+        return new String[]{GreekLetters.alpha, GreekLetters.beta};
     }
 
     @Override
@@ -98,17 +104,35 @@ public class Weibull extends ContinousDistribution
     @Override
     public void setVariable(String var, double value)
     {
-        if (var.equals("alpha"))
-            if (value > 0)
-                alpha = value;
-            else
-                throw new ArithmeticException("k must be > 0 not " + value);
-        else if (var.equals("beta"))
-            if (value > 0)
-                beta = value;
-            else
-                throw new ArithmeticException("gam must be > 0 not " + value );
+        if (var.equals("alpha") || var.equals(GreekLetters.alpha))
+            setAlpha(value);
+        else if (var.equals("beta") || var.equals(GreekLetters.beta))
+            setBeta(value);
     }
+
+    final public void setAlpha(double alpha)
+    {
+        if(alpha > 0)
+        {
+            this.alpha = alpha;
+            logAlpha = log(alpha);
+        }
+        else
+            throw new ArithmeticException("alpha must be > 0 not " + alpha);
+    }
+
+    final public void setBeta(double beta)
+    {
+        if(beta > 0)
+        {
+            this.beta = beta;
+            logBeta = log(beta);
+        }
+        else
+            throw new ArithmeticException("beta must be > 0 not " + beta);
+    }
+    
+    
 
     @Override
     public ContinousDistribution copy()
@@ -146,7 +170,7 @@ public class Weibull extends ContinousDistribution
         
         //The shape parameter is approximatly the slope
         
-        alpha = s[1];
+        setAlpha(s[1]);
         
         /*
          * We can now compute alpha directly. 
@@ -154,7 +178,7 @@ public class Weibull extends ContinousDistribution
          * 
          */
         
-        beta = exp(-s[0]/alpha);
+        setBeta(exp(-s[0]/alpha));
     }
 
     @Override

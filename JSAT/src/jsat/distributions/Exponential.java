@@ -24,6 +24,13 @@ public class Exponential extends ContinousDistribution
     }
 
     @Override
+    public double logPdf(double x)
+    {
+        return log(lambda) + -lambda*x;
+    }
+
+    
+    @Override
     public double pdf(double d)
     {
         return lambda*exp(-lambda*d);

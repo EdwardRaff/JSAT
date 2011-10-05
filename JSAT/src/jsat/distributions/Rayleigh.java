@@ -37,7 +37,7 @@ public final class Rayleigh extends ContinousDistribution
     public double pdf(double x)
     {
         if (x < 0)
-            throw new ArithmeticException("x must be >= 0");
+            return 0;
         double sigSqr = sig*sig;
         return x / sigSqr * exp(-x*x/(2*sigSqr));
     }

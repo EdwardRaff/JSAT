@@ -27,15 +27,21 @@ public class FisherSendor extends ContinousDistribution
         this.v1 = v1;
         this.v2 = v2;
     }
+
+    @Override
+    public double logPdf(double x)
+    {
+        double leftSide = v1/2 * log(v1) + v2/2*log(v2) - lnBeta(v1/2, v2/2); 
+        double rightSide = (v1/2-1)*log(x) - (v1+v2)/2*log(v2+v1*x);
+        return leftSide+rightSide;
+    }
     
     
 
     @Override
     public double pdf(double x)
     {
-        double leftSide = v1/2 * log(v1) + v2/2*log(v2) - lnBeta(v1/2, v2/2); 
-        double rightSide = (v1/2-1)*log(x) - (v1+v2)/2*log(v2+v1*x);
-        return exp(leftSide+rightSide);
+        return exp(logPdf(x));
     }
 
 
