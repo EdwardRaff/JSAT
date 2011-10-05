@@ -116,6 +116,9 @@ public class NearestNeighbour implements  Classifier
 
     public void trainC(ClassificationDataSet dataSet)
     {
+        if(dataSet.getNumCategoricalVars() != 0)
+            throw new RuntimeException("KNN requires vector data only");
+        
         this.predicting = dataSet.getPredicting();
         dataPoints = new ArrayList<DataPoint>(dataSet.getSampleSize());
         classification = new int[dataSet.getSampleSize()];
