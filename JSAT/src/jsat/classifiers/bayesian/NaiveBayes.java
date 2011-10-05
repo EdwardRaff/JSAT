@@ -31,8 +31,6 @@ public class NaiveBayes implements Classifier
     {
     }
     
-    
-
     public CategoricalResults classify(DataPoint data)
     {
         
@@ -42,20 +40,24 @@ public class NaiveBayes implements Classifier
         double sum = 0;
         for( int i = 0; i < distributions.length; i++)
         {
-            double prob = 1;
+            double logProb = 1;
             for(int j = 0; j < distributions[i].length; j++)
             {
-                double pdf = distributions[i][j].pdf(data.getNumericalValues().get(j));
-                prob *= pdf;
+                double logPDF = distributions[i][j].logPdf(data.getNumericalValues().get(j));
+                if(Double.isInfinite(logPDF))//Avoid propigation -infinty when the probability is zero
+                    logProb += Math.log(1e-16);//
+                else
+                    logProb += logPDF;
             }
             
             //the i goes up to the number of categories, same for aprioror
             for(int j = 0; j < apriori[i].length; j++)
             {
                 double p = apriori[i][j][data.getCategoricalValue(j)];
-                prob *= p;
+                logProb += Math.log(p);
             }
             
+            double prob = Math.exp(logProb);
             results.setProb(i, prob);
             
             sum += prob;
