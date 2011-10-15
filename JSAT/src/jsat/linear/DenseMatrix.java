@@ -363,9 +363,9 @@ public class DenseMatrix extends Matrix
                             
                             for(int j = j0; j < min(j0+NB2, jLimit); j++)
                                 c_row_i[j] += a * b.get(k, j);
+                            }
                         }
                     }
-                }
         
         return result;
     }
@@ -558,14 +558,28 @@ public class DenseMatrix extends Matrix
     }
 
     @Override
+    public void mutableTranspose()
+    {
+       for(int i = 0; i < rows()-1; i++)
+            for(int j = i+1; j < cols(); j++)
+            {
+                double tmp = matrix[j][i];
+                matrix[j][i] = matrix[i][j];
+                matrix[i][j] = tmp;
+            }
+    }
+        
+    @Override
     public Matrix transpose()
     {
         DenseMatrix transpose = new DenseMatrix(cols(), rows());
-        
-        for(int i = 0; i < rows(); i++)
-            for(int j = 0; j < cols(); j++)
-                transpose.matrix[j][i] = this.matrix[i][j];
-        
+        int BL = NB2;
+        for (int i0 = 0; i0 < rows(); i0 += BL)
+            for (int j0 = 0; j0 < cols(); j0 += BL)
+                for (int i = i0; i < min(i0+BL, rows()); i++)
+                    for (int j = j0; j < min(j0+BL, cols()); j++)
+                        transpose.matrix[j][i] = this.matrix[i][j];
+
         return transpose;
     }
     
@@ -830,6 +844,245 @@ public class DenseMatrix extends Matrix
         lup[2] = P;
         
         return lup;
+    }
+    
+    public Matrix[] qr()
+    {
+        int N = cols(), M  = rows();
+        Matrix[] qr = new Matrix[2];
+        
+        DenseMatrix Q = Matrix.eye(M);
+        DenseMatrix A;
+        if(isSquare())
+        {
+            mutableTranspose();
+            A = this;
+        }
+        else
+            A = (DenseMatrix) this.transpose();
+        int to = cols() > rows() ? M : N;
+        double[] vk = new double[M];
+        for(int k = 0; k < to; k++)
+        {
+            double[] A_k = A.matrix[k];
+            double vkNorm = 0, beta = 0;
+            
+            for(int i = k+1; i < M; i++)
+            {
+                vk[i] = A_k[i];
+                vkNorm += vk[i]*vk[i];
+            }
+            beta = vkNorm;
+            
+            double vk_k = vk[k] = A_k[k];//force into register, help the JIT!
+            vkNorm += vk_k*vk_k;
+            vkNorm = sqrt(vkNorm);
+            
+            
+            double alpha = -signum(vk_k) * vkNorm;
+            vk_k  -= alpha;
+            vk[k] = vk_k;
+            beta += vk_k*vk_k;
+            
+            
+            if(beta == 0)
+                continue;
+            double TwoOverBeta = 2.0/beta;
+            //Computing Q
+            {
+                //We are computing Q' in what we are treating as the column major order, which represents Q in row major order, which is what we want!
+                for(int j = 0; j < Q.cols(); j++)
+                {
+                    double[] Q_j = Q.matrix[j];
+                    double y = 0;//y = vk dot A_j
+                    for (int i = k; i < Q.cols(); i++)
+                        y += vk[i] * Q_j[i];
+
+                    y *= TwoOverBeta;
+                    for (int i = k; i < Q.rows(); i++)
+                    {
+                        Q_j[i] -= y*vk[i];
+                    }
+                }
+            }
+            
+            //First run of loop removed, as it will be setting zeros. More accurate to just set them ourselves
+            if(k < N)
+            {
+                double[] A_j = A.matrix[k];
+                double y = 0;//y = vk dot A_j
+                for(int i = k; i < A.cols(); i++)
+                    y += vk[i]*A_j[i];
+        
+                y *= TwoOverBeta;
+                A_j[k] -= y*vk[k];
+                
+                for(int i = k+1; i < M; i++)
+                    A_j[i] = 0.0;
+            }
+            //The rest of the normal look
+            for(int j = k+1; j < N; j++)
+            {
+                double[] A_j = A.matrix[j];
+                double y = 0;//y = vk dot A_j
+                for(int i = k; i < A.cols(); i++)
+                    y += vk[i]*A_j[i];
+        
+                y *= TwoOverBeta;
+                for(int i = k; i < M; i++)
+                    A_j[i] -= y*vk[i];
+            }
+        }
+        qr[0] = Q;
+        if(isSquare())
+        {
+            A.mutableTranspose();
+            qr[1] = A;
+        }
+        else
+            qr[1] = A.transpose();
+        return qr;
+    }
+    
+    private class QRRun implements Runnable
+    {
+        DenseMatrix A, Q;
+        double[] vk;
+        double TwoOverBeta;
+        int k, threadID, N, M;
+        CountDownLatch latch;
+
+        public QRRun(DenseMatrix A, DenseMatrix Q, double[] vk, double TwoOverBeta, int k, int threadID, CountDownLatch latch)
+        {
+            this.A = A;
+            this.Q = Q;
+            this.vk = vk;
+            this.TwoOverBeta = TwoOverBeta;
+            this.k = k;
+            this.threadID = threadID;
+            this.latch = latch;
+            this.N = A.rows();
+            this.M = A.cols();
+        }
+        
+        public void run()
+        {
+            //Computing Q
+            {
+                //We are computing Q' in what we are treating as the column major order, which represents Q in row major order, which is what we want!
+                for(int j = 0+threadID; j < Q.cols(); j+=maxThreads)
+                {
+                    double[] Q_j = Q.matrix[j];
+                    double y = 0;//y = vk dot A_j
+                    for (int i = k; i < Q.cols(); i++)
+                        y += vk[i] * Q_j[i];
+
+                    y *= TwoOverBeta;
+                    for (int i = k; i < Q.rows(); i++)
+                    {
+                        Q_j[i] -= y*vk[i];
+                    }
+                }
+            }
+            
+            //First run of loop removed, as it will be setting zeros. More accurate to just set them ourselves
+            if(k < N && threadID == 0)
+            {
+                double[] A_j = A.matrix[k];
+                double y = 0;//y = vk dot A_j
+                for(int i = k; i < A.cols(); i++)
+                    y += vk[i]*A_j[i];
+        
+                y *= TwoOverBeta;
+                A_j[k] -= y*vk[k];
+                
+                for(int i = k+1; i < M; i++)
+                    A_j[i] = 0.0;
+            }
+            //The rest of the normal look
+            for(int j = k+1+threadID; j < N; j+=maxThreads)
+            {
+                double[] A_j = A.matrix[j];
+                double y = 0;//y = vk dot A_j
+                for(int i = k; i < A.cols(); i++)
+                    y += vk[i]*A_j[i];
+        
+                y *= TwoOverBeta;
+                for(int i = k; i < M; i++)
+                    A_j[i] -= y*vk[i];
+            }
+            latch.countDown();
+        }
+        
+    }
+    
+    public Matrix[] qr(ExecutorService threadPool)
+    {
+        int N = cols(), M  = rows();
+        Matrix[] qr = new Matrix[2];
+        
+        DenseMatrix Q = Matrix.eye(M);
+        DenseMatrix A;
+        if(isSquare())
+        {
+            mutableTranspose();
+            A = this;
+        }
+        else
+            A = (DenseMatrix) this.transpose();
+        
+        double[] vk = new double[M];
+        
+        int to = cols() > rows() ? M : N;
+        for(int k = 0; k < to; k++)
+        {
+            double[] A_k = A.matrix[k];
+            double vkNorm = 0, beta = 0;
+            
+            for(int i = k+1; i < M; i++)
+            {
+                vk[i] = A_k[i];
+                vkNorm += vk[i]*vk[i];
+            }
+            beta = vkNorm;
+            
+            double vk_k = vk[k] = A_k[k];
+            vkNorm += vk_k*vk_k;
+            vkNorm = sqrt(vkNorm);
+            
+            
+            double alpha = -signum(vk_k) * vkNorm;
+            vk_k -= alpha;
+            beta += vk_k*vk_k;
+            vk[k] = vk_k;
+            
+            
+            if(beta == 0)
+                continue;
+            
+            double TwoOverBeta = 2.0/beta;
+            
+            CountDownLatch latch = new CountDownLatch(maxThreads);
+            for(int threadID = 0; threadID < maxThreads; threadID++)
+                threadPool.submit(new QRRun(A, Q, vk, TwoOverBeta, k, threadID, latch));
+            try
+            {
+                latch.await();
+            }
+            catch (InterruptedException ex)
+            {
+                Logger.getLogger(DenseMatrix.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        }
+        qr[0] = Q;
+        if(isSquare())
+        {
+            A.mutableTranspose();
+            qr[1] = A;
+        }
+        else
+            qr[1] = A.transpose();
+        return qr;
     }
     
     @Override

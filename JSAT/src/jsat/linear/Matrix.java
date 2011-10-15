@@ -102,6 +102,13 @@ public abstract class Matrix
     abstract public Matrix[] lup();
     abstract public Matrix[] lup(ExecutorService threadPool);
     
+    abstract public Matrix[] qr();
+    abstract public Matrix[] qr(ExecutorService threadPool);
+    
+    /**
+     * Transposes the current matrix in place, altering its value. Only valid for square matrices 
+     */
+    abstract public void mutableTranspose();
     abstract public Matrix transpose();
     
     abstract public double get(int i, int j);
@@ -121,6 +128,31 @@ public abstract class Matrix
     
     abstract public Matrix copy();
 
+    /**
+     * Creates a copy of the values in column <tt>j</tt> of this matrix. Altering it will not effect the values in the source matrix
+     * @param j the column
+     * @return a copy of the column as a {@link Vec}
+     */
+    public Vec getColumn(int j)
+    {
+        if(j < 0 || j >= cols())
+            throw new ArithmeticException("Column was not a valid value " + j + " not in [0," + (cols()-1) + "]");
+        DenseVector c = new DenseVector(rows());
+        for(int i =0; i < rows(); i++)
+            c.set(i, get(i, j));
+        return c;
+    }
+    
+    public Vec getRow(int r)
+    {
+        if(r < 0 || r >= rows())
+            throw new ArithmeticException("Row was not a valid value " + r + " not in [0," + (rows()-1) + "]");
+        DenseVector c = new DenseVector(cols());
+        for(int j =0; j < cols(); j++)
+            c.set(j, get(r, j));
+        return c;
+    }
+    
     @Override
     public String toString()
     {
@@ -220,7 +252,7 @@ public abstract class Matrix
      * @param k the number of rows / columns
      * @return I_k
      */
-    public static Matrix eye(int k)
+    public static DenseMatrix eye(int k)
     {
         DenseMatrix eye = new DenseMatrix(k, k);
         for(int i = 0; i < k; i++ )

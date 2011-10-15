@@ -652,4 +652,106 @@ public class DenseMatrixTest
         lup = C.transpose().lup(threadpool);
         assertTrue(lup[2].multiply(C.transpose(), threadpool).equals(lup[0].multiply(lup[1], threadpool), 1e-14));
     }
+
+    /**
+     * Test of mutableTranspose method, of class DenseMatrix.
+     */
+    @Test
+    public void testMutableTranspose()
+    {
+        System.out.println("mutableTranspose");
+        
+        try
+        {
+            C.copy().mutableTranspose();
+            fail("Can not do a mutable transpose for rectangular matrix, error should have been thrown");
+        }
+        catch(Exception ex)
+        {
+            
+        }
+        
+        
+        DenseMatrix ATranspose = new DenseMatrix(new double[][] 
+        {
+            {1,     1,     0,     3,     1},
+            {5,     5,     3,     8,     9},
+            {4,     7,     8,     0,     2},
+            {8,     3,     5,     7,     9},
+            {9,     7,     6,     0,     6}, 
+        } );
+        
+        Matrix AT = A.copy();
+        AT.mutableTranspose();
+        assertEquals(ATranspose, AT);
+        
+    }
+
+    /**
+     * Test of qr method, of class DenseMatrix.
+     */
+    @Test
+    public void testQr_0args()
+    {
+        System.out.println("qr");
+        Matrix[] qr;
+        //3 properties to test
+        // R is uper triangular
+        // Q*Q' = I
+        // A = Q*R
+        
+        
+        
+        qr = A.copy().qr();
+        assertTrue(A.equals(qr[0].multiply(qr[1]), 1e-14));
+        assertTrue(DenseMatrix.eye(A.rows()).equals(qr[0].multiply(qr[0].transpose()), 1e-14));
+        
+        
+        qr = B.copy().qr();
+        assertTrue(B.equals(qr[0].multiply(qr[1]), 1e-14));
+        assertTrue(DenseMatrix.eye(B.rows()).equals(qr[0].multiply(qr[0].transpose()), 1e-14));
+        
+        
+        qr = C.copy().qr();
+        assertTrue(C.equals(qr[0].multiply(qr[1]), 1e-14));
+        assertTrue(DenseMatrix.eye(C.rows()).equals(qr[0].multiply(qr[0].transpose()), 1e-14));
+        
+        qr = C.transpose().qr();
+        assertTrue(C.transpose().equals(qr[0].multiply(qr[1]), 1e-14));
+        assertTrue(DenseMatrix.eye(C.transpose().rows()).equals(qr[0].multiply(qr[0].transpose()), 1e-14));
+    }
+
+    /**
+     * Test of qr method, of class DenseMatrix.
+     */
+    @Test
+    public void testQr_ExecutorService()
+    {
+        System.out.println("qr");
+         Matrix[] qr;
+        //3 properties to test
+        // R is uper triangular
+        // Q*Q' = I
+        // A = Q*R
+        
+        
+        
+        qr = A.copy().qr(threadpool);
+        assertTrue(A.equals(qr[0].multiply(qr[1]), 1e-14));
+        assertTrue(DenseMatrix.eye(A.rows()).equals(qr[0].multiply(qr[0].transpose()), 1e-14));
+        
+        
+        qr = B.copy().qr(threadpool);
+        assertTrue(B.equals(qr[0].multiply(qr[1]), 1e-14));
+        assertTrue(DenseMatrix.eye(B.rows()).equals(qr[0].multiply(qr[0].transpose()), 1e-14));
+        
+        
+        qr = C.copy().qr(threadpool);
+        assertTrue(C.equals(qr[0].multiply(qr[1]), 1e-14));
+        assertTrue(DenseMatrix.eye(C.rows()).equals(qr[0].multiply(qr[0].transpose()), 1e-14));
+        
+        qr = C.transpose().qr(threadpool);
+        assertTrue(C.transpose().equals(qr[0].multiply(qr[1]), 1e-14));
+        assertTrue(DenseMatrix.eye(C.transpose().rows()).equals(qr[0].multiply(qr[0].transpose()), 1e-14));
+    }
 }

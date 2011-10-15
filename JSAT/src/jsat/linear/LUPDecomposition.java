@@ -49,6 +49,10 @@ public class LUPDecomposition
         return L.isSquare() && U.isSquare();
     }
     
+    /**
+     * 
+     * @return the determinant of the original Matrix A, |A|
+     */
     public double det()
     {
         if(!isSquare())
