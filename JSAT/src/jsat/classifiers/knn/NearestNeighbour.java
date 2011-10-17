@@ -2,8 +2,6 @@
 package jsat.classifiers.knn;
 
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import jsat.classifiers.CategoricalData;
@@ -12,10 +10,12 @@ import jsat.classifiers.ClassificationDataSet;
 import jsat.classifiers.Classifier;
 import jsat.classifiers.DataPoint;
 import jsat.linear.Vec;
+import jsat.linear.VecPaired;
 import jsat.linear.distancemetrics.DistanceMetric;
 import jsat.linear.distancemetrics.EuclideanDistance;
-import jsat.utils.BoundedSortedSet;
-import jsat.utils.ProbailityMatch;
+import jsat.linear.vectorcollection.KDTree;
+import jsat.linear.vectorcollection.VectorCollection;
+import jsat.linear.vectorcollection.VectorCollectionFactory;
 
 /**
  *
@@ -28,12 +28,23 @@ public class NearestNeighbour implements  Classifier
     private DistanceMetric distanceMetric;
     private CategoricalData predicting;
     
-    int[] classification;
-    List<DataPoint> dataPoints;
+    private VectorCollectionFactory<VecPaired<Double, Vec>> vcf;
+    private VectorCollection<VecPaired<Double, Vec>> vecCollection;
+
+    private enum Mode {REGRESSION, CLASSIFICATION};
+    /**
+     * If we are in classification mode, the double is an integer that indicates class.
+     */
+    Mode mode;
     
     public NearestNeighbour(int k)
     {
         this(k, false);
+    }
+    
+    public NearestNeighbour(int k, VectorCollectionFactory<VecPaired<Double, Vec>> vcf)
+    {
+        this(k, false, new EuclideanDistance(), vcf);
     }
 
     public NearestNeighbour(int k, boolean weighted)
@@ -49,69 +60,51 @@ public class NearestNeighbour implements  Classifier
      */
     public NearestNeighbour(int k, boolean weighted, DistanceMetric distanceMetric )
     {
+        this(k, weighted, distanceMetric, new KDTree.KDTreeFactory<VecPaired<Double, Vec>>());
+    }
+    
+    public NearestNeighbour(int k, boolean weighted, DistanceMetric distanceMetric, VectorCollectionFactory<VecPaired<Double, Vec>> vcf )
+    {
+        this.mode = null;
+        this.vecCollection = null;
+        this.vcf = vcf;
         this.k = k;
         this.weighted = weighted;
         this.distanceMetric = distanceMetric;
     }
-     
+
     public CategoricalResults classify(DataPoint data)
     {
-        if(dataPoints == null)
-            throw new RuntimeException("Classifier has not yet been trained");
+        if(vecCollection == null || mode != Mode.CLASSIFICATION)
+            throw new RuntimeException("Classifier has not been trained");
+        Vec query  = data.getNumericalValues();
         
-        BoundedSortedSet<ProbailityMatch<Integer>> closestMatches = 
-                new BoundedSortedSet<ProbailityMatch<Integer>>(k);
-        
-        //Divides all the result probabilities so they sum to one
-        //if not weighted, divosior = k
-        //if weigthed, it is the sum of the weithed distances will have to be set at the end 
-        
-        double divisor = 0;
-        
-        for(int i = 0; i < dataPoints.size(); i++)
-        {
-            Vec v = dataPoints.get(i).getNumericalValues();
-            double distance = distanceMetric.dist(v, data.getNumericalValues());
-            
-            
-            
-            closestMatches.add(new ProbailityMatch<Integer>(distance, classification[i]));
-        }
+        List<VecPaired<Double,VecPaired<Double, Vec>>> knns = vecCollection.search(query, k);
         
         CategoricalResults results = new CategoricalResults(predicting.getNumOfCategories());
         
-        for(ProbailityMatch<Integer> pm : closestMatches)
+        for(int i = 0; i < knns.size(); i++)
         {
-            
+            double distance = knns.get(i).getPair();
+            VecPaired<Double, Vec> pm = knns.get(i).getVector();
+            int index =  (int) Math.round(pm.getPair());
             if(weighted)
             {
-                double prob = pm.getProbability();
-                
-                //Normaly the weigth by this method we choose the highest value isntead of the lowest
-                //But we dont want to change our BoundedSOrtedSet
-                //So we change the signs, so the |largest| will be at the front of the list
-                if(weighted)
-                    prob = -Math.exp(-prob);
-                
-                divisor += prob;
-                results.setProb(pm.getMatch(), results.getProb(pm.getMatch()) + prob);//Sum weights
+                double prob = -Math.exp(-distance);
+                results.setProb(index, results.getProb(index) + prob);//Sum weights
             }
             else
-                results.setProb(pm.getMatch(), results.getProb(pm.getMatch()) + 1.0);//all weights are 1
+                results.setProb(index, results.getProb(index) + 1.0);//all weights are 1
         }
         
-        if(!weighted)
-            divisor = closestMatches.size();
-                
-        
-        results.divideConst(divisor);
+        results.normalize();
         
         return results;
     }
-
+    
     public void trainC(ClassificationDataSet dataSet, ExecutorService threadPool)
     {
-        trainC(dataSet);
+        trainC(dataSet); 
     }
 
     public void trainC(ClassificationDataSet dataSet)
@@ -119,33 +112,28 @@ public class NearestNeighbour implements  Classifier
         if(dataSet.getNumCategoricalVars() != 0)
             throw new RuntimeException("KNN requires vector data only");
         
+        mode = Mode.CLASSIFICATION;
         this.predicting = dataSet.getPredicting();
-        dataPoints = new ArrayList<DataPoint>(dataSet.getSampleSize());
-        classification = new int[dataSet.getSampleSize()];
-        
+        List<VecPaired<Double, Vec>> dataPoints = new ArrayList<VecPaired<Double, Vec>>(dataSet.getSampleSize());
+                
         //Add all the data points
         for(int i = 0; i < dataSet.getPredicting().getNumOfCategories(); i++)
         {
-            List<DataPoint> some = dataSet.getSamples(i);
-            for(int z = 0; z < some.size(); z++)//include a matching category
-                classification[dataPoints.size()+z] = i;
-            dataPoints.addAll(some); 
+            for(DataPoint dp : dataSet.getSamples(i))
+            {
+                //We want to include the category in this case, so we will add it to the vector
+                dataPoints.add(new VecPaired(dp.getNumericalValues(), (double)i));//bug? why isnt this auto boxed to double w/o a cast?
+            }
         }
+        
+        vecCollection = vcf.getVectorCollection(dataPoints, distanceMetric);
     }
-
+    
     public Classifier copy()
     {
-        NearestNeighbour copy = new NearestNeighbour(k, weighted, distanceMetric);
-        
-        copy.classification = Arrays.copyOf(classification, classification.length);
-        copy.dataPoints = new ArrayList<DataPoint>(dataPoints.size());
-        
-        copy.dataPoints.addAll(this.dataPoints);
-        copy.predicting = this.predicting;
-        
-        return copy;
+        throw new UnsupportedOperationException("Not supported yet.");
     }
-
+    
     public boolean supportsWeightedData()
     {
         return false;
