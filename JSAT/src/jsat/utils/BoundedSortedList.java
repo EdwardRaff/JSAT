@@ -47,7 +47,12 @@ public class BoundedSortedList<E extends Comparable<E>> extends ArrayList<E>
                     super.add(ind, e);
                 }
                 else//not full yet, can jsut add
-                    super.add(e);
+                {
+                    if(ind > size())
+                        super.add(e);
+                    else
+                        super.add(ind, e);
+                }
                 return true;
             }
             else
@@ -74,6 +79,13 @@ public class BoundedSortedList<E extends Comparable<E>> extends ArrayList<E>
         if(isEmpty())
             return null;
         return get(0);
+    }
+    
+    public E last()
+    {
+        if(isEmpty())
+            return null;
+        return get(size()-1);
     }
 
     @Override
