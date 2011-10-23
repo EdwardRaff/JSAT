@@ -12,23 +12,26 @@ import static java.lang.Math.*;
 public final class Rayleigh extends ContinousDistribution
 {
 
+    /**
+     * scale parameter
+     */
     private double sig;
 
     public Rayleigh(double sig)
     {
-        setSig(sig);
+        setScale(sig);
     }
     
     
 
-    public void setSig(double sig)
+    public void setScale(double sig)
     {
-        if(sig <=0)
-            throw new ArithmeticException("The " + GreekLetters.sigma + " parameter must be > 0");
+        if(sig <=0 || Double.isInfinite(sig) || Double.isNaN(sig))
+            throw new ArithmeticException("The " + GreekLetters.sigma + " parameter must be > 0, not " + sig);
         this.sig = sig;
     }
 
-    public double getSig()
+    public double getScale()
     {
         return sig;
     }
@@ -89,7 +92,7 @@ public final class Rayleigh extends ContinousDistribution
     public void setVariable(String var, double value)
     {
         if(var.equals(GreekLetters.sigma))
-            setSig(value);
+            setScale(value);
     }
 
     @Override
@@ -123,7 +126,7 @@ public final class Rayleigh extends ContinousDistribution
         tmp /= (2*data.length());
         tmp = sqrt(tmp);
         
-        setSig(tmp);
+        setScale(tmp);
     }
 
     @Override

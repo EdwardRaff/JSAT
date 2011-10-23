@@ -23,7 +23,7 @@ public class ChiSquared extends ContinousDistribution
     @Override
     public double pdf(double x)
     {
-        if(x < 0)
+        if(x <= 0)
             return 0;
         /*
          *   df      -x
@@ -38,13 +38,15 @@ public class ChiSquared extends ContinousDistribution
          *          \ 2/
          */
         
-        return exp((df/2-1)*log(x)-x/2-df/2*log(2)+lnGamma(df/2));
+        return exp((df/2-1)*log(x)-x/2- (df/2*log(2)+lnGamma(df/2))  );
     }
 
 
     @Override
     public double cdf(double x)
     {
+        if(x <= 0)
+            return 0;
         if(df == 2)//special case with a closed form that is more accurate to compute, we include it b/c df = 2 is not uncomon
             return 1-exp(-x/2);
         return gammaP(df/2, x/2);
@@ -54,7 +56,7 @@ public class ChiSquared extends ContinousDistribution
     public double invCdf(double p)
     {
         if(df == 2)//special case with a closed form that is more accurate to compute, we include it b/c df = 2 is not uncomon
-            return 2*log(1-p);
+            return 2*abs(log(1-p));
         return 2* invGammaP(p, df/2);
     }
 
@@ -117,7 +119,7 @@ public class ChiSquared extends ContinousDistribution
     public double median()
     {
         //2*InvGammaP(df/2,1/2)
-        return invGammaP(df/2, 0.5)*2;
+        return invGammaP(0.5, df/2)*2;
     }
 
     @Override

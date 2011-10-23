@@ -34,11 +34,15 @@ public class Normal extends ContinousDistribution
 
     public void setMean(double mean)
     {
+        if(Double.isInfinite(mean) || Double.isNaN(mean))
+            throw new ArithmeticException("Mean can not be infinite of NaN");
         this.mean = mean;
     }
 
     public void setStndDev(double stndDev)
     {
+        if(Double.isInfinite(stndDev) || Double.isNaN(stndDev))
+            throw new ArithmeticException("Standard devation can not be infinite of NaN");
         if(stndDev <= 0)
             throw new ArithmeticException("The standard devation can not be <= 0");
         this.stndDev = stndDev;
