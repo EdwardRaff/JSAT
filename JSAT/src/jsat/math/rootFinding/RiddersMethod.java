@@ -46,7 +46,7 @@ public class RiddersMethod
             else if(fx1 * fx4 < 0)
             {
                 dif = abs(x4 - x2);
-                if(dif == 0)//WE are no longer updating, return the value
+                if(dif <= 1e-15)//WE are no longer updating, return the value
                     return x4;
                 x2 = x4;
                 fx2 = fx4;
@@ -58,7 +58,7 @@ public class RiddersMethod
             else
             {
                 dif = abs(x4 - x1);
-                if(dif == 0)//WE are no longer updating, return the value
+                if(dif <= 1e-15)//WE are no longer updating, return the value
                     return x4;
                 x1 = x4;
                 fx1 = fx4;

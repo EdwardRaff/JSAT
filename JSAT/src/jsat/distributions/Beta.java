@@ -26,18 +26,28 @@ public class Beta extends ContinousDistribution
     @Override
     public double pdf(double x)
     {
+        if(x <= 0)
+            return 0;
+        else if(x >= 1)
+            return 0;
         return exp((alpha-1)*log(x)+(beta-1)*log(1-x)-lnBeta(alpha, beta));
     }
 
     @Override
     public double cdf(double x)
     {
+        if(x <= 0)
+            return 0;
+        else if(x >= 1)
+            return 1;
         return betaIncReg(x, alpha, beta);
     }
 
     @Override
     public double invCdf(double p)
     {
+        if(p < 0 || p > 1)
+            throw new ArithmeticException("p must be in the range [0,1], not " + p);
         return invBetaIncReg(p, alpha, beta);
     }
 
