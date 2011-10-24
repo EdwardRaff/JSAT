@@ -26,6 +26,8 @@ public class Exponential extends ContinousDistribution
     @Override
     public double logPdf(double x)
     {
+        if(x < 0)
+            return 0;
         return log(lambda) + -lambda*x;
     }
 
@@ -33,6 +35,8 @@ public class Exponential extends ContinousDistribution
     @Override
     public double pdf(double d)
     {
+        if(d < 0)
+            return 0;
         return lambda*exp(-lambda*d);
     }
 
@@ -40,12 +44,16 @@ public class Exponential extends ContinousDistribution
     @Override
     public double cdf(double d)
     {
+        if(d < 0)
+            return 0;
         return 1-exp(-lambda*d);
     }
 
     @Override
     public double invCdf(double d)
     {
+        if(d < 0 || d > 1)
+            throw new ArithmeticException("Inverse CDF only exists on the range [0,1]");
         return -log(1-d)/lambda;
     }
 

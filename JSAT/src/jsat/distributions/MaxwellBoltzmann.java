@@ -23,14 +23,22 @@ public class MaxwellBoltzmann extends ContinousDistribution
     
     public MaxwellBoltzmann(double sigma)
     {
-        setSigma(sigma);
+        setShape(sigma);
     }
     
-    final public void setSigma(double sigma)
+    final public void setShape(double sigma)
     {
-        if(sigma <= 0)
+        if(sigma <= 0 || Double.isInfinite(sigma) || Double.isNaN(sigma))
              throw new ArithmeticException("shape parameter must be > 0, not " + sigma);
         this.sigma = sigma;
+    }
+
+    @Override
+    public double logPdf(double x)
+    {
+        if(x <=0 )
+            return 0.0;
+        return (2*log(x) + (-x*x/(2*sigma*sigma)) - 3*log(sigma) )+ 0.5*(log(2)-log(PI));
     }
     
     @Override
@@ -45,6 +53,8 @@ public class MaxwellBoltzmann extends ContinousDistribution
     @Override
     public double cdf(double x)
     {
+        if(x <=0 )
+            return 0.0;
         return erf(x/(sqrt(2)*sigma))-sqrt(2/PI)*x*exp(-(x*x)/(2*sigma*sigma))/sigma;
     }
 
@@ -55,6 +65,12 @@ public class MaxwellBoltzmann extends ContinousDistribution
             throw new ArithmeticException("probability must be in the range [0,1], not " + p);
         
         return sqrt(2)*sigma*sqrt(invGammaP(p, 3.0/2.0));
+    }
+
+    @Override
+    public double median()
+    {
+        return sigma*sqrt(2*invGammaP(1.0/2.0, 3.0/2.0));
     }
 
     @Override
@@ -91,7 +107,7 @@ public class MaxwellBoltzmann extends ContinousDistribution
     public void setVariable(String var, double value)
     {
         if(var.equals(GreekLetters.sigma))
-            setSigma(value);
+            setShape(value);
     }
 
     @Override
@@ -103,7 +119,7 @@ public class MaxwellBoltzmann extends ContinousDistribution
     @Override
     public void setUsingData(Vec data)
     {
-        setSigma(data.mean()/sqrt(2));
+        setShape(data.mean()/sqrt(2));
     }
 
     @Override
