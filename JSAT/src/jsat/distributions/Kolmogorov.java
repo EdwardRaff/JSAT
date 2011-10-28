@@ -3,7 +3,7 @@ package jsat.distributions;
 
 import jsat.linear.Vec;
 import jsat.math.Function;
-import jsat.math.rootFinding.RiddersMethod;
+import jsat.math.rootfinding.RiddersMethod;
 import static java.lang.Math.*;
 import static jsat.math.SpecialMath.*;
 /**
@@ -67,14 +67,14 @@ public class Kolmogorov extends ContinousDistribution
 
         public double f(double... x)
         {
-            return cdf(x[0]);
+            return cdf(x[0])-x[1];
         }
     };
     
     @Override
     public double invCdf(double p)
     {
-        return RiddersMethod.root(0, 5, fCDF, p);
+        return RiddersMethod.root(0, 5, fCDF, p, p);
     }
 
     @Override

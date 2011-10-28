@@ -5,7 +5,7 @@ import java.util.Random;
 import jsat.linear.DenseVector;
 import jsat.linear.Vec;
 import jsat.math.Function;
-import jsat.math.rootFinding.Zeroin;
+import jsat.math.rootfinding.Zeroin;
 
 /**
  *
@@ -30,12 +30,20 @@ public abstract class ContinousDistribution
      * @param cdf a function that provides the CDF we want to emulate the inverse of 
      * @return the quantile function, CDF<sup>-1</sup>(p) = x
      */
-    protected double invCdf(double p, Function cdf)
+    protected double invCdf(final double p, final Function cdf)
     {
         if(p < 0 || p > 1)
             throw new ArithmeticException("Value of p must be in the range [0,1], not " + p);
         double a = Double.isInfinite(min()) ? Double.MIN_VALUE : min();
         double b = Double.isInfinite(max()) ? Double.MAX_VALUE : max();
+        
+        Function newCDF = new Function() {
+
+            public double f(double... x)
+            {
+                return cdf.f(x)-p;
+            }
+        };
         return Zeroin.root(a, b, cdf, p);
     }
 

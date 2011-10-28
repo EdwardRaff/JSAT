@@ -5,7 +5,7 @@
 package jsat.math;
 
 import jsat.distributions.Normal;
-import jsat.math.rootFinding.RiddersMethod;
+import jsat.math.rootfinding.RiddersMethod;
 import static java.lang.Math.*;
 
 /**
@@ -268,7 +268,7 @@ public class SpecialMath
 
         public double f(double... x)
         {
-            return betaIncReg(x[0], x[1], x[2]);
+            return betaIncReg(x[0], x[1], x[2]) - x[3];
             
         }
     };
@@ -288,7 +288,7 @@ public class SpecialMath
     {
         if(p < 0 || p > 1)
             throw new ArithmeticException("The value p must be in the range [0,1], not" + p);
-        return RiddersMethod.root(0, 1, betaIncRegFunc, p, a, b);
+        return RiddersMethod.root(0, 1, betaIncRegFunc, p, a, b, p);
     }
     
     /**
