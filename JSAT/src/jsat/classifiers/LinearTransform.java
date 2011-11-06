@@ -1,6 +1,7 @@
 
 package jsat.classifiers;
 
+import jsat.DataSet;
 import jsat.linear.DenseVector;
 import jsat.linear.Vec;
 import jsat.math.OnLineStatistics;
@@ -23,12 +24,12 @@ public class LinearTransform implements DataTransform
      */
     Vec mutliplyConstants;
 
-    public LinearTransform(ClassificationDataSet cds)
+    public LinearTransform(DataSet dataSet)
     {
-        this(cds, 1, 0);
+        this(dataSet, 1, 0);
     }
 
-    public LinearTransform(ClassificationDataSet cds, double A, double B)
+    public LinearTransform(DataSet dataSet, double A, double B)
     {
          if(A == B)
             throw new RuntimeException("Values must be different");
@@ -42,11 +43,11 @@ public class LinearTransform implements DataTransform
         this.B = B;
         
         
-        mins = new DenseVector(cds.getNumNumericalVars());
+        mins = new DenseVector(dataSet.getNumNumericalVars());
         Vec maxs = new DenseVector(mins.length());
         mutliplyConstants = new DenseVector(mins.length());
         
-        OnLineStatistics[] stats = cds.singleVarStats();
+        OnLineStatistics[] stats = dataSet.singleVarStats();
         
         for(int i = 0; i < mins.length(); i++)
         {

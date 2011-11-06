@@ -1,6 +1,7 @@
 
 package jsat.classifiers;
 
+import jsat.DataSet;
 import jsat.linear.DenseVector;
 import jsat.linear.SparceVector;
 import jsat.linear.Vec;
@@ -14,6 +15,11 @@ public class NominalToNumeric implements DataTransform
     private final int origNumericalCount;
     private final CategoricalData[] categoricalData;
     private int addedNumers;
+    
+    public NominalToNumeric(DataSet dataSet)
+    {
+        this(dataSet.getNumNumericalVars(), dataSet.getCategories());
+    }
 
     public NominalToNumeric(int origNumericalCount, CategoricalData[] categoricalData)
     {

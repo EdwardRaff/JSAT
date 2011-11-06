@@ -1,7 +1,7 @@
 
 package jsat.classifiers;
 
-import java.util.Arrays;
+import jsat.DataSet;
 import jsat.linear.DenseVector;
 import jsat.linear.Vec;
 
@@ -16,20 +16,20 @@ public class NumericalToHistogram implements DataTransform
     double[][] conversionArray;
     CategoricalData[] newDataArray;
 
-    public NumericalToHistogram(ClassificationDataSet cds)
+    public NumericalToHistogram(DataSet dataSet)
     {
-        this(cds, (int) Math.ceil(Math.sqrt(cds.getSampleSize())));
+        this(dataSet, (int) Math.ceil(Math.sqrt(dataSet.getSampleSize())));
     }
 
     
     
-    public NumericalToHistogram(ClassificationDataSet cds, int n)
+    public NumericalToHistogram(DataSet dataSet, int n)
     {
         if(n <= 0)
             throw new RuntimeException("Must partition into a positive number of groups");
         this.n = n;
         
-        conversionArray = new double[cds.getNumNumericalVars()][2];
+        conversionArray = new double[dataSet.getNumNumericalVars()][2];
         
         double[] mins = new double[conversionArray.length];
         double[] maxs = new double[conversionArray.length];
@@ -38,9 +38,9 @@ public class NumericalToHistogram implements DataTransform
             mins[i] = Double.MAX_VALUE;
             maxs[i] = Double.MIN_VALUE;
         }
-        for(int i = 0; i < cds.getSampleSize(); i++)
+        for(int i = 0; i < dataSet.getSampleSize(); i++)
         {
-            Vec v = cds.getDataPoint(i).getNumericalValues();
+            Vec v = dataSet.getDataPoint(i).getNumericalValues();
             for(int j = 0; j < mins.length; j++)
             {
                 mins[j] = Math.min(mins[j], v.get(j));
@@ -54,10 +54,10 @@ public class NumericalToHistogram implements DataTransform
             conversionArray[i][1] = (maxs[i]-mins[i])/n;
         }
         
-        newDataArray = new CategoricalData[cds.getNumNumericalVars() + cds.getNumCategoricalVars()];
-        for(int i = 0; i < cds.getNumNumericalVars(); i++)
+        newDataArray = new CategoricalData[dataSet.getNumNumericalVars() + dataSet.getNumCategoricalVars()];
+        for(int i = 0; i < dataSet.getNumNumericalVars(); i++)
             newDataArray[i] = new CategoricalData(n);
-        System.arraycopy(cds.getCategories(), 0, newDataArray, cds.getNumNumericalVars(), cds.getNumCategoricalVars());
+        System.arraycopy(dataSet.getCategories(), 0, newDataArray, dataSet.getNumNumericalVars(), dataSet.getNumCategoricalVars());
     }
     
     
