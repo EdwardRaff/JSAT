@@ -249,11 +249,13 @@ public class LUPDecomposition
             throw new ArithmeticException("Vector and matrix sizes do not agree");
 
         Vec x = y instanceof SparceVector ? new SparceVector(U.cols()) : new DenseVector(U.cols());
+        
+        final int start = Math.min(U.rows(), U.cols())-1;
 
-        for (int i = y.length() - 1; i >= 0; i--)
+        for (int i = start; i >= 0; i--)
         {
             double x_i = y.get(i);
-            for (int j = i + 1; j < y.length(); j++)
+            for (int j = i + 1; j <= start; j++)
                 x_i -= U.get(i, j) * x.get(j);
             x_i /= U.get(i, i);
             x.set(i, x_i);
@@ -277,12 +279,15 @@ public class LUPDecomposition
         Matrix x = new DenseMatrix(U.cols(), y.cols());
 
         double[] x_col_k = new double[y.rows()];
+        
+        final int start = Math.min(U.rows(), U.cols())-1;
+        
         for (int k = 0; k < y.cols(); k++)
         {
-            for (int i = y.rows() - 1; i >= 0; i--)//We operate the same as forwardSub(Matrix, Vec), but we aplly each column of B as its own Vec.
+            for (int i = start; i >= 0; i--)//We operate the same as forwardSub(Matrix, Vec), but we aplly each column of B as its own Vec.
             {
                 x_col_k[i] = y.get(i, k);
-                for (int j = i + 1; j < y.rows(); j++)
+                for (int j = i + 1; j <= start; j++)
                     x_col_k[i] -= U.get(i, j) * x_col_k[j];
                 x_col_k[i] /= U.get(i, i);
             }
@@ -309,6 +314,8 @@ public class LUPDecomposition
 
         final Matrix x = new DenseMatrix(U.cols(), y.cols());
         final CountDownLatch latch = new CountDownLatch(threads);
+        
+        final int start = Math.min(U.rows(), U.cols())-1;
 
         for (int threadNum = 0; threadNum < threads; threadNum++)
         {
@@ -321,10 +328,10 @@ public class LUPDecomposition
                     double[] x_col_k = new double[y.rows()];
                     for (int k = threadID; k < y.cols(); k += threads)
                     {
-                        for (int i = y.rows() - 1; i >= 0; i--)//We operate the same as forwardSub(Matrix, Vec), but we aplly each column of B as its own Vec.
+                        for (int i = start; i >= 0; i--)//We operate the same as forwardSub(Matrix, Vec), but we aplly each column of B as its own Vec.
                         {
                             x_col_k[i] = y.get(i, k);
-                            for (int j = i + 1; j < y.rows(); j++)
+                            for (int j = i + 1; j <= start; j++)
                                 x_col_k[i] -= U.get(i, j) * x_col_k[j];
                             x_col_k[i] /= U.get(i, i);
                         }
