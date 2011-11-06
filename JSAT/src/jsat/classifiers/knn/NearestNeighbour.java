@@ -9,6 +9,7 @@ import jsat.classifiers.CategoricalResults;
 import jsat.classifiers.ClassificationDataSet;
 import jsat.classifiers.Classifier;
 import jsat.classifiers.DataPoint;
+import jsat.classifiers.DataPointPair;
 import jsat.linear.Vec;
 import jsat.linear.VecPaired;
 import jsat.linear.distancemetrics.DistanceMetric;
@@ -16,12 +17,14 @@ import jsat.linear.distancemetrics.EuclideanDistance;
 import jsat.linear.vectorcollection.KDTree;
 import jsat.linear.vectorcollection.VectorCollection;
 import jsat.linear.vectorcollection.VectorCollectionFactory;
+import jsat.regression.RegressionDataSet;
+import jsat.regression.Regressor;
 
 /**
  *
  * @author Edward Raff
  */
-public class NearestNeighbour implements  Classifier
+public class NearestNeighbour implements  Classifier, Regressor
 {
     private int k;
     private boolean weighted ;
@@ -76,7 +79,7 @@ public class NearestNeighbour implements  Classifier
     public CategoricalResults classify(DataPoint data)
     {
         if(vecCollection == null || mode != Mode.CLASSIFICATION)
-            throw new RuntimeException("Classifier has not been trained");
+            throw new RuntimeException("Classifier has not been trained for classification");
         Vec query  = data.getNumericalValues();
         
         List<VecPaired<Double,VecPaired<Double, Vec>>> knns = vecCollection.search(query, k);
@@ -129,7 +132,70 @@ public class NearestNeighbour implements  Classifier
         vecCollection = vcf.getVectorCollection(dataPoints, distanceMetric);
     }
     
-    public Classifier copy()
+    public double regress(DataPoint data)
+    {
+        if(vecCollection == null || mode != Mode.REGRESSION)
+            throw new RuntimeException("Classifier has not been trained for regression");
+        Vec query  = data.getNumericalValues();
+        
+        List<VecPaired<Double,VecPaired<Double, Vec>>> knns = vecCollection.search(query, k);
+        
+        double result = 0, weightSum = 0;
+        
+        for(int i = 0; i < knns.size(); i++)
+        {
+            double distance = knns.get(i).getPair();
+            VecPaired<Double, Vec> pm = knns.get(i).getVector();
+            
+            double value = pm.getPair();
+            
+            
+            if(weighted)
+            {
+                distance = Math.max(1e-8, distance);//Avoiding zero distances which will result in Infinty getting propigated around
+                double weight = 1.0/Math.pow(distance, 2);
+                weightSum += weight;
+                result += value*weight;
+            }
+            else
+            {
+                result += value;
+                weightSum += 1;
+            }
+        }
+        
+        return result/weightSum;
+    }
+
+    public void train(RegressionDataSet dataSet, ExecutorService threadPool)
+    {
+        train(dataSet);
+    }
+
+    public void train(RegressionDataSet dataSet)
+    {
+        if(dataSet.getNumCategoricalVars() != 0)
+            throw new RuntimeException("KNN requires vector data only");
+        
+        mode = Mode.REGRESSION;
+
+        List<VecPaired<Double, Vec>> dataPoints = new ArrayList<VecPaired<Double, Vec>>(dataSet.getSampleSize());
+                
+        //Add all the data points
+        
+
+        for (int i = 0; i < dataSet.getSampleSize(); i++)
+        {
+            DataPointPair<Double> dpp = dataSet.getDataPointPair(i);
+
+            dataPoints.add(new VecPaired(dpp.getVector(), dpp.getPair()));
+        }
+
+        
+        vecCollection = vcf.getVectorCollection(dataPoints, distanceMetric);
+    }
+    
+    public NearestNeighbour copy()
     {
         throw new UnsupportedOperationException("Not supported yet.");
     }

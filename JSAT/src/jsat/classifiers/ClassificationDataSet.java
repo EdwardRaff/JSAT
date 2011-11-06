@@ -4,6 +4,7 @@ package jsat.classifiers;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
+import jsat.DataSet;
 import jsat.linear.DenseVector;
 import jsat.linear.Vec;
 import jsat.math.OnLineStatistics;
@@ -12,27 +13,18 @@ import jsat.math.OnLineStatistics;
  *
  * @author Edward Raff
  */
-public class ClassificationDataSet //extends DataSet
+public class ClassificationDataSet extends DataSet<ClassificationDataSet>
 {
-    /**
-     * The number of numerical values each data point must have
-     */
-    private int numNumerVals;
-    
-    /**
-     * Contains the categories for each of the categorical variables
-     */
-    protected CategoricalData[] categories;
     /**
      * The categories for the predicted value
      */
     protected CategoricalData predicting;
-    private int numOfSamples = 0;
     
     /**
      * Contains a list of data points that have already been classified according to {@link #predicting}
      */
     protected List<List<DataPoint>> classifiedExamples;
+    protected int numOfSamples = 0;
 
     /**
      * 
@@ -87,16 +79,6 @@ public class ClassificationDataSet //extends DataSet
             classifiedExamples.add(new ArrayList<DataPoint>());
     }
     
-    public void applyTransform(DataTransform dt)
-    {
-        for(int i = 0; i < classifiedExamples.size(); i++)
-            for(int j = 0; j < classifiedExamples.get(i).size(); j++)
-                classifiedExamples.get(i).set(j, dt.transform(classifiedExamples.get(i).get(j)));
-        
-        numNumerVals = classifiedExamples.get(0).get(0).numNumericalValues();
-        categories = classifiedExamples.get(0).get(0).getCategoricalData();
-    }
-    
     /**
      * 
      * @param list a list of data sets
@@ -145,6 +127,19 @@ public class ClassificationDataSet //extends DataSet
         return classifiedExamples.get(set).get(i);
     }
     
+    @Override
+    public void setDataPoint(int i, DataPoint dp)
+    {
+        if(i >= getSampleSize())
+            throw new IndexOutOfBoundsException("There are not that many samples in the data set");
+        int set = 0;
+        
+        while(i >= classifiedExamples.get(set).size())
+            i -= classifiedExamples.get(set++).size();
+        
+        classifiedExamples.get(set).set(i, dp);
+    }
+    
     public int getDataPointCategory(int i)
     {
         if(i >= getSampleSize())
@@ -157,8 +152,12 @@ public class ClassificationDataSet //extends DataSet
         return set;
     }
     
-    
-    public List<ClassificationDataSet> cvSet(int folds)
+    /**
+     * 
+     * @param folds
+     * @return 
+     */
+    public List<ClassificationDataSet> cvSet(int folds, Random rnd)
     {
         ArrayList<ClassificationDataSet> cvList = new ArrayList<ClassificationDataSet>();
         
@@ -175,7 +174,6 @@ public class ClassificationDataSet //extends DataSet
         
         
         //Shuffle them TOGETHER, we need to keep track of the category!
-        Random rnd = new Random();
         for(int i = getSampleSize()-1; i > 0; i--)
         {
             int swapPos = rnd.nextInt(i);
@@ -265,61 +263,12 @@ public class ClassificationDataSet //extends DataSet
     }
     
     /**
-     * Returns summary statistics computed in an online fashion for each numeric
-     * variable. This consumes less memory, but can be less numerically stable. 
-     * 
-     * @return an array of summary statistics
-     */
-    public OnLineStatistics[] singleVarStats()
-    {
-        OnLineStatistics[] stats = new OnLineStatistics[numNumerVals];
-        for(int i = 0; i < stats.length; i++)
-            stats[i] = new OnLineStatistics();
-        
-        for(List<DataPoint> list : classifiedExamples)
-            for(DataPoint dp: list)
-            {
-                Vec v = dp.getNumericalValues();
-                for(int i = 0; i < numNumerVals; i++)
-                    stats[i].add(v.get(i));
-            }
-        
-        return stats;
-    }
-    
-    /**
-     * 
-     * @return the array of {@link CategoricalData} for each of the categorical variables 
-     * (excluding the classification category). 
-     */
-    public CategoricalData[] getCategories()
-    {
-        return categories;
-    }
-    
-    
-    public int getSampleSize()
-    {
-        return numOfSamples;
-    }
-    
-    /**
      * 
      * @return the {@link CategoricalData} object for the variable that is to be predicted
      */
     public CategoricalData getPredicting()
     {
         return predicting;
-    }
-    
-    public int getNumCategoricalVars()
-    {
-        return categories.length;
-    }
-    
-    public int getNumNumericalVars()
-    {
-        return numNumerVals;
     }
     
     public List<DataPointPair<Integer>> getAsDPPList()
@@ -330,5 +279,11 @@ public class ClassificationDataSet //extends DataSet
                 dataPoints.add(new DataPointPair<Integer>(dp, i));
         
         return dataPoints;
+    }
+
+    @Override
+    public int getSampleSize()
+    {
+        return numOfSamples;
     }
 }

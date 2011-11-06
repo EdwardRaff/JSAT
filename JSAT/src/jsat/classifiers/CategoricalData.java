@@ -45,5 +45,27 @@ public class CategoricalData
             return Integer.toString(i);
     }
     
+    public CategoricalData copy()
+    {
+        CategoricalData copy = new CategoricalData(n);
+        
+        if(this.catNames != null)
+        {
+            String[] newCatNames = new String[n];
+            for(int i = 0; i < n; i++)
+                newCatNames[i] = new String(catNames[i]);
+            copy.catNames = newCatNames;
+        }
+        
+        return copy;
+    }
+    
+    public static CategoricalData[] copyOf(CategoricalData[] orig)
+    {
+        CategoricalData[] copy = new CategoricalData[orig.length];
+        for(int i = 0; i < copy.length; i++)
+            copy[i] = orig[i].copy();
+        return copy;
+    }
     
 }
