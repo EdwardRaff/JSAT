@@ -10,13 +10,13 @@ import jsat.linear.Vec;
 public final class Cauchy extends ContinousDistribution
 {
     
-    private double x0;
-    private double y;
+    private double location;
+    private double scale;
 
     public Cauchy(double x0, double y)
     {
-        setY(y);
-        setX0(x0);
+        setScale(y);
+        setLocation(x0);
     }
 
     public Cauchy()
@@ -24,44 +24,44 @@ public final class Cauchy extends ContinousDistribution
         this(0, 1);
     }
 
-    public void setX0(double x0)
+    public void setLocation(double x0)
     {
-        this.x0 = x0;
+        this.location = x0;
     }
 
-    public void setY(double y)
+    public void setScale(double y)
     {
         if(y <= 0)
             throw new ArithmeticException("The scale parameter must be > 0, not " + y);
-        this.y = y;
+        this.scale = y;
     }
 
-    public double getY()
+    public double getScale()
     {
-        return y;
+        return scale;
     }
 
-    public double getX0()
+    public double getLocation()
     {
-        return x0;
+        return location;
     }
     
     @Override
     public double pdf(double x)
     {
-        return 1.0 / ( Math.PI*y*  (1 + Math.pow((x-x0)/y, 2))  );
+        return 1.0 / ( Math.PI*scale*  (1 + Math.pow((x-location)/scale, 2))  );
     }
 
     @Override
     public double cdf(double x)
     {
-        return Math.atan((x-x0)/y)/Math.PI + 0.5;
+        return Math.atan((x-location)/scale)/Math.PI + 0.5;
     }
 
     @Override
     public double invCdf(double p)
     {
-        return x0 + y * Math.tan(  Math.PI * (p - 0.5) );
+        return location + scale * Math.tan(  Math.PI * (p - 0.5) );
     }
 
     @Override
@@ -91,22 +91,22 @@ public final class Cauchy extends ContinousDistribution
     @Override
     public double[] getCurrentVariableValues()
     {
-        return new double[] {x0, y};
+        return new double[] {location, scale};
     }
 
     @Override
     public void setVariable(String var, double value)
     {
         if(var.equals("y"))
-            setY(value);
+            setScale(value);
         else if(var.equals("x0"))
-            setX0(value);
+            setLocation(value);
     }
 
     @Override
     public ContinousDistribution copy()
     {
-        return new Cauchy(x0, y);
+        return new Cauchy(location, scale);
     }
 
     @Override
@@ -116,11 +116,11 @@ public final class Cauchy extends ContinousDistribution
         
         //approximate y by taking | 1st quant - 3rd quantile|
         int n = data.length();
-        setY(Math.abs(data.get(n/4) - data.get(3*n/4)));
+        setScale(Math.abs(data.get(n/4) - data.get(3*n/4)));
         
         //approximate x by taking the median value
         //Note, technicaly, any value is equaly likely to be the true median of a chachy distribution, so we dont care about the exact median
-        setX0(data.get(n/2));
+        setLocation(data.get(n/2));
     }
 
     /**
@@ -136,13 +136,13 @@ public final class Cauchy extends ContinousDistribution
     @Override
     public double median()
     {
-        return x0;
+        return location;
     }
 
     @Override
     public double mode()
     {
-        return x0;
+        return location;
     }
 
     /**

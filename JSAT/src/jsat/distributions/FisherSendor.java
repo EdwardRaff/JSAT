@@ -31,6 +31,8 @@ public class FisherSendor extends ContinousDistribution
     @Override
     public double logPdf(double x)
     {
+        if(x <= 0)
+            return 0;
         double leftSide = v1/2 * log(v1) + v2/2*log(v2) - lnBeta(v1/2, v2/2); 
         double rightSide = (v1/2-1)*log(x) - (v1+v2)/2*log(v2+v1*x);
         return leftSide+rightSide;
@@ -41,6 +43,8 @@ public class FisherSendor extends ContinousDistribution
     @Override
     public double pdf(double x)
     {
+        if(x <= 0)
+            return 0;
         return exp(logPdf(x));
     }
 
@@ -48,6 +52,8 @@ public class FisherSendor extends ContinousDistribution
     @Override
     public double cdf(double x)
     {
+        if(x <= 0)
+            return 0;
         return betaIncReg(v1*x / (v1*x + v2), v1/2, v2/2);
     }
 
@@ -143,8 +149,8 @@ public class FisherSendor extends ContinousDistribution
     @Override
     public double mean()
     {
-        if(v2 < 2)
-            throw new ArithmeticException("No mean for v2 < 2");
+        if(v2 <= 2)
+            return Double.NaN;
         
         return v2/(v2-2);
     }
@@ -152,14 +158,14 @@ public class FisherSendor extends ContinousDistribution
     @Override
     public double median()
     {
-        throw new UnsupportedOperationException("Not known how to compute");
+        return (v2/v1)*(1.0/invBetaIncReg(0.5, v2/2, v1/2)-1);
     }
 
     @Override
     public double mode()
     {
-        if(v1 < 2)
-            throw new ArithmeticException("No mode for v1 < 2");
+        if(v1 <= 2)
+            return Double.NaN;
         
         return (v1-2)/v1*v2/(v2+2);
     }
@@ -167,8 +173,8 @@ public class FisherSendor extends ContinousDistribution
     @Override
     public double variance()
     {
-        if(v2 < 4)
-            throw new ArithmeticException("No variance for v2 < 4");
+        if(v2 <= 4)
+            return Double.NaN;
         
         return 2 * v2*v2*(v1+v2-2) / (v1*pow(v2-2,2)*(v2-4));
     }
