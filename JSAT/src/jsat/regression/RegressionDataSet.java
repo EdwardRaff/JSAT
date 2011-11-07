@@ -104,7 +104,6 @@ public class RegressionDataSet extends DataSet<RegressionDataSet>
         dataPoints.add(dpp);
     }
     
-    
     @Override
     public DataPoint getDataPoint(int i)
     {
@@ -114,6 +113,13 @@ public class RegressionDataSet extends DataSet<RegressionDataSet>
     public DataPointPair<Double> getDataPointPair(int i)
     {
         return dataPoints.get(i);
+    }
+    
+    public List<DataPointPair<Double>> getDPPList()
+    {
+        ArrayList<DataPointPair<Double>> list = new ArrayList<DataPointPair<Double>>(dataPoints);
+        
+        return list;
     }
     
     @Override
@@ -153,5 +159,19 @@ public class RegressionDataSet extends DataSet<RegressionDataSet>
     public int getSampleSize()
     {
         return dataPoints.size();
+    }
+    
+    /**
+     * 
+     * @return a vector containing the target values for each data point
+     */
+    public Vec getTargetValues()
+    {
+        DenseVector vals = new DenseVector(getSampleSize());
+        
+        for(int i = 0; i < getSampleSize(); i++)
+            vals.set(i, dataPoints.get(i).getPair());
+        
+        return vals;
     }
 }

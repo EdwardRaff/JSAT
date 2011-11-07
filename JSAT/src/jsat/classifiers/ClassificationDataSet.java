@@ -280,6 +280,16 @@ public class ClassificationDataSet extends DataSet<ClassificationDataSet>
         
         return dataPoints;
     }
+    
+    public List<DataPointPair<Double>> getAsFloatDPPList()
+    {
+        List<DataPointPair<Double>> dataPoints = new ArrayList<DataPointPair<Double>>(getSampleSize());
+        for(int i = 0; i < predicting.getNumOfCategories(); i++)
+            for(DataPoint dp : classifiedExamples.get(i))
+                dataPoints.add(new DataPointPair<Double>(dp, (double)i));
+        
+        return dataPoints;
+    }
 
     @Override
     public int getSampleSize()

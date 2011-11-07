@@ -19,7 +19,7 @@ import jsat.linear.DenseVector;
  */
 public class ARFFLoader
 {
-    public static List<DataPoint> loadArffFile(File file) 
+    public static SimpleDataSet loadArffFile(File file) 
     {
         ArrayList<DataPoint> list = new ArrayList<DataPoint>();
         
@@ -32,7 +32,7 @@ public class ARFFLoader
         catch (FileNotFoundException ex)
         {
             //No File
-            return list;
+            return null;
         }
         
         int numOfVars = 0;
@@ -128,6 +128,6 @@ public class ARFFLoader
             
         }
         
-        return list;
+        return new SimpleDataSet(list);
     }
 }
