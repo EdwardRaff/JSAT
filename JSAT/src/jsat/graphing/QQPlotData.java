@@ -51,6 +51,11 @@ public class QQPlotData extends Graph2D
             {
                 return x[0];
             }
+
+            public double f(Vec x)
+            {
+                return x.get(0);
+            }
         }, g2, Color.BLUE);
     }
 

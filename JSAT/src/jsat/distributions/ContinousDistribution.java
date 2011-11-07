@@ -43,6 +43,11 @@ public abstract class ContinousDistribution
             {
                 return cdf.f(x)-p;
             }
+
+            public double f(Vec x)
+            {
+                return f(x.get(0), x.get(1));
+            }
         };
         return Zeroin.root(a, b, cdf, p);
     }

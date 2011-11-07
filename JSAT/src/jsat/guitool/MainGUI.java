@@ -451,6 +451,11 @@ public class MainGUI extends javax.swing.JFrame
             {
                 return ab[0] + ab[1]*x[0];
             }
+
+            public double f(Vec x)
+            {
+                return f(x.get(0));
+            }
         };
 
         ScatterPlot sp = new ScatterPlot(data.get(axie[1]), data.get(axie[0]));

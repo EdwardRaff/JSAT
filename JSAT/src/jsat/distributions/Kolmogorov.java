@@ -69,6 +69,11 @@ public class Kolmogorov extends ContinousDistribution
         {
             return cdf(x[0])-x[1];
         }
+
+        public double f(Vec x)
+        {
+            return f(x.get(0), x.get(1));
+        }
     };
     
     @Override

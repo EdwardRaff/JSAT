@@ -5,6 +5,7 @@
 package jsat.math;
 
 import jsat.distributions.Normal;
+import jsat.linear.Vec;
 import jsat.math.rootfinding.RiddersMethod;
 import static java.lang.Math.*;
 
@@ -269,7 +270,11 @@ public class SpecialMath
         public double f(double... x)
         {
             return betaIncReg(x[0], x[1], x[2]) - x[3];
-            
+        }
+
+        public double f(Vec x)
+        {
+            return betaIncReg(x.get(0), x.get(1), x.get(2))-x.get(3);
         }
     };
     

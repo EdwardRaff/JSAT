@@ -143,6 +143,11 @@ public class KernelDensityEstimator extends ContinousDistribution
         {
             return cdf(x[0]);
         }
+
+        public double f(Vec x)
+        {
+            return f(x.get(0));
+        }
     };
     
     @Override

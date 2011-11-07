@@ -1,13 +1,14 @@
 
 package jsat.math.rootfinding;
 
+import jsat.linear.Vec;
 import jsat.math.Function;
 import static java.lang.Math.*;
 /**
  *
  * @author Edward Raff
  */
-public class Zeroin
+public class Zeroin implements RootFinder
 {
     public static double root(double a, double b, Function f, double... args)
     {
@@ -130,5 +131,20 @@ public class Zeroin
         
         
         return b;
+    }
+
+    public double root(double eps, int maxIterations, double[] initialGuesses, Function f, int pos, double... args)
+    {
+        return root(eps, maxIterations, initialGuesses[0], initialGuesses[1], f, pos, args);
+    }
+
+    public double root(double eps, int maxIterations, double[] initialGuesses, Function f, int pos, Vec args)
+    {
+        return root(eps, maxIterations, initialGuesses[0], initialGuesses[1], f, pos, args.arrayCopy());
+    }
+
+    public int guessesNeeded()
+    {
+        return 2;
     }
 }

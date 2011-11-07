@@ -1,13 +1,14 @@
 
 package jsat.math.rootfinding;
 
+import jsat.linear.Vec;
 import jsat.math.Function;
 
 /**
  *
  * @author Edward Raff
  */
-public class Secant
+public class Secant implements RootFinder
 {  
     public static double root(double a, double b, Function f, double... args)
     {
@@ -53,5 +54,20 @@ public class Secant
         }
         
         return x1;
+    }
+
+    public double root(double eps, int maxIterations, double[] initialGuesses, Function f, int pos, double... args)
+    {
+        return root(eps, maxIterations, initialGuesses[0], initialGuesses[1], f, pos, args);
+    }
+
+    public double root(double eps, int maxIterations, double[] initialGuesses, Function f, int pos, Vec args)
+    {
+        return root(eps, maxIterations, initialGuesses[0], initialGuesses[1], f, pos, args.arrayCopy());
+    }
+
+    public int guessesNeeded()
+    {
+        return 2;
     }
 }

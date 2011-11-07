@@ -1,6 +1,8 @@
 
 package jsat.math;
 
+import jsat.linear.Vec;
+
 /**
  *
  * @author Edward Raff
@@ -8,4 +10,6 @@ package jsat.math;
 public interface Function
 {
     public double f(double... x);
+    
+    public double f(Vec x);
 }

@@ -1,6 +1,7 @@
 
 package jsat.math.rootfinding;
 
+import jsat.linear.Vec;
 import jsat.math.Function;
 import static java.lang.Math.*;
 
@@ -8,8 +9,9 @@ import static java.lang.Math.*;
  *
  * @author Edward Raff
  */
-public class Bisection
+public class Bisection implements RootFinder
 {
+    
     /**
      * Uses the bisection method to find the argument of some function <tt>f</tt> for which 
      * <tt>f</tt>(<tt>args</tt>) = 0. If no <tt>args</tt> are given, it will be assumed that
@@ -94,5 +96,20 @@ public class Bisection
         }
         
         return (a+b)*0.5;
+    }
+
+    public double root(double eps, int maxIterations, double[] initialGuesses, Function f, int pos, double... args)
+    {
+        return root(eps, maxIterations, initialGuesses[0], initialGuesses[1], f, pos, args);
+    }
+
+    public double root(double eps, int maxIterations, double[] initialGuesses, Function f, int pos, Vec args)
+    {
+        return root(eps, maxIterations, initialGuesses[0], initialGuesses[1], f, pos, args.arrayCopy());
+    }
+
+    public int guessesNeeded()
+    {
+        return 2;
     }
 }
