@@ -12,20 +12,20 @@ public class Secant implements RootFinder
 {  
     public static double root(double a, double b, Function f, double... args)
     {
-        return root(1e-15, 1000, a, b, f, 0, args);
+        return root(1e-15, 1000, a, b, 0, f, args);
     }
     
     public static double root(double eps, double a, double b, Function f, double... args)
     {
-        return root(eps, 1000, a, b, f, 0, args);
+        return root(eps, 1000, a, b, 0, f, args);
     }
     
-    public static double root(double eps, double a, double b, Function f, int pos, double... args)
+    public static double root(double eps, double a, double b, int pos, Function f, double... args)
     {
-        return root(eps, 1000, a, b, f, pos, args);
+        return root(eps, 1000, a, b, pos, f, args);
     }
     
-    public static double root(double eps, int maxIterations, double x0, double x1, Function f, int pos, double... args)
+    public static double root(double eps, int maxIterations, double x0, double x1, int pos, Function f, double... args)
     {
         //We assume 1 dimensional function then 
         if(args == null ||args.length == 0)
@@ -58,12 +58,12 @@ public class Secant implements RootFinder
 
     public double root(double eps, int maxIterations, double[] initialGuesses, Function f, int pos, double... args)
     {
-        return root(eps, maxIterations, initialGuesses[0], initialGuesses[1], f, pos, args);
+        return root(eps, maxIterations, initialGuesses[0], initialGuesses[1], pos, f, args);
     }
 
     public double root(double eps, int maxIterations, double[] initialGuesses, Function f, int pos, Vec args)
     {
-        return root(eps, maxIterations, initialGuesses[0], initialGuesses[1], f, pos, args.arrayCopy());
+        return root(eps, maxIterations, initialGuesses[0], initialGuesses[1], pos, f, args.arrayCopy());
     }
 
     public int guessesNeeded()
