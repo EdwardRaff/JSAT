@@ -2,6 +2,7 @@
 package jsat.linear;
 
 import jsat.math.Function;
+import jsat.math.IndexFunction;
 
 /**
  *
@@ -63,10 +64,36 @@ public abstract class Vec
     abstract public Vec normalized();
     abstract public void normalize();
     
+    /**
+     * Applies the given function to each and every value in the vector. 
+     * @param f the single variable function to apply
+     */
     public void applyFunction(Function f)
     {
         for(int i = 0; i < length(); i++)
             set(i, f.f(get(i)));
+    }
+    
+    /**
+     * Applies the given function to each and every value in the vector. 
+     * The function takes 2 arguments, an arbitrary value, and then an 
+     * index. The index passed to the function is the index in the array
+     * that the value came from. 
+     * <br><br>
+     * <b><i>NOTE:</b></i> Because negative values are invalid indexes. 
+     * The given function should return 0.0 when given a negative index,
+     * if and only if, f(0,index) = 0 for any valid index. If f(0, index)
+     * != 0 for even one value of index, it should return any non zero 
+     * value when given a negative index. 
+     * <br><br>
+     * IE: f(value_i, i) = x 
+     * 
+     * @param f the 2 dimensional index function to apply 
+     */
+    public void applyIndexFunction(IndexFunction f)
+    {
+        for(int i = 0; i < length(); i++)
+            set(i, f.indexFunc(get(i), i));
     }
     
     /**

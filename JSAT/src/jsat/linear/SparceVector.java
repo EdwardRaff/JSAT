@@ -5,6 +5,8 @@ import java.util.List;
 import java.util.Arrays;
 import java.util.HashSet;
 import static java.lang.Math.*;
+import jsat.math.Function;
+import jsat.math.IndexFunction;
 
 /**
  *
@@ -83,11 +85,43 @@ public class SparceVector extends  Vec
     }
 
     /**
+     * Because sparce vectors do not have most value set, they can 
+     * have their length increased, and sometimes decreased, without 
+     * any effort. The length can always be extended. The length can
+     * be reduced down to the size of the largest non zero element. 
+     * 
+     * @param length the new length of this vector
+     */
+    public void setLength(int length)
+    {
+        if(length < indexes[used-1])
+            throw new RuntimeException("Can not set the length to a value less then an index already in use");
+        this.length = length;
+    }
+
+    /**
      * @return the number of non zero elements in the vector.
      */
     public int nnz()
     {
         return used;
+    }
+    
+    /**
+     * Increments the value at the given index by the given value. 
+     * @param index the index of the value to alter
+     * @param val the value to be added to the index
+     */
+    public void increment(int index, double val)
+    {
+        if (index > length - 1 || index < 0)
+            throw new ArithmeticException("Can not access an index larger then the vector or a negative index");
+        
+        int location = Arrays.binarySearch(indexes, 0, used, index);
+        if(location < 0)
+            insertValue(location, index, val);
+        else
+            values[location]+=val;
     }
     
     public double get(int index)
@@ -113,26 +147,39 @@ public class SparceVector extends  Vec
         int insertLocation = Arrays.binarySearch(indexes, 0, used, index);
         if(insertLocation >= 0)
             values[insertLocation] = val;
-        else//More complicated
+        else
+            insertValue(insertLocation, index, val);
+    }
+
+    /**
+     * Takes the negative insert location value returned by {@link Arrays#binarySearch(int[], int, int, int) } 
+     * and adjust the vector to add the given value into this location. Should only be called with negative 
+     * input returned by said method. Should never be called for an index that in fact does already exist 
+     * in this sparce vector. 
+     * 
+     * @param insertLocation the negative insertion index such that -(insertLocation+1) is the address that the value should have
+     * @param index the index that is being added
+     * @param val the value that is being added for the given index
+     */
+    private void insertValue(int insertLocation, int index, double val)
+    {
+        insertLocation = -(insertLocation+1);//Convert from negative value to the location is should be placed, see JavaDoc of binarySearch
+        if(used == indexes.length)//Full, expand
         {
-            insertLocation = -(insertLocation+1);//Convert from negative value to the location is should be placed, see JavaDoc of binarySearch
-            if(used == indexes.length)//Full, expand
-            {
-                int newIndexesSize = indexes.length*3/2;
-                indexes = Arrays.copyOf(indexes, newIndexesSize);
-                values = Arrays.copyOf(values, newIndexesSize);
-            }
-
-            if(insertLocation < used)//Instead of moving indexes over manualy, set it up to use a native System call to move things out of the way
-            {
-                System.arraycopy(indexes, insertLocation, indexes, insertLocation+1, used-insertLocation);
-                System.arraycopy(values, insertLocation, values, insertLocation+1, used-insertLocation);
-            }
-
-            indexes[insertLocation] = index;
-            values[insertLocation] = val;
-            used++;
+            int newIndexesSize = indexes.length*3/2;
+            indexes = Arrays.copyOf(indexes, newIndexesSize);
+            values = Arrays.copyOf(values, newIndexesSize);
         }
+
+        if(insertLocation < used)//Instead of moving indexes over manualy, set it up to use a native System call to move things out of the way
+        {
+            System.arraycopy(indexes, insertLocation, indexes, insertLocation+1, used-insertLocation);
+            System.arraycopy(values, insertLocation, values, insertLocation+1, used-insertLocation);
+        }
+
+        indexes[insertLocation] = index;
+        values[insertLocation] = val;
+        used++;
     }
 
     public Vec add(Vec v)
@@ -795,5 +842,27 @@ public class SparceVector extends  Vec
         return array;
     }
 
-    
+    @Override
+    public void applyFunction(Function f)
+    {
+        if(f.f(0.0) != 0.0)
+            super.applyFunction(f);
+        else//Then we only need to apply it to the non zero values! 
+        {
+            for(int i = 0; i < used; i++)
+                values[i] = f.f(values[i]);
+        }
+    }
+
+    @Override
+    public void applyIndexFunction(IndexFunction f)
+    {
+        if(f.f(0.0, -1) != 0.0)
+            super.applyIndexFunction(f);
+        else//Then we only need to apply it to the non zero values! 
+        {
+            for(int i = 0; i < used; i++)
+                values[i] = f.indexFunc(values[i], i);
+        }
+    }
 }
