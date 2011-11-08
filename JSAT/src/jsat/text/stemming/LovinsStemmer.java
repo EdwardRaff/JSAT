@@ -11,7 +11,7 @@ import java.util.List;
  * 
  * @author Edward Raff
  */
-public class LovinsStemmer implements Stemmer
+public class LovinsStemmer extends Stemmer
 {
     
     //There are 11 ending hash maps, each postfixed with the number of characters

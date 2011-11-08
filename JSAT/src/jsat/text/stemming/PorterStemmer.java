@@ -6,7 +6,7 @@ package jsat.text.stemming;
  * Implemented for ease of understanding and legibility rather than performance.
  * @author Edward Raff
  */
-public class PorterStemmer implements Stemmer
+public class PorterStemmer extends Stemmer
 {
 
     public String stem(String s)
