@@ -30,12 +30,32 @@ public abstract class Vec
     abstract public Vec divide(double c);
     
     abstract public void mutableAdd(double c);
-    abstract public void mutableAdd(Vec b);
+    /**
+     * Alters this vector such that <br>
+     * <tt>this</tt> = <tt>this</tt> + <tt>c</tt> * <tt>b</tt>
+     * @param c a scalar constant
+     * @param b the vector to add tot his
+     */
+    abstract public void mutableAdd(double c, Vec b);
+    public void mutableAdd(Vec b)
+    {
+        this.mutableAdd(1, b);
+    }
+    
     public void mutableSubtract(double c)
     {
         mutableAdd(-c);
     }
-    abstract public void mutableSubtract(Vec b);
+    
+    public void mutableSubtract(double c, Vec b)
+    {
+        this.mutableAdd(-c, b);
+    }
+    
+    public void mutableSubtract(Vec b)
+    {
+        this.mutableAdd(-1, b);
+    }
     abstract public void mutablePairwiseMultiply(Vec b);
     abstract public void mutableMultiply(double c);
     abstract public void mutablePairwiseDivide(Vec b);

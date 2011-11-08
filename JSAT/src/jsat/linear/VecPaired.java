@@ -268,5 +268,11 @@ public class VecPaired<P, V extends Vec> extends Vec
     {
         return vector.arrayCopy();
     }
+
+    @Override
+    public void mutableAdd(double c, Vec b)
+    {
+        this.vector.mutableAdd(c, b);
+    }
     
 }

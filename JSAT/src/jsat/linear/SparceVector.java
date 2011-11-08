@@ -517,7 +517,7 @@ public class SparceVector extends  Vec
             this.set(i, get(i) + c);
     }
 
-    public void mutableAdd(Vec v)
+    public void mutableAdd(double c, Vec v)
     {
         if(v instanceof SparceVector)
         {
@@ -528,14 +528,14 @@ public class SparceVector extends  Vec
                 int a1 = indexes[p1], a2 = b.indexes[p2];
                 if (a1 == a2)
                 {
-                    values[p1] += b.values[p2];
+                    values[p1] += c*b.values[p2];
                     p1++;
                     p2++;
                 }
                 else if (a1 > a2)
                 {
                     //0 + some value is that value, set it 
-                    this.set(a2, b.values[p2]);
+                    this.set(a2, c*b.values[p2]);
                     /*
                      * p2 must be increment becase were moving to the next value
                      * 
@@ -557,7 +557,7 @@ public class SparceVector extends  Vec
         {
             //Else it is dense
             for(int i = 0; i < length(); i++)
-                this.set(i, this.get(i) + v.get(i));
+                this.set(i, this.get(i) + c*v.get(i));
         }
         
     }
@@ -570,50 +570,6 @@ public class SparceVector extends  Vec
          */
         for(int i = 0; i < length(); i++)
             this.set(i, get(i) - c);
-    }
-
-    public void mutableSubtract(Vec v)
-    {
-        if(v instanceof SparceVector)
-        {
-            SparceVector b = (SparceVector) v;
-            int p1 = 0, p2 = 0;
-            while (p1 < used && p2 < b.used)
-            {
-                int a1 = indexes[p1], a2 = b.indexes[p2];
-                if (a1 == a2)
-                {
-                    values[p1] -= b.values[p2];
-                    p1++;
-                    p2++;
-                }
-                else if (a1 > a2)
-                {
-                    //0 + some value is that value, set it 
-                    this.set(a2, -b.values[p2]);
-                    /*
-                     * p2 must be increment becase were moving to the next value
-                     * 
-                     * p1 must be be incremented becase a2 was less thenn the current index. 
-                     * So the inseration occured before p1, so for indexes[p1] to == a1, 
-                     * p1 must be incremented
-                     * 
-                     */
-                    p1++;
-                    p2++;
-                }
-                else//a1 < a2, thats subtracting 0 from this vector, nothing to do. 
-                {
-                    p1++;
-                }
-            }
-        }
-        else
-        {
-            //Else it is dense
-            for(int i = 0; i < length(); i++)
-                this.set(i, this.get(i) - v.get(i));
-        }
     }
 
     public void mutableMultiply(double c)

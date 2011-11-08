@@ -318,14 +318,14 @@ public class DenseVector extends Vec
             array[i] += c;
     }
 
-    public void mutableAdd(Vec b)
+    public void mutableAdd(double c, Vec b)
     {
         if(this.length() !=  b.length())
             throw new ArithmeticException("Can not add vectors of unequal length");
         
         clearCaches();
         for(int i = 0; i < array.length; i++)
-            array[i] += b.get(i);
+            array[i] += c*b.get(i);
     }
 
     @Override
@@ -334,16 +334,6 @@ public class DenseVector extends Vec
         clearCaches();
         for(int i = 0; i < array.length; i++)
             array[i] -= c;
-    }
-
-    public void mutableSubtract(Vec b)
-    {
-        if(this.length() !=  b.length())
-            throw new ArithmeticException("Can not add vectors of unequal length");
-        
-        clearCaches();
-        for(int i = 0; i < array.length; i++)
-            array[i] -= b.get(i);
     }
 
     public void mutableMultiply(double c)
@@ -493,7 +483,7 @@ public class DenseVector extends Vec
      * @param array the array to use as the backing of a dense vector
      * @return a Dense Vector that is backed using the given array
      */
-    public static DenseVector toDenseVec(double[] array)
+    public static DenseVector toDenseVec(double... array)
     {
         return new DenseVector(array);
     }
