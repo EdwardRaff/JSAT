@@ -18,7 +18,7 @@ import jsat.linear.vectorcollection.VectorArray;
 import jsat.math.Function;
 import jsat.math.IndexFunction;
 import jsat.text.stemming.Stemmer;
-import jsat.text.stemming.tokenizer.Tokenizer;
+import jsat.text.tokenizer.Tokenizer;
 import static java.lang.Math.*;
 /**
  * This class provides a framework for loading datasets made of Text documents as vectors. 
