@@ -32,8 +32,8 @@ public class ConjugateGradient
      * 
      * @param eps the precision of the desired result.
      * @param A the symmetric positive definite matrix
-     * @param b the target values
      * @param x an initial guess for x, can be all zeros. This vector will be altered
+     * @param b the target values
      * @return the approximate solution to the equation <i>A x = b</i>
      */
     public static Vec solve(double eps, Matrix A, Vec x, Vec b)
@@ -80,6 +80,71 @@ public class ConjugateGradient
     {
         DenseVector x = new DenseVector(b.length());
         return solve(1e-10, A, x, b);
+    }
+    
+    /**
+     * Uses the Conjugate Gradient method to solve a linear system of 
+     * equations involving a symmetric positive definite matrix.<br><br>
+     * A symmetric positive definite matrix is a matrix A such that: <br>
+     * <ul>
+     * <li>A<sup>T</sup> = A</li>
+     * <li>x<sup>T</sup> * A * x > 0 for all x != 0</li>
+     * </ul>
+     * <br><br>
+     * NOTE: No checks will be performed to confirm these properties of the given matrix. 
+     * If a matrix is given that does not meet this requirements, invalid results may be returned. 
+     * 
+     * @param eps the precision of the desired result.
+     * @param A the symmetric positive definite matrix
+     * @param x an initial guess for x, can be all zeros. This vector will be altered
+     * @param b the target values
+     * @param Minv the of a matric M, such that M is a symmetric positive definite matrix.
+     * Is applied as M<sup>-1</sup>( A x - b = 0) to increase convergence and stability. 
+     * These increases are soley a property of M<sup>-1</sup>
+     * 
+     * @return the approximate solution to the equation <i>A x = b</i>
+     */
+    public static Vec solve(double eps, Matrix A, Vec x, Vec b, Matrix Minv)
+    {
+        if(!A.isSquare() || !Minv.isSquare())
+            throw new ArithmeticException("A and Minv must be square (symmetric & positive definite) matrix");
+        else if(A.rows() != b.length() || A.rows() != x.length())
+            throw new ArithmeticException("Matrix A dimensions do not agree with x and b");
+        else if(A.rows() != Minv.rows() || A.cols() != Minv.cols())
+            throw new ArithmeticException("Matrix A and Minv do not have the same dimmentions");
+        
+        int k = 0;
+        Vec r_k = b.subtract(A.multiply(x));
+        Vec z_k = Minv.multiply(r_k);
+        Vec p_k = z_k.copy();
+        Vec Apk;
+        double rkzk = r_k.dot(z_k);
+        
+        do
+        {
+            Apk = A.multiply(p_k);
+            
+            double alpha = rkzk/p_k.dot(Apk);
+            x.mutableAdd(alpha, p_k);
+            r_k.mutableSubtract(alpha, Apk);
+            
+            if(r_k.dot(r_k) < eps*eps)
+                return x;
+            
+            z_k = Minv.multiply(r_k);//TODO implement method so we can reuse z_k space, instead of creating a new vector
+            
+            double newRkZk = r_k.dot(z_k);
+            double beta = newRkZk/rkzk;
+            rkzk = newRkZk;
+            
+            p_k.mutableMultiply(beta);
+            p_k.mutableAdd(z_k);
+            
+            
+        }
+        while(k++ < A.rows());
+        
+        return x;
     }
     
     /**

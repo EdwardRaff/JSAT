@@ -197,4 +197,47 @@ public class ConjugateGradientTest
         double error = A.multiply(x).subtract(b).pNorm(2);
         assertEquals(1.0125, error, 1e-4);//True result computed with matlab
     }
+
+    @Test
+    public void testSolve_5args()
+    {
+        System.out.println("solve");
+        
+        
+        //Test for a 5x5 matrix symmetric positive definite 
+        DenseMatrix A = new DenseMatrix(new double[][]
+        {
+            {1,     1,     1,     1,     1},
+            {1,     8,     1,     8,     1},
+            {1,     1,    27,     1,     1},
+            {1,     8,     1,    64,     1},
+            {1,     1,     1,     1,   125}
+        });
+        
+        DenseVector b = DenseVector.toDenseVec(1, 4, 3, 5, 2);
+        
+        DenseMatrix Minv = new DenseMatrix(new double[][]
+        {
+            {1.0000,    0     ,    0     ,    0       ,  0},
+            {0     ,    0.1250,    0     ,    0       ,  0},
+            {0     ,    0     ,    0.0370,    0       ,  0},
+            {0     ,    0     ,    0     ,    0.0156  ,  0},
+            {0     ,    0     ,    0     ,    0       ,  0.0080},
+        });
+        
+        
+        
+        Vec x = new DenseVector(5);
+        
+        x = ConjugateGradient.solve(1e-13, A, x, b, Minv);
+        
+        assertTrue(A.multiply(x).equals(b, 1e-3));//Our Minv only has 4 sig figs
+        
+        //DO it again using the identiy matrix as the precondition (which dosnt actually help, but makes sure the code is runnig right)
+        
+        Minv = Matrix.eye(5);
+        x = ConjugateGradient.solve(1e-13, A, x, b, Minv);
+        
+        assertTrue(A.multiply(x).equals(b, 1e-10));
+    }
 }
