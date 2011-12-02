@@ -142,5 +142,14 @@ public abstract class Vec
     abstract public boolean equals(Object obj, double range);
     
     abstract public double[] arrayCopy();
+    
+    /**
+     * Zeroes out all values in this vector
+     */
+    public void zeroOut()
+    {
+        for(int i = 0; i < length(); i++)
+            set(i, 0.0);
+    }
 
 }
