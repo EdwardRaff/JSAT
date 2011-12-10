@@ -44,6 +44,17 @@ public class OnLineStatistics
         min = max  = null;
     }
    
+    private OnLineStatistics(int n, double mean, double m2, double m3, double m4, double min, double max)
+    {
+        this.n = n;
+        this.mean = mean;
+        this.m2 = m2;
+        this.m3 = m3;
+        this.m4 = m4;
+        this.min = min;
+        this.max = max;
+    }
+    
    
    public void add(double x)
    {
@@ -69,6 +80,29 @@ public class OnLineStatistics
            min = Math.min(min, x);
            max = Math.max(max, x);
        }
+   }
+   
+   public static OnLineStatistics add(OnLineStatistics A, OnLineStatistics B)
+   {
+       int nX = B.n + A.n;
+       int nXsqrd = nX*nX;
+       int nAnB = B.n*A.n;
+       int AnSqrd = A.n*A.n;
+       int BnSqrd = B.n*B.n;
+       
+       double delta = B.mean - A.mean;
+       double deltaSqrd = delta*delta;
+       double deltaCbd = deltaSqrd*delta;
+       double deltaQad = deltaSqrd*deltaSqrd;
+       double newMean = (A.n* A.mean + B.n * B.mean)/(A.n + B.n);
+       double newM2 = A.m2 + B.m2 + deltaSqrd / nX *nAnB;
+       double newM3 = A.m3 + B.m3 + deltaCbd* nAnB*(A.n - B.n) / nXsqrd + 3 * delta * (A.n * B.m2 - B.n * A.m2)/nX;
+       double newM4 = A.m4 + B.m4 
+               + deltaQad * (nAnB*(AnSqrd - nAnB + BnSqrd)/(nXsqrd*nX)) 
+               + 6 * deltaSqrd*(AnSqrd*B.m2 + BnSqrd*A.m2)/nXsqrd
+               + 4 * delta *(A.n*B.m3 - B.n*A.m3)/nX;
+       
+        return new OnLineStatistics(nX, newMean, newM2, newM3, newM4, Math.min(A.min, B.min), Math.max(A.max, B.max));   
    }
 
    public double getMean()
