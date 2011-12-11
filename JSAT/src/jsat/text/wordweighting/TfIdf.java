@@ -28,7 +28,7 @@ public class TfIdf extends WordWeighting
         if (index < 0)
             return 0.0;
 
-        double tf = log(value / documentWordCount);
+        double tf = 1+log(value);
         double idf = log(totalDocuments / df.get(index));
 
         return tf * idf;

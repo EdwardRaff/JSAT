@@ -15,7 +15,7 @@ public class NaiveTokenizer implements Tokenizer
 {
     public List<String> tokenize(String input)
     {
-        return Arrays.asList(input.toLowerCase().replaceAll("[^a-z0-9\\s]+", "").split("\\s+"));
+        return Arrays.asList(input.toLowerCase().replaceAll("[^a-z0-9\\s]+", " ").split("\\s+"));
     }
     
 }

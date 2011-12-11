@@ -37,6 +37,7 @@ public abstract class TextDataLoader
      * Maps words to their associated index in an array
      */
     protected Map<String, Integer> wordIndex;
+    protected List<String> allWords;
     protected ArrayList<Integer> termDocumentFrequencys;
     private WordWeighting weighting;
     
@@ -54,6 +55,7 @@ public abstract class TextDataLoader
         this.wordIndex = new Hashtable<String, Integer>();
         this.termDocumentFrequencys = new ArrayList<Integer>();
         this.weighting = weighting;
+        this.allWords = new ArrayList<String>();
         noMoreAdding = false;
     }
     
@@ -91,6 +93,7 @@ public abstract class TextDataLoader
         {
             if(!wordIndex.containsKey(word))//this word has never been seen before!
             {
+                allWords.add(word);
                 wordIndex.put(word, currentLength++);
                 termDocumentFrequencys.add(1);
                 vec.setLength(currentLength);
@@ -115,11 +118,13 @@ public abstract class TextDataLoader
     {
         noMoreAdding = true;
         
+        weighting.setWeight(documents, termDocumentFrequencys);
         for(SparceVector vec : vectors)
         {
             //Make sure all the vectors have the same length
             vec.setLength(currentLength);
-            vec.applyIndexFunction(weighting);
+            //Unlike normal index functions, WordWeighting needs to use the vector to do some set up first
+            weighting.applyTo(vec);
         }
     }
     
@@ -156,8 +161,16 @@ public abstract class TextDataLoader
             }
         }
         
-        vec.applyIndexFunction(weighting);
+        weighting.applyTo(vec);
         
         return vec;
+    }
+    
+    public String getWordForIndex(int index)
+    {
+        if(index >= 0 && index < allWords.size())
+            return allWords.get(index);
+        else
+            return null;
     }
 }
