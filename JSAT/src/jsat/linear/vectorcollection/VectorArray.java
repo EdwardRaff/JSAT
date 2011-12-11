@@ -52,7 +52,7 @@ public class VectorArray<V extends Vec> extends ArrayList<V> implements VectorCo
         
         for(V v : this)
         {
-            double distance = distanceMetric.dist(query, v);
+            double distance = distanceMetric.dist(query, VecPaired.extractTrueVec(v));
             if(distance <= range)
                 list.add(new VecPaired<Double, V>(v, distance));
         }
@@ -66,7 +66,7 @@ public class VectorArray<V extends Vec> extends ArrayList<V> implements VectorCo
         
         for(V v : this)
         {
-            double distance = distanceMetric.dist(query, v);
+            double distance = distanceMetric.dist(query, VecPaired.extractTrueVec(v));
             knns.add(new ProbailityMatch<V>(distance, v));
         }
         

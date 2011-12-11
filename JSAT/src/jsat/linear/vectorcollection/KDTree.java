@@ -13,6 +13,7 @@ import jsat.utils.BoundedSortedList;
 import jsat.utils.BoundedSortedSet;
 import jsat.utils.PairedReturn;
 import jsat.utils.ProbailityMatch;
+import static jsat.linear.VecPaired.*;
 
 /**
  *
@@ -128,7 +129,7 @@ public class KDTree<V extends Vec> implements VectorCollection<V>
         if(node == null)
             return;
         V curData = node.locatin;
-        double distance = distanceMetric.dist(query, curData);
+        double distance = distanceMetric.dist(query, extractTrueVec(curData));
         
         knns.add( new ProbailityMatch<V>(distance, curData));
         
@@ -170,7 +171,7 @@ public class KDTree<V extends Vec> implements VectorCollection<V>
         if(node == null)
             return;
         V curData = node.locatin;
-        double distance = distanceMetric.dist(query, curData);
+        double distance = distanceMetric.dist(query, extractTrueVec(curData));
         
         if(distance <= range)
             knns.add( new VecPaired<Double, V>(curData, distance) );

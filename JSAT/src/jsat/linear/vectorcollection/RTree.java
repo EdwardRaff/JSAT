@@ -13,7 +13,7 @@ import jsat.linear.distancemetrics.DistanceMetric;
 import jsat.linear.distancemetrics.EuclideanDistance;
 import jsat.utils.BoundedSortedList;
 import jsat.utils.ProbailityMatch;
-
+import static jsat.linear.VecPaired.*;
 /**
  *
  * @author Edward Raff
@@ -30,7 +30,7 @@ public class RTree<V extends Vec> implements VectorCollection<V>
         List<VecPaired<Double, V>> inRange = new ArrayList<VecPaired<Double, V>>(inSearchSpace.size());
         double dist;
         for(V v : inSearchSpace)
-            if( (dist = dm.dist(query, v)) <= range)
+            if( (dist = dm.dist(query, extractTrueVec(v))) <= range)
                 inRange.add(new VecPaired<Double, V>(v, dist));
         
         return inRange;
@@ -64,7 +64,7 @@ public class RTree<V extends Vec> implements VectorCollection<V>
                 {
                     for(V v : N.points)
                     {
-                        double dist = dm.dist(query, v);
+                        double dist = dm.dist(query, extractTrueVec(v));
                         curBest.add(new ProbailityMatch<V>(dist, v));
                     }
                 }
