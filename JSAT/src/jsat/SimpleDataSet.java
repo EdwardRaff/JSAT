@@ -70,7 +70,7 @@ public class SimpleDataSet extends DataSet<SimpleDataSet>
      * 
      * @return direct access to the list that backs this data set. 
      */
-    public List<DataPoint> getDataPoints()
+    public List<DataPoint> getBackingList()
     {
         return dataPoints;
     }

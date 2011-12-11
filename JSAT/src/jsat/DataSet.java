@@ -1,6 +1,7 @@
 
 package jsat;
 
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Random;
@@ -135,4 +136,19 @@ public abstract class DataSet<D extends DataSet>
         return cvSet(folds, new Random());
     }
     
+    /**
+     * Creates a list containing the same DataPoints in this set. They are soft copies,
+     * in the same order as this data set. However, altering this list will have no 
+     * effect on DataSet. Altering the DataPoints in the list will effect the 
+     * DataPoints in this DataSet. 
+     * 
+     * @return a list of the DataPoints in this DataSet.
+     */
+    public List<DataPoint> getDataPoints()
+    {
+        List<DataPoint> list = new ArrayList<DataPoint>(getSampleSize());
+        for(int i = 0; i < getSampleSize(); i++)
+            list.add(getDataPoint(i));
+        return list;
+    }
 }
