@@ -7,36 +7,27 @@ import jsat.DataSet;
 import jsat.classifiers.DataPoint;
 
 /**
- *
+ * Defines the interface for a generic clustering algorithm. 
+ * 
  * @author Edward Raff
  */
 public interface Clusterer
 {
+   
     /**
-     * Performs clustering on the given data set. 
+     * Performs clustering on the given data set. Parameters may be estimated by the method, or other heuristics performed. 
      * 
-     * @param dataSet the data points to perform clustering on
-     * @param clusters the number of clusters to assume
-     * @param threadpool a source of threads to run tasks
-     * @return A list of DataSets, where each DataSet contains the data 
-     * points for one cluster in the group
+     * @param dataSet the data set to perform clustering on 
+     * @return A list of clusters found by this method. 
      */
-    public List<List<DataPoint>> cluster(DataSet dataSet, int clusters, ExecutorService threadpool);
-    
-    public List<List<DataPoint>> cluster(DataSet dataSet, int clusters);
+    public List<List<DataPoint>> cluster(DataSet dataSet);
     
     /**
-     * Performs clustering on the given data set. The implementation will 
-     * attempt to determine the best number of clusters for the given data. 
+     * Performs clustering on the given data set. Parameters may be estimated by the method, or other heuristics performed. 
      * 
-     * @param dataSet the data points to perform clustering on
-     * @param the lower bound, inclusive, of the range to search
-     * @param the uper bound, inclusive, of the range to search
+     * @param dataSet the data set to perform clustering on 
      * @param threadpool a source of threads to run tasks
-     * @return  A list of DataSets, where each DataSet contains the data 
-     * points for one cluster in the group
+     * @return list of clusters found by this method. 
      */
-    public List<List<DataPoint>> cluster(DataSet dataSet, int lowK, int highK, ExecutorService threadpool);
-    
-    public List<List<DataPoint>> cluster(DataSet dataSet, int lowK, int highK);
+    public List<List<DataPoint>> cluster(DataSet dataSet, ExecutorService threadpool);
 }

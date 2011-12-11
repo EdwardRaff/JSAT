@@ -3,56 +3,43 @@ package jsat.clustering;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashSet;
-import java.util.LinkedList;
 import java.util.List;
-import java.util.Queue;
 import java.util.Random;
-import java.util.Set;
-import java.util.Stack;
-import java.util.concurrent.Callable;
-import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Future;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import jsat.DataSet;
 import jsat.classifiers.DataPoint;
-import jsat.linear.DenseVector;
 import jsat.linear.Vec;
 import jsat.linear.distancemetrics.DistanceMetric;
 import jsat.linear.distancemetrics.EuclideanDistance;
 import jsat.math.OnLineStatistics;
-import jsat.utils.PairedReturn;
 import jsat.utils.SystemInfo;
-import org.omg.CORBA.INTERNAL;
+import static jsat.clustering.SeedSelectionMethods.*;
 
 /**
  *
  * @author Edward Raff
  */
-public class KMeans implements Clusterer
+public class KMeans implements KClusterer
 {
-    static public enum SeedSelection 
-    {
-        /**
-         * The seed values will be randomly selected from the data set
-         */
-        RANDOM, 
-        
-        /**
-         * The k-means++ seeding algo: <br>
-         * The seed values will be probabilistically selected from the 
-         * data set. <br>
-         * The solution is O(log(k)) competitive with the 
-         * optimal k clustering when using {@link EuclideanDistance}. 
-         * <br><br>
-         * See k-means++: The Advantages of Careful Seeding
-         */
-        KPP
-    };
-    
-    protected DistanceMetric dm;
-    protected Random rand;
+    private DistanceMetric dm;
+    private Random rand;
     private SeedSelection seedSelection;
+    /**
+     * Variable used to control used to combat local optimia. 
+     * KMeans will be run once for each value of this variable,
+     * the best solution with the smallest sum of squared 
+     * error chosen. 
+     */
+    protected int repeats = 1;
+    
+    /**
+     * Controll the maximum number of iterations to perform. 
+     */
+    protected int iterLimit = 100;
 
     public KMeans(DistanceMetric dm, Random rand, SeedSelection seedSelection)
     {
@@ -75,7 +62,50 @@ public class KMeans implements Clusterer
     {
         this(new EuclideanDistance());
     }
+
+
+    /**
+     * Sets the maximum number of iterations allowed
+     * @param iterLimit 
+     */
+    public void setIterationLimit(int iterLimit)
+    {
+        this.iterLimit = iterLimit;
+    }
+
+    public int getIterationLimit()
+    {
+        return iterLimit;
+    }
+
+    /**
+     * Sets the method of seed selection to use for this algorithm. {@link SeedSelection#KPP} is recommended for this algorithm in particular. 
+     * @param seedSelection the method of seed selection to use
+     */
+    public void setSeedSelection(SeedSelection seedSelection)
+    {
+        this.seedSelection = seedSelection;
+    }
+
+    /**
+     * 
+     * @return the method of seed selection used
+     */
+    public SeedSelection getSeedSelection()
+    {
+        return seedSelection;
+    }
     
+    
+    public List<List<DataPoint>> cluster(DataSet dataSet)
+    {
+        return cluster(dataSet, 2, (int)Math.sqrt(dataSet.getSampleSize()/2));
+    }
+    
+    public List<List<DataPoint>> cluster(DataSet dataSet, ExecutorService threadpool)
+    {
+        return cluster(dataSet, 2, (int)Math.sqrt(dataSet.getSampleSize()/2), threadpool);
+    }
     
     /**
      * This is a helper method where the actual cluster is performed. This is because there
@@ -98,65 +128,80 @@ public class KMeans implements Clusterer
     {   
         double totalDistance = 0;
         int changes = -1;
-        Arrays.fill(catTrack, -1);//-1, invalid category!
         
+        double bestTotal = Double.MAX_VALUE;
+        int[] bestCats = Arrays.copyOf(catTrack, catTrack.length);
         
         int[] clusterMemberCounts = new int[initialMeans.size()];
         
-        do
+        for (int r = 0; r < repeats; r++)
         {
-            if(changes != -1)//Update the means
+            changes = -1;
+            Arrays.fill(catTrack, -1);//-1, invalid category!
+            int iter = 0;
+            
+            do
             {
-                Arrays.fill(clusterMemberCounts, 0);
-                
-                for(Vec vec : initialMeans)
-                    vec.zeroOut();
-                for(int i = 0; i < dataSet.getSampleSize(); i++)
+                if (changes != -1)//Update the means
+                {
+                    Arrays.fill(clusterMemberCounts, 0);
+
+                    for (Vec vec : initialMeans)
+                        vec.zeroOut();
+                    for (int i = 0; i < dataSet.getSampleSize(); i++)
+                    {
+                        Vec dpVec = dataSet.getDataPoint(i).getNumericalValues();
+                        initialMeans.get(catTrack[i]).mutableAdd(dpVec);//add the the mean
+                        clusterMemberCounts[catTrack[i]]++;//count the assignments
+                    }
+
+                    //Divide by the coutns
+                    for (int i = 0; i < initialMeans.size(); i++)
+                        initialMeans.get(i).mutableDivide(clusterMemberCounts[i]);
+                }
+
+                //Set up to start grouping
+                changes = 0;
+                totalDistance = 0.0;
+
+                for (int i = 0; i < dataSet.getSampleSize(); i++)
                 {
                     Vec dpVec = dataSet.getDataPoint(i).getNumericalValues();
-                    initialMeans.get(catTrack[i]).mutableAdd(dpVec);//add the the mean
-                    clusterMemberCounts[catTrack[i]]++;//count the assignments
-                }
-                
-                //Divide by the coutns
-                for(int i = 0; i < initialMeans.size(); i++)
-                    initialMeans.get(i).mutableDivide(clusterMemberCounts[i]);
-            }
-            
-            //Set up to start grouping
-            changes = 0;
-            totalDistance = 0.0;
+                    int cat = 0;
+                    double minDist = dm.dist(initialMeans.get(0), dpVec);
 
-            for (int i = 0; i < dataSet.getSampleSize(); i++)
-            {
-                Vec dpVec = dataSet.getDataPoint(i).getNumericalValues();
-                int cat = 0;
-                double minDist = dm.dist(initialMeans.get(0), dpVec);
-
-                for (int k = 1; k < initialMeans.size(); k++)
-                {
-                    double dist = dm.dist(initialMeans.get(k), dpVec);
-                    if (dist < minDist)
+                    for (int k = 1; k < initialMeans.size(); k++)
                     {
-                        minDist = dist;
-                        cat = k;
+                        double dist = dm.dist(initialMeans.get(k), dpVec);
+                        if (dist < minDist)
+                        {
+                            minDist = dist;
+                            cat = k;
+                        }
                     }
+
+                    //Update which cluster it is in
+                    if (catTrack[i] != cat)
+                    {
+                        changes++;
+                        catTrack[i] = cat;
+                    }
+                    totalDistance += minDist * minDist;
+                    
                 }
 
-                //Update which cluster it is in
-                if (catTrack[i] != cat)
-                {
-                    changes++;
-                    catTrack[i] = cat;
-                }
-                totalDistance += minDist*minDist;
             }
-
+            while (changes != 0 && iter++ < iterLimit);
+            
+            if(totalDistance < bestTotal)
+            {
+                bestTotal = totalDistance;
+                System.arraycopy(catTrack, 0, bestCats, 0, catTrack.length);
+            }
         }
-        while(changes != 0);
         
-        
-        
+        System.arraycopy(bestCats, 0, catTrack , 0, catTrack.length);
+
         return totalDistance;
     }
 
@@ -182,7 +227,7 @@ public class KMeans implements Clusterer
         return ks;
     }
 
-    private List<List<DataPoint>> getListOfLists(int k)
+    static protected List<List<DataPoint>> getListOfLists(int k)
     {
         List<List<DataPoint>> ks = new ArrayList<List<DataPoint>>(k);
         for(int i = 0; i < k; i++)
@@ -191,24 +236,28 @@ public class KMeans implements Clusterer
     }
     
     //We use the object itself to return the k 
-    private class ClusterKCallable implements Callable<PairedReturn<ClusterKCallable, Double>>
+    private class ClusterWorker implements Runnable
     {
         private DataSet dataSet;
         private int k;
         int[] clusterIDs;
         private Random rand;
+        private volatile double result = -1;
+        private volatile BlockingQueue<ClusterWorker> putSelf;
 
-        public ClusterKCallable(DataSet dataSet, int k)
+
+        public ClusterWorker(DataSet dataSet, int k, BlockingQueue<ClusterWorker> que)
         {
             this.dataSet = dataSet;
             this.k = k;
+            this.putSelf = que;
             clusterIDs = new int[dataSet.getSampleSize()];
             rand = new Random();
         }
 
-        public ClusterKCallable(DataSet dataSet)
+        public ClusterWorker(DataSet dataSet, BlockingQueue<ClusterWorker> que)
         {
-            this(dataSet, 2);
+            this(dataSet, 2, que);
         }
 
         public void setK(int k)
@@ -220,23 +269,53 @@ public class KMeans implements Clusterer
         {
             return k;
         }
-        
-        public PairedReturn<ClusterKCallable, Double> call() throws Exception
+
+        public double getResult()
         {
-            double dist = cluster(dataSet, selectIntialPoints(dataSet, k, dm, rand, seedSelection), clusterIDs);
-            
-            return new PairedReturn<ClusterKCallable, Double>(this, dist);
+            return result;
+        }
+
+        public void run()
+        {
+            result = cluster(dataSet, selectIntialPoints(dataSet, k, dm, rand, seedSelection), clusterIDs);
+            putSelf.add(this);
         }
         
     }
 
     public List<List<DataPoint>> cluster(DataSet dataSet, int lowK, int highK, ExecutorService threadpool)
     {
-        List<List<DataPoint>> ks = new ArrayList<List<DataPoint>>(highK);
-        for (int i = 0; i < ks.size(); i++)
-            ks.add(new ArrayList<DataPoint>());
-        
         double[] totDistances = new double[highK-lowK+1];
+        
+        BlockingQueue<ClusterWorker> workerQue = new ArrayBlockingQueue<ClusterWorker>(SystemInfo.LogicalCores);
+        for(int i = 0; i < SystemInfo.LogicalCores; i++)
+            workerQue.add(new ClusterWorker(dataSet, workerQue));
+        
+        int k = lowK;
+        int received = 0;
+        while(received < totDistances.length)
+        {
+            try
+            {
+                ClusterWorker worker = workerQue.take();
+                if(worker.getResult() != -1)//-1 means not really in use
+                {
+                    totDistances[worker.getK() - lowK] = worker.getResult();
+                    received++;
+                }
+                if(k <= highK)
+                {
+                    worker.setK(k++);
+                    threadpool.submit(worker);
+                }
+            }
+            catch (InterruptedException ex)
+            {
+                Logger.getLogger(PAM.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        }
+        
+        //Now we process the distance changes
         /**
          * Keep track of the changes
          */
@@ -245,78 +324,21 @@ public class KMeans implements Clusterer
         double maxChange = Double.MIN_VALUE;
         int maxChangeK = lowK;
         
-        Queue<ClusterKCallable> callables = new LinkedList<ClusterKCallable>();
-        Queue<Future<PairedReturn<ClusterKCallable, Double>>> futures = new LinkedList<Future<PairedReturn<ClusterKCallable, Double>>>();
-        
-        for(int i = 0; i < SystemInfo.LogicalCores; i++)
-            callables.add(new ClusterKCallable(dataSet));
-        
-        int inUse = 0;
-        int j;
-        for(j = lowK; j <= highK && inUse < SystemInfo.LogicalCores; j++)
+        for(int i = 1; i < totDistances.length; i++)
         {
-            callables.peek().setK(j);
-            futures.add(threadpool.submit(callables.remove()));
-            inUse++;
-        }
-        try
-        {
-            while (!futures.isEmpty())
+            double change = Math.abs(totDistances[i] - totDistances[i-1]);
+            stats.add(change);
+            if (change > maxChange)
             {
-                PairedReturn<ClusterKCallable, Double> pr = futures.remove().get();
-
-                ClusterKCallable ckc = pr.getFirstItem();
-                double totDist = pr.getSecondItem();
-                int i = ckc.getK();
-                
-                totDistances[i - lowK] = totDist;
-
-                if (i > lowK)
-                {
-                    double change = Math.abs(totDist - totDistances[i - lowK - 1]);
-                    stats.add(change);
-                    if (change > maxChange)
-                    {
-                        maxChange = change;
-                        maxChangeK = i;
-                    }
-                }
-                
-                if(j <= highK)
-                {
-                    ckc.setK(j);
-                    j++;
-                    futures.add(threadpool.submit(ckc));
-                }
+                maxChange = change;
+                maxChangeK = i+lowK;
             }
         }
-        catch (InterruptedException ex)
-        {
-            ex.printStackTrace();
-        }
-        catch (ExecutionException ex)
-        {
-            ex.printStackTrace();
-        }
         
-        double changeMean = stats.getMean();
-        double changeDev = stats.getStandardDeviation();
-        
-        //If we havent had any huge drops in total distance, assume that there are onlu to clusts
-        if(maxChange < changeDev*2+changeMean)
+        if(maxChange < stats.getStandardDeviation()*2+stats.getMean())
             maxChangeK = lowK;
-        else
-        {
-            for(int i = 1; i < totDistances.length; i++)
-            {
-                if(Math.abs(totDistances[i]-totDistances[i-1]) < changeMean )
-                {
-                    maxChangeK = i+lowK;
-                    break;
-                }
-            }
-        }
         
+        System.out.println(Arrays.toString(totDistances));         
         
         return cluster(dataSet, maxChangeK);
     }
@@ -345,7 +367,7 @@ public class KMeans implements Clusterer
         {
             double totDist = cluster(dataSet, selectIntialPoints(dataSet, i, dm, rand, seedSelection), clusterIDs);
             totDistances[i-lowK] = totDist;
-            
+            System.out.println("Finished " + i + "/ " + highK);
             if(i > lowK)
             {
                 double change = Math.abs(totDist-totDistances[i-lowK-1]);
@@ -379,66 +401,4 @@ public class KMeans implements Clusterer
         
         return cluster(dataSet, maxChangeK);
     }
-    
-    static protected List<Vec> selectIntialPoints(DataSet d, int k, DistanceMetric dm, Random rand, SeedSelection selectionMethod)
-    {
-        ArrayList<Vec> means = new ArrayList<Vec>(k);
-        
-        if(selectionMethod ==  SeedSelection.RANDOM)
-        {
-            Set<Integer> indecies = new HashSet<Integer>(k);
-
-            while(indecies.size() != k)//Keep sampling, we cant use the same point twice. 
-                indecies.add(rand.nextInt(d.getSampleSize()));//TODO create method to do uniform sampleling for a select range
-
-            for(Integer i : indecies)
-                means.add(d.getDataPoint(i).getNumericalValues().copy());
-        }
-        else if(selectionMethod == SeedSelection.KPP)
-        {
-            /*
-             * http://www.stanford.edu/~darthur/kMeansPlusPlus.pdf : k-means++: The Advantages of Careful Seeding
-             * 
-             */
-            //Initial random point
-            means.add(d.getDataPoint(rand.nextInt(d.getSampleSize())).getNumericalValues().copy());
-            
-            double[] closestDist = new double[d.getSampleSize()];
-            double sqrdDistSum = 0.0;
-            double newDist;
-            while(means.size() < k)
-            {
-                newDist = Double.MAX_VALUE;
-                
-                //Compute the distance from each data point to the closest mean
-                Vec newMean = means.get(means.size()-1);//Only the most recently added mean needs to get distances computed. 
-                for(int i = 0; i < d.getSampleSize(); i++)
-                {
-                    newDist = dm.dist(newMean, d.getDataPoint(i).getNumericalValues());
-                    
-                    if(newDist < closestDist[i] || means.size() == 1)
-                    {
-                        newDist*=newDist;
-                        sqrdDistSum -= closestDist[i];//on inital, -= 0  changes nothing. on others, removed the old value
-                        sqrdDistSum += newDist;
-                        closestDist[i] = newDist;
-                    }
-                }
-                
-                //Choose new x as weighted probablity by the squared distances
-                double rndX = rand.nextDouble()*sqrdDistSum;
-                double searchSum = 0;
-                int i = -1;
-                while(searchSum < rndX && i < d.getSampleSize()-1)/// rndX = 5, 
-                    searchSum += closestDist[++i];
-                
-                means.add(d.getDataPoint(i).getNumericalValues().copy());
-            }
-            
-            
-        }
-        
-        return means;
-    }
-    
 }
