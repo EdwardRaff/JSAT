@@ -1,6 +1,8 @@
 
 package jsat.linear;
 
+import java.util.Comparator;
+
 /**
  * This data structure allows to wrap a Vector so that it is 
  * associated with some object time. Note, that operations 
@@ -68,18 +70,21 @@ public class VecPaired<P, V extends Vec> extends Vec
     @Override
     public Vec add(Vec b)
     {
+        b = extractTrueVec(b);
         return vector.add(b);
     }
 
     @Override
     public Vec subtract(Vec b)
     {
+        b = extractTrueVec(b);
         return vector.subtract(b);
     }
 
     @Override
     public Vec pairwiseMultiply(Vec b)
     {
+        b = extractTrueVec(b);
         return vector.pairwiseMultiply(b);
     }
 
@@ -98,6 +103,7 @@ public class VecPaired<P, V extends Vec> extends Vec
     @Override
     public Vec pairwiseDivide(Vec b)
     {
+        b = extractTrueVec(b);
         return vector.pairwiseDivide(b);
     }
 
@@ -116,18 +122,21 @@ public class VecPaired<P, V extends Vec> extends Vec
     @Override
     public void mutableAdd(Vec b)
     {
+        b = extractTrueVec(b);
         vector.mutableAdd(b);
     }
 
     @Override
     public void mutableSubtract(Vec b)
     {
+        b = extractTrueVec(b);
         vector.mutableSubtract(b);
     }
 
     @Override
     public void mutablePairwiseMultiply(Vec b)
     {
+        b = extractTrueVec(b);
         vector.mutablePairwiseDivide(b);
     }
 
@@ -140,6 +149,7 @@ public class VecPaired<P, V extends Vec> extends Vec
     @Override
     public void mutablePairwiseDivide(Vec b)
     {
+        b = extractTrueVec(b);
         vector.mutablePairwiseDivide(b);
     }
 
@@ -212,7 +222,7 @@ public class VecPaired<P, V extends Vec> extends Vec
     @Override
     public Vec copy()
     {
-        return new VecPaired(vector, pair);
+        return new VecPaired(vector.copy(), pair);
     }
 
     @Override
@@ -230,6 +240,7 @@ public class VecPaired<P, V extends Vec> extends Vec
     @Override
     public double pNormDist(double p, Vec y)
     {
+        y = extractTrueVec(y);
         return vector.pNormDist(p, y);
     }
 
@@ -242,6 +253,7 @@ public class VecPaired<P, V extends Vec> extends Vec
     @Override
     public double dot(Vec v)
     {
+        v = extractTrueVec(v);
         return this.vector.dot(v);
     }
 
@@ -272,7 +284,45 @@ public class VecPaired<P, V extends Vec> extends Vec
     @Override
     public void mutableAdd(double c, Vec b)
     {
+        b = extractTrueVec(b);
+       
         this.vector.mutableAdd(c, b);
+    }
+    
+    
+
+    /**
+     * This method is used assuming multiple VecPaired are used together. The 
+     * implementation of the vector may have logic to handle the case that 
+     * the other vector is of the same type. This will go through every layer 
+     * of VecPaired to return the final base vector. 
+     * 
+     * @param b a Vec, that may or may not be an instance of {@link VecPaired}
+     * @return the final Vec backing b, which may be b itself. 
+     */
+    public static Vec extractTrueVec(Vec b)
+    {
+        while(b instanceof VecPaired)
+            b = ((VecPaired) b).getVector();
+        return b;
+    }
+    
+    public static <P extends Comparable<P> , V extends Vec> Comparator<VecPaired<P, V>>  vecPairedComparator()
+    {
+        Comparator<VecPaired<P, V>> comp = new Comparator<VecPaired<P, V>>() {
+
+            public int compare(VecPaired<P, V> o1, VecPaired<P, V> o2)
+            {
+                return o1.getPair().compareTo(o2.getPair());
+            }
+        };
+        return comp;
+    };
+
+    @Override
+    public int hashCode()
+    {
+        return vector.hashCode();
     }
     
 }

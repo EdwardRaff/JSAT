@@ -152,4 +152,45 @@ public abstract class Vec
             set(i, 0.0);
     }
 
+    /**
+     * Provides a hashcode for Vectors. All vector implementations should return the 
+     * same result for cases when {@link #equals(java.lang.Object) } returns true. 
+     * Below is the code used for this class<br>
+     * <p><code>
+     * int result = 1;<br>
+     * <br>
+     *   for (int i = 0; i < length(); i++) <br>
+     *   {<br>
+     *       double val = get(i);<br>
+     *       if(val != 0)<br>
+     *       {<br>
+     *           long bits = Double.doubleToLongBits(val);<br>
+     *           result = 31 * result + (int)(bits ^ (bits >>> 32));<br>
+     *           result = 31 * result + i;<br>
+     *       }<br>
+     *   }<br>
+     *   <br>
+     *   return 31* result + length();<br>
+     * </code></p>
+     * @return 
+     */
+    @Override
+    public int hashCode()
+    {
+        int result = 1;
+        
+        for (int i = 0; i < length(); i++) 
+        {
+            double val = get(i);
+            if(val != 0)
+            {
+                long bits = Double.doubleToLongBits(val);
+                result = 31 * result + (int)(bits ^ (bits >>> 32));
+                result = 31 * result + i;
+            }
+        }
+        
+        return 31* result + length();
+    }
+
 }

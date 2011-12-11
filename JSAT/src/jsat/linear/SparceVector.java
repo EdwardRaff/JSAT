@@ -3,6 +3,7 @@ package jsat.linear;
 
 import java.util.List;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashSet;
 import static java.lang.Math.*;
 import jsat.math.Function;
@@ -60,9 +61,10 @@ public class SparceVector extends  Vec
     
     public SparceVector(int length, int capacity)
     {
-        if(length < 0)
-            throw new ArithmeticException("You can not have a negative dimension vector");
+        if(length <= 0)
+            throw new ArithmeticException("Vector must have a positive dimension");
         this.used = 0;
+        capacity = Math.max(capacity, 10);
         this.length = length;
         this.indexes = new int[capacity];
         this.values = new double[capacity];
@@ -94,7 +96,7 @@ public class SparceVector extends  Vec
      */
     public void setLength(int length)
     {
-        if(length < indexes[used-1])
+        if(used > 0 && length < indexes[used-1])
             throw new RuntimeException("Can not set the length to a value less then an index already in use");
         this.length = length;
     }
@@ -405,25 +407,17 @@ public class SparceVector extends  Vec
             {
                 int a1 = indexes[p1], a2 = b.indexes[p2];
                 if (a1 == a2)
-                {
-                    dot += values[p1] * b.values[p2];
-                    p1++;
-                    p2++;
-                }
+                    dot += values[p1++] * b.values[p2++];
                 else if (a1 > a2)
                     p2++;
                 else
                     p1++;
             }
         }
-        
-        //Else it is dense
-        
-        for(int i = 0; i < length(); i++)
-        {
-            dot += values[i] * v.get(indexes[i]);
-        }
-        
+        else// it is dense
+            for (int i = 0; i < used; i++)
+                dot += values[i] * v.get(indexes[i]);
+
         return dot;
     }
 
@@ -496,16 +490,6 @@ public class SparceVector extends  Vec
         return sv;
     }
 
-    public Vec subtract(double c)
-    {
-        SparceVector sv = new SparceVector(length, used);
-        
-        for(int i = 0; i < used; i++)
-            sv.values[i] -= c;
-        
-        return sv;
-    }
-
     public void mutableAdd(double c)
     {
         clearCaches();
@@ -519,6 +503,7 @@ public class SparceVector extends  Vec
 
     public void mutableAdd(double c, Vec v)
     {
+        clearCaches();
         if(v instanceof SparceVector)
         {
             SparceVector b = (SparceVector) v;
@@ -552,6 +537,11 @@ public class SparceVector extends  Vec
                     p1++;
                 }
             }
+            
+            //One of them is now empty. 
+            //If b is not empty, we must add b to this. If b is empty, we would be adding zeros to this [so we do nothing]
+            while(p2 < b.used)
+                this.set(b.indexes[p2], c*b.values[p2++]);//TODO Can be done more efficently 
         }
         else
         {
@@ -560,16 +550,6 @@ public class SparceVector extends  Vec
                 this.set(i, this.get(i) + c*v.get(i));
         }
         
-    }
-
-    public void mutableSubtract(double c)
-    {
-        clearCaches();
-        /* 
-         * See comment in mutableAdd(double c)
-         */
-        for(int i = 0; i < length(); i++)
-            this.set(i, get(i) - c);
     }
 
     public void mutableMultiply(double c)
@@ -595,53 +575,46 @@ public class SparceVector extends  Vec
         
         double norm = 0;
         
-        int z = 0;
-        for (int i = 0; i < length(); i++)
+        if (y instanceof SparceVector)
         {
-            if(y instanceof  SparceVector)
+            int p1 = 0, p2 = 0;
+            SparceVector b = (SparceVector) y;            
+            
+            while (p1 < this.used && p2 < b.used)
             {
-                SparceVector b = (SparceVector) y;
-                int p1 = 0, p2 = 0;
-                while (p1 < this.used && p2 < b.used)
+                int a1 = indexes[p1], a2 = b.indexes[p2];
+                if (a1 == a2)
                 {
-                    int a1 = indexes[p1], a2 = b.indexes[p2];
-                    if (a1 == a2)
-                    {
-                        norm += Math.pow(Math.abs(this.values[p1] - b.values[p2]), p);
-                        p1++;
-                        p2++;
-                    }
-                    else if (a1 > a2)
-                    {
-                        norm += Math.pow(Math.abs(b.values[p2]), p);
-                        /*
-                         * p2 must be increment becase were moving to the next value
-                         * 
-                         * p1 must be be incremented becase a2 was less thenn the current index. 
-                         * So the inseration occured before p1, so for indexes[p1] to == a1, 
-                         * p1 must be incremented
-                         * 
-                         */
-                        p1++;
-                        p2++;
-                    }
-                    else//a1 < a2, this vec has a value, other does not
-                    {
-                        norm += Math.pow(Math.abs(this.values[p1]), p);
-                        p1++;
-                    }
+                    norm += Math.pow(Math.abs(this.values[p1] - b.values[p2]), p);
+                    p1++;
+                    p2++;
                 }
-                
+                else if (a1 > a2)
+                    norm += Math.pow(Math.abs(b.values[p2++]), p);
+                else//a1 < a2, this vec has a value, other does not
+                    norm += Math.pow(Math.abs(this.values[p1++]), p);
             }
-            //Move through until we hit the next null element, comparing the other vec to zero
-            while (z < used && indexes[z] > i)
-                norm += Math.pow(Math.abs(-y.get(i)), p);
-
-            //We made it! (or are at the end). Is our non zero value the same?
-            if (z < used && indexes[z] == i)
-                norm += Math.pow(Math.abs(values[z] - y.get(i)), p);
+            //One of them is now empty. 
+            //So just sum up the rest of the elements
+            while(p1 < this.used)
+                norm += Math.pow(Math.abs(this.values[p1++]), p);
+            while(p2 < b.used)
+                norm += Math.pow(Math.abs(b.values[p2++]), p);
         }
-        
+        else
+        {
+            int z = 0;
+            for (int i = 0; i < length(); i++)
+            {
+                //Move through until we hit the next null element, comparing the other vec to zero
+                while (z < used && indexes[z] > i)
+                    norm += Math.pow(Math.abs(-y.get(i)), p);
+
+                //We made it! (or are at the end). Is our non zero value the same?
+                if (z < used && indexes[z] == i)
+                    norm += Math.pow(Math.abs(values[z] - y.get(i)), p);
+            }
+        }
         return Math.pow(norm, 1.0/p);
     }
 
@@ -657,7 +630,7 @@ public class SparceVector extends  Vec
     
     public Vec copy()
     {
-        SparceVector copy = new SparceVector(length, used);
+        SparceVector copy = new SparceVector(length, Math.max(used, 10));
         
         System.arraycopy(this.values, 0, copy.values, 0, this.used);
         System.arraycopy(this.indexes, 0, copy.indexes, 0, this.used);
@@ -820,5 +793,26 @@ public class SparceVector extends  Vec
             for(int i = 0; i < used; i++)
                 values[i] = f.indexFunc(values[i], i);
         }
+    }
+
+    @Override
+    public void zeroOut()
+    {
+        this.used = 0;
+    }
+
+    @Override
+    public int hashCode()
+    {
+        int result = 1;
+        
+        for (int i = 0; i < used; i++) 
+        {
+            long bits = Double.doubleToLongBits(values[i]);
+            result = 31 * result + (int)(bits ^ (bits >>> 32));
+            result = 31 * result + indexes[i];
+        }
+        
+        return 31* result + length;
     }
 }
