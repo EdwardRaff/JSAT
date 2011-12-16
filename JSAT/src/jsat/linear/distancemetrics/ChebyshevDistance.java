@@ -21,5 +21,25 @@ public class ChebyshevDistance implements DistanceMetric
         
         return max;
     }
+
+    public boolean isSymmetric()
+    {
+        return true;
+    }
+
+    public boolean isSubadditive()
+    {
+        return true;
+    }
+
+    public boolean isIndiscemible()
+    {
+        return true;
+    }
+
+    public double metricBound()
+    {
+        return Double.POSITIVE_INFINITY;
+    }
     
 }

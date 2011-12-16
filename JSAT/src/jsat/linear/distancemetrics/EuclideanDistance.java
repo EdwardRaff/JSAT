@@ -14,5 +14,25 @@ public class EuclideanDistance implements DistanceMetric
     {
         return a.pNormDist(2, b);
     }
+
+    public boolean isSymmetric()
+    {
+        return true;
+    }
+
+    public boolean isSubadditive()
+    {
+        return true;
+    }
+
+    public boolean isIndiscemible()
+    {
+        return true;
+    }
+
+    public double metricBound()
+    {
+        return Double.POSITIVE_INFINITY;
+    }
     
 }

@@ -24,5 +24,25 @@ public class CosineDistance implements DistanceMetric
         
         return 1 - a.dot(b) / (a.pNorm(2) * b.pNorm(2));
     }
+
+    public boolean isSymmetric()
+    {
+        return true;
+    }
+
+    public boolean isSubadditive()
+    {
+        return true;
+    }
+
+    public boolean isIndiscemible()
+    {
+        return true;
+    }
+
+    public double metricBound()
+    {
+        return 2;
+    }
     
 }

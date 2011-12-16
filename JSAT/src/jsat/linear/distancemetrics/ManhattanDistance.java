@@ -14,5 +14,25 @@ public class ManhattanDistance implements DistanceMetric
     {
         return a.pNormDist(1, b);
     }
+
+    public boolean isSymmetric()
+    {
+        return true;
+    }
+
+    public boolean isSubadditive()
+    {
+        return true;
+    }
+
+    public boolean isIndiscemible()
+    {
+        return true;
+    }
+
+    public double metricBound()
+    {
+        return Double.POSITIVE_INFINITY;
+    }
     
 }
