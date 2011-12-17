@@ -8,12 +8,9 @@ import java.util.List;
 import java.util.Random;
 import jsat.linear.Vec;
 import jsat.linear.VecPaired;
-import jsat.linear.distancemetrics.BoundedMetric;
 import jsat.linear.distancemetrics.DistanceMetric;
 import jsat.utils.BoundedSortedList;
-import jsat.utils.PairedReturn;
 import jsat.utils.ProbailityMatch;
-import jsat.utils.SortedArrayList;
 
 /**
  * Provides an implementation of Vantage Point Trees, as described in 
