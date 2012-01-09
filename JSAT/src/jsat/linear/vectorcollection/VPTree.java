@@ -218,22 +218,22 @@ public class VPTree<V extends Vec> implements VectorCollection<V>
             if(list.size() < k || x < list.get(k-1).getProbability())
                 list.add(new ProbailityMatch<V>(x, this.p));
             double tau = list.get(list.size()-1).getProbability();
-            double middle = this.mu;
+            double middle = (this.left_high+this.right_low)*0.5;
 
             if( x < middle)
             {
-                if(searchInLeft(x, tau))
+                if(searchInLeft(x, tau) || list.size() < k)
                     this.left.searchKNN(query, k, list);
                 tau = list.get(list.size()-1).getProbability();
-                if(searchInRight(x, tau))
+                if(searchInRight(x, tau) || list.size() < k)
                     this.right.searchKNN(query, k, list);
             }
             else
             {
-                if(searchInRight(x, tau))
-                    this.right.searchKNN(query, k, list);;
+                if(searchInRight(x, tau) || list.size() < k)
+                    this.right.searchKNN(query, k, list);
                 tau = list.get(list.size()-1).getProbability();
-                if(searchInLeft(x, tau))
+                if(searchInLeft(x, tau) || list.size() < k)
                     this.left.searchKNN(query, k, list);
             }
         }
