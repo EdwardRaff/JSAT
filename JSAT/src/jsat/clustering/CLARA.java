@@ -117,6 +117,12 @@ public class CLARA extends PAM
         int[] bestAssignments = new int[assignments.length];
         double bestMedoidsDist = Double.MAX_VALUE;
         
+        if(sampleSize >= data.getSampleSize())//Then we might as well just do one round of PAM
+        {
+            SeedSelectionMethods.selectIntialPoints(data, medioids, dm, rand, getSeedSelection());
+            return super.cluster(data, medioids, assignments);
+        }
+        
         int sampSize = autoSampleSize ? 40+2*k : sampleSize;
         int[] sampleAssignments = new int[sampSize];
         
@@ -133,17 +139,20 @@ public class CLARA extends PAM
             //Take a sample and use PAM on it to get medoids
             samplePoints.clear();
             sample.clear();
-            while(samplePoints.size() < sampSize)
+            
+            while (samplePoints.size() < sampSize)
             {
                 int indx = rand.nextInt(data.getSampleSize());
-                if(!samplePoints.containsValue(indx))
+                if (!samplePoints.containsValue(indx))
                     samplePoints.put(samplePoints.size(), indx);
             }
-            for(Integer j : samplePoints.values())
+            for (Integer j : samplePoints.values())
                 sample.add(data.getDataPoint(j));
+
             DataSet sampleSet = new SimpleDataSet(sample);
             
             //Sampling done, now apply PAM
+            SeedSelectionMethods.selectIntialPoints(sampleSet, medioids, dm, rand, getSeedSelection());
             super.cluster(sampleSet, medioids, sampleAssignments);
             
             //Map the sample medoids back to the full data set
