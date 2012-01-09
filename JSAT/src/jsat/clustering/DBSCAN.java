@@ -3,15 +3,19 @@ package jsat.clustering;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Queue;
+import java.util.Set;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
+import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.SynchronousQueue;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import jsat.DataSet;
@@ -54,6 +58,7 @@ public class DBSCAN implements Clusterer
      */
     private VectorCollectionFactory<VecPaired<Integer, Vec> > vecFactory;
     private DistanceMetric dm;
+    private double stndDevs = 2.0;
 
     public DBSCAN(DistanceMetric dm, VectorCollectionFactory<VecPaired<Integer, Vec>> vecFactory)
     {
@@ -77,7 +82,7 @@ public class DBSCAN implements Clusterer
         
         
         
-        double eps = stats.getMean() + stats.getStandardDeviation()*0.5;
+        double eps = stats.getMean() + stats.getStandardDeviation()*stndDevs;
         
         return cluster(dataSet, eps, minPts, vc);
     }
@@ -158,7 +163,7 @@ public class DBSCAN implements Clusterer
             }
         }
         
-        double eps = stats.getMean() + stats.getStandardDeviation()*0.5;
+        double eps = stats.getMean() + stats.getStandardDeviation()*stndDevs;
         
         return cluster(dataSet, eps, minPts, vc, threadpool);
     }
@@ -213,15 +218,33 @@ public class DBSCAN implements Clusterer
         int[] pointCats = new int[dataSet.getSampleSize()];
         Arrays.fill(pointCats, UNCLASSIFIED);
         
+        
+        BlockingQueue<List<VecPaired<Double,VecPaired<Integer,Vec>>>> resultQ = new SynchronousQueue<List<VecPaired<Double, VecPaired<Integer, Vec>>>>();
+        BlockingQueue<Vec> sourceQ = new LinkedBlockingQueue<Vec>();
+
+        //Set up workers
+        for(int i = 0; i < SystemInfo.LogicalCores; i++)
+            threadpool.submit(new ClusterWorker(vc, eps, resultQ, sourceQ));
+        
         int curClusterID = 0;
         for(int i = 0; i < pointCats.length; i++)
         {
             if(pointCats[i] == UNCLASSIFIED)
             {
                 //All assignments are done by expandCluster
-                if(exapndCluster(pointCats, dataSet, i, curClusterID, eps, minPts, vc, threadpool))
+                if(exapndCluster(pointCats, dataSet, i, curClusterID, eps, minPts, vc, threadpool, resultQ, sourceQ))
                     curClusterID++;
             }
+        }
+        
+        //Kill workers
+        try
+        {
+            for (int i = 0; i < SystemInfo.LogicalCores; i++)
+                sourceQ.put(new DenseVector(0));
+        }
+        catch (InterruptedException interruptedException)
+        {
         }
         
         List<List<DataPoint>> ks = new ArrayList<List<DataPoint>>(curClusterID);
@@ -276,49 +299,53 @@ public class DBSCAN implements Clusterer
     {
         private VectorCollection<VecPaired<Integer, Vec>> vc;
         private volatile List<VecPaired<Double,VecPaired<Integer,Vec>>> results;
-        private volatile Vec searchPoint;
         private final double range;
-        private final BlockingQueue<ClusterWorker> workQue;
+        private final BlockingQueue<List<VecPaired<Double,VecPaired<Integer,Vec>>>> resultQ;
+        private final BlockingQueue<Vec> sourceQ;
 
         /**
          * 
          * @param vc the accelerate structure to search for data points. Must support concurent method calls
          * @param range the range to search <tt>tt</tt> with
-         * @param workQue The que to place this worker object into on completion
+         * @param resultQ The que to place this worker object into on completion
          */
-        public ClusterWorker(VectorCollection<VecPaired<Integer, Vec>> vc, double range, BlockingQueue<ClusterWorker> workQue)
+        public ClusterWorker(VectorCollection<VecPaired<Integer, Vec>> vc, double range, BlockingQueue<List<VecPaired<Double,VecPaired<Integer,Vec>>>> resultQ, BlockingQueue<Vec> sourceQ)
         {
             this.vc = vc;
-            this.results = results;
-            this.searchPoint = searchPoint;
             this.range = range;
-            this.workQue = workQue;
+            this.resultQ = resultQ;
+            this.sourceQ = sourceQ;
         }
 
         public List<VecPaired<Double, VecPaired<Integer, Vec>>> getResults()
         {
             return results;
         }
-
-        public Vec getSearchPoint()
-        {
-            return searchPoint;
-        }
-
-        public void setSearchVec(Vec searchPoint)
-        {
-            this.searchPoint = searchPoint;
-        }
         
         public void run()
         {
-            results = vc.search(searchPoint, range);
-            workQue.add(this);
+            Vec searchPoint;
+            try
+            {
+                while(true)
+                {
+                    searchPoint = sourceQ.take();
+                    if(searchPoint.length() == 0)
+                        break;
+                    results = vc.search(searchPoint, range);
+                    resultQ.put(results);
+                }
+            }
+            catch (InterruptedException ex)
+            {
+                Logger.getLogger(DBSCAN.class.getName()).log(Level.SEVERE, null, ex);
+            }
+            
         }
         
     }
     
-    private boolean exapndCluster(int[] pointCats, DataSet dataSet, int point, int clId, double eps, int minPts, VectorCollection<VecPaired<Integer, Vec>> vc, ExecutorService threadpool)
+    private boolean exapndCluster(int[] pointCats, DataSet dataSet, int point, int clId, double eps, int minPts, VectorCollection<VecPaired<Integer, Vec>> vc, ExecutorService threadpool, BlockingQueue<List<VecPaired<Double,VecPaired<Integer,Vec>>>> resultQ, BlockingQueue<Vec> sourceQ )
     {
         Vec queryPoint = dataSet.getDataPoint(point).getNumericalValues();
         List<VecPaired<Double,VecPaired<Integer,Vec>>> seeds = vc.search(queryPoint, eps);
@@ -332,37 +359,18 @@ public class DBSCAN implements Clusterer
         
         List<VecPaired<Double,VecPaired<Integer,Vec>>> results;
         
-        pointCats[point] = clId;
-        Queue<VecPaired<Double,VecPaired<Integer,Vec>>> workQueue = new ArrayDeque<VecPaired<Double, VecPaired<Integer, Vec>>>(seeds);
-        
-        BlockingQueue<ClusterWorker> searchQue = new ArrayBlockingQueue<ClusterWorker>(SystemInfo.LogicalCores);
-        Queue<ClusterWorker> freeWorkers = new ArrayDeque<ClusterWorker>(SystemInfo.LogicalCores);
-        for(int i = 0; i < SystemInfo.LogicalCores; i++)
-            freeWorkers.add(new ClusterWorker(vc, eps, searchQue));
-        int received = 0, given = 0;
-        
-        do
+        try
         {
-            while (!workQueue.isEmpty())
+            pointCats[point] = clId;
+            int out = seeds.size();
+            for (VecPaired<Double, VecPaired<Integer, Vec>> v : seeds)
+                sourceQ.put(v.getVector().getVector());
+            
+            while (out > 0)
             {
-                VecPaired<Double, VecPaired<Integer, Vec>> currentP = workQueue.poll();
-                while(!freeWorkers.isEmpty())
-                {
-                    given++;
-                    ClusterWorker worker = freeWorkers.poll();
-                    worker.setSearchVec(currentP);
-                    threadpool.submit(worker);
-                }
-            }
-
-
-            try
-            {
-                ClusterWorker worker = searchQue.take();
-                received++;
-                results = worker.getResults();
-                freeWorkers.add(worker);
-
+                results = resultQ.take();
+                out--;
+                
                 if (results.size() >= minPts)
                     for (VecPaired<Double, VecPaired<Integer, Vec>> resultP : results)
                     {
@@ -370,17 +378,18 @@ public class DBSCAN implements Clusterer
                         if (pointCats[resultPIndx] < 0)// is UNCLASSIFIED or NOISE
                         {
                             if (pointCats[resultPIndx] == UNCLASSIFIED)
-                                workQueue.add(resultP);
+                            {
+                                sourceQ.put(resultP.getVector().getVector());
+                                out++;
+                            }
                             pointCats[resultPIndx] = clId;
                         }
-                    }
-            }
-            catch (InterruptedException ex)
-            {
-                Logger.getLogger(DBSCAN.class.getName()).log(Level.SEVERE, null, ex);
+                    }                
             }
         }
-        while(received < given);
+        catch (InterruptedException interruptedException)
+        {
+        }
         
         return true;
     }
