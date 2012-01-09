@@ -84,6 +84,13 @@ public class OnLineStatistics
    
    public static OnLineStatistics add(OnLineStatistics A, OnLineStatistics B)
    {
+       if(A.n == B.n && B.n == 0)
+           return new OnLineStatistics();
+       else if(B.n == 0)
+           return new OnLineStatistics(A.n, A.mean, A.m2, A.m3, A.m4, A.min, A.max);
+       else if(A.n == 0)
+           return new OnLineStatistics(B.n, B.mean, B.m2, B.m3, B.m4, B.min, B.max);
+       
        int nX = B.n + A.n;
        int nXsqrd = nX*nX;
        int nAnB = B.n*A.n;
