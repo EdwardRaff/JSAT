@@ -69,7 +69,7 @@ public class VPTree<V extends Vec> implements VectorCollection<V>
             throw new RuntimeException("Range must be a positive number");
         List<VecPaired<Double, V>> returnList = new ArrayList<VecPaired<Double, V>>();
         
-        root.searchRange(VecPaired.extractTrueVec(query), range, returnList);
+        root.searchRange(VecPaired.extractTrueVec(query), range, returnList, 0.0);
         
         Collections.sort(returnList, new Comparator<VecPaired<Double, V>>() {
 
@@ -86,7 +86,7 @@ public class VPTree<V extends Vec> implements VectorCollection<V>
     {
         BoundedSortedList<ProbailityMatch<V>> boundedList= new BoundedSortedList<ProbailityMatch<V>>(neighbors, neighbors);
 
-        root.searchKNN(VecPaired.extractTrueVec(query), neighbors, boundedList);
+        root.searchKNN(VecPaired.extractTrueVec(query), neighbors, boundedList, 0.0);
         
         List<VecPaired<Double, V>> list = new ArrayList<VecPaired<Double, V>>(boundedList.size());
         for(ProbailityMatch<V> pm : boundedList)
@@ -101,11 +101,9 @@ public class VPTree<V extends Vec> implements VectorCollection<V>
             return null;
         else if(S.size() <= 5)
         {
-            List<V> leafs = new ArrayList<V>(S.size());
-            for(ProbailityMatch<V> pm : S)
-                leafs.add(pm.getMatch());
+            VPLeaf leaf = new VPLeaf(S);
             S.clear();
-            return new VPLeaf(leafs);
+            return leaf;
         }
         
         VPNode node = new VPNode(selectVantagePoint(S));
@@ -115,7 +113,6 @@ public class VPTree<V extends Vec> implements VectorCollection<V>
             S.get(i).setProbability(dm.dist(node.p, S.get(i).getMatch()));//Each point gets its distance to the vantage point
         Collections.sort(S);//Get median and split lists into 2 groups
         int medianIndex = S.size() / 2;
-        node.mu = S.get(medianIndex).getProbability();
         node.right_high = S.get(S.size()-1).getProbability();
         node.right_low = S.get(medianIndex+1).getProbability();
         node.left_high = S.get(medianIndex).getProbability();
@@ -183,14 +180,35 @@ public class VPTree<V extends Vec> implements VectorCollection<V>
     
     private abstract class TreeNode
     {
-        public abstract void searchKNN(Vec query, int k, BoundedSortedList<ProbailityMatch<V>> list);
-        public abstract void searchRange(Vec query, double range, List<VecPaired<Double, V>> list);
+        /**
+         * Performs a KNN query on this node. 
+         * 
+         * @param query the query vector
+         * @param k the number of neighbors to consider
+         * @param list the storage location on the nearest neighbors
+         * @param x the distance between this node's parent vantage point to the query vector. 
+         * Though not all nodes will use this value, the leaf nodes will - so it should always be given. 
+         * Initial calls from the root node may choose to us zero. 
+         */
+        public abstract void searchKNN(Vec query, int k, BoundedSortedList<ProbailityMatch<V>> list, double x);
+        
+        /**
+         * Performs a range query on this node
+         * 
+         * @param query the query vector
+         * @param range the maximal distance a point can be from the query point to be added to the return list
+         * @param list the storage location on the data points within the range of the query vector
+         * @param x the distance between this node's parent vantage point to the query vector. 
+         * Though not all nodes will use this value, the leaf nodes will - so it should always be given. 
+         * Initial calls from the root node may choose to us zero. 
+         */
+        public abstract void searchRange(Vec query, double range, List<VecPaired<Double, V>> list, double x);
     }
     
     private class VPNode extends TreeNode
     {
         V p;
-        double mu, left_low, left_high, right_low, right_high;
+        double left_low, left_high, right_low, right_high;
         TreeNode right, left;
 
         public VPNode(V p)
@@ -212,9 +230,9 @@ public class VPTree<V extends Vec> implements VectorCollection<V>
             return right_low-tau <= x && x <= right_high+tau;
         }
         
-        public void searchKNN(Vec query, int k, BoundedSortedList<ProbailityMatch<V>> list)
+        public void searchKNN(Vec query, int k, BoundedSortedList<ProbailityMatch<V>> list, double x)
         {
-            double x = dm.dist(query, this.p);
+            x = dm.dist(query, this.p);
             if(list.size() < k || x < list.get(k-1).getProbability())
                 list.add(new ProbailityMatch<V>(x, this.p));
             double tau = list.get(list.size()-1).getProbability();
@@ -223,61 +241,81 @@ public class VPTree<V extends Vec> implements VectorCollection<V>
             if( x < middle)
             {
                 if(searchInLeft(x, tau) || list.size() < k)
-                    this.left.searchKNN(query, k, list);
+                    this.left.searchKNN(query, k, list, x);
                 tau = list.get(list.size()-1).getProbability();
                 if(searchInRight(x, tau) || list.size() < k)
-                    this.right.searchKNN(query, k, list);
+                    this.right.searchKNN(query, k, list, x);
             }
             else
             {
                 if(searchInRight(x, tau) || list.size() < k)
-                    this.right.searchKNN(query, k, list);
+                    this.right.searchKNN(query, k, list, x);
                 tau = list.get(list.size()-1).getProbability();
                 if(searchInLeft(x, tau) || list.size() < k)
-                    this.left.searchKNN(query, k, list);
+                    this.left.searchKNN(query, k, list, x);
             }
         }
 
         @Override
-        public void searchRange(Vec query, double range, List<VecPaired<Double, V>> list)
+        public void searchRange(Vec query, double range, List<VecPaired<Double, V>> list, double x)
         {
-            double x = dm.dist(query, this.p);
+            x = dm.dist(query, this.p);
             if(x <= range)
                 list.add(new VecPaired<Double, V>(this.p, x));
 
             if (searchInLeft(x, range))
-                this.left.searchRange(query, range, list);
+                this.left.searchRange(query, range, list, x);
             if (searchInRight(x, range))
-                this.right.searchRange(query, range, list);
+                this.right.searchRange(query, range, list, x);
         }
     }
     
     private class VPLeaf extends TreeNode
     {
-        //TODO add code to keep track of the distance from these leaf points to their parent, perform pruning anyway b/c distance comps are expensive. 
-        List<V> points;
+        Vec[] points;
+        double[] bounds;
         
-        public VPLeaf(List<V> points)
+        public VPLeaf(List<ProbailityMatch<V>> points)
         {
-            this.points = points;
+            this.points = new Vec[points.size()];
+            this.bounds = new double[this.points.length];
+            for(int i = 0; i < this.points.length; i++)
+            {
+                this.points[i] = points.get(i).getMatch();
+                this.bounds[i] = points.get(i).getProbability();
+            }
         }
 
         @Override
-        public void searchKNN(Vec query, int k, BoundedSortedList<ProbailityMatch<V>> list)
+        public void searchKNN(Vec query, int k, BoundedSortedList<ProbailityMatch<V>> list, double x)
         {
             double dist = -1;
-            for(V v : points)
-                if(list.size() < k || (dist = dm.dist(query, v)) < list.get(list.size()-1).getProbability())
-                    list.add(new ProbailityMatch<V>(dist, v));
+            
+            //The zero check, for the case that the leaf is the ONLY node, x will be passed as 0.0 <= Max value will be true 
+            double tau = list.size() == 0 ? Double.MAX_VALUE : list.get(list.size()-1).getProbability();
+            for (int i = 0; i < points.length; i++)
+                if (list.size() < k)
+                {
+                    list.add(new ProbailityMatch<V>(dm.dist(query, points[i]), (V) points[i]));
+                    tau = list.get(list.size() - 1).getProbability();
+                }
+                else if (bounds[i] - tau <= x && x <= bounds[i] + tau)//Bound check agains the distance to our parrent node, provided by x
+                    if ((dist = dm.dist(query, points[i])) < tau)
+                    {
+                        list.add(new ProbailityMatch<V>(dist, (V) points[i]));
+                        tau = list.get(list.size() - 1).getProbability();
+                    }
         }
 
         @Override
-        public void searchRange(Vec query, double range, List<VecPaired<Double, V>> list)
+        public void searchRange(Vec query, double range, List<VecPaired<Double, V>> list, double x)
         {
             double dist = Double.MAX_VALUE;
-            for(int i = 0; i < points.size(); i++)
-                if( (dist = dm.dist(query, points.get(i))) < range )
-                    list.add(new VecPaired<Double, V>(points.get(i), dist));
+            
+            for (int i = 0; i < points.length; i++)
+                if (bounds[i] - range <= x && x <= bounds[i] + range)//Bound check agains the distance to our parrent node, provided by x
+                    if ((dist = dm.dist(query, points[i])) < range)
+                        list.add(new VecPaired<Double, V>((V)points[i], dist));
         }
         
     }
