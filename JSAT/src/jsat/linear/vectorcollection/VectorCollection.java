@@ -6,9 +6,11 @@ import jsat.linear.Vec;
 import jsat.linear.VecPaired;
 
 /**
- * A Vector Collection is a collection of vectors that is mean to be used to 
+ * A Vector Collection is a collection of vectors that is meant to be used to 
  * obtain a subset of the collection via a query vector. A query can be for 
- * the nearest neighbors, or for all vectors within a given range
+ * the nearest neighbors, or for all vectors within a given range. 
+ * <br>
+ * Different vector collections have different performance properties for both training and execution time. 
  * 
  * @author Edward Raff
  */

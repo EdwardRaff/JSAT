@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
 import jsat.classifiers.DataPointPair;
 import jsat.linear.Vec;
 import jsat.linear.VecPaired;
@@ -21,6 +22,12 @@ import jsat.utils.ProbailityMatch;
 import static jsat.linear.VecPaired.*;
 
 /**
+ * Standard KDTree implementation. KDTrees are fast to create with no distance computations needed.
+ * Though KDTrees can be constructed in O(n) time, this implementation is O(n log n). KDTrees can be very 
+ * fast for low dimensional data queries, but degrade as the dimensions increases. For very high dimensions 
+ * or pathologically bad data, O(n<sup>2</sup>) performance worse then {@link VectorArray} can occur. 
+ * <br>
+ * <br>
  * Note: KD trees are only usable with Distance Metrics based off of the pNorm between two vectors. The valid distance metrics are 
  * {@link EuclideanDistance}, {@link ChebyshevDistance}, {@link ManhattanDistance}, {@link MinkowskiDistance}
  * 
@@ -273,21 +280,36 @@ public class KDTree<V extends Vec> implements VectorCollection<V>
     
     public static class KDTreeFactory<V extends Vec> implements VectorCollectionFactory<V>
     {
-        private PivotSelection pvSelectionMethod;
+        private PivotSelection pivotSelectionMethod;
 
         public KDTreeFactory(PivotSelection pvSelectionMethod)
         {
-            this.pvSelectionMethod = pvSelectionMethod;
+            this.pivotSelectionMethod = pvSelectionMethod;
         }
 
         public KDTreeFactory()
         {
             this(PivotSelection.Variance);
         }
+
+        public PivotSelection getPivotSelectionMethod()
+        {
+            return pivotSelectionMethod;
+        }
+
+        public void setPivotSelectionMethod(PivotSelection pivotSelectionMethod)
+        {
+            this.pivotSelectionMethod = pivotSelectionMethod;
+        }
         
         public VectorCollection<V> getVectorCollection(List<V> source, DistanceMetric distanceMetric)
         {
-            return new KDTree<V>(source, distanceMetric, pvSelectionMethod);
+            return new KDTree<V>(source, distanceMetric, pivotSelectionMethod);
+        }
+
+        public VectorCollection<V> getVectorCollection(List<V> source, DistanceMetric distanceMetric, ExecutorService threadpool)
+        {
+            return getVectorCollection(source, distanceMetric);
         }
     }
 }

@@ -4,6 +4,7 @@ package jsat.linear.vectorcollection;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
 import jsat.linear.Vec;
 import jsat.linear.VecPaired;
 import jsat.linear.distancemetrics.DistanceMetric;
@@ -11,7 +12,9 @@ import jsat.utils.BoundedSortedList;
 import jsat.utils.ProbailityMatch;
 
 /**
- *
+ * This is the naive implementation of a Vector collection. Construction time is 
+ * O(n) only to copy the n elements, and all queries are O(n<sup>2</sup>)
+ * 
  * @author Edward Raff
  */
 public class VectorArray<V extends Vec> extends ArrayList<V> implements VectorCollection<V>
@@ -86,6 +89,11 @@ public class VectorArray<V extends Vec> extends ArrayList<V> implements VectorCo
         public VectorCollection<V> getVectorCollection(List<V> source, DistanceMetric distanceMetric)
         {
             return new VectorArray<V>(distanceMetric, source);
+        }
+
+        public VectorCollection<V> getVectorCollection(List<V> source, DistanceMetric distanceMetric, ExecutorService threadpool)
+        {
+            return getVectorCollection(source, distanceMetric);
         }
     }
     

@@ -6,6 +6,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Random;
+import java.util.concurrent.ExecutorService;
 import jsat.linear.Vec;
 import jsat.linear.VecPaired;
 import jsat.linear.distancemetrics.DistanceMetric;
@@ -16,6 +17,10 @@ import jsat.utils.ProbailityMatch;
  * Provides an implementation of Vantage Point Trees, as described in 
  * "Data Structures and Algorithms for Nearest Neighbor Search in General Metric Spaces" 
  * by Peter N. Yianilos 
+ * <br>
+ * VPTrees are more expensive to create, requiring O(n log n) distance computations. However,
+ * they work well for high dimensional data sets, and provide O( log n ) query time for 
+ * {@link #search(jsat.linear.Vec, int) }
  * 
  * @author Edward Raff
  */
@@ -338,6 +343,10 @@ public class VPTree<V extends Vec> implements VectorCollection<V>
         {
             return new VPTree<V>(source, distanceMetric, vpSelectionMethod);
         }
-        
+
+        public VectorCollection<V> getVectorCollection(List<V> source, DistanceMetric distanceMetric, ExecutorService threadpool)
+        {
+            return getVectorCollection(source, distanceMetric);
+        }
     }
 }

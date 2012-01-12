@@ -6,6 +6,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Stack;
+import java.util.concurrent.ExecutorService;
 import jsat.linear.DenseVector;
 import jsat.linear.Vec;
 import jsat.linear.VecPaired;
@@ -905,6 +906,11 @@ public class RTree<V extends Vec> implements VectorCollection<V>
             for(V v : source)
                 newTree.add(v);
             return newTree;
+        }
+
+        public VectorCollection<V> getVectorCollection(List<V> source, DistanceMetric distanceMetric, ExecutorService threadpool)
+        {
+            return getVectorCollection(source, distanceMetric);
         }
     }
 }
