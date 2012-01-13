@@ -7,6 +7,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import jsat.classifiers.CategoricalData;
 import jsat.classifiers.CategoricalResults;
 import jsat.classifiers.ClassificationDataSet;
@@ -55,7 +57,14 @@ public class ID3 implements Classifier
             availableAttributes.add(i);
         latch = new ModifiableCountDownLatch(1);
         root = buildTree(dataPoints, availableAttributes, threadPool);    
-        latch.await();
+        try
+        {
+            latch.await();
+        }
+        catch (InterruptedException ex)
+        {
+            Logger.getLogger(ID3.class.getName()).log(Level.SEVERE, null, ex);
+        }
     }
 
     public void trainC(ClassificationDataSet dataSet)
