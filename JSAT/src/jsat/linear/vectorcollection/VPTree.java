@@ -7,10 +7,14 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Random;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Semaphore;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import jsat.linear.Vec;
 import jsat.linear.VecPaired;
 import jsat.linear.distancemetrics.DistanceMetric;
 import jsat.utils.BoundedSortedList;
+import jsat.utils.ModifiableCountDownLatch;
 import jsat.utils.ProbailityMatch;
 
 /**
@@ -45,7 +49,7 @@ public class VPTree<V extends Vec> implements VectorCollection<V>
         Random
     }
 
-    public VPTree(List<V> list, DistanceMetric dm, VPSelection vpSelection, Random rand, int sampleSize, int searchIterations)
+    public VPTree(List<V> list, DistanceMetric dm, VPSelection vpSelection, Random rand, int sampleSize, int searchIterations, ExecutorService threadpool)
     {
         this.dm = dm;
         if(!dm.isSubadditive())
@@ -56,7 +60,31 @@ public class VPTree<V extends Vec> implements VectorCollection<V>
         List<ProbailityMatch<V>> tmpList = new ArrayList<ProbailityMatch<V>>(list.size());
         for(V v : list)
             tmpList.add(new ProbailityMatch<V>(-1, v));
-        this.root = makeVPTree(tmpList);
+        if(threadpool == null)
+            this.root = makeVPTree(tmpList);
+        else
+        {
+            ModifiableCountDownLatch mcdl = new ModifiableCountDownLatch(1);
+            this.root = makeVPTree(tmpList, threadpool, mcdl);
+            try
+            {
+                mcdl.await();
+            }
+            catch (InterruptedException ex)
+            {
+                Logger.getLogger(VPTree.class.getName()).log(Level.SEVERE, null, ex);
+                System.err.println("Falling back to single threaded VPTree constructor");
+                tmpList.clear();
+                for(V v : list)
+                    tmpList.add(new ProbailityMatch<V>(-1, v));
+                this.root = makeVPTree(tmpList);
+            }
+        }
+    }
+    
+    public VPTree(List<V> list, DistanceMetric dm, VPSelection vpSelection, Random rand, int sampleSize, int searchIterations)
+    {
+        this(list, dm, vpSelection, rand, sampleSize, searchIterations, null);
     }
 
     public VPTree(List<V> list, DistanceMetric dm, VPSelection vpSelection)
@@ -130,6 +158,53 @@ public class VPTree<V extends Vec> implements VectorCollection<V>
          */
         node.right = makeVPTree(S.subList(medianIndex+1, S.size()));
         node.left  = makeVPTree(S.subList(0, medianIndex+1));
+        
+        return node;
+    }
+    
+    private TreeNode makeVPTree(final List<ProbailityMatch<V>> S, final ExecutorService threadpool, final ModifiableCountDownLatch mcdl)
+    {
+        if(S.isEmpty())
+        {
+            mcdl.countDown();
+            return null;
+        }
+        else if(S.size() <= 5)
+        {
+            VPLeaf leaf = new VPLeaf(S);
+            S.clear();
+            mcdl.countDown();
+            return leaf;
+        }
+        
+        final VPNode node = new VPNode(selectVantagePoint(S));
+        
+        //Compute distance to each point
+        for(int i = 0; i < S.size(); i++)
+            S.get(i).setProbability(dm.dist(node.p, S.get(i).getMatch()));//Each point gets its distance to the vantage point
+        Collections.sort(S);//Get median and split lists into 2 groups
+        int medianIndex = S.size() / 2;
+        node.left_low = S.get(0).getProbability();
+        node.left_high = S.get(medianIndex).getProbability();
+        node.right_low = S.get(medianIndex+1).getProbability();
+        node.right_high = S.get(S.size()-1).getProbability();
+        
+        
+        //Start 2 threads, but only 1 of them is "new" 
+        mcdl.countUp();
+        final List<ProbailityMatch<V>> rightS = new ArrayList<ProbailityMatch<V>>(S.size()-medianIndex);
+        List<ProbailityMatch<V>> rightSubList = S.subList(medianIndex+1, S.size());
+        rightS.addAll(rightSubList);
+        rightSubList.clear();//Which removes them from S 
+        
+        threadpool.submit(new Runnable() {
+
+            public void run()
+            {
+                node.right = makeVPTree(rightS, threadpool, mcdl);
+            }
+        });
+        node.left  = makeVPTree(S, threadpool, mcdl);
         
         return node;
     }
@@ -346,7 +421,7 @@ public class VPTree<V extends Vec> implements VectorCollection<V>
 
         public VectorCollection<V> getVectorCollection(List<V> source, DistanceMetric distanceMetric, ExecutorService threadpool)
         {
-            return getVectorCollection(source, distanceMetric);
+            return new VPTree<V>(source, distanceMetric, vpSelectionMethod, new Random(10), 80, 40, threadpool);
         }
     }
 }

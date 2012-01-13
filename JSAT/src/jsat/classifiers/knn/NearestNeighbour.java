@@ -105,12 +105,12 @@ public class NearestNeighbour implements  Classifier, Regressor
         return results;
     }
     
-    public void trainC(ClassificationDataSet dataSet, ExecutorService threadPool)
+    public void trainC(ClassificationDataSet dataSet)
     {
-        trainC(dataSet); 
+        trainC(dataSet, null); 
     }
 
-    public void trainC(ClassificationDataSet dataSet)
+    public void trainC(ClassificationDataSet dataSet, ExecutorService threadPool)
     {
         if(dataSet.getNumCategoricalVars() != 0)
             throw new RuntimeException("KNN requires vector data only");
@@ -129,7 +129,10 @@ public class NearestNeighbour implements  Classifier, Regressor
             }
         }
         
-        vecCollection = vcf.getVectorCollection(dataPoints, distanceMetric);
+        if(threadPool == null)
+            vecCollection = vcf.getVectorCollection(dataPoints, distanceMetric);
+        else
+            vecCollection = vcf.getVectorCollection(dataPoints, distanceMetric, threadPool);
     }
     
     public double regress(DataPoint data)
@@ -167,12 +170,12 @@ public class NearestNeighbour implements  Classifier, Regressor
         return result/weightSum;
     }
 
-    public void train(RegressionDataSet dataSet, ExecutorService threadPool)
+    public void train(RegressionDataSet dataSet)
     {
-        train(dataSet);
+        train(dataSet, null);
     }
 
-    public void train(RegressionDataSet dataSet)
+    public void train(RegressionDataSet dataSet, ExecutorService threadPool)
     {
         if(dataSet.getNumCategoricalVars() != 0)
             throw new RuntimeException("KNN requires vector data only");
@@ -191,8 +194,10 @@ public class NearestNeighbour implements  Classifier, Regressor
             dataPoints.add(new VecPaired(dpp.getVector(), dpp.getPair()));
         }
 
-        
-        vecCollection = vcf.getVectorCollection(dataPoints, distanceMetric);
+        if(threadPool == null)
+            vecCollection = vcf.getVectorCollection(dataPoints, distanceMetric);
+        else
+            vecCollection = vcf.getVectorCollection(dataPoints, distanceMetric, threadPool);
     }
     
     public NearestNeighbour copy()

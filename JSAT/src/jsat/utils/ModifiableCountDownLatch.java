@@ -1,19 +1,18 @@
 
 package jsat.utils;
 
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 /**
- *
+ * Provides a {@link CountDownLatch} that can have the number of counts increased as well as decreased. 
  * @author Edward Raff
  */
 public class ModifiableCountDownLatch
 {
     private Semaphore awaitSemaphore;
-    AtomicInteger count;
+    private AtomicInteger count;
 
     public ModifiableCountDownLatch(int count)
     {
@@ -21,24 +20,31 @@ public class ModifiableCountDownLatch
         awaitSemaphore = new Semaphore(0);
     }
     
-    public void await() 
+    /**
+     * Waits until the count gets reduced to zero, and then all threads waiting will get to run. 
+     * 
+     * @throws InterruptedException 
+     */
+    public void await() throws InterruptedException
     {
-        try
-        {
-            awaitSemaphore.acquire();
-        }
-        catch (InterruptedException ex)
-        {
-            System.err.println("AHHH What happened?");
-        }
+        awaitSemaphore.acquire();
+        awaitSemaphore.release();
     }
     
+    /**
+     * Decrements the counter. Allowing threads that have called {@link #await() } to run once the count reaches zero.
+     */
     public void countDown()
     {
-        if(count.decrementAndGet() == 0)
+        if(count.get() == 0)
+            return;
+        else if( count.decrementAndGet() == 0)
             awaitSemaphore.release();
     }
     
+    /**
+     * Increments the count. Once the count has reached zero once, incrementing the count back above zero will have no affect. 
+     */
     public void countUp()
     {
         count.addAndGet(1);

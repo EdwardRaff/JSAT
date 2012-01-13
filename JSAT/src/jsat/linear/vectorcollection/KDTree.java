@@ -6,6 +6,8 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import jsat.classifiers.DataPointPair;
 import jsat.linear.Vec;
 import jsat.linear.VecPaired;
@@ -17,6 +19,7 @@ import jsat.linear.distancemetrics.MinkowskiDistance;
 import jsat.math.OnLineStatistics;
 import jsat.utils.BoundedSortedList;
 import jsat.utils.BoundedSortedSet;
+import jsat.utils.ModifiableCountDownLatch;
 import jsat.utils.PairedReturn;
 import jsat.utils.ProbailityMatch;
 import static jsat.linear.VecPaired.*;
@@ -39,6 +42,11 @@ public class KDTree<V extends Vec> implements VectorCollection<V>
     private KDNode root;
     private PivotSelection pvSelection;
     
+    /**
+     * KDTree uses an index of the vector at each stage to use as a pivot, 
+     * dividing the remaining elements into two sets. These control the 
+     * method used to determine the pivot at each step. 
+     */
     public enum PivotSelection
     {
         /**
@@ -54,16 +62,58 @@ public class KDTree<V extends Vec> implements VectorCollection<V>
         Variance
     }
 
-    public KDTree(List<V> vecs, DistanceMetric distanceMetric, PivotSelection pvSelection)
+    /**
+     * Creates a new KDTree with the given data and methods. 
+     * 
+     * @param vecs the list of vectors to place in this structure
+     * @param distanceMetric the metric to use for the space
+     * @param pvSelection the method of selection to use for determining what pivot to use. 
+     * @param threadpool the source of threads to use when constructing. Null is permitted,
+     * in which case a serial construction will occur. 
+     */
+    public KDTree(List<V> vecs, DistanceMetric distanceMetric, PivotSelection pvSelection, ExecutorService threadpool)
     {
         if(!( distanceMetric instanceof EuclideanDistance || distanceMetric instanceof ChebyshevDistance || 
               distanceMetric instanceof ManhattanDistance || distanceMetric instanceof MinkowskiDistance) )
             throw new ArithmeticException("KD Trees are not compatible with the given distance metric.");
         this.distanceMetric = distanceMetric;
         this.pvSelection = pvSelection;
-        this.root = buildTree(vecs, 0);
+        if(threadpool == null)
+            this.root = buildTree(vecs, 0, null, null);
+        else
+        {
+            ModifiableCountDownLatch mcdl = new ModifiableCountDownLatch(1);
+            this.root = buildTree(vecs, 0, threadpool, mcdl);
+            try
+            {
+                mcdl.await();
+            }
+            catch (InterruptedException ex)
+            {
+                //Failure, fall back to single threaded version
+                this.root = buildTree(vecs, 0, null, null);
+            }
+        }
     }
     
+    /**
+     * Creates a new KDTree with the given data and methods. 
+     * 
+     * @param vecs the list of vectors to place in this structure
+     * @param distanceMetric the metric to use for the space
+     * @param pvSelection the method of selection to use for determining what pivot to use. 
+     */
+    public KDTree(List<V> vecs, DistanceMetric distanceMetric, PivotSelection pvSelection)
+    {
+        this(vecs, distanceMetric, pvSelection, null);
+    }
+    
+    /**
+     * Creates a new KDTree with the given data and methods. <br>
+     * 
+     * @param vecs the list of vectors to place in this structure
+     * @param distanceMetric the metric to use for the space
+     */
     public KDTree(List<V> vecs, DistanceMetric distanceMetric)
     {
         this(vecs, distanceMetric, PivotSelection.Variance);
@@ -141,14 +191,30 @@ public class KDTree<V extends Vec> implements VectorCollection<V>
         
     }
     
-    private KDNode buildTree(List<V> data, int depth)
+    /**
+     * 
+     * @param data subset of data to work on
+     * @param depth recursion depth
+     * @param threadpool threadpool source. Null is accepted, and means it will be done immediately 
+     * @param mcdl used to wait on for the original caller, only needed when threadpool is non null
+     * @return 
+     */
+    private KDNode buildTree(final List<V> data, final int depth, final ExecutorService threadpool, final ModifiableCountDownLatch mcdl)
     {
         if(data == null || data.isEmpty())
+        {
+            if(threadpool != null)//Threadpool null checks since no thread pool means do single threaded
+                mcdl.countDown();
             return null;
+        }
         int mod = data.get(0).length();
         
         if(data.size() == 1)
+        {
+            if(threadpool != null)
+                mcdl.countDown();
             return new KDNode(data.get(0), depth % mod);
+        }
         
         int pivot = -1;
         if(pvSelection == PivotSelection.Incremental)
@@ -180,13 +246,34 @@ public class KDTree<V extends Vec> implements VectorCollection<V>
         
         Collections.sort(data, new VecIndexComparator(pivot));
         
-        int medianIndex = data.size()/2;
+        final int medianIndex = data.size()/2;
         V median = data.get(medianIndex);
         
-        KDNode node = new KDNode(median, pivot);
+        final KDNode node = new KDNode(median, pivot);
         
-        node.setLeft(buildTree(data.subList(0, medianIndex), depth+1));
-        node.setRight(buildTree(data.subList(medianIndex+1, data.size()), depth+1));
+        //We could save code lines by making only one path threadpool dependent. 
+        //But this order has better locality for single threaded, while the 
+        //reverse call order workes better for multi core
+        if(threadpool == null)
+        {
+            node.setLeft(buildTree(data.subList(0, medianIndex), depth+1, threadpool, mcdl));
+            node.setRight(buildTree(data.subList(medianIndex+1, data.size()), depth+1, threadpool, mcdl));
+        }
+        else//multi threaded
+        {
+            mcdl.countUp();
+            //Right side first, it will start running on a different core
+            threadpool.submit(new Runnable() {
+
+                public void run()
+                {
+                    node.setRight(buildTree(data.subList(medianIndex+1, data.size()), depth+1, threadpool, mcdl));
+                }
+            });
+            
+            //now do the left here, 
+            node.setLeft(buildTree(data.subList(0, medianIndex), depth+1, threadpool, mcdl));
+        }
         
         return node;
     }
@@ -304,12 +391,12 @@ public class KDTree<V extends Vec> implements VectorCollection<V>
         
         public VectorCollection<V> getVectorCollection(List<V> source, DistanceMetric distanceMetric)
         {
-            return new KDTree<V>(source, distanceMetric, pivotSelectionMethod);
+            return getVectorCollection(source, distanceMetric, null);
         }
 
         public VectorCollection<V> getVectorCollection(List<V> source, DistanceMetric distanceMetric, ExecutorService threadpool)
         {
-            return getVectorCollection(source, distanceMetric);
+            return new KDTree<V>(source, distanceMetric, pivotSelectionMethod, threadpool);
         }
     }
 }
