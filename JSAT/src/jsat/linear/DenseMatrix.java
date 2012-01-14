@@ -11,6 +11,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import jsat.utils.FakeExecutor;
 import jsat.utils.SystemInfo;
 import static java.lang.Math.*;
 
@@ -243,6 +244,28 @@ public class DenseMatrix extends Matrix
         return result;
     }
     
+    public Vec transposeMultiply(double c, Vec b)
+    {
+        if(this.rows() != b.length())
+            throw new ArithmeticException("Matrix dimensions do not agree, [" + cols() +"," + rows() + "] x [" + b.length() + ",1]" );
+        
+        double[] x = new double[this.cols()];
+        for(int i = 0; i < rows(); i++)//if b was sparce, we want to skip every time b_i = 0
+        {
+            double b_i = b.get(i);
+            if(b_i == 0)//Skip, not quite as good as sparce handeling
+                continue;//TODO handle sparce input vector better
+            
+            double[] A_i = this.matrix[i];
+            for(int j = 0; j < cols(); j++)
+            {
+                x[j]+= c*b_i*A_i[j];
+            }
+        }
+        
+        return DenseVector.toDenseVec(x);
+    }
+    
     private class VecMultiRun implements Callable<Double>
     {
         final Vec row;
@@ -426,6 +449,69 @@ public class DenseMatrix extends Matrix
         try
         {
             latch.await();
+        }
+        catch (InterruptedException ex)
+        {
+            Logger.getLogger(DenseMatrix.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        
+        return result;
+    }
+    
+    public Matrix transposeMultiply(final Matrix b)
+    {
+        return transposeMultiply(b, new FakeExecutor());
+    }
+            
+    
+    public Matrix transposeMultiply(final Matrix b, ExecutorService threadPool)
+    {
+        if(this.rows() != b.rows())//Normaly it is A_cols == B_rows, but we are doint A'*B, not A*B
+            throw new ArithmeticException("Matrix dimensions do not agree");
+        final DenseMatrix result = new DenseMatrix(this.cols(), b.cols());
+        final DenseMatrix A = this;
+        ///Should choose step size such that 2*NB2^2 * dataTypeSize <= CacheSize
+        
+        final int iLimit = result.rows();
+        final int jLimit = result.cols();
+        final int kLimit = this.rows();
+        
+        final CountDownLatch cdl = new CountDownLatch(maxThreads);
+        
+        for(int threadNum = 0; threadNum < maxThreads; threadNum++)
+        {
+            final int threadID = threadNum;
+            threadPool.submit(new Runnable() {
+
+                public void run()
+                {
+                    for (int i0 = NB2*threadID; i0 < iLimit; i0 += NB2*maxThreads)
+                        for(int k0 = 0; k0 < kLimit; k0+=NB2)
+                            for(int j0 = 0; j0 < jLimit; j0+=NB2)
+                            {
+                                for(int k = k0; k < min(k0+NB2, kLimit); k++)
+                                {
+                                    double[] A_row_k =A.matrix[k];
+
+                                    for(int i = i0; i < min(i0+NB2, iLimit); i++)
+                                    {
+                                        double a = A_row_k[i];
+                                        double[] c_row_i = result.matrix[i];
+
+                                        for(int j = j0; j < min(j0+NB2, jLimit); j++)
+                                            c_row_i[j] += a * b.get(k, j);
+                                        }
+                                    }
+                                }
+                    cdl.countDown();
+                }
+            });
+        }
+        
+        
+        try
+        {
+            cdl.await();
         }
         catch (InterruptedException ex)
         {

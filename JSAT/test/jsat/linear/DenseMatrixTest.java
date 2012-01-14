@@ -374,7 +374,7 @@ public class DenseMatrixTest
         assertEquals(BA, result);
         
         result = A.multiply(C);
-        assertEquals(AC, result);
+        assertEquals(AC, result); 
         
         try
         {
@@ -753,5 +753,134 @@ public class DenseMatrixTest
         qr = C.transpose().qr(threadpool);
         assertTrue(C.transpose().equals(qr[0].multiply(qr[1]), 1e-14));
         assertTrue(DenseMatrix.eye(C.transpose().rows()).equals(qr[0].multiply(qr[0].transpose()), 1e-14));
+    }
+    
+    
+    @Test
+    public void testTransposeMultiply_Matrix()
+    {
+        Matrix result;
+        
+        result = A.transpose().transposeMultiply(B);
+        assertEquals(AB, result);
+        
+        result = B.transpose().transposeMultiply(A);
+        assertEquals(BA, result);
+        
+        result = A.transpose().transposeMultiply(C);
+        assertEquals(AC, result); 
+        
+        result = C.transposeMultiply(A);
+        assertEquals(new DenseMatrix(new double[][] 
+        { 
+            {34,   135,   105,   135,    98},
+            {22,    97,    63,   102,   101},
+            {23,   140,   105,   166,   159},
+            {36,   172,   127,   174,   148},
+            {17,   130,   106,   145,   125},
+            {28,   119,   100,   112,   127},
+            {43,   219,   122,   257,   192},
+        } ), result); 
+        
+        result = C.transposeMultiply(C);
+        assertEquals(new DenseMatrix(new double[][]
+        {
+            {172,    60,    87,   162,   109,   100,   155},
+            { 60,    74,    81,    84,    38,    94,   102},
+            { 87,    81,   138,   124,   111,    89,   190},
+            {162,    84,   124,   181,   134,   125,   187},
+            {109,    38,   111,   134,   154,    50,   170},
+            {100,    94,    89,   125,    50,   143,    99},
+            {155,   102,   190,   187,   170,    99,   309},
+        }), result); 
+        
+        try
+        {
+            C.transpose().transposeMultiply(A);
+            fail("Expected error about matrix dimensions"); 
+        }
+        catch(ArithmeticException ex)
+        {
+            //Good! We expected failure
+        }
+    }
+    
+    @Test
+    public void testTransposeMultiply_Matrix_ExecutorService()
+    {
+        Matrix result;
+        
+        result = A.transpose().transposeMultiply(B, threadpool);
+        assertEquals(AB, result);
+        
+        result = B.transpose().transposeMultiply(A, threadpool);
+        assertEquals(BA, result);
+        
+        result = A.transpose().transposeMultiply(C, threadpool);
+        assertEquals(AC, result); 
+        
+        result = C.transposeMultiply(A, threadpool);
+        assertEquals(new DenseMatrix(new double[][] 
+        { 
+            {34,   135,   105,   135,    98},
+            {22,    97,    63,   102,   101},
+            {23,   140,   105,   166,   159},
+            {36,   172,   127,   174,   148},
+            {17,   130,   106,   145,   125},
+            {28,   119,   100,   112,   127},
+            {43,   219,   122,   257,   192},
+        } ), result); 
+        
+        result = C.transposeMultiply(C, threadpool);
+        assertEquals(new DenseMatrix(new double[][]
+        {
+            {172,    60,    87,   162,   109,   100,   155},
+            { 60,    74,    81,    84,    38,    94,   102},
+            { 87,    81,   138,   124,   111,    89,   190},
+            {162,    84,   124,   181,   134,   125,   187},
+            {109,    38,   111,   134,   154,    50,   170},
+            {100,    94,    89,   125,    50,   143,    99},
+            {155,   102,   190,   187,   170,    99,   309},
+        }), result); 
+        
+        try
+        {
+            C.transpose().transposeMultiply(A, threadpool);
+            fail("Expected error about matrix dimensions"); 
+        }
+        catch(ArithmeticException ex)
+        {
+            //Good! We expected failure
+        }
+    }
+    
+    @Test
+    public void testTransposeMultiply_Double_Vec()
+    {
+        DenseVector b = new DenseVector(Arrays.asList(4.0, 5.0, 2.0, 6.0, 7.0));
+        
+        DenseVector z = new DenseVector(Arrays.asList(2.0, 1.0, 2.0, 3.0, 4.0, 5.0, 0.0));
+        
+        DenseVector Ab = new DenseVector(Arrays.asList(148.0, 110.0, 103.0, 94.0, 149.0));
+        
+        assertEquals(Ab, A.transpose().transposeMultiply(1.0, b));
+        
+        assertEquals(Ab.multiply(7.0), A.transpose().transposeMultiply(7.0, b));
+        
+        DenseVector Cz = new DenseVector(Arrays.asList(62.0, 100.0, 88.0, 74.0, 68.0));
+        
+        assertEquals(Cz, C.transpose().transposeMultiply(1.0, z));
+        
+        assertEquals(Cz.multiply(19.0), C.transpose().transposeMultiply(19.0, z));
+        
+        try
+        {
+            C.transposeMultiply(1.0, z);
+            fail("Dimensions were in disagreement, should not have worked");
+        }
+        catch(Exception ex)
+        {
+            
+        }
     }
 }

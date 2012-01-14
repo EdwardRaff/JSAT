@@ -109,7 +109,42 @@ public abstract class Matrix
      * Transposes the current matrix in place, altering its value. Only valid for square matrices 
      */
     abstract public void mutableTranspose();
+    /**
+     * Returns a new matrix that is the transpose of this matrix. 
+     * @return a new matrix <tt>A</tt>'
+     */
     abstract public Matrix transpose();
+    
+    /**
+     * Computes the result matrix of A'*B, or the same result as <br>
+     * <code>
+     * A.{@link #transpose() transpose()}.{@link #multiply(jsat.linear.Matrix) multiply(B)}
+     * </code>
+     * 
+     * @param b the other Matrix
+     * @return The result of A'*B
+     */
+    abstract public Matrix transposeMultiply(Matrix b);
+    /**
+     * Computes the result matrix of A'*B, or the same result as <br>
+     * <code>
+     * A.{@link #transpose() transpose()}.{@link #multiply(jsat.linear.Matrix) multiply(B)}
+     * </code>
+     * 
+     * @param b the other Matrix
+     * @param threadPool the source of threads to run this computation in parallel
+     * @return The result of A'*B
+     */
+    abstract public Matrix transposeMultiply(Matrix b, ExecutorService threadPool);
+    
+    /**
+     * Computes the result of x = A'*b*c
+     * 
+     * @param c the constant to multiply by
+     * @param b the vector to multiply by
+     * @return the resulting vector of A'*b*c
+     */
+    abstract public Vec transposeMultiply(double c, Vec b);
     
     abstract public double get(int i, int j);
     abstract public void set(int i, int j, double value);
@@ -246,7 +281,7 @@ public abstract class Matrix
                 C.set(i, j, C.get(i, j) + rowCosnt * b.get(j) ); 
         }
     }
-
+    
     /**
      * Creates a new identity matrix with k rows and columns. 
      * @param k the number of rows / columns
