@@ -10,6 +10,7 @@ import javax.swing.BorderFactory;
 import javax.swing.JDialog;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import jsat.DataSet;
 import jsat.linear.Vec;
 
 /**
@@ -19,36 +20,29 @@ import jsat.linear.Vec;
 public class ScatterplotMatrix extends JDialog
 {
 
-    List<Vec> data;
-    String[] titles;
-
-    public ScatterplotMatrix(Frame parent, String title, List<Vec> data, String[] titles)
+    public ScatterplotMatrix(Frame parent, String title, DataSet dataSet)
     {
         super(parent, title, false);
-        this.data = data;
-        this.titles = titles;
-
-        if(data.size() != titles.length)
-            throw new RuntimeException("The number of titles does not match the number of data sets");
 
         JPanel panel = new JPanel();
-        panel.setLayout(new GridLayout(data.size(), data.size()));
+        int numerVals = dataSet.getNumNumericalVars();
+        panel.setLayout(new GridLayout(numerVals, numerVals));
 
-        for(int i = 0; i < data.size(); i++)
+        for(int i = 0; i < numerVals; i++)
         {
-            Vec yAxis = data.get(i);
-            for(int j = 0; j < data.size(); j++)
+            Vec yAxis = dataSet.getNumericColumn(i);
+            for(int j = 0; j < numerVals; j++)
             {
                 if(i == j)
                 {
                     
-                    JLabel tmp = new JLabel(titles[i], JLabel.CENTER);
+                    JLabel tmp = new JLabel(dataSet.getNumericName(i), JLabel.CENTER);
                     tmp.setBorder(BorderFactory.createLineBorder(Color.black));
                     panel.add(tmp);
                     continue;
                 }
 
-                Vec xAxis = data.get(j);
+                Vec xAxis = dataSet.getNumericColumn(j);
 
                 ScatterPlot sp = new ScatterPlot(xAxis, yAxis);
                 sp.setPadding(0);

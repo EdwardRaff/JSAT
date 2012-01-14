@@ -15,6 +15,7 @@ import javax.swing.JTabbedPane;
 import javax.swing.JTextField;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
+import jsat.DataSet;
 import jsat.linear.Vec;
 import jsat.testing.onesample.OneSampleTest;
 import jsat.testing.StatisticTest.H1;
@@ -26,17 +27,17 @@ import jsat.testing.StatisticTest.H1;
 public class OneSampleTestDialog extends JFrame
 {
     final OneSampleTest test;
-    final String[] titles;
-    final List<Vec> data;
+//    final String[] titles;
+//    final List<Vec> data;
+    final DataSet dataSet;
     
     protected JTextField pValueField;
 
-    public OneSampleTestDialog(final OneSampleTest test, final String[] titles, final List<Vec> data)
+    public OneSampleTestDialog(final OneSampleTest test, final DataSet dataSet)
     {
         super(test.testName());
         this.test = test;
-        this.titles = titles;
-        this.data = data;
+        this.dataSet = dataSet;
         
         getContentPane().setLayout(new BorderLayout());
         
@@ -169,8 +170,11 @@ public class OneSampleTestDialog extends JFrame
         ///Now the Set using data tab
         JPanel datasetPanel = new JPanel();
         
-        if(titles != null && titles.length > 0)//The data may not be loaded, but they know the statitics
+        if(dataSet.getNumNumericalVars() > 0)//The data may not be loaded, but they know the statitics
         {
+            String[] titles = new String[dataSet.getNumNumericalVars()];
+            for(int i= 0; i < titles.length; i++)
+                titles[i] = dataSet.getNumericName(i);
             final JComboBox dataCB = new JComboBox(titles);
 
 
@@ -180,7 +184,7 @@ public class OneSampleTestDialog extends JFrame
                 {
                     try
                     {
-                        test.setTestUsingData(data.get(dataCB.getSelectedIndex())); 
+                        test.setTestUsingData(dataSet.getNumericColumn(dataCB.getSelectedIndex())); 
                         pValueField.setText(Double.toString(test.pValue()));
                     }
                     catch(Exception ex)

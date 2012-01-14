@@ -4,6 +4,7 @@ package jsat.guitool;
 
 import java.util.List;
 import javax.swing.table.AbstractTableModel;
+import jsat.DataSet;
 import jsat.linear.Vec;
 
 /**
@@ -14,15 +15,13 @@ public class VecTableModel extends AbstractTableModel
 {
     private final int rows;
     private final int columns;
-    private final String headers[];
-    private final List<Vec> data;
+    private final DataSet dataSet;
 
-    public VecTableModel(List<Vec> data, String[] headers)
+    public VecTableModel(DataSet dataSet)
     {
-        this.data = data;
-        this.rows = data.get(0).length();
-        this.columns = headers.length;
-        this.headers = headers;
+        this.dataSet = dataSet;
+        this.rows = dataSet.getSampleSize();
+        this.columns = dataSet.getNumNumericalVars() + dataSet.getNumCategoricalVars();
     }
 
     public int getRowCount()
@@ -34,25 +33,31 @@ public class VecTableModel extends AbstractTableModel
     {
         return columns;
     }
-
+    
     @Override
     public String getColumnName(int column)
     {
-        return headers[column];
+        if(column < dataSet.getNumCategoricalVars())
+            return dataSet.getCategoryName(column);
+        else
+            return dataSet.getNumericName(column - dataSet.getNumCategoricalVars());
     }
 
     public Object getValueAt(int rowIndex, int columnIndex)
     {
-        return data.get(columnIndex).get(rowIndex);
+        if(columnIndex < dataSet.getNumCategoricalVars())
+            return dataSet.getCategories()[columnIndex].catName(dataSet.getDataPoint(rowIndex).getCategoricalValue(columnIndex));
+        else 
+            return dataSet.getDataPoint(rowIndex).getNumericalValues().get(columnIndex - dataSet.getNumCategoricalVars());
     }
 
     @Override
     public void setValueAt(Object aValue, int rowIndex, int columnIndex)
     {
         if(aValue instanceof Double)
-            data.get(columnIndex).set(rowIndex, (Double)aValue);
+            dataSet.getDataPoint(rowIndex).getNumericalValues().set(columnIndex, (Double) aValue);
         else if(aValue instanceof String)
-            data.get(columnIndex).set(rowIndex, Double.parseDouble((String)aValue)); 
+            dataSet.getDataPoint(rowIndex).getNumericalValues().set(columnIndex, Double.parseDouble((String)aValue));
     }
 
 

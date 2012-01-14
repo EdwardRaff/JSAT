@@ -30,6 +30,9 @@ public class RegressionDataSet extends DataSet<RegressionDataSet>
         this.numNumerVals = numerical;
         this.categories = categories;
         dataPoints = new ArrayList<DataPointPair<Double>>();
+        this.numericalVariableNames = new ArrayList<String>(getNumNumericalVars());
+        for(int i = 0; i < getNumNumericalVars(); i++)
+            this.numericalVariableNames.add("Numeric Input " + (i+1));
     }
     
     public RegressionDataSet(List<DataPoint> data, int predicting)
@@ -63,6 +66,10 @@ public class RegressionDataSet extends DataSet<RegressionDataSet>
             
             dataPoints.add(dpp);
         }
+        
+        this.numericalVariableNames = new ArrayList<String>(getNumNumericalVars());
+        for(int i = 0; i < getNumNumericalVars(); i++)
+            this.numericalVariableNames.add("Numeric Input " + (i+1));
     }
     
     public static RegressionDataSet comineAllBut(List<RegressionDataSet> list, int exception)

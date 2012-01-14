@@ -5,6 +5,7 @@ import java.awt.BorderLayout;
 import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.util.ArrayList;
 import java.util.List;
 import javax.swing.BorderFactory;
 import javax.swing.JComboBox;
@@ -13,6 +14,8 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextField;
+import jsat.DataSet;
+import jsat.classifiers.DataPoint;
 import jsat.linear.Vec;
 
 /**
@@ -25,14 +28,15 @@ public class SingleVariableViewDialog extends JDialog
     final List<Vec> dataSets;
     final String[] titles;
 
-    public SingleVariableViewDialog(List<Vec> dataSetss, String[] titless)
+    public SingleVariableViewDialog(DataSet dataSet)
     {
-        if(dataSetss.size() != titless.length)
-            throw new RuntimeException("Even number of titles and data sets");
-
         panel = new JPanel(new BorderLayout());
-        this.dataSets = dataSetss;
-        this.titles = titless;
+        this.dataSets = new ArrayList<Vec>(dataSet.getSampleSize());
+        for(DataPoint dp : (List<DataPoint>) dataSet.getDataPoints())
+            this.dataSets.add(dp.getNumericalValues());
+        this.titles = new String[dataSet.getNumNumericalVars()];
+        for(int i = 0; i < titles.length; i++)
+            titles[i] = dataSet.getNumericName(i);
 
         final JComboBox jc = new JComboBox(titles);
 

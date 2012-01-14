@@ -8,6 +8,7 @@ import java.util.Random;
 import jsat.classifiers.CategoricalData;
 import jsat.classifiers.DataPoint;
 import jsat.classifiers.DataTransform;
+import jsat.linear.DenseVector;
 import jsat.linear.Vec;
 import jsat.math.OnLineStatistics;
 
@@ -25,8 +26,43 @@ public abstract class DataSet<D extends DataSet>
      * Contains the categories for each of the categorical variables
      */
     protected CategoricalData[] categories;
+    /**
+     * The list, in order, of the names of the numeric variables. 
+     * This should be filled with default values on construction,
+     * that can then be changed later. 
+     */
+    protected List<String> numericalVariableNames;
     
+    public boolean setNumericName(String name, int i)
+    {
+        name = name.toLowerCase();
+        
+        if(numericalVariableNames.contains(name))
+            return false;
+        else if(i < getNumNumericalVars() && i >= 0)
+            numericalVariableNames.set(i, name);
+        else
+            return false;
+        
+        return true;
+    }
+
+    public String getNumericName(int i )
+    {
+        if(i < getNumNumericalVars() && i >= 0)
+            return numericalVariableNames.get(i);
+        else
+            throw new IndexOutOfBoundsException("Can not acces variable for invalid index  " + i );
+    }
     
+    public String getCategoryName(int i )
+    {
+        if(i < getNumCategoricalVars() && i >= 0)
+            return categories[i].getCategoryName();
+        else
+            throw new IndexOutOfBoundsException("Can not acces variable for invalid index  " + i );
+    }
+        
     public void applyTransform(DataTransform dt)
     {
         for(int i = 0; i < getSampleSize(); i++)
@@ -34,6 +70,9 @@ public abstract class DataSet<D extends DataSet>
         //TODO this should be added to DataTransform
         numNumerVals = getDataPoint(0).numNumericalValues();
         categories = getDataPoint(0).getCategoricalData();
+        this.numericalVariableNames.clear();
+        for(int i = 0; i < getNumNumericalVars(); i++)
+            numericalVariableNames.add("Transformed Numeric Variable " + (i+1));
     }
     
     /**
@@ -150,5 +189,24 @@ public abstract class DataSet<D extends DataSet>
         for(int i = 0; i < getSampleSize(); i++)
             list.add(getDataPoint(i));
         return list;
+    }
+    
+    /**
+     * The data set can be seen as a NxM matrix, were each row is a 
+     * data point, and each column the values for a particular 
+     * variable. This method grabs all the numerical values for
+     * a 'column' and returns it as one vector. 
+     * 
+     * @param i the i'th numerical variable to obtain all values of
+     * @return a Vector of length {@link #getSampleSize() }
+     */
+    public Vec getNumericColumn(int i )
+    {
+        if(i < 0 || i >= getNumNumericalVars())
+            throw new IndexOutOfBoundsException("There is no index for column " + i);
+        DenseVector dv = new DenseVector(getSampleSize());
+        for(int j = 0; j < getSampleSize(); j++)
+            dv.set(j, getDataPoint(j).getNumericalValues().get(i));
+        return dv;
     }
 }

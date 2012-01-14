@@ -65,6 +65,9 @@ public class ClassificationDataSet extends DataSet<ClassificationDataSet>
         }
         
         numOfSamples = data.size();
+        this.numericalVariableNames = new ArrayList<String>(getNumNumericalVars());
+        for(int i = 0; i < getNumNumericalVars(); i++)
+            this.numericalVariableNames.add("Numeric Input " + (i+1));
     }
     
     
@@ -77,6 +80,9 @@ public class ClassificationDataSet extends DataSet<ClassificationDataSet>
         classifiedExamples = new ArrayList<List<DataPoint>>();
         for(int i = 0; i < predicting.getNumOfCategories(); i++)
             classifiedExamples.add(new ArrayList<DataPoint>());
+        this.numericalVariableNames = new ArrayList<String>(getNumNumericalVars());
+        for(int i = 0; i < getNumNumericalVars(); i++)
+            this.numericalVariableNames.add("Numeric Input " + (i+1));
     }
     
     /**

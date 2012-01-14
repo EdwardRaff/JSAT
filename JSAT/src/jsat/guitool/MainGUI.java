@@ -29,6 +29,8 @@ import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
+import jsat.ARFFLoader;
+import jsat.SimpleDataSet;
 import jsat.distributions.ChiSquared;
 import jsat.distributions.ContinousDistribution;
 import jsat.distributions.Exponential;
@@ -67,8 +69,7 @@ public class MainGUI extends javax.swing.JFrame
         new Uniform(0, 1)
     };
     
-    String[] titles;
-    List<Vec> data;
+    SimpleDataSet data;
 
     /** Creates new form MainGUI */
     public MainGUI()
@@ -276,26 +277,9 @@ public class MainGUI extends javax.swing.JFrame
             File file = jfc.getSelectedFile();
             try
             {
-                BufferedReader br = new BufferedReader(new FileReader(file));
+                data = ARFFLoader.loadArffFile(file);
 
-                titles = br.readLine().replaceAll(" +","").split(",");
-                List<ArrayList<Double>> newData = new ArrayList<ArrayList<Double>>(titles.length);
-                for(int i = 0; i < titles.length; i++)
-                    newData.add(new ArrayList<Double>());
-                String line = null;
-
-                while( (line = br.readLine()) != null)
-                {
-                    String[] tmp = line.replaceAll(" +","").split(",");
-                    for(int i = 0; i < titles.length; i++)
-                        newData.get(i).add(Double.parseDouble(tmp[i]));
-                }
-
-                data = new ArrayList<Vec>(titles.length);
-                for(int i = 0; i < titles.length; i++)
-                    data.add(new DenseVector(newData.get(i)));
-
-                VecTableModel vt = new VecTableModel(data, titles);
+                VecTableModel vt = new VecTableModel(data);
                 JTable jt  = new JTable(vt);
                 getContentPane().removeAll();
                 getContentPane().add(new JScrollPane(jt));
@@ -309,11 +293,7 @@ public class MainGUI extends javax.swing.JFrame
                 jMenuItemTest.setEnabled(true);
                 jMenuItemSingleVariable.setEnabled(true);
             }
-            catch (FileNotFoundException ex)
-            {
-
-            }
-            catch (IOException ex)
+            catch (Exception ex)
             {
 
             }
@@ -327,34 +307,27 @@ public class MainGUI extends javax.swing.JFrame
 
     private void jMenuItemTestActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_jMenuItemTestActionPerformed
     {//GEN-HEADEREND:event_jMenuItemTestActionPerformed
-        DataSetSelection dss = new DataSetSelection(this, "Make a Selection", titles, titles);
-        int[] selectinos = dss.getSelections();
-        System.out.println(Arrays.toString(selectinos));
 
-
-        //JFrame jf = new JFrame("Test");
-//        jf.add(new DataSetSelection(titles, titles));
-//        jf.pack();
-//        jf.setVisible(true);
     }//GEN-LAST:event_jMenuItemTestActionPerformed
 
     private void jMenuItemScatterActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_jMenuItemScatterActionPerformed
     {//GEN-HEADEREND:event_jMenuItemScatterActionPerformed
-        if(data == null || data.size() < 2)
+        if(data == null || data.getNumNumericalVars() < 2)
         {
             JOptionPane.showMessageDialog(null, "You need at least 2 sets of data for a scatter plot", "Scatter Plot error", JOptionPane.ERROR_MESSAGE);
             return;
         }
 
-        DataSetSelection dss = new DataSetSelection(null, "Select X and Y Axis", titles, new String[]{"X axis", "Y axis"});
+        DataSetSelection dss = new DataSetSelection(null, "Select X and Y Axis", data, new String[]{"X axis", "Y axis"});
         int[] axie =  dss.getSelections();
 
-        ScatterPlot sp = new ScatterPlot(data.get(axie[0]), data.get(axie[1]));
+        
+        ScatterPlot sp = new ScatterPlot(data.getNumericColumn(axie[0]), data.getNumericColumn(axie[1]));
 
-        sp.setXAxisTtile(titles[axie[0]]);
-        sp.setYAxisTtile(titles[axie[1]]);
+        sp.setXAxisTtile(data.getNumericName(axie[0]));
+        sp.setYAxisTtile(data.getNumericName(axie[1]));
 
-        GraphDialog gd = new GraphDialog(null, "Sactter Plot of " + titles[axie[0]] + " & " + titles[axie[1]], sp);
+        GraphDialog gd = new GraphDialog(null, "Sactter Plot of " + data.getNumericName(axie[0]) + " & " + data.getNumericName(axie[1]), sp);
 
         gd.setSize(300, 300);
         gd.setVisible(true);
@@ -364,22 +337,22 @@ public class MainGUI extends javax.swing.JFrame
 
     private void jMenuItemQQDistActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_jMenuItemQQDistActionPerformed
     {//GEN-HEADEREND:event_jMenuItemQQDistActionPerformed
-        DataSetSelection dss = new DataSetSelection(null, "Select data to check", titles, new String[]{"QQ Plot Data"});
+        DataSetSelection dss = new DataSetSelection(null, "Select data to check", data, new String[]{"QQ Plot Data"});
 
         int[] axie =  dss.getSelections();
 
         //Pre set the distributions to have paramaters assuming that they match the data
         for(int i = 0; i < distributions.length; i++)
-            distributions[i].setUsingData(data.get(axie[0]));
+            distributions[i].setUsingData(data.getNumericColumn(axie[0]));
 
         DistributionSelectionDialog dsd = new DistributionSelectionDialog(null, "Select distribution to compare against", distributions);
         
         ContinousDistribution dist = dsd.getDistribution();
 
-        QQPlotDistribution qq = new QQPlotDistribution(dist, data.get(axie[0]));
+        QQPlotDistribution qq = new QQPlotDistribution(dist, data.getNumericColumn(axie[0]));
 
-        qq.setYAxisTtile(titles[axie[0]]);
-        GraphDialog gd = new GraphDialog(null, "QQ Plot of " +  titles[axie[0]] , qq);
+        qq.setYAxisTtile(data.getNumericName(axie[0]));
+        GraphDialog gd = new GraphDialog(null, "QQ Plot of " +  data.getNumericName(axie[0]) , qq);
 
 
         gd.setSize(300, 300);
@@ -388,15 +361,15 @@ public class MainGUI extends javax.swing.JFrame
 
     private void jMenuItemQQDataActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_jMenuItemQQDataActionPerformed
     {//GEN-HEADEREND:event_jMenuItemQQDataActionPerformed
-        DataSetSelection dss = new DataSetSelection(null, "Select data to check", titles, new String[]{"X Axis", "Y Axis"});
+        DataSetSelection dss = new DataSetSelection(null, "Select data to check", data, new String[]{"X Axis", "Y Axis"});
         int[] axie =  dss.getSelections();
 
-        QQPlotData qq = new QQPlotData(data.get(axie[0]), data.get(axie[1]));
+        QQPlotData qq = new QQPlotData(data.getNumericColumn(axie[0]), data.getNumericColumn(axie[1]));
 
-        qq.setXAxisTtile(titles[axie[0]]);
-        qq.setYAxisTtile(titles[axie[1]]);
+        qq.setXAxisTtile(data.getNumericName(axie[0]));
+        qq.setYAxisTtile(data.getNumericName(axie[1]));
 
-        GraphDialog gd = new GraphDialog(null, "QQ Plot of " + titles[axie[0]] + " & " + titles[axie[1]], qq);
+        GraphDialog gd = new GraphDialog(null, "QQ Plot of " + data.getNumericName(axie[0]) + " & " + data.getNumericName(axie[1]), qq);
 
         gd.setSize(300, 300);
         gd.setVisible(true);
@@ -404,14 +377,14 @@ public class MainGUI extends javax.swing.JFrame
 
     private void jMenuItemSingleVariableActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_jMenuItemSingleVariableActionPerformed
     {//GEN-HEADEREND:event_jMenuItemSingleVariableActionPerformed
-        SingleVariableViewDialog svvd = new SingleVariableViewDialog(data, titles);
+        SingleVariableViewDialog svvd = new SingleVariableViewDialog(data);
         svvd.pack();
         svvd.setVisible(true);
     }//GEN-LAST:event_jMenuItemSingleVariableActionPerformed
 
     private void jMenuItemScatterMatrixActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_jMenuItemScatterMatrixActionPerformed
     {//GEN-HEADEREND:event_jMenuItemScatterMatrixActionPerformed
-        ScatterplotMatrix sm = new ScatterplotMatrix(null, "Scatter Matrix", data, titles);
+        ScatterplotMatrix sm = new ScatterplotMatrix(null, "Scatter Matrix", data);
 
         sm.setSize(600, 600);
         sm.setVisible(true);
@@ -419,14 +392,14 @@ public class MainGUI extends javax.swing.JFrame
 
     private void jMenuItemHistoActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_jMenuItemHistoActionPerformed
     {//GEN-HEADEREND:event_jMenuItemHistoActionPerformed
-        DataSetSelection dss = new DataSetSelection(null, "Select data to create histogram from", titles, new String[]{"Histogram Data"});
+        DataSetSelection dss = new DataSetSelection(null, "Select data to create histogram from", data, new String[]{"Histogram Data"});
         int[] axie =  dss.getSelections();
 
-        Histogram hh = new Histogram(data.get(axie[0]));
+        Histogram hh = new Histogram(data.getNumericColumn(axie[0]));
 
-        hh.setXAxisTtile(titles[axie[0]]);
+        hh.setXAxisTtile(data.getNumericName(axie[0]));
 
-        GraphDialog gd = new GraphDialog(null, "Histogram of " + titles[axie[0]], hh);
+        GraphDialog gd = new GraphDialog(null, "Histogram of " + data.getNumericName(axie[0]), hh);
 
         gd.setSize(300, 300);
         gd.setVisible(true);
@@ -434,16 +407,16 @@ public class MainGUI extends javax.swing.JFrame
 
     private void jMenuItemLinearRegressActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_jMenuItemLinearRegressActionPerformed
     {//GEN-HEADEREND:event_jMenuItemLinearRegressActionPerformed
-        if(data.size() < 2)
+        if(data.getNumNumericalVars() < 2)
         {
             JOptionPane.showMessageDialog(null, "You need at least 2 sets of data for Linear Regression", "Linear Regression error", JOptionPane.ERROR_MESSAGE);
             return;
         }
         
-        DataSetSelection dss = new DataSetSelection(null, "Select data to perform Linear Regression on", titles, new String[]{"Y data", "X data"});
+        DataSetSelection dss = new DataSetSelection(null, "Select data to perform Linear Regression on", data, new String[]{"Y data", "X data"});
         int[] axie =  dss.getSelections();
 
-        final double[] ab = SimpleLinearRegression.regres(data.get(axie[1]), data.get(axie[0]));
+        final double[] ab = SimpleLinearRegression.regres(data.getNumericColumn(axie[1]), data.getNumericColumn(axie[0]));
         
         Function linearFunc = new Function() {
 
@@ -458,14 +431,16 @@ public class MainGUI extends javax.swing.JFrame
             }
         };
 
-        ScatterPlot sp = new ScatterPlot(data.get(axie[1]), data.get(axie[0]));
+        ScatterPlot sp = new ScatterPlot(data.getNumericColumn(axie[1]), data.getNumericColumn(axie[0]));
 
         sp.setRegressionFunction(linearFunc);
-        sp.setXAxisTtile(titles[axie[1]]);
-        sp.setYAxisTtile(titles[axie[0]]);
+        sp.setXAxisTtile(data.getNumericName(axie[1]));
+        sp.setYAxisTtile(data.getNumericName(axie[0]));
 
         
-        GraphDialog gd = new GraphDialog(null, "y = " + ab[0] + " + " + ab[1] + "x, Linear Regression of " + titles[axie[0]] + " & " + titles[axie[1]], sp);
+        GraphDialog gd = new GraphDialog(null, "y = " + ab[0] + " + " + ab[1] + 
+                "x, Linear Regression of " + data.getNumericName(axie[0]) + 
+                " & " + data.getNumericName(axie[1]), sp);
 
         gd.setSize(300, 300);
         gd.setVisible(true);
@@ -476,20 +451,20 @@ public class MainGUI extends javax.swing.JFrame
     private void jMenuKSSearchActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_jMenuKSSearchActionPerformed
     {//GEN-HEADEREND:event_jMenuKSSearchActionPerformed
         DataSetSelection dss = new DataSetSelection(null, "Select data to attempt to detect the distribution of",
-                titles, new String[]{"Data Set"});
+                data, new String[]{"Data Set"});
         
         
         int[] axie = dss.getSelections();
         for (int i = 0; i < distributions.length; i++)
             try
             {
-                distributions[i].setUsingData(data.get(axie[0]));
+                distributions[i].setUsingData(data.getNumericColumn(axie[0]));
             }
             catch (RuntimeException ex)
             {
             }
         
-        KSTest ks = new KSTest(data.get(axie[0])) ;
+        KSTest ks = new KSTest(data.getNumericColumn(axie[0])) ;
         List<ProbailityMatch<ContinousDistribution>> pValues = 
                 new ArrayList<ProbailityMatch<ContinousDistribution>>(distributions.length);
         
@@ -511,7 +486,7 @@ public class MainGUI extends javax.swing.JFrame
         
         JList jl = new JList(possible);
 
-        JFrame jf = new JFrame("Possiible Distribution matches for " + titles[axie[0]]);
+        JFrame jf = new JFrame("Possiible Distribution matches for " + data.getNumericName(axie[0]));
         if(possible.length > 0)
         {
             JPanel jp = new JPanel(new GridLayout(1, 1));
@@ -531,7 +506,7 @@ public class MainGUI extends javax.swing.JFrame
 
     private void jMenuItemOneSampZActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_jMenuItemOneSampZActionPerformed
     {//GEN-HEADEREND:event_jMenuItemOneSampZActionPerformed
-        OneSampleTestDialog dia = new OneSampleTestDialog(new ZTest(), titles, data);
+        OneSampleTestDialog dia = new OneSampleTestDialog(new ZTest(), data);
         
         dia.setSize(300, 300);
         dia.setVisible(true);
@@ -539,7 +514,7 @@ public class MainGUI extends javax.swing.JFrame
 
     private void jMenuItemOneSamTActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_jMenuItemOneSamTActionPerformed
     {//GEN-HEADEREND:event_jMenuItemOneSamTActionPerformed
-        OneSampleTestDialog dia = new OneSampleTestDialog(new TTest(), titles, data);
+        OneSampleTestDialog dia = new OneSampleTestDialog(new TTest(), data);
         
         dia.setSize(300, 300);
         dia.setVisible(true);

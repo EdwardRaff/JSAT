@@ -23,6 +23,9 @@ public class SimpleDataSet extends DataSet<SimpleDataSet>
         this.dataPoints = dataPoints;
         this.categories =  dataPoints.get(0).getCategoricalData();
         this.numNumerVals = dataPoints.get(0).numNumericalValues();
+        this.numericalVariableNames = new ArrayList<String>(this.numNumerVals);
+        for(int i = 0; i < getNumNumericalVars(); i++)
+            this.numericalVariableNames.add("Numeric Input " + (i+1));
     }
 
     public SimpleDataSet(CategoricalData[] categories, int numNumericalValues)

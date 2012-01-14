@@ -9,6 +9,10 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map.Entry;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import java.util.regex.PatternSyntaxException;
 import jsat.classifiers.CategoricalData;
 import jsat.classifiers.DataPoint;
 import jsat.linear.DenseVector;
@@ -38,6 +42,7 @@ public class ARFFLoader
         int numOfVars = 0;
         int numReal = 0;
         List<Boolean> isReal = new ArrayList<Boolean>();
+        List<String> variableNames = new ArrayList<String>();
         List<HashMap<String, Integer>> catVals = new  ArrayList<HashMap<String, Integer>>();
         String line = null;
         CategoricalData[] categoricalData = null;
@@ -64,7 +69,13 @@ public class ARFFLoader
                         for(int i = 0; i < catVals.size(); i++)
                         {
                             if(catVals.get(i) != null)
-                                categoricalData[k++] = new CategoricalData(catVals.get(i).size());
+                            {
+                                categoricalData[k] = new CategoricalData(catVals.get(i).size());
+                                categoricalData[k].setCategoryName(variableNames.get(i));
+                                for(Entry<String, Integer> entry : catVals.get(i).entrySet())
+                                    categoricalData[k].setOptionName(entry.getKey(), entry.getValue());
+                                k++;
+                            }
                         }
                         
                         atData = true;
@@ -75,10 +86,22 @@ public class ARFFLoader
                     numOfVars++;
                     line = line.substring("attribute".length()).trim();//Remove the space, it could be multiple spaces
                     
+                    String variableName = null;
                     line = line.replace("\t", " ");
                     if(line.startsWith("'"))
+                    {
+                        Pattern p = Pattern.compile("'.+?'");
+                        Matcher m = p.matcher(line);
+                        m.find();
+                        variableName = nameTrim(m.group());
+                                
                         line = line.replaceFirst("'.+?'", "placeHolder");
+                    }
+                    else
+                        variableName = nameTrim(line.trim().replaceAll("\\s+.*", ""));
+                    variableNames.add(variableName);
                     String[] tmp = line.split("\\s+", 2);
+                    
                     
                     if(tmp[1].trim().equals("real") || tmp[1].trim().equals("numeric") || tmp[1].trim().startsWith("integer"))
                     {
@@ -95,7 +118,10 @@ public class ARFFLoader
                         String[] catValsRaw =  cats.split(",");
                         HashMap<String, Integer> tempMap = new HashMap<String, Integer>();
                         for(int i = 0; i < catValsRaw.length; i++)
-                            tempMap.put(catValsRaw[i].trim(), i);
+                        {
+                            catValsRaw[i] = nameTrim(catValsRaw[i]);
+                            tempMap.put(catValsRaw[i], i);
+                        }
                         catVals.add(tempMap);
                     }
                 }
@@ -115,6 +141,7 @@ public class ARFFLoader
                             vec.set(i - k, Double.parseDouble(tmp[i].trim()));
                         else//Categorical
                         {
+                            tmp[i] = nameTrim(tmp[i]);
                             cats[k++] = catVals.get(i).get(tmp[i].trim().toLowerCase());
                         }
                     }
@@ -128,6 +155,27 @@ public class ARFFLoader
             
         }
         
-        return new SimpleDataSet(list);
+        SimpleDataSet dataSet =  new SimpleDataSet(list);
+        int k = 0;
+        for (int i = 0; i < isReal.size(); i++)
+            if (isReal.get(i))
+                dataSet.setNumericName(variableNames.get(k), k++);
+        
+        return dataSet;
+    }
+    
+    /**
+     * Removes the quotes at the end and front of a string if there are any, as well as spaces at the front and end
+     * @param in
+     * @return 
+     */
+    private static String nameTrim(String in)
+    {
+        in = in.trim();
+        if(in.startsWith("'") || in.startsWith("\""))
+            in = in.substring(1);
+        if(in.endsWith("'") || in.startsWith("\""))
+            in = in.substring(0, in.length()-1);
+        return in.trim();
     }
 }

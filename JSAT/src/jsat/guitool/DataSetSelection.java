@@ -16,6 +16,7 @@ import javax.swing.JDialog;
 import javax.swing.JList;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
+import jsat.DataSet;
 
 /**
  *
@@ -28,10 +29,12 @@ public class DataSetSelection extends JDialog
     final String[] reasons;
     JComboBox[] boxs;
 
-    public DataSetSelection(Frame parent, String title, String[] dataSelections, String[] reasons)
+    public DataSetSelection(Frame parent, String title, DataSet dataSet, String[] reasons)
     {
         super(parent, title, true);
-        this.dataSelections = dataSelections;
+        this.dataSelections = new String[dataSet.getNumNumericalVars()];
+        for(int i = 0; i < dataSelections.length; i++)
+            this.dataSelections[i] = dataSet.getNumericName(i);
         this.reasons = reasons;
         boxs = new JComboBox[reasons.length];
         
