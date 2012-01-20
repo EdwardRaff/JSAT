@@ -54,7 +54,7 @@ public class OnLineStatisticsTest
     @Test
     public void testAdd_double()
     {
-        System.out.println("add");
+        System.out.println("add(double)");
         OnLineStatistics stats = new OnLineStatistics();
         for(double x :  data)
             stats.add(x);
@@ -65,6 +65,22 @@ public class OnLineStatisticsTest
         assertEquals(max, stats.getMax(), 1e-8);
         assertEquals(min, stats.getMin(), 1e-8);
     }
+    
+    @Test
+    public void testAdd_double_double()
+    {
+        System.out.println("add(double, double)");
+        OnLineStatistics stats = new OnLineStatistics();
+        stats.add(10, 10);
+        stats.add(100,1);
+        assertEquals(200.0/11.0, stats.getMean(), 1e-10); 
+        assertEquals(8100.0/11.0, stats.getVarance(), 1e-10); 
+        assertEquals(9.0/Math.sqrt(10), stats.getSkewness(), 1e-10); 
+        assertEquals(91.0/10.0-3.0, stats.getKurtosis(), 1e-10); 
+        assertEquals(10, stats.getMin(), 0.0);
+        assertEquals(100, stats.getMax(), 0.0);
+    }
+            
 
     /**
      * Test of add method, of class OnLineStatistics.
