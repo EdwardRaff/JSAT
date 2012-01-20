@@ -1,6 +1,7 @@
 
 package jsat.classifiers.bayesian;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
@@ -78,7 +79,25 @@ public class NaiveBayes implements Classifier
 
     public Classifier copy()
     {
-        throw new UnsupportedOperationException("Not Yet Implemeneted");
+        NaiveBayes newBayes = new NaiveBayes();
+        
+        newBayes.apriori = new double[this.apriori.length][][];
+        for(int i = 0; i < this.apriori.length; i++)
+        {
+            newBayes.apriori[i] = new double[this.apriori[i].length][];
+            for(int j = 0; this.apriori[i].length > 0 && j < this.apriori[i][j].length; j++)
+                newBayes.apriori[i][j] = Arrays.copyOf(this.apriori[i][j], this.apriori[i][j].length);
+        }
+        
+        newBayes.distributions = new ContinousDistribution[this.distributions.length][];
+        for(int i = 0; i < this.distributions.length; i++)
+        {
+            newBayes.distributions[i] = new ContinousDistribution[this.distributions[i].length];
+            for(int j = 0; j < this.distributions[i].length; j++)
+                newBayes.distributions[i][j] = this.distributions[i][j].copy();
+        }
+        
+        return newBayes;
     }
 
     public boolean supportsWeightedData()
