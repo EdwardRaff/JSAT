@@ -7,8 +7,10 @@ import java.util.List;
 import java.util.Random;
 import jsat.classifiers.CategoricalData;
 import jsat.classifiers.DataPoint;
-import jsat.classifiers.DataTransform;
+import jsat.datatransform.DataTransform;
+import jsat.linear.DenseMatrix;
 import jsat.linear.DenseVector;
+import jsat.linear.Matrix;
 import jsat.linear.Vec;
 import jsat.math.OnLineStatistics;
 
@@ -208,5 +210,25 @@ public abstract class DataSet<D extends DataSet>
         for(int j = 0; j < getSampleSize(); j++)
             dv.set(j, getDataPoint(j).getNumericalValues().get(i));
         return dv;
+    }
+    
+    /**
+     * Creates a matrix from the data set, where each row represent a data
+     * point, and each column is one of the numeric example from the data set. 
+     * 
+     * @return a matrix of the data points. 
+     */
+    public Matrix getDataMatrix()
+    {
+        DenseMatrix matrix = new DenseMatrix(this.getSampleSize(), this.getNumNumericalVars());
+        
+        for(int i = 0; i < getSampleSize(); i++)
+        {
+            Vec row = getDataPoint(i).getNumericalValues();
+            for(int j = 0; j < row.length(); j++)
+                matrix.set(i, j, row.get(j));
+        }
+        
+        return matrix;
     }
 }

@@ -1,5 +1,7 @@
 
-package jsat.classifiers;
+package jsat.datatransform;
+
+import jsat.classifiers.DataPoint;
 
 /**
  *

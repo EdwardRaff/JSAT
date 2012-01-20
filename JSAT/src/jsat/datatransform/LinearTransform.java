@@ -1,7 +1,8 @@
 
-package jsat.classifiers;
+package jsat.datatransform;
 
 import jsat.DataSet;
+import jsat.classifiers.DataPoint;
 import jsat.linear.DenseVector;
 import jsat.linear.Vec;
 import jsat.math.OnLineStatistics;
