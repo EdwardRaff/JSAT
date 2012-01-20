@@ -1,8 +1,10 @@
 
 package jsat.classifiers;
 
+import java.util.Arrays;
+
 /**
- *
+ * This class represents the probabilities for each possible result classification. 
  * @author Edward Raff
  */
 public class CategoricalResults
@@ -10,6 +12,10 @@ public class CategoricalResults
     private int n;//The number of categories
     private double[] probabilities;
 
+    /**
+     * Create a new Categorical Results, values will default to all zero. 
+     * @param numCategories the number of options to support. 
+     */
     public CategoricalResults(int numCategories)
     {
         n = numCategories;
@@ -18,16 +24,38 @@ public class CategoricalResults
 
     /**
      * Sets the probability that a sample belongs to a given category. 
-     * @param cat
-     * @param prob 
+     * @param cat the category
+     * @param prob the value to set, may be greater then one. 
+     * @throws IndexOutOfBoundsException if a non existent category is specified
+     * @throws ArithmeticException if the value set is negative or not a number
      */
     public void setProb(int cat, double prob)
     {
+        if(cat > probabilities.length)
+            throw new IndexOutOfBoundsException("There are only " + probabilities.length + " posibilties, " + cat + " is invalid");
+        else if(prob < 0 || Double.isInfinite(prob) || Double.isNaN(prob))
+            throw new ArithmeticException("Only zero and positive values are valid, not " + prob);
         probabilities[cat] = prob;
     }
     
     /**
-     * 
+     * Increments the stored probability that a sample belongs to a given category 
+     * @param cat the category
+     * @param prob  the value to increment by, may be greater then one. 
+     * @throws IndexOutOfBoundsException if a non existent category is specified
+     * @throws ArithmeticException if the value set is negative or not a number
+     */
+    public void incProb(int cat, double prob)
+    {
+        if(cat > probabilities.length)
+            throw new IndexOutOfBoundsException("There are only " + probabilities.length + " posibilties, " + cat + " is invalid");
+        else if(prob < 0 || Double.isInfinite(prob) || Double.isNaN(prob))
+            throw new ArithmeticException("Only zero and positive values are valid, not " + prob);
+        probabilities[cat] += prob;
+    }
+    
+    /**
+     * Returns the category that is the most likely according to the current probability values 
      * @return the the most likely category
      */
     public int mostLikely()
@@ -65,10 +93,24 @@ public class CategoricalResults
             divideConst(sum);
     }
     
+    /**
+     * Returns the stored probability for the given category
+     * @param cat the category
+     * @return the associated probability
+     */
     public double getProb(int cat)
     {
         return probabilities[cat];
     }
     
-    
+    /**
+     * Creates a deep copy of this 
+     * @return a deep copy
+     */
+    public CategoricalResults copy()
+    {
+        CategoricalResults copy = new CategoricalResults(n);
+        copy.probabilities = Arrays.copyOf(probabilities, probabilities.length);
+        return copy;
+    }
 }
