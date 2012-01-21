@@ -16,6 +16,7 @@ import jsat.classifiers.DataPoint;
 import jsat.classifiers.DataPointPair;
 import jsat.distributions.ContinousDistribution;
 import jsat.distributions.empirical.KernelDensityEstimator;
+import jsat.distributions.empirical.kernelfunc.EpanechnikovKF;
 import jsat.distributions.empirical.kernelfunc.GaussKF;
 import jsat.linear.DenseVector;
 import jsat.linear.Vec;
@@ -431,7 +432,7 @@ public class DecisionStump implements Classifier
                         theVals.set(j, values.get(i).get(j));
                         theWeights[j] = weights.get(i).get(j);
                     }
-                    dist[i] = new KernelDensityEstimator(theVals, new GaussKF(), theWeights);
+                    dist[i] = new KernelDensityEstimator(theVals, new EpanechnikovKF(), theWeights);
                 }
                 
                 //Now compute the speration boundrys 
