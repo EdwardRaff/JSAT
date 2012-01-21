@@ -551,8 +551,10 @@ public class DecisionStump implements Classifier
         for(int i = 0; i < this.results.length; i++ )
             copy.results[i] = this.results[i].copy();
         copy.splittingAttribute = this.splittingAttribute;
-        copy.boundries = new ArrayList<Double>(this.boundries);
-        copy.owners = new ArrayList<Integer>(this.owners);
+        if(this.boundries != null)
+            copy.boundries = new ArrayList<Double>(this.boundries);
+        if(this.owners != null)
+            copy.owners = new ArrayList<Integer>(this.owners);
         copy.predicting = this.predicting.copy();
         return copy;
     }
