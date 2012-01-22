@@ -141,15 +141,31 @@ public class DecisionStump implements Classifier
     
     /**
      * This method finds a value that is the overlap of the two distributions, representing a separation point. 
+     * This method works in 3 steps. It first determines if the two distributions have no overlap, and will 
+     * return the value in-between the distributions. <br>
+     * If there is overlap, it attempts to find the point between the means that marks the overlap <br>
+     * If this fails, it attempts to find an overlapping point by starting at the least probable value
+     * appearing at either end of the real numbers. <br>
+     * <br>
+     * This method may fail on some pairs of distributions, especially if the standard deviations are
+     * significantly different from each other and have similar means. 
      * 
-     * @param dist1 the distribution of values for the first class
-     * @param dist2 the distribution of values for the second class
+     * @param dist1 the distribution of values for the first class, may be null so long as the other distribution is not
+     * @param dist2 the distribution of values for the second class, may be null so long as the other distribution is not
      * @return an double, indicating the separating  point, and an integer indicating 
      * which class is most likely when on the left. 0 indicates <tt>dist1</tt>, 
      * and 1 indicates <tt>dist2</tt>
+     * @throws ArithmeticException if finding the splitting point between the two distributions is non trivial 
      */
     public static PairedReturn<Integer, Double> threshholdSplit(final ContinousDistribution dist1, final ContinousDistribution dist2)
     {
+        if(dist1 == null && dist2 == null)
+            throw new ArithmeticException("No Distributions given");
+        else if(dist1 == null)
+            return new PairedReturn<Integer, Double>(1, Double.POSITIVE_INFINITY);
+        else if(dist2 == null)
+            return new PairedReturn<Integer, Double>(0, Double.POSITIVE_INFINITY);
+        
         double tmp1, tmp2;
         //Special case: no overlap if there is no overlap between the two distributions,we can easily return a seperating value 
         if( (tmp1 = dist1.invCdf(almost0)) >  (tmp2 = dist2.invCdf(almost1) ) )//If dist1 is completly to the right of dist2
@@ -171,16 +187,24 @@ public class DecisionStump implements Classifier
             }
         };
         
-        /*
-         * We use the inverse CDF to find a practical starting point to each function.
-         * This is the left most value, so we take the largest of the two - since we want to find the zero point of their intersection, as it is the first point that the 2 distributinos overlap 
-         */
         double minRange = Math.min(dist1.mean(), dist2.mean());
         double maxRange = Math.max(dist1.mean(), dist2.mean());
         
         //use zeroin because it can fall back to bisection in bad cases,
         //and it is very likely that this function will have non diferentiable points 
-        double split = Zeroin.root(1e-8, minRange, maxRange, f, 0.0);
+        double split = Double.POSITIVE_INFINITY;
+        try
+        {
+            split = Zeroin.root(1e-8, minRange, maxRange, f, 0.0);
+        }
+        catch(ArithmeticException ex)//Was not in the range, so we will use the invCDF to find better values
+        {
+            minRange = Math.min(dist1.invCdf(almost0), dist2.invCdf(almost0));
+            maxRange = Math.max(dist1.invCdf(almost1), dist2.invCdf(almost1));
+            
+            split = Zeroin.root(1e-8, minRange, maxRange, f, 0.0);
+        }
+        
         
         double minStnd = Math.min(dist1.standardDeviation(), dist2.standardDeviation());
         
