@@ -28,7 +28,7 @@ public class ZeroMeanTransform implements DataTransform
 
     public DataPoint transform(DataPoint dp)
     {
-        DataPoint newDP = dp.copy();
+        DataPoint newDP = dp.clone();
         newDP.getNumericalValues().mutableSubtract(shiftVector);
         return newDP;
     }

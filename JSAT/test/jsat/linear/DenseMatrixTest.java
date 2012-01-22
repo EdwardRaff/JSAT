@@ -134,8 +134,8 @@ public class DenseMatrixTest
             {9,    12,     6,    12,     7}
         } );
         
-        Matrix aCopy = A.copy();
-        Matrix bCopy = B.copy();
+        Matrix aCopy = A.clone();
+        Matrix bCopy = B.clone();
         
         aCopy.mutableAdd(B);
         bCopy.mutableAdd(A);
@@ -145,7 +145,7 @@ public class DenseMatrixTest
         
         try
         {
-            C.copy().mutableAdd(A);
+            C.clone().mutableAdd(A);
             fail("Expected error about matrix dimensions"); 
         }
         catch(ArithmeticException ex)
@@ -169,8 +169,8 @@ public class DenseMatrixTest
             {9,    12,     6,    12,     7}
         } );
         
-        Matrix aCopy = A.copy();
-        Matrix bCopy = B.copy();
+        Matrix aCopy = A.clone();
+        Matrix bCopy = B.clone();
         
         aCopy.mutableAdd(B, threadpool);
         bCopy.mutableAdd(A, threadpool);
@@ -180,7 +180,7 @@ public class DenseMatrixTest
         
         try
         {
-            C.copy().mutableAdd(A, threadpool);
+            C.clone().mutableAdd(A, threadpool);
             fail("Expected error about matrix dimensions"); 
         }
         catch(ArithmeticException ex)
@@ -204,7 +204,7 @@ public class DenseMatrixTest
             {1+2, 9+2, 2+2, 9+2, 6+2}
         } );
         
-        Matrix aCopy = A.copy();
+        Matrix aCopy = A.clone();
         
         aCopy.mutableAdd(2);
         
@@ -226,7 +226,7 @@ public class DenseMatrixTest
             {1+2, 9+2, 2+2, 9+2, 6+2}
         } );
         
-        Matrix aCopy = A.copy();
+        Matrix aCopy = A.clone();
         
         aCopy.mutableAdd(2, threadpool);
         
@@ -257,8 +257,8 @@ public class DenseMatrixTest
             {-7*-1,     6*-1,    -2*-1,     6*-1,     5*-1}
         } );
         
-        Matrix aCopy = A.copy();
-        Matrix bCopy = B.copy();
+        Matrix aCopy = A.clone();
+        Matrix bCopy = B.clone();
         
         aCopy.mutableSubtract(B);
         bCopy.mutableSubtract(A);
@@ -268,7 +268,7 @@ public class DenseMatrixTest
         
         try
         {
-            C.copy().mutableSubtract(A);
+            C.clone().mutableSubtract(A);
             fail("Expected error about matrix dimensions"); 
         }
         catch(ArithmeticException ex)
@@ -301,8 +301,8 @@ public class DenseMatrixTest
             {-7*-1,     6*-1,    -2*-1,     6*-1,     5*-1}
         } );
         
-        Matrix aCopy = A.copy();
-        Matrix bCopy = B.copy();
+        Matrix aCopy = A.clone();
+        Matrix bCopy = B.clone();
         
         aCopy.mutableSubtract(B, threadpool);
         bCopy.mutableSubtract(A, threadpool);
@@ -312,7 +312,7 @@ public class DenseMatrixTest
         
         try
         {
-            C.copy().mutableSubtract(A, threadpool);
+            C.clone().mutableSubtract(A, threadpool);
             fail("Expected error about matrix dimensions"); 
         }
         catch(ArithmeticException ex)
@@ -430,7 +430,7 @@ public class DenseMatrixTest
             {1*2, 9*2, 2*2, 9*2, 6*2}
         } );
         
-        Matrix aCopy = A.copy();
+        Matrix aCopy = A.clone();
         
         aCopy.mutableMultiply(2);
         
@@ -452,7 +452,7 @@ public class DenseMatrixTest
             {1*2, 9*2, 2*2, 9*2, 6*2}
         } );
         
-        Matrix aCopy = A.copy();
+        Matrix aCopy = A.clone();
         
         aCopy.mutableMultiply(2, threadpool);
         
@@ -543,12 +543,12 @@ public class DenseMatrixTest
     }
 
     /**
-     * Test of copy method, of class DenseMatrix.
+     * Test of clone method, of class DenseMatrix.
      */
     @Test
     public void testCopy()
     {
-        Matrix ACopy = A.copy();
+        Matrix ACopy = A.clone();
         
         assertEquals(A, ACopy);
         assertEquals(A.multiply(B), ACopy.multiply(B));
@@ -571,7 +571,7 @@ public class DenseMatrixTest
             {1, 6, 8, 3, 1, 5, 10}
         } );
         
-        Matrix test = C.copy();
+        Matrix test = C.clone();
         
         
         test.swapRows(1, 0);
@@ -589,7 +589,7 @@ public class DenseMatrixTest
         assertEquals(Expected, test);
         
         
-        test = C.copy();
+        test = C.clone();
         test.swapRows(4, 0);
         test.swapRows(1, 0);
         assertEquals(Expected, test);
@@ -603,7 +603,7 @@ public class DenseMatrixTest
     {
         System.out.println("zeroOut");
         
-        Matrix test = C.copy();
+        Matrix test = C.clone();
         test.zeroOut();
         
         for(int i = 0; i < test.rows(); i++)
@@ -621,10 +621,10 @@ public class DenseMatrixTest
         
         Matrix[] lup;
         
-        lup = A.copy().lup();
+        lup = A.clone().lup();
         assertTrue(lup[2].multiply(A).equals(lup[0].multiply(lup[1]), 1e-14));
         
-        lup = C.copy().lup();
+        lup = C.clone().lup();
         assertTrue(lup[2].multiply(C).equals(lup[0].multiply(lup[1]), 1e-14));
         
         
@@ -642,10 +642,10 @@ public class DenseMatrixTest
         
         Matrix[] lup;
         
-        lup = A.copy().lup(threadpool);
+        lup = A.clone().lup(threadpool);
         assertTrue(lup[2].multiply(A, threadpool).equals(lup[0].multiply(lup[1], threadpool), 1e-14));
         
-        lup = C.copy().lup(threadpool);
+        lup = C.clone().lup(threadpool);
         assertTrue(lup[2].multiply(C, threadpool).equals(lup[0].multiply(lup[1], threadpool), 1e-14));
         
         
@@ -663,7 +663,7 @@ public class DenseMatrixTest
         
         try
         {
-            C.copy().mutableTranspose();
+            C.clone().mutableTranspose();
             fail("Can not do a mutable transpose for rectangular matrix, error should have been thrown");
         }
         catch(Exception ex)
@@ -681,7 +681,7 @@ public class DenseMatrixTest
             {9,     7,     6,     0,     6}, 
         } );
         
-        Matrix AT = A.copy();
+        Matrix AT = A.clone();
         AT.mutableTranspose();
         assertEquals(ATranspose, AT);
         
@@ -702,17 +702,17 @@ public class DenseMatrixTest
         
         
         
-        qr = A.copy().qr();
+        qr = A.clone().qr();
         assertTrue(A.equals(qr[0].multiply(qr[1]), 1e-14));
         assertTrue(DenseMatrix.eye(A.rows()).equals(qr[0].multiply(qr[0].transpose()), 1e-14));
         
         
-        qr = B.copy().qr();
+        qr = B.clone().qr();
         assertTrue(B.equals(qr[0].multiply(qr[1]), 1e-14));
         assertTrue(DenseMatrix.eye(B.rows()).equals(qr[0].multiply(qr[0].transpose()), 1e-14));
         
         
-        qr = C.copy().qr();
+        qr = C.clone().qr();
         assertTrue(C.equals(qr[0].multiply(qr[1]), 1e-14));
         assertTrue(DenseMatrix.eye(C.rows()).equals(qr[0].multiply(qr[0].transpose()), 1e-14));
         
@@ -736,17 +736,17 @@ public class DenseMatrixTest
         
         
         
-        qr = A.copy().qr(threadpool);
+        qr = A.clone().qr(threadpool);
         assertTrue(A.equals(qr[0].multiply(qr[1]), 1e-14));
         assertTrue(DenseMatrix.eye(A.rows()).equals(qr[0].multiply(qr[0].transpose()), 1e-14));
         
         
-        qr = B.copy().qr(threadpool);
+        qr = B.clone().qr(threadpool);
         assertTrue(B.equals(qr[0].multiply(qr[1]), 1e-14));
         assertTrue(DenseMatrix.eye(B.rows()).equals(qr[0].multiply(qr[0].transpose()), 1e-14));
         
         
-        qr = C.copy().qr(threadpool);
+        qr = C.clone().qr(threadpool);
         assertTrue(C.equals(qr[0].multiply(qr[1]), 1e-14));
         assertTrue(DenseMatrix.eye(C.rows()).equals(qr[0].multiply(qr[0].transpose()), 1e-14));
         

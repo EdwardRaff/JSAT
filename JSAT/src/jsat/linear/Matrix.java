@@ -8,29 +8,29 @@ import java.util.concurrent.ExecutorService;
  *
  * @author Edward Rafff
  */
-public abstract class Matrix
+public abstract class Matrix implements Cloneable
 {
     public Matrix add(Matrix b)
     {
-        Matrix toReturn = copy();
+        Matrix toReturn = clone();
         toReturn.mutableAdd(b);
         return toReturn;
     }
     public Matrix add(Matrix b, ExecutorService threadPool)
     {
-        Matrix toReturn = copy();
+        Matrix toReturn = clone();
         toReturn.mutableAdd(b, threadPool);
         return toReturn;
     }
     public Matrix add(double c)
     {
-        Matrix toReturn = copy();
+        Matrix toReturn = clone();
         toReturn.mutableAdd(c);
         return toReturn;
     }
     public Matrix add(double c, ExecutorService threadPool)
     {
-        Matrix toReturn = copy();
+        Matrix toReturn = clone();
         toReturn.mutableAdd(c, threadPool);
         return toReturn;
     }
@@ -42,25 +42,25 @@ public abstract class Matrix
     
     public Matrix subtract(Matrix b)
     {
-        Matrix toReturn = copy();
+        Matrix toReturn = clone();
         toReturn.mutableSubtract(b);
         return toReturn;
     }
     public Matrix subtract(Matrix b, ExecutorService threadPool)
     {
-        Matrix toReturn = copy();
+        Matrix toReturn = clone();
         toReturn.mutableSubtract(b, threadPool);
         return toReturn;
     }
     public Matrix subtract(double c)
     {
-        Matrix toReturn = copy();
+        Matrix toReturn = clone();
         toReturn.mutableSubtract(c);
         return toReturn;
     }
     public Matrix subtract(double c, ExecutorService threadPool)
     {
-        Matrix toReturn = copy();
+        Matrix toReturn = clone();
         toReturn.mutableSubtract(c, threadPool);
         return toReturn;
     }
@@ -86,13 +86,13 @@ public abstract class Matrix
     abstract public Matrix multiply(Matrix b, ExecutorService threadPool);
     public Matrix multiply(double c)
     {
-        Matrix toReturn = copy();
+        Matrix toReturn = clone();
         toReturn.mutableMultiply(c);
         return toReturn;
     }
     public Matrix multiply(double c, ExecutorService threadPool)
     {
-        Matrix toReturn = copy();
+        Matrix toReturn = clone();
         toReturn.mutableMultiply(c, threadPool);
         return toReturn;
     }
@@ -161,12 +161,12 @@ public abstract class Matrix
     
     abstract public void swapRows(int r1, int r2);
     
-    abstract public Matrix copy();
+    abstract public Matrix clone();
 
     /**
-     * Creates a copy of the values in column <tt>j</tt> of this matrix. Altering it will not effect the values in the source matrix
+     * Creates a clone of the values in column <tt>j</tt> of this matrix. Altering it will not effect the values in the source matrix
      * @param j the column
-     * @return a copy of the column as a {@link Vec}
+     * @return a clone of the column as a {@link Vec}
      */
     public Vec getColumn(int j)
     {

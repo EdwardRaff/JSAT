@@ -13,7 +13,7 @@ import jsat.utils.ProbailityMatch;
 
 /**
  * This is the naive implementation of a Vector collection. Construction time is 
- * O(n) only to copy the n elements, and all queries are O(n<sup>2</sup>)
+ * O(n) only to clone the n elements, and all queries are O(n<sup>2</sup>)
  * 
  * @author Edward Raff
  */

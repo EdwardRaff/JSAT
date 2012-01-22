@@ -362,7 +362,8 @@ public class PlatSMO extends SupportVectorMachine
         return sum-b;
     }
 
-    public Classifier copy()
+    @Override
+    public Classifier clone()
     {
         PlatSMO copy = new PlatSMO(this.getKernel());
         

@@ -628,7 +628,7 @@ public class SparceVector extends  Vec
         return Math.pow(norm, 1.0/p);
     }
     
-    public Vec copy()
+    public Vec clone()
     {
         SparceVector copy = new SparceVector(length, Math.max(used, 10));
         
@@ -641,7 +641,7 @@ public class SparceVector extends  Vec
 
     public Vec normalized()
     {
-        Vec copy = this.copy();
+        Vec copy = this.clone();
         copy.normalize();
         return copy;
     }
@@ -662,7 +662,7 @@ public class SparceVector extends  Vec
     {
         if(this.length() != b.length())
             throw new ArithmeticException("Vectors must have the same length");
-        SparceVector toRet = (SparceVector) this.copy();
+        SparceVector toRet = (SparceVector) this.clone();
         
         toRet.mutablePairwiseMultiply(b);
         
@@ -673,7 +673,7 @@ public class SparceVector extends  Vec
     {
         if(this.length() != b.length())
             throw new ArithmeticException("Vectors must have the same length");
-        SparceVector toRet = (SparceVector) this.copy();
+        SparceVector toRet = (SparceVector) this.clone();
         
         toRet.mutablePairwiseDivide(b);
         

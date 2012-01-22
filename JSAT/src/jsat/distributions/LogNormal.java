@@ -31,6 +31,8 @@ public class LogNormal extends ContinousDistribution
     @Override
     public double pdf(double x)
     {
+        if(x <= 0)
+            return 0;
         double num = exp(-pow(log(x)-mu, 2)/(2*sig*sig));
         double denom = x*sqrt(2*PI*sig*sig);
         return num/denom;
@@ -39,6 +41,8 @@ public class LogNormal extends ContinousDistribution
     @Override
     public double cdf(double x)
     {
+        if(x <= 0)
+            return 0;
         return 0.5 + 0.5*erf( (log(x)-mu)/sqrt(2*sig*sig) );
     }
 
@@ -92,7 +96,7 @@ public class LogNormal extends ContinousDistribution
     }
 
     @Override
-    public ContinousDistribution copy()
+    public ContinousDistribution clone()
     {
         return new LogNormal(mu, sig);
     }

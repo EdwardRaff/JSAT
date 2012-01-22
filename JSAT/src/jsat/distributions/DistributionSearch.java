@@ -33,12 +33,12 @@ public class DistributionSearch
     
     public static ContinousDistribution getBestDistribution(Vec v, ContinousDistribution... possibleDistributions)
     {
-        //Thread Safety, copy the possible distributions
+        //Thread Safety, clone the possible distributions
         
         ContinousDistribution[] possDistCopy = new ContinousDistribution[possibleDistributions.length];
         
         for(int i = 0; i < possibleDistributions.length; i++)
-            possDistCopy[i] = possibleDistributions[i].copy();
+            possDistCopy[i] = possibleDistributions[i].clone();
         
         
         KSTest ksTest = new KSTest(v);
@@ -69,7 +69,7 @@ public class DistributionSearch
         ///Return the best distribution, or if somehow everythign went wrong, a normal distribution
         try
         {
-            return bestDist == null ? new Normal(v.mean(), v.standardDeviation()) : bestDist.copy();
+            return bestDist == null ? new Normal(v.mean(), v.standardDeviation()) : bestDist.clone();
         }
         catch (RuntimeException ex)//Mostly likely occurs if all values are all zero
         {

@@ -104,7 +104,7 @@ public class Gamma extends ContinousDistribution
     }
 
     @Override
-    public ContinousDistribution copy()
+    public ContinousDistribution clone()
     {
         return new Gamma(k, theta);
     }

@@ -111,7 +111,7 @@ public class MaxwellBoltzmann extends ContinousDistribution
     }
 
     @Override
-    public ContinousDistribution copy()
+    public ContinousDistribution clone()
     {
         return new MaxwellBoltzmann(sigma);
     }

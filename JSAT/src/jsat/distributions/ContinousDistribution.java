@@ -11,7 +11,7 @@ import jsat.math.rootfinding.Zeroin;
  *
  * @author Edward Raff
  */
-public abstract class ContinousDistribution
+public abstract class ContinousDistribution implements Cloneable
 {
     public double logPdf(double x)
     {
@@ -105,7 +105,7 @@ public abstract class ContinousDistribution
 
     abstract public void setVariable(String var, double value);
     
-    abstract public ContinousDistribution copy();
+    abstract public ContinousDistribution clone();
 
     /**
      * Attempts to set the variables used by this distribution based on population sample data, assuming the sample data is from this type of distribution.

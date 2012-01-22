@@ -53,7 +53,7 @@ public class SeedSelectionMethods
         selectIntialPoints(d, indicies, dm, rand, selectionMethod);
         List<Vec> vecs = new ArrayList<Vec>(k);
         for(Integer i : indicies)
-            vecs.add(d.getDataPoint(i).getNumericalValues().copy());
+            vecs.add(d.getDataPoint(i).getNumericalValues().clone());
         return vecs;
     }
     /**

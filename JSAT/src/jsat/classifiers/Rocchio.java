@@ -135,12 +135,12 @@ public class Rocchio implements Classifier
         return true;
     }
 
-    public Classifier copy()
+    public Classifier clone()
     {
         Rocchio copy = new Rocchio(this.dm);
         copy.rocVecs = new ArrayList<Vec>(this.rocVecs.size());
         for(Vec v : this.rocVecs)
-            copy.rocVecs.add(v.copy());
+            copy.rocVecs.add(v.clone());
         return copy;
     }
     

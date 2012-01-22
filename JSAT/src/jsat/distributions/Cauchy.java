@@ -104,7 +104,7 @@ public final class Cauchy extends ContinousDistribution
     }
 
     @Override
-    public ContinousDistribution copy()
+    public ContinousDistribution clone()
     {
         return new Cauchy(location, scale);
     }

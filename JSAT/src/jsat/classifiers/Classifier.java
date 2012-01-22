@@ -7,7 +7,7 @@ import java.util.concurrent.ExecutorService;
  *
  * @author Edward Raff
  */
-public interface Classifier 
+public interface Classifier extends Cloneable
 {
     public CategoricalResults classify(DataPoint data);
     public void trainC(ClassificationDataSet dataSet, ExecutorService threadPool);
@@ -15,5 +15,5 @@ public interface Classifier
     
     public boolean supportsWeightedData();
     
-    public Classifier copy();
+    public Classifier clone();
 }

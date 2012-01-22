@@ -26,7 +26,7 @@ public class QRDecomposition
     
     public QRDecomposition(Matrix A)
     {
-        Matrix[] qr = A.copy().qr();
+        Matrix[] qr = A.clone().qr();
         Q_T = qr[0];
         Q_T.mutableTranspose();
         R = qr[1];
@@ -34,7 +34,7 @@ public class QRDecomposition
     
     public QRDecomposition(Matrix A, ExecutorService threadpool)
     {
-        Matrix[] qr = A.copy().qr(threadpool);
+        Matrix[] qr = A.clone().qr(threadpool);
         Q_T = qr[0];
         Q_T.mutableTranspose();
         R = qr[1];

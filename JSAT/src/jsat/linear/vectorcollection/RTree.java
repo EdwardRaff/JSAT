@@ -253,8 +253,8 @@ public class RTree<V extends Vec> implements VectorCollection<V>
         
         public Rectangle(Vec point)
         {
-            uB = point.copy();
-            lB = point.copy();
+            uB = point.clone();
+            lB = point.clone();
         }
         
         public Rectangle(Vec... points)

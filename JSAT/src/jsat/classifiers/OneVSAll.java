@@ -28,17 +28,14 @@ public class OneVSAll implements Classifier
     public CategoricalResults classify(DataPoint data)
     {
         CategoricalResults cr = new CategoricalResults(predicting.getNumOfCategories());
-        double sum = 0;
         for(int i = 0; i < predicting.getNumOfCategories(); i++)
             if(oneVsAlls[i].classify(data).getProb(0) > 0)
             {
                 double tmp = oneVsAlls[i].classify(data).getProb(0);
                 cr.setProb(i, tmp);
-                sum += tmp;
-//                return cr;
             }
         
-        cr.divideConst(sum);
+        cr.normalize();
         return cr;
     }
 
@@ -58,7 +55,7 @@ public class OneVSAll implements Classifier
         }
         
         int numer = dataSet.getDataPoint(0).getNumericalValues().length();
-        CategoricalData[] categories = dataSet.getDataPoint(0).getCategoricalData();
+        CategoricalData[] categories = dataSet.getCategories();
         for(int i = 0; i < oneVsAlls.length; i++)
         {
             ClassificationDataSet cds = 
@@ -73,7 +70,7 @@ public class OneVSAll implements Classifier
 
             baseClassifier.trainC(cds, threadPool);
 //            PlatSMO cls = new PlatSMO(new LinearKernel());
-            oneVsAlls[i] = baseClassifier.copy();
+            oneVsAlls[i] = baseClassifier.clone();
 //            cls.trainC(cds);
 //            oneVsAlls[i] = cls;
         }
@@ -86,7 +83,7 @@ public class OneVSAll implements Classifier
         trainC(dataSet, new FakeExecutor());
     }
 
-    public Classifier copy()
+    public Classifier clone()
     {
         throw new UnsupportedOperationException("Not supported yet.");
     }

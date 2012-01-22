@@ -96,7 +96,7 @@ public class DistributionSelectionDialog extends JDialog
             distributions[index].setVariable(vars[i], Double.parseDouble(((JFormattedTextField)variablePanel.getComponent(i)).getText()));
         }
 
-        return distributions[index].copy();
+        return distributions[index].clone();
     }
 
 }

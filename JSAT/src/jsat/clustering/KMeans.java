@@ -194,7 +194,7 @@ public class KMeans implements KClusterer
         boolean[] r = new boolean[N];//Default value of a boolean is false, which is what we want
         Vec[] oldMeans = new Vec[k];//The means fromt he current step are needed when computing the new means
         for(int i = 0; i < k; i++)
-            oldMeans[i] = means.get(0).copy();//This way the new vectors are of the same implementation
+            oldMeans[i] = means.get(0).clone();//This way the new vectors are of the same implementation
         while((changes > 0 || atLeast > 0) && iterLimit-- >= 0)
         {
             atLeast--;

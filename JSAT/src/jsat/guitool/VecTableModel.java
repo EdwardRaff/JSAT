@@ -46,7 +46,7 @@ public class VecTableModel extends AbstractTableModel
     public Object getValueAt(int rowIndex, int columnIndex)
     {
         if(columnIndex < dataSet.getNumCategoricalVars())
-            return dataSet.getCategories()[columnIndex].catName(dataSet.getDataPoint(rowIndex).getCategoricalValue(columnIndex));
+            return dataSet.getCategories()[columnIndex].getOptionName(dataSet.getDataPoint(rowIndex).getCategoricalValue(columnIndex));
         else 
             return dataSet.getDataPoint(rowIndex).getNumericalValues().get(columnIndex - dataSet.getNumCategoricalVars());
     }

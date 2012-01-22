@@ -7,7 +7,7 @@ import java.util.Arrays;
  * This class represents the probabilities for each possible result classification. 
  * @author Edward Raff
  */
-public class CategoricalResults
+public class CategoricalResults implements Cloneable
 {
     private int n;//The number of categories
     private double[] probabilities;
@@ -104,10 +104,10 @@ public class CategoricalResults
     }
     
     /**
-     * Creates a deep copy of this 
-     * @return a deep copy
+     * Creates a deep clone of this 
+     * @return a deep clone
      */
-    public CategoricalResults copy()
+    public CategoricalResults clone()
     {
         CategoricalResults copy = new CategoricalResults(n);
         copy.probabilities = Arrays.copyOf(probabilities, probabilities.length);

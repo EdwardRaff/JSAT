@@ -53,7 +53,8 @@ public abstract class SupportVectorMachine implements Classifier
             fullCache = null;
     }
 
-    
+    @Override
+    abstract public Classifier clone();
     
     public KernelTrick getKernel()
     {

@@ -8,7 +8,7 @@ import jsat.classifiers.DataPoint;
  *
  * @author Edward Raff
  */
-public interface Regressor
+public interface Regressor extends Cloneable
 {
     public double regress(DataPoint data);
     
@@ -17,5 +17,5 @@ public interface Regressor
     
     public boolean supportsWeightedData();
     
-    public Regressor copy();
+    public Regressor clone();
 }

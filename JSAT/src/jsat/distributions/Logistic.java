@@ -106,7 +106,7 @@ public final class Logistic extends ContinousDistribution
     }
 
     @Override
-    public ContinousDistribution copy()
+    public ContinousDistribution clone()
     {
         return new Logistic(mu, s);
     }

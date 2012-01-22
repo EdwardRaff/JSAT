@@ -44,7 +44,7 @@ public class ConjugateGradient
             throw new ArithmeticException("Matrix A dimensions do not agree with x and b");
         int k = 0;
         Vec r_k = b.subtract(A.multiply(x));
-        Vec p_k = r_k.copy();
+        Vec p_k = r_k.clone();
         Vec Apk;
         
         double RdR = r_k.dot(r_k);
@@ -116,7 +116,7 @@ public class ConjugateGradient
         int k = 0;
         Vec r_k = b.subtract(A.multiply(x));
         Vec z_k = Minv.multiply(r_k);
-        Vec p_k = z_k.copy();
+        Vec p_k = z_k.clone();
         Vec Apk;
         double rkzk = r_k.dot(z_k);
         

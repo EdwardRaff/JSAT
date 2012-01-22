@@ -109,7 +109,7 @@ public final class Laplace extends ContinousDistribution
     }
 
     @Override
-    public ContinousDistribution copy()
+    public ContinousDistribution clone()
     {
         return new Laplace(mu, b);
     }

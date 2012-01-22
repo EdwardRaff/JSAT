@@ -96,7 +96,7 @@ public final class Rayleigh extends ContinousDistribution
     }
 
     @Override
-    public ContinousDistribution copy()
+    public ContinousDistribution clone()
     {
         return new Rayleigh(sig);
     }

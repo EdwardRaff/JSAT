@@ -110,8 +110,8 @@ public class PCA implements DataTransform
             t = E.multiply(p);
             t.mutableDivide(p.dot(p));
             
-            scores.add(t);///t is a new vector each time from step 3, and does not get altered after this. So no copy needed
-            loadings.add(p);//p is a new vecor each time created at step 1, and does not get altered after this. So no copy needed
+            scores.add(t);///t is a new vector each time from step 3, and does not get altered after this. So no clone needed
+            loadings.add(p);//p is a new vecor each time created at step 1, and does not get altered after this. So no clone needed
             //4. Check for convergence.
             double tauNew = t.dot(t);
             if(Math.abs(tauNew-tauOld) <= threshold*tauNew)

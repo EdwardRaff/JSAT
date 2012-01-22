@@ -76,10 +76,10 @@ public class MultipleLinearRegression implements Regressor
         return false;
     }
 
-    public MultipleLinearRegression copy()
+    public MultipleLinearRegression clone()
     {
         MultipleLinearRegression copy = new MultipleLinearRegression();
-        copy.B = this.B.copy();
+        copy.B = this.B.clone();
         
         return copy;
     }

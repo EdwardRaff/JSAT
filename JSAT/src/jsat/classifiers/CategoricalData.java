@@ -9,7 +9,7 @@ import java.util.List;
  *
  * @author Edward Raff
  */
-public class CategoricalData
+public class CategoricalData implements Cloneable
 {
     private int n;//Number of different categories
     private List<String> catNames;
@@ -45,7 +45,7 @@ public class CategoricalData
         return true;
     }
     
-    public String catName(int i)
+    public String getOptionName(int i)
     {
         if(catNames != null)
             return catNames.get(i);
@@ -85,7 +85,7 @@ public class CategoricalData
         
         return true;
     }
-    public CategoricalData copy()
+    public CategoricalData clone()
     {
         CategoricalData copy = new CategoricalData(n);
         
@@ -99,7 +99,7 @@ public class CategoricalData
     {
         CategoricalData[] copy = new CategoricalData[orig.length];
         for(int i = 0; i < copy.length; i++)
-            copy[i] = orig[i].copy();
+            copy[i] = orig[i].clone();
         return copy;
     }
     

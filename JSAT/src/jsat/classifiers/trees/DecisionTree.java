@@ -289,10 +289,10 @@ public class DecisionTree implements Classifier
         return true;
     }
 
-    public Classifier copy()
+    public Classifier clone()
     {
         DecisionTree copy = new DecisionTree(maxDepth, minSamples, pruningMethod, testProportion);
-        copy.predicting = this.predicting.copy();
+        copy.predicting = this.predicting.clone();
         copy.root = this.root.copy();
         return copy;
     }
@@ -334,7 +334,7 @@ public class DecisionTree implements Classifier
         
         protected Node copy()
         {
-            Node copy = new Node( (DecisionStump)this.stump.copy());
+            Node copy = new Node( (DecisionStump)this.stump.clone());
             for(int i = 0; i < this.paths.length; i++)
                 copy.paths[i] = this.paths[i] == null ? null : this.paths[i].copy();
             

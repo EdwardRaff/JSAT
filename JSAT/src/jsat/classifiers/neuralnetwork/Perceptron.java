@@ -271,10 +271,10 @@ public class Perceptron implements Classifier
         return true;
     }
 
-    public Classifier copy()
+    public Classifier clone()
     {
         Perceptron copy = new  Perceptron(learningRate, kernel, iteratinLimit);
-        copy.weights = this.weights.copy();
+        copy.weights = this.weights.clone();
         
         return copy;
     }    

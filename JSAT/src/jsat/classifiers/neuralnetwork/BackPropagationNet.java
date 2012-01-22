@@ -145,7 +145,7 @@ public class BackPropagationNet implements Classifier
                 //We now create the error vectors, they are created in reverse order
                 List<Vec> errorVecs = new ArrayList<Vec> (layers.size());
                 //First one (last output) is special
-                Vec lastErrorVec = delta.copy();
+                Vec lastErrorVec = delta.clone();
                 lastErrorVec.pairwiseMultiply(derivative(lastOutput));
                 errorVecs.add(lastErrorVec);
                 
@@ -225,12 +225,12 @@ public class BackPropagationNet implements Classifier
         return false;
     }
 
-    public Classifier copy()
+    public Classifier clone()
     {
         BackPropagationNet copy = new BackPropagationNet(neuronsPerLayer, stepFunc, iterationLimit);
         copy.layers.clear();
         for(Matrix m : this.layers)
-            copy.layers.add(m.copy());
+            copy.layers.add(m.clone());
         
         return copy;
     }

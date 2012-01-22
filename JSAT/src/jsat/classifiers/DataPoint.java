@@ -11,7 +11,7 @@ import jsat.linear.Vec;
  * 
  * @author Edward Raff
  */
-public class DataPoint
+public class DataPoint implements Cloneable
 {
     private double weight;
     protected Vec numericalValues;
@@ -81,7 +81,7 @@ public class DataPoint
     /**
      * Returns the vector containing the numerical values. Altering this 
      * vector will effect this data point. If changes are going to be 
-     * made, a copy of the vector should be made by the caller. 
+     * made, a clone of the vector should be made by the caller. 
      * @return the vector containing the numerical values.
      */
     public Vec getNumericalValues()
@@ -110,7 +110,7 @@ public class DataPoint
     /**
      * Returns the array of values for each category. Altering 
      * this array will effect this data point. If changes are 
-     * going to be made, a copy of the array should be made 
+     * going to be made, a clone of the array should be made 
      * by the caller. 
      * @return the array of values for each category.  
      */
@@ -163,7 +163,7 @@ public class DataPoint
             sb.append(" Categorical: ");
             for(int i  = 0; i < categoricalValues.length; i++)
             {
-                sb.append(categoricalData[i].catName(categoricalValues[i]));
+                sb.append(categoricalData[i].getOptionName(categoricalValues[i]));
                 sb.append(",");
             }
         }
@@ -173,12 +173,12 @@ public class DataPoint
     }
     
     /**
-     * Creates a deep copy of this data point, such that altering either data point does not effect the other one. 
-     * @return a deep copy of this data point. 
+     * Creates a deep clone of this data point, such that altering either data point does not effect the other one. 
+     * @return a deep clone of this data point. 
      */
-    public DataPoint copy()
+    public DataPoint clone()
     {
-        return new DataPoint(numericalValues.copy(), 
+        return new DataPoint(numericalValues.clone(), 
                 Arrays.copyOf(categoricalValues, categoricalValues.length),
                 CategoricalData.copyOf(categoricalData),
                 weight);

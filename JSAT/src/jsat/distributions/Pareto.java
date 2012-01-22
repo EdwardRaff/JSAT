@@ -112,7 +112,7 @@ public class Pareto extends ContinousDistribution
     }
 
     @Override
-    public ContinousDistribution copy()
+    public ContinousDistribution clone()
     {
         return new Pareto(xm, alpha);
     }

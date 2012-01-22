@@ -112,7 +112,7 @@ public class FisherSendor extends ContinousDistribution
     }
 
     @Override
-    public ContinousDistribution copy()
+    public ContinousDistribution clone()
     {
         return new FisherSendor(v1, v2);
     }

@@ -237,7 +237,7 @@ public class ID3 implements Classifier
         return false;
     }
 
-    public Classifier copy()
+    public Classifier clone()
     {
         ID3 copy = new ID3();
         

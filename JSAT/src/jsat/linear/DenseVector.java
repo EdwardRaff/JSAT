@@ -4,6 +4,7 @@ package jsat.linear;
 import java.util.List;
 import java.util.Arrays;
 
+import java.util.Random;
 import static java.lang.Math.*;
 
 /**
@@ -373,7 +374,7 @@ public class DenseVector extends Vec
         return Math.pow(norm, 1.0/p);
     }
     
-    public Vec copy()
+    public Vec clone()
     {
         DenseVector copy = new DenseVector(length());
         
@@ -384,7 +385,7 @@ public class DenseVector extends Vec
 
     public Vec normalized()
     {
-        Vec copy = this.copy();
+        Vec copy = this.clone();
         copy.normalize();
         return copy;
     }
@@ -408,7 +409,7 @@ public class DenseVector extends Vec
         
         if(b instanceof SparceVector)//Let the sparce class do it efficently
             return b.pairwiseMultiply(this);
-        Vec toReturn = b.copy();
+        Vec toReturn = b.clone();
         for(int i = 0; i < b.length(); i++)
             b.set(i, b.get(i)*array[i]);
         

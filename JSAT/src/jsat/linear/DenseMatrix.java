@@ -51,11 +51,11 @@ public class DenseMatrix extends Matrix
     }
     
     /**
-     * Creates a new matrix that is a copy of the given matrix. 
+     * Creates a new matrix that is a clone of the given matrix. 
      * An error will be throw if the rows of the given matrix 
      * are not all the same size
      * 
-     * @param matrix the matrix to copy the values of
+     * @param matrix the matrix to clone the values of
      */
     public DenseMatrix(double[][] matrix)
     {
@@ -236,7 +236,7 @@ public class DenseMatrix extends Matrix
         DenseVector result = new DenseVector(rows());
         for(int i = 0; i < rows(); i++)
         {
-            //The Dense construcure does not copy the matrix, it just takes the refernce -making it fast
+            //The Dense construcure does not clone the matrix, it just takes the refernce -making it fast
             DenseVector row = new DenseVector(matrix[i]);
             result.set(i, row.dot(b));//We use the dot product in this way so that if the incoming matrix is sparce, we can take advantage of save computaitons
         }
@@ -1172,7 +1172,7 @@ public class DenseMatrix extends Matrix
     }
     
     @Override
-    public Matrix copy()
+    public Matrix clone()
     {
         DenseMatrix copy = new DenseMatrix(rows(), cols());
         for(int i = 0; i < matrix.length; i++)

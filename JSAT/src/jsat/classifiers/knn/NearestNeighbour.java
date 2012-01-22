@@ -200,7 +200,7 @@ public class NearestNeighbour implements  Classifier, Regressor
             vecCollection = vcf.getVectorCollection(dataPoints, distanceMetric, threadPool);
     }
     
-    public NearestNeighbour copy()
+    public NearestNeighbour clone()
     {
         throw new UnsupportedOperationException("Not supported yet.");
     }

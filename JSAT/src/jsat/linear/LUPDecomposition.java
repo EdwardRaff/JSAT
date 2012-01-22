@@ -26,7 +26,7 @@ public class LUPDecomposition
 
     public LUPDecomposition(Matrix A)
     {
-        Matrix[] lup = A.copy().lup();
+        Matrix[] lup = A.clone().lup();
         L = lup[0];
         U = lup[1];
         P = lup[2];
@@ -34,7 +34,7 @@ public class LUPDecomposition
     
     public LUPDecomposition(Matrix A, ExecutorService threadpool)
     {
-        Matrix[] lup = A.copy().lup(threadpool);
+        Matrix[] lup = A.clone().lup(threadpool);
         L = lup[0];
         U = lup[1];
         P = lup[2];
@@ -62,10 +62,10 @@ public class LUPDecomposition
         for(int i = 0; i < Math.min(U.rows(), U.cols()); i++)
             det *= U.get(i, i);
         
-        //We need to swap back P to get the sign, so we make a copy. This could be cached if we need to 
+        //We need to swap back P to get the sign, so we make a clone. This could be cached if we need to 
         int rowSwaps = 0;
         
-        Matrix pCopy = P.copy();
+        Matrix pCopy = P.clone();
         //The number of row swaps in P is the sign change
         for(int i = 0; i < pCopy.cols(); i++)
             if(pCopy.get(i, i) != 1)

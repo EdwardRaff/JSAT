@@ -134,7 +134,7 @@ public class StudentT extends ContinousDistribution
     }
 
     @Override
-    public ContinousDistribution copy()
+    public ContinousDistribution clone()
     {
         return new StudentT(df, mu, sig);
     }

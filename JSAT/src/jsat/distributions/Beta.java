@@ -97,7 +97,7 @@ public class Beta extends ContinousDistribution
     }
 
     @Override
-    public ContinousDistribution copy()
+    public ContinousDistribution clone()
     {
         return new Beta(alpha, beta);
     }

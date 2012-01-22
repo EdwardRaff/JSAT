@@ -8,7 +8,7 @@ import jsat.math.IndexFunction;
  *
  * @author Edward Raff
  */
-public abstract class Vec
+public abstract class Vec implements Cloneable
 {
     abstract public int length();
 
@@ -80,7 +80,8 @@ public abstract class Vec
         for(int i = 0; i < length(); i++)
             destination.set(i, this.get(i));
     }
-    abstract public Vec copy();
+    @Override
+    abstract public Vec clone();
     abstract public Vec normalized();
     abstract public void normalize();
     

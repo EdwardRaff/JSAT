@@ -220,9 +220,9 @@ public class VecPaired<P, V extends Vec> extends Vec
     }
 
     @Override
-    public Vec copy()
+    public Vec clone()
     {
-        return new VecPaired(vector.copy(), pair);
+        return new VecPaired(vector.clone(), pair);
     }
 
     @Override
