@@ -77,7 +77,8 @@ public class NaiveBayes implements Classifier
         trainC(dataSet, new FakeExecutor());
     }
 
-    public Classifier copy()
+    @Override
+    public Classifier clone()
     {
         NaiveBayes newBayes = new NaiveBayes();
         
@@ -94,7 +95,7 @@ public class NaiveBayes implements Classifier
         {
             newBayes.distributions[i] = new ContinousDistribution[this.distributions[i].length];
             for(int j = 0; j < this.distributions[i].length; j++)
-                newBayes.distributions[i][j] = this.distributions[i][j].copy();
+                newBayes.distributions[i][j] = this.distributions[i][j].clone();
         }
         
         return newBayes;
