@@ -328,8 +328,8 @@ public class DecisionStump implements Classifier
 
     public void trainC(ClassificationDataSet dataSet)
     {
-        Set<Integer> splitOptions = new HashSet<Integer>();
-        for(int i = 0; i < dataSet.getNumCategoricalVars() + dataSet.getNumNumericalVars(); i++)
+        Set<Integer> splitOptions = new HashSet<Integer>(dataSet.getNumFeatures());
+        for(int i = 0; i < dataSet.getNumFeatures(); i++)
             splitOptions.add(i);
         
         this.predicting = dataSet.getPredicting();

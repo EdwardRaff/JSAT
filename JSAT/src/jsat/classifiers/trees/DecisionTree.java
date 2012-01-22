@@ -160,8 +160,8 @@ public class DecisionTree implements Classifier
     public void trainC(ClassificationDataSet dataSet, ExecutorService threadPool)
     {
         this.predicting = dataSet.getPredicting();
-        Set<Integer> options = new HashSet<Integer>(this.predicting.getNumOfCategories());
-        for(int i = 0; i < this.predicting.getNumOfCategories(); i++)
+        Set<Integer> options = new HashSet<Integer>(dataSet.getNumFeatures());
+        for(int i = 0; i < dataSet.getNumFeatures(); i++)
             options.add(i);
         
         ModifiableCountDownLatch mcdl = new ModifiableCountDownLatch(1);
