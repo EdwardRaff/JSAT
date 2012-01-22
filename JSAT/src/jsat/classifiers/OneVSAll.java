@@ -3,26 +3,61 @@ package jsat.classifiers;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import jsat.classifiers.svm.PlatSMO;
 import jsat.distributions.kernels.LinearKernel;
 import jsat.utils.FakeExecutor;
 
 /**
- *
+ * This classifier turns any classifier, specifically binary classifiers, into 
+ * multi-class classifiers. For a problem with <i>k</i> target classes, OneVsALl
+ * will create <i>k</i> different classifiers. Each one is a reducing of one 
+ * class against all other classes. Then all <i>k</i> classifiers's results are
+ * summed to produce a final classifier
+ * 
  * @author Edward Raff
  */
 public class OneVSAll implements Classifier
 {
-    Classifier[] oneVsAlls;
-    Classifier baseClassifier;
-    CategoricalData predicting;
+    private volatile Classifier[] oneVsAlls;
+    private Classifier baseClassifier;
+    private CategoricalData predicting;
+    private boolean concurrentTraining;
     
-    public OneVSAll(Classifier baseClassifier)
+    /**
+     * Creates a new One VS All classifier. 
+     * 
+     * @param baseClassifier the base classifier to replicate
+     * @param concurrentTraining controls whether or not classifiers are trained 
+     * simultaneously or using sequentially using their 
+     * {@link Classifier#trainC(jsat.classifiers.ClassificationDataSet, java.util.concurrent.ExecutorService) } method.  
+     * @see #setConcurrentTraining(boolean) 
+     */
+    public OneVSAll(Classifier baseClassifier, boolean concurrentTraining)
     {
         this.baseClassifier = baseClassifier;
+        this.concurrentTraining = concurrentTraining;
     }
-    
+
+    /**
+     * Controls what method of parallel training to use when 
+     * {@link #trainC(jsat.classifiers.ClassificationDataSet, java.util.concurrent.ExecutorService) } 
+     * is called. If set to true, each of the <i>k</i> classifiers will be trained in parallel, using
+     * their serial algorithms. If set to false, the <i>k</i> classifiers will be trained sequentially, 
+     * calling the {@link Classifier#trainC(jsat.classifiers.ClassificationDataSet, java.util.concurrent.ExecutorService) }
+     * for each classifier. <br>
+     * <br>
+     * This should be set to true for classifiers that do not support parallel training.<br>
+     * Setting this to true also uses <i>k</i> times the memory, since each classifier is being created and trained at the same time. 
+     * @param concurrentTraining whether or not to train the classifiers in parallel 
+     */
+    public void setConcurrentTraining(boolean concurrentTraining)
+    {
+        this.concurrentTraining = concurrentTraining;
+    }
     
     
     public CategoricalResults classify(DataPoint data)
@@ -56,9 +91,11 @@ public class OneVSAll implements Classifier
         
         int numer = dataSet.getDataPoint(0).getNumericalValues().length();
         CategoricalData[] categories = dataSet.getCategories();
+        //Latch only used when all the classifiers are trained in parallel 
+        final CountDownLatch latch = new CountDownLatch(oneVsAlls.length);
         for(int i = 0; i < oneVsAlls.length; i++)
         {
-            ClassificationDataSet cds = 
+            final ClassificationDataSet cds = 
                     new ClassificationDataSet(numer, categories, new CategoricalData(2));
             for(DataPoint dp : categorized.get(i))//add the ones
                 cds.addDataPoint(dp.getNumericalValues(), dp.getCategoricalValues(), 0);
@@ -68,13 +105,38 @@ public class OneVSAll implements Classifier
                     for(DataPoint dp: categorized.get(j))
                         cds.addDataPoint(dp.getNumericalValues(), dp.getCategoricalValues(), 1);
 
-            baseClassifier.trainC(cds, threadPool);
-//            PlatSMO cls = new PlatSMO(new LinearKernel());
-            oneVsAlls[i] = baseClassifier.clone();
-//            cls.trainC(cds);
-//            oneVsAlls[i] = cls;
+            if(!concurrentTraining)
+            {
+                baseClassifier.trainC(cds, threadPool);
+                oneVsAlls[i] = baseClassifier.clone();
+            }
+            else
+            {
+                final Classifier aClassifier = baseClassifier.clone();
+                final int ii = i;
+                threadPool.submit(new Runnable() {
+
+                    public void run()
+                    {
+                        aClassifier.trainC(cds);
+                        oneVsAlls[ii] = aClassifier;
+                        latch.countDown();
+                    }
+                });
+            }
+            
         }
-        
+
+        if (concurrentTraining)
+            try
+            {
+                latch.await();
+            }
+            catch (InterruptedException ex)
+            {
+                Logger.getLogger(OneVSAll.class.getName()).log(Level.SEVERE, null, ex);
+            }
+
         
     }
 
@@ -83,9 +145,20 @@ public class OneVSAll implements Classifier
         trainC(dataSet, new FakeExecutor());
     }
 
+    @Override
     public Classifier clone()
     {
-        throw new UnsupportedOperationException("Not supported yet.");
+        OneVSAll clone = new OneVSAll(baseClassifier.clone(), concurrentTraining);
+        if(this.predicting != null)
+            clone.predicting = this.predicting.clone();
+        if(this.oneVsAlls != null)
+        {
+            clone.oneVsAlls = new Classifier[this.oneVsAlls.length];
+            for(int i = 0; i < oneVsAlls.length; i++)
+                if(this.oneVsAlls[i] != null)
+                    clone.oneVsAlls[i] = this.oneVsAlls[i].clone();
+        }
+        return clone;
     }
 
     public boolean supportsWeightedData()
