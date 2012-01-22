@@ -70,6 +70,18 @@ public class ClassificationDataSet extends DataSet<ClassificationDataSet>
             this.numericalVariableNames.add("Numeric Input " + (i+1));
     }
     
+    public ClassificationDataSet(List<DataPointPair<Integer>> data, CategoricalData predicting)
+    {
+        this.predicting = predicting;
+        numNumerVals = data.get(0).getVector().length();
+        numOfSamples = data.size();
+        categories = CategoricalData.copyOf(data.get(0).getDataPoint().getCategoricalData());
+        classifiedExamples = new ArrayList<List<DataPoint>>(predicting.getNumOfCategories());
+        for(int i = 0; i < predicting.getNumOfCategories(); i++)
+            classifiedExamples.add( new ArrayList<DataPoint>());
+        for(DataPointPair<Integer> dpp : data)
+            classifiedExamples.get(dpp.getPair()).add(dpp.getDataPoint());
+    }
     
     public ClassificationDataSet(int numerical, CategoricalData[] categories, CategoricalData predicting)
     {
