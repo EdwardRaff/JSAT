@@ -544,19 +544,25 @@ public class DecisionStump implements Classifier
         return true;
     }
 
+    @Override
     public Classifier clone()
     {
         DecisionStump copy = new DecisionStump();
-        copy.catAttributes = CategoricalData.copyOf(catAttributes);
-        copy.results = new CategoricalResults[this.results.length];
-        for(int i = 0; i < this.results.length; i++ )
-            copy.results[i] = this.results[i].clone();
+        if(this.catAttributes != null)
+            copy.catAttributes = CategoricalData.copyOf(catAttributes);
+        if(this.results != null)
+        {
+            copy.results = new CategoricalResults[this.results.length];
+            for(int i = 0; i < this.results.length; i++ )
+                copy.results[i] = this.results[i].clone();
+        }
         copy.splittingAttribute = this.splittingAttribute;
         if(this.boundries != null)
             copy.boundries = new ArrayList<Double>(this.boundries);
         if(this.owners != null)
             copy.owners = new ArrayList<Integer>(this.owners);
-        copy.predicting = this.predicting.clone();
+        if(this.predicting != null)
+            copy.predicting = this.predicting.clone();
         return copy;
     }
 }

@@ -289,11 +289,14 @@ public class DecisionTree implements Classifier
         return true;
     }
 
+    @Override
     public Classifier clone()
     {
         DecisionTree copy = new DecisionTree(maxDepth, minSamples, pruningMethod, testProportion);
-        copy.predicting = this.predicting.clone();
-        copy.root = this.root.copy();
+        if(this.predicting != null)
+            copy.predicting = this.predicting.clone();
+        if(this.root != null)
+            copy.root = this.root.copy();
         return copy;
     }
     
