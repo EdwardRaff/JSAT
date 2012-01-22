@@ -231,4 +231,13 @@ public abstract class DataSet<D extends DataSet>
         
         return matrix;
     }
+    
+    /**
+     * Returns the number of features in this data point, which is the sum of {@link #getNumCategoricalVars() } and {@link #getNumNumericalVars() }
+     * @return 
+     */
+    public int getNumFeatures()
+    {
+        return getNumCategoricalVars() + getNumNumericalVars();
+    }
 }
