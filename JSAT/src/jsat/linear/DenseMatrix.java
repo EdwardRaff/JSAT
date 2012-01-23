@@ -324,11 +324,12 @@ public class DenseMatrix extends Matrix
      * @param b
      * @return 
      */
-    private Matrix pureRowOrderMultiply(Matrix b)
+    private void pureRowOrderMultiply(Matrix b, Matrix C)
     {
         if(!canMultiply(this, b))
             throw new ArithmeticException("Matrix dimensions do not agree");
-        DenseMatrix result = new DenseMatrix(this.rows(), b.cols());
+        else if(this.rows() != C.rows() || b.cols() != C.cols())
+            throw new ArithmeticException("Target Matrix is no the correct size");
         
         /*
          * In stead of row echelon order (i, j, k), we compue in "pure row oriented"
@@ -341,24 +342,40 @@ public class DenseMatrix extends Matrix
          * Concurrency Computat.: Pract. Exper. 2004; 16:799–815 (DOI: 10.1002/cpe.793)
          * 
          */
-        
-        //Pull out the index operations to hand optimize for speed. 
-        double[] Arowi;
-        double[] Crowi;
-        for(int i = 0; i < result.rows(); i++)
+        if(C instanceof DenseMatrix)
         {
-            Arowi = this.matrix[i];
-            Crowi = result.matrix[i];
-            
-            for(int k = 0; k < this.cols(); k++)
+            DenseMatrix result = (DenseMatrix) C;
+            //Pull out the index operations to hand optimize for speed. 
+            double[] Arowi;
+            double[] Crowi;
+            for(int i = 0; i < result.rows(); i++)
             {
-                double a = Arowi[k];
-                for(int j = 0; j < Crowi.length; j++)
-                    Crowi[j] += a*b.get(k, j);
+                Arowi = this.matrix[i];
+                Crowi = result.matrix[i];
+
+                for(int k = 0; k < this.cols(); k++)
+                {
+                    double a = Arowi[k];
+                    for(int j = 0; j < Crowi.length; j++)
+                        Crowi[j] += a*b.get(k, j);
+                }
             }
         }
-        
-        return result;
+        else
+        {
+            double[] Arowi;
+            for(int i = 0; i < C.rows(); i++)
+            {
+                Arowi = this.matrix[i];
+
+                for(int k = 0; k < this.cols(); k++)
+                {
+                    double a = Arowi[k];
+                    for(int j = 0; j < C.cols(); j++)
+                        C.increment(i, j, a*b.get(k, j));
+                }
+            }
+        }
     }
     
     private Matrix blockMultiply(Matrix b)
@@ -396,11 +413,11 @@ public class DenseMatrix extends Matrix
     private class BlockMultRun implements Runnable
     {
         final CountDownLatch latch;
-        final DenseMatrix result;
+        final Matrix result;
         final Matrix b;
         final int kLimit, jLimit, iLimit, threadID;
         
-        public BlockMultRun(CountDownLatch latch, DenseMatrix result, Matrix b, int threadID)
+        public BlockMultRun(CountDownLatch latch, Matrix result, Matrix b, int threadID)
         {
             this.latch = latch;
             this.result = result;
@@ -413,39 +430,60 @@ public class DenseMatrix extends Matrix
         
         public void run()
         {
-            for(int i0 = NB2*threadID; i0 < iLimit; i0+=NB2*maxThreads)
-                for(int k0 = 0; k0 < kLimit; k0+=NB2)
-                    for(int j0 = 0; j0 < jLimit; j0+=NB2)
-                    {
-                        for(int i = i0; i < min(i0+NB2, iLimit); i++)
+            if(result instanceof DenseMatrix && b instanceof DenseMatrix)
+            {
+                DenseMatrix C = (DenseMatrix) result;
+                DenseMatrix B = (DenseMatrix) b;
+                for(int i0 = NB2*threadID; i0 < iLimit; i0+=NB2*maxThreads)
+                    for(int k0 = 0; k0 < kLimit; k0+=NB2)
+                        for(int j0 = 0; j0 < jLimit; j0+=NB2)
                         {
-                            double[] c_row_i = result.matrix[i];
-
-                            for(int k = k0; k < min(k0+NB2, kLimit); k++)
+                            for(int i = i0; i < min(i0+NB2, iLimit); i++)
                             {
-                                double a = matrix[i][k];
+                                double[] c_row_i = C.matrix[i];
 
-                                for(int j = j0; j < min(j0+NB2, jLimit); j++)
-                                    c_row_i[j] += a * b.get(k, j);
+                                for(int k = k0; k < min(k0+NB2, kLimit); k++)
+                                {
+                                    double a = matrix[i][k];
+                                    double[] bRowK = B.matrix[k];
+
+                                    for(int j = j0; j < min(j0+NB2, jLimit); j++)
+                                        c_row_i[j] += a * bRowK[j];
+                                }
                             }
                         }
-                    }
+            }
+            else//Generic version
+            {
+                for (int i0 = NB2 * threadID; i0 < iLimit; i0 += NB2 * maxThreads)
+                    for (int k0 = 0; k0 < kLimit; k0 += NB2)
+                        for (int j0 = 0; j0 < jLimit; j0 += NB2)
+                            for (int i = i0; i < min(i0 + NB2, iLimit); i++)
+                                for (int k = k0; k < min(k0 + NB2, kLimit); k++)
+                                {
+                                    double a = matrix[i][k];
+
+                                    for (int j = j0; j < min(j0 + NB2, jLimit); j++)
+                                        result.increment(i, j, a * b.get(k, j));
+                                }
+            }
 
             latch.countDown();
         }
         
     }
     
-    private Matrix blockMultiply(Matrix b, ExecutorService threadPool)
+    private void blockMultiply(Matrix b, ExecutorService threadPool, Matrix C)
     {
         if(!canMultiply(this, b))
             throw new ArithmeticException("Matrix dimensions do not agree");
-        DenseMatrix result = new DenseMatrix(this.rows(), b.cols());
+        else if(this.rows() != C.rows() || b.cols() != C.cols())
+            throw new ArithmeticException("Destination matrix does not match the multiplication dimensions");
         
         CountDownLatch latch = new CountDownLatch(maxThreads);
         
         for(int threadID = 0; threadID < maxThreads; threadID++)
-            threadPool.submit(new BlockMultRun(latch, result, b, threadID));
+            threadPool.submit(new BlockMultRun(latch, C, b, threadID));
         try
         {
             latch.await();
@@ -454,26 +492,25 @@ public class DenseMatrix extends Matrix
         {
             Logger.getLogger(DenseMatrix.class.getName()).log(Level.SEVERE, null, ex);
         }
-        
-        return result;
     }
     
-    public Matrix transposeMultiply(final Matrix b)
+    public void transposeMultiply(final Matrix b, Matrix C)
     {
-        return transposeMultiply(b, new FakeExecutor());
+        transposeMultiply(b, C, new FakeExecutor());
     }
             
     
-    public Matrix transposeMultiply(final Matrix b, ExecutorService threadPool)
+    public void transposeMultiply(final Matrix b, final Matrix C, ExecutorService threadPool)
     {
         if(this.rows() != b.rows())//Normaly it is A_cols == B_rows, but we are doint A'*B, not A*B
             throw new ArithmeticException("Matrix dimensions do not agree");
-        final DenseMatrix result = new DenseMatrix(this.cols(), b.cols());
+        else if(this.cols() != C.rows() || b.cols() != C.cols())
+            throw new ArithmeticException("Destination matrix does not have matching dimensions");
         final DenseMatrix A = this;
         ///Should choose step size such that 2*NB2^2 * dataTypeSize <= CacheSize
         
-        final int iLimit = result.rows();
-        final int jLimit = result.cols();
+        final int iLimit = C.rows();
+        final int jLimit = C.cols();
         final int kLimit = this.rows();
         
         final CountDownLatch cdl = new CountDownLatch(maxThreads);
@@ -485,24 +522,50 @@ public class DenseMatrix extends Matrix
 
                 public void run()
                 {
-                    for (int i0 = NB2*threadID; i0 < iLimit; i0 += NB2*maxThreads)
-                        for(int k0 = 0; k0 < kLimit; k0+=NB2)
-                            for(int j0 = 0; j0 < jLimit; j0+=NB2)
-                            {
-                                for(int k = k0; k < min(k0+NB2, kLimit); k++)
+                    if(b instanceof DenseMatrix && C instanceof  DenseMatrix)
+                    {
+                        DenseMatrix BB = (DenseMatrix) b;
+                        DenseMatrix CC = (DenseMatrix) C;
+                        for (int i0 = NB2 * threadID; i0 < iLimit; i0 += NB2 * maxThreads)
+                            for (int k0 = 0; k0 < kLimit; k0 += NB2)
+                                for (int j0 = 0; j0 < jLimit; j0 += NB2)
                                 {
-                                    double[] A_row_k =A.matrix[k];
-
-                                    for(int i = i0; i < min(i0+NB2, iLimit); i++)
+                                    for (int k = k0; k < min(k0 + NB2, kLimit); k++)
                                     {
-                                        double a = A_row_k[i];
-                                        double[] c_row_i = result.matrix[i];
+                                        double[] A_row_k = A.matrix[k];
+                                        double[] B_row_k = BB.matrix[k];
 
-                                        for(int j = j0; j < min(j0+NB2, jLimit); j++)
-                                            c_row_i[j] += a * b.get(k, j);
+                                        for (int i = i0; i < min(i0 + NB2, iLimit); i++)
+                                        {
+                                            double a = A_row_k[i];
+                                            double[] c_row_i = CC.matrix[i];
+
+                                            for (int j = j0; j < min(j0 + NB2, jLimit); j++)
+                                                c_row_i[j] += a * B_row_k[j];
                                         }
                                     }
                                 }
+                    }
+                    else//Generic version 
+                    {
+                        for (int i0 = NB2 * threadID; i0 < iLimit; i0 += NB2 * maxThreads)
+                            for (int k0 = 0; k0 < kLimit; k0 += NB2)
+                                for (int j0 = 0; j0 < jLimit; j0 += NB2)
+                                {
+                                    for (int k = k0; k < min(k0 + NB2, kLimit); k++)
+                                    {
+                                        double[] A_row_k = A.matrix[k];
+
+                                        for (int i = i0; i < min(i0 + NB2, iLimit); i++)
+                                        {
+                                            double a = A_row_k[i];
+
+                                            for (int j = j0; j < min(j0 + NB2, jLimit); j++)
+                                                C.increment(i, j, a*b.get(k, j));
+                                        }
+                                    }
+                                }
+                    }
                     cdl.countDown();
                 }
             });
@@ -518,13 +581,12 @@ public class DenseMatrix extends Matrix
             Logger.getLogger(DenseMatrix.class.getName()).log(Level.SEVERE, null, ex);
         }
         
-        return result;
     }
     
     @Override
-    public Matrix multiply(Matrix b)
+    public void multiply(Matrix b, Matrix C)
     {
-        return pureRowOrderMultiply(b);
+        pureRowOrderMultiply(b, C);
     }
     
     /**
@@ -534,11 +596,11 @@ public class DenseMatrix extends Matrix
     {
         
         final CountDownLatch latch;
-        final DenseMatrix A, result;
-        final Matrix B;
+        final DenseMatrix A;
+        final Matrix B, result;
         final int threadID;
 
-        public MultRun(CountDownLatch latch, DenseMatrix A, DenseMatrix result, Matrix B, int threadID)
+        public MultRun(CountDownLatch latch, DenseMatrix A, Matrix result, Matrix B, int threadID)
         {
             this.latch = latch;
             this.A = A;
@@ -552,17 +614,37 @@ public class DenseMatrix extends Matrix
 
             //Pull out the index operations to hand optimize for speed. 
             double[] Arowi;
-            double[] Crowi;
-            for(int i = 0+threadID; i < result.rows(); i+=maxThreads)
+            if(result instanceof  DenseMatrix && B instanceof DenseMatrix)
             {
-                Arowi = A.matrix[i];
-                Crowi = result.matrix[i];
-
-                for(int k = 0; k < A.cols(); k++)
+                DenseMatrix C = (DenseMatrix) result;
+                DenseMatrix BB = (DenseMatrix) B;
+                double[] Crowi;
+                for(int i = 0+threadID; i < result.rows(); i+=maxThreads)
                 {
-                    double a = Arowi[k];
-                    for(int j = 0; j < Crowi.length; j++)
-                        Crowi[j] += a*B.get(k, j);
+                    Arowi = A.matrix[i];
+                    Crowi = C.matrix[i];
+
+                    for(int k = 0; k < A.cols(); k++)
+                    {
+                        double a = Arowi[k];
+                        double[] bRowK = BB.matrix[k];
+                        for(int j = 0; j < Crowi.length; j++)
+                            Crowi[j] += a*bRowK[j];
+                    }
+                }
+            }
+            else//Generic version 
+            {
+                for(int i = 0+threadID; i < result.rows(); i+=maxThreads)
+                {
+                    Arowi = A.matrix[i];
+
+                    for(int k = 0; k < A.cols(); k++)
+                    {
+                        double a = Arowi[k];
+                        for(int j = 0; j < result.cols(); j++)
+                            result.increment(i, j, a*B.get(k, j));
+                    }
                 }
             }
             latch.countDown();
@@ -570,17 +652,21 @@ public class DenseMatrix extends Matrix
     }
 
     @Override
-    public Matrix multiply(Matrix b, ExecutorService threadPool)
+    public void multiply(Matrix b, Matrix C, ExecutorService threadPool)
     {
         if(this.rows()/NB2 >= maxThreads)//Perform block execution only when we have a large enough matrix to keep ever core busy!
-            return blockMultiply(b, threadPool);
+        {
+            blockMultiply(b, threadPool, C);
+            return;
+        }
         if(!canMultiply(this, b))
             throw new ArithmeticException("Matrix dimensions do not agree");
-        DenseMatrix result = new DenseMatrix(this.rows(), b.cols());
+        else if(this.rows() != C.rows() || b.cols() != C.cols())
+            throw new ArithmeticException("Destination matrix does not match the multiplication dimensions");
         CountDownLatch cdl = new CountDownLatch(maxThreads);
         
         for (int threadID = 0; threadID < maxThreads; threadID++)
-            threadPool.submit(new MultRun(cdl, this, result, b, threadID));
+            threadPool.submit(new MultRun(cdl, this, C, b, threadID));
             
         try
         {
@@ -589,10 +675,8 @@ public class DenseMatrix extends Matrix
         catch (InterruptedException ex)
         {
             //faulre? Gah - try seriel
-            return this.multiply(b);
+            this.multiply(b, C);
         }
-        
-        return result;
     }
     
     @Override

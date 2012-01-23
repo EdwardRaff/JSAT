@@ -82,8 +82,32 @@ public abstract class Matrix implements Cloneable
      */
     abstract public Vec multiply(Vec b);
     abstract public Vec multiply(Vec b, ExecutorService threadPool);
-    abstract public Matrix multiply(Matrix b);
-    abstract public Matrix multiply(Matrix b, ExecutorService threadPool);
+    public Matrix multiply(Matrix b)
+    {
+        Matrix C = new DenseMatrix(this.rows(), b.cols());
+        multiply(b, C);
+        return C;
+    }
+    public Matrix multiply(Matrix b, ExecutorService threadPool)
+    {
+        Matrix C = new DenseMatrix(this.rows(), b.cols());
+        multiply(b, C, threadPool);
+        return C;
+    }
+    
+    /**
+     * Computes the result of C = C + this*b, the matrix C will be modified
+     * @param b the matrix to multiply this with
+     * @param C the matrix to add the result to
+     */
+    abstract public void multiply(Matrix b, Matrix C);
+    /**
+     * Computes the result of C = C + this*b, the matrix C will be modified
+     * @param b the matrix to multiply this with
+     * @param threadPool the source of threads for the computation
+     * @param C the matrix to add the result to
+     */
+    abstract public void multiply(Matrix b, Matrix C, ExecutorService threadPool);
     public Matrix multiply(double c)
     {
         Matrix toReturn = clone();
@@ -124,7 +148,19 @@ public abstract class Matrix implements Cloneable
      * @param b the other Matrix
      * @return The result of A'*B
      */
-    abstract public Matrix transposeMultiply(Matrix b);
+    public Matrix transposeMultiply(Matrix b)
+    {
+        Matrix C = new DenseMatrix(this.cols(), b.cols());
+        transposeMultiply(b, C);
+        return C;
+    }
+    
+    /**
+     * Updates the matrix C so that C = C + A'*B
+     * @param b the other matrix
+     * @param C the matrix to place the results in
+     */
+    abstract public void transposeMultiply(Matrix b, Matrix C);
     /**
      * Computes the result matrix of A'*B, or the same result as <br>
      * <code>
@@ -135,7 +171,20 @@ public abstract class Matrix implements Cloneable
      * @param threadPool the source of threads to run this computation in parallel
      * @return The result of A'*B
      */
-    abstract public Matrix transposeMultiply(Matrix b, ExecutorService threadPool);
+    public Matrix transposeMultiply(Matrix b, ExecutorService threadPool)
+    {
+        Matrix C = new DenseMatrix(this.cols(), b.cols());
+        transposeMultiply(b, C, threadPool);
+        return C;
+    }
+    
+    /**
+     * Updates the matrix C so that C = C + A'*B
+     * @param b the other matrix
+     * @param threadPool the source of threads to run this computation in parallel
+     * @param C the matrix to place the results in
+     */
+    abstract public void transposeMultiply(Matrix b, Matrix C, ExecutorService threadPool);
     
     /**
      * Computes the result of x = A'*b*c
@@ -148,6 +197,12 @@ public abstract class Matrix implements Cloneable
     
     abstract public double get(int i, int j);
     abstract public void set(int i, int j, double value);
+    public void increment(int i, int j, double value)
+    {
+        if(Double.isNaN(value) || Double.isInfinite(value))
+            throw new ArithmeticException("Can not add a value " + value);
+        set(i, j, get(i, j)+value);
+    }
     
     abstract public int rows();
     abstract public int cols();
@@ -161,6 +216,7 @@ public abstract class Matrix implements Cloneable
     
     abstract public void swapRows(int r1, int r2);
     
+    @Override
     abstract public Matrix clone();
 
     /**

@@ -386,6 +386,49 @@ public class DenseMatrixTest
             //Good! We expected failure
         }
     }
+    
+    @Test
+    public void testMultiply_Matrix_Matrix()
+    {
+        DenseMatrix R = new DenseMatrix(A.rows(), B.cols());
+        
+        A.multiply(B, R);
+        assertEquals(AB, R);
+        A.multiply(B, R);
+        assertEquals(AB.multiply(2), R);
+        
+        R = new DenseMatrix(B.rows(), A.cols());
+        B.multiply(A, R);
+        assertEquals(BA, R);
+        B.multiply(A, R);
+        assertEquals(BA.multiply(2), R);
+        
+        R = new DenseMatrix(A.rows(), C.cols());
+        A.multiply(C, R);
+        assertEquals(AC, R);
+        A.multiply(C, R);
+        assertEquals(AC.multiply(2), R);
+        
+        try
+        {
+            R.multiply(A, C);
+            fail("Expected error about matrix dimensions"); 
+        }
+        catch(ArithmeticException ex)
+        {
+            //Good! We expected failure
+        }
+        
+        try
+        {
+            A.multiply(B, C);
+            fail("Expected error about target matrix dimensions"); 
+        }
+        catch(ArithmeticException ex)
+        {
+            //Good! We expected failure
+        }
+    }
 
     /**
      * Test of multiply method, of class DenseMatrix.
@@ -408,6 +451,49 @@ public class DenseMatrixTest
         {
             C.multiply(A, threadpool);
             fail("Expected error about matrix dimensions"); 
+        }
+        catch(ArithmeticException ex)
+        {
+            //Good! We expected failure
+        }
+    }
+    
+    @Test
+    public void testMultiply_Matrix_ExecutorService_Matrix()
+    {
+        DenseMatrix R = new DenseMatrix(A.rows(), B.cols());
+        
+        A.multiply(B, R, threadpool);
+        assertEquals(AB, R);
+        A.multiply(B, R, threadpool);
+        assertEquals(AB.multiply(2), R);
+        
+        R = new DenseMatrix(B.rows(), A.cols());
+        B.multiply(A, R, threadpool);
+        assertEquals(BA, R);
+        B.multiply(A, R, threadpool);
+        assertEquals(BA.multiply(2), R);
+        
+        R = new DenseMatrix(A.rows(), C.cols());
+        A.multiply(C, R, threadpool);
+        assertEquals(AC, R);
+        A.multiply(C, R, threadpool);
+        assertEquals(AC.multiply(2), R);
+        
+        try
+        {
+            R.multiply(A, C, threadpool);
+            fail("Expected error about matrix dimensions"); 
+        }
+        catch(ArithmeticException ex)
+        {
+            //Good! We expected failure
+        }
+        
+        try
+        {
+            A.multiply(B, C, threadpool);
+            fail("Expected error about target matrix dimensions"); 
         }
         catch(ArithmeticException ex)
         {
@@ -806,6 +892,82 @@ public class DenseMatrixTest
     }
     
     @Test
+    public void testTransposeMultiply_Matrix_Matrix()
+    {
+        Matrix R = new DenseMatrix(A.rows(), B.cols());
+        
+        A.transpose().transposeMultiply(B, R);
+        assertEquals(AB, R);
+        A.transpose().transposeMultiply(B, R);
+        assertEquals(AB.multiply(2), R);
+        
+        R = new DenseMatrix(B.rows(), A.cols());
+        B.transpose().transposeMultiply(A, R);
+        assertEquals(BA, R);
+        B.transpose().transposeMultiply(A, R);
+        assertEquals(BA.multiply(2), R);
+        
+        R = new DenseMatrix(A.rows(), C.cols());
+        A.transpose().transposeMultiply(C, R);
+        assertEquals(AC, R); 
+        A.transpose().transposeMultiply(C, R);
+        assertEquals(AC.multiply(2), R); 
+        
+        R = new DenseMatrix(C.cols(), A.cols());
+        C.transposeMultiply(A, R);
+        Matrix CtA = new DenseMatrix(new double[][] 
+        { 
+            {34,   135,   105,   135,    98},
+            {22,    97,    63,   102,   101},
+            {23,   140,   105,   166,   159},
+            {36,   172,   127,   174,   148},
+            {17,   130,   106,   145,   125},
+            {28,   119,   100,   112,   127},
+            {43,   219,   122,   257,   192},
+        } );
+        assertEquals(CtA, R); 
+        C.transposeMultiply(A, R);
+        assertEquals(CtA.multiply(2), R);
+        
+        R = new DenseMatrix(C.cols(), C.cols());
+        C.transposeMultiply(C, R);
+        Matrix CtC = new DenseMatrix(new double[][]
+        {
+            {172,    60,    87,   162,   109,   100,   155},
+            { 60,    74,    81,    84,    38,    94,   102},
+            { 87,    81,   138,   124,   111,    89,   190},
+            {162,    84,   124,   181,   134,   125,   187},
+            {109,    38,   111,   134,   154,    50,   170},
+            {100,    94,    89,   125,    50,   143,    99},
+            {155,   102,   190,   187,   170,    99,   309},
+        });
+        assertEquals(CtC, R); 
+        C.transposeMultiply(C, R);
+        assertEquals(CtC.multiply(2), R); 
+        
+        try
+        {
+            A.transpose().transposeMultiply(B, R);
+            fail("Expected error about target matrix dimensions"); 
+        }
+        catch(ArithmeticException ex)
+        {
+            //Good! We expected failure
+        }
+        
+        try
+        {
+            C.transpose().transposeMultiply(A, R);
+            fail("Expected error about matrix dimensions"); 
+        }
+        catch(ArithmeticException ex)
+        {
+            //Good! We expected failure
+        }
+    }
+    
+    
+    @Test
     public void testTransposeMultiply_Matrix_ExecutorService()
     {
         Matrix result;
@@ -846,6 +1008,81 @@ public class DenseMatrixTest
         try
         {
             C.transpose().transposeMultiply(A, threadpool);
+            fail("Expected error about matrix dimensions"); 
+        }
+        catch(ArithmeticException ex)
+        {
+            //Good! We expected failure
+        }
+    }
+    
+    @Test
+    public void testTransposeMultiply_Matrix_Matrix_ExecutorService()
+    {
+        Matrix R = new DenseMatrix(A.rows(), B.cols());
+        
+        A.transpose().transposeMultiply(B, R, threadpool);
+        assertEquals(AB, R);
+        A.transpose().transposeMultiply(B, R, threadpool);
+        assertEquals(AB.multiply(2), R);
+        
+        R = new DenseMatrix(B.rows(), A.cols());
+        B.transpose().transposeMultiply(A, R, threadpool);
+        assertEquals(BA, R);
+        B.transpose().transposeMultiply(A, R, threadpool);
+        assertEquals(BA.multiply(2), R);
+        
+        R = new DenseMatrix(A.rows(), C.cols());
+        A.transpose().transposeMultiply(C, R, threadpool);
+        assertEquals(AC, R); 
+        A.transpose().transposeMultiply(C, R, threadpool);
+        assertEquals(AC.multiply(2), R); 
+        
+        R = new DenseMatrix(C.cols(), A.cols());
+        C.transposeMultiply(A, R, threadpool);
+        Matrix CtA = new DenseMatrix(new double[][] 
+        { 
+            {34,   135,   105,   135,    98},
+            {22,    97,    63,   102,   101},
+            {23,   140,   105,   166,   159},
+            {36,   172,   127,   174,   148},
+            {17,   130,   106,   145,   125},
+            {28,   119,   100,   112,   127},
+            {43,   219,   122,   257,   192},
+        } );
+        assertEquals(CtA, R); 
+        C.transposeMultiply(A, R, threadpool);
+        assertEquals(CtA.multiply(2), R);
+        
+        R = new DenseMatrix(C.cols(), C.cols());
+        C.transposeMultiply(C, R, threadpool);
+        Matrix CtC = new DenseMatrix(new double[][]
+        {
+            {172,    60,    87,   162,   109,   100,   155},
+            { 60,    74,    81,    84,    38,    94,   102},
+            { 87,    81,   138,   124,   111,    89,   190},
+            {162,    84,   124,   181,   134,   125,   187},
+            {109,    38,   111,   134,   154,    50,   170},
+            {100,    94,    89,   125,    50,   143,    99},
+            {155,   102,   190,   187,   170,    99,   309},
+        });
+        assertEquals(CtC, R); 
+        C.transposeMultiply(C, R, threadpool);
+        assertEquals(CtC.multiply(2), R); 
+        
+        try
+        {
+            A.transpose().transposeMultiply(B, R, threadpool);
+            fail("Expected error about target matrix dimensions"); 
+        }
+        catch(ArithmeticException ex)
+        {
+            //Good! We expected failure
+        }
+        
+        try
+        {
+            C.transpose().transposeMultiply(A, R, threadpool);
             fail("Expected error about matrix dimensions"); 
         }
         catch(ArithmeticException ex)
