@@ -121,6 +121,39 @@ public class OnLineStatistics
    }
    
    /**
+    * Effectively removes a sample with the given value and weight from the total. 
+    * Removing values that have not been added may yield results that have no meaning
+    * <br><br>
+    * NOTE: {@link #getSkewness() } and {@link #getKurtosis() } are not currently updated correctly
+    * 
+    * @param x the value of the sample
+    * @param weight the weight of the sample
+    * @throws ArithmeticException if a negative weight is given
+    */
+   public void remove(double x, double weight)
+   {
+       if(weight < 0)
+           throw new ArithmeticException("Can not remove a negative weight");
+       else if(weight == 0)
+           return;
+       
+       double n1 = n;
+       n-=weight;
+       double delta = x - mean;
+       double delta_n = delta*weight/n;
+       double delta_n2 = delta_n*delta_n;
+       double term1 = delta*delta_n*n1;
+       
+       
+       mean -= delta_n;
+       
+       m2 -= weight*delta*(x-mean);
+       //TODO m3 and m4 arent getting updated correctly 
+       m3 -= term1 * delta_n * (n - 2+weight) - 3 * delta_n * m2;
+       m4 -= term1 * delta_n2 * (n*n - 3*n + 3) + 6 * delta_n2 * m2 - 4 * delta_n * m3;
+   }
+   
+   /**
     * Computes a new set of counts that is the sum of the counts from the given distributions. 
     * <br><br>
     * NOTE: Adding two statistics is not as numerically stable. If A and B have values of similar
@@ -159,6 +192,16 @@ public class OnLineStatistics
                + 4 * delta *(A.n*B.m3 - B.n*A.m3)/nX;
        
         return new OnLineStatistics(nX, newMean, newM2, newM3, newM4, Math.min(A.min, B.min), Math.max(A.max, B.max));   
+   }
+   
+   /**
+    * Returns the sum of the weights for all data points added to the statistics. 
+    * If all weights were 1, then this value is the number of data points added. 
+    * @return 
+    */
+   public double getSumOfWeights()
+   {
+       return n;
    }
 
    public double getMean()
