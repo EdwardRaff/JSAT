@@ -15,6 +15,8 @@ import jsat.classifiers.ClassificationDataSet;
 import jsat.classifiers.Classifier;
 import jsat.classifiers.DataPoint;
 import jsat.classifiers.DataPointPair;
+import jsat.regression.RegressionDataSet;
+import jsat.regression.Regressor;
 import jsat.utils.FakeExecutor;
 import jsat.utils.ModifiableCountDownLatch;
 
@@ -24,7 +26,7 @@ import jsat.utils.ModifiableCountDownLatch;
  * 
  * @author Edward Raff
  */
-public class DecisionTree implements Classifier
+public class DecisionTree implements Classifier, Regressor
 {
     private int maxDepth;
     private int minSamples;
@@ -35,6 +37,35 @@ public class DecisionTree implements Classifier
      * What portion of the training data will be set aside for pruning. 
      */
     private double testProportion;
+
+    public double regress(DataPoint data)
+    {
+        return root.regress(data);
+    }
+
+    public void train(RegressionDataSet dataSet, ExecutorService threadPool)
+    {
+        Set<Integer> options = new HashSet<Integer>(dataSet.getNumFeatures());
+        for(int i = 0; i < dataSet.getNumFeatures(); i++)
+            options.add(i);
+        
+        ModifiableCountDownLatch mcdl = new ModifiableCountDownLatch(1);
+        root = makeNodeR(dataSet.getDPPList(), options, 0, threadPool, mcdl);
+        try
+        {
+            mcdl.await();
+        }
+        catch (InterruptedException ex)
+        {
+            Logger.getLogger(DecisionTree.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        //TODO add pruning for regression 
+    }
+
+    public void train(RegressionDataSet dataSet)
+    {
+        train(dataSet, new FakeExecutor());
+    }
     
     public static enum PruningMethod
     {
@@ -177,7 +208,7 @@ public class DecisionTree implements Classifier
                 testPoints.add(dataPoints.remove(rand.nextInt(dataPoints.size())));
         }
         
-        this.root = makeNode(dataPoints, options, 0, threadPool, mcdl);
+        this.root = makeNodeC(dataPoints, options, 0, threadPool, mcdl);
         
         try
         {
@@ -247,7 +278,16 @@ public class DecisionTree implements Classifier
         return madeChange;
     }
     
-    private Node makeNode(List<DataPointPair<Integer>> dataPoints, final Set<Integer> options, final int depth,
+    /**
+     * Makes a new node for classification 
+     * @param dataPoints the list of data points paired with their class
+     * @param options the attributes that this tree may select from
+     * @param depth the current depth of the tree
+     * @param threadPool the source of threads
+     * @param mcdl count down latch 
+     * @return the node created, or null if no node was created
+     */
+    private Node makeNodeC(List<DataPointPair<Integer>> dataPoints, final Set<Integer> options, final int depth,
             final ExecutorService threadPool, final ModifiableCountDownLatch mcdl)
     {
         if(depth > maxDepth || options.isEmpty() || dataPoints.size() < minSamples || dataPoints.isEmpty())
@@ -270,7 +310,47 @@ public class DecisionTree implements Classifier
 
                     public void run()
                     {
-                        node.paths[ii] = makeNode(splitI, new HashSet<Integer>(options), depth+1, threadPool, mcdl);
+                        node.paths[ii] = makeNodeC(splitI, new HashSet<Integer>(options), depth+1, threadPool, mcdl);
+                    }
+                });
+            }
+        
+        mcdl.countDown();
+        return node;
+    }
+    
+    /**
+     * Makes a new node for regression
+     * @param dataPoints the list of data points paired with their associated real value
+     * @param options the attributes that this tree may select from 
+     * @param depth the current depth of the tree
+     * @param threadPool the source of threads
+     * @param mcdl count down latch 
+     * @return the node created, or null if no node was created
+     */
+    private Node makeNodeR(List<DataPointPair<Double>> dataPoints, final Set<Integer> options, final int depth,
+            final ExecutorService threadPool, final ModifiableCountDownLatch mcdl)
+    {
+        if(depth > maxDepth || options.isEmpty() || dataPoints.size() < minSamples || dataPoints.isEmpty())
+        {
+            mcdl.countDown();
+            return null;
+        }
+        DecisionStump stump = new DecisionStump();
+        final List<List<DataPointPair<Double>>> splits = stump.trainR(dataPoints, options);
+        
+        final Node node = new Node(stump);
+        if(stump.getNumberOfPaths() > 1)//If there is 1 path, we are perfectly classifier - nothing more to do 
+            for(int i = 0; i < node.paths.length; i++)
+            {
+                final int ii = i;
+                final List<DataPointPair<Double>> splitI = splits.get(i);
+                mcdl.countUp();
+                threadPool.submit(new Runnable() {
+
+                    public void run()
+                    {
+                        node.paths[ii] = makeNodeR(splitI, new HashSet<Integer>(options), depth+1, threadPool, mcdl);
                     }
                 });
             }
@@ -290,7 +370,7 @@ public class DecisionTree implements Classifier
     }
 
     @Override
-    public Classifier clone()
+    public DecisionTree clone()
     {
         DecisionTree copy = new DecisionTree(maxDepth, minSamples, pruningMethod, testProportion);
         if(this.predicting != null)
@@ -333,6 +413,15 @@ public class DecisionTree implements Classifier
                 return stump.result(path);
             else
                 return paths[path].classify(dataPoint);
+        }
+        
+        protected double regress(DataPoint dataPoint)
+        {
+            int path  = stump.whichPath(dataPoint);
+            if(paths[path] == null)
+                return stump.regress(dataPoint);
+            else
+                return paths[path].regress(dataPoint);
         }
         
         protected Node copy()

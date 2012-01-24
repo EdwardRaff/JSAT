@@ -5,6 +5,7 @@ import java.util.Set;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
@@ -21,7 +22,10 @@ import jsat.distributions.empirical.kernelfunc.GaussKF;
 import jsat.linear.DenseVector;
 import jsat.linear.Vec;
 import jsat.math.Function;
+import jsat.math.OnLineStatistics;
 import jsat.math.rootfinding.Zeroin;
+import jsat.regression.RegressionDataSet;
+import jsat.regression.Regressor;
 import jsat.utils.PairedReturn;
 import static java.lang.Math.*;
 
@@ -29,18 +33,47 @@ import static java.lang.Math.*;
  * This class is a 1-rule. It creates one rule that is used to classify all inputs, 
  * making it a decision tree with only one node. It can be used as a weak learner 
  * for ensemble learners, or as the nodes in a true decision tree. 
+ * <br><br>
+ * Categorical values are handled similarly under all circumstances. <br>
+ * During classification, numeric attributes are separated based on most 
+ * likely probability into their classes. <br>
+ * During regression, numeric attributes are done with only binary splits,
+ * finding the split that minimizes the total squared error sum. 
  * 
  * @author Edward Raff
  */
-public class DecisionStump implements Classifier
+public class DecisionStump implements Classifier, Regressor
 {
+    /**
+     * Indicates which attribute to split on 
+     */
     private int splittingAttribute;
+    /**
+     * Used only when trained for classification. Contains information about the class being predicted
+     */
     private CategoricalData predicting;
+    /**
+     * Contains the information about the attributes in the data set
+     */
     private CategoricalData[] catAttributes;
+    /**
+     * Used only in classification. Contains the numeric boundaries to split on
+     */
     private List<Double> boundries;
+    /**
+     * Used only in classification. Contains the most likely class corresponding to each boundary split 
+     */
     private List<Integer> owners;
+    /**
+     * Used only in classification. Contains the results for each of the split options 
+     */
     private CategoricalResults[] results;
+    /**
+     * Only used during regression. Contains the averages for each branch
+     */
+    private double[] regressionResults;
     private GainMethod gainMethod;
+    private boolean removeContinuousAttributes;
 
     /**
      * Creates a new decision stump
@@ -48,8 +81,22 @@ public class DecisionStump implements Classifier
     public DecisionStump()
     {
         gainMethod = GainMethod.GAINRATIO;
+        removeContinuousAttributes = false;
     }
 
+    /**
+     * Unlike categorical values, when a continuous attribute is selected to split on, not 
+     * all values of the attribute become the same. It can be useful to split on the same 
+     * attribute multiple times. If set true, continuous attributes will be removed from 
+     * the options list. Else, they will be left in the options list. 
+     * 
+     * @param removeContinuousAttributes whether or not to remove continuous attributes on a call to {@link #trainC(java.util.List, java.util.Set) }
+     */
+    public void setRemoveContinuousAttributes(boolean removeContinuousAttributes)
+    {
+        this.removeContinuousAttributes = removeContinuousAttributes;
+    }
+    
     public void setGainMethod(GainMethod gainMethod)
     {
         this.gainMethod = gainMethod;
@@ -60,6 +107,10 @@ public class DecisionStump implements Classifier
         return gainMethod;
     }
     
+    /**
+     * Returns the attribute that this stump has decided to used to compute results. 
+     * @return 
+     */
     public int getSplittingAttribute()
     {
         return splittingAttribute;
@@ -76,6 +127,26 @@ public class DecisionStump implements Classifier
     public void setPredicting(CategoricalData predicting)
     {
         this.predicting = predicting;
+    }
+
+    public double regress(DataPoint data)
+    {
+        if(regressionResults == null)
+            throw new RuntimeException("Decusion stump has not been trained for regression");
+        return regressionResults[whichPath(data)];
+    }
+
+    public void train(RegressionDataSet dataSet, ExecutorService threadPool)
+    {
+        train(dataSet);
+    }
+
+    public void train(RegressionDataSet dataSet)
+    {
+        Set<Integer> options = new HashSet<Integer>(dataSet.getNumFeatures());
+        for(int i = 0; i < dataSet.getNumFeatures(); i++)
+            options.add(i);
+        trainR(dataSet.getDPPList(), options);
     }
     
     public static enum GainMethod
@@ -306,38 +377,72 @@ public class DecisionStump implements Classifier
 
     /**
      * Determines which split path this data point would follow from this decision stump. 
+     * Works for both classification and regression. 
+     * 
      * @param data the data point in question
-     * @return the integer indicating which path to take. 
+     * @return the integer indicating which path to take. -1 returned if stump is not trained
      */
     public int whichPath(DataPoint data)
     {
-        if(getNumberOfPaths() == 1)//ONLY one option, entropy was zero
+        int paths = getNumberOfPaths();
+        if(paths < 0)
+            return paths;//Not trained
+        else if(paths == 1)//ONLY one option, entropy was zero
             return 0;
-        else if(splittingAttribute < catAttributes.length)
+        else if(splittingAttribute < catAttributes.length)//Same for classification and regression
             return data.getCategoricalValue(splittingAttribute);
-        //else, is Numerical attribute 
-        int pos = Collections.binarySearch(boundries, data.getNumericalValues().get(splittingAttribute-catAttributes.length));
-        pos = pos < 0 ? -pos-1 : pos;
-        return owners.get(pos);
+        //else, is Numerical attribute - but regression or classification?
+        int numerAttribute = splittingAttribute - catAttributes.length;
+        if(results != null)//Categorical!
+        {
+            int pos = Collections.binarySearch(boundries, data.getNumericalValues().get(numerAttribute));
+            pos = pos < 0 ? -pos-1 : pos;
+            return owners.get(pos);
+        }
+        else//Regression! It is trained, it would have been grabed at the top if not
+        {
+            if(data.getNumericalValues().get(numerAttribute) <= regressionResults[2])
+                return 0;
+            else
+                return 1;
+        }
     }
     
     /**
      * Returns the number of paths that this decision stump leads to. The stump may not ever 
      * direct a data point on some of the paths. A result of 1 path means that all data points 
-     * will be given the same decision, and is generated when the entropy of a set is 0.0 
+     * will be given the same decision, and is generated when the entropy of a set is 0.0.
+     * <br><br>
+     * -1 is returned for an untrained stump
      * 
      * @return the number of paths this decision stump has stored
      */
     public int getNumberOfPaths()
     {
-        return results.length;
+        if(results != null)//Categorical!
+            return results.length;
+        else if(catAttributes != null)//Regression!
+            if(splittingAttribute < catAttributes.length)//Categorical
+                return catAttributes[splittingAttribute].getNumOfCategories();
+            else//Numerical is always binary
+                return 2;
+        return -1;//Not trained!
     }
     
     public CategoricalResults classify(DataPoint data)
     {
+        if(results == null)
+            throw new RuntimeException("DecisionStump has not been trained for classification");
         return results[whichPath(data)];
     }
     
+    /**
+     * Returns the categorical result of the i'th path. 
+     * @param i the path to get the result for
+     * @return the result that would be returned if a data point went down the given path
+     * @throws IndexOutOfBoundsException if an invalid path is given
+     * @throws NullPointerException if the stump has not been trained for classification
+     */
     public CategoricalResults result(int i)
     {
         if(i < 0 || i >= getNumberOfPaths())
@@ -540,8 +645,8 @@ public class DecisionStump implements Classifier
             }
         }
         
-        //Now that we know the best attribute, we remove it from the options and compute resutls
-        options.remove(splittingAttribute);
+        if(splittingAttribute < catAttributes.length || removeContinuousAttributes)
+            options.remove(splittingAttribute);
         results = new CategoricalResults[bestSplit.size()];
         for(int i = 0; i < bestSplit.size(); i++)
         {
@@ -554,12 +659,125 @@ public class DecisionStump implements Classifier
         return bestSplit;
     }
     
+    public List<List<DataPointPair<Double>>> trainR(List<DataPointPair<Double>> dataPoints, Set<Integer> options)
+    {
+        catAttributes = dataPoints.get(0).getDataPoint().getCategoricalData();
+        
+        List<List<DataPointPair<Double>>> bestSplit = null;
+        double lowestSplitSqrdError = Double.MAX_VALUE;
+        
+        for(int attribute :  options)
+        {
+            List<List<DataPointPair<Double>>> thisSplit = null;
+            //The squared error for this split 
+            double thisSplitSqrdErr = Double.MAX_VALUE;
+            //Contains the means of each split 
+            double[] thisMeans = null;
+            
+            if(attribute < catAttributes.length)
+            {
+                thisSplit = listOfListsD(catAttributes[attribute].getNumOfCategories());
+                OnLineStatistics[] stats = new OnLineStatistics[thisSplit.size()];
+                for(int i = 0; i < thisSplit.size(); i++)
+                    stats[i] = new OnLineStatistics();
+                //Now seperate the values in our current list into their proper split bins 
+                for(DataPointPair<Double> dpp : dataPoints)
+                {
+                    int category = dpp.getDataPoint().getCategoricalValue(attribute);
+                    thisSplit.get(category).add(dpp);
+                    stats[category].add(dpp.getPair(), dpp.getDataPoint().getWeight());
+                }
+                thisMeans = new double[stats.length];
+                thisSplitSqrdErr = 0.0;
+                for(int i = 0; i < stats.length; i++)
+                {
+                    thisSplitSqrdErr += stats[i].getVarance()*stats[i].getSumOfWeights();
+                    thisMeans[i] = stats[i].getMean();
+                }
+            }
+            else//Findy a binary split that reduces the variance!
+            {
+                final int numAttri = attribute - catAttributes.length;
+                //We need our list in sorted order by attribute!
+                Comparator<DataPointPair<Double>> dppDoubleSorter = new Comparator<DataPointPair<Double>>()
+                {
+                    public int compare(DataPointPair<Double> o1, DataPointPair<Double> o2)
+                    {
+                        return Double.compare(o1.getVector().get(numAttri), o2.getVector().get(numAttri));
+                    }
+                };
+                Collections.sort(dataPoints, dppDoubleSorter);
+                
+                //2 passes, first to sum up the right side, 2nd to move down the grow the left side 
+                OnLineStatistics rightSide = new OnLineStatistics();
+                OnLineStatistics leftSide = new OnLineStatistics();
+                
+                for(DataPointPair<Double> dpp : dataPoints)
+                    rightSide.add(dpp.getPair(), dpp.getDataPoint().getWeight());
+                int bestS = 0;
+                thisSplitSqrdErr = rightSide.getVarance()*rightSide.getSumOfWeights();
+                
+                thisMeans = new double[3];
+                
+                for(int i = 0; i < dataPoints.size(); i++)
+                {
+                    DataPointPair<Double> dpp = dataPoints.get(i);
+                    double weight = dpp.getDataPoint().getWeight();
+                    double val = dpp.getPair();
+                    rightSide.remove(val, weight);
+                    leftSide.add(val, weight);
+                    
+                    double tmpSVariance = rightSide.getVarance()*rightSide.getSumOfWeights() 
+                            + leftSide.getVarance()*leftSide.getSumOfWeights();
+                    if(tmpSVariance < thisSplitSqrdErr && !Double.isInfinite(tmpSVariance))//Infinity can occur once the weights get REALY small
+                    {
+                        thisSplitSqrdErr = tmpSVariance;
+                        bestS = i;
+                        thisMeans[0] = leftSide.getMean();
+                        thisMeans[1] = rightSide.getMean();
+                        //Third spot contains the split value!
+                        thisMeans[2] = (dataPoints.get(bestS).getVector().get(numAttri) 
+                                + dataPoints.get(bestS+1).getVector().get(numAttri))/2.0;
+                    }
+                }
+                //Now we have the binary split that minimizes the variances of the 2 sets, 
+                thisSplit = listOfListsD(2);
+                thisSplit.get(0).addAll(dataPoints.subList(0, bestS+1));
+                thisSplit.get(1).addAll(dataPoints.subList(bestS+1, dataPoints.size()));
+            }
+            //Now compare what weve done
+            if(thisSplitSqrdErr < lowestSplitSqrdError)
+            {
+                lowestSplitSqrdError = thisSplitSqrdErr;
+                bestSplit = thisSplit;
+                splittingAttribute = attribute;
+                regressionResults = thisMeans;
+            }
+        }
+        
+        //Removal of attribute from list if needed
+        if(splittingAttribute < catAttributes.length || removeContinuousAttributes)
+            options.remove(splittingAttribute);
+        
+        
+        return bestSplit;
+    }
+    
     private static List<List<DataPointPair<Integer>>> listOfLists(int n )
     {
         List<List<DataPointPair<Integer>>> aSplit =
                 new ArrayList<List<DataPointPair<Integer>>>(n);
         for (int i = 0; i < n; i++)
             aSplit.add(new ArrayList<DataPointPair<Integer>>());
+        return aSplit;
+    }
+    
+    private static List<List<DataPointPair<Double>>> listOfListsD(int n )
+    {
+        List<List<DataPointPair<Double>>> aSplit =
+                new ArrayList<List<DataPointPair<Double>>>(n);
+        for (int i = 0; i < n; i++)
+            aSplit.add(new ArrayList<DataPointPair<Double>>());
         return aSplit;
     }
 
@@ -569,7 +787,7 @@ public class DecisionStump implements Classifier
     }
 
     @Override
-    public Classifier clone()
+    public DecisionStump clone()
     {
         DecisionStump copy = new DecisionStump();
         if(this.catAttributes != null)
@@ -580,6 +798,7 @@ public class DecisionStump implements Classifier
             for(int i = 0; i < this.results.length; i++ )
                 copy.results[i] = this.results[i].clone();
         }
+        copy.removeContinuousAttributes = this.removeContinuousAttributes;
         copy.splittingAttribute = this.splittingAttribute;
         if(this.boundries != null)
             copy.boundries = new ArrayList<Double>(this.boundries);
@@ -587,6 +806,9 @@ public class DecisionStump implements Classifier
             copy.owners = new ArrayList<Integer>(this.owners);
         if(this.predicting != null)
             copy.predicting = this.predicting.clone();
+        if(regressionResults != null)
+            copy.regressionResults = Arrays.copyOf(this.regressionResults, this.regressionResults.length);
+        
         return copy;
     }
 }
