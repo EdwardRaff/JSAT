@@ -23,18 +23,32 @@ public class RegressionDataSet extends DataSet<RegressionDataSet>
     /**
      * The list of all data points, paired with their true regression output
      */
-    List<DataPointPair<Double>> dataPoints;
+    protected List<DataPointPair<Double>> dataPoints;
     
+    /**
+     * Creates a new empty data set for regression 
+     * 
+     * @param numerical the number of numerical attributes that will be used, excluding the regression value
+     * @param categories an array of length equal to the number of categorical attributes, each object describing the attribute in question
+     */
     public RegressionDataSet(int numerical, CategoricalData[] categories)
     {
         this.numNumerVals = numerical;
         this.categories = categories;
         dataPoints = new ArrayList<DataPointPair<Double>>();
         this.numericalVariableNames = new ArrayList<String>(getNumNumericalVars());
-        for(int i = 0; i < getNumNumericalVars(); i++)
-            this.numericalVariableNames.add("Numeric Input " + (i+1));
+        setUpGenericNumericNames();
     }
     
+    /**
+     * Creates a new data set for the given list of data points. The data 
+     * points will be copied, changes in one will not effect the other. 
+     * 
+     * @param data the list of data point to create a data set from
+     * @param predicting which of the numerical attributes is the 
+     * regression target. Categorical attributes are ignored in 
+     * the count of attributes for this value. 
+     */
     public RegressionDataSet(List<DataPoint> data, int predicting)
     {
         //Use the first data point to set up
@@ -68,8 +82,37 @@ public class RegressionDataSet extends DataSet<RegressionDataSet>
         }
         
         this.numericalVariableNames = new ArrayList<String>(getNumNumericalVars());
+        setUpGenericNumericNames();
+    }
+    
+    /**
+     * Creates a new regression data set by copying all the data points 
+     * in the given list. Alterations to this list will not effect this DataSet. 
+     * @param list source of data points to copy
+     */
+    public RegressionDataSet(List<DataPointPair<Double>> list)
+    {
+        this.numNumerVals = list.get(0).getDataPoint().numNumericalValues();
+        this.numericalVariableNames = new ArrayList<String>(getNumNumericalVars());
+        setUpGenericNumericNames();
+        this.categories = CategoricalData.copyOf(list.get(0).getDataPoint().getCategoricalData());
+        this.dataPoints =new ArrayList<DataPointPair<Double>>(list.size());
+        for(DataPointPair<Double> dpp : list)
+            dataPoints.add(new DataPointPair<Double>(dpp.getDataPoint().clone(), dpp.getPair()));
+    }
+
+    /**
+     * Sets all the names of the numeric variables 
+     */
+    private void setUpGenericNumericNames()
+    {
         for(int i = 0; i < getNumNumericalVars(); i++)
             this.numericalVariableNames.add("Numeric Input " + (i+1));
+    }
+    
+    private RegressionDataSet()
+    {
+        
     }
     
     public static RegressionDataSet comineAllBut(List<RegressionDataSet> list, int exception)
@@ -90,7 +133,9 @@ public class RegressionDataSet extends DataSet<RegressionDataSet>
     }
     
     /**
-     * Creates a new data point to be added to the data set
+     * Creates a new data point to be added to the data set. The arguments will
+     * be used directly, modifying them after will effect the data set. 
+     * 
      * @param numerical the numerical values for the data point
      * @param categories the categorical values for the data point
      */
@@ -117,11 +162,41 @@ public class RegressionDataSet extends DataSet<RegressionDataSet>
         return dataPoints.get(i).getDataPoint();
     }
     
+    /**
+     * Returns the i'th data point in the data set paired with its target regressor value.
+     * Modifying the DataPointPair will effect the data set. 
+     * 
+     * @param i the index of the data point to obtain
+     * @return the i'th DataPOintPair
+     */
     public DataPointPair<Double> getDataPointPair(int i)
     {
         return dataPoints.get(i);
     }
     
+    /**
+     * Returns a new list containing copies of the data points in this data set, 
+     * paired with their regression target values. MModifications to the list 
+     * or data points will not effect this data set
+     * 
+     * @return a list of copies of the data points in this set
+     */
+    public List<DataPointPair<Double>> getAsDPPList()
+    {
+        ArrayList<DataPointPair<Double>> list = new ArrayList<DataPointPair<Double>>(dataPoints.size());
+        for(DataPointPair<Double> dpp : dataPoints)
+            list.add(new DataPointPair<Double>(dpp.getDataPoint().clone(), dpp.getPair()));
+        return list;
+    }
+    
+    /**
+     * Returns a new list containing the data points in this data set, paired with 
+     * their regression target values. Modifications to the list will not effect 
+     * the data set, but modifying the points will. For a copy of the points, use
+     * the {@link #getAsDPPList() } method. 
+     * 
+     * @return a list of the data points in this set
+     */
     public List<DataPointPair<Double>> getDPPList()
     {
         ArrayList<DataPointPair<Double>> list = new ArrayList<DataPointPair<Double>>(dataPoints);
@@ -153,15 +228,6 @@ public class RegressionDataSet extends DataSet<RegressionDataSet>
         return cvSet;
     }
     
-    public Vec regressionValues()
-    {
-        DenseVector vec = new DenseVector(getSampleSize());
-        for(int i = 0; i < dataPoints.size(); i++)
-            vec.set(i, dataPoints.get(i).getPair());
-        
-        return vec;
-    }
-
     @Override
     public int getSampleSize()
     {
@@ -169,6 +235,9 @@ public class RegressionDataSet extends DataSet<RegressionDataSet>
     }
     
     /**
+     * Returns a vector containing the target regression values for each 
+     * data point. The vector is a copy, and modifications to it will not
+     * effect the data set. 
      * 
      * @return a vector containing the target values for each data point
      */
@@ -180,5 +249,25 @@ public class RegressionDataSet extends DataSet<RegressionDataSet>
             vals.set(i, dataPoints.get(i).getPair());
         
         return vals;
+    }
+    
+    /**
+     * Creates a new data set that uses the given list as its backing list. 
+     * No copying is done, and changes to this list will be reflected in 
+     * this data set, and the other way. 
+     * 
+     * @param list the list of datapoint to back a new data set with
+     * @return a new data set
+     */
+    public static RegressionDataSet usingDPPList(List<DataPointPair<Double>> list)
+    {
+        RegressionDataSet rds = new RegressionDataSet();
+        rds.dataPoints = list;
+        rds.numNumerVals = list.get(0).getDataPoint().numNumericalValues();
+        rds.numericalVariableNames = new ArrayList<String>(rds.getNumNumericalVars());
+        for(int i = 0; i < rds.getNumNumericalVars(); i++)
+            rds.numericalVariableNames.add("Numeric Input " + (i+1));
+        rds.categories = CategoricalData.copyOf(list.get(0).getDataPoint().getCategoricalData());
+        return rds;
     }
 }
