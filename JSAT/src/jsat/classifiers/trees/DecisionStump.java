@@ -302,6 +302,9 @@ public class DecisionStump implements Classifier, Regressor
                 stepSize = min(stepSize, stndDev);
         }
         stepSize/=4;
+        //TODO is there a better way to avoid small step sizes? 
+        if((maxRange-minRange)/stepSize > 50*dists.size())//Limi to 50*|Dists| iterations 
+            stepSize = (maxRange-minRange)/(50*dists.size());
         
         final List<Integer> belongsTo = new ArrayList<Integer>();
         final List<Double> splitPoints = new ArrayList<Double>();
@@ -644,7 +647,17 @@ public class DecisionStump implements Classifier, Regressor
                 }
             }
         }
-        
+        if(bestGain <= 1e-9)//We could not find a good split at all (as good as zero)
+        {
+            bestSplit = new ArrayList<List<DataPointPair<Integer>>>(1);
+            bestSplit.add(dataPoints);
+            CategoricalResults badResult = new CategoricalResults(predicting.getNumOfCategories());
+            for(DataPointPair<Integer> dpp : dataPoints)
+                badResult.incProb(dpp.getPair(), 1.0);
+            badResult.normalize();
+            results = new CategoricalResults[] {badResult};
+            return bestSplit;
+        }
         if(splittingAttribute < catAttributes.length || removeContinuousAttributes)
             options.remove(splittingAttribute);
         results = new CategoricalResults[bestSplit.size()];
