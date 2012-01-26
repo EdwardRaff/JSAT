@@ -404,6 +404,8 @@ public class Bagging implements Classifier, Regressor
         Bagging clone = new Bagging(extraSamples, simultaniousTraining, rounds, new Random(rounds));
         if(baseClassifier != null)
             clone.baseClassifier = baseClassifier.clone();
+        if(predicting != null)
+            clone.predicting = this.predicting.clone();
         if(baseRegressor != null)
             clone.baseRegressor = baseRegressor.clone();
         if(learners != null && !learners.isEmpty())
