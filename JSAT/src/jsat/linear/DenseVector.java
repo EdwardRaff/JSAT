@@ -18,12 +18,16 @@ public class DenseVector extends Vec
     private Double varianceCache = null;
     private Double minCache = null;
     private Double maxCache = null;
+    private int startIndex;
+    private int endIndex;
 
     public DenseVector(int length)
     {
         if(length < 0)
             throw new ArithmeticException("You can not have a negative dimension vector");
         array = new double[length];
+        startIndex = 0;
+        endIndex = array.length;
     }
 
     public DenseVector(List<Double> array)
@@ -31,11 +35,20 @@ public class DenseVector extends Vec
         this.array = new double[array.size()];
         for(int i = 0; i < array.size(); i++)
             this.array[i] = array.get(i);
+        startIndex = 0;
+        endIndex = this.array.length;
     }
 
     protected DenseVector(double[] array)
     {
+        this(array, 0, array.length);
+    }
+    
+    protected DenseVector(double[] array, int start, int end)
+    {
         this.array = array;
+        this.startIndex = start;
+        this.endIndex = end;
     }
     
     
@@ -52,18 +65,18 @@ public class DenseVector extends Vec
     
     public int length()
     {
-        return array.length;
+        return (endIndex-startIndex);
     }
 
     public double get(int index)
     {
-        return array[index];
+        return array[index+startIndex];
     }
 
     public void set(int index, double val)
     {
         clearCaches();
-        array[index] = val;
+        array[index+startIndex] = val;
     }
 
     public double min()
@@ -71,8 +84,8 @@ public class DenseVector extends Vec
         if(minCache != null)
             return minCache;
         
-        double result = array[0];
-        for(int i = 1; i < array.length; i++)
+        double result = array[startIndex];
+        for(int i = startIndex+1; i < endIndex; i++)
             result = Math.min(result, array[i]);
 
         return (minCache = result);
@@ -82,8 +95,8 @@ public class DenseVector extends Vec
     {
         if(maxCache != null)
             return maxCache;
-        double result = array[0];
-        for(int i = 1; i < array.length; i++)
+        double result = array[startIndex];
+        for(int i = startIndex+1; i < endIndex; i++)
             result = Math.max(result, array[i]);
 
         return (maxCache = result);
@@ -103,9 +116,9 @@ public class DenseVector extends Vec
 
         double sum = 0;
         double c = 0;
-        for(double d : array)
+        for(int i = startIndex; i < endIndex; i++)
         {
-            double y = d - c;
+            double y = array[i] - c;
             double t = sum+y;
             c = (t - sum) - y;
             sum = t;
@@ -116,7 +129,7 @@ public class DenseVector extends Vec
 
     public double median()
     {
-        double[] copy = Arrays.copyOf(array, array.length);
+        double[] copy = Arrays.copyOfRange(array, startIndex, endIndex);
 
         Arrays.sort(copy); 
 
@@ -137,8 +150,8 @@ public class DenseVector extends Vec
         
         double tmp = 0;
         
-        for(double xi : array)
-            tmp += pow(xi-mean, 3);
+        for(int i = startIndex; i < endIndex; i++)
+            tmp += pow(array[i]-mean, 3);
         
         double s1 = tmp / (pow(standardDeviation(), 3) * (array.length-1) );
         
@@ -154,8 +167,8 @@ public class DenseVector extends Vec
         
         double tmp = 0;
         
-        for(double xi : array)
-            tmp += pow(xi-mean, 4);
+        for(int i = startIndex; i < endIndex; i++)
+            tmp += pow(array[i]-mean, 4);
         
         return tmp / (pow(standardDeviation(), 4) * (array.length-1) ) - 3;
     }
@@ -167,7 +180,7 @@ public class DenseVector extends Vec
 
     public DenseVector sortedCopy()
     {
-        double[] copy = Arrays.copyOf(array, array.length);
+        double[] copy = Arrays.copyOfRange(array, startIndex, endIndex);
 
         Arrays.sort(copy); 
 
@@ -184,8 +197,8 @@ public class DenseVector extends Vec
         double N = length();
 
 
-        for(double x : array)
-            tmp += pow(x-mu, 2)/N;
+        for(int i = startIndex; i < endIndex; i++)
+            tmp += pow(array[i]-mu, 2)/N;
         
         return (varianceCache = tmp);
     }
@@ -199,7 +212,7 @@ public class DenseVector extends Vec
             return ((SparceVector) v).dot(this);
         
         double dot = 0;
-        for(int i = 0; i < length(); i++)
+        for(int i = startIndex; i < endIndex; i++)
             dot += array[i] * v.get(i);
         
         return dot;
@@ -214,7 +227,7 @@ public class DenseVector extends Vec
     {
         DenseVector dv = new DenseVector(Arrays.copyOf(array, array.length));
         
-        for(int i = 0; i < length(); i++)
+        for(int i = startIndex; i < endIndex; i++)
             dv.array[i] += c;
         
         return dv;
@@ -225,7 +238,7 @@ public class DenseVector extends Vec
     {
         DenseVector dv = new DenseVector(Arrays.copyOf(array, array.length));
         
-        for(int i = 0; i < length(); i++)
+        for(int i = startIndex; i < endIndex; i++)
             dv.array[i] -= c;
         
         return dv;
@@ -235,7 +248,7 @@ public class DenseVector extends Vec
     {
         DenseVector dv = new DenseVector(Arrays.copyOf(array, array.length));
         
-        for(int i = 0; i < length(); i++)
+        for(int i = startIndex; i < endIndex; i++)
             dv.array[i] *= c;
         
         return dv;
@@ -244,7 +257,7 @@ public class DenseVector extends Vec
     @Override
     public Vec multiply(Matrix A)
     {
-        DenseVector v = new DenseVector(this.length());
+        DenseVector v = new DenseVector(A.cols());
         
         multiply(v, A);
         
@@ -254,21 +267,24 @@ public class DenseVector extends Vec
     public void multiply(DenseVector dest, Matrix A)
     {
         if(this.length() != A.rows())
-            throw new ArithmeticException("Vector x Matrix dimensions do not agree");
+            throw new ArithmeticException("Vector x Matrix dimensions do not agree [1," + this.length() + "] x [" + A.rows() + ", " + A.cols() + "]");
         
-        if(dest.length() != this.length())
+        if(dest.length() != A.cols())
             throw new ArithmeticException("Destination vector is not the right size");
         
         for(int i = 0; i < this.length(); i++)
+        {
+            double this_i = this.array[i+this.startIndex];
             for(int j = 0; j < A.cols(); j++)
-                dest.array[j] += this.array[i] * A.get(i, j);
+                dest.array[j+dest.startIndex] += this_i * A.get(i, j);
+        }
     }
 
     public Vec divide(double c)
     {
         DenseVector dv = new DenseVector(Arrays.copyOf(array, array.length));
         
-        for(int i = 0; i < length(); i++)
+        for(int i = startIndex; i < endIndex; i++)
             dv.array[i] /= c;
         
         return dv;
@@ -287,7 +303,7 @@ public class DenseVector extends Vec
         
         double[] ret = new double[length()];
         for(int i = 0; i < ret.length; i++)
-            ret[i] = array[i] + v.get(i);
+            ret[i] = array[i+startIndex] + v.get(i);
             
         return new DenseVector(ret);
     }
@@ -301,21 +317,15 @@ public class DenseVector extends Vec
         
         double[] ret = new double[length()];
         for(int i = 0; i < ret.length; i++)
-            ret[i] = array[i] - v.get(i);
+            ret[i] = array[i+startIndex] - v.get(i);
             
         return new DenseVector(ret);
-    }
-
-    @Override
-    public String toString()
-    {
-        return Arrays.toString(array);
     }
 
     public void mutableAdd(double c)
     {
         clearCaches();
-        for(int i = 0; i < array.length; i++)
+        for(int i = startIndex; i < endIndex; i++)
             array[i] += c;
     }
 
@@ -325,7 +335,7 @@ public class DenseVector extends Vec
             throw new ArithmeticException("Can not add vectors of unequal length");
         
         clearCaches();
-        for(int i = 0; i < array.length; i++)
+        for(int i = startIndex; i < endIndex; i++)
             array[i] += c*b.get(i);
     }
 
@@ -333,21 +343,21 @@ public class DenseVector extends Vec
     public void mutableSubtract(double c)
     {
         clearCaches();
-        for(int i = 0; i < array.length; i++)
+        for(int i = startIndex; i < endIndex; i++)
             array[i] -= c;
     }
 
     public void mutableMultiply(double c)
     {
         clearCaches();
-        for(int i = 0; i < array.length; i++)
+        for(int i = startIndex; i < endIndex; i++)
             array[i] *= c;
     }
 
     public void mutableDivide(double c)
     {
         clearCaches();
-        for(int i = 0; i < array.length; i++)
+        for(int i = startIndex; i < endIndex; i++)
             array[i] /= c;
     }
 
@@ -358,7 +368,7 @@ public class DenseVector extends Vec
         
         double norm = 0;
         //TODO this could be done more efficently if y is a sparce vector
-        for(int i = 0; i < length(); i++)
+        for(int i = startIndex; i < endIndex; i++)
             norm += Math.pow(Math.abs(array[i]-y.get(i)), p);
         
         return Math.pow(norm, 1.0/p);
@@ -368,7 +378,7 @@ public class DenseVector extends Vec
     {
         double norm = 0;
         //TODO this could be done more efficently if y is a sparce vector
-        for(int i = 0; i < length(); i++)
+        for(int i = startIndex; i < endIndex; i++)
             norm += Math.pow(Math.abs(array[i]), p);
         
         return Math.pow(norm, 1.0/p);
@@ -378,7 +388,7 @@ public class DenseVector extends Vec
     {
         DenseVector copy = new DenseVector(length());
         
-        System.arraycopy(this.array, 0, copy.array, 0, length());
+        System.arraycopy(this.array, startIndex, copy.array, 0, length());
         
         return copy;
     }
@@ -394,7 +404,7 @@ public class DenseVector extends Vec
     {
         double sum = 0;
 
-        for(int i = 0; i < array.length; i++)
+        for(int i = startIndex; i < endIndex; i++)
             sum += array[i]*array[i];
         
         sum = Math.sqrt(sum);
@@ -411,7 +421,7 @@ public class DenseVector extends Vec
             return b.pairwiseMultiply(this);
         Vec toReturn = b.clone();
         for(int i = 0; i < b.length(); i++)
-            b.set(i, b.get(i)*array[i]);
+            b.set(i, b.get(i)*array[i+startIndex]);
         
         return toReturn;
     }
@@ -423,7 +433,7 @@ public class DenseVector extends Vec
         
         double[] vals = new double[this.length()];
         for(int i = 0; i < vals.length; i++)
-            vals[i] = array[i] / b.get(i);
+            vals[i] = array[i+startIndex] / b.get(i);
         
         return new DenseVector(vals);
     }
@@ -432,7 +442,7 @@ public class DenseVector extends Vec
     {
         if(this.length() != b.length())
             throw new ArithmeticException("Vectors must have the same length");
-        for(int i = 0; i < length(); i++)
+        for(int i = startIndex; i < endIndex; i++)
             this.array[i] *= b.get(i);
     }
 
@@ -440,7 +450,7 @@ public class DenseVector extends Vec
     {
         if(this.length() != b.length())
             throw new ArithmeticException("Vectors must have the same length");
-        for(int i = 0; i < length(); i++)
+        for(int i = startIndex; i < endIndex; i++)
             this.array[i] /= b.get(i);
     }
 
@@ -453,7 +463,7 @@ public class DenseVector extends Vec
         
         if(this.length() != otherVec.length())
             return false;
-        for(int i = 0; i < length(); i++)
+        for(int i = startIndex; i < endIndex; i++)
             if(this.get(i) != otherVec.get(i))
                 return false;
         
@@ -469,7 +479,7 @@ public class DenseVector extends Vec
         
         if(this.length() != otherVec.length())
             return false;
-        for(int i = 0; i < length(); i++)
+        for(int i = startIndex; i < endIndex; i++)
             if(Math.abs(this.get(i)-otherVec.get(i)) > range)
                 return false;
         
@@ -492,6 +502,6 @@ public class DenseVector extends Vec
     @Override
     public double[] arrayCopy()
     {
-        return Arrays.copyOf(array, array.length);
+        return Arrays.copyOfRange(array, startIndex, endIndex);
     }
 }

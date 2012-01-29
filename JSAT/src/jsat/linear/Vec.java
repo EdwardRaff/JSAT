@@ -16,6 +16,11 @@ public abstract class Vec implements Cloneable
 
     abstract public void set(int index, double val);
     
+    public void increment(int index, double val)
+    {
+        set(index, val+get(index));
+    }
+    
     abstract public Vec add(double c);
     abstract public Vec add(Vec b);
     public Vec subtract(double c)
@@ -135,7 +140,15 @@ public abstract class Vec implements Cloneable
     abstract public double dot(Vec v);
 
     @Override
-    abstract public String toString();
+    public String toString()
+    {
+        StringBuilder sb = new StringBuilder("[");
+        sb.append(get(0));
+        for(int i = 1; i < length(); i++)
+            sb.append(",").append(get(i));
+        sb.append("]");
+        return sb.toString();
+    }
     
     @Override
     abstract public boolean equals(Object obj);
