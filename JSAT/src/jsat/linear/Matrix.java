@@ -2,7 +2,12 @@
 package jsat.linear;
 
 import java.util.Random;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import jsat.utils.SystemInfo;
+import static jsat.utils.SystemInfo.*;
 
 /**
  *
@@ -377,6 +382,18 @@ public abstract class Matrix implements Cloneable
     abstract public void zeroOut();
     
     /**
+     * Updates row i of this matric, such that A[i,:] = A[i,:] + c*b
+     * @param i the index of the row
+     * @param c the constant to multiply the vector by
+     * @param b the 
+     */
+    public void updateRow(int i, double c, Vec b)
+    {
+        for(int j = 0; j < b.length(); j++)
+            this.increment(i, j, c*b.get(j));
+    }
+    
+    /**
      * Alters the Matrix A such that, A = A + c * a * b<sup>T</sup>
      * @param A the matrix to update
      * @param a the first vector
@@ -385,11 +402,41 @@ public abstract class Matrix implements Cloneable
      */
     public static void OuterProductUpdate(Matrix A, Vec a, Vec b, double c)
     {
-        for(int i = 0; i < a.length(); i++)
+        for (int i = 0; i < a.length(); i++)
         {
-            double rowCosnt = c*a.get(i);
-            for(int j = 0; j < b.length(); j++)
-                A.increment(i, j, rowCosnt*b.get(j));
+            double rowCosnt = c * a.get(i);
+            A.updateRow(i, rowCosnt, b);
+        }
+    }
+    
+    public static void OuterProductUpdate(final Matrix A, final Vec a, final Vec b, final double c, ExecutorService threadpool)
+    {
+        final CountDownLatch latch = new CountDownLatch(LogicalCores);
+        for(int id = 0; id < LogicalCores; id++)
+        {
+            final int threadID = id;
+            threadpool.submit(new Runnable() 
+            {
+
+                public void run()
+                {
+                    for(int i = threadID; i < a.length(); i+=LogicalCores)
+                    {
+                        double rowCosnt = c*a.get(i);
+                        A.updateRow(i, rowCosnt, b);
+                    }
+                    latch.countDown();
+                }
+            });
+            
+        }
+        try
+        {
+            latch.await();
+        }
+        catch (InterruptedException ex)
+        {
+            Logger.getLogger(Matrix.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
     
