@@ -1,7 +1,3 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
 package jsat.linear;
 
 import java.util.Arrays;
@@ -17,25 +13,76 @@ import static org.junit.Assert.*;
  *
  * @author Edward Raff
  */
-public class DenseMatrixTest
+public class GenericMatrixTest
 {
+    protected static class TestImp extends GenericMatrix
+    {
+        private double[][] storage;
+
+        public TestImp(double[][] storage)
+        {
+            this.storage = storage;
+        }
+        
+        public TestImp(int rows, int cols)
+        {
+            storage = new double[rows][cols];
+        }
+        
+        @Override
+        protected Matrix getMatrixOfSameType(int rows, int cols)
+        {
+            return new TestImp(rows, cols);
+        }
+
+        @Override
+        public double get(int i, int j)
+        {
+            return storage[i][j];
+        }
+
+        @Override
+        public void set(int i, int j, double value)
+        {
+            storage[i][j] = value;
+        }
+
+        @Override
+        public int rows()
+        {
+            return storage.length;
+        }
+
+        @Override
+        public int cols()
+        {
+            return storage[0].length;
+        }
+
+        @Override
+        public boolean isSparce()
+        {
+            return false;
+        }
+        
+    }
     
     /**
      * 5x5
      */
-    static DenseMatrix A;
+    static Matrix A;
     /**
      * 5x5
      */
-    static DenseMatrix B;
+    static Matrix B;
     /**
      * 5x7
      */
-    static DenseMatrix C;
+    static Matrix C;
     
-    static DenseMatrix AB;
-    static DenseMatrix BA;
-    static DenseMatrix AC;
+    static Matrix AB;
+    static Matrix BA;
+    static Matrix AC;
     
     /**
      * Multi threaded pool with daemon threads
@@ -50,14 +97,14 @@ public class DenseMatrixTest
         }
     });
     
-    public DenseMatrixTest()
+    public GenericMatrixTest()
     {
     }
 
     @BeforeClass
     public static void setUpClass() throws Exception
     {
-        A = new DenseMatrix(new double[][] 
+        A = new TestImp(new double[][] 
         {
             {1, 5, 4, 8, 9},
             {1, 5, 7, 3, 7},
@@ -66,7 +113,7 @@ public class DenseMatrixTest
             {1, 9, 2, 9, 6}
         } );
         
-        B = new DenseMatrix(new double[][] 
+        B = new TestImp(new double[][] 
         {
             {5, 3, 2, 8, 8},
             {1, 8, 3, 6, 8},
@@ -75,7 +122,7 @@ public class DenseMatrixTest
             {8, 3, 4, 3, 1}
         } );
         
-        C = new DenseMatrix(new double[][] 
+        C = new TestImp(new double[][] 
         {
             {1, 6, 8, 3, 1, 5, 10},
             {5, 5, 3, 7, 2, 10, 0},
@@ -84,7 +131,7 @@ public class DenseMatrixTest
             {1, 2, 6, 5, 8, 1, 9}
         } );
         
-        AB = new DenseMatrix(new double[][] 
+        AB = new TestImp(new double[][] 
         {
             {110,   150,   117,   157,   121},
             {82,   105,   102,   121,   101},
@@ -93,7 +140,7 @@ public class DenseMatrixTest
             {91,   178,   110,   171,   148}
         } );
         
-        BA = new DenseMatrix(new double[][] 
+        BA = new TestImp(new double[][] 
         {
             {40,   182,    73,   187,   126},
             {35,   174,   100,   161,   131},
@@ -102,7 +149,7 @@ public class DenseMatrixTest
             {21,   100,    87,   123,   123}
         } );
         
-        AC = new DenseMatrix(new double[][] 
+        AC = new TestImp(new double[][] 
         {
             {139,    73,   113,   167,   135,   100,   187},
             {116,    54,   106,   143,   136,    81,   153},
@@ -120,12 +167,12 @@ public class DenseMatrixTest
     }
 
     /**
-     * Test of mutableAdd method, of class DenseMatrix.
+     * Test of mutableAdd method, of class TestImp.
      */
     @Test
     public void testMutableAdd_Matrix()
     {
-        DenseMatrix ApB = new DenseMatrix(new double[][] 
+        TestImp ApB = new TestImp(new double[][] 
         {
             {6,     8,     6,    16,    17},
             {2,    13,    10,     9,    15},
@@ -155,12 +202,12 @@ public class DenseMatrixTest
     }
 
     /**
-     * Test of mutableAdd method, of class DenseMatrix.
+     * Test of mutableAdd method, of class TestImp.
      */
     @Test
     public void testMutableAdd_Matrix_ExecutorService()
     {
-        DenseMatrix ApB = new DenseMatrix(new double[][] 
+        TestImp ApB = new TestImp(new double[][] 
         {
             {6,     8,     6,    16,    17},
             {2,    13,    10,     9,    15},
@@ -192,7 +239,7 @@ public class DenseMatrixTest
     @Test
     public void testMutableAdd_double_Matrix_ExecutorService()
     {
-        DenseMatrix ApB = new DenseMatrix(new double[][] 
+        TestImp ApB = new TestImp(new double[][] 
         {
             {6,     8,     6,    16,    17},
             {2,    13,    10,     9,    15},
@@ -213,7 +260,7 @@ public class DenseMatrixTest
         aCopy.mutableAdd(-1.0, B, threadpool);
         assertEquals(A, aCopy);
         
-        Matrix Aadd5  = new DenseMatrix(A.rows(), A.cols());
+        Matrix Aadd5  = new TestImp(A.rows(), A.cols());
         Aadd5.mutableAdd(5.0, A, threadpool);
         assertEquals(A.multiply(5), Aadd5);
         
@@ -229,12 +276,12 @@ public class DenseMatrixTest
     }
 
     /**
-     * Test of mutableAdd method, of class DenseMatrix.
+     * Test of mutableAdd method, of class TestImp.
      */
     @Test
     public void testMutableAdd_double()
     {
-        DenseMatrix ApTwo = new DenseMatrix(new double[][] 
+        TestImp ApTwo = new TestImp(new double[][] 
         {
             {1+2, 5+2, 4+2, 8+2, 9+2},
             {1+2, 5+2, 7+2, 3+2, 7+2},
@@ -251,12 +298,12 @@ public class DenseMatrixTest
     }
 
     /**
-     * Test of mutableAdd method, of class DenseMatrix.
+     * Test of mutableAdd method, of class TestImp.
      */
     @Test
     public void testMutableAdd_double_ExecutorService()
     {
-        DenseMatrix ApTwo = new DenseMatrix(new double[][] 
+        TestImp ApTwo = new TestImp(new double[][] 
         {
             {1+2, 5+2, 4+2, 8+2, 9+2},
             {1+2, 5+2, 7+2, 3+2, 7+2},
@@ -273,12 +320,12 @@ public class DenseMatrixTest
     }
 
     /**
-     * Test of mutableSubtract method, of class DenseMatrix.
+     * Test of mutableSubtract method, of class TestImp.
      */
     @Test
     public void testMutableSubtract_Matrix()
     {
-        DenseMatrix AmB = new DenseMatrix(new double[][] 
+        TestImp AmB = new TestImp(new double[][] 
         {
             {-4,     2,     2,     0,     1},
             { 0,    -3,     4,    -3,    -1},
@@ -287,7 +334,7 @@ public class DenseMatrixTest
             {-7,     6,    -2,     6,     5}
         } );
         
-        DenseMatrix BmA = new DenseMatrix(new double[][] 
+        TestImp BmA = new TestImp(new double[][] 
         {
             {-4*-1,     2*-1,     2*-1,     0*-1,     1*-1},
             { 0*-1,    -3*-1,     4*-1,    -3*-1,    -1*-1},
@@ -317,12 +364,12 @@ public class DenseMatrixTest
     }
 
     /**
-     * Test of mutableSubtract method, of class DenseMatrix.
+     * Test of mutableSubtract method, of class TestImp.
      */
     @Test
     public void testMutableSubtract_Matrix_ExecutorService()
     {
-        DenseMatrix AmB = new DenseMatrix(new double[][] 
+        TestImp AmB = new TestImp(new double[][] 
         {
             {-4,     2,     2,     0,     1},
             { 0,    -3,     4,    -3,    -1},
@@ -331,7 +378,7 @@ public class DenseMatrixTest
             {-7,     6,    -2,     6,     5}
         } );
         
-        DenseMatrix BmA = new DenseMatrix(new double[][] 
+        TestImp BmA = new TestImp(new double[][] 
         {
             {-4*-1,     2*-1,     2*-1,     0*-1,     1*-1},
             { 0*-1,    -3*-1,     4*-1,    -3*-1,    -1*-1},
@@ -361,7 +408,7 @@ public class DenseMatrixTest
     }
 
     /**
-     * Test of multiply method, of class DenseMatrix.
+     * Test of multiply method, of class TestImp.
      */
     @Test
     public void testMultiply_Vec()
@@ -380,7 +427,7 @@ public class DenseMatrixTest
     }
     
     /**
-     * Test of multiply method, of class DenseMatrix.
+     * Test of multiply method, of class TestImp.
      */
     @Test
     public void testMultiply_Vec_Double_Vec()
@@ -402,7 +449,7 @@ public class DenseMatrixTest
     }
     
     /**
-     * Test of multiply method, of class DenseMatrix.
+     * Test of multiply method, of class TestImp.
      */
     @Test
     public void testMultiply_Matrix()
@@ -432,20 +479,20 @@ public class DenseMatrixTest
     @Test
     public void testMultiply_Matrix_Matrix()
     {
-        DenseMatrix R = new DenseMatrix(A.rows(), B.cols());
+        TestImp R = new TestImp(A.rows(), B.cols());
         
         A.multiply(B, R);
         assertEquals(AB, R);
         A.multiply(B, R);
         assertEquals(AB.multiply(2), R);
         
-        R = new DenseMatrix(B.rows(), A.cols());
+        R = new TestImp(B.rows(), A.cols());
         B.multiply(A, R);
         assertEquals(BA, R);
         B.multiply(A, R);
         assertEquals(BA.multiply(2), R);
         
-        R = new DenseMatrix(A.rows(), C.cols());
+        R = new TestImp(A.rows(), C.cols());
         A.multiply(C, R);
         assertEquals(AC, R);
         A.multiply(C, R);
@@ -473,7 +520,7 @@ public class DenseMatrixTest
     }
 
     /**
-     * Test of multiply method, of class DenseMatrix.
+     * Test of multiply method, of class TestImp.
      */
     @Test
     public void testMultiply_Matrix_ExecutorService()
@@ -503,20 +550,20 @@ public class DenseMatrixTest
     @Test
     public void testMultiply_Matrix_ExecutorService_Matrix()
     {
-        DenseMatrix R = new DenseMatrix(A.rows(), B.cols());
+        TestImp R = new TestImp(A.rows(), B.cols());
         
         A.multiply(B, R, threadpool);
         assertEquals(AB, R);
         A.multiply(B, R, threadpool);
         assertEquals(AB.multiply(2), R);
         
-        R = new DenseMatrix(B.rows(), A.cols());
+        R = new TestImp(B.rows(), A.cols());
         B.multiply(A, R, threadpool);
         assertEquals(BA, R);
         B.multiply(A, R, threadpool);
         assertEquals(BA.multiply(2), R);
         
-        R = new DenseMatrix(A.rows(), C.cols());
+        R = new TestImp(A.rows(), C.cols());
         A.multiply(C, R, threadpool);
         assertEquals(AC, R);
         A.multiply(C, R, threadpool);
@@ -544,12 +591,12 @@ public class DenseMatrixTest
     }
 
     /**
-     * Test of mutableMultiply method, of class DenseMatrix.
+     * Test of mutableMultiply method, of class TestImp.
      */
     @Test
     public void testMutableMultiply_double()
     {
-        DenseMatrix AtTwo = new DenseMatrix(new double[][] 
+        TestImp AtTwo = new TestImp(new double[][] 
         {
             {1*2, 5*2, 4*2, 8*2, 9*2},
             {1*2, 5*2, 7*2, 3*2, 7*2},
@@ -566,12 +613,12 @@ public class DenseMatrixTest
     }
 
     /**
-     * Test of mutableMultiply method, of class DenseMatrix.
+     * Test of mutableMultiply method, of class TestImp.
      */
     @Test
     public void testMutableMultiply_double_ExecutorService()
     {
-        DenseMatrix AtTwo = new DenseMatrix(new double[][] 
+        TestImp AtTwo = new TestImp(new double[][] 
         {
             {1*2, 5*2, 4*2, 8*2, 9*2},
             {1*2, 5*2, 7*2, 3*2, 7*2},
@@ -588,12 +635,12 @@ public class DenseMatrixTest
     }
 
     /**
-     * Test of transpose method, of class DenseMatrix.
+     * Test of transpose method, of class TestImp.
      */
     @Test
     public void testTranspose()
     {
-        DenseMatrix CTranspose = new DenseMatrix(new double[][] 
+        TestImp CTranspose = new TestImp(new double[][] 
         {
             {1, 5, 8, 9, 1},
             {6, 5, 0, 3, 2},
@@ -608,7 +655,7 @@ public class DenseMatrixTest
     }
 
     /**
-     * Test of get method, of class DenseMatrix.
+     * Test of get method, of class TestImp.
      */
     @Test
     public void testGet()
@@ -618,12 +665,12 @@ public class DenseMatrixTest
     }
 
     /**
-     * Test of set method, of class DenseMatrix.
+     * Test of set method, of class TestImp.
      */
     @Test
     public void testSet()
     {
-        DenseMatrix toSet = new DenseMatrix(A.rows(), A.cols());
+        TestImp toSet = new TestImp(A.rows(), A.cols());
         
         for(int i = 0; i < A.rows(); i++)
             for(int j = 0; j < A.cols(); j++)
@@ -633,7 +680,7 @@ public class DenseMatrixTest
     }
 
     /**
-     * Test of rows method, of class DenseMatrix.
+     * Test of rows method, of class TestImp.
      */
     @Test
     public void testRows()
@@ -642,7 +689,7 @@ public class DenseMatrixTest
     }
 
     /**
-     * Test of cols method, of class DenseMatrix.
+     * Test of cols method, of class TestImp.
      */
     @Test
     public void testCols()
@@ -652,7 +699,7 @@ public class DenseMatrixTest
     }
 
     /**
-     * Test of isSparce method, of class DenseMatrix.
+     * Test of isSparce method, of class TestImp.
      */
     @Test
     public void testIsSparce()
@@ -661,7 +708,7 @@ public class DenseMatrixTest
     }
 
     /**
-     * Test of nnz method, of class DenseMatrix.
+     * Test of nnz method, of class TestImp.
      */
     @Test
     public void testNnz()
@@ -671,7 +718,7 @@ public class DenseMatrixTest
     }
 
     /**
-     * Test of clone method, of class DenseMatrix.
+     * Test of clone method, of class TestImp.
      */
     @Test
     public void testCopy()
@@ -683,14 +730,14 @@ public class DenseMatrixTest
     }
 
     /**
-     * Test of swapRows method, of class DenseMatrix.
+     * Test of swapRows method, of class TestImp.
      */
     @Test
     public void testSwapRows()
     {
         System.out.println("swapRows");
         
-        Matrix Expected = new DenseMatrix(new double[][] 
+        Matrix Expected = new TestImp(new double[][] 
         {
             {5, 5, 3, 7, 2, 10, 0},
             {1, 2, 6, 5, 8, 1, 9},
@@ -724,7 +771,7 @@ public class DenseMatrixTest
     }
 
     /**
-     * Test of zeroOut method, of class DenseMatrix.
+     * Test of zeroOut method, of class TestImp.
      */
     @Test
     public void testZeroOut()
@@ -740,7 +787,7 @@ public class DenseMatrixTest
     }
 
     /**
-     * Test of lup method, of class DenseMatrix.
+     * Test of lup method, of class TestImp.
      */
     @Test
     public void testLup_0args()
@@ -761,7 +808,7 @@ public class DenseMatrixTest
     }
 
     /**
-     * Test of lup method, of class DenseMatrix.
+     * Test of lup method, of class TestImp.
      */
     @Test
     public void testLup_ExecutorService()
@@ -782,7 +829,7 @@ public class DenseMatrixTest
     }
 
     /**
-     * Test of mutableTranspose method, of class DenseMatrix.
+     * Test of mutableTranspose method, of class TestImp.
      */
     @Test
     public void testMutableTranspose()
@@ -800,7 +847,7 @@ public class DenseMatrixTest
         }
         
         
-        DenseMatrix ATranspose = new DenseMatrix(new double[][] 
+        TestImp ATranspose = new TestImp(new double[][] 
         {
             {1,     1,     0,     3,     1},
             {5,     5,     3,     8,     9},
@@ -816,7 +863,7 @@ public class DenseMatrixTest
     }
 
     /**
-     * Test of qr method, of class DenseMatrix.
+     * Test of qr method, of class TestImp.
      */
     @Test
     public void testQr_0args()
@@ -832,25 +879,25 @@ public class DenseMatrixTest
         
         qr = A.clone().qr();
         assertTrue(A.equals(qr[0].multiply(qr[1]), 1e-14));
-        assertTrue(DenseMatrix.eye(A.rows()).equals(qr[0].multiply(qr[0].transpose()), 1e-14));
+        assertTrue(Matrix.eye(A.rows()).equals(qr[0].multiply(qr[0].transpose()), 1e-14));
         
         
         qr = B.clone().qr();
         assertTrue(B.equals(qr[0].multiply(qr[1]), 1e-14));
-        assertTrue(DenseMatrix.eye(B.rows()).equals(qr[0].multiply(qr[0].transpose()), 1e-14));
+        assertTrue(Matrix.eye(B.rows()).equals(qr[0].multiply(qr[0].transpose()), 1e-14));
         
         
         qr = C.clone().qr();
         assertTrue(C.equals(qr[0].multiply(qr[1]), 1e-14));
-        assertTrue(DenseMatrix.eye(C.rows()).equals(qr[0].multiply(qr[0].transpose()), 1e-14));
+        assertTrue(Matrix.eye(C.rows()).equals(qr[0].multiply(qr[0].transpose()), 1e-14));
         
         qr = C.transpose().qr();
         assertTrue(C.transpose().equals(qr[0].multiply(qr[1]), 1e-14));
-        assertTrue(DenseMatrix.eye(C.transpose().rows()).equals(qr[0].multiply(qr[0].transpose()), 1e-14));
+        assertTrue(Matrix.eye(C.transpose().rows()).equals(qr[0].multiply(qr[0].transpose()), 1e-14));
     }
 
     /**
-     * Test of qr method, of class DenseMatrix.
+     * Test of qr method, of class TestImp.
      */
     @Test
     public void testQr_ExecutorService()
@@ -866,21 +913,21 @@ public class DenseMatrixTest
         
         qr = A.clone().qr(threadpool);
         assertTrue(A.equals(qr[0].multiply(qr[1]), 1e-14));
-        assertTrue(DenseMatrix.eye(A.rows()).equals(qr[0].multiply(qr[0].transpose()), 1e-14));
+        assertTrue(Matrix.eye(A.rows()).equals(qr[0].multiply(qr[0].transpose()), 1e-14));
         
         
         qr = B.clone().qr(threadpool);
         assertTrue(B.equals(qr[0].multiply(qr[1]), 1e-14));
-        assertTrue(DenseMatrix.eye(B.rows()).equals(qr[0].multiply(qr[0].transpose()), 1e-14));
+        assertTrue(Matrix.eye(B.rows()).equals(qr[0].multiply(qr[0].transpose()), 1e-14));
         
         
         qr = C.clone().qr(threadpool);
         assertTrue(C.equals(qr[0].multiply(qr[1]), 1e-14));
-        assertTrue(DenseMatrix.eye(C.rows()).equals(qr[0].multiply(qr[0].transpose()), 1e-14));
+        assertTrue(Matrix.eye(C.rows()).equals(qr[0].multiply(qr[0].transpose()), 1e-14));
         
         qr = C.transpose().qr(threadpool);
         assertTrue(C.transpose().equals(qr[0].multiply(qr[1]), 1e-14));
-        assertTrue(DenseMatrix.eye(C.transpose().rows()).equals(qr[0].multiply(qr[0].transpose()), 1e-14));
+        assertTrue(Matrix.eye(C.transpose().rows()).equals(qr[0].multiply(qr[0].transpose()), 1e-14));
     }
     
     
@@ -899,7 +946,7 @@ public class DenseMatrixTest
         assertEquals(AC, result); 
         
         result = C.transposeMultiply(A);
-        assertEquals(new DenseMatrix(new double[][] 
+        assertEquals(new TestImp(new double[][] 
         { 
             {34,   135,   105,   135,    98},
             {22,    97,    63,   102,   101},
@@ -911,7 +958,7 @@ public class DenseMatrixTest
         } ), result); 
         
         result = C.transposeMultiply(C);
-        assertEquals(new DenseMatrix(new double[][]
+        assertEquals(new TestImp(new double[][]
         {
             {172,    60,    87,   162,   109,   100,   155},
             { 60,    74,    81,    84,    38,    94,   102},
@@ -936,28 +983,28 @@ public class DenseMatrixTest
     @Test
     public void testTransposeMultiply_Matrix_Matrix()
     {
-        Matrix R = new DenseMatrix(A.rows(), B.cols());
+        Matrix R = new TestImp(A.rows(), B.cols());
         
         A.transpose().transposeMultiply(B, R);
         assertEquals(AB, R);
         A.transpose().transposeMultiply(B, R);
         assertEquals(AB.multiply(2), R);
         
-        R = new DenseMatrix(B.rows(), A.cols());
+        R = new TestImp(B.rows(), A.cols());
         B.transpose().transposeMultiply(A, R);
         assertEquals(BA, R);
         B.transpose().transposeMultiply(A, R);
         assertEquals(BA.multiply(2), R);
         
-        R = new DenseMatrix(A.rows(), C.cols());
+        R = new TestImp(A.rows(), C.cols());
         A.transpose().transposeMultiply(C, R);
         assertEquals(AC, R); 
         A.transpose().transposeMultiply(C, R);
         assertEquals(AC.multiply(2), R); 
         
-        R = new DenseMatrix(C.cols(), A.cols());
+        R = new TestImp(C.cols(), A.cols());
         C.transposeMultiply(A, R);
-        Matrix CtA = new DenseMatrix(new double[][] 
+        Matrix CtA = new TestImp(new double[][] 
         { 
             {34,   135,   105,   135,    98},
             {22,    97,    63,   102,   101},
@@ -971,9 +1018,9 @@ public class DenseMatrixTest
         C.transposeMultiply(A, R);
         assertEquals(CtA.multiply(2), R);
         
-        R = new DenseMatrix(C.cols(), C.cols());
+        R = new TestImp(C.cols(), C.cols());
         C.transposeMultiply(C, R);
-        Matrix CtC = new DenseMatrix(new double[][]
+        Matrix CtC = new TestImp(new double[][]
         {
             {172,    60,    87,   162,   109,   100,   155},
             { 60,    74,    81,    84,    38,    94,   102},
@@ -1024,7 +1071,7 @@ public class DenseMatrixTest
         assertEquals(AC, result); 
         
         result = C.transposeMultiply(A, threadpool);
-        assertEquals(new DenseMatrix(new double[][] 
+        assertEquals(new TestImp(new double[][] 
         { 
             {34,   135,   105,   135,    98},
             {22,    97,    63,   102,   101},
@@ -1036,7 +1083,7 @@ public class DenseMatrixTest
         } ), result); 
         
         result = C.transposeMultiply(C, threadpool);
-        assertEquals(new DenseMatrix(new double[][]
+        assertEquals(new TestImp(new double[][]
         {
             {172,    60,    87,   162,   109,   100,   155},
             { 60,    74,    81,    84,    38,    94,   102},
@@ -1061,28 +1108,28 @@ public class DenseMatrixTest
     @Test
     public void testTransposeMultiply_Matrix_Matrix_ExecutorService()
     {
-        Matrix R = new DenseMatrix(A.rows(), B.cols());
+        Matrix R = new TestImp(A.rows(), B.cols());
         
         A.transpose().transposeMultiply(B, R, threadpool);
         assertEquals(AB, R);
         A.transpose().transposeMultiply(B, R, threadpool);
         assertEquals(AB.multiply(2), R);
         
-        R = new DenseMatrix(B.rows(), A.cols());
+        R = new TestImp(B.rows(), A.cols());
         B.transpose().transposeMultiply(A, R, threadpool);
         assertEquals(BA, R);
         B.transpose().transposeMultiply(A, R, threadpool);
         assertEquals(BA.multiply(2), R);
         
-        R = new DenseMatrix(A.rows(), C.cols());
+        R = new TestImp(A.rows(), C.cols());
         A.transpose().transposeMultiply(C, R, threadpool);
         assertEquals(AC, R); 
         A.transpose().transposeMultiply(C, R, threadpool);
         assertEquals(AC.multiply(2), R); 
         
-        R = new DenseMatrix(C.cols(), A.cols());
+        R = new TestImp(C.cols(), A.cols());
         C.transposeMultiply(A, R, threadpool);
-        Matrix CtA = new DenseMatrix(new double[][] 
+        Matrix CtA = new TestImp(new double[][] 
         { 
             {34,   135,   105,   135,    98},
             {22,    97,    63,   102,   101},
@@ -1096,9 +1143,9 @@ public class DenseMatrixTest
         C.transposeMultiply(A, R, threadpool);
         assertEquals(CtA.multiply(2), R);
         
-        R = new DenseMatrix(C.cols(), C.cols());
+        R = new TestImp(C.cols(), C.cols());
         C.transposeMultiply(C, R, threadpool);
-        Matrix CtC = new DenseMatrix(new double[][]
+        Matrix CtC = new TestImp(new double[][]
         {
             {172,    60,    87,   162,   109,   100,   155},
             { 60,    74,    81,    84,    38,    94,   102},

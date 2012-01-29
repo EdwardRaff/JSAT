@@ -13,13 +13,13 @@ public abstract class Matrix implements Cloneable
     public Matrix add(Matrix b)
     {
         Matrix toReturn = clone();
-        toReturn.mutableAdd(b);
+        toReturn.mutableAdd(1.0, b);
         return toReturn;
     }
     public Matrix add(Matrix b, ExecutorService threadPool)
     {
         Matrix toReturn = clone();
-        toReturn.mutableAdd(b, threadPool);
+        toReturn.mutableAdd(1.0, b, threadPool);
         return toReturn;
     }
     public Matrix add(double c)
@@ -34,8 +34,16 @@ public abstract class Matrix implements Cloneable
         toReturn.mutableAdd(c, threadPool);
         return toReturn;
     }
-    abstract public void mutableAdd(Matrix b);
-    abstract public void mutableAdd(Matrix b, ExecutorService threadPool);
+    public void mutableAdd(Matrix b)
+    {
+        this.mutableAdd(1.0, b);
+    }
+    abstract public void mutableAdd(double c, Matrix b);
+    public void mutableAdd(Matrix b, ExecutorService threadpool)
+    {
+        this.mutableAdd(1.0, b, threadpool);
+    }
+    abstract public void mutableAdd(double c, Matrix b, ExecutorService threadPool);
     abstract public void mutableAdd(double c);
     abstract public void mutableAdd(double c, ExecutorService threadPool);
     
@@ -43,13 +51,13 @@ public abstract class Matrix implements Cloneable
     public Matrix subtract(Matrix b)
     {
         Matrix toReturn = clone();
-        toReturn.mutableSubtract(b);
+        toReturn.mutableSubtract(-1.0, b);
         return toReturn;
     }
     public Matrix subtract(Matrix b, ExecutorService threadPool)
     {
         Matrix toReturn = clone();
-        toReturn.mutableSubtract(b, threadPool);
+        toReturn.mutableSubtract(1.0, b, threadPool);
         return toReturn;
     }
     public Matrix subtract(double c)
@@ -64,8 +72,25 @@ public abstract class Matrix implements Cloneable
         toReturn.mutableSubtract(c, threadPool);
         return toReturn;
     }
-    abstract public void mutableSubtract(Matrix b);
-    abstract public void mutableSubtract(Matrix b, ExecutorService threadPool);
+    
+    public void mutableSubtract(Matrix b)
+    {
+        this.mutableSubtract(1.0, b);
+    }
+    
+    public void mutableSubtract(double c, Matrix b)
+    {
+        mutableAdd(-c, b);
+    }
+    
+    public void mutableSubtract(Matrix b, ExecutorService threadpool)
+    {
+        this.mutableSubtract(1.0, b, threadpool);
+    }
+    public void mutableSubtract(double c, Matrix b, ExecutorService threadPool)
+    {
+        mutableAdd(-c, b, threadPool);
+    }
     public void mutableSubtract(double c)
     {
         mutableAdd(-c);
@@ -76,12 +101,21 @@ public abstract class Matrix implements Cloneable
     }
     
     /**
-     * If this matrix is A_(m x n), and <tt>b</tt> has a length of n, then this will compute the result of A*b 
+     * If this matrix is A_(m x n), and <tt>b</tt> has a length of n, and <tt>c</tt> has a length of m,
+     * then this will compute the result of c = c + A*b 
      * @param b the vector to be treated as a colum vector
+     * @param c where to place the result 
      * @return the Vector result of the computation
+     * @throws ArithmeticException if the dimensions of A, b, or c do not all agree
      */
-    abstract public Vec multiply(Vec b);
-    abstract public Vec multiply(Vec b, ExecutorService threadPool);
+    abstract public void multiply(Vec b, double z, Vec c);
+    public Vec multiply(Vec b)
+    {
+        DenseVector result = new  DenseVector(rows());
+        multiply(b, 1.0, result);
+        return result;
+    }
+    
     public Matrix multiply(Matrix b)
     {
         Matrix C = new DenseMatrix(this.rows(), b.cols());
@@ -137,7 +171,13 @@ public abstract class Matrix implements Cloneable
      * Returns a new matrix that is the transpose of this matrix. 
      * @return a new matrix <tt>A</tt>'
      */
-    abstract public Matrix transpose();
+    public Matrix transpose()
+    {
+        Matrix toReturn = new DenseMatrix(cols(), rows());
+        this.transpose(toReturn);
+        return toReturn;
+    }
+    abstract public void transpose(Matrix C);
     
     /**
      * Computes the result matrix of A'*B, or the same result as <br>
@@ -156,7 +196,7 @@ public abstract class Matrix implements Cloneable
     }
     
     /**
-     * Updates the matrix C so that C = C + A'*B
+     * Updates the matrix C so that C = C + A'*B*c
      * @param b the other matrix
      * @param C the matrix to place the results in
      */
@@ -187,13 +227,25 @@ public abstract class Matrix implements Cloneable
     abstract public void transposeMultiply(Matrix b, Matrix C, ExecutorService threadPool);
     
     /**
-     * Computes the result of x = A'*b*c
+     * Computes the result of x = x + A'*b*c
      * 
+     * @param c the constant to multiply by
+     * @param b the vector to multiply by
+     * @param x the vector the update with the result
+     */
+    abstract public void transposeMultiply(double c, Vec b, Vec x);
+    /**
+     * Computes the result of x = A'*b*c
      * @param c the constant to multiply by
      * @param b the vector to multiply by
      * @return the resulting vector of A'*b*c
      */
-    abstract public Vec transposeMultiply(double c, Vec b);
+    public Vec transposeMultiply(double c, Vec b)
+    {
+        DenseVector toReturns = new DenseVector(this.cols());
+        this.transposeMultiply(c, b, toReturns);
+        return toReturns;
+    }
     
     abstract public double get(int i, int j);
     abstract public void set(int i, int j, double value);
@@ -208,7 +260,10 @@ public abstract class Matrix implements Cloneable
     abstract public int cols();
     
     abstract public boolean isSparce();
-    abstract public long nnz();
+    public long nnz()
+    {
+        return ((long)rows())*cols();
+    }
     public boolean isSquare()
     {
         return rows() == cols();
@@ -322,19 +377,19 @@ public abstract class Matrix implements Cloneable
     abstract public void zeroOut();
     
     /**
-     * Alters the Matrix C such that, C = C + c * a * b<sup>T</sup>
-     * @param C the matrix to update
+     * Alters the Matrix A such that, A = A + c * a * b<sup>T</sup>
+     * @param A the matrix to update
      * @param a the first vector
      * @param b the second vector
      * @param c the constant to multiply computations by 
      */
-    public static void OuterProductUpdate(Matrix C, Vec a, Vec b, double c)
+    public static void OuterProductUpdate(Matrix A, Vec a, Vec b, double c)
     {
         for(int i = 0; i < a.length(); i++)
         {
             double rowCosnt = c*a.get(i);
             for(int j = 0; j < b.length(); j++)
-                C.set(i, j, C.get(i, j) + rowCosnt * b.get(j) ); 
+                A.increment(i, j, rowCosnt*b.get(j));
         }
     }
     
