@@ -253,30 +253,19 @@ public class DenseVector extends Vec
         
         return dv;
     }
-    
-    @Override
-    public Vec multiply(Matrix A)
-    {
-        DenseVector v = new DenseVector(A.cols());
-        
-        multiply(v, A);
-        
-        return v;
-    }
-    
-    public void multiply(DenseVector dest, Matrix A)
+       
+    public void multiply(Matrix A, Vec b)
     {
         if(this.length() != A.rows())
             throw new ArithmeticException("Vector x Matrix dimensions do not agree [1," + this.length() + "] x [" + A.rows() + ", " + A.cols() + "]");
-        
-        if(dest.length() != A.cols())
+        if(b.length() != A.cols())
             throw new ArithmeticException("Destination vector is not the right size");
         
         for(int i = 0; i < this.length(); i++)
         {
             double this_i = this.array[i+this.startIndex];
             for(int j = 0; j < A.cols(); j++)
-                dest.array[j+dest.startIndex] += this_i * A.get(i, j);
+                b.increment(j, this_i*A.get(i, j));
         }
     }
 

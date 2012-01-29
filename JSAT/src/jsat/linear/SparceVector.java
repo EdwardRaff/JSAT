@@ -114,6 +114,7 @@ public class SparceVector extends  Vec
      * @param index the index of the value to alter
      * @param val the value to be added to the index
      */
+    @Override
     public void increment(int index, double val)
     {
         if (index > length - 1 || index < 0)
@@ -453,21 +454,20 @@ public class SparceVector extends  Vec
     }
 
     @Override
-    public Vec multiply(Matrix A)
+    public void multiply(Matrix A, Vec b)
     {
         if(this.length() != A.rows())
             throw new ArithmeticException("Vector x Matrix dimensions do not agree");
+        else if(b.length() != A.cols())
+            throw new ArithmeticException("Destination vector is not the right size");
         
-        DenseVector v = new DenseVector(this.length());
         for(int i = 0; i < used; i++)
         {
             double val = this.values[i];
             int index = this.indexes[i];
             for(int j = 0; j < A.cols(); j++)
-                v.array[j] += val * A.get(index, j);
+                b.increment(j, val*A.get(index, j));
         }
-        
-        return v;
     }
     
     public Vec divide(double c)

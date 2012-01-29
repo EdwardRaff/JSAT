@@ -30,7 +30,19 @@ public abstract class Vec implements Cloneable
     abstract public Vec subtract(Vec b);
     abstract public Vec pairwiseMultiply(Vec b);
     abstract public Vec multiply(double c);
-    abstract public Vec multiply(Matrix A);
+    
+    public Vec multiply(Matrix A)
+    {
+        DenseVector b = new DenseVector(A.cols());
+        this.multiply(A, b);
+        return b;
+    }
+    /**
+     * If this is vector <tt>a</tt>, this this computes b = b + <tt>a</tt><sup>T</sup>*<tt>A</tt>
+     * @param A
+     * @param b 
+     */
+    abstract public void multiply(Matrix A, Vec b);
     abstract public Vec pairwiseDivide(Vec b);
     abstract public Vec divide(double c);
     
