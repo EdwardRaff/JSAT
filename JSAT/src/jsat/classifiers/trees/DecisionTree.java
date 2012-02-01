@@ -42,13 +42,22 @@ public class DecisionTree implements Classifier, Regressor
     {
         return root.regress(data);
     }
-
+    
     public void train(RegressionDataSet dataSet, ExecutorService threadPool)
     {
         Set<Integer> options = new HashSet<Integer>(dataSet.getNumFeatures());
         for(int i = 0; i < dataSet.getNumFeatures(); i++)
             options.add(i);
-        
+        train(dataSet, options, threadPool);
+    }
+    
+    public void train(RegressionDataSet dataSet, Set<Integer> options)
+    {
+        train(dataSet, options, new FakeExecutor());
+    }
+
+    public void train(RegressionDataSet dataSet, Set<Integer> options, ExecutorService threadPool)
+    {
         ModifiableCountDownLatch mcdl = new ModifiableCountDownLatch(1);
         root = makeNodeR(dataSet.getDPPList(), options, 0, threadPool, mcdl);
         try
@@ -190,10 +199,23 @@ public class DecisionTree implements Classifier, Regressor
 
     public void trainC(ClassificationDataSet dataSet, ExecutorService threadPool)
     {
-        this.predicting = dataSet.getPredicting();
         Set<Integer> options = new HashSet<Integer>(dataSet.getNumFeatures());
         for(int i = 0; i < dataSet.getNumFeatures(); i++)
             options.add(i);
+        trainC(dataSet, options, threadPool);
+    }
+    /**
+     * Performs exactly the same as 
+     * {@link #trainC(jsat.classifiers.ClassificationDataSet, java.util.concurrent.ExecutorService) }, 
+     * but the user can specify a subset of the features to be considered.
+     * 
+     * @param dataSet the data set to train from
+     * @param options the subset of features to split on
+     * @param threadPool the source of threads for training. 
+     */
+    protected void trainC(ClassificationDataSet dataSet, Set<Integer> options, ExecutorService threadPool)
+    {
+        this.predicting = dataSet.getPredicting();
         
         ModifiableCountDownLatch mcdl = new ModifiableCountDownLatch(1);
         
@@ -362,6 +384,11 @@ public class DecisionTree implements Classifier, Regressor
     public void trainC(ClassificationDataSet dataSet)
     {
         trainC(dataSet, new FakeExecutor());
+    }
+    
+    public void trainC(ClassificationDataSet dataSet, Set<Integer> options)
+    {
+        trainC(dataSet, options, new FakeExecutor());
     }
 
     public boolean supportsWeightedData()
