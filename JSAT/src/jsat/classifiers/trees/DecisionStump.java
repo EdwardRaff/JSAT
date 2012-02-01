@@ -285,12 +285,27 @@ public class DecisionStump implements Classifier, Regressor
         return new PairedReturn<Integer, Double>(left, split);
     }
     
+    /**
+     * Return null as a failure value, indicating there was no way to compute the result. <br>
+     * Else, 2 lists are returned. Each are the same length, and their values are matched up. 
+     * The list of doubles is in sorted order. The last element is always positive Infinity. 
+     * For index i, the double value at index i indicates that for all values between the 
+     * double indices for i and (i-1), is most likely to belong to the class indicated from
+     * the integer list for index  i. 
+     * 
+     * @param dists the distributions for each options
+     * @return the paired lists that describe the most probable distribution
+     */
     public static PairedReturn<List<Double>, List<Integer>> intersections(final List<ContinousDistribution> dists)
     {
         double minRange = Double.MAX_VALUE;
         double maxRange = Double.MIN_VALUE;
         //we choose the step size to be the smallest of the standard deviations, and then divice by a constant
         double stepSize = Double.MAX_VALUE;
+        
+        final List<Integer> belongsTo = new ArrayList<Integer>();
+        final List<Double> splitPoints = new ArrayList<Double>();
+        
         for(ContinousDistribution cd : dists)
         {
             if(cd == null)
@@ -305,9 +320,8 @@ public class DecisionStump implements Classifier, Regressor
         //TODO is there a better way to avoid small step sizes? 
         if((maxRange-minRange)/stepSize > 50*dists.size())//Limi to 50*|Dists| iterations 
             stepSize = (maxRange-minRange)/(50*dists.size());
-        
-        final List<Integer> belongsTo = new ArrayList<Integer>();
-        final List<Double> splitPoints = new ArrayList<Double>();
+        else if( (maxRange - minRange) == 0.0 || minRange+stepSize == minRange)//Range is too small to search!
+            return null;
         
         //First value
         belongsTo.add(maxPDF(dists, minRange));
@@ -569,6 +583,8 @@ public class DecisionStump implements Classifier, Regressor
                 
                 //Now compute the speration boundrys 
                 tmp = intersections(Arrays.asList(dist));
+                if(tmp == null)
+                    continue;
                 List<Double> tmpBoundries = tmp.getFirstItem();
                 List<Integer> tmpOwners = tmp.getSecondItem();
                 
@@ -647,7 +663,8 @@ public class DecisionStump implements Classifier, Regressor
                 }
             }
         }
-        if(bestGain <= 1e-9)//We could not find a good split at all (as good as zero)
+        
+        if(bestGain <= 1e-9 || splittingAttribute == -1)//We could not find a good split at all (as good as zero)
         {
             bestSplit = new ArrayList<List<DataPointPair<Integer>>>(1);
             bestSplit.add(dataPoints);
