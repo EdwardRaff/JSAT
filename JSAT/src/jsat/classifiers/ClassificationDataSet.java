@@ -129,11 +129,21 @@ public class ClassificationDataSet extends DataSet<ClassificationDataSet>
     }
     
     /**
-     * 
+     * Returns the i'th data point from the data set
      * @param i the i'th data point in this set
      * @return the ith data point in this set
      */
     public DataPoint getDataPoint(int i)
+    {
+        return getDataPointPair(i).getDataPoint();
+    }
+    
+    /**
+     * Returns the i'th data point from the data set, paired with the integer indicating its true class
+     * @param i the i'th data point in this set
+     * @return the i'th data point from the data set, paired with the integer indicating its true class
+     */
+    public DataPointPair<Integer> getDataPointPair(int i)
     {
         if(i >= getSampleSize())
             throw new IndexOutOfBoundsException("There are not that many samples in the data set");
@@ -142,7 +152,7 @@ public class ClassificationDataSet extends DataSet<ClassificationDataSet>
         while(i >= classifiedExamples.get(set).size())
             i -= classifiedExamples.get(set++).size();
         
-        return classifiedExamples.get(set).get(i);
+        return new DataPointPair<Integer>(classifiedExamples.get(set).get(i), set);
     }
     
     @Override
