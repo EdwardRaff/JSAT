@@ -10,6 +10,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Semaphore;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import jsat.DataSet;
 import jsat.classifiers.CategoricalData;
 import jsat.classifiers.CategoricalResults;
 import jsat.classifiers.ClassificationDataSet;
@@ -145,16 +146,14 @@ public class Bagging implements Classifier, Regressor
     }
     
     /**
-     * Bagging samples from the training set with replacement, and draws a sample at least as large
-     * as the training set. This controls how many extra samples are taken. 
+     * Bagging samples from the training set with replacement, and draws a sampleWithReplacement at least as large
+     * as the training set. This controls how many extra samples are taken. If negative, fewer 
+     * samples will be taken. Using negative values is not recommended. 
      * 
      * @param i how many extra samples to take
-     * @throws ArithmeticException if i is less than 0
      */
     public void setExtraSamples(int i)
     {
-        if(i < 0)
-            throw new ArithmeticException("Can not remove samples");
         extraSamples = i;
     }
 
@@ -164,7 +163,7 @@ public class Bagging implements Classifier, Regressor
     }
 
     /**
-     * Sets the number of rounds that boosting is done, meaning how many base learners are trained
+     * Sets the number of rounds that bagging is done, meaning how many base learners are trained
      * @param rounds the number of base learners to train
      * @throws ArithmeticException if the number specified is not a positive value
      */
@@ -228,7 +227,7 @@ public class Bagging implements Classifier, Regressor
         final List synchronizedLearners = Collections.synchronizedList(learners);
         for(int i = 0; i < rounds; i++)
         {
-            sammple(source, sammple);
+            sampleWithReplacement(source, sammple, extraSamples, random);
             final Classifier learner = baseClassifier.clone();
             if(simultaniousTraining)
             {
@@ -283,7 +282,7 @@ public class Bagging implements Classifier, Regressor
         
         for(int i = 0; i < rounds; i++)
         {
-            sammple(source, sammple);
+            sampleWithReplacement(source, sammple, extraSamples, random);
             Classifier learner = baseClassifier.clone();
             learner.trainC(new ClassificationDataSet(sammple, dataSet.getPredicting()));
             learners.add(learner);
@@ -291,15 +290,54 @@ public class Bagging implements Classifier, Regressor
     }
     
     /**
-     * Performs sampling with replacement
+     * Performs sampling with replacement. Unlike 
+     * {@link #sampleWithReplacement(jsat.DataSet, java.util.List, int, java.util.Random) },
+     * the lists may contain any type, and no issues will occur. <br>
+     * The weights of the individual data points are ignored, sampling is done with equal probability. <br>
+     * The destination list will be {@link List#clear() cleared} by this method before sampling starts. 
+     * 
      * @param source the source of training data
      * @param destination the place to store the sampling. Will be cleared before adding
+     * @param extraSamples the number of extra samples to offset the {@link List#size() } of <tt>source</tt>
+     * @param random the source of randomness
      */
-    private void sammple(List source, List destination)
+    static public void sampleWithReplacement(List source, List destination, int extraSamples, Random random)
     {
         destination.clear();
         for(int i = 0; i < source.size() + extraSamples; i++)
             destination.add(source.get(random.nextInt(source.size())));
+    }
+    
+        
+    /**
+     * Performs sampling with replacement from the given data set. It is assumed
+     * that the given data set is either a {@link ClassificationDataSet} or a 
+     * {@link RegressionDataSet}, and that the list will contain the appropriate {@link DataPointPair} for each situation. <br>
+     * The weights of the individual data points are ignored, sampling is done with equal probability. <br>
+     * The destination list will be {@link List#clear() cleared} by this method before sampling starts. 
+     * 
+     * @param source the source of training data
+     * @param destination the place to store the sampling. Will be cleared before adding
+     * @param extraSamples the number of extra samples to offset the {@link List#size() } of <tt>source</tt>
+     * @param random the source of randomness
+     */
+    static public void sampleWithReplacement(DataSet source, List destination, int extraSamples, Random random)
+    {
+        destination.clear();
+        if (source instanceof ClassificationDataSet)
+        {
+            ClassificationDataSet dataSet = (ClassificationDataSet) source;
+            for (int i = 0; i < source.getSampleSize() + extraSamples; i++)
+                destination.add(dataSet.getDataPointPair(random.nextInt(dataSet.getSampleSize())));
+        }
+        else if (source instanceof RegressionDataSet)
+        {
+            RegressionDataSet dataSet = (RegressionDataSet) source;
+            for (int i = 0; i < source.getSampleSize() + extraSamples; i++)
+                destination.add(dataSet.getDataPointPair(random.nextInt(dataSet.getSampleSize())));
+        }
+        else
+            throw new RuntimeException("A data set was given that was not of an accepted type [Regression or Classification]");
     }
 
     public boolean supportsWeightedData()
@@ -337,7 +375,7 @@ public class Bagging implements Classifier, Regressor
         final List synchronizedLearners = Collections.synchronizedList(learners);
         for(int i = 0; i < rounds; i++)
         {
-            sammple(source, sammple);
+            sampleWithReplacement(source, sammple, extraSamples, random);
             final Regressor learner = baseRegressor.clone();
             if(simultaniousTraining)
             {
@@ -391,7 +429,7 @@ public class Bagging implements Classifier, Regressor
         
         for(int i = 0; i < rounds; i++)
         {
-            sammple(source, sammple);
+            sampleWithReplacement(source, sammple, extraSamples, random);
             Regressor learner = baseRegressor.clone();
             learner.train(RegressionDataSet.usingDPPList(sammple));
             learners.add(learner);
