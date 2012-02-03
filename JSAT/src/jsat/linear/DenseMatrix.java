@@ -549,7 +549,8 @@ public class DenseMatrix extends GenericMatrix
             //Seting up L 
             for(int k = 0; k < Math.min(i, U.cols()); k++)
             {
-                L.matrix[i][k] = U.matrix[i][k]/U.matrix[k][k];
+                double tmp = U.matrix[i][k]/U.matrix[k][k];
+                L.matrix[i][k] = Double.isNaN(tmp) ? 0.0 : tmp;
                 U.matrix[i][k] = 0;
 
                 for(int j = k+1; j < U.cols(); j++)
@@ -599,7 +600,8 @@ public class DenseMatrix extends GenericMatrix
         {
             for(int i = k+1+threadNumber; i < U.rows(); i+=LogicalCores)
             {
-                L.matrix[i][k] = U.matrix[i][k]/U.matrix[k][k];
+                double tmp = U.matrix[i][k]/U.matrix[k][k];
+                L.matrix[i][k] = Double.isNaN(tmp) ? 0.0 : tmp;
 
                 //We perform the first iteration of the loop outside, as we want to cache its value for searching later
                 U.matrix[i][k+1] -= L.matrix[i][k]*U.matrix[k][k+1];

@@ -434,7 +434,8 @@ public abstract class GenericMatrix extends Matrix
             //Seting up L 
             for(int k = 0; k < Math.min(i, U.cols()); k++)
             {
-                L.set(i, k, U.get(i, k)/U.get(k, k));
+                double tmp = U.get(i, k)/U.get(k, k); 
+                L.set(i, k, (Double.isNaN(tmp) ? 0.0 : tmp) );
                 U.set(i, k, 0.0);
 
                 for(int j = k+1; j < U.cols(); j++)
@@ -536,7 +537,8 @@ public abstract class GenericMatrix extends Matrix
                             int largestIndex = -1;
                             for(int i = kk+1+threadID; i < UU.rows(); i+=LogicalCores)
                             {
-                                L.set(i, kk, UU.get(i, kk)/UU.get(kk, kk));
+                                double tmp = UU.get(i, kk)/UU.get(kk, kk); 
+                                L.set(i, kk, (Double.isNaN(tmp) ? 0.0 : tmp) );
 
                                 //We perform the first iteration of the loop outside, as we want to cache its value for searching later
                                 UU.increment(i, kk+1, -L.get(i, kk)*UU.get(kk, kk+1));
