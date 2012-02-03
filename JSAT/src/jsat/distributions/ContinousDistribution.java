@@ -15,7 +15,10 @@ public abstract class ContinousDistribution implements Cloneable
 {
     public double logPdf(double x)
     {
-        return Math.log(pdf(x));
+        double pdf = pdf(x);
+        if(pdf <= 0)
+            return -Double.MAX_VALUE;
+        return Math.log(pdf);
     }
     abstract public double pdf(double x);
     abstract public double cdf(double x);
@@ -105,6 +108,7 @@ public abstract class ContinousDistribution implements Cloneable
 
     abstract public void setVariable(String var, double value);
     
+    @Override
     abstract public ContinousDistribution clone();
 
     /**

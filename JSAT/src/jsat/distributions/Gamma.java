@@ -47,7 +47,10 @@ public class Gamma extends ContinousDistribution
         double p4 = -x/theta;
         double p5 = -log(x);
         
-        return p1+p2+p3+p4+p5;
+        double pdf = p1+p2+p3+p4+p5;
+        if(Double.isNaN(pdf) || Double.isInfinite(pdf))//Bad extreme values when x is very small
+            return -Double.MAX_VALUE;
+        return pdf;
     }
 
     @Override

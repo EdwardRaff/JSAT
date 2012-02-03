@@ -44,6 +44,8 @@ public class Weibull extends ContinousDistribution
     @Override
     public double logPdf(double x)
     {
+        if(x <= 0)
+            return -Double.MAX_VALUE;
         return logAlpha-logBeta+(alpha-1)*log(x/beta) -pow(x/beta, alpha) ;
     }
 
