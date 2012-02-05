@@ -7,6 +7,7 @@
 
 package jsat.guitool;
 
+import java.awt.Component;
 import java.awt.GridLayout;
 import java.io.BufferedReader;
 import java.io.File;
@@ -19,18 +20,23 @@ import java.util.Collections;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.swing.ButtonGroup;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.JRadioButtonMenuItem;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 import jsat.ARFFLoader;
 import jsat.SimpleDataSet;
+import jsat.classifiers.ClassificationDataSet;
+import jsat.datatransform.PCA;
+import jsat.datatransform.ZeroMeanTransform;
 import jsat.distributions.ChiSquared;
 import jsat.distributions.ContinousDistribution;
 import jsat.distributions.Exponential;
@@ -41,6 +47,7 @@ import jsat.distributions.LogNormal;
 import jsat.distributions.Normal;
 import jsat.distributions.Uniform;
 import jsat.distributions.Weibull;
+import jsat.graphing.CategoryPlot;
 import jsat.graphing.Graph2D;
 import jsat.graphing.Histogram;
 import jsat.graphing.QQPlotData;
@@ -93,6 +100,25 @@ public class MainGUI extends javax.swing.JFrame
         jMenuItemSingleVariable.setEnabled(false);
         setSize(400, 300);
     }
+    
+    private ClassificationDataSet getClassificationData()
+    {
+        if(jMenuPredictingClass.getItemCount() == 0)
+            return null;
+        int selected = -1;
+        for(int i =0; i < jMenuPredictingClass.getItemCount(); i++)
+        {
+            JRadioButtonMenuItem button = (JRadioButtonMenuItem) jMenuPredictingClass.getItem(i);
+            if(button.isSelected())
+            {
+                selected = i;
+                break;
+            }
+        }
+        
+        
+        return new ClassificationDataSet(data.getBackingList(), selected);
+    }
 
     /** This method is called from within the constructor to
      * initialize the form.
@@ -125,6 +151,10 @@ public class MainGUI extends javax.swing.JFrame
         jMenuItemSingleVariable = new javax.swing.JMenuItem();
         jMenu3 = new javax.swing.JMenu();
         jMenuItemLinearRegress = new javax.swing.JMenuItem();
+        jMenuClassification = new javax.swing.JMenu();
+        jMenuPredictingClass = new javax.swing.JMenu();
+        jMenuCVisualize = new javax.swing.JMenu();
+        jMenuClassPCA = new javax.swing.JMenuItem();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         getContentPane().setLayout(new java.awt.GridLayout(1, 1));
@@ -263,6 +293,25 @@ public class MainGUI extends javax.swing.JFrame
 
         jMenuBar1.add(jMenu3);
 
+        jMenuClassification.setText("Classification");
+
+        jMenuPredictingClass.setText("Predicting");
+        jMenuClassification.add(jMenuPredictingClass);
+
+        jMenuCVisualize.setText("Visualize");
+
+        jMenuClassPCA.setText("PCA");
+        jMenuClassPCA.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jMenuClassPCAActionPerformed(evt);
+            }
+        });
+        jMenuCVisualize.add(jMenuClassPCA);
+
+        jMenuClassification.add(jMenuCVisualize);
+
+        jMenuBar1.add(jMenuClassification);
+
         setJMenuBar(jMenuBar1);
 
         pack();
@@ -283,6 +332,8 @@ public class MainGUI extends javax.swing.JFrame
                 JTable jt  = new JTable(vt);
                 getContentPane().removeAll();
                 getContentPane().add(new JScrollPane(jt));
+                //Set up option selection for the classification job
+                updateMenuPreductingClassItems();
                 validate();
                 jMenuItemTest.setEnabled(true);
                 jMenuItemHisto.setEnabled(true);
@@ -520,6 +571,25 @@ public class MainGUI extends javax.swing.JFrame
         dia.setVisible(true);
     }//GEN-LAST:event_jMenuItemOneSamTActionPerformed
 
+    private void jMenuClassPCAActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_jMenuClassPCAActionPerformed
+    {//GEN-HEADEREND:event_jMenuClassPCAActionPerformed
+        ClassificationDataSet cds = getClassificationData();
+        if(cds == null)
+            JOptionPane.showMessageDialog(rootPane, "This data set has no categorical attributes to use as a class",
+                    "Can not perform class visualization", JOptionPane.ERROR_MESSAGE);
+        else if(cds.getNumNumericalVars() < 2)
+            JOptionPane.showMessageDialog(rootPane, "This data set does not have enough numerical attributes to plot",
+                    "Can not perform class visualization", JOptionPane.ERROR_MESSAGE);
+        else
+        {
+            cds.applyTransform(new ZeroMeanTransform(cds));
+            cds.applyTransform(new PCA(cds, 2));
+            GraphDialog dialog = new GraphDialog(null, "PCA Visualization", new CategoryPlot(cds));
+            dialog.setSize(400, 400);
+            dialog.setVisible(true);
+        }
+    }//GEN-LAST:event_jMenuClassPCAActionPerformed
+
     /**
     * @param args the command line arguments
     */
@@ -539,6 +609,9 @@ public class MainGUI extends javax.swing.JFrame
     private javax.swing.JMenu jMenu5;
     private javax.swing.JMenu jMenu6;
     private javax.swing.JMenuBar jMenuBar1;
+    private javax.swing.JMenu jMenuCVisualize;
+    private javax.swing.JMenuItem jMenuClassPCA;
+    private javax.swing.JMenu jMenuClassification;
     private javax.swing.JMenu jMenuFile;
     private javax.swing.JMenuItem jMenuItem1;
     private javax.swing.JMenuItem jMenuItemHisto;
@@ -553,7 +626,34 @@ public class MainGUI extends javax.swing.JFrame
     private javax.swing.JMenuItem jMenuItemSingleVariable;
     private javax.swing.JMenuItem jMenuItemTest;
     private javax.swing.JMenuItem jMenuKSSearch;
+    private javax.swing.JMenu jMenuPredictingClass;
     private javax.swing.JFileChooser jfc;
     // End of variables declaration//GEN-END:variables
+
+    /**
+     * Empties out the contents of {@link #jMenuPredictingClass} and then re populates is accordingly. 
+     */
+    private void updateMenuPreductingClassItems()
+    {
+        jMenuPredictingClass.removeAll();
+        if (data.getNumCategoricalVars() > 0)
+        {
+            List<JRadioButtonMenuItem> classSelectionOptions = new ArrayList<JRadioButtonMenuItem>(data.getNumCategoricalVars());
+            for (int i = 0; i < data.getNumCategoricalVars(); i++)
+            {
+                JRadioButtonMenuItem classButtonOption = new JRadioButtonMenuItem(data.getCategoryName(i));
+                classButtonOption.setSelected(false);
+                classSelectionOptions.add(classButtonOption);
+            }
+
+            ButtonGroup buttonGroup = new ButtonGroup();
+            for (JRadioButtonMenuItem jrbmi : classSelectionOptions)
+                buttonGroup.add(jrbmi);
+            classSelectionOptions.get(classSelectionOptions.size() - 1).setSelected(true);
+
+            for (JRadioButtonMenuItem jrbmi : classSelectionOptions)
+                jMenuPredictingClass.add(jrbmi);
+        }
+    }
 
 }

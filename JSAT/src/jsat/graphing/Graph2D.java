@@ -10,6 +10,7 @@ import java.awt.Graphics2D;
 import java.awt.RenderingHints;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Line2D;
+import java.text.DecimalFormat;
 import javax.swing.JComponent;
 import jsat.distributions.Normal;
 import jsat.math.Function;
@@ -36,10 +37,7 @@ public class Graph2D extends JComponent
         this.xMax = xMax;
         this.yMin = yMin;
         this.yMax = yMax;
-        this.PAD = 20;
-
-
-
+        this.PAD = -1;//AUTO SET FOR ME PLEASE
     }
 
     public void setYAxisTtile(String yAxisTtile)
@@ -77,6 +75,11 @@ public class Graph2D extends JComponent
         this.PAD = p;
     }
 
+    public int getPadding()
+    {
+        return PAD;
+    }
+    
     @Override
     protected void paintComponent(Graphics g)
     {
@@ -91,6 +94,8 @@ public class Graph2D extends JComponent
 
         if(PAD == 0)//No padding, dont draw borders!
             return;
+        else if(PAD == -1)//auto set
+            PAD = (fm.getHeight()+2)*2;//Auto pad so we have 2 levels
 
         g2.setColor(Color.black);
          // Draw horizontal.
@@ -98,7 +103,20 @@ public class Graph2D extends JComponent
         // Draw vertical.
         g2.draw(new Line2D.Double(PAD, h-PAD, w-PAD, h-PAD));
 
-        g2.drawString(xAxisTtile, (w-PAD)/2-fm.stringWidth(xAxisTtile)/2, h+3-fm.getAscent());
+        
+        
+        //Draw horizontal marks
+        for(int x = PAD*2; x <= w-PAD*2; x+= (w-PAD*2)/4)
+        {
+            double xVal = toXVal(x);
+            String xValString = displayValue(xVal);
+            
+            g2.drawString(xValString, x-fm.stringWidth(xValString)/2, h-PAD+fm.getHeight());
+        }
+        
+        //draw X axist title
+        if(xAxisTtile != null && !xAxisTtile.equals(""))
+            g2.drawString(xAxisTtile, (w-PAD)/2-fm.stringWidth(xAxisTtile)/2, h-PAD+fm.getHeight()*2+2);
 
         //Dray Y axis title verticaly
         AffineTransform at = new AffineTransform();
@@ -108,12 +126,38 @@ public class Graph2D extends JComponent
         Font der = origFont.deriveFont(at);
         g2.setFont(der);
 
-        g2.drawString(yAxisTtile, PAD+3-fm.getAscent()/2, (h+PAD)/2);
-
+        //Draw vertical marks
+        for(int y = PAD*2; y <= h-PAD*2; y+= (h-PAD*2)/4)
+        {
+            double yVal = toYVal(y);
+            String yValString = displayValue(yVal);
+            
+            g2.drawString(yValString, fm.getHeight()*2, y+fm.getHeight()/2);
+        }
+        
+        if(yAxisTtile != null && !yAxisTtile.equals(""))
+            g2.drawString(yAxisTtile, fm.getAscent(), (h+PAD)/2+fm.getHeight());
+        
         g2.setFont(origFont);
 
-
-
+    }
+    
+    
+    private static final DecimalFormat sigFormat = new DecimalFormat("0.##E0");
+    private static String displayValue(double x)
+    {
+        String tmp = Double.toString(x);
+        if(tmp.length() <= 4)
+            return tmp;
+        else if( x < 99 && x >= -99)
+            return tmp.substring(0, 5);
+        else if (x > 0 && x < 9999)//If id did not have a decimal poitn in it, we would have returned in the first if
+            return tmp.substring(0, 5);
+        else if(x < 0 && x > -9999 && tmp.length() > 5)//Same logic
+            return tmp.substring(0, 6);
+        //Else, sig fig it
+        
+        return sigFormat.format(x);
     }
 
     public int toXCord(double x)
@@ -131,6 +175,15 @@ public class Graph2D extends JComponent
         double scale = (getWidth() - 2*PAD)/(xMax-xMin);
 
         return x/scale+xMin;
+    }
+    
+    public double toYVal(int y)
+    {
+        y-=PAD;
+        y = (getHeight()-2*PAD) - y;//Becase Java swing, the y axis is 0 at the top and H at the bottom, oposite of what we want
+        double scale = (getHeight() - 2*PAD)/(yMax-yMin);
+
+        return y/scale+yMin;
     }
 
     public int toYCord(double y)

@@ -165,6 +165,33 @@
             </MenuItem>
           </SubComponents>
         </Menu>
+        <Menu class="javax.swing.JMenu" name="jMenuClassification">
+          <Properties>
+            <Property name="text" type="java.lang.String" value="Classification"/>
+          </Properties>
+          <SubComponents>
+            <Menu class="javax.swing.JMenu" name="jMenuPredictingClass">
+              <Properties>
+                <Property name="text" type="java.lang.String" value="Predicting"/>
+              </Properties>
+            </Menu>
+            <Menu class="javax.swing.JMenu" name="jMenuCVisualize">
+              <Properties>
+                <Property name="text" type="java.lang.String" value="Visualize"/>
+              </Properties>
+              <SubComponents>
+                <MenuItem class="javax.swing.JMenuItem" name="jMenuClassPCA">
+                  <Properties>
+                    <Property name="text" type="java.lang.String" value="PCA"/>
+                  </Properties>
+                  <Events>
+                    <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="jMenuClassPCAActionPerformed"/>
+                  </Events>
+                </MenuItem>
+              </SubComponents>
+            </Menu>
+          </SubComponents>
+        </Menu>
       </SubComponents>
     </Menu>
   </NonVisualComponents>
