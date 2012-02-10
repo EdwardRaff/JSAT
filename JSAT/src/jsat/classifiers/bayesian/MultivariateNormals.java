@@ -1,6 +1,7 @@
 package jsat.classifiers.bayesian;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
@@ -30,14 +31,65 @@ public class MultivariateNormals implements Classifier
      * and indicates that a distribution is never likely (IE: no data)
      */
     private List<NormalM> distributions;
+    /**
+     * The prior probabilities of each class
+     */
+    private double priors[];
+    
+    /**
+     * Controls whether or no the prior probability will be used when computing probabilities
+     */
+    private boolean usePriors;
+    /**
+     * The default value for whether or not to use the prior probability of a class when making classification decisions is {@value #USE_PRIORS}. 
+     */
+    public static final boolean USE_PRIORS = false;
 
+    /**
+     * Creates a new class for classification by feating each class to a {@link NormalM Multivariate Normal Distribution}. 
+     * 
+     * @param usePriors controls whether or not the prior probabilities will be taken into account when performing classification
+     */
+    public MultivariateNormals(boolean usePriors)
+    {
+        this.usePriors = usePriors;
+    }
+
+    /**
+     * Creates a new class for classification by feating each class to a {@link NormalM Multivariate Normal Distribution}. 
+     */
+    public MultivariateNormals()
+    {
+        this(USE_PRIORS);
+    }
+
+    /**
+     * Controls whether or not the priors will be used for classification. This value can be 
+     * changed at any time, before or after training has occurred. 
+     * 
+     * @param usePriors <tt>true</tt> to use the prior probabilities for each class, <tt>false</tt> to ignore them. 
+     */
+    public void setUsePriors(boolean usePriors)
+    {
+        this.usePriors = usePriors;
+    }
+
+    /**
+     * Returns whether or not this object uses the prior probabilities for classification. 
+     * @return 
+     */
+    public boolean useusPriors()
+    {
+        return usePriors;
+    }
+    
     public CategoricalResults classify(DataPoint data)
     {
         CategoricalResults cr = new CategoricalResults(distributions.size());
         
         for(int i = 0; i < distributions.size(); i++)
             if(distributions.get(i) != null)
-                cr.setProb(i, distributions.get(i).pdf(data.getNumericalValues()));
+                cr.setProb(i, distributions.get(i).pdf(data.getNumericalValues()) * (usePriors ? priors[i] : 1.0) );
         
         return cr;
     }
@@ -47,9 +99,11 @@ public class MultivariateNormals implements Classifier
         try
         {
             this.distributions = new ArrayList<NormalM>();
+            this.priors = new double[dataSet.getPredicting().getNumOfCategories()];
             List<Future<NormalM>> newNormals = new ArrayList<Future<NormalM>>();
             for(int i = 0; i < dataSet.getPredicting().getNumOfCategories(); i++)//Calculate the Multivariate normal for each category
             {
+                final int ii = i;
                 final List<DataPoint> class_i = dataSet.getSamples(i);
                 Future<NormalM> tmp = threadPool.submit(new Callable<NormalM>() {
 
@@ -57,6 +111,9 @@ public class MultivariateNormals implements Classifier
                     {
                         if(class_i.isEmpty())//Nowthing we can do 
                             return null;
+                        //Add the weights to priors and normalized later
+                        for(DataPoint dp : class_i)
+                            priors[ii] += dp.getWeight();
                         NormalM normalM = new NormalM();
                         normalM.setUsingDataList(class_i);
                         return normalM;
@@ -67,8 +124,11 @@ public class MultivariateNormals implements Classifier
             }
             for(Future<NormalM> future : newNormals)
                 this.distributions.add(future.get());
-            
-            
+            double sumOfWeights = 0.0;
+            for(double prior : priors)
+                sumOfWeights += prior;
+            for(int i = 0; i < priors.length; i++)
+                priors[i] /= sumOfWeights;
         }
 
 
@@ -93,8 +153,10 @@ public class MultivariateNormals implements Classifier
     {
         try
         {
-            this.distributions = new ArrayList<NormalM>();
-            for (int i = 0; i < dataSet.getPredicting().getNumOfCategories(); i++)//Calculate the Multivariate normal for each category
+            this.priors = new double[dataSet.getPredicting().getNumOfCategories()];
+            this.distributions = new ArrayList<NormalM>(priors.length);
+            double sumOfWeights = 0.0;
+            for (int i = 0; i < priors.length; i++)//Calculate the Multivariate normal for each category
             {
                 
                 final List<DataPoint> class_i = dataSet.getSamples(i);
@@ -104,11 +166,16 @@ public class MultivariateNormals implements Classifier
                     this.distributions.add(null);
                     continue;
                 }
-                
+                for(DataPoint dp : class_i)
+                    priors[i] += dp.getWeight();
+                sumOfWeights += priors[i];
                 NormalM normalM = new NormalM();
                 normalM.setUsingDataList(class_i);
                 this.distributions.add(normalM);
             }
+            
+            for(int i = 0; i < priors.length; i++)
+                priors[i] /= sumOfWeights;
         }
         catch (Exception e)
         {
@@ -134,6 +201,8 @@ public class MultivariateNormals implements Classifier
                 else
                     clone.distributions.add(dist.clone());
         }
+        if(this.priors != null)
+            clone.priors = Arrays.copyOf(this.priors, this.priors.length);
         return clone;
     }
 }

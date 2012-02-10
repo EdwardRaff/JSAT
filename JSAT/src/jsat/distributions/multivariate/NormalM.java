@@ -2,20 +2,22 @@
 package jsat.distributions.multivariate;
 
 import java.util.List;
-import jsat.DataSet;
 import jsat.classifiers.DataPoint;
 import jsat.linear.DenseMatrix;
 import jsat.linear.DenseVector;
 import jsat.linear.LUPDecomposition;
 import jsat.linear.Matrix;
+import jsat.linear.MatrixStatistics;
 import jsat.linear.Vec;
 import static java.lang.Math.*;
+import static jsat.linear.MatrixStatistics.*;
+
 /**
  * Class for the multivariate Normal distribution. It is often called the Multivariate Gaussian distribution. 
  * 
  * @author Edward Raff
  */
-public class NormalM extends MultivariateDistribution
+public class NormalM extends MultivariateDistributionSkeleton
 {
     /**
      * When computing the PDF of some x, part of the equation is only dependent on the covariance matrix. This part is
@@ -118,33 +120,8 @@ public class NormalM extends MultivariateDistribution
         Vec origMean = this.mean;
         try
         {
-            Vec newMean = new DenseVector(dataSet.get(0).length());
-            for(Vec x : dataSet)
-                newMean.mutableAdd(x);
-            newMean.mutableDivide(dataSet.size());
-
-            //Now compute the covariance matrix
-            /**
-             * Covariance definition
-             * 
-             *   n
-             * =====                    T 
-             * \     /     _\  /     _\
-              * >    |x  - x|  |x  - x|
-             * /     \ i    /  \ i    /
-             * =====
-             * i = 1
-             * 
-             */
-            Matrix covariance = new DenseMatrix(newMean.length(), newMean.length());
-            Vec scratch = new DenseVector(newMean.length());
-            for(Vec x : dataSet)
-            {
-                x.copyTo(scratch);
-                scratch.mutableSubtract(newMean);
-                Matrix.OuterProductUpdate(covariance, scratch, scratch, 1.0);
-            }
-            covariance.mutableMultiply(1.0/(dataSet.size()-1.0));
+            Vec newMean = MatrixStatistics.MeanVector(dataSet);
+            Matrix covariance = MatrixStatistics.CovarianceMatrix(mean, dataSet);
 
             this.mean = newMean;
             setCovariance(covariance);
@@ -175,38 +152,8 @@ public class NormalM extends MultivariateDistribution
             newMean.mutableDivide(sumOfWeights);
 
             //Now compute the covariance matrix
-            /**
-             * Weighted definition of the covariance matrix 
-             * 
-             *          n
-             *        =====
-             *        \
-             *         >    w
-             *        /      i          n
-             *        =====           =====                      T
-             *        i = 1           \        /     _\  /     _\
-             * ----------------------  >    w  |x  - x|  |x  - x|
-             *           2            /      i \ i    /  \ i    /
-             * /  n     \      n      =====
-             * |=====   |    =====    i = 1
-             * |\       |    \      2
-             * | >    w |  -  >    w
-             * |/      i|    /      i
-             * |=====   |    =====
-             * \i = 1   /    i = 1
-             */
             Matrix covariance = new DenseMatrix(newMean.length(), newMean.length());
-            Vec scratch = new DenseVector(newMean.length());
-
-            for(int i = 0; i < dataSet.size(); i++)
-            {
-                DataPoint dp = dataSet.get(i);
-                Vec x = dp.getNumericalValues();
-                x.copyTo(scratch);
-                scratch.mutableSubtract(newMean);
-                Matrix.OuterProductUpdate(covariance, scratch, scratch, dp.getWeight());
-            }
-            covariance.mutableMultiply(sumOfWeights/(Math.pow(sumOfWeights, 2)-sumOfSquaredWeights));
+            CovarianceMatrix(newMean, dataSet, covariance, sumOfWeights, sumOfSquaredWeights);
 
             this.mean = newMean;
             setCovariance(covariance);
@@ -230,6 +177,4 @@ public class NormalM extends MultivariateDistribution
         clone.logPDFConst = this.logPDFConst;
         return clone;
     }
-    
-    
 }

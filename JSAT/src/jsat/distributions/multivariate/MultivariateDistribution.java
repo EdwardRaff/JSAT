@@ -12,7 +12,7 @@ import jsat.linear.Vec;
  * 
  * @author Edward Raff
  */
-public abstract class MultivariateDistribution implements Cloneable
+public interface MultivariateDistribution extends Cloneable
 {
     /**
      * Computes the log of the probability density function. If the 
@@ -23,10 +23,7 @@ public abstract class MultivariateDistribution implements Cloneable
      * @return the log of the probability. 
      * @throws ArithmeticException if the vector is not the correct length, or the distribution has not yet been set
      */
-    public double logPdf(double... x)
-    {
-        return logPdf(DenseVector.toDenseVec(x));
-    }
+    public double logPdf(double... x);
     
     /**
      * Computes the log of the probability density function. If the 
@@ -37,13 +34,7 @@ public abstract class MultivariateDistribution implements Cloneable
      * @return the log of the probability. 
      * @throws ArithmeticException if the vector is not the correct length, or the distribution has not yet been set
      */
-    public double logPdf(Vec x)
-    {
-        double logPDF = Math.log(pdf(x));
-        if(Double.isInfinite(logPDF) && logPDF < 0)//log(0) == -Infinty
-            return -Double.MAX_VALUE;
-        return logPDF;
-    }
+    public double logPdf(Vec x);
     
     /**
      * Returns the probability of a given vector from this distribution. By definition, 
@@ -53,10 +44,7 @@ public abstract class MultivariateDistribution implements Cloneable
      * @return the probability 
      * @throws ArithmeticException if the vector is not the correct length, or the distribution has not yet been set
      */
-    public double pdf(double... x)
-    {
-        return pdf(DenseVector.toDenseVec(x));
-    }
+    public double pdf(double... x);
     
     /**
      * Returns the probability of a given vector from this distribution. By definition, 
@@ -66,7 +54,7 @@ public abstract class MultivariateDistribution implements Cloneable
      * @return the probability 
      * @throws ArithmeticException if the vector is not the correct length, or the distribution has not yet been set
      */
-    abstract public double pdf(Vec x);
+    public double pdf(Vec x);
     
     /**
      * Sets the parameters of the distribution to attempt to fit the given list of vectors.
@@ -75,7 +63,7 @@ public abstract class MultivariateDistribution implements Cloneable
      * @return <tt>true</tt> if the distribution was fit to the data, or <tt>false</tt> 
      * if the distribution could not be fit to the data set. 
      */
-    abstract public boolean setUsingData(List<Vec> dataSet);
+    public boolean setUsingData(List<Vec> dataSet);
     /**
      * Sets the parameters of the distribution to attempt to fit the given list of data points. 
      * The {@link DataPoint#getWeight()  weights} of the data points will be used.
@@ -84,7 +72,7 @@ public abstract class MultivariateDistribution implements Cloneable
      * @return <tt>true</tt> if the distribution was fit to the data, or <tt>false</tt> 
      * if the distribution could not be fit to the data set. 
      */
-    abstract public boolean setUsingDataList(List<DataPoint> dataPoint);
+    public boolean setUsingDataList(List<DataPoint> dataPoint);
     
     /**
      * Sets the parameters of the distribution to attempt to fit the given list of data points. 
@@ -94,11 +82,7 @@ public abstract class MultivariateDistribution implements Cloneable
      * @return <tt>true</tt> if the distribution was fit to the data, or <tt>false</tt> 
      * if the distribution could not be fit to the data set. 
      */
-    public boolean setUsingData(DataSet dataSet)
-    {
-        return setUsingDataList(dataSet.getDataPoints());
-    }
+    public boolean setUsingData(DataSet dataSet);
 
-    @Override
-    abstract public MultivariateDistribution clone();
+    public MultivariateDistribution clone();
 }
