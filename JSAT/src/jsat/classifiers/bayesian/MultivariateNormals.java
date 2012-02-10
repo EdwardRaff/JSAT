@@ -170,8 +170,10 @@ public class MultivariateNormals implements Classifier
                     priors[i] += dp.getWeight();
                 sumOfWeights += priors[i];
                 NormalM normalM = new NormalM();
-                normalM.setUsingDataList(class_i);
-                this.distributions.add(normalM);
+                if(normalM.setUsingDataList(class_i))
+                    this.distributions.add(normalM);
+                else
+                    this.distributions.add(null);//Failed to set
             }
             
             for(int i = 0; i < priors.length; i++)
