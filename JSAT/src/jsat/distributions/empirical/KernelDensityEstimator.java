@@ -7,8 +7,10 @@ import java.util.Collections;
 import java.util.List;
 import jsat.distributions.ContinousDistribution;
 import jsat.distributions.Normal;
+import jsat.distributions.empirical.kernelfunc.EpanechnikovKF;
 import jsat.distributions.empirical.kernelfunc.GaussKF;
 import jsat.distributions.empirical.kernelfunc.KernelFunction;
+import jsat.distributions.empirical.kernelfunc.UniformKF;
 import jsat.linear.Vec;
 import jsat.math.Function;
 import jsat.math.OnLineStatistics;
@@ -33,6 +35,8 @@ public class KernelDensityEstimator extends ContinousDistribution
      * technicaly, O(n), its more accuracly describe as O(n * epsilon * log(n)) , where n * epsilon << n
      */
     
+    //TODO implement special case fro Uniform kernel 
+    
     /**
      * The various values 
      */
@@ -49,7 +53,7 @@ public class KernelDensityEstimator extends ContinousDistribution
      * The bandwidth
      */
     private double h;
-    double Xmean, Xvar, Xskew;
+    private double Xmean, Xvar, Xskew;
     
     private KernelFunction k;
     
@@ -63,9 +67,24 @@ public class KernelDensityEstimator extends ContinousDistribution
         return 1.06 * X.standardDeviation() * Math.pow(X.length(), -1.0/5.0);
     }
     
+    /**
+     * Automatically selects a good Kernel function for the data set that balances Execution time and accuracy
+     * @param dataPoints
+     * @return 
+     */
+    private static KernelFunction autoKernel(Vec dataPoints )
+    {
+        if(dataPoints.length() < 30)
+            return new GaussKF();
+        else if(dataPoints.length() < 1000)
+            return new EpanechnikovKF();
+        else//For very large data sets, Uniform is FAST and just as accurate
+            return new UniformKF();
+    }
+    
     public KernelDensityEstimator(Vec dataPoints)
     {
-        this(dataPoints, new GaussKF());
+        this(dataPoints, autoKernel(dataPoints));
     }
     
     public KernelDensityEstimator(Vec dataPoints, KernelFunction k)
