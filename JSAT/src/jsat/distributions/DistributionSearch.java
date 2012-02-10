@@ -1,11 +1,12 @@
 
 package jsat.distributions;
 
+import jsat.distributions.empirical.KernelDensityEstimator;
 import jsat.linear.Vec;
 import jsat.testing.goodnessoffit.KSTest;
 
 /**
- *
+ * Provides methods for selecting the distribution that best fits a given data set. 
  * @author Edward Raff
  */
 public class DistributionSearch
@@ -31,7 +32,48 @@ public class DistributionSearch
         return getBestDistribution(v, possibleDistributions);
     }
     
+    /**
+     * Searches the distributions that are known for a possible fit, and returns 
+     * what appears to be the best fit. If no suitable fit can be found, a 
+     * {@link KernelDensityEstimator} is fit to the data. 
+     * 
+     * @param v all the values from a sample
+     * @param KDECutOff the cut off value used for using the KDE. Should be in 
+     * the range (0, 1). Values less than zero means the KDE will never be used,
+     * and greater then 1 means the KDE will always be used. 
+     * @return the distribution that provides the best fit to the data that this method could find.
+     */
+    public static ContinousDistribution getBestDistribution(Vec v, double KDECutOff)
+    {
+        return getBestDistribution(v, KDECutOff, possibleDistributions);
+    }
+    
+    /**
+     * Searches the distributions that are given for a possible fit, and returns 
+     * what appears to be the best fit. 
+     * 
+     * @param v all the values from a sample
+     * @param possibleDistributions the array of distribution to try and fit to the data
+     * @return the distribution that provides the best fit to the data that this method could find.
+     */
     public static ContinousDistribution getBestDistribution(Vec v, ContinousDistribution... possibleDistributions)
+    {
+        return getBestDistribution(v, 0.0, possibleDistributions);
+    }
+    
+    /**
+     * Searches the distributions that are given for a possible fit, and returns 
+     * what appears to be the best fit. If no suitable fit can be found, a 
+     * {@link KernelDensityEstimator} is fit to the data. 
+     * 
+     * @param v all the values from a sample
+     * @param KDECutOff the cut off value used for using the KDE. Should be in 
+     * the range (0, 1). Values less than zero means the KDE will never be used,
+     * and greater then 1 means the KDE will always be used. 
+     * @param possibleDistributions the array of distribution to try and fit to the data
+     * @return  the distribution that provides the best fit to the data that this method could find.
+     */
+    public static ContinousDistribution getBestDistribution(Vec v, double KDECutOff, ContinousDistribution... possibleDistributions)
     {
         //Thread Safety, clone the possible distributions
         
@@ -69,7 +111,10 @@ public class DistributionSearch
         ///Return the best distribution, or if somehow everythign went wrong, a normal distribution
         try
         {
-            return bestDist == null ? new Normal(v.mean(), v.standardDeviation()) : bestDist.clone();
+            if(bestProb >= KDECutOff)
+                return bestDist == null ? new Normal(v.mean(), v.standardDeviation()) : bestDist.clone();
+            else
+                return new KernelDensityEstimator(v);
         }
         catch (RuntimeException ex)//Mostly likely occurs if all values are all zero
         {
