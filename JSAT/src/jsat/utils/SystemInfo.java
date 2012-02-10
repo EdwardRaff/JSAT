@@ -84,7 +84,8 @@ public class SystemInfo
             }
             
             output = output.replaceAll("L2CacheSize\\s+NumberOfCores", "").trim();//Remove header
-            output = output.substring(0, output.indexOf("\n")).trim();//Get first line
+            if(output.indexOf("\n") > 0)//Multi line is bad!
+                output = output.substring(0, output.indexOf("\n")).trim();//Get first line
             String[] vals = output.split("\\s+");//Seperate into 2 seperate numbers, first is total L2 cahce, 2nd is # CPU cores
             L2CacheSize = (Integer.valueOf(vals[0]) / Integer.valueOf(vals[1]))*1024 ; //the value is in KB, we want it in bytes
         }
