@@ -10,13 +10,16 @@ import jsat.classifiers.ClassificationDataSet;
 import jsat.classifiers.Classifier;
 import jsat.classifiers.DataPoint;
 import jsat.distributions.ContinousDistribution;
+import jsat.distributions.DistributionSearch;
+import jsat.distributions.Normal;
+import jsat.distributions.empirical.KernelDensityEstimator;
 import jsat.linear.Vec;
 import jsat.utils.FakeExecutor;
 import static jsat.distributions.DistributionSearch.*;
 
 /**
  *
- * Naive Bayes (Multinomial) classifier. 
+ * Naive Bayes (Multinomial) classifier. Naive Bayes assumes that all attributes are perfectly independent.
  * 
  * @author Edward Raff
  */
@@ -27,9 +30,109 @@ public class NaiveBayes implements Classifier
      */
     private double[][][] apriori;
     private ContinousDistribution[][] distributions; 
+    private NumericalHandeling numericalHandling;
+    
+    /**
+     * The default method of handling numeric attributes is {@link NumericalHandeling#NORMAL}. 
+     */
+    public static final NumericalHandeling defaultHandling = NumericalHandeling.NORMAL;
+    
+    /**
+     * There are multiple ways of handling numerical attributes. These provide the 
+     * different ways that NaiveBayes can deal with them. 
+     */
+    public enum NumericalHandeling 
+    {
+        
+        
+        /**
+         * All numerical attributes are fit to a {@link NORMAL} distribution. 
+         */
+        NORMAL
+        {
+
+            protected ContinousDistribution fit(Vec v)
+            {
+                return getBestDistribution(v, new Normal(0, 1));
+            }
+        },
+        /**
+         * The best fitting {@link ContinousDistribution} is selected by 
+         * {@link DistributionSearch#getBestDistribution(jsat.linear.Vec) }
+         */
+        BEST_FIT
+        {
+
+            protected ContinousDistribution fit(Vec v)
+            {
+                return getBestDistribution(v);
+            }
+        },
+        /**
+         * The best fitting {@link ContinousDistribution} is selected by 
+         * {@link DistributionSearch#getBestDistribution(jsat.linear.Vec, double) }, 
+         * and provides a cut off value to use the {@link KernelDensityEstimator} instead
+         */
+        BEST_FIT_KDE
+        {
+
+            private double cutOff = 0.9;
+
+            /**
+             * Sets the cut off value used before fitting an empirical distribution
+             * @param c the cut off value, should be between (0, 1).
+             */
+            public void setCutOff(double c)
+            {
+                cutOff = c;
+            }
+
+            /**
+             * Returns the cut off value used before fitting an empirical distribution
+             * @return the cut off value used before fitting an empirical distribution
+             */
+            public double getCtrOff()
+            {
+                return cutOff;
+            }
+           
+            protected ContinousDistribution fit(Vec v)
+            {
+                return getBestDistribution(v, cutOff);
+            }
+        };
+
+        abstract protected ContinousDistribution fit(Vec y);
+    }
+
+    public NaiveBayes(NumericalHandeling numericalHandling)
+    {
+        this.numericalHandling = numericalHandling;
+    }
 
     public NaiveBayes()
     {
+        this(defaultHandling);
+    }
+
+    /**
+     * Sets the method used by this instance for handling numerical attributes. 
+     * This has no effect on an already trained classifier, but will change the result if trained again. 
+     * 
+     * @param numericalHandling the method to use for numerical attributes
+     */
+    public void setNumericalHandling(NumericalHandeling numericalHandling)
+    {
+        this.numericalHandling = numericalHandling;
+    }
+
+    /**
+     * Returns the method used to handle numerical attributes
+     * @return the method used to handle numerical attributes 
+     */
+    public NumericalHandeling getNumericalHandling()
+    {
+        return numericalHandling;
     }
     
     public CategoricalResults classify(DataPoint data)
@@ -128,7 +231,8 @@ public class NaiveBayes implements Classifier
         
         public void run()
         {
-            distributions[i][j] = getBestDistribution(v);
+            
+            distributions[i][j] = numericalHandling.fit(v);
             countDown.countDown();
         }
         
