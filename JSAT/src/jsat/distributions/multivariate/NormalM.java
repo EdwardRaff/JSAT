@@ -91,6 +91,10 @@ public class NormalM extends MultivariateDistributionSkeleton
         LUPDecomposition lup = new LUPDecomposition(covMatrix.clone());
         int k = mean.length();
         double det = lup.det();
+        if(Double.isNaN(det))
+        {
+            throw new ArithmeticException("Numerical Imprecision occured, could not compute inverse stablely");
+        }
         if(det <= 0)//Ehhh... should zero be handled differently? I'm not sure
             throw new ArithmeticException("An invalid covariance matrix was given. Covariance matrix must be symmetric positive definite");
         this.logPDFConst = (-k*log(2*PI)-log(det))*0.5;
@@ -111,7 +115,10 @@ public class NormalM extends MultivariateDistributionSkeleton
     @Override
     public double pdf(Vec x)
     {
-        return exp(logPdf(x));
+        double pdf = exp(logPdf(x));
+        if(pdf > 1 || Double.isInfinite(pdf) || Double.isNaN(E))//Ugly numerical error has occured
+            return 0;
+        return pdf;
     }
 
     @Override
