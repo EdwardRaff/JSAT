@@ -9,12 +9,12 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import jsat.FailedToFitException;
 import jsat.classifiers.CategoricalResults;
 import jsat.classifiers.ClassificationDataSet;
 import jsat.classifiers.Classifier;
 import jsat.classifiers.DataPoint;
 import jsat.distributions.multivariate.NormalM;
+import jsat.exceptions.FailedToFitException;
 
 /**
  * This classifier can be seen as an extension of {@link NaiveBayes}. Instead of treating the variables as independent,
