@@ -116,7 +116,7 @@ public class NormalM extends MultivariateDistributionSkeleton
     public double pdf(Vec x)
     {
         double pdf = exp(logPdf(x));
-        if(pdf > 1 || Double.isInfinite(pdf) || Double.isNaN(E))//Ugly numerical error has occured
+        if(Double.isInfinite(pdf) || Double.isNaN(E))//Ugly numerical error has occured
             return 0;
         return pdf;
     }
