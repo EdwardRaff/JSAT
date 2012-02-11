@@ -15,7 +15,10 @@ import jsat.linear.Vec;
 import jsat.math.OnLineStatistics;
 
 /**
- *
+ * This is the base class for representing a data set. A data set contains multiple samples,
+ * each of which should have the same number of attributes. Conceptually, each 
+ * {@link DataPoint} represents a row in the data set, and the attributes form the columns. 
+ * 
  * @author Edward Raff
  */
 public abstract class DataSet<D extends DataSet>
@@ -35,6 +38,13 @@ public abstract class DataSet<D extends DataSet>
      */
     protected List<String> numericalVariableNames;
     
+    /**
+     * Sets the unique name associated with the <tt>i</tt>'th numeric attribute. All strings will be converted to lower case first. 
+     * 
+     * @param name the name to use
+     * @param i the <tt>i</tt>th attribute. 
+     * @return <tt>true</tt> if the value was set, <tt>false</tt> if it was not set because an invalid index was given . 
+     */
     public boolean setNumericName(String name, int i)
     {
         name = name.toLowerCase();
@@ -49,6 +59,11 @@ public abstract class DataSet<D extends DataSet>
         return true;
     }
 
+    /**
+     * Returns the name used for the <tt>i</tt>'th numeric attribute. 
+     * @param i the <tt>i</tt>th attribute. 
+     * @return the name used for the <tt>i</tt>'th numeric attribute. 
+     */
     public String getNumericName(int i )
     {
         if(i < getNumNumericalVars() && i >= 0)
@@ -57,6 +72,11 @@ public abstract class DataSet<D extends DataSet>
             throw new IndexOutOfBoundsException("Can not acces variable for invalid index  " + i );
     }
     
+    /**
+     * Returns the name used for the <tt>i</tt>'th categorical attribute. 
+     * @param i the <tt>i</tt>th attribute. 
+     * @return the name used for the <tt>i</tt>'th categorical attribute. 
+     */
     public String getCategoryName(int i )
     {
         if(i < getNumCategoricalVars() && i >= 0)
@@ -65,6 +85,10 @@ public abstract class DataSet<D extends DataSet>
             throw new IndexOutOfBoundsException("Can not acces variable for invalid index  " + i );
     }
         
+    /**
+     * Applies the given transformation to all points in this data set
+     * @param dt the transformation to apply
+     */
     public void applyTransform(DataTransform dt)
     {
         for(int i = 0; i < getSampleSize(); i++)
@@ -78,9 +102,11 @@ public abstract class DataSet<D extends DataSet>
     }
     
     /**
+     * Returns the <tt>i</tt>'th data point in this set. The order will never 
+     * chance so long as no data points are added or removed from the set. 
      * 
-     * @param i the i'th data point in this set
-     * @return the ith data point in this set
+     * @param i the <tt>i</tt>'th data point in this set
+     * @return the <tt>i</tt>'th data point in this set
      */
     abstract public DataPoint getDataPoint(int i);
     
@@ -89,13 +115,14 @@ public abstract class DataSet<D extends DataSet>
      * Any values associated with the data point, but not apart of
      * it, will remain intact. 
      * 
-     * @param i the i'th dataPoint to set. 
+     * @param i the <tt>i</tt>'th dataPoint to set. 
      */
     abstract public void setDataPoint(int i, DataPoint dp);
     
     /**
      * Returns summary statistics computed in an online fashion for each numeric
      * variable. This consumes less memory, but can be less numerically stable. 
+     *  This method does not take into account data point weight. 
      * 
      * @return an array of summary statistics
      */
@@ -115,6 +142,37 @@ public abstract class DataSet<D extends DataSet>
         return stats;
     }
     
+    /**
+     * Returns summary statistics computed in an online fashion for each numeric
+     * variable. This consumes less memory, but can be less numerically stable.
+     * This method takes into account data point weight. 
+     * 
+     * @return array of summary statistics
+     */
+    public OnLineStatistics[] getWeightedSingleVarStats()
+    {
+         OnLineStatistics[] stats = new OnLineStatistics[numNumerVals];
+        for(int i = 0; i < stats.length; i++)
+            stats[i] = new OnLineStatistics();
+        
+        for(Iterator<DataPoint> iter = getDataPointIterator(); iter.hasNext(); )
+        {
+            DataPoint dp = iter.next();
+            Vec v = dp.getNumericalValues();
+            for (int i = 0; i < numNumerVals; i++)
+                stats[i].add(v.get(i), dp.getWeight());
+        }
+        
+        return stats;
+    }
+    
+    /**
+     * Returns an iterator that will iterate over all data points in the set. 
+     * The behavior is not defined if one attempts to modify the data set 
+     * while being iterated.
+     * 
+     * @return an iterator for the data points
+     */
     public Iterator<DataPoint> getDataPointIterator()
     {
         Iterator<DataPoint> iteData = new Iterator<DataPoint>() 
@@ -142,13 +200,13 @@ public abstract class DataSet<D extends DataSet>
     }
     
     /**
-     * 
+     * Returns the number of data points in this data set
      * @return the number of data points in this data set 
      */
     abstract public int getSampleSize();
     
     /**
-     * 
+     * Returns the number of categorical variables for each data point in the set
      * @return the number of categorical variables for each data point in the set
      */
     public int getNumCategoricalVars()
@@ -157,7 +215,7 @@ public abstract class DataSet<D extends DataSet>
     }
     
     /**
-     * 
+     * Returns the number of numerical variables for each data point in the set
      * @return the number of numerical variables for each data point in the set 
      */
     public int getNumNumericalVars()
@@ -165,13 +223,36 @@ public abstract class DataSet<D extends DataSet>
         return numNumerVals;
     }
     
+    /**
+     * Returns the array containing the categorical data information for this data 
+     * set. Changes to this will be reflected in the data set. 
+     * 
+     * @return the array of {@link CategoricalData}
+     */
     public CategoricalData[] getCategories()
     {
         return categories;
     }
     
+    /**
+     * Creates <tt>folds</tt> data sets that contain data from this data set. 
+     * The data points in each set will be random. These are meant for cross 
+     * validation
+     * 
+     * @param folds the number of cross validation sets to create. Should be greater then 1
+     * @param rand the source of randomness 
+     * @return the list of data sets. 
+     */
     abstract public List<D> cvSet(int folds, Random rand);
     
+    /**
+     * Creates <tt>folds</tt> data sets that contain data from this data set. 
+     * The data points in each set will be random. These are meant for cross 
+     * validation
+     * 
+     * @param folds the number of cross validation sets to create. Should be greater then 1
+     * @return the list of data sets. 
+     */
     public List<D> cvSet(int folds)
     {
         return cvSet(folds, new Random());
@@ -197,9 +278,10 @@ public abstract class DataSet<D extends DataSet>
      * The data set can be seen as a NxM matrix, were each row is a 
      * data point, and each column the values for a particular 
      * variable. This method grabs all the numerical values for
-     * a 'column' and returns it as one vector. 
+     * a 'column' and returns it as one vector. <br>
+     * This vector can be altered and will not effect any of the values in the data set
      * 
-     * @param i the i'th numerical variable to obtain all values of
+     * @param i the <tt>i</tt>'th numerical variable to obtain all values of
      * @return a Vector of length {@link #getSampleSize() }
      */
     public Vec getNumericColumn(int i )
@@ -215,6 +297,8 @@ public abstract class DataSet<D extends DataSet>
     /**
      * Creates a matrix from the data set, where each row represent a data
      * point, and each column is one of the numeric example from the data set. 
+     * <br>
+     * This matrix can be altered and will not effect any of the values in the data set. 
      * 
      * @return a matrix of the data points. 
      */
@@ -233,8 +317,8 @@ public abstract class DataSet<D extends DataSet>
     }
     
     /**
-     * Returns the number of features in this data point, which is the sum of {@link #getNumCategoricalVars() } and {@link #getNumNumericalVars() }
-     * @return 
+     * Returns the number of features in this data set, which is the sum of {@link #getNumCategoricalVars() } and {@link #getNumNumericalVars() }
+     * @return the total number of features in this data set
      */
     public int getNumFeatures()
     {

@@ -1,5 +1,5 @@
 
-package jsat;
+package jsat.exceptions;
 
 /**
  *

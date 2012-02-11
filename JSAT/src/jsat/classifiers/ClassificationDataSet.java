@@ -168,10 +168,18 @@ public class ClassificationDataSet extends DataSet<ClassificationDataSet>
         classifiedExamples.get(set).set(i, dp);
     }
     
+    /**
+     * Returns the integer value corresponding to the true category of the <tt>i</tt>'th data point. 
+     * @param i the <tt>i</tt>'th data point. 
+     * @return the integer value for the category of the <tt>i</tt>'th data point. 
+     * @throws IndexOutOfBoundsException if <tt>i</tt> is not a valid index into the data set. 
+     */
     public int getDataPointCategory(int i)
     {
         if(i >= getSampleSize())
-            throw new IndexOutOfBoundsException("There are not that many samples in the data set");
+            throw new IndexOutOfBoundsException("There are not that many samples in the data set: " + i);
+        else if(i < 0)
+            throw new IndexOutOfBoundsException("Can not specify negative index " + i);
         int set = 0;
         
         while(i >= classifiedExamples.get(set).size())
@@ -246,6 +254,13 @@ public class ClassificationDataSet extends DataSet<ClassificationDataSet>
         return cvList;
     }
     
+    /**
+     * Creates a new data point and add its to this data set. 
+     * @param v the numerical values for the data point
+     * @param classes the categorical values for the data point
+     * @param classification the true class value for the data point
+     * @throws RuntimeException if the given values are inconsistent with the data this class stores. 
+     */
     public void addDataPoint(Vec v, int[] classes, int classification)
     {
         if(v.length() != numNumerVals)
@@ -299,6 +314,16 @@ public class ClassificationDataSet extends DataSet<ClassificationDataSet>
         return predicting;
     }
     
+    /**
+     * Returns the data set as a list of {@link DataPointPair}. 
+     * Each data point is paired with it's true class value. 
+     * Altering the data points will effect the data set. 
+     * Altering the list will not. <br>
+     * The list of data points will come in the same order they would 
+     * be retrieved in using {@link #getDataPoint(int) }
+     * 
+     * @return a list of each data point paired with its class value
+     */
     public List<DataPointPair<Integer>> getAsDPPList()
     {
         List<DataPointPair<Integer>> dataPoints = new ArrayList<DataPointPair<Integer>>(getSampleSize());
@@ -309,6 +334,16 @@ public class ClassificationDataSet extends DataSet<ClassificationDataSet>
         return dataPoints;
     }
     
+    /**
+     * Returns the data set as a list of {@link DataPointPair}. 
+     * Each data point is paired with it's true class value, which is stored in a double. 
+     * Altering the data points will effect the data set. 
+     * Altering the list will not. <br>
+     * The list of data points will come in the same order they would 
+     * be retrieved in using {@link #getDataPoint(int) }
+     * 
+     * @return a list of each data point paired with its class value stored in a double 
+     */
     public List<DataPointPair<Double>> getAsFloatDPPList()
     {
         List<DataPointPair<Double>> dataPoints = new ArrayList<DataPointPair<Double>>(getSampleSize());
