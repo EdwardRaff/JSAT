@@ -41,7 +41,7 @@ public class ClassifierCVEvaluation extends JDialog
 
     private static String timeString(long time)
     {
-        DecimalFormat df = new DecimalFormat("0.00000");
+        DecimalFormat df = new DecimalFormat("0.####");
         String unit = " ms";
         
         double dTime = time;
@@ -97,7 +97,7 @@ public class ClassifierCVEvaluation extends JDialog
             @Override
             protected Object doInBackground() throws Exception
             {
-                DecimalFormat df = new DecimalFormat("0.####");
+                DecimalFormat df = new DecimalFormat("0.00000");
                 for(int i = 0; i < classifiers.size() && !pm.isCanceled(); i++)
                 {
                     final int ip1 = i+1;
