@@ -35,6 +35,7 @@ import javax.swing.UIManager;
 import jsat.ARFFLoader;
 import jsat.SimpleDataSet;
 import jsat.classifiers.ClassificationDataSet;
+import jsat.classifiers.Classifier;
 import jsat.datatransform.PCA;
 import jsat.datatransform.ZeroMeanTransform;
 import jsat.distributions.ChiSquared;
@@ -155,6 +156,7 @@ public class MainGUI extends javax.swing.JFrame
         jMenuPredictingClass = new javax.swing.JMenu();
         jMenuCVisualize = new javax.swing.JMenu();
         jMenuClassPCA = new javax.swing.JMenuItem();
+        jMenuCrossValidateTest = new javax.swing.JMenuItem();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         getContentPane().setLayout(new java.awt.GridLayout(1, 1));
@@ -309,6 +311,14 @@ public class MainGUI extends javax.swing.JFrame
         jMenuCVisualize.add(jMenuClassPCA);
 
         jMenuClassification.add(jMenuCVisualize);
+
+        jMenuCrossValidateTest.setText("Cross Validate");
+        jMenuCrossValidateTest.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jMenuCrossValidateTestActionPerformed(evt);
+            }
+        });
+        jMenuClassification.add(jMenuCrossValidateTest);
 
         jMenuBar1.add(jMenuClassification);
 
@@ -590,6 +600,22 @@ public class MainGUI extends javax.swing.JFrame
         }
     }//GEN-LAST:event_jMenuClassPCAActionPerformed
 
+    private void jMenuCrossValidateTestActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_jMenuCrossValidateTestActionPerformed
+    {//GEN-HEADEREND:event_jMenuCrossValidateTestActionPerformed
+        ClassifierSelectionDialog csd = new ClassifierSelectionDialog(getClassificationData(), this);
+        csd.pack();
+        csd.setVisible(true);
+        
+        if(csd.isCanceled())
+            return;
+        List<Classifier> classifiers = csd.getSelectedClassifiers();
+        if(classifiers.isEmpty())
+            return;
+        ClassifierCVEvaluation eval = new ClassifierCVEvaluation(classifiers, getClassificationData(), this, "Title", false);
+        
+        
+    }//GEN-LAST:event_jMenuCrossValidateTestActionPerformed
+
     /**
     * @param args the command line arguments
     */
@@ -612,6 +638,7 @@ public class MainGUI extends javax.swing.JFrame
     private javax.swing.JMenu jMenuCVisualize;
     private javax.swing.JMenuItem jMenuClassPCA;
     private javax.swing.JMenu jMenuClassification;
+    private javax.swing.JMenuItem jMenuCrossValidateTest;
     private javax.swing.JMenu jMenuFile;
     private javax.swing.JMenuItem jMenuItem1;
     private javax.swing.JMenuItem jMenuItemHisto;
