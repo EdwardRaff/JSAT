@@ -2,12 +2,15 @@
 package jsat.math.optimization;
 
 import java.util.List;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import jsat.linear.DenseMatrix;
 import jsat.linear.DenseVector;
 import jsat.linear.LUPDecomposition;
 import jsat.linear.Vec;
 import jsat.math.Function;
+import jsat.utils.FakeExecutor;
+import jsat.utils.SystemInfo;
 
 /**
  * Provides an implementation of the Iteratively Reweighted Least Squares (IRLS) algorithm for solving certain classes 
@@ -59,17 +62,28 @@ public class IterativelyReweightedLeastSquares implements Optimizer
         gradiant = new DenseVector(vars.length());
         
         double maxChange = Double.MAX_VALUE;
-        
-        do
+        //No reason to do the if check in a tightish loop 
+        if (threadpool != null && !(threadpool instanceof FakeExecutor))//Serial 
         {
-            maxChange = iterationStep(f, fd, vars, inputs, outputs, threadpool);
+            do
+            {
+                maxChange = iterationStep(f, fd, vars, inputs, outputs, threadpool);
+            }
+            while (!Double.isNaN(maxChange) && maxChange > eps && iterationLimit-- > 0);
         }
-        while(!Double.isNaN(maxChange) && maxChange > eps && iterationLimit-- > 0);
-        
+        else//Parallel
+        {
+            do
+            {
+                maxChange = iterationStep(f, fd, vars, inputs, outputs);
+            }
+            while (!Double.isNaN(maxChange) && maxChange > eps && iterationLimit-- > 0);
+        }
+
         return vars;
     }
     
-    private double iterationStep(Function f,  Function fd, Vec vars, List<Vec> inputs, Vec outputs, ExecutorService threadpool)
+    private double iterationStep(Function f,  Function fd, Vec vars, List<Vec> inputs, Vec outputs)
     {
         Vec delta = null;
         for(int i = 0; i < inputs.size(); i++)
@@ -100,7 +114,7 @@ public class IterativelyReweightedLeastSquares implements Optimizer
             gradiant.set(j, gradTmp);
         }
         
-        LUPDecomposition lupDecomp = new LUPDecomposition(hessian.clone(), threadpool);//We sent a clone of the hessian b/c we make incremental updates every iteration
+        LUPDecomposition lupDecomp = new LUPDecomposition(hessian.clone());//We sent a clone of the hessian b/c we make incremental updates every iteration
         if(Math.abs(lupDecomp.det()) < 1e-14 )
         {
             //TODO use a pesudo inverse instead of giving up
@@ -116,4 +130,74 @@ public class IterativelyReweightedLeastSquares implements Optimizer
         return Math.max(delta.max(), Math.abs(delta.min()));
     }
     
+    
+    private double iterationStep(Function f,  Function fd, Vec vars, List<Vec> inputs, Vec outputs, ExecutorService threadpool)
+    {
+        Vec delta = null;
+        for(int i = 0; i < inputs.size(); i++)
+        {
+            Vec x_i = inputs.get(i);
+            double y = f.f(x_i);
+            double error = y - outputs.get(i);
+            errors.set(i, error);
+            
+            derivatives.set(i, fd.f(x_i));
+        }
+        int overFlow = hessian.rows()%SystemInfo.LogicalCores;
+        int size = hessian.rows()/SystemInfo.LogicalCores;
+        int start  = 0;
+        final CountDownLatch latch = new CountDownLatch(SystemInfo.LogicalCores);
+        for(int t = 0; t < SystemInfo.LogicalCores; t++)
+        {
+            final int START = start;
+            final int TO = (overFlow-- > 0 ? 1 : 0) + START + size;
+            start = TO;
+            threadpool.submit(new Runnable() {
+
+                public void run()
+                {
+                    for (int j = START; j < TO; j++)
+                    {
+                        double gradTmp = 0;
+                        for (int k = 0; k < coefficentMatrix.rows(); k++)
+                        {
+                            double coefficient_kj = coefficentMatrix.get(k, j);
+                            gradTmp += coefficient_kj * errors.get(k);
+
+                            double multFactor = derivatives.get(k) * coefficient_kj;
+
+                            for (int i = 0; i < hessian.rows(); i++)
+                                hessian.increment(j, i, coefficentMatrix.get(k, i) * multFactor);
+                        }
+
+                        gradiant.set(j, gradTmp);
+                    }
+                    latch.countDown();
+                }
+            });
+        }
+        try
+        {
+            latch.await();
+        }
+        catch (InterruptedException ex)
+        {
+            ex.printStackTrace();
+        }
+
+        LUPDecomposition lupDecomp = new LUPDecomposition(hessian.clone(), threadpool);//We sent a clone of the hessian b/c we make incremental updates every iteration
+        if (Math.abs(lupDecomp.det()) < 1e-14)
+        {
+            //TODO use a pesudo inverse instead of giving up
+            return Double.NaN;//Indicate that we need to stop
+        }
+        else//nomral case, solve!
+        {
+            delta = lupDecomp.solve(gradiant);
+        }
+
+        vars.mutableSubtract(delta);
+
+        return Math.max(delta.max(), Math.abs(delta.min()));
+    }
 }

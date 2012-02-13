@@ -28,6 +28,7 @@ import jsat.classifiers.trees.RandomForest;
 import jsat.linear.Vec;
 import jsat.linear.VecPaired;
 import jsat.linear.vectorcollection.VPTree.VPTreeFactory;
+import jsat.regression.LogisticRegression;
 
 /**
  *
@@ -234,6 +235,28 @@ public class ClassifierSelectionDialog extends JDialog
                 public Classifier getNewClassifier()
                 {
                     return new NearestNeighbour(5, new VPTreeFactory<VecPaired<Double, Vec>>());
+                }
+            });
+        
+        add(new ClassifierInfo() 
+        {
+
+                @Override
+                public boolean canTrain(ClassificationDataSet cds)
+                {
+                    return cds.getPredicting().getNumOfCategories() == 2 && cds.getNumCategoricalVars() == 0;
+                }
+            
+                @Override
+                public String toString()
+                {
+                    return "Logistic Regression";
+                }
+
+                @Override
+                public Classifier getNewClassifier()
+                {
+                    return new LogisticRegression();
                 }
             });
     }};

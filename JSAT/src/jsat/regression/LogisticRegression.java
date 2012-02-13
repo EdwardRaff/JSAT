@@ -9,6 +9,7 @@ import jsat.classifiers.CategoricalResults;
 import jsat.classifiers.ClassificationDataSet;
 import jsat.classifiers.Classifier;
 import jsat.classifiers.DataPoint;
+import jsat.classifiers.bayesian.NaiveBayes;
 import jsat.exceptions.FailedToFitException;
 import jsat.exceptions.UntrainedModelException;
 import jsat.linear.DenseVector;
@@ -19,7 +20,12 @@ import jsat.math.optimization.Optimizer;
 import jsat.utils.FakeExecutor;
 
 /**
- *
+ * Logistic regression is a common method used to fit a probability between binary outputs. 
+ * It can also be used to perform regression on a real function. For classification tasks, 
+ * when all variables are independent, the results converge to the same prediction values 
+ * as {@link NaiveBayes}. When variables have a high degree of correlation, Logistic 
+ * Regression should produce better results. 
+ * 
  * @author Edward Raff
  */
 public class LogisticRegression implements Classifier, Regressor
@@ -33,7 +39,6 @@ public class LogisticRegression implements Classifier, Regressor
      * Logistic regression needs values on the range [0, 1]. The scale makes sure that values of the form [0, x] are converted to [0, 1]
      */
     private double scale;
-    
     
     private static double logit(double z)
     {
