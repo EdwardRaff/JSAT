@@ -16,6 +16,7 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import jsat.classifiers.ClassificationDataSet;
 import jsat.classifiers.Classifier;
+import jsat.classifiers.MultinomialLogisticRegression;
 import jsat.classifiers.bayesian.MultivariateNormals;
 import jsat.classifiers.bayesian.NaiveBayes;
 import jsat.classifiers.boosting.AdaBoostM1;
@@ -23,12 +24,10 @@ import jsat.classifiers.boosting.SAMME;
 import jsat.classifiers.knn.NearestNeighbour;
 import jsat.classifiers.trees.DecisionStump;
 import jsat.classifiers.trees.DecisionTree;
-import jsat.classifiers.trees.ID3;
 import jsat.classifiers.trees.RandomForest;
 import jsat.linear.Vec;
 import jsat.linear.VecPaired;
 import jsat.linear.vectorcollection.VPTree.VPTreeFactory;
-import jsat.regression.LogisticRegression;
 
 /**
  *
@@ -244,19 +243,19 @@ public class ClassifierSelectionDialog extends JDialog
                 @Override
                 public boolean canTrain(ClassificationDataSet cds)
                 {
-                    return cds.getPredicting().getNumOfCategories() == 2 && cds.getNumCategoricalVars() == 0;
+                    return cds.getNumCategoricalVars() == 0;
                 }
             
                 @Override
                 public String toString()
                 {
-                    return "Logistic Regression";
+                    return "Multinomial Logistic Regression";
                 }
 
                 @Override
                 public Classifier getNewClassifier()
                 {
-                    return new LogisticRegression();
+                    return new MultinomialLogisticRegression();
                 }
             });
     }};

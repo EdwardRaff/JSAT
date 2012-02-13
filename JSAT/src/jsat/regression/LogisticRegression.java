@@ -80,6 +80,15 @@ public class LogisticRegression implements Classifier, Regressor
         }
     };
 
+    /**
+     * Returns the backing vector that containing the learned coefficients for the logistic regression. Changes to it will alter the results of the model
+     * @return the backing vector that containing the learned coefficients for the logistic regression.
+     */
+    public Vec getCoefficents()
+    {
+        return coefficents;
+    }
+
     public double regress(DataPoint data)
     {
         if(coefficents == null)
