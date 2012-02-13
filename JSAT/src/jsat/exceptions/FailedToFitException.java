@@ -33,8 +33,14 @@ public class FailedToFitException extends RuntimeException
         this.faultException = faultException;
     }
 
+    public FailedToFitException(String string)
+    {
+        super(string);
+    }
+    
     /**
-     * Returns the exception that caused the issue. 
+     * Returns the exception that caused the issue. If no exception occurred
+     * that caused the failure to fit, the value returned will be null. 
      * @return the exception that caused the issue. 
      */
     public Exception getFaultException()
