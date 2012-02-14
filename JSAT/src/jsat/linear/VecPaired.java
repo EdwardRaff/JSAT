@@ -2,6 +2,7 @@
 package jsat.linear;
 
 import java.util.Comparator;
+import java.util.Iterator;
 
 /**
  * This data structure allows to wrap a Vector so that it is 
@@ -288,9 +289,15 @@ public class VecPaired<P, V extends Vec> extends Vec
        
         this.vector.mutableAdd(c, b);
     }
-    
-    
 
+    @Override
+    public Iterator<IndexValue> getNonZeroIterator()
+    {
+        if(extractTrueVec(vector) instanceof SparceVector)
+            return extractTrueVec(vector).getNonZeroIterator();
+        return super.getNonZeroIterator();
+    }
+    
     /**
      * This method is used assuming multiple VecPaired are used together. The 
      * implementation of the vector may have logic to handle the case that 

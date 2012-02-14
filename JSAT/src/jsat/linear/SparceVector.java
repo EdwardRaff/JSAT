@@ -1,6 +1,7 @@
 
 package jsat.linear;
 
+import java.util.Iterator;
 import java.util.List;
 import java.util.Arrays;
 import java.util.Collections;
@@ -801,6 +802,33 @@ public class SparceVector extends  Vec
         this.used = 0;
     }
 
+    @Override
+    public Iterator<IndexValue> getNonZeroIterator()
+    {
+        Iterator<IndexValue> itor = new Iterator<IndexValue>() 
+        {
+            int curUsedPos = 0;
+            IndexValue indexValue = new IndexValue(-1, Double.NaN);
+            public boolean hasNext()
+            {
+                return curUsedPos < used;
+            }
+
+            public IndexValue next()
+            {
+                indexValue.setIndex(indexes[curUsedPos]);
+                indexValue.setValue(values[curUsedPos++]);
+                return indexValue;
+            }
+
+            public void remove()
+            {
+                throw new UnsupportedOperationException("Not supported yet.");
+            }
+        };
+        return itor;
+    }
+    
     @Override
     public int hashCode()
     {

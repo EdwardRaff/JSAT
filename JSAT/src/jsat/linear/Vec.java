@@ -1,6 +1,7 @@
 
 package jsat.linear;
 
+import java.util.Iterator;
 import jsat.math.Function;
 import jsat.math.IndexFunction;
 
@@ -168,6 +169,45 @@ public abstract class Vec implements Cloneable
     abstract public boolean equals(Object obj, double range);
     
     abstract public double[] arrayCopy();
+    
+    /**
+     * Returns an iterator that will go over the non zero values in the given vector. The iterator does not 
+     * support the {@link Iterator#remove() } method. Note, that values with zero are permissible to be 
+     * returned by this method. Dense structures that do not retain this information, and may have few 
+     * zeros, are allowed to return them. Structures that are aware of sparseness are expected to 
+     * return only the non zero values for speed efficency.
+     * 
+     * @return an iterator for the non zero index value pairs. 
+     */
+    public Iterator<IndexValue> getNonZeroIterator()
+    {
+        //Need a little class magic
+        final Vec magic = this;
+        Iterator<IndexValue> itor = new Iterator<IndexValue>() 
+        {
+            int curIndex = 0;
+            IndexValue indexValue = new IndexValue(-1, Double.NaN);
+            
+            public boolean hasNext()
+            {
+                return curIndex < magic.length();
+            }
+
+            public IndexValue next()
+            {
+                indexValue.setIndex(curIndex);
+                indexValue.setValue(get(curIndex++));
+                return indexValue;
+            }
+
+            public void remove()
+            {
+                throw new UnsupportedOperationException("Not supported yet.");
+            }
+        };
+        
+        return itor;
+    }
     
     /**
      * Zeroes out all values in this vector
