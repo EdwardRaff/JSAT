@@ -28,8 +28,8 @@ public class Normal extends ContinousDistribution
     {
         if(stndDev <= 0)
             throw new RuntimeException("Standerd deviation of the normal distribution needs to be greater than zero");
-        this.mean = mean;
-        this.stndDev = stndDev;
+        setMean(mean);
+        setStndDev(stndDev);
     }
 
     public void setMean(double mean)

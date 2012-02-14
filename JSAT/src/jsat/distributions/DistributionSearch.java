@@ -75,6 +75,8 @@ public class DistributionSearch
      */
     public static ContinousDistribution getBestDistribution(Vec v, double KDECutOff, ContinousDistribution... possibleDistributions)
     {
+        if(v.length() == 0)
+            throw new ArithmeticException("Can not fit a distribution to an empty set");
         //Thread Safety, clone the possible distributions
         
         ContinousDistribution[] possDistCopy = new ContinousDistribution[possibleDistributions.length];
