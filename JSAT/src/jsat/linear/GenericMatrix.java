@@ -612,14 +612,9 @@ public abstract class GenericMatrix extends Matrix
         double[] vk = new double[M];
         for(int k = 0; k < to; k++)
         {
-            double vkNorm = 0, beta = 0;
             
-            for(int i = k+1; i < M; i++)
-            {
-                vk[i] = A.get(k, i);
-                vkNorm += vk[i]*vk[i];
-            }
-            beta = vkNorm;
+            double vkNorm = initalVKNormCompute(k, M, vk, A);
+            double beta = vkNorm;
             
             double vk_k = vk[k] = A.get(k, k);//force into register, help the JIT!
             vkNorm += vk_k*vk_k;
@@ -631,50 +626,13 @@ public abstract class GenericMatrix extends Matrix
             vk[k] = vk_k;
             beta += vk_k*vk_k;
             
-            
-            if(beta == 0)
-                continue;
-            double TwoOverBeta = 2.0/beta;
-            //Computing Q
-            {
-                //We are computing Q' in what we are treating as the column major order, which represents Q in row major order, which is what we want!
-                for(int j = 0; j < Q.cols(); j++)
-                {
-                    double y = 0;//y = vk dot A_j
-                    for (int i = k; i < Q.cols(); i++)
-                        y += vk[i] * Q.get(j, i);
 
-                    y *= TwoOverBeta;
-                    for (int i = k; i < Q.rows(); i++)
-                        Q.increment(j, i, -y*vk[i]);
-                    
-                }
-            }
-            
-            //First run of loop removed, as it will be setting zeros. More accurate to just set them ourselves
-            if(k < N)
-            {
-                double y = 0;//y = vk dot A_j
-                for(int i = k; i < A.cols(); i++)
-                    y += vk[i]*A.get(k, i);
-        
-                y *= TwoOverBeta;
-                A.increment(k, k, -y*vk[k]);
-                
-                for(int i = k+1; i < M; i++)
-                    A.set(k, i, 0.0);
-            }
-            //The rest of the normal look
-            for(int j = k+1; j < N; j++)
-            {
-                double y = 0;//y = vk dot A_j
-                for(int i = k; i < A.cols(); i++)
-                    y += vk[i]*A.get(j, i);
-        
-                y *= TwoOverBeta;
-                for(int i = k; i < M; i++)
-                    A.increment(j, i, -y*vk[i]);
-            }
+            if (beta == 0)
+                continue;
+            double TwoOverBeta = 2.0 / beta;
+
+            qrUpdateQ(Q, k, vk, TwoOverBeta);
+            qrUpdateR(k, N, A, vk, TwoOverBeta, M);
         }
         qr[0] = Q;
         if(isSquare())
@@ -685,6 +643,66 @@ public abstract class GenericMatrix extends Matrix
         else
             qr[1] = A.transpose();
         return qr;
+    }
+
+    private void qrUpdateR(int k, int N, Matrix A, double[] vk, double TwoOverBeta, int M)
+    {
+        //First run of loop removed, as it will be setting zeros. More accurate to just set them ourselves
+        if(k < N)
+        {
+            qrUpdateRInitalLoop(k, A, vk, TwoOverBeta, M);
+        }
+        //The rest of the normal look
+        for(int j = k+1; j < N; j++)
+        {
+            double y = 0;//y = vk dot A_j
+            for(int i = k; i < A.cols(); i++)
+                y += vk[i]*A.get(j, i);
+    
+            y *= TwoOverBeta;
+            for(int i = k; i < M; i++)
+                A.increment(j, i, -y*vk[i]);
+        }
+    }
+
+    private void qrUpdateRInitalLoop(int k, Matrix A, double[] vk, double TwoOverBeta, int M)
+    {
+        double y = 0;//y = vk dot A_j
+        for(int i = k; i < A.cols(); i++)
+            y += vk[i]*A.get(k, i);
+
+        y *= TwoOverBeta;
+        A.increment(k, k, -y*vk[k]);
+        
+        for(int i = k+1; i < M; i++)
+            A.set(k, i, 0.0);
+    }
+
+    private void qrUpdateQ(Matrix Q, int k, double[] vk, double TwoOverBeta)
+    {
+        //We are computing Q' in what we are treating as the column major order, which represents Q in row major order, which is what we want!
+        for(int j = 0; j < Q.cols(); j++)
+        {
+            double y = 0;//y = vk dot A_j
+            for (int i = k; i < Q.cols(); i++)
+                y += vk[i] * Q.get(j, i);
+
+            y *= TwoOverBeta;
+            for (int i = k; i < Q.rows(); i++)
+                Q.increment(j, i, -y*vk[i]);
+            
+        }
+    }
+
+    private double initalVKNormCompute(int k, int M, double[] vk, Matrix A)
+    {
+        double vkNorm = 0.0;
+        for(int i = k+1; i < M; i++)
+        {
+            vk[i] = A.get(k, i);
+            vkNorm += vk[i]*vk[i];
+        }
+        return vkNorm;
     }
     
     public Matrix[] qr(ExecutorService threadPool)
@@ -707,14 +725,8 @@ public abstract class GenericMatrix extends Matrix
         int to = cols() > rows() ? M : N;
         for(int k = 0; k < to; k++)
         {
-            double vkNorm = 0, beta = 0;
-            
-            for(int i = k+1; i < M; i++)
-            {
-                vk[i] = A.get(k, i);
-                vkNorm += vk[i]*vk[i];
-            }
-            beta = vkNorm;
+            double vkNorm = initalVKNormCompute(k, M, vk, A);
+            double beta = vkNorm;
             
             double vk_k = vk[k] = A.get(k, k);
             vkNorm += vk_k*vk_k;
@@ -733,18 +745,57 @@ public abstract class GenericMatrix extends Matrix
             final double TwoOverBeta = 2.0/beta;
             
             final CountDownLatch latch = new CountDownLatch(LogicalCores);
-            for(int ID = 0; ID < LogicalCores; ID++)
+            for (int ID = 0; ID < LogicalCores; ID++)
             {
                 final int threadID = ID;
                 final int kk = k;
-                threadPool.submit(new Runnable() {
-
-                public void run()
+                threadPool.submit(new Runnable()
                 {
-                    //Computing Q
+
+                    public void run()
+                    {
+                        parallelQRUpdateQ();
+                        parallelQRUpdateR();
+                        latch.countDown();
+                    }
+
+                    private void parallelQRUpdateR()
+                    {
+                        //First run of loop removed, as it will be setting zeros. More accurate to just set them ourselves
+                        if (kk < N && threadID == 0)
+                        {
+                            parallelQRUpdateRFirstIteration();
+                        }
+                        //The rest of the normal look
+                        for (int j = kk + 1 + threadID; j < N; j += LogicalCores)
+                        {
+                            double y = 0;//y = vk dot A_j
+                            for (int i = kk; i < A.cols(); i++)
+                                y += vk[i] * A.get(j, i);
+
+                            y *= TwoOverBeta;
+                            for (int i = kk; i < M; i++)
+                                A.increment(j, i, -y * vk[i]);
+                        }
+                    }
+
+                    private void parallelQRUpdateRFirstIteration()
+                    {
+                        double y = 0;//y = vk dot A_j
+                        for (int i = kk; i < A.cols(); i++)
+                            y += vk[i] * A.get(kk, i);
+
+                        y *= TwoOverBeta;
+                        A.increment(kk, kk, -y * vk[kk]);
+
+                        for (int i = kk + 1; i < M; i++)
+                            A.set(kk, i, 0.0);
+                    }
+
+                    private void parallelQRUpdateQ()
                     {
                         //We are computing Q' in what we are treating as the column major order, which represents Q in row major order, which is what we want!
-                        for(int j = 0+threadID; j < Q.cols(); j+=LogicalCores)
+                        for (int j = 0 + threadID; j < Q.cols(); j += LogicalCores)
                         {
                             double y = 0;//y = vk dot A_j
                             for (int i = kk; i < Q.cols(); i++)
@@ -752,37 +803,10 @@ public abstract class GenericMatrix extends Matrix
 
                             y *= TwoOverBeta;
                             for (int i = kk; i < Q.rows(); i++)
-                                Q.increment(j, i, -y*vk[i]);
+                                Q.increment(j, i, -y * vk[i]);
                         }
                     }
-
-                    //First run of loop removed, as it will be setting zeros. More accurate to just set them ourselves
-                    if(kk < N && threadID == 0)
-                    {
-                        double y = 0;//y = vk dot A_j
-                        for(int i = kk; i < A.cols(); i++)
-                            y += vk[i]*A.get(kk, i);
-
-                        y *= TwoOverBeta;
-                        A.increment(kk, kk, -y*vk[kk]);
-
-                        for(int i = kk+1; i < M; i++)
-                            A.set(kk, i, 0.0);
-                    }
-                    //The rest of the normal look
-                    for(int j = kk+1+threadID; j < N; j+=LogicalCores)
-                    {
-                        double y = 0;//y = vk dot A_j
-                        for(int i = kk; i < A.cols(); i++)
-                            y += vk[i]*A.get(j, i);
-
-                        y *= TwoOverBeta;
-                        for(int i = kk; i < M; i++)
-                            A.increment(j, i, -y*vk[i]);
-                    }
-                    latch.countDown();
-                }
-            });
+                });
             }
             try
             {

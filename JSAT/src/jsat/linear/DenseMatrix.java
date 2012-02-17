@@ -3,6 +3,7 @@ package jsat.linear;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CountDownLatch;
@@ -144,6 +145,82 @@ public class DenseMatrix extends GenericMatrix
                     }
         
         return result;
+    }
+
+    /**
+     * Copies the values from A_k to vk
+     * @param k the k+1 index copying will start at
+     * @param M how far to copy values
+     * @param vk the array to copy into
+     * @param A_k the source row of the matrix
+     * @param vkNorm the initial value for vkNorm
+     * @return vkNorm plus the summation of the squared values for all values copied into vk
+     */
+    private double initalVKNormCompute(int k, int M, double[] vk, double[] A_k)
+    {
+        double vkNorm = 0.0;
+        for(int i = k+1; i < M; i++)
+        {
+            vk[i] = A_k[i];
+            vkNorm += vk[i]*vk[i];
+        }
+        return vkNorm;
+    }
+
+    private void qrUpdateQ(DenseMatrix Q, int k, double[] vk, double TwoOverBeta)
+    {
+        //Computing Q
+
+        //We are computing Q' in what we are treating as the column major order, which represents Q in row major order, which is what we want!
+        for (int j = 0; j < Q.cols(); j++)
+        {
+            double[] Q_j = Q.matrix[j];
+            double y = 0;//y = vk dot A_j
+            for (int i = k; i < Q.cols(); i++)
+                y += vk[i] * Q_j[i];
+
+            y *= TwoOverBeta;
+            for (int i = k; i < Q.rows(); i++)
+            {
+                Q_j[i] -= y * vk[i];
+            }
+        }
+
+    }
+
+    private void qrUpdateR(int k, int N, DenseMatrix A, double[] vk, double TwoOverBeta, int M)
+    {
+        //First run of loop removed, as it will be setting zeros. More accurate to just set them ourselves
+        if(k < N)
+        {
+            qrUpdateRFirstIteration(A, k, vk, TwoOverBeta, M);
+        }
+        //The rest of the normal look
+        for(int j = k+1; j < N; j++)
+        {
+            double[] A_j = A.matrix[j];
+            double y = 0;//y = vk dot A_j
+            for(int i = k; i < A.cols(); i++)
+                y += vk[i]*A_j[i];
+    
+            y *= TwoOverBeta;
+            for(int i = k; i < M; i++)
+                A_j[i] -= y*vk[i];
+        }
+    }
+
+    private void qrUpdateRFirstIteration(DenseMatrix A, int k, double[] vk, double TwoOverBeta, int M)
+    {
+        double[] A_j = A.matrix[k];
+        double y = 0;//y = vk dot A_j
+        for(int i = k; i < A.cols(); i++)
+            y += vk[i]*A_j[i];
+
+        y *= TwoOverBeta;
+        A_j[k] -= y*vk[k];
+        
+        for(int i = k+1; i < M; i++)
+            A_j[i] = 0.0;
     }
     
     private class BlockMultRun implements Runnable
@@ -734,14 +811,9 @@ public class DenseMatrix extends GenericMatrix
         for(int k = 0; k < to; k++)
         {
             double[] A_k = A.matrix[k];
-            double vkNorm = 0, beta = 0;
             
-            for(int i = k+1; i < M; i++)
-            {
-                vk[i] = A_k[i];
-                vkNorm += vk[i]*vk[i];
-            }
-            beta = vkNorm;
+            double vkNorm = initalVKNormCompute(k, M, vk, A_k);
+            double beta = vkNorm;
             
             double vk_k = vk[k] = A_k[k];//force into register, help the JIT!
             vkNorm += vk_k*vk_k;
@@ -757,50 +829,8 @@ public class DenseMatrix extends GenericMatrix
             if(beta == 0)
                 continue;
             double TwoOverBeta = 2.0/beta;
-            //Computing Q
-            {
-                //We are computing Q' in what we are treating as the column major order, which represents Q in row major order, which is what we want!
-                for(int j = 0; j < Q.cols(); j++)
-                {
-                    double[] Q_j = Q.matrix[j];
-                    double y = 0;//y = vk dot A_j
-                    for (int i = k; i < Q.cols(); i++)
-                        y += vk[i] * Q_j[i];
-
-                    y *= TwoOverBeta;
-                    for (int i = k; i < Q.rows(); i++)
-                    {
-                        Q_j[i] -= y*vk[i];
-                    }
-                }
-            }
-            
-            //First run of loop removed, as it will be setting zeros. More accurate to just set them ourselves
-            if(k < N)
-            {
-                double[] A_j = A.matrix[k];
-                double y = 0;//y = vk dot A_j
-                for(int i = k; i < A.cols(); i++)
-                    y += vk[i]*A_j[i];
-        
-                y *= TwoOverBeta;
-                A_j[k] -= y*vk[k];
-                
-                for(int i = k+1; i < M; i++)
-                    A_j[i] = 0.0;
-            }
-            //The rest of the normal look
-            for(int j = k+1; j < N; j++)
-            {
-                double[] A_j = A.matrix[j];
-                double y = 0;//y = vk dot A_j
-                for(int i = k; i < A.cols(); i++)
-                    y += vk[i]*A_j[i];
-        
-                y *= TwoOverBeta;
-                for(int i = k; i < M; i++)
-                    A_j[i] -= y*vk[i];
-            }
+            qrUpdateQ(Q, k, vk, TwoOverBeta);
+            qrUpdateR(k, N, A, vk, TwoOverBeta, M);
         }
         qr[0] = Q;
         if(isSquare())
@@ -857,16 +887,7 @@ public class DenseMatrix extends GenericMatrix
             //First run of loop removed, as it will be setting zeros. More accurate to just set them ourselves
             if(k < N && threadID == 0)
             {
-                double[] A_k = A.matrix[k];
-                double y = 0;//y = vk dot A_j
-                for(int i = k; i < A.cols(); i++)
-                    y += vk[i]*A_k[i];
-        
-                y *= TwoOverBeta;
-                A_k[k] -= y*vk[k];
-                
-                for(int i = k+1; i < M; i++)
-                    A_k[i] = 0.0;
+                qrUpdateRFirstIteration(A, k, vk, TwoOverBeta, M);
             }
             //The rest of the normal look
             for(int j = k+1+threadID; j < N; j+=LogicalCores)
@@ -907,14 +928,9 @@ public class DenseMatrix extends GenericMatrix
         for(int k = 0; k < to; k++)
         {
             double[] A_k = A.matrix[k];
-            double vkNorm = 0, beta = 0;
             
-            for(int i = k+1; i < M; i++)
-            {
-                vk[i] = A_k[i];
-                vkNorm += vk[i]*vk[i];
-            }
-            beta = vkNorm;
+            double vkNorm = initalVKNormCompute(k, M, vk, A_k);
+            double beta = vkNorm;
             
             double vk_k = vk[k] = A_k[k];
             vkNorm += vk_k*vk_k;
@@ -964,5 +980,5 @@ public class DenseMatrix extends GenericMatrix
         
         return copy;
     }
-
+    
 }
