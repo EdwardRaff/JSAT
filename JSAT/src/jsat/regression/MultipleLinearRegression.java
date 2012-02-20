@@ -26,7 +26,17 @@ public class MultipleLinearRegression implements Regressor
      * The offset value that is not multiplied by any variable 
      */
     private double a;
-    
+    private boolean useWeights = false;
+
+    public MultipleLinearRegression()
+    {
+        this(true);
+    }
+
+    public MultipleLinearRegression(boolean useWeights)
+    {
+        this.useWeights = useWeights;
+    }
     
     public double regress(DataPoint data)
     {
@@ -54,6 +64,17 @@ public class MultipleLinearRegression implements Regressor
                 X.set(i, j+1, vals.get(j));
         }
         
+        if(useWeights)
+        {
+            //The sqrt(weight) vector can be applied to X and Y, and then QR can procede as normal 
+            Vec weights = new DenseVector(dataSet.getSampleSize());
+            for(int i = 0; i < dataSet.getSampleSize(); i++)
+                weights.set(i, Math.sqrt(dataSet.getDataPoint(i).getWeight()));
+            
+            Matrix.diagMult(weights, X);
+            Y.mutablePairwiseMultiply(weights);
+        }
+        
         Matrix[] QR = X.qr(threadPool);
         
         QRDecomposition qrDecomp = new QRDecomposition(QR[0], QR[1]);
@@ -73,13 +94,16 @@ public class MultipleLinearRegression implements Regressor
 
     public boolean supportsWeightedData()
     {
-        return false;
+        return useWeights;
     }
 
+    @Override
     public MultipleLinearRegression clone()
     {
         MultipleLinearRegression copy = new MultipleLinearRegression();
-        copy.B = this.B.clone();
+        if(B != null)
+            copy.B = this.B.clone();
+        copy.a = this.a;
         
         return copy;
     }
