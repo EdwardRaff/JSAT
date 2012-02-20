@@ -1,6 +1,7 @@
 
 package jsat.linear;
 
+import java.util.Iterator;
 import java.util.Random;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
@@ -106,7 +107,7 @@ public abstract class Matrix implements Cloneable
     }
     
     /**
-     * If this matrix is A_(m x n), and <tt>b</tt> has a length of n, and <tt>c</tt> has a length of m,
+     * If this matrix is A<sub>m x n</sub>, and <tt>b</tt> has a length of n, and <tt>c</tt> has a length of m,
      * then this will compute the result of c = c + A*b 
      * @param b the vector to be treated as a colum vector
      * @param c where to place the result 
@@ -462,4 +463,48 @@ public abstract class Matrix implements Cloneable
         
         return m;
     }
+    
+    /**
+     * Returns a square matrix such that the main diagonal contains the values given in <tt>a</tt>
+     * @param a the diagonal values of a matrix
+     * @return the diagonal matrix represent by <tt>a</tt>
+     */
+    public static Matrix diag(Vec a)
+    {
+        DenseMatrix A = new DenseMatrix(a.length(), a.length());
+        for(Iterator<IndexValue> iter = a.getNonZeroIterator(); iter.hasNext();)
+        {
+            IndexValue iv = iter.next();
+            A.set(iv.getIndex(), iv.getIndex(), iv.getValue());
+        }
+            
+        return A;
+    }
+    
+    /**
+     * Alters the matrix A so that it contains the result of A{@link #multiply(jsat.linear.Matrix) .multiply}({@link #diag(jsat.linear.Vec) diag}(b)) 
+     * @param A the square matrix to update
+     * @param b the diagonal value vector 
+     */
+    public static void diagMult(Matrix A, Vec b)
+    {
+        if(A.cols() != b.length())
+            throw new ArithmeticException("Could not multiply, matrix dimensions must agree");
+        for(int i = 0; i < A.rows(); i++)
+            RowColumnOps.multRow(A, i, b);
+    }
+    
+    /**
+     * Alters the matrix A so that it contains the result of b{@link Vec#multiply(jsat.linear.Matrix)  .multiply}({@link #diag(jsat.linear.Vec) diag}(A)) 
+     * @param b the diagonal value vector 
+     * @param A the square matrix to update
+     */
+    public static void diagMult(Vec b, Matrix A)
+    {
+        if(A.rows() != b.length())
+            throw new ArithmeticException("Could not multiply, matrix dimensions must agree");
+        for(int i = 0; i < A.rows(); i++)
+            RowColumnOps.multRow(A, i, b.get(i));
+    }
+    
 }
