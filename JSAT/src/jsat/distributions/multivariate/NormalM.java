@@ -8,6 +8,7 @@ import jsat.linear.DenseVector;
 import jsat.linear.LUPDecomposition;
 import jsat.linear.Matrix;
 import jsat.linear.MatrixStatistics;
+import jsat.linear.SingularValueDecomposition;
 import jsat.linear.Vec;
 import static java.lang.Math.*;
 import static jsat.linear.MatrixStatistics.*;
@@ -29,13 +30,15 @@ public class NormalM extends MultivariateDistributionSkeleton
      * \2 ||/   (|Sigma|)
      * </pre>
      * where k is the dimension, Sigma is the covariance matrix, and || denotes the determinant. <br>
-     * Taking the log of this gives
+     * Taking the negative log of this gives
      * <pre>
      *         /  __\
      * (-k) log\2 ||/ - log(|Sigma|)
      * -----------------------------
      *               2
      * </pre>
+     * 
+     * This can then be added to the log of the x dependent part, which, when exponentiated, gives the correct result of dividing by this term. 
      */
     private double logPDFConst;
     /**
@@ -91,14 +94,19 @@ public class NormalM extends MultivariateDistributionSkeleton
         LUPDecomposition lup = new LUPDecomposition(covMatrix.clone());
         int k = mean.length();
         double det = lup.det();
-        if(Double.isNaN(det))
+        if(Double.isNaN(det) || det < 1e-10)
         {
-            throw new ArithmeticException("Numerical Imprecision occured, could not compute inverse stablely");
+            //Numerical unstable or sub rank matrix. Use the SVD to work with the more stable pesudo matrix
+            SingularValueDecomposition svd = new SingularValueDecomposition(covMatrix.clone());
+            //We need the rank deficient PDF and pesude inverse
+            this.logPDFConst = 0.5*log(svd.getPseudoDet() * pow(2*PI, svd.getRank()));
+            this.invCovariance = svd.getPseudoInverse();
         }
-        if(det <= 0)//Ehhh... should zero be handled differently? I'm not sure
-            throw new ArithmeticException("An invalid covariance matrix was given. Covariance matrix must be symmetric positive definite");
-        this.logPDFConst = (-k*log(2*PI)-log(det))*0.5;
-        this.invCovariance = lup.solve(Matrix.eye(k));
+        else
+        {
+            this.logPDFConst = (-k*log(2*PI)-log(det))*0.5;
+            this.invCovariance = lup.solve(Matrix.eye(k));
+        }
     }
 
     @Override
