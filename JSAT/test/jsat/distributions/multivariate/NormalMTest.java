@@ -58,10 +58,8 @@ public class NormalMTest
         Matrix t1 = Matrix.eye(3);//Should fail, too big
         Matrix t2 = new DenseMatrix(2, 3);//Should fail, not square
         Matrix t3 = new DenseMatrix(3, 2);//Should fail, not square
-        Matrix t4 = covariance.clone();
-        t4.set(0, 0, -0.9);//This is not a valid covariance matrix! It has a negative determinant, so it is easy to detect
         
-        Matrix[] shouldFail = new Matrix[] {t1, t2, t3, t4};
+        Matrix[] shouldFail = new Matrix[] {t1, t2, t3};
 
         for (Matrix badMatrix : shouldFail)
             try
