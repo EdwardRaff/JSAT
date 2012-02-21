@@ -7,13 +7,25 @@ import java.util.Comparator;
 import java.util.List;
 
 /**
- *
+ * The index table provides a way of accessing the sorted view of an array or list,
+ * without ever sorting the elements of said list. Given an array of elements, the 
+ * index table creates an array of index values, and sorts the indices based on 
+ * the values they point to. The IndexTable can then be used to find the index 
+ * of the i'th sorted element in the array. 
+ * 
  * @author Edward Raff
  */
 public class IndexTable<T extends Comparable<T>>
 {
-    Integer[] index;
+    /**
+     * We use an array of Integer objects instead of integers because we need the arrays.sort function that accepts comparators. 
+     */
+    private Integer[] index;
 
+    /**
+     * Creates a new index table based on the given array. The array will not be altered. 
+     * @param array the array to create an index table for. 
+     */
     public IndexTable(double[] array)
     {
         index = new Integer[array.length];
@@ -22,6 +34,10 @@ public class IndexTable<T extends Comparable<T>>
         Arrays.sort(index, new IndexViewCompD(array));
     }
     
+    /**
+     * Creates a new index table based on the given array. The array will not be altered. 
+     * @param array the array to create an index table for
+     */
     public IndexTable(T[] array)
     {
         index = new Integer[array.length];
@@ -30,6 +46,10 @@ public class IndexTable<T extends Comparable<T>>
         Arrays.sort(index, new IndexViewCompG(array));
     }
     
+    /**
+     * * Creates a new index table based on the given list. The list will not be altered. 
+     * @param list the list to create an index table for
+     */
     public IndexTable(List<T> list)
     {
         index = new Integer[list.size()];
@@ -83,7 +103,11 @@ public class IndexTable<T extends Comparable<T>>
         }        
     }
     
-    
+    /**
+     * Swaps the given indices in the index table. 
+     * @param i the second index to swap 
+     * @param j the first index to swap
+     */
     public void swap(int i, int j)
     {
         int tmp = index[i];
@@ -91,11 +115,25 @@ public class IndexTable<T extends Comparable<T>>
         index[j] = tmp;
     }
     
+    /**
+     * Given the index <tt>i</tt> into what would be the sorted array, the index in the unsorted original array is returned. <br>
+     * If the original array was a double array, <i>double[] vals</i>, then the sorted order can be printed with <br>
+     * <code><pre>
+     * for(int i = 0; i &lt; indexTable.{@link #length() length}(); i++)
+     *     System.out.println(vals[indexTable.get(i)]);
+     * </pre></code>
+     * @param i the index of the i'th sorted value
+     * @return the index in the original list that would be in the i'th position
+     */
     public int index(int i)
     {
         return index[i];
     }
     
+    /**
+     * The length of the original array that was sorted
+     * @return the length of the original array 
+     */
     public int length()
     {
         return index.length;
