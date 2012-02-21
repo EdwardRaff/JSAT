@@ -155,9 +155,9 @@ public class LogisticRegression implements Classifier, Regressor
 
     public void trainC(ClassificationDataSet dataSet, ExecutorService threadPool)
     {
-        if(dataSet.getPredicting().getNumOfCategories() != 2)
+        if(dataSet.getClassSize() != 2)
             throw new FailedToFitException("Logistic Regression works only in the case of two classes, and can not handle " +
-                                           dataSet.getPredicting().getNumOfCategories() + " classes");
+                                           dataSet.getClassSize() + " classes");
         RegressionDataSet rds = new RegressionDataSet(dataSet.getNumNumericalVars(), dataSet.getCategories());
         for(int i = 0; i < dataSet.getSampleSize(); i++)
         {

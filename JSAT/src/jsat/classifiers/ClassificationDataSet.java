@@ -7,10 +7,13 @@ import java.util.Random;
 import jsat.DataSet;
 import jsat.linear.DenseVector;
 import jsat.linear.Vec;
-import jsat.math.OnLineStatistics;
 
 /**
- *
+ * ClassificationDataSet is a data set meant specifically for classification problems. 
+ * The true class of each data point is stored separately from the data point, so that
+ * it can be feed into a learning algorithm and not interfere. 
+ * <br>
+ * Additional functionality specific to classification problems is also available. 
  * @author Edward Raff
  */
 public class ClassificationDataSet extends DataSet<ClassificationDataSet>
@@ -98,6 +101,19 @@ public class ClassificationDataSet extends DataSet<ClassificationDataSet>
     }
     
     /**
+     * Returns the number of target classes in this classification data set. This value 
+     * can also be obtained by calling {@link #getPredicting() getPredicting()}.
+     * {@link CategoricalData#getNumOfCategories() getNumOfCategories() }
+     * @return the number of target classes for prediction
+     */
+    public int getClassSize()
+    {
+        return predicting.getNumOfCategories();
+    }
+    
+    /**
+     * A helper method meant to be used with {@link #cvSet(int) }, this combines all 
+     * classification data sets in a given list, but holding out the indicated list. 
      * 
      * @param list a list of data sets
      * @param exception the one data set in the list NOT to combine into one file
@@ -289,6 +305,9 @@ public class ClassificationDataSet extends DataSet<ClassificationDataSet>
     }
     
     /**
+     * This method is a counter part to {@link #getNumericColumn(int) }. Instead of returning all 
+     * values for a given attribute, all values for the attribute that are members of a specific 
+     * class are returned. 
      * 
      * @param category the category desired
      * @param n the n'th numerical variable

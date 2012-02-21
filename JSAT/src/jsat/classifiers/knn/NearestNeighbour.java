@@ -120,7 +120,7 @@ public class NearestNeighbour implements  Classifier, Regressor
         List<VecPaired<Double, Vec>> dataPoints = new ArrayList<VecPaired<Double, Vec>>(dataSet.getSampleSize());
                 
         //Add all the data points
-        for(int i = 0; i < dataSet.getPredicting().getNumOfCategories(); i++)
+        for(int i = 0; i < dataSet.getClassSize(); i++)
         {
             for(DataPoint dp : dataSet.getSamples(i))
             {

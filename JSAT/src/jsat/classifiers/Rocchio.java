@@ -99,7 +99,7 @@ public class Rocchio implements Classifier
     {
         if(dataSet.getNumCategoricalVars() != 0)
             throw new RuntimeException("Classifier requires all variables be numerical");
-        int N = dataSet.getPredicting().getNumOfCategories();
+        int N = dataSet.getClassSize();
         rocVecs = new ArrayList<Vec>(N);
         
         //dimensions

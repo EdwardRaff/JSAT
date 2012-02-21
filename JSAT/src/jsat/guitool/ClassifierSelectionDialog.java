@@ -143,7 +143,7 @@ public class ClassifierSelectionDialog extends JDialog
                 @Override
                 public boolean canTrain(ClassificationDataSet cds)
                 {
-                    return cds.getPredicting().getNumOfCategories() == 2;
+                    return cds.getClassSize() == 2;
                 }
 
                 @Override

@@ -70,7 +70,7 @@ public class PlatSMO extends SupportVectorMachine
 
     public void trainC(ClassificationDataSet dataSet)
     {
-        if(dataSet.getPredicting().getNumOfCategories() != 2)
+        if(dataSet.getClassSize() != 2)
             throw new ArithmeticException("SVM does not support non binary decisions");
         //First we need to set up the vectors array
 

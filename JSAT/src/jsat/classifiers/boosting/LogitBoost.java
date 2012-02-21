@@ -135,8 +135,8 @@ public class LogitBoost implements Classifier
 
     public void trainC(ClassificationDataSet dataSet)
     {
-        if(dataSet.getPredicting().getNumOfCategories() != 2)
-            throw new FailedToFitException("LogitBoost only supports binary decision tasks, not " + dataSet.getPredicting().getNumOfCategories() + " class problems");
+        if(dataSet.getClassSize() != 2)
+            throw new FailedToFitException("LogitBoost only supports binary decision tasks, not " + dataSet.getClassSize() + " class problems");
         /**
          * The data points paired with what we will use to store the target regression values. 
          */

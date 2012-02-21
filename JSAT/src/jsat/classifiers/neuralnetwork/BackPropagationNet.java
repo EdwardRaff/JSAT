@@ -90,7 +90,7 @@ public class BackPropagationNet implements Classifier
     {
         layers.clear();
         int numInputs = dataSet.getNumNumericalVars();
-        int numOutputs = dataSet.getPredicting().getNumOfCategories();
+        int numOutputs = dataSet.getClassSize();
         Random rand = new Random();
         
         

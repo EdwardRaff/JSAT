@@ -70,7 +70,7 @@ public class ClassificationModelEvaluation
     {
         if(folds < 2)
             throw new UntrainedModelException("Model could not be evaluated because " + folds + " is < 2, and not valid for cross validation");
-        int numOfClasses = dataSet.getPredicting().getNumOfCategories();
+        int numOfClasses = dataSet.getClassSize();
         sumOfWeights = 0.0;
         confusionMatrix = new double[numOfClasses][numOfClasses];
         List<ClassificationDataSet> lcds = dataSet.cvSet(folds, rand);
@@ -90,7 +90,7 @@ public class ClassificationModelEvaluation
      */
     public void evaluateTestSet(ClassificationDataSet testSet)
     {
-        int numOfClasses = dataSet.getPredicting().getNumOfCategories();
+        int numOfClasses = dataSet.getClassSize();
         sumOfWeights = 0.0;
         confusionMatrix = new double[numOfClasses][numOfClasses];
         totalTrainingTime = totalClassificationTime = 0;
@@ -106,7 +106,7 @@ public class ClassificationModelEvaluation
             classifier.trainC(trainSet);            
         totalTrainingTime += (System.currentTimeMillis() - startTrain);
         
-        for(int j = 0; j < testSet.getPredicting().getNumOfCategories(); j++)
+        for(int j = 0; j < testSet.getClassSize(); j++)
         {
             for (DataPoint dp : testSet.getSamples(j))
             {

@@ -76,7 +76,7 @@ public class OneVSAll implements Classifier
 
     public void trainC(ClassificationDataSet dataSet, ExecutorService threadPool)
     {
-        oneVsAlls = new Classifier[dataSet.getPredicting().getNumOfCategories()];
+        oneVsAlls = new Classifier[dataSet.getClassSize()];
         
         predicting = dataSet.getPredicting();
         

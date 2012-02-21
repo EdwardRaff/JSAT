@@ -113,7 +113,7 @@ public class Perceptron implements Classifier
     
     public void trainC(ClassificationDataSet dataSet, ExecutorService threadPool)
     {
-        if(dataSet.getPredicting().getNumOfCategories() != 2)
+        if(dataSet.getClassSize() != 2)
             throw new RuntimeException("Preceptron only supports binary calssification");
         else if(dataSet.getNumCategoricalVars() != 0)
             throw new RuntimeException("Preceptron only supports vector classification");
@@ -203,7 +203,7 @@ public class Perceptron implements Classifier
     //Uses the online training algorithm instead of the batch one. 
     public void trainCOnline(ClassificationDataSet dataSet)
     {
-        if(dataSet.getPredicting().getNumOfCategories() != 2)
+        if(dataSet.getClassSize() != 2)
             throw new RuntimeException("Preceptron only supports binary calssification");
         else if(dataSet.getNumCategoricalVars() != 0)
             throw new RuntimeException("Preceptron only supports vector classification");

@@ -73,10 +73,10 @@ public class MultinomialLogisticRegression implements Classifier
     {
         LogisticRegression logit = new LogisticRegression();
         
-        classCoefficents = new Vec[dataSet.getPredicting().getNumOfCategories()-1];
+        classCoefficents = new Vec[dataSet.getClassSize()-1];
         
         
-        for(int k = 1; k < dataSet.getPredicting().getNumOfCategories(); k++)
+        for(int k = 1; k < dataSet.getClassSize(); k++)
         {
             RegressionDataSet rds = new RegressionDataSet(dataSet.getNumNumericalVars(), dataSet.getCategories());
             for(int i = 0; i < dataSet.getSampleSize(); i++)

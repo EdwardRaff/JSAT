@@ -9,7 +9,8 @@ import jsat.classifiers.CategoricalData;
 import jsat.classifiers.DataPoint;
 
 /**
- *
+ * SimpleData Set is a basic implementation of a data set. Has no assumptions about the task that is going to be performed. 
+ * 
  * @author Edward Raff
  */
 public class SimpleDataSet extends DataSet<SimpleDataSet>

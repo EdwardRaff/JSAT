@@ -36,9 +36,9 @@ public class CategoryPlot extends Graph2D
         categories = dataSet.getPredicting();
         
         //Create N visiualy distinct colors 
-        categoryColors = new ArrayList<Color>(dataSet.getPredicting().getNumOfCategories());
-        float colorFactor = 1.0f/dataSet.getPredicting().getNumOfCategories();
-        for(int i = 0; i < dataSet.getPredicting().getNumOfCategories(); i++)
+        categoryColors = new ArrayList<Color>(dataSet.getClassSize());
+        float colorFactor = 1.0f/dataSet.getClassSize();
+        for(int i = 0; i < dataSet.getClassSize(); i++)
         {
             Color c = Color.getHSBColor(i*colorFactor, 0.5f, 0.5f);
             categoryColors.add(c);
