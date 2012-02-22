@@ -21,6 +21,15 @@ public class CategoricalResults implements Cloneable
         n = numCategories;
         probabilities = new double[numCategories];
     }
+    
+    /**
+     * Returns the number of classes that are in the result. 
+     * @return the class count 
+     */
+    public int size()
+    {
+        return probabilities.length;
+    }
 
     /**
      * Sets the probability that a sample belongs to a given category. 
@@ -107,6 +116,7 @@ public class CategoricalResults implements Cloneable
      * Creates a deep clone of this 
      * @return a deep clone
      */
+    @Override
     public CategoricalResults clone()
     {
         CategoricalResults copy = new CategoricalResults(n);
