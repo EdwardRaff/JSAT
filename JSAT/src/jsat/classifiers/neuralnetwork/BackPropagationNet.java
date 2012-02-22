@@ -16,14 +16,16 @@ import jsat.linear.DenseVector;
 import jsat.linear.Matrix;
 import jsat.linear.SparceVector;
 import jsat.linear.Vec;
+import jsat.regression.RegressionDataSet;
+import jsat.regression.Regressor;
 import jsat.utils.FakeExecutor;
 
 /**
  *
  * @author Edward Raff
  */
-public class BackPropagationNet implements Classifier
-{
+public class BackPropagationNet implements Classifier, Regressor
+{   
     static public interface StepFunction
     {
         public double activation(double in);
@@ -81,7 +83,7 @@ public class BackPropagationNet implements Classifier
 
     public CategoricalResults classify(DataPoint data)
     {
-        CategoricalResults cr = new CategoricalResults(layers.get(layers.size()-1).rows());
+        CategoricalResults cr = new CategoricalResults(numOutputs);
         
         Vec outVec = output(addBiasTerm(data.getNumericalValues()));
         
@@ -101,17 +103,8 @@ public class BackPropagationNet implements Classifier
         layers.clear();
         numInputs = dataSet.getNumNumericalVars();
         numOutputs = dataSet.getClassSize();
-        Random rand = new Random();
-        
-        
-        //The +1 to the column length is the constant '1.0' we will add for the bias term
-        //First hidden layer
-        layers.add(randomMatrix(neuronsPerLayer[0], numInputs+1, rand));
-        //All other hidden layers
-        for(int i = 1; i < neuronsPerLayer.length; i++)
-            layers.add(randomMatrix(neuronsPerLayer[i], neuronsPerLayer[i-1], rand));
         //Output layer
-        layers.add(randomMatrix(numOutputs, neuronsPerLayer[neuronsPerLayer.length-1], rand));
+        fillRandomLayers();
         
         
         //Out data set
@@ -125,7 +118,6 @@ public class BackPropagationNet implements Classifier
         }
         
         int iteartions = 0;
-        int lec;
         double lastError;
         double error = 0;
 
@@ -145,61 +137,154 @@ public class BackPropagationNet implements Classifier
 
                 expected.zeroOut();
                 expected.set(dpp.getPair(), 1.0);
-
-                List<Vec> outputs = outputs(inputVec);
-                Vec lastOutput = outputs.get(outputs.size()-1);
-                
-                Vec delta = expected.subtract(lastOutput);
-
-                error += delta.dot(delta);//sum of the squares
-                
-                //We now create the error vectors, they are created in reverse order
-                errorVecs.clear();
-                //First one (last output) is special
-                Vec lastErrorVec = delta.clone();
-                lastErrorVec.pairwiseMultiply(derivative(lastOutput));
-                errorVecs.add(lastErrorVec);
-                
-                //now we backpropigate these errors
-                for(int k = outputs.size()-2; k >= 0; k--)
-                {
-                    //Each error vector needs the error vector previously computed, the matching output, and the Matrix that produced the output 
-                    Matrix Wl = layers.get(k+1);
-                    Vec mathingOutput = outputs.get(k);
-                    
-                    Vec errorVec = Wl.transposeMultiply(1.0, lastErrorVec);
-                    errorVec.pairwiseMultiply(derivative(mathingOutput));
-                    errorVecs.add(errorVec);
-                    
-                    lastErrorVec = errorVec;
-                }
-                //Now reverse the errorVecs array so they are in the same order as the matrix array
-                Collections.reverse(errorVecs);
-                    
-                
-                //Now we adjust the weight Matrices
-                //W_l = W_l + learningRate * (errorVec_l * output_(l-1)^T )
-                /* We alter the Neuron matrix by adding to it the error Vectors, 
-                /* which tell us how much error we are blaiming to each input neuron, 
-                /* times the value of the output of the neurons that informed out deicious.
-                 */
-                //We add the input to the front of this list, as it is the inital "output"
-                outputs.add(0, inputVec);
-                
-                for(int k = 0; k < layers.size(); k++)
-                {
-                    Vec errorVec = errorVecs.get(k);
-                    Vec matrixInput = outputs.get(k);
-                    
-                    errorVec.mutableMultiply(learningRate);
-                    Matrix.OuterProductUpdate(layers.get(k), errorVec, matrixInput, 1.0);
-                }
+                error += learnExample(inputVec, expected, errorVecs, null);
                 
             }
             
             iteartions++;
         }
         while(iteartions < iterationLimit);
+    }
+    
+    public double regress(DataPoint data)
+    {
+        return output(addBiasTerm(data.getNumericalValues())).get(0);
+    }
+
+    public void train(RegressionDataSet dataSet, ExecutorService threadPool)
+    {
+        train(dataSet);
+    }
+
+    public void train(RegressionDataSet dataSet)
+    {
+        layers.clear();
+        numInputs = dataSet.getNumNumericalVars();
+        numOutputs = 1;
+        
+        fillRandomLayers();
+                
+        //Out data set
+        List<DataPointPair<Double>> dataPoints = dataSet.getAsDPPList();
+
+        for(int i = 0; i < dataPoints.size(); i++)
+        {
+            DataPoint dp = dataPoints.get(i).getDataPoint();
+            DataPoint newDP = new DataPoint(addBiasTerm(dp.getNumericalValues()), dp.getCategoricalValues(), dp.getCategoricalData(), dp.getWeight());
+            dataPoints.get(i).setDataPoint(newDP);
+        }
+        
+        int iteartions = 0;
+        double lastError;
+        double error = 0;
+
+        do
+        {
+            //We do not want to learn the order of the data set, randomize it
+            Collections.shuffle(dataPoints);
+            lastError = error;
+            error = 0;
+            
+            Vec expected = new DenseVector(numOutputs);
+            List<Vec> errorVecs = new ArrayList<Vec> (layers.size());
+            for(int i  = 0; i < dataPoints.size(); i++)
+            {
+                DataPointPair<Double> dpp = dataPoints.get(i);
+                Vec inputVec = dpp.getVector();
+
+                expected.zeroOut();
+                expected.set(0, dpp.getPair());//Only one value, the regression target
+                error += learnExample(inputVec, expected, errorVecs, null);
+                
+            }
+            
+            iteartions++;
+        }
+        while(iteartions < iterationLimit);
+    }
+
+    /**
+     * Back computes the error vectors for the back propagation
+     * @param outputs the output of each layer
+     * @param lastErrorVec the error of the final layer
+     * @param errorVecs the location to store each back propagated error vector 
+     */
+    private void backPropagateErrors(List<Vec> outputs, Vec lastErrorVec, List<Vec> errorVecs)
+    {
+        //now we backpropigate these errors
+        for(int k = outputs.size()-2; k >= 0; k--)
+        {
+            //Each error vector needs the error vector previously computed, the matching output, and the Matrix that produced the output 
+            Matrix Wl = layers.get(k+1);
+            Vec mathingOutput = outputs.get(k);
+            
+            Vec errorVec = Wl.transposeMultiply(1.0, lastErrorVec);
+            errorVec.pairwiseMultiply(derivative(mathingOutput));
+            errorVecs.add(errorVec);
+            
+            lastErrorVec = errorVec;
+        }
+    }
+
+    /** 
+     * Fills the layers of the NN with the right matrices full of random values 
+     */
+    private void fillRandomLayers()
+    {
+        Random rand = new Random();
+        //The +1 to the column length is the constant '1.0' we will add for the bias term
+        //First hidden layer
+        layers.add(randomMatrix(neuronsPerLayer[0], numInputs+1, rand));
+        //All other hidden layers
+        for(int i = 1; i < neuronsPerLayer.length; i++)
+            layers.add(randomMatrix(neuronsPerLayer[i], neuronsPerLayer[i-1], rand));
+        //Output layer
+        layers.add(randomMatrix(numOutputs, neuronsPerLayer[neuronsPerLayer.length-1], rand));
+    }
+
+    /**
+     * Performs the work to learn one example, propagating the information back through the network. 
+     * @param inputVec the input vector to learn
+     * @param expected the expected output for the input
+     * @param errorVecs a storage place to hold error vectors from each layer. This list will be cleared before use
+     * @param the list of matrices to store the Layer updates in. Only used if non null
+     * @return the Network's error for thsi input example 
+     */
+    private double learnExample(Vec inputVec, Vec expected, List<Vec> errorVecs, List<Matrix> updateStore)
+    {
+        List<Vec> outputs = outputs(inputVec);
+        Vec lastOutput = outputs.get(outputs.size()-1);
+        Vec delta = expected.subtract(lastOutput);
+        double error = delta.dot(delta);//sum of the squares
+        //We now create the error vectors, they are created in reverse order
+        errorVecs.clear();
+        //First one (last output) is special
+        Vec lastErrorVec = delta.clone();
+        lastErrorVec.pairwiseMultiply(derivative(lastOutput));
+        errorVecs.add(lastErrorVec);
+        backPropagateErrors(outputs, lastErrorVec, errorVecs);
+        //Now reverse the errorVecs array so they are in the same order as the matrix array
+        Collections.reverse(errorVecs);
+        //Now we adjust the weight Matrices
+        //W_l = W_l + learningRate * (errorVec_l * output_(l-1)^T )
+        /* We alter the Neuron matrix by adding to it the error Vectors,
+        /* which tell us how much error we are blaiming to each input neuron,
+        /* times the value of the output of the neurons that informed out deicious.
+         */
+        //We add the input to the front of this list, as it is the inital "output"
+        outputs.add(0, inputVec);
+        for(int k = 0; k < layers.size(); k++)
+        {
+            Vec errorVec = errorVecs.get(k);
+            Vec matrixInput = outputs.get(k);
+            
+            errorVec.mutableMultiply(learningRate);
+            if(updateStore == null)
+                Matrix.OuterProductUpdate(layers.get(k), errorVec, matrixInput, 1.0);
+            else
+                Matrix.OuterProductUpdate(updateStore.get(k), errorVec, matrixInput, 1.0);
+        }
+        return error;
     }
     
     /**
@@ -235,7 +320,8 @@ public class BackPropagationNet implements Classifier
         return false;
     }
 
-    public Classifier clone()
+    @Override
+    public BackPropagationNet clone()
     {
         BackPropagationNet copy = new BackPropagationNet(neuronsPerLayer, stepFunc, iterationLimit);
         copy.layers.clear();
