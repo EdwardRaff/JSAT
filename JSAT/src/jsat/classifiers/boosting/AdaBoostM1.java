@@ -11,6 +11,8 @@ import jsat.classifiers.Classifier;
 import jsat.classifiers.DataPoint;
 import jsat.classifiers.DataPointPair;
 import jsat.classifiers.OneVSAll;
+import jsat.exceptions.FailedToFitException;
+import jsat.utils.DoubleList;
 
 /**
  * Implementation of Experiments with a New Boosting Algorithm, by Yoav Freund & Robert E. Schapire.
@@ -35,19 +37,55 @@ public class AdaBoostM1 implements Classifier
     /**
      * The list of weak hypothesis
      */
-    private List<Classifier> hypoths;
+    protected List<Classifier> hypoths;
     /**
      * The weights for each weak learner
      */
-    private List<Double> hypWeights;
-    private CategoricalData predicting;
-
+    protected List<Double> hypWeights;
+    protected CategoricalData predicting;
+    
     public AdaBoostM1(Classifier weakLearner, int maxIterations)
     {
-        if(!weakLearner.supportsWeightedData())
-            throw new RuntimeException("WeakLearner must support weighted data to be boosted");
-        this.weakLearner = weakLearner;
+        setWeakLearner(weakLearner);
         this.maxIterations = maxIterations;
+    }
+
+    /**
+     * Returns the maximum number of iterations used
+     * @return the maximum number of iterations used
+     */
+    public int getMaxIterations()
+    {
+        return maxIterations;
+    }
+
+    /**
+     * Sets the maximal number of boosting iterations that may be performed 
+     * @param maxIterations the maximum number of iterations
+     */
+    public void setMaxIterations(int maxIterations)
+    {
+        this.maxIterations = maxIterations;
+    }
+
+    /**
+     * Returns the weak learner currently being used by this method. 
+     * @return the weak learner currently being used by this method. 
+     */
+    public Classifier getWeakLearner()
+    {
+        return weakLearner;
+    }
+
+    /**
+     * Sets the weak learner used during training. 
+     * @param weakLearner the weak learner to use
+     */
+    public void setWeakLearner(Classifier weakLearner)
+    {
+        if(!weakLearner.supportsWeightedData())
+            throw new FailedToFitException("WeakLearner must support weighted data to be boosted");
+        this.weakLearner = weakLearner;
     }
     
     public CategoricalResults classify(DataPoint data)
@@ -70,8 +108,8 @@ public class AdaBoostM1 implements Classifier
          * Implementation note: We want all weights to be >= 1, so we will scale all weight values by the smallest weight value 
          */
         predicting = dataSet.getPredicting();
-        hypWeights = new ArrayList<Double>();
-        hypoths = new ArrayList<Classifier>();
+        hypWeights = new DoubleList(maxIterations);
+        hypoths = new ArrayList<Classifier>(maxIterations);
         
         List<DataPointPair<Integer>> dataPoints = dataSet.getAsDPPList();
         //Initialization step, set up the weights  so they are all 1 / size of dataset
@@ -137,11 +175,11 @@ public class AdaBoostM1 implements Classifier
     }
 
     @Override
-    public Classifier clone()
+    public AdaBoostM1 clone()
     {
         AdaBoostM1 copy = new AdaBoostM1( weakLearner.clone(), maxIterations);
         if(hypWeights != null)
-            copy.hypWeights = new ArrayList<Double>(this.hypWeights);
+            copy.hypWeights = new DoubleList(this.hypWeights);
         if(this.hypoths != null)
         {
             copy.hypoths = new ArrayList<Classifier>(this.hypoths.size());
