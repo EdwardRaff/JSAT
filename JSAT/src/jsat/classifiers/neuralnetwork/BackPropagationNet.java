@@ -45,14 +45,24 @@ public class BackPropagationNet implements Classifier
         
     }
         
-    int[] neuronsPerLayer;
-    int iterationLimit;
-    double learningRate = 0.1;
+    private int[] neuronsPerLayer;
+    private int iterationLimit;
+    private double learningRate = 0.1;
+    /**
+     * The number of inputs to the first layer of the network
+     */
+    private int numInputs;
+    /**
+     * The number of outputs from the final layer 
+     */
+    private int numOutputs;
+    
     
     /**
-     * The layers of the network. The last element in the list is the output layer, all other are hidden layers. Each row in a matrix is a diffrent neuron, and each value in a colum is the weight given to an input neuron.
+     * The layers of the network. The last element in the list is the output layer, all other are hidden layers. 
+     * Each row in a matrix is a different neuron, and each value in a colum is the weight given to an input neuron.
      */
-    List<Matrix> layers;
+    private List<Matrix> layers;
     private final StepFunction stepFunc;
 
     public BackPropagationNet(int[] neuronsPerLayer)
@@ -89,8 +99,8 @@ public class BackPropagationNet implements Classifier
     public void trainC(ClassificationDataSet dataSet)
     {
         layers.clear();
-        int numInputs = dataSet.getNumNumericalVars();
-        int numOutputs = dataSet.getClassSize();
+        numInputs = dataSet.getNumNumericalVars();
+        numOutputs = dataSet.getClassSize();
         Random rand = new Random();
         
         
@@ -126,15 +136,16 @@ public class BackPropagationNet implements Classifier
             lastError = error;
             error = 0;
             
+            Vec expected = new DenseVector(numOutputs);
+            List<Vec> errorVecs = new ArrayList<Vec> (layers.size());
             for(int i  = 0; i < dataPoints.size(); i++)
             {
                 DataPointPair<Integer> dpp = dataPoints.get(i);
                 Vec inputVec = dpp.getVector();
 
-                Vec expected = new DenseVector(numOutputs);
+                expected.zeroOut();
                 expected.set(dpp.getPair(), 1.0);
 
-                
                 List<Vec> outputs = outputs(inputVec);
                 Vec lastOutput = outputs.get(outputs.size()-1);
                 
@@ -143,7 +154,7 @@ public class BackPropagationNet implements Classifier
                 error += delta.dot(delta);//sum of the squares
                 
                 //We now create the error vectors, they are created in reverse order
-                List<Vec> errorVecs = new ArrayList<Vec> (layers.size());
+                errorVecs.clear();
                 //First one (last output) is special
                 Vec lastErrorVec = delta.clone();
                 lastErrorVec.pairwiseMultiply(derivative(lastOutput));
@@ -156,7 +167,7 @@ public class BackPropagationNet implements Classifier
                     Matrix Wl = layers.get(k+1);
                     Vec mathingOutput = outputs.get(k);
                     
-                    Vec errorVec = Wl.transpose().multiply(lastErrorVec);
+                    Vec errorVec = Wl.transposeMultiply(1.0, lastErrorVec);
                     errorVec.pairwiseMultiply(derivative(mathingOutput));
                     errorVecs.add(errorVec);
                     
@@ -181,8 +192,7 @@ public class BackPropagationNet implements Classifier
                     Vec matrixInput = outputs.get(k);
                     
                     errorVec.mutableMultiply(learningRate);
-                    DenseMatrix updateMatrix = new DenseMatrix(errorVec, matrixInput);
-                    layers.get(k).mutableAdd(updateMatrix);
+                    Matrix.OuterProductUpdate(layers.get(k), errorVec, matrixInput, 1.0);
                 }
                 
             }
