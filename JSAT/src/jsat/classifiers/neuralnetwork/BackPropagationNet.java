@@ -5,7 +5,10 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Random;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Future;
 import jsat.classifiers.CategoricalResults;
 import jsat.classifiers.ClassificationDataSet;
 import jsat.classifiers.Classifier;
@@ -18,10 +21,19 @@ import jsat.linear.SparceVector;
 import jsat.linear.Vec;
 import jsat.regression.RegressionDataSet;
 import jsat.regression.Regressor;
-import jsat.utils.FakeExecutor;
+import static jsat.utils.SystemInfo.*;
 
 /**
- *
+ * An implementation of a Back Propagation Neural Network (NN). NNs are powerful 
+ * classifiers and regressors, but can suffer from slow training time and overfitting. <br>
+ * <br>
+ * Online methods often provide faster convergence for a NN, but can not be made parallel. 
+ * Batch processing can be made parallel, but does not converge as quickly. Both these 
+ * training methods are implemented. Calling 
+ * {@link #train(jsat.regression.RegressionDataSet, java.util.concurrent.ExecutorService) } or 
+ * {@link #trainC(jsat.classifiers.ClassificationDataSet, java.util.concurrent.ExecutorService) } 
+ * will result in the batch mode being used. 
+ * 
  * @author Edward Raff
  */
 public class BackPropagationNet implements Classifier, Regressor
@@ -81,6 +93,50 @@ public class BackPropagationNet implements Classifier, Regressor
         this.stepFunc = stepFunc;
     }
 
+    /**
+     * Sets the maximal number of training iterations that the network may perform. 
+     * @param iterationLimit the maximum number of iterations
+     * @throws ArithmeticException if a non positive iteration limit is given
+     */
+    public void setIterationLimit(int iterationLimit)
+    {
+        if(iterationLimit <= 0)
+            throw new ArithmeticException("A positive iteration count must be given, not " + iterationLimit);
+        this.iterationLimit = iterationLimit;
+    }
+
+    /**
+     * Returns the maximal number of iterations that the network may perform
+     * @return the maximum number of iterations
+     */
+    public int getIterationLimit()
+    {
+        return iterationLimit;
+    }
+
+    /**
+     * Sets the learning rate used during training. High learning rates can lead to model
+     * fluctuation, and low learning rates can prevent convergence. 
+     * 
+     * @param learningRate the rate at which errors will be incorporated into the model
+     * @throws ArithmeticException if a non positive learning rate is given 
+     */
+    public void setLearningRate(double learningRate)
+    {
+        if(Double.isInfinite(learningRate) || Double.isNaN(learningRate) || learningRate <= 0)
+            throw new ArithmeticException("Invalid learning rate given, value must be in the range (0, Inf), not " + learningRate);
+        this.learningRate = learningRate;
+    }
+
+    /**
+     * Returns the learning rate used during training, which specified how much of the error is incorporated at each step. 
+     * @return the learning rate
+     */
+    public double getLearningRate()
+    {
+        return learningRate;
+    }
+    
     public CategoricalResults classify(DataPoint data)
     {
         CategoricalResults cr = new CategoricalResults(numOutputs);
@@ -95,9 +151,105 @@ public class BackPropagationNet implements Classifier, Regressor
 
     public void trainC(ClassificationDataSet dataSet, ExecutorService threadPool)
     {
-        trainC(dataSet);
-    }
+        layers.clear();
+        numInputs = dataSet.getNumNumericalVars();
+        numOutputs = dataSet.getClassSize();
+        //Output layer
+        fillRandomLayers();
+        
+        
+        //Out data set
+        final List<DataPointPair<Integer>> dataPoints = dataSet.getAsDPPList();
+        
+        //We create zeroed out matrices for each core, which will get batch updates that will then be collected after each itteration 
+        List<List<Matrix>> networkUpdates = new ArrayList<List<Matrix>>(LogicalCores);
+        for(int i = 0; i < LogicalCores; i++)
+        {
+            List<Matrix> networkUpdate = new ArrayList<Matrix>(layers.size());
+            for(Matrix m : layers)
+                networkUpdate.add(new DenseMatrix(m.rows(), m.cols()));
+            networkUpdates.add(networkUpdate);
+        }
 
+        for(int i = 0; i < dataPoints.size(); i++)
+        {
+            DataPoint dp = dataPoints.get(i).getDataPoint();
+            DataPoint newDP = new DataPoint(addBiasTerm(dp.getNumericalValues()), dp.getCategoricalValues(), dp.getCategoricalData(), dp.getWeight());
+            dataPoints.get(i).setDataPoint(newDP);
+        }
+        
+        List<Future<Double>> futures = new ArrayList<Future<Double>>(LogicalCores);
+        
+        int iteartions = 0;
+        double lastError;
+        double error = 0;
+
+        do
+        {
+            lastError = error;
+            error = 0;
+            
+            
+            
+            //Que up jobs
+            for(int id = 0; id < LogicalCores; id++)
+            {
+                final int threadID = id;
+                final List<Matrix> myUpdateLayer = networkUpdates.get(id);
+                final List<Vec> errorVecs = new ArrayList<Vec> (layers.size());
+                final Vec expected = new DenseVector(numOutputs);
+                
+                Future<Double> future = threadPool.submit(new Callable<Double>() {
+
+                    public Double call()
+                    {
+                        double error = 0;
+                        for(int i  = threadID; i < dataPoints.size(); i+=LogicalCores)
+                        {
+                            DataPointPair<Integer> dpp = dataPoints.get(i);
+                            Vec inputVec = dpp.getVector();
+
+                            expected.zeroOut();
+                            expected.set(dpp.getPair(), 1.0);
+                            error += learnExample(inputVec, expected, errorVecs, myUpdateLayer);
+                        }
+                        
+                        return error;
+                    }
+                });
+                
+                futures.add(future);
+            }
+            
+            //Collect the resutls and perform batch updates
+            try
+            {
+                for (Future<Double> future : futures)
+                    error += future.get();
+                
+                //Once all the futures have been grabbed, all the networkUpdates have been filled
+                for(List<Matrix> networkUpdate : networkUpdates)
+                {
+                    for(int i = 0; i < networkUpdate.size(); i++)
+                    {
+                        layers.get(i).mutableAdd(1.0/(dataPoints.size()/LogicalCores), networkUpdate.get(i));
+                        networkUpdate.get(i).zeroOut();//Zero out so it can be filled up again
+                    }
+                }
+                
+            }
+            catch (InterruptedException interruptedException)
+            {
+            }
+            catch (ExecutionException executionException)
+            {
+            }
+            
+            iteartions++;
+        }
+        while(iteartions < iterationLimit);
+    }
+    
     public void trainC(ClassificationDataSet dataSet)
     {
         layers.clear();
@@ -120,6 +272,7 @@ public class BackPropagationNet implements Classifier, Regressor
         int iteartions = 0;
         double lastError;
         double error = 0;
+        System.out.println("---------------");
 
         do
         {
@@ -140,6 +293,7 @@ public class BackPropagationNet implements Classifier, Regressor
                 error += learnExample(inputVec, expected, errorVecs, null);
                 
             }
+            System.out.println("\t" + error);
             
             iteartions++;
         }
@@ -153,7 +307,103 @@ public class BackPropagationNet implements Classifier, Regressor
 
     public void train(RegressionDataSet dataSet, ExecutorService threadPool)
     {
-        train(dataSet);
+        layers.clear();
+        numInputs = dataSet.getNumNumericalVars();
+        numOutputs = 1;
+        //Output layer
+        fillRandomLayers();
+        
+        
+        //Out data set
+        final List<DataPointPair<Double>> dataPoints = dataSet.getAsDPPList();
+        
+        //We create zeroed out matrices for each core, which will get batch updates that will then be collected after each itteration 
+        List<List<Matrix>> networkUpdates = new ArrayList<List<Matrix>>(LogicalCores);
+        for(int i = 0; i < LogicalCores; i++)
+        {
+            List<Matrix> networkUpdate = new ArrayList<Matrix>(layers.size());
+            for(Matrix m : layers)
+                networkUpdate.add(new DenseMatrix(m.rows(), m.cols()));
+            networkUpdates.add(networkUpdate);
+        }
+
+        for(int i = 0; i < dataPoints.size(); i++)
+        {
+            DataPoint dp = dataPoints.get(i).getDataPoint();
+            DataPoint newDP = new DataPoint(addBiasTerm(dp.getNumericalValues()), dp.getCategoricalValues(), dp.getCategoricalData(), dp.getWeight());
+            dataPoints.get(i).setDataPoint(newDP);
+        }
+        
+        List<Future<Double>> futures = new ArrayList<Future<Double>>(LogicalCores);
+        
+        int iteartions = 0;
+        double lastError;
+        double error = 0;
+
+        do
+        {
+            lastError = error;
+            error = 0;
+            
+            
+            
+            //Que up jobs
+            for(int id = 0; id < LogicalCores; id++)
+            {
+                final int threadID = id;
+                final List<Matrix> myUpdateLayer = networkUpdates.get(id);
+                final List<Vec> errorVecs = new ArrayList<Vec> (layers.size());
+                final Vec expected = new DenseVector(numOutputs);
+                
+                Future<Double> future = threadPool.submit(new Callable<Double>() {
+
+                    public Double call()
+                    {
+                        double error = 0;
+                        for(int i  = threadID; i < dataPoints.size(); i+=LogicalCores)
+                        {
+                            DataPointPair<Double> dpp = dataPoints.get(i);
+                            Vec inputVec = dpp.getVector();
+
+                            expected.zeroOut();
+                            expected.set(0, dpp.getPair());
+                            error += learnExample(inputVec, expected, errorVecs, myUpdateLayer);
+                        }
+                        
+                        return error;
+                    }
+                });
+                
+                futures.add(future);
+            }
+            
+            //Collect the resutls and perform batch updates
+            try
+            {
+                for (Future<Double> future : futures)
+                    error += future.get();
+                
+                //Once all the futures have been grabbed, all the networkUpdates have been filled
+                for(List<Matrix> networkUpdate : networkUpdates)
+                {
+                    for(int i = 0; i < networkUpdate.size(); i++)
+                    {
+                        layers.get(i).mutableAdd(1.0/(dataPoints.size()/LogicalCores), networkUpdate.get(i));
+                        networkUpdate.get(i).zeroOut();//Zero out so it can be filled up again
+                    }
+                }
+                
+            }
+            catch (InterruptedException interruptedException)
+            {
+            }
+            catch (ExecutionException executionException)
+            {
+            }
+            
+            iteartions++;
+        }
+        while(iteartions < iterationLimit);
     }
 
     public void train(RegressionDataSet dataSet)
@@ -177,7 +427,7 @@ public class BackPropagationNet implements Classifier, Regressor
         int iteartions = 0;
         double lastError;
         double error = 0;
-
+        
         do
         {
             //We do not want to learn the order of the data set, randomize it
