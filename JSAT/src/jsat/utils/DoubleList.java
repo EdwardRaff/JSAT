@@ -4,6 +4,7 @@ package jsat.utils;
 import java.util.AbstractList;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 
 /**
  * Provides a modifiable implementation of a List using a double array. This provides considerable
@@ -32,6 +33,12 @@ public class DoubleList extends AbstractList<Double>
     public DoubleList(int capacity)
     {
         this(new double[capacity], 0);
+    }
+    
+    public DoubleList(Collection<Double> c)
+    {
+        this(c.size());
+        this.addAll(c);
     }
 
     public int size()

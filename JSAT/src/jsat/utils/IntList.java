@@ -3,6 +3,7 @@ package jsat.utils;
 
 import java.util.AbstractList;
 import java.util.Arrays;
+import java.util.Collection;
 
 /**
  * Provides a modifiable implementation of a List using a int array. This provides considerable
@@ -32,6 +33,12 @@ public class IntList extends AbstractList<Integer>
     {
         array = new int[capacity];
         end = 0;
+    }
+    
+    public IntList(Collection<Integer> c)
+    {
+        this(c.size());
+        addAll(c);
     }
 
     /**
