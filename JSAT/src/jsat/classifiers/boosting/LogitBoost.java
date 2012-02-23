@@ -36,13 +36,17 @@ import jsat.regression.Regressor;
 public class LogitBoost implements Classifier
 {
     /**
+     * The constant factor that the sum of regressors is scaled by. 
+     */
+    protected double fScaleConstant = 0.5;
+    /**
      * Weak learners
      */
-    private List<Regressor> baseLearners;
+    protected List<Regressor> baseLearners;
     /**
      * Weak learner to use, 'the oracle' 
      */
-    private Regressor baseLearner;
+    protected Regressor baseLearner;
     private int maxIterations;
     /**
      * Constant for stability and controls the maximum penalty  
@@ -175,7 +179,7 @@ public class LogitBoost implements Classifier
         
         for(Regressor fm : baseLearners)
             fx += fm.regress(x);
-        return fx*0.5;
+        return fx*fScaleConstant;
     }
     
     /**
@@ -183,7 +187,7 @@ public class LogitBoost implements Classifier
      * @param x the data point in question
      * @return P(y = 1 | x)
      */
-    private double P(DataPoint x)
+    protected double P(DataPoint x)
     {
         /**
          *              F(x)
