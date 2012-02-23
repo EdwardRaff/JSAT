@@ -258,6 +258,8 @@ public class LUPDecomposition
             for (int j = i + 1; j <= start; j++)
                 x_i -= U.get(i, j) * x.get(j);
             x_i /= U.get(i, i);
+            if(Double.isInfinite(x_i))//Occurs when U_(i,i) = 0
+                x_i = 0;
             x.set(i, x_i);
         }
 
@@ -293,7 +295,11 @@ public class LUPDecomposition
             }
             
             for(int i = 0; i < x_col_k.length; i++)
-                x.set(i, k, x_col_k[i]);
+                if(Double.isInfinite(x_col_k[i]))//Occurs when U_(i,i) = 0
+                    x.set(i, k, 0);
+                else
+                    x.set(i, k, x_col_k[i]);
+                
         }
 
         return x;
@@ -337,7 +343,10 @@ public class LUPDecomposition
                         }
 
                         for (int i = 0; i < x_col_k.length; i++)
-                            x.set(i, k, x_col_k[i]);
+                            if(Double.isInfinite(x_col_k[i]))//Occurs when U_(i,i) = 0
+                                x.set(i, k, 0);
+                            else
+                                x.set(i, k, x_col_k[i]);
                     }
                     latch.countDown();
                 }
