@@ -39,7 +39,7 @@ import jsat.classifiers.Classifier;
 import jsat.datatransform.PCA;
 import jsat.datatransform.ZeroMeanTransform;
 import jsat.distributions.ChiSquared;
-import jsat.distributions.ContinousDistribution;
+import jsat.distributions.Distribution;
 import jsat.distributions.Exponential;
 import jsat.distributions.FisherSendor;
 import jsat.distributions.Gamma;
@@ -70,7 +70,7 @@ import jsat.utils.ProbailityMatch;
  */
 public class MainGUI extends javax.swing.JFrame
 {
-    ContinousDistribution[] distributions = new ContinousDistribution[] 
+    Distribution[] distributions = new Distribution[] 
     { 
         new Normal(), new LogNormal(), new Exponential(), new ChiSquared(10), 
         new Gamma(2, 1), new FisherSendor(10, 10), new Weibull(2, 1), 
@@ -408,7 +408,7 @@ public class MainGUI extends javax.swing.JFrame
 
         DistributionSelectionDialog dsd = new DistributionSelectionDialog(null, "Select distribution to compare against", distributions);
         
-        ContinousDistribution dist = dsd.getDistribution();
+        Distribution dist = dsd.getDistribution();
 
         QQPlotDistribution qq = new QQPlotDistribution(dist, data.getNumericColumn(axie[0]));
 
@@ -526,14 +526,14 @@ public class MainGUI extends javax.swing.JFrame
             }
         
         KSTest ks = new KSTest(data.getNumericColumn(axie[0])) ;
-        List<ProbailityMatch<ContinousDistribution>> pValues = 
-                new ArrayList<ProbailityMatch<ContinousDistribution>>(distributions.length);
+        List<ProbailityMatch<Distribution>> pValues = 
+                new ArrayList<ProbailityMatch<Distribution>>(distributions.length);
         
         for (int i = 0; i < distributions.length; i++)
         {
             double p = ks.testDist(distributions[i]);
             if(p >= 0.05)
-                pValues.add(new ProbailityMatch<ContinousDistribution>(p, distributions[i]));
+                pValues.add(new ProbailityMatch<Distribution>(p, distributions[i]));
         }
         
         Collections.sort(pValues);

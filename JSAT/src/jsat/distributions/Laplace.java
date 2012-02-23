@@ -9,7 +9,7 @@ import static java.lang.Math.*;
  *
  * @author Edward Raff
  */
-public final class Laplace extends ContinousDistribution
+public final class Laplace extends Distribution
 {
     /**
      * location
@@ -109,7 +109,7 @@ public final class Laplace extends ContinousDistribution
     }
 
     @Override
-    public ContinousDistribution clone()
+    public Distribution clone()
     {
         return new Laplace(mu, b);
     }

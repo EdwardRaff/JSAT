@@ -84,7 +84,7 @@ public class RayleighTest
     public void testPdf()
     {
         System.out.println("pdf");
-        ContinousDistribution instance = null;
+        Distribution instance = null;
         
         double[] param0p5 = new double[]{0,0.8824969025845955,1.2130613194252668,0.9739574020750492,0.5413411329464508,0.2196846681170371,0.06665397922945383,0.015312437827280196,0.002683701023220095,0.0003605876765365596,0.00003726653172078671,2.9695363536993156e-6,1.8275975693655156e-7,8.699061918680616e-9,3.2056287839037744e-10,9.152905016407986e-12,2.026266487855068e-13,3.4798519123791473e-15,4.638162796478966e-17,4.799711183758816e-19,3.857499695927835e-21,2.4084408226737518e-23,1.1684402949294009e-25,4.40560158952444e-28,1.2912446784050733e-30};
         double[] param2 = new double[]{0,0.06201362114126522,0.12115415430954302,0.1747692173174114,0.22062422564614886,0.2570554882495827,0.2830648507458777,0.2983490786457773,0.3032653298563167,0.29874149495738167,0.28614585110725893,0.26713371266475033,0.2434893505187623,0.21697961612140398,0.18923202097615138,0.16164527240039328,0.1353352832366127,0.11111518886956405,0.08950444730800615,0.07075994102985847,0.054921167029259275,0.041861916287831195,0.03134199871496697,0.023054207083316413,0.016663494807363458};
@@ -108,7 +108,7 @@ public class RayleighTest
     public void testCdf()
     {
         System.out.println("cdf");
-        ContinousDistribution instance = null;
+        Distribution instance = null;
         
         double[] param0p5 = new double[]{0,0.11750309741540454,0.3934693402873666,0.6753475326416503,0.8646647167633873,0.9560630663765926,0.9888910034617577,0.9978125088818172,0.9996645373720975,0.999959934702607,0.999996273346828,0.9999997300421497,0.9999999847700203,0.9999999993308414,0.9999999999771026,0.9999999999993898,0.9999999999999873,0.9999999999999998,1.,1.,1.,1.,1.,1.,1.};
         double[] param2 = new double[]{0,0.007782061739756485,0.03076676552365587,0.06789750764047242,0.11750309741540454,0.17742243760133536,0.24516039801099265,0.31805924880965186,0.3934693402873666,0.4689040089646548,0.5421666382283857,0.6114418724876358,0.6753475326416503,0.7329481647736567,0.7837348331701127,0.8275783761062472,0.8646647167633873,0.8954209987109986,0.9204404912817723,0.9404126812380139,0.9560630663765926,0.9681052066378429,0.9772058191163877,0.9839622907246495,0.9888910034617577};
@@ -132,7 +132,7 @@ public class RayleighTest
     public void testInvCdf()
     {
         System.out.println("invCdf");
-        ContinousDistribution instance = null;
+        Distribution instance = null;
 
         double[] param0p5 = new double[]
         {0.06415021097594048,0.1587936611248885,0.2173601198712892,0.2651244524946627,0.3073276166341036,0.34617398318289344,0.38285868033545123,0.41813499523464237,0.45253281099872633,0.48646053511406523,0.5202601117191001,0.5542410588845034,0.5887050112577373,0.6239668877424936,0.6603769423628185,0.6983479248355227,0.7383931805037708,0.7811856713602556,0.8276574896199848,0.8791827189816046,0.9379495207658656,1.0078274461666232,1.0968422338547341,1.2272452027824763,1.549842095946111};
@@ -156,7 +156,7 @@ public class RayleighTest
     public void testMin()
     {
         System.out.println("min");
-        ContinousDistribution dist = new Rayleigh(0.5);
+        Distribution dist = new Rayleigh(0.5);
         assertTrue(0 == dist.min());
     }
 
@@ -167,7 +167,7 @@ public class RayleighTest
     public void testMax()
     {
         System.out.println("max");
-        ContinousDistribution dist = new Rayleigh(0.5);
+        Distribution dist = new Rayleigh(0.5);
         assertTrue(Double.POSITIVE_INFINITY == dist.max());
     }
     
@@ -178,7 +178,7 @@ public class RayleighTest
     public void testMean()
     {
         System.out.println("mean");
-        ContinousDistribution dist = new Rayleigh(0.5);
+        Distribution dist = new Rayleigh(0.5);
         assertEquals(0.6266570686577501, dist.mean(), 1e-10);
         dist = new Rayleigh(2);
         assertEquals(2.5066282746310002, dist.mean(), 1e-10);
@@ -193,7 +193,7 @@ public class RayleighTest
     public void testMedian()
     {
         System.out.println("median");
-        ContinousDistribution dist = new Rayleigh(0.5);
+        Distribution dist = new Rayleigh(0.5);
         assertEquals(0.5887050112577373, dist.median(), 1e-10);
         dist = new Rayleigh(2);
         assertEquals(2.3548200450309493, dist.median(), 1e-10);
@@ -208,7 +208,7 @@ public class RayleighTest
     public void testMode()
     {
         System.out.println("mode");
-        ContinousDistribution dist = new Rayleigh(0.5);
+        Distribution dist = new Rayleigh(0.5);
         assertEquals(0.5, dist.mode(), 1e-10);
         dist = new Rayleigh(2);
         assertEquals(2, dist.mode(), 1e-10);
@@ -223,7 +223,7 @@ public class RayleighTest
     public void testVariance()
     {
         System.out.println("variance");
-        ContinousDistribution dist = new Rayleigh(0.5);
+        Distribution dist = new Rayleigh(0.5);
         assertEquals(0.10730091830127586, dist.variance(), 1e-10);
         dist = new Rayleigh(2);
         assertEquals(1.7168146928204138, dist.variance(), 1e-10);
@@ -238,7 +238,7 @@ public class RayleighTest
     public void testSkewness()
     {
         System.out.println("skewness");
-        ContinousDistribution dist = new Rayleigh(0.5);
+        Distribution dist = new Rayleigh(0.5);
         assertEquals(0.6311106578189364, dist.skewness(), 1e-10);
         dist = new Rayleigh(2);
         assertEquals(0.6311106578189364, dist.skewness(), 1e-10);

@@ -5,7 +5,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-import jsat.distributions.ContinousDistribution;
+import jsat.distributions.Distribution;
 import jsat.distributions.Normal;
 import jsat.distributions.empirical.kernelfunc.EpanechnikovKF;
 import jsat.distributions.empirical.kernelfunc.GaussKF;
@@ -23,7 +23,7 @@ import jsat.utils.ProbailityMatch;
  * 
  * @author Edward Raff
  */
-public class KernelDensityEstimator extends ContinousDistribution 
+public class KernelDensityEstimator extends Distribution 
 {
     /*
      * README
@@ -344,7 +344,7 @@ public class KernelDensityEstimator extends ContinousDistribution
     }
 
     @Override
-    public ContinousDistribution clone()
+    public Distribution clone()
     {
         return new KernelDensityEstimator(X, h, Xmean, Xvar, Xskew, k, sumOFWeights, weights);
     }

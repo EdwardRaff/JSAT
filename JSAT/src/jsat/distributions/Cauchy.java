@@ -7,7 +7,7 @@ import jsat.linear.Vec;
  *
  * @author Edward Raff
  */
-public final class Cauchy extends ContinousDistribution
+public final class Cauchy extends Distribution
 {
     
     private double location;
@@ -104,7 +104,7 @@ public final class Cauchy extends ContinousDistribution
     }
 
     @Override
-    public ContinousDistribution clone()
+    public Distribution clone()
     {
         return new Cauchy(location, scale);
     }

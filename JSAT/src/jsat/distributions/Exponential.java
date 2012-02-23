@@ -7,7 +7,7 @@ import jsat.linear.Vec;
  *
  * @author Edward Raff
  */
-public class Exponential extends ContinousDistribution
+public class Exponential extends Distribution
 {
     private double lambda;
 
@@ -99,7 +99,7 @@ public class Exponential extends ContinousDistribution
     }
 
     @Override
-    public ContinousDistribution clone()
+    public Distribution clone()
     {
         return new Exponential(lambda);
     }

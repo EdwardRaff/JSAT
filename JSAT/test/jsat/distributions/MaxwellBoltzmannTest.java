@@ -79,7 +79,7 @@ public class MaxwellBoltzmannTest
     public void testLogPdf()
     {
         System.out.println("pdf");
-        ContinousDistribution instance = null;
+        Distribution instance = null;
 
         double[] param0p5 = new double[]{0,0,0,-1.0439385332046727,-0.032644172084782055,0.15328604413154664,-0.1463498109648913,-0.8250627083364721,-1.8354195947485628,-3.152118235094046,-4.760055449845001,-6.649489378532234,-8.813768347216582,-11.24814798760793,-13.949125233628672,-16.914039818281598,-20.140823873974156,-23.627838131000253,-27.37376108872511,-31.37751184509224,-35.63819501741234,-40.15506057487179,-44.92747398609669,-49.95489365775783,-55.23685362648804};
         double[] param2 = new double[]{0,0,0,-5.085634116564345,-3.7227772554444543,-2.950909539228125,-2.4302328943245635,-2.0542582916961436,-1.7755526781082347,-1.568813818453718,-1.4189385332046727,-1.316184961891906,-1.2539014305762533,-1.2273435709676035,-1.233008316988344,-1.2682354016412711,-1.3309569573338274,-1.4195337143599245,-1.5326441720847819,-1.6692074284519127,-1.8283281007720154,-2.0092561582314636,-2.211357069456363,-2.4340892411174986,-2.676986709847713};
@@ -103,7 +103,7 @@ public class MaxwellBoltzmannTest
     public void testPdf()
     {
         System.out.println("pdf");
-        ContinousDistribution instance = null;
+        Distribution instance = null;
         
         double[] param0p5 = new double[]{0,0,0,0.35206532676429947,0.9678828980765735,1.1656583609930256,0.863855464211009,0.4382075123392134,0.15954654282976827,0.042761452057242244,0.008565134448952664,0.0012946830296593434,0.00014867195147342976,0.000013031409651477368,8.749271303745532e-7,4.511550678949219e-8,1.7904052000394604e-9,5.477221199315272e-11,1.2933813973854447e-12,2.3600420975525e-14,3.3306466372207283e-16,3.638134677342304e-18,3.0778394506825684e-20,2.0177406354196752e-22,1.0255085186985274e-24};
         double[] param2 = new double[]{0,0,0,0.00618496385851171,0.024166757300178074,0.05229212257543626,0.08801633169107487,0.12818787833999026,0.16938980558707747,0.20829210813357238,0.24197072451914337,0.2681563798098696,0.2853891959203467,0.2930700643820856,0.2914145902482564,0.28132761428232617,0.26422428890619154,0.2418267509532137,0.21596386605275225,0.18839632404815398,0.16068198741806627,0.13408837811873256,0.10955187808480335,0.08767756381566659,0.06877006641828234};
@@ -127,7 +127,7 @@ public class MaxwellBoltzmannTest
     public void testCdf()
     {
         System.out.println("cdf");
-        ContinousDistribution instance = null;
+        Distribution instance = null;
         
         double[] param0p5 = new double[]{0,0,0,0.030859595783726712,0.19874804309879912,0.4778328104646086,0.7385358700508893,0.8999391668806049,0.9707091134651118,0.9934259629766086,0.9988660157102147,0.9998493509837884,0.999984559501709,0.9999987773472704,0.9999999251162305,0.9999999964492564,0.9999999998695543,0.9999999999962846,0.999999999999918,0.9999999999999986,1.,1.,1.,1.,1.};
         double[] param2 = new double[]{0,0,0,0.0005170279240384046,0.004078592964422811,0.013448212943120874,0.030859595783726712,0.057827731214630085,0.09503914701405697,0.1423298471325275,0.19874804309879912,0.26268851273105853,0.33207773919373457,0.40458482528702217,0.4778328104646086,0.5495880697451594,0.6179110703795754,0.6812587421193825,0.7385358700508893,0.7890991997636632,0.8327226214294071,0.8695345208664327,0.8999391668806049,0.9245331498906099,0.94402587977114};
@@ -151,7 +151,7 @@ public class MaxwellBoltzmannTest
     public void testInvCdf()
     {
         System.out.println("invCdf");
-        ContinousDistribution instance;
+        Distribution instance;
         
         double[] param0p5 = new double[]
         {0.15833852261996845,0.29483399443273883,0.367702453369813,0.4238115493761005,0.47166773202109047,0.514633536906765,0.5544484063052013,0.5921637017354954,0.628489130214972,0.663948955783709,0.6989632279600045,0.7338956874781447,0.7690861272275261,0.8048761358046771,0.8416338247492682,0.879782418021023,0.9198388029472511,0.9624720066447157,1.0086008009162615,1.0595722524099012,1.1175243646484285,1.1862308058829834,1.2735108480574397,1.4010354011075703,1.7157036426968402};
@@ -178,7 +178,7 @@ public class MaxwellBoltzmannTest
     public void testMin()
     {
         System.out.println("min");
-        ContinousDistribution dist = new MaxwellBoltzmann(0.5);
+        Distribution dist = new MaxwellBoltzmann(0.5);
         assertTrue(0 == dist.min());
     }
 
@@ -189,7 +189,7 @@ public class MaxwellBoltzmannTest
     public void testMax()
     {
         System.out.println("max");
-        ContinousDistribution dist = new MaxwellBoltzmann(0.5);
+        Distribution dist = new MaxwellBoltzmann(0.5);
         assertTrue(Double.POSITIVE_INFINITY == dist.max());
     }
 
@@ -200,7 +200,7 @@ public class MaxwellBoltzmannTest
     public void testMean()
     {
         System.out.println("mean");
-        ContinousDistribution dist = new MaxwellBoltzmann(0.5);
+        Distribution dist = new MaxwellBoltzmann(0.5);
         assertEquals(0.7978845608028654, dist.mean(), 1e-10);
         dist = new MaxwellBoltzmann(2);
         assertEquals(3.1915382432114616, dist.mean(), 1e-10);
@@ -212,7 +212,7 @@ public class MaxwellBoltzmannTest
     public void testMedian()
     {
         System.out.println("median");
-        ContinousDistribution dist = new MaxwellBoltzmann(0.5);
+        Distribution dist = new MaxwellBoltzmann(0.5);
         assertEquals(0.7690861272275261, dist.median(), 1e-10);
         dist = new MaxwellBoltzmann(2);
         assertEquals(3.0763445089101045, dist.median(), 1e-10);
@@ -227,7 +227,7 @@ public class MaxwellBoltzmannTest
     public void testMode()
     {
         System.out.println("mode");
-        ContinousDistribution dist = new MaxwellBoltzmann(0.5);
+        Distribution dist = new MaxwellBoltzmann(0.5);
         assertEquals(0.7071067811882024, dist.mode(), 1e-10);
         dist = new MaxwellBoltzmann(2);
         assertEquals(2.828427124743843, dist.mode(), 1e-10);
@@ -242,7 +242,7 @@ public class MaxwellBoltzmannTest
     public void testVariance()
     {
         System.out.println("variance");
-        ContinousDistribution dist = new MaxwellBoltzmann(0.5);
+        Distribution dist = new MaxwellBoltzmann(0.5);
         assertEquals(0.11338022763241863, dist.variance(), 1e-10);
         dist = new MaxwellBoltzmann(2);
         assertEquals(1.814083642118698, dist.variance(), 1e-10);
@@ -257,7 +257,7 @@ public class MaxwellBoltzmannTest
     public void testSkewness()
     {
         System.out.println("skewness");
-        ContinousDistribution dist = new MaxwellBoltzmann(0.5);
+        Distribution dist = new MaxwellBoltzmann(0.5);
         assertEquals(0.48569282804959213, dist.skewness(), 1e-10);
         dist = new MaxwellBoltzmann(2);
         assertEquals(0.48569282804959213, dist.skewness(), 1e-10);

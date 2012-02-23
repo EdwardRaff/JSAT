@@ -7,7 +7,7 @@ import jsat.linear.Vec;
  *
  * @author Edward Raff
  */
-public class Uniform extends ContinousDistribution
+public class Uniform extends Distribution
 {
     private double a, b;
 
@@ -101,7 +101,7 @@ public class Uniform extends ContinousDistribution
     }
 
     @Override
-    public ContinousDistribution clone()
+    public Distribution clone()
     {
         return new Uniform(a, b);
     }

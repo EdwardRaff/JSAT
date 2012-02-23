@@ -9,7 +9,7 @@ import static java.lang.Math.*;
  *
  * @author Edward Raff
  */
-public final class Rayleigh extends ContinousDistribution
+public final class Rayleigh extends Distribution
 {
 
     /**
@@ -96,7 +96,7 @@ public final class Rayleigh extends ContinousDistribution
     }
 
     @Override
-    public ContinousDistribution clone()
+    public Distribution clone()
     {
         return new Rayleigh(sig);
     }

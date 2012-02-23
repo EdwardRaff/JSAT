@@ -8,7 +8,7 @@ import static java.lang.Math.*;
  *
  * @author Edward Raff
  */
-public class Pareto extends ContinousDistribution
+public class Pareto extends Distribution
 {
     /**
      * scale
@@ -112,7 +112,7 @@ public class Pareto extends ContinousDistribution
     }
 
     @Override
-    public ContinousDistribution clone()
+    public Distribution clone()
     {
         return new Pareto(xm, alpha);
     }

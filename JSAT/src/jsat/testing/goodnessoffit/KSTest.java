@@ -3,7 +3,7 @@ package jsat.testing.goodnessoffit;
 
 import java.util.Collection;
 import java.util.Collections;
-import jsat.distributions.ContinousDistribution;
+import jsat.distributions.Distribution;
 import jsat.distributions.Kolmogorov;
 import jsat.linear.Vec;
 
@@ -48,7 +48,7 @@ public class KSTest
      * @param cd the distribution to compare against
      * @return the max difference between the empirical CDF and the 'true' CDF of the given distribution
      */
-    protected double dCalc(ContinousDistribution cd)
+    protected double dCalc(Distribution cd)
     {
         double max = 0;
         
@@ -122,7 +122,7 @@ public class KSTest
      * @param cd the distribution to compare against
      * @return the p-value of the test against this distribution
      */
-    public double testDist(ContinousDistribution cd)
+    public double testDist(Distribution cd)
     {
         double d = dCalc(cd);
         double n = v.length();

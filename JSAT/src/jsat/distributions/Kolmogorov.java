@@ -10,7 +10,7 @@ import static jsat.math.SpecialMath.*;
  *
  * @author Edward Raff
  */
-public class Kolmogorov extends ContinousDistribution
+public class Kolmogorov extends Distribution
 {
 
     public Kolmogorov()
@@ -119,7 +119,7 @@ public class Kolmogorov extends ContinousDistribution
     }
 
     @Override
-    public ContinousDistribution clone()
+    public Distribution clone()
     {
         return new Kolmogorov();
     }

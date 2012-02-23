@@ -6,21 +6,16 @@ package jsat.classifiers.bayesian;
 
 import java.util.Random;
 import java.util.concurrent.Executors;
-import jsat.distributions.Uniform;
 import jsat.utils.GridDataGenerator;
 import jsat.utils.SystemInfo;
-import jsat.SimpleDataSet;
 import java.util.concurrent.ExecutorService;
-import jsat.classifiers.CategoricalResults;
 import jsat.classifiers.ClassificationDataSet;
 import jsat.classifiers.Classifier;
-import jsat.classifiers.DataPoint;
 import jsat.distributions.Normal;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import sun.security.krb5.internal.crypto.CksumType;
 import static org.junit.Assert.*;
 
 /**

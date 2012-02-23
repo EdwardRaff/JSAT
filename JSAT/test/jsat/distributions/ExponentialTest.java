@@ -51,7 +51,7 @@ public class ExponentialTest
     public void testLogPdf()
     {
         System.out.println("logPdf");
-        ContinousDistribution instance = null;
+        Distribution instance = null;
 
         double[] param0p5 = new double[]{0,0,-0.6931471805599453,-0.8181471805599453,-0.9431471805599453,-1.0681471805599452,-1.1931471805599454,-1.3181471805599452,-1.4431471805599454,-1.5681471805599454,-1.6931471805599452,-1.8181471805599452,-1.9431471805599454,-2.0681471805599454,-2.1931471805599454,-2.3181471805599454,-2.4431471805599454,-2.5681471805599454,-2.6931471805599454,-2.8181471805599454,-2.9431471805599454,-3.0681471805599454,-3.1931471805599454,-3.3181471805599454,-3.4431471805599454};
         double[] param2 = new double[]{0,0,0.6931471805599453,0.19314718055994531,-0.30685281944005466,-0.8068528194400547,-1.3068528194400546,-1.8068528194400546,-2.3068528194400546,-2.8068528194400546,-3.3068528194400546,-3.8068528194400546,-4.306852819440055,-4.806852819440055,-5.306852819440055,-5.806852819440055,-6.306852819440055,-6.806852819440055,-7.306852819440055,-7.806852819440055,-8.306852819440055,-8.806852819440055,-9.306852819440055,-9.806852819440055,-10.306852819440055};
@@ -75,7 +75,7 @@ public class ExponentialTest
     public void testPdf()
     {
         System.out.println("pdf");
-        ContinousDistribution instance = null;
+        Distribution instance = null;
         
         double[] param0p5 = new double[]{0,0,0.5,0.4412484512922977,0.38940039153570244,0.3436446393954861,0.3032653298563167,0.26763071425949514,0.23618327637050734,0.2084310098392542,0.18393972058572117,0.16232623367917487,0.14325239843009505,0.12641979790237323,0.11156508007421491,0.09845583760209703,0.08688697172522257,0.07667748342246423,0.06766764161830635,0.05971648413335981,0.052699612280932166,0.046507244605331746,0.0410424993119494,0.03621987851712573,0.031963930603353785};
         double[] param2 = new double[]{0,0,2.,1.2130613194252668,0.7357588823428847,0.44626032029685964,0.2706705664732254,0.1641699972477976,0.09957413673572789,0.060394766844637,0.03663127777746836,0.022217993076484612,0.013475893998170934,0.008173542876928133,0.004957504353332717,0.0030068783859551447,0.0018237639311090325,0.0011061687402956673,0.0006709252558050237,0.00040693673802128834,0.0002468196081733591,0.0001497036597754012,0.00009079985952496971,0.000055072898699494316,0.00003340340158049132};
@@ -99,7 +99,7 @@ public class ExponentialTest
     public void testCdf()
     {
         System.out.println("cdf");
-        ContinousDistribution instance = null;
+        Distribution instance = null;
         
         double[] param0p5 = new double[]{0,0,0.,0.11750309741540454,0.22119921692859512,0.31271072120902776,0.3934693402873666,0.4647385714810097,0.5276334472589853,0.5831379803214916,0.6321205588285577,0.6753475326416503,0.7134952031398099,0.7471604041952535,0.7768698398515702,0.8030883247958059,0.8262260565495548,0.8466450331550716,0.8646647167633873,0.8805670317332803,0.8946007754381357,0.9069855107893365,0.9179150013761012,0.9275602429657486,0.9360721387932924};
         double[] param2 = new double[]{0,0,0.,0.3934693402873666,0.6321205588285577,0.7768698398515702,0.8646647167633873,0.9179150013761012,0.950212931632136,0.9698026165776815,0.9816843611112658,0.9888910034617577,0.9932620530009145,0.995913228561536,0.9975212478233336,0.9984965608070224,0.9990881180344455,0.9994469156298522,0.9996645373720975,0.9997965316309894,0.9998765901959134,0.9999251481701124,0.9999546000702375,0.9999724635506503,0.9999832982992097};
@@ -123,7 +123,7 @@ public class ExponentialTest
     public void testInvCdf()
     {
         System.out.println("invCdf");
-        ContinousDistribution instance;
+        Distribution instance;
         
         double[] param0p5 = new double[]
         {0.016460998273030734,0.10086170725378371,0.18898168684184483,0.28116390124237867,0.37780105578399414,0.4793457065308407,0.5863230764328129,0.6993474969594976,0.8191437801216357,0.9465754088938508,1.0826823353838824,1.2287326054136622,1.3862943611198906,1.5573387079962149,1.7443908240178614,1.9507592964883234,2.180897956057897,2.4410042125542932,2.740067680496221,3.091849013423549,3.5189972140196675,4.062864644986952,4.812251543869772,6.024523151010405,9.608042089466538};
@@ -150,7 +150,7 @@ public class ExponentialTest
     public void testMin()
     {
         System.out.println("min");
-        ContinousDistribution dist = new Exponential(0.5);
+        Distribution dist = new Exponential(0.5);
         assertTrue(0 == dist.min());
     }
 
@@ -161,7 +161,7 @@ public class ExponentialTest
     public void testMax()
     {
         System.out.println("max");
-        ContinousDistribution dist = new Exponential(0.5);
+        Distribution dist = new Exponential(0.5);
         assertTrue(Double.POSITIVE_INFINITY == dist.max());
     }
 
@@ -172,7 +172,7 @@ public class ExponentialTest
     public void testMean()
     {
         System.out.println("mean");
-        ContinousDistribution dist = new Exponential(0.5);
+        Distribution dist = new Exponential(0.5);
         assertEquals(2, dist.mean(), 1e-10);
         dist = new Exponential(2);
         assertEquals(0.5, dist.mean(), 1e-10);
@@ -187,7 +187,7 @@ public class ExponentialTest
     public void testMedian()
     {
         System.out.println("median");
-        ContinousDistribution dist = new Exponential(0.5);
+        Distribution dist = new Exponential(0.5);
         assertEquals(1.3862943611198906, dist.median(), 1e-10);
         dist = new Exponential(2);
         assertEquals(0.34657359027997264, dist.median(), 1e-10);
@@ -202,7 +202,7 @@ public class ExponentialTest
     public void testMode()
     {
         System.out.println("mode");
-        ContinousDistribution dist = new Exponential(0.5);
+        Distribution dist = new Exponential(0.5);
         assertEquals(0, dist.mode(), 1e-10);
         dist = new Exponential(2);
         assertEquals(0, dist.mode(), 1e-10);
@@ -217,7 +217,7 @@ public class ExponentialTest
     public void testVariance()
     {
         System.out.println("variance");
-        ContinousDistribution dist = new Exponential(0.5);
+        Distribution dist = new Exponential(0.5);
         assertEquals(4, dist.variance(), 1e-10);
         dist = new Exponential(2);
         assertEquals(0.25, dist.variance(), 1e-10);
@@ -232,7 +232,7 @@ public class ExponentialTest
     public void testSkewness()
     {
         System.out.println("skewness");
-        ContinousDistribution dist = new Exponential(0.5);
+        Distribution dist = new Exponential(0.5);
         assertEquals(2, dist.skewness(), 1e-10);
         dist = new Exponential(2);
         assertEquals(2, dist.skewness(), 1e-10);

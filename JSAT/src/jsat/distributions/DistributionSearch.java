@@ -11,7 +11,7 @@ import jsat.testing.goodnessoffit.KSTest;
  */
 public class DistributionSearch
 {
-    private static ContinousDistribution[] possibleDistributions = new ContinousDistribution[] 
+    private static Distribution[] possibleDistributions = new Distribution[] 
     { 
         new Normal(), 
         new LogNormal(), new Exponential(),
@@ -27,7 +27,7 @@ public class DistributionSearch
      * @param v all the values from a sample
      * @return the distribution that provides the best fit to the data that this method could find.
      */
-    public static ContinousDistribution getBestDistribution(Vec v)
+    public static Distribution getBestDistribution(Vec v)
     {
         return getBestDistribution(v, possibleDistributions);
     }
@@ -43,7 +43,7 @@ public class DistributionSearch
      * and greater then 1 means the KDE will always be used. 
      * @return the distribution that provides the best fit to the data that this method could find.
      */
-    public static ContinousDistribution getBestDistribution(Vec v, double KDECutOff)
+    public static Distribution getBestDistribution(Vec v, double KDECutOff)
     {
         return getBestDistribution(v, KDECutOff, possibleDistributions);
     }
@@ -56,7 +56,7 @@ public class DistributionSearch
      * @param possibleDistributions the array of distribution to try and fit to the data
      * @return the distribution that provides the best fit to the data that this method could find.
      */
-    public static ContinousDistribution getBestDistribution(Vec v, ContinousDistribution... possibleDistributions)
+    public static Distribution getBestDistribution(Vec v, Distribution... possibleDistributions)
     {
         return getBestDistribution(v, 0.0, possibleDistributions);
     }
@@ -73,13 +73,13 @@ public class DistributionSearch
      * @param possibleDistributions the array of distribution to try and fit to the data
      * @return  the distribution that provides the best fit to the data that this method could find.
      */
-    public static ContinousDistribution getBestDistribution(Vec v, double KDECutOff, ContinousDistribution... possibleDistributions)
+    public static Distribution getBestDistribution(Vec v, double KDECutOff, Distribution... possibleDistributions)
     {
         if(v.length() == 0)
             throw new ArithmeticException("Can not fit a distribution to an empty set");
         //Thread Safety, clone the possible distributions
         
-        ContinousDistribution[] possDistCopy = new ContinousDistribution[possibleDistributions.length];
+        Distribution[] possDistCopy = new Distribution[possibleDistributions.length];
         
         for(int i = 0; i < possibleDistributions.length; i++)
             possDistCopy[i] = possibleDistributions[i].clone();
@@ -87,10 +87,10 @@ public class DistributionSearch
         
         KSTest ksTest = new KSTest(v);
         
-        ContinousDistribution bestDist = null;
+        Distribution bestDist = null;
         double bestProb = 0;
         
-        for(ContinousDistribution cd : possDistCopy)
+        for(Distribution cd : possDistCopy)
         {
             try
             {

@@ -10,7 +10,7 @@ import static jsat.math.SpecialMath.*;
  *
  * @author Edward Raff
  */
-public class ChiSquared extends ContinousDistribution
+public class ChiSquared extends Distribution
 {
     double df;//Degrees of freedom
 
@@ -98,7 +98,7 @@ public class ChiSquared extends ContinousDistribution
     }
 
     @Override
-    public ContinousDistribution clone()
+    public Distribution clone()
     {
         return new ChiSquared(df);
     }

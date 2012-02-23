@@ -11,7 +11,7 @@ import jsat.classifiers.CategoricalResults;
 import jsat.classifiers.ClassificationDataSet;
 import jsat.classifiers.Classifier;
 import jsat.classifiers.DataPoint;
-import jsat.distributions.ContinousDistribution;
+import jsat.distributions.Distribution;
 import jsat.distributions.DistributionSearch;
 import jsat.distributions.Normal;
 import jsat.distributions.empirical.KernelDensityEstimator;
@@ -34,7 +34,7 @@ public class NaiveBayes implements Classifier
      * 
      */
     private double[][][] apriori;
-    private ContinousDistribution[][] distributions; 
+    private Distribution[][] distributions; 
     private NumericalHandeling numericalHandling;
     /**
      * Handles how vectors are handled. If true, it is assumed vectors are sparce - and zero values will be ignored when training and classifying.  
@@ -57,25 +57,25 @@ public class NaiveBayes implements Classifier
          */
         NORMAL
         {
-            protected ContinousDistribution fit(Vec v)
+            protected Distribution fit(Vec v)
             {
                 return getBestDistribution(v, new Normal(0, 1));
             }
         },
         /**
-         * The best fitting {@link ContinousDistribution} is selected by 
+         * The best fitting {@link Distribution} is selected by 
          * {@link DistributionSearch#getBestDistribution(jsat.linear.Vec) }
          */
         BEST_FIT
         {
 
-            protected ContinousDistribution fit(Vec v)
+            protected Distribution fit(Vec v)
             {
                 return getBestDistribution(v);
             }
         },
         /**
-         * The best fitting {@link ContinousDistribution} is selected by 
+         * The best fitting {@link Distribution} is selected by 
          * {@link DistributionSearch#getBestDistribution(jsat.linear.Vec, double) }, 
          * and provides a cut off value to use the {@link KernelDensityEstimator} instead
          */
@@ -102,13 +102,13 @@ public class NaiveBayes implements Classifier
                 return cutOff;
             }
            
-            protected ContinousDistribution fit(Vec v)
+            protected Distribution fit(Vec v)
             {
                 return getBestDistribution(v, cutOff);
             }
         };
 
-        abstract protected ContinousDistribution fit(Vec y);
+        abstract protected Distribution fit(Vec y);
     }
 
     public NaiveBayes(NumericalHandeling numericalHandling)
@@ -250,10 +250,10 @@ public class NaiveBayes implements Classifier
                 newBayes.apriori[i][j] = Arrays.copyOf(this.apriori[i][j], this.apriori[i][j].length);
         }
         
-        newBayes.distributions = new ContinousDistribution[this.distributions.length][];
+        newBayes.distributions = new Distribution[this.distributions.length][];
         for(int i = 0; i < this.distributions.length; i++)
         {
-            newBayes.distributions[i] = new ContinousDistribution[this.distributions[i].length];
+            newBayes.distributions[i] = new Distribution[this.distributions[i].length];
             for(int j = 0; j < this.distributions[i].length; j++)
                 newBayes.distributions[i][j] = this.distributions[i][j].clone();
         }
@@ -354,7 +354,7 @@ public class NaiveBayes implements Classifier
     {
         int nCat = dataSet.getPredicting().getNumOfCategories();
         apriori = new double[nCat][dataSet.getNumCategoricalVars()][];
-        distributions = new ContinousDistribution[nCat][dataSet.getNumNumericalVars()] ;
+        distributions = new Distribution[nCat][dataSet.getNumNumericalVars()] ;
         
         
         int totalWorkers = nCat*(dataSet.getNumNumericalVars() + dataSet.getNumCategoricalVars());

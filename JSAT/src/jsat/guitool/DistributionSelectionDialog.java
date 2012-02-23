@@ -13,7 +13,7 @@ import javax.swing.JFormattedTextField;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextField;
-import jsat.distributions.ContinousDistribution;
+import jsat.distributions.Distribution;
 
 /**
  *
@@ -21,14 +21,14 @@ import jsat.distributions.ContinousDistribution;
  */
 public class DistributionSelectionDialog extends JDialog
 {
-     ContinousDistribution[] distributions;
+     Distribution[] distributions;
 
      final JPanel variablePanel;
      final JComboBox jc;
      String[] vars;
 
 
-    public DistributionSelectionDialog(Frame owner, String title, ContinousDistribution[] distributions)
+    public DistributionSelectionDialog(Frame owner, String title, Distribution[] distributions)
     {
         super(owner, title, true);
         this.distributions = distributions;
@@ -40,7 +40,7 @@ public class DistributionSelectionDialog extends JDialog
 
             public void actionPerformed(ActionEvent e)
             {
-                ContinousDistribution dist = (ContinousDistribution) jc.getSelectedItem();
+                Distribution dist = (Distribution) jc.getSelectedItem();
 
                 vars = dist.getVariables();
                 double[] defaultVals = dist.getCurrentVariableValues();
@@ -76,7 +76,7 @@ public class DistributionSelectionDialog extends JDialog
         this.getContentPane().add(panel);
     }
 
-    public ContinousDistribution getDistribution()
+    public Distribution getDistribution()
     {
         setSize(300, 300);
         setVisible(true);

@@ -15,7 +15,7 @@ import jsat.classifiers.ClassificationDataSet;
 import jsat.classifiers.Classifier;
 import jsat.classifiers.DataPoint;
 import jsat.classifiers.DataPointPair;
-import jsat.distributions.ContinousDistribution;
+import jsat.distributions.Distribution;
 import jsat.distributions.empirical.KernelDensityEstimator;
 import jsat.distributions.empirical.kernelfunc.EpanechnikovKF;
 import jsat.distributions.empirical.kernelfunc.GaussKF;
@@ -228,7 +228,7 @@ public class DecisionStump implements Classifier, Regressor
      * and 1 indicates <tt>dist2</tt>
      * @throws ArithmeticException if finding the splitting point between the two distributions is non trivial 
      */
-    public static PairedReturn<Integer, Double> threshholdSplit(final ContinousDistribution dist1, final ContinousDistribution dist2)
+    public static PairedReturn<Integer, Double> threshholdSplit(final Distribution dist1, final Distribution dist2)
     {
         if(dist1 == null && dist2 == null)
             throw new ArithmeticException("No Distributions given");
@@ -296,7 +296,7 @@ public class DecisionStump implements Classifier, Regressor
      * @param dists the distributions for each options
      * @return the paired lists that describe the most probable distribution
      */
-    public static PairedReturn<List<Double>, List<Integer>> intersections(final List<ContinousDistribution> dists)
+    public static PairedReturn<List<Double>, List<Integer>> intersections(final List<Distribution> dists)
     {
         double minRange = Double.MAX_VALUE;
         double maxRange = Double.MIN_VALUE;
@@ -306,7 +306,7 @@ public class DecisionStump implements Classifier, Regressor
         final List<Integer> belongsTo = new ArrayList<Integer>();
         final List<Double> splitPoints = new ArrayList<Double>();
         
-        for(ContinousDistribution cd : dists)
+        for(Distribution cd : dists)
         {
             if(cd == null)
                 continue;
@@ -373,7 +373,7 @@ public class DecisionStump implements Classifier, Regressor
      * @param x the value to test the PDF of each distribution at
      * @return the index of the most likely distribution at the given point
      */
-    private static int maxPDF(List<ContinousDistribution> dits, double x)
+    private static int maxPDF(List<Distribution> dits, double x)
     {
         double maxVal = -1;
         int best = -1;
@@ -563,7 +563,7 @@ public class DecisionStump implements Classifier, Regressor
                     values.get(theClass).add(value);
                 }
                 //Convert to usable formats 
-                ContinousDistribution[] dist = new ContinousDistribution[N];
+                Distribution[] dist = new Distribution[N];
                 for(int i = 0; i < N; i++)
                 {
                     if(weights.get(i).isEmpty())

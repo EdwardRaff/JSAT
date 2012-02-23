@@ -9,7 +9,7 @@ import static jsat.math.SpecialMath.*;
  *
  * @author Edward Raff
  */
-public class Gamma extends ContinousDistribution
+public class Gamma extends Distribution
 {
     private double k;
     private double theta;
@@ -107,7 +107,7 @@ public class Gamma extends ContinousDistribution
     }
 
     @Override
-    public ContinousDistribution clone()
+    public Distribution clone()
     {
         return new Gamma(k, theta);
     }

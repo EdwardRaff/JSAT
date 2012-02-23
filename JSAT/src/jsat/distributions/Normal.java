@@ -11,7 +11,7 @@ import jsat.linear.Vec;
  *
  * @author Edward Raff
  */
-public class Normal extends ContinousDistribution
+public class Normal extends Distribution
 {
     public static final String mu = "\u03BC";
     public static final String sigma = "\u03C3";
@@ -221,7 +221,7 @@ public class Normal extends ContinousDistribution
     }
 
     @Override
-    public ContinousDistribution clone()
+    public Distribution clone()
     {
         return new Normal(mean, stndDev);
     }

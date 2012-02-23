@@ -9,7 +9,7 @@ import jsat.text.GreekLetters;
  *
  * @author Edward Raff
  */
-public final class Logistic extends ContinousDistribution
+public final class Logistic extends Distribution
 {
     /** 
      * Location
@@ -106,7 +106,7 @@ public final class Logistic extends ContinousDistribution
     }
 
     @Override
-    public ContinousDistribution clone()
+    public Distribution clone()
     {
         return new Logistic(mu, s);
     }

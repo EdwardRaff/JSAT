@@ -12,7 +12,7 @@ import static jsat.math.SpecialMath.*;
  * 
  * @author Edward Raff
  */
-public class FisherSendor extends ContinousDistribution
+public class FisherSendor extends Distribution
 {
     
     double v1;
@@ -112,7 +112,7 @@ public class FisherSendor extends ContinousDistribution
     }
 
     @Override
-    public ContinousDistribution clone()
+    public Distribution clone()
     {
         return new FisherSendor(v1, v2);
     }

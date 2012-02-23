@@ -8,7 +8,7 @@ import java.util.Random;
 import jsat.SimpleDataSet;
 import jsat.classifiers.CategoricalData;
 import jsat.classifiers.DataPoint;
-import jsat.distributions.ContinousDistribution;
+import jsat.distributions.Distribution;
 import jsat.distributions.Uniform;
 import jsat.linear.DenseVector;
 
@@ -26,7 +26,7 @@ import jsat.linear.DenseVector;
  */
 public class GridDataGenerator
 {
-   private ContinousDistribution noiseSource; 
+   private Distribution noiseSource; 
    private int[] dimensions;
    private Random rand;
    private CategoricalData[] catDataInfo;
@@ -43,7 +43,7 @@ public class GridDataGenerator
     * 
     * @throws ArithmeticException if one of the dimension values is not a positive value, or a zero number of dimensions is given
     */
-    public GridDataGenerator(ContinousDistribution noiseSource, Random rand, int... dimensions)
+    public GridDataGenerator(Distribution noiseSource, Random rand, int... dimensions)
     {
         this.noiseSource = noiseSource;
         this.rand = rand;
@@ -64,7 +64,7 @@ public class GridDataGenerator
      * 
      * @throws ArithmeticException if one of the dimension values is not a positive value, or a zero number of dimensions is given
      */
-    public GridDataGenerator(ContinousDistribution noiseSource, int... dimensions)
+    public GridDataGenerator(Distribution noiseSource, int... dimensions)
     {
         this(noiseSource, new Random(), dimensions);
     }

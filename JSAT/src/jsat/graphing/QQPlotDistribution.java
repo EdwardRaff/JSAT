@@ -6,7 +6,7 @@ import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.geom.Ellipse2D;
 import java.util.ArrayList;
-import jsat.distributions.ContinousDistribution;
+import jsat.distributions.Distribution;
 import jsat.linear.Vec;
 import jsat.math.Function;
 
@@ -16,11 +16,11 @@ import jsat.math.Function;
  */
 public class QQPlotDistribution extends Graph2D
 {
-    ContinousDistribution cd;
+    Distribution cd;
     private Vec yData;
     private ArrayList<Double> xData;
 
-    public QQPlotDistribution(ContinousDistribution cd, Vec data)
+    public QQPlotDistribution(Distribution cd, Vec data)
     {
         super(0, 0, 0, 0);
         this.cd = cd;

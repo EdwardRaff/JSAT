@@ -11,7 +11,7 @@ import static jsat.math.SpecialMath.*;
  * 
  * @author Edward Raff
  */
-public class StudentT extends ContinousDistribution
+public class StudentT extends Distribution
 {
     double df;
     double mu;
@@ -134,7 +134,7 @@ public class StudentT extends ContinousDistribution
     }
 
     @Override
-    public ContinousDistribution clone()
+    public Distribution clone()
     {
         return new StudentT(df, mu, sig);
     }

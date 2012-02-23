@@ -11,7 +11,7 @@ import static jsat.math.SpecialMath.*;
  *
  * @author Edward Raff
  */
-public class Weibull extends ContinousDistribution
+public class Weibull extends Distribution
 {
     /**
      * Shape parameter
@@ -137,7 +137,7 @@ public class Weibull extends ContinousDistribution
     
 
     @Override
-    public ContinousDistribution clone()
+    public Distribution clone()
     {
         return new Weibull(alpha, beta);
     }

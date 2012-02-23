@@ -9,7 +9,7 @@ import static jsat.math.SpecialMath.*;
  *
  * @author Edward Raff
  */
-public class MaxwellBoltzmann extends ContinousDistribution
+public class MaxwellBoltzmann extends Distribution
 {
     /**
      * shape
@@ -111,7 +111,7 @@ public class MaxwellBoltzmann extends ContinousDistribution
     }
 
     @Override
-    public ContinousDistribution clone()
+    public Distribution clone()
     {
         return new MaxwellBoltzmann(sigma);
     }

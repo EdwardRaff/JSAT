@@ -9,7 +9,7 @@ import static jsat.math.SpecialMath.*;
  *
  * @author Edward Raff
  */
-public class LogNormal extends ContinousDistribution
+public class LogNormal extends Distribution
 {
     double mu;
     double sig;
@@ -96,7 +96,7 @@ public class LogNormal extends ContinousDistribution
     }
 
     @Override
-    public ContinousDistribution clone()
+    public Distribution clone()
     {
         return new LogNormal(mu, sig);
     }

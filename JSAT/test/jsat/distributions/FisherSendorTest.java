@@ -51,7 +51,7 @@ public class FisherSendorTest
     public void testLogPdf()
     {
         System.out.println("logPdf");
-        ContinousDistribution instance = null;
+        Distribution instance = null;
         
         double[] parmTwo0 = new double[]{0,0,0,0,0,0,0,0,0,0,0,0,0,-1.0755311112886419,-1.6865522751055781,-2.0677264461003304,-2.3502536967514276,-2.5765028780652766,-2.765924303489656,-2.9291924032622623,-3.072846636225469,-3.2012052668045246,-3.3172796396247555,-3.4232587102214747,-3.5207865035324826};
         double[] paramTwo1 = new double[]{0,0,0,0,0,0,0,0,0,0,0,0,0,-0.7312989949608601,-1.3197956283990615,-1.689940033450167,-1.9693449650880337,-2.1981124382434136,-2.394181321271322,-2.5671765210819997,-2.7228852876009073,-2.865072967010014,-2.9963360392653255,-3.1185468636467606,-3.233104431080702};
@@ -79,7 +79,7 @@ public class FisherSendorTest
     public void testPdf()
     {
         System.out.println("pdf");
-        ContinousDistribution instance = null;
+        Distribution instance = null;
         
         double[] parmTwo0 = new double[]{0,0,0,0,0,0,0,0,0,0,0,0,0,0.34111653633834343,0.18515679448477712,0.12647299825855507,0.09534497043772663,0.0760394588478015,0.06291791721274038,0.05344017883680418,0.04628919862119428,0.040713104242116736,0.03625131437838356,0.03260600809421878,0.029576164260098146};
         double[] paramTwo1 = new double[]{0,0,0,0,0,0,0,0,0,0,0,0,0,0.48128339914819057,0.26718990241438084,0.1845305893239915,0.13954823524954643,0.11101250368051968,0.09124735061736179,0.07675194728217233,0.06568496075058096,0.05697897339502477,0.049969820825925305,0.04422138145022476,0.039434885680130864};
@@ -107,7 +107,7 @@ public class FisherSendorTest
     public void testCdf()
     {
         System.out.println("cdf");
-        ContinousDistribution instance = null;
+        Distribution instance = null;
         
         double[] parmTwo0 = new double[]{0,0,0,0,0,0,0,0,0,0,0,0,0,0.3727156131603777,0.4345598848424255,0.4726180836933109,0.49999999999999967,0.5212535928736133,0.5385275931078592,0.5530131159980487,0.5654401151575745,0.5762881886500197,0.5858890925015626,0.594481626266527,0.6022432216826443};
         double[] paramTwo1 = new double[]{0,0,0,0,0,0,0,0,0,0,0,0,0,0.5096165742200301,0.5978642569008251,0.6531118031726221,0.6931449079784125,0.7242266764500165,0.7493719694170181,0.770285305382158,0.7880316369300455,0.8033234720594439,0.8166619182600992,0.8284130726388325,0.8388525357634297};
@@ -135,7 +135,7 @@ public class FisherSendorTest
     public void testInvCdf()
     {
         System.out.println("invCdf");
-        ContinousDistribution instance = null;
+        Distribution instance = null;
         
         double[] parmTwo0 = new double[]{5.334203456719422e-8,0.00006913318696422088,0.0007812247277505513,0.003500715803229859,0.010417164444029625,0.024615063171980367,0.0502444629207317,0.09287319888065815,0.16014839504292144,0.2629821687138465,0.41764853333136576,0.6495302481781395,1.000000000000003,1.5395741811946149,2.394357743875021,3.802539179331621,6.244208689896571,10.767368972452411,19.90269060249784,40.62553051410859,95.9954127030347,285.65586474553135,1280.041407392871,/*last 2 removed for being too large, relative accuray is still good 14464.832939334676,1.874694148340569e7*/};
         double[] paramTwo1 = new double[]{1.5805047937078598e-8,0.00002048343872385061,0.00023141418709826667,0.0010360499598851547,0.003075987604420405,0.007234721118664744,0.014646188270129645,0.026711949496745824,0.04513199564708614,0.07195612582172162,0.10966587338583667,0.16130199781329901,0.23066126571683299,0.3226018002981843,0.4435251089394354,0.6021587290154584,0.8108775237950727,1.088050726896899,1.4624918050988818,1.9826371274899546,2.7377289774408404,3.91504731419958,5.996708740298692,10.807066928600696,44.75298856639894};
@@ -163,7 +163,7 @@ public class FisherSendorTest
     public void testMin()
     {
         System.out.println("min");
-        ContinousDistribution dist = new FisherSendor(0.5, 3);
+        Distribution dist = new FisherSendor(0.5, 3);
         assertTrue(0 == dist.min());
     }
 
@@ -174,7 +174,7 @@ public class FisherSendorTest
     public void testMax()
     {
         System.out.println("max");
-        ContinousDistribution dist = new FisherSendor(0.5, 3);
+        Distribution dist = new FisherSendor(0.5, 3);
         assertTrue(Double.POSITIVE_INFINITY == dist.max());
     }
 
@@ -185,7 +185,7 @@ public class FisherSendorTest
     public void testMean()
     {
         System.out.println("mean");
-        ContinousDistribution dist = new FisherSendor(0.5, 0.5);
+        Distribution dist = new FisherSendor(0.5, 0.5);
         assertEquals(Double.NaN, dist.mean(), 1e-10);
         dist = new FisherSendor(0.5, 3);
         assertEquals(3, dist.mean(), 1e-10);
@@ -202,7 +202,7 @@ public class FisherSendorTest
     public void testMedian()
     {
         System.out.println("median");
-        ContinousDistribution dist = new FisherSendor(0.5, 0.5);
+        Distribution dist = new FisherSendor(0.5, 0.5);
         assertEquals(1.000000000000003, dist.median(), 1e-10);
         dist = new FisherSendor(0.5, 3);
         assertEquals(0.23066126571683299, dist.median(), 1e-10);
@@ -219,7 +219,7 @@ public class FisherSendorTest
     public void testMode()
     {
         System.out.println("mode");
-        ContinousDistribution dist = new FisherSendor(0.5, 0.5);
+        Distribution dist = new FisherSendor(0.5, 0.5);
         assertEquals(Double.NaN, dist.mode(), 1e-10);
         dist = new FisherSendor(0.5, 3);
         assertEquals(Double.NaN, dist.mode(), 1e-10);
@@ -236,7 +236,7 @@ public class FisherSendorTest
     public void testVariance()
     {
         System.out.println("variance");
-        ContinousDistribution dist = new FisherSendor(0.5, 0.5);
+        Distribution dist = new FisherSendor(0.5, 0.5);
         assertEquals(Double.NaN, dist.variance(), 1e-10);
         dist = new FisherSendor(0.5, 3);
         assertEquals(Double.NaN, dist.variance(), 1e-10);
@@ -257,7 +257,7 @@ public class FisherSendorTest
     public void testSkewness()
     {
         System.out.println("skewness");
-        ContinousDistribution dist = new FisherSendor(0.5, 0.5);
+        Distribution dist = new FisherSendor(0.5, 0.5);
         assertEquals(Double.NaN, dist.skewness(), 1e-10);
         dist = new FisherSendor(0.5, 3);
         assertEquals(Double.NaN, dist.skewness(), 1e-10);

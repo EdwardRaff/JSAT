@@ -8,7 +8,7 @@ import static jsat.math.SpecialMath.*;
  *
  * @author Edward Raff
  */
-public class Beta extends ContinousDistribution
+public class Beta extends Distribution
 {
     double alpha;
     double beta;
@@ -97,7 +97,7 @@ public class Beta extends ContinousDistribution
     }
 
     @Override
-    public ContinousDistribution clone()
+    public Distribution clone()
     {
         return new Beta(alpha, beta);
     }

@@ -22,7 +22,7 @@ import jsat.classifiers.Classifier;
 import jsat.classifiers.DataPoint;
 import jsat.classifiers.DataPointPair;
 import jsat.classifiers.trees.DecisionStump.GainMethod;
-import jsat.distributions.ContinousDistribution;
+import jsat.distributions.Distribution;
 import jsat.distributions.Uniform;
 import jsat.utils.PairedReturn;
 import org.junit.AfterClass;
@@ -108,8 +108,8 @@ public class DecisionStumpTest
     public void testThreshholdSplit()
     {
         System.out.println("threshholdSplit");
-        ContinousDistribution dist1 = new Normal(0, 1);
-        ContinousDistribution dist2 = new Normal(3, 2);
+        Distribution dist1 = new Normal(0, 1);
+        Distribution dist2 = new Normal(3, 2);
         PairedReturn<Integer, Double> ret = DecisionStump.threshholdSplit(dist1, dist2);
         assertEquals(0, (int) ret.getFirstItem());
         assertEquals(1.418344988105127, ret.getSecondItem(), 1e-6);
