@@ -9,6 +9,7 @@ import jsat.exceptions.UntrainedModelException;
 /**
  * Provides a mechanism to quickly perform an evaluation of a model on a data set. 
  * This can be done with cross validation or with a testing set. 
+ * 
  * @author Edward Raff
  */
 public class ClassificationModelEvaluation
@@ -31,6 +32,19 @@ public class ClassificationModelEvaluation
      */
     private double sumOfWeights;
     private long totalTrainingTime = 0, totalClassificationTime = 0;
+    
+    /**
+     * Constructs a new object that can perform evaluations on the model. 
+     * The model will not be trained until evaluation time. 
+     * 
+     * @param classifier the model to train and evaluate
+     * @param dataSet the training data set. 
+     */
+    public ClassificationModelEvaluation(Classifier classifier, ClassificationDataSet dataSet)
+    {
+        this(classifier, dataSet, null);
+    }
+    
     /**
      * Constructs a new object that can perform evaluations on the model. 
      * The model will not be trained until evaluation time. 
