@@ -1,8 +1,11 @@
 
 package jsat.distributions.multivariate;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 import jsat.classifiers.DataPoint;
+import jsat.linear.CholeskyDecomposition;
 import jsat.linear.DenseMatrix;
 import jsat.linear.DenseVector;
 import jsat.linear.LUPDecomposition;
@@ -46,6 +49,10 @@ public class NormalM extends MultivariateDistributionSkeleton
      */
     private Matrix invCovariance;
     private Vec mean;
+    /**
+     * Lower triangular cholesky decomposition used for sampling such that L * L<sup>T</sup> = Covariance Matrix
+     */
+    private Matrix L;
 
     public NormalM(Vec mean, Matrix covariance)
     {
@@ -90,6 +97,10 @@ public class NormalM extends MultivariateDistributionSkeleton
             throw new ArithmeticException("Covariance matrix must be square");
         else if(covMatrix.rows() != this.mean.length())
             throw new ArithmeticException("Covariance matrix does not agree with the mean");
+        
+        CholeskyDecomposition cd = new CholeskyDecomposition(covMatrix.clone());
+        L = cd.getLT();
+        L.mutableTranspose();
         
         LUPDecomposition lup = new LUPDecomposition(covMatrix.clone());
         int k = mean.length();
@@ -191,5 +202,29 @@ public class NormalM extends MultivariateDistributionSkeleton
             clone.mean = this.mean.clone();
         clone.logPDFConst = this.logPDFConst;
         return clone;
+    }
+    
+    /**
+     * Performs sampling on the current normal distribution. 
+     * 
+     * @param count the number of samples to take
+     * @param rand the source of randomness
+     * @return a list of the sample points
+     */
+    public List<Vec> sample(int count, Random rand)
+    {
+        List<Vec> samples = new ArrayList<Vec>(count);
+        Vec Z = new DenseVector(L.rows());
+        
+        for(int i = 0; i < count; i++)
+        {
+            for(int j = 0; j < Z.length(); j++)
+                Z.set(j, rand.nextGaussian());
+            Vec sample = L.multiply(Z);
+            sample.mutableAdd(mean);
+            samples.add(sample);
+        }
+        
+        return samples;
     }
 }
