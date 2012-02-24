@@ -28,11 +28,25 @@ public class ClassificationDataSet extends DataSet<ClassificationDataSet>
      */
     protected List<List<DataPoint>> classifiedExamples;
     protected int numOfSamples = 0;
+    
+    /**
+     * Creates a new data set for classification problems. 
+     * 
+     * @param dataSet the source data set
+     * @param predicting the categorical attribute to use as the target class
+     */
+    public ClassificationDataSet(DataSet dataSet, int predicting)
+    {
+        this(dataSet.getDataPoints(), predicting);
+        //Fix up numeric names
+        for(int i = 0; i < getNumNumericalVars(); i++)
+            this.numericalVariableNames.set(i, dataSet.getNumericName(i));
+    }
 
     /**
-     * 
-     * @param data 
-     * @param predicting the index of the categorical variable to be the prediction target
+     * Creates a new data set for classification problems from the given list of data points. It is assume the data points are consistent. 
+     * @param data the list of data points for the problem. 
+     * @param predicting the categorical attribute to use as the target class
      */
     public ClassificationDataSet(List<DataPoint> data, int predicting)
     {
@@ -68,11 +82,16 @@ public class ClassificationDataSet extends DataSet<ClassificationDataSet>
         }
         
         numOfSamples = data.size();
-        this.numericalVariableNames = new ArrayList<String>(getNumNumericalVars());
-        for(int i = 0; i < getNumNumericalVars(); i++)
-            this.numericalVariableNames.add("Numeric Input " + (i+1));
+        generateGenericNumericNames();
     }
     
+    /**
+     * Creates a new data set for classification problems from the given list of data points. 
+     * The class value is paired with each data point. 
+     * 
+     * @param data the list of data points, paired with their class values
+     * @param predicting the information about the target class
+     */
     public ClassificationDataSet(List<DataPointPair<Integer>> data, CategoricalData predicting)
     {
         this.predicting = predicting;
@@ -84,8 +103,16 @@ public class ClassificationDataSet extends DataSet<ClassificationDataSet>
             classifiedExamples.add( new ArrayList<DataPoint>());
         for(DataPointPair<Integer> dpp : data)
             classifiedExamples.get(dpp.getPair()).add(dpp.getDataPoint());
+        generateGenericNumericNames();
     }
     
+    /**
+     * Creates a new, empty, data set for classification problems. 
+     * 
+     * @param numerical the number of numerical attributes for the problem
+     * @param categories the information about each categorical variable in the problem. 
+     * @param predicting the information about the target class
+     */
     public ClassificationDataSet(int numerical, CategoricalData[] categories, CategoricalData predicting)
     {
         this.predicting = predicting;
@@ -95,6 +122,11 @@ public class ClassificationDataSet extends DataSet<ClassificationDataSet>
         classifiedExamples = new ArrayList<List<DataPoint>>();
         for(int i = 0; i < predicting.getNumOfCategories(); i++)
             classifiedExamples.add(new ArrayList<DataPoint>());
+        generateGenericNumericNames();
+    }
+
+    private void generateGenericNumericNames()
+    {
         this.numericalVariableNames = new ArrayList<String>(getNumNumericalVars());
         for(int i = 0; i < getNumNumericalVars(); i++)
             this.numericalVariableNames.add("Numeric Input " + (i+1));
