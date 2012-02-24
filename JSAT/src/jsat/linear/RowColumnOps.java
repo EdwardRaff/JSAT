@@ -115,7 +115,7 @@ public class RowColumnOps
      * Updates the values of row <tt>i</tt> in the given matrix to be A[i,:] = A[i,:] .* c[i]
      * 
      * @param A the matrix to perform he update on
-     * @param to the last index of the row to update (exclusive)
+     * @param i the row to update 
      * @param c the array of values to multiple the elements of <tt>A</tt> by
      */
     public static void multRow(Matrix A, int i, double[] c)
@@ -145,8 +145,6 @@ public class RowColumnOps
      * 
      * @param A the matrix to perform he update on
      * @param i the row to update
-     * @param start the first index of the row to update from (inclusive)
-     * @param to the last index of the row to update (exclusive)
      * @param c the constant to divide each element by
      */
     public static void divRow(Matrix A, int i, double c)
@@ -326,8 +324,6 @@ public class RowColumnOps
      * @param A the matrix to perform he update on
      * @param j the first column to swap 
      * @param k the second column to swap 
-     * @param start the first row that will be included in the swap (inclusive)
-     * @param to the last row to be included in the swap (exclusive)
      */
     public static void swapCol(Matrix A, int j, int k)
     {
@@ -358,8 +354,6 @@ public class RowColumnOps
      * @param A the matrix to perform he update on
      * @param j the first column to swap 
      * @param k the second column to swap 
-     * @param start the first row that will be included in the swap (inclusive)
-     * @param to the last row to be included in the swap (exclusive)
      */
     public static void swapRow(Matrix A, int j, int k)
     {
