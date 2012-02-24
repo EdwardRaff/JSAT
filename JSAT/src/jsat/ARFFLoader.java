@@ -18,11 +18,23 @@ import jsat.classifiers.DataPoint;
 import jsat.linear.DenseVector;
 
 /**
- *
+ * Class for loading ARFF files. ARFF is a human readable file format used by Weka. 
+ * The ARFF file formal allows for attributes that have missing information, which 
+ * is not supported by JSAT. Any data point with missing information will be 
+ * skipped in the loading process. 
+ * 
+ * <br>
+ * <a href="http://www.cs.waikato.ac.nz/ml/weka/arff.html">About Weka</a>
  * @author Edward Raff
  */
 public class ARFFLoader
 {
+    /**
+     * Uses the given file path to load a data set from an ARFF file. 
+     * 
+     * @param file the path to the ARFF file to load 
+     * @return the data set from the ARFF file, or null if the file could not be loaded. 
+     */
     public static SimpleDataSet loadArffFile(File file) 
     {
         ArrayList<DataPoint> list = new ArrayList<DataPoint>();
