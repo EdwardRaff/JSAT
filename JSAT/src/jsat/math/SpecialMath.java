@@ -402,7 +402,7 @@ public class SpecialMath
             if(p < t)
                 x = pow(p/t, 1.0/a);
             else
-                x = 1-log(1-(p-t)/(t-t));
+                x = 1-log(1-(p-t)/(1.0-t));
         }
         
         //Estimate obtained, now refinement
