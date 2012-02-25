@@ -204,13 +204,6 @@ public class NormalM extends MultivariateDistributionSkeleton
         return clone;
     }
     
-    /**
-     * Performs sampling on the current normal distribution. 
-     * 
-     * @param count the number of samples to take
-     * @param rand the source of randomness
-     * @return a list of the sample points
-     */
     public List<Vec> sample(int count, Random rand)
     {
         List<Vec> samples = new ArrayList<Vec>(count);

@@ -2,6 +2,7 @@
 package jsat.distributions.multivariate;
 
 import java.util.List;
+import java.util.Random;
 import jsat.DataSet;
 import jsat.classifiers.DataPoint;
 import jsat.linear.DenseVector;
@@ -85,4 +86,12 @@ public interface MultivariateDistribution extends Cloneable
     public boolean setUsingData(DataSet dataSet);
 
     public MultivariateDistribution clone();
+    
+    /**
+     * Performs sampling on the current distribution. 
+     * @param count the number of iid samples to draw
+     * @param rand the source of randomness 
+     * @return a list of sample vectors from this distribution 
+     */
+    public List<Vec> sample(int count, Random rand);
 }

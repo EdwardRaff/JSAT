@@ -19,10 +19,11 @@ import static jsat.clustering.SeedSelectionMethods.*;
 import static java.lang.Math.*;
 
 /**
- *
+ * An implementation of Gaussian Mixture models that learns the specified number of Gaussians using Expectation Maximization algorithm. 
+ * 
  * @author Edward Raff
  */
-public class GaussianMixture extends KMeans implements MultivariateDistribution
+public class EMGaussianMixture extends KMeans implements MultivariateDistribution
 {
     private List<NormalM> gaussians;
     /**
@@ -31,22 +32,22 @@ public class GaussianMixture extends KMeans implements MultivariateDistribution
     private double[] a_k;
     private double tolerance = 1e-3;
 
-    public GaussianMixture(DistanceMetric dm, Random rand, SeedSelection seedSelection)
+    public EMGaussianMixture(DistanceMetric dm, Random rand, SeedSelection seedSelection)
     {
         super(dm, rand, seedSelection);
     }
 
-    public GaussianMixture(DistanceMetric dm, Random rand)
+    public EMGaussianMixture(DistanceMetric dm, Random rand)
     {
         super(dm, rand);
     }
 
-    public GaussianMixture(DistanceMetric dm)
+    public EMGaussianMixture(DistanceMetric dm)
     {
         super(dm);
     }
 
-    public GaussianMixture()
+    public EMGaussianMixture()
     {
         super();
     }
@@ -55,7 +56,7 @@ public class GaussianMixture extends KMeans implements MultivariateDistribution
      * Copy constructor. The new Gaussian Mixture can be altered without effecting <tt>gm</tt>
      * @param gm the Guassian Mixture to duplicate
      */
-    public GaussianMixture(GaussianMixture gm)
+    public EMGaussianMixture(EMGaussianMixture gm)
     {
         if(gm.gaussians != null && !gm.gaussians.isEmpty())
         {
@@ -75,7 +76,7 @@ public class GaussianMixture extends KMeans implements MultivariateDistribution
      * @param a_k value to copy
      * @param tolerance value to copy
      */
-    private GaussianMixture(List<NormalM> gaussians, double[] a_k, double tolerance)
+    private EMGaussianMixture(List<NormalM> gaussians, double[] a_k, double tolerance)
     {
         this.gaussians = new ArrayList<NormalM>(a_k.length);
         this.a_k = new double[a_k.length];
@@ -323,8 +324,33 @@ public class GaussianMixture extends KMeans implements MultivariateDistribution
     }
 
     @Override
-    public GaussianMixture clone()
+    public EMGaussianMixture clone()
     {
-        return new GaussianMixture(this);
+        return new EMGaussianMixture(this);
+    }
+
+    public List<Vec> sample(int count, Random rand)
+    {
+        List<Vec> samples = new ArrayList<Vec>(count);
+        
+        //First we need the figure out which of the mixtures to sample from
+        //So generate [0,1] uniform values to determine 
+        double[] priorTargets = new double[count];
+        for(int i = 0; i < count; i++)
+            priorTargets[i] = rand.nextDouble();
+        Arrays.sort(priorTargets);
+        int subSampleSize = 0;
+        int currentGaussian = 0;
+        int pos = 0;
+        double a_kSum = 0.0;
+        while(currentGaussian < a_k.length)
+        {
+            a_kSum += a_k[currentGaussian];
+            while(pos < count && priorTargets[pos++] < a_kSum)
+                subSampleSize++;
+            samples.addAll(gaussians.get(currentGaussian++).sample(subSampleSize, rand));
+        }
+        
+        return samples;
     }
 }
