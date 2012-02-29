@@ -2,7 +2,12 @@
 package jsat.utils;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  *
@@ -42,5 +47,43 @@ public class ListUtils
         }
         
         return chunks;
+    }
+    
+    /**
+     * Collects all future values in a collection into a list, and returns said list. This method will block until all future objects are collected. 
+     * @param <T> the type of future object
+     * @param futures the collection of future objects
+     * @return a list containing the object from the future. 
+     * @throws ExecutionException 
+     * @throws InterruptedException 
+     */
+    public static <T> List<T> collectFutures(Collection<Future<T>> futures) throws ExecutionException, InterruptedException
+    {
+        ArrayList<T> collected = new ArrayList<T>(futures.size());
+
+        for (Future<T> future : futures)
+                collected.add(future.get());
+
+        return collected;
+    }
+    
+    /**
+     * Adds values into the given collection using integer in the specified range and step size. 
+     * If the <tt>start</tt> value is greater or equal to the <tt>to</tt> value, nothing will 
+     * be added to the collection. 
+     * 
+     * @param c the collection to add to 
+     * @param start the first value to add, inclusive
+     * @param to the last value to add, exclusive
+     * @param step the step size. 
+     * @throws RuntimeException if the step size is zero or negative.
+     */
+    public static void addRange(Collection<Integer> c, int start, int to, int step)
+    {
+        if(step <= 0)
+            throw new RuntimeException("Would create an infinite loop");
+        
+        for(int i = start; i < to; i+= step)
+            c.add(i);
     }
 }
