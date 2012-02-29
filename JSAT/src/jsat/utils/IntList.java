@@ -88,6 +88,7 @@ public class IntList extends AbstractList<Integer>
     public boolean add(int e)
     {
         enlargeIfNeeded(1);
+        array[end++] = e;
         return true;
     }
     
