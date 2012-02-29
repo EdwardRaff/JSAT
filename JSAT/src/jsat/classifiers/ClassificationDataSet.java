@@ -404,6 +404,21 @@ public class ClassificationDataSet extends DataSet<ClassificationDataSet>
         
         return dataPoints;
     }
+    
+    /**
+     * Computes the prior probabilities of each class, and returns an array containing the values. 
+     * @return the array of prior probabilities
+     */
+    public double[] getPriors()
+    {
+        double[] priors = new double[getClassSize()];
+        
+        double size = getSampleSize();
+        for(int i = 0; i < classifiedExamples.size(); i++)
+            priors[i] = classifiedExamples.get(i).size()/size;
+        
+        return priors;
+    }
 
     @Override
     public int getSampleSize()
