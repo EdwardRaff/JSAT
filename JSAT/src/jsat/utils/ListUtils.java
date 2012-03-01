@@ -50,6 +50,19 @@ public class ListUtils
     }
     
     /**
+     * Swaps the values in the list at the given positions
+     * @param list the list to perform the swap in
+     * @param i the first position to swap
+     * @param j the second position to swap
+     */
+    public static void swap(List list, int i, int j)
+    {
+        Object tmp = list.get(i);
+        list.set(i, list.get(j));
+        list.set(j, tmp);
+    }
+    
+    /**
      * Collects all future values in a collection into a list, and returns said list. This method will block until all future objects are collected. 
      * @param <T> the type of future object
      * @param futures the collection of future objects
