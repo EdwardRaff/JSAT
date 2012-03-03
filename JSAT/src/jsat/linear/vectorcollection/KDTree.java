@@ -41,6 +41,7 @@ public class KDTree<V extends Vec> implements VectorCollection<V>
     private DistanceMetric distanceMetric;
     private KDNode root;
     private PivotSelection pvSelection;
+    private int size;
     
     /**
      * KDTree uses an index of the vector at each stage to use as a pivot, 
@@ -78,6 +79,7 @@ public class KDTree<V extends Vec> implements VectorCollection<V>
             throw new ArithmeticException("KD Trees are not compatible with the given distance metric.");
         this.distanceMetric = distanceMetric;
         this.pvSelection = pvSelection;
+        this.size = vecs.size();
         if(threadpool == null)
             this.root = buildTree(vecs, 0, null, null);
         else
@@ -343,6 +345,11 @@ public class KDTree<V extends Vec> implements VectorCollection<V>
         distanceSearch(query, close, knns, range);
         if(diff*diff <= range)
             distanceSearch(query, far, knns, range);
+    }
+    
+    public int size()
+    {
+        throw new UnsupportedOperationException("Not supported yet.");
     }
     
     public List<VecPaired<Double,V>> search(Vec query, double range)

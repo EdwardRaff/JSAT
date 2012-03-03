@@ -36,7 +36,8 @@ public class VPTree<V extends Vec> implements VectorCollection<V>
     private int searchIterations;
     private TreeNode root;
     private VPSelection vpSelection;
-    
+    private int size;
+
     public enum VPSelection
     {
         /**
@@ -57,6 +58,7 @@ public class VPTree<V extends Vec> implements VectorCollection<V>
         this.rand = rand;
         this.sampleSize = sampleSize;
         this.searchIterations = searchIterations;
+        this.size = list.size();
         List<ProbailityMatch<V>> tmpList = new ArrayList<ProbailityMatch<V>>(list.size());
         for(V v : list)
             tmpList.add(new ProbailityMatch<V>(-1, v));
@@ -96,6 +98,11 @@ public class VPTree<V extends Vec> implements VectorCollection<V>
         this(list, dm, VPSelection.Random);
     }
     
+    public int size()
+    {
+        return size;
+    }
+        
     public List<VecPaired<Double, V>> search(Vec query, double range)
     {
         if(range <= 0)

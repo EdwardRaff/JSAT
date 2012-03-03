@@ -32,4 +32,10 @@ public interface VectorCollection<V extends Vec>
      * @return the list the k nearest neighbors, in sorted order from closest to farthest. The paired value contains the distance to the query vector
      */
     public List<VecPaired<Double, V>> search(Vec query, int neighbors);
+    
+    /**
+     * Returns the number of vectors stored in the collection
+     * @return the size of the collection
+     */
+    public int size();
 }

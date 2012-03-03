@@ -115,6 +115,11 @@ public class RTree<V extends Vec> implements VectorCollection<V>
                 if(query.contains(node.points.get(i)))
                     list.add(node.points.get(i));
     }
+
+    public int size()
+    {
+        return size;
+    }
     
     private class RNode<V extends Vec> implements Comparable<RNode<V>>
     {
@@ -425,6 +430,7 @@ public class RTree<V extends Vec> implements VectorCollection<V>
         }
     }
     
+    private int size;
     private RNode root;
     
     /**
@@ -795,6 +801,8 @@ public class RTree<V extends Vec> implements VectorCollection<V>
          */
         AdjustTree(L, LL);
         //step I4 handeled in AdjustTree
+        
+        size++;
     }
     
     /**
