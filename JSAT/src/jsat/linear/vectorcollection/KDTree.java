@@ -121,7 +121,13 @@ public class KDTree<V extends Vec> implements VectorCollection<V>
         this(vecs, distanceMetric, PivotSelection.Variance);
     }
     
-    private class KDNode 
+    private KDTree(DistanceMetric distanceMetric, PivotSelection pvSelection)
+    {
+        this.distanceMetric = distanceMetric;
+        this.pvSelection = pvSelection;
+    }
+    
+    private class KDNode implements Cloneable
     {
         V locatin;
         int axis;
@@ -174,7 +180,17 @@ public class KDTree<V extends Vec> implements VectorCollection<V>
         {
             return right;
         }
-        
+
+        @Override
+        protected KDNode clone() 
+        {
+            KDNode clone = new KDNode( (V)locatin.clone(), axis);
+            if(this.left != null)
+                clone.left = this.left.clone();
+            if(this.right != null)
+                clone.right = this.right.clone();
+            return clone;
+        }
     }
     
     private class VecIndexComparator implements Comparator<Vec>
@@ -371,6 +387,16 @@ public class KDTree<V extends Vec> implements VectorCollection<V>
         return vecs;
         
     }
+
+    @Override
+    public KDTree<V> clone()
+    {
+        KDTree<V> clone = new KDTree<V>(distanceMetric, pvSelection);
+        clone.size = this.size;
+        if(this.root != null)
+            clone.root = this.root.clone();
+        return null;
+    }
     
     public static class KDTreeFactory<V extends Vec> implements VectorCollectionFactory<V>
     {
@@ -405,5 +431,13 @@ public class KDTree<V extends Vec> implements VectorCollection<V>
         {
             return new KDTree<V>(source, distanceMetric, pivotSelectionMethod, threadpool);
         }
+
+        @Override
+        public KDTreeFactory<V> clone() 
+        {
+            return new KDTreeFactory<V>(pivotSelectionMethod);
+        }
+        
+        
     }
 }

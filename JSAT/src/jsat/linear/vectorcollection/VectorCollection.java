@@ -14,7 +14,7 @@ import jsat.linear.VecPaired;
  * 
  * @author Edward Raff
  */
-public interface VectorCollection<V extends Vec>
+public interface VectorCollection<V extends Vec> extends Cloneable
 {
 
     /**
@@ -38,4 +38,6 @@ public interface VectorCollection<V extends Vec>
      * @return the size of the collection
      */
     public int size();
+    
+    public VectorCollection<V> clone();
 }

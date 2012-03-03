@@ -11,7 +11,7 @@ import jsat.linear.distancemetrics.DistanceMetric;
  * 
  * @author Edward Raff
  */
-public interface VectorCollectionFactory<V extends Vec>
+public interface VectorCollectionFactory<V extends Vec> extends Cloneable
 {
     /**
      * Creates a new Vector Collection from the given source using the provided metric. 
@@ -31,4 +31,6 @@ public interface VectorCollectionFactory<V extends Vec>
      * @return  a new vector collection
      */
     public VectorCollection<V> getVectorCollection(List<V> source, DistanceMetric distanceMetric, ExecutorService threadpool);
+    
+    public VectorCollectionFactory<V> clone();
 }

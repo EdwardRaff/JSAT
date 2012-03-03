@@ -98,6 +98,17 @@ public class VPTree<V extends Vec> implements VectorCollection<V>
         this(list, dm, VPSelection.Random);
     }
     
+    private VPTree(DistanceMetric dm, Random rand, int sampleSize, int searchiterations, TreeNode root, VPSelection vpSelection, int size)
+    {
+        this.dm = dm;
+        this.rand = new Random(rand.nextInt());
+        this.sampleSize = sampleSize;
+        this.searchIterations = searchiterations;
+        this.root = root == null ? root : root.clone();
+        this.vpSelection = vpSelection;
+        this.size = size;
+    }
+    
     public int size()
     {
         return size;
@@ -264,8 +275,14 @@ public class VPTree<V extends Vec> implements VectorCollection<V>
             return S.remove(bestVP).getMatch();
         }
     }
+
+    @Override
+    public VPTree<V> clone()
+    {
+        return new VPTree<V>(dm, rand, sampleSize, searchIterations, root, vpSelection, size);
+    }
     
-    private abstract class TreeNode
+    private abstract class TreeNode implements Cloneable
     {
         /**
          * Performs a KNN query on this node. 
@@ -290,6 +307,9 @@ public class VPTree<V extends Vec> implements VectorCollection<V>
          * Initial calls from the root node may choose to us zero. 
          */
         public abstract void searchRange(Vec query, double range, List<VecPaired<Double, V>> list, double x);
+        
+        @Override
+        public abstract TreeNode clone();
     }
     
     private class VPNode extends TreeNode
@@ -355,6 +375,21 @@ public class VPTree<V extends Vec> implements VectorCollection<V>
             if (searchInRight(x, range))
                 this.right.searchRange(query, range, list, x);
         }
+
+        @Override
+        public TreeNode clone()
+        {
+            VPNode clone = new VPNode(p);
+            clone.left_low  = this.left_low;
+            clone.left_high = this.right_high;
+            clone.right_low = this.right_low;
+            clone.right_high = this.right_high;
+            if(this.left != null)
+                clone.left = this.left.clone();
+            if(this.right != null)
+                clone.left = this.right.clone();
+            return clone;
+        }
     }
     
     private class VPLeaf extends TreeNode
@@ -371,6 +406,14 @@ public class VPTree<V extends Vec> implements VectorCollection<V>
                 this.points[i] = points.get(i).getMatch();
                 this.bounds[i] = points.get(i).getProbability();
             }
+        }
+        
+        public VPLeaf(Vec[] points, double[] bounds)
+        {
+            this.bounds = Arrays.copyOf(bounds, bounds.length);
+            this.points = new Vec[points.length];
+            for(int i = 0; i < points.length; i++)
+                this.points[i] = points[i].clone();
         }
 
         @Override
@@ -404,7 +447,12 @@ public class VPTree<V extends Vec> implements VectorCollection<V>
                     if ((dist = dm.dist(query, points[i])) < range)
                         list.add(new VecPaired<Double, V>((V)points[i], dist));
         }
-        
+
+        @Override
+        public TreeNode clone()
+        {
+            return new VPLeaf(points, bounds);
+        }
     }
     
     public static class VPTreeFactory<V extends Vec> implements VectorCollectionFactory<V>
@@ -429,6 +477,12 @@ public class VPTree<V extends Vec> implements VectorCollection<V>
         public VectorCollection<V> getVectorCollection(List<V> source, DistanceMetric distanceMetric, ExecutorService threadpool)
         {
             return new VPTree<V>(source, distanceMetric, vpSelectionMethod, new Random(10), 80, 40, threadpool);
+        }
+
+        @Override
+        public VectorCollectionFactory<V> clone()
+        {
+            return new VPTreeFactory<V>(vpSelectionMethod);
         }
     }
 }

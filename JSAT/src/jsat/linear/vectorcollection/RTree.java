@@ -120,8 +120,13 @@ public class RTree<V extends Vec> implements VectorCollection<V>
     {
         return size;
     }
+
+    public VectorCollection<V> clone()
+    {
+        throw new UnsupportedOperationException("Not supported yet.");
+    }
     
-    private class RNode<V extends Vec> implements Comparable<RNode<V>>
+    private class RNode<V extends Vec> implements Comparable<RNode<V>>, Cloneable
     {
         List<RNode<V>> children;
         RNode<V> parent;
@@ -219,9 +224,27 @@ public class RTree<V extends Vec> implements VectorCollection<V>
             else
                 return children.size();
         }
+
+        @Override
+        protected RNode<V> clone()
+        {
+            RNode<V> clone = new RNode<V>();
+            for(RNode<V> child : this.children)
+            {
+                RNode<V> cloneChild = child.clone();
+                cloneChild.parent = clone;
+                clone.children.add(cloneChild);
+            }
+            for(V v : points)
+                clone.points.add(v);
+            if(this.bound != null)
+                clone.bound = this.bound.clone();
+            
+            return clone;
+        }
     }
     
-    static private class Rectangle
+    static private class Rectangle implements Cloneable
     {
         /**
          * The maximum values for the rectangle
@@ -406,8 +429,12 @@ public class RTree<V extends Vec> implements VectorCollection<V>
             sb.append("]");
             return sb.toString();
         }
-        
-        
+
+        @Override
+        protected Rectangle clone()
+        {
+            return new Rectangle(uB.clone(), lB.clone());
+        }
         
         static <V extends Vec> Rectangle contains(List<V> points)
         {
@@ -919,6 +946,12 @@ public class RTree<V extends Vec> implements VectorCollection<V>
         public VectorCollection<V> getVectorCollection(List<V> source, DistanceMetric distanceMetric, ExecutorService threadpool)
         {
             return getVectorCollection(source, distanceMetric);
+        }
+
+        @Override
+        public RTreeFactory<V> clone()
+        {
+            return new RTreeFactory<V>();
         }
     }
 }

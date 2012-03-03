@@ -83,6 +83,15 @@ public class VectorArray<V extends Vec> extends ArrayList<V> implements VectorCo
         return knnsList;
         
     }
+
+    @Override
+    public VectorArray<V> clone()
+    {
+        VectorArray<V> clone = new VectorArray<V>(distanceMetric, size());
+        for(V v : this)
+            clone.add((V)v.clone());
+        return clone;
+    }
     
     public static class VectorArrayFactory<V extends Vec> implements VectorCollectionFactory<V>
     {
@@ -94,6 +103,12 @@ public class VectorArray<V extends Vec> extends ArrayList<V> implements VectorCo
         public VectorCollection<V> getVectorCollection(List<V> source, DistanceMetric distanceMetric, ExecutorService threadpool)
         {
             return getVectorCollection(source, distanceMetric);
+        }
+
+        @Override
+        public VectorArrayFactory<V> clone()
+        {
+            return new VectorArrayFactory<V>();
         }
     }
     
