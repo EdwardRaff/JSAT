@@ -56,6 +56,25 @@ public abstract class Distribution implements Cloneable
      */
     abstract public double invCdf(double p);
     
+    /**
+     * Creates a new function object that corresponds to the {@link #pdf(double) PDF} of this distribution. 
+     * @return a function for the PDF of this distribution
+     */
+    public Function getPDFFunction()
+    {
+        return new Function() {
+
+            public double f(double... x)
+            {
+                return pdf(x[0]);
+            }
+
+            public double f(Vec x)
+            {
+                return pdf(x.get(0));
+            }
+        };
+    }
     
     /**
      * This method is provided as a quick helper function, as any CDF has a 1 to 1 mapping with
