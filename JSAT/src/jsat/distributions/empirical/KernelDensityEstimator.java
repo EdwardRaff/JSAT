@@ -6,7 +6,6 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import jsat.distributions.Distribution;
-import jsat.distributions.Normal;
 import jsat.distributions.empirical.kernelfunc.EpanechnikovKF;
 import jsat.distributions.empirical.kernelfunc.GaussKF;
 import jsat.distributions.empirical.kernelfunc.KernelFunction;
@@ -14,9 +13,7 @@ import jsat.distributions.empirical.kernelfunc.UniformKF;
 import jsat.linear.Vec;
 import jsat.math.Function;
 import jsat.math.OnLineStatistics;
-import jsat.utils.IndexTable;
 import jsat.utils.ProbailityMatch;
-
 /**
  * Kernel Density Estimator, KDE, uses the data set itself to approximate the underlying probability 
  * distribution using {@link KernelFunction Kernel Functions}. 
@@ -34,8 +31,6 @@ public class KernelDensityEstimator extends Distribution
      * can do 2 binary searchs and then a loop. Though this is still 
      * technicaly, O(n), its more accuracly describe as O(n * epsilon * log(n)) , where n * epsilon << n
      */
-    
-    //TODO implement special case fro Uniform kernel 
     
     /**
      * The various values 
@@ -70,9 +65,9 @@ public class KernelDensityEstimator extends Distribution
     /**
      * Automatically selects a good Kernel function for the data set that balances Execution time and accuracy
      * @param dataPoints
-     * @return 
+     * @return a kernel that will work well for the given distribution
      */
-    private static KernelFunction autoKernel(Vec dataPoints )
+    public static KernelFunction autoKernel(Vec dataPoints )
     {
         if(dataPoints.length() < 30)
             return new GaussKF();
@@ -183,6 +178,17 @@ public class KernelDensityEstimator extends Distribution
     @Override
     public double pdf(double x)
     {
+        return pdf(x, -1);
+    }
+    
+    /**
+     * Computes the Leave One Out PDF of the estimator 
+     * @param x the value to get the pdf of
+     * @param j the sorted index of the value to leave. If a negative value is given, the PDF with all values is returned
+     * @return the pdf with the given index left out
+     */
+    private double pdf(double x, int j)
+    {
         /*
          *              n
          *            =====  /x - x \
@@ -201,11 +207,15 @@ public class KernelDensityEstimator extends Distribution
         //Mostly likely the exact value of x is not in the list, so it retursn the inseration points
         from = from < 0 ? -from-1 : from;
         to = to < 0 ? -to-1 : to;
-                
+        
+        //Univareiate opt, if uniform weights, the sum is just the number of elements divide by half
+        if(weights.length == 0 && k instanceof UniformKF)
+            return (to-from)*0.5/ (sumOFWeights*h);
         
         double sum = 0;
         for(int i = Math.max(0, from); i < Math.min(X.length, to+1); i++)
-            sum += k.k( (x-X[i])/h )*getWeight(i);
+            if(i != j)
+                sum += k.k( (x-X[i])/h )*getWeight(i);
         
         return sum / (sumOFWeights * h);
     }
@@ -344,7 +354,7 @@ public class KernelDensityEstimator extends Distribution
     }
 
     @Override
-    public Distribution clone()
+    public KernelDensityEstimator clone()
     {
         return new KernelDensityEstimator(X, h, Xmean, Xvar, Xskew, k, sumOFWeights, weights);
     }

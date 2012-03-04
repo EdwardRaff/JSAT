@@ -9,6 +9,11 @@ package jsat.distributions.empirical.kernelfunc;
  */
 public interface KernelFunction
 {
+    /**
+     * Returns the weight to be applied to a sample for the normalized distance of two data points. 
+     * @param u the distance of the data points
+     * @return the value in [0, 1) of the amount of weight to give to the sample based on its distance 
+     */
     public double k(double u);
     /**
      * Computes the value of the finite integral from -Infinity up to the value u, of the function given by {@link #k(double) }
@@ -17,6 +22,10 @@ public interface KernelFunction
      */
     public double intK(double u);
     
+    /**
+     * Returns the variance of the kernel function
+     * @return the variance of the kernel function
+     */
     public double k2();
     
     /**
