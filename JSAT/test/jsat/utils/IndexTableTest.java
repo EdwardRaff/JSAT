@@ -4,6 +4,7 @@
  */
 package jsat.utils;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Arrays;
 import java.util.Collections;
@@ -71,6 +72,29 @@ public class IndexTableTest
         IndexTable idt = new IndexTable(list);
         for(int i = 0; i < idt.length()-1; i++)
             assertTrue(list.get(idt.index(i)).compareTo(list.get(idt.index(i+1))) <= 0);
+    }
+    
+    @Test
+    public void testApply_double()
+    {
+        IndexTable idt = new IndexTable(array);
+        double[] test = Arrays.copyOf(array, array.length);
+        idt.apply(test);
+        for(int i = 0; i < test.length-1; i++)
+            assertTrue(test[i] <= test[i+1]);
+    }
+    
+    @Test
+    public void testApply_List()
+    {
+        IndexTable idt = new IndexTable(array);
+        List<Double> test = new ArrayList<Double>();
+        for(double d : array)
+            test.add(d);
+        
+        idt.apply(test);
+        for(int i = 0; i < test.size()-1; i++)
+            assertTrue(test.get(i) <= test.get(i+1));
     }
     
     @Test
