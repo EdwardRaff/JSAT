@@ -1,12 +1,20 @@
 
 package jsat.distributions.multivariate;
 
+import java.util.List;
+import java.util.concurrent.ExecutorService;
 import jsat.DataSet;
+import jsat.classifiers.DataPoint;
 import jsat.linear.DenseVector;
 import jsat.linear.Vec;
 
 /**
- * Common class for implementing a multivariate distribution. A number of methods are pre implemented, building off of the implementation of the remaining methods. 
+ * Common class for implementing a multivariate distribution. A number of methods are pre implemented,
+ * building off of the implementation of the remaining methods. <br>
+ * Note: the default implementation for the multithreaded methods calls the non threaded version of the method. 
+ * The exception to this is the {@link #setUsingData(jsat.DataSet, java.util.concurrent.ExecutorService) } method,
+ * which calls {@link #setUsingData(java.util.List, java.util.concurrent.ExecutorService) }
+ * 
  * @author Edward Raff
  */
 public abstract class MultivariateDistributionSkeleton implements MultivariateDistribution
@@ -34,6 +42,21 @@ public abstract class MultivariateDistributionSkeleton implements MultivariateDi
         return setUsingDataList(dataSet.getDataPoints());
     }
 
+    public boolean setUsingData(DataSet dataSet, ExecutorService threadpool)
+    {
+        return setUsingData(dataSet.getDataPoints(), threadpool);
+    }
+
+    public <V extends Vec> boolean setUsingData(List<V> dataSet, ExecutorService threadpool)
+    {
+        return setUsingData(dataSet);
+    }
+
+    public boolean setUsingDataList(List<DataPoint> dataPoints, ExecutorService threadpool)
+    {
+        return setUsingDataList(dataPoints);
+    }
+    
     @Override
     abstract public MultivariateDistribution clone();
 }

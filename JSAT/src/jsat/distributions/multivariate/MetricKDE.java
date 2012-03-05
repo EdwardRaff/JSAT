@@ -10,11 +10,14 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import jsat.classifiers.DataPoint;
 import jsat.distributions.empirical.KernelDensityEstimator;
+import jsat.distributions.empirical.kernelfunc.EpanechnikovKF;
 import jsat.distributions.empirical.kernelfunc.KernelFunction;
 import jsat.exceptions.UntrainedModelException;
 import jsat.linear.Vec;
 import jsat.linear.VecPaired;
 import jsat.linear.distancemetrics.DistanceMetric;
+import jsat.linear.distancemetrics.EuclideanDistance;
+import jsat.linear.vectorcollection.VPTree.VPTreeFactory;
 import jsat.linear.vectorcollection.VectorCollection;
 import jsat.linear.vectorcollection.VectorCollectionFactory;
 import jsat.linear.vectorcollection.VectorCollectionUtils;
@@ -36,7 +39,52 @@ public class MetricKDE extends MultivariateKDE
     private DistanceMetric distanceMetric;
     private VectorCollectionFactory<VecPaired<Integer, Vec>> vcf;
     private VectorCollection<VecPaired<Integer, Vec>> vecCollection;
+    private int defaultK;
+    private double defaultStndDev;
+    
+    /**
+     * When estimating the bandwidth, the distances of the k'th nearest 
+     * neighbors are used to perform the estimate. The default value of
+     * this k is {@value #DEFAULT_K}
+     */
+    public static final int DEFAULT_K = 3;
+    
+    /**
+     * When estimating the bandwidth, the distances of the k'th nearest
+     * neighbors are used to perform the estimate. The default number of
+     * standard deviations from the mean to add to the bandwidth estimate
+     * is {@value #DEFAULT_STND_DEV}
+     */
+    public static final double DEFAULT_STND_DEV = 2.0;
 
+    /**
+     * Creates a new KDE object that still needs a data set to model the distribution of
+     */
+    public MetricKDE()    
+    {
+        this(new EpanechnikovKF(), new EuclideanDistance(), new VPTreeFactory<VecPaired<Integer, Vec>>());
+    }
+
+    /**
+     * Creates a new KDE object that still needs a data set to model the distribution of
+     * 
+     * @param distanceMetric the distance metric to use
+     */
+    public MetricKDE(DistanceMetric distanceMetric)    
+    {
+        this(new EpanechnikovKF(), distanceMetric, new VPTreeFactory<VecPaired<Integer, Vec>>());
+    }
+    
+    /**
+     * Creates a new KDE object that still needs a data set to model the distribution of
+     * @param distanceMetric the distance metric to use
+     * @param vcf a factory to generate vector collection from
+     */
+    public MetricKDE(DistanceMetric distanceMetric, VectorCollectionFactory<VecPaired<Integer, Vec>> vcf)    
+    {
+        this(new EpanechnikovKF(), distanceMetric, vcf);
+    }
+    
     /**
      * Creates a new KDE object that still needs a data set to model the distribution of
      * @param kf the kernel function to use
@@ -45,9 +93,24 @@ public class MetricKDE extends MultivariateKDE
      */
     public MetricKDE(KernelFunction kf, DistanceMetric distanceMetric, VectorCollectionFactory<VecPaired<Integer, Vec>> vcf)
     {
+        this(kf, distanceMetric, vcf, DEFAULT_K, DEFAULT_STND_DEV);
+    }
+    
+    /**
+     * Creates a new KDE object that still needs a data set to model the distribution of
+     * @param kf the kernel function to use
+     * @param distanceMetric the distance metric to use
+     * @param vcf a factory to generate vector collection from
+     * @param defaultK the default neighbor to use when estimating the bandwidth
+     * @param defaultStndDev the default multiple of standard deviations to add when estimating the bandwidth
+     */
+    public MetricKDE(KernelFunction kf, DistanceMetric distanceMetric, VectorCollectionFactory<VecPaired<Integer, Vec>> vcf, int defaultK, double defaultStndDev)
+    {
         this.kf = kf;
         this.distanceMetric = distanceMetric;
         this.vcf = vcf;
+        setDefaultK(defaultK);
+        setDefaultStndDev(defaultStndDev);
     }
 
     /**
@@ -73,6 +136,51 @@ public class MetricKDE extends MultivariateKDE
         return bandwidth;
     }
 
+    /**
+     * When estimating the bandwidth, the mean of the k'th nearest neighbors to each data point
+     * is used. This value controls the default value of k used when it is not specified. 
+     * 
+     * @param defaultK 
+     */
+    public void setDefaultK(int defaultK)
+    {
+        if(defaultK <= 0)
+            throw new ArithmeticException("At least one neighbor must be taken into acount, " + defaultK + " is invalid");
+        this.defaultK = defaultK;
+    }
+
+    /**
+     * Returns the default value of the k'th nearest neighbor to use when not specified. 
+     * @return the default neighbor used to estimate the bandwidth when not specified 
+     */
+    public int getDefaultK()
+    {
+        return defaultK;
+    }
+
+    /**
+     * When estimating the bandwidth, the mean of the neighbor distances is used, and a multiple of 
+     * the standard deviations is added. This controls the multiplier value used when the bandwidth is not specified. 
+     * Zero and negative multipliers are allowed, but a negative multiplier may result in the fitting failing. 
+     * 
+     * @param defaultStndDev the multiple of the standard deviation to add the to bandwidth estimate
+     */
+    public void setDefaultStndDev(double defaultStndDev)
+    {
+        if(Double.isInfinite(defaultStndDev) || Double.isNaN(defaultStndDev))
+            throw new ArithmeticException("The number of standard deviations to remove must be number, not " + defaultStndDev);
+        this.defaultStndDev = defaultStndDev;
+    }
+
+    /**
+     * Returns the multiple of the standard deviations that is added to the bandwidth estimate 
+     * @return the multiple of the standard deviations that is added to the bandwidth estimate 
+     */
+    public double getDefaultStndDev()
+    {
+        return defaultStndDev;
+    }
+    
     @Override
     public MetricKDE clone()
     {
@@ -150,7 +258,7 @@ public class MetricKDE extends MultivariateKDE
      */
     public <V extends Vec> boolean setUsingData(List<V> dataSet, int k)
     {
-        return setUsingData(dataSet, k, 2.0);
+        return setUsingData(dataSet, k, defaultStndDev);
     }
     
     /**
@@ -163,7 +271,7 @@ public class MetricKDE extends MultivariateKDE
      */
     public <V extends Vec> boolean setUsingData(List<V> dataSet, int k, ExecutorService threadpool)
     {
-        return setUsingData(dataSet, k, 2.0, threadpool);
+        return setUsingData(dataSet, k, defaultK, threadpool);
     }
     
     /**
@@ -228,15 +336,30 @@ public class MetricKDE extends MultivariateKDE
     
     public <V extends Vec> boolean setUsingData(List<V> dataSet)
     {
-        return setUsingData(dataSet, 3);
+        return setUsingData(dataSet, defaultK);
     }
 
+    @Override
+    public <V extends Vec> boolean setUsingData(List<V> dataSet, ExecutorService threadpool)
+    {
+        return setUsingData(dataSet, defaultK, threadpool);
+    }
+    
     public boolean setUsingDataList(List<DataPoint> dataPoints)
     {
         List<Vec> dataSet = new ArrayList<Vec>(dataPoints.size());
         for(DataPoint dp : dataPoints)
             dataSet.add(dp.getNumericalValues());
         return setUsingData(dataSet);
+    }
+
+    @Override
+    public boolean setUsingDataList(List<DataPoint> dataPoints, ExecutorService threadpool)
+    {
+        List<Vec> dataSet = new ArrayList<Vec>(dataPoints.size());
+        for(DataPoint dp : dataPoints)
+            dataSet.add(dp.getNumericalValues());
+        return setUsingData(dataSet, threadpool);
     }
 
     /**

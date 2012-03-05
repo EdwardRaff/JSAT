@@ -3,6 +3,7 @@ package jsat.distributions.multivariate;
 
 import java.util.List;
 import java.util.Random;
+import java.util.concurrent.ExecutorService;
 import jsat.DataSet;
 import jsat.classifiers.DataPoint;
 import jsat.linear.DenseVector;
@@ -60,30 +61,65 @@ public interface MultivariateDistribution extends Cloneable
     /**
      * Sets the parameters of the distribution to attempt to fit the given list of vectors.
      * All vectors are assumed to have the same weight. 
+     * @param <V> the vector type
      * @param dataSet the list of data points
      * @return <tt>true</tt> if the distribution was fit to the data, or <tt>false</tt> 
      * if the distribution could not be fit to the data set. 
      */
     public <V extends Vec> boolean setUsingData(List<V> dataSet);
+    
     /**
-     * Sets the parameters of the distribution to attempt to fit the given list of data points. 
-     * The {@link DataPoint#getWeight()  weights} of the data points will be used.
-     * 
-     * @param dataPoint the list of data points to use
+     * Sets the parameters of the distribution to attempt to fit the given list of vectors.
+     * All vectors are assumed to have the same weight. 
+     * @param <V> the vector type
+     * @param dataSet the list of data points
+     * @param threadpool the source of threads for computation
      * @return <tt>true</tt> if the distribution was fit to the data, or <tt>false</tt> 
      * if the distribution could not be fit to the data set. 
      */
-    public boolean setUsingDataList(List<DataPoint> dataPoint);
+    public <V extends Vec> boolean setUsingData(List<V> dataSet, ExecutorService threadpool);
     
     /**
      * Sets the parameters of the distribution to attempt to fit the given list of data points. 
      * The {@link DataPoint#getWeight()  weights} of the data points will be used.
      * 
-     * @param dataPoint the data set to use
+     * @param dataPoints the list of data points to use
+     * @return <tt>true</tt> if the distribution was fit to the data, or <tt>false</tt> 
+     * if the distribution could not be fit to the data set. 
+     */
+    public boolean setUsingDataList(List<DataPoint> dataPoints);
+    
+    /**
+     * Sets the parameters of the distribution to attempt to fit the given list of data points. 
+     * The {@link DataPoint#getWeight()  weights} of the data points will be used.
+     * 
+     * @param dataPoints the list of data points to use
+     * @param threadpool the source of threads for computation
+     * @return <tt>true</tt> if the distribution was fit to the data, or <tt>false</tt> 
+     * if the distribution could not be fit to the data set. 
+     */
+    public boolean setUsingDataList(List<DataPoint> dataPoints, ExecutorService threadpool);
+    
+    /**
+     * Sets the parameters of the distribution to attempt to fit the given list of data points. 
+     * The {@link DataPoint#getWeight()  weights} of the data points will be used.
+     * 
+     * @param dataSet the data set to use
      * @return <tt>true</tt> if the distribution was fit to the data, or <tt>false</tt> 
      * if the distribution could not be fit to the data set. 
      */
     public boolean setUsingData(DataSet dataSet);
+    
+    /**
+     * Sets the parameters of the distribution to attempt to fit the given list of data points. 
+     * The {@link DataPoint#getWeight()  weights} of the data points will be used.
+     * 
+     * @param dataSet the data set to use
+     * @param threadpool the source of threads for computation
+     * @return <tt>true</tt> if the distribution was fit to the data, or <tt>false</tt> 
+     * if the distribution could not be fit to the data set. 
+     */
+    public boolean setUsingData(DataSet dataSet, ExecutorService threadpool);
 
     public MultivariateDistribution clone();
     

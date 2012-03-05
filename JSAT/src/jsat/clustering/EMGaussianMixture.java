@@ -1,5 +1,6 @@
 package jsat.clustering;
 
+import java.util.concurrent.ExecutorService;
 import jsat.linear.DenseVector;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -321,6 +322,21 @@ public class EMGaussianMixture extends KMeans implements MultivariateDistributio
         {
             return false;
         }
+    }
+
+    public boolean setUsingData(DataSet dataSet, ExecutorService threadpool)
+    {
+        return setUsingData(dataSet);
+    }
+
+    public <V extends Vec> boolean setUsingData(List<V> dataSet, ExecutorService threadpool)
+    {
+        return setUsingData(dataSet);
+    }
+
+    public boolean setUsingDataList(List<DataPoint> dataPoints, ExecutorService threadpool)
+    {
+        return setUsingDataList(dataPoints);
     }
 
     @Override
