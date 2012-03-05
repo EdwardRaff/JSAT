@@ -18,7 +18,7 @@ import static jsat.linear.RowColumnOps.*;
  * <b>NOTE:</b> Current implementation only handles rectangular matrices when the rows are greater then the columns. 
  * @author Edward Raff
  */
-public class SingularValueDecomposition
+public class SingularValueDecomposition implements Cloneable
 {
     private Matrix U, V;
     /**
@@ -67,6 +67,13 @@ public class SingularValueDecomposition
         generateU(nct, nu, m);
         generateV(n, nrt, e, nu);
         mainIterationLoop(p, e, n, m, maxIterations);
+    }
+    
+    private SingularValueDecomposition(Matrix U, Matrix V, double[] s)
+    {
+        this.U = U.clone();
+        this.V = V.clone();
+        this.s = Arrays.copyOf(s, s.length);
     }
 
     private void bidiagonalize(int nct, int nrt, int m, Matrix A, int n, double[] e, double[] work)
@@ -762,5 +769,10 @@ public class SingularValueDecomposition
         
         return V.multiply(x, threadpool);
     }
-    
+
+    @Override
+    public SingularValueDecomposition clone() 
+    {
+        return new SingularValueDecomposition(U, V, s);
+    }
 }

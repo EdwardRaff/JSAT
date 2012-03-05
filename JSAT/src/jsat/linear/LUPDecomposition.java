@@ -12,7 +12,7 @@ import jsat.utils.SystemInfo;
  * This class uses the LUP decomposition of a matrix to provide efficient methods for solving A x = b, as well as computing the determinant of A. 
  * @author Edward Raff
  */
-public class LUPDecomposition
+public class LUPDecomposition implements Cloneable
 {
     private static final int threads = SystemInfo.LogicalCores;
     private final Matrix L, U, P;
@@ -117,6 +117,12 @@ public class LUPDecomposition
         Matrix x = backSub(U, y, threadpool);
         
         return x;
+    }
+
+    @Override
+    protected LUPDecomposition clone() 
+    {
+        return new LUPDecomposition(L.clone(), U.clone(), P.clone());
     }
     
     /**
