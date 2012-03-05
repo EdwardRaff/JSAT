@@ -4,10 +4,18 @@ package jsat.linear.distancemetrics;
 import jsat.linear.Vec;
 
 /**
- *
+ * A distance metric defines the distance between two points in a metric space. 
+ * There are three necessary properties for a metric to be valid, 
+ * {@link #isSymmetric() symmetry}, {@link #isIndiscemible() indisceribility}, 
+ * and the {@link #isSubadditive() triangle inequality } . A metric that does 
+ * not meet all, (or none) or these properties is called a pseudo-metric. Many 
+ * learning algorithms rely on these properties to accelerate computations, 
+ * though may not need all the properties to hold. 
+ * 
+ * 
  * @author Edward Raff
  */
-public interface DistanceMetric
+public interface DistanceMetric extends Cloneable
 {
     /**
      * Computes the distance between 2 vectors. 
@@ -54,4 +62,6 @@ public interface DistanceMetric
      * @return the maximal distance for any two points in that could exist by this distance metric. 
      */
     public double metricBound();
+    
+    public DistanceMetric clone();
 }

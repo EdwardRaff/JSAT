@@ -1,7 +1,3 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
 package jsat.linear.distancemetrics;
 
 import jsat.linear.Vec;
@@ -48,6 +44,12 @@ public class MinkowskiDistance implements DistanceMetric
     public double metricBound()
     {
         return Double.POSITIVE_INFINITY;
+    }
+
+    @Override
+    public MinkowskiDistance clone()
+    {
+        return new MinkowskiDistance(p);
     }
     
 }

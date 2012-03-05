@@ -41,5 +41,11 @@ public class ChebyshevDistance implements DistanceMetric
     {
         return Double.POSITIVE_INFINITY;
     }
+
+    @Override
+    public ChebyshevDistance clone()
+    {
+        return new ChebyshevDistance();
+    }
     
 }

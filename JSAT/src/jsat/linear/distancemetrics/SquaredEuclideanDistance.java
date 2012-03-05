@@ -56,5 +56,11 @@ public class SquaredEuclideanDistance implements DistanceMetric
     {
         return Double.POSITIVE_INFINITY;
     }
+
+    @Override
+    public SquaredEuclideanDistance clone()
+    {
+        return new SquaredEuclideanDistance();
+    }
     
 }

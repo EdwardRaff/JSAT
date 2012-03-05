@@ -34,5 +34,11 @@ public class EuclideanDistance implements DistanceMetric
     {
         return Double.POSITIVE_INFINITY;
     }
+
+    @Override
+    public EuclideanDistance clone()
+    {
+        return new EuclideanDistance();
+    }
     
 }

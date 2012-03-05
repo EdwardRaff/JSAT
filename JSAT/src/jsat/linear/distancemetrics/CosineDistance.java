@@ -44,5 +44,11 @@ public class CosineDistance implements DistanceMetric
     {
         return 2;
     }
+
+    @Override
+    public CosineDistance clone()
+    {
+        return new CosineDistance();
+    }
     
 }

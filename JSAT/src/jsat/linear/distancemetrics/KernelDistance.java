@@ -69,5 +69,11 @@ public class KernelDistance implements DistanceMetric
     {
         return Double.POSITIVE_INFINITY;
     }
+
+    @Override
+    public KernelDistance clone()
+    {
+        return new KernelDistance(kf);
+    }
     
 }
