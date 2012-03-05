@@ -13,7 +13,7 @@ import jsat.classifiers.DataPoint;
 public class MatrixStatistics
 {
     
-    public static Vec MeanVector(List<Vec> dataSet)
+    public static <V extends Vec> Vec MeanVector(List<V> dataSet)
     {
         if(dataSet.isEmpty())
             throw new ArithmeticException("Can not compute the mean of zero data points");
@@ -22,13 +22,14 @@ public class MatrixStatistics
         MeanVector(mean, dataSet);
         return mean;
     }
+    
     /**
      * Computes the mean of the given data set. 
      * 
      * @param mean the zeroed out vector to store the mean in. It's contents will be altered
      * @param dataSet the set of data points to compute the mean from
      */
-    public static void MeanVector(Vec mean, List<Vec> dataSet)
+    public static <V extends Vec> void MeanVector(Vec mean, List<V> dataSet)
     {
         if(dataSet.isEmpty())
             throw new ArithmeticException("Can not compute the mean of zero data points");
@@ -40,14 +41,14 @@ public class MatrixStatistics
         mean.mutableDivide(dataSet.size());
     }
     
-    public static Matrix CovarianceMatrix(Vec mean, List<Vec> dataSet)
+    public static <V extends Vec> Matrix CovarianceMatrix(Vec mean, List<V> dataSet)
     {
         Matrix coMatrix = new DenseMatrix(mean.length(), mean.length());
         CovarianceMatrix(mean, coMatrix, dataSet);
         return coMatrix;
     }
     
-    public static void CovarianceMatrix(Vec mean, Matrix covariance, List<Vec> dataSet)
+    public static <V extends Vec> void CovarianceMatrix(Vec mean, Matrix covariance, List<V> dataSet)
     {
         if(!covariance.isSquare())
             throw new ArithmeticException("Storage for covariance matrix must be square");

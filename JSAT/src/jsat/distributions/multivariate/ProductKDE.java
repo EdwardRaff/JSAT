@@ -167,7 +167,7 @@ public class ProductKDE extends MultivariateKDE
         return logH;
     }
 
-    public boolean setUsingData(List<Vec> dataSet)
+    public <V extends Vec> boolean setUsingData(List<V> dataSet)
     {
         int dimSize = dataSet.get(0).length();
         sortedDimVals = new double[dimSize][dataSet.size()];
@@ -190,7 +190,7 @@ public class ProductKDE extends MultivariateKDE
             idt.apply(sortedDimVals[i]);
             bandwidth[i] = KernelDensityEstimator.BandwithGuassEstimate(DenseVector.toDenseVec(sortedDimVals[i]))*dimSize;
         }
-        this.originalVecs = dataSet;
+        this.originalVecs = (List<Vec>) dataSet;
         
         return true;
     }

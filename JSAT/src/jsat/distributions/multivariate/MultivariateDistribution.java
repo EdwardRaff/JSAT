@@ -64,7 +64,7 @@ public interface MultivariateDistribution extends Cloneable
      * @return <tt>true</tt> if the distribution was fit to the data, or <tt>false</tt> 
      * if the distribution could not be fit to the data set. 
      */
-    public boolean setUsingData(List<Vec> dataSet);
+    public <V extends Vec> boolean setUsingData(List<V> dataSet);
     /**
      * Sets the parameters of the distribution to attempt to fit the given list of data points. 
      * The {@link DataPoint#getWeight()  weights} of the data points will be used.

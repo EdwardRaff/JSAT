@@ -297,7 +297,7 @@ public class EMGaussianMixture extends KMeans implements MultivariateDistributio
         return PDF;
     }
 
-    public boolean setUsingData(List<Vec> dataSet)
+    public <V extends Vec> boolean setUsingData(List<V> dataSet)
     {
         List<DataPoint> dataPoints = new ArrayList<DataPoint>(dataSet.size());
         for(Vec x :  dataSet)

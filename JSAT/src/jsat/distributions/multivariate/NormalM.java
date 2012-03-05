@@ -141,7 +141,7 @@ public class NormalM extends MultivariateDistributionSkeleton
     }
 
     @Override
-    public boolean setUsingData(List<Vec> dataSet)
+    public <V extends Vec> boolean setUsingData(List<V> dataSet)
     {
         Vec origMean = this.mean;
         try

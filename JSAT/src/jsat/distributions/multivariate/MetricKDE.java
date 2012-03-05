@@ -115,7 +115,7 @@ public class MetricKDE extends MultivariateKDE
      * @param bandwith the bandwidth 
      * @return <tt>true</tt> if the model was fit, <tt>false</tt> if it could not be fit. 
      */
-    public boolean setUsingData(List<Vec> dataSet, double bandwith)
+    public <V extends Vec> boolean setUsingData(List<V> dataSet, double bandwith)
     {
         return setUsingData(dataSet, bandwith, null);
     }
@@ -127,7 +127,7 @@ public class MetricKDE extends MultivariateKDE
      * @param threadpool the source of threads for parallel construction
      * @return <tt>true</tt> if the model was fit, <tt>false</tt> if it could not be fit. 
      */
-    public boolean setUsingData(List<Vec> dataSet, double bandwith, ExecutorService threadpool)
+    public <V extends Vec> boolean setUsingData(List<V> dataSet, double bandwith, ExecutorService threadpool)
     {
         setBandwith(bandwith);
         List<VecPaired<Integer, Vec>> indexVectorPair = new ArrayList<VecPaired<Integer, Vec>>(dataSet.size());
@@ -148,7 +148,7 @@ public class MetricKDE extends MultivariateKDE
      * @param k the number of neighbors to use to estimate the bandwidth
      * @return <tt>true</tt> if the model was fit, <tt>false</tt> if it could not be fit. 
      */
-    public boolean setUsingData(List<Vec> dataSet, int k)
+    public <V extends Vec> boolean setUsingData(List<V> dataSet, int k)
     {
         return setUsingData(dataSet, k, 2.0);
     }
@@ -161,7 +161,7 @@ public class MetricKDE extends MultivariateKDE
      * @param threadpool the source of threads for computation
      * @return <tt>true</tt> if the model was fit, <tt>false</tt> if it could not be fit. 
      */
-    public boolean setUsingData(List<Vec> dataSet, int k, ExecutorService threadpool)
+    public <V extends Vec> boolean setUsingData(List<V> dataSet, int k, ExecutorService threadpool)
     {
         return setUsingData(dataSet, k, 2.0, threadpool);
     }
@@ -177,7 +177,7 @@ public class MetricKDE extends MultivariateKDE
      * @param stndDevs the multiple of the standard deviation to add to the mean of the distances
      * @return <tt>true</tt> if the model was fit, <tt>false</tt> if it could not be fit. 
      */
-    public boolean setUsingData(List<Vec> dataSet, int k, double stndDevs)
+    public <V extends Vec> boolean setUsingData(List<V> dataSet, int k, double stndDevs)
     {
         return setUsingData(dataSet, k, stndDevs, null);
     }
@@ -194,7 +194,7 @@ public class MetricKDE extends MultivariateKDE
      * @param threadpool the source of threads to use for computation
      * @return <tt>true</tt> if the model was fit, <tt>false</tt> if it could not be fit. 
      */
-    public boolean setUsingData(List<Vec> dataSet, int k, double stndDevs, ExecutorService threadpool)
+    public <V extends Vec> boolean setUsingData(List<V> dataSet, int k, double stndDevs, ExecutorService threadpool)
     {
         List<VecPaired<Integer, Vec>> indexVectorPair = new ArrayList<VecPaired<Integer, Vec>>(dataSet.size());
         for(int i = 0; i < dataSet.size(); i++)
@@ -226,7 +226,7 @@ public class MetricKDE extends MultivariateKDE
         return true;
     }
     
-    public boolean setUsingData(List<Vec> dataSet)
+    public <V extends Vec> boolean setUsingData(List<V> dataSet)
     {
         return setUsingData(dataSet, 3);
     }

@@ -104,7 +104,7 @@ public class SymmetricDirichlet extends MultivariateDistributionSkeleton
         return exp(logPdf(x));
     }
 
-    public boolean setUsingData(final List<Vec> dataSet)
+    public <V extends Vec> boolean setUsingData(final List<V> dataSet)
     {
         Function logLike = new Function() 
         {
