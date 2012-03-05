@@ -2,7 +2,6 @@
 package jsat.regression;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Random;
@@ -14,7 +13,11 @@ import jsat.linear.DenseVector;
 import jsat.linear.Vec;
 
 /**
- *
+ * A RegressionDataSet is a data set specifically for the task of performing regression. 
+ * Each data point is paired with s double value that indicates its true regression value.
+ * An example of a regression problem would be mapping the inputs of a function to its 
+ * outputs, and attempting to learn the function from the samples. 
+ * 
  * @author Edward Raff
  */
 public class RegressionDataSet extends DataSet<RegressionDataSet>
@@ -249,6 +252,17 @@ public class RegressionDataSet extends DataSet<RegressionDataSet>
             vals.set(i, dataPoints.get(i).getPair());
         
         return vals;
+    }
+    
+    /**
+     * Returns the target regression value for the <tt>i</tt>'th data point in the data set. 
+     * 
+     * @param i the data point to get the regression value of 
+     * @return the target regression value
+     */
+    public double getTargetValue(int i)
+    {
+        return dataPoints.get(i).getPair();
     }
     
     /**
