@@ -120,7 +120,7 @@ public class LUPDecomposition implements Cloneable
     }
 
     @Override
-    protected LUPDecomposition clone() 
+    public LUPDecomposition clone() 
     {
         return new LUPDecomposition(L.clone(), U.clone(), P.clone());
     }
