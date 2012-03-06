@@ -13,6 +13,7 @@ import jsat.linear.DenseVector;
 import jsat.linear.Vec;
 import jsat.linear.distancemetrics.DistanceMetric;
 import jsat.linear.distancemetrics.EuclideanDistance;
+import jsat.linear.distancemetrics.TrainableDistanceMetric;
 import jsat.utils.FakeExecutor;
 
 /**
@@ -21,7 +22,6 @@ import jsat.utils.FakeExecutor;
  */
 public class Rocchio implements Classifier
 {
-
     private List<Vec> rocVecs;
     private final DistanceMetric dm;
 
@@ -101,6 +101,8 @@ public class Rocchio implements Classifier
             throw new RuntimeException("Classifier requires all variables be numerical");
         int N = dataSet.getClassSize();
         rocVecs = new ArrayList<Vec>(N);
+        
+        TrainableDistanceMetric.trainIfNeeded(dm, dataSet, threadPool);
         
         //dimensions
         int d = dataSet.getNumNumericalVars();

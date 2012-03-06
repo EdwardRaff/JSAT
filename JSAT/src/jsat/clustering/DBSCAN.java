@@ -26,6 +26,7 @@ import jsat.linear.Vec;
 import jsat.linear.VecPaired;
 import jsat.linear.distancemetrics.DistanceMetric;
 import jsat.linear.distancemetrics.EuclideanDistance;
+import jsat.linear.distancemetrics.TrainableDistanceMetric;
 import jsat.linear.vectorcollection.KDTree;
 import jsat.linear.vectorcollection.VectorCollection;
 import jsat.linear.vectorcollection.VectorCollectionFactory;
@@ -74,6 +75,7 @@ public class DBSCAN implements Clusterer
     public List<List<DataPoint>> cluster(DataSet dataSet, int minPts)
     {
         OnLineStatistics stats = new OnLineStatistics();
+        TrainableDistanceMetric.trainIfNeeded(dm, dataSet);
         VectorCollection<VecPaired<Integer, Vec>> vc = vecFactory.getVectorCollection(getVecIndexPairs(dataSet), dm);
         
         List<DataPoint> dps = dataSet.getDataPoints();
@@ -129,6 +131,7 @@ public class DBSCAN implements Clusterer
     public List<List<DataPoint>> cluster(DataSet dataSet, int minPts, ExecutorService threadpool)
     {
         OnLineStatistics stats = null;
+        TrainableDistanceMetric.trainIfNeeded(dm, dataSet, threadpool);
         VectorCollection<VecPaired<Integer, Vec>> vc = vecFactory.getVectorCollection(getVecIndexPairs(dataSet), dm);
         
         BlockingQueue<DataPoint> queue = new ArrayBlockingQueue<DataPoint>(SystemInfo.L2CacheSize*2);
@@ -178,11 +181,13 @@ public class DBSCAN implements Clusterer
     
     public List<List<DataPoint>> cluster(DataSet dataSet, double eps, int minPts)
     {
+        TrainableDistanceMetric.trainIfNeeded(dm, dataSet);
         return cluster(dataSet, eps, minPts, vecFactory.getVectorCollection(getVecIndexPairs(dataSet), dm));
     }
     
     public List<List<DataPoint>> cluster(DataSet dataSet, double eps, int minPts, ExecutorService threadpool)
     {
+        TrainableDistanceMetric.trainIfNeeded(dm, dataSet, threadpool);
         return cluster(dataSet, eps, minPts, vecFactory.getVectorCollection(getVecIndexPairs(dataSet), dm), threadpool);
     }
     

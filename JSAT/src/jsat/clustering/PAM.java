@@ -1,6 +1,7 @@
 
 package jsat.clustering;
 
+import jsat.linear.distancemetrics.TrainableDistanceMetric;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
@@ -88,6 +89,8 @@ public class PAM implements KClusterer
         
         int[] bestMedCand = new int[medioids.length];
         double[] bestMedCandDist = new double[medioids.length];
+        
+        TrainableDistanceMetric.trainIfNeeded(dm, data);
 
         int iter = 0;
         do

@@ -14,6 +14,7 @@ import jsat.linear.Vec;
 import jsat.linear.VecPaired;
 import jsat.linear.distancemetrics.DistanceMetric;
 import jsat.linear.distancemetrics.EuclideanDistance;
+import jsat.linear.distancemetrics.TrainableDistanceMetric;
 import jsat.linear.vectorcollection.KDTree;
 import jsat.linear.vectorcollection.VectorCollection;
 import jsat.linear.vectorcollection.VectorCollectionFactory;
@@ -129,6 +130,8 @@ public class NearestNeighbour implements  Classifier, Regressor
             }
         }
         
+        TrainableDistanceMetric.trainIfNeeded(distanceMetric, dataSet, threadPool);
+        
         if(threadPool == null)
             vecCollection = vcf.getVectorCollection(dataPoints, distanceMetric);
         else
@@ -193,6 +196,8 @@ public class NearestNeighbour implements  Classifier, Regressor
 
             dataPoints.add(new VecPaired(dpp.getVector(), dpp.getPair()));
         }
+        
+        TrainableDistanceMetric.trainIfNeeded(distanceMetric, dataSet, threadPool);
 
         if(threadPool == null)
             vecCollection = vcf.getVectorCollection(dataPoints, distanceMetric);
@@ -200,6 +205,7 @@ public class NearestNeighbour implements  Classifier, Regressor
             vecCollection = vcf.getVectorCollection(dataPoints, distanceMetric, threadPool);
     }
     
+    @Override
     public NearestNeighbour clone()
     {
         throw new UnsupportedOperationException("Not supported yet.");

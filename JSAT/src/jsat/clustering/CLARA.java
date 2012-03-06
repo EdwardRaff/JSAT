@@ -12,6 +12,7 @@ import jsat.classifiers.DataPoint;
 import jsat.clustering.SeedSelectionMethods.SeedSelection;
 import jsat.linear.distancemetrics.DistanceMetric;
 import jsat.linear.distancemetrics.EuclideanDistance;
+import jsat.linear.distancemetrics.TrainableDistanceMetric;
 
 /**
  *
@@ -116,6 +117,8 @@ public class CLARA extends PAM
         int[] bestMedoids = new int[medioids.length];
         int[] bestAssignments = new int[assignments.length];
         double bestMedoidsDist = Double.MAX_VALUE;
+        
+        TrainableDistanceMetric.trainIfNeeded(dm, data);
         
         if(sampleSize >= data.getSampleSize())//Then we might as well just do one round of PAM
         {

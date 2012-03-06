@@ -17,6 +17,7 @@ import jsat.linear.Vec;
 import jsat.linear.VecPaired;
 import jsat.linear.distancemetrics.DistanceMetric;
 import jsat.linear.distancemetrics.EuclideanDistance;
+import jsat.linear.distancemetrics.TrainableDistanceMetric;
 import jsat.linear.vectorcollection.VPTree.VPTreeFactory;
 import jsat.linear.vectorcollection.VectorCollection;
 import jsat.linear.vectorcollection.VectorCollectionFactory;
@@ -184,7 +185,7 @@ public class MetricKDE extends MultivariateKDE
     @Override
     public MetricKDE clone()
     {
-        MetricKDE clone = new MetricKDE(kf, distanceMetric, vcf.clone());
+        MetricKDE clone = new MetricKDE(kf, distanceMetric.clone(), vcf.clone());
         clone.bandwidth = this.bandwidth;
         if(this.vecCollection != null)
             clone.vecCollection = this.vecCollection.clone();
@@ -241,6 +242,9 @@ public class MetricKDE extends MultivariateKDE
         List<VecPaired<Integer, Vec>> indexVectorPair = new ArrayList<VecPaired<Integer, Vec>>(dataSet.size());
         for(int i = 0; i < dataSet.size(); i++)
             indexVectorPair.add(new VecPaired<Integer, Vec>(dataSet.get(i), i));
+        
+        TrainableDistanceMetric.trainIfNeeded(distanceMetric, dataSet, threadpool);
+        
         if(threadpool == null)
             vecCollection = vcf.getVectorCollection(indexVectorPair, distanceMetric);
         else
@@ -307,6 +311,7 @@ public class MetricKDE extends MultivariateKDE
         List<VecPaired<Integer, Vec>> indexVectorPair = new ArrayList<VecPaired<Integer, Vec>>(dataSet.size());
         for(int i = 0; i < dataSet.size(); i++)
             indexVectorPair.add(new VecPaired<Integer, Vec>(dataSet.get(i), i));
+        TrainableDistanceMetric.trainIfNeeded(distanceMetric, dataSet, threadpool);
         vecCollection = vcf.getVectorCollection(indexVectorPair, distanceMetric);
         
         //Take the average of the k'th neighbor distance to use as the bandwith

@@ -1,6 +1,7 @@
 
 package jsat.clustering;
 
+import jsat.linear.distancemetrics.TrainableDistanceMetric;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -105,11 +106,12 @@ public class KMeans implements KClusterer
     /**
      * This is a helper method where the actual cluster is performed. This is because there
      * are multiple strategies for modifying kmeans, but all of them require this step. 
-     * 
+     * <br>
      * ks must be at least the same size as initialMeans. It can be larger, and those spaces will be ignored. 
-     * 
+     * <br>
      * tmp should be provided with enough space for every value. The values will be copied to it in-between iterations.  
-     * 
+     * <br>
+     * The distance metric used is trainined if needed
      * 
      * @param dataSet The set of data points to perform clustering on
      * @param means the initial points to use as the means. Its
@@ -132,6 +134,8 @@ public class KMeans implements KClusterer
          * N data points
          */
         final int N = dataSet.getSampleSize();
+        
+        TrainableDistanceMetric.trainIfNeeded(dm, dataSet);
         
         double[][] lowerBound = new double[N][k];
         double[] upperBound = new double[N];
