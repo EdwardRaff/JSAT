@@ -1,6 +1,7 @@
 
 package jsat.linear;
 
+import java.util.ArrayList;
 import java.util.List;
 import jsat.DataSet;
 import jsat.classifiers.DataPoint;
@@ -12,7 +13,17 @@ import jsat.classifiers.DataPoint;
  */
 public class MatrixStatistics
 {
+    private MatrixStatistics()
+    {
+        
+    }
     
+    /**
+     * Computes the mean of the given data set.  
+     * @param <V> the vector type
+     * @param dataSet the list of vectors to compute the mean of
+     * @return the mean of the vectors 
+     */
     public static <V extends Vec> Vec MeanVector(List<V> dataSet)
     {
         if(dataSet.isEmpty())
@@ -21,6 +32,21 @@ public class MatrixStatistics
         Vec mean = new DenseVector(dataSet.get(0).length());
         MeanVector(mean, dataSet);
         return mean;
+    }
+    
+    /**
+     * Computes the mean of the given data set. 
+     * 
+     * @param dataSet the dataset to compute the mean from
+     * @return the mean of the numeric vectors in the data set
+     */
+    public static Vec MeanVector(DataSet dataSet)
+    {
+        List<Vec> dataVecs = new ArrayList<Vec>(dataSet.getSampleSize());
+        for(int i = 0; i < dataSet.getSampleSize(); i++)
+            dataVecs.add(dataSet.getDataPoint(i).getNumericalValues());
+        
+        return MeanVector(dataVecs);
     }
     
     /**
@@ -158,6 +184,12 @@ public class MatrixStatistics
         covariance.mutableMultiply(sumOfWeights / (Math.pow(sumOfWeights, 2) - sumOfSquaredWeights));
     }
     
+    /**
+     * Computes the weighted covariance matrix of the data set
+     * @param mean the mean of the data set
+     * @param dataSet the dataset to compute the covariance of
+     * @return the covariance matrix of the data set
+     */
     public static Matrix CovarianceMatrix(Vec mean, DataSet dataSet)
     {
         Matrix covariance = new DenseMatrix(mean.length(), mean.length());
@@ -165,6 +197,12 @@ public class MatrixStatistics
         return covariance;
     }
     
+    /**
+     * Computes the weighted covariance matrix of the given data set. 
+     * @param mean the mean of the data set
+     * @param dataSet the dataset to compute the covariance of
+     * @param covariance the zeroed out matrix to store the result into 
+     */
     public static void CovarianceMatrix(Vec mean, DataSet dataSet, Matrix covariance)
     {
         double sumOfWeights = 0.0, sumOfSquaredWeights = 0.0;
@@ -179,7 +217,14 @@ public class MatrixStatistics
         CovarianceMatrix(mean, dataSet, covariance, sumOfWeights, sumOfSquaredWeights);
     }
 
-    
+    /**
+     * Computes the weighted covariance matrix of the given data set. Superfluous calculations are avoided by having the call provide information. 
+     * @param mean the mean of the data set
+     * @param dataSet the dataset to compute the covariance of
+     * @param covariance the zeroed out matrix to store the result into 
+     * @param sumOfWeights the sum of the weights for each data point in the dataset
+     * @param sumOfSquaredWeights the sum of the squared weights for each data point in the data set
+     */
     public static void CovarianceMatrix(Vec mean, DataSet dataSet, Matrix covariance, double sumOfWeights, double sumOfSquaredWeights)
     {
         if (!covariance.isSquare())
