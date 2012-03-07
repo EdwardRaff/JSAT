@@ -24,15 +24,11 @@ import jsat.regression.RegressionDataSet;
  */
 public class MahalanobisDistance extends TrainableDistanceMetric
 {
-    /**
-     * Used first, faster
-     */
-    private LUPDecomposition lup;
-    /**
-     * Used when LUP fails 
-     */
-    private SingularValueDecomposition svd;
     private boolean reTrain;
+    /**
+     * The inverse of the covariance matrix 
+     */
+    private Matrix S;
 
     public MahalanobisDistance()
     {
@@ -77,7 +73,8 @@ public class MahalanobisDistance extends TrainableDistanceMetric
     {
         Vec mean = MatrixStatistics.MeanVector(dataSet);
         Matrix covariance = MatrixStatistics.CovarianceMatrix(mean, dataSet);
-        
+        LUPDecomposition lup;
+        SingularValueDecomposition svd;
         if(threadpool != null)
             lup = new LUPDecomposition(covariance.clone(), threadpool);
         else
@@ -86,7 +83,12 @@ public class MahalanobisDistance extends TrainableDistanceMetric
         {
             lup = null;
             svd = new SingularValueDecomposition(covariance);
+            S = svd.getPseudoInverse();
         }
+        else if(threadpool != null)
+            S = lup.solve(Matrix.eye(covariance.cols()), threadpool);
+        else
+            S = lup.solve(Matrix.eye(covariance.cols()));
     }
     
     public void train(DataSet dataSet)
@@ -135,7 +137,7 @@ public class MahalanobisDistance extends TrainableDistanceMetric
 
     public boolean needsTraining()
     {
-        if(svd == null && lup == null)
+        if(S == null)
             return true;
         else
             return isReTrain();
@@ -144,14 +146,7 @@ public class MahalanobisDistance extends TrainableDistanceMetric
     public double dist(Vec a, Vec b)
     {
         Vec aMb = a.subtract(b);
-        Vec rightSide;
-        if(lup != null)
-            rightSide = lup.solve(aMb);
-        else if (svd != null)
-            rightSide = svd.solve(aMb);
-        else
-            throw new UntrainedModelException("Metric has not yet been trained");
-        return Math.sqrt(aMb.dot(rightSide));
+        return Math.sqrt(aMb.dot(S.multiply(aMb)));
     }
 
     public boolean isSymmetric()
@@ -179,10 +174,8 @@ public class MahalanobisDistance extends TrainableDistanceMetric
     {
         MahalanobisDistance clone = new MahalanobisDistance();
         clone.reTrain = this.reTrain;
-        if(this.lup != null)
-            clone.lup = this.lup.clone();
-        if(this.svd != null)
-            clone.svd = this.svd.clone();
+        if(this.S != null)
+            clone.S = this.S.clone();
         return clone;
     }
 }
