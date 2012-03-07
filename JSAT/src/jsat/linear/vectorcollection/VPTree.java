@@ -7,7 +7,6 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Random;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Semaphore;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import jsat.linear.Vec;
@@ -25,6 +24,10 @@ import jsat.utils.ProbailityMatch;
  * VPTrees are more expensive to create, requiring O(n log n) distance computations. However,
  * they work well for high dimensional data sets, and provide O( log n ) query time for 
  * {@link #search(jsat.linear.Vec, int) }
+ * <br> 
+ * Note: In the original paper, the VP-tree is detailed, and then enhanced to the VPs-tree, 
+ * and the VPsb-tree, which each add additional optimizations. This implementation is equivalent
+ * to the VPsb-tree presented in the original paper. 
  * 
  * @author Edward Raff
  */
@@ -37,6 +40,7 @@ public class VPTree<V extends Vec> implements VectorCollection<V>
     private TreeNode root;
     private VPSelection vpSelection;
     private int size;
+    private int maxLeafSize = 5;
 
     public enum VPSelection
     {
@@ -93,6 +97,7 @@ public class VPTree<V extends Vec> implements VectorCollection<V>
     {
         this(list, dm, vpSelection, new Random(), 80, 40);
     }
+    
     public VPTree(List<V> list, DistanceMetric dm)
     {
         this(list, dm, VPSelection.Random);
@@ -145,12 +150,71 @@ public class VPTree<V extends Vec> implements VectorCollection<V>
         return list;
     }
     
+    /**
+     * Computes the distances to the vantage point, 
+     * Sorts the list by distance to the vantage point, 
+     * finds the splitting index, and sets up the parent node. 
+     * @param S the list
+     * @param node the parent node
+     * @return the index that was used to split on. 
+     */
+    private int sortSplitSet(final List<ProbailityMatch<V>> S, final VPNode node)
+    {
+        //Compute distance to each point
+        for(int i = 0; i < S.size(); i++)
+            S.get(i).setProbability(dm.dist(node.p, S.get(i).getMatch()));//Each point gets its distance to the vantage point
+        Collections.sort(S);
+        int splitIndex = splitListIndex(S);
+        node.left_low = S.get(0).getProbability();
+        node.left_high = S.get(splitIndex).getProbability();
+        node.right_low = S.get(splitIndex+1).getProbability();
+        node.right_high = S.get(S.size()-1).getProbability();
+        return splitIndex;
+    }
+
+    
+    /**
+     * Determines which index to use as the splitting index for the VP radius 
+     * @param S the non empty list of elements 
+     * @return the index that should be used to split on [0, index] belonging to the left, and (index, S.size() ) belonging to the right. 
+     */
+    protected int splitListIndex(List<ProbailityMatch<V>> S)
+    {
+        return S.size()/2;
+    }
+
+    /**
+     * Returns the maximum leaf node size. Leaf nodes are used to reduce inefficiency of splitting small lists. 
+     * If a sublist will fit into a leaf node, a leaf node will be created instead of splitting. This is the 
+     * maximum number of points that may be used to construct a leaf node. 
+     * 
+     * @return the maximum leaf node size in the tree
+     */
+    public int getMaxLeafSize()
+    {
+        return maxLeafSize;
+    }
+
+    /**
+     * Sets  the maximum leaf node size. Leaf nodes are used to reduce inefficiency of splitting small lists. 
+     * If a sublist will fit into a leaf node, a leaf node will be created instead of splitting. This is the 
+     * maximum number of points that may be used to construct a leaf node. <br>
+     * The minimum leaf size is 5 for implementation reasons. If a value less than 5 is given, 5 will be used isntead. 
+     * 
+     * @param maxLeafSize the new maximum leaf node size. 
+     */
+    public void setMaxLeafSize(int maxLeafSize)
+    {
+        this.maxLeafSize = Math.max(5, maxLeafSize);
+    }
+    
+    
     //The probability match is used to store and sort by median distances. 
     private TreeNode makeVPTree(List<ProbailityMatch<V>> S)
     {
         if(S.isEmpty())
             return null;
-        else if(S.size() <= 5)
+        else if(S.size() <= maxLeafSize)
         {
             VPLeaf leaf = new VPLeaf(S);
             S.clear();
@@ -159,23 +223,15 @@ public class VPTree<V extends Vec> implements VectorCollection<V>
         
         VPNode node = new VPNode(selectVantagePoint(S));
         
-        //Compute distance to each point
-        for(int i = 0; i < S.size(); i++)
-            S.get(i).setProbability(dm.dist(node.p, S.get(i).getMatch()));//Each point gets its distance to the vantage point
-        Collections.sort(S);//Get median and split lists into 2 groups
-        int medianIndex = S.size() / 2;
-        node.right_high = S.get(S.size()-1).getProbability();
-        node.right_low = S.get(medianIndex+1).getProbability();
-        node.left_high = S.get(medianIndex).getProbability();
-        node.left_low = S.get(0).getProbability();
+        int splitIndex = sortSplitSet(S, node);
         
         /*
          * Re use the list and let it get altered. We must compute the right side first. 
          * If we altered the left side, the median would move left, and the right side 
          * would get thrown off or require aditonal book keeping. 
          */
-        node.right = makeVPTree(S.subList(medianIndex+1, S.size()));
-        node.left  = makeVPTree(S.subList(0, medianIndex+1));
+        node.right = makeVPTree(S.subList(splitIndex+1, S.size()));
+        node.left  = makeVPTree(S.subList(0, splitIndex+1));
         
         return node;
     }
@@ -187,7 +243,7 @@ public class VPTree<V extends Vec> implements VectorCollection<V>
             mcdl.countDown();
             return null;
         }
-        else if(S.size() <= 5)
+        else if(S.size() <= maxLeafSize)
         {
             VPLeaf leaf = new VPLeaf(S);
             S.clear();
@@ -197,21 +253,13 @@ public class VPTree<V extends Vec> implements VectorCollection<V>
         
         final VPNode node = new VPNode(selectVantagePoint(S));
         
-        //Compute distance to each point
-        for(int i = 0; i < S.size(); i++)
-            S.get(i).setProbability(dm.dist(node.p, S.get(i).getMatch()));//Each point gets its distance to the vantage point
-        Collections.sort(S);//Get median and split lists into 2 groups
-        int medianIndex = S.size() / 2;
-        node.left_low = S.get(0).getProbability();
-        node.left_high = S.get(medianIndex).getProbability();
-        node.right_low = S.get(medianIndex+1).getProbability();
-        node.right_high = S.get(S.size()-1).getProbability();
+        int splitIndex = sortSplitSet(S, node);
         
         
         //Start 2 threads, but only 1 of them is "new" 
         mcdl.countUp();
-        final List<ProbailityMatch<V>> rightS = new ArrayList<ProbailityMatch<V>>(S.size()-medianIndex);
-        List<ProbailityMatch<V>> rightSubList = S.subList(medianIndex+1, S.size());
+        final List<ProbailityMatch<V>> rightS = new ArrayList<ProbailityMatch<V>>(S.size()-splitIndex);
+        List<ProbailityMatch<V>> rightSubList = S.subList(splitIndex+1, S.size());
         rightS.addAll(rightSubList);
         rightSubList.clear();//Which removes them from S 
         
