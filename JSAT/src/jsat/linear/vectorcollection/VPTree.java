@@ -249,7 +249,7 @@ public class VPTree<V extends Vec> implements VectorCollection<V>
             double[] distances = new double[sampleSize];
 
             int bestVP = -1;
-            double bestSpread = 0;
+            double bestSpread = Double.NEGATIVE_INFINITY;
 
             for (int i = 0; i < Math.min(searchIterations, S.size()); i++)
             {
