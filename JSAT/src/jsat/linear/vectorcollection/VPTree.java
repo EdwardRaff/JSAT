@@ -63,6 +63,7 @@ public class VPTree<V extends Vec> implements VectorCollection<V>
         this.sampleSize = sampleSize;
         this.searchIterations = searchIterations;
         this.size = list.size();
+        this.vpSelection = vpSelection;
         List<ProbailityMatch<V>> tmpList = new ArrayList<ProbailityMatch<V>>(list.size());
         for(V v : list)
             tmpList.add(new ProbailityMatch<V>(-1, v));
