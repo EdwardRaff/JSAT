@@ -185,7 +185,7 @@ public class MetricKDE extends MultivariateKDE
     @Override
     public MetricKDE clone()
     {
-        MetricKDE clone = new MetricKDE(kf, distanceMetric.clone(), vcf.clone());
+        MetricKDE clone = new MetricKDE(kf, distanceMetric.clone(), vcf.clone(), defaultK, defaultStndDev);
         clone.bandwidth = this.bandwidth;
         if(this.vecCollection != null)
             clone.vecCollection = this.vecCollection.clone();
