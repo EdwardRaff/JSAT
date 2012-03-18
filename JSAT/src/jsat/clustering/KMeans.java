@@ -1,27 +1,38 @@
 
 package jsat.clustering;
 
-import jsat.linear.distancemetrics.TrainableDistanceMetric;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import jsat.DataSet;
 import jsat.classifiers.DataPoint;
+import jsat.clustering.SeedSelectionMethods.SeedSelection;
+import static jsat.clustering.SeedSelectionMethods.selectIntialPoints;
 import jsat.linear.Vec;
 import jsat.linear.distancemetrics.DistanceMetric;
 import jsat.linear.distancemetrics.EuclideanDistance;
+import jsat.linear.distancemetrics.TrainableDistanceMetric;
 import jsat.math.OnLineStatistics;
+import jsat.utils.ModifiableCountDownLatch;
+import jsat.utils.PoisonRunnable;
 import jsat.utils.SystemInfo;
-import static jsat.clustering.SeedSelectionMethods.*;
 
 /**
+ * An efficient implementation of the K-Means algorithm. This implementation uses
+ * the triangle inequality to accelerate computation while maintaining the exact
+ * same solution. This requires that the {@link DistanceMetric} used support 
+ * {@link DistanceMetric#isSubadditive() }. 
+ * <br>
  * Implementation based on the paper: Using the Triangle Inequality to Accelerate k-Means, by Charles Elkan
+ * 
  * @author Edward Raff
  */
 public class KMeans implements KClusterer
@@ -31,9 +42,9 @@ public class KMeans implements KClusterer
     private SeedSelection seedSelection;
     
     /**
-     * Controll the maximum number of iterations to perform. 
+     * Control the maximum number of iterations to perform. 
      */
-    protected int iterLimit = 100;
+    protected int MaxIterLimit = 100;
 
     public KMeans(DistanceMetric dm, Random rand, SeedSelection seedSelection)
     {
@@ -62,16 +73,16 @@ public class KMeans implements KClusterer
 
     /**
      * Sets the maximum number of iterations allowed
-     * @param iterLimit 
+     * @param MaxIterLimit 
      */
     public void setIterationLimit(int iterLimit)
     {
-        this.iterLimit = iterLimit;
+        this.MaxIterLimit = iterLimit;
     }
 
     public int getIterationLimit()
     {
-        return iterLimit;
+        return MaxIterLimit;
     }
 
     /**
@@ -93,11 +104,13 @@ public class KMeans implements KClusterer
     }
     
     
+    @Override
     public List<List<DataPoint>> cluster(DataSet dataSet)
     {
         return cluster(dataSet, 2, (int)Math.sqrt(dataSet.getSampleSize()/2));
     }
     
+    @Override
     public List<List<DataPoint>> cluster(DataSet dataSet, ExecutorService threadpool)
     {
         return cluster(dataSet, 2, (int)Math.sqrt(dataSet.getSampleSize()/2), threadpool);
@@ -107,64 +120,200 @@ public class KMeans implements KClusterer
      * This is a helper method where the actual cluster is performed. This is because there
      * are multiple strategies for modifying kmeans, but all of them require this step. 
      * <br>
-     * ks must be at least the same size as initialMeans. It can be larger, and those spaces will be ignored. 
-     * <br>
-     * tmp should be provided with enough space for every value. The values will be copied to it in-between iterations.  
-     * <br>
-     * The distance metric used is trainined if needed
+     * The distance metric used is trained if needed
      * 
      * @param dataSet The set of data points to perform clustering on
      * @param means the initial points to use as the means. Its
      * length is the number of means that will be searched for. 
-     * These means will be altered, and should contain deep copies of the points they were drawn from. 
-     * @param ks a list of empty lists to store the clusters in, each list corresponding to a different cluster. 
-     * @param assignment an empty temp space to store the clustering classifications. Should be the same length as the number of data points
-     * @param exactTotal determines how the objective function (return value) will be computed. If true, extra work will be
-     * done to compute the exact distance from each data point to its cluster. If false, and upper bound approximation will be used. 
+     * These means will be altered, and should contain deep copies
+     * of the points they were drawn from. 
+     * @param assignment an empty temp space to store the clustering 
+     * classifications. Should be the same length as the number of data points
+     * @param exactTotal determines how the objective function (return value) 
+     * will be computed. If true, extra work will be done to compute the exact 
+     * distance from each data point to its cluster. If false, an upper bound 
+     * approximation will be used. 
      * 
      * @return the sum of squares distances from each data point to its closest cluster
      */
     protected double cluster(final DataSet dataSet, final List<Vec> means, final int[] assignment, boolean exactTotal)
-    {   
-        /**
-         * K clusters
-         */
-        final int k = means.size();
-        /** 
-         * N data points
-         */
-        final int N = dataSet.getSampleSize();
-        
-        TrainableDistanceMetric.trainIfNeeded(dm, dataSet);
-        
-        double[][] lowerBound = new double[N][k];
-        double[] upperBound = new double[N];
-        
-        /**
-         * Distances between centroid i and all other centroids
-         */
-        double[][] centroidSelfDistances = new double[k][k];
-        double[] sC = new double[k];
-
-        //Calculate centoird distances
-        for (int i = 0; i < k; i++)
+    {
+        return cluster(dataSet, means, assignment, exactTotal, null);
+    }
+    
+    /**
+     *  This is a helper method where the actual cluster is performed. This is because there
+     * are multiple strategies for modifying kmeans, but all of them require this step. 
+     * <br>
+     * The distance metric used is trained if needed
+     * 
+     * @param dataSet The set of data points to perform clustering on
+     * @param means the initial points to use as the means. Its
+     * length is the number of means that will be searched for. 
+     * These means will be altered, and should contain deep copies
+     * of the points they were drawn from. 
+     * @param assignment an empty temp space to store the clustering 
+     * classifications. Should be the same length as the number of data points
+     * @param exactTotal determines how the objective function (return value) 
+     * will be computed. If true, extra work will be done to compute the exact 
+     * distance from each data point to its cluster. If false, an upper bound 
+     * approximation will be used. 
+     * @param threadpool the source of threads for parallel computation. If <tt>null</tt>, single threaded execution will occur
+     * @return the sum of squares distances from each data point to its closest cluster
+     */
+    protected double cluster(final DataSet dataSet, final List<Vec> means, final int[] assignment, boolean exactTotal, ExecutorService threadpool)
+    {
+        try
         {
-            double sCmin = Double.MAX_VALUE;
-            for (int z = 0; z < k; z++)
+            /**
+             * K clusters
+             */
+            final int k = means.size();
+            /**
+             * N data points
+             */
+            final int N = dataSet.getSampleSize();
+
+            TrainableDistanceMetric.trainIfNeeded(dm, dataSet);
+
+            final double[][] lowerBound = new double[N][k];
+            final double[] upperBound = new double[N];
+
+            /**
+             * Distances between centroid i and all other centroids
+             */
+            final double[][] centroidSelfDistances = new double[k][k];
+            final double[] sC = new double[k];
+            calculateCentroidDistances(k, centroidSelfDistances, means, sC);
+            if (threadpool == null)
+                initialClusterSetUp(k, N, dataSet, means, lowerBound, upperBound, centroidSelfDistances, assignment);
+            else
+                initialClusterSetUp(k, N, dataSet, means, lowerBound, upperBound, centroidSelfDistances, assignment, threadpool);
+
+            int atLeast = 2;//Used to performan an extra round (first round does not assign)
+            final AtomicInteger changes = new AtomicInteger(N);//Atomic int so each thread can update safely & lock free
+            final boolean[] r = new boolean[N];//Default value of a boolean is false, which is what we want
+            Vec[] oldMeans = new Vec[k];//The means fromt he current step are needed when computing the new means
+            for (int i = 0; i < k; i++)
+                oldMeans[i] = means.get(0).clone();//This way the new vectors are of the same implementation
+
+            final ArrayBlockingQueue<Runnable> runnableList = threadpool == null ? null : new ArrayBlockingQueue<Runnable>(4 * SystemInfo.LogicalCores, false);
+
+            int iterLimit = MaxIterLimit;
+            while ((changes.intValue() > 0 || atLeast > 0) && iterLimit-- >= 0)
             {
-                if (i == z)//Distance to self is zero
-                    centroidSelfDistances[i][z] = 0;
-                else
+                atLeast--;
+                changes.set(0);
+                //Step 1 
+                calculateCentroidDistances(k, centroidSelfDistances, means, sC);
+
+                final ModifiableCountDownLatch latch = new ModifiableCountDownLatch(1);
+
+                //Create readers to run jobs 
+                if (threadpool != null)
+                    for (int i = 0; i < SystemInfo.LogicalCores; i++)
+                        threadpool.submit(new Runnable()
+                        {
+
+                            @Override
+                            public void run()
+                            {
+                                while (true)
+                                {
+                                    try
+                                    {
+                                        Runnable r = runnableList.take();
+                                        if (r instanceof PoisonRunnable)
+                                            return;
+                                        r.run();
+                                    }
+                                    catch (InterruptedException ex)
+                                    {
+                                        Logger.getLogger(KMeans.class.getName()).log(Level.SEVERE, null, ex);
+                                    }
+                                }
+                            }
+                        });
+
+                //Step 2 / 3
+                for (int q = 0; q < N; q++)
                 {
-                    centroidSelfDistances[i][z] = dm.dist(means.get(i), means.get(z));
-                    sCmin = Math.min(sCmin, centroidSelfDistances[i][z]);
+                    final Vec v = dataSet.getDataPoint(q).getNumericalValues();
+
+                    //Step 2, skip those that u(v) < s(c(v))
+                    if (upperBound[q] <= sC[assignment[q]])
+                        continue;
+
+                    for (int c = 0; c < k; c++)
+                        if (c != assignment[q] && upperBound[q] > lowerBound[q][c] && upperBound[q] > centroidSelfDistances[assignment[q]][c] * 0.5)
+                        {
+                            if (threadpool == null)
+                            {
+                                step3aBoundsUpdate(r, q, v, means, assignment, upperBound);
+                                step3bUpdate(upperBound, q, lowerBound, c, centroidSelfDistances, assignment, v, means, changes);
+                            }
+                            else
+                            {
+                                latch.countUp();
+                                final int cc = c;
+                                final int qq = q;
+                                Runnable run = new Runnable()
+                                {
+                                    @Override
+                                    public void run()
+                                    {
+                                        step3aBoundsUpdate(r, qq, v, means, assignment, upperBound);
+                                        step3bUpdate(upperBound, qq, lowerBound, cc, centroidSelfDistances, assignment, v, means, changes);
+                                        latch.countDown();
+                                    }
+                                };
+                                runnableList.put(run);
+                            }
+                        }
                 }
+                if (threadpool != null)
+                {
+                    //Pop extra off
+                    for (int i = 0; i < SystemInfo.LogicalCores; i++)
+                        runnableList.put(new PoisonRunnable());
+                    //Still need to wait for everyone to finish, some threasd may still be easting jobs from the que 
+                    latch.countDown();
+                    try
+                    {
+                        latch.await();
+                    }
+                    catch (InterruptedException ex)
+                    {
+                        Logger.getLogger(KMeans.class.getName()).log(Level.SEVERE, null, ex);
+                    }
+                }
+                step4UpdateCentroids(k, means, oldMeans, N, assignment, dataSet);
+
+                step5_6_distanceMovedBoundsUpdate(k, oldMeans, means, N, lowerBound, upperBound, assignment, r);
             }
-            sC[i] = sCmin / 2.0;
+
+            double totalDistance = 0.0;
+
+            if (exactTotal == true)
+                for (int i = 0; i < N; i++)
+                    totalDistance += Math.pow(dm.dist(dataSet.getDataPoint(i).getNumericalValues(), means.get(assignment[i])), 2);
+            else
+                for (int i = 0; i < N; i++)
+                    totalDistance += Math.pow(upperBound[i], 2);
+
+            return totalDistance;
         }
-        
+        catch (InterruptedException ex)
+        {
+            Logger.getLogger(KMeans.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        return Double.MAX_VALUE;
+    }
+
+    private void initialClusterSetUp(final int k, final int N, final DataSet dataSet, final List<Vec> means, final double[][] lowerBound, final double[] upperBound, final double[][] centroidSelfDistances, final int[] assignment)
+    {
         //Skip markers
-        boolean[] skip = new boolean[k];
+        final boolean[] skip = new boolean[k];
         for (int q = 0; q < N; q++)
         {
             Vec v = dataSet.getDataPoint(q).getNumericalValues();
@@ -192,127 +341,177 @@ public class KMeans implements KClusterer
 
             assignment[q] = index;
         }
-        
-        int atLeast = 2;//Used to performan an extra round (first round does not assign)
-        int changes = N;
-        boolean[] r = new boolean[N];//Default value of a boolean is false, which is what we want
-        Vec[] oldMeans = new Vec[k];//The means fromt he current step are needed when computing the new means
-        for(int i = 0; i < k; i++)
-            oldMeans[i] = means.get(0).clone();//This way the new vectors are of the same implementation
-        while((changes > 0 || atLeast > 0) && iterLimit-- >= 0)
+    }
+    
+    private void initialClusterSetUp(final int k, final int N, final DataSet dataSet, final List<Vec> means, final double[][] lowerBound, final double[] upperBound, final double[][] centroidSelfDistances, final int[] assignment, ExecutorService threadpool)
+    {
+        final int blockSize = N / SystemInfo.LogicalCores;
+        int extra = N % SystemInfo.LogicalCores;
+        int pos = 0;
+        final CountDownLatch latch = new CountDownLatch(SystemInfo.LogicalCores);
+        while (pos < N)
         {
-            atLeast--;
-            changes = 0;
-            //Step 1 
-            //Calculate centoird distances
-            for (int i = 0; i < k; i++)
+            final int from = pos;
+            final int to = pos + blockSize + (extra-- > 0 ? 1 : 0);
+            pos = to;
+
+            threadpool.submit(new Runnable()
             {
-                double sCmin = Double.MAX_VALUE;
-                for (int z = 0; z < k; z++)
+
+                @Override
+                public void run()
                 {
-                    if (i == z)//Distance to self is zero
-                        centroidSelfDistances[i][z] = 0;
-                    else
+                    final boolean[] skip = new boolean[k];
+                    for (int q = from; q < to; q++)
                     {
-                        centroidSelfDistances[i][z] = dm.dist(means.get(i), means.get(z));
-                        sCmin = Math.min(sCmin, centroidSelfDistances[i][z]);
-                    }
-                }
-                sC[i] = sCmin / 2.0;
-            }
-
-
-            //Step 2 / 3
-            for (int q = 0; q < N; q++)
-            {
-                Vec v = dataSet.getDataPoint(q).getNumericalValues();
-
-                //Step 2, skip those that u(v) < s(c(v))
-                if(upperBound[q] <= sC[assignment[q]])
-                    continue;
-                
-                for (int c = 0; c < k; c++)
-                    if (c != assignment[q] && upperBound[q] > lowerBound[q][c] && upperBound[q] > centroidSelfDistances[assignment[q]][c]*0.5)
-                    {//3 requirments before stepts 3(a) & 3(b)
-
-                        //3(a)
-                        if(r[q])
+                        Vec v = dataSet.getDataPoint(q).getNumericalValues();
+                        double minDistance = Double.MAX_VALUE;
+                        int index = -1;
+                        //Default value is false, we cant skip anything yet
+                        Arrays.fill(skip, false);
+                        for (int i = 0; i < k; i++)
                         {
-                            r[q] = false;
-                            double d = dm.dist(v, means.get(assignment[q]));
-                            //lowerBound[q][assignment[q]] = d;///Not sure if this is supposed to be here
-                            upperBound[q] = d;
-                        }
-                        //3(b)
-                        if(upperBound[q] > lowerBound[q][c] || upperBound[q] > centroidSelfDistances[assignment[q]][c]/2)
-                        {
-                            double d = dm.dist(v, means.get(c));
-                            lowerBound[q][c] = d;
-                            if(d < upperBound[q])
+                            if (skip[i])
+                                continue;
+                            double d = dm.dist(v, means.get(i));
+                            lowerBound[q][i] = d;
+
+                            if (d < minDistance)
                             {
-                                changes++;
-                                assignment[q] = c;
-                                upperBound[q] = d;
+                                minDistance = upperBound[q] = d;
+                                index = i;
+                                //We now have some information, use lemma 1 to see if we can skip anything
+                                for (int z = i + 1; z < k; z++)
+                                    if (centroidSelfDistances[i][z] >= 2 * d)
+                                        skip[z] = true;
                             }
                         }
+
+                        assignment[q] = index;
                     }
-            }
 
+                    latch.countDown();
+                }
+            });
+        }
+        try
+        {
+            latch.await();
+        }
+        catch (InterruptedException ex)
+        {
+            Logger.getLogger(KMeans.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
 
+    private void step4UpdateCentroids(final int k, final List<Vec> means, Vec[] oldMeans, final int N, final int[] assignment, final DataSet dataSet)
+    {
+        //Step 4
+        //Re compute centroids
+        for (int i = 0; i < k; i++)
+        {
+            means.get(i).copyTo(oldMeans[i]);
+            means.get(i).zeroOut();
+        }
 
-            //Step 4
-            //Re compute centroids
-            for (int i = 0; i < k; i++)
-            {
-                means.get(i).copyTo(oldMeans[i]);
-                means.get(i).zeroOut();
-            }
+        int[] bucketCount = new int[k];
 
-            int[] bucketCount = new int[k];
+        for (int q = 0; q < N; q++)
+        {
+            bucketCount[assignment[q]]++;
+            means.get(assignment[q]).mutableAdd(dataSet.getDataPoint(q).getNumericalValues());
+        }
 
-            for (int q = 0; q < N; q++)
-            {
-                bucketCount[assignment[q]]++;
-                means.get(assignment[q]).mutableAdd(dataSet.getDataPoint(q).getNumericalValues());
-            }
+        for (int i = 0; i < k; i++)
+            means.get(i).mutableDivide(bucketCount[i]);
+    }
 
-            for (int i = 0; i < k; i++)
-                means.get(i).mutableDivide(bucketCount[i]);
-            
-            double[] distancesMoved = new double[k];
-            for(int i = 0; i < k; i++)
-                distancesMoved[i] = dm.dist(oldMeans[i], means.get(i));
+    private void step5_6_distanceMovedBoundsUpdate(final int k, Vec[] oldMeans, final List<Vec> means, final int N, final double[][] lowerBound, final double[] upperBound, final int[] assignment, final boolean[] r)
+    {
+        double[] distancesMoved = new double[k];
+        for(int i = 0; i < k; i++)
+            distancesMoved[i] = dm.dist(oldMeans[i], means.get(i));
 
-            //Step 5
-            for(int c = 0; c < k; c++)
-                for(int q = 0; q < N; q++)
-                    lowerBound[q][c] = Math.max(lowerBound[q][c] - distancesMoved[c], 0);
-
-            //Step 6
+        //Step 5
+        for(int c = 0; c < k; c++)
             for(int q = 0; q < N; q++)
+                lowerBound[q][c] = Math.max(lowerBound[q][c] - distancesMoved[c], 0);
+
+        //Step 6
+        for(int q = 0; q < N; q++)
+        {
+            upperBound[q] +=  distancesMoved[assignment[q]];
+            r[q] = true; 
+        }
+    }
+
+    private void step3aBoundsUpdate(boolean[] r, int q, Vec v, final List<Vec> means, final int[] assignment, double[] upperBound)
+    {
+        //3(a)
+        if (r[q])
+        {
+            r[q] = false;
+            double d = dm.dist(v, means.get(assignment[q]));
+            //lowerBound[q][assignment[q]] = d;///Not sure if this is supposed to be here
+            upperBound[q] = d;
+        }
+    }
+
+    private void step3bUpdate(double[] upperBound, final int q, double[][] lowerBound, final int c, double[][] centroidSelfDistances, 
+            final int[] assignment, Vec v, final List<Vec> means, final AtomicInteger changes)
+    {
+        //3(b)
+        if (upperBound[q] > lowerBound[q][c] || upperBound[q] > centroidSelfDistances[assignment[q]][c] / 2)
+        {
+            double d = dm.dist(v, means.get(c));
+            lowerBound[q][c] = d;
+            if (d < upperBound[q])
             {
-                upperBound[q] +=  distancesMoved[assignment[q]];
-                r[q] = true; 
+                changes.incrementAndGet();
+                assignment[q] = c;
+                upperBound[q] = d;
             }
         }
-       
-        double totalDistance = 0.0;
-        
-        if(exactTotal == true)
-            for(int i = 0; i < N; i++)
-                totalDistance += Math.pow(dm.dist(dataSet.getDataPoint(i).getNumericalValues(), means.get(assignment[i])), 2);
-        else
-            for(int i = 0; i < N; i++)
-                totalDistance += Math.pow(upperBound[i], 2);
-
-        return totalDistance;
     }
 
+    private void calculateCentroidDistances(final int k, double[][] centroidSelfDistances, final List<Vec> means, double[] sC)
+    {
+        for (int i = 0; i < k; i++)
+        {
+            double sCmin = Double.MAX_VALUE;
+            for (int z = 0; z < k; z++)
+            {
+                if (i == z)//Distance to self is zero
+                    centroidSelfDistances[i][z] = 0;
+                else
+                {
+                    centroidSelfDistances[i][z] = dm.dist(means.get(i), means.get(z));
+                    sCmin = Math.min(sCmin, centroidSelfDistances[i][z]);
+                }
+            }
+            sC[i] = sCmin / 2.0;
+        }
+    }
+
+    @Override
     public List<List<DataPoint>> cluster(DataSet dataSet, int clusters, ExecutorService threadpool)
     {
-        return cluster(dataSet, clusters);
+        List<List<DataPoint>> ks = getListOfLists(clusters);
+        
+        /**
+         * Stores the cluster ids associated with each data point
+         */
+        int[] clusterIDs = new int[dataSet.getSampleSize()];
+        
+        cluster(dataSet, selectIntialPoints(dataSet, clusters, dm, rand, seedSelection, threadpool), clusterIDs, false, threadpool);
+        
+        for(int i = 0; i < clusterIDs.length; i++)
+            ks.get(clusterIDs[i]).add(dataSet.getDataPoint(i));
+        
+        return ks;
     }
 
+    @Override
     public List<List<DataPoint>> cluster(DataSet dataSet, int clusters)
     {
         List<List<DataPoint>> ks = getListOfLists(clusters);
@@ -386,6 +585,7 @@ public class KMeans implements KClusterer
         
     }
 
+    @Override
     public List<List<DataPoint>> cluster(DataSet dataSet, int lowK, int highK, ExecutorService threadpool)
     {
         double[] totDistances = new double[highK-lowK+1];
@@ -444,6 +644,7 @@ public class KMeans implements KClusterer
         return cluster(dataSet, maxChangeK);
     }
 
+    @Override
     public List<List<DataPoint>> cluster(DataSet dataSet, int lowK, int highK)
     {
         /**

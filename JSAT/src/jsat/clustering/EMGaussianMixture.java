@@ -1,23 +1,23 @@
 package jsat.clustering;
 
-import java.util.concurrent.ExecutorService;
-import jsat.linear.DenseVector;
+import static java.lang.Math.log;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
+import java.util.concurrent.ExecutorService;
 import jsat.DataSet;
 import jsat.SimpleDataSet;
 import jsat.classifiers.CategoricalData;
 import jsat.classifiers.DataPoint;
+import jsat.clustering.SeedSelectionMethods.SeedSelection;
 import jsat.distributions.multivariate.MultivariateDistribution;
 import jsat.distributions.multivariate.NormalM;
 import jsat.linear.DenseMatrix;
+import jsat.linear.DenseVector;
 import jsat.linear.Matrix;
 import jsat.linear.Vec;
 import jsat.linear.distancemetrics.DistanceMetric;
-import static jsat.clustering.SeedSelectionMethods.*;
-import static java.lang.Math.*;
 
 /**
  * An implementation of Gaussian Mixture models that learns the specified number of Gaussians using Expectation Maximization algorithm. 
@@ -67,7 +67,7 @@ public class EMGaussianMixture extends KMeans implements MultivariateDistributio
         }
         if(gm.a_k != null)
             this.a_k = Arrays.copyOf(gm.a_k, gm.a_k.length);
-        this.iterLimit = gm.iterLimit;
+        this.MaxIterLimit = gm.MaxIterLimit;
         this.tolerance = gm.tolerance;
     }
     
