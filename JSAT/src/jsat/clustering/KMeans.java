@@ -238,39 +238,42 @@ public class KMeans implements KClusterer
                 //Step 2 / 3
                 for (int q = 0; q < N; q++)
                 {
-                    final Vec v = dataSet.getDataPoint(q).getNumericalValues();
-
                     //Step 2, skip those that u(v) < s(c(v))
                     if (upperBound[q] <= sC[assignment[q]])
                         continue;
-
-                    for (int c = 0; c < k; c++)
-                        if (c != assignment[q] && upperBound[q] > lowerBound[q][c] && upperBound[q] > centroidSelfDistances[assignment[q]][c] * 0.5)
-                        {
-                            if (threadpool == null)
+                    
+                    final Vec v = dataSet.getDataPoint(q).getNumericalValues();
+                        
+                    if(threadpool == null)
+                    {
+                        for (int c = 0; c < k; c++)
+                            if (c != assignment[q] && upperBound[q] > lowerBound[q][c] && upperBound[q] > centroidSelfDistances[assignment[q]][c] * 0.5)
                             {
                                 step3aBoundsUpdate(r, q, v, means, assignment, upperBound);
                                 step3bUpdate(upperBound, q, lowerBound, c, centroidSelfDistances, assignment, v, means, changes);
                             }
-                            else
+                    }
+                    else
+                    {
+                        final int qq = q;
+                        Runnable run = new Runnable() {
+
+                            public void run()
                             {
-                                latch.countUp();
-                                final int cc = c;
-                                final int qq = q;
-                                Runnable run = new Runnable()
-                                {
-                                    @Override
-                                    public void run()
+                                for (int c = 0; c < k; c++)
+                                    if (c != assignment[qq] && upperBound[qq] > lowerBound[qq][c] && upperBound[qq] > centroidSelfDistances[assignment[qq]][c] * 0.5)
                                     {
                                         step3aBoundsUpdate(r, qq, v, means, assignment, upperBound);
-                                        step3bUpdate(upperBound, qq, lowerBound, cc, centroidSelfDistances, assignment, v, means, changes);
-                                        latch.countDown();
+                                        step3bUpdate(upperBound, qq, lowerBound, c, centroidSelfDistances, assignment, v, means, changes);
                                     }
-                                };
-                                runnableList.put(run);
+                                latch.countDown();
                             }
-                        }
+                        };
+                        latch.countUp();
+                        runnableList.put(run);
+                    }
                 }
+                
                 if (threadpool != null)
                 {
                     //Pop extra off
