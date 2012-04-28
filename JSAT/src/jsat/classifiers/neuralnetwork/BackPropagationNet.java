@@ -272,7 +272,6 @@ public class BackPropagationNet implements Classifier, Regressor
         int iteartions = 0;
         double lastError;
         double error = 0;
-        System.out.println("---------------");
 
         do
         {
@@ -293,7 +292,6 @@ public class BackPropagationNet implements Classifier, Regressor
                 error += learnExample(inputVec, expected, errorVecs, null);
                 
             }
-            System.out.println("\t" + error);
             
             iteartions++;
         }
