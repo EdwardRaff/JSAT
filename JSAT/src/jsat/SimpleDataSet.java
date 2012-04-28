@@ -33,6 +33,7 @@ public class SimpleDataSet extends DataSet<SimpleDataSet>
     {
         this.categories = categories;
         this.numNumerVals = numNumericalValues;
+        this.dataPoints = new ArrayList<DataPoint>();
     }
     
     @Override
