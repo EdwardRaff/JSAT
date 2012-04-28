@@ -208,7 +208,14 @@ public class NearestNeighbour implements  Classifier, Regressor
     @Override
     public NearestNeighbour clone()
     {
-        throw new UnsupportedOperationException("Not supported yet.");
+        NearestNeighbour clone = new NearestNeighbour(k, weighted, distanceMetric.clone(), vcf.clone());
+        
+        clone.mode = this.mode;
+        
+        if(this.vecCollection != null)
+            clone.vecCollection = this.vecCollection.clone();
+        
+        return clone;
     }
     
     public boolean supportsWeightedData()
