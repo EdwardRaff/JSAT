@@ -368,13 +368,17 @@ public class PlatSMO extends SupportVectorMachine
         PlatSMO copy = new PlatSMO(this.getKernel());
         
         copy.C = this.C;
-        copy.alpha = Arrays.copyOf(this.alpha, this.alpha.length);
+        if(this.alpha != null)
+            copy.alpha = Arrays.copyOf(this.alpha, this.alpha.length);
         copy.b = this.b;
         copy.epsilon = this.epsilon;
-        copy.error = Arrays.copyOf(this.error, this.error.length);
-        copy.label = Arrays.copyOf(this.label, this.label.length);
+        if(this.error != null)
+            copy.error = Arrays.copyOf(this.error, this.error.length);
+        if(this.label != null)
+            copy.label = Arrays.copyOf(this.label, this.label.length);
         copy.tolerance = this.tolerance;
-        copy.vecs = Arrays.copyOf(this.vecs, this.vecs.length);
+        if(this.vecs != null)
+            copy.vecs = Arrays.copyOf(this.vecs, this.vecs.length);
         
         return copy;
     }
