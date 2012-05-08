@@ -24,6 +24,8 @@ public interface KClusterer extends Clusterer
      */
     public List<List<DataPoint>> cluster(DataSet dataSet, int clusters, ExecutorService threadpool);
     
+    public int[] cluster(DataSet dataSet, int clusters, ExecutorService threadpool, int[] designations);
+    
     /**
      * Performs clustering on the given data set. 
      * 
@@ -33,6 +35,8 @@ public interface KClusterer extends Clusterer
      * points for one cluster in the group
      */
     public List<List<DataPoint>> cluster(DataSet dataSet, int clusters);
+    
+    public int[] cluster(DataSet dataSet, int clusters, int[] designations);
     
     /**
      * Performs clustering on the given data set. The implementation will 
@@ -47,6 +51,8 @@ public interface KClusterer extends Clusterer
      */
     public List<List<DataPoint>> cluster(DataSet dataSet, int lowK, int highK, ExecutorService threadpool);
     
+    public int[] cluster(DataSet dataSet, int lowK, int highK, ExecutorService threadpool, int[] designations);
+    
     /**
      * Performs clustering on the given data set. The implementation will 
      * attempt to determine the best number of clusters for the given data. 
@@ -58,4 +64,6 @@ public interface KClusterer extends Clusterer
      * points for one cluster in the group
      */
     public List<List<DataPoint>> cluster(DataSet dataSet, int lowK, int highK);
+    
+    public int[] cluster(DataSet dataSet, int lowK, int highK, int[] designations);
 }

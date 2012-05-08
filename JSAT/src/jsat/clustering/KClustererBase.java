@@ -1,0 +1,40 @@
+package jsat.clustering;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.ExecutorService;
+import jsat.DataSet;
+import jsat.classifiers.DataPoint;
+
+/**
+ * A base foundation that provides an implementation of the methods that return a list of lists for the clusterings using 
+ * their int array counterparts. 
+ * @author Edward Raff
+ */
+public abstract class KClustererBase extends ClustererBase implements KClusterer
+{
+    public List<List<DataPoint>> cluster(DataSet dataSet, int clusters, ExecutorService threadpool)
+    {
+        int[] assignments = cluster(dataSet, clusters, threadpool, (int[]) null);
+        return createClusterListFromAssignmentArray(assignments, dataSet);
+    }
+
+    public List<List<DataPoint>> cluster(DataSet dataSet, int clusters)
+    {
+        int[] assignments = cluster(dataSet, clusters, (int[]) null);
+        return createClusterListFromAssignmentArray(assignments, dataSet);
+    }
+
+
+    public List<List<DataPoint>> cluster(DataSet dataSet, int lowK, int highK, ExecutorService threadpool)
+    {
+        int[] assignments = cluster(dataSet, lowK, highK, threadpool, (int[]) null);
+        return createClusterListFromAssignmentArray(assignments, dataSet);
+    }
+
+    public List<List<DataPoint>> cluster(DataSet dataSet, int lowK, int highK)
+    {
+        int[] assignments = cluster(dataSet, lowK, highK, (int[]) null);
+        return createClusterListFromAssignmentArray(assignments, dataSet);
+    }
+}

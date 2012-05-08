@@ -1,11 +1,7 @@
 
 package jsat.clustering;
 
-import java.util.ArrayList;
-import java.util.Hashtable;
-import java.util.List;
-import java.util.Map;
-import java.util.Random;
+import java.util.*;
 import jsat.DataSet;
 import jsat.SimpleDataSet;
 import jsat.classifiers.DataPoint;
@@ -197,19 +193,15 @@ public class CLARA extends PAM
     }
 
     @Override
-    public List<List<DataPoint>> cluster(DataSet dataSet, int clusters)
+    public int[] cluster(DataSet dataSet, int clusters, int[] designations)
     {
-         List<List<DataPoint>> ks = KMeans.getListOfLists(clusters);
-        
-        int[] clusterIDs = new int[dataSet.getSampleSize()];
+        if(designations == null)
+            designations = new int[dataSet.getSampleSize()];
         int[] medioids = new int[clusters];
         
-        this.cluster(dataSet, medioids, clusterIDs);
+        this.cluster(dataSet, medioids, designations);
         
-        for(int i = 0; i < clusterIDs.length; i++)
-            ks.get(clusterIDs[i]).add(dataSet.getDataPoint(i));
-        
-        return ks;
+        return designations;
     }
     
     

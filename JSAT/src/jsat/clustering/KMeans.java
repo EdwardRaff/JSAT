@@ -16,6 +16,7 @@ import jsat.DataSet;
 import jsat.classifiers.DataPoint;
 import jsat.clustering.SeedSelectionMethods.SeedSelection;
 import static jsat.clustering.SeedSelectionMethods.selectIntialPoints;
+import static jsat.clustering.SeedSelectionMethods.selectIntialPoints;
 import jsat.linear.Vec;
 import jsat.linear.distancemetrics.DistanceMetric;
 import jsat.linear.distancemetrics.EuclideanDistance;
@@ -35,7 +36,7 @@ import jsat.utils.SystemInfo;
  * 
  * @author Edward Raff
  */
-public class KMeans implements KClusterer
+public class KMeans extends KClustererBase
 {
     private DistanceMetric dm;
     private Random rand;
@@ -103,18 +104,6 @@ public class KMeans implements KClusterer
         return seedSelection;
     }
     
-    
-    @Override
-    public List<List<DataPoint>> cluster(DataSet dataSet)
-    {
-        return cluster(dataSet, 2, (int)Math.sqrt(dataSet.getSampleSize()/2));
-    }
-    
-    @Override
-    public List<List<DataPoint>> cluster(DataSet dataSet, ExecutorService threadpool)
-    {
-        return cluster(dataSet, 2, (int)Math.sqrt(dataSet.getSampleSize()/2), threadpool);
-    }
     
     /**
      * This is a helper method where the actual cluster is performed. This is because there
@@ -496,48 +485,42 @@ public class KMeans implements KClusterer
         }
     }
 
-    @Override
-    public List<List<DataPoint>> cluster(DataSet dataSet, int clusters, ExecutorService threadpool)
-    {
-        List<List<DataPoint>> ks = getListOfLists(clusters);
-        
-        /**
-         * Stores the cluster ids associated with each data point
-         */
-        int[] clusterIDs = new int[dataSet.getSampleSize()];
-        
-        cluster(dataSet, selectIntialPoints(dataSet, clusters, dm, rand, seedSelection, threadpool), clusterIDs, false, threadpool);
-        
-        for(int i = 0; i < clusterIDs.length; i++)
-            ks.get(clusterIDs[i]).add(dataSet.getDataPoint(i));
-        
-        return ks;
-    }
-
-    @Override
-    public List<List<DataPoint>> cluster(DataSet dataSet, int clusters)
-    {
-        List<List<DataPoint>> ks = getListOfLists(clusters);
-        
-        /**
-         * Stores the cluster ids associated with each data point
-         */
-        int[] clusterIDs = new int[dataSet.getSampleSize()];
-        
-        cluster(dataSet, selectIntialPoints(dataSet, clusters, dm, rand, seedSelection), clusterIDs, false);
-        
-        for(int i = 0; i < clusterIDs.length; i++)
-            ks.get(clusterIDs[i]).add(dataSet.getDataPoint(i));
-        
-        return ks;
-    }
-
     static protected List<List<DataPoint>> getListOfLists(int k)
     {
         List<List<DataPoint>> ks = new ArrayList<List<DataPoint>>(k);
         for(int i = 0; i < k; i++)
             ks.add(new ArrayList<DataPoint>());
         return ks;
+    }
+
+    public int[] cluster(DataSet dataSet, int[] designations)
+    {
+        return cluster(dataSet, 2, (int)Math.sqrt(dataSet.getSampleSize()/2), designations);
+    }
+
+    public int[] cluster(DataSet dataSet, ExecutorService threadpool, int[] designations)
+    {
+        return cluster(dataSet, 2, (int)Math.sqrt(dataSet.getSampleSize()/2), threadpool, designations);
+    }
+
+    public int[] cluster(DataSet dataSet, int clusters, ExecutorService threadpool, int[] designations)
+    {
+        if(designations == null)
+            designations = new int[dataSet.getSampleSize()];
+        
+        cluster(dataSet, selectIntialPoints(dataSet, clusters, dm, rand, seedSelection, threadpool), designations, false, threadpool);
+        
+        return designations;
+    }
+
+    public int[] cluster(DataSet dataSet, int clusters, int[] designations)
+    {
+        if(designations == null)
+            designations = new int[dataSet.getSampleSize()];
+        
+        cluster(dataSet, selectIntialPoints(dataSet, clusters, dm, rand, seedSelection), designations, false);
+        
+        return designations;
     }
     
     //We use the object itself to return the k 
@@ -588,8 +571,7 @@ public class KMeans implements KClusterer
         
     }
 
-    @Override
-    public List<List<DataPoint>> cluster(DataSet dataSet, int lowK, int highK, ExecutorService threadpool)
+    public int[] cluster(DataSet dataSet, int lowK, int highK, ExecutorService threadpool, int[] designations)
     {
         double[] totDistances = new double[highK-lowK+1];
         
@@ -644,16 +626,17 @@ public class KMeans implements KClusterer
         if(maxChange < stats.getStandardDeviation()*2+stats.getMean())
             maxChangeK = lowK;        
         
-        return cluster(dataSet, maxChangeK);
+        return cluster(dataSet, maxChangeK, designations);
     }
 
     @Override
-    public List<List<DataPoint>> cluster(DataSet dataSet, int lowK, int highK)
+    public int[] cluster(DataSet dataSet, int lowK, int highK, int[] designations)
     {
         /**
          * Stores the cluster ids associated with each data point
          */
-        int[] clusterIDs = new int[dataSet.getSampleSize()];
+        if(designations == null)
+            designations = new int[dataSet.getSampleSize()];
 
         List<List<DataPoint>> ks = new ArrayList<List<DataPoint>>(highK);
         for (int i = 0; i < ks.size(); i++)
@@ -670,7 +653,7 @@ public class KMeans implements KClusterer
 
         for(int i = lowK; i <= highK; i++)
         {
-            double totDist = cluster(dataSet, selectIntialPoints(dataSet, i, dm, rand, seedSelection), clusterIDs, true);
+            double totDist = cluster(dataSet, selectIntialPoints(dataSet, i, dm, rand, seedSelection), designations, true);
             totDistances[i-lowK] = totDist;
             if(i > lowK)
             {
@@ -705,6 +688,6 @@ public class KMeans implements KClusterer
         }
         
         
-        return cluster(dataSet, maxChangeK);
+        return cluster(dataSet, maxChangeK, designations);
     }
 }

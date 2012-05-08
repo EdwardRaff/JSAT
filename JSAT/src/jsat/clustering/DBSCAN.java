@@ -1,21 +1,7 @@
 package jsat.clustering;
 
-import java.util.ArrayDeque;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Queue;
-import java.util.Set;
-import java.util.concurrent.ArrayBlockingQueue;
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.Callable;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Future;
-import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.SynchronousQueue;
-import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.*;
+import java.util.concurrent.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import jsat.DataSet;
@@ -39,7 +25,7 @@ import jsat.utils.SystemInfo;
  * 
  * @author Edward Raff
  */
-public class DBSCAN implements Clusterer
+public class DBSCAN extends ClustererBase
 {
     /**
      * Used by {@link #cluster(jsat.DataSet, double, int, jsat.linear.vectorcollection.VectorCollection) } 
@@ -74,6 +60,11 @@ public class DBSCAN implements Clusterer
     
     public List<List<DataPoint>> cluster(DataSet dataSet, int minPts)
     {
+        return createClusterListFromAssignmentArray(cluster(dataSet, minPts, (int[])null), dataSet);
+    }
+    
+    public int[] cluster(DataSet dataSet, int minPts, int[] designations)
+    {
         OnLineStatistics stats = new OnLineStatistics();
         TrainableDistanceMetric.trainIfNeeded(dm, dataSet);
         VectorCollection<VecPaired<Integer, Vec>> vc = vecFactory.getVectorCollection(getVecIndexPairs(dataSet), dm);
@@ -86,17 +77,17 @@ public class DBSCAN implements Clusterer
         
         double eps = stats.getMean() + stats.getStandardDeviation()*stndDevs;
         
-        return cluster(dataSet, eps, minPts, vc);
+        return cluster(dataSet, eps, minPts, vc, designations);
     }
 
-    public List<List<DataPoint>> cluster(DataSet dataSet)
+    public int[] cluster(DataSet dataSet, int[] designations)
     {
-        return cluster(dataSet, 3);
+        return cluster(dataSet, 3, designations);
     }
 
-    public List<List<DataPoint>> cluster(DataSet dataSet, ExecutorService threadpool)
+    public int[] cluster(DataSet dataSet, ExecutorService threadpool, int[] designations)
     {
-        return cluster(dataSet, 3, threadpool);
+        return cluster(dataSet, 3, threadpool, designations);
     }
     
     private class StatsWorker implements Callable<OnLineStatistics>
@@ -129,6 +120,11 @@ public class DBSCAN implements Clusterer
     }
     
     public List<List<DataPoint>> cluster(DataSet dataSet, int minPts, ExecutorService threadpool)
+    {
+        return createClusterListFromAssignmentArray(cluster(dataSet, minPts, threadpool, null), dataSet);
+    }
+    
+    public int[] cluster(DataSet dataSet, int minPts, ExecutorService threadpool, int[] designations)
     {
         OnLineStatistics stats = null;
         TrainableDistanceMetric.trainIfNeeded(dm, dataSet, threadpool);
@@ -168,7 +164,7 @@ public class DBSCAN implements Clusterer
         
         double eps = stats.getMean() + stats.getStandardDeviation()*stndDevs;
         
-        return cluster(dataSet, eps, minPts, vc, threadpool);
+        return cluster(dataSet, eps, minPts, vc, threadpool, designations);
     }
 
     private List<VecPaired<Integer, Vec>> getVecIndexPairs(DataSet dataSet)
@@ -181,19 +177,30 @@ public class DBSCAN implements Clusterer
     
     public List<List<DataPoint>> cluster(DataSet dataSet, double eps, int minPts)
     {
+        return createClusterListFromAssignmentArray(cluster(dataSet, eps, minPts, (int[]) null), dataSet);
+    }
+    
+    public int[] cluster(DataSet dataSet, double eps, int minPts, int[] designations)
+    {
         TrainableDistanceMetric.trainIfNeeded(dm, dataSet);
-        return cluster(dataSet, eps, minPts, vecFactory.getVectorCollection(getVecIndexPairs(dataSet), dm));
+        return cluster(dataSet, eps, minPts, vecFactory.getVectorCollection(getVecIndexPairs(dataSet), dm), designations);
     }
     
     public List<List<DataPoint>> cluster(DataSet dataSet, double eps, int minPts, ExecutorService threadpool)
     {
-        TrainableDistanceMetric.trainIfNeeded(dm, dataSet, threadpool);
-        return cluster(dataSet, eps, minPts, vecFactory.getVectorCollection(getVecIndexPairs(dataSet), dm), threadpool);
+        return createClusterListFromAssignmentArray(cluster(dataSet, eps, minPts, threadpool, null), dataSet);
     }
     
-    private List<List<DataPoint>> cluster(DataSet dataSet, double eps, int minPts, VectorCollection<VecPaired<Integer, Vec>> vc)
+    public int[] cluster(DataSet dataSet, double eps, int minPts, ExecutorService threadpool, int[] designations)
     {
-        int[] pointCats = new int[dataSet.getSampleSize()];
+        TrainableDistanceMetric.trainIfNeeded(dm, dataSet, threadpool);
+        return cluster(dataSet, eps, minPts, vecFactory.getVectorCollection(getVecIndexPairs(dataSet), dm), threadpool, designations);
+    }
+    
+    private int[] cluster(DataSet dataSet, double eps, int minPts, VectorCollection<VecPaired<Integer, Vec>> vc, int[] pointCats )
+    {
+        if (pointCats == null)
+            pointCats = new int[dataSet.getSampleSize()];
         Arrays.fill(pointCats, UNCLASSIFIED);
         
         int curClusterID = 0;
@@ -207,20 +214,13 @@ public class DBSCAN implements Clusterer
             }
         }
         
-        List<List<DataPoint>> ks = new ArrayList<List<DataPoint>>(curClusterID);
-        for(int i = 0; i < curClusterID; i++)
-            ks.add(new ArrayList<DataPoint>());
-        
-        for(int i = 0; i < pointCats.length; i++)
-            if(pointCats[i] > UNCLASSIFIED)
-                ks.get(pointCats[i]).add(dataSet.getDataPoint(i));
-        
-        return ks;
+        return pointCats;
     }
     
-    private List<List<DataPoint>> cluster(DataSet dataSet, double eps, int minPts, VectorCollection<VecPaired<Integer, Vec>> vc, ExecutorService threadpool)
+    private int[] cluster(DataSet dataSet, double eps, int minPts, VectorCollection<VecPaired<Integer, Vec>> vc, ExecutorService threadpool, int[] pointCats)
     {
-        int[] pointCats = new int[dataSet.getSampleSize()];
+        if(pointCats == null)
+            pointCats = new int[dataSet.getSampleSize()];
         Arrays.fill(pointCats, UNCLASSIFIED);
         
         
@@ -252,17 +252,20 @@ public class DBSCAN implements Clusterer
         {
         }
         
-        List<List<DataPoint>> ks = new ArrayList<List<DataPoint>>(curClusterID);
-        for(int i = 0; i < curClusterID; i++)
-            ks.add(new ArrayList<DataPoint>());
-        
-        for(int i = 0; i < pointCats.length; i++)
-            if(pointCats[i] > UNCLASSIFIED)
-                ks.get(pointCats[i]).add(dataSet.getDataPoint(i));
-        
-        return ks;
+        return pointCats;
     }
     
+    /**
+     * 
+     * @param pointCats the array to store the cluster assignments in
+     * @param dataSet the data set 
+     * @param point the current data point we are working on
+     * @param clId the current cluster we are working on
+     * @param eps the search radius
+     * @param minPts the minimum number of points to create a new cluster
+     * @param vc the collection to use to search with 
+     * @return true if a cluster was expanded, false if the point was marked as noise
+     */
     private boolean exapndCluster(int[] pointCats, DataSet dataSet, int point, int clId, double eps, int minPts, VectorCollection<VecPaired<Integer, Vec>> vc)
     {
         Vec queryPoint = dataSet.getDataPoint(point).getNumericalValues();
@@ -350,6 +353,20 @@ public class DBSCAN implements Clusterer
         
     }
     
+    /**
+     * 
+     * @param pointCats the array to store the cluster assignments in
+     * @param dataSet the data set 
+     * @param point the current data point we are working on
+     * @param clId the current cluster we are working on
+     * @param eps the search radius
+     * @param minPts the minimum number of points to create a new cluster
+     * @param vc the collection to use to search with 
+     * @param threadpool source of threads for computation
+     * @param resultQ blocking queue used to get results from 
+     * @param sourceQ blocking queue used to store points that need to be processed
+     * @return true if a cluster was expanded, false if the point was marked as noise
+     */
     private boolean exapndCluster(int[] pointCats, DataSet dataSet, int point, int clId, double eps, int minPts, VectorCollection<VecPaired<Integer, Vec>> vc, ExecutorService threadpool, BlockingQueue<List<VecPaired<Double,VecPaired<Integer,Vec>>>> resultQ, BlockingQueue<Vec> sourceQ )
     {
         Vec queryPoint = dataSet.getDataPoint(point).getNumericalValues();

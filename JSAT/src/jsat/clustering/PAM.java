@@ -24,7 +24,7 @@ import static jsat.clustering.SeedSelectionMethods.*;
  *
  * @author Edward Raff
  */
-public class PAM implements KClusterer
+public class PAM extends KClustererBase
 {
     protected DistanceMetric dm;
     protected Random rand;
@@ -153,41 +153,37 @@ public class PAM implements KClusterer
         return totalDistance;
     }
 
-    public List<List<DataPoint>> cluster(DataSet dataSet, int clusters, ExecutorService threadpool)
+    public int[] cluster(DataSet dataSet, int[] designations)
     {
-        return cluster(dataSet, clusters);
+        return cluster(dataSet, 2, (int)Math.sqrt(dataSet.getSampleSize()/2), designations);
     }
 
-    public List<List<DataPoint>> cluster(DataSet dataSet, int clusters)
+    public int[] cluster(DataSet dataSet, ExecutorService threadpool, int[] designations)
     {
-        List<List<DataPoint>> ks = KMeans.getListOfLists(clusters);
-        
-        int[] clusterIDs = new int[dataSet.getSampleSize()];
+        return cluster(dataSet, 2, (int)Math.sqrt(dataSet.getSampleSize()/2), threadpool, designations);
+    }
+
+    public int[] cluster(DataSet dataSet, int clusters, ExecutorService threadpool, int[] designations)
+    {
+         return cluster(dataSet, clusters, designations);
+    }
+
+    public int[] cluster(DataSet dataSet, int clusters, int[] designations)
+    {
+        if(designations == null)
+            designations = new int[dataSet.getSampleSize()];
         int[] medioids = new int[clusters];
         
         selectIntialPoints(dataSet, medioids, dm, rand, seedSelection);
         
-        cluster(dataSet, medioids, clusterIDs);
+        cluster(dataSet, medioids, designations);
         
-        for(int i = 0; i < clusterIDs.length; i++)
-            ks.get(clusterIDs[i]).add(dataSet.getDataPoint(i));
-        
-        return ks;
+        return designations;
     }
 
-    public List<List<DataPoint>> cluster(DataSet dataSet)
+    public int[] cluster(DataSet dataSet, int lowK, int highK, int[] designations)
     {
-        return cluster(dataSet, 2, (int)Math.sqrt(dataSet.getSampleSize()/2));
-    }
-    
-    public List<List<DataPoint>> cluster(DataSet dataSet, int lowK, int highK)
-    {
-        return cluster(dataSet, lowK, highK, new FakeExecutor());
-    }
-
-    public List<List<DataPoint>> cluster(DataSet dataSet, ExecutorService threadpool)
-    {
-        return cluster(dataSet, 2, (int)Math.sqrt(dataSet.getSampleSize()/2), threadpool);
+        return cluster(dataSet, lowK, highK, new FakeExecutor(), designations);
     }
 
     private class ClusterWorker implements Runnable
@@ -234,7 +230,7 @@ public class PAM implements KClusterer
         
     }
     
-    public List<List<DataPoint>> cluster(DataSet dataSet, int lowK, int highK, ExecutorService threadpool)
+    public int[] cluster(DataSet dataSet, int lowK, int highK, ExecutorService threadpool, int[] designations)
     {
         double[] totDistances = new double[highK-lowK+1];
         
@@ -289,6 +285,6 @@ public class PAM implements KClusterer
         if(maxChange < stats.getStandardDeviation()*2+stats.getMean())
             maxChangeK = lowK;
         
-        return cluster(dataSet, maxChangeK);
+        return cluster(dataSet, maxChangeK, designations);
     }
 }
