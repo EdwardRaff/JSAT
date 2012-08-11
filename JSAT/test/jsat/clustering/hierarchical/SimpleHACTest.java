@@ -51,7 +51,7 @@ public class SimpleHACTest
     @BeforeClass
     public static void setUpClass() throws Exception
     {
-        simpleHAC = new SimpleHAC(new SingleLinkDissimilarity(new SingleLinkDissimilarity(new EuclideanDistance())));
+        simpleHAC = new SimpleHAC(new SingleLinkDissimilarity(new EuclideanDistance()));
         GridDataGenerator gdg = new GridDataGenerator(new Uniform(-0.15, 0.15), new Random(12), 2, 5);
         easyData10 = gdg.generateData(30);//HAC is O(n^3), so we make the data set a good deal smaller
         ex = Executors.newFixedThreadPool(10);
