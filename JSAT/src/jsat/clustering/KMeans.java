@@ -16,7 +16,6 @@ import jsat.DataSet;
 import jsat.classifiers.DataPoint;
 import jsat.clustering.SeedSelectionMethods.SeedSelection;
 import static jsat.clustering.SeedSelectionMethods.selectIntialPoints;
-import static jsat.clustering.SeedSelectionMethods.selectIntialPoints;
 import jsat.linear.Vec;
 import jsat.linear.distancemetrics.DistanceMetric;
 import jsat.linear.distancemetrics.EuclideanDistance;
@@ -24,6 +23,7 @@ import jsat.linear.distancemetrics.TrainableDistanceMetric;
 import jsat.math.OnLineStatistics;
 import jsat.utils.ModifiableCountDownLatch;
 import jsat.utils.PoisonRunnable;
+import jsat.utils.RunnableConsumer;
 import jsat.utils.SystemInfo;
 
 /**
@@ -196,33 +196,13 @@ public class KMeans extends KClustererBase
                 //Step 1 
                 calculateCentroidDistances(k, centroidSelfDistances, means, sC);
 
-                final ModifiableCountDownLatch latch = new ModifiableCountDownLatch(1);
+//                final ModifiableCountDownLatch latch = new ModifiableCountDownLatch(1);
+                final CountDownLatch latch = new CountDownLatch(SystemInfo.LogicalCores);
 
                 //Create readers to run jobs 
                 if (threadpool != null)
                     for (int i = 0; i < SystemInfo.LogicalCores; i++)
-                        threadpool.submit(new Runnable()
-                        {
-
-                            @Override
-                            public void run()
-                            {
-                                while (true)
-                                {
-                                    try
-                                    {
-                                        Runnable r = runnableList.take();
-                                        if (r instanceof PoisonRunnable)
-                                            return;
-                                        r.run();
-                                    }
-                                    catch (InterruptedException ex)
-                                    {
-                                        Logger.getLogger(KMeans.class.getName()).log(Level.SEVERE, null, ex);
-                                    }
-                                }
-                            }
-                        });
+                        threadpool.submit(new RunnableConsumer(runnableList));
 
                 //Step 2 / 3
                 for (int q = 0; q < N; q++)
@@ -247,6 +227,7 @@ public class KMeans extends KClustererBase
                         final int qq = q;
                         Runnable run = new Runnable() {
 
+                            @Override
                             public void run()
                             {
                                 for (int c = 0; c < k; c++)
@@ -255,10 +236,8 @@ public class KMeans extends KClustererBase
                                         step3aBoundsUpdate(r, qq, v, means, assignment, upperBound);
                                         step3bUpdate(upperBound, qq, lowerBound, c, centroidSelfDistances, assignment, v, means, changes);
                                     }
-                                latch.countDown();
                             }
                         };
-                        latch.countUp();
                         runnableList.put(run);
                     }
                 }
@@ -267,9 +246,9 @@ public class KMeans extends KClustererBase
                 {
                     //Pop extra off
                     for (int i = 0; i < SystemInfo.LogicalCores; i++)
-                        runnableList.put(new PoisonRunnable());
+                        runnableList.put(new PoisonRunnable(latch));
+                    
                     //Still need to wait for everyone to finish, some threasd may still be easting jobs from the que 
-                    latch.countDown();
                     try
                     {
                         latch.await();
