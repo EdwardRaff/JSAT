@@ -17,10 +17,18 @@ public interface KernelFunction
     public double k(double u);
     /**
      * Computes the value of the finite integral from -Infinity up to the value u, of the function given by {@link #k(double) }
-     * @param u
-     * @return 
+     * @param u the distance of the data points
+     * @return the value of the integration
      */
     public double intK(double u);
+    
+    /**
+     * 
+     * Returns the value of the derivative at a point, k'(u)
+     * @param u the distance of the data points
+     * @return the value of the derivative at <tt>u</tt>
+     */
+    public double kPrime(double u);
     
     /**
      * Returns the variance of the kernel function

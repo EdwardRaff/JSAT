@@ -3,6 +3,7 @@ package jsat.distributions.multivariate;
 
 import java.util.List;
 import jsat.distributions.empirical.KernelDensityEstimator;
+import jsat.distributions.empirical.kernelfunc.KernelFunction;
 import jsat.linear.Vec;
 import jsat.linear.VecPaired;
 
@@ -23,4 +24,28 @@ abstract public class MultivariateKDE extends MultivariateDistributionSkeleton
      * @return the list of near by vectors and their weights
      */
     abstract public List<VecPaired<Double, VecPaired<Integer, Vec>>> getNearby(Vec x);
+    
+    /**
+     * Returns the list of vectors that have a non zero contribution to the density of the query point <tt>x</tt>. 
+     * Each vector is paired with its integer index from the original constructing list vectors, and a double 
+     * indicating its distance from the query point divided by the bandwidth of the point. 
+     * 
+     * @param x the query point
+     * @return the list of near by vectors and their weights
+     */
+    abstract public List<VecPaired<Double, VecPaired<Integer, Vec>>> getNearbyRaw(Vec x);
+    
+    /**
+     * 
+     * @return the kernel function used
+     */
+    abstract public KernelFunction getKernelFunction();
+    
+    /**
+     * A caller may want to increase or decrease the bandwidth after training 
+     * has been completed to get smoother model, or decrease it to observe 
+     * behavior. This method will scaled the bandwidth of each data point by the given factor
+     * @param scale the value to scale the bandwidth used 
+     */
+    abstract public void scaleBandwidth(double scale);
 }

@@ -19,11 +19,13 @@ import jsat.linear.Vec;
  */
 public abstract class MultivariateDistributionSkeleton implements MultivariateDistribution
 {
+    @Override
     public double logPdf(double... x)
     {
         return logPdf(DenseVector.toDenseVec(x));
     }
     
+    @Override
     public double logPdf(Vec x)
     {
         double logPDF = Math.log(pdf(x));
@@ -32,26 +34,31 @@ public abstract class MultivariateDistributionSkeleton implements MultivariateDi
         return logPDF;
     }
     
+    @Override
     public double pdf(double... x)
     {
         return pdf(DenseVector.toDenseVec(x));
     }
     
+    @Override
     public boolean setUsingData(DataSet dataSet)
     {
         return setUsingDataList(dataSet.getDataPoints());
     }
 
+    @Override
     public boolean setUsingData(DataSet dataSet, ExecutorService threadpool)
     {
-        return setUsingData(dataSet.getDataPoints(), threadpool);
+        return setUsingDataList(dataSet.getDataPoints(), threadpool);
     }
 
+    @Override
     public <V extends Vec> boolean setUsingData(List<V> dataSet, ExecutorService threadpool)
     {
         return setUsingData(dataSet);
     }
 
+    @Override
     public boolean setUsingDataList(List<DataPoint> dataPoints, ExecutorService threadpool)
     {
         return setUsingDataList(dataPoints);

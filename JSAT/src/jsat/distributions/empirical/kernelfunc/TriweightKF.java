@@ -8,6 +8,7 @@ package jsat.distributions.empirical.kernelfunc;
 public class TriweightKF implements KernelFunction
 {
 
+    @Override
     public double k(double u)
     {
         if(Math.abs(u) > 1)
@@ -15,6 +16,7 @@ public class TriweightKF implements KernelFunction
         return Math.pow(1 - u*u, 3)*(35.0/32.0);
     }
 
+    @Override
     public double intK(double u)
     {
         if(u < -1)
@@ -24,14 +26,24 @@ public class TriweightKF implements KernelFunction
         return (-5*Math.pow(u, 7) + 21*Math.pow(u, 5) - 35 * Math.pow(u, 3) + 35 *u + 16)/32;
     }
 
+    @Override
     public double k2()
     {
         return 1.0/9.0;
     }
 
+    @Override
     public double cutOff()
     {
         return Math.ulp(1)+1;
+    }
+
+    @Override
+    public double kPrime(double u)
+    {
+        if(Math.abs(u) > 1)
+            return 0;
+        return -u;
     }
     
 }

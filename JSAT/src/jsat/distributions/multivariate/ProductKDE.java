@@ -96,6 +96,14 @@ public class ProductKDE extends MultivariateKDE
         return results;
     }
     
+    @Override
+    public List<VecPaired<Double, VecPaired<Integer, Vec>>> getNearbyRaw(Vec x)
+    {
+        //Not entirly sure how I'm going to fix this... but this isnt technically right
+        throw new UnsupportedOperationException("Product KDE can not recover raw Score values");
+    }
+    
+    @Override
     public double pdf(Vec x)
     {
         double PDF = 0;
@@ -167,6 +175,7 @@ public class ProductKDE extends MultivariateKDE
         return logH;
     }
 
+    @Override
     public <V extends Vec> boolean setUsingData(List<V> dataSet)
     {
         int dimSize = dataSet.get(0).length();
@@ -195,6 +204,7 @@ public class ProductKDE extends MultivariateKDE
         return true;
     }
 
+    @Override
     public boolean setUsingDataList(List<DataPoint> dataPoints)
     {
         List<Vec> dataSet = new ArrayList<Vec>(dataPoints.size());
@@ -203,8 +213,22 @@ public class ProductKDE extends MultivariateKDE
         return setUsingData(dataSet);
     }
 
+    @Override
     public List<Vec> sample(int count, Random rand)
     {
         throw new UnsupportedOperationException("Not supported yet.");
+    }
+
+    @Override
+    public KernelFunction getKernelFunction()
+    {
+        return k;
+    }
+
+    @Override
+    public void scaleBandwidth(double scale)
+    {
+        for(int i = 0; i < bandwidth.length; i++)
+            bandwidth[i] *= 2;
     }
 }

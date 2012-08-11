@@ -1,6 +1,8 @@
 
 package jsat.distributions.empirical.kernelfunc;
 import jsat.distributions.Normal;
+import static java.lang.Math.*;
+
 /**
  *
  * @author Edward Raff
@@ -8,21 +10,25 @@ import jsat.distributions.Normal;
 public class GaussKF implements KernelFunction
 {
 
+    @Override
     public double k(double u)
     {
         return Normal.pdf(u, 0, 1);
     }
 
+    @Override
     public double intK(double u)
     {
         return Normal.cdf(u, 0, 1);
     }
 
+    @Override
     public double k2()
     {
         return 1;
     }
 
+    @Override
     public double cutOff()
     {
         /*
@@ -32,6 +38,12 @@ public class GaussKF implements KernelFunction
          * no effect on the result
          */
         return 13;
+    }
+
+    @Override
+    public double kPrime(double u)
+    {
+        return -exp(-pow(u, 2)/2)*u/sqrt(2 * PI);
     }
     
 }

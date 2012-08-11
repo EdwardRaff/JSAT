@@ -85,6 +85,11 @@ public class MetricKDE extends MultivariateKDE
     {
         this(new EpanechnikovKF(), distanceMetric, vcf);
     }
+
+    public MetricKDE(KernelFunction kf, DistanceMetric distanceMetric)
+    {
+        this(kf, distanceMetric, new VPTreeFactory<VecPaired<Integer, Vec>>());
+    }
     
     /**
      * Creates a new KDE object that still needs a data set to model the distribution of
@@ -197,13 +202,26 @@ public class MetricKDE extends MultivariateKDE
     {
         if(vecCollection == null)
             throw new UntrainedModelException("Model has not yet been created");
-        List<VecPaired<Double, VecPaired<Integer, Vec>>> nearBy = vecCollection.search(x, bandwidth*kf.cutOff());
-        //Normalize from their distances to their weights bye kernel function
+        List<VecPaired<Double, VecPaired<Integer, Vec>>> nearBy = getNearbyRaw(x);
+        //Normalize from their distances to their weights by kernel function
         for(VecPaired<Double, VecPaired<Integer, Vec>> result : nearBy)
-            result.setPair(kf.k(result.getPair()/bandwidth));
+            result.setPair(kf.k(result.getPair()));
+        return nearBy;
+    }
+    
+    @Override
+    public List<VecPaired<Double, VecPaired<Integer, Vec>>> getNearbyRaw(Vec x)
+    {
+        if(vecCollection == null)
+            throw new UntrainedModelException("Model has not yet been created");
+        List<VecPaired<Double, VecPaired<Integer, Vec>>> nearBy = vecCollection.search(x, bandwidth*kf.cutOff());
+
+        for(VecPaired<Double, VecPaired<Integer, Vec>> result : nearBy)
+            result.setPair(result.getPair()/bandwidth);
         return nearBy;
     }
         
+    @Override
     public double pdf(Vec x)
     {
         List<VecPaired<Double, VecPaired<Integer, Vec>>> nearBy = getNearby(x);
@@ -339,6 +357,7 @@ public class MetricKDE extends MultivariateKDE
         return true;
     }
     
+    @Override
     public <V extends Vec> boolean setUsingData(List<V> dataSet)
     {
         return setUsingData(dataSet, defaultK);
@@ -350,6 +369,7 @@ public class MetricKDE extends MultivariateKDE
         return setUsingData(dataSet, defaultK, threadpool);
     }
     
+    @Override
     public boolean setUsingDataList(List<DataPoint> dataPoints)
     {
         List<Vec> dataSet = new ArrayList<Vec>(dataPoints.size());
@@ -379,5 +399,17 @@ public class MetricKDE extends MultivariateKDE
         //TODO implement sampling
         throw new UnsupportedOperationException("Not supported yet.");
     }
-    
+
+    @Override
+    public KernelFunction getKernelFunction()
+    {
+        return kf;
+    }
+
+    @Override
+    public void scaleBandwidth(double scale)
+    {
+        bandwidth *= scale;
+    }
+
 }
