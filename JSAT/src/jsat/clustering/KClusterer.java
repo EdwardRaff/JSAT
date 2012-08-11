@@ -43,8 +43,8 @@ public interface KClusterer extends Clusterer
      * attempt to determine the best number of clusters for the given data. 
      * 
      * @param dataSet the data points to perform clustering on
-     * @param the lower bound, inclusive, of the range to search
-     * @param the uper bound, inclusive, of the range to search
+     * @param lowK the lower bound, inclusive, of the range to search
+     * @param highK the upper bound, inclusive, of the range to search
      * @param threadpool a source of threads to run tasks
      * @return  A list of DataSets, where each DataSet contains the data 
      * points for one cluster in the group
@@ -58,8 +58,8 @@ public interface KClusterer extends Clusterer
      * attempt to determine the best number of clusters for the given data. 
      * 
      * @param dataSet the data points to perform clustering on
-     * @param the lower bound, inclusive, of the range to search
-     * @param the uper bound, inclusive, of the range to search
+     * @param lowK the lower bound, inclusive, of the range to search
+     * @param highK the upper bound, inclusive, of the range to search
      * @return  A list of DataSets, where each DataSet contains the data 
      * points for one cluster in the group
      */
