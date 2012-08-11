@@ -12,9 +12,13 @@ import jsat.linear.distancemetrics.DistanceMetric;
  * 
  * @author Edward Raff
  */
-public class CentroidDissimilarity extends DistanceMetricDissimilarity
+public class CentroidDissimilarity extends DistanceMetricDissimilarity implements UpdatableClusterDissimilarity
 {
 
+    /**
+     * Creates a new CentroidDissimilarity
+     * @param dm the distance measure to use between individual points
+     */
     public CentroidDissimilarity(DistanceMetric dm)
     {
         super(dm);
@@ -48,6 +52,23 @@ public class CentroidDissimilarity extends DistanceMetricDissimilarity
                 sumDiss += getDistance(distanceMatrix, ai, bi);
 
         return sumDiss/(a.size()*b.size());
+    }
+
+    @Override
+    public double dissimilarity(int i, int ni, int j, int nj, double[][] distanceMatrix)
+    {
+        return getDistance(distanceMatrix, i, j);
+    }
+
+    @Override
+    public double dissimilarity(int i, int ni, int j, int nj, int k, int nk, double[][] distanceMatrix)
+    {
+        double iPj = ni+nj;
+        double ai = ni/iPj;
+        double aj = nj/iPj;
+        double b = - ni * nj / iPj*iPj;
+        
+        return ai* getDistance(distanceMatrix, i, k) + aj * getDistance(distanceMatrix, j, k) + b * getDistance(distanceMatrix, i, j);
     }
 
     

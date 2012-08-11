@@ -13,9 +13,13 @@ import jsat.linear.distancemetrics.DistanceMetric;
  * 
  * @author Edward Raff
  */
-public class CompleteLinkDissimilarity extends DistanceMetricDissimilarity
+public class CompleteLinkDissimilarity extends DistanceMetricDissimilarity implements UpdatableClusterDissimilarity
 {
 
+    /**
+     * Creates a new CompleteLinkDissimilarity 
+     * @param dm the distance metric to use between individual points
+     */
     public CompleteLinkDissimilarity(DistanceMetric dm)
     {
         super(dm);
@@ -52,6 +56,18 @@ public class CompleteLinkDissimilarity extends DistanceMetricDissimilarity
                     maxDiss = getDistance(distanceMatrix, ai, bi);
 
         return maxDiss;
+    }
+
+    @Override
+    public double dissimilarity(int i, int ni, int j, int nj, double[][] distanceMatrix)
+    {
+        return getDistance(distanceMatrix, i, j);
+    }
+
+    @Override
+    public double dissimilarity(int i, int ni, int j, int nj, int k, int nk, double[][] distanceMatrix)
+    {
+        return Math.max(getDistance(distanceMatrix, i, k), getDistance(distanceMatrix, j, k));
     }
 
 }

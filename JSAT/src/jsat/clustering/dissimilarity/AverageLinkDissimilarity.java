@@ -13,16 +13,20 @@ import jsat.linear.distancemetrics.DistanceMetric;
  * 
  * @author Edward Raff
  */
-public class AverageLinkDissimilarity extends DistanceMetricDissimilarity
+public class AverageLinkDissimilarity extends DistanceMetricDissimilarity implements UpdatableClusterDissimilarity
 {
 
+    /**
+     * Creates a new AverageLinkDissimilarity 
+     * @param dm the distance measure to use on individual points
+     */
     public AverageLinkDissimilarity(DistanceMetric dm)
     {
         super(dm);
     }
     
     @Override
-    public DistanceMetricDissimilarity clone()
+    public AverageLinkDissimilarity clone()
     {
         return new AverageLinkDissimilarity(dm.clone());
     }
@@ -64,6 +68,20 @@ public class AverageLinkDissimilarity extends DistanceMetricDissimilarity
                 disSum += getDistance(distanceMatrix, allPoints[i], allPoints[j]);
         
         return disSum/(allSize*(allSize-1));
+    }
+
+    @Override
+    public double dissimilarity(int i, int ni, int j, int nj, double[][] distanceMatrix)
+    {
+        return getDistance(distanceMatrix, i, j);
+    }
+
+    @Override
+    public double dissimilarity(int i, int ni, int j, int nj, int k, int nk, double[][] distanceMatrix)
+    {
+        double ai = ni/(double)(ni+nj);
+        double aj = nj/(double)(ni+nj);
+        return ai * getDistance(distanceMatrix, i, k) + aj * getDistance(distanceMatrix, j, k);
     }
     
 }

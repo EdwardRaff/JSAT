@@ -34,6 +34,29 @@ public abstract class AbstractClusterDissimilarity implements ClusterDissimilari
 
         return distanceMatrix[i][j - i - 1];
     }
+    
+    /**
+     * A convenience method. If the <t>distanceMatrix</t> was created with
+     * {@link #createDistanceMatrix(jsat.DataSet, jsat.clustering.dissimilarity.ClusterDissimilarity)
+     * }, then this method will set the appropriate value for the desired
+     * index.
+     * 
+     * @param distanceMatrix the distance matrix to query from
+     * @param i the first index
+     * @param j the second index
+     * @param dist the new distance value to store in the matrix
+     */
+    public static void setDistance(double[][] distanceMatrix, int i, int j, double dist)
+    {
+        if (i > j)
+        {
+            int tmp = j;
+            j = i;
+            i = tmp;
+        }
+
+        distanceMatrix[i][j - i - 1] = dist;
+    }
 
     /**
      * Creates an upper triangular matrix containing the distance between all

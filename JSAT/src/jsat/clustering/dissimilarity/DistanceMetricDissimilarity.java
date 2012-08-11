@@ -2,7 +2,6 @@
 package jsat.clustering.dissimilarity;
 
 import jsat.classifiers.DataPoint;
-import jsat.linear.Vec;
 import jsat.linear.distancemetrics.DistanceMetric;
 
 /**
@@ -10,7 +9,7 @@ import jsat.linear.distancemetrics.DistanceMetric;
  * 
  * @author Edward Raff
  */
-public abstract class DistanceMetricDissimilarity extends AbstractClusterDissimilarity implements DistanceMetric
+public abstract class DistanceMetricDissimilarity extends AbstractClusterDissimilarity 
 {
     /**
      * The distance metric that will back this dissimilarity measure. 
@@ -25,39 +24,8 @@ public abstract class DistanceMetricDissimilarity extends AbstractClusterDissimi
     @Override
     public double distance(DataPoint a, DataPoint b)
     {
-        return dist(a.getNumericalValues(), b.getNumericalValues());
+        return dm.dist(a.getNumericalValues(), b.getNumericalValues());
     }    
-    
-    
-    @Override
-    public double dist(Vec a, Vec b)
-    {
-        return dm.dist(a, b);
-    }
-
-    @Override
-    public boolean isSymmetric()
-    {
-        return dm.isSymmetric();
-    }
-
-    @Override
-    public boolean isSubadditive()
-    {
-        return dm.isSubadditive();
-    }
-
-    @Override
-    public boolean isIndiscemible()
-    {
-        return dm.isIndiscemible();
-    }
-
-    @Override
-    public double metricBound()
-    {
-        return dm.metricBound();
-    }
     
     @Override
     abstract public DistanceMetricDissimilarity clone();
