@@ -196,7 +196,6 @@ public class KMeans extends KClustererBase
                 //Step 1 
                 calculateCentroidDistances(k, centroidSelfDistances, means, sC);
 
-//                final ModifiableCountDownLatch latch = new ModifiableCountDownLatch(1);
                 final CountDownLatch latch = new CountDownLatch(SystemInfo.LogicalCores);
 
                 //Create readers to run jobs 
