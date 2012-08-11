@@ -194,7 +194,8 @@ public class PriorityHAC extends KClustererBase
             I[k2] = 0;
         }
         reverseMergeArray();
-        
+        if(designations == null)
+            designations = new int[dataSet.getSampleSize()];
         designations = assignClusterDesignations(designations, clusterSize);
         
         
@@ -274,18 +275,15 @@ public class PriorityHAC extends KClustererBase
     private int[] assignClusterDesignations(int[] designations, int clusters)
     {
         int curCluster = 0;
-        if(designations == null)
-            designations = new int[merges.length/2+2];
         Arrays.fill(designations, -1);
         for(int i = 0; i < merges.length; i++)
         {
-            int index = merges[i];
-            if(designations[index] == -1)//it has not been assigned
+            if(designations[merges[i]] == -1)//it has not been assigned
             {
                 if(curCluster < clusters)//It will be a top level cluster
-                    designations[index] = curCluster++;
+                    designations[merges[i]] = curCluster++;
                 else
-                    designations[index] = designations[index-1];//The new cluster is always in an odd index, so its parrent is the even index to the left 
+                    designations[merges[i]] = designations[merges[i-1]];//The new cluster is always in an odd index, so its parrent is the even index to the left 
             }
         }
         return designations;
