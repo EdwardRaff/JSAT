@@ -1,25 +1,24 @@
 
 package jsat.graphing;
 
-import java.awt.BorderLayout;
-import java.awt.Color;
-import java.awt.Frame;
-import java.awt.GridLayout;
-import java.util.List;
-import javax.swing.BorderFactory;
-import javax.swing.JDialog;
-import javax.swing.JLabel;
-import javax.swing.JPanel;
+import java.awt.*;
+import javax.swing.*;
 import jsat.DataSet;
 import jsat.linear.Vec;
 
 /**
- *
+ * A matrix of scatter plots showing the relations between each combination of attributes in the data set
  * @author Edward Raff
  */
 public class ScatterplotMatrix extends JDialog
 {
 
+    /**
+     * Creates a new ScatterplotMatrix
+     * @param parent the parent frame
+     * @param title the title to use for the dialog
+     * @param dataSet the data set to create plots for
+     */
     public ScatterplotMatrix(Frame parent, String title, DataSet dataSet)
     {
         super(parent, title, false);
@@ -54,8 +53,5 @@ public class ScatterplotMatrix extends JDialog
 
         this.setContentPane(panel);
     }
-
-
-
 
 }

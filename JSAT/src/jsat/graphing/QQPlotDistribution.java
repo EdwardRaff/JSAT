@@ -11,22 +11,27 @@ import jsat.linear.Vec;
 import jsat.math.Function;
 
 /**
- *
+ * Creates a new QQ plot to compare a data set against a specified distribution
  * @author Edward Raff
  */
 public class QQPlotDistribution extends Graph2D
 {
-    Distribution cd;
+    private Distribution cd;
     private Vec yData;
-    private ArrayList<Double> xData;
+    private double[] xData;
 
+    /**
+     * Creates a new QQ plot to compare the given data set with a known distribution
+     * @param cd the distribution to compare against. 
+     * @param data the data set to compare
+     */
     public QQPlotDistribution(Distribution cd, Vec data)
     {
         super(0, 0, 0, 0);
         this.cd = cd;
         this.yData = data.sortedCopy();
 
-        xData = new ArrayList<Double>(yData.length());
+        xData = new double[yData.length()];
 
         double min = Double.MAX_VALUE, max = Double.MIN_VALUE;
         for(int i = 0; i < yData.length(); i++ )
@@ -36,7 +41,7 @@ public class QQPlotDistribution extends Graph2D
             min = Math.min(x, min);
             max = Math.max(x, max);
 
-            xData.add(x);
+            xData[i]=x;
         }
 
         min = Math.min(yData.get(0), min);
@@ -52,30 +57,30 @@ public class QQPlotDistribution extends Graph2D
     }
 
     @Override
-    protected void paintComponent(Graphics g)
+    protected void paintWork(Graphics g, int imageWidth, int imageHeight, ProgressPanel pp)
     {
-        super.paintComponent(g);
+        super.paintWork(g, imageWidth, imageHeight, pp);
         Graphics2D g2 = (Graphics2D)g;
 
         g2.setColor(Color.red);
         for(int i = 0; i < yData.length(); i++ )
+            drawPoint(g2, PointShape.CIRCLE, xData[i], yData.get(i), imageWidth, imageHeight, 6, false);
+
+        g.setColor(Color.BLUE);
+        drawFunction(g2, new Function()
         {
-
-            g2.draw(new Ellipse2D.Double(toXCord(xData.get(i))-3, toYCord(yData.get(i))-3, 6, 6));
-        }
-
-        drawFunction(new Function() {
-
+            @Override
             public double f(double... x)
             {
                 return x[0];
             }
 
+            @Override
             public double f(Vec x)
             {
                 return x.get(0);
             }
-        }, g2, Color.BLUE);
+        });
     }
 
 

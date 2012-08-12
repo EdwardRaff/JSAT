@@ -1,15 +1,14 @@
 
 package jsat.graphing;
 
-import java.awt.Color;
-import java.awt.Graphics;
-import java.awt.Graphics2D;
-import java.awt.geom.Ellipse2D;
+import java.awt.*;
 import jsat.linear.Vec;
 import jsat.math.Function;
 
 /**
- *
+ * Performs a QQ plot to compare the distribution of two sets of univariate data
+ * that have the same number of data points. 
+ * 
  * @author Edward Raff
  */
 public class QQPlotData extends Graph2D
@@ -17,9 +16,17 @@ public class QQPlotData extends Graph2D
     private Vec yData;
     private Vec xData;
 
-    public QQPlotData(Vec yData, Vec xData)
+    /**
+     * Creates a new QQ plot using the given data
+     * @param xData the first set of data
+     * @param yData the second set of data
+     * @throws ArithmeticException if the data sets are not of the same size
+     */
+    public QQPlotData(Vec xData, Vec yData)
     {
         super(0, 0, 0, 0);
+        if(xData.length() != yData.length())
+            throw new ArithmeticException("Data sets must be the same size");
         this.yData = yData.sortedCopy();
         this.xData = xData.sortedCopy();
 
@@ -33,33 +40,32 @@ public class QQPlotData extends Graph2D
     }
 
     @Override
-    protected void paintComponent(Graphics g)
+    protected void paintWork(Graphics g, int imageWidth, int imageHeight, ProgressPanel pp)
     {
-        super.paintComponent(g);
+        super.paintWork(g, imageWidth, imageHeight, pp);
         Graphics2D g2 = (Graphics2D)g;
 
         g2.setColor(Color.red);
         for(int i = 0; i < yData.length(); i++ )
         {
-
-            g2.draw(new Ellipse2D.Double(toXCord(xData.get(i))-3, toYCord(yData.get(i))-3, 6, 6));
+            drawPoint(g2, PointShape.CIRCLE, xData.get(i), yData.get(i), imageWidth, imageHeight, 6, false);
         }
 
-        drawFunction(new Function() {
+        g.setColor(Color.BLUE);
+        drawFunction(g2, new Function()
+        {
 
+            @Override
             public double f(double... x)
             {
                 return x[0];
             }
 
+            @Override
             public double f(Vec x)
             {
                 return x.get(0);
             }
-        }, g2, Color.BLUE);
+        });
     }
-
-
-
-
 }

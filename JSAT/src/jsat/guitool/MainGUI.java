@@ -7,61 +7,24 @@
 
 package jsat.guitool;
 
-import java.awt.Component;
 import java.awt.GridLayout;
-import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import javax.swing.ButtonGroup;
-import javax.swing.JFileChooser;
-import javax.swing.JFrame;
-import javax.swing.JLabel;
-import javax.swing.JList;
-import javax.swing.JOptionPane;
-import javax.swing.JPanel;
-import javax.swing.JRadioButtonMenuItem;
-import javax.swing.JScrollPane;
-import javax.swing.JTable;
-import javax.swing.SwingUtilities;
-import javax.swing.UIManager;
+import java.util.*;
+import javax.swing.*;
 import jsat.ARFFLoader;
 import jsat.SimpleDataSet;
 import jsat.classifiers.ClassificationDataSet;
 import jsat.classifiers.Classifier;
 import jsat.datatransform.PCA;
 import jsat.datatransform.ZeroMeanTransform;
-import jsat.distributions.ChiSquared;
-import jsat.distributions.Distribution;
-import jsat.distributions.Exponential;
-import jsat.distributions.FisherSendor;
-import jsat.distributions.Gamma;
-import jsat.distributions.Kolmogorov;
-import jsat.distributions.LogNormal;
-import jsat.distributions.Normal;
-import jsat.distributions.Uniform;
-import jsat.distributions.Weibull;
-import jsat.graphing.CategoryPlot;
-import jsat.graphing.Graph2D;
-import jsat.graphing.Histogram;
-import jsat.graphing.QQPlotData;
-import jsat.graphing.QQPlotDistribution;
-import jsat.graphing.ScatterPlot;
-import jsat.graphing.ScatterplotMatrix;
-import jsat.linear.DenseVector;
+import jsat.distributions.*;
+import jsat.graphing.*;
 import jsat.linear.Vec;
 import jsat.math.Function;
 import jsat.math.SimpleLinearRegression;
-import jsat.testing.onesample.ZTest;
 import jsat.testing.goodnessoffit.KSTest;
 import jsat.testing.onesample.TTest;
+import jsat.testing.onesample.ZTest;
 import jsat.utils.ProbailityMatch;
 
 /**
@@ -91,13 +54,11 @@ public class MainGUI extends javax.swing.JFrame
             System.out.println("Error setting native LAF: " + e);
         }
         initComponents();
-        jMenuItemTest.setEnabled(false);
         jMenuItemHisto.setEnabled(false);
         jMenuItemQQData.setEnabled(false);
         jMenuItemQQDist.setEnabled(false);
         jMenuItemScatter.setEnabled(false);
         jMenuItemScatterMatrix.setEnabled(false);
-        jMenuItemTest.setEnabled(false);
         jMenuItemSingleVariable.setEnabled(false);
         setSize(400, 300);
     }
@@ -136,7 +97,6 @@ public class MainGUI extends javax.swing.JFrame
         jMenuItemOpen = new javax.swing.JMenuItem();
         jMenuItem1 = new javax.swing.JMenuItem();
         jMenu1 = new javax.swing.JMenu();
-        jMenuItemTest = new javax.swing.JMenuItem();
         jMenuItemHisto = new javax.swing.JMenuItem();
         jMenuItemScatter = new javax.swing.JMenuItem();
         jMenuItemScatterMatrix = new javax.swing.JMenuItem();
@@ -184,14 +144,6 @@ public class MainGUI extends javax.swing.JFrame
         jMenuBar1.add(jMenuFile);
 
         jMenu1.setText("View");
-
-        jMenuItemTest.setText("Test");
-        jMenuItemTest.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jMenuItemTestActionPerformed(evt);
-            }
-        });
-        jMenu1.add(jMenuItemTest);
 
         jMenuItemHisto.setText("Histogram");
         jMenuItemHisto.addActionListener(new java.awt.event.ActionListener() {
@@ -345,13 +297,11 @@ public class MainGUI extends javax.swing.JFrame
                 //Set up option selection for the classification job
                 updateMenuPreductingClassItems();
                 validate();
-                jMenuItemTest.setEnabled(true);
                 jMenuItemHisto.setEnabled(true);
                 jMenuItemQQData.setEnabled(true);
                 jMenuItemQQDist.setEnabled(true);
                 jMenuItemScatter.setEnabled(true);
                 jMenuItemScatterMatrix.setEnabled(true);
-                jMenuItemTest.setEnabled(true);
                 jMenuItemSingleVariable.setEnabled(true);
             }
             catch (Exception ex)
@@ -365,11 +315,6 @@ public class MainGUI extends javax.swing.JFrame
     {//GEN-HEADEREND:event_jMenuItem1ActionPerformed
         System.exit(0);
     }//GEN-LAST:event_jMenuItem1ActionPerformed
-
-    private void jMenuItemTestActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_jMenuItemTestActionPerformed
-    {//GEN-HEADEREND:event_jMenuItemTestActionPerformed
-
-    }//GEN-LAST:event_jMenuItemTestActionPerformed
 
     private void jMenuItemScatterActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_jMenuItemScatterActionPerformed
     {//GEN-HEADEREND:event_jMenuItemScatterActionPerformed
@@ -425,7 +370,7 @@ public class MainGUI extends javax.swing.JFrame
         DataSetSelection dss = new DataSetSelection(null, "Select data to check", data, new String[]{"X Axis", "Y Axis"});
         int[] axie =  dss.getSelections();
 
-        QQPlotData qq = new QQPlotData(data.getNumericColumn(axie[0]), data.getNumericColumn(axie[1]));
+        QQPlotData qq = new QQPlotData(data.getNumericColumn(axie[1]), data.getNumericColumn(axie[0]));
 
         qq.setXAxisTtile(data.getNumericName(axie[0]));
         qq.setYAxisTtile(data.getNumericName(axie[1]));
@@ -531,9 +476,16 @@ public class MainGUI extends javax.swing.JFrame
         
         for (int i = 0; i < distributions.length; i++)
         {
-            double p = ks.testDist(distributions[i]);
-            if(p >= 0.05)
-                pValues.add(new ProbailityMatch<Distribution>(p, distributions[i]));
+            try
+            {
+                double p = ks.testDist(distributions[i]);
+                if(p >= 0.05)
+                    pValues.add(new ProbailityMatch<Distribution>(p, distributions[i]));
+            }
+            catch(ArithmeticException ex)
+            {
+                
+            }
         }
         
         Collections.sort(pValues);
@@ -651,7 +603,6 @@ public class MainGUI extends javax.swing.JFrame
     private javax.swing.JMenuItem jMenuItemScatter;
     private javax.swing.JMenuItem jMenuItemScatterMatrix;
     private javax.swing.JMenuItem jMenuItemSingleVariable;
-    private javax.swing.JMenuItem jMenuItemTest;
     private javax.swing.JMenuItem jMenuKSSearch;
     private javax.swing.JMenu jMenuPredictingClass;
     private javax.swing.JFileChooser jfc;
