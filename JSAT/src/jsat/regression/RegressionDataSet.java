@@ -1,14 +1,9 @@
 
 package jsat.regression;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Random;
+import java.util.*;
 import jsat.DataSet;
-import jsat.classifiers.CategoricalData;
-import jsat.classifiers.DataPoint;
-import jsat.classifiers.DataPointPair;
+import jsat.classifiers.*;
 import jsat.linear.DenseVector;
 import jsat.linear.Vec;
 
@@ -159,6 +154,11 @@ public class RegressionDataSet extends DataSet<RegressionDataSet>
         dataPoints.add(dpp);
     }
     
+    public void addDataPointPair(DataPointPair<Double> pair)
+    {
+        dataPoints.add(pair);
+    }
+    
     @Override
     public DataPoint getDataPoint(int i)
     {
@@ -211,6 +211,19 @@ public class RegressionDataSet extends DataSet<RegressionDataSet>
     public void setDataPoint(int i, DataPoint dp)
     {
         dataPoints.get(i).setDataPoint(dp);
+    }
+    
+    /**
+     * Sets the target regression value associated with a given data point
+     * @param i the index in the data set
+     * @param val the new target value
+     * @throws ArithmeticException if <tt>val</tt> is infinite or NaN
+     */
+    public void setTargetValue(int i, double val)
+    {
+        if(Double.isInfinite(val) || Double.isNaN(val))
+            throw new ArithmeticException("Can not predict a " + val + " value");
+        dataPoints.get(i).setPair(val);
     }
 
     @Override
