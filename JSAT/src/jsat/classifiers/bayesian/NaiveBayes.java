@@ -1,26 +1,17 @@
 
 package jsat.classifiers.bayesian;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Iterator;
-import java.util.List;
+import static java.lang.Math.exp;
+import static java.lang.Math.log;
+import java.util.*;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
-import jsat.classifiers.CategoricalResults;
-import jsat.classifiers.ClassificationDataSet;
-import jsat.classifiers.Classifier;
-import jsat.classifiers.DataPoint;
-import jsat.distributions.Distribution;
-import jsat.distributions.DistributionSearch;
-import jsat.distributions.Normal;
-import jsat.distributions.empirical.KernelDensityEstimator;
-import jsat.linear.DenseVector;
-import jsat.linear.IndexValue;
-import jsat.linear.Vec;
-import jsat.utils.FakeExecutor;
+import jsat.classifiers.*;
 import static jsat.distributions.DistributionSearch.*;
-import static java.lang.Math.*;
+import jsat.distributions.*;
+import jsat.distributions.empirical.KernelDensityEstimator;
+import jsat.linear.*;
+import jsat.utils.FakeExecutor;
 
 /**
  *
@@ -172,6 +163,7 @@ public class NaiveBayes implements Classifier
         this.sparceInput = sparceInput;
     }
     
+    @Override
     public CategoricalResults classify(DataPoint data)
     {
         
@@ -232,6 +224,7 @@ public class NaiveBayes implements Classifier
     }
 
         
+    @Override
     public void trainC(ClassificationDataSet dataSet)
     {
         trainC(dataSet, new FakeExecutor());
@@ -242,25 +235,31 @@ public class NaiveBayes implements Classifier
     {
         NaiveBayes newBayes = new NaiveBayes();
         
-        newBayes.apriori = new double[this.apriori.length][][];
-        for(int i = 0; i < this.apriori.length; i++)
+        if(this.apriori != null)
         {
-            newBayes.apriori[i] = new double[this.apriori[i].length][];
-            for(int j = 0; this.apriori[i].length > 0 && j < this.apriori[i][j].length; j++)
-                newBayes.apriori[i][j] = Arrays.copyOf(this.apriori[i][j], this.apriori[i][j].length);
+            newBayes.apriori = new double[this.apriori.length][][];
+            for(int i = 0; i < this.apriori.length; i++)
+            {
+                newBayes.apriori[i] = new double[this.apriori[i].length][];
+                for(int j = 0; this.apriori[i].length > 0 && j < this.apriori[i][j].length; j++)
+                    newBayes.apriori[i][j] = Arrays.copyOf(this.apriori[i][j], this.apriori[i][j].length);
+            }
         }
         
-        newBayes.distributions = new Distribution[this.distributions.length][];
-        for(int i = 0; i < this.distributions.length; i++)
+        if(this.distributions != null)
         {
-            newBayes.distributions[i] = new Distribution[this.distributions[i].length];
-            for(int j = 0; j < this.distributions[i].length; j++)
-                newBayes.distributions[i][j] = this.distributions[i][j].clone();
+            newBayes.distributions = new Distribution[this.distributions.length][];
+            for(int i = 0; i < this.distributions.length; i++)
+            {
+                newBayes.distributions[i] = new Distribution[this.distributions[i].length];
+                for(int j = 0; j < this.distributions[i].length; j++)
+                    newBayes.distributions[i][j] = this.distributions[i][j].clone();
+            }
         }
-        
         return newBayes;
     }
 
+    @Override
     public boolean supportsWeightedData()
     {
         return false;
@@ -316,6 +315,7 @@ public class NaiveBayes implements Classifier
         
         
         
+        @Override
         public void run()
         {
             for (DataPoint point : dataSamples)//Count each occurance
@@ -350,6 +350,7 @@ public class NaiveBayes implements Classifier
         return vals;
     }
     
+    @Override
     public void trainC(ClassificationDataSet dataSet, ExecutorService threadPool)
     {
         int nCat = dataSet.getPredicting().getNumOfCategories();
