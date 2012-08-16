@@ -38,6 +38,7 @@ public class Graph2D extends JComponent
     protected volatile BufferedImage currentImage;
     
     private boolean forceRedraw = false;
+    private boolean drawMarkers = true;
 
     /**
      * Forces the Graph2D to draw a new bitmap on the next repaint even if the
@@ -86,6 +87,29 @@ public class Graph2D extends JComponent
                     popup(me);
             }
         });
+    }
+
+    /**
+     * Controls whether value markers are drawn below the plot graph in the 
+     * padding region. 
+     * @param drawMarkers <tt>true</tt> to draw value markers, <tt>false</tt> to
+     * not draw them. 
+     */
+    public void setDrawMarkers(boolean drawMarkers)
+    {
+        this.forceRedraw = this.drawMarkers != drawMarkers;
+        this.drawMarkers = drawMarkers;
+    }
+
+    /**
+     * Returns <tt>true</tt> to if value markers are to be drawn, <tt>false</tt>
+     * to if they are not. 
+     * @return <tt>true</tt> to if value markers are to be drawn, <tt>false</tt>
+     * to if they are not. 
+     */
+    public boolean hasDrawMarkers()
+    {
+        return drawMarkers;
     }
 
     /**
@@ -312,13 +336,14 @@ public class Graph2D extends JComponent
         
         
         //Draw horizontal marks
-        for(int x = PAD*2; x <= w-PAD*2; x+= (w-PAD*2)/4)
-        {
-            double xVal = toXVal(x, imageWidth);
-            String xValString = displayValue(xVal);
-            
-            g2.drawString(xValString, x-fm.stringWidth(xValString)/2, h-PAD+fm.getHeight());
-        }
+        if(drawMarkers)
+            for(int x = PAD*2; x <= w-PAD*2; x+= (w-PAD*2)/4)
+            {
+                double xVal = toXVal(x, imageWidth);
+                String xValString = displayValue(xVal);
+
+                g2.drawString(xValString, x-fm.stringWidth(xValString)/2, h-PAD+fm.getHeight());
+            }
         
         //draw X axist title
         if(xAxisTtile != null && !xAxisTtile.equals(""))
@@ -333,13 +358,14 @@ public class Graph2D extends JComponent
         g2.setFont(der);
 
         //Draw vertical marks
-        for(int y = PAD*2; y <= h-PAD*2; y+= (h-PAD*2)/4)
-        {
-            double yVal = toYVal(y, imageHeight);
-            String yValString = displayValue(yVal);
-            
-            g2.drawString(yValString, fm.getHeight()*2, y+fm.getHeight()/2);
-        }
+        if(drawMarkers)
+            for(int y = PAD*2; y <= h-PAD*2; y+= (h-PAD*2)/4)
+            {
+                double yVal = toYVal(y, imageHeight);
+                String yValString = displayValue(yVal);
+
+                g2.drawString(yValString, fm.getHeight()*2, y+fm.getHeight()/2);
+            }
         
         if(yAxisTtile != null && !yAxisTtile.equals(""))
             g2.drawString(yAxisTtile, fm.getAscent(), (h+PAD)/2+fm.getHeight());

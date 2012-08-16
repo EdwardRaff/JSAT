@@ -79,7 +79,10 @@ public class MainGUI extends javax.swing.JFrame
         }
         
         
-        return new ClassificationDataSet(data.getBackingList(), selected);
+        ClassificationDataSet cds = new ClassificationDataSet(data.getBackingList(), selected);
+        for(int i = 0; i < data.getNumNumericalVars(); i++)
+            cds.setNumericName(data.getNumericName(i), i);
+        return cds;
     }
 
     /** This method is called from within the constructor to
@@ -116,6 +119,7 @@ public class MainGUI extends javax.swing.JFrame
         jMenuPredictingClass = new javax.swing.JMenu();
         jMenuCVisualize = new javax.swing.JMenu();
         jMenuClassPCA = new javax.swing.JMenuItem();
+        jMenuItemParaCoords = new javax.swing.JMenuItem();
         jMenuCrossValidateTest = new javax.swing.JMenuItem();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
@@ -261,6 +265,14 @@ public class MainGUI extends javax.swing.JFrame
             }
         });
         jMenuCVisualize.add(jMenuClassPCA);
+
+        jMenuItemParaCoords.setText("Parallel Coordinates");
+        jMenuItemParaCoords.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jMenuItemParaCoordsActionPerformed(evt);
+            }
+        });
+        jMenuCVisualize.add(jMenuItemParaCoords);
 
         jMenuClassification.add(jMenuCVisualize);
 
@@ -568,6 +580,20 @@ public class MainGUI extends javax.swing.JFrame
         
     }//GEN-LAST:event_jMenuCrossValidateTestActionPerformed
 
+    private void jMenuItemParaCoordsActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_jMenuItemParaCoordsActionPerformed
+    {//GEN-HEADEREND:event_jMenuItemParaCoordsActionPerformed
+        ClassificationDataSet cds = getClassificationData();
+        if(cds == null)
+            JOptionPane.showMessageDialog(rootPane, "This data set has no categorical attributes to use as a class",
+                    "Can not perform class visualization", JOptionPane.ERROR_MESSAGE);
+        else
+        {
+            GraphDialog dialog = new GraphDialog(null, "Parallel Coordinates", new ParallelCoordinatesPlot(cds));
+            dialog.setSize(400, 400);
+            dialog.setVisible(true);
+        }
+    }//GEN-LAST:event_jMenuItemParaCoordsActionPerformed
+
     /**
     * @param args the command line arguments
     */
@@ -598,6 +624,7 @@ public class MainGUI extends javax.swing.JFrame
     private javax.swing.JMenuItem jMenuItemOneSamT;
     private javax.swing.JMenuItem jMenuItemOneSampZ;
     private javax.swing.JMenuItem jMenuItemOpen;
+    private javax.swing.JMenuItem jMenuItemParaCoords;
     private javax.swing.JMenuItem jMenuItemQQData;
     private javax.swing.JMenuItem jMenuItemQQDist;
     private javax.swing.JMenuItem jMenuItemScatter;
