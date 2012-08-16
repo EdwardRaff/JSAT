@@ -7,9 +7,10 @@
 
 package jsat.guitool;
 
-import java.awt.GridLayout;
+import java.awt.*;
 import java.io.File;
 import java.util.*;
+import java.util.List;
 import javax.swing.*;
 import jsat.ARFFLoader;
 import jsat.SimpleDataSet;
@@ -18,7 +19,10 @@ import jsat.classifiers.Classifier;
 import jsat.datatransform.PCA;
 import jsat.datatransform.ZeroMeanTransform;
 import jsat.distributions.*;
+import jsat.distributions.empirical.KernelDensityEstimator;
+import jsat.distributions.empirical.kernelfunc.GaussKF;
 import jsat.graphing.*;
+import jsat.linear.DenseVector;
 import jsat.linear.Vec;
 import jsat.math.Function;
 import jsat.math.SimpleLinearRegression;
@@ -101,6 +105,7 @@ public class MainGUI extends javax.swing.JFrame
         jMenuItem1 = new javax.swing.JMenuItem();
         jMenu1 = new javax.swing.JMenu();
         jMenuItemHisto = new javax.swing.JMenuItem();
+        jMenuItemKDE = new javax.swing.JMenuItem();
         jMenuItemScatter = new javax.swing.JMenuItem();
         jMenuItemScatterMatrix = new javax.swing.JMenuItem();
         jMenuItemQQDist = new javax.swing.JMenuItem();
@@ -156,6 +161,14 @@ public class MainGUI extends javax.swing.JFrame
             }
         });
         jMenu1.add(jMenuItemHisto);
+
+        jMenuItemKDE.setText("KDE Estimate");
+        jMenuItemKDE.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jMenuItemKDEActionPerformed(evt);
+            }
+        });
+        jMenu1.add(jMenuItemKDE);
 
         jMenuItemScatter.setText("Scatter Plot");
         jMenuItemScatter.addActionListener(new java.awt.event.ActionListener() {
@@ -594,6 +607,37 @@ public class MainGUI extends javax.swing.JFrame
         }
     }//GEN-LAST:event_jMenuItemParaCoordsActionPerformed
 
+    private void jMenuItemKDEActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_jMenuItemKDEActionPerformed
+    {//GEN-HEADEREND:event_jMenuItemKDEActionPerformed
+        DataSetSelection dss = new DataSetSelection(null, "Select data to create KDE from", data, new String[]{"KDE Data"});
+        int[] axie =  dss.getSelections();
+
+        Vec dataVec = data.getNumericColumn(axie[0]);
+        final KernelDensityEstimator kde = new KernelDensityEstimator(dataVec, new GaussKF());
+        
+        double shift = kde.getBandwith()*2;
+        final Graph2D hh = new Graph2D(dataVec.min()-shift, dataVec.max()+shift, 0, kde.pdf(kde.mode())*1.1)
+        {
+
+            @Override
+            protected void paintWork(Graphics g, int imageWidth, int imageHeight, ProgressPanel pp)
+            {
+                super.paintWork(g, imageWidth, imageHeight, pp);
+                g.setColor(Color.BLUE);
+                drawFunction((Graphics2D)g, Distribution.getFunctionPDF(kde));
+            }
+            
+        };
+        
+
+        hh.setXAxisTtile(data.getNumericName(axie[0]));
+
+        GraphDialog gd = new GraphDialog(null, "KDE Estimation of " + data.getNumericName(axie[0]), hh);
+
+        gd.setSize(300, 300);
+        gd.setVisible(true);
+    }//GEN-LAST:event_jMenuItemKDEActionPerformed
+
     /**
     * @param args the command line arguments
     */
@@ -620,6 +664,7 @@ public class MainGUI extends javax.swing.JFrame
     private javax.swing.JMenu jMenuFile;
     private javax.swing.JMenuItem jMenuItem1;
     private javax.swing.JMenuItem jMenuItemHisto;
+    private javax.swing.JMenuItem jMenuItemKDE;
     private javax.swing.JMenuItem jMenuItemLinearRegress;
     private javax.swing.JMenuItem jMenuItemOneSamT;
     private javax.swing.JMenuItem jMenuItemOneSampZ;

@@ -57,26 +57,6 @@ public abstract class Distribution implements Cloneable
     abstract public double invCdf(double p);
     
     /**
-     * Creates a new function object that corresponds to the {@link #pdf(double) PDF} of this distribution. 
-     * @return a function for the PDF of this distribution
-     */
-    public Function getPDFFunction()
-    {
-        return new Function() {
-
-            public double f(double... x)
-            {
-                return pdf(x[0]);
-            }
-
-            public double f(Vec x)
-            {
-                return pdf(x.get(0));
-            }
-        };
-    }
-    
-    /**
      * This method is provided as a quick helper function, as any CDF has a 1 to 1 mapping with
      * an inverse, CDF<sup>.-1</sup>. This does a search for that value, and should only be used 
      * if the quantile function will be used infrequently or no alternative is available. 
@@ -272,5 +252,52 @@ public abstract class Distribution implements Cloneable
         return getDistributionName();
     }
 
+    /**
+     * Wraps the {@link #pdf(double) } function of the given distribution in a 
+     * function object for use. 
+     * 
+     * @param dist the distribution to wrap the pdf of
+     * @return a function for evaluating the pdf of the given distribution
+     */
+    public static Function getFunctionPDF(final Distribution dist)
+    {
+        return new Function() {
 
+            @Override
+            public double f(double... x)
+            {
+                return f(DenseVector.toDenseVec(x));
+            }
+
+            @Override
+            public double f(Vec x)
+            {
+                return dist.pdf(x.get(0));
+            }
+        };
+    }
+    
+    /**
+     * Wraps the {@link #cdf(double) } function of the given distribution in a 
+     * function object for use. 
+     * @param dist the distribution to wrap the cdf of
+     * @return a function for evaluating the cdf of the given distribution
+     */
+    public static Function getFunctionCDF(final Distribution dist)
+    {
+        return new Function() {
+
+            @Override
+            public double f(double... x)
+            {
+                return f(DenseVector.toDenseVec(x));
+            }
+
+            @Override
+            public double f(Vec x)
+            {
+                return dist.cdf(x.get(0));
+            }
+        };
+    }
 }
