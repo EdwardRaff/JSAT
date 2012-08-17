@@ -17,6 +17,7 @@ import jsat.classifiers.DataPoint;
 public abstract class ClustererBase implements Clusterer
 {
 
+    @Override
     public List<List<DataPoint>> cluster(DataSet dataSet)
     {
         int[] assignments = cluster(dataSet, (int[]) null);
@@ -24,6 +25,7 @@ public abstract class ClustererBase implements Clusterer
         return createClusterListFromAssignmentArray(assignments, dataSet);
     }
 
+    @Override
     public List<List<DataPoint>> cluster(DataSet dataSet, ExecutorService threadpool)
     {
         int[] assignments = cluster(dataSet, threadpool, (int[]) null);
@@ -43,7 +45,7 @@ public abstract class ClustererBase implements Clusterer
     {
         List<List<DataPoint>> clusterings = new ArrayList<List<DataPoint>>();
         
-        for(int i = 0; i < assignments.length; i++)
+        for(int i = 0; i < dataSet.getSampleSize(); i++)
         {
             while(clusterings.size() <= assignments[i])
                 clusterings.add(new ArrayList<DataPoint>());
