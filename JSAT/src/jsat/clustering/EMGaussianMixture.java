@@ -1,11 +1,10 @@
 package jsat.clustering;
 
 import static java.lang.Math.log;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Random;
-import java.util.concurrent.ExecutorService;
+import java.util.*;
+import java.util.concurrent.*;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import jsat.DataSet;
 import jsat.SimpleDataSet;
 import jsat.classifiers.CategoricalData;
@@ -13,11 +12,10 @@ import jsat.classifiers.DataPoint;
 import jsat.clustering.SeedSelectionMethods.SeedSelection;
 import jsat.distributions.multivariate.MultivariateDistribution;
 import jsat.distributions.multivariate.NormalM;
-import jsat.linear.DenseMatrix;
-import jsat.linear.DenseVector;
-import jsat.linear.Matrix;
-import jsat.linear.Vec;
+import jsat.linear.*;
 import jsat.linear.distancemetrics.DistanceMetric;
+import jsat.utils.ListUtils;
+import static jsat.utils.SystemInfo.LogicalCores;
 
 /**
  * An implementation of Gaussian Mixture models that learns the specified number of Gaussians using Expectation Maximization algorithm. 
@@ -89,10 +87,10 @@ public class EMGaussianMixture extends KMeans implements MultivariateDistributio
     }
     
     @Override
-    protected double cluster(DataSet dataSet, List<Vec> means, int[] assignment, boolean exactTotal)
+    protected double cluster(DataSet dataSet, List<Vec> means, int[] assignment, boolean exactTotal, ExecutorService execServ)
     {
         //Perform intial clustering with KMeans 
-        super.cluster(dataSet, means, assignment, exactTotal);
+        super.cluster(dataSet, means, assignment, exactTotal, execServ);
         
         int K = means.size();
         //Use the KMeans result to initalize GuassianMixture 
@@ -123,10 +121,10 @@ public class EMGaussianMixture extends KMeans implements MultivariateDistributio
         }
         
         
-        return clusterCompute(K, dataSet, assignment, means, covariances);
+        return clusterCompute(K, dataSet, assignment, means, covariances, execServ);
     }
     
-    protected double clusterCompute(int K, DataSet dataSet, int[] assignment, List<Vec> means, List<Matrix> covs)
+    protected double clusterCompute(int K, DataSet dataSet, int[] assignment, List<Vec> means, List<Matrix> covs, ExecutorService execServ)
     {
         List<DataPoint> dataPoints = dataSet.getDataPoints();
         int N = dataPoints.size();
@@ -143,82 +141,69 @@ public class EMGaussianMixture extends KMeans implements MultivariateDistributio
         
         while(true)
         {
-            //E-Step:
-            /*
-             *            p  /   |     p       p\
-             *           a  P|x  | mean , Sigma |
-             *            k  \ i |     k       k/
-             * p    = ------------------------------
-             *  i k     K
-             *        =====
-             *        \      p  /   |     p       p\
-             *         >    a  P|x  | mean , Sigma |
-             *        /      k  \ i |     k       k/
-             *        =====
-             *        k = 1
-             */
             
-            /*
-             * We will piggy back off the E step to compute the log likelyhood 
-             * 
-             *                 N      /  K                           \
-             *               =====    |=====                         |
-             *               \        |\                             |
-             * L(x, Theat) =  >    log| >    a  P/x  | mean , Sigma \|
-             *               /        |/      k  \ i |     k       k/|
-             *               =====    |=====                         |
-             *               i = 1    \k = 1                         /
-             */
             
-            double logLike = 0;
-            for(int i = 0; i < N; i++)
+            try
             {
-                Vec x_i = dataPoints.get(i).getNumericalValues();
-                double p_ikNormalizer = 0.0;
+                //E-Step:
+                double logLike = eStep(N, dataPoints, K, p_ik, execServ);
+
+                //Convergence check! 
+                double logDifference = Math.abs(currentLogLike - logLike);
+                if(logDifference < tolerance)
+                    break;//We accept this as converged. Probablities could be refined, but no one should be changing class anymore
+                else
+                    currentLogLike = logLike;
                 
-                for(int k = 0; k < K; k++)
-                {
-                    double tmp = a_k[k] * gaussians.get(k).pdf(x_i);
-                    p_ik[i][k] = tmp;
-                    p_ikNormalizer += tmp;
-                }
-                
-                //Normalize previous values
-                for(int k = 0; k < K; k++)
-                    p_ik[i][k] /= p_ikNormalizer;
-                
-                //Add to part of the log likelyhood 
-                logLike += Math.log(p_ikNormalizer);
+                mStep(means, N, dataPoints, K, p_ik, covs, execServ);
             }
-            
-            //Convergence check! 
-            double logDifference = Math.abs(currentLogLike - logLike);
-            if(logDifference < tolerance)
-                break;//We accept this as converged. Probablities could be refined, but no one should be changing class anymore
-            else
-                currentLogLike = logLike;
+            catch (ExecutionException ex)
+            {
+                Logger.getLogger(EMGaussianMixture.class.getName()).log(Level.SEVERE, null, ex);
+            }
+            catch (InterruptedException ex)
+            {
+                Logger.getLogger(EMGaussianMixture.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        }
         
+        //Hard asignments based on most probable outcome
+        for(int i = 0; i < p_ik.length; i++)
+            for(int k = 0; k < K; k++)
+                if(p_ik[i][k] > p_ik[i][assignment[i]])
+                    assignment[i] = k;
+        
+        return -currentLogLike;
+    }
 
+    private void mStep(final List<Vec> means,final int N,final List<DataPoint> dataPoints, final int K, final double[][] p_ik, final List<Matrix> covs, final ExecutorService execServ) throws InterruptedException
+    {
+        /**
+         * Dimensions
+         */
+        final int D = means.get(0).length();
+        //M-Step
 
-            //M-Step
+        /**
+         *            n
+         *          =====
+         *          \
+         *           >    p
+         *          /      i k
+         *          =====
+         *  p + 1   i = 1
+         * a      = ----------
+         *  k            n
+         */
+        //Recompute a_k and update means in the same loop
 
-            /**
-             *            n
-             *          =====
-             *          \
-             *           >    p
-             *          /      i k
-             *          =====
-             *  p + 1   i = 1
-             * a      = ----------
-             *  k            n
-             */
-            //Recompute a_k and update means in the same loop
+        for(Vec mean : means)
+            mean.zeroOut();
 
-            for(Vec mean : means)
-                mean.zeroOut();
-
-            Arrays.fill(a_k, 0.0);
+        Arrays.fill(a_k, 0.0);
+        
+        if(execServ == null)
+        {
             for(int i = 0; i < N; i++)
             {
                 Vec x_i = dataPoints.get(i).getNumericalValues();
@@ -228,16 +213,66 @@ public class EMGaussianMixture extends KMeans implements MultivariateDistributio
                     means.get(k).mutableAdd(p_ik[i][k], x_i);
                 }
             }
+        }
+        else//Parllalle version is limited in scalability to the number of clusters k, as we are updating the k's so we can not distribute row wise, but must give each therad its own k
+        {   
+            final CountDownLatch latch = new CountDownLatch(LogicalCores);
+            int start = 0; 
+            int step = N / LogicalCores;
+            int remainder = N % LogicalCores;
+            while( start < N)
+            {
+                final int to = Math.min((remainder-- > 0  ? 1 : 0) + start + step, N);
+                final int Start = start;
+                start = to;
+                execServ.submit(new Runnable() {
 
-            //We can now dived all the means by their sums, which are stored in a_k, and then normalized a_k after
-            for(int k = 0; k < a_k.length; k++)
-                means.get(k).mutableDivide(a_k[k]);
+                    @Override
+                    public void run()
+                    {
+                        Vec[] partialMean = new Vec[means.size()];
+                        for(int i = 0; i < partialMean.length; i++)
+                            partialMean[i] = new DenseVector(means.get(i).length());
+                        double[] partial_a_k = new double[a_k.length];
+                        
+                        for(int i = Start; i < to; i++)
+                        {
+                            Vec x_i = dataPoints.get(i).getNumericalValues();
+                            for(int k = 0; k < K; k++)
+                            {
+                                partial_a_k[k] += p_ik[i][k];
+                                partialMean[k].mutableAdd(p_ik[i][k], x_i);
+                            }
+                        }
+                        
+                        synchronized(means)
+                        {
+                            for(int k = 0; k < a_k.length; k++)
+                            {
+                                a_k[k] += partial_a_k[k];
+                                means.get(k).mutableAdd(partialMean[k]);
+                            }
+                        }
+                        latch.countDown();
+                        
+                    }
+                });
+            }
+            
+            latch.await();
+        }
 
-            //We hold off on nomralized a_k, becase we will use its values to update the covariances
+        //We can now dived all the means by their sums, which are stored in a_k, and then normalized a_k after
+        for(int k = 0; k < a_k.length; k++)
+            means.get(k).mutableDivide(a_k[k]);
 
-            for(Matrix cov : covs)
-                cov.zeroOut();
+        //We hold off on nomralized a_k, becase we will use its values to update the covariances
 
+        for(Matrix cov : covs)
+            cov.zeroOut();
+
+        if(execServ == null)
+        {
             for(int k = 0; k < K; k++)
             {
                 Matrix covariance = covs.get(k);
@@ -253,30 +288,180 @@ public class EMGaussianMixture extends KMeans implements MultivariateDistributio
                 }
                 covariance.mutableMultiply(1.0 / (a_k[k]));
             }
-
-            //Finaly, normalize the coefficents
-            for(int k = 0; k < K; k++)
-                a_k[k] /= N;
-            
-            //And update the Normals
-            for(int k = 0; k < means.size(); k++)
-                gaussians.get(k).setMeanCovariance(means.get(k), covs.get(k));
         }
-        
-        //Hard asignments based on most probable outcome
-        for(int i = 0; i < p_ik.length; i++)
+        else
+        {
+            final CountDownLatch latch = new CountDownLatch(LogicalCores);
+            int start = 0; 
+            int step = N / LogicalCores;
+            int remainder = N % LogicalCores;
+            while( start < N)
+            {
+                final int to = Math.min((remainder-- > 0  ? 1 : 0) + start + step, N);
+                final int Start = start;
+                start = to;
+                execServ.submit(new Runnable() {
+
+                    @Override
+                    public void run()
+                    {
+                        Matrix[] partialCovs = new Matrix[K];
+                        for(int i = 0; i < partialCovs.length; i++)
+                            partialCovs[i] = new DenseMatrix(D, D);
+                        
+                        for(int i = Start; i < to; i++)
+                        {
+                            DataPoint dp = dataPoints.get(i);
+                            Vec x = dp.getNumericalValues();
+                            Vec scratch = new DenseVector(x.length());
+                            
+                            for(int k = 0; k < K; k++)
+                            {
+                                Matrix covariance = partialCovs[k];
+                                Vec mean = means.get(k);
+                                
+                                x.copyTo(scratch);
+                                scratch.mutableSubtract(mean);
+                                Matrix.OuterProductUpdate(covariance, scratch, scratch, p_ik[i][k]);
+                            }
+                            
+                        }
+                        
+                        synchronized(covs)
+                        {
+                            for(int  k = 0; k < K; k++)
+                                covs.get(k).mutableAdd(partialCovs[k]);
+                        }
+                        
+                        
+                        latch.countDown();
+                    }
+                });
+            }
+            latch.await();
+            
             for(int k = 0; k < K; k++)
-                if(p_ik[i][k] > p_ik[i][assignment[i]])
-                    assignment[i] = k;
+                covs.get(k).mutableMultiply(1.0/a_k[k]);
+            
+        }
+
+        //Finaly, normalize the coefficents
+        for(int k = 0; k < K; k++)
+            a_k[k] /= N;
         
-        return -currentLogLike;
+        //And update the Normals
+        for(int k = 0; k < means.size(); k++)
+            gaussians.get(k).setMeanCovariance(means.get(k), covs.get(k));
     }
 
+    private double eStep(final int N, final List<DataPoint> dataPoints, final int K, final double[][] p_ik, final ExecutorService execServ) throws InterruptedException, ExecutionException
+    {
+        double logLike = 0;
+       /*
+        *            p  /   |     p       p\
+        *           a  P|x  | mean , Sigma |
+        *            k  \ i |     k       k/
+        * p    = ------------------------------
+        *  i k     K
+        *        =====
+        *        \      p  /   |     p       p\
+        *         >    a  P|x  | mean , Sigma |
+        *        /      k  \ i |     k       k/
+        *        =====
+        *        k = 1
+        */
+
+       /*
+        * We will piggy back off the E step to compute the log likelyhood 
+        * 
+        *                 N      /  K                           \
+        *               =====    |=====                         |
+        *               \        |\                             |
+        * L(x, Theat) =  >    log| >    a  P/x  | mean , Sigma \|
+        *               /        |/      k  \ i |     k       k/|
+        *               =====    |=====                         |
+        *               i = 1    \k = 1                         /
+        */
+        
+        if(execServ == null)
+        {
+            for(int i = 0; i < N; i++)
+            {
+                Vec x_i = dataPoints.get(i).getNumericalValues();
+                double p_ikNormalizer = 0.0;
+
+                for(int k = 0; k < K; k++)
+                {
+                    double tmp = a_k[k] * gaussians.get(k).pdf(x_i);
+                    p_ik[i][k] = tmp;
+                    p_ikNormalizer += tmp;
+                }
+
+                //Normalize previous values
+                for(int k = 0; k < K; k++)
+                    p_ik[i][k] /= p_ikNormalizer;
+
+                //Add to part of the log likelyhood 
+                logLike += Math.log(p_ikNormalizer);
+            }
+        }
+        else 
+        {
+            List<Future<Double>> partialLogLikes = new ArrayList<Future<Double>>(LogicalCores);
+            int start = 0; 
+            int step = N / LogicalCores;
+            int remainder = N % LogicalCores;
+            while( start < N)
+            {
+                final int to = Math.min((remainder-- > 0  ? 1 : 0) + start + step, N);
+                final int Start = start;
+                start = to;
+                
+                partialLogLikes.add(execServ.submit(new Callable<Double>() 
+                {
+
+                    @Override
+                    public Double call() throws Exception
+                    {
+                        double partialLog = 0;
+                        for(int i = Start; i < to; i++)
+                        {
+                            Vec x_i = dataPoints.get(i).getNumericalValues();
+                            double p_ikNormalizer = 0.0;
+
+                            for(int k = 0; k < K; k++)
+                            {
+                                double tmp = a_k[k] * gaussians.get(k).pdf(x_i);
+                                p_ik[i][k] = tmp;
+                                p_ikNormalizer += tmp;
+                            }
+
+                            //Normalize previous values
+                            for(int k = 0; k < K; k++)
+                                p_ik[i][k] /= p_ikNormalizer;
+
+                            //Add to part of the log likelyhood 
+                            partialLog += Math.log(p_ikNormalizer);
+                        }
+                        
+                        return partialLog;
+                    }
+                }));
+            }
+            
+            for(double partialLogLike : ListUtils.collectFutures(partialLogLikes))
+                logLike += partialLogLike;
+        }
+        return logLike;
+    }
+
+    @Override
     public double logPdf(double... x)
     {
         return logPdf(DenseVector.toDenseVec(x));
     }
 
+    @Override
     public double logPdf(Vec x)
     {
         double pdf = pdf(x);
@@ -285,11 +470,13 @@ public class EMGaussianMixture extends KMeans implements MultivariateDistributio
         return log(pdf);
     }
 
+    @Override
     public double pdf(double... x)
     {
         return pdf(DenseVector.toDenseVec(x));
     }
 
+    @Override
     public double pdf(Vec x)
     {
         double PDF = 0.0;
@@ -298,6 +485,7 @@ public class EMGaussianMixture extends KMeans implements MultivariateDistributio
         return PDF;
     }
 
+    @Override
     public <V extends Vec> boolean setUsingData(List<V> dataSet)
     {
         List<DataPoint> dataPoints = new ArrayList<DataPoint>(dataSet.size());
@@ -306,11 +494,13 @@ public class EMGaussianMixture extends KMeans implements MultivariateDistributio
         return setUsingDataList(dataPoints);
     }
 
+    @Override
     public boolean setUsingDataList(List<DataPoint> dataPoint)
     {
         return setUsingData(new SimpleDataSet(dataPoint));
     }
 
+    @Override
     public boolean setUsingData(DataSet dataSet)
     {
         try
@@ -324,16 +514,19 @@ public class EMGaussianMixture extends KMeans implements MultivariateDistributio
         }
     }
 
+    @Override
     public boolean setUsingData(DataSet dataSet, ExecutorService threadpool)
     {
         return setUsingData(dataSet);
     }
 
+    @Override
     public <V extends Vec> boolean setUsingData(List<V> dataSet, ExecutorService threadpool)
     {
         return setUsingData(dataSet);
     }
 
+    @Override
     public boolean setUsingDataList(List<DataPoint> dataPoints, ExecutorService threadpool)
     {
         return setUsingDataList(dataPoints);
@@ -345,6 +538,7 @@ public class EMGaussianMixture extends KMeans implements MultivariateDistributio
         return new EMGaussianMixture(this);
     }
 
+    @Override
     public List<Vec> sample(int count, Random rand)
     {
         List<Vec> samples = new ArrayList<Vec>(count);
