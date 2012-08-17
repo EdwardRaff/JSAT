@@ -1,14 +1,8 @@
 
 package jsat.clustering;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Random;
-import java.util.concurrent.ArrayBlockingQueue;
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.ExecutorService;
+import java.util.*;
+import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -17,14 +11,9 @@ import jsat.classifiers.DataPoint;
 import jsat.clustering.SeedSelectionMethods.SeedSelection;
 import static jsat.clustering.SeedSelectionMethods.selectIntialPoints;
 import jsat.linear.Vec;
-import jsat.linear.distancemetrics.DistanceMetric;
-import jsat.linear.distancemetrics.EuclideanDistance;
-import jsat.linear.distancemetrics.TrainableDistanceMetric;
+import jsat.linear.distancemetrics.*;
 import jsat.math.OnLineStatistics;
-import jsat.utils.ModifiableCountDownLatch;
-import jsat.utils.PoisonRunnable;
-import jsat.utils.RunnableConsumer;
-import jsat.utils.SystemInfo;
+import jsat.utils.*;
 
 /**
  * An efficient implementation of the K-Means algorithm. This implementation uses
@@ -38,6 +27,13 @@ import jsat.utils.SystemInfo;
  */
 public class KMeans extends KClustererBase
 {
+    /**
+     * This is the default seed selection method used in KMeans. When used with 
+     * the {@link EuclideanDistance}, it selects seeds that are log optimal with
+     * a high probability. 
+     */
+    public static final SeedSelection DEFAULT_SEED_SELECTION = SeedSelection.KPP;
+    
     private DistanceMetric dm;
     private Random rand;
     private SeedSelection seedSelection;
@@ -47,25 +43,43 @@ public class KMeans extends KClustererBase
      */
     protected int MaxIterLimit = 100;
 
+    /**
+     * Creates a new KMeans instance. 
+     * @param dm the distance metric to use, must support {@link DistanceMetric#isSubadditive() }. 
+     * @param rand the random number generator to use during seed selection
+     * @param seedSelection the method of seed selection to use
+     */
     public KMeans(DistanceMetric dm, Random rand, SeedSelection seedSelection)
     {
         if(!dm.isSubadditive())
-            throw new ArithmeticException("KMeans implementation requires the triangle inequality");
+            throw new ClusterFailureException("KMeans implementation requires the triangle inequality");
         this.dm = dm;
         this.rand = rand;
         this.seedSelection = seedSelection;
     }
 
+    /**
+     * Creates a new KMeans instance
+     * @param dm the distance metric to use, must support {@link DistanceMetric#isSubadditive() }.  
+     * @param rand the random number generator to use during seed selection
+     */
     public KMeans(DistanceMetric dm, Random rand)
     {
-        this(dm, rand, SeedSelection.KPP);
+        this(dm, rand, DEFAULT_SEED_SELECTION);
     }
 
+    /**
+     * Creates a new KMeans instance
+     * @param dm the distance metric to use, must support {@link DistanceMetric#isSubadditive() }.  
+     */
     public KMeans(DistanceMetric dm)
     {
-        this(dm, new Random(2));
+        this(dm, new Random());
     }
 
+    /**
+     * Creates a new KMeans instance. The {@link EuclideanDistance} will be used by default. 
+     */
     public KMeans()
     {
         this(new EuclideanDistance());
@@ -74,13 +88,17 @@ public class KMeans extends KClustererBase
 
     /**
      * Sets the maximum number of iterations allowed
-     * @param MaxIterLimit 
+     * @param iterLimit the nex maximum number of iterations of the KMeans algorithm 
      */
     public void setIterationLimit(int iterLimit)
     {
         this.MaxIterLimit = iterLimit;
     }
 
+    /**
+     * Returns the maximum number of iterations of the KMeans algorithm that will be performed. 
+     * @return the maximum number of iterations of the KMeans algorithm that will be performed. 
+     */
     public int getIterationLimit()
     {
         return MaxIterLimit;
@@ -162,6 +180,9 @@ public class KMeans extends KClustererBase
              * N data points
              */
             final int N = dataSet.getSampleSize();
+            
+            if(N < k)//Not enough points
+                throw new ClusterFailureException("Fewer data points then desired clusters, decrease cluster size");
 
             TrainableDistanceMetric.trainIfNeeded(dm, dataSet);
 
@@ -364,6 +385,8 @@ public class KMeans extends KClustererBase
                 }
             });
         }
+        while(pos++ < SystemInfo.LogicalCores)
+            latch.countDown();
         try
         {
             latch.await();
@@ -471,30 +494,38 @@ public class KMeans extends KClustererBase
         return ks;
     }
 
+    @Override
     public int[] cluster(DataSet dataSet, int[] designations)
     {
         return cluster(dataSet, 2, (int)Math.sqrt(dataSet.getSampleSize()/2), designations);
     }
 
+    @Override
     public int[] cluster(DataSet dataSet, ExecutorService threadpool, int[] designations)
     {
         return cluster(dataSet, 2, (int)Math.sqrt(dataSet.getSampleSize()/2), threadpool, designations);
     }
 
+    @Override
     public int[] cluster(DataSet dataSet, int clusters, ExecutorService threadpool, int[] designations)
     {
         if(designations == null)
             designations = new int[dataSet.getSampleSize()];
+        if(dataSet.getSampleSize() < clusters)
+            throw new ClusterFailureException("Fewer data points then desired clusters, decrease cluster size");
         
         cluster(dataSet, selectIntialPoints(dataSet, clusters, dm, rand, seedSelection, threadpool), designations, false, threadpool);
         
         return designations;
     }
 
+    @Override
     public int[] cluster(DataSet dataSet, int clusters, int[] designations)
     {
         if(designations == null)
             designations = new int[dataSet.getSampleSize()];
+        if(dataSet.getSampleSize() < clusters)
+            throw new ClusterFailureException("Fewer data points then desired clusters, decrease cluster size");
         
         cluster(dataSet, selectIntialPoints(dataSet, clusters, dm, rand, seedSelection), designations, false);
         
@@ -549,8 +580,12 @@ public class KMeans extends KClustererBase
         
     }
 
+    @Override
     public int[] cluster(DataSet dataSet, int lowK, int highK, ExecutorService threadpool, int[] designations)
     {
+        if(dataSet.getSampleSize() < highK)
+            throw new ClusterFailureException("Fewer data points then desired clusters, decrease cluster size");
+        
         double[] totDistances = new double[highK-lowK+1];
         
         BlockingQueue<ClusterWorker> workerQue = new ArrayBlockingQueue<ClusterWorker>(SystemInfo.LogicalCores);
@@ -615,6 +650,8 @@ public class KMeans extends KClustererBase
          */
         if(designations == null)
             designations = new int[dataSet.getSampleSize()];
+        if(dataSet.getSampleSize() < highK)
+            throw new ClusterFailureException("Fewer data points then desired clusters, decrease cluster size");
 
         List<List<DataPoint>> ks = new ArrayList<List<DataPoint>>(highK);
         for (int i = 0; i < ks.size(); i++)
@@ -653,7 +690,7 @@ public class KMeans extends KClustererBase
             maxChangeK = lowK;
         else
         {
-            double tmp = 0;
+            double tmp;
             for(int i = 1; i < totDistances.length; i++)
             {
                 if( (tmp = Math.abs(totDistances[i]-totDistances[i-1])) < maxChange )
