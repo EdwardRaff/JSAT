@@ -1,10 +1,7 @@
 
 package jsat.utils;
 
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.List;
+import java.util.*;
 
 /**
  * The index table provides a way of accessing the sorted view of an array or list,
@@ -15,7 +12,7 @@ import java.util.List;
  * 
  * @author Edward Raff
  */
-public class IndexTable<T extends Comparable<T>>
+public class IndexTable
 {
     /**
      * We use an array of Integer objects instead of integers because we need the arrays.sort function that accepts comparators. 
@@ -38,7 +35,7 @@ public class IndexTable<T extends Comparable<T>>
      * Creates a new index table based on the given array. The array will not be altered. 
      * @param array the array to create an index table for
      */
-    public IndexTable(T[] array)
+    public <T extends Comparable<T>> IndexTable(T[] array)
     {
         index = new Integer[array.length];
         for(int i = 0; i < index.length; i++)
@@ -47,15 +44,34 @@ public class IndexTable<T extends Comparable<T>>
     }
     
     /**
-     * * Creates a new index table based on the given list. The list will not be altered. 
+     * Creates a new index table based on the given list. The list will not be altered. 
      * @param list the list to create an index table for
      */
-    public IndexTable(List<T> list)
+    public <T extends Comparable<T>> IndexTable(List<T> list)
+    {
+        this(list, new Comparator<T>() {
+
+            @Override
+            public int compare(T o1, T o2)
+            {
+                return o1.compareTo(o2);
+            }
+        });
+    }
+    
+    /**
+     * Creates a new index table based on the given list and comparator. The 
+     * list will not be altered. 
+     * 
+     * @param list the list of points to obtain a sorted IndexTable for
+     * @param comparator the comparator to determined the sorted order
+     */
+    public <T> IndexTable(List<T> list, Comparator<T> comparator)
     {
         index = new Integer[list.size()];
         for(int i = 0; i < index.length; i++)
             index[i] = i;
-        Arrays.sort(index, new IndexViewCompList(list));
+        Arrays.sort(index, new IndexViewCompList(list, comparator));
     }
     
     private class IndexViewCompD implements Comparator<Integer> 
@@ -73,7 +89,7 @@ public class IndexTable<T extends Comparable<T>>
         }        
     }
     
-    private class IndexViewCompG implements Comparator<Integer> 
+    private class IndexViewCompG<T extends Comparable<T>> implements Comparator<Integer> 
     {
         T[] base;
 
@@ -82,24 +98,28 @@ public class IndexTable<T extends Comparable<T>>
             this.base = base;
         }
 
+        @Override
         public int compare(Integer t, Integer t1)
         {
             return base[t].compareTo(base[t1]);
         }        
     }
     
-    private class IndexViewCompList implements Comparator<Integer> 
+    private class IndexViewCompList<T> implements Comparator<Integer> 
     {
-        List<T> base;
-
-        public IndexViewCompList(List<T> base)
+        final List<T> base;
+        final Comparator<T> comparator;
+        
+        public IndexViewCompList(List<T> base, Comparator<T> comparator)
         {
             this.base = base;
+            this.comparator = comparator;
         }
 
+        @Override
         public int compare(Integer t, Integer t1)
         {
-            return base.get(t).compareTo(base.get(t1));
+            return comparator.compare(base.get(t), base.get(t1));
         }        
     }
     

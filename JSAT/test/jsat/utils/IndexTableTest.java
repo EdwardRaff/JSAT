@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Comparator;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -72,6 +73,21 @@ public class IndexTableTest
         IndexTable idt = new IndexTable(list);
         for(int i = 0; i < idt.length()-1; i++)
             assertTrue(list.get(idt.index(i)).compareTo(list.get(idt.index(i+1))) <= 0);
+    }
+    
+    @Test
+    public void testSortListComparator()
+    {
+        IndexTable idt = new IndexTable(list, new Comparator<Double>() {
+
+            @Override
+            public int compare(Double o1, Double o2)
+            {
+                return -o1.compareTo(o2);
+            }
+        });
+        for(int i = 0; i < idt.length()-1; i++)
+            assertTrue(list.get(idt.index(i)).compareTo(list.get(idt.index(i+1))) >= 0);
     }
     
     @Test
