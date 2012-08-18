@@ -211,4 +211,12 @@ public class ClassificationModelEvaluation
         return totalClassificationTime;
     }
     
+    /**
+     * Returns the classifier that was original given for evaluation. 
+     * @return the classifier that was original given for evaluation. 
+     */
+    public Classifier getClassifier()
+    {
+        return classifier;
+    }
 }
