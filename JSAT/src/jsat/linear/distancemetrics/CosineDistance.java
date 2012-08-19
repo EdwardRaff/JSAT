@@ -4,12 +4,16 @@ package jsat.linear.distancemetrics;
 import jsat.linear.Vec;
 
 /**
- *
+ * The Cosine Distance is a adaption of the Cosine similarity's range from 
+ * [-1, 1] into the range [0, 2]. Where 0 means two vectors are the same, and 2 
+ * means they are completly different. 
+ * 
  * @author Edward Raff
  */
 public class CosineDistance implements DistanceMetric
 {
 
+    @Override
     public double dist(Vec a, Vec b)
     {
         /*
@@ -25,24 +29,34 @@ public class CosineDistance implements DistanceMetric
         return 1 - a.dot(b) / (a.pNorm(2) * b.pNorm(2));
     }
 
+    @Override
     public boolean isSymmetric()
     {
         return true;
     }
 
+    @Override
     public boolean isSubadditive()
     {
         return true;
     }
 
+    @Override
     public boolean isIndiscemible()
     {
         return true;
     }
 
+    @Override
     public double metricBound()
     {
         return 2;
+    }
+
+    @Override
+    public String toString()
+    {
+        return "Cosine Distance";
     }
 
     @Override

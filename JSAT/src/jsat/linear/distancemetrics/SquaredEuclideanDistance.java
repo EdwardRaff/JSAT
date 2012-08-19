@@ -13,6 +13,7 @@ import jsat.linear.Vec;
 public class SquaredEuclideanDistance implements DistanceMetric
 {
 
+    @Override
     public double dist(Vec a, Vec b)
     {
         if(a.length() != b.length())
@@ -37,26 +38,36 @@ public class SquaredEuclideanDistance implements DistanceMetric
         return d;
     }
 
+    @Override
     public boolean isSymmetric()
     {
         return true;
     }
 
+    @Override
     public boolean isSubadditive()
     {
         return false;
     }
 
+    @Override
     public boolean isIndiscemible()
     {
         return true;
     }
 
+    @Override
     public double metricBound()
     {
         return Double.POSITIVE_INFINITY;
     }
 
+    @Override
+    public String toString()
+    {
+        return "Squared Euclidean Distance";
+    }
+    
     @Override
     public SquaredEuclideanDistance clone()
     {

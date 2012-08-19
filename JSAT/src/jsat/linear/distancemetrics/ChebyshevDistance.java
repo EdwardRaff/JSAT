@@ -4,12 +4,14 @@ package jsat.linear.distancemetrics;
 import jsat.linear.Vec;
 
 /**
- *
+ * Chebyshev Distance is the L<sub>&#8734;</sub> norm. 
+ * 
  * @author Edward Raff
  */
 public class ChebyshevDistance implements DistanceMetric
 {
 
+    @Override
     public double dist(Vec a, Vec b)
     {
         if(a.length() != b.length())
@@ -22,26 +24,36 @@ public class ChebyshevDistance implements DistanceMetric
         return max;
     }
 
+    @Override
     public boolean isSymmetric()
     {
         return true;
     }
 
+    @Override
     public boolean isSubadditive()
     {
         return true;
     }
 
+    @Override
     public boolean isIndiscemible()
     {
         return true;
     }
 
+    @Override
     public double metricBound()
     {
         return Double.POSITIVE_INFINITY;
     }
 
+    @Override
+    public String toString()
+    {
+        return "Chebyshev Distance";
+    }
+    
     @Override
     public ChebyshevDistance clone()
     {

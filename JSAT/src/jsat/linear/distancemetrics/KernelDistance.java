@@ -2,9 +2,7 @@
 package jsat.linear.distancemetrics;
 
 import jsat.classifiers.knn.NearestNeighbour;
-import jsat.distributions.kernels.KernelTrick;
-import jsat.distributions.kernels.PolynomialKernel;
-import jsat.distributions.kernels.RBFKernel;
+import jsat.distributions.kernels.*;
 import jsat.linear.Vec;
 
 /**
@@ -16,7 +14,7 @@ import jsat.linear.Vec;
  */
 public class KernelDistance implements DistanceMetric
 {
-    KernelTrick kf;
+    private KernelTrick kf;
 
     /**
      * Creates a distane metric from the given kernel. For the metric to be valid, the kernel must be positive definite. This means that
@@ -45,29 +43,40 @@ public class KernelDistance implements DistanceMetric
      * @param b the second vector
      * @return the distance metric based on a kernel function
      */
+    @Override
     public double dist(Vec a, Vec b)
     {
         return kf.eval(a, a) - 2*kf.eval(a, b) + kf.eval(b, b);
     }
 
+    @Override
     public boolean isSymmetric()
     {
         return true;
     }
 
+    @Override
     public boolean isSubadditive()
     {
         return true;
     }
 
+    @Override
     public boolean isIndiscemible()
     {
         return true;
     }
 
+    @Override
     public double metricBound()
     {
         return Double.POSITIVE_INFINITY;
+    }
+
+    @Override
+    public String toString()
+    {
+        return "Kernel (" + kf +  ") Distance";
     }
 
     @Override

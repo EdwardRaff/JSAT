@@ -6,12 +6,7 @@ import java.util.List;
 import java.util.concurrent.ExecutorService;
 import jsat.DataSet;
 import jsat.classifiers.ClassificationDataSet;
-import jsat.exceptions.UntrainedModelException;
-import jsat.linear.LUPDecomposition;
-import jsat.linear.Matrix;
-import jsat.linear.MatrixStatistics;
-import jsat.linear.SingularValueDecomposition;
-import jsat.linear.Vec;
+import jsat.linear.*;
 import jsat.regression.RegressionDataSet;
 
 /**
@@ -64,11 +59,13 @@ public class MahalanobisDistance extends TrainableDistanceMetric
     }
     
     
+    @Override
     public <V extends Vec> void train(List<V> dataSet)
     {
         train(dataSet, null);
     }
     
+    @Override
     public <V extends Vec> void train(List<V> dataSet, ExecutorService threadpool)
     {
         Vec mean = MatrixStatistics.MeanVector(dataSet);
@@ -91,11 +88,13 @@ public class MahalanobisDistance extends TrainableDistanceMetric
             S = lup.solve(Matrix.eye(covariance.cols()));
     }
     
+    @Override
     public void train(DataSet dataSet)
     {
         train(dataSet, null);
     }
     
+    @Override
     public void train(DataSet dataSet, ExecutorService threadpool)
     {
         List<Vec> dataVecs = new ArrayList<Vec>(dataSet.getSampleSize());
@@ -105,36 +104,43 @@ public class MahalanobisDistance extends TrainableDistanceMetric
         train(dataVecs, threadpool);
     }
 
+    @Override
     public void train(ClassificationDataSet dataSet)
     {
         train( (DataSet) dataSet);
     }
 
+    @Override
     public void train(ClassificationDataSet dataSet, ExecutorService threadpool)
     {
         train( (DataSet) dataSet, threadpool);
     }
 
+    @Override
     public boolean supportsClassificationTraining()
     {
         return true;
     }
 
+    @Override
     public void train(RegressionDataSet dataSet)
     {
         train( (DataSet) dataSet);
     }
 
+    @Override
     public void train(RegressionDataSet dataSet, ExecutorService threadpool)
     {
         train( (DataSet) dataSet, threadpool);
     }
 
+    @Override
     public boolean supportsRegressionTraining()
     {
         return true;
     }
 
+    @Override
     public boolean needsTraining()
     {
         if(S == null)
@@ -143,32 +149,43 @@ public class MahalanobisDistance extends TrainableDistanceMetric
             return isReTrain();
     }
 
+    @Override
     public double dist(Vec a, Vec b)
     {
         Vec aMb = a.subtract(b);
         return Math.sqrt(aMb.dot(S.multiply(aMb)));
     }
 
+    @Override
     public boolean isSymmetric()
     {
         return true;
     }
 
+    @Override
     public boolean isSubadditive()
     {
         return true;
     }
 
+    @Override
     public boolean isIndiscemible()
     {
         return true;
     }
 
+    @Override
     public double metricBound()
     {
         return Double.POSITIVE_INFINITY;
     }
 
+    @Override
+    public String toString()
+    {
+        return "Mahalanobis Distance";
+    }
+    
     @Override
     public MahalanobisDistance clone()
     {

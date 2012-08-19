@@ -12,7 +12,6 @@ import jsat.linear.Vec;
  * learning algorithms rely on these properties to accelerate computations, 
  * though may not need all the properties to hold. 
  * 
- * 
  * @author Edward Raff
  */
 public interface DistanceMetric extends Cloneable
@@ -62,6 +61,13 @@ public interface DistanceMetric extends Cloneable
      * @return the maximal distance for any two points in that could exist by this distance metric. 
      */
     public double metricBound();
+    
+    /**
+     * Returns a descriptive name of the Distance Metric in use
+     * @return the name of this metric
+     */
+    @Override
+    public String toString();
     
     public DistanceMetric clone();
 }
