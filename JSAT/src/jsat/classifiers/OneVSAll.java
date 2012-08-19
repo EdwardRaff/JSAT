@@ -7,8 +7,6 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import jsat.classifiers.svm.PlatSMO;
-import jsat.distributions.kernels.LinearKernel;
 import jsat.utils.FakeExecutor;
 
 /**
@@ -22,7 +20,7 @@ import jsat.utils.FakeExecutor;
  */
 public class OneVSAll implements Classifier
 {
-    private volatile Classifier[] oneVsAlls;
+    private Classifier[] oneVsAlls;
     private Classifier baseClassifier;
     private CategoricalData predicting;
     private boolean concurrentTraining;
@@ -60,20 +58,23 @@ public class OneVSAll implements Classifier
     }
     
     
+    @Override
     public CategoricalResults classify(DataPoint data)
     {
         CategoricalResults cr = new CategoricalResults(predicting.getNumOfCategories());
         for(int i = 0; i < predicting.getNumOfCategories(); i++)
-            if(oneVsAlls[i].classify(data).getProb(0) > 0)
-            {
-                double tmp = oneVsAlls[i].classify(data).getProb(0);
+        {
+            CategoricalResults oneVsAllCR = oneVsAlls[i].classify(data);
+            double tmp = oneVsAllCR.getProb(0);
+            if(tmp > 0)
                 cr.setProb(i, tmp);
-            }
+        }
         
         cr.normalize();
         return cr;
     }
 
+    @Override
     public void trainC(ClassificationDataSet dataSet, ExecutorService threadPool)
     {
         oneVsAlls = new Classifier[dataSet.getClassSize()];
@@ -89,7 +90,7 @@ public class OneVSAll implements Classifier
             categorized.add(oneCat);
         }
         
-        int numer = dataSet.getDataPoint(0).getNumericalValues().length();
+        int numer = dataSet.getNumNumericalVars();
         CategoricalData[] categories = dataSet.getCategories();
         //Latch only used when all the classifiers are trained in parallel 
         final CountDownLatch latch = new CountDownLatch(oneVsAlls.length);
@@ -107,8 +108,11 @@ public class OneVSAll implements Classifier
 
             if(!concurrentTraining)
             {
-                baseClassifier.trainC(cds, threadPool);
                 oneVsAlls[i] = baseClassifier.clone();
+                if(threadPool == null || threadPool instanceof FakeExecutor)
+                    oneVsAlls[i].trainC(cds);
+                else
+                    oneVsAlls[i].trainC(cds, threadPool);
             }
             else
             {
@@ -116,6 +120,7 @@ public class OneVSAll implements Classifier
                 final int ii = i;
                 threadPool.submit(new Runnable() {
 
+                    @Override
                     public void run()
                     {
                         aClassifier.trainC(cds);
@@ -140,6 +145,7 @@ public class OneVSAll implements Classifier
         
     }
 
+    @Override
     public void trainC(ClassificationDataSet dataSet)
     {
         trainC(dataSet, new FakeExecutor());
@@ -161,6 +167,7 @@ public class OneVSAll implements Classifier
         return clone;
     }
 
+    @Override
     public boolean supportsWeightedData()
     {
         return baseClassifier.supportsWeightedData();
