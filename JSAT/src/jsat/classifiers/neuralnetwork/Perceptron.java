@@ -9,8 +9,6 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import jsat.classifiers.CategoricalResults;
 import jsat.classifiers.ClassificationDataSet;
 import jsat.classifiers.Classifier;
@@ -18,11 +16,10 @@ import jsat.classifiers.DataPoint;
 import jsat.classifiers.DataPointPair;
 import jsat.distributions.kernels.KernelTrick;
 import jsat.distributions.kernels.LinearKernel;
+import jsat.exceptions.FailedToFitException;
 import jsat.linear.DenseVector;
 import jsat.linear.Vec;
-import jsat.utils.FakeExecutor;
 import jsat.utils.PairedReturn;
-import jsat.utils.ProbailityMatch;
 
 /**
  * 
@@ -53,6 +50,7 @@ public class Perceptron implements Classifier
     
     
     
+    @Override
     public CategoricalResults classify(DataPoint data)
     {
         CategoricalResults cr = new CategoricalResults(2);
@@ -111,12 +109,13 @@ public class Perceptron implements Classifier
         }
     }
     
+    @Override
     public void trainC(ClassificationDataSet dataSet, ExecutorService threadPool)
     {
         if(dataSet.getClassSize() != 2)
-            throw new RuntimeException("Preceptron only supports binary calssification");
+            throw new FailedToFitException("Preceptron only supports binary calssification");
         else if(dataSet.getNumCategoricalVars() != 0)
-            throw new RuntimeException("Preceptron only supports vector classification");
+            throw new FailedToFitException("Preceptron only supports vector classification");
 
         List<DataPointPair<Integer>> dataPoints = dataSet.getAsDPPList();
         Collections.shuffle(dataPoints);
@@ -195,6 +194,7 @@ public class Perceptron implements Classifier
         weights = bestWeightsSoFar;
     }
 
+    @Override
     public void trainC(ClassificationDataSet dataSet)
     {
         trainCOnline(dataSet);
@@ -204,9 +204,9 @@ public class Perceptron implements Classifier
     public void trainCOnline(ClassificationDataSet dataSet)
     {
         if(dataSet.getClassSize() != 2)
-            throw new RuntimeException("Preceptron only supports binary calssification");
+            throw new FailedToFitException("Preceptron only supports binary calssification");
         else if(dataSet.getNumCategoricalVars() != 0)
-            throw new RuntimeException("Preceptron only supports vector classification");
+            throw new FailedToFitException("Preceptron only supports vector classification");
 
         List<DataPointPair<Integer>> dataPoints = dataSet.getAsDPPList();
         Collections.shuffle(dataPoints);
@@ -266,15 +266,18 @@ public class Perceptron implements Classifier
         return (dot >= 0) ? 1 : 0;
     }
 
+    @Override
     public boolean supportsWeightedData()
     {
         return true;
     }
 
+    @Override
     public Classifier clone()
     {
         Perceptron copy = new  Perceptron(learningRate, kernel, iteratinLimit);
-        copy.weights = this.weights.clone();
+        if(this.weights != null)
+            copy.weights = this.weights.clone();
         
         return copy;
     }    
