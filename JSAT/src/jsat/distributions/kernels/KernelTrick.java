@@ -2,12 +2,18 @@
 package jsat.distributions.kernels;
 
 import jsat.linear.Vec;
+import jsat.parameters.Parameterized;
 
 /**
- *
+ * The KernelTrick is a method can can be used to alter an algorithm to do its 
+ * calculations in a projected feature space, without explicitly forming the 
+ * features. If an algorithm uses only dot products, the Kernel trick can be 
+ * used in place of these dot products, and computes the inner product in a 
+ * different feature space. 
+ * 
  * @author Edward Raff
  */
-public interface KernelTrick
+public interface KernelTrick extends Parameterized, Cloneable
 {
     /**
      * Evaluate this kernel function for the two given vectors. 
@@ -18,9 +24,11 @@ public interface KernelTrick
     public double eval(Vec a, Vec b);
     
     /**
-     * 
+     * A descriptive name for the type of KernelFunction 
      * @return a descriptive name for the type of KernelFunction 
      */
     @Override
     public String toString();
+    
+    public KernelTrick clone();
 }
