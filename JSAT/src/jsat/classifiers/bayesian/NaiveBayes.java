@@ -233,7 +233,7 @@ public class NaiveBayes implements Classifier
     @Override
     public Classifier clone()
     {
-        NaiveBayes newBayes = new NaiveBayes();
+        NaiveBayes newBayes = new NaiveBayes(numericalHandling);
         
         if(this.apriori != null)
         {
