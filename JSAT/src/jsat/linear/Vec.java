@@ -2,21 +2,48 @@
 package jsat.linear;
 
 import java.util.Iterator;
+import java.util.Random;
 import jsat.math.Function;
 import jsat.math.IndexFunction;
 
 /**
- *
+ * Provides the contract for a numerical vector. 
+ * 
  * @author Edward Raff
  */
-public abstract class Vec implements Cloneable
+public abstract class Vec implements Cloneable, Iterable<IndexValue>
 {
+    /**
+     * Returns the length of this vector
+     * @return the length of this vector
+     */
     abstract public int length();
 
+    /**
+     * Gets the value stored at a specific index in the vector
+     * @param index the index to access
+     * @return the double value in the vector
+     * @throws IndexOutOfBoundsException if the index given is greater than or 
+     * equal to its {@link #length() }
+     */
     abstract public double get(int index);
 
+    /**
+     * Sets the value stored at a specified index in the vector
+     * @param index the index to access
+     * @param val the value to store in the index
+     * @throws IndexOutOfBoundsException if the index given is greater than or 
+     * equal to its {@link #length() }
+     */
     abstract public void set(int index, double val);
     
+    /**
+     * Increments the value stored at a specified index in the vector
+     * @param index  the index to access
+     * @param val the value to store in the index
+     * @throws IndexOutOfBoundsException if the index given is greater than or 
+     * equal to its {@link #length() }
+     */
     public void increment(int index, double val)
     {
         set(index, val+get(index));
@@ -47,29 +74,59 @@ public abstract class Vec implements Cloneable
     abstract public Vec pairwiseDivide(Vec b);
     abstract public Vec divide(double c);
     
+    /**
+     * Alters this vector such that 
+     * <tt>this</tt> = <tt>this</tt> + <tt>c</tt>
+     * @param c a scalar constant to add to each value in this vector
+     */
     abstract public void mutableAdd(double c);
     /**
-     * Alters this vector such that <br>
+     * Alters this vector such that 
      * <tt>this</tt> = <tt>this</tt> + <tt>c</tt> * <tt>b</tt>
      * @param c a scalar constant
-     * @param b the vector to add tot his
+     * @param b the vector to add to this
      */
     abstract public void mutableAdd(double c, Vec b);
+    
+    /**
+     * Alters this vector such that
+     * <tt>this</tt> = <tt>this</tt> + <tt>b</tt>
+     * @param b the vector to add to this
+     * @throws ArithmeticException if the vectors do not have the same length
+     */
     public void mutableAdd(Vec b)
     {
         this.mutableAdd(1, b);
     }
     
+    /**
+     * Alters this vector such that
+     * <tt>this</tt> = <tt>this</tt> - <tt>c</tt>
+     * @param c the scalar constant to subtract from all values in this vector
+     */
     public void mutableSubtract(double c)
     {
         mutableAdd(-c);
     }
     
+    /**
+     * Alters this vector such that 
+     * <tt>this</tt> = <tt>this</tt> - <tt>c</tt> * <tt>b</tt>
+     * @param c a scalar constant
+     * @param b the vector to subtract from this
+     * @throws ArithmeticException if the vectors do not have the same length
+     */
     public void mutableSubtract(double c, Vec b)
     {
         this.mutableAdd(-c, b);
     }
     
+    /**
+     * Alters this vector such that
+     * <tt>this</tt> = <tt>this</tt> - <tt>b</tt>
+     * @param b the vector to subtract from this
+     * @throws ArithmeticException if the vectors are not the same length
+     */
     public void mutableSubtract(Vec b)
     {
         this.mutableAdd(-1, b);
@@ -81,16 +138,65 @@ public abstract class Vec implements Cloneable
 
     abstract public Vec sortedCopy();
 
+    /**
+     * Returns the minimum value stored in this vector
+     * @return the minimum value in this vector
+     */
     abstract public double min();
+    /**
+     * Returns the maximum value stored in this vector
+     * @return the maximum value in this vector
+     */
     abstract public double max();
+    /**
+     * Computes the sum of the values in this vector
+     * @return the sum of this vector's values
+     */
     abstract public double sum();
+    /**
+     * Computes the mean value of all values stored in this vector
+     * @return the mean value
+     */
     abstract public double mean();
+    /**
+     * Computes the standard deviation of the values in this vector
+     * @return the standard deviation
+     */
     abstract public double standardDeviation();
+    /**
+     * Computes the variance of the values in this vector
+     * @return the variance 
+     */
     abstract public double variance();
+    /**
+     * Returns the median value in this vector
+     * @return the median
+     */
     abstract public double median();
+    /**
+     * Computes the skewness of this vector, which is the 3rd moment. 
+     * @return the skewness
+     */
     abstract public double skewness();
+    /**
+     * Computes the kurtosis of this vector, which is the 4th moment. 
+     * @return the kurtosis
+     */
     abstract public double kurtosis();
     
+    /**
+     * Indicates whether or not this vector is optimized for sparce computation,
+     * meaning that most values in the vector are zero - and considered 
+     * implicit. Only non-zero values are stored. 
+     * @return <tt>true</tt> if the vector is sparce, <tt>false</tt> otherwise. 
+     */
+    abstract public boolean isSparce();
+    
+    /**
+     * Copies the values of this Vector into another vector
+     * @param destination the vector to store the values in. 
+     * @throws ArithmeticException if the vectors are not of the same length
+     */
     public void copyTo(Vec destination)
     {
         if(this.length() != destination.length())
@@ -98,6 +204,34 @@ public abstract class Vec implements Cloneable
         for(int i = 0; i < length(); i++)
             destination.set(i, this.get(i));
     }
+    
+    /**
+     * Copies the values of this vector into a row of another Matrix
+     * @param A the matrix to store the contents of this vector in
+     * @param row the row of the matrix to store the values to
+     * @throws ArithmeticException if the columns of the matrix is not the same as the length of this vector. 
+     */
+    public void copyToRow(Matrix A, int row)
+    {
+        if(this.length() != A.cols())
+            throw new ArithmeticException("Destination matrix does not have the same number of columns as this has rows");
+        for(int i = 0; i < length(); i++)
+            A.set(row, i, get(i));
+    }
+    
+    /**
+     * Copies the values of this vector into a column of another Matrix. 
+     * @param A the matrix to store the contents of this vector in
+     * @param col the column of the matrix to store the values to
+     */
+    public void copyToCol(Matrix A, int col)
+    {
+        if(this.length() != A.rows())
+            throw new ArithmeticException("Destination matrix does not have the same number of rows as this has rows");
+        for(int i = 0; i < length(); i++)
+            A.set(i, col, get(i));
+    }
+    
     @Override
     abstract public Vec clone();
     abstract public Vec normalized();
@@ -169,6 +303,12 @@ public abstract class Vec implements Cloneable
     abstract public boolean equals(Object obj, double range);
     
     abstract public double[] arrayCopy();
+
+    @Override
+    public Iterator<IndexValue> iterator()
+    {
+        return getNonZeroIterator();
+    }
     
     /**
      * Returns an iterator that will go over the non zero values in the given vector. The iterator does not 
@@ -188,11 +328,13 @@ public abstract class Vec implements Cloneable
             int curIndex = 0;
             IndexValue indexValue = new IndexValue(-1, Double.NaN);
             
+            @Override
             public boolean hasNext()
             {
                 return curIndex < magic.length();
             }
 
+            @Override
             public IndexValue next()
             {
                 indexValue.setIndex(curIndex);
@@ -200,6 +342,7 @@ public abstract class Vec implements Cloneable
                 return indexValue;
             }
 
+            @Override
             public void remove()
             {
                 throw new UnsupportedOperationException("Not supported yet.");
@@ -257,6 +400,40 @@ public abstract class Vec implements Cloneable
         }
         
         return 31* result + length();
+    }
+    
+    /**
+     * Creates a dense vector full of random values in the range [0, 1]
+     * @param length the length of the random vector to create
+     * @return a random vector of the specified length
+     */
+    public static Vec random(int length)
+    {
+        return random(length, new Random());
+    }
+    
+    /**
+     * Creates a dense vector full of random values in the range [0, 1]
+     * @param length the length of the random vector to create
+     * @param rand the source of randomness
+     * @return a random vector of the specified length
+     */
+    public static Vec random(int length, Random rand)
+    {
+        Vec v = new DenseVector(length);
+        for(int i = 0; i < length; i++)
+            v.set(i, rand.nextDouble());
+        return v;
+    }
+    
+    /**
+     * Creates a dense vector full of zeros. 
+     * @param length the length of the vector to create
+     * @return a vector of zeros
+     */
+    public static Vec zeros(int length)
+    {
+        return new DenseVector(length);
     }
 
 }

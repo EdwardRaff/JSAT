@@ -1,17 +1,25 @@
 
 package jsat.linear;
 
-import java.util.Iterator;
-import java.util.List;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashSet;
-import static java.lang.Math.*;
+import static java.lang.Math.pow;
+import static java.lang.Math.sqrt;
+import java.util.*;
 import jsat.math.Function;
 import jsat.math.IndexFunction;
 
 /**
- *
+ * Provides a vector implementation that is sparse. It does not allocate space 
+ * for a vector of the specified size, and only stores non zero values. All 
+ * values not stored are implicitly zero. 
+ * <br>
+ * Operations that change several zero values in a sparse vector to non-zero 
+ * values may have degraded performance. 
+ * <br>
+ * Sparce vector should never be used unless at least half the values are zero. 
+ * If more then half the values are non-zero, it will use more memory then an 
+ * equivalent {@link DenseVector}. The more values that are zero in the vector, 
+ * the better its performance will be. 
+ * 
  * @author Edward Raff
  */
 public class SparceVector extends  Vec
@@ -82,6 +90,7 @@ public class SparceVector extends  Vec
         maxCache = null;
     }
     
+    @Override
     public int length()
     {
         return length;
@@ -128,6 +137,7 @@ public class SparceVector extends  Vec
             values[location]+=val;
     }
     
+    @Override
     public double get(int index)
     {
         if (index > length - 1 || index < 0)
@@ -141,6 +151,7 @@ public class SparceVector extends  Vec
             return values[location];
     }
 
+    @Override
     public void set(int index, double val)
     {
         if(index > length()-1 || index < 0)
@@ -186,6 +197,7 @@ public class SparceVector extends  Vec
         used++;
     }
 
+    @Override
     public Vec add(Vec v)
     {
         if(this.length() != v.length())
@@ -230,6 +242,7 @@ public class SparceVector extends  Vec
         return ret;
     }
 
+    @Override
     public Vec subtract(Vec v)
     {
         if(this.length() != v.length())
@@ -274,11 +287,13 @@ public class SparceVector extends  Vec
     }
 
 
+    @Override
     public Vec sortedCopy()
     {
         throw new UnsupportedOperationException("Not supported yet.");
     }
 
+    @Override
     public double min()
     {
         if(minCache != null)
@@ -290,6 +305,7 @@ public class SparceVector extends  Vec
         return (minCache = result);
     }
 
+    @Override
     public double max()
     {
         if(maxCache != null)
@@ -302,6 +318,7 @@ public class SparceVector extends  Vec
         return (maxCache = result);
     }
 
+    @Override
     public double sum()
     {
         if(sumCache != null)
@@ -328,16 +345,19 @@ public class SparceVector extends  Vec
         return (sumCache = sum);
     }
 
+    @Override
     public double mean()
     {
         return sum()/length();
     }
 
+    @Override
     public double standardDeviation()
     {
         return Math.sqrt(variance());
     }
 
+    @Override
     public double variance()
     {
         if(varianceCache != null)
@@ -357,11 +377,13 @@ public class SparceVector extends  Vec
         return (varianceCache = tmp);
     }
 
+    @Override
     public double median()
     {
         throw new UnsupportedOperationException("Not supported yet.");
     }
     
+    @Override
     public double skewness()
     {
         double mean = mean();
@@ -382,6 +404,7 @@ public class SparceVector extends  Vec
         return s1;
     }
 
+    @Override
     public double kurtosis()
     {
         double mean = mean();
@@ -397,6 +420,7 @@ public class SparceVector extends  Vec
         return tmp / (pow(standardDeviation(), 4) * (length-1) ) - 3;
     }
 
+    @Override
     public double dot(Vec v)
     {
         double dot = 0;
@@ -444,6 +468,7 @@ public class SparceVector extends  Vec
         return sb.toString();
     }
 
+    @Override
     public Vec multiply(double c)
     {
         SparceVector sv = new SparceVector(length, used);
@@ -471,6 +496,7 @@ public class SparceVector extends  Vec
         }
     }
     
+    @Override
     public Vec divide(double c)
     {
         SparceVector sv = new SparceVector(length, used);
@@ -481,6 +507,7 @@ public class SparceVector extends  Vec
         return sv;
     }
 
+    @Override
     public Vec add(double c)
     {
         SparceVector sv = new SparceVector(length, used);
@@ -491,6 +518,7 @@ public class SparceVector extends  Vec
         return sv;
     }
 
+    @Override
     public void mutableAdd(double c)
     {
         clearCaches();
@@ -502,6 +530,7 @@ public class SparceVector extends  Vec
             this.set(i, get(i) + c);
     }
 
+    @Override
     public void mutableAdd(double c, Vec v)
     {
         clearCaches();
@@ -553,6 +582,7 @@ public class SparceVector extends  Vec
         
     }
 
+    @Override
     public void mutableMultiply(double c)
     {
         clearCaches();
@@ -561,6 +591,7 @@ public class SparceVector extends  Vec
             values[i] *= c;
     }
 
+    @Override
     public void mutableDivide(double c)
     {
         clearCaches();
@@ -569,6 +600,7 @@ public class SparceVector extends  Vec
             values[i] /= c;
     }
 
+    @Override
     public double pNormDist(double p, Vec y)
     {
         if(this.length() != y.length())
@@ -619,6 +651,7 @@ public class SparceVector extends  Vec
         return Math.pow(norm, 1.0/p);
     }
 
+    @Override
     public double pNorm(double p)
     {
         double norm = 0;
@@ -629,6 +662,7 @@ public class SparceVector extends  Vec
         return Math.pow(norm, 1.0/p);
     }
     
+    @Override
     public Vec clone()
     {
         SparceVector copy = new SparceVector(length, Math.max(used, 10));
@@ -640,6 +674,7 @@ public class SparceVector extends  Vec
         return copy;
     }
 
+    @Override
     public Vec normalized()
     {
         Vec copy = this.clone();
@@ -647,6 +682,7 @@ public class SparceVector extends  Vec
         return copy;
     }
 
+    @Override
     public void normalize()
     {
         double sum = 0;
@@ -659,6 +695,7 @@ public class SparceVector extends  Vec
         mutableDivide(sum); 
     }
 
+    @Override
     public Vec pairwiseMultiply(Vec b)
     {
         if(this.length() != b.length())
@@ -670,6 +707,7 @@ public class SparceVector extends  Vec
         return toRet;
     }
 
+    @Override
     public Vec pairwiseDivide(Vec b)
     {
         if(this.length() != b.length())
@@ -681,6 +719,7 @@ public class SparceVector extends  Vec
         return toRet;
     }
 
+    @Override
     public void mutablePairwiseMultiply(Vec b)
     {
         if(this.length() != b.length())
@@ -692,6 +731,7 @@ public class SparceVector extends  Vec
             values[i] *= b.get(indexes[i]);//zeros stay zero
     }
 
+    @Override
     public void mutablePairwiseDivide(Vec b)
     {
         if(this.length() != b.length())
@@ -732,6 +772,7 @@ public class SparceVector extends  Vec
         return true;
     }
 
+    @Override
     public boolean equals(Object obj, double range)
     {
         if(!(obj instanceof Vec))
@@ -842,5 +883,11 @@ public class SparceVector extends  Vec
         }
         
         return 31* result + length;
+    }
+
+    @Override
+    public boolean isSparce()
+    {
+        return true;
     }
 }

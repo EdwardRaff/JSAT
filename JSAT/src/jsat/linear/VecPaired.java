@@ -331,5 +331,11 @@ public class VecPaired<P, V extends Vec> extends Vec
     {
         return vector.hashCode();
     }
+
+    @Override
+    public boolean isSparce()
+    {
+        return vector.isSparce();
+    }
     
 }

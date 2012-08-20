@@ -1,14 +1,15 @@
 
 package jsat.linear;
 
-import java.util.List;
+import static java.lang.Math.pow;
+import static java.lang.Math.sqrt;
 import java.util.Arrays;
-
-import java.util.Random;
-import static java.lang.Math.*;
+import java.util.List;
 
 /**
- *
+ * A vector implementation that is dense, meaning all values are allocated - 
+ * even if their values will be implicitly zero. 
+ * 
  * @author Edward Raff
  */
 public class DenseVector extends Vec
@@ -21,6 +22,10 @@ public class DenseVector extends Vec
     private int startIndex;
     private int endIndex;
 
+    /**
+     * Creates a new Dense Vector of zeros 
+     * @param length the length of the vector
+     */
     public DenseVector(int length)
     {
         if(length < 0)
@@ -30,21 +35,45 @@ public class DenseVector extends Vec
         endIndex = array.length;
     }
 
-    public DenseVector(List<Double> array)
+    /**
+     * Creates a new vector of the length of the given list, and values copied
+     * over in order. 
+     * 
+     * @param list the list of values to copy into a new vector
+     */
+    public DenseVector(List<Double> list)
     {
-        this.array = new double[array.size()];
-        for(int i = 0; i < array.size(); i++)
-            this.array[i] = array.get(i);
+        this.array = new double[list.size()];
+        for(int i = 0; i < list.size(); i++)
+            this.array[i] = list.get(i);
         startIndex = 0;
         endIndex = this.array.length;
     }
 
-    protected DenseVector(double[] array)
+    /**
+     * Creates a new Dense Vector that uses the given array as its values. Its 
+     * values will not be copied, and raw access and mutations tot he given 
+     * array may occur. 
+     * 
+     * @param array the backing array to use for a new vector of the same length
+     */
+    public DenseVector(double[] array)
     {
         this(array, 0, array.length);
     }
     
-    protected DenseVector(double[] array, int start, int end)
+    /**
+     * Creates a new Dense Vector that uses the given array as its values. Its 
+     * values will not be copied, and raw access and mutations tot he given 
+     * array may occur. 
+     * 
+     * @param array the backing array to use for a new vector 
+     * @param start the first index in the array, inclusive, to mark the start 
+     * of the vector. 
+     * @param end the last index in the array, exclusive, to mark the end of the
+     * vector. 
+     */
+    public DenseVector(double[] array, int start, int end)
     {
         this.array = array;
         this.startIndex = start;
@@ -63,22 +92,26 @@ public class DenseVector extends Vec
         maxCache = null;
     }
     
+    @Override
     public int length()
     {
         return (endIndex-startIndex);
     }
 
+    @Override
     public double get(int index)
     {
         return array[index+startIndex];
     }
 
+    @Override
     public void set(int index, double val)
     {
         clearCaches();
         array[index+startIndex] = val;
     }
 
+    @Override
     public double min()
     {
         if(minCache != null)
@@ -91,6 +124,7 @@ public class DenseVector extends Vec
         return (minCache = result);
     }
 
+    @Override
     public double max()
     {
         if(maxCache != null)
@@ -102,6 +136,7 @@ public class DenseVector extends Vec
         return (maxCache = result);
     }
 
+    @Override
     public double sum()
     {
         if(sumCache != null)
@@ -127,6 +162,7 @@ public class DenseVector extends Vec
         return (sumCache = sum);
     }
 
+    @Override
     public double median()
     {
         double[] copy = Arrays.copyOfRange(array, startIndex, endIndex);
@@ -139,11 +175,13 @@ public class DenseVector extends Vec
             return copy[copy.length/2]/2+copy[copy.length/2+1]/2;//Divisions by 2 then add is more numericaly stable
     }
 
+    @Override
     public double mean()
     {
         return sum()/length();
     }
 
+    @Override
     public double skewness()
     {
         double mean = mean();
@@ -161,6 +199,7 @@ public class DenseVector extends Vec
         return s1;
     }
 
+    @Override
     public double kurtosis()
     {
         double mean = mean();
@@ -173,11 +212,13 @@ public class DenseVector extends Vec
         return tmp / (pow(standardDeviation(), 4) * (array.length-1) ) - 3;
     }
     
+    @Override
     public double standardDeviation()
     {
         return sqrt(variance());
     }
 
+    @Override
     public DenseVector sortedCopy()
     {
         double[] copy = Arrays.copyOfRange(array, startIndex, endIndex);
@@ -187,6 +228,7 @@ public class DenseVector extends Vec
         return new DenseVector(copy);
     }
 
+    @Override
     public double variance()
     {
         if(varianceCache != null)
@@ -203,6 +245,7 @@ public class DenseVector extends Vec
         return (varianceCache = tmp);
     }
 
+    @Override
     public double dot(Vec v)
     {
         if(this.length() != v.length())
@@ -223,6 +266,7 @@ public class DenseVector extends Vec
         return new DenseVector(Arrays.copyOf(array, array.length));
     }
 
+    @Override
     public Vec add(double c)
     {
         DenseVector dv = new DenseVector(Arrays.copyOf(array, array.length));
@@ -244,6 +288,7 @@ public class DenseVector extends Vec
         return dv;
     }
 
+    @Override
     public Vec multiply(double c)
     {
         DenseVector dv = new DenseVector(Arrays.copyOf(array, array.length));
@@ -254,6 +299,7 @@ public class DenseVector extends Vec
         return dv;
     }
        
+    @Override
     public void multiply(Matrix A, Vec b)
     {
         if(this.length() != A.rows())
@@ -269,6 +315,7 @@ public class DenseVector extends Vec
         }
     }
 
+    @Override
     public Vec divide(double c)
     {
         DenseVector dv = new DenseVector(Arrays.copyOf(array, array.length));
@@ -279,6 +326,7 @@ public class DenseVector extends Vec
         return dv;
     }
 
+    @Override
     public Vec add(Vec v)
     {
         if(this.length() != v.length())
@@ -297,6 +345,7 @@ public class DenseVector extends Vec
         return new DenseVector(ret);
     }
 
+    @Override
     public Vec subtract(Vec v)
     {
         if(this.length() != v.length())
@@ -311,6 +360,7 @@ public class DenseVector extends Vec
         return new DenseVector(ret);
     }
 
+    @Override
     public void mutableAdd(double c)
     {
         clearCaches();
@@ -318,6 +368,7 @@ public class DenseVector extends Vec
             array[i] += c;
     }
 
+    @Override
     public void mutableAdd(double c, Vec b)
     {
         if(this.length() !=  b.length())
@@ -336,6 +387,7 @@ public class DenseVector extends Vec
             array[i] -= c;
     }
 
+    @Override
     public void mutableMultiply(double c)
     {
         clearCaches();
@@ -343,6 +395,7 @@ public class DenseVector extends Vec
             array[i] *= c;
     }
 
+    @Override
     public void mutableDivide(double c)
     {
         clearCaches();
@@ -350,6 +403,7 @@ public class DenseVector extends Vec
             array[i] /= c;
     }
 
+    @Override
     public double pNormDist(double p, Vec y)
     {
         if(this.length() != y.length())
@@ -363,6 +417,7 @@ public class DenseVector extends Vec
         return Math.pow(norm, 1.0/p);
     }
 
+    @Override
     public double pNorm(double p)
     {
         double norm = 0;
@@ -373,6 +428,7 @@ public class DenseVector extends Vec
         return Math.pow(norm, 1.0/p);
     }
     
+    @Override
     public Vec clone()
     {
         DenseVector copy = new DenseVector(length());
@@ -382,6 +438,7 @@ public class DenseVector extends Vec
         return copy;
     }
 
+    @Override
     public Vec normalized()
     {
         Vec copy = this.clone();
@@ -389,6 +446,7 @@ public class DenseVector extends Vec
         return copy;
     }
 
+    @Override
     public void normalize()
     {
         double sum = 0;
@@ -401,6 +459,7 @@ public class DenseVector extends Vec
         mutableDivide(sum); 
     }
 
+    @Override
     public Vec pairwiseMultiply(Vec b)
     {
         if(this.length() != b.length())
@@ -415,6 +474,7 @@ public class DenseVector extends Vec
         return toReturn;
     }
 
+    @Override
     public Vec pairwiseDivide(Vec b)
     {
         if(this.length() != b.length())
@@ -427,6 +487,7 @@ public class DenseVector extends Vec
         return new DenseVector(vals);
     }
 
+    @Override
     public void mutablePairwiseMultiply(Vec b)
     {
         if(this.length() != b.length())
@@ -435,6 +496,7 @@ public class DenseVector extends Vec
             this.array[i] *= b.get(i);
     }
 
+    @Override
     public void mutablePairwiseDivide(Vec b)
     {
         if(this.length() != b.length())
@@ -459,6 +521,7 @@ public class DenseVector extends Vec
         return true;
     }
 
+    @Override
     public boolean equals(Object obj, double range)
     {
         if(!(obj instanceof Vec))
@@ -492,5 +555,11 @@ public class DenseVector extends Vec
     public double[] arrayCopy()
     {
         return Arrays.copyOfRange(array, startIndex, endIndex);
+    }
+
+    @Override
+    public boolean isSparce()
+    {
+        return false;
     }
 }
