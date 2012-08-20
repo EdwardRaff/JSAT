@@ -108,9 +108,10 @@ public abstract class Matrix implements Cloneable
     
     /**
      * If this matrix is A<sub>m x n</sub>, and <tt>b</tt> has a length of n, and <tt>c</tt> has a length of m,
-     * then this will compute the result of c = c + A*b 
+     * then this will compute the result of c = c + A*b*z 
      * @param b the vector to be treated as a colum vector
-     * @param c where to place the result 
+     * @param z the constant to multiply the <i>A*b</i> value by. 
+     * @param c where to place the result by addition
      * @return the Vector result of the computation
      * @throws ArithmeticException if the dimensions of A, b, or c do not all agree
      */
