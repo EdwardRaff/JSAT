@@ -1,9 +1,7 @@
 
 package jsat.utils;
 
-import java.util.Collection;
-import java.util.Comparator;
-import java.util.TreeSet;
+import java.util.*;
 
 /**
  *
@@ -13,18 +11,18 @@ import java.util.TreeSet;
  */
 public class BoundedSortedSet<V> extends TreeSet<V>
 {
-    int max;
+    private final int maxSize;
 
     public BoundedSortedSet(int max)
     {
         super();
-        this.max = max;
+        this.maxSize = max;
     }
 
     public BoundedSortedSet(int max, Comparator<? super  V> cmp)
     {
         super(cmp);
-        this.max = max;
+        this.maxSize = max;
     }
     
     @Override
@@ -32,7 +30,7 @@ public class BoundedSortedSet<V> extends TreeSet<V>
     {
         super.add(e);
         
-        if(size() > max)
+        if(size() > maxSize)
             remove(last());
         return true;
     }
@@ -41,11 +39,18 @@ public class BoundedSortedSet<V> extends TreeSet<V>
     public boolean addAll(Collection<? extends V> clctn)
     {
         super.addAll(clctn);
-        while (size() > max)
+        while (size() > maxSize)
             remove(last());
         return true;
     }
 
-    
+    /**
+     * Returns the maximum size allowed for the bounded set
+     * @return the maximum size allowed for the bounded set
+     */
+    public int getMaxSize()
+    {
+        return maxSize;
+    }
     
 }

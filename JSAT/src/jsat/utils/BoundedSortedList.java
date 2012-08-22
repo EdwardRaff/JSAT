@@ -1,7 +1,6 @@
 package jsat.utils;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 
 /**
@@ -10,7 +9,7 @@ import java.util.Collections;
  */
 public class BoundedSortedList<E extends Comparable<E>> extends ArrayList<E>
 {
-    int maxSize;
+    private final int maxSize;
 
     public BoundedSortedList(int maxSize, int initialCapacity)
     {
@@ -94,4 +93,12 @@ public class BoundedSortedList<E extends Comparable<E>> extends ArrayList<E>
         add(element);
     }
     
+    /**
+     * Returns the maximum size allowed for the bounded list
+     * @return the maximum size allowed for the bounded list
+     */
+    public int maxSize()
+    {
+        return maxSize;
+    }
 }
