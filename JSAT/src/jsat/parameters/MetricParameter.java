@@ -23,4 +23,10 @@ public abstract class MetricParameter extends Parameter
      * @return the current distance metric
      */
     abstract public DistanceMetric getMetric();
+
+    @Override
+    public String getASCIIName()
+    {
+        return "Distance Metric";
+    }
 }
