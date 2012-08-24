@@ -11,6 +11,7 @@ import static jsat.distributions.DistributionSearch.*;
 import jsat.distributions.*;
 import jsat.distributions.empirical.KernelDensityEstimator;
 import jsat.linear.*;
+import jsat.parameters.*;
 import jsat.utils.FakeExecutor;
 
 /**
@@ -19,7 +20,7 @@ import jsat.utils.FakeExecutor;
  * 
  * @author Edward Raff
  */
-public class NaiveBayes implements Classifier
+public class NaiveBayes implements Classifier, Parameterized
 {
     /**
      * 
@@ -101,6 +102,64 @@ public class NaiveBayes implements Classifier
 
         abstract protected Distribution fit(Vec y);
     }
+    
+    private List<Parameter> parameters = Collections.unmodifiableList(new ArrayList<Parameter>(3)
+    {{
+            add(new ObjectParameter<NumericalHandeling>() {
+
+                @Override
+                public NumericalHandeling getObject()
+                {
+                    return getNumericalHandling();
+                }
+
+                @Override
+                public boolean setObject(NumericalHandeling obj)
+                {
+                    if(obj == null)
+                        return false;
+                    setNumericalHandling(obj);
+                    return true;
+                }
+
+                @Override
+                public List<NumericalHandeling> parameterOptions()
+                {
+                    return Arrays.asList(NumericalHandeling.values());
+                }
+
+                @Override
+                public String getASCIIName()
+                {
+                    return "Numerical Handeling";
+                }
+
+            });
+            
+            add(new BooleanParameter() {
+
+                @Override
+                public boolean getValue()
+                {
+                    return isSparceInput();
+                }
+
+                @Override
+                public boolean setValue(boolean val)
+                {
+                    setSparceInput(val);
+                    return true;
+                }
+
+                @Override
+                public String getASCIIName()
+                {
+                    return "Sparce Input";
+                }
+            });
+    }});
+    
+    private Map<String, Parameter> parameterMap = Parameter.toParameterMap(parameters);
 
     public NaiveBayes(NumericalHandeling numericalHandling)
     {
@@ -230,6 +289,18 @@ public class NaiveBayes implements Classifier
         trainC(dataSet, new FakeExecutor());
     }
 
+    @Override
+    public List<Parameter> getParameters()
+    {
+        return parameters;
+    }
+
+    @Override
+    public Parameter getParameter(String paramName)
+    {
+        return parameterMap.get(paramName);
+    }
+    
     @Override
     public Classifier clone()
     {
