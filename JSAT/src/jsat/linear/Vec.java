@@ -190,7 +190,7 @@ public abstract class Vec implements Cloneable, Iterable<IndexValue>
      * implicit. Only non-zero values are stored. 
      * @return <tt>true</tt> if the vector is sparce, <tt>false</tt> otherwise. 
      */
-    abstract public boolean isSparce();
+    abstract public boolean isSparse();
     
     /**
      * Copies the values of this Vector into another vector

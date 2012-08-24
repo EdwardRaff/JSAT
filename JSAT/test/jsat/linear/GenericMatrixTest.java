@@ -699,7 +699,7 @@ public class GenericMatrixTest
     }
 
     /**
-     * Test of isSparce method, of class TestImp.
+     * Test of isSparse method, of class TestImp.
      */
     @Test
     public void testIsSparce()

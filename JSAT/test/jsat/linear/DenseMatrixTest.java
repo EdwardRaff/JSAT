@@ -648,7 +648,7 @@ public class DenseMatrixTest
     }
 
     /**
-     * Test of isSparce method, of class DenseMatrix.
+     * Test of isSparse method, of class DenseMatrix.
      */
     @Test
     public void testIsSparce()

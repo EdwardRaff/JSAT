@@ -1,7 +1,7 @@
 
 package jsat.linear.distancemetrics;
 
-import jsat.linear.SparceVector;
+import jsat.linear.SparseVector;
 import jsat.linear.Vec;
 
 /**
@@ -20,7 +20,7 @@ public class SquaredEuclideanDistance implements DistanceMetric
             throw new ArithmeticException("Length miss match, vectors must have the same length");
         double d = 0;
         
-        if( a instanceof SparceVector && b instanceof SparceVector)
+        if( a instanceof SparseVector && b instanceof SparseVector)
         {
             //Just square the pNorm for now... not easy code to write, and the sparceness is more important
             return Math.pow(a.pNormDist(2, b), 2);

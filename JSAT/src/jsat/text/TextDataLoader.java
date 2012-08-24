@@ -1,25 +1,16 @@
 
 package jsat.text;
 
-import jsat.text.wordweighting.WordWeighting;
-import java.util.Map;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.Hashtable;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import jsat.SimpleDataSet;
 import jsat.classifiers.CategoricalData;
 import jsat.classifiers.DataPoint;
-import jsat.linear.SparceVector;
-import jsat.linear.Vec;
+import jsat.linear.SparseVector;
 import jsat.linear.distancemetrics.DistanceMetric;
 import jsat.linear.vectorcollection.VectorArray;
-import jsat.math.Function;
-import jsat.math.IndexFunction;
-import jsat.text.stemming.Stemmer;
 import jsat.text.tokenizer.Tokenizer;
-import static java.lang.Math.*;
+import jsat.text.wordweighting.WordWeighting;
+
 /**
  * This class provides a framework for loading datasets made of Text documents as vectors. 
  * 
@@ -30,7 +21,7 @@ import static java.lang.Math.*;
 public abstract class TextDataLoader
 {
     protected DistanceMetric distMetric;
-    protected VectorArray<SparceVector> vectors;
+    protected VectorArray<SparseVector> vectors;
     protected Tokenizer tokenizer;
     
     /**
@@ -49,7 +40,7 @@ public abstract class TextDataLoader
     public TextDataLoader(DistanceMetric distMetric, Tokenizer tokenizer, WordWeighting weighting)
     {
         this.distMetric = distMetric;
-        this.vectors = new VectorArray<SparceVector>(this.distMetric);
+        this.vectors = new VectorArray<SparseVector>(this.distMetric);
         this.tokenizer = tokenizer;
         
         this.wordIndex = new Hashtable<String, Integer>();
@@ -88,7 +79,7 @@ public abstract class TextDataLoader
          */
         Set<String> seenWords = new HashSet<String>();
         
-        SparceVector vec = new SparceVector(currentLength+1);//+1 to avoid issues when its length is zero, will be corrected in finalization step anyway
+        SparseVector vec = new SparseVector(currentLength+1);//+1 to avoid issues when its length is zero, will be corrected in finalization step anyway
         for(String word : words)
         {
             if(!wordIndex.containsKey(word))//this word has never been seen before!
@@ -119,7 +110,7 @@ public abstract class TextDataLoader
         noMoreAdding = true;
         
         weighting.setWeight(documents, termDocumentFrequencys);
-        for(SparceVector vec : vectors)
+        for(SparseVector vec : vectors)
         {
             //Make sure all the vectors have the same length
             vec.setLength(currentLength);
@@ -132,7 +123,7 @@ public abstract class TextDataLoader
     {
         List<DataPoint> dataPoints= new ArrayList<DataPoint>(vectors.size());
         
-        for(SparceVector vec : vectors)
+        for(SparseVector vec : vectors)
             dataPoints.add(new DataPoint(vec, new int[0], new CategoricalData[0]));
         
         return new SimpleDataSet(dataPoints);
@@ -144,13 +135,13 @@ public abstract class TextDataLoader
      * @param text the text of the document to create a document vector from
      * @return the sparce vector representing this document 
      */
-    public SparceVector newText(String text)
+    public SparseVector newText(String text)
     {
         if(!noMoreAdding)
             throw new RuntimeException("Initial documents have not yet loaded");
         List<String> words = tokenizer.tokenize(text);
         
-        SparceVector vec = new SparceVector(currentLength);
+        SparseVector vec = new SparseVector(currentLength);
         
         for( String word : words)
         {

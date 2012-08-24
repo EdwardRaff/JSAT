@@ -3,10 +3,7 @@ package jsat.datatransform;
 
 import java.util.Iterator;
 import jsat.classifiers.DataPoint;
-import jsat.linear.DenseVector;
-import jsat.linear.IndexValue;
-import jsat.linear.SparceVector;
-import jsat.linear.Vec;
+import jsat.linear.*;
 
 /**
  * Dense sparce transform alters the vectors that store the numerical values. 
@@ -34,13 +31,14 @@ public class DenseSparceTransform implements DataTransform
         this.factor = factor;
     }
     
+    @Override
     public DataPoint transform(DataPoint dp)
     {
         Vec orig = dp.getNumericalValues();
 
-        if (orig instanceof SparceVector)
+        if (orig instanceof SparseVector)
         {
-            SparceVector sv = (SparceVector) orig;
+            SparseVector sv = (SparseVector) orig;
             if (sv.nnz() / (double) sv.length() < factor)///Stay sparce
                 return dp;
 
@@ -62,7 +60,7 @@ public class DenseSparceTransform implements DataTransform
         if(nnz / (double)orig.length() > factor)//Stay dense
             return dp;
         //Else, to sparce
-        SparceVector sv = new SparceVector(orig.length(), nnz);//TODO create a constructor for this 
+        SparseVector sv = new SparseVector(orig.length(), nnz);//TODO create a constructor for this 
         for(int i  = 0; i < orig.length(); i++)
             if(orig.get(i) != 0)
                 sv.set(i, orig.get(i));

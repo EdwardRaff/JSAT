@@ -22,7 +22,7 @@ import jsat.math.IndexFunction;
  * 
  * @author Edward Raff
  */
-public class SparceVector extends  Vec
+public class SparseVector extends  Vec
 {
     /**
      * Length of the vector
@@ -46,12 +46,12 @@ public class SparceVector extends  Vec
     private Double minCache = null;
     private Double maxCache = null;
     
-    public SparceVector(int length)
+    public SparseVector(int length)
     {
         this(length, 10);
     }
 
-    public SparceVector(List<Double> vals)
+    public SparseVector(List<Double> vals)
     {
         this(vals.size());
         int z = 0;
@@ -68,7 +68,7 @@ public class SparceVector extends  Vec
             }
     }
     
-    public SparceVector(int length, int capacity)
+    public SparseVector(int length, int capacity)
     {
         if(length <= 0)
             throw new ArithmeticException("Vector must have a positive dimension");
@@ -204,10 +204,10 @@ public class SparceVector extends  Vec
             throw new ArithmeticException("Vectors must have the same length");
 
         
-        if(v instanceof SparceVector)
+        if(v instanceof SparseVector)
         {
-            SparceVector ret = new SparceVector(length());
-            SparceVector b = (SparceVector) v;
+            SparseVector ret = new SparseVector(length());
+            SparseVector b = (SparseVector) v;
             int p1 = 0, p2 = 0;
             while (p1 < used && p2 < b.used)
             {
@@ -249,10 +249,10 @@ public class SparceVector extends  Vec
             throw new ArithmeticException("Vectors must have the same length");
 
         
-        if(v instanceof SparceVector)
+        if(v instanceof SparseVector)
         {
-            SparceVector ret = new SparceVector(length());
-            SparceVector b = (SparceVector) v;
+            SparseVector ret = new SparseVector(length());
+            SparseVector b = (SparseVector) v;
             int p1 = 0, p2 = 0;
             while (p1 < used && p2 < b.used)
             {
@@ -425,9 +425,9 @@ public class SparceVector extends  Vec
     {
         double dot = 0;
         
-        if(v instanceof SparceVector)
+        if(v instanceof SparseVector)
         {
-            SparceVector b = (SparceVector) v;
+            SparseVector b = (SparseVector) v;
             int p1 = 0, p2 = 0;
             while (p1 < used && p2 < b.used)
             {
@@ -471,7 +471,7 @@ public class SparceVector extends  Vec
     @Override
     public Vec multiply(double c)
     {
-        SparceVector sv = new SparceVector(length, used);
+        SparseVector sv = new SparseVector(length, used);
         
         for(int i = 0; i < used; i++)
             sv.values[i] *= c;
@@ -499,7 +499,7 @@ public class SparceVector extends  Vec
     @Override
     public Vec divide(double c)
     {
-        SparceVector sv = new SparceVector(length, used);
+        SparseVector sv = new SparseVector(length, used);
         
         for(int i = 0; i < used; i++)
             sv.values[i] /= c;
@@ -510,7 +510,7 @@ public class SparceVector extends  Vec
     @Override
     public Vec add(double c)
     {
-        SparceVector sv = new SparceVector(length, used);
+        SparseVector sv = new SparseVector(length, used);
         
         for(int i = 0; i < used; i++)
             sv.values[i] += c;
@@ -534,9 +534,9 @@ public class SparceVector extends  Vec
     public void mutableAdd(double c, Vec v)
     {
         clearCaches();
-        if(v instanceof SparceVector)
+        if(v instanceof SparseVector)
         {
-            SparceVector b = (SparceVector) v;
+            SparseVector b = (SparseVector) v;
             int p1 = 0, p2 = 0;
             while (p1 < used && p2 < b.used)
             {
@@ -608,10 +608,10 @@ public class SparceVector extends  Vec
         
         double norm = 0;
         
-        if (y instanceof SparceVector)
+        if (y instanceof SparseVector)
         {
             int p1 = 0, p2 = 0;
-            SparceVector b = (SparceVector) y;            
+            SparseVector b = (SparseVector) y;            
             
             while (p1 < this.used && p2 < b.used)
             {
@@ -665,7 +665,7 @@ public class SparceVector extends  Vec
     @Override
     public Vec clone()
     {
-        SparceVector copy = new SparceVector(length, Math.max(used, 10));
+        SparseVector copy = new SparseVector(length, Math.max(used, 10));
         
         System.arraycopy(this.values, 0, copy.values, 0, this.used);
         System.arraycopy(this.indexes, 0, copy.indexes, 0, this.used);
@@ -700,7 +700,7 @@ public class SparceVector extends  Vec
     {
         if(this.length() != b.length())
             throw new ArithmeticException("Vectors must have the same length");
-        SparceVector toRet = (SparceVector) this.clone();
+        SparseVector toRet = (SparseVector) this.clone();
         
         toRet.mutablePairwiseMultiply(b);
         
@@ -712,7 +712,7 @@ public class SparceVector extends  Vec
     {
         if(this.length() != b.length())
             throw new ArithmeticException("Vectors must have the same length");
-        SparceVector toRet = (SparceVector) this.clone();
+        SparseVector toRet = (SparseVector) this.clone();
         
         toRet.mutablePairwiseDivide(b);
         
@@ -886,7 +886,7 @@ public class SparceVector extends  Vec
     }
 
     @Override
-    public boolean isSparce()
+    public boolean isSparse()
     {
         return true;
     }

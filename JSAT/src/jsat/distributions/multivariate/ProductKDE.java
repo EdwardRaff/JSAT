@@ -1,23 +1,15 @@
 
 package jsat.distributions.multivariate;
 
-import java.util.Set;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Random;
+import static java.lang.Math.*;
+import java.util.*;
 import jsat.classifiers.DataPoint;
 import jsat.distributions.empirical.KernelDensityEstimator;
 import jsat.distributions.empirical.kernelfunc.EpanechnikovKF;
 import jsat.distributions.empirical.kernelfunc.KernelFunction;
 import jsat.exceptions.UntrainedModelException;
-import jsat.linear.DenseVector;
-import jsat.linear.SparceVector;
-import jsat.linear.Vec;
-import jsat.linear.VecPaired;
+import jsat.linear.*;
 import jsat.utils.IndexTable;
-import static java.lang.Math.*;
 
 /**
  * The Product Kernel Density Estimator is a generalization of the {@link KernelDensityEstimator} to the multivariate case. 
@@ -83,7 +75,7 @@ public class ProductKDE extends MultivariateKDE
     public List<VecPaired<Double, VecPaired<Integer, Vec>>> getNearby(Vec x)
     {
         
-        SparceVector logProd = new SparceVector(sortedDimVals[0].length);
+        SparseVector logProd = new SparseVector(sortedDimVals[0].length);
         Set<Integer> validIndecies = new HashSet<Integer>();
         double logH = queryWork(x, validIndecies, logProd);
         List<VecPaired<Double, VecPaired<Integer, Vec>>> results = new ArrayList<VecPaired<Double, VecPaired<Integer, Vec>>>(validIndecies.size());
@@ -109,7 +101,7 @@ public class ProductKDE extends MultivariateKDE
         double PDF = 0;
         int N = sortedDimVals[0].length;
         
-        SparceVector logProd = new SparceVector(sortedDimVals[0].length);
+        SparseVector logProd = new SparseVector(sortedDimVals[0].length);
         Set<Integer> validIndecies = new HashSet<Integer>();
         double logH = queryWork(x, validIndecies, logProd);
         
@@ -130,7 +122,7 @@ public class ProductKDE extends MultivariateKDE
      * zero values. <tt>validIndecies</tt> should be used to access the correct indices. 
      * @return The log product of the bandwidths that normalizes the values stored in the <tt>logProd</tt> vector. 
      */
-    private double queryWork(Vec x, Set<Integer> validIndecies, SparceVector logProd)
+    private double queryWork(Vec x, Set<Integer> validIndecies, SparseVector logProd)
     {
         if(originalVecs == null)
             throw new UntrainedModelException("Model has not yet been created, queries can not be perfomed");

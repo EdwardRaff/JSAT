@@ -2,7 +2,7 @@
 package jsat.text.wordweighting;
 
 import java.util.List;
-import jsat.linear.SparceVector;
+import jsat.linear.SparseVector;
 import jsat.linear.Vec;
 import jsat.math.IndexFunction;
 

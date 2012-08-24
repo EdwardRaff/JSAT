@@ -4,9 +4,7 @@ package jsat.datatransform;
 import jsat.DataSet;
 import jsat.classifiers.CategoricalData;
 import jsat.classifiers.DataPoint;
-import jsat.linear.DenseVector;
-import jsat.linear.SparceVector;
-import jsat.linear.Vec;
+import jsat.linear.*;
 
 /**
  *
@@ -39,8 +37,8 @@ public class NominalToNumeric implements DataTransform
         Vec v;
         
         //TODO we should detect if there are going to be so many sparce spaces added by the categorical data that we should just choose a sparce vector anyway
-        if(dp.getNumericalValues() instanceof SparceVector)
-            v = new SparceVector(origNumericalCount+addedNumers);
+        if(dp.getNumericalValues().isSparse())
+            v = new SparseVector(origNumericalCount+addedNumers);
         else
             v = new DenseVector(origNumericalCount+addedNumers);
         

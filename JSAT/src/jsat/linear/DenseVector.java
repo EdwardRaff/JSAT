@@ -251,8 +251,8 @@ public class DenseVector extends Vec
         if(this.length() != v.length())
             throw new ArithmeticException("Vectors must have the same length");
         
-        if(v instanceof SparceVector)//Let sparce do it, same both ways and sparce can do it efficently
-            return ((SparceVector) v).dot(this);
+        if(v instanceof SparseVector)//Let sparce do it, same both ways and sparce can do it efficently
+            return ((SparseVector) v).dot(this);
         
         double dot = 0;
         for(int i = startIndex; i < endIndex; i++)
@@ -333,8 +333,8 @@ public class DenseVector extends Vec
             throw new ArithmeticException("Vectors must have the same length");
 
         
-        if(v instanceof SparceVector)//Sparce knows how to do this efficently
-            return ((SparceVector) v).add(this);
+        if(v instanceof SparseVector)//Sparce knows how to do this efficently
+            return ((SparseVector) v).add(this);
         
         //Else also dense
         
@@ -465,7 +465,7 @@ public class DenseVector extends Vec
         if(this.length() != b.length())
             throw new ArithmeticException("Vectors must have the same length, " + this.length() + ", " + b.length());
         
-        if(b instanceof SparceVector)//Let the sparce class do it efficently
+        if(b instanceof SparseVector)//Let the sparce class do it efficently
             return b.pairwiseMultiply(this);
         Vec toReturn = b.clone();
         for(int i = 0; i < b.length(); i++)
@@ -558,7 +558,7 @@ public class DenseVector extends Vec
     }
 
     @Override
-    public boolean isSparce()
+    public boolean isSparse()
     {
         return false;
     }

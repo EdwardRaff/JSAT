@@ -17,7 +17,7 @@ import jsat.classifiers.DataPointPair;
 import jsat.linear.DenseMatrix;
 import jsat.linear.DenseVector;
 import jsat.linear.Matrix;
-import jsat.linear.SparceVector;
+import jsat.linear.SparseVector;
 import jsat.linear.Vec;
 import jsat.regression.RegressionDataSet;
 import jsat.regression.Regressor;
@@ -615,8 +615,8 @@ public class BackPropagationNet implements Classifier, Regressor
     private static Vec addBiasTerm(Vec input)
     {
         Vec toReturn;
-        if(input instanceof SparceVector)
-            toReturn = new SparceVector(input.length()+1);
+        if(input.isSparse())
+            toReturn = new SparseVector(input.length()+1);
         else
             toReturn = new DenseVector(input.length()+1);
         
