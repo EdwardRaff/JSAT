@@ -9,6 +9,8 @@ import jsat.linear.Vec;
 import jsat.linear.VecPaired;
 import jsat.linear.distancemetrics.*;
 import jsat.linear.vectorcollection.*;
+import jsat.parameters.*;
+import jsat.text.GreekLetters;
 import jsat.utils.*;
 
 /**
@@ -22,7 +24,7 @@ import jsat.utils.*;
  * Warsaw, Poland: Springer-Verlag. </a>
  * @author Edward Raff
  */
-public class LSDBC extends ClustererBase
+public class LSDBC extends ClustererBase implements Parameterized
 {
     /**
      * {@value #DEFAULT_NEIGHBORS} is the default number of neighbors used when performing clustering
@@ -35,7 +37,7 @@ public class LSDBC extends ClustererBase
      */
     public static final double DEFAULT_ALPHA = 4;
     private static final int UNCLASSIFIED = -1;
-    private DistanceMetric dm = new EuclideanDistance();
+    private DistanceMetric dm;
     
     private VectorCollectionFactory<VecPaired<Integer, Vec>> vectorCollectionFactory = new DefaultVectorCollectionFactory<VecPaired<Integer, Vec>>();
     
@@ -47,6 +49,86 @@ public class LSDBC extends ClustererBase
      * The number of neighbors to use
      */
     private int k;
+    
+    private List<Parameter> parameters = Collections.unmodifiableList(new ArrayList<Parameter>(3)
+    {{
+            add(new DoubleParameter() {
+
+                @Override
+                public double getValue()
+                {
+                    return getAlpha();
+                }
+
+                @Override
+                public boolean setValue(double val)
+                {
+                    try
+                    {
+                        setAlpha(val);
+                        return true;
+                    }
+                    catch(ArithmeticException ex)
+                    {
+                        return false;
+                    }
+                }
+
+                @Override
+                public String getASCIIName()
+                {
+                    return "Alpha";
+                }
+
+                @Override
+                public String getName()
+                {
+                    return GreekLetters.alpha;
+                } 
+            });
+            
+            add(new IntParameter() {
+
+                @Override
+                public int getValue()
+                {
+                    return getNeighbors();
+                }
+
+                @Override
+                public boolean setValue(int val)
+                {
+                    if(val <= 0)
+                        return false;
+                    setNeighbors(val);
+                    return true;
+                }
+
+                @Override
+                public String getASCIIName()
+                {
+                    return "Neighbors";
+                }
+            });
+            
+            add(new MetricParameter() {
+
+                @Override
+                public boolean setMetric(DistanceMetric val)
+                {
+                    setDistanceMetric(val);
+                    return true;
+                }
+
+                @Override
+                public DistanceMetric getMetric()
+                {
+                    return getDistanceMetric();
+                }
+            });
+    }});
+    
+    private Map<String, Parameter> parameterMap = Parameter.toParameterMap(parameters);
 
     /**
      * Creates a new LSDBC clustering object using the given distance metric
@@ -107,6 +189,15 @@ public class LSDBC extends ClustererBase
     {
         if(dm != null)
             this.dm = dm;
+    }
+    
+    /**
+     * Returns the distance metric used when performing clustering. 
+     * @return the distance metric used
+     */
+    private DistanceMetric getDistanceMetric()
+    {
+        return dm;
     }
 
     /**
@@ -345,6 +436,18 @@ public class LSDBC extends ClustererBase
                     addSeed(neighbors, i, designations, clusterID, seeds);
             }
         }
+    }
+
+    @Override
+    public List<Parameter> getParameters()
+    {
+        return parameters;
+    }
+
+    @Override
+    public Parameter getParameter(String paramName)
+    {
+        return parameterMap.get(paramName);
     }
 
 }
