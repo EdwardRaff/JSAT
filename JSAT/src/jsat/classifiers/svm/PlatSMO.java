@@ -1,31 +1,29 @@
 
 package jsat.classifiers.svm;
 
-import jsat.distributions.kernels.KernelTrick;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Random;
-import java.util.Set;
-import java.util.concurrent.ExecutorService;
-import jsat.classifiers.CategoricalResults;
-import jsat.classifiers.ClassificationDataSet;
-import jsat.classifiers.Classifier;
-import jsat.classifiers.DataPoint;
-import jsat.linear.Vec;
 import static java.lang.Math.*;
+import java.util.*;
+import java.util.concurrent.ExecutorService;
+import jsat.classifiers.*;
+import jsat.distributions.kernels.KernelTrick;
+import jsat.exceptions.FailedToFitException;
+import jsat.exceptions.UntrainedModelException;
+import jsat.linear.Vec;
+import jsat.parameters.*;
 
 /**
- *
+ * An implementation of SVMs using Plat's Sequential Minimum Optimization 
+ * 
  * @author Edward Raff
  */
-public class PlatSMO extends SupportVectorMachine
+public class PlatSMO extends SupportVectorMachine implements Parameterized
 {
     /**
      * Bias
      */
     protected double b = 0;
     private double C = 0.05;
-    private double tolerance = 1e-3;
+    private double tolerance = 1e-4;
     private double epsilon = 1e-3;
     
     protected double[] alpha;
@@ -42,10 +40,11 @@ public class PlatSMO extends SupportVectorMachine
         rand = new Random();
     }
 
+    @Override
     public CategoricalResults classify(DataPoint data)
     {
         if(vecs == null)
-            throw new RuntimeException("Classifier has yet to be trained");
+            throw new UntrainedModelException("Classifier has yet to be trained");
         
         double sum = 0;
         CategoricalResults cr = new CategoricalResults(2);
@@ -55,7 +54,7 @@ public class PlatSMO extends SupportVectorMachine
 
 
         //SVM only says yess / no, can not give a percentage
-        if(sum > 0)
+        if(sum > b)
             cr.setProb(1, 1);
         else
             cr.setProb(0, 1);
@@ -63,15 +62,17 @@ public class PlatSMO extends SupportVectorMachine
         return cr;
     }
 
+    @Override
     public void trainC(ClassificationDataSet dataSet, ExecutorService threadPool)
     {
         trainC(dataSet);
     }
 
+    @Override
     public void trainC(ClassificationDataSet dataSet)
     {
         if(dataSet.getClassSize() != 2)
-            throw new ArithmeticException("SVM does not support non binary decisions");
+            throw new FailedToFitException("SVM does not support non binary decisions");
         //First we need to set up the vectors array
 
         vecs = new Vec[dataSet.getSampleSize()];
@@ -365,7 +366,7 @@ public class PlatSMO extends SupportVectorMachine
     @Override
     public Classifier clone()
     {
-        PlatSMO copy = new PlatSMO(this.getKernel());
+        PlatSMO copy = new PlatSMO(this.getKernel().clone());
         
         copy.C = this.C;
         if(this.alpha != null)
@@ -383,9 +384,62 @@ public class PlatSMO extends SupportVectorMachine
         return copy;
     }
 
+    @Override
     public boolean supportsWeightedData()
     {
         return false;
+    }
+
+    public void setC(double C)
+    {
+        this.C = C;
+    }
+
+    public double getC()
+    {
+        return C;
+    }
+
+    private Parameter param = new DoubleParameter() {
+
+        @Override
+        public double getValue()
+        {
+            return getC();
+        }
+
+        @Override
+        public boolean setValue(double val)
+        {
+            if(val <= 0)
+                return false;
+            setC(val);
+            return true;
+        }
+
+        @Override
+        public String getASCIIName()
+        {
+            return "C";
+        }
+    };
+    
+    @Override
+    public List<Parameter> getParameters()
+    {
+        List<Parameter> params = new ArrayList<Parameter>();
+        params.add(param);
+        params.addAll(getKernel().getParameters());
+        return params;
+    }
+
+    @Override
+    public Parameter getParameter(String paramName)
+    {
+        if(paramName.equals(param.getASCIIName()))
+            return param;
+        else
+            return getKernel().getParameter(paramName);
     }
 
 }
