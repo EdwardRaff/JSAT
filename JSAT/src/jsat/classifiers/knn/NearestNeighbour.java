@@ -1,31 +1,23 @@
 
 package jsat.classifiers.knn;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 import java.util.concurrent.ExecutorService;
-import jsat.classifiers.CategoricalData;
-import jsat.classifiers.CategoricalResults;
-import jsat.classifiers.ClassificationDataSet;
-import jsat.classifiers.Classifier;
-import jsat.classifiers.DataPoint;
-import jsat.classifiers.DataPointPair;
+import jsat.classifiers.*;
 import jsat.linear.Vec;
 import jsat.linear.VecPaired;
-import jsat.linear.distancemetrics.DistanceMetric;
-import jsat.linear.distancemetrics.EuclideanDistance;
-import jsat.linear.distancemetrics.TrainableDistanceMetric;
-import jsat.linear.vectorcollection.KDTree;
-import jsat.linear.vectorcollection.VectorCollection;
-import jsat.linear.vectorcollection.VectorCollectionFactory;
+import jsat.linear.distancemetrics.*;
+import jsat.linear.vectorcollection.*;
+import jsat.parameters.*;
 import jsat.regression.RegressionDataSet;
 import jsat.regression.Regressor;
 
 /**
- *
+ * An implementation of the Nearest Neighbor algorithm, but with a 
+ * British spelling! How fancy. 
  * @author Edward Raff
  */
-public class NearestNeighbour implements  Classifier, Regressor
+public class NearestNeighbour implements  Classifier, Regressor, Parameterized
 {
     private int k;
     private boolean weighted ;
@@ -34,6 +26,90 @@ public class NearestNeighbour implements  Classifier, Regressor
     
     private VectorCollectionFactory<VecPaired<Double, Vec>> vcf;
     private VectorCollection<VecPaired<Double, Vec>> vecCollection;
+    
+    private List<Parameter> parameters = Collections.unmodifiableList(new ArrayList<Parameter>(3)
+    {{
+        add(new IntParameter() {
+
+                @Override
+                public int getValue()
+                {
+                    return getNeighbors();
+                }
+
+                @Override
+                public boolean setValue(int val)
+                {
+                    if(val<1)
+                        return false;
+                    setNeighbors(val);
+                    return true;
+                }
+
+                @Override
+                public String getASCIIName()
+                {
+                    return "Neighbors";
+                }
+
+                @Override
+                public boolean requiresRetrain()
+                {
+                    return false;
+                }
+            });
+        add(new MetricParameter() {
+
+                @Override
+                public boolean setMetric(DistanceMetric val)
+                {
+                    if(val == null)
+                        return false;
+                    distanceMetric = val;
+                    return true;
+                }
+
+                @Override
+                public DistanceMetric getMetric()
+                {
+                    return distanceMetric;
+                }
+            });
+    }});
+    private Map<String, Parameter> paramMap = Parameter.toParameterMap(parameters);
+
+    /**
+     * Returns the number of neighbors currently consulted to make decisions
+     * @return the number of neighbors
+     */
+    public int getNeighbors()
+    {
+        return k;
+    }
+
+    /**
+     * Sets the number of neighbors to consult when making decisions
+     * @param k the number of neighbors to use
+     */
+    public void setNeighbors(int k)
+    {
+        if(k < 1)
+            throw new ArithmeticException("Must be a positive number of neighbors");
+        this.k = k;
+    }
+    
+
+    @Override
+    public List<Parameter> getParameters()
+    {
+        return parameters;
+    }
+
+    @Override
+    public Parameter getParameter(String paramName)
+    {
+        return paramMap.get(paramName);
+    }
 
     private enum Mode {REGRESSION, CLASSIFICATION};
     /**
@@ -41,16 +117,30 @@ public class NearestNeighbour implements  Classifier, Regressor
      */
     Mode mode;
     
+    /**
+     * Constructs a new Nearest Neighbor Classifier
+     * @param k the number of neighbors to use
+     */
     public NearestNeighbour(int k)
     {
         this(k, false);
     }
     
+    /**
+     * Constructs a new Nearest Neighbor Classifier
+     * @param k the number of neighbors to use
+     * @param vcf the vector collection factory to use for storing and querying 
+     */
     public NearestNeighbour(int k, VectorCollectionFactory<VecPaired<Double, Vec>> vcf)
     {
         this(k, false, new EuclideanDistance(), vcf);
     }
 
+    /**
+     * Constructs a new Nearest Neighbor Classifier
+     * @param k the number of neighbors to use
+     * @param weighted whether or not to weight the influence of neighbors by their distance
+     */
     public NearestNeighbour(int k, boolean weighted)
     {
         this(k, weighted, new EuclideanDistance());
@@ -58,25 +148,32 @@ public class NearestNeighbour implements  Classifier, Regressor
     
     /**
      * Constructs a new Nearest Neighbor Classifier
-     * @param k the number of neighbors to examine
+     * @param k the number of neighbors to use
      * @param weighted whether or not to weight the influence of neighbors by their distance
      * @param distanceMetric the method of computing distance between two vectors. 
      */
     public NearestNeighbour(int k, boolean weighted, DistanceMetric distanceMetric )
     {
-        this(k, weighted, distanceMetric, new KDTree.KDTreeFactory<VecPaired<Double, Vec>>());
+        this(k, weighted, distanceMetric, new DefaultVectorCollectionFactory<VecPaired<Double, Vec>>());
     }
     
+    /**
+     * Constructs a new Nearest Neighbor Classifier
+     * @param k the number of neighbors to use
+     * @param weighted whether or not to weight the influence of neighbors by their distance
+     * @param distanceMetric the method of computing distance between two vectors. 
+     * @param vcf the vector collection factory to use for storing and querying 
+     */
     public NearestNeighbour(int k, boolean weighted, DistanceMetric distanceMetric, VectorCollectionFactory<VecPaired<Double, Vec>> vcf )
     {
         this.mode = null;
-        this.vecCollection = null;
         this.vcf = vcf;
         this.k = k;
         this.weighted = weighted;
         this.distanceMetric = distanceMetric;
     }
 
+    @Override
     public CategoricalResults classify(DataPoint data)
     {
         if(vecCollection == null || mode != Mode.CLASSIFICATION)
@@ -106,11 +203,13 @@ public class NearestNeighbour implements  Classifier, Regressor
         return results;
     }
     
+    @Override
     public void trainC(ClassificationDataSet dataSet)
     {
         trainC(dataSet, null); 
     }
 
+    @Override
     public void trainC(ClassificationDataSet dataSet, ExecutorService threadPool)
     {
         if(dataSet.getNumCategoricalVars() != 0)
@@ -138,6 +237,7 @@ public class NearestNeighbour implements  Classifier, Regressor
             vecCollection = vcf.getVectorCollection(dataPoints, distanceMetric, threadPool);
     }
     
+    @Override
     public double regress(DataPoint data)
     {
         if(vecCollection == null || mode != Mode.REGRESSION)
@@ -173,11 +273,13 @@ public class NearestNeighbour implements  Classifier, Regressor
         return result/weightSum;
     }
 
+    @Override
     public void train(RegressionDataSet dataSet)
     {
         train(dataSet, null);
     }
 
+    @Override
     public void train(RegressionDataSet dataSet, ExecutorService threadPool)
     {
         if(dataSet.getNumCategoricalVars() != 0)
@@ -218,6 +320,7 @@ public class NearestNeighbour implements  Classifier, Regressor
         return clone;
     }
     
+    @Override
     public boolean supportsWeightedData()
     {
         return false;
