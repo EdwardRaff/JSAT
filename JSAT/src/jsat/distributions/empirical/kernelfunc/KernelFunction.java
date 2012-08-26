@@ -2,7 +2,10 @@
 package jsat.distributions.empirical.kernelfunc;
 
 /**
- *
+ * Class for representing one dimensional kernel functions. Since they require 
+ * no parameters and have no need for duplication, its is advised to make 
+ * them singletons. 
+ * 
  * See http://en.wikipedia.org/wiki/Kernel_(statistics)
  * 
  * @author Edward Raff
@@ -44,4 +47,11 @@ public interface KernelFunction
      * @return the first value for which k(u) = 0
      */
     public double cutOff();
+    
+    /**
+     * Returns the name of this kernel function
+     * @return the name of this kernel function 
+     */
+    @Override
+    public String toString();
 }

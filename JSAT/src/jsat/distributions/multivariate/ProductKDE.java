@@ -36,7 +36,7 @@ public class ProductKDE extends MultivariateKDE
      */
     public ProductKDE()
     {
-        this(new EpanechnikovKF());
+        this(EpanechnikovKF.getInstance());
     }
     
     /**

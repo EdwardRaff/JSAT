@@ -72,7 +72,7 @@ public class MeanShift extends ClustererBase
      */
     public MeanShift(DistanceMetric dm)
     {
-        this(new MetricKDE(new GaussKF(), dm));
+        this(new MetricKDE(GaussKF.getInstance(), dm));
     }
 
     

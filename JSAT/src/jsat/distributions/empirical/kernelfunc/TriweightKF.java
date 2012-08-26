@@ -7,7 +7,25 @@ package jsat.distributions.empirical.kernelfunc;
  */
 public class TriweightKF implements KernelFunction
 {
+    private TriweightKF()
+    {
+    }
 
+    private static class SingletonHolder
+    {
+
+        public static final TriweightKF INSTANCE = new TriweightKF();
+    }
+
+    /**
+     * Returns the singleton instance of this class
+     * @return the instance of this class
+     */
+    public static TriweightKF getInstance()
+    {
+        return SingletonHolder.INSTANCE;
+    }
+    
     @Override
     public double k(double u)
     {
@@ -45,5 +63,10 @@ public class TriweightKF implements KernelFunction
             return 0;
         return -u;
     }
-    
+
+    @Override
+    public String toString()
+    {
+        return "Triweight Kernel";
+    }
 }

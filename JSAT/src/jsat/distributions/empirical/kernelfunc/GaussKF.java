@@ -1,7 +1,7 @@
 
 package jsat.distributions.empirical.kernelfunc;
-import jsat.distributions.Normal;
 import static java.lang.Math.*;
+import jsat.distributions.Normal;
 
 /**
  *
@@ -9,7 +9,25 @@ import static java.lang.Math.*;
  */
 public class GaussKF implements KernelFunction
 {
+    private GaussKF()
+    {
+    }
 
+    private static class SingletonHolder
+    {
+
+        public static final GaussKF INSTANCE = new GaussKF();
+    }
+
+    /**
+     * Returns the singleton instance of this class
+     * @return the instance of this class
+     */
+    public static GaussKF getInstance()
+    {
+        return SingletonHolder.INSTANCE;
+    }
+    
     @Override
     public double k(double u)
     {
@@ -45,5 +63,10 @@ public class GaussKF implements KernelFunction
     {
         return -exp(-pow(u, 2)/2)*u/sqrt(2 * PI);
     }
-    
+
+    @Override
+    public String toString()
+    {
+        return "Gaussian Kernel";
+    }
 }

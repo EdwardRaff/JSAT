@@ -7,6 +7,24 @@ package jsat.distributions.empirical.kernelfunc;
  */
 public class EpanechnikovKF implements KernelFunction
 {
+    private EpanechnikovKF()
+    {
+    }
+
+    private static class SingletonHolder
+    {
+
+        public static final EpanechnikovKF INSTANCE = new EpanechnikovKF();
+    }
+
+    /**
+     * Returns the singleton instance of this class
+     * @return the instance of this class
+     */
+    public static EpanechnikovKF getInstance()
+    {
+        return SingletonHolder.INSTANCE;
+    }
 
     @Override
     public double k(double u)
@@ -45,5 +63,10 @@ public class EpanechnikovKF implements KernelFunction
             return 0;
         return - u *(3.0/2.0);
     }
-    
+
+    @Override
+    public String toString()
+    {
+        return "Epanechnikov Kernel";
+    }
 }

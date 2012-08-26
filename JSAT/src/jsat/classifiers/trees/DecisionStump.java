@@ -578,7 +578,7 @@ public class DecisionStump implements Classifier, Regressor
                         theVals.set(j, values.get(i).get(j));
                         theWeights[j] = weights.get(i).get(j);
                     }
-                    dist[i] = new KernelDensityEstimator(theVals, new EpanechnikovKF(), theWeights);
+                    dist[i] = new KernelDensityEstimator(theVals, EpanechnikovKF.getInstance(), theWeights);
                 }
                 
                 //Now compute the speration boundrys 

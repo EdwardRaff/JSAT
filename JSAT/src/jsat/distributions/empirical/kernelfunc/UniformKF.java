@@ -7,6 +7,24 @@ package jsat.distributions.empirical.kernelfunc;
  */
 public class UniformKF implements KernelFunction
 {
+    private UniformKF()
+    {
+    }
+
+    private static class SingletonHolder
+    {
+
+        public static final UniformKF INSTANCE = new UniformKF();
+    }
+
+    /**
+     * Returns the singleton instance of this class
+     * @return the instance of this class
+     */
+    public static UniformKF getInstance()
+    {
+        return SingletonHolder.INSTANCE;
+    }
 
     @Override
     public double k(double u)
@@ -43,5 +61,10 @@ public class UniformKF implements KernelFunction
     {
         return 0;
     }
-    
+
+    @Override
+    public String toString()
+    {
+        return "Uniform Kernel";
+    }
 }

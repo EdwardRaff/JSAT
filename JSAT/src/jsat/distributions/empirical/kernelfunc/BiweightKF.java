@@ -8,6 +8,25 @@ package jsat.distributions.empirical.kernelfunc;
 public class BiweightKF implements KernelFunction
 {
 
+    private BiweightKF()
+    {
+    }
+
+    private static class SingletonHolder
+    {
+
+        public static final BiweightKF INSTANCE = new BiweightKF();
+    }
+
+    /**
+     * Returns the singleton instance of this class
+     * @return the instance of this class
+     */
+    public static BiweightKF getInstance()
+    {
+        return SingletonHolder.INSTANCE;
+    }
+
     @Override
     public double k(double u)
     {
@@ -45,5 +64,10 @@ public class BiweightKF implements KernelFunction
             return 0;
         return (15.0/4.0)*u*(u*u-1);
     }
-    
+
+    @Override
+    public String toString()
+    {
+        return "Biweight Kernel";
+    }
 }

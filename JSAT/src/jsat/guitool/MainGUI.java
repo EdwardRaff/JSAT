@@ -613,7 +613,7 @@ public class MainGUI extends javax.swing.JFrame
         int[] axie =  dss.getSelections();
 
         Vec dataVec = data.getNumericColumn(axie[0]);
-        final KernelDensityEstimator kde = new KernelDensityEstimator(dataVec, new GaussKF());
+        final KernelDensityEstimator kde = new KernelDensityEstimator(dataVec, GaussKF.getInstance());
         
         double shift = kde.getBandwith()*2;
         final Graph2D hh = new Graph2D(dataVec.min()-shift, dataVec.max()+shift, 0, kde.pdf(kde.mode())*1.1)

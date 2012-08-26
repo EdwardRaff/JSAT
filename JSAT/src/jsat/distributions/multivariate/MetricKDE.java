@@ -52,13 +52,20 @@ public class MetricKDE extends MultivariateKDE
      * is {@value #DEFAULT_STND_DEV}
      */
     public static final double DEFAULT_STND_DEV = 2.0;
+    
+    /**
+     * When estimating the bandwidth, the distances of the k'th nearest
+     * neighbors are used to perform the estimate. The weight of each neighbor 
+     * is controlled by the kernel function. 
+     */
+    public static final KernelFunction DEFAULT_KF = EpanechnikovKF.getInstance();
 
     /**
      * Creates a new KDE object that still needs a data set to model the distribution of
      */
     public MetricKDE()    
     {
-        this(new EpanechnikovKF(), new EuclideanDistance(), defaultVCF);
+        this(DEFAULT_KF, new EuclideanDistance(), defaultVCF);
     }
 
     /**
@@ -68,7 +75,7 @@ public class MetricKDE extends MultivariateKDE
      */
     public MetricKDE(DistanceMetric distanceMetric)    
     {
-        this(new EpanechnikovKF(), distanceMetric, defaultVCF);
+        this(DEFAULT_KF, distanceMetric, defaultVCF);
     }
     
     /**
@@ -78,7 +85,7 @@ public class MetricKDE extends MultivariateKDE
      */
     public MetricKDE(DistanceMetric distanceMetric, VectorCollectionFactory<VecPaired<Integer, Vec>> vcf)    
     {
-        this(new EpanechnikovKF(), distanceMetric, vcf);
+        this(DEFAULT_KF, distanceMetric, vcf);
     }
 
     public MetricKDE(KernelFunction kf, DistanceMetric distanceMetric)
