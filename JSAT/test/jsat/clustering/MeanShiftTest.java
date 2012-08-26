@@ -21,6 +21,7 @@ import jsat.distributions.multivariate.MetricKDE;
 import jsat.distributions.multivariate.ProductKDE;
 import jsat.linear.distancemetrics.EuclideanDistance;
 import jsat.utils.GridDataGenerator;
+import jsat.utils.SystemInfo;
 import org.junit.*;
 import static org.junit.Assert.*;
 
@@ -45,7 +46,7 @@ public class MeanShiftTest
         meanShift = new MeanShift();
         GridDataGenerator gdg = new GridDataGenerator(new Normal(0, 0.10), new Random(12), 2, 5);
         easyData10 = gdg.generateData(40);
-        ex = Executors.newFixedThreadPool(10);
+        ex = Executors.newFixedThreadPool(SystemInfo.LogicalCores);
     }
 
     @AfterClass
