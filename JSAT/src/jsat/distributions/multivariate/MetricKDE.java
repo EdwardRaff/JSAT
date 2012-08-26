@@ -1,9 +1,7 @@
 
 package jsat.distributions.multivariate;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Random;
+import java.util.*;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.logging.Level;
@@ -15,13 +13,8 @@ import jsat.distributions.empirical.kernelfunc.KernelFunction;
 import jsat.exceptions.UntrainedModelException;
 import jsat.linear.Vec;
 import jsat.linear.VecPaired;
-import jsat.linear.distancemetrics.DistanceMetric;
-import jsat.linear.distancemetrics.EuclideanDistance;
-import jsat.linear.distancemetrics.TrainableDistanceMetric;
-import jsat.linear.vectorcollection.VPTree.VPTreeFactory;
-import jsat.linear.vectorcollection.VectorCollection;
-import jsat.linear.vectorcollection.VectorCollectionFactory;
-import jsat.linear.vectorcollection.VectorCollectionUtils;
+import jsat.linear.distancemetrics.*;
+import jsat.linear.vectorcollection.*;
 import jsat.math.OnLineStatistics;
 
 /**
@@ -43,6 +36,8 @@ public class MetricKDE extends MultivariateKDE
     private int defaultK;
     private double defaultStndDev;
     
+    private static final VectorCollectionFactory<VecPaired<Integer, Vec>> defaultVCF = new DefaultVectorCollectionFactory<VecPaired<Integer, Vec>>();
+    
     /**
      * When estimating the bandwidth, the distances of the k'th nearest 
      * neighbors are used to perform the estimate. The default value of
@@ -63,7 +58,7 @@ public class MetricKDE extends MultivariateKDE
      */
     public MetricKDE()    
     {
-        this(new EpanechnikovKF(), new EuclideanDistance(), new VPTreeFactory<VecPaired<Integer, Vec>>());
+        this(new EpanechnikovKF(), new EuclideanDistance(), defaultVCF);
     }
 
     /**
@@ -73,7 +68,7 @@ public class MetricKDE extends MultivariateKDE
      */
     public MetricKDE(DistanceMetric distanceMetric)    
     {
-        this(new EpanechnikovKF(), distanceMetric, new VPTreeFactory<VecPaired<Integer, Vec>>());
+        this(new EpanechnikovKF(), distanceMetric, defaultVCF);
     }
     
     /**
@@ -88,7 +83,7 @@ public class MetricKDE extends MultivariateKDE
 
     public MetricKDE(KernelFunction kf, DistanceMetric distanceMetric)
     {
-        this(kf, distanceMetric, new VPTreeFactory<VecPaired<Integer, Vec>>());
+        this(kf, distanceMetric, new DefaultVectorCollectionFactory<VecPaired<Integer, Vec>>());
     }
     
     /**
