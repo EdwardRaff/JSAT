@@ -1,20 +1,14 @@
 
 package jsat.classifiers.bayesian;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.concurrent.Callable;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Future;
+import java.util.*;
+import java.util.concurrent.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import jsat.classifiers.CategoricalResults;
-import jsat.classifiers.ClassificationDataSet;
-import jsat.classifiers.Classifier;
-import jsat.classifiers.DataPoint;
+import jsat.classifiers.*;
 import jsat.distributions.multivariate.MultivariateDistribution;
 import jsat.exceptions.FailedToFitException;
+import jsat.parameters.*;
 
 /**
  * BestClassDistribution is a generic class for performing classification by fitting a {@link MultivariateDistribution} to each class. The distribution 
@@ -23,7 +17,7 @@ import jsat.exceptions.FailedToFitException;
  * 
  * @author Edward Raff
  */
-public class BestClassDistribution implements Classifier
+public class BestClassDistribution implements Classifier, Parameterized
 {
     private MultivariateDistribution baseDist;
     private List<MultivariateDistribution> dists;
@@ -40,6 +34,28 @@ public class BestClassDistribution implements Classifier
      * The default value for whether or not to use the prior probability of a class when making classification decisions is {@value #USE_PRIORS}. 
      */
     public static final boolean USE_PRIORS = false;
+    
+    private final Parameter usePriorsParam = new BooleanParameter() {
+
+        @Override
+        public boolean getValue()
+        {
+            return useusPriors();
+        }
+
+        @Override
+        public boolean setValue(boolean val)
+        {
+            setUsePriors(val);
+            return true;
+        }
+
+        @Override
+        public String getASCIIName()
+        {
+            return "Use Priors";
+        }
+    };
 
     public BestClassDistribution(MultivariateDistribution baseDist)
     {
@@ -73,6 +89,7 @@ public class BestClassDistribution implements Classifier
     }
     
 
+    @Override
     public CategoricalResults classify(DataPoint data)
     {
         CategoricalResults cr = new CategoricalResults(dists.size());
@@ -90,6 +107,7 @@ public class BestClassDistribution implements Classifier
         return cr;
     }
 
+    @Override
     public void trainC(ClassificationDataSet dataSet, ExecutorService threadPool)
     {
         try
@@ -126,6 +144,7 @@ public class BestClassDistribution implements Classifier
         }
     }
 
+    @Override
     public void trainC(ClassificationDataSet dataSet)
     {
         priors = dataSet.getPriors();
@@ -145,6 +164,7 @@ public class BestClassDistribution implements Classifier
         }
     }
 
+    @Override
     public boolean supportsWeightedData()
     {
         return false;
@@ -165,6 +185,28 @@ public class BestClassDistribution implements Classifier
         }
         
         return clone;
+    }
+
+    @Override
+    public List<Parameter> getParameters()
+    {
+        List<Parameter> parameters = new ArrayList<Parameter>();
+        
+        parameters.add(usePriorsParam);
+        if(baseDist instanceof Parameterized)
+            parameters.addAll(((Parameterized)baseDist).getParameters());
+        return parameters;
+    }
+
+    @Override
+    public Parameter getParameter(String paramName)
+    {
+        if(paramName.equals(usePriorsParam.getASCIIName()))
+            return usePriorsParam;
+        else if(baseDist instanceof Parameterized)
+            return ((Parameterized)baseDist).getParameter(paramName);
+        else
+            return null;
     }
     
 }
