@@ -16,6 +16,7 @@ import jsat.linear.VecPaired;
 import jsat.linear.distancemetrics.*;
 import jsat.linear.vectorcollection.*;
 import jsat.math.OnLineStatistics;
+import jsat.parameters.*;
 
 /**
  * MetricKDE is a generalization of the {@link KernelDensityEstimator} to the multivariate case. 
@@ -26,7 +27,7 @@ import jsat.math.OnLineStatistics;
  * 
  * @author Edward Raff
  */
-public class MetricKDE extends MultivariateKDE
+public class MetricKDE extends MultivariateKDE implements Parameterized
 {
     private KernelFunction kf;
     private double bandwidth;
@@ -59,6 +60,96 @@ public class MetricKDE extends MultivariateKDE
      * is controlled by the kernel function. 
      */
     public static final KernelFunction DEFAULT_KF = EpanechnikovKF.getInstance();
+    
+    private final List<Parameter> parameters = Collections.unmodifiableList(new ArrayList<Parameter>()
+    {{
+        add(new KernelFunctionParameter() {
+
+                @Override
+                public KernelFunction getObject()
+                {
+                    return getKernelFunction();
+                }
+
+                @Override
+                public boolean setObject(KernelFunction obj)
+                {
+                    setKernelFunction(obj);
+                    return true;
+                }
+            });
+        
+        add(new MetricParameter() {
+
+                @Override
+                public boolean setMetric(DistanceMetric val)
+                {
+                    setDistanceMetric(val);
+                    return true;
+                }
+
+                @Override
+                public DistanceMetric getMetric()
+                {
+                    return getDistanceMetric();
+                }
+            });
+        
+        add(new IntParameter() {
+
+                @Override
+                public int getValue()
+                {
+                    return getDefaultK();
+                }
+
+                @Override
+                public boolean setValue(int val)
+                {
+                    if(val < 1)
+                        return false;
+                    setDefaultK(val);
+                    return true;
+                }
+
+                @Override
+                public String getASCIIName()
+                {
+                    return "k Neighbors for Bandwidth Estimation";
+                }
+            });
+        
+        add(new DoubleParameter() {
+
+                @Override
+                public double getValue()
+                {
+                    return getDefaultStndDev();
+                }
+
+                @Override
+                public boolean setValue(double val)
+                {
+                    try
+                    {
+                        setDefaultStndDev(val);
+                        return true;
+                    }
+                    catch (ArithmeticException e)
+                    {
+                        return false;
+                    }
+                }
+
+                @Override
+                public String getASCIIName()
+                {
+                    return "Standard Deviations for Bandwidth Estimation";
+                }
+            });
+    }});
+    
+    private final Map<String, Parameter> paramMap = Parameter.toParameterMap(parameters);
 
     /**
      * Creates a new KDE object that still needs a data set to model the distribution of
@@ -114,7 +205,7 @@ public class MetricKDE extends MultivariateKDE
      */
     public MetricKDE(KernelFunction kf, DistanceMetric distanceMetric, VectorCollectionFactory<VecPaired<Integer, Vec>> vcf, int defaultK, double defaultStndDev)
     {
-        this.kf = kf;
+        setKernelFunction(kf);
         this.distanceMetric = distanceMetric;
         this.vcf = vcf;
         setDefaultK(defaultK);
@@ -175,8 +266,8 @@ public class MetricKDE extends MultivariateKDE
      */
     public void setDefaultStndDev(double defaultStndDev)
     {
-        if(Double.isInfinite(defaultStndDev) || Double.isNaN(defaultStndDev))
-            throw new ArithmeticException("The number of standard deviations to remove must be number, not " + defaultStndDev);
+        if(Double.isInfinite(defaultStndDev) || Double.isNaN(defaultStndDev) || defaultStndDev <= 0)
+            throw new ArithmeticException("The number of standard deviations to remove must bea postive number, not " + defaultStndDev);
         this.defaultStndDev = defaultStndDev;
     }
 
@@ -187,6 +278,24 @@ public class MetricKDE extends MultivariateKDE
     public double getDefaultStndDev()
     {
         return defaultStndDev;
+    }
+
+    /**
+     * Returns the distance metric that is used for density estimation
+     * @return the metric used
+     */
+    public DistanceMetric getDistanceMetric()
+    {
+        return distanceMetric;
+    }
+
+    /**
+     * Sets the distance metric that is used for density estimation
+     * @param distanceMetric the metric to use
+     */
+    public void setDistanceMetric(DistanceMetric distanceMetric)
+    {
+        this.distanceMetric = distanceMetric;
     }
     
     @Override
@@ -396,6 +505,7 @@ public class MetricKDE extends MultivariateKDE
      * @return will not return
      * @throws UnsupportedOperationException not yet implemented
      */
+    @Override
     public List<Vec> sample(int count, Random rand)
     {
         //TODO implement sampling
@@ -408,10 +518,27 @@ public class MetricKDE extends MultivariateKDE
         return kf;
     }
 
+    public void setKernelFunction(KernelFunction kf)
+    {
+        this.kf = kf;
+    }
+
     @Override
     public void scaleBandwidth(double scale)
     {
         bandwidth *= scale;
+    }
+
+    @Override
+    public List<Parameter> getParameters()
+    {
+        return parameters;
+    }
+
+    @Override
+    public Parameter getParameter(String paramName)
+    {
+        return paramMap.get(paramName);
     }
 
 }
