@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Set;
 import jsat.classifiers.DataPoint;
 import jsat.linear.distancemetrics.DistanceMetric;
+import jsat.linear.distancemetrics.EuclideanDistance;
 
 /**
  * Measures the dissimilarity of two clusters by returning the minimum 
@@ -15,6 +16,13 @@ import jsat.linear.distancemetrics.DistanceMetric;
  */
 public class SingleLinkDissimilarity extends DistanceMetricDissimilarity implements UpdatableClusterDissimilarity
 {
+    /**
+     * Creates a new SingleLinkDissimilarity using the {@link EuclideanDistance}
+     */
+    public SingleLinkDissimilarity()
+    {
+        this(new EuclideanDistance());
+    }
 
     /**
      * Creates a new SingleLinkDissimilarity 

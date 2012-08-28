@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Set;
 import jsat.classifiers.DataPoint;
 import jsat.linear.distancemetrics.DistanceMetric;
+import jsat.linear.distancemetrics.EuclideanDistance;
 
 /**
  * Measures the dissimilarity of two clusters by returning the value of the 
@@ -15,7 +16,14 @@ import jsat.linear.distancemetrics.DistanceMetric;
  */
 public class CompleteLinkDissimilarity extends DistanceMetricDissimilarity implements UpdatableClusterDissimilarity
 {
-
+    /**
+     * Creates a new CompleteLinkDissimilarity using the {@link EuclideanDistance}
+     */
+    public CompleteLinkDissimilarity()
+    {
+        this(new EuclideanDistance());
+    }
+    
     /**
      * Creates a new CompleteLinkDissimilarity 
      * @param dm the distance metric to use between individual points

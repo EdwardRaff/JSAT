@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Set;
 import jsat.classifiers.DataPoint;
 import jsat.linear.distancemetrics.DistanceMetric;
+import jsat.linear.distancemetrics.EuclideanDistance;
 
 /**
  * Average similarity of all data point pairs between clusters, inter-cluster 
@@ -14,7 +15,14 @@ import jsat.linear.distancemetrics.DistanceMetric;
  */
 public class CentroidDissimilarity extends DistanceMetricDissimilarity implements UpdatableClusterDissimilarity
 {
-
+    /**
+     * Creates a new CentroidDissimilarity that used the {@link EuclideanDistance}
+     */
+    public CentroidDissimilarity()
+    {
+        this(new EuclideanDistance());
+    }
+    
     /**
      * Creates a new CentroidDissimilarity
      * @param dm the distance measure to use between individual points

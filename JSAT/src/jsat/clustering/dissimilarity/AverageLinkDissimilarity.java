@@ -1,10 +1,9 @@
 package jsat.clustering.dissimilarity;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import jsat.classifiers.DataPoint;
 import jsat.linear.distancemetrics.DistanceMetric;
+import jsat.linear.distancemetrics.EuclideanDistance;
 
 /**
  * Also known as Group-Average Agglomerative Clustering (GAAC), this measure 
@@ -15,6 +14,13 @@ import jsat.linear.distancemetrics.DistanceMetric;
  */
 public class AverageLinkDissimilarity extends DistanceMetricDissimilarity implements UpdatableClusterDissimilarity
 {
+    /**
+     * Creates a new AverageLinkDissimilarity using the {@link EuclideanDistance}
+     */
+    public AverageLinkDissimilarity()
+    {
+        this(new EuclideanDistance());
+    }
 
     /**
      * Creates a new AverageLinkDissimilarity 
