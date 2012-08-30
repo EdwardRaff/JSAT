@@ -280,13 +280,13 @@ public class LSDBC extends ClustererBase implements Parameterized
             {
                 if(threadpool == null)
                     threadpool = new FakeExecutor();
-                vc = vectorCollectionFactory.getVectorCollection(vecs, dm);
                 TrainableDistanceMetric.trainIfNeeded(dm, dataSet);
+                vc = vectorCollectionFactory.getVectorCollection(vecs, dm);
             }
             else
             {
-                vc = vectorCollectionFactory.getVectorCollection(vecs, dm, threadpool);
                 TrainableDistanceMetric.trainIfNeeded(dm, dataSet, threadpool);
+                vc = vectorCollectionFactory.getVectorCollection(vecs, dm, threadpool);
             }
 
 
