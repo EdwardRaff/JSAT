@@ -40,6 +40,29 @@
             <Property name="text" type="java.lang.String" value="View"/>
           </Properties>
           <SubComponents>
+            <Menu class="javax.swing.JMenu" name="jMenuVisualize">
+              <Properties>
+                <Property name="text" type="java.lang.String" value="Visualize"/>
+              </Properties>
+              <SubComponents>
+                <MenuItem class="javax.swing.JMenuItem" name="jMenuItemParaCoords">
+                  <Properties>
+                    <Property name="text" type="java.lang.String" value="Parallel Corrdinates"/>
+                  </Properties>
+                  <Events>
+                    <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="jMenuItemParaCoordsActionPerformed"/>
+                  </Events>
+                </MenuItem>
+                <MenuItem class="javax.swing.JMenuItem" name="jMenuItemReachabilityPlot">
+                  <Properties>
+                    <Property name="text" type="java.lang.String" value="Reachability Plot"/>
+                  </Properties>
+                  <Events>
+                    <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="jMenuItemReachabilityPlotActionPerformed"/>
+                  </Events>
+                </MenuItem>
+              </SubComponents>
+            </Menu>
             <MenuItem class="javax.swing.JMenuItem" name="jMenuItemHisto">
               <Properties>
                 <Property name="text" type="java.lang.String" value="Histogram"/>
@@ -188,12 +211,12 @@
                     <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="jMenuClassPCAActionPerformed"/>
                   </Events>
                 </MenuItem>
-                <MenuItem class="javax.swing.JMenuItem" name="jMenuItemParaCoords">
+                <MenuItem class="javax.swing.JMenuItem" name="jMenuItemClassParaCoords">
                   <Properties>
                     <Property name="text" type="java.lang.String" value="Parallel Coordinates"/>
                   </Properties>
                   <Events>
-                    <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="jMenuItemParaCoordsActionPerformed"/>
+                    <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="jMenuItemClassParaCoordsActionPerformed"/>
                   </Events>
                 </MenuItem>
               </SubComponents>

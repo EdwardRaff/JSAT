@@ -16,6 +16,7 @@ import jsat.ARFFLoader;
 import jsat.SimpleDataSet;
 import jsat.classifiers.ClassificationDataSet;
 import jsat.classifiers.Classifier;
+import jsat.clustering.OPTICS;
 import jsat.datatransform.PCA;
 import jsat.datatransform.ZeroMeanTransform;
 import jsat.distributions.*;
@@ -104,6 +105,9 @@ public class MainGUI extends javax.swing.JFrame
         jMenuItemOpen = new javax.swing.JMenuItem();
         jMenuItem1 = new javax.swing.JMenuItem();
         jMenu1 = new javax.swing.JMenu();
+        jMenuVisualize = new javax.swing.JMenu();
+        jMenuItemParaCoords = new javax.swing.JMenuItem();
+        jMenuItemReachabilityPlot = new javax.swing.JMenuItem();
         jMenuItemHisto = new javax.swing.JMenuItem();
         jMenuItemKDE = new javax.swing.JMenuItem();
         jMenuItemScatter = new javax.swing.JMenuItem();
@@ -124,7 +128,7 @@ public class MainGUI extends javax.swing.JFrame
         jMenuPredictingClass = new javax.swing.JMenu();
         jMenuCVisualize = new javax.swing.JMenu();
         jMenuClassPCA = new javax.swing.JMenuItem();
-        jMenuItemParaCoords = new javax.swing.JMenuItem();
+        jMenuItemClassParaCoords = new javax.swing.JMenuItem();
         jMenuCrossValidateTest = new javax.swing.JMenuItem();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
@@ -153,6 +157,26 @@ public class MainGUI extends javax.swing.JFrame
         jMenuBar1.add(jMenuFile);
 
         jMenu1.setText("View");
+
+        jMenuVisualize.setText("Visualize");
+
+        jMenuItemParaCoords.setText("Parallel Corrdinates");
+        jMenuItemParaCoords.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jMenuItemParaCoordsActionPerformed(evt);
+            }
+        });
+        jMenuVisualize.add(jMenuItemParaCoords);
+
+        jMenuItemReachabilityPlot.setText("Reachability Plot");
+        jMenuItemReachabilityPlot.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jMenuItemReachabilityPlotActionPerformed(evt);
+            }
+        });
+        jMenuVisualize.add(jMenuItemReachabilityPlot);
+
+        jMenu1.add(jMenuVisualize);
 
         jMenuItemHisto.setText("Histogram");
         jMenuItemHisto.addActionListener(new java.awt.event.ActionListener() {
@@ -279,13 +303,13 @@ public class MainGUI extends javax.swing.JFrame
         });
         jMenuCVisualize.add(jMenuClassPCA);
 
-        jMenuItemParaCoords.setText("Parallel Coordinates");
-        jMenuItemParaCoords.addActionListener(new java.awt.event.ActionListener() {
+        jMenuItemClassParaCoords.setText("Parallel Coordinates");
+        jMenuItemClassParaCoords.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jMenuItemParaCoordsActionPerformed(evt);
+                jMenuItemClassParaCoordsActionPerformed(evt);
             }
         });
-        jMenuCVisualize.add(jMenuItemParaCoords);
+        jMenuCVisualize.add(jMenuItemClassParaCoords);
 
         jMenuClassification.add(jMenuCVisualize);
 
@@ -593,8 +617,8 @@ public class MainGUI extends javax.swing.JFrame
         
     }//GEN-LAST:event_jMenuCrossValidateTestActionPerformed
 
-    private void jMenuItemParaCoordsActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_jMenuItemParaCoordsActionPerformed
-    {//GEN-HEADEREND:event_jMenuItemParaCoordsActionPerformed
+    private void jMenuItemClassParaCoordsActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_jMenuItemClassParaCoordsActionPerformed
+    {//GEN-HEADEREND:event_jMenuItemClassParaCoordsActionPerformed
         ClassificationDataSet cds = getClassificationData();
         if(cds == null)
             JOptionPane.showMessageDialog(rootPane, "This data set has no categorical attributes to use as a class",
@@ -605,7 +629,7 @@ public class MainGUI extends javax.swing.JFrame
             dialog.setSize(400, 400);
             dialog.setVisible(true);
         }
-    }//GEN-LAST:event_jMenuItemParaCoordsActionPerformed
+    }//GEN-LAST:event_jMenuItemClassParaCoordsActionPerformed
 
     private void jMenuItemKDEActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_jMenuItemKDEActionPerformed
     {//GEN-HEADEREND:event_jMenuItemKDEActionPerformed
@@ -638,6 +662,54 @@ public class MainGUI extends javax.swing.JFrame
         gd.setVisible(true);
     }//GEN-LAST:event_jMenuItemKDEActionPerformed
 
+    private void jMenuItemReachabilityPlotActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_jMenuItemReachabilityPlotActionPerformed
+    {//GEN-HEADEREND:event_jMenuItemReachabilityPlotActionPerformed
+        
+        final JDialog waitDialog = new JDialog(this, "Compuring", true);
+        
+        final ProgressPanel pp = new ProgressPanel("Computing OPTICS", "Reachability Plot will be taken from OPTICS");
+        waitDialog.setDefaultCloseOperation(JDialog.DO_NOTHING_ON_CLOSE);
+        waitDialog.setContentPane(pp);
+        waitDialog.pack();
+        
+        final MainGUI gui = this;
+        
+        Thread thread = new Thread(new Runnable() {
+
+            @Override
+            public void run()
+            {
+                final OPTICS optics = new OPTICS();
+                optics.cluster(data);
+
+                SwingUtilities.invokeLater(new Runnable() {
+
+                    @Override
+                    public void run()
+                    {
+                        ReachabilityPlot plot = new ReachabilityPlot(optics.getReachabilityArray());
+                        JDialog jdialog = new JDialog(gui, "Reachability Plot");
+                        jdialog.setContentPane(new JScrollPane(plot));
+                        jdialog.setSize(plot.getPreferredSize());
+                        jdialog.setVisible(true);
+                        waitDialog.setVisible(false);
+                    }
+                });
+            }
+        });
+        
+        thread.start();
+        waitDialog.setVisible(true);
+        
+    }//GEN-LAST:event_jMenuItemReachabilityPlotActionPerformed
+
+    private void jMenuItemParaCoordsActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_jMenuItemParaCoordsActionPerformed
+    {//GEN-HEADEREND:event_jMenuItemParaCoordsActionPerformed
+        GraphDialog dialog = new GraphDialog(null, "Parallel Coordinates", new ParallelCoordinatesPlot(data));
+        dialog.setSize(400, 400);
+        dialog.setVisible(true);
+    }//GEN-LAST:event_jMenuItemParaCoordsActionPerformed
+
     /**
     * @param args the command line arguments
     */
@@ -663,6 +735,7 @@ public class MainGUI extends javax.swing.JFrame
     private javax.swing.JMenuItem jMenuCrossValidateTest;
     private javax.swing.JMenu jMenuFile;
     private javax.swing.JMenuItem jMenuItem1;
+    private javax.swing.JMenuItem jMenuItemClassParaCoords;
     private javax.swing.JMenuItem jMenuItemHisto;
     private javax.swing.JMenuItem jMenuItemKDE;
     private javax.swing.JMenuItem jMenuItemLinearRegress;
@@ -672,11 +745,13 @@ public class MainGUI extends javax.swing.JFrame
     private javax.swing.JMenuItem jMenuItemParaCoords;
     private javax.swing.JMenuItem jMenuItemQQData;
     private javax.swing.JMenuItem jMenuItemQQDist;
+    private javax.swing.JMenuItem jMenuItemReachabilityPlot;
     private javax.swing.JMenuItem jMenuItemScatter;
     private javax.swing.JMenuItem jMenuItemScatterMatrix;
     private javax.swing.JMenuItem jMenuItemSingleVariable;
     private javax.swing.JMenuItem jMenuKSSearch;
     private javax.swing.JMenu jMenuPredictingClass;
+    private javax.swing.JMenu jMenuVisualize;
     private javax.swing.JFileChooser jfc;
     // End of variables declaration//GEN-END:variables
 
