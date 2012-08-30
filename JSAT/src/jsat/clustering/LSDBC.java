@@ -278,42 +278,17 @@ public class LSDBC extends ClustererBase implements Parameterized
 
             if (threadpool == null || threadpool instanceof FakeExecutor)
             {
-                if(threadpool == null)
-                    threadpool = new FakeExecutor();
                 TrainableDistanceMetric.trainIfNeeded(dm, dataSet);
                 vc = vectorCollectionFactory.getVectorCollection(vecs, dm);
+                knnVecList = VectorCollectionUtils.allNearestNeighbors(vc, vecs, k+1);
             }
             else
             {
                 TrainableDistanceMetric.trainIfNeeded(dm, dataSet, threadpool);
                 vc = vectorCollectionFactory.getVectorCollection(vecs, dm, threadpool);
+                knnVecList = VectorCollectionUtils.allNearestNeighbors(vc, vecs, k+1, threadpool);
             }
 
-
-            //Pre compute all kNN pairs
-            List<Future<List<List<VecPaired<Double, VecPaired<Integer, Vec>>>>>> collectedResults =
-                    new ArrayList<Future<List<List<VecPaired<Double, VecPaired<Integer, Vec>>>>>>(SystemInfo.LogicalCores);
-            for (final List<VecPaired<Integer, Vec>> subList : ListUtils.splitList(vecs, SystemInfo.LogicalCores))
-                collectedResults.add(threadpool.submit(new Callable<List<List<VecPaired<Double, VecPaired<Integer, Vec>>>>>()
-                {
-
-                    @Override
-                    public List<List<VecPaired<Double, VecPaired<Integer, Vec>>>> call() throws Exception
-                    {
-                        List<List<VecPaired<Double, VecPaired<Integer, Vec>>>> subResult =
-                                new ArrayList<List<VecPaired<Double, VecPaired<Integer, Vec>>>>(subList.size());
-
-                        for (VecPaired<Integer, Vec> vec : subList)
-                            subResult.add(vc.search(vec.getVector(), k + 1));
-
-                        return subResult;
-
-                    }
-                }));
-
-            //Collect parts, futers are in order, and results in sub lists are in order, so we get the original order back from iteration
-            for (Future<List<List<VecPaired<Double, VecPaired<Integer, Vec>>>>> future : collectedResults)
-                knnVecList.addAll(future.get());
         }
         catch (InterruptedException ex)
         {
