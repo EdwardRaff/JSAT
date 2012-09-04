@@ -68,7 +68,7 @@ public class DaviesBouldinIndex implements ClusterEvaluation
         
         for(int i = 0; i < dataSets.size(); i++)
         {
-            Vec mean = MatrixStatistics.MeanVector(new SimpleDataSet(dataSets.get(i)));
+            Vec mean = MatrixStatistics.meanVector(new SimpleDataSet(dataSets.get(i)));
             centroids.add(mean);
         
             for(DataPoint dp : dataSets.get(i))

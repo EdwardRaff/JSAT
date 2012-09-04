@@ -146,8 +146,8 @@ public class NormalM extends MultivariateDistributionSkeleton
         Vec origMean = this.mean;
         try
         {
-            Vec newMean = MatrixStatistics.MeanVector(dataSet);
-            Matrix covariance = MatrixStatistics.CovarianceMatrix(mean, dataSet);
+            Vec newMean = MatrixStatistics.meanVector(dataSet);
+            Matrix covariance = MatrixStatistics.covarianceMatrix(mean, dataSet);
 
             this.mean = newMean;
             setCovariance(covariance);
@@ -179,7 +179,7 @@ public class NormalM extends MultivariateDistributionSkeleton
 
             //Now compute the covariance matrix
             Matrix covariance = new DenseMatrix(newMean.length(), newMean.length());
-            CovarianceMatrix(newMean, dataSet, covariance, sumOfWeights, sumOfSquaredWeights);
+            covarianceMatrix(newMean, dataSet, covariance, sumOfWeights, sumOfSquaredWeights);
 
             this.mean = newMean;
             setCovariance(covariance);

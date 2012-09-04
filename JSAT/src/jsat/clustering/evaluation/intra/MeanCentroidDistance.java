@@ -62,7 +62,7 @@ public class MeanCentroidDistance implements IntraClusterEvaluation
     @Override
     public double evaluate(List<DataPoint> dataPoints)
     {
-        Vec mean = MatrixStatistics.MeanVector(new SimpleDataSet(dataPoints));
+        Vec mean = MatrixStatistics.meanVector(new SimpleDataSet(dataPoints));
         
         double dists = 0.0;
         for(DataPoint dp : dataPoints)

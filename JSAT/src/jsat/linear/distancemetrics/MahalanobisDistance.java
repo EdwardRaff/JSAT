@@ -68,8 +68,8 @@ public class MahalanobisDistance extends TrainableDistanceMetric
     @Override
     public <V extends Vec> void train(List<V> dataSet, ExecutorService threadpool)
     {
-        Vec mean = MatrixStatistics.MeanVector(dataSet);
-        Matrix covariance = MatrixStatistics.CovarianceMatrix(mean, dataSet);
+        Vec mean = MatrixStatistics.meanVector(dataSet);
+        Matrix covariance = MatrixStatistics.covarianceMatrix(mean, dataSet);
         LUPDecomposition lup;
         SingularValueDecomposition svd;
         if(threadpool != null)
