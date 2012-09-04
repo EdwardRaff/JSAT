@@ -8,14 +8,27 @@ import jsat.linear.Vec;
 import jsat.math.OnLineStatistics;
 
 /**
- * This class transforms all numerical values into a specified range
+ * This class transforms all numerical values into a specified range by a linear
+ * scaling of all the data point values. 
+ * 
  * @author Edward Raff
  */
 public class LinearTransform implements DataTransform
 {
-    double A;
-    double B;
-    Vec mins;
+    /**
+     * The max value
+     */
+    private double A;
+    /**
+     * The min value
+     */
+    private double B;
+    
+    /**
+     * The minimum observed value for each attribute 
+     */
+    private Vec mins;
+    
     /**
      * Represents 
      * 
@@ -23,13 +36,26 @@ public class LinearTransform implements DataTransform
      *  -----------
      *   max - min
      */
-    Vec mutliplyConstants;
+    private Vec mutliplyConstants;
 
+    /**
+     * Creates a new Linear Transformation for the input data set so that all
+     * values are in the [0, 1] range. 
+     * 
+     * @param dataSet the data set to learn the transform from
+     */
     public LinearTransform(DataSet dataSet)
     {
         this(dataSet, 1, 0);
     }
 
+    /**
+     * Creates a new Linear Transformation for the input data set. 
+     * 
+     * @param dataSet the data set to learn the transform from
+     * @param A the maximum value for the transformed data set
+     * @param B the minimum value for the transformed data set
+     */
     public LinearTransform(DataSet dataSet, double A, double B)
     {
          if(A == B)
@@ -76,6 +102,7 @@ public class LinearTransform implements DataTransform
         
     }
     
+    @Override
     public DataPoint transform(DataPoint dp)
     {
         Vec v = dp.getNumericalValues().subtract(mins);
