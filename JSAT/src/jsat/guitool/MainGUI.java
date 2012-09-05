@@ -17,8 +17,7 @@ import jsat.SimpleDataSet;
 import jsat.classifiers.ClassificationDataSet;
 import jsat.classifiers.Classifier;
 import jsat.clustering.OPTICS;
-import jsat.datatransform.PCA;
-import jsat.datatransform.ZeroMeanTransform;
+import jsat.datatransform.*;
 import jsat.distributions.*;
 import jsat.distributions.empirical.KernelDensityEstimator;
 import jsat.distributions.empirical.kernelfunc.GaussKF;
@@ -106,6 +105,8 @@ public class MainGUI extends javax.swing.JFrame
         jMenuItem1 = new javax.swing.JMenuItem();
         jMenu1 = new javax.swing.JMenu();
         jMenuVisualize = new javax.swing.JMenu();
+        jMenuItemPCA = new javax.swing.JMenuItem();
+        jMenuItemWhitePCA = new javax.swing.JMenuItem();
         jMenuItemParaCoords = new javax.swing.JMenuItem();
         jMenuItemReachabilityPlot = new javax.swing.JMenuItem();
         jMenuItemHisto = new javax.swing.JMenuItem();
@@ -128,6 +129,7 @@ public class MainGUI extends javax.swing.JFrame
         jMenuPredictingClass = new javax.swing.JMenu();
         jMenuCVisualize = new javax.swing.JMenu();
         jMenuClassPCA = new javax.swing.JMenuItem();
+        jMenuClassWhitePCA = new javax.swing.JMenuItem();
         jMenuItemClassParaCoords = new javax.swing.JMenuItem();
         jMenuCrossValidateTest = new javax.swing.JMenuItem();
 
@@ -159,6 +161,22 @@ public class MainGUI extends javax.swing.JFrame
         jMenu1.setText("View");
 
         jMenuVisualize.setText("Visualize");
+
+        jMenuItemPCA.setText("PCA");
+        jMenuItemPCA.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jMenuItemPCAActionPerformed(evt);
+            }
+        });
+        jMenuVisualize.add(jMenuItemPCA);
+
+        jMenuItemWhitePCA.setText("Whitened PCA");
+        jMenuItemWhitePCA.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jMenuItemWhitePCAActionPerformed(evt);
+            }
+        });
+        jMenuVisualize.add(jMenuItemWhitePCA);
 
         jMenuItemParaCoords.setText("Parallel Corrdinates");
         jMenuItemParaCoords.addActionListener(new java.awt.event.ActionListener() {
@@ -302,6 +320,14 @@ public class MainGUI extends javax.swing.JFrame
             }
         });
         jMenuCVisualize.add(jMenuClassPCA);
+
+        jMenuClassWhitePCA.setText("Whitened PCA");
+        jMenuClassWhitePCA.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jMenuClassWhitePCAActionPerformed(evt);
+            }
+        });
+        jMenuCVisualize.add(jMenuClassWhitePCA);
 
         jMenuItemClassParaCoords.setText("Parallel Coordinates");
         jMenuItemClassParaCoords.addActionListener(new java.awt.event.ActionListener() {
@@ -710,6 +736,63 @@ public class MainGUI extends javax.swing.JFrame
         dialog.setVisible(true);
     }//GEN-LAST:event_jMenuItemParaCoordsActionPerformed
 
+    private void jMenuClassWhitePCAActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_jMenuClassWhitePCAActionPerformed
+    {//GEN-HEADEREND:event_jMenuClassWhitePCAActionPerformed
+        ClassificationDataSet cds = getClassificationData();
+        if(cds == null)
+            JOptionPane.showMessageDialog(rootPane, "This data set has no categorical attributes to use as a class",
+                    "Can not perform class visualization", JOptionPane.ERROR_MESSAGE);
+        else if(cds.getNumNumericalVars() < 2)
+            JOptionPane.showMessageDialog(rootPane, "This data set does not have enough numerical attributes to plot",
+                    "Can not perform class visualization", JOptionPane.ERROR_MESSAGE);
+        else
+        {
+            cds.applyTransform(new ZeroMeanTransform(cds));
+            cds.applyTransform(new WhitenedPCA(cds, 2));
+            GraphDialog dialog = new GraphDialog(null, "whitened PCA Visualization", new CategoryPlot(cds));
+            dialog.setSize(400, 400);
+            dialog.setVisible(true);
+        }
+    }//GEN-LAST:event_jMenuClassWhitePCAActionPerformed
+
+    private void jMenuItemWhitePCAActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_jMenuItemWhitePCAActionPerformed
+    {//GEN-HEADEREND:event_jMenuItemWhitePCAActionPerformed
+        SimpleDataSet sds = new SimpleDataSet(data.getDataPoints());
+        if(sds == null)
+            JOptionPane.showMessageDialog(rootPane, "This data set has no categorical attributes to use as a class",
+                    "Can not perform visualization", JOptionPane.ERROR_MESSAGE);
+        else if(sds.getNumNumericalVars() < 2)
+            JOptionPane.showMessageDialog(rootPane, "This data set does not have enough numerical attributes to plot",
+                    "Can not perform visualization", JOptionPane.ERROR_MESSAGE);
+        else
+        {
+            sds.applyTransform(new ZeroMeanTransform(sds));
+            sds.applyTransform(new WhitenedPCA(sds, 2));
+            GraphDialog dialog = new GraphDialog(null, "whitened PCA Visualization", new ScatterPlot(sds.getNumericColumn(0), sds.getNumericColumn(1)));
+            dialog.setSize(400, 400);
+            dialog.setVisible(true);
+        }
+    }//GEN-LAST:event_jMenuItemWhitePCAActionPerformed
+
+    private void jMenuItemPCAActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_jMenuItemPCAActionPerformed
+    {//GEN-HEADEREND:event_jMenuItemPCAActionPerformed
+        SimpleDataSet sds = new SimpleDataSet(data.getDataPoints());
+        if(sds == null)
+            JOptionPane.showMessageDialog(rootPane, "This data set has no categorical attributes to use as a class",
+                    "Can not perform visualization", JOptionPane.ERROR_MESSAGE);
+        else if(sds.getNumNumericalVars() < 2)
+            JOptionPane.showMessageDialog(rootPane, "This data set does not have enough numerical attributes to plot",
+                    "Can not perform visualization", JOptionPane.ERROR_MESSAGE);
+        else
+        {
+            sds.applyTransform(new ZeroMeanTransform(sds));
+            sds.applyTransform(new PCA(sds, 2));
+            GraphDialog dialog = new GraphDialog(null, "PCA Visualization", new ScatterPlot(sds.getNumericColumn(0), sds.getNumericColumn(1)));
+            dialog.setSize(400, 400);
+            dialog.setVisible(true);
+        }
+    }//GEN-LAST:event_jMenuItemPCAActionPerformed
+
     /**
     * @param args the command line arguments
     */
@@ -731,6 +814,7 @@ public class MainGUI extends javax.swing.JFrame
     private javax.swing.JMenuBar jMenuBar1;
     private javax.swing.JMenu jMenuCVisualize;
     private javax.swing.JMenuItem jMenuClassPCA;
+    private javax.swing.JMenuItem jMenuClassWhitePCA;
     private javax.swing.JMenu jMenuClassification;
     private javax.swing.JMenuItem jMenuCrossValidateTest;
     private javax.swing.JMenu jMenuFile;
@@ -742,6 +826,7 @@ public class MainGUI extends javax.swing.JFrame
     private javax.swing.JMenuItem jMenuItemOneSamT;
     private javax.swing.JMenuItem jMenuItemOneSampZ;
     private javax.swing.JMenuItem jMenuItemOpen;
+    private javax.swing.JMenuItem jMenuItemPCA;
     private javax.swing.JMenuItem jMenuItemParaCoords;
     private javax.swing.JMenuItem jMenuItemQQData;
     private javax.swing.JMenuItem jMenuItemQQDist;
@@ -749,6 +834,7 @@ public class MainGUI extends javax.swing.JFrame
     private javax.swing.JMenuItem jMenuItemScatter;
     private javax.swing.JMenuItem jMenuItemScatterMatrix;
     private javax.swing.JMenuItem jMenuItemSingleVariable;
+    private javax.swing.JMenuItem jMenuItemWhitePCA;
     private javax.swing.JMenuItem jMenuKSSearch;
     private javax.swing.JMenu jMenuPredictingClass;
     private javax.swing.JMenu jMenuVisualize;
