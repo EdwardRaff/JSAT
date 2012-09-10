@@ -4,6 +4,8 @@ package jsat.classifiers.knn;
 import java.util.*;
 import java.util.concurrent.ExecutorService;
 import jsat.classifiers.*;
+import jsat.exceptions.FailedToFitException;
+import jsat.exceptions.UntrainedModelException;
 import jsat.linear.Vec;
 import jsat.linear.VecPaired;
 import jsat.linear.distancemetrics.*;
@@ -177,7 +179,7 @@ public class NearestNeighbour implements  Classifier, Regressor, Parameterized
     public CategoricalResults classify(DataPoint data)
     {
         if(vecCollection == null || mode != Mode.CLASSIFICATION)
-            throw new RuntimeException("Classifier has not been trained for classification");
+            throw new UntrainedModelException("Classifier has not been trained for classification");
         Vec query  = data.getNumericalValues();
         
         List<VecPaired<Double,VecPaired<Double, Vec>>> knns = vecCollection.search(query, k);
@@ -213,7 +215,7 @@ public class NearestNeighbour implements  Classifier, Regressor, Parameterized
     public void trainC(ClassificationDataSet dataSet, ExecutorService threadPool)
     {
         if(dataSet.getNumCategoricalVars() != 0)
-            throw new RuntimeException("KNN requires vector data only");
+            throw new FailedToFitException("KNN requires vector data only");
         
         mode = Mode.CLASSIFICATION;
         this.predicting = dataSet.getPredicting();
@@ -241,7 +243,7 @@ public class NearestNeighbour implements  Classifier, Regressor, Parameterized
     public double regress(DataPoint data)
     {
         if(vecCollection == null || mode != Mode.REGRESSION)
-            throw new RuntimeException("Classifier has not been trained for regression");
+            throw new UntrainedModelException("Classifier has not been trained for regression");
         Vec query  = data.getNumericalValues();
         
         List<VecPaired<Double,VecPaired<Double, Vec>>> knns = vecCollection.search(query, k);
@@ -283,7 +285,7 @@ public class NearestNeighbour implements  Classifier, Regressor, Parameterized
     public void train(RegressionDataSet dataSet, ExecutorService threadPool)
     {
         if(dataSet.getNumCategoricalVars() != 0)
-            throw new RuntimeException("KNN requires vector data only");
+            throw new FailedToFitException("KNN requires vector data only");
         
         mode = Mode.REGRESSION;
 
