@@ -400,7 +400,7 @@ public class KDTree<V extends Vec> implements VectorCollection<V>
         clone.size = this.size;
         if(this.root != null)
             clone.root = this.root.clone();
-        return null;
+        return clone;
     }
     
     public static class KDTreeFactory<V extends Vec> implements VectorCollectionFactory<V>
