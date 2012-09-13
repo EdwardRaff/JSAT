@@ -129,6 +129,7 @@ public class DecisionStump implements Classifier, Regressor
         this.predicting = predicting;
     }
 
+    @Override
     public double regress(DataPoint data)
     {
         if(regressionResults == null)
@@ -136,11 +137,13 @@ public class DecisionStump implements Classifier, Regressor
         return regressionResults[whichPath(data)];
     }
 
+    @Override
     public void train(RegressionDataSet dataSet, ExecutorService threadPool)
     {
         train(dataSet);
     }
 
+    @Override
     public void train(RegressionDataSet dataSet)
     {
         Set<Integer> options = new HashSet<Integer>(dataSet.getNumFeatures());
@@ -446,6 +449,7 @@ public class DecisionStump implements Classifier, Regressor
         return -1;//Not trained!
     }
     
+    @Override
     public CategoricalResults classify(DataPoint data)
     {
         if(results == null)
@@ -467,11 +471,13 @@ public class DecisionStump implements Classifier, Regressor
         return results[i];
     }
 
+    @Override
     public void trainC(ClassificationDataSet dataSet, ExecutorService threadPool)
     {
         trainC(dataSet);
     }
 
+    @Override
     public void trainC(ClassificationDataSet dataSet)
     {
         Set<Integer> splitOptions = new HashSet<Integer>(dataSet.getNumFeatures());
@@ -731,6 +737,7 @@ public class DecisionStump implements Classifier, Regressor
                 //We need our list in sorted order by attribute!
                 Comparator<DataPointPair<Double>> dppDoubleSorter = new Comparator<DataPointPair<Double>>()
                 {
+                    @Override
                     public int compare(DataPointPair<Double> o1, DataPointPair<Double> o2)
                     {
                         return Double.compare(o1.getVector().get(numAttri), o2.getVector().get(numAttri));
@@ -811,6 +818,7 @@ public class DecisionStump implements Classifier, Regressor
         return aSplit;
     }
 
+    @Override
     public boolean supportsWeightedData()
     {
         return true;
