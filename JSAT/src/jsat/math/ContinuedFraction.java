@@ -2,14 +2,42 @@
 package jsat.math;
 
 /**
- * This class provides a means to represent and evaluate continued fractions in a multitude of ways. 
+ * This class provides a means to represent and evaluate continued fractions in 
+ * a multitude of ways. 
+ * 
  * @author Edward Raff
  */
 public abstract class ContinuedFraction
 {
+    /**
+     * The a term of a continued fraction is the value that occurs as one of the
+     * numerators, an its depth starts at 1. 
+     * 
+     * @param pos the depth of the continued fraction to evaluate at
+     * @param args the values for the variables of the continued fraction
+     * @return the value that would be computed for the a coefficient at the 
+     * specified depth of the fraction
+     */
     abstract public double getA(int pos, double... args);
+    
+    /**
+     * The b term of a continued fraction is the value that is added to the 
+     * continuing fraction, its depth starts at 0. 
+     * 
+     * @param pos the depth of the continued fraction to evaluate at
+     * @param args the values for the variables of the continued fraction
+     * @return the value that would be computed for the b coefficient at the 
+     * specified depth of the fraction
+     */
     abstract public double getB(int pos, double... args);
     
+    /**
+     * Approximates the continued fraction using a naive approximation
+     * 
+     * @param n the number of iterations to perform
+     * @param args the values to input for the variables of the continued fraction
+     * @return an approximation of the value of the continued fraciton
+     */
     public double backwardNaive(int n, double... args)
     {
         double term = getA(n, args)/getB(n,args);
@@ -26,8 +54,8 @@ public abstract class ContinuedFraction
      * Uses Thompson and Barnett's modified Lentz's algorithm create an 
      * approximation that should be accurate to full precision. 
      * 
-     * @param args
-     * @return 
+     * @param args the numeric inputs to the continued fraction
+     * @return the approximate value of the continued fraction
      */
     public double lentz(double... args)
     {
