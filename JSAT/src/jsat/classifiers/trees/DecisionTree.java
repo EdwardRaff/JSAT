@@ -38,11 +38,13 @@ public class DecisionTree implements Classifier, Regressor
      */
     private double testProportion;
 
+    @Override
     public double regress(DataPoint data)
     {
         return root.regress(data);
     }
     
+    @Override
     public void train(RegressionDataSet dataSet, ExecutorService threadPool)
     {
         Set<Integer> options = new HashSet<Integer>(dataSet.getNumFeatures());
@@ -71,6 +73,7 @@ public class DecisionTree implements Classifier, Regressor
         //TODO add pruning for regression 
     }
 
+    @Override
     public void train(RegressionDataSet dataSet)
     {
         train(dataSet, new FakeExecutor());
@@ -192,11 +195,13 @@ public class DecisionTree implements Classifier, Regressor
     }
 
     
+    @Override
     public CategoricalResults classify(DataPoint data)
     {
         return root.classify(data);
     }
 
+    @Override
     public void trainC(ClassificationDataSet dataSet, ExecutorService threadPool)
     {
         Set<Integer> options = new HashSet<Integer>(dataSet.getNumFeatures());
@@ -370,6 +375,7 @@ public class DecisionTree implements Classifier, Regressor
                 mcdl.countUp();
                 threadPool.submit(new Runnable() {
 
+                    @Override
                     public void run()
                     {
                         node.paths[ii] = makeNodeR(splitI, new HashSet<Integer>(options), depth+1, threadPool, mcdl);
@@ -381,6 +387,7 @@ public class DecisionTree implements Classifier, Regressor
         return node;
     }
 
+    @Override
     public void trainC(ClassificationDataSet dataSet)
     {
         trainC(dataSet, new FakeExecutor());
@@ -391,6 +398,7 @@ public class DecisionTree implements Classifier, Regressor
         trainC(dataSet, options, new FakeExecutor());
     }
 
+    @Override
     public boolean supportsWeightedData()
     {
         return true;
