@@ -4,6 +4,7 @@ package jsat.utils;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Random;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.logging.Level;
@@ -15,15 +16,20 @@ import java.util.logging.Logger;
  */
 public class ListUtils
 {
+
+    private ListUtils()
+    {
+    }
+    
     /**
-     * This method takes a list and breaks it into <tt>chunks<tt> lists backed by the original 
+     * This method takes a list and breaks it into <tt>count<tt> lists backed by the original 
      * list, with elements being equally spaced among the lists. The lists will be returned in
      * order of the consecutive values they represent in the source list.
      * <br><br><b>NOTE</b>: Because the implementation uses {@link List#subList(int, int) }, 
      * changes to the returned lists will be reflected in the source list. 
      * 
-     * @param <T>
-     * @param source the source list that will be used to back the chunked lists
+     * @param <T> the type contained in the list
+     * @param source the source list that will be used to back the <tt>count<tt> lists
      * @param count the number of lists to partition the source into. 
      * @return a lists of lists, each of with the same size with at most a difference of 1. 
      */
@@ -98,5 +104,56 @@ public class ListUtils
         
         for(int i = start; i < to; i+= step)
             c.add(i);
+    }
+    
+    /**
+     * Obtains a random sample without replacement from a source list and places
+     * it in the destination list. This is done without modifying the source list. 
+     * 
+     * @param <T> the list content type involved
+     * @param source the source of values to randomly sample from
+     * @param dest the list to store the random samples in. The list does not 
+     * need to be empty for the sampling to work correctly
+     * @param samples the number of samples to select from the source
+     * @param rand the source of randomness for the sampling
+     * @throws IllegalArgumentException if the sample size is not positive or l
+     * arger than the source population. 
+     */
+    public static <T> void randomSample(List<T> source, List<T> dest, int samples, Random rand)
+    {
+        if(samples > source.size())
+            throw new IllegalArgumentException("Can not obtain a number of samples larger than the source population");
+        else if(samples <= 0)
+            throw new IllegalArgumentException("Sample size must be positive");
+        //Use samples to keep track of how many more samples we need
+        int pos = 0;
+        int remainingPopulation = source.size();
+        while(samples > 0)//could do for loop, but only break condition is remaining samples
+        {
+            if(rand.nextInt(remainingPopulation) < samples)
+            {
+                dest.add(source.get(pos));
+                samples--;
+            }
+            pos++;
+            remainingPopulation--;
+        }
+    }
+    
+    /**
+     * Obtains a random sample without replacement from a source list and places
+     * it in the destination list. This is done without modifying the source list. 
+     * 
+     * @param <T> the list content type involved
+     * @param source the source of values to randomly sample from
+     * @param dest the list to store the random samples in. The list does not 
+     * need to be empty for the sampling to work correctly
+     * @param samples the number of samples to select from the source
+     * @throws IllegalArgumentException if the sample size is not positive or l
+     * arger than the source population. 
+     */
+    public static <T> void randomSample(List<T> source, List<T> dest, int samples)
+    {
+        randomSample(source, dest, samples, new Random());
     }
 }
