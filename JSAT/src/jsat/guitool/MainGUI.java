@@ -423,8 +423,15 @@ public class MainGUI extends javax.swing.JFrame
         int[] axie =  dss.getSelections();
 
         //Pre set the distributions to have paramaters assuming that they match the data
-        for(int i = 0; i < distributions.length; i++)
-            distributions[i].setUsingData(data.getNumericColumn(axie[0]));
+        for (int i = 0; i < distributions.length; i++)
+            try
+            {
+                distributions[i].setUsingData(data.getNumericColumn(axie[0]));
+            }
+            catch (Exception ex)
+            {
+                //Its okay for a distribution to be unabel to fit
+            }
 
         DistributionSelectionDialog dsd = new DistributionSelectionDialog(null, "Select distribution to compare against", distributions);
         
