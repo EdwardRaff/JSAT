@@ -1,11 +1,13 @@
 package jsat.guitool;
 
 import java.awt.BorderLayout;
+import java.awt.Dialog;
 import java.awt.GridLayout;
+import java.awt.Window;
 import java.awt.event.*;
 import java.util.List;
-import javax.swing.GroupLayout.Alignment;
 import javax.swing.*;
+import javax.swing.GroupLayout.Alignment;
 import javax.swing.LayoutStyle.ComponentPlacement;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
@@ -234,7 +236,29 @@ public class ParameterPanel extends javax.swing.JPanel
     }
     
     
-
+    /**
+     * Shows a modal dialog to alter the parameters of the given object. 
+     * @param owner the owner window of the dialog
+     * @param title the title for the dialog
+     * @param parameterized the parameterized object to provide a dialog for
+     */
+    public static void showParameterDiag(Window owner, String title, Parameterized parameterized)
+    {
+        ParameterPanel pp = new ParameterPanel(parameterized);
+        final JDialog jd = new JDialog(owner, title, Dialog.ModalityType.APPLICATION_MODAL);
+        jd.setContentPane(pp);
+        pp.getjButtonOk().addActionListener(new ActionListener()
+        {
+            @Override
+            public void actionPerformed(ActionEvent e)
+            {
+                jd.setVisible(false);
+            }
+        });
+        jd.pack();
+        jd.setVisible(true);
+    }
+    
     /**
      * This method is called from within the constructor to initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is always
