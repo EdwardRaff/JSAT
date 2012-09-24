@@ -8,6 +8,8 @@
 package jsat.guitool;
 
 import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.io.File;
 import java.util.*;
 import java.util.List;
@@ -26,6 +28,7 @@ import jsat.linear.DenseVector;
 import jsat.linear.Vec;
 import jsat.math.Function;
 import jsat.math.SimpleLinearRegression;
+import jsat.parameters.Parameterized;
 import jsat.testing.goodnessoffit.KSTest;
 import jsat.testing.onesample.TTest;
 import jsat.testing.onesample.ZTest;
@@ -88,7 +91,7 @@ public class MainGUI extends javax.swing.JFrame
             cds.setNumericName(data.getNumericName(i), i);
         return cds;
     }
-
+    
     /** This method is called from within the constructor to
      * initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is
@@ -643,9 +646,11 @@ public class MainGUI extends javax.swing.JFrame
         if(csd.isCanceled())
             return;
         List<Classifier> classifiers = csd.getSelectedClassifiers();
+        List<String> classifierNames = csd.getSelectedNames();
         if(classifiers.isEmpty())
             return;
-        ClassifierCVEvaluation eval = new ClassifierCVEvaluation(classifiers, getClassificationData(), this, "Title", false);
+        ClassifierCVEvaluation eval = new ClassifierCVEvaluation(classifiers, 
+                classifierNames, getClassificationData(), this, "Title", false);
         
         
     }//GEN-LAST:event_jMenuCrossValidateTestActionPerformed

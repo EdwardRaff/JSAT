@@ -65,7 +65,7 @@ public class ClassifierCVEvaluation extends JDialog
         return df.format(dTime) + unit;
     }
     
-    public ClassifierCVEvaluation(final List<Classifier> classifiers, final ClassificationDataSet dataset, Frame owner, String title, boolean modal)
+    public ClassifierCVEvaluation(final List<Classifier> classifiers, final List<String> classifierNames, final ClassificationDataSet dataset, Frame owner, String title, boolean modal)
     {
         super(owner, title, modal);
         final LongProcessDialog pm = new LongProcessDialog(owner, "Performing Cross Validation");
@@ -74,6 +74,7 @@ public class ClassifierCVEvaluation extends JDialog
         pm.setMessage("Performing Cross Validation");
         pm.setNote("Note");
         pm.pack();
+        pm.setSize(450, pm.getHeight());
         pm.setVisible(true);
         
         final List<Thread> threadsCreated = new ArrayList<Thread>();
@@ -104,9 +105,10 @@ public class ClassifierCVEvaluation extends JDialog
                     try
                     {
                         Classifier classifier = classifiers.get(i);
+                        String name = classifierNames.get(i);
                         CategoricalData predicting = dataset.getPredicting();
 
-                        pm.setNote("Evaluating " + classifier.getClass().getSimpleName());
+                        pm.setNote("Evaluating " + name);
 
                         final ClassificationModelEvaluation cme = new ClassificationModelEvaluation(classifier, dataset, threadPool);
                         cme.evaluateCrossValidation(10);
@@ -171,8 +173,7 @@ public class ClassifierCVEvaluation extends JDialog
                 JTabbedPane jTabbedPane = new JTabbedPane();
                 for(int i = 0; i < classifiers.size(); i++)
                 {
-                    Classifier classifier = classifiers.get(i);
-                    jTabbedPane.add(classifier.getClass().getSimpleName(), resultPanels.get(i));
+                    jTabbedPane.add(classifierNames.get(i), resultPanels.get(i));
                 }
                 
                 setLayout(new GridLayout(1, 1));
