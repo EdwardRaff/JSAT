@@ -29,4 +29,10 @@ public abstract class ObjectParameter<T> extends Parameter
      */
     abstract public List<T> parameterOptions();
     
+    @Override
+    public String getValueString() 
+    {
+        return getObject().toString();
+    }
+    
 }

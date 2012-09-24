@@ -55,6 +55,13 @@ public abstract class Parameter
         return getName().hashCode();
     }
     
+    /**
+     * Returns a string indicating the value currently held by the Parameter 
+     * 
+     * @return a string representation of the parameter's value
+     */
+    abstract public String getValueString();
+    
     @Override
     public boolean equals(Object obj)
     {

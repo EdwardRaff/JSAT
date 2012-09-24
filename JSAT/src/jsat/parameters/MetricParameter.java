@@ -29,4 +29,10 @@ public abstract class MetricParameter extends Parameter
     {
         return "Distance Metric";
     }
+    
+    @Override
+    public String getValueString() 
+    {
+        return getMetric().toString();
+    }
 }

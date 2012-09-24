@@ -19,4 +19,10 @@ public abstract class DoubleParameter extends Parameter
      * was invalid, and thus ignored. 
      */
     abstract public boolean setValue(double val);
+    
+    @Override
+    public String getValueString() 
+    {
+        return Double.toString(getValue());
+    }
 }

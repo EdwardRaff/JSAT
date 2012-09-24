@@ -19,4 +19,10 @@ public abstract class BooleanParameter extends Parameter
      * was invalid, and thus ignored. 
      */
     abstract public boolean setValue(boolean val);
+    
+    @Override
+    public String getValueString() 
+    {
+        return Boolean.toString(getValue());
+    }
 }

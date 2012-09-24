@@ -19,4 +19,10 @@ public abstract class IntParameter extends Parameter
      * was invalid, and thus ignored. 
      */
     abstract public boolean setValue(int val);
+
+    @Override
+    public String getValueString() 
+    {
+        return Integer.toString(getValue());
+    }
 }
