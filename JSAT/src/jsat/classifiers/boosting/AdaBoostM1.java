@@ -2,6 +2,7 @@
 package jsat.classifiers.boosting;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import jsat.classifiers.CategoricalData;
@@ -12,6 +13,9 @@ import jsat.classifiers.DataPoint;
 import jsat.classifiers.DataPointPair;
 import jsat.classifiers.OneVSAll;
 import jsat.exceptions.FailedToFitException;
+import jsat.parameters.IntParameter;
+import jsat.parameters.Parameter;
+import jsat.parameters.Parameterized;
 import jsat.utils.DoubleList;
 
 /**
@@ -30,7 +34,7 @@ import jsat.utils.DoubleList;
  * 
  * @author Edward Raff
  */
-public class AdaBoostM1 implements Classifier
+public class AdaBoostM1 implements Classifier, Parameterized
 {
     private Classifier weakLearner;
     private int maxIterations;
@@ -189,6 +193,43 @@ public class AdaBoostM1 implements Classifier
         if(this.predicting != null)
             copy.predicting = this.predicting.clone();
         return copy;
+    }
+    
+    //the only parameter
+    private final Parameter param = new IntParameter() 
+    {
+        @Override
+        public int getValue() 
+        {
+            return getMaxIterations();
+        }
+
+        @Override
+        public boolean setValue(int val) 
+        {
+            if (val <= 0)
+                return false;
+            setMaxIterations(val);
+            return true;
+        }
+
+        @Override
+        public String getASCIIName() 
+        {
+            return "Max Iterations";
+        }
+    };
+
+    public List<Parameter> getParameters() 
+    {
+        return Arrays.asList(param);
+    }
+
+    public Parameter getParameter(String paramName) 
+    {
+        if(param.getASCIIName().equals(paramName))
+            return param;
+        return null;
     }
     
 }
