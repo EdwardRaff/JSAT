@@ -5,18 +5,27 @@ import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.Frame;
 import java.awt.GridLayout;
+import java.awt.LayoutManager;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Stack;
 import java.util.Vector;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
+import javax.swing.JCheckBox;
+import javax.swing.JComponent;
 import javax.swing.JDialog;
+import javax.swing.JLayeredPane;
 import javax.swing.JList;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
@@ -29,6 +38,8 @@ import jsat.classifiers.CategoricalData;
 import jsat.classifiers.ClassificationDataSet;
 import jsat.classifiers.ClassificationModelEvaluation;
 import jsat.classifiers.Classifier;
+import jsat.exceptions.FailedToFitException;
+import jsat.parameters.Parameterized;
 import jsat.utils.SystemInfo;
 
 /**
@@ -110,8 +121,19 @@ public class ClassifierCVEvaluation extends JDialog
 
                         pm.setNote("Evaluating " + name);
 
-                        final ClassificationModelEvaluation cme = new ClassificationModelEvaluation(classifier, dataset, threadPool);
+                        ClassificationModelEvaluation cme = new ClassificationModelEvaluation(classifier, dataset, threadPool);
+                        try
+                        {
                         cme.evaluateCrossValidation(10);
+                        }
+                        catch(FailedToFitException ex)
+                        {
+                            if (pm.isCanceled())
+                                return null;
+                            pm.setNote("Evaluating " + name + ", falling back to Single Threaded");
+                            cme = new ClassificationModelEvaluation(classifier, dataset);
+                            cme.evaluateCrossValidation(10);
+                        }
                         if (pm.isCanceled())
                             return null;
                         JPanel panel = new JPanel(new BorderLayout());
@@ -134,8 +156,39 @@ public class ClassifierCVEvaluation extends JDialog
                         listInfo.add("Training Time: " + timeString(cme.getTotalTrainingTime()));
                         listInfo.add("Classification Time: " + timeString(cme.getTotalClassificationTime()));
                         JList jList = new JList(listInfo);
+                        
+                        LayoutManager layout;
+                        
+                        if(classifier instanceof Parameterized)
+                            layout = new GridLayout(2, 1);
+                        else
+                            layout = new GridLayout(1, 1);
+                        
+                        JPanel rightPanel = new JPanel(layout);
+                        rightPanel.add(new JScrollPane(jList));
+                        
+                        if(classifier instanceof Parameterized)
+                        {
+                            JPanel sub = new JPanel();
+                            ParameterPanel pp = new ParameterPanel((Parameterized)classifier);
+                            pp.getjButtonOk().setVisible(false);
+                            sub.add(pp);
+                            //Disable all fields, we dont want them making changes
+                            Stack<JComponent> components = new Stack<JComponent>();
+                            components.add(pp);
+                            while(!components.isEmpty())
+                            {
+                                for(Component comp : components.pop().getComponents())
+                                {
+                                    comp.setEnabled(false);
+                                    if(comp instanceof JComponent)
+                                        components.add((JComponent)comp);
+                                }
+                            }
+                            rightPanel.add(sub);
+                        }
 
-                        panel.add(new JScrollPane(jList), BorderLayout.EAST);
+                        panel.add(rightPanel, BorderLayout.EAST);
 
                         resultPanels.add(panel);
 
