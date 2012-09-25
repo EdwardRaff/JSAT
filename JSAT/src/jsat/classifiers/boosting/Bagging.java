@@ -1,25 +1,16 @@
 
 package jsat.classifiers.boosting;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Random;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Semaphore;
+import java.util.*;
+import java.util.concurrent.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import jsat.DataSet;
-import jsat.classifiers.CategoricalData;
-import jsat.classifiers.CategoricalResults;
-import jsat.classifiers.ClassificationDataSet;
-import jsat.classifiers.Classifier;
-import jsat.classifiers.DataPoint;
-import jsat.classifiers.DataPointPair;
+import jsat.classifiers.*;
 import jsat.classifiers.knn.NearestNeighbour;
 import jsat.classifiers.trees.DecisionTree;
 import jsat.math.OnLineStatistics;
+import jsat.parameters.*;
 import jsat.regression.RegressionDataSet;
 import jsat.regression.Regressor;
 import jsat.utils.SystemInfo;
@@ -38,7 +29,7 @@ import jsat.utils.SystemInfo;
  * Bagging has many similarities to boosting. 
  * @author Edward Raff
  */
-public class Bagging implements Classifier, Regressor
+public class Bagging implements Classifier, Regressor, Parameterized
 {
     private Classifier baseClassifier;
     private Regressor baseRegressor;
@@ -61,6 +52,79 @@ public class Bagging implements Classifier, Regressor
      * The default behavior for parallel training, as specified by {@link #setSimultaniousTraining(boolean) } is {@value #DEFAULT_SIMULTANIOUS_TRAINING}
      */
     public static final boolean DEFAULT_SIMULTANIOUS_TRAINING = true;
+    
+    private final List<Parameter> params = Collections.unmodifiableList(new ArrayList<Parameter>()
+    {{
+        add(new IntParameter() {
+
+                @Override
+                public int getValue()
+                {
+                    return getRounds();
+                }
+
+                @Override
+                public boolean setValue(int val)
+                {
+                    if(val <= 0)
+                        return false;
+                    setRounds(val);
+                    return true;
+                }
+
+                @Override
+                public String getASCIIName()
+                {
+                    return "Rounds";
+                }
+            });
+        
+        add(new IntParameter() {
+
+                @Override
+                public int getValue()
+                {
+                    return getExtraSamples();
+                }
+
+                @Override
+                public boolean setValue(int val)
+                {
+                    setExtraSamples(val);
+                    return true;
+                }
+
+                @Override
+                public String getASCIIName()
+                {
+                    return "Sample Offset";
+                }
+            });
+        
+        add(new BooleanParameter() {
+
+                @Override
+                public boolean getValue()
+                {
+                    return simultaniousTraining;
+                }
+
+                @Override
+                public boolean setValue(boolean val)
+                {
+                    setSimultaniousTraining(val);
+                    return true;
+                }
+
+                @Override
+                public String getASCIIName()
+                {
+                    return "Simultanious Training";
+                }
+            });
+    }});
+    
+    private final Map<String, Parameter> paramMap = Parameter.toParameterMap(params);
     
     /**
      * Creates a new Bagger for classification. This can not be changed after construction.
@@ -195,6 +259,7 @@ public class Bagging implements Classifier, Regressor
         this.simultaniousTraining = simultaniousTraining;
     }
 
+    @Override
     public CategoricalResults classify(DataPoint data)
     {
         if(baseClassifier == null)
@@ -212,6 +277,7 @@ public class Bagging implements Classifier, Regressor
         return totalResult;
     }
 
+    @Override
     public void trainC(final ClassificationDataSet dataSet, final ExecutorService threadPool)
     {
         predicting = dataSet.getPredicting();
@@ -273,6 +339,7 @@ public class Bagging implements Classifier, Regressor
             }
     }
 
+    @Override
     public void trainC(ClassificationDataSet dataSet)
     {
         predicting = dataSet.getPredicting();
@@ -340,11 +407,13 @@ public class Bagging implements Classifier, Regressor
             throw new RuntimeException("A data set was given that was not of an accepted type [Regression or Classification]");
     }
 
+    @Override
     public boolean supportsWeightedData()
     {
         return false;
     }
 
+    @Override
     public double regress(DataPoint data)
     {
         if(baseRegressor == null)
@@ -361,6 +430,7 @@ public class Bagging implements Classifier, Regressor
         return stats.getMean();
     }
 
+    @Override
     public void train(RegressionDataSet dataSet, final ExecutorService threadPool)
     {
         learners = new ArrayList(rounds);
@@ -421,6 +491,7 @@ public class Bagging implements Classifier, Regressor
             }
     }
 
+    @Override
     public void train(RegressionDataSet dataSet)
     {
         learners = new ArrayList(rounds);
@@ -456,5 +527,17 @@ public class Bagging implements Classifier, Regressor
                     clone.learners.add( ((Regressor)learner).clone());
         }
         return clone;
+    }
+
+    @Override
+    public List<Parameter> getParameters()
+    {
+        return params;
+    }
+
+    @Override
+    public Parameter getParameter(String paramName)
+    {
+        return paramMap.get(paramName);
     }
 }
