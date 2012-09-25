@@ -1,8 +1,10 @@
 package jsat.classifiers.trees;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Random;
 import java.util.Set;
 import java.util.concurrent.Callable;
@@ -20,6 +22,9 @@ import jsat.classifiers.DataPoint;
 import jsat.classifiers.boosting.Bagging;
 import jsat.classifiers.knn.NearestNeighbour;
 import jsat.math.OnLineStatistics;
+import jsat.parameters.IntParameter;
+import jsat.parameters.Parameter;
+import jsat.parameters.Parameterized;
 import jsat.regression.RegressionDataSet;
 import jsat.regression.Regressor;
 import jsat.utils.FakeExecutor;
@@ -33,7 +38,7 @@ import jsat.utils.SystemInfo;
  * @author Edward Raff
  * @see Bagging
  */
-public class RandomForest implements Classifier, Regressor
+public class RandomForest implements Classifier, Regressor, Parameterized
 {
     //TODO implement Out of Bag estimates of proximity, importance, and outlier detection 
     
@@ -52,6 +57,35 @@ public class RandomForest implements Classifier, Regressor
     private int maxForestSize;
     private DecisionTree baseLearner = new DecisionTree(Integer.MAX_VALUE, 10, DecisionTree.PruningMethod.NONE, 0.01);
     private List<DecisionTree> forest;
+    
+    private final List<Parameter> params = Collections.unmodifiableList(new ArrayList<Parameter>()
+    {{
+        add(new IntParameter() {
+
+            @Override
+            public int getValue()
+            {
+                return getMaxForestSize();
+            }
+
+            @Override
+            public boolean setValue(int val)
+            {
+                if(val <= 0)
+                    return false;
+                setMaxForestSize(val);
+                return true;
+            }
+
+            @Override
+            public String getASCIIName()
+            {
+                return "Max Forest Size";
+            }
+        });
+    }});
+    
+    final Map<String, Parameter> paramMap = Parameter.toParameterMap(params);
 
     public RandomForest(int maxForestSize)
     {
@@ -136,6 +170,7 @@ public class RandomForest implements Classifier, Regressor
         return maxForestSize;
     }
 
+    @Override
     public CategoricalResults classify(DataPoint data)
     {
         if(forest == null || forest.isEmpty())
@@ -150,6 +185,7 @@ public class RandomForest implements Classifier, Regressor
         return totalResult;
     }
 
+    @Override
     public void trainC(ClassificationDataSet dataSet, ExecutorService threadPool)
     {
         this.predicting = dataSet.getPredicting();
@@ -157,16 +193,19 @@ public class RandomForest implements Classifier, Regressor
         trainStep(dataSet, threadPool);
     }
 
+    @Override
     public void trainC(ClassificationDataSet dataSet)
     {
         trainC(dataSet, new FakeExecutor());
     }
 
+    @Override
     public boolean supportsWeightedData()
     {
         return true;
     }
 
+    @Override
     public double regress(DataPoint data)
     {
         if(forest == null || forest.isEmpty())
@@ -179,6 +218,7 @@ public class RandomForest implements Classifier, Regressor
         return stats.getMean();
     }
 
+    @Override
     public void train(RegressionDataSet dataSet, ExecutorService threadPool)
     {
         this.predicting = null;
@@ -186,6 +226,7 @@ public class RandomForest implements Classifier, Regressor
         trainStep(dataSet, threadPool);
     }
 
+    @Override
     public void train(RegressionDataSet dataSet)
     {
         train(dataSet, new FakeExecutor());
@@ -255,6 +296,18 @@ public class RandomForest implements Classifier, Regressor
         
         return clone;
     }
+
+    @Override
+    public List<Parameter> getParameters()
+    {
+        return params;
+    }
+
+    @Override
+    public Parameter getParameter(String paramName)
+    {
+        return paramMap.get(paramName);
+    }
     
     private class LearningWorker implements Callable<List<DecisionTree>>
     {
@@ -271,6 +324,7 @@ public class RandomForest implements Classifier, Regressor
             this.learned = new ArrayList<DecisionTree>(toLearn);
         }
         
+        @Override
         public List<DecisionTree> call() throws Exception
         {
             List sample = new ArrayList(dataSet.getSampleSize()+extraSamples);
