@@ -178,4 +178,13 @@ public class RegressionModelEvaluation
         return totalClassificationTime;
     }
     
+    /**
+     * Returns the regressor that was to be evaluated
+     * @return the regressor original given
+     */
+    public Regressor getRegressor()
+    {
+        return regressor;
+    }
+    
 }
