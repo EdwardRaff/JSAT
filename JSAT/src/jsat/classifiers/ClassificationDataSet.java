@@ -442,6 +442,7 @@ public class ClassificationDataSet extends DataSet
         clone.classifiedExamples.clear();
         for(int i = 0; i < classifiedExamples.size(); i++)
             clone.classifiedExamples.add(new ArrayList<DataPoint>(this.classifiedExamples.get(i)));
+        clone.numOfSamples = this.numOfSamples;
         return clone;
     }
 }
