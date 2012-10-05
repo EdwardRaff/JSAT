@@ -93,7 +93,7 @@ public class DataTransformProcess implements DataTransform
     }
 
     @Override
-    public DataTransform clone()
+    public DataTransformProcess clone()
     {
         DataTransformProcess clone = new DataTransformProcess();
         
