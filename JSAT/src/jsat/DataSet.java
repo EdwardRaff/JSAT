@@ -21,7 +21,7 @@ import jsat.math.OnLineStatistics;
  * 
  * @author Edward Raff
  */
-public abstract class DataSet<D extends DataSet>
+public abstract class DataSet
 {
     /**
      * The number of numerical values each data point must have
@@ -243,7 +243,7 @@ public abstract class DataSet<D extends DataSet>
      * @param rand the source of randomness 
      * @return the list of data sets. 
      */
-    abstract public List<D> cvSet(int folds, Random rand);
+    abstract public List<? extends DataSet> cvSet(int folds, Random rand);
     
     /**
      * Creates <tt>folds</tt> data sets that contain data from this data set. 
@@ -253,7 +253,7 @@ public abstract class DataSet<D extends DataSet>
      * @param folds the number of cross validation sets to create. Should be greater then 1
      * @return the list of data sets. 
      */
-    public List<D> cvSet(int folds)
+    public List<? extends DataSet> cvSet(int folds)
     {
         return cvSet(folds, new Random());
     }
@@ -324,4 +324,11 @@ public abstract class DataSet<D extends DataSet>
     {
         return getNumCategoricalVars() + getNumNumericalVars();
     }
+    
+    /**
+     * Returns a new version of this data set that is of the same type, and 
+     * contains a different list pointing to the same data points. 
+     * @return a shallow copy of this data set
+     */
+    abstract public DataSet shallowClone();
 }

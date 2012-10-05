@@ -13,7 +13,7 @@ import jsat.classifiers.DataPoint;
  * 
  * @author Edward Raff
  */
-public class SimpleDataSet extends DataSet<SimpleDataSet>
+public class SimpleDataSet extends DataSet
 {
     protected List<DataPoint> dataPoints;
 
@@ -79,5 +79,12 @@ public class SimpleDataSet extends DataSet<SimpleDataSet>
     {
         return dataPoints;
     }
+
+    @Override
+    public SimpleDataSet shallowClone()
+    {
+        return new SimpleDataSet(new ArrayList<DataPoint>(this.dataPoints));
+    }
+    
     
 }

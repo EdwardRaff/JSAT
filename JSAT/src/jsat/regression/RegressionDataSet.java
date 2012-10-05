@@ -15,7 +15,7 @@ import jsat.linear.Vec;
  * 
  * @author Edward Raff
  */
-public class RegressionDataSet extends DataSet<RegressionDataSet>
+public class RegressionDataSet extends DataSet
 {
 
     /**
@@ -243,6 +243,12 @@ public class RegressionDataSet extends DataSet<RegressionDataSet>
         
         return cvSet;
     }
+
+    @Override
+    public List<RegressionDataSet> cvSet(int folds)
+    {
+        return (List<RegressionDataSet>) super.cvSet(folds);
+    }
     
     @Override
     public int getSampleSize()
@@ -296,5 +302,14 @@ public class RegressionDataSet extends DataSet<RegressionDataSet>
             rds.numericalVariableNames.add("Numeric Input " + (i+1));
         rds.categories = CategoricalData.copyOf(list.get(0).getDataPoint().getCategoricalData());
         return rds;
+    }
+
+    @Override
+    public RegressionDataSet shallowClone()
+    {
+        RegressionDataSet clone = new RegressionDataSet(numNumerVals, categories);
+        for(DataPointPair<Double> dpp : this.dataPoints)
+            clone.dataPoints.add(dpp);
+        return clone;
     }
 }

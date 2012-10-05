@@ -16,7 +16,7 @@ import jsat.linear.Vec;
  * Additional functionality specific to classification problems is also available. 
  * @author Edward Raff
  */
-public class ClassificationDataSet extends DataSet<ClassificationDataSet>
+public class ClassificationDataSet extends DataSet
 {
     /**
      * The categories for the predicted value
@@ -181,6 +181,7 @@ public class ClassificationDataSet extends DataSet<ClassificationDataSet>
      * @param i the i'th data point in this set
      * @return the ith data point in this set
      */
+    @Override
     public DataPoint getDataPoint(int i)
     {
         return getDataPointPair(i).getDataPoint();
@@ -241,6 +242,7 @@ public class ClassificationDataSet extends DataSet<ClassificationDataSet>
      * @param folds
      * @return 
      */
+    @Override
     public List<ClassificationDataSet> cvSet(int folds, Random rnd)
     {
         ArrayList<ClassificationDataSet> cvList = new ArrayList<ClassificationDataSet>();
@@ -301,6 +303,13 @@ public class ClassificationDataSet extends DataSet<ClassificationDataSet>
         
         return cvList;
     }
+
+    @Override
+    public List<ClassificationDataSet> cvSet(int folds)
+    {
+        return (List<ClassificationDataSet>) super.cvSet(folds);
+    }
+
     
     /**
      * Creates a new data point and add its to this data set. 
@@ -424,5 +433,15 @@ public class ClassificationDataSet extends DataSet<ClassificationDataSet>
     public int getSampleSize()
     {
         return numOfSamples;
+    }
+
+    @Override
+    public ClassificationDataSet shallowClone()
+    {
+        ClassificationDataSet clone = new ClassificationDataSet(numNumerVals, categories, predicting.clone());
+        clone.classifiedExamples.clear();
+        for(int i = 0; i < classifiedExamples.size(); i++)
+            clone.classifiedExamples.add(new ArrayList<DataPoint>(this.classifiedExamples.get(i)));
+        return clone;
     }
 }
