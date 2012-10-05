@@ -67,4 +67,10 @@ public class DenseSparceTransform implements DataTransform
 
         return new DataPoint(sv, dp.getCategoricalValues(), dp.getCategoricalData(), dp.getWeight());
     }
+
+    @Override
+    public DenseSparceTransform clone()
+    {
+        return new DenseSparceTransform(factor);
+    }
 }

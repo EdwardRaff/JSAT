@@ -41,8 +41,17 @@ public class RemoveAttributeTransform implements DataTransform
         this.numRemove = new HashSet<Integer>(numericalToRemove);
     }
     
+    /**
+     * Copy constructor
+     * @param other the transform to copy
+     */
+    private RemoveAttributeTransform(RemoveAttributeTransform other)
+    {
+        this.catRemove = new HashSet<Integer>(other.catRemove);
+        this.numRemove = new HashSet<Integer>(other.numRemove);
+    }
     
-
+    @Override
     public DataPoint transform(DataPoint dp)
     {   
         int[] catVals = dp.getCategoricalValues();
@@ -72,6 +81,12 @@ public class RemoveAttributeTransform implements DataTransform
         }
         
         return new DataPoint(newNumVals, newCatVals, newCatData, dp.getWeight());
+    }
+
+    @Override
+    public DataTransform clone()
+    {
+        return new RemoveAttributeTransform(this);
     }
     
 }
