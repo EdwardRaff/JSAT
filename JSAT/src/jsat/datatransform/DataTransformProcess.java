@@ -75,7 +75,13 @@ public class DataTransformProcess implements DataTransform
      */
     public void learnApplyTransforms(DataSet dataSet)
     {
-        
+        learnedTransforms.clear();
+        for(DataTransformFactory dtf : transformSource)
+        {
+            DataTransform transform = dtf.getTransform(dataSet);
+            dataSet.applyTransform(transform);
+            learnedTransforms.add(transform);
+        }
     }
 
     @Override
