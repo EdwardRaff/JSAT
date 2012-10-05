@@ -102,6 +102,20 @@ public class LinearTransform implements DataTransform
         
     }
     
+    /**
+     * Copy constructor
+     * @param other the transform to copy
+     */
+    private LinearTransform(LinearTransform other)
+    {
+        this.A = other.A;
+        this.B = other.B;
+        if(other.mins != null)
+            this.mins = other.mins.clone();
+        if(other.mutliplyConstants != null)
+            this.mutliplyConstants = other.mutliplyConstants.clone();
+    }
+    
     @Override
     public DataPoint transform(DataPoint dp)
     {
@@ -111,5 +125,45 @@ public class LinearTransform implements DataTransform
         
         return new DataPoint(v, dp.getCategoricalValues(), dp.getCategoricalData(), dp.getWeight());
     }
+
+    @Override
+    public DataTransform clone()
+    {
+        return new LinearTransform(this);
+    }
     
+    
+    public class LinearTransformFactory implements DataTransformFactory
+    {
+        private Double A;
+        private Double B;
+
+        /**
+         * Creates a new Linear Transform factory 
+         * @param A the maximum value for the transformed data set
+         * @param B the minimum value for the transformed data set
+         */
+        public LinearTransformFactory(double A, double B)
+        {
+            this.A = A;
+            this.B = B;
+        }
+
+        /**
+         * Creates a new Linear Transform factory for the range [0, 1]
+         */
+        public LinearTransformFactory()
+        {
+            this.A = this.B = null;
+        }
+        
+        
+        
+        @Override
+        public DataTransform getTransform(DataSet dataset)
+        {
+            return new LinearTransform(dataset, A, B);
+        }
+        
+    }
 }

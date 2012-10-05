@@ -1,6 +1,7 @@
 
 package jsat.datatransform;
 
+import java.util.Arrays;
 import jsat.DataSet;
 import jsat.classifiers.CategoricalData;
 import jsat.classifiers.DataPoint;
@@ -23,8 +24,11 @@ public class NumericalToHistogram implements DataTransform
         this(dataSet, (int) Math.ceil(Math.sqrt(dataSet.getSampleSize())));
     }
 
-    
-    
+    /**
+     * 
+     * @param dataSet
+     * @param n the number of bins to create
+     */
     public NumericalToHistogram(DataSet dataSet, int n)
     {
         if(n <= 0)
@@ -62,8 +66,22 @@ public class NumericalToHistogram implements DataTransform
         System.arraycopy(dataSet.getCategories(), 0, newDataArray, dataSet.getNumNumericalVars(), dataSet.getNumCategoricalVars());
     }
     
+    /**
+     * Copy constructor
+     * @param other the transform to copy
+     */
+    private NumericalToHistogram(NumericalToHistogram other)
+    {
+        this.n = other.n;
+        this.conversionArray = new double[other.conversionArray.length][];
+        for(int i = 0; i < other.conversionArray.length; i++)
+            this.conversionArray[i] = Arrays.copyOf(other.conversionArray[i], other.conversionArray[i].length);
+        this.newDataArray = new CategoricalData[other.newDataArray.length];
+        for(int i = 0; i < other.newDataArray.length; i++)
+            this.newDataArray[i] = other.newDataArray[i].clone();
+    }
     
-
+    @Override
     public DataPoint transform(DataPoint dp)
     {
         
@@ -86,5 +104,43 @@ public class NumericalToHistogram implements DataTransform
         
         return new DataPoint(new DenseVector(0), newCatVals, newDataArray);
     }
+
+    @Override
+    public DataTransform clone()
+    {
+        return new NumericalToHistogram(this);
+    }
     
+    public class NumericalToHistogramTransformFactory implements DataTransformFactory
+    {
+        
+        private int n;
+
+        /**
+         * Creates a new NumericalToHistogram factory. 
+         */
+        public NumericalToHistogramTransformFactory()
+        {
+            this(Integer.MAX_VALUE);
+        }
+
+        /**
+         * Creates a new NumericalToHistogram factory. 
+         * @param n the number of bins to create
+         */
+        public NumericalToHistogramTransformFactory(int n)
+        {
+            this.n = n;
+        }
+        
+        @Override
+        public DataTransform getTransform(DataSet dataset)
+        {
+            if(n == Integer.MAX_VALUE)
+                return new NumericalToHistogram(dataset);
+            else
+                return new NumericalToHistogram(dataset, n);
+        }
+        
+    }
 }

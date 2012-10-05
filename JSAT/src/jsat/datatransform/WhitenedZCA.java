@@ -12,8 +12,6 @@ import jsat.linear.*;
  */
 public class WhitenedZCA extends WhitenedPCA
 {
-
-
     /**
      * Creates a new Whitened ZCA.
      * 
@@ -50,5 +48,36 @@ public class WhitenedZCA extends WhitenedPCA
         Matrix U = svd.getU();
         
         transform = U.multiply(Matrix.diag(diag)).multiply(U.transpose());
+    }
+    
+    public class WhitenedZCATransformFactory implements DataTransformFactory
+    {
+        private Double reg;
+
+        /**
+         * Creates a new WhitenedZCA factory 
+         * @param reg the regularization to use
+         */
+        public WhitenedZCATransformFactory(double reg)
+        {
+            this.reg = reg;
+        }
+
+        /**
+         * Creates a new WhitenedZCA
+         */
+        public WhitenedZCATransformFactory()
+        {
+            reg = null;
+        }
+        
+        @Override
+        public DataTransform getTransform(DataSet dataset)
+        {
+            if(reg == null)
+                return new WhitenedZCA(dataset);
+            return new WhitenedZCA(dataset, reg);
+        }
+        
     }
 }

@@ -101,6 +101,17 @@ public class WhitenedPCA implements DataTransform
         
         setUpTransform(svd);
     }
+    
+    /**
+     * Copy constructor 
+     * @param other the transform to make a copy of
+     */
+    private WhitenedPCA(WhitenedPCA other)
+    {
+        this.regularization = other.regularization;
+        this.dims = other.dims;
+        this.transform = other.transform.clone();
+    }
 
     /**
      * Gets a SVD for the covariance matrix of the data set
@@ -158,5 +169,32 @@ public class WhitenedPCA implements DataTransform
         if(dims < 1)
             throw new ArithmeticException("Invalid number of dimensions, bust be > 0");
         this.dims = dims;
+    }
+
+    @Override
+    public DataTransform clone()
+    {
+        return new WhitenedPCA(this);
+    }
+    
+    public class WhitenedPCATransformFactory implements DataTransformFactory
+    {
+        private int maxPCs;
+
+        /**
+         * Creates a new WhitenedPCA Factory
+         * @param maxPCs the number of principle components
+         */
+        public WhitenedPCATransformFactory(int maxPCs)
+        {
+            this.maxPCs = maxPCs;
+        }
+        
+        @Override
+        public DataTransform getTransform(DataSet dataset)
+        {
+            return new WhitenedPCA(dataset, maxPCs);
+        }
+        
     }
 }

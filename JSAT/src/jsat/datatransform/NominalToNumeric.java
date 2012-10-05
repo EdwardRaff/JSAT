@@ -32,6 +32,7 @@ public class NominalToNumeric implements DataTransform
                 
     }
     
+    @Override
     public DataPoint transform(DataPoint dp)
     {
         Vec v;
@@ -55,5 +56,24 @@ public class NominalToNumeric implements DataTransform
         
         return new DataPoint(v, new int[0], new CategoricalData[0]);
     }
+
+    @Override
+    public DataTransform clone()
+    {
+        return new NominalToNumeric(origNumericalCount, categoricalData);
+    }
     
+    public class NominalToNumericTransformFactory implements DataTransformFactory
+    {
+
+        public NominalToNumericTransformFactory()
+        {
+        }
+        
+        @Override
+        public DataTransform getTransform(DataSet dataset)
+        {
+            return new NominalToNumeric(dataset);
+        }
+    }
 }

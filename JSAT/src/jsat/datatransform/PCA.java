@@ -132,6 +132,16 @@ public class PCA implements DataTransform
     }
     
     /**
+     * Copy constructor
+     * @param other the transform to copy
+     */
+    private PCA(PCA other)
+    {
+        if(other.P != null)
+            this.P = other.P.clone();
+    }
+    
+    /**
      * Returns the first non zero column
      * @param x the matrix to get a column from
      * @return the first non zero column
@@ -150,6 +160,7 @@ public class PCA implements DataTransform
         throw new ArithmeticException("Matrix is essentially zero");
     }
 
+    @Override
     public DataPoint transform(DataPoint dp)
     {
         DataPoint newDP = new DataPoint(
@@ -159,5 +170,51 @@ public class PCA implements DataTransform
                 dp.getWeight());
         return newDP;
     }
+
+    @Override
+    public DataTransform clone()
+    {
+        return new PCA(this);
+    }
     
+    public class PCAFactory implements DataTransformFactory
+    {
+        private int maxPCs;
+        private double threshold;
+
+        /**
+         * Creates a new PCA Factory
+         */
+        public PCAFactory()
+        {
+            this(Integer.MAX_VALUE);
+        }
+        
+        /**
+         * Creates a new PCA Factory
+         * @param maxPCs the maximum number of principal components to take
+         */
+        public PCAFactory(int maxPCs)
+        {
+            this(maxPCs, 1e-4);
+        }
+
+        /**
+         * Creates a new PCA Factory
+         * @param maxPCs the maximum number of principal components to take
+         * @param threshold  the stopping value for numerical stability
+         */
+        public PCAFactory(int maxPCs, double threshold)
+        {
+            this.maxPCs = maxPCs;
+            this.threshold = threshold;
+        }
+        
+        @Override
+        public DataTransform getTransform(DataSet dataset)
+        {
+            return new PCA(dataset, maxPCs, threshold);
+        }
+        
+    }
 }
