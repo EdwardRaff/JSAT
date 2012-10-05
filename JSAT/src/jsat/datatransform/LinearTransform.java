@@ -133,7 +133,7 @@ public class LinearTransform implements DataTransform
     }
     
     
-    public class LinearTransformFactory implements DataTransformFactory
+    static public class LinearTransformFactory implements DataTransformFactory
     {
         private Double A;
         private Double B;

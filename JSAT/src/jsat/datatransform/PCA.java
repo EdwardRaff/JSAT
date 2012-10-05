@@ -177,7 +177,7 @@ public class PCA implements DataTransform
         return new PCA(this);
     }
     
-    public class PCAFactory implements DataTransformFactory
+    static public class PCAFactory implements DataTransformFactory
     {
         private int maxPCs;
         private double threshold;

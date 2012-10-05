@@ -48,7 +48,7 @@ public class UnitVarianceTransform implements DataTransform
         return new UnitVarianceTransform(this);
     }
     
-    public class UnitVarianceTransformFactory implements DataTransformFactory
+    static public class UnitVarianceTransformFactory implements DataTransformFactory
     {
         @Override
         public DataTransform getTransform(DataSet dataset)

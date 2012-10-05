@@ -48,7 +48,7 @@ public class ZeroMeanTransform implements DataTransform
         return new ZeroMeanTransform(this);
     }
     
-    public class ZeroMeanTransformFactory implements DataTransformFactory
+    static public class ZeroMeanTransformFactory implements DataTransformFactory
     {
 
         public ZeroMeanTransformFactory()

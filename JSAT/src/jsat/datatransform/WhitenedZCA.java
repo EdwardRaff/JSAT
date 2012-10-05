@@ -50,7 +50,7 @@ public class WhitenedZCA extends WhitenedPCA
         transform = U.multiply(Matrix.diag(diag)).multiply(U.transpose());
     }
     
-    public class WhitenedZCATransformFactory implements DataTransformFactory
+    static public class WhitenedZCATransformFactory implements DataTransformFactory
     {
         private Double reg;
 

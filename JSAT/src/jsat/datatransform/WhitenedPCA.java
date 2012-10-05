@@ -177,7 +177,7 @@ public class WhitenedPCA implements DataTransform
         return new WhitenedPCA(this);
     }
     
-    public class WhitenedPCATransformFactory implements DataTransformFactory
+    static public class WhitenedPCATransformFactory implements DataTransformFactory
     {
         private int maxPCs;
 
