@@ -3,6 +3,7 @@ package jsat.datatransform;
 import java.util.ArrayList;
 import java.util.List;
 import jsat.DataSet;
+import jsat.SimpleDataSet;
 import jsat.classifiers.DataPoint;
 
 /**
@@ -20,22 +21,61 @@ public class DataTransformProcess implements DataTransform
     private List<DataTransform> learnedTransforms;
     
 
+    /**
+     * Creates a new transform process that is empty. Transform factories must 
+     * be added using 
+     * {@link #addTransform(jsat.datatransform.DataTransformFactory) }.
+     */
     public DataTransformProcess()
     {
         transformSource = new ArrayList<DataTransformFactory>();
         learnedTransforms = new ArrayList<DataTransform>();   
     }
     
+    /**
+     * Adds a transform to the list of transforms. Transforms are learned and 
+     * applied in the order in which they are added. 
+     * @param transform the factory for the transform to add
+     */
     public void addTransform(DataTransformFactory transform)
     {
         transformSource.add(transform);
     }
     
+    
+    /**
+     * Learns the transforms for the given data set. The data set will not be 
+     * altered. Once finished, <tt>this</tt> DataTransformProcess can be applied
+     * to the dataSet to get the transformed data set. 
+     * 
+     * @param dataSet the data set to learn a series of transforms from
+     */
     public void leanTransforms(DataSet dataSet)
     {
+        dataSet = dataSet.shallowClone();
         learnedTransforms.clear();
         for(DataTransformFactory dtf : transformSource)
-            learnedTransforms.add(dtf.getTransform(dataSet));
+        {
+            DataTransform transform = dtf.getTransform(dataSet);
+            dataSet.applyTransform(transform);
+            learnedTransforms.add(transform);
+        }
+    }
+    
+    /**
+     * Learns the transforms for the given data set. The data set is then 
+     * altered after each transform is learned so the next transform can be 
+     * learned as well. <br> The results are equivalent to calling 
+     * {@link #learnApplyTransforms(jsat.DataSet) } on the data set and then 
+     * calling {@link DataSet#applyTransform(jsat.datatransform.DataTransform) }
+     * with this DataTransformProces. 
+     * 
+     * @param dataSet the data set to learn a series of transforms from and 
+     * alter into the final transformed form
+     */
+    public void learnApplyTransforms(DataSet dataSet)
+    {
+        
     }
 
     @Override
