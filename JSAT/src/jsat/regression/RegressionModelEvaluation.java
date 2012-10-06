@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Random;
 import java.util.concurrent.ExecutorService;
 import jsat.classifiers.*;
+import jsat.datatransform.DataTransformProcess;
 import jsat.exceptions.UntrainedModelException;
 import jsat.math.OnLineStatistics;
 
@@ -28,6 +29,8 @@ public class RegressionModelEvaluation
     private OnLineStatistics sqrdErrorStats;
     
     private long totalTrainingTime = 0, totalClassificationTime = 0;
+    
+    private DataTransformProcess dtp;
 
     /**
      * Creates a new RegressionModelEvaluation that will perform parallel training. 
@@ -40,6 +43,7 @@ public class RegressionModelEvaluation
         this.regressor = regressor;
         this.dataSet = dataSet;
         this.threadpool = threadpool;
+        this.dtp =new DataTransformProcess();
     }
     
     /**
@@ -50,6 +54,16 @@ public class RegressionModelEvaluation
     public RegressionModelEvaluation(Regressor regressor, RegressionDataSet dataSet)
     {
         this(regressor, dataSet, null);
+    }
+    
+    /**
+     * Sets the data transform process to use when performing cross validation. 
+     * By default, no transforms are applied
+     * @param dtp the transformation process to clone for use during evaluation
+     */
+    public void setDataTransformProcess(DataTransformProcess dtp)
+    {
+        this.dtp = dtp.clone();
     }
     
     /**
@@ -102,6 +116,10 @@ public class RegressionModelEvaluation
     
     private void evaluationWork(RegressionDataSet trainSet, RegressionDataSet testSet)
     {
+        trainSet = trainSet.shallowClone();
+        DataTransformProcess curProccess = dtp.clone();
+        curProccess.learnApplyTransforms(trainSet);
+        
         long startTrain = System.currentTimeMillis();
         if(threadpool != null)
             regressor.train(trainSet, threadpool);
@@ -113,7 +131,7 @@ public class RegressionModelEvaluation
         {
             DataPoint di = testSet.getDataPoint(i);
             double trueVal = testSet.getTargetValue(i);
-            double predVal = regressor.regress(di);
+            double predVal = regressor.regress(curProccess.transform(di));
             
             
             double sqrdError = pow(trueVal-predVal, 2);

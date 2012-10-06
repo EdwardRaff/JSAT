@@ -4,6 +4,7 @@ package jsat.classifiers;
 import java.util.List;
 import java.util.Random;
 import java.util.concurrent.ExecutorService;
+import jsat.datatransform.DataTransformProcess;
 import jsat.exceptions.UntrainedModelException;
 
 /**
@@ -32,6 +33,7 @@ public class ClassificationModelEvaluation
      */
     private double sumOfWeights;
     private long totalTrainingTime = 0, totalClassificationTime = 0;
+    private DataTransformProcess dtp;
     
     /**
      * Constructs a new object that can perform evaluations on the model. 
@@ -60,6 +62,17 @@ public class ClassificationModelEvaluation
         this.classifier = classifier;
         this.dataSet = dataSet;
         this.threadpool = threadpool;
+        this.dtp = new DataTransformProcess();
+    }
+    
+    /**
+     * Sets the data transform process to use when performing cross validation. 
+     * By default, no transforms are applied
+     * @param dtp the transformation process to clone for use during evaluation
+     */
+    public void setDataTransformProcess(DataTransformProcess dtp)
+    {
+        this.dtp = dtp.clone();
     }
     
     /**
@@ -98,6 +111,7 @@ public class ClassificationModelEvaluation
             evaluationWork(trainSet, testSet);
         }
     }
+    
     /**
      * Performs an evaluation of the classifier using the initial data set to train, and testing on the given data set. 
      * @param testSet the data set to perform testing on
@@ -113,6 +127,10 @@ public class ClassificationModelEvaluation
 
     private void evaluationWork(ClassificationDataSet trainSet, ClassificationDataSet testSet)
     {
+        DataTransformProcess curProcess = dtp.clone();
+        trainSet = trainSet.shallowClone();
+        curProcess.learnApplyTransforms(trainSet);
+        
         long startTrain = System.currentTimeMillis();
         if(threadpool != null)
             classifier.trainC(trainSet, threadpool);
@@ -124,6 +142,7 @@ public class ClassificationModelEvaluation
         {
             for (DataPoint dp : testSet.getSamples(j))
             {
+                dp = curProcess.transform(dp);
                 long stratClass = System.currentTimeMillis();
                 CategoricalResults results = classifier.classify(dp);
                 totalClassificationTime += (System.currentTimeMillis() - stratClass);
