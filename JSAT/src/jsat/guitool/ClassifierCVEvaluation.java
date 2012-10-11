@@ -58,20 +58,21 @@ public class ClassifierCVEvaluation extends JDialog
         
         double dTime = time;
         
-        if(dTime > 1000)
+        if (dTime > 1000)
         {
-            dTime/=1000;
+            dTime /= 1000;
             unit = " s";
-        }
-        if(dTime > 60*2)
-        {
-            dTime /= 60;
-            unit = " m";
-        }
-        if(dTime > 60*2)
-        {
-            dTime /= 60;
-            unit = " h";
+            if (dTime > 60 * 2)
+            {
+                dTime /= 60;
+                unit = " m";
+                if (dTime > 60 * 2)
+                {
+                    dTime /= 60;
+                    unit = " h";
+                }
+            }
+
         }
         
         return df.format(dTime) + unit;
