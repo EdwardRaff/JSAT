@@ -48,6 +48,7 @@ public class MainGUI extends javax.swing.JFrame
     };
     
     SimpleDataSet data;
+    DataTransformProcess dtp;
 
     /** Creates new form MainGUI */
     public MainGUI()
@@ -60,6 +61,7 @@ public class MainGUI extends javax.swing.JFrame
         {
             System.out.println("Error setting native LAF: " + e);
         }
+        dtp = new DataTransformProcess();
         initComponents();
         jMenuItemHisto.setEnabled(false);
         jMenuItemQQData.setEnabled(false);
@@ -99,7 +101,8 @@ public class MainGUI extends javax.swing.JFrame
      */
     @SuppressWarnings("unchecked")
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
-    private void initComponents() {
+    private void initComponents()
+    {
 
         jfc = new javax.swing.JFileChooser();
         jMenuBar1 = new javax.swing.JMenuBar();
@@ -135,6 +138,17 @@ public class MainGUI extends javax.swing.JFrame
         jMenuClassWhitePCA = new javax.swing.JMenuItem();
         jMenuItemClassParaCoords = new javax.swing.JMenuItem();
         jMenuCrossValidateTest = new javax.swing.JMenuItem();
+        jMenuTransform = new javax.swing.JMenu();
+        jItemClearTransforms = new javax.swing.JMenuItem();
+        jSeparator1 = new javax.swing.JPopupMenu.Separator();
+        jMenuCurTransforms = new javax.swing.JMenu();
+        jItemTransUnitVariance = new javax.swing.JMenuItem();
+        jItemTransZeroMean = new javax.swing.JMenuItem();
+        jItemTransPCA = new javax.swing.JMenuItem();
+        jItemTransWhitenedPCA = new javax.swing.JMenuItem();
+        jItemTransWhitenedZCA = new javax.swing.JMenuItem();
+        jItemTransPolynomial = new javax.swing.JMenuItem();
+        jItemTransLinear = new javax.swing.JMenuItem();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         getContentPane().setLayout(new java.awt.GridLayout(1, 1));
@@ -143,8 +157,10 @@ public class MainGUI extends javax.swing.JFrame
 
         jMenuItemOpen.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_O, java.awt.event.InputEvent.CTRL_MASK));
         jMenuItemOpen.setText("Open");
-        jMenuItemOpen.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
+        jMenuItemOpen.addActionListener(new java.awt.event.ActionListener()
+        {
+            public void actionPerformed(java.awt.event.ActionEvent evt)
+            {
                 jMenuItemOpenActionPerformed(evt);
             }
         });
@@ -152,8 +168,10 @@ public class MainGUI extends javax.swing.JFrame
 
         jMenuItem1.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_Q, java.awt.event.InputEvent.CTRL_MASK));
         jMenuItem1.setText("Exit");
-        jMenuItem1.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
+        jMenuItem1.addActionListener(new java.awt.event.ActionListener()
+        {
+            public void actionPerformed(java.awt.event.ActionEvent evt)
+            {
                 jMenuItem1ActionPerformed(evt);
             }
         });
@@ -166,32 +184,40 @@ public class MainGUI extends javax.swing.JFrame
         jMenuVisualize.setText("Visualize");
 
         jMenuItemPCA.setText("PCA");
-        jMenuItemPCA.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
+        jMenuItemPCA.addActionListener(new java.awt.event.ActionListener()
+        {
+            public void actionPerformed(java.awt.event.ActionEvent evt)
+            {
                 jMenuItemPCAActionPerformed(evt);
             }
         });
         jMenuVisualize.add(jMenuItemPCA);
 
         jMenuItemWhitePCA.setText("Whitened PCA");
-        jMenuItemWhitePCA.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
+        jMenuItemWhitePCA.addActionListener(new java.awt.event.ActionListener()
+        {
+            public void actionPerformed(java.awt.event.ActionEvent evt)
+            {
                 jMenuItemWhitePCAActionPerformed(evt);
             }
         });
         jMenuVisualize.add(jMenuItemWhitePCA);
 
         jMenuItemParaCoords.setText("Parallel Corrdinates");
-        jMenuItemParaCoords.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
+        jMenuItemParaCoords.addActionListener(new java.awt.event.ActionListener()
+        {
+            public void actionPerformed(java.awt.event.ActionEvent evt)
+            {
                 jMenuItemParaCoordsActionPerformed(evt);
             }
         });
         jMenuVisualize.add(jMenuItemParaCoords);
 
         jMenuItemReachabilityPlot.setText("Reachability Plot");
-        jMenuItemReachabilityPlot.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
+        jMenuItemReachabilityPlot.addActionListener(new java.awt.event.ActionListener()
+        {
+            public void actionPerformed(java.awt.event.ActionEvent evt)
+            {
                 jMenuItemReachabilityPlotActionPerformed(evt);
             }
         });
@@ -200,48 +226,60 @@ public class MainGUI extends javax.swing.JFrame
         jMenu1.add(jMenuVisualize);
 
         jMenuItemHisto.setText("Histogram");
-        jMenuItemHisto.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
+        jMenuItemHisto.addActionListener(new java.awt.event.ActionListener()
+        {
+            public void actionPerformed(java.awt.event.ActionEvent evt)
+            {
                 jMenuItemHistoActionPerformed(evt);
             }
         });
         jMenu1.add(jMenuItemHisto);
 
         jMenuItemKDE.setText("KDE Estimate");
-        jMenuItemKDE.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
+        jMenuItemKDE.addActionListener(new java.awt.event.ActionListener()
+        {
+            public void actionPerformed(java.awt.event.ActionEvent evt)
+            {
                 jMenuItemKDEActionPerformed(evt);
             }
         });
         jMenu1.add(jMenuItemKDE);
 
         jMenuItemScatter.setText("Scatter Plot");
-        jMenuItemScatter.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
+        jMenuItemScatter.addActionListener(new java.awt.event.ActionListener()
+        {
+            public void actionPerformed(java.awt.event.ActionEvent evt)
+            {
                 jMenuItemScatterActionPerformed(evt);
             }
         });
         jMenu1.add(jMenuItemScatter);
 
         jMenuItemScatterMatrix.setText("Scatter Matrix");
-        jMenuItemScatterMatrix.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
+        jMenuItemScatterMatrix.addActionListener(new java.awt.event.ActionListener()
+        {
+            public void actionPerformed(java.awt.event.ActionEvent evt)
+            {
                 jMenuItemScatterMatrixActionPerformed(evt);
             }
         });
         jMenu1.add(jMenuItemScatterMatrix);
 
         jMenuItemQQDist.setText("QQ Plot Distribution");
-        jMenuItemQQDist.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
+        jMenuItemQQDist.addActionListener(new java.awt.event.ActionListener()
+        {
+            public void actionPerformed(java.awt.event.ActionEvent evt)
+            {
                 jMenuItemQQDistActionPerformed(evt);
             }
         });
         jMenu1.add(jMenuItemQQDist);
 
         jMenuItemQQData.setText("QQ Plot Data");
-        jMenuItemQQData.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
+        jMenuItemQQData.addActionListener(new java.awt.event.ActionListener()
+        {
+            public void actionPerformed(java.awt.event.ActionEvent evt)
+            {
                 jMenuItemQQDataActionPerformed(evt);
             }
         });
@@ -256,8 +294,10 @@ public class MainGUI extends javax.swing.JFrame
         jMenu5.setText("Goodness of Fit");
 
         jMenuKSSearch.setText(" Kolmogorov Search");
-        jMenuKSSearch.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
+        jMenuKSSearch.addActionListener(new java.awt.event.ActionListener()
+        {
+            public void actionPerformed(java.awt.event.ActionEvent evt)
+            {
                 jMenuKSSearchActionPerformed(evt);
             }
         });
@@ -268,16 +308,20 @@ public class MainGUI extends javax.swing.JFrame
         jMenu6.setText("One Sample");
 
         jMenuItemOneSampZ.setText("Z-Test");
-        jMenuItemOneSampZ.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
+        jMenuItemOneSampZ.addActionListener(new java.awt.event.ActionListener()
+        {
+            public void actionPerformed(java.awt.event.ActionEvent evt)
+            {
                 jMenuItemOneSampZActionPerformed(evt);
             }
         });
         jMenu6.add(jMenuItemOneSampZ);
 
         jMenuItemOneSamT.setText("T-Test");
-        jMenuItemOneSamT.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
+        jMenuItemOneSamT.addActionListener(new java.awt.event.ActionListener()
+        {
+            public void actionPerformed(java.awt.event.ActionEvent evt)
+            {
                 jMenuItemOneSamTActionPerformed(evt);
             }
         });
@@ -288,8 +332,10 @@ public class MainGUI extends javax.swing.JFrame
         jMenu2.add(jMenu4);
 
         jMenuItemSingleVariable.setText("Single Variable");
-        jMenuItemSingleVariable.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
+        jMenuItemSingleVariable.addActionListener(new java.awt.event.ActionListener()
+        {
+            public void actionPerformed(java.awt.event.ActionEvent evt)
+            {
                 jMenuItemSingleVariableActionPerformed(evt);
             }
         });
@@ -300,8 +346,10 @@ public class MainGUI extends javax.swing.JFrame
         jMenu3.setText("Regression");
 
         jMenuItemLinearRegress.setText("Linear");
-        jMenuItemLinearRegress.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
+        jMenuItemLinearRegress.addActionListener(new java.awt.event.ActionListener()
+        {
+            public void actionPerformed(java.awt.event.ActionEvent evt)
+            {
                 jMenuItemLinearRegressActionPerformed(evt);
             }
         });
@@ -317,24 +365,30 @@ public class MainGUI extends javax.swing.JFrame
         jMenuCVisualize.setText("Visualize");
 
         jMenuClassPCA.setText("PCA");
-        jMenuClassPCA.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
+        jMenuClassPCA.addActionListener(new java.awt.event.ActionListener()
+        {
+            public void actionPerformed(java.awt.event.ActionEvent evt)
+            {
                 jMenuClassPCAActionPerformed(evt);
             }
         });
         jMenuCVisualize.add(jMenuClassPCA);
 
         jMenuClassWhitePCA.setText("Whitened PCA");
-        jMenuClassWhitePCA.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
+        jMenuClassWhitePCA.addActionListener(new java.awt.event.ActionListener()
+        {
+            public void actionPerformed(java.awt.event.ActionEvent evt)
+            {
                 jMenuClassWhitePCAActionPerformed(evt);
             }
         });
         jMenuCVisualize.add(jMenuClassWhitePCA);
 
         jMenuItemClassParaCoords.setText("Parallel Coordinates");
-        jMenuItemClassParaCoords.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
+        jMenuItemClassParaCoords.addActionListener(new java.awt.event.ActionListener()
+        {
+            public void actionPerformed(java.awt.event.ActionEvent evt)
+            {
                 jMenuItemClassParaCoordsActionPerformed(evt);
             }
         });
@@ -343,14 +397,104 @@ public class MainGUI extends javax.swing.JFrame
         jMenuClassification.add(jMenuCVisualize);
 
         jMenuCrossValidateTest.setText("Cross Validate");
-        jMenuCrossValidateTest.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
+        jMenuCrossValidateTest.addActionListener(new java.awt.event.ActionListener()
+        {
+            public void actionPerformed(java.awt.event.ActionEvent evt)
+            {
                 jMenuCrossValidateTestActionPerformed(evt);
             }
         });
         jMenuClassification.add(jMenuCrossValidateTest);
 
         jMenuBar1.add(jMenuClassification);
+
+        jMenuTransform.setText("Transform");
+
+        jItemClearTransforms.setText("Clear Transforms");
+        jItemClearTransforms.addActionListener(new java.awt.event.ActionListener()
+        {
+            public void actionPerformed(java.awt.event.ActionEvent evt)
+            {
+                jItemClearTransformsActionPerformed(evt);
+            }
+        });
+        jMenuTransform.add(jItemClearTransforms);
+        jMenuTransform.add(jSeparator1);
+
+        jMenuCurTransforms.setText("Current Transforms");
+        jMenuTransform.add(jMenuCurTransforms);
+
+        jItemTransUnitVariance.setText("Unit Variance");
+        jItemTransUnitVariance.addActionListener(new java.awt.event.ActionListener()
+        {
+            public void actionPerformed(java.awt.event.ActionEvent evt)
+            {
+                jItemTransUnitVarianceActionPerformed(evt);
+            }
+        });
+        jMenuTransform.add(jItemTransUnitVariance);
+
+        jItemTransZeroMean.setText("Zero Mean");
+        jItemTransZeroMean.addActionListener(new java.awt.event.ActionListener()
+        {
+            public void actionPerformed(java.awt.event.ActionEvent evt)
+            {
+                jItemTransZeroMeanActionPerformed(evt);
+            }
+        });
+        jMenuTransform.add(jItemTransZeroMean);
+
+        jItemTransPCA.setText("PCA");
+        jItemTransPCA.addActionListener(new java.awt.event.ActionListener()
+        {
+            public void actionPerformed(java.awt.event.ActionEvent evt)
+            {
+                jItemTransPCAActionPerformed(evt);
+            }
+        });
+        jMenuTransform.add(jItemTransPCA);
+
+        jItemTransWhitenedPCA.setText("Whitened PCA");
+        jItemTransWhitenedPCA.addActionListener(new java.awt.event.ActionListener()
+        {
+            public void actionPerformed(java.awt.event.ActionEvent evt)
+            {
+                jItemTransWhitenedPCAActionPerformed(evt);
+            }
+        });
+        jMenuTransform.add(jItemTransWhitenedPCA);
+
+        jItemTransWhitenedZCA.setText("Whitened ZCA");
+        jItemTransWhitenedZCA.addActionListener(new java.awt.event.ActionListener()
+        {
+            public void actionPerformed(java.awt.event.ActionEvent evt)
+            {
+                jItemTransWhitenedZCAActionPerformed(evt);
+            }
+        });
+        jMenuTransform.add(jItemTransWhitenedZCA);
+
+        jItemTransPolynomial.setText("Polynomial");
+        jItemTransPolynomial.addActionListener(new java.awt.event.ActionListener()
+        {
+            public void actionPerformed(java.awt.event.ActionEvent evt)
+            {
+                jItemTransPolynomialActionPerformed(evt);
+            }
+        });
+        jMenuTransform.add(jItemTransPolynomial);
+
+        jItemTransLinear.setText("Linear");
+        jItemTransLinear.addActionListener(new java.awt.event.ActionListener()
+        {
+            public void actionPerformed(java.awt.event.ActionEvent evt)
+            {
+                jItemTransLinearActionPerformed(evt);
+            }
+        });
+        jMenuTransform.add(jItemTransLinear);
+
+        jMenuBar1.add(jMenuTransform);
 
         setJMenuBar(jMenuBar1);
 
@@ -650,7 +794,8 @@ public class MainGUI extends javax.swing.JFrame
         if(classifiers.isEmpty())
             return;
         ClassifierCVEvaluation eval = new ClassifierCVEvaluation(classifiers, 
-                classifierNames, getClassificationData(), this, "Title", false);
+                classifierNames, getClassificationData(), this, "Title", false, 
+                dtp);
         
         
     }//GEN-LAST:event_jMenuCrossValidateTestActionPerformed
@@ -805,6 +950,107 @@ public class MainGUI extends javax.swing.JFrame
         }
     }//GEN-LAST:event_jMenuItemPCAActionPerformed
 
+    private void jItemTransPolynomialActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_jItemTransPolynomialActionPerformed
+    {//GEN-HEADEREND:event_jItemTransPolynomialActionPerformed
+        String s = JOptionPane.showInputDialog(rootPane, "Please Specify the degree for the transform", "Polynomial Transform", JOptionPane.QUESTION_MESSAGE);
+        
+        try
+        {
+            int degree = Integer.parseInt(s);
+            if(degree < 1)
+                throw new RuntimeException();
+            dtp.addTransform(new PolynomialTransform.PolyTransformFactory(degree));
+            jMenuCurTransforms.add(new JLabel(" Polynomial of degree "+degree+" "));
+        }
+        catch(Exception ex)
+        {
+            //TODO show error
+        }
+    }//GEN-LAST:event_jItemTransPolynomialActionPerformed
+
+    private void jItemTransUnitVarianceActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_jItemTransUnitVarianceActionPerformed
+    {//GEN-HEADEREND:event_jItemTransUnitVarianceActionPerformed
+        dtp.addTransform(new UnitVarianceTransform.UnitVarianceTransformFactory());
+        jMenuCurTransforms.add(new JLabel(" Unit Variance "));
+    }//GEN-LAST:event_jItemTransUnitVarianceActionPerformed
+
+    private void jItemTransZeroMeanActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_jItemTransZeroMeanActionPerformed
+    {//GEN-HEADEREND:event_jItemTransZeroMeanActionPerformed
+        dtp.addTransform(new ZeroMeanTransform.ZeroMeanTransformFactory());
+        jMenuCurTransforms.add(new JLabel(" Zero Mean "));
+    }//GEN-LAST:event_jItemTransZeroMeanActionPerformed
+
+    private void jItemTransPCAActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_jItemTransPCAActionPerformed
+    {//GEN-HEADEREND:event_jItemTransPCAActionPerformed
+        String s = JOptionPane.showInputDialog(rootPane, "Please Specify the number of components for the transform", "PCA Transform", JOptionPane.QUESTION_MESSAGE);
+        
+        try
+        {
+            int pcs = Integer.parseInt(s);
+            if(pcs < 1)
+                throw new RuntimeException();
+            dtp.addTransform(new PCA.PCAFactory(pcs));
+            jMenuCurTransforms.add(new JLabel(" PCA ["+pcs+"] "));
+        }
+        catch(Exception ex)
+        {
+            //TODO show error
+        }
+    }//GEN-LAST:event_jItemTransPCAActionPerformed
+
+    private void jItemTransWhitenedPCAActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_jItemTransWhitenedPCAActionPerformed
+    {//GEN-HEADEREND:event_jItemTransWhitenedPCAActionPerformed
+        String s = JOptionPane.showInputDialog(rootPane, "Please Specify the number of components for the transform", "Whitened PCA Transform", JOptionPane.QUESTION_MESSAGE);
+        
+        try
+        {
+            int pcs = Integer.parseInt(s);
+            if(pcs < 1)
+                throw new RuntimeException();
+            dtp.addTransform(new WhitenedPCA.WhitenedPCATransformFactory(pcs));
+            jMenuCurTransforms.add(new JLabel(" Whitened PCA ["+ pcs+ "] "));
+        }
+        catch(Exception ex)
+        {
+            //TODO show error
+        }
+    }//GEN-LAST:event_jItemTransWhitenedPCAActionPerformed
+
+    private void jItemTransWhitenedZCAActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_jItemTransWhitenedZCAActionPerformed
+    {//GEN-HEADEREND:event_jItemTransWhitenedZCAActionPerformed
+
+        dtp.addTransform(new WhitenedZCA.WhitenedZCATransformFactory());
+        jMenuCurTransforms.add(new JLabel(" Whitened ZCA "));
+    }//GEN-LAST:event_jItemTransWhitenedZCAActionPerformed
+
+    private void jItemTransLinearActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_jItemTransLinearActionPerformed
+    {//GEN-HEADEREND:event_jItemTransLinearActionPerformed
+        String s = JOptionPane.showInputDialog(rootPane, 
+            "Please specify the minimum and maximum range for the transform as "
+                + "\"min,max\" ", "Linear Transform", JOptionPane.QUESTION_MESSAGE);
+        
+        try
+        {
+            String[] split = s.split(",");
+            if(split.length != 2)
+                throw new RuntimeException();
+            double B = Double.parseDouble(split[0]);
+            double A = Double.parseDouble(split[1]);
+            dtp.addTransform(new LinearTransform.LinearTransformFactory(A, B));
+            jMenuCurTransforms.add(new JLabel(" Linear ["+A+", "+B+"] "));
+        }
+        catch(Exception ex)
+        {
+            //TODO show error
+        }
+    }//GEN-LAST:event_jItemTransLinearActionPerformed
+
+    private void jItemClearTransformsActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_jItemClearTransformsActionPerformed
+    {//GEN-HEADEREND:event_jItemClearTransformsActionPerformed
+        dtp = new DataTransformProcess();
+        jMenuCurTransforms.removeAll();
+    }//GEN-LAST:event_jItemClearTransformsActionPerformed
+
     /**
     * @param args the command line arguments
     */
@@ -817,6 +1063,14 @@ public class MainGUI extends javax.swing.JFrame
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JMenuItem jItemClearTransforms;
+    private javax.swing.JMenuItem jItemTransLinear;
+    private javax.swing.JMenuItem jItemTransPCA;
+    private javax.swing.JMenuItem jItemTransPolynomial;
+    private javax.swing.JMenuItem jItemTransUnitVariance;
+    private javax.swing.JMenuItem jItemTransWhitenedPCA;
+    private javax.swing.JMenuItem jItemTransWhitenedZCA;
+    private javax.swing.JMenuItem jItemTransZeroMean;
     private javax.swing.JMenu jMenu1;
     private javax.swing.JMenu jMenu2;
     private javax.swing.JMenu jMenu3;
@@ -829,6 +1083,7 @@ public class MainGUI extends javax.swing.JFrame
     private javax.swing.JMenuItem jMenuClassWhitePCA;
     private javax.swing.JMenu jMenuClassification;
     private javax.swing.JMenuItem jMenuCrossValidateTest;
+    private javax.swing.JMenu jMenuCurTransforms;
     private javax.swing.JMenu jMenuFile;
     private javax.swing.JMenuItem jMenuItem1;
     private javax.swing.JMenuItem jMenuItemClassParaCoords;
@@ -849,7 +1104,9 @@ public class MainGUI extends javax.swing.JFrame
     private javax.swing.JMenuItem jMenuItemWhitePCA;
     private javax.swing.JMenuItem jMenuKSSearch;
     private javax.swing.JMenu jMenuPredictingClass;
+    private javax.swing.JMenu jMenuTransform;
     private javax.swing.JMenu jMenuVisualize;
+    private javax.swing.JPopupMenu.Separator jSeparator1;
     private javax.swing.JFileChooser jfc;
     // End of variables declaration//GEN-END:variables
 

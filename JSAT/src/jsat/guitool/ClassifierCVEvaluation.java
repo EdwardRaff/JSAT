@@ -38,6 +38,7 @@ import jsat.classifiers.CategoricalData;
 import jsat.classifiers.ClassificationDataSet;
 import jsat.classifiers.ClassificationModelEvaluation;
 import jsat.classifiers.Classifier;
+import jsat.datatransform.DataTransformProcess;
 import jsat.exceptions.FailedToFitException;
 import jsat.parameters.Parameterized;
 import jsat.utils.SystemInfo;
@@ -76,7 +77,7 @@ public class ClassifierCVEvaluation extends JDialog
         return df.format(dTime) + unit;
     }
     
-    public ClassifierCVEvaluation(final List<Classifier> classifiers, final List<String> classifierNames, final ClassificationDataSet dataset, Frame owner, String title, boolean modal)
+    public ClassifierCVEvaluation(final List<Classifier> classifiers, final List<String> classifierNames, final ClassificationDataSet dataset, Frame owner, String title, boolean modal, final DataTransformProcess dtp)
     {
         super(owner, title, modal);
         final LongProcessDialog pm = new LongProcessDialog(owner, "Performing Cross Validation");
@@ -91,6 +92,7 @@ public class ClassifierCVEvaluation extends JDialog
         final List<Thread> threadsCreated = new ArrayList<Thread>();
         ThreadFactory threadFactory = new ThreadFactory() {
 
+            @Override
             public Thread newThread(Runnable r)
             {
                 Thread toReturn = new Thread(r);
@@ -122,17 +124,26 @@ public class ClassifierCVEvaluation extends JDialog
                         pm.setNote("Evaluating " + name);
 
                         ClassificationModelEvaluation cme = new ClassificationModelEvaluation(classifier, dataset, threadPool);
+                        if (dtp != null)
+                            cme.setDataTransformProcess(dtp);
                         try
                         {
-                        cme.evaluateCrossValidation(10);
+                            cme.evaluateCrossValidation(10);
                         }
-                        catch(FailedToFitException ex)
+                        catch (FailedToFitException ex)
                         {
                             if (pm.isCanceled())
                                 return null;
                             pm.setNote("Evaluating " + name + ", falling back to Single Threaded");
-                            cme = new ClassificationModelEvaluation(classifier, dataset);
-                            cme.evaluateCrossValidation(10);
+                            try
+                            {
+                                cme = new ClassificationModelEvaluation(classifier, dataset);
+                                cme.evaluateCrossValidation(10);
+                            }
+                            catch (Exception exexp)
+                            {
+                                
+                            }
                         }
                         if (pm.isCanceled())
                             return null;
@@ -203,6 +214,7 @@ public class ClassifierCVEvaluation extends JDialog
                     }
                     catch(Exception ex)
                     {
+                        //TODO set error box
                         if(pm.isCanceled())
                             return null;
                         else//something went really wrong!
