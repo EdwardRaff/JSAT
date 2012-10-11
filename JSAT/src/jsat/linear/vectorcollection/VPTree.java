@@ -13,8 +13,10 @@ import jsat.linear.Vec;
 import jsat.linear.VecPaired;
 import jsat.linear.distancemetrics.DistanceMetric;
 import jsat.utils.BoundedSortedList;
+import jsat.utils.ListUtils;
 import jsat.utils.ModifiableCountDownLatch;
 import jsat.utils.ProbailityMatch;
+import jsat.utils.SimpleList;
 
 /**
  * Provides an implementation of Vantage Point Trees, as described in 
@@ -64,7 +66,8 @@ public class VPTree<V extends Vec> implements VectorCollection<V>
         this.searchIterations = searchIterations;
         this.size = list.size();
         this.vpSelection = vpSelection;
-        List<ProbailityMatch<V>> tmpList = new ArrayList<ProbailityMatch<V>>(list.size());
+        //Use simple list so both halves can be modified simultaniously
+        List<ProbailityMatch<V>> tmpList = new SimpleList<ProbailityMatch<V>>(list.size());
         for(V v : list)
             tmpList.add(new ProbailityMatch<V>(-1, v));
         if(threadpool == null)
@@ -115,11 +118,13 @@ public class VPTree<V extends Vec> implements VectorCollection<V>
         this.size = size;
     }
     
+    @Override
     public int size()
     {
         return size;
     }
         
+    @Override
     public List<VecPaired<Double, V>> search(Vec query, double range)
     {
         if(range <= 0)
@@ -139,6 +144,7 @@ public class VPTree<V extends Vec> implements VectorCollection<V>
         return returnList;
     }
     
+    @Override
     public List<VecPaired<Double, V>> search(Vec query, int neighbors)
     {
         BoundedSortedList<ProbailityMatch<V>> boundedList= new BoundedSortedList<ProbailityMatch<V>>(neighbors, neighbors);
@@ -247,44 +253,44 @@ public class VPTree<V extends Vec> implements VectorCollection<V>
         else if(S.size() <= maxLeafSize)
         {
             VPLeaf leaf = new VPLeaf(S);
-            S.clear();
             mcdl.countDown();
             return leaf;
         }
         
-        final VPNode node = new VPNode(selectVantagePoint(S));
+        //Place the vantage point at the front of the array
+        ListUtils.swap(S, 0, selectVantagePointIndex(S));
+        final VPNode node = new VPNode(S.get(0).getMatch());
         
-        int splitIndex = sortSplitSet(S, node);
+        //Will get sorted, but distance from itself will be zero, so it will 
+        //still be the first element
+        int splitIndex = sortSplitSet(S.subList(1, S.size()), node);
         
         
         //Start 2 threads, but only 1 of them is "new" 
         mcdl.countUp();
-        final List<ProbailityMatch<V>> rightS = new ArrayList<ProbailityMatch<V>>(S.size()-splitIndex);
-        List<ProbailityMatch<V>> rightSubList = S.subList(splitIndex+1, S.size());
-        rightS.addAll(rightSubList);
-        rightSubList.clear();//Which removes them from S 
+
+        final List<ProbailityMatch<V>> rightS = S.subList(splitIndex+1, S.size());
+        final List<ProbailityMatch<V>> leftS = S.subList(1, splitIndex);
         
         threadpool.submit(new Runnable() {
 
+            @Override
             public void run()
             {
                 node.right = makeVPTree(rightS, threadpool, mcdl);
             }
         });
-        node.left  = makeVPTree(S, threadpool, mcdl);
+        node.left  = makeVPTree(leftS, threadpool, mcdl);
         
         return node;
     }
     
-    /**
-     * Determines what point from the data set will become a vantage point, and removes it from the list
-     * @param S the set to select a vantage point from
-     * @return the vantage point removed from the set
-     */
-    private V selectVantagePoint(List<ProbailityMatch<V>> S)
+    
+    private int selectVantagePointIndex(List<ProbailityMatch<V>> S)
     {
+        int vpIndex;
         if (vpSelection == VPSelection.Random)
-            return S.remove(rand.nextInt(S.size())).getMatch();
+            vpIndex = rand.nextInt(S.size());
         else//Sampling
         {
             List<V> samples = new ArrayList<V>(sampleSize);
@@ -321,8 +327,21 @@ public class VPTree<V extends Vec> implements VectorCollection<V>
                 }
             }
 
-            return S.remove(bestVP).getMatch();
+            vpIndex = bestVP;
         }
+        return vpIndex;
+    }
+    
+    /**
+     * Determines what point from the data set will become a vantage point, and removes it from the list
+     * @param S the set to select a vantage point from
+     * @return the vantage point removed from the set
+     */
+    private V selectVantagePoint(List<ProbailityMatch<V>> S)
+    {
+        int vpIndex = selectVantagePointIndex(S);
+        
+        return S.remove(vpIndex).getMatch();
     }
 
     @Override
