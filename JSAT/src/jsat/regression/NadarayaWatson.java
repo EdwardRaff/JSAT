@@ -27,16 +27,16 @@ public class NadarayaWatson implements Regressor
     
     public double regress(DataPoint data)
     {
-        List<VecPaired<Double, VecPaired<Integer, Vec>>> nearBy = kde.getNearby(data.getNumericalValues());
+        List<VecPaired<VecPaired<Vec, Integer>, Double>> nearBy = kde.getNearby(data.getNumericalValues());
         if(nearBy.isEmpty())
             return 0;///hmmm... what should be retruned in this case?
         double weightSum = 0;
         double sum = 0;
         
-        for(VecPaired<Double, VecPaired<Integer, Vec>> v : nearBy)
+        for(VecPaired<VecPaired<Vec, Integer>, Double> v : nearBy)
         {
             double weight = v.getPair();
-            double regressionValue = ( (VecPaired<Double, Vec>) v.getVector().getVector()).getPair();
+            double regressionValue = ( (VecPaired<Vec, Double>) v.getVector().getVector()).getPair();
             weightSum += weight;
             sum += weight*regressionValue;
         }
@@ -46,22 +46,22 @@ public class NadarayaWatson implements Regressor
 
     public void train(RegressionDataSet dataSet, ExecutorService threadPool)
     {
-        List<VecPaired<Double, Vec>> vectors = collectVectors(dataSet);
+        List<VecPaired<Vec, Double>> vectors = collectVectors(dataSet);
         
         kde.setUsingData(vectors, threadPool);
     }
 
-    private List<VecPaired<Double, Vec>> collectVectors(RegressionDataSet dataSet)
+    private List<VecPaired<Vec, Double>> collectVectors(RegressionDataSet dataSet)
     {
-        List<VecPaired<Double, Vec>> vectors = new ArrayList<VecPaired<Double, Vec>>(dataSet.getSampleSize());
+        List<VecPaired<Vec, Double>> vectors = new ArrayList<VecPaired<Vec, Double>>(dataSet.getSampleSize());
         for(int i = 0; i < dataSet.getSampleSize(); i++)
-            vectors.add(new VecPaired<Double, Vec>(dataSet.getDataPoint(i).getNumericalValues(), dataSet.getTargetValue(i)));
+            vectors.add(new VecPaired<Vec, Double>(dataSet.getDataPoint(i).getNumericalValues(), dataSet.getTargetValue(i)));
         return vectors;
     }
 
     public void train(RegressionDataSet dataSet)
     {
-        List<VecPaired<Double, Vec>> vectors = collectVectors(dataSet);;
+        List<VecPaired<Vec, Double>> vectors = collectVectors(dataSet);;
         
         kde.setUsingData(vectors);
     }

@@ -125,17 +125,17 @@ public class VPTree<V extends Vec> implements VectorCollection<V>
     }
         
     @Override
-    public List<VecPaired<Double, V>> search(Vec query, double range)
+    public List<VecPaired<V, Double>> search(Vec query, double range)
     {
         if(range <= 0)
             throw new RuntimeException("Range must be a positive number");
-        List<VecPaired<Double, V>> returnList = new ArrayList<VecPaired<Double, V>>();
+        List<VecPaired<V, Double>> returnList = new ArrayList<VecPaired<V, Double>>();
         
         root.searchRange(VecPaired.extractTrueVec(query), range, returnList, 0.0);
         
-        Collections.sort(returnList, new Comparator<VecPaired<Double, V>>() {
+        Collections.sort(returnList, new Comparator<VecPaired<V, Double>>() {
 
-            public int compare(VecPaired<Double, V> o1, VecPaired<Double, V> o2)
+            public int compare(VecPaired<V, Double> o1, VecPaired<V, Double> o2)
             {
                 return Double.compare(o1.getPair(), o2.getPair());
             }
@@ -145,15 +145,15 @@ public class VPTree<V extends Vec> implements VectorCollection<V>
     }
     
     @Override
-    public List<VecPaired<Double, V>> search(Vec query, int neighbors)
+    public List<VecPaired<V, Double>> search(Vec query, int neighbors)
     {
         BoundedSortedList<ProbailityMatch<V>> boundedList= new BoundedSortedList<ProbailityMatch<V>>(neighbors, neighbors);
 
         root.searchKNN(VecPaired.extractTrueVec(query), neighbors, boundedList, 0.0);
         
-        List<VecPaired<Double, V>> list = new ArrayList<VecPaired<Double, V>>(boundedList.size());
+        List<VecPaired<V, Double>> list = new ArrayList<VecPaired<V, Double>>(boundedList.size());
         for(ProbailityMatch<V> pm : boundedList)
-            list.add(new VecPaired<Double, V>(pm.getMatch(), pm.getProbability()));
+            list.add(new VecPaired<V, Double>(pm.getMatch(), pm.getProbability()));
         return list;
     }
     
@@ -374,7 +374,7 @@ public class VPTree<V extends Vec> implements VectorCollection<V>
          * Though not all nodes will use this value, the leaf nodes will - so it should always be given. 
          * Initial calls from the root node may choose to us zero. 
          */
-        public abstract void searchRange(Vec query, double range, List<VecPaired<Double, V>> list, double x);
+        public abstract void searchRange(Vec query, double range, List<VecPaired<V, Double>> list, double x);
         
         @Override
         public abstract TreeNode clone();
@@ -432,11 +432,11 @@ public class VPTree<V extends Vec> implements VectorCollection<V>
         }
 
         @Override
-        public void searchRange(Vec query, double range, List<VecPaired<Double, V>> list, double x)
+        public void searchRange(Vec query, double range, List<VecPaired<V, Double>> list, double x)
         {
             x = dm.dist(query, this.p);
             if(x <= range)
-                list.add(new VecPaired<Double, V>(this.p, x));
+                list.add(new VecPaired<V, Double>(this.p, x));
 
             if (searchInLeft(x, range))
                 this.left.searchRange(query, range, list, x);
@@ -506,14 +506,14 @@ public class VPTree<V extends Vec> implements VectorCollection<V>
         }
 
         @Override
-        public void searchRange(Vec query, double range, List<VecPaired<Double, V>> list, double x)
+        public void searchRange(Vec query, double range, List<VecPaired<V, Double>> list, double x)
         {
             double dist = Double.MAX_VALUE;
             
             for (int i = 0; i < points.length; i++)
                 if (bounds[i] - range <= x && x <= bounds[i] + range)//Bound check agains the distance to our parrent node, provided by x
                     if ((dist = dm.dist(query, points[i])) < range)
-                        list.add(new VecPaired<Double, V>((V)points[i], dist));
+                        list.add(new VecPaired<V, Double>((V)points[i], dist));
         }
 
         @Override

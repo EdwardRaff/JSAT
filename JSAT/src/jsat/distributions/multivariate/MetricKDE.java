@@ -32,12 +32,12 @@ public class MetricKDE extends MultivariateKDE implements Parameterized
     private KernelFunction kf;
     private double bandwidth;
     private DistanceMetric distanceMetric;
-    private VectorCollectionFactory<VecPaired<Integer, Vec>> vcf;
-    private VectorCollection<VecPaired<Integer, Vec>> vecCollection;
+    private VectorCollectionFactory<VecPaired<Vec, Integer>> vcf;
+    private VectorCollection<VecPaired<Vec, Integer>> vecCollection;
     private int defaultK;
     private double defaultStndDev;
     
-    private static final VectorCollectionFactory<VecPaired<Integer, Vec>> defaultVCF = new DefaultVectorCollectionFactory<VecPaired<Integer, Vec>>();
+    private static final VectorCollectionFactory<VecPaired<Vec, Integer>> defaultVCF = new DefaultVectorCollectionFactory<VecPaired<Vec, Integer>>();
     
     /**
      * When estimating the bandwidth, the distances of the k'th nearest 
@@ -174,14 +174,14 @@ public class MetricKDE extends MultivariateKDE implements Parameterized
      * @param distanceMetric the distance metric to use
      * @param vcf a factory to generate vector collection from
      */
-    public MetricKDE(DistanceMetric distanceMetric, VectorCollectionFactory<VecPaired<Integer, Vec>> vcf)    
+    public MetricKDE(DistanceMetric distanceMetric, VectorCollectionFactory<VecPaired<Vec, Integer>> vcf)    
     {
         this(DEFAULT_KF, distanceMetric, vcf);
     }
 
     public MetricKDE(KernelFunction kf, DistanceMetric distanceMetric)
     {
-        this(kf, distanceMetric, new DefaultVectorCollectionFactory<VecPaired<Integer, Vec>>());
+        this(kf, distanceMetric, new DefaultVectorCollectionFactory<VecPaired<Vec, Integer>>());
     }
     
     /**
@@ -190,7 +190,7 @@ public class MetricKDE extends MultivariateKDE implements Parameterized
      * @param distanceMetric the distance metric to use
      * @param vcf a factory to generate vector collection from
      */
-    public MetricKDE(KernelFunction kf, DistanceMetric distanceMetric, VectorCollectionFactory<VecPaired<Integer, Vec>> vcf)
+    public MetricKDE(KernelFunction kf, DistanceMetric distanceMetric, VectorCollectionFactory<VecPaired<Vec, Integer>> vcf)
     {
         this(kf, distanceMetric, vcf, DEFAULT_K, DEFAULT_STND_DEV);
     }
@@ -203,7 +203,7 @@ public class MetricKDE extends MultivariateKDE implements Parameterized
      * @param defaultK the default neighbor to use when estimating the bandwidth
      * @param defaultStndDev the default multiple of standard deviations to add when estimating the bandwidth
      */
-    public MetricKDE(KernelFunction kf, DistanceMetric distanceMetric, VectorCollectionFactory<VecPaired<Integer, Vec>> vcf, int defaultK, double defaultStndDev)
+    public MetricKDE(KernelFunction kf, DistanceMetric distanceMetric, VectorCollectionFactory<VecPaired<Vec, Integer>> vcf, int defaultK, double defaultStndDev)
     {
         setKernelFunction(kf);
         this.distanceMetric = distanceMetric;
@@ -309,25 +309,25 @@ public class MetricKDE extends MultivariateKDE implements Parameterized
     }
 
     @Override
-    public List<VecPaired<Double, VecPaired<Integer, Vec>>> getNearby(Vec x)
+    public List<VecPaired<VecPaired<Vec, Integer>, Double>> getNearby(Vec x)
     {
         if(vecCollection == null)
             throw new UntrainedModelException("Model has not yet been created");
-        List<VecPaired<Double, VecPaired<Integer, Vec>>> nearBy = getNearbyRaw(x);
+        List<VecPaired<VecPaired<Vec, Integer>, Double>> nearBy = getNearbyRaw(x);
         //Normalize from their distances to their weights by kernel function
-        for(VecPaired<Double, VecPaired<Integer, Vec>> result : nearBy)
+        for(VecPaired<VecPaired<Vec, Integer>, Double> result : nearBy)
             result.setPair(kf.k(result.getPair()));
         return nearBy;
     }
     
     @Override
-    public List<VecPaired<Double, VecPaired<Integer, Vec>>> getNearbyRaw(Vec x)
+    public List<VecPaired<VecPaired<Vec, Integer>, Double>> getNearbyRaw(Vec x)
     {
         if(vecCollection == null)
             throw new UntrainedModelException("Model has not yet been created");
-        List<VecPaired<Double, VecPaired<Integer, Vec>>> nearBy = vecCollection.search(x, bandwidth*kf.cutOff());
+        List<VecPaired<VecPaired<Vec, Integer>, Double>> nearBy = vecCollection.search(x, bandwidth*kf.cutOff());
 
-        for(VecPaired<Double, VecPaired<Integer, Vec>> result : nearBy)
+        for(VecPaired<VecPaired<Vec, Integer>, Double> result : nearBy)
             result.setPair(result.getPair()/bandwidth);
         return nearBy;
     }
@@ -335,13 +335,13 @@ public class MetricKDE extends MultivariateKDE implements Parameterized
     @Override
     public double pdf(Vec x)
     {
-        List<VecPaired<Double, VecPaired<Integer, Vec>>> nearBy = getNearby(x);
+        List<VecPaired<VecPaired<Vec, Integer>, Double>> nearBy = getNearby(x);
         
         if(nearBy.isEmpty())
             return 0;
         
         double PDF = 0;
-        for(VecPaired<Double, VecPaired<Integer, Vec>> result : nearBy)
+        for(VecPaired<VecPaired<Vec, Integer>, Double> result : nearBy)
             PDF+= result.getPair();
         
         return PDF / (vecCollection.size() * Math.pow(bandwidth, nearBy.get(0).length()));
@@ -368,9 +368,9 @@ public class MetricKDE extends MultivariateKDE implements Parameterized
     public <V extends Vec> boolean setUsingData(List<V> dataSet, double bandwith, ExecutorService threadpool)
     {
         setBandwith(bandwith);
-        List<VecPaired<Integer, Vec>> indexVectorPair = new ArrayList<VecPaired<Integer, Vec>>(dataSet.size());
+        List<VecPaired<Vec, Integer>> indexVectorPair = new ArrayList<VecPaired<Vec, Integer>>(dataSet.size());
         for(int i = 0; i < dataSet.size(); i++)
-            indexVectorPair.add(new VecPaired<Integer, Vec>(dataSet.get(i), i));
+            indexVectorPair.add(new VecPaired<Vec, Integer>(dataSet.get(i), i));
         
         TrainableDistanceMetric.trainIfNeeded(distanceMetric, dataSet, threadpool);
         
@@ -437,9 +437,9 @@ public class MetricKDE extends MultivariateKDE implements Parameterized
      */
     public <V extends Vec> boolean setUsingData(List<V> dataSet, int k, double stndDevs, ExecutorService threadpool)
     {
-        List<VecPaired<Integer, Vec>> indexVectorPair = new ArrayList<VecPaired<Integer, Vec>>(dataSet.size());
+        List<VecPaired<Vec, Integer>> indexVectorPair = new ArrayList<VecPaired<Vec, Integer>>(dataSet.size());
         for(int i = 0; i < dataSet.size(); i++)
-            indexVectorPair.add(new VecPaired<Integer, Vec>(dataSet.get(i), i));
+            indexVectorPair.add(new VecPaired<Vec, Integer>(dataSet.get(i), i));
         TrainableDistanceMetric.trainIfNeeded(distanceMetric, dataSet, threadpool);
         vecCollection = vcf.getVectorCollection(indexVectorPair, distanceMetric);
         

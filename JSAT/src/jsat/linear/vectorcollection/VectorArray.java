@@ -49,21 +49,21 @@ public class VectorArray<V extends Vec> extends ArrayList<V> implements VectorCo
         this.distanceMetric = distanceMetric;
     }
 
-    public List<VecPaired<Double, V>> search(Vec query, double range)
+    public List<VecPaired<V, Double>> search(Vec query, double range)
     {
-        List<VecPaired<Double,V>> list = new ArrayList<VecPaired<Double,V>>();
+        List<VecPaired<V, Double>> list = new ArrayList<VecPaired<V, Double>>();
         
         for(V v : this)
         {
             double distance = distanceMetric.dist(query, VecPaired.extractTrueVec(v));
             if(distance <= range)
-                list.add(new VecPaired<Double, V>(v, distance));
+                list.add(new VecPaired<V, Double>(v, distance));
         }
         
         return list;
     }
 
-    public List<VecPaired<Double, V>> search(Vec query, int neighbors)
+    public List<VecPaired<V, Double>> search(Vec query, int neighbors)
     {
         BoundedSortedList<ProbailityMatch<V>> knns = new BoundedSortedList<ProbailityMatch<V>>(neighbors);
         
@@ -73,11 +73,11 @@ public class VectorArray<V extends Vec> extends ArrayList<V> implements VectorCo
             knns.add(new ProbailityMatch<V>(distance, v));
         }
         
-        List<VecPaired<Double,V>> knnsList = new ArrayList<VecPaired<Double,V>>(knns.size());
+        List<VecPaired<V, Double>> knnsList = new ArrayList<VecPaired<V, Double>>(knns.size());
         for(int i = 0; i < knns.size(); i++)
         {
             ProbailityMatch<V> pm = knns.get(i);
-            knnsList.add(new VecPaired<Double, V>(pm.getMatch(), pm.getProbability()));
+            knnsList.add(new VecPaired<V, Double>(pm.getMatch(), pm.getProbability()));
         }
                 
         return knnsList;

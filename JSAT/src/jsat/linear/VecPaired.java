@@ -13,7 +13,7 @@ import java.util.Iterator;
  * 
  * @author Edward Raff
  */
-public class VecPaired<P, V extends Vec> extends Vec
+public class VecPaired<V extends Vec, P> extends Vec
 {
     private V vector;
     private P pair;
@@ -314,11 +314,12 @@ public class VecPaired<P, V extends Vec> extends Vec
         return b;
     }
     
-    public static <P extends Comparable<P> , V extends Vec> Comparator<VecPaired<P, V>>  vecPairedComparator()
+    public static <V extends Vec, P extends Comparable<P>> Comparator<VecPaired<V, P>>  vecPairedComparator()
     {
-        Comparator<VecPaired<P, V>> comp = new Comparator<VecPaired<P, V>>() {
+        Comparator<VecPaired<V, P>> comp = new Comparator<VecPaired<V, P>>() {
 
-            public int compare(VecPaired<P, V> o1, VecPaired<P, V> o2)
+            @Override
+            public int compare(VecPaired<V, P> o1, VecPaired<V, P> o2)
             {
                 return o1.getPair().compareTo(o2.getPair());
             }

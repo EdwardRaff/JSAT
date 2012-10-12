@@ -203,11 +203,11 @@ public class SOM implements Classifier, Parameterized
     private DecayRate learningDecay;
     private DecayRate neighborDecay;
     private DistanceMetric dm;
-    private VectorCollectionFactory<VecPaired<Integer, Vec>> vcFactory;
+    private VectorCollectionFactory<VecPaired<Vec, Integer>> vcFactory;
     
     private Vec[][] weights;
     private CategoricalResults[] crWeightPairs;
-    private VectorCollection<VecPaired<Integer, Vec>> vcCollection;
+    private VectorCollection<VecPaired<Vec, Integer>> vcCollection;
     //Used for parallel varient
     /**
      * Contains the sum of all inputs that were the BMU for the given index. 
@@ -237,7 +237,7 @@ public class SOM implements Classifier, Parameterized
      */
     public SOM(DistanceMetric dm, int somHeight, int somWeight)
     {
-        this(dm, somHeight, somWeight, new DefaultVectorCollectionFactory<VecPaired<Integer, Vec>>());
+        this(dm, somHeight, somWeight, new DefaultVectorCollectionFactory<VecPaired<Vec, Integer>>());
     }
     
     /**
@@ -247,12 +247,12 @@ public class SOM implements Classifier, Parameterized
      * @param somWeight the weight of the SOM lattice
      * @param vcFactory the vector collection factory to use for containing points
      */
-    public SOM(DistanceMetric dm, int somHeight, int somWeight, VectorCollectionFactory<VecPaired<Integer, Vec>> vcFactory)
+    public SOM(DistanceMetric dm, int somHeight, int somWeight, VectorCollectionFactory<VecPaired<Vec, Integer>> vcFactory)
     {
         this(DEFAULT_MAX_ITERS, DEFAULT_KF, DEFAULT_LEARNING_RATE, DEFAULT_LEARNING_DECAY, DEFAULT_NEIGHBOR_DECAY, dm, somHeight, somWeight, vcFactory);
     }
     
-    private SOM(int maxIters, KernelFunction kf, double initialLearningRate, DecayRate learningDecay, DecayRate neighborDecay, DistanceMetric dm, int somHeight, int somWeight,  VectorCollectionFactory<VecPaired<Integer, Vec>> vcFactory)
+    private SOM(int maxIters, KernelFunction kf, double initialLearningRate, DecayRate learningDecay, DecayRate neighborDecay, DistanceMetric dm, int somHeight, int somWeight,  VectorCollectionFactory<VecPaired<Vec, Integer>> vcFactory)
     {
         this.somHeight = somHeight;
         this.somWidth = somWeight;
@@ -433,12 +433,12 @@ public class SOM implements Classifier, Parameterized
         }
     }
 
-    private List<VecPaired<Integer, Vec>> setUpVectorCollection(ExecutorService threadPool)
+    private List<VecPaired<Vec, Integer>> setUpVectorCollection(ExecutorService threadPool)
     {
-        List<VecPaired<Integer, Vec>> vecList = new ArrayList<VecPaired<Integer, Vec>>(somWidth*somHeight);
+        List<VecPaired<Vec, Integer>> vecList = new ArrayList<VecPaired<Vec, Integer>>(somWidth*somHeight);
         for(int i = 0; i < weights.length; i++)
             for(int j = 0; j < weights[i].length; j++)
-                vecList.add(new VecPaired<Integer, Vec>(weights[i][j], vecList.size()));
+                vecList.add(new VecPaired<Vec, Integer>(weights[i][j], vecList.size()));
         if(threadPool == null)
             vcCollection = vcFactory.getVectorCollection(vecList, dm);
         else
@@ -682,7 +682,7 @@ public class SOM implements Classifier, Parameterized
         try
         {
             trainSOM(dataSet, threadPool);
-            List<VecPaired<Integer, Vec>> vecList = setUpVectorCollection(threadPool);
+            List<VecPaired<Vec, Integer>> vecList = setUpVectorCollection(threadPool);
             crWeightPairs = new CategoricalResults[vecList.size()];
 
             for(int i = 0; i < crWeightPairs.length; i++)
@@ -693,7 +693,7 @@ public class SOM implements Classifier, Parameterized
                 DataPoint dp = dataSet.getDataPoint(i);
 
                 //Single nearest neighbor is the BMU
-                VecPaired<Integer, Vec> vpBMU = vcCollection.search(dp.getNumericalValues(), 1).get(0).getVector();
+                VecPaired<Vec, Integer> vpBMU = vcCollection.search(dp.getNumericalValues(), 1).get(0).getVector();
 
                 int index = vpBMU.getPair();
 

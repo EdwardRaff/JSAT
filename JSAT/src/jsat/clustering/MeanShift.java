@@ -305,7 +305,7 @@ public class MeanShift extends ClustererBase
     {
         double denom = 0.0;
         Vec xCur = xit[i];
-        List<VecPaired<Double, VecPaired<Integer, Vec>>> contrib = mkde.getNearbyRaw(xCur);
+        List<VecPaired<VecPaired<Vec, Integer>, Double>> contrib = mkde.getNearbyRaw(xCur);
         
         if(contrib.size() == 1)
         {
@@ -316,7 +316,7 @@ public class MeanShift extends ClustererBase
         else
         {
             scratch.zeroOut();
-            for(VecPaired<Double, VecPaired<Integer, Vec>> v : contrib)
+            for(VecPaired<VecPaired<Vec, Integer>, Double> v : contrib)
             {
                 double g = - k.kPrime(v.getPair());
                 denom += g;

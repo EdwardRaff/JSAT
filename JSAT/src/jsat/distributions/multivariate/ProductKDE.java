@@ -72,24 +72,24 @@ public class ProductKDE extends MultivariateKDE
     }
 
     @Override
-    public List<VecPaired<Double, VecPaired<Integer, Vec>>> getNearby(Vec x)
+    public List<VecPaired<VecPaired<Vec, Integer>, Double>> getNearby(Vec x)
     {
         
         SparseVector logProd = new SparseVector(sortedDimVals[0].length);
         Set<Integer> validIndecies = new HashSet<Integer>();
         double logH = queryWork(x, validIndecies, logProd);
-        List<VecPaired<Double, VecPaired<Integer, Vec>>> results = new ArrayList<VecPaired<Double, VecPaired<Integer, Vec>>>(validIndecies.size());
+        List<VecPaired<VecPaired<Vec, Integer>, Double>> results = new ArrayList<VecPaired<VecPaired<Vec, Integer>, Double>>(validIndecies.size());
         
         for(int i : validIndecies)
         {
             Vec v = originalVecs.get(i);
-            results.add(new VecPaired<Double, VecPaired<Integer, Vec>>(new VecPaired<Integer, Vec>(v, i), exp(logProd.get(i))));
+            results.add(new VecPaired<VecPaired<Vec, Integer>, Double>(new VecPaired<Vec, Integer>(v, i), exp(logProd.get(i))));
         }
         return results;
     }
     
     @Override
-    public List<VecPaired<Double, VecPaired<Integer, Vec>>> getNearbyRaw(Vec x)
+    public List<VecPaired<VecPaired<Vec, Integer>, Double>> getNearbyRaw(Vec x)
     {
         //Not entirly sure how I'm going to fix this... but this isnt technically right
         throw new UnsupportedOperationException("Product KDE can not recover raw Score values");

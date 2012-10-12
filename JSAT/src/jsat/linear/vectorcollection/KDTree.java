@@ -323,7 +323,7 @@ public class KDTree<V extends Vec> implements VectorCollection<V>
     }
     
     @Override
-    public List<VecPaired<Double,V>> search(Vec query, int neighbors)
+    public List<VecPaired<V, Double>> search(Vec query, int neighbors)
     {
         if(neighbors < 1)
             throw new RuntimeException("Invalid number of neighbors to search for");
@@ -332,17 +332,17 @@ public class KDTree<V extends Vec> implements VectorCollection<V>
         
         knnKDSearch(query, knns);
         
-        List<VecPaired<Double,V>> knnsList = new ArrayList<VecPaired<Double,V>>(knns.size());
+        List<VecPaired<V, Double>> knnsList = new ArrayList<VecPaired<V, Double>>(knns.size());
         for(int i = 0; i < knns.size(); i++)
         {
             ProbailityMatch<V> pm = knns.get(i);
-            knnsList.add(new VecPaired<Double, V>(pm.getMatch(), pm.getProbability()));
+            knnsList.add(new VecPaired<V, Double>(pm.getMatch(), pm.getProbability()));
         }
         
         return knnsList;
     }
     
-    private void distanceSearch(Vec query, KDNode node, List<VecPaired<Double,V>> knns, double range)
+    private void distanceSearch(Vec query, KDNode node, List<VecPaired<V, Double>> knns, double range)
     {
         if(node == null)
             return;
@@ -350,7 +350,7 @@ public class KDTree<V extends Vec> implements VectorCollection<V>
         double distance = distanceMetric.dist(query, extractTrueVec(curData));
         
         if(distance <= range)
-            knns.add( new VecPaired<Double, V>(curData, distance) );
+            knns.add( new VecPaired<V, Double>(curData, distance) );
         
         double diff = query.get(node.axis) - curData.get(node.axis);
         
@@ -373,17 +373,17 @@ public class KDTree<V extends Vec> implements VectorCollection<V>
     }
     
     @Override
-    public List<VecPaired<Double,V>> search(Vec query, double range)
+    public List<VecPaired<V, Double>> search(Vec query, double range)
     {
         if(range <= 0)
             throw new RuntimeException("Range must be a positive number");
-        ArrayList<VecPaired<Double,V>> vecs = new ArrayList<VecPaired<Double,V>>();
+        ArrayList<VecPaired<V, Double>> vecs = new ArrayList<VecPaired<V, Double>>();
         
         distanceSearch(query, root, vecs, range);
         
-        Collections.sort(vecs, new Comparator<VecPaired<Double, V>>() {
+        Collections.sort(vecs, new Comparator<VecPaired<V, Double>>() {
 
-            public int compare(VecPaired<Double, V> o1, VecPaired<Double, V> o2)
+            public int compare(VecPaired<V, Double> o1, VecPaired<V, Double> o2)
             {
                 return Double.compare(o1.getPair(), o2.getPair());
             }

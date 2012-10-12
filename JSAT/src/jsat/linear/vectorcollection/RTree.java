@@ -22,22 +22,22 @@ import static jsat.linear.VecPaired.*;
 public class RTree<V extends Vec> implements VectorCollection<V>
 {
 
-    public List<VecPaired<Double, V>> search(Vec query, double range)
+    public List<VecPaired<V, Double>> search(Vec query, double range)
     {
         Rectangle searchSpace = new Rectangle(dim, range, query);
         
         List<V> inSearchSpace= new ArrayList<V>();
         search(searchSpace, root, inSearchSpace);
-        List<VecPaired<Double, V>> inRange = new ArrayList<VecPaired<Double, V>>(inSearchSpace.size());
+        List<VecPaired<V, Double>> inRange = new ArrayList<VecPaired<V, Double>>(inSearchSpace.size());
         double dist;
         for(V v : inSearchSpace)
             if( (dist = dm.dist(query, extractTrueVec(v))) <= range)
-                inRange.add(new VecPaired<Double, V>(v, dist));
+                inRange.add(new VecPaired<V, Double>(v, dist));
         
         return inRange;
     }
 
-    public List<VecPaired<Double, V>> search(Vec query, int neighbors)
+    public List<VecPaired<V, Double>> search(Vec query, int neighbors)
     {
         /**
          * Match up nodes with the minDist from the query to that node
@@ -86,11 +86,11 @@ public class RTree<V extends Vec> implements VectorCollection<V>
         
         
         //Now prepare to return 
-        List<VecPaired<Double,V>> knnsList = new ArrayList<VecPaired<Double,V>>(neighbors);
+        List<VecPaired<V, Double>> knnsList = new ArrayList<VecPaired<V, Double>>(neighbors);
         for(int i = 0; i < curBest.size(); i++)
         {
             ProbailityMatch<V> pm = curBest.get(i);
-            knnsList.add(new VecPaired<Double, V>(pm.getMatch(), pm.getProbability()));
+            knnsList.add(new VecPaired<V, Double>(pm.getMatch(), pm.getProbability()));
         }
         
         return knnsList;

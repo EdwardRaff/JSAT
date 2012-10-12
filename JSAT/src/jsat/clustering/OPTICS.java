@@ -52,8 +52,8 @@ public class OPTICS extends ClustererBase implements Parameterized
     
     private DistanceMetric dm;
     
-    private VectorCollectionFactory<VecPaired<Integer, Vec>> vcf = new DefaultVectorCollectionFactory<VecPaired<Integer, Vec>>();
-    private VectorCollection<VecPaired<Integer, Vec>> vc;
+    private VectorCollectionFactory<VecPaired<Vec, Integer>> vcf = new DefaultVectorCollectionFactory<VecPaired<Vec, Integer>>();
+    private VectorCollection<VecPaired<Vec, Integer>> vc;
     private double radius = 1;
     private int minPts;
     private double[] core_distance;
@@ -374,7 +374,7 @@ public class OPTICS extends ClustererBase implements Parameterized
      * 
      * @param vcf the vector collection factory to use
      */
-    public void setVCF(VectorCollectionFactory<VecPaired<Integer, Vec>> vcf)
+    public void setVCF(VectorCollectionFactory<VecPaired<Vec, Integer>> vcf)
     {
         this.vcf = vcf;
     }
@@ -389,10 +389,10 @@ public class OPTICS extends ClustererBase implements Parameterized
             if(designations[i] != NOISE)
                 continue;
             //Check if all the neighbors have a consensus on the cluster class (ignoring noise)
-            List<VecPaired<Double, VecPaired<Integer, Vec>>> neighbors = vc.search(allVecs[i], minPts/2+1);
+            List<VecPaired<VecPaired<Vec, Integer>, Double>> neighbors = vc.search(allVecs[i], minPts/2+1);
             int CLASS = -1;//-1 for not set, -2 for conflic
             
-            for(VecPaired<Double, VecPaired<Integer, Vec>> v : neighbors)
+            for(VecPaired<VecPaired<Vec, Integer>, Double> v : neighbors)
             {
                 int subC = designations[v.getVector().getPair()];
                 if(subC == NOISE)//ignore
@@ -615,11 +615,11 @@ public class OPTICS extends ClustererBase implements Parameterized
         Arrays.fill(reach_d, UNDEFINED);
         processed = new boolean[n];
         allVecs = new Vec[n];
-        List<VecPaired<Integer, Vec>> pairedVecs = new ArrayList<VecPaired<Integer, Vec>>(n);
+        List<VecPaired<Vec, Integer>> pairedVecs = new ArrayList<VecPaired<Vec, Integer>>(n);
         for(int i = 0; i < allVecs.length; i++)
         {
             allVecs[i] = dataSet.getDataPoint(i).getNumericalValues();
-            pairedVecs.add(new VecPaired<Integer, Vec>(allVecs[i], i));
+            pairedVecs.add(new VecPaired<Vec, Integer>(allVecs[i], i));
         }
         vc = vcf.getVectorCollection(pairedVecs, dm);
 
@@ -691,8 +691,8 @@ public class OPTICS extends ClustererBase implements Parameterized
 
     private void expandClusterOrder(int curIndex, Vec vec, List<Integer> orderedFile)
     {
-        List<VecPaired<Double, VecPaired<Integer, Vec>>> neighbors = vc.search(vec, radius);
-        VecPaired<Integer, Vec> object = new VecPaired<Integer, Vec>(vec, curIndex);
+        List<VecPaired<VecPaired<Vec, Integer>, Double>> neighbors = vc.search(vec, radius);
+        VecPaired<Vec, Integer> object = new VecPaired<Vec, Integer>(vec, curIndex);
         
         reach_d[curIndex] = UNDEFINED;//NaN used for undefined
         processed[curIndex] = true;
@@ -716,7 +716,7 @@ public class OPTICS extends ClustererBase implements Parameterized
         
     }
 
-    private void setCoreDistance(List<VecPaired<Double, VecPaired<Integer, Vec>>> neighbors, int curIndex)
+    private void setCoreDistance(List<VecPaired<VecPaired<Vec, Integer>, Double>> neighbors, int curIndex)
     {
         if(neighbors.size() < minPts+1)//+1 b/c we dont count oursleves, which will get returned
             core_distance[curIndex] = UNDEFINED;
@@ -724,12 +724,12 @@ public class OPTICS extends ClustererBase implements Parameterized
             core_distance[curIndex] = neighbors.get(minPts).getPair();
     }
 
-    private void orderedSeedsUpdate(List<VecPaired<Double, VecPaired<Integer, Vec>>> neighbors, int centerObjectIndex)
+    private void orderedSeedsUpdate(List<VecPaired<VecPaired<Vec, Integer>, Double>> neighbors, int centerObjectIndex)
     {
         double c_dist = core_distance[centerObjectIndex];
         for(int i = 1; i < neighbors.size(); i++)//'0' index is a self reference, skip it
         {
-            VecPaired<Double, VecPaired<Integer, Vec>> neighbor = neighbors.get(i);
+            VecPaired<VecPaired<Vec, Integer>, Double> neighbor = neighbors.get(i);
             int objIndex = neighbor.getVector().getPair();
             if(processed[objIndex])
                continue;
