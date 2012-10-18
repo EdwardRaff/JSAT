@@ -14,14 +14,20 @@ import jsat.classifiers.ClassificationDataSet;
 import jsat.classifiers.Classifier;
 import jsat.classifiers.DataPoint;
 import jsat.classifiers.DataPointPair;
-import jsat.distributions.kernels.KernelTrick;
-import jsat.distributions.kernels.LinearKernel;
+import jsat.classifiers.svm.SupportVectorMachine;
 import jsat.exceptions.FailedToFitException;
 import jsat.linear.DenseVector;
 import jsat.linear.Vec;
 import jsat.utils.PairedReturn;
 
 /**
+ * The perceptron is a simple algorithm that attempts to find a hyperplane that 
+ * separates two classes. It may find any possible separating plane, and there 
+ * are no guarantees when the data is not linearly separable. 
+ * <br>
+ * It is equivalent to a single node Neural Network, and is related to 
+ * {@link SupportVectorMachine SVMs}
+ * 
  * 
  * @author Edward Raff
  */
@@ -32,20 +38,28 @@ public class Perceptron implements Classifier
     private double bias;
     private Vec weights;
     private int iteratinLimit;
-    private final KernelTrick kernel;
 
+    /**
+     * Creates a new Perceptron learner
+     */
     public Perceptron()
     {
-        this(0.1, new LinearKernel(), 400);
+        this(0.1, 400);
     }
     
-    public Perceptron(double learningRate, KernelTrick kernel, int iteratinLimit)
+    /**
+     * Creates a new Perceptron learner
+     * 
+     * @param learningRate the rate at which to incorporate the change of errors
+     * into the model
+     * @param iteratinLimit the maximum number of iterations to perform when converging
+     */
+    public Perceptron(double learningRate, int iteratinLimit)
     {
         if(learningRate <= 0 || learningRate > 1)
             throw new RuntimeException("Preceptron learning rate must be in the range (0,1]");
         this.learningRate = learningRate;
         this.iteratinLimit = iteratinLimit;
-        this.kernel = kernel;
     }
     
     
@@ -261,7 +275,7 @@ public class Perceptron implements Classifier
     
     private int output(Vec input)
     {
-        double dot = kernel.eval(weights, input) + bias;
+        double dot = weights.dot(input) + bias;
         
         return (dot >= 0) ? 1 : 0;
     }
@@ -275,7 +289,7 @@ public class Perceptron implements Classifier
     @Override
     public Classifier clone()
     {
-        Perceptron copy = new  Perceptron(learningRate, kernel, iteratinLimit);
+        Perceptron copy = new  Perceptron(learningRate, iteratinLimit);
         if(this.weights != null)
             copy.weights = this.weights.clone();
         
