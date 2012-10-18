@@ -77,7 +77,7 @@ public class WhitenedPCA implements DataTransform
     {
         
         SingularValueDecomposition svd = getSVD(dataSet);
-        setRegularization(Math.log(svd.getCondition()+Math.E));
+        setRegularization(svd);
         setDims(svd.getRank());
         
         
@@ -95,7 +95,7 @@ public class WhitenedPCA implements DataTransform
     {
         
         SingularValueDecomposition svd = getSVD(dataSet);
-        setRegularization(Math.log(svd.getCondition()+Math.E));
+        setRegularization(svd);
         setDims(dims);
         
         
@@ -118,7 +118,7 @@ public class WhitenedPCA implements DataTransform
      * @param dataSet the data set in question
      * @return the SVD for the covariance
      */
-    protected SingularValueDecomposition getSVD(DataSet dataSet)
+    private SingularValueDecomposition getSVD(DataSet dataSet)
     {
         return new SingularValueDecomposition(covarianceMatrix(meanVector(dataSet), dataSet));
     }
@@ -175,6 +175,14 @@ public class WhitenedPCA implements DataTransform
     public DataTransform clone()
     {
         return new WhitenedPCA(this);
+    }
+
+    private void setRegularization(SingularValueDecomposition svd)
+    {
+        if(svd.isFullRank())
+            setRegularization(1e-10);
+        else
+            setRegularization(Math.max(Math.log(1.0+svd.getSingularValues()[svd.getRank()])*0.25, 1e-4));
     }
     
     static public class WhitenedPCATransformFactory implements DataTransformFactory
