@@ -599,6 +599,17 @@ public class SingularValueDecomposition implements Cloneable
     }
     
     /**
+     * Indicates whether or not the input matrix was of full rank, full 
+     * rank matrices are more numerically stable. 
+     * 
+     * @return <tt>true</tt> if the matrix was of full tank
+     */
+    public boolean isFullRank()
+    {
+        return getRank() == sLength();
+    }
+    
+    /**
      * Returns the numerical rank of the matrix. Values &lt;= than <tt>tol</tt> will be ignored. 
      * @param tol the cut of for singular values
      * @return the rank of the matrix
