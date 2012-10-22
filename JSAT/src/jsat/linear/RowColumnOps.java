@@ -360,4 +360,31 @@ public class RowColumnOps
         swapCol(A, j, k, 0, A.cols());
     }
     
+    /**
+     * Fills the values in a row of the matrix
+     * @param A the matrix in question
+     * @param i the row of the matrix
+     * @param from the first column index to fill (inclusive)
+     * @param to the last column index to fill (exclusive)
+     * @param val the value to fill into the matrix
+     */
+    public static void fillRow(Matrix A, int i, int from, int to, double val)
+    {
+        for(int j = from; j < to; j++)
+            A.set(i, j, val);
+    }
+    
+    /**
+     * Fills the values in a column of the matrix
+     * @param A the matrix in question
+     * @param j the column of the matrix
+     * @param from the first row index to fill (inclusive)
+     * @param to the last row index to fill (exclusive)
+     * @param val the value to fill into the matrix
+     */
+    public static void fillCol(Matrix A, int j, int from, int to, double val)
+    {
+        for(int i = from; i < to; i++)
+            A.set(i, j, val);
+    }
 }
