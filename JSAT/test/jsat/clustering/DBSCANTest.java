@@ -45,7 +45,7 @@ public class DBSCANTest
     @BeforeClass
     public static void setUpClass() throws Exception
     {
-        dbscan = new DBSCAN(new EuclideanDistance(), new VectorArrayFactory<VecPaired<Integer, Vec>>());
+        dbscan = new DBSCAN(new EuclideanDistance(), new VectorArrayFactory<VecPaired<Vec, Integer>>());
         GridDataGenerator gdg = new GridDataGenerator(new Uniform(-0.15, 0.15), new Random(12), 2, 5);
         easyData10 = gdg.generateData(40);
         ex = Executors.newFixedThreadPool(SystemInfo.LogicalCores);
