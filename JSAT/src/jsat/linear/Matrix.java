@@ -508,4 +508,54 @@ public abstract class Matrix implements Cloneable
             RowColumnOps.multRow(A, i, b.get(i));
     }
     
+    /**
+     * Checks to see if the given input is approximately symmetric. Rounding 
+     * errors may cause the computation of a matrix to come out non symmetric, 
+     * where |a[i,h] - a[j, i]| &lt; eps. Despite these errors, it may be 
+     * preferred to treat the matrix as perfectly symmetric regardless. 
+     * 
+     * @param A the input matrix
+     * @param eps the maximum tolerable difference between two entries
+     * @return <tt>true</tt> if the matrix is approximately symmetric 
+     */
+    public static boolean isSymmetric(Matrix A, double eps)
+    {
+        if(!A.isSquare())
+            return false;
+        for(int i = 0; i < A.rows(); i++)
+            for(int j = i+1; j < A.cols(); j++)
+                if( Math.abs(A.get(i, j)-A.get(j, i)) > eps)
+                    return false;
+        return true;
+    }
+    
+    /**
+     * Checks to see if the given input is a perfectly symmetric matrix
+     * @param A the input matrix
+     * @return <tt>true</tt> if it is perfectly symmetric. 
+     */
+    public static boolean isSymmetric(Matrix A)
+    {
+        return isSymmetric(A, 0.0);
+    }
+    
+    /**
+     * Creates a new square matrix that is a pascal matrix. The pascal matrix of
+     * size <i>n</i> is <i>n</i> by <i>n</i> and symmetric. 
+     * 
+     * @param size the number of rows and columns for the matrix
+     * @return a pascal matrix of the desired size
+     */
+    public static Matrix pascal(int size)
+    {
+        if(size <= 0 )
+            throw new ArithmeticException();
+        DenseMatrix P = new DenseMatrix(size, size);
+        RowColumnOps.fillRow(P, 0, 0, size, 1.0);
+        RowColumnOps.fillCol(P, 0, 0, size, 1.0);
+        for(int i = 1; i < size; i++)
+            for(int j = 1; j < size; j++)
+                P.set(i, j, P.get(i-1, j) + P.get(i, j-1));
+        return P;
+    }
 }
