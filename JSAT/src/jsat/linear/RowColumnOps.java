@@ -8,6 +8,19 @@ package jsat.linear;
 public class RowColumnOps
 {
     /**
+     * Updates the values along the main diagonal of the matrix by adding a constant to them
+     * @param A the matrix to perform the update on
+     * @param start the first index of the diagonals to update (inclusive)
+     * @param to the last index of the diagonals to update (exclusive)
+     * @param c the constant to add to the diagonal
+     */
+    public static void addDiag(Matrix A, int start, int to, double c)
+    {
+        for(int i = start; i < to; i++)
+            A.increment(i, i, c);
+    }
+    
+    /**
      * Updates the values of row <tt>i</tt> in the given matrix to be A[i,:] = A[i,:]+ c
      * 
      * @param A the matrix to perform he update on
