@@ -326,7 +326,6 @@ public class EigenValueDecomposition
      */
     private void orthes()
     {
-
         final double[] ort = new double[n];
 
         //  This is derived from the Algol procedures orthes and ortran,
@@ -364,31 +363,7 @@ public class EigenValueDecomposition
                 
                 h = h - tmp * g;
                 ort[m] = tmp - g;
-
-                // Apply Householder similarity transformation
-                // H = (I-u*u'/h)*H*(I-u*u')/h)
-
-                for (int j = m; j < n; j++)
-                {
-                    double f = 0.0;
-                    for(int i = m; i <= high; i++)
-                    {
-                        f += ort[i] * H.get(i, j);
-                    }
-                    f /= h;
-                    RowColumnOps.addMultCol(H, j, m, high+1, -f, ort);
-                }
-
-                for (int i = 0; i <= high; i++)
-                {
-                    double f = 0.0;
-                    for(int j = m; j <= high; j++)
-                    {
-                        f += ort[j] * H.get(i, j);
-                    }
-                    f/= h;
-                    RowColumnOps.addMultRow(H, i, m, high+1, -f, ort);
-                }
+                orthesApplyHouseholder(m, high, ort, h);
                 ort[m] *= scale;
                 H.set(m, m-1, scale*g);
             }
@@ -403,28 +378,8 @@ public class EigenValueDecomposition
                 V.set(i, j, (i == j ? 1.0 : 0.0));
             }
         }
-
-        for (int m = high - 1; m >= low + 1; m--)
-        {
-            if (H.get(m, m-1) != 0.0)
-            {
-                for (int i = m + 1; i <= high; i++)
-                {
-                    ort[i] = H.get(i, m-1);
-                }
-                for (int j = m; j <= high; j++)
-                {
-                    double g = 0.0;
-                    for (int i = m; i <= high; i++)
-                    {
-                        g += ort[i] * V.get(i, j);
-                    }
-                    // Double division avoids possible underflow
-                    g = (g / ort[m]) / H.get(m, m-1);
-                    RowColumnOps.addMultCol(V, j, m, high+1, g, ort);
-                }
-            }
-        }
+        
+        orthesAccumulateTransforamtions(high, low, ort);
     }
 
 
@@ -451,23 +406,8 @@ public class EigenValueDecomposition
         /**
          * Output from complex division
          */
-        double[] cr = new double[2];
-
-        // Store roots isolated by balanc and compute matrix norm
-
-        double norm = 0.0;
-        for (int i = 0; i < nn; i++)
-        {
-            if (i < low | i > high)
-            {
-                d[i] = H.get(i, i);
-                e[i] = 0.0;
-            }
-            for (int j = max(i - 1, 0); j < nn; j++)
-            {
-                norm = norm + abs(H.get(i, j));
-            }
-        }
+        final double[] cr = new double[2];
+        double norm = hqr2GetNormStart(nn, low, high);
 
         // Outer loop over eigenvalue index
 
@@ -502,74 +442,20 @@ public class EigenValueDecomposition
                 e[n] = 0.0;
                 n--;
                 iter = 0;
-
-                // Two roots found
-
             }
-            else if (l == n - 1)
+            else if (l == n - 1) // Two roots found
             {
-                w = H.get(n, n-1) * H.get(n-1, n);;
-                p = (H.get(n-1, n-1) - H.get(n, n)) / 2.0;
-                q = p * p + w;
-                z = sqrt(abs(q));
-                H.increment(n, n, exshift);
-                H.increment(n-1, n-1, exshift);
-                x = H.get(n, n);
-                
-                // Real pair
-
-                if (q >= 0)
-                {
-                    if (p >= 0)
-                        z = p + z;
-                    else
-                        z = p - z;
-                    
-                    d[n - 1] = x + z;
-                    d[n] = d[n - 1];
-                    if (z != 0.0)
-                        d[n] = x - w / z;
-                    
-                    e[n - 1] = 0.0;
-                    e[n] = 0.0;
-                    x = H.get(n, n-1);
-                    s = abs(x) + abs(z);
-                    p = x / s;
-                    q = z / s;
-                    r = sqrt(p * p + q * q);
-                    p = p / r;
-                    q = q / r;
-
-                    // Row modification
-                    rowOpTransform(H, n-1, nn-1, n, q, p);
-
-                    // Column modification
-                    columnOpTransform(H, 0, n, n, q, p, -1);
-                    
-                    // Accumulate transformations
-                    columnOpTransform(V, low, high, n, q, p, -1);
-   
-                    // Complex pair
-
-                }
-                else
-                {
-                    d[n - 1] = x + p;
-                    d[n] = x + p;
-                    e[n - 1] = z;
-                    e[n] = -z;
-                }
+                hqr2FoundTwoRoots(exshift, n, nn, low, high);
                 n = n - 2;
                 iter = 0;
 
                 // No convergence yet
-
             }
             else
             {
 
                 // Form shift
-
+                
                 x = H.get(n, n);
                 y = 0.0;
                 w = 0.0;
@@ -584,10 +470,7 @@ public class EigenValueDecomposition
                 if (iter == 10)
                 {
                     exshift += x;
-                    for (int i = low; i <= n; i++)
-                    {
-                        H.increment(i, i, -x);
-                    }
+                    RowColumnOps.addDiag(H, low, n+1, -x);
                     s = abs(H.get(n, n-1)) + abs(H.get(n-1, n-2));
                     x = y = 0.75 * s;
                     w = -0.4375 * s * s;
@@ -607,10 +490,7 @@ public class EigenValueDecomposition
                             s = -s;
                         }
                         s = x - w / ((y - x) / 2.0 + s);
-                        for (int i = low; i <= n; i++)
-                        {
-                            H.increment(i, i, -s);
-                        }
+                        RowColumnOps.addDiag(H, low, n+1, -s);
                         exshift += s;
                         x = y = w = 0.964;
                     }
@@ -712,177 +592,14 @@ public class EigenValueDecomposition
                 }  // k loop
             }  // check convergence
         }  // while (n >= low)
-
+        
         // Backsubstitute to find vectors of upper triangular form
 
         if (norm == 0.0)
-        {
             return;
-        }
-
-        for (n = nn - 1; n >= 0; n--)
-        {
-            p = d[n];
-            q = e[n];
-
-            // Real vector
-
-            if (q == 0)
-            {
-                int l = n;
-                H.set(n, n, 1.0);
-                for (int i = n - 1; i >= 0; i--)
-                {
-                    w = H.get(i, i) - p;
-                    r = 0.0;
-                    for (int j = l; j <= n; j++)
-                    {
-                        r = r + H.get(i, j) * H.get(j, n);
-                    }
-                    if (e[i] < 0.0)
-                    {
-                        z = w;
-                        s = r;
-                    }
-                    else
-                    {
-                        l = i;
-                        if (e[i] == 0.0)
-                        {
-                            if (w != 0.0)
-                            {
-                                H.set(i, n, -r / w);
-                            }
-                            else
-                            {
-                                H.set(i, n, -r/(eps*norm));
-                            }
-
-                            // Solve real equations
-
-                        }
-                        else
-                        {
-                            x = H.get(i, i+1);
-                            y = H.get(i+1, i);
-                            q = (d[i] - p) * (d[i] - p) + e[i] * e[i];
-                            t = (x * s - z * r) / q;
-                            H.set(i, n, t);
-                            if (abs(x) > abs(z))
-                            {
-                                H.set(i+1, n, (-r-w*t)/x);
-                            }
-                            else
-                            {
-                                H.set(i+1, n, (-s - y * t) / z);
-                            }
-                        }
-
-                        // Overflow control
-
-                        t = abs(H.get(i, n));
-                        if ((eps * t) * t > 1)
-                        {
-                            RowColumnOps.divCol(H, n, t);
-                        }
-                    }
-                }
-
-                // Complex vector
-
-            }
-            else if (q < 0)
-            {
-                int l = n - 1;
-
-                // Last vector component imaginary so matrix is triangular
-
-                if (abs(H.get(n, n-1)) > abs(H.get(n-1, n)))
-                {
-                    H.set(n-1, n-1,  q / H.get(n, n-1));
-                    H.set(n-1, n,    -(H.get(n, n) - p) / H.get(n, n-1));
-                }
-                else
-                {
-                    Complex.cDiv(0.0, -H.get(n-1, n), H.get(n-1, n-1) - p, q, cr);
-                    H.set(n-1, n-1,  cr[0]);
-                    H.set(n-1, n, cr[1]);
-                }
-                H.set(n, n-1, 0.0);
-                H.set(n, n, 1.0);
-                for (int i = n - 2; i >= 0; i--)
-                {
-                    double ra, sa, vr, vi;
-                    ra = 0.0;
-                    sa = 0.0;
-                    for (int j = l; j <= n; j++)
-                    {
-                        ra = ra + H.get(i, j) * H.get(j, n-1);
-                        sa = sa + H.get(i, j) * H.get(j, n);
-                    }
-                    w = H.get(i, i) - p;
-
-                    if (e[i] < 0.0)
-                    {
-                        z = w;
-                        r = ra;
-                        s = sa;
-                    }
-                    else
-                    {
-                        l = i;
-                        if (e[i] == 0)
-                        {
-                            Complex.cDiv(-ra, -sa, w, q, cr);
-                            H.set(i, n-1, cr[0]);
-                            H.set(i, n,   cr[1]);
-                        }
-                        else
-                        {
-
-                            // Solve complex equations
-
-                            x = H.get(i, i+1);
-                            y = H.get(i+1, i);
-                            vr = (d[i] - p) * (d[i] - p) + e[i] * e[i] - q * q;
-                            vi = (d[i] - p) * 2.0 * q;
-                            if (vr == 0.0 & vi == 0.0)
-                            {
-                                vr = eps * norm * (abs(w) + abs(q)
-                                        + abs(x) + abs(y) + abs(z));
-                            }
-                            Complex.cDiv(x * r - z * ra + q * sa, x * s - z * sa - q * ra, vr, vi, cr);
-                            H.set(i, n-1, cr[0]);
-                            H.set(i, n,   cr[1]);
-                            if (abs(x) > (abs(z) + abs(q)))
-                            {
-                                H.set(i+1, n-1, (-ra - w * H.get(i, n-1) + q * H.get(i, n)) / x);
-                                H.set(i+1, n,   (-sa - w * H.get(i, n) - q * H.get(i, n-1)) / x);
-                            }
-                            else
-                            {
-                                Complex.cDiv(-r - y * H.get(i, n-1), -s - y * H.get(i, n), z, q, cr);
-                                H.set(i+1, n-1, cr[0]);
-                                H.set(i+1, n,   cr[1]);
-                            }
-                        }
-
-                        // Overflow control
-
-                        t = max(abs(H.get(i, n-1)), abs(H.get(i, n)));
-                        if ((eps * t) * t > 1)
-                        {
-                            for (int j = i; j <= n; j++)
-                            {
-                                H.set(j, n-1, H.get(j, n-1) / t);
-                                H.set(j, n  , H.get(j, n) / t);
-                            }
-                        }
-                    }
-                }
-            }
-        }
-
+        
+        backsubtituteFindVectors(nn, z, s, eps, norm, cr);
+        
         // Vectors of isolated roots
 
         for (int i = 0; i < nn; i++)
@@ -891,24 +608,9 @@ public class EigenValueDecomposition
                 for(int j = i; j < nn-1; j++)
                     H.set(i, j, V.get(i, j));
             }
-
-
-        // Back transformation to get eigenvectors of original matrix
-
-        for (int j = nn - 1; j >= low; j--)
-        {
-            for (int i = low; i <= high; i++)
-            {
-                z = 0.0;
-                for (int k = low; k <= min(j, high); k++)
-                {
-                    z = z + V.get(i, k) * H.get(k, j);
-                }
-                V.set(i, j, z);
-            }
-        }
+        backtransform(nn, low, high);
     }
-
+    
     /**
      * Check for symmetry, then construct the eigenvalue decomposition
      *
@@ -940,7 +642,8 @@ public class EigenValueDecomposition
         }
         else
         {
-            H = A.clone();
+            Matrix HWork = A.transpose();
+            H = new TransposeView(HWork);
             Matrix VWork = new DenseMatrix(n, n);
             V = new TransposeView(VWork);
 
@@ -1164,5 +867,332 @@ public class EigenValueDecomposition
     public boolean isComplex()
     {
         return complexResult;
+    }
+
+    private void hqr2SolveComplexEigenEquation(final int i, final double p, 
+                                               final double q, final double eps,
+                                               final double norm, final double w,
+                                               final double z, final double r, 
+                                               final double ra, final double sa,
+                                               final double s, final double[] cr,
+                                               final int n)
+    {
+        double x;
+        double y;
+        double vr;
+        double vi;
+        // Solve complex equations
+        x = H.get(i, i+1);
+        y = H.get(i+1, i);
+        vr = (d[i] - p) * (d[i] - p) + e[i] * e[i] - q * q;
+        vi = (d[i] - p) * 2.0 * q;
+        if (vr == 0.0 & vi == 0.0)
+        {
+            vr = eps * norm * (abs(w) + abs(q)
+                    + abs(x) + abs(y) + abs(z));
+        }
+        Complex.cDiv(x * r - z * ra + q * sa, x * s - z * sa - q * ra, vr, vi, cr);
+        H.set(i, n-1, cr[0]);
+        H.set(i, n,   cr[1]);
+        if (abs(x) > (abs(z) + abs(q)))
+        {
+            H.set(i+1, n-1, (-ra - w * H.get(i, n-1) + q * H.get(i, n)) / x);
+            H.set(i+1, n,   (-sa - w * H.get(i, n) - q * H.get(i, n-1)) / x);
+        }
+        else
+        {
+            Complex.cDiv(-r - y * H.get(i, n-1), -s - y * H.get(i, n), z, q, cr);
+            H.set(i+1, n-1, cr[0]);
+            H.set(i+1, n,   cr[1]);
+        }
+    }
+
+    private void backsubtituteFindVectors(int nn, double z, double s, double eps, double norm, final double[] cr)
+    {
+        double p;
+        double q;
+        double w;
+        double r = 0;
+        double x;
+        double y;
+        double t;
+        for (int n = nn - 1; n >= 0; n--)
+        {
+            p = d[n];
+            q = e[n];
+
+            // Real vector
+
+            if (q == 0)
+            {
+                int l = n;
+                H.set(n, n, 1.0);
+                for (int i = n - 1; i >= 0; i--)
+                {
+                    w = H.get(i, i) - p;
+                    r = 0.0;
+                    for (int j = l; j <= n; j++)
+                    {
+                        r = r + H.get(i, j) * H.get(j, n);
+                    }
+                    if (e[i] < 0.0)
+                    {
+                        z = w;
+                        s = r;
+                    }
+                    else
+                    {
+                        l = i;
+                        if (e[i] == 0.0)
+                        {
+                            if (w != 0.0)
+                            {
+                                H.set(i, n, -r / w);
+                            }
+                            else
+                            {
+                                H.set(i, n, -r/(eps*norm));
+                            }
+
+                            // Solve real equations
+
+                        }
+                        else
+                        {
+                            x = H.get(i, i+1);
+                            y = H.get(i+1, i);
+                            q = (d[i] - p) * (d[i] - p) + e[i] * e[i];
+                            t = (x * s - z * r) / q;
+                            H.set(i, n, t);
+                            if (abs(x) > abs(z))
+                            {
+                                H.set(i+1, n, (-r-w*t)/x);
+                            }
+                            else
+                            {
+                                H.set(i+1, n, (-s - y * t) / z);
+                            }
+                        }
+
+                        // Overflow control
+
+                        t = abs(H.get(i, n));
+                        if ((eps * t) * t > 1)
+                        {
+                            RowColumnOps.divCol(H, n, t);
+                        }
+                    }
+                }
+
+                // Complex vector
+
+            }
+            else if (q < 0)
+            {
+                int l = n - 1;
+
+                // Last vector component imaginary so matrix is triangular
+
+                if (abs(H.get(n, n-1)) > abs(H.get(n-1, n)))
+                {
+                    H.set(n-1, n-1,  q / H.get(n, n-1));
+                    H.set(n-1, n,    -(H.get(n, n) - p) / H.get(n, n-1));
+                }
+                else
+                {
+                    Complex.cDiv(0.0, -H.get(n-1, n), H.get(n-1, n-1) - p, q, cr);
+                    H.set(n-1, n-1,  cr[0]);
+                    H.set(n-1, n, cr[1]);
+                }
+                H.set(n, n-1, 0.0);
+                H.set(n, n, 1.0);
+                for (int i = n - 2; i >= 0; i--)
+                {
+                    double ra, sa, vr, vi;
+                    ra = 0.0;
+                    sa = 0.0;
+                    for (int j = l; j <= n; j++)
+                    {
+                        ra = ra + H.get(i, j) * H.get(j, n-1);
+                        sa = sa + H.get(i, j) * H.get(j, n);
+                    }
+                    w = H.get(i, i) - p;
+
+                    if (e[i] < 0.0)
+                    {
+                        z = w;
+                        r = ra;
+                        s = sa;
+                    }
+                    else
+                    {
+                        l = i;
+                        if (e[i] == 0)
+                        {
+                            Complex.cDiv(-ra, -sa, w, q, cr);
+                            H.set(i, n-1, cr[0]);
+                            H.set(i, n,   cr[1]);
+                        }
+                        else
+                        {
+                            hqr2SolveComplexEigenEquation(i, p, q, eps, norm, w, z, r, ra, sa, s, cr, n);
+                        }
+
+                        // Overflow control
+
+                        t = max(abs(H.get(i, n-1)), abs(H.get(i, n)));
+                        if ((eps * t) * t > 1)
+                        {
+                            RowColumnOps.multCol(H, n-1, i, n+1, (1/t));
+                            RowColumnOps.multCol(H, n  , i, n+1, (1/t));
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    private double hqr2GetNormStart(int nn, int low, int high)
+    {
+        // Store roots isolated by balanc and compute matrix norm
+        double norm = 0.0;
+        for (int i = 0; i < nn; i++)
+        {
+            if (i < low | i > high)
+            {
+                d[i] = H.get(i, i);
+                e[i] = 0.0;
+            }
+            for (int j = max(i - 1, 0); j < nn; j++)
+            {
+                norm = norm + abs(H.get(i, j));
+            }
+        }
+        return norm;
+    }
+
+    private void backtransform(int nn, int low, int high)
+    {
+        double z;
+        // Back transformation to get eigenvectors of original matrix
+        for (int j = nn - 1; j >= low; j--)
+        {
+            for (int i = low; i <= high; i++)
+            {
+                z = 0.0;
+                for (int k = low; k <= min(j, high); k++)
+                {
+                    z = z + V.get(i, k) * H.get(k, j);
+                }
+                V.set(i, j, z);
+            }
+        }
+    }
+
+    private void hqr2FoundTwoRoots(double exshift, int n, int nn, int low, int high)
+    {
+        double w, p, q, z, x, s, r;
+        w = H.get(n, n - 1) * H.get(n - 1, n);
+        p = (H.get(n - 1, n - 1) - H.get(n, n)) / 2.0;
+        q = p * p + w;
+        z = sqrt(abs(q));
+        H.increment(n, n, exshift);
+        H.increment(n - 1, n - 1, exshift);
+        x = H.get(n, n);
+
+        // Real pair
+
+        if (q >= 0)
+        {
+            if (p >= 0)
+                z = p + z;
+            else
+                z = p - z;
+
+            d[n - 1] = x + z;
+            d[n] = d[n - 1];
+            if (z != 0.0)
+                d[n] = x - w / z;
+
+            e[n - 1] = 0.0;
+            e[n] = 0.0;
+            x = H.get(n, n - 1);
+            s = abs(x) + abs(z);
+            p = x / s;
+            q = z / s;
+            r = sqrt(p * p + q * q);
+            p = p / r;
+            q = q / r;
+
+            // Row modification
+            rowOpTransform(H, n - 1, nn - 1, n, q, p);
+
+            // Column modification
+            columnOpTransform(H, 0, n, n, q, p, -1);
+
+            // Accumulate transformations
+            columnOpTransform(V, low, high, n, q, p, -1);
+
+        }
+        else // Complex pair
+        {
+            d[n - 1] = x + p;
+            d[n] = x + p;
+            e[n - 1] = z;
+            e[n] = -z;
+        }
+    }
+
+    private void orthesAccumulateTransforamtions(int high, int low, final double[] ort)
+    {
+        for (int m = high - 1; m >= low + 1; m--)
+        {
+            if (H.get(m, m-1) != 0.0)
+            {
+                for (int i = m + 1; i <= high; i++)
+                {
+                    ort[i] = H.get(i, m-1);
+                }
+                for (int j = m; j <= high; j++)
+                {
+                    double g = 0.0;
+                    for (int i = m; i <= high; i++)
+                    {
+                        g += ort[i] * V.get(i, j);
+                    }
+                    // Double division avoids possible underflow
+                    g = (g / ort[m]) / H.get(m, m-1);
+                    RowColumnOps.addMultCol(V, j, m, high+1, g, ort);
+                }
+            }
+        }
+    }
+
+    private void orthesApplyHouseholder(int m, int high, final double[] ort, double h)
+    {
+        // Apply Householder similarity transformation
+        // H = (I-u*u'/h)*H*(I-u*u')/h)
+
+        for (int j = m; j < n; j++)
+        {
+            double f = 0.0;
+            for(int i = m; i <= high; i++)
+            {
+                f += ort[i] * H.get(i, j);
+            }
+            f /= h;
+            RowColumnOps.addMultCol(H, j, m, high+1, -f, ort);
+        }
+
+        for (int i = 0; i <= high; i++)
+        {
+            double f = 0.0;
+            for(int j = m; j <= high; j++)
+            {
+                f += ort[j] * H.get(i, j);
+            }
+            f/= h;
+            RowColumnOps.addMultRow(H, i, m, high+1, -f, ort);
+        }
     }
 }
