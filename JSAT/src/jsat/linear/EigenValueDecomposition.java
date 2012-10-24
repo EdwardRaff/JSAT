@@ -52,13 +52,13 @@ public class EigenValueDecomposition
      *
      * @serial internal storage of eigenvectors.
      */
-    private double[][] V;
+    private Matrix V;
     /**
      * Array for internal storage of nonsymmetric Hessenberg form.
      *
      * @serial internal storage of nonsymmetric Hessenberg form.
      */
-    private double[][] H;
+    private Matrix H;
     /**
      * Used to indicate if the result contains complex eigen values
      */
@@ -69,7 +69,8 @@ public class EigenValueDecomposition
      */
     private void tred2()
     {
-        System.arraycopy(V[n - 1], 0, d, 0, n);
+        for(int j = 0; j < n; j++)
+            d[j] = V.get(n-1, j);
 
         // Householder reduction to tridiagonal form.
 
@@ -89,9 +90,9 @@ public class EigenValueDecomposition
                 e[i] = d[i - 1];
                 for (int j = 0; j < i; j++)
                 {
-                    d[j] = V[i - 1][j];
-                    V[i][j] = 0.0;
-                    V[j][i] = 0.0;
+                    d[j] = V.get(i-1, j);
+                    V.set(i, j, 0.0);
+                    V.set(j, i, 0.0);
                 }
             }
             else
@@ -109,7 +110,7 @@ public class EigenValueDecomposition
                 if (f > 0)
                     g = -g;
                 e[i] = scale * g;
-                h = h - f * g;
+                h -= f * g;
                 d[i - 1] = f - g;
                 Arrays.fill(e, 0, i, 0.0);
 
@@ -118,12 +119,12 @@ public class EigenValueDecomposition
                 for (int j = 0; j < i; j++)
                 {
                     f = d[j];
-                    V[j][i] = f;
-                    g = e[j] + V[j][j] * f;
+                    V.set(j, i, f);
+                    g = e[j] + V.get(j, j) * f;
                     for (int k = j + 1; k <= i - 1; k++)
                     {
-                        g += V[k][j] * d[k];
-                        e[k] += V[k][j] * f;
+                        g += V.get(k,j) * d[k];
+                        e[k] += V.get(k, j) * f;
                     }
                     e[j] = g;
                 }
@@ -142,12 +143,13 @@ public class EigenValueDecomposition
                 {
                     f = d[j];
                     g = e[j];
+                    
                     for (int k = j; k <= i - 1; k++)
                     {
-                        V[k][j] -= (f * e[k] + g * d[k]);
+                        V.increment(k, j, -(f * e[k] + g * d[k]));
                     }
-                    d[j] = V[i - 1][j];
-                    V[i][j] = 0.0;
+                    d[j] = V.get(i-1, j);
+                    V.set(i, j, 0.0);
                 }
             }
             d[i] = h;
@@ -158,40 +160,36 @@ public class EigenValueDecomposition
 
         for (int i = 0; i < n - 1; i++)
         {
-            V[n - 1][i] = V[i][i];
-            V[i][i] = 1.0;
+            V.set(n-1, i, V.get(i, i));
+            V.set(i, i, 1.0);
             double h = d[i + 1];
             if (h != 0.0)
             {
                 for (int k = 0; k <= i; k++)
                 {
-                    d[k] = V[k][i + 1] / h;
+                    d[k] = V.get(k, i+1) / h;
                 }
                 for (int j = 0; j <= i; j++)
                 {
                     double g = 0.0;
                     for (int k = 0; k <= i; k++)
                     {
-                        g += V[k][i + 1] * V[k][j];
+                        g += V.get(k, i+1) * V.get(k, j);
                     }
-                    for (int k = 0; k <= i; k++)
-                    {
-                        V[k][j] -= g * d[k];
-                    }
+                    
+                    RowColumnOps.addMultCol(V, j, 0, i+1, -g, d);
                 }
             }
 
-            for (int k = 0; k <= i; k++)
-            {
-                V[k][i + 1] = 0.0;
-            }
+            RowColumnOps.fillCol(V, i+1, 0, i+1, 0.0);
+            
         }
         for (int j = 0; j < n; j++)
         {
-            d[j] = V[n - 1][j];
-            V[n - 1][j] = 0.0;
+            d[j] = V.get(n-1, j);
+            V.set(n-1, j, 0.0);
         }
-        V[n - 1][n - 1] = 1.0;
+        V.set(n-1, n-1, 1.0);
         e[0] = 0.0;
     }
 
@@ -318,12 +316,7 @@ public class EigenValueDecomposition
             {
                 d[k] = d[i];
                 d[i] = p;
-                for (int j = 0; j < n; j++)
-                {
-                    p = V[j][i];
-                    V[j][i] = V[j][k];
-                    V[j][k] = p;
-                }
+                RowColumnOps.swapCol(V, i, k);
             }
         }
     }
@@ -351,7 +344,7 @@ public class EigenValueDecomposition
 
             double scale = 0.0;
             for (int i = m; i <= high; i++)
-                scale = scale + abs(H[i][m - 1]);
+                scale = scale + abs(H.get(i, m-1));
 
             if (scale != 0.0)
             {
@@ -359,18 +352,18 @@ public class EigenValueDecomposition
                 // Compute Householder transformation.
 
                 double h = 0.0;
+                double tmp;
                 for (int i = high; i >= m; i--)
                 {
-                    ort[i] = H[i][m - 1] / scale;
-                    h += ort[i] * ort[i];
+                    ort[i] = tmp = H.get(i, m-1) / scale;
+                    h += tmp*tmp;
                 }
                 double g = sqrt(h);
-                if (ort[m] > 0)
-                {
+                if ((tmp = ort[m]) > 0)
                     g = -g;
-                }
-                h = h - ort[m] * g;
-                ort[m] = ort[m] - g;
+                
+                h = h - tmp * g;
+                ort[m] = tmp - g;
 
                 // Apply Householder similarity transformation
                 // H = (I-u*u'/h)*H*(I-u*u')/h)
@@ -378,64 +371,57 @@ public class EigenValueDecomposition
                 for (int j = m; j < n; j++)
                 {
                     double f = 0.0;
-                    for (int i = high; i >= m; i--)
+                    for(int i = m; i <= high; i++)
                     {
-                        f += ort[i] * H[i][j];
+                        f += ort[i] * H.get(i, j);
                     }
-                    f = f / h;
-                    for (int i = m; i <= high; i++)
-                    {
-                        H[i][j] -= f * ort[i];
-                    }
+                    f /= h;
+                    RowColumnOps.addMultCol(H, j, m, high+1, -f, ort);
                 }
 
                 for (int i = 0; i <= high; i++)
                 {
                     double f = 0.0;
-                    for (int j = high; j >= m; j--)
+                    for(int j = m; j <= high; j++)
                     {
-                        f += ort[j] * H[i][j];
+                        f += ort[j] * H.get(i, j);
                     }
-                    f = f / h;
-                    for (int j = m; j <= high; j++)
-                    {
-                        H[i][j] -= f * ort[j];
-                    }
+                    f/= h;
+                    RowColumnOps.addMultRow(H, i, m, high+1, -f, ort);
                 }
-                ort[m] = scale * ort[m];
-                H[m][m - 1] = scale * g;
+                ort[m] *= scale;
+                H.set(m, m-1, scale*g);
             }
         }
 
         // Accumulate transformations (Algol's ortran).
 
-        for (int i = 0; i < n; i++)
+        for (int j = 0; j < n; j++)
         {
-            for (int j = 0; j < n; j++)
+            for (int i = 0; i < n; i++)
             {
-                V[i][j] = (i == j ? 1.0 : 0.0);
+                V.set(i, j, (i == j ? 1.0 : 0.0));
             }
         }
 
         for (int m = high - 1; m >= low + 1; m--)
         {
-            if (H[m][m - 1] != 0.0)
+            if (H.get(m, m-1) != 0.0)
             {
                 for (int i = m + 1; i <= high; i++)
                 {
-                    ort[i] = H[i][m - 1];
+                    ort[i] = H.get(i, m-1);
                 }
                 for (int j = m; j <= high; j++)
                 {
                     double g = 0.0;
                     for (int i = m; i <= high; i++)
                     {
-                        g += ort[i] * V[i][j];
+                        g += ort[i] * V.get(i, j);
                     }
                     // Double division avoids possible underflow
-                    g = (g / ort[m]) / H[m][m - 1];
-                    for (int i = m; i <= high; i++)
-                        V[i][j] += g * ort[i];
+                    g = (g / ort[m]) / H.get(m, m-1);
+                    RowColumnOps.addMultCol(V, j, m, high+1, g, ort);
                 }
             }
         }
@@ -474,12 +460,12 @@ public class EigenValueDecomposition
         {
             if (i < low | i > high)
             {
-                d[i] = H[i][i];
+                d[i] = H.get(i, i);
                 e[i] = 0.0;
             }
             for (int j = max(i - 1, 0); j < nn; j++)
             {
-                norm = norm + abs(H[i][j]);
+                norm = norm + abs(H.get(i, j));
             }
         }
 
@@ -494,12 +480,12 @@ public class EigenValueDecomposition
             int l = n;
             while (l > low)
             {
-                s = abs(H[l - 1][l - 1]) + abs(H[l][l]);
+                s = abs(H.get(l-1, l-1)) + abs(H.get(l, l));
                 if (s == 0.0)
                 {
                     s = norm;
                 }
-                if (abs(H[l][l - 1]) < eps * s)
+                if (abs(H.get(l, l-1)) < eps * s)
                 {
                     break;
                 }
@@ -511,8 +497,8 @@ public class EigenValueDecomposition
 
             if (l == n)
             {
-                H[n][n] = H[n][n] + exshift;
-                d[n] = H[n][n];
+                H.increment(n, n, exshift);
+                d[n] = H.get(n, n);
                 e[n] = 0.0;
                 n--;
                 iter = 0;
@@ -522,14 +508,14 @@ public class EigenValueDecomposition
             }
             else if (l == n - 1)
             {
-                w = H[n][n - 1] * H[n - 1][n];
-                p = (H[n - 1][n - 1] - H[n][n]) / 2.0;
+                w = H.get(n, n-1) * H.get(n-1, n);;
+                p = (H.get(n-1, n-1) - H.get(n, n)) / 2.0;
                 q = p * p + w;
                 z = sqrt(abs(q));
-                H[n][n] = H[n][n] + exshift;
-                H[n - 1][n - 1] = H[n - 1][n - 1] + exshift;
-                x = H[n][n];
-
+                H.increment(n, n, exshift);
+                H.increment(n-1, n-1, exshift);
+                x = H.get(n, n);
+                
                 // Real pair
 
                 if (q >= 0)
@@ -546,7 +532,7 @@ public class EigenValueDecomposition
                     
                     e[n - 1] = 0.0;
                     e[n] = 0.0;
-                    x = H[n][n - 1];
+                    x = H.get(n, n-1);
                     s = abs(x) + abs(z);
                     p = x / s;
                     q = z / s;
@@ -584,13 +570,13 @@ public class EigenValueDecomposition
 
                 // Form shift
 
-                x = H[n][n];
+                x = H.get(n, n);
                 y = 0.0;
                 w = 0.0;
                 if (l < n)
                 {
-                    y = H[n - 1][n - 1];
-                    w = pow(H[n][n - 1], 2);
+                    y = H.get(n-1, n-1);
+                    w = pow(H.get(n, n-1), 2);
                 }
 
                 // Wilkinson's original ad hoc shift
@@ -600,9 +586,9 @@ public class EigenValueDecomposition
                     exshift += x;
                     for (int i = low; i <= n; i++)
                     {
-                        H[i][i] -= x;
+                        H.increment(i, i, -x);
                     }
-                    s = abs(H[n][n - 1]) + abs(H[n - 1][n - 2]);
+                    s = abs(H.get(n, n-1)) + abs(H.get(n-1, n-2));
                     x = y = 0.75 * s;
                     w = -0.4375 * s * s;
                 }
@@ -623,7 +609,7 @@ public class EigenValueDecomposition
                         s = x - w / ((y - x) / 2.0 + s);
                         for (int i = low; i <= n; i++)
                         {
-                            H[i][i] -= s;
+                            H.increment(i, i, -s);
                         }
                         exshift += s;
                         x = y = w = 0.964;
@@ -637,12 +623,12 @@ public class EigenValueDecomposition
                 int m = n - 2;
                 while (m >= l)
                 {
-                    z = H[m][m];
+                    z = H.get(m, m);
                     r = x - z;
                     s = y - z;
-                    p = (r * s - w) / H[m + 1][m] + H[m][m + 1];
-                    q = H[m + 1][m + 1] - z - r - s;
-                    r = H[m + 2][m + 1];
+                    p = (r * s - w) / H.get(m+1, m) + H.get(m, m+1);
+                    q = H.get(m+1, m+1) - z - r - s;
+                    r = H.get(m+2, m+1);
                     s = abs(p) + abs(q) + abs(r);
                     p = p / s;
                     q = q / s;
@@ -651,9 +637,9 @@ public class EigenValueDecomposition
                     {
                         break;
                     }
-                    if (abs(H[m][m - 1]) * (abs(q) + abs(r))
-                            < eps * (abs(p) * (abs(H[m - 1][m - 1]) + abs(z)
-                            + abs(H[m + 1][m + 1]))))
+                    if (abs(H.get(m, m-1)) * (abs(q) + abs(r))
+                            < eps * (abs(p) * (abs(H.get(m-1, m-1)) + abs(z)
+                            + abs(H.get(m+1, m+1)))))
                     {
                         break;
                     }
@@ -662,10 +648,10 @@ public class EigenValueDecomposition
 
                 for (int i = m + 2; i <= n; i++)
                 {
-                    H[i][i - 2] = 0.0;
+                    H.set(i, i-2, 0.0);
                     if (i > m + 2)
                     {
-                        H[i][i - 3] = 0.0;
+                        H.set(i, i-3, 0.0);
                     }
                 }
 
@@ -676,9 +662,9 @@ public class EigenValueDecomposition
                     boolean notlast = (k != n - 1);
                     if (k != m)
                     {
-                        p = H[k][k - 1];
-                        q = H[k + 1][k - 1];
-                        r = (notlast ? H[k + 2][k - 1] : 0.0);
+                        p = H.get(k, k-1);
+                        q = H.get(k+1, k-1);
+                        r = (notlast ? H.get(k+2, k-1) : 0.0);
                         x = abs(p) + abs(q) + abs(r);
                         if (x != 0.0)
                         {
@@ -700,11 +686,11 @@ public class EigenValueDecomposition
                     {
                         if (k != m)
                         {
-                            H[k][k - 1] = -s * x;
+                            H.set(k, k-1, -s*x);
                         }
                         else if (l != m)
                         {
-                            H[k][k - 1] = -H[k][k - 1];
+                            H.set(k, k-1, -H.get(k, k-1));
                         }
                         p = p + s;
                         x = p / s;
@@ -744,14 +730,14 @@ public class EigenValueDecomposition
             if (q == 0)
             {
                 int l = n;
-                H[n][n] = 1.0;
+                H.set(n, n, 1.0);
                 for (int i = n - 1; i >= 0; i--)
                 {
-                    w = H[i][i] - p;
+                    w = H.get(i, i) - p;
                     r = 0.0;
                     for (int j = l; j <= n; j++)
                     {
-                        r = r + H[i][j] * H[j][n];
+                        r = r + H.get(i, j) * H.get(j, n);
                     }
                     if (e[i] < 0.0)
                     {
@@ -765,11 +751,11 @@ public class EigenValueDecomposition
                         {
                             if (w != 0.0)
                             {
-                                H[i][n] = -r / w;
+                                H.set(i, n, -r / w);
                             }
                             else
                             {
-                                H[i][n] = -r / (eps * norm);
+                                H.set(i, n, -r/(eps*norm));
                             }
 
                             // Solve real equations
@@ -777,30 +763,27 @@ public class EigenValueDecomposition
                         }
                         else
                         {
-                            x = H[i][i + 1];
-                            y = H[i + 1][i];
+                            x = H.get(i, i+1);
+                            y = H.get(i+1, i);
                             q = (d[i] - p) * (d[i] - p) + e[i] * e[i];
                             t = (x * s - z * r) / q;
-                            H[i][n] = t;
+                            H.set(i, n, t);
                             if (abs(x) > abs(z))
                             {
-                                H[i + 1][n] = (-r - w * t) / x;
+                                H.set(i+1, n, (-r-w*t)/x);
                             }
                             else
                             {
-                                H[i + 1][n] = (-s - y * t) / z;
+                                H.set(i+1, n, (-s - y * t) / z);
                             }
                         }
 
                         // Overflow control
 
-                        t = abs(H[i][n]);
+                        t = abs(H.get(i, n));
                         if ((eps * t) * t > 1)
                         {
-                            for (int j = i; j <= n; j++)
-                            {
-                                H[j][n] = H[j][n] / t;
-                            }
+                            RowColumnOps.divCol(H, n, t);
                         }
                     }
                 }
@@ -814,19 +797,19 @@ public class EigenValueDecomposition
 
                 // Last vector component imaginary so matrix is triangular
 
-                if (abs(H[n][n - 1]) > abs(H[n - 1][n]))
+                if (abs(H.get(n, n-1)) > abs(H.get(n-1, n)))
                 {
-                    H[n - 1][n - 1] = q / H[n][n - 1];
-                    H[n - 1][n] = -(H[n][n] - p) / H[n][n - 1];
+                    H.set(n-1, n-1,  q / H.get(n, n-1));
+                    H.set(n-1, n,    -(H.get(n, n) - p) / H.get(n, n-1));
                 }
                 else
                 {
-                    Complex.cDiv(0.0, -H[n - 1][n], H[n - 1][n - 1] - p, q, cr);
-                    H[n - 1][n - 1] = cr[0];
-                    H[n - 1][n] = cr[1];
+                    Complex.cDiv(0.0, -H.get(n-1, n), H.get(n-1, n-1) - p, q, cr);
+                    H.set(n-1, n-1,  cr[0]);
+                    H.set(n-1, n, cr[1]);
                 }
-                H[n][n - 1] = 0.0;
-                H[n][n] = 1.0;
+                H.set(n, n-1, 0.0);
+                H.set(n, n, 1.0);
                 for (int i = n - 2; i >= 0; i--)
                 {
                     double ra, sa, vr, vi;
@@ -834,10 +817,10 @@ public class EigenValueDecomposition
                     sa = 0.0;
                     for (int j = l; j <= n; j++)
                     {
-                        ra = ra + H[i][j] * H[j][n - 1];
-                        sa = sa + H[i][j] * H[j][n];
+                        ra = ra + H.get(i, j) * H.get(j, n-1);
+                        sa = sa + H.get(i, j) * H.get(j, n);
                     }
-                    w = H[i][i] - p;
+                    w = H.get(i, i) - p;
 
                     if (e[i] < 0.0)
                     {
@@ -851,16 +834,16 @@ public class EigenValueDecomposition
                         if (e[i] == 0)
                         {
                             Complex.cDiv(-ra, -sa, w, q, cr);
-                            H[i][n - 1] = cr[0];
-                            H[i][n] = cr[1];
+                            H.set(i, n-1, cr[0]);
+                            H.set(i, n,   cr[1]);
                         }
                         else
                         {
 
                             // Solve complex equations
 
-                            x = H[i][i + 1];
-                            y = H[i + 1][i];
+                            x = H.get(i, i+1);
+                            y = H.get(i+1, i);
                             vr = (d[i] - p) * (d[i] - p) + e[i] * e[i] - q * q;
                             vi = (d[i] - p) * 2.0 * q;
                             if (vr == 0.0 & vi == 0.0)
@@ -869,30 +852,30 @@ public class EigenValueDecomposition
                                         + abs(x) + abs(y) + abs(z));
                             }
                             Complex.cDiv(x * r - z * ra + q * sa, x * s - z * sa - q * ra, vr, vi, cr);
-                            H[i][n - 1] = cr[0];
-                            H[i][n] = cr[1];
+                            H.set(i, n-1, cr[0]);
+                            H.set(i, n,   cr[1]);
                             if (abs(x) > (abs(z) + abs(q)))
                             {
-                                H[i + 1][n - 1] = (-ra - w * H[i][n - 1] + q * H[i][n]) / x;
-                                H[i + 1][n] = (-sa - w * H[i][n] - q * H[i][n - 1]) / x;
+                                H.set(i+1, n-1, (-ra - w * H.get(i, n-1) + q * H.get(i, n)) / x);
+                                H.set(i+1, n,   (-sa - w * H.get(i, n) - q * H.get(i, n-1)) / x);
                             }
                             else
                             {
-                                Complex.cDiv(-r - y * H[i][n - 1], -s - y * H[i][n], z, q, cr);
-                                H[i + 1][n - 1] = cr[0];
-                                H[i + 1][n] = cr[1];
+                                Complex.cDiv(-r - y * H.get(i, n-1), -s - y * H.get(i, n), z, q, cr);
+                                H.set(i+1, n-1, cr[0]);
+                                H.set(i+1, n,   cr[1]);
                             }
                         }
 
                         // Overflow control
 
-                        t = max(abs(H[i][n - 1]), abs(H[i][n]));
+                        t = max(abs(H.get(i, n-1)), abs(H.get(i, n)));
                         if ((eps * t) * t > 1)
                         {
                             for (int j = i; j <= n; j++)
                             {
-                                H[j][n - 1] = H[j][n - 1] / t;
-                                H[j][n] = H[j][n] / t;
+                                H.set(j, n-1, H.get(j, n-1) / t);
+                                H.set(j, n  , H.get(j, n) / t);
                             }
                         }
                     }
@@ -904,7 +887,10 @@ public class EigenValueDecomposition
 
         for (int i = 0; i < nn; i++)
             if (i < low | i > high)
-                System.arraycopy(H[i], i, V[i], i, nn - i);
+            {
+                for(int j = i; j < nn-1; j++)
+                    H.set(i, j, V.get(i, j));
+            }
 
 
         // Back transformation to get eigenvectors of original matrix
@@ -916,9 +902,9 @@ public class EigenValueDecomposition
                 z = 0.0;
                 for (int k = low; k <= min(j, high); k++)
                 {
-                    z = z + V[i][k] * H[k][j];
+                    z = z + V.get(i, k) * H.get(k, j);
                 }
-                V[i][j] = z;
+                V.set(i, j, z);
             }
         }
     }
@@ -934,39 +920,29 @@ public class EigenValueDecomposition
         if (!A.isSquare())
             throw new ArithmeticException("");
         n = A.cols();
-        V = new double[n][n];
         d = new double[n];
         e = new double[n];
 
         if (Matrix.isSymmetric(A) )
         {
-            for (int i = 0; i < n; i++)
-            {
-                for (int j = 0; j < n; j++)
-                {
-                    V[i][j] = A.get(i, j);
-                }
-            }
+            //Would give it the transpose, but the input is symmetric. So its the same thing
+            Matrix VWork = A.clone();
+            V = new TransposeView(VWork);
 
             // Tridiagonalize.
             tred2();
             
             // Diagonalize.
             tql2();
+            V = VWork.transpose();//Place back
             complexResult = false;
 
         }
         else
         {
-            H = new double[n][n];
-
-            for (int j = 0; j < n; j++)
-            {
-                for (int i = 0; i < n; i++)
-                {
-                    H[i][j] = A.get(i, j);
-                }
-            }
+            H = A.clone();
+            Matrix VWork = new DenseMatrix(n, n);
+            V = new TransposeView(VWork);
 
             // Reduce to Hessenberg form.
             orthes();
@@ -979,6 +955,7 @@ public class EigenValueDecomposition
             for (int i = 0; i < n; i++)
                 if (e[i] != 0)
                     complexResult = true;
+            V = VWork.transpose();
         }
     }
 
@@ -990,7 +967,7 @@ public class EigenValueDecomposition
      */
     public Matrix getV()
     {
-        return new DenseMatrix(V);
+        return V.clone();
     }
 
     /**
@@ -1034,14 +1011,14 @@ public class EigenValueDecomposition
      * @param shift the direction to perform the computation. Either 1 for after
      * the current column, or -1 for before the current column.
      */
-    private static void columnOpTransform(double[][] M, int low, int high, int n, double q, double p, int shift)
+    private static void columnOpTransform(Matrix M, int low, int high, int n, double q, double p, int shift)
     {
         double z;
         for (int i = low; i <= high; i++)
         {
-            z = M[i][n+shift];
-            M[i][n+shift] = q * z + p * M[i][n];
-            M[i][n] = q * M[i][n] - p * z;
+            z = M.get(i, n+shift);
+            M.set(i, n+shift,  q * z + p * M.get(i, n));
+            M.set(i, n,        q * M.get(i, n) - p * z);
         }
     }
     
@@ -1060,14 +1037,14 @@ public class EigenValueDecomposition
      * @param q the first constant
      * @param p the second constant
      */
-    private static void rowOpTransform(double[][] M, int low, int high, int n, double q, double p)
+    private static void rowOpTransform(Matrix M, int low, int high, int n, double q, double p)
     {
         double z;
         for (int j = low; j <= high; j++)
         {
-            z = M[n - 1][j];
-            M[n - 1][j] = q * z + p * M[n][j];
-            M[n][j] = q * M[n][j] - p * z;
+            z = M.get(n-1, j);
+            M.set(n - 1, j,  q * z + p * M.get(n, j));
+            M.set(n, j,      q * M.get(n, j) - p * z);
         }
     }
 
@@ -1099,19 +1076,19 @@ public class EigenValueDecomposition
      * @param r fourth constant
      * @param q fifth constant
      */
-    private void columnOpTransform2(double[][] M, int low, int high, double x, int k, double y, boolean notlast, double z, double r, double q)
+    private void columnOpTransform2(Matrix M, int low, int high, double x, int k, double y, boolean notlast, double z, double r, double q)
     {
         double p;
         for (int i = low; i <= high; i++)
         {
-            p = x * M[i][k] + y * M[i][k + 1];
+            p = x * M.get(i, k) + y * M.get(i, k+1);
             if (notlast)
             {
-                p = p + z * M[i][k + 2];
-                M[i][k + 2] = M[i][k + 2] - p * r;
+                p = p + z * M.get(i, k+2);
+                M.set(i, k + 2,  M.get(i, k+2) - p * r);
             }
-            M[i][k] = M[i][k] - p;
-            M[i][k + 1] = M[i][k + 1] - p * q;
+            M.increment(i, k,   -p);
+            M.increment(i, k+1, -p*q);
         }
     }
     
@@ -1141,19 +1118,19 @@ public class EigenValueDecomposition
      * @param r fourth constant
      * @param q fifth constant
      */
-    private void rowOpTransform2(double[][] M, int low, int high, double x, int k, double y, boolean notlast, double z, double r, double q)
+    private void rowOpTransform2(Matrix M, int low, int high, double x, int k, double y, boolean notlast, double z, double r, double q)
     {
         double p;
         for (int j = low; j <= high; j++)
         {
-            p = M[k][j] + q * M[k + 1][j];
+            p = M.get(k, j) + q * M.get(k + 1,j);
             if (notlast)
             {
-                p = p + r * M[k + 2][j];
-                M[k + 2][j] = M[k + 2][j] - p * z;
+                p = p + r * M.get(k + 2,j);
+                M.set(k + 2,j,  M.get(k+2, j) - p * z);
             }
-            M[k][j] = M[k][j] - p * x;
-            M[k + 1][j] = M[k + 1][j] - p * y;
+            M.increment(k,   j, -p*x);
+            M.increment(k+1, j, -p*y);
         }
     }
 

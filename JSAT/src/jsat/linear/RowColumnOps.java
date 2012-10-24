@@ -265,9 +265,43 @@ public class RowColumnOps
         for(int i = start; i < to; i++)
             A.set(i, j, A.get(i, j)/c[i]);
     }
+
+    /**
+     * Updates the values of row <tt>i</tt> in the given matrix to be A[i,:] = A[i,:]+c[:]*<tt>t</tt>.<br>
+     * The Matrix <tt>A</tt> and array <tt>c</tt> do not need to have the same dimensions, so long as they both have indices in the given range. 
+     * 
+     * @param A the matrix to perform he update on
+     * @param i the row to update
+     * @param start the first index of the column to update from (inclusive)
+     * @param to the last index of the column to update (exclusive)
+     * @param t the constant to multiply all elements of <tt>c</tt> by
+     * @param c the array of values to pairwise multiply by <tt>t</tt> before adding to the elements of A
+     */
+    public static void addMultRow(Matrix A, int i, int start, int to, double t, double[] c)
+    {
+        for(int j = start; j < to; j++)
+            A.increment(i, j, c[j]*t);
+    }
     
     /**
-     * Updates the values of column <tt>j</tt> in the given matrix to be A[:,j] = A[:,j]+c[j]*<tt>t</tt>.<br>
+     * Updates the values of row <tt>i</tt> in the given matrix to be A[i,:] = A[i,:]+c[:]*<tt>t</tt>.<br>
+     * The Matrix <tt>A</tt> and array <tt>c</tt> do not need to have the same dimensions, so long as they both have indices in the given range. 
+     * 
+     * @param A the matrix to perform he update on
+     * @param i the row to update
+     * @param start the first index of the column to update from (inclusive)
+     * @param to the last index of the column to update (exclusive)
+     * @param t the constant to multiply all elements of <tt>c</tt> by
+     * @param c the array of values to pairwise multiply by <tt>t</tt> before adding to the elements of A
+     */
+    public static void addMultRow(Matrix A, int i, int start, int to, double t, Vec c)
+    {
+        for(int j = start; j < to; j++)
+            A.increment(i, j, c.get(j)*t);
+    }
+    
+    /**
+     * Updates the values of column <tt>j</tt> in the given matrix to be A[:,j] = A[:,j]+c[:]*<tt>t</tt>.<br>
      * The Matrix <tt>A</tt> and array <tt>c</tt> do not need to have the same dimensions, so long as they both have indices in the given range. 
      * 
      * @param A the matrix to perform he update on
@@ -284,7 +318,7 @@ public class RowColumnOps
     }
     
     /**
-     * Updates the values of column <tt>j</tt> in the given matrix to be A[:,j] = A[:,j]+c[j]*<tt>t</tt>.<br>
+     * Updates the values of column <tt>j</tt> in the given matrix to be A[:,j] = A[:,j]+c[:]*<tt>t</tt>.<br>
      * The Matrix <tt>A</tt> and vector <tt>c</tt> do not need to have the same dimensions, so long as they both have indices in the given range. 
      * 
      * @param A the matrix to perform he update on
