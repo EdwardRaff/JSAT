@@ -35,7 +35,10 @@ import jsat.utils.FakeExecutor;
  * {@link VectorCollectionFactory} allowed in the constructor is to accelerate 
  * the first convergence step. In homogeneous areas of the data set, queries can
  * be answered in <i>O(log n)</i> if the vector collection supports it. 
- * 
+ * <br><br>
+ * See: Hastie, T., & Tibshirani, R. (1996). <i>Discriminant adaptive nearest
+ * neighbor classification</i>. IEEE Transactions on Pattern Analysis and 
+ * Machine Intelligence, 18(6), 607–616. doi:10.1109/34.506411
  * @author Edward Raff
  */
 public class DANN implements Classifier, Parameterized
