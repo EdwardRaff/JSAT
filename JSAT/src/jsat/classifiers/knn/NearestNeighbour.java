@@ -312,6 +312,8 @@ public class NearestNeighbour implements  Classifier, Regressor, Parameterized
     {
         NearestNeighbour clone = new NearestNeighbour(k, weighted, distanceMetric.clone(), vcf.clone());
         
+        if(this.predicting != null)
+            clone.predicting = this.predicting.clone();
         clone.mode = this.mode;
         
         if(this.vecCollection != null)
