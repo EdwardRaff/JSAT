@@ -664,13 +664,21 @@ public class EigenValueDecomposition
 
 
     /**
-     * Return the eigenvector matrix
+     * Return a copy of the eigenvector matrix
      *
      * @return V
      */
     public Matrix getV()
     {
         return V.clone();
+    }
+    
+    /**
+     * Returns a copy of the transposed eigenvector matrix. 
+     * @return V' 
+     */
+    public Matrix getVT() {
+        return V.transpose();
     }
 
     /**
