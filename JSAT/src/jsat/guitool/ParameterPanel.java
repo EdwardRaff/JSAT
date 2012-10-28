@@ -198,6 +198,10 @@ public class ParameterPanel extends javax.swing.JPanel
                         objParam.setObject(comboBox.getSelectedItem());
                     }
                 });
+                List options = objParam.parameterOptions();
+                for(int i = 0; i < options.size(); i++)
+                    if(options.get(i).toString().equals(objParam.getObject().toString()))
+                        comboBox.setSelectedIndex(i);
                 subPanel.add(comboBox, BorderLayout.CENTER);
                 jPanelParameters.add(subPanel);
             }
