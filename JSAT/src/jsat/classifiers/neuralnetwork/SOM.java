@@ -15,6 +15,10 @@ import jsat.linear.*;
 import jsat.linear.distancemetrics.DistanceMetric;
 import jsat.linear.distancemetrics.EuclideanDistance;
 import jsat.linear.vectorcollection.*;
+import jsat.math.decayrates.DecayRate;
+import jsat.math.decayrates.ExponetialDecay;
+import jsat.math.decayrates.LinearDecay;
+import jsat.math.decayrates.NoDecay;
 import jsat.parameters.*;
 import jsat.utils.*;
 
@@ -146,7 +150,7 @@ public class SOM implements Classifier, Parameterized
                 @Override
                 public List parameterOptions()
                 {
-                    return Arrays.asList(DecayRate.CONSTANT, DecayRate.LINEAR, DecayRate.EXPONETIAL);
+                    return Arrays.asList(new NoDecay(), new LinearDecay(), new ExponetialDecay());
                 }
 
                 @Override
@@ -175,7 +179,7 @@ public class SOM implements Classifier, Parameterized
                 @Override
                 public List parameterOptions()
                 {
-                    return Arrays.asList(DecayRate.CONSTANT, DecayRate.LINEAR, DecayRate.EXPONETIAL);
+                    return Arrays.asList(new NoDecay(), new LinearDecay(), new ExponetialDecay());
                 }
 
                 @Override
@@ -192,8 +196,8 @@ public class SOM implements Classifier, Parameterized
     public static final int DEFAULT_MAX_ITERS = 500;
     public static final KernelFunction DEFAULT_KF = EpanechnikovKF.getInstance();
     public static final double DEFAULT_LEARNING_RATE = 0.1;
-    public static final DecayRate DEFAULT_LEARNING_DECAY = DecayRate.EXPONETIAL;
-    public static final DecayRate DEFAULT_NEIGHBOR_DECAY = DecayRate.EXPONETIAL;
+    public static final DecayRate DEFAULT_LEARNING_DECAY = new ExponetialDecay();
+    public static final DecayRate DEFAULT_NEIGHBOR_DECAY = new ExponetialDecay();
     
     private int somWidth;
     private int somHeight;
@@ -492,38 +496,6 @@ public class SOM implements Classifier, Parameterized
         return parameterMap.get(paramName);
     }
     
-    /**
-     * Different rates of decay that can be used for SOM
-     */
-    public enum DecayRate 
-    {
-        CONSTANT
-        {
-            @Override
-            double rate(double time, double maxTime, double initial)
-            {
-                return initial;
-            }
-        },
-        EXPONETIAL
-        {
-            @Override
-            double rate(double time, double maxTime, double initial)
-            {
-                return initial*Math.exp(  -time / (maxTime / log(maxTime)));
-            }
-        },
-        LINEAR
-        {
-            @Override
-            double rate(double time, double maxTime, double initial)
-            {
-                return initial*(1.0-time/maxTime);
-            }
-        };
-        abstract double rate(double time, double maxTime, double initial);
-    }
-
     private void trainSOM(final DataSet dataSet, final ExecutorService execServ) throws InterruptedException
     {
         final int D = dataSet.getNumNumericalVars();
