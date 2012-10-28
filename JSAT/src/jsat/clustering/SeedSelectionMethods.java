@@ -57,7 +57,7 @@ public class SeedSelectionMethods
      * @param selectionMethod  The method of seed selection to use. 
      * @return a list of the copies of the chosen vectors. 
      */
-    static protected List<Vec> selectIntialPoints(DataSet d, int k, DistanceMetric dm, Random rand, SeedSelection selectionMethod)
+    static public List<Vec> selectIntialPoints(DataSet d, int k, DistanceMetric dm, Random rand, SeedSelection selectionMethod)
     {
         int[] indicies = new int[k];
         selectIntialPoints(d, indicies, dm, rand, selectionMethod);
@@ -78,7 +78,7 @@ public class SeedSelectionMethods
      * @param threadpool the source of threads for parallel computation 
      * @return a list of the copies of the chosen vectors. 
      */
-    static protected List<Vec> selectIntialPoints(DataSet d, int k, DistanceMetric dm, Random rand, SeedSelection selectionMethod, ExecutorService threadpool)
+    static public List<Vec> selectIntialPoints(DataSet d, int k, DistanceMetric dm, Random rand, SeedSelection selectionMethod, ExecutorService threadpool)
     {
         int[] indicies = new int[k];
         selectIntialPoints(d, indicies, dm, rand, selectionMethod, threadpool);
@@ -97,7 +97,7 @@ public class SeedSelectionMethods
      * @param rand a source of randomness
      * @param selectionMethod  The method of seed selection to use. 
      */
-    static protected void selectIntialPoints(DataSet d, int[] indices, DistanceMetric dm, Random rand, SeedSelection selectionMethod)
+    static public void selectIntialPoints(DataSet d, int[] indices, DistanceMetric dm, Random rand, SeedSelection selectionMethod)
     {
         selectIntialPoints(d, indices, dm, rand, selectionMethod, null);
     }
@@ -112,7 +112,7 @@ public class SeedSelectionMethods
      * @param selectionMethod  The method of seed selection to use. 
      * @param threadpool the source of threads for parallel computation 
      */
-    static protected void selectIntialPoints(DataSet d, int[] indices, DistanceMetric dm, Random rand, SeedSelection selectionMethod, ExecutorService threadpool)
+    static public void selectIntialPoints(DataSet d, int[] indices, DistanceMetric dm, Random rand, SeedSelection selectionMethod, ExecutorService threadpool)
     {
         try
         {
