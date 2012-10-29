@@ -9,8 +9,12 @@ import jsat.classifiers.*;
 import jsat.clustering.SeedSelectionMethods;
 import jsat.clustering.SeedSelectionMethods.SeedSelection;
 import jsat.linear.Vec;
+import jsat.linear.VecPaired;
 import jsat.linear.distancemetrics.DistanceMetric;
 import jsat.linear.distancemetrics.TrainableDistanceMetric;
+import jsat.linear.vectorcollection.DefaultVectorCollectionFactory;
+import jsat.linear.vectorcollection.VectorCollection;
+import jsat.linear.vectorcollection.VectorCollectionFactory;
 import jsat.math.decayrates.*;
 import jsat.parameters.*;
 import jsat.text.GreekLetters;
@@ -27,8 +31,6 @@ import jsat.utils.FakeExecutor;
  */
 public class LVQ implements Classifier, Parameterized
 {
-    //TODO instead of a linear search of the learning vectors, add a VectorCollection option
-    
     /**
      * The default number of iterations is {@value #DEFAULT_ITERATIONS}
      */
@@ -70,20 +72,35 @@ public class LVQ implements Classifier, Parameterized
     private DecayRate learningDecay;
     private int iterations;
     private double learningRate;
-    private DistanceMetric dm;
+    /**
+     * The distance metric to use
+     */
+    protected DistanceMetric dm;
     private LVQVersion lvqVersion;
     private double eps;
     private double mScale;
     private double stoppingDist;
     private int representativesPerClass;
-    private Vec[] weights;
-    private int[] weightClass;
+    /**
+     * Array containing the learning vectors
+     */
+    protected Vec[] weights;
+    /**
+     * Array of the class that each learning vector represents
+     */
+    protected int[] weightClass;
     /**
      * Records the number of times each neuron won and was off the correct class
      * during training. Neurons that end with a count of zero wins will be ignored
      */
-    private int[] wins;
+    protected int[] wins;
     private SeedSelectionMethods.SeedSelection seedSelection;
+    /**
+     * Contains the Learning vectors paired with their index in the weights array
+     */
+    protected VectorCollection<VecPaired<Vec, Integer>> vc;
+    
+    private VectorCollectionFactory<VecPaired<Vec, Integer>> vcf;
     
     private List<Parameter> params = Collections.unmodifiableList(new ArrayList<Parameter>()
     {{
@@ -407,7 +424,31 @@ public class LVQ implements Classifier, Parameterized
         setEps(DEFAULT_EPS);
         setMScale(DEFAULT_MSCALE);
         setSeedSelection(DEFAULT_SEED_SELECTION);
+        setVecCollectionFactory(new DefaultVectorCollectionFactory<VecPaired<Vec, Integer>>());
         setRepresentativesPerClass(representativesPerClass);
+    }
+    
+    /**
+     * Copy Constructor
+     * @param toCopy version to copy
+     */
+    protected LVQ(LVQ toCopy)
+    {
+        this(toCopy.dm.clone(), toCopy.iterations, toCopy.learningRate, 
+                toCopy.representativesPerClass, toCopy.lvqVersion, 
+                toCopy.learningDecay);
+        if(toCopy.weights != null)
+        {
+            wins = Arrays.copyOf(this.wins, this.wins.length);
+            weights = new Vec[this.weights.length];
+            weightClass = Arrays.copyOf(toCopy.weightClass, toCopy.weightClass.length);
+
+            for(int i = 0; i < toCopy.weights.length; i++)
+                weights[i] = this.weights[i].clone();
+        }
+        setEps(toCopy.eps);
+        setMScale(toCopy.getMScale());
+        setSeedSelection(toCopy.getSeedSelection());
     }
 
     /**
@@ -628,11 +669,13 @@ public class LVQ implements Classifier, Parameterized
         return seedSelection;
     }
 
+    @Override
     public List<Parameter> getParameters()
     {
         return params;
     }
 
+    @Override
     public Parameter getParameter(String paramName)
     {
         return paramMap.get(paramName);
@@ -665,32 +708,42 @@ public class LVQ implements Classifier, Parameterized
          */
         LVQ3
     }
+
+    /**
+     * Sets the vector collection factory to use when storing the final learning vectors
+     * @param vcf the vector collection factory to use
+     */
+    public void setVecCollectionFactory(VectorCollectionFactory<VecPaired<Vec, Integer>> vcf)
+    {
+        this.vcf = vcf;
+    }
     
+    @Override
     public CategoricalResults classify(DataPoint data)
     {
-        int closest = 0;
-        double minDist = Double.POSITIVE_INFINITY;
-        
         CategoricalResults cr = new CategoricalResults(weightClass.length/representativesPerClass);
         
-        Vec query = data.getNumericalValues();
-        for(int i = 0; i < weights.length; i++)
-        {
-            if(wins[i] == 0)
-                continue;
-            double dist = dm.dist(query, weights[i]);
-            if(dist < minDist)
-            {
-                minDist = dist;
-                closest = i;
-            }
-        }
         
-        cr.setProb(weightClass[closest], 1.0);
+        int index = vc.search(data.getNumericalValues(), 1).get(0).getVector().getPair();
+        cr.setProb(weightClass[index], 1.0);
         
         return cr;
     }
 
+    /**
+     * Returns true if the two distance values are within an acceptable epsilon 
+     * ratio of each other. 
+     * @param minDist the first distance
+     * @param minDist2 the second distance
+     * @return <tt>true</tt> if the are acceptable close
+     */
+    protected boolean epsClose(double minDist, double minDist2)
+    {
+        return min(minDist/minDist2, minDist2/minDist) > (1 - eps)
+                        && max(minDist/minDist2, minDist2/minDist) < (1 + eps);
+    }
+    
+    @Override
     public void trainC(ClassificationDataSet dataSet, ExecutorService threadPool)
     {
         if(threadPool == null || threadPool instanceof FakeExecutor)
@@ -763,8 +816,7 @@ public class LVQ implements Classifier, Parameterized
                 if (lvqVersion.ordinal() >= LVQVersion.LVQ2.ordinal()
                         && weightClass[minDistIndx] != weightClass[minDistIndx2]
                         && closestClass == weightClass[minDistIndx2]
-                        && minDist > (1 - eps) * minDist2
-                        && minDist2 < (1 - eps) * minDist)
+                        && epsClose(minDist, minDist2))
                 {//Update both vectors 
                     //Move the closest farther away
                     x.copyTo(tmp);
@@ -779,8 +831,7 @@ public class LVQ implements Classifier, Parameterized
                 else if (lvqVersion.ordinal() >= LVQVersion.LVQ21.ordinal()
                         && weightClass[minDistIndx] != weightClass[minDistIndx2]
                         && closestClass == weightClass[minDistIndx]
-                        && min(minDist/minDist2, minDist2/minDist) > (1 - eps)
-                        && max(minDist/minDist2, minDist2/minDist) < (1 + eps))
+                        && epsClose(minDist, minDist2))
                 {//Update both vectors 
                     //Move the closest closer
                     x.copyTo(tmp);
@@ -831,13 +882,25 @@ public class LVQ implements Classifier, Parameterized
                 break;
         }
         
+        List<VecPaired<Vec, Integer>> finalLVs = new ArrayList<VecPaired<Vec, Integer>>(weights.length);
+        for(int i = 0; i < weights.length; i++)
+            if(wins[i] == 0)
+                continue;
+            else
+                finalLVs.add(new VecPaired<Vec, Integer>(weights[i], i));
+        if(threadPool == null || threadPool instanceof FakeExecutor)
+            vc = vcf.getVectorCollection(finalLVs, dm);
+        else
+            vc = vcf.getVectorCollection(finalLVs, dm, threadPool);
     }
 
+    @Override
     public void trainC(ClassificationDataSet dataSet)
     {
         trainC(dataSet, null);
     }
 
+    @Override
     public boolean supportsWeightedData()
     {
         return false;
@@ -845,24 +908,8 @@ public class LVQ implements Classifier, Parameterized
 
     @Override
     public Classifier clone()
-    {
-        LVQ clone = new LVQ(dm.clone(), iterations, learningRate, representativesPerClass, lvqVersion, 
-                learningDecay);
-        if(this.weights != null)
-        {
-            clone.wins = Arrays.copyOf(this.wins, this.wins.length);
-            clone.weights = new Vec[this.weights.length];
-            clone.weightClass = new int[this.weightClass.length];
-            for(int i = 0; i < clone.weights.length; i++)
-            {
-                clone.weights[i] = this.weights[i].clone();
-                clone.weightClass[i] = this.weightClass[i];
-            }
-        }
-        clone.setEps(this.eps);
-        clone.setMScale(this.getMScale());
-        clone.setSeedSelection(this.getSeedSelection());
-        return clone;
+    {   
+        return new LVQ(this);
     }
     
 }
