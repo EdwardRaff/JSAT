@@ -31,9 +31,10 @@ public class BestClassDistribution implements Classifier, Parameterized
      */
     private boolean usePriors;
     /**
-     * The default value for whether or not to use the prior probability of a class when making classification decisions is {@value #USE_PRIORS}. 
+     * The default value for whether or not to use the prior probability of a 
+     * class when making classification decisions is {@value #USE_PRIORS}. 
      */
-    public static final boolean USE_PRIORS = false;
+    public static final boolean USE_PRIORS = true;
     
     private final Parameter usePriorsParam = new BooleanParameter() {
 
@@ -98,7 +99,15 @@ public class BestClassDistribution implements Classifier, Parameterized
         {
             if(dists.get(i) == null)
                 continue;
-            double  p = dists.get(i).pdf(data.getNumericalValues());
+            double  p = 0 ;
+            try
+            {
+                p = dists.get(i).pdf(data.getNumericalValues());
+            }
+            catch(ArithmeticException ex)
+            {
+                
+            }
             if(usePriors)
                 p *= priors[i];
             cr.setProb(i, p);
