@@ -9,6 +9,7 @@ package jsat.math.decayrates;
 public class LinearDecay implements DecayRate
 {
 
+    @Override
     public double rate(double time, double maxTime, double initial)
     {
         if(time < 0)
