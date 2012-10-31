@@ -75,6 +75,16 @@ public class OnLineStatistics
     }
     
     /**
+     * Copy Constructor
+     * @param other the version to make a copy of
+     */
+    public OnLineStatistics(OnLineStatistics other)
+    {
+        this(other.n, other.mean, other.m2, other.m3, other.m4, 
+                other.min, other.max);
+    }
+    
+    /**
      * Adds a data sample with unit weight to the counts. 
      * @param x the data value to add
      */
