@@ -141,6 +141,24 @@ public class Normal extends Distribution
     {
         return pdf(d, mean, stndDev);
     }
+    
+    /**
+     * Computes the log probability of a given value
+     * @param x the value to the get log(pdf) of
+     * @param mu the mean of the distribution
+     * @param sigma the standard deviation of the distribution
+     * @return the log probability 
+     */
+    public static double logPdf(double x, double mu, double sigma)
+    {
+        return -0.5*(log(2*PI)+log(sigma)*2) + -pow(x-mu,2)/(2*sigma*sigma);
+    }
+
+    @Override
+    public double logPdf(double x)
+    {
+        return logPdf(x, mean, stndDev);
+    }
 
     public double invPdf(double d)
     {
