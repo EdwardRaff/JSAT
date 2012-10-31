@@ -149,7 +149,7 @@ public class Normal extends Distribution
      */
     public static double logPdf(double x, double mu, double sigma)
     {
-        return -0.5*(log(2*PI)+log(sigma)*2) + -pow(x-mu,2)/(2*sigma*sigma);
+        return -0.5*log(2*PI) + log(sigma) + -pow(x-mu,2)/(2*sigma*sigma);
     }
 
     @Override
