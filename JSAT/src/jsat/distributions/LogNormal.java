@@ -4,6 +4,7 @@ package jsat.distributions;
 import jsat.linear.Vec;
 import static java.lang.Math.*;
 import static jsat.math.SpecialMath.*;
+import jsat.text.GreekLetters;
 
 /**
  *
@@ -74,7 +75,7 @@ public class LogNormal extends Distribution
     @Override
     public String[] getVariables()
     {
-        return new String[]{Normal.mu , Normal.sigma};
+        return new String[]{GreekLetters.mu , GreekLetters.sigma};
     }
 
     @Override
@@ -86,9 +87,9 @@ public class LogNormal extends Distribution
     @Override
     public void setVariable(String var, double value)
     {
-        if(var.equals(Normal.mu))
+        if(var.equals(GreekLetters.mu))
             mu = value;
-        else if(var.equals(Normal.sigma))
+        else if(var.equals(GreekLetters.sigma))
             if(value <= 0)
                 throw new ArithmeticException("Standard deviation must be > 0, not " + value );
             else

@@ -7,15 +7,13 @@ package jsat.distributions;
 
 import static java.lang.Math.*;
 import jsat.linear.Vec;
+import jsat.text.GreekLetters;
 /**
  *
  * @author Edward Raff
  */
 public class Normal extends Distribution
 {
-    public static final String mu = "\u03BC";
-    public static final String sigma = "\u03C3";
-
     private double mean;
     private double stndDev;
 
@@ -225,15 +223,15 @@ public class Normal extends Distribution
     @Override
     public String[] getVariables()
     {
-        return new String[]{mu, sigma};
+        return new String[]{GreekLetters.mu, GreekLetters.sigma};
     }
 
     @Override
     public void setVariable(String var, double value)
     {
-        if(var.equals(mu))
+        if(var.equals(GreekLetters.mu))
             mean = value;
-        else if(var.equals(sigma))
+        else if(var.equals(GreekLetters.sigma))
             setStndDev(value);
 
     }

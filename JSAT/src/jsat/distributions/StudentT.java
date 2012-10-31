@@ -4,6 +4,7 @@ package jsat.distributions;
 import jsat.linear.Vec;
 import static java.lang.Math.*;
 import static jsat.math.SpecialMath.*;
+import jsat.text.GreekLetters;
 
 
 
@@ -106,7 +107,7 @@ public class StudentT extends Distribution
     @Override
     public String[] getVariables()
     {
-        return new String[]{"df", Normal.mu, Normal.sigma};
+        return new String[]{"df", GreekLetters.mu, GreekLetters.sigma};
     }
 
     @Override
@@ -123,9 +124,9 @@ public class StudentT extends Distribution
                 df = value;
             else
                 throw new ArithmeticException("Degrees of Fredom must be greater than 0");
-        else if (var.equals(Normal.mu))
+        else if (var.equals(GreekLetters.mu))
             mu = value;
-        else if (var.equals(Normal.sigma))
+        else if (var.equals(GreekLetters.sigma))
             if (value > 0)
                 sig = value;
             else
