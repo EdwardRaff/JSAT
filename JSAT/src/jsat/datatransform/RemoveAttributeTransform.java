@@ -5,6 +5,7 @@ import java.util.Set;
 import jsat.DataSet;
 import jsat.classifiers.CategoricalData;
 import jsat.classifiers.DataPoint;
+import jsat.datatransform.DataTransform;
 import jsat.linear.DenseVector;
 import jsat.linear.Vec;
 
@@ -84,7 +85,7 @@ public class RemoveAttributeTransform implements DataTransform
     }
 
     @Override
-    public DataTransform clone()
+    public RemoveAttributeTransform clone()
     {
         return new RemoveAttributeTransform(this);
     }
