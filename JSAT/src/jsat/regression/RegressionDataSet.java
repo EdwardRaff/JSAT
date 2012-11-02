@@ -309,7 +309,7 @@ public class RegressionDataSet extends DataSet
     {
         RegressionDataSet clone = new RegressionDataSet(numNumerVals, categories);
         for(DataPointPair<Double> dpp : this.dataPoints)
-            clone.dataPoints.add(dpp);
+            clone.dataPoints.add(new DataPointPair<Double>(dpp.getDataPoint(), dpp.getPair()));
         return clone;
     }
 }
