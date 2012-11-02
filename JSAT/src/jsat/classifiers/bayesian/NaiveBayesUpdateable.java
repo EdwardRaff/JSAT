@@ -190,7 +190,7 @@ public class NaiveBayesUpdateable extends BaseUpdateableClassifier
                 logProb += Math.log(p/sum);
             }
             
-            double prob = Math.exp(logProb);
+            double prob = Math.exp(logProb + Math.log(priors[i]/priorSum));
             results.setProb(i, prob);
         }
         
