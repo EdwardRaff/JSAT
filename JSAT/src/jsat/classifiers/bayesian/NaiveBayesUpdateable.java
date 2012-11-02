@@ -30,6 +30,10 @@ public class NaiveBayesUpdateable extends BaseUpdateableClassifier
      * Online stats about the variable values
      */
     private OnLineStatistics[][] valueStats;
+    
+    private double priorSum = 0;
+    private double[] priors;
+    
     /**
      * Handles how vectors are handled. If true, it is assumed vectors are sparce - and zero values will be ignored when training and classifying.  
      */
@@ -76,6 +80,9 @@ public class NaiveBayesUpdateable extends BaseUpdateableClassifier
                     this.valueStats[i][j] = new OnLineStatistics(other.valueStats[i][j]);
             }
             
+            this.priorSum = other.priorSum;
+            this.priors = Arrays.copyOf(other.priors, other.priors.length);
+            
         }
     }
     
@@ -91,6 +98,9 @@ public class NaiveBayesUpdateable extends BaseUpdateableClassifier
         int nCat = predicting.getNumOfCategories();
         apriori = new double[nCat][categoricalAttributes.length][];
         valueStats = new OnLineStatistics[nCat][numericAttributes];
+        priors = new double[nCat];
+        priorSum = nCat;
+        Arrays.fill(priors, 1.0);
         
         for (int i = 0; i < nCat; i++)
         {
@@ -124,6 +134,8 @@ public class NaiveBayesUpdateable extends BaseUpdateableClassifier
         int[] catValues = dataPoint.getCategoricalValues();
         for(int j = 0; j < apriori[targetClass].length; j++)
             apriori[targetClass][j][catValues[j]]++;
+        priorSum++;
+        priors[targetClass]++;
     }
 
     @Override
@@ -146,7 +158,9 @@ public class NaiveBayesUpdateable extends BaseUpdateableClassifier
                     double stndDev = valueStats[i][indx].getStandardDeviation();
                     int j = iv.getIndex();
                     double logPDF = Normal.logPdf(iv.getValue(), mean, stndDev);
-                    if(Double.isInfinite(logPDF))//Avoid propigation -infinty when the probability is zero
+                    if(Double.isNaN(logPDF))
+                        logProb += Math.log(1e-16);
+                    else if(Double.isInfinite(logPDF))//Avoid propigation -infinty when the probability is zero
                         logProb += Math.log(1e-16);
                     else
                         logProb += logPDF;
