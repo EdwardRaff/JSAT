@@ -111,7 +111,7 @@ public class NumericalToHistogram implements DataTransform
         return new NumericalToHistogram(this);
     }
     
-    public class NumericalToHistogramTransformFactory implements DataTransformFactory
+    static public class NumericalToHistogramTransformFactory implements DataTransformFactory
     {
         
         private int n;

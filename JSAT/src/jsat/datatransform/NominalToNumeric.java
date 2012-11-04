@@ -63,7 +63,7 @@ public class NominalToNumeric implements DataTransform
         return new NominalToNumeric(origNumericalCount, categoricalData);
     }
     
-    public class NominalToNumericTransformFactory implements DataTransformFactory
+    static public class NominalToNumericTransformFactory implements DataTransformFactory
     {
 
         public NominalToNumericTransformFactory()
