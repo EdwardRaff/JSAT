@@ -13,6 +13,10 @@ import jsat.linear.Vec;
 import jsat.math.Function;
 import jsat.math.OnLineStatistics;
 import jsat.math.rootfinding.Zeroin;
+import jsat.parameters.IntParameter;
+import jsat.parameters.ObjectParameter;
+import jsat.parameters.Parameter;
+import jsat.parameters.Parameterized;
 import jsat.regression.RegressionDataSet;
 import jsat.regression.Regressor;
 import jsat.utils.DoubleList;
@@ -733,7 +737,7 @@ public class DecisionStump implements Classifier, Regressor
     }
     
     private PairedReturn<List<Double>, List<Integer>> createNumericCSplit(
-            List<DataPointPair<Integer>> dataPoints, int N, int attribute,
+            List<DataPointPair<Integer>> dataPoints, int N, final int attribute,
             List<List<DataPointPair<Integer>>> aSplit)
     {
         if (numericHandlingC == NumericHandlingC.PDF_INTERSECTIONS)
@@ -800,7 +804,8 @@ public class DecisionStump implements Classifier, Regressor
                 @Override
                 public int compare(DataPointPair<Integer> t, DataPointPair<Integer> t1)
                 {
-                    return t.getPair().compareTo(t1.getPair());
+                    return Double.compare(t.getVector().get(attribute), 
+                            t1.getVector().get(attribute));
                 }
             };
             
@@ -826,6 +831,8 @@ public class DecisionStump implements Classifier, Regressor
                     splitIndex = i+1;
                 }
             }
+            if(splitIndex == -1)
+                return null;
             
             aSplit.set(0, new ArrayList<DataPointPair<Integer>>(dataPoints.subList(0, splitIndex)));
             aSplit.set(1, new ArrayList<DataPointPair<Integer>>(dataPoints.subList(splitIndex, dataPoints.size())));
