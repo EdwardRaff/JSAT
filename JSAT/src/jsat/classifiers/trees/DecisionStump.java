@@ -75,12 +75,30 @@ public class DecisionStump implements Classifier, Regressor
      */
     private double[] regressionResults;
     private GainMethod gainMethod;
+    private NumericHandlingC numericHandlingC = NumericHandlingC.PDF_INTERSECTIONS;
     private boolean removeContinuousAttributes;
     /**
      * The minimum number of points that must be inside the split result for a 
      * split to occur.
      */
     private int minSplitResultSize = 5;
+
+    /**
+     * How numeric attributes are handled during classification
+     */
+    public static enum NumericHandlingC
+    {
+        /**
+         * Numeric attributes may be split into an arbitrary number of branches 
+         * based on the approximated intersections of the PDF. 
+         */
+        PDF_INTERSECTIONS, 
+        /**
+         * Numeric attributes are split into a binary branch based on a linear 
+         * search for the split that produces the highest information gain. 
+         */
+        BINARY_BEST_GAIN
+    }
 
     /**
      * Creates a new decision stump
@@ -112,6 +130,28 @@ public class DecisionStump implements Classifier, Regressor
     public GainMethod getGainMethod()
     {
         return gainMethod;
+    }
+
+    /**
+     * Sets the method of attribute selection used when numeric attributes are 
+     * encountered during classification. 
+     * @param numericHandlingC the method of numeric attribute handling to use 
+     * during classification 
+     */
+    public void setNumericHandling(NumericHandlingC numericHandlingC)
+    {
+        this.numericHandlingC = numericHandlingC;
+    }
+
+    /**
+     * Returns the method of attribute selection used when numeric attributes 
+     * are encountered during classification. 
+     * @return the method of numeric attribute handling to use during 
+     * classification 
+     */
+    public NumericHandlingC getNumericHandling()
+    {
+        return numericHandlingC;
     }
     
     /**
@@ -198,9 +238,7 @@ public class DecisionStump implements Classifier, Regressor
         double splitInfo = 0.0;
         for (List<DataPointPair<Integer>> subSet : aSplit)
         {
-            double subSetSize = 0.0;
-            for(DataPointPair<Integer> dpp : subSet)
-                subSetSize += dpp.getDataPoint().getWeight();
+            double subSetSize = getSumOfAllWeights(subSet);
             double SiOverS = subSetSize / totalSize;
             splitScore += SiOverS * score(subSet, gainMethod);
             
@@ -595,10 +633,7 @@ public class DecisionStump implements Classifier, Regressor
             toReturn.add(dataPoints);
             return toReturn;
         }
-        
-        double totalSize = 0.0; 
-        for(DataPointPair<Integer> dpp :  dataPoints)
-            totalSize += dpp.getDataPoint().getWeight();
+        double totalSize = getSumOfAllWeights(dataPoints);
         
         /**
          * The splitting for the split on the attribute with the best gain
@@ -631,59 +666,12 @@ public class DecisionStump implements Classifier, Regressor
                 attribute -= catAttributes.length;
                 int N = predicting.getNumOfCategories();
                 
-                //This requires more set up and work then just spliting on categories 
-                //First we need to seperate class values on the attribute to create distributions to compare
-                List<List<Double>> weights = new ArrayList<List<Double>>(N);
-                List<List<Double>> values = new ArrayList<List<Double>>(N);
-                for(int i = 0; i < N; i++)
-                {
-                    weights.add(new ArrayList<Double>());
-                    values.add(new ArrayList<Double>());
-                }
-                //Collect values and their weights seperated by class 
-                for(DataPointPair<Integer> dpp :  dataPoints)
-                {
-                    int theClass = dpp.getPair();
-                    double value = dpp.getVector().get(attribute);
-                    weights.get(theClass).add(dpp.getDataPoint().getWeight());
-                    values.get(theClass).add(value);
-                }
-                //Convert to usable formats 
-                Distribution[] dist = new Distribution[N];
-                for(int i = 0; i < N; i++)
-                {
-                    if(weights.get(i).isEmpty())
-                    {
-                        dist[i] = null;
-                        continue;
-                    }
-                    Vec theVals = new DenseVector(weights.get(i).size());
-                    double[] theWeights = new double[theVals.length()];
-                    for(int j = 0; j < theWeights.length; j++)
-                    {
-                        theVals.set(j, values.get(i).get(j));
-                        theWeights[j] = weights.get(i).get(j);
-                    }
-                    dist[i] = new KernelDensityEstimator(theVals, EpanechnikovKF.getInstance(), theWeights);
-                }
+                //Create a list of lists to hold the split variables
+                aSplit = listOfLists(2);//Size at least 2
                 
-                //Now compute the speration boundrys 
-                tmp = intersections(Arrays.asList(dist));
+                tmp = createNumericCSplit(dataPoints, N, attribute, aSplit);
                 if(tmp == null)
                     continue;
-                List<Double> tmpBoundries = tmp.getFirstItem();
-                List<Integer> tmpOwners = tmp.getSecondItem();
-                
-                //Create a list of lists to hold the split variables
-                aSplit = listOfLists(N);
-                
-                //Now seperate the values in our current list into their proper split bins 
-                for(DataPointPair<Integer> dpp :  dataPoints)
-                {
-                    int pos = Collections.binarySearch(tmpBoundries, dpp.getVector().get(attribute));
-                    pos = pos < 0 ? -pos-1 : pos;
-                    aSplit.get(tmpOwners.get(pos)).add(dpp);
-                }
                 
                 //Fix it back so it can be used below
                 attribute+= catAttributes.length;
@@ -728,6 +716,114 @@ public class DecisionStump implements Classifier, Regressor
         }
         
         return bestSplit;
+    }
+    
+    private PairedReturn<List<Double>, List<Integer>> createNumericCSplit(
+            List<DataPointPair<Integer>> dataPoints, int N, int attribute,
+            List<List<DataPointPair<Integer>>> aSplit)
+    {
+        if (numericHandlingC == NumericHandlingC.PDF_INTERSECTIONS)
+        {
+            while(aSplit.size() < N)
+                aSplit.add(new ArrayList<DataPointPair<Integer>>());
+            //This requires more set up and work then just spliting on categories 
+            //First we need to seperate class values on the attribute to create distributions to compare
+            List<List<Double>> weights = new ArrayList<List<Double>>(N);
+            List<List<Double>> values = new ArrayList<List<Double>>(N);
+            for (int i = 0; i < N; i++)
+            {
+                weights.add(new DoubleList());
+                values.add(new DoubleList());
+            }
+            //Collect values and their weights seperated by class 
+            for (DataPointPair<Integer> dpp : dataPoints)
+            {
+                int theClass = dpp.getPair();
+                double value = dpp.getVector().get(attribute);
+                weights.get(theClass).add(dpp.getDataPoint().getWeight());
+                values.get(theClass).add(value);
+            }
+            //Convert to usable formats 
+            Distribution[] dist = new Distribution[N];
+            for (int i = 0; i < N; i++)
+            {
+                if (weights.get(i).isEmpty())
+                {
+                    dist[i] = null;
+                    continue;
+                }
+                Vec theVals = new DenseVector(weights.get(i).size());
+                double[] theWeights = new double[theVals.length()];
+                for (int j = 0; j < theWeights.length; j++)
+                {
+                    theVals.set(j, values.get(i).get(j));
+                    theWeights[j] = weights.get(i).get(j);
+                }
+                dist[i] = new KernelDensityEstimator(theVals, EpanechnikovKF.getInstance(), theWeights);
+            }
+
+            //Now compute the speration boundrys 
+            PairedReturn<List<Double>, List<Integer>> tmp = intersections(Arrays.asList(dist));
+            if (tmp == null)
+                return null;
+            List<Double> tmpBoundries = tmp.getFirstItem();
+            List<Integer> tmpOwners = tmp.getSecondItem();
+
+            //Now seperate the values in our current list into their proper split bins 
+            for (DataPointPair<Integer> dpp : dataPoints)
+            {
+                int pos = Collections.binarySearch(tmpBoundries, dpp.getVector().get(attribute));
+                pos = pos < 0 ? -pos - 1 : pos;
+                aSplit.get(tmpOwners.get(pos)).add(dpp);
+            }
+
+            return tmp;
+        }
+        else if(numericHandlingC == NumericHandlingC.BINARY_BEST_GAIN)
+        {
+            Comparator<DataPointPair<Integer>> comparator = new Comparator<DataPointPair<Integer>>()
+            {
+                @Override
+                public int compare(DataPointPair<Integer> t, DataPointPair<Integer> t1)
+                {
+                    return t.getPair().compareTo(t1.getPair());
+                }
+            };
+            
+            Collections.sort(dataPoints, comparator);
+            
+            double initScore = score(dataPoints, gainMethod);
+            double bestGain = Double.NEGATIVE_INFINITY;
+            double bestSplit = Double.NEGATIVE_INFINITY;
+            int splitIndex = -1;
+            double totalSize = getSumOfAllWeights(dataPoints);
+            
+            for(int i = minSplitResultSize; i < dataPoints.size()-minSplitResultSize-1; i++)
+            {
+                double curSplit = (dataPoints.get(i).getVector().get(attribute) 
+                        + dataPoints.get(i+1).getVector().get(attribute)) / 2;
+                aSplit.set(0, dataPoints.subList(0, i+1));
+                aSplit.set(1, dataPoints.subList(i+2, dataPoints.size()));
+                double curGain = getGain(aSplit, totalSize, initScore);
+                if(curGain >= bestGain)
+                {
+                    bestGain = curGain;
+                    bestSplit = curSplit;
+                    splitIndex = i+1;
+                }
+            }
+            
+            aSplit.set(0, new ArrayList<DataPointPair<Integer>>(dataPoints.subList(0, splitIndex)));
+            aSplit.set(1, new ArrayList<DataPointPair<Integer>>(dataPoints.subList(splitIndex, dataPoints.size())));
+            PairedReturn<List<Double>, List<Integer>> tmp = 
+                    new PairedReturn<List<Double>, List<Integer>>(
+                    Arrays.asList(bestSplit, Double.POSITIVE_INFINITY),
+                    Arrays.asList(0, 1));
+            
+            return tmp;
+        }
+        else //What? 
+            return null;
     }
     
     public List<List<DataPointPair<Double>>> trainR(List<DataPointPair<Double>> dataPoints, Set<Integer> options)
@@ -863,6 +959,21 @@ public class DecisionStump implements Classifier, Regressor
     public boolean supportsWeightedData()
     {
         return true;
+    }
+    
+    /**
+     * Computes the sum of all the weights in the data set. If all points have 
+     * the same weight of 1.0, the result is the number of points in the list. 
+     * 
+     * @param dataPoints the list of data points
+     * @return the sum of all weights
+     */
+    private double getSumOfAllWeights(List<DataPointPair<Integer>> dataPoints)
+    {
+        double totalSize = 0.0;
+        for(DataPointPair<Integer> dpp :  dataPoints)
+            totalSize += dpp.getDataPoint().getWeight();
+        return totalSize;
     }
 
     @Override

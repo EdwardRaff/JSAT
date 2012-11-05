@@ -302,6 +302,33 @@ public class DecisionStumpTest
             assertEquals(dpp.getPair().longValue(),
                     instance.classify(dpp.getDataPoint()).mostLikely());
     }
+    
+    @Test
+    public void testNumericCKDEInter()
+    {
+        System.out.println("testNumericCKDEInter");
+        
+        DecisionStump instance = new DecisionStump();
+        instance.setNumericHandling(DecisionStump.NumericHandlingC.PDF_INTERSECTIONS);
+        
+        instance.trainC(easyNumAtTrain);
+        for(DataPointPair<Integer> dpp : easyNumAtTest.getAsDPPList())
+            assertEquals(dpp.getPair().longValue(),
+                    instance.classify(dpp.getDataPoint()).mostLikely());
+    }
 
+    @Test
+    public void testNumericCBinary()
+    {
+        System.out.println("testNumericCBinary");
+        
+        DecisionStump instance = new DecisionStump();
+        instance.setNumericHandling(DecisionStump.NumericHandlingC.BINARY_BEST_GAIN);
+        
+        instance.trainC(easyNumAtTrain);
+        for(DataPointPair<Integer> dpp : easyNumAtTest.getAsDPPList())
+            assertEquals(dpp.getPair().longValue(),
+                    instance.classify(dpp.getDataPoint()).mostLikely());
+    }
    
 }
