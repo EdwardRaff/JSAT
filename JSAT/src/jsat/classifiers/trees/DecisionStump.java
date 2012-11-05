@@ -1,24 +1,13 @@
 
 package jsat.classifiers.trees;
 
-import java.util.Set;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.HashSet;
-import java.util.List;
+import static java.lang.Math.*;
+import java.util.*;
 import java.util.concurrent.ExecutorService;
-import jsat.classifiers.CategoricalData;
-import jsat.classifiers.CategoricalResults;
-import jsat.classifiers.ClassificationDataSet;
-import jsat.classifiers.Classifier;
-import jsat.classifiers.DataPoint;
-import jsat.classifiers.DataPointPair;
+import jsat.classifiers.*;
 import jsat.distributions.Distribution;
 import jsat.distributions.empirical.KernelDensityEstimator;
 import jsat.distributions.empirical.kernelfunc.EpanechnikovKF;
-import jsat.distributions.empirical.kernelfunc.GaussKF;
 import jsat.linear.DenseVector;
 import jsat.linear.Vec;
 import jsat.math.Function;
@@ -26,9 +15,8 @@ import jsat.math.OnLineStatistics;
 import jsat.math.rootfinding.Zeroin;
 import jsat.regression.RegressionDataSet;
 import jsat.regression.Regressor;
-import jsat.utils.PairedReturn;
-import static java.lang.Math.*;
 import jsat.utils.DoubleList;
+import jsat.utils.PairedReturn;
 
 /**
  * This class is a 1-rule. It creates one rule that is used to classify all inputs, 
@@ -81,7 +69,7 @@ public class DecisionStump implements Classifier, Regressor
      * The minimum number of points that must be inside the split result for a 
      * split to occur.
      */
-    private int minSplitResultSize = 5;
+    private int minResultSplitSize = 5;
 
     /**
      * How numeric attributes are handled during classification
@@ -152,6 +140,32 @@ public class DecisionStump implements Classifier, Regressor
     public NumericHandlingC getNumericHandling()
     {
         return numericHandlingC;
+    }
+
+    /**
+     * When a split is made, it may be that outliers cause the split to 
+     * segregate a minority of points from the majority. The min result split
+     * size parameter specifies the minimum allowable number of points to end up
+     * in one of the splits for it to be admisible for consideration. 
+     * 
+     * @param minResultSplitSize the minimum result split size to use
+     */
+    public void setMinResultSplitSize(int minResultSplitSize)
+    {
+        if(minResultSplitSize <= 1)
+            throw new ArithmeticException("Min split size must be a positive value ");
+        this.minResultSplitSize = minResultSplitSize;
+    }
+
+    /**
+     * Returns the minimum result split size that may be considered for use as 
+     * the attribute to split on. 
+     * 
+     * @return the minimum result split size in use
+     */
+    public int getMinResultSplitSize()
+    {
+        return minResultSplitSize;
     }
     
     /**
@@ -798,7 +812,7 @@ public class DecisionStump implements Classifier, Regressor
             int splitIndex = -1;
             double totalSize = getSumOfAllWeights(dataPoints);
             
-            for(int i = minSplitResultSize; i < dataPoints.size()-minSplitResultSize-1; i++)
+            for(int i = minResultSplitSize; i < dataPoints.size()-minResultSplitSize-1; i++)
             {
                 double curSplit = (dataPoints.get(i).getVector().get(attribute) 
                         + dataPoints.get(i+1).getVector().get(attribute)) / 2;
@@ -896,9 +910,9 @@ public class DecisionStump implements Classifier, Regressor
                     leftSide.add(val, weight);
                     
                     
-                    if(i < minSplitResultSize)
+                    if(i < minResultSplitSize)
                         continue;
-                    else if(i > dataPoints.size()-minSplitResultSize)
+                    else if(i > dataPoints.size()-minResultSplitSize)
                         break;
                     
                     double tmpSVariance = rightSide.getVarance()*rightSide.getSumOfWeights() 
@@ -998,7 +1012,7 @@ public class DecisionStump implements Classifier, Regressor
             copy.predicting = this.predicting.clone();
         if(regressionResults != null)
             copy.regressionResults = Arrays.copyOf(this.regressionResults, this.regressionResults.length);
-        copy.minSplitResultSize = this.minSplitResultSize;
+        copy.minResultSplitSize = this.minResultSplitSize;
         copy.numericHandlingC = this.numericHandlingC;
         return copy;
     }
