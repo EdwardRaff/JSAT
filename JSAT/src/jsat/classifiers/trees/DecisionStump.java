@@ -28,6 +28,7 @@ import jsat.regression.RegressionDataSet;
 import jsat.regression.Regressor;
 import jsat.utils.PairedReturn;
 import static java.lang.Math.*;
+import jsat.utils.DoubleList;
 
 /**
  * This class is a 1-rule. It creates one rule that is used to classify all inputs, 
@@ -86,7 +87,7 @@ public class DecisionStump implements Classifier, Regressor
      */
     public DecisionStump()
     {
-        gainMethod = GainMethod.GAINRATIO;
+        gainMethod = GainMethod.INFORMATION_GAIN_RATIO;
         removeContinuousAttributes = false;
     }
 
@@ -157,10 +158,66 @@ public class DecisionStump implements Classifier, Regressor
             options.add(i);
         trainR(dataSet.getDPPList(), options);
     }
+
+    /**
+     * From the score for the original set that is being split, this computes 
+     * the gain as the improvement in classification from the original split. 
+     * @param aSplit the splitting of the data points 
+     * @param totalSize the totoal sum of the weights of all points
+     * @param origScore the score of the unsplit set
+     * @return the gain score for this split 
+     */
+    protected double getGain(List<List<DataPointPair<Integer>>> aSplit, double totalSize, double origScore)
+    {
+        /**
+         * NOTE: for calulating the entropy in a split, if S is the current set of
+         * all data points, and S_i denotes one of the subsets gained from splitting
+         * The Gain for a split is
+         *
+         *                       n
+         *                     ===== |S |
+         *                     \     | i|
+         * Gain = Entropy(S) -  >    ---- Entropy/S \
+         *                     /      |S|        \ i/
+         *                     =====
+         *                     i = 1
+         *
+         *                   Gain
+         * GainRatio = ----------------
+         *             SplitInformation
+         *
+         *                        n
+         *                      ===== |S |    /|S |\
+         *                      \     | i|    || i||
+         * SplitInformation = -  >    ---- log|----|
+         *                      /      |S|    \ |S|/
+         *                      =====
+         *                      i = 1
+         */
+        double splitScore = 0.0;
+        double splitInfo = 0.0;
+        for (List<DataPointPair<Integer>> subSet : aSplit)
+        {
+            double subSetSize = 0.0;
+            for(DataPointPair<Integer> dpp : subSet)
+                subSetSize += dpp.getDataPoint().getWeight();
+            double SiOverS = subSetSize / totalSize;
+            splitScore += SiOverS * score(subSet, gainMethod);
+            
+            if(gainMethod == GainMethod.INFORMATION_GAIN_RATIO)
+                if(SiOverS > 0)//log(0)= NaN, but we want it to behave as zero
+                    splitInfo += SiOverS * log(SiOverS)/log(2);
+        }
+        splitInfo = abs(splitInfo);
+        if(splitInfo == 0.0)
+            splitInfo = 1.0;//Divisino by 1 effects nothing
+        double gain= (origScore - splitScore)/splitInfo;
+        return gain;
+    }
     
     public static enum GainMethod
     {
-        GAIN, GAINRATIO
+        INFORMATION_GAIN, INFORMATION_GAIN_RATIO, GINI
     }
     
     /**
@@ -172,42 +229,59 @@ public class DecisionStump implements Classifier, Regressor
      */
     public static double entropy(List<DataPointPair<Integer>> dataPoints)
     {
+        return score(dataPoints, GainMethod.INFORMATION_GAIN);
+    }
+    
+    public static double score(List<DataPointPair<Integer>> dataPoints, GainMethod gainMethod)
+    {
         //Normaly we would know the number of categories apriori, but to make life easier 
         //on the user we will just add as needed, and wasit a small amount of memory
         //We actually will use less memory when the number of categories is thinned out for large N 
-        List<Double> probabilites = new ArrayList<Double>();
+        List<Double> probabilites = new DoubleList();
         double sumOfWeights = 0.0;
         for(DataPointPair<Integer> dpp : dataPoints)
         {
-            while(probabilites.size()-1 < dpp.getPair())//Grow to the number of categories
+            int classIndex = dpp.getPair();
+            while(probabilites.size()-1 < classIndex)//Grow to the number of categories
                 probabilites.add(0.0);
-            probabilites.set(dpp.getPair(), probabilites.get(dpp.getPair())+dpp.getDataPoint().getWeight());
-            sumOfWeights += dpp.getDataPoint().getWeight();
+            double weight = dpp.getDataPoint().getWeight();
+            probabilites.set(classIndex, probabilites.get(classIndex)+weight);
+            sumOfWeights += weight;
         }
         //Normalize from counts to proabilities 
         for(int i = 0; i < probabilites.size(); i++)
             probabilites.set(i, probabilites.get(i)/sumOfWeights);
         
         
-        double entropy = 0.0;
-        /*
-         * Entropy = 
-         *     n
-         *  =====
-         *  \
-         *-  >    p  log/p \
-         *  /      i    \ i/
-         *  =====
-         *  i = 1
-         * 
-         * and 0 log(0) is taken to be equal to 0
-         */
+        double score = 0.0;
+        if (gainMethod == GainMethod.INFORMATION_GAIN_RATIO 
+                || gainMethod == GainMethod.INFORMATION_GAIN)
+        {
+            /*
+             * Entropy = 
+             *     n
+             *  =====
+             *  \
+             *-  >    p  log/p \
+             *  /      i    \ i/
+             *  =====
+             *  i = 1
+             * 
+             * and 0 log(0) is taken to be equal to 0
+             */
+
+            for (Double p : probabilites)
+                if (p > 0)
+                    score += p * log(p) / log(2);
+        }
+        else if(gainMethod == GainMethod.GINI)
+        {
+            score = 1;
+            for(double p : probabilites)
+                score -= p*p;
+        }
         
-        for(Double p : probabilites )
-            if(p > 0)
-                entropy += p*log(p)/log(2);
-        
-        return abs(entropy);
+        return abs(score);
     }
     
     /**
@@ -510,9 +584,9 @@ public class DecisionStump implements Classifier, Regressor
         if(predicting == null)
             throw new RuntimeException("Predicting value has not been set");
         catAttributes = dataPoints.get(0).getDataPoint().getCategoricalData();
-        double entropy =  entropy(dataPoints);
+        double origScore =  score(dataPoints, gainMethod);
         
-        if(entropy == 0.0)//Then all data points belond to the same category!
+        if(origScore == 0.0)//Then all data points belond to the same category!
         {
             results = new CategoricalResults[1];//Only one path! 
             results[0] = new CategoricalResults(predicting.getNumOfCategories());
@@ -615,53 +689,8 @@ public class DecisionStump implements Classifier, Regressor
                 attribute+= catAttributes.length;
             }
             
-            //Now everything is seperated! 
-            
-            //Compute gain
-            /**
-             * NOTE: for calulating the entropy in a split, if S is the current set of 
-             * all data points, and S_i denotes one of the subsets gained from splitting 
-             * The Gain for a split is 
-             * 
-             *                       n
-             *                     ===== |S |
-             *                     \     | i|
-             * Gain = Entropy(S) -  >    ---- Entropy/S \
-             *                     /      |S|        \ i/
-             *                     =====
-             *                     i = 1
-             * 
-             *                   Gain
-             * GainRatio = ----------------
-             *             SplitInformation
-             * 
-             *                        n
-             *                      ===== |S |    /|S |\
-             *                      \     | i|    || i||
-             * SplitInformation = -  >    ---- log|----|
-             *                      /      |S|    \ |S|/
-             *                      =====
-             *                      i = 1
-             */
-            double splitEntropy = 0.0;
-            double splitInfo = 0.0;
-            for (List<DataPointPair<Integer>> subSet : aSplit)
-            {
-                double subSetSize = 0.0;
-                for(DataPointPair<Integer> dpp : subSet)
-                    subSetSize += dpp.getDataPoint().getWeight();
-                double SiOverS = subSetSize / totalSize;
-                splitEntropy += SiOverS * entropy(subSet);
-                
-                if(gainMethod == GainMethod.GAINRATIO)
-                    if(SiOverS > 0)//log(0)= NaN, but we want it to behave as zero
-                        splitInfo += SiOverS * log(SiOverS)/log(2);
-            }
-
-            splitInfo = abs(splitInfo);
-            if(splitInfo == 0.0)
-                splitInfo = 1.0;//Divisino by 1 effects nothing
-            double gain= (entropy - splitEntropy)/splitInfo;
+            //Now everything is seperated!
+            double gain= getGain(aSplit, totalSize, origScore);
             
             if(gain > bestGain)
             {
