@@ -69,11 +69,17 @@ public class DecisionStump implements Classifier, Regressor
      */
     private CategoricalResults[] results;
     /**
-     * Only used during regression. Contains the averages for each branch
+     * Only used during regression. Contains the averages for each branch in 
+     * the first and 2nd index. 3rd index contains the split value
      */
     private double[] regressionResults;
     private GainMethod gainMethod;
     private boolean removeContinuousAttributes;
+    /**
+     * The minimum number of points that must be inside the split result for a 
+     * split to occur.
+     */
+    private int minSplitResultSize = 5;
 
     /**
      * Creates a new decision stump
@@ -752,7 +758,7 @@ public class DecisionStump implements Classifier, Regressor
                 for(DataPointPair<Double> dpp : dataPoints)
                     rightSide.add(dpp.getPair(), dpp.getDataPoint().getWeight());
                 int bestS = 0;
-                thisSplitSqrdErr = rightSide.getVarance()*rightSide.getSumOfWeights();
+                thisSplitSqrdErr = Double.POSITIVE_INFINITY;
                 
                 thisMeans = new double[3];
                 
@@ -763,6 +769,12 @@ public class DecisionStump implements Classifier, Regressor
                     double val = dpp.getPair();
                     rightSide.remove(val, weight);
                     leftSide.add(val, weight);
+                    
+                    
+                    if(i < minSplitResultSize)
+                        continue;
+                    else if(i > dataPoints.size()-minSplitResultSize)
+                        break;
                     
                     double tmpSVariance = rightSide.getVarance()*rightSide.getSumOfWeights() 
                             + leftSide.getVarance()*leftSide.getSumOfWeights();
@@ -846,7 +858,7 @@ public class DecisionStump implements Classifier, Regressor
             copy.predicting = this.predicting.clone();
         if(regressionResults != null)
             copy.regressionResults = Arrays.copyOf(this.regressionResults, this.regressionResults.length);
-        
+        copy.minSplitResultSize = this.minSplitResultSize;
         return copy;
     }
 }
