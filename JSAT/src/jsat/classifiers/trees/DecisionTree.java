@@ -1,11 +1,7 @@
 
 package jsat.classifiers.trees;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Random;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -15,6 +11,11 @@ import jsat.classifiers.ClassificationDataSet;
 import jsat.classifiers.Classifier;
 import jsat.classifiers.DataPoint;
 import jsat.classifiers.DataPointPair;
+import jsat.parameters.DoubleParameter;
+import jsat.parameters.IntParameter;
+import jsat.parameters.ObjectParameter;
+import jsat.parameters.Parameter;
+import jsat.parameters.Parameterized;
 import jsat.regression.RegressionDataSet;
 import jsat.regression.Regressor;
 import jsat.utils.FakeExecutor;
@@ -26,7 +27,7 @@ import jsat.utils.ModifiableCountDownLatch;
  * 
  * @author Edward Raff
  */
-public class DecisionTree implements Classifier, Regressor
+public class DecisionTree implements Classifier, Regressor, Parameterized
 {
     private int maxDepth;
     private int minSamples;
@@ -37,6 +38,11 @@ public class DecisionTree implements Classifier, Regressor
      * What portion of the training data will be set aside for pruning. 
      */
     private double testProportion;
+    /**
+     * Base decision stump used to clone so that we can keep certain features 
+     * inside the stump instead of duplicating them here. 
+     */
+    private DecisionStump baseStump = new DecisionStump();
 
     @Override
     public double regress(DataPoint data)
@@ -118,12 +124,29 @@ public class DecisionTree implements Classifier, Regressor
     }
 
     /**
+     * Returns a Decision Tree with settings initialized so that its behavior is
+     * approximately that of the C4.5 decision tree algorithm when used on 
+     * classification data. The default settings are not identical, and certain 
+     * base cases may not behave in the exact same manner. 
+     * 
+     * @return a decision tree that will behave in a manne similar to C4.5
+     */
+    public static DecisionTree getC45Tree()
+    {
+        DecisionTree tree = new DecisionTree();
+        tree.setPruningMethod(PruningMethod.REDUCED_ERROR);
+        tree.baseStump.setGainMethod(DecisionStump.GainMethod.INFORMATION_GAIN_RATIO);
+        tree.baseStump.setNumericHandling(DecisionStump.NumericHandlingC.BINARY_BEST_GAIN);
+        return tree;
+    }
+    
+    /**
      * Sets the maximum depth that this classifier may build trees to. 
      * @param maxDepth the maximum depth of the trained tree
      */
     public void setMaxDepth(int maxDepth)
     {
-        if(maxDepth <= 0)
+        if(maxDepth < 0)
             throw new RuntimeException("The maximum depth must be a positive number");
         this.maxDepth = maxDepth;
     }
@@ -185,12 +208,12 @@ public class DecisionTree implements Classifier, Regressor
 
     /**
      * Sets the proportion of the training set that is put aside to perform pruning with. 
-     * @param testProportion the proportion, must be in the range (0, 1)
+     * @param testProportion the proportion, must be in the range [0, 1)
      */
     public void setTestProportion(double testProportion)
     {
-        if(testProportion <= 0 || testProportion >= 1 || Double.isInfinite(testProportion) || Double.isNaN(testProportion))
-            throw new ArithmeticException("Proportion must be in the range (0, 1), not " + testProportion);
+        if(testProportion < 0 || testProportion >= 1 || Double.isInfinite(testProportion) || Double.isNaN(testProportion))
+            throw new ArithmeticException("Proportion must be in the range [0, 1), not " + testProportion);
         this.testProportion = testProportion;
     }
 
@@ -322,7 +345,7 @@ public class DecisionTree implements Classifier, Regressor
             mcdl.countDown();
             return null;
         }
-        DecisionStump stump = new DecisionStump();
+        DecisionStump stump = baseStump.clone();
         stump.setPredicting(this.predicting);
         final List<List<DataPointPair<Integer>>> splits = stump.trainC(dataPoints, options);
         
@@ -363,7 +386,7 @@ public class DecisionTree implements Classifier, Regressor
             mcdl.countDown();
             return null;
         }
-        DecisionStump stump = new DecisionStump();
+        DecisionStump stump = baseStump.clone();
         final List<List<DataPointPair<Double>>> splits = stump.trainR(dataPoints, options);
         
         final Node node = new Node(stump);
@@ -412,6 +435,7 @@ public class DecisionTree implements Classifier, Regressor
             copy.predicting = this.predicting.clone();
         if(this.root != null)
             copy.root = this.root.copy();
+        copy.baseStump = this.baseStump.clone();
         return copy;
     }
     
@@ -467,6 +491,130 @@ public class DecisionTree implements Classifier, Regressor
             
             return copy;
         }
+    }
+    
+    List<Parameter> params = Collections.unmodifiableList(new ArrayList<Parameter>()
+    {{
+        add(new IntParameter() {
+
+            @Override
+            public int getValue()
+            {
+                return getMaxDepth();
+            }
+
+            @Override
+            public boolean setValue(int val)
+            {
+                if(val < 0)
+                    return false;
+                setMaxDepth(val);
+                return true;
+            }
+
+            @Override
+            public String getASCIIName()
+            {
+                return "Max Depth";
+            }
+        });
+        
+        add(new IntParameter() {
+
+            @Override
+            public int getValue()
+            {
+                return getMinSamples();
+            }
+
+            @Override
+            public boolean setValue(int val)
+            {
+                if(val < 1)
+                    return false;
+                setMinSamples(val);
+                return true;
+            }
+
+            @Override
+            public String getASCIIName()
+            {
+                return "Minimum Samples to Split";
+            }
+        });
+        
+        add(new ObjectParameter<PruningMethod>() {
+
+            @Override
+            public PruningMethod getObject()
+            {
+                return getPruningMethod();
+            }
+
+            @Override
+            public boolean setObject(PruningMethod obj)
+            {
+                setPruningMethod(obj);
+                return true;
+            }
+
+            @Override
+            public List<PruningMethod> parameterOptions()
+            {
+                return Arrays.asList(PruningMethod.values());
+            }
+
+            @Override
+            public String getASCIIName()
+            {
+                return "Pruning Method";
+            }
+        });
+        
+        add(new DoubleParameter() {
+
+            @Override
+            public double getValue()
+            {
+                return getTestProportion();
+            }
+
+            @Override
+            public boolean setValue(double val)
+            {
+                try
+                {
+                    setTestProportion(val);
+                    return true;
+                }
+                catch(Exception ex)
+                {
+                    return false;
+                }
+            }
+
+            @Override
+            public String getASCIIName()
+            {
+                return "Testing Proportion";
+            }
+        });
+        
+        addAll(baseStump.getParameters());
+    }});
+    
+    Map<String, Parameter> paramMap = Parameter.toParameterMap(params);
+
+    @Override
+    public List<Parameter> getParameters()
+    {
+        return params;
+    }
+
+    @Override
+    public Parameter getParameter(String paramName)
+    {
+        return paramMap.get(paramName);
     }
     
 }

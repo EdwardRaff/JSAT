@@ -35,7 +35,7 @@ import jsat.utils.PairedReturn;
  * 
  * @author Edward Raff
  */
-public class DecisionStump implements Classifier, Regressor
+public class DecisionStump implements Classifier, Regressor, Parameterized
 {
     /**
      * Indicates which attribute to split on 
@@ -73,7 +73,7 @@ public class DecisionStump implements Classifier, Regressor
      * The minimum number of points that must be inside the split result for a 
      * split to occur.
      */
-    private int minResultSplitSize = 5;
+    private int minResultSplitSize = 10;
 
     /**
      * How numeric attributes are handled during classification
@@ -1023,4 +1023,104 @@ public class DecisionStump implements Classifier, Regressor
         copy.numericHandlingC = this.numericHandlingC;
         return copy;
     }
+    
+    private List<Parameter> params = Collections.unmodifiableList(new ArrayList<Parameter>()
+    {{
+        add(new IntParameter() {
+
+            @Override
+            public int getValue()
+            {
+                return getMinResultSplitSize();
+            }
+
+            @Override
+            public boolean setValue(int val)
+            {
+                if(val < 1)
+                    return false;
+                setMinResultSplitSize(val);
+                return true;
+            }
+
+            @Override
+            public String getASCIIName()
+            {
+                return "Minimum Result Split Size";
+            }
+        });
+        
+        add(new ObjectParameter<GainMethod>() {
+
+            @Override
+            public GainMethod getObject()
+            {
+                return getGainMethod();
+            }
+
+            @Override
+            public boolean setObject(GainMethod obj)
+            {
+                setGainMethod(obj);
+                return true;
+            }
+
+            @Override
+            public List<GainMethod> parameterOptions()
+            {
+                return Arrays.asList(GainMethod.values());
+            }
+
+            @Override
+            public String getASCIIName()
+            {
+                return "Gain Method";
+            }
+        });
+        
+        add(new ObjectParameter<NumericHandlingC>() {
+
+            @Override
+            public NumericHandlingC getObject()
+            {
+                return getNumericHandling();
+            }
+
+            @Override
+            public boolean setObject(NumericHandlingC obj)
+            {
+                setNumericHandling(obj);
+                return true;
+            }
+
+            @Override
+            public List<NumericHandlingC> parameterOptions()
+            {
+                return Arrays.asList(NumericHandlingC.values());
+            }
+
+            @Override
+            public String getASCIIName()
+            {
+                return "Numeric Handling for Classification";
+            }
+            
+        });
+    }});
+    
+    Map<String, Parameter> paramMap = Parameter.toParameterMap(params);
+
+    @Override
+    public List<Parameter> getParameters()
+    {
+        return params;
+    }
+    
+    @Override
+    public Parameter getParameter(String paramName)
+    {
+        return paramMap.get(paramName);
+    }
+    
+    
 }
