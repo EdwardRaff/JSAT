@@ -999,6 +999,7 @@ public class DecisionStump implements Classifier, Regressor
         if(regressionResults != null)
             copy.regressionResults = Arrays.copyOf(this.regressionResults, this.regressionResults.length);
         copy.minSplitResultSize = this.minSplitResultSize;
+        copy.numericHandlingC = this.numericHandlingC;
         return copy;
     }
 }
