@@ -63,11 +63,13 @@ public class DecisionStump implements Classifier, Regressor, Parameterized
     private CategoricalResults[] results;
     /**
      * Only used during regression. Contains the averages for each branch in 
-     * the first and 2nd index. 3rd index contains the split value
+     * the first and 2nd index. 3rd index contains the split value. 
+     * If no split could be done, the length is zero and it contains only the 
+     * return value
      */
     private double[] regressionResults;
     private GainMethod gainMethod;
-    private NumericHandlingC numericHandlingC = NumericHandlingC.PDF_INTERSECTIONS;
+    private NumericHandlingC numericHandlingC;
     private boolean removeContinuousAttributes;
     /**
      * The minimum number of points that must be inside the split result for a 
@@ -98,6 +100,7 @@ public class DecisionStump implements Classifier, Regressor, Parameterized
     public DecisionStump()
     {
         gainMethod = GainMethod.INFORMATION_GAIN_RATIO;
+        setNumericHandling(NumericHandlingC.PDF_INTERSECTIONS);
         removeContinuousAttributes = false;
     }
 
@@ -557,7 +560,9 @@ public class DecisionStump implements Classifier, Regressor, Parameterized
         }
         else//Regression! It is trained, it would have been grabed at the top if not
         {
-            if(data.getNumericalValues().get(numerAttribute) <= regressionResults[2])
+            if(regressionResults.length == 1)
+                return 0;
+            else if(data.getNumericalValues().get(numerAttribute) <= regressionResults[2])
                 return 0;
             else
                 return 1;
@@ -578,7 +583,9 @@ public class DecisionStump implements Classifier, Regressor, Parameterized
         if(results != null)//Categorical!
             return results.length;
         else if(catAttributes != null)//Regression!
-            if(splittingAttribute < catAttributes.length)//Categorical
+            if(regressionResults.length == 1)
+                return 1;
+            else if(splittingAttribute < catAttributes.length)//Categorical
                 return catAttributes[splittingAttribute].getNumOfCategories();
             else//Numerical is always binary
                 return 2;
@@ -850,6 +857,26 @@ public class DecisionStump implements Classifier, Regressor, Parameterized
     public List<List<DataPointPair<Double>>> trainR(List<DataPointPair<Double>> dataPoints, Set<Integer> options)
     {
         catAttributes = dataPoints.get(0).getDataPoint().getCategoricalData();
+        
+        //Not enough points for a split to occur
+        if(dataPoints.size() <= minResultSplitSize*2)
+        {
+            splittingAttribute = catAttributes.length;
+            regressionResults = new double[1];
+            double avg = 0.0;
+            double sum = 0.0;
+            for(DataPointPair<Double> dpp : dataPoints )
+            {
+                double weight = dpp.getDataPoint().getWeight();
+                avg += dpp.getPair()*weight;
+                sum += weight;
+            }
+            regressionResults[0] = avg/sum;
+            
+            List<List<DataPointPair<Double>>> toRet = new ArrayList<List<DataPointPair<Double>>>(1);
+            toRet.add(dataPoints);
+            return toRet;
+        }
         
         List<List<DataPointPair<Double>>> bestSplit = null;
         double lowestSplitSqrdError = Double.MAX_VALUE;
