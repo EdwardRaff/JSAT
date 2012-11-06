@@ -1,14 +1,15 @@
 
 package jsat.regression;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 import java.util.concurrent.ExecutorService;
 import jsat.classifiers.DataPoint;
 import jsat.classifiers.bayesian.BestClassDistribution;
 import jsat.distributions.multivariate.MultivariateKDE;
 import jsat.linear.Vec;
 import jsat.linear.VecPaired;
+import jsat.parameters.Parameter;
+import jsat.parameters.Parameterized;
 
 /**
  * The Nadaraya-Watson regressor uses the {@link MultivariateKDE Kernel Density Estimator } to perform regression on a data set. <br>
@@ -16,7 +17,7 @@ import jsat.linear.VecPaired;
  * 
  * @author Edward Raff
  */
-public class NadarayaWatson implements Regressor
+public class NadarayaWatson implements Regressor, Parameterized
 {
     private MultivariateKDE kde;
 
@@ -75,6 +76,24 @@ public class NadarayaWatson implements Regressor
     public NadarayaWatson clone()
     {
         return new NadarayaWatson((MultivariateKDE)kde.clone());
+    }
+
+    @Override
+    public List<Parameter> getParameters()
+    {
+        if(kde instanceof Parameterized)
+            return ((Parameterized)kde).getParameters();
+        else
+            return Collections.EMPTY_LIST;
+    }
+
+    @Override
+    public Parameter getParameter(String paramName)
+    {
+        if(kde instanceof Parameterized)
+            return ((Parameterized)kde).getParameter(paramName);
+        else
+            return null;
     }
     
 }
