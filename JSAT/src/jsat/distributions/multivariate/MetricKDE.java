@@ -404,7 +404,7 @@ public class MetricKDE extends MultivariateKDE implements Parameterized
      */
     public <V extends Vec> boolean setUsingData(List<V> dataSet, int k, ExecutorService threadpool)
     {
-        return setUsingData(dataSet, k, defaultK, threadpool);
+        return setUsingData(dataSet, k, defaultStndDev, threadpool);
     }
     
     /**
