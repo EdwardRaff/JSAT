@@ -276,7 +276,7 @@ public class DecisionStump implements Classifier, Regressor, Parameterized
     
     public static enum GainMethod
     {
-        INFORMATION_GAIN, INFORMATION_GAIN_RATIO, GINI
+        INFORMATION_GAIN, INFORMATION_GAIN_RATIO, GINI, CLASSIFICATION_ERROR
     }
     
     /**
@@ -352,6 +352,13 @@ public class DecisionStump implements Classifier, Regressor, Parameterized
                     score -= p * p;
                 }
             }
+            else if(gainMethod ==  GainMethod.CLASSIFICATION_ERROR)
+            {
+                double maxClass= 0;
+                for (double count : counts)
+                    maxClass = Math.max(maxClass, count / sumOfWeights);
+                score = 1.0-maxClass;
+            }
 
             return abs(score);
         }
@@ -410,7 +417,14 @@ public class DecisionStump implements Classifier, Regressor, Parameterized
             for(double p : probabilites)
                 score -= p*p;
         }
-        
+        else if (gainMethod == GainMethod.CLASSIFICATION_ERROR)
+        {
+            double maxClass = 0;
+            for (double p : probabilites)
+                maxClass = Math.max(maxClass, p);
+            score = 1.0 - maxClass;
+        }
+
         return abs(score);
     }
     
