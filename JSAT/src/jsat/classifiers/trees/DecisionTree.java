@@ -105,6 +105,7 @@ public class DecisionTree implements Classifier, Regressor, Parameterized
         minSamples = 10;
         testProportion = 0.1;
         pruningMethod = PruningMethod.REDUCED_ERROR;
+        baseStump.setNumericHandling(DecisionStump.NumericHandlingC.BINARY_BEST_GAIN);
     }
 
     /**
@@ -138,6 +139,60 @@ public class DecisionTree implements Classifier, Regressor, Parameterized
         tree.baseStump.setGainMethod(DecisionStump.GainMethod.INFORMATION_GAIN_RATIO);
         tree.baseStump.setNumericHandling(DecisionStump.NumericHandlingC.BINARY_BEST_GAIN);
         return tree;
+    }
+    
+    /**
+     * Sets the method of attribute selection used when numeric attributes are 
+     * encountered during classification.
+     * @param handling the method of numeric attribute handling to use during 
+     * classification
+     */
+    public void setNumericHandling(DecisionStump.NumericHandlingC handling)
+    {
+        baseStump.setNumericHandling(handling);
+    }
+    
+    /**
+     * Returns the method of attribute selection used when numeric attributes 
+     * are encountered during classification.
+     * @return the method of numeric attribute handling to use during 
+     * classification 
+     */
+    public DecisionStump.NumericHandlingC getNumericHandling()
+    {
+        return baseStump.getNumericHandling();
+    }
+    
+    public void setGainMethod(DecisionStump.GainMethod gainMethod)
+    {
+        baseStump.setGainMethod(gainMethod);
+    }
+    
+    public DecisionStump.GainMethod getGainMethod()
+    {
+        return baseStump.getGainMethod();
+    }
+    
+    /**
+     * When a split is made, it may be that outliers cause the split to 
+     * segregate a minority of points from the majority. The min result split 
+     * size parameter specifies the minimum allowable number of points to end up
+     * in one of the splits for it to be admisible for consideration.
+     * @param size the minimum result split size to use
+     */
+    public void setMinResultSplitSize(int size)
+    {
+        baseStump.setMinResultSplitSize(size);
+    }
+    
+    /**
+     * Returns the minimum result split size that may be considered for use as 
+     * the attribute to split on.
+     * @return the minimum result split size in use 
+     */
+    public int getMinResultSplitSize()
+    {
+        return baseStump.getMinResultSplitSize();
     }
     
     /**
@@ -493,7 +548,7 @@ public class DecisionTree implements Classifier, Regressor, Parameterized
         }
     }
     
-    List<Parameter> params = Collections.unmodifiableList(new ArrayList<Parameter>()
+    private List<Parameter> params = Collections.unmodifiableList(new ArrayList<Parameter>()
     {{
         add(new IntParameter() {
 
@@ -603,7 +658,7 @@ public class DecisionTree implements Classifier, Regressor, Parameterized
         addAll(baseStump.getParameters());
     }});
     
-    Map<String, Parameter> paramMap = Parameter.toParameterMap(params);
+    private Map<String, Parameter> paramMap = Parameter.toParameterMap(params);
 
     @Override
     public List<Parameter> getParameters()
