@@ -291,6 +291,77 @@ public class DecisionStump implements Classifier, Regressor, Parameterized
         return score(dataPoints, GainMethod.INFORMATION_GAIN);
     }
     
+    /**
+     * Class for computing the score of a data set in an online fashion, 
+     * corresponds to 
+     * {@link #getScore(jsat.classifiers.trees.DecisionStump.GainMethod) }
+     */
+    private static class OnlineScore
+    {
+        private double sumOfWeights = 0.0;
+        private DoubleList counts = new DoubleList();
+
+        public void removeDataPoint(DataPointPair<Integer> dpp)
+        {
+            removeDataPoint(dpp.getDataPoint(), dpp.getPair());
+        }
+        
+        public void removeDataPoint(DataPoint dp, int targetClass)
+        {
+            while(counts.size()-1 < targetClass)//Grow to the number of categories
+                counts.add(0.0);
+            double weight = dp.getWeight();
+            counts.set(targetClass, counts.getD(targetClass)-weight);
+            sumOfWeights -= weight;
+        }
+        
+        public void addDataPoint(DataPointPair<Integer> dpp)
+        {
+            addDataPoint(dpp.getDataPoint(), dpp.getPair());
+        }
+        
+        public void addDataPoint(DataPoint dp, int targetClass)
+        {
+            while(counts.size()-1 < targetClass)//Grow to the number of categories
+                counts.add(0.0);
+            double weight = dp.getWeight();
+            counts.set(targetClass, counts.getD(targetClass)+weight);
+            sumOfWeights += weight;
+        }
+
+        public double getScore(GainMethod gainMethod)
+        {
+            double score = 0.0;
+            
+            if (gainMethod == GainMethod.INFORMATION_GAIN_RATIO
+                    || gainMethod == GainMethod.INFORMATION_GAIN)
+            {
+                for (Double count : counts)
+                {
+                    double p = count/sumOfWeights;
+                    if (p > 0)
+                        score += p * log(p) / log(2);
+                }
+            }
+            else if (gainMethod == GainMethod.GINI)
+            {
+                score = 1;
+                for (double count : counts)
+                {
+                    double p = count / sumOfWeights;
+                    score -= p * p;
+                }
+            }
+
+            return abs(score);
+        }
+
+        public double getSumOfWeights()
+        {
+            return sumOfWeights;
+        }
+    }
+    
     public static double score(List<DataPointPair<Integer>> dataPoints, GainMethod gainMethod)
     {
         //Normaly we would know the number of categories apriori, but to make life easier 
@@ -824,15 +895,40 @@ public class DecisionStump implements Classifier, Regressor, Parameterized
             int splitIndex = -1;
             double totalSize = getSumOfAllWeights(dataPoints);
             
+            OnlineScore rightSide = new OnlineScore();
+            OnlineScore leftSide = new OnlineScore();
+            
+            for(int i = 0; i < minResultSplitSize; i++)
+                leftSide.addDataPoint(dataPoints.get(i));
+            for(int i = minResultSplitSize; i < dataPoints.size(); i++)
+                rightSide.addDataPoint(dataPoints.get(i));
+
             for(int i = minResultSplitSize; i < dataPoints.size()-minResultSplitSize-1; i++)
             {
-                double curSplit = (dataPoints.get(i).getVector().get(attribute) 
-                        + dataPoints.get(i+1).getVector().get(attribute)) / 2;
-                aSplit.set(0, dataPoints.subList(0, i+1));
-                aSplit.set(1, dataPoints.subList(i+2, dataPoints.size()));
-                double curGain = getGain(aSplit, totalSize, initScore);
+                DataPointPair<Integer> dpp = dataPoints.get(i);
+                rightSide.removeDataPoint(dpp);
+                leftSide.addDataPoint(dpp);
+                double splitScore = 0.0;
+                double splitInfo = 0.0;
+                double tmp;
+                
+                splitScore += (tmp = (rightSide.getSumOfWeights() / totalSize))
+                        * rightSide.getScore(gainMethod);
+                if (gainMethod == GainMethod.INFORMATION_GAIN_RATIO)
+                    splitInfo += tmp * log(tmp) / log(2);
+                splitScore += (tmp = (leftSide.getSumOfWeights() / totalSize))
+                        * leftSide.getScore(gainMethod);
+                if (gainMethod == GainMethod.INFORMATION_GAIN_RATIO)
+                    splitInfo += tmp * log(tmp) / log(2);
+                splitInfo = abs(splitInfo);
+                if (splitInfo == 0.0)
+                    splitInfo = 1.0;//Division by 1 effects nothing
+                double curGain = (initScore - splitScore) / splitInfo;
+                
                 if(curGain >= bestGain)
                 {
+                    double curSplit = (dataPoints.get(i).getVector().get(attribute) 
+                        + dataPoints.get(i+1).getVector().get(attribute)) / 2;
                     bestGain = curGain;
                     bestSplit = curSplit;
                     splitIndex = i+1;
