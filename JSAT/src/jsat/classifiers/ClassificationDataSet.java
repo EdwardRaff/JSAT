@@ -422,9 +422,16 @@ public class ClassificationDataSet extends DataSet
     {
         double[] priors = new double[getClassSize()];
         
-        double size = getSampleSize();
+        double sum = 0.0;
         for(int i = 0; i < classifiedExamples.size(); i++)
-            priors[i] = classifiedExamples.get(i).size()/size;
+        {
+            for(DataPoint dp : classifiedExamples.get(i))
+                priors[i] += dp.getWeight();
+            sum += priors[i];
+        }
+        
+        for(int i = 0; i < priors.length; i++)
+            priors[i] /= sum;
         
         return priors;
     }
