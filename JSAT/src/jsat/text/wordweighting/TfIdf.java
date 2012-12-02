@@ -1,24 +1,26 @@
 
 package jsat.text.wordweighting;
 
+import static java.lang.Math.log;
 import java.util.List;
 import jsat.linear.Vec;
-import static java.lang.Math.*;
 
 /**
- *
+ * Applies Term Frequency Inverse Document Frequency (TF IDF) weighting to the 
+ * word vectors. 
+ * 
  * @author Edward Raff
  */
 public class TfIdf extends WordWeighting
 {
 
     private double totalDocuments;
-    private double documentWordCount;
     private List<Integer> df;
 
-    public void setWeight(int totalDocuments, List<Integer> df)
+    @Override
+    public void setWeight(List<? extends Vec> allDocuments, List<Integer> df)
     {
-        this.totalDocuments = totalDocuments;
+        this.totalDocuments = allDocuments.size();
         this.df = df;
     }
 
@@ -37,7 +39,6 @@ public class TfIdf extends WordWeighting
     @Override
     public void applyTo(Vec vec)
     {
-        documentWordCount = vec.sum();
         vec.applyIndexFunction(this);
     }
 }

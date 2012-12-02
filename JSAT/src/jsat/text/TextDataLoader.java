@@ -114,7 +114,7 @@ public abstract class TextDataLoader
     {
         noMoreAdding = true;
         
-        weighting.setWeight(documents, termDocumentFrequencys);
+        weighting.setWeight(vectors, termDocumentFrequencys);
         for(SparseVector vec : vectors)
         {
             //Make sure all the vectors have the same length
