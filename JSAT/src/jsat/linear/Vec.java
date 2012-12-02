@@ -323,22 +323,41 @@ public abstract class Vec implements Cloneable, Iterable<IndexValue>
     {
         //Need a little class magic
         final Vec magic = this;
+        int i;
+        for(i = 0; i < magic.length(); i++)
+            if(magic.get(i) != 0.0)
+                break;
+        final int fnz = i;
         Iterator<IndexValue> itor = new Iterator<IndexValue>() 
         {
             int curIndex = 0;
+            int nextNonZero = fnz;
+            
             IndexValue indexValue = new IndexValue(-1, Double.NaN);
             
             @Override
             public boolean hasNext()
             {
-                return curIndex < magic.length();
+                return nextNonZero >= 0;
             }
 
             @Override
             public IndexValue next()
             {
-                indexValue.setIndex(curIndex);
-                indexValue.setValue(get(curIndex++));
+                if(nextNonZero == -1)
+                    return null;
+                indexValue.setIndex(nextNonZero);
+                indexValue.setValue(get(nextNonZero));
+                
+                int i = nextNonZero+1;
+                nextNonZero = -1;
+                for(; i < magic.length(); i++ )
+                    if(get(i) != 0.0)
+                    {
+                        nextNonZero = i;
+                        break;
+                    }
+                
                 return indexValue;
             }
 
