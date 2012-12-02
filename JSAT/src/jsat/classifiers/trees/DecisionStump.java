@@ -922,6 +922,10 @@ public class DecisionStump implements Classifier, Regressor, Parameterized
                 DataPointPair<Integer> dpp = dataPoints.get(i);
                 rightSide.removeDataPoint(dpp);
                 leftSide.addDataPoint(dpp);
+                double leftVal = dataPoints.get(i).getVector().get(attribute);
+                double rightVal = dataPoints.get(i+1).getVector().get(attribute);
+                if( (rightVal-leftVal) < 1e-14 )//Values are too close!
+                    continue;
                 double splitScore = 0.0;
                 double splitInfo = 0.0;
                 double tmp;
@@ -941,8 +945,7 @@ public class DecisionStump implements Classifier, Regressor, Parameterized
                 
                 if(curGain >= bestGain)
                 {
-                    double curSplit = (dataPoints.get(i).getVector().get(attribute) 
-                        + dataPoints.get(i+1).getVector().get(attribute)) / 2;
+                    double curSplit = (leftVal + rightVal) / 2;
                     bestGain = curGain;
                     bestSplit = curSplit;
                     splitIndex = i+1;
