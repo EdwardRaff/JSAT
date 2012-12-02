@@ -2,6 +2,7 @@
 package jsat.text;
 
 import java.util.*;
+import jsat.DataSet;
 import jsat.SimpleDataSet;
 import jsat.classifiers.CategoricalData;
 import jsat.classifiers.DataPoint;
@@ -51,11 +52,14 @@ public abstract class TextDataLoader
     }
     
     /**
-     * This method will initialLoad all the text documents from their source. 
-     * For each document, {@link #addOriginalDocument(java.lang.String) } 
-     * should be called with the text of the document. <br>
-     * Once all documents have been added, {@link #finishAdding() } should be called, 
-     * so that post processing steps can be applied. 
+     * This method will load all the text documents that make up the original 
+     * data set from their source. For each document, 
+     * {@link #addOriginalDocument(java.lang.String) } should be called with the
+     * text of the document. <br>
+     * Once all documents have been added, {@link #finishAdding() } should be 
+     * called, so that post processing steps can be applied. <br>
+     * New document vectors can be obtained after loading by calling 
+     * {@link #newText(java.lang.String) }. 
      */
     public abstract void initialLoad();
     
@@ -119,7 +123,13 @@ public abstract class TextDataLoader
         }
     }
     
-    public SimpleDataSet getDataSet()
+    /**
+     * Returns a new data set containing the original data points that were 
+     * loaded with this loader. 
+     * 
+     * @return an appropriate data set for this loader
+     */
+    public DataSet getDataSet()
     {
         List<DataPoint> dataPoints= new ArrayList<DataPoint>(vectors.size());
         
