@@ -9,8 +9,10 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.text.DecimalFormat;
+import java.util.List;
 import javax.imageio.ImageIO;
 import javax.swing.*;
+import javax.swing.JComponent;
 import jsat.math.Function;
 
 /**
@@ -620,6 +622,80 @@ public class Graph2D extends JComponent
         double yPos = toYCord(yValue, height)-size/2;
         
         drawPoint(g2, pointShape, xPos, yPos, size, fill);
+    }
+    
+    /**
+     * Draws a key / legend in one of the corners of the plot. 
+     * 
+     * @param g2 the graphics object to draw with
+     * @param pos the corner to draw in. 0 for top left, 1 for top right, 2 for 
+     * bottom left, and 3 for bottom right. 
+     * @param names the names, in order, to put in the key
+     * @param colors the color to draw for each name, in order
+     */
+    protected void drawKey(Graphics2D g2, int pos, List<String> names, List<Color> colors)
+    {
+        drawKey(g2, pos, names, colors, null);
+    }
+    
+    /**
+     * Draws a key / legend in one of the corners of the plot. 
+     * 
+     * @param g2 the graphics object to draw with
+     * @param pos the corner to draw in. 0 for top left, 1 for top right, 2 for 
+     * bottom left, and 3 for bottom right. 
+     * @param names the names, in order, to put in the key
+     * @param colors the color to draw for each name, in order
+     * @param shapes the shape to place next to each name. May be null, in which
+     * no shapes will be drawn
+     */
+    protected void drawKey(Graphics2D g2, int pos, List<String> names, List<Color> colors, List<PointShape> shapes)
+    {
+        //Draw Label Info
+        Font font = g2.getFont();
+        //First, find longest name to find bounds of the box
+        int width = 0;
+        for(int i = 0; i < names.size(); i++)
+            width = Math.max(width, g2.getFontMetrics().stringWidth(names.get(i)));
+        width += 2 + getPadding();
+        
+        int startX, startY;
+        if(pos == 0)
+        {
+            startX = getPadding();
+            startY = getPadding();
+        }
+        else if(pos == 1)
+        {
+            startX = getWidth()-getPadding()-width;
+            startY = getPadding();
+        }
+        else if(pos == 2)
+        {
+            startX = getPadding();
+            startY = getHeight()-getPadding()*2-(font.getSize()+2)*names.size() + getPadding()/2;
+        }
+        else// if(pos == 3)
+        {
+            startX = getWidth()-getPadding()-width;
+            startY = getHeight()-getPadding()*2-(font.getSize()+2)*names.size() + getPadding()/2;
+        }
+        
+        Color origColor = g2.getColor();
+        g2.setColor(Color.WHITE);
+        g2.fillRect(startX, startY, width, (font.getSize()+2)*names.size() + getPadding()/2);
+        g2.setColor(origColor);
+        g2.drawRect(startX, startY, width, (font.getSize()+2)*names.size() + getPadding()/2);
+        
+        for(int i = 0; i < names.size(); i++)
+        {
+            g2.setColor(colors.get(i));
+            int xPos = startX+getPadding()*1/2;
+            int yPos = startY+(i+1)*(font.getSize()+2);
+            g2.drawString(names.get(i), xPos, yPos);
+            if(shapes != null)
+                drawPoint(g2, shapes.get(i), xPos-9.0, yPos-9, 6, false);
+        }
     }
 
     /**

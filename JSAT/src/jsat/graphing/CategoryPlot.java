@@ -3,6 +3,7 @@ package jsat.graphing;
 
 import java.awt.*;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import jsat.classifiers.CategoricalData;
 import jsat.classifiers.ClassificationDataSet;
@@ -19,7 +20,7 @@ public class CategoryPlot extends Graph2D
     private Vec xVals;
     private Vec yVals;
     private int[] category;
-    private CategoricalData categories;
+    private String[] names;
     private PointShape[] shapes;
     
     /**
@@ -34,7 +35,10 @@ public class CategoryPlot extends Graph2D
         if(dataSet.getNumNumericalVars() != 2)
             throw new ArithmeticException("Can not perform scatter plot on " + dataSet.getNumNumericalVars() + " variables");
         
-        categories = dataSet.getPredicting();
+        CategoricalData categories = dataSet.getPredicting();
+        names = new String[categories.getNumOfCategories()];
+        for(int i = 0; i < names.length; i++)
+            names[i] = categories.getOptionName(i);
         
         //Create N visiualy distinct colors 
         categoryColors = new ArrayList<Color>(dataSet.getClassSize());
@@ -74,7 +78,9 @@ public class CategoryPlot extends Graph2D
         
         drawPoints(g2, imageWidth, imageHeight, pp);
         
-        drawKey(g2);
+        drawKey(g2, 0, 
+                Arrays.asList(names), categoryColors, 
+                Arrays.asList(shapes));
     }
 
     /**
@@ -101,36 +107,6 @@ public class CategoryPlot extends Graph2D
         }
     }
 
-    /**
-     * Draws a legend key to indicate which points belong to which class
-     * @param g2 the graphics object to draw the key withs
-     */
-    protected void drawKey(Graphics2D g2)
-    {
-        //Draw Label Info
-        Font font = g2.getFont();
-        //First, find longest name to find bounds of the box
-        int width = 0;
-        for(int i = 0; i < categoryColors.size(); i++)
-            width = Math.max(width, g2.getFontMetrics().stringWidth(categories.getOptionName(i)));
-        width += 2 + getPadding();
-        
-        Color origColor = g2.getColor();
-        g2.setColor(Color.WHITE);
-        g2.fillRect(getPadding(), getPadding(), width, (font.getSize()+2)*categoryColors.size() + getPadding()/2);
-        g2.setColor(origColor);
-        g2.drawRect(getPadding(), getPadding(), width, (font.getSize()+2)*categoryColors.size() + getPadding()/2);
-        
-        for(int i = 0; i < categoryColors.size(); i++)
-        {
-            g2.setColor(categoryColors.get(i));
-            int xPos = getPadding()*3/2;
-            int yPos = (i+1)*(font.getSize()+2) + getPadding();
-            g2.drawString(categories.getOptionName(i), xPos, yPos);
-            drawPoint(g2, shapes[i], xPos-9.0, yPos-9, 6, false);
-        }
-    }
-    
     /**
      * Sets the shape used for a specific data point
      * @param i the data point index
