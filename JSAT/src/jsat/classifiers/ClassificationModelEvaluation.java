@@ -34,6 +34,10 @@ public class ClassificationModelEvaluation
     private double sumOfWeights;
     private long totalTrainingTime = 0, totalClassificationTime = 0;
     private DataTransformProcess dtp;
+    private boolean keepPredictions;
+    private CategoricalResults[] predictions;
+    private int[] truths;
+    private double[] pointWeights;
     
     /**
      * Constructs a new object that can perform evaluations on the model. 
@@ -63,6 +67,7 @@ public class ClassificationModelEvaluation
         this.dataSet = dataSet;
         this.threadpool = threadpool;
         this.dtp = new DataTransformProcess();
+        keepPredictions = false;
     }
     
     /**
@@ -104,11 +109,21 @@ public class ClassificationModelEvaluation
         totalTrainingTime = 0;
         totalClassificationTime = 0;
         
-        for(int i = 0; i < lcds.size(); i++)
+        setUpResults(dataSet.getSampleSize());
+        int end = dataSet.getSampleSize();
+        for (int i = lcds.size() - 1; i >= 0; i--)
         {
             ClassificationDataSet trainSet = ClassificationDataSet.comineAllBut(lcds, i);
             ClassificationDataSet testSet = lcds.get(i);
             evaluationWork(trainSet, testSet);
+            int testSize = testSet.getSampleSize();
+            if (keepPredictions)
+            {
+                System.arraycopy(predictions, 0, predictions, end - testSize, testSize);
+                System.arraycopy(truths, 0, truths, end-testSize, testSize);
+                System.arraycopy(pointWeights, 0, pointWeights, end-testSize, testSize);
+            }
+            end -= testSize;
         }
     }
     
@@ -121,6 +136,7 @@ public class ClassificationModelEvaluation
         int numOfClasses = dataSet.getClassSize();
         sumOfWeights = 0.0;
         confusionMatrix = new double[numOfClasses][numOfClasses];
+        setUpResults(testSet.getSampleSize());
         totalTrainingTime = totalClassificationTime = 0;
         evaluationWork(dataSet, testSet);
     }
@@ -137,22 +153,84 @@ public class ClassificationModelEvaluation
         else
             classifier.trainC(trainSet);            
         totalTrainingTime += (System.currentTimeMillis() - startTrain);
-        
-        for(int j = 0; j < testSet.getClassSize(); j++)
+
+        for (int i = 0; i < testSet.getSampleSize(); i++)
         {
-            for (DataPoint dp : testSet.getSamples(j))
+            DataPoint dp = testSet.getDataPoint(i);
+            dp = curProcess.transform(dp);
+            long stratClass = System.currentTimeMillis();
+            CategoricalResults result = classifier.classify(dp);
+            if (this.predictions != null)
             {
-                dp = curProcess.transform(dp);
-                long stratClass = System.currentTimeMillis();
-                CategoricalResults results = classifier.classify(dp);
-                totalClassificationTime += (System.currentTimeMillis() - stratClass);
-                
-                confusionMatrix[j][results.mostLikely()] += dp.getWeight();
-                sumOfWeights += dp.getWeight();
+                this.predictions[i] = result;
+                truths[i] = testSet.getDataPointCategory(i);
+                pointWeights[i] = dp.getWeight();
             }
+                
+            totalClassificationTime += (System.currentTimeMillis() - stratClass);
+
+            confusionMatrix[testSet.getDataPointCategory(i)][result.mostLikely()] += dp.getWeight();
+            sumOfWeights += dp.getWeight();
         }
     }
 
+    /**
+     * Indicates whether or not the predictions made during evaluation should be
+     * stored with the expected value for retrieval later. 
+     * @param keepPredictions <tt>true</tt> if space should be allocated to 
+     * store the predictions made
+     */
+    public void keepPredictions(boolean keepPredictions)
+    {
+        this.keepPredictions = keepPredictions;
+    }
+
+    /**
+     * 
+     * @return <tt>true</tt> if the predictions are being stored
+     */
+    public boolean doseStoreResults()
+    {
+        return keepPredictions;
+    }
+
+    /**
+     * If {@link #keepPredictions(boolean) } was set, this method will return 
+     * the array storing the predictions made by the classifier during 
+     * evaluation. These results may not be in the same order as the data set 
+     * they came from, but the order is paired with {@link #getTruths() }
+     * 
+     * @return the array of predictions, or null
+     */
+    public CategoricalResults[] getPredictions()
+    {
+        return predictions;
+    }
+    
+    /**
+     * If {@link #keepPredictions(boolean) } was set, this method will return 
+     * the array storing the target classes that should have been predicted 
+     * during evaluation. These results may not be in the same order as the data
+     * set they came from, but the order is paired with {@link #getPredictions()}
+     * 
+     * @return the array of target class values, or null
+     */
+    public int[] getTruths()
+    {
+        return truths;
+    }
+
+    /**
+     * If {@link #keepPredictions(boolean) } was set, this method will return 
+     * the array storing the weights for each of the points that were classified
+     * 
+     * @return the array of data point weights, or null
+     */
+    public double[] getPointWeights()
+    {
+        return pointWeights;
+    }
+    
     public double[][] getConfusionMatrix()
     {
         return confusionMatrix;
@@ -177,7 +255,7 @@ public class ClassificationModelEvaluation
                 System.out.printf("%-15f ", confusionMatrix[i][j]);
             System.out.printf("%-15f\n", confusionMatrix[i][classCount-1]);
         }
-        
+
     }
     
     /**
@@ -237,5 +315,21 @@ public class ClassificationModelEvaluation
     public Classifier getClassifier()
     {
         return classifier;
+    }
+
+    private void setUpResults(int resultSize)
+    {
+        if(keepPredictions)
+        {
+            predictions = new CategoricalResults[resultSize];
+            truths = new int[predictions.length];
+            pointWeights = new double[predictions.length];
+        }
+        else
+        {
+            predictions = null;
+            truths = null;
+            pointWeights = null;
+        }
     }
 }
