@@ -11,6 +11,7 @@ import jsat.linear.distancemetrics.DistanceMetric;
 import jsat.linear.vectorcollection.VectorArray;
 import jsat.text.tokenizer.Tokenizer;
 import jsat.text.wordweighting.WordWeighting;
+import jsat.utils.IntList;
 
 /**
  * This class provides a framework for loading datasets made of Text documents as vectors. 
@@ -30,7 +31,7 @@ public abstract class TextDataLoader
      */
     protected Map<String, Integer> wordIndex;
     protected List<String> allWords;
-    protected ArrayList<Integer> termDocumentFrequencys;
+    protected List<Integer> termDocumentFrequencys;
     private WordWeighting weighting;
     
     
@@ -45,7 +46,7 @@ public abstract class TextDataLoader
         this.tokenizer = tokenizer;
         
         this.wordIndex = new Hashtable<String, Integer>();
-        this.termDocumentFrequencys = new ArrayList<Integer>();
+        this.termDocumentFrequencys = new IntList();
         this.weighting = weighting;
         this.allWords = new ArrayList<String>();
         noMoreAdding = false;
@@ -83,7 +84,7 @@ public abstract class TextDataLoader
          */
         Set<String> seenWords = new HashSet<String>();
         
-        SparseVector vec = new SparseVector(currentLength+1);//+1 to avoid issues when its length is zero, will be corrected in finalization step anyway
+        SparseVector vec = new SparseVector(currentLength+1, words.size());//+1 to avoid issues when its length is zero, will be corrected in finalization step anyway
         for(String word : words)
         {
             if(!wordIndex.containsKey(word))//this word has never been seen before!
