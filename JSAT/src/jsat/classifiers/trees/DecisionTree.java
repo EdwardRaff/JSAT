@@ -11,6 +11,7 @@ import jsat.classifiers.ClassificationDataSet;
 import jsat.classifiers.Classifier;
 import jsat.classifiers.DataPoint;
 import jsat.classifiers.DataPointPair;
+import jsat.exceptions.FailedToFitException;
 import jsat.parameters.DoubleParameter;
 import jsat.parameters.IntParameter;
 import jsat.parameters.ObjectParameter;
@@ -298,6 +299,11 @@ public class DecisionTree implements Classifier, Regressor, Parameterized
      */
     protected void trainC(ClassificationDataSet dataSet, Set<Integer> options, ExecutorService threadPool)
     {
+        if(dataSet.getSampleSize() < minSamples)
+            throw new FailedToFitException("There are only " + 
+                    dataSet.getSampleSize() + 
+                    " data points in the sample set, at least " + minSamples + 
+                    " are needed to make a tree");
         this.predicting = dataSet.getPredicting();
         
         ModifiableCountDownLatch mcdl = new ModifiableCountDownLatch(1);
