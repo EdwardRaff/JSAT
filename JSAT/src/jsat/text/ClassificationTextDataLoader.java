@@ -36,10 +36,9 @@ public abstract class ClassificationTextDataLoader extends TextDataLoader
     protected CategoricalData labelInfo;
     
     
-    public ClassificationTextDataLoader(DistanceMetric distMetric, 
-            Tokenizer tokenizer, WordWeighting weighting)
+    public ClassificationTextDataLoader(Tokenizer tokenizer, WordWeighting weighting)
     {
-        super(distMetric, tokenizer, weighting);
+        super(tokenizer, weighting);
         classLabels = new IntList();
         setLabelInfo();
     }

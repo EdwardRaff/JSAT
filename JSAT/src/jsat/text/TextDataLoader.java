@@ -22,8 +22,7 @@ import jsat.utils.IntList;
  */
 public abstract class TextDataLoader
 {
-    protected DistanceMetric distMetric;
-    protected VectorArray<SparseVector> vectors;
+    protected List<SparseVector> vectors;
     protected Tokenizer tokenizer;
     
     /**
@@ -39,13 +38,12 @@ public abstract class TextDataLoader
     private int currentLength = 0;
     private int documents;
 
-    public TextDataLoader(DistanceMetric distMetric, Tokenizer tokenizer, WordWeighting weighting)
+    public TextDataLoader(Tokenizer tokenizer, WordWeighting weighting)
     {
-        this.distMetric = distMetric;
-        this.vectors = new VectorArray<SparseVector>(this.distMetric);
+        this.vectors = new ArrayList<SparseVector>();
         this.tokenizer = tokenizer;
         
-        this.wordIndex = new Hashtable<String, Integer>();
+        this.wordIndex = new HashMap<String, Integer>();
         this.termDocumentFrequencys = new IntList();
         this.weighting = weighting;
         this.allWords = new ArrayList<String>();
