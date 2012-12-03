@@ -11,6 +11,7 @@ import static jsat.distributions.DistributionSearch.*;
 import jsat.distributions.*;
 import jsat.distributions.empirical.KernelDensityEstimator;
 import jsat.linear.*;
+import jsat.math.MathTricks;
 import jsat.parameters.*;
 import jsat.utils.FakeExecutor;
 
@@ -227,9 +228,9 @@ public class NaiveBayes implements Classifier, Parameterized
     {
         
         CategoricalResults results = new CategoricalResults(distributions.length);
-        
+        double[] logProbs = new double[distributions.length];
         Vec numVals = data.getNumericalValues();
-        double sum = 0;
+        double maxLogProg = Double.NEGATIVE_INFINITY;
         for( int i = 0; i < distributions.length; i++)
         {
             double logProb = 0;
@@ -270,15 +271,22 @@ public class NaiveBayes implements Classifier, Parameterized
                 logProb += log(p);
             }
             
-            double prob = exp(logProb);
-            results.setProb(i, prob);
-            
-            sum += prob;
+            logProbs[i] = logProb;
+            maxLogProg = Math.max(maxLogProg, logProb);
         }
         
-        if(sum != 0)
-            results.divideConst(sum);
+        if(maxLogProg == Double.NEGATIVE_INFINITY)//Everything reported no!
+        {
+            for(int i = 0; i < results.size(); i++)
+                results.setProb(i, 1.0/results.size());
+            return results;
+        }
         
+        double denom = MathTricks.logSumExp(logProbs, maxLogProg);
+        
+        for(int i = 0; i < results.size(); i++)
+            results.setProb(i, exp(logProbs[i]-denom));
+        results.normalize();
         return results;
     }
 

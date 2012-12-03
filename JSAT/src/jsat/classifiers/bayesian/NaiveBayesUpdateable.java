@@ -1,14 +1,14 @@
 package jsat.classifiers.bayesian;
 
 import java.util.Arrays;
-import java.util.Iterator;
 import jsat.classifiers.*;
-import jsat.distributions.Distribution;
 import jsat.distributions.Normal;
 import jsat.exceptions.UntrainedModelException;
 import jsat.linear.IndexValue;
 import jsat.linear.Vec;
 import jsat.math.OnLineStatistics;
+import static java.lang.Math.*;
+import jsat.math.MathTricks;
 
 /**
  * An implementation of Naive Bayes that can be updated in an online fashion. 
@@ -144,6 +144,8 @@ public class NaiveBayesUpdateable extends BaseUpdateableClassifier
         if(apriori == null)
             throw new UntrainedModelException("Model has not been intialized");
         CategoricalResults results = new CategoricalResults(apriori.length);
+        double[] logProbs = new double[apriori.length];
+        double maxLogProg = Double.NEGATIVE_INFINITY;
         
         Vec numVals = data.getNumericalValues();
         for( int i = 0; i < valueStats.length; i++)
@@ -156,7 +158,6 @@ public class NaiveBayesUpdateable extends BaseUpdateableClassifier
                     int indx = iv.getIndex();
                     double mean = valueStats[i][indx].getMean();
                     double stndDev = valueStats[i][indx].getStandardDeviation();
-                    int j = iv.getIndex();
                     double logPDF = Normal.logPdf(iv.getValue(), mean, stndDev);
                     if(Double.isNaN(logPDF))
                         logProb += Math.log(1e-16);
@@ -189,13 +190,16 @@ public class NaiveBayesUpdateable extends BaseUpdateableClassifier
                 double p = apriori[i][j][data.getCategoricalValue(j)];
                 logProb += Math.log(p/sum);
             }
-            
-            double prob = Math.exp(logProb + Math.log(priors[i]/priorSum));
-            results.setProb(i, prob);
+            logProb += Math.log(priors[i]/priorSum);
+            logProbs[i] = logProb;
+            maxLogProg = Math.max(maxLogProg, logProb);
         }
         
-        results.normalize();
+        double denom =MathTricks.logSumExp(logProbs, maxLogProg);
         
+        for(int i = 0; i < results.size(); i++)
+            results.setProb(i, exp(logProbs[i]-denom));
+        results.normalize();
         return results;
     }
 
