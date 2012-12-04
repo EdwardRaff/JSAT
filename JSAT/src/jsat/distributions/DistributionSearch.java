@@ -121,7 +121,7 @@ public class DistributionSearch
         catch (RuntimeException ex)//Mostly likely occurs if all values are all zero
         {
             if(v.standardDeviation() == 0)
-                return new Normal(v.mean(), 0.1);
+                return null;
             throw new ArithmeticException("Catistrophic faulure getting a distribution");
         }
     }
