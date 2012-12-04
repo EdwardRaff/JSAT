@@ -6,6 +6,7 @@ import static java.lang.Math.log;
 import java.util.*;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
+import jsat.Test;
 import jsat.classifiers.*;
 import static jsat.distributions.DistributionSearch.*;
 import jsat.distributions.*;
@@ -29,6 +30,8 @@ public class NaiveBayes implements Classifier, Parameterized
     private double[][][] apriori;
     private Distribution[][] distributions; 
     private NumericalHandeling numericalHandling;
+    private double[] priors;
+    
     /**
      * Handles how vectors are handled. If true, it is assumed vectors are sparce - and zero values will be ignored when training and classifying.  
      */
@@ -241,9 +244,11 @@ public class NaiveBayes implements Classifier, Parameterized
                 {
                     IndexValue indexValue = iter.next();
                     int j = indexValue.getIndex();
+                    double logPDF;
                     if(distributions[i][j] == null)
-                        continue;
-                    double logPDF = distributions[i][j].logPdf(indexValue.getValue());
+                        logPDF = Double.NEGATIVE_INFINITY;//Should not occur
+                    else
+                        logPDF = distributions[i][j].logPdf(indexValue.getValue());
                     if(Double.isInfinite(logPDF))//Avoid propigation -infinty when the probability is zero
                         logProb += log(1e-16);//
                     else
@@ -254,9 +259,11 @@ public class NaiveBayes implements Classifier, Parameterized
             {
                 for(int j = 0; j < distributions[i].length; j++)
                 {
+                    double logPDF;
                     if(distributions[i][j] == null)
-                        continue;
-                    double logPDF = distributions[i][j].logPdf(numVals.get(j));
+                        logPDF = Double.NEGATIVE_INFINITY;//Should not occur
+                    else
+                        logPDF = distributions[i][j].logPdf(numVals.get(j));
                     if(Double.isInfinite(logPDF))//Avoid propigation -infinty when the probability is zero
                         logProb += log(1e-16);//
                     else
@@ -271,6 +278,7 @@ public class NaiveBayes implements Classifier, Parameterized
                 logProb += log(p);
             }
             
+            logProb += log(priors[i]);
             logProbs[i] = logProb;
             maxLogProg = Math.max(maxLogProg, logProb);
         }
@@ -335,6 +343,10 @@ public class NaiveBayes implements Classifier, Parameterized
                     newBayes.distributions[i][j] = this.distributions[i][j].clone();
             }
         }
+        
+        if(this.priors != null)
+            newBayes.priors = Arrays.copyOf(priors, priors.length);
+        
         return newBayes;
     }
 
@@ -435,7 +447,7 @@ public class NaiveBayes implements Classifier, Parameterized
         int nCat = dataSet.getPredicting().getNumOfCategories();
         apriori = new double[nCat][dataSet.getNumCategoricalVars()][];
         distributions = new Distribution[nCat][dataSet.getNumNumericalVars()] ;
-        
+        priors = dataSet.getPriors();
         
         int totalWorkers = nCat*(dataSet.getNumNumericalVars() + dataSet.getNumCategoricalVars());
         CountDownLatch latch = new CountDownLatch(totalWorkers);
