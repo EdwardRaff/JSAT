@@ -832,8 +832,21 @@ public class SparseVector extends  Vec
             super.applyIndexFunction(f);
         else//Then we only need to apply it to the non zero values! 
         {
+            /*
+             * The indexFunction may turn a value to zero, if so, we need to 
+             * shift everything over and skip based on how many zeros have been 
+             * created
+             */
+            int skip = 0;
             for(int i = 0; i < used; i++)
-                values[i] = f.indexFunc(values[i], i);
+            {
+                indexes[i-skip] = indexes[i];
+                values[i-skip] = f.indexFunc(values[i], i);
+                if(values[i-skip] == 0.0)
+                    skip++;
+            }
+            
+            used -= skip;
         }
     }
 
