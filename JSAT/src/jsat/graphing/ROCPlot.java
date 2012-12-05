@@ -63,15 +63,29 @@ public class ROCPlot extends Graph2D
      */
     public ROCPlot(List<String> names, ClassificationModelEvaluation... evaluations)
     {
+        this(names, Arrays.asList(evaluations));
+    }
+            
+    /**
+     * Creates a new ROC plot from a given list of model evaluations. The models 
+     * have to have been evaluated with 
+     * {@link ClassificationModelEvaluation#keepPredictions(boolean) } as true. 
+     * 
+     * @param names the names to use for each of the model evaluations when 
+     * plotting
+     * @param evaluations the already computed model evaluations
+     */
+    public ROCPlot(List<String> names, List<ClassificationModelEvaluation> evaluations)
+    {
         this(names.size());
         this.names.addAll(names);
-        for (int i = 0; i < evaluations.length; i++)
+        for (int i = 0; i < evaluations.size(); i++)
         {
-            curves[i][0] = new double[evaluations[i].getTruths().length];
+            curves[i][0] = new double[evaluations.get(i).getTruths().length];
             curves[i][1] = new double[curves[i][0].length];
         }
         
-        computeCurves(Arrays.asList(evaluations));
+        computeCurves(evaluations);
     }
     
     /**
