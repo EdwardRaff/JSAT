@@ -260,6 +260,11 @@
             <Property name="text" type="java.lang.String" value="Transform"/>
           </Properties>
           <SubComponents>
+            <Menu class="javax.swing.JMenu" name="jMenuCurTransforms">
+              <Properties>
+                <Property name="text" type="java.lang.String" value="Current Transforms"/>
+              </Properties>
+            </Menu>
             <MenuItem class="javax.swing.JMenuItem" name="jItemClearTransforms">
               <Properties>
                 <Property name="text" type="java.lang.String" value="Clear Transforms"/>
@@ -270,11 +275,6 @@
             </MenuItem>
             <MenuItem class="javax.swing.JPopupMenu$Separator" name="jSeparator1">
             </MenuItem>
-            <Menu class="javax.swing.JMenu" name="jMenuCurTransforms">
-              <Properties>
-                <Property name="text" type="java.lang.String" value="Current Transforms"/>
-              </Properties>
-            </Menu>
             <MenuItem class="javax.swing.JMenuItem" name="jItemTransUnitVariance">
               <Properties>
                 <Property name="text" type="java.lang.String" value="Unit Variance"/>
@@ -329,6 +329,14 @@
               </Properties>
               <Events>
                 <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="jItemTransLinearActionPerformed"/>
+              </Events>
+            </MenuItem>
+            <MenuItem class="javax.swing.JMenuItem" name="jMenuItemNumericHistro">
+              <Properties>
+                <Property name="text" type="java.lang.String" value="Numeric to Histogram"/>
+              </Properties>
+              <Events>
+                <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="jMenuItemNumericHistroActionPerformed"/>
               </Events>
             </MenuItem>
           </SubComponents>

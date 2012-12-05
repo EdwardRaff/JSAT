@@ -14,8 +14,7 @@ import java.io.File;
 import java.util.*;
 import java.util.List;
 import javax.swing.*;
-import jsat.ARFFLoader;
-import jsat.SimpleDataSet;
+import jsat.*;
 import jsat.classifiers.ClassificationDataSet;
 import jsat.classifiers.Classifier;
 import jsat.clustering.OPTICS;
@@ -139,9 +138,9 @@ public class MainGUI extends javax.swing.JFrame
         jMenuItemClassParaCoords = new javax.swing.JMenuItem();
         jMenuCrossValidateTest = new javax.swing.JMenuItem();
         jMenuTransform = new javax.swing.JMenu();
+        jMenuCurTransforms = new javax.swing.JMenu();
         jItemClearTransforms = new javax.swing.JMenuItem();
         jSeparator1 = new javax.swing.JPopupMenu.Separator();
-        jMenuCurTransforms = new javax.swing.JMenu();
         jItemTransUnitVariance = new javax.swing.JMenuItem();
         jItemTransZeroMean = new javax.swing.JMenuItem();
         jItemTransPCA = new javax.swing.JMenuItem();
@@ -149,6 +148,7 @@ public class MainGUI extends javax.swing.JFrame
         jItemTransWhitenedZCA = new javax.swing.JMenuItem();
         jItemTransPolynomial = new javax.swing.JMenuItem();
         jItemTransLinear = new javax.swing.JMenuItem();
+        jMenuItemNumericHistro = new javax.swing.JMenuItem();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         getContentPane().setLayout(new java.awt.GridLayout(1, 1));
@@ -410,6 +410,9 @@ public class MainGUI extends javax.swing.JFrame
 
         jMenuTransform.setText("Transform");
 
+        jMenuCurTransforms.setText("Current Transforms");
+        jMenuTransform.add(jMenuCurTransforms);
+
         jItemClearTransforms.setText("Clear Transforms");
         jItemClearTransforms.addActionListener(new java.awt.event.ActionListener()
         {
@@ -420,9 +423,6 @@ public class MainGUI extends javax.swing.JFrame
         });
         jMenuTransform.add(jItemClearTransforms);
         jMenuTransform.add(jSeparator1);
-
-        jMenuCurTransforms.setText("Current Transforms");
-        jMenuTransform.add(jMenuCurTransforms);
 
         jItemTransUnitVariance.setText("Unit Variance");
         jItemTransUnitVariance.addActionListener(new java.awt.event.ActionListener()
@@ -493,6 +493,16 @@ public class MainGUI extends javax.swing.JFrame
             }
         });
         jMenuTransform.add(jItemTransLinear);
+
+        jMenuItemNumericHistro.setText("Numeric to Histogram");
+        jMenuItemNumericHistro.addActionListener(new java.awt.event.ActionListener()
+        {
+            public void actionPerformed(java.awt.event.ActionEvent evt)
+            {
+                jMenuItemNumericHistroActionPerformed(evt);
+            }
+        });
+        jMenuTransform.add(jMenuItemNumericHistro);
 
         jMenuBar1.add(jMenuTransform);
 
@@ -1051,6 +1061,12 @@ public class MainGUI extends javax.swing.JFrame
         jMenuCurTransforms.removeAll();
     }//GEN-LAST:event_jItemClearTransformsActionPerformed
 
+    private void jMenuItemNumericHistroActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_jMenuItemNumericHistroActionPerformed
+    {//GEN-HEADEREND:event_jMenuItemNumericHistroActionPerformed
+        dtp.addTransform(new NumericalToHistogram.NumericalToHistogramTransformFactory());
+        jMenuCurTransforms.add(new JLabel("Numerical to Histogram"));
+    }//GEN-LAST:event_jMenuItemNumericHistroActionPerformed
+
     /**
     * @param args the command line arguments
     */
@@ -1090,6 +1106,7 @@ public class MainGUI extends javax.swing.JFrame
     private javax.swing.JMenuItem jMenuItemHisto;
     private javax.swing.JMenuItem jMenuItemKDE;
     private javax.swing.JMenuItem jMenuItemLinearRegress;
+    private javax.swing.JMenuItem jMenuItemNumericHistro;
     private javax.swing.JMenuItem jMenuItemOneSamT;
     private javax.swing.JMenuItem jMenuItemOneSampZ;
     private javax.swing.JMenuItem jMenuItemOpen;
