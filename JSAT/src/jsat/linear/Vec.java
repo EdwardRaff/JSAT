@@ -327,7 +327,7 @@ public abstract class Vec implements Cloneable, Iterable<IndexValue>
         for(i = 0; i < magic.length(); i++)
             if(magic.get(i) != 0.0)
                 break;
-        final int fnz = i;
+        final int fnz = (magic.length() == 0 || magic.get(i) == 0.0 ) ? -1 : i;
         Iterator<IndexValue> itor = new Iterator<IndexValue>() 
         {
             int curIndex = 0;
