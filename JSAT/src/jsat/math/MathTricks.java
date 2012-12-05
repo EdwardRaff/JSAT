@@ -20,15 +20,7 @@ public class MathTricks
     /**
      * Provides a numerically table way to perform the log of a sum of 
      * exponentiations. The computed result is <br>
-     * <pre>
-     *    /  n            \
-     *    |=====          |
-     *    |\              |
-     * log| >    exp/val \|
-     *    |/        \   i/|
-     *    |=====          |
-     *    \i = 1          /
-     * </pre>
+     * log(<big>&#8721;</big><sub> &forall; val &isin; vals</sub> exp(val) )
      *
      * @param vals the array of values to exponentiate and add
      * @param maxValue the maximum value in the array 
@@ -46,15 +38,7 @@ public class MathTricks
     /**
      * Provides a numerically table way to perform the log of a sum of 
      * exponentiations. The computed result is <br>
-     * <pre>
-     *    /  n            \
-     *    |=====          |
-     *    |\              |
-     * log| >    exp/val \|
-     *    |/        \   i/|
-     *    |=====          |
-     *    \i = 1          /
-     * </pre>
+     * log(<big>&#8721;</big><sub> &forall; val &isin; vals</sub> exp(val) )
      * 
      * @param vals the array of values to exponentiate and add
      * @param maxValue the maximum value in the array 
