@@ -25,8 +25,10 @@ public class CosineDistance implements DistanceMetric
          * 2 (1 - -1 = 2) means they are completly opposite
          * 0 ( 1 -1) means they are completly the same
          */
-        
-        return 1 - a.dot(b) / (a.pNorm(2) * b.pNorm(2));
+        double denom = a.pNorm(2) * b.pNorm(2);
+        if(denom == 0)
+            return 2.0;
+        return 1 - a.dot(b) / denom;
     }
 
     @Override
