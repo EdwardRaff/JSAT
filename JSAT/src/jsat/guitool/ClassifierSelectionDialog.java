@@ -1,40 +1,24 @@
 
 package jsat.guitool;
 
-import java.awt.BorderLayout;
-import java.awt.Dialog;
-import java.awt.FlowLayout;
-import java.awt.Frame;
-import java.awt.GridLayout;
+import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.ArrayList;
 import java.util.List;
-import javax.swing.JButton;
-import javax.swing.JCheckBox;
-import javax.swing.JDialog;
-import javax.swing.JPanel;
-import javax.swing.JScrollPane;
-import jsat.classifiers.ClassificationDataSet;
-import jsat.classifiers.Classifier;
-import jsat.classifiers.MultinomialLogisticRegression;
-import jsat.classifiers.bayesian.BestClassDistribution;
-import jsat.classifiers.bayesian.MultivariateNormals;
-import jsat.classifiers.bayesian.NaiveBayes;
-import jsat.classifiers.boosting.AdaBoostM1;
-import jsat.classifiers.boosting.LogitBoost;
-import jsat.classifiers.boosting.SAMME;
-import jsat.classifiers.knn.NearestNeighbour;
-import jsat.classifiers.neuralnetwork.BackPropagationNet;
-import jsat.classifiers.neuralnetwork.SOM;
-import jsat.classifiers.trees.DecisionStump;
-import jsat.classifiers.trees.DecisionTree;
-import jsat.classifiers.trees.RandomForest;
+import javax.swing.*;
+import jsat.classifiers.*;
+import jsat.classifiers.bayesian.*;
+import jsat.classifiers.boosting.*;
+import jsat.classifiers.knn.*;
+import jsat.classifiers.neuralnetwork.*;
+import jsat.classifiers.svm.PlatSMO;
+import jsat.classifiers.trees.*;
+import jsat.distributions.kernels.LinearKernel;
+import jsat.distributions.kernels.RBFKernel;
 import jsat.distributions.multivariate.MetricKDE;
-import jsat.linear.Vec;
-import jsat.linear.VecPaired;
-import jsat.linear.vectorcollection.VPTree.VPTreeFactory;
-import jsat.parameters.Parameterized;
+import jsat.linear.distancemetrics.EuclideanDistance;
+import jsat.parameters.*;
 
 /**
  * Simple code for providing a dialog that allows for the selection of multiple classifeirs
@@ -98,12 +82,30 @@ public class ClassifierSelectionDialog extends JDialog
                     return new DecisionTree();
                 }
             });
+        
+        add(new ClassifierInfo() {
+
+            @Override
+            public Classifier getNewClassifier()
+            {
+                return new NaiveBayesUpdateable();
+            }
+        });
     }};
     
     private static final List<ClassifierInfo> possClass = new ArrayList<ClassifierSelectionDialog.ClassifierInfo>()
     {{
         addAll(weakClassifiers);
-        
+
+                add(new ClassifierInfoWeakLearner()
+                {
+                    @Override
+                    public Classifier getNewClassifier(Classifier weakLearner)
+                    {
+                        return new Bagging(weakLearner);
+                    }
+                });
+
         add(new ClassifierInfo() {
                 @Override
                 public Classifier getNewClassifier()
@@ -141,6 +143,15 @@ public class ClassifierSelectionDialog extends JDialog
         
         add(new ClassifierInfo() {
 
+            @Override
+            public Classifier getNewClassifier()
+            {
+                return new AODE();
+            }
+        });
+        
+        add(new ClassifierInfo() {
+
                 @Override
                 public Classifier getNewClassifier()
                 {
@@ -162,6 +173,24 @@ public class ClassifierSelectionDialog extends JDialog
                     return new NearestNeighbour(1);
                 }
             });
+        
+        add(new ClassifierInfo() {
+
+            @Override
+            public Classifier getNewClassifier()
+            {
+                return new DANN();
+            }
+        });
+        
+        add(new ClassifierInfoWeakLearner() {
+
+            @Override
+            public Classifier getNewClassifier(Classifier weakLearner)
+            {
+                return new LWL(weakLearner, 40, new EuclideanDistance());
+            }
+        });
         
         add(new ClassifierInfo() {
 
@@ -202,16 +231,77 @@ public class ClassifierSelectionDialog extends JDialog
                 return new SOM(5, 5);
             }
         });
+        
+        add(new ClassifierInfo() {
+
+            @Override
+            public Classifier getNewClassifier()
+            {
+                return new LVQ(new EuclideanDistance(), 200);
+            }
+        });
+        
+        add(new ClassifierInfo() {
+
+            @Override
+            public Classifier getNewClassifier()
+            {
+                return new Perceptron();
+            }
+        });
+        
+        add(new ClassifierInfo() 
+        {
+
+            @Override
+            public String toString()
+            {
+                return "SVM-PlatSMO-Linear Kernel w/ Grid Search";
+            }
+
+            @Override
+            public Classifier getNewClassifier()
+            {
+                GridSearch gSearch = new GridSearch(new PlatSMO(new LinearKernel()), 5)
+                {{
+                    DoubleParameter paramC = (DoubleParameter) ((Parameterized)getBaseClassifier()).getParameter("C");
+
+                    addParameter(paramC, 2e-5, 2e-3, 2e-1, 2e1, 2e3, 2e5, 2e7, 2e9, 2e11 , 2e13, 2e15);
+                }};
+                
+                return gSearch;
+            }
+        });
+        
+        add(new ClassifierInfo() {
+
+            @Override
+            public String toString()
+            {
+                return "SVM-PlatSMO-RBF Kernel w/ Grid Search";
+            }
+
+            @Override
+            public Classifier getNewClassifier()
+            {
+               GridSearch g = new GridSearch(new PlatSMO(new RBFKernel(2)), 5)
+                {{
+                    DoubleParameter paramC = (DoubleParameter) ((Parameterized)getBaseClassifier()).getParameter("C");
+                    DoubleParameter paramRBF = (DoubleParameter) ((Parameterized)getBaseClassifier()).getParameter("RBFKernel_sigma");
+
+                    addParameter(paramC, 2e-5, 2e-3, 2e-1, 2e1, 2e3, 2e5, 2e7, 2e9, 2e11 , 2e13, 2e15);
+                    addParameter(paramRBF, 2e15,2e13,2e11,2e9,2e7,2e5,2e3,2e1,2e-1,2e-3);
+                }};
+
+               return g;
+            }
+        });
     }};
     
     private ClassificationDataSet dataSet;
     private List<JCheckBox> checkBoxes;
     private boolean hitCancel = false;
     
-    private List<Classifier> pClassifiers = new ArrayList<Classifier>()
-    {{
-        add(new DecisionStump());
-    }};
 
     public ClassifierSelectionDialog(ClassificationDataSet dataSet, Frame owner)
     {
