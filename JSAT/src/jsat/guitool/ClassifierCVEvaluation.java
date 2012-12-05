@@ -22,24 +22,14 @@ import java.util.Vector;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
-import javax.swing.JCheckBox;
-import javax.swing.JComponent;
-import javax.swing.JDialog;
-import javax.swing.JLayeredPane;
-import javax.swing.JList;
-import javax.swing.JPanel;
-import javax.swing.JScrollPane;
-import javax.swing.JTabbedPane;
-import javax.swing.JTable;
-import javax.swing.ProgressMonitor;
-import javax.swing.SwingUtilities;
-import javax.swing.SwingWorker;
+import javax.swing.*;
 import jsat.classifiers.CategoricalData;
 import jsat.classifiers.ClassificationDataSet;
 import jsat.classifiers.ClassificationModelEvaluation;
 import jsat.classifiers.Classifier;
 import jsat.datatransform.DataTransformProcess;
 import jsat.exceptions.FailedToFitException;
+import jsat.graphing.ROCPlot;
 import jsat.parameters.Parameterized;
 import jsat.utils.SystemInfo;
 
@@ -81,6 +71,7 @@ public class ClassifierCVEvaluation extends JDialog
     public ClassifierCVEvaluation(final List<Classifier> classifiers, final List<String> classifierNames, final ClassificationDataSet dataset, Frame owner, String title, boolean modal, final DataTransformProcess dtp)
     {
         super(owner, title, modal);
+        final boolean isBinaryProblem = dataset.getPredicting().getNumOfCategories() == 2;
         final LongProcessDialog pm = new LongProcessDialog(owner, "Performing Cross Validation");
         pm.setMinimum(0);
         pm.setMaximum(classifiers.size());
@@ -113,6 +104,7 @@ public class ClassifierCVEvaluation extends JDialog
             protected Object doInBackground() throws Exception
             {
                 DecimalFormat df = new DecimalFormat("0.00000");
+                List<ClassificationModelEvaluation> cmes = new ArrayList<ClassificationModelEvaluation>();
                 for(int i = 0; i < classifiers.size() && !pm.isCanceled(); i++)
                 {
                     final int ip1 = i+1;
@@ -125,6 +117,11 @@ public class ClassifierCVEvaluation extends JDialog
                         pm.setNote("Evaluating " + name);
 
                         ClassificationModelEvaluation cme = new ClassificationModelEvaluation(classifier, dataset, threadPool);
+                        if(isBinaryProblem)
+                        {
+                            cme.keepPredictions(true);
+                            cmes.add(cme);
+                        }
                         if (dtp != null)
                             cme.setDataTransformProcess(dtp);
                         try
@@ -219,9 +216,23 @@ public class ClassifierCVEvaluation extends JDialog
                         if(pm.isCanceled())
                             return null;
                         else//something went really wrong!
-                            resultPanels.add(new JPanel());
+                        {
+                            JPanel jp = new JPanel(new GridLayout(1, 1));
+                            JTextArea jta = new JTextArea("The folloing error occured:\n" + ex.getMessage());
+                            jp.add(jta);
+                            resultPanels.add(jp);
+                        }
                     }
                     
+                }
+                
+                if(isBinaryProblem)
+                {
+                    ROCPlot rocPlot = new ROCPlot(new ArrayList<String>(classifierNames), cmes);
+                    classifierNames.add("ROC Curves");
+                    JPanel jp = new JPanel(new GridLayout(1, 1));
+                    jp.add(rocPlot);
+                    resultPanels.add(jp);
                 }
                 
                 return null;
@@ -237,7 +248,7 @@ public class ClassifierCVEvaluation extends JDialog
                     return;
                 }
                 JTabbedPane jTabbedPane = new JTabbedPane();
-                for(int i = 0; i < classifiers.size(); i++)
+                for(int i = 0; i < classifierNames.size(); i++)
                 {
                     jTabbedPane.add(classifierNames.get(i), resultPanels.get(i));
                 }
