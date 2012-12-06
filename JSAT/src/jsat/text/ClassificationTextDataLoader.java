@@ -40,13 +40,15 @@ public abstract class ClassificationTextDataLoader extends TextDataLoader
     {
         super(tokenizer, weighting);
         classLabels = new IntList();
-        setLabelInfo();
     }
     
     /**
      * The classification label data stored in {@link #labelInfo} must be set 
      * if the text loader is to return a classification data set. As such, this 
-     * abstract class exists to force the user to set it, in this way they can not forget. 
+     * abstract class exists to force the user to set it, in this way they can 
+     * not forget. <br>
+     * This will be called in {@link #getDataSet() } just before 
+     * {@link #initialLoad() } is called. 
      */
     protected abstract void setLabelInfo();
 
@@ -82,6 +84,13 @@ public abstract class ClassificationTextDataLoader extends TextDataLoader
     @Override
     public ClassificationDataSet getDataSet()
     {
+        if(!noMoreAdding)
+        {
+            setLabelInfo();
+            initialLoad();
+            finishAdding();
+        }
+        
         ClassificationDataSet cds = 
                 new ClassificationDataSet(vectors.get(0).length(), 
                 new CategoricalData[]{}, labelInfo);

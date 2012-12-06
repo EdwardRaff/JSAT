@@ -14,9 +14,8 @@ import jsat.text.wordweighting.WordWeighting;
 import jsat.utils.IntList;
 
 /**
- * This class provides a framework for loading datasets made of Text documents as vectors. 
- * 
- * 
+ * This class provides a framework for loading datasets made of Text documents 
+ * as vectors. 
  * 
  * @author Edward Raff 
  */
@@ -34,7 +33,7 @@ public abstract class TextDataLoader
     private WordWeighting weighting;
     
     
-    private boolean noMoreAdding;
+    protected boolean noMoreAdding;
     private int currentLength = 0;
     private int documents;
 
@@ -55,8 +54,8 @@ public abstract class TextDataLoader
      * data set from their source. For each document, 
      * {@link #addOriginalDocument(java.lang.String) } should be called with the
      * text of the document. <br>
-     * Once all documents have been added, {@link #finishAdding() } should be 
-     * called, so that post processing steps can be applied. <br>
+     * This method will be called when {@link #getDataSet() } is called for the 
+     * first time. <br>
      * New document vectors can be obtained after loading by calling 
      * {@link #newText(java.lang.String) }. 
      */
@@ -108,6 +107,10 @@ public abstract class TextDataLoader
         documents++;
     }
     
+    /**
+     * Once all original documents have been added, this method is called so 
+     * that post processing steps can be applied. 
+     */
     protected void finishAdding()
     {
         noMoreAdding = true;
@@ -130,6 +133,12 @@ public abstract class TextDataLoader
      */
     public DataSet getDataSet()
     {
+        if(!noMoreAdding)
+        {
+            initialLoad();
+            finishAdding();
+        }
+        
         List<DataPoint> dataPoints= new ArrayList<DataPoint>(vectors.size());
         
         for(SparseVector vec : vectors)
