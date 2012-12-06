@@ -1,5 +1,6 @@
 package jsat.linear.distancemetrics;
 
+import jsat.linear.IndexValue;
 import jsat.linear.Vec;
 
 /**
@@ -7,7 +8,7 @@ import jsat.linear.Vec;
  * 
  * @author Edward Raff
  */
-public class MinkowskiDistance implements DistanceMetric
+public class MinkowskiDistance implements DenseSparseMetric
 {
     
     private double p;
@@ -62,6 +63,33 @@ public class MinkowskiDistance implements DistanceMetric
     public MinkowskiDistance clone()
     {
         return new MinkowskiDistance(p);
+    }
+
+    @Override
+    public double getVectorConstant(Vec vec)
+    {
+        return Math.pow(vec.pNorm(p), p);
+    }
+
+    @Override
+    public double dist(double summaryConst, Vec main, Vec target)
+    {
+        if(!target.isSparse())
+            return dist(main, target);
+        /**
+         * Summary contains the differences^p to the zero vec, only a few 
+         * of the indices are actually non zero -  we correct those values
+         */
+        double addBack = 0.0;
+        double takeOut = 0.0;
+        for(IndexValue iv : target)
+        {
+            int i = iv.getIndex();
+            double mainVal = main.get(i);
+            takeOut += Math.pow(mainVal, p);
+            addBack += Math.pow(mainVal-iv.getValue(), p);
+        }
+        return Math.pow(summaryConst-takeOut+addBack, 1/p);
     }
     
 }

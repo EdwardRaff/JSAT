@@ -1,6 +1,7 @@
 
 package jsat.linear.distancemetrics;
 
+import jsat.linear.IndexValue;
 import jsat.linear.Vec;
 
 /**
@@ -8,7 +9,7 @@ import jsat.linear.Vec;
  * 
  * @author Edward Raff
  */
-public class ManhattanDistance implements DistanceMetric
+public class ManhattanDistance implements DenseSparseMetric
 {
 
     @Override
@@ -51,6 +52,31 @@ public class ManhattanDistance implements DistanceMetric
     public ManhattanDistance clone()
     {
         return new ManhattanDistance();
+    }
+
+    @Override
+    public double getVectorConstant(Vec vec)
+    {
+        return vec.pNorm(1);
+    }
+
+    @Override
+    public double dist(double summaryConst, Vec main, Vec target)
+    {
+        if(!target.isSparse())
+            return dist(main, target);
+        /**
+         * Summary contains the differences to the zero vec, only a few 
+         * of the indices are actually non zero -  we correct those values
+         */
+        double takeOut = 0.0;
+        for(IndexValue iv : target)
+        {
+            int i = iv.getIndex();
+            double mainVal = main.get(i);
+            takeOut += mainVal-Math.abs(mainVal-iv.getValue());
+        }
+        return summaryConst-takeOut;
     }
     
 }
