@@ -1,19 +1,13 @@
 
 package jsat.classifiers;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.concurrent.ArrayBlockingQueue;
-import java.util.concurrent.BlockingQueue;
+import java.util.*;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import jsat.exceptions.FailedToFitException;
 import jsat.linear.DenseVector;
 import jsat.linear.Vec;
-import jsat.linear.distancemetrics.DistanceMetric;
-import jsat.linear.distancemetrics.EuclideanDistance;
-import jsat.linear.distancemetrics.TrainableDistanceMetric;
+import jsat.linear.distancemetrics.*;
 import jsat.utils.FakeExecutor;
 
 /**
@@ -24,6 +18,8 @@ public class Rocchio implements Classifier
 {
     private List<Vec> rocVecs;
     private final DistanceMetric dm;
+    private final DenseSparseMetric dsdm;
+    private double[] summaryConsts;
 
     public Rocchio()
     {
@@ -33,18 +29,26 @@ public class Rocchio implements Classifier
     public Rocchio(DistanceMetric dm)
     {
         this.dm = dm;
+        this.dsdm = dm instanceof DenseSparseMetric ? (DenseSparseMetric) dm : null;
         rocVecs = null;
     }
     
+    @Override
     public CategoricalResults classify(DataPoint data)
     {
         CategoricalResults cr = new CategoricalResults(rocVecs.size());
         double sum = 0;
         
+        Vec target = data.getNumericalValues();
+        
         //Record the average for each class
         for(int i = 0; i < rocVecs.size(); i++)
         {
-            double distance = dm.dist(rocVecs.get(i), data.getNumericalValues());
+            double distance;
+            if (summaryConsts == null)
+                distance = dm.dist(rocVecs.get(i), target);
+            else
+                distance = dsdm.dist(summaryConsts[i], rocVecs.get(i), target);
             sum += distance;
             cr.setProb(i, distance);
         }
@@ -63,9 +67,10 @@ public class Rocchio implements Classifier
     private class RocchioAdder implements Runnable
     {
 
-        public RocchioAdder(CountDownLatch latch, Vec rocchioVec, List<DataPoint> input)
+        public RocchioAdder(CountDownLatch latch, int index, Vec rocchioVec, List<DataPoint> input)
         {
             this.latch = latch;
+            this.index = index;
             this.rocchioVec = rocchioVec;
             this.input = input;
             weightSum = 0;
@@ -76,29 +81,32 @@ public class Rocchio implements Classifier
         final CountDownLatch latch;
         final Vec rocchioVec;
         final List<DataPoint> input;
+        final int index;
 
+        @Override
         public void run()
         {
             for(DataPoint dp : input)
             {
                 double w = dp.getWeight();
                 Vec v = dp.getNumericalValues();
-                if(w != 1.0)
-                    v = v.multiply(w);//we cant alter the old one!
                 weightSum += w;
-                rocchioVec.mutableAdd(v);
+                rocchioVec.mutableAdd(w, v);
             }
             
             rocchioVec.mutableDivide(weightSum);
+            if(dsdm != null)
+                summaryConsts[index] = dsdm.getVectorConstant(rocchioVec);
             latch.countDown();
         }
 
     }
 
+    @Override
     public void trainC(ClassificationDataSet dataSet, ExecutorService threadPool)
     {
         if(dataSet.getNumCategoricalVars() != 0)
-            throw new RuntimeException("Classifier requires all variables be numerical");
+            throw new FailedToFitException("Classifier requires all variables be numerical");
         int N = dataSet.getClassSize();
         rocVecs = new ArrayList<Vec>(N);
         
@@ -107,6 +115,8 @@ public class Rocchio implements Classifier
         //dimensions
         int d = dataSet.getNumNumericalVars();
         
+        summaryConsts = new double[d];
+        
         //Set up a bunch of threads to add vectors together in the background
         CountDownLatch cdl = new CountDownLatch(N);
         for(int i = 0; i < N; i++)
@@ -114,7 +124,7 @@ public class Rocchio implements Classifier
             final Vec rochVec = new DenseVector(d);
             rocVecs.add(rochVec);
             
-            threadPool.submit(new RocchioAdder(cdl, rochVec, dataSet.getSamples(i)));
+            threadPool.submit(new RocchioAdder(cdl, i, rochVec, dataSet.getSamples(i)));
         }
         
         try
@@ -127,22 +137,27 @@ public class Rocchio implements Classifier
         
     }
 
+    @Override
     public void trainC(ClassificationDataSet dataSet)
     {
         trainC(dataSet, new FakeExecutor());
     }
 
+    @Override
     public boolean supportsWeightedData()
     {
         return true;
     }
 
+    @Override
     public Classifier clone()
     {
         Rocchio copy = new Rocchio(this.dm);
         copy.rocVecs = new ArrayList<Vec>(this.rocVecs.size());
         for(Vec v : this.rocVecs)
             copy.rocVecs.add(v.clone());
+        if(this.summaryConsts != null)
+            copy.summaryConsts = Arrays.copyOf(summaryConsts, summaryConsts.length);
         return copy;
     }
     

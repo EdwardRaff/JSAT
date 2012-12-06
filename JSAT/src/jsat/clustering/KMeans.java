@@ -35,6 +35,7 @@ public class KMeans extends KClustererBase
     public static final SeedSelection DEFAULT_SEED_SELECTION = SeedSelection.KPP;
     
     private DistanceMetric dm;
+    private DenseSparseMetric dmds;
     private Random rand;
     private SeedSelection seedSelection;
     
@@ -185,7 +186,7 @@ public class KMeans extends KClustererBase
                 throw new ClusterFailureException("Fewer data points then desired clusters, decrease cluster size");
 
             TrainableDistanceMetric.trainIfNeeded(dm, dataSet);
-
+            
             final double[][] lowerBound = new double[N][k];
             final double[] upperBound = new double[N];
 
@@ -194,11 +195,14 @@ public class KMeans extends KClustererBase
              */
             final double[][] centroidSelfDistances = new double[k][k];
             final double[] sC = new double[k];
-            calculateCentroidDistances(k, centroidSelfDistances, means, sC);
+            calculateCentroidDistances(k, centroidSelfDistances, means, sC, null);
             if (threadpool == null)
                 initialClusterSetUp(k, N, dataSet, means, lowerBound, upperBound, centroidSelfDistances, assignment);
             else
                 initialClusterSetUp(k, N, dataSet, means, lowerBound, upperBound, centroidSelfDistances, assignment, threadpool);
+            if(dm instanceof DenseSparseMetric)
+                dmds = (DenseSparseMetric) dm;
+            final double[] meanSummaryConsts = dm instanceof DenseSparseMetric ? new double[means.size()] : null;
 
             int atLeast = 2;//Used to performan an extra round (first round does not assign)
             final AtomicInteger changes = new AtomicInteger(N);//Atomic int so each thread can update safely & lock free
@@ -215,7 +219,7 @@ public class KMeans extends KClustererBase
                 atLeast--;
                 changes.set(0);
                 //Step 1 
-                calculateCentroidDistances(k, centroidSelfDistances, means, sC);
+                calculateCentroidDistances(k, centroidSelfDistances, means, sC, meanSummaryConsts);
 
                 final CountDownLatch latch = new CountDownLatch(SystemInfo.LogicalCores);
 
@@ -238,8 +242,8 @@ public class KMeans extends KClustererBase
                         for (int c = 0; c < k; c++)
                             if (c != assignment[q] && upperBound[q] > lowerBound[q][c] && upperBound[q] > centroidSelfDistances[assignment[q]][c] * 0.5)
                             {
-                                step3aBoundsUpdate(r, q, v, means, assignment, upperBound);
-                                step3bUpdate(upperBound, q, lowerBound, c, centroidSelfDistances, assignment, v, means, changes);
+                                step3aBoundsUpdate(r, q, v, means, assignment, upperBound, meanSummaryConsts);
+                                step3bUpdate(upperBound, q, lowerBound, c, centroidSelfDistances, assignment, v, means, changes, meanSummaryConsts);
                             }
                     }
                     else
@@ -253,8 +257,8 @@ public class KMeans extends KClustererBase
                                 for (int c = 0; c < k; c++)
                                     if (c != assignment[qq] && upperBound[qq] > lowerBound[qq][c] && upperBound[qq] > centroidSelfDistances[assignment[qq]][c] * 0.5)
                                     {
-                                        step3aBoundsUpdate(r, qq, v, means, assignment, upperBound);
-                                        step3bUpdate(upperBound, qq, lowerBound, c, centroidSelfDistances, assignment, v, means, changes);
+                                        step3aBoundsUpdate(r, qq, v, means, assignment, upperBound, meanSummaryConsts);
+                                        step3bUpdate(upperBound, qq, lowerBound, c, centroidSelfDistances, assignment, v, means, changes, meanSummaryConsts);
                                     }
                             }
                         };
@@ -438,25 +442,34 @@ public class KMeans extends KClustererBase
         }
     }
 
-    private void step3aBoundsUpdate(boolean[] r, int q, Vec v, final List<Vec> means, final int[] assignment, double[] upperBound)
+    private void step3aBoundsUpdate(boolean[] r, int q, Vec v, final List<Vec> means, final int[] assignment, double[] upperBound, double[] meanSummaryConsts)
     {
         //3(a)
         if (r[q])
         {
             r[q] = false;
-            double d = dm.dist(v, means.get(assignment[q]));
+            double d;
+            int meanIndx = assignment[q];
+            if(dmds == null)
+                d = dm.dist(v, means.get(meanIndx));
+            else
+                d = dmds.dist(meanSummaryConsts[meanIndx], means.get(meanIndx), v);
             //lowerBound[q][assignment[q]] = d;///Not sure if this is supposed to be here
             upperBound[q] = d;
         }
     }
 
     private void step3bUpdate(double[] upperBound, final int q, double[][] lowerBound, final int c, double[][] centroidSelfDistances, 
-            final int[] assignment, Vec v, final List<Vec> means, final AtomicInteger changes)
+            final int[] assignment, Vec v, final List<Vec> means, final AtomicInteger changes, double[] meanSummaryConsts)
     {
         //3(b)
         if (upperBound[q] > lowerBound[q][c] || upperBound[q] > centroidSelfDistances[assignment[q]][c] / 2)
         {
-            double d = dm.dist(v, means.get(c));
+            double d;
+            if(dmds == null)
+                d = dm.dist(v, means.get(c));
+            else
+                d = dmds.dist(meanSummaryConsts[c], means.get(c), v);
             lowerBound[q][c] = d;
             if (d < upperBound[q])
             {
@@ -467,7 +480,7 @@ public class KMeans extends KClustererBase
         }
     }
 
-    private void calculateCentroidDistances(final int k, double[][] centroidSelfDistances, final List<Vec> means, double[] sC)
+    private void calculateCentroidDistances(final int k, double[][] centroidSelfDistances, final List<Vec> means, double[] sC, double[] meanSummaryConsts)
     {
         for (int i = 0; i < k; i++)
         {
@@ -483,6 +496,8 @@ public class KMeans extends KClustererBase
                 }
             }
             sC[i] = sCmin / 2.0;
+            if(meanSummaryConsts != null)
+                meanSummaryConsts[i] = dmds.getVectorConstant(means.get(i));
         }
     }
 
