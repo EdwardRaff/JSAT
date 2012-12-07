@@ -1,6 +1,7 @@
 
 package jsat.linear;
 
+import java.io.Serializable;
 import static java.lang.Math.*;
 import java.util.Arrays;
 import jsat.math.Complex;
@@ -32,7 +33,7 @@ import jsat.math.Complex;
  *
  * @author Edward Raff
  */
-public class EigenValueDecomposition
+public class EigenValueDecomposition implements Serializable
 {
 
     /**

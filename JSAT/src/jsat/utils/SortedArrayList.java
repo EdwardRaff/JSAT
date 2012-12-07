@@ -1,6 +1,7 @@
 
 package jsat.utils;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -9,7 +10,7 @@ import java.util.Collections;
  *
  * @author Edward Raff
  */
-public class SortedArrayList<T extends Comparable<T>> extends ArrayList<T>
+public class SortedArrayList<T extends Comparable<T>> extends ArrayList<T> implements Serializable
 {
 
     public SortedArrayList(Collection<? extends T> c)

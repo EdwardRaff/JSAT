@@ -1,5 +1,6 @@
 package jsat.utils;
 
+import java.io.Serializable;
 import java.util.AbstractList;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -17,7 +18,7 @@ import java.util.ConcurrentModificationException;
  * 
  * @author Edward Raff
  */
-public class SimpleList<E> extends AbstractList<E>
+public class SimpleList<E> extends AbstractList<E> implements Serializable
 {
     private Object[] source;
     private int size;

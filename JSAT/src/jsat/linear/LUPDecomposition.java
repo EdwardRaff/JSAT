@@ -1,6 +1,7 @@
 
 package jsat.linear;
 
+import java.io.Serializable;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
@@ -12,7 +13,7 @@ import jsat.utils.SystemInfo;
  * This class uses the LUP decomposition of a matrix to provide efficient methods for solving A x = b, as well as computing the determinant of A. 
  * @author Edward Raff
  */
-public class LUPDecomposition implements Cloneable
+public class LUPDecomposition implements Cloneable, Serializable
 {
     private static final int threads = SystemInfo.LogicalCores;
     private final Matrix L, U, P;

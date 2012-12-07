@@ -1,5 +1,6 @@
 package jsat.linear;
 
+import java.io.Serializable;
 import java.util.concurrent.ExecutorService;
 import static jsat.linear.Matrix.*;
 
@@ -7,7 +8,7 @@ import static jsat.linear.Matrix.*;
  *
  * @author Edward Raff
  */
-public class HessenbergForm
+public class HessenbergForm implements Serializable
 {
     public static void hess(Matrix A)
     {

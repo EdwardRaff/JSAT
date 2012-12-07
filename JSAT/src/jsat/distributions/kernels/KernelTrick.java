@@ -1,6 +1,7 @@
 
 package jsat.distributions.kernels;
 
+import java.io.Serializable;
 import jsat.linear.Vec;
 import jsat.parameters.Parameterized;
 
@@ -13,7 +14,7 @@ import jsat.parameters.Parameterized;
  * 
  * @author Edward Raff
  */
-public interface KernelTrick extends Parameterized, Cloneable
+public interface KernelTrick extends Parameterized, Cloneable, Serializable
 {
     /**
      * Evaluate this kernel function for the two given vectors. 

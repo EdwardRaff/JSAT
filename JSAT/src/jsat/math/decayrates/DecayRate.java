@@ -1,5 +1,7 @@
 package jsat.math.decayrates;
 
+import java.io.Serializable;
+
 /**
  * Many algorithms use a learning rate to adjust the step size by which the 
  * search space is covered. In practice, it is often useful to reduce this 
@@ -9,7 +11,7 @@ package jsat.math.decayrates;
  * 
  * @author Edward Raff
  */
-public interface DecayRate
+public interface DecayRate extends Serializable
 {
     /**
      * Decays the initial value. The value returned will be a value in the range

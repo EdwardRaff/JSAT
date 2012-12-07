@@ -1,6 +1,7 @@
 
 package jsat.classifiers;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -9,7 +10,7 @@ import java.util.List;
  *
  * @author Edward Raff
  */
-public class CategoricalData implements Cloneable
+public class CategoricalData implements Cloneable, Serializable
 {
     private int n;//Number of different categories
     private List<String> catNames;

@@ -1,6 +1,7 @@
 
 package jsat.regression;
 
+import java.io.Serializable;
 import java.util.concurrent.ExecutorService;
 import jsat.classifiers.DataPoint;
 
@@ -8,7 +9,7 @@ import jsat.classifiers.DataPoint;
  *
  * @author Edward Raff
  */
-public interface Regressor extends Cloneable
+public interface Regressor extends Cloneable, Serializable
 {
     public double regress(DataPoint data);
     

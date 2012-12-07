@@ -1,10 +1,12 @@
 package jsat.utils;
 
+import java.io.Serializable;
+
 /**
  * Class allows the arbitrary association of some object type with a probability. 
  * @author Edward Raff
  */
-public class ProbailityMatch<T> implements Comparable<ProbailityMatch<T>>
+public class ProbailityMatch<T> implements Comparable<ProbailityMatch<T>>, Serializable
 {
 
     private double probability;

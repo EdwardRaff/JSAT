@@ -1,6 +1,7 @@
 
 package jsat.utils;
 
+import java.io.Serializable;
 import java.util.*;
 
 /**
@@ -10,7 +11,7 @@ import java.util.*;
  * values at increased memory cost. 
  * @author Edward Raff
  */
-public class IntPriorityQueue extends AbstractQueue<Integer>
+public class IntPriorityQueue extends AbstractQueue<Integer> implements Serializable
 {
     public static final Comparator<Integer> naturalComparator = new Comparator<Integer>() {
 

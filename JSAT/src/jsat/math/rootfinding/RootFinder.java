@@ -1,6 +1,7 @@
 
 package jsat.math.rootfinding;
 
+import java.io.Serializable;
 import jsat.linear.Vec;
 import jsat.math.Function;
 
@@ -8,7 +9,7 @@ import jsat.math.Function;
  * This interface defines a general contract for the numerical computation of a root of a given function
  * @author Edward Raff
  */
-public interface RootFinder
+public interface RootFinder extends Serializable
 {
     /**
      * Attempts to numerical compute the root of a given function, such that f(<tt>args</tt>) = 0. Only one variable may be altered at a time

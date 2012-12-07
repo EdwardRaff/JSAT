@@ -1,5 +1,6 @@
 package jsat.utils;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collections;
 
@@ -7,7 +8,7 @@ import java.util.Collections;
  *
  * @author Edward Raff
  */
-public class BoundedSortedList<E extends Comparable<E>> extends ArrayList<E>
+public class BoundedSortedList<E extends Comparable<E>> extends ArrayList<E> implements Serializable
 {
     private final int maxSize;
 

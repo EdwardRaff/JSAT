@@ -1,6 +1,7 @@
 
 package jsat.utils;
 
+import java.io.Serializable;
 import java.util.*;
 
 /**
@@ -9,7 +10,7 @@ import java.util.*;
  * 
  * @author Edward Raff
  */
-public class IntSet extends AbstractSet<Integer>
+public class IntSet extends AbstractSet<Integer> implements Serializable
 {
     private static final int defaultSize = 8;
      

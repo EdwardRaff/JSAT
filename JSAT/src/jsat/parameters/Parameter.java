@@ -1,5 +1,6 @@
 package jsat.parameters;
 
+import java.io.Serializable;
 import java.util.*;
 
 /**
@@ -8,7 +9,7 @@ import java.util.*;
  * 
  * @author Edward Raff
  */
-public abstract class Parameter
+public abstract class Parameter implements Serializable
 {
     /**
      * Some variables of a learning method may be adjustable without having to 

@@ -1,6 +1,7 @@
 
 package jsat.utils;
 
+import java.io.Serializable;
 import java.util.*;
 
 /**
@@ -12,7 +13,7 @@ import java.util.*;
  * 
  * @author Edward Raff
  */
-public class IndexTable
+public class IndexTable implements Serializable
 {
     /**
      * We use an array of Integer objects instead of integers because we need the arrays.sort function that accepts comparators. 

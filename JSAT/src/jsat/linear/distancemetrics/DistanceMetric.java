@@ -1,6 +1,7 @@
 
 package jsat.linear.distancemetrics;
 
+import java.io.Serializable;
 import jsat.linear.Vec;
 
 /**
@@ -14,7 +15,7 @@ import jsat.linear.Vec;
  * 
  * @author Edward Raff
  */
-public interface DistanceMetric extends Cloneable
+public interface DistanceMetric extends Cloneable, Serializable
 {
     /**
      * Computes the distance between 2 vectors. 

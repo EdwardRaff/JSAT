@@ -123,4 +123,12 @@ public class CategoricalResults implements Cloneable
         copy.probabilities = Arrays.copyOf(probabilities, probabilities.length);
         return copy;
     }
+
+    @Override
+    public String toString()
+    {
+        return Arrays.toString(probabilities);
+    }
+    
+    
 }

@@ -1,6 +1,7 @@
 
 package jsat.utils;
 
+import java.io.Serializable;
 import java.util.AbstractList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -12,7 +13,7 @@ import java.util.Collection;
  * 
  * @author Edward Raff
  */
-public class IntList extends AbstractList<Integer>
+public class IntList extends AbstractList<Integer> implements Serializable
 {
     private int[] array;
     private int end;

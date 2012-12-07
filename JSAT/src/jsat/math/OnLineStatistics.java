@@ -1,6 +1,8 @@
 
 package jsat.math;
 
+import java.io.Serializable;
+
 /**
  *
  * This class provides a means of updating summary statistics as each 
@@ -13,7 +15,7 @@ package jsat.math;
  * 
  * @author Edward Raff
  */
-public class OnLineStatistics
+public class OnLineStatistics implements Serializable
 {
    /**
      * The current mean

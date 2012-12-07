@@ -1,6 +1,7 @@
 
 package jsat.classifiers;
 
+import java.io.Serializable;
 import jsat.linear.Vec;
 
 /**
@@ -8,7 +9,7 @@ import jsat.linear.Vec;
  * This class exists so that any data point can be arbitrarily paired with some value
  * @author Edward Raff
  */
-public class DataPointPair<P>
+public class DataPointPair<P> implements Serializable
 {
     DataPoint dataPoint;
     P pair;

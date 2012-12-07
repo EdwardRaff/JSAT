@@ -1,6 +1,7 @@
 
 package jsat.distributions.multivariate;
 
+import java.io.Serializable;
 import java.util.List;
 import java.util.Random;
 import java.util.concurrent.ExecutorService;
@@ -14,7 +15,7 @@ import jsat.linear.Vec;
  * 
  * @author Edward Raff
  */
-public interface MultivariateDistribution extends Cloneable
+public interface MultivariateDistribution extends Cloneable, Serializable
 {
     /**
      * Computes the log of the probability density function. If the 

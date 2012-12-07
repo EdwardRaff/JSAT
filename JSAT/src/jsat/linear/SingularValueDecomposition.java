@@ -1,5 +1,6 @@
 package jsat.linear;
 
+import java.io.Serializable;
 import java.util.Arrays;
 import java.util.concurrent.ExecutorService;
 import static java.lang.Math.*;
@@ -18,7 +19,7 @@ import static jsat.linear.RowColumnOps.*;
  * <b>NOTE:</b> Current implementation only handles rectangular matrices when the rows are greater then the columns. 
  * @author Edward Raff
  */
-public class SingularValueDecomposition implements Cloneable
+public class SingularValueDecomposition implements Cloneable, Serializable
 {
     private Matrix U, V;
     /**

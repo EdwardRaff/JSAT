@@ -1,6 +1,7 @@
 
 package jsat.math.optimization;
 
+import java.io.Serializable;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import jsat.linear.Vec;
@@ -14,7 +15,7 @@ import jsat.utils.FakeExecutor;
  * 
  * @author Edward Raff
  */
-public interface Optimizer
+public interface Optimizer extends Serializable
 {
     /**
      * Performs optimization on the given inputs to find the minima of the function. Not all optimization 

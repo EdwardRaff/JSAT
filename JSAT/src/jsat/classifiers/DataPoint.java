@@ -1,6 +1,7 @@
 
 package jsat.classifiers;
 
+import java.io.Serializable;
 import java.util.Arrays;
 import jsat.linear.Vec;
 
@@ -11,7 +12,7 @@ import jsat.linear.Vec;
  * 
  * @author Edward Raff
  */
-public class DataPoint implements Cloneable
+public class DataPoint implements Cloneable, Serializable
 {
     private double weight;
     protected Vec numericalValues;

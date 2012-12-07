@@ -1,6 +1,7 @@
 
 package jsat.linear.vectorcollection;
 
+import java.io.Serializable;
 import java.util.List;
 import jsat.linear.Vec;
 import jsat.linear.VecPaired;
@@ -14,7 +15,7 @@ import jsat.linear.VecPaired;
  * 
  * @author Edward Raff
  */
-public interface VectorCollection<V extends Vec> extends Cloneable
+public interface VectorCollection<V extends Vec> extends Cloneable, Serializable
 {
 
     /**

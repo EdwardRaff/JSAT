@@ -1,6 +1,7 @@
 
 package jsat.linear;
 
+import java.io.Serializable;
 import java.util.Iterator;
 import java.util.Random;
 import jsat.math.Function;
@@ -11,7 +12,7 @@ import jsat.math.IndexFunction;
  * 
  * @author Edward Raff
  */
-public abstract class Vec implements Cloneable, Iterable<IndexValue>
+public abstract class Vec implements Cloneable, Iterable<IndexValue>, Serializable
 {
     /**
      * Returns the length of this vector

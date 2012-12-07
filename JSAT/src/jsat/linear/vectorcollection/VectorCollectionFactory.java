@@ -1,6 +1,7 @@
 
 package jsat.linear.vectorcollection;
 
+import java.io.Serializable;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import jsat.linear.Vec;
@@ -11,7 +12,7 @@ import jsat.linear.distancemetrics.DistanceMetric;
  * 
  * @author Edward Raff
  */
-public interface VectorCollectionFactory<V extends Vec> extends Cloneable
+public interface VectorCollectionFactory<V extends Vec> extends Cloneable, Serializable
 {
     /**
      * Creates a new Vector Collection from the given source using the provided metric. 

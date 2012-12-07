@@ -1,6 +1,7 @@
 
 package jsat.datatransform;
 
+import java.io.Serializable;
 import jsat.classifiers.DataPoint;
 
 /**
@@ -13,7 +14,7 @@ import jsat.classifiers.DataPoint;
  * 
  * @author Edward Raff
  */
-public interface DataTransform extends Cloneable
+public interface DataTransform extends Cloneable, Serializable
 {
     /**
      * Returns a new data point that is a transformation of the original data 

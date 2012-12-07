@@ -1,6 +1,7 @@
 
 package jsat.distributions;
 
+import java.io.Serializable;
 import java.util.Random;
 import jsat.linear.DenseVector;
 import jsat.linear.Vec;
@@ -12,7 +13,7 @@ import jsat.math.rootfinding.Zeroin;
  * 
  * @author Edward Raff
  */
-public abstract class Distribution implements Cloneable
+public abstract class Distribution implements Cloneable, Serializable
 {
     /**
      * Computes the log of the Probability Density Function. Note, that then the probability 

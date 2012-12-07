@@ -1,6 +1,7 @@
 
 package jsat.linear;
 
+import java.io.Serializable;
 import java.util.Iterator;
 import java.util.Random;
 import java.util.concurrent.CountDownLatch;
@@ -14,7 +15,7 @@ import static jsat.utils.SystemInfo.*;
  *
  * @author Edward Rafff
  */
-public abstract class Matrix implements Cloneable
+public abstract class Matrix implements Cloneable, Serializable
 {
     public Matrix add(Matrix b)
     {

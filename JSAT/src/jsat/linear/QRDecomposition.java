@@ -1,6 +1,7 @@
 
 package jsat.linear;
 
+import java.io.Serializable;
 import java.util.concurrent.ExecutorService;
 import static java.lang.Math.*;
 
@@ -8,7 +9,7 @@ import static java.lang.Math.*;
  *
  * @author Edward Raff
  */
-public class QRDecomposition
+public class QRDecomposition implements Serializable
 {
     private Matrix Q_T, R;
 

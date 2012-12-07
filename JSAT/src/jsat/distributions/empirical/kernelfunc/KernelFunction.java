@@ -1,6 +1,8 @@
 
 package jsat.distributions.empirical.kernelfunc;
 
+import java.io.Serializable;
+
 /**
  * Class for representing one dimensional kernel functions. Since they require 
  * no parameters and have no need for duplication, its is advised to make 
@@ -10,7 +12,7 @@ package jsat.distributions.empirical.kernelfunc;
  * 
  * @author Edward Raff
  */
-public interface KernelFunction
+public interface KernelFunction extends Serializable
 {
     /**
      * Returns the weight to be applied to a sample for the normalized distance of two data points. 

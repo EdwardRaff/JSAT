@@ -1,6 +1,7 @@
 
 package jsat.utils;
 
+import java.io.Serializable;
 import java.util.AbstractList;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -13,7 +14,7 @@ import java.util.Collection;
  * 
  * @author Edward Raff
  */
-public class DoubleList extends AbstractList<Double>
+public class DoubleList extends AbstractList<Double> implements Serializable
 {
     private double[] array;
     //Exclusive

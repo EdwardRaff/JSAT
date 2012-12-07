@@ -1,6 +1,7 @@
 
 package jsat.linear;
 
+import java.io.Serializable;
 import java.util.concurrent.ExecutorService;
 import static java.lang.Math.*;
 import static jsat.linear.LUPDecomposition.*;
@@ -9,7 +10,7 @@ import static jsat.linear.LUPDecomposition.*;
  * The Cholesky Decomposition factors a symmetric positive definite matrix A into the form A = L L<sup>T</sup>. The Cholesky Decomposition of a matrix is unique 
  * @author Edward Raff
  */
-public class CholeskyDecomposition
+public class CholeskyDecomposition implements Serializable
 {
     /**
      * Contains the matrix 'L', but instead of just keeping the lower triangular, we keep it
