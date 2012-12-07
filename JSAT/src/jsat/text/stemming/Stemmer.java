@@ -1,13 +1,14 @@
 
 package jsat.text.stemming;
 
+import java.io.Serializable;
 import java.util.List;
 
 /**
  *
  * @author Edward Raff
  */
-public abstract class Stemmer
+public abstract class Stemmer implements Serializable
 {
     abstract public String stem(String word);
     
