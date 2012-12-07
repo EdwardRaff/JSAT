@@ -7,6 +7,7 @@ import jsat.SimpleDataSet;
 import jsat.classifiers.CategoricalData;
 import jsat.classifiers.DataPoint;
 import jsat.linear.SparseVector;
+import jsat.linear.Vec;
 import jsat.linear.distancemetrics.DistanceMetric;
 import jsat.linear.vectorcollection.VectorArray;
 import jsat.text.tokenizer.Tokenizer;
@@ -19,7 +20,7 @@ import jsat.utils.IntList;
  * 
  * @author Edward Raff 
  */
-public abstract class TextDataLoader
+public abstract class TextDataLoader implements TextVectorCreator
 {
     protected List<SparseVector> vectors;
     protected Tokenizer tokenizer;
@@ -32,6 +33,7 @@ public abstract class TextDataLoader
     protected List<Integer> termDocumentFrequencys;
     private WordWeighting weighting;
     
+    private TextVectorCreator tvc;
     
     protected boolean noMoreAdding;
     private int currentLength = 0;
@@ -137,6 +139,7 @@ public abstract class TextDataLoader
         {
             initialLoad();
             finishAdding();
+            tvc = new BasicTextVectorCreator(tokenizer, wordIndex, weighting);
         }
         
         List<DataPoint> dataPoints= new ArrayList<DataPoint>(vectors.size());
@@ -153,26 +156,23 @@ public abstract class TextDataLoader
      * @param text the text of the document to create a document vector from
      * @return the sparce vector representing this document 
      */
-    public SparseVector newText(String text)
+    @Override
+    public Vec newText(String text)
     {
         if(!noMoreAdding)
             throw new RuntimeException("Initial documents have not yet loaded");
-        List<String> words = tokenizer.tokenize(text);
-        
-        SparseVector vec = new SparseVector(currentLength);
-        
-        for( String word : words)
-        {
-            if(wordIndex.containsKey(word))//Could also call retainAll on words before looping. Worth while to investigate 
-            {
-                int index = wordIndex.get(word);
-                vec.increment(index, 1.0);
-            }
-        }
-        
-        weighting.applyTo(vec);
-        
-        return vec;
+        return tvc.newText(text);
+    }
+    
+    /**
+     * Returns the {@link TextVectorCreator} used by this data loader to convert
+     * documents into vectors. 
+     * 
+     * @return the text vector creator used by this class
+     */
+    public TextVectorCreator getTextVectorCreator()
+    {
+        return tvc;
     }
     
     public String getWordForIndex(int index)
