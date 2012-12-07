@@ -6,10 +6,10 @@ import jsat.DataSet;
 import jsat.SimpleDataSet;
 import jsat.classifiers.CategoricalData;
 import jsat.classifiers.DataPoint;
+import jsat.datatransform.DataTransformFactory;
+import jsat.datatransform.RemoveAttributeTransform.RemoveAttributeTransformFactory;
 import jsat.linear.SparseVector;
 import jsat.linear.Vec;
-import jsat.linear.distancemetrics.DistanceMetric;
-import jsat.linear.vectorcollection.VectorArray;
 import jsat.text.tokenizer.Tokenizer;
 import jsat.text.wordweighting.WordWeighting;
 import jsat.utils.IntList;
@@ -77,32 +77,36 @@ public abstract class TextDataLoader implements TextVectorCreator
         if(noMoreAdding)
             throw new RuntimeException("Initial data set has been finalized");
         List<String> words = tokenizer.tokenize(text);
+        Map<String, Integer> wordCounts = new HashMap<String, Integer>(words.size());
         
-        /**
-         * Words we have already seen in this document, for keeping track of document occurances
-         */
-        Set<String> seenWords = new HashSet<String>();
-        
-        SparseVector vec = new SparseVector(currentLength+1, words.size());//+1 to avoid issues when its length is zero, will be corrected in finalization step anyway
         for(String word : words)
         {
+            Integer count = wordCounts.get(word);
+            if(count == null)
+                wordCounts.put(word, 1);
+            else
+                wordCounts.put(word, count+1);
+        }
+        
+        SparseVector vec = new SparseVector(currentLength+1, wordCounts.size());//+1 to avoid issues when its length is zero, will be corrected in finalization step anyway
+        for(Map.Entry<String, Integer> entry : wordCounts.entrySet())
+        {
+            String word = entry.getKey();
+            
             if(!wordIndex.containsKey(word))//this word has never been seen before!
             {
                 allWords.add(word);
                 wordIndex.put(word, currentLength++);
                 termDocumentFrequencys.add(1);
                 vec.setLength(currentLength);
-                vec.set(currentLength-1, 1.0);
+                vec.set(currentLength-1, entry.getValue());
             }
             else//this word has been seen before
             {
                 int indx = wordIndex.get(word);
-                if(!seenWords.contains(word))
-                    termDocumentFrequencys.set(indx, termDocumentFrequencys.get(indx)+1);
-                vec.increment(indx, 1.0);
+                termDocumentFrequencys.set(indx, termDocumentFrequencys.get(indx)+1);
+                vec.set(indx, entry.getValue());
             }
-            
-            seenWords.add(word);
         }
         
         vectors.add(vec);
@@ -139,7 +143,6 @@ public abstract class TextDataLoader implements TextVectorCreator
         {
             initialLoad();
             finishAdding();
-            tvc = new BasicTextVectorCreator(tokenizer, wordIndex, weighting);
         }
         
         List<DataPoint> dataPoints= new ArrayList<DataPoint>(vectors.size());
@@ -161,7 +164,7 @@ public abstract class TextDataLoader implements TextVectorCreator
     {
         if(!noMoreAdding)
             throw new RuntimeException("Initial documents have not yet loaded");
-        return tvc.newText(text);
+        return getTextVectorCreator().newText(text);
     }
     
     /**
@@ -172,6 +175,10 @@ public abstract class TextDataLoader implements TextVectorCreator
      */
     public TextVectorCreator getTextVectorCreator()
     {
+        if(!noMoreAdding)
+            throw new RuntimeException("Initial documents have not yet loaded");
+        else if(tvc == null)
+            tvc = new BasicTextVectorCreator(tokenizer, wordIndex, weighting);
         return tvc;
     }
     
@@ -181,5 +188,17 @@ public abstract class TextDataLoader implements TextVectorCreator
             return allWords.get(index);
         else
             return null;
+    }
+    
+    @SuppressWarnings("unchecked")
+    public DataTransformFactory getMinimumOccurrenceDTF(int minCount)
+    {
+        
+        final Set<Integer> numericToRemove = new HashSet<Integer>();
+        for(int i = 0; i < termDocumentFrequencys.size(); i++)
+            if(termDocumentFrequencys.get(i) <= minCount)
+                numericToRemove.add(i);
+        
+        return new RemoveAttributeTransformFactory(Collections.EMPTY_SET, numericToRemove);
     }
 }
