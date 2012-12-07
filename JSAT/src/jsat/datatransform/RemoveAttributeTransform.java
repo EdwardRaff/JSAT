@@ -1,13 +1,11 @@
 package jsat.datatransform;
 
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
 import jsat.DataSet;
 import jsat.classifiers.CategoricalData;
 import jsat.classifiers.DataPoint;
 import jsat.datatransform.DataTransform;
-import jsat.linear.DenseVector;
-import jsat.linear.Vec;
+import jsat.linear.*;
 
 /**
  * This Data Transform allows the complete removal of specific features from the data set. 
@@ -54,33 +52,66 @@ public class RemoveAttributeTransform implements DataTransform
     
     @Override
     public DataPoint transform(DataPoint dp)
-    {   
+    {
         int[] catVals = dp.getCategoricalValues();
         Vec numVals = dp.getNumericalValues();
-        
-        CategoricalData[] newCatData = new CategoricalData[catVals.length-catRemove.size()];
+
+        CategoricalData[] newCatData = new CategoricalData[catVals.length - catRemove.size()];
         int[] newCatVals = new int[newCatData.length];
-        Vec newNumVals = new DenseVector(numVals.length()-numRemove.size());
-        
+        int newVecSize = numVals.length() - numRemove.size();
+        Vec newNumVals;
+        if (numVals.isSparse())
+            if (numVals instanceof SparseVector)
+                newNumVals = new SparseVector(newVecSize, ((SparseVector) numVals).nnz());
+            else
+                newNumVals = new SparseVector(newVecSize);
+        else
+            newNumVals = new DenseVector(newVecSize);
+
         int k = 0;//K is the new index
-        for(int i = 0; i < catVals.length; i++)//i is the old index
+        for (int i = 0; i < catVals.length; i++)//i is the old index
         {
-            if(catRemove.contains(i))
+            if (catRemove.contains(i))
                 continue;
             newCatVals[k] = catVals[i];
             newCatData[k] = dp.getCategoricalData()[i].clone();
             k++;
         }
-        
+
         k = 0;
-        for(int i = 0; i < numVals.length(); i++)//i is the old index
+
+        Iterator<IndexValue> iter = numVals.getNonZeroIterator();
+        if (iter.hasNext())//if all values are zero, nothing to do
         {
-            if(numRemove.contains(i))
-                continue;
-            newNumVals.set(k, numVals.get(i));
-            k++;
+            IndexValue curIV = iter.next();
+            for (int i = 0; i < numVals.length(); i++)//i is the old index
+            {
+                if (numRemove.contains(i))
+                    continue;
+
+                k++;
+                if (numVals.isSparse())//log(n) insert and loopups to avoid!
+                {
+                    if (curIV == null)
+                        continue;
+                    if (i > curIV.getIndex())//We skipped a value that existed
+                        while (i > curIV.getIndex() && iter.hasNext())
+                            curIV = iter.next();
+                    if (i < curIV.getIndex())//Index is zero, nothing to set
+                        continue;
+                    else if (i == curIV.getIndex())
+                    {
+                        newNumVals.set(k - 1, curIV.getValue());
+                        if (iter.hasNext())
+                            curIV = iter.next();
+                        else
+                            curIV = null;
+                    }
+                }
+                else//All dense, just set them all
+                    newNumVals.set(k - 1, numVals.get(i));
+            }
         }
-        
         return new DataPoint(newNumVals, newCatVals, newCatData, dp.getWeight());
     }
 
@@ -88,6 +119,24 @@ public class RemoveAttributeTransform implements DataTransform
     public RemoveAttributeTransform clone()
     {
         return new RemoveAttributeTransform(this);
+    }
+    
+    public static class RemoveAttributeTransformFactory implements DataTransformFactory
+    {
+        private Set<Integer> catToRemove;
+        private Set<Integer> numerToRemove;
+
+        public RemoveAttributeTransformFactory(Set<Integer> catToRemove, Set<Integer> numerToRemove)
+        {
+            this.catToRemove = catToRemove;
+            this.numerToRemove = numerToRemove;
+        }
+        
+        @Override
+        public DataTransform getTransform(DataSet dataset)
+        {
+            return new RemoveAttributeTransform(dataset, catToRemove, numerToRemove);
+        }
     }
     
 }
