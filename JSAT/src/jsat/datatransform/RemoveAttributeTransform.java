@@ -12,15 +12,16 @@ import jsat.linear.*;
  * @author Edward Raff
  */
 public class RemoveAttributeTransform implements DataTransform
-{
-    /**
-     * Categorical attributes to be removed
+{   
+    /*
+     * Each index map maps the old indecies in the original data set to their 
+     * new positions. The value in the array is old index, the index of the 
+     * value is the index it would be when the attributes were removed. 
+     * This means each is in sorted order, and is of the size of the resulting 
+     * feature space
      */
-    private Set<Integer> catRemove;
-    /**
-     * Numerical attributes to be removed
-     */
-    private Set<Integer> numRemove;
+    private int[] catIndexMap;
+    private int[] numIndexMap;
 
     /**
      * Creates a new transform for removing specified features from a data set
@@ -36,8 +37,24 @@ public class RemoveAttributeTransform implements DataTransform
         for(int i : numericalToRemove)
             if (i >= dataSet.getNumNumericalVars())
                 throw new RuntimeException("The data set does not have a numercal value " + i + " to remove");
-        this.catRemove = new HashSet<Integer>(categoricalToRemove);
-        this.numRemove = new HashSet<Integer>(numericalToRemove);
+        
+        catIndexMap = new int[dataSet.getNumCategoricalVars()-categoricalToRemove.size()];
+        numIndexMap = new int[dataSet.getNumNumericalVars()-numericalToRemove.size()];
+        int k = 0;
+        for(int i = 0; i < dataSet.getNumCategoricalVars(); i++)
+        {
+            if(categoricalToRemove.contains(i))
+                continue;
+            numIndexMap[k++] = i;
+        }
+        k = 0;
+        for(int i = 0; i < dataSet.getNumNumericalVars(); i++)
+        {
+            if(numericalToRemove.contains(i))
+                continue;
+            numIndexMap[k++] = i;
+        }
+        
     }
     
     /**
@@ -46,8 +63,8 @@ public class RemoveAttributeTransform implements DataTransform
      */
     private RemoveAttributeTransform(RemoveAttributeTransform other)
     {
-        this.catRemove = new HashSet<Integer>(other.catRemove);
-        this.numRemove = new HashSet<Integer>(other.numRemove);
+        this.catIndexMap = Arrays.copyOf(other.catIndexMap, other.catIndexMap.length);
+        this.numIndexMap = Arrays.copyOf(other.numIndexMap, other.numIndexMap.length);
     }
     
     @Override
@@ -56,52 +73,40 @@ public class RemoveAttributeTransform implements DataTransform
         int[] catVals = dp.getCategoricalValues();
         Vec numVals = dp.getNumericalValues();
 
-        CategoricalData[] newCatData = new CategoricalData[catVals.length - catRemove.size()];
+        CategoricalData[] newCatData = new CategoricalData[catIndexMap.length];
         int[] newCatVals = new int[newCatData.length];
-        int newVecSize = numVals.length() - numRemove.size();
         Vec newNumVals;
         if (numVals.isSparse())
             if (numVals instanceof SparseVector)
-                newNumVals = new SparseVector(newVecSize, ((SparseVector) numVals).nnz());
+                newNumVals = new SparseVector(numIndexMap.length, ((SparseVector) numVals).nnz());
             else
-                newNumVals = new SparseVector(newVecSize);
+                newNumVals = new SparseVector(numIndexMap.length);
         else
-            newNumVals = new DenseVector(newVecSize);
+            newNumVals = new DenseVector(numIndexMap.length);
 
-        int k = 0;//K is the new index
-        for (int i = 0; i < catVals.length; i++)//i is the old index
-        {
-            if (catRemove.contains(i))
-                continue;
-            newCatVals[k] = catVals[i];
-            newCatData[k] = dp.getCategoricalData()[i].clone();
-            k++;
-        }
+        for(int i = 0; i < catIndexMap.length; i++)
+            newCatVals[i] = catVals[catIndexMap[i]];
 
-        k = 0;
+        int k = 0;
 
         Iterator<IndexValue> iter = numVals.getNonZeroIterator();
         if (iter.hasNext())//if all values are zero, nothing to do
         {
             IndexValue curIV = iter.next();
-            for (int i = 0; i < numVals.length(); i++)//i is the old index
+            for (int i = 0; i < numIndexMap.length; i++)//i is the old index
             {
-                if (numRemove.contains(i))
-                    continue;
-
-                k++;
                 if (numVals.isSparse())//log(n) insert and loopups to avoid!
                 {
                     if (curIV == null)
                         continue;
-                    if (i > curIV.getIndex())//We skipped a value that existed
-                        while (i > curIV.getIndex() && iter.hasNext())
+                    if (numIndexMap[i] > curIV.getIndex())//We skipped a value that existed
+                        while (numIndexMap[i] > curIV.getIndex() && iter.hasNext())
                             curIV = iter.next();
-                    if (i < curIV.getIndex())//Index is zero, nothing to set
+                    if (numIndexMap[i] < curIV.getIndex())//Index is zero, nothing to set
                         continue;
-                    else if (i == curIV.getIndex())
+                    else if (numIndexMap[i] == curIV.getIndex())
                     {
-                        newNumVals.set(k - 1, curIV.getValue());
+                        newNumVals.set(i, curIV.getValue());
                         if (iter.hasNext())
                             curIV = iter.next();
                         else
@@ -109,7 +114,7 @@ public class RemoveAttributeTransform implements DataTransform
                     }
                 }
                 else//All dense, just set them all
-                    newNumVals.set(k - 1, numVals.get(i));
+                    newNumVals.set(i, numVals.get(numIndexMap[i]));
             }
         }
         return new DataPoint(newNumVals, newCatVals, newCatData, dp.getWeight());
@@ -138,5 +143,4 @@ public class RemoveAttributeTransform implements DataTransform
             return new RemoveAttributeTransform(dataset, catToRemove, numerToRemove);
         }
     }
-    
 }
