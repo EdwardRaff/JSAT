@@ -45,7 +45,7 @@ public class RemoveAttributeTransform implements DataTransform
         {
             if(categoricalToRemove.contains(i))
                 continue;
-            numIndexMap[k++] = i;
+            catIndexMap[k++] = i;
         }
         k = 0;
         for(int i = 0; i < dataSet.getNumNumericalVars(); i++)
@@ -65,6 +65,35 @@ public class RemoveAttributeTransform implements DataTransform
     {
         this.catIndexMap = Arrays.copyOf(other.catIndexMap, other.catIndexMap.length);
         this.numIndexMap = Arrays.copyOf(other.numIndexMap, other.numIndexMap.length);
+    }
+    
+    /**
+     * A serious of Remove Attribute Transforms may be learned and applied 
+     * sequentially to a single data set. Instead of keeping all the transforms 
+     * around indefinitely, a sequential series of Remove Attribute Transforms 
+     * can be consolidated into a single transform object. <br>
+     * This method mutates the this transform by providing it with the 
+     * transform that would have been applied before this current object. Once
+     * complete, this transform can be used two perform both removals in one 
+     * step.<br><br>
+     * Example: <br> 
+     * An initial set of features <i>A</i> is transformed into <i>A'</i> by 
+     * transform t<sub>1</sub><br>
+     * <i>A'</i> is transformed into <i>A''</i> by transform t<sub>2</sub><br>
+     * Instead, you can invoke t<sub>2</sub>.consolidate(t<sub>1</sub>). 
+     * You can then transform <i>A</i> into <i>A''</i> by using only transform 
+     * t<sub>2</sub>
+     * 
+     * 
+     * @param preceding the DataTransform that immediately precedes this one in 
+     * a sequential list of transforms
+     */
+    public void consolidate(RemoveAttributeTransform preceding)
+    {
+        for(int i = 0; i < catIndexMap.length; i++)
+            catIndexMap[i] = preceding.catIndexMap[catIndexMap[i]];
+        for(int i = 0; i < numIndexMap.length; i++)
+            numIndexMap[i] = preceding.numIndexMap[numIndexMap[i]];
     }
     
     @Override
