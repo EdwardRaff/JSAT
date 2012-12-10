@@ -5,7 +5,8 @@ import java.util.HashSet;
 import java.util.Set;
 import jsat.DataSet;
 import jsat.classifiers.*;
-import jsat.datatransform.RemoveAttributeTransform;
+import jsat.datatransform.*;
+import jsat.exceptions.FailedToFitException;
 import jsat.linear.IndexValue;
 import jsat.linear.Vec;
 import jsat.utils.IndexTable;
@@ -51,9 +52,9 @@ public class MutualInfoFS extends RemoveAttributeTransform
      * from
      * @param featureCount the number of features to select
      */
-    public MutualInfoFS(DataSet dataSet, int featureCount)
+    public MutualInfoFS(ClassificationDataSet dataSet, int featureCount)
     {
-        this(null, featureCount, NumericalHandeling.BINARY);
+        this(dataSet, featureCount, NumericalHandeling.BINARY);
     }
     
     /**
@@ -202,5 +203,44 @@ public class MutualInfoFS extends RemoveAttributeTransform
         }
         
         setUp(dataSet, catToRemove, numToRemove);
+    }
+    
+    public static class MutualInfoFSFactory implements DataTransformFactory
+    {
+        private int featureCount;
+        private NumericalHandeling handling;
+
+        /**
+         * Creates a new MutalInfoFS factory that uses 
+         * {@link NumericalHandeling#BINARY} handling for numeric attributes. 
+         * 
+         * @param featureCount  the number of features to select
+         */
+        public MutualInfoFSFactory(int featureCount)
+        {
+            this(featureCount, NumericalHandeling.BINARY);
+        }
+        
+        /**
+         * Creates a new MutualInfoFS factory
+         * 
+         * @param featureCount the number of features to select
+         * @param handling the way to handle numeric attributes
+         */
+        public MutualInfoFSFactory(int featureCount, NumericalHandeling handling)
+        {
+            this.featureCount = featureCount;
+            this.handling = handling;
+        }
+
+        
+        @Override
+        public DataTransform getTransform(DataSet dataset)
+        {
+            if(!(dataset instanceof ClassificationDataSet))
+                throw new FailedToFitException("The given data set was not a classification data set");
+            ClassificationDataSet cds = (ClassificationDataSet) dataset;
+            return new MutualInfoFS(cds, featureCount, handling);
+        }
     }
 }
