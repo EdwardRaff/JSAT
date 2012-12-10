@@ -8,7 +8,9 @@ import jsat.datatransform.DataTransform;
 import jsat.linear.*;
 
 /**
- * This Data Transform allows the complete removal of specific features from the data set. 
+ * This Data Transform allows the complete removal of specific features from the
+ * data set. 
+ * 
  * @author Edward Raff
  */
 public class RemoveAttributeTransform implements DataTransform
@@ -22,6 +24,17 @@ public class RemoveAttributeTransform implements DataTransform
      */
     private int[] catIndexMap;
     private int[] numIndexMap;
+    
+    /**
+     * Empty constructor that may be used by extending classes. Transforms that 
+     * extend this will need to call 
+     * {@link #setUp(java.util.Set, jsat.DataSet, java.util.Set) } once the 
+     * attributes to remove have been selected
+     */
+    protected RemoveAttributeTransform()
+    {
+        
+    }
 
     /**
      * Creates a new transform for removing specified features from a data set
@@ -30,6 +43,18 @@ public class RemoveAttributeTransform implements DataTransform
      * @param numericalToRemove the set of numerical attributes to remove, in the rage of [0, {@link DataSet#getNumNumericalVars() }). 
      */
     public RemoveAttributeTransform(DataSet dataSet, Set<Integer> categoricalToRemove, Set<Integer> numericalToRemove)
+    {
+        setUp(dataSet, categoricalToRemove, numericalToRemove);
+    }
+    
+    /**
+     * Sets up the Remove Attribute Transform properly
+     * 
+     * @param dataSet the data set to remove the attributes from
+     * @param categoricalToRemove the categorical attributes to remove
+     * @param numericalToRemove the numeric attributes to remove
+     */
+    protected final void setUp(DataSet dataSet, Set<Integer> categoricalToRemove, Set<Integer> numericalToRemove)
     {
         for(int i : categoricalToRemove)
             if (i >= dataSet.getNumCategoricalVars())
@@ -54,7 +79,6 @@ public class RemoveAttributeTransform implements DataTransform
                 continue;
             numIndexMap[k++] = i;
         }
-        
     }
     
     /**
