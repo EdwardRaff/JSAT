@@ -757,8 +757,10 @@ public class DecisionStump implements Classifier, Regressor, Parameterized
          * The best attribute to split on
          */
         splittingAttribute = -1;
+        final double[] gainRet = new double[]{Double.NaN};
         for(int attribute :  options)
         {
+            gainRet[0] = Double.NaN;
             List<List<DataPointPair<Integer>>> aSplit;
             PairedReturn<List<Double>, List<Integer>> tmp = null;//Used on numerical attributes
             
@@ -779,7 +781,8 @@ public class DecisionStump implements Classifier, Regressor, Parameterized
                 //Create a list of lists to hold the split variables
                 aSplit = listOfLists(2);//Size at least 2
                 
-                tmp = createNumericCSplit(dataPoints, N, attribute, aSplit);
+                tmp = createNumericCSplit(dataPoints, N, attribute, aSplit, 
+                        origScore, totalSize, gainRet);
                 if(tmp == null)
                     continue;
                 
@@ -788,7 +791,7 @@ public class DecisionStump implements Classifier, Regressor, Parameterized
             }
             
             //Now everything is seperated!
-            double gain= getGain(aSplit, totalSize, origScore);
+            double gain= Double.isNaN(gainRet[0]) ? getGain(aSplit, totalSize, origScore) : gainRet[0];
             
             if(gain > bestGain)
             {
@@ -828,9 +831,25 @@ public class DecisionStump implements Classifier, Regressor, Parameterized
         return bestSplit;
     }
     
+    /**
+     * 
+     * @param dataPoints the original list of data points 
+     * @param N number of predicting target options
+     * @param attribute the numeric attribute to try and find a split on
+     * @param aSplit the list of lists to place the results of splitting in
+     * @param origScore the score value for the data sub set we are splitting
+     * @param origSum the sum of weights for the data sub set we are splitting
+     * @param finalGain array used to reference a double that can be returned. 
+     * If this method determined the gain in order to find the split, it sets 
+     * the value at index zero to the gain it computed. May be null, in which 
+     * case it is ignored. 
+     * @return A pair of lists of the same size. The list of doubles containing 
+     * the split boundaries, and the integers containing the path number. 
+     * Multiple splits could go down the same path. 
+     */
     private PairedReturn<List<Double>, List<Integer>> createNumericCSplit(
             List<DataPointPair<Integer>> dataPoints, int N, final int attribute,
-            List<List<DataPointPair<Integer>>> aSplit)
+            List<List<DataPointPair<Integer>>> aSplit, double origScore, double origSum, double[] finalGain)
     {
         if (numericHandlingC == NumericHandlingC.PDF_INTERSECTIONS)
         {
@@ -903,11 +922,11 @@ public class DecisionStump implements Classifier, Regressor, Parameterized
             
             Collections.sort(dataPoints, comparator);
             
-            double initScore = score(dataPoints, gainMethod);
+            double initScore = origScore;
             double bestGain = Double.NEGATIVE_INFINITY;
             double bestSplit = Double.NEGATIVE_INFINITY;
             int splitIndex = -1;
-            double totalSize = getSumOfAllWeights(dataPoints);
+            double totalSize = origSum;
             
             OnlineScore rightSide = new OnlineScore();
             OnlineScore leftSide = new OnlineScore();
@@ -954,6 +973,8 @@ public class DecisionStump implements Classifier, Regressor, Parameterized
             if(splitIndex == -1)
                 return null;
             
+            if(finalGain != null)
+                finalGain[0] = bestGain;
             aSplit.set(0, new ArrayList<DataPointPair<Integer>>(dataPoints.subList(0, splitIndex)));
             aSplit.set(1, new ArrayList<DataPointPair<Integer>>(dataPoints.subList(splitIndex, dataPoints.size())));
             PairedReturn<List<Double>, List<Integer>> tmp = 
