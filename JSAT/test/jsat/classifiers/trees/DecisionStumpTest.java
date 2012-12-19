@@ -21,7 +21,6 @@ import jsat.classifiers.ClassificationDataSet;
 import jsat.classifiers.Classifier;
 import jsat.classifiers.DataPoint;
 import jsat.classifiers.DataPointPair;
-import jsat.classifiers.trees.DecisionStump.GainMethod;
 import jsat.datatransform.NumericalToHistogram;
 import jsat.distributions.Distribution;
 import jsat.distributions.Uniform;
@@ -77,41 +76,6 @@ public class DecisionStumpTest
     @After
     public void tearDown() throws Exception
     {
-    }
-
-
-    /**
-     * Test of entropy method, of class DecisionStump.
-     */
-    @Test
-    public void testEntropy()
-    {
-        System.out.println("entropy");
-        List<DataPointPair<Integer>> dataPoints = new ArrayList<DataPointPair<Integer>>();
-        for(int i = 0; i < 10; i++)
-            dataPoints.add(new DataPointPair<Integer>(new DataPoint(null, null, null), 0));
-        assertEquals(0.0, DecisionStump.entropy(dataPoints), 1e-14);
-        
-        for(int i = 0; i < 10; i++)
-            dataPoints.add(new DataPointPair<Integer>(new DataPoint(null, null, null), 1));
-        
-        assertEquals(1.0, DecisionStump.entropy(dataPoints), 1e-14);
-        
-        for(int i = 0; i < 10; i++)
-            dataPoints.add(new DataPointPair<Integer>(new DataPoint(null, null, null), 1));
-        assertEquals(0.918295834, DecisionStump.entropy(dataPoints), 1e-6);
-        
-        for(int i = 0; i < 70; i++)
-            dataPoints.add(new DataPointPair<Integer>(new DataPoint(null, null, null), 2));
-        //1/10, 2/10, 7/10 split
-        assertEquals(1.15677965, DecisionStump.entropy(dataPoints), 1e-6);
-        
-        for(int i = 0; i < 50; i++)
-            dataPoints.add(new DataPointPair<Integer>(new DataPoint(null, null, null), 1));
-        for(int i = 0; i < 60; i++)
-            dataPoints.add(new DataPointPair<Integer>(new DataPoint(null, null, null), 0));
-        //1/3 to each
-        assertEquals(1.5849625, DecisionStump.entropy(dataPoints), 1e-6);
     }
 
     /**
@@ -243,7 +207,7 @@ public class DecisionStumpTest
         System.out.println("testInfoGainSplit");
         
         DecisionStump instance = new DecisionStump();
-        instance.setGainMethod(GainMethod.INFORMATION_GAIN);
+        instance.setGainMethod(ImpurityScore.ImpurityMeasure.INFORMATION_GAIN);
         
         instance.trainC(easyCatAtTrain);
         for(DataPointPair<Integer> dpp : easyCatAtTest.getAsDPPList())
@@ -251,7 +215,7 @@ public class DecisionStumpTest
                     instance.classify(dpp.getDataPoint()).mostLikely());
         
         instance = new DecisionStump();
-        instance.setGainMethod(GainMethod.INFORMATION_GAIN);
+        instance.setGainMethod(ImpurityScore.ImpurityMeasure.INFORMATION_GAIN);
         
         instance.trainC(easyNumAtTrain);
         for(DataPointPair<Integer> dpp : easyNumAtTest.getAsDPPList())
@@ -265,7 +229,7 @@ public class DecisionStumpTest
         System.out.println("testInfoGainRatioSplit");
         
         DecisionStump instance = new DecisionStump();
-        instance.setGainMethod(GainMethod.INFORMATION_GAIN_RATIO);
+        instance.setGainMethod(ImpurityScore.ImpurityMeasure.INFORMATION_GAIN_RATIO);
         
         instance.trainC(easyCatAtTrain);
         for(DataPointPair<Integer> dpp : easyCatAtTest.getAsDPPList())
@@ -273,7 +237,7 @@ public class DecisionStumpTest
                     instance.classify(dpp.getDataPoint()).mostLikely());
         
         instance = new DecisionStump();
-        instance.setGainMethod(GainMethod.INFORMATION_GAIN_RATIO);
+        instance.setGainMethod(ImpurityScore.ImpurityMeasure.INFORMATION_GAIN_RATIO);
         
         instance.trainC(easyNumAtTrain);
         for(DataPointPair<Integer> dpp : easyNumAtTest.getAsDPPList())
@@ -284,10 +248,10 @@ public class DecisionStumpTest
     @Test
     public void testGiniSplit()
     {
-        System.out.println("testInfoGainRatioSplit");
+        System.out.println("testGiniSplit");
         
         DecisionStump instance = new DecisionStump();
-        instance.setGainMethod(GainMethod.GINI);
+        instance.setGainMethod(ImpurityScore.ImpurityMeasure.GINI);
         
         instance.trainC(easyCatAtTrain);
         for(DataPointPair<Integer> dpp : easyCatAtTest.getAsDPPList())
@@ -295,7 +259,7 @@ public class DecisionStumpTest
                     instance.classify(dpp.getDataPoint()).mostLikely());
         
         instance = new DecisionStump();
-        instance.setGainMethod(GainMethod.GINI);
+        instance.setGainMethod(ImpurityScore.ImpurityMeasure.GINI);
         
         instance.trainC(easyNumAtTrain);
         for(DataPointPair<Integer> dpp : easyNumAtTest.getAsDPPList())

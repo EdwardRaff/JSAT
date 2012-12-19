@@ -5,6 +5,7 @@ import static java.lang.Math.*;
 import java.util.*;
 import java.util.concurrent.ExecutorService;
 import jsat.classifiers.*;
+import jsat.classifiers.trees.ImpurityScore.ImpurityMeasure;
 import jsat.distributions.Distribution;
 import jsat.distributions.empirical.KernelDensityEstimator;
 import jsat.distributions.empirical.kernelfunc.EpanechnikovKF;
@@ -68,7 +69,7 @@ public class DecisionStump implements Classifier, Regressor, Parameterized
      * return value
      */
     private double[] regressionResults;
-    private GainMethod gainMethod;
+    private ImpurityMeasure gainMethod;
     private NumericHandlingC numericHandlingC;
     private boolean removeContinuousAttributes;
     /**
@@ -99,7 +100,7 @@ public class DecisionStump implements Classifier, Regressor, Parameterized
      */
     public DecisionStump()
     {
-        gainMethod = GainMethod.INFORMATION_GAIN_RATIO;
+        gainMethod = ImpurityMeasure.INFORMATION_GAIN_RATIO;
         setNumericHandling(NumericHandlingC.PDF_INTERSECTIONS);
         removeContinuousAttributes = false;
     }
@@ -117,12 +118,12 @@ public class DecisionStump implements Classifier, Regressor, Parameterized
         this.removeContinuousAttributes = removeContinuousAttributes;
     }
     
-    public void setGainMethod(GainMethod gainMethod)
+    public void setGainMethod(ImpurityMeasure gainMethod)
     {
         this.gainMethod = gainMethod;
     }
 
-    public GainMethod getGainMethod()
+    public ImpurityMeasure getGainMethod()
     {
         return gainMethod;
     }
@@ -228,206 +229,16 @@ public class DecisionStump implements Classifier, Regressor, Parameterized
      * @param origScore the score of the unsplit set
      * @return the gain score for this split 
      */
-    protected double getGain(List<List<DataPointPair<Integer>>> aSplit, double totalSize, double origScore)
+    protected double getGain(ImpurityScore origScore, List<List<DataPointPair<Integer>>> aSplit)
     {
-        /**
-         * NOTE: for calulating the entropy in a split, if S is the current set of
-         * all data points, and S_i denotes one of the subsets gained from splitting
-         * The Gain for a split is
-         *
-         *                       n
-         *                     ===== |S |
-         *                     \     | i|
-         * Gain = Entropy(S) -  >    ---- Entropy/S \
-         *                     /      |S|        \ i/
-         *                     =====
-         *                     i = 1
-         *
-         *                   Gain
-         * GainRatio = ----------------
-         *             SplitInformation
-         *
-         *                        n
-         *                      ===== |S |    /|S |\
-         *                      \     | i|    || i||
-         * SplitInformation = -  >    ---- log|----|
-         *                      /      |S|    \ |S|/
-         *                      =====
-         *                      i = 1
-         */
-        double splitScore = 0.0;
-        double splitInfo = 0.0;
-        for (List<DataPointPair<Integer>> subSet : aSplit)
-        {
-            double subSetSize = getSumOfAllWeights(subSet);
-            double SiOverS = subSetSize / totalSize;
-            splitScore += SiOverS * score(subSet, gainMethod);
-            
-            if(gainMethod == GainMethod.INFORMATION_GAIN_RATIO)
-                if(SiOverS > 0)//log(0)= NaN, but we want it to behave as zero
-                    splitInfo += SiOverS * log(SiOverS)/log(2);
-        }
-        splitInfo = abs(splitInfo);
-        if(splitInfo == 0.0)
-            splitInfo = 1.0;//Divisino by 1 effects nothing
-        double gain= (origScore - splitScore)/splitInfo;
-        return gain;
-    }
-    
-    public static enum GainMethod
-    {
-        INFORMATION_GAIN, INFORMATION_GAIN_RATIO, GINI, CLASSIFICATION_ERROR
-    }
-    
-    /**
-     * Computes the entropy of the list of data points. 
-     * Each data point is paired with its corresponding class. 
-     * 
-     * @param dataPoints the list of data points paired with their corresponding class value
-     * @return the entropy of this set of data points
-     */
-    public static double entropy(List<DataPointPair<Integer>> dataPoints)
-    {
-        return score(dataPoints, GainMethod.INFORMATION_GAIN);
-    }
-    
-    /**
-     * Class for computing the score of a data set in an online fashion, 
-     * corresponds to 
-     * {@link #getScore(jsat.classifiers.trees.DecisionStump.GainMethod) }
-     */
-    private static class OnlineScore
-    {
-        private double sumOfWeights = 0.0;
-        private DoubleList counts = new DoubleList();
-
-        public void removeDataPoint(DataPointPair<Integer> dpp)
-        {
-            removeDataPoint(dpp.getDataPoint(), dpp.getPair());
-        }
         
-        public void removeDataPoint(DataPoint dp, int targetClass)
-        {
-            while(counts.size()-1 < targetClass)//Grow to the number of categories
-                counts.add(0.0);
-            double weight = dp.getWeight();
-            counts.set(targetClass, counts.getD(targetClass)-weight);
-            sumOfWeights -= weight;
-        }
-        
-        public void addDataPoint(DataPointPair<Integer> dpp)
-        {
-            addDataPoint(dpp.getDataPoint(), dpp.getPair());
-        }
-        
-        public void addDataPoint(DataPoint dp, int targetClass)
-        {
-            while(counts.size()-1 < targetClass)//Grow to the number of categories
-                counts.add(0.0);
-            double weight = dp.getWeight();
-            counts.set(targetClass, counts.getD(targetClass)+weight);
-            sumOfWeights += weight;
-        }
-
-        public double getScore(GainMethod gainMethod)
-        {
-            double score = 0.0;
-            
-            if (gainMethod == GainMethod.INFORMATION_GAIN_RATIO
-                    || gainMethod == GainMethod.INFORMATION_GAIN)
-            {
-                for (Double count : counts)
-                {
-                    double p = count/sumOfWeights;
-                    if (p > 0)
-                        score += p * log(p) / log(2);
-                }
-            }
-            else if (gainMethod == GainMethod.GINI)
-            {
-                score = 1;
-                for (double count : counts)
-                {
-                    double p = count / sumOfWeights;
-                    score -= p * p;
-                }
-            }
-            else if(gainMethod ==  GainMethod.CLASSIFICATION_ERROR)
-            {
-                double maxClass= 0;
-                for (double count : counts)
-                    maxClass = Math.max(maxClass, count / sumOfWeights);
-                score = 1.0-maxClass;
-            }
-
-            return abs(score);
-        }
-
-        public double getSumOfWeights()
-        {
-            return sumOfWeights;
-        }
+        ImpurityScore[] scores = new ImpurityScore[aSplit.size()];
+        for(int i = 0; i < aSplit.size(); i++)
+            scores[i] = getClassGainScore(aSplit.get(i));
+       
+        return ImpurityScore.gain(origScore, scores);
     }
-    
-    public static double score(List<DataPointPair<Integer>> dataPoints, GainMethod gainMethod)
-    {
-        //Normaly we would know the number of categories apriori, but to make life easier 
-        //on the user we will just add as needed, and wasit a small amount of memory
-        //We actually will use less memory when the number of categories is thinned out for large N 
-        List<Double> probabilites = new DoubleList();
-        double sumOfWeights = 0.0;
-        for(DataPointPair<Integer> dpp : dataPoints)
-        {
-            int classIndex = dpp.getPair();
-            while(probabilites.size()-1 < classIndex)//Grow to the number of categories
-                probabilites.add(0.0);
-            double weight = dpp.getDataPoint().getWeight();
-            probabilites.set(classIndex, probabilites.get(classIndex)+weight);
-            sumOfWeights += weight;
-        }
-        //Normalize from counts to proabilities 
-        for(int i = 0; i < probabilites.size(); i++)
-            probabilites.set(i, probabilites.get(i)/sumOfWeights);
-        
-        
-        double score = 0.0;
-        if (gainMethod == GainMethod.INFORMATION_GAIN_RATIO 
-                || gainMethod == GainMethod.INFORMATION_GAIN)
-        {
-            /*
-             * Entropy = 
-             *     n
-             *  =====
-             *  \
-             *-  >    p  log/p \
-             *  /      i    \ i/
-             *  =====
-             *  i = 1
-             * 
-             * and 0 log(0) is taken to be equal to 0
-             */
 
-            for (Double p : probabilites)
-                if (p > 0)
-                    score += p * log(p) / log(2);
-        }
-        else if(gainMethod == GainMethod.GINI)
-        {
-            score = 1;
-            for(double p : probabilites)
-                score -= p*p;
-        }
-        else if (gainMethod == GainMethod.CLASSIFICATION_ERROR)
-        {
-            double maxClass = 0;
-            for (double p : probabilites)
-                maxClass = Math.max(maxClass, p);
-            score = 1.0 - maxClass;
-        }
-
-        return abs(score);
-    }
-    
     /**
      * A value that is just above zero
      */
@@ -732,7 +543,8 @@ public class DecisionStump implements Classifier, Regressor, Parameterized
         if(predicting == null)
             throw new RuntimeException("Predicting value has not been set");
         catAttributes = dataPoints.get(0).getDataPoint().getCategoricalData();
-        double origScore =  score(dataPoints, gainMethod);
+        ImpurityScore origScoreObj = getClassGainScore(dataPoints);
+        double origScore =  origScoreObj.getScore();
         
         if(origScore == 0.0)//Then all data points belond to the same category!
         {
@@ -743,7 +555,6 @@ public class DecisionStump implements Classifier, Regressor, Parameterized
             toReturn.add(dataPoints);
             return toReturn;
         }
-        double totalSize = getSumOfAllWeights(dataPoints);
         
         /**
          * The splitting for the split on the attribute with the best gain
@@ -782,7 +593,7 @@ public class DecisionStump implements Classifier, Regressor, Parameterized
                 aSplit = listOfLists(2);//Size at least 2
                 
                 tmp = createNumericCSplit(dataPoints, N, attribute, aSplit, 
-                        origScore, totalSize, gainRet);
+                        origScoreObj, gainRet);
                 if(tmp == null)
                     continue;
                 
@@ -791,7 +602,7 @@ public class DecisionStump implements Classifier, Regressor, Parameterized
             }
             
             //Now everything is seperated!
-            double gain= Double.isNaN(gainRet[0]) ? getGain(aSplit, totalSize, origScore) : gainRet[0];
+            double gain= Double.isNaN(gainRet[0]) ? getGain(origScoreObj, aSplit) : gainRet[0];
             
             if(gain > bestGain)
             {
@@ -837,8 +648,7 @@ public class DecisionStump implements Classifier, Regressor, Parameterized
      * @param N number of predicting target options
      * @param attribute the numeric attribute to try and find a split on
      * @param aSplit the list of lists to place the results of splitting in
-     * @param origScore the score value for the data sub set we are splitting
-     * @param origSum the sum of weights for the data sub set we are splitting
+     * @param origScore the score value for the data set we are splitting
      * @param finalGain array used to reference a double that can be returned. 
      * If this method determined the gain in order to find the split, it sets 
      * the value at index zero to the gain it computed. May be null, in which 
@@ -849,7 +659,7 @@ public class DecisionStump implements Classifier, Regressor, Parameterized
      */
     private PairedReturn<List<Double>, List<Integer>> createNumericCSplit(
             List<DataPointPair<Integer>> dataPoints, int N, final int attribute,
-            List<List<DataPointPair<Integer>>> aSplit, double origScore, double origSum, double[] finalGain)
+            List<List<DataPointPair<Integer>>> aSplit, ImpurityScore origScore, double[] finalGain)
     {
         if (numericHandlingC == NumericHandlingC.PDF_INTERSECTIONS)
         {
@@ -922,45 +732,33 @@ public class DecisionStump implements Classifier, Regressor, Parameterized
             
             Collections.sort(dataPoints, comparator);
             
-            double initScore = origScore;
             double bestGain = Double.NEGATIVE_INFINITY;
             double bestSplit = Double.NEGATIVE_INFINITY;
             int splitIndex = -1;
-            double totalSize = origSum;
             
-            OnlineScore rightSide = new OnlineScore();
-            OnlineScore leftSide = new OnlineScore();
+            ImpurityScore rightSide = origScore.clone();
+            ImpurityScore leftSide = new ImpurityScore(N, gainMethod);
             
             for(int i = 0; i < minResultSplitSize; i++)
-                leftSide.addDataPoint(dataPoints.get(i));
-            for(int i = minResultSplitSize; i < dataPoints.size(); i++)
-                rightSide.addDataPoint(dataPoints.get(i));
+            {
+                double weight = dataPoints.get(i).getDataPoint().getWeight();
+                int truth = dataPoints.get(i).getPair();
+                
+                leftSide.addPoint(weight, truth);
+                rightSide.removePoint(weight, truth);
+            }
 
             for(int i = minResultSplitSize; i < dataPoints.size()-minResultSplitSize-1; i++)
             {
                 DataPointPair<Integer> dpp = dataPoints.get(i);
-                rightSide.removeDataPoint(dpp);
-                leftSide.addDataPoint(dpp);
+                rightSide.removePoint(dpp.getDataPoint(), dpp.getPair());
+                leftSide.addPoint(dpp.getDataPoint(), dpp.getPair());
                 double leftVal = dataPoints.get(i).getVector().get(attribute);
                 double rightVal = dataPoints.get(i+1).getVector().get(attribute);
                 if( (rightVal-leftVal) < 1e-14 )//Values are too close!
                     continue;
-                double splitScore = 0.0;
-                double splitInfo = 0.0;
-                double tmp;
                 
-                splitScore += (tmp = (rightSide.getSumOfWeights() / totalSize))
-                        * rightSide.getScore(gainMethod);
-                if (gainMethod == GainMethod.INFORMATION_GAIN_RATIO)
-                    splitInfo += tmp * log(tmp) / log(2);
-                splitScore += (tmp = (leftSide.getSumOfWeights() / totalSize))
-                        * leftSide.getScore(gainMethod);
-                if (gainMethod == GainMethod.INFORMATION_GAIN_RATIO)
-                    splitInfo += tmp * log(tmp) / log(2);
-                splitInfo = abs(splitInfo);
-                if (splitInfo == 0.0)
-                    splitInfo = 1.0;//Division by 1 effects nothing
-                double curGain = (initScore - splitScore) / splitInfo;
+                double curGain = ImpurityScore.gain(origScore, leftSide, rightSide);
                 
                 if(curGain >= bestGain)
                 {
@@ -1143,19 +941,14 @@ public class DecisionStump implements Classifier, Regressor, Parameterized
         return true;
     }
     
-    /**
-     * Computes the sum of all the weights in the data set. If all points have 
-     * the same weight of 1.0, the result is the number of points in the list. 
-     * 
-     * @param dataPoints the list of data points
-     * @return the sum of all weights
-     */
-    private double getSumOfAllWeights(List<DataPointPair<Integer>> dataPoints)
+    private ImpurityScore getClassGainScore(List<DataPointPair<Integer>> dataPoints)
     {
-        double totalSize = 0.0;
-        for(DataPointPair<Integer> dpp :  dataPoints)
-            totalSize += dpp.getDataPoint().getWeight();
-        return totalSize;
+        ImpurityScore cgs = new ImpurityScore(predicting.getNumOfCategories(), gainMethod);
+        
+        for(DataPointPair<Integer> dpp : dataPoints)
+            cgs.addPoint(dpp.getDataPoint(), dpp.getPair());
+        
+        return cgs;
     }
 
     @Override
@@ -1211,25 +1004,25 @@ public class DecisionStump implements Classifier, Regressor, Parameterized
             }
         });
         
-        add(new ObjectParameter<GainMethod>() {
+        add(new ObjectParameter<ImpurityMeasure>() {
 
             @Override
-            public GainMethod getObject()
+            public ImpurityMeasure getObject()
             {
                 return getGainMethod();
             }
 
             @Override
-            public boolean setObject(GainMethod obj)
+            public boolean setObject(ImpurityMeasure obj)
             {
                 setGainMethod(obj);
                 return true;
             }
 
             @Override
-            public List<GainMethod> parameterOptions()
+            public List<ImpurityMeasure> parameterOptions()
             {
-                return Arrays.asList(GainMethod.values());
+                return Arrays.asList(ImpurityMeasure.values());
             }
 
             @Override

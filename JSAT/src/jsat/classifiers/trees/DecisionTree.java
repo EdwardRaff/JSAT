@@ -11,6 +11,7 @@ import jsat.classifiers.ClassificationDataSet;
 import jsat.classifiers.Classifier;
 import jsat.classifiers.DataPoint;
 import jsat.classifiers.DataPointPair;
+import jsat.classifiers.trees.ImpurityScore.ImpurityMeasure;
 import jsat.exceptions.FailedToFitException;
 import jsat.parameters.DoubleParameter;
 import jsat.parameters.IntParameter;
@@ -137,7 +138,7 @@ public class DecisionTree implements Classifier, Regressor, Parameterized
     {
         DecisionTree tree = new DecisionTree();
         tree.setPruningMethod(PruningMethod.REDUCED_ERROR);
-        tree.baseStump.setGainMethod(DecisionStump.GainMethod.INFORMATION_GAIN_RATIO);
+        tree.baseStump.setGainMethod(ImpurityMeasure.INFORMATION_GAIN_RATIO);
         tree.baseStump.setNumericHandling(DecisionStump.NumericHandlingC.BINARY_BEST_GAIN);
         return tree;
     }
@@ -164,12 +165,12 @@ public class DecisionTree implements Classifier, Regressor, Parameterized
         return baseStump.getNumericHandling();
     }
     
-    public void setGainMethod(DecisionStump.GainMethod gainMethod)
+    public void setGainMethod(ImpurityMeasure gainMethod)
     {
         baseStump.setGainMethod(gainMethod);
     }
     
-    public DecisionStump.GainMethod getGainMethod()
+    public ImpurityMeasure getGainMethod()
     {
         return baseStump.getGainMethod();
     }
