@@ -55,7 +55,7 @@ public class RandomForest implements Classifier, Regressor, Parameterized
      */
     private int featureSamples;
     private int maxForestSize;
-    private DecisionTree baseLearner = new DecisionTree(Integer.MAX_VALUE, 10, DecisionTree.PruningMethod.NONE, 0.01);
+    private DecisionTree baseLearner = new DecisionTree(Integer.MAX_VALUE, 10, TreePruner.PruningMethod.NONE, 0.01);
     private List<DecisionTree> forest;
     
     private final List<Parameter> params = Collections.unmodifiableList(new ArrayList<Parameter>()

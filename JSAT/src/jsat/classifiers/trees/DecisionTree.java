@@ -12,6 +12,8 @@ import jsat.classifiers.Classifier;
 import jsat.classifiers.DataPoint;
 import jsat.classifiers.DataPointPair;
 import jsat.classifiers.trees.ImpurityScore.ImpurityMeasure;
+import static jsat.classifiers.trees.TreePruner.*;
+import jsat.classifiers.trees.TreePruner.PruningMethod;
 import jsat.exceptions.FailedToFitException;
 import jsat.parameters.DoubleParameter;
 import jsat.parameters.IntParameter;
@@ -29,7 +31,7 @@ import jsat.utils.ModifiableCountDownLatch;
  * 
  * @author Edward Raff
  */
-public class DecisionTree implements Classifier, Regressor, Parameterized
+public class DecisionTree implements Classifier, Regressor, Parameterized, TreeLearner
 {
     private int maxDepth;
     private int minSamples;
@@ -87,20 +89,6 @@ public class DecisionTree implements Classifier, Regressor, Parameterized
         train(dataSet, new FakeExecutor());
     }
     
-    public static enum PruningMethod
-    {
-        /**
-         * The tree will be left as generated, no pruning will occur. 
-         */
-        NONE, 
-        /**
-         * The tree will be pruned in a bottom up fashion, removing 
-         * leaf nodes if the remove provides an increase in accuracy 
-         * on the testing set. 
-         */
-        REDUCED_ERROR
-    };
-
     public DecisionTree()
     {
         maxDepth = Integer.MAX_VALUE;
@@ -334,62 +322,7 @@ public class DecisionTree implements Classifier, Regressor, Parameterized
         
         prune(root, pruningMethod, testPoints);
     }
-    
-    private static void prune(Node root, PruningMethod method, List<DataPointPair<Integer>> testSet)
-    {
-        if(method == PruningMethod.NONE )
-            return;
-        else if(method == PruningMethod.REDUCED_ERROR)
-        {
-            boolean keepRunning = true;
-            while (keepRunning)//Not the most efficent implementation... 
-                keepRunning = pruneReduceError(null, -1, root, testSet);
-        }
-    }
-    
-    private static boolean pruneReduceError(Node parent, int pathFollowed, Node current, List<DataPointPair<Integer>> subSet)
-    {
-        if(current == null)
-            return false;
-        else if(current.isLeaf() && parent != null)//Compare this nodes accuracy vs its parrent
-        {
-            double childCorrect = 0;
-            double parrentCorrect = 0;
-            
-            for(DataPointPair<Integer> dpp : subSet)
-            {
-                if(current.classify(dpp.getDataPoint()).mostLikely() == dpp.getPair())
-                    childCorrect += dpp.getDataPoint().getWeight();
-                if(parent.stump.classify(dpp.getDataPoint()).mostLikely() == dpp.getPair())
-                    parrentCorrect += dpp.getDataPoint().getWeight();
-            }
-            
-            if(parrentCorrect >= childCorrect)//We use >= b/c if they are the same, we assume smaller trees are better
-            {
-                parent.paths[pathFollowed] = null;//We have just made this node unreachable, will get GCed
-                return true;//We made a change!
-            }
-            return false;
-        }
-        //ELSE 
-        int numSplits = current.getNumberOfPaths();
-        List<List<DataPointPair<Integer>>> splits = new ArrayList<List<DataPointPair<Integer>>>(numSplits);
-        for(int i =0; i < numSplits; i++)
-            splits.add(new ArrayList<DataPointPair<Integer>>());
-        for(DataPointPair<Integer> dpp : subSet)
-            splits.get(current.stump.whichPath(dpp.getDataPoint())).add(dpp);
-        
-        boolean madeChange = false;
-        for(int i = 0; i < numSplits; i++)
-        {
-            boolean tmp = pruneReduceError(current, i, current.paths[i], splits.get(i));
-            if(!madeChange)//Will become true on first true, never change
-                madeChange = tmp;
-        }
-        
-        return madeChange;
-    }
-    
+
     /**
      * Makes a new node for classification 
      * @param dataPoints the list of data points paired with their class
@@ -496,12 +429,18 @@ public class DecisionTree implements Classifier, Regressor, Parameterized
         if(this.predicting != null)
             copy.predicting = this.predicting.clone();
         if(this.root != null)
-            copy.root = this.root.copy();
+            copy.root = this.root.clone();
         copy.baseStump = this.baseStump.clone();
         return copy;
     }
+
+    @Override
+    public TreeNodeVisitor getTreeNodeVisitor()
+    {
+        return root;
+    }
     
-    private static class Node
+    private static class Node extends TreeNodeVisitor
     {
         final protected DecisionStump stump;
         protected Node[] paths;
@@ -512,6 +451,7 @@ public class DecisionTree implements Classifier, Regressor, Parameterized
             paths = new Node[stump.getNumberOfPaths()];
         }
         
+        @Override
         public boolean isLeaf()
         {
             if(paths == null )
@@ -522,36 +462,61 @@ public class DecisionTree implements Classifier, Regressor, Parameterized
             return true;
         }
         
-        protected int getNumberOfPaths()
+        @Override
+        public int childrenCount()
         {
             return paths.length;
         }
-        
-        protected CategoricalResults classify(DataPoint dataPoint)
+
+        @Override
+        public CategoricalResults localClassify(DataPoint dp)
         {
-            int path = stump.whichPath(dataPoint);
-            if(paths[path] == null)
-                return stump.result(path);
-            else
-                return paths[path].classify(dataPoint);
+            return stump.classify(dp);
+        }
+
+        @Override
+        public double localRegress(DataPoint dp)
+        {
+            return stump.regress(dp);
         }
         
-        protected double regress(DataPoint dataPoint)
-        {
-            int path  = stump.whichPath(dataPoint);
-            if(paths[path] == null)
-                return stump.regress(dataPoint);
-            else
-                return paths[path].regress(dataPoint);
-        }
-        
-        protected Node copy()
+        @Override
+        public Node clone()
         {
             Node copy = new Node( (DecisionStump)this.stump.clone());
             for(int i = 0; i < this.paths.length; i++)
-                copy.paths[i] = this.paths[i] == null ? null : this.paths[i].copy();
+                copy.paths[i] = this.paths[i] == null ? null : this.paths[i].clone();
             
             return copy;
+        }
+
+        @Override
+        public TreeNodeVisitor getChild(int child)
+        {
+            if(isLeaf())
+                return null;
+            else
+                return paths[child];
+        }
+
+        @Override
+        public void disablePath(int child)
+        {
+            paths[child] = null;
+        }
+
+        @Override
+        public int getPath(DataPoint dp)
+        {
+            return stump.whichPath(dp);
+        }
+
+        @Override
+        public boolean isPathDisabled(int child)
+        {
+            if(isLeaf())
+                return true;
+            return paths[child] == null;
         }
     }
     
