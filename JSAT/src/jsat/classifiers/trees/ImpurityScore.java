@@ -27,6 +27,14 @@ public class ImpurityScore implements Cloneable
     {
         INFORMATION_GAIN, 
         INFORMATION_GAIN_RATIO,
+        /**
+         * Normalized Mutual Information. The {@link #getScore() } value will be
+         * the same as {@link #INFORMATION_GAIN}, however - the gain returned 
+         * is considerably different - and is a normalization of the mutual 
+         * information between the split and the class label by the class and 
+         * split entropy. 
+         */
+        NMI,
         GINI,
         CLASSIFICATION_ERROR
     }
@@ -34,7 +42,7 @@ public class ImpurityScore implements Cloneable
     private double sumOfWeights;
     private double[] counts;
     private ImpurityMeasure impurityMeasure;
-
+    
     /**
      * Creates a new impurity score that can be updated
      * 
@@ -112,7 +120,8 @@ public class ImpurityScore implements Cloneable
         double score = 0.0;
 
         if (impurityMeasure == ImpurityMeasure.INFORMATION_GAIN_RATIO
-                || impurityMeasure == ImpurityMeasure.INFORMATION_GAIN)
+                || impurityMeasure == ImpurityMeasure.INFORMATION_GAIN
+                || impurityMeasure == ImpurityMeasure.NMI)
         {
             for (Double count : counts)
             {
@@ -208,6 +217,44 @@ public class ImpurityScore implements Cloneable
      */
     public static double gain(ImpurityScore wholeData, ImpurityScore... splits)
     {
+        if(splits[0].impurityMeasure == ImpurityMeasure.NMI)
+        {
+            double mi = 0, splitEntropy = 0.0, classEntropy = 0.0;
+            double sumOfAllSums = wholeData.sumOfWeights;
+            
+            for(int c = 0; c < wholeData.counts.length; c++)//c: class
+            {
+                final double p_c = wholeData.counts[c]/sumOfAllSums;
+                if(p_c <= 0.0)
+                    continue;
+                
+                double logP_c = log(p_c);
+                
+                classEntropy += p_c*logP_c;
+                        
+                for(int s = 0; s < splits.length; s++)//s: split
+                {
+                    final double p_s = splits[s].sumOfWeights/sumOfAllSums;
+                    if(p_s <= 0)
+                        continue;
+                    final double p_cs = splits[s].counts[c]/sumOfAllSums;
+                    if(p_cs <= 0)
+                        continue;
+                    
+                    mi += p_cs * (log(p_cs) - logP_c - log(p_s));
+                    
+                    if(c == 0)
+                        splitEntropy += p_s * log(p_s);
+                }
+            }
+            
+            splitEntropy = abs(splitEntropy);
+            classEntropy = abs(classEntropy);
+            
+            return 2*mi/(splitEntropy+classEntropy);
+            
+        }
+        //Else, normal cases
         double splitScore = 0.0;
         
         boolean useSplitInfo = splits[0].impurityMeasure == ImpurityMeasure.INFORMATION_GAIN_RATIO;
