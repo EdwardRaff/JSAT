@@ -2,6 +2,7 @@ package jsat.classifiers.trees;
 
 import static java.lang.Math.*;
 import java.util.Arrays;
+import jsat.classifiers.CategoricalResults;
 import jsat.classifiers.DataPoint;
 
 /**
@@ -157,6 +158,19 @@ public class ImpurityScore implements Cloneable
     public ImpurityMeasure getImpurityMeasure()
     {
         return impurityMeasure;
+    }
+    
+    /**
+     * Obtains the current categorical results by prior probability 
+     * 
+     * @return the categorical results for the current score
+     */
+    public CategoricalResults getResults()
+    {
+        CategoricalResults cr = new CategoricalResults(counts.length);
+        for(int i = 0; i < counts.length; i++)
+            cr.setProb(i, counts[i]/sumOfWeights);
+        return cr;
     }
     
     /*
