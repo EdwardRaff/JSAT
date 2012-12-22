@@ -15,7 +15,7 @@ import jsat.utils.SystemInfo;
 
 /**
  * An implementation of Ordinary Kriging with support for a uniform error 
- * measurement. When an {@link #getError() error} value is applied, Kriging 
+ * measurement. When an {@link #getMeasurementError() error} value is applied, Kriging 
  * becomes equivalent to Gaussian Processes Regression. 
  * 
  * @author Edward Raff
@@ -40,51 +40,7 @@ public class OrdinaryKriging implements Regressor, Parameterized
      */
     public static final double DEFAULT_ERROR = 0.1;
     
-    List<Parameter> params = Collections.unmodifiableList(new ArrayList<Parameter>()
-    {{
-        add(new DoubleParameter() {
-
-                @Override
-                public double getValue()
-                {
-                    return getError();
-                }
-
-                @Override
-                public boolean setValue(double val)
-                {
-                    setError(val);
-                    return true;
-                }
-
-                @Override
-                public String getASCIIName()
-                {
-                    return "Measurement Error";
-                }
-            });
-        add(new DoubleParameter() {
-
-                @Override
-                public double getValue()
-                {
-                    return getNugget();
-                }
-
-                @Override
-                public boolean setValue(double val)
-                {
-                    setNugget(val);
-                    return true;
-                }
-
-                @Override
-                public String getASCIIName()
-                {
-                    return "Nugget";
-                }
-            });
-    }});
+    List<Parameter> params = Collections.unmodifiableList(Parameter.getParamsFromMethods(this));
     
     private Map<String, Parameter> paramMap = Parameter.toParameterMap(params);
 
@@ -98,7 +54,7 @@ public class OrdinaryKriging implements Regressor, Parameterized
     public OrdinaryKriging(Variogram vari, double error, double nugget)
     {
         this.vari = vari;
-        setError(error);
+        setMeasurementError(error);
         this.nugget = nugget;
     }
     
@@ -268,7 +224,7 @@ public class OrdinaryKriging implements Regressor, Parameterized
     {
         OrdinaryKriging clone = new OrdinaryKriging(vari.clone());
         
-        clone.setError(getError());
+        clone.setMeasurementError(getMeasurementError());
         clone.setNugget(getNugget());
         if(this.X != null)
             clone.X = this.X.clone();
@@ -289,7 +245,7 @@ public class OrdinaryKriging implements Regressor, Parameterized
      * 
      * @param error the measurement error for all data points
      */
-    public void setError(double error)
+    public void setMeasurementError(double error)
     {
         this.errorSqrd = error*error;
     }
@@ -303,7 +259,7 @@ public class OrdinaryKriging implements Regressor, Parameterized
      * 
      * @return the global error used for the data
      */
-    public double getError()
+    public double getMeasurementError()
     {
         return Math.sqrt(errorSqrd);
     }

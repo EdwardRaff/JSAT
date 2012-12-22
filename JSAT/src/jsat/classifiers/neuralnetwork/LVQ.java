@@ -102,85 +102,8 @@ public class LVQ implements Classifier, Parameterized
     
     private VectorCollectionFactory<VecPaired<Vec, Integer>> vcf;
     
-    private List<Parameter> params = Collections.unmodifiableList(new ArrayList<Parameter>()
+    private List<Parameter> params = Collections.unmodifiableList(new ArrayList<Parameter>(Parameter.getParamsFromMethods(this))
     {{
-        add(new IntParameter() {
-
-            @Override
-            public int getValue()
-            {
-                return getRepresentativesPerClass();
-            }
-
-            @Override
-            public boolean setValue(int val)
-            {
-                if(val < 1)
-                    return false;
-                setRepresentativesPerClass(val);
-                return true;
-            }
-
-            @Override
-            public String getASCIIName()
-            {
-                return "Representatives Per Class";
-            }
-        });
-        
-        add(new IntParameter() {
-
-            @Override
-            public int getValue()
-            {
-                return getIterations();
-            }
-
-            @Override
-            public boolean setValue(int val)
-            {
-                if(val < 1)
-                    return false;
-                setIterations(val);
-                return true;
-            }
-
-            @Override
-            public String getASCIIName()
-            {
-                return "Max Iterations";
-            }
-        });
-        
-        add(new DoubleParameter() {
-
-            @Override
-            public double getValue()
-            {
-                return getLearningRate();
-            }
-
-            @Override
-            public boolean setValue(double val)
-            {
-                try
-                {
-                    setLearningRate(val);
-                    return true;
-                }
-                catch(ArithmeticException ex)
-                {
-                    return false;
-                }
-            }
-
-            @Override
-            public String getASCIIName()
-            {
-                return "Learning Rate";
-            }
-        });
-        
         add(new ObjectParameter<DecayRate>() {
 
             @Override
@@ -208,171 +131,6 @@ public class LVQ implements Classifier, Parameterized
             {
                 return "Learning Decay Rate";
             }            
-        });
-        
-        add(new MetricParameter() {
-
-            @Override
-            public boolean setMetric(DistanceMetric val)
-            {
-                setDistanceMetric(val);
-                return true;
-            }
-
-            @Override
-            public DistanceMetric getMetric()
-            {
-                return getDistanceMetric();
-            }
-        });
-        
-        add(new ObjectParameter<LVQVersion>() {
-
-            @Override
-            public LVQVersion getObject()
-            {
-                return getLVQMethod();
-            }
-
-            @Override
-            public boolean setObject(LVQVersion obj)
-            {
-                setLVQMethod(obj);
-                return false;
-            }
-
-            @Override
-            public List<LVQVersion> parameterOptions()
-            {
-                return Arrays.asList(LVQVersion.values());
-            }
-
-            @Override
-            public String getASCIIName()
-            {
-                return "LVQ Version";
-            }
-        });
-        
-        add(new ObjectParameter<SeedSelection>() {
-
-            @Override
-            public SeedSelection getObject()
-            {
-                return getSeedSelection();
-            }
-
-            @Override
-            public boolean setObject(SeedSelection obj)
-            {
-                setSeedSelection(obj);
-                return true;
-            }
-
-            @Override
-            public List<SeedSelection> parameterOptions()
-            {
-                return Arrays.asList(SeedSelection.values());
-            }
-
-            @Override
-            public String getASCIIName()
-            {
-                return "Seed Selection";
-            }
-        });
-        
-        add(new DoubleParameter() {
-
-            @Override
-            public double getValue()
-            {
-                return getEps();
-            }
-
-            @Override
-            public boolean setValue(double val)
-            {
-                try
-                {
-                    setEps(val);
-                    return true;
-                }
-                catch(ArithmeticException ex)
-                {
-                    return false;
-                }
-            }
-
-            @Override
-            public String getASCIIName()
-            {
-                return "Eps Distance";
-            }
-
-            @Override
-            public String getName()
-            {
-                return GreekLetters.epsilon + " Distance";
-            }
-        });
-        
-        add(new DoubleParameter() {
-
-            @Override
-            public double getValue()
-            {
-                return getMScale();
-            }
-
-            @Override
-            public boolean setValue(double val)
-            {
-                try
-                {
-                    setMScale(val);
-                    return true;
-                }
-                catch(ArithmeticException ex)
-                {
-                    return false;
-                }
-            }
-
-            @Override
-            public String getASCIIName()
-            {
-                return "m-Scale";
-            }
-        });
-        
-        add(new DoubleParameter() {
-
-            @Override
-            public double getValue()
-            {
-                return getStoppingDist();
-            }
-
-            @Override
-            public boolean setValue(double val)
-            {
-                try
-                {
-                    setStoppingDist(val);
-                    return true;
-                }
-                catch(ArithmeticException ex)
-                {
-                    return false;
-                }
-            }
-
-            @Override
-            public String getASCIIName()
-            {
-                return "Stopping Dist";
-            }
         });
     }});
     
@@ -421,7 +179,7 @@ public class LVQ implements Classifier, Parameterized
         setLearningRate(learningRate);
         setDistanceMetric(dm);
         setLVQMethod(lvqVersion);
-        setEps(DEFAULT_EPS);
+        setEpsilonDistance(DEFAULT_EPS);
         setMScale(DEFAULT_MSCALE);
         setSeedSelection(DEFAULT_SEED_SELECTION);
         setVecCollectionFactory(new DefaultVectorCollectionFactory<VecPaired<Vec, Integer>>());
@@ -446,7 +204,7 @@ public class LVQ implements Classifier, Parameterized
             for(int i = 0; i < toCopy.weights.length; i++)
                 weights[i] = this.weights[i].clone();
         }
-        setEps(toCopy.eps);
+        setEpsilonDistance(toCopy.eps);
         setMScale(toCopy.getMScale());
         setSeedSelection(toCopy.getSeedSelection());
     }
@@ -485,7 +243,7 @@ public class LVQ implements Classifier, Parameterized
      * @param eps the scale factor of the maximum distance for two learning 
      * vectors to be updated at the same time
      */
-    public void setEps(double eps)
+    public void setEpsilonDistance(double eps)
     {
         if(eps <= 0 || Double.isInfinite(eps) || Double.isNaN(eps))
             throw new ArithmeticException("eps factor must be a positive constant, not " + eps);
@@ -499,7 +257,7 @@ public class LVQ implements Classifier, Parameterized
      * @return the scale of the allowable distance between learning vectors when
      * updating
      */
-    public double getEps()
+    public double getEpsilonDistance()
     {
         return eps;
     }

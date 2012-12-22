@@ -29,55 +29,7 @@ public class NearestNeighbour implements  Classifier, Regressor, Parameterized
     private VectorCollectionFactory<VecPaired<Vec, Double>> vcf;
     private VectorCollection<VecPaired<Vec, Double>> vecCollection;
     
-    private List<Parameter> parameters = Collections.unmodifiableList(new ArrayList<Parameter>(3)
-    {{
-        add(new IntParameter() {
-
-                @Override
-                public int getValue()
-                {
-                    return getNeighbors();
-                }
-
-                @Override
-                public boolean setValue(int val)
-                {
-                    if(val<1)
-                        return false;
-                    setNeighbors(val);
-                    return true;
-                }
-
-                @Override
-                public String getASCIIName()
-                {
-                    return "Neighbors";
-                }
-
-                @Override
-                public boolean requiresRetrain()
-                {
-                    return false;
-                }
-            });
-        add(new MetricParameter() {
-
-                @Override
-                public boolean setMetric(DistanceMetric val)
-                {
-                    if(val == null)
-                        return false;
-                    distanceMetric = val;
-                    return true;
-                }
-
-                @Override
-                public DistanceMetric getMetric()
-                {
-                    return distanceMetric;
-                }
-            });
-    }});
+    private List<Parameter> parameters = Collections.unmodifiableList(Parameter.getParamsFromMethods(this));
     private Map<String, Parameter> paramMap = Parameter.toParameterMap(parameters);
 
     /**
@@ -99,6 +51,24 @@ public class NearestNeighbour implements  Classifier, Regressor, Parameterized
             throw new ArithmeticException("Must be a positive number of neighbors");
         this.k = k;
     }
+    
+    public int getNeighbors(int k)
+    {
+        return k;
+    }
+
+    public DistanceMetric getDistanceMetric()
+    {
+        return distanceMetric;
+    }
+
+    public void setDistanceMetric(DistanceMetric distanceMetric)
+    {
+        if(distanceMetric == null)
+            throw new NullPointerException("given metric was null");
+        this.distanceMetric = distanceMetric;
+    }
+    
     
 
     @Override

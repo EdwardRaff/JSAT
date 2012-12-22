@@ -79,114 +79,7 @@ public class DANN implements Classifier, Parameterized
     private VectorCollection<VecPaired<Vec, Integer>> vc;
     private List<VecPaired<Vec, Integer>> vecList;
     
-    private List<Parameter> params = Collections.unmodifiableList(new ArrayList<Parameter>()
-    {{
-        add(new IntParameter() {
-
-            @Override
-            public int getValue()
-            {
-                return kn;
-            }
-
-            @Override
-            public boolean setValue(int val)
-            {
-                if(val < 2)
-                    return false;
-                setKn(val);
-                return true;
-            }
-
-            @Override
-            public String getASCIIName()
-            {
-                return "kn";
-            }
-        });
-        add(new IntParameter() {
-
-            @Override
-            public int getValue()
-            {
-                return k;
-            }
-
-            @Override
-            public boolean setValue(int val)
-            {
-                if(val < 1)
-                    return false;
-                setK(val);
-                return true;
-            }
-
-            @Override
-            public String getASCIIName()
-            {
-                return "k";
-            }
-        });
-        
-        add(new DoubleParameter() {
-
-            @Override
-            public double getValue()
-            {
-                return getEps();
-            }
-
-            @Override
-            public boolean setValue(double val)
-            {
-                try
-                {
-                    setEps(eps);
-                }
-                catch (Exception e)
-                {
-                    return false;
-                }
-                return true;
-            }
-
-            @Override
-            public String getName()
-            {
-                return GreekLetters.epsilon;
-            }
-
-            @Override
-            public String getASCIIName()
-            {
-                return "eps";
-            }
-        });
-        
-        add(new IntParameter() {
-
-            @Override
-            public int getValue()
-            {
-                return getMaxIterations();
-            }
-
-            @Override
-            public boolean setValue(int val)
-            {
-                if(val < 1)
-                    return false;
-                setMaxIterations(val);
-                return true;
-            }
-
-            @Override
-            public String getASCIIName()
-            {
-                return "Max Iterations";
-            }
-        });
-    }});
+    private List<Parameter> params = Collections.unmodifiableList(Parameter.getParamsFromMethods(this));
     
     private Map<String, Parameter> paramMap = Parameter.toParameterMap(params);
     
@@ -246,7 +139,7 @@ public class DANN implements Classifier, Parameterized
     {
         setK(k);
         setKn(kn);
-        setEps(eps);
+        setEpsilon(eps);
         setMaxIterations(maxIterations);
         this.vcf = vcf;
     }
@@ -326,7 +219,7 @@ public class DANN implements Classifier, Parameterized
      * 
      * @param eps the regularization value
      */
-    public void setEps(double eps)
+    public void setEpsilon(double eps)
     {
         if(eps < 0 || Double.isInfinite(eps) || Double.isNaN(eps))
             throw new ArithmeticException("Regularization must be a positive value");
@@ -338,7 +231,7 @@ public class DANN implements Classifier, Parameterized
      * the matrix when creating each new metric. 
      * @return the regularization used. 
      */
-    public double getEps()
+    public double getEpsilon()
     {
         return eps;
     }

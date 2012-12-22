@@ -520,122 +520,18 @@ public class DecisionTree implements Classifier, Regressor, Parameterized, TreeL
         }
     }
     
-    private List<Parameter> params = Collections.unmodifiableList(new ArrayList<Parameter>()
-    {{
-        add(new IntParameter() {
-
-            @Override
-            public int getValue()
-            {
-                return getMaxDepth();
-            }
-
-            @Override
-            public boolean setValue(int val)
-            {
-                if(val < 0)
-                    return false;
-                setMaxDepth(val);
-                return true;
-            }
-
-            @Override
-            public String getASCIIName()
-            {
-                return "Max Depth";
-            }
-        });
-        
-        add(new IntParameter() {
-
-            @Override
-            public int getValue()
-            {
-                return getMinSamples();
-            }
-
-            @Override
-            public boolean setValue(int val)
-            {
-                if(val < 1)
-                    return false;
-                setMinSamples(val);
-                return true;
-            }
-
-            @Override
-            public String getASCIIName()
-            {
-                return "Minimum Samples to Split";
-            }
-        });
-        
-        add(new ObjectParameter<PruningMethod>() {
-
-            @Override
-            public PruningMethod getObject()
-            {
-                return getPruningMethod();
-            }
-
-            @Override
-            public boolean setObject(PruningMethod obj)
-            {
-                setPruningMethod(obj);
-                return true;
-            }
-
-            @Override
-            public List<PruningMethod> parameterOptions()
-            {
-                return Arrays.asList(PruningMethod.values());
-            }
-
-            @Override
-            public String getASCIIName()
-            {
-                return "Pruning Method";
-            }
-        });
-        
-        add(new DoubleParameter() {
-
-            @Override
-            public double getValue()
-            {
-                return getTestProportion();
-            }
-
-            @Override
-            public boolean setValue(double val)
-            {
-                try
-                {
-                    setTestProportion(val);
-                    return true;
-                }
-                catch(Exception ex)
-                {
-                    return false;
-                }
-            }
-
-            @Override
-            public String getASCIIName()
-            {
-                return "Testing Proportion";
-            }
-        });
-        
-        addAll(baseStump.getParameters());
-    }});
+    private List<Parameter> params = new ArrayList<Parameter>(Parameter.getParamsFromMethods(this));
     
     private Map<String, Parameter> paramMap = Parameter.toParameterMap(params);
 
     @Override
     public List<Parameter> getParameters()
     {
-        return params;
+        List<Parameter> toRet = new ArrayList<Parameter>(params);
+        for (Parameter param : baseStump.getParameters())//We kno the two setGainMethods will colide
+            if(!param.getName().contains("Gain Method") && !param.getName().contains("Numeric Handling"))
+                toRet.add(param);
+        return Collections.unmodifiableList(toRet);
     }
 
     @Override

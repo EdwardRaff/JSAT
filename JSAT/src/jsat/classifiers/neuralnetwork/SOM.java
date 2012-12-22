@@ -34,104 +34,8 @@ import jsat.utils.*;
 public class SOM implements Classifier, Parameterized
 {
     //TODO add code for visualizing the SOM
-    private List<Parameter> parameters = Collections.unmodifiableList(new ArrayList<Parameter>(3)
+    private List<Parameter> parameters = Collections.unmodifiableList(new ArrayList<Parameter>(Parameter.getParamsFromMethods(this))
     {{
-            add(new IntParameter() {
-
-                @Override
-                public int getValue()
-                {
-                    return getMaxIterations();
-                }
-
-                @Override
-                public boolean setValue(int val)
-                {
-                    if(val < 1)
-                        return false;
-                    setMaxIterations(val);
-                    return true;
-                }
-
-                @Override
-                public String getASCIIName()
-                {
-                    return "MaxIterations";
-                }
-            });
-            
-            add(new IntParameter() {
-
-                @Override
-                public int getValue()
-                {
-                    return getSomHeight();
-                }
-
-                @Override
-                public boolean setValue(int val)
-                {
-                    if(val < 1)
-                        return false;
-                    setSomHeight(val);
-                    return true;
-                }
-
-                @Override
-                public String getASCIIName()
-                {
-                    return "SomHeight";
-                }
-            });
-            
-            add(new IntParameter() {
-
-                @Override
-                public int getValue()
-                {
-                    return getSomWidth();
-                }
-
-                @Override
-                public boolean setValue(int val)
-                {
-                    if(val < 1)
-                        return false;
-                    setSomWidth(val);
-                    return true;
-                }
-
-                @Override
-                public String getASCIIName()
-                {
-                    return "SomWidth";
-                }
-            });
-            
-            add(new DoubleParameter() {
-
-                @Override
-                public double getValue()
-                {
-                    return getInitialLearningRate();
-                }
-
-                @Override
-                public boolean setValue(double val)
-                {
-                    if(val <= 0)
-                        return false;
-                    setInitialLearningRate(val);
-                    return true;
-                }
-
-                @Override
-                public String getASCIIName()
-                {
-                    return "Initial Learning Rate";
-                }
-            });
-            
             add(new ObjectParameter<DecayRate>() {
 
                 @Override
@@ -275,6 +179,8 @@ public class SOM implements Classifier, Parameterized
      */
     public void setMaxIterations(int maxIters)
     {
+        if(maxIters < 1)
+            throw new ArithmeticException("At least one iteration must be performed");
         this.maxIters = maxIters;
     }
 
@@ -293,6 +199,8 @@ public class SOM implements Classifier, Parameterized
      */
     public void setSomWidth(int somWidth)
     {
+        if(somWidth < 1)
+            throw new ArithmeticException("Lattice width must be positive, not " + somWidth);
         this.somWidth = somWidth;
     }
 
@@ -302,6 +210,8 @@ public class SOM implements Classifier, Parameterized
      */
     public void setSomHeight(int somHeight)
     {
+        if(somHeight < 1)
+            throw new ArithmeticException("ALttice height must be positive, not " + somHeight);
         this.somHeight = somHeight;
     }
 
@@ -331,6 +241,8 @@ public class SOM implements Classifier, Parameterized
      */
     public void setInitialLearningRate(double initialLearningRate)
     {
+        if(Double.isInfinite(initialLearningRate) || Double.isNaN(initialLearningRate) || initialLearningRate <= 0)
+            throw new ArithmeticException("Learning rate must be a positive constant, not " + initialLearningRate);
         this.initialLearningRate = initialLearningRate;
     }
 
@@ -350,6 +262,8 @@ public class SOM implements Classifier, Parameterized
      */
     public void setLearningDecay(DecayRate learningDecay)
     {
+        if(learningDecay == null)
+            throw new NullPointerException("Can not set a decay rate to null");
         this.learningDecay = learningDecay;
     }
 
@@ -371,6 +285,8 @@ public class SOM implements Classifier, Parameterized
      */
     public void setNeighborDecay(DecayRate neighborDecay)
     {
+        if(neighborDecay == null)
+            throw new NullPointerException("Can not set a decay rate to null");
         this.neighborDecay = neighborDecay;
     }
 

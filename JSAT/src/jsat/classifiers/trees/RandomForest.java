@@ -58,32 +58,7 @@ public class RandomForest implements Classifier, Regressor, Parameterized
     private DecisionTree baseLearner = new DecisionTree(Integer.MAX_VALUE, 10, TreePruner.PruningMethod.NONE, 0.01);
     private List<DecisionTree> forest;
     
-    private final List<Parameter> params = Collections.unmodifiableList(new ArrayList<Parameter>()
-    {{
-        add(new IntParameter() {
-
-            @Override
-            public int getValue()
-            {
-                return getMaxForestSize();
-            }
-
-            @Override
-            public boolean setValue(int val)
-            {
-                if(val <= 0)
-                    return false;
-                setMaxForestSize(val);
-                return true;
-            }
-
-            @Override
-            public String getASCIIName()
-            {
-                return "Max Forest Size";
-            }
-        });
-    }});
+    private final List<Parameter> params = Collections.unmodifiableList(Parameter.getParamsFromMethods(this));
     
     final Map<String, Parameter> paramMap = Parameter.toParameterMap(params);
 

@@ -52,64 +52,7 @@ public class LWL implements Classifier, Regressor, Parameterized
     private VectorCollectionFactory<VecPaired<Vec, Double>> vcf;
     private VectorCollection<VecPaired<Vec, Double>> vc;
     
-    private final List<Parameter> params =  Collections.unmodifiableList(new ArrayList<Parameter>()
-    {{
-        add(new IntParameter() {
-
-            @Override
-            public int getValue()
-            {
-                return getK();
-            }
-
-            @Override
-            public boolean setValue(int val)
-            {
-                if(val <= 1)
-                    return false;
-                setK(val);
-                return true;
-            }
-
-            @Override
-            public String getASCIIName()
-            {
-                return "k-Neighbors";
-            }
-        });
-        
-        add(new MetricParameter() {
-
-            @Override
-            public boolean setMetric(DistanceMetric val)
-            {
-                setDistanceMetric(val);
-                return true;
-            }
-
-            @Override
-            public DistanceMetric getMetric()
-            {
-                return getDistanceMetric();
-            }
-        });
-        
-        add(new KernelFunctionParameter() {
-
-            @Override
-            public KernelFunction getObject()
-            {
-                return getKernelFunction();
-            }
-
-            @Override
-            public boolean setObject(KernelFunction obj)
-            {
-                setKernelFunction(obj);
-                return true;
-            }
-        });
-    }});
+    private final List<Parameter> params =  Collections.unmodifiableList(Parameter.getParamsFromMethods(this));
     private final Map<String, Parameter> paramMap = Parameter.toParameterMap(params);
 
     /**
@@ -124,7 +67,7 @@ public class LWL implements Classifier, Regressor, Parameterized
             setClassifier(toCopy.classifier);
         if(toCopy.regressor != null)
             setRegressor(toCopy.regressor);
-        setK(toCopy.k);
+        setNeighbors(toCopy.k);
         setDistanceMetric(toCopy.dm.clone());
         setKernelFunction(toCopy.kf);
         this.vcf = toCopy.vcf;
@@ -166,7 +109,7 @@ public class LWL implements Classifier, Regressor, Parameterized
     public LWL(Classifier classifier, int k, DistanceMetric dm, KernelFunction kf, VectorCollectionFactory<VecPaired<Vec, Double>> vcf)
     {
         setClassifier(classifier);
-        setK(k);
+        setNeighbors(k);
         setDistanceMetric(dm);
         setKernelFunction(kf);
         this.vcf = vcf;
@@ -205,7 +148,7 @@ public class LWL implements Classifier, Regressor, Parameterized
     public LWL(Regressor regressor, int k, DistanceMetric dm, KernelFunction kf, VectorCollectionFactory<VecPaired<Vec, Double>> vcf)
     {
         setRegressor(regressor);
-        setK(k);
+        setNeighbors(k);
         setDistanceMetric(dm);
         setKernelFunction(kf);
         this.vcf = vcf;
@@ -359,7 +302,7 @@ public class LWL implements Classifier, Regressor, Parameterized
      * Sets the number of neighbors that will be used to create the local model
      * @param k the number of neighbors to obtain
      */
-    public void setK(int k)
+    public void setNeighbors(int k)
     {
         if(k <= 1)
             throw new RuntimeException("An average requires at least 2 neighbors to be taken into account");
@@ -370,7 +313,7 @@ public class LWL implements Classifier, Regressor, Parameterized
      * Returns the number of neighbors that will be used to create each local model
      * @return the number of neighbors that will be used
      */
-    public int getK()
+    public int getNeighbors()
     {
         return k;
     }
