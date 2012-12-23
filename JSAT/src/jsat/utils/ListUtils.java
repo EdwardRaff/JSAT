@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Random;
+import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.logging.Level;
@@ -121,21 +122,40 @@ public class ListUtils
      */
     public static <T> void randomSample(List<T> source, List<T> dest, int samples, Random rand)
     {
+        randomSample(source, dest, samples, rand);
+    }
+    
+    /**
+     * Obtains a random sample without replacement from a source collection and
+     * places it in the destination collection. This is done without modifying 
+     * the source collection. <br>
+     * This random sampling is oblivious to failures to add to a collection that 
+     * may occur, such as if the collection is a {@link Set}
+     * 
+     * @param <T> the list content type involved
+     * @param source the source of values to randomly sample from
+     * @param dest the collection to store the random samples in. It does 
+     * not need to be empty for the sampling to work correctly
+     * @param samples the number of samples to select from the source
+     * @param rand the source of randomness for the sampling
+     * @throws IllegalArgumentException if the sample size is not positive or l
+     * arger than the source population. 
+     */
+    public static <T> void randomSample(Collection<T> source, Collection<T> dest, int samples, Random rand)
+    {
         if(samples > source.size())
             throw new IllegalArgumentException("Can not obtain a number of samples larger than the source population");
         else if(samples <= 0)
             throw new IllegalArgumentException("Sample size must be positive");
         //Use samples to keep track of how many more samples we need
-        int pos = 0;
         int remainingPopulation = source.size();
-        while(samples > 0)//could do for loop, but only break condition is remaining samples
+        for(T member : source)
         {
             if(rand.nextInt(remainingPopulation) < samples)
             {
-                dest.add(source.get(pos));
+                dest.add(member);
                 samples--;
             }
-            pos++;
             remainingPopulation--;
         }
     }
