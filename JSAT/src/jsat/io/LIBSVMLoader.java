@@ -115,8 +115,8 @@ public class LIBSVMLoader
         
         BufferedReader br = new BufferedReader(isr);
         List<SparseVector> sparceVecs = new ArrayList<SparseVector>();
-        List<Integer> cats = new ArrayList<Integer>();
-        Map<Integer, Integer> possibleCats = new HashMap<Integer, Integer>();
+        List<Double> cats = new ArrayList<Double>();
+        Map<Double, Integer> possibleCats = new HashMap<Double, Integer>();
         int maxLen=1;
         
         
@@ -125,7 +125,7 @@ public class LIBSVMLoader
         while((line = br.readLine()) != null)
         {
             String[] split = line.split("\\s+");
-            int cat = parseInt(split[0]);
+            double cat = Double.parseDouble(split[0]);
             if(!possibleCats.containsKey(cat))
                 possibleCats.put(cat, possibleCats.size());
             cats.add(cat);
