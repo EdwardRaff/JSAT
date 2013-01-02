@@ -57,7 +57,7 @@ public class Pegasos implements Classifier, Parameterized
     private final Map<String, Parameter> paramMap = Parameter.toParameterMap(params);
 
     /**
-     * Creates a new Pegasos SVM classifeir using default values. 
+     * Creates a new Pegasos SVM classifier using default values. 
      */
     public Pegasos()
     {
