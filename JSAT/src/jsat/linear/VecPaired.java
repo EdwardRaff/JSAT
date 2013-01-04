@@ -51,6 +51,12 @@ public class VecPaired<V extends Vec, P> extends Vec
     }
 
     @Override
+    public int nnz()
+    {
+        return vector.nnz();
+    }
+    
+    @Override
     public double get(int index)
     {
         return vector.get(index);

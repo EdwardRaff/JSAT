@@ -80,6 +80,17 @@ public class DenseVector extends Vec
         this.endIndex = end;
     }
     
+    /**
+     * Creates a new Dense Vector that contains a copy of the values in the 
+     * given vector
+     * @param toCopy the vector to copy
+     */
+    public DenseVector(Vec toCopy)
+    {
+        this(toCopy.length());
+        for(IndexValue iv : toCopy)
+            set(iv.getIndex(), iv.getValue());
+    }
     
     /**
      * nulls out the cached summary statistics, should be called every time the data set changes

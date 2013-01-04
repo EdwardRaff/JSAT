@@ -80,6 +80,20 @@ public class SparseVector extends  Vec
     }
     
     /**
+     * Creates a new sparse vector by copying the values from another
+     * @param toCopy the vector to copy the values of
+     */
+    public SparseVector(Vec toCopy)
+    {
+        this(toCopy.length(), toCopy.nnz());
+        for(IndexValue iv : toCopy)
+        {
+            indexes[used] = iv.getIndex();
+            values[used++] = iv.getValue();
+        }
+    }
+    
+    /**
      * nulls out the cached summary statistics, should be called every time the data set changes
      */
     private void clearCaches()
@@ -111,9 +125,7 @@ public class SparseVector extends  Vec
         this.length = length;
     }
 
-    /**
-     * @return the number of non zero elements in the vector.
-     */
+    @Override
     public int nnz()
     {
         return used;

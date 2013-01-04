@@ -19,6 +19,19 @@ public abstract class Vec implements Cloneable, Iterable<IndexValue>, Serializab
      * @return the length of this vector
      */
     abstract public int length();
+    
+    
+    /**
+     * Computes the number of non zero values in this vector
+     * @return the number of non zero values stored
+     */
+    public int nnz()
+    {
+        int nnz = 0;
+        for(IndexValue i : this)
+            nnz++;
+        return nnz;
+    }
 
     /**
      * Gets the value stored at a specific index in the vector
