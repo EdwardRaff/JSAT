@@ -130,6 +130,19 @@ public class IntList extends AbstractList<Integer> implements Serializable
         return end;
     }
 
+    @Override
+    public Integer remove(int index)
+    {
+        if(index < 0 || index > size())
+            throw new IndexOutOfBoundsException("Can not remove invalid index " + index);
+        int removed = array[index];
+        
+        for(int i = index; i < end-1; i++)
+            array[i] = array[i+1];
+        end--;
+        return removed;
+    }
+
     private void enlargeIfNeeded(int i)
     {
         while(end+i > array.length)
