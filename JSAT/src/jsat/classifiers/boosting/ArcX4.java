@@ -191,8 +191,7 @@ public class ArcX4 implements Classifier, Parameterized
         int[] errors = new int[cds.getSampleSize()];
         
         final int blockSize = errors.length / SystemInfo.LogicalCores;
-        int extra = errors.length % SystemInfo.LogicalCores;
-   
+        
         hypoths = new Classifier[iterations];
         for(int t = 0; t < hypoths.length; t++)
         {
@@ -209,6 +208,7 @@ public class ArcX4 implements Classifier, Parameterized
             hypoths[t] = hypoth;
             if(blockSize > 0)
             {
+                int extra = errors.length % SystemInfo.LogicalCores;
                 CountDownLatch latch = new CountDownLatch(SystemInfo.LogicalCores);
                 int start = 0;
                 while(start < errors.length)
