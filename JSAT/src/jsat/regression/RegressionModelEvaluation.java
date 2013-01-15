@@ -3,11 +3,15 @@ package jsat.regression;
 import static java.lang.Math.*;
 import java.util.List;
 import java.util.Random;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import jsat.classifiers.*;
 import jsat.datatransform.DataTransformProcess;
 import jsat.exceptions.UntrainedModelException;
 import jsat.math.OnLineStatistics;
+import jsat.utils.SystemInfo;
 
 /**
  * Provides a mechanism to quickly evaluate a regression model on a data set. 
@@ -127,19 +131,82 @@ public class RegressionModelEvaluation
             regressor.train(trainSet);            
         totalTrainingTime += (System.currentTimeMillis() - startTrain);
         
-        for(int i = 0; i < testSet.getSampleSize(); i++)
+        CountDownLatch latch;
+        if(testSet.getSampleSize() < SystemInfo.LogicalCores || threadpool == null)
         {
-            DataPoint di = testSet.getDataPoint(i);
-            double trueVal = testSet.getTargetValue(i);
-            double predVal = regressor.regress(curProccess.transform(di));
-            
-            
-            double sqrdError = pow(trueVal-predVal, 2);
-            
-            
-            sqrdErrorStats.add(sqrdError, di.getWeight());
-            
+            latch = new CountDownLatch(1);
+            new Evaluator(testSet, curProccess, 0, testSet.getSampleSize(), latch).run();
         }
+        else//go parallel!
+        {
+            latch = new CountDownLatch(SystemInfo.LogicalCores);
+            final int blockSize = testSet.getSampleSize()/SystemInfo.LogicalCores;
+            int extra = testSet.getSampleSize()%SystemInfo.LogicalCores;
+            
+            int start = 0;
+            while(start < testSet.getSampleSize())
+            {
+                int end = start+blockSize;
+                if(extra-- > 0)
+                    end++;
+                threadpool.submit(new Evaluator(testSet, curProccess, start, end, latch));
+                start = end;
+            }
+        }
+        try
+        {
+            latch.await();
+        }
+        catch (InterruptedException ex)
+        {
+            Logger.getLogger(ClassificationModelEvaluation.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+    
+    private class Evaluator implements Runnable
+    {
+        RegressionDataSet testSet;
+        DataTransformProcess curProccess;
+        int start, end;
+        CountDownLatch latch;
+        long localPredictionTime;
+
+        public Evaluator(RegressionDataSet testSet, DataTransformProcess curProccess, int start, int end, CountDownLatch latch)
+        {
+            this.testSet = testSet;
+            this.curProccess = curProccess;
+            this.start = start;
+            this.end = end;
+            this.latch = latch;
+            localPredictionTime = 0;
+        }
+
+        @Override
+        public void run()
+        {
+            for(int i = start; i < end; i++)
+            {
+                DataPoint di = testSet.getDataPoint(i);
+                double trueVal = testSet.getTargetValue(i);
+                DataPoint tranDP = curProccess.transform(di);
+                long startTime = System.currentTimeMillis();
+                double predVal = regressor.regress(tranDP);
+                localPredictionTime += (System.currentTimeMillis() - startTime);
+
+                double sqrdError = pow(trueVal-predVal, 2);
+
+                synchronized(sqrdErrorStats)
+                {
+                    sqrdErrorStats.add(sqrdError, di.getWeight());
+                }
+            }
+            synchronized(sqrdErrorStats)
+            {
+                totalClassificationTime += localPredictionTime;
+            }
+            latch.countDown();
+        }
+        
     }
     
     /**

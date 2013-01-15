@@ -3,9 +3,13 @@ package jsat.classifiers;
 
 import java.util.List;
 import java.util.Random;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import jsat.datatransform.DataTransformProcess;
 import jsat.exceptions.UntrainedModelException;
+import jsat.utils.SystemInfo;
 
 /**
  * Provides a mechanism to quickly perform an evaluation of a model on a data set. 
@@ -153,25 +157,91 @@ public class ClassificationModelEvaluation
         else
             classifier.trainC(trainSet);            
         totalTrainingTime += (System.currentTimeMillis() - startTrain);
-
-        for (int i = 0; i < testSet.getSampleSize(); i++)
+        
+        CountDownLatch latch;
+        if(testSet.getSampleSize() < SystemInfo.LogicalCores || threadpool == null)
         {
-            DataPoint dp = testSet.getDataPoint(i);
-            dp = curProcess.transform(dp);
-            long stratClass = System.currentTimeMillis();
-            CategoricalResults result = classifier.classify(dp);
-            if (this.predictions != null)
-            {
-                this.predictions[i] = result;
-                truths[i] = testSet.getDataPointCategory(i);
-                pointWeights[i] = dp.getWeight();
-            }
-                
-            totalClassificationTime += (System.currentTimeMillis() - stratClass);
-
-            confusionMatrix[testSet.getDataPointCategory(i)][result.mostLikely()] += dp.getWeight();
-            sumOfWeights += dp.getWeight();
+            latch = new CountDownLatch(1);
+            new Evaluator(testSet, curProcess, 0, testSet.getSampleSize(), latch).run();
         }
+        else//go parallel!
+        {
+            latch = new CountDownLatch(SystemInfo.LogicalCores);
+            final int blockSize = testSet.getSampleSize()/SystemInfo.LogicalCores;
+            int extra = testSet.getSampleSize()%SystemInfo.LogicalCores;
+            
+            int start = 0;
+            while(start < testSet.getSampleSize())
+            {
+                int end = start+blockSize;
+                if(extra-- > 0)
+                    end++;
+                threadpool.submit(new Evaluator(testSet, curProcess, start, end, latch));
+                start = end;
+            }
+        }
+        try
+        {
+            latch.await();
+        }
+        catch (InterruptedException ex)
+        {
+            Logger.getLogger(ClassificationModelEvaluation.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+    
+    private class Evaluator implements Runnable
+    {
+        ClassificationDataSet testSet;
+        DataTransformProcess curProcess;
+        int start, end;
+        CountDownLatch latch;
+        long localClassificationTime;
+        double localSumOfWeights;
+
+        public Evaluator(ClassificationDataSet testSet, DataTransformProcess curProcess, int start, int end, CountDownLatch latch)
+        {
+            this.testSet = testSet;
+            this.curProcess = curProcess;
+            this.start = start;
+            this.end = end;
+            this.latch = latch;
+            this.localClassificationTime = 0;
+            this.localSumOfWeights = 0;
+        }
+
+        @Override
+        public void run()
+        {
+            for (int i = start; i < end; i++)
+            {
+                DataPoint dp = testSet.getDataPoint(i);
+                dp = curProcess.transform(dp);
+                long stratClass = System.currentTimeMillis();
+                CategoricalResults result = classifier.classify(dp);
+                localClassificationTime += (System.currentTimeMillis() - stratClass);
+                if (predictions != null)
+                {
+                    predictions[i] = result;
+                    truths[i] = testSet.getDataPointCategory(i);
+                    pointWeights[i] = dp.getWeight();
+                }
+                
+                synchronized(confusionMatrix)
+                {
+                    confusionMatrix[testSet.getDataPointCategory(i)][result.mostLikely()] += dp.getWeight();
+                }
+                localSumOfWeights += dp.getWeight();
+            }
+            
+            synchronized(confusionMatrix)
+            {
+                totalClassificationTime += localClassificationTime;
+                sumOfWeights += localSumOfWeights;
+            }
+            latch.countDown();
+        }
+        
     }
 
     /**
