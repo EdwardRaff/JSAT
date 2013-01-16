@@ -122,7 +122,7 @@ public class ListUtils
      */
     public static <T> void randomSample(List<T> source, List<T> dest, int samples, Random rand)
     {
-        randomSample(source, dest, samples, rand);
+        randomSample((Collection<T>)source, dest, samples, rand);
     }
     
     /**
