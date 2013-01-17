@@ -12,6 +12,7 @@ import jsat.DataSet;
 import jsat.linear.Vec;
 import jsat.linear.distancemetrics.DistanceMetric;
 import jsat.linear.distancemetrics.EuclideanDistance;
+import jsat.utils.FakeExecutor;
 import jsat.utils.ListUtils;
 import static jsat.utils.SystemInfo.LogicalCores;
 
@@ -44,7 +45,13 @@ public class SeedSelectionMethods
          * <br><br>
          * See k-means++: The Advantages of Careful Seeding
          */
-        KPP
+        KPP,
+        
+        /**
+         * The first seed is chosen randomly, and then all others are chosen
+         * to be the farthest away from all other seeds
+         */
+        FARTHEST_FIRST
     };
     
     /**
@@ -136,6 +143,13 @@ public class SeedSelectionMethods
                 else
                     kppSelection(indices, rand, d, k, dm, threadpool);
 
+            }
+            else if(selectionMethod == SeedSelection.FARTHEST_FIRST)
+            {
+                if(threadpool == null)
+                    ffSelection(indices, rand, d, k, dm, new FakeExecutor());
+                else
+                    ffSelection(indices, rand, d, k, dm, threadpool);
             }
         }
         catch (InterruptedException ex)
@@ -257,6 +271,71 @@ public class SeedSelectionMethods
                 searchSum += closestDist[++i];
             
             indices[j] = i;
+        }
+    }
+    
+    private static void ffSelection(final int[] indices, Random rand, final DataSet d, final int k, final DistanceMetric dm, ExecutorService threadpool) throws InterruptedException, ExecutionException
+    {
+        //Initial random point
+        indices[0] = rand.nextInt(d.getSampleSize());
+
+        final double[] closestDist = new double[d.getSampleSize()];
+        Arrays.fill(closestDist, Double.POSITIVE_INFINITY);
+
+        //Each future will return the local chance to the overal sqared distance. 
+        List<Future<Integer>> futures = new ArrayList<Future<Integer>>(LogicalCores);
+
+        for (int j = 1; j < k; j++)
+        {
+            //Compute the distance from each data point to the closest mean
+            final Vec newMean = d.getDataPoint(indices[j - 1]).getNumericalValues();//Only the most recently added mean needs to get distances computed. 
+            futures.clear();
+
+            int blockSize = d.getSampleSize() / LogicalCores;
+            int extra = d.getSampleSize() % LogicalCores;
+            int pos = 0;
+            while (pos < d.getSampleSize())
+            {
+                final int from = pos;
+                final int to = Math.min(pos + blockSize + (extra-- > 0 ? 1 : 0), d.getSampleSize());
+                pos = to;
+                Future<Integer> future = threadpool.submit(new Callable<Integer>()
+                {
+
+                    @Override
+                    public Integer call() throws Exception
+                    {
+                        double maxDist = Double.NEGATIVE_INFINITY;
+                        int max = -1;
+                        for (int i = from; i < to; i++)
+                        {
+                            double newDist = dm.dist(newMean, d.getDataPoint(i).getNumericalValues());
+                            closestDist[i] = Math.min(newDist, closestDist[i]);
+                            
+                            if (closestDist[i] > maxDist)
+                            {
+                                maxDist = closestDist[i];
+                                max = i;
+                            }
+                        }
+
+                        return max;
+                    }
+                });
+
+                futures.add(future);
+            }
+
+            int max = -1;
+            double maxDist = Double.NEGATIVE_INFINITY;
+            for (Integer localMax : ListUtils.collectFutures(futures))
+                if(closestDist[localMax] > maxDist)
+                {
+                    max = localMax;
+                    maxDist = closestDist[localMax];
+                }
+            
+            indices[j] = max;
         }
     }
     
