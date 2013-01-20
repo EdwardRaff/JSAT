@@ -653,7 +653,7 @@ public class SparseVector extends  Vec
             {
                 //Move through until we hit the next null element, comparing the other vec to zero
                 while (z < used && indexes[z] > i)
-                    norm += Math.pow(Math.abs(-y.get(i)), p);
+                    norm += Math.pow(Math.abs(-y.get(i++)), p);
 
                 //We made it! (or are at the end). Is our non zero value the same?
                 if (z < used && indexes[z] == i)
