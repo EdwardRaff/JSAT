@@ -2,18 +2,15 @@
 package jsat.clustering;
 
 import java.util.*;
-import java.util.concurrent.Callable;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Future;
+import java.util.concurrent.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import jsat.DataSet;
+import jsat.linear.MatrixStatistics;
 import jsat.linear.Vec;
 import jsat.linear.distancemetrics.DistanceMetric;
 import jsat.linear.distancemetrics.EuclideanDistance;
-import jsat.utils.FakeExecutor;
-import jsat.utils.ListUtils;
+import jsat.utils.*;
 import static jsat.utils.SystemInfo.LogicalCores;
 
 /**
@@ -51,7 +48,17 @@ public class SeedSelectionMethods
          * The first seed is chosen randomly, and then all others are chosen
          * to be the farthest away from all other seeds
          */
-        FARTHEST_FIRST
+        FARTHEST_FIRST,
+        
+        /**
+         * Selects the seeds in one pass by selecting points as evenly 
+         * distributed quantiles for the distance of each point from the mean 
+         * of the whole data set. This makes the seed selection deterministic
+         * <br><br>
+         * See: J. A. Hartigan and M. A. Wong, "A k-means clustering algorithm", 
+         * Applied Statistics, vol. 28, pp. 100–108, 1979.
+         */
+        MEAN_QUANTILES
     };
     
     /**
@@ -150,6 +157,13 @@ public class SeedSelectionMethods
                     ffSelection(indices, rand, d, k, dm, new FakeExecutor());
                 else
                     ffSelection(indices, rand, d, k, dm, threadpool);
+            }
+            else if(selectionMethod == SeedSelection.MEAN_QUANTILES)
+            {
+                if(threadpool == null)
+                    mqSelection(indices, d, k, dm, new FakeExecutor());
+                else
+                    mqSelection(indices, d, k, dm, threadpool);
             }
         }
         catch (InterruptedException ex)
@@ -337,6 +351,41 @@ public class SeedSelectionMethods
             
             indices[j] = max;
         }
+    }
+    
+    private static void mqSelection(final int[] indices, final DataSet d, final int k, final DistanceMetric dm, ExecutorService threadpool) throws InterruptedException, ExecutionException
+    {
+        final double[] meanDist = new double[d.getSampleSize()];
+
+        //Compute the distance from each data point to the closest mean
+        final Vec newMean = MatrixStatistics.meanVector(d);
+
+        final CountDownLatch latch = new CountDownLatch(LogicalCores);
+        int blockSize = d.getSampleSize() / LogicalCores;
+        int extra = d.getSampleSize() % LogicalCores;
+        int pos = 0;
+        while (pos < d.getSampleSize())
+        {
+            final int from = pos;
+            final int to = Math.min(pos + blockSize + (extra-- > 0 ? 1 : 0), d.getSampleSize());
+            pos = to;
+            threadpool.submit(new Runnable()
+            {
+                @Override
+                public void run()
+                {
+                    for (int i = from; i < to; i++)
+                        meanDist[i] = dm.dist(newMean, d.getDataPoint(i).getNumericalValues());
+                    latch.countDown();
+                }
+            });
+        }
+        
+        latch.await();
+        
+        IndexTable indxTbl = new IndexTable(meanDist);
+        for(int l = 0; l < k; l++)
+            indices[l] = indxTbl.index(l*d.getSampleSize()/k);
     }
     
 }
