@@ -42,7 +42,7 @@ public class KMeans extends KClustererBase
     /**
      * Control the maximum number of iterations to perform. 
      */
-    protected int MaxIterLimit = 100;
+    protected int MaxIterLimit = Integer.MAX_VALUE;
 
     /**
      * Creates a new KMeans instance. 
