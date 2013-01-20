@@ -16,6 +16,7 @@ import jsat.DataSet;
 import jsat.clustering.SeedSelectionMethods.SeedSelection;
 import jsat.linear.DenseVector;
 import jsat.linear.Vec;
+import jsat.linear.distancemetrics.DenseSparseMetric;
 import jsat.linear.distancemetrics.DistanceMetric;
 import jsat.linear.distancemetrics.EuclideanDistance;
 import jsat.linear.distancemetrics.TrainableDistanceMetric;
@@ -96,6 +97,12 @@ public class NaiveKMeans extends KClustererBase
         final List<Vec> means = SeedSelectionMethods.selectIntialPoints(dataSet, clusters, dm, new Random(), seedSelection, threadpool);
         final AtomicInteger changes = new AtomicInteger();
         
+        final DenseSparseMetric dsm = dm instanceof DenseSparseMetric ? (DenseSparseMetric) dm : null;
+        final double[] smc = dsm == null ? null : new double[clusters];
+        if(smc != null)
+            for(int i = 0; i < means.size(); i++)
+                smc[i] = dsm.getVectorConstant(means.get(i));
+        
         Arrays.fill(des, -1);
         do
         {
@@ -119,11 +126,17 @@ public class NaiveKMeans extends KClustererBase
                             double minDist = Double.POSITIVE_INFINITY;
                             int min = -1;
                             for (int j = 0; j < means.size(); j++)
-                                if ((tmp = dm.dist(means.get(j), x)) < minDist)
+                            {
+                                if(dsm != null)
+                                    tmp = dsm.dist(smc[j], means.get(j), x);
+                                else
+                                    tmp = dm.dist(means.get(j), x);
+                                if (tmp < minDist)
                                 {
                                     minDist = tmp;
                                     min = j;
                                 }
+                            }
                             if(des[i] == min)
                                 continue;
                             des[i] = min;
@@ -168,7 +181,11 @@ public class NaiveKMeans extends KClustererBase
                 }
                 
                 for(int i = 0; i < clusters; i++)
+                {
                     means.get(i).mutableDivide(finalCounts[i]);
+                    if(dsm != null)
+                        smc[i] = dsm.getVectorConstant(means.get(i));
+                }
             }
             catch (InterruptedException ex)
             {
