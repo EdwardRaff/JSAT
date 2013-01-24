@@ -1,24 +1,14 @@
 package jsat.clustering;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Random;
-import java.util.concurrent.Callable;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Future;
+import java.util.*;
+import java.util.concurrent.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import jsat.DataSet;
 import jsat.clustering.SeedSelectionMethods.SeedSelection;
 import jsat.linear.Vec;
-import jsat.linear.distancemetrics.DistanceMetric;
-import jsat.linear.distancemetrics.EuclideanDistance;
-import jsat.linear.distancemetrics.TrainableDistanceMetric;
-import jsat.utils.FakeExecutor;
-import jsat.utils.ListUtils;
-import jsat.utils.SystemInfo;
+import jsat.linear.distancemetrics.*;
+import jsat.utils.*;
 
 /**
  * Implements the mini-batch algorithms for k-means. This is a stochastic algorithm, 
@@ -179,6 +169,12 @@ public class MiniBatchKMeans extends KClustererBase
             designations = new int[dataSet.getSampleSize()];
         
         final List<Vec> means = SeedSelectionMethods.selectIntialPoints(dataSet, clusters, dm, new Random(), seedSelection, threadpool);
+        //for use if data is sparse
+        final DenseSparseMetric dsm =  dm instanceof DenseSparseMetric ?  (DenseSparseMetric) dm : null;
+        final double[] msc = dsm == null ? null:  new double[clusters];//Mean Summary Constants
+        if(dsm != null)
+            for(int j = 0; j < msc.length; j++)
+                msc[j] = dsm.getVectorConstant(means.get(j));
         
         final int[] v = new int[means.size()];
         final List<Vec> source = new ArrayList<Vec>(dataSet.getSampleSize());
@@ -218,12 +214,20 @@ public class MiniBatchKMeans extends KClustererBase
                                 Vec x = M.get(i);
                                 double minDist = Double.POSITIVE_INFINITY;
                                 int min = -1;
+                                
                                 for (int j = 0; j < means.size(); j++)
-                                    if ((tmp = dm.dist(means.get(j), x)) < minDist)
+                                {
+                                    if (dsm == null)
+                                        tmp = dm.dist(means.get(j), x);
+                                    else
+                                        tmp = dsm.dist(msc[j], means.get(j), x);
+                                    
+                                    if (tmp < minDist)
                                     {
                                         minDist = tmp;
                                         min = j;
                                     }
+                                }
                                 nearestCenter[i] = min;
                             }
                             latch.countDown();
@@ -250,6 +254,10 @@ public class MiniBatchKMeans extends KClustererBase
                 c.mutableMultiply(1-eta);
                 c.mutableAdd(eta, M.get(j));
             }
+            //NOT PART OF ALGO, sparse computaiton constant for each vec 
+            if(dsm != null)
+                for(int j = 0; j < means.size(); j++)
+                    msc[j] = dsm.getVectorConstant(means.get(j));
         }
         
         //Stochastic travel complete, calculate all
@@ -279,11 +287,19 @@ public class MiniBatchKMeans extends KClustererBase
                         double minDist = Double.POSITIVE_INFINITY;
                         int min = -1;
                         for (int j = 0; j < means.size(); j++)
-                            if ((tmp = dm.dist(means.get(j), x)) < minDist)
+                        {
+                            if(dsm == null)
+                                tmp = dm.dist(means.get(j), x);
+                            else
+                                tmp = dsm.dist(msc[j], means.get(j), x);
+                            
+                            if (tmp < minDist)
                             {
                                 minDist = tmp;
                                 min = j;
                             }
+                        }
+                        
                         des[i] = min;
                         dists += minDist*minDist;
                     }
