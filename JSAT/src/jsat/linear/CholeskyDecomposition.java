@@ -7,7 +7,10 @@ import static java.lang.Math.*;
 import static jsat.linear.LUPDecomposition.*;
 
 /**
- * The Cholesky Decomposition factors a symmetric positive definite matrix A into the form A = L L<sup>T</sup>. The Cholesky Decomposition of a matrix is unique 
+ * The Cholesky Decomposition factors a symmetric positive definite matrix A 
+ * into the form A = L L<sup>T</sup>. The Cholesky Decomposition of a matrix is 
+ * unique.
+ * 
  * @author Edward Raff
  */
 public class CholeskyDecomposition implements Serializable
@@ -20,11 +23,13 @@ public class CholeskyDecomposition implements Serializable
     private Matrix L;
 
     /**
-     * Computes the Cholesky Decomposition of the matrix A. This matrix A will be altered. 
-     * If A is still needed after this computation a {@link Matrix#cols() } of the matrix 
-     * should be given instead. <br>
-     * NOTE: No check for the symmetric positive definite property will occur. The results
-     * of passing a matrix that does not meet this properties is undefined. 
+     * Computes the Cholesky Decomposition of the matrix A. The matrix 
+     * <tt>A</tt> will be altered to form the decomposition <tt>L</tt>. If A is 
+     * still needed after this computation a {@link Matrix#clone() clone} of the
+     * matrix should be given instead. <br>
+     * NOTE: No check for the symmetric positive definite property will occur. 
+     * The results of passing a matrix that does not meet this properties is 
+     * undefined. 
      * 
      * @param A the matrix to create the Cholesky Decomposition of
      */
