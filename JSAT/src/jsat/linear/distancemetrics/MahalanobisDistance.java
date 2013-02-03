@@ -76,7 +76,8 @@ public class MahalanobisDistance extends TrainableDistanceMetric
             lup = new LUPDecomposition(covariance.clone(), threadpool);
         else
             lup = new LUPDecomposition(covariance.clone());
-        if(Math.abs(lup.det()) <= 1e-13)//Bad problem, use the SVD instead
+        double det = lup.det();
+        if(Double.isNaN(det) || Double.isInfinite(det) || Math.abs(det) <= 1e-13)//Bad problem, use the SVD instead
         {
             lup = null;
             svd = new SingularValueDecomposition(covariance);
