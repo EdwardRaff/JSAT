@@ -33,6 +33,7 @@ import jsat.utils.ListUtils;
  * Proceedings of the 25th international conference on Machine learning - ICML  ’08 (pp. 408–415). 
  * New York, New York, USA: ACM Press. doi:10.1145/1390156.1390208
  * @author Edward Raff
+ * @see DCD
  */
 public class DCDs implements Classifier, Parameterized
 {
@@ -173,15 +174,8 @@ public class DCDs implements Classifier, Parameterized
         vecs = new Vec[dataSet.getSampleSize()];
         alpha = new double[vecs.length];
         y = new double[vecs.length];
-        
-        
-        for(int i = 0; i < dataSet.getSampleSize(); i++)
-        {
-            vecs[i] = dataSet.getDataPoint(i).getNumericalValues();
-            y[i] = dataSet.getDataPointCategory(i)*2-1;
-        }
-        
-        w = new DenseVector(vecs[0].length());
+        bias = 0;
+        final double[] Qhs = new double[vecs.length];//Q hats
         
         final double U, D;
         if(useL1)
@@ -194,6 +188,14 @@ public class DCDs implements Classifier, Parameterized
             U = Double.POSITIVE_INFINITY;
             D = 1.0/(2*C);
         }
+        
+        for(int i = 0; i < dataSet.getSampleSize(); i++)
+        {
+            vecs[i] = dataSet.getDataPoint(i).getNumericalValues();
+            y[i] = dataSet.getDataPointCategory(i)*2-1;
+            Qhs[i] = vecs[i].dot(vecs[i])+1.0+D;//+1 for implicit bias term
+        }
+        w = new DenseVector(vecs[0].length());
         
         List<Integer> A = new IntList(vecs.length);
         ListUtils.addRange(A, 0, vecs.length, 1);
@@ -238,7 +240,7 @@ public class DCDs implements Classifier, Parameterized
                 if(PG != 0)
                 {
                     double alphaOld = alpha[i];
-                    alpha[i] = Math.min(Math.max(alpha[i]-G/(getQ(i)+D), 0), U);
+                    alpha[i] = Math.min(Math.max(alpha[i]-G/Qhs[i], 0), U);
                     double scale = (alpha[i]-alphaOld)*y[i];
                     w.mutableAdd(scale, vecs[i]);
                     bias += scale;
@@ -268,12 +270,7 @@ public class DCDs implements Classifier, Parameterized
         alpha = null;
         y = null;
     }
-    
-    private double getQ(int i)
-    {
-        return vecs[i].dot(vecs[i])+1;//+1 for implicit bias term
-    }
-    
+
     @Override
     public boolean supportsWeightedData()
     {
