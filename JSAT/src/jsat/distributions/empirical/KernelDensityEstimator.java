@@ -134,7 +134,7 @@ public class KernelDensityEstimator extends Distribution
         OnLineStatistics stats = new OnLineStatistics();
         
         X = new double[S.length()];
-        this.weights = Arrays.copyOf(weights, weights.length);
+        this.weights = Arrays.copyOf(weights, S.length());
         
         //Probability is the X value, mattch is the weights - so that they can be sorted together. 
         List<ProbailityMatch<Double>> sorter = new ArrayList<ProbailityMatch<Double>>(S.length());
