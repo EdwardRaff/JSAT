@@ -26,22 +26,35 @@ public class DoubleList extends AbstractList<Double> implements Serializable
         this.end = end;
     }
 
+    /**
+     * Creates a new empty DoubleList
+     */
     public DoubleList()
     {
         this(10);
     }
     
+    /**
+     * Creates a new empty DoubleList
+     * 
+     * @param capacity the starting internal capacity of the list
+     */
     public DoubleList(int capacity)
     {
         this(new double[capacity], 0);
     }
     
+    /**
+     * Creates a new DoubleList containing the values of the given collection
+     * @param c the collection of values to fill this double list with
+     */
     public DoubleList(Collection<Double> c)
     {
         this(c.size());
         this.addAll(c);
     }
 
+    @Override
     public int size()
     {
         return end;
@@ -112,6 +125,7 @@ public class DoubleList extends AbstractList<Double> implements Serializable
         return array[index];
     }
     
+    @Override
     public Double get(int index)
     {
         return getD(index);
@@ -175,5 +189,17 @@ public class DoubleList extends AbstractList<Double> implements Serializable
     public Double remove(int index)
     {
         return removeD(index);
+    }
+    
+    /**
+     * Returns the reference to the array that backs this list. 
+     * Alterations to the array will be visible to the DoubelList
+     * and vise versa. The array returned may not the the same
+     * size as the value returned by {@link #size() }
+     * @return 
+     */
+    public double[] getBackingArray()
+    {
+        return array;
     }
 }
