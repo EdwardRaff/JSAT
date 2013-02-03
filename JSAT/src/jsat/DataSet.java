@@ -275,6 +275,18 @@ public abstract class DataSet
     }
     
     /**
+     * Creates a list of the vectors values for each data point in the correct order. 
+     * @return a list of the vectors for the data points
+     */
+    public List<Vec> getDataVectors()
+    {
+        List<Vec> vecs = new ArrayList<Vec>(getSampleSize());
+        for(int i = 0; i < getSampleSize(); i++)
+            vecs.add(getDataPoint(i).getNumericalValues());
+        return vecs;
+    }
+    
+    /**
      * The data set can be seen as a NxM matrix, were each row is a 
      * data point, and each column the values for a particular 
      * variable. This method grabs all the numerical values for
