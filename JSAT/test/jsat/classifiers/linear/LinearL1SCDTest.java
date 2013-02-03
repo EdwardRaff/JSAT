@@ -3,6 +3,7 @@ package jsat.classifiers.linear;
 
 import java.util.Random;
 import java.util.concurrent.ExecutorService;
+import jsat.FixedProblems;
 import jsat.classifiers.CategoricalData;
 import jsat.classifiers.CategoricalResults;
 import jsat.classifiers.ClassificationDataSet;
@@ -100,28 +101,13 @@ public class LinearL1SCDTest
     public void testTrainC_ClassificationDataSet()
     {
         System.out.println("trainC");
-        Vec m0 = new DenseVector(new double[]{12,14,25,31,10,9,1});
-        Vec m1 = new DenseVector(new double[]{-9,-7,-13,-6,-11,-9,-1});
-        
-        NormalM c0 = new NormalM(m0, Matrix.eye(m0.length()));
-        NormalM c1 = new NormalM(m1, Matrix.eye(m0.length()));
-        
-        ClassificationDataSet train = new ClassificationDataSet(m0.length(), new CategoricalData[0], new CategoricalData(2));
-        
-        for(Vec s : c0.sample(400, new Random()))
-            train.addDataPoint(s, new int[0], 0);
-        for(Vec s : c1.sample(400, new Random()))
-            train.addDataPoint(s, new int[0], 1);
+        ClassificationDataSet train = FixedProblems.get2ClassLinear(400, new Random());
         
         LinearL1SCD scd = new LinearL1SCD();
         scd.setLoss(StochasticSTLinearL1.Loss.LOG);
         scd.trainC(train);
         
-        ClassificationDataSet test = new ClassificationDataSet(m0.length(), new CategoricalData[0], new CategoricalData(2));
-        for(Vec s : c0.sample(100, new Random()))
-            test.addDataPoint(s, new int[0], 0);
-        for(Vec s : c1.sample(100, new Random()))
-            test.addDataPoint(s, new int[0], 1);
+        ClassificationDataSet test = FixedProblems.get2ClassLinear(400, new Random());
         
         for(DataPointPair<Integer> dpp : test.getAsDPPList())
             assertEquals(dpp.getPair().longValue(), scd.classify(dpp.getDataPoint()).mostLikely());
