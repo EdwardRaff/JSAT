@@ -27,6 +27,9 @@ public class MiniBatchKMeans extends KClustererBase
     private int iterations;
     private DistanceMetric dm;
     private SeedSelectionMethods.SeedSelection seedSelection;
+    
+    //DenseSparse is not usually helpful unless the batch size is huge
+    private boolean useDenseSparseAcceleration = false;
 
     /**
      * Creates a new Mini-Batch k-Means object that uses 
@@ -172,10 +175,7 @@ public class MiniBatchKMeans extends KClustererBase
         //for use if data is sparse
         final DenseSparseMetric dsm =  dm instanceof DenseSparseMetric ?  (DenseSparseMetric) dm : null;
         final double[] msc = dsm == null ? null:  new double[clusters];//Mean Summary Constants
-        if(dsm != null)
-            for(int j = 0; j < msc.length; j++)
-                msc[j] = dsm.getVectorConstant(means.get(j));
-        
+
         final int[] v = new int[means.size()];
         final List<Vec> source = new ArrayList<Vec>(dataSet.getSampleSize());
         for(int i = 0; i < dataSet.getSampleSize(); i++)
@@ -217,10 +217,7 @@ public class MiniBatchKMeans extends KClustererBase
                                 
                                 for (int j = 0; j < means.size(); j++)
                                 {
-                                    if (dsm == null)
-                                        tmp = dm.dist(means.get(j), x);
-                                    else
-                                        tmp = dsm.dist(msc[j], means.get(j), x);
+                                    tmp = dm.dist(means.get(j), x);
                                     
                                     if (tmp < minDist)
                                     {
@@ -254,10 +251,6 @@ public class MiniBatchKMeans extends KClustererBase
                 c.mutableMultiply(1-eta);
                 c.mutableAdd(eta, M.get(j));
             }
-            //NOT PART OF ALGO, sparse computaiton constant for each vec 
-            if(dsm != null)
-                for(int j = 0; j < means.size(); j++)
-                    msc[j] = dsm.getVectorConstant(means.get(j));
         }
         
         //Stochastic travel complete, calculate all
@@ -265,9 +258,13 @@ public class MiniBatchKMeans extends KClustererBase
         final int blockSize = dataSet.getSampleSize() / SystemInfo.LogicalCores;
         int extra = dataSet.getSampleSize() % SystemInfo.LogicalCores;
         int start = 0;
-        
+
         final int[] des = designations;
-      
+
+        if (dsm != null && useDenseSparseAcceleration)
+            for (int j = 0; j < means.size(); j++)
+                msc[j] = dsm.getVectorConstant(means.get(j));
+
         while (start < dataSet.getSampleSize())
         {
             final int s = start;
@@ -288,7 +285,7 @@ public class MiniBatchKMeans extends KClustererBase
                         int min = -1;
                         for (int j = 0; j < means.size(); j++)
                         {
-                            if(dsm == null)
+                            if(dsm == null || !useDenseSparseAcceleration)
                                 tmp = dm.dist(means.get(j), x);
                             else
                                 tmp = dsm.dist(msc[j], means.get(j), x);
