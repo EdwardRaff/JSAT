@@ -9,6 +9,7 @@ import jsat.classifiers.CategoricalResults;
 import jsat.classifiers.ClassificationDataSet;
 import jsat.classifiers.Classifier;
 import jsat.classifiers.DataPoint;
+import jsat.exceptions.FailedToFitException;
 import jsat.exceptions.UntrainedModelException;
 import jsat.linear.DenseVector;
 import jsat.linear.Vec;
@@ -167,6 +168,8 @@ public class DCDs implements Classifier, Parameterized
     @Override
     public void trainC(ClassificationDataSet dataSet)
     {
+        if(dataSet.getClassSize() != 2)
+            throw new FailedToFitException("SVM only supports binary classificaiton problems");
         vecs = new Vec[dataSet.getSampleSize()];
         alpha = new double[vecs.length];
         y = new double[vecs.length];
