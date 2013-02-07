@@ -5,7 +5,6 @@ import java.util.*;
 import java.util.concurrent.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import jsat.DataSet;
 import jsat.classifiers.*;
 import jsat.classifiers.knn.NearestNeighbour;
 import jsat.classifiers.trees.DecisionTree;
@@ -282,8 +281,6 @@ public class Bagging implements Classifier, Regressor, Parameterized
     {
         predicting = dataSet.getPredicting();
         learners = new ArrayList(rounds);
-        final List<DataPointPair<Integer>> source = dataSet.getAsDPPList();
-        final List<DataPointPair<Integer>> sammple = new ArrayList<DataPointPair<Integer>>(source.size()+extraSamples);
         //Used to make the main thread wait for the working threads to finish before submiting a new job so we dont waist too much memory then we can use at once
         final Semaphore waitForThread = new Semaphore(SystemInfo.LogicalCores);
         //Used to make the main thread wait for the working threads to finish before returning 
@@ -291,22 +288,25 @@ public class Bagging implements Classifier, Regressor, Parameterized
         
         //Creat a synchrnozied view so we can add safely 
         final List synchronizedLearners = Collections.synchronizedList(learners);
+        final int[] sampleCounts = new int[dataSet.getSampleSize()];
         for(int i = 0; i < rounds; i++)
         {
-            sampleWithReplacement(source, sammple, extraSamples, random);
+            sampleWithReplacement(sampleCounts, sampleCounts.length+extraSamples, random);
+            final ClassificationDataSet sampleSet = getSampledDataSet(dataSet, sampleCounts);
+            
             final Classifier learner = baseClassifier.clone();
-            if(simultaniousTraining)
+            if(simultaniousTraining && threadPool != null)
             {
                 try
                 {
                     //Wait for an available thread
                     waitForThread.acquire();
-                    final ArrayList<DataPointPair<Integer>> sammpleCopy = new ArrayList<DataPointPair<Integer>>(sammple);
                     threadPool.submit(new Runnable() {
 
+                        @Override
                         public void run()
                         {
-                            learner.trainC(new ClassificationDataSet(sammpleCopy, dataSet.getPredicting()));
+                            learner.trainC(sampleSet);
                             synchronizedLearners.add(learner);
                             waitForThread.release();//Finish, allow another one to pass through
                             waitForFinish.countDown();
@@ -322,12 +322,15 @@ public class Bagging implements Classifier, Regressor, Parameterized
             }
             else
             {
-                learner.trainC(new ClassificationDataSet(sammple, dataSet.getPredicting()) , threadPool);
+                if(threadPool != null)
+                    learner.trainC(sampleSet, threadPool);
+                else
+                    learner.trainC(sampleSet);
                 learners.add(learner);
             }
         }
 
-        if (simultaniousTraining)
+        if (simultaniousTraining && threadPool != null)
             try
             {
                 waitForFinish.await();
@@ -342,69 +345,40 @@ public class Bagging implements Classifier, Regressor, Parameterized
     @Override
     public void trainC(ClassificationDataSet dataSet)
     {
-        predicting = dataSet.getPredicting();
-        learners = new ArrayList(rounds);
-        List<DataPointPair<Integer>> source = dataSet.getAsDPPList();
-        List<DataPointPair<Integer>> sammple = new ArrayList<DataPointPair<Integer>>(source.size()+extraSamples);
-        
-        for(int i = 0; i < rounds; i++)
-        {
-            sampleWithReplacement(source, sammple, extraSamples, random);
-            Classifier learner = baseClassifier.clone();
-            learner.trainC(new ClassificationDataSet(sammple, dataSet.getPredicting()));
-            learners.add(learner);
-        }
+        trainC(dataSet, null);
+    }
+
+    public static ClassificationDataSet getSampledDataSet(ClassificationDataSet dataSet, int[] sampledCounts)
+    {
+        ClassificationDataSet destination = new ClassificationDataSet(dataSet.getNumNumericalVars(), dataSet.getCategories(), dataSet.getPredicting());
+            
+            for (int i = 0; i < sampledCounts.length; i++)
+                for(int j = 0; j < sampledCounts[i]; j++)
+                {
+                    DataPoint dp = dataSet.getDataPoint(i);
+                    destination.addDataPoint(dp.getNumericalValues(), dp.getCategoricalValues(), dataSet.getDataPointCategory(i));
+                }
+            
+            return destination;
     }
     
-    /**
-     * Performs sampling with replacement. Unlike 
-     * {@link #sampleWithReplacement(jsat.DataSet, java.util.List, int, java.util.Random) },
-     * the lists may contain any type, and no issues will occur. <br>
-     * The weights of the individual data points are ignored, sampling is done with equal probability. <br>
-     * The destination list will be {@link List#clear() cleared} by this method before sampling starts. 
-     * 
-     * @param source the source of training data
-     * @param destination the place to store the sampling. Will be cleared before adding
-     * @param extraSamples the number of extra samples to offset the {@link List#size() } of <tt>source</tt>
-     * @param random the source of randomness
-     */
-    static public void sampleWithReplacement(List source, List destination, int extraSamples, Random random)
+    public static RegressionDataSet getSampledDataSet(RegressionDataSet dataSet, int[] sampledCounts)
     {
-        destination.clear();
-        for(int i = 0; i < source.size() + extraSamples; i++)
-            destination.add(source.get(random.nextInt(source.size())));
+        RegressionDataSet destination = new RegressionDataSet(dataSet.getNumNumericalVars(), dataSet.getCategories());
+        for (int i = 0; i < sampledCounts.length; i++)
+            for (int j = 0; j < sampledCounts[i]; j++)
+            {
+                DataPoint dp = dataSet.getDataPoint(i);
+                destination.addDataPoint(dp, dataSet.getTargetValue(i));
+            }
+        return destination;
     }
-    
-        
-    /**
-     * Performs sampling with replacement from the given data set. It is assumed
-     * that the given data set is either a {@link ClassificationDataSet} or a 
-     * {@link RegressionDataSet}, and that the list will contain the appropriate {@link DataPointPair} for each situation. <br>
-     * The weights of the individual data points are ignored, sampling is done with equal probability. <br>
-     * The destination list will be {@link List#clear() cleared} by this method before sampling starts. 
-     * 
-     * @param source the source of training data
-     * @param destination the place to store the sampling. Will be cleared before adding
-     * @param extraSamples the number of extra samples to offset the {@link List#size() } of <tt>source</tt>
-     * @param random the source of randomness
-     */
-    static public void sampleWithReplacement(DataSet source, List destination, int extraSamples, Random random)
+
+    static public void sampleWithReplacement(int[] sampleCounts, int samples, Random rand)
     {
-        destination.clear();
-        if (source instanceof ClassificationDataSet)
-        {
-            ClassificationDataSet dataSet = (ClassificationDataSet) source;
-            for (int i = 0; i < source.getSampleSize() + extraSamples; i++)
-                destination.add(dataSet.getDataPointPair(random.nextInt(dataSet.getSampleSize())));
-        }
-        else if (source instanceof RegressionDataSet)
-        {
-            RegressionDataSet dataSet = (RegressionDataSet) source;
-            for (int i = 0; i < source.getSampleSize() + extraSamples; i++)
-                destination.add(dataSet.getDataPointPair(random.nextInt(dataSet.getSampleSize())));
-        }
-        else
-            throw new RuntimeException("A data set was given that was not of an accepted type [Regression or Classification]");
+        Arrays.fill(sampleCounts, 0);
+        for(int i = 0; i < samples; i++)
+            sampleCounts[rand.nextInt(sampleCounts.length)]++;
     }
 
     @Override
@@ -434,8 +408,6 @@ public class Bagging implements Classifier, Regressor, Parameterized
     public void train(RegressionDataSet dataSet, final ExecutorService threadPool)
     {
         learners = new ArrayList(rounds);
-        final List<DataPointPair<Double>> source = dataSet.getDPPList();
-        final List<DataPointPair<Double>> sammple = new ArrayList<DataPointPair<Double>>(source.size()+extraSamples);
         //Used to make the main thread wait for the working threads to finish before submiting a new job so we dont waist too much memory then we can use at once
         final Semaphore waitForThread = new Semaphore(SystemInfo.LogicalCores);
         //Used to make the main thread wait for the working threads to finish before returning 
@@ -443,22 +415,24 @@ public class Bagging implements Classifier, Regressor, Parameterized
         
         //Creat a synchrnozied view so we can add safely 
         final List synchronizedLearners = Collections.synchronizedList(learners);
+        final int[] sampleCount = new int[dataSet.getSampleSize()];
         for(int i = 0; i < rounds; i++)
         {
-            sampleWithReplacement(source, sammple, extraSamples, random);
+            sampleWithReplacement(sampleCount, sampleCount.length+extraSamples, random);
+            final RegressionDataSet sampleSet = getSampledDataSet(dataSet, sampleCount);
             final Regressor learner = baseRegressor.clone();
-            if(simultaniousTraining)
+            if(simultaniousTraining && threadPool != null)
             {
                 try
                 {
                     //Wait for an available thread
                     waitForThread.acquire();
-                    final ArrayList<DataPointPair<Double>> sammpleCopy = new ArrayList<DataPointPair<Double>>(sammple);
                     threadPool.submit(new Runnable() {
 
+                        @Override
                         public void run()
                         {
-                            learner.train(RegressionDataSet.usingDPPList(sammpleCopy));
+                            learner.train(sampleSet);
                             synchronizedLearners.add(learner);
                             waitForThread.release();//Finish, allow another one to pass through
                             waitForFinish.countDown();
@@ -474,12 +448,15 @@ public class Bagging implements Classifier, Regressor, Parameterized
             }
             else
             {
-                learner.train(RegressionDataSet.usingDPPList(sammple), threadPool);
+                if(threadPool != null)
+                    learner.train(sampleSet, threadPool);
+                else
+                    learner.train(sampleSet);
                 learners.add(learner);
             }
         }
 
-        if (simultaniousTraining)
+        if (simultaniousTraining && threadPool != null)
             try
             {
                 waitForFinish.await();
@@ -494,17 +471,7 @@ public class Bagging implements Classifier, Regressor, Parameterized
     @Override
     public void train(RegressionDataSet dataSet)
     {
-        learners = new ArrayList(rounds);
-        List<DataPointPair<Double>> source = dataSet.getDPPList();
-        List<DataPointPair<Double>> sammple = new ArrayList<DataPointPair<Double>>(source.size()+extraSamples);
-        
-        for(int i = 0; i < rounds; i++)
-        {
-            sampleWithReplacement(source, sammple, extraSamples, random);
-            Regressor learner = baseRegressor.clone();
-            learner.train(RegressionDataSet.usingDPPList(sammple));
-            learners.add(learner);
-        }
+        train(dataSet, null);
     }
 
     @Override

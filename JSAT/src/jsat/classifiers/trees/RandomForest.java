@@ -8,7 +8,6 @@ import java.util.Map;
 import java.util.Random;
 import java.util.Set;
 import java.util.concurrent.Callable;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 import java.util.logging.Level;
@@ -20,15 +19,15 @@ import jsat.classifiers.ClassificationDataSet;
 import jsat.classifiers.Classifier;
 import jsat.classifiers.DataPoint;
 import jsat.classifiers.boosting.Bagging;
-import jsat.classifiers.knn.NearestNeighbour;
 import jsat.math.OnLineStatistics;
-import jsat.parameters.IntParameter;
 import jsat.parameters.Parameter;
 import jsat.parameters.Parameterized;
 import jsat.regression.RegressionDataSet;
 import jsat.regression.Regressor;
 import jsat.utils.FakeExecutor;
+import jsat.utils.ListUtils;
 import jsat.utils.SystemInfo;
+import jsat.utils.concurrent.AtomicDoubleArray;
 
 /**
  * Random Forest is an extension of {@link Bagging} that is applied only to {@link DecisionTree DecisionTrees}. 
@@ -55,6 +54,8 @@ public class RandomForest implements Classifier, Regressor, Parameterized
      */
     private int featureSamples;
     private int maxForestSize;
+    private boolean useOutOfBagError = false;
+    private double outOfBagError;
     private DecisionTree baseLearner = new DecisionTree(Integer.MAX_VALUE, 10, TreePruner.PruningMethod.NONE, 0.01);
     private List<DecisionTree> forest;
     
@@ -145,6 +146,36 @@ public class RandomForest implements Classifier, Regressor, Parameterized
         return maxForestSize;
     }
 
+    /**
+     * Sets whether or not to compute the out of bag error during training
+     * @param useOutOfBagError <tt>true</tt> to compute the out of bag error, <tt>false</tt> to skip it
+     */
+    public void setUseOutOfBagError(boolean useOutOfBagError)
+    {
+        this.useOutOfBagError = useOutOfBagError;
+    }
+
+    /**
+     * Indicates if the out of bag error rate will be computed during training
+     * @return <tt>true</tt> if the out of bag error will be computed, <tt>false</tt> otherwise
+     */
+    public boolean isUseOutOfBagError()
+    {
+        return useOutOfBagError;
+    }
+
+    /**
+     * If {@link #isUseOutOfBagError() } is false, then this method will return 
+     * 0 after training. Otherwise, it will return the out of bag error estimate
+     * after training has completed. For classification problems, this is the 0/1
+     * loss error rate. Regression problems return the mean squared error. 
+     * @return the out of bag error estimate for this predictor
+     */
+    public double getOutOfBagError()
+    {
+        return outOfBagError;
+    }
+    
     @Override
     public CategoricalResults classify(DataPoint data)
     {
@@ -228,28 +259,68 @@ public class RandomForest implements Classifier, Regressor, Parameterized
             roundShare = roundsToDistribut;//All the rounds get shoved onto one thread
         
         //Random used for creating more random objects, faster to duplicate such a small recourse then share and lock
-        Random rand = new Random(dataSet.getNumFeatures() * dataSet.getSampleSize());
-        List<Future<List<DecisionTree>>> futures = new ArrayList<Future<List<DecisionTree>>>(SystemInfo.LogicalCores);
+        Random rand = new Random();
+        List<Future<LearningWorker>> futures = new ArrayList<Future<LearningWorker>>(SystemInfo.LogicalCores);
+        
+        int[][] counts = null;
+        AtomicDoubleArray pred = null;
+        if(dataSet instanceof RegressionDataSet)
+        {
+            pred = new AtomicDoubleArray(dataSet.getSampleSize());
+            counts = new int[pred.length()][1];//how many predictions are in this?
+        }
+        else
+        {
+            counts = new int[dataSet.getSampleSize()][((ClassificationDataSet)dataSet).getClassSize()];
+        }
 
         while (roundsToDistribut > 0)
         {
             int extra = (extraRounds-- > 0) ? 1 : 0;
-            Future<List<DecisionTree>> future = threadPool.submit(new LearningWorker(dataSet, roundShare + extra, new Random(rand.nextInt())));
+            Future<LearningWorker> future = threadPool.submit(new LearningWorker(dataSet, roundShare + extra, new Random(rand.nextInt()), counts, pred));
             roundsToDistribut -= (roundShare + extra);
             futures.add(future);
         }
 
-        for (Future<List<DecisionTree>> future : futures)
-            try
-            {
-                this.forest.addAll(future.get());
-            }
-            catch (Exception ex)
-            {
-                Logger.getLogger(RandomForest.class.getName()).log(Level.SEVERE, null, ex);
-            }
 
-        if(autoLearners)
+        
+        outOfBagError = 0;
+        try
+        {
+            for (LearningWorker worker : ListUtils.collectFutures(futures))
+                forest.addAll(worker.learned);
+        }
+        catch (Exception ex)
+        {
+            Logger.getLogger(RandomForest.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        
+        if (useOutOfBagError)
+        {
+            if (dataSet instanceof ClassificationDataSet)
+            {
+                ClassificationDataSet cds = (ClassificationDataSet) dataSet;
+                for (int i = 0; i < counts.length; i++)
+                {
+                    int max = 0;
+                    for (int j = 1; j < counts[i].length; j++)
+                    if(counts[i][j] > counts[i][max])
+                    
+                        max = j;
+                    if(max != cds.getDataPointCategory(i))
+                        outOfBagError++;
+                }
+            }
+            else
+            {
+                RegressionDataSet rds = (RegressionDataSet) dataSet;
+                for (int i = 0; i < counts.length; i++)
+                    outOfBagError += Math.pow(pred.get(i)/counts[i][0]-rds.getTargetValue(i), 2);
+            }
+            outOfBagError /= dataSet.getSampleSize();
+        }
+
+        if (autoLearners)
             autoFeatureSample();
     }
 
@@ -284,30 +355,41 @@ public class RandomForest implements Classifier, Regressor, Parameterized
         return paramMap.get(paramName);
     }
     
-    private class LearningWorker implements Callable<List<DecisionTree>>
+    private class LearningWorker implements Callable<LearningWorker>
     {
         int toLearn;
         List<DecisionTree> learned;
         DataSet dataSet;
         Random random;
+        /**
+         * For regression: sum of predictions
+         */
+        private AtomicDoubleArray votes;
+  
+        private int[][] counts;
 
-        public LearningWorker(DataSet dataSet, int toLearn, Random random)
+        public LearningWorker(DataSet dataSet, int toLearn, Random random, int[][] counts, AtomicDoubleArray pred)
         {
             this.dataSet = dataSet;
             this.toLearn = toLearn;
             this.random = random;
             this.learned = new ArrayList<DecisionTree>(toLearn);
+            if(useOutOfBagError)
+            {
+                votes = pred;
+                this.counts = counts;
+            }
         }
         
         @Override
-        public List<DecisionTree> call() throws Exception
+        public LearningWorker call() throws Exception
         {
-            List sample = new ArrayList(dataSet.getSampleSize()+extraSamples);
             Set<Integer> features = new HashSet<Integer>(featureSamples);
+            int[] sampleCounts = new int[dataSet.getSampleSize()];
             for(int i = 0; i < toLearn; i++)
             {
                 //Sample to get the training points
-                Bagging.sampleWithReplacement(dataSet, sample, extraSamples, random);
+                Bagging.sampleWithReplacement(sampleCounts, sampleCounts.length+extraSamples, random);
                 //Sample to select the feature subset
                 features.clear();
                 while(features.size() < Math.min(featureSamples, dataSet.getNumFeatures()))//The user could have specified too many
@@ -316,12 +398,38 @@ public class RandomForest implements Classifier, Regressor, Parameterized
                 DecisionTree learner = baseLearner.clone();
                 
                 if(dataSet instanceof ClassificationDataSet)
-                    learner.trainC(new ClassificationDataSet(sample, predicting), features);
+                    learner.trainC(Bagging.getSampledDataSet((ClassificationDataSet)dataSet, sampleCounts), features);
                 else //It must be regression!
-                    learner.train(new RegressionDataSet(sample),features);
+                    learner.train(Bagging.getSampledDataSet((RegressionDataSet)dataSet, sampleCounts), features);
                 learned.add(learner);
+                if(useOutOfBagError)
+                {
+                    for(int j = 0; j < sampleCounts.length; j++)
+                    {
+                        if(sampleCounts[j] != 0)
+                            continue;
+
+                        DataPoint dp = dataSet.getDataPoint(j);
+                        if(dataSet instanceof ClassificationDataSet)
+                        {
+                            int pred = learner.classify(dp).mostLikely();
+                            synchronized(counts[j])
+                            {
+                                counts[j][pred]++;
+                            }
+                        }
+                        else
+                        {
+                            votes.getAndAdd(j, learner.regress(dp));
+                            synchronized(counts[j])
+                            {
+                                counts[j][0]++;
+                            }
+                        }
+                    }
+                }
             }
-            return learned;
+            return this;
         }
         
     }
