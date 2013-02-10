@@ -9,6 +9,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import jsat.datatransform.DataTransformProcess;
 import jsat.exceptions.UntrainedModelException;
+import jsat.math.OnLineStatistics;
 import jsat.utils.SystemInfo;
 
 /**
@@ -42,6 +43,7 @@ public class ClassificationModelEvaluation
     private CategoricalResults[] predictions;
     private int[] truths;
     private double[] pointWeights;
+    private OnLineStatistics errorStats;
     
     /**
      * Constructs a new object that can perform evaluations on the model. 
@@ -72,6 +74,7 @@ public class ClassificationModelEvaluation
         this.threadpool = threadpool;
         this.dtp = new DataTransformProcess();
         keepPredictions = false;
+        errorStats = new OnLineStatistics();
     }
     
     /**
@@ -159,10 +162,11 @@ public class ClassificationModelEvaluation
         totalTrainingTime += (System.currentTimeMillis() - startTrain);
         
         CountDownLatch latch;
+        final double[] evalErrorStats = new double[2];//first index is correct, 2nd is total
         if(testSet.getSampleSize() < SystemInfo.LogicalCores || threadpool == null)
         {
             latch = new CountDownLatch(1);
-            new Evaluator(testSet, curProcess, 0, testSet.getSampleSize(), latch).run();
+            new Evaluator(testSet, curProcess, 0, testSet.getSampleSize(), evalErrorStats, latch).run();
         }
         else//go parallel!
         {
@@ -176,13 +180,14 @@ public class ClassificationModelEvaluation
                 int end = start+blockSize;
                 if(extra-- > 0)
                     end++;
-                threadpool.submit(new Evaluator(testSet, curProcess, start, end, latch));
+                threadpool.submit(new Evaluator(testSet, curProcess, start, end, evalErrorStats, latch));
                 start = end;
             }
         }
         try
         {
             latch.await();
+            errorStats.add(evalErrorStats[0]/evalErrorStats[1]);
         }
         catch (InterruptedException ex)
         {
@@ -197,9 +202,11 @@ public class ClassificationModelEvaluation
         int start, end;
         CountDownLatch latch;
         long localClassificationTime;
+        double localCorrect;
         double localSumOfWeights;
+        double[] errorStats;
 
-        public Evaluator(ClassificationDataSet testSet, DataTransformProcess curProcess, int start, int end, CountDownLatch latch)
+        public Evaluator(ClassificationDataSet testSet, DataTransformProcess curProcess, int start, int end, double[] errorStats, CountDownLatch latch)
         {
             this.testSet = testSet;
             this.curProcess = curProcess;
@@ -208,6 +215,8 @@ public class ClassificationModelEvaluation
             this.latch = latch;
             this.localClassificationTime = 0;
             this.localSumOfWeights = 0;
+            this.localCorrect = 0;
+            this.errorStats = errorStats;
         }
 
         @Override
@@ -226,11 +235,13 @@ public class ClassificationModelEvaluation
                     truths[i] = testSet.getDataPointCategory(i);
                     pointWeights[i] = dp.getWeight();
                 }
-                
-                synchronized(confusionMatrix)
+                final int trueCat = testSet.getDataPointCategory(i);
+                synchronized(confusionMatrix[trueCat])
                 {
-                    confusionMatrix[testSet.getDataPointCategory(i)][result.mostLikely()] += dp.getWeight();
+                    confusionMatrix[trueCat][result.mostLikely()] += dp.getWeight();
                 }
+                if(trueCat == result.mostLikely())
+                    localCorrect += dp.getWeight();
                 localSumOfWeights += dp.getWeight();
             }
             
@@ -238,6 +249,8 @@ public class ClassificationModelEvaluation
             {
                 totalClassificationTime += localClassificationTime;
                 sumOfWeights += localSumOfWeights;
+                errorStats[0] += localSumOfWeights-localCorrect;
+                errorStats[1] += localSumOfWeights;
             }
             latch.countDown();
         }
@@ -358,6 +371,18 @@ public class ClassificationModelEvaluation
     public double getErrorRate()
     {
         return 1.0 - getCorrectWeights()/sumOfWeights;
+    }
+    
+    /**
+     * Returns the object that keeps track of the error on 
+     * individual evaluations. If cross-validation was used, 
+     * it is the statistics for the errors of each fold. If 
+     * not, it is for each time {@link #evaluateTestSet(jsat.classifiers.ClassificationDataSet) } was called. 
+     * @return the statistics for the error of all evaluation sets
+     */
+    public OnLineStatistics getErrorRateStats()
+    {
+        return errorStats;
     }
 
     /***
