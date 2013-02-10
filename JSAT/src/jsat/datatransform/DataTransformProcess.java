@@ -42,6 +42,26 @@ public class DataTransformProcess implements DataTransform
         transformSource.add(transform);
     }
     
+    /**
+     * Consolidates transformation objects when possible. Currently only works with {@link RemoveAttributeTransform}
+     */
+    private void consolidateTransforms()
+    {
+        for(int i = 0; i < learnedTransforms.size()-1; i++)
+        {
+            DataTransform t1 = learnedTransforms.get(i);
+            DataTransform t2 = learnedTransforms.get(i+1);
+            if(!(t1 instanceof RemoveAttributeTransform && t2 instanceof RemoveAttributeTransform))
+                continue;//They are not both RATs
+            RemoveAttributeTransform r1 = (RemoveAttributeTransform) t1;
+            RemoveAttributeTransform r2 = (RemoveAttributeTransform) t2;
+            
+            r2.consolidate(r1);
+            learnedTransforms.remove(i);
+            i--;
+        }
+    }
+    
     
     /**
      * Learns the transforms for the given data set. The data set will not be 
@@ -60,6 +80,7 @@ public class DataTransformProcess implements DataTransform
             dataSet.applyTransform(transform);
             learnedTransforms.add(transform);
         }
+        consolidateTransforms();
     }
     
     /**
@@ -82,6 +103,7 @@ public class DataTransformProcess implements DataTransform
             dataSet.applyTransform(transform);
             learnedTransforms.add(transform);
         }
+        consolidateTransforms();
     }
 
     @Override
