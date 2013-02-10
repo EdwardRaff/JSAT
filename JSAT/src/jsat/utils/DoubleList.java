@@ -6,6 +6,8 @@ import java.util.AbstractList;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
 
 /**
  * Provides a modifiable implementation of a List using a double array. This provides considerable
@@ -201,5 +203,18 @@ public class DoubleList extends AbstractList<Double> implements Serializable
     public double[] getBackingArray()
     {
         return array;
+    }
+    
+    /**
+     * Creates an returns an unmodifiable view of the given double array that requires 
+     * only a small object allocation. 
+     * 
+     * @param array the array to wrap into an unmodifiable list
+     * @param length the number of values of the array to use, starting from zero
+     * @return an unmodifiable list view of the array
+     */
+    public static List<Double> unmodifiableView(double[] array, int length)
+    {
+        return Collections.unmodifiableList(new DoubleList(array, length));
     }
 }
