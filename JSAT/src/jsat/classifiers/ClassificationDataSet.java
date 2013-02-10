@@ -435,6 +435,18 @@ public class ClassificationDataSet extends DataSet
         
         return priors;
     }
+    
+    /**
+     * Returns the number of data points that belong to the specified class, 
+     * irrespective of the weights of the individual points. 
+     * 
+     * @param targetClass the target class 
+     * @return how many data points belong to the given class
+     */
+    public int classSampleCount(int targetClass)
+    {
+        return classifiedExamples.get(targetClass).size();
+    }
 
     @Override
     public int getSampleSize()
