@@ -81,6 +81,13 @@ public abstract class TextDataLoader implements TextVectorCreator
         
         for(String word : words)
         {
+            /*
+             * Tokenization may use substring, which is a view of the orignal 
+             * full string. Keeping a reference keeps the larger original 
+             * document in this case. Create new string to avoid holding onto
+             * the garbage
+             */
+            word = new String(word);
             Integer count = wordCounts.get(word);
             if(count == null)
                 wordCounts.put(word, 1);
