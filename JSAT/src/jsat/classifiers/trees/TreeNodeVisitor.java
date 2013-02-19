@@ -59,6 +59,20 @@ public abstract class TreeNodeVisitor implements Serializable, Cloneable
     abstract public void disablePath(int child);
     
     /**
+     * Optional operation!<br>
+     * This method, if supported, will set the path so that the child is set to the given value. 
+     * <br>
+     * The implementation may choose to throw an exception if the NodeVisitor is not of the same
+     * implementing class. 
+     * @param child the child path
+     * @param node the node to make the child
+     */
+    public void setPath(int child, TreeNodeVisitor node)
+    {
+        throw new UnsupportedOperationException("setPath is an optional operation.");
+    }
+    
+    /**
      * Returns true if the path to the specified child is disabled, meaning it 
      * can not be traveled to. It will also return true for an invalid child 
      * path, since a non existent node can not be reached.

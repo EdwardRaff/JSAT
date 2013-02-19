@@ -5,6 +5,7 @@ import java.util.List;
 import jsat.classifiers.ClassificationDataSet;
 import jsat.classifiers.DataPoint;
 import jsat.classifiers.DataPointPair;
+import jsat.math.SpecialMath;
 
 /**
  * Provides post-pruning algorithms for any decision tree that can be altered 
@@ -37,7 +38,20 @@ public class TreePruner
          * leaf nodes if the removal does not reduce the accuracy on the testing
          * set
          */
-        REDUCED_ERROR
+        REDUCED_ERROR,
+        
+        /**
+         * Bottom-Up pessimistic pruning using Error based Pruning from the 
+         * C4.5 algorithm. If the node visitor supports 
+         * {@link TreeNodeVisitor#setPath(int, jsat.classifiers.trees.TreeNodeVisitor) }
+         * it will perform sub tree replacement for the maximal sub tree. <br>
+         * The default Confidence (CF) is 0.25, as used in the C4.5 algorithm.<br>
+         * <br>
+         * NOTE: For the one case where the root would be pruned by taking the sub tree
+         * with the most nodes, this implementation will not perform that step. However,
+         * this is incredibly rare - and otherwise performs the same.
+         */
+        ERROR_BASED
     };
     
     /**
@@ -59,10 +73,13 @@ public class TreePruner
      */
     public static void prune(TreeNodeVisitor root, PruningMethod method, List<DataPointPair<Integer>> testSet)
     {
+        //TODO add vargs for extra arguments that may be used by pruning methods
         if(method == PruningMethod.NONE )
             return;
         else if(method == PruningMethod.REDUCED_ERROR)
             pruneReduceError(null, -1, root, testSet);
+        else if(method == PruningMethod.ERROR_BASED)
+            pruneErrorBased(null, -1, root, testSet, 0.25);
         else
             throw new RuntimeException("BUG: please report");
     }
@@ -124,5 +141,114 @@ public class TreePruner
         }
         
         return nodesPruned;
+    }
+    
+    /**
+     * 
+     * @param parent the parent node, or null if there is no parent
+     * @param pathFollowed the path from the parent node to the current node
+     * @param current the current node to evaluate
+     * @param testSet the set of points to estimate error from
+     * @param alpha the Confidence 
+     * @return expected upperbound on errors
+     */
+    private static double pruneErrorBased(TreeNodeVisitor parent, int pathFollowed, TreeNodeVisitor current, List<DataPointPair<Integer>> testSet, double alpha)
+    {
+        //TODO this does a lot of redundant computation. Re-write this code to keep track of where datapoints came from to avoid redudancy. 
+        if(current == null || testSet.isEmpty())
+            return 0;
+        else if(current.isLeaf())//return number of errors
+        {
+            int errors = 0;
+            for(DataPointPair<Integer> dpp : testSet)
+                if(current.localClassify(dpp.getDataPoint()).mostLikely() != dpp.getPair())
+                    errors++;
+            return computeBinomialUpperBound(testSet.size(), alpha, errors);
+        }
+        List<List<DataPointPair<Integer>>> splitSet = new ArrayList<List<DataPointPair<Integer>>>(current.childrenCount());
+        for(int i = 0; i < current.childrenCount(); i++)
+            splitSet.add(new ArrayList<DataPointPair<Integer>>());
+        
+        int localErrors = 0;
+        double subTreeScore = 0;
+        
+        for(DataPointPair<Integer> dpp : testSet)
+        {
+            DataPoint dp = dpp.getDataPoint();
+            if(current.localClassify(dp).mostLikely() != dpp.getPair())
+                localErrors++;
+            
+            int path = current.getPath(dp);
+            if(path >= 0)
+                splitSet.get(path).add(dpp);
+        }
+        
+        //Find child wich gets the most of the test set as the candidate for sub-tree replacement
+        int maxChildCount = 0;
+        int maxChild = -1;
+        for(int path = 0; path < splitSet.size(); path++)
+            if(!current.isPathDisabled(path))
+            {
+                subTreeScore += pruneErrorBased(current, path, current.getChild(path), splitSet.get(path), alpha);
+                
+                if(maxChildCount < splitSet.get(path).size())
+                {
+                    maxChildCount = splitSet.get(path).size();
+                    maxChild = path;
+                }
+            }
+
+        /* Original uses normal approximation of p + Z_alpha * sqrt(p (1-p) / n).
+         * Instead, just compute exact using inverse beta
+         * Upper Bound = 1.0 - BetaInv(alpha, n-k, k+1)
+         */
+        final int N = testSet.size();
+        final double prunedTreeScore = computeBinomialUpperBound(N, alpha, localErrors);
+
+        double maxChildTreeScore;
+        if(maxChild == -1)
+            maxChildTreeScore = Double.POSITIVE_INFINITY;
+        else
+        {
+            TreeNodeVisitor maxChildNode = current.getChild(maxChild);
+            int otherE = 0;
+            for (int path = 0; path < splitSet.size(); path++)
+                    for (DataPointPair<Integer> dpp : splitSet.get(path))
+                        if (maxChildNode.classify(dpp.getDataPoint()).mostLikely() != dpp.getPair())
+                            otherE++;
+            int otherN = testSet.size();
+
+            maxChildTreeScore = computeBinomialUpperBound(otherN, alpha, otherE);
+        }
+        
+        
+        if(maxChildTreeScore < prunedTreeScore && maxChildTreeScore < subTreeScore && parent != null)
+        {
+            try//NodeVisitor may not support setPath method, which is optional
+            {
+                parent.setPath(pathFollowed, current.getChild(maxChild));
+
+                return maxChildTreeScore;
+            }
+            catch(UnsupportedOperationException ex)
+            {
+                //fall out to others, this is ok
+            }
+        }
+        //MaxChildTreeScore is not the min, or it was not supported - so we do not compare against it any more
+        if(prunedTreeScore < subTreeScore  )
+        {
+            for(int i = 0; i < current.childrenCount(); i++)
+                current.disablePath(i);
+            return prunedTreeScore;
+        }
+        else//no change
+            return subTreeScore;
+        
+    }
+    
+    private static double computeBinomialUpperBound(final int N, double alpha, int errors)
+    {
+        return N * (1.0 - SpecialMath.invBetaIncReg(alpha, N - errors+1e-9, errors + 1.0));
     }
 }
