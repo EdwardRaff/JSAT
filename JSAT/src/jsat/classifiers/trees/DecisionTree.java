@@ -15,9 +15,6 @@ import jsat.classifiers.trees.ImpurityScore.ImpurityMeasure;
 import static jsat.classifiers.trees.TreePruner.*;
 import jsat.classifiers.trees.TreePruner.PruningMethod;
 import jsat.exceptions.FailedToFitException;
-import jsat.parameters.DoubleParameter;
-import jsat.parameters.IntParameter;
-import jsat.parameters.ObjectParameter;
 import jsat.parameters.Parameter;
 import jsat.parameters.Parameterized;
 import jsat.regression.RegressionDataSet;
@@ -117,15 +114,26 @@ public class DecisionTree implements Classifier, Regressor, Parameterized, TreeL
     /**
      * Returns a Decision Tree with settings initialized so that its behavior is
      * approximately that of the C4.5 decision tree algorithm when used on 
-     * classification data. The default settings are not identical, and certain 
-     * base cases may not behave in the exact same manner. 
+     * classification data. The exact behavior not identical, and certain 
+     * base cases may not behave in the exact same manner. However, it uses all
+     * of the same general algorithms. <br><br>
+     * The returned tree does not perform or support
+     * <ul>
+     * <li>discrete attribute grouping</li>
+     * <li>windowing</li>
+     * <li>subsidiary cutpoints (soft boundaries)</li>
+     * </ul>
      * 
-     * @return a decision tree that will behave in a manne similar to C4.5
+     * @return a decision tree that will behave in a manner similar to C4.5
      */
     public static DecisionTree getC45Tree()
     {
         DecisionTree tree = new DecisionTree();
-        tree.setPruningMethod(PruningMethod.REDUCED_ERROR);
+        tree.setMinResultSplitSize(2);
+        tree.setMinSamples(3);
+        tree.setMinResultSplitSize(2);
+        tree.setTestProportion(1.0);
+        tree.setPruningMethod(PruningMethod.ERROR_BASED);
         tree.baseStump.setGainMethod(ImpurityMeasure.INFORMATION_GAIN_RATIO);
         tree.baseStump.setNumericHandling(DecisionStump.NumericHandlingC.BINARY_BEST_GAIN);
         return tree;
@@ -253,12 +261,16 @@ public class DecisionTree implements Classifier, Regressor, Parameterized, TreeL
 
     /**
      * Sets the proportion of the training set that is put aside to perform pruning with. 
-     * @param testProportion the proportion, must be in the range [0, 1)
+     * <br> NOTE: The values 0 and 1 are special cases. <br>
+     * 0 indicates that no pruning will occur regardless of the set pruning method <br>
+     * 1 indicates that the training set will be used as the testing set. This is 
+     * valid for some pruning methods. 
+     * @param testProportion the proportion, must be in the range [0, 1]
      */
     public void setTestProportion(double testProportion)
     {
-        if(testProportion < 0 || testProportion >= 1 || Double.isInfinite(testProportion) || Double.isNaN(testProportion))
-            throw new ArithmeticException("Proportion must be in the range [0, 1), not " + testProportion);
+        if(testProportion < 0 || testProportion > 1 || Double.isInfinite(testProportion) || Double.isNaN(testProportion))
+            throw new ArithmeticException("Proportion must be in the range [0, 1], not " + testProportion);
         this.testProportion = testProportion;
     }
 
@@ -300,12 +312,17 @@ public class DecisionTree implements Classifier, Regressor, Parameterized, TreeL
         List<DataPointPair<Integer>> dataPoints = dataSet.getAsDPPList();
         List<DataPointPair<Integer>> testPoints = new ArrayList<DataPointPair<Integer>>();
         
-        if(pruningMethod != PruningMethod.NONE)//Then we need to set aside a testing set
+        if(pruningMethod != PruningMethod.NONE && testProportion != 0.0)//Then we need to set aside a testing set
         {
-            int testSize = (int) (dataPoints.size()*testProportion);
-            Random rand = new Random(testSize);
-            for(int i = 0; i < testSize; i++)
-                testPoints.add(dataPoints.remove(rand.nextInt(dataPoints.size())));
+            if(testProportion != 1)
+            {
+                int testSize = (int) (dataPoints.size()*testProportion);
+                Random rand = new Random(testSize);
+                for(int i = 0; i < testSize; i++)
+                    testPoints.add(dataPoints.remove(rand.nextInt(dataPoints.size())));
+            }
+            else
+                testPoints.addAll(dataPoints);
         }
         
         this.root = makeNodeC(dataPoints, options, 0, threadPool, mcdl);
@@ -497,6 +514,15 @@ public class DecisionTree implements Classifier, Regressor, Parameterized, TreeL
                 return null;
             else
                 return paths[child];
+        }
+
+        @Override
+        public void setPath(int child, TreeNodeVisitor node)
+        {
+            if(node instanceof Node)
+                paths[child] = (Node) node;
+            else
+                super.setPath(child, node);
         }
 
         @Override
