@@ -1,9 +1,7 @@
 
 package jsat.text.tokenizer;
 
-import java.util.Arrays;
-import java.util.List;
-import jsat.text.stemming.Stemmer;
+import java.util.*;
 
 /**
  *
@@ -12,10 +10,28 @@ import jsat.text.stemming.Stemmer;
  * @author Edward Raff
  */
 public class NaiveTokenizer implements Tokenizer
-{
+{   
+    @Override
     public List<String> tokenize(String input)
     {
-        return Arrays.asList(input.toLowerCase().replaceAll("[^a-z0-9\\s]+", " ").split("\\s+"));
+        ArrayList<String> toRet = new ArrayList<String>();
+        
+        StringBuilder sb = new StringBuilder(input.length()/10);
+        for(int i = 0; i < input.length(); i++)
+        {
+            char c = input.charAt(i);
+            if(Character.isLetter(c))
+                sb.append(Character.toLowerCase(c));
+            else if(Character.isDigit(c))
+                sb.append(c);
+            else if(sb.length() > 0)
+            {
+                toRet.add(sb.toString());
+                sb.setLength(0);
+            }
+        }
+        
+        return toRet;
     }
     
 }
