@@ -386,8 +386,12 @@ public class DenseVector extends Vec
             throw new ArithmeticException("Can not add vectors of unequal length");
         
         clearCaches();
-        for(int i = startIndex; i < endIndex; i++)
-            array[i] += c*b.get(i);
+        if (b.isSparse())
+            for (IndexValue iv : b)
+                array[iv.getIndex()] += c * iv.getValue();
+        else
+            for (int i = startIndex; i < endIndex; i++)
+                array[i] += c * b.get(i);
     }
 
     @Override
