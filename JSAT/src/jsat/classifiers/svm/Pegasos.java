@@ -1,20 +1,10 @@
 package jsat.classifiers.svm;
 
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Random;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.ExecutorService;
-import jsat.classifiers.CategoricalResults;
-import jsat.classifiers.ClassificationDataSet;
-import jsat.classifiers.Classifier;
-import jsat.classifiers.DataPoint;
+import jsat.classifiers.*;
 import jsat.exceptions.FailedToFitException;
-import jsat.linear.DenseVector;
-import jsat.linear.Vec;
+import jsat.linear.*;
 import jsat.parameters.Parameter;
 import jsat.parameters.Parameterized;
 
@@ -36,7 +26,7 @@ public class Pegasos implements Classifier, Parameterized
     private double epochs;
     private double reg;
     private int batchSize;
-    private boolean projectionStep = true;
+    private boolean projectionStep = false;
     private Vec w;
     private double bias;
     
@@ -198,6 +188,14 @@ public class Pegasos implements Classifier, Parameterized
             throw new FailedToFitException("SVM only supports binary classificaiton problems");
         final int m = dataSet.getSampleSize();
         w = new DenseVector(dataSet.getNumNumericalVars());
+        /**
+         * Scale variable
+         */
+        double scale = 1;
+        /**
+         * Current norm^2
+         */
+        double v = 0;
         
         Random rand = new Random();
         final Set<Integer> miniBatch = new HashSet<Integer>(batchSize*2);
@@ -212,30 +210,60 @@ public class Pegasos implements Classifier, Parameterized
             while(iter.hasNext())
             {
                 int i = iter.next();
-                if(getSign(dataSet, i)*(w.dot(getX(dataSet, i))+bias) >= 1)
+                if(getSign(dataSet, i)*scale*(w.dot(getX(dataSet, i))+bias) >= 1)
                     iter.remove();
             }
                 
             
             final double nt = 1.0/(reg*t);
             
-            w.mutableMultiply(1.0-nt*reg);
-            bias *= (1.0-nt*reg);
+            scale *= (1.0-nt*reg);
+            v *= Math.pow((1.0-nt*reg), 2);
+            if(scale == 0.0)
+            {
+                scale = 1.0;
+                v = 0.0;
+                w.zeroOut();
+                bias = 0;
+            }
             
             for(int i : miniBatch)
             {
                 double sign = getSign(dataSet, i);
-                w.mutableAdd( sign*nt/batchSize, getX(dataSet, i));
-                bias += sign*nt/batchSize;
+                Vec x = getX(dataSet, i);
+                final double s = sign*nt/(batchSize*scale);
+                //TODO update the norm in a more clever manner
+                if(projectionStep)//update norm
+                    for(IndexValue iv : x)
+                        v -= Math.pow(scale*w.get(iv.getIndex()), 2);
+                w.mutableAdd( s, x);
+                bias += s;
+                if(projectionStep)
+                    for(IndexValue iv : x)
+                        v += Math.pow(scale*w.get(iv.getIndex()), 2);
             }
             
             if(projectionStep)
             {
-                double mult = Math.min(1, 1.0/(Math.sqrt(reg)*w.pNorm(2)));
+                double norm = Math.sqrt(v);
+                double mult = Math.min(1, 1.0/(Math.sqrt(reg)*norm));
                 if(mult != 1)
-                    w.mutableMultiply(mult);
+                {
+                    //w.mutableMultiply(mult);
+                    scale *= mult;
+                    v *= Math.pow(mult, 2);
+                    if(scale == 0.0)
+                    {
+                        scale = 1.0;
+                        v = 0.0;
+                        w.zeroOut();
+                        bias = 0;
+                    }
+                }
             }
         }
+        w.mutableMultiply(scale);
+        bias *= scale;
     }
 
     @Override
