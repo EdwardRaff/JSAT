@@ -2,9 +2,7 @@
 package jsat.utils;
 
 import java.io.Serializable;
-import java.util.AbstractList;
-import java.util.Arrays;
-import java.util.Collection;
+import java.util.*;
 
 /**
  * Provides a modifiable implementation of a List using a int array. This provides considerable
@@ -17,6 +15,12 @@ public class IntList extends AbstractList<Integer> implements Serializable
 {
     private int[] array;
     private int end;
+    
+    private IntList(int[] array, int end)
+    {
+        this.array = array;
+        this.end = end;
+    }
 
     /**
      * Creates a new IntList
@@ -147,5 +151,18 @@ public class IntList extends AbstractList<Integer> implements Serializable
     {
         while(end+i > array.length)
             array = Arrays.copyOf(array, array.length*2);
+    }
+    
+    /**
+     * Creates and returns an unmodifiable view of the given int array that 
+     * requires only a small object allocation. 
+     * 
+     * @param array the array to wrap into an unmodifiable list
+     * @param length the number of values of the array to use, starting from zero
+     * @return an unmodifiable list view of the array
+     */
+    public static List<Integer> unmodifiableView(int[] array, int length)
+    {
+        return Collections.unmodifiableList(new IntList(array, length));
     }
 }
