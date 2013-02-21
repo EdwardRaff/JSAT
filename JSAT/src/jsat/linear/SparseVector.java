@@ -167,7 +167,7 @@ public class SparseVector extends  Vec
     public void set(int index, double val)
     {
         if(index > length()-1 || index < 0)
-            throw new ArithmeticException("Can not set an index larger then the array");
+            throw new IndexOutOfBoundsException(index + " does not fit in [0," + length + ")");
 
         
         clearCaches();
