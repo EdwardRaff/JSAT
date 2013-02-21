@@ -104,6 +104,8 @@ public class RegressionDataSet extends DataSet
      */
     private void setUpGenericNumericNames()
     {
+        if(getNumNumericalVars() > 100)
+            return;
         for(int i = 0; i < getNumNumericalVars(); i++)
             this.numericalVariableNames.add("Numeric Input " + (i+1));
     }

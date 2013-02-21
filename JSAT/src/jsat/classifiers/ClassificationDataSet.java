@@ -127,6 +127,8 @@ public class ClassificationDataSet extends DataSet
 
     private void generateGenericNumericNames()
     {
+        if(getNumNumericalVars() > 100)
+            return;
         this.numericalVariableNames = new ArrayList<String>(getNumNumericalVars());
         for(int i = 0; i < getNumNumericalVars(); i++)
             this.numericalVariableNames.add("Numeric Input " + (i+1));
