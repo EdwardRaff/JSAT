@@ -54,11 +54,23 @@ public class XOR96 extends Random
     @Override
     protected int next(int bits)
     {
+        return (int)(nextLong() >>> (64 - bits));
+    }
+
+    @Override
+    public long nextLong()
+    {
         long t = (x ^ (x << a));
         x = y;
         y = z;
         z = (z ^ (z >>> c)) ^ (t ^ (t >>> b));
-        return (int)( z >>> 64 - bits);
+        return z;
     }
     
+    @Override
+    public double nextDouble()
+    {
+        long l = nextLong() >>> 11; 
+        return l / (double)(1L << 53);
+    }
 }

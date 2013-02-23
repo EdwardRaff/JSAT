@@ -56,15 +56,25 @@ public class XOR128 extends Random
     @Override
     protected int next(int bits)
     {
+        return (int)(nextLong() >>> (64 - bits));
+    }
+
+    @Override
+    public long nextLong()
+    {
         long t;
         t = (x ^ (x << 11));
         x = y;
         y = z;
         z = w;
         w = (w ^ (w >>> 19)) ^ (t ^ (t >>> 8));
-        return (int)( w >>> (64 - bits));
+        return w;
     }
     
-    
-    
+    @Override
+    public double nextDouble()
+    {
+        long l = nextLong() >>> 11; 
+        return l / (double)(1L << 53);
+    }
 }

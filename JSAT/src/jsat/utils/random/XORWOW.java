@@ -64,8 +64,12 @@ public class XORWOW extends Random
     @Override
     protected int next(int bits)
     {
-        /*This is so fast, it is cheaper to drop the top 32 random bits than to 
-        save them with an if statement*/
+        return (int)(nextLong() >>> (64 - bits));
+    }
+
+    @Override
+    public long nextLong()
+    {
         long t;
         t = (x ^ (x >> 2));
         x = y;
@@ -75,6 +79,13 @@ public class XORWOW extends Random
         v = (v ^ (v << 4)) ^ (t ^ (t << 1));
         
         t = (d += 362437) + v;
-        return (int)(t >>> (64-bits));
+        return t;
+    }
+
+    @Override
+    public double nextDouble()
+    {
+        long l = nextLong() >>> 11; 
+        return l / (double)(1L << 53);
     }
 }
