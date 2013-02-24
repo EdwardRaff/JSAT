@@ -7,16 +7,16 @@ import static java.lang.Math.*;
 import static jsat.linear.RowColumnOps.*;
 
 /**
- * The Singular Value Decomposition (SVD) of a matrix A<sub>m,n </sub> = U<sub>m,m </sub> S<sub>m,n </sub> V<sup>T</sup><sub>n,n </sub>, 
+ * The Singular Value Decomposition (SVD) of a matrix A<sub>m,n </sub> = U<sub>m,n </sub> &Sigma;<sub>n,n </sub> V<sup>T</sup><sub>n,n </sub>, 
  * where S is the diagonal matrix of the singular values sorted in descending order and are all non negative. 
  * <br> The SVD of a matrix has many practical uses, but is expensive to compute. 
  * <br><br>
  * Implementation adapted from the Public Domain work of <a href="http://math.nist.gov/javanumerics/jama/"> JAMA: A Java Matrix Package</a> 
  * <br>
- * <b>NOTE:</b> The current implementation is known to provide inaccurate (but still usable under some circumstances, 
- * especially when exact results are not needed) results when the given matrix is of rectangular form. 
- * <br>
- * <b>NOTE:</b> Current implementation only handles rectangular matrices when the rows are greater then the columns. 
+ * <b>NOTE:</b> The current implementation has been revised and is now passing all test cases. 
+ * However, it is still being tested. Use with awareness that it used to be bugged.
+ * Note left at revision 597
+ * 
  * @author Edward Raff
  */
 public class SingularValueDecomposition implements Cloneable, Serializable
@@ -27,25 +27,37 @@ public class SingularValueDecomposition implements Cloneable, Serializable
      */
     private double[] s;
     
+    /**
+     * Creates a new SVD of the matrix {@code A} such that A = U &Sigma; V<sup>T</sup>. The matrix 
+     * {@code  A} will be modified and used as temp space when computing the SVD. 
+     * @param A the matrix to create the SVD of
+     */
     public SingularValueDecomposition(Matrix A)
     {
         this(A, 100);
     }
-    
+
+    /**
+     * Creates a new SVD of the matrix {@code A} such that A = U &Sigma; V<sup>T</sup>. The matrix 
+     * {@code  A} will be modified and used as temp space when computing the SVD. 
+     * @param A the matrix to create the SVD of
+     * @param maxIterations the maximum number of iterations to perform per singular value till convergence. 
+     */
     public SingularValueDecomposition(Matrix A, int maxIterations)
     {
         //By doing this we get to keep the colum major algo and get row major performance 
-        Matrix AA = A.clone();//new TransposeView(A.transpose());
+        final boolean transposedWord = A.rows() < A.cols();
+        Matrix AA = transposedWord ? new TransposeView(A) : A;
         int m = AA.rows();
         int n = AA.cols();
 
         int nu = min(m, n);
         U = new DenseMatrix(m, nu);
         V = new DenseMatrix(n, n);
-
+        
         s = new double[min(m + 1, n)];
         double[] e = new double[n];
-        double[] work = new double[n];
+        double[] work = new double[m];
 
         int nct = min(m - 1, n);
         int nrt = max(0, min(n - 2, m));
@@ -68,6 +80,17 @@ public class SingularValueDecomposition implements Cloneable, Serializable
         generateU(nct, nu, m);
         generateV(n, nrt, e, nu);
         mainIterationLoop(p, e, n, m, maxIterations);
+        
+        if(transposedWord)
+        {
+            /*
+             * A = U S V'
+             * A' = V S' U'
+             */
+            Matrix tmp = V;
+            V = U;
+            U = tmp;
+        }
     }
     
     private SingularValueDecomposition(Matrix U, Matrix V, double[] s)
@@ -133,30 +156,6 @@ public class SingularValueDecomposition implements Cloneable, Serializable
                 superDiagonalCreation(e, k, n, m, work, A);
             }
         }
-    }
-
-    /**
-     * When U and V had altering dimensions, the intermediate product would normally be transformed to the correct dimension by the S matrix being rectangular. Instead use this method!
-     * @param x the intermediate product
-     * @return the a copy matrix with extra zeros appended to either the rows or columns
-     */
-    private Matrix expandTemporaryProduct(Matrix x)
-    {
-        Matrix xx;
-        if (U.rows() < V.rows())//We need to add zero columns to the result 
-        {
-            xx = new DenseMatrix(V.rows(), x.rows());
-        }
-        else if (U.rows() > V.cols())
-            xx = new DenseMatrix(x.rows(), U.rows());
-        else
-            return x;
-
-        for (int i = 0; i < x.rows(); i++)
-            for (int j = 0; j < x.cols(); j++)
-                xx.set(i, j, x.get(i, j));
-        x = xx;
-        return x;
     }
 
     private int sLength()
@@ -278,7 +277,7 @@ public class SingularValueDecomposition implements Cloneable, Serializable
         int pp = p - 1;
         int iter = 0;
         double eps = pow(2.0, -52.0);
-        while (p > 0)
+        while (p > 0 && iter < maxIterations)
         {
             int k, kase;
 
@@ -363,7 +362,8 @@ public class SingularValueDecomposition implements Cloneable, Serializable
 
                 case 3:
                 {
-                    case3QRStep(p, e, k, n, m, iter);
+                    case3QRStep(p, e, k, n, m);
+                    iter++;
                 }
                 break;
 
@@ -455,7 +455,7 @@ public class SingularValueDecomposition implements Cloneable, Serializable
         }
     }
     
-    private void case3QRStep(int p, double[] e, int k, int n, int m, int iter)
+    private void case3QRStep(int p, double[] e, int k, int n, int m)
     {
         // Calculate the shift.
 
@@ -512,7 +512,6 @@ public class SingularValueDecomposition implements Cloneable, Serializable
             }
         }
         e[p - 2] = f;
-        iter = iter + 1;
     }
     
     private void UVCase3Update(Matrix UV, int m, double cs, int j, double sn)
@@ -667,19 +666,8 @@ public class SingularValueDecomposition implements Cloneable, Serializable
      */
     public Matrix getPseudoInverse(double tol)
     {
-        Matrix UT;
-        if(U.rows() == V.rows())
-        {
-            UT = U.transpose();
-            Matrix.diagMult(DenseVector.toDenseVec(getInverseSingularValues(tol)), UT);
-        }
-        else
-        {
-            UT = new DenseMatrix(V.rows(), U.cols());
-            Matrix UTSquare = new SubMatrix(UT, 0, 0, U.rows(), U.cols());
-            U.transpose(UTSquare);
-            Matrix.diagMult(DenseVector.toDenseVec(getInverseSingularValues(tol)), UTSquare);
-        }
+        Matrix UT = U.transpose();
+        Matrix.diagMult(DenseVector.toDenseVec(getInverseSingularValues(tol)), UT);
         
         return V.multiply(UT);
     }
@@ -755,10 +743,8 @@ public class SingularValueDecomposition implements Cloneable, Serializable
      */
     public Matrix solve(Matrix B)
     {
-
         Matrix x = U.transposeMultiply(B);
         Matrix.diagMult(DenseVector.toDenseVec(getInverseSingularValues()), x);
-        x = expandTemporaryProduct(x);
         
         return V.multiply(x);
     }
@@ -777,7 +763,6 @@ public class SingularValueDecomposition implements Cloneable, Serializable
     {
         Matrix x = U.transposeMultiply(b, threadpool);
         Matrix.diagMult(DenseVector.toDenseVec(getInverseSingularValues()), x);
-        x = expandTemporaryProduct(x);
         
         return V.multiply(x, threadpool);
     }

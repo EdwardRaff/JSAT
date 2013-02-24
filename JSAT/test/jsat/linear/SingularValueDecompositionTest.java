@@ -39,13 +39,13 @@ public class SingularValueDecompositionTest
      */
     static DenseMatrix C;
     
-    private static final double delta = 1e-10;
-    
     /**
-     * Current SVD implementation is not great.... cant pass rectangular matrix tests... but results are in the ball park 
+     * 7 x 5
      */
-    private static boolean fullTest = false;
+    static DenseMatrix E;
     
+    private static final double delta = 1e-10;
+        
     static ExecutorService threadpool = Executors.newFixedThreadPool(SystemInfo.LogicalCores+1, new ThreadFactory() {
 
         public Thread newThread(Runnable r)
@@ -134,6 +134,17 @@ public class SingularValueDecompositionTest
             {9, 3, 2, 7, 2, 4, 8},
             {1, 2, 6, 5, 8, 1, 9}
         } );
+        
+        E = new DenseMatrix(new double[][]
+        {
+            {4,     4,     4,     2,     4},
+            {1,     5,     2,     3,     0},
+            {4,     2,     3,     4,     0},
+            {1,     9,     4,     2,     7},
+            {5,     7,     4,     3,     5},
+            {5,     9,     3,     0,     9},
+            {5,     4,     5,     8,     4}
+        });
         
     }
 
@@ -300,11 +311,10 @@ public class SingularValueDecompositionTest
         });
         
         Matrix pInvC = new SingularValueDecomposition(C.clone()).getPseudoInverse();
-        Matrix pInvD = new SingularValueDecomposition(D).getPseudoInverse();
+        Matrix pInvD = new SingularValueDecomposition(D.clone()).getPseudoInverse();
         
         assertTrue(truePInvD.equals(pInvD, delta));
-        if(fullTest)
-            assertTrue(truePInvC.equals(pInvC, delta));
+        assertTrue(truePInvC.equals(pInvC, delta));
         
     }
 
@@ -337,11 +347,11 @@ public class SingularValueDecompositionTest
         Vec b = DenseVector.toDenseVec(1.0, 2.0, 3.0, 4.0, 5.0);
         SingularValueDecomposition instance = null;
         
-        instance = new SingularValueDecomposition(A);
+        instance = new SingularValueDecomposition(A.clone());
         Vec x = instance.solve(b);
         assertTrue(A.multiply(x).equals(b, delta));
         
-        instance = new SingularValueDecomposition(C);
+        instance = new SingularValueDecomposition(C.transpose());
         try
         {
             x = instance.solve(b);
@@ -364,28 +374,25 @@ public class SingularValueDecompositionTest
         SingularValueDecomposition instance = null;
         Matrix x;
         
-        instance = new SingularValueDecomposition(A);
+        instance = new SingularValueDecomposition(A.clone());
         x = instance.solve(B);
         assertTrue(A.multiply(x).equals(B, delta));
-        
-        instance = new SingularValueDecomposition(A);
+
+        instance = new SingularValueDecomposition(A.clone());
         x = instance.solve(C);
         assertTrue(A.multiply(x).equals(C, delta));
-        
-        instance = new SingularValueDecomposition(A);
+
+        instance = new SingularValueDecomposition(A.clone());
         x = instance.solve(D);
         assertTrue(A.multiply(x).equals(D, delta));
-        
-        if(fullTest)
-        {
-            instance = new SingularValueDecomposition(C);
-            x = instance.solve(A);
-            assertTrue(C.multiply(x).equals(A, delta));
 
-            instance = new SingularValueDecomposition(C.transpose());
-            x = instance.solve(A);
-            assertTrue(C.transposeMultiply(x).equals(A, delta));
-        }
+        instance = new SingularValueDecomposition(C.clone());
+        x = instance.solve(E.transpose());
+        assertTrue(C.multiply(x).equals(E.transpose(), delta));
+
+        instance = new SingularValueDecomposition(C.transpose());
+        x = instance.solve(E);
+        assertTrue(C.transposeMultiply(x).equals(E, instance.getCondition()));
     }
 
     /**
@@ -398,27 +405,24 @@ public class SingularValueDecompositionTest
         SingularValueDecomposition instance = null;
         Matrix x;
         
-        instance = new SingularValueDecomposition(A);
+        instance = new SingularValueDecomposition(A.clone());
         x = instance.solve(B, threadpool);
         assertTrue(A.multiply(x).equals(B, delta));
         
-        instance = new SingularValueDecomposition(A);
+        instance = new SingularValueDecomposition(A.clone());
         x = instance.solve(C, threadpool);
         assertTrue(A.multiply(x).equals(C, delta));
         
-        instance = new SingularValueDecomposition(A);
+        instance = new SingularValueDecomposition(A.clone());
         x = instance.solve(D, threadpool);
         assertTrue(A.multiply(x).equals(D, delta));
-        
-        if(fullTest)
-        {
-            instance = new SingularValueDecomposition(C);
-            x = instance.solve(A, threadpool);
-            assertTrue(C.multiply(x).equals(A, delta));
 
-            instance = new SingularValueDecomposition(C.transpose());
-            x = instance.solve(A, threadpool);
-            assertTrue(C.transposeMultiply(x).equals(A, delta));
-        }
+        instance = new SingularValueDecomposition(C.clone());
+        x = instance.solve(E.transpose(), threadpool);
+        assertTrue(C.multiply(x).equals(E.transpose(), delta));
+
+        instance = new SingularValueDecomposition(C.transpose());
+        x = instance.solve(E, threadpool);
+        assertTrue(C.transposeMultiply(x).equals(E, instance.getCondition()));
     }
 }
