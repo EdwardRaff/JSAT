@@ -19,11 +19,19 @@ public class StemmingTokenizer implements Tokenizer
         this.baseTokenizer = baseTokenizer;
     }
     
+    @Override
     public List<String> tokenize(String input)
     {
         List<String> tokens = baseTokenizer.tokenize(input);
         stemmer.applyTo(tokens);
         return tokens;
+    }
+
+    @Override
+    public void tokenize(String input, StringBuilder workSpace, List<String> storageSpace)
+    {
+        baseTokenizer.tokenize(input, workSpace, storageSpace);
+        stemmer.applyTo(storageSpace);
     }
     
 }

@@ -1,5 +1,6 @@
 package jsat.text;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import jsat.linear.SparseVector;
@@ -8,7 +9,9 @@ import jsat.text.tokenizer.Tokenizer;
 import jsat.text.wordweighting.WordWeighting;
 
 /**
- *
+ * Creates new text vectors from a dictionary of known tokens and a word 
+ * weighting scheme. 
+ * 
  * @author Edward Raff
  */
 public class BasicTextVectorCreator implements TextVectorCreator
@@ -20,7 +23,8 @@ public class BasicTextVectorCreator implements TextVectorCreator
     /**
      * Creates a new basic text vector creator
      * @param tokenizer the tokenizer to apply to incoming strings
-     * @param wordIndex the map of each known word to its index, the size of the map indicating the maximum (exclusive) index
+     * @param wordIndex the map of each known word to its index, the size of the
+     * map indicating the maximum (exclusive) index
      * @param weighting the weighting process to apply to each loaded document. 
      */
     public BasicTextVectorCreator(Tokenizer tokenizer, Map<String, Integer> wordIndex, WordWeighting weighting)
@@ -33,11 +37,15 @@ public class BasicTextVectorCreator implements TextVectorCreator
     @Override
     public Vec newText(String text)
     {
-        List<String> words = tokenizer.tokenize(text);
-        
+        return newText(text, new StringBuilder(), new ArrayList<String>());
+    }
+
+    @Override
+    public Vec newText(String input, StringBuilder workSpace, List<String> storageSpace)
+    {
+        tokenizer.tokenize(input, workSpace, storageSpace);
         SparseVector vec = new SparseVector(wordIndex.size());
-        
-        for( String word : words)
+        for( String word : storageSpace)
         {
             if(wordIndex.containsKey(word))//Could also call retainAll on words before looping. Worth while to investigate 
             {
@@ -47,8 +55,6 @@ public class BasicTextVectorCreator implements TextVectorCreator
         }
         
         weighting.applyTo(vec);
-        
         return vec;
     }
-    
 }

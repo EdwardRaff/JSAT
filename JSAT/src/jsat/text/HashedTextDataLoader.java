@@ -1,6 +1,7 @@
 package jsat.text;
 
 import java.util.*;
+import java.util.Map.Entry;
 import jsat.DataSet;
 import jsat.SimpleDataSet;
 import jsat.classifiers.CategoricalData;
@@ -27,6 +28,19 @@ abstract public class HashedTextDataLoader implements TextVectorCreator
     private int[] termDocumentFrequencys;
     protected boolean noMoreAdding;
     private int documents;
+    
+    /**
+     * Temporary work space to use for tokenization
+     */
+    protected StringBuilder workSpace;
+    /**
+     * Temporary storage space to use for tokenization
+     */
+    protected List<String> storageSpace;
+    /**
+     * Temporary space to use when creating vectors
+     */
+    protected Map<String, Integer> wordCounts;
     
     private TextVectorCreator tvc;
     
@@ -72,10 +86,26 @@ abstract public class HashedTextDataLoader implements TextVectorCreator
     {
         if(noMoreAdding)
             throw new RuntimeException("Initial data set has been finalized");
-        List<String> words = tokenizer.tokenize(text);
-        Map<String, Integer> wordCounts = new HashMap<String, Integer>(words.size());
+        if(workSpace == null)
+        {
+            workSpace = new StringBuilder();
+            storageSpace = new ArrayList<String>();
+        }
         
-        for(String word : words)
+        workSpace.setLength(0);
+        storageSpace.clear();
+        
+        
+        tokenizer.tokenize(text, workSpace, storageSpace);
+        /**
+         * Create a new one every 50 so that we dont waist iteration time 
+         * on many null elements when we occasionally load in an abnormally
+         * large document 
+         */
+        if(documents % 50 == 0)
+            wordCounts = new HashMap<String, Integer>(storageSpace.size());
+        
+        for(String word : storageSpace)
         {
             Integer count = wordCounts.get(word);
             if(count == null)
@@ -85,13 +115,15 @@ abstract public class HashedTextDataLoader implements TextVectorCreator
         }
         
         SparseVector vec = new SparseVector(dimensionSize, wordCounts.size());
-        for(Map.Entry<String, Integer> entry : wordCounts.entrySet())
+        for(Iterator<Entry<String, Integer>> iter = wordCounts.entrySet().iterator(); iter.hasNext();)
         {
+            Entry<String, Integer> entry = iter.next();
             String word = entry.getKey();
             
             int index = Math.abs(word.hashCode()) % dimensionSize;
             vec.set(index, entry.getValue());
             termDocumentFrequencys[index] += entry.getValue();
+            iter.remove();
         }
         
         vectors.add(vec);
@@ -105,6 +137,10 @@ abstract public class HashedTextDataLoader implements TextVectorCreator
     protected void finishAdding()
     {
         noMoreAdding = true;
+        
+        workSpace = null;
+        storageSpace = null;
+        wordCounts = null;
         
         weighting.setWeight(vectors, IntList.unmodifiableView(termDocumentFrequencys, dimensionSize));
         for(SparseVector vec : vectors)
@@ -139,7 +175,12 @@ abstract public class HashedTextDataLoader implements TextVectorCreator
     {
         return getTextVectorCreator().newText(input);
     }
-    
+
+    @Override
+    public Vec newText(String input, StringBuilder workSpace, List<String> storageSpace)
+    {
+        return getTextVectorCreator().newText(input, workSpace, storageSpace);
+    }
         
     /**
      * Returns the {@link TextVectorCreator} used by this data loader to convert

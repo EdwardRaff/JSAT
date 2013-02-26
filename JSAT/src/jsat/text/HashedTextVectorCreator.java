@@ -1,5 +1,7 @@
 package jsat.text;
 
+import java.util.ArrayList;
+import java.util.List;
 import jsat.linear.SparseVector;
 import jsat.linear.Vec;
 import jsat.text.tokenizer.Tokenizer;
@@ -34,8 +36,15 @@ public class HashedTextVectorCreator implements TextVectorCreator
     @Override
     public Vec newText(String input)
     {
+        return newText(input, new StringBuilder(), new ArrayList<String>());
+    }
+
+    @Override
+    public Vec newText(String input, StringBuilder workSpace, List<String> storageSpace)
+    {
+        tokenizer.tokenize(input, workSpace, storageSpace);
         SparseVector vec = new SparseVector(dimensionSize);
-        for(String word : tokenizer.tokenize(input))
+        for(String word : storageSpace)
             vec.increment(Math.abs(word.hashCode())%dimensionSize, 1.0);
         weighting.applyTo(vec);
         return vec;

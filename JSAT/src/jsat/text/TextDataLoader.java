@@ -22,19 +22,48 @@ import jsat.utils.IntList;
  */
 public abstract class TextDataLoader implements TextVectorCreator
 {
+    /**
+     * List of original vectors
+     */
     protected List<SparseVector> vectors;
+    /**
+     * Tokenizer to apply to input strings
+     */
     protected Tokenizer tokenizer;
     
     /**
      * Maps words to their associated index in an array
      */
     protected Map<String, Integer> wordIndex;
+    /**
+     * list of all word tokens encountered in order of first observation
+     */
     protected List<String> allWords;
+    /**
+     * The list of integer counts of how many times each word token was seen
+     */
     protected List<Integer> termDocumentFrequencys;
     private WordWeighting weighting;
     
+    /**
+     * Temporary work space to use for tokenization
+     */
+    protected StringBuilder workSpace;
+    /**
+     * Temporary storage space to use for tokenization
+     */
+    protected List<String> storageSpace;
+    /**
+     * Temporary space to use when creating vectors
+     */
+    protected Map<String, Integer> wordCounts;
+    
     private TextVectorCreator tvc;
     
+    /**
+     * true when {@link #finishAdding() } is called, and no new original 
+     * documents can be inserted
+     */
     protected boolean noMoreAdding;
     private int currentLength = 0;
     private int documents;
@@ -76,18 +105,27 @@ public abstract class TextDataLoader implements TextVectorCreator
     {
         if(noMoreAdding)
             throw new RuntimeException("Initial data set has been finalized");
-        List<String> words = tokenizer.tokenize(text);
-        Map<String, Integer> wordCounts = new HashMap<String, Integer>(words.size());
-        
-        for(String word : words)
+        if(workSpace == null)
         {
-            /*
-             * Tokenization may use substring, which is a view of the orignal 
-             * full string. Keeping a reference keeps the larger original 
-             * document in this case. Create new string to avoid holding onto
-             * the garbage
-             */
-            word = new String(word);
+            workSpace = new StringBuilder();
+            storageSpace = new ArrayList<String>();
+            wordCounts = new HashMap<String, Integer>();
+        }
+
+        workSpace.setLength(0);
+        storageSpace.clear();
+        
+        tokenizer.tokenize(text, workSpace, storageSpace);
+        /**
+         * Create a new one every 50 so that we dont waist iteration time 
+         * on many null elements when we occasionally load in an abnormally
+         * large document 
+         */
+        if(documents % 50 == 0)
+            wordCounts = new HashMap<String, Integer>(storageSpace.size()*3/2);
+        
+        for(String word : storageSpace)
+        {
             Integer count = wordCounts.get(word);
             if(count == null)
                 wordCounts.put(word, 1);
@@ -96,11 +134,13 @@ public abstract class TextDataLoader implements TextVectorCreator
         }
         
         SparseVector vec = new SparseVector(currentLength+1, wordCounts.size());//+1 to avoid issues when its length is zero, will be corrected in finalization step anyway
-        for(Map.Entry<String, Integer> entry : wordCounts.entrySet())
+        for(Iterator<Map.Entry<String, Integer>> iter = wordCounts.entrySet().iterator(); iter.hasNext();)
         {
+            Map.Entry<String, Integer> entry = iter.next();
             String word = entry.getKey();
             
-            if(!wordIndex.containsKey(word))//this word has never been seen before!
+            Integer indx = wordIndex.get(word);
+            if(indx == null)//this word has never been seen before!
             {
                 allWords.add(word);
                 wordIndex.put(word, currentLength++);
@@ -110,10 +150,10 @@ public abstract class TextDataLoader implements TextVectorCreator
             }
             else//this word has been seen before
             {
-                int indx = wordIndex.get(word);
                 termDocumentFrequencys.set(indx, termDocumentFrequencys.get(indx)+1);
                 vec.set(indx, entry.getValue());
             }
+            iter.remove();
         }
         
         vectors.add(vec);
@@ -127,6 +167,10 @@ public abstract class TextDataLoader implements TextVectorCreator
     protected void finishAdding()
     {
         noMoreAdding = true;
+        
+        workSpace = null;
+        storageSpace = null;
+        wordCounts = null;
         
         weighting.setWeight(vectors, termDocumentFrequencys);
         for(SparseVector vec : vectors)
@@ -172,6 +216,14 @@ public abstract class TextDataLoader implements TextVectorCreator
         if(!noMoreAdding)
             throw new RuntimeException("Initial documents have not yet loaded");
         return getTextVectorCreator().newText(text);
+    }
+
+    @Override
+    public Vec newText(String input, StringBuilder workSpace, List<String> storageSpace)
+    {
+        if(!noMoreAdding)
+            throw new RuntimeException("Initial documents have not yet loaded");
+        return getTextVectorCreator().newText(input, workSpace, storageSpace);
     }
     
     /**

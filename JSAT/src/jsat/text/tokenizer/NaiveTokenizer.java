@@ -16,6 +16,7 @@ import java.util.List;
 public class NaiveTokenizer implements Tokenizer
 {   
     private boolean useLowerCase;
+    private boolean otherToWhiteSpace = false;
 
     /**
      * Creates a new naive tokenizer that converts words to lower case
@@ -42,24 +43,34 @@ public class NaiveTokenizer implements Tokenizer
         ArrayList<String> toRet = new ArrayList<String>();
         
         StringBuilder sb = new StringBuilder(input.length()/10);
+        
+        tokenize(input, sb, toRet);
+        
+        return toRet;
+    }
+
+    @Override
+    public void tokenize(String input, StringBuilder workSpace, List<String> storageSpace)
+    {
         for(int i = 0; i < input.length(); i++)
         {
             char c = input.charAt(i);
             if(Character.isLetter(c))
                 if (useLowerCase)
-                    sb.append(Character.toLowerCase(c));
+                    workSpace.append(Character.toLowerCase(c));
                 else
-                    sb.append(c);
+                    workSpace.append(c);
             else if (Character.isDigit(c))
-                sb.append(c);
-            else if(sb.length() > 0)
+                workSpace.append(c);
+            else if(Character.isWhitespace(c) && workSpace.length() > 0)
             {
-                toRet.add(sb.toString());
-                sb.setLength(0);
+                storageSpace.add(workSpace.toString());
+                workSpace.setLength(0);
             }
         }
         
-        return toRet;
+        if(workSpace.length() > 0)
+            storageSpace.add(workSpace.toString());
     }
     
 }
