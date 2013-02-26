@@ -5,7 +5,7 @@ import jsat.linear.Vec;
 
 /**
  * Provides a simple binary representation of bag-of-word vectors by simply 
- * marking a value 1.0 if the for is present, and 0.0 if the word is not 
+ * marking a value 1.0 if the token is present, and 0.0 if the token is not 
  * present. Nothing else is taken into account. 
  * 
  * @author Edward Raff
