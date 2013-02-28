@@ -4,8 +4,8 @@ import java.util.*;
 import jsat.DataSet;
 import jsat.classifiers.CategoricalData;
 import jsat.classifiers.DataPoint;
-import jsat.datatransform.DataTransform;
 import jsat.linear.*;
+import jsat.utils.IntList;
 
 /**
  * This Data Transform allows the complete removal of specific features from the
@@ -45,6 +45,54 @@ public class RemoveAttributeTransform implements DataTransform
     public RemoveAttributeTransform(DataSet dataSet, Set<Integer> categoricalToRemove, Set<Integer> numericalToRemove)
     {
         setUp(dataSet, categoricalToRemove, numericalToRemove);
+    }
+    
+    /**
+     * Returns an unmodifiable list of the original indices of the numeric 
+     * attributes that will be kept when this transform is applied. 
+     * @return the numeric indices that are not removed by this transform
+     */
+    public List<Integer> getKeptNumeric()
+    {
+        return IntList.unmodifiableView(numIndexMap, numIndexMap.length);
+    }
+    
+    /**
+     * Returns a mapping from the numeric indices in the transformed space back 
+     * to their original indices 
+     * 
+     * @return a mapping from the transformed numeric space to the original one
+     */
+    public Map<Integer, Integer> getReverseNumericMap()
+    {
+        Map<Integer, Integer> map = new HashMap<Integer, Integer>();
+        for(int newIndex = 0; newIndex < numIndexMap.length; newIndex++)
+            map.put(newIndex, numIndexMap[newIndex]);
+        return map;
+    }
+    
+    /**
+     * Returns an unmodifiable list of the original indices of the nominal 
+     * attributes that will be kept when this transform is applied. 
+     * @return the nominal indices that are not removed by this transform
+     */
+    public List<Integer> getKeptNominal()
+    {
+        return IntList.unmodifiableView(catIndexMap, catIndexMap.length);
+    }
+    
+    /**
+     * Returns a mapping from the nominal indices in the transformed space back 
+     * to their original indices 
+     * 
+     * @return a mapping from the transformed nominal space to the original one
+     */
+    public Map<Integer, Integer> getReverseNominalMap()
+    {
+        Map<Integer, Integer> map = new HashMap<Integer, Integer>();
+        for(int newIndex = 0; newIndex < catIndexMap.length; newIndex++)
+            map.put(newIndex, catIndexMap[newIndex]);
+        return map;
     }
     
     /**
