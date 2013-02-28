@@ -241,6 +241,11 @@ public abstract class TextDataLoader implements TextVectorCreator
         return tvc;
     }
     
+    /**
+     * Returns the original token for the given index in the data set
+     * @param index the numeric feature index
+     * @return the word token associated with the index
+     */
     public String getWordForIndex(int index)
     {
         if(index >= 0 && index < allWords.size())
@@ -249,13 +254,30 @@ public abstract class TextDataLoader implements TextVectorCreator
             return null;
     }
     
+    /**
+     * Return the number of times a token has been seen in the document
+     * @param index the numeric feature index 
+     * @return the total occurrence count for the feature
+     */
+    public int getTermFrequency(int index)
+    {
+        return termDocumentFrequencys.get(index);
+    }
+    
+    /**
+     * Creates a new transform factory to remove all features for tokens that 
+     * did not occur a certain number of times
+     * @param minCount the minimum number of occurrences to be kept as a feature
+     * @return a transform factory for removing features that did not occur 
+     * often enough
+     */
     @SuppressWarnings("unchecked")
-    public DataTransformFactory getMinimumOccurrenceDTF(int minCount)
+    public RemoveAttributeTransformFactory getMinimumOccurrenceDTF(int minCount)
     {
         
         final Set<Integer> numericToRemove = new HashSet<Integer>();
         for(int i = 0; i < termDocumentFrequencys.size(); i++)
-            if(termDocumentFrequencys.get(i) <= minCount)
+            if(termDocumentFrequencys.get(i) < minCount)
                 numericToRemove.add(i);
         
         return new RemoveAttributeTransformFactory(Collections.EMPTY_SET, numericToRemove);
