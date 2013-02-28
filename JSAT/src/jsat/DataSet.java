@@ -96,9 +96,12 @@ public abstract class DataSet
         //TODO this should be added to DataTransform
         numNumerVals = getDataPoint(0).numNumericalValues();
         categories = getDataPoint(0).getCategoricalData();
-        this.numericalVariableNames.clear();
-        for(int i = 0; i < getNumNumericalVars(); i++)
-            numericalVariableNames.add("Transformed Numeric Variable " + (i+1));
+        if(this.numericalVariableNames != null)
+        {
+            this.numericalVariableNames.clear();
+            for(int i = 0; i < getNumNumericalVars(); i++)
+                numericalVariableNames.add("Transformed Numeric Variable " + (i+1));
+        }
     }
     
     /**
