@@ -69,7 +69,7 @@ public class MutualInfoFS extends RemoveAttributeTransform
     public MutualInfoFS(ClassificationDataSet dataSet, int featureCount, NumericalHandeling numericHandling)
     {
         super();
-        
+        final int N = dataSet.getSampleSize();
         double[] classPriors = dataSet.getPriors();
         double[] logClassPriors = new double[classPriors.length];
         for(int i = 0; i < logClassPriors.length; i++)
@@ -104,7 +104,7 @@ public class MutualInfoFS extends RemoveAttributeTransform
             }
             else//Numeric value
             {
-                //Yes/No, but only keep track of the yes alues
+                //Yes/No, but only keep track of the yes values
                 jointProb[i] = new double[2][logClassPriors.length];
                 featPriors[i] = new double[1];//feature for numeric is just 1.0-other
             }
@@ -129,21 +129,14 @@ public class MutualInfoFS extends RemoveAttributeTransform
             {
                 Vec numeric = dp.getNumericalValues();
                 
-                int lastNNZ = -1;
                 for(IndexValue iv : numeric)
                 {
-                    //Need to update the joint prob for the non zero class vals
-                    for(int j = lastNNZ+1; j < iv.getIndex(); j++)
-                    {
-                        jointProb[j+numCatVars][1][trueClass] += weight;
-                    }
-                    lastNNZ = iv.getIndex();
                     featPriors[iv.getIndex()+numCatVars][0] += weight;
                     jointProb[iv.getIndex()+numCatVars][0][trueClass] += weight;
                 }
             }
         }
-        
+
         /**
          * Mutual Information for each index
          */
@@ -169,12 +162,12 @@ public class MutualInfoFS extends RemoveAttributeTransform
                     }
                 }
             }
-            else//Numeric attribute
+            else//Numeric attribute & it is binary
             {
                 for(int tClass = 0; tClass < classPriors.length; tClass++)
                 {
                     double jpNeg = jointProb[i][0][tClass]/weightSum;
-                    double jpPos = jointProb[i][1][tClass]/weightSum;
+                    double jpPos = (classPriors[tClass]*N - jointProb[i][0][tClass])/weightSum;
                     double posPrio = featPriors[i][0]/weightSum;
                     double negPrio = 1.0-posPrio;
                     
