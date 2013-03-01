@@ -235,96 +235,6 @@ public class SparseVector extends  Vec
     }
 
     @Override
-    public Vec add(Vec v)
-    {
-        if(this.length() != v.length())
-            throw new ArithmeticException("Vectors must have the same length");
-
-        
-        if(v instanceof SparseVector)
-        {
-            SparseVector ret = new SparseVector(length());
-            SparseVector b = (SparseVector) v;
-            int p1 = 0, p2 = 0;
-            while (p1 < used && p2 < b.used)
-            {
-                int a1 = indexes[p1], a2 = b.indexes[p2];
-                if (a1 == a2)
-                {
-                    ret.set(a1, values[p1] + b.values[p2]);
-                    p1++;
-                    p2++;
-                }
-                else if (a1 > a2)
-                {
-                    ret.set(a2, b.values[p2]);
-                    p2++;
-                }
-                else
-                {
-                    ret.set(a1, values[p1]);
-                    p1++;
-                }
-            }
-            
-            return ret;
-        }
-        
-        //Else we are sparce, and they are dense
-        DenseVector ret = ((DenseVector) v).deepCopy();
-        int p1 = 0;
-        for(int i = 0; i < used; i++)
-            ret.set(indexes[i], ret.get(indexes[i]) + values[i]); 
-        
-        return ret;
-    }
-
-    @Override
-    public Vec subtract(Vec v)
-    {
-        if(this.length() != v.length())
-            throw new ArithmeticException("Vectors must have the same length");
-
-        
-        if(v instanceof SparseVector)
-        {
-            SparseVector ret = new SparseVector(length());
-            SparseVector b = (SparseVector) v;
-            int p1 = 0, p2 = 0;
-            while (p1 < used && p2 < b.used)
-            {
-                int a1 = indexes[p1], a2 = b.indexes[p2];
-                if (a1 == a2)
-                {
-                    ret.set(a1, values[p1] - b.values[p2]);
-                    p1++;
-                    p2++;
-                }
-                else if (a1 > a2)
-                {
-                    ret.set(a2, -b.values[p2]);
-                    p2++;
-                }
-                else
-                {
-                    ret.set(a1, values[p1]);
-                    p1++;
-                }
-            }
-            
-            return ret;
-        }
-        
-        //Else we are sparce, and they are dense
-        DenseVector ret = ((DenseVector) v).deepCopy();
-        for(int i = 0; i < used; i++)
-            ret.set(indexes[i], ret.get(indexes[i]) - values[i]); 
-        
-        return ret;
-    }
-
-
-    @Override
     public Vec sortedCopy()
     {
         throw new UnsupportedOperationException("Not supported yet.");
@@ -506,17 +416,6 @@ public class SparseVector extends  Vec
     }
 
     @Override
-    public Vec multiply(double c)
-    {
-        SparseVector sv = new SparseVector(length, used);
-        
-        for(int i = 0; i < used; i++)
-            sv.values[i] *= c;
-        
-        return sv;
-    }
-
-    @Override
     public void multiply(Matrix A, Vec b)
     {
         if(this.length() != A.rows())
@@ -533,28 +432,6 @@ public class SparseVector extends  Vec
         }
     }
     
-    @Override
-    public Vec divide(double c)
-    {
-        SparseVector sv = new SparseVector(length, used);
-        
-        for(int i = 0; i < used; i++)
-            sv.values[i] /= c;
-        
-        return sv;
-    }
-
-    @Override
-    public Vec add(double c)
-    {
-        SparseVector sv = new SparseVector(length, used);
-        
-        for(int i = 0; i < used; i++)
-            sv.values[i] += c;
-        
-        return sv;
-    }
-
     @Override
     public void mutableAdd(double c)
     {
@@ -755,14 +632,6 @@ public class SparseVector extends  Vec
     }
 
     @Override
-    public Vec normalized()
-    {
-        Vec copy = this.clone();
-        copy.normalize();
-        return copy;
-    }
-
-    @Override
     public void normalize()
     {
         double sum = 0;
@@ -773,30 +642,6 @@ public class SparseVector extends  Vec
         sum = Math.sqrt(sum);
 
         mutableDivide(sum); 
-    }
-
-    @Override
-    public Vec pairwiseMultiply(Vec b)
-    {
-        if(this.length() != b.length())
-            throw new ArithmeticException("Vectors must have the same length");
-        SparseVector toRet = (SparseVector) this.clone();
-        
-        toRet.mutablePairwiseMultiply(b);
-        
-        return toRet;
-    }
-
-    @Override
-    public Vec pairwiseDivide(Vec b)
-    {
-        if(this.length() != b.length())
-            throw new ArithmeticException("Vectors must have the same length");
-        SparseVector toRet = (SparseVector) this.clone();
-        
-        toRet.mutablePairwiseDivide(b);
-        
-        return toRet;
     }
 
     @Override
