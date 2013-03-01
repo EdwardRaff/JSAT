@@ -558,6 +558,8 @@ public class SparseVector extends  Vec
     @Override
     public void mutableAdd(double c)
     {
+        if(c == 0.0)
+            return;
         clearCaches();
         /* This NOT the most efficient way to implement this. 
          * But adding a constant to every value in a sparce 
@@ -571,6 +573,8 @@ public class SparseVector extends  Vec
     public void mutableAdd(double c, Vec v)
     {
         clearCaches();
+        if(c == 0.0)
+            return;
         if(v instanceof SparseVector)
         {
             SparseVector b = (SparseVector) v;
@@ -609,6 +613,39 @@ public class SparseVector extends  Vec
             //If b is not empty, we must add b to this. If b is empty, we would be adding zeros to this [so we do nothing]
             while(p2 < b.used)
                 this.set(b.indexes[p2], c*b.values[p2++]);//TODO Can be done more efficently 
+        }
+        else if(v.isSparse())
+        {
+            if(v.nnz() == 0)
+                return;
+            int p1 = 0;
+            Iterator<IndexValue> iter = v.getNonZeroIterator();
+            IndexValue iv = iter.next();
+            while(p1 < used && iv != null)
+            {
+                int a1 = indexes[p1];
+                int a2 = iv.getIndex();
+                
+                if(a1 == a2)
+                {
+                    values[p1++] += c*iv.getValue();
+                    if(iter.hasNext())
+                        iv = iter.next();
+                    else
+                        break;
+                }
+                else if(a1 > a2)
+                {
+                    this.set(a2, c*iv.getValue());
+                    p1++;
+                    if(iter.hasNext())
+                        iv = iter.next();
+                    else
+                        break;
+                }
+                else
+                    p1++;
+            }
         }
         else
         {
