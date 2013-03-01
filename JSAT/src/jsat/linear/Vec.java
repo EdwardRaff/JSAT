@@ -63,16 +63,84 @@ public abstract class Vec implements Cloneable, Iterable<IndexValue>, Serializab
         set(index, val+get(index));
     }
     
-    abstract public Vec add(double c);
-    abstract public Vec add(Vec b);
+    /**
+     * Returns a new vector that is the result of {@code this + c}
+     * @param c the constant to add
+     * @return the result of adding {@code c} to {@code this}
+     */
+    public Vec add(double c)
+    {
+        Vec toRet = this.clone();
+        toRet.mutableAdd(c);
+        return toRet;
+    }
+    
+    /**
+     * Returns a new vector that is the result of {@code this + b}
+     * @param b the vector to add
+     * @return the result of {@code b + this} 
+     */
+    public Vec add(Vec b)
+    {
+        Vec toRet = this.clone();
+        toRet.mutableAdd(b);
+        return toRet;
+    }
+    
+    /**
+     * Returns a new vector that is the result of {@code this - c}
+     * @param c the constant to subtract
+     * @return the result of {@code this - c}
+     */
     public Vec subtract(double c)
     {
         return add(-c);
     }
-    abstract public Vec subtract(Vec b);
-    abstract public Vec pairwiseMultiply(Vec b);
-    abstract public Vec multiply(double c);
     
+    /**
+     * Returns a new vector that is the result of {@code this - b}
+     * @param b the vector to subtract from {@code this}
+     * @return the result of {@code this - b}
+     */
+    public Vec subtract(Vec b)
+    {
+        Vec toRet = this.clone();
+        toRet.mutableSubtract(b);
+        return toRet;
+    }
+    
+    /**
+     * Returns a new vector that is the result of multiplying each value in 
+     * {@code this} by its corresponding value in {@code b}
+     * @param b the vector to pairwise multiply by
+     * @return the result of the pairwise multiplication of {@code b} onto the 
+     * values of {@code this}
+     */
+    public Vec pairwiseMultiply(Vec b)
+    {
+        Vec toRet = this.clone();
+        toRet.mutablePairwiseMultiply(b);
+        return toRet;
+    }
+    
+    /**
+     * Returns a new vector that is the result of {@code this * c} 
+     * @param c the constant to multiply by 
+     * @return the result of {@code this * c}
+     */
+    public Vec multiply(double c)
+    {
+        Vec toRet = this.clone();
+        toRet.mutableMultiply(c);
+        return toRet;
+    }
+    
+    /**
+     * Returns a new vector that is the result of the vector matrix product
+     * <tt>this<sup>T</sup>A</tt>
+     * @param A the matrix to multiply with
+     * @return the vector matrix product 
+     */
     public Vec multiply(Matrix A)
     {
         DenseVector b = new DenseVector(A.cols());
@@ -85,8 +153,31 @@ public abstract class Vec implements Cloneable, Iterable<IndexValue>, Serializab
      * @param b 
      */
     abstract public void multiply(Matrix A, Vec b);
-    abstract public Vec pairwiseDivide(Vec b);
-    abstract public Vec divide(double c);
+    
+    /**
+     * Returns a new vector that is the result of dividing each value in 
+     * {@code this} by the value in the same index in {@code b}
+     * @param b the vector to pairwise divide by
+     * @return the result of pairwise division of {@code this} by {@code b}
+     */
+    public Vec pairwiseDivide(Vec b)
+    {
+        Vec toRet = this.clone();
+        toRet.mutablePairwiseDivide(b);
+        return toRet;
+    }
+    
+    /**
+     * Returns a new vector that is the result of {@code this / c}
+     * @param c the constant to divide by
+     * @return the result of {@code this / c}
+     */
+    public Vec divide(double c)
+    {
+        Vec toRet = this.clone();
+        toRet.mutableDivide(c);
+        return toRet;
+    }
     
     /**
      * Alters this vector such that 
@@ -145,11 +236,35 @@ public abstract class Vec implements Cloneable, Iterable<IndexValue>, Serializab
     {
         this.mutableAdd(-1, b);
     }
+    
+    /**
+     * Mutates {@code this} by multiplying each value by the value in {@code b} 
+     * that has the same index
+     * @param b the vector to pairwise multiply by
+     */
     abstract public void mutablePairwiseMultiply(Vec b);
+    /**
+     * Mutates {@code this *= c} 
+     * @param c the constant to multiply by
+     */
     abstract public void mutableMultiply(double c);
+    /**
+     * Mutates {@code this} by dividing each value by the value in {@code b} 
+     * that has the same index 
+     * @param b the vector to pairwise divide by
+     */
     abstract public void mutablePairwiseDivide(Vec b);
+    
+    /**
+     * Mutates {@code this /= c}
+     * @param c the constant to divide by
+     */
     abstract public void mutableDivide(double c);
 
+    /**
+     * Returns a copy of this array with the values moved around so that they are in sorted order
+     * @return a new array in sorted order
+     */
     abstract public Vec sortedCopy();
 
     /**
@@ -177,11 +292,17 @@ public abstract class Vec implements Cloneable, Iterable<IndexValue>, Serializab
      * @return the standard deviation
      */
     abstract public double standardDeviation();
+    
     /**
-     * Computes the variance of the values in this vector
+     * Computes the variance of the values in this vector, which is 
+     * {@link #standardDeviation() }<sup>2</sup>
      * @return the variance 
      */
-    abstract public double variance();
+    public double variance()
+    {
+        return Math.pow(standardDeviation(), 2.0);
+    }
+    
     /**
      * Returns the median value in this vector
      * @return the median
@@ -248,8 +369,26 @@ public abstract class Vec implements Cloneable, Iterable<IndexValue>, Serializab
     
     @Override
     abstract public Vec clone();
-    abstract public Vec normalized();
-    abstract public void normalize();
+    
+    /**
+     * Returns a new vector that is the result of normalizing this vector by the
+     * L<sub>2</sub> norm
+     * @return a normalized version of this vector
+     */
+    public Vec normalized()
+    {
+        Vec toRet = this.clone();
+        toRet.normalize();
+        return toRet;
+    }
+    
+    /**
+     * Mutates this vector to be normalized by the L<sub>2</sub> norm
+     */
+    public void normalize()
+    {
+        mutableDivide(pNorm(2.0));
+    }
     
     /**
      * Applies the given function to each and every value in the vector. 
@@ -291,6 +430,11 @@ public abstract class Vec implements Cloneable, Iterable<IndexValue>, Serializab
      */
     abstract public double pNormDist(double p, Vec y);
     
+    /**
+     * Returns the p-norm of this vector. 
+     * @param p the norm type. 2 is a common value
+     * @return the p-norm of this vector
+     */
     abstract public double pNorm(double p);
     
     /**
@@ -316,7 +460,18 @@ public abstract class Vec implements Cloneable, Iterable<IndexValue>, Serializab
     
     abstract public boolean equals(Object obj, double range);
     
-    abstract public double[] arrayCopy();
+    /**
+     * Creates a new array that contains all the values of this vector in the 
+     * appropriate indices
+     * @return a new array that is a copy of this vector
+     */
+    public double[] arrayCopy()
+    {
+        double[] array = new double[length()];
+        for(IndexValue iv : this)
+            array[iv.getIndex()] = iv.getValue();
+        return array;
+    }
 
     @Override
     public Iterator<IndexValue> iterator()
