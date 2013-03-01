@@ -132,6 +132,20 @@ public class SparseVector extends  Vec
     }
     
     /**
+     * Removes a non zero value by shifting everything to the right over by one
+     * @param nzIndex the index to remove (setting it to zero)
+     */
+    private void removeNonZero(int nzIndex)
+    {
+        for(int i = nzIndex+1; i < used; i++)
+        {
+            values[i-1] = values[i];
+            indexes[i-1] = indexes[i];
+        }
+        used--;
+    }
+    
+    /**
      * Increments the value at the given index by the given value. 
      * @param index the index of the value to alter
      * @param val the value to be added to the index
@@ -140,13 +154,17 @@ public class SparseVector extends  Vec
     public void increment(int index, double val)
     {
         if (index > length - 1 || index < 0)
-            throw new ArithmeticException("Can not access an index larger then the vector or a negative index");
+            throw new IndexOutOfBoundsException("Can not access an index larger then the vector or a negative index");
         
         int location = Arrays.binarySearch(indexes, 0, used, index);
-        if(location < 0)
+        if(location < 0 && val != 0)//dont insert zeros!
             insertValue(location, index, val);
         else
+        {
             values[location]+=val;
+            if(values[location] == 0.0)
+                removeNonZero(location);
+        }
     }
     
     @Override
@@ -173,8 +191,15 @@ public class SparseVector extends  Vec
         clearCaches();
         int insertLocation = Arrays.binarySearch(indexes, 0, used, index);
         if(insertLocation >= 0)
-            values[insertLocation] = val;
-        else
+        {
+            if(val != 0)//set it
+                values[insertLocation] = val;
+            else//shift used count and everyone over
+            {
+                removeNonZero(insertLocation);
+            }
+        }
+        else if(val != 0)//dont insert 0s, that is stupid
             insertValue(insertLocation, index, val);
     }
 
@@ -598,8 +623,13 @@ public class SparseVector extends  Vec
     public void mutableMultiply(double c)
     {
         clearCaches();
+        if(c == 0.0)
+        {
+            zeroOut();
+            return;
+        }
         
-        for(int i = 0; i < used; i++)//0*c = 0, so we can do this sparcly
+        for(int i = 0; i < used; i++)
             values[i] *= c;
     }
 
@@ -607,8 +637,9 @@ public class SparseVector extends  Vec
     public void mutableDivide(double c)
     {
         clearCaches();
-        
-        for(int i = 0; i < used; i++)//0/c = 0, so we can do this sparcly
+        if(c == 0 && used != length)
+            throw new ArithmeticException("Division by zero would occur");
+        for(int i = 0; i < used; i++)
             values[i] /= c;
     }
 
