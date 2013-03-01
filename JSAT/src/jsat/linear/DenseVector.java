@@ -278,39 +278,6 @@ public class DenseVector extends Vec
     }
 
     @Override
-    public Vec add(double c)
-    {
-        DenseVector dv = new DenseVector(Arrays.copyOf(array, array.length));
-        
-        for(int i = startIndex; i < endIndex; i++)
-            dv.array[i] += c;
-        
-        return dv;
-    }
-
-    @Override
-    public Vec subtract(double c)
-    {
-        DenseVector dv = new DenseVector(Arrays.copyOf(array, array.length));
-        
-        for(int i = startIndex; i < endIndex; i++)
-            dv.array[i] -= c;
-        
-        return dv;
-    }
-
-    @Override
-    public Vec multiply(double c)
-    {
-        DenseVector dv = new DenseVector(Arrays.copyOf(array, array.length));
-        
-        for(int i = startIndex; i < endIndex; i++)
-            dv.array[i] *= c;
-        
-        return dv;
-    }
-       
-    @Override
     public void multiply(Matrix A, Vec b)
     {
         if(this.length() != A.rows())
@@ -324,51 +291,6 @@ public class DenseVector extends Vec
             for(int j = 0; j < A.cols(); j++)
                 b.increment(j, this_i*A.get(i, j));
         }
-    }
-
-    @Override
-    public Vec divide(double c)
-    {
-        DenseVector dv = new DenseVector(Arrays.copyOf(array, array.length));
-        
-        for(int i = startIndex; i < endIndex; i++)
-            dv.array[i] /= c;
-        
-        return dv;
-    }
-
-    @Override
-    public Vec add(Vec v)
-    {
-        if(this.length() != v.length())
-            throw new ArithmeticException("Vectors must have the same length");
-
-        
-        if(v instanceof SparseVector)//Sparce knows how to do this efficently
-            return ((SparseVector) v).add(this);
-        
-        //Else also dense
-        
-        double[] ret = new double[length()];
-        for(int i = 0; i < ret.length; i++)
-            ret[i] = array[i+startIndex] + v.get(i);
-            
-        return new DenseVector(ret);
-    }
-
-    @Override
-    public Vec subtract(Vec v)
-    {
-        if(this.length() != v.length())
-            throw new ArithmeticException("Vectors must have the same length");
-        
-        //Subtractio isnt as clever...
-        
-        double[] ret = new double[length()];
-        for(int i = 0; i < ret.length; i++)
-            ret[i] = array[i+startIndex] - v.get(i);
-            
-        return new DenseVector(ret);
     }
 
     @Override
@@ -454,14 +376,6 @@ public class DenseVector extends Vec
     }
 
     @Override
-    public Vec normalized()
-    {
-        Vec copy = this.clone();
-        copy.normalize();
-        return copy;
-    }
-
-    @Override
     public void normalize()
     {
         double sum = 0;
@@ -472,34 +386,6 @@ public class DenseVector extends Vec
         sum = Math.sqrt(sum);
 
         mutableDivide(sum); 
-    }
-
-    @Override
-    public Vec pairwiseMultiply(Vec b)
-    {
-        if(this.length() != b.length())
-            throw new ArithmeticException("Vectors must have the same length, " + this.length() + ", " + b.length());
-        
-        if(b instanceof SparseVector)//Let the sparce class do it efficently
-            return b.pairwiseMultiply(this);
-        Vec toReturn = b.clone();
-        for(int i = 0; i < b.length(); i++)
-            b.set(i, b.get(i)*array[i+startIndex]);
-        
-        return toReturn;
-    }
-
-    @Override
-    public Vec pairwiseDivide(Vec b)
-    {
-        if(this.length() != b.length())
-            throw new ArithmeticException("Vectors must have the same length");
-        
-        double[] vals = new double[this.length()];
-        for(int i = 0; i < vals.length; i++)
-            vals[i] = array[i+startIndex] / b.get(i);
-        
-        return new DenseVector(vals);
     }
 
     @Override
