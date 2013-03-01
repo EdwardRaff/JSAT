@@ -326,17 +326,22 @@ public class ClassificationModelEvaluation
     {
         CategoricalData predicting = dataSet.getPredicting();
         int classCount = predicting.getNumOfCategories();
-        System.out.printf("%-15s ", "Matrix");
+        int nameLength = 10;
+        for(int i = 0; i < classCount; i++)
+            nameLength = Math.max(nameLength, predicting.getOptionName(i).length()+2);
+        final String pfx = "%-" + nameLength;//prefix
+        
+        System.out.printf(pfx+"s ", "Matrix");
         for(int i = 0; i < classCount-1; i++)
-            System.out.printf("%-15s ", predicting.getOptionName(i).toUpperCase());
-        System.out.printf("%-15s\n", predicting.getOptionName(classCount-1).toUpperCase());
+            System.out.printf(pfx+"s ", predicting.getOptionName(i).toUpperCase());
+        System.out.printf(pfx+"s\n", predicting.getOptionName(classCount-1).toUpperCase());
         //Now the rows that have data! 
         for(int i = 0; i <confusionMatrix.length; i++)
         {
-            System.out.printf("%-15s ", predicting.getOptionName(i).toUpperCase());
+            System.out.printf(pfx+"s ", predicting.getOptionName(i).toUpperCase());
             for(int j = 0; j < classCount-1; j++)
-                System.out.printf("%-15f ", confusionMatrix[i][j]);
-            System.out.printf("%-15f\n", confusionMatrix[i][classCount-1]);
+                System.out.printf(pfx+"f ", confusionMatrix[i][j]);
+            System.out.printf(pfx+"f\n", confusionMatrix[i][classCount-1]);
         }
 
     }
