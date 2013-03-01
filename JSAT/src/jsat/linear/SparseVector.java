@@ -738,8 +738,7 @@ public class SparseVector extends  Vec
             throw new ArithmeticException("Vectors must have the same length");
         clearCaches();
         
-        //TODO a space , sparce optimized version could be done
-        for(int i = 0; i <= used; i++)
+        for(int i = 0; i < used; i++)
             values[i] *= b.get(indexes[i]);//zeros stay zero
     }
 
@@ -750,8 +749,7 @@ public class SparseVector extends  Vec
             throw new ArithmeticException("Vectors must have the same length");
         clearCaches();
         
-        //TODO a space , sparce optimized version could be done
-        for(int i = 0; i <= used; i++)
+        for(int i = 0; i < used; i++)
             values[i] /= b.get(indexes[i]);//zeros stay zero
     }
     
