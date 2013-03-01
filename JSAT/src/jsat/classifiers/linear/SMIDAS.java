@@ -11,6 +11,7 @@ import jsat.classifiers.DataPoint;
 import jsat.exceptions.FailedToFitException;
 import jsat.exceptions.UntrainedModelException;
 import jsat.linear.DenseVector;
+import jsat.linear.IndexValue;
 import jsat.linear.SparseVector;
 import jsat.linear.Vec;
 import jsat.regression.RegressionDataSet;
@@ -20,7 +21,7 @@ import jsat.regression.RegressionDataSet;
  * L<sub>1</sub> regularized linear regression problems SMIDAS (Stochastic 
  * Mirror Descent Algorithm mAde Sparse). It performs very well when the number 
  * of features is large relative to or greater than the number of data points. 
- * It also works well on sparse data sets. <br>
+ * It also works decently on smaller sparse data sets. <br>
  * Using the squared loss is equivalent to LASSO regression, and the LOG loss 
  * is equivalent to logistic regression. <br>
  * <br>
@@ -139,16 +140,26 @@ public class SMIDAS extends StochasticSTLinearL1
         multitpliers.mutableAdd(maxScaled-minScaled);
         multitpliers.mutablePairwiseDivide(obvMaxV.subtract(obvMinV));
         
+        boolean allZeroMins = true;
+        for(double min : obvMin)
+            if(min != 0)
+                allZeroMins = false;
         double[] target = new double[x.length];
         for(int i = 0; i < dataSet.getSampleSize(); i++)
         {
             //Copy and scale each value
-            x[i] = x[i].subtract(obvMinV);
-            x[i].mutablePairwiseMultiply(multitpliers);
-            x[i].mutableAdd(minScaled);
+            if(allZeroMins && minScaled == 0.0)
+            {
+                x[i].mutablePairwiseMultiply(multitpliers);
+            }
+            else//destroy all sparsity and our dreams
+            {
+                x[i] = x[i].subtract(obvMinV);
+                x[i].mutablePairwiseMultiply(multitpliers);
+                x[i].mutableAdd(minScaled);
+            }
             target[i] = dataSet.getDataPointCategory(i)*2-1;
         }
-        
         train(x, target);
     }
 
@@ -171,13 +182,24 @@ public class SMIDAS extends StochasticSTLinearL1
         multitpliers.mutableAdd(maxScaled-minScaled);
         multitpliers.mutablePairwiseDivide(obvMaxV.subtract(obvMinV));
         
+        boolean allZeroMins = true;
+        for(double min : obvMin)
+            if(min != 0)
+                allZeroMins = false;
         double[] target = new double[x.length];
         for(int i = 0; i < dataSet.getSampleSize(); i++)
         {
-            //Copy and scale each value
-            x[i] = x[i].subtract(obvMinV);
-            x[i].mutablePairwiseMultiply(multitpliers);
-            x[i].mutableAdd(minScaled);
+            if(allZeroMins && minScaled == 0.0)
+            {
+                x[i].mutablePairwiseMultiply(multitpliers);
+            }
+            else
+            {
+                //Copy and scale each value
+                x[i] = x[i].subtract(obvMinV);
+                x[i].mutablePairwiseMultiply(multitpliers);
+                x[i].mutableAdd(minScaled);
+            }
             target[i] = dataSet.getTargetValue(i);
         }
         
@@ -192,8 +214,7 @@ public class SMIDAS extends StochasticSTLinearL1
         
         Vec theta = new DenseVector(d);
         double theta_bias = 0;
-        Vec v = new DenseVector(d);
-        double v_bias = 0;
+        double lossScore = 0;
         w = new DenseVector(d);
         
         Random rand = new Random();
@@ -202,31 +223,39 @@ public class SMIDAS extends StochasticSTLinearL1
         {
             int i = rand.nextInt(m);
             
-            x[i].copyTo(v);
-            v_bias = loss.deriv(w.dot(v)+bias, y[i]);
-            v.mutableMultiply(v_bias);
+            lossScore = loss.deriv(w.dot(x[i])+bias, y[i]);
             
-            theta.mutableSubtract(v);
-            theta_bias -= v_bias;
-            for(int j = 0; j < theta.length(); j++)
+            theta.mutableSubtract(eta*lossScore, x[i]);
+            theta_bias -= eta*lossScore;
+
+            for(IndexValue iv : theta)
             {
-                double theta_j = theta.get(j);
+                int j = iv.getIndex();
+                double theta_j = iv.getValue();//theta.get(j);
                 theta.set(j, signum(theta_j)*max(0, abs(theta_j)-eta*lambda));
             }
             theta_bias = signum(theta_bias)*max(0, abs(theta_bias)-eta*lambda);
             
-            //w = f^-1(theta)
-            double logThetaNorm = log(theta.pNorm(p));
-            for(int j = 0; j < w.length(); j++)
+            final double thetaNorm = theta.pNorm(p);
+            if(thetaNorm > 0)
             {
-                double theta_j = theta.get(j);
-                w.set(j, signum(theta_j) * exp((p-1) * log(abs(theta_j)) - (p-2) * logThetaNorm));
+                //w = f^-1(theta)
+                final double logThetaNorm = log(thetaNorm);
+                for(int j = 0; j < w.length(); j++)
+                {
+                    double theta_j = theta.get(j);
+                    w.set(j, signum(theta_j) * exp((p-1) * log(abs(theta_j)) - (p-2) * logThetaNorm));
+                }
+                bias = signum(theta_bias)*exp((p-1) * log(abs(theta_bias)) - (p-2) * logThetaNorm);
             }
-            bias = signum(theta_bias)*exp((p-1) * log(abs(theta_bias)) - (p-2) * logThetaNorm);
+            else
+            {
+                theta.zeroOut();
+                theta_bias = 0;
+                w.zeroOut();
+                bias = 0;
+            }
         }
-        
-        if(w.nnz() < w.length()/2)
-            w = new SparseVector(w);
     }
     
     @Override
@@ -257,17 +286,23 @@ public class SMIDAS extends StochasticSTLinearL1
         Arrays.fill(obvMin, Double.POSITIVE_INFINITY);
         obvMax = new double[dataSet.getNumNumericalVars()];
         Arrays.fill(obvMax, Double.NEGATIVE_INFINITY);
-        Vec[] x = new Vec[dataSet.getSampleSize()];
+        Vec[] x = new Vec[dataSet.getSampleSize()];    
         for(int i = 0; i < dataSet.getSampleSize(); i++)
         {
             x[i] = dataSet.getDataPoint(i).getNumericalValues();
-            for(int j = 0; j < x[i].length(); j++)
+
+            for(IndexValue iv : x[i])
             {
-                double v = x[i].get(j);
+                int j = iv.getIndex();
+                double v = iv.getValue();
                 obvMin[j] = Math.min(obvMin[j], v);
                 obvMax[j] = Math.max(obvMax[j], v);
             }
         }
+        
+        if(x[0].isSparse())//Assume implicit min zeros from sparsity
+            for(int i = 0; i < obvMin.length; i++)
+                obvMin[i] = Math.min(obvMin[i], 0);
         
         if(!reScale)
         {

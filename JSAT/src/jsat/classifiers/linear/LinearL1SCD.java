@@ -135,6 +135,8 @@ public class LinearL1SCD extends StochasticSTLinearL1
         Arrays.fill(obvMax, Double.NEGATIVE_INFINITY);
         for(int i = 0; i < featureVals.length; i++)
             featureVals[i] = sparse ? new SparseVector(m) : new DenseVector(m);
+        if(sparse)
+            Arrays.fill(obvMin, 0.0);
         
         for(int i = 0; i < dataSet.getSampleSize(); i++)
         {
@@ -199,7 +201,7 @@ public class LinearL1SCD extends StochasticSTLinearL1
         double[] target = new double[m];
         for(int i = 0; i < dataSet.getSampleSize(); i++)
             target[i] = dataSet.getDataPointCategory(i)*2-1;
-        
+
         train(featureVals, target);
     }
     
@@ -259,10 +261,6 @@ public class LinearL1SCD extends StochasticSTLinearL1
                 for (int i = 0; i < target.length; i++)
                     z[i] += eta;
         }
-
-        //If w ends up being sparse, exploit it
-        if(w.nnz() < w.length()*0.5)
-            w = new SparseVector(w);
     }
 
     @Override

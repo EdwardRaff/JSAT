@@ -357,14 +357,29 @@ public abstract class StochasticSTLinearL1 implements Classifier, Regressor, Par
         if (reScale)
         {
             a = bias;
+            if(!w.isSparse())//w is dense, jsut iterate over x
+            {
+                for(IndexValue iv : x)
+                {
+                    int j = iv.getIndex();
+                    double xV = iv.getValue() - obvMin[j];
+                    xV *= (maxScaled - minScaled) / (obvMax[j] - obvMin[j]);
+                    xV += minScaled;
+                    a += w.get(j)*xV;
+                }
+                return a;
+            }
             //Compute the dot and rescale w/o extra spacein a sprase freindly way
             Iterator<IndexValue> wIter = w.getNonZeroIterator();
             Iterator<IndexValue> xIter = x.getNonZeroIterator();
+            
 
+            if(!wIter.hasNext() || !xIter.hasNext())
+                return a;
 
             IndexValue wIV = wIter.next();
             IndexValue xIV = xIter.next();
-            while (wIV != null && xIV != null)
+            do
             {
                 if (wIV.getIndex() == xIV.getIndex())
                 {
@@ -391,6 +406,7 @@ public abstract class StochasticSTLinearL1 implements Classifier, Regressor, Par
                     else
                         break;
             }
+            while (wIV != null && xIV != null);
         }
         else
             a = w.dot(x) + bias;
