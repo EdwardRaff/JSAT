@@ -676,6 +676,20 @@ public abstract class Vec implements Cloneable, Iterable<IndexValue>, Serializab
         }
         while (av != null && bv != null);
         
+        while(av != null)
+        {
+            if(abs(av.getValue()) > range)
+                return false;
+            av = thisIter.hasNext() ? thisIter.next() : null;
+        }
+        
+        while(bv != null)
+        {
+            if(abs(bv.getValue()) > range)
+                return false;
+            bv = otherIter.hasNext() ? otherIter.next() : null;
+        }
+        
         return true;
     }
     
