@@ -267,7 +267,7 @@ public class DenseVector extends Vec
     }
 
     @Override
-    public void multiply(Matrix A, Vec b)
+    public void multiply(double c, Matrix A, Vec b)
     {
         if(this.length() != A.rows())
             throw new ArithmeticException("Vector x Matrix dimensions do not agree [1," + this.length() + "] x [" + A.rows() + ", " + A.cols() + "]");
@@ -276,7 +276,7 @@ public class DenseVector extends Vec
         
         for(int i = 0; i < this.length(); i++)
         {
-            double this_i = this.array[i+this.startIndex];
+            double this_i = c*this.array[i+this.startIndex];
             for(int j = 0; j < A.cols(); j++)
                 b.increment(j, this_i*A.get(i, j));
         }

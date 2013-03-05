@@ -404,7 +404,7 @@ public class SparseVector extends  Vec
     }
 
     @Override
-    public void multiply(Matrix A, Vec b)
+    public void multiply(double c, Matrix A, Vec b)
     {
         if(this.length() != A.rows())
             throw new ArithmeticException("Vector x Matrix dimensions do not agree");
@@ -413,7 +413,7 @@ public class SparseVector extends  Vec
         
         for(int i = 0; i < used; i++)
         {
-            double val = this.values[i];
+            double val = c*this.values[i];
             int index = this.indexes[i];
             for(int j = 0; j < A.cols(); j++)
                 b.increment(j, val*A.get(index, j));

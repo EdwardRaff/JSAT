@@ -102,9 +102,9 @@ public class VecPaired<V extends Vec, P> extends Vec
     }
 
     @Override
-    public void multiply(Matrix A, Vec b)
+    public void multiply(double c, Matrix A, Vec b)
     {
-        vector.multiply(A, b);
+        vector.multiply(c, A, b);
     }
 
     @Override

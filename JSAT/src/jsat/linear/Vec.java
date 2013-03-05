@@ -149,12 +149,24 @@ public abstract class Vec implements Cloneable, Iterable<IndexValue>, Serializab
         this.multiply(A, b);
         return b;
     }
+    
     /**
      * If this is vector <tt>a</tt>, this this computes b = b + <tt>a</tt><sup>T</sup>*<tt>A</tt>
-     * @param A
-     * @param b 
+     * @param A the matrix to multiple by
+     * @param b the vector to mutate by adding the result to
      */
-    abstract public void multiply(Matrix A, Vec b);
+    public void multiply(Matrix A, Vec b)
+    {
+        multiply(1, A, b);
+    }
+    
+    /**
+     * If this is vector <tt>a</tt>, this this computes b = b + c <tt>a</tt><sup>T</sup>*<tt>A</tt>
+     * @param c the constant factor to multiply by
+     * @param A the matrix to multiple by
+     * @param b the vector to mutate by adding the result to
+     */
+    abstract public void multiply(double c, Matrix A, Vec b);
     
     /**
      * Returns a new vector that is the result of dividing each value in 
