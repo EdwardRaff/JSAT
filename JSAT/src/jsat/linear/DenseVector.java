@@ -251,8 +251,8 @@ public class DenseVector extends Vec
         if(this.length() != v.length())
             throw new ArithmeticException("Vectors must have the same length");
         
-        if(v instanceof SparseVector)//Let sparce do it, same both ways and sparce can do it efficently
-            return ((SparseVector) v).dot(this);
+        if(v.isSparse())
+            return v.dot(this);
         
         double dot = 0;
         for(int i = startIndex; i < endIndex; i++)
