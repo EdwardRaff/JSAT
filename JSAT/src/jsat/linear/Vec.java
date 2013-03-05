@@ -622,9 +622,62 @@ public abstract class Vec implements Cloneable, Iterable<IndexValue>, Serializab
     }
     
     @Override
-    abstract public boolean equals(Object obj);
+    public boolean equals(Object obj)
+    {
+        return equals(obj, 0.0);
+    }
     
-    abstract public boolean equals(Object obj, double range);
+    public boolean equals(Object obj, double range)
+    {
+        if(!(obj instanceof Vec))
+            return false;
+        Vec other = (Vec) obj;
+        range = abs(range);
+        
+        Iterator<IndexValue> thisIter = this.iterator();
+        Iterator<IndexValue> otherIter = other.iterator();
+        if (!thisIter.hasNext())
+            if (!otherIter.hasNext())
+                return true;
+            else
+                return false;
+        else if (!otherIter.hasNext())
+            return false;
+        
+        IndexValue av = thisIter.next();
+        IndexValue bv = otherIter.next();
+        
+        do
+        {
+            boolean nextA = false, nextB = false;
+            if (av.getIndex() == bv.getIndex())
+            {
+                if(abs(av.getValue() - bv.getValue()) > range)
+                    return false;
+                nextA = nextB = true;
+            }
+            else if(av.getIndex() < bv.getIndex())
+            {
+                if(abs(av.getValue()) > range)
+                    return false;
+                nextA = true;
+            }
+            else if(av.getIndex() > bv.getIndex())
+            {
+                if(abs(bv.getValue()) > range)
+                    return false;
+                nextB = true;
+            }
+            
+            if(nextA)
+                av = thisIter.hasNext() ? thisIter.next() : null;
+            if(nextB)
+                bv = otherIter.hasNext() ? otherIter.next() : null;
+        }
+        while (av != null && bv != null);
+        
+        return true;
+    }
     
     /**
      * Creates a new array that contains all the values of this vector in the 
