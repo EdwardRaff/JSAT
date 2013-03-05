@@ -187,12 +187,6 @@ public class DenseVector extends Vec
     }
 
     @Override
-    public double mean()
-    {
-        return sum()/length();
-    }
-
-    @Override
     public double skewness()
     {
         double mean = mean();
@@ -222,12 +216,7 @@ public class DenseVector extends Vec
         
         return tmp / (pow(standardDeviation(), 4) * (array.length-1) ) - 3;
     }
-    
-    @Override
-    public double standardDeviation()
-    {
-        return sqrt(variance());
-    }
+   
 
     @Override
     public DenseVector sortedCopy()

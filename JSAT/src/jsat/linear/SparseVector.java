@@ -291,19 +291,7 @@ public class SparseVector extends  Vec
 
         return (sumCache = sum);
     }
-
-    @Override
-    public double mean()
-    {
-        return sum()/length();
-    }
-
-    @Override
-    public double standardDeviation()
-    {
-        return Math.sqrt(variance());
-    }
-
+    
     @Override
     public double variance()
     {
