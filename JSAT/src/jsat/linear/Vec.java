@@ -2,6 +2,8 @@
 package jsat.linear;
 
 import java.io.Serializable;
+import static java.lang.Math.pow;
+import static java.lang.Math.sqrt;
 import java.util.Iterator;
 import java.util.Random;
 import jsat.math.Function;
@@ -281,17 +283,47 @@ public abstract class Vec implements Cloneable, Iterable<IndexValue>, Serializab
      * Computes the sum of the values in this vector
      * @return the sum of this vector's values
      */
-    abstract public double sum();
+    public double sum()
+    {
+        /*
+         * Uses Kahan summation algorithm, which is more accurate then
+         * naively summing the values in floating point. Though it
+         * does not guarenty the best possible accuracy
+         *
+         * See: http://en.wikipedia.org/wiki/Kahan_summation_algorithm
+         */
+
+        double sum = 0;
+        double c = 0;
+        for(IndexValue iv : this)
+        {
+            double d = iv.getValue();
+            double y = d - c;
+            double t = sum+y;
+            c = (t - sum) - y;
+            sum = t;
+        }
+        
+        return sum;
+    }
+    
     /**
      * Computes the mean value of all values stored in this vector
      * @return the mean value
      */
-    abstract public double mean();
+    public double mean()
+    {
+        return sum()/length();
+    }
+    
     /**
      * Computes the standard deviation of the values in this vector
      * @return the standard deviation
      */
-    abstract public double standardDeviation();
+    public double standardDeviation()
+    {
+        return Math.sqrt(variance());
+    }
     
     /**
      * Computes the variance of the values in this vector, which is 
@@ -300,7 +332,22 @@ public abstract class Vec implements Cloneable, Iterable<IndexValue>, Serializab
      */
     public double variance()
     {
-        return Math.pow(standardDeviation(), 2.0);
+        double mu = mean();
+        double variance = 0;
+
+        double N = length();
+
+
+        int used = 0;
+        for(IndexValue x : this)
+        {
+            used++;
+            variance += Math.pow(x.getValue()-mu, 2)/N;
+        }
+        //Now add all the zeros we skipped into it
+        variance +=  (length()-used) * Math.pow(0-mu, 2)/N;
+        
+        return variance;
     }
     
     /**
@@ -308,16 +355,60 @@ public abstract class Vec implements Cloneable, Iterable<IndexValue>, Serializab
      * @return the median
      */
     abstract public double median();
+    
     /**
      * Computes the skewness of this vector, which is the 3rd moment. 
      * @return the skewness
      */
-    abstract public double skewness();
+    public double skewness()
+    {
+        double mean = mean();
+        
+        double tmp = 0;
+        int length = length();
+        int used = 0;
+        
+        for(IndexValue iv : this)
+        {
+            tmp += pow(iv.getValue()-mean, 3);
+            used++;
+        }
+        
+        //All the zero's we skiped
+        tmp += pow(-mean, 3)*(length-used);
+        
+        double s1 = tmp / (pow(standardDeviation(), 3) * (length-1) );
+        
+        if(length >= 3)//We can use the bias corrected formula
+            return sqrt(length*(length-1))/(length-2)*s1;
+        
+        return s1;
+    }
+    
     /**
      * Computes the kurtosis of this vector, which is the 4th moment. 
      * @return the kurtosis
      */
-    abstract public double kurtosis();
+    public double kurtosis()
+    {
+        double mean = mean();
+        
+        double tmp = 0;
+        final int length = length();
+        int used = 0;
+        
+        for(IndexValue iv : this)
+        {
+            tmp += pow(iv.getValue()-mean, 4);
+            used++;
+        }
+            
+        
+        //All the zero's we skipped
+        tmp += pow(-mean, 4)*(length-used);
+        
+        return tmp / (pow(standardDeviation(), 4) * (length-1) ) - 3;
+    }
     
     /**
      * Indicates whether or not this vector is optimized for sparce computation,
