@@ -2,8 +2,7 @@
 package jsat.linear;
 
 import java.io.Serializable;
-import static java.lang.Math.pow;
-import static java.lang.Math.sqrt;
+import static java.lang.Math.*;
 import java.util.Iterator;
 import java.util.Random;
 import jsat.math.Function;
@@ -531,14 +530,78 @@ public abstract class Vec implements Cloneable, Iterable<IndexValue>, Serializab
      * @param y the other vector to compare against
      * @return the p-norm distance
      */
-    abstract public double pNormDist(double p, Vec y);
+    public double pNormDist(double p, Vec y)
+    {
+        Iterator<IndexValue> thisIter = this.iterator();
+        Iterator<IndexValue> otherIter = y.iterator();
+        if (!thisIter.hasNext())
+            if (!otherIter.hasNext())
+                return 0;
+            else
+                return y.pNorm(p);
+        else if (!otherIter.hasNext())
+            return this.pNorm(p);
+
+        double result = 0;
+        
+        IndexValue av = thisIter.next();
+        IndexValue bv = otherIter.next();
+        
+        do
+        {
+            boolean nextA = false, nextB = false;
+            if (av.getIndex() == bv.getIndex())
+            {
+                result += pow(abs(av.getValue() - bv.getValue()), p);
+                nextA = nextB = true;
+            }
+            else if(av.getIndex() < bv.getIndex())
+            {
+                result += pow(abs(av.getValue()), p);
+                nextA = true;
+            }
+            else if(av.getIndex() > bv.getIndex())
+            {
+                result += pow(abs(bv.getValue()), p);
+                nextB = true;
+            }
+            
+            if(nextA)
+                av = thisIter.hasNext() ? thisIter.next() : null;
+            if(nextB)
+                bv = otherIter.hasNext() ? otherIter.next() : null;
+        }
+        while (av != null && bv != null);
+        
+        //accumulate left overs
+        while(av != null)
+        {
+            result += pow(abs(av.getValue()), p);
+            av = thisIter.hasNext() ? thisIter.next() : null;
+        }
+        
+        while(bv != null)
+        {
+            result += pow(abs(bv.getValue()), p);
+            bv = otherIter.hasNext() ? otherIter.next() : null;
+        }
+            
+        
+        return pow(result, 1/p);
+    }
     
     /**
      * Returns the p-norm of this vector. 
      * @param p the norm type. 2 is a common value
      * @return the p-norm of this vector
      */
-    abstract public double pNorm(double p);
+    public double pNorm(double p)
+    {
+        double result = 0;
+        for(IndexValue iv : this)
+            result += pow(abs(iv.getValue()), p);
+        return pow(result, 1/p);
+    }
     
     /**
      * 
