@@ -1,6 +1,7 @@
 
 package jsat;
 
+import static java.lang.Math.pow;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -8,10 +9,8 @@ import java.util.Random;
 import jsat.classifiers.CategoricalData;
 import jsat.classifiers.DataPoint;
 import jsat.datatransform.DataTransform;
-import jsat.linear.DenseMatrix;
-import jsat.linear.DenseVector;
-import jsat.linear.Matrix;
-import jsat.linear.Vec;
+import jsat.linear.*;
+import jsat.math.MathTricks;
 import jsat.math.OnLineStatistics;
 
 /**
@@ -124,49 +123,84 @@ public abstract class DataSet
     
     /**
      * Returns summary statistics computed in an online fashion for each numeric
-     * variable. This consumes less memory, but can be less numerically stable. 
-     *  This method does not take into account data point weight. 
+     * variable. This returns all summary statistics, but can be less 
+     * numerically stable and uses more memory. 
      * 
+     * @param useWeights {@code true} to return the weighted statistics, 
+     * unweighted otherwise. 
      * @return an array of summary statistics
      */
-    public OnLineStatistics[] singleVarStats()
+    public OnLineStatistics[] getOnlineColumnStats(boolean useWeights)
     {
         OnLineStatistics[] stats = new OnLineStatistics[numNumerVals];
         for(int i = 0; i < stats.length; i++)
             stats[i] = new OnLineStatistics();
         
+        double totalSoW = 0.0;
+        
         for(Iterator<DataPoint> iter = getDataPointIterator(); iter.hasNext(); )
         {
-            Vec v = iter.next().getNumericalValues();
-            for (int i = 0; i < numNumerVals; i++)
-                stats[i].add(v.get(i));
+            DataPoint dp = iter.next();
+            totalSoW += dp.getWeight();
+            
+            Vec v = dp.getNumericalValues();
+            for(IndexValue iv : v)
+                if(useWeights)
+                    stats[iv.getIndex()].add(iv.getValue(), dp.getWeight());
+                else
+                    stats[iv.getIndex()].add(iv.getValue());
         }
+        
+        double expected = useWeights ? totalSoW : getSampleSize();
+        //Add zero counts back in
+        for(OnLineStatistics stat : stats)
+            stat.add(0.0, expected-stat.getSumOfWeights());
         
         return stats;
     }
     
     /**
-     * Returns summary statistics computed in an online fashion for each numeric
-     * variable. This consumes less memory, but can be less numerically stable.
-     * This method takes into account data point weight. 
+     * Computes the unweighted mean and variance for each column of feature 
+     * values. This has less overhead than 
+     * {@link #getOnlineColumnStats(boolean) } but returns less information. 
      * 
-     * @return array of summary statistics
+     * @return an array of the vectors containing the mean and variance for 
+     * each column. 
      */
-    public OnLineStatistics[] getWeightedSingleVarStats()
+    public Vec[] getColumnMeanVariance()
     {
-         OnLineStatistics[] stats = new OnLineStatistics[numNumerVals];
-        for(int i = 0; i < stats.length; i++)
-            stats[i] = new OnLineStatistics();
-        
-        for(Iterator<DataPoint> iter = getDataPointIterator(); iter.hasNext(); )
+        final int n = getSampleSize();
+        final int d = getNumNumericalVars();
+        Vec[] vecs = new Vec[] 
         {
-            DataPoint dp = iter.next();
-            Vec v = dp.getNumericalValues();
-            for (int i = 0; i < numNumerVals; i++)
-                stats[i].add(v.get(i), dp.getWeight());
+            new DenseVector(d),
+            new DenseVector(d)
+        };
+        
+        Vec means = vecs[0];
+        Vec stdDevs = vecs[1];
+        
+        int[] nnzCounts = new int[d];
+        for(int i = 0; i < n; i++)
+            means.mutableAdd(getDataPoint(i).getNumericalValues());
+        means.mutableDivide(n);
+        for(int i = 0; i < n; i++)
+        {
+            Vec x = getDataPoint(i).getNumericalValues();
+            for(IndexValue iv : x)
+            {
+                int indx = iv.getIndex();
+                nnzCounts[indx]++;
+                stdDevs.increment(indx, pow(iv.getValue()-means.get(indx), 2));
+            }
         }
         
-        return stats;
+        //add zero observations
+        for(int i = 0; i < nnzCounts.length; i++)
+            stdDevs.increment(i, pow(means.get(i), 2)*nnzCounts[i]);
+        stdDevs.mutableDivide(n);
+        
+        return vecs;
     }
     
     /**

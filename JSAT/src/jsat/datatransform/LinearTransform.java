@@ -74,7 +74,7 @@ public class LinearTransform implements DataTransform
         Vec maxs = new DenseVector(mins.length());
         mutliplyConstants = new DenseVector(mins.length());
         
-        OnLineStatistics[] stats = dataSet.singleVarStats();
+        OnLineStatistics[] stats = dataSet.getOnlineColumnStats(false);
         
         for(int i = 0; i < mins.length(); i++)
         {
