@@ -23,6 +23,18 @@ public class CategoricalResults implements Cloneable
     }
     
     /**
+     * Creates a new Categorical Result using the given array. It will use only 
+     * a reference to the given array, and will assume the values are already 
+     * normalized and sum to one. 
+     * @param probabilities the array of probabilities for each outcome
+     */
+    public CategoricalResults(double[] probabilities)
+    {
+        this.probabilities = probabilities;
+        n = probabilities.length;
+    }
+    
+    /**
      * Returns the number of classes that are in the result. 
      * @return the class count 
      */
@@ -129,6 +141,4 @@ public class CategoricalResults implements Cloneable
     {
         return Arrays.toString(probabilities);
     }
-    
-    
 }
