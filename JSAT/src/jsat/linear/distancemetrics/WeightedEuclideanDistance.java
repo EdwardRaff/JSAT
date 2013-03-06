@@ -5,6 +5,7 @@ import jsat.linear.Vec;
 import jsat.linear.VecOps;
 import jsat.math.Function;
 import jsat.math.FunctionBase;
+import jsat.math.MathTricks;
 
 /**
  * Implements the weighted Euclidean distance such that d(a, b) =
@@ -18,16 +19,6 @@ import jsat.math.FunctionBase;
 public class WeightedEuclideanDistance implements DistanceMetric
 {
     private Vec w;
-    private static final Function sqrtFunc = new FunctionBase() 
-    {
-
-        @Override
-        public double f(Vec x)
-        {
-            final double xx = x.get(0);
-            return xx*xx;
-        }
-    };
 
     /**
      * Creates a new weighted Euclidean distance metric using the 
@@ -66,7 +57,7 @@ public class WeightedEuclideanDistance implements DistanceMetric
     @Override
     public double dist(Vec a, Vec b)
     {
-        return Math.sqrt(VecOps.accumulateSum(w, a, b, sqrtFunc));
+        return Math.sqrt(VecOps.accumulateSum(w, a, b, MathTricks.sqrdFunc));
     }
 
     @Override
