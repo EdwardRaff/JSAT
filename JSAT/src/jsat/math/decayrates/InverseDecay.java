@@ -35,5 +35,10 @@ public class InverseDecay implements DecayRate
     {
         return initial/(1.0+time/rate);
     }
-    
+
+    @Override
+    public String toString()
+    {
+        return "Inverse Decay";
+    }
 }
