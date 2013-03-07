@@ -102,37 +102,7 @@ public class LVQ implements Classifier, Parameterized
     
     private VectorCollectionFactory<VecPaired<Vec, Integer>> vcf;
     
-    private List<Parameter> params = Collections.unmodifiableList(new ArrayList<Parameter>(Parameter.getParamsFromMethods(this))
-    {{
-        add(new ObjectParameter<DecayRate>() {
-
-            @Override
-            public DecayRate getObject()
-            {
-                return getLearningDecay();
-            }
-
-            @Override
-            public boolean setObject(DecayRate obj)
-            {
-                setLearningDecay(obj);
-                return true;
-            }
-
-            @Override
-            public List<DecayRate> parameterOptions()
-            {
-                return Arrays.asList(new NoDecay(), new LinearDecay(), 
-                        new ExponetialDecay());
-            }
-
-            @Override
-            public String getASCIIName()
-            {
-                return "Learning Decay Rate";
-            }            
-        });
-    }});
+    private List<Parameter> params = Collections.unmodifiableList(new ArrayList<Parameter>(Parameter.getParamsFromMethods(this)));
     
     private Map<String, Parameter> paramMap = Parameter.toParameterMap(params);
 

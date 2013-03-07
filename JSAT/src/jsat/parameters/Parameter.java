@@ -5,6 +5,7 @@ import java.lang.reflect.Method;
 import java.util.*;
 import jsat.distributions.empirical.kernelfunc.KernelFunction;
 import jsat.linear.distancemetrics.DistanceMetric;
+import jsat.math.decayrates.DecayRate;
 
 /**
  * This interface provides a programmable manner in which the parameters of an 
@@ -396,6 +397,57 @@ public abstract class Parameter implements Serializable
                         }
                         
                         return false;
+                    }
+                };
+            }
+            else if(varClass.equals(DecayRate.class))
+            {
+                param = new DecayRateParameter() {
+
+                    @Override
+                    public DecayRate getObject()
+                    {
+                        try
+                        {
+                            return (DecayRate) getMethod.invoke(targetObject);
+                        }
+                        catch (Exception ex)
+                        {
+                            
+                        }
+                        
+                        return null;
+                    }
+
+                    @Override
+                    public boolean setObject(DecayRate obj)
+                    {
+                        try
+                        {
+                            setMethod.invoke(targetObject, obj);
+                            return true;
+                        }
+                        catch (Exception ex)
+                        {
+                            
+                        }
+                        
+                        return false;
+                    }
+                    
+                    @Override
+                    public String getASCIIName()
+                    {
+                        return asciiName;
+                    }
+                    
+                    @Override
+                    public String getName()
+                    {
+                        if(uniName == null)
+                            return super.getName();
+                        else
+                            return uniName;
                     }
                 };
             }
