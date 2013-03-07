@@ -93,13 +93,27 @@ public class MathTricks
      * Convenience object for taking the squared value
      * of the first index
      */
-    public static final Function sqrdFunc = new FunctionBase() {
+    public static final Function sqrdFunc = new FunctionBase() 
+    {
 
         @Override
         public double f(Vec x)
         {
             double xx = x.get(0);
             return xx*xx;
+        }
+    };
+    
+    /**
+     * Convenience object for taking the inverse (x<sup>-1</sup>) of the first 
+     * index. 
+     */
+    public static final Function invsFunc = new FunctionBase() 
+    {
+        @Override
+        public double f(Vec x)
+        {
+            return 1/x.get(0);
         }
     };
     
