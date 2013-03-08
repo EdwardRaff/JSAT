@@ -30,7 +30,9 @@ public class PNormNormalization implements DataTransform
         DataPoint dpNew = dp.clone();
         
         Vec vec = dpNew.getNumericalValues();
-        vec.mutableDivide(vec.pNorm(p));
+        double norm = vec.pNorm(p);
+        if(norm != 0)
+            vec.mutableDivide(norm);
         
         return dpNew;
     }
