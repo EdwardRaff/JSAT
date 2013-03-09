@@ -6,6 +6,8 @@ import static java.lang.Math.sqrt;
 import java.util.*;
 import jsat.math.Function;
 import jsat.math.IndexFunction;
+import jsat.utils.DoubleList;
+import jsat.utils.IndexTable;
 
 /**
  * Provides a vector implementation that is sparse. It does not allocate space 
@@ -237,7 +239,29 @@ public class SparseVector extends  Vec
     @Override
     public Vec sortedCopy()
     {
-        throw new UnsupportedOperationException("Not supported yet.");
+        IndexTable it = new IndexTable(DoubleList.unmodifiableView(values, used));
+        
+        double[] newValues = new double[used];
+        int[] newIndecies = new int[used];
+        
+        int lessThanZero = 0;
+        for(int i = 0; i < used; i++)
+        {
+            int origIndex = it.index(i);
+            newValues[i] = values[origIndex];
+            if(newValues[i] < 0)
+                lessThanZero++;
+            newIndecies[i] = i;
+        }
+        //all < 0 values are right, now correct > 0 values
+        for(int i = lessThanZero; i < used; i++)
+            newIndecies[i] = length-(used-lessThanZero)+(i-lessThanZero);
+        
+        SparseVector sv = new SparseVector(length);
+        sv.used = this.used;
+        sv.values = newValues;
+        sv.indexes = newIndecies;
+        return sv;
     }
 
     @Override
@@ -315,7 +339,10 @@ public class SparseVector extends  Vec
     @Override
     public double median()
     {
-        throw new UnsupportedOperationException("Not supported yet.");
+        if(used < length/2)//more than half zeros, so 0 must be the median
+            return 0.0;
+        else
+            return super.median();
     }
     
     @Override

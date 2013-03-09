@@ -365,7 +365,14 @@ public abstract class Vec implements Cloneable, Iterable<IndexValue>, Serializab
      * Returns the median value in this vector
      * @return the median
      */
-    abstract public double median();
+    public double median()
+    {
+        Vec copy = sortedCopy();
+        if(copy.length() % 2 == 1)
+            return copy.get(copy.length()/2);
+        else
+            return copy.get(copy.length()/2)/2+copy.get(copy.length()/2+1)/2;
+    }
     
     /**
      * Computes the skewness of this vector, which is the 3rd moment. 
