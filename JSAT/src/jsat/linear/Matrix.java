@@ -8,6 +8,7 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import jsat.utils.ModifiableCountDownLatch;
 import jsat.utils.SystemInfo;
 import static jsat.utils.SystemInfo.*;
 
@@ -392,54 +393,100 @@ public abstract class Matrix implements Cloneable, Serializable
      */
     public void updateRow(int i, double c, Vec b)
     {
-        for(int j = 0; j < b.length(); j++)
-            this.increment(i, j, c*b.get(j));
+        if(b.length() != this.cols())
+            throw new ArithmeticException("vector is not of the same column length");
+        if (b.isSparse())
+            for (IndexValue iv : b)
+                this.increment(i, iv.getIndex(), c * iv.getValue());
+        else
+            for (int j = 0; j < b.length(); j++)
+                this.increment(i, j, c * b.get(j));
     }
-    
+
     /**
      * Alters the Matrix A such that, A = A + c * a * b<sup>T</sup>
+     *
      * @param A the matrix to update
      * @param a the first vector
      * @param b the second vector
-     * @param c the constant to multiply computations by 
+     * @param c the constant to multiply computations by
      */
     public static void OuterProductUpdate(Matrix A, Vec a, Vec b, double c)
     {
-        for (int i = 0; i < a.length(); i++)
-        {
-            double rowCosnt = c * a.get(i);
-            A.updateRow(i, rowCosnt, b);
-        }
+        if(a.length() != A.rows() || b.length() != A.cols())
+            throw new ArithmeticException("Matrix dimensions do not agree with outer product");
+        if(a.isSparse())
+            for(IndexValue iv : a)
+                A.updateRow(iv.getIndex(), iv.getValue()*c, b);
+        else
+            for (int i = 0; i < a.length(); i++)
+            {
+                double rowCosnt = c * a.get(i);
+                A.updateRow(i, rowCosnt, b);
+            }
     }
     
     public static void OuterProductUpdate(final Matrix A, final Vec a, final Vec b, final double c, ExecutorService threadpool)
     {
-        final CountDownLatch latch = new CountDownLatch(LogicalCores);
-        for(int id = 0; id < LogicalCores; id++)
+        if(a.length() != A.rows() || b.length() != A.cols())
+            throw new ArithmeticException("Matrix dimensions do not agree with outer product");
+        
+        if (a.isSparse())
         {
-            final int threadID = id;
-            threadpool.submit(new Runnable() 
+            final ModifiableCountDownLatch mcdl = new ModifiableCountDownLatch(1);
+            for (final IndexValue iv : a)
             {
-
-                public void run()
+                mcdl.countUp();
+                threadpool.submit(new Runnable()
                 {
-                    for(int i = threadID; i < a.length(); i+=LogicalCores)
+                    @Override
+                    public void run()
                     {
-                        double rowCosnt = c*a.get(i);
-                        A.updateRow(i, rowCosnt, b);
+                        A.updateRow(iv.getIndex(), iv.getValue() * c, b);
+                        mcdl.countDown();
                     }
-                    latch.countDown();
-                }
-            });
-            
+                });
+            }
+            mcdl.countDown();
+            try
+            {
+                mcdl.await();
+            }
+            catch (InterruptedException ex)
+            {
+                Logger.getLogger(Matrix.class.getName()).log(Level.SEVERE, null, ex);
+            }
         }
-        try
+        else
         {
-            latch.await();
-        }
-        catch (InterruptedException ex)
-        {
-            Logger.getLogger(Matrix.class.getName()).log(Level.SEVERE, null, ex);
+            final CountDownLatch latch = new CountDownLatch(LogicalCores);
+            for(int id = 0; id < LogicalCores; id++)
+            {
+                final int threadID = id;
+                threadpool.submit(new Runnable() 
+                {
+
+                    @Override
+                    public void run()
+                    {
+                        for(int i = threadID; i < a.length(); i+=LogicalCores)
+                        {
+                            double rowCosnt = c*a.get(i);
+                            A.updateRow(i, rowCosnt, b);
+                        }
+                        latch.countDown();
+                    }
+                });
+
+            }
+            try
+            {
+                latch.await();
+            }
+            catch (InterruptedException ex)
+            {
+                Logger.getLogger(Matrix.class.getName()).log(Level.SEVERE, null, ex);
+            }
         }
     }
     
