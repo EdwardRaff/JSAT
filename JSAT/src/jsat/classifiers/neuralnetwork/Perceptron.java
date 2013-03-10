@@ -112,8 +112,7 @@ public class Perceptron implements Classifier
                     
                     double magnitude = learningRate*localError*extraWeight;
                 
-                    Vec weightUpdate = dpp.getVector().multiply(magnitude);
-                    tmpSummedErrors.mutableAdd(weightUpdate);
+                    tmpSummedErrors.mutableAdd(magnitude, dpp.getVector());
                     biasChange += magnitude;
                     globalError += Math.abs(localError)*extraWeight;
                 } 
@@ -254,8 +253,7 @@ public class Perceptron implements Classifier
                     
                     double magnitude = learningRate*localError*extraWeight;
                 
-                    Vec weightUpdate = dpp.getVector().multiply(magnitude);
-                    weights.mutableAdd(weightUpdate);
+                    weights.mutableAdd(magnitude, dpp.getVector());
                     bias += magnitude;
                     globalError += Math.abs(localError)*extraWeight;
                 }
