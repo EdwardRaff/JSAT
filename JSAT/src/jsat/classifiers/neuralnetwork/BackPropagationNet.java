@@ -1,568 +1,616 @@
 
 package jsat.classifiers.neuralnetwork;
 
+import static java.lang.Math.*;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Random;
-import java.util.concurrent.Callable;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Future;
+import jsat.DataSet;
 import jsat.classifiers.CategoricalResults;
 import jsat.classifiers.ClassificationDataSet;
 import jsat.classifiers.Classifier;
 import jsat.classifiers.DataPoint;
-import jsat.classifiers.DataPointPair;
+import jsat.distributions.Normal;
 import jsat.linear.DenseMatrix;
 import jsat.linear.DenseVector;
 import jsat.linear.Matrix;
-import jsat.linear.SparseVector;
 import jsat.linear.Vec;
+import jsat.math.Function;
+import jsat.math.FunctionBase;
+import jsat.math.decayrates.DecayRate;
+import jsat.math.decayrates.ExponetialDecay;
+import jsat.parameters.IntParameter;
+import jsat.parameters.ObjectParameter;
+import jsat.parameters.Parameter;
+import jsat.parameters.Parameterized;
 import jsat.regression.RegressionDataSet;
 import jsat.regression.Regressor;
-import static jsat.utils.SystemInfo.*;
+import jsat.utils.IntList;
+import jsat.utils.ListUtils;
 
 /**
- * An implementation of a Back Propagation Neural Network (NN). NNs are powerful 
- * classifiers and regressors, but can suffer from slow training time and overfitting. <br>
- * <br>
- * Online methods often provide faster convergence for a NN, but can not be made parallel. 
- * Batch processing can be made parallel, but does not converge as quickly. Both these 
- * training methods are implemented. Calling 
- * {@link #train(jsat.regression.RegressionDataSet, java.util.concurrent.ExecutorService) } or 
- * {@link #trainC(jsat.classifiers.ClassificationDataSet, java.util.concurrent.ExecutorService) } 
- * will result in the batch mode being used. 
+ * An implementation of a Feed Forward Neural Network (NN) trained by Back
+ * Propagation. NNs are powerful classifiers and regressors, but can suffer from
+ * slow training time and overfitting. <br>
  * 
  * @author Edward Raff
  */
-public class BackPropagationNet implements Classifier, Regressor
+public class BackPropagationNet implements Classifier, Regressor, Parameterized
 {   
-    static public interface StepFunction
-    {
-        public double activation(double in);
-        public double derivative(double val);
-    }
+    private int inputSize, outputSize;
+    private ActivationFunction f = softsignActiv;
+    private DecayRate learningRateDecay = new ExponetialDecay();
+    private double momentum = 0.1;
+    private double weightDecay = 0;
+    private int epochs = 1000;
+    private double initialLearningRate = 0.2;
+    private WeightInitialization weightInitialization = WeightInitialization.TANH_NORMALIZED_INITIALIZATION;
+    private double targetBump = 0.1;
+    private int batchSize = 10;
+    /**
+     * Length of the array determines how many layers of hidden units. Value at 
+     * each index determines how many neurons are in each hidden layer. 
+     */
+    private int[] npl;
+    /**
+     * Matrix of weights for each hidden layer and output layer
+     */
+    private List<Matrix> Ws;
+    /**
+     * Bias terms corresponding to each layer
+     */
+    private List<Vec> bs;
     
-    static public class SigmoidStep implements StepFunction
+    /**
+     * Target min and max and scaling multiplier for regression problems to make
+     * the target into a range that the activation function can reach
+     */
+    private double targetMax, targetMin, targetMultiplier;
+    
+    private List<Parameter> params;
+    private Map<String, Parameter> paramMap;
+
+    /**
+     * Creates a new back propagation network. 
+     * @param npl the array of hidden layer information. The length indicates 
+     * how many hidden layers, and the value of each index indicates how many 
+     * neurons to place in each hidden layer
+     */
+    public BackPropagationNet(final int... npl )
     {
-
-        public double activation(double in)
+        if(npl.length < 1)
+            throw new IllegalArgumentException("There must be at least one hidden layer");
+        this.npl = npl;
+        params = new ArrayList<Parameter>(Parameter.getParamsFromMethods(this));
+        for(int i = 0; i < npl.length; i++)
         {
-            return 1 / (1 + Math.exp(-in*4));
-        }
+            final int ii = i;
+            if(npl[ii] < 1)
+                throw new ArithmeticException("There must be a poistive number of hidden neurons in each layer");
+            params.add(new IntParameter() 
+            {
 
-        public double derivative(double val)
-        {
-            return val*(1-val);
+                @Override
+                public int getValue()
+                {
+                    return npl[ii];
+                }
+
+                @Override
+                public boolean setValue(int val)
+                {
+                    if(val <= 0)
+                        return false;
+                    npl[ii] = val;
+                    return true;
+                }
+
+                @Override
+                public String getASCIIName()
+                {
+                    return "Neurons for Hidden Layer " + ii;
+                }
+            });
         }
         
-    }
+        params.add(new ObjectParameter<ActivationFunction>() 
+        {
+
+            @Override
+            public ActivationFunction getObject()
+            {
+                return getActivationFunction();
+            }
+
+            @Override
+            public boolean setObject(ActivationFunction obj)
+            {
+                setActivationFunction(obj);
+                return true;
+            }
+
+            @Override
+            public List parameterOptions()
+            {
+                return Arrays.asList(logitActiv, tanhActiv, softsignActiv);
+            }
+
+            @Override
+            public String getASCIIName()
+            {
+                return "Activation Function";
+            }
+
+        });
         
-    private int[] neuronsPerLayer;
-    private int iterationLimit;
-    private double learningRate = 0.1;
-    /**
-     * The number of inputs to the first layer of the network
-     */
-    private int numInputs;
-    /**
-     * The number of outputs from the final layer 
-     */
-    private int numOutputs;
-    
-    
-    /**
-     * The layers of the network. The last element in the list is the output layer, all other are hidden layers. 
-     * Each row in a matrix is a different neuron, and each value in a colum is the weight given to an input neuron.
-     */
-    private List<Matrix> layers;
-    private final StepFunction stepFunc;
-
-    public BackPropagationNet(int[] neuronsPerLayer)
-    {
-        this(neuronsPerLayer, new SigmoidStep(), 400);
-    }
-    
-    
-    public BackPropagationNet(int[] neuronsPerLayer, StepFunction stepFunc, int iterationLimit)
-    {
-        this.neuronsPerLayer = neuronsPerLayer;
-        layers = new ArrayList<Matrix>(neuronsPerLayer.length+1);
-        this.iterationLimit = iterationLimit;
-        this.stepFunc = stepFunc;
+        paramMap = Parameter.toParameterMap(params);
     }
 
     /**
-     * Sets the maximal number of training iterations that the network may perform. 
-     * @param iterationLimit the maximum number of iterations
-     * @throws ArithmeticException if a non positive iteration limit is given
+     * Copy constructor
+     * @param toClone the one to copy
      */
-    public void setIterationLimit(int iterationLimit)
+    protected BackPropagationNet(BackPropagationNet toClone)
     {
-        if(iterationLimit <= 0)
-            throw new ArithmeticException("A positive iteration count must be given, not " + iterationLimit);
-        this.iterationLimit = iterationLimit;
+        this(Arrays.copyOf(toClone.npl, toClone.npl.length));
+        this.inputSize = toClone.inputSize;
+        this.outputSize = toClone.outputSize;
+        this.f = toClone.f;
+        this.momentum = toClone.momentum;
+        this.weightDecay = toClone.weightDecay;
+        this.epochs = toClone.epochs;
+        this.initialLearningRate = toClone.initialLearningRate;
+        this.learningRateDecay = toClone.learningRateDecay;
+        this.weightInitialization = toClone.weightInitialization;
+        this.targetBump = toClone.targetBump;
+        this.targetMax = toClone.targetMax;
+        this.targetMin = toClone.targetMin;
+        this.targetMultiplier = toClone.targetMultiplier;
+        this.batchSize = toClone.batchSize;
+        
+        if(toClone.Ws != null)
+        {
+            this.Ws = new ArrayList<Matrix>(toClone.Ws);
+            for(int i = 0; i < this.Ws.size(); i++)
+                this.Ws.set(i, this.Ws.get(i).clone());
+        }
+        
+        if(toClone.bs != null)
+        {
+            this.bs = new ArrayList<Vec>(toClone.bs);
+            for(int i = 0; i < this.bs.size(); i++)
+                this.bs.set(i, this.bs.get(i).clone());
+        }
     }
 
     /**
-     * Returns the maximal number of iterations that the network may perform
-     * @return the maximum number of iterations
+     * The main work for training the neural network
+     * @param dataSet the data set to train from
      */
-    public int getIterationLimit()
+    private void trainNN(DataSet dataSet)
     {
-        return iterationLimit;
+        //batchSize
+        
+        List<List<Vec>> activations = new ArrayList<List<Vec>>(batchSize);
+        List<List<Vec>> derivatives = new ArrayList<List<Vec>>(batchSize);
+        List<List<Vec>> deltas = new ArrayList<List<Vec>>(batchSize);
+        
+        List<List<Vec>> activations_prev = new ArrayList<List<Vec>>(batchSize);
+        List<List<Vec>> derivatives_prev = new ArrayList<List<Vec>>(batchSize);
+        List<List<Vec>> deltas_prev = new ArrayList<List<Vec>>(batchSize);
+        
+        List<Vec> cur_x = new ArrayList<Vec>(batchSize);
+        List<Vec> prev_x = new ArrayList<Vec>(batchSize);
+        
+        for(int i = 0; i < batchSize; i++)
+        {
+            activations.add(new ArrayList<Vec>(Ws.size()));
+            derivatives.add(new ArrayList<Vec>(Ws.size()));
+            deltas.add(new ArrayList<Vec>(Ws.size()));
+            
+            activations_prev.add(new ArrayList<Vec>(Ws.size()));
+            derivatives_prev.add(new ArrayList<Vec>(Ws.size()));
+            deltas_prev.add(new ArrayList<Vec>(Ws.size()));
+            
+            for(Matrix w : Ws)
+            {
+                int L = w.rows();
+                activations.get(i).add(new DenseVector(L));
+                derivatives.get(i).add(new DenseVector(L));
+                deltas.get(i).add(new DenseVector(L));
+
+                activations_prev.get(i).add(new DenseVector(L));
+                derivatives_prev.get(i).add(new DenseVector(L));
+                deltas_prev.get(i).add(new DenseVector(L));
+            }
+        }
+        
+        IntList iterOrder = new IntList(dataSet.getSampleSize());
+        ListUtils.addRange(iterOrder, 0, dataSet.getSampleSize(), 1);
+        
+        final double bSizeInv = 1.0/batchSize;
+        
+        for(int epoch = 0; epoch < epochs; epoch++)
+        {
+            Collections.shuffle(iterOrder);
+            final double eta = learningRateDecay.rate(epoch, epochs, initialLearningRate);//learningRate;
+            double error = 0.0;
+            for(int iter = 0; iter < dataSet.getSampleSize(); iter+=batchSize)
+            {
+                if(dataSet.getSampleSize() - iter < batchSize)
+                    continue;//we have run out of enough sampels to do an update
+                
+                { //Swap prev / current 
+                    List<List<Vec>> swap_tmp;
+
+                    swap_tmp = activations_prev;
+                    activations_prev = activations;
+                    activations = swap_tmp;
+
+                    swap_tmp = deltas_prev;
+                    deltas_prev = deltas;
+                    deltas = swap_tmp;
+
+                    swap_tmp = derivatives_prev;
+                    derivatives_prev = derivatives;
+                    derivatives = swap_tmp;
+                    
+                    List<Vec> swap_2;
+                    
+                    swap_2 = prev_x;
+                    prev_x = cur_x;
+                    cur_x = swap_2;
+                }
+                
+                cur_x.clear();
+                
+                //Feed batches thought network and get final mistakes
+                for(int bi = 0; bi < batchSize; bi++)
+                {
+                    final int idx = iterOrder.get(iter+bi);
+                    Vec x = dataSet.getDataPoint(idx).getNumericalValues();
+                    cur_x.add(x);
+                    feedForward(x, activations.get(bi), derivatives.get(bi));
+
+                    
+                    //Compution of Deltas
+                    Vec delta_out = deltas.get(bi).get(npl.length);
+
+                    Vec a_i = activations.get(bi).get(npl.length);
+                    Vec d_i = derivatives.get(bi).get(npl.length);
+                    
+                    error += computeOutputDelta(dataSet, idx, delta_out, a_i, d_i);
+                }
+                
+                //Propigate the collected errors back
+                for(int bi = 0; bi < batchSize; bi++)
+                {
+                    for(int i = Ws.size()-2; i >= 0; i--)
+                    {
+                        Vec delta = deltas.get(bi).get(i);
+                        delta.zeroOut();
+                        Matrix W = Ws.get(i+1);
+                        W.transposeMultiply(1, deltas.get(bi).get(i+1), delta);
+                        delta.mutablePairwiseMultiply(derivatives.get(bi).get(i));
+                    }
+
+                    //Apply weight changes
+                    for(int i = 1; i < Ws.size(); i++)
+                    {
+                        Matrix W = Ws.get(i);
+                        Vec b = bs.get(i);
+                        W.mutableSubtract(eta*weightDecay, W);
+
+                        Matrix.OuterProductUpdate(W, deltas.get(bi).get(i), activations.get(bi).get(i-1), -eta*bSizeInv);
+                        b.mutableAdd(-eta*bSizeInv, deltas.get(bi).get(i));
+
+                        if(momentum != 0 && !prev_x.isEmpty())
+                        {
+                            Matrix.OuterProductUpdate(W, deltas_prev.get(bi).get(i), activations_prev.get(bi).get(i-1), -eta*momentum*bSizeInv);
+                            b.mutableAdd(-eta*momentum*bSizeInv, deltas_prev.get(bi).get(i));
+                        }
+                    }
+
+                    //input layer
+                    Matrix W = Ws.get(0);
+                    W.mutableSubtract(eta*weightDecay, W);
+                    Vec b = bs.get(0);
+                    Matrix.OuterProductUpdate(W, deltas.get(bi).get(0), cur_x.get(bi), -eta*bSizeInv);
+                    b.mutableAdd(-eta*bSizeInv, deltas.get(bi).get(0));
+
+                    if(momentum != 0 && !prev_x.isEmpty())
+                    {
+                        Matrix.OuterProductUpdate(W, deltas_prev.get(bi).get(0), prev_x.get(bi), -eta*momentum*bSizeInv);
+                        b.mutableAdd(-eta*momentum*bSizeInv, deltas_prev.get(bi).get(0));
+                    }
+                }
+                
+            }
+        }
     }
 
     /**
-     * Sets the learning rate used during training. High learning rates can lead to model
-     * fluctuation, and low learning rates can prevent convergence. 
+     * Different methods of initializing the weight values before training
+     */
+    public enum WeightInitialization 
+    {
+        UNIFORM
+        {
+            @Override
+            public double getWeight(int inputSize, int layerSize, double eta, Random rand)
+            {
+                return rand.nextDouble()*1.4-0.7;
+            }
+        },
+        GUASSIAN
+        {
+            @Override
+            public double getWeight(int inputSize, int layerSize, double eta, Random rand)
+            {
+                return Normal.invcdf(rand.nextDouble(), 0, pow(inputSize, -0.5));
+            }
+        },
+        TANH_NORMALIZED_INITIALIZATION
+        {
+            @Override
+            public double getWeight(int inputSize, int layerSize, double eta, Random rand)
+            {
+                double cnst = sqrt(6.0/(inputSize+layerSize));
+                return rand.nextDouble()*cnst*2-cnst;
+            }
+        };
+        
+        /**
+         * 
+         * @param inputSize also referred to as the fan<sub>in</sub>
+         * @param layerSize also referred to as the fan<sub>out</sub>
+         * @param eta the initial learning rate
+         * @param rand the source of randomness
+         * @return one weight value
+         */
+        abstract public double getWeight(int inputSize, int layerSize, double eta, Random rand);
+    }
+
+    /**
+     * Sets the non negative momentum used in training. 
+     * @param momentum the momentum to apply to training
+     */
+    public void setMomentum(double momentum)
+    {
+        if(momentum < 0 || Double.isNaN(momentum) || Double.isInfinite(momentum))
+            throw new ArithmeticException("Momentum must be non negative, not " + momentum);
+        this.momentum = momentum;
+    }
+
+    /**
+     * Returns the momentum in use
+     * @return the momentum
+     */
+    public double getMomentum()
+    {
+        return momentum;
+    }
+
+    /**
+     * Sets the initial learning rate used for the first epoch
+     * @param initialLearningRate the positive learning rate to use 
+     */
+    public void setInitialLearningRate(double initialLearningRate)
+    {
+        if(initialLearningRate <= 0 || Double.isNaN(initialLearningRate) || Double.isInfinite(initialLearningRate))
+            throw new ArithmeticException("Learning rate must be a positive cosntant, not " + initialLearningRate );
+        this.initialLearningRate = initialLearningRate;
+    }
+
+    /**
+     * Returns the learning rate used
+     * @return the learning rate used
+     */
+    public double getInitialLearningRate()
+    {
+        return initialLearningRate;
+    }
+
+    /**
+     * Sets the decay rate used to adjust the learning rate after each epoch
+     * @param learningRateDecay the decay for the learning rate
+     */
+    public void setLearningRateDecay(DecayRate learningRateDecay)
+    {
+        this.learningRateDecay = learningRateDecay;
+    }
+
+    /**
+     * Returns the decay rate used to adjust the learning rate after each epoch
+     * @return the decay rate used for learning
+     */
+    public DecayRate getLearningRateDecay()
+    {
+        return learningRateDecay;
+    }
+
+    /**
+     * Sets the number of epochs of training used. Each epoch goes through the
+     * whole data set once. 
+     * @param epochs the number of training epochs
+     */
+    public void setEpochs(int epochs)
+    {
+        if(epochs < 1)
+            throw new ArithmeticException("number of training epochs must be positive, not " + epochs);
+        this.epochs = epochs;
+    }
+
+    /**
+     * Returns the number of epochs of training epochs for learning
+     * @return the number of training epochs
+     */
+    public int getEpochs()
+    {
+        return epochs;
+    }
+
+    /**
+     * Sets the weight decay used for each update. The weight decay must be in 
+     * the range [0, 1). Weight decay values must often be very small, often 
+     * 1e-8 or less. 
      * 
-     * @param learningRate the rate at which errors will be incorporated into the model
-     * @throws ArithmeticException if a non positive learning rate is given 
+     * @param weightDecay the weight decay to apply when training
      */
-    public void setLearningRate(double learningRate)
+    public void setWeightDecay(double weightDecay)
     {
-        if(Double.isInfinite(learningRate) || Double.isNaN(learningRate) || learningRate <= 0)
-            throw new ArithmeticException("Invalid learning rate given, value must be in the range (0, Inf), not " + learningRate);
-        this.learningRate = learningRate;
+        if(weightDecay < 0 || weightDecay >= 1 || Double.isNaN(weightDecay))
+            throw new ArithmeticException("Weight decay must be in [0,1), not " + weightDecay);
+        this.weightDecay = weightDecay;
     }
 
     /**
-     * Returns the learning rate used during training, which specified how much of the error is incorporated at each step. 
-     * @return the learning rate
+     * Returns the weight decay used for each update
+     * @return the weight decay used. 
      */
-    public double getLearningRate()
+    public double getWeightDecay()
     {
-        return learningRate;
+        return weightDecay;
     }
-    
+
+    /**
+     * Sets how the weights are initialized before training starts
+     * @param weightInitialization the method of weight initialization
+     */
+    public void setWeightInitialization(WeightInitialization weightInitialization)
+    {
+        this.weightInitialization = weightInitialization;
+    }
+
+    /**
+     * Returns the method of weight initialization used
+     * @return the method of weight initialization used
+     */
+    public WeightInitialization getWeightInitialization()
+    {
+        return weightInitialization;
+    }
+
+    /**
+     * Sets the batch size use to estimate the gradient of the error for 
+     * training
+     * @param batchSize the number of training instances to use on each update
+     */
+    public void setBatchSize(int batchSize)
+    {
+        this.batchSize = batchSize;
+    }
+
+    /**
+     * Returns the training batch size
+     * @return the batch size used for training
+     */
+    public int getBatchSize()
+    {
+        return batchSize;
+    }
+
+    /**
+     * Sets the activation function used for the network 
+     * @param f the activation function to use
+     */
+    public void setActivationFunction(ActivationFunction f)
+    {
+        this.f = f;
+    }
+
+    /**
+     * Returns the activation function used for training the network
+     * @return the activation function in use
+     */
+    public ActivationFunction getActivationFunction()
+    {
+        return f;
+    }
+
+    @Override
     public CategoricalResults classify(DataPoint data)
     {
-        CategoricalResults cr = new CategoricalResults(numOutputs);
+        CategoricalResults cr = new CategoricalResults(outputSize);
+        Vec x = feedForward(data.getNumericalValues());
         
-        Vec outVec = output(addBiasTerm(data.getNumericalValues()));
+        x.mutableSubtract(f.min()+targetBump);
         
-        for(int i = 0; i < outVec.length(); i++)
-            cr.setProb(i, outVec.get(i));
+        
+        for(int i = 0; i < x.length(); i++)
+            cr.setProb(i, Math.max(x.get(i), 0));
         cr.normalize();
+        
         return cr;
     }
 
-    public void trainC(ClassificationDataSet dataSet, ExecutorService threadPool)
-    {
-        layers.clear();
-        numInputs = dataSet.getNumNumericalVars();
-        numOutputs = dataSet.getClassSize();
-        //Output layer
-        fillRandomLayers();
-        
-        
-        //Out data set
-        final List<DataPointPair<Integer>> dataPoints = dataSet.getAsDPPList();
-        
-        //We create zeroed out matrices for each core, which will get batch updates that will then be collected after each itteration 
-        List<List<Matrix>> networkUpdates = new ArrayList<List<Matrix>>(LogicalCores);
-        for(int i = 0; i < LogicalCores; i++)
-        {
-            List<Matrix> networkUpdate = new ArrayList<Matrix>(layers.size());
-            for(Matrix m : layers)
-                networkUpdate.add(new DenseMatrix(m.rows(), m.cols()));
-            networkUpdates.add(networkUpdate);
-        }
-
-        for(int i = 0; i < dataPoints.size(); i++)
-        {
-            DataPoint dp = dataPoints.get(i).getDataPoint();
-            DataPoint newDP = new DataPoint(addBiasTerm(dp.getNumericalValues()), dp.getCategoricalValues(), dp.getCategoricalData(), dp.getWeight());
-            dataPoints.get(i).setDataPoint(newDP);
-        }
-        
-        List<Future<Double>> futures = new ArrayList<Future<Double>>(LogicalCores);
-        
-        int iteartions = 0;
-        double lastError;
-        double error = 0;
-
-        do
-        {
-            lastError = error;
-            error = 0;
-            
-            
-            
-            //Que up jobs
-            for(int id = 0; id < LogicalCores; id++)
-            {
-                final int threadID = id;
-                final List<Matrix> myUpdateLayer = networkUpdates.get(id);
-                final List<Vec> errorVecs = new ArrayList<Vec> (layers.size());
-                final Vec expected = new DenseVector(numOutputs);
-                
-                Future<Double> future = threadPool.submit(new Callable<Double>() {
-
-                    public Double call()
-                    {
-                        double error = 0;
-                        for(int i  = threadID; i < dataPoints.size(); i+=LogicalCores)
-                        {
-                            DataPointPair<Integer> dpp = dataPoints.get(i);
-                            Vec inputVec = dpp.getVector();
-
-                            expected.zeroOut();
-                            expected.set(dpp.getPair(), 1.0);
-                            error += learnExample(inputVec, expected, errorVecs, myUpdateLayer);
-                        }
-                        
-                        return error;
-                    }
-                });
-                
-                futures.add(future);
-            }
-            
-            //Collect the resutls and perform batch updates
-            try
-            {
-                for (Future<Double> future : futures)
-                    error += future.get();
-                
-                //Once all the futures have been grabbed, all the networkUpdates have been filled
-                for(List<Matrix> networkUpdate : networkUpdates)
-                {
-                    for(int i = 0; i < networkUpdate.size(); i++)
-                    {
-                        layers.get(i).mutableAdd(1.0/(dataPoints.size()/LogicalCores), networkUpdate.get(i));
-                        networkUpdate.get(i).zeroOut();//Zero out so it can be filled up again
-                    }
-                }
-                
-            }
-            catch (InterruptedException interruptedException)
-            {
-            }
-            catch (ExecutionException executionException)
-            {
-            }
-            
-            iteartions++;
-        }
-        while(iteartions < iterationLimit);
-    }
-    
-    public void trainC(ClassificationDataSet dataSet)
-    {
-        layers.clear();
-        numInputs = dataSet.getNumNumericalVars();
-        numOutputs = dataSet.getClassSize();
-        //Output layer
-        fillRandomLayers();
-        
-        
-        //Out data set
-        List<DataPointPair<Integer>> dataPoints = dataSet.getAsDPPList();
-
-        for(int i = 0; i < dataPoints.size(); i++)
-        {
-            DataPoint dp = dataPoints.get(i).getDataPoint();
-            DataPoint newDP = new DataPoint(addBiasTerm(dp.getNumericalValues()), dp.getCategoricalValues(), dp.getCategoricalData(), dp.getWeight());
-            dataPoints.get(i).setDataPoint(newDP);
-        }
-        
-        int iteartions = 0;
-        double lastError;
-        double error = 0;
-
-        do
-        {
-            //We do not want to learn the order of the data set, randomize it
-            Collections.shuffle(dataPoints);
-            lastError = error;
-            error = 0;
-            
-            Vec expected = new DenseVector(numOutputs);
-            List<Vec> errorVecs = new ArrayList<Vec> (layers.size());
-            for(int i  = 0; i < dataPoints.size(); i++)
-            {
-                DataPointPair<Integer> dpp = dataPoints.get(i);
-                Vec inputVec = dpp.getVector();
-
-                expected.zeroOut();
-                expected.set(dpp.getPair(), 1.0);
-                error += learnExample(inputVec, expected, errorVecs, null);
-                
-            }
-            
-            iteartions++;
-        }
-        while(iteartions < iterationLimit);
-    }
-    
+    @Override
     public double regress(DataPoint data)
     {
-        return output(addBiasTerm(data.getNumericalValues())).get(0);
+        Vec x = feedForward(data.getNumericalValues());
+        
+        double val = x.get(0);
+        
+        val = (val - f.min()-targetBump)/targetMultiplier+targetMin;
+        
+        return val;
+    }
+    
+    @Override
+    public void trainC(ClassificationDataSet dataSet, ExecutorService threadPool)
+    {
+        trainC(dataSet);
     }
 
+    @Override
+    public void trainC(ClassificationDataSet dataSet)
+    {
+        inputSize = dataSet.getNumNumericalVars();
+        outputSize = dataSet.getClassSize();
+        
+        Random rand = new Random();
+        
+        setUp(rand);
+        
+        trainNN(dataSet);
+        
+    }
+
+    @Override
     public void train(RegressionDataSet dataSet, ExecutorService threadPool)
     {
-        layers.clear();
-        numInputs = dataSet.getNumNumericalVars();
-        numOutputs = 1;
-        //Output layer
-        fillRandomLayers();
-        
-        
-        //Out data set
-        final List<DataPointPair<Double>> dataPoints = dataSet.getAsDPPList();
-        
-        //We create zeroed out matrices for each core, which will get batch updates that will then be collected after each itteration 
-        List<List<Matrix>> networkUpdates = new ArrayList<List<Matrix>>(LogicalCores);
-        for(int i = 0; i < LogicalCores; i++)
-        {
-            List<Matrix> networkUpdate = new ArrayList<Matrix>(layers.size());
-            for(Matrix m : layers)
-                networkUpdate.add(new DenseMatrix(m.rows(), m.cols()));
-            networkUpdates.add(networkUpdate);
-        }
-
-        for(int i = 0; i < dataPoints.size(); i++)
-        {
-            DataPoint dp = dataPoints.get(i).getDataPoint();
-            DataPoint newDP = new DataPoint(addBiasTerm(dp.getNumericalValues()), dp.getCategoricalValues(), dp.getCategoricalData(), dp.getWeight());
-            dataPoints.get(i).setDataPoint(newDP);
-        }
-        
-        List<Future<Double>> futures = new ArrayList<Future<Double>>(LogicalCores);
-        
-        int iteartions = 0;
-        double lastError;
-        double error = 0;
-
-        do
-        {
-            lastError = error;
-            error = 0;
-            
-            
-            
-            //Que up jobs
-            for(int id = 0; id < LogicalCores; id++)
-            {
-                final int threadID = id;
-                final List<Matrix> myUpdateLayer = networkUpdates.get(id);
-                final List<Vec> errorVecs = new ArrayList<Vec> (layers.size());
-                final Vec expected = new DenseVector(numOutputs);
-                
-                Future<Double> future = threadPool.submit(new Callable<Double>() {
-
-                    public Double call()
-                    {
-                        double error = 0;
-                        for(int i  = threadID; i < dataPoints.size(); i+=LogicalCores)
-                        {
-                            DataPointPair<Double> dpp = dataPoints.get(i);
-                            Vec inputVec = dpp.getVector();
-
-                            expected.zeroOut();
-                            expected.set(0, dpp.getPair());
-                            error += learnExample(inputVec, expected, errorVecs, myUpdateLayer);
-                        }
-                        
-                        return error;
-                    }
-                });
-                
-                futures.add(future);
-            }
-            
-            //Collect the resutls and perform batch updates
-            try
-            {
-                for (Future<Double> future : futures)
-                    error += future.get();
-                
-                //Once all the futures have been grabbed, all the networkUpdates have been filled
-                for(List<Matrix> networkUpdate : networkUpdates)
-                {
-                    for(int i = 0; i < networkUpdate.size(); i++)
-                    {
-                        layers.get(i).mutableAdd(1.0/(dataPoints.size()/LogicalCores), networkUpdate.get(i));
-                        networkUpdate.get(i).zeroOut();//Zero out so it can be filled up again
-                    }
-                }
-                
-            }
-            catch (InterruptedException interruptedException)
-            {
-            }
-            catch (ExecutionException executionException)
-            {
-            }
-            
-            iteartions++;
-        }
-        while(iteartions < iterationLimit);
+        train(dataSet);
     }
 
+    @Override
     public void train(RegressionDataSet dataSet)
     {
-        layers.clear();
-        numInputs = dataSet.getNumNumericalVars();
-        numOutputs = 1;
-        
-        fillRandomLayers();
-                
-        //Out data set
-        List<DataPointPair<Double>> dataPoints = dataSet.getAsDPPList();
-
-        for(int i = 0; i < dataPoints.size(); i++)
+        targetMax = Double.NEGATIVE_INFINITY;
+        targetMin = Double.POSITIVE_INFINITY;
+        for(int i = 0; i < dataSet.getSampleSize(); i++)
         {
-            DataPoint dp = dataPoints.get(i).getDataPoint();
-            DataPoint newDP = new DataPoint(addBiasTerm(dp.getNumericalValues()), dp.getCategoricalValues(), dp.getCategoricalData(), dp.getWeight());
-            dataPoints.get(i).setDataPoint(newDP);
+            double val = dataSet.getTargetValue(i);
+            targetMax = Math.max(targetMax, val);
+            targetMin = Math.min(targetMin, val);
         }
         
-        int iteartions = 0;
-        double lastError;
-        double error = 0;
+        targetMultiplier = ((f.max()-targetBump)-(f.min()+targetBump))/(targetMax-targetMin);
         
-        do
-        {
-            //We do not want to learn the order of the data set, randomize it
-            Collections.shuffle(dataPoints);
-            lastError = error;
-            error = 0;
-            
-            Vec expected = new DenseVector(numOutputs);
-            List<Vec> errorVecs = new ArrayList<Vec> (layers.size());
-            for(int i  = 0; i < dataPoints.size(); i++)
-            {
-                DataPointPair<Double> dpp = dataPoints.get(i);
-                Vec inputVec = dpp.getVector();
-
-                expected.zeroOut();
-                expected.set(0, dpp.getPair());//Only one value, the regression target
-                error += learnExample(inputVec, expected, errorVecs, null);
-                
-            }
-            
-            iteartions++;
-        }
-        while(iteartions < iterationLimit);
-    }
-
-    /**
-     * Back computes the error vectors for the back propagation
-     * @param outputs the output of each layer
-     * @param lastErrorVec the error of the final layer
-     * @param errorVecs the location to store each back propagated error vector 
-     */
-    private void backPropagateErrors(List<Vec> outputs, Vec lastErrorVec, List<Vec> errorVecs)
-    {
-        //now we backpropigate these errors
-        for(int k = outputs.size()-2; k >= 0; k--)
-        {
-            //Each error vector needs the error vector previously computed, the matching output, and the Matrix that produced the output 
-            Matrix Wl = layers.get(k+1);
-            Vec mathingOutput = outputs.get(k);
-            
-            Vec errorVec = Wl.transposeMultiply(1.0, lastErrorVec);
-            errorVec.pairwiseMultiply(derivative(mathingOutput));
-            errorVecs.add(errorVec);
-            
-            lastErrorVec = errorVec;
-        }
-    }
-
-    /** 
-     * Fills the layers of the NN with the right matrices full of random values 
-     */
-    private void fillRandomLayers()
-    {
+        inputSize = dataSet.getNumNumericalVars();
+        outputSize = 1;
+        
         Random rand = new Random();
-        //The +1 to the column length is the constant '1.0' we will add for the bias term
-        //First hidden layer
-        layers.add(randomMatrix(neuronsPerLayer[0], numInputs+1, rand));
-        //All other hidden layers
-        for(int i = 1; i < neuronsPerLayer.length; i++)
-            layers.add(randomMatrix(neuronsPerLayer[i], neuronsPerLayer[i-1], rand));
-        //Output layer
-        layers.add(randomMatrix(numOutputs, neuronsPerLayer[neuronsPerLayer.length-1], rand));
-    }
-
-    /**
-     * Performs the work to learn one example, propagating the information back through the network. 
-     * @param inputVec the input vector to learn
-     * @param expected the expected output for the input
-     * @param errorVecs a storage place to hold error vectors from each layer. This list will be cleared before use
-     * @param the list of matrices to store the Layer updates in. Only used if non null
-     * @return the Network's error for thsi input example 
-     */
-    private double learnExample(Vec inputVec, Vec expected, List<Vec> errorVecs, List<Matrix> updateStore)
-    {
-        List<Vec> outputs = outputs(inputVec);
-        Vec lastOutput = outputs.get(outputs.size()-1);
-        Vec delta = expected.subtract(lastOutput);
-        double error = delta.dot(delta);//sum of the squares
-        //We now create the error vectors, they are created in reverse order
-        errorVecs.clear();
-        //First one (last output) is special
-        Vec lastErrorVec = delta.clone();
-        lastErrorVec.pairwiseMultiply(derivative(lastOutput));
-        errorVecs.add(lastErrorVec);
-        backPropagateErrors(outputs, lastErrorVec, errorVecs);
-        //Now reverse the errorVecs array so they are in the same order as the matrix array
-        Collections.reverse(errorVecs);
-        //Now we adjust the weight Matrices
-        //W_l = W_l + learningRate * (errorVec_l * output_(l-1)^T )
-        /* We alter the Neuron matrix by adding to it the error Vectors,
-        /* which tell us how much error we are blaiming to each input neuron,
-        /* times the value of the output of the neurons that informed out deicious.
-         */
-        //We add the input to the front of this list, as it is the inital "output"
-        outputs.add(0, inputVec);
-        for(int k = 0; k < layers.size(); k++)
-        {
-            Vec errorVec = errorVecs.get(k);
-            Vec matrixInput = outputs.get(k);
-            
-            errorVec.mutableMultiply(learningRate);
-            if(updateStore == null)
-                Matrix.OuterProductUpdate(layers.get(k), errorVec, matrixInput, 1.0);
-            else
-                Matrix.OuterProductUpdate(updateStore.get(k), errorVec, matrixInput, 1.0);
-        }
-        return error;
+        
+        setUp(rand);
+        
+        trainNN(dataSet);
     }
     
-    /**
-     * 
-     * @param input the input to feed into the network
-     * @return a list of the Vectors representing the output from each layer
-     */
-    private List<Vec> outputs(Vec input)
-    {
-        List<Vec> ouputs = new ArrayList<Vec> (layers.size());
-        //The output of layer n, represented by matrix W_n, is W_n * out_(n-1)
-        for(Matrix W : layers)
-        {
-            input = W.multiply(input);
-            
-            for(int i = 0; i < input.length(); i++)
-                input.set(i, stepFunc.activation(input.get(i)));
-            ouputs.add(input);
-        }
-        
-        return ouputs;
-    }
-    
-    private Vec output(Vec input)
-    {
-        List<Vec> outputs = outputs(input);
-        
-        return outputs.get(outputs.size()-1);
-    }
-
+    @Override
     public boolean supportsWeightedData()
     {
         return false;
@@ -571,59 +619,370 @@ public class BackPropagationNet implements Classifier, Regressor
     @Override
     public BackPropagationNet clone()
     {
-        BackPropagationNet copy = new BackPropagationNet(neuronsPerLayer, stepFunc, iterationLimit);
-        copy.layers.clear();
-        for(Matrix m : this.layers)
-            copy.layers.add(m.clone());
-        
-        return copy;
+        return new BackPropagationNet(this);
     }
     
-    private static DenseMatrix randomMatrix(int rows, int cols, Random rand)
+    /**
+     * The neural network needs an activation function for the neurons that is 
+     * used to predict from inputs and train the network by propagating the 
+     * errors back through the network. 
+     */
+    public static abstract class  ActivationFunction implements Function
     {
-        DenseMatrix newMatrix = new DenseMatrix(rows, cols);
+        /**
+         * Computes the response of the response of this activation function on 
+         * the given input value
+         * @param x the input value
+         * @return the response value
+         */
+        abstract public double response(double x);
         
-        for(int i = 0; i < rows; i++)
+        /**
+         * The minimum possible response value
+         * @return the min value
+         */
+        abstract public double min();
+        
+        /**
+         * The maximum possible response value
+         * @return the max value
+         */
+        abstract public double max();
+        
+        /**
+         * Returns the function object for the derivative of this activation 
+         * function. The derivative must be calculated using only the output of 
+         * the response when given the original input. Meaning: given an input 
+         * {@code x}, the value of f'(x) must be computable as g(f(x))
+         * 
+         * @return the function for computing the derivative of the response
+         */
+        abstract public Function getD();
+        
+
+        @Override
+        public double f(double... x)
         {
-            for(int j = 0; j < cols-1; j++)
-                newMatrix.set(i, j, (rand.nextDouble()*2-1)*0.5 /* [-0.5, 0.5]*/ );
-            //The last column is the bias, which we default to 0
-            newMatrix.set(i, cols-1, 0 );
+            return response(x[0]);
         }
-        
-        return newMatrix;
+
+        @Override
+        public double f(Vec x)
+        {
+            return response(x.get(0));
+        }
+
     }
+    
+    /**
+     * The logit activation function. This function goes from [0, 1]. It has 
+     * more difficultly learning than symmetric activation functions, often 
+     * requiring considerably more layers and neurons than other activation 
+     * functions. 
+     */
+    public static final ActivationFunction logitActiv = new ActivationFunction() 
+    {
+
+        @Override
+        public double response(double x)
+        {
+            return 1 / (1+exp(-x));
+        }
+
+        @Override
+        public double min()
+        {
+            return 0;
+        }
+
+        @Override
+        public double max()
+        {
+            return 1;
+        }
+
+        @Override
+        public Function getD()
+        {
+            return logitPrime;
+        }
+
+        @Override
+        public String toString()
+        {
+            return "Logit";
+        }
+    };
+    
+    private static final Function logitPrime = new FunctionBase()
+    {
+        @Override
+        public double f(Vec x)
+        {
+            double xx = x.get(0);
+            return xx * (1 - xx);
+        }
+    };
 
     /**
-     * Computes the vector that contains the derivatives of the values given
-     * @param v the input vector
-     * @return a new derivative vector
+     * The tanh activation function. This function is symmetric in the range of
+     * [-1, 1]. It works well for many problems in general. 
      */
-    private Vec derivative(Vec v)
+    public static final ActivationFunction tanhActiv = new ActivationFunction() 
     {
-        Vec der = new DenseVector(v.length());
-        for(int i = 0; i < v.length(); i++)
-            der.set(i, stepFunc.derivative(v.get(i)));
-        return der;
+        @Override
+        public double response(double x)
+        {
+            return tanh(x);
+        }
+
+        @Override
+        public double min()
+        {
+            return -1;
+        }
+
+        @Override
+        public double max()
+        {
+            return 1;
+        }
+        
+        @Override
+        public Function getD()
+        {
+            return tanhPrime;
+        }
+
+        @Override
+        public String toString()
+        {
+            return "Tanh";
+        }
+    };
+    
+    private static final Function tanhPrime = new FunctionBase() 
+    {
+        @Override
+        public double f(Vec x)
+        {
+            double xx = x.get(0);
+            return 1-xx*xx;
+        }
+    };
+    
+    /**
+     * The softsign activation function. This function is symmetric in the range
+     * of [-1, 1]. It works well for classification problems, and is very fast 
+     * to compute. It sometimes requires more neurons to learn more complicated
+     * functions / boundaries. It sometimes has reduced performance in regression
+     */
+    public static final ActivationFunction softsignActiv = new ActivationFunction() 
+    {
+
+        @Override
+        public double response(double x)
+        {
+            return x/(1.0 + abs(x));
+        }
+
+        @Override
+        public double min()
+        {
+            return -1;
+        }
+
+        @Override
+        public double max()
+        {
+            return 1;
+        }
+
+        @Override
+        public Function getD()
+        {
+            return softsignPrime;
+        }
+
+        @Override
+        public String toString()
+        {
+            return "Softsign";
+        }
+    };
+    
+    private static final Function softsignPrime = new FunctionBase() 
+    {
+        @Override
+        public double f(Vec x)
+        {
+            double xx = 1-abs(x.get(0));
+                    return xx*xx;
+        }
+    };
+    
+    /**
+     * Creates the weights for the hidden layers and output layer
+     * @param rand source of randomness
+     */
+    private void setUp(Random rand)
+    {
+        Ws = new ArrayList<Matrix>(npl.length);
+        bs = new ArrayList<Vec>(npl.length);
+        
+        //First Hiden layer takes input raw
+        DenseMatrix W = new DenseMatrix(npl[0], inputSize);
+        Vec b = new DenseVector(W.rows());
+        initializeWeights(W, rand);
+        initializeWeights(b, W.cols(), rand);
+        Ws.add(W);
+        bs.add(b);
+        
+        //Other Hiden Layers Layers 
+        for(int i = 1; i < npl.length; i++)
+        {
+            W = new DenseMatrix(npl[i], npl[i-1]);
+            b = new DenseVector(W.rows());
+            initializeWeights(W, rand);
+            initializeWeights(b, W.cols(), rand);
+            Ws.add(W);
+            bs.add(b);
+        }
+        
+        //Output layer
+        W = new DenseMatrix(outputSize, npl[npl.length-1]);
+        b = new DenseVector(W.rows());
+        initializeWeights(W, rand);
+        initializeWeights(b, W.cols(), rand);
+        Ws.add(W);
+        bs.add(b);
+        
     }
     
     /**
-     * @param input
-     * @return a new vector that has all the same values, but is 1 long and 
-     * contains a 1.0 for the bias term
+     * Computes the delta between the networks output for a same and its true value
+     * @param dataSet the data set we are learning from
+     * @param idx the index into the data set for the current data point
+     * @param delta_out the place to store the delta, may already be initialized with random noise 
+     * @param a_i the activation of the final output layer for the data point
+     * @param d_i the derivative of the activation of the final output layer
+     * @return the error that occurred in predicting this data point
      */
-    private static Vec addBiasTerm(Vec input)
+    private double computeOutputDelta(DataSet dataSet, final int idx, Vec delta_out, Vec a_i, Vec d_i)
     {
-        Vec toReturn;
-        if(input.isSparse())
-            toReturn = new SparseVector(input.length()+1);
+        double error = 0;
+        if (dataSet instanceof ClassificationDataSet)
+        {
+            ClassificationDataSet cds = (ClassificationDataSet) dataSet;
+            final int ct = cds.getDataPointCategory(idx);
+            for (int i = 0; i < outputSize; i++)
+                if (i == ct)
+                    delta_out.set(i, f.max() - targetBump);
+                else
+                    delta_out.set(i, f.min() + targetBump);
+
+
+            for (int j = 0; j < delta_out.length(); j++)
+            {
+                double val = delta_out.get(j);
+                error += pow((val - a_i.get(j)), 2);
+                val = -(val - a_i.get(j)) * d_i.get(j);
+                delta_out.set(j, val);
+            }
+        }
+        else if(dataSet instanceof RegressionDataSet)
+        {
+            RegressionDataSet rds = (RegressionDataSet) dataSet;
+            double val = rds.getTargetValue(idx);
+            val = f.min()+targetBump + targetMultiplier*(val-targetMin);
+            error += pow((val - a_i.get(0)), 2);
+            delta_out.set(0, -(val - a_i.get(0)) * d_i.get(0));
+        }
         else
-            toReturn = new DenseVector(input.length()+1);
+        {
+            throw new RuntimeException("BUG: please report");
+        }
         
-        for(int i = 0; i < input.length(); i++)
-            toReturn.set(i, input.get(i));
-        toReturn.set(input.length(), 1.0);
+        return error;
+    }
+    
+    /**
+     * Feeds a vector through the network to get an output 
+     * @param input the input to feed forward though the network
+     * @param activations the list of allocated vectors to store the activation 
+     * outputs for each layer  
+     * @param derivatives the list of allocated vectors to store the derivatives
+     * of the activations
+     */
+    private void feedForward(Vec input, List<Vec> activations, List<Vec> derivatives)
+    {
+        Vec x = input;
+        for(int i = 0; i < Ws.size(); i++)
+        {
+            Matrix W_i = Ws.get(i);
+            Vec b_i = bs.get(i);
+
+            Vec a_i = activations.get(i);
+            a_i.zeroOut();
+            W_i.multiply(x, 1, a_i);
+            a_i.mutableAdd(b_i);
+            
+            a_i.applyFunction(f);
+            
+            Vec d_i = derivatives.get(i);
+            a_i.copyTo(d_i);
+            d_i.applyFunction(f.getD());
+            
+            x = a_i;
+        }
+    }
+    
+    /**
+     * Feeds an input through the network
+     * @param inputthe input vector to feed in
+     * @return the output vector for the given input at the final layer
+     */
+    private Vec feedForward(Vec input)
+    {
+        Vec x = input;
+        for(int i = 0; i < Ws.size(); i++)
+        {
+            Matrix W_i = Ws.get(i);
+            Vec b_i = bs.get(i);
+
+            Vec a_i = W_i.multiply(x);
+            a_i.mutableAdd(b_i);
+            
+            a_i.applyFunction(f);
+            
+            x = a_i;
+        }
         
-        return toReturn;
+        return x;
+    }
+    
+    private void initializeWeights(Matrix W, Random rand)
+    {
+        for(int i = 0; i < W.rows(); i++)
+            for(int j = 0; j < W.cols(); j++)
+                W.set(i, j, weightInitialization.getWeight(W.cols(), W.rows(), initialLearningRate, rand));
+    }
+    
+    private void initializeWeights(Vec b, int inputSize, Random rand)
+    {
+        for(int i = 0; i < b.length(); i++)
+            b.set(i, weightInitialization.getWeight(inputSize, b.length(), initialLearningRate, rand));
+    }
+    
+    @Override
+    public List<Parameter> getParameters()
+    {
+        return Collections.unmodifiableList(params);
+    }
+
+    @Override
+    public Parameter getParameter(String paramName)
+    {
+        return paramMap.get(paramName);
     }
 }
