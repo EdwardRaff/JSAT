@@ -258,4 +258,26 @@ public class RandomBallCover<V extends Vec> implements VectorCollection<V>
         return new RandomBallCover<V>(this);
     }
     
+    public static class RandomBallCoverFactory<V extends Vec> implements VectorCollectionFactory<V>
+    {
+
+        @Override
+        public VectorCollection<V> getVectorCollection(List<V> source, DistanceMetric distanceMetric)
+        {
+            return new RandomBallCover<V>(source, distanceMetric);
+        }
+
+        @Override
+        public VectorCollection<V> getVectorCollection(List<V> source, DistanceMetric distanceMetric, ExecutorService threadpool)
+        {
+            return new RandomBallCover<V>(source, distanceMetric, threadpool);
+        }
+
+        @Override
+        public VectorCollectionFactory<V> clone()
+        {
+            return new RandomBallCoverFactory<V>();
+        }
+        
+    }
 }
