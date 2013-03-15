@@ -1,6 +1,7 @@
 package jsat.math;
 
 import static java.lang.Math.exp;
+import java.util.Random;
 import jsat.linear.Vec;
 
 /**
@@ -74,6 +75,32 @@ public class MathTricks
             z += (x[c] = exp(x[c] - max));
         for (int c = 0; c < x.length; c++)
             x[c] /= z;
+    }
+    
+    /**
+     * Applies the softmax function to the given array of values, normalizing 
+     * them so that each value is equal to<br><br>
+     * exp(x<sub>j</sub>) / &Sigma;<sub>&forall; i</sub> exp(x<sub>i</sub>)<br>
+     * Note: If the input is sparse, this will end up destroying sparsity
+     * 
+     * @param x the array of values
+     * @param implicitExtra {@code true} if the softmax will assume there is 
+     * an extra implicit value not included in the array with a value of 1.0 
+     */
+    public static void softmax(Vec x, boolean implicitExtra)
+    {
+        double max = implicitExtra ? 1 : Double.NEGATIVE_INFINITY;
+        max = Math.max(max, x.max());
+        
+        //exp is exp(0 - max), b/c exp(0) gives the implicit 1 value
+        double z =implicitExtra ? exp(-max) : 0;
+        for (int c = 0; c < x.length(); c++)
+        {
+            double newVal = exp(x.get(c) - max);
+            x.set(c, newVal);
+            z += newVal;
+        }
+        x.mutableDivide(z);
     }
     
     /**
