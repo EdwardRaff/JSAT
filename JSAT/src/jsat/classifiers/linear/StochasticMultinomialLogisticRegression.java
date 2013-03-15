@@ -41,7 +41,7 @@ public class StochasticMultinomialLogisticRegression implements Classifier, Para
     private DecayRate learningRateDecay = new ExponetialDecay();
     private Prior prior;
     private boolean standardized = true;
-    private boolean useBias = false;
+    private boolean useBias = true;
     
     private Vec[] B;
     private double[] biases;
@@ -256,6 +256,28 @@ public class StochasticMultinomialLogisticRegression implements Classifier, Para
         {
             return logProb(b_i, s_i);
         }
+    }
+
+    /**
+     * Sets whether or not to learn the bias term for a model. If no bias term
+     * is in use, the model learned must pass through the origin of the world. 
+     * The use of the bias term is very important for low dimensional problems, 
+     * but less so for many higher dimensional problems. 
+     * @param useBias {@code true} if the bias term should be used, 
+     * {@code false} otherwise
+     */
+    public void setUseBias(boolean useBias)
+    {
+        this.useBias = useBias;
+    }
+
+    /**
+     * Returns {@code true} if the bias term is in use
+     * @return {@code true} if the bias term is in use
+     */
+    public boolean isUseBias()
+    {
+        return useBias;
     }
 
     /**
