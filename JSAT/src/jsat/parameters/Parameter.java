@@ -134,11 +134,11 @@ public abstract class Parameter implements Serializable
                 continue;
             String name = method.getName();
             if(name.startsWith("get") && paramCount == 0)
-                getMethods.put(name.replace("get", ""), method);
+                getMethods.put(name.substring(3), method);
             else if(name.startsWith("is") && paramCount == 0)
-                getMethods.put(name.replace("is", ""), method);
+                getMethods.put(name.substring(2), method);
             else if(name.startsWith("set") && paramCount == 1)
-                setMethods.put(name.replace("set", ""), method);
+                setMethods.put(name.substring(3), method);
         }
         
         //Find pairings and add to list
