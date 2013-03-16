@@ -160,6 +160,23 @@ public abstract class DataSet
     }
     
     /**
+     * Returns an {@link OnLineStatistics } object that is built by observing 
+     * what proportion of each data point contains non zero numerical values. 
+     * A mean of 1 indicates all values were fully dense, and a mean of 0
+     * indicates all values were completely sparse (all zeros). 
+     * 
+     * @return statistics on the percent sparseness of each data point
+     */
+    public OnLineStatistics getOnlineDenseStats()
+    {
+        OnLineStatistics stats = new OnLineStatistics();
+        double N = getNumNumericalVars();;
+        for(int i = 0; i < getSampleSize(); i++)
+            stats.add(getDataPoint(i).getNumericalValues().nnz()/N);
+        return stats;
+    }
+    
+    /**
      * Computes the unweighted mean and variance for each column of feature 
      * values. This has less overhead than 
      * {@link #getOnlineColumnStats(boolean) } but returns less information. 
