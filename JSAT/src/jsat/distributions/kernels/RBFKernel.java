@@ -6,6 +6,7 @@ import java.util.List;
 import jsat.linear.Vec;
 import jsat.parameters.DoubleParameter;
 import jsat.parameters.Parameter;
+import jsat.text.GreekLetters;
 
 /**
  * Provides a kernel for the Radial Basis Function. 
@@ -23,13 +24,13 @@ public class RBFKernel implements KernelTrick
     @Override
     public double eval(Vec a, Vec b)
     {
-        return -Math.exp(a.pNormDist(2, b) / (2*sigma*sigma));
+        return Math.exp(-Math.pow(a.pNormDist(2, b),2) / (2*sigma*sigma));
     }
 
     @Override
     public String toString()
     {
-        return "RBF Kernel";
+        return "RBF Kernel( " + GreekLetters.sigma +" = " + sigma +")";
     }
 
     private Parameter param = new DoubleParameter() {
