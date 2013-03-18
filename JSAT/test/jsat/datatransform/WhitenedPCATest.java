@@ -54,9 +54,9 @@ public class WhitenedPCATest
         System.out.println("testTransform");
         NormalM normal = new NormalM(new DenseVector(3), new DenseMatrix(new double[][]
         {
-            {10.3333,   -4.1667,    3.0000},
-            {-4.1667,    2.3333,   -1.5000},
-            { 3.0000,   -1.5000,    1.0000},
+            {133.138,   -57.278,    40.250},
+            {-57.278,    25.056,   -17.500},
+            { 40.250,   -17.500,    12.250},
         }));
         
         List<Vec> sample = normal.sample(500, new Random(17));
