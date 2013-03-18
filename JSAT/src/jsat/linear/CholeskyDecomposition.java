@@ -205,7 +205,10 @@ public class CholeskyDecomposition implements Serializable
         double L_jj = A.get(j, j);
         for(int k = 0; k < j; k++)
             L_jj -= pow(L.get(j, k), 2);
-        return sqrt(L_jj);
+        final double result = sqrt(L_jj);
+        if(Double.isNaN(result))
+            throw new ArithmeticException("input matrix is not positive definite");
+        return result;
     }
 
     private void updateRows(final int j, final int start, final int end, final int skip, final Matrix A, final double L_jj)
