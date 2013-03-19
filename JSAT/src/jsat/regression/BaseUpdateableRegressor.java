@@ -1,32 +1,24 @@
-
-package jsat.classifiers;
+package jsat.regression;
 
 import java.util.Collections;
-import java.util.List;
-import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Future;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import jsat.classifiers.ClassificationDataSet;
+import jsat.classifiers.UpdateableClassifier;
 import jsat.utils.IntList;
 import jsat.utils.ListUtils;
-import jsat.utils.Mergeable;
-import jsat.utils.SystemInfo;
-import jsat.utils.concurrent.MergingProcess;
 
 /**
- * A base implementation of the UpdateableClassifier. 
- * {@link #trainC(jsat.classifiers.ClassificationDataSet, 
- * java.util.concurrent.ExecutorService) } will simply call 
- * {@link #trainC(jsat.classifiers.ClassificationDataSet) }, which will call 
- * {@link #setUp(jsat.classifiers.CategoricalData[], int, 
- * jsat.classifiers.CategoricalData) } and then call 
- * {@link #update(jsat.classifiers.DataPoint, int) } for each data point in a 
- * random order. 
+ * A base implementation of the UpdateableRegressor. 
+ * {@link #train(jsat.regression.RegressionDataSet, java.util.concurrent.ExecutorService)  }
+ * will simply call 
+ * {@link #train(jsat.regression.RegressionDataSet)  }, which will call 
+ * {@link #setUp(jsat.classifiers.CategoricalData[], int)  } and then call 
+ * {@link #update(jsat.classifiers.DataPoint, double)  } for each data point in 
+ * a random order. 
  * 
  * @author Edward Raff
  */
-public abstract class BaseUpdateableClassifier implements UpdateableClassifier
+public abstract class BaseUpdateableRegressor implements UpdateableRegressor
 {
     private int epochs = 1;
 
@@ -52,15 +44,15 @@ public abstract class BaseUpdateableClassifier implements UpdateableClassifier
     }
 
     @Override
-    public void trainC(ClassificationDataSet dataSet, ExecutorService threadPool)
+    public void train(RegressionDataSet dataSet, ExecutorService threadPool)
     {
-        trainC(dataSet);
+        train(dataSet);
     }
 
     @Override
-    public void trainC(ClassificationDataSet dataSet)
+    public void train(RegressionDataSet dataSet)
     {
-        trainEpochs(dataSet, this, 1);
+        trainEpochs(dataSet, this, epochs);
     }
     
     /**
@@ -71,23 +63,22 @@ public abstract class BaseUpdateableClassifier implements UpdateableClassifier
      * @param toTrain the classifier to train
      * @param epochs the number of passes through the data set
      */
-    public static void trainEpochs(ClassificationDataSet dataSet, UpdateableClassifier toTrain, int epochs)
+    public static void trainEpochs(RegressionDataSet dataSet, UpdateableRegressor toTrain, int epochs)
     {
         if(epochs < 1)
             throw new IllegalArgumentException("epochs must be positive");
-        toTrain.setUp(dataSet.getCategories(), dataSet.getNumNumericalVars(), 
-                dataSet.getPredicting());
+        toTrain.setUp(dataSet.getCategories(), dataSet.getNumNumericalVars());
         IntList randomOrder = new IntList(dataSet.getSampleSize());
         ListUtils.addRange(randomOrder, 0, dataSet.getSampleSize(), 1);
         for (int epoch = 0; epoch < epochs; epoch++)
         {
             Collections.shuffle(randomOrder);
             for (int i : randomOrder)
-                toTrain.update(dataSet.getDataPoint(i), dataSet.getDataPointCategory(i));
+                toTrain.update(dataSet.getDataPoint(i), dataSet.getTargetValue(i));
         }
     }
 
     @Override
-    abstract public Classifier clone();
-    
+    abstract public Regressor clone();
+  
 }
