@@ -60,7 +60,7 @@ public abstract class BaseUpdateableClassifier implements UpdateableClassifier
     @Override
     public void trainC(ClassificationDataSet dataSet)
     {
-        trainEpochs(dataSet, this, 1);
+        trainEpochs(dataSet, this, epochs);
     }
     
     /**
