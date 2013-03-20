@@ -7,6 +7,7 @@ import jsat.distributions.multivariate.NormalM;
 import jsat.linear.DenseVector;
 import jsat.linear.Matrix;
 import jsat.linear.Vec;
+import jsat.regression.RegressionDataSet;
 
 /**
  * Contains pre determined code for generating specific data sets. 
@@ -38,5 +39,20 @@ public class FixedProblems
             train.addDataPoint(s, new int[0], 1);
         
         return train;
+    }
+    /**
+     * Generates a regression problem that can be solved by linear regression methods
+     * @param dataSetSize the number of data points to get
+     * @param rand the randomness to use
+     * @return a regression data set
+     */
+    public static RegressionDataSet getLinearRegression(int dataSetSize, Random rand)
+    {
+        RegressionDataSet rds = new RegressionDataSet(c2l_m0.length(), new CategoricalData[0]);
+        
+        for(Vec s : c2l_c0.sample(dataSetSize, rand))
+            rds.addDataPoint(s, new int[0], 1);
+        
+        return rds;
     }
 }

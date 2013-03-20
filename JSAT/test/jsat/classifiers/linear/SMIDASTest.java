@@ -80,27 +80,13 @@ public class SMIDASTest
     {
         System.out.println("train");
         Random rand = new Random(123);
-        Vec m0 = new DenseVector(new double[]{1,2,3,4,5,6,7});
         
-        Vec trueW = new DenseVector(new double[]{-5,4,-3,2,-1,0,0});
-        
-        NormalM c0 = new NormalM(m0, Matrix.eye(m0.length()));
-        
-        RegressionDataSet train = new RegressionDataSet(m0.length(), new CategoricalData[0]);
-        
-        for(Vec s : c0.sample(500, rand))
-            train.addDataPoint(s, new int[0], s.dot(trueW));
-        
-        SMIDAS smidas = new SMIDAS(0.1);
+        SMIDAS smidas = new SMIDAS(0.02);
         smidas.setMinScaled(-1);
         smidas.setLoss(StochasticSTLinearL1.Loss.SQUARED);
-        smidas.train(train);
+        smidas.train(FixedProblems.getLinearRegression(500, rand));
         
-        RegressionDataSet test = new RegressionDataSet(m0.length(), new CategoricalData[0]);
-        for(Vec s : c0.sample(100, rand))
-            test.addDataPoint(s, new int[0], s.dot(trueW));
-        
-        for(DataPointPair<Double> dpp : test.getAsDPPList())
+        for(DataPointPair<Double> dpp : FixedProblems.getLinearRegression(100, rand).getAsDPPList())
         {
             double truth = dpp.getPair();
             double pred = smidas.regress(dpp.getDataPoint());

@@ -63,27 +63,13 @@ public class LinearL1SCDTest
     {
         System.out.println("train");
         Random rand = new Random(123);
-        Vec m0 = new DenseVector(new double[]{12,14,25,31,10,9,1});
-        
-        Vec trueW = new DenseVector(new double[]{2,-4,3,-1,1,0,0});
-        
-        NormalM c0 = new NormalM(m0, Matrix.eye(m0.length()));
-        
-        RegressionDataSet train = new RegressionDataSet(m0.length(), new CategoricalData[0]);
-        
-        for(Vec s : c0.sample(600, rand))
-            train.addDataPoint(s, new int[0], s.dot(trueW));
         
         LinearL1SCD scd = new LinearL1SCD();
         scd.setMinScaled(-1);
         scd.setLoss(StochasticSTLinearL1.Loss.SQUARED);
-        scd.train(train);
+        scd.train(FixedProblems.getLinearRegression(400, rand));
         
-        RegressionDataSet test = new RegressionDataSet(m0.length(), new CategoricalData[0]);
-        for(Vec s : c0.sample(100, rand))
-            test.addDataPoint(s, new int[0], s.dot(trueW));
-        
-        for(DataPointPair<Double> dpp : test.getAsDPPList())
+        for(DataPointPair<Double> dpp : FixedProblems.getLinearRegression(400, rand).getAsDPPList())
         {
             double truth = dpp.getPair();
             double pred = scd.regress(dpp.getDataPoint());
