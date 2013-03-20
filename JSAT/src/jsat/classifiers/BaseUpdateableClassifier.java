@@ -2,17 +2,9 @@
 package jsat.classifiers;
 
 import java.util.Collections;
-import java.util.List;
-import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Future;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import jsat.utils.IntList;
 import jsat.utils.ListUtils;
-import jsat.utils.Mergeable;
-import jsat.utils.SystemInfo;
-import jsat.utils.concurrent.MergingProcess;
 
 /**
  * A base implementation of the UpdateableClassifier. 
