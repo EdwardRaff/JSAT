@@ -466,4 +466,10 @@ public class ClassificationDataSet extends DataSet
         clone.numOfSamples = this.numOfSamples;
         return clone;
     }
+    
+    @Override
+    public ClassificationDataSet getTwiceShallowClone()
+    {
+        return (ClassificationDataSet) super.getTwiceShallowClone();
+    }
 }

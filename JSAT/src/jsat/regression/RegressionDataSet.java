@@ -314,4 +314,10 @@ public class RegressionDataSet extends DataSet
             clone.dataPoints.add(new DataPointPair<Double>(dpp.getDataPoint(), dpp.getPair()));
         return clone;
     }
+
+    @Override
+    public RegressionDataSet getTwiceShallowClone()
+    {
+        return (RegressionDataSet) super.getTwiceShallowClone(); //To change body of generated methods, choose Tools | Templates.
+    }
 }

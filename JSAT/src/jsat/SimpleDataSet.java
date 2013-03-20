@@ -85,6 +85,12 @@ public class SimpleDataSet extends DataSet
     {
         return new SimpleDataSet(new ArrayList<DataPoint>(this.dataPoints));
     }
+
+    @Override
+    public SimpleDataSet getTwiceShallowClone()
+    {
+        return (SimpleDataSet) super.getTwiceShallowClone();
+    }
     
     
 }

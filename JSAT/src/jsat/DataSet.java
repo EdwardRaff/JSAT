@@ -397,4 +397,28 @@ public abstract class DataSet
      * @return a shallow copy of this data set
      */
     abstract public DataSet shallowClone();
+    
+    /**
+     * Returns a new version of this data set that is of the same type, and
+     * contains a different listing pointing to shallow data point copies. 
+     * Because the data point object contains the weight itself, the weight 
+     * is not shared - while the vector and array information is. This 
+     * allows altering the weights of the data points while preserving the
+     * original weights. <br>
+     * Altering the list or weights of the returned data set will not be 
+     * reflected in the original. Altering the feature values will. 
+     * 
+     * @return a shallow copy of shallow data point copies for this data set. 
+     */
+    public DataSet getTwiceShallowClone()
+    {
+        DataSet clone = shallowClone();
+        for(int i = 0; i < clone.getSampleSize(); i++)
+        {
+            DataPoint d = getDataPoint(i);
+            DataPoint sd = new DataPoint(d.getNumericalValues(), d.getCategoricalValues(), d.getCategoricalData());
+            clone.setDataPoint(i, sd);
+        }
+        return clone;
+    }
 }
