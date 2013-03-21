@@ -15,10 +15,51 @@ import java.util.*;
  */
 public class IndexTable implements Serializable
 {
+    static private final Comparator defaultComp = new Comparator()        
+    {
+
+        @Override
+        public int compare(Object o1, Object o2)
+        {
+            Comparable co1 = (Comparable) o1;
+            Comparable co2 = (Comparable) o2;
+            return co1.compareTo(co2);
+        }
+    };
+    
     /**
-     * We use an array of Integer objects instead of integers because we need the arrays.sort function that accepts comparators. 
+     * Obtains the reverse order comparator
+     * @param <T> the data type
+     * @param cmp the original comparator
+     * @return the reverse order comparator
      */
-    private Integer[] index;
+    public static <T> Comparator<T> getReverse(final Comparator<T> cmp)
+    {
+        return new Comparator<T>() 
+        {
+            @Override
+            public int compare(T o1, T o2)
+            {
+                return -cmp.compare(o1, o2);
+            }
+        };
+    }
+    
+    /**
+     * We use an array of Integer objects instead of integers because we need 
+     * the arrays.sort function that accepts comparators. 
+     */
+    private IntList index;
+    
+    /**
+     * Creates a new index table of a specified size that is in linear order. 
+     * @param size the size of the index table to create
+     */
+    public IndexTable(int size)
+    {
+        index = new IntList(size);
+        ListUtils.addRange(index, 0, size, 1);
+    }
 
     /**
      * Creates a new index table based on the given array. The array will not be altered. 
@@ -26,10 +67,7 @@ public class IndexTable implements Serializable
      */
     public IndexTable(double[] array)
     {
-        index = new Integer[array.length];
-        for(int i = 0; i < index.length; i++)
-            index[i] = i;
-        Arrays.sort(index, new IndexViewCompD(array));
+        this(DoubleList.unmodifiableView(array, array.length));
     }
     
     /**
@@ -38,10 +76,9 @@ public class IndexTable implements Serializable
      */
     public <T extends Comparable<T>> IndexTable(T[] array)
     {
-        index = new Integer[array.length];
-        for(int i = 0; i < index.length; i++)
-            index[i] = i;
-        Arrays.sort(index, new IndexViewCompG(array));
+        index = new IntList(array.length);
+        ListUtils.addRange(index, 0, array.length, 1);
+        Collections.sort(index, new IndexViewCompG(array));
     }
     
     /**
@@ -50,14 +87,7 @@ public class IndexTable implements Serializable
      */
     public <T extends Comparable<T>> IndexTable(List<T> list)
     {
-        this(list, new Comparator<T>() {
-
-            @Override
-            public int compare(T o1, T o2)
-            {
-                return o1.compareTo(o2);
-            }
-        });
+        this(list, defaultComp);
     }
     
     /**
@@ -69,25 +99,86 @@ public class IndexTable implements Serializable
      */
     public <T> IndexTable(List<T> list, Comparator<T> comparator)
     {
-        index = new Integer[list.size()];
-        for(int i = 0; i < index.length; i++)
-            index[i] = i;
-        Arrays.sort(index, new IndexViewCompList(list, comparator));
+        index = new IntList(list.size());
+        ListUtils.addRange(index, 0, list.size(), 1);
+        sort(list, comparator);
     }
     
-    private class IndexViewCompD implements Comparator<Integer> 
+    /**
+     * Resets the index table so that the returned indices are in linear order, 
+     * meaning the original input would be returned in its original order 
+     * instead of sorted order. 
+     */
+    public void reset()
     {
-        double[] base;
-
-        public IndexViewCompD(double[] base)
-        {
-            this.base = base;
-        }
-        
-        public int compare(Integer t, Integer t1)
-        {
-            return Double.compare(base[t], base[t1]);
-        }        
+        for(int i = 0; i < index.size(); i++)
+            index.set(i, i);
+    }
+    
+    /**
+     * Reverse the current index order
+     */
+    public void reverse()
+    {
+        Collections.reverse(index);
+    }
+    
+    /**
+     * Adjusts this index table to contain the sorted index order for the given 
+     * array
+     * @param array the input to get sorted order of
+     */
+    public void sort(double[] array)
+    {
+        sort(DoubleList.unmodifiableView(array, array.length));
+    }
+    
+    /**
+     * Adjusts this index table to contain the reverse sorted index order for 
+     * the given array
+     * @param array the input to get sorted order of
+     */
+    public void sortR(double[] array)
+    {
+        sortR(DoubleList.unmodifiableView(array, array.length));
+    }
+    
+    /**
+     * Adjust this index table to contain the sorted index order for the given 
+     * list
+     * @param <T> the data type
+     * @param list the list of objects
+     */
+    public <T extends Comparable<T>> void sort(List<T> list)
+    {
+        sort(list, defaultComp);
+    }
+    
+    /**
+     * Adjusts this index table to contain the reverse sorted index order for 
+     * the given list
+     * @param <T> the data type
+     * @param list the list of objects
+     */
+    public <T extends Comparable<T>> void sortR(List<T> list)
+    {
+        sort(list, getReverse(defaultComp));
+    }
+    
+    
+    /**
+     * Sets up the index table based on the given list of the same size and 
+     * comparator. 
+     * 
+     * @param <T> the type in use
+     * @param list the list of points to obtain a sorted IndexTable for
+     * @param cmp the comparator to determined the sorted order
+     */
+    public <T> void sort(List<T> list, Comparator<T> cmp)
+    {
+        if(list.size() != index.size())
+            throw new IllegalArgumentException("Input list is not the same size as index table");
+        Collections.sort(index, new IndexViewCompList(list, cmp));
     }
     
     private class IndexViewCompG<T extends Comparable<T>> implements Comparator<Integer> 
@@ -131,9 +222,7 @@ public class IndexTable implements Serializable
      */
     public void swap(int i, int j)
     {
-        int tmp = index[i];
-        index[i] = index[j];
-        index[j] = tmp;
+        Collections.swap(index, i, j);
     }
     
     /**
@@ -148,7 +237,7 @@ public class IndexTable implements Serializable
      */
     public int index(int i)
     {
-        return index[i];
+        return index.get(i);
     }
     
     /**
@@ -157,7 +246,7 @@ public class IndexTable implements Serializable
      */
     public int length()
     {
-        return index.length;
+        return index.size();
     }
     
     /**
