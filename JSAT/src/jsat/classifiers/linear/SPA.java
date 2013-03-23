@@ -32,7 +32,7 @@ public class SPA extends BaseUpdateableClassifier implements Parameterized
 {
     private Vec[] w;
     private double[] bias;
-    private double C = 0.1;
+    private double C = 0.01;
     private boolean useBias = false;
     private PassiveAggressive.Mode mode;
     
@@ -171,7 +171,7 @@ public class SPA extends BaseUpdateableClassifier implements Parameterized
     private double getSupportClassGoal(final double xNorm, final int k, final double loss_k)
     {
         if(mode == PassiveAggressive.Mode.PA1)
-            return min((k+1)*C/xNorm-loss_k, k*loss_k);
+            return min((k-1)*loss_k+C*xNorm, k*loss_k);
         else if(mode == PassiveAggressive.Mode.PA2)
             return ((k*xNorm+(k-1)/(2*C))/(xNorm+1.0/(2*C)))*loss_k;
         else
@@ -189,7 +189,7 @@ public class SPA extends BaseUpdateableClassifier implements Parameterized
     private double getStepSize(final double loss_cur, final double xNorm, int k, final double supLossSum)
     {
         if(mode == PassiveAggressive.Mode.PA1)
-            return max(0, loss_cur-min(supLossSum/(k-1)+C/(k-1)*xNorm, supLossSum/k))/xNorm;
+            return max(0, loss_cur-max(supLossSum/(k-1)-C/(k-1)*xNorm, supLossSum/k))/xNorm;
         else if(mode == PassiveAggressive.Mode.PA2)
             return max(0, loss_cur-(xNorm+1/(2*C))/(k*xNorm+(k-1)/(2*C))*supLossSum )/xNorm;
         else
