@@ -526,6 +526,6 @@ public abstract class Parameter implements Serializable
                 sb.append(' ');
             sb.append(c);
         }
-        return sb.toString();
+        return sb.toString().trim();
     }
 }

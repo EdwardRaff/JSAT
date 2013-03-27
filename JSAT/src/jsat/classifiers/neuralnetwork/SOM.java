@@ -34,66 +34,7 @@ import jsat.utils.*;
 public class SOM implements Classifier, Parameterized
 {
     //TODO add code for visualizing the SOM
-    private List<Parameter> parameters = Collections.unmodifiableList(new ArrayList<Parameter>(Parameter.getParamsFromMethods(this))
-    {{
-            add(new ObjectParameter<DecayRate>() {
-
-                @Override
-                public DecayRate getObject()
-                {
-                    return getLearningDecay();
-                }
-
-                @Override
-                public boolean setObject(DecayRate obj)
-                {
-                    setLearningDecay(obj);
-                    return true;
-                }
-                
-                @Override
-                public List parameterOptions()
-                {
-                    return Arrays.asList(new NoDecay(), new LinearDecay(), new ExponetialDecay());
-                }
-
-                @Override
-                public String getASCIIName()
-                {
-                    return "Learning Decay";
-                }
-
-            });
-            
-            add(new ObjectParameter<DecayRate>() {
-
-                @Override
-                public DecayRate getObject()
-                {
-                    return getNeighborDecay();
-                }
-
-                @Override
-                public boolean setObject(DecayRate obj)
-                {
-                    setNeighborDecay(obj);
-                    return true;
-                }
-                
-                @Override
-                public List parameterOptions()
-                {
-                    return Arrays.asList(new NoDecay(), new LinearDecay(), new ExponetialDecay());
-                }
-
-                @Override
-                public String getASCIIName()
-                {
-                    return "Neighbor Decay";
-                }
-
-            });
-    }});
+    private List<Parameter> parameters = Collections.unmodifiableList(new ArrayList<Parameter>(Parameter.getParamsFromMethods(this)));
     
     private Map<String, Parameter> parameterMap = Parameter.toParameterMap(parameters);
     
