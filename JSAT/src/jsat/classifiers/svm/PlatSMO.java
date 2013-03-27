@@ -10,9 +10,20 @@ import jsat.exceptions.FailedToFitException;
 import jsat.exceptions.UntrainedModelException;
 import jsat.linear.Vec;
 import jsat.parameters.*;
+import jsat.utils.IntSetFixedSize;
 
 /**
- * An implementation of SVMs using Plat's Sequential Minimum Optimization 
+ * An implementation of SVMs using Plat's Sequential Minimum Optimization
+ * <br><br>
+ * See:<br>
+ * <ul>
+ * <li>Platt, J. C. (1998). <i>Sequential Minimal Optimization: A Fast Algorithm
+ * for Training Support Vector Machines</i>. Advances in kernel methods 
+ * (pp. 185 – 208). Retrieved from <a href="http://www.bradblock.com/Sequential_Minimal_Optimization_A_Fast_Algorithm_for_Training_Support_Vector_Machine.pdf">here</a></li>
+ * <li>Keerthi, S. S., Shevade, S. K., Bhattacharyya, C., & Murthy, K. R. K. 
+ * (2001). <i>Improvements to Platt’s SMO Algorithm for SVM Classifier Design
+ * </i>. Neural Computation, 13(3), 637–649. doi:10.1162/089976601300014493</li>
+ * </ul>
  * 
  * @author Edward Raff
  */
@@ -21,23 +32,54 @@ public class PlatSMO extends SupportVectorMachine implements Parameterized
     /**
      * Bias
      */
-    protected double b = 0;
+    protected double b = 0, b_low, b_up;
     private double C = 0.05;
     private double tolerance = 1e-4;
     private double epsilon = 1e-3;
     
-    protected double[] alpha;
-    protected double[] error;
-    //Examine step may require a source of randomnes
-    private Random rand;
+    private int maxIterations = 10000;
+    private boolean modificationOne = false;
     
+    /**
+     * During training contains alphas in [0, C]. After training they are given 
+     * the sign of the label so that it need not be kept. 
+     */
+    protected double[] alpha;
+    protected double[] fcache;
+    
+    private int i_up, i_low;
+    /**
+     * i : 0 < a_i < C
+     */
+    Set<Integer> I0;
+    /**
+     * i: y_i = 1 AND  a_i = 0
+     */
+    Set<Integer> I1;
+    /**
+     * i: y_i = -1 AND a_i = C
+     */
+    Set<Integer> I2;
+    /**
+     * i: y_i = 1 AND a_i = C
+     */
+    Set<Integer> I3;
+    /**
+     * i: y_i = -1 AND a_i = 0
+     */
+    Set<Integer> I4;
     
     protected double[] label;
     
+    /**
+     * Creates a new SVM object that uses the fill cache mode. 
+     * 
+     * @param kf 
+     * @see CacheMode
+     */
     public PlatSMO(KernelTrick kf)
     {
-        super(kf, CacheMode.FULL);
-        rand = new Random();
+        super(kf, SupportVectorMachine.CacheMode.FULL);
     }
 
     @Override
@@ -50,7 +92,7 @@ public class PlatSMO extends SupportVectorMachine implements Parameterized
         CategoricalResults cr = new CategoricalResults(2);
         
         for (int i = 0; i < vecs.length; i++)
-            sum += alpha[i] * label[i] * kEval(vecs[i], data.getNumericalValues());
+            sum += alpha[i] * kEval(vecs[i], data.getNumericalValues());
 
 
         //SVM only says yess / no, can not give a percentage
@@ -90,31 +132,77 @@ public class PlatSMO extends SupportVectorMachine implements Parameterized
         
         setCacheMode(getCacheMode());//Initiates the cahce
         
+        I0 = new IntSetFixedSize(vecs.length);
+        I1 = new IntSetFixedSize(vecs.length);
+        I2 = new IntSetFixedSize(vecs.length);
+        I3 = new IntSetFixedSize(vecs.length);
+        I4 = new IntSetFixedSize(vecs.length);
         
         
         //initialize alpha array to all zero
         alpha = new double[vecs.length];//zero is default value
-        error = new double[vecs.length];
+        fcache = new double[vecs.length];
         
+        i_up = i_low = -1;//giberish for init
+        for(int i = 0; i < dataSet.getSampleSize(); i++)
+            if(dataSet.getDataPointCategory(i) == 0)
+            {
+                label[i] = -1;
+                i_low = i;
+                I4.add(i);
+            }
+            else
+            {
+                label[i] = 1;
+                i_up = i;
+                I1.add(i);
+            }
+        
+        b_up  = -1;
+        fcache[i_up]  = -1;
+        b_low =  1;
+        fcache[i_low] =  1;
 
         int numChanged = 0;
         boolean examinAll = true;
 
-        while(examinAll || numChanged > 0)
+        int examinAllCount = 0;
+        int iter = 0;
+        while( (examinAll || numChanged > 0) && iter < maxIterations )
         {
+            iter++;
             numChanged = 0;
             if (examinAll)
             {
                 //loop I over all training examples
                 for (int i = 0; i < vecs.length; i++)
                     numChanged += examineExample(i);
+                examinAllCount++;
             }
             else
             {
-                //loop I over examples where alpha is not 0 & not C
-                for (int i = 0; i < vecs.length; i++)
-                    if (alpha[i] != 0 && alpha[i] != C)
+                if (modificationOne)
+                {
+                    for (int i : I0)
+                    {
                         numChanged += examineExample(i);
+                        if (b_up > b_low - 2 * tolerance)
+                        {
+                            numChanged = 0;//causes examinAll to become true
+                            break;
+                        }
+                    }
+                }
+                else
+                {
+                    boolean inner_loop_success = true;
+
+                    while (b_up < b_low - 2 * tolerance && inner_loop_success)
+                        if (inner_loop_success = takeStep(i_up, i_low))
+                            numChanged++;
+                }
+                
+                numChanged = 0;
             }
 
             if(examinAll)
@@ -122,21 +210,86 @@ public class PlatSMO extends SupportVectorMachine implements Parameterized
             else if(numChanged == 0)
                 examinAll = true;
         }
+        
+        b = (b_up+b_low)/2;
 
-        //SVMs are usualy sparce, we dont need to keep all the original vectors!
-
+        //SVMs are usualy sparse, we dont need to keep all the original vectors!
+        //collapse label into signed alphas
+        for(int i = 0; i < label.length; i++)
+            alpha[i] *= label[i];
+        
         int supportVectorCount = 0;
         for(int i = 0; i < vecs.length; i++)
-            if(alpha[i] > 0)//Its a support vector
+            if(alpha[i] > 0 || alpha[i] < 0)//Its a support vector
             {
                 vecs[supportVectorCount] = vecs[i];
-                alpha[supportVectorCount] = alpha[i];
-                label[supportVectorCount++] = label[i];
+                alpha[supportVectorCount++] = alpha[i];
             }
 
         vecs = Arrays.copyOfRange(vecs, 0, supportVectorCount);
         alpha = Arrays.copyOfRange(alpha, 0, supportVectorCount);
-        label = Arrays.copyOfRange(label, 0, supportVectorCount);
+        label = null;
+        
+        fcache = null;
+        I0 = I1 = I2 = I3 = I4 = null;
+    }
+    
+    /**
+     * Updates the index set I0 
+     * @param i1 the value of i1
+     * @param a1 the value of a1
+     */
+    private void updateSet(int i1, double a1)
+    {
+        if(a1 > 0 && a1 < C)
+            I0.add(i1);
+        else
+            I0.remove(i1);
+    }
+    
+    /**
+     * Updates the index sets 
+     * @param i1 the index to update for
+     * @param a1 the alpha value for the index
+     */
+    private void updateSetsLabeled(int i1, double a1)
+    {
+        if(label[i1] == 1)
+        {
+            if(a1 == 0)
+            {
+                I1.add(i1);
+                I3.remove(i1);
+            }
+            else if(a1 == C)
+            {
+                I1.remove(i1);
+                I3.add(i1);
+            }
+            else
+            {
+                I1.remove(i1);
+                I3.remove(i1);
+            }
+        }
+        else
+        {
+            if(a1 == 0)
+            {
+                I4.add(i1);
+                I2.remove(i1);
+            }
+            else if(a1 == C)
+            {
+                I4.remove(i1);
+                I2.add(i1);
+            }
+            else
+            {
+                I4.remove(i1);
+                I2.remove(i1);
+            }
+        }
     }
     
     protected boolean takeStep(int i1, int i2)
@@ -147,18 +300,8 @@ public class PlatSMO extends SupportVectorMachine implements Parameterized
         double alpha1 = alpha[i1], alpha2 = alpha[i2];
         //y1 = target[i1]
         double y1 = label[i1], y2 = label[i2];
-
-        //E1 = SVM output on point[i1] - y1 (check in error cache)
-        double E1, E2;
-        if(alpha1 > 0  && alpha1 < C)
-            E1 = error[i1];
-        else
-            E1 = decisionFunction(i1) - y1;
-        
-        if(alpha2 > 0  && alpha2 < C)
-            E2 = error[i1];
-        else
-            E2 = decisionFunction(i2) - y2;
+        double F1 = fcache[i1];
+        double F2 = fcache[i2];
 
         //s = y1*y2
         double s = y1*y2;
@@ -195,7 +338,7 @@ public class PlatSMO extends SupportVectorMachine implements Parameterized
 
         if (eta < 0)
         {
-            a2 = alpha2 - y2 * (E1 - E2) / eta;
+            a2 = alpha2 - y2 * (F1 - F2) / eta;
             if (a2 < L)
                 a2 = L;
             else if (a2 > H)
@@ -207,10 +350,13 @@ public class PlatSMO extends SupportVectorMachine implements Parameterized
              * Lobj = objective function at a2=L
              * Hobj = objective function at a2=H
              */
-            double c1 = eta / 2;
-            double c2 = y2 * (E1 - E2) - eta * alpha2;
-            double Lobj = c1 * L * L + c2 * L;
-            double Hobj = c1 * H * H + c2 * H;
+            
+            double L1 = alpha1 + s * (alpha2 - L);
+            double H1 = alpha1 + s * (alpha2 - H);
+            double f1 = y1 * F1 - alpha1 * k11 - s * alpha2 * k12;
+            double f2 = y2 * F2 - alpha2 * k22 - s * alpha1 * k12;
+            double Lobj = -0.5 * L1 * L1 * k11 - 0.5 * L * L * k22 - s * L * L1 * k12 - L1 * f1 - L * f2;
+            double Hobj = -0.5 * H1 * H1 * k11 - 0.5 * H * H * k22 - s * H * H1 * k12 - H1 * f1 - H * f2;
 
             if(Lobj > Hobj + epsilon)
                 a2 = L;
@@ -242,46 +388,46 @@ public class PlatSMO extends SupportVectorMachine implements Parameterized
             a1 = C;
         }
 
+        double newF1C = F1 + y1*(a1-alpha1)*k11 + y2*(a2-alpha2)*k12;
+        double newF2C = F2 + y1*(a1-alpha1)*k12 + y2*(a2-alpha2)*k22;
         
-
-        double oldB = b;
+        if(abs(newF1C-fcache[i1]) < 1e-10 && abs(newF2C-fcache[i2]) < 1e-10)
+            return false;
         
-        if(a1 > 0 && a1 < C)
-        {
-            b = E1 + y1 * (a1 - alpha1) * k11 + y2 * (a2 - alpha2) * k12 + b;
-        }
-        else if(a2 > 0 && a2 < C)
-        {
-            b = E2 + y1 * (a1 - alpha1) * k12 + y2 * (a2 - alpha2) * k22 + b;
-        }
-        else
-        {
-            //Update threshold to reflect change in Lagrange multipliers : see smo-book, page 49
-            double b1 = E1 + y1 * (a1 - alpha1) * k11 + y2 * (a2 - alpha2) * k12 + b;
-            double b2 = E2 + y1 * (a1 - alpha1) * k12 + y2 * (a2 - alpha2) * k22 + b;
-            
-            b = (b1+b2)/2;
-        }
-
-        //Update error cache using new Lagrange multipliers: smo-book, see page 49 (12.11)
-
-        //Pre compute
-        double y1ADelta = y1 * (a1 - alpha1);
-        double y2ADelta = y2 * (a2 - alpha2);
-
-        for (int i = 0; i < vecs.length; i++)
-        {
-            if (0 < alpha[i] && alpha[i] < C)
-                error[i] += y1ADelta * kEval(i1, i) + y2ADelta * kEval(i2,i) - (b-oldB);
-        }
+        updateSet(i1, a1);
+        updateSet(i2, a2);
         
-        error[i1] = error[i2] = 0;
+        updateSetsLabeled(i1, a1);
+        updateSetsLabeled(i2, a2);
+        
+        fcache[i1] = newF1C;
+        fcache[i2] = newF2C;
+        
+        b_low = Double.NEGATIVE_INFINITY;
+        b_up = Double.POSITIVE_INFINITY;
+        i_low = -1;
+        i_up = -1;
+        
+        for (int i : I0)
+        {
+            double bCand = fcache[i];
+            if (bCand > b_low)
+            {
+                i_low = i;
+                b_low = bCand;
+            }
+
+            if (bCand < b_up)
+            {
+                i_up = i;
+                b_up = bCand;
+            }
+        }
 
         //Store a1 in the alpha array
         alpha[i1] = a1;
         //Store a2 in the alpha arra
         alpha[i2] = a2;
-
 
         return true;
     }
@@ -290,69 +436,73 @@ public class PlatSMO extends SupportVectorMachine implements Parameterized
     {
         //y2 = target[i2]
         double y2 = label[i2];
-        //alph2 = Lagrange multiplier for i2
-        double alpha2 = alpha[i2];
-
-        //E2 = SVM output on point[i2] - y2 (check in error cache)
-        double E2;
-        if(alpha2 > 0  && alpha2 < C)
-            E2 = error[i2];
+        
+        double F2;
+        if(I0.contains(i2))
+            F2 = fcache[i2];
         else
-            E2 = decisionFunction(i2) - y2;
-
-        double r2 = E2*y2;
-
-        if(!((r2 < -tolerance && alpha2 < C) || (r2 > tolerance && alpha2 > 0)))
-            return 0;
-
-        //Second Choice Heuristic: smo-book, page 78
-        int i1 = -1;
-        double maxError = 0;//minimized on the largest error
-        for (int i = 0; i < vecs.length; i++)
         {
-            if (alpha[i] > 0 && alpha[i] < C)
-            {//This method is only describe for when the cache has a value, if ther eis no value in the cache we will not use it
-                double aux = abs(E2 - error[i]);
-                if (aux > maxError)
-                {
-                    maxError = aux;
-                    i1 = i;
-                }
+            fcache[i2] = F2 = decisionFunction(i2) - y2;
+            //update (b_low, i_low) or (b_up, i_up) using (F2, i2)
+            if( (I1.contains(i2) || I2.contains(i2) ) && (F2 < b_up)  )
+            {
+                b_up = F2;
+                i_up = i2;
+            }
+            else if( (I3.contains(i2) || I4.contains(i2)) && (F2 > b_low) )
+            {
+                b_low = F2;
+                i_low = i2;
             }
         }
+        
+        //check optimality using current b_low and b_up and, if violated, find 
+        //an index i1 to do joint optimization ith i2
+        boolean optimal = true;
+        int i1 = -1;//giberish init value will not get used, but makes compiler smile
+        
+        final boolean I0_contains_i2 = I0.contains(i2);
+        if(I0_contains_i2 || I1.contains(i2) || I2.contains(i2))
+        {
+            if(b_low - F2 > tolerance*2)
+            {
+                optimal = false;
+                i1 = i_low;
+            }
+        }
+        
+        if(I0_contains_i2 || I3.contains(i2) || I4.contains(i2))
+        {
+            if(F2-b_up > tolerance*2)
+            {
+                optimal = false;
+                i1 = i_up;
+            }
+        }
+        
+        if(optimal)//no changes if optimal
+            return 0;
 
-        if (i1 >= 0 && takeStep(i1, i2))
+        //for i2 in I0 choose the better i1
+        if(I0_contains_i2)
+        {
+            if(b_low-F2 > F2-b_up)
+                i1 = i_low;
+            else 
+                i1 = i_up;
+        }
+
+        if(takeStep(i1, i2))
             return 1;
-
-
-        //next Heuristic:
-        //loop over all non-zero and non-C alpha, starting at random point
-        int randomIndex = rand.nextInt(vecs.length);
-        for (i1 = randomIndex; i1 < vecs.length; i1++)
-            if (alpha[i1] > 0 && alpha[i1] < C)
-                if (takeStep(i1, i2))
-                    return 1;
-        //Start back at the front
-        for (i1 = 0; i1 < randomIndex; i1++)
-            if (alpha[i1] > 0 && alpha[i1] < C)
-                if (takeStep(i1, i2))
-                    return 1;
-
-        //oh noes! Nothign worked, do the same thing but check ALL messages
-        randomIndex = rand.nextInt(vecs.length);
-        for (i1 = randomIndex; i1 < vecs.length; i1++)
-            if (takeStep(i1, i2))
-                return 1;
-        //Start back at the front
-        for (i1 = 0; i1 < randomIndex; i1++)
-            if (takeStep(i1, i2))
-                return 1;
-
-
-
-        return 0;
+        else
+            return 0;
     }
     
+    /**
+     * Returns the local decision function for training purposes without the bias temr
+     * @param v the index of the point to select
+     * @return the decision function output sans bias
+     */
     protected double decisionFunction(int v)
     {
         double sum = 0;
@@ -360,7 +510,7 @@ public class PlatSMO extends SupportVectorMachine implements Parameterized
             if(alpha[i] > 0)
                 sum += alpha[i] * label[i] * kEval(i, v);
 
-        return sum-b;
+        return sum;
     }
 
     @Override
@@ -373,8 +523,6 @@ public class PlatSMO extends SupportVectorMachine implements Parameterized
             copy.alpha = Arrays.copyOf(this.alpha, this.alpha.length);
         copy.b = this.b;
         copy.epsilon = this.epsilon;
-        if(this.error != null)
-            copy.error = Arrays.copyOf(this.error, this.error.length);
         if(this.label != null)
             copy.label = Arrays.copyOf(this.label, this.label.length);
         copy.tolerance = this.tolerance;
@@ -390,56 +538,108 @@ public class PlatSMO extends SupportVectorMachine implements Parameterized
         return false;
     }
 
+    /**
+     * Sets the complexity parameter of SVM. The larger the C value the harder 
+     * the margin SVM will attempt to find. Lower values of C allow for more 
+     * misclassification errors. 
+     * @param C the soft margin parameter
+     */
     public void setC(double C)
     {
+        if(C <= 0)
+            throw new ArithmeticException("C must be a positive constant");
         this.C = C;
     }
 
+    /**
+     * Returns the soft margin complexity parameter of the SVM
+     * @return the complexity parameter of the SVM
+     */
     public double getC()
     {
         return C;
     }
 
-    private Parameter param = new DoubleParameter() {
+    /**
+     * Sets the maximum number of iterations to perform of the training loop. 
+     * This is important for cases with a C value that is to large for a non 
+     * linear problem, which can result in SVM failing to converge. 
+     * @param maxIterations the maximum number of main iteration loops
+     */
+    public void setMaxIterations(int maxIterations)
+    {
+        this.maxIterations = maxIterations;
+    }
 
-        @Override
-        public double getValue()
-        {
-            return getC();
-        }
+    /**
+     * Returns the maximum number of iterations
+     * @return the maximum number of iterations
+     */
+    public int getMaxIterations()
+    {
+        return maxIterations;
+    }
 
-        @Override
-        public boolean setValue(double val)
-        {
-            if(val <= 0)
-                return false;
-            setC(val);
-            return true;
-        }
+    /**
+     * Sets where or not modification one or two should be used when training. 
+     * Modification two is more aggressive, but often results in less kernel 
+     * evaluations. 
+     * 
+     * @param modificationOne {@code true} to us modificaiotn one, {@code false}
+     * to use modification two. 
+     */
+    public void setModificationOne(boolean modificationOne)
+    {
+        this.modificationOne = modificationOne;
+    }
 
-        @Override
-        public String getASCIIName()
-        {
-            return "C";
-        }
-    };
+    /**
+     * Returns true if modification one is in use
+     * @return true if modification one is in use
+     */
+    public boolean isModificationOne()
+    {
+        return modificationOne;
+    }
+
+    /**
+     * Sets the tolerance for the solution. Higher values converge to worse 
+     * solutions, but do so faster
+     * @param tolerance the tolerance for the solution
+     */
+    public void setTolerance(double tolerance)
+    {
+        this.tolerance = tolerance;
+    }
+
+    /**
+     * Returns the solution tolerance 
+     * @return the solution tolerance 
+     */
+    public double getTolerance()
+    {
+        return tolerance;
+    }
+    
+    
+    private List<Parameter> params = Parameter.getParamsFromMethods(this);
+    private Map<String, Parameter> paramMap = Parameter.toParameterMap(params);
     
     @Override
     public List<Parameter> getParameters()
     {
-        List<Parameter> params = new ArrayList<Parameter>();
-        params.add(param);
-        params.addAll(getKernel().getParameters());
-        return params;
+        List<Parameter> retParams = new ArrayList<Parameter>(params);
+        retParams.addAll(getKernel().getParameters());
+        return retParams;
     }
 
     @Override
     public Parameter getParameter(String paramName)
     {
-        if(paramName.equals(param.getASCIIName()))
-            return param;
-        else
-            return getKernel().getParameter(paramName);
+        Parameter toRet = paramMap.get(paramName);
+        if(toRet == null)
+            toRet = getKernel().getParameter(paramName);
+        return toRet;
     }
 
 }
