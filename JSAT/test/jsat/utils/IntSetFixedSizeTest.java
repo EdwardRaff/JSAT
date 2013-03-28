@@ -97,7 +97,7 @@ public class IntSetFixedSizeTest
     {
         System.out.println("contains");
         IntSetFixedSize instance = new IntSetFixedSize(100);
-        List<Integer> intList = new ArrayList<>();
+        List<Integer> intList = new ArrayList<Integer>();
         ListUtils.addRange(intList, 0, 100, 1);
         Collections.shuffle(intList);
         
@@ -117,7 +117,7 @@ public class IntSetFixedSizeTest
     {
         System.out.println("contains");
         IntSetFixedSize instance = new IntSetFixedSize(100);
-        List<Integer> intList = new ArrayList<>();
+        List<Integer> intList = new ArrayList<Integer>();
         ListUtils.addRange(intList, 0, 100, 1);
         Collections.shuffle(intList);
         
@@ -141,7 +141,7 @@ public class IntSetFixedSizeTest
         set.add(4);
         set.add(1);
         set.add(2);
-        Set<Integer> copySet = new HashSet<>(set);
+        Set<Integer> copySet = new HashSet<Integer>(set);
         int prev = Integer.MIN_VALUE;
         Iterator<Integer> iter = set.iterator();
         int count = 0;
