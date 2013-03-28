@@ -39,6 +39,9 @@ public class KMeans extends KClustererBase
     private Random rand;
     private SeedSelection seedSelection;
     
+    private boolean storeMeans = true;
+    private List<Vec> means;
+    
     /**
      * Control the maximum number of iterations to perform. 
      */
@@ -86,6 +89,25 @@ public class KMeans extends KClustererBase
         this(new EuclideanDistance());
     }
 
+    /**
+     * If set to {@code true} the computed means will be stored after clustering
+     * is completed, and can then be retrieved using {@link #getMeans() }. 
+     * @param storeMeans {@code true} if the means should be stored for later, 
+     * {@code false} to discard them once clustering is complete. 
+     */
+    public void setStoreMeans(boolean storeMeans)
+    {
+        this.storeMeans = storeMeans;
+    }
+
+    /**
+     * Returns the raw list of means that were used for each class. 
+     * @return the list of means for each class
+     */
+    public List<Vec> getMeans()
+    {
+        return means;
+    }
 
     /**
      * Sets the maximum number of iterations allowed
@@ -529,8 +551,10 @@ public class KMeans extends KClustererBase
         if(dataSet.getSampleSize() < clusters)
             throw new ClusterFailureException("Fewer data points then desired clusters, decrease cluster size");
         
-        cluster(dataSet, selectIntialPoints(dataSet, clusters, dm, rand, seedSelection, threadpool), designations, false, threadpool);
-        
+        means = selectIntialPoints(dataSet, clusters, dm, rand, seedSelection, threadpool);
+        cluster(dataSet, means, designations, false, threadpool);
+        if(!storeMeans)
+            means = null;
         return designations;
     }
 
@@ -542,7 +566,10 @@ public class KMeans extends KClustererBase
         if(dataSet.getSampleSize() < clusters)
             throw new ClusterFailureException("Fewer data points then desired clusters, decrease cluster size");
         
-        cluster(dataSet, selectIntialPoints(dataSet, clusters, dm, rand, seedSelection), designations, false);
+        means = selectIntialPoints(dataSet, clusters, dm, rand, seedSelection);
+        cluster(dataSet, means, designations, false);
+        if(!storeMeans)
+            means = null;
         
         return designations;
     }

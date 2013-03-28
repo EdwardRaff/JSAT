@@ -28,6 +28,9 @@ public class MiniBatchKMeans extends KClustererBase
     private DistanceMetric dm;
     private SeedSelectionMethods.SeedSelection seedSelection;
     
+    private boolean storeMeans = true;
+    private List<Vec> means;
+    
     //DenseSparse is not usually helpful unless the batch size is huge
     private boolean useDenseSparseAcceleration = false;
 
@@ -70,6 +73,26 @@ public class MiniBatchKMeans extends KClustererBase
         setIterations(iterations);
         setDistanceMetric(dm);
         setSeedSelection(seedSelection);
+    }
+    
+    /**
+     * If set to {@code true} the computed means will be stored after clustering
+     * is completed, and can then be retrieved using {@link #getMeans() }. 
+     * @param storeMeans {@code true} if the means should be stored for later, 
+     * {@code false} to discard them once clustering is complete. 
+     */
+    public void setStoreMeans(boolean storeMeans)
+    {
+        this.storeMeans = storeMeans;
+    }
+
+    /**
+     * Returns the raw list of means that were used for each class. 
+     * @return the list of means for each class
+     */
+    public List<Vec> getMeans()
+    {
+        return means;
     }
 
     /**
@@ -171,7 +194,7 @@ public class MiniBatchKMeans extends KClustererBase
         if(designations == null)
             designations = new int[dataSet.getSampleSize()];
         
-        final List<Vec> means = SeedSelectionMethods.selectIntialPoints(dataSet, clusters, dm, new Random(), seedSelection, threadpool);
+        means = SeedSelectionMethods.selectIntialPoints(dataSet, clusters, dm, new Random(), seedSelection, threadpool);
         //for use if data is sparse
         final DenseSparseMetric dsm =  dm instanceof DenseSparseMetric ?  (DenseSparseMetric) dm : null;
         final double[] msc = dsm == null ? null:  new double[clusters];//Mean Summary Constants
@@ -320,6 +343,8 @@ public class MiniBatchKMeans extends KClustererBase
         {
             Logger.getLogger(MiniBatchKMeans.class.getName()).log(Level.SEVERE, null, ex);
         }
+        if(!storeMeans)
+            means = null;
 
         return des;
     }

@@ -158,7 +158,7 @@ public class CLARA extends PAM
             for(int j = 0; j < medioids.length; j++)
                 medioids[j] = samplePoints.get(j);
             
-            //Now apply the sample medioids to the full data set
+            //Now apply the sample medoids to the full data set
             double sqrdDist = 0.0;
             for(int j = 0; j < data.getSampleSize(); j++)
             {
@@ -197,9 +197,11 @@ public class CLARA extends PAM
     {
         if(designations == null)
             designations = new int[dataSet.getSampleSize()];
-        int[] medioids = new int[clusters];
+        medoids = new int[clusters];
         
-        this.cluster(dataSet, medioids, designations);
+        this.cluster(dataSet, medoids, designations);
+        if(!storeMedoids)
+            medoids = null;
         
         return designations;
     }

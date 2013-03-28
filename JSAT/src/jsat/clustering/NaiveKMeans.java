@@ -38,6 +38,9 @@ public class NaiveKMeans extends KClustererBase
 {
     private DistanceMetric dm;
     private SeedSelectionMethods.SeedSelection seedSelection;
+    
+    private boolean storeMeans = true;
+    private List<Vec> means;
 
     /**
      * Creates a new naive k-Means cluster using 
@@ -70,6 +73,26 @@ public class NaiveKMeans extends KClustererBase
         this.seedSelection = seedSelection;
     }
     
+    /**
+     * If set to {@code true} the computed means will be stored after clustering
+     * is completed, and can then be retrieved using {@link #getMeans() }. 
+     * @param storeMeans {@code true} if the means should be stored for later, 
+     * {@code false} to discard them once clustering is complete. 
+     */
+    public void setStoreMeans(boolean storeMeans)
+    {
+        this.storeMeans = storeMeans;
+    }
+
+    /**
+     * Returns the raw list of means that were used for each class. 
+     * @return the list of means for each class
+     */
+    public List<Vec> getMeans()
+    {
+        return means;
+    }
+    
     @Override
     public int[] cluster(DataSet dataSet, int[] designations)
     {
@@ -94,7 +117,7 @@ public class NaiveKMeans extends KClustererBase
         
         final int blockSize = dataSet.getSampleSize() / SystemInfo.LogicalCores;
         
-        final List<Vec> means = SeedSelectionMethods.selectIntialPoints(dataSet, clusters, dm, new Random(), seedSelection, threadpool);
+        means = SeedSelectionMethods.selectIntialPoints(dataSet, clusters, dm, new Random(), seedSelection, threadpool);
         final AtomicInteger changes = new AtomicInteger();
         
         final DenseSparseMetric dsm = dm instanceof DenseSparseMetric ? (DenseSparseMetric) dm : null;
@@ -197,6 +220,9 @@ public class NaiveKMeans extends KClustererBase
             }
         }
         while(changes.get() > 0);
+        
+        if(!storeMeans)
+            means = null;
 
         return des;
     }
