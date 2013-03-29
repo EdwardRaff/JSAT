@@ -4,7 +4,9 @@ package jsat.classifiers.bayesian;
 import static java.lang.Math.exp;
 import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
 import jsat.classifiers.*;
+import jsat.exceptions.FailedToFitException;
 import jsat.exceptions.UntrainedModelException;
 import jsat.linear.IndexValue;
 import jsat.linear.Vec;
@@ -14,10 +16,21 @@ import jsat.parameters.Parameter;
 import jsat.parameters.Parameterized;
 
 /**
- * An implementation of the Multinomial Naive Bayes model. In this model,
+ * An implementation of the Multinomial Naive Bayes model (MNB). In this model,
  * vectors are implicitly assumed to be sparse and that zero values can be 
  * skipped. This model requires that all numeric features be non negative, any
- * negative value will be treated as a zero. 
+ * negative value will be treated as a zero. <br>
+ * <br>Note: the is no reason to ever use more than one 
+ * {@link #setEpochs(int) epoch} for MNB<br>
+ * <br>MNB requires taking the log probabilities to perform predictions, which
+ * created a trade off. Updating the classifier requires the non log form, but
+ * updates require the log form, making classification take considerably longer 
+ * to take the logs of the probabilities. This can be reduced by 
+ * {@link #finalizeModel() finalizing} the model. This prevents the model from 
+ * being updated further, but reduces classification time. By default, this will
+ * be done after a call to 
+ * {@link #trainC(jsat.classifiers.ClassificationDataSet) } but not after 
+ * {@link #update(jsat.classifiers.DataPoint, int) }
  * 
  * @author Edward Raff
  */
@@ -34,6 +47,12 @@ public class MultinomialNaiveBayes extends BaseUpdateableClassifier implements P
      * Added in classification instead of addition
      */
     private double smoothing;
+    
+    private boolean finalizeAfterTraining = true;
+    /**
+     * No more training
+     */
+    private boolean finalized;
 
     /**
      * Creates a new Multinomial model with laplace smoothing
@@ -50,6 +69,7 @@ public class MultinomialNaiveBayes extends BaseUpdateableClassifier implements P
     public MultinomialNaiveBayes(double smoothing)
     {
         setSmoothing(smoothing);
+        setEpochs(1);
     }
 
     /**
@@ -79,8 +99,9 @@ public class MultinomialNaiveBayes extends BaseUpdateableClassifier implements P
             
             this.priorSum = other.priorSum;
             this.priors = Arrays.copyOf(other.priors, other.priors.length);
-            
         }
+        this.finalizeAfterTraining = other.finalizeAfterTraining;
+        this.finalized = other.finalized;
     }
 
     /**
@@ -98,6 +119,30 @@ public class MultinomialNaiveBayes extends BaseUpdateableClassifier implements P
             throw new IllegalArgumentException("Smoothing constant must be in range (0,Inf), not " + smoothing);
         this.smoothing = smoothing;
     }
+
+    /**
+     * If set {@code true}, the model will be finalized after a call to 
+     * {@link #trainC(jsat.classifiers.ClassificationDataSet) }. This prevents 
+     * the model from being updated in an online fashion for an reduction in 
+     * classification time. 
+     * 
+     * @param finalizeAfterTraining {@code true} to finalize after a call to 
+     * train, {@code false} to keep the model updatable. 
+     */
+    public void setFinalizeAfterTraining(boolean finalizeAfterTraining)
+    {
+        this.finalizeAfterTraining = finalizeAfterTraining;
+    }
+
+    /**
+     * Returns {@code true} if the model will be finalized after batch training. 
+     * {@code false} if it will be left in an updatable state. 
+     * @return {@code true} if the model will be finalized after batch training. 
+     */
+    public boolean isFinalizeAfterTraining()
+    {
+        return finalizeAfterTraining;
+    }
     
     @Override
     public MultinomialNaiveBayes clone()
@@ -105,6 +150,61 @@ public class MultinomialNaiveBayes extends BaseUpdateableClassifier implements P
         return new MultinomialNaiveBayes(this);
     }
 
+    @Override
+    public void trainC(ClassificationDataSet dataSet, ExecutorService threadPool)
+    {
+        super.trainC(dataSet, threadPool);
+        if(finalizeAfterTraining)
+            finalizeModel();
+    }
+    
+    @Override
+    public void trainC(ClassificationDataSet dataSet)
+    {
+        super.trainC(dataSet);
+        if(finalizeAfterTraining)
+            finalizeModel();
+    }
+
+    /**
+     * Finalizes the current model. This prevents the model from being updated 
+     * further, causing {@link #update(jsat.classifiers.DataPoint, int) } to 
+     * throw an exception. This finalization reduces the cost of calling 
+     * {@link #classify(jsat.classifiers.DataPoint) } 
+     */
+    public void finalizeModel()
+    {
+        if(finalized)
+            return;
+        final double priorSumSmooth = priorSum + priors.length * smoothing;
+
+        for (int c = 0; c < priors.length; c++)
+        {
+            double logProb = Math.log((priors[c] + smoothing) / priorSumSmooth);
+            priors[c] = logProb;
+
+            double[] counts = wordCounts[c];
+            double logTotalCounts = Math.log(totalWords[c] + smoothing * counts.length);
+
+            for(int i = 0; i < counts.length; i++)
+            {
+                //(n/N)^obv
+                counts[i] = Math.log(counts[i] + smoothing) - logTotalCounts;
+            }
+
+            for (int j = 0; j < apriori[c].length; j++)
+            {
+                double sum = 0;
+                for (int z = 0; z < apriori[c][j].length; z++)
+                    sum += apriori[c][j][z] + smoothing;
+                for (int z = 0; z < apriori[c][j].length; z++)
+                    apriori[c][j][z] = Math.log( (apriori[c][j][z]+smoothing)/sum);
+            }
+        }
+        finalized = true;
+    }
+    
+    
     @Override
     public void setUp(CategoricalData[] categoricalAttributes, int numericAttributes, CategoricalData predicting)
     {
@@ -118,11 +218,14 @@ public class MultinomialNaiveBayes extends BaseUpdateableClassifier implements P
         for (int i = 0; i < nCat; i++)
             for (int j = 0; j < categoricalAttributes.length; j++)
                 apriori[i][j] = new double[categoricalAttributes[j].getNumOfCategories()];
+        finalized = false;
     }
 
     @Override
     public void update(DataPoint dataPoint, int targetClass)
     {
+        if(finalized)
+            throw new FailedToFitException("Model has already been finalized, and can no longer be updated");
         final double weight = dataPoint.getWeight();
         final Vec x = dataPoint.getNumericalValues();
         
@@ -152,34 +255,59 @@ public class MultinomialNaiveBayes extends BaseUpdateableClassifier implements P
         CategoricalResults results = new CategoricalResults(apriori.length);
         double[] logProbs = new double[apriori.length];
         double maxLogProg = Double.NEGATIVE_INFINITY;
-        final double priorSumSmooth = priorSum+logProbs.length*smoothing;
         Vec numVals = data.getNumericalValues();
-        for(int c = 0; c < priors.length; c++)
+        if(finalized)
         {
-            double logProb = Math.log((priors[c]+smoothing)/priorSumSmooth);
-            
-            double[] counts = wordCounts[c];
-            double logTotalCounts = Math.log(totalWords[c]+smoothing*counts.length);
-
-            for (IndexValue iv : numVals)
+            for(int c = 0; c < priors.length; c++)
             {
-                //(n/N)^obv
-                logProb += iv.getValue() * (Math.log(counts[iv.getIndex()]+smoothing) - logTotalCounts);
-            }
+                double logProb = priors[c];
 
-            for (int j = 0; j < apriori[c].length; j++)
-            {
-                double sum = 0;
-                for (int z = 0; z < apriori[c][j].length; z++)
-                    sum += apriori[c][j][z]+smoothing;
-                double p = apriori[c][j][data.getCategoricalValue(j)]+smoothing;
-                logProb += Math.log(p / sum);
-            }
+                double[] counts = wordCounts[c];
 
-            logProbs[c] = logProb;
-            maxLogProg = Math.max(maxLogProg, logProb);
+                for (IndexValue iv : numVals)
+                {
+                    //(n/N)^obv
+                    logProb += iv.getValue() * counts[iv.getIndex()];
+                }
+
+                for (int j = 0; j < apriori[c].length; j++)
+                {
+                    logProb += apriori[c][j][data.getCategoricalValue(j)];
+                }
+
+                logProbs[c] = logProb;
+                maxLogProg = Math.max(maxLogProg, logProb);
+            }
         }
+        else
+        {
+            final double priorSumSmooth = priorSum+logProbs.length*smoothing;
+            for(int c = 0; c < priors.length; c++)
+            {
+                double logProb = Math.log((priors[c]+smoothing)/priorSumSmooth);
 
+                double[] counts = wordCounts[c];
+                double logTotalCounts = Math.log(totalWords[c]+smoothing*counts.length);
+
+                for (IndexValue iv : numVals)
+                {
+                    //(n/N)^obv
+                    logProb += iv.getValue() * (Math.log(counts[iv.getIndex()]+smoothing) - logTotalCounts);
+                }
+
+                for (int j = 0; j < apriori[c].length; j++)
+                {
+                    double sum = 0;
+                    for (int z = 0; z < apriori[c][j].length; z++)
+                        sum += apriori[c][j][z]+smoothing;
+                    double p = apriori[c][j][data.getCategoricalValue(j)]+smoothing;
+                    logProb += Math.log(p / sum);
+                }
+
+                logProbs[c] = logProb;
+                maxLogProg = Math.max(maxLogProg, logProb);
+            }
+        }
         double denom = MathTricks.logSumExp(logProbs, maxLogProg);
 
         for (int i = 0; i < results.size(); i++)
