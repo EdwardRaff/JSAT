@@ -8,6 +8,7 @@ import static jsat.clustering.SeedSelectionMethods.selectIntialPoints;
 import jsat.linear.DenseVector;
 import jsat.linear.Vec;
 import jsat.linear.distancemetrics.DistanceMetric;
+import jsat.linear.distancemetrics.TrainableDistanceMetric;
 
 /**
  * An efficient implementation of the K-Means algorithm. This implementation uses
@@ -305,6 +306,7 @@ public class HamerlyKMeans extends KClustererBase
         if(dataSet.getSampleSize() < clusters)
             throw new ClusterFailureException("Fewer data points then desired clusters, decrease cluster size");
         
+        TrainableDistanceMetric.trainIfNeeded(dm, dataSet, threadpool);
         means = selectIntialPoints(dataSet, clusters, dm, new Random(), seedSelection, threadpool);
         cluster(dataSet, designations, false);
         if(!storeMeans)
@@ -321,6 +323,7 @@ public class HamerlyKMeans extends KClustererBase
         if(dataSet.getSampleSize() < clusters)
             throw new ClusterFailureException("Fewer data points then desired clusters, decrease cluster size");
         
+        TrainableDistanceMetric.trainIfNeeded(dm, dataSet);
         means = selectIntialPoints(dataSet, clusters, dm, new Random(), seedSelection);
         cluster(dataSet, designations, false);
         if(!storeMeans)
