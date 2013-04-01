@@ -199,9 +199,7 @@ public class BackPropagationNet implements Classifier, Regressor, Parameterized
         List<List<Vec>> derivatives = new ArrayList<List<Vec>>(batchSize);
         List<List<Vec>> deltas = new ArrayList<List<Vec>>(batchSize);
         
-        List<List<Vec>> activations_prev = new ArrayList<List<Vec>>(batchSize);
-        List<List<Vec>> derivatives_prev = new ArrayList<List<Vec>>(batchSize);
-        List<List<Vec>> deltas_prev = new ArrayList<List<Vec>>(batchSize);
+        List<Matrix> updates = new ArrayList<Matrix>(Ws.size());
         
         List<Vec> cur_x = new ArrayList<Vec>(batchSize);
         List<Vec> prev_x = new ArrayList<Vec>(batchSize);
@@ -212,20 +210,14 @@ public class BackPropagationNet implements Classifier, Regressor, Parameterized
             derivatives.add(new ArrayList<Vec>(Ws.size()));
             deltas.add(new ArrayList<Vec>(Ws.size()));
             
-            activations_prev.add(new ArrayList<Vec>(Ws.size()));
-            derivatives_prev.add(new ArrayList<Vec>(Ws.size()));
-            deltas_prev.add(new ArrayList<Vec>(Ws.size()));
-            
             for(Matrix w : Ws)
             {
                 int L = w.rows();
                 activations.get(i).add(new DenseVector(L));
                 derivatives.get(i).add(new DenseVector(L));
                 deltas.get(i).add(new DenseVector(L));
-
-                activations_prev.get(i).add(new DenseVector(L));
-                derivatives_prev.get(i).add(new DenseVector(L));
-                deltas_prev.get(i).add(new DenseVector(L));
+                if(i == 0)
+                    updates.add(new DenseMatrix(w.rows(), w.cols()));
             }
         }
         
@@ -243,28 +235,6 @@ public class BackPropagationNet implements Classifier, Regressor, Parameterized
             {
                 if(dataSet.getSampleSize() - iter < batchSize)
                     continue;//we have run out of enough sampels to do an update
-                
-                { //Swap prev / current 
-                    List<List<Vec>> swap_tmp;
-
-                    swap_tmp = activations_prev;
-                    activations_prev = activations;
-                    activations = swap_tmp;
-
-                    swap_tmp = deltas_prev;
-                    deltas_prev = deltas;
-                    deltas = swap_tmp;
-
-                    swap_tmp = derivatives_prev;
-                    derivatives_prev = derivatives;
-                    derivatives = swap_tmp;
-                    
-                    List<Vec> swap_2;
-                    
-                    swap_2 = prev_x;
-                    prev_x = cur_x;
-                    cur_x = swap_2;
-                }
                 
                 cur_x.clear();
                 
@@ -304,29 +274,41 @@ public class BackPropagationNet implements Classifier, Regressor, Parameterized
                         Matrix W = Ws.get(i);
                         Vec b = bs.get(i);
                         W.mutableSubtract(eta*weightDecay, W);
-
-                        Matrix.OuterProductUpdate(W, deltas.get(bi).get(i), activations.get(bi).get(i-1), -eta*bSizeInv);
-                        b.mutableAdd(-eta*bSizeInv, deltas.get(bi).get(i));
-
-                        if(momentum != 0 && !prev_x.isEmpty())
+                        
+                        if(momentum != 0)
                         {
-                            Matrix.OuterProductUpdate(W, deltas_prev.get(bi).get(i), activations_prev.get(bi).get(i-1), -eta*momentum*bSizeInv);
-                            b.mutableAdd(-eta*momentum*bSizeInv, deltas_prev.get(bi).get(i));
+                            Matrix update = updates.get(i);
+                            update.mutableMultiply(momentum);
+                            Matrix.OuterProductUpdate(update, deltas.get(bi).get(i), activations.get(bi).get(i-1), -eta*bSizeInv);
+                            W.mutableAdd(update);
                         }
+                        else//update directly
+                        {
+                            Matrix.OuterProductUpdate(W, deltas.get(bi).get(i), activations.get(bi).get(i-1), -eta*bSizeInv);
+                        }
+                        
+                        b.mutableAdd(-eta*bSizeInv, deltas.get(bi).get(i));
                     }
 
                     //input layer
                     Matrix W = Ws.get(0);
                     W.mutableSubtract(eta*weightDecay, W);
                     Vec b = bs.get(0);
-                    Matrix.OuterProductUpdate(W, deltas.get(bi).get(0), cur_x.get(bi), -eta*bSizeInv);
-                    b.mutableAdd(-eta*bSizeInv, deltas.get(bi).get(0));
-
-                    if(momentum != 0 && !prev_x.isEmpty())
+                    
+                    if(momentum != 0)
                     {
-                        Matrix.OuterProductUpdate(W, deltas_prev.get(bi).get(0), prev_x.get(bi), -eta*momentum*bSizeInv);
-                        b.mutableAdd(-eta*momentum*bSizeInv, deltas_prev.get(bi).get(0));
+                        Matrix update = updates.get(0);
+                        update.mutableMultiply(momentum);
+
+                        Matrix.OuterProductUpdate(update, deltas.get(bi).get(0), cur_x.get(bi), -eta*bSizeInv);
+                        W.mutableAdd(update);
                     }
+                    else//update directly
+                    {
+                        Matrix.OuterProductUpdate(W, deltas.get(bi).get(0), cur_x.get(bi), -eta*bSizeInv);
+                    }
+                        
+                    b.mutableAdd(-eta*bSizeInv, deltas.get(bi).get(0));
                 }
                 
             }
