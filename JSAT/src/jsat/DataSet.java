@@ -1,7 +1,6 @@
 
 package jsat;
 
-import static java.lang.Math.pow;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -10,7 +9,6 @@ import jsat.classifiers.CategoricalData;
 import jsat.classifiers.DataPoint;
 import jsat.datatransform.DataTransform;
 import jsat.linear.*;
-import jsat.math.MathTricks;
 import jsat.math.OnLineStatistics;
 
 /**
@@ -177,7 +175,7 @@ public abstract class DataSet
     }
     
     /**
-     * Computes the unweighted mean and variance for each column of feature 
+     * Computes the weighted mean and variance for each column of feature 
      * values. This has less overhead than 
      * {@link #getOnlineColumnStats(boolean) } but returns less information. 
      * 
@@ -186,7 +184,6 @@ public abstract class DataSet
      */
     public Vec[] getColumnMeanVariance()
     {
-        final int n = getSampleSize();
         final int d = getNumNumericalVars();
         Vec[] vecs = new Vec[] 
         {
@@ -197,25 +194,8 @@ public abstract class DataSet
         Vec means = vecs[0];
         Vec stdDevs = vecs[1];
         
-        int[] nnzCounts = new int[d];
-        for(int i = 0; i < n; i++)
-            means.mutableAdd(getDataPoint(i).getNumericalValues());
-        means.mutableDivide(n);
-        for(int i = 0; i < n; i++)
-        {
-            Vec x = getDataPoint(i).getNumericalValues();
-            for(IndexValue iv : x)
-            {
-                int indx = iv.getIndex();
-                nnzCounts[indx]++;
-                stdDevs.increment(indx, pow(iv.getValue()-means.get(indx), 2));
-            }
-        }
-        
-        //add zero observations
-        for(int i = 0; i < nnzCounts.length; i++)
-            stdDevs.increment(i, pow(means.get(i), 2)*nnzCounts[i]);
-        stdDevs.mutableDivide(n);
+        MatrixStatistics.meanVector(means, this);
+        MatrixStatistics.covarianceDiag(means, stdDevs, this);
         
         return vecs;
     }
