@@ -48,6 +48,12 @@ public class PlatSMO extends SupportVectorMachine implements Parameterized
     protected double[] fcache;
     
     private int i_up, i_low;
+    
+    /* NOTE: Only I_0 needs to be iterated over, so make it a set to iterate 
+     * quickly. All others only need set/check, so just use a boolean array. 
+     * This saves memory. (bools default false, so they start out all 'empty')
+     */
+    
     /**
      * i : 0 < a_i < C
      */
@@ -55,19 +61,19 @@ public class PlatSMO extends SupportVectorMachine implements Parameterized
     /**
      * i: y_i = 1 AND  a_i = 0
      */
-    Set<Integer> I1;
+    boolean[] I1;
     /**
      * i: y_i = -1 AND a_i = C
      */
-    Set<Integer> I2;
+    boolean[] I2;
     /**
      * i: y_i = 1 AND a_i = C
      */
-    Set<Integer> I3;
+    boolean[] I3;
     /**
      * i: y_i = -1 AND a_i = 0
      */
-    Set<Integer> I4;
+    boolean[] I4;
     
     protected double[] label;
     
@@ -133,10 +139,10 @@ public class PlatSMO extends SupportVectorMachine implements Parameterized
         setCacheMode(getCacheMode());//Initiates the cahce
         
         I0 = new IntSetFixedSize(vecs.length);
-        I1 = new IntSetFixedSize(vecs.length);
-        I2 = new IntSetFixedSize(vecs.length);
-        I3 = new IntSetFixedSize(vecs.length);
-        I4 = new IntSetFixedSize(vecs.length);
+        I1 = new boolean[vecs.length];
+        I2 = new boolean[vecs.length];
+        I3 = new boolean[vecs.length];
+        I4 = new boolean[vecs.length];
         
         
         //initialize alpha array to all zero
@@ -149,13 +155,13 @@ public class PlatSMO extends SupportVectorMachine implements Parameterized
             {
                 label[i] = -1;
                 i_low = i;
-                I4.add(i);
+                I4[i] = true;
             }
             else
             {
                 label[i] = 1;
                 i_up = i;
-                I1.add(i);
+                I1[i] = true;
             }
         
         b_up  = -1;
@@ -231,7 +237,8 @@ public class PlatSMO extends SupportVectorMachine implements Parameterized
         label = null;
         
         fcache = null;
-        I0 = I1 = I2 = I3 = I4 = null;
+        I0 = null;
+        I1 = I2 = I3 = I4 = null;
     }
     
     /**
@@ -258,36 +265,36 @@ public class PlatSMO extends SupportVectorMachine implements Parameterized
         {
             if(a1 == 0)
             {
-                I1.add(i1);
-                I3.remove(i1);
+                I1[i1] = true;
+                I3[i1] = false;
             }
             else if(a1 == C)
             {
-                I1.remove(i1);
-                I3.add(i1);
+                I1[i1] = false;
+                I3[i1] = true;
             }
             else
             {
-                I1.remove(i1);
-                I3.remove(i1);
+                I1[i1] = false;
+                I3[i1] = false;
             }
         }
         else
         {
             if(a1 == 0)
             {
-                I4.add(i1);
-                I2.remove(i1);
+                I4[i1] = true;
+                I2[i1] = false;
             }
             else if(a1 == C)
             {
-                I4.remove(i1);
-                I2.add(i1);
+                I4[i1] = false;
+                I2[i1] = true;
             }
             else
             {
-                I4.remove(i1);
-                I2.remove(i1);
+                I4[i1] = false;
+                I2[i1] = false;
             }
         }
     }
@@ -444,12 +451,12 @@ public class PlatSMO extends SupportVectorMachine implements Parameterized
         {
             fcache[i2] = F2 = decisionFunction(i2) - y2;
             //update (b_low, i_low) or (b_up, i_up) using (F2, i2)
-            if( (I1.contains(i2) || I2.contains(i2) ) && (F2 < b_up)  )
+            if( (I1[i2] || I2[i2] ) && (F2 < b_up)  )
             {
                 b_up = F2;
                 i_up = i2;
             }
-            else if( (I3.contains(i2) || I4.contains(i2)) && (F2 > b_low) )
+            else if( (I3[i2] || I4[i2]) && (F2 > b_low) )
             {
                 b_low = F2;
                 i_low = i2;
@@ -462,7 +469,7 @@ public class PlatSMO extends SupportVectorMachine implements Parameterized
         int i1 = -1;//giberish init value will not get used, but makes compiler smile
         
         final boolean I0_contains_i2 = I0.contains(i2);
-        if(I0_contains_i2 || I1.contains(i2) || I2.contains(i2))
+        if(I0_contains_i2 || I1[i2] || I2[i2])
         {
             if(b_low - F2 > tolerance*2)
             {
@@ -471,7 +478,7 @@ public class PlatSMO extends SupportVectorMachine implements Parameterized
             }
         }
         
-        if(I0_contains_i2 || I3.contains(i2) || I4.contains(i2))
+        if(I0_contains_i2 || I3[i2] || I4[i2])
         {
             if(F2-b_up > tolerance*2)
             {
