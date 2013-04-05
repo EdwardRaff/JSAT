@@ -84,17 +84,30 @@ public class PearsonDistance implements DistanceMetric
     /**
      * Computes the Pearson correlation between two vectors. If one of the vectors is all zeros, the result is undefined. 
      * In cases where both are zero vectors, 1 will be returned to indicate they are the same. In cases where one of the 
-     * numerator coefficients is zero, its value will be bumped up to an epsilon to provide a near result. 
+     * numerator coefficients is zero, its value will be bumped up to an epsilon to provide a near result. <br>
+     * <br>
+     * In cases where {@code bothNonZero} is {@code true}, and the vectors have no overlapping non zero values, 0 will
+     * be returned. 
      * @param a the first vector
      * @param b the second vector
      * @param bothNonZero {@code false} is the normal Pearson correlation. {@code true} will make the computation ignore 
-     * all indexes where one of the values is zero, but it will not change the mean. 
+     * all indexes where one of the values is zero, the mean will be from all non zero values in each vector. 
      * @return the Pearson correlation in [-1, 1]
      */
     public static double correlation(Vec a, Vec b, boolean bothNonZero)
     {
-        final double aMean = a.mean();
-        final double bMean = b.mean();
+        final double aMean;
+        final double bMean;
+        if(bothNonZero)
+        {
+            aMean = a.sum()/a.nnz();
+            bMean = b.sum()/b.nnz();
+        }
+        else
+        {
+            aMean = a.mean();
+            bMean = b.mean();
+        }
 
         double r = 0;
         double aSqrd = 0, bSqrd = 0;
@@ -233,7 +246,7 @@ public class PearsonDistance implements DistanceMetric
         }
         
         if(bSqrd == 0 && aSqrd == 0)
-            return Double.MAX_VALUE;
+            return 0;
         else if(bSqrd == 0 || aSqrd == 0)
             return r/Math.sqrt((aSqrd+1e-10)*(bSqrd+1e-10));
 
