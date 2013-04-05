@@ -170,6 +170,17 @@ public class MathTricks
         }
     };
     
-    
+    /**
+     * Convenience object for taking the {@link Math#abs(double) abs } of the 
+     * first index
+     */
+    public static final Function absFunc = new FunctionBase() 
+    {
+        @Override
+        public double f(Vec x)
+        {
+            return Math.abs(x.get(0));
+        }
+    };
     
 }
