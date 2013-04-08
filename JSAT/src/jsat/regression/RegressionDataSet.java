@@ -68,7 +68,7 @@ public class RegressionDataSet extends DataSet
             for(int i = 0; i < origVec.length()-1; i++)
             {
                 if(i >= predicting)
-                    newVec.set(i+1, origVec.get(i+1));
+                    newVec.set(i, origVec.get(i+1));
                 else
                     newVec.set(i, origVec.get(i));
             }
