@@ -18,6 +18,7 @@ import jsat.distributions.Uniform;
 import jsat.linear.Vec;
 import jsat.linear.distancemetrics.EuclideanDistance;
 import jsat.utils.GridDataGenerator;
+import jsat.utils.SystemInfo;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -50,7 +51,7 @@ public class KMeansTest
         kMeans = new KMeans(new EuclideanDistance(), new Random(11), SeedSelection.KPP);
         GridDataGenerator gdg = new GridDataGenerator(new Uniform(-0.15, 0.15), new Random(12), 2, 5);
         easyData10 = gdg.generateData(110);
-        ex = Executors.newFixedThreadPool(10);
+        ex = Executors.newFixedThreadPool(SystemInfo.LogicalCores);
     }
 
     @AfterClass
