@@ -80,7 +80,7 @@ public class MatrixStatistics
             DataPoint dp = dataSet.getDataPoint(i);
             double w = dp.getWeight();
             sumOfWeights += w;
-            mean.mutableAdd(w, mean);
+            mean.mutableAdd(w, dp.getNumericalValues());
         }
         mean.mutableDivide(sumOfWeights);
     }
