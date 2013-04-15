@@ -113,6 +113,10 @@ public class HamerlyKMeans extends KClustererBase
         
         //Start of algo
         Initialize(dataSet, q, means, tmpVecs, cP, u, l, assignment);
+        //Use dense mean objects
+        for(int i = 0; i < means.size(); i++)
+            if(means.get(i).isSparse())
+                means.set(i, new DenseVector(means.get(i)));
         int updates = N;
         while(updates > 0)
         {
