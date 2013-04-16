@@ -2,13 +2,19 @@ package jsat.clustering;
 
 import java.util.List;
 import java.util.Random;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLongArray;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import jsat.DataSet;
 import static jsat.clustering.SeedSelectionMethods.selectIntialPoints;
 import jsat.linear.DenseVector;
 import jsat.linear.Vec;
 import jsat.linear.distancemetrics.DistanceMetric;
 import jsat.linear.distancemetrics.TrainableDistanceMetric;
+import jsat.utils.SystemInfo;
 
 /**
  * An efficient implementation of the K-Means algorithm. This implementation uses
@@ -63,16 +69,19 @@ public class HamerlyKMeans extends KClustererBase
         return means;
     }
     
+    //TODO reduce some code duplication in the methods bellow 
+    
     /**
      * Performs the main clustering work
      * @param dataSet the data set to cluster
      * @param assignment the array to store assignments in
      * @param exactTotal not used at the moment. 
      */
-    protected void cluster(DataSet dataSet, final int[] assignment, boolean exactTotal)
+    protected void cluster(final DataSet dataSet, final int[] assignment, boolean exactTotal, ExecutorService threadpool)
     {
         final int k = means.size();
         final int N = dataSet.getSampleSize();
+        final int D = dataSet.getNumNumericalVars();
         
         /**
          * vector sum of all points in cluster j <br>
@@ -84,7 +93,7 @@ public class HamerlyKMeans extends KClustererBase
          * number of points assigned to cluster j,<br>
          * denoted q(j)
          */
-        final int[] q = new int[k];
+        final AtomicLongArray q = new AtomicLongArray(k);
         /**
          * distance that c(j) last moved <br>
          * denoted p(j)
@@ -111,19 +120,131 @@ public class HamerlyKMeans extends KClustererBase
          */
         final double[] l = new double[N];
         
+        final ThreadLocal<Vec[]> localDeltas = new ThreadLocal<Vec[]>()
+        {
+            @Override
+            protected Vec[] initialValue()
+            {
+                Vec[] toRet = new Vec[means.size()];
+                for(int i = 0; i < k; i++)
+                    toRet[i] = new DenseVector(D);
+                return toRet;
+            }
+        };
+        
         //Start of algo
-        Initialize(dataSet, q, means, tmpVecs, cP, u, l, assignment);
+        Initialize(dataSet, q, means, tmpVecs, cP, u, l, assignment, threadpool, localDeltas);
         //Use dense mean objects
         for(int i = 0; i < means.size(); i++)
             if(means.get(i).isSparse())
                 means.set(i, new DenseVector(means.get(i)));
-        int updates = N;
-        while(updates > 0)
+        final AtomicInteger updates = new AtomicInteger(N);
+        while(updates.get() > 0)
         {
             moveCenters(means, tmpVecs, cP, q, p);
             UpdateBounds(p, assignment, u, l);
-            updates = 0;
-            for(int j = 0; j < means.size(); j++)
+            updates.set(0);
+            updateS(s, threadpool);
+            
+            if(threadpool == null)
+            {
+                int localUpdates = 0;
+                for(int i = 0; i < N; i++)
+                {
+                    localUpdates += mainLoopWork(dataSet, i, s, assignment, u, l, q, cP);
+                }
+                updates.set(localUpdates);
+            }
+            else
+            {
+                final CountDownLatch latch = new CountDownLatch(SystemInfo.LogicalCores);
+                for(int id = 0; id < SystemInfo.LogicalCores; id++)
+                {
+                    final int ID = id;
+                    threadpool.submit(new Runnable() 
+                    {
+                        @Override
+                        public void run()
+                        {
+                            Vec[] deltas = localDeltas.get();
+                            int localUpdates = 0;
+                            for(int i = ID; i < N; i+=SystemInfo.LogicalCores)
+                            {
+                                localUpdates += mainLoopWork(dataSet, i, s, assignment, u, l, q, deltas);
+                            }
+                            //collect deltas
+                            if(localUpdates > 0)
+                            {
+                                updates.getAndAdd(localUpdates);
+                                for(int i = 0; i < cP.length; i++)
+                                {
+                                    synchronized(cP[i])
+                                    {
+                                        cP[i].mutableAdd(deltas[i]);
+                                    }
+                                    deltas[i].zeroOut();
+                                }
+                            }
+                            latch.countDown();
+                        }
+                    });
+                }
+                try
+                {
+                    latch.await();
+                }
+                catch (InterruptedException ex)
+                {
+                    Logger.getLogger(HamerlyKMeans.class.getName()).log(Level.SEVERE, null, ex);
+                }
+            }
+        }
+    }
+
+    /**
+     * 
+     * @param dataSet data set
+     * @param i the index to do the work for
+     * @param s the centroid centroid nearest distance
+     * @param assignment the array assignments are stored in
+     * @param u the "u" array of the algo
+     * @param l the "l" array of the algo
+     * @param q the "q" array of the algo (cluster counts)
+     * @param deltas the location to store the computed delta if one occurs 
+     * @return 0 if no changes in assignment were made, 1 if a change in assignment was made
+     */
+    private int mainLoopWork(DataSet dataSet, int i, double[] s, int[] assignment, double[] u, 
+            double[] l, AtomicLongArray q, Vec[] deltas)
+    {
+        final int a_i = assignment[i];
+        double m = Math.max(s[a_i] / 2, l[i]);
+        if (u[i] > m)//first bound test
+        {
+            Vec x = x(dataSet, i);
+            u[i] = dm.dist(x, means.get(a_i));//tighten upper bound
+            if (u[i] > m)  //second bound test
+            {
+                final int new_a_i = PointAllCtrs(x, i, means, assignment, u, l);
+                if (a_i != new_a_i)
+                {
+                    q.decrementAndGet(a_i);
+                    q.incrementAndGet(new_a_i);
+                    deltas[a_i].mutableSubtract(x);
+                    deltas[new_a_i].mutableAdd(x);
+                    return 1;//1 change in ownership
+                }
+            }
+        }
+        return 0;//no change
+    }
+    
+    private void updateS(final double[] s, ExecutorService threadpool)
+    {
+        final int tasks = means.size();
+        final CountDownLatch latch = new CountDownLatch(tasks);
+        for(int j = 0; j < means.size(); j++)
+        {
+            if(threadpool == null)
             {
                 final Vec mean_j = means.get(j);
                 double tmp;
@@ -135,33 +256,41 @@ public class HamerlyKMeans extends KClustererBase
                         min = tmp;
                 s[j] = min;
             }
-            
-            for(int i = 0; i < N; i++)
+            else
             {
-                final int a_i = assignment[i];
-                double m = Math.max(s[a_i]/2, l[i]);
-                if(u[i] > m)//first bound test
+                final int J = j;
+                threadpool.submit(new Runnable() 
                 {
-                    Vec x = x(dataSet, i);
-                    u[i] = dm.dist(x, means.get(a_i));//tighten upper bound
-                    if(u[i] > m)  //second bound test
+                    @Override
+                    public void run()
                     {
-                        final int new_a_i = PointAllCtrs(x, i, means, assignment, u, l);
-                        if(a_i != new_a_i)
-                        {
-                            updates++;
-                            q[a_i]--;
-                            q[new_a_i]++;
-                            cP[a_i].mutableSubtract(x);
-                            cP[new_a_i].mutableAdd(x);
-                        }
+                        final Vec mean_j = means.get(J);
+                        double tmp;
+                        double min = Double.POSITIVE_INFINITY;
+                        for (int jp = 0; jp < means.size(); jp++)
+                            if (jp == J)
+                                continue;
+                            else if ((tmp = dm.dist(mean_j, means.get(jp))) < min)
+                                min = tmp;
+                        s[J] = min;
+                        latch.countDown();
                     }
-                }
+                });
             }
         }
+        
+        if (threadpool != null)
+            try
+            {
+                latch.await();
+            }
+            catch (InterruptedException ex)
+            {
+                Logger.getLogger(HamerlyKMeans.class.getName()).log(Level.SEVERE, null, ex);
+            }
     }
     
-    private void Initialize(DataSet d, int[] q, List<Vec> means, Vec[] tmp, Vec[] cP, double[] u, double[] l, int[] a)
+    private void Initialize(final DataSet d, final AtomicLongArray q, final List<Vec> means, final Vec[] tmp, final Vec[] cP, final double[] u, final double[] l, final int[] a, ExecutorService threadpool, final ThreadLocal<Vec[]> localDeltas)
     {
         for(int j = 0; j < means.size(); j++)
         {
@@ -169,13 +298,58 @@ public class HamerlyKMeans extends KClustererBase
             cP[j] = new DenseVector(means.get(0).length());
             tmp[j] = cP[j].clone();
         }
-        
-        for(int i = 0; i < u.length; i++)
+
+        if(threadpool==null)
         {
-            Vec x = x(d, i);
-            int j = PointAllCtrs(x, i, means, a, u, l);
-            q[j]++;
-            cP[j].mutableAdd(x);
+            for(int i = 0; i < u.length; i++)
+            {
+                Vec x = x(d, i);
+                int j = PointAllCtrs(x, i, means, a, u, l);
+                q.incrementAndGet(j);
+                cP[j].mutableAdd(x);
+            }
+        }
+        else
+        {
+            final CountDownLatch latch = new CountDownLatch(SystemInfo.LogicalCores);
+            for(int id = 0; id < SystemInfo.LogicalCores; id++)
+            {
+                final int ID = id;
+                threadpool.submit(new Runnable() 
+                {
+                    @Override
+                    public void run()
+                    {
+                        Vec[] deltas = localDeltas.get();
+                        for (int i = ID; i < u.length; i+=SystemInfo.LogicalCores)
+                        {
+                            Vec x = x(d, i);
+                            int j = PointAllCtrs(x, i, means, a, u, l);
+                            q.incrementAndGet(j);
+                            deltas[j].mutableAdd(x);
+                        }
+                        
+                        for(int i = 0; i < cP.length; i++)
+                        {
+                            synchronized(cP[i])
+                            {
+                                cP[i].mutableAdd(deltas[i]);
+                            }
+                            deltas[i].zeroOut();
+                        }
+                        
+                        latch.countDown();
+                    }
+                });
+            }
+            try
+            {
+                latch.await();
+            }
+            catch (InterruptedException ex)
+            {
+                Logger.getLogger(HamerlyKMeans.class.getName()).log(Level.SEVERE, null, ex);
+            }
         }
     }
     
@@ -222,13 +396,13 @@ public class HamerlyKMeans extends KClustererBase
         return lIndex;
     }
     
-    private void moveCenters(List<Vec> means, Vec[] tmpSpace, Vec[] cP, int[] q, double[] p)
+    private void moveCenters(List<Vec> means, Vec[] tmpSpace, Vec[] cP, AtomicLongArray q, double[] p)
     {
         for(int j = 0; j < means.size(); j++)
         {
             //compute new mean
             cP[j].copyTo(tmpSpace[j]);
-            tmpSpace[j].mutableDivide(q[j]);
+            tmpSpace[j].mutableDivide(q.get(j));
             //compute distance betwean new and old
             p[j] = dm.dist(means.get(j), tmpSpace[j]);
             //move it to its positaiotn as new mean
@@ -312,7 +486,7 @@ public class HamerlyKMeans extends KClustererBase
         
         TrainableDistanceMetric.trainIfNeeded(dm, dataSet, threadpool);
         means = selectIntialPoints(dataSet, clusters, dm, new Random(), seedSelection, threadpool);
-        cluster(dataSet, designations, false);
+        cluster(dataSet, designations, false, threadpool);
         if(!storeMeans)
             means = null;
         
@@ -329,7 +503,7 @@ public class HamerlyKMeans extends KClustererBase
         
         TrainableDistanceMetric.trainIfNeeded(dm, dataSet);
         means = selectIntialPoints(dataSet, clusters, dm, new Random(), seedSelection);
-        cluster(dataSet, designations, false);
+        cluster(dataSet, designations, false, null);
         if(!storeMeans)
             means = null;
         
@@ -347,5 +521,5 @@ public class HamerlyKMeans extends KClustererBase
     {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
-    
+
 }
