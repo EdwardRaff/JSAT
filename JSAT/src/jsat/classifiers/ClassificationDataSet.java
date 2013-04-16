@@ -39,6 +39,13 @@ public class ClassificationDataSet extends DataSet
     {
         this(dataSet.getDataPoints(), predicting);
         //Fix up numeric names
+        if(numericalVariableNames == null)
+        {
+            numericalVariableNames = new ArrayList<String>();
+            String s = "";
+            for(int i = 0; i < getNumNumericalVars(); i++)
+                numericalVariableNames.add(s);
+        }
         for(int i = 0; i < getNumNumericalVars(); i++)
             this.numericalVariableNames.set(i, dataSet.getNumericName(i));
     }
