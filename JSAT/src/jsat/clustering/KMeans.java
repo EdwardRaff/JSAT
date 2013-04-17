@@ -251,7 +251,7 @@ public class KMeans extends KClustererBase
              */
             final double[][] centroidSelfDistances = new double[k][k];
             final double[] sC = new double[k];
-            calculateCentroidDistances(k, centroidSelfDistances, means, sC, null);
+            calculateCentroidDistances(k, centroidSelfDistances, means, sC, null, threadpool);
             final AtomicLongArray meanCount = new AtomicLongArray(k);
             Vec[] oldMeans = new Vec[k];//The means fromt he current step are needed when computing the new means
             final Vec[] meanSums = new Vec[k];
@@ -286,34 +286,27 @@ public class KMeans extends KClustererBase
             else
                 initialClusterSetUp(k, N, dataSet, means, lowerBound, upperBound, centroidSelfDistances, assignment, meanCount, meanSums, localDeltas, threadpool);
 
-            final ArrayBlockingQueue<Runnable> runnableList = threadpool == null ? null : new ArrayBlockingQueue<Runnable>(4 * SystemInfo.LogicalCores, false);
-
             int iterLimit = MaxIterLimit;
             while ((changeOccurred.get() || atLeast > 0) && iterLimit-- >= 0)
             {
                 atLeast--;
                 changeOccurred.set(false);
                 //Step 1 
-                calculateCentroidDistances(k, centroidSelfDistances, means, sC, meanSummaryConsts);
+                calculateCentroidDistances(k, centroidSelfDistances, means, sC, meanSummaryConsts, threadpool);
                 
                 final CountDownLatch latch = new CountDownLatch(SystemInfo.LogicalCores);
 
-                //Create readers to run jobs 
-                if (threadpool != null)
-                    for (int i = 0; i < SystemInfo.LogicalCores; i++)
-                        threadpool.submit(new RunnableConsumer(runnableList));
-
                 //Step 2 / 3
-                for (int q = 0; q < N; q++)
+                if (threadpool == null)
                 {
-                    //Step 2, skip those that u(v) < s(c(v))
-                    if (upperBound[q] <= sC[assignment[q]])
-                        continue;
-                    
-                    final Vec v = dataSet.getDataPoint(q).getNumericalValues();
-                        
-                    if(threadpool == null)
+                    for (int q = 0; q < N; q++)
                     {
+                        //Step 2, skip those that u(v) < s(c(v))
+                        if (upperBound[q] <= sC[assignment[q]])
+                            continue;
+
+                        final Vec v = dataSet.getDataPoint(q).getNumericalValues();
+
                         for (int c = 0; c < k; c++)
                             if (c != assignment[q] && upperBound[q] > lowerBound[q][c] && upperBound[q] > centroidSelfDistances[assignment[q]][c] * 0.5)
                             {
@@ -321,47 +314,42 @@ public class KMeans extends KClustererBase
                                 step3bUpdate(upperBound, q, lowerBound, c, centroidSelfDistances, assignment, v, means, localDeltas, meanCount, changeOccurred, meanSummaryConsts);
                             }
                     }
-                    else
+                }
+                else
+                {
+                    for(int id = 0; id < SystemInfo.LogicalCores; id++)
                     {
-                        final int qq = q;
-                        Runnable run = new Runnable() 
-                        {
+                        final int ID = id;
+                        threadpool.submit(new Runnable() {
+
                             @Override
                             public void run()
                             {
-                                for (int c = 0; c < k; c++)
-                                    if (c != assignment[qq] && upperBound[qq] > lowerBound[qq][c] && upperBound[qq] > centroidSelfDistances[assignment[qq]][c] * 0.5)
-                                    {
-                                        step3aBoundsUpdate(r, qq, v, means, assignment, upperBound, lowerBound, meanSummaryConsts);
-                                        step3bUpdate(upperBound, qq, lowerBound, c, centroidSelfDistances, assignment, v, means, localDeltas, meanCount,  changeOccurred, meanSummaryConsts);
-                                    }
+                                for (int q = ID; q < N; q += SystemInfo.LogicalCores)
+                                {
+                                    //Step 2, skip those that u(v) < s(c(v))
+                                    if (upperBound[q] <= sC[assignment[q]])
+                                        continue;
+
+                                    final Vec v = dataSet.getDataPoint(q).getNumericalValues();
+
+                                    for (int c = 0; c < k; c++)
+                                        if (c != assignment[q] && upperBound[q] > lowerBound[q][c] && upperBound[q] > centroidSelfDistances[assignment[q]][c] * 0.5)
+                                        {
+                                            step3aBoundsUpdate(r, q, v, means, assignment, upperBound, lowerBound, meanSummaryConsts);
+                                            step3bUpdate(upperBound, q, lowerBound, c, centroidSelfDistances, assignment, v, means, localDeltas, meanCount, changeOccurred, meanSummaryConsts);
+                                        }
+                                }
+
+                                step4UpdateCentroids(meanSums, localDeltas);
+                                latch.countDown();
                             }
-                        };
-                        runnableList.put(run);
+                        });
                     }
                 }
-                
-                //Step 4
-                //Re compute centroids
-                for (int i = 0; i < k; i++)
-                    means.get(i).copyTo(oldMeans[i]);
               
                 if (threadpool != null)
                 {
-                    //Pop extra off
-                    for (int i = 0; i < SystemInfo.LogicalCores; i++)
-                        runnableList.put(new PoisonRunnable(new Runnable()
-                        {
-                            @Override
-                            public void run()
-                            {
-                                step4UpdateCentroids(meanSums, localDeltas);
-
-                                latch.countDown();
-                            }
-                        }));
-
-                    //Still need to wait for everyone to finish, some threasd may still be easting jobs from the que 
                     try
                     {
                         latch.await();
@@ -374,18 +362,7 @@ public class KMeans extends KClustererBase
                 else
                     step4UpdateCentroids(meanSums, localDeltas);
                 
-                //normalize 
-                for (int i = 0; i < k; i++)
-                {
-                    meanSums[i].copyTo(means.get(i));
-                    long count = meanCount.get(i);
-                    if(count == 0)
-                        means.get(i).zeroOut();
-                    else
-                        means.get(i).mutableDivide(meanCount.get(i));
-                }
-                
-                step5_6_distanceMovedBoundsUpdate(k, oldMeans, means, N, lowerBound, upperBound, assignment, r);
+                step5_6_distanceMovedBoundsUpdate(k, oldMeans, means, meanSums, meanCount, N, lowerBound, upperBound, assignment, r, threadpool);
             }
 
             double totalDistance = 0.0;
@@ -399,7 +376,7 @@ public class KMeans extends KClustererBase
 
             return totalDistance;
         }
-        catch (InterruptedException ex)
+        catch (Exception ex)
         {
             Logger.getLogger(KMeans.class.getName()).log(Level.SEVERE, null, ex);
         }
@@ -534,9 +511,92 @@ public class KMeans extends KClustererBase
         }
     }
 
-    private void step5_6_distanceMovedBoundsUpdate(final int k, Vec[] oldMeans, final List<Vec> means, final int N, final double[][] lowerBound, final double[] upperBound, final int[] assignment, final boolean[] r)
+    private void step5_6_distanceMovedBoundsUpdate(final int k, final Vec[] oldMeans, final List<Vec> means, final Vec[] meanSums, 
+            final AtomicLongArray meanCount, final int N, final double[][] lowerBound, final double[] upperBound, 
+            final int[] assignment, final boolean[] r, ExecutorService threadpool)
     {
-        double[] distancesMoved = new double[k];
+        final double[] distancesMoved = new double[k];
+        
+        if(threadpool != null)
+        {
+            try
+            {
+                final CountDownLatch latch1 = new CountDownLatch(k);
+                
+                //Step 5
+                for (int i = 0; i < k; i++)
+                {
+                    final int c = i;
+                    threadpool.submit(new Runnable()
+                    {
+                        @Override
+                        public void run()
+                        {
+                            means.get(c).copyTo(oldMeans[c]);
+                            
+                            meanSums[c].copyTo(means.get(c));
+                            long count = meanCount.get(c);
+                            if (count == 0)
+                                means.get(c).zeroOut();
+                            else
+                                means.get(c).mutableDivide(meanCount.get(c));
+                            
+                            
+                            
+                            distancesMoved[c] = dm.dist(oldMeans[c], means.get(c));
+                            for (int q = 0; q < N; q++)
+                                lowerBound[q][c] = Math.max(lowerBound[q][c] - distancesMoved[c], 0);
+                            latch1.countDown();
+                        }
+                    });
+                }
+                latch1.await();
+                
+                //Step 6
+                final CountDownLatch latch2 = new CountDownLatch(SystemInfo.LogicalCores);
+                final int blockSize = N/SystemInfo.LogicalCores;
+                for(int id = 0; id < SystemInfo.LogicalCores; id++)
+                {
+                    final int start = id*blockSize;
+                    final int end = (id == SystemInfo.LogicalCores-1 ? N : start+blockSize);
+                    threadpool.submit(new Runnable() 
+                    {
+                        @Override
+                        public void run()
+                        {
+                            for(int q = start; q < end; q++)
+                            {
+                                upperBound[q] +=  distancesMoved[assignment[q]];
+                                r[q] = true; 
+                            }
+                            latch2.countDown();
+                        }
+                    });
+                }
+                latch2.await();
+                return;
+            }
+            catch (InterruptedException ex)
+            {
+                Logger.getLogger(KMeans.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        }
+        
+        //Re compute centroids
+        for (int i = 0; i < k; i++)
+            means.get(i).copyTo(oldMeans[i]);
+
+        //normalize 
+        for (int i = 0; i < k; i++)
+        {
+            meanSums[i].copyTo(means.get(i));
+            long count = meanCount.get(i);
+            if (count == 0)
+                means.get(i).zeroOut();
+            else
+                means.get(i).mutableDivide(meanCount.get(i));
+        }
+        
         for(int i = 0; i < k; i++)
             distancesMoved[i] = dm.dist(oldMeans[i], means.get(i));
 
@@ -600,8 +660,47 @@ public class KMeans extends KClustererBase
         }
     }
 
-    private void calculateCentroidDistances(final int k, double[][] centroidSelfDistances, final List<Vec> means, double[] sC, double[] meanSummaryConsts)
+    private void calculateCentroidDistances(final int k, final double[][] centroidSelfDistances, final List<Vec> means, final double[] sC, final double[] meanSummaryConsts, ExecutorService threadpool)
     {
+        if(threadpool != null)
+        {
+            final CountDownLatch latch = new CountDownLatch(k);
+            for (int i = 0; i < k; i++)
+            {
+                final int ii = i;
+                threadpool.submit(new Runnable()
+                {
+                    @Override
+                    public void run()
+                    {
+                        double sCmin = Double.MAX_VALUE;
+                        for (int z = 0; z < k; z++)
+                        {
+                            if (ii == z)//Distance to self is zero
+                                centroidSelfDistances[ii][z] = 0;
+                            else
+                            {
+                                centroidSelfDistances[ii][z] = dm.dist(means.get(ii), means.get(z));
+                                sCmin = Math.min(sCmin, centroidSelfDistances[ii][z]);
+                            }
+                        }
+                        sC[ii] = sCmin / 2.0;
+                        if (meanSummaryConsts != null)
+                            meanSummaryConsts[ii] = dmds.getVectorConstant(means.get(ii));
+                        latch.countDown();
+                    }
+                });
+            }
+            try
+            {
+                latch.await();
+            }
+            catch (InterruptedException ex)
+            {
+                Logger.getLogger(KMeans.class.getName()).log(Level.SEVERE, null, ex);
+            }
+            return;
+        }
         for (int i = 0; i < k; i++)
         {
             double sCmin = Double.MAX_VALUE;
@@ -841,7 +940,7 @@ public class KMeans extends KClustererBase
                 }
             }
         }
-        
+
         
         return cluster(dataSet, maxChangeK, designations);
     }
