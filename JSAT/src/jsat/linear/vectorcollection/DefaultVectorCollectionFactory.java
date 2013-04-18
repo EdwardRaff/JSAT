@@ -19,6 +19,7 @@ public class DefaultVectorCollectionFactory<V extends Vec> implements VectorColl
     private static final int VEC_ARRAY_CUT_OFF = 20; 
     private static final int KD_TREE_CUT_OFF = 14;
     private static final int KD_TREE_PIVOT = 5;
+    private static final int BRUTE_FORCE_DIM = 1000;
     @Override
     public VectorCollection<V> getVectorCollection(List<V> source, DistanceMetric distanceMetric)
     {
@@ -29,6 +30,10 @@ public class DefaultVectorCollectionFactory<V extends Vec> implements VectorColl
             return va;
         }
         int dimension = source.get(0).length();
+        if(dimension >= BRUTE_FORCE_DIM)
+        {
+            return new VectorArray<V>(distanceMetric, source);
+        }
         if(dimension < KD_TREE_CUT_OFF && 
                 ( distanceMetric instanceof EuclideanDistance || 
                 distanceMetric instanceof ChebyshevDistance || 
@@ -53,6 +58,10 @@ public class DefaultVectorCollectionFactory<V extends Vec> implements VectorColl
             return va;
         }
         int dimension = source.get(0).length();
+        if(dimension >= BRUTE_FORCE_DIM)
+        {
+            return new VectorArray<V>(distanceMetric, source);
+        }
         if(dimension < KD_TREE_CUT_OFF && 
                 ( distanceMetric instanceof EuclideanDistance || 
                 distanceMetric instanceof ChebyshevDistance || 
