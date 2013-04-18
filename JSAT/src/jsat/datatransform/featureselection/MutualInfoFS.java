@@ -69,6 +69,8 @@ public class MutualInfoFS extends RemoveAttributeTransform
     public MutualInfoFS(ClassificationDataSet dataSet, int featureCount, NumericalHandeling numericHandling)
     {
         super();
+        if(featureCount <= 0)
+            throw new RuntimeException("Number of features to select must be positive");
         final int N = dataSet.getSampleSize();
         double[] classPriors = dataSet.getPriors();
         double[] logClassPriors = new double[classPriors.length];
