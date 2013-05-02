@@ -336,10 +336,27 @@ public class DenseVector extends Vec
             throw new ArithmeticException("Vectors must be of the same length");
         
         double norm = 0;
-        //TODO this could be done more efficently if y is a sparce vector
-        for(int i = startIndex; i < endIndex; i++)
-            norm += Math.pow(Math.abs(array[i]-y.get(i)), p);
-        
+        if(y.isSparse())
+        {
+            int lastIndx = -1;
+            for(IndexValue iv : y)   
+            {
+                for(int i = lastIndx+1; i < iv.getIndex(); i++)//add all the indecies we skipped
+                    norm += Math.pow(Math.abs(array[i]), p);
+                lastIndx = iv.getIndex();
+                //add current
+                norm += Math.pow(Math.abs(array[iv.getIndex()]-iv.getValue()), p);
+            }
+            
+            //Tailing zeros
+            for(int i = lastIndx+1; i < y.length(); i++)
+                norm += Math.pow(Math.abs(array[i]), p);
+        }
+        else
+        {
+            for(int i = startIndex; i < endIndex; i++)
+                norm += Math.pow(Math.abs(array[i]-y.get(i)), p);
+        }
         return Math.pow(norm, 1.0/p);
     }
 
