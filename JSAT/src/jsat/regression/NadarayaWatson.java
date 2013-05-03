@@ -28,7 +28,7 @@ public class NadarayaWatson implements Regressor, Parameterized
     
     public double regress(DataPoint data)
     {
-        List<VecPaired<VecPaired<Vec, Integer>, Double>> nearBy = kde.getNearby(data.getNumericalValues());
+        List<? extends VecPaired<VecPaired<Vec, Integer>, Double>> nearBy = kde.getNearby(data.getNumericalValues());
         if(nearBy.isEmpty())
             return 0;///hmmm... what should be retruned in this case?
         double weightSum = 0;
@@ -45,6 +45,7 @@ public class NadarayaWatson implements Regressor, Parameterized
         return sum / weightSum;
     }
 
+    @Override
     public void train(RegressionDataSet dataSet, ExecutorService threadPool)
     {
         List<VecPaired<Vec, Double>> vectors = collectVectors(dataSet);
@@ -60,6 +61,7 @@ public class NadarayaWatson implements Regressor, Parameterized
         return vectors;
     }
 
+    @Override
     public void train(RegressionDataSet dataSet)
     {
         List<VecPaired<Vec, Double>> vectors = collectVectors(dataSet);;
@@ -67,6 +69,7 @@ public class NadarayaWatson implements Regressor, Parameterized
         kde.setUsingData(vectors);
     }
 
+    @Override
     public boolean supportsWeightedData()
     {
         return true;
