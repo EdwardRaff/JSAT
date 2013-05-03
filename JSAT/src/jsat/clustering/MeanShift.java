@@ -305,7 +305,7 @@ public class MeanShift extends ClustererBase
     {
         double denom = 0.0;
         Vec xCur = xit[i];
-        List<VecPaired<VecPaired<Vec, Integer>, Double>> contrib = mkde.getNearbyRaw(xCur);
+        List<? extends VecPaired<VecPaired<Vec, Integer>, Double>> contrib = mkde.getNearbyRaw(xCur);
         
         if(contrib.size() == 1)
         {

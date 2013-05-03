@@ -6,6 +6,7 @@ import java.util.concurrent.ExecutorService;
 import jsat.linear.Vec;
 import jsat.linear.VecPaired;
 import static jsat.linear.VecPaired.extractTrueVec;
+import jsat.linear.VecPairedComparable;
 import jsat.linear.distancemetrics.*;
 import jsat.math.OnLineStatistics;
 import jsat.utils.*;
@@ -323,7 +324,7 @@ public class KDTree<V extends Vec> implements VectorCollection<V>
     }
     
     @Override
-    public List<VecPaired<V, Double>> search(Vec query, int neighbors)
+    public List<? extends VecPaired<V, Double>> search(Vec query, int neighbors)
     {
         if(neighbors < 1)
             throw new RuntimeException("Invalid number of neighbors to search for");
@@ -342,7 +343,7 @@ public class KDTree<V extends Vec> implements VectorCollection<V>
         return knnsList;
     }
     
-    private void distanceSearch(Vec query, KDNode node, List<VecPaired<V, Double>> knns, double range)
+    private void distanceSearch(Vec query, KDNode node, List<VecPairedComparable<V, Double>> knns, double range)
     {
         if(node == null)
             return;
@@ -350,7 +351,7 @@ public class KDTree<V extends Vec> implements VectorCollection<V>
         double distance = distanceMetric.dist(query, extractTrueVec(curData));
         
         if(distance <= range)
-            knns.add( new VecPaired<V, Double>(curData, distance) );
+            knns.add( new VecPairedComparable<V, Double>(curData, distance) );
         
         double diff = query.get(node.axis) - curData.get(node.axis);
         
@@ -373,21 +374,15 @@ public class KDTree<V extends Vec> implements VectorCollection<V>
     }
     
     @Override
-    public List<VecPaired<V, Double>> search(Vec query, double range)
+    public List<? extends VecPaired<V, Double>> search(Vec query, double range)
     {
         if(range <= 0)
             throw new RuntimeException("Range must be a positive number");
-        ArrayList<VecPaired<V, Double>> vecs = new ArrayList<VecPaired<V, Double>>();
+        ArrayList<VecPairedComparable<V, Double>> vecs = new ArrayList<VecPairedComparable<V, Double>>();
         
         distanceSearch(query, root, vecs, range);
         
-        Collections.sort(vecs, new Comparator<VecPaired<V, Double>>() {
-
-            public int compare(VecPaired<V, Double> o1, VecPaired<V, Double> o2)
-            {
-                return Double.compare(o1.getPair(), o2.getPair());
-            }
-        });
+        Collections.sort(vecs);
         
         return vecs;
         
@@ -444,7 +439,5 @@ public class KDTree<V extends Vec> implements VectorCollection<V>
         {
             return new KDTreeFactory<V>(pivotSelectionMethod);
         }
-        
-        
     }
 }

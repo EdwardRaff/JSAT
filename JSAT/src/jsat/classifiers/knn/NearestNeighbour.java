@@ -152,7 +152,7 @@ public class NearestNeighbour implements  Classifier, Regressor, Parameterized
             throw new UntrainedModelException("Classifier has not been trained for classification");
         Vec query  = data.getNumericalValues();
         
-        List<VecPaired<VecPaired<Vec, Double>, Double>> knns = vecCollection.search(query, k);
+        List<? extends VecPaired<VecPaired<Vec, Double>, Double>> knns = vecCollection.search(query, k);
         
         CategoricalResults results = new CategoricalResults(predicting.getNumOfCategories());
         
@@ -216,7 +216,7 @@ public class NearestNeighbour implements  Classifier, Regressor, Parameterized
             throw new UntrainedModelException("Classifier has not been trained for regression");
         Vec query  = data.getNumericalValues();
         
-        List<VecPaired<VecPaired<Vec, Double>, Double>> knns = vecCollection.search(query, k);
+        List<? extends VecPaired<VecPaired<Vec, Double>, Double>> knns = vecCollection.search(query, k);
         
         double result = 0, weightSum = 0;
         

@@ -189,8 +189,8 @@ public class LSDBC extends ClustererBase implements Parameterized
      
         //Compute all k-NN 
         final VectorCollection<VecPaired<Vec, Integer>> vc;
-        List<List<VecPaired<VecPaired<Vec, Integer>, Double>>> knnVecList =
-                new ArrayList<List<VecPaired<VecPaired<Vec, Integer>, Double>>>(dataSet.getSampleSize());
+        List<List<? extends VecPaired<VecPaired<Vec, Integer>, Double>>> knnVecList =
+                new ArrayList<List<? extends VecPaired<VecPaired<Vec, Integer>, Double>>>(dataSet.getSampleSize());
 
         try
         {
@@ -261,7 +261,7 @@ public class LSDBC extends ClustererBase implements Parameterized
      * @param clusterID the current clusterID to assign
      * @param seeds the stack to hold all seeds in
      */
-    private void addSeed(List<VecPaired<VecPaired<Vec, Integer>, Double>> neighbors, int i, int[] designations, int clusterID, Stack<Integer> seeds)
+    private void addSeed(List<? extends VecPaired<VecPaired<Vec, Integer>, Double>> neighbors, int i, int[] designations, int clusterID, Stack<Integer> seeds)
     {
         int index = neighbors.get(i).getVector().getPair();
         if (designations[index] != UNCLASSIFIED)
@@ -275,7 +275,7 @@ public class LSDBC extends ClustererBase implements Parameterized
      * @param neighbors the set of neighbors, with index 0 being the point itself
      * @return the eps of the <tt>k</tt><sup>th</sup> neighbor
      */
-    private double getEps(List<VecPaired<VecPaired<Vec, Integer>, Double>> neighbors)
+    private double getEps(List<? extends VecPaired<VecPaired<Vec, Integer>, Double>> neighbors)
     {
         return neighbors.get(k).getPair();
     }
@@ -286,9 +286,9 @@ public class LSDBC extends ClustererBase implements Parameterized
      * @param knnVecList the neighbor list
      * @return <tt>true</tt> if it is a local max, <tt> false</tt> otherwise. 
      */
-    private boolean localMax(int p, List<List<VecPaired<VecPaired<Vec, Integer>, Double>>> knnVecList)
+    private boolean localMax(int p, List<List<? extends VecPaired<VecPaired<Vec, Integer>, Double>>> knnVecList)
     {
-        List<VecPaired<VecPaired<Vec, Integer>, Double>> neighbors = knnVecList.get(p);
+        List<? extends VecPaired<VecPaired<Vec, Integer>, Double>> neighbors = knnVecList.get(p);
         double myEps = getEps(neighbors);
         
         for(int i = 1; i < neighbors.size(); i++)
@@ -308,14 +308,14 @@ public class LSDBC extends ClustererBase implements Parameterized
      * @param knnVecList the in order list of every index and its nearest neighbors
      * @param designations the array to store cluster designations in
      */
-    private void expandCluster(int p, int clusterID, List<List<VecPaired<VecPaired<Vec, Integer>, Double>>> knnVecList, int[] designations)
+    private void expandCluster(int p, int clusterID, List<List<? extends VecPaired<VecPaired<Vec, Integer>, Double>>> knnVecList, int[] designations)
     {
         designations[p] = clusterID;
         double pointEps;
         int n;
         Stack<Integer> seeds = new Stack<Integer>();
         {
-            List<VecPaired<VecPaired<Vec, Integer>, Double>> neighbors = knnVecList.get(p);
+            List<? extends VecPaired<VecPaired<Vec, Integer>, Double>> neighbors = knnVecList.get(p);
             for (int i = 1; i < neighbors.size(); i++)
                 addSeed(neighbors, i, designations, clusterID, seeds);
             pointEps = getEps(neighbors);
@@ -327,7 +327,7 @@ public class LSDBC extends ClustererBase implements Parameterized
         while (!seeds.isEmpty())
         {
             int currentP = seeds.pop();
-            List<VecPaired<VecPaired<Vec, Integer>, Double>> neighbors = knnVecList.get(currentP);
+            List<? extends VecPaired<VecPaired<Vec, Integer>, Double>> neighbors = knnVecList.get(currentP);
             double currentPEps = getEps(neighbors);
             if (currentPEps <= scale * pointEps)
             {

@@ -283,7 +283,7 @@ public class OPTICS extends ClustererBase implements Parameterized
             if(designations[i] != NOISE)
                 continue;
             //Check if all the neighbors have a consensus on the cluster class (ignoring noise)
-            List<VecPaired<VecPaired<Vec, Integer>, Double>> neighbors = vc.search(allVecs[i], minPts/2+1);
+            List<? extends VecPaired<VecPaired<Vec, Integer>, Double>> neighbors = vc.search(allVecs[i], minPts/2+1);
             int CLASS = -1;//-1 for not set, -2 for conflic
             
             for(VecPaired<VecPaired<Vec, Integer>, Double> v : neighbors)
@@ -585,7 +585,7 @@ public class OPTICS extends ClustererBase implements Parameterized
 
     private void expandClusterOrder(int curIndex, Vec vec, List<Integer> orderedFile)
     {
-        List<VecPaired<VecPaired<Vec, Integer>, Double>> neighbors = vc.search(vec, radius);
+        List<? extends VecPaired<VecPaired<Vec, Integer>, Double>> neighbors = vc.search(vec, radius);
         VecPaired<Vec, Integer> object = new VecPaired<Vec, Integer>(vec, curIndex);
         
         reach_d[curIndex] = UNDEFINED;//NaN used for undefined
@@ -610,7 +610,7 @@ public class OPTICS extends ClustererBase implements Parameterized
         
     }
 
-    private void setCoreDistance(List<VecPaired<VecPaired<Vec, Integer>, Double>> neighbors, int curIndex)
+    private void setCoreDistance(List<? extends VecPaired<VecPaired<Vec, Integer>, Double>> neighbors, int curIndex)
     {
         if(neighbors.size() < minPts+1)//+1 b/c we dont count oursleves, which will get returned
             core_distance[curIndex] = UNDEFINED;
@@ -618,7 +618,7 @@ public class OPTICS extends ClustererBase implements Parameterized
             core_distance[curIndex] = neighbors.get(minPts).getPair();
     }
 
-    private void orderedSeedsUpdate(List<VecPaired<VecPaired<Vec, Integer>, Double>> neighbors, int centerObjectIndex)
+    private void orderedSeedsUpdate(List<? extends VecPaired<VecPaired<Vec, Integer>, Double>> neighbors, int centerObjectIndex)
     {
         double c_dist = core_distance[centerObjectIndex];
         for(int i = 1; i < neighbors.size(); i++)//'0' index is a self reference, skip it

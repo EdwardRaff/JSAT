@@ -309,11 +309,11 @@ public class MetricKDE extends MultivariateKDE implements Parameterized
     }
 
     @Override
-    public List<VecPaired<VecPaired<Vec, Integer>, Double>> getNearby(Vec x)
+    public List<? extends VecPaired<VecPaired<Vec, Integer>, Double>> getNearby(Vec x)
     {
         if(vecCollection == null)
             throw new UntrainedModelException("Model has not yet been created");
-        List<VecPaired<VecPaired<Vec, Integer>, Double>> nearBy = getNearbyRaw(x);
+        List<? extends VecPaired<VecPaired<Vec, Integer>, Double>> nearBy = getNearbyRaw(x);
         //Normalize from their distances to their weights by kernel function
         for(VecPaired<VecPaired<Vec, Integer>, Double> result : nearBy)
             result.setPair(kf.k(result.getPair()));
@@ -321,11 +321,11 @@ public class MetricKDE extends MultivariateKDE implements Parameterized
     }
     
     @Override
-    public List<VecPaired<VecPaired<Vec, Integer>, Double>> getNearbyRaw(Vec x)
+    public List<? extends VecPaired<VecPaired<Vec, Integer>, Double>> getNearbyRaw(Vec x)
     {
         if(vecCollection == null)
             throw new UntrainedModelException("Model has not yet been created");
-        List<VecPaired<VecPaired<Vec, Integer>, Double>> nearBy = vecCollection.search(x, bandwidth*kf.cutOff());
+        List<? extends VecPaired<VecPaired<Vec, Integer>, Double>> nearBy = vecCollection.search(x, bandwidth*kf.cutOff());
 
         for(VecPaired<VecPaired<Vec, Integer>, Double> result : nearBy)
             result.setPair(result.getPair()/bandwidth);
@@ -335,7 +335,7 @@ public class MetricKDE extends MultivariateKDE implements Parameterized
     @Override
     public double pdf(Vec x)
     {
-        List<VecPaired<VecPaired<Vec, Integer>, Double>> nearBy = getNearby(x);
+        List<? extends VecPaired<VecPaired<Vec, Integer>, Double>> nearBy = getNearby(x);
         
         if(nearBy.isEmpty())
             return 0;

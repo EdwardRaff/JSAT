@@ -274,13 +274,13 @@ public class DANN implements Classifier, Parameterized
             W.zeroOut();
             
             
-            List<VecPaired<VecPaired<Vec, Integer>, Double>> vecs = 
+            List<? extends VecPaired<VecPaired<Vec, Integer>, Double>> vecs = 
                     (iter == 0) ? vc.search(query, kn) : brute(query, sigma, kn);
             //Compute vector mean and weight sums, class weight sums, and the class means
             double h = vecs.get(vecs.size()-1).getPair();
             for(int i = 0; i < vecs.size(); i++)
             {
-                VecPaired<VecPaired<Vec, Integer>, Double> vec = vecs.get(i);
+                VecPaired<? extends VecPaired<Vec, Integer>, Double> vec = vecs.get(i);
                 //vecs contains the distances, we need the distance squared
                 weights[i] = pow(pow(1-pow(vec.getPair(), 2) /h, 3), 3);
                 sumOfWeights += weights[i];
@@ -315,7 +315,7 @@ public class DANN implements Classifier, Parameterized
                     //Loop for W's work
                     for(int i = 0; i < vecs.size(); i++)
                     {
-                        VecPaired<VecPaired<Vec, Integer>, Double> x = vecs.get(i);
+                        VecPaired<? extends VecPaired<Vec, Integer>, Double> x = vecs.get(i);
                         if(x.getVector().getPair() == j)
                         {
                             x.copyTo(scratch0);
@@ -353,12 +353,11 @@ public class DANN implements Classifier, Parameterized
             WW.multiply(B).multiply(WW, sigma);
         }
         
-        List<VecPaired<VecPaired<Vec, Integer>, Double>> knn = 
+        List<? extends VecPaired<? extends VecPaired<Vec, Integer>, Double>> knn = 
                 brute(query, sigma, k);
         
-        for(VecPaired<VecPaired<Vec, Integer>, Double> nn : knn)
+        for(VecPaired<? extends VecPaired<Vec, Integer>, Double> nn : knn)
             cr.incProb(nn.getVector().getPair(), 1.0);
-        
         
         cr.normalize();
         return cr;
@@ -415,7 +414,7 @@ public class DANN implements Classifier, Parameterized
         return scratch0.dot(scartch1);
     }
 
-    private List<VecPaired<VecPaired<Vec, Integer>, Double>> brute(Vec query, Matrix sigma, int num)
+    private List<? extends VecPaired<VecPaired<Vec, Integer>, Double>> brute(Vec query, Matrix sigma, int num)
     {
         Vec scartch0 = new DenseVector(query.length());
         Vec scartch1 = new DenseVector(query.length());

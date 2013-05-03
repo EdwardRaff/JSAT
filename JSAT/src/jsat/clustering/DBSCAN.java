@@ -224,7 +224,7 @@ public class DBSCAN extends ClustererBase
         Arrays.fill(pointCats, UNCLASSIFIED);
         
         
-        BlockingQueue<List<VecPaired<VecPaired<Vec, Integer>,Double>>> resultQ = new SynchronousQueue<List<VecPaired<VecPaired<Vec, Integer>,Double>>>();
+        BlockingQueue<List<? extends VecPaired<VecPaired<Vec, Integer>,Double>>> resultQ = new SynchronousQueue<List<? extends VecPaired<VecPaired<Vec, Integer>,Double>>>();
         BlockingQueue<Vec> sourceQ = new LinkedBlockingQueue<Vec>();
 
         //Set up workers
@@ -269,7 +269,7 @@ public class DBSCAN extends ClustererBase
     private boolean exapndCluster(int[] pointCats, DataSet dataSet, int point, int clId, double eps, int minPts, VectorCollection<VecPaired<Vec, Integer>> vc)
     {
         Vec queryPoint = dataSet.getDataPoint(point).getNumericalValues();
-        List<VecPaired<VecPaired<Vec, Integer>, Double>> seeds = vc.search(queryPoint, eps);
+        List<? extends VecPaired<VecPaired<Vec, Integer>, Double>> seeds = vc.search(queryPoint, eps);
         
         if(seeds.size() < minPts)// no core point
         {
@@ -278,7 +278,7 @@ public class DBSCAN extends ClustererBase
         }
         //Else, all points in seeds are density-reachable from Point
         
-        List<VecPaired<VecPaired<Vec, Integer>, Double>> results;
+        List<? extends VecPaired<VecPaired<Vec, Integer>, Double>> results;
         
         pointCats[point] = clId;
         Queue<VecPaired<VecPaired<Vec, Integer>, Double>> workQue = new ArrayDeque<VecPaired<VecPaired<Vec, Integer>,Double>>(seeds);
@@ -306,9 +306,9 @@ public class DBSCAN extends ClustererBase
     private class ClusterWorker implements Runnable
     {
         private VectorCollection<VecPaired<Vec, Integer>> vc;
-        private volatile List<VecPaired<VecPaired<Vec, Integer>,Double>> results;
+        private volatile List<? extends VecPaired<VecPaired<Vec, Integer>,Double>> results;
         private final double range;
-        private final BlockingQueue<List<VecPaired<VecPaired<Vec, Integer>,Double>>> resultQ;
+        private final BlockingQueue<List<? extends VecPaired<VecPaired<Vec, Integer>,Double>>> resultQ;
         private final BlockingQueue<Vec> sourceQ;
 
         /**
@@ -317,7 +317,7 @@ public class DBSCAN extends ClustererBase
          * @param range the range to search <tt>tt</tt> with
          * @param resultQ The que to place this worker object into on completion
          */
-        public ClusterWorker(VectorCollection<VecPaired<Vec, Integer>> vc, double range, BlockingQueue<List<VecPaired<VecPaired<Vec, Integer>,Double>>> resultQ, BlockingQueue<Vec> sourceQ)
+        public ClusterWorker(VectorCollection<VecPaired<Vec, Integer>> vc, double range, BlockingQueue<List<? extends VecPaired<VecPaired<Vec, Integer>,Double>>> resultQ, BlockingQueue<Vec> sourceQ)
         {
             this.vc = vc;
             this.range = range;
@@ -325,7 +325,7 @@ public class DBSCAN extends ClustererBase
             this.sourceQ = sourceQ;
         }
 
-        public List<VecPaired<VecPaired<Vec, Integer>,Double>> getResults()
+        public List<? extends VecPaired<VecPaired<Vec, Integer>,Double>> getResults()
         {
             return results;
         }
@@ -367,10 +367,10 @@ public class DBSCAN extends ClustererBase
      * @param sourceQ blocking queue used to store points that need to be processed
      * @return true if a cluster was expanded, false if the point was marked as noise
      */
-    private boolean exapndCluster(int[] pointCats, DataSet dataSet, int point, int clId, double eps, int minPts, VectorCollection<VecPaired<Vec, Integer>> vc, ExecutorService threadpool, BlockingQueue<List<VecPaired<VecPaired<Vec, Integer>,Double>>> resultQ, BlockingQueue<Vec> sourceQ )
+    private boolean exapndCluster(int[] pointCats, DataSet dataSet, int point, int clId, double eps, int minPts, VectorCollection<VecPaired<Vec, Integer>> vc, ExecutorService threadpool, BlockingQueue<List<? extends VecPaired<VecPaired<Vec, Integer>,Double>>> resultQ, BlockingQueue<Vec> sourceQ )
     {
         Vec queryPoint = dataSet.getDataPoint(point).getNumericalValues();
-        List<VecPaired<VecPaired<Vec, Integer>, Double>> seeds = vc.search(queryPoint, eps);
+        List<? extends VecPaired<VecPaired<Vec, Integer>, Double>> seeds = vc.search(queryPoint, eps);
         
         if(seeds.size() < minPts)// no core point
         {
@@ -379,7 +379,7 @@ public class DBSCAN extends ClustererBase
         }
         //Else, all points in seeds are density-reachable from Point
         
-        List<VecPaired<VecPaired<Vec, Integer>, Double>> results;
+        List<? extends VecPaired<VecPaired<Vec, Integer>, Double>> results;
         
         try
         {

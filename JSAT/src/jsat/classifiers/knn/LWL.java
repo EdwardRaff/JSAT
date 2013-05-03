@@ -162,7 +162,7 @@ public class LWL implements Classifier, Regressor, Parameterized
         if(classifier == null || vc == null)
             throw new UntrainedModelException("Model has not been trained");
         
-        List<VecPaired<VecPaired<Vec, Double>, Double>> knn = 
+        List<? extends VecPaired<VecPaired<Vec, Double>, Double>> knn = 
                 vc.search(data.getNumericalValues(), k);
        
         List<DataPointPair<Integer>> localPoints = new ArrayList<DataPointPair<Integer>>(knn.size());
@@ -217,7 +217,7 @@ public class LWL implements Classifier, Regressor, Parameterized
         if(regressor == null || vc == null)
             throw new UntrainedModelException("Model has not been trained");
         
-        List<VecPaired<VecPaired<Vec, Double>, Double>> knn = 
+        List<? extends VecPaired<VecPaired<Vec, Double>, Double>> knn = 
                 vc.search(data.getNumericalValues(), k);
        
         List<DataPointPair<Double>> localPoints = new ArrayList<DataPointPair<Double>>(knn.size());

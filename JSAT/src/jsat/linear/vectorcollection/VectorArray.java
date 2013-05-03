@@ -3,10 +3,12 @@ package jsat.linear.vectorcollection;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import jsat.linear.Vec;
 import jsat.linear.VecPaired;
+import jsat.linear.VecPairedComparable;
 import jsat.linear.distancemetrics.DistanceMetric;
 import jsat.utils.BoundedSortedList;
 import jsat.utils.ProbailityMatch;
@@ -49,21 +51,23 @@ public class VectorArray<V extends Vec> extends ArrayList<V> implements VectorCo
         this.distanceMetric = distanceMetric;
     }
 
-    public List<VecPaired<V, Double>> search(Vec query, double range)
+    @Override
+    public List<? extends VecPaired<V, Double>> search(Vec query, double range)
     {
-        List<VecPaired<V, Double>> list = new ArrayList<VecPaired<V, Double>>();
+        List<VecPairedComparable<V, Double>> list = new ArrayList<VecPairedComparable<V, Double>>();
         
         for(V v : this)
         {
             double distance = distanceMetric.dist(query, VecPaired.extractTrueVec(v));
             if(distance <= range)
-                list.add(new VecPaired<V, Double>(v, distance));
+                list.add(new VecPairedComparable<V, Double>(v, distance));
         }
-        
+        Collections.sort(list);
         return list;
     }
 
-    public List<VecPaired<V, Double>> search(Vec query, int neighbors)
+    @Override
+    public List<? extends VecPaired<V, Double>> search(Vec query, int neighbors)
     {
         BoundedSortedList<ProbailityMatch<V>> knns = new BoundedSortedList<ProbailityMatch<V>>(neighbors);
         

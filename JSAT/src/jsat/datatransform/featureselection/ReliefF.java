@@ -181,7 +181,7 @@ public class ReliefF extends RemoveAttributeTransform
                         for (int y = 0; y < priors.length; y++)//# classes = C
                         {
                             int searchFor = y == y_k ? n + 1 : n;//+1 so we dont search for ourselves
-                            List<VecPaired<Vec, Double>> nNearestC = classVC.get(y).search(x_k, searchFor);
+                            List<? extends VecPaired<Vec, Double>> nNearestC = classVC.get(y).search(x_k, searchFor);
                             if (searchFor != n)
                                 nNearestC = nNearestC.subList(1, searchFor);//chop off the first value which is ourselves
                             for (int i = 0; i < w.length; i++)

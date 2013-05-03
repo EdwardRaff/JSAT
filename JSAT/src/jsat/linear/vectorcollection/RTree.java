@@ -22,7 +22,8 @@ import static jsat.linear.VecPaired.*;
 public class RTree<V extends Vec> implements VectorCollection<V>
 {
 
-    public List<VecPaired<V, Double>> search(Vec query, double range)
+    @Override
+    public List<? extends VecPaired<V, Double>> search(Vec query, double range)
     {
         Rectangle searchSpace = new Rectangle(dim, range, query);
         
@@ -37,7 +38,8 @@ public class RTree<V extends Vec> implements VectorCollection<V>
         return inRange;
     }
 
-    public List<VecPaired<V, Double>> search(Vec query, int neighbors)
+    @Override
+    public List<? extends VecPaired<V, Double>> search(Vec query, int neighbors)
     {
         /**
          * Match up nodes with the minDist from the query to that node
@@ -116,11 +118,13 @@ public class RTree<V extends Vec> implements VectorCollection<V>
                     list.add(node.points.get(i));
     }
 
+    @Override
     public int size()
     {
         return size;
     }
 
+    @Override
     public VectorCollection<V> clone()
     {
         throw new UnsupportedOperationException("Not supported yet.");
@@ -933,6 +937,7 @@ public class RTree<V extends Vec> implements VectorCollection<V>
     
     public static class RTreeFactory<V extends Vec> implements VectorCollectionFactory<V>
     {
+        @Override
         public VectorCollection<V> getVectorCollection(List<V> source, DistanceMetric distanceMetric)
         {
             
@@ -943,6 +948,7 @@ public class RTree<V extends Vec> implements VectorCollection<V>
             return newTree;
         }
 
+        @Override
         public VectorCollection<V> getVectorCollection(List<V> source, DistanceMetric distanceMetric, ExecutorService threadpool)
         {
             return getVectorCollection(source, distanceMetric);

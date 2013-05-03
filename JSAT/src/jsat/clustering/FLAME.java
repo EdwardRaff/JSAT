@@ -194,7 +194,7 @@ public class FLAME extends ClustererBase implements Parameterized
             
             TrainableDistanceMetric.trainIfNeeded(dm, dataSet, threadpool);
             VectorCollection<VecPaired<Vec, Integer>> vc;
-            final List<List<VecPaired<VecPaired<Vec, Integer>, Double>>> allNNs;
+            final List<List<? extends VecPaired<VecPaired<Vec, Integer>, Double>>> allNNs;
             if (threadpool instanceof FakeExecutor)
             {
                 vc = vectorCollectionFactory.getVectorCollection(vecs, dm);
@@ -213,7 +213,7 @@ public class FLAME extends ClustererBase implements Parameterized
             OnLineStatistics densityStats = new OnLineStatistics();
             for (int i = 0; i < density.length; i++)
             {
-                List<VecPaired<VecPaired<Vec, Integer>, Double>> knns = allNNs.get(i);
+                List<? extends VecPaired<VecPaired<Vec, Integer>, Double>> knns = allNNs.get(i);
                 for (int j = 1; j < knns.size(); j++)
                     density[i] += (weights[i][j - 1] = knns.get(j).getPair());
                 densityStats.add(density[i]);
@@ -234,7 +234,7 @@ public class FLAME extends ClustererBase implements Parameterized
             
             for (int i = 0; i < density.length; i++)
             {
-                List<VecPaired<VecPaired<Vec, Integer>, Double>> knns = allNNs.get(i);
+                List<? extends VecPaired<VecPaired<Vec, Integer>, Double>> knns = allNNs.get(i);
                 boolean lowest = true;//if my density score is lower then all neighbors, then i am a CSO
                 boolean highest = true;//if heigher, then I am an outlier
                 for (int j = 1; j < knns.size() && (highest || lowest); j++)
@@ -258,7 +258,7 @@ public class FLAME extends ClustererBase implements Parameterized
                 while (iter.hasNext())
                 {
                     int i = iter.next();
-                    List<VecPaired<VecPaired<Vec, Integer>, Double>> knns = allNNs.get(i);
+                    List<? extends VecPaired<VecPaired<Vec, Integer>, Double>> knns = allNNs.get(i);
                     for (int j = 1; j < knns.size(); j++)
                         if (outliers.contains(knns.get(j).getVector().getPair()))
                         {
@@ -309,7 +309,7 @@ public class FLAME extends ClustererBase implements Parameterized
                                     continue;
                                 final double[] fuzzy2_i = TO[i];
                                 Arrays.fill(fuzzy2_i, 0);
-                                List<VecPaired<VecPaired<Vec, Integer>, Double>> knns = allNNs.get(i);
+                                List<? extends VecPaired<VecPaired<Vec, Integer>, Double>> knns = allNNs.get(i);
 
                                 double sum = 0;
                                 for (int j = 1; j < weights[i].length; j++)
@@ -391,7 +391,7 @@ public class FLAME extends ClustererBase implements Parameterized
                     {
                         if (clusterCounts[d] == -1)//remove self
                         {
-                            List<VecPaired<VecPaired<Vec, Integer>, Double>> knns = allNNs.get(i);
+                            List<? extends VecPaired<VecPaired<Vec, Integer>, Double>> knns = allNNs.get(i);
                             
                             for (int j = 1; j < weights[i].length; j++)
                             {

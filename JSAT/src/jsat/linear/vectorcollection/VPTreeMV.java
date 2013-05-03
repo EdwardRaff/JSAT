@@ -90,11 +90,13 @@ public class VPTreeMV<V extends Vec> extends VPTree<V>
             this(VPSelection.Random);
         }
         
+        @Override
         public VectorCollection<V> getVectorCollection(List<V> source, DistanceMetric distanceMetric)
         {
             return new VPTreeMV<V>(source, distanceMetric, vpSelectionMethod);
         }
 
+        @Override
         public VectorCollection<V> getVectorCollection(List<V> source, DistanceMetric distanceMetric, ExecutorService threadpool)
         {
             return new VPTreeMV<V>(source, distanceMetric, vpSelectionMethod, new Random(10), 80, 40, threadpool);

@@ -140,7 +140,7 @@ public class LVQLLC extends LVQ
     @Override
     public CategoricalResults classify(DataPoint data)
     {
-        List<VecPaired<VecPaired<Vec, Integer>, Double>> nns = 
+        List<? extends VecPaired<VecPaired<Vec, Integer>, Double>> nns = 
                 vc.search(data.getNumericalValues(), 2);
         double d1 = nns.get(0).getPair();
         int index1 = nns.get(0).getVector().getPair();

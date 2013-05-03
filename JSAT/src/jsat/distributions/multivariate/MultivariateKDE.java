@@ -23,7 +23,7 @@ abstract public class MultivariateKDE extends MultivariateDistributionSkeleton
      * @param x the query point
      * @return the list of near by vectors and their weights
      */
-    abstract public List<VecPaired<VecPaired<Vec, Integer>, Double>> getNearby(Vec x);
+    abstract public List<? extends VecPaired<VecPaired<Vec, Integer>, Double>> getNearby(Vec x);
     
     /**
      * Returns the list of vectors that have a non zero contribution to the density of the query point <tt>x</tt>. 
@@ -33,7 +33,7 @@ abstract public class MultivariateKDE extends MultivariateDistributionSkeleton
      * @param x the query point
      * @return the list of near by vectors and their weights
      */
-    abstract public List<VecPaired<VecPaired<Vec, Integer>, Double>> getNearbyRaw(Vec x);
+    abstract public List<? extends VecPaired<VecPaired<Vec, Integer>, Double>> getNearbyRaw(Vec x);
     
     /**
      * 

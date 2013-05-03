@@ -164,7 +164,7 @@ public class RandomBallCover<V extends Vec> implements VectorCollection<V>
     }
 
     @Override
-    public List<VecPaired<V, Double>> search(Vec query, double range)
+    public List<? extends VecPaired<V, Double>> search(Vec query, double range)
     {
         List<VecPairedComparable<V, Double>> knn = new ArrayList<VecPairedComparable<V, Double>>();
 
@@ -197,11 +197,11 @@ public class RandomBallCover<V extends Vec> implements VectorCollection<V>
         }
 
         Collections.sort(knn);
-        return (List<VecPaired<V, Double>>) (Object) knn;
+        return knn;
     }
 
     @Override
-    public List<VecPaired<V, Double>> search(Vec query, int neighbors)
+    public List<? extends VecPaired<V, Double>> search(Vec query, int neighbors)
     {
         BoundedSortedList<VecPairedComparable<V, Double>> knn = new BoundedSortedList<VecPairedComparable<V, Double>>(neighbors);
 
@@ -243,7 +243,7 @@ public class RandomBallCover<V extends Vec> implements VectorCollection<V>
             }
         }
 
-        return (List<VecPaired<V, Double>>) (Object) knn;
+        return knn;
     }
 
     @Override

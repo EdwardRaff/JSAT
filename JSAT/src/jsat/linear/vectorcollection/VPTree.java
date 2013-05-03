@@ -11,6 +11,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import jsat.linear.Vec;
 import jsat.linear.VecPaired;
+import jsat.linear.VecPairedComparable;
 import jsat.linear.distancemetrics.DistanceMetric;
 import jsat.utils.BoundedSortedList;
 import jsat.utils.ListUtils;
@@ -125,27 +126,22 @@ public class VPTree<V extends Vec> implements VectorCollection<V>
     }
         
     @Override
-    public List<VecPaired<V, Double>> search(Vec query, double range)
+    @SuppressWarnings("unchecked")
+    public List<? extends VecPaired<V, Double>> search(Vec query, double range)
     {
         if(range <= 0)
             throw new RuntimeException("Range must be a positive number");
-        List<VecPaired<V, Double>> returnList = new ArrayList<VecPaired<V, Double>>();
+        List<VecPairedComparable<V, Double>> returnList = new ArrayList<VecPairedComparable<V, Double>>();
         
-        root.searchRange(VecPaired.extractTrueVec(query), range, returnList, 0.0);
+        root.searchRange(VecPaired.extractTrueVec(query), range, (List)returnList, 0.0);
         
-        Collections.sort(returnList, new Comparator<VecPaired<V, Double>>() {
-
-            public int compare(VecPaired<V, Double> o1, VecPaired<V, Double> o2)
-            {
-                return Double.compare(o1.getPair(), o2.getPair());
-            }
-        });
+        Collections.sort(returnList);
         
         return returnList;
     }
     
     @Override
-    public List<VecPaired<V, Double>> search(Vec query, int neighbors)
+    public List<? extends VecPaired<V, Double>> search(Vec query, int neighbors)
     {
         BoundedSortedList<ProbailityMatch<V>> boundedList= new BoundedSortedList<ProbailityMatch<V>>(neighbors, neighbors);
 
@@ -436,7 +432,7 @@ public class VPTree<V extends Vec> implements VectorCollection<V>
         {
             x = dm.dist(query, this.p);
             if(x <= range)
-                list.add(new VecPaired<V, Double>(this.p, x));
+                list.add(new VecPairedComparable<V, Double>(this.p, x));
 
             if (searchInLeft(x, range))
                 this.left.searchRange(query, range, list, x);
@@ -513,7 +509,7 @@ public class VPTree<V extends Vec> implements VectorCollection<V>
             for (int i = 0; i < points.length; i++)
                 if (bounds[i] - range <= x && x <= bounds[i] + range)//Bound check agains the distance to our parrent node, provided by x
                     if ((dist = dm.dist(query, points[i])) < range)
-                        list.add(new VecPaired<V, Double>((V)points[i], dist));
+                        list.add(new VecPairedComparable<V, Double>((V)points[i], dist));
         }
 
         @Override
@@ -537,11 +533,13 @@ public class VPTree<V extends Vec> implements VectorCollection<V>
             this(VPSelection.Random);
         }
         
+        @Override
         public VectorCollection<V> getVectorCollection(List<V> source, DistanceMetric distanceMetric)
         {
             return new VPTree<V>(source, distanceMetric, vpSelectionMethod);
         }
 
+        @Override
         public VectorCollection<V> getVectorCollection(List<V> source, DistanceMetric distanceMetric, ExecutorService threadpool)
         {
             return new VPTree<V>(source, distanceMetric, vpSelectionMethod, new Random(10), 80, 40, threadpool);
