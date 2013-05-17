@@ -11,6 +11,12 @@ import jsat.parameters.Parameterized;
  * features. If an algorithm uses only dot products, the Kernel trick can be 
  * used in place of these dot products, and computes the inner product in a 
  * different feature space. 
+ * <br><br>
+ * All KerenlTrick objects are {@link Parameterized parameterized} so that the 
+ * values of the kernel can be exposed by the algorithm that makes use of these 
+ * parameters. To avoid conflicts in parameter names, the parameters of a 
+ * KernelTrick should be of the form:<br>
+ * &lt; SimpleClassName &gt;_&lt; Variable Name &gt;
  * 
  * @author Edward Raff
  */

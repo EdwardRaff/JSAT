@@ -1,9 +1,10 @@
 
 package jsat.distributions.kernels;
 
-import java.util.Collections;
+import java.util.Arrays;
 import java.util.List;
 import jsat.linear.Vec;
+import jsat.parameters.DoubleParameter;
 import jsat.parameters.Parameter;
 
 /**
@@ -14,12 +15,11 @@ import jsat.parameters.Parameter;
  */
 public class LinearKernel implements KernelTrick
 {
-
     private double c;
 
     /**
-     * Creates a new Linear Kernel that computes the dot product and offsets it by a specified valie
-     * @param c the bias term for the dot product
+     * Creates a new Linear Kernel that computes the dot product and offsets it by a specified value
+     * @param c the positive bias term for the dot product
      */
     public LinearKernel(double c)
     {
@@ -27,18 +27,28 @@ public class LinearKernel implements KernelTrick
     }
 
     /**
-     * Creates a new Linear Kernel with no bias
+     * Creates a new Linear Kernel with an added bias term of 1
      */
     public LinearKernel()
     {
-        this(0);
+        this(1);
     }
 
+    /**
+     * The positive bias term added to the result of the dot product
+     * @param c the added product term
+     */
     public void setC(double c)
     {
+        if(c < 0 || Double.isInfinite(c) || Double.isNaN(c))
+            throw new IllegalArgumentException("C must be a positive constant, not " + c);
         this.c = c;
     }
 
+    /**
+     * Returns the positive additive term
+     * @return the positive additive term
+     */
     public double getC()
     {
         return c;
@@ -48,24 +58,53 @@ public class LinearKernel implements KernelTrick
     @Override
     public double eval(Vec a, Vec b)
     {
+        if(a == b)
+            return c;
         return a.dot(b) + c;
     }
 
     @Override
     public String toString()
     {
-        return "Linear";
+        return "Linear Kernel (c=" + c + ")";
     }
+    
+    private Parameter param = new DoubleParameter() 
+    {
+
+        @Override
+        public double getValue()
+        {
+            return getC();
+        }
+
+        @Override
+        public boolean setValue(double val)
+        {
+            if(val < 0 || Double.isInfinite(val))
+                return false;
+            setC(val);
+            return true;
+        }
+
+        @Override
+        public String getASCIIName()
+        {
+            return "LinearKernel_c";
+        }
+    };
 
     @Override
     public List<Parameter> getParameters()
     {
-        return Collections.emptyList();
+        return Arrays.asList(param);
     }
 
     @Override
     public Parameter getParameter(String paramName)
     {
+        if(paramName.equals(param.getASCIIName()))
+            return param;
         return null;
     }
 

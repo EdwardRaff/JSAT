@@ -7,75 +7,112 @@ import jsat.parameters.DoubleParameter;
 import jsat.parameters.Parameter;
 
 /**
- * Provides a Polynomial Kernel 
+ * Provides a Polynomial Kernel of the form <br>
  * k(x,y) = (alpha * x.y + c)^d
  * @author Edward Raff
  */
 public class PolynomialKernel implements KernelTrick 
 {
-    private double d;
+    private double degree;
     private double alpha;
     private double c;
 
-    public PolynomialKernel(double d, double alpha, double c)
+    /**
+     * Creates a new polynomial kernel
+     * @param degree the degree of the polynomial 
+     * @param alpha the term to scale the dot product by
+     * @param c the additive term
+     */
+    public PolynomialKernel(double degree, double alpha, double c)
     {
-        this.d = d;
+        this.degree = degree;
         this.alpha = alpha;
         this.c = c;
     }
 
     /**
      * Defaults alpha = 1 and c = 1
-     * @param d 
+     * @param degree the degree of the polynomial 
      */
-    public PolynomialKernel(double d)
+    public PolynomialKernel(double degree)
     {
-        this(d, 1, 1);
+        this(degree, 1, 1);
     }
 
+    /**
+     * Sets the scaling factor for the dot product, this is equivalent to 
+     * multiplying each value in the data set by a constant factor 
+     * @param alpha the scaling factor
+     */
     public void setAlpha(double alpha)
     {
+        if(Double.isInfinite(alpha) || Double.isNaN(alpha) || alpha == 0)
+            throw new IllegalArgumentException("alpha must be a real non zero value, not " + alpha);
         this.alpha = alpha;
     }
 
+    /**
+     * Sets the additive term, when set to one this is equivalent to adding a 
+     * bias term of 1 to each vector. This is done after the scaling by 
+     * {@link #setAlpha(double) alpha}. 
+     * @param c the non negative additive term
+     */
     public void setC(double c)
     {
+        if(c < 0 || Double.isNaN(c) || Double.isInfinite(c))
+            throw new IllegalArgumentException("C must be non negative, not " + c);
         this.c = c;
     }
 
-    public void setD(double d)
+    /**
+     * Sets the degree of the polynomial 
+     * @param d the degree of the polynomial 
+     */
+    public void setDegree(double d)
     {
-        this.d = d;
+        this.degree = d;
     }
 
+    /**
+     * Returns the scaling parameter
+     * @return the scaling parameter
+     */
     public double getAlpha()
     {
         return alpha;
     }
 
+    /**
+     * Returns the additive constant
+     * @return the additive constant
+     */
     public double getC()
     {
         return c;
     }
 
-    public double getD()
+    /**
+     * Returns the degree of the polynomial 
+     * @return the degree of the polynomial 
+     */
+    public double getDegree()
     {
-        return d;
+        return degree;
     }
 
     @Override
     public double eval(Vec a, Vec b)
     {
-        return Math.pow(c+a.dot(b)*alpha, d);
+        return Math.pow(c+a.dot(b)*alpha, degree);
     }
 
     @Override
     public String toString()
     {
-        return d + "-degree Polynomial";
+        return "Polynomial Kernel ( degree="+degree + ", c=" + c + ", alpha=" + alpha + ")";
     }
 
-    List<Parameter> params = Collections.unmodifiableList(new ArrayList<Parameter>(3)
+    private List<Parameter> params = Collections.unmodifiableList(new ArrayList<Parameter>(3)
     {{
         add(new DoubleParameter() {
 
@@ -95,7 +132,7 @@ public class PolynomialKernel implements KernelTrick
                 @Override
                 public String getASCIIName()
                 {
-                    return "PolyKF_Alpha";
+                    return "PolynomialKernel_Alpha";
                 }
             });
         add(new DoubleParameter() {
@@ -116,7 +153,7 @@ public class PolynomialKernel implements KernelTrick
                 @Override
                 public String getASCIIName()
                 {
-                    return "PolyKF_C";
+                    return "PolynomialKernel_C";
                 }
             });
         add(new DoubleParameter() {
@@ -124,25 +161,25 @@ public class PolynomialKernel implements KernelTrick
                 @Override
                 public double getValue()
                 {
-                    return getD();
+                    return getDegree();
                 }
 
                 @Override
                 public boolean setValue(double val)
                 {
-                    setD(val);
+                    setDegree(val);
                     return true;
                 }
 
                 @Override
                 public String getASCIIName()
                 {
-                    return "PolyKF_D";
+                    return "PolynomialKernel_Degree";
                 }
             });
     }});
     
-    Map<String, Parameter> paramMap = Parameter.toParameterMap(params);
+    private Map<String, Parameter> paramMap = Parameter.toParameterMap(params);
     
     @Override
     public List<Parameter> getParameters()
@@ -159,6 +196,6 @@ public class PolynomialKernel implements KernelTrick
     @Override
     public PolynomialKernel clone()
     {
-        return new PolynomialKernel(d, alpha, c);
+        return new PolynomialKernel(degree, alpha, c);
     }
 }
