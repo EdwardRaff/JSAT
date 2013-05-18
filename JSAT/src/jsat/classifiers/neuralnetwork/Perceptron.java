@@ -14,7 +14,6 @@ import jsat.classifiers.ClassificationDataSet;
 import jsat.classifiers.Classifier;
 import jsat.classifiers.DataPoint;
 import jsat.classifiers.DataPointPair;
-import jsat.classifiers.svm.SupportVectorMachine;
 import jsat.exceptions.FailedToFitException;
 import jsat.linear.DenseVector;
 import jsat.linear.Vec;
@@ -25,8 +24,7 @@ import jsat.utils.PairedReturn;
  * separates two classes. It may find any possible separating plane, and there 
  * are no guarantees when the data is not linearly separable. 
  * <br>
- * It is equivalent to a single node Neural Network, and is related to 
- * {@link SupportVectorMachine SVMs}
+ * It is equivalent to a single node Neural Network, and is related to SVMs
  * 
  * 
  * @author Edward Raff

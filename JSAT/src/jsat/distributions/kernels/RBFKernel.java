@@ -15,7 +15,7 @@ import jsat.text.GreekLetters;
  * 
  * @author Edward Raff
  */
-public class RBFKernel implements KernelTrick
+public class RBFKernel implements CacheAcceleratedKernel
 {
     private double sigma;
     private double sigmaSqrd2Inv;
@@ -36,6 +36,35 @@ public class RBFKernel implements KernelTrick
             return 1;
         return Math.exp(-Math.pow(a.pNormDist(2, b),2) * sigmaSqrd2Inv);
     }
+    
+    @Override
+    public double[] getCache(Vec[] trainingSet)
+    {
+        double[] cache = new double[trainingSet.length];
+        for(int i = 0; i < trainingSet.length; i++)
+            cache[i] = trainingSet[i].dot(trainingSet[i]);
+        return cache;
+    }
+
+    @Override
+    public double eval(int a, int b, Vec[] trainingSet, double[] cache)
+    {
+        if(a == b)
+            return 1;
+        return Math.exp(-(cache[a] - 2*trainingSet[a].dot(trainingSet[b])+cache[b])* sigmaSqrd2Inv);
+    }
+
+    @Override
+    public double evalSum(Vec[] finalSet, double[] cache, double[] alpha, Vec y, int start, int end)
+    {
+        final double y_dot = y.dot(y);
+        double sum = 0;
+        
+        for(int i = start; i < end; i++)
+            sum += alpha[i] * Math.exp(-(cache[i] - 2*finalSet[i].dot(y)+y_dot)* sigmaSqrd2Inv);
+        
+        return sum;
+    }
 
     /**
      * Sets the sigma parameter, which must be a positive value
@@ -51,10 +80,8 @@ public class RBFKernel implements KernelTrick
 
     public double getSigma()
     {
-        return Math.sqrt(sigma/2);
+        return sigma;
     }
-    
-    
 
     @Override
     public String toString()

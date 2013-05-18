@@ -42,13 +42,10 @@ import jsat.utils.SystemInfo;
  * 
  * @author Edward Raff
  */
-public class PegasosK extends SupportVectorMachine implements Parameterized
+public class PegasosK extends SupportVectorLearner implements Classifier, Parameterized
 {
     private double regularization;
     private int iterations;
-    
-    private int[] sign;
-    private int[] alpha;
     
     private List<Parameter> params = Parameter.getParamsFromMethods(this);
     private Map<String, Parameter> paramMap = Parameter.toParameterMap(params);
@@ -129,13 +126,11 @@ public class PegasosK extends SupportVectorMachine implements Parameterized
         if(this.vecs != null)
         {
             clone.vecs = new Vec[this.vecs.length];
-            clone.sign = new int[this.sign.length];
-            clone.alpha = new int[this.alpha.length];
+            clone.alphas = new double[this.alphas.length];
             for(int i = 0; i < this.vecs.length; i++)
             {
                 clone.vecs[i] = this.vecs[i].clone();
-                clone.sign[i] = this.sign[i];
-                clone.alpha[i] = this.alpha[i];
+                clone.alphas[i] = this.alphas[i];
             }
         }
         
@@ -145,14 +140,12 @@ public class PegasosK extends SupportVectorMachine implements Parameterized
     @Override
     public CategoricalResults classify(DataPoint data)
     {
-        if(alpha == null)
+        if(alphas == null)
             throw new UntrainedModelException("Model has not been trained");
-        double sum = 0;
+        
         CategoricalResults cr = new CategoricalResults(2);
         
-        for (int i = 0; i < vecs.length; i++)
-            sum += alpha[i] * sign[i] * kEval(vecs[i], data.getNumericalValues());
-
+        double sum = kEvalSum(data.getNumericalValues());
 
         //SVM only says yess / no, can not give a percentage
         if(sum > 0)
@@ -171,12 +164,14 @@ public class PegasosK extends SupportVectorMachine implements Parameterized
         int i;
         int start;
         int end;
+        int[] sign;
 
-        public PredictPart(int i, int start, int end)
+        public PredictPart(int i, int start, int end, int[] sign)
         {
             this.i = i;
             this.start = start;
             this.end = end;
+            this.sign = sign;
         }
         
         @Override
@@ -186,9 +181,9 @@ public class PegasosK extends SupportVectorMachine implements Parameterized
             double val = 0;
             for(int j = start; j < end; j++)
             {
-                if(j == i || alpha[j] == 0)
+                if(j == i || alphas[j] == 0)
                     continue;
-                val += alpha[j]*sign_i* kEval(i, j);
+                val += alphas[j]*sign_i* kEval(i, j);
             }
             return val;
         }
@@ -205,8 +200,8 @@ public class PegasosK extends SupportVectorMachine implements Parameterized
             Random rand = new Random();
             final int m = dataSet.getSampleSize();
 
-            alpha = new int[m];
-            sign = new int[m];
+            alphas = new double[m];
+            int[] sign = new int[m];
             vecs = new Vec[m];
             for (int i = 0; i < dataSet.getSampleSize(); i++)
             {
@@ -229,7 +224,7 @@ public class PegasosK extends SupportVectorMachine implements Parameterized
                 int start = 0;
                 while (start < m)
                 {
-                    futures.add(threadPool.submit(new PredictPart(i, start, Math.min(start + blockSize, m))));
+                    futures.add(threadPool.submit(new PredictPart(i, start, Math.min(start + blockSize, m), sign)));
                     start += blockSize;
                 }
                 //collect
@@ -238,24 +233,24 @@ public class PegasosK extends SupportVectorMachine implements Parameterized
                 val *= sign_i / (regularization * t);
 
                 if (val < 1)
-                    alpha[i]++;
+                    alphas[i]++;
 
             }
 
             //Collect the non zero alphas
             int pos = 0;
-            for (int i = 0; i < alpha.length; i++)
-                if (alpha[i] != 0)
+            for (int i = 0; i < alphas.length; i++)
+                if (alphas[i] != 0)
                 {
-                    alpha[pos] = alpha[i];
-                    sign[pos] = sign[i];
+                    alphas[pos] = alphas[i] * sign[i];
                     vecs[pos] = vecs[i];
                     pos++;
                 }
             
-            alpha = Arrays.copyOf(alpha, pos);
-            sign = Arrays.copyOf(sign, pos);
+            alphas = Arrays.copyOf(alphas, pos);
             vecs = Arrays.copyOf(vecs, pos);
+            setCacheMode(null);
+            setAlphas(alphas);
 
         }
         catch (ExecutionException ex)

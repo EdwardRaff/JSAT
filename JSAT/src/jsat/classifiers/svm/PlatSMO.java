@@ -27,24 +27,19 @@ import jsat.utils.IntSetFixedSize;
  * 
  * @author Edward Raff
  */
-public class PlatSMO extends SupportVectorMachine implements Parameterized
+public class PlatSMO extends SupportVectorLearner implements Classifier, Parameterized 
 {
     /**
      * Bias
      */
     protected double b = 0, b_low, b_up;
-    private double C = 0.05;
+    private double C = 1;
     private double tolerance = 1e-4;
     private double epsilon = 1e-3;
     
     private int maxIterations = 10000;
     private boolean modificationOne = false;
     
-    /**
-     * During training contains alphas in [0, C]. After training they are given 
-     * the sign of the label so that it need not be kept. 
-     */
-    protected double[] alpha;
     protected double[] fcache;
     
     private int i_up, i_low;
@@ -78,14 +73,14 @@ public class PlatSMO extends SupportVectorMachine implements Parameterized
     protected double[] label;
     
     /**
-     * Creates a new SVM object that uses the fill cache mode. 
+     * Creates a new SVM object that uses no cache mode. 
      * 
      * @param kf 
      * @see CacheMode
      */
     public PlatSMO(KernelTrick kf)
     {
-        super(kf, SupportVectorMachine.CacheMode.FULL);
+        super(kf, SupportVectorLearner.CacheMode.FULL);
     }
 
     @Override
@@ -97,11 +92,8 @@ public class PlatSMO extends SupportVectorMachine implements Parameterized
         double sum = 0;
         CategoricalResults cr = new CategoricalResults(2);
         
-        for (int i = 0; i < vecs.length; i++)
-            sum += alpha[i] * kEval(vecs[i], data.getNumericalValues());
+        sum = kEvalSum(data.getNumericalValues());
 
-
-        //SVM only says yess / no, can not give a percentage
         if(sum > b)
             cr.setProb(1, 1);
         else
@@ -109,7 +101,7 @@ public class PlatSMO extends SupportVectorMachine implements Parameterized
         
         return cr;
     }
-
+    
     @Override
     public void trainC(ClassificationDataSet dataSet, ExecutorService threadPool)
     {
@@ -145,8 +137,8 @@ public class PlatSMO extends SupportVectorMachine implements Parameterized
         I4 = new boolean[vecs.length];
         
         
-        //initialize alpha array to all zero
-        alpha = new double[vecs.length];//zero is default value
+        //initialize alphas array to all zero
+        alphas = new double[vecs.length];//zero is default value
         fcache = new double[vecs.length];
         
         i_up = i_low = -1;//giberish for init
@@ -222,23 +214,27 @@ public class PlatSMO extends SupportVectorMachine implements Parameterized
         //SVMs are usualy sparse, we dont need to keep all the original vectors!
         //collapse label into signed alphas
         for(int i = 0; i < label.length; i++)
-            alpha[i] *= label[i];
+            alphas[i] *= label[i];
         
         int supportVectorCount = 0;
         for(int i = 0; i < vecs.length; i++)
-            if(alpha[i] > 0 || alpha[i] < 0)//Its a support vector
+            if(alphas[i] > 0 || alphas[i] < 0)//Its a support vector
             {
                 vecs[supportVectorCount] = vecs[i];
-                alpha[supportVectorCount++] = alpha[i];
+                alphas[supportVectorCount++] = alphas[i];
             }
 
         vecs = Arrays.copyOfRange(vecs, 0, supportVectorCount);
-        alpha = Arrays.copyOfRange(alpha, 0, supportVectorCount);
+        alphas = Arrays.copyOfRange(alphas, 0, supportVectorCount);
         label = null;
         
         fcache = null;
         I0 = null;
         I1 = I2 = I3 = I4 = null;
+        
+        long end = System.currentTimeMillis();
+        setCacheMode(null);
+        setAlphas(alphas);
     }
     
     /**
@@ -257,7 +253,7 @@ public class PlatSMO extends SupportVectorMachine implements Parameterized
     /**
      * Updates the index sets 
      * @param i1 the index to update for
-     * @param a1 the alpha value for the index
+     * @param a1 the alphas value for the index
      */
     private void updateSetsLabeled(int i1, double a1)
     {
@@ -304,7 +300,7 @@ public class PlatSMO extends SupportVectorMachine implements Parameterized
         if(i1 == i2)
             return false;
         //alph1 = Lagrange multiplier for i
-        double alpha1 = alpha[i1], alpha2 = alpha[i2];
+        double alpha1 = alphas[i1], alpha2 = alphas[i2];
         //y1 = target[i1]
         double y1 = label[i1], y2 = label[i2];
         double F1 = fcache[i1];
@@ -338,7 +334,7 @@ public class PlatSMO extends SupportVectorMachine implements Parameterized
          * k22 = kernel(point[i2],point[i2]
          */
         double k11 = kEval(i1, i1);
-        double k12 = kEval(i1, i2);
+        double k12 = kEval(i2, i1);
         double k22 = kEval(i2, i2);
         //eta = 2*k12-k11-k22
         double eta = 2*k12 - k11 - k22;
@@ -398,7 +394,7 @@ public class PlatSMO extends SupportVectorMachine implements Parameterized
         double newF1C = F1 + y1*(a1-alpha1)*k11 + y2*(a2-alpha2)*k12;
         double newF2C = F2 + y1*(a1-alpha1)*k12 + y2*(a2-alpha2)*k22;
         
-        if(abs(newF1C-fcache[i1]) < 1e-10 && abs(newF2C-fcache[i2]) < 1e-10)
+        if(abs(newF1C-fcache[i1]) < 1e-15 && abs(newF2C-fcache[i2]) < 1e-15)
             return false;
         
         updateSet(i1, a1);
@@ -431,10 +427,10 @@ public class PlatSMO extends SupportVectorMachine implements Parameterized
             }
         }
 
-        //Store a1 in the alpha array
-        alpha[i1] = a1;
-        //Store a2 in the alpha arra
-        alpha[i2] = a2;
+        //Store a1 in the alphas array
+        alphas[i1] = a1;
+        //Store a2 in the alphas arra
+        alphas[i2] = a2;
 
         return true;
     }
@@ -514,8 +510,8 @@ public class PlatSMO extends SupportVectorMachine implements Parameterized
     {
         double sum = 0;
         for(int i = 0; i < vecs.length; i++)
-            if(alpha[i] > 0)
-                sum += alpha[i] * label[i] * kEval(i, v);
+            if(alphas[i] > 0)
+                sum += alphas[i] * label[i] * kEval(v, i);
 
         return sum;
     }
@@ -526,8 +522,8 @@ public class PlatSMO extends SupportVectorMachine implements Parameterized
         PlatSMO copy = new PlatSMO(this.getKernel().clone());
         
         copy.C = this.C;
-        if(this.alpha != null)
-            copy.alpha = Arrays.copyOf(this.alpha, this.alpha.length);
+        if(this.alphas != null)
+            copy.alphas = Arrays.copyOf(this.alphas, this.alphas.length);
         copy.b = this.b;
         copy.epsilon = this.epsilon;
         if(this.label != null)
