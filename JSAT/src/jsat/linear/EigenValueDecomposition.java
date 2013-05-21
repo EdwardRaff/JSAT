@@ -4,7 +4,10 @@ package jsat.linear;
 import java.io.Serializable;
 import static java.lang.Math.*;
 import java.util.Arrays;
+import java.util.Comparator;
 import jsat.math.Complex;
+import jsat.utils.DoubleList;
+import jsat.utils.IndexTable;
 
 /**
  * Class for performing the Eigen Value Decomposition of a matrix. The EVD of a 
@@ -613,12 +616,27 @@ public class EigenValueDecomposition implements Serializable
     }
     
     /**
-     * Check for symmetry, then construct the eigenvalue decomposition
-     *
-     * @param A Square matrix
-     * @return Structure to access D and V.
+     * Creates a new new Eigen Value Decomposition. The input matrix will not be
+     * altered. If the input is symmetric, a more efficient algorithm will be
+     * used. 
+     * 
+     * @param A the square matrix to work on.
      */
     public EigenValueDecomposition(Matrix A)
+    {
+        this(A, 1e-15);
+    }
+    
+    /**
+     * Creates a new new Eigen Value Decomposition. The input matrix will not be
+     * altered. If the input is symmetric, a more efficient algorithm will be
+     * used. 
+     * 
+     * @param A the square matrix to work on.
+     * @param eps the numerical tolerance for differences in value to be 
+     * considered the same. 
+     */
+    public EigenValueDecomposition(Matrix A, double eps)
     {
         if (!A.isSquare())
             throw new ArithmeticException("");
@@ -626,7 +644,7 @@ public class EigenValueDecomposition implements Serializable
         d = new double[n];
         e = new double[n];
 
-        if (Matrix.isSymmetric(A) )
+        if (Matrix.isSymmetric(A, eps) )
         {
             //Would give it the transpose, but the input is symmetric. So its the same thing
             Matrix VWork = A.clone();
@@ -662,12 +680,36 @@ public class EigenValueDecomposition implements Serializable
             V = VWork.transpose();
         }
     }
+    
+    /**
+     * Sorts the eigen values and the corresponding eigenvector columns by the 
+     * associated eigen value. Sorting can not occur if complex values are 
+     * present. 
+     * @param cmp the comparator to use to sort the eigen values
+     */
+    public void sortByEigenValue(Comparator<Double> cmp)
+    {
+        if(isComplex())
+            throw new ArithmeticException("Eigen values can not be sorted due to complex results");
+        IndexTable it = new IndexTable(DoubleList.unmodifiableView(d, d.length), cmp);
+        
+        for(int i = 0; i < d.length; i++)
+        {
+            RowColumnOps.swapCol(V, i, it.index(i));
+            double tmp = d[i];
+            d[i] = d[it.index(i)];
+            d[it.index(i)] = tmp;
+            
+            it.swap(i, it.index(i));
+        }
+        
+    }
 
 
     /**
      * Return a copy of the eigenvector matrix
      *
-     * @return V
+     * @return the eigen vector matrix
      */
     public Matrix getV()
     {
@@ -675,8 +717,18 @@ public class EigenValueDecomposition implements Serializable
     }
     
     /**
+     * Returns the raw eigenvector matrix. Modifying this matrix will effect 
+     * others using the same matrix. 
+     * @return the eigen vector matrix
+     */
+    public Matrix getVRaw()
+    {
+        return V;
+    }
+    
+    /**
      * Returns a copy of the transposed eigenvector matrix. 
-     * @return V' 
+     * @return the transposed eigen the eigen vector matrix
      */
     public Matrix getVT() {
         return V.transpose();
