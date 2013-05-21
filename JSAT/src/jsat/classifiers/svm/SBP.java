@@ -11,6 +11,7 @@ import jsat.classifiers.ClassificationDataSet;
 import jsat.classifiers.Classifier;
 import jsat.classifiers.DataPoint;
 import jsat.distributions.kernels.KernelTrick;
+import jsat.exceptions.FailedToFitException;
 import jsat.exceptions.UntrainedModelException;
 import jsat.linear.Vec;
 import jsat.parameters.Parameter;
@@ -19,55 +20,99 @@ import jsat.utils.IndexTable;
 import jsat.utils.random.XORWOW;
 
 /**
- *
+ * Implementation of the Stochastic Batch Perceptron (SBP) algorithm. Despite
+ * its name, it solves the kernelized SVM problem. Because it is done 
+ * stochastically, it may not produce Support Vectors that the standard SVM 
+ * algorithm learns. It can learn at most one SV per iteration. 
+ * 
+ * See:<br>
+ * Cotter, A., Shalev-Shwartz, S., & Srebro, N. (2012). <i>The Kernelized 
+ * Stochastic Batch Perceptron</i>. International Conference on Machine 
+ * Learning. Learning. Retrieved from <a href="http://arxiv.org/abs/1204.0566">
+ * here</a>
+ * 
  * @author Edward Raff
  */
 public class SBP extends SupportVectorLearner implements Classifier, Parameterized
 {
-    double v = 0.1;
-    int iterations;
-    int T_0;
+    private double nu = 0.1;
+    private int iterations;
+    private double burnInFraction = 1.0/5.0;
 
-    public SBP(KernelTrick kernel, CacheMode cacheMode)
+    /**
+     * Creates a new SBP SVM learner
+     * @param kernel the kernel to use
+     * @param cacheMode the type of kernel cache to use
+     */
+    public SBP(KernelTrick kernel, CacheMode cacheMode, int iterations, double v)
     {
         super(kernel, cacheMode);
+        setIterations(iterations);
+        setNu(v);
     }
 
-    public SBP(SBP other)
+    /**
+     * Copy constructor 
+     * @param other the object to copy
+     */
+    protected SBP(SBP other)
     {
-        this(other.getKernel().clone(), other.getCacheMode());
+        this(other.getKernel().clone(), other.getCacheMode(), other.iterations, other.nu);
         if(other.alphas != null)
             this.alphas = Arrays.copyOf(other.alphas, other.alphas.length);
-        this.iterations = other.iterations;
-        this.T_0 = other.T_0;
     }
     
-    
-
     @Override
-    public Classifier clone()
+    public SBP clone()
     {
         return new SBP(this);
     }
 
+    /**
+     * Sets the number of iterations to go through. At most one SV can be 
+     * learned per iteration. If more iterations are done than there are SVs, it
+     * is highly likely that O(n) SVs will be used, making the model very dense.
+     * It may take far fewer iterations of the algorithm than there are data 
+     * points to get good accuracy. 
+     * @param iterations the number of iterations of the algorithm to perform
+     */
     public void setIterations(int iterations)
     {
         this.iterations = iterations;
     }
 
+    /**
+     * Returns the number of iterations the algorithm will perform
+     * @return the number of iterations the algorithm will perform
+     */
     public int getIterations()
     {
         return iterations;
     }
 
-    public void setV(double v)
+    /**
+     * The nu parameter of the SVM is a value in the range [0, 1]. Nu is a 
+     * theoretical upper bound on the number of errors made by the SVM. In 
+     * practice, is nu is set too small far more errors will occur and a bad 
+     * decision boundary will be learned. A value of 0 corresponds to a 
+     * perfectly linearly separable data set. 
+     * 
+     * @param nu 
+     */
+    public void setNu(double nu)
     {
-        this.v = v;
+        if(Double.isNaN(nu) || nu < 0 || nu > 1)
+            throw new IllegalArgumentException("nu must be in the range [0, 1]");
+        this.nu = nu;
     }
 
-    public double getV()
+    /**
+     * Returns the nu SVM parameter
+     * @return the nu SVM parameter
+     */
+    public double getNu()
     {
-        return v;
+        return nu;
     }
     
 
@@ -77,12 +122,9 @@ public class SBP extends SupportVectorLearner implements Classifier, Parameteriz
         if(vecs == null)
             throw new UntrainedModelException("Classifier has yet to be trained");
         
-        double sum = 0;
         CategoricalResults cr = new CategoricalResults(2);
         
-        for (int i = 0; i < vecs.length; i++)
-            sum += alphas[i] * kEval(vecs[i], data.getNumericalValues());
-
+        double sum = kEvalSum(data.getNumericalValues());
 
         //SVM only says yess / no, can not give a percentage
         if(sum < 0)
@@ -102,7 +144,14 @@ public class SBP extends SupportVectorLearner implements Classifier, Parameteriz
     @Override
     public void trainC(ClassificationDataSet dataSet)
     {
+        if(dataSet.getClassSize() != 2)
+            throw new FailedToFitException("SBP supports only binary classification");
+        
         final int n = dataSet.getSampleSize();
+        /**
+         * First index where we start summing for the average
+         */
+        final int T_0 = 1+(int) (burnInFraction*n);
         /*
          * Respone values
          */
@@ -133,7 +182,7 @@ public class SBP extends SupportVectorLearner implements Classifier, Parameteriz
         for(int t = 1; t <= iterations; t++)
         {
             final double eta = eta_0/Math.sqrt(t);
-            final double gamma = findGamma(C, n*v);
+            final double gamma = findGamma(C, n*nu);
 
             //Samply uniformly from C[i] <= gamma
             int attempts = 0;//you get 5 attempts to find one quickly
@@ -149,12 +198,18 @@ public class SBP extends SupportVectorLearner implements Classifier, Parameteriz
             {
                 int candidates = 0;
                 for(int j = 0; j < C.length; j++)
-                    if(C[i] <= gamma)
+                {
+                    if(C[j] < gamma)
                         candidates++;
+                }
+                
+                if(candidates == 0)
+                    throw new FailedToFitException("BUG: please report");
+                
                 int randCand = rand.nextInt(candidates);
                 i = 0;
                 for(int j = 0; j < C.length && i < randCand; j++)
-                    if(C[i] <= gamma)
+                    if(C[i] < gamma)
                         i++;
             }
             
@@ -178,23 +233,23 @@ public class SBP extends SupportVectorLearner implements Classifier, Parameteriz
                 rSqrd = 1;
             }
 
-            
-            for(int j = 0; j < n; j++)
-            {
-                alphasSum[j] += alphas[j];
-                CSum[j] += C[j];
-            }
+            if(t >= T_0)
+                for(int j = 0; j < n; j++)
+                {
+                    alphasSum[j] += alphas[j];
+                    CSum[j] += C[j];
+                }
         }
         
         //Take the averages
         for (int j = 0; j < n; j++)
         {
-            alphas[j] = alphasSum[j]/iterations;
-            C[j] = CSum[j]/iterations;
+            alphas[j] = alphasSum[j]/(iterations-T_0);
+            C[j] = CSum[j]/(iterations-T_0);
         }
-        double gamma = findGamma(C, n*v);
+        double gamma = findGamma(C, n*nu);
         for (int j = 0; j < n; j++)
-            alphas[j] /= gamma*y[j];
+            alphas[j] /= gamma;
         
         //Clean up to only the SVs
         int supportVectorCount = 0;
@@ -202,13 +257,15 @@ public class SBP extends SupportVectorLearner implements Classifier, Parameteriz
             if(alphas[i] != 0)//its a support vector
             {
                 vecs[supportVectorCount] = vecs[i];
-                alphas[supportVectorCount++] = alphas[i];
+                alphas[supportVectorCount++] = alphas[i]*y[i];
             }
 
         vecs = Arrays.copyOfRange(vecs, 0, supportVectorCount);
         alphas = Arrays.copyOfRange(alphas, 0, supportVectorCount);
-        System.out.println(supportVectorCount + "/" + n + "  SVs");
+        
         it = null;
+        setCacheMode(null);
+        setAlphas(alphas);
     }
 
     @Override
@@ -219,6 +276,8 @@ public class SBP extends SupportVectorLearner implements Classifier, Parameteriz
     
     private IndexTable it;
 
+    //TODO add bias version of findGamma
+    
     private double findGamma(double[] C, double d)
     {
         if(it == null )
@@ -230,22 +289,24 @@ public class SBP extends SupportVectorLearner implements Classifier, Parameteriz
         }
         
         double sum = 0;
-        double prev = 0;
+        double max;
+        double finalScore = 0, prevScore = 0;
         
-        for(int i = 0; i < it.length(); i++)
+        int i;
+        for(i = 0; i < it.length(); i++)
         {
-            double max = C[it.index(i)];
+            max = C[it.index(i)];
             sum += max;
             
             double score = max*i-sum;
+            prevScore = finalScore;
+            finalScore = (d-max*i+sum)/i+max;
             
             if(score >= d)
-                return prev;
-            else
-                prev = score;
+                break;
         }
         
-        return prev;
+        return prevScore;
     }
     
     private List<Parameter> params = Parameter.getParamsFromMethods(this);
