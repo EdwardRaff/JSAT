@@ -241,7 +241,7 @@ public class RegressionDataSet extends DataSet
             cvSet.add(new RegressionDataSet(this.numNumerVals, CategoricalData.copyOf(this.categories)));
         
         for(int i = 0; i < dataPoints.size(); i++)
-            cvSet.get(i%folds).dataPoints.add(this.dataPoints.get(i));
+            cvSet.get(i%folds).dataPoints.add(shuffleSet.get(i));
         
         return cvSet;
     }
