@@ -101,7 +101,7 @@ public class DecisionStump implements Classifier, Regressor, Parameterized
     public DecisionStump()
     {
         gainMethod = ImpurityMeasure.INFORMATION_GAIN_RATIO;
-        setNumericHandling(NumericHandlingC.PDF_INTERSECTIONS);
+        setNumericHandling(NumericHandlingC.BINARY_BEST_GAIN);
         removeContinuousAttributes = false;
     }
 

@@ -56,7 +56,7 @@ public class RandomForest implements Classifier, Regressor, Parameterized
     private int maxForestSize;
     private boolean useOutOfBagError = false;
     private double outOfBagError;
-    private DecisionTree baseLearner = new DecisionTree(Integer.MAX_VALUE, 10, TreePruner.PruningMethod.NONE, 0.01);
+    private DecisionTree baseLearner;
     private List<DecisionTree> forest;
     
     private final List<Parameter> params = Collections.unmodifiableList(Parameter.getParamsFromMethods(this));
@@ -68,6 +68,8 @@ public class RandomForest implements Classifier, Regressor, Parameterized
         setExtraSamples(0);
         setMaxForestSize(maxForestSize);
         autoFeatureSample();
+        baseLearner = new DecisionTree(Integer.MAX_VALUE, 3, TreePruner.PruningMethod.NONE, 1e-15);
+        baseLearner.setNumericHandling(DecisionStump.NumericHandlingC.BINARY_BEST_GAIN);
     }
     
     /**
