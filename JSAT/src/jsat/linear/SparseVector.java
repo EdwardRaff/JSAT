@@ -611,13 +611,15 @@ public class SparseVector extends  Vec
             int z = 0;
             for (int i = 0; i < length(); i++)
             {
-                //Move through until we hit the next null element, comparing the other vec to zero
+                //Move through until we hit our next non zero element
                 while (z < used && indexes[z] > i)
                     norm += Math.pow(Math.abs(-y.get(i++)), p);
 
                 //We made it! (or are at the end). Is our non zero value the same?
                 if (z < used && indexes[z] == i)
-                    norm += Math.pow(Math.abs(values[z] - y.get(i)), p);
+                    norm += Math.pow(Math.abs(values[z++] - y.get(i)), p);
+                else//either we used a non zero of this in the loop or we are out of them
+                    norm += Math.pow(Math.abs(-y.get(i)), p);
             }
         }
         return Math.pow(norm, 1.0/p);
