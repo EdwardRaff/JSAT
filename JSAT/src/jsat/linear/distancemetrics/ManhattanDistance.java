@@ -1,6 +1,8 @@
 
 package jsat.linear.distancemetrics;
 
+import java.util.List;
+import java.util.concurrent.ExecutorService;
 import jsat.linear.IndexValue;
 import jsat.linear.Vec;
 
@@ -77,6 +79,48 @@ public class ManhattanDistance implements DenseSparseMetric
             takeOut += mainVal-Math.abs(mainVal-iv.getValue());
         }
         return summaryConst-takeOut;
+    }
+
+    @Override
+    public boolean supportsAcceleration()
+    {
+        return false;
+    }
+
+    @Override
+    public List<Double> getAccelerationCache(List<? extends Vec> vecs)
+    {
+        return null;
+    }
+
+    @Override
+    public double dist(int a, int b, List<? extends Vec> vecs, List<Double> cache)
+    {
+        return dist(vecs.get(a), vecs.get(b));
+    }
+
+    @Override
+    public double dist(int a, Vec b, List<? extends Vec> vecs, List<Double> cache)
+    {
+        return dist(vecs.get(a), b);
+    }
+
+    @Override
+    public List<Double> getQueryInfo(Vec q)
+    {
+        return null;
+    }
+    
+    @Override
+    public List<Double> getAccelerationCache(List<? extends Vec> vecs, ExecutorService threadpool)
+    {
+        return null;
+    }
+
+    @Override
+    public double dist(int a, Vec b, List<Double> qi, List<? extends Vec> vecs, List<Double> cache)
+    {
+        return dist(vecs.get(a), b);
     }
     
 }

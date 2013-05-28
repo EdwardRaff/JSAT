@@ -88,4 +88,52 @@ public class VecOps
         
         return val;
     }
+    
+    /**
+     * Computes the weighted dot product of <big>&sum;</big><sub>&forall; i &isin; |w|</sub> w_i x_i y_i
+     * @param w the vector containing the weights, it is assumed to be random access 
+     * @param x the first vector of the dot product
+     * @param y the second vector of the dot product
+     * @return the weighted dot product, which is equivalent to the sum of the products of each index for each vector
+     */
+    public static double weightedDot(final Vec w, final Vec x, final Vec y)
+    {
+        double sum = 0;
+        
+        if(x.isSparse() && y.isSparse())
+        {
+            Iterator<IndexValue> xIter = x.iterator();
+            Iterator<IndexValue> yIter = y.iterator();
+
+            IndexValue xiv = xIter.hasNext() ? xIter.next() : badIV;
+            IndexValue yiv = yIter.hasNext() ? yIter.next() : badIV;
+            
+            while(xiv != badIV && yiv != badIV)
+            {
+                if(xiv.getIndex() < yiv.getIndex())
+                    xiv = xIter.hasNext() ? xIter.next() : badIV;
+                else if(yiv.getIndex() > xiv.getIndex())
+                    yiv = yIter.hasNext() ? yIter.next() : badIV;
+                else//on the same page
+                    sum += w.get(xiv.getIndex())*xiv.getValue()*yiv.getValue();
+            }
+        }
+        else if(x.isSparse())
+        {
+            for(IndexValue iv : x)
+            {
+                int indx = iv.getIndex();
+                sum += w.get(indx)*iv.getValue()*y.get(indx);
+            }
+        }
+        else if(y.isSparse())
+            return weightedDot(w, y, x);
+        else//all dense
+        {
+            for(int i = 0; i < w.length(); i++)
+                sum += w.get(i)*x.get(i)*y.get(i);
+        }
+        
+        return sum;
+    }
 }

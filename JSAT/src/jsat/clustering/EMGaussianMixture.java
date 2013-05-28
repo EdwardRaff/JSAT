@@ -87,12 +87,11 @@ public class EMGaussianMixture extends KMeans implements MultivariateDistributio
     }
     
     @Override
-    protected double cluster(DataSet dataSet, List<Vec> means, int[] assignment, boolean exactTotal, ExecutorService execServ)
+    protected double cluster(final DataSet dataSet, final int K, final List<Vec> means, final int[] assignment, boolean exactTotal, ExecutorService execServ)
     {
         //Perform intial clustering with KMeans 
-        super.cluster(dataSet, means, assignment, exactTotal, execServ);
+        super.cluster(dataSet, means.size(), means, assignment, exactTotal, execServ);
         
-        int K = means.size();
         //Use the KMeans result to initalize GuassianMixture 
         List<Matrix> covariances = new ArrayList<Matrix>(K);
         int dimension = dataSet.getNumNumericalVars();

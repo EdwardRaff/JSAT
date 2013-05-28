@@ -30,9 +30,6 @@ public class MiniBatchKMeans extends KClustererBase
     
     private boolean storeMeans = true;
     private List<Vec> means;
-    
-    //DenseSparse is not usually helpful unless the batch size is huge
-    private boolean useDenseSparseAcceleration = false;
 
     /**
      * Creates a new Mini-Batch k-Means object that uses 
@@ -194,27 +191,42 @@ public class MiniBatchKMeans extends KClustererBase
         if(designations == null)
             designations = new int[dataSet.getSampleSize()];
         
-        means = SeedSelectionMethods.selectIntialPoints(dataSet, clusters, dm, new Random(), seedSelection, threadpool);
-        //for use if data is sparse
-        final DenseSparseMetric dsm =  dm instanceof DenseSparseMetric ?  (DenseSparseMetric) dm : null;
-        final double[] msc = dsm == null ? null:  new double[clusters];//Mean Summary Constants
+        TrainableDistanceMetric.trainIfNeeded(dm, dataSet, threadpool);
+        
+        final List<Vec> source = dataSet.getDataVectors();
+        final List<Double> distCache;
+        if(threadpool == null || threadpool instanceof FakeExecutor)
+            distCache = dm.getAccelerationCache(source);
+        else
+            distCache = dm.getAccelerationCache(source, threadpool);
+        
+        means = SeedSelectionMethods.selectIntialPoints(dataSet, clusters, dm, distCache, new Random(), seedSelection, threadpool);
+        
+        final List<List<Double>> meanQIs = new ArrayList<List<Double>>(means.size());
+        for (int i = 0; i < means.size(); i++)
+            if (dm.supportsAcceleration())
+                meanQIs.add(dm.getQueryInfo(means.get(i)));
+            else
+                meanQIs.add(Collections.EMPTY_LIST);
 
         final int[] v = new int[means.size()];
-        final List<Vec> source = new ArrayList<Vec>(dataSet.getSampleSize());
-        for(int i = 0; i < dataSet.getSampleSize(); i++)
-            source.add(dataSet.getDataPoint(i).getNumericalValues());
         
         final int usedBatchSize = Math.min(batchSize, dataSet.getSampleSize());
         
-        final List<Vec> M = new ArrayList<Vec>(usedBatchSize);
+        /**
+         * Store the indices of the sampled points instead of sampling, that 
+         * way we can use the distance acceleration cache. 
+         */
+        final List<Integer> M = new IntList(usedBatchSize);
+        final List<Integer> allIndx = new IntList(source.size());
+        ListUtils.addRange(allIndx, 0, source.size(), 1);
         final int[] nearestCenter = new int[usedBatchSize];
         
-        TrainableDistanceMetric.trainIfNeeded(dm, dataSet, threadpool);
                 
-        for(int i = 0; i < iterations; i++)
+        for(int iter = 0; iter < iterations; iter++)
         {
             M.clear();
-            ListUtils.randomSample(source, M, usedBatchSize);
+            ListUtils.randomSample(allIndx, M, usedBatchSize);
             
             {//compute centers
                 final CountDownLatch latch = new CountDownLatch(SystemInfo.LogicalCores);
@@ -234,13 +246,12 @@ public class MiniBatchKMeans extends KClustererBase
                             double tmp;
                             for (int i = s; i < end; i++)
                             {
-                                Vec x = M.get(i);
                                 double minDist = Double.POSITIVE_INFINITY;
                                 int min = -1;
                                 
                                 for (int j = 0; j < means.size(); j++)
                                 {
-                                    tmp = dm.dist(means.get(j), x);
+                                    tmp = dm.dist(M.get(i), means.get(j), meanQIs.get(j), source, distCache);
                                     
                                     if (tmp < minDist)
                                     {
@@ -272,8 +283,13 @@ public class MiniBatchKMeans extends KClustererBase
                 double eta = 1.0/(++v[c_i]);
                 Vec c = means.get(c_i);
                 c.mutableMultiply(1-eta);
-                c.mutableAdd(eta, M.get(j));
+                c.mutableAdd(eta, source.get(M.get(j)));
             }
+            
+            //update mean caches
+            if(dm.supportsAcceleration())
+                for(int i = 0; i < means.size(); i++)
+                    meanQIs.set(i, dm.getQueryInfo(means.get(i)));
         }
         
         //Stochastic travel complete, calculate all
@@ -284,9 +300,6 @@ public class MiniBatchKMeans extends KClustererBase
 
         final int[] des = designations;
 
-        if (dsm != null && useDenseSparseAcceleration)
-            for (int j = 0; j < means.size(); j++)
-                msc[j] = dsm.getVectorConstant(means.get(j));
 
         while (start < dataSet.getSampleSize())
         {
@@ -303,16 +316,12 @@ public class MiniBatchKMeans extends KClustererBase
                     double tmp;
                     for (int i = s; i < end; i++)
                     {
-                        Vec x = source.get(i);
                         double minDist = Double.POSITIVE_INFINITY;
                         int min = -1;
                         for (int j = 0; j < means.size(); j++)
                         {
-                            if(dsm == null || !useDenseSparseAcceleration)
-                                tmp = dm.dist(means.get(j), x);
-                            else
-                                tmp = dsm.dist(msc[j], means.get(j), x);
-                            
+                            tmp = dm.dist(i, means.get(j), meanQIs.get(j), source, distCache);
+
                             if (tmp < minDist)
                             {
                                 minDist = tmp;

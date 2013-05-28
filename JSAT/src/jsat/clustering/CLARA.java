@@ -6,6 +6,7 @@ import jsat.DataSet;
 import jsat.SimpleDataSet;
 import jsat.classifiers.DataPoint;
 import jsat.clustering.SeedSelectionMethods.SeedSelection;
+import jsat.linear.Vec;
 import jsat.linear.distancemetrics.DistanceMetric;
 import jsat.linear.distancemetrics.EuclideanDistance;
 import jsat.linear.distancemetrics.TrainableDistanceMetric;
@@ -107,19 +108,23 @@ public class CLARA extends PAM
     }
     
     @Override
-    protected double cluster(DataSet data, int[] medioids, int[] assignments)
+    protected double cluster(DataSet data, boolean doInit, int[] medioids, int[] assignments, List<Double> cacheAccel)
     {
         int k = medioids.length;
         int[] bestMedoids = new int[medioids.length];
         int[] bestAssignments = new int[assignments.length];
         double bestMedoidsDist = Double.MAX_VALUE;
+        List<Vec> X = data.getDataVectors();
         
-        TrainableDistanceMetric.trainIfNeeded(dm, data);
         
         if(sampleSize >= data.getSampleSize())//Then we might as well just do one round of PAM
         {
-            SeedSelectionMethods.selectIntialPoints(data, medioids, dm, rand, getSeedSelection());
-            return super.cluster(data, medioids, assignments);
+            return super.cluster(data, true, medioids, assignments, cacheAccel);
+        }
+        else if(doInit)
+        {
+            TrainableDistanceMetric.trainIfNeeded(dm, data);
+            cacheAccel = dm.getAccelerationCache(X);
         }
         
         int sampSize = autoSampleSize ? 40+2*k : sampleSize;
@@ -151,8 +156,8 @@ public class CLARA extends PAM
             DataSet sampleSet = new SimpleDataSet(sample);
             
             //Sampling done, now apply PAM
-            SeedSelectionMethods.selectIntialPoints(sampleSet, medioids, dm, rand, getSeedSelection());
-            super.cluster(sampleSet, medioids, sampleAssignments);
+            SeedSelectionMethods.selectIntialPoints(sampleSet, medioids, dm, cacheAccel, rand, getSeedSelection());
+            super.cluster(sampleSet, false, medioids, sampleAssignments, cacheAccel);
             
             //Map the sample medoids back to the full data set
             for(int j = 0; j < medioids.length; j++)
@@ -167,7 +172,7 @@ public class CLARA extends PAM
                 
                 for(int z = 0; z < k; z++)
                 {
-                    double tmp = dm.dist(data.getDataPoint(medioids[z]).getNumericalValues(), data.getDataPoint(j).getNumericalValues());
+                    double tmp = dm.dist(medioids[z], j, X, cacheAccel);
                     if(tmp < smallestDist)
                     {
                         assignment = z;
@@ -199,7 +204,7 @@ public class CLARA extends PAM
             designations = new int[dataSet.getSampleSize()];
         medoids = new int[clusters];
         
-        this.cluster(dataSet, medoids, designations);
+        this.cluster(dataSet, true, medoids, designations, null);
         if(!storeMedoids)
             medoids = null;
         

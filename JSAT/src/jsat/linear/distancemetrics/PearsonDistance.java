@@ -2,8 +2,11 @@
 package jsat.linear.distancemetrics;
 
 import java.util.Iterator;
+import java.util.List;
+import java.util.concurrent.ExecutorService;
 import jsat.linear.IndexValue;
 import jsat.linear.Vec;
+import jsat.utils.DoubleList;
 
 /**
  * A valid distance metric formed from the Pearson Correlation between two vectors.
@@ -251,6 +254,55 @@ public class PearsonDistance implements DistanceMetric
             return r/Math.sqrt((aSqrd+1e-10)*(bSqrd+1e-10));
 
         return r/Math.sqrt(aSqrd*bSqrd);
+    }
+    
+    /*
+     * TODO Accerlation for Pearson can be done, its a little complicated (you 
+     * cache the means and Sqrd values - so that you can do just 1 pass over all
+     * values). But thats a good bit of code, and the above needs to be cleaned
+     * up before implementing that. 
+     */
+
+    @Override
+    public boolean supportsAcceleration()
+    {
+        return false;
+    }
+
+    @Override
+    public List<Double> getAccelerationCache(List<? extends Vec> vecs)
+    {
+        return null;
+    }
+
+    @Override
+    public double dist(int a, int b, List<? extends Vec> vecs, List<Double> cache)
+    {
+        return dist(vecs.get(a), vecs.get(b));
+    }
+
+    @Override
+    public double dist(int a, Vec b, List<? extends Vec> vecs, List<Double> cache)
+    {
+        return dist(vecs.get(a), b);
+    }
+
+    @Override
+    public List<Double> getQueryInfo(Vec q)
+    {
+        return null;
+    }
+
+    @Override
+    public List<Double> getAccelerationCache(List<? extends Vec> vecs, ExecutorService threadpool)
+    {
+        return null;
+    }
+    
+    @Override
+    public double dist(int a, Vec b, List<Double> qi, List<? extends Vec> vecs, List<Double> cache)
+    {
+        return dist(vecs.get(a), b);
     }
 
 }

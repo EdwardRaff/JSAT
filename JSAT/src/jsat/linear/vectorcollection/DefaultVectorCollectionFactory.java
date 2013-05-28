@@ -25,9 +25,7 @@ public class DefaultVectorCollectionFactory<V extends Vec> implements VectorColl
     {
         if(source.size() < VEC_ARRAY_CUT_OFF)
         {
-            VectorArray<V> va = new VectorArray<V>(distanceMetric, source.size());
-            va.addAll(source);
-            return va;
+            return new VectorArray<V>(distanceMetric, source);
         }
         int dimension = source.get(0).length();
         if(dimension >= BRUTE_FORCE_DIM)
@@ -53,9 +51,7 @@ public class DefaultVectorCollectionFactory<V extends Vec> implements VectorColl
     {
         if(source.size() < VEC_ARRAY_CUT_OFF)
         {
-            VectorArray<V> va = new VectorArray<V>(distanceMetric, source.size());
-            va.addAll(source);
-            return va;
+            return new VectorArray<V>(distanceMetric, source);
         }
         int dimension = source.get(0).length();
         if(dimension >= BRUTE_FORCE_DIM)

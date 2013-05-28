@@ -8,6 +8,7 @@ import jsat.linear.Vec;
 import jsat.linear.distancemetrics.DistanceMetric;
 import jsat.linear.vectorcollection.VPTree.VPSelection;
 import jsat.math.OnLineStatistics;
+import jsat.utils.Pair;
 import jsat.utils.ProbailityMatch;
 
 /**
@@ -44,7 +45,7 @@ public class VPTreeMV<V extends Vec> extends VPTree<V>
     }
 
     @Override
-    protected int splitListIndex(List<ProbailityMatch<V>> S)
+    protected int splitListIndex(List<Pair<Double, Integer>> S)
     {
         int splitIndex = S.size()/2;
         int maxLeafSize = getMaxLeafSize();
@@ -54,14 +55,14 @@ public class VPTreeMV<V extends Vec> extends VPTree<V>
             OnLineStatistics rightV = new OnLineStatistics();
             OnLineStatistics leftV = new OnLineStatistics();
             for(int i = 0; i < maxLeafSize; i++)
-                leftV.add(S.get(i).getProbability());
+                leftV.add(S.get(i).getFirstItem());
             for(int i = maxLeafSize; i < S.size(); i++)
-                rightV.add(S.get(i).getProbability());
+                rightV.add(S.get(i).getFirstItem());
             splitIndex = maxLeafSize;
             double bestVar = leftV.getVarance()*maxLeafSize+rightV.getVarance()*(S.size()-maxLeafSize);
             for(int i = maxLeafSize+1; i < S.size()-maxLeafSize; i++)
             {
-                double tmp = S.get(i).getProbability();
+                double tmp = S.get(i).getFirstItem();
                 leftV.add(tmp);
                 rightV.remove(tmp, 1.0);
                 double testVar = leftV.getVarance()*i + rightV.getVarance()*(S.size()-i);

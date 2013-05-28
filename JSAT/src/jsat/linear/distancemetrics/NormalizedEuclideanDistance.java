@@ -1,6 +1,7 @@
 package jsat.linear.distancemetrics;
 
 import java.util.List;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import jsat.DataSet;
 import jsat.classifiers.ClassificationDataSet;
@@ -11,6 +12,8 @@ import jsat.linear.VecOps;
 import jsat.math.FunctionBase;
 import jsat.math.MathTricks;
 import jsat.regression.RegressionDataSet;
+import jsat.utils.DoubleList;
+import jsat.utils.SystemInfo;
 
 /**
  * Implementation of the Normalized Euclidean Distance Metric. The normalized 
@@ -153,5 +156,95 @@ public class NormalizedEuclideanDistance extends TrainableDistanceMetric
     {
         return Double.POSITIVE_INFINITY;
     }
+
+    /*
+     * TODO when moving to java8, convert TrainableDistanceMetric into an 
+     * interface, fix this class up. Then extend WeightedEuclideanDistance 
+     */
     
+    @Override
+    public boolean supportsAcceleration()
+    {
+        return true;
+    }
+
+    @Override
+    public List<Double> getAccelerationCache(List<? extends Vec> vecs)
+    {
+        DoubleList cache = new DoubleList(vecs.size());
+        
+        for(Vec v : vecs)
+            cache.add(VecOps.weightedDot(invStndDevs, v, v));
+        
+        return cache;
+    }
+    
+    @Override
+    public List<Double> getAccelerationCache(final List<? extends Vec> vecs, ExecutorService threadpool)
+    {
+        final double[] cache = new double[vecs.size()];
+   
+        final CountDownLatch latch = new CountDownLatch(SystemInfo.LogicalCores);
+        final int blockSize = cache.length / SystemInfo.LogicalCores;
+        int extra = cache.length % SystemInfo.LogicalCores;
+        int start = 0;
+
+        while (start < cache.length)
+        {
+            final int S = start;
+            final int end;
+            if (extra-- > 0)
+                end = start + blockSize + 1;
+            else
+                end = start + blockSize;
+            threadpool.submit(new Runnable()
+            {
+                @Override
+                public void run()
+                {
+                    for(int i = S; i < end; i++)
+                        cache[i] = VecOps.weightedDot(invStndDevs, vecs.get(i), vecs.get(i));
+                    latch.countDown();
+                }
+            });
+            start = end;
+        }
+
+        return DoubleList.unmodifiableView(cache, cache.length);
+    }
+
+    @Override
+    public double dist(int a, int b, List<? extends Vec> vecs, List<Double> cache)
+    {
+        if(cache == null)
+            return dist(vecs.get(a), vecs.get(b));
+        
+        return Math.sqrt(cache.get(a)+cache.get(b)-2*VecOps.weightedDot(invStndDevs, vecs.get(a), vecs.get(b)));
+    }
+
+    @Override
+    public double dist(int a, Vec b, List<? extends Vec> vecs, List<Double> cache)
+    {
+        if(cache == null)
+            return dist(vecs.get(a), b);
+        
+        return Math.sqrt(cache.get(a)+VecOps.weightedDot(invStndDevs, b, b)-2*VecOps.weightedDot(invStndDevs, vecs.get(a), b));
+    }
+
+    @Override
+    public List<Double> getQueryInfo(Vec q)
+    {
+        DoubleList qi = new DoubleList(1);
+        qi.add(VecOps.weightedDot(invStndDevs, q, q));
+        return qi;
+    }
+
+    @Override
+    public double dist(int a, Vec b, List<Double> qi, List<? extends Vec> vecs, List<Double> cache)
+    {
+        if(cache == null)
+            return dist(vecs.get(a), b);
+        
+        return Math.sqrt(cache.get(a)+qi.get(0)-2*VecOps.weightedDot(invStndDevs, vecs.get(a), b));
+    }
 }

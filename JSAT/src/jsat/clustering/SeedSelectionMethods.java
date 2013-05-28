@@ -73,8 +73,23 @@ public class SeedSelectionMethods
      */
     static public List<Vec> selectIntialPoints(DataSet d, int k, DistanceMetric dm, Random rand, SeedSelection selectionMethod)
     {
+        return selectIntialPoints(d, k, dm, null, rand, selectionMethod);
+    }
+    
+    /**
+     * 
+     * @param d the data set to perform select from
+     * @param k the number of seeds to choose 
+     * @param dm the distance metric to used when selecting points
+     * @param accelCache the cache of pre-generated acceleration information for the distance metric. May be null
+     * @param rand a source of randomness
+     * @param selectionMethod  The method of seed selection to use. 
+     * @return a list of the copies of the chosen vectors. 
+     */
+    static public List<Vec> selectIntialPoints(DataSet d, int k, DistanceMetric dm, List<Double> accelCache, Random rand, SeedSelection selectionMethod)
+    {
         int[] indicies = new int[k];
-        selectIntialPoints(d, indicies, dm, rand, selectionMethod);
+        selectIntialPoints(d, indicies, dm, accelCache, rand, selectionMethod, null);
         List<Vec> vecs = new ArrayList<Vec>(k);
         for(Integer i : indicies)
             vecs.add(d.getDataPoint(i).getNumericalValues().clone());
@@ -84,7 +99,7 @@ public class SeedSelectionMethods
     /**
      * Selects seeds from a data set to use for a clustering algorithm. Copies of the vectors chosen will be returned.
      * 
-     *  @param d the data set to perform select from
+     * @param d the data set to perform select from
      * @param k the number of seeds to choose 
      * @param dm the distance metric to used when selecting points
      * @param rand a source of randomness
@@ -93,6 +108,23 @@ public class SeedSelectionMethods
      * @return a list of the copies of the chosen vectors. 
      */
     static public List<Vec> selectIntialPoints(DataSet d, int k, DistanceMetric dm, Random rand, SeedSelection selectionMethod, ExecutorService threadpool)
+    {
+        return selectIntialPoints(d, k, dm, null, rand, selectionMethod, threadpool);
+    }
+    
+    /**
+     * Selects seeds from a data set to use for a clustering algorithm. Copies of the vectors chosen will be returned.
+     * 
+     * @param d the data set to perform select from
+     * @param k the number of seeds to choose 
+     * @param dm the distance metric to used when selecting points
+     * @param accelCache the cache of pre-generated acceleration information for the distance metric. May be null
+     * @param rand a source of randomness
+     * @param selectionMethod  The method of seed selection to use. 
+     * @param threadpool the source of threads for parallel computation 
+     * @return a list of the copies of the chosen vectors. 
+     */
+    static public List<Vec> selectIntialPoints(DataSet d, int k, DistanceMetric dm, List<Double> accelCache, Random rand, SeedSelection selectionMethod, ExecutorService threadpool)
     {
         int[] indicies = new int[k];
         selectIntialPoints(d, indicies, dm, rand, selectionMethod, threadpool);
@@ -113,7 +145,22 @@ public class SeedSelectionMethods
      */
     static public void selectIntialPoints(DataSet d, int[] indices, DistanceMetric dm, Random rand, SeedSelection selectionMethod)
     {
-        selectIntialPoints(d, indices, dm, rand, selectionMethod, null);
+        selectIntialPoints(d, indices, dm, null, rand, selectionMethod);
+    }
+    
+    /**
+     * Selects seeds from a data set to use for a clustering algorithm. The indices of the chosen points will be placed in the <tt>indices</tt> array. 
+     * 
+     * @param d the data set to perform select from
+     * @param indices a storage place to note the indices that were chosen as seed. The length of the array indicates how many seeds to select. 
+     * @param dm the distance metric to used when selecting points
+     * @param accelCache the cache of pre-generated acceleration information for the distance metric. May be null
+     * @param rand a source of randomness
+     * @param selectionMethod  The method of seed selection to use. 
+     */
+    static public void selectIntialPoints(DataSet d, int[] indices, DistanceMetric dm, List<Double> accelCache, Random rand, SeedSelection selectionMethod)
+    {
+        selectIntialPoints(d, indices, dm, accelCache, rand, selectionMethod, null);
     }
     
     /**
@@ -127,6 +174,22 @@ public class SeedSelectionMethods
      * @param threadpool the source of threads for parallel computation 
      */
     static public void selectIntialPoints(DataSet d, int[] indices, DistanceMetric dm, Random rand, SeedSelection selectionMethod, ExecutorService threadpool)
+    {
+        selectIntialPoints(d, indices, dm, null, rand, selectionMethod, threadpool);
+    }
+    
+    /**
+     * Selects seeds from a data set to use for a clustering algorithm. The indices of the chosen points will be placed in the <tt>indices</tt> array. 
+     *
+     * @param d the data set to perform select from
+     * @param indices a storage place to note the indices that were chosen as seed. The length of the array indicates how many seeds to select. 
+     * @param dm the distance metric to used when selecting points
+     * @param accelCache the cache of pre-generated acceleration information for the distance metric. May be null
+     * @param rand a source of randomness
+     * @param selectionMethod  The method of seed selection to use. 
+     * @param threadpool the source of threads for parallel computation 
+     */
+    static public void selectIntialPoints(DataSet d, int[] indices, DistanceMetric dm, List<Double> accelCache, Random rand, SeedSelection selectionMethod, ExecutorService threadpool)
     {
         try
         {
@@ -146,24 +209,23 @@ public class SeedSelectionMethods
             else if (selectionMethod == SeedSelection.KPP)
             {
                 if (threadpool == null)
-                    kppSelection(indices, rand, d, k, dm);
+                    kppSelection(indices, rand, d, k, dm, accelCache);
                 else
-                    kppSelection(indices, rand, d, k, dm, threadpool);
-
+                    kppSelection(indices, rand, d, k, dm, accelCache, threadpool);
             }
             else if(selectionMethod == SeedSelection.FARTHEST_FIRST)
             {
                 if(threadpool == null)
-                    ffSelection(indices, rand, d, k, dm, new FakeExecutor());
+                    ffSelection(indices, rand, d, k, dm, accelCache, new FakeExecutor());
                 else
-                    ffSelection(indices, rand, d, k, dm, threadpool);
+                    ffSelection(indices, rand, d, k, dm, accelCache, threadpool);
             }
             else if(selectionMethod == SeedSelection.MEAN_QUANTILES)
             {
                 if(threadpool == null)
-                    mqSelection(indices, d, k, dm, new FakeExecutor());
+                    mqSelection(indices, d, k, dm, accelCache, new FakeExecutor());
                 else
-                    mqSelection(indices, d, k, dm, threadpool);
+                    mqSelection(indices, d, k, dm, accelCache, threadpool);
             }
         }
         catch (InterruptedException ex)
@@ -176,7 +238,7 @@ public class SeedSelectionMethods
         }
     }
 
-    private static void kppSelection(int[] indices, Random rand, DataSet d, int k, DistanceMetric dm)
+    private static void kppSelection(int[] indices, Random rand, DataSet d, int k, DistanceMetric dm, List<Double> accelCache)
     {
         /*
          * http://www.stanford.edu/~darthur/kMeansPlusPlus.pdf : k-means++: The Advantages of Careful Seeding
@@ -189,13 +251,15 @@ public class SeedSelectionMethods
         double sqrdDistSum = 0.0;
         double newDist;
         
+        List<Vec> vecs = d.getDataVectors();
+        
         for(int j = 1; j < k; j++)
         {
             //Compute the distance from each data point to the closest mean
-            Vec newMean = d.getDataPoint(indices[j-1]).getNumericalValues();//Only the most recently added mean needs to get distances computed. 
+            int newMeanIndx = indices[j-1];//Only the most recently added mean needs to get distances computed. 
             for(int i = 0; i < d.getSampleSize(); i++)
             {
-                newDist = dm.dist(newMean, d.getDataPoint(i).getNumericalValues());
+                newDist = dm.dist(newMeanIndx, i, vecs, accelCache);
                 
                 if(newDist < closestDist[i] || j == 1)
                 {
@@ -217,7 +281,7 @@ public class SeedSelectionMethods
         }
     }
     
-    private static void kppSelection(final int[] indices, Random rand, final DataSet d, final int k, final DistanceMetric dm, ExecutorService threadpool) throws InterruptedException, ExecutionException
+    private static void kppSelection(final int[] indices, Random rand, final DataSet d, final int k, final DistanceMetric dm, final List<Double> accelCache, ExecutorService threadpool) throws InterruptedException, ExecutionException
     {
         /*
          * http://www.stanford.edu/~darthur/kMeansPlusPlus.pdf : k-means++: The Advantages of Careful Seeding
@@ -228,6 +292,7 @@ public class SeedSelectionMethods
 
         final double[] closestDist = new double[d.getSampleSize()];
         double sqrdDistSum = 0.0;
+        final List<Vec> X = d.getDataVectors();
 
         //Each future will return the local chance to the overal sqared distance. 
         List<Future<Double>> futureChanges = new ArrayList<Future<Double>>(LogicalCores);
@@ -235,7 +300,7 @@ public class SeedSelectionMethods
         for (int j = 1; j < k; j++)
         {
             //Compute the distance from each data point to the closest mean
-            final Vec newMean = d.getDataPoint(indices[j - 1]).getNumericalValues();//Only the most recently added mean needs to get distances computed. 
+            final int newMeanIndx = indices[j - 1];//Only the most recently added mean needs to get distances computed. 
             futureChanges.clear();
 
             int blockSize = d.getSampleSize() / LogicalCores;
@@ -256,7 +321,7 @@ public class SeedSelectionMethods
                         double sqrdDistChanges = 0.0;
                         for (int i = from; i < to; i++)
                         {
-                            double newDist = dm.dist(newMean, d.getDataPoint(i).getNumericalValues());
+                            double newDist =  dm.dist(newMeanIndx, i, X, accelCache);
 
                             if (newDist < closestDist[i] || forceCompute)
                             {
@@ -288,13 +353,14 @@ public class SeedSelectionMethods
         }
     }
     
-    private static void ffSelection(final int[] indices, Random rand, final DataSet d, final int k, final DistanceMetric dm, ExecutorService threadpool) throws InterruptedException, ExecutionException
+    private static void ffSelection(final int[] indices, Random rand, final DataSet d, final int k, final DistanceMetric dm, final List<Double> accelCache, ExecutorService threadpool) throws InterruptedException, ExecutionException
     {
         //Initial random point
         indices[0] = rand.nextInt(d.getSampleSize());
 
         final double[] closestDist = new double[d.getSampleSize()];
         Arrays.fill(closestDist, Double.POSITIVE_INFINITY);
+        final List<Vec> X = d.getDataVectors();
 
         //Each future will return the local chance to the overal sqared distance. 
         List<Future<Integer>> futures = new ArrayList<Future<Integer>>(LogicalCores);
@@ -302,7 +368,7 @@ public class SeedSelectionMethods
         for (int j = 1; j < k; j++)
         {
             //Compute the distance from each data point to the closest mean
-            final Vec newMean = d.getDataPoint(indices[j - 1]).getNumericalValues();//Only the most recently added mean needs to get distances computed. 
+            final int newMeanIndx = indices[j - 1];//Only the most recently added mean needs to get distances computed. 
             futures.clear();
 
             int blockSize = d.getSampleSize() / LogicalCores;
@@ -323,7 +389,7 @@ public class SeedSelectionMethods
                         int max = -1;
                         for (int i = from; i < to; i++)
                         {
-                            double newDist = dm.dist(newMean, d.getDataPoint(i).getNumericalValues());
+                            double newDist = dm.dist(newMeanIndx, i, X, accelCache);
                             closestDist[i] = Math.min(newDist, closestDist[i]);
                             
                             if (closestDist[i] > maxDist)
@@ -353,12 +419,14 @@ public class SeedSelectionMethods
         }
     }
     
-    private static void mqSelection(final int[] indices, final DataSet d, final int k, final DistanceMetric dm, ExecutorService threadpool) throws InterruptedException, ExecutionException
+    private static void mqSelection(final int[] indices, final DataSet d, final int k, final DistanceMetric dm, final List<Double> accelCache, ExecutorService threadpool) throws InterruptedException, ExecutionException
     {
         final double[] meanDist = new double[d.getSampleSize()];
 
         //Compute the distance from each data point to the closest mean
         final Vec newMean = MatrixStatistics.meanVector(d);
+        final List<Double> meanQI = dm.getQueryInfo(newMean);
+        final List<Vec> X = d.getDataVectors();
 
         final CountDownLatch latch = new CountDownLatch(LogicalCores);
         int blockSize = d.getSampleSize() / LogicalCores;
@@ -375,7 +443,7 @@ public class SeedSelectionMethods
                 public void run()
                 {
                     for (int i = from; i < to; i++)
-                        meanDist[i] = dm.dist(newMean, d.getDataPoint(i).getNumericalValues());
+                        meanDist[i] = dm.dist(i, newMean, meanQI, X, accelCache);
                     latch.countDown();
                 }
             });

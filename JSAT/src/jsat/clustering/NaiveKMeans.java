@@ -2,6 +2,7 @@ package jsat.clustering;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Random;
 import java.util.concurrent.Callable;
@@ -10,6 +11,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicIntegerArray;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import jsat.DataSet;
@@ -106,7 +108,7 @@ public class NaiveKMeans extends KClustererBase
     }
 
     @Override
-    public int[] cluster(final DataSet dataSet, int clusters, ExecutorService threadpool, int[] designations)
+    public int[] cluster(final DataSet dataSet, final int clusters, ExecutorService threadpool, int[] designations)
     {
         final int[] des;
         if (designations == null)
@@ -116,15 +118,47 @@ public class NaiveKMeans extends KClustererBase
         TrainableDistanceMetric.trainIfNeeded(dm, dataSet, threadpool);
         
         final int blockSize = dataSet.getSampleSize() / SystemInfo.LogicalCores;
+        final List<Vec> X = dataSet.getDataVectors();
+        final List<Double> accelCache;
+        if(threadpool == null || threadpool instanceof  FakeExecutor)
+            accelCache = dm.getAccelerationCache(X);
+        else
+            accelCache = dm.getAccelerationCache(X, threadpool);
         
-        means = SeedSelectionMethods.selectIntialPoints(dataSet, clusters, dm, new Random(), seedSelection, threadpool);
+        means = SeedSelectionMethods.selectIntialPoints(dataSet, clusters, dm, accelCache, new Random(), seedSelection, threadpool);
+        
+        final List<List<Double>> meanQIs = new ArrayList<List<Double>>(clusters);
+        
+        //Use dense mean objects
+        for(int i = 0; i < means.size(); i++)
+        {
+            if(dm.supportsAcceleration())
+                meanQIs.add(dm.getQueryInfo(means.get(i)));
+            else
+                meanQIs.add(Collections.EMPTY_LIST);
+            
+            if(means.get(i).isSparse())
+                means.set(i, new DenseVector(means.get(i)));
+        }
+        
+        final List<Vec> meanSum = new ArrayList<Vec>(means.size());
+        final AtomicIntegerArray meanCounts = new AtomicIntegerArray(means.size());
+        for(int i = 0; i < clusters; i++)
+            meanSum.add(new DenseVector(means.get(0).length()));
         final AtomicInteger changes = new AtomicInteger();
         
-        final DenseSparseMetric dsm = dm instanceof DenseSparseMetric ? (DenseSparseMetric) dm : null;
-        final double[] smc = dsm == null ? null : new double[clusters];
-        if(smc != null)
-            for(int i = 0; i < means.size(); i++)
-                smc[i] = dsm.getVectorConstant(means.get(i));
+        //used to store local changes to the means and accumulated at the end
+        final ThreadLocal<Vec[]> localMeanDeltas = new ThreadLocal<Vec[]>()
+        {
+            @Override
+            protected Vec[] initialValue()
+            {
+                Vec[] deltas = new Vec[clusters];
+                for(int i = 0; i < clusters; i++)
+                    deltas[i] = new DenseVector(means.get(0).length());
+                return deltas;
+            }
+        };
         
         Arrays.fill(des, -1);
         do
@@ -142,18 +176,16 @@ public class NaiveKMeans extends KClustererBase
                     @Override
                     public void run()
                     {
+                        Vec[] deltas = localMeanDeltas.get();
                         double tmp;
                         for (int i = s; i < end; i++)
                         {
-                            Vec x = dataSet.getDataPoint(i).getNumericalValues();
+                            final Vec x = X.get(i);
                             double minDist = Double.POSITIVE_INFINITY;
                             int min = -1;
                             for (int j = 0; j < means.size(); j++)
                             {
-                                if(dsm != null)
-                                    tmp = dsm.dist(smc[j], means.get(j), x);
-                                else
-                                    tmp = dm.dist(means.get(j), x);
+                                tmp = dm.dist(i, means.get(j), meanQIs.get(j), X, accelCache);
                                 if (tmp < minDist)
                                 {
                                     minDist = tmp;
@@ -162,59 +194,49 @@ public class NaiveKMeans extends KClustererBase
                             }
                             if(des[i] == min)
                                 continue;
+                            
+                            //add change
+                            deltas[min].mutableAdd(x);
+                            meanCounts.incrementAndGet(min);
+                            //remove from prev owner
+                            if(des[i] >= 0)
+                            {
+                                deltas[des[i]].mutableSubtract(x);
+                                meanCounts.getAndDecrement(des[i]);
+                            }
                             des[i] = min;
                             changes.incrementAndGet();
                         }
+                        
+                        //accumulate deltas into globals
+                        for(int i = 0; i < deltas.length; i++)
+                            synchronized(meanSum.get(i))
+                            {
+                                meanSum.get(i).mutableAdd(deltas[i]);
+                                deltas[i].zeroOut();
+                            }
+                        
                         latch.countDown();
                     }
                 });
                 
                 start = end;
             }
+            
             try
             {
                 latch.await();
                 if(changes.get() == 0)
                     break;
-                //Recalc means
-                int[] finalCounts = new int[clusters];
-                List<Future<MeanComputer>> futures = new ArrayList<Future<MeanComputer>>(SystemInfo.LogicalCores);
-
-                extra = dataSet.getSampleSize() % SystemInfo.LogicalCores;
-                start = 0;
-
-                while(start < dataSet.getSampleSize())
-                {
-                    final int end = start + blockSize + (extra-- > 0 ? 1 : 0);
-                    futures.add(threadpool.submit(new MeanComputer(start, end, clusters, dataSet, des)));
-                    start = end;
-                }
-                
-                for(Vec mean : means)
-                    mean.zeroOut();
-
-                for(Future<MeanComputer> fmc : futures)
-                {
-                    MeanComputer mc = fmc.get();
-                    for(int i = 0; i < clusters; i++)
-                    {
-                        finalCounts[i] += mc.meanCount[i];
-                        means.get(i).mutableAdd(mc.newMeans.get(i));
-                    }
-                }
-                
                 for(int i = 0; i < clusters; i++)
                 {
-                    means.get(i).mutableDivide(finalCounts[i]);
-                    if(dsm != null)
-                        smc[i] = dsm.getVectorConstant(means.get(i));
+                    meanSum.get(i).copyTo(means.get(i));
+                    means.get(i).mutableDivide(meanCounts.get(i));
+                    if(dm.supportsAcceleration())
+                        meanQIs.set(i, dm.getQueryInfo(means.get(i)));
                 }
             }
             catch (InterruptedException ex)
-            {
-                Logger.getLogger(NaiveKMeans.class.getName()).log(Level.SEVERE, null, ex);
-            }
-            catch (ExecutionException ex)
             {
                 Logger.getLogger(NaiveKMeans.class.getName()).log(Level.SEVERE, null, ex);
             }
@@ -225,43 +247,6 @@ public class NaiveKMeans extends KClustererBase
             means = null;
 
         return des;
-    }
-
-    private class MeanComputer implements Callable<MeanComputer>
-    {
-        int start, end, k;
-        DataSet dataSet;
-        int[] des;
-        List<Vec> newMeans;
-        int[] meanCount;
-        
-        public MeanComputer(int start, int end, int k, DataSet dataSet, int[] des)
-        {
-            this.start = start;
-            this.end = end;
-            this.k = k;
-            this.dataSet = dataSet;
-            this.des = des;
-            newMeans = new ArrayList<Vec>(k);
-            for(int i = 0; i < k; i++)
-                newMeans.add(new DenseVector(dataSet.getNumNumericalVars()));
-            meanCount = new int[k];
-        }
-        
-        
-        @Override
-        public MeanComputer call() throws Exception
-        {
-            for(int i = start; i < end; i++)
-            {
-                Vec x = dataSet.getDataPoint(i).getNumericalValues();
-                int c = des[i];
-                meanCount[c]++;
-                newMeans.get(c).mutableAdd(x);
-            }
-            
-            return this;
-        }
     }
 
     @Override

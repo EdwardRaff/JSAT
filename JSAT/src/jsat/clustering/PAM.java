@@ -105,7 +105,7 @@ public class PAM extends KClustererBase
      * @param assignments an array of the same length as <tt>data</tt>, each value indicating what cluster that point belongs to. 
      * @return the sum of the squared distance from each point to its closest medoids 
      */
-    protected double cluster(DataSet data, int[] medioids, int[] assignments)
+    protected double cluster(DataSet data, boolean doInit, int[] medioids, int[] assignments, List<Double> cacheAccel)
     {
         double totalDistance = 0;
         int changes = -1;
@@ -113,8 +113,14 @@ public class PAM extends KClustererBase
         
         int[] bestMedCand = new int[medioids.length];
         double[] bestMedCandDist = new double[medioids.length];
+        List<Vec> X = data.getDataVectors();
         
-        TrainableDistanceMetric.trainIfNeeded(dm, data);
+        if(doInit)
+        {
+            TrainableDistanceMetric.trainIfNeeded(dm, data);
+            cacheAccel = dm.getAccelerationCache(X);
+            selectIntialPoints(data, medoids, dm, cacheAccel, rand, seedSelection);
+        }
 
         int iter = 0;
         do
@@ -126,11 +132,11 @@ public class PAM extends KClustererBase
             {
                 Vec dpVec = data.getDataPoint(i).getNumericalValues();
                 int assignment = 0;
-                double minDist = dm.dist(data.getDataPoint(medioids[0]).getNumericalValues(), dpVec);
+                double minDist = dm.dist(medioids[0], i, X, cacheAccel);
 
                 for (int k = 1; k < medioids.length; k++)
                 {
-                    double dist = dm.dist(data.getDataPoint(medioids[k]).getNumericalValues(), dpVec);
+                    double dist = dm.dist(medioids[k], i, X, cacheAccel);
                     if (dist < minDist)
                     {
                         minDist = dist;
@@ -156,12 +162,12 @@ public class PAM extends KClustererBase
             {
                 double thisCandidateDistance = 0.0;
                 int clusterID = assignments[i];
-                Vec medCandadate = data.getDataPoint(i).getNumericalValues();
+                final int medCandadate = i;
                 for(int j = 0; j < data.getSampleSize(); j++)
                 {
                     if(j == i || assignments[j] != clusterID)
                         continue;
-                    thisCandidateDistance += Math.pow(dm.dist(medCandadate, data.getDataPoint(j).getNumericalValues()), 2);
+                    thisCandidateDistance += Math.pow(dm.dist(medCandadate, j, X, cacheAccel), 2);
                 }
                 
                 if(thisCandidateDistance < bestMedCandDist[clusterID])
@@ -177,30 +183,32 @@ public class PAM extends KClustererBase
         return totalDistance;
     }
 
+    @Override
     public int[] cluster(DataSet dataSet, int[] designations)
     {
         return cluster(dataSet, 2, (int)Math.sqrt(dataSet.getSampleSize()/2), designations);
     }
 
+    @Override
     public int[] cluster(DataSet dataSet, ExecutorService threadpool, int[] designations)
     {
         return cluster(dataSet, 2, (int)Math.sqrt(dataSet.getSampleSize()/2), threadpool, designations);
     }
 
+    @Override
     public int[] cluster(DataSet dataSet, int clusters, ExecutorService threadpool, int[] designations)
     {
          return cluster(dataSet, clusters, designations);
     }
 
+    @Override
     public int[] cluster(DataSet dataSet, int clusters, int[] designations)
     {
         if(designations == null)
             designations = new int[dataSet.getSampleSize()];
         medoids = new int[clusters];
         
-        selectIntialPoints(dataSet, medoids, dm, rand, seedSelection);
-        
-        cluster(dataSet, medoids, designations);
+        cluster(dataSet, true, medoids, designations, null);
         
         if(!storeMedoids)
             medoids = null;
@@ -208,6 +216,7 @@ public class PAM extends KClustererBase
         return designations;
     }
 
+    @Override
     public int[] cluster(DataSet dataSet, int lowK, int highK, int[] designations)
     {
         return cluster(dataSet, lowK, highK, new FakeExecutor(), designations);
@@ -251,12 +260,13 @@ public class PAM extends KClustererBase
         
         public void run()
         {
-            result = cluster(dataSet, medioids, assignments);
+            result = cluster(dataSet, true, medioids, assignments, null);
             putSelf.add(this);
         }
         
     }
     
+    @Override
     public int[] cluster(DataSet dataSet, int lowK, int highK, ExecutorService threadpool, int[] designations)
     {
         double[] totDistances = new double[highK-lowK+1];
