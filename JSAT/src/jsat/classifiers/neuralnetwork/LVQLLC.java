@@ -181,18 +181,16 @@ public class LVQLLC extends LVQ
             int minDistIndx = 0, minDistIndx2 = 0;
             double minDist = Double.POSITIVE_INFINITY, minDist2 = Double.POSITIVE_INFINITY;
 
-            for (int j = 0; j < weights.length; j++)
-            {
-                double dist = dm.dist(x, weights[j]);
-                if (dist < minDist)
-                {
-                    minDist2 = minDist;
-                    minDistIndx2 = minDistIndx;
-                    minDist = dist;
-                    minDistIndx = j;
-
-                }
-            }
+            List<? extends VecPaired<VecPaired<Vec, Integer>, Double>> closestWeightVecs = vc.search(x, 2);
+            
+            VecPaired<VecPaired<Vec, Integer>, Double> closest = closestWeightVecs.get(0);
+            minDistIndx = closest.getVector().getPair();
+            minDist = closest.getPair();
+            
+            VecPaired<VecPaired<Vec, Integer>, Double> closest2nd = closestWeightVecs.get(0);
+            minDistIndx2 = closest2nd.getVector().getPair();
+            minDist2 = closest2nd.getPair();
+            
 
             listOfLocalPoints.get(minDistIndx).add(dpp);
             double tmpEps = getEpsilonDistance();
