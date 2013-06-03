@@ -21,6 +21,7 @@ import jsat.linear.Vec;
 import jsat.parameters.Parameter;
 import jsat.parameters.Parameterized;
 import jsat.utils.FakeExecutor;
+import jsat.utils.ListUtils;
 import jsat.utils.SystemInfo;
 
 /**
@@ -125,11 +126,11 @@ public class PegasosK extends SupportVectorLearner implements Classifier, Parame
         
         if(this.vecs != null)
         {
-            clone.vecs = new Vec[this.vecs.length];
+            clone.vecs = new ArrayList<Vec>(vecs);
             clone.alphas = new double[this.alphas.length];
-            for(int i = 0; i < this.vecs.length; i++)
+            for(int i = 0; i < this.vecs.size(); i++)
             {
-                clone.vecs[i] = this.vecs[i].clone();
+                clone.vecs.set(i, this.vecs.get(i).clone());
                 clone.alphas[i] = this.alphas[i];
             }
         }
@@ -202,10 +203,10 @@ public class PegasosK extends SupportVectorLearner implements Classifier, Parame
 
             alphas = new double[m];
             int[] sign = new int[m];
-            vecs = new Vec[m];
+            vecs = new ArrayList<Vec>(m);
             for (int i = 0; i < dataSet.getSampleSize(); i++)
             {
-                vecs[i] = dataSet.getDataPoint(i).getNumericalValues();
+                vecs.add(dataSet.getDataPoint(i).getNumericalValues());
                 sign[i] = dataSet.getDataPointCategory(i) == 1 ? 1 : -1;
             }
 
@@ -243,12 +244,12 @@ public class PegasosK extends SupportVectorLearner implements Classifier, Parame
                 if (alphas[i] != 0)
                 {
                     alphas[pos] = alphas[i] * sign[i];
-                    vecs[pos] = vecs[i];
+                    ListUtils.swap(vecs, pos, i);
                     pos++;
                 }
             
             alphas = Arrays.copyOf(alphas, pos);
-            vecs = Arrays.copyOf(vecs, pos);
+            vecs = new ArrayList<Vec>(vecs.subList(0, pos));
             setCacheMode(null);
             setAlphas(alphas);
 

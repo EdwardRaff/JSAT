@@ -11,6 +11,7 @@ import jsat.exceptions.UntrainedModelException;
 import jsat.linear.Vec;
 import jsat.parameters.*;
 import jsat.utils.IntSetFixedSize;
+import jsat.utils.ListUtils;
 
 /**
  * An implementation of SVMs using Plat's Sequential Minimum Optimization
@@ -115,13 +116,14 @@ public class PlatSMO extends SupportVectorLearner implements Classifier, Paramet
             throw new FailedToFitException("SVM does not support non binary decisions");
         //First we need to set up the vectors array
 
-        vecs = new Vec[dataSet.getSampleSize()];
-        label = new double[vecs.length];
+        final int N = dataSet.getSampleSize();
+        vecs = new ArrayList<Vec>(N);
+        label = new double[N];
         b = 0;
-        for(int i = 0; i < vecs.length; i++)
+        for(int i = 0; i < N; i++)
         {
             DataPoint dataPoint = dataSet.getDataPoint(i);
-            vecs[i] = dataPoint.getNumericalValues();
+            vecs.add(dataPoint.getNumericalValues());
             if(dataSet.getDataPointCategory(i) == 0)
                 label[i] = -1;
             else
@@ -130,16 +132,16 @@ public class PlatSMO extends SupportVectorLearner implements Classifier, Paramet
         
         setCacheMode(getCacheMode());//Initiates the cahce
         
-        I0 = new IntSetFixedSize(vecs.length);
-        I1 = new boolean[vecs.length];
-        I2 = new boolean[vecs.length];
-        I3 = new boolean[vecs.length];
-        I4 = new boolean[vecs.length];
+        I0 = new IntSetFixedSize(N);
+        I1 = new boolean[N];
+        I2 = new boolean[N];
+        I3 = new boolean[N];
+        I4 = new boolean[N];
         
         
         //initialize alphas array to all zero
-        alphas = new double[vecs.length];//zero is default value
-        fcache = new double[vecs.length];
+        alphas = new double[N];//zero is default value
+        fcache = new double[N];
         
         i_up = i_low = -1;//giberish for init
         for(int i = 0; i < dataSet.getSampleSize(); i++)
@@ -173,7 +175,7 @@ public class PlatSMO extends SupportVectorLearner implements Classifier, Paramet
             if (examinAll)
             {
                 //loop I over all training examples
-                for (int i = 0; i < vecs.length; i++)
+                for (int i = 0; i < N; i++)
                     numChanged += examineExample(i);
                 examinAllCount++;
             }
@@ -217,14 +219,14 @@ public class PlatSMO extends SupportVectorLearner implements Classifier, Paramet
             alphas[i] *= label[i];
         
         int supportVectorCount = 0;
-        for(int i = 0; i < vecs.length; i++)
+        for(int i = 0; i < N; i++)
             if(alphas[i] > 0 || alphas[i] < 0)//Its a support vector
             {
-                vecs[supportVectorCount] = vecs[i];
+                ListUtils.swap(vecs, supportVectorCount, i);
                 alphas[supportVectorCount++] = alphas[i];
             }
 
-        vecs = Arrays.copyOfRange(vecs, 0, supportVectorCount);
+        vecs = new ArrayList<Vec>(vecs.subList(0, supportVectorCount));
         alphas = Arrays.copyOfRange(alphas, 0, supportVectorCount);
         label = null;
         
@@ -509,7 +511,7 @@ public class PlatSMO extends SupportVectorLearner implements Classifier, Paramet
     protected double decisionFunction(int v)
     {
         double sum = 0;
-        for(int i = 0; i < vecs.length; i++)
+        for(int i = 0; i < vecs.size(); i++)
             if(alphas[i] > 0)
                 sum += alphas[i] * label[i] * kEval(v, i);
 
@@ -530,7 +532,7 @@ public class PlatSMO extends SupportVectorLearner implements Classifier, Paramet
             copy.label = Arrays.copyOf(this.label, this.label.length);
         copy.tolerance = this.tolerance;
         if(this.vecs != null)
-            copy.vecs = Arrays.copyOf(this.vecs, this.vecs.length);
+            copy.vecs = new ArrayList<Vec>(this.vecs);
         
         return copy;
     }

@@ -3,6 +3,7 @@ package jsat.classifiers.svm;
 
 import java.util.Arrays;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import jsat.classifiers.Classifier;
 import jsat.distributions.kernels.CacheAcceleratedKernel;
@@ -29,7 +30,7 @@ public abstract class SupportVectorLearner
      * all training vectors. After training, this should contain only the set of
      * support vectors. 
      */
-    protected Vec[] vecs;
+    protected List<Vec> vecs;
     /**
      * The array of coefficients associated with each support vector. This 
      * should be instantiated directly when training. When the set of alphas and
@@ -44,7 +45,7 @@ public abstract class SupportVectorLearner
     /**
      * Kernel evaluation acceleration cache
      */
-    private double[] accelCache = null;
+    private List<Double> accelCache = null;
     private CacheAcceleratedKernel ckernel = null;
     
     private double[][] fullCache;
@@ -193,19 +194,21 @@ public abstract class SupportVectorLearner
         evalCount = 0;
         cacheEvictions = 0;
         
+        final int N = vecs.size();
+        
         if(cacheMode == CacheMode.FULL && vecs != null)
         {
-            fullCache = new double[vecs.length][];
-            for(int i = 0; i < vecs.length; i++)
-                fullCache[i] = new double[vecs.length-i];
+            fullCache = new double[N][];
+            for(int i = 0; i < N; i++)
+                fullCache[i] = new double[N-i];
             
-            for(int i = 0; i < vecs.length; i++)
-                for(int j = i; j < vecs.length; j++)
+            for(int i = 0; i < N; i++)
+                for(int j = i; j < N; j++)
                     fullCache[i][j-i] = k(i, j);
         }
         else if(cacheMode == CacheMode.ROWS && vecs != null)
         {
-            partialCache = new LinkedHashMap<Integer, double[]>(vecs.length, 0.75f, true)
+            partialCache = new LinkedHashMap<Integer, double[]>(N, 0.75f, true)
             {
                 @Override
                 protected boolean removeEldestEntry(Map.Entry<Integer, double[]> eldest)
@@ -258,7 +261,7 @@ public abstract class SupportVectorLearner
             sum = ckernel.evalSum(vecs, accelCache, alphas, y, 0, alphas.length);
         else
             for (int i = 0; i < alphas.length; i++)
-                sum += alphas[i] * kEval(vecs[i], y);
+                sum += alphas[i] * kEval(vecs.get(i), y);
         return sum;
     }
     
@@ -322,7 +325,7 @@ public abstract class SupportVectorLearner
                 }
                 else
                 {
-                    cache = new double[vecs.length];
+                    cache = new double[vecs.size()];
                     Arrays.fill(cache, Double.NaN);
                 }
                 
@@ -350,6 +353,6 @@ public abstract class SupportVectorLearner
         if(ckernel != null)
             return ckernel.eval(a, b, vecs, accelCache);
         else
-            return kEval(vecs[a], vecs[b]);
+            return kEval(vecs.get(a), vecs.get(b));
     }
 }

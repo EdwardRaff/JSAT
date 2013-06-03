@@ -6,6 +6,7 @@ import java.util.List;
 import jsat.linear.Vec;
 import jsat.parameters.DoubleParameter;
 import jsat.parameters.Parameter;
+import jsat.utils.DoubleList;
 
 /**
  * Provides an implementation of the Rational Quadratic Kernel, which is of the 
@@ -57,32 +58,40 @@ public class RationalQuadraticKernel implements CacheAcceleratedKernel
     }
     
     @Override
-    public double[] getCache(Vec[] trainingSet)
+    public DoubleList getCache(List<? extends Vec> trainingSet)
     {
-        double[] cache = new double[trainingSet.length];
-        for(int i = 0; i < trainingSet.length; i++)
-            cache[i] = trainingSet[i].dot(trainingSet[i]);
+        DoubleList cache = new DoubleList(trainingSet.size());
+        for(int i = 0; i < trainingSet.size(); i++)
+            cache.add(trainingSet.get(i).dot(trainingSet.get(i)));
         return cache;
     }
 
     @Override
-    public double eval(int a, int b, Vec[] trainingSet, double[] cache)
+    public void addToCache(Vec newVec, List<Double> cache)
+    {
+        cache.add(newVec.dot(newVec));
+    }
+
+    @Override
+    public double eval(int a, int b, List<? extends Vec> trainingSet, List<Double> cache)
     {
         if(a == b)
             return 1;
-        double dist = cache[a] - 2*trainingSet[a].dot(trainingSet[b])+cache[b];
+        final double cache_a = cache.get(a);
+        final double cache_b = cache.get(b);
+        double dist = cache_a - 2*trainingSet.get(a).dot(trainingSet.get(b))+cache_b;
         return 1-dist/(dist+c);
     }
     
     @Override
-    public double evalSum(Vec[] finalSet, double[] cache, double[] alpha, Vec y, int start, int end)
+    public double evalSum(List<? extends Vec> finalSet, List<Double> cache, double[] alpha, Vec y, int start, int end)
     {
         final double y_dot = y.dot(y);
         double sum = 0;
         
         for(int i = start; i < end; i++)
         {
-            double dist = cache[i] - 2*finalSet[i].dot(y)+y_dot;
+            double dist = cache.get(i) - 2*finalSet.get(i).dot(y)+y_dot;
             sum += alpha[i] * (1-dist/(dist+c));
         }
         

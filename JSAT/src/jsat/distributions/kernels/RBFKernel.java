@@ -7,6 +7,7 @@ import jsat.linear.Vec;
 import jsat.parameters.DoubleParameter;
 import jsat.parameters.Parameter;
 import jsat.text.GreekLetters;
+import jsat.utils.DoubleList;
 
 /**
  * Provides a kernel for the Radial Basis Function, which is of the form
@@ -38,30 +39,39 @@ public class RBFKernel implements CacheAcceleratedKernel
     }
     
     @Override
-    public double[] getCache(Vec[] trainingSet)
+    public DoubleList getCache(List<? extends Vec> trainingSet)
     {
-        double[] cache = new double[trainingSet.length];
-        for(int i = 0; i < trainingSet.length; i++)
-            cache[i] = trainingSet[i].dot(trainingSet[i]);
+        DoubleList cache = new DoubleList(trainingSet.size());
+        for(int i = 0; i < trainingSet.size(); i++)
+            cache.add(trainingSet.get(i).dot(trainingSet.get(i)));
         return cache;
+    }
+    
+    
+    @Override
+    public void addToCache(Vec newVec, List<Double> cache)
+    {
+        cache.add(newVec.dot(newVec));
     }
 
     @Override
-    public double eval(int a, int b, Vec[] trainingSet, double[] cache)
+    public double eval(int a, int b, List<? extends Vec> trainingSet, List<Double> cache)
     {
         if(a == b)
             return 1;
-        return Math.exp(-(cache[a] - 2*trainingSet[a].dot(trainingSet[b])+cache[b])* sigmaSqrd2Inv);
+        final double cache_a = cache.get(a);
+        final double cache_b = cache.get(b);
+        return Math.exp(-(cache_a - 2*trainingSet.get(a).dot(trainingSet.get(b))+cache_b)* sigmaSqrd2Inv);
     }
 
     @Override
-    public double evalSum(Vec[] finalSet, double[] cache, double[] alpha, Vec y, int start, int end)
+    public double evalSum(List<? extends Vec> finalSet, List<Double> cache, double[] alpha, Vec y, int start, int end)
     {
         final double y_dot = y.dot(y);
         double sum = 0;
         
         for(int i = start; i < end; i++)
-            sum += alpha[i] * Math.exp(-(cache[i] - 2*finalSet[i].dot(y)+y_dot)* sigmaSqrd2Inv);
+            sum += alpha[i] * Math.exp(-(cache.get(i) - 2*finalSet.get(i).dot(y)+y_dot)* sigmaSqrd2Inv);
         
         return sum;
     }

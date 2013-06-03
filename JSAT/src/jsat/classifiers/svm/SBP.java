@@ -17,6 +17,7 @@ import jsat.linear.Vec;
 import jsat.parameters.Parameter;
 import jsat.parameters.Parameterized;
 import jsat.utils.IndexTable;
+import jsat.utils.ListUtils;
 import jsat.utils.random.XORWOW;
 
 /**
@@ -91,18 +92,19 @@ public class SBP extends SupportVectorLearner implements Classifier, Parameteriz
     }
 
     /**
-     * The nu parameter of the SVM is a value in the range [0, 1]. Nu is a 
-     * theoretical upper bound on the number of errors made by the SVM. In 
-     * practice, is nu is set too small far more errors will occur and a bad 
-     * decision boundary will be learned. A value of 0 corresponds to a 
-     * perfectly linearly separable data set. 
+     * The nu parameter for this SVM is not the same as the standard nu-SVM 
+     * formulation, though it plays a similar role. It must be in the range 
+     * (0, 1), where small values indicate a linearly separable problem (in the
+     * kernel space), and large values mean the problem is less separable. If 
+     * the value is too small for the problem, the SVM may fail to converge or 
+     * produce good results. 
      * 
-     * @param nu 
+     * @param nu the value between (0, 1)
      */
     public void setNu(double nu)
     {
-        if(Double.isNaN(nu) || nu < 0 || nu > 1)
-            throw new IllegalArgumentException("nu must be in the range [0, 1]");
+        if(Double.isNaN(nu) || nu <= 0 || nu >= 1)
+            throw new IllegalArgumentException("nu must be in the range (0, 1)");
         this.nu = nu;
     }
 
@@ -161,17 +163,17 @@ public class SBP extends SupportVectorLearner implements Classifier, Parameteriz
         double[] alphasSum = new double[n];
 
         double[] y = new double[n];
-        vecs = new Vec[n];
+        vecs = new ArrayList<Vec>(n);
         for(int i = 0; i < n; i++)
         {
             y[i] = dataSet.getDataPointCategory(i)*2-1;
-            vecs[i] = dataSet.getDataPoint(i).getNumericalValues();
+            vecs.add(dataSet.getDataPoint(i).getNumericalValues());
         }
         
         Random rand = new XORWOW();
         double maxKii = 0;
         for(int i = 0; i < n; i++)
-            maxKii = Math.max(maxKii, kEval(vecs[i], vecs[i]));//avoid starting the cache on the diagonal
+            maxKii = Math.max(maxKii, kEval(vecs.get(i), vecs.get(i)));//avoid starting the cache on the diagonal
         
         setCacheMode(getCacheMode());//Initiates the cahce
         
@@ -253,14 +255,14 @@ public class SBP extends SupportVectorLearner implements Classifier, Parameteriz
         
         //Clean up to only the SVs
         int supportVectorCount = 0;
-        for(int i = 0; i < vecs.length; i++)
+        for(int i = 0; i < vecs.size(); i++)
             if(alphas[i] != 0)//its a support vector
             {
-                vecs[supportVectorCount] = vecs[i];
+                ListUtils.swap(vecs, supportVectorCount, i);
                 alphas[supportVectorCount++] = alphas[i]*y[i];
             }
 
-        vecs = Arrays.copyOfRange(vecs, 0, supportVectorCount);
+        vecs = new ArrayList<Vec>(vecs.subList(0, supportVectorCount));
         alphas = Arrays.copyOfRange(alphas, 0, supportVectorCount);
         
         it = null;
