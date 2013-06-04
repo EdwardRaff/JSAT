@@ -194,7 +194,7 @@ public abstract class SupportVectorLearner
         evalCount = 0;
         cacheEvictions = 0;
         
-        final int N = vecs.size();
+        final int N = vecs == null ? 0 : vecs.size();
         
         if(cacheMode == CacheMode.FULL && vecs != null)
         {

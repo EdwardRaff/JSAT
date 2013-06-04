@@ -213,6 +213,7 @@ public class PegasosK extends SupportVectorLearner implements Classifier, Parame
             List<Future<Double>> futures = new ArrayList<Future<Double>>(SystemInfo.LogicalCores);
             final int blockSize = m / SystemInfo.LogicalCores + (m % SystemInfo.LogicalCores == 0 ? 0 : 1);//1 extra if we want
 
+            setCacheMode(getCacheMode());//Initiates the cahce
             for (int t = 1; t <= iterations; t++)
             {
 

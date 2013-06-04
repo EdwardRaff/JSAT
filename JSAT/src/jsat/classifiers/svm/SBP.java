@@ -140,7 +140,7 @@ public class SBP extends SupportVectorLearner implements Classifier, Parameteriz
     @Override
     public void trainC(ClassificationDataSet dataSet, ExecutorService threadPool)
     {
-        trainC(dataSet, threadPool);
+        trainC(dataSet);
     }
 
     @Override
