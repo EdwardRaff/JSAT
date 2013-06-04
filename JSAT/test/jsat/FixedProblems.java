@@ -55,4 +55,41 @@ public class FixedProblems
         
         return rds;
     }
+    
+    /**
+     * Returns a classification problem with small uniform noise where there is 
+     * a small circle of radius 1 within a circle of radius 4. Each circle
+     * shares the same center. 
+     * 
+     * @param dataSetSize the even number of data points to create
+     * @param rand the source of randomness
+     * @return a classification data set with two classes 
+     */
+    public static ClassificationDataSet getInnerOuterCircle(int dataSetSize, Random rand)
+    {
+        ClassificationDataSet train = new ClassificationDataSet(2, new CategoricalData[0], new CategoricalData(2));
+        
+        int n = dataSetSize/2;
+        
+        double rInner = 1;
+        //iner circle
+        for (int i = 0; i < n; i++) 
+        {
+            double t = 2 * Math.PI * i / n;
+            double x = rInner * Math.cos(t) + (rand.nextDouble()-0.5)/4;
+            double y = rInner * Math.sin(t) + (rand.nextDouble()-0.5)/4;
+            train.addDataPoint(DenseVector.toDenseVec(x, y), new int[0], 0);
+        }
+        double rOuter = 4;
+        //outer cirlce
+        for (int i = 0; i < n; i++) 
+        {
+            double t = 2 * Math.PI * i / n;
+            double x = rOuter * Math.cos(t) + (rand.nextDouble()-0.5)/3;
+            double y = rOuter * Math.sin(t) + (rand.nextDouble()-0.5)/3;
+            train.addDataPoint(DenseVector.toDenseVec(x, y), new int[0], 1);
+        }
+        
+        return train;
+    }
 }
