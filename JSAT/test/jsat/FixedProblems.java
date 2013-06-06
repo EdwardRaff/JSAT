@@ -50,8 +50,13 @@ public class FixedProblems
     {
         RegressionDataSet rds = new RegressionDataSet(c2l_m0.length(), new CategoricalData[0]);
         
-        for(Vec s : c2l_c0.sample(dataSetSize, rand))
-            rds.addDataPoint(s, new int[0], 1);
+        for(int i = 0; i < dataSetSize; i++)
+        {
+            Vec s = new DenseVector(c2l_m0.length());
+            for(int j = 0; j < s.length(); j++)
+                s.set(j, rand.nextDouble());
+            rds.addDataPoint(s, new int[0], s.dot(c2l_m0));
+        }
         
         return rds;
     }

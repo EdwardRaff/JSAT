@@ -80,6 +80,8 @@ public class PassiveAggressiveTest
             PassiveAggressive pa = new PassiveAggressive();
             pa.setMode(mode);
             pa.setEps(0.00001);
+            pa.setEpochs(10);
+            pa.setC(20);
             pa.train(FixedProblems.getLinearRegression(400, rand));
 
             for(DataPointPair<Double> dpp : FixedProblems.getLinearRegression(100, rand).getAsDPPList())
