@@ -233,9 +233,6 @@ public abstract class SupportVectorLearner
     protected int evalCount = 0;
     protected int cacheEvictions = 0;
     
-    @Override
-    abstract public Classifier clone();
-    
     public KernelTrick getKernel()
     {
         return kernel;
