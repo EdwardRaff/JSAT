@@ -5,6 +5,7 @@ import jsat.classifiers.DataPoint;
 import jsat.distributions.Normal;
 import jsat.linear.DenseMatrix;
 import jsat.linear.Matrix;
+import jsat.linear.RandomMatrix;
 import jsat.linear.Vec;
 import jsat.linear.distancemetrics.EuclideanDistance;
 
@@ -28,7 +29,6 @@ import jsat.linear.distancemetrics.EuclideanDistance;
  */
 public class JLTransform implements DataTransform 
 {
-    //TODO for BINARY, only store the RNG and Seed
     //TODO for SPARSE, avoid unecessary computations for 0 values
     /**
      * Determines which distribution to construct the transform matrix from
@@ -37,7 +37,8 @@ public class JLTransform implements DataTransform
     {
         /**
          * The transform matrix values come from the gaussian distribution and
-         * is dense
+         * is dense <br><br>
+         * This transform is expensive to use when not using an in memory matrix
          */
         GAUSS, 
         /**
@@ -72,42 +73,31 @@ public class JLTransform implements DataTransform
      * @param mode how to construct the transform
      * @param rand the source of randomness
      */
-    public JLTransform(int k, int d, TransformMode mode, Random rand)
+    public JLTransform(final int k, final int d, final TransformMode mode, Random rand)
+    {
+        this(k, d, mode, rand, true);
+    }
+    
+    /**
+     * Creates a new JL Transform
+     * @param k the target dimension size
+     * @param d the size of dimension in the original problem space
+     * @param mode how to construct the transform
+     * @param rand the source of randomness
+     * @param inMemory if {@code false}, the matrix will be stored in O(1) 
+     * memory at the cost of execution time. 
+     */
+    public JLTransform(final int k, final int d, final TransformMode mode, Random rand, boolean inMemory)
     {
         this.mode = mode;
         
-        
-        R = new DenseMatrix(k, d);
-        
-        if(mode == TransformMode.GAUSS)
+        Matrix oldR = R = new RandomMatrixJL(k, d, rand.nextLong(), mode);
+
+        if(inMemory)
         {
-            double cnst = Math.sqrt(k);
-            Normal norm = new Normal(0.0, 1.0);
-            for(int i = 0; i < R.rows(); i++)
-                for(int j = 0; j < R.cols(); j++)
-                    R.set(i, j, norm.invCdf(rand.nextDouble())/cnst);
+            R = new DenseMatrix(k, d);
+            R.mutableAdd(oldR);
         }
-        else if(mode == TransformMode.BINARY)
-        {
-            double cnst = Math.sqrt(k);
-            for(int i = 0; i < R.rows(); i++)
-                for(int j = 0; j < R.cols(); j++)
-                    R.set(i, j, (rand.nextBoolean() ? -1 : 1) / cnst);
-        }
-        else if(mode == TransformMode.SPARSE)
-        {
-            double cnst = Math.sqrt(3)/Math.sqrt(k);
-            for(int i = 0; i < R.rows(); i++)
-                for(int j = 0; j < R.cols(); j++)
-                {
-                    double p = rand.nextDouble();
-                    if(p <= 2.0/3.0)//0 with prob 2/3
-                        continue;
-                    //1 with prob 1/6, -1 with prob 1/6
-                    R.set(i, j, Math.signum(p-5.0/6.0)*cnst);
-                }
-        }
-        
     }
 
     @Override
@@ -115,7 +105,7 @@ public class JLTransform implements DataTransform
     {
         Vec newVec = dp.getNumericalValues();
         newVec = R.multiply(newVec);
-        
+
         DataPoint newDP = new DataPoint(newVec, dp.getCategoricalValues(), 
                 dp.getCategoricalData(), dp.getWeight());
         
@@ -126,6 +116,50 @@ public class JLTransform implements DataTransform
     public DataTransform clone()
     {
         return new JLTransform(this);
+    }
+    
+    private static class RandomMatrixJL extends RandomMatrix
+    {
+        private double cnst; 
+        private TransformMode mode;
+        
+        public RandomMatrixJL(int rows, int cols, long XORSeed, TransformMode mode)
+        {
+            super(rows, cols, XORSeed);
+            this.mode = mode;
+            int k = rows;
+            if (mode == TransformMode.GAUSS || mode == TransformMode.BINARY)
+                cnst = 1.0 / Math.sqrt(k);
+            else if (mode == TransformMode.SPARSE)
+                cnst = Math.sqrt(3) / Math.sqrt(k);
+        }
+        
+        @Override
+        protected double getVal(Random rand)
+        {
+            if (mode == TransformMode.GAUSS)
+            {
+                return rand.nextGaussian()*cnst;
+            }
+            else if (mode == TransformMode.BINARY)
+            {
+                return (rand.nextBoolean() ? -cnst : cnst);
+            }
+            else if (mode == TransformMode.SPARSE)
+            {
+                int val = rand.nextInt(6);
+                //1 with prob 1/6, -1 with prob 1/6
+                if(val == 0)
+                    return -cnst;
+                else if(val == 1)
+                    return cnst;
+                else //0 with prob 2/3
+                    return 0;
+            }
+            else
+                throw new RuntimeException("BUG: Please report");
+        }
+        
     }
     
 }

@@ -20,25 +20,25 @@ public abstract class Matrix implements Cloneable, Serializable
 {
     public Matrix add(Matrix b)
     {
-        Matrix toReturn = clone();
+        Matrix toReturn = getThisSideMatrix(b);
         toReturn.mutableAdd(1.0, b);
         return toReturn;
     }
     public Matrix add(Matrix b, ExecutorService threadPool)
     {
-        Matrix toReturn = clone();
+        Matrix toReturn = getThisSideMatrix(b);
         toReturn.mutableAdd(1.0, b, threadPool);
         return toReturn;
     }
     public Matrix add(double c)
     {
-        Matrix toReturn = clone();
+        Matrix toReturn = getThisSideMatrix(null);
         toReturn.mutableAdd(c);
         return toReturn;
     }
     public Matrix add(double c, ExecutorService threadPool)
     {
-        Matrix toReturn = clone();
+        Matrix toReturn = getThisSideMatrix(null);
         toReturn.mutableAdd(c, threadPool);
         return toReturn;
     }
@@ -55,28 +55,59 @@ public abstract class Matrix implements Cloneable, Serializable
     abstract public void mutableAdd(double c);
     abstract public void mutableAdd(double c, ExecutorService threadPool);
     
+    /**
+     * Indicates whether or not this matrix can be mutated. If 
+     * {@code false}, any method that contains "mutate" will not work. 
+     * <br><br>
+     * By default, this returns {@code true}
+     * 
+     * @return {@code true} if the matrix supports being altered, {@code false} 
+     * other wise. 
+     */
+    public boolean canBeMutated()
+    {
+        return true;
+    }
+    
+    /**
+     * Returns an appropriate matrix to use for some operation A <i>op</i> B, 
+     * where {@code A = this }
+     * @param B the other matrix, may be null
+     * @return a matrix that can be mutated to take the place of A
+     */
+    private Matrix getThisSideMatrix(Matrix B)
+    {
+        if(this.canBeMutated())
+            return this.clone();
+        else//so far, only other option in JSAT is a dense matrix
+        {
+            DenseMatrix dm = new DenseMatrix(rows(), cols());
+            dm.mutableAdd(this);
+            return dm;
+        }
+    }
     
     public Matrix subtract(Matrix b)
     {
-        Matrix toReturn = clone();
+        Matrix toReturn = getThisSideMatrix(b);
         toReturn.mutableSubtract(-1.0, b);
         return toReturn;
     }
     public Matrix subtract(Matrix b, ExecutorService threadPool)
     {
-        Matrix toReturn = clone();
+        Matrix toReturn = getThisSideMatrix(b);
         toReturn.mutableSubtract(1.0, b, threadPool);
         return toReturn;
     }
     public Matrix subtract(double c)
     {
-        Matrix toReturn = clone();
+        Matrix toReturn = getThisSideMatrix(null);
         toReturn.mutableSubtract(c);
         return toReturn;
     }
     public Matrix subtract(double c, ExecutorService threadPool)
     {
-        Matrix toReturn = clone();
+        Matrix toReturn = getThisSideMatrix(null);
         toReturn.mutableSubtract(c, threadPool);
         return toReturn;
     }
@@ -153,13 +184,13 @@ public abstract class Matrix implements Cloneable, Serializable
     abstract public void multiply(Matrix b, Matrix C, ExecutorService threadPool);
     public Matrix multiply(double c)
     {
-        Matrix toReturn = clone();
+        Matrix toReturn = getThisSideMatrix(null);
         toReturn.mutableMultiply(c);
         return toReturn;
     }
     public Matrix multiply(double c, ExecutorService threadPool)
     {
-        Matrix toReturn = clone();
+        Matrix toReturn = getThisSideMatrix(null);
         toReturn.mutableMultiply(c, threadPool);
         return toReturn;
     }
@@ -280,8 +311,6 @@ public abstract class Matrix implements Cloneable, Serializable
     
     abstract public void swapRows(int r1, int r2);
     
-    @Override
-    abstract public Matrix clone();
 
     /**
      * Creates a clone of the values in column <tt>j</tt> of this matrix. Altering it will not effect the values in the source matrix
@@ -606,4 +635,7 @@ public abstract class Matrix implements Cloneable, Serializable
                 P.set(i, j, P.get(i-1, j) + P.get(i, j-1));
         return P;
     }
+
+    @Override
+    abstract public Matrix clone();
 }

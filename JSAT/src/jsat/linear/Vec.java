@@ -21,7 +21,42 @@ public abstract class Vec implements Cloneable, Iterable<IndexValue>, Serializab
      */
     abstract public int length();
     
+    /**
+     * Indicates whether or not this vector can be mutated. If 
+     * {@code false}, any method that contains "mutate" will not work. 
+     * <br><br>
+     * By default, this returns {@code true}
+     * 
+     * @return {@code true} if the vector supports being altered, {@code false} 
+     * other wise. 
+     */
+    public boolean canBeMutated()
+    {
+        return true;
+    }
     
+    /**
+     * Returns a suitable vector that can be altered for some function of the 
+     * form a <i>op</i> b, where {@code a = this}
+     * 
+     * @param other the other vector. May be {@code null}
+     * @return the mutable vector 
+     */
+    private Vec getThisSide(Vec other)
+    {
+        if (this.canBeMutated())
+            return this.clone();
+        if (other == null)
+            if (this.isSparse())
+                return new SparseVector(this);
+            else
+                return new DenseVector(this);
+        if (this.isSparse() && other.isSparse())
+            return new SparseVector(this);
+        else
+            return new DenseVector(this);
+    }
+
     /**
      * Computes the number of non zero values in this vector
      * @return the number of non zero values stored
@@ -71,7 +106,7 @@ public abstract class Vec implements Cloneable, Iterable<IndexValue>, Serializab
      */
     public Vec add(double c)
     {
-        Vec toRet = this.clone();
+        Vec toRet = this.getThisSide(null);
         toRet.mutableAdd(c);
         return toRet;
     }
@@ -83,7 +118,7 @@ public abstract class Vec implements Cloneable, Iterable<IndexValue>, Serializab
      */
     public Vec add(Vec b)
     {
-        Vec toRet = this.clone();
+        Vec toRet = this.getThisSide(b);
         toRet.mutableAdd(b);
         return toRet;
     }
@@ -105,7 +140,7 @@ public abstract class Vec implements Cloneable, Iterable<IndexValue>, Serializab
      */
     public Vec subtract(Vec b)
     {
-        Vec toRet = this.clone();
+        Vec toRet = this.getThisSide(b);
         toRet.mutableSubtract(b);
         return toRet;
     }
@@ -119,7 +154,7 @@ public abstract class Vec implements Cloneable, Iterable<IndexValue>, Serializab
      */
     public Vec pairwiseMultiply(Vec b)
     {
-        Vec toRet = this.clone();
+        Vec toRet = this.getThisSide(b);
         toRet.mutablePairwiseMultiply(b);
         return toRet;
     }
@@ -131,7 +166,7 @@ public abstract class Vec implements Cloneable, Iterable<IndexValue>, Serializab
      */
     public Vec multiply(double c)
     {
-        Vec toRet = this.clone();
+        Vec toRet = this.getThisSide(null);
         toRet.mutableMultiply(c);
         return toRet;
     }
@@ -175,7 +210,7 @@ public abstract class Vec implements Cloneable, Iterable<IndexValue>, Serializab
      */
     public Vec pairwiseDivide(Vec b)
     {
-        Vec toRet = this.clone();
+        Vec toRet = this.getThisSide(b);
         toRet.mutablePairwiseDivide(b);
         return toRet;
     }
@@ -187,7 +222,7 @@ public abstract class Vec implements Cloneable, Iterable<IndexValue>, Serializab
      */
     public Vec divide(double c)
     {
-        Vec toRet = this.clone();
+        Vec toRet = this.getThisSide(null);
         toRet.mutableDivide(c);
         return toRet;
     }
@@ -486,7 +521,7 @@ public abstract class Vec implements Cloneable, Iterable<IndexValue>, Serializab
      */
     public Vec normalized()
     {
-        Vec toRet = this.clone();
+        Vec toRet = this.getThisSide(null);
         toRet.normalize();
         return toRet;
     }

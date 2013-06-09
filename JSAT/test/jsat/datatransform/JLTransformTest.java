@@ -2,6 +2,7 @@
 package jsat.datatransform;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
 import jsat.DataSet;
@@ -77,7 +78,7 @@ public class JLTransformTest
         List<Vec> transformed = new ArrayList<Vec>(ds.getSampleSize());
         for( JLTransform.TransformMode mode : JLTransform.TransformMode.values())
         {
-            JLTransform jl = new JLTransform(k, ds.getNumNumericalVars(), mode, rand);
+            JLTransform jl = new JLTransform(k, ds.getNumNumericalVars(), mode, rand, true);
 
             transformed.clear();
             for(int i = 0; i < ds.getSampleSize(); i++)
