@@ -73,7 +73,10 @@ public abstract class SupportVectorLearner
     protected void setAlphas(double[] alphas)
     {
         this.alphas = alphas;
-        accelCache = ckernel.getCache(vecs);
+        if(ckernel != null)
+            accelCache = ckernel.getCache(vecs);
+        else
+            accelCache = null;
     }
     
     /**
