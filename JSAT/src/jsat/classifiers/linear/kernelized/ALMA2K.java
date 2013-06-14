@@ -3,6 +3,7 @@ package jsat.classifiers.linear.kernelized;
 import java.util.*;
 import jsat.classifiers.*;
 import jsat.classifiers.linear.ALMA2;
+import jsat.classifiers.calibration.BinaryScoreClassifier;
 import jsat.distributions.kernels.KernelTrick;
 import jsat.exceptions.FailedToFitException;
 import jsat.linear.ScaledVector;
@@ -27,7 +28,7 @@ import jsat.utils.IntList;
  * 
  * @author Edward Raff
  */
-public class ALMA2K extends BaseUpdateableClassifier implements Parameterized
+public class ALMA2K extends BaseUpdateableClassifier implements BinaryScoreClassifier, Parameterized
 {
     private static final double p = 2;
     private double alpha;
@@ -82,7 +83,7 @@ public class ALMA2K extends BaseUpdateableClassifier implements Parameterized
     }
     
     @Override
-    public Classifier clone()
+    public ALMA2K clone()
     {
         return new ALMA2K(this);
     }
@@ -278,13 +279,19 @@ public class ALMA2K extends BaseUpdateableClassifier implements Parameterized
     @Override
     public CategoricalResults classify(DataPoint data)
     {
-        double wx = score(data.getNumericalValues(), averaged);
+        double wx = getScore(data);
         CategoricalResults cr =new CategoricalResults(2);
         if(wx < 0)
             cr.setProb(0, 1.0);
         else
             cr.setProb(1, 1.0);
         return cr;
+    }
+
+    @Override
+    public double getScore(DataPoint dp)
+    {
+        return score(dp.getNumericalValues(), averaged);
     }
 
     @Override

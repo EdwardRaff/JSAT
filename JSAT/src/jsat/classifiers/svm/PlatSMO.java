@@ -5,6 +5,7 @@ import static java.lang.Math.*;
 import java.util.*;
 import java.util.concurrent.ExecutorService;
 import jsat.classifiers.*;
+import jsat.classifiers.calibration.BinaryScoreClassifier;
 import jsat.distributions.kernels.KernelTrick;
 import jsat.exceptions.FailedToFitException;
 import jsat.exceptions.UntrainedModelException;
@@ -28,7 +29,7 @@ import jsat.utils.ListUtils;
  * 
  * @author Edward Raff
  */
-public class PlatSMO extends SupportVectorLearner implements Classifier, Parameterized 
+public class PlatSMO extends SupportVectorLearner implements BinaryScoreClassifier, Parameterized 
 {
     /**
      * Bias
@@ -101,6 +102,12 @@ public class PlatSMO extends SupportVectorLearner implements Classifier, Paramet
             cr.setProb(0, 1);
         
         return cr;
+    }
+
+    @Override
+    public double getScore(DataPoint dp)
+    {
+        return kEvalSum(dp.getNumericalValues())-b;
     }
     
     @Override
@@ -234,7 +241,6 @@ public class PlatSMO extends SupportVectorLearner implements Classifier, Paramet
         I0 = null;
         I1 = I2 = I3 = I4 = null;
         
-        long end = System.currentTimeMillis();
         setCacheMode(null);
         setAlphas(alphas);
     }
@@ -519,7 +525,7 @@ public class PlatSMO extends SupportVectorLearner implements Classifier, Paramet
     }
 
     @Override
-    public Classifier clone()
+    public PlatSMO clone()
     {
         PlatSMO copy = new PlatSMO(this.getKernel().clone());
         

@@ -1,6 +1,7 @@
 package jsat.classifiers.linear;
 
 import jsat.classifiers.*;
+import jsat.classifiers.calibration.BinaryScoreClassifier;
 import jsat.exceptions.FailedToFitException;
 import jsat.exceptions.UntrainedModelException;
 import jsat.linear.DenseVector;
@@ -20,7 +21,7 @@ import jsat.linear.Vec;
  * 
  * @author Edward Raff
  */
-public class ALMA2 extends BaseUpdateableClassifier
+public class ALMA2 extends BaseUpdateableClassifier implements BinaryScoreClassifier
 {
     private Vec w;
     private static final double p = 2;
@@ -159,7 +160,7 @@ public class ALMA2 extends BaseUpdateableClassifier
     }
 
     @Override
-    public Classifier clone()
+    public ALMA2 clone()
     {
         return new ALMA2(this);
     }
@@ -200,13 +201,19 @@ public class ALMA2 extends BaseUpdateableClassifier
     {
         if(w == null)
             throw new UntrainedModelException("The model has not yet been trained");
-        double wx = w.dot(data.getNumericalValues());
+        double wx = getScore(data);
         CategoricalResults cr =new CategoricalResults(2);
         if(wx < 0)
             cr.setProb(0, 1.0);
         else
             cr.setProb(1, 1.0);
         return cr;
+    }
+
+    @Override
+    public double getScore(DataPoint dp)
+    {
+        return w.dot(dp.getNumericalValues());
     }
 
     @Override

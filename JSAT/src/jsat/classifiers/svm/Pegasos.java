@@ -3,6 +3,7 @@ package jsat.classifiers.svm;
 import java.util.*;
 import java.util.concurrent.ExecutorService;
 import jsat.classifiers.*;
+import jsat.classifiers.calibration.BinaryScoreClassifier;
 import jsat.exceptions.FailedToFitException;
 import jsat.linear.*;
 import jsat.parameters.Parameter;
@@ -21,7 +22,7 @@ import jsat.parameters.Parameterized;
  * 
  * @author Edward Raff
  */
-public class Pegasos implements Classifier, Parameterized
+public class Pegasos implements BinaryScoreClassifier, Parameterized
 {
     private double epochs;
     private double reg;
@@ -154,7 +155,7 @@ public class Pegasos implements Classifier, Parameterized
     }
 
     @Override
-    public Classifier clone()
+    public Pegasos clone()
     {
         Pegasos clone = new Pegasos(epochs, reg, batchSize);
         if(this.w != null)
@@ -167,12 +168,18 @@ public class Pegasos implements Classifier, Parameterized
     {
         CategoricalResults cr = new CategoricalResults(2);
         
-        if(w.dot(data.getNumericalValues())+bias < 0)
+        if(getScore(data) < 0)
             cr.setProb(0, 1.0);
         else
             cr.setProb(1, 1.0);
         
         return cr;
+    }
+
+    @Override
+    public double getScore(DataPoint dp)
+    {
+        return w.dot(dp.getNumericalValues())+bias;
     }
 
     @Override

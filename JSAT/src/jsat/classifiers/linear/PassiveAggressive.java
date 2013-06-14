@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import jsat.classifiers.*;
+import jsat.classifiers.calibration.BinaryScoreClassifier;
 import jsat.exceptions.FailedToFitException;
 import jsat.linear.DenseVector;
 import jsat.linear.Vec;
@@ -27,7 +28,7 @@ import jsat.regression.UpdateableRegressor;
  * 
  * @author Edward Raff
  */
-public class PassiveAggressive implements UpdateableClassifier, UpdateableRegressor, Parameterized
+public class PassiveAggressive implements UpdateableClassifier, BinaryScoreClassifier, UpdateableRegressor, Parameterized
 {
     private int epochs;
     private double C = 0.01;
@@ -171,13 +172,18 @@ public class PassiveAggressive implements UpdateableClassifier, UpdateableRegres
     public CategoricalResults classify(DataPoint data)
     {
         CategoricalResults cr = new CategoricalResults(2);
-        Vec x = data.getNumericalValues();
-        if(x.dot(w) > 0)
+        if(getScore(data) > 0)
             cr.setProb(1, 1);
         else
             cr.setProb(0, 1);
         
         return cr;
+    }
+
+    @Override
+    public double getScore(DataPoint dp)
+    {
+        return dp.getNumericalValues().dot(w);
     }
 
     @Override

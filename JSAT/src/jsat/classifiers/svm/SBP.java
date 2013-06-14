@@ -10,6 +10,7 @@ import jsat.classifiers.CategoricalResults;
 import jsat.classifiers.ClassificationDataSet;
 import jsat.classifiers.Classifier;
 import jsat.classifiers.DataPoint;
+import jsat.classifiers.calibration.BinaryScoreClassifier;
 import jsat.distributions.kernels.KernelTrick;
 import jsat.exceptions.FailedToFitException;
 import jsat.exceptions.UntrainedModelException;
@@ -34,7 +35,7 @@ import jsat.utils.random.XORWOW;
  * 
  * @author Edward Raff
  */
-public class SBP extends SupportVectorLearner implements Classifier, Parameterized
+public class SBP extends SupportVectorLearner implements BinaryScoreClassifier, Parameterized
 {
     private double nu = 0.1;
     private int iterations;
@@ -126,7 +127,7 @@ public class SBP extends SupportVectorLearner implements Classifier, Parameteriz
         
         CategoricalResults cr = new CategoricalResults(2);
         
-        double sum = kEvalSum(data.getNumericalValues());
+        double sum = getScore(data);
 
         //SVM only says yess / no, can not give a percentage
         if(sum < 0)
@@ -135,6 +136,12 @@ public class SBP extends SupportVectorLearner implements Classifier, Parameteriz
             cr.setProb(1, 1.0);
         
         return cr;
+    }
+
+    @Override
+    public double getScore(DataPoint dp)
+    {
+        return kEvalSum(dp.getNumericalValues());
     }
 
     @Override

@@ -9,6 +9,7 @@ import jsat.classifiers.CategoricalResults;
 import jsat.classifiers.ClassificationDataSet;
 import jsat.classifiers.Classifier;
 import jsat.classifiers.DataPoint;
+import jsat.classifiers.calibration.BinaryScoreClassifier;
 import jsat.exceptions.FailedToFitException;
 import jsat.exceptions.UntrainedModelException;
 import jsat.linear.DenseVector;
@@ -35,7 +36,7 @@ import jsat.utils.ListUtils;
  * @author Edward Raff
  * @see DCD
  */
-public class DCDs implements Classifier, Parameterized
+public class DCDs implements BinaryScoreClassifier, Parameterized
 {
     private int maxIterations;
     private double tolerance;
@@ -152,12 +153,18 @@ public class DCDs implements Classifier, Parameterized
             throw new UntrainedModelException("The model has not been trained");
         CategoricalResults cr = new CategoricalResults(2);
         
-        if(w.dot(data.getNumericalValues())+bias < 0)
+        if(getScore(data) < 0)
             cr.setProb(0, 1.0);
         else
             cr.setProb(1, 1.0);
         
         return cr;
+    }
+
+    @Override
+    public double getScore(DataPoint dp)
+    {
+        return w.dot(dp.getNumericalValues())+bias;
     }
 
     @Override
@@ -278,7 +285,7 @@ public class DCDs implements Classifier, Parameterized
     }
 
     @Override
-    public Classifier clone()
+    public DCDs clone()
     {
         DCDs clone = new DCDs(maxIterations, tolerance, C, useL1);
         clone.bias = this.bias;

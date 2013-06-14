@@ -14,6 +14,7 @@ import jsat.classifiers.CategoricalResults;
 import jsat.classifiers.ClassificationDataSet;
 import jsat.classifiers.Classifier;
 import jsat.classifiers.DataPoint;
+import jsat.classifiers.calibration.BinaryScoreClassifier;
 import jsat.distributions.kernels.KernelTrick;
 import jsat.exceptions.FailedToFitException;
 import jsat.exceptions.UntrainedModelException;
@@ -43,7 +44,7 @@ import jsat.utils.SystemInfo;
  * 
  * @author Edward Raff
  */
-public class PegasosK extends SupportVectorLearner implements Classifier, Parameterized
+public class PegasosK extends SupportVectorLearner implements BinaryScoreClassifier, Parameterized
 {
     private double regularization;
     private int iterations;
@@ -120,7 +121,7 @@ public class PegasosK extends SupportVectorLearner implements Classifier, Parame
     }
     
     @Override
-    public Classifier clone()
+    public PegasosK clone()
     {
         PegasosK clone = new PegasosK(regularization, iterations, getKernel().clone(), getCacheMode());
         
@@ -146,7 +147,7 @@ public class PegasosK extends SupportVectorLearner implements Classifier, Parame
         
         CategoricalResults cr = new CategoricalResults(2);
         
-        double sum = kEvalSum(data.getNumericalValues());
+        double sum = getScore(data);
 
         //SVM only says yess / no, can not give a percentage
         if(sum > 0)
@@ -155,6 +156,12 @@ public class PegasosK extends SupportVectorLearner implements Classifier, Parame
             cr.setProb(0, 1);
         
         return cr;
+    }
+
+    @Override
+    public double getScore(DataPoint dp)
+    {
+        return kEvalSum(dp.getNumericalValues());
     }
 
     /**

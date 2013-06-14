@@ -14,6 +14,7 @@ import jsat.classifiers.ClassificationDataSet;
 import jsat.classifiers.Classifier;
 import jsat.classifiers.DataPoint;
 import jsat.classifiers.DataPointPair;
+import jsat.classifiers.calibration.BinaryScoreClassifier;
 import jsat.exceptions.FailedToFitException;
 import jsat.linear.DenseVector;
 import jsat.linear.Vec;
@@ -29,7 +30,7 @@ import jsat.utils.PairedReturn;
  * 
  * @author Edward Raff
  */
-public class Perceptron implements Classifier
+public class Perceptron implements BinaryScoreClassifier
 {
 
     private double learningRate;
@@ -60,15 +61,19 @@ public class Perceptron implements Classifier
         this.iteratinLimit = iteratinLimit;
     }
     
-    
-    
     @Override
     public CategoricalResults classify(DataPoint data)
     {
         CategoricalResults cr = new CategoricalResults(2);
-        cr.setProb(output(data.getNumericalValues()), 1);
+        cr.setProb(output(data), 1);
         
         return cr;
+    }
+
+    @Override
+    public double getScore(DataPoint dp)
+    {
+        return weights.dot(dp.getNumericalValues()) + bias;
     }
 
     /**
@@ -99,7 +104,7 @@ public class Perceptron implements Classifier
             for(DataPointPair<Integer> dpp : dataPoints)
             {
                 
-                int output = output(dpp.getVector());
+                int output = output(dpp.getDataPoint());
                 double localError = dpp.getPair() - output;
                 
                 
@@ -240,7 +245,7 @@ public class Perceptron implements Classifier
             //For each data point
             for(DataPointPair<Integer> dpp : dataPoints)
             {
-                int output = output(dpp.getVector());
+                int output = output(dpp.getDataPoint());
                 double localError = dpp.getPair() - output;
                 
                 
@@ -269,9 +274,9 @@ public class Perceptron implements Classifier
         weights = bestWeightsSoFar;
     }
     
-    private int output(Vec input)
+    private int output(DataPoint input)
     {
-        double dot = weights.dot(input) + bias;
+        double dot = getScore(input);
         
         return (dot >= 0) ? 1 : 0;
     }
@@ -283,7 +288,7 @@ public class Perceptron implements Classifier
     }
 
     @Override
-    public Classifier clone()
+    public Perceptron clone()
     {
         Perceptron copy = new  Perceptron(learningRate, iteratinLimit);
         if(this.weights != null)

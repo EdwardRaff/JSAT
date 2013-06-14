@@ -9,6 +9,7 @@ import jsat.classifiers.CategoricalData;
 import jsat.classifiers.CategoricalResults;
 import jsat.classifiers.DataPoint;
 import jsat.classifiers.linear.PassiveAggressive;
+import jsat.classifiers.calibration.BinaryScoreClassifier;
 import jsat.distributions.kernels.KernelTrick;
 import jsat.exceptions.FailedToFitException;
 import jsat.exceptions.UntrainedModelException;
@@ -43,7 +44,7 @@ import jsat.utils.DoubleList;
  * </ul>
  * @author Edward Raff
  */
-public class DUOL extends BaseUpdateableClassifier implements Parameterized
+public class DUOL extends BaseUpdateableClassifier implements BinaryScoreClassifier, Parameterized
 {
     /**
      * Kernel trick to use
@@ -307,12 +308,18 @@ public class DUOL extends BaseUpdateableClassifier implements Parameterized
         if(alphas == null)
             throw new UntrainedModelException("Model has not yet been trained");
         CategoricalResults cr = new CategoricalResults(2);
-        double score = score(data.getNumericalValues());
+        double score = getScore(data);
         if(score < 0)
             cr.setProb(0, 1.0);
         else
             cr.setProb(1, 1.0);
         return cr;
+    }
+
+    @Override
+    public double getScore(DataPoint dp)
+    {
+        return score(dp.getNumericalValues());
     }
 
     @Override

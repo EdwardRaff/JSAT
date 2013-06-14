@@ -5,6 +5,7 @@ import jsat.classifiers.CategoricalData;
 import jsat.classifiers.CategoricalResults;
 import jsat.classifiers.Classifier;
 import jsat.classifiers.DataPoint;
+import jsat.classifiers.calibration.BinaryScoreClassifier;
 import jsat.exceptions.FailedToFitException;
 import jsat.exceptions.UntrainedModelException;
 import jsat.linear.DenseMatrix;
@@ -29,7 +30,7 @@ import jsat.math.MathTricks;
  * 
  * @author Edward Raff
  */
-public class AROW extends BaseUpdateableClassifier
+public class AROW extends BaseUpdateableClassifier implements BinaryScoreClassifier
 {
     private Vec w;
     /**
@@ -229,12 +230,18 @@ public class AROW extends BaseUpdateableClassifier
         if(w == null)
             throw new UntrainedModelException("Model has not yet ben trained");
         CategoricalResults cr = new CategoricalResults(2);
-        double score = w.dot(data.getNumericalValues());
+        double score = getScore(data);
         if(score < 0)
             cr.setProb(0, 1.0);
         else
             cr.setProb(1, 1.0);
         return cr;
+    }
+
+    @Override
+    public double getScore(DataPoint dp)
+    {
+        return w.dot(dp.getNumericalValues());
     }
 
     @Override

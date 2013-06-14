@@ -13,6 +13,7 @@ import jsat.linear.Matrix;
 import jsat.linear.Vec;
 import static java.lang.Math.*;
 import jsat.classifiers.ClassificationDataSet;
+import jsat.classifiers.calibration.BinaryScoreClassifier;
 import jsat.exceptions.UntrainedModelException;
 import jsat.math.MathTricks;
 
@@ -46,7 +47,7 @@ import jsat.math.MathTricks;
  * 
  * @author Edward Raff
  */
-public class SCW extends BaseUpdateableClassifier
+public class SCW extends BaseUpdateableClassifier implements BinaryScoreClassifier
 {
     private double C = 1;
     private double eta;
@@ -372,12 +373,18 @@ public class SCW extends BaseUpdateableClassifier
         if(w == null)
             throw new UntrainedModelException("Model has not yet ben trained");
         CategoricalResults cr = new CategoricalResults(2);
-        double score = w.dot(data.getNumericalValues());
+        double score = getScore(data);
         if(score < 0)
             cr.setProb(0, 1.0);
         else
             cr.setProb(1, 1.0);
         return cr;
+    }
+
+    @Override
+    public double getScore(DataPoint dp)
+    {
+        return w.dot(dp.getNumericalValues());
     }
 
     @Override

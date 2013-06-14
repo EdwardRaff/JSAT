@@ -1,6 +1,7 @@
 package jsat.classifiers.linear;
 
 import jsat.classifiers.*;
+import jsat.classifiers.calibration.BinaryScoreClassifier;
 import jsat.exceptions.FailedToFitException;
 import jsat.exceptions.UntrainedModelException;
 import jsat.linear.DenseVector;
@@ -18,7 +19,7 @@ import jsat.linear.Vec;
  * 
  * @author Edward Raff
  */
-public class ROMMA extends BaseUpdateableClassifier 
+public class ROMMA extends BaseUpdateableClassifier implements BinaryScoreClassifier
 {
     private boolean useBias = true;
     private boolean aggressive;
@@ -158,14 +159,19 @@ public class ROMMA extends BaseUpdateableClassifier
     {
         if(w == null)
             throw new UntrainedModelException("Model has not been trained");
-        Vec x = data.getNumericalValues();
-        double wx = w.dot(x)+bias;
+        double wx = getScore(data);
         CategoricalResults cr = new CategoricalResults(2);
         if(wx < 0)
             cr.setProb(0, 1.0);
         else
             cr.setProb(1, 1.0);
         return cr;
+    }
+
+    @Override
+    public double getScore(DataPoint dp)
+    {
+        return w.dot(dp.getNumericalValues())+bias;
     }
 
     @Override

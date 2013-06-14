@@ -10,6 +10,7 @@ import jsat.classifiers.CategoricalData;
 import jsat.classifiers.CategoricalResults;
 import jsat.classifiers.Classifier;
 import jsat.classifiers.DataPoint;
+import jsat.classifiers.calibration.BinaryScoreClassifier;
 import jsat.classifiers.neuralnetwork.Perceptron;
 import jsat.distributions.kernels.KernelTrick;
 import jsat.exceptions.FailedToFitException;
@@ -29,7 +30,7 @@ import jsat.parameters.Parameterized;
  * 
  * @author Edward Raff
  */
-public class Forgetron extends BaseUpdateableClassifier implements Parameterized
+public class Forgetron extends BaseUpdateableClassifier implements BinaryScoreClassifier, Parameterized
 {
     private KernelTrick K;
     private Vec[] I;
@@ -130,14 +131,19 @@ public class Forgetron extends BaseUpdateableClassifier implements Parameterized
         return K;
     }
     
-    
     @Override
     public CategoricalResults classify(DataPoint data)
     {
         CategoricalResults cr = new CategoricalResults(2);
-        int winner = (int) ((signum(classify(data.getNumericalValues()))+1)/2);
+        int winner = (int) ((signum(getScore(data))+1)/2);
         cr.setProb(winner, 1);
         return cr;
+    }
+
+    @Override
+    public double getScore(DataPoint dp)
+    {
+        return classify(dp.getNumericalValues());
     }
     
     private double classify(Vec x)
@@ -155,7 +161,7 @@ public class Forgetron extends BaseUpdateableClassifier implements Parameterized
     }
 
     @Override
-    public Classifier clone()
+    public Forgetron clone()
     {
         return new Forgetron(this);
     }

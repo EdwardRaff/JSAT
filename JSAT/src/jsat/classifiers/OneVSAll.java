@@ -7,6 +7,7 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import jsat.classifiers.calibration.BinaryScoreClassifier;
 import jsat.utils.FakeExecutor;
 
 /**
@@ -15,6 +16,10 @@ import jsat.utils.FakeExecutor;
  * will create <i>k</i> different classifiers. Each one is a reducing of one 
  * class against all other classes. Then all <i>k</i> classifiers's results are
  * summed to produce a final classifier
+ * <br><br>
+ * If the base learner is an instance of {@link BinaryScoreClassifier}, then the
+ * winning class label will be the associated classifier that produced the 
+ * highest score. 
  * 
  * @author Edward Raff
  */
@@ -24,6 +29,7 @@ public class OneVSAll implements Classifier
     private Classifier baseClassifier;
     private CategoricalData predicting;
     private boolean concurrentTraining;
+    private boolean useScoreIfAvailable = true;
     
     /**
      * Creates a new One VS All classifier. 
@@ -62,15 +68,37 @@ public class OneVSAll implements Classifier
     public CategoricalResults classify(DataPoint data)
     {
         CategoricalResults cr = new CategoricalResults(predicting.getNumOfCategories());
-        for(int i = 0; i < predicting.getNumOfCategories(); i++)
+        
+        if(useScoreIfAvailable && oneVsAlls[0] instanceof BinaryScoreClassifier)
         {
-            CategoricalResults oneVsAllCR = oneVsAlls[i].classify(data);
-            double tmp = oneVsAllCR.getProb(0);
-            if(tmp > 0)
-                cr.setProb(i, tmp);
+            int maxIndx = 0;
+            double maxScore = Double.NEGATIVE_INFINITY;
+            for(int i = 0; i < predicting.getNumOfCategories(); i++)
+            {
+                double score = -( (BinaryScoreClassifier)oneVsAlls[i]).getScore(data);
+                
+                if(score > maxScore)
+                {
+                    maxIndx = i;
+                    maxScore =score;
+                }
+            }
+            
+            cr.setProb(maxIndx, 1);
+        }
+        else
+        {
+            for(int i = 0; i < predicting.getNumOfCategories(); i++)
+            {
+                CategoricalResults oneVsAllCR = oneVsAlls[i].classify(data);
+                double tmp = oneVsAllCR.getProb(0);
+                if(tmp > 0)
+                    cr.setProb(i, tmp);
+            }
+            
+            cr.normalize();
         }
         
-        cr.normalize();
         return cr;
     }
 
