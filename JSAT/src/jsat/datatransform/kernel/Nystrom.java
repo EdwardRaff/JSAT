@@ -47,7 +47,6 @@ public class Nystrom implements DataTransform
     private List<Vec> basisVecs;
     private List<Double> accelCache;
     private Matrix transform;
-    private boolean sampleWithReplacment = false;
 
     /**
      * Different sample methods may be used to select a better and more 
@@ -112,19 +111,81 @@ public class Nystrom implements DataTransform
 
         final int N = dataset.getSampleSize();
         final int D = dataset.getNumNumericalVars();
-        this.sampleWithReplacment = sampleWithReplacment;
         final List<Vec> X = dataset.getDataVectors();
 
         //Create smaller gram matrix K and decompose is
-        basisVecs = new ArrayList<Vec>(basisSize);
+        basisVecs = sampleBasisVectors(k, dataset, X, method, basisSize, sampleWithReplacment, rand);
+
+        setKernel(k);
+
+        Matrix K = new DenseMatrix(basisSize, basisSize);
+        for (int i = 0; i < basisSize; i++)
+        {
+            K.set(i, i, kEval(i, i));
+            for (int j = i + 1; j < basisSize; j++)
+            {
+                double val = kEval(i, j);
+                K.set(i, j, val);
+                K.set(j, i, val);
+            }
+        }
+
+        //Decompose it
+        EigenValueDecomposition eig = new EigenValueDecomposition(K);
+
+        double[] eigenVals = eig.getRealEigenvalues();
+        DenseVector eigNorm = new DenseVector(eigenVals.length);
+        for (int i = 0; i < eigenVals.length; i++)
+            eigNorm.set(i, 1.0 / Math.sqrt(eigenVals[i]));
+
+        //U * 1/sqrt(S)
+        Matrix U = eig.getV();
+        Matrix.diagMult(U, eigNorm);
+        transform = U.multiply(eig.getVRaw());
+        transform.mutableTranspose();
+    }
+    
+    /**
+     * Copy constructor
+     * @param toCopy the object to copy
+     */
+    protected Nystrom(Nystrom toCopy)
+    {
+        this.k = toCopy.k.clone();
+        this.basisVecs = new ArrayList<Vec>(toCopy.basisVecs);
+        if(toCopy.accelCache != null)
+            this.accelCache = new DoubleList(toCopy.accelCache);
+        this.transform = toCopy.transform.clone();
+    }
+    
+    /**
+     * Performs sampling of a data set for a subset of the vectors that make a 
+     * good set of basis vectors for forming an approximation of a full kernel
+     * space. While these methods are motivated from Nystrom's algorithm, they
+     * are also useful for others. 
+     * 
+     * @param k the kernel trick to form the basis for
+     * @param dataset the data set to sample from
+     * @param X the list of vectors from the data set
+     * @param method the sampling method to use
+     * @param basisSize the number of basis vectors to select
+     * @param sampleWithReplacment whether or not the sample with replacement
+     * @param rand the source of randomness for the sampling
+     * @return a list of basis vectors sampled from the data set. 
+     * @see SamplingMethod
+     */
+    public static List<Vec> sampleBasisVectors(KernelTrick k, DataSet dataset, final List<Vec> X, SamplingMethod method, int basisSize, boolean sampleWithReplacment, Random rand)
+    {
+        List<Vec> basisVecs = new ArrayList<Vec>(basisSize);
+        final int N = dataset.getSampleSize();
         switch (method)
         {
             case DIAGONAL:
                 double[] diags = new double[N];
-                diags[0] = kEval(0, 0);
+                diags[0] = k.eval(X.get(0), X.get(0));
                 for (int i = 1; i < N; i++)
-                    diags[i] = diags[0] + kEval(i, i);
-                sample(basisSize, rand, diags, X);
+                    diags[i] = diags[0] + k.eval(X.get(i), X.get(i));
+                sample(basisSize, rand, diags, X, sampleWithReplacment, basisVecs);
                 break;
             case NORM:
                 double[] norms = new double[N];
@@ -164,7 +225,7 @@ public class Nystrom implements DataTransform
                 norms[0] = gramVecs.get(0).pNorm(2);
                 for (int i = 1; i < gramVecs.size(); i++)
                     norms[i] = norms[i - 1] + gramVecs.get(i).pNorm(2);
-                sample(basisSize, rand, norms, X);
+                sample(basisSize, rand, norms, X, sampleWithReplacment, basisVecs);
                 break;
             case KMEANS:
                 HamerlyKMeans kMeans = new HamerlyKMeans(new EuclideanDistance(), SeedSelectionMethods.SeedSelection.KPP);
@@ -186,47 +247,7 @@ public class Nystrom implements DataTransform
                         basisVecs.add(X.get(rand.nextInt(N)));
 
         }
-
-        setKernel(k);
-
-        Matrix K = new DenseMatrix(basisSize, basisSize);
-        for (int i = 0; i < basisSize; i++)
-        {
-            K.set(i, i, kEval(i, i));
-            for (int j = i + 1; j < basisSize; j++)
-            {
-                double val = kEval(i, j);
-                K.set(i, j, val);
-                K.set(j, i, val);
-            }
-        }
-
-        //Decompose it
-        EigenValueDecomposition eig = new EigenValueDecomposition(K);
-
-        double[] eigenVals = eig.getRealEigenvalues();
-        DenseVector eigNorm = new DenseVector(eigenVals.length);
-        for (int i = 0; i < eigenVals.length; i++)
-            eigNorm.set(i, 1.0 / Math.sqrt(eigenVals[i]));
-
-        //U * 1/sqrt(S)
-        Matrix U = eig.getV();
-        Matrix.diagMult(U, eigNorm);
-        transform = U.multiply(eig.getVRaw());
-        transform.mutableTranspose();
-    }
-
-    /**
-     * Copy constructor
-     * @param toCopy the object to copy
-     */
-    protected Nystrom(Nystrom toCopy)
-    {
-        this.k = toCopy.k.clone();
-        this.basisVecs = new ArrayList<Vec>(toCopy.basisVecs);
-        if(toCopy.accelCache != null)
-            this.accelCache = new DoubleList(toCopy.accelCache);
-        this.transform = toCopy.transform.clone();
+        return basisVecs;
     }
     
     /**
@@ -236,8 +257,10 @@ public class Nystrom implements DataTransform
      * @param rand the source of randomness
      * @param weightSume the cumulative weight sum
      * @param X the list of vectors
+     * @param sampleWithReplacment  whether or no to sample with replacement
+     * @param basisVecs the list to store the vecs in
      */
-    private void sample(int basisSize, Random rand, double[] weightSume, List<Vec> X)
+    private static void sample(int basisSize, Random rand, double[] weightSume, List<Vec> X, boolean sampleWithReplacment, List<Vec> basisVecs)
     {
         Set<Integer> sampled = new HashSet<Integer>(basisSize);
         
