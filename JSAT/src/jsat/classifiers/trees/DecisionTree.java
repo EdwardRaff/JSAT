@@ -112,6 +112,23 @@ public class DecisionTree implements Classifier, Regressor, Parameterized, TreeL
     }
 
     /**
+     * Copy constructor
+     * @param toCopy the object to copy
+     */
+    protected DecisionTree(DecisionTree toCopy)
+    {
+        this.maxDepth = toCopy.maxDepth;
+        this.minSamples = toCopy.minSamples;
+        if(toCopy.root != null)
+            this.root = toCopy.root.clone();
+        if(toCopy.predicting != null)
+            this.predicting = toCopy.predicting.clone();
+        this.pruningMethod = toCopy.pruningMethod;
+        this.testProportion = toCopy.testProportion;
+        this.baseStump = toCopy.baseStump.clone();
+    }
+
+    /**
      * Returns a Decision Tree with settings initialized so that its behavior is
      * approximately that of the C4.5 decision tree algorithm when used on 
      * classification data. The exact behavior not identical, and certain 
@@ -349,7 +366,7 @@ public class DecisionTree implements Classifier, Regressor, Parameterized, TreeL
      * @param mcdl count down latch 
      * @return the node created, or null if no node was created
      */
-    private Node makeNodeC(List<DataPointPair<Integer>> dataPoints, final Set<Integer> options, final int depth,
+    protected Node makeNodeC(List<DataPointPair<Integer>> dataPoints, final Set<Integer> options, final int depth,
             final ExecutorService threadPool, final ModifiableCountDownLatch mcdl)
     {
         if(depth > maxDepth || options.isEmpty() || dataPoints.size() < minSamples || dataPoints.isEmpty())
@@ -390,7 +407,7 @@ public class DecisionTree implements Classifier, Regressor, Parameterized, TreeL
      * @param mcdl count down latch 
      * @return the node created, or null if no node was created
      */
-    private Node makeNodeR(List<DataPointPair<Double>> dataPoints, final Set<Integer> options, final int depth,
+    protected Node makeNodeR(List<DataPointPair<Double>> dataPoints, final Set<Integer> options, final int depth,
             final ExecutorService threadPool, final ModifiableCountDownLatch mcdl)
     {
         if(depth > maxDepth || options.isEmpty() || dataPoints.size() < minSamples || dataPoints.isEmpty())
@@ -457,7 +474,7 @@ public class DecisionTree implements Classifier, Regressor, Parameterized, TreeL
         return root;
     }
     
-    private static class Node extends TreeNodeVisitor
+    protected static class Node extends TreeNodeVisitor
     {
         final protected DecisionStump stump;
         protected Node[] paths;

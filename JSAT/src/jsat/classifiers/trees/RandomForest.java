@@ -56,7 +56,7 @@ public class RandomForest implements Classifier, Regressor, Parameterized
     private int maxForestSize;
     private boolean useOutOfBagError = false;
     private double outOfBagError;
-    private DecisionTree baseLearner;
+    private RandomDecisionTree baseLearner;
     private List<DecisionTree> forest;
     
     private final List<Parameter> params = Collections.unmodifiableList(Parameter.getParamsFromMethods(this));
@@ -68,7 +68,7 @@ public class RandomForest implements Classifier, Regressor, Parameterized
         setExtraSamples(0);
         setMaxForestSize(maxForestSize);
         autoFeatureSample();
-        baseLearner = new DecisionTree(Integer.MAX_VALUE, 3, TreePruner.PruningMethod.NONE, 1e-15);
+        baseLearner = new RandomDecisionTree(1, Integer.MAX_VALUE, 3, TreePruner.PruningMethod.NONE, 1e-15);
         baseLearner.setNumericHandling(DecisionStump.NumericHandlingC.BINARY_BEST_GAIN);
     }
     
@@ -251,7 +251,9 @@ public class RandomForest implements Classifier, Regressor, Parameterized
     {
         boolean autoLearners = isAutoFeatureSample();//We will need to set it back after, so remember if we need to
         if(autoLearners)
-            setFeatureSamples(Math.max((int)Math.sqrt(dataSet.getNumFeatures()), 1));
+            baseLearner.setRandomFeatureCount(Math.max((int)Math.sqrt(dataSet.getNumFeatures()), 1));
+        else
+            baseLearner.setRandomFeatureCount(featureSamples);
         
         int roundsToDistribut = maxForestSize;
         int roundShare = roundsToDistribut / SystemInfo.LogicalCores;//The number of rounds each thread gets
@@ -322,8 +324,6 @@ public class RandomForest implements Classifier, Regressor, Parameterized
             outOfBagError /= dataSet.getSampleSize();
         }
 
-        if (autoLearners)
-            autoFeatureSample();
     }
 
     @Override
@@ -386,7 +386,7 @@ public class RandomForest implements Classifier, Regressor, Parameterized
         @Override
         public LearningWorker call() throws Exception
         {
-            Set<Integer> features = new HashSet<Integer>(featureSamples);
+            Set<Integer> features = new HashSet<Integer>(baseLearner.getRandomFeatureCount());
             int[] sampleCounts = new int[dataSet.getSampleSize()];
             for(int i = 0; i < toLearn; i++)
             {
@@ -394,9 +394,9 @@ public class RandomForest implements Classifier, Regressor, Parameterized
                 Bagging.sampleWithReplacement(sampleCounts, sampleCounts.length+extraSamples, random);
                 //Sample to select the feature subset
                 features.clear();
-                while(features.size() < Math.min(featureSamples, dataSet.getNumFeatures()))//The user could have specified too many
+                while(features.size() < Math.min(baseLearner.getRandomFeatureCount(), dataSet.getNumFeatures()))//The user could have specified too many
                     features.add(random.nextInt(dataSet.getNumFeatures()));
-                
+                                
                 DecisionTree learner = baseLearner.clone();
                 
                 if(dataSet instanceof ClassificationDataSet)
