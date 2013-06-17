@@ -1,6 +1,7 @@
 
 package jsat.utils;
 
+import java.util.AbstractList;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -54,6 +55,38 @@ public class ListUtils
         }
         
         return chunks;
+    }
+    
+    /**
+     * Returns a new unmodifiable view that is the merging of two lists
+     * @param <T> the type the lists hold
+     * @param left the left portion of the merged view
+     * @param right the right portion of the merged view
+     * @return a list view that contains bot the left and right lists
+     */
+    public static <T> List<T> mergedView(final List<T> left, final List<T> right)
+    {
+        List<T> merged = new AbstractList<T>() 
+        {
+
+            @Override
+            public T get(int index)
+            {
+                if(index < left.size())
+                    return left.get(index);
+                else if(index-left.size() < right.size())
+                    return right.get(index-left.size());
+                else
+                    throw new IndexOutOfBoundsException("List of lengt " + size() + " has no index " + index);
+            }
+
+            @Override
+            public int size()
+            {
+                return left.size() + right.size();
+            }
+        };
+        return merged;
     }
     
     /**
