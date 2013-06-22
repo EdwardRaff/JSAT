@@ -9,14 +9,21 @@ import jsat.utils.DoubleList;
 import jsat.utils.SystemInfo;
 
 /**
- * The Cosine Distance is a adaption of the Cosine similarity's range from 
- * [-1, 1] into the range [0, 2]. Where 0 means two vectors are the same, and 2 
- * means they are completly different. 
+ * The Cosine Distance is a adaption of the Cosine Similarity's range from 
+ * [-1, 1] into the range [0, 1]. Where 0 means two vectors are the same, and 1 
+ * means they are completely different. 
  * 
  * @author Edward Raff
  */
 public class CosineDistance implements DistanceMetric
 {
+    /*
+     * NOTE: Math.min(val, 1) is used because numerical instability can cause 
+     * slightly larger values than 1 when the values are extremly close to 
+     * eachother. In this case, it would cause a negative value in the sqrt of 
+     * the cosineToDinstance calculation, resulting in a NaN. So the max is used
+     * to avoid this.
+     */
 
     @Override
     public double dist(Vec a, Vec b)
@@ -24,16 +31,11 @@ public class CosineDistance implements DistanceMetric
         /*
          * a dot b / (2Norm(a) * 2Norm(b)) will return a value in the range -1 to 1
          * -1 means they are completly opposite
-         * 1 means they are exactly the same
-         * 
-         * by returnin the result a 1 - val, we mak it so the value returns is in the range 2 to 0. 
-         * 2 (1 - -1 = 2) means they are completly opposite
-         * 0 ( 1 -1) means they are completly the same
          */
         double denom = a.pNorm(2) * b.pNorm(2);
         if(denom == 0)
-            return 2.0;
-        return 1 - a.dot(b) / denom;
+            return cosineToDistance(-1);
+        return cosineToDistance(Math.min(a.dot(b) / denom, 1));
     }
 
     @Override
@@ -57,7 +59,7 @@ public class CosineDistance implements DistanceMetric
     @Override
     public double metricBound()
     {
-        return 2;
+        return 1;
     }
 
     @Override
@@ -130,8 +132,8 @@ public class CosineDistance implements DistanceMetric
         
         double denom = cache.get(a)*cache.get(b);
         if(denom == 0)
-            return 2.0;
-        return 1 - vecs.get(a).dot(vecs.get(b)) / denom;
+            return cosineToDistance(-1);
+        return cosineToDistance(Math.min(vecs.get(a).dot(vecs.get(b)) / denom, 1));
     }
 
     @Override
@@ -142,8 +144,8 @@ public class CosineDistance implements DistanceMetric
         
         double denom = cache.get(a)*b.pNorm(2);
         if(denom == 0)
-            return 2.0;
-        return 1 - vecs.get(a).dot(b) / denom;
+            return cosineToDistance(-1);
+        return cosineToDistance(Math.min(vecs.get(a).dot(b) / denom, 1));
     }
 
     @Override
@@ -162,8 +164,30 @@ public class CosineDistance implements DistanceMetric
         
         double denom = cache.get(a)*qi.get(0);
         if(denom == 0)
-            return 2.0;
-        return 1 - vecs.get(a).dot(b) / denom;
+            return cosineToDistance(-1);
+        return cosineToDistance(Math.min(vecs.get(a).dot(b) / denom, 1));
+    }
+    
+    /**
+     * This method converts the cosine distance in [-1, 1] to a valid distance 
+     * metric in the range [0, 1]
+     * @param cosAngle the cosine similarity in [-1, 1]
+     * @return the distance metric for the cosine value
+     */
+    public static double cosineToDistance(double cosAngle)
+    {
+        return Math.sqrt(0.5*(1-cosAngle));
+    }
+    
+    /**
+     * This method converts the distance obtained with 
+     * {@link #cosineToDistance(double) } back into the cosine angle
+     * @param dist the distance value in [0, 1]
+     * @return the cosine angle
+     */
+    public static double distanceToCosine(double dist)
+    {
+        return 1-2*(dist*dist);
     }
     
 }

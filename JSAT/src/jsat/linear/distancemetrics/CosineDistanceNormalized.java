@@ -19,10 +19,18 @@ import jsat.linear.Vec;
 public class CosineDistanceNormalized implements DistanceMetric
 {
 
+    /*
+     * NOTE: Math.min(val, 1) is used because numerical instability can cause 
+     * slightly larger values than 1 when the values are extremly close to 
+     * eachother. In this case, it would cause a negative value in the sqrt of 
+     * the cosineToDinstance calculation, resulting in a NaN. So the max is used
+     * to avoid this.
+     */
+    
     @Override
     public double dist(Vec a, Vec b)
     {
-        return 1.0-a.dot(b);
+        return CosineDistance.cosineToDistance(Math.min(a.dot(b), 1));
     }
 
     @Override
@@ -46,7 +54,7 @@ public class CosineDistanceNormalized implements DistanceMetric
     @Override
     public double metricBound()
     {
-        return 2;
+        return 1;
     }
 
     @Override
