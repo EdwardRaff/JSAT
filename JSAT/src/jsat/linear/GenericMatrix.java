@@ -127,17 +127,30 @@ public abstract class GenericMatrix extends Matrix
             throw new ArithmeticException("Matrix dimensions do not agree, [" + rows() +"," + cols() + "] x [" + b.length() + ",1]" );
         if(this.rows() != c.length())
             throw new ArithmeticException("Target vector dimension does not agree with matrix dimensions. Matrix has " + rows() + " rows but tagert has " + c.length());
-        
-        
-        for(int i = 0; i < rows(); i++)
+
+        if (b.isSparse())
         {
-            double dot = 0;
-            for(int j = 0; j < cols(); j++)
-                dot += this.get(i, j)*b.get(j);
-            c.increment(i, dot*z);
+            for (int i = 0; i < rows(); i++)
+            {
+                double dot = 0;
+                for(IndexValue iv : b)
+                    dot += this.get(i, iv.getIndex()) * iv.getValue();
+                c.increment(i, dot * z);
+            }
+        }
+        else
+        {
+            for (int i = 0; i < rows(); i++)
+            {
+                double dot = 0;
+                for (int j = 0; j < cols(); j++)
+                    dot += this.get(i, j) * b.get(j);
+                c.increment(i, dot * z);
+            }
         }
     }
-    
+
+    @Override
     public void multiply(Matrix b, Matrix C)
     {
         if(!canMultiply(this, b))
@@ -161,6 +174,7 @@ public abstract class GenericMatrix extends Matrix
             }
     }
 
+    @Override
     public void multiply(final Matrix b, final Matrix C, ExecutorService threadPool)
     {
         if(!canMultiply(this, b))
@@ -231,6 +245,7 @@ public abstract class GenericMatrix extends Matrix
         }
     }
     
+    @Override
     public void mutableMultiply(double c)
     {
         for(int i = 0; i < rows(); i++)
@@ -267,6 +282,7 @@ public abstract class GenericMatrix extends Matrix
 
     }
 
+    @Override
     public void transposeMultiply(double c, Vec b, Vec x)
     {
         if(this.rows() != b.length())
@@ -285,11 +301,13 @@ public abstract class GenericMatrix extends Matrix
         }
     }
     
+    @Override
     public void transposeMultiply(final Matrix b, Matrix C)
     {
         transposeMultiply(b, C, new FakeExecutor());
     }
     
+    @Override
     public void transposeMultiply(final Matrix b, final Matrix C, ExecutorService threadPool)
     {
         if(this.rows() != b.rows())//Normaly it is A_cols == B_rows, but we are doint A'*B, not A*B
@@ -390,6 +408,7 @@ public abstract class GenericMatrix extends Matrix
                 set(i, j, 0);
     }
     
+    @Override
     public Matrix[] lup()
     {
         Matrix[] lup = new Matrix[3];
@@ -594,6 +613,7 @@ public abstract class GenericMatrix extends Matrix
         throw new RuntimeException("Uncrecoverable Error");
     }
     
+    @Override
     public Matrix[] qr()
     {
         int N = cols(), M  = rows();
@@ -705,6 +725,7 @@ public abstract class GenericMatrix extends Matrix
         return vkNorm;
     }
     
+    @Override
     public Matrix[] qr(ExecutorService threadPool)
     {
         final int N = cols(), M  = rows();
