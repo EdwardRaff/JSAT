@@ -254,6 +254,7 @@ public class RandomProjectionLSH<V extends Vec> implements VectorCollection<V>
     private static final class NormalMatrix extends RandomMatrix
     {
         private final double[] pool;
+        private final long seedMult;
 
         public NormalMatrix(int rows, int cols, int poolSize)
         {
@@ -267,6 +268,7 @@ public class RandomProjectionLSH<V extends Vec> implements VectorCollection<V>
             }
             else
                 pool = null;
+            seedMult = new Random().nextLong();
         }
 
         public NormalMatrix(NormalMatrix toCopy)
@@ -276,8 +278,20 @@ public class RandomProjectionLSH<V extends Vec> implements VectorCollection<V>
                 this.pool = null;
             else
                 this.pool = Arrays.copyOf(toCopy.pool, toCopy.pool.length);
+            seedMult = toCopy.seedMult;
         }
 
+        @Override
+        public double get(int i, int j)
+        {
+            if(pool == null)
+                return super.get(i, j); 
+            else
+            {
+                long index = ((i+1)*(j+cols())*seedMult) & Integer.MAX_VALUE;
+                return pool[(int)index % pool.length];
+            }
+        }
 
         @Override
         protected double getVal(Random rand)
