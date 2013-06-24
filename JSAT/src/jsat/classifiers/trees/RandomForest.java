@@ -400,9 +400,9 @@ public class RandomForest implements Classifier, Regressor, Parameterized
                 DecisionTree learner = baseLearner.clone();
                 
                 if(dataSet instanceof ClassificationDataSet)
-                    learner.trainC(Bagging.getSampledDataSet((ClassificationDataSet)dataSet, sampleCounts), features);
+                    learner.trainC(Bagging.getWeightSampledDataSet((ClassificationDataSet)dataSet, sampleCounts), features);
                 else //It must be regression!
-                    learner.train(Bagging.getSampledDataSet((RegressionDataSet)dataSet, sampleCounts), features);
+                    learner.train(Bagging.getWeightSampledDataSet((RegressionDataSet)dataSet, sampleCounts), features);
                 learned.add(learner);
                 if(useOutOfBagError)
                 {

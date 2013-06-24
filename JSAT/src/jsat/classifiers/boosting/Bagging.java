@@ -348,6 +348,14 @@ public class Bagging implements Classifier, Regressor, Parameterized
         trainC(dataSet, null);
     }
 
+    /**
+     * Creates a new data set from the given sample counts. Points sampled 
+     * multiple times will have multiple entries in the data set. 
+     * @param dataSet the data set that was sampled from
+     * @param sampledCounts the sampling values obtained from 
+     * {@link #sampleWithReplacement(int[], int, java.util.Random) }
+     * @return a new sampled classification data set
+     */
     public static ClassificationDataSet getSampledDataSet(ClassificationDataSet dataSet, int[] sampledCounts)
     {
         ClassificationDataSet destination = new ClassificationDataSet(dataSet.getNumNumericalVars(), dataSet.getCategories(), dataSet.getPredicting());
@@ -362,6 +370,38 @@ public class Bagging implements Classifier, Regressor, Parameterized
             return destination;
     }
     
+    /**
+     * Creates a new data set from the given sample counts. Points sampled
+     * multiple times will be added once to the data set with their weight
+     * multiplied by the number of times it was sampled. 
+     * @param dataSet the data set that was sampled from
+     * @param sampledCounts the sampling values obtained from 
+     * {@link #sampleWithReplacement(int[], int, java.util.Random) }
+     * @return a new sampled classification data set
+     */
+    public static ClassificationDataSet getWeightSampledDataSet(ClassificationDataSet dataSet, int[] sampledCounts)
+    {
+        ClassificationDataSet destination = new ClassificationDataSet(dataSet.getNumNumericalVars(), dataSet.getCategories(), dataSet.getPredicting());
+
+        for (int i = 0; i < sampledCounts.length; i++)
+        {
+            if(sampledCounts[i] <= 0)
+                continue;
+            DataPoint dp = dataSet.getDataPoint(i);
+            destination.addDataPoint(dp.getNumericalValues(), dp.getCategoricalValues(), dataSet.getDataPointCategory(i), dp.getWeight()*sampledCounts[i]);
+        }
+
+        return destination;
+    }
+    
+    /**
+     * Creates a new data set from the given sample counts. Points sampled 
+     * multiple times will have multiple entries in the data set. 
+     * @param dataSet the data set that was sampled from
+     * @param sampledCounts the sampling values obtained from 
+     * {@link #sampleWithReplacement(int[], int, java.util.Random) }
+     * @return a new sampled classification data set
+     */
     public static RegressionDataSet getSampledDataSet(RegressionDataSet dataSet, int[] sampledCounts)
     {
         RegressionDataSet destination = new RegressionDataSet(dataSet.getNumNumericalVars(), dataSet.getCategories());
@@ -373,7 +413,41 @@ public class Bagging implements Classifier, Regressor, Parameterized
             }
         return destination;
     }
+    
+    /**
+     * Creates a new data set from the given sample counts. Points sampled
+     * multiple times will be added once to the data set with their weight
+     * multiplied by the number of times it was sampled. 
+     * @param dataSet the data set that was sampled from
+     * @param sampledCounts the sampling values obtained from 
+     * {@link #sampleWithReplacement(int[], int, java.util.Random) }
+     * @return a new sampled classification data set
+     */
+    public static RegressionDataSet getWeightSampledDataSet(RegressionDataSet dataSet, int[] sampledCounts)
+    {
+        RegressionDataSet destination = new RegressionDataSet(dataSet.getNumNumericalVars(), dataSet.getCategories());
 
+        for (int i = 0; i < sampledCounts.length; i++)
+        {
+            if(sampledCounts[i] <= 0)
+                continue;
+            DataPoint dp = dataSet.getDataPoint(i);
+            DataPoint reWeighted = new DataPoint(dp.getNumericalValues(), dp.getCategoricalValues(), dp.getCategoricalData(), dp.getWeight()*sampledCounts[i]);
+            destination.addDataPoint(reWeighted, dataSet.getTargetValue(i));
+        }
+
+        return destination;
+    }
+
+    /**
+     * Performs the sampling based on the number of data points, storing the 
+     * counts in an array to be constructed from XXXX
+     * @param sampleCounts an array to keep count of how many times each data 
+     * point was sampled. The array will be filled with zeros before sampling 
+     * starts
+     * @param samples the number of samples to take from the data set
+     * @param rand the source of randomness
+     */
     static public void sampleWithReplacement(int[] sampleCounts, int samples, Random rand)
     {
         Arrays.fill(sampleCounts, 0);

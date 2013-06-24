@@ -329,6 +329,19 @@ public class ClassificationDataSet extends DataSet
      */
     public void addDataPoint(Vec v, int[] classes, int classification)
     {
+        addDataPoint(v, classes, classification, 1.0);
+    }
+
+    /**
+     * Creates a new data point and add its to this data set. 
+     * @param v the numerical values for the data point
+     * @param classes the categorical values for the data point
+     * @param classification the true class value for the data point
+     * @param weight the weight value to give to the data point
+     * @throws RuntimeException if the given values are inconsistent with the data this class stores. 
+     */
+    public void addDataPoint(Vec v, int[] classes, int classification, double weight)
+    {
         if(v.length() != numNumerVals)
             throw new RuntimeException("Data point does not contain enough numerical data points");
         if(classes.length != categories.length)
@@ -338,7 +351,7 @@ public class ClassificationDataSet extends DataSet
             if(!categories[i].isValidCategory(classes[i]))
                 throw new RuntimeException("Categoriy value given is invalid");
         
-        classifiedExamples.get(classification).add(new DataPoint(v, classes, categories));
+        classifiedExamples.get(classification).add(new DataPoint(v, classes, categories, weight));
         
         numOfSamples++;
         
