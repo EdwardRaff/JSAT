@@ -42,6 +42,7 @@ public class StochasticMultinomialLogisticRegression implements Classifier, Para
     private Prior prior;
     private boolean standardized = true;
     private boolean useBias = true;
+    private int miniBatchSize = 1;
     
     private Vec[] B;
     private double[] biases;
@@ -478,6 +479,28 @@ public class StochasticMultinomialLogisticRegression implements Classifier, Para
         return standardized;
     }
 
+    /**
+     * Sets the amount of data points used to form each gradient update. 
+     * Increasing the batch size can help convergence. By default, a mini batch 
+     * size of 1 is used. 
+     * 
+     * @param miniBatchSize the number of data points used to perform each 
+     * update
+     */
+    public void setMiniBatchSize(int miniBatchSize)
+    {
+        this.miniBatchSize = miniBatchSize;
+    }
+
+    /**
+     * Returns the number of data points used to perform each gradient update
+     * @return the number of data points used to perform each gradient update
+     */
+    public int getMiniBatchSize()
+    {
+        return miniBatchSize;
+    }
+
     @Override
     public CategoricalResults classify(DataPoint data)
     {
@@ -535,7 +558,13 @@ public class StochasticMultinomialLogisticRegression implements Classifier, Para
         
         double[] zs = new double[B.length];
         
+        /**
+         * Contains the last time each feature was used
+         */
         int[] u = new int[d];
+        /**
+         * Contains the current time. 
+         */
         int q = 0;
         
         double prevLogLike = Double.POSITIVE_INFINITY;
@@ -549,61 +578,69 @@ public class StochasticMultinomialLogisticRegression implements Classifier, Para
             eta = learningRateDecay.rate(iter, epochs, initialLearningRate);
             final double etaReg = regularization*eta;
             
-            for(int j : randOrder)
+            for (int batch = 0; batch < randOrder.size(); batch += miniBatchSize)
             {
-                final int c_j = dataSet.getDataPointCategory(j);
-                final Vec x_j = dataSet.getDataPoint(j).getNumericalValues();
-                
-                //compute softmax
-                for(int i = 0; i < B.length; i++)
-                    zs[i] = x_j.dot(B[i])+biases[i];
-
-                MathTricks.softmax(zs, true);
-                
-                
-                //lazy apply lost rounds of regularization
-                if (prior != Prior.UNIFORM)
+                int batchCount = Math.min(miniBatchSize, randOrder.size() - batch);
+                double batchFrac = 1.0 / batchCount;
+                for (int k = 0; k < batchCount; k++)
                 {
-                    for (IndexValue iv : x_j)
-                    {
-                        int i = iv.getIndex();
-                        double etaRegScaled = etaReg * (u[i] - q) / N;
-                        for (Vec b : B)
-                        {
-                            double bVal = b.get(i);
-                            double bNewVal = bVal;
-                            if (standardized)
-                                bNewVal += etaRegScaled * prior.gradientError(bVal * stdDevs.get(i) - means.get(i), 1, alpha);
-                            else
-                                bNewVal += etaRegScaled * prior.gradientError(bVal, 1, alpha);
+                    int j = randOrder.get(batch+k);
+                    final int c_j = dataSet.getDataPointCategory(j);
+                    final Vec x_j = dataSet.getDataPoint(j).getNumericalValues();
 
-                            if (clipping && signum(bVal) != signum(bNewVal))
-                                b.set(i, 0);
-                            else
-                                b.set(i, bNewVal);
+                    //compute softmax
+                    for (int i = 0; i < B.length; i++)
+                        zs[i] = x_j.dot(B[i]) + biases[i];
+
+                    MathTricks.softmax(zs, true);
+
+
+                    //lazy apply lost rounds of regularization
+                    if (prior != Prior.UNIFORM)
+                    {
+                        for (IndexValue iv : x_j)
+                        {
+                            int i = iv.getIndex();
+                            if(u[i] == 0)
+                                continue;
+                            double etaRegScaled = etaReg * (u[i] - q) / N;
+                            for (Vec b : B)
+                            {
+                                double bVal = b.get(i);
+                                double bNewVal = bVal;
+                                if (standardized)
+                                    bNewVal += etaRegScaled * prior.gradientError(bVal * stdDevs.get(i) - means.get(i), 1, alpha);
+                                else
+                                    bNewVal += etaRegScaled * prior.gradientError(bVal, 1, alpha);
+
+                                if (clipping && signum(bVal) != signum(bNewVal))
+                                    b.set(i, 0);
+                                else
+                                    b.set(i, bNewVal);
+                            }
+                            u[i] = q;
                         }
-                        u[i] = q;
+
+                        //No need to do bias here, b/c bias is always up to date
                     }
 
-                    //No need to do bias here, b/c bias is always up to date
-                }
-
-                for(int c = 0; c < B.length; c++)
-                {
-                    Vec b = B[c];
-                    double p_c = zs[c];
-                    double log_pc = log(p_c);
-                    if(!Double.isInfinite(log_pc))
-                        logLike += log_pc;
-                    double errScaling = (c == c_j ? 1 : 0) - p_c;
-                    b.mutableAdd(eta*errScaling, x_j);
-                    if(useBias)
-                        biases[c] += eta*errScaling + etaReg*prior.gradientError(biases[c]-1, 1, alpha);
+                    for (int c = 0; c < B.length; c++)
+                    {
+                        Vec b = B[c];
+                        double p_c = zs[c];
+                        double log_pc = log(p_c);
+                        if (!Double.isInfinite(log_pc))
+                            logLike += log_pc;
+                        double errScaling = (c == c_j ? 1 : 0) - p_c;
+                        b.mutableAdd(batchFrac*eta * errScaling, x_j);
+                        if (useBias)
+                            biases[c] += batchFrac*eta * errScaling + etaReg * prior.gradientError(biases[c] - 1, 1, alpha);
+                    }
                 }
                 
                 q++;
             }
-            
+
             logLike *= -1;
             if (prior != Prior.UNIFORM)
             {
