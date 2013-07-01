@@ -15,6 +15,13 @@ import jsat.utils.DoubleList;
  * Loads a LIBSVM data file into a {@link DataSet}. LIVSM files do not indicate 
  * whether or not the target variable is supposed to be numerical or 
  * categorical, so two different loading methods are provided. 
+ * <br><br>
+ * LIBSVM files do not explicitly specify the length of data vectors. This can 
+ * be problematic if loading a testing and training data set, if the data sets 
+ * do not include the same highest index as a non-zero value, the data sets will
+ * have incompatible vector lengths. To resolve this issue, use the loading 
+ * methods that include the optional {@code vectorLength} parameter to specify 
+ * the length before hand. 
  * 
  * @author Edward Raff
  */
@@ -36,15 +43,34 @@ public class LIBSVMLoader
      * a numeric target value to predict
      * 
      * @param file the file to load
-     * @param sparseRatio
-     * @return the fraction of non zero values to qualify a data 
+     * @param sparseRatio the fraction of non zero values to qualify a data 
      * point as sparse
+     * @return a regression data set
      * @throws FileNotFoundException if the file was not found
      * @throws IOException if an error occurred reading the input stream
      */
     public static RegressionDataSet loadR(File file, double sparseRatio) throws FileNotFoundException, IOException
     {
-        return loadR(new FileReader(file), sparseRatio);
+        return loadR(file, sparseRatio, -1);
+    }
+    
+    /**
+     * Loads a new regression data set from a LIBSVM file, assuming the label is
+     * a numeric target value to predict
+     * 
+     * @param file the file to load
+     * @param sparseRatio the fraction of non zero values to qualify a data 
+     * point as sparse
+     * @param vectorLength the pre-determined length of each vector. If given a 
+     * negative value, the largest non-zero index observed in the data will be 
+     * used as the length. 
+     * @return a regression data set
+     * @throws FileNotFoundException if the file was not found
+     * @throws IOException if an error occurred reading the input stream
+     */
+    public static RegressionDataSet loadR(File file, double sparseRatio, int vectorLength) throws FileNotFoundException, IOException
+    {
+        return loadR(new FileReader(file), sparseRatio, vectorLength);
     }
     
     /**
@@ -58,6 +84,24 @@ public class LIBSVMLoader
      * @throws IOException if an error occurred reading the input stream
      */
     public static RegressionDataSet loadR(InputStreamReader isr, double sparseRatio) throws IOException
+    {
+        return loadR(isr, sparseRatio, -1);
+    }
+    
+    /**
+     * Loads a new regression data set from a LIBSVM file, assuming the label is
+     * a numeric target value to predict.
+     * 
+     * @param isr the input stream for the file to load
+     * @param sparseRatio the fraction of non zero values to qualify a data 
+     * point as sparse
+     * @param vectorLength the pre-determined length of each vector. If given a 
+     * negative value, the largest non-zero index observed in the data will be 
+     * used as the length. 
+     * @returna a regression data set
+     * @throws IOException 
+     */
+    public static RegressionDataSet loadR(InputStreamReader isr, double sparseRatio, int vectorLength) throws IOException
     {
         BufferedReader br = new BufferedReader(isr);
         List<SparseVector> sparseVecs = new ArrayList<SparseVector>();
@@ -75,10 +119,15 @@ public class LIBSVMLoader
             maxLen = loadSparseVec(split, maxLen, sparseVecs);
         }
         
+        if(vectorLength > 0)
+            maxLen = vectorLength;
+        
         RegressionDataSet rds = new RegressionDataSet(maxLen, new CategoricalData[0]);
         for(int i = 0; i < sparseVecs.size(); i++)
         {
-            rds.addDataPoint(sparseVecs.get(i), new int[0], targets.get(i));
+            SparseVector sv = sparseVecs.get(i);
+            sv.setLength(maxLen);
+            rds.addDataPoint(sv, new int[0], targets.get(i));
         }
         
         rds.applyTransform(new DenseSparceTransform(sparseRatio));
@@ -92,13 +141,33 @@ public class LIBSVMLoader
      * 
      * @param file the file to load
      * @param sparseRatio the fraction of non zero values to qualify a data 
+     * point as sparse
      * @return a classification data set
      * @throws FileNotFoundException if the file was not found
      * @throws IOException if an error occurred reading the input stream
      */
     public static ClassificationDataSet loadC(File file, double sparseRatio) throws FileNotFoundException, IOException
     {
-        return loadC(new FileReader(file), sparseRatio);
+        return loadC(file, sparseRatio, -1);
+    }
+    
+    /**
+     * Loads a new classification data set from a LIBSVM file, assuming the 
+     * label is a nominal target value
+     * 
+     * @param file the file to load
+     * @param sparseRatio the fraction of non zero values to qualify a data 
+     * point as sparse
+     * @param vectorLength the pre-determined length of each vector. If given a 
+     * negative value, the largest non-zero index observed in the data will be 
+     * used as the length. 
+     * @return a classification data set
+     * @throws FileNotFoundException if the file was not found
+     * @throws IOException if an error occurred reading the input stream
+     */
+    public static ClassificationDataSet loadC(File file, double sparseRatio, int vectorLength) throws FileNotFoundException, IOException
+    {
+        return loadC(new FileReader(file), sparseRatio, vectorLength);
     }
     
     /**
@@ -107,10 +176,29 @@ public class LIBSVMLoader
      * 
      * @param isr the input stream for the file to load
      * @param sparseRatio the fraction of non zero values to qualify a data 
+     * point as sparse
      * @return a classification data set
      * @throws IOException if an error occurred reading the input stream
      */
     public static ClassificationDataSet loadC(InputStreamReader isr, double sparseRatio) throws IOException
+    {
+        return loadC(isr, sparseRatio, -1);
+    }
+    
+    /**
+     * Loads a new classification data set from a LIBSVM file, assuming the 
+     * label is a nominal target value 
+     * 
+     * @param isr the input stream for the file to load
+     * @param sparseRatio the fraction of non zero values to qualify a data 
+     * point as sparse
+     * @param vectorLength the pre-determined length of each vector. If given a 
+     * negative value, the largest non-zero index observed in the data will be 
+     * used as the length. 
+     * @return a classification data set
+     * @throws IOException if an error occurred reading the input stream
+     */
+    public static ClassificationDataSet loadC(InputStreamReader isr, double sparseRatio, int vectorLength) throws IOException
     {
         
         BufferedReader br = new BufferedReader(isr);
