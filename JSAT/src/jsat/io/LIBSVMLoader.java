@@ -43,6 +43,20 @@ public class LIBSVMLoader
      * a numeric target value to predict
      * 
      * @param file the file to load
+     * @return a regression data set
+     * @throws FileNotFoundException if the file was not found
+     * @throws IOException if an error occurred reading the input stream
+     */
+    public static RegressionDataSet loadR(File file) throws FileNotFoundException, IOException
+    {
+        return loadR(file, 0.5);
+    }
+    
+    /**
+     * Loads a new regression data set from a LIBSVM file, assuming the label is
+     * a numeric target value to predict
+     * 
+     * @param file the file to load
      * @param sparseRatio the fraction of non zero values to qualify a data 
      * point as sparse
      * @return a regression data set
@@ -133,6 +147,20 @@ public class LIBSVMLoader
         rds.applyTransform(new DenseSparceTransform(sparseRatio));
         
         return rds;
+    }
+    
+    /**
+     * Loads a new classification data set from a LIBSVM file, assuming the 
+     * label is a nominal target value
+     * 
+     * @param file the file to load
+     * @return a classification data set
+     * @throws FileNotFoundException if the file was not found
+     * @throws IOException if an error occurred reading the input stream
+     */
+    public static ClassificationDataSet loadC(File file) throws FileNotFoundException, IOException
+    {
+        return loadC(new FileReader(file), 0.5);
     }
     
     /**
