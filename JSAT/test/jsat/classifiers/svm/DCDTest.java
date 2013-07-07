@@ -1,7 +1,3 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
 package jsat.classifiers.svm;
 
 import java.util.List;
@@ -28,6 +24,7 @@ import static org.junit.Assert.*;
  */
 public class DCDTest
 {
+    static private ExecutorService threadPool;
     
     public DCDTest()
     {
@@ -36,11 +33,13 @@ public class DCDTest
     @BeforeClass
     public static void setUpClass()
     {
+        threadPool = Executors.newFixedThreadPool(SystemInfo.LogicalCores);
     }
     
     @AfterClass
     public static void tearDownClass()
     {
+        threadPool.shutdown();
     }
     
     /**
@@ -50,7 +49,6 @@ public class DCDTest
     public void testTrainC_ClassificationDataSet_ExecutorService()
     {
         System.out.println("trainC");
-        ExecutorService threadPool = Executors.newFixedThreadPool(SystemInfo.LogicalCores);
         ClassificationDataSet train = FixedProblems.get2ClassLinear(200, new Random());
         
         DCD instance = new DCD();
@@ -60,7 +58,6 @@ public class DCDTest
         
         for(DataPointPair<Integer> dpp : test.getAsDPPList())
             assertEquals(dpp.getPair().longValue(), instance.classify(dpp.getDataPoint()).mostLikely());
-        threadPool.shutdown();
     }
 
     /**
@@ -79,6 +76,44 @@ public class DCDTest
 
         for (DataPointPair<Integer> dpp : test.getAsDPPList())
             assertEquals(dpp.getPair().longValue(), instance.classify(dpp.getDataPoint()).mostLikely());
+    }
+    
+    @Test
+    public void testTrain_RegressionDataSet_ExecutorService()
+    {
+        System.out.println("train");
+        Random rand = new Random();
+
+        DCD dcd = new DCD();
+        dcd.train(FixedProblems.getLinearRegression(400, rand), threadPool);
+
+        for (DataPointPair<Double> dpp : FixedProblems.getLinearRegression(100, rand).getAsDPPList())
+        {
+            double truth = dpp.getPair();
+            double pred = dcd.regress(dpp.getDataPoint());
+
+            double relErr = (truth - pred) / truth;
+            assertEquals(0.0, relErr, 0.1);//Give it a decent wiggle room b/c of regularization
+        }
+    }
+    
+    @Test
+    public void testTrain_RegressionDataSet()
+    {
+        System.out.println("train");
+        Random rand = new Random();
+
+        DCD dcd = new DCD();
+        dcd.train(FixedProblems.getLinearRegression(400, rand));
+
+        for (DataPointPair<Double> dpp : FixedProblems.getLinearRegression(100, rand).getAsDPPList())
+        {
+            double truth = dpp.getPair();
+            double pred = dcd.regress(dpp.getDataPoint());
+
+            double relErr = (truth - pred) / truth;
+            assertEquals(0.0, relErr, 0.1);//Give it a decent wiggle room b/c of regularization
+        }
     }
 
 }
