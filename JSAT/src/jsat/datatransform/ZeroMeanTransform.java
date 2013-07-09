@@ -21,8 +21,7 @@ public class ZeroMeanTransform implements DataTransform
     public ZeroMeanTransform(DataSet dataset)
     {
         shiftVector = new DenseVector(dataset.getNumNumericalVars());
-        for(int i = 0; i < shiftVector.length(); i++)
-            shiftVector.set(i, dataset.getNumericColumn(i).mean());
+        shiftVector = dataset.getColumnMeanVariance()[0];
     }
     
     /**

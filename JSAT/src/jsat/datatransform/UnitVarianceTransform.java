@@ -3,7 +3,6 @@ package jsat.datatransform;
 
 import jsat.DataSet;
 import jsat.classifiers.DataPoint;
-import jsat.linear.DenseVector;
 import jsat.linear.Vec;
 
 /**
@@ -18,11 +17,7 @@ public class UnitVarianceTransform implements DataTransform
     
     public UnitVarianceTransform(DataSet d)
     {
-        stndDevs = new DenseVector(d.getNumNumericalVars());
-        
-        for(int i = 0; i < d.getNumNumericalVars(); i++)
-            stndDevs.set(i, d.getNumericColumn(i).standardDeviation());
-        
+        stndDevs = d.getColumnMeanVariance()[1];
     }
     
     /**
