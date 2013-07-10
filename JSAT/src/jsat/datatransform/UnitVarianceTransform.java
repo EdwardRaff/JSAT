@@ -11,7 +11,7 @@ import jsat.linear.Vec;
  * 
  * @author Edward Raff
  */
-public class UnitVarianceTransform implements DataTransform
+public class UnitVarianceTransform implements InPlaceTransform
 {
     private Vec stndDevs;
     
@@ -33,16 +33,28 @@ public class UnitVarianceTransform implements DataTransform
     public DataPoint transform(DataPoint dp)
     {
         DataPoint newDp = dp.clone();
-        newDp.getNumericalValues().mutablePairwiseDivide(stndDevs);
+        mutableTransform(newDp);
         return newDp;
     }
+    
+    @Override
+    public void mutableTransform(DataPoint dp)
+    {
+        dp.getNumericalValues().mutablePairwiseDivide(stndDevs);
+    }
 
+    @Override
+    public boolean mutatesNominal()
+    {
+        return false;
+    }
+    
     @Override
     public DataTransform clone()
     {
         return new UnitVarianceTransform(this);
     }
-    
+
     static public class UnitVarianceTransformFactory implements DataTransformFactory
     {
         @Override

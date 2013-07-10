@@ -15,7 +15,7 @@ import jsat.linear.Vec;
  * 
  * @author Edward Raff
  */
-public class StandardizeTransform implements DataTransform
+public class StandardizeTransform implements InPlaceTransform
 {
     private Vec means;
     private Vec stdDevs;
@@ -41,10 +41,22 @@ public class StandardizeTransform implements DataTransform
     public DataPoint transform(DataPoint dp)
     {
         DataPoint newDP = dp.clone();
-        Vec toAlter = newDP.getNumericalValues();
+        mutableTransform(newDP);
+        return newDP;
+    }
+    
+    @Override
+    public void mutableTransform(DataPoint dp)
+    {
+        Vec toAlter = dp.getNumericalValues();
         toAlter.mutableSubtract(means);
         toAlter.mutablePairwiseDivide(stdDevs);
-        return newDP;
+    }
+
+    @Override
+    public boolean mutatesNominal()
+    {
+        return false;
     }
 
     @Override

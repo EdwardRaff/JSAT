@@ -1,6 +1,7 @@
 package jsat.datatransform;
 
 import jsat.DataSet;
+import jsat.classifiers.DataPoint;
 import jsat.linear.*;
 
 /**
@@ -10,8 +11,10 @@ import jsat.linear.*;
  * 
  * @author Edward Raff
  */
-public class WhitenedZCA extends WhitenedPCA
+public class WhitenedZCA extends WhitenedPCA implements InPlaceTransform
 {
+    private final ThreadLocal<Vec> tempVecs;
+    
     /**
      * Creates a new Whitened ZCA.
      * 
@@ -22,6 +25,7 @@ public class WhitenedZCA extends WhitenedPCA
     public WhitenedZCA(DataSet dataSet, double regularization)
     {
         super(dataSet, regularization);
+        tempVecs = getThreadLocal(dataSet.getNumNumericalVars());
     }
     
     /**
@@ -33,8 +37,23 @@ public class WhitenedZCA extends WhitenedPCA
     public WhitenedZCA(DataSet dataSet)
     {
         super(dataSet);
+        tempVecs = getThreadLocal(dataSet.getNumNumericalVars());
     }
-    
+
+    @Override
+    public void mutableTransform(DataPoint dp)
+    {
+        Vec target = tempVecs.get();
+        target.zeroOut();
+        transform.multiply(dp.getNumericalValues(), 1.0, target);
+        target.copyTo(dp.getNumericalValues());
+    }
+
+    @Override
+    public boolean mutatesNominal()
+    {
+        return false;
+    }
 
     @Override
     protected void setUpTransform(SingularValueDecomposition svd)
@@ -48,6 +67,19 @@ public class WhitenedZCA extends WhitenedPCA
         Matrix U = svd.getU();
         
         transform = U.multiply(Matrix.diag(diag)).multiply(U.transpose());
+    }
+
+    private ThreadLocal<Vec> getThreadLocal(final int dim)
+    {
+        return new ThreadLocal<Vec>()
+        {
+
+            @Override
+            protected Vec initialValue()
+            {
+                return new DenseVector(dim);
+            }
+        };
     }
     
     static public class WhitenedZCATransformFactory implements DataTransformFactory

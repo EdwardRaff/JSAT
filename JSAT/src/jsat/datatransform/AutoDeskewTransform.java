@@ -19,7 +19,7 @@ import jsat.utils.DoubleList;
  * preserve zeros and keep sparse inputs sparse. This is done with two passes
  * through the data set, but requires only O(D #&lambda; values) memory. 
  * <br><br>
- * The default values of &lambda; are -2, 1, -1/2, 0, 1/2, 1, 2. When using 
+ * The default values of &lambda; are -1, -1/2, 0, 1/2, 1. When using 
  * negative &lambda; values all zeros are skipped and left as zeros.  &lambda; =
  * 1 is an implicit value that is always included regardless of the input, as it
  * is equivalent to leaving the data unchanged when preserving zero values. 
@@ -31,7 +31,7 @@ import jsat.utils.DoubleList;
  * 
  * @author Edward Raff
  */
-public class AutoDeskewTransform implements DataTransform
+public class AutoDeskewTransform implements InPlaceTransform
 {
 
     private final double[] finalLambdas;
@@ -41,6 +41,8 @@ public class AutoDeskewTransform implements DataTransform
         @Override
         public double indexFunc(double value, int index)
         {
+            if(index < 0)
+                return 0.0;
             return transform(value, finalLambdas[index], mins[index]);
         }
     };
@@ -48,13 +50,11 @@ public class AutoDeskewTransform implements DataTransform
 
     static
     {
-        defaultList.add(-2.0);
         defaultList.add(-1.0);
         defaultList.add(-0.5);
         defaultList.add(0.0);
         defaultList.add(0.5);
         defaultList.add(1.0);
-        defaultList.add(2.0);
     }
 
     /**
@@ -154,7 +154,7 @@ public class AutoDeskewTransform implements DataTransform
 
             for (int k = 0; k < lambdas.size(); k++)
             {
-                double skew = Math.abs(stats[0][d].getSkewness());
+                double skew = Math.abs(stats[k][d].getSkewness());
                 if (skew < minSkew)
                 {
                     minSkew = skew;
@@ -162,7 +162,7 @@ public class AutoDeskewTransform implements DataTransform
                 }
             }
 
-            double origSkew = stats[lambdaOneIndex][d].getSkewness();
+            double origSkew = Math.abs(stats[lambdaOneIndex][d].getSkewness());
 
             if (origSkew > minSkew * 1.05)//only change if there is a reasonable improvment
                 finalLambdas[d] = bestLambda;
@@ -228,9 +228,14 @@ public class AutoDeskewTransform implements DataTransform
     public DataPoint transform(DataPoint dp)
     {
         DataPoint newDP = dp.clone();
-        Vec toAlter = newDP.getNumericalValues();
-        toAlter.applyIndexFunction(transform);
+        mutableTransform(newDP);
         return newDP;
+    }
+    
+    @Override
+    public void mutableTransform(DataPoint dp)
+    {
+        dp.getNumericalValues().applyIndexFunction(transform);
     }
 
     @Override
@@ -253,6 +258,12 @@ public class AutoDeskewTransform implements DataTransform
     {
         for (int k = 0; k < lambdas.size(); k++)
             stats[k][indx].add(transform(val, lambdas.get(k), mins[indx]), weight);
+    }
+
+    @Override
+    public boolean mutatesNominal()
+    {
+        return false;
     }
 
     static public class AutoDeskewTransformFactory implements DataTransformFactory
@@ -291,7 +302,7 @@ public class AutoDeskewTransform implements DataTransform
         @Override
         public AutoDeskewTransform getTransform(DataSet dataset)
         {
-            return new AutoDeskewTransform(dataset);
+            return new AutoDeskewTransform(dataset, true, lambdas);
         }
     }
 }

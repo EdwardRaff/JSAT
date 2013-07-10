@@ -3,8 +3,8 @@ package jsat.datatransform;
 import java.util.ArrayList;
 import java.util.List;
 import jsat.DataSet;
-import jsat.SimpleDataSet;
 import jsat.classifiers.DataPoint;
+import jsat.linear.Vec;
 
 /**
  * Performing a transform on the whole data set before training a classifier can
@@ -72,15 +72,7 @@ public class DataTransformProcess implements DataTransform
      */
     public void leanTransforms(DataSet dataSet)
     {
-        dataSet = dataSet.shallowClone();
-        learnedTransforms.clear();
-        for(DataTransformFactory dtf : transformSource)
-        {
-            DataTransform transform = dtf.getTransform(dataSet);
-            dataSet.applyTransform(transform);
-            learnedTransforms.add(transform);
-        }
-        consolidateTransforms();
+        learnApplyTransforms(dataSet.shallowClone());
     }
     
     /**
@@ -97,11 +89,53 @@ public class DataTransformProcess implements DataTransform
     public void learnApplyTransforms(DataSet dataSet)
     {
         learnedTransforms.clear();
-        for(DataTransformFactory dtf : transformSource)
+        //used to keep track if we can start using in place transforms
+        boolean vecSafe = false;
+        boolean catSafe = false;
+        int iter = 0;
+        
+        //copy original references so we can check saftey of inplace mutation later
+        Vec[] origVecs = new Vec[dataSet.getSampleSize()];
+        int[][] origCats = new int[dataSet.getSampleSize()][];
+        for (int i = 0; i < origVecs.length; i++)
+        {
+            DataPoint dp = dataSet.getDataPoint(i);
+            origVecs[i] = dp.getNumericalValues();
+            origCats[i] = dp.getCategoricalValues();
+        }
+
+        for (DataTransformFactory dtf : transformSource)
         {
             DataTransform transform = dtf.getTransform(dataSet);
-            dataSet.applyTransform(transform);
+            if(transform instanceof InPlaceTransform)
+            {
+                InPlaceTransform ipt = (InPlaceTransform) transform;
+                //check if it is safe to apply mutations
+                if(iter > 0 && !vecSafe || (ipt.mutatesNominal() && !catSafe))
+                {
+                    boolean vecClear = true, catClear = true;
+                    for (int i = 0; i < origVecs.length && (vecClear || catClear); i++)
+                    {
+                        DataPoint dp = dataSet.getDataPoint(i);
+                        vecClear = origVecs[i] != dp.getNumericalValues();
+                        catClear = origCats[i] != dp.getCategoricalValues();
+                    }
+                    
+                    vecSafe = vecClear;
+                    catSafe = catClear;
+                }
+                
+                //Now we know if we can apply the mutations or not
+                if(vecSafe && (!ipt.mutatesNominal() || catSafe))
+                    dataSet.applyTransform(ipt, true);
+                else//go back to normal
+                    dataSet.applyTransform(transform);
+            }
+            else
+                dataSet.applyTransform(transform);
+            
             learnedTransforms.add(transform);
+            iter++;
         }
         consolidateTransforms();
     }
@@ -109,8 +143,22 @@ public class DataTransformProcess implements DataTransform
     @Override
     public DataPoint transform(DataPoint dp)
     {
+        final Vec origNum = dp.getNumericalValues();
+        final int[] origCat = dp.getCategoricalValues();
         for(DataTransform dt : learnedTransforms)
+        {
+            if(dt instanceof InPlaceTransform)
+            {
+                InPlaceTransform it = (InPlaceTransform) dt;
+                //check if we can safley mutableTransform instead of allocate
+                if(origNum != dp.getNumericalValues() && (!it.mutatesNominal() || origCat != dp.getCategoricalValues()))
+                {
+                    it.mutableTransform(dp);
+                    continue;
+                }   
+            }
             dp = dt.transform(dp);
+        }
         return dp;
     }
 

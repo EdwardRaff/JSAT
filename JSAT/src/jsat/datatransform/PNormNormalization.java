@@ -11,7 +11,7 @@ import jsat.linear.Vec;
  * 
  * @author Edward Raff
  */
-public class PNormNormalization implements DataTransform
+public class PNormNormalization implements InPlaceTransform
 {
     private double p;
 
@@ -29,12 +29,23 @@ public class PNormNormalization implements DataTransform
     {
         DataPoint dpNew = dp.clone();
         
-        Vec vec = dpNew.getNumericalValues();
+        mutableTransform(dpNew);
+        return dpNew;
+    }
+        
+    @Override
+    public void mutableTransform(DataPoint dp)
+    {
+        Vec vec = dp.getNumericalValues();
         double norm = vec.pNorm(p);
         if(norm != 0)
             vec.mutableDivide(norm);
-        
-        return dpNew;
+    }
+     
+    @Override
+    public boolean mutatesNominal()
+    {
+        return false;
     }
 
     @Override

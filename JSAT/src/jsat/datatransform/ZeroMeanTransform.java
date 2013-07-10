@@ -11,7 +11,7 @@ import jsat.linear.Vec;
  * 
  * @author Edward Raff
  */
-public class ZeroMeanTransform implements DataTransform
+public class ZeroMeanTransform implements InPlaceTransform
 {
     /**
      * Shift vector stores the mean value of each variable in the original data set. 
@@ -37,16 +37,28 @@ public class ZeroMeanTransform implements DataTransform
     public DataPoint transform(DataPoint dp)
     {
         DataPoint newDP = dp.clone();
-        newDP.getNumericalValues().mutableSubtract(shiftVector);
+        mutableTransform(newDP);
         return newDP;
     }
 
+    @Override
+    public void mutableTransform(DataPoint dp)
+    {
+        dp.getNumericalValues().mutableSubtract(shiftVector);
+    }
+
+    @Override
+    public boolean mutatesNominal()
+    {
+        return false;
+    }
+    
     @Override
     public DataTransform clone()
     {
         return new ZeroMeanTransform(this);
     }
-    
+
     static public class ZeroMeanTransformFactory implements DataTransformFactory
     {
 
