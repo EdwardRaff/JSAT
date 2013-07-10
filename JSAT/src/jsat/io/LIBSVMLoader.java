@@ -14,7 +14,15 @@ import jsat.utils.DoubleList;
 /**
  * Loads a LIBSVM data file into a {@link DataSet}. LIVSM files do not indicate 
  * whether or not the target variable is supposed to be numerical or 
- * categorical, so two different loading methods are provided. 
+ * categorical, so two different loading methods are provided. For a LIBSVM file
+ * to be loaded correctly, it must match the LIBSVM spec without extensions. 
+ * <br><br>
+ * Each line should begin with a numeric value. This is either a regression 
+ * target or a class label. <br>
+ * Then, for each non zero value in the data set, a space should precede an 
+ * integer value index starting from 1 followed by a colon ":" followed by a 
+ * numeric feature value. <br> The single space at the beginning should be the 
+ * only space. There should be no double spaces in the file. 
  * <br><br>
  * LIBSVM files do not explicitly specify the length of data vectors. This can 
  * be problematic if loading a testing and training data set, if the data sets 
@@ -127,10 +135,10 @@ public class LIBSVMLoader
         
         while((line = br.readLine()) != null)
         {
-            String[] split = line.split("\\s+");
-            targets.add(parseDouble(split[0]));
+            int firstSpace = line.indexOf(' ');
+            targets.add(parseDouble(line.substring(0, firstSpace)));
             
-            maxLen = loadSparseVec(split, maxLen, sparseVecs);
+            maxLen = loadSparseVec(line, maxLen, sparseVecs, firstSpace+1);
         }
         
         if(vectorLength > 0)
@@ -228,7 +236,6 @@ public class LIBSVMLoader
      */
     public static ClassificationDataSet loadC(InputStreamReader isr, double sparseRatio, int vectorLength) throws IOException
     {
-        
         BufferedReader br = new BufferedReader(isr);
         List<SparseVector> sparceVecs = new ArrayList<SparseVector>();
         List<Double> cats = new ArrayList<Double>();
@@ -240,16 +247,19 @@ public class LIBSVMLoader
         
         while((line = br.readLine()) != null)
         {
-            String[] split = line.split("\\s+");
-            double cat = Double.parseDouble(split[0]);
+            int firstSpace = line.indexOf(' ');
+            double cat = Double.parseDouble(line.substring(0, firstSpace));
             if(!possibleCats.containsKey(cat))
                 possibleCats.put(cat, possibleCats.size());
             cats.add(cat);
             
-            maxLen = loadSparseVec(split, maxLen, sparceVecs);
+            maxLen = loadSparseVec(line, maxLen, sparceVecs, firstSpace+1);
         }
         
         CategoricalData predicting = new CategoricalData(possibleCats.size());
+        
+        if(vectorLength > 0)
+            maxLen = vectorLength;
         
         ClassificationDataSet cds = new ClassificationDataSet(maxLen, new CategoricalData[0], predicting);
         for(int i = 0; i < cats.size(); i++)
@@ -263,27 +273,26 @@ public class LIBSVMLoader
         
         return cds;
     }
-
-    /**
-     * Loads a sparse vector from a split and stores it in the sparse vector 
-     * array
-     * @param split the array of splits that contains the vector, label should 
-     * be left in the array as index 0
-     * @param maxLen the current max length seen for a vector
-     * @param sparceVecs the list to place the new vector into
-     * @return the new max length value
-     */
-    private static int loadSparseVec(String[] split, int maxLen, List<SparseVector> sparceVecs) 
+    
+    private static int loadSparseVec(String line, int maxLen, List<SparseVector> sparceVecs, int pos) 
     {
         SparseVector sv = new SparseVector(1);
-        for(int i = 1; i < split.length; i++)
+        
+        while(true)
         {
-            String[] indxVal = split[i].split(":");
-            int index = parseInt(indxVal[0])-1;
-            double val = parseDouble(indxVal[1]);
+            int colnPos = line.indexOf(':', pos+1);
+            int valPos = line.indexOf(' ', colnPos+1);
+            boolean breakOut = valPos < 0;//we reached the end of the line?
+            if(breakOut)
+                valPos = line.length();
+            int index = parseInt(line.substring(pos, colnPos))-1;
+            double val = parseDouble(line.substring(colnPos+1, valPos));
             maxLen = Math.max(maxLen, index+1);
             sv.setLength(maxLen);
             sv.set(index, val);
+            pos = valPos+1;
+            if(breakOut || pos == line.length())
+                break;
         }
         sparceVecs.add(sv);
         return maxLen;
