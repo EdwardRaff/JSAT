@@ -539,6 +539,8 @@ public class PlatSMO extends SupportVectorLearner implements BinaryScoreClassifi
         copy.tolerance = this.tolerance;
         if(this.vecs != null)
             copy.vecs = new ArrayList<Vec>(this.vecs);
+        copy.setCacheMode(this.getCacheMode());
+        copy.setCacheValue(this.getCacheValue());
         
         return copy;
     }
