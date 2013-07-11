@@ -1,5 +1,6 @@
 package jsat.datatransform;
 
+import java.util.Comparator;
 import jsat.DataSet;
 import jsat.classifiers.DataPoint;
 import jsat.linear.*;
@@ -120,7 +121,21 @@ public class WhitenedPCA implements DataTransform
      */
     private SingularValueDecomposition getSVD(DataSet dataSet)
     {
-        return new SingularValueDecomposition(covarianceMatrix(meanVector(dataSet), dataSet));
+        Matrix cov = covarianceMatrix(meanVector(dataSet), dataSet);
+        for(int i = 0; i < cov.rows(); i++)//force it to be symmetric
+            for(int j = 0; j < i; j++)
+                cov.set(j, i, cov.get(i, j));
+        EigenValueDecomposition evd = new EigenValueDecomposition(cov);
+        //Sort form largest to smallest
+        evd.sortByEigenValue(new Comparator<Double>() 
+        {
+            @Override
+            public int compare(Double o1, Double o2)
+            {
+                return -Double.compare(o1, o2);
+            }
+        });
+        return new SingularValueDecomposition(evd.getVRaw(), evd.getVRaw(), evd.getRealEigenvalues());
     }
     
 
