@@ -8,6 +8,7 @@ import java.util.Random;
 import jsat.classifiers.CategoricalData;
 import jsat.classifiers.DataPoint;
 import jsat.datatransform.DataTransform;
+import jsat.datatransform.InPlaceTransform;
 import jsat.linear.*;
 import jsat.math.OnLineStatistics;
 
@@ -83,21 +84,46 @@ public abstract class DataSet
     }
         
     /**
-     * Applies the given transformation to all points in this data set
+     * Applies the given transformation to all points in this data set, 
+     * replacing each data point with the new value. No mutation of the data 
+     * points will occur
+     * 
      * @param dt the transformation to apply
      */
     public void applyTransform(DataTransform dt)
     {
-        for(int i = 0; i < getSampleSize(); i++)
-            setDataPoint(i, dt.transform(getDataPoint(i)));
+        applyTransform(dt, false);
+    }
+
+    /**
+     * Applies the given transformation to all points in this data set. If the
+     * transform supports mutating the original data points, this will be
+     * applied if {@code mutableTransform} is set to {@code true}
+     *
+     * @param dt the transformation to apply
+     * @param mutableTransform {@code true} to mutableTransform the original data points,
+     * {@code false} to ignore the ability to mutableTransform and replace the original
+     * data points.
+     */
+    public void applyTransform(DataTransform dt, boolean mutate)
+    {
+        if (mutate && dt instanceof InPlaceTransform)
+        {
+            InPlaceTransform ipt = (InPlaceTransform) dt;
+            for (int i = 0; i < getSampleSize(); i++)
+                ipt.mutableTransform(getDataPoint(i));
+        }
+        else
+            for (int i = 0; i < getSampleSize(); i++)
+                setDataPoint(i, dt.transform(getDataPoint(i)));
         //TODO this should be added to DataTransform
         numNumerVals = getDataPoint(0).numNumericalValues();
         categories = getDataPoint(0).getCategoricalData();
-        if(this.numericalVariableNames != null)
+        if (this.numericalVariableNames != null)
         {
             this.numericalVariableNames.clear();
-            for(int i = 0; i < getNumNumericalVars(); i++)
-                numericalVariableNames.add("Transformed Numeric Variable " + (i+1));
+            for (int i = 0; i < getNumNumericalVars(); i++)
+                numericalVariableNames.add("TN" + (i + 1));
         }
     }
     
