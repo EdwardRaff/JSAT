@@ -227,6 +227,57 @@ public abstract class DataSet
     }
     
     /**
+     * Creates an array of {@link #getNumNumericalVars() D} vectors, where each
+     * vector has length {@link #getSampleSize() N}. These vectors are the 
+     * numeric values of the data set stored in column major order. This is most
+     * useful when a data set is sparse, and column strides would take <i>
+     * O(log(D))</i> time. This allows traversing the non-zeros in constant time
+     * as column vectors. 
+     * <br><br>
+     * This requires allocation of the new vectors, and will take up space 
+     * comparable to the size of the original data set. 
+     * @return 
+     */
+    public Vec[] getColumnMajorVecs()
+    {
+        final int N = getSampleSize();
+        int denseCount = 0;
+        int[] nnz = new int[getNumNumericalVars()];
+        Vec[] columns = new Vec[nnz.length];
+        //First pass to figure out nnz
+        for (int i = 0; i < N; i++)
+        {
+            Vec x_i = getDataPoint(i).getNumericalValues();
+            if (x_i.isSparse())
+                for (IndexValue iv : x_i)
+                    nnz[iv.getIndex()]++;
+            else
+                denseCount++;
+        }
+
+        //Add dense counds and determin if the column is sparse or dense
+        for (int j = 0; j < nnz.length; j++)
+        {
+            nnz[j] += denseCount;
+
+            if (nnz[j] > N / 2)
+                columns[j] = new DenseVector(N);
+            else
+                columns[j] = new SparseVector(N, nnz[j]);
+        }
+
+        //Now fill the columns 
+        for (int i = 0; i < N; i++)
+        {
+            Vec x_i = getDataPoint(i).getNumericalValues();
+            for(IndexValue iv : x_i)
+                columns[iv.getIndex()].set(i, iv.getValue());
+        }
+
+        return columns;
+    }
+
+    /**
      * Returns an iterator that will iterate over all data points in the set. 
      * The behavior is not defined if one attempts to modify the data set 
      * while being iterated.
