@@ -93,11 +93,19 @@ public class SingularValueDecomposition implements Cloneable, Serializable
         }
     }
     
-    private SingularValueDecomposition(Matrix U, Matrix V, double[] s)
+    /**
+     * Sets the values for a SVD explicitly. This is not a copy constructor, and
+     * will hold the given values. 
+     * 
+     * @param U the U matrix of an SVD
+     * @param V the V matrix of an SVD
+     * @param s the singular sorted by magnitude of an SVD
+     */
+    public SingularValueDecomposition(Matrix U, Matrix V, double[] s)
     {
-        this.U = U.clone();
-        this.V = V.clone();
-        this.s = Arrays.copyOf(s, s.length);
+        this.U = U;
+        this.V = V;
+        this.s = s;
     }
 
     private void bidiagonalize(int nct, int nrt, int m, Matrix A, int n, double[] e, double[] work)
@@ -770,6 +778,6 @@ public class SingularValueDecomposition implements Cloneable, Serializable
     @Override
     public SingularValueDecomposition clone() 
     {
-        return new SingularValueDecomposition(U, V, s);
+        return new SingularValueDecomposition(U.clone(), V.clone(), Arrays.copyOf(s, s.length));
     }
 }
