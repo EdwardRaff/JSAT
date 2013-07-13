@@ -3,6 +3,7 @@ package jsat.linear;
 
 import java.io.Serializable;
 import static java.lang.Math.*;
+import java.util.Arrays;
 import java.util.Iterator;
 import java.util.Random;
 import jsat.math.Function;
@@ -339,7 +340,12 @@ public abstract class Vec implements Cloneable, Iterable<IndexValue>, Serializab
      * Returns a copy of this array with the values moved around so that they are in sorted order
      * @return a new array in sorted order
      */
-    abstract public Vec sortedCopy();
+    public Vec sortedCopy()
+    {
+        double[] arrayCopy = arrayCopy();
+        Arrays.sort(arrayCopy);
+        return new DenseVector(arrayCopy);
+    }
 
     /**
      * Returns the minimum value stored in this vector
