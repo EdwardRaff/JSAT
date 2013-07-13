@@ -751,24 +751,36 @@ public abstract class Vec implements Cloneable, Iterable<IndexValue>, Serializab
     @Override
     public Iterator<IndexValue> iterator()
     {
-        return getNonZeroIterator();
+        return getNonZeroIterator(0);
     }
     
     /**
-     * Returns an iterator that will go over the non zero values in the given vector. The iterator does not 
-     * support the {@link Iterator#remove() } method. Note, that values with zero are permissible to be 
-     * returned by this method. Dense structures that do not retain this information, and may have few 
-     * zeros, are allowed to return them. Structures that are aware of sparseness are expected to 
-     * return only the non zero values for speed efficency.
+     * Returns an iterator that will go over the non zero values in the given 
+     * vector. The iterator does not support the {@link Iterator#remove() }
+     * method. 
      * 
      * @return an iterator for the non zero index value pairs. 
      */
     public Iterator<IndexValue> getNonZeroIterator()
     {
+        return getNonZeroIterator(0);
+    }
+    
+    /**
+     * Returns an iterator that will go over the non zero values starting from 
+     * the specified index in the given vector. The iterator does not support 
+     * the {@link Iterator#remove() } method. 
+     * 
+     * @param start the first index (inclusive) to start returning non-zero 
+     * values from
+     * @return an iterator for the non zero index value pairs
+     */
+    public Iterator<IndexValue> getNonZeroIterator(int start)
+    {
         //Need a little class magic
         final Vec magic = this;
         int i;
-        for(i = 0; i < magic.length(); i++)
+        for(i = start; i < magic.length(); i++)
             if(magic.get(i) != 0.0)
                 break;
         final int fnz = (magic.length() == 0 || magic.length() <= i || magic.get(i) == 0.0 ) ? -1 : i;

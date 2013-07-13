@@ -305,8 +305,9 @@ public class SparseVector extends  Vec
 
         double sum = 0;
         double c = 0;
-        for(double d : values)
+        for(int i = 0; i < used; i++)
         {
+            double d = values[i];
             double y = d - c;
             double t = sum+y;
             c = (t - sum) - y;
@@ -328,10 +329,12 @@ public class SparseVector extends  Vec
         double N = length();
 
 
-        for(double x : values)
-            tmp += Math.pow(x-mu, 2)/N;
+        for(int i = 0; i < used; i++)
+            tmp += Math.pow(values[i]-mu, 2);
         //Now add all the zeros into it
-        tmp +=  (length()-used) * Math.pow(0-mu, 2)/N;
+        tmp +=  (length()-used) * Math.pow(0-mu, 2);
+        if(N > 1)
+            tmp /= (N-1);
         
         return (varianceCache = tmp);
     }
@@ -350,15 +353,22 @@ public class SparseVector extends  Vec
     {
         double mean = mean();
         
-        double tmp = 0;
+        double numer = 0, denom = 0;
         
         for(int i = 0; i < used; i++)
-            tmp += pow(values[i]-mean, 3);
+        {
+            numer += pow(values[i]-mean, 3);
+            denom += pow(values[i]-mean, 2);
+        }
         
         //All the zero's we arent storing
-        tmp += pow(-mean, 3)*(length-used);
+        numer += pow(-mean, 3)*(length-used);
+        denom += pow(-mean, 2)*(length-used);
         
-        double s1 = tmp / (pow(standardDeviation(), 3) * (length-1) );
+        numer /= length;
+        denom /= length;
+        
+        double s1 = numer / (pow(denom, 3.0/2.0) );
         
         if(length >= 3)//We can use the bias corrected formula
             return sqrt(length*(length-1))/(length-2)*s1;
@@ -372,14 +382,22 @@ public class SparseVector extends  Vec
         double mean = mean();
         
         double tmp = 0;
+        double var = 0;
         
         for(int i = 0; i < used; i++)
+        {
             tmp += pow(values[i]-mean, 4);
+            var += pow(values[i]-mean, 2);
+        }
         
         //All the zero's we arent storing
         tmp += pow(-mean, 4)*(length-used);
+        var += pow(-mean, 2)*(length-used);
         
-        return tmp / (pow(standardDeviation(), 4) * (length-1) ) - 3;
+        tmp /= length;
+        var /= length;
+        
+        return tmp / pow(var, 2)  - 3;
     }
 
     @Override
@@ -637,7 +655,7 @@ public class SparseVector extends  Vec
     }
     
     @Override
-    public Vec clone()
+    public SparseVector clone()
     {
         SparseVector copy = new SparseVector(length, Math.max(used, 10));
         
@@ -797,17 +815,31 @@ public class SparseVector extends  Vec
     }
 
     @Override
-    public Iterator<IndexValue> getNonZeroIterator()
+    public Iterator<IndexValue> getNonZeroIterator(final int start)
     {
+        final int startPos;
+        if(start <= indexes[0])
+            startPos = 0;
+        else
+        {
+            int tmpIndx = Arrays.binarySearch(indexes, 0, used, start);
+            if(tmpIndx >= 0)
+                startPos = tmpIndx;
+            else
+                startPos = -(tmpIndx)-1;
+        }
         Iterator<IndexValue> itor = new Iterator<IndexValue>() 
         {
-            int curUsedPos = 0;
+            int curUsedPos = startPos;
             IndexValue indexValue = new IndexValue(-1, Double.NaN);
+            
+            @Override
             public boolean hasNext()
             {
                 return curUsedPos < used;
             }
 
+            @Override
             public IndexValue next()
             {
                 indexValue.setIndex(indexes[curUsedPos]);
@@ -815,6 +847,7 @@ public class SparseVector extends  Vec
                 return indexValue;
             }
 
+            @Override
             public void remove()
             {
                 throw new UnsupportedOperationException("Not supported yet.");
