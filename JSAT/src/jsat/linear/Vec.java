@@ -10,7 +10,15 @@ import jsat.math.Function;
 import jsat.math.IndexFunction;
 
 /**
- * Provides the contract for a numerical vector. 
+ * Vec is a object representing the math concept of a vector. A vector could be 
+ * either sparse or dense, where sparse vectors have a high number of zero 
+ * values that are not explicitly stored. 
+ * <br><br>
+ * This abstract class provides a large number of pre-implemented methods. Some 
+ * of which are implemented only for a dense vector, or may not be completely 
+ * efficient for the underlying implementation. Methods that should be 
+ * considered for overloading by an implementation will be indicated in the
+ * documentation. 
  * 
  * @author Edward Raff
  */
@@ -257,16 +265,36 @@ public abstract class Vec implements Cloneable, Iterable<IndexValue>, Serializab
     /**
      * Alters this vector such that 
      * <tt>this</tt> = <tt>this</tt> + <tt>c</tt>
+     * <br><br>
+     * This method should be overloaded for a serious implementation. 
+     * 
      * @param c a scalar constant to add to each value in this vector
      */
-    abstract public void mutableAdd(double c);
+    public void mutableAdd(double c)
+    {
+        for(int i = 0; i < length(); i++)
+            increment(i, c);
+    }
     /**
      * Alters this vector such that 
      * <tt>this</tt> = <tt>this</tt> + <tt>c</tt> * <tt>b</tt>
+     * <br><br>
+     * This method should be overloaded for a serious implementation. 
+     * 
      * @param c a scalar constant
      * @param b the vector to add to this
      */
-    abstract public void mutableAdd(double c, Vec b);
+    public void mutableAdd(double c, Vec b)
+    {
+        if(length() != b.length())
+            throw new ArithmeticException("Vectors must have the same length, not " + length() + " and " + b.length());
+        if(b.isSparse())
+            for(IndexValue iv : b)
+                increment(iv.getIndex(), c*iv.getValue());
+        else
+            for(int i = 0; i < length(); i++)
+                increment(i, c*b.get(i));
+    }
     
     /**
      * Alters this vector such that
@@ -314,27 +342,61 @@ public abstract class Vec implements Cloneable, Iterable<IndexValue>, Serializab
     
     /**
      * Mutates {@code this} by multiplying each value by the value in {@code b} 
-     * that has the same index
+     * that has the same index. 
+     * <br><br>
+     * This method should be overloaded for a serious implementation. 
+     * 
      * @param b the vector to pairwise multiply by
      */
-    abstract public void mutablePairwiseMultiply(Vec b);
+    public void mutablePairwiseMultiply(Vec b)
+    {
+        if(length() != b.length())
+            throw new ArithmeticException("Vector lengths do not agree " + length() + " vs " + b.length());
+        for(int i = 0; i < length(); i++)
+            set(i, get(i)*b.get(i));
+    }
+    
     /**
      * Mutates {@code this *= c} 
+     * <br><br>
+     * This method should be overloaded for a serious implementation. 
+     * 
      * @param c the constant to multiply by
      */
-    abstract public void mutableMultiply(double c);
+    public void mutableMultiply(double c)
+    {
+        for(int i = 0; i < length(); i++)
+            set(i, get(i)*c);
+    }
+    
     /**
      * Mutates {@code this} by dividing each value by the value in {@code b} 
      * that has the same index 
+     * <br><br>
+     * This method should be overloaded for a serious implementation. 
+     * 
      * @param b the vector to pairwise divide by
      */
-    abstract public void mutablePairwiseDivide(Vec b);
+    public void mutablePairwiseDivide(Vec b)
+    {
+        if(length() != b.length())
+            throw new ArithmeticException("Vector lengths do not agree " + length() + " vs " + b.length());
+        for(int i = 0; i < length(); i++)
+            set(i, get(i)/b.get(i));
+    }
     
     /**
      * Mutates {@code this /= c}
+     * <br><br>
+     * This method should be overloaded for a serious implementation. 
+     * 
      * @param c the constant to divide by
      */
-    abstract public void mutableDivide(double c);
+    public void mutableDivide(double c)
+    {
+        for(int i = 0; i < length(); i++)
+            set(i, get(i)/c);
+    }
 
     /**
      * Returns a copy of this array with the values moved around so that they are in sorted order
@@ -604,6 +666,9 @@ public abstract class Vec implements Cloneable, Iterable<IndexValue>, Serializab
     
     /**
      * Applies the given function to each and every value in the vector. 
+     * <br><br>
+     * This method should be overloaded for a serious implementation. 
+     * 
      * @param f the single variable function to apply
      */
     public void applyFunction(Function f)
@@ -625,6 +690,8 @@ public abstract class Vec implements Cloneable, Iterable<IndexValue>, Serializab
      * value when given a negative index. 
      * <br><br>
      * IE: f(value_i, i) = x 
+     * <br><br>
+     * This method should be overloaded for a serious implementation. 
      * 
      * @param f the 2 dimensional index function to apply 
      */
@@ -714,11 +781,74 @@ public abstract class Vec implements Cloneable, Iterable<IndexValue>, Serializab
     }
     
     /**
+     * Computes the dot product between two vectors, which is equivalent to<br>
+     * <big>&Sigma;</big> this<sub>i</sub>*v<sub>i</sub>
+     * <br><br>
+     * This method should be overloaded for a serious implementation. 
      * 
      * @param v the other vector
-     * @return  the dot product of this vector and another
+     * @return the dot product of this vector and another
      */
-    abstract public double dot(Vec v);
+    public double dot(Vec v)
+    {
+        double dot = 0;
+        if(!this.isSparse() && v.isSparse())
+            for(IndexValue iv : v)
+                dot += get(iv.getIndex())*iv.getValue();
+        else if(this.isSparse() && !v.isSparse())
+            for(IndexValue iv : this)
+                dot += iv.getValue()*v.get(iv.getIndex());
+        else if(this.isSparse() && v.isSparse())
+        {
+            Iterator<IndexValue> aIter = this.getNonZeroIterator();
+            Iterator<IndexValue> bIter = this.getNonZeroIterator();
+            
+            if(this.nnz() == 0 || v.nnz() == 0)
+                return 0;//All zeros? dot is zer
+            
+            //each must have at least one
+            IndexValue aCur = aIter.next();
+            IndexValue bCur = bIter.next();
+            
+            while(aCur != null && bCur != null)//set to null when have none left
+            {
+                if(aCur.getIndex() == bCur.getIndex())
+                {
+                    dot += aCur.getValue()*bCur.getValue();
+                    if(aIter.hasNext())
+                        aCur = aIter.next();
+                    else
+                        aCur = null;
+                    
+                    if(bIter.hasNext())
+                        bCur = aIter.next();
+                    else
+                        bCur = null;
+                }
+                else if(aCur.getIndex() < bCur.getIndex())
+                {
+                    //Move a over to try and get the indecies equal
+                    if(aIter.hasNext())
+                        aCur = aIter.next();
+                    else
+                        aCur = null;
+                }
+                else//b is too small, move it over and try to get them lined up
+                {
+                    if(bIter.hasNext())
+                        bCur = aIter.next();
+                    else
+                        bCur = null;
+                }
+            }
+            
+        }
+        else
+            for(int i = 0; i < length(); i++)
+                dot += get(i)*v.get(i);
+        
+        return dot;
+    }
 
     @Override
     public String toString()
@@ -838,6 +968,8 @@ public abstract class Vec implements Cloneable, Iterable<IndexValue>, Serializab
      * Returns an iterator that will go over the non zero values starting from 
      * the specified index in the given vector. The iterator does not support 
      * the {@link Iterator#remove() } method. 
+     * <br><br>
+     * This method should be overloaded for a serious implementation. 
      * 
      * @param start the first index (inclusive) to start returning non-zero 
      * values from
@@ -897,6 +1029,8 @@ public abstract class Vec implements Cloneable, Iterable<IndexValue>, Serializab
     
     /**
      * Zeroes out all values in this vector
+     * <br><br>
+     * This method should be overloaded for a serious implementation. 
      */
     public void zeroOut()
     {
