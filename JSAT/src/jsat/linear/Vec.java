@@ -317,14 +317,50 @@ public abstract class Vec implements Cloneable, Iterable<IndexValue>, Serializab
 
     /**
      * Returns the minimum value stored in this vector
+     *
      * @return the minimum value in this vector
      */
-    abstract public double min();
+    public double min()
+    {
+        if (isSparse() && nnz() < length())
+        {
+            double min = 0.0;
+            for (IndexValue iv : this)
+                min = Math.min(min, iv.getValue());
+            return min;
+        }
+        else
+        {
+            double min = get(0);
+            for (int i = 1; i < length(); i++)
+                min = Math.min(min, get(i));
+            return min;
+        }
+    }
+
     /**
      * Returns the maximum value stored in this vector
+     *
      * @return the maximum value in this vector
      */
-    abstract public double max();
+    public double max()
+    {
+        if (isSparse() && nnz() < length())
+        {
+            double max = 0.0;
+            for (IndexValue iv : this)
+                max = Math.max(max, iv.getValue());
+            return max;
+        }
+        else
+        {
+            double max = get(0);
+            for (int i = 1; i < length(); i++)
+                max = Math.max(max, get(i));
+            return max;
+        }
+    }
+    
     /**
      * Computes the sum of the values in this vector
      * @return the sum of this vector's values
