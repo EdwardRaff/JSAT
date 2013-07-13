@@ -200,7 +200,33 @@ public abstract class Vec implements Cloneable, Iterable<IndexValue>, Serializab
      * @param A the matrix to multiple by
      * @param b the vector to mutate by adding the result to
      */
-    abstract public void multiply(double c, Matrix A, Vec b);
+    public void multiply(double c, Matrix A, Vec b)
+    {
+        if (this.length() != A.rows())
+            throw new ArithmeticException("Vector x Matrix dimensions do not agree [1," + this.length() + "] x [" + A.rows() + ", " + A.cols() + "]");
+        if (b.length() != A.cols())
+            throw new ArithmeticException("Destination vector is not the right size");
+        
+        if (isSparse())
+        {
+            for (int i = 0; i < this.length(); i++)
+            {
+                double this_i = c * get(i);
+                for (int j = 0; j < A.cols(); j++)
+                    b.increment(j, this_i * A.get(i, j));
+            }
+        }
+        else
+        {
+            for (IndexValue iv : this)
+            {
+                final int i = iv.getIndex();
+                double this_i = c * iv.getValue();
+                for (int j = 0; j < A.cols(); j++)
+                    b.increment(j, this_i * A.get(i, j));
+            }
+        }
+    }
     
     /**
      * Returns a new vector that is the result of dividing each value in 
