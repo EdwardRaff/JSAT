@@ -102,6 +102,26 @@ public class SubMatrix extends GenericMatrix
     }
 
     @Override
+    public Vec getRowView(int r)
+    {
+        if(r >= rows())
+            throw new IndexOutOfBoundsException("Can not access row " + r + " of " + rows() +" by " + cols() + " matrix");
+        Vec origVec = baseMatrix.getRowView(r-firstRow);
+        
+        return new SubVector(firstColumn, toCol-firstColumn, origVec);
+    }
+
+    @Override
+    public Vec getColumnView(int j)
+    {
+        if(j >= cols())
+            throw new IndexOutOfBoundsException("Can not access column " + j + " of " + rows() +" by " + cols() + " matrix");
+        Vec origVec = baseMatrix.getColumnView(j-firstColumn);
+        
+        return new SubVector(firstRow, toRow-firstRow, origVec);
+    }
+
+    @Override
     public int rows()
     {
         return toRow-firstRow;
@@ -116,7 +136,7 @@ public class SubMatrix extends GenericMatrix
     @Override
     public boolean isSparce()
     {
-        return false;
+        return baseMatrix.isSparce();
     }
     
 }

@@ -580,6 +580,12 @@ public class DenseMatrix extends GenericMatrix
         for(int i = 0; i < rows(); i++)
             Arrays.fill(matrix[i], 0);
     }
+
+    @Override
+    public Vec getRowView(int r)
+    {
+        return new DenseVector(matrix[r]);
+    }
     
     @Override
     public Matrix[] lup()

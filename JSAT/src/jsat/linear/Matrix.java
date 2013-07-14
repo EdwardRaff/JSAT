@@ -562,6 +562,54 @@ public abstract class Matrix implements Cloneable, Serializable
     }
     
     /**
+     * Obtains a vector that is backed by <i>this</i>, at very little memory 
+     * cost. Mutations to this vector will alter the values stored in the 
+     * matrix, and vice versa. 
+     * 
+     * @param j the column to obtain a view of
+     * @return a vector backed by the specified row of the matrix
+     */
+    public Vec getColumnView(final int j)
+    {
+        final Matrix M = this;
+        return new Vec() 
+        {
+            @Override
+            public int length()
+            {
+                return rows();
+            }
+
+            @Override
+            public double get(int index)
+            {
+                return M.get(index, j);
+            }
+
+            @Override
+            public void set(int index, double val)
+            {
+                M.set(index, j, val);
+            }
+
+            @Override
+            public boolean isSparse()
+            {
+                return M.isSparce();
+            }
+
+            @Override
+            public Vec clone()
+            {
+                if(M.isSparce())
+                    return new SparseVector(this);
+                else
+                    return new DenseVector(this);
+            }
+        };
+    }
+    
+    /**
      * Creates a vector that has a copy of the values in row <i>i</i> of this 
      * matrix. Altering it will not effect the values in <i>this</i> matrix.  
      * @param r the row to copy
@@ -575,6 +623,55 @@ public abstract class Matrix implements Cloneable, Serializable
         for(int j =0; j < cols(); j++)
             c.set(j, get(r, j));
         return c;
+    }
+    
+    /**
+     * Obtains a vector that is backed by <i>this</i>, at very little memory 
+     * cost. Mutations to this vector will alter the values stored in the 
+     * matrix, and vice versa. 
+     * 
+     * @param r the row to obtain a view of
+     * @return a vector backed by the specified row of the matrix
+     */
+    public Vec getRowView(final int r)
+    {
+        final Matrix M = this;
+        return new Vec() 
+        {
+
+            @Override
+            public int length()
+            {
+                return M.cols();
+            }
+
+            @Override
+            public double get(int index)
+            {
+                return M.get(r, index);
+            }
+
+            @Override
+            public void set(int index, double val)
+            {
+                M.set(r, index, val);
+            }
+
+            @Override
+            public boolean isSparse()
+            {
+                return M.isSparce();
+            }
+
+            @Override
+            public Vec clone()
+            {
+                if(M.isSparce())
+                    return new SparseVector(this);
+                else
+                    return new DenseVector(this);
+            }
+        };
     }
     
     @Override
