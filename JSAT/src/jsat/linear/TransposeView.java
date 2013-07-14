@@ -17,6 +17,18 @@ public class TransposeView extends GenericMatrix
     {
         this.base = base;
     }
+
+    @Override
+    public Vec getColumnView(int j)
+    {
+        return base.getRowView(j);
+    }
+
+    @Override
+    public Vec getRowView(int r)
+    {
+        return base.getColumnView(r);
+    }
     
     @Override
     protected Matrix getMatrixOfSameType(int rows, int cols)
