@@ -17,7 +17,18 @@ import jsat.utils.FakeExecutor;
 
 /**
  *
- * Naive Bayes (Multinomial) classifier. Naive Bayes assumes that all attributes are perfectly independent.
+ * Provides an implementation of the Naive Bayes classifier that assumes numeric
+ * features come from some continuous probability distribution. By default this 
+ * implementation restricts itself to only the {@link Normal Gaussian} 
+ * distribution, and becomes Gaussian Naive Bayes. Other distributions are 
+ * supported, and a {@link KernelDensityEstimator} can be used as well. 
+ * <br><br>
+ * By default, this implementation assumes that the input vectors are sparse 
+ * and the distribution will only be estimated by the non-zero values, and 
+ * features that are zero will be ignored during prediction time. This should be
+ * turned off when using dense data by calling {@link #setSparceInput(boolean) }
+ * <br><br>
+ * Naive Bayes assumes that all attributes are perfectly independent.
  * 
  * @author Edward Raff
  */
@@ -106,69 +117,22 @@ public class NaiveBayes implements Classifier, Parameterized
         abstract protected Distribution fit(Vec y);
     }
     
-    private List<Parameter> parameters = Collections.unmodifiableList(new ArrayList<Parameter>(3)
-    {{
-            add(new ObjectParameter<NumericalHandeling>() {
-
-                @Override
-                public NumericalHandeling getObject()
-                {
-                    return getNumericalHandling();
-                }
-
-                @Override
-                public boolean setObject(NumericalHandeling obj)
-                {
-                    if(obj == null)
-                        return false;
-                    setNumericalHandling(obj);
-                    return true;
-                }
-
-                @Override
-                public List<NumericalHandeling> parameterOptions()
-                {
-                    return Arrays.asList(NumericalHandeling.values());
-                }
-
-                @Override
-                public String getASCIIName()
-                {
-                    return "Numerical Handeling";
-                }
-
-            });
-            
-            add(new BooleanParameter() {
-
-                @Override
-                public boolean getValue()
-                {
-                    return isSparceInput();
-                }
-
-                @Override
-                public boolean setValue(boolean val)
-                {
-                    setSparceInput(val);
-                    return true;
-                }
-
-                @Override
-                public String getASCIIName()
-                {
-                    return "Sparce Input";
-                }
-            });
-    }});
-    
+    private List<Parameter> parameters = Collections.unmodifiableList(Parameter.getParamsFromMethods(this));
     private Map<String, Parameter> parameterMap = Parameter.toParameterMap(parameters);
 
+    /**
+     * Creates a new Naive Bayes classifier that uses the specific method for 
+     * handling numeric features.
+     * @param numericalHandling the method to use for numeric features
+     */
     public NaiveBayes(NumericalHandeling numericalHandling)
     {
         this.numericalHandling = numericalHandling;
     }
 
+    /**
+     * Creates a new Gaussian Naive Bayes classifier 
+     */
     public NaiveBayes()
     {
         this(defaultHandling);

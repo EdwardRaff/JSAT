@@ -10,6 +10,12 @@ import jsat.exceptions.FailedToFitException;
  * on one other feature besides the target class. Because of this extra 
  * dependence requirement, the implementation only allows for categorical 
  * features. 
+ * <br>
+ * This class is primarily for use by {@link AODE}
+ * <br><br> 
+ * See: Webb, G., & Boughton, J. (2005). <i>Not so naive bayes: Aggregating 
+ * one-dependence estimators</i>. Machine Learning, 1–24. Retrieved from 
+ * <a href="http://www.springerlink.com/index/U8W306673M1P866K.pdf">here</a>
  * 
  * @author Edward Raff
  */

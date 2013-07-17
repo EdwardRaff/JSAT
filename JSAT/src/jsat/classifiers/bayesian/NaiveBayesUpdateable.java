@@ -11,9 +11,9 @@ import static java.lang.Math.*;
 import jsat.math.MathTricks;
 
 /**
- * An implementation of Naive Bayes that can be updated in an online fashion. 
- * The ability to be updated comes at the cost to slower training and 
- * classification time. However NB was already very fast, so the difference is 
+ * An implementation of Gaussian Naive Bayes that can be updated in an online 
+ * fashion. The ability to be updated comes at the cost to slower training and 
+ * classification time. However NB is already very fast, so the difference is 
  * not significant. <br>
  * The more advanced distribution detection of {@link NaiveBayes} is not 
  * possible in online form. 

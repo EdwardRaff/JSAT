@@ -14,6 +14,10 @@ import jsat.exceptions.FailedToFitException;
  * result.  The construction time is <i>O(n d<sup>2</sup>)</i>. Because of this 
  * extra dependence requirement, the implementation only allows for categorical 
  * features. <br>
+ * <br>
+ * See: Webb, G., & Boughton, J. (2005). <i>Not so naive bayes: Aggregating 
+ * one-dependence estimators</i>. Machine Learning, 1–24. Retrieved from 
+ * <a href="http://www.springerlink.com/index/U8W306673M1P866K.pdf">here</a>
  * 
  * @author Edward Raff
  */

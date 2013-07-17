@@ -18,7 +18,7 @@ import jsat.exceptions.FailedToFitException;
 import jsat.exceptions.UntrainedModelException;
 
 /**
- * The conditional probability table (CPT) is a classifier for categorical attributes. exponentialyIt builds the whole
+ * The conditional probability table (CPT) is a classifier for categorical attributes. It builds the whole
  * conditional probability table for a data set. The size of the CPT grows exponentially with the number of dimensions and options,
  * and requires exponentially more data to get a good fit. CPTs can be useful for small data sets, or as a building 
  * block for another algorithm
