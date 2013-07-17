@@ -343,7 +343,7 @@ public abstract class Matrix implements Cloneable, Serializable
      * Creates a new Matrix that stores <i>A*c</i>
      * @param c the scalar constant to multiply by
      * @param threadPool the source of threads to do computation in parallel
-     * @return 
+     * @return a new matrix equal to <i>A*c</i>
      */
     public Matrix multiply(double c, ExecutorService threadPool)
     {

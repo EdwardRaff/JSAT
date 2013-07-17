@@ -59,7 +59,7 @@ public class NaiveBayes implements Classifier, Parameterized
     public enum NumericalHandeling 
     {
         /**
-         * All numerical attributes are fit to a {@link NORMAL} distribution. 
+         * All numerical attributes are fit to a {@link Normal} distribution. 
          */
         NORMAL
         {

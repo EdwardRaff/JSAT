@@ -1058,7 +1058,7 @@ public abstract class Vec implements Cloneable, Iterable<IndexValue>, Serializab
      *   <br>
      *   return 31* result + length();<br>
      * </code></p>
-     * @return 
+     * @return the hash code for a vector
      */
     @Override
     public int hashCode()

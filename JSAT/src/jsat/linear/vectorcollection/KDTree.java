@@ -215,7 +215,7 @@ public class KDTree<V extends Vec> implements VectorCollection<V>
      * @param depth recursion depth
      * @param threadpool threadpool source. Null is accepted, and means it will be done immediately 
      * @param mcdl used to wait on for the original caller, only needed when threadpool is non null
-     * @return 
+     * @return the root tree node for the given set of data
      */
     private KDNode buildTree(final List<Integer> data, final int depth, final ExecutorService threadpool, final ModifiableCountDownLatch mcdl)
     {

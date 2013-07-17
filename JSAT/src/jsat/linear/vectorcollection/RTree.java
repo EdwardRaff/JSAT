@@ -838,9 +838,9 @@ public class RTree<V extends Vec> implements VectorCollection<V>
     
     /**
      * The minium distance from a query point to the given rectangle 
-     * @param p
-     * @param r
-     * @return 
+     * @param p the query point
+     * @param r the rectangle compute the distance to
+     * @return the minimum distance from the point to the rectangle
      */
     private double minDist(Vec p, Rectangle r)
     {
@@ -863,9 +863,9 @@ public class RTree<V extends Vec> implements VectorCollection<V>
     
     /**
      * The minimum of the maximum possible distance from the query to the rectangle 
-     * @param p
-     * @param r
-     * @return 
+     * @param p the query point
+     * @param r the rectangle compute the distance to
+     * @return the minimum of the maximum distance from the point to the rectangle
      */
     private double minMaxDist(Vec p, Rectangle r)
     {
@@ -909,9 +909,9 @@ public class RTree<V extends Vec> implements VectorCollection<V>
     
     /**
      * The maximal distance possible between the query point and the edge of the given rectangle farthest from the point. 
-     * @param p
-     * @param r
-     * @return 
+     * @param p the query point
+     * @param r the rectangle compute the distance to
+     * @return the maximum distance from the point to the rectangle
      */
     private double maxDist(Vec p, Rectangle r)
     {

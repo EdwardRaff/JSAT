@@ -23,7 +23,6 @@ public abstract class WordWeighting extends IndexFunction
      * called once before being applied to any vectors. Different WordWeightings
      * may require different amounts of computation to set up. 
      * 
-     * @param toAlter the vector to apply weighting to 
      * @param allDocuments the list of all vectors that make up the set of 
      * documents. The word vectors should be unmodified, containing the value of
      * how many times a word appeared in the document for each index. 

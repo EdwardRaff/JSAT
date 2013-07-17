@@ -82,7 +82,8 @@ public class BestClassDistribution implements Classifier, Parameterized
 
     /**
      * Returns whether or not this object uses the prior probabilities for classification. 
-     * @return 
+     * @return {@code true} if the prior probabilities are being used, 
+     * {@code false} if not. 
      */
     public boolean useusPriors()
     {

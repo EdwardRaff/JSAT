@@ -67,7 +67,7 @@ public abstract class RandomVector extends Vec
     
     /**
      * Computes the value of an index given the already initialized 
-     * {@link Random} object. This is called by the {@link #get(int, int) } 
+     * {@link Random} object. This is called by the {@link #get(int) } 
      * method, and will make sure that the correct seed is set before calling 
      * this method. 
      * 

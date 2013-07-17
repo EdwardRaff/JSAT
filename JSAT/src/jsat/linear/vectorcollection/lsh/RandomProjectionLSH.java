@@ -61,7 +61,7 @@ public class RandomProjectionLSH<V extends Vec> implements VectorCollection<V>
      * @param vecs the list of vectors to form a collection for
      * @param ints the number of integers to use for the encoding
      * @param inMemory {@code true} to construct the full matrix in memory, or 
-     * {@link false} to construct the needed values on demand. This reduces 
+     * {@code false} to construct the needed values on demand. This reduces 
      * memory use at increased CPU usage. 
      */
     public RandomProjectionLSH(List<V> vecs, int ints, boolean inMemory)
@@ -332,7 +332,7 @@ public class RandomProjectionLSH<V extends Vec> implements VectorCollection<V>
          * 
          * @param intsToUse the number of integers to use for the encoding
          * @param inMemory {@code true} to construct the full matrix in memory, or 
-         * {@link false} to construct the needed values on demand. This reduces 
+         * {@code false} to construct the needed values on demand. This reduces 
          */
         public RandomProjectionLSHFactory(int intsToUse, boolean inMemory)
         {

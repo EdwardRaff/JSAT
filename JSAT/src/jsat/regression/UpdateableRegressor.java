@@ -12,7 +12,7 @@ import jsat.exceptions.FailedToFitException;
  * Some Online learners behave differently in when they are updated. The 
  * UpdateableRegressor is an online learner that specifically only performs 
  * additional learning when a new example is provided via the 
- * {@link #update(jsat.classifiers.DataPoint, int) } method. 
+ * {@link #update(jsat.classifiers.DataPoint, double)  } method. 
  * <br>
  * The standard behavior for an UpdateableRegressor is that the user first 
  * calls {@link #train(jsat.regression.RegressionDataSet)  } to first train

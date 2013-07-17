@@ -101,8 +101,10 @@ public class PAM extends KClustererBase
      * Performs the actual work of PAM. 
      * 
      * @param data the data set to apply PAM to
-     * @param medoids the array to store the indices that get chosen as the medoids. The length of the array indicates how many medoids should be obtained. 
+     * @param doInit {@code true} if the initialization procedure of training the distance metric, initiating its cache, and selecting he seeds, should be done. 
+     * @param medioids the array to store the indices that get chosen as the medoids. The length of the array indicates how many medoids should be obtained. 
      * @param assignments an array of the same length as <tt>data</tt>, each value indicating what cluster that point belongs to. 
+     * @param cacheAccel the pre-computed distance acceleration cache. May be {@code null}. 
      * @return the sum of the squared distance from each point to its closest medoids 
      */
     protected double cluster(DataSet data, boolean doInit, int[] medioids, int[] assignments, List<Double> cacheAccel)

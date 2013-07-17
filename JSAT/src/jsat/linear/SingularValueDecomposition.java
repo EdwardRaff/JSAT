@@ -553,7 +553,7 @@ public class SingularValueDecomposition implements Cloneable, Serializable
 
     /**
      * Returns a copy of the sorted array of the singular values, include the near zero ones. 
-     * @return 
+     * @return a copy of the sorted array of the singular values, including the near zero ones. 
      */
     public double[] getSingularValues()
     {
@@ -562,7 +562,7 @@ public class SingularValueDecomposition implements Cloneable, Serializable
     
     /**
      * Returns the diagonal matrix S such that the SVD product results in the original matrix. The diagonal contains the singular values. 
-     * @return 
+     * @return a dense diagonal matrix containing the singular values
      */
     public Matrix getS()
     {

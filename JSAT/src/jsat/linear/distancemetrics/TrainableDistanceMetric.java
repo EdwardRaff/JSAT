@@ -171,7 +171,7 @@ abstract public class TrainableDistanceMetric implements DistanceMetric
      * Static helper method for training a distance metric only if it is needed. 
      * This method can be safely called for any Distance Metric.
      * 
-     * @param <V>the type of vectors in the list
+     * @param <V> the type of vectors in the list
      * @param dm the distance metric to train
      * @param dataset the data set to train from
      */

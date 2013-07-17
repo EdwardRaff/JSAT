@@ -15,7 +15,7 @@ public interface TreeLearner extends Serializable
     /**
      * Obtains a node visitor for the tree learner that can be used to traverse 
      * and predict from the learned tree
-     * @return 
+     * @return the root node visitor for the learned tree
      */
     public TreeNodeVisitor getTreeNodeVisitor();
 }

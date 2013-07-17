@@ -209,7 +209,8 @@ public class OnLineStatistics implements Serializable
    /**
     * Returns the sum of the weights for all data points added to the statistics. 
     * If all weights were 1, then this value is the number of data points added. 
-    * @return 
+    * @return the sum of weights for every point currently contained in the 
+    * statistics. 
     */
    public double getSumOfWeights()
    {

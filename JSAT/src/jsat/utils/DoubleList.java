@@ -198,7 +198,7 @@ public class DoubleList extends AbstractList<Double> implements Serializable
      * Alterations to the array will be visible to the DoubelList
      * and vise versa. The array returned may not the the same
      * size as the value returned by {@link #size() }
-     * @return 
+     * @return the underlying array used by this DoubleList
      */
     public double[] getBackingArray()
     {

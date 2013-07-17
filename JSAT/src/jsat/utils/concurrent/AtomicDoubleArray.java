@@ -129,9 +129,9 @@ public class AtomicDoubleArray implements Serializable
      * @param i the index
      * @param newValue the new value
      */
-    public void lazySet(int i, double newVal)
+    public void lazySet(int i, double newValue)
     {
-        larray.lazySet(i, Double.doubleToRawLongBits(newVal));
+        larray.lazySet(i, Double.doubleToRawLongBits(newValue));
     }
     
     /**
@@ -139,7 +139,7 @@ public class AtomicDoubleArray implements Serializable
      * updated value if the current value {@code ==} the expected value.
      *
      * @param i the index
-     * @param expect the expected value
+     * @param expected the expected value
      * @param update the new value
      * @return true if successful. False return indicates that
      * the actual value was not equal to the expected value.
@@ -160,7 +160,7 @@ public class AtomicDoubleArray implements Serializable
      * appropriate alternative to {@code compareAndSet}.
      *
      * @param i the index
-     * @param expect the expected value
+     * @param expected the expected value
      * @param update the new value
      * @return true if successful.
      */

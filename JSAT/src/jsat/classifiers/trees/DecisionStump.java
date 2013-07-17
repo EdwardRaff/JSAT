@@ -177,8 +177,8 @@ public class DecisionStump implements Classifier, Regressor, Parameterized
     }
     
     /**
-     * Returns the attribute that this stump has decided to used to compute results. 
-     * @return 
+     * Returns the attribute that this stump has decided to use to compute results. 
+     * @return the attribute that this stump has decided to use to compute results.
      */
     public int getSplittingAttribute()
     {
@@ -224,9 +224,8 @@ public class DecisionStump implements Classifier, Regressor, Parameterized
     /**
      * From the score for the original set that is being split, this computes 
      * the gain as the improvement in classification from the original split. 
-     * @param aSplit the splitting of the data points 
-     * @param totalSize the totoal sum of the weights of all points
      * @param origScore the score of the unsplit set
+     * @param aSplit the splitting of the data points 
      * @return the gain score for this split 
      */
     protected double getGain(ImpurityScore origScore, List<List<DataPointPair<Integer>>> aSplit)

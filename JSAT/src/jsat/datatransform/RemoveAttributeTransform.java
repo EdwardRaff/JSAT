@@ -28,7 +28,7 @@ public class RemoveAttributeTransform implements DataTransform
     /**
      * Empty constructor that may be used by extending classes. Transforms that 
      * extend this will need to call 
-     * {@link #setUp(java.util.Set, jsat.DataSet, java.util.Set) } once the 
+     * {@link #setUp(jsat.DataSet, java.util.Set, java.util.Set)  } once the 
      * attributes to remove have been selected
      */
     protected RemoveAttributeTransform()

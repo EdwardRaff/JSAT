@@ -178,8 +178,8 @@ public class ARFFLoader
     
     /**
      * Removes the quotes at the end and front of a string if there are any, as well as spaces at the front and end
-     * @param in
-     * @return 
+     * @param in the string to trim
+     * @return the white space and quote trimmed string
      */
     private static String nameTrim(String in)
     {

@@ -34,7 +34,7 @@ import jsat.utils.random.XORWOW;
  * number of features, but that often increases the size of the model. 
  * <br>
  * This batch version can also be used to more efficiently learn dense KLR 
- * models using the stochastic method with the {@link #NC} mode if model 
+ * models using the stochastic method with the {@link CSKLR.UpdateMode#NC} mode if model 
  * sparsity is not important. 
  * <br><br>
  * It is important to read the documentation and test some different values for
@@ -190,7 +190,7 @@ public class CSKLRBatch extends SupportVectorLearner implements Parameterized, C
 
     /**
      * Sets the gamma value to use. This value, depending on which 
-     * {@link UpdateMode} is used, controls the sparsity of the model.
+     * {@link CSKLR.UpdateMode} is used, controls the sparsity of the model.
      * @param gamma the gamma parameter, which is at least always positive
      */
     public void setGamma(double gamma)

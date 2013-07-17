@@ -246,11 +246,6 @@ public class ClassificationDataSet extends DataSet
         return set;
     }
     
-    /**
-     * 
-     * @param folds
-     * @return 
-     */
     @Override
     public List<ClassificationDataSet> cvSet(int folds, Random rnd)
     {

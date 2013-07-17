@@ -155,8 +155,8 @@ public class AODE extends BaseUpdateableClassifier
     }
 
     /**
-     * Returns 
-     * @return 
+     * Returns the minimum needed score
+     * @return the minimum needed score
      */
     public double getM()
     {

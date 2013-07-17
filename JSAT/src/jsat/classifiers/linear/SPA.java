@@ -87,7 +87,7 @@ public class SPA extends BaseUpdateableClassifier implements Parameterized
      * the updates
      * <br>
      * An infinitely large value is equivalent to being completely aggressive, 
-     * and is performed when the mode is set to {@link Mode#PA}. 
+     * and is performed when the mode is set to {@link PassiveAggressive.Mode#PA}. 
      * 
      * @param C the positive aggressiveness parameter
      */

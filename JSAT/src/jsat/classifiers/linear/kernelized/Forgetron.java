@@ -184,7 +184,7 @@ public class Forgetron extends BaseUpdateableClassifier implements BinaryScoreCl
      * See equation 15
      * @param lambda
      * @param mu
-     * @return 
+     * @return the update for equation 15
      */
     private double psi(double lambda, double mu)
     {

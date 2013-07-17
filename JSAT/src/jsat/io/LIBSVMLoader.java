@@ -7,6 +7,7 @@ import jsat.classifiers.ClassificationDataSet;
 import jsat.linear.SparseVector;
 import static java.lang.Integer.*;
 import static java.lang.Double.*;
+import jsat.DataSet;
 import jsat.datatransform.DenseSparceTransform;
 import jsat.regression.RegressionDataSet;
 import jsat.utils.DoubleList;
@@ -120,7 +121,7 @@ public class LIBSVMLoader
      * @param vectorLength the pre-determined length of each vector. If given a 
      * negative value, the largest non-zero index observed in the data will be 
      * used as the length. 
-     * @returna a regression data set
+     * @return a regression data set
      * @throws IOException 
      */
     public static RegressionDataSet loadR(InputStreamReader isr, double sparseRatio, int vectorLength) throws IOException

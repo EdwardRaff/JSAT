@@ -119,7 +119,7 @@ public abstract class Parameter implements Serializable
      * </ul>
      * 
      * @param obj
-     * @return 
+     * @return a list of parameter objects generated from the given object
      */
     public static List<Parameter> getParamsFromMethods(final Object obj)
     {

@@ -348,7 +348,7 @@ public class LWL implements Classifier, Regressor, Parameterized
 
     /**
      * Returns the kernel function that will be used to set the weights. 
-     * @return 
+     * @return the kernel function that will be used to set the weights
      */
     public KernelFunction getKernelFunction()
     {

@@ -101,7 +101,7 @@ public abstract class DataSet
      * applied if {@code mutableTransform} is set to {@code true}
      *
      * @param dt the transformation to apply
-     * @param mutableTransform {@code true} to mutableTransform the original data points,
+     * @param mutate {@code true} to mutableTransform the original data points,
      * {@code false} to ignore the ability to mutableTransform and replace the original
      * data points.
      */
@@ -236,7 +236,8 @@ public abstract class DataSet
      * <br><br>
      * This requires allocation of the new vectors, and will take up space 
      * comparable to the size of the original data set. 
-     * @return 
+     * @return an array of {@link #getNumNumericalVars() D} vectors, each 
+     * containing the column values for that feature for every data point. 
      */
     public Vec[] getColumnMajorVecs()
     {

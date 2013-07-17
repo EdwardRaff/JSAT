@@ -77,8 +77,7 @@ public class PlatSMO extends SupportVectorLearner implements BinaryScoreClassifi
     /**
      * Creates a new SVM object that uses no cache mode. 
      * 
-     * @param kf 
-     * @see CacheMode
+     * @param kf the kernel trick to use
      */
     public PlatSMO(KernelTrick kf)
     {

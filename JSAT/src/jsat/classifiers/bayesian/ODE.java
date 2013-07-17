@@ -161,7 +161,6 @@ public class ODE extends BaseUpdateableClassifier
      * 
      * @param catVals the catigorical values for a data point
      * @param c the target value to get the probability of
-     * @param xi the value of the dependent variable in the data point
      * @return the non normalized log probability of the data point belonging to
      * the target class <tt>c</tt>
      */
