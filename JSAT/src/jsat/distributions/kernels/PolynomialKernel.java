@@ -11,7 +11,7 @@ import jsat.parameters.Parameter;
  * k(x,y) = (alpha * x.y + c)^d
  * @author Edward Raff
  */
-public class PolynomialKernel implements KernelTrick 
+public class PolynomialKernel extends BaseKernelTrick 
 {
     private double degree;
     private double alpha;

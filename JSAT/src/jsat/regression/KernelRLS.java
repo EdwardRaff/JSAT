@@ -7,7 +7,6 @@ import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import jsat.classifiers.CategoricalData;
 import jsat.classifiers.DataPoint;
-import jsat.distributions.kernels.CacheAcceleratedKernel;
 import jsat.distributions.kernels.KernelTrick;
 import jsat.linear.*;
 import jsat.parameters.Parameter;
@@ -148,13 +147,8 @@ public class KernelRLS implements UpdateableRegressor, Parameterized
     public double regress(DataPoint data)
     {
         final Vec y = data.getNumericalValues();
-        if(kernelAccel != null)
-            return ((CacheAcceleratedKernel)k).evalSum(vecs, kernelAccel, alphaExpanded, y, 0, vecs.size());
         
-        double val = 0;
-        for(int i = 0; i < vecs.size(); i++)
-            val += alphaExpanded[i]*k.eval(vecs.get(i), y);
-        return val;
+        return k.evalSum(vecs, kernelAccel, alphaExpanded, y, 0, vecs.size());
     }
 
     @Override
@@ -189,7 +183,7 @@ public class KernelRLS implements UpdateableRegressor, Parameterized
     public void setUp(CategoricalData[] categoricalAttributes, int numericAttributes)
     {
         vecs = new ArrayList<Vec>();
-        if(k instanceof CacheAcceleratedKernel)
+        if(k.supportsAcceleration())
             kernelAccel = new DoubleList();
         else
             kernelAccel = null;
@@ -213,26 +207,8 @@ public class KernelRLS implements UpdateableRegressor, Parameterized
          */
         Vec x_t = dataPoint.getNumericalValues();
         
-        final double k_tt;
-        
-        final List<Double> tmpAccel;
-        final List<Double> cache;
-        final List<Vec> VECS;
-        
-        if(k instanceof CacheAcceleratedKernel)
-        {
-            tmpAccel = ((CacheAcceleratedKernel)k).getCache(Arrays.asList(x_t));
-            cache = ListUtils.mergedView(kernelAccel, tmpAccel);
-            VECS = ListUtils.mergedView(vecs, Arrays.asList(x_t));
-            k_tt = ((CacheAcceleratedKernel)k).eval(vecs.size(), vecs.size(), VECS, cache);
-        }
-        else
-        {
-            tmpAccel = cache = null;
-            VECS = null;
-            k_tt = k.eval(x_t, x_t);
-        }
-        
+        final List<Double> qi = k.getQueryInfo(x_t);
+        final double k_tt = k.eval(0, 0, Arrays.asList(x_t), qi);
         
         if(K == null)//first point to be added
         {
@@ -245,25 +221,17 @@ public class KernelRLS implements UpdateableRegressor, Parameterized
             alphaExpanded[0] = y_t/k_tt;
             vecs.add(x_t);
             if(kernelAccel != null)
-                kernelAccel.addAll(tmpAccel);
+                kernelAccel.addAll(qi);
             return;
         }
         
         
         //Normal case
         DenseVector kxt = new DenseVector(K.rows());
-        if (k instanceof CacheAcceleratedKernel)
-        {
-            CacheAcceleratedKernel ck = (CacheAcceleratedKernel) k;
-            for (int i = 0; i < kxt.length(); i++)
-                kxt.set(i, ck.eval(i, vecs.size(), VECS, cache));
-        }
-        else
-        {
-            for (int i = 0; i < kxt.length(); i++)
-                kxt.set(i, k.eval(vecs.get(i), x_t));
-        }
-        
+
+        for (int i = 0; i < kxt.length(); i++)
+            kxt.set(i, k.eval(i, x_t, qi, vecs, kernelAccel));
+
         //ALD test
         final Vec alphas_t = InvK.multiply(kxt);
         final double delta_t = k_tt-alphas_t.dot(kxt);
@@ -273,7 +241,7 @@ public class KernelRLS implements UpdateableRegressor, Parameterized
         {
             vecs.add(x_t);
             if(kernelAccel != null)
-                kernelAccel.addAll(tmpAccel);
+                kernelAccel.addAll(qi);
             
             if(size == KExpanded.rows())//we need to grow first
             {

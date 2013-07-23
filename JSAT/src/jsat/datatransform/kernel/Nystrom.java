@@ -6,7 +6,6 @@ import jsat.classifiers.DataPoint;
 import jsat.clustering.HamerlyKMeans;
 import jsat.clustering.SeedSelectionMethods;
 import jsat.datatransform.*;
-import jsat.distributions.kernels.CacheAcceleratedKernel;
 import jsat.distributions.kernels.KernelTrick;
 import jsat.linear.*;
 import jsat.linear.distancemetrics.EuclideanDistance;
@@ -193,32 +192,15 @@ public class Nystrom implements DataTransform
                 for (int i = 0; i < N; i++)
                     gramVecs.add(new DenseVector(N));
 
-                if (k instanceof CacheAcceleratedKernel)
+                List<Double> tmpCache = k.getAccelerationCache(X);
+                for (int i = 0; i < N; i++)
                 {
-                    CacheAcceleratedKernel kc = (CacheAcceleratedKernel) k;
-                    List<Double> tmpCache = kc.getCache(X);
-                    for (int i = 0; i < N; i++)
+                    gramVecs.get(i).set(i, k.eval(i, i, X, tmpCache));
+                    for (int j = i + 1; j < N; j++)
                     {
-                        gramVecs.get(i).set(i, kc.eval(i, i, X, tmpCache));
-                        for (int j = i + 1; j < N; j++)
-                        {
-                            double val = kc.eval(i, j, X, tmpCache);
-                            gramVecs.get(i).set(j, val);
-                            gramVecs.get(j).set(i, val);
-                        }
-                    }
-                }
-                else
-                {
-                    for (int i = 0; i < N; i++)
-                    {
-                        gramVecs.get(i).set(i, k.eval(X.get(i), X.get(i)));
-                        for (int j = i + 1; j < N; j++)
-                        {
-                            double val = k.eval(X.get(i), X.get(j));
-                            gramVecs.get(i).set(j, val);
-                            gramVecs.get(j).set(i, val);
-                        }
+                        double val = k.eval(i, j, X, tmpCache);
+                        gramVecs.get(i).set(j, val);
+                        gramVecs.get(j).set(i, val);
                     }
                 }
 
@@ -287,10 +269,7 @@ public class Nystrom implements DataTransform
     
     private double kEval(int i, int j)
     {
-        if(k instanceof CacheAcceleratedKernel)
-            return ((CacheAcceleratedKernel)k).eval(i, j, basisVecs, accelCache);
-        else
-            return k.eval(basisVecs.get(i), basisVecs.get(j));
+        return k.eval(i, j, basisVecs, accelCache);
     }
 
     @Override
@@ -312,8 +291,7 @@ public class Nystrom implements DataTransform
     private void setKernel(KernelTrick k)
     {
         this.k = k;
-        if(k instanceof CacheAcceleratedKernel)
-            accelCache = ((CacheAcceleratedKernel)k).getCache(basisVecs);
+        accelCache = k.getAccelerationCache(basisVecs);
     }
     
     static public class NystromTransformFactory implements DataTransformFactory

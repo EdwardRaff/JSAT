@@ -15,7 +15,7 @@ import jsat.utils.DoubleList;
  * 
  * @author Edward Raff
  */
-public class RationalQuadraticKernel implements CacheAcceleratedKernel
+public class RationalQuadraticKernel extends BaseKernelTrick
 {
     private double c;
 
@@ -56,14 +56,28 @@ public class RationalQuadraticKernel implements CacheAcceleratedKernel
         double dist = Math.pow(a.pNormDist(2, b), 2);
         return 1-dist/(dist+c);
     }
+
+    @Override
+    public boolean supportsAcceleration()
+    {
+        return true;
+    }
     
     @Override
-    public DoubleList getCache(List<? extends Vec> trainingSet)
+    public DoubleList getAccelerationCache(List<? extends Vec> trainingSet)
     {
         DoubleList cache = new DoubleList(trainingSet.size());
         for(int i = 0; i < trainingSet.size(); i++)
             cache.add(trainingSet.get(i).dot(trainingSet.get(i)));
         return cache;
+    }
+
+    @Override
+    public List<Double> getQueryInfo(Vec q)
+    {
+        DoubleList dl = new DoubleList(1);
+        dl.add(q.dot(q));
+        return dl;
     }
 
     @Override

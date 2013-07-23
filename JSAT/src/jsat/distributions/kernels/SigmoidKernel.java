@@ -13,7 +13,7 @@ import jsat.parameters.Parameter;
  * 
  * @author Edward Raff
  */
-public class SigmoidKernel implements KernelTrick
+public class SigmoidKernel extends BaseKernelTrick
 {
     private double alpha;
     private double c;

@@ -13,7 +13,7 @@ import jsat.parameters.Parameter;
  * 
  * @author Edward Raff
  */
-public class LinearKernel implements KernelTrick
+public class LinearKernel extends BaseKernelTrick
 {
     private double c;
 

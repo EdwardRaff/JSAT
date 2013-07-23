@@ -16,7 +16,7 @@ import jsat.utils.DoubleList;
  * 
  * @author Edward Raff
  */
-public class RBFKernel implements CacheAcceleratedKernel
+public class RBFKernel extends BaseKernelTrick
 {
     private double sigma;
     private double sigmaSqrd2Inv;
@@ -37,16 +37,29 @@ public class RBFKernel implements CacheAcceleratedKernel
             return 1;
         return Math.exp(-Math.pow(a.pNormDist(2, b),2) * sigmaSqrd2Inv);
     }
+
+    @Override
+    public boolean supportsAcceleration()
+    {
+        return true;
+    }
     
     @Override
-    public DoubleList getCache(List<? extends Vec> trainingSet)
+    public DoubleList getAccelerationCache(List<? extends Vec> trainingSet)
     {
         DoubleList cache = new DoubleList(trainingSet.size());
         for(int i = 0; i < trainingSet.size(); i++)
             cache.add(trainingSet.get(i).dot(trainingSet.get(i)));
         return cache;
     }
-    
+
+    @Override
+    public List<Double> getQueryInfo(Vec q)
+    {
+        DoubleList dl = new DoubleList(1);
+        dl.add(q.dot(q));
+        return dl;
+    }
     
     @Override
     public void addToCache(Vec newVec, List<Double> cache)

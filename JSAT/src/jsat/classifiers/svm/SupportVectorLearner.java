@@ -5,8 +5,6 @@ import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import jsat.classifiers.Classifier;
-import jsat.distributions.kernels.CacheAcceleratedKernel;
 import jsat.distributions.kernels.KernelTrick;
 import jsat.linear.Vec;
 
@@ -46,7 +44,6 @@ public abstract class SupportVectorLearner
      * Kernel evaluation acceleration cache
      */
     private List<Double> accelCache = null;
-    private CacheAcceleratedKernel ckernel = null;
     
     private double[][] fullCache;
     /**
@@ -73,10 +70,7 @@ public abstract class SupportVectorLearner
     protected void setAlphas(double[] alphas)
     {
         this.alphas = alphas;
-        if(ckernel != null)
-            accelCache = ckernel.getCache(vecs);
-        else
-            accelCache = null;
+        accelCache = kernel.getAccelerationCache(vecs);
     }
     
     /**
@@ -134,10 +128,6 @@ public abstract class SupportVectorLearner
     public void setKernel(KernelTrick kernel)
     {
         this.kernel = kernel;
-        if(kernel instanceof CacheAcceleratedKernel)
-            ckernel = (CacheAcceleratedKernel) kernel;
-        else
-            ckernel = null;
     }
 
     /**
@@ -216,8 +206,8 @@ public abstract class SupportVectorLearner
         }
         this.cacheMode = cacheMode;
         
-        if(ckernel != null && vecs != null)
-            accelCache = ckernel.getCache(vecs);
+        if(vecs != null)
+            accelCache = kernel.getAccelerationCache(vecs);
         evalCount = 0;
         cacheEvictions = 0;
         
@@ -280,13 +270,7 @@ public abstract class SupportVectorLearner
         if (alphas == null)
             throw new RuntimeException("alphas have not been set");
 
-        double sum = 0;
-        if (accelCache != null && ckernel != null)
-            sum = ckernel.evalSum(vecs, accelCache, alphas, y, 0, alphas.length);
-        else
-            for (int i = 0; i < alphas.length; i++)
-                sum += alphas[i] * kEval(vecs.get(i), y);
-        return sum;
+        return kernel.evalSum(vecs, accelCache, alphas, y, 0, alphas.length);
     }
     
     /**
@@ -374,9 +358,6 @@ public abstract class SupportVectorLearner
     private double k(int a, int b)
     {
         evalCount++;
-        if(ckernel != null)
-            return ckernel.eval(a, b, vecs, accelCache);
-        else
-            return kEval(vecs.get(a), vecs.get(b));
+        return kernel.eval(a, b, vecs, accelCache);
     }
 }

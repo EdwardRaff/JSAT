@@ -16,7 +16,6 @@ import jsat.parameters.Parameterized;
 import jsat.utils.DoubleList;
 import jsat.utils.random.XORWOW;
 import static java.lang.Math.*;
-import jsat.distributions.kernels.CacheAcceleratedKernel;
 import jsat.exceptions.FailedToFitException;
 
 /**
@@ -53,7 +52,6 @@ public class CSKLR extends BaseUpdateableClassifier implements Parameterized
     private List<Vec> vecs;
     private double curNorm;
     private KernelTrick k;
-    private CacheAcceleratedKernel ck;
     private double R;
     private Random rand;
     private UpdateMode mode;
@@ -361,8 +359,6 @@ public class CSKLR extends BaseUpdateableClassifier implements Parameterized
     public void setKernel(KernelTrick k)
     {
         this.k = k;
-        if(k instanceof CacheAcceleratedKernel)
-            ck = (CacheAcceleratedKernel) k;
     }
 
     /**
@@ -381,14 +377,7 @@ public class CSKLR extends BaseUpdateableClassifier implements Parameterized
      */
     private double getPreScore(Vec x)
     {
-        double score = 0;
-
-        if (ck != null)
-            score = ck.evalSum(vecs, accelCache, alpha.getBackingArray(), x, 0, alpha.size());
-        else
-            for (int i = 0; i < vecs.size(); i++)
-                score += alpha.get(i) * k.eval(vecs.get(i), x);
-        return score;
+        return k.evalSum(vecs, accelCache, alpha.getBackingArray(), x, 0, alpha.size());
     }
     
     /**
@@ -417,7 +406,7 @@ public class CSKLR extends BaseUpdateableClassifier implements Parameterized
         vecs = new ArrayList<Vec>();
         curNorm = 0;
         rand = new XORWOW();
-        if(ck != null)
+        if(k.supportsAcceleration())
             accelCache = new DoubleList();
     }
 
@@ -445,13 +434,8 @@ public class CSKLR extends BaseUpdateableClassifier implements Parameterized
 
         alpha.add(alpha_i);
         vecs.add(x_t);
-        if (ck != null)
-        {
-            ck.addToCache(x_t, accelCache);
-            curNorm += Math.abs(alpha_i) * ck.eval(vecs.size(), vecs.size(), vecs, accelCache);
-        }
-        else
-            curNorm += Math.abs(alpha_i) * k.eval(x_t, x_t);
+        k.addToCache(x_t, accelCache);
+        curNorm += Math.abs(alpha_i) * k.eval(vecs.size(), vecs.size(), vecs, accelCache);
 
         //projection step
         if (curNorm > R)
