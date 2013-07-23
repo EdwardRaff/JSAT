@@ -152,6 +152,30 @@ public abstract class SupportVectorLearner
     {
         this.cacheConst = cacheValue;
     }
+    
+    /**
+     * Sets the {@link #setCacheValue(int) cache value} to one that will use the
+     * specified amount of memory. If the amount of memory specified is great 
+     * enough, this method will automatically set the 
+     * {@link #setCacheMode(jsat.classifiers.svm.SupportVectorLearner.CacheMode)
+     * cache mode} to {@link CacheMode#FULL}. 
+     * 
+     * @param N the number of data points
+     * @param bytes the number of bytes of memory to make the cache
+     */
+    public void setCacheSize(long N, long bytes)
+    {
+        int DS = Double.SIZE/8;
+        bytes /= DS;//Gets the total number of doubles we can store
+        if(bytes > N*N/2)
+            setCacheMode(CacheMode.FULL);
+        else//How many rows can we handle?
+        {
+            //guessing 2 work overhead for object header + one pointer reference to the array, asusming 64 bit
+            long bytesPerRow = N*DS+3*Long.SIZE/8;
+            setCacheValue((int) Math.min(Math.max(1, bytes/bytesPerRow), Integer.MAX_VALUE));
+        }
+    }
 
     /**
      * Returns the current cache value
