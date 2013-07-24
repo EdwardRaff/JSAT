@@ -2,6 +2,7 @@ package jsat.classifiers.linear.kernelized;
 
 import static java.lang.Math.*;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import jsat.classifiers.BaseUpdateableClassifier;
@@ -66,6 +67,11 @@ public class DUOL extends BaseUpdateableClassifier implements BinaryScoreClassif
      * signed alphas using {@link Math#signum(double) }
      */
     protected List<Double> alphas;
+    protected List<Double> accelCache;
+    /**
+     * Stores the values of k(x_i, y) for reuse when observing a new example
+     */
+    protected DoubleList kTmp;
     
     protected double rho = 0;
     protected double C = 10;
@@ -96,6 +102,8 @@ public class DUOL extends BaseUpdateableClassifier implements BinaryScoreClassif
                 this.S.add(v.clone());
             this.f_s = new DoubleList(other.f_s);
             this.alphas = new DoubleList(other.alphas);
+            this.accelCache = new DoubleList(other.accelCache);
+            this.kTmp = new DoubleList(other.kTmp);
         }
         this.rho = other.rho;
         this.C = other.C;
@@ -183,14 +191,17 @@ public class DUOL extends BaseUpdateableClassifier implements BinaryScoreClassif
         this.S = new ArrayList<Vec>();
         this.f_s = new DoubleList();
         this.alphas = new DoubleList();
+        this.accelCache = new DoubleList();
+        this.kTmp = new DoubleList();
     }
 
     @Override
-    public void update(DataPoint dataPoint, int targetClass)
+    public synchronized void update(DataPoint dataPoint, int targetClass)
     {
         final Vec x_t = dataPoint.getNumericalValues();
         final double y_t = targetClass*2-1;
-        double score = score(x_t);
+        final List<Double> qi = k.getQueryInfo(x_t);
+        double score = score(x_t, qi, true);
 
         final double loss_t = max(0, 1-y_t*score);
         
@@ -204,7 +215,7 @@ public class DUOL extends BaseUpdateableClassifier implements BinaryScoreClassif
         {
             if(f_s.get(i) <= 1)
             {
-                double tmp = signum(alphas.get(i))*y_t*k.eval(S.get(i), x_t);
+                double tmp = signum(alphas.get(i))*y_t*kTmp.get(i);
                 if(tmp <= w_min)
                 {
                     w_min = tmp;
@@ -213,13 +224,12 @@ public class DUOL extends BaseUpdateableClassifier implements BinaryScoreClassif
             }
         }
         
-        
+        final double k_t = k.eval(0, 0, Arrays.asList(x_t), qi);
         if(w_min <= -rho)
         {
             
-            final double k_t = k.eval(x_t, x_t);
-            final double k_b = k.eval(S.get(b), S.get(b));
-            final double k_tb = k.eval(x_t, S.get(b));
+            final double k_b = k.eval(b, b, S, accelCache);
+            final double k_tb = kTmp.get(b);
             final double alpha_b = alphas.get(b);
             final double w_tb = y_t*signum(alpha_b)*k_tb;
             final double gamma_hat_b = abs(alpha_b);
@@ -258,6 +268,8 @@ public class DUOL extends BaseUpdateableClassifier implements BinaryScoreClassif
             
             //add new SV
             S.add(x_t);
+            accelCache.addAll(qi);
+            kTmp.add(k_t);
             alphas.add(y_t*gamma_t);
             //dont forget curretn SV self value which gets updated in the loop
             f_s.add(score);
@@ -265,7 +277,7 @@ public class DUOL extends BaseUpdateableClassifier implements BinaryScoreClassif
             for(int i = 0; i < S.size(); i++)
             {
                 final double y_i = signum(alphas.get(i));
-                f_s.set(i, f_s.get(i)+y_i*gamma_t*y_t*k.eval(S.get(i), x_t)+y_i*gamma_b_delta*signum(alpha_b)*k.eval(S.get(i), S.get(b)));
+                f_s.set(i, f_s.get(i)+y_i*gamma_t*y_t*kTmp.get(i)+y_i*gamma_b_delta*signum(alpha_b)*k.eval(i, b, S, accelCache));
             }
             
             //update old weight for b
@@ -273,10 +285,12 @@ public class DUOL extends BaseUpdateableClassifier implements BinaryScoreClassif
         }
         else  /* no auxiliary example found */
         {
-            final double gamma_t = min(C, loss_t/k.eval(x_t, x_t));
+            final double gamma_t = min(C, loss_t/k_t);
             
             //add new SV
             S.add(x_t);
+            accelCache.addAll(qi);
+            kTmp.add(k_t);
             alphas.add(y_t*gamma_t);
             //dont forget curretn SV self value which gets updated in the loop
             f_s.add(score);
@@ -284,7 +298,7 @@ public class DUOL extends BaseUpdateableClassifier implements BinaryScoreClassif
             for(int i = 0; i < S.size(); i++)
             {
                 final double y_i = signum(alphas.get(i));
-                f_s.set(i, f_s.get(i)+y_i*gamma_t*y_t*k.eval(S.get(i), x_t));
+                f_s.set(i, f_s.get(i)+y_i*gamma_t*y_t*kTmp.get(i));
             }
         }   
     }
@@ -294,12 +308,24 @@ public class DUOL extends BaseUpdateableClassifier implements BinaryScoreClassif
         return a <= x && x <= b;
     }
     
-    private double score(Vec x)
+    private double score(Vec x, List<Double> qi, boolean store)
     {
+        if(store)
+            kTmp.clear();
         double score = 0;
         for(int i = 0; i < S.size(); i++)
-            score += alphas.get(i)*k.eval(S.get(i), x);
+        {
+            double tmp = k.eval(i, x, qi, S, accelCache);
+            if(store)
+                kTmp.add(tmp);
+            score += alphas.get(i)*tmp;
+        }
         return score;
+    }
+    
+    private double score(Vec x, List<Double> qi)
+    {
+        return score(x, qi, false);
     }
 
     @Override
@@ -319,7 +345,8 @@ public class DUOL extends BaseUpdateableClassifier implements BinaryScoreClassif
     @Override
     public double getScore(DataPoint dp)
     {
-        return score(dp.getNumericalValues());
+        Vec x = dp.getNumericalValues();
+        return score(x, k.getQueryInfo(x));
     }
 
     @Override
