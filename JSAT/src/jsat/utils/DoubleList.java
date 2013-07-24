@@ -28,6 +28,12 @@ public class DoubleList extends AbstractList<Double> implements Serializable
         this.end = end;
     }
 
+    @Override
+    public void clear()
+    {
+        end = 0;
+    }
+
     /**
      * Creates a new empty DoubleList
      */
