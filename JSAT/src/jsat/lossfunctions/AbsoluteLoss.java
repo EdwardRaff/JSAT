@@ -57,4 +57,10 @@ public class AbsoluteLoss implements LossR
     {
         return 0;
     }
+
+    @Override
+    public AbsoluteLoss clone()
+    {
+        return this;
+    }
 }

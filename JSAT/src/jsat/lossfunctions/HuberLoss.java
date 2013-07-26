@@ -106,4 +106,10 @@ public class HuberLoss implements LossR
     {
         return 1;
     }
+
+    @Override
+    public HuberLoss clone()
+    {
+        return new HuberLoss(c);
+    }
 }

@@ -71,4 +71,10 @@ public class SquaredLoss implements LossR
     {
         return 1;
     }
+
+    @Override
+    public SquaredLoss clone()
+    {
+        return this;
+    }
 }

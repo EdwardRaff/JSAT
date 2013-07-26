@@ -60,4 +60,10 @@ public class HingeLoss implements LossC
     {
         return 0;
     }
+
+    @Override
+    public HingeLoss clone()
+    {
+        return this;
+    }
 }

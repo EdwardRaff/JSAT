@@ -49,4 +49,6 @@ public interface LossFunc
      * @return the max value of {@link #getDeriv2(double, double) }
      */
     public double getDeriv2Max();
+    
+    public LossFunc clone();
 }

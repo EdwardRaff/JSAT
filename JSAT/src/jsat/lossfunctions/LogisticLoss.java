@@ -95,4 +95,10 @@ public class LogisticLoss implements LossC
     {
         return 1 / 4;
     }
+
+    @Override
+    public LogisticLoss clone()
+    {
+        return this;
+    }
 }
