@@ -8,6 +8,8 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import jsat.linear.DenseVector;
+import jsat.linear.Vec;
 
 /**
  * Provides a modifiable implementation of a List using a double array. This provides considerable
@@ -209,6 +211,23 @@ public class DoubleList extends AbstractList<Double> implements Serializable
     public double[] getBackingArray()
     {
         return array;
+    }
+    
+    /**
+     * Obtains a view of this double list as a dense vector with equal length. 
+     * This is a soft reference, and altering the values in the matrix with 
+     * alter the double list, and vise versa. 
+     * <br><br>
+     * While no error will be thrown if the size of the underlying list changes,
+     * this view should be discarded if the size of the list changes. Once the 
+     * list has changed sizes, there is no guarantee on the behavior that will
+     * occur if the vector is used. 
+     * 
+     * @return a vector view of this list
+     */
+    public Vec getVecView()
+    {
+        return new DenseVector(array, 0, end);
     }
     
     /**
