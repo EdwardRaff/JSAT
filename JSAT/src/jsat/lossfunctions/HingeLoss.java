@@ -1,5 +1,7 @@
 package jsat.lossfunctions;
 
+import jsat.classifiers.CategoricalResults;
+
 /**
  * The HingeLoss loss function for classification <i>L(x, y) = max(0, 1-y*x)</i>.
  * <br>
@@ -36,6 +38,16 @@ public class HingeLoss implements LossC
         else
             return -y;
     }
+    
+    public static CategoricalResults classify(double score)
+    {
+        CategoricalResults cr = new CategoricalResults(2);
+        if(score > 0)
+            cr.setProb(1, 1.0);
+        else
+            cr.setProb(0, 1.0);
+        return cr;
+    }
 
     @Override
     public double getLoss(double pred, double y)
@@ -65,5 +77,11 @@ public class HingeLoss implements LossC
     public HingeLoss clone()
     {
         return this;
+    }
+
+    @Override
+    public CategoricalResults getClassification(double score)
+    {
+        return classify(score);
     }
 }

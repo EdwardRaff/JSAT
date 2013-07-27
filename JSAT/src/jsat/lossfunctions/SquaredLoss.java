@@ -47,6 +47,11 @@ public class SquaredLoss implements LossR
     {
         return 1;
     }
+    
+    public static double regress(double score)
+    {
+        return score;
+    }
 
     @Override
     public double getLoss(double pred, double y)
@@ -76,5 +81,11 @@ public class SquaredLoss implements LossR
     public SquaredLoss clone()
     {
         return this;
+    }
+
+    @Override
+    public double getRegression(double score)
+    {
+        return score;
     }
 }

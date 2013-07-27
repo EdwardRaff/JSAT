@@ -1,6 +1,7 @@
 package jsat.lossfunctions;
 
 import static java.lang.Math.*;
+import jsat.classifiers.CategoricalResults;
 
 /**
  * The LogisticLoss loss function for classification <i>L(x, y) =
@@ -71,6 +72,21 @@ public class LogisticLoss implements LossC
 
         return p * (1 - p);
     }
+    
+    public static CategoricalResults classify(double score)
+    {
+        CategoricalResults cr = new CategoricalResults(2);
+        final double p;
+        if (score > 30)
+            p = 1.0;
+        else if (score < -30)
+            p = 0.0;
+        else
+            p = 1 / (1 + Math.exp(-score));
+        cr.setProb(0, 1 - p);
+        cr.setProb(1, p);
+        return cr;
+    }
 
     @Override
     public double getLoss(double pred, double y)
@@ -93,12 +109,18 @@ public class LogisticLoss implements LossC
     @Override
     public double getDeriv2Max()
     {
-        return 1 / 4;
+        return 1.0 / 4.0;
     }
 
     @Override
     public LogisticLoss clone()
     {
         return this;
+    }
+
+    @Override
+    public CategoricalResults getClassification(double score)
+    {
+        return classify(score);
     }
 }

@@ -1,5 +1,7 @@
 package jsat.lossfunctions;
 
+import jsat.classifiers.CategoricalResults;
+
 /**
  * Specifies a loss function for binary classification problems.
  *
@@ -37,4 +39,14 @@ public interface LossC extends LossFunc
      */
     @Override
     public double getDeriv2(double pred, double y);
+    
+    /**
+     * Given the score value of a data point, this returns the classification 
+     * results. 
+     * 
+     * @param score the score for a data point
+     * @return the categorical results with the correct probability values for 
+     * this loss function. 
+     */
+    public CategoricalResults getClassification(double score);
 }

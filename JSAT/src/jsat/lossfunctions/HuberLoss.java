@@ -83,6 +83,11 @@ public class HuberLoss implements LossR
             return 0;
     }
 
+    public static double regress(double score)
+    {
+        return score;
+    }
+    
     @Override
     public double getLoss(double pred, double y)
     {
@@ -111,5 +116,11 @@ public class HuberLoss implements LossR
     public HuberLoss clone()
     {
         return new HuberLoss(c);
+    }
+
+    @Override
+    public double getRegression(double score)
+    {
+        return score;
     }
 }

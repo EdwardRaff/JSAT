@@ -33,6 +33,11 @@ public class AbsoluteLoss implements LossR
     {
         return Math.signum(y - pred);
     }
+    
+    public static double regress(double score)
+    {
+        return score;
+    }
 
     @Override
     public double getLoss(double pred, double y)
@@ -62,5 +67,11 @@ public class AbsoluteLoss implements LossR
     public AbsoluteLoss clone()
     {
         return this;
+    }
+
+    @Override
+    public double getRegression(double score)
+    {
+        return score;
     }
 }
