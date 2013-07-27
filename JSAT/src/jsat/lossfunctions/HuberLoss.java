@@ -58,7 +58,7 @@ public class HuberLoss implements LossR
      */
     public static double deriv(double pred, double y, double c)
     {
-        double x = (y - pred);
+        double x = pred-y;
 
         if (Math.abs(x) <= c)
             return x;
@@ -77,7 +77,7 @@ public class HuberLoss implements LossR
      */
     public static double deriv2(double pred, double y, double c)
     {
-        if (Math.abs(pred) < c)
+        if (Math.abs(pred-y) < c)
             return 1;
         else
             return 0;

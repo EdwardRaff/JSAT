@@ -31,7 +31,7 @@ public class AbsoluteLoss implements LossR
      */
     public static double deriv(double pred, double y)
     {
-        return Math.signum(y - pred);
+        return Math.signum(pred - y);
     }
     
     public static double regress(double score)
