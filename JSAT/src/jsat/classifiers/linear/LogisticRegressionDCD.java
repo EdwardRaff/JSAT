@@ -9,6 +9,7 @@ import jsat.classifiers.*;
 import jsat.exceptions.FailedToFitException;
 import jsat.linear.DenseVector;
 import jsat.linear.Vec;
+import jsat.lossfunctions.LogisticLoss;
 import jsat.parameters.Parameter;
 import jsat.parameters.Parameterized;
 import jsat.utils.IntList;
@@ -152,12 +153,7 @@ public class LogisticRegressionDCD implements Classifier, Parameterized
     @Override
     public CategoricalResults classify(DataPoint data)
     {
-        CategoricalResults cr = new CategoricalResults(2);
-        double p = 1/(1+Math.exp(-(w.dot(data.getNumericalValues())+bias)));
-        cr.setProb(0, 1-p);
-        cr.setProb(1, p);
-        
-        return cr;
+        return LogisticLoss.classify(w.dot(data.getNumericalValues())+bias);
     }
 
     @Override

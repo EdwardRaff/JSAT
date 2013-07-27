@@ -13,6 +13,7 @@ import java.util.List;
 import java.util.Map;
 import jsat.linear.DenseVector;
 import jsat.linear.IndexValue;
+import jsat.lossfunctions.LogisticLoss;
 import jsat.parameters.Parameter;
 import jsat.parameters.Parameterized;
 
@@ -283,12 +284,7 @@ public class BBR implements Classifier, Parameterized
     @Override
     public CategoricalResults classify(DataPoint data)
     {
-        CategoricalResults cr = new CategoricalResults(2);
-        double p = 1 / (1 + Math.exp(-(w.dot(data.getNumericalValues()) + bias)));
-        cr.setProb(0, 1 - p);
-        cr.setProb(1, p);
-
-        return cr;
+        return LogisticLoss.classify(w.dot(data.getNumericalValues()) + bias);
     }
 
     @Override
