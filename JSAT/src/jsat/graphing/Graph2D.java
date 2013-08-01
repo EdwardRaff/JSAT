@@ -10,6 +10,8 @@ import java.io.File;
 import java.io.IOException;
 import java.text.DecimalFormat;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.imageio.ImageIO;
 import javax.swing.*;
 import javax.swing.JComponent;
@@ -356,6 +358,8 @@ public class Graph2D extends JComponent
         at.setToRotation(-Math.PI/2.0, 0, 0);
 
         Font origFont = getFont();
+        if(origFont == null)
+            origFont = new Font(Font.SANS_SERIF, Font.PLAIN, 12);
         Font der = origFont.deriveFont(at);
         g2.setFont(der);
 
@@ -778,5 +782,25 @@ public class Graph2D extends JComponent
         
         
         return menu;
+    }
+    
+    /**
+     * Renders the image that would be drawn to PNG file
+     * @param file the location to write the file
+     * @param width the width of the image
+     * @param height the height of the image
+     */
+    public void renderToFile(File file, int width, int height)
+    {
+        final BufferedImage img = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
+        paintWork(img.createGraphics(), width, height, null);
+        try
+        {
+            ImageIO.write(img, "png", file);
+        }
+        catch (IOException ex)
+        {
+            Logger.getLogger(Graph2D.class.getName()).log(Level.SEVERE, null, ex);
+        }
     }
 }

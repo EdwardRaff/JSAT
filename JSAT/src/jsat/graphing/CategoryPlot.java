@@ -22,6 +22,8 @@ public class CategoryPlot extends Graph2D
     private int[] category;
     private String[] names;
     private PointShape[] shapes;
+    private double pointSize = 6.0;
+    private boolean fillPoints = false;
     
     /**
      * Creates a new category plot to visualize the given data set
@@ -101,7 +103,7 @@ public class CategoryPlot extends Graph2D
         for(int i = 0; i < category.length; i++ )
         {
             g2.setColor(categoryColors.get(category[i]));
-            drawPoint(g2, shapes[category[i]], xVals.get(i), yVals.get(i), width, height, 6.0, false);
+            drawPoint(g2, shapes[category[i]], xVals.get(i), yVals.get(i), width, height, pointSize, fillPoints);
             if(pp != null)
                 pp.getjProgressBar().setValue(i+1);
         }
@@ -126,4 +128,41 @@ public class CategoryPlot extends Graph2D
     {
         return categoryColors.get(category);
     }
+
+    /**
+     * Sets the size of data points drawn in pixels
+     * @param pointSize the pixel size to draw data points at
+     */
+    public void setPointSize(double pointSize)
+    {
+        this.pointSize = pointSize;
+    }
+    
+    /**
+     * Returns the pixel size to draw data points at
+     * @return pixel size to draw data points at
+     */
+    public double getPointSize()
+    {
+        return pointSize;
+    }
+
+    /**
+     * Sets whether or not data points are drawn as outlines or filled in. 
+     * @param fillPoints {@code true} to fill in points, {@code false} to draw outlines. 
+     */
+    public void setFillPoints(boolean fillPoints)
+    {
+        this.fillPoints = fillPoints;
+    }
+
+    /**
+     * Returns whether or not data points are drawn as outlines or filled in. 
+     * @return {@code true} to fill in points, {@code false} to draw outlines. 
+     */
+    public boolean isFillPoints()
+    {
+        return fillPoints;
+    }
+    
 }
