@@ -1,6 +1,6 @@
 package jsat.math;
 
-import static java.lang.Math.exp;
+import static java.lang.Math.*;
 import jsat.linear.Vec;
 
 /**
@@ -30,9 +30,9 @@ public class MathTricks
     {
         double expSum = 0.0;
         for(int i = 0; i < vals.length(); i++)
-            expSum += Math.exp(vals.get(i)-maxValue);
+            expSum += exp(vals.get(i)-maxValue);
         
-        return maxValue + expSum;
+        return maxValue + log(expSum);
     }
     
     /**
@@ -48,9 +48,9 @@ public class MathTricks
     {
         double expSum = 0.0;
         for(int i = 0; i < vals.length; i++)
-            expSum += Math.exp(vals[i]-maxValue);
+            expSum += exp(vals[i]-maxValue);
         
-        return maxValue + expSum;
+        return maxValue + log(expSum);
     }
     
     /**
@@ -66,7 +66,7 @@ public class MathTricks
     {
         double max = implicitExtra ? 1 : Double.NEGATIVE_INFINITY;
         for(int i = 0; i < x.length; i++)
-            max = Math.max(max, x[i]);
+            max = max(max, x[i]);
         
         //exp is exp(0 - max), b/c exp(0) gives the implicit 1 value
         double z =implicitExtra ? exp(-max) : 0;
@@ -89,7 +89,7 @@ public class MathTricks
     public static void softmax(Vec x, boolean implicitExtra)
     {
         double max = implicitExtra ? 1 : Double.NEGATIVE_INFINITY;
-        max = Math.max(max, x.max());
+        max = max(max, x.max());
         
         //exp is exp(0 - max), b/c exp(0) gives the implicit 1 value
         double z =implicitExtra ? exp(-max) : 0;

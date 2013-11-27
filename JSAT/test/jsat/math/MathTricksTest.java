@@ -1,6 +1,7 @@
 
 package jsat.math;
 
+import jsat.linear.DenseVector;
 import jsat.linear.Vec;
 import org.junit.After;
 import org.junit.AfterClass;
@@ -38,6 +39,34 @@ public class MathTricksTest
     @After
     public void tearDown()
     {
+    }
+
+    /**
+     * Test of logSumExp method, of class MathTricks.
+     */
+    @Test
+    public void testLogSumExp_Vec_double()
+    {
+        System.out.println("logSumExp");
+        Vec vals = DenseVector.toDenseVec(10, 10, 3, -20, 1);
+        double maxValue = 10.0;
+        double expResult = 10.693664692512399350;
+        double result = MathTricks.logSumExp(vals, maxValue);
+        assertEquals(expResult, result, 1e-15);
+    }
+
+    /**
+     * Test of logSumExp method, of class MathTricks.
+     */
+    @Test
+    public void testLogSumExp_doubleArr_double()
+    {
+        System.out.println("logSumExp");
+        double[] vals = new double[] {10, 10, 3, -20, 1};
+        double maxValue = 10.0;
+        double expResult = 10.693664692512399350;
+        double result = MathTricks.logSumExp(vals, maxValue);
+        assertEquals(expResult, result, 1e-15);
     }
 
     /**
