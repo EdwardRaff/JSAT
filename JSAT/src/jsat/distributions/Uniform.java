@@ -34,7 +34,7 @@ public class Uniform extends Distribution
     @Override
     public double cdf(double x)
     {
-        if(a < x)
+        if(a > x)
             return 0;
         else if( x >= b)
             return 1;
