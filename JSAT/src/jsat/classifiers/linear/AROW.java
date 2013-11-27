@@ -3,17 +3,14 @@ package jsat.classifiers.linear;
 import jsat.classifiers.BaseUpdateableClassifier;
 import jsat.classifiers.CategoricalData;
 import jsat.classifiers.CategoricalResults;
-import jsat.classifiers.Classifier;
 import jsat.classifiers.DataPoint;
 import jsat.classifiers.calibration.BinaryScoreClassifier;
 import jsat.exceptions.FailedToFitException;
 import jsat.exceptions.UntrainedModelException;
-import jsat.linear.DenseMatrix;
 import jsat.linear.DenseVector;
 import jsat.linear.IndexValue;
 import jsat.linear.Matrix;
 import jsat.linear.Vec;
-import jsat.math.MathTricks;
 
 /**
  * An implementation of Adaptive Regularization of Weight Vectors (AROW), which 
@@ -170,34 +167,31 @@ public class AROW extends BaseUpdateableClassifier implements BinaryScoreClassif
         if(y_t == Math.signum(m_t))
             return;//no update needed
         
+        double v_t = 0;
+        
         if(diagonalOnly)
         {
-            /* for the diagonal, its a pairwise multiplication. So just copy 
-             * then multiply by the sigmas, ordes dosnt matter
-             */
-            if(x_t.isSparse())
+            for(IndexValue iv : x_t)
             {
-                //Faster to set only the needed final values
-                for(IndexValue iv : x_t)
-                    Sigma_xt.set(iv.getIndex(), iv.getValue()*sigmaV.get(iv.getIndex()));
-            }
-            else
-            {
-                x_t.copyTo(Sigma_xt);
-                Sigma_xt.mutablePairwiseMultiply(sigmaV);
+                double x_ti = iv.getValue();
+                v_t += x_ti * x_ti * sigmaV.get(iv.getIndex());
             }
         }
         else
         {
             sigmaM.multiply(x_t, 1, Sigma_xt);
+            v_t = x_t.dot(Sigma_xt);
         }
         
-        double v_t = x_t.dot(Sigma_xt);
         double b_t_inv = v_t+r;
         
         double alpha_t = Math.max(0, 1-y_t*m_t)/b_t_inv;
-        w.mutableAdd(alpha_t*y_t, Sigma_xt);
-        
+        if(!diagonalOnly)
+            w.mutableAdd(alpha_t * y_t, Sigma_xt);
+        else
+            for (IndexValue iv : x_t)
+                w.increment(iv.getIndex(), alpha_t * y_t * iv.getValue() * sigmaV.get(iv.getIndex()));
+
         if(diagonalOnly)
         {
             /* diagonal is pairwise products as well:
@@ -206,8 +200,12 @@ public class AROW extends BaseUpdateableClassifier implements BinaryScoreClassif
              * S += Sx Sx
              * so just square the values and then add 
              */
-            Sigma_xt.applyFunction(MathTricks.sqrdFunc);
-            sigmaV.mutableAdd(-1/b_t_inv, Sigma_xt);
+            for(IndexValue iv : x_t)
+            {
+                int idx = iv.getIndex();
+                double xt_i = iv.getValue()*sigmaV.get(idx);
+                sigmaV.increment(idx, -(xt_i*xt_i)/b_t_inv);
+            }
         }
         else
         {
@@ -216,12 +214,8 @@ public class AROW extends BaseUpdateableClassifier implements BinaryScoreClassif
         }
         
         //Zero out temp store
-        if(diagonalOnly && x_t.isSparse())//only these values will be non zero 
-            for(IndexValue iv : x_t)
-                Sigma_xt.set(iv.getIndex(), 0.0);
-        else
+        if(diagonalOnly)
             Sigma_xt.zeroOut();
-        
     }
 
     @Override

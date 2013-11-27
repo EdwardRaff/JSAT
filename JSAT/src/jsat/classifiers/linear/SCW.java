@@ -3,7 +3,6 @@ package jsat.classifiers.linear;
 import jsat.classifiers.BaseUpdateableClassifier;
 import jsat.classifiers.CategoricalData;
 import jsat.classifiers.CategoricalResults;
-import jsat.classifiers.Classifier;
 import jsat.classifiers.DataPoint;
 import jsat.distributions.Normal;
 import jsat.exceptions.FailedToFitException;
@@ -12,10 +11,13 @@ import jsat.linear.IndexValue;
 import jsat.linear.Matrix;
 import jsat.linear.Vec;
 import static java.lang.Math.*;
-import jsat.classifiers.ClassificationDataSet;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
 import jsat.classifiers.calibration.BinaryScoreClassifier;
 import jsat.exceptions.UntrainedModelException;
-import jsat.math.MathTricks;
+import jsat.parameters.Parameter;
+import jsat.parameters.Parameterized;
 
 /**
  * Provides an Implementation of Confidence-Weighted (CW) learning and Soft 
@@ -47,7 +49,7 @@ import jsat.math.MathTricks;
  * 
  * @author Edward Raff
  */
-public class SCW extends BaseUpdateableClassifier implements BinaryScoreClassifier
+public class SCW extends BaseUpdateableClassifier implements BinaryScoreClassifier, Parameterized
 {
     private double C = 1;
     private double eta;
@@ -70,6 +72,9 @@ public class SCW extends BaseUpdateableClassifier implements BinaryScoreClassifi
     private Vec Sigma_xt;
     
     private boolean diagonalOnly = false;
+    
+    private List<Parameter> params = Parameter.getParamsFromMethods(this);
+    private Map<String, Parameter> paramMap = Parameter.toParameterMap(params);
 
     /**
      * More than one escape point, makes sure to zero out {@link #Sigma_xt} 
@@ -277,30 +282,24 @@ public class SCW extends BaseUpdateableClassifier implements BinaryScoreClassifi
         final double y_t = targetClass*2-1;
         double score = x_t.dot(w);
         
-        if(diagonalOnly)
+        double v_t = 0;
+        if (diagonalOnly)
         {
-            /* for the diagonal, its a pairwise multiplication. So just copy 
-             * then multiply by the sigmas, ordes dosnt matter
-             */
-            if(x_t.isSparse())
+            //Faster to set only the needed final values
+            for (IndexValue iv : x_t)
             {
-                //Faster to set only the needed final values
-                for(IndexValue iv : x_t)
-                    Sigma_xt.set(iv.getIndex(), iv.getValue()*sigmaV.get(iv.getIndex()));
+                double x_t_i = iv.getValue();
+                v_t += x_t_i * x_t_i * sigmaV.get(iv.getIndex());
             }
-            else
-            {
-                x_t.copyTo(Sigma_xt);
-                Sigma_xt.mutablePairwiseMultiply(sigmaV);
-            }
+
         }
         else
         {
             sigmaM.multiply(x_t, 1, Sigma_xt);
+            v_t = x_t.dot(Sigma_xt);
         }
         
         //Check for numerical issues
-        double v_t = x_t.dot(Sigma_xt);
         if(v_t <= 0)//semi positive definit, should not happen
             throw new FailedToFitException("Numerical issues occured");
         
@@ -310,7 +309,8 @@ public class SCW extends BaseUpdateableClassifier implements BinaryScoreClassifi
         
         if(loss <= 1e-15)
         {
-            zeroOutSigmaXt(x_t);
+            if(!diagonalOnly)
+                zeroOutSigmaXt(x_t);
             return;
         }
         final double alpha_t;
@@ -334,7 +334,8 @@ public class SCW extends BaseUpdateableClassifier implements BinaryScoreClassifi
         
         if(alpha_t < 1e-7)//update is numerically unstable
         {
-            zeroOutSigmaXt(x_t);
+            if(!diagonalOnly)
+                zeroOutSigmaXt(x_t);
             return;
         }
         
@@ -343,8 +344,17 @@ public class SCW extends BaseUpdateableClassifier implements BinaryScoreClassifi
         
         
         //Now update mean and variance
-        
-        w.mutableAdd(alpha_t*y_t, Sigma_xt);
+        if (diagonalOnly)
+        {
+            for (IndexValue iv : x_t)
+            {
+                double x_t_i = iv.getValue();
+                double tmp = x_t_i * sigmaV.get(iv.getIndex());
+                w.increment(iv.getIndex(), alpha_t * y_t * tmp);
+            }
+        }
+        else
+            w.mutableAdd(alpha_t * y_t, Sigma_xt);
         
         if(diagonalOnly)//diag does not need beta
         {
@@ -362,9 +372,8 @@ public class SCW extends BaseUpdateableClassifier implements BinaryScoreClassifi
             final double beta_t = alpha_t*phi/(sqrt(u_t)+v_t*alpha_t*phi);
             
             Matrix.OuterProductUpdate(sigmaM, Sigma_xt, Sigma_xt, -beta_t);
+            zeroOutSigmaXt(x_t);
         }
-        
-        zeroOutSigmaXt(x_t);
     }
 
     @Override
@@ -391,6 +400,18 @@ public class SCW extends BaseUpdateableClassifier implements BinaryScoreClassifi
     public boolean supportsWeightedData()
     {
         return false;
+    }
+    
+    @Override
+    public List<Parameter> getParameters()
+    {
+        return Collections.unmodifiableList(params);
+    }
+
+    @Override
+    public Parameter getParameter(String paramName)
+    {
+        return paramMap.get(paramName);
     }
     
 }

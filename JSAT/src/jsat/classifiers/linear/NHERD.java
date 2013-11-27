@@ -1,9 +1,11 @@
 package jsat.classifiers.linear;
 
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
 import jsat.classifiers.BaseUpdateableClassifier;
 import jsat.classifiers.CategoricalData;
 import jsat.classifiers.CategoricalResults;
-import jsat.classifiers.Classifier;
 import jsat.classifiers.DataPoint;
 import jsat.classifiers.calibration.BinaryScoreClassifier;
 import jsat.exceptions.FailedToFitException;
@@ -12,7 +14,8 @@ import jsat.linear.DenseVector;
 import jsat.linear.IndexValue;
 import jsat.linear.Matrix;
 import jsat.linear.Vec;
-import jsat.math.MathTricks;
+import jsat.parameters.Parameter;
+import jsat.parameters.Parameterized;
 
 /**
  * Implementation of the Normal Herd (NHERD) algorithm for learning a linear 
@@ -32,7 +35,7 @@ import jsat.math.MathTricks;
  * 
  * @author Edward Raff
  */
-public class NHERD extends BaseUpdateableClassifier implements BinaryScoreClassifier
+public class NHERD extends BaseUpdateableClassifier implements BinaryScoreClassifier, Parameterized
 {
     private Vec w;
     /**
@@ -51,6 +54,9 @@ public class NHERD extends BaseUpdateableClassifier implements BinaryScoreClassi
      * Temp vector used to store Sigma * x_t
      */
     private Vec Sigma_xt;
+    
+    private List<Parameter> params = Parameter.getParamsFromMethods(this);
+    private Map<String, Parameter> paramMap = Parameter.toParameterMap(params);
     
     /**
      * Sets what form of covariance matrix to use
@@ -79,7 +85,7 @@ public class NHERD extends BaseUpdateableClassifier implements BinaryScoreClassi
          */
         EXACT
     }
-
+    
     /**
      * Creates a new NHERD learner
      * @param C the aggressiveness parameter 
@@ -204,32 +210,31 @@ public class NHERD extends BaseUpdateableClassifier implements BinaryScoreClassi
             return;//No update needed
         //else, wrong label or margin too small
         
+        double alpha;
         if(covMode != CovMode.FULL)
         {
-            /* for the diagonal, its a pairwise multiplication. So just copy 
-             * then multiply by the sigmas, ordes dosnt matter
-             */
-            if(x_t.isSparse())
+            alpha = 0;
+            //Faster to set only the needed final values
+            for (IndexValue iv : x_t)
             {
-                //Faster to set only the needed final values
-                for(IndexValue iv : x_t)
-                    Sigma_xt.set(iv.getIndex(), iv.getValue()*sigmaV.get(iv.getIndex()));
-            }
-            else
-            {
-                x_t.copyTo(Sigma_xt);
-                Sigma_xt.mutablePairwiseMultiply(sigmaV);
+                double x_ti = iv.getValue();
+                alpha += x_ti * x_ti * sigmaV.get(iv.getIndex());
             }
         }
         else
         {
             sigmaM.multiply(x_t, 1, Sigma_xt);
+            alpha = x_t.dot(Sigma_xt);
         }
         
-        final double loss = Math.max(0, 1-y_t*pred);
-        final double alpha = x_t.dot(Sigma_xt);
+        final double loss = Math.max(0, 1 - y_t * pred);
+        final double w_c = y_t * loss / (alpha + 1 / C);
         
-        w.mutableAdd(y_t*loss/(alpha+1/C), Sigma_xt);
+        if (covMode == CovMode.FULL)
+            w.mutableAdd(w_c, Sigma_xt);
+        else
+            for (IndexValue iv : x_t)
+                w.increment(iv.getIndex(), w_c * iv.getValue() * sigmaV.get(iv.getIndex()));
         
         double numer = C*(C*alpha+2);
         double denom = (1+C*alpha)*(1+C*alpha);
@@ -240,8 +245,13 @@ public class NHERD extends BaseUpdateableClassifier implements BinaryScoreClassi
                 Matrix.OuterProductUpdate(sigmaM, Sigma_xt, Sigma_xt, -numer/denom);
                 break;
             case DROP:
-                Sigma_xt.applyFunction(MathTricks.sqrdFunc);
-                sigmaV.mutableSubtract(numer/denom, Sigma_xt);
+                final double c = -numer/denom;
+                for (IndexValue iv : x_t)
+                {
+                    int idx = iv.getIndex();
+                    double x_ti = iv.getValue()*sigmaV.get(idx);
+                    sigmaV.increment(idx, c*x_ti*x_ti);
+                }
                 break;
             case PROJECT:
                 for(IndexValue iv : x_t)//only the nonzero values in x_t will cause a change in value
@@ -264,10 +274,7 @@ public class NHERD extends BaseUpdateableClassifier implements BinaryScoreClassi
         }
 
         //zero out temp space
-        if(covMode != CovMode.FULL && x_t.isSparse())
-            for(IndexValue iv : x_t)
-                Sigma_xt.set(iv.getIndex(), 0.0);
-        else
+        if(covMode == CovMode.FULL)
             Sigma_xt.zeroOut();
     }
 
@@ -297,4 +304,15 @@ public class NHERD extends BaseUpdateableClassifier implements BinaryScoreClassi
         return false;
     }
     
+    @Override
+    public List<Parameter> getParameters()
+    {
+        return Collections.unmodifiableList(params);
+    }
+
+    @Override
+    public Parameter getParameter(String paramName)
+    {
+        return paramMap.get(paramName);
+    }
 }
