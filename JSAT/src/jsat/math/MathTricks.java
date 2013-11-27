@@ -1,7 +1,6 @@
 package jsat.math;
 
 import static java.lang.Math.exp;
-import java.util.Random;
 import jsat.linear.Vec;
 
 /**
@@ -101,6 +100,40 @@ public class MathTricks
             z += newVal;
         }
         x.mutableDivide(z);
+    }
+    
+    /**
+     * This evaluates a polynomial using Horner's method. It is assumed that the
+     * polynomial is stored in reverse order in the array {@code coef}, ie: from
+     * c<sub>n</sub> at index 0, and then decreasing.
+     *
+     * @param coef the polynomial with coefficients in reverse order
+     * @param x the value to evaluate the polynomial at
+     * @return the value of the polynomial at {@code x}
+     */
+    public static double hornerPolyR(double[] coef, double x)
+    {
+        double result = 0;
+        for(double c : coef)
+            result = result*x+c;
+        return result;
+    }
+    
+    /**
+     * This evaluates a polynomial using Horner's method. It is assumed that the
+     * polynomial is stored in order in the array {@code coef}, ie: from
+     * c<sub>0</sub> at index 0, and then increasing with the index.
+     *
+     * @param coef the polynomial with coefficients in reverse order
+     * @param x the value to evaluate the polynomial at
+     * @return the value of the polynomial at {@code x}
+     */
+    public static double hornerPoly(double[] coef, double x)
+    {
+        double result = 0;
+        for(int i = coef.length-1; i >= 0; i--)
+            result = result*x + coef[i];
+        return result;
     }
     
     /**
