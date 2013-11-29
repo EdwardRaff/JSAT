@@ -401,6 +401,31 @@ public class SparseVector extends  Vec
     }
 
     @Override
+    public void copyTo(Vec destination)
+    {
+        if(destination instanceof SparseVector)
+        {
+            SparseVector other = (SparseVector) destination;
+            if(other.indexes.length < this.used)
+            {
+                other.indexes = Arrays.copyOf(this.indexes, this.used);
+                other.values = Arrays.copyOf(this.values, this.used);
+                other.used = this.used;
+                other.clearCaches();
+            }
+            else
+            {
+                other.used = this.used;
+                other.clearCaches();
+                System.arraycopy(this.indexes, 0, other.indexes, 0, this.used);
+                System.arraycopy(this.values, 0, other.values, 0, this.used);
+            }
+        }
+        else
+            super.copyTo(destination);
+    }
+    
+    @Override
     public double dot(Vec v)
     {
         double dot = 0;
@@ -420,6 +445,8 @@ public class SparseVector extends  Vec
                     p1++;
             }
         }
+        else if(v.isSparse())
+            return super.dot(v);
         else// it is dense
             for (int i = 0; i < used; i++)
                 dot += values[i] * v.get(indexes[i]);

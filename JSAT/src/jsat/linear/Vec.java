@@ -610,8 +610,17 @@ public abstract class Vec implements Cloneable, Iterable<IndexValue>, Serializab
     {
         if(this.length() != destination.length())
             throw new ArithmeticException("Source and destination must be the same size");
-        for(int i = 0; i < length(); i++)
-            destination.set(i, this.get(i));
+        if (this.isSparse())
+        {
+            destination.zeroOut();
+            for (IndexValue iv : this)
+                destination.set(iv.getIndex(), iv.getValue());
+        }
+        else
+        {
+            for (int i = 0; i < length(); i++)
+                destination.set(i, this.get(i));
+        }
     }
     
     /**
