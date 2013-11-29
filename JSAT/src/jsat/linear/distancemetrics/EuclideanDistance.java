@@ -7,6 +7,7 @@ import java.util.concurrent.ExecutorService;
 import jsat.linear.IndexValue;
 import jsat.linear.Vec;
 import jsat.utils.DoubleList;
+import jsat.utils.FakeExecutor;
 import jsat.utils.SystemInfo;
 
 /**
@@ -108,6 +109,8 @@ public class EuclideanDistance implements DenseSparseMetric
     @Override
     public List<Double> getAccelerationCache(final List<? extends Vec> vecs, ExecutorService threadpool)
     {
+        if(threadpool == null || threadpool instanceof FakeExecutor)
+            return getAccelerationCache(vecs);
         final double[] cache = new double[vecs.size()];
    
         final CountDownLatch latch = new CountDownLatch(SystemInfo.LogicalCores);

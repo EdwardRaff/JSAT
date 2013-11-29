@@ -13,6 +13,7 @@ import jsat.math.FunctionBase;
 import jsat.math.MathTricks;
 import jsat.regression.RegressionDataSet;
 import jsat.utils.DoubleList;
+import jsat.utils.FakeExecutor;
 import jsat.utils.SystemInfo;
 
 /**
@@ -182,6 +183,8 @@ public class NormalizedEuclideanDistance extends TrainableDistanceMetric
     @Override
     public List<Double> getAccelerationCache(final List<? extends Vec> vecs, ExecutorService threadpool)
     {
+        if(threadpool == null || threadpool instanceof FakeExecutor)
+            return getAccelerationCache(vecs);
         final double[] cache = new double[vecs.size()];
    
         final CountDownLatch latch = new CountDownLatch(SystemInfo.LogicalCores);

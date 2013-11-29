@@ -11,6 +11,7 @@ import jsat.math.Function;
 import jsat.math.FunctionBase;
 import jsat.math.MathTricks;
 import jsat.utils.DoubleList;
+import jsat.utils.FakeExecutor;
 import jsat.utils.SystemInfo;
 
 /**
@@ -124,6 +125,8 @@ public class WeightedEuclideanDistance implements DistanceMetric
     @Override
     public List<Double> getAccelerationCache(final List<? extends Vec> vecs, ExecutorService threadpool)
     {
+        if(threadpool == null || threadpool instanceof FakeExecutor)
+            return getAccelerationCache(vecs);
         final double[] cache = new double[vecs.size()];
    
         final CountDownLatch latch = new CountDownLatch(SystemInfo.LogicalCores);

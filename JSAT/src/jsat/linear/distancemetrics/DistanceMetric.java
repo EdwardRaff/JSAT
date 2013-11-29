@@ -117,7 +117,10 @@ public interface DistanceMetric extends Cloneable, Serializable
      * returned.
      * 
      * @param vecs the list of vectors to build an acceleration cache for
-     * @param threadpool source of threads for parallel computation of result
+     * @param threadpool source of threads for parallel computation of result. 
+     * This may be {@code null}, which means the 
+     * {@link #getAccelerationCache(java.util.List) singled threaded} version 
+     * may be used. 
      * @return the list of double for the cache
      */
     public List<Double> getAccelerationCache(List<? extends Vec> vecs, ExecutorService threadpool);
