@@ -60,7 +60,7 @@ public class MathTricks
      * 
      * @param x the array of values
      * @param implicitExtra {@code true} if the softmax will assume there is 
-     * an extra implicit value not included in the array with a value of 1.0 
+     * an extra implicit value not included in the array with a value of 0.0 
      */
     public static void softmax(double[] x, boolean implicitExtra)
     {
@@ -68,7 +68,6 @@ public class MathTricks
         for(int i = 0; i < x.length; i++)
             max = max(max, x[i]);
         
-        //exp is exp(0 - max), b/c exp(0) gives the implicit 1 value
         double z =implicitExtra ? exp(-max) : 0;
         for (int c = 0; c < x.length; c++)
             z += (x[c] = exp(x[c] - max));
@@ -84,14 +83,13 @@ public class MathTricks
      * 
      * @param x the array of values
      * @param implicitExtra {@code true} if the softmax will assume there is 
-     * an extra implicit value not included in the array with a value of 1.0 
+     * an extra implicit value not included in the array with a value of 0.0 
      */
     public static void softmax(Vec x, boolean implicitExtra)
     {
         double max = implicitExtra ? 1 : Double.NEGATIVE_INFINITY;
         max = max(max, x.max());
         
-        //exp is exp(0 - max), b/c exp(0) gives the implicit 1 value
         double z =implicitExtra ? exp(-max) : 0;
         for (int c = 0; c < x.length(); c++)
         {

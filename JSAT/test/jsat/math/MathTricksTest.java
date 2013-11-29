@@ -1,6 +1,7 @@
 
 package jsat.math;
 
+import java.util.Arrays;
 import jsat.linear.DenseVector;
 import jsat.linear.Vec;
 import org.junit.After;
@@ -67,6 +68,48 @@ public class MathTricksTest
         double expResult = 10.693664692512399350;
         double result = MathTricks.logSumExp(vals, maxValue);
         assertEquals(expResult, result, 1e-15);
+    }
+
+    /**
+     * Test of softmax method, of class MathTricks.
+     */
+    @Test
+    public void testSoftmax_doubleArr_boolean()
+    {
+        System.out.println("softmax");
+        double[] x = new double[]{3, 1, 2};
+        double[] x2 = Arrays.copyOf(x, x.length);
+        
+        double[] xExpected = new double[]{0.6652409557748218895, 0.090030573170380457998, 0.24472847105479765};
+        double[] x2Expected = new double[]{0.64391425988797231, 0.087144318742032567489, 0.23688281808991013};
+        
+        MathTricks.softmax(x, false);
+        for(int i = 0; i < x.length; i++)
+            assertEquals(xExpected[i], x[i], 1e-15);
+        MathTricks.softmax(x2, true);
+        for(int i = 0; i < x2.length; i++)
+            assertEquals(x2Expected[i], x2[i], 1e-15);
+    }
+
+    /**
+     * Test of softmax method, of class MathTricks.
+     */
+    @Test
+    public void testSoftmax_Vec_boolean()
+    {
+        System.out.println("softmax");
+        Vec x = new DenseVector(new double[]{3, 1, 2});
+        Vec x2 = x.clone();
+        
+        Vec xExpected = new DenseVector(new double[]{0.6652409557748218895, 0.090030573170380457998, 0.24472847105479765});
+        Vec x2Expected = new DenseVector(new double[]{0.64391425988797231, 0.087144318742032567489, 0.23688281808991013});
+        
+        MathTricks.softmax(x, false);
+        for(int i = 0; i < x.length(); i++)
+            assertEquals(xExpected.get(i), x.get(i), 1e-15);
+        MathTricks.softmax(x2, true);
+        for(int i = 0; i < x2.length(); i++)
+            assertEquals(x2Expected.get(i), x2.get(i), 1e-15);
     }
 
     /**
