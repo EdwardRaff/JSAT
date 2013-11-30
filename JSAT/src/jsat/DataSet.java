@@ -5,12 +5,18 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Random;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import jsat.classifiers.CategoricalData;
 import jsat.classifiers.DataPoint;
 import jsat.datatransform.DataTransform;
 import jsat.datatransform.InPlaceTransform;
 import jsat.linear.*;
 import jsat.math.OnLineStatistics;
+import jsat.utils.FakeExecutor;
+import jsat.utils.SystemInfo;
 
 /**
  * This is the base class for representing a data set. A data set contains multiple samples,
@@ -94,6 +100,23 @@ public abstract class DataSet
     {
         applyTransform(dt, false);
     }
+    
+    /**
+     * Applies the given transformation to all points in this data set in 
+     * parallel, replacing each data point with the new value. No mutation of 
+     * the data points will occur. 
+     * 
+     * @param dt the transformation to apply
+     * @param ex the threadpool to provide threads from. May be {@code null} to 
+     * perform operations in serial 
+     */
+    public void applyTransform(DataTransform dt, ExecutorService ex)
+    {
+        if(ex == null || ex instanceof FakeExecutor)
+            applyTransform(dt);
+        else
+            applyTransform(dt, false, ex);
+    }
 
     /**
      * Applies the given transformation to all points in this data set. If the
@@ -107,23 +130,75 @@ public abstract class DataSet
      */
     public void applyTransform(DataTransform dt, boolean mutate)
     {
+        applyTransform(dt, mutate, new FakeExecutor());
+    }
+    
+    /**
+     * Applies the given transformation to all points in this data set in 
+     * parallel. If the transform supports mutating the original data points, 
+     * this will be applied if {@code mutableTransform} is set to {@code true}
+     *
+     * @param dt the transformation to apply
+     * @param mutate {@code true} to mutableTransform the original data points,
+     * {@code false} to ignore the ability to mutableTransform and replace the original
+     * @param ex the threadpool to provide threads from. May be {@code null} to 
+     * perform operations in serial 
+     */
+    public void applyTransform(final DataTransform dt, boolean mutate, ExecutorService ex)
+    {
+        final CountDownLatch latch = new CountDownLatch(SystemInfo.LogicalCores);
+        if(ex == null)
+            ex = new FakeExecutor();
+        
         if (mutate && dt instanceof InPlaceTransform)
         {
-            InPlaceTransform ipt = (InPlaceTransform) dt;
-            for (int i = 0; i < getSampleSize(); i++)
-                ipt.mutableTransform(getDataPoint(i));
+            final InPlaceTransform ipt = (InPlaceTransform) dt;
+            for(int id = 0; id < SystemInfo.LogicalCores; id++)
+            {
+                final int ID = id;
+                ex.submit(new Runnable() 
+                {
+                    @Override
+                    public void run()
+                    {
+                        for (int i = ID; i < getSampleSize(); i+=SystemInfo.LogicalCores)
+                            ipt.mutableTransform(getDataPoint(i));
+                        latch.countDown();
+                    }
+                });
+            }
         }
         else
-            for (int i = 0; i < getSampleSize(); i++)
-                setDataPoint(i, dt.transform(getDataPoint(i)));
-        //TODO this should be added to DataTransform
-        numNumerVals = getDataPoint(0).numNumericalValues();
-        categories = getDataPoint(0).getCategoricalData();
-        if (this.numericalVariableNames != null)
+            for(int id = 0; id < SystemInfo.LogicalCores; id++)
+            {
+                final int ID = id;
+                ex.submit(new Runnable() 
+                {
+                    @Override
+                    public void run()
+                    {
+                        for (int i = ID; i < getSampleSize(); i+=SystemInfo.LogicalCores)
+                            setDataPoint(i, dt.transform(getDataPoint(i)));
+                        latch.countDown();
+                    }
+                });
+            }
+        try
         {
-            this.numericalVariableNames.clear();
-            for (int i = 0; i < getNumNumericalVars(); i++)
-                numericalVariableNames.add("TN" + (i + 1));
+            latch.await();
+            //TODO this should be added to DataTransform
+            numNumerVals = getDataPoint(0).numNumericalValues();
+            categories = getDataPoint(0).getCategoricalData();
+            if (this.numericalVariableNames != null)
+            {
+                this.numericalVariableNames.clear();
+                for (int i = 0; i < getNumNumericalVars(); i++)
+                    numericalVariableNames.add("TN" + (i + 1));
+            }
+        }
+        catch (InterruptedException ex1)
+        {
+            Logger.getLogger(DataSet.class.getName()).log(Level.SEVERE, null, ex1);
         }
     }
     
@@ -478,5 +553,27 @@ public abstract class DataSet
             clone.setDataPoint(i, sd);
         }
         return clone;
+    }
+    
+    /**
+     * Returns statistics on the sparsity of the vectors in this data set. 
+     * Vectors that are not considered sparse will be treated as completely 
+     * dense, even if zero values exist in the data. 
+     * 
+     * @return an object containing the statistics of the vector sparsity
+     */
+    public OnLineStatistics getSparsityStats()
+    {
+        OnLineStatistics stats = new OnLineStatistics();
+        for(int i = 0; i < getSampleSize(); i++)
+        {
+            Vec v = getDataPoint(i).getNumericalValues();
+            if(v.isSparse())
+                stats.add(v.nnz() / (double)v.length());
+            else
+                stats.add(1.0);
+        }
+        
+        return stats;
     }
 }
