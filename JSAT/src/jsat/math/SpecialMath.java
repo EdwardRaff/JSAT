@@ -8,13 +8,25 @@ import jsat.distributions.Normal;
 import jsat.linear.Vec;
 import jsat.math.rootfinding.RiddersMethod;
 import static java.lang.Math.*;
+import static jsat.math.MathTricks.*;
 
 /**
- *
+ * This class provides static methods for computing accurate approximations to 
+ * many special functions. <br>
+ * <br>
+ * All methods should return absolute differences of less than 10<sup>-9</sup> 
+ * for all reasonable values. Unreasonable values would be those in areas of 
+ * high change (such as those approaching positive / negative infinity). 
+ * 
  * @author Edward Raff
  */
 public class SpecialMath
 {
+    
+    /*
+     * TODO this class needs more documentation. All these methods should have 
+     * indications of their expected accuracies. 
+     */
     
     public static double invXlnX(double y)
     {
@@ -156,7 +168,245 @@ public class SpecialMath
 
         return tmp+log(2.5066282746310005*ser/x);
     }
+    
+    /**
+     * Positive zero of the digamma function
+     */
+    static final private double digammaPosZero = 1.461632144968362341;
+    
+    /**
+     * Computes the value of the digamma function, &#936;(x), which is the 
+     * derivative of {@link #lnGamma(double) }. <br>
+     * <br>
+     * This method may return:<br>
+     * <ul>
+     * <li> {@link Double#NaN} for zero and negative integer values (would be complex infinity)</li>
+     * </ul>
+     * <br>
+     * This method should be accurate to an absolute difference of 
+     * 10<sup>-14</sup> for all values that are not near an asymptote. 
+     * 
+     * @param x the value to compute the digamma function at
+     * @return the value of &#936;(x)
+     */
+    public static double digamma(double x)
+    {
+        if(x == 0)
+            return Double.NaN;//complex infinity
+        else if(x < 0)//digamma(1-x) == digamma(x)+pi/tan(pi*x), to make x positive
+        {
+            if(Math.rint(x) == x)
+                return Double.NaN;//the zeros are complex infinity
+            return digamma(1-x)-PI/tan(PI*x); 
+        }
+        else if(x < 2)//shift the value into [2, Inf]
+            return digamma(x+1) - 1/x;
+        double approx= log(x);//rel error of 10^-11 for x >= 100 10^-13 for x >= 250, near machine precision at x >= 500
+        double approxS = -1/(2*x);
+        double approxSS = -1/(12*x*x);
 
+        if(x <= 7)
+            return (x-digammaPosZero)*hornerPolyR(digamma_p_2_7, x)/hornerPolyR(digamma_q_2_7, x);
+        else if(x <= 70)
+            return approx + (approxS + (approxSS + hornerPolyR(digamma_p_7_70, x)/hornerPolyR(digamma_q_7_70, x)));
+        if(x < 500)
+            return approx + (approxS + (approxSS + hornerPolyR(digamma_adj_p, x)/hornerPolyR(digamma_adj_q, x)));
+        else
+            return approx;
+    }
+    
+    /**
+     * The upper polynomial for adjustment to the digamma function approximation
+     * in the range [5, 500]. Computationally the absolute difference is less 
+     * than 1e-14 after 70
+     */
+    private static final double[] digamma_adj_p = new double[] 
+    {
+        6.662015538739419312162593679911046099212e-17, 8.191636265707720257639745288823408068504e-14,
+        3.594113658754209591796105198667912207196e-11, -6.860373206319231677418396622671250368996e-9,
+        0.05718773229071206996201131377297202073545
+    };
+    /**
+     * The lower polynomial for adjustment to the digamma function approximation
+     * in the range [5, 500]
+     */
+    private static final double[] digamma_adj_q = new double[] 
+    {
+        6.862596697230474833874884670160991920179, 0.002471283005727189026784415544975350355939,
+        3.307589698304449008222736059167667287747, 0.2934987180435057544393612182922529976682,
+        1.0
+    };
+    
+    /**
+     * The upper polynomial for computing the digamma function, fit against 
+     * psi(x)/(x-1.46163...)
+     * 
+     * Absolute difference less than 1e-15 for the range [2,7]
+     * 
+     * Idea from Chebyshev Approximations for the Psi Function. Mathematics of 
+     * Computation, Volume 27, Number 121. By Cody, Strecok, and Thacher, 
+     */
+    private static final double[] digamma_p_2_7 = new double[] 
+    {
+        0.00803356767428942100, 8.71902391724677187,
+        445.627457353132455, 5678.99715950204957,
+        23638.5586690114249, 32569.4896509749708,
+        11137.2906503774953
+    };
+    /**
+     * The lower polynomial for computing the digamma function, fit against 
+     * psi(x)/(x-1.46163...)
+     * 
+     * Absolute difference less than 1e-15 for the range [2,7]
+     */
+    private static final double[] digamma_q_2_7 = new double[] 
+    {
+        1.63429827694094891, 123.543728215902577,
+        2208.64039265513217, 13061.4741667968999,
+        27097.1711564673534, 16271.6188328948966, 
+        1.0
+    };
+    
+    /**
+     * The upper polynomial for approximating the digamma function 
+     * in the range [7, 70]. The coefficients are in reverse order 
+     * 
+     * Absolute difference is less than 1e-14 for the whole range 
+     * (1e-15 for most of it!) 
+     */
+    private static final double[] digamma_p_7_70 = new double[] 
+    {
+        1.184517214829426509228398e-14, -3.115254117966573324590434e-12,
+        3.376965291465973686259273e-10, -1.965130493876512169028824e-8,
+        -0.04505398537169693060781875
+        
+    };
+    /**
+     * The lower polynomial for approximating the digamma function in the range 
+     * [7, 70]. The coefficients are in reverse order
+     */
+    private static final double[] digamma_q_7_70 = new double[] 
+    {
+        -5.406558865634368930280970, 0.001668808697639819914012839,
+        -2.595288371769254271653798, 0.1463978383403391904410391,
+        1
+    };
+
+    
+    /**
+     * Computes the Riemann zeta function
+     * @param x
+     * @return 
+     */
+    public static double zeta(double x)
+    {
+        if(x == 1)
+            return Double.POSITIVE_INFINITY;
+        else if(x < 0)
+        {
+            double z = 0;
+            z += log(zeta(1-x));
+            z -= log(2) - x*log(PI);
+            z -= log(2*sin(PI*(1-x)/2));
+            z -= lnGamma(x);
+            return exp(z);
+        }
+        if(x >= 50)
+            return 1;
+        return 0;
+    }
+    
+    private static double[] zeta_p_25 = 
+    {
+        -8.09626064147951869042e0,
+         9.903674666806121966549e-1,
+        -5.480229436591701993142e-2,
+         1.799687844435254074123e-3,
+        -3.863505660715340112387e-5,
+         5.619862487048476401076e-7,
+        -5.536027069683907984493e-9,
+         3.559297375095400685852e-11,
+        -1.354497955319349350765e-13,
+         2.323206805488716519633e-16
+    };
+    
+    /**
+     * Contains the exact values for Re[Log[Bn[x]]] for all even values less than 50
+     */
+    private static final double[] reLnBn_sub_50 = 
+    {
+        0, 
+        -1.79175946922805500, -3.40119738166215538, -3.73766961828336831, 
+        -3.40119738166215538, -2.58021682959232517, -1.37391706441133552, 
+        0.154150679827258304, 1.95898950623372649, 4.00680901051075934, 
+        6.27122326708809952, 8.73103330984004285, 11.3688270444561602, 
+        14.1700452298205194, 17.1223324620051408, 20.2150715380410726, 
+        23.4390405118087582, 26.7861544648980854, 30.2492673319812623, 
+        33.8220172715222676, 37.4987042389444309, 41.2741917911127339, 
+        45.1438274079056960, 49.1033771613463772, 53.1489716411456250
+    };
+    
+    /**
+     * Computes the real part of the natural logarithm of the Bernoulli numbers. 
+     * <br> The Bernoulli zeros for odd n will return 
+     * {@link Double#NEGATIVE_INFINITY} and for any value less than 0 will 
+     * return {@link Double#NaN}.  
+     * <br><br>
+     * <br><br>
+     * Currently only accurate to an absolute difference of 10<sup>-11</sup>
+     * 
+     * @param n the integer Bernoulli value to obtain an approximation of
+     * @return <i>Re(Log(B<sub>n</sub>))</i> 
+     */
+    public static double reLnBn(int n)
+    {
+        if(n < 0)
+            return Double.NaN;
+        if(n == 1)
+            return -log(2);
+        if(n % 2 == 1)
+            return Double.NEGATIVE_INFINITY;
+        if(n >= 50)//rel err < 1e-14
+        {
+            //Log[-2^(3/2 - n) ((3 i)/e)^n n^(1/2 + n) ((3 + 40 n^2)/(-1 + 120 n^2))^n Pi^(1/2 - n)]
+            double x = 0;
+            x += (3.0/2.0-n)*log(2);//ignoring + imaginary pi here
+            x += n*(log(3)-1);//ignoring + imaginary pi/2 in the parenthesis 
+            x += (n+0.5)*log(n);
+            x += n*(log(40*n*n+3)-log(120*n*n-1));
+            x += (0.5-n)*log(PI);
+            return x;
+        }
+        return reLnBn_sub_50[n/2];
+    }
+    
+    /**
+     * Computes an approximation to the n'th Bernoulli number 
+     * <i>B<sub>n</sub></i>. 
+     * The Bernoulli numbers grow in value rapidly, and so the accuracy of this
+     * method decays quickly. n > 20 should have the correct order of magnitude,
+     * but may not have many significant figures. {@link #reLnBn(int) } should
+     * be used instead when possible.
+     *
+     * @param n the bernoulli number to compute
+     * @return <i>B<sub>n</sub></i>
+     */
+    public static double bernoulli(int n)
+    {
+        if(n < 0)
+            return Double.NaN;
+        if(n == 0)
+            return 1;
+        if(n == 1)
+            return -0.5;
+        if(n % 2 == 1)
+            return 0;
+        int sign = 1;
+        if(n > 2 && n % 4 == 0)
+            sign = -1;
+        return sign*exp(reLnBn(n));
+    }
+    
     public static double erf(double x)
     {
        /*
