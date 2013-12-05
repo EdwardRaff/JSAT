@@ -103,6 +103,25 @@ public class GridSearch implements Classifier, Regressor
     }
     
     /**
+     * Finds the parameter object with the given name, or throws an exception if
+     * a parameter with the given name does not exist. 
+     * @param name the name to search for
+     * @return the parameter object in question
+     * @throws IllegalArgumentException if the name is not found
+     */
+    private Parameter getParameterByName(String name) throws IllegalArgumentException
+    {
+        Parameter param;
+        if (baseClassifier != null)
+            param = ((Parameterized) baseClassifier).getParameter(name);
+        else
+            param = ((Parameterized) baseRegressor).getParameter(name);
+        if (param == null)
+            throw new IllegalArgumentException("Parameter " + name + " does not exist");
+        return param;
+    }
+    
+    /**
      * Adds a new double parameter to be altered for the model being tuned. 
      * 
      * @param param the model parameter
@@ -110,11 +129,29 @@ public class GridSearch implements Classifier, Regressor
      */
     public void addParameter(DoubleParameter param, double... initialSearchValues)
     {
+        if(param == null)
+            throw new IllegalArgumentException("null not allowed for parameter");
         searchParams.add(param);
         DoubleList dl = new DoubleList(initialSearchValues.length);
         for(double d : initialSearchValues)
             dl.add(d);
         searchValues.add(dl);
+    }
+
+    /**
+     * Adds a new double parameter to be altered for the model being tuned.
+     *
+     * @param name the name of the parameter
+     * @param initialSearchValues the values to try for the specified parameter
+     */
+    public void addParameter(String name, double... initialSearchValues)
+    {
+        Parameter param;
+        param = getParameterByName(name);
+        if (!(param instanceof DoubleParameter))
+            throw new IllegalArgumentException("Parameter " + name + " is not for double values");
+
+        addParameter((DoubleParameter) param, initialSearchValues);
     }
     
     /**
@@ -130,6 +167,22 @@ public class GridSearch implements Classifier, Regressor
         for(double d : initialSearchValues)
             dl.add(d);
         searchValues.add(dl);
+    }
+    
+    /**
+     * Adds a new integer parameter to be altered for the model being tuned.
+     *
+     * @param name the name of the parameter
+     * @param initialSearchValues the values to try for the specified parameter
+     */
+    public void addParameter(String name, int... initialSearchValues)
+    {
+        Parameter param;
+        param = getParameterByName(name);
+        if (!(param instanceof IntParameter))
+            throw new IllegalArgumentException("Parameter " + name + " is not for int values");
+
+        addParameter((IntParameter) param, initialSearchValues);
     }
 
     /**
