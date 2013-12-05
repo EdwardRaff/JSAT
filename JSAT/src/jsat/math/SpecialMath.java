@@ -294,40 +294,115 @@ public class SpecialMath
 
     
     /**
-     * Computes the Riemann zeta function
-     * @param x
-     * @return 
+     * Computes the Riemann zeta function &zeta;(x) for some value of x<br>
+     * <br>
+     * This method may return:<br>
+     * <ul>
+     * <li> {@link Double#NaN} for x = 1 (would be complex infinity)</li>
+     * </ul>
+     * <br>
+     * <br>
+     * <b>NOTE:</b> This method is not yet complete in terms of accuracy. <br>
+     * <ul>
+     *  <li>For x &lt; -0.5, the values returned will be of the correct 
+     *      magnitude - but are not very accurate</li>
+     *  <li>For x in [-0.5, 2.5], the values returned will be of reasonable 
+     *      accurate (absolute difference around 10<sup>-7</sup>), unless it is very close to 1</li>
+     *  <li>For x &gt; 2.5, the result will be very accurate (absolute difference less than 10<sup>-14</sup></li>
+     * </ul>
+     * @param x a real valued input 
+     * @return &zeta;(x)
      */
     public static double zeta(double x)
     {
         if(x == 1)
-            return Double.POSITIVE_INFINITY;
-        else if(x < 0)
+            return Double.NaN;
+        if(x < 0 || abs(1-x) <= 0.2)
         {
-            double z = 0;
-            z += log(zeta(1-x));
-            z -= log(2) - x*log(PI);
-            z -= log(2*sin(PI*(1-x)/2));
-            z -= lnGamma(x);
-            return exp(z);
+            if(x <= 0.2 && x > -2.)
+            {
+                /*
+                 * For this specific range we keep our own approximant,
+                 * see below comment
+                 */
+                return hornerPolyR(zeta_p_special, x)/hornerPolyR(zeta_q_special, x);
+            }
+            /*
+             * http://dlmf.nist.gov/25.4#E2
+             * 
+             * Reflect zeta across 1 if negative to make it positive. 
+             * 
+             * Reflect zeta across 1 if it is just less than one so that it will
+             * be just more than 1 (much easier to compute)
+             * 
+             * Reflect if just more than 1 to an area that is easier to approximate
+             */
+            double otherPart = 2*pow(2*PI, x-1)*sin(PI/2*x);
+            if(x < 0)
+                return otherPart*exp(lnGamma(1-x)*log(zeta(1-x)));
+            else//log(zeta(1-x)) would have caused a NaN
+                return otherPart*gamma(1-x)*zeta(1-x);
         }
-        if(x >= 50)
-            return 1;
-        return 0;
+        if(x < 14)
+            return hornerPolyR(zeta_p_l14, x)/hornerPolyR(zeta_q_l14, x);
+        if(x < 50)
+        {
+            //use truncated form of http://dlmf.nist.gov/25.2#E3
+            double mul = 1/(1-pow(2, 1-x));
+            double sumP = 0;
+            double sumN = 0;
+            for(int i = 11; i >= 1; i-=2)//all odd values are positive
+                sumP += pow(i, -x);
+            for(int i = 10; i >= 1; i-=2)//all even values are negative
+                sumN -= pow(i, -x);
+            return mul*(sumP+sumN);
+        }
+        //else x>=50, 1 is so close we might as well use it
+        return 1;
     }
     
-    private static double[] zeta_p_25 = 
+    /**
+     * upper polynomial approximation of the zeta function between [-0.20, 0.5]
+     */
+    private static double[] zeta_p_special = 
     {
-        -8.09626064147951869042e0,
-         9.903674666806121966549e-1,
-        -5.480229436591701993142e-2,
-         1.799687844435254074123e-3,
-        -3.863505660715340112387e-5,
-         5.619862487048476401076e-7,
-        -5.536027069683907984493e-9,
-         3.559297375095400685852e-11,
-        -1.354497955319349350765e-13,
-         2.323206805488716519633e-16
+        -5.276454584406249e-6, 0.00014685004463733906,
+        -0.0029925134974932046, -0.03542393126377964,
+        -0.2062582384669163, -0.5425801056911627, 
+        -0.500000000000001
+    };
+    /**
+     * Lower polynomial approximation of the zeta function between [-0.20, 0.5]
+     */
+    private static double[] zeta_q_special = 
+    {
+        -3.9917203368386765e-6, -0.00017067854372054898,
+        -0.0029262260848543224, -0.03374331488845255,
+        -0.21043893362112356, -0.75271685502711,
+        1
+    };
+    /**
+     * Upper polynomial approximation of the zeta function between [1.20, 14]
+     */
+    private static double[] zeta_p_l14 = 
+    {
+        -8.60637125178308808e-8, -1.15605577219727645e-6,
+        -0.0000431166632155845063, -0.000526489508370994743,
+        -0.00681551580000143337, -0.0630725028974146228,
+        -0.294618454483912025, -0.634306044238860948,
+        -0.500000284011974157
+    };
+    
+    /**
+     * Lower polynomial approximation of the zeta function between [1.20, 14]
+     */
+    private static double[] zeta_q_l14 = 
+    {
+        -8.61872960765516585e-8, -1.13850129664146526e-6,
+        -0.0000442195744615244028, -0.000486888035876849659,
+        -0.00768589078947058848, -0.0516310207074782699, 
+        -0.370887845301558816, -0.569262911426117336, 
+        1
     };
     
     /**
