@@ -62,6 +62,26 @@ public class FixedProblems
     }
     
     /**
+     * Creates a new Regression problem of the for 
+     * x<sub>2</sub>+c sin(x<sub>2</sub>) = y. It is meant to be an easy test case
+     * for non-linear regression algorithms. 
+     * 
+     * @param dataSetSize the number of data points to generate
+     * @param rand the source of randomness
+     * @return a new regression data set
+     */
+    public static RegressionDataSet getSimpleRegression1(int dataSetSize, Random rand)
+    {
+        RegressionDataSet rds = new RegressionDataSet(2, new CategoricalData[0]);
+        for(int i = 0; i < dataSetSize; i++)
+        {
+            Vec s = new DenseVector(new double[]{rand.nextDouble()*4, rand.nextDouble()*4});
+            rds.addDataPoint(s, new int[0], s.get(0)+4*Math.cos(s.get(1)));
+        }
+        return rds;
+    }
+    
+    /**
      * Returns a classification problem with small uniform noise where there is 
      * a small circle of radius 1 within a circle of radius 4. Each circle
      * shares the same center. 
@@ -72,26 +92,29 @@ public class FixedProblems
      */
     public static ClassificationDataSet getInnerOuterCircle(int dataSetSize, Random rand)
     {
+        return getInnerOuterCircle(dataSetSize, rand, 1, 4);
+    }
+    
+    public static ClassificationDataSet getInnerOuterCircle(int dataSetSize, Random rand, double r1, double r2)
+    {
         ClassificationDataSet train = new ClassificationDataSet(2, new CategoricalData[0], new CategoricalData(2));
         
         int n = dataSetSize/2;
         
-        double rInner = 1;
         //iner circle
         for (int i = 0; i < n; i++) 
         {
             double t = 2 * Math.PI * i / n;
-            double x = rInner * Math.cos(t) + (rand.nextDouble()-0.5)/4;
-            double y = rInner * Math.sin(t) + (rand.nextDouble()-0.5)/4;
+            double x = r1 * Math.cos(t) + (rand.nextDouble()-0.5)/5;
+            double y = r1 * Math.sin(t) + (rand.nextDouble()-0.5)/5;
             train.addDataPoint(DenseVector.toDenseVec(x, y), new int[0], 0);
         }
-        double rOuter = 4;
         //outer cirlce
         for (int i = 0; i < n; i++) 
         {
             double t = 2 * Math.PI * i / n;
-            double x = rOuter * Math.cos(t) + (rand.nextDouble()-0.5)/3;
-            double y = rOuter * Math.sin(t) + (rand.nextDouble()-0.5)/3;
+            double x = r2 * Math.cos(t) + (rand.nextDouble()-0.5)/5;
+            double y = r2 * Math.sin(t) + (rand.nextDouble()-0.5)/5;
             train.addDataPoint(DenseVector.toDenseVec(x, y), new int[0], 1);
         }
         
