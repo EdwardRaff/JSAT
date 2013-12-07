@@ -100,7 +100,7 @@ public class AdaBoostM1 implements Classifier, Parameterized
         CategoricalResults cr = new CategoricalResults(predicting.getNumOfCategories());
         
         for(int i=0; i < hypoths.size(); i++)
-            cr.incProb(hypoths.get(i).classify(data).mostLikely(), Math.log(1.0/hypWeights.get(i)));
+            cr.incProb(hypoths.get(i).classify(data).mostLikely(), hypWeights.get(i));
         
         cr.normalize();
         return cr;
@@ -164,7 +164,7 @@ public class AdaBoostM1 implements Classifier, Parameterized
             scaledBy = newScale;
             
             hypoths.add(weakLearner.clone());
-            hypWeights.add(bt);
+            hypWeights.add(Math.log(1/bt));
         }
     }
 
