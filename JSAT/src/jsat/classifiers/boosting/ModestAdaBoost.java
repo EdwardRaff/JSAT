@@ -3,6 +3,7 @@ package jsat.classifiers.boosting;
 import java.util.*;
 import java.util.concurrent.ExecutorService;
 import jsat.classifiers.*;
+import jsat.classifiers.calibration.BinaryScoreClassifier;
 import jsat.parameters.Parameter;
 import jsat.parameters.Parameterized;
 import jsat.utils.DoubleList;
@@ -25,7 +26,7 @@ import jsat.utils.FakeExecutor;
  * 
  * @author Edward Raff
  */
-public class ModestAdaBoost  implements Classifier, Parameterized
+public class ModestAdaBoost  implements Classifier, Parameterized, BinaryScoreClassifier
 {
     private Classifier weakLearner;
     private int maxIterations;
@@ -106,6 +107,15 @@ public class ModestAdaBoost  implements Classifier, Parameterized
             throw new IllegalArgumentException("WeakLearner must support weighted data to be boosted");
         this.weakLearner = weakLearner;
     }
+    
+    @Override
+    public double getScore(DataPoint dp)
+    {
+        double score = 0;
+        for(int i = 0; i < hypoths.size(); i++)
+            score += (hypoths.get(i).classify(dp).getProb(1)*2-1)*hypWeights.get(i);
+        return score;
+    }
 
     @Override
     public CategoricalResults classify(DataPoint data)
@@ -115,10 +125,7 @@ public class ModestAdaBoost  implements Classifier, Parameterized
         
         CategoricalResults cr = new CategoricalResults(predicting.getNumOfCategories());
         
-        double score = 0;
-        for(int i = 0; i < hypoths.size(); i++)
-            score += (hypoths.get(i).classify(data).getProb(1)*2-1)*hypWeights.get(i);
-        
+        double score =  getScore(data);
         if(score < 0)
             cr.setProb(0, 1.0);
         else
@@ -226,7 +233,7 @@ public class ModestAdaBoost  implements Classifier, Parameterized
     }
 
     @Override
-    public Classifier clone()
+    public ModestAdaBoost clone()
     {
         return new ModestAdaBoost(this);
     }
@@ -245,5 +252,5 @@ public class ModestAdaBoost  implements Classifier, Parameterized
     {
         return paramMap.get(paramName);
     }
-    
+
 }

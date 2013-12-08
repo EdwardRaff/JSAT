@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import jsat.classifiers.*;
+import jsat.classifiers.calibration.BinaryScoreClassifier;
 import jsat.parameters.Parameter;
 import jsat.parameters.Parameterized;
 import jsat.utils.DoubleList;
@@ -30,7 +31,7 @@ import jsat.utils.FakeExecutor;
  * 
  * @author Edward Raff
  */
-public class EmphasisBoost implements Classifier, Parameterized
+public class EmphasisBoost implements Classifier, Parameterized, BinaryScoreClassifier
 {
     private Classifier weakLearner;
     private int maxIterations;
@@ -148,6 +149,15 @@ public class EmphasisBoost implements Classifier, Parameterized
     }
 
     @Override
+    public double getScore(DataPoint dp)
+    {
+        double score = 0;
+        for(int i = 0; i < hypoths.size(); i++)
+            score += H(hypoths.get(i), dp)*hypWeights.get(i);
+        return score;
+    }
+
+    @Override
     public CategoricalResults classify(DataPoint data)
     {
         if(predicting == null)
@@ -155,10 +165,7 @@ public class EmphasisBoost implements Classifier, Parameterized
         
         CategoricalResults cr = new CategoricalResults(predicting.getNumOfCategories());
         
-        double score = 0;
-        for(int i = 0; i < hypoths.size(); i++)
-            score += H(hypoths.get(i), data)*hypWeights.get(i);
-        
+        double score = getScore(data); 
         if(score < 0)
             cr.setProb(0, 1.0);
         else
@@ -258,7 +265,7 @@ public class EmphasisBoost implements Classifier, Parameterized
     }
 
     @Override
-    public Classifier clone()
+    public EmphasisBoost clone()
     {
         return new EmphasisBoost(this);
     }
