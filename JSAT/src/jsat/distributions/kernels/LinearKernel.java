@@ -58,8 +58,6 @@ public class LinearKernel extends BaseKernelTrick
     @Override
     public double eval(Vec a, Vec b)
     {
-        if(a == b)
-            return c;
         return a.dot(b) + c;
     }
 
