@@ -262,7 +262,7 @@ public class ClassifierSelectionDialog extends JDialog
             @Override
             public Classifier getNewClassifier()
             {
-                GridSearch gSearch = new GridSearch(new PlatSMO(new LinearKernel()), 5)
+                GridSearch gSearch = new GridSearch((Classifier)new PlatSMO(new LinearKernel()), 5)
                 {{
                     DoubleParameter paramC = (DoubleParameter) ((Parameterized)getBaseClassifier()).getParameter("C");
 
@@ -284,7 +284,7 @@ public class ClassifierSelectionDialog extends JDialog
             @Override
             public Classifier getNewClassifier()
             {
-               GridSearch g = new GridSearch(new PlatSMO(new RBFKernel(2)), 5)
+               GridSearch g = new GridSearch((Classifier)new PlatSMO(new RBFKernel(2)), 5)
                 {{
                     DoubleParameter paramC = (DoubleParameter) ((Parameterized)getBaseClassifier()).getParameter("C");
                     DoubleParameter paramRBF = (DoubleParameter) ((Parameterized)getBaseClassifier()).getParameter("RBFKernel_sigma");
