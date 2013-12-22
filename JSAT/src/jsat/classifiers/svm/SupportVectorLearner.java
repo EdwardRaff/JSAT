@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Map;
 import jsat.distributions.kernels.KernelTrick;
 import jsat.linear.Vec;
+import jsat.parameters.Parameter.ParameterHolder;
 
 /**
  * Base class for support vector style learners. This means that the learner 
@@ -22,6 +23,7 @@ import jsat.linear.Vec;
 public abstract class SupportVectorLearner 
 {
     //Implementation note, NaN is used to indicate a cache value that has not been computed yet. 
+    @ParameterHolder
     private KernelTrick kernel;
     /**
      * The array of vectors. In the training phase, this should be the set of 

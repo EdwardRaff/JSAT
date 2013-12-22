@@ -1,8 +1,12 @@
 package jsat.parameters;
 
 import java.io.Serializable;
+import java.lang.annotation.*;
+import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.*;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import jsat.distributions.empirical.kernelfunc.KernelFunction;
 import jsat.linear.distancemetrics.DistanceMetric;
 import jsat.math.decayrates.DecayRate;
@@ -15,6 +19,19 @@ import jsat.math.decayrates.DecayRate;
  */
 public abstract class Parameter implements Serializable
 {
+    /**
+     * Adding this annotation to a field tells the 
+     * {@link #getParamsFromMethods(java.lang.Object)} method to search this 
+     * object recursively for more parameter get/set
+     * pairs.
+     */
+    @Retention(RetentionPolicy.RUNTIME)
+    @Target(ElementType.FIELD)
+    public static @interface ParameterHolder
+    {
+        
+    }
+    
     /**
      * Some variables of a learning method may be adjustable without having to 
      * re-train the whole data set. <tt>false</tt> is returned if this is such a 
@@ -123,6 +140,11 @@ public abstract class Parameter implements Serializable
      */
     public static List<Parameter> getParamsFromMethods(final Object obj)
     {
+        return getParamsFromMethods(obj, "");
+    }
+    
+    private static List<Parameter> getParamsFromMethods(final Object obj, String prefix)
+    {
         Map<String, Method> getMethods = new HashMap<String, Method>();
         Map<String, Method> setMethods = new HashMap<String, Method>();
         
@@ -156,11 +178,56 @@ public abstract class Parameter implements Serializable
                 continue;
             final String name = spaceCamelCase(entry.getKey());
             //Found a match do we know how to handle it?
-            Parameter param = getParam(obj, argClass, getMethod, setMethod, name);
+            Parameter param = getParam(obj, argClass, getMethod, setMethod, prefix + name);
             
             
             if(param != null)
                 params.add(param);
+        }
+        
+        //Find params from field objects
+        
+        //first get all fields of this object
+        List<Field> fields = new ArrayList<Field>();
+        Class curClassLevel = obj.getClass();
+        while(curClassLevel != null)
+        {
+            fields.addAll(Arrays.asList(curClassLevel.getDeclaredFields()));
+            curClassLevel = curClassLevel.getSuperclass();
+        }
+        //For each field, check if it has our magic annotation 
+        for(Field field : fields)
+        {
+            if(!field.toString().contains("kernel"))
+                continue;
+            Annotation[] annotations = field.getAnnotations();
+
+            for(Annotation annotation : annotations)
+            {
+                if(annotation.annotationType().equals(ParameterHolder.class))
+                {
+                    //get the field value fromt he object passed in
+                    try
+                    {
+                        //If its private/protected we are not int he same object chain
+                        field.setAccessible(true);
+                        Object paramHolder = field.get(obj);
+                        //Add the params prefixed by the object name
+                        String subPreFix = prefix + paramHolder.getClass().getSimpleName() + "_";
+                        
+                        params.addAll(Parameter.getParamsFromMethods(paramHolder, subPreFix));
+                    }
+                    catch (IllegalArgumentException ex)
+                    {
+                        Logger.getLogger(Parameter.class.getName()).log(Level.SEVERE, null, ex);
+                    }
+                    catch (IllegalAccessException ex)
+                    {
+                        Logger.getLogger(Parameter.class.getName()).log(Level.SEVERE, null, ex);
+                    }
+                }
+            }
+            
         }
         
         
