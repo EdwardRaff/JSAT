@@ -48,9 +48,6 @@ public class PegasosK extends SupportVectorLearner implements BinaryScoreClassif
 {
     private double regularization;
     private int iterations;
-    
-    private List<Parameter> params = Parameter.getParamsFromMethods(this);
-    private Map<String, Parameter> paramMap = Parameter.toParameterMap(params);
 
     /**
      * Creates a new kernelized Pegasos SVM solver 
@@ -284,23 +281,16 @@ public class PegasosK extends SupportVectorLearner implements BinaryScoreClassif
         return false;
     }
 
-    @Override
+     @Override
     public List<Parameter> getParameters()
     {
-        List<Parameter> toRet = new ArrayList<Parameter>(params);
-        toRet.addAll(getKernel().getParameters());
-        return toRet;
+        return Parameter.getParamsFromMethods(this);
     }
 
     @Override
     public Parameter getParameter(String paramName)
     {
-        Parameter toRet = paramMap.get(paramName);
-        
-        if(toRet == null)
-            return getKernel().getParameter(paramName);
-        
-        return toRet;
+        return Parameter.toParameterMap(getParameters()).get(paramName);
     }
     
 }

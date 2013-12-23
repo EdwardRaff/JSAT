@@ -58,9 +58,6 @@ public class CSKLRBatch extends SupportVectorLearner implements Parameterized, C
     private CSKLR.UpdateMode mode;
     protected double gamma = 2;
     private int epochs = 10;
-    
-    private List<Parameter> params = Parameter.getParamsFromMethods(this);
-    private Map<String, Parameter> paramMap = Parameter.toParameterMap(params);
 
     /**
      * Creates a new SCKLR Batch learning object
@@ -212,18 +209,13 @@ public class CSKLRBatch extends SupportVectorLearner implements Parameterized, C
     @Override
     public List<Parameter> getParameters()
     {
-        List<Parameter> toRet = new ArrayList<Parameter>(params);
-        toRet.addAll(getKernel().getParameters());
-        return toRet;
+        return Parameter.getParamsFromMethods(this);
     }
 
     @Override
     public Parameter getParameter(String paramName)
     {
-        Parameter toRet = paramMap.get(paramName);
-        if(toRet == null)
-            toRet = getKernel().getParameter(paramName);
-        return toRet;
+        return Parameter.toParameterMap(getParameters()).get(paramName);
     }
 
     @Override

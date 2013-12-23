@@ -9,6 +9,7 @@ import jsat.exceptions.FailedToFitException;
 import jsat.linear.ScaledVector;
 import jsat.linear.Vec;
 import jsat.parameters.Parameter;
+import jsat.parameters.Parameter.ParameterHolder;
 import jsat.parameters.Parameterized;
 import jsat.utils.DoubleList;
 import jsat.utils.IntList;
@@ -36,6 +37,7 @@ public class ALMA2K extends BaseUpdateableClassifier implements BinaryScoreClass
     private double C = Math.sqrt(2);
     private int k;
     private int curRounds;
+    @ParameterHolder
     private KernelTrick K;
     private List<Vec> supports;
     private List<Double> signedEtas;
@@ -44,9 +46,6 @@ public class ALMA2K extends BaseUpdateableClassifier implements BinaryScoreClass
     private List<Integer> rounds;
     
     private boolean averaged = false;
-    
-    private List<Parameter> params = Parameter.getParamsFromMethods(this);
-    private Map<String, Parameter> paramMap = Parameter.toParameterMap(params);
 
     /**
      * Creates a new kernelized ALMA2 object
@@ -303,18 +302,13 @@ public class ALMA2K extends BaseUpdateableClassifier implements BinaryScoreClass
     @Override
     public List<Parameter> getParameters()
     {
-        List<Parameter> paramRet = new ArrayList<Parameter>(params);
-        paramRet.addAll(K.getParameters());
-        return paramRet;
+        return Parameter.getParamsFromMethods(this);
     }
 
     @Override
     public Parameter getParameter(String paramName)
     {
-        Parameter toRet = paramMap.get(paramName);
-        if(toRet == null)
-            toRet = K.getParameter(paramName);
-        return toRet;
+        return Parameter.toParameterMap(getParameters()).get(paramName);
     }
     
 }

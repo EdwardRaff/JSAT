@@ -1,14 +1,11 @@
 package jsat.classifiers.linear.kernelized;
 
 import static java.lang.Math.*;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
 import jsat.classifiers.BaseUpdateableClassifier;
 import jsat.classifiers.CategoricalData;
 import jsat.classifiers.CategoricalResults;
-import jsat.classifiers.Classifier;
 import jsat.classifiers.DataPoint;
 import jsat.classifiers.calibration.BinaryScoreClassifier;
 import jsat.classifiers.neuralnetwork.Perceptron;
@@ -16,6 +13,7 @@ import jsat.distributions.kernels.KernelTrick;
 import jsat.exceptions.FailedToFitException;
 import jsat.linear.Vec;
 import jsat.parameters.Parameter;
+import jsat.parameters.Parameter.ParameterHolder;
 import jsat.parameters.Parameterized;
 
 /**
@@ -32,6 +30,7 @@ import jsat.parameters.Parameterized;
  */
 public class Forgetron extends BaseUpdateableClassifier implements BinaryScoreClassifier, Parameterized
 {
+    @ParameterHolder
     private KernelTrick K;
     private Vec[] I;
     /**
@@ -51,9 +50,6 @@ public class Forgetron extends BaseUpdateableClassifier implements BinaryScoreCl
     private double Q, M;
     
     private boolean selfTurned = true;
-    
-    private List<Parameter> params = Parameter.getParamsFromMethods(this);
-    private Map<String, Parameter> paramMap = Parameter.toParameterMap(params);
 
     /**
      * Creates a new Forgetron 
@@ -279,18 +275,13 @@ public class Forgetron extends BaseUpdateableClassifier implements BinaryScoreCl
     @Override
     public List<Parameter> getParameters()
     {
-        List<Parameter> toRet = new ArrayList<Parameter>(params);
-        toRet.addAll(K.getParameters());
-        return toRet;
+        return Parameter.getParamsFromMethods(this);
     }
 
     @Override
     public Parameter getParameter(String paramName)
     {
-        Parameter toRet = paramMap.get(paramName);
-        if(toRet == null)
-            toRet = K.getParameter(paramName);
-        return toRet;
+        return Parameter.toParameterMap(getParameters()).get(paramName);
     }
     
 }

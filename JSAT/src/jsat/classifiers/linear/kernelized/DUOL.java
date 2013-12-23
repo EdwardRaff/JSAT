@@ -4,7 +4,6 @@ import static java.lang.Math.*;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
 import jsat.classifiers.BaseUpdateableClassifier;
 import jsat.classifiers.CategoricalData;
 import jsat.classifiers.CategoricalResults;
@@ -16,6 +15,7 @@ import jsat.exceptions.FailedToFitException;
 import jsat.exceptions.UntrainedModelException;
 import jsat.linear.Vec;
 import jsat.parameters.Parameter;
+import jsat.parameters.Parameter.ParameterHolder;
 import jsat.parameters.Parameterized;
 import jsat.utils.DoubleList;
 
@@ -50,6 +50,7 @@ public class DUOL extends BaseUpdateableClassifier implements BinaryScoreClassif
     /**
      * Kernel trick to use
      */
+    @ParameterHolder
     protected KernelTrick k;
     /**
      * Set of support vectors
@@ -108,9 +109,6 @@ public class DUOL extends BaseUpdateableClassifier implements BinaryScoreClassif
         this.rho = other.rho;
         this.C = other.C;
     }
-    
-    private List<Parameter> params = Parameter.getParamsFromMethods(this);
-    private Map<String, Parameter> paramMap = Parameter.toParameterMap(params);
 
     @Override
     public DUOL clone()
@@ -358,18 +356,13 @@ public class DUOL extends BaseUpdateableClassifier implements BinaryScoreClassif
     @Override
     public List<Parameter> getParameters()
     {
-        List<Parameter> toRet = new ArrayList<Parameter>(this.params);
-        toRet.addAll(k.getParameters());
-        return toRet;
+        return Parameter.getParamsFromMethods(this);
     }
 
     @Override
     public Parameter getParameter(String paramName)
     {
-        Parameter toRet = paramMap.get(paramName);
-        if(toRet == null)
-            toRet = k.getParameter(paramName);
-        return toRet;
+        return Parameter.toParameterMap(getParameters()).get(paramName);
     }
     
 }

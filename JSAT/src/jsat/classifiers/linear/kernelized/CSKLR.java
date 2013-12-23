@@ -57,9 +57,6 @@ public class CSKLR extends BaseUpdateableClassifier implements Parameterized
     private UpdateMode mode;
     private double gamma = 2;
     private List<Double> accelCache;
-    
-    private List<Parameter> params = Parameter.getParamsFromMethods(this);
-    private Map<String, Parameter> paramMap = Parameter.toParameterMap(params);
 
     /**
      * Creates a new CSKLR object
@@ -79,18 +76,13 @@ public class CSKLR extends BaseUpdateableClassifier implements Parameterized
     @Override
     public List<Parameter> getParameters()
     {
-        List<Parameter> toRet = new ArrayList<Parameter>(params);
-        toRet.addAll(k.getParameters());
-        return toRet;
+        return Parameter.getParamsFromMethods(this);
     }
 
     @Override
     public Parameter getParameter(String paramName)
     {
-        Parameter toRet = paramMap.get(paramName);
-        if(toRet == null)
-            toRet = k.getParameter(paramName);
-        return toRet;
+        return Parameter.toParameterMap(getParameters()).get(paramName);
     }
     
     /**

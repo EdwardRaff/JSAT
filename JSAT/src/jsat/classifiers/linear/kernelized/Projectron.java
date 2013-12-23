@@ -3,7 +3,6 @@ package jsat.classifiers.linear.kernelized;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
 import jsat.classifiers.BaseUpdateableClassifier;
 import jsat.classifiers.CategoricalData;
 import jsat.classifiers.CategoricalResults;
@@ -19,6 +18,7 @@ import jsat.linear.Matrix;
 import jsat.linear.SubMatrix;
 import jsat.linear.Vec;
 import jsat.parameters.Parameter;
+import jsat.parameters.Parameter.ParameterHolder;
 import jsat.parameters.Parameterized;
 import jsat.utils.DoubleList;
 
@@ -46,7 +46,7 @@ import jsat.utils.DoubleList;
  */
 public class Projectron extends BaseUpdateableClassifier implements BinaryScoreClassifier, Parameterized
 {
-
+    @ParameterHolder
     private KernelTrick k;
     private double eta;
     /**
@@ -59,8 +59,6 @@ public class Projectron extends BaseUpdateableClassifier implements BinaryScoreC
     private Matrix InvKExpanded;
     private double[] k_raw;
     private boolean useMarginUpdates;
-    private List<Parameter> params = Parameter.getParamsFromMethods(this);
-    private Map<String, Parameter> paramMap = Parameter.toParameterMap(params);
 
     /**
      * Creates a new Projectron++ learner
@@ -331,17 +329,12 @@ public class Projectron extends BaseUpdateableClassifier implements BinaryScoreC
     @Override
     public List<Parameter> getParameters()
     {
-        List<Parameter> toRet = new ArrayList<Parameter>(this.params);
-        toRet.addAll(k.getParameters());
-        return toRet;
+        return Parameter.getParamsFromMethods(this);
     }
 
     @Override
     public Parameter getParameter(String paramName)
     {
-        Parameter toRet = paramMap.get(paramName);
-        if (toRet == null)
-            toRet = k.getParameter(paramName);
-        return toRet;
+        return Parameter.toParameterMap(getParameters()).get(paramName);
     }
 }

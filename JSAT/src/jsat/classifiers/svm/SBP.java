@@ -318,23 +318,15 @@ public class SBP extends SupportVectorLearner implements BinaryScoreClassifier, 
         return prevScore;
     }
     
-    private List<Parameter> params = Parameter.getParamsFromMethods(this);
-    private Map<String, Parameter> paramMap = Parameter.toParameterMap(params);
-    
     @Override
     public List<Parameter> getParameters()
     {
-        List<Parameter> retParams = new ArrayList<Parameter>(params);
-        retParams.addAll(getKernel().getParameters());
-        return retParams;
+        return Parameter.getParamsFromMethods(this);
     }
 
     @Override
     public Parameter getParameter(String paramName)
     {
-        Parameter toRet = paramMap.get(paramName);
-        if(toRet == null)
-            toRet = getKernel().getParameter(paramName);
-        return toRet;
+        return Parameter.toParameterMap(getParameters()).get(paramName);
     }
 }
