@@ -190,7 +190,8 @@ public class DoubleList extends AbstractList<Double> implements Serializable
     {
         boundsCheck(index);
         double ret = array[index];
-        System.arraycopy(array, index+1, array, index, end-index+1);
+        for(int i = index; i < end-1; i++)
+            array[i] = array[i+1];
         decreaseSize(1);
         return ret;
     }
