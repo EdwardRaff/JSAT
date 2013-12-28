@@ -1158,4 +1158,29 @@ public class DenseMatrixTest
             
         }
     }
+    
+    @Test
+    public void testChangeSize()
+    {
+        DenseMatrix Acpy = A.clone();
+        Acpy.changeSize(Acpy.rows()-1, Acpy.cols()-1);
+        assertEquals(Acpy.rows(), A.rows()-1);
+        assertEquals(Acpy.cols(), A.cols()-1);
+        
+        
+        for(int i = 0; i < Acpy.rows(); i++)
+            for(int j = 0; j < Acpy.cols(); j++)
+                assertEquals(Acpy.get(i, j), A.get(i, j), 0.0);
+        //Expand back out and make sure the values are zero on the sides
+        Acpy.changeSize(Acpy.rows()+2, Acpy.cols()+2);
+        assertEquals(Acpy.rows(), A.rows()+1);
+        assertEquals(Acpy.cols(), A.cols()+1);
+        
+        for(int i = 0; i < Acpy.rows(); i++)
+            for(int j = 0; j < Acpy.cols(); j++)
+                if(i < A.rows()-1 && j < A.cols()-1)
+                    assertEquals(A.get(i, j), Acpy.get(i, j), 0.0);
+                else
+                    assertEquals(0.0, Acpy.get(i, j), 0.0);
+    }
 }

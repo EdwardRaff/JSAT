@@ -263,6 +263,17 @@ public class SparseVector extends  Vec
         sv.indexes = newIndecies;
         return sv;
     }
+    
+    /**
+     * Returns the index of the last non-zero value, or -1 if all values are zero.
+     * @return the index of the last non-zero value, or -1 if all values are zero.
+     */
+    public int getLastNonZeroIndex()
+    {
+        if(used == 0)
+            return -1;
+        return indexes[used-1];
+    }
 
     @Override
     public double min()

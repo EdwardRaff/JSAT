@@ -138,5 +138,53 @@ public class SubMatrix extends GenericMatrix
     {
         return baseMatrix.isSparce();
     }
+
+    /**
+     * This method alters the size of a matrix, either adding or subtracting
+     * rows from the internal structure of the matrix. Every resize call may
+     * cause a new allocation internally, and should not be called for excessive
+     * changing of a matrix. All added rows/ columns will have values of zero.
+     * If a row / column is removed, it is always the bottom/right most row /
+     * column removed. Values of the removed rows / columns will be lost.<br>
+     * <br>
+     * When a SubMatrix attempts to change size, it may alter the values of the 
+     * underlying matrix in an unusual way. If the base matrix is large enough 
+     * to hold the changed size, then the values in the underlying matrix that 
+     * this SubMatrix is expanding to encompass will be set to zero. If the 
+     * underlying matrix is not large enough, change size will be called upon it
+     * as well.<br>
+     * When decreasing the number of rows / columns, the SubMatrix will always 
+     * reduce its view - but never shrink the underling matrix that the view is
+     * of. 
+     * <br>
+     * To expand the size of a SubMatrix without zeroing out the new values, 
+     * create a new SubMatrix object. 
+     *
+     * @param newRows the new number of rows, must be positive
+     * @param newCols the new number of columns, must be positive.
+     */
+    @Override
+    public void changeSize(int newRows, int newCols)
+    {
+        if(newRows <= 0)
+            throw new ArithmeticException("Matrix must have a positive number of rows");
+        if(newCols <= 0)
+            throw new ArithmeticException("Matrix must have a positive number of columns");
+        //Increase the underlying matrix to the needed size
+        int underNewRows = Math.max(newRows+firstRow, baseMatrix.rows());
+        int underNewCols = Math.max(newCols+firstColumn, baseMatrix.cols());
+        /*
+         * Either the size for the base stays the same, or gets increased
+         */
+        baseMatrix.changeSize(underNewRows, underNewCols);
+        //Zero out the values we are expanding to
+        if(newRows > rows())
+            new SubMatrix(baseMatrix, toRow, firstColumn, firstRow+newRows, firstColumn+newCols).zeroOut();
+        if(newCols > cols())
+            new SubMatrix(baseMatrix, firstRow, toCol, firstRow+newRows, firstColumn+newCols).zeroOut();
+        
+        toRow = firstRow+newRows;
+        toCol = firstColumn+newCols;
+    }
     
 }

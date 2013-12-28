@@ -1,5 +1,6 @@
 package jsat.linear;
 
+import java.util.Arrays;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.logging.Level;
@@ -403,6 +404,30 @@ public class SparseMatrix extends Matrix
         for(Vec v : rows)
             nnz += v.nnz();
         return nnz;
+    }
+
+    @Override
+    public void changeSize(int newRows, int newCols)
+    {
+        if(newRows <= 0)
+            throw new ArithmeticException("Matrix must have a positive number of rows");
+        if(newCols <= 0)
+            throw new ArithmeticException("Matrix must have a positive number of columns");
+        final int oldRows = rows.length;
+        if(newCols != cols())
+        {
+            for(int i = 0; i < rows.length; i++)
+            {
+                final SparseVector row_i = rows[i];
+                while(row_i.getLastNonZeroIndex() >= newCols)
+                    row_i.set(row_i.getLastNonZeroIndex(), 0);
+                row_i.setLength(newCols);
+            }
+        }
+        //update new rows
+        rows = Arrays.copyOf(rows, newRows);
+        for(int i = oldRows; i < newRows; i++)
+            rows[i] = new SparseVector(newCols);
     }
 
 }

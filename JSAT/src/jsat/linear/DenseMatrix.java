@@ -22,7 +22,7 @@ import static jsat.utils.SystemInfo.*;
  */
 public class DenseMatrix extends GenericMatrix
 {   
-    private final double[][] matrix;
+    private double[][] matrix;
 
     /**
      * Creates a new matrix based off the given vectors. 
@@ -221,6 +221,26 @@ public class DenseMatrix extends GenericMatrix
         
         for(int i = k+1; i < M; i++)
             A_j[i] = 0.0;
+    }
+
+    @Override
+    public void changeSize(int newRows, int newCols)
+    {
+        if(newRows <= 0)
+            throw new ArithmeticException("Matrix must have a positive number of rows");
+        if(newCols <= 0)
+            throw new ArithmeticException("Matrix must have a positive number of columns");
+        final int oldRow = matrix.length;
+        //first, did the cols change? That forces a lot of allocation. 
+        if(newCols != cols())
+        {
+            for(int i = 0; i < matrix.length; i++)
+                matrix[i] = Arrays.copyOf(matrix[i], newCols);
+        }
+        //now cols are equal, need to add or remove rows
+        matrix = Arrays.copyOf(matrix, newRows);
+        for(int i = oldRow; i < newRows; i++)
+            matrix[i] = new double[cols()];
     }
     
     private class BlockMultRun implements Runnable
@@ -978,7 +998,7 @@ public class DenseMatrix extends GenericMatrix
     }
     
     @Override
-    public Matrix clone()
+    public DenseMatrix clone()
     {
         DenseMatrix copy = new DenseMatrix(rows(), cols());
         for(int i = 0; i < matrix.length; i++)

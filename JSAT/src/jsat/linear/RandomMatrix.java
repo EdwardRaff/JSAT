@@ -145,5 +145,10 @@ abstract public class RandomMatrix extends GenericMatrix
     {
         return false;
     }
-    
+
+    @Override
+    public void changeSize(int newRows, int newCols)
+    {
+        throw new UnsupportedOperationException("Random Matrix can not be altered"); 
+    }
 }

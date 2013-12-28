@@ -64,6 +64,12 @@ public class GenericMatrixTest
         {
             return false;
         }
+
+        @Override
+        public void changeSize(int newRows, int newCols)
+        {
+            throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        }
         
     }
     

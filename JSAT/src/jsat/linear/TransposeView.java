@@ -65,5 +65,11 @@ public class TransposeView extends GenericMatrix
     {
         return base.isSparce();
     }
+
+    @Override
+    public void changeSize(int newRows, int newCols)
+    {
+        base.changeSize(newCols, newRows);
+    }
     
 }

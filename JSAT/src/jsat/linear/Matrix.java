@@ -372,6 +372,19 @@ public abstract class Matrix implements Cloneable, Serializable
     abstract public Matrix[] qr(ExecutorService threadPool);
     
     /**
+     * This method alters the size of a matrix, either adding or subtracting
+     * rows from the internal structure of the matrix. Every resize call may
+     * cause a new allocation internally, and should not be called for excessive
+     * changing of a matrix. All added rows/ columns will have values of zero.
+     * If a row / column is removed, it is always the bottom/right most row /
+     * column removed. Values of the removed rows / columns will be lost.
+     *
+     * @param newRows the new number of rows, must be positive
+     * @param newCols the new number of columns, must be positive.
+     */
+    abstract public void changeSize(int newRows, int newCols);
+    
+    /**
      * Transposes the current matrix in place, altering its value. 
      * Only valid for square matrices 
      */
