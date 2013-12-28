@@ -41,7 +41,7 @@ public class KernelRLS implements UpdateableRegressor, Parameterized
     private Matrix KExpanded;
     private Matrix InvKExpanded;
     private Matrix PExpanded;
-    double[] alphaExpanded;
+    private double[] alphaExpanded;
     
     /**
      * Creates a new Kernel RLS learner
@@ -245,25 +245,9 @@ public class KernelRLS implements UpdateableRegressor, Parameterized
             
             if(size == KExpanded.rows())//we need to grow first
             {
-                K = KExpanded;
-                KExpanded = new DenseMatrix(size*2, size*2);
-                
-                InvK = InvKExpanded;
-                InvKExpanded = new DenseMatrix(size*2, size*2);
-                
-                P = PExpanded;
-                PExpanded = new DenseMatrix(size*2, size*2);
-                
-                for(int i = 0; i < K.rows(); i++)
-                    for(int j = 0; j < K.cols(); j++)
-                    {
-                        KExpanded.set(i, j, K.get(i, j));
-                        InvKExpanded.set(i, j, InvK.get(i, j));
-                        PExpanded.set(i, j, P.get(i, j));
-                    }
-                K = new SubMatrix(KExpanded, 0, 0, size, size);
-                InvK = new SubMatrix(InvKExpanded, 0, 0, size, size);
-                P = new SubMatrix(PExpanded, 0, 0, size, size);
+                KExpanded.changeSize(size*2, size*2);
+                InvKExpanded.changeSize(size*2, size*2);
+                PExpanded.changeSize(size*2, size*2);
                 
                 alphaExpanded = Arrays.copyOf(alphaExpanded, size*2);
             }
