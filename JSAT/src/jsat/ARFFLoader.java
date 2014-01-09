@@ -12,7 +12,6 @@ import java.util.List;
 import java.util.Map.Entry;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import java.util.regex.PatternSyntaxException;
 import jsat.classifiers.CategoricalData;
 import jsat.classifiers.DataPoint;
 import jsat.linear.DenseVector;
@@ -141,13 +140,28 @@ public class ARFFLoader
                 {
                     if(line.contains("?"))//We dont handle missing data
                         continue;
+                    double weight = 1.0;
                     String[] tmp = line.split(",");
-                    
+                    if(tmp.length != isReal.size())
+                    {
+                        String s = tmp[isReal.size()];
+                        if(tmp.length == isReal.size()+1)//{#} means the # is the weight
+                        {
+                            if(!s.matches("\\{\\d+(\\.\\d+)?\\}"))
+                                throw new RuntimeException("extra column must indicate a data point weigh in the form of \"{#}\", instead bad token " + s + " was found");
+                            weight = Double.parseDouble(s.substring(1, s.length()-1));
+                        }
+                        else
+                        {
+                            throw new RuntimeException("Column had " + tmp.length + " values instead of " + isReal.size());
+                        }
+                    }
+                        
                     DenseVector vec = new DenseVector(numReal);
                     
                     int[] cats = new int[numOfVars - numReal];
                     int k = 0;//Keeping track of position in cats
-                    for(int i  = 0; i < tmp.length; i++)
+                    for(int i  = 0; i < isReal.size(); i++)
                     {
                         if(isReal.get(i))
                             vec.set(i - k, Double.parseDouble(tmp[i].trim()));
@@ -158,7 +172,7 @@ public class ARFFLoader
                         }
                     }
                     
-                    list.add(new DataPoint(vec, cats, categoricalData)); 
+                    list.add(new DataPoint(vec, cats, categoricalData, weight)); 
                 }
             }
         }
