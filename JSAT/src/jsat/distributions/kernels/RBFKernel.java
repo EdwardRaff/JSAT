@@ -1,13 +1,9 @@
 
 package jsat.distributions.kernels;
 
-import java.util.Arrays;
 import java.util.List;
 import jsat.linear.Vec;
-import jsat.parameters.DoubleParameter;
-import jsat.parameters.Parameter;
 import jsat.text.GreekLetters;
-import jsat.utils.DoubleList;
 
 /**
  * Provides a kernel for the Radial Basis Function, which is of the form
@@ -16,7 +12,7 @@ import jsat.utils.DoubleList;
  * 
  * @author Edward Raff
  */
-public class RBFKernel extends BaseKernelTrick
+public class RBFKernel extends BaseL2Kernel
 {
     private double sigma;
     private double sigmaSqrd2Inv;
@@ -39,54 +35,17 @@ public class RBFKernel extends BaseKernelTrick
     }
 
     @Override
-    public boolean supportsAcceleration()
-    {
-        return true;
-    }
-    
-    @Override
-    public DoubleList getAccelerationCache(List<? extends Vec> trainingSet)
-    {
-        DoubleList cache = new DoubleList(trainingSet.size());
-        for(int i = 0; i < trainingSet.size(); i++)
-            cache.add(trainingSet.get(i).dot(trainingSet.get(i)));
-        return cache;
-    }
-
-    @Override
-    public List<Double> getQueryInfo(Vec q)
-    {
-        DoubleList dl = new DoubleList(1);
-        dl.add(q.dot(q));
-        return dl;
-    }
-    
-    @Override
-    public void addToCache(Vec newVec, List<Double> cache)
-    {
-        cache.add(newVec.dot(newVec));
-    }
-
-    @Override
     public double eval(int a, int b, List<? extends Vec> trainingSet, List<Double> cache)
     {
         if(a == b)
-            return 1;
-        final double cache_a = cache.get(a);
-        final double cache_b = cache.get(b);
-        return Math.exp(-(cache_a - 2*trainingSet.get(a).dot(trainingSet.get(b))+cache_b)* sigmaSqrd2Inv);
+            return 1; 
+        return Math.exp(-getSqrdNorm(a, b, trainingSet, cache)* sigmaSqrd2Inv);
     }
-
+    
     @Override
-    public double evalSum(List<? extends Vec> finalSet, List<Double> cache, double[] alpha, Vec y, int start, int end)
+    public double eval(int a, Vec b, List<Double> qi, List<? extends Vec> vecs, List<Double> cache)
     {
-        final double y_dot = y.dot(y);
-        double sum = 0;
-        
-        for(int i = start; i < end; i++)
-            sum += alpha[i] * Math.exp(-(cache.get(i) - 2*finalSet.get(i).dot(y)+y_dot)* sigmaSqrd2Inv);
-        
-        return sum;
+        return Math.exp(-getSqrdNorm(a, b, qi, vecs, cache)* sigmaSqrd2Inv);
     }
 
     /**
@@ -110,45 +69,6 @@ public class RBFKernel extends BaseKernelTrick
     public String toString()
     {
         return "RBF Kernel( " + GreekLetters.sigma +" = " + sigma +")";
-    }
-
-    private Parameter param = new DoubleParameter() 
-    {
-
-        @Override
-        public double getValue()
-        {
-            return getSigma();
-        }
-
-        @Override
-        public boolean setValue(double val)
-        {
-            if(val <= 0 || Double.isInfinite(val))
-                return false;
-            setSigma(val);
-            return true;
-        }
-
-        @Override
-        public String getASCIIName()
-        {
-            return "RBFKernel_sigma";
-        }
-    };
-    
-    @Override
-    public List<Parameter> getParameters()
-    {
-        return Arrays.asList(param);
-    }
-
-    @Override
-    public Parameter getParameter(String paramName)
-    {
-        if(paramName.equals(param.getASCIIName()))
-            return param;
-        return null;
     }
 
     @Override
