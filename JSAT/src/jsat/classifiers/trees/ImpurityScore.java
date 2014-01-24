@@ -259,22 +259,50 @@ public class ImpurityScore implements Cloneable
         
         boolean useSplitInfo = splits[0].impurityMeasure == ImpurityMeasure.INFORMATION_GAIN_RATIO;
         
-        double splitInfo = useSplitInfo ? 1.0 : 0.0;
-        
-        for(ImpurityScore split : splits)
+        if(useSplitInfo)
         {
-            double p = split.getSumOfWeights()/wholeData.getSumOfWeights();
-            if(p <= 0)//log(0) is -Inft, so skip and treat as zero
-                continue;
-            splitScore += p*split.getScore();
-            
-            if(useSplitInfo)
-                splitInfo += p * log(p);
+            /*
+             * TODO should actualy be 0, but performance bug is consistently 
+             * occuring if I use another value. Needs serious investigation. 
+             * I was testing on (Oracle) 1.7u51 & u20 smoething and both had the
+             * issue, on OSX and Windows. 
+             * 
+             * I was unable to replicate the issue with a smaller self contained
+             * program. So I suspect I might be at some threshold / corner case 
+             * of the optimizer
+             * 
+             * Adding a -1 at the final results causes the performance 
+             * degredation agian. Occures with both client and server JVM
+             * 
+             * Using the same code with an if stament seperating the 2 (see old revision) was originally backwards. Changing the correct way revealed the behavior. I'm leaving them seperated to ease investiation later. 
+             */
+            double splitInfo = 1.0;
+            for(ImpurityScore split : splits)
+            {
+                double p = split.getSumOfWeights()/wholeData.getSumOfWeights();
+                if(p <= 0)//log(0) is -Inft, so skip and treat as zero
+                    continue;
+                splitScore += p * split.getScore();
+                splitInfo += p * -log(p);
+            }
+
+            return (wholeData.getScore()-splitScore)/splitInfo;
+        }
+        else
+        {
+            for(ImpurityScore split : splits)
+            {
+                double p = split.getSumOfWeights()/wholeData.getSumOfWeights();
+                if(p <= 0)//log(0) is -Inft, so skip and treat as zero
+                    continue;
+                splitScore += p*split.getScore();
+            }
+
+            return wholeData.getScore()-splitScore;
         }
         
-        return (wholeData.getScore()-splitScore)/abs(splitInfo);
     }
-
+    
     @Override
     protected ImpurityScore clone()
     {

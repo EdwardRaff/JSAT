@@ -14,8 +14,6 @@ import jsat.linear.Vec;
 import jsat.math.Function;
 import jsat.math.OnLineStatistics;
 import jsat.math.rootfinding.Zeroin;
-import jsat.parameters.IntParameter;
-import jsat.parameters.ObjectParameter;
 import jsat.parameters.Parameter;
 import jsat.parameters.Parameterized;
 import jsat.regression.RegressionDataSet;
@@ -737,7 +735,7 @@ public class DecisionStump implements Classifier, Regressor, Parameterized
             
             ImpurityScore rightSide = origScore.clone();
             ImpurityScore leftSide = new ImpurityScore(N, gainMethod);
-            
+                        
             for(int i = 0; i < minResultSplitSize; i++)
             {
                 double weight = dataPoints.get(i).getDataPoint().getWeight();
@@ -974,6 +972,7 @@ public class DecisionStump implements Classifier, Regressor, Parameterized
             copy.regressionResults = Arrays.copyOf(this.regressionResults, this.regressionResults.length);
         copy.minResultSplitSize = this.minResultSplitSize;
         copy.numericHandlingC = this.numericHandlingC;
+        copy.gainMethod = this.gainMethod;
         return copy;
     }
     
