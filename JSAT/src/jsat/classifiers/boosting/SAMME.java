@@ -15,6 +15,8 @@ import jsat.classifiers.ClassificationDataSet;
 import jsat.classifiers.Classifier;
 import jsat.classifiers.DataPoint;
 import jsat.classifiers.DataPointPair;
+import jsat.parameters.Parameter;
+import jsat.parameters.Parameterized;
 import jsat.utils.DoubleList;
 import static jsat.utils.SystemInfo.*;
 
@@ -34,7 +36,7 @@ import static jsat.utils.SystemInfo.*;
  * 
  * @author Edward Raff
  */
-public class SAMME implements Classifier
+public class SAMME implements Classifier, Parameterized
 {
     private Classifier weakLearner;
     private int maxIterations;
@@ -212,5 +214,17 @@ public class SAMME implements Classifier
             clone.predicting = this.predicting.clone();
         
         return clone;
+    }
+    
+    @Override
+    public List<Parameter> getParameters()
+    {
+        return Parameter.getParamsFromMethods(this);
+    }
+
+    @Override
+    public Parameter getParameter(String paramName)
+    {
+        return Parameter.toParameterMap(getParameters()).get(paramName);
     }
 }

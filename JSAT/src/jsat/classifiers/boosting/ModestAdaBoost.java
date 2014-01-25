@@ -238,19 +238,16 @@ public class ModestAdaBoost  implements Classifier, Parameterized, BinaryScoreCl
         return new ModestAdaBoost(this);
     }
 
-    private List<Parameter> params = Parameter.getParamsFromMethods(this);
-    private Map<String, Parameter> paramMap = Parameter.toParameterMap(params);
-
     @Override
     public List<Parameter> getParameters()
     {
-        return params;
+        return Parameter.getParamsFromMethods(this);
     }
 
     @Override
     public Parameter getParameter(String paramName)
     {
-        return paramMap.get(paramName);
+        return Parameter.toParameterMap(getParameters()).get(paramName);
     }
 
 }

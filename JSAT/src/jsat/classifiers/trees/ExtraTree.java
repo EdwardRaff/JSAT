@@ -49,10 +49,6 @@ public class ExtraTree implements Classifier, Regressor, TreeLearner, Parameteri
     private ImpurityScore.ImpurityMeasure impMeasure = ImpurityMeasure.NMI;
     
     private TreeNodeVisitor root;
-    
-    private List<Parameter> params = Collections.unmodifiableList(Parameter.getParamsFromMethods(this));
-    
-    private Map<String, Parameter> paramMap = Parameter.toParameterMap(params);
 
     /**
      * Creates a new Extra Tree that will use all features in the training set
@@ -607,13 +603,13 @@ public class ExtraTree implements Classifier, Regressor, TreeLearner, Parameteri
     @Override
     public List<Parameter> getParameters()
     {
-        return params;
+        return Parameter.getParamsFromMethods(this);
     }
 
     @Override
     public Parameter getParameter(String paramName)
     {
-        return paramMap.get(paramName);
+        return Parameter.toParameterMap(getParameters()).get(paramName);
     }
     
     /**

@@ -42,9 +42,6 @@ public class LogisticRegressionDCD implements Classifier, Parameterized
     private double C;
     private int maxIterations;
     
-    private List<Parameter> params = Parameter.getParamsFromMethods(this);
-    private Map<String, Parameter> paramMap = Parameter.toParameterMap(params);
-    
     /**
      * Creates a new Logistic Regression learner that does no more than 100
      * training iterations with a default regularization tradeoff of C = 1
@@ -304,16 +301,16 @@ public class LogisticRegressionDCD implements Classifier, Parameterized
         return w;
     }
 
-    @Override
+@Override
     public List<Parameter> getParameters()
     {
-        return params;
+        return Parameter.getParamsFromMethods(this);
     }
 
     @Override
     public Parameter getParameter(String paramName)
     {
-        return paramMap.get(paramName);
+        return Parameter.toParameterMap(getParameters()).get(paramName);
     }
     
 }

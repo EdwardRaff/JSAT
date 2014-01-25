@@ -85,9 +85,6 @@ public class RBFNet implements Classifier, Regressor, DataTransform, Parameteriz
     private List<Double> centroidDistCache;
     private List<Vec> centroids;
     private double[] bandwidths;
-    
-    private List<Parameter> params = Parameter.getParamsFromMethods(this);
-    private Map<String, Parameter> paramMap = Parameter.toParameterMap(params);
 
     /**
      * Creates a new RBF Network suitable for binary classification or 
@@ -805,12 +802,12 @@ public class RBFNet implements Classifier, Regressor, DataTransform, Parameteriz
     @Override
     public List<Parameter> getParameters()
     {
-        return Collections.unmodifiableList(params);
+        return Parameter.getParamsFromMethods(this);
     }
 
     @Override
     public Parameter getParameter(String paramName)
     {
-        return paramMap.get(paramName);
+        return Parameter.toParameterMap(getParameters()).get(paramName);
     }
 }

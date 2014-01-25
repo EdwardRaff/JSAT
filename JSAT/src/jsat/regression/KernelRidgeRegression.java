@@ -8,16 +8,14 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import jsat.classifiers.Classifier;
 import jsat.classifiers.DataPoint;
-import jsat.classifiers.svm.SupportVectorLearner;
 import jsat.distributions.kernels.KernelTrick;
 import jsat.linear.CholeskyDecomposition;
 import jsat.linear.DenseMatrix;
-import jsat.linear.DenseVector;
 import jsat.linear.Matrix;
 import jsat.linear.Vec;
 import jsat.parameters.Parameter;
+import jsat.parameters.Parameter.ParameterHolder;
 import jsat.parameters.Parameterized;
 import jsat.utils.FakeExecutor;
 import jsat.utils.SystemInfo;
@@ -34,13 +32,10 @@ import jsat.utils.SystemInfo;
 public class KernelRidgeRegression implements Regressor, Parameterized
 {
     private double lambda;
+    @ParameterHolder
     private KernelTrick k;
     private List<Vec> vecs;
     private double[] alphas;
-            
-    
-    private final List<Parameter> params = Parameter.getParamsFromMethods(this);
-    private final Map<String, Parameter> paramMap = Parameter.toParameterMap(params);
 
     /**
      * Creates a new Kernel Ridge Regression learner
@@ -191,17 +186,12 @@ public class KernelRidgeRegression implements Regressor, Parameterized
     @Override
     public List<Parameter> getParameters()
     {
-        List<Parameter> toRet = new ArrayList<Parameter>(params);
-        toRet.addAll(getKernel().getParameters());
-        return toRet;
+        return Parameter.getParamsFromMethods(this);
     }
 
     @Override
     public Parameter getParameter(String paramName)
     {
-        Parameter toRet = paramMap.get(paramName);
-        if(toRet == null)
-            toRet = getKernel().getParameter(paramName);
-        return toRet;
+        return Parameter.toParameterMap(getParameters()).get(paramName);
     }
 }

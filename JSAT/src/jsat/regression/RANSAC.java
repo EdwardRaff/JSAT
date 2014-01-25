@@ -8,6 +8,7 @@ import jsat.classifiers.DataPoint;
 import jsat.classifiers.DataPointPair;
 import jsat.exceptions.FailedToFitException;
 import jsat.parameters.*;
+import jsat.parameters.Parameter.ParameterHolder;
 import jsat.utils.FakeExecutor;
 import jsat.utils.SystemInfo;
 
@@ -45,6 +46,7 @@ public class RANSAC implements Regressor, Parameterized
      */
     private int minResultSize;
     
+    @ParameterHolder
     private Regressor baseRegressor;
     /**
      * True marks that the data point is part of the consensus set. 
@@ -52,11 +54,6 @@ public class RANSAC implements Regressor, Parameterized
      */
     private boolean[] consensusSet;
     private double modelError;
-    
-    
-    private final List<Parameter> params = Collections.unmodifiableList(Parameter.getParamsFromMethods(this));
-    
-    private final Map<String, Parameter> paramMap = Parameter.toParameterMap(params);
 
     /**
      * Creates a new RANSAC training object. Because RANSAC is sensitive to 
@@ -85,13 +82,13 @@ public class RANSAC implements Regressor, Parameterized
     @Override
     public List<Parameter> getParameters()
     {
-        return params;
+        return Parameter.getParamsFromMethods(this);
     }
 
     @Override
     public Parameter getParameter(String paramName)
     {
-        return paramMap.get(paramName);
+        return Parameter.toParameterMap(getParameters()).get(paramName);
     }
     
     /**
@@ -362,7 +359,7 @@ public class RANSAC implements Regressor, Parameterized
     }
 
     @Override
-    public Regressor clone()
+    public RANSAC clone()
     {
         RANSAC clone = new RANSAC(baseRegressor.clone(), iterations, initialTrainSize, minResultSize, maxPointError);
         

@@ -16,6 +16,8 @@ import jsat.exceptions.UntrainedModelException;
 import jsat.linear.DenseVector;
 import jsat.linear.Vec;
 import jsat.math.TrigMath;
+import jsat.parameters.Parameter;
+import jsat.parameters.Parameterized;
 import jsat.regression.MultipleLinearRegression;
 import jsat.regression.RegressionDataSet;
 import jsat.regression.Regressor;
@@ -33,7 +35,7 @@ import jsat.regression.Regressor;
  * 
  * @author Edward Raff
  */
-public class LogitBoost implements Classifier
+public class LogitBoost implements Classifier, Parameterized
 {
     /**
      * The constant factor that the sum of regressors is scaled by. 
@@ -225,4 +227,15 @@ public class LogitBoost implements Classifier
         return clone;
     }
     
+    @Override
+    public List<Parameter> getParameters()
+    {
+        return Parameter.getParamsFromMethods(this);
+    }
+
+    @Override
+    public Parameter getParameter(String paramName)
+    {
+        return Parameter.toParameterMap(getParameters()).get(paramName);
+    }
 }

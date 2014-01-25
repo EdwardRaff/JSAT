@@ -9,6 +9,7 @@ import jsat.distributions.multivariate.MultivariateKDE;
 import jsat.linear.Vec;
 import jsat.linear.VecPaired;
 import jsat.parameters.Parameter;
+import jsat.parameters.Parameter.ParameterHolder;
 import jsat.parameters.Parameterized;
 
 /**
@@ -19,6 +20,7 @@ import jsat.parameters.Parameterized;
  */
 public class NadarayaWatson implements Regressor, Parameterized
 {
+    @ParameterHolder
     private MultivariateKDE kde;
 
     public NadarayaWatson(MultivariateKDE kde)
@@ -84,19 +86,13 @@ public class NadarayaWatson implements Regressor, Parameterized
     @Override
     public List<Parameter> getParameters()
     {
-        if(kde instanceof Parameterized)
-            return ((Parameterized)kde).getParameters();
-        else
-            return Collections.EMPTY_LIST;
+        return Parameter.getParamsFromMethods(this);
     }
 
     @Override
     public Parameter getParameter(String paramName)
     {
-        if(kde instanceof Parameterized)
-            return ((Parameterized)kde).getParameter(paramName);
-        else
-            return null;
+        return Parameter.toParameterMap(getParameters()).get(paramName);
     }
     
 }

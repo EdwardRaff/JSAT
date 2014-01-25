@@ -101,10 +101,6 @@ public class LVQ implements Classifier, Parameterized
     protected VectorCollection<VecPaired<Vec, Integer>> vc;
     
     private VectorCollectionFactory<VecPaired<Vec, Integer>> vcf;
-    
-    private List<Parameter> params = Collections.unmodifiableList(new ArrayList<Parameter>(Parameter.getParamsFromMethods(this)));
-    
-    private Map<String, Parameter> paramMap = Parameter.toParameterMap(params);
 
     /**
      * Creates a new LVQ instance 
@@ -400,13 +396,13 @@ public class LVQ implements Classifier, Parameterized
     @Override
     public List<Parameter> getParameters()
     {
-        return params;
+        return Parameter.getParamsFromMethods(this);
     }
 
     @Override
     public Parameter getParameter(String paramName)
     {
-        return paramMap.get(paramName);
+        return Parameter.toParameterMap(getParameters()).get(paramName);
     }
     
     /**

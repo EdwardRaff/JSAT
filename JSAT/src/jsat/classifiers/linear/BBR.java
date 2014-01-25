@@ -57,8 +57,6 @@ public class BBR implements Classifier, Parameterized
          */
         GAUSSIAN
     }
-    private List<Parameter> params = Parameter.getParamsFromMethods(this);
-    private Map<String, Parameter> paramMap = Parameter.toParameterMap(params);
 
     /**
      * Creates a new BBR for L<sub>1</sub> Logistic Regression object that will
@@ -508,15 +506,15 @@ public class BBR implements Classifier, Parameterized
         return numer / denom;
     }
 
-    @Override
+@Override
     public List<Parameter> getParameters()
     {
-        return params;
+        return Parameter.getParamsFromMethods(this);
     }
 
     @Override
     public Parameter getParameter(String paramName)
     {
-        return paramMap.get(paramName);
+        return Parameter.toParameterMap(getParameters()).get(paramName);
     }
 }

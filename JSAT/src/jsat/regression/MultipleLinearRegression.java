@@ -6,7 +6,6 @@ import jsat.classifiers.DataPoint;
 import jsat.classifiers.DataPointPair;
 import jsat.linear.DenseMatrix;
 import jsat.linear.DenseVector;
-import jsat.linear.LUPDecomposition;
 import jsat.linear.Matrix;
 import jsat.linear.QRDecomposition;
 import jsat.linear.Vec;

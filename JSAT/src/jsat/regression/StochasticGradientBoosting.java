@@ -11,8 +11,6 @@ import jsat.math.Function;
 import jsat.math.FunctionBase;
 import jsat.math.rootfinding.RootFinder;
 import jsat.math.rootfinding.Zeroin;
-import jsat.parameters.DoubleParameter;
-import jsat.parameters.IntParameter;
 import jsat.parameters.Parameter;
 import jsat.parameters.Parameterized;
 import jsat.utils.DoubleList;
@@ -84,10 +82,6 @@ public class StochasticGradientBoosting implements Regressor, Parameterized
     private double learningRate;
     
     private int maxIterations;
-    
-    private final List<Parameter> params = Collections.unmodifiableList(Parameter.getParamsFromMethods(this));
-    
-    private final Map<String, Parameter> paramMap = Parameter.toParameterMap(params);
 
     /**
      * Creates a new initialized SGB learner.
@@ -427,13 +421,13 @@ public class StochasticGradientBoosting implements Regressor, Parameterized
     @Override
     public List<Parameter> getParameters()
     {
-        return params;
+        return Parameter.getParamsFromMethods(this);
     }
 
     @Override
     public Parameter getParameter(String paramName)
     {
-        return paramMap.get(paramName);
+        return Parameter.toParameterMap(getParameters()).get(paramName);
     }
     
 }

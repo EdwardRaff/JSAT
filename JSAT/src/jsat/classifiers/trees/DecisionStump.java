@@ -976,21 +976,15 @@ public class DecisionStump implements Classifier, Regressor, Parameterized
         return copy;
     }
     
-    private List<Parameter> params = Collections.unmodifiableList(Parameter.getParamsFromMethods(this));
-    
-    private Map<String, Parameter> paramMap = Parameter.toParameterMap(params);
-
     @Override
     public List<Parameter> getParameters()
     {
-        return params;
+        return Parameter.getParamsFromMethods(this);
     }
-    
+
     @Override
     public Parameter getParameter(String paramName)
     {
-        return paramMap.get(paramName);
+        return Parameter.toParameterMap(getParameters()).get(paramName);
     }
-    
-    
 }

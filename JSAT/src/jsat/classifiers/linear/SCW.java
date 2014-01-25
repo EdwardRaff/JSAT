@@ -72,9 +72,6 @@ public class SCW extends BaseUpdateableClassifier implements BinaryScoreClassifi
     private Vec Sigma_xt;
     
     private boolean diagonalOnly = false;
-    
-    private List<Parameter> params = Parameter.getParamsFromMethods(this);
-    private Map<String, Parameter> paramMap = Parameter.toParameterMap(params);
 
     /**
      * More than one escape point, makes sure to zero out {@link #Sigma_xt} 
@@ -402,16 +399,16 @@ public class SCW extends BaseUpdateableClassifier implements BinaryScoreClassifi
         return false;
     }
     
-    @Override
+@Override
     public List<Parameter> getParameters()
     {
-        return Collections.unmodifiableList(params);
+        return Parameter.getParamsFromMethods(this);
     }
 
     @Override
     public Parameter getParameter(String paramName)
     {
-        return paramMap.get(paramName);
+        return Parameter.toParameterMap(getParameters()).get(paramName);
     }
     
 }

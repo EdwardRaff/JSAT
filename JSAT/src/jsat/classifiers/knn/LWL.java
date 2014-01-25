@@ -51,9 +51,6 @@ public class LWL implements Classifier, Regressor, Parameterized
     private KernelFunction kf;
     private VectorCollectionFactory<VecPaired<Vec, Double>> vcf;
     private VectorCollection<VecPaired<Vec, Double>> vc;
-    
-    private final List<Parameter> params =  Collections.unmodifiableList(Parameter.getParamsFromMethods(this));
-    private final Map<String, Parameter> paramMap = Parameter.toParameterMap(params);
 
     /**
      * Copy constructor
@@ -356,14 +353,14 @@ public class LWL implements Classifier, Regressor, Parameterized
     }
 
     @Override
-    public Parameter getParameter(String paramName)
+    public List<Parameter> getParameters()
     {
-        return paramMap.get(paramName);
+        return Parameter.getParamsFromMethods(this);
     }
 
     @Override
-    public List<Parameter> getParameters()
+    public Parameter getParameter(String paramName)
     {
-        return params;
+        return Parameter.toParameterMap(getParameters()).get(paramName);
     }
 }

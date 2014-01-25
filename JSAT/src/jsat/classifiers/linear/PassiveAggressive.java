@@ -35,9 +35,6 @@ public class PassiveAggressive implements UpdateableClassifier, BinaryScoreClass
     private double eps = 0.001;
     private Vec w;
     private Mode mode;
-    
-    private List<Parameter> params = Parameter.getParamsFromMethods(this);
-    private Map<String, Parameter> paramMap = Parameter.toParameterMap(params);
 
     /**
      * Creates a new Passive Aggressive learner that does 10 epochs and uses
@@ -295,15 +292,15 @@ public class PassiveAggressive implements UpdateableClassifier, BinaryScoreClass
         return clone;
     }
     
-    @Override
+@Override
     public List<Parameter> getParameters()
     {
-        return Collections.unmodifiableList(params);
+        return Parameter.getParamsFromMethods(this);
     }
 
     @Override
     public Parameter getParameter(String paramName)
     {
-        return paramMap.get(paramName);
+        return Parameter.toParameterMap(getParameters()).get(paramName);
     }
 }

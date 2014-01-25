@@ -58,10 +58,6 @@ public class RandomForest implements Classifier, Regressor, Parameterized
     private double outOfBagError;
     private RandomDecisionTree baseLearner;
     private List<DecisionTree> forest;
-    
-    private final List<Parameter> params = Collections.unmodifiableList(Parameter.getParamsFromMethods(this));
-    
-    final Map<String, Parameter> paramMap = Parameter.toParameterMap(params);
 
     public RandomForest(int maxForestSize)
     {
@@ -348,13 +344,13 @@ public class RandomForest implements Classifier, Regressor, Parameterized
     @Override
     public List<Parameter> getParameters()
     {
-        return params;
+        return Parameter.getParamsFromMethods(this);
     }
 
     @Override
     public Parameter getParameter(String paramName)
     {
-        return paramMap.get(paramName);
+        return Parameter.toParameterMap(getParameters()).get(paramName);
     }
     
     private class LearningWorker implements Callable<LearningWorker>

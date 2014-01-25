@@ -17,8 +17,6 @@ import jsat.linear.distancemetrics.EuclideanDistance;
 import jsat.linear.vectorcollection.*;
 import jsat.math.decayrates.DecayRate;
 import jsat.math.decayrates.ExponetialDecay;
-import jsat.math.decayrates.LinearDecay;
-import jsat.math.decayrates.NoDecay;
 import jsat.parameters.*;
 import jsat.utils.*;
 
@@ -34,9 +32,6 @@ import jsat.utils.*;
 public class SOM implements Classifier, Parameterized
 {
     //TODO add code for visualizing the SOM
-    private List<Parameter> parameters = Collections.unmodifiableList(new ArrayList<Parameter>(Parameter.getParamsFromMethods(this)));
-    
-    private Map<String, Parameter> parameterMap = Parameter.toParameterMap(parameters);
     
     public static final int DEFAULT_MAX_ITERS = 500;
     public static final KernelFunction DEFAULT_KF = EpanechnikovKF.getInstance();
@@ -344,13 +339,13 @@ public class SOM implements Classifier, Parameterized
     @Override
     public List<Parameter> getParameters()
     {
-        return parameters;
+        return Parameter.getParamsFromMethods(this);
     }
 
     @Override
     public Parameter getParameter(String paramName)
     {
-        return parameterMap.get(paramName);
+        return Parameter.toParameterMap(getParameters()).get(paramName);
     }
     
     private void trainSOM(final DataSet dataSet, final ExecutorService execServ) throws InterruptedException

@@ -30,9 +30,6 @@ public class RidgeRegression implements Regressor, Parameterized
     private double bias;
     private SolverMode mode;
     
-    private final List<Parameter> params = Parameter.getParamsFromMethods(this);
-    private final Map<String, Parameter> paramMap = Parameter.toParameterMap(params);
-    
     /**
      * Sets which solver to use
      */
@@ -188,13 +185,13 @@ public class RidgeRegression implements Regressor, Parameterized
     @Override
     public List<Parameter> getParameters()
     {
-        return params;
+        return Parameter.getParamsFromMethods(this);
     }
 
     @Override
     public Parameter getParameter(String paramName)
     {
-        return paramMap.get(paramName);
+        return Parameter.toParameterMap(getParameters()).get(paramName);
     }
     
 }

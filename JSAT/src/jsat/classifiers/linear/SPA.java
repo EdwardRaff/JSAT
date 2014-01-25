@@ -32,12 +32,9 @@ public class SPA extends BaseUpdateableClassifier implements Parameterized
 {
     private Vec[] w;
     private double[] bias;
-    private double C = 0.01;
+    private double C = 1;
     private boolean useBias = false;
     private PassiveAggressive.Mode mode;
-    
-    private List<Parameter> params = Parameter.getParamsFromMethods(this);
-    private Map<String, Parameter> paramMap = Parameter.toParameterMap(params);
 
     /**
      * Creates a new Passive Aggressive learner that does 10 epochs and uses
@@ -261,16 +258,16 @@ public class SPA extends BaseUpdateableClassifier implements Parameterized
         return false;
     }
 
-    @Override
+@Override
     public List<Parameter> getParameters()
     {
-        return Collections.unmodifiableList(params);
+        return Parameter.getParamsFromMethods(this);
     }
 
     @Override
     public Parameter getParameter(String paramName)
     {
-        return paramMap.get(paramName);
+        return Parameter.toParameterMap(getParameters()).get(paramName);
     }
     
 }

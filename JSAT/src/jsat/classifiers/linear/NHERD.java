@@ -55,9 +55,6 @@ public class NHERD extends BaseUpdateableClassifier implements BinaryScoreClassi
      */
     private Vec Sigma_xt;
     
-    private List<Parameter> params = Parameter.getParamsFromMethods(this);
-    private Map<String, Parameter> paramMap = Parameter.toParameterMap(params);
-    
     /**
      * Sets what form of covariance matrix to use
      */
@@ -304,15 +301,15 @@ public class NHERD extends BaseUpdateableClassifier implements BinaryScoreClassi
         return false;
     }
     
-    @Override
+@Override
     public List<Parameter> getParameters()
     {
-        return Collections.unmodifiableList(params);
+        return Parameter.getParamsFromMethods(this);
     }
 
     @Override
     public Parameter getParameter(String paramName)
     {
-        return paramMap.get(paramName);
+        return Parameter.toParameterMap(getParameters()).get(paramName);
     }
 }

@@ -15,11 +15,8 @@ import jsat.linear.distancemetrics.MahalanobisDistance;
 import jsat.linear.vectorcollection.DefaultVectorCollectionFactory;
 import jsat.linear.vectorcollection.VectorCollection;
 import jsat.linear.vectorcollection.VectorCollectionFactory;
-import jsat.parameters.DoubleParameter;
-import jsat.parameters.IntParameter;
 import jsat.parameters.Parameter;
 import jsat.parameters.Parameterized;
-import jsat.text.GreekLetters;
 import jsat.utils.BoundedSortedList;
 import jsat.utils.FakeExecutor;
 
@@ -78,10 +75,6 @@ public class DANN implements Classifier, Parameterized
      */
     private VectorCollection<VecPaired<Vec, Integer>> vc;
     private List<VecPaired<Vec, Integer>> vecList;
-    
-    private List<Parameter> params = Collections.unmodifiableList(Parameter.getParamsFromMethods(this));
-    
-    private Map<String, Parameter> paramMap = Parameter.toParameterMap(params);
     
     /**
      * Creates a new DANN classifier
@@ -433,13 +426,12 @@ public class DANN implements Classifier, Parameterized
     @Override
     public List<Parameter> getParameters()
     {
-        return params;
+        return Parameter.getParamsFromMethods(this);
     }
 
     @Override
     public Parameter getParameter(String paramName)
     {
-        return paramMap.get(paramName);
+        return Parameter.toParameterMap(getParameters()).get(paramName);
     }
-    
 }

@@ -46,9 +46,6 @@ public class StochasticMultinomialLogisticRegression implements Classifier, Para
     
     private Vec[] B;
     private double[] biases;
-    
-    private final List<Parameter> params = Collections.unmodifiableList(Parameter.getParamsFromMethods(this));
-    private final Map<String, Parameter> paramMap = Parameter.toParameterMap(params);
 
     /**
      * Creates a new Stochastic Multinomial Logistic Regression object
@@ -720,12 +717,12 @@ public class StochasticMultinomialLogisticRegression implements Classifier, Para
     @Override
     public List<Parameter> getParameters()
     {
-        return params;
+        return Parameter.getParamsFromMethods(this);
     }
 
     @Override
     public Parameter getParameter(String paramName)
     {
-        return paramMap.get(paramName);
+        return Parameter.toParameterMap(getParameters()).get(paramName);
     }
 }

@@ -37,9 +37,6 @@ public class ArcX4 implements Classifier, Parameterized
     private CategoricalData predicing;
     private Classifier[] hypoths;
     
-    private List<Parameter> params = Collections.unmodifiableList(Parameter.getParamsFromMethods(this));
-    private Map<String, Parameter> paramMap = Parameter.toParameterMap(params);
-    
     /**
      * Creates a new Arc-X4 classifier 
      * 
@@ -273,13 +270,13 @@ public class ArcX4 implements Classifier, Parameterized
     @Override
     public List<Parameter> getParameters()
     {
-        return params;
+        return Parameter.getParamsFromMethods(this);
     }
 
     @Override
     public Parameter getParameter(String paramName)
     {
-        return paramMap.get(paramName);
+        return Parameter.toParameterMap(getParameters()).get(paramName);
     }
     
 }

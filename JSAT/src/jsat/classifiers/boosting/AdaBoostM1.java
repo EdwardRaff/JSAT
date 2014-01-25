@@ -69,6 +69,8 @@ public class AdaBoostM1 implements Classifier, Parameterized
      */
     public void setMaxIterations(int maxIterations)
     {
+        if(maxIterations < 1)
+            throw new IllegalArgumentException("Number of iterations must be a positive value, no " + maxIterations);
         this.maxIterations = maxIterations;
     }
 
@@ -195,41 +197,15 @@ public class AdaBoostM1 implements Classifier, Parameterized
         return copy;
     }
     
-    //the only parameter
-    private final Parameter param = new IntParameter() 
+    @Override
+    public List<Parameter> getParameters()
     {
-        @Override
-        public int getValue() 
-        {
-            return getMaxIterations();
-        }
-
-        @Override
-        public boolean setValue(int val) 
-        {
-            if (val <= 0)
-                return false;
-            setMaxIterations(val);
-            return true;
-        }
-
-        @Override
-        public String getASCIIName() 
-        {
-            return "Max Iterations";
-        }
-    };
-
-    public List<Parameter> getParameters() 
-    {
-        return Arrays.asList(param);
+        return Parameter.getParamsFromMethods(this);
     }
 
-    public Parameter getParameter(String paramName) 
+    @Override
+    public Parameter getParameter(String paramName)
     {
-        if(param.getASCIIName().equals(paramName))
-            return param;
-        return null;
+        return Parameter.toParameterMap(getParameters()).get(paramName);
     }
-    
 }

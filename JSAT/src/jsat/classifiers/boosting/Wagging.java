@@ -46,9 +46,6 @@ public class Wagging implements Classifier, Regressor, Parameterized
     
     private Classifier[] hypotsL;
     private Regressor[] hypotsR;
-    
-    private List<Parameter> params = Collections.unmodifiableList(Parameter.getParamsFromMethods(this));
-    private Map<String, Parameter> paramMap = Parameter.toParameterMap(params);
 
     /**
      * Creates a new Wagging classifier
@@ -356,12 +353,12 @@ public class Wagging implements Classifier, Regressor, Parameterized
     @Override
     public List<Parameter> getParameters()
     {
-        return params;
+        return Parameter.getParamsFromMethods(this);
     }
 
     @Override
     public Parameter getParameter(String paramName)
     {
-        return paramMap.get(paramName);
+        return Parameter.toParameterMap(getParameters()).get(paramName);
     }
 }

@@ -28,9 +28,6 @@ public class NearestNeighbour implements  Classifier, Regressor, Parameterized
     
     private VectorCollectionFactory<VecPaired<Vec, Double>> vcf;
     private VectorCollection<VecPaired<Vec, Double>> vecCollection;
-    
-    private List<Parameter> parameters = Collections.unmodifiableList(Parameter.getParamsFromMethods(this));
-    private Map<String, Parameter> paramMap = Parameter.toParameterMap(parameters);
 
     /**
      * Returns the number of neighbors currently consulted to make decisions
@@ -74,13 +71,13 @@ public class NearestNeighbour implements  Classifier, Regressor, Parameterized
     @Override
     public List<Parameter> getParameters()
     {
-        return parameters;
+        return Parameter.getParamsFromMethods(this);
     }
 
     @Override
     public Parameter getParameter(String paramName)
     {
-        return paramMap.get(paramName);
+        return Parameter.toParameterMap(getParameters()).get(paramName);
     }
 
     private enum Mode {REGRESSION, CLASSIFICATION};

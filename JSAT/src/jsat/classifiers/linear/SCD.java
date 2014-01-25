@@ -38,8 +38,6 @@ public class SCD implements Classifier, Regressor, Parameterized
     private LossFunc loss;
     private double reg;
     private int iterations;
-    private List<Parameter> params = Parameter.getParamsFromMethods(this);
-    private Map<String, Parameter> paramMap = Parameter.toParameterMap(params);
 
     /**
      * Creates anew SCD learner
@@ -207,15 +205,15 @@ public class SCD implements Classifier, Regressor, Parameterized
         return new SCD(this);
     }
 
-    @Override
+@Override
     public List<Parameter> getParameters()
     {
-        return params;
+        return Parameter.getParamsFromMethods(this);
     }
 
     @Override
     public Parameter getParameter(String paramName)
     {
-        return paramMap.get(paramName);
+        return Parameter.toParameterMap(getParameters()).get(paramName);
     }
 }

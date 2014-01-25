@@ -3,13 +3,13 @@ package jsat.regression;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import jsat.classifiers.CategoricalData;
 import jsat.classifiers.DataPoint;
 import jsat.distributions.kernels.KernelTrick;
 import jsat.linear.*;
 import jsat.parameters.Parameter;
+import jsat.parameters.Parameter.ParameterHolder;
 import jsat.parameters.Parameterized;
 import jsat.utils.DoubleList;
 import jsat.utils.IntList;
@@ -29,6 +29,7 @@ import jsat.utils.ListUtils;
  */
 public class KernelRLS implements UpdateableRegressor, Parameterized
 {
+    @ParameterHolder
     private KernelTrick k;
     private double errorTolerance;
     
@@ -87,9 +88,6 @@ public class KernelRLS implements UpdateableRegressor, Parameterized
         if(toCopy.alphaExpanded != null)
             this.alphaExpanded = Arrays.copyOf(toCopy.alphaExpanded, toCopy.alphaExpanded.length);
     }
-    
-    private List<Parameter> params = Parameter.getParamsFromMethods(this);
-    private Map<String, Parameter> paramMap = Parameter.toParameterMap(params);
 
     /**
      * Sets the tolerance for errors in approximating a data point by projecting
@@ -294,18 +292,13 @@ public class KernelRLS implements UpdateableRegressor, Parameterized
     @Override
     public List<Parameter> getParameters()
     {
-        List<Parameter> toRet = new ArrayList<Parameter>(params);
-        toRet.addAll(k.getParameters());
-        return toRet;
+        return Parameter.getParamsFromMethods(this);
     }
 
     @Override
     public Parameter getParameter(String paramName)
     {
-        Parameter toRet = paramMap.get(paramName);
-        if(toRet == null)
-            toRet = k.getParameter(paramName);
-        return toRet;
+        return Parameter.toParameterMap(getParameters()).get(paramName);
     }
     
 }

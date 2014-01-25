@@ -41,9 +41,6 @@ public class STGD extends BaseUpdateableClassifier implements UpdateableRegresso
     private int time;
     private int[] t;
     
-    private List<Parameter> params = Parameter.getParamsFromMethods(this);
-    private Map<String, Parameter> paramMap = Parameter.toParameterMap(params);
-
     /**
      * Creates a new STGD learner
      * @param K the regularization frequency
@@ -283,12 +280,12 @@ public class STGD extends BaseUpdateableClassifier implements UpdateableRegresso
     @Override
     public List<Parameter> getParameters()
     {
-        return Collections.unmodifiableList(params);
+        return Parameter.getParamsFromMethods(this);
     }
 
     @Override
     public Parameter getParameter(String paramName)
     {
-        return paramMap.get(paramName);
+        return Parameter.toParameterMap(getParameters()).get(paramName);
     }
 }

@@ -52,79 +52,6 @@ public class Bagging implements Classifier, Regressor, Parameterized
      */
     public static final boolean DEFAULT_SIMULTANIOUS_TRAINING = true;
     
-    private final List<Parameter> params = Collections.unmodifiableList(new ArrayList<Parameter>()
-    {{
-        add(new IntParameter() {
-
-                @Override
-                public int getValue()
-                {
-                    return getRounds();
-                }
-
-                @Override
-                public boolean setValue(int val)
-                {
-                    if(val <= 0)
-                        return false;
-                    setRounds(val);
-                    return true;
-                }
-
-                @Override
-                public String getASCIIName()
-                {
-                    return "Rounds";
-                }
-            });
-        
-        add(new IntParameter() {
-
-                @Override
-                public int getValue()
-                {
-                    return getExtraSamples();
-                }
-
-                @Override
-                public boolean setValue(int val)
-                {
-                    setExtraSamples(val);
-                    return true;
-                }
-
-                @Override
-                public String getASCIIName()
-                {
-                    return "Sample Offset";
-                }
-            });
-        
-        add(new BooleanParameter() {
-
-                @Override
-                public boolean getValue()
-                {
-                    return simultaniousTraining;
-                }
-
-                @Override
-                public boolean setValue(boolean val)
-                {
-                    setSimultaniousTraining(val);
-                    return true;
-                }
-
-                @Override
-                public String getASCIIName()
-                {
-                    return "Simultanious Training";
-                }
-            });
-    }});
-    
-    private final Map<String, Parameter> paramMap = Parameter.toParameterMap(params);
-    
     /**
      * Creates a new Bagger for classification. This can not be changed after construction.
      * 
@@ -573,12 +500,12 @@ public class Bagging implements Classifier, Regressor, Parameterized
     @Override
     public List<Parameter> getParameters()
     {
-        return params;
+        return Parameter.getParamsFromMethods(this);
     }
 
     @Override
     public Parameter getParameter(String paramName)
     {
-        return paramMap.get(paramName);
+        return Parameter.toParameterMap(getParameters()).get(paramName);
     }
 }

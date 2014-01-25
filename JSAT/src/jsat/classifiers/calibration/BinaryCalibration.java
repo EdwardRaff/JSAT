@@ -11,6 +11,7 @@ import jsat.classifiers.Classifier;
 import jsat.classifiers.DataPoint;
 import jsat.classifiers.DataPointPair;
 import jsat.parameters.Parameter;
+import jsat.parameters.Parameter.ParameterHolder;
 import jsat.parameters.Parameterized;
 import jsat.utils.FakeExecutor;
 
@@ -33,6 +34,7 @@ public abstract class BinaryCalibration implements Classifier, Parameterized
     /**
      * The base classifier to train and calibrate the outputs of
      */
+    @ParameterHolder
     protected BinaryScoreClassifier base;
     /**
      * The number of CV folds
@@ -46,9 +48,6 @@ public abstract class BinaryCalibration implements Classifier, Parameterized
      * The calibration mode to use
      */
     protected CalibrationMode mode;
-    
-    private List<Parameter> params = Parameter.getParamsFromMethods(this);
-    private Map<String, Parameter> paramMap = Parameter.toParameterMap(params);
 
     /**
      * Creates a new Binary Calibration object
@@ -252,20 +251,12 @@ public abstract class BinaryCalibration implements Classifier, Parameterized
     @Override
     public List<Parameter> getParameters()
     {
-        List<Parameter> toRet = new ArrayList<Parameter>(params);
-        if(base instanceof Parameterized)
-            toRet.addAll( ((Parameterized)base).getParameters());
-        return toRet;
+        return Parameter.getParamsFromMethods(this);
     }
 
     @Override
     public Parameter getParameter(String paramName)
     {
-        Parameter toRet = ((Parameterized)base).getParameter(paramName);
-        
-        if(toRet == null)
-            toRet = paramMap.get(paramName);
-        
-        return toRet;
+        return Parameter.toParameterMap(getParameters()).get(paramName);
     }
 }

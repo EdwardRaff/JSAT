@@ -81,9 +81,6 @@ public abstract class StochasticSTLinearL1 implements Classifier, Regressor, Par
     public static final double DEFAULT_REG = 1e-14;
     public static final Loss DEFAULT_LOSS = Loss.SQUARED;
     
-    private List<Parameter> params = Parameter.getParamsFromMethods(this);
-    private Map<String, Parameter> paramMap = Parameter.toParameterMap(params);
-    
     @Override
     abstract public StochasticSTLinearL1 clone();
     
@@ -439,12 +436,12 @@ public abstract class StochasticSTLinearL1 implements Classifier, Regressor, Par
     @Override
     public List<Parameter> getParameters()
     {
-        return Collections.unmodifiableList(params);
+        return Parameter.getParamsFromMethods(this);
     }
 
     @Override
     public Parameter getParameter(String paramName)
     {
-        return paramMap.get(paramName);
+        return Parameter.toParameterMap(getParameters()).get(paramName);
     }
 }

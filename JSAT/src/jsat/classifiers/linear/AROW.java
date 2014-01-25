@@ -1,5 +1,6 @@
 package jsat.classifiers.linear;
 
+import java.util.List;
 import jsat.classifiers.BaseUpdateableClassifier;
 import jsat.classifiers.CategoricalData;
 import jsat.classifiers.CategoricalResults;
@@ -11,6 +12,8 @@ import jsat.linear.DenseVector;
 import jsat.linear.IndexValue;
 import jsat.linear.Matrix;
 import jsat.linear.Vec;
+import jsat.parameters.Parameter;
+import jsat.parameters.Parameterized;
 
 /**
  * An implementation of Adaptive Regularization of Weight Vectors (AROW), which 
@@ -27,7 +30,7 @@ import jsat.linear.Vec;
  * 
  * @author Edward Raff
  */
-public class AROW extends BaseUpdateableClassifier implements BinaryScoreClassifier
+public class AROW extends BaseUpdateableClassifier implements BinaryScoreClassifier, Parameterized
 {
     private Vec w;
     /**
@@ -244,4 +247,15 @@ public class AROW extends BaseUpdateableClassifier implements BinaryScoreClassif
         return false;
     }
     
+    @Override
+    public List<Parameter> getParameters()
+    {
+        return Parameter.getParamsFromMethods(this);
+    }
+
+    @Override
+    public Parameter getParameter(String paramName)
+    {
+        return Parameter.toParameterMap(getParameters()).get(paramName);
+    }
 }

@@ -34,9 +34,6 @@ public class StochasticRidgeRegression implements Regressor, Parameterized
     private DecayRate learningDecay;
     private Vec w;
     private double bias;
-    
-    private final List<Parameter> params = Parameter.getParamsFromMethods(this);
-    private final Map<String, Parameter> paramMap = Parameter.toParameterMap(params);
 
     /**
      * Creates a new stochastic Ridge Regression learner that does not use a 
@@ -306,12 +303,12 @@ public class StochasticRidgeRegression implements Regressor, Parameterized
     @Override
     public List<Parameter> getParameters()
     {
-        return params;
+        return Parameter.getParamsFromMethods(this);
     }
 
     @Override
     public Parameter getParameter(String paramName)
     {
-        return paramMap.get(paramName);
+        return Parameter.toParameterMap(getParameters()).get(paramName);
     }
 }
