@@ -161,7 +161,7 @@ public class SystemInfo
         }
         //TODO is there a good way to approximate this? 
         if(sizeToUse == 0)//we couldn't set it for some reason? 256KB seems to be a good default (modern P4 to i7s use this size, Anthalon 64 used this as the min size too)
-            sizeToUse = 256*1042;
+            sizeToUse = 256*1024;
         else if(sizeToUse < 128*1024)//A weird value? 128KB would be very small for an L2 - the P2 had more than that!
             sizeToUse = 128*1024;
         
