@@ -55,102 +55,116 @@ public class SystemInfo
     public final static int L2CacheSize;
     static
     {
-        if(isWindows())
+        int sizeToUse = 0;
+        try
         {
-            String output = null;
-            try
+            if(isWindows())
             {
-                //On windows, the comand line tool WMIC is used, see http://msdn.microsoft.com/en-us/library/aa394531(v=vs.85).aspx 
-                
-                Process pr = Runtime.getRuntime().exec("wmic cpu get L2CacheSize, NumberOfCores");
-                /*
-                 * Will print out the total L2 Cache for each CPU, and the number of cores - something like this (2 CPUs) 
-                 * L2CacheSize  NumberOfCores
-                 * 1024         4
-                 * 1024         4
-                 */
-                
-                BufferedReader br = new BufferedReader(new InputStreamReader(pr.getInputStream()));
-                StringBuilder sb = new StringBuilder();
-                String line = null;
-                while( (line = br.readLine()) != null)
-                    sb.append(line).append("\n");
-                
-                output = sb.toString();
-            }
-            catch (IOException ex)
-            {
-                Logger.getLogger(SystemInfo.class.getName()).log(Level.SEVERE, null, ex);
-            }
-            
-            output = output.replaceAll("L2CacheSize\\s+NumberOfCores", "").trim();//Remove header
-            if(output.indexOf("\n") > 0)//Multi line is bad!
-                output = output.substring(0, output.indexOf("\n")).trim();//Get first line
-            String[] vals = output.split("\\s+");//Seperate into 2 seperate numbers, first is total L2 cahce, 2nd is # CPU cores
-            L2CacheSize = (Integer.valueOf(vals[0]) / Integer.valueOf(vals[1]))*1024 ; //the value is in KB, we want it in bytes
-        }
-        else if(isLinux())
-        {
-            String output = null;
-            try
-            {
-                //Nix, use /proc/cpuinfo
-                Process pr = Runtime.getRuntime().exec("cat /proc/cpuinfo");
-                
-                BufferedReader br = new BufferedReader(new InputStreamReader(pr.getInputStream()));
-
-                String line = null;
-                while( (line = br.readLine()) != null)
-                    if(line.startsWith("cache size") && output == null)//We just need one line that says "cache size" 
-                        output = line;
-                
-                
-            }
-            catch (IOException ex)
-            {
-                Logger.getLogger(SystemInfo.class.getName()).log(Level.SEVERE, null, ex);
-            }
-            
-            output = output.substring(output.indexOf(":")+1);
-            String[] vals = output.trim().split(" ");
-            int size = Integer.parseInt(vals[0]);
-            if(vals[1].equals("KB"))
-                size*=1024;
-            else if(vals[1].equals("MB"))
-                size*=1024*1024;
-            
-            L2CacheSize = size;
-        }
-        else if(isMac())
-        {
-            String output = null;
-            try
-            {
-                //Nix, use /proc/cpuinfo
-                Process pr = Runtime.getRuntime().exec("sysctl -a hw");
-                
-                BufferedReader br = new BufferedReader(new InputStreamReader(pr.getInputStream()));
-
-                String line = null;
-//                StringBuilder sb = new StringBuilder();
-                while( (line = br.readLine()) != null)
+                String output = null;
+                try
                 {
-                    if(line.contains("l1icachesize") && output == null)//We just need one line that says "cache size" 
-                        output = line;
+                    //On windows, the comand line tool WMIC is used, see http://msdn.microsoft.com/en-us/library/aa394531(v=vs.85).aspx 
+
+                    Process pr = Runtime.getRuntime().exec("wmic cpu get L2CacheSize, NumberOfCores");
+                    /*
+                     * Will print out the total L2 Cache for each CPU, and the number of cores - something like this (2 CPUs) 
+                     * L2CacheSize  NumberOfCores
+                     * 1024         4
+                     * 1024         4
+                     */
+
+                    BufferedReader br = new BufferedReader(new InputStreamReader(pr.getInputStream()));
+                    StringBuilder sb = new StringBuilder();
+                    String line = null;
+                    while( (line = br.readLine()) != null)
+                        sb.append(line).append("\n");
+
+                    output = sb.toString();
                 }
-                
+                catch (IOException ex)
+                {
+                    Logger.getLogger(SystemInfo.class.getName()).log(Level.SEVERE, null, ex);
+                }
+
+                output = output.replaceAll("L2CacheSize\\s+NumberOfCores", "").trim();//Remove header
+                if(output.indexOf("\n") > 0)//Multi line is bad!
+                    output = output.substring(0, output.indexOf("\n")).trim();//Get first line
+                String[] vals = output.split("\\s+");//Seperate into 2 seperate numbers, first is total L2 cahce, 2nd is # CPU cores
+                sizeToUse = (Integer.valueOf(vals[0]) / Integer.valueOf(vals[1]))*1024 ; //the value is in KB, we want it in bytes
             }
-            catch (IOException ex)
+            else if(isLinux())
             {
-                Logger.getLogger(SystemInfo.class.getName()).log(Level.SEVERE, null, ex);
+                String output = null;
+                try
+                {
+                    //Nix, use /proc/cpuinfo
+                    Process pr = Runtime.getRuntime().exec("cat /proc/cpuinfo");
+
+                    BufferedReader br = new BufferedReader(new InputStreamReader(pr.getInputStream()));
+
+                    String line = null;
+                    while( (line = br.readLine()) != null)
+                        if(line.startsWith("cache size") && output == null)//We just need one line that says "cache size" 
+                            output = line;
+
+
+                }
+                catch (IOException ex)
+                {
+                    Logger.getLogger(SystemInfo.class.getName()).log(Level.SEVERE, null, ex);
+                }
+
+                output = output.substring(output.indexOf(":")+1);
+                String[] vals = output.trim().split(" ");
+                int size = Integer.parseInt(vals[0]);
+                if(vals[1].equals("KB"))
+                    size*=1024;
+                else if(vals[1].equals("MB"))
+                    size*=1024*1024;
+
+                sizeToUse = size;
             }
-            
-            String[] vals = output.split("\\s+");
-            L2CacheSize = Integer.parseInt(vals[1]);
-            
+            else if(isMac())
+            {
+                String output = null;
+                try
+                {
+                    //Nix, use /proc/cpuinfo
+                    Process pr = Runtime.getRuntime().exec("sysctl -a hw");
+
+                    BufferedReader br = new BufferedReader(new InputStreamReader(pr.getInputStream()));
+
+                    String line = null;
+    //                StringBuilder sb = new StringBuilder();
+                    while( (line = br.readLine()) != null)
+                    {
+                        if(line.contains("l1icachesize") && output == null)//We just need one line that says "cache size" 
+                            output = line;
+                    }
+
+                }
+                catch (IOException ex)
+                {
+                    Logger.getLogger(SystemInfo.class.getName()).log(Level.SEVERE, null, ex);
+                }
+
+                String[] vals = output.split("\\s+");
+                sizeToUse = Integer.parseInt(vals[1]);
+
+            }
+            else//We dont know what we are running on. 
+                sizeToUse = 0;
         }
-        else//We dont know what we are running on. 
-            L2CacheSize = 0;//TODO is there a way to approximate this? 
+        catch(Exception ex)
+        {
+            //make sure we at least set the default by avoiding any possible weird exception 
+        }
+        //TODO is there a good way to approximate this? 
+        if(sizeToUse == 0)//we couldn't set it for some reason? 256KB seems to be a good default (modern P4 to i7s use this size, Anthalon 64 used this as the min size too)
+            sizeToUse = 256*1042;
+        else if(sizeToUse < 128*1024)//A weird value? 128KB would be very small for an L2 - the P2 had more than that!
+            sizeToUse = 128*1024;
         
+        L2CacheSize = sizeToUse;
     }
 }
