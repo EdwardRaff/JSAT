@@ -205,6 +205,7 @@ public abstract class SupportVectorLearner
             partialCache = null;
             availableRow = null;
             accelCache = null;
+            return;
         }
         this.cacheMode = cacheMode;
         
