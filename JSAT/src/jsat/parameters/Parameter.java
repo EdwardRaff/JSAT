@@ -23,13 +23,15 @@ public abstract class Parameter implements Serializable
      * Adding this annotation to a field tells the 
      * {@link #getParamsFromMethods(java.lang.Object)} method to search this 
      * object recursively for more parameter get/set
-     * pairs.
+     * pairs.<br><br>
+     * Placing this annotation on a {@link Collection} will cause the search to 
+     * be done recursively over each item in the collection. 
      */
     @Retention(RetentionPolicy.RUNTIME)
     @Target(ElementType.FIELD)
     public static @interface ParameterHolder
     {
-        
+        boolean skipSelfNamePrefix() default false;
     }
     
     /**
@@ -195,27 +197,51 @@ public abstract class Parameter implements Serializable
             fields.addAll(Arrays.asList(curClassLevel.getDeclaredFields()));
             curClassLevel = curClassLevel.getSuperclass();
         }
+        
+        final String simpleObjName = obj.getClass().getSimpleName();
         //For each field, check if it has our magic annotation 
         for(Field field : fields)
         {
-            if(!field.toString().contains("kernel"))
-                continue;
             Annotation[] annotations = field.getAnnotations();
 
             for(Annotation annotation : annotations)
             {
                 if(annotation.annotationType().equals(ParameterHolder.class))
                 {
+                    ParameterHolder annotationPH = (ParameterHolder) annotation;
                     //get the field value fromt he object passed in
                     try
                     {
                         //If its private/protected we are not int he same object chain
                         field.setAccessible(true);
                         Object paramHolder = field.get(obj);
-                        //Add the params prefixed by the object name
-                        String subPreFix = prefix + paramHolder.getClass().getSimpleName() + "_";
                         
-                        params.addAll(Parameter.getParamsFromMethods(paramHolder, subPreFix));
+                        if(paramHolder instanceof Collection)//serach for each item in the collection 
+                        {
+                            Collection toSearch = (Collection) paramHolder;
+                            for(Object paramHolderSub : toSearch)
+                            {
+                                String subPreFix = paramHolderSub.getClass().getSimpleName() + "_";
+                                
+                                if(annotationPH.skipSelfNamePrefix())
+                                    subPreFix = prefix.replace(simpleObjName+"_", "") + subPreFix;
+                                else
+                                    subPreFix = prefix + subPreFix;
+
+                                params.addAll(Parameter.getParamsFromMethods(paramHolderSub, subPreFix));
+                            }
+                        }
+                        else//search the item directly
+                        {
+                            String subPreFix = paramHolder.getClass().getSimpleName() + "_";
+
+                            if (annotationPH.skipSelfNamePrefix())
+                                subPreFix = prefix.replace(simpleObjName + "_", "") + subPreFix;
+                            else
+                                subPreFix = prefix + subPreFix;
+
+                            params.addAll(Parameter.getParamsFromMethods(paramHolder, subPreFix));
+                        }
                     }
                     catch (IllegalArgumentException ex)
                     {
