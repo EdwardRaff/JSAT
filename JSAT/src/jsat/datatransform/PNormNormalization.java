@@ -21,6 +21,8 @@ public class PNormNormalization implements InPlaceTransform
      */
     public PNormNormalization(double p)
     {
+        if(p <= 0 || Double.isNaN(p))
+            throw new IllegalArgumentException("p must be greater than zero, not " + p);
         this.p = p;
     }
     
@@ -49,12 +51,15 @@ public class PNormNormalization implements InPlaceTransform
     }
 
     @Override
-    public DataTransform clone()
+    public PNormNormalization clone()
     {
         return new PNormNormalization(p);
     }
     
-    static public class PNormNormalizationFactory implements DataTransformFactory
+    /**
+     * Factor for producing {@link PNormNormalization} transforms
+     */
+    static public class PNormNormalizationFactory extends DataTransformFactoryParm
     {
         private double p;
 
@@ -66,11 +71,46 @@ public class PNormNormalization implements InPlaceTransform
         {
             this.p = p;
         }
+        
+        /**
+         * Copy constructor 
+         * @param toCopy the object to copy
+         */
+        public PNormNormalizationFactory(PNormNormalizationFactory toCopy)
+        {
+            this.p = p;
+        }
+
+        /**
+         * Sets the norm that the vector should be normalized by. 
+         * @param p the norm to use in (0, Infinity]
+         */
+        public void setPNorm(double p)
+        {
+            if(p <= 0 || Double.isNaN(p))
+                throw new IllegalArgumentException("p must be greater than zero, not " + p);
+            this.p = p;
+        }
+
+        /**
+         * Returns the p-norm that the vectors will be normalized by
+         * @return the p-norm that the vectors will be normalized by
+         */
+        public double getPNorm()
+        {
+            return p;
+        }
 
         @Override
         public DataTransform getTransform(DataSet dataset)
         {
             return new PNormNormalization(p);
+        }
+
+        @Override
+        public PNormNormalizationFactory clone()
+        {
+            return new PNormNormalizationFactory(this);
         }
         
     }

@@ -294,7 +294,10 @@ public class Nystrom implements DataTransform
         accelCache = k.getAccelerationCache(basisVecs);
     }
     
-    static public class NystromTransformFactory implements DataTransformFactory
+    /**
+     * Factory for producing new {@link Nystrom} transforms
+     */
+    static public class NystromTransformFactory extends DataTransformFactoryParm
     {
         private KernelTrick k;
         private int dimension;
@@ -314,15 +317,70 @@ public class Nystrom implements DataTransform
         public NystromTransformFactory(KernelTrick k, int dimension, SamplingMethod method, boolean sampleWithReplacment)
         {
             this.k = k;
-            this.dimension = dimension;
-            this.method = method;
+            setDimension(dimension);
+            setBasisSamplingMethod(method);
             this.sampleWithReplacment = sampleWithReplacment;
+        }
+
+        /**
+         * Copy constructor
+         * @param toCopy the object to copy
+         */
+        public NystromTransformFactory(NystromTransformFactory toCopy)
+        {
+            this(toCopy.k.clone(), toCopy.dimension, toCopy.method, toCopy.sampleWithReplacment);
+        }
+        
+        /**
+         * Sets the dimension of the new feature space, which is the number of 
+         * principal components to select from the kernelized feature space. 
+         * 
+         * @param dimension the number of dimensions to project down too
+         */
+        public void setDimension(int dimension)
+        {
+            if(dimension < 1)
+                throw new IllegalArgumentException("The number of dimensions must be positive, not " + dimension);
+            this.dimension = dimension;
+        }
+
+        /**
+         * Returns the number of dimensions to project down too
+         * @return the number of dimensions to project down too
+         */
+        public int getDimension()
+        {
+            return dimension;
+        }
+        
+        /**
+         * Sets the method of selecting the basis vectors
+         * @param method the method of selecting the basis vectors
+         */
+        public void setBasisSamplingMethod(SamplingMethod method)
+        {
+            this.method = method;
+        }
+
+        /**
+         * Returns the method of selecting the basis vectors
+         * @return the method of selecting the basis vectors
+         */
+        public SamplingMethod getBasisSamplingMethod()
+        {
+            return method;
         }
 
         @Override
         public DataTransform getTransform(DataSet dataset)
         {
             return new Nystrom(k, dataset, dimension, method, sampleWithReplacment);
+        }
+
+        @Override
+        public DataTransformFactory clone()
+        {
+            throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
         }
         
     }

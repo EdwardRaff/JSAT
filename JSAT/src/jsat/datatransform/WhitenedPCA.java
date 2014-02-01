@@ -200,24 +200,61 @@ public class WhitenedPCA implements DataTransform
             setRegularization(Math.max(Math.log(1.0+svd.getSingularValues()[svd.getRank()])*0.25, 1e-4));
     }
     
-    static public class WhitenedPCATransformFactory implements DataTransformFactory
+    /**
+     * Factory for producing new {@link WhitenedPCA} transforms
+     */
+    static public class WhitenedPCATransformFactory extends DataTransformFactoryParm
     {
-        private int maxPCs;
+        private int dimensions;
 
         /**
          * Creates a new WhitenedPCA Factory
-         * @param maxPCs the number of principle components
+         * @param dims the number of dimensions to project down to
          */
-        public WhitenedPCATransformFactory(int maxPCs)
+        public WhitenedPCATransformFactory(int dims)
         {
-            this.maxPCs = maxPCs;
+            setDimensions(dims);
+        }
+
+        /**
+         * Copy constructor
+         * @param toCopy the object to copy
+         */
+        public WhitenedPCATransformFactory(WhitenedPCATransformFactory toCopy)
+        {
+            this(toCopy.dimensions);
+        }
+
+        /**
+         * Sets the number of dimensions to project down to
+         * @param dimensions the feature size to project down to
+         */
+        public void setDimensions(int dimensions)
+        {
+            if(dimensions < 1)
+                throw new IllegalArgumentException("Number of dimensions must be positive, not " + dimensions);
+            this.dimensions = dimensions;
+        }
+
+        /**
+         * Returns the number of dimensions to project down to
+         * @return the number of dimensions to project down to
+         */
+        public int getDimensions()
+        {
+            return dimensions;
         }
         
         @Override
         public DataTransform getTransform(DataSet dataset)
         {
-            return new WhitenedPCA(dataset, maxPCs);
+            return new WhitenedPCA(dataset, dimensions);
         }
-        
+
+        @Override
+        public WhitenedPCATransformFactory clone()
+        {
+            return new WhitenedPCATransformFactory(this);
+        }
     }
 }

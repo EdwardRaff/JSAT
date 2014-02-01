@@ -173,11 +173,14 @@ public class LRS implements DataTransform
         finalTransform = new RemoveAttributeTransform(cds, catToRemove, numToRemove);
     }
     
-    static public class LRSFactory implements DataTransformFactory
+    /**
+     * Factory for producing new {@link LRS} transforms. 
+     */
+    static public class LRSFactory extends DataTransformFactoryParm
     {
         private Classifier classifier;
         private Regressor regressor;
-        private int featurestoAdd, featurestoRemove;
+        private int featuresToAdd, featuresToRemove;
 
         /**
          * Creates a new LRS transform factory
@@ -191,8 +194,10 @@ public class LRS implements DataTransform
             if(toAdd == toRemove)
                 throw new RuntimeException("L and R must be different");
             this.classifier = evaluater;
-            this.featurestoAdd = toAdd;
-            this.featurestoRemove = toRemove;
+            if(evaluater instanceof Regressor)
+                this.regressor = (Regressor) evaluater;
+            setFeaturesToAdd(featuresToAdd);
+            setFeaturesToRemove(featuresToRemove);
         }
         
         /**
@@ -207,19 +212,101 @@ public class LRS implements DataTransform
             if(toAdd == toRemove)
                 throw new RuntimeException("L and R must be different");
             this.regressor = evaluater;
-            this.featurestoAdd = toAdd;
-            this.featurestoRemove = toRemove;
+            if(evaluater instanceof Classifier)
+                this.classifier = (Classifier) evaluater;
+            setFeaturesToAdd(featuresToAdd);
+            setFeaturesToRemove(featuresToRemove);
         }
+
+        /**
+         * Copy constructor
+         * @param toCopy the object to copy
+         */
+        public LRSFactory(LRSFactory toCopy)
+        {
+            if(toCopy.classifier == toCopy.regressor)
+            {
+                this.classifier = toCopy.classifier.clone();
+                this.regressor = (Regressor) this.classifier;
+            }
+            else if(toCopy.classifier != null)
+                this.classifier = toCopy.classifier.clone();
+            else if(toCopy.regressor != null)
+                this.regressor = toCopy.regressor.clone();
+            else
+                throw new RuntimeException("BUG: Please report");
+            this.featuresToAdd = toCopy.featuresToAdd;
+            this.featuresToRemove = toCopy.featuresToRemove;
+        }
+
+        /**
+         * Sets the number of features to add (the L parameter).<br>
+         * <b>NOTE:</b> setting this and {@link #setFeaturesToRemove(int) } is
+         * allowed for the Factory, but is is assumed that it is occurring 
+         * because you are about to change the value of the other. Attempting to
+         * obtain a {@link LRS} transform will result in a runtime exception 
+         * until one of the values is changed. 
+         * 
+         * @param featuresToAdd the number of features to greedily add
+         */
+        public void setFeaturesToAdd(int featuresToAdd)
+        {
+            if(featuresToAdd < 1)
+                throw new IllegalArgumentException("Number of features to add must be positive, not "+featuresToAdd);
+            this.featuresToAdd = featuresToAdd;
+        }
+
+        /**
+         * Returns the number of features to add
+         * @return the number of features to add
+         */
+        public int getFeaturesToAdd()
+        {
+            return featuresToAdd;
+        }
+
+        /**
+         * Sets the number of features to remove (the R parameter).<br>
+         * <b>NOTE:</b> setting this and {@link #setFeaturesToAdd(int) } is
+         * allowed for the Factory, but is is assumed that it is occurring 
+         * because you are about to change the value of the other. Attempting to
+         * obtain a {@link LRS} transform will result in a runtime exception 
+         * until one of the values is changed. 
+         * 
+         * @param featuresToRemove the number of features to greedily remove
+         */
+        public void setFeaturesToRemove(int featuresToRemove)
+        {
+            if(featuresToRemove < 1)
+                throw new IllegalArgumentException("Number of features to remove must be positive, not " + featuresToRemove);
+            this.featuresToRemove = featuresToRemove;
+        }
+
+        /**
+         * Returns the number of features to remove
+         * @return the number of features to remove
+         */
+        public int getFeaturesToRemove()
+        {
+            return featuresToRemove;
+        }
+        
 
         @Override
         public DataTransform getTransform(DataSet dataset)
         {
             if(dataset instanceof ClassificationDataSet)
-                return new LRS(featurestoAdd, featurestoRemove, 
+                return new LRS(featuresToAdd, featuresToRemove, 
                         (ClassificationDataSet)dataset, classifier, 5);
             else
-                return new LRS(featurestoAdd, featurestoRemove, 
+                return new LRS(featuresToAdd, featuresToRemove, 
                         (RegressionDataSet)dataset, regressor, 5);
+        }
+
+        @Override
+        public LRSFactory clone()
+        {
+            return new LRSFactory(this);
         }
         
     }

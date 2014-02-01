@@ -65,6 +65,9 @@ public class StandardizeTransform implements InPlaceTransform
         return new StandardizeTransform(this);
     }
     
+    /**
+     * Factory for producing new {@link StandardizeTransform} transforms
+     */
     static public class StandardizeTransformFactory implements DataTransformFactory
     {
 
@@ -76,6 +79,12 @@ public class StandardizeTransform implements InPlaceTransform
         public DataTransform getTransform(DataSet dataset)
         {
             return new StandardizeTransform(dataset);
+        }
+
+        @Override
+        public DataTransformFactory clone()
+        {
+            return new StandardizeTransformFactory();
         }
         
     }

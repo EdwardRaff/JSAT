@@ -16,6 +16,7 @@ import jsat.DataSet;
 import jsat.classifiers.ClassificationDataSet;
 import jsat.datatransform.DataTransform;
 import jsat.datatransform.DataTransformFactory;
+import jsat.datatransform.DataTransformFactoryParm;
 import jsat.datatransform.RemoveAttributeTransform;
 import jsat.exceptions.FailedToFitException;
 import jsat.linear.DenseVector;
@@ -239,7 +240,10 @@ public class ReliefF extends RemoveAttributeTransform
         return Math.abs(xj.get(i) - xk.get(i))/normalzer[i];
     }
     
-    public static class ReliefFFactory implements DataTransformFactory
+    /**
+     * Factory for producing {@link ReliefF} transforms
+     */
+    public static class ReliefFFactory extends DataTransformFactoryParm
     {
         private int featureCount;
         private int iterations;
@@ -260,18 +264,113 @@ public class ReliefF extends RemoveAttributeTransform
          */
         public ReliefFFactory(int featureCount, int iterations, int neighbors, DistanceMetric dm)
         {
+            setFeatureCount(featureCount);
+            setIterations(iterations);
+            setNeighbors(neighbors);
+            setDistanceMetric(dm);
+        }
+
+        /**
+         * Copy constructor
+         * @param toCopy the object to copy
+         */
+        public ReliefFFactory(ReliefFFactory toCopy)
+        {
+            this(toCopy.featureCount, toCopy.iterations, toCopy.neighbors, toCopy.dm.clone());
+        }
+
+        /**
+         * Sets the number of features to select for use from the set of all input features
+         * @param featureCount the number of features to use
+         */
+        public void setFeatureCount(int featureCount)
+        {
+            if(featureCount < 1)
+                throw new IllegalArgumentException("Number of features to select must be positive, not " + featureCount);
             this.featureCount = featureCount;
+        }
+
+        /**
+         * Returns the number of features to sue
+         * @return the number of features to sue
+         */
+        public int getFeatureCount()
+        {
+            return featureCount;
+        }
+
+        /**
+         * Sets the number of iterations of the ReliefF algorithm that will be 
+         * run
+         * @param iterations the number of iterations to run
+         */
+        public void setIterations(int iterations)
+        {
+            if(iterations < 1)
+                throw new IllegalArgumentException("Number of iterations must be positive, not " + iterations);
             this.iterations = iterations;
+        }
+
+        /**
+         * Returns the number of iterations to use
+         * @return the number of iterations to use
+         */
+        public int getIterations()
+        {
+            return iterations;
+        }
+
+        /**
+         * Sets the number of neighbors to use to infer feature importance from
+         * @param neighbors the number of neighbors to use
+         */
+        public void setNeighbors(int neighbors)
+        {
+            if(neighbors < 1)
+                throw new IllegalArgumentException("Number of neighbors must be positive, not " + neighbors);
             this.neighbors = neighbors;
+        }
+
+        /**
+         * Returns the number of neighbors that will be used at each step of the
+         * algorithm. 
+         * @return the number of neighbors that will be used 
+         */
+        public int getNeighbors()
+        {
+            return neighbors;
+        }
+
+        /**
+         * Sets the distance metric to infer the feature importance with 
+         * @param dm the distance metric to use
+         */
+        public void setDistanceMetric(DistanceMetric dm)
+        {
             this.dm = dm;
         }
 
+        /**
+         * Returns the distance metric to use
+         * @return the distance metric to use
+         */
+        public DistanceMetric getDistanceMetric()
+        {
+            return dm;
+        }
+        
         @Override
         public DataTransform getTransform(DataSet dataset)
         {
             if(!(dataset instanceof ClassificationDataSet))
                 throw new FailedToFitException("ReliefF transforms can only be learned from classification data sets");
             return new ReliefF((ClassificationDataSet)dataset, featureCount, iterations, neighbors, dm);
+        }
+
+        @Override
+        public ReliefFFactory clone()
+        {
+            return new ReliefFFactory(this);
         }
     }
 }

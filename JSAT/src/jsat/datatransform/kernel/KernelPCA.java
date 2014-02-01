@@ -6,8 +6,9 @@ import java.util.List;
 import jsat.DataSet;
 import jsat.classifiers.DataPoint;
 import jsat.datatransform.DataTransform;
-import jsat.datatransform.DataTransformFactory;
+import jsat.datatransform.DataTransformFactoryParm;
 import jsat.datatransform.PCA;
+import jsat.datatransform.kernel.Nystrom.SamplingMethod;
 import jsat.distributions.kernels.KernelTrick;
 import jsat.linear.DenseMatrix;
 import jsat.linear.DenseVector;
@@ -15,6 +16,7 @@ import jsat.linear.EigenValueDecomposition;
 import jsat.linear.Matrix;
 import jsat.linear.RowColumnOps;
 import jsat.linear.Vec;
+import jsat.parameters.Parameter.ParameterHolder;
 import jsat.utils.random.XOR96;
 
 /**
@@ -191,8 +193,12 @@ public class KernelPCA implements DataTransform
         return new KernelPCA(this);
     }
     
-    static public class KernelPCATransformFactory implements DataTransformFactory
+    /**
+     * Factory for producing new {@link KernelPCA} transforms
+     */
+    static public class KernelPCATransformFactory extends DataTransformFactoryParm
     {
+        @ParameterHolder
         private KernelTrick k;
         private int dimension;
         private int basisSize;
@@ -210,16 +216,94 @@ public class KernelPCA implements DataTransform
         public KernelPCATransformFactory(KernelTrick k, int dimension, int basisSize, Nystrom.SamplingMethod samplingMethod)
         {
             this.k = k;
-            this.dimension = dimension;
-            this.basisSize = basisSize;
-            this.method = samplingMethod;
+            setDimension(dimension);
+            setBasisSize(basisSize);
+            setBasisSamplingMethod(method);
         }
+
+        /**
+         * Copy constructor
+         * @param toCopy the object to copy
+         */
+        public KernelPCATransformFactory(KernelPCATransformFactory toCopy)
+        {
+            this(toCopy.k.clone(), toCopy.dimension, toCopy.basisSize, toCopy.method);
+        }
+
+        /**
+         * Sets the basis size for the Kernel PCA to be learned from. Increasing
+         * the basis increase the accuracy of the transform, but increased the 
+         * training time at a cubic rate. 
+         * 
+         * @param basisSize the number of basis vectors to build Kernel PCA from
+         */
+        public void setBasisSize(int basisSize)
+        {
+            if(basisSize < 1)
+                throw new IllegalArgumentException("The basis size must be positive, not " + basisSize);
+            this.basisSize = basisSize;
+        }
+
+        /**
+         * Returns the number of basis vectors to use
+         * @return the number of basis vectors to use
+         */
+        public int getBasisSize()
+        {
+            return basisSize;
+        }
+
+        /**
+         * Sets the dimension of the new feature space, which is the number of 
+         * principal components to select from the kernelized feature space. 
+         * 
+         * @param dimension the number of dimensions to project down too
+         */
+        public void setDimension(int dimension)
+        {
+            if(dimension < 1)
+                throw new IllegalArgumentException("The number of dimensions must be positive, not " + dimension);
+            this.dimension = dimension;
+        }
+
+        /**
+         * Returns the number of dimensions to project down too
+         * @return the number of dimensions to project down too
+         */
+        public int getDimension()
+        {
+            return dimension;
+        }
+
+        /**
+         * Sets the method of selecting the basis vectors
+         * @param method the method of selecting the basis vectors
+         */
+        public void setBasisSamplingMethod(SamplingMethod method)
+        {
+            this.method = method;
+        }
+
+        /**
+         * Returns the method of selecting the basis vectors
+         * @return the method of selecting the basis vectors
+         */
+        public SamplingMethod getBasisSamplingMethod()
+        {
+            return method;
+        }
+        
         
         @Override
         public DataTransform getTransform(DataSet dataset)
         {
             return new KernelPCA(k, dataset, dimension, basisSize, method);
         }
-        
+
+        @Override
+        public KernelPCATransformFactory clone()
+        {
+            return new KernelPCATransformFactory(this);
+        }
     }
 }

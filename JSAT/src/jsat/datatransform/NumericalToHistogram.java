@@ -9,7 +9,10 @@ import jsat.linear.DenseVector;
 import jsat.linear.Vec;
 
 /**
- *
+ * This transform converts numerical features into categorical ones via a simple
+ * histogram. Bins will be created for each numeric feature of equal sizes. Each
+ * numeric feature will be converted to the same number of bins. 
+ * 
  * @author Edward Raff
  */
 public class NumericalToHistogram implements DataTransform
@@ -19,14 +22,21 @@ public class NumericalToHistogram implements DataTransform
     double[][] conversionArray;
     CategoricalData[] newDataArray;
 
+    /**
+     * Creates a new transform which will use O(sqrt(n)) bins for each numeric 
+     * feature, where <i>n</i> is the number of data points in the dataset. 
+     * 
+     * @param dataSet the data set to create the transform from
+     */
     public NumericalToHistogram(DataSet dataSet)
     {
         this(dataSet, (int) Math.ceil(Math.sqrt(dataSet.getSampleSize())));
     }
 
     /**
-     * 
-     * @param dataSet
+     * Creates a new transform which will use the specified number of bins for
+     * each numeric feature. 
+     * @param dataSet the data set to create the transform from
      * @param n the number of bins to create
      */
     public NumericalToHistogram(DataSet dataSet, int n)
@@ -111,9 +121,11 @@ public class NumericalToHistogram implements DataTransform
         return new NumericalToHistogram(this);
     }
     
-    static public class NumericalToHistogramTransformFactory implements DataTransformFactory
+    /**
+     * Factory for the creation of {@link NumericalToHistogram} transforms. 
+     */
+    static public class NumericalToHistogramTransformFactory extends DataTransformFactoryParm
     {
-        
         private int n;
 
         /**
@@ -130,7 +142,36 @@ public class NumericalToHistogram implements DataTransform
          */
         public NumericalToHistogramTransformFactory(int n)
         {
+            setBins(n);
+        }
+        
+        public NumericalToHistogramTransformFactory(NumericalToHistogramTransformFactory toCopy)
+        {
+            this(toCopy.n);
+        }
+
+        /**
+         * Sets the number of numeric bins to use. {@link Integer#MAX_VALUE} is
+         * used as a special value to indicate that the square root of the 
+         * number of data points should be used as the number of bins. 
+         * 
+         * @param n the number of bins to use, or {@link Integer#MAX_VALUE} to
+         * use sqrt(n) bins. 
+         */
+        public void setBins(int n)
+        {
+            if(n < 1)
+                throw new IllegalArgumentException("Number of bins must be a positive value");
             this.n = n;
+        }
+
+        /**
+         * Returns the number of bins to use
+         * @return the number of bins to use
+         */
+        public int getBins()
+        {
+            return n;
         }
         
         @Override
@@ -140,6 +181,12 @@ public class NumericalToHistogram implements DataTransform
                 return new NumericalToHistogram(dataset);
             else
                 return new NumericalToHistogram(dataset, n);
+        }
+
+        @Override
+        public NumericalToHistogramTransformFactory clone()
+        {
+            return new NumericalToHistogramTransformFactory(this);
         }
         
     }

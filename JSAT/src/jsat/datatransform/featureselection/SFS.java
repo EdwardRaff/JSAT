@@ -273,9 +273,12 @@ public class SFS implements DataTransform
         return Double.POSITIVE_INFINITY;
     }
     
-    static public class SFSFactory implements DataTransformFactory
+    /**
+     * Factory for producing new {@link SFS} transforms
+     */
+    static public class SFSFactory extends DataTransformFactoryParm
     {
-        private double maxIncrease;
+        private double maxDecrease;
         private Classifier classifier;
         private Regressor regressor;
         private int minFeatures, maxFeatures;
@@ -283,43 +286,136 @@ public class SFS implements DataTransform
         /**
          * Creates a new SFS transform factory
          * 
-         * @param maxIncrease the maximum allowable increase in the error rate 
+         * @param maxDecrease the maximum allowable increase in the error rate 
          * compared to the previous set of features
          * @param evaluater the classifier to use to evaluate accuracy
          * @param minFeatures the minimum number of features to learn
          * @param maxFeatures the maximum number of features to learn
          */
-        public SFSFactory(double maxIncrease, Classifier evaluater, int minFeatures, int maxFeatures)
+        public SFSFactory(double maxDecrease, Classifier evaluater, int minFeatures, int maxFeatures)
         {
-            this.maxIncrease = maxIncrease;
+            setMaxDecrease(maxDecrease);
             this.classifier = evaluater;
-            this.minFeatures = minFeatures;
-            this.maxFeatures = maxFeatures;
+            if(evaluater instanceof Regressor)
+                this.regressor = (Regressor) evaluater;
+            setMinFeatures(minFeatures);
+            setMaxFeatures(maxFeatures);
         }
         
         /**
          * Creates a new SFS transform factory 
-         * @param maxIncrease the maximum allowable increase in the error rate 
+         * @param maxDecrease the maximum allowable increase in the error rate 
          * compared to the previous set of features
          * @param evaluater the regressor to use to evaluate accuracy
          * @param minFeatures the minimum number of features to learn
          * @param maxFeatures the maximum number of features to learn
          */
-        public SFSFactory(double maxIncrease, Regressor evaluater, int minFeatures, int maxFeatures)
+        public SFSFactory(double maxDecrease, Regressor evaluater, int minFeatures, int maxFeatures)
         {
-            this.maxIncrease = maxIncrease;
+            setMaxDecrease(maxDecrease);
             this.regressor = evaluater;
+            if(evaluater instanceof Classifier)
+                this.classifier = (Classifier) evaluater;
+            setMinFeatures(minFeatures);
+            setMaxFeatures(maxFeatures);
+        }
+
+        /**
+         * Copy constructor
+         * @param toCopy the object to copy
+         */
+        public SFSFactory(SFSFactory toCopy)
+        {
+            if(toCopy.classifier == toCopy.regressor)
+            {
+                this.classifier = toCopy.classifier.clone();
+                this.regressor = (Regressor) this.classifier;
+            }
+            else if(toCopy.classifier != null)
+                this.classifier = toCopy.classifier.clone();
+            else if(toCopy.regressor != null)
+                this.regressor = toCopy.regressor.clone();
+            else
+                throw new RuntimeException("BUG: Please report");
+            this.maxDecrease = toCopy.maxDecrease;
+            this.minFeatures = toCopy.minFeatures;
+            this.maxFeatures = toCopy.maxFeatures;
+        }
+        
+        /**
+         * Sets the maximum allowable decrease in accuracy (increase in error) 
+         * from the previous set of features to the new current set. 
+         * 
+         * @param maxDecrease the maximum allowable decrease in the accuracy
+         * from removing a feature
+         */
+        public void setMaxDecrease(double maxDecrease)
+        {
+            if(maxDecrease < 0)
+                throw new IllegalArgumentException("Decarese must be a positive value, not " + maxDecrease);
+            this.maxDecrease = maxDecrease;
+        }
+
+        /**
+         * Returns the maximum allowable decrease in accuracy from one set of 
+         * features to the next
+         * @return the maximum allowable decrease in accuracy from one set of 
+         * features to the next
+         */
+        public double getMaxDecrease()
+        {
+            return maxDecrease;
+        }
+        
+        /**
+         * Sets the minimum number of features that must be selected
+         * @param minFeatures the minimum number of features to learn
+         */
+        public void setMinFeatures(int minFeatures)
+        {
             this.minFeatures = minFeatures;
+        }
+
+        /**
+         * Returns the minimum number of features to find
+         * @return the minimum number of features to find
+         */
+        public int getMinFeatures()
+        {
+            return minFeatures;
+        }
+        
+        /**
+         * Sets the maximum number of features that must be selected
+         * @param maxFeatures the maximum number of features to find
+         */
+        public void setMaxFeatures(int maxFeatures)
+        {
             this.maxFeatures = maxFeatures;
+        }
+
+        /**
+         * Returns the maximum number of features to find
+         * @return the maximum number of features to find
+         */
+        public int getMaxFeatures()
+        {
+            return maxFeatures;
         }
 
         @Override
         public DataTransform getTransform(DataSet dataset)
         {
             if(dataset instanceof ClassificationDataSet)
-                return new SFS(minFeatures, maxFeatures, (ClassificationDataSet)dataset, classifier, 5, maxIncrease);
+                return new SFS(minFeatures, maxFeatures, (ClassificationDataSet)dataset, classifier, 5, maxDecrease);
             else
-                return new SFS(minFeatures, maxFeatures, (RegressionDataSet)dataset, regressor, 5, maxIncrease);
+                return new SFS(minFeatures, maxFeatures, (RegressionDataSet)dataset, regressor, 5, maxDecrease);
+        }
+
+        @Override
+        public SFSFactory clone()
+        {
+            return new SFSFactory(this);
         }
         
     }

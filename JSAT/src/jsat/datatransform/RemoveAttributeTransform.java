@@ -227,6 +227,9 @@ public class RemoveAttributeTransform implements DataTransform
         return new RemoveAttributeTransform(this);
     }
     
+    /**
+     * Factory for producing {@link RemoveAttributeTransform} transforms
+     */
     public static class RemoveAttributeTransformFactory implements DataTransformFactory
     {
         private Set<Integer> catToRemove;
@@ -242,6 +245,12 @@ public class RemoveAttributeTransform implements DataTransform
         public DataTransform getTransform(DataSet dataset)
         {
             return new RemoveAttributeTransform(dataset, catToRemove, numerToRemove);
+        }
+
+        @Override
+        public RemoveAttributeTransformFactory clone()
+        {
+            return new RemoveAttributeTransformFactory(new HashSet<Integer>(this.catToRemove), new HashSet<Integer>(this.numerToRemove));
         }
     }
 }

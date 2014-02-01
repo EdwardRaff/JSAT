@@ -19,4 +19,6 @@ public interface DataTransformFactory
      * was inappropriate for the given data set. 
      */
     public DataTransform getTransform(DataSet dataset);
+    
+    public DataTransformFactory clone();
 }

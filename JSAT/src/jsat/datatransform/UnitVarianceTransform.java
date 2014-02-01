@@ -55,12 +55,21 @@ public class UnitVarianceTransform implements InPlaceTransform
         return new UnitVarianceTransform(this);
     }
 
+    /**
+     * Factory for producing new {@link UnitVarianceTransform} transforms. 
+     */
     static public class UnitVarianceTransformFactory implements DataTransformFactory
     {
         @Override
         public DataTransform getTransform(DataSet dataset)
         {
             return new UnitVarianceTransform(dataset);
+        }
+
+        @Override
+        public UnitVarianceTransformFactory clone()
+        {
+            return new UnitVarianceTransformFactory();
         }
     }
 }

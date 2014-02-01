@@ -202,7 +202,10 @@ public class SBS implements DataTransform
             return  -1; //No possible improvment & weve got enough
     }
     
-    static public class SBSFactory implements DataTransformFactory
+    /**
+     * Factory for producing new {@link SBS} transforms
+     */
+    static public class SBSFactory extends DataTransformFactoryParm
     {
         private double maxDecrease;
         private Classifier classifier;
@@ -220,29 +223,116 @@ public class SBS implements DataTransform
          */
         public SBSFactory(double maxDecrease, Classifier evaluater, int minFeatures, int maxFeatures)
         {
-            this.maxDecrease = maxDecrease;
+            setMaxDecrease(maxDecrease);
             this.classifier = evaluater;
-            this.minFeatures = minFeatures;
-            this.maxFeatures = maxFeatures;
+            if(evaluater instanceof Regressor)
+                this.regressor = (Regressor) evaluater;
+            setMinFeatures(minFeatures);
+            setMaxFeatures(maxFeatures);
         }
         
         /**
          * Creates a new SBS transform factory
          * 
          * @param maxDecrease the maximum allowable increase in the error rate
-         * compared tot he previous set of features
+         * compared to the previous set of features
          * @param evaluater the regressor to use to evaluate accuracy
          * @param minFeatures the minimum number of features to learn
          * @param maxFeatures the maximum number of features to learn
          */
         public SBSFactory(double maxDecrease, Regressor evaluater, int minFeatures, int maxFeatures)
         {
-            this.maxDecrease = maxDecrease;
+            setMaxDecrease(maxDecrease);
             this.regressor = evaluater;
+            if(evaluater instanceof Classifier)
+                this.classifier = (Classifier) evaluater;
+            setMinFeatures(minFeatures);
+            setMaxFeatures(maxFeatures);
+        }
+
+        /**
+         * Copy constructor
+         * @param toCopy the object to copy
+         */
+        public SBSFactory(SBSFactory toCopy)
+        {
+            if(toCopy.classifier == toCopy.regressor)
+            {
+                this.classifier = toCopy.classifier.clone();
+                this.regressor = (Regressor) this.classifier;
+            }
+            else if(toCopy.classifier != null)
+                this.classifier = toCopy.classifier.clone();
+            else if(toCopy.regressor != null)
+                this.regressor = toCopy.regressor.clone();
+            else
+                throw new RuntimeException("BUG: Please report");
+            this.maxDecrease = toCopy.maxDecrease;
+            this.minFeatures = toCopy.minFeatures;
+            this.maxFeatures = toCopy.maxFeatures;
+        }
+
+        /**
+         * Sets the maximum allowable decrease in accuracy (increase in error) 
+         * from the previous set of features to the new current set. 
+         * 
+         * @param maxDecrease the maximum allowable decrease in the accuracy
+         * from removing a feature
+         */
+        public void setMaxDecrease(double maxDecrease)
+        {
+            if(maxDecrease < 0)
+                throw new IllegalArgumentException("Decarese must be a positive value, not " + maxDecrease);
+            this.maxDecrease = maxDecrease;
+        }
+
+        /**
+         * Returns the maximum allowable decrease in accuracy from one set of 
+         * features to the next
+         * @return the maximum allowable decrease in accuracy from one set of 
+         * features to the next
+         */
+        public double getMaxDecrease()
+        {
+            return maxDecrease;
+        }
+        
+        /**
+         * Sets the minimum number of features that must be selected
+         * @param minFeatures the minimum number of features to learn
+         */
+        public void setMinFeatures(int minFeatures)
+        {
             this.minFeatures = minFeatures;
+        }
+
+        /**
+         * Returns the minimum number of features to find
+         * @return the minimum number of features to find
+         */
+        public int getMinFeatures()
+        {
+            return minFeatures;
+        }
+        
+        /**
+         * Sets the maximum number of features that must be selected
+         * @param maxFeatures the maximum number of features to find
+         */
+        public void setMaxFeatures(int maxFeatures)
+        {
             this.maxFeatures = maxFeatures;
         }
 
+        /**
+         * Returns the maximum number of features to find
+         * @return the maximum number of features to find
+         */
+        public int getMaxFeatures()
+        {
+            return maxFeatures;
+        }
+        
         @Override
         public DataTransform getTransform(DataSet dataset)
         {
@@ -250,6 +340,12 @@ public class SBS implements DataTransform
                 return new SBS(minFeatures, maxFeatures, (ClassificationDataSet)dataset, classifier, 5, maxDecrease);
             else
                 return new SBS(minFeatures, maxFeatures, (RegressionDataSet)dataset, regressor, 5, maxDecrease);
+        }
+
+        @Override
+        public SBSFactory clone()
+        {
+            return new SBSFactory(this);
         }
         
     }

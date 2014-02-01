@@ -82,34 +82,100 @@ public class WhitenedZCA extends WhitenedPCA implements InPlaceTransform
         };
     }
     
-    static public class WhitenedZCATransformFactory implements DataTransformFactory
+    /**
+     * Factory for producing new {@link WhitenedZCA} transforms. 
+     */
+    static public class WhitenedZCATransformFactory extends DataTransformFactoryParm
     {
-        private Double reg;
+        private double reg;
+        private boolean autoReg;
 
         /**
-         * Creates a new WhitenedZCA factory 
+         * Creates a new WhitenedZCA factory that will use the regularization 
+         * value provided
          * @param reg the regularization to use
          */
         public WhitenedZCATransformFactory(double reg)
         {
+            setRegularization(reg);
+            autoReg = true;
+        }
+
+        /**
+         * Creates a new WhitenedZCA where the regularization will be determined
+         * automatically
+         */
+        public WhitenedZCATransformFactory()
+        {
+            this(1.0);
+            autoReg = false;
+        }
+        
+        /**
+         * Copy constructor
+         * @param toCopy the object to copy
+         */
+        public WhitenedZCATransformFactory(WhitenedZCATransformFactory toCopy)
+        {
+            this.reg = toCopy.reg;
+            this.autoReg = toCopy.autoReg;
+        }
+
+        /**
+         * Sets whether or not to automatically select a regularization value. 
+         * @param autoReg {@code true} to automatically select a regularization 
+         * vale, {@code false} to use the value set by 
+         * {@link #setRegularization(double) }
+         */
+        public void setAutoReg(boolean autoReg)
+        {
+            this.autoReg = autoReg;
+        }
+
+        /**
+         * Returns whether or not the regularization parameter is determined 
+         * automatically. 
+         * @return {@code true} if the regularization is determined automatically
+         */
+        public boolean isAutoReg()
+        {
+            return autoReg;
+        }
+        
+        /**
+         * Sets the amount of regularization to use, this value will be ignored 
+         * if {@link #setAutoReg(boolean) } is set to {@code true}
+         * @param reg the positive regularization parameter
+         */
+        public void setRegularization(double reg)
+        {
+            if(reg <= 0 || Double.isNaN(reg) || Double.isInfinite(reg))
+                throw new IllegalArgumentException("Regularization must be a positive value, not " + reg);
             this.reg = reg;
         }
 
         /**
-         * Creates a new WhitenedZCA
+         * Returns the amount of regularization that will be used if 
+         * {@link #isAutoReg() } is {@code false}. 
+         * @return the amount of regularization that will be used
          */
-        public WhitenedZCATransformFactory()
+        public double getRegularization()
         {
-            reg = null;
+            return reg;
         }
         
         @Override
         public DataTransform getTransform(DataSet dataset)
         {
-            if(reg == null)
+            if(autoReg)
                 return new WhitenedZCA(dataset);
             return new WhitenedZCA(dataset, reg);
         }
-        
+
+        @Override
+        public WhitenedZCATransformFactory clone()
+        {
+            return new WhitenedZCATransformFactory(this);
+        }
     }
 }

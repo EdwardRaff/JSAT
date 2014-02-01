@@ -59,6 +59,9 @@ public class ZeroMeanTransform implements InPlaceTransform
         return new ZeroMeanTransform(this);
     }
 
+    /**
+     * Factory for producing new {@link ZeroMeanTransform} transforms. 
+     */
     static public class ZeroMeanTransformFactory implements DataTransformFactory
     {
 
@@ -70,6 +73,12 @@ public class ZeroMeanTransform implements InPlaceTransform
         public DataTransform getTransform(DataSet dataset)
         {
             return new ZeroMeanTransform(dataset);
+        }
+
+        @Override
+        public ZeroMeanTransformFactory clone()
+        {
+            return new ZeroMeanTransformFactory();
         }
         
     }

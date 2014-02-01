@@ -239,7 +239,7 @@ public class AutoDeskewTransform implements InPlaceTransform
     }
 
     @Override
-    public DataTransform clone()
+    public AutoDeskewTransform clone()
     {
         return new AutoDeskewTransform(this);
     }
@@ -266,9 +266,11 @@ public class AutoDeskewTransform implements InPlaceTransform
         return false;
     }
 
+    /**
+     * Factory for creating {@link AutoDeskewTransform} transforms. 
+     */
     static public class AutoDeskewTransformFactory implements DataTransformFactory
     {
-
         private List<Double> lambdas;
 
         /**
@@ -288,7 +290,7 @@ public class AutoDeskewTransform implements InPlaceTransform
         {
             this.lambdas = lambdas;
         }
-
+        
         /**
          * Creates a new deskewing factory
          *
@@ -299,10 +301,25 @@ public class AutoDeskewTransform implements InPlaceTransform
             this(DoubleList.unmodifiableView(lambdas, lambdas.length));
         }
 
+        /**
+         * Copy constructor
+         * @param toClone the object to copy
+         */
+        public AutoDeskewTransformFactory(AutoDeskewTransformFactory toClone)
+        {
+            this(new DoubleList(toClone.lambdas));
+        }
+        
         @Override
         public AutoDeskewTransform getTransform(DataSet dataset)
         {
             return new AutoDeskewTransform(dataset, true, lambdas);
+        }
+
+        @Override
+        public AutoDeskewTransformFactory clone()
+        {
+            return new AutoDeskewTransformFactory(this);
         }
     }
 }

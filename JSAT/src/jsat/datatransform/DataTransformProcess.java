@@ -5,6 +5,9 @@ import java.util.List;
 import jsat.DataSet;
 import jsat.classifiers.DataPoint;
 import jsat.linear.Vec;
+import jsat.parameters.Parameter;
+import jsat.parameters.Parameter.ParameterHolder;
+import jsat.parameters.Parameterized;
 
 /**
  * Performing a transform on the whole data set before training a classifier can
@@ -12,11 +15,16 @@ import jsat.linear.Vec;
  * learned from the training set and not contain any knowledge from the testing 
  * set. A DataTransformProcess aids in this by providing a mechanism to contain 
  * several different transforms to learn and then apply. 
+ * <br><br>
+ * The Parameters of the Data Transform Process are the parameters from the
+ * individual transform factories that make up the whole process. The name 
+ * "DataTransformProcess" will not be prefixed to the parameter names. 
  * 
  * @author Edward Raff
  */
-public class DataTransformProcess implements DataTransform
+public class DataTransformProcess implements DataTransform, Parameterized
 {
+    @ParameterHolder(skipSelfNamePrefix = true)
     private List<DataTransformFactory> transformSource;
     private List<DataTransform> learnedTransforms;
     
@@ -30,6 +38,19 @@ public class DataTransformProcess implements DataTransform
     {
         transformSource = new ArrayList<DataTransformFactory>();
         learnedTransforms = new ArrayList<DataTransform>();   
+    }
+    
+    /**
+     * Creates a new transform process from the listed factories, which will be
+     * applied in order by index. 
+     * 
+     * @param factories the array of factories to apply as the data transform process
+     */
+    public DataTransformProcess(DataTransformFactory... factories)
+    {
+        this();
+        for(DataTransformFactory factory : factories)
+            this.addTransform(factory);
     }
     
     /**
@@ -168,12 +189,24 @@ public class DataTransformProcess implements DataTransform
         DataTransformProcess clone = new DataTransformProcess();
         
         for(DataTransformFactory dtf : this.transformSource)
-            clone.transformSource.add(dtf);
+            clone.transformSource.add(dtf.clone());
         
         for(DataTransform dt : this.learnedTransforms)
             clone.learnedTransforms.add(dt.clone());
         
         return clone;
+    }
+
+    @Override
+    public List<Parameter> getParameters()
+    {
+        return Parameter.getParamsFromMethods(this);
+    }
+
+    @Override
+    public Parameter getParameter(String paramName)
+    {
+        return Parameter.toParameterMap(getParameters()).get(paramName);
     }
     
 }

@@ -132,7 +132,9 @@ public class LinearTransform implements DataTransform
         return new LinearTransform(this);
     }
     
-    
+    /**
+     * Factory for creating new {@link LinearTransform} transforms. 
+     */
     static public class LinearTransformFactory implements DataTransformFactory
     {
         private Double A;
@@ -154,16 +156,28 @@ public class LinearTransform implements DataTransform
          */
         public LinearTransformFactory()
         {
-            this.A = this.B = null;
+            this(0, 1);
         }
         
-        
+        /**
+         * Copy constructor
+         * @param toCopy the object to copy
+         */
+        public LinearTransformFactory(LinearTransformFactory toCopy)
+        {
+            this(toCopy.A, toCopy.B);
+        }
         
         @Override
         public DataTransform getTransform(DataSet dataset)
         {
             return new LinearTransform(dataset, A, B);
         }
-        
+
+        @Override
+        public LinearTransformFactory clone()
+        {
+            return new LinearTransformFactory(this);
+        }
     }
 }

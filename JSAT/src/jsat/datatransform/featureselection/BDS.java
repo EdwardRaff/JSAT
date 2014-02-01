@@ -7,6 +7,7 @@ import jsat.classifiers.Classifier;
 import jsat.classifiers.DataPoint;
 import jsat.datatransform.DataTransform;
 import jsat.datatransform.DataTransformFactory;
+import jsat.datatransform.DataTransformFactoryParm;
 import jsat.datatransform.RemoveAttributeTransform;
 import jsat.regression.RegressionDataSet;
 import jsat.regression.Regressor;
@@ -17,7 +18,7 @@ import jsat.utils.ListUtils;
  * of features to use for prediction. It performs both {@link SFS} and 
  * {@link SBS} search at the same time. At each step, a feature is greedily 
  * added to one set, and then a feature greedily removed from another set. 
- * Once a feature si added / removed in one set, it is unavailable for selection
+ * Once a feature is added / removed in one set, it is unavailable for selection
  * in the other. This can be used to select up to half of the original features. 
  * 
  * @author Edward Raff
@@ -170,7 +171,10 @@ public class BDS implements DataTransform
         finalTransform = new RemoveAttributeTransform(dataSet, catToRemoveSBS, numToRemoveSBS);
     }
     
-    static public class BDSFactory implements DataTransformFactory
+    /**
+     * Factory for producing new {@link BDS} transforms. 
+     */
+    static public class BDSFactory extends DataTransformFactoryParm
     {
         private Classifier classifier;
         private Regressor regressor;
@@ -185,9 +189,11 @@ public class BDS implements DataTransform
         public BDSFactory(Classifier evaluater, int featureCount)
         {
             this.classifier = evaluater;
-            this.featureCount = featureCount;
+            if(evaluater instanceof Regressor)
+                regressor = (Regressor) evaluater;
+            setFeatureCount(featureCount);
         }
-        
+
         /**
          * Creates a new BDS factory
          * @param evaluater the regressor to use in determining accuracy given a 
@@ -197,7 +203,49 @@ public class BDS implements DataTransform
         public BDSFactory(Regressor evaluater, int featureCount)
         {
             this.regressor = evaluater;
+            if(evaluater instanceof Classifier)
+                this.classifier = (Classifier) evaluater;
+            setFeatureCount(featureCount);
+        }
+        
+        /**
+         * Copy constructor
+         * @param toCopy the object to copy
+         */
+        public BDSFactory(BDSFactory toCopy)
+        {
+            if(toCopy.classifier == toCopy.regressor)
+            {
+                this.classifier = toCopy.classifier.clone();
+                this.regressor = (Regressor) this.classifier;
+            }
+            else if(toCopy.classifier != null)
+                this.classifier = toCopy.classifier.clone();
+            else if(toCopy.regressor != null)
+                this.regressor = toCopy.regressor.clone();
+            else
+                throw new RuntimeException("BUG: Please report");
+            this.featureCount = toCopy.featureCount;
+        }
+        
+        /**
+         * Sets the number of features to select for use from the set of all input features
+         * @param featureCount the number of features to use
+         */
+        public void setFeatureCount(int featureCount)
+        {
+            if(featureCount < 1)
+                throw new IllegalArgumentException("Number of features to select must be positive, not " + featureCount);
             this.featureCount = featureCount;
+        }
+
+        /**
+         * Returns the number of features to sue
+         * @return the number of features to sue
+         */
+        public int getFeatureCount()
+        {
+            return featureCount;
         }
 
         @Override
@@ -209,6 +257,12 @@ public class BDS implements DataTransform
             else
                 return new BDS(featureCount, (RegressionDataSet)dataset,
                         regressor, featureCount);
+        }
+
+        @Override
+        public BDSFactory clone()
+        {
+            return new BDSFactory(this);
         }
         
     }

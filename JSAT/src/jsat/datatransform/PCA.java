@@ -177,7 +177,7 @@ public class PCA implements DataTransform
         return new PCA(this);
     }
     
-    static public class PCAFactory implements DataTransformFactory
+    static public class PCAFactory extends DataTransformFactoryParm
     {
         private int maxPCs;
         private double threshold;
@@ -206,8 +206,55 @@ public class PCA implements DataTransform
          */
         public PCAFactory(int maxPCs, double threshold)
         {
+            setMaxPCs(maxPCs);
+            setThreshold(threshold);
+        }
+        
+        /**
+         * Copy constructor
+         * @param toCopy the object to copy
+         */
+        public PCAFactory(PCAFactory toCopy)
+        {
+            this(toCopy.maxPCs, toCopy.threshold);
+        }
+        
+        /**
+         * Sets the maximum number of Principal Components to let the algorithm learn
+         * @param maxPCs the maximum number of Principal Components to let the algorithm learn
+         */
+        public void setMaxPCs(int maxPCs)
+        {
+            if(maxPCs < 1)
+                throw new IllegalArgumentException("Number of PCs must be positive, not " + maxPCs);
             this.maxPCs = maxPCs;
+        }
+
+        /**
+         * Returns the maximum number of Principal Components to let the algorithm learn
+         * @return the maximum number of Principal Components to let the algorithm learn
+         */
+        public int getMaxPCs()
+        {
+            return maxPCs;
+        }
+
+        /**
+         * Sets the convergence threshold for each principal component
+         * @param threshold the positive convergence threshold
+         */
+        public void setThreshold(double threshold)
+        {
             this.threshold = threshold;
+        }
+
+        /**
+         * Returns the convergence threshold 
+         * @return the convergence threshold 
+         */
+        public double getThreshold()
+        {
+            return threshold;
         }
         
         @Override
@@ -215,6 +262,11 @@ public class PCA implements DataTransform
         {
             return new PCA(dataset, maxPCs, threshold);
         }
-        
+
+        @Override
+        public PCAFactory clone()
+        {
+            return new PCAFactory(this);
+        }
     }
 }

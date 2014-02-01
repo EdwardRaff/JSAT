@@ -200,7 +200,10 @@ public class MutualInfoFS extends RemoveAttributeTransform
         setUp(dataSet, catToRemove, numToRemove);
     }
     
-    public static class MutualInfoFSFactory implements DataTransformFactory
+    /**
+     * Factory for producing {@link MutualInfoFS} transforms
+     */
+    public static class MutualInfoFSFactory extends DataTransformFactoryParm
     {
         private int featureCount;
         private NumericalHandeling handling;
@@ -224,8 +227,55 @@ public class MutualInfoFS extends RemoveAttributeTransform
          */
         public MutualInfoFSFactory(int featureCount, NumericalHandeling handling)
         {
+            setFeatureCount(featureCount);
+            setHandling(handling);
+        }
+
+        /**
+         * Copy constructor
+         * @param toCopy the object to copy
+         */
+        public MutualInfoFSFactory(MutualInfoFSFactory toCopy)
+        {
+            this(toCopy.featureCount, toCopy.handling);
+        }
+
+        /**
+         * Sets the number of features to select 
+         * @param featureCount the number of features to select
+         */
+        public void setFeatureCount(int featureCount)
+        {
+            if(featureCount < 1)
+                throw new IllegalArgumentException("Number of features must be positive, not " + featureCount);
             this.featureCount = featureCount;
+        }
+
+        /**
+         * Returns the number of features to select
+         * @return the number of features to select
+         */
+        public int getFeatureCount()
+        {
+            return featureCount;
+        }
+
+        /**
+         * Sets the method of handling numeric features
+         * @param handling the numeric handling
+         */
+        public void setHandling(NumericalHandeling handling)
+        {
             this.handling = handling;
+        }
+
+        /**
+         * Returns the method of handling numeric features
+         * @return the method of handling numeric features
+         */
+        public NumericalHandeling getHandling()
+        {
+            return handling;
         }
 
         
@@ -236,6 +286,12 @@ public class MutualInfoFS extends RemoveAttributeTransform
                 throw new FailedToFitException("The given data set was not a classification data set");
             ClassificationDataSet cds = (ClassificationDataSet) dataset;
             return new MutualInfoFS(cds, featureCount, handling);
+        }
+
+        @Override
+        public MutualInfoFSFactory clone()
+        {
+            return new MutualInfoFSFactory(this);
         }
     }
 }

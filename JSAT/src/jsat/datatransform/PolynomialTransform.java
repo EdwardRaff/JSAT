@@ -107,25 +107,52 @@ public class PolynomialTransform implements DataTransform
         return new PolynomialTransform(degree);
     }
     
-    static public class PolyTransformFactory implements DataTransformFactory
+    /**
+     * Factory for producing {@link PolynomialTransform} transforms
+     */
+    static public class PolyTransformFactory extends DataTransformFactoryParm
     {
-        
         private int degree;
 
         /**
-         * * Creates a new polynomial transform factory of the given degree
+         * Creates a new polynomial transform factory of the given degree
          * @param degree 
          */
         public PolyTransformFactory(int degree)
         {
+            setDegree(degree);
+        }
+
+        /**
+         * Sets the degree of the polynomial to transform the input vector into
+         * @param degree the positive degree to use
+         */
+        public void setDegree(int degree)
+        {
+            if(degree < 1)
+                throw new IllegalArgumentException("Degree must be a positive value, not " + degree);
             this.degree = degree;
+        }
+
+        /**
+         * Returns the polynomial degree to use
+         * @return the polynomial degree to use
+         */
+        public int getDegree()
+        {
+            return degree;
         }
         
         @Override
-        public DataTransform getTransform(DataSet dataset)
+        public PolynomialTransform getTransform(DataSet dataset)
         {
             return new PolynomialTransform(degree);
         }
-        
+
+        @Override
+        public PolyTransformFactory clone()
+        {
+            return new PolyTransformFactory(degree);
+        }
     }
 }
