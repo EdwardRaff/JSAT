@@ -30,6 +30,12 @@ public class IntList extends AbstractList<Integer> implements Serializable
         this(10);
     }
 
+    @Override
+    public void clear()
+    {
+        end = 0;
+    }
+
     /**
      * Creates a new IntList with the given initial capacity 
      * @param capacity the starting internal storage space size 
