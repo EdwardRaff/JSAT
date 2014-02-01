@@ -4,6 +4,7 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Random;
 import java.util.concurrent.ExecutorService;
 import jsat.classifiers.CategoricalResults;
 import jsat.classifiers.ClassificationDataSet;
@@ -19,6 +20,7 @@ import jsat.regression.RegressionDataSet;
 import jsat.regression.Regressor;
 import jsat.utils.IntList;
 import jsat.utils.ListUtils;
+import jsat.utils.random.XORWOW;
 
 /**
  * Implements Dual Coordinate Descent with shrinking (DCDs) training algorithms
@@ -283,9 +285,15 @@ public class DCDs implements BinaryScoreClassifier, Regressor, Parameterized
         double m = Double.POSITIVE_INFINITY;
         boolean noShrinking = false;
         
+        /*
+         * From profling Shufling & RNG generation takes a suprising amount of 
+         * time on some data sets, so use one of our fast ones
+         */
+        Random rand = new XORWOW();
+        
         for(int t = 0; t < maxIterations; t++ )
         {
-            Collections.shuffle(A);
+            Collections.shuffle(A, rand);
             M = Double.NEGATIVE_INFINITY;
             m = Double.POSITIVE_INFINITY;
             Iterator<Integer> iter = A.iterator();
@@ -420,6 +428,12 @@ public class DCDs implements BinaryScoreClassifier, Regressor, Parameterized
         IntList activeSet = new IntList(2*vecs.length);
         ListUtils.addRange(activeSet, 0, vecs.length, 1);
         
+        /*
+         * From profling Shufling & RNG generation takes a suprising amount of 
+         * time on some data sets, so use one of our fast ones
+         */
+        Random rand = new XORWOW();
+        
         double M = Double.POSITIVE_INFINITY;
 
         for(int iteration = 0; iteration < maxIterations; iteration++)
@@ -427,7 +441,7 @@ public class DCDs implements BinaryScoreClassifier, Regressor, Parameterized
             double maxVk = Double.NEGATIVE_INFINITY;
             double vKSum = 0;
             //6.1 Randomly permute T
-            Collections.shuffle(activeSet);
+            Collections.shuffle(activeSet, rand);
 
             //6.2 For i in T
             Iterator<Integer> iter = activeSet.iterator();
