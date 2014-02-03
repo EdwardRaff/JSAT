@@ -252,6 +252,12 @@ public class ScaledVector extends Vec
     }
 
     @Override
+    public int nnz()
+    {
+        return base.nnz();
+    }
+
+    @Override
     public Iterator<IndexValue> getNonZeroIterator()
     {
         final Iterator<IndexValue> origIter = base.getNonZeroIterator();
