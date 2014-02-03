@@ -810,7 +810,7 @@ public abstract class Vec implements Cloneable, Iterable<IndexValue>, Serializab
         else if(this.isSparse() && v.isSparse())
         {
             Iterator<IndexValue> aIter = this.getNonZeroIterator();
-            Iterator<IndexValue> bIter = this.getNonZeroIterator();
+            Iterator<IndexValue> bIter = v.getNonZeroIterator();
             
             if(this.nnz() == 0 || v.nnz() == 0)
                 return 0;//All zeros? dot is zer
@@ -830,7 +830,7 @@ public abstract class Vec implements Cloneable, Iterable<IndexValue>, Serializab
                         aCur = null;
                     
                     if(bIter.hasNext())
-                        bCur = aIter.next();
+                        bCur = bIter.next();
                     else
                         bCur = null;
                 }
@@ -845,7 +845,7 @@ public abstract class Vec implements Cloneable, Iterable<IndexValue>, Serializab
                 else//b is too small, move it over and try to get them lined up
                 {
                     if(bIter.hasNext())
-                        bCur = aIter.next();
+                        bCur = bIter.next();
                     else
                         bCur = null;
                 }
