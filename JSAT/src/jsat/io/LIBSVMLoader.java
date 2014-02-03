@@ -282,6 +282,9 @@ public class LIBSVMLoader
         while(true)
         {
             int colnPos = line.indexOf(':', pos+1);
+            //if -1 then there are no values for this line
+            if(colnPos < 0)
+                break;
             int valPos = line.indexOf(' ', colnPos+1);
             boolean breakOut = valPos < 0;//we reached the end of the line?
             if(breakOut)
