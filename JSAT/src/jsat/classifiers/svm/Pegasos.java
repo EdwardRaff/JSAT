@@ -8,6 +8,8 @@ import jsat.exceptions.FailedToFitException;
 import jsat.linear.*;
 import jsat.parameters.Parameter;
 import jsat.parameters.Parameterized;
+import jsat.utils.IntList;
+import jsat.utils.ListUtils;
 
 /**
  * Implements the linear kernel mini-batch version of the Pegasos SVM 
@@ -24,7 +26,7 @@ import jsat.parameters.Parameterized;
  */
 public class Pegasos implements BinaryScoreClassifier, Parameterized
 {
-    private double epochs;
+    private int epochs;
     private double reg;
     private int batchSize;
     private boolean projectionStep = false;
@@ -34,7 +36,7 @@ public class Pegasos implements BinaryScoreClassifier, Parameterized
     /**
      * The default number of epochs is {@value #DEFAULT_EPOCHS}
      */
-    public static final int DEFAULT_EPOCHS = 1000;
+    public static final int DEFAULT_EPOCHS = 5;
     /**
      * The default regularization value is {@value #DEFAULT_REG}
      */
@@ -43,9 +45,6 @@ public class Pegasos implements BinaryScoreClassifier, Parameterized
      * The default batch size is {@value #DEFAULT_BATCH_SIZE}
      */
     public static final int DEFAULT_BATCH_SIZE = 1;
-    
-    private final List<Parameter> params = Collections.unmodifiableList(Parameter.getParamsFromMethods(this));
-    private final Map<String, Parameter> paramMap = Parameter.toParameterMap(params);
 
     /**
      * Creates a new Pegasos SVM classifier using default values. 
@@ -61,13 +60,28 @@ public class Pegasos implements BinaryScoreClassifier, Parameterized
      * @param reg the regularization term
      * @param batchSize the batch size 
      */
-    public Pegasos(double epochs, double reg, int batchSize)
+    public Pegasos(int epochs, double reg, int batchSize)
     {
         setEpochs(epochs);
         setRegularization(reg);
         setBatchSize(batchSize);
     }
 
+    /**
+     * Copy constructor
+     * @param toCopy the object to copy
+     */
+    public Pegasos(Pegasos toCopy)
+    {
+        this.epochs = toCopy.epochs;
+        this.reg = toCopy.reg;
+        this.batchSize = toCopy.batchSize;
+        if(toCopy.w != null)
+            this.w = toCopy.w.clone();
+        this.bias = toCopy.bias;
+        this.projectionStep = toCopy.projectionStep;
+    }
+    
     /**
      * Sets the batch size used during training. At each epoch, a batch of 
      * randomly selected data points will be used to update. 
@@ -91,10 +105,11 @@ public class Pegasos implements BinaryScoreClassifier, Parameterized
     }
 
     /**
-     * Sets the number of iterations of training that will be performed. 
+     * Sets the number of iterations through the training set that will be
+     * performed. 
      * @param epochs the number of iterations
      */
-    public void setEpochs(double epochs)
+    public void setEpochs(int epochs)
     {
         if(epochs < 1)
             throw new ArithmeticException("Must perform a positive number of epochs");
@@ -157,10 +172,7 @@ public class Pegasos implements BinaryScoreClassifier, Parameterized
     @Override
     public Pegasos clone()
     {
-        Pegasos clone = new Pegasos(epochs, reg, batchSize);
-        if(this.w != null)
-            clone.w = this.w.clone();
-        return clone;
+        return new Pegasos(this);
     }
 
     @Override
@@ -195,6 +207,7 @@ public class Pegasos implements BinaryScoreClassifier, Parameterized
             throw new FailedToFitException("SVM only supports binary classificaiton problems");
         final int m = dataSet.getSampleSize();
         w = new DenseVector(dataSet.getNumNumericalVars());
+        bias = 0;
         /**
          * Scale variable
          */
@@ -204,73 +217,79 @@ public class Pegasos implements BinaryScoreClassifier, Parameterized
          */
         double v = 0;
         
-        Random rand = new Random();
-        final Set<Integer> miniBatch = new HashSet<Integer>(batchSize*2);
+        IntList miniBatch = new IntList(batchSize);
+        IntList randOrder = new IntList(m);
+        ListUtils.addRange(randOrder, 0, m, 1);
         
-        for(int t = 1; t <= epochs; t++)//start at 1 for convinence
+        int t = 0;
+        for (int epoch = 0; epoch < epochs; epoch++)//start at 1 for convinence
         {
-            miniBatch.clear();
-            while(miniBatch.size() < batchSize)
-                miniBatch.add(rand.nextInt(m));
-            //Filter to only the points that have the correct label
-            Iterator<Integer> iter = miniBatch.iterator();
-            while(iter.hasNext())
+            Collections.shuffle(randOrder);
+
+            for (int indx = 0; indx < m; indx += batchSize)
             {
-                int i = iter.next();
-                if(getSign(dataSet, i)*scale*(w.dot(getX(dataSet, i))+bias) >= 1)
-                    iter.remove();
-            }
-                
-            
-            final double nt = 1.0/(reg*t);
-            
-            scale *= (1.0-nt*reg);
-            v *= Math.pow((1.0-nt*reg), 2);
-            if(scale == 0.0)
-            {
-                scale = 1.0;
-                v = 0.0;
-                w.zeroOut();
-                bias = 0;
-            }
-            
-            for(int i : miniBatch)
-            {
-                double sign = getSign(dataSet, i);
-                Vec x = getX(dataSet, i);
-                final double s = sign*nt/(batchSize*scale);
-                //TODO update the norm in a more clever manner
-                if(projectionStep)//update norm
-                    for(IndexValue iv : x)
-                        v -= Math.pow(scale*w.get(iv.getIndex()), 2);
-                w.mutableAdd( s, x);
-                bias += s;
-                if(projectionStep)
-                    for(IndexValue iv : x)
-                        v += Math.pow(scale*w.get(iv.getIndex()), 2);
-            }
-            
-            if(projectionStep)
-            {
-                double norm = Math.sqrt(v);
-                double mult = Math.min(1, 1.0/(Math.sqrt(reg)*norm));
-                if(mult != 1)
+                t++;
+                miniBatch.clear();
+                miniBatch.addAll(randOrder.subList(indx, Math.min(indx+batchSize, m)));
+                //Filter to only the points that have the correct label
+                Iterator<Integer> iter = miniBatch.iterator();
+                while (iter.hasNext())
                 {
-                    //w.mutableMultiply(mult);
-                    scale *= mult;
-                    v *= Math.pow(mult, 2);
-                    if(scale == 0.0)
+                    int i = iter.next();
+                    if (getSign(dataSet, i) * scale * (w.dot(getX(dataSet, i)) + bias) >= 1)
+                        iter.remove();
+                }
+
+                final double nt = 1.0 / (reg * t);
+
+                scale *= (1.0 - nt * reg);
+                v *= Math.pow((1.0 - nt * reg), 2);
+                if (scale == 0.0)
+                {
+                    scale = 1.0;
+                    v = 0.0;
+                    w.zeroOut();
+                    bias = 0;
+                }
+
+                for (int i : miniBatch)
+                {
+                    double sign = getSign(dataSet, i);
+                    Vec x = getX(dataSet, i);
+                    final double s = sign * nt / (batchSize * scale);
+                    //TODO update the norm in a more clever manner
+                    if (projectionStep)//update norm
+                        for (IndexValue iv : x)
+                            v -= Math.pow(scale * w.get(iv.getIndex()), 2);
+                    w.mutableAdd(s, x);
+                    bias += s;
+                    if (projectionStep)
+                        for (IndexValue iv : x)
+                            v += Math.pow(scale * w.get(iv.getIndex()), 2);
+                }
+
+                if (projectionStep)
+                {
+                    double norm = Math.sqrt(v);
+                    double mult = Math.min(1, 1.0 / (Math.sqrt(reg) * norm));
+                    if (mult != 1)
                     {
-                        scale = 1.0;
-                        v = 0.0;
-                        w.zeroOut();
-                        bias = 0;
+                        //w.mutableMultiply(mult);
+                        scale *= mult;
+                        v *= Math.pow(mult, 2);
+                        if (scale == 0.0)
+                        {
+                            scale = 1.0;
+                            v = 0.0;
+                            w.zeroOut();
+                            bias = 0;
+                        }
                     }
                 }
             }
+            w.mutableMultiply(scale);
+            bias *= scale;
         }
-        w.mutableMultiply(scale);
-        bias *= scale;
     }
 
     @Override
@@ -292,12 +311,12 @@ public class Pegasos implements BinaryScoreClassifier, Parameterized
     @Override
     public List<Parameter> getParameters()
     {
-        return params;
+        return Parameter.getParamsFromMethods(this);
     }
 
     @Override
     public Parameter getParameter(String paramName)
     {
-        return paramMap.get(paramName);
+        return Parameter.toParameterMap(getParameters()).get(paramName);
     }
 }
