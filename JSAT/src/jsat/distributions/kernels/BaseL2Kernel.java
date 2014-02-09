@@ -95,7 +95,12 @@ public abstract class BaseL2Kernel implements KernelTrick
     @Override
     public double evalSum(List<? extends Vec> finalSet, List<Double> cache, double[] alpha, Vec y, int start, int end)
     {
-        final List<Double> qi = getQueryInfo(y);
+        return evalSum(finalSet, cache, alpha, y, getQueryInfo(y), start, end);
+    }
+
+    @Override
+    public double evalSum(List<? extends Vec> finalSet, List<Double> cache, double[] alpha, Vec y, List<Double> qi, int start, int end)
+    {
         double sum = 0;
         
         for(int i = start; i < end; i++)

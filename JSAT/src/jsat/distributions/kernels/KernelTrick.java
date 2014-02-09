@@ -143,4 +143,21 @@ public interface KernelTrick extends Parameterized, Cloneable, Serializable
      * @return the sum of the multiplied kernel products
      */
     public double evalSum(List<? extends Vec> finalSet, List<Double> cache, double[] alpha, Vec y, int start, int end);
+    
+    /**
+     * Performs an efficient summation of kernel products of the form <br>
+     * <big>&#8721;</big> &alpha;<sub>i</sub> k(x<sub>i</sub>, y) <br>
+     * where <i>x</i> are the final set of vectors, and <i>&alpha;</i> the 
+     * associated scalar multipliers
+     * 
+     * @param finalSet the final set of vectors
+     * @param cache the cache associated with the final set of vectors
+     * @param alpha the coefficients associated with each vector
+     * @param y the vector to perform the summed kernel products against
+     * @param qi the query information about y
+     * @param start the starting index (inclusive) to sum from
+     * @param end the ending index (exclusive) to sum from
+     * @return the sum of the multiplied kernel products
+     */
+    public double evalSum(List<? extends Vec> finalSet, List<Double> cache, double[] alpha, Vec y, List<Double> qi, int start, int end);
 }
