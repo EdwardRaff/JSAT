@@ -78,9 +78,20 @@ public class LinearTransform implements DataTransform
         
         for(int i = 0; i < mins.length(); i++)
         {
-            mins.set(i, stats[i].getMin());
-            maxs.set(i, stats[i].getMax());
-            mutliplyConstants.set(i, A - B);
+            double min = stats[i].getMin();
+            double max = stats[i].getMax();
+            if (max - min < 1e-6)//No change
+            {
+                mins.set(i, 0);
+                maxs.set(i, 1);
+                mutliplyConstants.set(i, 1.0);
+            }
+            else
+            {
+                mins.set(i, min);
+                maxs.set(i, max);
+                mutliplyConstants.set(i, A - B);
+            }
         }
         
         /**
