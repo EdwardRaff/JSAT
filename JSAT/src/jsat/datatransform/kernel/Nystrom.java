@@ -9,6 +9,7 @@ import jsat.datatransform.*;
 import jsat.distributions.kernels.KernelTrick;
 import jsat.linear.*;
 import jsat.linear.distancemetrics.EuclideanDistance;
+import jsat.parameters.Parameter.ParameterHolder;
 import jsat.utils.DoubleList;
 import jsat.utils.random.XOR96;
 
@@ -89,7 +90,7 @@ public class Nystrom implements DataTransform
      */
     public Nystrom(KernelTrick k, DataSet dataset, int basisSize, SamplingMethod method)
     {
-        this(k, dataset, basisSize, method, false);
+        this(k, dataset, basisSize, method, 0.0, false);
     }
 
     /**
@@ -100,14 +101,18 @@ public class Nystrom implements DataTransform
      * dimension size.
      * @param method what sampling method should be used to select the basis 
      * vectors from the full data set. 
+     * @param ridge a non negative additive term to regularize the eigen values 
+     * of the decomposition. 
      * @param sampleWithReplacment {@code true} if the basis vectors should be 
      * sampled with replacement, {@code false} if they should not. 
      */
     @SuppressWarnings("fallthrough")
-    public Nystrom(KernelTrick k, DataSet dataset, int basisSize, SamplingMethod method, boolean sampleWithReplacment )
+    public Nystrom(KernelTrick k, DataSet dataset, int basisSize, SamplingMethod method, double ridge, boolean sampleWithReplacment )
     {
         Random rand = new XOR96();
 
+        if(ridge < 0)
+            throw new IllegalArgumentException("ridge must be positive, not " + ridge);
         final int N = dataset.getSampleSize();
         final int D = dataset.getNumNumericalVars();
         final List<Vec> X = dataset.getDataVectors();
@@ -115,15 +120,16 @@ public class Nystrom implements DataTransform
         //Create smaller gram matrix K and decompose is
         basisVecs = sampleBasisVectors(k, dataset, X, method, basisSize, sampleWithReplacment, rand);
 
-        setKernel(k);
+        this.k = k;
+        accelCache = k.getAccelerationCache(basisVecs);
 
         Matrix K = new DenseMatrix(basisSize, basisSize);
         for (int i = 0; i < basisSize; i++)
         {
-            K.set(i, i, kEval(i, i));
+            K.set(i, i, k.eval(i, i, basisVecs, accelCache));
             for (int j = i + 1; j < basisSize; j++)
             {
-                double val = kEval(i, j);
+                double val = k.eval(i, j, basisVecs, accelCache);
                 K.set(i, j, val);
                 K.set(j, i, val);
             }
@@ -135,7 +141,7 @@ public class Nystrom implements DataTransform
         double[] eigenVals = eig.getRealEigenvalues();
         DenseVector eigNorm = new DenseVector(eigenVals.length);
         for (int i = 0; i < eigenVals.length; i++)
-            eigNorm.set(i, 1.0 / Math.sqrt(eigenVals[i]));
+            eigNorm.set(i, 1.0 / Math.sqrt(Math.max(1e-7, eigenVals[i]+ridge)));
 
         //U * 1/sqrt(S)
         Matrix U = eig.getV();
@@ -151,7 +157,9 @@ public class Nystrom implements DataTransform
     protected Nystrom(Nystrom toCopy)
     {
         this.k = toCopy.k.clone();
-        this.basisVecs = new ArrayList<Vec>(toCopy.basisVecs);
+        this.basisVecs = new ArrayList<Vec>(toCopy.basisVecs.size());
+        for(Vec v : toCopy.basisVecs)
+            this.basisVecs.add(v.clone());
         if(toCopy.accelCache != null)
             this.accelCache = new DoubleList(toCopy.accelCache);
         this.transform = toCopy.transform.clone();
@@ -214,6 +222,7 @@ public class Nystrom implements DataTransform
                 kMeans.setStoreMeans(true);
                 kMeans.cluster(dataset, basisSize);
                 basisVecs.addAll(kMeans.getMeans());
+                break;
             case UNIFORM:
             default:
                 if (sampleWithReplacment)
@@ -267,18 +276,14 @@ public class Nystrom implements DataTransform
         }
     }
     
-    private double kEval(int i, int j)
-    {
-        return k.eval(i, j, basisVecs, accelCache);
-    }
-
     @Override
     public DataPoint transform(DataPoint dp)
     {
         Vec x = dp.getNumericalValues();
+        List<Double> qi = k.getQueryInfo(x);
         Vec kVec = new DenseVector(basisVecs.size());
         for(int i = 0; i < basisVecs.size(); i++)
-            kVec.set(i, k.eval(basisVecs.get(i), x));
+            kVec.set(i, k.eval(i, x, qi, basisVecs, accelCache));
         return new DataPoint(kVec.multiply(transform), dp.getCategoricalValues(), dp.getCategoricalData(), dp.getWeight());
     }
 
@@ -287,18 +292,14 @@ public class Nystrom implements DataTransform
     {
         return new Nystrom(this);
     }
-
-    private void setKernel(KernelTrick k)
-    {
-        this.k = k;
-        accelCache = k.getAccelerationCache(basisVecs);
-    }
     
     /**
      * Factory for producing new {@link Nystrom} transforms
      */
     static public class NystromTransformFactory extends DataTransformFactoryParm
     {
+        private double ridge;
+        @ParameterHolder
         private KernelTrick k;
         private int dimension;
         private SamplingMethod method;
@@ -314,11 +315,12 @@ public class Nystrom implements DataTransform
          * @param sampleWithReplacment {@code true} if the basis vectors should 
          * be sampled with replacement, {@code false} if they should not. 
          */
-        public NystromTransformFactory(KernelTrick k, int dimension, SamplingMethod method, boolean sampleWithReplacment)
+        public NystromTransformFactory(KernelTrick k, int dimension, SamplingMethod method, double ridge, boolean sampleWithReplacment)
         {
             this.k = k;
             setDimension(dimension);
             setBasisSamplingMethod(method);
+            setRidge(ridge);
             this.sampleWithReplacment = sampleWithReplacment;
         }
 
@@ -328,7 +330,30 @@ public class Nystrom implements DataTransform
          */
         public NystromTransformFactory(NystromTransformFactory toCopy)
         {
-            this(toCopy.k.clone(), toCopy.dimension, toCopy.method, toCopy.sampleWithReplacment);
+            this(toCopy.k.clone(), toCopy.dimension, toCopy.method, toCopy.ridge, toCopy.sampleWithReplacment);
+        }
+
+        /**
+         * Sets the regularization parameter to add to the eigen values of the 
+         * gram matrix. This can be particularly useful when using a large 
+         * (500+) number of components. 
+         * @param ridge the non-negative value in [0, &infin;) to add to each 
+         * eigen value
+         */
+        public void setRidge(double ridge)
+        {
+            if(ridge < 0 || Double.isNaN(ridge) || Double.isInfinite(ridge))
+                throw new IllegalArgumentException("Ridge must be non negative, not " + ridge);
+            this.ridge = ridge;
+        }
+
+        /**
+         * Returns the regularization value added to each eigen value
+         * @return the regularization value added to each eigen value
+         */
+        public double getRidge()
+        {
+            return ridge;
         }
         
         /**
@@ -374,13 +399,13 @@ public class Nystrom implements DataTransform
         @Override
         public DataTransform getTransform(DataSet dataset)
         {
-            return new Nystrom(k, dataset, dimension, method, sampleWithReplacment);
+            return new Nystrom(k, dataset, dimension, method, ridge, sampleWithReplacment);
         }
 
         @Override
-        public DataTransformFactory clone()
+        public NystromTransformFactory clone()
         {
-            throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+            return new NystromTransformFactory(k.clone(), dimension, method, ridge, sampleWithReplacment);
         }
         
     }
