@@ -49,4 +49,7 @@ public interface LossC extends LossFunc
      * this loss function. 
      */
     public CategoricalResults getClassification(double score);
+    
+    @Override
+    public LossC clone();
 }

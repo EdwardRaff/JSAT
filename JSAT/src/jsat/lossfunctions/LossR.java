@@ -46,4 +46,7 @@ public interface LossR extends LossFunc
      * @return the correct numeric regression value for this loss function
      */
     public double getRegression(double score);
+    
+    @Override
+    public LossR clone();
 }
