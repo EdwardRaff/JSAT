@@ -46,6 +46,19 @@ public class OSKL extends BaseUpdateableClassifier implements BinaryScoreClassif
     private double G;
     private double curSqrdNorm;
     private LossC lossC;
+    private boolean useAverageModel = true;
+    
+    //Data used for capturing the average
+    private int t;
+    /**
+     * Last time alphaAverage was updated
+     */
+    private int last_t;
+    private int burnIn;
+    /**
+     * Store the average of the weights over time
+     */
+    private DoubleList alphaAveraged;
     
     private List<Vec> vecs;
     private DoubleList alphas;
@@ -107,12 +120,17 @@ public class OSKL extends BaseUpdateableClassifier implements BinaryScoreClassif
         this.G = toCopy.G;
         this.curSqrdNorm = toCopy.curSqrdNorm;
         this.lossC = toCopy.lossC.clone();
+        this.t = toCopy.t;
+        this.last_t = toCopy.last_t;
+        this.useAverageModel = toCopy.useAverageModel;
+        this.burnIn = toCopy.burnIn;
         if(toCopy.vecs != null)
         {
             this.vecs = new ArrayList<Vec>();
             for(Vec v : toCopy.vecs)
                 this.vecs.add(v.clone());
             this.alphas = new DoubleList(toCopy.alphas);
+            this.alphaAveraged = new DoubleList(toCopy.alphaAveraged);
             this.inputKEvals = new DoubleList(toCopy.inputKEvals);
         }
         if(toCopy.accelCache != null)
@@ -205,12 +223,62 @@ public class OSKL extends BaseUpdateableClassifier implements BinaryScoreClassif
         return R;
     }
 
+    /**
+     * Sets whether or not the average of all intermediate models is used or if
+     * the most recent model is used when performing classification
+     * @param useAverageModel {@code true} to use the average model, 
+     * {@code false} to use the last model update
+     */
+    public void setUseAverageModel(boolean useAverageModel)
+    {
+        this.useAverageModel = useAverageModel;
+    }
+
+    /**
+     * Returns {@code true} if the average of all models is being used, or 
+     * {@code false} if the last model is used
+     * @return {@code true} if the average of all models is being used, or 
+     * {@code false} if the last model is used
+     */
+    public boolean isUseAverageModel()
+    {
+        return useAverageModel;
+    }
+
+    /**
+     * Sets the number of update calls to consider as part of the "burn in" 
+     * phase. The averaging of the model will not start until after the burn in 
+     * phase.  <br>
+     * If the classification or score is requested before the burn in phase is 
+     * completed, the latest model will be used as is. 
+     * @param burnIn the number of updates to ignore before averaging. Must be 
+     * non negative. 
+     */
+    public void setBurnIn(int burnIn)
+    {
+        if(burnIn < 0)
+            throw new IllegalArgumentException("Burn in must be non negative, not " + burnIn);
+        this.burnIn = burnIn;
+    }
+
+    /**
+     * Returns the number of burn in rounds
+     * @return the number of burn in rounds
+     */
+    public int getBurnIn()
+    {
+        return burnIn;
+    }
+    
     @Override
     public void setUp(CategoricalData[] categoricalAttributes, int numericAttributes, CategoricalData predicting)
     {
         rand = new XORWOW();
         vecs = new ArrayList<Vec>();
         alphas = new DoubleList();
+        alphaAveraged = new DoubleList();
+        t = 0;
+        last_t = 0;
         inputKEvals = new DoubleList();
         if(k.supportsAcceleration())
             accelCache = new DoubleList();
@@ -240,7 +308,7 @@ public class OSKL extends BaseUpdateableClassifier implements BinaryScoreClassif
         final double y_t = targetClass*2-1;
         //4: Compute the derivative ℓ′(yt, ft(xt))
         final double lossD = lossC.getDeriv(score, y_t);
-        
+        t++;
         // Step 5: Sample a binary random variable Zt with
         if(rand.nextDouble() > Math.abs(lossD)/G)
             return;//"failed", no update
@@ -254,7 +322,10 @@ public class OSKL extends BaseUpdateableClassifier implements BinaryScoreClassif
         vecs.add(x_t);
         if(accelCache != null)
             accelCache.addAll(qi);
-        //project if needed
+        //update online alpha averages for current & old SVs
+        alphaAveraged.add(0.0);//implicit zero for time we didn't have new SVs
+        updateAverage();
+        //project alphas to maintain norm if needed
         if(curSqrdNorm > R*R)
         {
             double coeff = R/Math.sqrt(curSqrdNorm);
@@ -265,7 +336,15 @@ public class OSKL extends BaseUpdateableClassifier implements BinaryScoreClassif
 
     private double score(Vec x, List<Double> qi)
     {
-        return k.evalSum(vecs, accelCache, alphas.getBackingArray(), x, qi, 0, alphas.size());
+        DoubleList alphToUse;
+        if(useAverageModel && t > burnIn)
+        {
+            updateAverage();
+            alphToUse = alphaAveraged;
+        }
+        else
+            alphToUse = alphas;
+        return k.evalSum(vecs, accelCache, alphToUse.getBackingArray(), x, qi, 0, alphToUse.size());
     }
     
     /**
@@ -326,5 +405,26 @@ public class OSKL extends BaseUpdateableClassifier implements BinaryScoreClassif
     public Parameter getParameter(String paramName)
     {
         return Parameter.toParameterMap(getParameters()).get(paramName);
+    }
+
+    /**
+     * Updates the average model to reflect the current time average 
+     */
+    private void updateAverage()
+    {
+        if(t == last_t || t < burnIn)
+            return;
+        else if(last_t < burnIn)//first update since done burning 
+        {
+            for(int i = 0; i < alphaAveraged.size(); i++)
+                alphaAveraged.set(i, alphas.get(i));
+        }
+        double w = t-last_t;//time elapsed
+        for(int i = 0; i < alphaAveraged.size(); i++)
+        {
+            double delta = alphas.getD(i) - alphaAveraged.getD(i);
+            alphaAveraged.set(i, alphaAveraged.getD(i)+delta*w/t);
+        }
+        last_t = t;//average done
     }
 }

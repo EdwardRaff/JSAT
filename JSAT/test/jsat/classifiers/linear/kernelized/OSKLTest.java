@@ -49,11 +49,16 @@ public class OSKLTest
         ClassificationDataSet trainSet = FixedProblems.getInnerOuterCircle(150, new Random(2));
         ClassificationDataSet testSet = FixedProblems.getInnerOuterCircle(50, new Random(3));
 
-        OSKL oskl = new OSKL(new RBFKernel(0.5), 10);
-        oskl.trainC(trainSet);
+        for(int burnin : new int[]{0, 50, 100, 200})
+        {
         
-        assertFalse(oskl.getSupportVectorCount() == trainSet.getSampleSize());
-        for (int i = 0; i < testSet.getSampleSize(); i++)
-            assertEquals(testSet.getDataPointCategory(i), oskl.classify(testSet.getDataPoint(i)).mostLikely());
+            OSKL oskl = new OSKL(new RBFKernel(0.5), 10);
+            oskl.trainC(trainSet);
+            oskl.setBurnIn(burnin);
+
+            assertFalse(oskl.getSupportVectorCount() == trainSet.getSampleSize());
+            for (int i = 0; i < testSet.getSampleSize(); i++)
+                assertEquals(testSet.getDataPointCategory(i), oskl.classify(testSet.getDataPoint(i)).mostLikely());
+        }
     }
 }
