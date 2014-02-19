@@ -1,7 +1,6 @@
 package jsat.classifiers.svm.extended;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 import jsat.classifiers.BaseUpdateableClassifier;
 import jsat.classifiers.CategoricalData;
 import jsat.classifiers.CategoricalResults;
@@ -48,7 +47,15 @@ import jsat.utils.IntList;
  */
 public class OnlineAMM extends BaseUpdateableClassifier implements Parameterized
 {
-    protected List<List<Vec>> weightMatrix;
+    /*
+     * b/c of the batch learner we use a map, so that we dont have to think 
+     * about how to handle re-assignment of data points to weight vectors. 
+     * Also allows us to handle removed cases by checking if our owner is in the
+     * map. Use nextID to make sure we give every new vec a unique ID with 
+     * respect to the class label
+     */
+    protected List<Map<Integer, Vec>> weightMatrix;
+    protected int[] nextID;
     protected double lambda;
     protected int k;
     protected double c;
@@ -114,14 +121,15 @@ public class OnlineAMM extends BaseUpdateableClassifier implements Parameterized
     {
         if(toCopy.weightMatrix != null)
         {
-            this.weightMatrix = new ArrayList<List<Vec>>(toCopy.weightMatrix.size());
-            for(List<Vec> oldW : toCopy.weightMatrix)
+            this.weightMatrix = new ArrayList<Map<Integer, Vec>>(toCopy.weightMatrix.size());
+            for(Map<Integer, Vec> oldW : toCopy.weightMatrix)
             {
-                List<Vec> newW = new ArrayList<Vec>(oldW.size());
-                for(Vec v : oldW)
-                    newW.add(v.clone());
+                Map<Integer, Vec> newW = new LinkedHashMap<Integer, Vec>(oldW.size());
+                for(Map.Entry<Integer, Vec> entry : oldW.entrySet())
+                    newW.put(entry.getKey(), entry.getValue().clone());
                 this.weightMatrix.add(newW);
             }
+            this.nextID = Arrays.copyOf(toCopy.nextID, toCopy.nextID.length);
         }
         this.time = toCopy.time;
         this.lambda = toCopy.lambda;
@@ -236,9 +244,10 @@ public class OnlineAMM extends BaseUpdateableClassifier implements Parameterized
     {
         if(numericAttributes < 1)
             throw new FailedToFitException("OnlineAMM requires numeric features to perform classification");
-        weightMatrix = new ArrayList<List<Vec>>(predicting.getNumOfCategories());
+        weightMatrix = new ArrayList<Map<Integer, Vec>>(predicting.getNumOfCategories());
         for(int i = 0; i < predicting.getNumOfCategories(); i++)
-            weightMatrix.add(new ArrayList<Vec>());
+            weightMatrix.add(new LinkedHashMap<Integer, Vec>());
+        nextID = new int[weightMatrix.size()];
         time = 1;
     }
 
@@ -279,24 +288,26 @@ public class OnlineAMM extends BaseUpdateableClassifier implements Parameterized
          * survided longer than those formerly infront of them after all). 
          */
         double z_t_val;
-        if(z_t == Integer.MIN_VALUE || z_t >= weightMatrix.get(y_t).size())//z_t is not known, so we will "update" it ourselves
+        if(z_t == Integer.MIN_VALUE || z_t > nextID[y_t])//z_t is not known, so we will "update" it ourselves
         {
             z_t_val = 0.0;//infinte implicit zero weight vectors, so max is always at least 0
             z_t = -1;//negative value used to indicate the implicit was largest
-            List<Vec> w_yt = weightMatrix.get(y_t);
-            for(int i = 0; i < w_yt.size(); i++)
+            Map<Integer, Vec> w_yt = weightMatrix.get(y_t);
+            for(Map.Entry<Integer, Vec> entry_yt : w_yt.entrySet())
             {
-                Vec v = w_yt.get(i);
+                Vec v = entry_yt.getValue();
                 double tmp = x_t.dot(v);
                 if(tmp >= z_t_val)
                 {
-                    z_t = i;
+                    z_t = entry_yt.getKey();
                     z_t_val = tmp;
                 }
             }
         }
         else//z_t is given, we just need z_t_val
         {
+            if(!weightMatrix.get(y_t).containsKey(z_t))
+                z_t = -1;//happens if we were owned by a vec that has been removed
             if(z_t == -1)
                 z_t_val = 0.0;//again, implicit
             else
@@ -316,15 +327,15 @@ public class OnlineAMM extends BaseUpdateableClassifier implements Parameterized
         {
             if(k == y_t)
                 continue;
-            List<Vec> w_k = weightMatrix.get(k);
-            for(int j = 0; j < w_k.size(); j++)
+            Map<Integer, Vec> w_k = weightMatrix.get(k);
+            for(Map.Entry<Integer, Vec> entry_kj : w_k.entrySet())
             {
-                Vec w_kj = w_k.get(j);
+                Vec w_kj = entry_kj.getValue();
                 double tmp = x_t.dot(w_kj);
                 if(tmp > i_t_val)
                 {
                     i_t = k;
-                    j_t = j;
+                    j_t = entry_kj.getKey();
                     i_t_val = tmp;
                 }
             }
@@ -335,10 +346,11 @@ public class OnlineAMM extends BaseUpdateableClassifier implements Parameterized
         //Now shrink all weights
         for(int i = 0; i < weightMatrix.size(); i++)
         {
-            List<Vec> w_i = weightMatrix.get(i);
-            for(int j = 0; j < w_i.size(); j++)
+            Map<Integer, Vec> w_i = weightMatrix.get(i);
+            for(Map.Entry<Integer, Vec> w_entry_ij : w_i.entrySet())
             {
-                Vec w_ij = w_i.get(j);
+                int j = w_entry_ij.getKey();
+                Vec w_ij = w_entry_ij.getValue();
                 w_ij.mutableMultiply(-(eta*lambda-1));
                 if(i == i_t && j == j_t && nonZeroLoss)
                     w_ij.mutableSubtract(eta, x_t);
@@ -353,7 +365,7 @@ public class OnlineAMM extends BaseUpdateableClassifier implements Parameterized
                 v = new VecWithNorm(v, norm);
                 v = new ScaledVector(v);
                 v.mutableMultiply(-eta);
-                w_i.add(v);
+                w_i.put(nextID[i]++, v);
             }
             else if (i == y_t && z_t == -1 && nonZeroLoss && w_i.size() < classBudget)
             {
@@ -362,7 +374,7 @@ public class OnlineAMM extends BaseUpdateableClassifier implements Parameterized
                 v = new VecWithNorm(v, norm);
                 v = new ScaledVector(v);
                 v.mutableMultiply(eta);
-                w_i.add(v);
+                w_i.put(nextID[i]++, v);
                 //update z_t to point to the added value so we can return it correctly
                 z_t = w_i.size()-1;
             }
@@ -371,22 +383,17 @@ public class OnlineAMM extends BaseUpdateableClassifier implements Parameterized
         if(time % k == 0)//Pruning time!
         {
             double threshold = c/((time-1)*lambda);
-            /*
-             * I'm going to do this in a lazy way, since we only prune on large 
-             * intervals (orig paper suggests 10k updates). Sort them by norm, 
-             * put the ones to remove in a list, and then use object comparisons
-             * to iterate over the ones I am removing. 
-             */
             
             IntList classOwner = new IntList(weightMatrix.size());
-            List<Vec> vecList = new ArrayList<Vec>(weightMatrix.size());
+            IntList vecID = new IntList(weightMatrix.size());
             DoubleList normVal = new DoubleList(weightMatrix.size());
             for(int i = 0; i < weightMatrix.size(); i++)
             {
-                for(Vec v : weightMatrix.get(i))
+                for(Map.Entry<Integer, Vec> entry : weightMatrix.get(i).entrySet())
                 {
+                    Vec v = entry.getValue();
                     classOwner.add(i);
-                    vecList.add(v);
+                    vecID.add(entry.getKey());
                     normVal.add(v.dot(v));
                 }
             }
@@ -401,15 +408,7 @@ public class OnlineAMM extends BaseUpdateableClassifier implements Parameterized
                     break;
                 threshold -= norm;
                 int classOf = classOwner.getI(i);
-                Vec v = vecList.get(i);
-                //not valling remove becasue an == reference check will be faster than a .equals call
-                List<Vec> w_c = weightMatrix.get(classOf);
-                for(int j = 0; j < w_c.size(); j++)
-                    if(w_c.get(j) == v)
-                    {
-                        w_c.remove(j);
-                        break;
-                    }
+                weightMatrix.get(classOf).remove(vecID.getI(i));
             }
         }
         
@@ -424,10 +423,8 @@ public class OnlineAMM extends BaseUpdateableClassifier implements Parameterized
         double maxVal = Double.NEGATIVE_INFINITY;
         for(int k = 0; k < weightMatrix.size(); k++)
         {
-            List<Vec> w_k = weightMatrix.get(k);
-            for(int j = 0; j < w_k.size(); j++)
+            for(Vec w_kj : weightMatrix.get(k).values())
             {
-                Vec w_kj = w_k.get(j);
                 double tmp = x.dot(w_kj);
                 if(tmp > maxVal)
                 {

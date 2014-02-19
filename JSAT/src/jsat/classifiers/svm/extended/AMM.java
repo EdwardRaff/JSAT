@@ -1,8 +1,6 @@
 package jsat.classifiers.svm.extended;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.Random;
+import java.util.*;
 import java.util.concurrent.ExecutorService;
 import jsat.classifiers.ClassificationDataSet;
 import jsat.linear.Vec;
@@ -152,14 +150,14 @@ public class AMM extends OnlineAMM
                 Vec x_t = dataSet.getDataPoint(i).getNumericalValues();
                 double z_t_val = 0.0;//infinte implicit zero weight vectors, so max is always at least 0
                 int z_t = -1;//negative value used to indicate the implicit was largest
-                List<Vec> w_yt = weightMatrix.get(dataSet.getDataPointCategory(i));
-                for(int j = 0; j < w_yt.size(); j++)
+                Map<Integer, Vec> w_yt = weightMatrix.get(dataSet.getDataPointCategory(i));
+                for(Map.Entry<Integer, Vec> w_yt_entry : w_yt.entrySet())
                 {
-                    Vec v = w_yt.get(j);
+                    Vec v = w_yt_entry.getValue();
                     double tmp = x_t.dot(v);
                     if(tmp >= z_t_val)
                     {
-                        z_t = j;
+                        z_t = w_yt_entry.getKey();
                         z_t_val = tmp;
                     }
                 }
