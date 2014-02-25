@@ -166,6 +166,75 @@ public class OnLineStatistics implements Serializable, Cloneable
    }
    
    /**
+    * Computes a new set of statistics that is the equivalent of having removed 
+    * all observations in {@code B} from {@code A}. <br>
+    * NOTE: removing statistics is not as numerically stable. The values of the 
+    * 3rd and 4th moments {@link #getSkewness() } and {@link #getKurtosis() }
+    * will be inaccurate for many inputs. The {@link #getMin( min} and 
+    * {@link #getMax() max}  can not be determined in this setting, and will not
+    * be altered. 
+    * @param A the first set of statistics, which must have a larger value for 
+    * {@link #getSumOfWeights() } than {@code B}
+    * @param B the set of statistics to remove from {@code A}. 
+    * @return a new set of statistics that is the removal of {@code B} from 
+    * {@code A}
+    */
+   public static OnLineStatistics remove(OnLineStatistics A, OnLineStatistics B)
+   {
+       OnLineStatistics toRet = A.clone();
+       toRet.remove(B);
+       return toRet;
+   }
+   
+   /**
+    * Removes from this set of statistics the observations that where collected 
+    * in {@code B}.<br>
+    * NOTE: removing statistics is not as numerically stable. The values of the 
+    * 3rd and 4th moments {@link #getSkewness() } and {@link #getKurtosis() }
+    * will be inaccurate for many inputs. The {@link #getMin( min} and 
+    * {@link #getMax() max}  can not be determined in this setting, and will not
+    * be altered. 
+    * @param B the set of statistics to remove
+    */
+   public void remove(OnLineStatistics B)
+   {
+       final OnLineStatistics A = this;
+       if(A.n == B.n && B.n == 0)
+       {
+           n = mean = n = m2 = m3 = m4 = 0;
+           min = max  = null;
+       }
+       else if(B.n == 0)
+           return;//removed nothing!
+       else if(A.n < B.n)
+           throw new ArithmeticException("Can not have negative samples");
+       
+       double nX = A.n-B.n;
+       double nXsqrd = nX*nX;
+       double nAnB = B.n*A.n;
+       double AnSqrd = A.n*A.n;
+       double BnSqrd = B.n*B.n;
+       
+       double delta = B.mean - A.mean;
+       double deltaSqrd = delta*delta;
+       double deltaCbd = deltaSqrd*delta;
+       double deltaQad = deltaSqrd*deltaSqrd;
+       double newMean = (A.n* A.mean - B.n * B.mean)/(A.n - B.n);
+       double newM2 = A.m2 - B.m2 - deltaSqrd / nX *nAnB;
+       double newM3 = A.m3 - B.m3 - deltaCbd* nAnB*(A.n - B.n) / nXsqrd - 3 * delta * (A.n * B.m2 - B.n * A.m2)/nX;
+       double newM4 = A.m4 - B.m4 
+               - deltaQad * (nAnB*(AnSqrd - nAnB + BnSqrd)/(nXsqrd*nX)) 
+               - 6 * deltaSqrd*(AnSqrd*B.m2 - BnSqrd*A.m2)/nXsqrd
+               - 4 * delta *(A.n*B.m3 - B.n*A.m3)/nX;
+       
+       this.n = nX;
+       this.mean = newMean;
+       this.m2 = newM2;
+       this.m3 = newM3;
+       this.m4 = newM4;
+   }
+   
+   /**
     * Computes a new set of counts that is the sum of the counts from the given distributions. 
     * <br><br>
     * NOTE: Adding two statistics is not as numerically stable. If A and B have values of similar
@@ -178,12 +247,37 @@ public class OnLineStatistics implements Serializable, Cloneable
     */
    public static OnLineStatistics add(OnLineStatistics A, OnLineStatistics B)
    {
+       OnLineStatistics toRet = A.clone();
+       toRet.add(B);
+       return toRet;
+   }
+   
+   /**
+    * Adds to the current statistics all the samples that were collected in 
+    * {@code B}. <br>
+    * NOTE: Adding two statistics is not as numerically stable. If A and B have values of similar
+    * size and scale, the values of the 3rd and 4th moments {@link #getSkewness() } and 
+    * {@link #getKurtosis() } will suffer from catastrophic cancellations, and may not 
+    * be as accurate. 
+    * @param B the set of statistics to add to this set
+    */
+   public void add(OnLineStatistics B)
+   {
+       final OnLineStatistics A = this;
        if(A.n == B.n && B.n == 0)
-           return new OnLineStatistics();
+           return;//nothing to do!
        else if(B.n == 0)
-           return new OnLineStatistics(A.n, A.mean, A.m2, A.m3, A.m4, A.min, A.max);
-       else if(A.n == 0)
-           return new OnLineStatistics(B.n, B.mean, B.m2, B.m3, B.m4, B.min, B.max);
+           return;//still nothing!
+       else if (A.n == 0)
+       {
+           this.n = B.n;
+           this.mean = B.mean;
+           this.m2 = B.m2;
+           this.m3 = B.m3;
+           this.m4 = B.m4;
+           this.min = B.min;
+           this.max = B.max;
+       }
        
        double nX = B.n + A.n;
        double nXsqrd = nX*nX;
@@ -203,7 +297,13 @@ public class OnLineStatistics implements Serializable, Cloneable
                + 6 * deltaSqrd*(AnSqrd*B.m2 + BnSqrd*A.m2)/nXsqrd
                + 4 * delta *(A.n*B.m3 - B.n*A.m3)/nX;
        
-        return new OnLineStatistics(nX, newMean, newM2, newM3, newM4, Math.min(A.min, B.min), Math.max(A.max, B.max));   
+       this.n = nX;
+       this.mean = newMean;
+       this.m2 = newM2;
+       this.m3 = newM3;
+       this.m4 = newM4;
+       this.min = Math.min(A.min, B.min);
+       this.max = Math.max(A.max, B.max);
    }
 
     @Override

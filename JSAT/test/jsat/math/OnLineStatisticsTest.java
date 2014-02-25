@@ -86,6 +86,42 @@ public class OnLineStatisticsTest
      * Test of add method, of class OnLineStatistics.
      */
     @Test
+    public void testRemove_OnLineStatistics_OnLineStatistics()
+    {
+        System.out.println("remove");
+        
+        for(int j = 1; j < data.length-1; j++)
+        {
+            OnLineStatistics total = new OnLineStatistics();
+            OnLineStatistics A = new OnLineStatistics();
+            OnLineStatistics B = new OnLineStatistics();
+        
+            for(int i = 0; i < data.length; i++)
+            {
+                total.add(data[i]);
+                if( i < j)
+                    A.add(data[i]);
+                else
+                    B.add(data[i]);
+            }
+            OnLineStatistics stats = OnLineStatistics.remove(total, B);
+            assertEquals(A.getSumOfWeights(), stats.getSumOfWeights(), 1e-8);
+            assertEquals(A.getMean(), stats.getMean(), 1e-8);
+            if(!Double.isNaN(A.getVarance()))
+                assertEquals(A.getVarance(), stats.getVarance(), 1e-8);
+            //skewness and kurtosis aren't stable any more
+            //min & max are not possible
+            
+            
+            stats = OnLineStatistics.remove(total, A);
+            assertEquals(B.getSumOfWeights(), stats.getSumOfWeights(), 1e-8);
+            assertEquals(B.getMean(), stats.getMean(), 1e-8);
+            if(!Double.isNaN(B.getVarance()))
+                assertEquals(B.getVarance(), stats.getVarance(), 1e-8);
+        }
+    }
+    
+    @Test
     public void testAdd_OnLineStatistics_OnLineStatistics()
     {
         System.out.println("add");
