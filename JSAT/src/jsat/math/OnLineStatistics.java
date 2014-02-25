@@ -15,7 +15,7 @@ import java.io.Serializable;
  * 
  * @author Edward Raff
  */
-public class OnLineStatistics implements Serializable
+public class OnLineStatistics implements Serializable, Cloneable
 {
    /**
      * The current mean
@@ -38,7 +38,7 @@ public class OnLineStatistics implements Serializable
     {
         this(0, 0, 0, 0, 0);
     }
-
+    
     /**
      * Creates a new set of statistical counts with these initial values, and can then be updated in an online fashion 
      * @param n the total weight of all data points added. This value must be non negative
@@ -205,6 +205,12 @@ public class OnLineStatistics implements Serializable
        
         return new OnLineStatistics(nX, newMean, newM2, newM3, newM4, Math.min(A.min, B.min), Math.max(A.max, B.max));   
    }
+
+    @Override
+    public OnLineStatistics clone() 
+    {
+        return new OnLineStatistics(n, mean, m2, m3, m4, min, max);
+    }
    
    /**
     * Returns the sum of the weights for all data points added to the statistics. 
