@@ -2,6 +2,7 @@
 package jsat.math;
 
 import java.io.Serializable;
+import java.text.DecimalFormat;
 
 /**
  *
@@ -199,10 +200,11 @@ public class OnLineStatistics implements Serializable, Cloneable
    public void remove(OnLineStatistics B)
    {
        final OnLineStatistics A = this;
-       if(A.n == B.n && B.n == 0)
+       if(A.n == B.n)
        {
-           n = mean = n = m2 = m3 = m4 = 0;
+           n = mean = m2 = m3 = m4 = 0;
            min = max  = null;
+           return;
        }
        else if(B.n == 0)
            return;//removed nothing!
@@ -277,6 +279,7 @@ public class OnLineStatistics implements Serializable, Cloneable
            this.m4 = B.m4;
            this.min = B.min;
            this.max = B.max;
+           return;
        }
        
        double nX = B.n + A.n;
