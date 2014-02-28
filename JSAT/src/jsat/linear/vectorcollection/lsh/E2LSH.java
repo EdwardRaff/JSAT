@@ -196,7 +196,7 @@ public class E2LSH<V extends Vec>
         {
             double trueDist = dm.dist(id, q, q_qi, vecs, distCache);
             if(trueDist <= R)
-                toRet.add(new VecPairedComparable<Vec, Double>(q, trueDist));
+                toRet.add(new VecPairedComparable<Vec, Double>(vecs.get(id), trueDist));
         }
         Collections.sort(toRet);
         return toRet;
