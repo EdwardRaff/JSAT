@@ -66,7 +66,7 @@ public class OnLineStatistics implements Serializable, Cloneable
         min = max  = null;
     }
    
-    private OnLineStatistics(double n, double mean, double m2, double m3, double m4, double min, double max)
+    private OnLineStatistics(double n, double mean, double m2, double m3, double m4, Double min, Double max)
     {
         this.n = n;
         this.mean = mean;
