@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 import java.util.concurrent.ExecutorService;
+import jsat.SingleWeightVectorModel;
 import jsat.classifiers.CategoricalResults;
 import jsat.classifiers.ClassificationDataSet;
 import jsat.classifiers.Classifier;
@@ -13,6 +14,7 @@ import jsat.classifiers.bayesian.NaiveBayes;
 import jsat.exceptions.FailedToFitException;
 import jsat.exceptions.UntrainedModelException;
 import jsat.linear.DenseVector;
+import jsat.linear.SubVector;
 import jsat.linear.Vec;
 import jsat.math.Function;
 import jsat.math.optimization.IterativelyReweightedLeastSquares;
@@ -28,7 +30,7 @@ import jsat.utils.FakeExecutor;
  * 
  * @author Edward Raff
  */
-public class LogisticRegression implements Classifier, Regressor
+public class LogisticRegression implements Classifier, Regressor, SingleWeightVectorModel
 {
     private Vec coefficents;
     /**
@@ -126,6 +128,42 @@ public class LogisticRegression implements Classifier, Regressor
     public boolean supportsWeightedData()
     {
         return false;
+    }
+
+    @Override
+    public Vec getRawWeight()
+    {
+        return new SubVector(1, coefficents.length()-1, coefficents);
+    }
+
+    @Override
+    public double getBias()
+    {
+        return coefficents.get(0);
+    }
+    
+    @Override
+    public Vec getRawWeight(int index)
+    {
+        if(index < 1)
+            return getRawWeight();
+        else
+            throw new IndexOutOfBoundsException("Model has only 1 weight vector");
+    }
+
+    @Override
+    public double getBias(int index)
+    {
+        if (index < 1)
+            return getBias();
+        else
+            throw new IndexOutOfBoundsException("Model has only 1 weight vector");
+    }
+    
+    @Override
+    public int numWeightsVecs()
+    {
+        return 1;
     }
 
     @Override

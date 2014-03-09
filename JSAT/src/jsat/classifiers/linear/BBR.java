@@ -11,6 +11,7 @@ import jsat.linear.Vec;
 import static java.lang.Math.*;
 import java.util.List;
 import java.util.Map;
+import jsat.SingleWeightVectorModel;
 import jsat.linear.DenseVector;
 import jsat.linear.IndexValue;
 import jsat.lossfunctions.LogisticLoss;
@@ -31,7 +32,7 @@ import jsat.parameters.Parameterized;
  *
  * @author Edward Raff
  */
-public class BBR implements Classifier, Parameterized
+public class BBR implements Classifier, Parameterized, SingleWeightVectorModel
 {
     //weight vector w is refferd to as beta in the original paper, just replace beta with w
     private Vec w;
@@ -278,7 +279,43 @@ public class BBR implements Classifier, Parameterized
     {
         return w;
     }
+    
+    @Override
+    public Vec getRawWeight()
+    {
+        return w;
+    }
 
+    @Override
+    public double getBias()
+    {
+        return bias;
+    }
+
+    @Override
+    public Vec getRawWeight(int index)
+    {
+        if(index < 1)
+            return getRawWeight();
+        else
+            throw new IndexOutOfBoundsException("Model has only 1 weight vector");
+    }
+
+    @Override
+    public double getBias(int index)
+    {
+        if (index < 1)
+            return getBias();
+        else
+            throw new IndexOutOfBoundsException("Model has only 1 weight vector");
+    }
+
+    @Override
+    public int numWeightsVecs()
+    {
+        return 1;
+    }
+    
     @Override
     public CategoricalResults classify(DataPoint data)
     {

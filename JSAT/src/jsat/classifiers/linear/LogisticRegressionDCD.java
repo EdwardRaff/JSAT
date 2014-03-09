@@ -5,6 +5,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
+import jsat.SingleWeightVectorModel;
 import jsat.classifiers.*;
 import jsat.exceptions.FailedToFitException;
 import jsat.linear.DenseVector;
@@ -30,7 +31,7 @@ import jsat.utils.ListUtils;
  * 
  * @author Edward Raff
  */
-public class LogisticRegressionDCD implements Classifier, Parameterized
+public class LogisticRegressionDCD implements Classifier, Parameterized, SingleWeightVectorModel
 {
     private static final double eps_1 = 1e-3;
     private static final double eps_2 = 1e-8;
@@ -145,6 +146,42 @@ public class LogisticRegressionDCD implements Classifier, Parameterized
     public boolean isUseBias()
     {
         return useBias;
+    }
+
+    @Override
+    public Vec getRawWeight()
+    {
+        return w;
+    }
+
+    @Override
+    public double getBias()
+    {
+        return bias;
+    }
+    
+    @Override
+    public Vec getRawWeight(int index)
+    {
+        if(index < 1)
+            return getRawWeight();
+        else
+            throw new IndexOutOfBoundsException("Model has only 1 weight vector");
+    }
+
+    @Override
+    public double getBias(int index)
+    {
+        if (index < 1)
+            return getBias();
+        else
+            throw new IndexOutOfBoundsException("Model has only 1 weight vector");
+    }
+    
+    @Override
+    public int numWeightsVecs()
+    {
+        return 1;
     }
     
     @Override

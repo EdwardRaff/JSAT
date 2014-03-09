@@ -4,6 +4,7 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import jsat.SingleWeightVectorModel;
 import jsat.classifiers.CategoricalResults;
 import jsat.classifiers.Classifier;
 import jsat.exceptions.FailedToFitException;
@@ -33,7 +34,7 @@ import jsat.regression.Regressor;
  * 
  * @author Edward Raff
  */
-public abstract class StochasticSTLinearL1 implements Classifier, Regressor, Parameterized
+public abstract class StochasticSTLinearL1 implements Classifier, Regressor, Parameterized, SingleWeightVectorModel
 {
     /**
      * The number of training iterations
@@ -433,6 +434,42 @@ public abstract class StochasticSTLinearL1 implements Classifier, Regressor, Par
             return w.clone();
     }
 
+    @Override
+    public Vec getRawWeight()
+    {
+        return w;
+    }
+
+    @Override
+    public double getBias()
+    {
+        return bias;
+    }
+    
+    @Override
+    public Vec getRawWeight(int index)
+    {
+        if(index < 1)
+            return getRawWeight();
+        else
+            throw new IndexOutOfBoundsException("Model has only 1 weight vector");
+    }
+
+    @Override
+    public double getBias(int index)
+    {
+        if (index < 1)
+            return getBias();
+        else
+            throw new IndexOutOfBoundsException("Model has only 1 weight vector");
+    }
+
+    @Override
+    public int numWeightsVecs()
+    {
+        return 1;
+    }
+    
     @Override
     public List<Parameter> getParameters()
     {

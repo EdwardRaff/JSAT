@@ -1,6 +1,7 @@
 package jsat.classifiers.linear;
 
 import java.util.List;
+import jsat.SingleWeightVectorModel;
 import jsat.classifiers.BaseUpdateableClassifier;
 import jsat.classifiers.CategoricalData;
 import jsat.classifiers.CategoricalResults;
@@ -30,7 +31,7 @@ import jsat.parameters.Parameterized;
  * 
  * @author Edward Raff
  */
-public class AROW extends BaseUpdateableClassifier implements BinaryScoreClassifier, Parameterized
+public class AROW extends BaseUpdateableClassifier implements BinaryScoreClassifier, Parameterized, SingleWeightVectorModel
 {
     private Vec w;
     /**
@@ -258,4 +259,41 @@ public class AROW extends BaseUpdateableClassifier implements BinaryScoreClassif
     {
         return Parameter.toParameterMap(getParameters()).get(paramName);
     }
+
+    @Override
+    public Vec getRawWeight()
+    {
+        return w;
+    }
+
+    @Override
+    public double getBias()
+    {
+        return 0;
+    }
+
+    @Override
+    public Vec getRawWeight(int index)
+    {
+        if(index < 1)
+            return getRawWeight();
+        else
+            throw new IndexOutOfBoundsException("Model has only 1 weight vector");
+    }
+
+    @Override
+    public double getBias(int index)
+    {
+        if (index < 1)
+            return getBias();
+        else
+            throw new IndexOutOfBoundsException("Model has only 1 weight vector");
+    }
+    
+    @Override
+    public int numWeightsVecs()
+    {
+        return 1;
+    }
+    
 }

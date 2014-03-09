@@ -3,6 +3,7 @@ package jsat.classifiers.svm;
 
 import java.util.*;
 import java.util.concurrent.ExecutorService;
+import jsat.SingleWeightVectorModel;
 import jsat.classifiers.CategoricalResults;
 import jsat.classifiers.ClassificationDataSet;
 import jsat.classifiers.Classifier;
@@ -48,7 +49,7 @@ import jsat.utils.ListUtils;
  * @author Edward Raff
  * @see DCDs
  */
-public class DCD implements BinaryScoreClassifier, Regressor, Parameterized
+public class DCD implements BinaryScoreClassifier, Regressor, Parameterized, SingleWeightVectorModel
 {
     private int maxIterations;
     private Vec[] vecs;
@@ -226,6 +227,42 @@ public class DCD implements BinaryScoreClassifier, Regressor, Parameterized
     public boolean isUseBias()
     {
         return useBias;
+    }
+
+    @Override
+    public Vec getRawWeight()
+    {
+        return w;
+    }
+
+    @Override
+    public double getBias()
+    {
+        return bias;
+    }
+    
+    @Override
+    public Vec getRawWeight(int index)
+    {
+        if(index < 1)
+            return getRawWeight();
+        else
+            throw new IndexOutOfBoundsException("Model has only 1 weight vector");
+    }
+
+    @Override
+    public double getBias(int index)
+    {
+        if (index < 1)
+            return getBias();
+        else
+            throw new IndexOutOfBoundsException("Model has only 1 weight vector");
+    }
+    
+    @Override
+    public int numWeightsVecs()
+    {
+        return 1;
     }
     
     @Override

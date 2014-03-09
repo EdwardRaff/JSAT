@@ -9,6 +9,7 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
+import jsat.SingleWeightVectorModel;
 import jsat.classifiers.CategoricalResults;
 import jsat.classifiers.ClassificationDataSet;
 import jsat.classifiers.Classifier;
@@ -30,7 +31,7 @@ import jsat.utils.PairedReturn;
  * 
  * @author Edward Raff
  */
-public class Perceptron implements BinaryScoreClassifier
+public class Perceptron implements BinaryScoreClassifier, SingleWeightVectorModel
 {
 
     private double learningRate;
@@ -287,6 +288,42 @@ public class Perceptron implements BinaryScoreClassifier
         return true;
     }
 
+    @Override
+    public Vec getRawWeight()
+    {
+        return weights;
+    }
+
+    @Override
+    public double getBias()
+    {
+        return bias;
+    }
+    
+    @Override
+    public Vec getRawWeight(int index)
+    {
+        if(index < 1)
+            return getRawWeight();
+        else
+            throw new IndexOutOfBoundsException("Model has only 1 weight vector");
+    }
+
+    @Override
+    public double getBias(int index)
+    {
+        if (index < 1)
+            return getBias();
+        else
+            throw new IndexOutOfBoundsException("Model has only 1 weight vector");
+    }
+
+    @Override
+    public int numWeightsVecs()
+    {
+        return 1;
+    }
+    
     @Override
     public Perceptron clone()
     {

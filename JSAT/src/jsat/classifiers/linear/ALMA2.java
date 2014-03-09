@@ -1,5 +1,6 @@
 package jsat.classifiers.linear;
 
+import jsat.SingleWeightVectorModel;
 import jsat.classifiers.*;
 import jsat.classifiers.calibration.BinaryScoreClassifier;
 import jsat.exceptions.FailedToFitException;
@@ -21,7 +22,7 @@ import jsat.linear.Vec;
  * 
  * @author Edward Raff
  */
-public class ALMA2 extends BaseUpdateableClassifier implements BinaryScoreClassifier
+public class ALMA2 extends BaseUpdateableClassifier implements BinaryScoreClassifier, SingleWeightVectorModel
 {
     private Vec w;
     private static final double p = 2;
@@ -220,6 +221,42 @@ public class ALMA2 extends BaseUpdateableClassifier implements BinaryScoreClassi
     public boolean supportsWeightedData()
     {
         return false;
+    }
+
+    @Override
+    public Vec getRawWeight()
+    {
+        return w;
+    }
+
+    @Override
+    public double getBias()
+    {
+        return bias;
+    }
+
+    @Override
+    public Vec getRawWeight(int index)
+    {
+        if(index < 1)
+            return getRawWeight();
+        else
+            throw new IndexOutOfBoundsException("Model has only 1 weight vector");
+    }
+
+    @Override
+    public double getBias(int index)
+    {
+        if (index < 1)
+            return getBias();
+        else
+            throw new IndexOutOfBoundsException("Model has only 1 weight vector");
+    }
+    
+    @Override
+    public int numWeightsVecs()
+    {
+        return 1;
     }
     
 }

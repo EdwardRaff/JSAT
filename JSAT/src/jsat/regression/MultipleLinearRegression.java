@@ -2,6 +2,7 @@
 package jsat.regression;
 
 import java.util.concurrent.ExecutorService;
+import jsat.SingleWeightVectorModel;
 import jsat.classifiers.DataPoint;
 import jsat.classifiers.DataPointPair;
 import jsat.linear.DenseMatrix;
@@ -15,7 +16,7 @@ import jsat.utils.FakeExecutor;
  *
  * @author Edward Raff
  */
-public class MultipleLinearRegression implements Regressor
+public class MultipleLinearRegression implements Regressor, SingleWeightVectorModel
 {
     /**
      * The vector B such that Y = X * B is the least squares solution. Will be stored as Y = X * B + a
@@ -96,6 +97,42 @@ public class MultipleLinearRegression implements Regressor
         return useWeights;
     }
 
+    @Override
+    public Vec getRawWeight()
+    {
+        return B;
+    }
+
+    @Override
+    public double getBias()
+    {
+        return a;
+    }
+
+    @Override
+    public Vec getRawWeight(int index)
+    {
+        if(index < 1)
+            return getRawWeight();
+        else
+            throw new IndexOutOfBoundsException("Model has only 1 weight vector");
+    }
+
+    @Override
+    public double getBias(int index)
+    {
+        if (index < 1)
+            return getBias();
+        else
+            throw new IndexOutOfBoundsException("Model has only 1 weight vector");
+    }
+    
+    @Override
+    public int numWeightsVecs()
+    {
+        return 1;
+    }
+    
     @Override
     public MultipleLinearRegression clone()
     {

@@ -3,9 +3,11 @@ package jsat.classifiers.linear;
 import static java.lang.Math.*;
 import java.util.*;
 import java.util.concurrent.ExecutorService;
+import jsat.SimpleWeightVectorModel;
 import jsat.classifiers.*;
 import jsat.exceptions.FailedToFitException;
 import jsat.exceptions.UntrainedModelException;
+import jsat.linear.ConstantVector;
 import jsat.linear.DenseVector;
 import jsat.linear.IndexValue;
 import jsat.linear.Vec;
@@ -30,7 +32,7 @@ import jsat.utils.ListUtils;
  * 
  * @author Edward Raff
  */
-public class StochasticMultinomialLogisticRegression implements Classifier, Parameterized
+public class StochasticMultinomialLogisticRegression implements Classifier, Parameterized, SimpleWeightVectorModel
 {   
     private int epochs;
     private boolean clipping = true;
@@ -496,6 +498,30 @@ public class StochasticMultinomialLogisticRegression implements Classifier, Para
     public int getMiniBatchSize()
     {
         return miniBatchSize;
+    }
+
+    @Override
+    public Vec getRawWeight(int index)
+    {
+        if(index == B.length)
+            return new ConstantVector(0, B[0].length());
+        else
+            return B[index];
+    }
+
+    @Override
+    public double getBias(int index)
+    {
+        if(index == biases.length)
+            return 0;
+        else
+            return biases[index];
+    }
+    
+    @Override
+    public int numWeightsVecs()
+    {
+        return B.length+1;
     }
 
     @Override

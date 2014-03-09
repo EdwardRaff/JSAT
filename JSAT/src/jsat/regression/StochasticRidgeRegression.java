@@ -5,6 +5,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
+import jsat.SingleWeightVectorModel;
 import jsat.classifiers.DataPoint;
 import jsat.linear.DenseVector;
 import jsat.linear.IndexValue;
@@ -25,7 +26,7 @@ import jsat.utils.ListUtils;
  * 
  * @author Edward Raff
  */
-public class StochasticRidgeRegression implements Regressor, Parameterized
+public class StochasticRidgeRegression implements Regressor, Parameterized, SingleWeightVectorModel
 {
     private double lambda;
     private int epochs;
@@ -165,6 +166,42 @@ public class StochasticRidgeRegression implements Regressor, Parameterized
     public int getEpochs()
     {
         return epochs;
+    }
+
+    @Override
+    public Vec getRawWeight()
+    {
+        return w;
+    }
+
+    @Override
+    public double getBias()
+    {
+        return bias;
+    }
+    
+    @Override
+    public Vec getRawWeight(int index)
+    {
+        if(index < 1)
+            return getRawWeight();
+        else
+            throw new IndexOutOfBoundsException("Model has only 1 weight vector");
+    }
+
+    @Override
+    public double getBias(int index)
+    {
+        if (index < 1)
+            return getBias();
+        else
+            throw new IndexOutOfBoundsException("Model has only 1 weight vector");
+    }
+
+    @Override
+    public int numWeightsVecs()
+    {
+        return 1;
     }
 
     @Override

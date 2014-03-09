@@ -14,6 +14,7 @@ import static java.lang.Math.*;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import jsat.SingleWeightVectorModel;
 import jsat.classifiers.calibration.BinaryScoreClassifier;
 import jsat.exceptions.UntrainedModelException;
 import jsat.parameters.Parameter;
@@ -49,7 +50,7 @@ import jsat.parameters.Parameterized;
  * 
  * @author Edward Raff
  */
-public class SCW extends BaseUpdateableClassifier implements BinaryScoreClassifier, Parameterized
+public class SCW extends BaseUpdateableClassifier implements BinaryScoreClassifier, Parameterized, SingleWeightVectorModel
 {
     private double C = 1;
     private double eta;
@@ -246,6 +247,42 @@ public class SCW extends BaseUpdateableClassifier implements BinaryScoreClassifi
     public Vec getWeightVec()
     {
         return w;
+    }
+
+    @Override
+    public Vec getRawWeight()
+    {
+        return w;
+    }
+
+    @Override
+    public double getBias()
+    {
+        return 0;
+    }
+    
+    @Override
+    public Vec getRawWeight(int index)
+    {
+        if(index < 1)
+            return getRawWeight();
+        else
+            throw new IndexOutOfBoundsException("Model has only 1 weight vector");
+    }
+
+    @Override
+    public double getBias(int index)
+    {
+        if (index < 1)
+            return getBias();
+        else
+            throw new IndexOutOfBoundsException("Model has only 1 weight vector");
+    }
+    
+    @Override
+    public int numWeightsVecs()
+    {
+        return 1;
     }
     
     @Override

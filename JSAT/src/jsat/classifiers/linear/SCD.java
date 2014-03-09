@@ -2,6 +2,7 @@ package jsat.classifiers.linear;
 
 import java.util.*;
 import java.util.concurrent.ExecutorService;
+import jsat.SingleWeightVectorModel;
 import jsat.classifiers.*;
 import jsat.exceptions.UntrainedModelException;
 import jsat.linear.DenseVector;
@@ -32,7 +33,7 @@ import jsat.utils.random.XORWOW;
  *
  * @author Edward Raff
  */
-public class SCD implements Classifier, Regressor, Parameterized
+public class SCD implements Classifier, Regressor, Parameterized, SingleWeightVectorModel
 {
     private Vec w;
     private LossFunc loss;
@@ -115,6 +116,42 @@ public class SCD implements Classifier, Regressor, Parameterized
         return reg;
     }
 
+    @Override
+    public Vec getRawWeight()
+    {
+        return w;
+    }
+
+    @Override
+    public double getBias()
+    {
+        return 0;
+    }
+
+    @Override
+    public Vec getRawWeight(int index)
+    {
+        if(index < 1)
+            return getRawWeight();
+        else
+            throw new IndexOutOfBoundsException("Model has only 1 weight vector");
+    }
+
+    @Override
+    public double getBias(int index)
+    {
+        if (index < 1)
+            return getBias();
+        else
+            throw new IndexOutOfBoundsException("Model has only 1 weight vector");
+    }
+    
+    @Override
+    public int numWeightsVecs()
+    {
+        return 1;
+    }
+    
     @Override
     public CategoricalResults classify(DataPoint data)
     {

@@ -2,6 +2,7 @@ package jsat.classifiers.linear;
 
 import static java.lang.Math.*;
 import java.util.*;
+import jsat.SimpleWeightVectorModel;
 import jsat.classifiers.*;
 import jsat.linear.DenseVector;
 import jsat.linear.Vec;
@@ -28,7 +29,7 @@ import jsat.utils.IndexTable;
  * 
  * @author Edward Raff
  */
-public class SPA extends BaseUpdateableClassifier implements Parameterized
+public class SPA extends BaseUpdateableClassifier implements Parameterized, SimpleWeightVectorModel
 {
     private Vec[] w;
     private double[] bias;
@@ -120,6 +121,24 @@ public class SPA extends BaseUpdateableClassifier implements Parameterized
     public PassiveAggressive.Mode getMode()
     {
         return mode;
+    }
+
+    @Override
+    public Vec getRawWeight(int index)
+    {
+        return w[index];
+    }
+
+    @Override
+    public double getBias(int index)
+    {
+        return bias[index];
+    }
+    
+    @Override
+    public int numWeightsVecs()
+    {
+        return w.length;
     }
     
     @Override
