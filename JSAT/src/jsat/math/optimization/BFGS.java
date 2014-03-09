@@ -68,7 +68,7 @@ public class BFGS implements Optimizer2
         x_grad = (ex != null) ? fp.f(x_cur, x_grad, ex) : fp.f(x_cur, x_grad);
        
         int iter = 0;
-        while(x_grad.pNorm(2) > tolerance && iter < 10000)
+        while(x_grad.pNorm(2) > tolerance && iter < maxIterations)
         {
             iter++;
             p_k.zeroOut();

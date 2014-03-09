@@ -122,7 +122,7 @@ public class LBFGS implements Optimizer2
         double[] alphas = new double[m];
         int iter = 0;
         
-        while(x_grad.pNorm(2) > tolerance)
+        while(x_grad.pNorm(2) > tolerance && iter < maxIterations)
         {
             //p_k = −H_k ∇f_k; (6.18)
             twoLoopHp(x_grad, Rho, S, Y, p_k, alphas);
