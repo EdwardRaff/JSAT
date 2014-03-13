@@ -25,6 +25,17 @@ public class Zeroin implements RootFinder
         return root(eps, 1000, a, b, pos, f, args);
     }
     
+    /**
+     * Performs root finding on the function {@code f}. 
+     * @param eps the desired accuracy of the result
+     * @param maxIterations the maximum number of iterations to perform
+     * @param a the left bound on the root
+     * @param b the right bound on the root
+     * @param pos the position of the argument array that should be used as the variable to alter
+     * @param f the function to find the root of
+     * @param args the array of variable values for the function, one of which will be altered in the search
+     * @return the value of variable {@code pos} that produces a zero value output 
+     */
     public static double root(double eps, int maxIterations, double a, double b, int pos, Function f, double... args)
     {
         //We assume 1 dimensional function then 
