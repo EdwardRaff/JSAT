@@ -156,7 +156,7 @@ public class IntList extends AbstractList<Integer> implements Serializable
     private void enlargeIfNeeded(int i)
     {
         while(end+i > array.length)
-            array = Arrays.copyOf(array, array.length*2);
+            array = Arrays.copyOf(array, Math.max(array.length*2, 8));
     }
     
     /**

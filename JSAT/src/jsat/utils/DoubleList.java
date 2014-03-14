@@ -113,7 +113,7 @@ public class DoubleList extends AbstractList<Double> implements Serializable
     private void enlageIfNeeded(int i)
     {
         while(end+i > array.length)
-            array = Arrays.copyOf(array, array.length*2);
+            array = Arrays.copyOf(array, Math.max(array.length*2, 8));
     }
     
     @Override
