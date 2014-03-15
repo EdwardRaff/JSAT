@@ -104,7 +104,8 @@ public abstract class BaseL2Kernel implements KernelTrick
         double sum = 0;
         
         for(int i = start; i < end; i++)
-            sum += alpha[i] * eval(i, y, qi, finalSet, cache);
+            if(alpha[i] != 0.0)
+                sum += alpha[i] * eval(i, y, qi, finalSet, cache);
         
         return sum;
     }
