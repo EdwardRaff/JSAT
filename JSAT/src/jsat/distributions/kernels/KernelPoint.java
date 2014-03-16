@@ -1,10 +1,16 @@
 package jsat.distributions.kernels;
 
+import static java.lang.Math.*;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
+import java.util.Random;
 import jsat.classifiers.linear.kernelized.Projectron;
 import jsat.linear.*;
+import jsat.math.Function;
+import jsat.math.FunctionBase;
+import jsat.math.optimization.GoldenSearch;
 import jsat.regression.KernelRLS;
 import jsat.utils.DoubleList;
 import jsat.utils.ListUtils;
@@ -12,16 +18,20 @@ import jsat.utils.ListUtils;
 /**
  * The Kernel Point represents a kernelized weight vector by a linear 
  * combination of vectors transformed through a 
- * {@link KernelTrick kernel fuctiion}. This implementation maintains a sparse 
- * set of vectors by projecting any new vector onto the current set of vectors 
- * if the error from projecting the new point is less than a certain value. <br>
- * The KernelPoint can be used to efficiently kernelize any algorithm that 
- * relies only on additions of vectors, multiplications, and dot products. <br>
+ * {@link KernelTrick kernel fuctiion}. This implementation allows the selection
+ * of multiple different budget maintenance strategies <br>
  * <br>
  * See {@link KernelRLS} and {@link Projectron} for methods and papers based on
  * the same ideas used to create this class. <br>
  * Credit goes to Davis King of the <a href="http://dlib.net/ml.html">dlib 
- * library</a> for the idea. 
+ * library</a> for the idea of this type of class. <br>
+ * <br>
+ * Changing the 
+ * {@link #setBudgetStrategy(jsat.distributions.kernels.KernelPoint.BudgetStrategy) 
+ * budget maintinance method} or other parameters should be done <i>before</i>
+ * adding any data points to the KernelPoint. <br>
+ * If a maximum budget is specified, it may always be increased - but may not be
+ * decreased. 
  * 
  * @author Edward Raff
  */
@@ -37,6 +47,70 @@ public class KernelPoint
     protected Matrix KExpanded;
     protected Matrix InvKExpanded;
     protected DoubleList alpha;
+    protected BudgetStrategy budgetStrategy = BudgetStrategy.PROJECTION;
+    protected int maxBudget = Integer.MAX_VALUE;
+    
+    /**
+     * These enums control the method used to reduce the size of the support
+     * vector set in the kernel point. 
+     */
+    public enum BudgetStrategy
+    {
+        /**
+         * The budget is maintained by projecting the incoming vector onto 
+         * the set of current vectors. If the error in the projection is less 
+         * than {@link #setErrorTolerance(double) } the projection is used, and
+         * the input is added to the support vector set if the error was too 
+         * large. <br>
+         * Once the maximum budget size is reached, the projection is used 
+         * regardless of the error of the projection. <br>
+         * <br>
+         * The time complexity of each update is <i>O(B<sup>2</sup>)</i> and 
+         * uses <i>O(B<sup>2</sup>)</i> memory. 
+         * 
+         */
+        PROJECTION,
+        /**
+         * The budget is maintained by merging two support vectors to minimize 
+         * the error in the squared norm. The merged support vector is not a 
+         * member of the training set. <b>This method is only valid for the 
+         * {@link RBFKernel} </b>. Using any other kernel may cause invalid 
+         * results<br>
+         * <br>
+         * See:<br>
+         * <ul>
+         * <li>Wang, Z., Crammer, K., & Vucetic, S. (2012). <i>Breaking the 
+         * Curse of Kernelization : Budgeted Stochastic Gradient Descent for 
+         * Large-Scale SVM Training</i>. The Journal of Machine Learning 
+         * Research, 13(1), 3103–3131.</li>
+         * <li>Wang, Z., Crammer, K., & Vucetic, S. (2010). <i>Multi-class 
+         * pegasos on a budget</i>. In 27th International Conference on Machine
+         * Learning (pp. 1143–1150). Retrieved from 
+         * <a href="http://www.ist.temple.edu/~vucetic/documents/wang10icml.pdf">
+         * here</a></li>
+         * </ul>
+         * <br>
+         * The time complexity of each update is <i>O(B)</i> and 
+         * uses <i>O(B)</i> memory. 
+         */
+        MERGE_RBF,
+        /**
+         * The budget is maintained by refusing to add new data points once the
+         * budget is reached. <br>
+         * <br>
+         * The time complexity of each update is <i>O(B)</i> and 
+         * uses <i>O(B)</i> memory. 
+         */
+        STOP,
+        /**
+         * The budget is maintained by randomly dropping a previous support 
+         * vector. <br>
+         * <br>
+         * The time complexity of each update is <i>O(B)</i> and 
+         * uses <i>O(B)</i> memory. 
+         */
+        RANDOM,
+    }
     
     //Internal structure
     private double sqrdNorm = 0;
@@ -44,16 +118,24 @@ public class KernelPoint
 
     /**
      * Creates a new Kernel Point, which is a point in the kernel space 
-     * represented by an accumulation of vectors  
+     * represented by an accumulation of vectors and uses the 
+     * {@link BudgetStrategy#PROJECTION} strategy with an unbounded maximum 
+     * budget
      * 
      * @param k the kernel to use
-     * @param errorTolerance the maximum error allowed for projecting a vector 
-     * instead of adding it to the basis set
+     * @param errorTolerance the maximum error in [0, 1] allowed for projecting 
+     * a vector instead of adding it to the basis set
      */
     public KernelPoint(KernelTrick k, double errorTolerance)
     {
         this.k = k;
-        this.errorTolerance = errorTolerance;
+        setErrorTolerance(errorTolerance);
+        setBudgetStrategy(BudgetStrategy.PROJECTION);
+        setMaxBudget(Integer.MAX_VALUE);
+        if(k.supportsAcceleration())
+            kernelAccel = new DoubleList(16);
+        alpha = new DoubleList(16);
+        vecs = new ArrayList<Vec>(16);
     }
 
     /**
@@ -72,16 +154,93 @@ public class KernelPoint
             if(toCopy.kernelAccel != null)
                 this.kernelAccel = new DoubleList(toCopy.kernelAccel);
             
-            this.KExpanded = toCopy.KExpanded.clone();
-            this.InvKExpanded = toCopy.InvKExpanded.clone();
-            
-            this.K = new SubMatrix(KExpanded, 0, 0, toCopy.K.rows(), toCopy.K.cols());
-            this.InvK = new SubMatrix(InvKExpanded, 0, 0, toCopy.InvK.rows(), toCopy.InvK.rows());
             this.alpha = new DoubleList(toCopy.alpha);
         }
         
+        if(toCopy.KExpanded != null)
+        {
+            this.KExpanded = toCopy.KExpanded.clone();
+            this.InvKExpanded = toCopy.InvKExpanded.clone();
+
+            this.K = new SubMatrix(KExpanded, 0, 0, toCopy.K.rows(), toCopy.K.cols());
+            this.InvK = new SubMatrix(InvKExpanded, 0, 0, toCopy.InvK.rows(), toCopy.InvK.rows());
+        }
+        
+        this.maxBudget = toCopy.maxBudget;
         this.sqrdNorm = toCopy.sqrdNorm;
         this.normGood = toCopy.normGood;
+    }
+
+    /**
+     * Sets the maximum budget for support vectors to allow. Setting to 
+     * {@link Integer#MAX_VALUE} is essentially an unbounded number of support 
+     * vectors. Increasing the budget after adding the first vector is always 
+     * allowed, but it may not be possible to reduce the number of current 
+     * support vectors is above the desired budget. 
+     * 
+     * @param maxBudget the maximum number of allowed support vectors
+     */
+    public void setMaxBudget(int maxBudget)
+    {
+        if(maxBudget < 1)
+            throw new IllegalArgumentException("Budget must be positive, not " + maxBudget);
+        this.maxBudget = maxBudget;
+    }
+
+    /**
+     * Returns the current maximum budget for support vectors
+     * @return the maximum budget for support vectors
+     */
+    public int getMaxBudget()
+    {
+        return maxBudget;
+    }
+
+    /**
+     * Sets the method used for maintaining the budget of support vectors. This
+     * method must be called <i>before</i> any vectors are added to the 
+     * KernelPoint. <br>
+     * <br>
+     * The budget maintenance strategy used controls the time complexity and 
+     * memory use of the model. 
+     * @param budgetStrategy the budget maintenance strategy
+     */
+    public void setBudgetStrategy(BudgetStrategy budgetStrategy)
+    {
+        if(getBasisSize() > 0)
+            throw new RuntimeException("KerenlPoint already started, budget may not be changed");
+        this.budgetStrategy = budgetStrategy;
+    }
+
+    /**
+     * Returns the budget method used 
+     * @return the budget method used 
+     */
+    public BudgetStrategy getBudgetStrategy()
+    {
+        return budgetStrategy;
+    }
+
+    /**
+     * Sets the error tolerance used for projection maintenance strategies such 
+     * as {@link BudgetStrategy#PROJECTION}
+     * @param errorTolerance the error tolerance in [0, 1]
+     */
+    public void setErrorTolerance(double errorTolerance)
+    {
+        if(Double.isNaN(errorTolerance) || errorTolerance < 0 || errorTolerance > 1)
+            throw new IllegalArgumentException("Error tolerance must be in [0, 1], not " + errorTolerance);
+        this.errorTolerance = errorTolerance;
+    }
+    
+    /**
+     * Returns the error tolerance that is used depending on the 
+     * {@link BudgetStrategy} in use
+     * @return the error tolerance value
+     */
+    public double getErrorTolerance()
+    {
+        return errorTolerance;
     }
     
     /**
@@ -209,6 +368,8 @@ public class KernelPoint
      */
     public void mutableMultiply(double c)
     {
+        if(Double.isNaN(c) || Double.isInfinite(c))
+            throw new IllegalArgumentException("multiplier must be a real value, not " + c);
         if(getBasisSize() == 0)
             return;
         sqrdNorm *= c*c;
@@ -247,75 +408,303 @@ public class KernelPoint
         double y_t = c;
         final double k_tt = k.eval(0, 0, Arrays.asList(x_t), qi);
         
-        if(K == null)//first point to be added
+        if(budgetStrategy == BudgetStrategy.PROJECTION)
         {
-            KExpanded = new DenseMatrix(16, 16);
-            K = new SubMatrix(KExpanded, 0, 0, 1, 1);
-            K.set(0, 0, k_tt);
-            InvKExpanded = new DenseMatrix(16, 16);
-            InvK = new SubMatrix(InvKExpanded, 0, 0, 1, 1);
-            InvK.set(0, 0, 1/k_tt);
-            alpha = new DoubleList(16);
-            alpha.add(y_t);
-            vecs = new ArrayList<Vec>(16);
-            vecs.add(x_t);
-            if(k.supportsAcceleration())
-                kernelAccel = new DoubleList(16);
-            if(kernelAccel != null)
-                kernelAccel.addAll(qi);
-            return;
-        }
-        
-        //Normal case
-        DenseVector kxt = new DenseVector(K.rows());
-
-        for (int i = 0; i < kxt.length(); i++)
-            kxt.set(i, k.eval(i, x_t, qi, vecs, kernelAccel));
-        
-        //ALD test
-        final Vec alphas_t = InvK.multiply(kxt);
-        final double delta_t = k_tt-alphas_t.dot(kxt);
-        final int size = K.rows();
-
-        if(delta_t > errorTolerance)//add to the dictionary
-        {
-            vecs.add(x_t);
-            if(kernelAccel != null)
-                kernelAccel.addAll(qi);
-            
-            if(size == KExpanded.rows())//we need to grow first
+            if(K == null)//first point to be added
             {
-                KExpanded.changeSize(size*2, size*2);
-                InvKExpanded.changeSize(size*2, size*2);
+                KExpanded = new DenseMatrix(16, 16);
+                K = new SubMatrix(KExpanded, 0, 0, 1, 1);
+                K.set(0, 0, k_tt);
+                InvKExpanded = new DenseMatrix(16, 16);
+                InvK = new SubMatrix(InvKExpanded, 0, 0, 1, 1);
+                InvK.set(0, 0, 1/k_tt);
+                alpha.add(y_t);
+                vecs.add(x_t);
+                if(kernelAccel != null)
+                    kernelAccel.addAll(qi);
+                return;
             }
-            
-            Matrix.OuterProductUpdate(InvK, alphas_t, alphas_t, 1/delta_t);
-            K = new SubMatrix(KExpanded, 0, 0, size+1, size+1);
-            InvK = new SubMatrix(InvKExpanded, 0, 0, size+1, size+1);
-            
-            //update bottom row and side columns
-            for(int i = 0; i < size; i++)
-            {
-                K.set(size, i, kxt.get(i));
-                K.set(i, size, kxt.get(i));
-                
-                InvK.set(size, i, -alphas_t.get(i)/delta_t);
-                InvK.set(i, size, -alphas_t.get(i)/delta_t);
-            }
-                    
-            //update bottom right corner
-            K.set(size, size, k_tt);
-            InvK.set(size, size, 1/delta_t);
-            alpha.add(y_t);
 
+            //Normal case
+            DenseVector kxt = new DenseVector(K.rows());
+
+            for (int i = 0; i < kxt.length(); i++)
+                kxt.set(i, k.eval(i, x_t, qi, vecs, kernelAccel));
+
+            //ALD test
+            final Vec alphas_t = InvK.multiply(kxt);
+            final double delta_t = k_tt-alphas_t.dot(kxt);
+            final int size = K.rows();
+
+            if(delta_t > errorTolerance && size < maxBudget)//add to the dictionary
+            {
+                vecs.add(x_t);
+                if(kernelAccel != null)
+                    kernelAccel.addAll(qi);
+
+                if(size == KExpanded.rows())//we need to grow first
+                {
+                    KExpanded.changeSize(size*2, size*2);
+                    InvKExpanded.changeSize(size*2, size*2);
+                }
+
+                Matrix.OuterProductUpdate(InvK, alphas_t, alphas_t, 1/delta_t);
+                K = new SubMatrix(KExpanded, 0, 0, size+1, size+1);
+                InvK = new SubMatrix(InvKExpanded, 0, 0, size+1, size+1);
+
+                //update bottom row and side columns
+                for(int i = 0; i < size; i++)
+                {
+                    K.set(size, i, kxt.get(i));
+                    K.set(i, size, kxt.get(i));
+
+                    InvK.set(size, i, -alphas_t.get(i)/delta_t);
+                    InvK.set(i, size, -alphas_t.get(i)/delta_t);
+                }
+
+                //update bottom right corner
+                K.set(size, size, k_tt);
+                InvK.set(size, size, 1/delta_t);
+                alpha.add(y_t);
+
+            }
+            else//project onto dictionary
+            {
+                Vec alphaVec = alpha.getVecView();
+                alphaVec.mutableAdd(y_t, alphas_t);
+                normGood = false;
+            }
         }
-        else//project onto dictionary
+        else if(budgetStrategy == BudgetStrategy.MERGE_RBF)
         {
-            Vec alphaVec = alpha.getVecView();
-            alphaVec.mutableAdd(y_t, alphas_t);
             normGood = false;
+            addPoint(x_t, qi, y_t);
+            
+            if(vecs.size() > maxBudget)
+            {
+                /*
+                 * we use the same approximation method as in projection 
+                 * (Section 4.2) by fixing m as theSV with the smallest value
+                 * of || α_m ||^2
+                 */
+                int m = 0;
+                double alpha_m = abs(alpha.get(m));
+                for(int i = 1; i < alpha.size(); i++)
+                    if(abs(alpha.getD(i)) < abs(alpha_m))
+                    {
+                        alpha_m = alpha.getD(i);
+                        m = i;
+                    }
+                
+                
+                double minLoss = Double.POSITIVE_INFINITY;
+                int n = -1;
+                double n_h = 0;
+                double n_alpha_z = 0;
+                double tol = 1e-3;
+                while (n == -1)
+                {
+                    for (int i = 0; i < alpha.size(); i++)
+                    {
+                        if (i == m)
+                            continue;
+                        double a_m = alpha_m, a_n = alpha.getD(i);
+                        double normalize = a_m+a_n;
+                        if (abs(normalize) < tol)//avoid alphas that nearly cancle out
+                            continue;
+                        final double k_mn = k.eval(i, m, vecs, kernelAccel);
+                        
+                        double h = getH(k_mn, a_m/normalize, a_n/normalize);
+                        
+                        /*
+                         * we can get k(m, z) without forming z when using RBF
+                         * 
+                         * exp(-(m-z)^2) = exp(-(m- (h m+(1-h) n))^2 ) = 
+                         * exp(-(x-y)^2(h-1)^2) = exp((x-y)^2)^(h-1)^2
+                         * 
+                         * and since: 0 < h < 1 (h-1)^2 = (1-h)^2
+                         */
+                        double k_mz = pow(k_mn, (1 - h) * (1 - h));
+                        double k_nz = pow(k_mn, h * h);
+                        
+                        //TODO should we fall back to forming z if we use a non RBF kernel?
+
+
+                        /*
+                         * Determin the best by the smallest change in norm, 2x2 
+                         * matrix for the original alphs and alpha_z on its own
+                         */
+                        double alpha_z = a_m * k_mz + a_n * k_nz;
+
+                        double loss = a_m * a_m + a_n * a_n
+                                + 2 * k_mn * a_m * a_n
+                                - alpha_z*alpha_z;
+
+                        if (loss < minLoss)
+                        {
+                            minLoss = loss;
+                            n = i;
+                            n_h = h;
+                            n_alpha_z = alpha_z;
+                        }
+                    }
+                    tol /= 10;
+                }
+
+                Vec n_z = vecs.get(m).multiply(n_h);
+                n_z.mutableAdd(1-n_h, vecs.get(n));
+                final List<Double> nz_qi = k.getQueryInfo(n_z);
+                
+                finalMergeStep(m, n, n_z, nz_qi, n_alpha_z, true);
+            }
         }
+        else if(budgetStrategy == BudgetStrategy.STOP)
+        {
+            normGood = false;
+            if(getBasisSize() < maxBudget)
+                addPoint(x_t, qi, y_t);
+        }
+        else if(budgetStrategy == BudgetStrategy.RANDOM)
+        {
+            normGood = false;
+            if(getBasisSize() >= maxBudget)
+            {
+                Random rand = new Random();//TODO should probably move this out
+                int toRemove = rand.nextInt(vecs.size());
+                removeIndex(toRemove);
+            }
+            
+            addPoint(x_t, qi, y_t);
+        }
+        else
+            throw new RuntimeException("BUG: report me!");
+            
         
+    }
+    
+    /**
+     * Adds a point to the set
+     * @param x_t the value to add
+     * @param qi the query information for the value
+     * @param y_t the constant value to add
+     */
+    private void addPoint(Vec x_t, final List<Double> qi, double y_t)
+    {
+        vecs.add(x_t);
+        if (kernelAccel != null)
+            kernelAccel.addAll(qi);
+        alpha.add(y_t);
+    }
+    
+    /**
+     * Performs the last merging step removing the old vecs and adding the new
+     * merged one
+     * @param m the first of the original index to remove
+     * @param n the second of the original index to remove
+     * @param n_z the merged vec to replace them with
+     * @param nz_qi the query info for the new vec
+     * @param n_alpha_z the alpha value for the new merged vec
+     */
+    protected void finalMergeStep(int m, int n, Vec n_z, final List<Double> nz_qi, double n_alpha_z, boolean alterVecs)
+    {
+        int smallIndx = min(m, n);
+        int largeIndx = max(m, n);
+        
+        alpha.remove(largeIndx);
+        alpha.remove(smallIndx);
+
+        if(alterVecs)
+        {
+            vecs.remove(largeIndx);
+            vecs.remove(smallIndx);
+
+            kernelAccel.remove(largeIndx);
+            kernelAccel.remove(smallIndx);
+
+
+            vecs.add(n_z);
+            if (kernelAccel != null)
+                kernelAccel.addAll(nz_qi);
+        }
+        alpha.add(n_alpha_z);
+    }
+
+    /**
+     * Gets the minimum of H in [0, 1] the for RBF merging<br>
+     * a<sub>m</sub>k<sub>mn</sub><sup>(1-h)^2</sup> + a<sub>n</sub>k<sub>mn</sub><sup>h^2</sup>
+     * <br>
+     * THIS METHOD IS A BOTTLE NECK, so it has some optimization hacks
+     * @param k_mn the shared kernel value on both halves of the equation
+     * @param a_m
+     * @param a_n
+     * @return 
+     */
+    protected static double getH(final double k_mn, final double a_m, final double a_n)
+    {
+        /*
+         * Only a few iterations of golden search are done. Often the exact min 
+         * is very nearly 0 or 1, and that dosn't seem to really help with the 
+         * merging. I've gotten better generalization so far by allowing only a
+         * small number of fininte steps. 
+         */
+        /*
+         * if one is pos and the other is negative, the minimum value is going 
+         * to be at 0 or 1 b/c it becomes a slope instead of a curve, so give a
+         * tiny result
+         */
+        if(Math.signum(a_m) != Math.signum(a_n))
+            if(a_m < 0)//we give a 
+                return 1e-6;
+            else if(a_n < 0)
+                return 1-1e-6;
+        
+        final Function f = new FunctionBase()
+        {
+            @Override
+            public double f(Vec x)
+            {
+                final double h = x.get(0);
+                return (a_m * pow(k_mn, (1 - h) * (1 - h))
+                        + a_n * pow(k_mn, h * h));
+            }
+        };
+        if(a_m > 0)//both are positve, lets cheat!
+        {
+            final double big = max(a_m, a_n);
+            final double small = min(a_m, a_n);
+            final double ratio = big/small;
+            //shouldn't need as many steps since we can narrow down the starting point
+            if(ratio < 4)
+                return 1-GoldenSearch.minimize(1e-3, 4, .3, 0.7, 0, f, 0.0);
+            else if(a_m < a_n)
+                return 1-GoldenSearch.minimize(1e-3, 4, 0.0, 0.4, 0, f, 0.0);
+            else
+                return 1-GoldenSearch.minimize(1e-3, 4, 0.6, 1.0, 0, f, 0.0);
+            
+        }
+        //negative, shape is weird and confuses me - not well describted in paper
+        //maximize h, but it uses (1-h) and (h), so by minimizing we get the max as (1-h)
+        double h = Double.NaN;
+        h = 1 - (log(k_mn) - log(-a_n / a_m)) / (2 * log(k_mn));//analyitic root, if the root exists then no need to search
+        if (Double.isInfinite(h) || Double.isNaN(h))
+            h = 1 - GoldenSearch.minimize(1e-3, 5, .00, 1.00, 0, f, 0.0);
+        return h;
+    }
+    
+    /**
+     * Removes the vec, alpha, and kernel cache associate with the given index
+     * @param toRemove the index to remove
+     */
+    protected void removeIndex(int toRemove)
+    {
+        if(kernelAccel != null)
+        {
+            int num = this.kernelAccel.size()/vecs.size();
+            for(int i = 0; i < num; i++)
+                kernelAccel.remove(toRemove);
+        }
+        alpha.remove(toRemove);
+        vecs.remove(toRemove);
     }
     
     /**
@@ -330,17 +719,17 @@ public class KernelPoint
     }
     
     /**
-     * Returns a list of the raw vectors being used by the kernel points. 
+     * Returns the list of the raw vectors being used by the kernel points. 
      * Altering this vectors will alter the same vectors used by the KernelPoint
-     * and will cause inconsistent results.
+     * and will cause inconsistent results.<br>
+     * <br>
+     * The returned list may not be modified
      * 
-     * @return a list of all the vectors in use as a basis set by this KernelPoint
+     * @return a the list of all the vectors in use as a basis set by this KernelPoint
      */
     public List<Vec> getRawBasisVecs()
     {
-        List<Vec> retList = new ArrayList<Vec>(getBasisSize());
-        retList.addAll(vecs);
-        return retList;
+        return Collections.unmodifiableList(vecs);
     }
 
     @Override
