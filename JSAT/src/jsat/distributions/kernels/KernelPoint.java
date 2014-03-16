@@ -641,6 +641,9 @@ public class KernelPoint
      */
     protected static double getH(final double k_mn, final double a_m, final double a_n)
     {
+        if(a_m == a_n)
+            return 0.5;
+        
         /*
          * Only a few iterations of golden search are done. Often the exact min 
          * is very nearly 0 or 1, and that dosn't seem to really help with the 
