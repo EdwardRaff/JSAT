@@ -9,6 +9,8 @@ import static java.lang.Integer.*;
 import static java.lang.Double.*;
 import jsat.DataSet;
 import jsat.datatransform.DenseSparceTransform;
+import jsat.linear.IndexValue;
+import jsat.linear.Vec;
 import jsat.regression.RegressionDataSet;
 import jsat.utils.DoubleList;
 
@@ -262,6 +264,12 @@ public class LIBSVMLoader
         if(vectorLength > 0)
             maxLen = vectorLength;
         
+        //Give categories a unique ordering to avoid loading issues based on the order categories are presented
+        List<Double> allCatKeys = new DoubleList(possibleCats.keySet());
+        Collections.sort(allCatKeys);
+        for(int i = 0; i < allCatKeys.size(); i++)
+            possibleCats.put(allCatKeys.get(i), i);
+        
         ClassificationDataSet cds = new ClassificationDataSet(maxLen, new CategoricalData[0], predicting);
         for(int i = 0; i < cats.size(); i++)
         {
@@ -273,6 +281,46 @@ public class LIBSVMLoader
         cds.applyTransform(new DenseSparceTransform(sparseRatio));
         
         return cds;
+    }
+    
+    /**
+     * Writes out the given classification data set as a LIBSVM data file
+     * @param data the data set to write to a file
+     * @param os the output stream to write to. The stream will not be closed or
+     * flushed by this method
+     */
+    public static void write(ClassificationDataSet data, OutputStream os)
+    {
+        PrintWriter writer = new PrintWriter(os);
+        for(int i = 0; i < data.getSampleSize(); i++)
+        {
+            int pred = data.getDataPointCategory(i);
+            Vec vals = data.getDataPoint(i).getNumericalValues();
+            writer.write(pred + " ");
+            for(IndexValue iv : vals)
+                writer.write((iv.getIndex()+1) + ":" + iv.getValue() + " ");//+1 b/c 1 based indexing
+            writer.write("\n");
+        }
+    }
+    
+    /**
+     * Writes out the given regression data set as a LIBSVM data file
+     * @param data the data set to write to a file
+     * @param os the output stream to write to. The stream will not be closed or
+     * flushed by this method
+     */
+    public static void write(RegressionDataSet data, OutputStream os)
+    {
+        PrintWriter writer = new PrintWriter(os);
+        for(int i = 0; i < data.getSampleSize(); i++)
+        {
+            double pred = data.getTargetValue(i);
+            Vec vals = data.getDataPoint(i).getNumericalValues();
+            writer.write(pred + " ");
+            for(IndexValue iv : vals)
+                writer.write((iv.getIndex()+1) + ":" + iv.getValue() + " ");//+1 b/c 1 based indexing
+            writer.write("\n");
+        }
     }
     
     private static int loadSparseVec(String line, int maxLen, List<SparseVector> sparceVecs, int pos) 
