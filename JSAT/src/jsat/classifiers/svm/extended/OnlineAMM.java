@@ -307,7 +307,10 @@ public class OnlineAMM extends BaseUpdateableClassifier implements Parameterized
         else//z_t is given, we just need z_t_val
         {
             if(!weightMatrix.get(y_t).containsKey(z_t))
-                z_t = -1;//happens if we were owned by a vec that has been removed
+            {
+                //happens if we were owned by a vec that has been removed
+                return update(dataPoint, y_t, Integer.MIN_VALUE);//restart and have a new assignment given
+            }
             if(z_t == -1)
                 z_t_val = 0.0;//again, implicit
             else
