@@ -22,7 +22,7 @@ public interface ClassificationScore extends Serializable
      * Prepares this score to predict on the given input
      * @param toPredict the class label information that will be evaluated
      */
-    public void prepareMetric(CategoricalData toPredict);
+    public void prepare(CategoricalData toPredict);
     
     /**
      * Adds the given result to the score

@@ -68,7 +68,7 @@ public class LogLoss implements ClassificationScore
     }
     
     @Override
-    public void prepareMetric(CategoricalData toPredict)
+    public void prepare(CategoricalData toPredict)
     {
         loss = 0;
         weightSum = 0;

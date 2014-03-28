@@ -50,7 +50,7 @@ public class AccuracyTest
         System.out.println("getScore");
         Accuracy scorer = new Accuracy();
         
-        scorer.prepareMetric(new CategoricalData(4));
+        scorer.prepare(new CategoricalData(4));
         //from "On Using and Computing the Kappa Statistic"
         //correct
         scorer.addResult(new CategoricalResults(new double[]{1.0, 0.0, 0.0, 0.0}), 0, 317.0);

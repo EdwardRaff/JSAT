@@ -177,7 +177,7 @@ public class ClassificationModelEvaluation
         for(Entry<ClassificationScore, OnLineStatistics> entry : scoreMap.entrySet())
         {
             ClassificationScore score = entry.getKey().clone();
-            score.prepareMetric(dataSet.getPredicting());
+            score.prepare(dataSet.getPredicting());
             scoresToUpdate.put(score, score);
         }
         
@@ -210,7 +210,7 @@ public class ClassificationModelEvaluation
             for(Entry<ClassificationScore, OnLineStatistics> entry : scoreMap.entrySet())
             {
                 ClassificationScore score = entry.getKey().clone();
-                score.prepareMetric(dataSet.getPredicting());
+                score.prepare(dataSet.getPredicting());
                 score.addResults(scoresToUpdate.get(score));
                 entry.getValue().add(score.getScore());
             }

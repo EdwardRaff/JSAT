@@ -51,7 +51,7 @@ public class AUCTest
         System.out.println("getScore");
         AUC scorer = new AUC();
         
-        scorer.prepareMetric(new CategoricalData(2));
+        scorer.prepare(new CategoricalData(2));
         
         scorer.addResult(new CategoricalResults(new double[]{0.2, 0.8}), 1, 3.0);
         scorer.addResult(new CategoricalResults(new double[]{0.4, 0.6}), 0, 2.0);

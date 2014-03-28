@@ -42,7 +42,7 @@ public class Kappa implements ClassificationScore
     }
 
     @Override
-    public void prepareMetric(CategoricalData toPredict)
+    public void prepare(CategoricalData toPredict)
     {
         int N = toPredict.getNumOfCategories();
         errorMatrix = new DenseMatrix(N, N);

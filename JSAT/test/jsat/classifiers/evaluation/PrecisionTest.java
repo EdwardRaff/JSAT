@@ -50,7 +50,7 @@ public class PrecisionTest
         System.out.println("getScore");
         Precision scorer = new Precision();
         
-        scorer.prepareMetric(new CategoricalData(2));
+        scorer.prepare(new CategoricalData(2));
         //correct
         scorer.addResult(new CategoricalResults(new double[]{1.0, 0.0}), 0, 1.0);
         scorer.addResult(new CategoricalResults(new double[]{0.2, 0.8}), 1, 3.0);

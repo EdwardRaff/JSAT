@@ -64,7 +64,7 @@ public abstract class SimpleBinaryClassMetric implements ClassificationScore
     }
 
     @Override
-    public void prepareMetric(CategoricalData toPredict)
+    public void prepare(CategoricalData toPredict)
     {
         tp = tn = fp = fn = 0;
     }

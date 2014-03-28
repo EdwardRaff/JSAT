@@ -80,7 +80,7 @@ public class AUC implements ClassificationScore
     }
     
     @Override
-    public void prepareMetric(CategoricalData toPredict)
+    public void prepare(CategoricalData toPredict)
     {
         if(toPredict.getNumOfCategories() != 2)
             throw new IllegalArgumentException("AUC is only defined for binary classification problems");

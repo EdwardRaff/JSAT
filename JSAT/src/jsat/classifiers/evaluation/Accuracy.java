@@ -39,7 +39,7 @@ public class Accuracy implements ClassificationScore
     }
     
     @Override
-    public void prepareMetric(CategoricalData toPredict)
+    public void prepare(CategoricalData toPredict)
     {
         correct = 0;
         total = 0;
