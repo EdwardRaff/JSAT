@@ -1,12 +1,19 @@
 
 package jsat.classifiers;
 
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Random;
+import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import jsat.classifiers.evaluation.ClassificationScore;
 import jsat.datatransform.DataTransformProcess;
 import jsat.exceptions.UntrainedModelException;
 import jsat.math.OnLineStatistics;
@@ -44,6 +51,7 @@ public class ClassificationModelEvaluation
     private int[] truths;
     private double[] pointWeights;
     private OnLineStatistics errorStats;
+    private Map<ClassificationScore, OnLineStatistics> scoreMap;
     
     /**
      * Constructs a new object that can perform evaluations on the model. 
@@ -75,6 +83,7 @@ public class ClassificationModelEvaluation
         this.dtp = new DataTransformProcess();
         keepPredictions = false;
         errorStats = new OnLineStatistics();
+        scoreMap = new LinkedHashMap<ClassificationScore, OnLineStatistics>();
     }
     
     /**
@@ -163,10 +172,19 @@ public class ClassificationModelEvaluation
         
         CountDownLatch latch;
         final double[] evalErrorStats = new double[2];//first index is correct, 2nd is total
+        //place to store the scores that may get updated by several threads
+        final Map<ClassificationScore, ClassificationScore> scoresToUpdate = new HashMap<ClassificationScore, ClassificationScore>();
+        for(Entry<ClassificationScore, OnLineStatistics> entry : scoreMap.entrySet())
+        {
+            ClassificationScore score = entry.getKey().clone();
+            score.prepareMetric(dataSet.getPredicting());
+            scoresToUpdate.put(score, score);
+        }
+        
         if(testSet.getSampleSize() < SystemInfo.LogicalCores || threadpool == null)
         {
             latch = new CountDownLatch(1);
-            new Evaluator(testSet, curProcess, 0, testSet.getSampleSize(), evalErrorStats, latch).run();
+            new Evaluator(testSet, curProcess, 0, testSet.getSampleSize(), evalErrorStats, scoresToUpdate, latch).run();
         }
         else//go parallel!
         {
@@ -180,7 +198,7 @@ public class ClassificationModelEvaluation
                 int end = start+blockSize;
                 if(extra-- > 0)
                     end++;
-                threadpool.submit(new Evaluator(testSet, curProcess, start, end, evalErrorStats, latch));
+                threadpool.submit(new Evaluator(testSet, curProcess, start, end, evalErrorStats, scoresToUpdate, latch));
                 start = end;
             }
         }
@@ -188,11 +206,53 @@ public class ClassificationModelEvaluation
         {
             latch.await();
             errorStats.add(evalErrorStats[0]/evalErrorStats[1]);
+            //accumulate score info
+            for(Entry<ClassificationScore, OnLineStatistics> entry : scoreMap.entrySet())
+            {
+                ClassificationScore score = entry.getKey().clone();
+                score.prepareMetric(dataSet.getPredicting());
+                score.addResults(scoresToUpdate.get(score));
+                entry.getValue().add(score.getScore());
+            }
         }
         catch (InterruptedException ex)
         {
             Logger.getLogger(ClassificationModelEvaluation.class.getName()).log(Level.SEVERE, null, ex);
         }
+    }
+    
+    /**
+     * Adds a new score object that will be used as part of the evaluation when 
+     * calling {@link #evaluateCrossValidation(int, java.util.Random) } or 
+     * {@link #evaluateTestSet(jsat.classifiers.ClassificationDataSet) }. The 
+     * statistics for the given score are reset on every call, and the mean / 
+     * standard deviation comes from multiple folds in cross validation. <br>
+     * <br>
+     * The score statistics can be obtained from 
+     * {@link #getScoreStats(jsat.classifiers.evaluations.ClassificationScore) }
+     * after one of the evaluation methods have been called. 
+     * 
+     * @param scorer the score method to keep track of. 
+     */
+    public void addScorer(ClassificationScore scorer)
+    {
+        scoreMap.put(scorer, new OnLineStatistics());
+    }
+    
+    /**
+     * Gets the statistics associated with the given score. If the score is not
+     * currently in the model evaluation {@code null} will be returned. The 
+     * object passed in does not need to be the exact same object passed to 
+     * {@link #addScorer(jsat.classifiers.evaluations.ClassificationScore) },
+     * it only needs to be equal to the object. 
+     * 
+     * @param score the score type to get the result statistics
+     * @return the result statistics for the given score, or {@code null} if the 
+     * score is not in th evaluation set
+     */
+    public OnLineStatistics getScoreStats(ClassificationScore score)
+    {
+        return scoreMap.get(score);
     }
     
     private class Evaluator implements Runnable
@@ -205,8 +265,9 @@ public class ClassificationModelEvaluation
         double localCorrect;
         double localSumOfWeights;
         double[] errorStats;
+        final Map<ClassificationScore, ClassificationScore> scoresToUpdate;
 
-        public Evaluator(ClassificationDataSet testSet, DataTransformProcess curProcess, int start, int end, double[] errorStats, CountDownLatch latch)
+        public Evaluator(ClassificationDataSet testSet, DataTransformProcess curProcess, int start, int end, double[] errorStats, Map<ClassificationScore, ClassificationScore> scoresToUpdate, CountDownLatch latch)
         {
             this.testSet = testSet;
             this.curProcess = curProcess;
@@ -217,44 +278,64 @@ public class ClassificationModelEvaluation
             this.localSumOfWeights = 0;
             this.localCorrect = 0;
             this.errorStats = errorStats;
+            this.scoresToUpdate = scoresToUpdate;
         }
 
         @Override
         public void run()
         {
-            for (int i = start; i < end; i++)
+            try
             {
-                DataPoint dp = testSet.getDataPoint(i);
-                dp = curProcess.transform(dp);
-                long stratClass = System.currentTimeMillis();
-                CategoricalResults result = classifier.classify(dp);
-                localClassificationTime += (System.currentTimeMillis() - stratClass);
-                if (predictions != null)
+                //create a local set of scores to update
+                Set<ClassificationScore> localScores = new HashSet<ClassificationScore>();
+                for (Entry<ClassificationScore, ClassificationScore> entry : scoresToUpdate.entrySet())
+                    localScores.add(entry.getKey().clone());
+                for (int i = start; i < end; i++)
                 {
-                    predictions[i] = result;
-                    truths[i] = testSet.getDataPointCategory(i);
-                    pointWeights[i] = dp.getWeight();
+                    DataPoint dp = testSet.getDataPoint(i);
+                    dp = curProcess.transform(dp);
+                    long stratClass = System.currentTimeMillis();
+                    CategoricalResults result = classifier.classify(dp);
+                    localClassificationTime += (System.currentTimeMillis() - stratClass);
+
+                    for (ClassificationScore score : localScores)
+                        score.addResult(result, testSet.getDataPointCategory(i), dp.getWeight());
+
+                    if (predictions != null)
+                    {
+                        predictions[i] = result;
+                        truths[i] = testSet.getDataPointCategory(i);
+                        pointWeights[i] = dp.getWeight();
+                    }
+                    final int trueCat = testSet.getDataPointCategory(i);
+                    synchronized(confusionMatrix[trueCat])
+                    {
+                        confusionMatrix[trueCat][result.mostLikely()] += dp.getWeight();
+                    }
+                    if(trueCat == result.mostLikely())
+                        localCorrect += dp.getWeight();
+                    localSumOfWeights += dp.getWeight();
                 }
-                final int trueCat = testSet.getDataPointCategory(i);
-                synchronized(confusionMatrix[trueCat])
+
+                synchronized(confusionMatrix)
                 {
-                    confusionMatrix[trueCat][result.mostLikely()] += dp.getWeight();
+                    totalClassificationTime += localClassificationTime;
+                    sumOfWeights += localSumOfWeights;
+                    errorStats[0] += localSumOfWeights-localCorrect;
+                    errorStats[1] += localSumOfWeights;
+
+                    for (ClassificationScore score : localScores)
+                        scoresToUpdate.get(score).addResults(score);
                 }
-                if(trueCat == result.mostLikely())
-                    localCorrect += dp.getWeight();
-                localSumOfWeights += dp.getWeight();
+
+                latch.countDown();
             }
-            
-            synchronized(confusionMatrix)
+            catch (Exception ex)
             {
-                totalClassificationTime += localClassificationTime;
-                sumOfWeights += localSumOfWeights;
-                errorStats[0] += localSumOfWeights-localCorrect;
-                errorStats[1] += localSumOfWeights;
+                ex.printStackTrace();
             }
-            latch.countDown();
         }
-        
+
     }
 
     /**
@@ -344,6 +425,22 @@ public class ClassificationModelEvaluation
             System.out.printf(pfx+"f\n", confusionMatrix[i][classCount-1]);
         }
 
+    }
+    
+    /**
+     * Prints out the classification information in a convenient format. If no
+     * additional scores were added via the 
+     * {@link #addScorer(jsat.classifiers.evaluations.ClassificationScore) }
+     * method, nothing will be printed. 
+     */
+    public void prettyPrintClassificationScores()
+    {
+        int nameLength = 10;
+        for(Entry<ClassificationScore, OnLineStatistics> entry : scoreMap.entrySet())
+            nameLength = Math.max(nameLength, entry.getKey().getName().length()+2);
+        final String pfx = "%-" + nameLength;//prefix
+        for(Entry<ClassificationScore, OnLineStatistics> entry : scoreMap.entrySet())
+            System.out.printf(pfx+"s %-5f (%-5f)\n", entry.getKey().getName(), entry.getValue().getMean(), entry.getValue().getStandardDeviation());
     }
     
     /**

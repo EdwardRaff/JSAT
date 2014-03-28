@@ -9,11 +9,15 @@ import jsat.classifiers.ClassificationDataSet;
 import jsat.classifiers.ClassificationModelEvaluation;
 import jsat.classifiers.Classifier;
 import jsat.classifiers.DataPoint;
+import jsat.classifiers.evaluation.Accuracy;
+import jsat.classifiers.evaluation.ClassificationScore;
 import jsat.exceptions.FailedToFitException;
 import jsat.exceptions.UntrainedModelException;
 import jsat.regression.RegressionDataSet;
 import jsat.regression.RegressionModelEvaluation;
 import jsat.regression.Regressor;
+import jsat.regression.evaluation.MeanSquaredError;
+import jsat.regression.evaluation.RegressionScore;
 import jsat.utils.DoubleList;
 import jsat.utils.FakeExecutor;
 
@@ -37,6 +41,9 @@ public class GridSearch implements Classifier, Regressor
 {
     private Classifier baseClassifier;
     private Classifier trainedClassifier;
+    
+    private ClassificationScore classificationTargetScore = new Accuracy();  
+    private RegressionScore regressionTargetScore = new MeanSquaredError(true);
     
     private Regressor baseRegressor;
     private Regressor trainedRegressor;
@@ -236,6 +243,48 @@ public class GridSearch implements Classifier, Regressor
     {
         return trainedRegressor;
     }
+
+    /**
+     * Sets the score to attempt to optimize when performing grid search on a
+     * classification problem. 
+     * @param classifierTargetScore the score to optimize via grid search
+     */
+    public void setClassificationTargetScore(ClassificationScore classifierTargetScore)
+    {
+        this.classificationTargetScore = classifierTargetScore;
+    }
+
+    /**
+     * Returns the classification score that is trying to be optimized via 
+     * grid search
+     * @return the classification score that is trying to be optimized via 
+     * grid search
+     */
+    public ClassificationScore getClassificationTargetScore()
+    {
+        return classificationTargetScore;
+    }
+
+    /**
+     * Sets the score to attempt to optimize when performing grid search on a
+     * regression problem. 
+     * @param regressionTargetScore 
+     */
+    public void setRegressionTargetScore(RegressionScore regressionTargetScore)
+    {
+        this.regressionTargetScore = regressionTargetScore;
+    }
+
+    /**
+     * Returns the regression score that is trying to be optimized via 
+     * grid search
+     * @return the regression score that is trying to be optimized via 
+     * grid search
+     */
+    public RegressionScore getRegressionTargetScore()
+    {
+        return regressionTargetScore;
+    }
     
     
     @Override
@@ -256,7 +305,10 @@ public class GridSearch implements Classifier, Regressor
             @Override
             public int compare(RegressionModelEvaluation t, RegressionModelEvaluation t1)
             {
-                return Double.compare(t.getMeanError(), t1.getMeanError());
+                double v0 = t.getScoreStats(regressionTargetScore).getMean();
+                double v1 = t1.getScoreStats(regressionTargetScore).getMean();
+                int order = regressionTargetScore.lowerIsBetter() ? 1 : -1;
+                return order*Double.compare(v0, v1);
             }
         });
 
@@ -283,11 +335,12 @@ public class GridSearch implements Classifier, Regressor
                 @Override
                 public void run()
                 {
-                    RegressionModelEvaluation cme = new RegressionModelEvaluation(toTrain, dataSet);
-                    cme.evaluateCrossValidation(folds);
+                    RegressionModelEvaluation rme = new RegressionModelEvaluation(toTrain, dataSet);
+                    rme.addScorer(regressionTargetScore.clone());
+                    rme.evaluateCrossValidation(folds);
                     synchronized(bestModels)
                     {
-                        bestModels.add(cme);
+                        bestModels.add(rme);
                     }
                     
                     latch.countDown();
@@ -335,7 +388,10 @@ public class GridSearch implements Classifier, Regressor
             @Override
             public int compare(ClassificationModelEvaluation t, ClassificationModelEvaluation t1)
             {
-                return Double.compare(t.getErrorRate(), t1.getErrorRate());
+                double v0 = t.getScoreStats(classificationTargetScore).getMean();
+                double v1 = t1.getScoreStats(classificationTargetScore).getMean();
+                int order = classificationTargetScore.lowerIsBetter() ? 1 : -1;
+                return order*Double.compare(v0, v1);
             }
         });
 
@@ -363,6 +419,7 @@ public class GridSearch implements Classifier, Regressor
                 public void run()
                 {
                     ClassificationModelEvaluation cme = new ClassificationModelEvaluation(toTrain, dataSet);
+                    cme.addScorer(classificationTargetScore.clone());
                     cme.evaluateCrossValidation(folds);
                     synchronized(bestModels)
                     {
@@ -413,7 +470,8 @@ public class GridSearch implements Classifier, Regressor
     public GridSearch clone()
     {
         GridSearch clone = new GridSearch(baseClassifier.clone(), folds);
-        
+        clone.classificationTargetScore = this.classificationTargetScore.clone();
+        clone.regressionTargetScore = this.regressionTargetScore.clone();
         if(searchParams != null)
             for(Parameter dp : searchParams)
             {

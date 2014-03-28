@@ -1,8 +1,14 @@
 package jsat.regression;
 
 import static java.lang.Math.*;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Random;
+import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.logging.Level;
@@ -11,6 +17,7 @@ import jsat.classifiers.*;
 import jsat.datatransform.DataTransformProcess;
 import jsat.exceptions.UntrainedModelException;
 import jsat.math.OnLineStatistics;
+import jsat.regression.evaluation.RegressionScore;
 import jsat.utils.SystemInfo;
 
 /**
@@ -35,6 +42,8 @@ public class RegressionModelEvaluation
     private long totalTrainingTime = 0, totalClassificationTime = 0;
     
     private DataTransformProcess dtp;
+    
+    private Map<RegressionScore, OnLineStatistics> scoreMap;
 
     /**
      * Creates a new RegressionModelEvaluation that will perform parallel training. 
@@ -48,6 +57,8 @@ public class RegressionModelEvaluation
         this.dataSet = dataSet;
         this.threadpool = threadpool;
         this.dtp =new DataTransformProcess();
+        
+        scoreMap = new LinkedHashMap<RegressionScore, OnLineStatistics>();
     }
     
     /**
@@ -131,11 +142,20 @@ public class RegressionModelEvaluation
             regressor.train(trainSet);            
         totalTrainingTime += (System.currentTimeMillis() - startTrain);
         
+        //place to store the scores that may get updated by several threads
+        final Map<RegressionScore, RegressionScore> scoresToUpdate = new HashMap<RegressionScore, RegressionScore>();
+        for(Entry<RegressionScore, OnLineStatistics> entry : scoreMap.entrySet())
+        {
+            RegressionScore score = entry.getKey().clone();
+            score.prepare();
+            scoresToUpdate.put(score, score);
+        }
+        
         CountDownLatch latch;
         if(testSet.getSampleSize() < SystemInfo.LogicalCores || threadpool == null)
         {
             latch = new CountDownLatch(1);
-            new Evaluator(testSet, curProccess, 0, testSet.getSampleSize(), latch).run();
+            new Evaluator(testSet, curProccess, 0, testSet.getSampleSize(), scoresToUpdate, latch).run();
         }
         else//go parallel!
         {
@@ -149,7 +169,7 @@ public class RegressionModelEvaluation
                 int end = start+blockSize;
                 if(extra-- > 0)
                     end++;
-                threadpool.submit(new Evaluator(testSet, curProccess, start, end, latch));
+                threadpool.submit(new Evaluator(testSet, curProccess, start, end, scoresToUpdate, latch));
                 start = end;
             }
         }
@@ -163,6 +183,40 @@ public class RegressionModelEvaluation
         }
     }
     
+    /**
+     * Adds a new score object that will be used as part of the evaluation when 
+     * calling {@link #evaluateCrossValidation(int, java.util.Random) } or 
+     * {@link #evaluateTestSet(jsat.regression.RegressionDataSet) }. The 
+     * statistics for the given score are reset on every call, and the mean / 
+     * standard deviation comes from multiple folds in cross validation. <br>
+     * <br>
+     * The score statistics can be obtained from 
+     * {@link #getScoreStats(jsat.regression.evaluation.RegressionScore) }
+     * after one of the evaluation methods have been called. 
+     * 
+     * @param scorer the score method to keep track of. 
+     */
+    public void addScorer(RegressionScore scorer)
+    {
+        scoreMap.put(scorer, new OnLineStatistics());
+    }
+    
+    /**
+     * Gets the statistics associated with the given score. If the score is not
+     * currently in the model evaluation {@code null} will be returned. The 
+     * object passed in does not need to be the exact same object passed to 
+     * {@link #addScorer(jsat.regression.evaluation.RegressionScore) },
+     * it only needs to be equal to the object. 
+     * 
+     * @param score the score type to get the result statistics
+     * @return the result statistics for the given score, or {@code null} if the 
+     * score is not in th evaluation set
+     */
+    public OnLineStatistics getScoreStats(RegressionScore score)
+    {
+        return scoreMap.get(score);
+    }
+    
     private class Evaluator implements Runnable
     {
         RegressionDataSet testSet;
@@ -170,8 +224,9 @@ public class RegressionModelEvaluation
         int start, end;
         CountDownLatch latch;
         long localPredictionTime;
+        final Map<RegressionScore, RegressionScore> scoresToUpdate;
 
-        public Evaluator(RegressionDataSet testSet, DataTransformProcess curProccess, int start, int end, CountDownLatch latch)
+        public Evaluator(RegressionDataSet testSet, DataTransformProcess curProccess, int start, int end, Map<RegressionScore, RegressionScore> scoresToUpdate, CountDownLatch latch)
         {
             this.testSet = testSet;
             this.curProccess = curProccess;
@@ -179,34 +234,68 @@ public class RegressionModelEvaluation
             this.end = end;
             this.latch = latch;
             localPredictionTime = 0;
+            this.scoresToUpdate = scoresToUpdate;
         }
 
         @Override
         public void run()
         {
-            for(int i = start; i < end; i++)
+            try
             {
-                DataPoint di = testSet.getDataPoint(i);
-                double trueVal = testSet.getTargetValue(i);
-                DataPoint tranDP = curProccess.transform(di);
-                long startTime = System.currentTimeMillis();
-                double predVal = regressor.regress(tranDP);
-                localPredictionTime += (System.currentTimeMillis() - startTime);
-
-                double sqrdError = pow(trueVal-predVal, 2);
-
-                synchronized(sqrdErrorStats)
+                //create a local set of scores to update
+                Set<RegressionScore> localScores = new HashSet<RegressionScore>();
+                for (Entry<RegressionScore, RegressionScore> entry : scoresToUpdate.entrySet())
+                    localScores.add(entry.getKey().clone());
+                for (int i = start; i < end; i++)
                 {
-                    sqrdErrorStats.add(sqrdError, di.getWeight());
+                    DataPoint di = testSet.getDataPoint(i);
+                    double trueVal = testSet.getTargetValue(i);
+                    DataPoint tranDP = curProccess.transform(di);
+                    long startTime = System.currentTimeMillis();
+                    double predVal = regressor.regress(tranDP);
+                    localPredictionTime += (System.currentTimeMillis() - startTime);
+
+                    double sqrdError = pow(trueVal - predVal, 2);
+                    
+                    for (RegressionScore score : localScores)
+                        score.addResult(predVal, trueVal, di.getWeight());
+
+                    synchronized (sqrdErrorStats)
+                    {
+                        sqrdErrorStats.add(sqrdError, di.getWeight());
+                    }
                 }
+                
+                synchronized (sqrdErrorStats)
+                {
+                    totalClassificationTime += localPredictionTime;
+                    for (RegressionScore score : localScores)
+                        scoresToUpdate.get(score).addResults(score);
+                }
+                latch.countDown();
             }
-            synchronized(sqrdErrorStats)
+            catch (Exception ex)
             {
-                totalClassificationTime += localPredictionTime;
+                ex.printStackTrace();
             }
-            latch.countDown();
         }
         
+    }
+    
+    /**
+     * Prints out the classification information in a convenient format. If no
+     * additional scores were added via the 
+     * {@link #addScorer(jsat.classifiers.evaluations.ClassificationScore) }
+     * method, nothing will be printed. 
+     */
+    public void prettyPrintRegressionScores()
+    {
+        int nameLength = 10;
+        for(Entry<RegressionScore, OnLineStatistics> entry : scoreMap.entrySet())
+            nameLength = Math.max(nameLength, entry.getKey().getName().length()+2);
+        final String pfx = "%-" + nameLength;//prefix
+        for(Entry<RegressionScore, OnLineStatistics> entry : scoreMap.entrySet())
+            System.out.printf(pfx+"s %-5f (%-5f)\n", entry.getKey().getName(), entry.getValue().getMean(), entry.getValue().getStandardDeviation());
     }
     
     /**
