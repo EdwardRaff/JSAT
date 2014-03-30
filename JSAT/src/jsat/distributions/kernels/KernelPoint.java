@@ -632,17 +632,29 @@ public class KernelPoint
     /**
      * Gets the minimum of H in [0, 1] the for RBF merging<br>
      * a<sub>m</sub>k<sub>mn</sub><sup>(1-h)^2</sup> + a<sub>n</sub>k<sub>mn</sub><sup>h^2</sup>
-     * <br>
-     * THIS METHOD IS A BOTTLE NECK, so it has some optimization hacks
+     * <br>. 
+     * THIS METHOD IS A BOTTLE NECK, so it has some optimization hacks<br>
+     * Only one of the coefficients can be negative. 
      * @param k_mn the shared kernel value on both halves of the equation
-     * @param a_m
-     * @param a_n
-     * @return 
+     * @param a_m the first coefficient
+     * @param a_n the second coefficient
+     * @return the value of h that maximizes the response
      */
     protected static double getH(final double k_mn, final double a_m, final double a_n)
     {
         if(a_m == a_n)
             return 0.5;
+        
+        final Function f = new FunctionBase()
+        {
+            @Override
+            public double f(Vec x)
+            {
+                final double h = x.get(0);
+                //negative to maximize isntead of minimize
+                return -(a_m * pow(k_mn, (1 - h) * (1 - h)) + a_n * pow(k_mn, h * h));
+            }
+        };
         
         /*
          * Only a few iterations of golden search are done. Often the exact min 
@@ -652,46 +664,20 @@ public class KernelPoint
          */
         /*
          * if one is pos and the other is negative, the minimum value is going 
-         * to be at 0 or 1 b/c it becomes a slope instead of a curve, so give a
-         * tiny result
+         * to be near 0 or 1
          */
         if(Math.signum(a_m) != Math.signum(a_n))
             if(a_m < 0)//we give a 
-                return 1e-6;
+                return GoldenSearch.minimize(1e-3, 100, 0.0, 0.2, 0, f, 0.0);
             else if(a_n < 0)
-                return 1-1e-6;
+                return GoldenSearch.minimize(1e-3, 100, 0.8, 1.0, 0, f, 0.0);
         
-        final Function f = new FunctionBase()
-        {
-            @Override
-            public double f(Vec x)
-            {
-                final double h = x.get(0);
-                return (a_m * pow(k_mn, (1 - h) * (1 - h))
-                        + a_n * pow(k_mn, h * h));
-            }
-        };
-        if(a_m > 0)//both are positve, lets cheat!
-        {
-            final double big = max(a_m, a_n);
-            final double small = min(a_m, a_n);
-            final double ratio = big/small;
-            //shouldn't need as many steps since we can narrow down the starting point
-            if(ratio < 4)
-                return 1-GoldenSearch.minimize(1e-3, 4, .3, 0.7, 0, f, 0.0);
-            else if(a_m < a_n)
-                return 1-GoldenSearch.minimize(1e-3, 4, 0.0, 0.4, 0, f, 0.0);
-            else
-                return 1-GoldenSearch.minimize(1e-3, 4, 0.6, 1.0, 0, f, 0.0);
+        
+        if(a_m > a_n)
+            return GoldenSearch.minimize(1e-3, 100, 0.5, 1.0, 0, f, 0.0);
+        else
+            return GoldenSearch.minimize(1e-3, 100, 0.0, 0.5, 0, f, 0.0);
             
-        }
-        //negative, shape is weird and confuses me - not well describted in paper
-        //maximize h, but it uses (1-h) and (h), so by minimizing we get the max as (1-h)
-        double h = Double.NaN;
-        h = 1 - (log(k_mn) - log(-a_n / a_m)) / (2 * log(k_mn));//analyitic root, if the root exists then no need to search
-        if (Double.isInfinite(h) || Double.isNaN(h))
-            h = 1 - GoldenSearch.minimize(1e-3, 5, .00, 1.00, 0, f, 0.0);
-        return h;
     }
     
     /**
