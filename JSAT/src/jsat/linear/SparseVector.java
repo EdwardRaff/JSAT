@@ -48,11 +48,22 @@ public class SparseVector extends  Vec
     private Double minCache = null;
     private Double maxCache = null;
     
+    /**
+     * Creates a new sparse vector of the given length that is all zero values. 
+     * 
+     * @param length the length of the sparse vector
+     */
     public SparseVector(int length)
     {
         this(length, 10);
     }
 
+    /**
+     * Creates a new sparse vector of the same length as {@code vals} and sets 
+     * each value to the values in the list. 
+     * 
+     * @param vals the list of values to create a vector from
+     */
     public SparseVector(List<Double> vals)
     {
         this(vals.size());
@@ -70,15 +81,51 @@ public class SparseVector extends  Vec
             }
     }
     
+    /**
+     * Creates a new sparse vector of the specified length, and pre-allocates 
+     * enough internal state to hold {@code capacity} non zero values. The 
+     * vector itself will start out with all zero values. 
+     * 
+     * @param length the length of the sparse vector
+     * @param capacity the number of non zero values to allocate space for
+     */
     public SparseVector(int length, int capacity)
     {
+        this(new int[capacity], new double[capacity], length, 0);
+    }
+    
+    /**
+     * Creates a new sparse vector backed by the given arrays. Modifying the 
+     * arrays will modify the vector, and no validation will be done. This 
+     * constructor should only be used in performance necessary scenarios<br>
+     * To make sure the input values are valid, the {@code indexes } values must
+     * be increasing and all values less than {@code length} and greater than 
+     * {@code -1} up to the first {@code used} indices.<br>
+     * All the values stored in {@code values} must be non zero and can not be a 
+     * special value. <br>
+     * {@code used} must be greater than -1 and less than the length of the 
+     * {@code indexes} and {@code values} arrays. <br>
+     * The {@code indexes} and {@code values} arrays must be the exact same 
+     * length
+     * 
+     * @param indexes the array to store the index locations in
+     * @param values the array to store the index values in
+     * @param length the length of the sparse vector 
+     * @param used the number of non zero values in the vector taken from the 
+     * given input arrays. 
+     */
+    public SparseVector(int[] indexes, double[] values, int length, int used)
+    {
+        if(values.length != indexes.length)
+            throw new IllegalArgumentException();
+        if(used < 0 || used > length || used > values.length)
+            throw new IllegalArgumentException();
         if(length <= 0)
-            throw new ArithmeticException("Vector must have a positive dimension");
-        this.used = 0;
-        capacity = Math.max(capacity, 10);
+            throw new IllegalArgumentException();
+        this.used = used;
         this.length = length;
-        this.indexes = new int[capacity];
-        this.values = new double[capacity];
+        this.indexes = indexes;
+        this.values = values;
     }
     
     /**
@@ -204,7 +251,7 @@ public class SparseVector extends  Vec
         else if(val != 0)//dont insert 0s, that is stupid
             insertValue(insertLocation, index, val);
     }
-
+    
     /**
      * Takes the negative insert location value returned by {@link Arrays#binarySearch(int[], int, int, int) } 
      * and adjust the vector to add the given value into this location. Should only be called with negative 
@@ -735,7 +782,7 @@ public class SparseVector extends  Vec
             throw new ArithmeticException("Vectors must have the same length");
         clearCaches();
         
-        for(int i = 0; i < used; i++)
+            for(int i = 0; i < used; i++)
             values[i] /= b.get(indexes[i]);//zeros stay zero
     }
     
@@ -855,6 +902,8 @@ public class SparseVector extends  Vec
     @Override
     public Iterator<IndexValue> getNonZeroIterator(final int start)
     {
+        if(used <= 0)
+            return Collections.EMPTY_LIST.iterator();
         final int startPos;
         if(start <= indexes[0])
             startPos = 0;
