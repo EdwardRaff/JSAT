@@ -1,6 +1,9 @@
 package jsat.math;
 
 import static java.lang.Double.*;
+import static java.lang.Math.PI;
+import static java.lang.Math.tan;
+import static jsat.math.SpecialMath.digamma;
 
 /**
  * This class contains fast implementations of many of the methods located in 
@@ -33,6 +36,17 @@ public class FastMath
         return (bits & 0x7ff0000000000000L) >> 52;
     }
 
+    private static final double logConst = Math.log(2);
+    
+    /**
+     * Computes the natural logarithm of the input
+     * @param x the input
+     * @return log<sub>e</sub>(x)
+     */
+    public static double log(double x)
+    {
+        return logConst*log2(x);
+    }
     
     /**
      * Computes log<sub>2</sub>(x)
@@ -170,5 +184,43 @@ public class FastMath
 
         //we end up with 2^(b * log_2(m)) * 2^(b * e), which we can reduce to a single pow2 call
         return pow2(b * log2m + b * e_a);//fun fact, double*int is faster than casting an int to a double...
+    }
+    
+    private static final double expPowConst = 1.0/Math.log(2);
+    
+    /**
+     * Exponentiates the given input value
+     * @param x the input
+     * @return e<sup>x</sup>
+     */
+    public static double exp(double x)
+    {
+        return pow2(expPowConst*x);
+    }
+    
+    /**
+     * Computes the digamma function of the input
+     * @param x the input value
+     * @return &psi;(x)
+     */
+    public static double digamma(double x)
+    {
+        if(x == 0)
+            return Double.NaN;//complex infinity
+        else if(x < 0)//digamma(1-x) == digamma(x)+pi/tan(pi*x), to make x positive
+        {
+            if(Math.rint(x) == x)
+                return Double.NaN;//the zeros are complex infinity
+            return digamma(1-x)-PI/tan(PI*x); 
+        }
+        
+        /*
+         * shift over 2 values to the left and use truncated approximation 
+         * log(x+2)-1/(2 (x+2))-1/(12 (x+2)^2) -1/x-1/(x+1), 
+         * the x+2 and x and x+1 are grouped sepratly 
+         */
+        double xp2 = x+2;
+        
+        return log(xp2)-(6*x+13)/(12*xp2*xp2)-(2*x+1)/(x*x+x);
     }
 }

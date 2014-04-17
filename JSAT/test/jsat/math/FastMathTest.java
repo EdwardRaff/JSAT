@@ -151,4 +151,58 @@ public class FastMathTest
         Collections.sort(relErrs);
         assertTrue(relErrs.get((int) (trials*.95)) <= 1e-3);
     }
+
+    /**
+     * Test of log method, of class FastMath.
+     */
+    @Test
+    public void testLog()
+    {
+        System.out.println("log");
+        DoubleList relErrs = new DoubleList();
+        int trials = 10000;
+        for(int i = 0; i < trials; i++)
+        {
+            double x = rand.nextDouble()*20+1e-15;
+            relErrs.add(relErr(Math.log(x), FastMath.log(x)));
+        }
+        Collections.sort(relErrs);
+        assertTrue(relErrs.get((int) (trials*.95)) <= 1e-3);
+    }
+
+    /**
+     * Test of exp method, of class FastMath.
+     */
+    @Test
+    public void testExp()
+    {
+        System.out.println("exp");
+        DoubleList relErrs = new DoubleList();
+        int trials = 10000;
+        for(int i = 0; i < trials; i++)
+        {
+            double x = rand.nextDouble()*50-25;
+            relErrs.add(relErr(Math.exp(x), FastMath.exp(x)));
+        }
+        Collections.sort(relErrs);
+        assertTrue(relErrs.get((int) (trials*.95)) <= 1e-3);
+    }
+
+    /**
+     * Test of digamma method, of class FastMath.
+     */
+    @Test
+    public void testDigamma()
+    {
+        System.out.println("digamma");
+        DoubleList relErrs = new DoubleList();
+        int trials = 10000;
+        for(int i = 0; i < trials; i++)
+        {
+            double x = rand.nextDouble()*50;
+            relErrs.add(relErr(SpecialMath.digamma(x), FastMath.digamma(x)));
+        }
+        Collections.sort(relErrs);
+        assertTrue(relErrs.get((int) (trials*.95)) <= 1e-3);
+    }
 }
