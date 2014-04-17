@@ -8,7 +8,9 @@ import java.util.List;
  *
  * A simple tokenizer. It converts everything to lower case, and splits on white
  * space. Anything that is not a letter, digit, or space, is treated as white 
- * space. This behavior can be altered slightly <br>
+ * space. This behavior can be altered slightly, and allows for setting a 
+ * minimum and maximum allowed length for tokens. This can be useful when 
+ * dealing with noisy documents, and removing small words. <br>
  * 
  * @author Edward Raff
  */
@@ -16,6 +18,9 @@ public class NaiveTokenizer implements Tokenizer
 {   
     private boolean useLowerCase;
     private boolean otherToWhiteSpace = true;
+    private boolean noDigits = false;
+    private int minTokenLength = 1;
+    private int maxTokenLength = Integer.MAX_VALUE;
 
     /**
      * Creates a new naive tokenizer that converts words to lower case
@@ -104,17 +109,93 @@ public class NaiveTokenizer implements Tokenizer
                     workSpace.append(Character.toLowerCase(c));
                 else
                     workSpace.append(c);
-            else if (Character.isDigit(c))
+            else if (!noDigits && Character.isDigit(c))
                 workSpace.append(c);
-            else if((Character.isWhitespace(c) || otherToWhiteSpace) && workSpace.length() > 0)
+            else if(!otherToWhiteSpace && !Character.isWhitespace(c))
+                continue;
+            else //end of token
             {
-                storageSpace.add(workSpace.toString());
+                if(workSpace.length() >= minTokenLength && workSpace.length() <= maxTokenLength)
+                    storageSpace.add(workSpace.toString());
                 workSpace.setLength(0);
             }
         }
         
-        if(workSpace.length() > 0)
+        if(workSpace.length() >= minTokenLength && workSpace.length() <= maxTokenLength)
             storageSpace.add(workSpace.toString());
+    }
+
+    /**
+     * Sets the maximum allowed length for any token. Any token discovered 
+     * exceeding the length will not be accepted and skipped over. The default 
+     * is unbounded. 
+     * 
+     * @param maxTokenLength the maximum token length to accept as a valid token
+     */
+    public void setMaxTokenLength(int maxTokenLength)
+    {
+        if(maxTokenLength < 1)
+            throw new IllegalArgumentException("Max token length must be positive, not " + maxTokenLength);
+        if(maxTokenLength <= minTokenLength)
+            throw new IllegalArgumentException("Max token length must be larger than the min token length");
+        this.maxTokenLength = maxTokenLength;
+    }
+
+    /**
+     * Returns the maximum allowed token length
+     * @return the maximum allowed token length
+     */
+    public int getMaxTokenLength()
+    {
+        return maxTokenLength;
+    }
+
+    /**
+     * Sets the minimum allowed token length. Any token discovered shorter than 
+     * the minimum length will not be accepted and skipped over. The default 
+     * is 0. 
+     * @param minTokenLength the minimum length for a token to be used 
+     */
+    public void setMinTokenLength(int minTokenLength)
+    {
+        if(minTokenLength < 0)
+            throw new IllegalArgumentException("Minimum token length must be non negative, not " + minTokenLength);
+        if(minTokenLength > maxTokenLength)
+            throw new IllegalArgumentException("Minimum token length can not exced the maximum token length");
+        this.minTokenLength = minTokenLength;
+    }
+
+    /**
+     * Returns the minimum allowed token length
+     * @return the maximum allowed token length
+     */
+    public int getMinTokenLength()
+    {
+        return minTokenLength;
+    }
+
+    /**
+     * Sets whether digits will be accepted in tokens or treated as "other" (not
+     * white space and not character). <br>
+     * The default it to allow digits.
+     * 
+     * @param noDigits {@code true} to disallow numeric digits, {@code false} to 
+     * allow digits. 
+     */
+    public void setNoDigits(boolean noDigits)
+    {
+        this.noDigits = noDigits;
+    }
+
+    /**
+     * Returns {@code true} if digits are not allowed in tokens, {@code false} 
+     * otherwise. 
+     * @return {@code true} if digits are not allowed in tokens, {@code false} 
+     * otherwise.
+     */
+    public boolean isNoDigits()
+    {
+        return noDigits;
     }
     
 }
