@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.Random;
 import jsat.classifiers.linear.kernelized.Projectron;
 import jsat.linear.*;
+import jsat.math.FastMath;
 import jsat.math.Function;
 import jsat.math.FunctionBase;
 import jsat.math.optimization.GoldenSearch;
@@ -652,7 +653,12 @@ public class KernelPoint
             {
                 final double h = x.get(0);
                 //negative to maximize isntead of minimize
-                return -(a_m * pow(k_mn, (1 - h) * (1 - h)) + a_n * pow(k_mn, h * h));
+                /*
+                 * We aren't solving to a super high degree of accuracy anyway, 
+                 * so use an approximate pow. Its impact is only noticible for 
+                 * very small budget sizes
+                 */
+                return -(a_m * FastMath.pow(k_mn, (1 - h) * (1 - h)) + a_n * FastMath.pow(k_mn, h * h));
             }
         };
         
