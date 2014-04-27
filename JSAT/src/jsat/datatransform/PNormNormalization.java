@@ -78,7 +78,7 @@ public class PNormNormalization implements InPlaceTransform
          */
         public PNormNormalizationFactory(PNormNormalizationFactory toCopy)
         {
-            this.p = p;
+            this.p = toCopy.p;
         }
 
         /**
