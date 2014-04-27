@@ -164,7 +164,7 @@ public class DataModelPipeline implements Classifier, Regressor, Parameterized
         dataSet = dataSet.shallowClone();//dont want to actually edit the data set they gave us
         learnedDtp.learnApplyTransforms(dataSet);
         
-        learnedRegressor = learnedRegressor.clone();
+        learnedRegressor = baseRegressor.clone();
         if(threadPool == null)
             learnedRegressor.train(dataSet);
         else
