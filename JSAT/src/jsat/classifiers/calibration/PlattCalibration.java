@@ -3,7 +3,7 @@ package jsat.classifiers.calibration;
 
 import jsat.classifiers.CategoricalResults;
 import jsat.classifiers.DataPoint;
-import static java.lang.Math.*;
+import static jsat.math.FastMath.*;
 import jsat.classifiers.calibration.BinaryCalibration.CalibrationMode;
 
 /**
@@ -117,7 +117,7 @@ public class PlattCalibration extends BinaryCalibration
                 g2 += d1;
             }
             
-            if (abs(g1)<1e-5 && abs(g2)<1e-5) //Stopping criteria
+            if (Math.abs(g1)<1e-5 && Math.abs(g2)<1e-5) //Stopping criteria
                 break;
             //Compute modified Newton directions
             double det = h11 * h22 - h21 * h21;
