@@ -12,6 +12,12 @@ public class NoDecay implements DecayRate
     @Override
     public double rate(double time, double maxTime, double initial)
     {
+        return rate(time, initial);
+    }
+    
+    @Override
+    public double rate(double time, double initial)
+    {
         if(time < 0)
             throw new ArithmeticException("Negative time value given");
         return initial;

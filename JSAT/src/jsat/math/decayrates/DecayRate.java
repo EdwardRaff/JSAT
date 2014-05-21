@@ -14,16 +14,23 @@ import java.io.Serializable;
 public interface DecayRate extends Serializable
 {
     /**
-     * Decays the initial value. The value returned will be a value in the range
-     * (0, <tt>initial</tt>]. It will always be non zero, though it may be very 
-     * small in the edges of the algorithm. 
+     * Decays the initial value over time. 
      * 
      * @param time the current time through the algorithm in the range 
      * [0, <tt>maxTime</tt>]
-     * @param maxTime the maximum amount of time that can be progressed
+     * @param maxTime the maximum time step that will be seen
      * @param initial the initial value 
      * @return the decayed value over time of the <tt>initial</tt> value
      * @throws ArithmeticException if the time is negative
      */
     public double rate(double time, double maxTime, double initial);
+    
+    /**
+     * Decays the initial value over time. 
+     * 
+     * @param time the current time step to return a value for
+     * @param initial the initial learning rate
+     * @return the decayed value 
+     */
+    public double rate(double time, double initial);
 }

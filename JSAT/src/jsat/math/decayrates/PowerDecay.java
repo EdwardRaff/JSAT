@@ -1,59 +1,56 @@
 package jsat.math.decayrates;
 
 import java.util.List;
-import jsat.classifiers.svm.Pegasos;
+import jsat.math.FastMath;
 import jsat.parameters.Parameter;
 import jsat.parameters.Parameterized;
 
 /**
  *
- * Decays an input by the inverse of the amount of time that has occurred, the 
+ * Decays an input by power of the amount of time that has occurred, the 
  * max time being irrelevant. More specifically as 
- * &eta; / ({@link #setAlpha(double) &alpha;}({@link #setTau(double) &tau;} + time))<br>
+ * &eta; ({@link #setTau(double) &tau;} + time)<sup>-{@link #setAlpha(double) &alpha;}</sup><br>
  * <br>
- * This decay rate can be used to create the same rate used by {@link Pegasos}, 
- * by using an initial rate of 1 and setting &tau; = 1 and &alpha; = &lambda;, 
- * where &lambda; is the regularization term used by the method calling the 
- * decay rate. 
+ * {@link InverseDecay} is a special case of this decay when &alpha;=1. <br>
+ * {@link NoDecay} is a special case of this decay when &alpha; = 0 <br>
  * 
  * @author Edward Raff
  */
-public class InverseDecay implements DecayRate, Parameterized
+public class PowerDecay implements DecayRate, Parameterized
 {
     private double tau;
     private double alpha;
 
     /**
-     * Creates a new Inverse decay rate
+     * Creates a new Power decay rate
      * @param tau the initial time offset
      * @param alpha the time scaling 
      */
-    public InverseDecay(double tau, double alpha)
+    public PowerDecay(double tau, double alpha)
     {
         setTau(tau);
         setAlpha(alpha);
     }
 
     /**
-     * Creates a new Inverse Decay rate
+     * Creates a new Power Decay rate
      */
-    public InverseDecay()
+    public PowerDecay()
     {
-        this(1, 1);
+        this(10, 0.5);
     }
     
-    
-
     /**
-     * Controls the scaling of the divisor, increasing &alpha; dampens the 
-     * whole range of values. Increasing it increases the values.
-     * value.
-     * @param alpha the scaling parameter
+     * Controls the scaling via exponentiation, increasing &alpha; increases the
+     * rate at which the rate decays. As &alpha; goes to zero, the decay rate 
+     * goes toward zero (meaning the value returned becomes constant), 
+     * @param alpha the scaling parameter in [0, &infin;), but should generally 
+     * be kept in (0, 1). 
      */
     public void setAlpha(double alpha)
     {
-        if(alpha <= 0 || Double.isInfinite(alpha) || Double.isNaN(alpha))
-            throw new IllegalArgumentException("alpha must be a positive constant, not " + alpha);
+        if(alpha < 0 || Double.isInfinite(alpha) || Double.isNaN(alpha))
+            throw new IllegalArgumentException("alpha must be a non negative constant, not " + alpha);
         this.alpha = alpha;
     }
 
@@ -98,13 +95,13 @@ public class InverseDecay implements DecayRate, Parameterized
     @Override
     public double rate(double time, double initial)
     {
-        return initial/(alpha*(tau+time));
+        return initial * FastMath.pow(tau + time, -alpha);
     }
 
     @Override
     public String toString()
     {
-        return "Inverse Decay";
+        return "Power Decay";
     }
     
     @Override
