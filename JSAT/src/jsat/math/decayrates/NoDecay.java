@@ -24,6 +24,12 @@ public class NoDecay implements DecayRate
     }
 
     @Override
+    public DecayRate clone()
+    {
+        return new NoDecay();
+    }
+
+    @Override
     public String toString()
     {
         return "NoDecay";

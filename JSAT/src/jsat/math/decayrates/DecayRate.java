@@ -33,4 +33,6 @@ public interface DecayRate extends Serializable
      * @return the decayed value 
      */
     public double rate(double time, double initial);
+    
+    public DecayRate clone();
 }

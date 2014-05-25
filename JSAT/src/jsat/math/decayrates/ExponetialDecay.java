@@ -44,8 +44,8 @@ public class ExponetialDecay implements DecayRate, Parameterized
      */
     public ExponetialDecay(double min, double maxTime)
     {
-        this.min = min;
-        this.maxTime = maxTime;
+        setMinRate(min);
+        setMaxTime(maxTime);
     }
 
     /**
@@ -112,6 +112,12 @@ public class ExponetialDecay implements DecayRate, Parameterized
     public double rate(double time, double initial)
     {
         return rate(time, maxTime, initial);
+    }
+
+    @Override
+    public DecayRate clone()
+    {
+        return new ExponetialDecay(min, maxTime);
     }
 
     @Override

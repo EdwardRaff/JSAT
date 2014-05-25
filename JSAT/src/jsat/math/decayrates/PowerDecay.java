@@ -99,6 +99,12 @@ public class PowerDecay implements DecayRate, Parameterized
     }
 
     @Override
+    public DecayRate clone()
+    {
+        return new PowerDecay(tau, alpha);
+    }
+
+    @Override
     public String toString()
     {
         return "Power Decay";

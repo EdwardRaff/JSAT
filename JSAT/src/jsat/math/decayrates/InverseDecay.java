@@ -102,6 +102,12 @@ public class InverseDecay implements DecayRate, Parameterized
     }
 
     @Override
+    public DecayRate clone()
+    {
+        return new InverseDecay(tau, alpha);
+    }
+
+    @Override
     public String toString()
     {
         return "Inverse Decay";

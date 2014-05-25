@@ -104,6 +104,12 @@ public class LinearDecay implements DecayRate, Parameterized
     }
 
     @Override
+    public DecayRate clone()
+    {
+        return new LinearDecay(min, maxTime);
+    }
+
+    @Override
     public String toString()
     {
         return "Linear Decay";
