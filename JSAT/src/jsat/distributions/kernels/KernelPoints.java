@@ -355,6 +355,8 @@ public class KernelPoints
     public void mutableAdd(Vec x_t, Vec cs, final List<Double> qi)
     {
         int origSize = getBasisSize();
+        if(cs.nnz() == 0)
+            return;
         
         if(budgetStrategy == KernelPoint.BudgetStrategy.PROJECTION)
         {

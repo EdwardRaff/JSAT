@@ -257,9 +257,18 @@ public class KernelPoint
             sqrdNorm = 0;
             for(int i = 0; i < alpha.size(); i++)
             {
-                sqrdNorm += alpha.get(i)*alpha.get(i)*K.get(i, i);
-                for(int j = i+1; j < alpha.size(); j++)
-                    sqrdNorm += 2*alpha.get(i)*alpha.get(j)*K.get(i, j);
+                if(K != null)//we already know all the values of K
+                {
+                    sqrdNorm += alpha.get(i)*alpha.get(i)*K.get(i, i);
+                    for(int j = i+1; j < alpha.size(); j++)
+                        sqrdNorm += 2*alpha.get(i)*alpha.get(j)*K.get(i, j);
+                }
+                else//nope, compute as needed
+                {
+                    sqrdNorm += alpha.get(i)*alpha.get(i)*k.eval(i, i, vecs, kernelAccel);
+                    for(int j = i+1; j < alpha.size(); j++)
+                        sqrdNorm += 2*alpha.get(i)*alpha.get(j)*k.eval(i, j, vecs, kernelAccel);
+                }
             }
             normGood = true;
         }
@@ -405,6 +414,8 @@ public class KernelPoint
      */
     public void mutableAdd(double c, Vec x_t, final List<Double> qi)
     {
+        if(c == 0)
+            return;
         normGood = false;
         double y_t = c;
         final double k_tt = k.eval(0, 0, Arrays.asList(x_t), qi);
