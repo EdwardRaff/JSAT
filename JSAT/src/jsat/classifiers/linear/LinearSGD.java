@@ -1,6 +1,7 @@
 package jsat.classifiers.linear;
 
 import java.util.Arrays;
+import java.util.List;
 import java.util.concurrent.ExecutorService;
 import jsat.classifiers.BaseUpdateableClassifier;
 import jsat.classifiers.CategoricalData;
@@ -18,6 +19,8 @@ import jsat.lossfunctions.LossMC;
 import jsat.lossfunctions.LossR;
 import jsat.math.decayrates.DecayRate;
 import jsat.math.decayrates.PowerDecay;
+import jsat.parameters.Parameter;
+import jsat.parameters.Parameterized;
 import jsat.regression.BaseUpdateableRegressor;
 import jsat.regression.RegressionDataSet;
 import jsat.regression.UpdateableRegressor;
@@ -42,7 +45,7 @@ import jsat.regression.UpdateableRegressor;
  * </ul>
  * @author Edward Raff
  */
-public class LinearSGD extends BaseUpdateableClassifier implements UpdateableRegressor
+public class LinearSGD extends BaseUpdateableClassifier implements UpdateableRegressor, Parameterized
 {
     
     private LossFunc loss;
@@ -408,6 +411,18 @@ public class LinearSGD extends BaseUpdateableClassifier implements UpdateableReg
     public void train(RegressionDataSet dataSet)
     {
         BaseUpdateableRegressor.trainEpochs(dataSet, this, getEpochs());
+    }
+
+    @Override
+    public List<Parameter> getParameters()
+    {
+        return Parameter.getParamsFromMethods(this);
+    }
+
+    @Override
+    public Parameter getParameter(String paramName)
+    {
+        return Parameter.toParameterMap(getParameters()).get(paramName);
     }
     
 }
