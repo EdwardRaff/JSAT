@@ -26,7 +26,8 @@ public class FixedProblems
     
     /**
      * Generates a linearly separable binary classification problem
-     * @param dataSetSize the number of points to generate
+     * @param dataSetSize the number of points to generated
+     * @param rand the source of randomness 
      * @return a binary classification data set that is linearly separable
      */
     public static ClassificationDataSet get2ClassLinear(int dataSetSize, Random rand)
@@ -40,6 +41,29 @@ public class FixedProblems
         
         return train;
     }
+    
+    /**
+     * Generates a linearly separable multi class problem 
+     * @param dataSetSize the number of data points to generate per class
+     * @param K the number of classes to generate
+     * @param rand the source of randomness 
+     * @return a new multi class data set
+     */
+    public static ClassificationDataSet getSimpleKClassLinear(int dataSetSize, int K, Random rand)
+    {
+        ClassificationDataSet train = new ClassificationDataSet(K, new CategoricalData[0], new CategoricalData(K));
+        for(int k = 0; k < K; k++)
+        {
+            for(int i = 0; i <dataSetSize; i++)
+            {
+                Vec dv = DenseVector.random(K, rand);
+                dv.set(k, 10+rand.nextGaussian());
+                train.addDataPoint(dv, new int[0], k);
+            }
+        }
+        return train;
+    }
+    
     /**
      * Generates a regression problem that can be solved by linear regression methods
      * @param dataSetSize the number of data points to get
