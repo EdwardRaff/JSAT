@@ -300,6 +300,7 @@ public class LinearSGD extends BaseUpdateableClassifier implements UpdateableReg
             Vec pred = new DenseVector(ws.length);
             for(int i = 0; i < ws.length; i++)
                 pred.set(i, ws[i].dot(x)+bs[i]);
+            ((LossMC)loss).process(pred, pred);
             ((LossMC)loss).deriv(pred, pred, targetClass);
             for(IndexValue iv : pred)
             {
