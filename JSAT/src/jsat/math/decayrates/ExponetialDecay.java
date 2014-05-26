@@ -53,7 +53,7 @@ public class ExponetialDecay implements DecayRate, Parameterized
      */
     public ExponetialDecay()
     {
-        this(1-4);
+        this(1e-4);
     }
     
         /**
