@@ -18,6 +18,7 @@ public class LBFGS implements Optimizer2
     private int m;
     private int maxIterations;
     private LineSearch lineSearch;
+    private boolean inftNormCriterion = true;
 
     /**
      * Creates a new L-BFGS optimization object that uses a maximum of 500 
@@ -122,7 +123,7 @@ public class LBFGS implements Optimizer2
         double[] alphas = new double[m];
         int iter = 0;
         
-        while(x_grad.pNorm(2) > tolerance && iter < maxIterations)
+        while(gradConvgHelper(x_grad) > tolerance && iter < maxIterations)
         {
             //p_k = −H_k ∇f_k; (6.18)
             twoLoopHp(x_grad, Rho, S, Y, p_k, alphas);
@@ -165,11 +166,41 @@ public class LBFGS implements Optimizer2
                 Y.remove(m);
             }
             
-            
             iter++;
         }
         
         x_cur.copyTo(w);
+    }
+
+    /**
+     * By default the infinity norm is used to judge convergence. If set to 
+     * {@code false}, the 2 norm will be used instead. 
+     * @param inftNormCriterion 
+     */
+    public void setInftNormCriterion(boolean inftNormCriterion)
+    {
+        this.inftNormCriterion = inftNormCriterion;
+    }
+
+    /**
+     * Returns whether or not the infinity norm ({@code true}) or 2 norm 
+     * ({@code false}) is used to determine convergence. 
+     * @return {@code true} if the infinity norm is in use, {@code false} for 
+     * the 2 norm
+     */
+    public boolean isInftNormCriterion()
+    {
+        return inftNormCriterion;
+    }
+    
+    private double gradConvgHelper(Vec grad)
+    {
+        if(!inftNormCriterion)
+            return grad.pNorm(2);
+        double max = 0;
+        for(IndexValue iv : grad)
+            max = Math.max(max, Math.abs(iv.getValue()));
+        return max;
     }
 
     /**

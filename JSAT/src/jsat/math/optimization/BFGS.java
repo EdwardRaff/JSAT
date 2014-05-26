@@ -16,6 +16,7 @@ public class BFGS implements Optimizer2
 {
     private LineSearch lineSearch;
     private int maxIterations;
+    private boolean inftNormCriterion = true;
 
     /**
      * Creates a new BFGS optimization object that uses a maximum of 250 
@@ -68,7 +69,7 @@ public class BFGS implements Optimizer2
         x_grad = (ex != null) ? fp.f(x_cur, x_grad, ex) : fp.f(x_cur, x_grad);
        
         int iter = 0;
-        while(x_grad.pNorm(2) > tolerance && iter < maxIterations)
+        while(gradConvgHelper(x_grad) > tolerance && iter < maxIterations)
         {
             iter++;
             p_k.zeroOut();
@@ -135,6 +136,37 @@ public class BFGS implements Optimizer2
         }
         
         x_cur.copyTo(w);
+    }
+    
+    /**
+     * By default the infinity norm is used to judge convergence. If set to 
+     * {@code false}, the 2 norm will be used instead. 
+     * @param inftNormCriterion 
+     */
+    public void setInftNormCriterion(boolean inftNormCriterion)
+    {
+        this.inftNormCriterion = inftNormCriterion;
+    }
+
+    /**
+     * Returns whether or not the infinity norm ({@code true}) or 2 norm 
+     * ({@code false}) is used to determine convergence. 
+     * @return {@code true} if the infinity norm is in use, {@code false} for 
+     * the 2 norm
+     */
+    public boolean isInftNormCriterion()
+    {
+        return inftNormCriterion;
+    }
+    
+    private double gradConvgHelper(Vec grad)
+    {
+        if(!inftNormCriterion)
+            return grad.pNorm(2);
+        double max = 0;
+        for(IndexValue iv : grad)
+            max = Math.max(max, Math.abs(iv.getValue()));
+        return max;
     }
 
     @Override
