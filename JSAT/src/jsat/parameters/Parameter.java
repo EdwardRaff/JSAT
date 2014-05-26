@@ -231,7 +231,7 @@ public abstract class Parameter implements Serializable
                                 params.addAll(Parameter.getParamsFromMethods(paramHolderSub, subPreFix));
                             }
                         }
-                        else//search the item directly
+                        else if(paramHolder != null)//search the item directly
                         {
                             String subPreFix = paramHolder.getClass().getSimpleName() + "_";
 
