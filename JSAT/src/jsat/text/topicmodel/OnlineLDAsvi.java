@@ -1,6 +1,12 @@
 package jsat.text.topicmodel;
 
 import java.util.*;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import jsat.DataSet;
 import jsat.exceptions.FailedToFitException;
 import jsat.linear.DenseVector;
@@ -9,7 +15,14 @@ import jsat.linear.ScaledVector;
 import jsat.linear.SparseVector;
 import jsat.linear.Vec;
 import jsat.math.FastMath;
+import jsat.parameters.Parameter;
+import jsat.parameters.Parameterized;
 import jsat.utils.DoubleList;
+import jsat.utils.FakeExecutor;
+import jsat.utils.IntList;
+import jsat.utils.ListUtils;
+import jsat.utils.SystemInfo;
+import jsat.utils.concurrent.ParallelUtils;
 import jsat.utils.random.XOR96;
 import jsat.utils.random.XORWOW;
 
@@ -18,6 +31,36 @@ import jsat.utils.random.XORWOW;
  * for learning a topic model from a set of documents. This implementation is 
  * based on Stochastic Variational Inference and is meant for large collections 
  * (more than 100,000 data points) and can learn in an online fashion. <br>
+ * <br>
+ * For LDA it is common to set {@link #setAlpha(double) &alpha;} = 
+ * {@link #setEta(double) &eta;} = 1/K, where K is the number of topics to be 
+ * learned. Note that &eta; is not a learning rate parameter, as the symbol is 
+ * usually used. <br>
+ * 
+ * For this algorithm, some potential parameter combinations (by column) for 
+ * {@link #setMiniBatchSize(int) batch size}, {@link #setKappa(double) &kappa;},
+ * and {@link #setTau0(double) &tau;<sub>0</sub>} are:<br>
+ * <table>
+ * <tr>
+ *   <td>batch size</td>
+ *   <td>256</td> 
+ *   <td>1024</td>
+ *   <td>4096</td>
+ * </tr>
+ * <tr>
+ *   <td>&kappa;</td>
+ *   <td>0.6</td> 
+ *   <td>0.5</td>
+ *   <td>0.5</td>
+ * </tr>
+ * <tr>
+ *   <td>&tau;<sub>0</sub></td>
+ *   <td>1024</td> 
+ *   <td>256</td>
+ *   <td>64</td>
+ * </tr>
+ * </table><br>
+ * For smaller corpuses, reducing &tau;<sub>0</sub> can improve the performance (even down to &tau;<sub>0</sub> = 1)
  * <br>
  * See:<br>
  * <ul>
@@ -37,7 +80,7 @@ import jsat.utils.random.XORWOW;
  * </ul>
  * @author Edward Raff
  */
-public class OnlineLDAsvi
+public class OnlineLDAsvi implements Parameterized
 {
     private double alpha = 1;
     private double eta = 1;
@@ -85,7 +128,8 @@ public class OnlineLDAsvi
      * re-intialized. When lambda is {@code null} the structures need to be 
      * reinitialized. 
      */
-    public List<Vec> lambda;
+    private List<Vec> lambda;
+    private List<Lock> lambdaLocks;
     /**
      * Used to store the sum of each vector in {@link #lambda}. Updated live to avoid uncessary changes
      */
@@ -205,45 +249,121 @@ public class OnlineLDAsvi
     }
     
     /**
-     * Sets the prior for the on weight vector theta
-     * @param alpha 
+     * Sets the prior for the on weight vector theta. 1/{@link #setK(int) K} is 
+     * a common choice. 
+     * @param alpha the positive prior value
      */
     public void setAlpha(double alpha)
     {
+        if(alpha <= 0 || Double.isInfinite(alpha) || Double.isNaN(alpha))
+            throw new IllegalArgumentException("Alpha must be a positive constant, not " + alpha);
         this.alpha = alpha;
     }
 
     /**
-     * Prior on topics
-     * @param eta 
+     * 
+     * @return the weight vector prior over theta
+     */
+    public double getAlpha()
+    {
+        return alpha;
+    }
+
+    /**
+     * Prior on topics. 1/{@link #setK(int) K} is  a common choice. 
+     * @param eta the positive prior for topics
      */
     public void setEta(double eta)
     {
+        if(eta <= 0 || Double.isInfinite(eta) || Double.isNaN(eta))
+            throw new IllegalArgumentException("Eta must be a positive constant, not " + eta);
         this.eta = eta;
     }
 
+    /**
+     * 
+     * @return the topic prior
+     */
+    public double getEta()
+    {
+        return eta;
+    }
+
+    /**
+     * A learning rate constant to control the influence of early iterations on 
+     * the solution. Larger values reduce the influence of earlier iterations, 
+     * smaller values increase the weight of earlier iterations. 
+     * @param tau0 a learning rate parameter that must be greater than 0 (usually at least 1)
+     */
     public void setTau0(double tau0)
     {
+        if(tau0 <= 0 || Double.isInfinite(tau0) || Double.isNaN(tau0))
+            throw new IllegalArgumentException("Eta must be a positive constant, not " + tau0);
         this.tau0 = tau0;
     }
 
+    /**
+     * Sets the number of training epochs when learning in a "batch" setting
+     * @param epochs the number of iterations to go over the data set
+     */
     public void setEpochs(int epochs)
     {
         this.epochs = epochs;
     }
+
+    /**
+     * Returns the number of training iterations over the data set that will be 
+     * used
+     * @return the number of training iterations over the data set that will be 
+     * used
+     */
+    public int getEpochs()
+    {
+        return epochs;
+    }
     
     /**
-     * Forgetfullness 
-     * @param kappa 
+     * The "forgetfulness" factor in the learning rate. Larger values increase 
+     * the rate at which old information is "forgotten" 
+     * @param kappa the forgetfulness factor in [0.5, 1]
      */
     public void setKappa(double kappa)
     {
+        if(kappa < 0.5 || kappa > 1.0 || Double.isNaN(kappa))
+            throw new IllegalArgumentException("Kapp must be in [0.5, 1], not " + kappa);
         this.kappa = kappa;
     }
 
+    /**
+     * 
+     * @return the forgetfulness factor
+     */
+    public double getKappa()
+    {
+        return kappa;
+    }
+
+    /**
+     * Sets the number of data points used at a time to perform one update of 
+     * the model parameters
+     * @param miniBatchSize the batch size to use 
+     */
     public void setMiniBatchSize(int miniBatchSize)
     {
+        if(miniBatchSize < 1)
+            throw new IllegalArgumentException("the batch size must be a positive constant, not " + miniBatchSize);
         this.miniBatchSize = miniBatchSize;
+    }
+    
+    /**
+     * Returns the topic vector for a given topic. The vector should not be 
+     * altered, and is scaled so that the sum of all term weights sums to one. 
+     * @param k the topic to get the vector for
+     * @return the raw topic vector for the requested topic. 
+     */
+    public Vec getTopicVec(int k)
+    {
+        return new ScaledVector(1.0/lambda.get(k).sum(), lambda.get(k));
     }
     
     /**
@@ -282,13 +402,24 @@ public class OnlineLDAsvi
      */
     public void update(List<Vec> docs)
     {
+        update(docs, new FakeExecutor());
+    }
+    
+    /**
+     * Performs an update of the LDA topic distribution based on the given 
+     * mini-batch of documents. 
+     * @param docs the list of document vectors to update from
+     * @param ex the source of threads for parallel execution
+     */
+    public void update(final List<Vec> docs, ExecutorService ex)
+    {
         //need to init structure?
         if(lambda == null)
             initialize();
         /*
          * Make sure the beta values we will need are up to date
          */
-        updateBetas(docs);
+        updateBetas(docs, ex);
         
         /*
          * Note, on each update we dont modify or access lambda untill the very,
@@ -300,7 +431,7 @@ public class OnlineLDAsvi
         
         
         //2: Set the step-size schedule ρt appropriately.
-        double rho_t = Math.pow(tau0+(t++), -kappa);
+        final double rho_t = Math.pow(tau0+(t++), -kappa);
         
         
         //pre-shrink the lambda values so we can add out updates later
@@ -316,67 +447,119 @@ public class OnlineLDAsvi
          */
         
         //5: Initialize γ_dk =1, for k ∈ {1, . . . ,K}.
-        Random rand = new XORWOW();
+        
         /*
          * See note on page 3 from 2010 paper: "In practice, this algorithm 
          * converges to a better solution if we reinitialize γ and φ before
          * each E step"
          */
-        
+        final int P = SystemInfo.LogicalCores;
+        final CountDownLatch latch = new CountDownLatch(P);
         //main iner loop, outer is per document and inner most is per topic convergence
-        for(int d = 0; d < docs.size(); d++)
+        for(int id = 0; id < P; id++)
         {
-            final Vec doc = docs.get(d);
-            if(doc.nnz() == 0)
-                continue;
-            final Vec ELogTheta_d = logThetaLocal.get();
-            final Vec ExpELogTheta_d = expLogThetaLocal.get();
-            final Vec gamma_d = gammaLocal.get();
-
-            /*
-             * Make sure gamma and theta are set up and ready to start iterating 
-             */
-            prepareGammaTheta(gamma_d, ELogTheta_d, ExpELogTheta_d, rand);
-            
-            int[] indexMap = new int[doc.nnz()];
-            double[] phiCols = new double[doc.nnz()];
-            
-            //φ^k_dn ∝ exp{E[logθdk]+E[logβk,wdn ]}, k ∈ {1, . . . ,K}
-            computePhi(doc, indexMap, phiCols, K, gamma_d, ELogTheta_d, ExpELogTheta_d);
-            
-            //accumulate updates, the "M" step
-            for(int k = 0; k < K; k++)
+            final int ID = id;
+            ex.submit(new Runnable()
             {
-
-                final double coeff = ExpELogTheta_d.get(k)*rho_t*D/docs.size();
-                final Vec lambda_k = lambda.get(k);
-                final Vec ExpELogBeta_k = ExpELogBeta.get(k);
-                double lambdaSum_k = lambdaSums.getD(k);
-                
-                /*
-                 * iterate and incremebt ourselves so that we can also compute 
-                 * the new sums in 1 pass
-                 */
-                for(int i = 0; i < doc.nnz(); i++)
+                @Override
+                public void run()
                 {
-                    int indx = indexMap[i];
-                    double toAdd = coeff*phiCols[i]*ExpELogBeta_k.get(indx);
-                    lambda_k.increment(indx, toAdd);
-                    lambdaSum_k += toAdd;
+                    Random rand = new XORWOW();
+                    for(int d = ParallelUtils.getStartBlock(docs.size(), ID, P); d < ParallelUtils.getEndBlock(docs.size(), ID, P); d++)
+                    {
+                        final Vec doc = docs.get(d);
+                        if(doc.nnz() == 0)
+                            continue;
+                        final Vec ELogTheta_d = logThetaLocal.get();
+                        final Vec ExpELogTheta_d = expLogThetaLocal.get();
+                        final Vec gamma_d = gammaLocal.get();
+
+                        /*
+                         * Make sure gamma and theta are set up and ready to start iterating 
+                         */
+                        prepareGammaTheta(gamma_d, ELogTheta_d, ExpELogTheta_d, rand);
+
+                        int[] indexMap = new int[doc.nnz()];
+                        double[] phiCols = new double[doc.nnz()];
+
+                        //φ^k_dn ∝ exp{E[logθdk]+E[logβk,wdn ]}, k ∈ {1, . . . ,K}
+                        computePhi(doc, indexMap, phiCols, K, gamma_d, ELogTheta_d, ExpELogTheta_d);
+
+                        //accumulate updates, the "M" step
+                        IntList toUpdate = new IntList(K);
+                        ListUtils.addRange(toUpdate, 0, K, 1);
+                        Collections.shuffle(toUpdate, rand);//helps reduce contention caused by shared iteration order
+                        int updatePos = 0;
+                        while(!toUpdate.isEmpty())
+                        {
+                            int k = toUpdate.getI(updatePos);
+                            
+                            if(lambdaLocks.get(k).tryLock())
+                            {
+                                final double coeff = ExpELogTheta_d.get(k)*rho_t*D/docs.size();
+                                final Vec lambda_k = lambda.get(k);
+                                final Vec ExpELogBeta_k = ExpELogBeta.get(k);
+                                double lambdaSum_k = lambdaSums.getD(k);
+                                
+                                /*
+                                 * iterate and incremebt ourselves so that we can also compute 
+                                 * the new sums in 1 pass
+                                 */
+                                for(int i = 0; i < doc.nnz(); i++)
+                                {
+                                    int indx = indexMap[i];
+                                    double toAdd = coeff*phiCols[i]*ExpELogBeta_k.get(indx);
+                                    lambda_k.increment(indx, toAdd);
+                                    lambdaSum_k += toAdd;
+                                }
+
+                                lambdaSums.set(k, lambdaSum_k);
+                                lambdaLocks.get(k).unlock();
+                                
+                                toUpdate.remove(updatePos);
+                            }
+                            
+                            if(!toUpdate.isEmpty())
+                                updatePos = (updatePos+1) % toUpdate.size();
+                        }
+                    }
+                    
+                    latch.countDown();
                 }
-                
-                lambdaSums.set(k, lambdaSum_k);
-            }   
+            });
+            
+        }
+       
+        try
+        {
+            latch.await();
+        }
+        catch (InterruptedException ex1)
+        {
+            Logger.getLogger(OnlineLDAsvi.class.getName()).log(Level.SEVERE, null, ex1);
         }
     }
     
     /**
-     * First the LDA model against the given data set
+     * Fits the LDA model against the given data set
      * @param dataSet the data set to learn a topic model for
      * @param topics the number of topics to learn 
      */
     public void model(DataSet dataSet, int topics)
     {
+        model(dataSet, topics, new FakeExecutor());
+    }
+    
+    /**
+     * Fits the LDA model against the given data set
+     * @param dataSet the data set to learn a topic model for
+     * @param topics the number of topics to learn 
+     * @param ex the source of threads for parallel execution
+     */
+    public void model(DataSet dataSet, int topics, ExecutorService ex)
+    {
+        if(ex == null)
+            ex = new FakeExecutor();
         //Use notation same as original paper
         setK(topics);
         setD(dataSet.getSampleSize());
@@ -390,7 +573,7 @@ public class OnlineLDAsvi
             for(int i = 0; i < D; i+=miniBatchSize)
             {
                 int to = Math.min(i+miniBatchSize, D);
-                update(docs.subList(i, to));
+                update(docs.subList(i, to), ex);
             }
             
         }
@@ -434,28 +617,52 @@ public class OnlineLDAsvi
      * 
      * @param docs the mini batch of documents to update from
      */
-    private void updateBetas(List<Vec> docs)
+    private void updateBetas(final List<Vec> docs, ExecutorService ex)
     {
         final double[] digammaLambdaSum = new double[K];//TODO may want to move this out & reuse
         for(int k = 0; k < K; k++)
             digammaLambdaSum[k] = FastMath.digamma(W*eta+lambdaSums.getD(k));
-        for(Vec doc : docs)//make sure out ELogBeta is up to date
-            for(IndexValue iv : doc)
+        List<List<Vec>> docSplits = ListUtils.splitList(docs, SystemInfo.LogicalCores);
+        final CountDownLatch latch = new CountDownLatch(docSplits.size());
+        for(final List<Vec> docsSub :  docSplits)
+        {
+            ex.submit(new Runnable()
             {
-                int indx = iv.getIndex();
-                if(lastUsed[indx] != t)
-                {
-                    for(int k = 0; k < K; k++)
-                    {
-                        double lambda_kj = lambda.get(k).get(indx);
 
-                        double logBeta_kj = FastMath.digamma(eta+lambda_kj)-digammaLambdaSum[k];
-                        ELogBeta.get(k).set(indx, logBeta_kj);
-                        ExpELogBeta.get(k).set(indx, FastMath.exp(logBeta_kj));
-                    }
-                    lastUsed[indx] = t;
+                @Override
+                public void run()
+                {
+                    for(Vec doc : docsSub)//make sure out ELogBeta is up to date
+                        for(IndexValue iv : doc)
+                        {
+                            int indx = iv.getIndex();
+                            if(lastUsed[indx] != t)
+                            {
+                                for(int k = 0; k < K; k++)
+                                {
+                                    double lambda_kj = lambda.get(k).get(indx);
+
+                                    double logBeta_kj = FastMath.digamma(eta+lambda_kj)-digammaLambdaSum[k];
+                                    ELogBeta.get(k).set(indx, logBeta_kj);
+                                    ExpELogBeta.get(k).set(indx, FastMath.exp(logBeta_kj));
+                                }
+                                lastUsed[indx] = t;
+                            }
+                        }
+                    
+                    latch.countDown();
                 }
-            }
+            });
+        }
+        
+        try
+        {
+            latch.await();
+        }
+        catch (InterruptedException ex1)
+        {
+            Logger.getLogger(OnlineLDAsvi.class.getName()).log(Level.SEVERE, null, ex1);
+        }
     }
 
     /**
@@ -586,6 +793,7 @@ public class OnlineLDAsvi
         t = 0;
         //1: Initialize λ(0) randomly
         lambda = new ArrayList<Vec>(K);
+        lambdaLocks = new ArrayList<Lock>(K);
         lambdaSums = new DoubleList(K);
         ELogBeta = new ArrayList<Vec>(K);
         ExpELogBeta = new ArrayList<Vec>(K);
@@ -598,6 +806,7 @@ public class OnlineLDAsvi
         {
             Vec lambda_i = new DenseVector(W);
             lambda.add(new ScaledVector(lambda_i));
+            lambdaLocks.add(new ReentrantLock());
             ELogBeta.add(new DenseVector(W));
             ExpELogBeta.add(new DenseVector(W));
             double rowSum = 0;
@@ -610,5 +819,17 @@ public class OnlineLDAsvi
             lambdaSums.add(rowSum);
         }
         //lambda has now been intialized, ELogBeta and ExpELogBeta will be intialized / updated lazily
+    }
+
+    @Override
+    public List<Parameter> getParameters()
+    {
+        return Parameter.getParamsFromMethods(this);
+    }
+
+    @Override
+    public Parameter getParameter(String paramName)
+    {
+        return Parameter.toParameterMap(getParameters()).get(paramName);
     }
 }
