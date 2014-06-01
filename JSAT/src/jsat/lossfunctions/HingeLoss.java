@@ -128,9 +128,9 @@ public class HingeLoss implements LossMC
     @Override
     public CategoricalResults getClassification(Vec processed)
     {
-        double maxVal_not_y = Double.NEGATIVE_INFINITY;
-        int maxIndx = -1;
-        for(int i = 0; i < processed.length(); i++)
+        int maxIndx = 0;
+        double maxVal_not_y = processed.get(maxIndx);
+        for(int i = 1; i < processed.length(); i++)
             if(processed.get(i) > maxVal_not_y)
             {
                 maxIndx = i;
