@@ -258,9 +258,9 @@ public class ScaledVector extends Vec
     }
 
     @Override
-    public Iterator<IndexValue> getNonZeroIterator()
+    public Iterator<IndexValue> getNonZeroIterator(int start)
     {
-        final Iterator<IndexValue> origIter = base.getNonZeroIterator();
+        final Iterator<IndexValue> origIter = base.getNonZeroIterator(start);
         
         Iterator<IndexValue> wrapedIter = new Iterator<IndexValue>() 
         {
