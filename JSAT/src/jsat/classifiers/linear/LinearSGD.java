@@ -3,6 +3,7 @@ package jsat.classifiers.linear;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
+import jsat.SimpleWeightVectorModel;
 import jsat.classifiers.BaseUpdateableClassifier;
 import jsat.classifiers.CategoricalData;
 import jsat.classifiers.CategoricalResults;
@@ -45,7 +46,7 @@ import jsat.regression.UpdateableRegressor;
  * </ul>
  * @author Edward Raff
  */
-public class LinearSGD extends BaseUpdateableClassifier implements UpdateableRegressor, Parameterized
+public class LinearSGD extends BaseUpdateableClassifier implements UpdateableRegressor, Parameterized, SimpleWeightVectorModel
 {
     
     private LossFunc loss;
@@ -424,6 +425,24 @@ public class LinearSGD extends BaseUpdateableClassifier implements UpdateableReg
     public Parameter getParameter(String paramName)
     {
         return Parameter.toParameterMap(getParameters()).get(paramName);
+    }
+
+    @Override
+    public Vec getRawWeight(int index)
+    {
+        return ws[index];
+    }
+
+    @Override
+    public double getBias(int index)
+    {
+        return bs[index];
+    }
+
+    @Override
+    public int numWeightsVecs()
+    {
+        return ws.length;
     }
     
 }
