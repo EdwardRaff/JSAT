@@ -75,7 +75,7 @@ public class LinearSGD extends BaseUpdateableClassifier implements UpdateableReg
      */
     public LinearSGD(LossFunc loss, double lambda0, double lambda1)
     {
-        this(loss, 0.1, new PowerDecay(), lambda0, lambda1);
+        this(loss, 0.001, new PowerDecay(1, 0.1), lambda0, lambda1);
     }
 
     /**
