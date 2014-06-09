@@ -27,7 +27,6 @@ public class BacktrackingArmijoLineSearch implements LineSearch
 
     /**
      * Creates a new Backtracking line search object
-     * @param alphaStart the starting alpha value
      * @param rho constant to decrease alpha by in (0, 1) when interpolation is 
      * not possible
      * @param c1 the <i>sufficient decrease condition</i>  condition constant in
@@ -100,7 +99,7 @@ public class BacktrackingArmijoLineSearch implements LineSearch
             {
                 double alphaCandidate = -gradP*oldAlpha*oldAlpha/(2*(f_xap-f_x-gradP*oldAlpha));
                 oldAlpha = alpha;
-                if(alphaCandidate < tooSmall || alphaCandidate > tooLarge)
+                if(alphaCandidate < tooSmall || alphaCandidate > tooLarge || Double.isNaN(alphaCandidate))
                 {
                     alpha = rho*oldAlpha;
                 }
@@ -126,7 +125,7 @@ public class BacktrackingArmijoLineSearch implements LineSearch
                 
                 double alphaCandidate = (-b + Math.sqrt(b*b-3*a*gradP))/(3*a);
                 oldAlpha = alpha;
-                if(alphaCandidate < tooSmall || alphaCandidate > tooLarge)
+                if(alphaCandidate < tooSmall || alphaCandidate > tooLarge || Double.isNaN(alphaCandidate))
                 {
                     alpha = rho*oldAlpha;
                 }
