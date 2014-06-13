@@ -7,6 +7,7 @@ import jsat.SimpleWeightVectorModel;
 import jsat.classifiers.BaseUpdateableClassifier;
 import jsat.classifiers.CategoricalData;
 import jsat.classifiers.CategoricalResults;
+import jsat.classifiers.ClassificationDataSet;
 import jsat.classifiers.DataPoint;
 import jsat.exceptions.FailedToFitException;
 import jsat.linear.DenseVector;
@@ -35,6 +36,13 @@ import jsat.regression.UpdateableRegressor;
  * {@link #setLambda1(double) &lambda<sub>1</sub>} ||w||<sub>1</sub>, and is 
  * trained by Stochastic Gradient Descent. <br>
  * <br>
+ * <br>
+ * NOTE: To support L<sub>1</sub> regularization with sparse results and online 
+ * learning at the same time, the normalization of the regularization penalty by
+ * the number of data points is not present in the implementation at this time. 
+ * Setting {@link #setLambda1(double) &lambda<sub>1</sub>} to the desired value 
+ * divided by the number of unique data points in the whole set will result in 
+ * the correct regularization penalty being applied. 
  * 
  * See:
  * <ul>
@@ -59,6 +67,7 @@ public class LinearSGD extends BaseUpdateableClassifier implements UpdateableReg
     private double lambda1;
     private double l1U;
     private double[][] l1Q;
+    private boolean useBias = true;
 
     /**
      * Creates a new LinearSGD learner for multi-class classification problems. 
@@ -228,6 +237,24 @@ public class LinearSGD extends BaseUpdateableClassifier implements UpdateableReg
         return lambda1;
     }
     
+    /**
+     * Sets whether or not an implicit bias term will be added to the data set
+     * @param useBias {@code true} to add an implicit bias term
+     */
+    public void setUseBias(boolean useBias)
+    {
+        this.useBias = useBias;
+    }
+
+    /**
+     * Returns whether or not an implicit bias term is in use
+     * @return {@code true} if a bias term is in use
+     */
+    public boolean isUseBias()
+    {
+        return useBias;
+    }
+    
     @Override
     public LinearSGD clone()
     {
@@ -294,7 +321,8 @@ public class LinearSGD extends BaseUpdateableClassifier implements UpdateableReg
             final double y = targetClass*2-1;
             final double lossD = ((LossC)loss).getDeriv(ws[0].dot(x)+bs[0], y);
             ws[0].mutableSubtract(eta_t*lossD, x);
-            bs[0] -= eta_t*lossD;
+            if(useBias)
+                bs[0] -= eta_t*lossD;
         }
         else
         {
@@ -308,7 +336,8 @@ public class LinearSGD extends BaseUpdateableClassifier implements UpdateableReg
                 final int i = iv.getIndex();
                 final double lossD = iv.getValue();
                 ws[i].mutableSubtract(eta_t*lossD, x);
-                bs[i] -= eta_t*lossD;
+                if(useBias)
+                    bs[i] -= eta_t*lossD;
             }
         }
         
@@ -381,7 +410,7 @@ public class LinearSGD extends BaseUpdateableClassifier implements UpdateableReg
         //apply l1 regularization
         if(lambda1 > 0)
         {
-            l1U += eta_t*lambda1/time;//line 6: in Tsuruoka et al paper, figure 2
+            l1U += eta_t*lambda1;//line 6: in Tsuruoka et al paper, figure 2
             for(int k = 0; k < ws.length; k++)
             {
                 final Vec w_k = ws[k];
