@@ -121,27 +121,24 @@ public class FixedProblems
     
     public static ClassificationDataSet getInnerOuterCircle(int dataSetSize, Random rand, double r1, double r2)
     {
-        ClassificationDataSet train = new ClassificationDataSet(2, new CategoricalData[0], new CategoricalData(2));
+        return getCircles(dataSetSize, rand, r1, r2);
+    }
+    
+    public static ClassificationDataSet getCircles(int dataSetSize, Random rand, double... radi )
+    {
+        ClassificationDataSet train = new ClassificationDataSet(2, new CategoricalData[0], new CategoricalData(radi.length));
         
-        int n = dataSetSize/2;
-        
-        //iner circle
-        for (int i = 0; i < n; i++) 
-        {
-            double t = 2 * Math.PI * i / n;
-            double x = r1 * Math.cos(t) + (rand.nextDouble()-0.5)/5;
-            double y = r1 * Math.sin(t) + (rand.nextDouble()-0.5)/5;
-            train.addDataPoint(DenseVector.toDenseVec(x, y), new int[0], 0);
-        }
-        //outer cirlce
-        for (int i = 0; i < n; i++) 
-        {
-            double t = 2 * Math.PI * i / n;
-            double x = r2 * Math.cos(t) + (rand.nextDouble()-0.5)/5;
-            double y = r2 * Math.sin(t) + (rand.nextDouble()-0.5)/5;
-            train.addDataPoint(DenseVector.toDenseVec(x, y), new int[0], 1);
-        }
-        
+        int n = dataSetSize / 2;
+
+        for(int r_i = 0; r_i < radi.length; r_i++)
+            for (int i = 0; i < n; i++)
+            {
+                double t = 2 * Math.PI * i / n;
+                double x = radi[r_i] * Math.cos(t) + (rand.nextDouble() - 0.5) / 5;
+                double y = radi[r_i] * Math.sin(t) + (rand.nextDouble() - 0.5) / 5;
+                train.addDataPoint(DenseVector.toDenseVec(x, y), new int[0], r_i);
+            }
+
         return train;
     }
 }
