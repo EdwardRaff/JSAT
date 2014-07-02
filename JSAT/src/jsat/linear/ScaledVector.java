@@ -135,6 +135,8 @@ public class ScaledVector extends Vec
         scale *= c;
         if(scale == 0.0)
             this.zeroOut();
+        else if(Math.abs(scale) < 1e-10 || Math.abs(scale) > 1e10)
+            embedScale();
     }
 
     @Override
