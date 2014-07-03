@@ -71,7 +71,7 @@ public abstract class DataSet
     public String getNumericName(int i )
     {
         if(i < getNumNumericalVars() && i >= 0)
-            return numericalVariableNames.get(i);
+            return numericalVariableNames == null ? null : numericalVariableNames.get(i);
         else
             throw new IndexOutOfBoundsException("Can not acces variable for invalid index  " + i );
     }

@@ -1,20 +1,15 @@
 
 package jsat;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
+import java.io.*;
+import java.util.*;
 import java.util.Map.Entry;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import jsat.classifiers.CategoricalData;
-import jsat.classifiers.DataPoint;
+import jsat.classifiers.*;
 import jsat.linear.DenseVector;
+import jsat.linear.Vec;
+import jsat.regression.RegressionDataSet;
 
 /**
  * Class for loading ARFF files. ARFF is a human readable file format used by Weka. 
@@ -72,7 +67,7 @@ public class ARFFLoader
                     line = line.substring(1).toLowerCase();
                     
                     
-                    if(line.startsWith("data"))
+                    if(line.toLowerCase().startsWith("data"))
                     {
                         categoricalData = new CategoricalData[numOfVars-numReal];
                         
@@ -92,7 +87,7 @@ public class ARFFLoader
                         atData = true;
                         continue;
                     }
-                    else if(!line.startsWith("attribute"))
+                    else if(!line.toLowerCase().startsWith("attribute"))
                         continue;
                     numOfVars++;
                     line = line.substring("attribute".length()).trim();//Remove the space, it could be multiple spaces
@@ -189,6 +184,97 @@ public class ARFFLoader
         
         return dataSet;
     }
+    
+    /**
+     * Writes out the dataset as an ARFF file to the given stream. This method 
+     * will automatically handle the target variable of 
+     * {@link ClassificationDataSet} and {@link RegressionDataSet}. 
+     * 
+     * @param data the dataset to write out
+     * @param os the output stream to write too
+     */
+    public static void writeArffFile(DataSet data, OutputStream os)
+    {
+        PrintWriter writer = new PrintWriter(os);
+        //write out attributes
+        //first all categorical features
+        CategoricalData[] catInfo = data.getCategories();
+        for( CategoricalData cate : catInfo)
+        {
+            writeCatVar(writer, cate);
+        }
+        //write out all numeric features
+        for(int i = 0; i < data.getNumNumericalVars(); i++)
+        {
+            String name = data.getNumericName(i);
+            writer.write("@attribute " + (name == null ? "num" + i : name.replaceAll("\\s+", "-")) + " NUMERIC\n");
+        }
+        if(data instanceof ClassificationDataSet)//also write out class variable
+            writeCatVar(writer, ((ClassificationDataSet)data).getPredicting());
+        if(data instanceof RegressionDataSet)
+            writer.write("@ATRIBUTE target NUMERIC\n");
+        writer.write("@DATA\n");
+        for(int row = 0; row < data.getSampleSize(); row++)
+        {
+            DataPoint dp = data.getDataPoint(row);
+            boolean firstFeature = true;
+            //cat vars first
+            for(int i = 0; i < catInfo.length; i++)
+            {
+                if(!firstFeature)
+                    writer.write(",");
+                firstFeature = false;
+                writer.write(addQuotes(catInfo[i].getOptionName(dp.getCategoricalValue(i))));
+            }
+            //numeric vars
+            Vec v = dp.getNumericalValues();
+            for(int i = 0; i < v.length(); i++)
+            {
+                if(!firstFeature)
+                    writer.write(",");
+                firstFeature = false;
+                writer.write(Double.toString(v.get(i)));
+            }
+            if (data instanceof ClassificationDataSet)//also write out class variable
+            {
+                if(!firstFeature)
+                    writer.write(",");
+                firstFeature = false;
+                ClassificationDataSet cdata = (ClassificationDataSet) data;
+                writer.write(addQuotes(cdata.getPredicting().getOptionName(cdata.getDataPointCategory(row))));
+            }
+            if (data instanceof RegressionDataSet)
+            {
+                if(!firstFeature)
+                    writer.write(",");
+                firstFeature = false;
+                writer.write(Double.toString(((RegressionDataSet)data).getTargetValue(row)));
+            }
+            writer.write("\n");
+        }
+        writer.flush();
+    }
+    
+    private static String addQuotes(String string)
+    {
+        if(string.contains(" "))
+            return "\"" + string + "\"";
+        else
+            return string;
+    }
+
+    private static void writeCatVar(PrintWriter writer, CategoricalData cate)
+    {
+        writer.write("@ATTRIBUTE " + cate.getCategoryName().replaceAll("\\s+", "-") + " {" );
+        for(int i = 0; i < cate.getNumOfCategories(); i++)
+        {
+            if(i != 0)
+                writer.write(",");
+            writer.write(addQuotes(cate.getOptionName(i)));
+        }
+        writer.write("}\n");
+    }
+            
     
     /**
      * Removes the quotes at the end and front of a string if there are any, as well as spaces at the front and end
