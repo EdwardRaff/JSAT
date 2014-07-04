@@ -204,9 +204,10 @@ public class SparseVector extends  Vec
     {
         if (index > length - 1 || index < 0)
             throw new IndexOutOfBoundsException("Can not access an index larger then the vector or a negative index");
-        
+        if(val == 0)//donst want to insert a zero, and a zero changes nothing
+            return;
         int location = Arrays.binarySearch(indexes, 0, used, index);
-        if(location < 0 && val != 0)//dont insert zeros!
+        if(location < 0)
             insertValue(location, index, val);
         else
         {
