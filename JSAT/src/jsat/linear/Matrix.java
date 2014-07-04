@@ -164,7 +164,7 @@ public abstract class Matrix implements Cloneable, Serializable
     public Matrix subtract(Matrix B)
     {
         Matrix toReturn = getThisSideMatrix(B);
-        toReturn.mutableSubtract(-1.0, B);
+        toReturn.mutableSubtract(1.0, B);
         return toReturn;
     }
     
@@ -313,19 +313,34 @@ public abstract class Matrix implements Cloneable, Serializable
     }
     
     /**
-     * Alters the matric <i>C</i> to be equal to <i>C = C+A*B</i>
+     * Alters the matrix <i>C</i> to be equal to <i>C = C+A*B</i>
      * @param B the matrix to multiply <i>this</i> with
      * @param C the matrix to add the result to
      */
     abstract public void multiply(Matrix B, Matrix C);
     
     /**
-     * Alters the matric <i>C</i> to be equal to <i>C = C+A*B</i>
+     * Alters the matrix <i>C</i> to be equal to <i>C = C+A*B</i>
      * @param B the matrix to multiply this with
-     * @param threadPool the source of threads to do computation in parallel
      * @param C the matrix to add the result to
+     * @param threadPool the source of threads to do computation in parallel
      */
     abstract public void multiply(Matrix B, Matrix C, ExecutorService threadPool);
+    
+    /**
+     * Alters the matrix <i>C</i> to be equal to <i>C = C+A*B<sup>T</sup></i>
+     * @param B the matrix to multiply <i>this</i> with
+     * @param C the matrix to add the result to
+     */
+    abstract public void multiplyTranspose(final Matrix B, final Matrix C);
+    
+    /**
+     * Alters the matrix <i>C</i> to be equal to <i>C = C+A*B<sup>T</sup></i>
+     * @param B the matrix to multiply this with
+     * @param C the matrix to add the result to
+     * @param threadPool the source of threads to do computation in parallel
+     */
+    abstract public void multiplyTranspose(final Matrix B, final Matrix C, ExecutorService threadPool);
     
     /**
      * Creates a new Matrix that stores <i>A*c</i>
@@ -783,6 +798,18 @@ public abstract class Matrix implements Cloneable, Serializable
      * Alters the current matrix so that all values are equal to zero. 
      */
     abstract public void zeroOut();
+    
+    /**
+     * Copes the values of this matrix into the other matrix of the same dimensions
+     * @param other the matrix to overwrite the values of
+     */
+    public void copyTo(Matrix other)
+    {
+        if (this.rows() != other.rows() || this.cols() != other.cols())
+            throw new ArithmeticException("Matrices are not of the same dimension");
+        for(int i = 0; i < rows(); i++)
+            this.getRowView(i).copyTo(other.getRowView(i));
+    }
     
     /**
      * Alters row i of <i>this</i> matrix, such that 

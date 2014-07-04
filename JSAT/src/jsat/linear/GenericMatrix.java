@@ -173,6 +173,83 @@ public abstract class GenericMatrix extends Matrix
                     C.increment(i, j, a * b.get(k, j));
             }
     }
+    
+    @Override
+    public void multiplyTranspose(Matrix b, Matrix C)
+    {
+        if(this.cols() != b.cols())
+            throw new ArithmeticException("Matrix dimensions do not agree");
+        else if (this.rows() != C.rows() || b.rows() != C.cols())
+            throw new ArithmeticException("Target Matrix is no the correct size");
+
+        final int iLimit = this.rows();
+        final int jLimit = b.rows();
+        final int kLimit = this.cols();
+
+        for (int i0 = 0; i0 < iLimit; i0 += NB2)
+            for (int j0 = 0; j0 < jLimit; j0 += NB2)
+                for (int k0 = 0; k0 < kLimit; k0 += NB2)
+                    for (int i = i0; i < min(i0 + NB2, iLimit); i++)
+                        for (int j = j0; j < min(j0 + NB2, jLimit); j++)
+                        {
+                            double C_ij = 0;
+                            for (int k = k0; k < min(k0 + NB2, kLimit); k++)
+                                C_ij += this.get(i, k) * b.get(j, k);
+                            C.increment(i, j, C_ij);
+                        }
+    }
+    
+    @Override
+    public void multiplyTranspose(final Matrix b, final Matrix C, ExecutorService threadPool)
+    {
+        if(this.cols() != b.cols())
+            throw new ArithmeticException("Matrix dimensions do not agree");
+        else if (this.rows() != C.rows() || b.rows() != C.cols())
+            throw new ArithmeticException("Destination matrix does not have matching dimensions");
+        final Matrix A = this;
+        ///Should choose step size such that 2*NB2^2 * dataTypeSize <= CacheSize
+        
+        final int iLimit = this.rows();
+        final int jLimit = b.rows();
+        final int kLimit = this.cols();
+        
+        final CountDownLatch cdl = new CountDownLatch(LogicalCores);
+        
+        for(int threadNum = 0; threadNum < LogicalCores; threadNum++)
+        {
+            final int threadID = threadNum;
+            threadPool.submit(new Runnable() {
+
+                @Override
+                public void run()
+                {
+                    for (int i0 = NB2 * threadID; i0 < iLimit; i0 += NB2 * LogicalCores)
+                        for (int k0 = 0; k0 < kLimit; k0 += NB2)
+                            for (int j0 = 0; j0 < jLimit; j0 += NB2)
+                                for (int i = i0; i < min(i0 + NB2, iLimit); i++)
+                                    for (int j = j0; j < min(j0 + NB2, jLimit); j++)
+                                    {
+                                        double C_ij = 0;
+                                        for (int k = k0; k < min(k0 + NB2, kLimit); k++)
+                                            C_ij += A.get(i, k) * b.get(j, k);
+                                        C.increment(i, j, C_ij);
+                                    }
+                    cdl.countDown();
+                }
+            });
+        }
+        
+        
+        try
+        {
+            cdl.await();
+        }
+        catch (InterruptedException ex)
+        {
+            Logger.getLogger(DenseMatrix.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        
+    }
 
     @Override
     public void multiply(final Matrix b, final Matrix C, ExecutorService threadPool)

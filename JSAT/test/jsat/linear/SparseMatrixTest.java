@@ -2,6 +2,7 @@ package jsat.linear;
 
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import jsat.utils.FakeExecutor;
 import jsat.utils.SystemInfo;
 import org.junit.After;
 import org.junit.AfterClass;
@@ -478,6 +479,54 @@ public class SparseMatrixTest
         {
             
         }
+    }
+    
+    @Test
+    public void testMultiplyTranspose()
+    {
+        System.out.println("multiplyTranspose");
+        int[] rAC = new int[]
+        {
+            3, 5, 1, 2, 2, 2, 3, 4, 1, 6, 1, 3
+        };
+
+        int[] cAC = new int[]
+        {
+            1, 2, 3, 3, 4, 5, 6, 6, 7, 7, 8, 8
+        };
+
+        double[] vAC = new double[]
+        {
+            -7, 1, 1, 3, 3, 3, 2, 1, 4, 3, 1, -7
+        };
+
+        SparseMatrix tmp = new SparseMatrix(6, 8);
+        A.multiplyTranspose(Ct, tmp);
+        checkAgainstRCV(tmp, vAC, rAC, cAC);
+    }
+    
+    @Test
+    public void testMultiplyTranspose_Executor()
+    {
+        System.out.println("multiplyTranspose_Executor");
+        int[] rAC = new int[]
+        {
+            3, 5, 1, 2, 2, 2, 3, 4, 1, 6, 1, 3
+        };
+
+        int[] cAC = new int[]
+        {
+            1, 2, 3, 3, 4, 5, 6, 6, 7, 7, 8, 8
+        };
+
+        double[] vAC = new double[]
+        {
+            -7, 1, 1, 3, 3, 3, 2, 1, 4, 3, 1, -7
+        };
+
+        SparseMatrix tmp = new SparseMatrix(6, 8);
+        A.multiplyTranspose(Ct, tmp, new FakeExecutor());
+        checkAgainstRCV(tmp, vAC, rAC, cAC);
     }
 
     /**

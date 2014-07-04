@@ -76,19 +76,24 @@ public class GenericMatrixTest
     /**
      * 5x5
      */
-    static Matrix A;
+    static TestImp A;
     /**
      * 5x5
      */
-    static Matrix B;
+    static TestImp B;
     /**
      * 5x7
      */
-    static Matrix C;
+    static TestImp C;
     
-    static Matrix AB;
-    static Matrix BA;
-    static Matrix AC;
+    /**
+     * 7x5
+     */
+    static TestImp D;
+    
+    static TestImp AB;
+    static TestImp BA;
+    static TestImp AC;
     
     /**
      * Multi threaded pool with daemon threads
@@ -135,6 +140,17 @@ public class GenericMatrixTest
             {8, 0, 5, 7, 9, 1, 8},
             {9, 3, 2, 7, 2, 4, 8},
             {1, 2, 6, 5, 8, 1, 9}
+        } );
+        
+        D = new TestImp(new double[][] 
+        {
+            { 2,    4,    5,    4,    4},
+            {10,    3,    2,    0,    7},
+            { 4,    5,    1,    7,    7},
+            { 2,    7,    2,    4,    7},
+            { 6,    2,    9,    2,    4},
+            { 1,    5,    6,    5,   10},
+            { 3,    4,    1,    5,    0},
         } );
         
         AB = new TestImp(new double[][] 
@@ -480,6 +496,68 @@ public class GenericMatrixTest
         {
             //Good! We expected failure
         }
+    }
+    
+    @Test
+    public void testMultiplyTranspose_Matrix_Matrix()
+    {
+        TestImp AmBt = new TestImp(new double[][] 
+        {
+            {164,    173,    111,   194,    72},
+            {114,   136,    96 ,  152,    67},
+            {113,   126,   103,   148,    62},
+            { 95,   109,    54,   144,    69},
+            {156,   181,   100,   211,    76}
+        } );
+        TestImp DmBt = new TestImp(new double[][] 
+        {
+            { 96,   105,    76,   127,    64},
+            {119,    96,    56,   109,   104},
+            {149,   145,    83,   167,    79},
+            {123,   144,    76,   157,    64},
+            {102,    93,    90,   123,   100},
+            {152,   169,   112,   183,    72},
+            { 69,    68,    42,    95,    55},
+        } );
+        
+        TestImp tmp = new TestImp(5, 5);
+        A.multiplyTranspose(B, tmp);
+        assertEquals(AmBt, tmp);
+        
+        tmp = new TestImp(7, 5);
+        D.multiplyTranspose(B, tmp);
+        assertEquals(DmBt, tmp);
+    }
+    
+    @Test
+    public void testMultiplyTranspose_Matrix_Matrix_Exector()
+    {
+        TestImp AmBt = new TestImp(new double[][] 
+        {
+            {164,    173,    111,   194,    72},
+            {114,   136,    96 ,  152,    67},
+            {113,   126,   103,   148,    62},
+            { 95,   109,    54,   144,    69},
+            {156,   181,   100,   211,    76}
+        } );
+        TestImp DmBt = new TestImp(new double[][] 
+        {
+            { 96,   105,    76,   127,    64},
+            {119,    96,    56,   109,   104},
+            {149,   145,    83,   167,    79},
+            {123,   144,    76,   157,    64},
+            {102,    93,    90,   123,   100},
+            {152,   169,   112,   183,    72},
+            { 69,    68,    42,    95,    55},
+        } );
+        
+        TestImp tmp = new TestImp(5, 5);
+        A.multiplyTranspose(B, tmp, threadpool);
+        assertEquals(AmBt, tmp);
+        
+        tmp = new TestImp(7, 5);
+        D.multiplyTranspose(B, tmp, threadpool);
+        assertEquals(DmBt, tmp);
     }
     
     @Test

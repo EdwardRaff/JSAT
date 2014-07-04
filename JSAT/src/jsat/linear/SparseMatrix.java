@@ -1,11 +1,13 @@
 package jsat.linear;
 
 import java.util.Arrays;
+import java.util.Iterator;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import static jsat.linear.Matrix.canMultiply;
+import jsat.utils.SystemInfo;
 
 /**
  * Creates a new Sparse Matrix where each row is backed by a sparse vector. 
@@ -428,6 +430,172 @@ public class SparseMatrix extends Matrix
         rows = Arrays.copyOf(rows, newRows);
         for(int i = oldRows; i < newRows; i++)
             rows[i] = new SparseVector(newCols);
+    }
+
+    @Override
+    public void multiplyTranspose(Matrix B, Matrix C)
+    {
+        if(this.cols() != B.cols())
+            throw new ArithmeticException("Matrix dimensions do not agree");
+        else if (this.rows() != C.rows() || B.rows() != C.cols())
+            throw new ArithmeticException("Target Matrix is no the correct size");
+
+        for (int i = 0; i < this.rows(); i++)
+        {
+            final SparseVector A_i = this.rows[i];
+            for (int j = 0; j < B.rows(); j++)
+            {
+                final Vec B_j = B.getRowView(j);
+                double C_ij = 0;
+                
+                if(!B_j.isSparse())//B is dense, lets do this the easy way
+                {
+                    for (IndexValue iv : A_i)
+                        C_ij += iv.getValue() * B_j.get(iv.getIndex());
+                    C.increment(i, j, C_ij);
+                    continue;//Skip early, we did it!
+                }
+                //else, sparse 
+                Iterator<IndexValue> A_iter = A_i.getNonZeroIterator();
+                Iterator<IndexValue> B_iter = B_j.getNonZeroIterator();
+                if(!B_iter.hasNext() || !A_iter.hasNext())//one is all zeros, nothing to do
+                    continue;
+                
+                IndexValue A_val = A_iter.next();
+                IndexValue B_val = B_iter.next();
+                
+                while(A_val != null && B_val != null)//go add everything together!
+                {
+                    if(A_val.getIndex() == B_val.getIndex())//inc and bump both
+                    {
+                        C_ij += A_val.getValue()*B_val.getValue();
+                        if(A_iter.hasNext())
+                            A_val = A_iter.next();
+                        else
+                            A_val = null;
+                        if(B_iter.hasNext())
+                            B_val = B_iter.next();
+                        else
+                            B_val = null;
+                    }
+                    else if(A_val.getIndex() < B_val.getIndex())//A is behind, bump it
+                    {
+                        if(A_iter.hasNext())
+                            A_val = A_iter.next();
+                        else
+                            A_val = null;
+                    }
+                    else//B is behind, bump it
+                    {
+                        if(B_iter.hasNext())
+                            B_val = B_iter.next();
+                        else
+                            B_val = null;
+                    }
+                }
+
+                C.increment(i, j, C_ij);
+            }
+        }
+    }
+
+    @Override
+    public void multiplyTranspose(final Matrix B, final Matrix C, ExecutorService threadPool)
+    {
+        if(this.cols() != B.cols())
+            throw new ArithmeticException("Matrix dimensions do not agree");
+        else if (this.rows() != C.rows() || B.rows() != C.cols())
+            throw new ArithmeticException("Target Matrix is no the correct size");
+
+        final SparseMatrix A = this;
+        final CountDownLatch latch = new CountDownLatch(SystemInfo.LogicalCores);
+        for(int id = 0; id < SystemInfo.LogicalCores; id++)
+        {
+            final int ID = id;
+            threadPool.submit(new Runnable()
+            {
+
+                @Override
+                public void run()
+                {
+                    try{
+                    for (int i = ID; i < A.rows(); i += SystemInfo.LogicalCores)
+                    {
+                        final SparseVector A_i = A.rows[i];
+                        for (int j = 0; j < B.rows(); j++)
+                        {
+                            final Vec B_j = B.getRowView(j);
+                            double C_ij = 0;
+
+                            if(!B_j.isSparse())//B is dense, lets do this the easy way
+                            {
+                                for (IndexValue iv : A_i)
+                                    C_ij += iv.getValue() * B_j.get(iv.getIndex());
+                                C.increment(i, j, C_ij);
+                                continue;//Skip early, we did it!
+                            }
+                            //else, sparse 
+                            Iterator<IndexValue> A_iter = A_i.getNonZeroIterator();
+                            Iterator<IndexValue> B_iter = B_j.getNonZeroIterator();
+                            if(!B_iter.hasNext() || !A_iter.hasNext())//one is all zeros, nothing to do
+                                continue;
+
+                            IndexValue A_val = A_iter.next();
+                            IndexValue B_val = B_iter.next();
+
+                            while(A_val != null && B_val != null)//go add everything together!
+                            {
+                                if(A_val.getIndex() == B_val.getIndex())//inc and bump both
+                                {
+                                    C_ij += A_val.getValue()*B_val.getValue();
+                                    if(A_iter.hasNext())
+                                        A_val = A_iter.next();
+                                    else
+                                        A_val = null;
+                                    if(B_iter.hasNext())
+                                        B_val = B_iter.next();
+                                    else
+                                        B_val = null;
+                                }
+                                else if(A_val.getIndex() < B_val.getIndex())//A is behind, bump it
+                                {
+                                    if(A_iter.hasNext())
+                                        A_val = A_iter.next();
+                                    else
+                                        A_val = null;
+                                }
+                                else//B is behind, bump it
+                                {
+                                    if(B_iter.hasNext())
+                                        B_val = B_iter.next();
+                                    else
+                                        B_val = null;
+                                }
+                            }
+
+                            C.increment(i, j, C_ij);
+                        }
+                    }
+                    
+                    }
+                    catch(Exception ex)
+                    {
+                        ex.printStackTrace();
+                    }
+                    System.out.println(ID + " fin");
+                    latch.countDown();
+                }
+            });
+        }
+        
+        try
+        {
+            latch.await();
+        }
+        catch (InterruptedException ex)
+        {
+            Logger.getLogger(SparseMatrix.class.getName()).log(Level.SEVERE, null, ex);
+        }
     }
 
 }
