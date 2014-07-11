@@ -14,6 +14,9 @@ import jsat.linear.Vec;
  * in optimizing recurrent networks</i>. In 2013 IEEE International Conference 
  * on Acoustics, Speech and Signal Processing (pp. 8624–8628). IEEE. 
  * doi:10.1109/ICASSP.2013.6639349</li>
+ * <li>Sutskever, I., Martens, J., Dahl, G., & Hinton, G. (2013). <i>On the 
+ * importance of initialization and momentum in deep learning</i>. JMLR W&CP,
+ * 28, 1139–1147.</li>
  * </ul>
  * @author Edward Raff
  */
