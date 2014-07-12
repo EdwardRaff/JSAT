@@ -132,7 +132,7 @@ public class SGDNetworkTrainer implements Serializable
     private Matrix[] activations;
     private Matrix[] unactivated;
     private Matrix[] deltas;
-
+    
     /**
      * Creates a new SGD network training that uses dropout
      */
@@ -272,6 +272,24 @@ public class SGDNetworkTrainer implements Serializable
     public double getEta()
     {
         return eta;
+    }
+
+    /**
+     * Sets the method of regularizing the connections weights
+     * @param regularizer the method of regularizing the network
+     */
+    public void setRegularizer(WeightRegularizer regularizer)
+    {
+        this.regularizer = regularizer;
+    }
+
+    /**
+     * 
+     * @return the regularizer for the network
+     */
+    public WeightRegularizer getRegularizer()
+    {
+        return regularizer;
     }
 
     /**
@@ -497,9 +515,9 @@ public class SGDNetworkTrainer implements Serializable
         double errorMade = 0;
         
         feedforward(X, activations, unactivated, ex, rand);
-
+        
         errorMade = backpropagateError(deltas, activations, x, y, errorMade, ex, unactivated);
-
+        
         accumulateUpdates(X, activations, deltas, ex, x);
 
         double eta_cur = etaDecay.rate(time++, eta);
@@ -635,6 +653,7 @@ public class SGDNetworkTrainer implements Serializable
 
     private void accumulateUpdates(Matrix X, Matrix[] activationsM, Matrix[] deltasM, ExecutorService ex, final List<Vec> x)
     {
+        final double invXsize = 1.0/x.size();
         //accumulate updates
         for (int l = 0; l < layersActivation.size(); l++)
         {
@@ -644,7 +663,7 @@ public class SGDNetworkTrainer implements Serializable
                 delta_l.multiplyTranspose(a_lprev, W_deltas.get(l));
             else
                 delta_l.multiplyTranspose(a_lprev, W_deltas.get(l), ex);
-            W_deltas.get(l).mutableMultiply(1.0/x.size());
+            W_deltas.get(l).mutableMultiply(invXsize);
             
             final Vec B_delta_l = B_deltas.get(l);
             if(ex == null)
@@ -653,7 +672,7 @@ public class SGDNetworkTrainer implements Serializable
                     double change = 0;
                     for(int j = 0; j < delta_l.cols(); j++)
                         change += delta_l.get(i, j);
-                    B_delta_l.increment(i, change/x.size());
+                    B_delta_l.increment(i, change*invXsize);
                 }
             else
             {
@@ -671,7 +690,7 @@ public class SGDNetworkTrainer implements Serializable
                                 double change = 0;
                                 for(int j = 0; j < delta_l.cols(); j++)
                                     change += delta_l.get(i, j);
-                                B_delta_l.increment(i, change/x.size());
+                                B_delta_l.increment(i, change*invXsize);
                             }
                             latch.countDown();
                         }
