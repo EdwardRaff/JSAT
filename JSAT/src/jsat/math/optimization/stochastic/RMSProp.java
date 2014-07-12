@@ -76,8 +76,8 @@ public class RMSProp implements GradientUpdater
             final int indx = iv.getIndex();
             final double grad_i = iv.getValue();
             daigG.increment(indx, (1-rho)*grad_i*grad_i);
-            final double g_ii = daigG.get(indx);
-            x.increment(indx, -eta*grad_i/Math.sqrt(g_ii));
+            double g_iiRoot = Math.max(Math.sqrt(daigG.get(indx)), Math.abs(grad_i));//tiny grad sqrd could result in zero
+            x.increment(indx, -eta*grad_i/g_iiRoot);
         }
     }
 
