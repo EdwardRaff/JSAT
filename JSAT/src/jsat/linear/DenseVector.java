@@ -256,7 +256,7 @@ public class DenseVector extends Vec
         
         double dot = 0;
         for(int i = startIndex; i < endIndex; i++)
-            dot += array[i] * v.get(i);
+                dot += array[i] * v.get(i-startIndex);
         
         return dot;
     }
