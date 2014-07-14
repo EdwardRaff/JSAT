@@ -127,7 +127,7 @@ public class SeedSelectionMethods
     static public List<Vec> selectIntialPoints(DataSet d, int k, DistanceMetric dm, List<Double> accelCache, Random rand, SeedSelection selectionMethod, ExecutorService threadpool)
     {
         int[] indicies = new int[k];
-        selectIntialPoints(d, indicies, dm, rand, selectionMethod, threadpool);
+        selectIntialPoints(d, indicies, dm, accelCache, rand, selectionMethod, threadpool);
         List<Vec> vecs = new ArrayList<Vec>(k);
         for(Integer i : indicies)
             vecs.add(d.getDataPoint(i).getNumericalValues().clone());
@@ -208,7 +208,7 @@ public class SeedSelectionMethods
             }
             else if (selectionMethod == SeedSelection.KPP)
             {
-                if (threadpool == null)
+                if (threadpool == null || threadpool instanceof FakeExecutor)
                     kppSelection(indices, rand, d, k, dm, accelCache);
                 else
                     kppSelection(indices, rand, d, k, dm, accelCache, threadpool);
@@ -261,9 +261,9 @@ public class SeedSelectionMethods
             {
                 newDist = dm.dist(newMeanIndx, i, vecs, accelCache);
                 
+                newDist*=newDist;
                 if(newDist < closestDist[i] || j == 1)
                 {
-                    newDist*=newDist;
                     sqrdDistSum -= closestDist[i];//on inital, -= 0  changes nothing. on others, removed the old value
                     sqrdDistSum += newDist;
                     closestDist[i] = newDist;
@@ -323,9 +323,9 @@ public class SeedSelectionMethods
                         {
                             double newDist =  dm.dist(newMeanIndx, i, X, accelCache);
 
+                            newDist *= newDist;
                             if (newDist < closestDist[i] || forceCompute)
                             {
-                                newDist *= newDist;
                                 sqrdDistChanges -= closestDist[i];//on inital, -= 0  changes nothing. on others, removed the old value
                                 sqrdDistChanges += newDist;
                                 closestDist[i] = newDist;
