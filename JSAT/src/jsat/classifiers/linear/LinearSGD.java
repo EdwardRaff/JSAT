@@ -7,9 +7,10 @@ import jsat.SimpleWeightVectorModel;
 import jsat.classifiers.BaseUpdateableClassifier;
 import jsat.classifiers.CategoricalData;
 import jsat.classifiers.CategoricalResults;
-import jsat.classifiers.ClassificationDataSet;
 import jsat.classifiers.DataPoint;
 import jsat.exceptions.FailedToFitException;
+import jsat.linear.ConcatenatedVec;
+import jsat.linear.ConstantVector;
 import jsat.linear.DenseVector;
 import jsat.linear.IndexValue;
 import jsat.linear.ScaledVector;
@@ -21,6 +22,8 @@ import jsat.lossfunctions.LossMC;
 import jsat.lossfunctions.LossR;
 import jsat.math.decayrates.DecayRate;
 import jsat.math.decayrates.PowerDecay;
+import jsat.math.optimization.stochastic.GradientUpdater;
+import jsat.math.optimization.stochastic.SimpleSGD;
 import jsat.parameters.Parameter;
 import jsat.parameters.Parameterized;
 import jsat.regression.BaseUpdateableRegressor;
@@ -58,9 +61,16 @@ public class LinearSGD extends BaseUpdateableClassifier implements UpdateableReg
 {
     
     private LossFunc loss;
+    private GradientUpdater gradientUpdater;
     private double eta;
     private DecayRate decay;
+    /**
+     * Used to concatenate ws with a bias term so the gradient update can get 
+     * them all at once
+     */
+    private Vec[] wsWithBias;
     private Vec[] ws;
+    private GradientUpdater[] gus;
     private double[] bs;
     private int time;
     private double lambda0;
@@ -101,6 +111,7 @@ public class LinearSGD extends BaseUpdateableClassifier implements UpdateableReg
         setLoss(loss);
         setEta(eta);
         setEtaDecay(decay);
+        setGradientUpdater(new SimpleSGD());
         setLambda0(lambda0);
         setLambda1(lambda1);
     }
@@ -119,6 +130,8 @@ public class LinearSGD extends BaseUpdateableClassifier implements UpdateableReg
         this.lambda0 = toClone.lambda0;
         this.lambda1 = toClone.lambda1;
         this.l1U = toClone.l1U;
+        this.useBias = toClone.useBias;
+        this.gradientUpdater = toClone.gradientUpdater;
         if(toClone.l1Q != null)
         {
             this.l1Q = new double[toClone.l1Q.length][];
@@ -129,12 +142,42 @@ public class LinearSGD extends BaseUpdateableClassifier implements UpdateableReg
         {
             this.ws = new Vec[toClone.ws.length];
             this.bs = new double[toClone.bs.length];
+            this.gus = new GradientUpdater[toClone.gus.length];
+            this.wsWithBias = new Vec[toClone.wsWithBias.length];
             for(int i = 0; i < ws.length; i++)
             {
                 this.ws[i] = toClone.ws[i].clone();
                 this.bs[i] = toClone.bs[i];
+                this.gus[i] = toClone.gus[i].clone();
+                if(useBias)
+                    this.wsWithBias[i] = new ConcatenatedVec(Arrays.asList(this.ws[i], new DenseVector(this.bs, i, i+1)));
+                else
+                    this.wsWithBias[i] = this.ws[i];
             }
         }
+    }
+
+    /**
+     * Sets the method that will be used to update the weight vectors given 
+     * their gradient information. 
+     * @param gradientUpdater the method to use for updating the weight vectors 
+     * from the gradient
+     */
+    public void setGradientUpdater(GradientUpdater gradientUpdater)
+    {
+        if(gradientUpdater == null )
+            throw new IllegalArgumentException("Gradient updater must be non-null");
+        this.gradientUpdater = gradientUpdater;
+    }
+
+    /**
+     * 
+     * @return the method to use for updating the weight vectors from the 
+     * gradient
+     */
+    public GradientUpdater getGradientUpdater()
+    {
+        return gradientUpdater;
     }
 
     /**
@@ -270,6 +313,8 @@ public class LinearSGD extends BaseUpdateableClassifier implements UpdateableReg
         {
             ws = new Vec[1];
             bs = new double[1];
+            gus = new GradientUpdater[1];
+            wsWithBias = new Vec[1];
         }
         else
         {
@@ -277,6 +322,8 @@ public class LinearSGD extends BaseUpdateableClassifier implements UpdateableReg
                 throw new FailedToFitException("Loss function " + loss.getClass().getSimpleName() + " only supports binary classification");
             ws = new Vec[predicting.getNumOfCategories()];
             bs = new double[predicting.getNumOfCategories()];
+            gus = new GradientUpdater[predicting.getNumOfCategories()];
+            wsWithBias = new Vec[predicting.getNumOfCategories()];
         }
         setUpShared(numericAttributes);
     }
@@ -289,6 +336,8 @@ public class LinearSGD extends BaseUpdateableClassifier implements UpdateableReg
         
         ws = new Vec[1];
         bs = new double[1];
+        gus = new GradientUpdater[1];
+        wsWithBias = new Vec[1];
         setUpShared(numericAttributes);
     }
     
@@ -297,7 +346,20 @@ public class LinearSGD extends BaseUpdateableClassifier implements UpdateableReg
         if(numericAttributes <= 0 )
             throw new FailedToFitException("LinearSGD requires numeric features to use");
         for(int i = 0; i < ws.length; i++)
+        {
             ws[i] = new ScaledVector(new DenseVector(numericAttributes));
+            gus[i] = gradientUpdater.clone();
+            if(useBias)
+            {
+                gus[i].setup(ws[i].length()+1);
+                wsWithBias[i] = new ConcatenatedVec(Arrays.asList(ws[i], new DenseVector(bs, i, i+1)));
+            }
+            else
+            {
+                gus[i].setup(ws[i].length());
+                wsWithBias[i] = ws[i];
+            }
+        }
         time = 0;
         l1U = 0;
         if(lambda1 > 0)
@@ -320,9 +382,7 @@ public class LinearSGD extends BaseUpdateableClassifier implements UpdateableReg
         {
             final double y = targetClass*2-1;
             final double lossD = ((LossC)loss).getDeriv(ws[0].dot(x)+bs[0], y);
-            ws[0].mutableSubtract(eta_t*lossD, x);
-            if(useBias)
-                bs[0] -= eta_t*lossD;
+            performGradientUpdate(0, eta_t, lossD, x);
         }
         else
         {
@@ -335,13 +395,36 @@ public class LinearSGD extends BaseUpdateableClassifier implements UpdateableReg
             {
                 final int i = iv.getIndex();
                 final double lossD = iv.getValue();
-                ws[i].mutableSubtract(eta_t*lossD, x);
-                if(useBias)
-                    bs[i] -= eta_t*lossD;
+                performGradientUpdate(i, eta_t, lossD, x);
             }
         }
         
         applyL1Reg(eta_t, x);
+    }
+
+    /**
+     * 
+     * @param i the index of the weight vector array to update
+     * @param eta_t the learning rate to use
+     * @param lossD the loss for the specified weight vector
+     * @param x the input vector the loss was incurred on
+     */
+    private void performGradientUpdate(final int i, final double eta_t, final double lossD, Vec x)
+    {
+        if(gradientUpdater instanceof SimpleSGD)//special case, use orig code
+        {
+            ws[i].mutableSubtract(eta_t*lossD, x);
+            if(useBias)
+                bs[i] -= eta_t*lossD;
+        }
+        else//new code, can be a bit slower with bias term
+        {
+            final Vec grad = new ScaledVector(lossD, x);
+            if (useBias)
+                gus[i].update(wsWithBias[i], new ConcatenatedVec(Arrays.asList(grad, new ConstantVector(lossD, 1))), eta);
+            else
+                gus[i].update(ws[i], grad, eta);
+        }
     }
     
     @Override
@@ -354,8 +437,7 @@ public class LinearSGD extends BaseUpdateableClassifier implements UpdateableReg
         
         final double lossD = ((LossR)loss).getDeriv(ws[0].dot(x)+bs[0], targetValue);
         
-        ws[0].mutableSubtract(eta_t*lossD, x);
-        bs[0] -= eta_t*lossD;
+        performGradientUpdate(0, eta_t, lossD, x);
         
         applyL1Reg(eta_t, x);
     }
