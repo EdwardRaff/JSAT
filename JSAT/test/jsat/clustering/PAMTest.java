@@ -17,6 +17,7 @@ import java.util.Random;
 import java.util.concurrent.ExecutorService;
 import jsat.DataSet;
 import jsat.clustering.SeedSelectionMethods.SeedSelection;
+import jsat.distributions.Normal;
 import jsat.linear.distancemetrics.EuclideanDistance;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -42,8 +43,8 @@ public class PAMTest
     @BeforeClass
     public static void setUpClass() throws Exception
     {
-        pam = new PAM(new EuclideanDistance(), new Random(11), SeedSelection.KPP);
-        GridDataGenerator gdg = new GridDataGenerator(new Uniform(-0.15, 0.15), new Random(12), 2, 5);
+        pam = new PAM(new EuclideanDistance(), new Random(), SeedSelection.KPP);
+        GridDataGenerator gdg = new GridDataGenerator(new Uniform(-0.05, 0.05), new Random(), 2, 5);
         easyData10 = gdg.generateData(40);
         ex = Executors.newFixedThreadPool(SystemInfo.LogicalCores);
     }
