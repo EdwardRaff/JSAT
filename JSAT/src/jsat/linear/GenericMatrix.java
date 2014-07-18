@@ -212,7 +212,7 @@ public abstract class GenericMatrix extends Matrix
         final int iLimit = this.rows();
         final int jLimit = b.rows();
         final int kLimit = this.cols();
-        
+        final int blockStep = Math.min(NB2, Math.max(iLimit/LogicalCores, 1));//reduce block size so we can use all cores if needed.
         final CountDownLatch cdl = new CountDownLatch(LogicalCores);
         
         for(int threadNum = 0; threadNum < LogicalCores; threadNum++)
@@ -223,14 +223,14 @@ public abstract class GenericMatrix extends Matrix
                 @Override
                 public void run()
                 {
-                    for (int i0 = NB2 * threadID; i0 < iLimit; i0 += NB2 * LogicalCores)
-                        for (int k0 = 0; k0 < kLimit; k0 += NB2)
-                            for (int j0 = 0; j0 < jLimit; j0 += NB2)
-                                for (int i = i0; i < min(i0 + NB2, iLimit); i++)
-                                    for (int j = j0; j < min(j0 + NB2, jLimit); j++)
+                    for (int i0 = blockStep * threadID; i0 < iLimit; i0 += blockStep * LogicalCores)
+                        for (int k0 = 0; k0 < kLimit; k0 += blockStep)
+                            for (int j0 = 0; j0 < jLimit; j0 += blockStep)
+                                for (int i = i0; i < min(i0 + blockStep, iLimit); i++)
+                                    for (int j = j0; j < min(j0 + blockStep, jLimit); j++)
                                     {
                                         double C_ij = 0;
-                                        for (int k = k0; k < min(k0 + NB2, kLimit); k++)
+                                        for (int k = k0; k < min(k0 + blockStep, kLimit); k++)
                                             C_ij += A.get(i, k) * b.get(j, k);
                                         C.increment(i, j, C_ij);
                                     }
@@ -397,6 +397,7 @@ public abstract class GenericMatrix extends Matrix
         final int iLimit = C.rows();
         final int jLimit = C.cols();
         final int kLimit = this.rows();
+        final int blockStep = Math.min(NB2, Math.max(iLimit/LogicalCores, 1));//reduce block size so we can use all cores if needed.
         
         final CountDownLatch cdl = new CountDownLatch(LogicalCores);
         
@@ -407,15 +408,15 @@ public abstract class GenericMatrix extends Matrix
 
                 public void run()
                 {
-                    for (int i0 = NB2 * threadID; i0 < iLimit; i0 += NB2 * LogicalCores)
-                        for (int k0 = 0; k0 < kLimit; k0 += NB2)
-                            for (int j0 = 0; j0 < jLimit; j0 += NB2)
-                                for (int k = k0; k < min(k0 + NB2, kLimit); k++)
-                                    for (int i = i0; i < min(i0 + NB2, iLimit); i++)
+                    for (int i0 = blockStep * threadID; i0 < iLimit; i0 += blockStep * LogicalCores)
+                        for (int k0 = 0; k0 < kLimit; k0 += blockStep)
+                            for (int j0 = 0; j0 < jLimit; j0 += blockStep)
+                                for (int k = k0; k < min(k0 + blockStep, kLimit); k++)
+                                    for (int i = i0; i < min(i0 + blockStep, iLimit); i++)
                                     {
                                         double a = A.get(k, i);
 
-                                        for (int j = j0; j < min(j0 + NB2, jLimit); j++)
+                                        for (int j = j0; j < min(j0 + blockStep, jLimit); j++)
                                             C.increment(i, j, a * b.get(k, j));
                                     }
                     cdl.countDown();

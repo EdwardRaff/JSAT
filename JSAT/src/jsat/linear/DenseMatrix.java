@@ -332,6 +332,7 @@ public class DenseMatrix extends GenericMatrix
         final int iLimit = C.rows();
         final int jLimit = C.cols();
         final int kLimit = this.rows();
+        final int blockStep = Math.min(NB2, Math.max(iLimit/LogicalCores, 1));//reduce block size so we can use all cores if needed.
         
         final CountDownLatch cdl = new CountDownLatch(LogicalCores);
         
@@ -344,21 +345,21 @@ public class DenseMatrix extends GenericMatrix
                 {
                     DenseMatrix BB = (DenseMatrix) b;
                     DenseMatrix CC = (DenseMatrix) C;
-                    for (int i0 = NB2 * threadID; i0 < iLimit; i0 += NB2 * LogicalCores)
-                        for (int k0 = 0; k0 < kLimit; k0 += NB2)
-                            for (int j0 = 0; j0 < jLimit; j0 += NB2)
+                    for (int i0 = blockStep * threadID; i0 < iLimit; i0 += blockStep * LogicalCores)
+                        for (int k0 = 0; k0 < kLimit; k0 += blockStep)
+                            for (int j0 = 0; j0 < jLimit; j0 += blockStep)
                             {
-                                for (int k = k0; k < min(k0 + NB2, kLimit); k++)
+                                for (int k = k0; k < min(k0 + blockStep, kLimit); k++)
                                 {
                                     double[] A_row_k = A.matrix[k];
                                     double[] B_row_k = BB.matrix[k];
 
-                                    for (int i = i0; i < min(i0 + NB2, iLimit); i++)
+                                    for (int i = i0; i < min(i0 + blockStep, iLimit); i++)
                                     {
-                                        double a = A_row_k[i];
-                                        double[] c_row_i = CC.matrix[i];
+                                        final double a = A_row_k[i];
+                                        final double[] c_row_i = CC.matrix[i];
 
-                                        for (int j = j0; j < min(j0 + NB2, jLimit); j++)
+                                        for (int j = j0; j < min(j0 + blockStep, jLimit); j++)
                                             c_row_i[j] += a * B_row_k[j];
                                     }
                                 }
