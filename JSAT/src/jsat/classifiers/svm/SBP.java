@@ -3,12 +3,10 @@ package jsat.classifiers.svm;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
 import java.util.Random;
 import java.util.concurrent.ExecutorService;
 import jsat.classifiers.CategoricalResults;
 import jsat.classifiers.ClassificationDataSet;
-import jsat.classifiers.Classifier;
 import jsat.classifiers.DataPoint;
 import jsat.classifiers.calibration.BinaryScoreClassifier;
 import jsat.distributions.kernels.KernelTrick;
@@ -39,7 +37,7 @@ public class SBP extends SupportVectorLearner implements BinaryScoreClassifier, 
 {
     private double nu = 0.1;
     private int iterations;
-    private double burnInFraction = 1.0/5.0;
+    private double burnIn = 1.0/5.0;
 
     /**
      * Creates a new SBP SVM learner
@@ -117,7 +115,32 @@ public class SBP extends SupportVectorLearner implements BinaryScoreClassifier, 
     {
         return nu;
     }
-    
+
+    /**
+     * Sets the burn in fraction. SBP averages the intermediate solutions from 
+     * each step as the final solution. The intermediate steps of SBP are highly
+     * correlated, and the begging solutions are usually not as meaningful 
+     * toward the converged solution. To overcome this issue a certain fraction 
+     * of the iterations are not averaged into the final solution, making them 
+     * the "burn in" fraction. A value of 0.25 would then be ignoring the 
+     * initial 25% of solutions. 
+     * @param burnIn the ratio int [0, 1) initial solutions to ignore
+     */
+    public void setBurnIn(double burnIn)
+    {
+        if(Double.isNaN(burnIn) || burnIn < 0 || burnIn >= 1)
+            throw new IllegalArgumentException("BurnInFraction must be in [0, 1), not " + burnIn);
+        this.burnIn = burnIn;
+    }
+
+    /**
+     * 
+     * @return the burn in fraction
+     */
+    public double getBurnIn()
+    {
+        return burnIn;
+    }
 
     @Override
     public CategoricalResults classify(DataPoint data)
@@ -160,7 +183,7 @@ public class SBP extends SupportVectorLearner implements BinaryScoreClassifier, 
         /**
          * First index where we start summing for the average
          */
-        final int T_0 = 1+(int) (burnInFraction*n);
+        final int T_0 = (int) Math.min((burnIn*iterations), iterations-1);
         /*
          * Respone values
          */
@@ -177,12 +200,12 @@ public class SBP extends SupportVectorLearner implements BinaryScoreClassifier, 
             vecs.add(dataSet.getDataPoint(i).getNumericalValues());
         }
         
+        setCacheMode(getCacheMode());//Initiates the cahce
+        
         Random rand = new XORWOW();
         double maxKii = 0;
         for(int i = 0; i < n; i++)
-            maxKii = Math.max(maxKii, kEval(vecs.get(i), vecs.get(i)));//avoid starting the cache on the diagonal
-        
-        setCacheMode(getCacheMode());//Initiates the cahce
+            maxKii = Math.max(maxKii, kEval(i, i));
         
         final double eta_0 = 1/Math.sqrt(maxKii);
         
@@ -193,54 +216,14 @@ public class SBP extends SupportVectorLearner implements BinaryScoreClassifier, 
             final double eta = eta_0/Math.sqrt(t);
             final double gamma = findGamma(C, n*nu);
 
-            //Samply uniformly from C[i] <= gamma
-            int attempts = 0;//you get 5 attempts to find one quickly
             int i;
-            do
-            {
-                i = rand.nextInt(n);
-                attempts++;
-            }
-            while(C[i] > gamma && attempts < 5);
-            
-            if(C[i] > gamma)//find one the slow way
-            {
-                int candidates = 0;
-                for(int j = 0; j < C.length; j++)
-                {
-                    if(C[j] < gamma)
-                        candidates++;
-                }
-                
-                if(candidates == 0)
-                    throw new FailedToFitException("BUG: please report");
-                
-                int randCand = rand.nextInt(candidates);
-                i = 0;
-                for(int j = 0; j < C.length && i < randCand; j++)
-                    if(C[i] < gamma)
-                        i++;
-            }
+            i = sampleC(rand, n, C, gamma);
             
             
             alphas[i] += eta;
-            rSqrd += 2*eta*C[i]+eta*eta*kEval(i, i);
-            final double y_i = y[i];
-            for(int j = 0; j < n; j++)
-                C[j] += eta*y_i*y[j]*kEval(i, j);
+            rSqrd = updateLoop(rSqrd, eta, C, i, y, n);
             
-            if(rSqrd > 1)//1^2 = 1, so jsut use sqrd version
-            {
-                final double rInv = 1/Math.sqrt(rSqrd);
-                
-                for(int j = 0; j < n; j++)
-                {
-                    C[j] *= rInv;
-                    alphas[j] *= rInv;
-                }
-                
-                rSqrd = 1;
-            }
+            rSqrd = projectionStep(rSqrd, n, C);
 
             if(t >= T_0)
                 for(int j = 0; j < n; j++)
@@ -277,6 +260,64 @@ public class SBP extends SupportVectorLearner implements BinaryScoreClassifier, 
         setAlphas(alphas);
     }
 
+    private double projectionStep(double rSqrd, final int n, double[] C)
+    {
+        if(rSqrd > 1)//1^2 = 1, so jsut use sqrd version
+        {
+            final double rInv = 1/Math.sqrt(rSqrd);
+            
+            for(int j = 0; j < n; j++)
+            {
+                C[j] *= rInv;
+                alphas[j] *= rInv;
+            }
+            
+            rSqrd = 1;
+        }
+        return rSqrd;
+    }
+
+    private int sampleC(Random rand, final int n, double[] C, final double gamma) throws FailedToFitException
+    {
+        int i = 0;
+        //Samply uniformly from C[i] <= gamma
+        int attempts = 0;//you get 5 attempts to find one quickly
+        do
+        {
+            i = rand.nextInt(n);
+            attempts++;
+        }
+        while(C[i] > gamma && attempts < 5);
+        if(C[i] > gamma)//find one the slow way
+        {
+            int candidates = 0;
+            for(int j = 0; j < C.length; j++)
+            {
+                if(C[j] < gamma)
+                    candidates++;
+            }
+            
+            if(candidates == 0)
+                throw new FailedToFitException("BUG: please report");
+            
+            int randCand = rand.nextInt(candidates);
+            i = 0;
+            for(int j = 0; j < C.length && i < randCand; j++)
+                if(C[i] < gamma)
+                    i++;
+        }
+        return i;
+    }
+
+    private double updateLoop(double rSqrd, final double eta, double[] C, int i, double[] y, final int n)
+    {
+        rSqrd += 2*eta*C[i]+eta*eta*kEval(i, i);
+        final double y_i = y[i];
+        for(int j = 0; j < n; j++)
+            C[j] += eta*y_i*y[j]*kEval(i, j);
+        return rSqrd;
+    }
+
     @Override
     public boolean supportsWeightedData()
     {
@@ -292,10 +333,7 @@ public class SBP extends SupportVectorLearner implements BinaryScoreClassifier, 
         if(it == null )
             it = new IndexTable(C);
         else
-        {
-            it.reset();
-            it.sort(C);
-        }
+            it.sort(C);//few will change from iteration to iteration, Java's TimSort should be able to exploit this 
         
         double sum = 0;
         double max;
