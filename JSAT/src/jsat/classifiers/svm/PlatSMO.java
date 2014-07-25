@@ -327,42 +327,10 @@ public class PlatSMO extends SupportVectorLearner implements BinaryScoreClassifi
      */
     private void updateSetsLabeled(int i1, double a1)
     {
-        if(label[i1] == 1)
-        {
-            if(a1 == 0)
-            {
-                I1[i1] = true;
-                I3[i1] = false;
-            }
-            else if(a1 == C)
-            {
-                I1[i1] = false;
-                I3[i1] = true;
-            }
-            else
-            {
-                I1[i1] = false;
-                I3[i1] = false;
-            }
-        }
-        else
-        {
-            if(a1 == 0)
-            {
-                I4[i1] = true;
-                I2[i1] = false;
-            }
-            else if(a1 == C)
-            {
-                I4[i1] = false;
-                I2[i1] = true;
-            }
-            else
-            {
-                I4[i1] = false;
-                I2[i1] = false;
-            }
-        }
+        I1[i1] = a1 == 0 && label[i1] == 1;
+        I2[i1] = a1 == C && label[i1] == -1;
+        I3[i1] = a1 == C && label[i1] == 1;
+        I4[i1] = a1 == 0 && label[i1] == -1;
     }
     
     protected boolean takeStep(int i1, int i2)
