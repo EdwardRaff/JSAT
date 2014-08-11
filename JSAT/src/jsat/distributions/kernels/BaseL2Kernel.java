@@ -48,6 +48,18 @@ public abstract class BaseL2Kernel implements KernelTrick
     }
     
     /**
+     * Returns the squared L<sup>2</sup> norm of the given point from the cache
+     * @param i the index in the vector list to get the squared norm from
+     * @param vecs the list of vectors that make the collection
+     * @param cache the cache of values for each vector in the collection
+     * @return the squared norm ||x<sub>i</sub>||<sup>2</sup>
+     */
+    protected double getSqrdNorm(int i, List<? extends Vec> vecs, List<Double> cache)
+    {
+        return cache.get(i);
+    }
+    
+    /**
      * Returns the squared L<sup>2</sup> norm between a point in the cache and one with a provided qi value
      * @param i the index in the vector list
      * @param y the other vector 
