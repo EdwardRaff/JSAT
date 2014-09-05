@@ -323,9 +323,29 @@ public class LIBSVMLoader
         }
     }
     
+    /**
+     * Use thread local of sparse vectors to initialize construction. This way 
+     * we avoid unnecessary object allocation - one base vec will increase to 
+     * the needed size. Then a copy with only the needed space is added instead
+     * of the thread local vector. 
+     */
+    private static final ThreadLocal<SparseVector> tempSparseVecs = new ThreadLocal<SparseVector>()
+    {
+
+        @Override
+        protected SparseVector initialValue()
+        {
+            return new SparseVector(1);
+        }
+        
+    };
+    
     private static int loadSparseVec(String line, int maxLen, List<SparseVector> sparceVecs, int pos) 
     {
-        SparseVector sv = new SparseVector(1);
+        SparseVector sv = tempSparseVecs.get();
+        sv.zeroOut();
+        if(maxLen > sv.length())//we might be used on a new problem, so we need to reduce our length
+            sv.setLength(Math.max(maxLen, 1));
         
         while(true)
         {
@@ -346,7 +366,7 @@ public class LIBSVMLoader
             if(breakOut || pos == line.length())
                 break;
         }
-        sparceVecs.add(sv);
+        sparceVecs.add(new SparseVector(sv));//copy of the sv since sv will be reused. Copy will allocate just enough to store the values present
         return maxLen;
     }
 }
