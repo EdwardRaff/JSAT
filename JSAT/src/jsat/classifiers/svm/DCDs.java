@@ -311,7 +311,9 @@ public class DCDs implements BinaryScoreClassifier, Regressor, Parameterized, Si
         {
             vecs[i] = dataSet.getDataPoint(i).getNumericalValues();
             y[i] = dataSet.getDataPointCategory(i)*2-1;
-            Qhs[i] = vecs[i].dot(vecs[i])+1.0+D;//+1 for implicit bias term
+            Qhs[i] = vecs[i].dot(vecs[i])+D;
+            if(useBias)//+1 for implicit bias term
+                Qhs[i]++;
         }
         w = new DenseVector(vecs[0].length());
         
@@ -338,7 +340,7 @@ public class DCDs implements BinaryScoreClassifier, Regressor, Parameterized, Si
             {
                 int i = iter.next();
                 //a
-                final double G = y[i]*(w.dot(vecs[i])+bias)-1+D*alpha[i];
+                final double G = y[i]*(w.dot(vecs[i])+bias)-1+D*alpha[i];//bias will be zero if usebias is off
                 //b
                 double PG = 0;
                 if(alpha[i] == 0)
@@ -367,7 +369,8 @@ public class DCDs implements BinaryScoreClassifier, Regressor, Parameterized, Si
                     alpha[i] = Math.min(Math.max(alpha[i]-G/Qhs[i], 0), U);
                     double scale = (alpha[i]-alphaOld)*y[i];
                     w.mutableAdd(scale, vecs[i]);
-                    bias += scale;
+                    if(useBias)
+                        bias += scale;
                 }
             }
             
@@ -406,6 +409,7 @@ public class DCDs implements BinaryScoreClassifier, Regressor, Parameterized, Si
     {
         DCDs clone = new DCDs(maxIterations, tolerance, C, useL1);
         clone.bias = this.bias;
+        clone.useBias = this.useBias;
         
         if(this.w != null)
             clone.w = this.w.clone();

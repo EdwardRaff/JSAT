@@ -490,6 +490,7 @@ public class DCD implements BinaryScoreClassifier, Regressor, Parameterized, Sin
         DCD clone = new DCD(maxIterations, C, useL1);
         clone.onlineVersion = this.onlineVersion;
         clone.bias = this.bias;
+        clone.useBias = this.useBias;
         
         if(this.w != null)
             clone.w = this.w.clone();
