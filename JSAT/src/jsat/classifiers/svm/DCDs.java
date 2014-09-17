@@ -305,13 +305,16 @@ public class DCDs implements BinaryScoreClassifier, Regressor, Parameterized, Si
         bias = 0;
         final double[] Qhs = new double[vecs.length];//Q hats
         
-        final double U = getU(), D = getD();
+        final double[] U = new double[vecs.length], D = new double[vecs.length];
         
         for(int i = 0; i < dataSet.getSampleSize(); i++)
         {
-            vecs[i] = dataSet.getDataPoint(i).getNumericalValues();
+            final DataPoint dp = dataSet.getDataPoint(i);
+            vecs[i] = dp.getNumericalValues();
             y[i] = dataSet.getDataPointCategory(i)*2-1;
-            Qhs[i] = vecs[i].dot(vecs[i])+D;
+            U[i] = getU(dp.getWeight());
+            D[i] = getD(dp.getWeight());
+            Qhs[i] = vecs[i].dot(vecs[i])+D[i];
             if(useBias)//+1 for implicit bias term
                 Qhs[i]++;
         }
@@ -340,7 +343,7 @@ public class DCDs implements BinaryScoreClassifier, Regressor, Parameterized, Si
             {
                 int i = iter.next();
                 //a
-                final double G = y[i]*(w.dot(vecs[i])+bias)-1+D*alpha[i];//bias will be zero if usebias is off
+                final double G = y[i]*(w.dot(vecs[i])+bias)-1+D[i]*alpha[i];//bias will be zero if usebias is off
                 //b
                 double PG = 0;
                 if(alpha[i] == 0)
@@ -350,7 +353,7 @@ public class DCDs implements BinaryScoreClassifier, Regressor, Parameterized, Si
                     if(G < 0)
                         PG = G;
                 }
-                else if(alpha[i] == U)
+                else if(alpha[i] == U[i])
                 {
                     if(G < m && !noShrinking)
                         iter.remove();
@@ -366,7 +369,7 @@ public class DCDs implements BinaryScoreClassifier, Regressor, Parameterized, Si
                 if(PG != 0)
                 {
                     double alphaOld = alpha[i];
-                    alpha[i] = Math.min(Math.max(alpha[i]-G/Qhs[i], 0), U);
+                    alpha[i] = Math.min(Math.max(alpha[i]-G/Qhs[i], 0), U[i]);
                     double scale = (alpha[i]-alphaOld)*y[i];
                     w.mutableAdd(scale, vecs[i]);
                     if(useBias)
@@ -401,7 +404,7 @@ public class DCDs implements BinaryScoreClassifier, Regressor, Parameterized, Si
     @Override
     public boolean supportsWeightedData()
     {
-        return false;
+        return true;
     }
 
     @Override
@@ -453,16 +456,19 @@ public class DCDs implements BinaryScoreClassifier, Regressor, Parameterized, Si
         bias = 0;
         final double[] Qhs = new double[vecs.length];//Q hats
         
-        final double U = getU(), lambda = getD();
+        final double[] U = new double[vecs.length], lambda = new double[vecs.length];
         double v_0 = 0;
         for(int i = 0; i < dataSet.getSampleSize(); i++)
         {
-            vecs[i] = dataSet.getDataPoint(i).getNumericalValues();
+            final DataPoint dp = dataSet.getDataPoint(i);
+            vecs[i] = dp.getNumericalValues();
             y[i] = dataSet.getTargetValue(i);
-            Qhs[i] = vecs[i].dot(vecs[i])+lambda;
+            U[i] = getU(dp.getWeight());
+            lambda[i] = getD(dp.getWeight());
+            Qhs[i] = vecs[i].dot(vecs[i])+lambda[i];
             if (useBias)
                 Qhs[i] += 1.0;
-            v_0 += Math.abs(eq24(0, -y[i]-eps, -y[i]+eps, U));
+            v_0 += Math.abs(eq24(0, -y[i]-eps, -y[i]+eps, U[i]));
         }
         w = new DenseVector(vecs[0].length());
         
@@ -492,11 +498,11 @@ public class DCDs implements BinaryScoreClassifier, Regressor, Parameterized, Si
                 final double y_i = y[i];
                 final Vec x_i = vecs[i];
                 final double wDotX = w.dot(x_i)+bias;
-                final double g = -y_i + wDotX + lambda * alpha[i];
+                final double g = -y_i + wDotX + lambda[i] * alpha[i];
                 final double gP = g + eps;
                 final double gN = g - eps;
                 
-                final double v_i = eq24(alpha[i], gN, gP, U);
+                final double v_i = eq24(alpha[i], gN, gP, U[i]);
                 maxVk = Math.max(maxVk, v_i);
                 vKSum += Math.abs(v_i);
                 
@@ -505,7 +511,7 @@ public class DCDs implements BinaryScoreClassifier, Regressor, Parameterized, Si
                 boolean shrink = false;
                 if(alpha[i] == 0 && gN < -M && -M < 0 && M < gP)
                     shrink = true;
-                if( (alpha[i] == U &&  gP < -M) || (alpha[i] == -U && gN > M))
+                if( (alpha[i] == U[i] &&  gP < -M) || (alpha[i] == -U[i] && gN > M))
                     shrink = true;
                 
                 if(shrink)
@@ -525,7 +531,7 @@ public class DCDs implements BinaryScoreClassifier, Regressor, Parameterized, Si
                     continue;
                 
                 //s = max(−U, min(U,beta_i +d))     eq (21) 
-                final double s = Math.max(-U, Math.min(U, alpha[i]+d));
+                final double s = Math.max(-U[i], Math.min(U[i], alpha[i]+d));
                 
                 w.mutableAdd(s-alpha[i], x_i);
                 if(useBias)
@@ -553,20 +559,20 @@ public class DCDs implements BinaryScoreClassifier, Regressor, Parameterized, Si
         }
     }
     
-    private double getU()
+    private double getU(double w)
     {
         if(useL1)
-            return C;
+            return C*w;
         else
             return Double.POSITIVE_INFINITY;
     }
     
-    private double getD()
+    private double getD(double w)
     {
         if(useL1)
             return 0;
         else
-            return 1/(2*C);
+            return 1/(2*C*w);
     }
 
     /**
