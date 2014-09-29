@@ -132,15 +132,40 @@ public class RegressionDataSet extends DataSet
         return rds;
     }
     
+    private static final int[] emptyInt = new int[0];
+    /**
+     * Creates a new data point with no categorical variables to be added to the
+     * data set. The arguments will be used directly, modifying them after will
+     * effect the data set. 
+     * 
+     * @param numerical the numerical values for the data point
+     * @throws IllegalArgumentException if the given values are inconsistent with the data this class stores. 
+     */
+    public void addDataPoint(Vec numerical, double val)
+    {
+        addDataPoint(numerical, emptyInt, val);
+    }
+    
     /**
      * Creates a new data point to be added to the data set. The arguments will
      * be used directly, modifying them after will effect the data set. 
      * 
      * @param numerical the numerical values for the data point
      * @param categories the categorical values for the data point
+     * @param val the target value to predict
+     * @throws IllegalArgumentException if the given values are inconsistent with the data this class stores. 
      */
     public void addDataPoint(Vec numerical, int[] categories, double val)
     {
+        if(numerical.length() != numNumerVals)
+            throw new RuntimeException("Data point does not contain enough numerical data points");
+        if(categories.length != categories.length)
+            throw new RuntimeException("Data point does not contain enough categorical data points");
+        
+        for(int i = 0; i < categories.length; i++)
+            if(!this.categories[i].isValidCategory(categories[i]))
+                throw new RuntimeException("Categoriy value given is invalid");
+        
         DataPoint dp = new DataPoint(numerical, categories, this.categories);
         addDataPoint(dp, val);
     }

@@ -282,15 +282,42 @@ public class ClassificationDataSet extends DataSet
 
     
     /**
-     * Creates a new data point and add its to this data set. 
+     * Creates a new data point and adds it to this data set. 
      * @param v the numerical values for the data point
      * @param classes the categorical values for the data point
      * @param classification the true class value for the data point
-     * @throws RuntimeException if the given values are inconsistent with the data this class stores. 
+     * @throws IllegalArgumentException if the given values are inconsistent with the data this class stores. 
      */
     public void addDataPoint(Vec v, int[] classes, int classification)
     {
         addDataPoint(v, classes, classification, 1.0);
+    }
+    
+    private static final int[] emptyInt = new int[0];
+    
+    /**
+     * Creates a new data point with no categorical variables and adds it to 
+     * this data set. 
+     * @param v the numerical values for the data point
+     * @param classification the true class value for the data point
+     * @throws IllegalArgumentException if the given values are inconsistent with the data this class stores. 
+     */
+    public void addDataPoint(Vec v, int classification)
+    {
+        addDataPoint(v, emptyInt, classification, 1.0);
+    }
+    
+    /**
+     * Creates a new data point with no categorical variables and adds it to 
+     * this data set. 
+     * @param v the numerical values for the data point
+     * @param classification the true class value for the data point
+     * @param weight the weight value to give to the data point
+     * @throws IllegalArgumentException if the given values are inconsistent with the data this class stores. 
+     */
+    public void addDataPoint(Vec v, int classification, double weight)
+    {
+        addDataPoint(v, emptyInt, classification, 1.0);
     }
 
     /**
@@ -299,7 +326,7 @@ public class ClassificationDataSet extends DataSet
      * @param classes the categorical values for the data point
      * @param classification the true class value for the data point
      * @param weight the weight value to give to the data point
-     * @throws RuntimeException if the given values are inconsistent with the data this class stores. 
+     * @throws IllegalArgumentException if the given values are inconsistent with the data this class stores. 
      */
     public void addDataPoint(Vec v, int[] classes, int classification, double weight)
     {
@@ -310,7 +337,7 @@ public class ClassificationDataSet extends DataSet
         
         for(int i = 0; i < classes.length; i++)
             if(!categories[i].isValidCategory(classes[i]))
-                throw new RuntimeException("Categoriy value given is invalid");
+                throw new IllegalArgumentException("Categoriy value given is invalid");
         
         datapoints.add(new DataPoint(v, classes, categories, weight));
         category.add(classification);
