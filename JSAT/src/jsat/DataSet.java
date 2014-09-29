@@ -516,6 +516,21 @@ public abstract class DataSet
     }
     
     /**
+     * Creates a matrix backed by the data set, where each row is a data point 
+     * from the dataset, and each column is one of the numeric examples from the
+     * data set. <br>
+     * Any modifications to this matrix will be reflected in the dataset. <br>
+     * This method has the advantage over {@link #getDataMatrix() } in that it 
+     * does not use any additional memory and it maintains any sparsity 
+     * information. 
+     * @return a matrix representation of the data points 
+     */
+    public Matrix getDataMatrixView()
+    {
+        return new MatrixOfVecs(getDataVectors());
+    }
+    
+    /**
      * Returns the number of features in this data set, which is the sum of {@link #getNumCategoricalVars() } and {@link #getNumNumericalVars() }
      * @return the total number of features in this data set
      */
