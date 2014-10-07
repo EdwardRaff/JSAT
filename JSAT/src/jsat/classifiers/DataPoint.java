@@ -18,6 +18,8 @@ public class DataPoint implements Cloneable, Serializable
     protected Vec numericalValues;
     protected int[] categoricalValues;
     protected CategoricalData[] categoricalData;
+    private static final int[] emptyInt = new int[0];
+    private static final CategoricalData[] emptyData = new CategoricalData[0];
 
     /**
      *  Creates a new data point with the default weight of 1.0
@@ -47,6 +49,29 @@ public class DataPoint implements Cloneable, Serializable
         this.categoricalValues = categoricalValues;
         this.categoricalData = categoricalData;
         this.weight = weight;
+    }
+    
+    /**
+     * Creates a new data point that has no categorical variables
+     * 
+     * @param numericalValues a vector containing the numerical values for this data point
+     * @param weight a double indicating how much weight this data point has, 1.0 
+     * being the standard weight. Not all algorithms make use of data points that
+     * have different weights. 
+     */
+    public DataPoint(Vec numericalValues, double weight)
+    {
+        this(numericalValues, emptyInt, emptyData, weight);
+    }
+    
+     /**
+     * Creates a new data point that has no categorical variables and a weight of 1.0
+     * 
+     * @param numericalValues a vector containing the numerical values for this data point
+     */
+    public DataPoint(Vec numericalValues)
+    {
+        this(numericalValues, emptyInt, emptyData);
     }
 
     /**
