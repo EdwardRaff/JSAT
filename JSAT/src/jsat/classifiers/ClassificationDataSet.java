@@ -233,11 +233,11 @@ public class ClassificationDataSet extends DataSet
         ArrayList<ClassificationDataSet> cvList = new ArrayList<ClassificationDataSet>();
         for(int i = 0; i < folds; i++)
             cvList.add(new ClassificationDataSet(numNumerVals, categories, predicting));
-        
+
         IntList rndOrder = new IntList(getSampleSize());
         ListUtils.addRange(rndOrder, 0, getSampleSize(), 1);
         Collections.shuffle(rndOrder);
-        
+
         int curFold = 0;
         for(int i : rndOrder)
         {
@@ -342,6 +342,26 @@ public class ClassificationDataSet extends DataSet
         datapoints.add(new DataPoint(v, classes, categories, weight));
         category.add(classification);
         
+    }
+    
+    /**
+     * Creates a new data point and add it
+     * @param dp the data point to add to this set
+     * @param classification the label for this data point
+     */
+    public void addDataPoint(DataPoint dp, int classification)
+    {
+        if(dp.getNumericalValues().length() != numNumerVals)
+            throw new RuntimeException("Data point does not contain enough numerical data points");
+        if(dp.getCategoricalValues().length != categories.length)
+            throw new RuntimeException("Data point does not contain enough categorical data points");
+        
+        for(int i = 0; i < dp.getCategoricalValues().length; i++)
+            if(!categories[i].isValidCategory(dp.getCategoricalValues()[i]))
+                throw new RuntimeException("Categoriy value given is invalid");
+        
+        datapoints.add(dp);
+        category.add(classification);
     }
     
     /**
