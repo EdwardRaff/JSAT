@@ -80,6 +80,6 @@ public abstract class BaseUpdateableClassifier implements UpdateableClassifier
     }
 
     @Override
-    abstract public Classifier clone();
+    abstract public UpdateableClassifier clone();
     
 }

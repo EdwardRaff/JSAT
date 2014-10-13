@@ -172,7 +172,7 @@ public class KernelRLS implements UpdateableRegressor, Parameterized
     }
 
     @Override
-    public Regressor clone()
+    public KernelRLS clone()
     {
         return new KernelRLS(this);
     }

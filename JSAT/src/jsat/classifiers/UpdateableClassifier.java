@@ -44,4 +44,7 @@ public interface UpdateableClassifier extends Classifier
      * @param targetClass the target class of the data point
      */
     public void update(DataPoint dataPoint, int targetClass);
+
+    @Override
+    public UpdateableClassifier clone();
 }

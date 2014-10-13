@@ -87,7 +87,7 @@ public class NaiveBayesUpdateable extends BaseUpdateableClassifier
     }
     
     @Override
-    public Classifier clone()
+    public NaiveBayesUpdateable clone()
     {
         return new NaiveBayesUpdateable(this);
     }

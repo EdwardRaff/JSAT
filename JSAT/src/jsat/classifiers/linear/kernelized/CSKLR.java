@@ -384,7 +384,7 @@ public class CSKLR extends BaseUpdateableClassifier implements Parameterized
     }
 
     @Override
-    public Classifier clone()
+    public CSKLR clone()
     {
         return new CSKLR(this);
     }

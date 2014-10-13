@@ -55,7 +55,7 @@ public class AODE extends BaseUpdateableClassifier
     }
 
     @Override
-    public Classifier clone()
+    public AODE clone()
     {
         return new AODE(this);
     }

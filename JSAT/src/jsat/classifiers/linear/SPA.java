@@ -142,7 +142,7 @@ public class SPA extends BaseUpdateableClassifier implements Parameterized, Simp
     }
     
     @Override
-    public Classifier clone()
+    public SPA clone()
     {
         SPA clone = new SPA();
         if(this.w != null)

@@ -79,6 +79,6 @@ public abstract class BaseUpdateableRegressor implements UpdateableRegressor
     }
 
     @Override
-    abstract public Regressor clone();
+    abstract public UpdateableRegressor clone();
   
 }

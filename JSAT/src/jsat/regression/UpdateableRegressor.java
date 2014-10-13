@@ -44,4 +44,7 @@ public interface UpdateableRegressor extends Regressor
      * @param targetValue the target value of the data point
      */
     public void update(DataPoint dataPoint, double targetValue);
+
+    @Override
+    public UpdateableRegressor clone();
 }
