@@ -72,14 +72,26 @@ public class FixedProblems
      */
     public static RegressionDataSet getLinearRegression(int dataSetSize, Random rand)
     {
-        RegressionDataSet rds = new RegressionDataSet(c2l_m0.length(), new CategoricalData[0]);
+        return getLinearRegression(dataSetSize, rand, c2l_m0);
+    }
+    
+    /**
+     * Generates a regression problem that can be solved by linear regression methods
+     * @param dataSetSize the number of data points to get
+     * @param rand the randomness to use
+     * @param coef the coefficients to use for the linear regression
+     * @return a regression data set
+     */
+    public static RegressionDataSet getLinearRegression(int dataSetSize, Random rand, Vec coef)
+    {
+        RegressionDataSet rds = new RegressionDataSet(coef.length(), new CategoricalData[0]);
         
         for(int i = 0; i < dataSetSize; i++)
         {
-            Vec s = new DenseVector(c2l_m0.length());
+            Vec s = new DenseVector(coef.length());
             for(int j = 0; j < s.length(); j++)
                 s.set(j, rand.nextDouble());
-            rds.addDataPoint(s, new int[0], s.dot(c2l_m0));
+            rds.addDataPoint(s, new int[0], s.dot(coef));
         }
         
         return rds;
