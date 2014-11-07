@@ -3,9 +3,7 @@ package jsat.clustering;
 
 import java.util.*;
 import java.util.concurrent.*;
-import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.concurrent.atomic.AtomicLongArray;
+import java.util.concurrent.atomic.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import jsat.DataSet;
@@ -16,6 +14,9 @@ import jsat.linear.DenseVector;
 import jsat.linear.Vec;
 import jsat.linear.distancemetrics.*;
 import jsat.math.OnLineStatistics;
+import jsat.parameters.Parameter;
+import jsat.parameters.Parameter.ParameterHolder;
+import jsat.parameters.Parameterized;
 import jsat.utils.*;
 
 /**
@@ -28,7 +29,7 @@ import jsat.utils.*;
  * 
  * @author Edward Raff
  */
-public class KMeans extends KClustererBase
+public class KMeans extends KClustererBase implements Parameterized
 {
     /**
      * This is the default seed selection method used in KMeans. When used with 
@@ -37,6 +38,7 @@ public class KMeans extends KClustererBase
      */
     public static final SeedSelection DEFAULT_SEED_SELECTION = SeedSelection.KPP;
     
+    @ParameterHolder
     private DistanceMetric dm;
     private DenseSparseMetric dmds;
     private Random rand;
@@ -771,6 +773,18 @@ public class KMeans extends KClustererBase
             means = null;
         
         return designations;
+    }
+
+    @Override
+    public List<Parameter> getParameters()
+    {
+        return Parameter.getParamsFromMethods(this);
+    }
+
+    @Override
+    public Parameter getParameter(String paramName)
+    {
+        return Parameter.toParameterMap(getParameters()).get(paramName);
     }
     
     //We use the object itself to return the k 
