@@ -84,6 +84,8 @@ public abstract class KernelKMeans extends KClustererBase implements Parameteriz
      */
     public void setMaximumIterations(int iterLimit)
     {
+        if(iterLimit <= 0)
+            throw new IllegalArgumentException("iterations must be a positive value, not " + iterLimit);
         this.maximumIterations = iterLimit;
     }
 
