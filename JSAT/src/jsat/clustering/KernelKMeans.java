@@ -191,11 +191,8 @@ public abstract class KernelKMeans extends KClustererBase implements Parameteriz
             int i_k = designations[i];
             meanSqrdNorms[i_k] += selfK[i];
             for (int j = i + 1; j < N; j++)
-                if (designations[i] == designations[j])
-                {
-                    int k = designations[i];
-                    meanSqrdNorms[k] += 2 * kernel.eval(i, j, X, accel);
-                }
+                if (i_k == designations[j])
+                    meanSqrdNorms[i_k] += 2 * kernel.eval(i, j, X, accel);
         }
     }
 
