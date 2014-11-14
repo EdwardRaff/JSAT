@@ -117,10 +117,12 @@ public class KMeans extends KClustererBase implements Parameterized
 
     /**
      * Sets the maximum number of iterations allowed
-     * @param iterLimit the nex maximum number of iterations of the KMeans algorithm 
+     * @param iterLimit the maximum number of iterations of the KMeans algorithm 
      */
     public void setIterationLimit(int iterLimit)
     {
+        if(iterLimit < 1)
+            throw new IllegalArgumentException("Iterations must be a positive value, not " + iterLimit);
         this.MaxIterLimit = iterLimit;
     }
 
@@ -287,7 +289,8 @@ public class KMeans extends KClustererBase implements Parameterized
                 atLeast--;
                 changeOccurred.set(false);
                 //Step 1 
-                calculateCentroidDistances(k, centroidSelfDistances, means, sC, meanSummaryConsts, threadpool);
+                if(iterLimit < MaxIterLimit-1)//we already did this on before iteration
+                    calculateCentroidDistances(k, centroidSelfDistances, means, sC, meanSummaryConsts, threadpool);
                 
                 final CountDownLatch latch = new CountDownLatch(SystemInfo.LogicalCores);
 
@@ -669,32 +672,27 @@ public class KMeans extends KClustererBase implements Parameterized
         
         if(threadpool != null)
         {
-            final CountDownLatch latch = new CountDownLatch(k);
+            //# of items in the upper triangle of a matrix excluding diagonal is (1+k)*k/2-k
+            int jobs = (1+k)*k/2-k;
+            final CountDownLatch latch = new CountDownLatch(jobs);
             for (int i = 0; i < k; i++)
             {
                 final int ii = i;
-                threadpool.submit(new Runnable()
+                for (int z = i + 1; z < k; z++)
                 {
-                    @Override
-                    public void run()
+                    final int zz = z;
+                    threadpool.submit(new Runnable()
                     {
-                        double sCmin = Double.MAX_VALUE;
-                        for (int z = 0; z < k; z++)
+                        @Override
+                        public void run()
                         {
-                            if (ii == z)//Distance to self is zero
-                                centroidSelfDistances[ii][z] = 0;
-                            else
-                            {
-                                dm.dist(ii, z, means, meanAccelCache);
-                                sCmin = Math.min(sCmin, centroidSelfDistances[ii][z]);
-                            }
+                            centroidSelfDistances[ii][zz] = dm.dist(ii, zz, means, meanAccelCache);
+                            if (meanSummaryConsts != null)
+                                meanSummaryConsts[ii] = dmds.getVectorConstant(means.get(ii));
+                            latch.countDown();
                         }
-                        sC[ii] = sCmin / 2.0;
-                        if (meanSummaryConsts != null)
-                            meanSummaryConsts[ii] = dmds.getVectorConstant(means.get(ii));
-                        latch.countDown();
-                    }
-                });
+                    });
+                }
             }
             try
             {
@@ -704,24 +702,26 @@ public class KMeans extends KClustererBase implements Parameterized
             {
                 Logger.getLogger(KMeans.class.getName()).log(Level.SEVERE, null, ex);
             }
-            return;
         }
+        else
+        {
+            for (int i = 0; i < k; i++)
+            {
+                for (int z = i + 1; z < k; z++)
+                    centroidSelfDistances[z][i] = centroidSelfDistances[i][z] = dm.dist(i, z, means, meanAccelCache);;
+
+                if (meanSummaryConsts != null)
+                    meanSummaryConsts[i] = dmds.getVectorConstant(means.get(i));
+            }
+        }
+        //final step quickly figure out sCmin
         for (int i = 0; i < k; i++)
         {
             double sCmin = Double.MAX_VALUE;
             for (int z = 0; z < k; z++)
-            {
-                if (i == z)//Distance to self is zero
-                    centroidSelfDistances[i][z] = 0;
-                else
-                {
-                    centroidSelfDistances[i][z] = dm.dist(i, z, means, meanAccelCache);;
+                if (z != i)
                     sCmin = Math.min(sCmin, centroidSelfDistances[i][z]);
-                }
-            }
             sC[i] = sCmin / 2.0;
-            if(meanSummaryConsts != null)
-                meanSummaryConsts[i] = dmds.getVectorConstant(means.get(i));
         }
     }
 
