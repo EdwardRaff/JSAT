@@ -124,12 +124,11 @@ public class PlatSMO extends SupportVectorLearner implements BinaryScoreClassifi
         if(vecs == null)
             throw new UntrainedModelException("Classifier has yet to be trained");
         
-        double sum = 0;
         CategoricalResults cr = new CategoricalResults(2);
         
-        sum = kEvalSum(data.getNumericalValues());
+        double sum = getScore(data);
 
-        if(sum > b)
+        if(sum > 0)
             cr.setProb(1, 1);
         else
             cr.setProb(0, 1);
@@ -253,21 +252,11 @@ public class PlatSMO extends SupportVectorLearner implements BinaryScoreClassifi
         
         b = (b_up+b_low)/2;
 
-        //SVMs are usualy sparse, we dont need to keep all the original vectors!
         //collapse label into signed alphas
         for(int i = 0; i < label.length; i++)
             alphas[i] *= label[i];
         
-        int supportVectorCount = 0;
-        for(int i = 0; i < N; i++)
-            if(alphas[i] > 0 || alphas[i] < 0)//Its a support vector
-            {
-                ListUtils.swap(vecs, supportVectorCount, i);
-                alphas[supportVectorCount++] = alphas[i];
-            }
-
-        vecs = new ArrayList<Vec>(vecs.subList(0, supportVectorCount));
-        alphas = Arrays.copyOfRange(alphas, 0, supportVectorCount);
+        sparsify();
         label = null;
         
         fcache = null;
@@ -922,6 +911,7 @@ public class PlatSMO extends SupportVectorLearner implements BinaryScoreClassifi
         copy.b = this.b;
         copy.eps = this.eps;
         copy.epsilon = this.epsilon;
+        copy.maxIterations = this.maxIterations;
         if(this.label != null)
             copy.label = Arrays.copyOf(this.label, this.label.length);
         copy.tolerance = this.tolerance;

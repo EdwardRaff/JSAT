@@ -1,13 +1,11 @@
 
 package jsat.classifiers.svm;
 
-import java.util.Arrays;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import jsat.distributions.kernels.KernelTrick;
 import jsat.linear.Vec;
 import jsat.parameters.Parameter.ParameterHolder;
+import jsat.utils.ListUtils;
 
 /**
  * Base class for support vector style learners. This means that the learner 
@@ -45,7 +43,7 @@ public abstract class SupportVectorLearner
     /**
      * Kernel evaluation acceleration cache
      */
-    private List<Double> accelCache = null;
+    protected List<Double> accelCache = null;
     
     private double[][] fullCache;
     /**
@@ -362,5 +360,28 @@ public abstract class SupportVectorLearner
     {
         evalCount++;
         return kernel.eval(a, b, vecs, accelCache);
+    }
+    
+    /**
+     * Sparsifies the SVM by removing the vectors with &alpha; = 0 from the 
+     * dataset. 
+     */
+    protected void sparsify()
+    {
+        final int N = vecs.size();
+        int accSize = accelCache == null ? 0 : accelCache.size()/N;
+        int svCount = 0;
+        for(int i = 0; i < N; i++)
+            if(alphas[i] != 0)//Its a support vector
+            {
+                ListUtils.swap(vecs, svCount, i);
+                if(accelCache != null)
+                    for(int j = i*accSize; j < (i+1)*accSize; j++)
+                        ListUtils.swap(accelCache, svCount*accSize+j-i*accSize, j);
+                alphas[svCount++] = alphas[i];
+            }
+
+        vecs = new ArrayList<Vec>(vecs.subList(0, svCount));
+        alphas = Arrays.copyOfRange(alphas, 0, svCount);
     }
 }
