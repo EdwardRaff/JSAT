@@ -16,6 +16,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import jsat.DataSet;
 import jsat.clustering.SeedSelectionMethods.SeedSelection;
+import static jsat.clustering.SeedSelectionMethods.selectIntialPoints;
 import jsat.linear.DenseVector;
 import jsat.linear.Vec;
 import jsat.linear.distancemetrics.DenseSparseMetric;
@@ -24,25 +25,21 @@ import jsat.linear.distancemetrics.EuclideanDistance;
 import jsat.linear.distancemetrics.TrainableDistanceMetric;
 import jsat.utils.FakeExecutor;
 import jsat.utils.SystemInfo;
+import jsat.utils.random.XORWOW;
 
 /**
  * An implementation of Lloyd's K-Means clustering algorithm using the 
  * naive algorithm. This implementation exists mostly for comparison as
  * a base line and educational reasons. For efficient exact k-Means,
- * use {@link KMeans}<br>
+ * use {@link ElkanKMeans}<br>
  * <br>
  * This implementation is parallel, but does not support any of the 
  * clustering methods that do not specify the number of clusters. 
  * 
  * @author Edward Raff
  */
-public class NaiveKMeans extends KClustererBase
+public class NaiveKMeans extends KMeans
 {
-    private DistanceMetric dm;
-    private SeedSelectionMethods.SeedSelection seedSelection;
-    
-    private boolean storeMeans = true;
-    private List<Vec> means;
 
     /**
      * Creates a new naive k-Means cluster using 
@@ -71,63 +68,46 @@ public class NaiveKMeans extends KClustererBase
      */
     public NaiveKMeans(DistanceMetric dm, SeedSelection seedSelection)
     {
-        this.dm = dm;
-        this.seedSelection = seedSelection;
+        this(dm, seedSelection, new XORWOW());
     }
     
     /**
-     * If set to {@code true} the computed means will be stored after clustering
-     * is completed, and can then be retrieved using {@link #getMeans() }. 
-     * @param storeMeans {@code true} if the means should be stored for later, 
-     * {@code false} to discard them once clustering is complete. 
+     * Creates a new naive k-Means cluster
+     * @param dm the distance function to use
+     * @param seedSelection the method of selecting the initial seeds
+     * @param rand the source of randomness to use
      */
-    public void setStoreMeans(boolean storeMeans)
+    public NaiveKMeans(DistanceMetric dm, SeedSelection seedSelection, Random rand)
     {
-        this.storeMeans = storeMeans;
-    }
-
-    /**
-     * Returns the raw list of means that were used for each class. 
-     * @return the list of means for each class
-     */
-    public List<Vec> getMeans()
-    {
-        return means;
-    }
-    
-    @Override
-    public int[] cluster(DataSet dataSet, int[] designations)
-    {
-        throw new UnsupportedOperationException("Not supported yet.");
+        super(dm, seedSelection, rand);
     }
 
     @Override
-    public int[] cluster(DataSet dataSet, ExecutorService threadpool, int[] designations)
+    protected double cluster(final DataSet dataSet, final int k, final List<Vec> means, final int[] des, final boolean exactTotal, ExecutorService threadpool, boolean returnError)
     {
-        throw new UnsupportedOperationException("Not supported yet.");
-    }
-
-    @Override
-    public int[] cluster(final DataSet dataSet, final int clusters, ExecutorService threadpool, int[] designations)
-    {
-        final int[] des;
-        if (designations == null)
-            des = new int[dataSet.getSampleSize()];
-        else
-            des = designations;
         TrainableDistanceMetric.trainIfNeeded(dm, dataSet, threadpool);
+        
+        if(threadpool == null)
+            threadpool = new FakeExecutor();
         
         final int blockSize = dataSet.getSampleSize() / SystemInfo.LogicalCores;
         final List<Vec> X = dataSet.getDataVectors();
         final List<Double> accelCache;
-        if(threadpool == null || threadpool instanceof  FakeExecutor)
+        if(threadpool instanceof  FakeExecutor)
             accelCache = dm.getAccelerationCache(X);
         else
             accelCache = dm.getAccelerationCache(X, threadpool);
         
-        means = SeedSelectionMethods.selectIntialPoints(dataSet, clusters, dm, accelCache, new Random(), seedSelection, threadpool);
+        if (means.size() != k)
+        {
+            means.clear();
+            if (threadpool instanceof FakeExecutor)
+                means.addAll(selectIntialPoints(dataSet, k, dm, accelCache, rand, seedSelection));
+            else
+                means.addAll(selectIntialPoints(dataSet, k, dm, accelCache, rand, seedSelection, threadpool));
+        }
         
-        final List<List<Double>> meanQIs = new ArrayList<List<Double>>(clusters);
+        final List<List<Double>> meanQIs = new ArrayList<List<Double>>(k);
         
         //Use dense mean objects
         for(int i = 0; i < means.size(); i++)
@@ -143,7 +123,7 @@ public class NaiveKMeans extends KClustererBase
         
         final List<Vec> meanSum = new ArrayList<Vec>(means.size());
         final AtomicIntegerArray meanCounts = new AtomicIntegerArray(means.size());
-        for(int i = 0; i < clusters; i++)
+        for(int i = 0; i < k; i++)
             meanSum.add(new DenseVector(means.get(0).length()));
         final AtomicInteger changes = new AtomicInteger();
         
@@ -153,8 +133,8 @@ public class NaiveKMeans extends KClustererBase
             @Override
             protected Vec[] initialValue()
             {
-                Vec[] deltas = new Vec[clusters];
-                for(int i = 0; i < clusters; i++)
+                Vec[] deltas = new Vec[k];
+                for(int i = 0; i < k; i++)
                     deltas[i] = new DenseVector(means.get(0).length());
                 return deltas;
             }
@@ -228,7 +208,7 @@ public class NaiveKMeans extends KClustererBase
                 latch.await();
                 if(changes.get() == 0)
                     break;
-                for(int i = 0; i < clusters; i++)
+                for(int i = 0; i < k; i++)
                 {
                     meanSum.get(i).copyTo(means.get(i));
                     means.get(i).mutableDivide(meanCounts.get(i));
@@ -242,29 +222,18 @@ public class NaiveKMeans extends KClustererBase
             }
         }
         while(changes.get() > 0);
-        
-        if(!storeMeans)
-            means = null;
 
-        return des;
-    }
+        if (returnError)
+        {
+            double totalDistance = 0;
 
-    @Override
-    public int[] cluster(DataSet dataSet, int clusters, int[] designations)
-    {
-        return cluster(dataSet, clusters, new FakeExecutor(), designations);
-    }
+            for (int i = 0; i < dataSet.getSampleSize(); i++)
+                totalDistance += Math.pow(dm.dist(i, means.get(des[i]), meanQIs.get(des[i]), X, accelCache), 2);
 
-    @Override
-    public int[] cluster(DataSet dataSet, int lowK, int highK, ExecutorService threadpool, int[] designations)
-    {
-        throw new UnsupportedOperationException("Not supported yet.");
-    }
-
-    @Override
-    public int[] cluster(DataSet dataSet, int lowK, int highK, int[] designations)
-    {
-        throw new UnsupportedOperationException("Not supported yet.");
+            return totalDistance;
+        }
+        else
+            return 0;//who cares
     }
     
 }

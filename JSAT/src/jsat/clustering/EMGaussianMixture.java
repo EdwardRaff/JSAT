@@ -22,7 +22,7 @@ import static jsat.utils.SystemInfo.LogicalCores;
  * 
  * @author Edward Raff
  */
-public class EMGaussianMixture extends KMeans implements MultivariateDistribution
+public class EMGaussianMixture extends ElkanKMeans implements MultivariateDistribution
 {
     private List<NormalM> gaussians;
     /**
@@ -87,12 +87,12 @@ public class EMGaussianMixture extends KMeans implements MultivariateDistributio
     }
     
     @Override
-    protected double cluster(final DataSet dataSet, final int K, final List<Vec> means, final int[] assignment, boolean exactTotal, ExecutorService execServ)
+    protected double cluster(final DataSet dataSet, final int K, final List<Vec> means, final int[] assignment, boolean exactTotal, ExecutorService threadpool, boolean returnError)
     {
-        //Perform intial clustering with KMeans 
-        super.cluster(dataSet, K, means, assignment, exactTotal, execServ);
+        //Perform intial clustering with ElkanKMeans 
+        super.cluster(dataSet, K, means, assignment, exactTotal, threadpool, false);
         
-        //Use the KMeans result to initalize GuassianMixture 
+        //Use the ElkanKMeans result to initalize GuassianMixture 
         List<Matrix> covariances = new ArrayList<Matrix>(K);
         int dimension = dataSet.getNumNumericalVars();
         for(int k = 0; k < means.size(); k++)
@@ -120,7 +120,7 @@ public class EMGaussianMixture extends KMeans implements MultivariateDistributio
         }
         
         
-        return clusterCompute(K, dataSet, assignment, means, covariances, execServ);
+        return clusterCompute(K, dataSet, assignment, means, covariances, threadpool);
     }
     
     protected double clusterCompute(int K, DataSet dataSet, int[] assignment, List<Vec> means, List<Matrix> covs, ExecutorService execServ)

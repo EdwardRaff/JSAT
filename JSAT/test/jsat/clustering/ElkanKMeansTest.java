@@ -29,26 +29,26 @@ import static org.junit.Assert.*;
  *
  * @author Edward Raff
  */
-public class KMeansTest
+public class ElkanKMeansTest
 {
     /*
      * README: 
-     * KMeans is a very heuristic algorithm, so its not easy to make a test where we are very 
+     * ElkanKMeans is a very heuristic algorithm, so its not easy to make a test where we are very 
      * sure it will get the correct awnser. That is why only 2 of the methods are tested 
      * [ Using KPP, becase random seed selection still isnt consistent enough] 
      * 
      */
-    static private KMeans kMeans;
+    static private ElkanKMeans kMeans;
     static private SimpleDataSet easyData10;
     static private ExecutorService ex;
-    public KMeansTest()
+    public ElkanKMeansTest()
     {
     }
 
     @BeforeClass
     public static void setUpClass() throws Exception
     {
-        kMeans = new KMeans(new EuclideanDistance(), new Random(11), SeedSelection.KPP);
+        kMeans = new ElkanKMeans(new EuclideanDistance(), new Random(11), SeedSelection.KPP);
         GridDataGenerator gdg = new GridDataGenerator(new Uniform(-0.15, 0.15), new Random(12), 2, 5);
         easyData10 = gdg.generateData(110);
         ex = Executors.newFixedThreadPool(SystemInfo.LogicalCores);
@@ -69,7 +69,7 @@ public class KMeansTest
 
 
     /**
-     * Test of cluster method, of class KMeans.
+     * Test of cluster method, of class ElkanKMeans.
      */
     @Test
     public void testCluster_DataSet_int()
@@ -89,7 +89,7 @@ public class KMeansTest
 
 
     /**
-     * Test of cluster method, of class KMeans.
+     * Test of cluster method, of class ElkanKMeans.
      */
     @Test
     public void testCluster_3args_2()

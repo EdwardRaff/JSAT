@@ -15,16 +15,17 @@ import static jsat.clustering.SeedSelectionMethods.selectIntialPoints;
 import jsat.linear.DenseVector;
 import jsat.linear.Vec;
 import jsat.linear.distancemetrics.DistanceMetric;
+import jsat.linear.distancemetrics.EuclideanDistance;
 import jsat.linear.distancemetrics.TrainableDistanceMetric;
 import jsat.utils.FakeExecutor;
 import jsat.utils.SystemInfo;
+import jsat.utils.random.XORWOW;
 
 /**
  * An efficient implementation of the K-Means algorithm. This implementation uses
  * the triangle inequality to accelerate computation while maintaining the exact
  * same solution. This requires that the {@link DistanceMetric} used support 
  * {@link DistanceMetric#isSubadditive() }. It uses only O(n) extra memory. <br>
- * Only the methods that specify the exact number of clusters are supported.<br>
  * <br>
  * See: Hamerly, G. (2010). <i>Making k-means even faster</i>. SIAM 
  * International Conference on Data Mining (SDM) (pp. 130–140). Retrieved from 
@@ -32,14 +33,19 @@ import jsat.utils.SystemInfo;
  * 
  * @author Edward Raff
  */
-public class HamerlyKMeans extends KClustererBase
+public class HamerlyKMeans extends KMeans
 {
-    private DistanceMetric dm;
-    private SeedSelectionMethods.SeedSelection seedSelection;
+    /**
+     * Creates a new k-Means object 
+     * @param dm the distance metric to use for clustering
+     * @param seedSelection the method of initial seed selection
+     * @param rand the source of randomnes to use
+     */
+    public HamerlyKMeans(DistanceMetric dm, SeedSelectionMethods.SeedSelection seedSelection, Random rand)
+    {
+        super(dm, seedSelection, rand);
+    }
     
-    private boolean storeMeans = true;
-    private List<Vec> means;
-
     /**
      * Creates a new k-Means object 
      * @param dm the distance metric to use for clustering
@@ -47,40 +53,21 @@ public class HamerlyKMeans extends KClustererBase
      */
     public HamerlyKMeans(DistanceMetric dm, SeedSelectionMethods.SeedSelection seedSelection)
     {
-        this.dm = dm;
-        this.seedSelection = seedSelection;
-        this.means = means;
+        this(dm, seedSelection, new XORWOW());
     }
     
     /**
-     * If set to {@code true} the computed means will be stored after clustering
-     * is completed, and can then be retrieved using {@link #getMeans() }. 
-     * @param storeMeans {@code true} if the means should be stored for later, 
-     * {@code false} to discard them once clustering is complete. 
+     * Creates a new k-Means object 
      */
-    public void setStoreMeans(boolean storeMeans)
+    public HamerlyKMeans()
     {
-        this.storeMeans = storeMeans;
-    }
-
-    /**
-     * Returns the raw list of means that were used for each class. 
-     * @return the list of means for each class
-     */
-    public List<Vec> getMeans()
-    {
-        return means;
+        this(new EuclideanDistance(), SeedSelectionMethods.SeedSelection.KPP);
     }
     
     //TODO reduce some code duplication in the methods bellow 
     
-    /**
-     * Performs the main clustering work
-     * @param dataSet the data set to cluster
-     * @param assignment the array to store assignments in
-     * @param exactTotal not used at the moment. 
-     */
-    protected void cluster(final DataSet dataSet, final int k, final int[] assignment, boolean exactTotal, ExecutorService threadpool)
+    @Override
+    protected double cluster(final DataSet dataSet, final int k, final List<Vec> means, final int[] assignment, final boolean exactTotal, ExecutorService threadpool, boolean returnError)
     {
         final int N = dataSet.getSampleSize();
         final int D = dataSet.getNumNumericalVars();
@@ -96,11 +83,20 @@ public class HamerlyKMeans extends KClustererBase
         
         final List<List<Double>> meanQI = new ArrayList<List<Double>>(k);
         
-        if(threadpool == null || threadpool instanceof  FakeExecutor)
-            means = selectIntialPoints(dataSet, k, dm, distAccel, new Random(), seedSelection);
-        else
-            means = selectIntialPoints(dataSet, k, dm, distAccel, new Random(), seedSelection, threadpool);
-        
+        if (means.size() != k)
+        {
+            means.clear();
+            if (threadpool == null || threadpool instanceof FakeExecutor)
+                means.addAll(selectIntialPoints(dataSet, k, dm, distAccel, rand, seedSelection));
+            else
+                means.addAll(selectIntialPoints(dataSet, k, dm, distAccel, rand, seedSelection, threadpool));
+        }
+
+        //Make our means dense
+        for (int i = 0; i < means.size(); i++)
+            if (means.get(i).isSparse())
+                means.set(i, new DenseVector(means.get(i)));
+
         /**
          * vector sum of all points in cluster j <br>
          * denoted c'(j)
@@ -162,14 +158,14 @@ public class HamerlyKMeans extends KClustererBase
             moveCenters(means, tmpVecs, cP, q, p, meanQI);
             UpdateBounds(p, assignment, u, l);
             updates.set(0);
-            updateS(s, threadpool);
+            updateS(s, means, threadpool);
             
             if(threadpool == null)
             {
                 int localUpdates = 0;
                 for(int i = 0; i < N; i++)
                 {
-                    localUpdates += mainLoopWork(dataSet, i, s, assignment, u, l, q, cP, X, distAccel, meanQI);
+                    localUpdates += mainLoopWork(dataSet, i, s, assignment, u, l, q, cP, X, distAccel, means, meanQI);
                 }
                 updates.set(localUpdates);
             }
@@ -188,7 +184,7 @@ public class HamerlyKMeans extends KClustererBase
                             int localUpdates = 0;
                             for(int i = ID; i < N; i+=SystemInfo.LogicalCores)
                             {
-                                localUpdates += mainLoopWork(dataSet, i, s, assignment, u, l, q, deltas, X, distAccel, meanQI);
+                                localUpdates += mainLoopWork(dataSet, i, s, assignment, u, l, q, deltas, X, distAccel, means, meanQI);
                             }
                             //collect deltas
                             if(localUpdates > 0)
@@ -217,6 +213,21 @@ public class HamerlyKMeans extends KClustererBase
                 }
             }
         }
+        
+        if (returnError)
+        {
+            double totalDistance = 0;
+            if (exactTotal == true)
+                for (int i = 0; i < N; i++)
+                    totalDistance += Math.pow(dm.dist(i, means.get(assignment[i]), meanQI.get(assignment[i]), X, distAccel), 2);
+            else
+                for (int i = 0; i < N; i++)
+                    totalDistance += Math.pow(u[i], 2);
+
+            return totalDistance;
+        }
+        else
+            return 0;//who cares
     }
 
     /**
@@ -232,7 +243,7 @@ public class HamerlyKMeans extends KClustererBase
      * @return 0 if no changes in assignment were made, 1 if a change in assignment was made
      */
     private int mainLoopWork(DataSet dataSet, int i, double[] s, int[] assignment, double[] u, 
-            double[] l, AtomicLongArray q, Vec[] deltas, final List<Vec> X, final List<Double> distAccel, final List<List<Double>> meanQI)
+            double[] l, AtomicLongArray q, Vec[] deltas, final List<Vec> X, final List<Double> distAccel, final List<Vec> means, final List<List<Double>> meanQI)
     {
         final int a_i = assignment[i];
         double m = Math.max(s[a_i] / 2, l[i]);
@@ -256,7 +267,7 @@ public class HamerlyKMeans extends KClustererBase
         return 0;//no change
     }
     
-    private void updateS(final double[] s, ExecutorService threadpool)
+    private void updateS(final double[] s, final List<Vec> means, ExecutorService threadpool)
     {
         final int tasks = means.size();
         final CountDownLatch latch = new CountDownLatch(tasks);
@@ -479,72 +490,6 @@ public class HamerlyKMeans extends KClustererBase
             else
                 l[i] -= p[r];
         }
-    }
-    
-    /**
-     * Returns the vector for the i'th data point. Used to stay consistent with 
-     * the algorithm's notation and description 
-     * @param d dataset of points
-     * @param index the index of the point to obtain
-     * @return the vector value for the given index
-     */
-    private static Vec x(DataSet d, int index)
-    {
-        return d.getDataPoint(index).getNumericalValues();
-    }
-
-    @Override
-    public int[] cluster(DataSet dataSet, int[] designations)
-    {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-    }
-
-    @Override
-    public int[] cluster(DataSet dataSet, ExecutorService threadpool, int[] designations)
-    {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-    }
-
-    @Override
-    public int[] cluster(DataSet dataSet, int clusters, ExecutorService threadpool, int[] designations)
-    {
-        if(designations == null)
-            designations = new int[dataSet.getSampleSize()];
-        if(dataSet.getSampleSize() < clusters)
-            throw new ClusterFailureException("Fewer data points then desired clusters, decrease cluster size");
-        
-        cluster(dataSet, clusters, designations, false, threadpool);
-        if(!storeMeans)
-            means = null;
-        
-        return designations;
-    }
-
-    @Override
-    public int[] cluster(DataSet dataSet, int clusters, int[] designations)
-    {
-        if(designations == null)
-            designations = new int[dataSet.getSampleSize()];
-        if(dataSet.getSampleSize() < clusters)
-            throw new ClusterFailureException("Fewer data points then desired clusters, decrease cluster size");
-        
-        cluster(dataSet, clusters, designations, false, null);
-        if(!storeMeans)
-            means = null;
-        
-        return designations;
-    }
-
-    @Override
-    public int[] cluster(DataSet dataSet, int lowK, int highK, ExecutorService threadpool, int[] designations)
-    {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-    }
-
-    @Override
-    public int[] cluster(DataSet dataSet, int lowK, int highK, int[] designations)
-    {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
 }
