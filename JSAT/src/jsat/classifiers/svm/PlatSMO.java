@@ -9,6 +9,8 @@ import jsat.classifiers.calibration.BinaryScoreClassifier;
 import jsat.distributions.kernels.KernelTrick;
 import jsat.exceptions.FailedToFitException;
 import jsat.exceptions.UntrainedModelException;
+import jsat.linear.ConstantVector;
+import jsat.linear.DenseVector;
 import jsat.linear.Vec;
 import jsat.parameters.*;
 import jsat.regression.RegressionDataSet;
@@ -106,6 +108,10 @@ public class PlatSMO extends SupportVectorLearner implements BinaryScoreClassifi
      * Stores the true value of the data point
      */
     protected double[] label;
+    /**
+     * Weight values to apply to each data point
+     */
+    protected Vec weights;
     
     /**
      * Creates a new SVM object that uses no cache mode. 
@@ -157,42 +163,44 @@ public class PlatSMO extends SupportVectorLearner implements BinaryScoreClassifi
         final int N = dataSet.getSampleSize();
         vecs = new ArrayList<Vec>(N);
         label = new double[N];
+        weights = new DenseVector(N);
         b = 0;
-        for(int i = 0; i < N; i++)
-        {
-            DataPoint dataPoint = dataSet.getDataPoint(i);
-            vecs.add(dataPoint.getNumericalValues());
-            if(dataSet.getDataPointCategory(i) == 0)
-                label[i] = -1;
-            else
-                label[i] = 1;
-        }
-        
-        setCacheMode(getCacheMode());//Initiates the cahce
-        
+        i_up = i_low = -1;//giberish for init
         I0 = new boolean[N];
         I1 = new boolean[N];
         I2 = new boolean[N];
         I3 = new boolean[N];
         I4 = new boolean[N];
         
-        
-        //initialize alphas array to all zero
-        alphas = new double[N];//zero is default value
-        fcache = new double[N];
-        
-        i_up = i_low = -1;//giberish for init
-        for(int i = 0; i < dataSet.getSampleSize(); i++)
-            if(label[i] == -1)
+        boolean allWeightsAreOne = true;
+        for(int i = 0; i < N; i++)
+        {
+            DataPoint dataPoint = dataSet.getDataPoint(i);
+            vecs.add(dataPoint.getNumericalValues());
+            weights.set(i, dataPoint.getWeight());
+            if(dataPoint.getWeight() != 1)
+                allWeightsAreOne = false;
+            if(dataSet.getDataPointCategory(i) == 0)
             {
+                label[i] = -1;
                 i_low = i;
                 I4[i] = true;
             }
             else
             {
+                label[i] = 1;
                 i_up = i;
                 I1[i] = true;
             }
+        }
+        if(allWeightsAreOne)//if everything == 1, don't waste the memory storying it
+            weights = new ConstantVector(1.0, N);
+        
+        setCacheMode(getCacheMode());//Initiates the cahce
+        
+        //initialize alphas array to all zero
+        alphas = new double[N];//zero is default value
+        fcache = new double[N];
         
         b_up  = -1;
         fcache[i_up]  = -1;
@@ -266,6 +274,7 @@ public class PlatSMO extends SupportVectorLearner implements BinaryScoreClassifi
         
         fcache = null;
         I0 = I1 = I2 = I3 = I4 = null;
+        weights = null;
         
         setCacheMode(null);
         setAlphas(alphas);
@@ -275,8 +284,9 @@ public class PlatSMO extends SupportVectorLearner implements BinaryScoreClassifi
      * Updates the index set I0 
      * @param i1 the value of i1
      * @param a1 the value of a1
+     * @param C the regularization value to use for this datum
      */
-    private void updateSet(int i1, double a1)
+    private void updateSet(int i1, double a1, double C )
     {
         I0[i1] = a1 > 0 && a1 < C;
     }
@@ -315,13 +325,15 @@ public class PlatSMO extends SupportVectorLearner implements BinaryScoreClassifi
      * Updates the index sets 
      * @param i1 the index to update for
      * @param a1 the alphas value for the index
+     * @param C the regularization value to use for this datum
      */
-    private void updateSetsLabeled(int i1, double a1)
+    private void updateSetsLabeled(int i1, final double a1, final double C)
     {
-        I1[i1] = a1 == 0 && label[i1] == 1;
-        I2[i1] = a1 == C && label[i1] == -1;
-        I3[i1] = a1 == C && label[i1] == 1;
-        I4[i1] = a1 == 0 && label[i1] == -1;
+        final double y_i = label[i1];
+        I1[i1] = a1 == 0 && y_i == 1;
+        I2[i1] = a1 == C && y_i == -1;
+        I3[i1] = a1 == C && y_i == 1;
+        I4[i1] = a1 == 0 && y_i == -1;
     }
     
     protected boolean takeStep(int i1, int i2)
@@ -334,21 +346,24 @@ public class PlatSMO extends SupportVectorLearner implements BinaryScoreClassifi
         double y1 = label[i1], y2 = label[i2];
         double F1 = fcache[i1];
         double F2 = fcache[i2];
+        final double C1 = C*weights.get(i1);
+        final double C2 = C*weights.get(i2);
 
         //s = y1*y2
         double s = y1*y2;
 
         //Compute L, H : see smo-book, page 46
+        //also "A tutorial on support vector regression" page 30
         double L, H;
         if(y1 != y2)
         {
             L = max(0, alpha2-alpha1);
-            H = min(C, C+alpha2-alpha1);
+            H = min(C2, C1+alpha2-alpha1);
         }
         else
         {
-            L = max(0, alpha1+alpha2-C);
-            H = min(C, alpha1+alpha2);
+            L = max(0, alpha1+alpha2-C1);
+            H = min(C2, alpha1+alpha2);
         }
 
         if (L >= H)//>= instead of == incase of numerical issues
@@ -398,22 +413,22 @@ public class PlatSMO extends SupportVectorLearner implements BinaryScoreClassifi
                 a2 = alpha2;
         }
 
-        a2 = fuzzyClamp(a2, C);
+        a2 = fuzzyClamp(a2, C2);
 
         if(abs(a2 - alpha2) < eps*(a2+alpha2+eps))
             return false;
         
         a1 = alpha1 + s *(alpha2-a2);
-        a1 = fuzzyClamp(a1, C);
+        a1 = fuzzyClamp(a1, C1);
 
         double newF1C = F1 + y1*(a1-alpha1)*k11 + y2*(a2-alpha2)*k12;
         double newF2C = F2 + y1*(a1-alpha1)*k12 + y2*(a2-alpha2)*k22;
         
-        updateSet(i1, a1);
-        updateSet(i2, a2);
+        updateSet(i1, a1, C1);
+        updateSet(i2, a2, C2);
         
-        updateSetsLabeled(i1, a1);
-        updateSetsLabeled(i2, a2);
+        updateSetsLabeled(i1, a1, C1);
+        updateSetsLabeled(i2, a2, C2);
         
         fcache[i1] = newF1C;
         fcache[i2] = newF2C;
@@ -485,6 +500,8 @@ public class PlatSMO extends SupportVectorLearner implements BinaryScoreClassifi
         double alpha1_S = alpha_s[i1], alpha2_S = alpha_s[i2];
         double F1 = fcache[i1];//phi1 in paper 
         double F2 = fcache[i2];
+        final double C1 = C*weights.get(i1);
+        final double C2 = C*weights.get(i2);
 
         /*
          * k11 = kernel(point[i1],point[i1])
@@ -516,14 +533,14 @@ public class PlatSMO extends SupportVectorLearner implements BinaryScoreClassifi
                     (alpha2 > 0 || (alpha2_S == 0 && deltaPhi < 0) ) )
             {
                 //compute L, H, (wrt. alpha1, alpha2)
-                L = max(0, gamma-C);
-                H = min(C, gamma);
+                L = max(0, gamma-C1);
+                H = min(C2, gamma);
                 if(L < H)
                 {
                     double a2 = max(L, min(alpha2 - deltaPhi/eta, H));
-                    a2 = fuzzyClamp(a2, C);
+                    a2 = fuzzyClamp(a2, C2);
                     double a1 = alpha1 - (a2 - alpha2);
-                    a1 = fuzzyClamp(a1, C);
+                    a1 = fuzzyClamp(a1, C1);
                     if(abs(alpha1-a1) > 1e-10 || abs(a2-alpha2) > 1e-10)
                     {
                         deltaPhi += (a2-alpha2)*eta;
@@ -541,13 +558,13 @@ public class PlatSMO extends SupportVectorLearner implements BinaryScoreClassifi
             {
                 //compute L, H, (wrt. alpha1, alpha2*)
                 L = max(0, -gamma);
-                H = min(C, -gamma+C);
+                H = min(C2, -gamma+C1);
                 if(L < H)
                 {
                     double a2 = max(L, min(alpha2_S + (deltaPhi-2*epsilon)/eta, H));
-                    a2 = fuzzyClamp(a2, C);
+                    a2 = fuzzyClamp(a2, C2);
                     double a1 = alpha1 + (a2 - alpha2_S);
-                    a1 = fuzzyClamp(a1, C);
+                    a1 = fuzzyClamp(a1, C1);
                     if(abs(alpha1-a1) > 1e-10 || abs(alpha2_S-a2) > 1e-10)
                     {
                         deltaPhi += (alpha2_S-a2)*eta;
@@ -565,13 +582,13 @@ public class PlatSMO extends SupportVectorLearner implements BinaryScoreClassifi
             {
                 //compute L, H, (wrt. alpha1*, alpha2)
                 L = max(0, gamma);
-                H = min(C, C+gamma);
+                H = min(C2, C1+gamma);
                 if(L < H)
                 {
                     double a2 = max(L, min(alpha2 - (deltaPhi+2*epsilon)/eta, H));
-                    a2 = fuzzyClamp(a2, C);
+                    a2 = fuzzyClamp(a2, C2);
                     double a1 = alpha1_S + (a2 - alpha2);
-                    a1 = fuzzyClamp(a1, C);
+                    a1 = fuzzyClamp(a1, C1);
                     if(abs(alpha1_S-a1) > 1e-10 || abs(alpha2-a2) > 1e-10)
                     {
                         deltaPhi += (a2-alpha2)*eta;
@@ -588,14 +605,14 @@ public class PlatSMO extends SupportVectorLearner implements BinaryScoreClassifi
                     (alpha2_S > 0 || (alpha2 == 0 && deltaPhi > 0)))
             {
                 //compute L, H, (wrt. alpha1*, alpha2*)
-                L = max(0, -gamma-C);
-                H = min(C, -gamma);
+                L = max(0, -gamma-C1);
+                H = min(C2, -gamma);
                 if(L < H)
                 {
                     double a2 = max(L, min(alpha2_S + deltaPhi/eta, H));
-                    a2 = fuzzyClamp(a2, C);
+                    a2 = fuzzyClamp(a2, C2);
                     double a1 = alpha1_S - (a2 - alpha2_S);
-                    a1 = fuzzyClamp(a1, C);
+                    a1 = fuzzyClamp(a1, C1);
                     if(abs(alpha1_S-a1) > 1e-10 || abs(alpha2_S-a2) > 1e-10)
                     {
                         deltaPhi += (alpha2_S-a2)*eta;
@@ -634,8 +651,8 @@ public class PlatSMO extends SupportVectorLearner implements BinaryScoreClassifi
                 fcache[i] -= ceof1 * kEval(i1, i) + ceof2 * kEval(i2, i);
         fcache[i1] -= ceof1 * k11 + ceof2 * k12;
         fcache[i2] -= ceof1 * k12 + ceof2 * k22;
-        updateSetR(i1, C);//add weight data here later, thats why we pass C 
-        updateSetR(i2, C);
+        updateSetR(i1, C1);//add weight data here later, thats why we pass C 
+        updateSetR(i2, C2);
         
         //Update threshold to reflect change in Lagrange multipliers Update
         b_low = Double.NEGATIVE_INFINITY;
@@ -924,6 +941,8 @@ public class PlatSMO extends SupportVectorLearner implements BinaryScoreClassifi
             copy.alphas = Arrays.copyOf(this.alphas, this.alphas.length);
         if(this.alpha_s != null)
             copy.alpha_s = Arrays.copyOf(this.alpha_s, this.alpha_s.length);
+        if(this.weights != null)
+            copy.weights = this.weights.clone();
         copy.b = this.b;
         copy.eps = this.eps;
         copy.epsilon = this.epsilon;
@@ -942,7 +961,7 @@ public class PlatSMO extends SupportVectorLearner implements BinaryScoreClassifi
     @Override
     public boolean supportsWeightedData()
     {
-        return false;
+        return true;
     }
 
     /**
@@ -1087,12 +1106,19 @@ public class PlatSMO extends SupportVectorLearner implements BinaryScoreClassifi
         label = new double[N];
         fcache = new double[N];
         b = 0;
+        weights = new DenseVector(N);
+        boolean allWeightsAreOne = true;
         for(int i = 0; i < N; i++)
         {
             DataPoint dataPoint = dataSet.getDataPoint(i);
             vecs.add(dataPoint.getNumericalValues());
             fcache[i] = label[i] = dataSet.getTargetValue(i);
+            weights.set(i, dataPoint.getWeight());
+            if(dataPoint.getWeight() != 1)
+                allWeightsAreOne = false;
         }
+        if(allWeightsAreOne)//if everything == 1, don't waste the memory storying it
+            weights = new ConstantVector(1.0, N);
         
         setCacheMode(getCacheMode());//Initiates the cahce
         
