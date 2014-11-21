@@ -651,7 +651,7 @@ public class PlatSMO extends SupportVectorLearner implements BinaryScoreClassifi
                 fcache[i] -= ceof1 * kEval(i1, i) + ceof2 * kEval(i2, i);
         fcache[i1] -= ceof1 * k11 + ceof2 * k12;
         fcache[i2] -= ceof1 * k12 + ceof2 * k22;
-        updateSetR(i1, C1);//add weight data here later, thats why we pass C 
+        updateSetR(i1, C1);
         updateSetR(i2, C2);
         
         //Update threshold to reflect change in Lagrange multipliers Update
