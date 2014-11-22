@@ -9,7 +9,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import jsat.SimpleDataSet;
 import jsat.classifiers.DataPoint;
-import jsat.clustering.KMeans;
+import jsat.clustering.ElkanKMeans;
 import jsat.clustering.evaluation.DaviesBouldinIndex;
 import jsat.distributions.Uniform;
 import jsat.linear.distancemetrics.DistanceMetric;
@@ -50,7 +50,7 @@ public class DivisiveGlobalClustererTest
     public void setUp()
     {
         DistanceMetric dm = new EuclideanDistance();
-        dgc = new DivisiveGlobalClusterer(new KMeans(dm), new DaviesBouldinIndex(dm));
+        dgc = new DivisiveGlobalClusterer(new ElkanKMeans(dm), new DaviesBouldinIndex(dm));
     }
     
     @After

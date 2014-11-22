@@ -5,7 +5,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import jsat.SimpleDataSet;
 import jsat.classifiers.DataPoint;
-import jsat.clustering.KMeans;
+import jsat.clustering.ElkanKMeans;
 import jsat.clustering.evaluation.DaviesBouldinIndex;
 import jsat.distributions.Uniform;
 import jsat.linear.distancemetrics.DistanceMetric;
@@ -33,7 +33,7 @@ public class DivisiveLocalClustererTest
     public static void setUpClass() throws Exception 
     {
         DistanceMetric dm = new EuclideanDistance();
-        dlc = new DivisiveLocalClusterer(new KMeans(dm), new DaviesBouldinIndex(dm));
+        dlc = new DivisiveLocalClusterer(new ElkanKMeans(dm), new DaviesBouldinIndex(dm));
         GridDataGenerator gdg = new GridDataGenerator(new Uniform(-0.15, 0.15), new Random(12), 2, 2);
         easyData = gdg.generateData(100);
         ex = Executors.newFixedThreadPool(10);
