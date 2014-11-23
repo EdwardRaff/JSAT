@@ -363,7 +363,7 @@ public class HamerlyKMeans extends KMeans
                             q.incrementAndGet(j);
                             deltas[j].mutableAdd(x);
                         }
-                        
+
                         for(int i = 0; i < cP.length; i++)
                         {
                             synchronized(cP[i])
@@ -372,7 +372,7 @@ public class HamerlyKMeans extends KMeans
                             }
                             deltas[i].zeroOut();
                         }
-                        
+
                         latch.countDown();
                     }
                 });
@@ -438,7 +438,11 @@ public class HamerlyKMeans extends KMeans
         {
             //compute new mean
             cP[j].copyTo(tmpSpace[j]);
-            tmpSpace[j].mutableDivide(q.get(j));
+            long q_j = q.get(j);
+            if (q_j > 0)
+                tmpSpace[j].mutableDivide(q_j);
+            //else, leave it as is. If we have movement we might get the clsuter going again. 
+            
             //compute distance betwean new and old
             p[j] = dm.dist(means.get(j), tmpSpace[j]);
             //move it to its positaiotn as new mean
