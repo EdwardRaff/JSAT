@@ -12,6 +12,7 @@ import jsat.linear.distancemetrics.DistanceMetric;
 import jsat.linear.distancemetrics.EuclideanDistance;
 import jsat.utils.*;
 import static jsat.utils.SystemInfo.LogicalCores;
+import jsat.utils.concurrent.ParallelUtils;
 
 /**
  * This class provides methods for sampling a data set for a set of initial points to act as the seeds for a clustering algorithm. 
@@ -270,10 +271,23 @@ public class SeedSelectionMethods
                 }
             }
             
+            if(sqrdDistSum <= 1e-6)//everyone is too close, randomly fill rest
+            {
+                Set<Integer> ind = new HashSet<Integer>();
+                for(int i = 0;i <j; i++)
+                    ind.add(indices[i]);
+                while(ind.size() < k)
+                    ind.add(rand.nextInt(closestDist.length));
+                int pos = 0;
+                for(int i : ind)
+                    indices[pos++] = i;
+                return;
+            }
+            
             //Choose new x as weighted probablity by the squared distances
             double rndX = rand.nextDouble()*sqrdDistSum;
-            double searchSum = 0;
-            int i = -1;
+            double searchSum = closestDist[0];
+            int i = 0;
             while(searchSum < rndX && i < d.getSampleSize()-1)
                 searchSum += closestDist[++i];
             
@@ -303,14 +317,11 @@ public class SeedSelectionMethods
             final int newMeanIndx = indices[j - 1];//Only the most recently added mean needs to get distances computed. 
             futureChanges.clear();
 
-            int blockSize = d.getSampleSize() / LogicalCores;
-            int extra = d.getSampleSize() % LogicalCores;
-            int pos = 0;
-            while (pos < d.getSampleSize())
+            
+            for (int id = 0; id < LogicalCores; id++)
             {
-                final int from = pos;
-                final int to = Math.min(pos + blockSize + (extra-- > 0 ? 1 : 0), d.getSampleSize());
-                pos = to;
+                final int from = ParallelUtils.getStartBlock(X.size(), id, LogicalCores);
+                final int to = ParallelUtils.getEndBlock(X.size(), id, LogicalCores);
                 final boolean forceCompute = j == 1;
                 Future<Double> future = threadpool.submit(new Callable<Double>()
                 {
@@ -341,11 +352,24 @@ public class SeedSelectionMethods
 
             for (Double change : ListUtils.collectFutures(futureChanges))
                 sqrdDistSum += change;
+            
+            if(sqrdDistSum <= 1e-6)//everyone is too close, randomly fill rest
+            {
+                Set<Integer> ind = new HashSet<Integer>();
+                for(int i = 0;i <j; i++)
+                    ind.add(indices[i]);
+                while(ind.size() < k)
+                    ind.add(rand.nextInt(closestDist.length));
+                int pos = 0;
+                for(int i : ind)
+                    indices[pos++] = i;
+                return;
+            }
 
             //Choose new x as weighted probablity by the squared distances
             double rndX = rand.nextDouble() * sqrdDistSum;
-            double searchSum = 0;
-            int i = -1;
+            double searchSum = closestDist[0];
+            int i = 0;
             while(searchSum < rndX && i < d.getSampleSize()-1)
                 searchSum += closestDist[++i];
             
