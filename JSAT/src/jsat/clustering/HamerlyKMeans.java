@@ -436,13 +436,18 @@ public class HamerlyKMeans extends KMeans
     {
         for(int j = 0; j < means.size(); j++)
         {
-            //compute new mean
-            cP[j].copyTo(tmpSpace[j]);
-            long q_j = q.get(j);
-            if (q_j > 0)
-                tmpSpace[j].mutableDivide(q_j);
-            //else, leave it as is. If we have movement we might get the clsuter going again. 
-            
+            long count = q.get(j);
+            if(count > 0)
+            {
+                //compute new mean
+                cP[j].copyTo(tmpSpace[j]);
+                tmpSpace[j].mutableDivide(q.get(j));
+            }
+            else
+            {
+                cP[j].zeroOut();
+                tmpSpace[j].zeroOut();
+            }
             //compute distance betwean new and old
             p[j] = dm.dist(means.get(j), tmpSpace[j]);
             //move it to its positaiotn as new mean
