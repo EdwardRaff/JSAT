@@ -72,8 +72,36 @@ public class RBFKernel extends BaseL2Kernel
     }
 
     @Override
-    public KernelTrick clone()
+    public RBFKernel clone()
     {
         return new RBFKernel(sigma);
+    }
+    
+    /**
+     * Another common (equivalent) form of the RBF kernel is k(x, y) = 
+     * exp(-&gamma;||x-y||<sup>2</sup>). This method converts the &sigma; value 
+     * used by this class to the equivalent &gamma; value. 
+     * @param sigma the value of &sigma;
+     * @return the equivalent &gamma; value. 
+     */
+    public static double sigmaToGamma(double sigma)
+    {
+        if(sigma <= 0 || Double.isNaN(sigma) || Double.isInfinite(sigma))
+            throw new IllegalArgumentException("sigma must be positive, not " + sigma);
+        return 1/(2*sigma*sigma);
+    }
+    
+    /**
+     * Another common (equivalent) form of the RBF kernel is k(x, y) = 
+     * exp(-&gamma;||x-y||<sup>2</sup>). This method converts the &gamma; value 
+     * equivalent &sigma; value used by this class. 
+     * @param gamma the value of &gamma;
+     * @return the equivalent &sigma; value
+     */
+    public static double gammToSigma(double gamma)
+    {
+        if(gamma <= 0 || Double.isNaN(gamma) || Double.isInfinite(gamma))
+            throw new IllegalArgumentException("gamma must be positive, not " + gamma);
+        return 1/Math.sqrt(2*gamma);
     }
 }
