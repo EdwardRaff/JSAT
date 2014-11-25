@@ -109,6 +109,15 @@ public abstract class KMeans extends KClustererBase implements Parameterized
     {
         return seedSelection;
     }
+
+    /**
+     * Returns the distance metric in use
+     * @return the distance metric in use
+     */
+    public DistanceMetric getDistanceMetric()
+    {
+        return dm;
+    }
     
     /**
      * This is a helper method where the actual cluster is performed. This is because there
