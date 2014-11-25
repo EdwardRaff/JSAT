@@ -5,7 +5,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import jsat.SimpleDataSet;
 import jsat.classifiers.DataPoint;
-import jsat.clustering.ElkanKMeans;
+import jsat.clustering.kmeans.ElkanKMeans;
 import jsat.clustering.evaluation.DaviesBouldinIndex;
 import jsat.distributions.Uniform;
 import jsat.linear.distancemetrics.DistanceMetric;

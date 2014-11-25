@@ -1,11 +1,12 @@
 
-package jsat.clustering;
+package jsat.clustering.kmeans;
 
 import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
 import java.util.concurrent.ExecutorService;
 import jsat.DataSet;
+import jsat.clustering.KClustererBase;
 import jsat.distributions.kernels.KernelTrick;
 import jsat.linear.Vec;
 import jsat.parameters.Parameter;

@@ -4,7 +4,7 @@
  * and open the template in the editor.
  */
 
-package jsat.clustering;
+package jsat.clustering.kmeans;
 
 import java.util.HashMap;
 import java.util.HashSet;

@@ -1,5 +1,5 @@
 
-package jsat.clustering;
+package jsat.clustering.kmeans;
 
 import java.util.*;
 import java.util.concurrent.*;
@@ -7,6 +7,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import jsat.DataSet;
+import jsat.clustering.ClusterFailureException;
 import jsat.distributions.kernels.KernelTrick;
 import jsat.linear.distancemetrics.*;
 import jsat.utils.*;

@@ -1,5 +1,6 @@
 package jsat.clustering;
 
+import jsat.clustering.kmeans.ElkanKMeans;
 import static java.lang.Math.log;
 import java.util.*;
 import java.util.concurrent.*;

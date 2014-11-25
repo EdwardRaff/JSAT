@@ -1,4 +1,4 @@
-package jsat.clustering;
+package jsat.clustering.kmeans;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -11,6 +11,7 @@ import java.util.concurrent.atomic.AtomicLongArray;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import jsat.DataSet;
+import jsat.clustering.SeedSelectionMethods;
 import static jsat.clustering.SeedSelectionMethods.selectIntialPoints;
 import jsat.linear.DenseVector;
 import jsat.linear.Vec;

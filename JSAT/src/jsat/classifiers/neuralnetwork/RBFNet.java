@@ -19,7 +19,7 @@ import jsat.classifiers.ClassificationDataSet;
 import jsat.classifiers.Classifier;
 import jsat.classifiers.DataPoint;
 import jsat.classifiers.svm.DCDs;
-import jsat.clustering.HamerlyKMeans;
+import jsat.clustering.kmeans.HamerlyKMeans;
 import jsat.clustering.SeedSelectionMethods;
 import jsat.datatransform.DataTransform;
 import jsat.exceptions.FailedToFitException;
@@ -513,7 +513,7 @@ public class RBFNet implements Classifier, Regressor, DataTransform, Parameteriz
          * This method sets the bandwidth for each neuron based on the average 
          * distance of the {@link #setP(int) p} nearest neurons. The number of 
          * standard deviations to add to the activation is controlled by 
-         * {@link #setAlpha(double) &alpha;
+         * {@link #setAlpha(double) &alpha;}
          */
         NEAREST_OTHER_CENTROID_AVERAGE
         {

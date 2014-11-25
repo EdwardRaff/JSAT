@@ -1,5 +1,5 @@
 
-package jsat.clustering;
+package jsat.clustering.kmeans;
 
 import java.util.*;
 import java.util.concurrent.ExecutorService;
@@ -7,6 +7,7 @@ import java.util.concurrent.Executors;
 import jsat.DataSet;
 import jsat.SimpleDataSet;
 import jsat.classifiers.DataPoint;
+import jsat.clustering.SeedSelectionMethods;
 import jsat.distributions.Uniform;
 import jsat.linear.distancemetrics.EuclideanDistance;
 import jsat.utils.GridDataGenerator;
@@ -22,13 +23,13 @@ import static org.junit.Assert.*;
  *
  * @author Edward Raff
  */
-public class HamerlyKMeansTest
+public class NaiveKMeansTest
 {
     //NOTE: FARTHER FIST seed + 2 x 2 grid of 4 classes results in a deterministic result given a high density
-    
     static private SimpleDataSet easyData10;
     static private ExecutorService ex;
-    public HamerlyKMeansTest()
+    
+    public NaiveKMeansTest()
     {
     }
     
@@ -57,33 +58,13 @@ public class HamerlyKMeansTest
     }
 
     /**
-     * Test of cluster method, of class HamerlyKMeans.
-     */
-    @Test
-    public void testCluster_3args_1()
-    {
-        System.out.println("cluster");
-        HamerlyKMeans kMeans = new HamerlyKMeans(new EuclideanDistance(), SeedSelectionMethods.SeedSelection.FARTHEST_FIRST);
-        List<List<DataPoint>> clusters = kMeans.cluster(easyData10, 10, ex);
-        assertEquals(10, clusters.size());
-        Set<Integer> seenBefore = new HashSet<Integer>();
-        for(List<DataPoint> cluster :  clusters)
-        {
-            int thisClass = cluster.get(0).getCategoricalValue(0);
-            assertFalse(seenBefore.contains(thisClass));
-            for(DataPoint dp : cluster)
-                assertEquals(thisClass, dp.getCategoricalValue(0));
-        }
-    }
-
-    /**
-     * Test of cluster method, of class HamerlyKMeans.
+     * Test of cluster method, of class NaiveKMeans.
      */
     @Test
     public void testCluster_DataSet_intArr()
     {
         System.out.println("cluster");
-        HamerlyKMeans kMeans = new HamerlyKMeans(new EuclideanDistance(), SeedSelectionMethods.SeedSelection.FARTHEST_FIRST);
+        NaiveKMeans kMeans = new NaiveKMeans(new EuclideanDistance(), SeedSelectionMethods.SeedSelection.FARTHEST_FIRST);
         List<List<DataPoint>> clusters = kMeans.cluster(easyData10, 10);
         assertEquals(10, clusters.size());
         Set<Integer> seenBefore = new HashSet<Integer>();
@@ -96,4 +77,23 @@ public class HamerlyKMeansTest
         }
     }
 
+    /**
+     * Test of cluster method, of class NaiveKMeans.
+     */
+    @Test
+    public void testCluster_3args_1()
+    {
+        System.out.println("cluster");
+        NaiveKMeans kMeans = new NaiveKMeans(new EuclideanDistance(), SeedSelectionMethods.SeedSelection.FARTHEST_FIRST);
+        List<List<DataPoint>> clusters = kMeans.cluster(easyData10, 10, ex);
+        assertEquals(10, clusters.size());
+        Set<Integer> seenBefore = new HashSet<Integer>();
+        for(List<DataPoint> cluster :  clusters)
+        {
+            int thisClass = cluster.get(0).getCategoricalValue(0);
+            assertFalse(seenBefore.contains(thisClass));
+            for(DataPoint dp : cluster)
+                assertEquals(thisClass, dp.getCategoricalValue(0));
+        }
+    }
 }

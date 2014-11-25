@@ -1,5 +1,5 @@
 
-package jsat.clustering;
+package jsat.clustering.kmeans;
 
 import java.util.*;
 import java.util.concurrent.*;
@@ -8,6 +8,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import jsat.DataSet;
 import jsat.classifiers.DataPoint;
+import jsat.clustering.ClusterFailureException;
 import jsat.clustering.SeedSelectionMethods.SeedSelection;
 import static jsat.clustering.SeedSelectionMethods.selectIntialPoints;
 import jsat.linear.DenseVector;

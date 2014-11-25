@@ -3,7 +3,7 @@ package jsat.datatransform.kernel;
 import java.util.*;
 import jsat.DataSet;
 import jsat.classifiers.DataPoint;
-import jsat.clustering.HamerlyKMeans;
+import jsat.clustering.kmeans.HamerlyKMeans;
 import jsat.clustering.SeedSelectionMethods;
 import jsat.datatransform.*;
 import jsat.distributions.kernels.KernelTrick;

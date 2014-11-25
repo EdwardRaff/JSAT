@@ -1,5 +1,5 @@
 
-package jsat.clustering;
+package jsat.clustering.kmeans;
 
 import java.util.*;
 import java.util.concurrent.*;

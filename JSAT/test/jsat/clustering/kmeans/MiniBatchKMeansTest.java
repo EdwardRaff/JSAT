@@ -1,5 +1,4 @@
-
-package jsat.clustering;
+package jsat.clustering.kmeans;
 
 import java.util.*;
 import java.util.concurrent.ExecutorService;
@@ -7,7 +6,9 @@ import java.util.concurrent.Executors;
 import jsat.DataSet;
 import jsat.SimpleDataSet;
 import jsat.classifiers.DataPoint;
+import jsat.clustering.SeedSelectionMethods;
 import jsat.distributions.Uniform;
+import jsat.linear.distancemetrics.DistanceMetric;
 import jsat.linear.distancemetrics.EuclideanDistance;
 import jsat.utils.GridDataGenerator;
 import jsat.utils.SystemInfo;
@@ -22,13 +23,14 @@ import static org.junit.Assert.*;
  *
  * @author Edward Raff
  */
-public class NaiveKMeansTest
+public class MiniBatchKMeansTest
 {
     //NOTE: FARTHER FIST seed + 2 x 2 grid of 4 classes results in a deterministic result given a high density
+    
     static private SimpleDataSet easyData10;
     static private ExecutorService ex;
     
-    public NaiveKMeansTest()
+    public MiniBatchKMeansTest()
     {
     }
     
@@ -57,13 +59,13 @@ public class NaiveKMeansTest
     }
 
     /**
-     * Test of cluster method, of class NaiveKMeans.
+     * Test of cluster method, of class MiniBatchKMeans.
      */
     @Test
     public void testCluster_DataSet_intArr()
     {
         System.out.println("cluster");
-        NaiveKMeans kMeans = new NaiveKMeans(new EuclideanDistance(), SeedSelectionMethods.SeedSelection.FARTHEST_FIRST);
+        MiniBatchKMeans kMeans = new MiniBatchKMeans(new EuclideanDistance(), 50, 50, SeedSelectionMethods.SeedSelection.FARTHEST_FIRST);
         List<List<DataPoint>> clusters = kMeans.cluster(easyData10, 10);
         assertEquals(10, clusters.size());
         Set<Integer> seenBefore = new HashSet<Integer>();
@@ -77,13 +79,13 @@ public class NaiveKMeansTest
     }
 
     /**
-     * Test of cluster method, of class NaiveKMeans.
+     * Test of cluster method, of class MiniBatchKMeans.
      */
     @Test
     public void testCluster_3args_1()
     {
         System.out.println("cluster");
-        NaiveKMeans kMeans = new NaiveKMeans(new EuclideanDistance(), SeedSelectionMethods.SeedSelection.FARTHEST_FIRST);
+        MiniBatchKMeans kMeans = new MiniBatchKMeans(new EuclideanDistance(), 50, 50, SeedSelectionMethods.SeedSelection.FARTHEST_FIRST);
         List<List<DataPoint>> clusters = kMeans.cluster(easyData10, 10, ex);
         assertEquals(10, clusters.size());
         Set<Integer> seenBefore = new HashSet<Integer>();
@@ -95,4 +97,5 @@ public class NaiveKMeansTest
                 assertEquals(thisClass, dp.getCategoricalValue(0));
         }
     }
+
 }
