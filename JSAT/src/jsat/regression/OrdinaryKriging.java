@@ -7,7 +7,6 @@ import java.util.concurrent.ExecutorService;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import jsat.classifiers.DataPoint;
-import jsat.clustering.KMeans;
 import static jsat.linear.DenseVector.toDenseVec;
 import jsat.linear.*;
 import jsat.parameters.*;
@@ -203,7 +202,7 @@ public class OrdinaryKriging implements Regressor, Parameterized
         }
         catch (InterruptedException ex)
         {
-            Logger.getLogger(KMeans.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(OrdinaryKriging.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
     
