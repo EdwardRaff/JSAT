@@ -56,4 +56,29 @@ public abstract class ClustererBase implements Clusterer
         return clusterings;
     }
     
+    /**
+     * Gets a list of the datapoints in a data set that belong to the indicated cluster
+     * @param c the cluster ID to get the datapoints for
+     * @param assignments the array containing cluster assignments
+     * @param dataSet the data set to get the points from
+     * @param indexFrom stores the index from the original dataset that the 
+     * datapoint is from, such that the item at index {@code i} in the returned 
+     * list can be found in the original dataset at index {@code indexFrom[i]}. 
+     * May be {@code null}
+     * @return a list of datapoints that were assignment to the designated cluster
+     */
+    public static List<DataPoint> getDatapointsFromCluster(int c, int[] assignments, DataSet dataSet, int[] indexFrom)
+    {
+        List<DataPoint> list = new ArrayList<DataPoint>();
+        int pos = 0;
+        for(int i = 0; i < dataSet.getSampleSize(); i++)
+            if(assignments[i] == c)
+            {
+                list.add(dataSet.getDataPoint(i));
+                if(indexFrom != null)
+                    indexFrom[pos++] = i;
+            }
+        return list;
+    }
+    
 }
