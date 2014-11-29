@@ -162,8 +162,8 @@ public class GMeans extends KMeans
                 List<DataPoint> X = getDatapointsFromCluster(c, designations, dataSet, subS);
                 final int n = X.size();//NOTE, not the same as N. PAY ATENTION
                 
-                if(X.size() < minClusterSize)
-                    continue;
+                if(X.size() < minClusterSize || means.size() == highK)
+                    continue;//this loop with force it to exit when we hit max K
                 SimpleDataSet subSet = new SimpleDataSet(X);
                 //3. Run k-means on these two centers in X. Let c1, c2 be the child centers chosen by k-means
                 subC = kmeans.cluster(subSet, 2, threadpool, subC);
