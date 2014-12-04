@@ -47,6 +47,15 @@ public class SimpleDataSet extends DataSet
     {
         dataPoints.set(i, dp);
     }
+    
+    /**
+     * Adds a new datapoint to this set. 
+     * @param dp the datapoint to add
+     */
+    public void add(DataPoint dp)
+    {
+        dataPoints.add(dp);
+    }
 
     @Override
     public int getSampleSize()
