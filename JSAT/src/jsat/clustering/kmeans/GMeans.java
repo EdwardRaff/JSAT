@@ -27,7 +27,7 @@ import static java.lang.Math.*;
  * (pp. 281–288). Retrieved from 
  * <a href="http://papers.nips.cc/paper/2526-learning-the-k-in-k-means.pdf">here
  * </a>
- * 
+ *
  * @author Edward Raff
  */
 public class GMeans extends KMeans 
@@ -82,23 +82,44 @@ public class GMeans extends KMeans
 
     /**
      * Sets the minimum size for splitting a cluster. 
-     * @param minClusterSize 
+     * @param minClusterSize the minimum number of data points that must be present in a 
+     * cluster to consider splitting it
      */
     public void setMinClusterSize(int minClusterSize)
     {
+        if(minClusterSize < 2)
+            throw new IllegalArgumentException("min cluster size that could be split is 2, not " + minClusterSize);
         this.minClusterSize = minClusterSize;
     }
 
+    /**
+     * 
+     * @return the minimum number of data points that must be present in a 
+     * cluster to consider splitting it
+     */
     public int getMinClusterSize()
     {
         return minClusterSize;
     }
 
+    /**
+     * Sets whether or not the set of all cluster centers should be refined at 
+     * every iteration. By default this is {@code true} and part of how the 
+     * GMeans algorithm is described. Setting this to {@code false} can result
+     * in large speedups at the potential cost of quality. 
+     * @param refineCenters {@code true} to refine the cluster centers at every 
+     * step, {@code false} to skip this step of the algorithm. 
+     */
     public void setIterativeRefine(boolean refineCenters)
     {
         this.iterativeRefine = refineCenters;
     }
 
+    /**
+     * 
+     * @return {@code true} if the cluster centers are refined at every 
+     * step, {@code false} if skipping this step of the algorithm. 
+     */
     public boolean getIterativeRefine()
     {
         return iterativeRefine;
@@ -237,7 +258,7 @@ public class GMeans extends KMeans
             kmeans.cluster(dataSet, means.size(), means, designations, false, threadpool, false);
         return designations;
     }
-
+    
     @Override
     public int[] cluster(DataSet dataSet, int lowK, int highK, int[] designations)
     {
