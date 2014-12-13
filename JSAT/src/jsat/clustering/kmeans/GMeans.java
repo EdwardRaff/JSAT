@@ -164,9 +164,7 @@ public class GMeans extends KMeans
         Vec v = new DenseVector(dataSet.getNumNumericalVars());
         double[] xp = new double[N];
         //tract if we should stop testing a mean or not
-        List<Boolean> dontRedo = new ArrayList<Boolean>();
-        for (Vec mean : means)
-            dontRedo.add(false);
+        List<Boolean> dontRedo = new ArrayList<Boolean>(Collections.nCopies(means.size(), false));
         
         double thresh = 1.8692;//TODO make this configurable
         int origMeans;
