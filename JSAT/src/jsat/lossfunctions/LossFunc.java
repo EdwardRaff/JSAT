@@ -1,5 +1,7 @@
 package jsat.lossfunctions;
 
+import java.io.Serializable;
+
 /**
  * Provides a generic interface for some loss function on some problem that can
  * be described with a single real prediction value and a single real expected
@@ -9,7 +11,7 @@ package jsat.lossfunctions;
  *
  * @author Edward Raff
  */
-public interface LossFunc
+public interface LossFunc extends Serializable
 {
 
     /**
