@@ -38,7 +38,23 @@ public abstract class KMeans extends KClustererBase implements Parameterized
     protected SeedSelectionMethods.SeedSelection seedSelection;
     protected Random rand;
     
+    /**
+     * Indicates whether or not the means from the clustering should be saved
+     */
     protected boolean storeMeans = true;
+    /**
+     * Indicates whether or not the distance between a datapoint and its nearest
+     * centroid should be saved after clustering. This only applies when the 
+     * error of the model is requested 
+     */
+    protected boolean saveCentroidDistance = true;
+    
+    /**
+     * Distance from a datapoint to its nearest centroid. May be an approximate 
+     * distance 
+     */
+    protected double[] nearestCentroidDist;
+    
     /**
      * The list of means
      */
@@ -130,22 +146,28 @@ public abstract class KMeans extends KClustererBase implements Parameterized
      * The distance metric used is trained if needed
      * 
      * @param dataSet The set of data points to perform clustering on
+     * @param accelCache acceleration cache to use, or {@code null}. If
+     * {@code null}, the kmeans code will attempt to create one
      * @param k the number of clusters
-     * @param means the initial points to use as the means. Its
-     * length is the number of means that will be searched for. 
-     * These means will be altered, and should contain deep copies
-     * of the points they were drawn from. May be empty, in which case the list will be filled with some selected means
-     * @param assignment an empty temp space to store the clustering 
+     * @param means the initial points to use as the means. Its length is the
+     * number of means that will be searched for. These means will be altered,
+     * and should contain deep copies of the points they were drawn from. May be
+     * empty, in which case the list will be filled with some selected means
+     * @param assignment an empty temp space to store the clustering
      * classifications. Should be the same length as the number of data points
-     * @param exactTotal determines how the objective function (return value) 
-     * will be computed. If true, extra work will be done to compute the exact 
-     * distance from each data point to its cluster. If false, an upper bound 
-     * approximation will be used. 
-     * @param threadpool the source of threads for parallel computation. If <tt>null</tt>, single threaded execution will occur
-     * @param returnError {@code true} is the sum of squared distances should be returned. {@code false} means any value can be returned. 
-     * @return the sum of squares distances from each data point to its closest cluster
+     * @param exactTotal determines how the objective function (return value)
+     * will be computed. If true, extra work will be done to compute the exact
+     * distance from each data point to its cluster. If false, an upper bound
+     * approximation will be used. This also impacts the value stored in 
+     * {@link #nearestCentroidDist}
+     * @param threadpool the source of threads for parallel computation. If
+     * <tt>null</tt>, single threaded execution will occur
+     * @param returnError {@code true} is the sum of squared distances should be
+     * returned. {@code false} means any value can be returned. 
+     * {@link #saveCentroidDistance} only applies if this is {@code true}
+     * @return the double
      */
-    abstract protected double cluster(final DataSet dataSet, final int k, final List<Vec> means, final int[] assignment, boolean exactTotal, ExecutorService threadpool, boolean returnError);
+    abstract protected double cluster(final DataSet dataSet, List<Double> accelCache, final int k, final List<Vec> means, final int[] assignment, boolean exactTotal, ExecutorService threadpool, boolean returnError);
     
     static protected List<List<DataPoint>> getListOfLists(int k)
     {
@@ -176,7 +198,7 @@ public abstract class KMeans extends KClustererBase implements Parameterized
             throw new ClusterFailureException("Fewer data points then desired clusters, decrease cluster size");
         
         means = new ArrayList<Vec>(clusters);
-        cluster(dataSet, clusters, means, designations, false, threadpool, false);
+        cluster(dataSet, null, clusters, means, designations, false, threadpool, false);
         if(!storeMeans)
             means = null;
         return designations;
@@ -190,7 +212,7 @@ public abstract class KMeans extends KClustererBase implements Parameterized
         if(dataSet.getSampleSize() < clusters)
             throw new ClusterFailureException("Fewer data points then desired clusters, decrease cluster size");
         means = new ArrayList<Vec>(clusters);
-        cluster(dataSet, clusters, means, designations, false, null, false);
+        cluster(dataSet, null, clusters, means, designations, false, null, false);
         if(!storeMeans)
             means = null;
         
@@ -239,7 +261,7 @@ public abstract class KMeans extends KClustererBase implements Parameterized
 
         public void run()
         {
-            result = cluster(dataSet, k, new ArrayList<Vec>(), clusterIDs, true, null, true);
+            result = cluster(dataSet, null, k, new ArrayList<Vec>(), clusterIDs, true, null, true);
             putSelf.add(this);
         }
         
@@ -298,7 +320,7 @@ public abstract class KMeans extends KClustererBase implements Parameterized
         double[] totDistances = new double[highK-lowK+1];
 
         for(int i = lowK; i <= highK; i++)
-            totDistances[i-lowK] = cluster(dataSet, i, new ArrayList<Vec>(), designations, true, null, true);
+            totDistances[i-lowK] = cluster(dataSet, null, i, new ArrayList<Vec>(), designations, true, null, true);
 
         return findK(lowK, highK, totDistances, dataSet, designations);
     }

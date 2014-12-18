@@ -104,7 +104,7 @@ public class ElkanKMeans extends KMeans
      */
     
     @Override
-    protected double cluster(final DataSet dataSet, final int k, final List<Vec> means, final int[] assignment, boolean exactTotal, ExecutorService threadpool, boolean returnError)
+    protected double cluster(final DataSet dataSet, List<Double> accelCache, final int k, final List<Vec> means, final int[] assignment, boolean exactTotal, ExecutorService threadpool, boolean returnError)
     {
         try
         {
@@ -122,11 +122,16 @@ public class ElkanKMeans extends KMeans
             //Distance computation acceleration
             final List<Double> distAccelCache;
             final List<List<Double>> meanQIs = new ArrayList<List<Double>>(k);;
-            
-            if(threadpool == null || threadpool instanceof FakeExecutor)
-                distAccelCache = dm.getAccelerationCache(X);
+            //done a wonky way b/c we want this as a final object for convinence, otherwise we may be stuck with null accel when we dont need to be
+            if(accelCache == null)
+            {
+                if(threadpool == null || threadpool instanceof FakeExecutor)
+                    distAccelCache = dm.getAccelerationCache(X);
+                else
+                    distAccelCache = dm.getAccelerationCache(X, threadpool);
+            }
             else
-                distAccelCache = dm.getAccelerationCache(X, threadpool);
+                distAccelCache = accelCache;
             
             if(means.size() != k)
             {
@@ -271,13 +276,30 @@ public class ElkanKMeans extends KMeans
 
             double totalDistance = 0.0;
 
-            if (exactTotal == true)
-                for (int i = 0; i < N; i++)
-                    totalDistance += Math.pow(dm.dist(i, means.get(assignment[i]), meanQIs.get(assignment[i]), X, distAccelCache), 2);
-            else
-                for (int i = 0; i < N; i++)
-                    totalDistance += Math.pow(upperBound[i], 2);
+            if(returnError)
+            {
+                if(saveCentroidDistance)
+                    nearestCentroidDist = new double[N];
+                else
+                    nearestCentroidDist = null;
 
+                if (exactTotal == true)
+                    for (int i = 0; i < N; i++)
+                    {
+                        double dist = dm.dist(i, means.get(assignment[i]), meanQIs.get(assignment[i]), X, distAccelCache);
+                        totalDistance += Math.pow(dist, 2);
+                        if(saveCentroidDistance)
+                            nearestCentroidDist[i] = dist;
+                    }
+                else
+                    for (int i = 0; i < N; i++)
+                    {
+                        totalDistance += Math.pow(upperBound[i], 2);
+                        if(saveCentroidDistance)
+                            nearestCentroidDist[i] = upperBound[i];
+                    }
+            }
+            
             return totalDistance;
         }
         catch (Exception ex)

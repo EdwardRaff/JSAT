@@ -5,11 +5,8 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Random;
-import java.util.concurrent.Callable;
 import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicIntegerArray;
 import java.util.logging.Level;
@@ -20,7 +17,6 @@ import jsat.clustering.SeedSelectionMethods.SeedSelection;
 import static jsat.clustering.SeedSelectionMethods.selectIntialPoints;
 import jsat.linear.DenseVector;
 import jsat.linear.Vec;
-import jsat.linear.distancemetrics.DenseSparseMetric;
 import jsat.linear.distancemetrics.DistanceMetric;
 import jsat.linear.distancemetrics.EuclideanDistance;
 import jsat.linear.distancemetrics.TrainableDistanceMetric;
@@ -84,7 +80,7 @@ public class NaiveKMeans extends KMeans
     }
 
     @Override
-    protected double cluster(final DataSet dataSet, final int k, final List<Vec> means, final int[] des, final boolean exactTotal, ExecutorService threadpool, boolean returnError)
+    protected double cluster(final DataSet dataSet, List<Double> accelCacheInit, final int k, final List<Vec> means, final int[] assignment, final boolean exactTotal, ExecutorService threadpool, boolean returnError)
     {
         TrainableDistanceMetric.trainIfNeeded(dm, dataSet, threadpool);
         
@@ -93,11 +89,17 @@ public class NaiveKMeans extends KMeans
         
         final int blockSize = dataSet.getSampleSize() / SystemInfo.LogicalCores;
         final List<Vec> X = dataSet.getDataVectors();
+        //done a wonky way b/c we want this as a final object for convinence, otherwise we may be stuck with null accel when we dont need to be
         final List<Double> accelCache;
-        if(threadpool instanceof  FakeExecutor)
-            accelCache = dm.getAccelerationCache(X);
+        if (accelCacheInit == null)
+        {
+            if (threadpool instanceof FakeExecutor)
+                accelCache = dm.getAccelerationCache(X);
+            else
+                accelCache = dm.getAccelerationCache(X, threadpool);
+        }
         else
-            accelCache = dm.getAccelerationCache(X, threadpool);
+            accelCache = accelCacheInit;
         
         if (means.size() != k)
         {
@@ -141,7 +143,7 @@ public class NaiveKMeans extends KMeans
             }
         };
         
-        Arrays.fill(des, -1);
+        Arrays.fill(assignment, -1);
         do
         {
             changes.set(0);
@@ -173,19 +175,19 @@ public class NaiveKMeans extends KMeans
                                     min = j;
                                 }
                             }
-                            if(des[i] == min)
+                            if(assignment[i] == min)
                                 continue;
                             
                             //add change
                             deltas[min].mutableAdd(x);
                             meanCounts.incrementAndGet(min);
                             //remove from prev owner
-                            if(des[i] >= 0)
+                            if(assignment[i] >= 0)
                             {
-                                deltas[des[i]].mutableSubtract(x);
-                                meanCounts.getAndDecrement(des[i]);
+                                deltas[assignment[i]].mutableSubtract(x);
+                                meanCounts.getAndDecrement(assignment[i]);
                             }
-                            des[i] = min;
+                            assignment[i] = min;
                             changes.incrementAndGet();
                         }
                         
@@ -227,9 +229,18 @@ public class NaiveKMeans extends KMeans
         if (returnError)
         {
             double totalDistance = 0;
-
+            if (saveCentroidDistance)
+                nearestCentroidDist = new double[X.size()];
+            else
+                nearestCentroidDist = null;
+            
             for (int i = 0; i < dataSet.getSampleSize(); i++)
-                totalDistance += Math.pow(dm.dist(i, means.get(des[i]), meanQIs.get(des[i]), X, accelCache), 2);
+            {
+                double dist = dm.dist(i, means.get(assignment[i]), meanQIs.get(assignment[i]), X, accelCache);
+                totalDistance += Math.pow(dist, 2);
+                if(saveCentroidDistance)
+                    nearestCentroidDist[i] = dist;
+            }
 
             return totalDistance;
         }

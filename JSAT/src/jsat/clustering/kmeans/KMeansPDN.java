@@ -97,12 +97,14 @@ public class KMeansPDN extends KMeans
         //re used every iteration
         List<Vec> curMeans = new ArrayList<Vec>(highK);
         means = new ArrayList<Vec>();//the best set of means
+        //pre-compute cache instead of re-computing every time
+        List<Double> accelCache = dm.getAccelerationCache(dataSet.getDataVectors(), threadpool);
         
         for(int k = 2; k < highK; k++)
         {
             curMeans.clear();
             //kmeans objective function result is the same as S_k
-            double S_k = cluster(dataSet, k, curMeans, designations, true, threadpool, true);//TODO could add a flag to make approximate S_k an option. Though it dosn't seem to work great on toy problems, might be fine on more realistic data
+            double S_k = cluster(dataSet, accelCache, k, curMeans, designations, true, threadpool, true);//TODO could add a flag to make approximate S_k an option. Though it dosn't seem to work great on toy problems, might be fine on more realistic data
 
 
             double alpha_k;
@@ -142,9 +144,9 @@ public class KMeansPDN extends KMeans
     }
 
     @Override
-    protected double cluster(DataSet dataSet, int k, List<Vec> means, int[] assignment, boolean exactTotal, ExecutorService threadpool, boolean returnError)
+    protected double cluster(DataSet dataSet, List<Double> accelCache, int k, List<Vec> means, int[] assignment, boolean exactTotal, ExecutorService threadpool, boolean returnError)
     {
-        return kmeans.cluster(dataSet, k, means, assignment, exactTotal, threadpool, returnError);
+        return kmeans.cluster(dataSet, accelCache, k, means, assignment, exactTotal, threadpool, returnError);
     }
     
 }

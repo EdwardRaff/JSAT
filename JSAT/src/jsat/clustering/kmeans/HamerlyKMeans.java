@@ -68,7 +68,7 @@ public class HamerlyKMeans extends KMeans
     //TODO reduce some code duplication in the methods bellow 
     
     @Override
-    protected double cluster(final DataSet dataSet, final int k, final List<Vec> means, final int[] assignment, final boolean exactTotal, ExecutorService threadpool, boolean returnError)
+    protected double cluster(final DataSet dataSet, List<Double> accelCache, final int k, final List<Vec> means, final int[] assignment, final boolean exactTotal, ExecutorService threadpool, boolean returnError)
     {
         final int N = dataSet.getSampleSize();
         final int D = dataSet.getNumNumericalVars();
@@ -76,11 +76,16 @@ public class HamerlyKMeans extends KMeans
         TrainableDistanceMetric.trainIfNeeded(dm, dataSet, threadpool);
         
         final List<Vec> X = dataSet.getDataVectors();
-        final List<Double> distAccel;
-        if(threadpool == null || threadpool instanceof FakeExecutor)
-            distAccel = dm.getAccelerationCache(X);
+        final List<Double> distAccel;//used like htis b/c we want it final for convinence, but input may be null
+        if(accelCache == null)
+        {
+            if(threadpool == null || threadpool instanceof FakeExecutor)
+                distAccel = dm.getAccelerationCache(X);
+            else
+                distAccel = dm.getAccelerationCache(X, threadpool);
+        }
         else
-            distAccel = dm.getAccelerationCache(X, threadpool);
+            distAccel = accelCache;
         
         final List<List<Double>> meanQI = new ArrayList<List<Double>>(k);
         
@@ -218,12 +223,27 @@ public class HamerlyKMeans extends KMeans
         if (returnError)
         {
             double totalDistance = 0;
+            
+            if (saveCentroidDistance)
+                nearestCentroidDist = new double[N];
+            else
+                nearestCentroidDist = null;
+
             if (exactTotal == true)
                 for (int i = 0; i < N; i++)
-                    totalDistance += Math.pow(dm.dist(i, means.get(assignment[i]), meanQI.get(assignment[i]), X, distAccel), 2);
+                {
+                    double dist = dm.dist(i, means.get(assignment[i]), meanQI.get(assignment[i]), X, distAccel);
+                    totalDistance += Math.pow(dist, 2);
+                    if (saveCentroidDistance)
+                        nearestCentroidDist[i] = dist;
+                }
             else
                 for (int i = 0; i < N; i++)
+                {
                     totalDistance += Math.pow(u[i], 2);
+                    if (saveCentroidDistance)
+                        nearestCentroidDist[i] = u[i];
+                }
 
             return totalDistance;
         }

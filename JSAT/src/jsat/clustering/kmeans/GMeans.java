@@ -166,6 +166,9 @@ public class GMeans extends KMeans
         //tract if we should stop testing a mean or not
         List<Boolean> dontRedo = new ArrayList<Boolean>(Collections.nCopies(means.size(), false));
         
+        //pre-compute acceleration cache instead of re-computing every refine call
+        List<Double> accelCache = dm.getAccelerationCache(dataSet.getDataVectors(), threadpool);
+        
         double thresh = 1.8692;//TODO make this configurable
         int origMeans;
         do
@@ -247,13 +250,13 @@ public class GMeans extends KMeans
                 dontRedo.add(false);
             }
             //"Between each round of splitting, we run k-means on the entire dataset and all the centers to refine the current solution"
-            if(iterativeRefine)
-                kmeans.cluster(dataSet, means.size(), means, designations, false, threadpool, false);
+            if(iterativeRefine && means.size() > 1)
+                kmeans.cluster(dataSet, accelCache, means.size(), means, designations, false, threadpool, false);
         }
         while (origMeans < means.size());
         
-        if(!iterativeRefine)//if we havn't been refining we need to do so now!
-            kmeans.cluster(dataSet, means.size(), means, designations, false, threadpool, false);
+        if(!iterativeRefine && means.size() > 1)//if we havn't been refining we need to do so now!
+            kmeans.cluster(dataSet, accelCache, means.size(), means, designations, false, threadpool, false);
         return designations;
     }
     
@@ -290,8 +293,8 @@ public class GMeans extends KMeans
     
 
     @Override
-    protected double cluster(DataSet dataSet, int k, List<Vec> means, int[] assignment, boolean exactTotal, ExecutorService threadpool, boolean returnError)
+    protected double cluster(DataSet dataSet, List<Double> accelCache, int k, List<Vec> means, int[] assignment, boolean exactTotal, ExecutorService threadpool, boolean returnError)
     {
-        return kmeans.cluster(dataSet, k, means, assignment, exactTotal, threadpool, returnError);
+        return kmeans.cluster(dataSet, accelCache, k, means, assignment, exactTotal, threadpool, returnError);
     }
 }
