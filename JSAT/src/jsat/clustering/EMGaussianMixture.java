@@ -88,10 +88,10 @@ public class EMGaussianMixture extends ElkanKMeans implements MultivariateDistri
     }
     
     @Override
-    protected double cluster(final DataSet dataSet, final int K, final List<Vec> means, final int[] assignment, boolean exactTotal, ExecutorService threadpool, boolean returnError)
+    protected double cluster(final DataSet dataSet, final List<Double> accelCache, final int K, final List<Vec> means, final int[] assignment, boolean exactTotal, ExecutorService threadpool, boolean returnError)
     {
         //Perform intial clustering with ElkanKMeans 
-        super.cluster(dataSet, K, means, assignment, exactTotal, threadpool, false);
+        super.cluster(dataSet, accelCache, K, means, assignment, exactTotal, threadpool, false);
         
         //Use the ElkanKMeans result to initalize GuassianMixture 
         List<Matrix> covariances = new ArrayList<Matrix>(K);
