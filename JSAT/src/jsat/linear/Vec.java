@@ -670,7 +670,7 @@ public abstract class Vec implements Cloneable, Iterable<IndexValue>, Serializab
      */
     public void normalize()
     {
-        mutableDivide(pNorm(2.0));
+        mutableDivide(Math.max(pNorm(2.0), 1e-10));
     }
     
     /**

@@ -762,7 +762,7 @@ public class SparseVector extends  Vec
         
         sum = Math.sqrt(sum);
 
-        mutableDivide(sum); 
+        mutableDivide(Math.max(sum, 1e-10)); 
     }
 
     @Override
