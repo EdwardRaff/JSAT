@@ -335,12 +335,37 @@ public abstract class Matrix implements Cloneable, Serializable
     abstract public void multiplyTranspose(final Matrix B, final Matrix C);
     
     /**
+     * Returns the new matrix <i>C</i> that is <i>C = A*B<sup>T</sup></i>
+     * @param B the matrix to multiply by the transpose of
+     * @return the result C
+     */
+    public Matrix multiplyTranspose(final Matrix B)
+    {
+        Matrix C = new DenseMatrix(this.rows(), B.rows());
+        multiplyTranspose(B, C);
+        return C;
+    }
+    
+    /**
      * Alters the matrix <i>C</i> to be equal to <i>C = C+A*B<sup>T</sup></i>
      * @param B the matrix to multiply this with
      * @param C the matrix to add the result to
      * @param threadPool the source of threads to do computation in parallel
      */
     abstract public void multiplyTranspose(final Matrix B, final Matrix C, ExecutorService threadPool);
+    
+    /**
+     * Returns the new matrix <i>C</i> that is <i>C = A*B<sup>T</sup></i>
+     * @param B the matrix to multiply by the transpose of
+     * @param threadPool the source of threads to do computation in parallel
+     * @return the result C
+     */
+    public Matrix multiplyTranspose(final Matrix B, ExecutorService threadPool)
+    {
+        Matrix C = new DenseMatrix(this.rows(), B.rows());
+        multiplyTranspose(B, C, threadPool);
+        return C;
+    }
     
     /**
      * Creates a new Matrix that stores <i>A*c</i>
