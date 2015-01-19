@@ -13,7 +13,7 @@ import jsat.math.OnLineStatistics;
  * 
  * @author Edward Raff
  */
-public class LinearTransform implements DataTransform
+public class LinearTransform implements InPlaceInvertibleTransform
 {
     /**
      * The max value
@@ -130,17 +130,48 @@ public class LinearTransform implements DataTransform
     @Override
     public DataPoint transform(DataPoint dp)
     {
-        Vec v = dp.getNumericalValues().subtract(mins);
-        v.mutablePairwiseMultiply(mutliplyConstants);
-        v.mutableAdd(B);
-        
-        return new DataPoint(v, dp.getCategoricalValues(), dp.getCategoricalData(), dp.getWeight());
+        DataPoint toRet = dp.clone();
+        mutableTransform(toRet);
+        return toRet;
+    }
+    
+    @Override
+    public LinearTransform clone()
+    {
+        return new LinearTransform(this);
     }
 
     @Override
-    public DataTransform clone()
+    public void mutableInverse(DataPoint dp)
     {
-        return new LinearTransform(this);
+        Vec v = dp.getNumericalValues();
+        v.mutableSubtract(B);
+        v.mutablePairwiseDivide(mutliplyConstants);
+        v.mutableAdd(mins);
+    }
+
+
+    @Override
+    public void mutableTransform(DataPoint dp)
+    {
+        Vec v = dp.getNumericalValues();
+        v.mutableSubtract(mins);
+        v.mutablePairwiseMultiply(mutliplyConstants);
+        v.mutableAdd(B);
+    }
+
+    @Override
+    public boolean mutatesNominal()
+    {
+        return false;
+    }
+
+    @Override
+    public DataPoint inverse(DataPoint dp)
+    {
+        DataPoint toRet = dp.clone();
+        mutableInverse(toRet);
+        return toRet;
     }
     
     /**
