@@ -154,7 +154,7 @@ public abstract class GenericMatrix extends Matrix
     public void multiply(Matrix b, Matrix C)
     {
         if(!canMultiply(this, b))
-            throw new ArithmeticException("Matrix dimensions do not agree");
+            throw new ArithmeticException("Matrix dimensions do not agree: [" + this.rows() + ", " + this.cols() + "] * [" + b.rows() + ", " + b.cols() + "]");
         else if (this.rows() != C.rows() || b.cols() != C.cols())
             throw new ArithmeticException("Target Matrix is no the correct size");
 

@@ -40,6 +40,11 @@ public class DenseMatrix extends GenericMatrix
         }
     }
     
+    /**
+     * Creates a new matrix of zeros
+     * @param rows the number of rows
+     * @param cols the number of columns
+     */
     public DenseMatrix(int rows, int cols)
     {
         matrix = new double[rows][cols];
@@ -60,6 +65,17 @@ public class DenseMatrix extends GenericMatrix
                 throw new RuntimeException("Given matrix was not of consistent size (rows have diffrent lengths)");
             else
                 System.arraycopy(matrix[i], 0, this.matrix[i], 0, this.matrix[i].length);
+    }
+    
+    /**
+     * Creates a new dense matrix that has a copy of all the same values as the 
+     * given one
+     * @param toCopy the matrix to copy
+     */
+    public DenseMatrix(Matrix toCopy)
+    {
+        this(toCopy.rows(), toCopy.cols());
+        toCopy.copyTo(this);
     }
 
     @Override
@@ -317,7 +333,7 @@ public class DenseMatrix extends GenericMatrix
     public void transposeMultiply(final Matrix b, final Matrix C, ExecutorService threadPool)
     {
         if(this.rows() != b.rows())//Normaly it is A_cols == B_rows, but we are doint A'*B, not A*B
-            throw new ArithmeticException("Matrix dimensions do not agree");
+            throw new ArithmeticException("Matrix dimensions do not agree [" + this.cols() + ", " + this.rows()+ "] * [" + b.rows() + ", " + b.cols() + "]");
         else if(this.cols() != C.rows() || b.cols() != C.cols())
             throw new ArithmeticException("Destination matrix does not have matching dimensions");
         final DenseMatrix A = this;
