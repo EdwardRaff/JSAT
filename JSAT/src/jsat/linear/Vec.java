@@ -216,7 +216,7 @@ public abstract class Vec implements Cloneable, Iterable<IndexValue>, Serializab
         if (b.length() != A.cols())
             throw new ArithmeticException("Destination vector is not the right size");
         
-        if (isSparse())
+        if (!isSparse())
         {
             for (int i = 0; i < this.length(); i++)
             {
