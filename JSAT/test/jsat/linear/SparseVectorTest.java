@@ -276,9 +276,9 @@ public class SparseVectorTest
     public void testVariance()
     {
         System.out.println("variance");
-        assertEquals(2.36578947368421, x.variance(), 1e-14);
+        assertEquals(2.2475, x.variance(), 1e-14);
         
-        assertEquals(2.31578947368421, y.variance(), 1e-14);
+        assertEquals(2.2, y.variance(), 1e-14);
     }
 
     /**

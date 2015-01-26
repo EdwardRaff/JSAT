@@ -392,8 +392,7 @@ public class SparseVector extends  Vec
             tmp += Math.pow(values[i]-mu, 2);
         //Now add all the zeros into it
         tmp +=  (length()-used) * Math.pow(0-mu, 2);
-        if(N > 1)
-            tmp /= (N-1);
+        tmp /= N;
         
         return (varianceCache = tmp);
     }

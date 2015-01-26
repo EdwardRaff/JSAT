@@ -213,8 +213,9 @@ public class DenseVector extends Vec
         
         for(int i = startIndex; i < endIndex; i++)
             tmp += pow(array[i]-mean, 4);
+        tmp /= length();
         
-        return tmp / (pow(standardDeviation(), 4) * (array.length-1) ) - 3;
+        return tmp / pow(variance(), 2)  - 3;
     }
    
 
