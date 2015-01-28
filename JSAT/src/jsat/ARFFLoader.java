@@ -4,6 +4,8 @@ package jsat;
 import java.io.*;
 import java.util.*;
 import java.util.Map.Entry;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import jsat.classifiers.*;
@@ -31,19 +33,28 @@ public class ARFFLoader
      */
     public static SimpleDataSet loadArffFile(File file) 
     {
-        ArrayList<DataPoint> list = new ArrayList<DataPoint>();
-        
-        BufferedReader br;
-        
         try
         {
-            br = new BufferedReader(new FileReader(file));
+            return loadArffFile(new FileReader(file));
         }
         catch (FileNotFoundException ex)
         {
-            //No File
+            Logger.getLogger(ARFFLoader.class.getName()).log(Level.SEVERE, null, ex);
             return null;
         }
+    }
+    
+    /**
+     * Uses the given reader to load a data set assuming it follows the ARFF 
+     * file format
+     * @param input the reader to load the data set from
+     * @return the data set from the stream, or null of the file could not be loaded 
+     */
+    public static SimpleDataSet loadArffFile(Reader input) 
+    {
+        ArrayList<DataPoint> list = new ArrayList<DataPoint>();
+        
+        BufferedReader br = new BufferedReader(input);
         
         int numOfVars = 0;
         int numReal = 0;
