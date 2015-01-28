@@ -91,7 +91,7 @@ public class NormalizedMutualInformation implements ClusterEvaluation
             nmiC += -pCi*logPCi;
         }
         
-        return 1.0-nmiNumer/(nmiC+nmiK)/2;
+        return 1.0-nmiNumer/((nmiC+nmiK)/2);
     }
 
     @Override

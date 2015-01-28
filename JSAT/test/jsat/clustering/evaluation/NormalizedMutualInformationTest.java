@@ -4,11 +4,8 @@
  */
 package jsat.clustering.evaluation;
 
-import java.util.List;
-import jsat.DataSet;
 import jsat.classifiers.CategoricalData;
 import jsat.classifiers.ClassificationDataSet;
-import jsat.classifiers.DataPoint;
 import jsat.linear.DenseVector;
 import jsat.linear.Vec;
 import org.junit.After;
@@ -57,22 +54,35 @@ public class NormalizedMutualInformationTest
     {
         System.out.println("evaluate");
         ClassificationDataSet cds = new ClassificationDataSet(0, 
-                new CategoricalData[]{new CategoricalData(2)}, 
-                new CategoricalData(2));
+                new CategoricalData[]{}, 
+                new CategoricalData(3));
+        //Using example case from Manning's book http://nlp.stanford.edu/IR-book/html/htmledition/evaluation-of-clustering-1.html
         Vec emptyVec = new DenseVector(0);
-        int[] clusterAssign = new int[8];
-        clusterAssign[0] = 0; cds.addDataPoint(emptyVec, new int[]{0}, 0);
-        clusterAssign[1] = 0; cds.addDataPoint(emptyVec, new int[]{0}, 0);
-        clusterAssign[2] = 0; cds.addDataPoint(emptyVec, new int[]{0}, 0);
-        clusterAssign[3] = 0; cds.addDataPoint(emptyVec, new int[]{1}, 1);
-        clusterAssign[4] = 1; cds.addDataPoint(emptyVec, new int[]{1}, 1);
-        clusterAssign[5] = 1; cds.addDataPoint(emptyVec, new int[]{1}, 1);
-        clusterAssign[6] = 1; cds.addDataPoint(emptyVec, new int[]{1}, 1);
-        clusterAssign[7] = 1; cds.addDataPoint(emptyVec, new int[]{1}, 1);
+        int[] clusterAssign = new int[17];
+        int X = 0, O = 1, D = 2;
+        clusterAssign[0] = 0; cds.addDataPoint(emptyVec, X);
+        clusterAssign[1] = 0; cds.addDataPoint(emptyVec, X);
+        clusterAssign[2] = 0; cds.addDataPoint(emptyVec, X);
+        clusterAssign[3] = 0; cds.addDataPoint(emptyVec, X);
+        clusterAssign[4] = 0; cds.addDataPoint(emptyVec, X);
+        clusterAssign[5] = 0; cds.addDataPoint(emptyVec, O);
+
+        clusterAssign[6] = 1; cds.addDataPoint(emptyVec, X);
+        clusterAssign[7] = 1; cds.addDataPoint(emptyVec, D);
+        clusterAssign[8] = 1; cds.addDataPoint(emptyVec, O);
+        clusterAssign[9] = 1; cds.addDataPoint(emptyVec, O);
+        clusterAssign[10] = 1; cds.addDataPoint(emptyVec, O);
+        clusterAssign[11] = 1; cds.addDataPoint(emptyVec, O);
+
+        clusterAssign[12] = 2; cds.addDataPoint(emptyVec, X);
+        clusterAssign[13] = 2; cds.addDataPoint(emptyVec, X);
+        clusterAssign[14] = 2; cds.addDataPoint(emptyVec, D);
+        clusterAssign[15] = 2; cds.addDataPoint(emptyVec, D);
+        clusterAssign[16] = 2; cds.addDataPoint(emptyVec, D);
         
-        //True NMI for this should be 0.14039740914097984
+        //True NMI for this should be 0.36
         NormalizedMutualInformation nmi = new NormalizedMutualInformation();
-        assertEquals(1.0-0.14039740914097984, nmi.evaluate(clusterAssign, cds), 1e-13);
+        assertEquals(0.36, 1.0-nmi.evaluate(clusterAssign, cds), 1e-2);
         
     }
 }
