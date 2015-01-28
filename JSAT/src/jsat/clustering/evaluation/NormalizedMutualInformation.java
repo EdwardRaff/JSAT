@@ -39,6 +39,8 @@ public class NormalizedMutualInformation implements ClusterEvaluation
         for(int i= 0; i < cds.getSampleSize(); i++)
         {
             int ki = designations[i];
+            if(ki < 0)//outlier, not clustered
+                continue;
             while(kPriors.size() <= ki)
                 kPriors.add(0.0);
             kPriors.set(ki, kPriors.get(ki)+cds.getDataPoint(i).getWeight());
@@ -64,6 +66,8 @@ public class NormalizedMutualInformation implements ClusterEvaluation
         {
             int ci = cds.getDataPointCategory(i);
             int kj = designations[i];
+            if(kj < 0)//outlier, ignore
+                continue;
             
             ck[ci][kj] += cds.getDataPoint(i).getWeight();
         }
