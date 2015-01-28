@@ -326,7 +326,7 @@ public class FLAME extends ClustererBase implements Parameterized
 
                                 for (int z = 0; z < fuzzy2_i.length; z++)
                                 {
-                                    fuzzy2_i[z] /= sum;
+                                    fuzzy2_i[z] /= sum+1e-6;
                                     localScore += Math.abs(FROM[i][z] - fuzzy2_i[z]);
                                 }
                             }
@@ -362,6 +362,8 @@ public class FLAME extends ClustererBase implements Parameterized
                     }
                 }
 
+                if(pos == -1)//TODO how di this happen? Mark it as an outlier. Somehow your whole row became zeros to cause this
+                    pos = CSOs.size();
                 clusterCounts[pos]++;
                 if (pos == CSOs.size())//outlier
                     pos = -1;
