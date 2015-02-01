@@ -1,6 +1,7 @@
 package jsat.clustering.kmeans;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Random;
@@ -18,6 +19,7 @@ import jsat.linear.Vec;
 import jsat.linear.distancemetrics.DistanceMetric;
 import jsat.linear.distancemetrics.EuclideanDistance;
 import jsat.linear.distancemetrics.TrainableDistanceMetric;
+import jsat.utils.DoubleList;
 import jsat.utils.FakeExecutor;
 import jsat.utils.SystemInfo;
 import jsat.utils.random.XORWOW;
@@ -164,7 +166,7 @@ public class HamerlyKMeans extends KMeans
             moveCenters(means, tmpVecs, cP, q, p, meanQI);
             UpdateBounds(p, assignment, u, l);
             updates.set(0);
-            updateS(s, means, threadpool);
+            updateS(s, means, threadpool, meanQI);
             
             if(threadpool == null)
             {
@@ -288,23 +290,34 @@ public class HamerlyKMeans extends KMeans
         return 0;//no change
     }
     
-    private void updateS(final double[] s, final List<Vec> means, ExecutorService threadpool)
+    private void updateS(final double[] s, final List<Vec> means, final ExecutorService threadpool, final List<List<Double>> meanQIs)
     {
         final int tasks = means.size();
         final CountDownLatch latch = new CountDownLatch(tasks);
-        for(int j = 0; j < means.size(); j++)
+        Arrays.fill(s, Double.MAX_VALUE);
+        //TODO temp object for puting all the query info into a cache, should probably be cleaned up - or change original code to have one massive list and then use sub lits to get the QIs individualy 
+        final DoubleList meanCache = meanQIs.get(0).isEmpty() ? null : new DoubleList(meanQIs.size());
+        if (meanCache != null)
+            for (List<Double> qi : meanQIs)
+                meanCache.addAll(qi);
+
+        for (int j = 0; j < means.size(); j++)
         {
             if(threadpool == null)
             {
-                final Vec mean_j = means.get(j);
                 double tmp;
                 double min = Double.POSITIVE_INFINITY;
-                for(int jp = 0; jp < means.size(); jp++)
-                    if(jp == j)
-                        continue;
-                    else if((tmp = dm.dist(mean_j, means.get(jp))) < min)
+                int otherIndx = Integer.MAX_VALUE;
+                for(int jp = j+1; jp < means.size(); jp++)
+                    if((tmp = dm.dist(j, jp, means, meanCache)) < min)
+                    {
                         min = tmp;
-                s[j] = min;
+                        otherIndx = jp;
+                    }
+                s[j] = Math.min(min, s[j]);
+                //trick to avoid computing twice as many distances as needed
+                if(otherIndx < s.length)//if index i is our min, we may be their min too
+                    s[otherIndx] = Math.min(s[otherIndx], s[j]);
             }
             else
             {
@@ -314,15 +327,22 @@ public class HamerlyKMeans extends KMeans
                     @Override
                     public void run()
                     {
-                        final Vec mean_j = means.get(J);
                         double tmp;
                         double min = Double.POSITIVE_INFINITY;
-                        for (int jp = 0; jp < means.size(); jp++)
-                            if (jp == J)
-                                continue;
-                            else if ((tmp = dm.dist(mean_j, means.get(jp))) < min)
+                        int otherIndx = Integer.MAX_VALUE;
+                        for (int jp = J+1; jp < means.size(); jp++)
+                            if ((tmp = dm.dist(J, jp, means, meanCache)) < min)
+                            {
                                 min = tmp;
-                        s[J] = min;
+                                otherIndx = jp;
+                            }
+
+                        synchronized (s)
+                        {
+                            min = s[J] = Math.min(min, s[J]);
+                            if (otherIndx < s.length)
+                                s[otherIndx] = Math.min(min, s[otherIndx]);
+                        }
                         latch.countDown();
                     }
                 });
