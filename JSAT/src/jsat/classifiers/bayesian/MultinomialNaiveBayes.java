@@ -11,7 +11,6 @@ import jsat.exceptions.UntrainedModelException;
 import jsat.linear.IndexValue;
 import jsat.linear.Vec;
 import jsat.math.MathTricks;
-import jsat.parameters.DoubleParameter;
 import jsat.parameters.Parameter;
 import jsat.parameters.Parameterized;
 
@@ -118,6 +117,15 @@ public class MultinomialNaiveBayes extends BaseUpdateableClassifier implements P
         if(Double.isNaN(smoothing) || Double.isInfinite(smoothing) || smoothing <= 0)
             throw new IllegalArgumentException("Smoothing constant must be in range (0,Inf), not " + smoothing);
         this.smoothing = smoothing;
+    }
+
+    /**
+     * 
+     * @return the smoothing applied to categorical counts
+     */
+    public double getSmoothing()
+    {
+        return smoothing;
     }
 
     /**
@@ -325,45 +333,13 @@ public class MultinomialNaiveBayes extends BaseUpdateableClassifier implements P
     @Override
     public List<Parameter> getParameters()
     {
-        Parameter param = new DoubleParameter() 
-        {
-            @Override
-            public double getValue()
-            {
-                return smoothing;
-            }
-
-            @Override
-            public boolean setValue(double val)
-            {
-                if(val <= 0)
-                    return false;
-                setSmoothing(val);
-                return true;
-            }
-
-            @Override
-            public String getASCIIName()
-            {
-                return "Smoothing";
-            }
-
-            @Override
-            public boolean requiresRetrain()
-            {
-                return false;
-            }
-        };
-        
-        return Arrays.asList(param);
+        return Parameter.getParamsFromMethods(this);
     }
 
     @Override
     public Parameter getParameter(String paramName)
     {
-        if(paramName.equals("smoothing"))
-            return getParameters().get(0);
-        return null;
+        return Parameter.toParameterMap(getParameters()).get(paramName);
     }
     
 }
