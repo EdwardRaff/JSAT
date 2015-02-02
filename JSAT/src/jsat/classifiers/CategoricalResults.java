@@ -2,6 +2,8 @@
 package jsat.classifiers;
 
 import java.util.Arrays;
+import jsat.linear.DenseVector;
+import jsat.linear.Vec;
 
 /**
  * This class represents the probabilities for each possible result classification. 
@@ -112,6 +114,11 @@ public class CategoricalResults implements Cloneable
             sum += d;
         if(sum != 0)
             divideConst(sum);
+    }
+    
+    public Vec getVecView()
+    {
+        return DenseVector.toDenseVec(probabilities);
     }
     
     /**
