@@ -8,6 +8,12 @@ import java.util.concurrent.ExecutorService;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import jsat.classifiers.calibration.BinaryScoreClassifier;
+import jsat.classifiers.calibration.MultiScoreClassifier;
+import jsat.linear.DenseVector;
+import jsat.linear.Vec;
+import jsat.parameters.Parameter;
+import jsat.parameters.Parameter.ParameterHolder;
+import jsat.parameters.Parameterized;
 import jsat.utils.FakeExecutor;
 
 /**
@@ -23,9 +29,10 @@ import jsat.utils.FakeExecutor;
  * 
  * @author Edward Raff
  */
-public class OneVSAll implements Classifier
+public class OneVSAll implements Classifier, MultiScoreClassifier, Parameterized
 {
     private Classifier[] oneVsAlls;
+    @ParameterHolder
     private Classifier baseClassifier;
     private CategoricalData predicting;
     private boolean concurrentTraining;
@@ -180,7 +187,7 @@ public class OneVSAll implements Classifier
     }
 
     @Override
-    public Classifier clone()
+    public OneVSAll clone()
     {
         OneVSAll clone = new OneVSAll(baseClassifier.clone(), concurrentTraining);
         if(this.predicting != null)
@@ -200,5 +207,40 @@ public class OneVSAll implements Classifier
     {
         return baseClassifier.supportsWeightedData();
     }
-    
+
+    @Override
+    public Vec getScoreRaw(DataPoint dp)
+    {
+        if(useScoreIfAvailable && oneVsAlls[0] instanceof BinaryScoreClassifier)
+        {
+            DenseVector vec = new DenseVector(predicting.getNumOfCategories());
+            for(int i = 0; i < predicting.getNumOfCategories(); i++)
+            {
+                double score = -( (BinaryScoreClassifier)oneVsAlls[i]).getScore(dp);
+                vec.set(i, score);
+            }
+
+            return vec;
+        }
+        
+        return getScorePred(dp);
+    }
+
+    @Override
+    public Vec getScorePred(DataPoint dp)
+    {
+        return classify(dp).getVecView();
+    }
+
+    @Override
+    public List<Parameter> getParameters()
+    {
+        return Parameter.getParamsFromMethods(this);
+    }
+
+    @Override
+    public Parameter getParameter(String paramName)
+    {
+        return Parameter.toParameterMap(getParameters()).get(paramName);
+    }
 }
