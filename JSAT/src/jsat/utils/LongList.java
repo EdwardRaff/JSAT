@@ -24,7 +24,7 @@ public class LongList extends AbstractList<Long> implements Serializable
     }
 
     /**
-     * Creates a new IntList
+     * Creates a new LongList
      */
     public LongList()
     {
@@ -38,7 +38,7 @@ public class LongList extends AbstractList<Long> implements Serializable
     }
 
     /**
-     * Creates a new IntList with the given initial capacity 
+     * Creates a new LongList with the given initial capacity 
      * @param capacity the starting internal storage space size 
      */
     public LongList(int capacity)
@@ -74,7 +74,7 @@ public class LongList extends AbstractList<Long> implements Serializable
     }
     
     /**
-     * Operates exactly as {@link #add(int, java.lang.Integer) } 
+     * Operates exactly as {@link #add(int, java.lang.Long) } 
      * @param index the index to add the value into
      * @param element the value to add
      */
@@ -161,12 +161,12 @@ public class LongList extends AbstractList<Long> implements Serializable
     }
     
     /**
-     * Creates and returns an unmodifiable view of the given int array that 
+     * Creates and returns a view of the given long array that 
      * requires only a small object allocation. 
      * 
-     * @param array the array to wrap into an unmodifiable list
+     * @param array the array to wrap into a list
      * @param length the number of values of the array to use, starting from zero
-     * @return an unmodifiable list view of the array
+     * @return a list view of the array
      */
     public static List<Long> view(long[] array, int length)
     {
