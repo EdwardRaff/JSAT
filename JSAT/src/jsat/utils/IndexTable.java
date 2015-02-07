@@ -250,37 +250,33 @@ public class IndexTable implements Serializable
     }
     
     /**
-     * Applies this index table to the specified target. The application will unsorted the index
-     * table, returning it to a state of representing the un ordered list. 
+     * Applies this index table to the specified target, putting {@code target} 
+     * into the same ordering as this IndexTable. 
+     * 
      * @throws RuntimeException if the length of the target array is not the same as the index table
      */
     public void apply(double[] target)
     {
         if(target.length != length())
             throw new RuntimeException("target array does not have the same length as the index table");
+        final double[] tmp = Arrays.copyOf(target, target.length);
         for(int i = 0; i < target.length; i++)
-        {
-            double tmp = target[i];
-            target[i] = target[index(i)];
-            target[index(i)] = tmp;
-            swap(i, index(i));
-        }
+            target[i] = tmp[index(i)];
     }
     
     /**
-     * Applies this index table to the specified target. The application will unsorted the index
-     * table, returning it to a state of representing the un ordered list. 
+     * Applies this index table to the specified target, putting {@code target} 
+     * into the same ordering as this IndexTable. 
+     * 
      * @throws RuntimeException if the length of the target List is not the same as the index table
      */
     public void apply(List target)
     {
         if(target.size() != length())
             throw new RuntimeException("target array does not have the same length as the index table");
+        final List tmp = new ArrayList(target);
         for(int i = 0; i < target.size(); i++)
-        {
-            ListUtils.swap(target, i, index(i));
-            swap(i, index(i));
-        }
+            target.set(i, tmp.get(index(i)));
     }
     
 }
