@@ -37,6 +37,20 @@ public class SparseMatrix extends Matrix
     }
     
     /**
+     * Creates a new Sparse Matrix backed by the given array of SpareVectors. 
+     * Altering the array of any object in it will also alter the this matrix. 
+     * 
+     * @param rows the array to back this SparseMatrix
+     */
+    public SparseMatrix(SparseVector[] rows)
+    {
+        this.rows = rows;
+        for(int i = 0; i < rows.length; i++)
+            if(rows[i].length() != rows[0].length())
+                throw new IllegalArgumentException("Row " + i + " has " + rows[i].length() + " columns instead of " + rows[0].length());
+    }
+    
+    /**
      * Creates a new sparse matrix
      * @param rows the number of rows for the matrix
      * @param cols the number of columns for the matrix
