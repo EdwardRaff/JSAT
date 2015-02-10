@@ -116,9 +116,6 @@ public class NaiveBayes implements Classifier, Parameterized
 
         abstract protected Distribution fit(Vec y);
     }
-    
-    private List<Parameter> parameters = Collections.unmodifiableList(Parameter.getParamsFromMethods(this));
-    private Map<String, Parameter> parameterMap = Parameter.toParameterMap(parameters);
 
     /**
      * Creates a new Naive Bayes classifier that uses the specific method for 
@@ -271,13 +268,13 @@ public class NaiveBayes implements Classifier, Parameterized
     @Override
     public List<Parameter> getParameters()
     {
-        return parameters;
+        return Collections.unmodifiableList(Parameter.getParamsFromMethods(this));
     }
 
     @Override
     public Parameter getParameter(String paramName)
     {
-        return parameterMap.get(paramName);
+        return Parameter.toParameterMap(getParameters()).get(paramName);
     }
     
     @Override
