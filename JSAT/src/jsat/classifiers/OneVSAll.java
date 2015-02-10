@@ -8,9 +8,6 @@ import java.util.concurrent.ExecutorService;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import jsat.classifiers.calibration.BinaryScoreClassifier;
-import jsat.classifiers.calibration.MultiScoreClassifier;
-import jsat.linear.DenseVector;
-import jsat.linear.Vec;
 import jsat.parameters.Parameter;
 import jsat.parameters.Parameter.ParameterHolder;
 import jsat.parameters.Parameterized;
@@ -29,7 +26,7 @@ import jsat.utils.FakeExecutor;
  * 
  * @author Edward Raff
  */
-public class OneVSAll implements Classifier, MultiScoreClassifier, Parameterized
+public class OneVSAll implements Classifier, Parameterized
 {
     private Classifier[] oneVsAlls;
     @ParameterHolder
@@ -206,30 +203,6 @@ public class OneVSAll implements Classifier, MultiScoreClassifier, Parameterized
     public boolean supportsWeightedData()
     {
         return baseClassifier.supportsWeightedData();
-    }
-
-    @Override
-    public Vec getScoreRaw(DataPoint dp)
-    {
-        if(useScoreIfAvailable && oneVsAlls[0] instanceof BinaryScoreClassifier)
-        {
-            DenseVector vec = new DenseVector(predicting.getNumOfCategories());
-            for(int i = 0; i < predicting.getNumOfCategories(); i++)
-            {
-                double score = -( (BinaryScoreClassifier)oneVsAlls[i]).getScore(dp);
-                vec.set(i, score);
-            }
-
-            return vec;
-        }
-        
-        return getScorePred(dp);
-    }
-
-    @Override
-    public Vec getScorePred(DataPoint dp)
-    {
-        return classify(dp).getVecView();
     }
 
     @Override
