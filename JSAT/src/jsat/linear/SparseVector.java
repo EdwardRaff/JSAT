@@ -268,7 +268,7 @@ public class SparseVector extends  Vec
         insertLocation = -(insertLocation+1);//Convert from negative value to the location is should be placed, see JavaDoc of binarySearch
         if(used == indexes.length)//Full, expand
         {
-            int newIndexesSize = indexes.length*3/2;
+            int newIndexesSize = Math.max(Math.min(indexes.length*3/2, Integer.MAX_VALUE), 8);
             indexes = Arrays.copyOf(indexes, newIndexesSize);
             values = Arrays.copyOf(values, newIndexesSize);
         }
