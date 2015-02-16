@@ -241,6 +241,24 @@ public class DoubleList extends AbstractList<Double> implements Serializable
      */
     public static List<Double> unmodifiableView(double[] array, int length)
     {
-        return Collections.unmodifiableList(new DoubleList(array, length));
+        return Collections.unmodifiableList(view(array, length));
+    }
+    
+    /**
+     * Creates and returns a view of the given double array that requires only
+     * a small object allocation. Changes tot he list will be reflected in the 
+     * array up to a point. If the modification would require increasing the 
+     * capacity of the array, a new array will be allocated - at which point 
+     * operations will no longer be reflected in the original array. 
+     * 
+     * @param array the array to wrap by a DoubleList object
+     * @param length the initial length of the list
+     * @return 
+     */
+    public static DoubleList view(double[] array, int length)
+    {
+        if(length > array.length || length < 0)
+            throw new IllegalArgumentException("length must be non-negative and no more than the size of the array("+array.length+"), not " + length);
+        return new DoubleList(array, length);
     }
 }
