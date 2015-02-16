@@ -246,14 +246,15 @@ public class DoubleList extends AbstractList<Double> implements Serializable
     
     /**
      * Creates and returns a view of the given double array that requires only
-     * a small object allocation. Changes tot he list will be reflected in the 
+     * a small object allocation. Changes to the list will be reflected in the 
      * array up to a point. If the modification would require increasing the 
      * capacity of the array, a new array will be allocated - at which point 
      * operations will no longer be reflected in the original array. 
      * 
      * @param array the array to wrap by a DoubleList object
      * @param length the initial length of the list
-     * @return 
+     * @return a DoubleList backed by the given array, unless modified to the 
+     * point of requiring the allocation of a new array
      */
     public static DoubleList view(double[] array, int length)
     {

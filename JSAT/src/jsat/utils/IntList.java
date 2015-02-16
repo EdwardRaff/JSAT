@@ -169,6 +169,25 @@ public class IntList extends AbstractList<Integer> implements Serializable
      */
     public static List<Integer> unmodifiableView(int[] array, int length)
     {
-        return Collections.unmodifiableList(new IntList(array, length));
+        return Collections.unmodifiableList(view(array, length));
+    }
+    
+    /**
+     * Creates and returns a view of the given int array that requires only
+     * a small object allocation. Changes to the list will be reflected in the 
+     * array up to a point. If the modification would require increasing the 
+     * capacity of the array, a new array will be allocated - at which point 
+     * operations will no longer be reflected in the original array. 
+     * 
+     * @param array the array to wrap by an IntList object
+     * @param length the initial length of the list
+     * @return an IntList backed by the given array, unless modified to the 
+     * point of requiring the allocation of a new array
+     */
+    public static IntList view(int[] array, int length)
+    {
+        if(length > array.length || length < 0)
+            throw new IllegalArgumentException("length must be non-negative and no more than the size of the array("+array.length+"), not " + length);
+        return new IntList(array, length);
     }
 }
