@@ -9,7 +9,12 @@ import java.util.*;
  * without ever sorting the elements of said list. Given an array of elements, the 
  * index table creates an array of index values, and sorts the indices based on 
  * the values they point to. The IndexTable can then be used to find the index 
- * of the i'th sorted element in the array. 
+ * of the i'th sorted element in the array. <br>
+ * <br>
+ * The IndexTable can be sorted multiple times by calling the 
+ * {@link #sort(java.util.List, java.util.Comparator) } methods. This can be 
+ * called on inputs of varying size, and the internal order will be expanded 
+ * when necessary. 
  * 
  * @author Edward Raff
  */
@@ -50,6 +55,10 @@ public class IndexTable implements Serializable
      * the arrays.sort function that accepts comparators. 
      */
     private IntList index;
+    /**
+     * The size of the previously sorted array or list
+     */
+    private int prevSize;
     
     /**
      * Creates a new index table of a specified size that is in linear order. 
@@ -176,9 +185,17 @@ public class IndexTable implements Serializable
      */
     public <T> void sort(List<T> list, Comparator<T> cmp)
     {
-        if(list.size() != index.size())
-            throw new IllegalArgumentException("Input list is not the same size as index table");
-        Collections.sort(index, new IndexViewCompList(list, cmp));
+        if(index.size() < list.size())
+            for(int i = index.size(); i < list.size(); i++ )
+                index.add(i);
+        if(list.size() == index.size())
+            Collections.sort(index, new IndexViewCompList(list, cmp));
+        else
+        {
+            Collections.sort(index);//so [0, list.size) is at the front
+            Collections.sort(index.subList(0, list.size()), new IndexViewCompList(list, cmp));
+        }
+        prevSize = list.size();
     }
     
     private class IndexViewCompG<T extends Comparable<T>> implements Comparator<Integer> 
@@ -237,16 +254,18 @@ public class IndexTable implements Serializable
      */
     public int index(int i)
     {
+        if(i >= prevSize || i < 0)
+            throw new IndexOutOfBoundsException("The size of the previously sorted array/list is " + prevSize + " so index " + i + " is not valid");
         return index.get(i);
     }
     
     /**
-     * The length of the original array that was sorted
+     * The length of the previous array that was sorted
      * @return the length of the original array 
      */
     public int length()
     {
-        return index.size();
+        return prevSize;
     }
     
     /**
@@ -257,11 +276,8 @@ public class IndexTable implements Serializable
      */
     public void apply(double[] target)
     {
-        if(target.length != length())
-            throw new RuntimeException("target array does not have the same length as the index table");
-        final double[] tmp = Arrays.copyOf(target, target.length);
-        for(int i = 0; i < target.length; i++)
-            target[i] = tmp[index(i)];
+        //use DoubleList view b/d we are only using set ops, so we wont run into an issue of re-allocating the array
+        apply(DoubleList.view(target, target.length), new DoubleList(target.length));
     }
     
     /**
@@ -272,9 +288,37 @@ public class IndexTable implements Serializable
      */
     public void apply(List target)
     {
-        if(target.size() != length())
+        apply(target, new ArrayList(target.size()));
+    }
+    
+    /**
+     * Applies this index table to the specified target, putting {@code target} 
+     * into the same ordering as this IndexTable. It will use the provided 
+     * {@code tmp} space to store the original values in target in the same 
+     * ordering. It will be modified, and may be expanded using the {@link 
+     * List#add(java.lang.Object) add} method if it does not contain sufficient 
+     * space. Extra size in the tmp list will be ignored. After this method is 
+     * called, {@link tmp} will contain the same ordering that was in 
+     * {@link target} <br>
+     * <br>
+     * This method is provided as a means to reducing memory use when multiple 
+     * lists need to be sorted. 
+     * 
+     * @param target the list to sort, that should be the same size as the 
+     * previously sorted list. 
+     * @param tmp the temp list that may be of any size
+     */
+    public void apply(List target, List tmp)
+    {
+        if (target.size() != length())
             throw new RuntimeException("target array does not have the same length as the index table");
-        final List tmp = new ArrayList(target);
+        //fill tmp with the original ordering or target, adding when needed
+        for (int i = 0; i < target.size(); i++)
+            if (i >= tmp.size())
+                tmp.add(target.get(i));
+            else
+                tmp.set(i, target.get(i));
+        //place back into target from tmp to get sorted order
         for(int i = 0; i < target.size(); i++)
             target.set(i, tmp.get(index(i)));
     }
