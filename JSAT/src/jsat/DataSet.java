@@ -487,12 +487,16 @@ public abstract class DataSet
     {
         if(i < 0 || i >= getNumNumericalVars())
             throw new IndexOutOfBoundsException("There is no index for column " + i);
+
         DenseVector dv = new DenseVector(getSampleSize());
-        for(int j = 0; j < getSampleSize(); j++)
+        for (int j = 0; j < getSampleSize(); j++)
             dv.set(j, getDataPoint(j).getNumericalValues().get(i));
-        return dv;
+        if (getSparsityStats().getMean() < 0.6)
+            return new SparseVector(dv);
+        else
+            return dv;
     }
-    
+
     /**
      * Creates a matrix from the data set, where each row represent a data
      * point, and each column is one of the numeric example from the data set. 
