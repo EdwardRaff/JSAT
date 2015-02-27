@@ -35,12 +35,23 @@ public class NewGLMNET implements Classifier, Parameterized, SingleWeightVectorM
     private double gamma = DEFAULT_GAMMA;
     private double sigma = DEFAULT_SIGMA;
     private double C;
+    private double alpha;
     private int maxOuterIters = DEFAULT_MAX_OUTER_ITER;
     private double e_out = DEFAULT_EPS;
+    /**
+     * The maximum allowed line-search steps
+     */
+    private int maxLineSearchSteps = 20;
 
     public NewGLMNET(double C)
     {
+        this(C, 1);
+    }
+    
+    public NewGLMNET(double C, double alpha)
+    {
         setC(C);
+        setAlpha(alpha);
     }
 
     public NewGLMNET(NewGLMNET toCopy)
@@ -77,6 +88,24 @@ public class NewGLMNET implements Classifier, Parameterized, SingleWeightVectorM
     public double getC()
     {
         return C;
+    }
+
+    /**
+     * Using &alpha; = 1 corresponds to pure L<sub>1</sub> regularization, and 
+     * &alpha; = 0 corresponds to pure L<sub>s</sub> regularization. Any value 
+     * in-between is then an elastic net regularization.
+     * @param alpha 
+     */
+    public void setAlpha(double alpha)
+    {
+        if(alpha < 0 || alpha > 1 || Double.isNaN(alpha))
+            throw new IllegalArgumentException("alpha must be in [0, 1], not " + alpha);
+        this.alpha = alpha;
+    }
+
+    public double getAlpha()
+    {
+        return alpha;
     }
 
     /**
@@ -143,6 +172,15 @@ public class NewGLMNET implements Classifier, Parameterized, SingleWeightVectorM
     @Override
     public void trainC(ClassificationDataSet dataSet)
     {
+        /*
+         * The original NewGLMNET paper describes the algorithm as minimizing 
+         * f(w) = ||w||_1 + L(w), where L(w) is the logistic loss summed over 
+         * all the variables. To make adapation to elastic net easier, we define
+         * f(w) = alpha ||w||_1 + L(w), where L(w) = (1-alpha) ||w||_2 + loss sum. 
+         * This way we keep all the framework for L_1 regularization and 
+         * shrinking, and just update the appropriate terms where necessary. 
+         */
+        
         //paper uses n= #features so we will follow their lead
         final int n = dataSet.getNumNumericalVars();
         //l = # data points
@@ -185,6 +223,7 @@ public class NewGLMNET implements Classifier, Parameterized, SingleWeightVectorM
             D[i] = tmp*D_part_i*D_part_i;
         }
         double w_norm_1 = w.pNorm(1);
+        double w_norm_2 = w.pNorm(2);
         
         List<Vec> columnsOfX = new ArrayList<Vec>(n);
         /**
@@ -200,12 +239,17 @@ public class NewGLMNET implements Classifier, Parameterized, SingleWeightVectorM
                 if(y[iv.getIndex()] == -1)
                     col_neg_class_sum[j] += iv.getValue();
         }
+                
+        /**
+         * weight for L_1 reg is alpha, so this will be the L_2 weight (1-alpha)
+         */
+        final double l2w = (1-alpha);
         
 //        {
 //            double objVal = 0;
 //            for(int i = 0; i < l; i++)
 //                objVal += C*log(1+exp(-y[i]*w_dot_x[i]));
-//            objVal += w.pNorm(1);
+//            objVal += alpha*w_norm_1 + l2w*w_norm_2;
 //            System.out.println("Start Obj Val: " + objVal);
 //        }
         
@@ -215,6 +259,7 @@ public class NewGLMNET implements Classifier, Parameterized, SingleWeightVectorM
         double M_out = Double.POSITIVE_INFINITY;
         
         Vec d = new DenseVector(n);
+        boolean prevLineSearchFail = false;
         for(int k = 0; k < maxOuterIters; k++)//For k = 1, 2, 3, . . .
         {
             //algo 3, Step 1.
@@ -242,24 +287,29 @@ public class NewGLMNET implements Classifier, Parameterized, SingleWeightVectorM
                     //eq(44) from LIBLINEAR paper , re-factored to avoid a division by using D_part
                     deltaSqrd_L += val*val*D[i];
                 }
-                delta_L[j] = delta_j_L = C*(delta_j_L + col_neg_class_sum[j]);
+                delta_L[j] = delta_j_L = l2w*w_j + C*(delta_j_L + col_neg_class_sum[j]);
                 //H^k from eq (19)
-                H[j] = C*deltaSqrd_L + v;
+                /*
+                 * regular is C X^T D X, L2 just adds + I , but we are alreayd 
+                 * doing + eps * I to make sure the gradient is there. So just 
+                 * do the max of v and lambda_2
+                 */
+                H[j] = C*deltaSqrd_L + max(v, l2w);
 
                 double deltaS_j_fw;
                 if(w_j > 0)
-                    deltaS_j_fw = delta_j_L+1;
+                    deltaS_j_fw = delta_j_L+alpha;
                 else if(w_j < 0)
-                    deltaS_j_fw = delta_j_L-1;
+                    deltaS_j_fw = delta_j_L-alpha;
                 else//w_j = 0
-                    deltaS_j_fw = signum(delta_j_L)*max(abs(delta_j_L)-1, 0);
+                    deltaS_j_fw = signum(delta_j_L)*max(abs(delta_j_L)-alpha, 0);
                 //done with step 2, we have all the info
                 
                 //2.2. If w^k_j = 0 and |∇_j L(w^k)| < 1−M^out/l   // outer-level shrinking
                 //then J ←J\{j}.
                 //else M ←max(M, |∇^S_j f(w^k)|) and M_bar ← M_bar +|∇^S_j f(w^k)|
                 
-                if(w_j == 0 && abs(delta_j_L) < 1-M_out/l)
+                if(w_j == 0 && abs(delta_j_L) < alpha-M_out/l)
                     j_iter.remove();
                 else
                 {
@@ -291,6 +341,7 @@ public class NewGLMNET implements Classifier, Parameterized, SingleWeightVectorM
                 
                 Collections.shuffle(T);
                 Iterator<Integer> T_iter = T.iterator();
+                final double dynRange = n*5.0/T.size();//used for dynamic clip, see below
                 while(T_iter.hasNext())//step 2.
                 {
                     final int j = T_iter.next();
@@ -312,18 +363,25 @@ public class NewGLMNET implements Classifier, Parameterized, SingleWeightVectorM
                     
                     //now add the part we know from before
                     delta_qBar_j += delta_L[j];
+                    /*
+                     * For L_2, use (A+B)C = AC + BC to modify ((lambda_2 * I + ∇_2 L(w))d)j
+                     * so we need to add lambda_2 * I d^{p, j}_j to the final 
+                     * value. I * x = x, and we are taking the value of the j'th
+                     * coordinate, so we just have to add lambda_2 d_j
+                     */
+                    delta_qBar_j += l2w*d_j;
                     
                     double deltaS_q_k_j;
                     if(w_j + d_j > 0)
-                        deltaS_q_k_j = delta_qBar_j + 1;
+                        deltaS_q_k_j = delta_qBar_j + alpha;
                     else if(w_j + d_j < 0)
-                        deltaS_q_k_j = delta_qBar_j - 1;
+                        deltaS_q_k_j = delta_qBar_j - alpha;
                     else //w_j + d_j == 0
-                        deltaS_q_k_j = signum(delta_qBar_j)*max(abs(delta_qBar_j)-1, 0);
+                        deltaS_q_k_j = signum(delta_qBar_j)*max(abs(delta_qBar_j)-alpha, 0);
                     
                     double deltaSqrd_q_jj = H[j];
                     
-                    if(w_j + d_j == 0 && abs(delta_qBar_j) < 1 - M_in/l)
+                    if(w_j + d_j == 0 && abs(delta_qBar_j) < alpha - M_in/l)
                     {
                         T_iter.remove();//inner-level shrinking
                     }
@@ -334,10 +392,10 @@ public class NewGLMNET implements Classifier, Parameterized, SingleWeightVectorM
                         double z;
                         //find z by eq (9), our w_j is actuall w_j+d_j
                         
-                        if(delta_qBar_j+1 <= deltaSqrd_q_jj*(w_j+d_j))
-                            z = -(delta_qBar_j+1)/deltaSqrd_q_jj;
-                        else if(delta_qBar_j-1 >= deltaSqrd_q_jj*(w_j+d_j))
-                            z = -(delta_qBar_j-1)/deltaSqrd_q_jj;
+                        if(delta_qBar_j+alpha <= deltaSqrd_q_jj*(w_j+d_j))
+                            z = -(delta_qBar_j+alpha)/deltaSqrd_q_jj;
+                        else if(delta_qBar_j-alpha >= deltaSqrd_q_jj*(w_j+d_j))
+                            z = -(delta_qBar_j-alpha)/deltaSqrd_q_jj;
                         else
                             z = -(w_j+d_j);
                         
@@ -351,7 +409,6 @@ public class NewGLMNET implements Classifier, Parameterized, SingleWeightVectorM
                          * than it should.  When there are fewer active 
                          * dimensions, allow for more change
                          */
-                        double dynRange = n*5.0/T.size();
                         z = min(max(z,-dynRange),dynRange);
                         
                         d.increment(j, z);
@@ -398,6 +455,7 @@ public class NewGLMNET implements Classifier, Parameterized, SingleWeightVectorM
             
             //get ||w+d||_1 and ∇L^T d in one loop together
             double wPd_norm_1 = w_norm_1;
+            double wPd_norm_2 = w_norm_2;
             double delta_L_dot_d = 0;
             
             for(IndexValue iv: d)
@@ -407,14 +465,19 @@ public class NewGLMNET implements Classifier, Parameterized, SingleWeightVectorM
                 final double d_j = iv.getValue();
                 wPd_norm_1 -= abs(w_j);
                 wPd_norm_1 += abs(w_j+d_j);
+                wPd_norm_2 -= w_j*w_j;
+                wPd_norm_2 += (w_j+d_j)*(w_j+d_j);
                 delta_L_dot_d += d_j*delta_L[j];
             }
-            final double breakCondition = sigma*(delta_L_dot_d+wPd_norm_1-w_norm_1 );
+            final double breakCondition = sigma*(delta_L_dot_d + 
+                    alpha*(wPd_norm_1-w_norm_1) + 
+                    l2w*(wPd_norm_2-w_norm_2)  );
             
             double lambda = 1;
             int t = 0;
             double wPlambda_d_norm_1 = wPd_norm_1;
-            while(t < 14)//by 14 steps t is probably way too small... probably shuld adjust this depending on beta
+            double wPlambda_d_norm_2 = wPd_norm_2;
+            while(t < maxLineSearchSteps)//by 14 steps t is probably way too small... probably shuld adjust this depending on beta
             {
                 //"For line search, we use the following form of the sufficient decrease condition" eq(45) from LIBLINEAR paper Aug 2014
                 double newTerm = 0;
@@ -427,24 +490,40 @@ public class NewGLMNET implements Classifier, Parameterized, SingleWeightVectorM
                         newTerm += lambda*d_dot_x[i];
                 }
                 
-                newTerm = wPlambda_d_norm_1 - w_norm_1 + C*newTerm;
+                newTerm = l2w*(wPlambda_d_norm_2 - w_norm_2) +//l2 reg
+                        alpha*(wPlambda_d_norm_1 - w_norm_1) + //l1 reg
+                        C*newTerm;//loss
                 if(newTerm <= lambda * breakCondition)
                     break;
                 //else
                 lambda = pow(beta, ++t);
                 //update norm 
                 wPlambda_d_norm_1 = w_norm_1;
+                wPlambda_d_norm_2 = w_norm_2;
                 for(IndexValue iv: d)
                 {
-                    wPlambda_d_norm_1 -= abs(w.get(iv.getIndex()));
-                    wPlambda_d_norm_1 += abs(w.get(iv.getIndex())+lambda*iv.getValue());
+                    final double w_j = w.get(iv.getIndex());
+                    final double lambda_d_j = lambda*iv.getValue();
+                    wPlambda_d_norm_1 -= abs(w_j);
+                    wPlambda_d_norm_1 += abs(w_j+lambda_d_j);
+                    wPlambda_d_norm_2 -= w_j*w_j;
+                    wPlambda_d_norm_2 += (w_j+lambda_d_j)*(w_j+lambda_d_j);
                 }
             }
-            //TODO if we hit max line search, should we just break - it will be hard for any progress to be made?
+
+            //if line search fails twice in a row, just quit
+            if(t == maxLineSearchSteps)//this shouldn't happen unless we are having serious trouble improving our results
+                if (prevLineSearchFail)
+                    break;//jsut finish. 
+                else
+                    prevLineSearchFail = true;
+            else
+                prevLineSearchFail = false;
 
             //algo 3, Step 7. 7. w^{k+1} = w^k +λ d.
             w.mutableAdd(lambda, d);
             w_norm_1 = wPlambda_d_norm_1;
+            w_norm_2 = wPlambda_d_norm_2;
             //and more book keeping
             //val from last line search is new w
             System.arraycopy(exp_w_dot_x_plus_dx, 0, exp_w_dot_x, 0, l);
@@ -460,8 +539,9 @@ public class NewGLMNET implements Classifier, Parameterized, SingleWeightVectorM
 //            double objVal = 0;
 //            for(int i = 0; i < l; i++)
 //                objVal += C*log(1+exp(-y[i]*w_dot_x[i]));
-//            objVal += w.pNorm(1);
-//            System.out.println("New Obj Val: " + objVal);
+//            objVal += alpha*w_norm_1 + l2w*w_norm_2;
+//            System.out.println("Iter "+ k + " has New Obj Val: " + objVal);
+            
         }
     }
 
@@ -474,7 +554,7 @@ public class NewGLMNET implements Classifier, Parameterized, SingleWeightVectorM
     @Override
     public NewGLMNET clone()
     {
-        return new NewGLMNET(C);
+        return new NewGLMNET(this);
     }
 
     @Override
