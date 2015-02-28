@@ -29,8 +29,8 @@ public class ConstantVector extends Vec
      */
     public ConstantVector(double constant, int length)
     {
-        this.constant = constant;
-        this.length = length;
+        setConstant(constant);
+        setLength(length);
     }
 
     /**
@@ -67,6 +67,48 @@ public class ConstantVector extends Vec
     }
 
     @Override
+    public double sum()
+    {
+        return constant*length;
+    }
+
+    @Override
+    public double mean()
+    {
+        return constant;
+    }
+
+    @Override
+    public double variance()
+    {
+        return 0;
+    }
+
+    @Override
+    public double standardDeviation()
+    {
+        return 0;
+    }
+
+    @Override
+    public Vec normalized()
+    {
+        return new ConstantVector(constant/Math.sqrt(constant*constant*length), length);
+    }
+
+    @Override
+    public double pNorm(double p)
+    {
+        return Math.pow(length*Math.pow(Math.abs(constant), p), 1/p);
+    }
+
+    @Override
+    public double median()
+    {
+        return constant;
+    }
+
+    @Override
     public void set(int index, double val)
     {
         throw new ArithmeticException("ConstantVector does not support mutation");
@@ -79,7 +121,7 @@ public class ConstantVector extends Vec
     }
 
     @Override
-    public Vec clone()
+    public ConstantVector clone()
     {
         return new ConstantVector(constant, length);
     }
