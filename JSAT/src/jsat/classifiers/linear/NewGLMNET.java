@@ -38,6 +38,7 @@ public class NewGLMNET implements Classifier, Parameterized, SingleWeightVectorM
     private double alpha;
     private int maxOuterIters = DEFAULT_MAX_OUTER_ITER;
     private double e_out = DEFAULT_EPS;
+    private boolean useBias = true;
     /**
      * The maximum allowed line-search steps
      */
@@ -66,6 +67,8 @@ public class NewGLMNET implements Classifier, Parameterized, SingleWeightVectorM
         this.C = toCopy.C;
         this.e_out = toCopy.e_out;
         this.maxOuterIters = toCopy.maxOuterIters;
+        this.alpha = toCopy.alpha;
+        this.useBias = toCopy.useBias;
     }
     
     /**
@@ -155,12 +158,21 @@ public class NewGLMNET implements Classifier, Parameterized, SingleWeightVectorM
     {
         return e_out;
     }
-    
+
+    public void setUseBias(boolean useBias)
+    {
+        this.useBias = useBias;
+    }
+
+    public boolean isUseBias()
+    {
+        return useBias;
+    }
     
     @Override
     public CategoricalResults classify(DataPoint data)
     {
-        return LogisticLoss.classify(w.dot(data.getNumericalValues()));
+        return LogisticLoss.classify(w.dot(data.getNumericalValues())+b);
     }
 
     @Override
@@ -187,6 +199,7 @@ public class NewGLMNET implements Classifier, Parameterized, SingleWeightVectorM
         final int l = dataSet.getSampleSize();
         
         w = new DenseVector(n);
+        b = 0;
         List<Vec> X = dataSet.getDataVectors();
         
         double first_M_bar = 0;
@@ -210,14 +223,23 @@ public class NewGLMNET implements Classifier, Parameterized, SingleWeightVectorM
          */
         double[] H = new double[n];
         /**
+         * Stores the value H<sup>k</sup><sub>j,j</sub> computer at the start of
+         * each iteration for the bias term
+         */
+        double H_bias = 0;
+        /**
          * Stores the value &nambla; L<sub>j</sub>
          */
         double[] delta_L = new double[n];
+        /**
+         * The gradient value for the bias term
+         */
+        double delta_L_bias = 0;
         float[] y = new float[l];
         for(int i = 0; i < l; i++)
         {
             y[i] = dataSet.getDataPointCategory(i)*2-1;
-            w_dot_x[i] = w.dot(X.get(i));
+            w_dot_x[i] = w.dot(X.get(i))+b;
             final double tmp = exp_w_dot_x_plus_dx[i] = exp_w_dot_x[i] = exp(w_dot_x[i]);
             final double D_part_i = D_part[i]= 1/(1+tmp);
             D[i] = tmp*D_part_i*D_part_i;
@@ -239,6 +261,17 @@ public class NewGLMNET implements Classifier, Parameterized, SingleWeightVectorM
                 if(y[iv.getIndex()] == -1)
                     col_neg_class_sum[j] += iv.getValue();
         }
+        
+        /**
+         * Sum of all x_j values in the negative class for the bias term. 
+         */
+        double col_neg_class_sum_bias = 0;
+        if(useBias)
+        {
+            for(int i = 0; i < l; i++)
+                if(y[i] == -1)
+                    col_neg_class_sum_bias++;
+        }
                 
         /**
          * weight for L_1 reg is alpha, so this will be the L_2 weight (1-alpha)
@@ -259,6 +292,7 @@ public class NewGLMNET implements Classifier, Parameterized, SingleWeightVectorM
         double M_out = Double.POSITIVE_INFINITY;
         
         Vec d = new DenseVector(n);
+        double d_bias = 0;
         boolean prevLineSearchFail = false;
         for(int k = 0; k < maxOuterIters; k++)//For k = 1, 2, 3, . . .
         {
@@ -318,6 +352,27 @@ public class NewGLMNET implements Classifier, Parameterized, SingleWeightVectorM
                 }
             }
             
+            if(useBias)
+            {
+                //2.1. Calculate H^k_{jj}, ∇_j L(w^k) and ∇^S_j f(w^k)
+                double delta_j_L = 0;
+                double deltaSqrd_L = 0;
+                
+                for(int i = 0; i < l ; i++)//all have an implicit bias term
+                {
+                    delta_j_L += -D_part[i];
+                    //eq(44) from LIBLINEAR paper , re-factored to avoid a division by using D_part
+                    deltaSqrd_L += D[i];
+                }
+                delta_L_bias = delta_j_L = C*(delta_j_L + col_neg_class_sum_bias);
+                //H^k from eq (19) , but dont need v * I since its the bias term
+                H_bias = C*deltaSqrd_L + v;
+
+                double deltaS_j_fw = delta_L_bias;
+                M = max(M, abs(deltaS_j_fw));
+                M_bar += abs(deltaS_j_fw);
+            }
+            
             if (k == 0)//first run
                 e_in = first_M_bar = M_bar;
             //algo 3, Step 3. 3. If M_bar ≤ eps_out ,  return w^k 
@@ -333,6 +388,7 @@ public class NewGLMNET implements Classifier, Parameterized, SingleWeightVectorM
             IntList T = new IntList(J);
 
             d.zeroOut();
+            d_bias = 0;
             
             for(int p = 0; p < 1000; p++)// inner iterations
             {
@@ -419,6 +475,43 @@ public class NewGLMNET implements Classifier, Parameterized, SingleWeightVectorM
                     }
                 }
                 
+                if(useBias)
+                {
+                    //from eq(16)
+                    //∇_j q^bar_k(d) = ∇_j L(w^k) + (∇^2 L(w^k) d)_j
+                    //∇^2_jj q^bar_k(d)=∇^2_{jj} L(w^k)
+                    
+                    double delta_qBar_j = 0;
+                    //first compute the (∇^2 L(w^k) d)_j portion
+                    //see after algo 2 before eq (17)
+                    for(int i = 0; i < l; i++)
+                        delta_qBar_j += 1*D[i]*d_dot_x[i];//compiler will take out 1*, left just to remind us its the bias term
+                    delta_qBar_j *= C;
+                    
+                    //now add the part we know from before
+                    delta_qBar_j += delta_L_bias;
+                    
+                    double deltaS_q_k_j = delta_qBar_j;
+                    
+                    double deltaSqrd_q_jj = H_bias;
+                    
+                    m = max(m, abs(deltaS_q_k_j));
+                    m_bar += abs(deltaS_q_k_j);
+                    
+                    double z = -delta_qBar_j/(deltaSqrd_q_jj);
+
+                    if (abs(z) > 1e-11)
+                    {
+                        z = min(max(z, -dynRange), dynRange);
+
+                        d_bias += z;
+
+                        //book keeping, see eq(17)
+                        for(int i = 0; i < l ; i++)
+                            d_dot_x[i] += z;
+                    }
+                }
+                
                 //step 3. 
                 if(m_bar <= e_in)
                 {
@@ -469,6 +562,9 @@ public class NewGLMNET implements Classifier, Parameterized, SingleWeightVectorM
                 wPd_norm_2 += (w_j+d_j)*(w_j+d_j);
                 delta_L_dot_d += d_j*delta_L[j];
             }
+            
+            delta_L_dot_d += d_bias*delta_L_bias;
+            
             final double breakCondition = sigma*(delta_L_dot_d + 
                     alpha*(wPd_norm_1-w_norm_1) + 
                     l2w*(wPd_norm_2-w_norm_2)  );
@@ -522,6 +618,7 @@ public class NewGLMNET implements Classifier, Parameterized, SingleWeightVectorM
 
             //algo 3, Step 7. 7. w^{k+1} = w^k +λ d.
             w.mutableAdd(lambda, d);
+            b += lambda * d_bias;
             w_norm_1 = wPlambda_d_norm_1;
             w_norm_2 = wPlambda_d_norm_2;
             //and more book keeping
