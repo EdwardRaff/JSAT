@@ -48,4 +48,5 @@ public interface ClusterDissimilarity
      */
     public double dissimilarity(Set<Integer> a, Set<Integer> b, double[][] distanceMatrix);
     
+    public ClusterDissimilarity clone();
 }

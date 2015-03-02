@@ -33,10 +33,19 @@ public class CompleteLinkDissimilarity extends DistanceMetricDissimilarity imple
         super(dm);
     }
     
-    @Override
-    public DistanceMetricDissimilarity clone()
+    /**
+     * Copy constructor
+     * @param toCopy the object to copy
+     */
+    public CompleteLinkDissimilarity(CompleteLinkDissimilarity toCopy)
     {
-        throw new UnsupportedOperationException("Not supported yet.");
+        this(toCopy.dm.clone());
+    }
+    
+    @Override
+    public CompleteLinkDissimilarity clone()
+    {
+        return new CompleteLinkDissimilarity(this);
     }
 
     @Override

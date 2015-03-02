@@ -33,7 +33,7 @@ public class CentroidDissimilarity extends DistanceMetricDissimilarity implement
     }
     
     @Override
-    public DistanceMetricDissimilarity clone()
+    public CentroidDissimilarity clone()
     {
         return new CentroidDissimilarity(dm.clone());
     }

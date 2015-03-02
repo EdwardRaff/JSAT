@@ -33,10 +33,19 @@ public class SingleLinkDissimilarity extends DistanceMetricDissimilarity impleme
         super(dm);
     }
     
-    @Override
-    public DistanceMetricDissimilarity clone()
+    /**
+     * Copy constructor
+     * @param toCopy the object to copy
+     */
+    public SingleLinkDissimilarity(SingleLinkDissimilarity toCopy)
     {
-        throw new UnsupportedOperationException("Not supported yet.");
+        this(toCopy.dm.clone());
+    }
+    
+    @Override
+    public SingleLinkDissimilarity clone()
+    {
+        return new SingleLinkDissimilarity(this);
     }
 
     @Override

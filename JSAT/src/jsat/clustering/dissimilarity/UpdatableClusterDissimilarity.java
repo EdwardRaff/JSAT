@@ -63,4 +63,7 @@ public interface UpdatableClusterDissimilarity extends ClusterDissimilarity
      * different the resulting clusterings are. 
      */
     public double dissimilarity(int i, int ni, int j, int nj, int k, int nk, double[][] distanceMatrix); 
+    
+    @Override
+    public UpdatableClusterDissimilarity clone();
 }

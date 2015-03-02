@@ -42,6 +42,15 @@ public abstract class LanceWilliamsDissimilarity extends DistanceMetricDissimila
     }
     
     /**
+     * Copy constructor
+     * @param toCopy the object to copy
+     */
+    public LanceWilliamsDissimilarity(LanceWilliamsDissimilarity toCopy)
+    {
+        this(toCopy.dm.clone());
+    }
+    
+    /**
      * This method computes the value of the &alpha; variable. A flag is used to
      * control whether the value for the cluster <tt>i</tt> and <tt>k</tt> is 
      * being computed, or the value for the cluster <tt>j</tt> and <tt>k</tt>.
@@ -169,5 +178,8 @@ public abstract class LanceWilliamsDissimilarity extends DistanceMetricDissimila
                 bConst(ni, nj, nk)        * d_ij  + 
                 cConst(ni, nj, nk)        * abs(d_ik-d_jk);
     }
+    
+    @Override
+    abstract public LanceWilliamsDissimilarity clone();
     
 }

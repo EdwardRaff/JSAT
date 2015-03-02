@@ -86,4 +86,7 @@ public abstract class AbstractClusterDissimilarity implements ClusterDissimilari
 
         return distances;
     }
+
+    @Override
+    abstract public ClusterDissimilarity clone();
 }
