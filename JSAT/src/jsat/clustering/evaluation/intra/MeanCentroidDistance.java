@@ -35,6 +35,15 @@ public class MeanCentroidDistance implements IntraClusterEvaluation
         this.dm = dm;
     }
     
+    /**
+     * Copy constructor
+     * @param toCopy the object to copy
+     */
+    public MeanCentroidDistance(MeanCentroidDistance toCopy)
+    {
+        this(toCopy.dm.clone());
+    }
+    
     @Override
     public double evaluate(int[] designations, DataSet dataSet, int clusterID)
     {
@@ -69,6 +78,12 @@ public class MeanCentroidDistance implements IntraClusterEvaluation
             dists += dm.dist(dp.getNumericalValues(), mean);
         
         return dists/dataPoints.size();
+    }
+
+    @Override
+    public MeanCentroidDistance clone()
+    {
+        return new MeanCentroidDistance(this);
     }
     
 }

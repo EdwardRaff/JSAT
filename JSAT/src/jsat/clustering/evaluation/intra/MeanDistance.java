@@ -33,6 +33,15 @@ public class MeanDistance implements IntraClusterEvaluation
         this.dm = dm;
     }
     
+    /**
+     * Copy constructor
+     * @param toCopy the object to copy
+     */
+    public MeanDistance(MeanDistance toCopy)
+    {
+        this(toCopy.dm.clone());
+    }
+    
     @Override
     public double evaluate(int[] designations, DataSet dataSet, int clusterID)
     {
@@ -55,6 +64,12 @@ public class MeanDistance implements IntraClusterEvaluation
                                      dataPoints.get(j).getNumericalValues());
         
         return distances/(dataPoints.size()*(dataPoints.size()-1));
+    }
+
+    @Override
+    public MeanDistance clone()
+    {
+        return new MeanDistance(this);
     }
     
 }

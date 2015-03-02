@@ -32,4 +32,6 @@ public interface IntraClusterEvaluation
      * the cluster is. 
      */
     public double evaluate(List<DataPoint> dataPoints);
+    
+    public IntraClusterEvaluation clone();
 }

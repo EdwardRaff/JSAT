@@ -41,6 +41,15 @@ public class SumOfSqrdPairwiseDistances implements IntraClusterEvaluation
     {
         this.dm = dm;
     }
+    
+    /**
+     * Copy constructor
+     * @param toCopy the object to copy
+     */
+    public SumOfSqrdPairwiseDistances(SumOfSqrdPairwiseDistances toCopy)
+    {
+        this(toCopy.dm.clone());
+    }
 
     /**
      * Sets the distance metric to be used whenever this object is called to 
@@ -115,8 +124,8 @@ public class SumOfSqrdPairwiseDistances implements IntraClusterEvaluation
     }
 
     @Override
-    protected SumOfSqrdPairwiseDistances clone() 
+    public SumOfSqrdPairwiseDistances clone() 
     {
-        return new SumOfSqrdPairwiseDistances(dm.clone());
+        return new SumOfSqrdPairwiseDistances(this);
     }
 }

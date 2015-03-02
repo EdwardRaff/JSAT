@@ -33,6 +33,15 @@ public class MaxDistance implements IntraClusterEvaluation
         this.dm = dm;
     }
     
+    /**
+     * Copy constructor
+     * @param toCopy the object to copy
+     */
+    public MaxDistance(MaxDistance toCopy)
+    {
+        this(toCopy.dm.clone());
+    }
+    
     @Override
     public double evaluate(int[] designations, DataSet dataSet, int clusterID)
     {
@@ -59,6 +68,12 @@ public class MaxDistance implements IntraClusterEvaluation
                         maxDistance);
         
         return maxDistance;
+    }
+
+    @Override
+    public MaxDistance clone()
+    {
+        return new MaxDistance(this);
     }
     
 }
