@@ -101,5 +101,11 @@ public class NormalizedMutualInformation implements ClusterEvaluation
                 + " labels, call evaluate(int[] designations, DataSet dataSet)"
                 + " instead");
     }
+
+    @Override
+    public NormalizedMutualInformation clone()
+    {
+        return new NormalizedMutualInformation();
+    }
     
 }

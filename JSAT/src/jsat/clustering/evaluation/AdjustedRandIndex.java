@@ -89,5 +89,10 @@ public class AdjustedRandIndex implements ClusterEvaluation
                 + " labels, call evaluate(int[] designations, DataSet dataSet)"
                 + " instead");
     }
-    
+
+    @Override
+    public ClusterEvaluation clone()
+    {
+        return new AdjustedRandIndex();
+    }
 }

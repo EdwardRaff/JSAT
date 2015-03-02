@@ -23,6 +23,15 @@ public class IntraClusterSumEvaluation extends ClusterEvaluationBase
     {
         this.ice = ice;
     }
+    
+    /**
+     * Copy constructor
+     * @param toCopy the object to copy
+     */
+    public IntraClusterSumEvaluation(IntraClusterSumEvaluation toCopy)
+    {
+        this(toCopy.ice.clone());
+    }
 
     @Override
     public double evaluate(List<List<DataPoint>> dataSets)
@@ -31,6 +40,12 @@ public class IntraClusterSumEvaluation extends ClusterEvaluationBase
         for(List<DataPoint> list : dataSets)
             score += ice.evaluate(list);
         return score;
+    }
+
+    @Override
+    public IntraClusterSumEvaluation clone()
+    {
+        return new IntraClusterSumEvaluation(this);
     }
     
 }

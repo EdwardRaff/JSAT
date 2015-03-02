@@ -31,6 +31,15 @@ public class DunnIndex implements ClusterEvaluation
         this.cd = cd;
     }
     
+    /**
+     * Copy constructor
+     * @param toCopy the object to copy
+     */
+    public DunnIndex(DunnIndex toCopy)
+    {
+        this(toCopy.ice.clone(), toCopy.cd.clone());
+    }
+    
     @Override
     public double evaluate(int[] designations, DataSet dataSet)
     {
@@ -66,6 +75,12 @@ public class DunnIndex implements ClusterEvaluation
          */
         
         return maxIntra/(minVal+maxIntra);
+    }
+
+    @Override
+    public DunnIndex clone()
+    {
+        return new DunnIndex(this);
     }
     
 }

@@ -19,4 +19,6 @@ abstract public class ClusterEvaluationBase implements ClusterEvaluation
         return evaluate(ClustererBase.createClusterListFromAssignmentArray(designations, dataSet));
     }
     
+    @Override
+    public abstract ClusterEvaluation clone();
 }

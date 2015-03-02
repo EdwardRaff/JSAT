@@ -31,6 +31,15 @@ public class DaviesBouldinIndex implements ClusterEvaluation
     }
     
     /**
+     * Copy constructor
+     * @param toCopy the object to copy
+     */
+    public DaviesBouldinIndex(DaviesBouldinIndex toCopy)
+    {
+        this(toCopy.dm.clone());
+    }
+    
+    /**
      * Creates a new DaviesBouldinIndex 
      * @param dm the distance measure to use when computing 
      */
@@ -94,5 +103,9 @@ public class DaviesBouldinIndex implements ClusterEvaluation
         return dbIndex / dataSets.size();
     }
 
-    
+    @Override
+    public DaviesBouldinIndex clone()
+    {
+        return new DaviesBouldinIndex(this);
+    }
 }

@@ -34,4 +34,6 @@ public interface ClusterEvaluation
      * @return a value in [0, Inf) that indicates the quality of the clustering. 
      */
     public double evaluate(List<List<DataPoint>> dataSets);
+    
+    public ClusterEvaluation clone();
 }
