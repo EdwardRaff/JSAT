@@ -3,7 +3,9 @@ package jsat.clustering.kmeans;
 import java.util.*;
 import java.util.concurrent.ExecutorService;
 import jsat.DataSet;
+import jsat.clustering.SeedSelectionMethods.SeedSelection;
 import jsat.linear.Vec;
+import jsat.linear.distancemetrics.DistanceMetric;
 
 /**
  * This class provides a method of performing {@link KMeans} clustering when the
@@ -46,6 +48,18 @@ public class KMeansPDN extends KMeans
     {
         super(kmeans.dm, kmeans.seedSelection, kmeans.rand);
         this.kmeans = kmeans;
+    }
+
+    /**
+     * Copy constructor
+     * @param toCopy the object to copy
+     */
+    public KMeansPDN(KMeansPDN toCopy)
+    {
+        super(toCopy);
+        this.kmeans = toCopy.kmeans.clone();
+        if(toCopy.fKs != null)
+            this.fKs = Arrays.copyOf(toCopy.fKs, toCopy.fKs.length);
     }
 
     /**
@@ -147,6 +161,12 @@ public class KMeansPDN extends KMeans
     protected double cluster(DataSet dataSet, List<Double> accelCache, int k, List<Vec> means, int[] assignment, boolean exactTotal, ExecutorService threadpool, boolean returnError)
     {
         return kmeans.cluster(dataSet, accelCache, k, means, assignment, exactTotal, threadpool, returnError);
+    }
+
+    @Override
+    public KMeansPDN clone()
+    {
+        return new KMeansPDN(this);
     }
     
 }

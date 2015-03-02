@@ -39,9 +39,6 @@ public class FLAME extends ClustererBase implements Parameterized
     private VectorCollectionFactory<VecPaired<Vec, Integer>> vectorCollectionFactory = new DefaultVectorCollectionFactory<VecPaired<Vec, Integer>>();
     private double stndDevs = 2.5;
     private double eps = 1e-6;
-    
-    private List<Parameter> params = Parameter.getParamsFromMethods(this);
-    private Map<String, Parameter> paramMap = Parameter.toParameterMap(params);
 
     /**
      * Creates a new FLAME clustering object
@@ -54,6 +51,21 @@ public class FLAME extends ClustererBase implements Parameterized
         setDistanceMetric(dm);
         setK(k);
         setMaxIterations(maxIterations);
+    }
+    
+    /**
+     * Copy constructor
+     * @param toCopy the object to copy
+     */
+    public FLAME(FLAME toCopy)
+    {
+        this.dm = toCopy.dm.clone();
+        this.maxIterations = toCopy.maxIterations;
+        this.vectorCollectionFactory = toCopy.vectorCollectionFactory;
+        this.k = toCopy.k;
+        this.stndDevs = toCopy.stndDevs;
+        this.eps = toCopy.eps;
+        
     }
   
     /**
@@ -438,15 +450,21 @@ public class FLAME extends ClustererBase implements Parameterized
     }
 
     @Override
+    public FLAME clone()
+    {
+        return new FLAME(this);
+    }
+
+    @Override
     public List<Parameter> getParameters()
     {
-        return params;
+        return Parameter.getParamsFromMethods(this);
     }
 
     @Override
     public Parameter getParameter(String paramName)
     {
-        return paramMap.get(paramName);
+        return Parameter.toParameterMap(getParameters()).get(paramName);
     }
     
 }

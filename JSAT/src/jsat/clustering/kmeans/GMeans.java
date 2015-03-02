@@ -50,6 +50,15 @@ public class GMeans extends KMeans
         kmeans.setStoreMeans(true);
     }
 
+    public GMeans(GMeans toCopy)
+    {
+        super(toCopy);
+        this.kmeans = toCopy.kmeans.clone();
+        this.trustH0 = toCopy.trustH0;
+        this.iterativeRefine = toCopy.iterativeRefine;
+        this.minClusterSize = toCopy.minClusterSize;
+    }
+
     /**
      * Each new cluster will be tested for normality, with the null hypothesis 
      * H0 being that the cluster is normal. If this is set to {@code true} then 
@@ -296,5 +305,11 @@ public class GMeans extends KMeans
     protected double cluster(DataSet dataSet, List<Double> accelCache, int k, List<Vec> means, int[] assignment, boolean exactTotal, ExecutorService threadpool, boolean returnError)
     {
         return kmeans.cluster(dataSet, accelCache, k, means, assignment, exactTotal, threadpool, returnError);
+    }
+
+    @Override
+    public GMeans clone()
+    {
+        return new GMeans(this);
     }
 }

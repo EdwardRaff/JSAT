@@ -57,6 +57,19 @@ public class DBSCAN extends ClustererBase
     {
         this(new EuclideanDistance() ,new KDTree.KDTreeFactory<VecPaired<Vec, Integer>>());
     }
+
+    /**
+     * Copy constructor
+     * @param toCopy the object to copy
+     */
+    public DBSCAN(DBSCAN toCopy)
+    {
+        this.vecFactory = toCopy.vecFactory.clone();
+        this.dm = toCopy.dm.clone();
+        this.stndDevs = toCopy.stndDevs;
+    }
+    
+    
     
     public List<List<DataPoint>> cluster(DataSet dataSet, int minPts)
     {
@@ -88,6 +101,12 @@ public class DBSCAN extends ClustererBase
     public int[] cluster(DataSet dataSet, ExecutorService threadpool, int[] designations)
     {
         return cluster(dataSet, 3, threadpool, designations);
+    }
+
+    @Override
+    public DBSCAN clone()
+    {
+        return new DBSCAN(this);
     }
     
     private class StatsWorker implements Callable<OnLineStatistics>

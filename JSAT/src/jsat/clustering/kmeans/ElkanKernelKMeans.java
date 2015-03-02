@@ -36,6 +36,10 @@ public class ElkanKernelKMeans extends KernelKMeans
         super(kernel);
     }
 
+    public ElkanKernelKMeans(ElkanKernelKMeans toCopy)
+    {
+        super(toCopy);
+    }
     
     /**
      *  This is a helper method where the actual cluster is performed. This is because there
@@ -528,5 +532,11 @@ public class ElkanKernelKMeans extends KernelKMeans
         cluster(dataSet, clusters, designations, false, null);
         
         return designations;
+    }
+
+    @Override
+    public ElkanKernelKMeans clone()
+    {
+        return new ElkanKernelKMeans(this);
     }
 }

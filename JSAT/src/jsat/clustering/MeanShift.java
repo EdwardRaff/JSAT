@@ -86,6 +86,17 @@ public class MeanShift extends ClustererBase
     {
         this.mkde = mkde;
     }
+    
+    /**
+     * Copy constructor
+     * @param toCopy the object to copy
+     */
+    public MeanShift(MeanShift toCopy)
+    {
+        this.mkde = toCopy.mkde.clone();
+        this.maxIterations = toCopy.maxIterations;
+        this.scaleBandwidthFactor = toCopy.scaleBandwidthFactor;
+    }
 
     /**
      * Sets the maximum number of iterations the algorithm will go through, 
@@ -329,6 +340,12 @@ public class MeanShift extends ClustererBase
 
             scratch.copyTo(xCur);
         }
+    }
+
+    @Override
+    public MeanShift clone()
+    {
+        return new MeanShift(this);
     }
     
 }

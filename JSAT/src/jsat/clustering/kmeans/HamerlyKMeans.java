@@ -66,6 +66,11 @@ public class HamerlyKMeans extends KMeans
     {
         this(new EuclideanDistance(), SeedSelectionMethods.SeedSelection.KPP);
     }
+
+    public HamerlyKMeans(HamerlyKMeans toCopy)
+    {
+        super(toCopy);
+    }
     
     //TODO reduce some code duplication in the methods bellow 
     
@@ -540,6 +545,12 @@ public class HamerlyKMeans extends KMeans
             else
                 l[i] -= p[r];
         }
+    }
+
+    @Override
+    public HamerlyKMeans clone()
+    {
+        return new HamerlyKMeans(this);
     }
 
 }

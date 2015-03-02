@@ -8,15 +8,18 @@ import java.util.logging.Logger;
 import jsat.DataSet;
 import jsat.classifiers.DataPoint;
 import jsat.clustering.ClusterFailureException;
+import jsat.clustering.KClusterer;
 import jsat.clustering.KClustererBase;
 import jsat.clustering.PAM;
 import jsat.clustering.SeedSelectionMethods;
+import jsat.clustering.SeedSelectionMethods.SeedSelection;
 import jsat.linear.Vec;
 import jsat.linear.distancemetrics.DistanceMetric;
 import jsat.math.OnLineStatistics;
 import jsat.parameters.Parameter.ParameterHolder;
 import jsat.parameters.*;
 import jsat.utils.SystemInfo;
+import jsat.utils.random.XORWOW;
 
 /**
  * Base class for the numerous implementations of k-means that exist. This base
@@ -70,6 +73,25 @@ public abstract class KMeans extends KClustererBase implements Parameterized
         this.dm = dm;
         setSeedSelection(seedSelection);
         this.rand = rand;
+    }
+
+    /**
+     * Copy constructor
+     * @param toCopy 
+     */
+    public KMeans(KMeans toCopy)
+    {
+        this.dm = toCopy.dm.clone();
+        this.seedSelection = toCopy.seedSelection;
+        this.rand = new XORWOW();
+        if (toCopy.nearestCentroidDist != null)
+            this.nearestCentroidDist = Arrays.copyOf(toCopy.nearestCentroidDist, toCopy.nearestCentroidDist.length);
+        if (toCopy.means != null)
+        {
+            this.means = new ArrayList<Vec>(toCopy.means.size());
+            for (Vec v : toCopy.means)
+                this.means.add(v.clone());
+        }
     }
     
     /**
@@ -374,6 +396,9 @@ public abstract class KMeans extends KClustererBase implements Parameterized
         
         return cluster(dataSet, maxChangeK, designations);
     }
+
+    @Override
+    abstract public KMeans clone();
     
     @Override
     public List<Parameter> getParameters()

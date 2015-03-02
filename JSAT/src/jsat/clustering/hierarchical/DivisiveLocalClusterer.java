@@ -39,6 +39,15 @@ public class DivisiveLocalClusterer extends KClustererBase
         this.clusterEvaluation = clusterEvaluation;
     }
 
+    /**
+     * Copy constructor
+     * @param toCopy the object to copy
+     */
+    public DivisiveLocalClusterer(DivisiveLocalClusterer toCopy)
+    {
+        this(toCopy.baseClusterer.clone(), toCopy.clusterEvaluation.clone());
+    }
+
     @Override
     public int[] cluster(DataSet dataSet, int[] designations)
     {
@@ -211,5 +220,11 @@ public class DivisiveLocalClusterer extends KClustererBase
     public int[] cluster(DataSet dataSet, int lowK, int highK, int[] designations)
     {
         return cluster(dataSet, lowK, highK, null, designations);
+    }
+
+    @Override
+    public DivisiveLocalClusterer clone()
+    {
+        return new DivisiveLocalClusterer(this);
     }
 }

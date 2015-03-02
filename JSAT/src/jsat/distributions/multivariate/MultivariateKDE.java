@@ -48,4 +48,7 @@ abstract public class MultivariateKDE extends MultivariateDistributionSkeleton
      * @param scale the value to scale the bandwidth used 
      */
     abstract public void scaleBandwidth(double scale);
+
+    @Override
+    abstract public MultivariateKDE clone();
 }

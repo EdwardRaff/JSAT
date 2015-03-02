@@ -10,6 +10,7 @@ import jsat.linear.Vec;
 import jsat.linear.distancemetrics.DistanceMetric;
 import jsat.linear.distancemetrics.EuclideanDistance;
 import jsat.linear.distancemetrics.TrainableDistanceMetric;
+import jsat.utils.random.XORWOW;
 
 /**
  *
@@ -62,6 +63,20 @@ public class CLARA extends PAM
     {
         this(new EuclideanDistance());
     }
+
+    /**
+     * Copy constructor
+     * @param toCopy the object to copy
+     */
+    public CLARA(CLARA toCopy)
+    {
+        super(toCopy);
+        this.sampleSize = toCopy.sampleSize;
+        this.sampleCount = toCopy.sampleCount;
+        this.autoSampleSize = toCopy.autoSampleSize;
+    }
+    
+    
     
     /**
      * 
@@ -210,6 +225,11 @@ public class CLARA extends PAM
         
         return designations;
     }
-    
+
+    @Override
+    public CLARA clone()
+    {
+        return new CLARA(this);
+    }
     
 }

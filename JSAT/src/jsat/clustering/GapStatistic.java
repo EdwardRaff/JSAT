@@ -117,6 +117,28 @@ public class GapStatistic extends KClustererBase implements Parameterized
     }
 
     /**
+     * Copy constructor
+     * @param toCopy the object to copy
+     */
+    public GapStatistic(GapStatistic toCopy)
+    {
+        this.base = toCopy.base.clone();
+        this.B = toCopy.B;
+        this.dm = toCopy.dm.clone();
+        this.PCSampling = toCopy.PCSampling;
+        if(toCopy.ElogW != null)
+            this.ElogW = Arrays.copyOf(toCopy.ElogW, toCopy.ElogW.length);
+        if(toCopy.logW != null)
+            this.logW = Arrays.copyOf(toCopy.logW, toCopy.logW.length);
+        if(toCopy.gap != null)
+            this.gap = Arrays.copyOf(toCopy.gap, toCopy.gap.length);
+        if(toCopy.s_k != null)
+            this.s_k = Arrays.copyOf(toCopy.s_k, toCopy.s_k.length);
+    }
+    
+    
+
+    /**
      * Sets the distance metric to use when evaluating a clustering algorithm
      * @param dm the distance metric to use
      */
@@ -408,5 +430,11 @@ public class GapStatistic extends KClustererBase implements Parameterized
     public Parameter getParameter(String paramName)
     {
         return Parameter.toParameterMap(getParameters()).get(paramName);
+    }
+
+    @Override
+    public GapStatistic clone()
+    {
+        return new GapStatistic(this);
     }
 }

@@ -66,4 +66,7 @@ public interface KClusterer extends Clusterer
     public List<List<DataPoint>> cluster(DataSet dataSet, int lowK, int highK);
     
     public int[] cluster(DataSet dataSet, int lowK, int highK, int[] designations);
+    
+    @Override
+    public KClusterer clone();
 }

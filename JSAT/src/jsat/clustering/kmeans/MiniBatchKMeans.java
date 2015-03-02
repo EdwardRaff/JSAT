@@ -73,6 +73,25 @@ public class MiniBatchKMeans extends KClustererBase
         setDistanceMetric(dm);
         setSeedSelection(seedSelection);
     }
+
+    /**
+     * Copy constructor
+     * @param toCopy the object to copy
+     */
+    public MiniBatchKMeans(MiniBatchKMeans toCopy)
+    {
+        this.batchSize = toCopy.batchSize;
+        this.iterations = toCopy.iterations;
+        this.dm = toCopy.dm.clone();
+        this.seedSelection = toCopy.seedSelection;
+        this.storeMeans = toCopy.storeMeans;
+        if(toCopy.means != null)
+        {
+            this.means = new ArrayList<Vec>();
+            for(Vec v : toCopy.means)
+                this.means.add(v.clone());
+        }
+    }
     
     /**
      * If set to {@code true} the computed means will be stored after clustering
@@ -376,6 +395,12 @@ public class MiniBatchKMeans extends KClustererBase
     public int[] cluster(DataSet dataSet, int lowK, int highK, int[] designations)
     {
         throw new UnsupportedOperationException("Not supported yet.");
+    }
+
+    @Override
+    public MiniBatchKMeans clone()
+    {
+        return new MiniBatchKMeans(this);
     }
     
 }

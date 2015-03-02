@@ -79,6 +79,15 @@ public class NaiveKMeans extends KMeans
         super(dm, seedSelection, rand);
     }
 
+    /**
+     * Copy constructor
+     * @param toCopy the object to copy
+     */
+    public NaiveKMeans(NaiveKMeans toCopy)
+    {
+        super(toCopy);
+    }
+
     @Override
     protected double cluster(final DataSet dataSet, List<Double> accelCacheInit, final int k, final List<Vec> means, final int[] assignment, final boolean exactTotal, ExecutorService threadpool, boolean returnError)
     {
@@ -246,6 +255,12 @@ public class NaiveKMeans extends KMeans
         }
         else
             return 0;//who cares
+    }
+
+    @Override
+    public NaiveKMeans clone()
+    {
+        return new NaiveKMeans(this);
     }
     
 }

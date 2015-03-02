@@ -80,5 +80,9 @@ public abstract class ClustererBase implements Clusterer
             }
         return list;
     }
+
+
+    @Override
+    abstract public Clusterer clone();
     
 }

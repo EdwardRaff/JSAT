@@ -10,7 +10,6 @@ import jsat.linear.distancemetrics.EuclideanDistance;
 import jsat.linear.vectorcollection.*;
 import jsat.math.OnLineStatistics;
 import jsat.parameters.*;
-import jsat.text.GreekLetters;
 import jsat.utils.IntList;
 
 /**
@@ -80,23 +79,27 @@ public class OPTICS extends ClustererBase implements Parameterized
      * 
      * The paired double is their distance, the paired integer the the vector's 
      * index in the data set
+     * 
+     * This is only used during building. We should probably refactor this out
      */
     private PriorityQueue<Integer> orderdSeeds;
-    
-    private final List<Parameter> params = Collections.unmodifiableList(Parameter.getParamsFromMethods(this));
-    
-    private final Map<String, Parameter> paramMap = Parameter.toParameterMap(params);
 
     @Override
     public List<Parameter> getParameters()
     {
-        return params;
+        return Parameter.getParamsFromMethods(this);
     }
 
     @Override
     public Parameter getParameter(String paramName)
     {
-        return paramMap.get(paramName);
+        return Parameter.toParameterMap(getParameters()).get(paramName);
+    }
+
+    @Override
+    public OPTICS clone()
+    {
+        return new OPTICS(this);
     }
 
     
@@ -175,6 +178,33 @@ public class OPTICS extends ClustererBase implements Parameterized
         setMinPts(minPts);
         setXi(xi);
     }
+
+    public OPTICS(OPTICS toCopy)
+    {
+        this.dm = toCopy.dm.clone();
+        this.vc = toCopy.vc.clone();
+        this.minPts = toCopy.minPts;
+        if(toCopy.core_distance != null )
+            this.core_distance = Arrays.copyOf(toCopy.core_distance, toCopy.core_distance.length);
+        
+        if(toCopy.reach_d != null )
+            this.reach_d = Arrays.copyOf(toCopy.reach_d, toCopy.reach_d.length);
+        
+        if(toCopy.processed != null )
+            this.processed = Arrays.copyOf(toCopy.processed, toCopy.processed.length);
+        
+        if(toCopy.allVecs != null )
+        {
+            this.allVecs = new Vec[toCopy.allVecs.length];
+            for(int i = 0; i < toCopy.allVecs.length; i++)
+                this.allVecs[i] = toCopy.allVecs[i].clone();
+        }
+        this.xi = toCopy.xi;
+        this.orderdSeeds = toCopy.orderdSeeds;
+        this.radius = toCopy.radius;
+    }
+    
+    
 
     /**
      * Sets the distance metric used to compute distances in the algorithm. 

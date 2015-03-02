@@ -7,17 +7,13 @@ import java.util.concurrent.atomic.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import jsat.DataSet;
-import jsat.classifiers.DataPoint;
 import jsat.clustering.ClusterFailureException;
+import jsat.clustering.KClusterer;
 import jsat.clustering.SeedSelectionMethods.SeedSelection;
 import static jsat.clustering.SeedSelectionMethods.selectIntialPoints;
 import jsat.linear.DenseVector;
 import jsat.linear.Vec;
 import jsat.linear.distancemetrics.*;
-import jsat.math.OnLineStatistics;
-import jsat.parameters.Parameter;
-import jsat.parameters.Parameter.ParameterHolder;
-import jsat.parameters.Parameterized;
 import jsat.utils.*;
 
 /**
@@ -74,6 +70,14 @@ public class ElkanKMeans extends KMeans
     public ElkanKMeans()
     {
         this(new EuclideanDistance());
+    }
+
+    public ElkanKMeans(ElkanKMeans toCopy)
+    {
+        super(toCopy);
+        if(toCopy.dmds != null)
+            this.dmds = (DenseSparseMetric) toCopy.dmds.clone();
+        this.useDenseSparse = toCopy.useDenseSparse;
     }
 
     /**
@@ -651,5 +655,11 @@ public class ElkanKMeans extends KMeans
                     sCmin = Math.min(sCmin, centroidSelfDistances[i][z]);
             sC[i] = sCmin / 2.0;
         }
+    }
+
+    @Override
+    public ElkanKMeans clone()
+    {
+        return new ElkanKMeans(this);
     }
 }

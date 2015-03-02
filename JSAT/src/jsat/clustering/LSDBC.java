@@ -10,7 +10,6 @@ import jsat.linear.VecPaired;
 import jsat.linear.distancemetrics.*;
 import jsat.linear.vectorcollection.*;
 import jsat.parameters.*;
-import jsat.text.GreekLetters;
 import jsat.utils.*;
 
 /**
@@ -49,10 +48,6 @@ public class LSDBC extends ClustererBase implements Parameterized
      * The number of neighbors to use
      */
     private int k;
-    
-    private List<Parameter> parameters = Collections.unmodifiableList(Parameter.getParamsFromMethods(this));
-    
-    private Map<String, Parameter> parameterMap = Parameter.toParameterMap(parameters);
 
     /**
      * Creates a new LSDBC clustering object using the given distance metric
@@ -93,6 +88,18 @@ public class LSDBC extends ClustererBase implements Parameterized
     public LSDBC()
     {
         this(new EuclideanDistance());
+    }
+    
+    /**
+     * Copy constructor
+     * @param toCopy the object to copy
+     */
+    public LSDBC(LSDBC toCopy)
+    {
+        this.alpha = toCopy.alpha;
+        this.dm = toCopy.dm.clone();
+        this.k = toCopy.k;
+        this.vectorCollectionFactory = toCopy.vectorCollectionFactory.clone();
     }
 
     /**
@@ -340,13 +347,19 @@ public class LSDBC extends ClustererBase implements Parameterized
     @Override
     public List<Parameter> getParameters()
     {
-        return parameters;
+        return Parameter.getParamsFromMethods(this);
     }
 
     @Override
     public Parameter getParameter(String paramName)
     {
-        return parameterMap.get(paramName);
+        return Parameter.toParameterMap(getParameters()).get(paramName);
+    }
+
+    @Override
+    public LSDBC clone()
+    {
+        return new LSDBC();
     }
 
 }

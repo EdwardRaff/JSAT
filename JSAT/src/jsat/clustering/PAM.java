@@ -19,6 +19,7 @@ import jsat.math.OnLineStatistics;
 import jsat.utils.FakeExecutor;
 import jsat.utils.SystemInfo;
 import static jsat.clustering.SeedSelectionMethods.*;
+import jsat.utils.random.XORWOW;
 
 /**
  *
@@ -28,7 +29,7 @@ public class PAM extends KClustererBase
 {
     protected DistanceMetric dm;
     protected Random rand;
-    private SeedSelection seedSelection;
+    protected SeedSelection seedSelection;
     protected int repeats = 1;
     protected int iterLimit = 100;
     
@@ -55,6 +56,22 @@ public class PAM extends KClustererBase
     public PAM()
     {
         this(new EuclideanDistance());
+    }
+
+    /**
+     * Copy constructor
+     * @param toCopy the object to copy
+     */
+    public PAM(PAM toCopy)
+    {
+        this.dm = toCopy.dm.clone();
+        this.rand = new XORWOW();
+        this.seedSelection = toCopy.seedSelection;
+        if(toCopy.medoids != null)
+            this.medoids = Arrays.copyOf(toCopy.medoids, toCopy.medoids.length);
+        this.storeMedoids = toCopy.storeMedoids;
+        this.iterLimit = toCopy.iterLimit;
+        this.repeats = toCopy.repeats;
     }
     
     /**
@@ -222,6 +239,12 @@ public class PAM extends KClustererBase
     public int[] cluster(DataSet dataSet, int lowK, int highK, int[] designations)
     {
         return cluster(dataSet, lowK, highK, new FakeExecutor(), designations);
+    }
+
+    @Override
+    public PAM clone()
+    {
+        return new PAM(this);
     }
 
     private class ClusterWorker implements Runnable

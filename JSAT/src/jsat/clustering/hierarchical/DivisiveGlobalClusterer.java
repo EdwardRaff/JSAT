@@ -46,6 +46,21 @@ public class DivisiveGlobalClusterer extends KClustererBase
         this.baseClusterer = baseClusterer;
         this.clusterEvaluation = clusterEvaluation;
     }
+
+    /**
+     * Copy constructor
+     * @param toCopy the object to copy
+     */
+    public DivisiveGlobalClusterer(DivisiveGlobalClusterer toCopy)
+    {
+        this.baseClusterer = toCopy.baseClusterer.clone();
+        this.clusterEvaluation = toCopy.clusterEvaluation.clone();
+        if(toCopy.splitList != null)
+            this.splitList = Arrays.copyOf(toCopy.splitList, toCopy.splitList.length);
+        if(toCopy.fullDesignations != null)
+            this.fullDesignations = Arrays.copyOf(toCopy.fullDesignations, toCopy.fullDesignations.length);
+        this.originalDataSet = toCopy.originalDataSet.shallowClone();
+    }
     
     @Override
     public int[] cluster(DataSet dataSet, int[] designations)
@@ -254,6 +269,12 @@ public class DivisiveGlobalClusterer extends KClustererBase
     public int[] cluster(DataSet dataSet, int lowK, int highK, int[] designations)
     {
         return cluster(dataSet, lowK, highK, null, designations);
+    }
+
+    @Override
+    public DivisiveGlobalClusterer clone()
+    {
+        return new DivisiveGlobalClusterer(this);
     }
     
 }

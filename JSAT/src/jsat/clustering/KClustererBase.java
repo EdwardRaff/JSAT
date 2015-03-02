@@ -40,4 +40,7 @@ public abstract class KClustererBase extends ClustererBase implements KClusterer
         int[] assignments = cluster(dataSet, lowK, highK, (int[]) null);
         return createClusterListFromAssignmentArray(assignments, dataSet);
     }
+    
+    @Override
+    abstract public KClusterer clone();
 }

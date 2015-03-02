@@ -1,6 +1,7 @@
 
 package jsat.clustering.kmeans;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
@@ -12,6 +13,7 @@ import jsat.linear.Vec;
 import jsat.parameters.Parameter;
 import jsat.parameters.Parameter.ParameterHolder;
 import jsat.parameters.Parameterized;
+import jsat.utils.DoubleList;
 import jsat.utils.random.XOR96;
 
 /**
@@ -78,6 +80,41 @@ public abstract class KernelKMeans extends KClustererBase implements Parameteriz
     {
         this.kernel = kernel;
     }
+
+    /**
+     * Copy constructor
+     * @param toCopy the object to copy
+     */
+    public KernelKMeans(KernelKMeans toCopy)
+    {
+        this.kernel = toCopy.kernel.clone();
+        this.maximumIterations = toCopy.maximumIterations;
+        if(toCopy.X != null)
+        {
+            this.X = new ArrayList<Vec>(toCopy.X.size());
+            for( Vec v : toCopy.X)
+                this.X.add(v.clone());
+            
+        }
+        if(toCopy.accel != null)
+            this.accel = new DoubleList(toCopy.accel);
+        if(toCopy.selfK != null)
+            this.selfK = Arrays.copyOf(toCopy.selfK, toCopy.selfK.length);
+        
+        if(toCopy.meanSqrdNorms != null)
+            this.meanSqrdNorms = Arrays.copyOf(toCopy.meanSqrdNorms, toCopy.meanSqrdNorms.length);
+        
+        if(toCopy.normConsts != null)
+            this.normConsts = Arrays.copyOf(toCopy.normConsts, toCopy.normConsts.length);
+        
+        if(toCopy.ownes != null)
+            this.ownes = Arrays.copyOf(toCopy.ownes, toCopy.ownes.length);
+        
+        if(toCopy.newDesignations != null)
+            this.newDesignations = Arrays.copyOf(toCopy.newDesignations, toCopy.newDesignations.length);
+    }
+    
+    
     
     /**
      * Sets the maximum number of iterations allowed
@@ -452,6 +489,9 @@ public abstract class KernelKMeans extends KClustererBase implements Parameteriz
                 b++;
         return dot/(a*b);
     }
+    
+    @Override
+    abstract public KernelKMeans clone();
     
     @Override
     public List<Parameter> getParameters()

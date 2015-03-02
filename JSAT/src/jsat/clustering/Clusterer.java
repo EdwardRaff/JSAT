@@ -54,4 +54,6 @@ public interface Clusterer extends Serializable
      * <tt>designations</tt>, or a new one if the input array was <tt>null</tt>
      */
     public int[] cluster(DataSet dataSet, ExecutorService threadpool, int[] designations);
+    
+    public Clusterer clone();
 }

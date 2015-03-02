@@ -4,6 +4,7 @@ import java.util.*;
 import java.util.concurrent.ExecutorService;
 import jsat.DataSet;
 import jsat.classifiers.DataPoint;
+import jsat.clustering.KClusterer;
 import jsat.clustering.KClustererBase;
 import jsat.clustering.dissimilarity.UpdatableClusterDissimilarity;
 import jsat.math.OnLineStatistics;
@@ -33,6 +34,20 @@ public class PriorityHAC extends KClustererBase
     {
         this.distMeasure = dissMeasure;
     }
+
+    /**
+     * Copy constructor
+     * @param toCopy the object to copy
+     */
+    public PriorityHAC(PriorityHAC toCopy)
+    {
+        this.distMeasure = toCopy.distMeasure.clone();
+        if(toCopy.merges != null)
+            this.merges = Arrays.copyOf(toCopy.merges, toCopy.merges.length);
+        this.curDataSet = toCopy.curDataSet.shallowClone();
+    }
+    
+    
     
     @Override
     public int[] cluster(DataSet dataSet, int[] designations)
@@ -287,6 +302,12 @@ public class PriorityHAC extends KClustererBase
             }
         }
         return designations;
+    }
+
+    @Override
+    public PriorityHAC clone()
+    {
+        return new PriorityHAC(this);
     }
     
 }

@@ -26,6 +26,15 @@ public class LloydKernelKMeans extends KernelKMeans
         super(kernel);
     }
 
+    /**
+     * Copy constructor
+     * @param toCopy the object to copy
+     */
+    public LloydKernelKMeans(LloydKernelKMeans toCopy)
+    {
+        super(toCopy);
+    }
+
     @Override
     public int[] cluster(DataSet dataSet, final int K, ExecutorService threadpool, int[] designations)
     {
@@ -188,6 +197,12 @@ public class LloydKernelKMeans extends KernelKMeans
         while (changed > 0 && ++iter < maximumIterations);
 
         return designations;
+    }
+
+    @Override
+    public KernelKMeans clone()
+    {
+        return new LloydKernelKMeans(this);
     }
 
 

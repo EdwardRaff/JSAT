@@ -10,6 +10,8 @@ import jsat.linear.Vec;
 import jsat.clustering.SeedSelectionMethods;
 import jsat.linear.*;
 import static java.lang.Math.*;
+import jsat.clustering.SeedSelectionMethods.SeedSelection;
+import jsat.linear.distancemetrics.DistanceMetric;
 
 /**
  * This class provides a method of performing {@link KMeans} clustering when the
@@ -54,6 +56,19 @@ public class XMeans extends KMeans
         this.kmeans.setStoreMeans(true);
     }
 
+    /**
+     * Copy constructor
+     * @param toCopy the object to copy
+     */
+    public XMeans(XMeans toCopy)
+    {
+        super(toCopy);
+        this.kmeans = toCopy.kmeans.clone();
+        this.stopAfterFail = toCopy.stopAfterFail;
+        this.iterativeRefine = toCopy.iterativeRefine;
+        this.minClusterSize = toCopy.minClusterSize;
+    }
+    
     /**
      * Each new cluster will be tested for improvement according to the BIC 
      * metric. If this is set to {@code true} then an optimization is done that 
@@ -336,5 +351,11 @@ public class XMeans extends KMeans
     protected double cluster(DataSet dataSet, List<Double> accelCache, int k, List<Vec> means, int[] assignment, boolean exactTotal, ExecutorService threadpool, boolean returnError)
     {
         return kmeans.cluster(dataSet, accelCache, k, means, assignment, exactTotal, threadpool, returnError);
+    }
+
+    @Override
+    public XMeans clone()
+    {
+        return new XMeans(this);
     }
 }

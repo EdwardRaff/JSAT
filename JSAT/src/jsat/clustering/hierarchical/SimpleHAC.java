@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import jsat.DataSet;
+import jsat.clustering.KClusterer;
 import jsat.clustering.KClustererBase;
 import static jsat.clustering.dissimilarity.AbstractClusterDissimilarity.createDistanceMatrix;
 import jsat.clustering.dissimilarity.ClusterDissimilarity;
@@ -36,7 +37,16 @@ public class SimpleHAC extends KClustererBase
     {
         this.dissMeasure = disMeasure;
     }
-    
+
+    /**
+     * Copy constructor
+     * @param toCopy the object to copy
+     */
+    public SimpleHAC(SimpleHAC toCopy)
+    {
+        this(toCopy.dissMeasure.clone());
+        this.stndDevs = toCopy.stndDevs;
+    }
     
     @Override
     public int[] cluster(DataSet dataSet, int[] designations)
@@ -126,6 +136,12 @@ public class SimpleHAC extends KClustererBase
         }
         
         return designations;
+    }
+
+    @Override
+    public SimpleHAC clone()
+    {
+        return new SimpleHAC(this);
     }
     
 }
