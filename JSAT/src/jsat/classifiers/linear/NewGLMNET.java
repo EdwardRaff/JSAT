@@ -16,19 +16,60 @@ import jsat.parameters.Parameter;
 import jsat.parameters.Parameterized;
 
 /**
+ * NewGLMNET is a batch method for solving Elastic Net regularized Logistic
+ * Regression problems of the form <br>
+ * 0.5 * (1-&alpha;) ||w||<sub>2</sub> + &alpha; * ||w||<sub>1</sub> + C * 
+ * <big>&sum;</big><sup>N</sup><sub>i=1</sub> &#8467;(w<sup>T</sup> x<sub>i</sub> + b, y<sub>i</sub>). 
+ * <br>
+ * <br>
+ * For &alpha = 1, this becomes pure Lasso / L<sub>1</sub> regularized Logistic
+ * Regression. For &alpha = 0, this becomes pure Ridge/ L<sub>2</sub> regularized
+ * Logistic Regression, however better solvers such as 
+ * {@link LogisticRegressionDCD} are faster if using &alpha = 0. <br>
+ * The default behavior is to use &alpha=1, and includes the bias term. 
+ * Including the bias term can take longer to train, but can also increase 
+ * sparsity for some problems. 
+ * <br>
+ * <br>
+ * See:
+ * <ul>
+ * <li>Yuan, G., Ho, C.-H., & Lin, C. (2012). <i>An improved GLMNET for 
+ * L1-regularized logistic regression</i>. Journal of Machine Learning Research,
+ * 13, 1999–2030. doi:10.1145/2020408.2020421</li>
+ * <li>King, R., Morgan, B. J. T., Gimenez, O., Brooks, S. P., Crc, H., & Raton,
+ * B. (2010). <i>Regularization Paths for Generalized Linear Models via 
+ * Coordinate Descent</i>. Journal of Statistical Software, 36(1), 1–22.</li>
+ * <li>Zou, H., & Hastie, T. (2005). <i>Regularization and variable selection 
+ * via the elastic net</i>. Journal of the Royal Statistical Society, Series B, 
+ * 67(2), 301–320. doi:10.1111/j.1467-9868.2005.00503.x</li>
+ * </ul>
  * 
  * @author Edward Raff
  */
 public class NewGLMNET implements Classifier, Parameterized, SingleWeightVectorModel
 {
-    public static final double DEFAULT_BETA = 0.5;
-    public static final double DEFAULT_V = 1e-12;
-    public static final double DEFAULT_GAMMA = 0;
-    public static final double DEFAULT_SIGMA = 0.01;
+    //TODO make these other fields configurable as well
+    private static final double DEFAULT_BETA = 0.5;
+    private static final double DEFAULT_V = 1e-12;
+    private static final double DEFAULT_GAMMA = 0;
+    private static final double DEFAULT_SIGMA = 0.01;
+    /**
+     * The default tolerance for training is {@value #DEFAULT_EPS}. 
+     */
     public static final double DEFAULT_EPS = 1e-3;
+    /**
+     * The default number of outer iterations of the training algorithm is 
+     * {@value #DEFAULT_MAX_OUTER_ITER} . 
+     */
     public static final int DEFAULT_MAX_OUTER_ITER = 100;
     
+    /**
+     * Weight vector
+     */
     private Vec w;
+    /**
+     * Bias term
+     */
     private double b;
     private double beta = DEFAULT_BETA;
     private double v = DEFAULT_V;
@@ -44,18 +85,41 @@ public class NewGLMNET implements Classifier, Parameterized, SingleWeightVectorM
      */
     private int maxLineSearchSteps = 20;
 
+    /**
+     * Creates a new L<sub>1</sub> regularized Logistic Regression solver with 
+     * C = 1. 
+     */
+    public NewGLMNET()
+    {
+        this(1);
+    }
+    
+    /**
+     * Creates a new L<sub>1</sub> regularized Logistic Regression solver
+     * @param C the regularization term
+     */
     public NewGLMNET(double C)
     {
         this(C, 1);
     }
     
+    /**
+     * Creates a new Elastic Net regularized Logistic Regression solver
+     * @param C the regularization term
+     * @param alpha the fraction of weight (in [0, 1]) to apply to L<sub>1</sub>
+     * regularization instead of L<sub>2</sub> regularization. 
+     */
     public NewGLMNET(double C, double alpha)
     {
         setC(C);
         setAlpha(alpha);
     }
 
-    public NewGLMNET(NewGLMNET toCopy)
+    /**
+     * Copy constructor
+     * @param toCopy the object to copy
+     */
+    protected NewGLMNET(NewGLMNET toCopy)
     {
         if(toCopy.w !=null)
             this.w = toCopy.w.clone();
@@ -95,9 +159,12 @@ public class NewGLMNET implements Classifier, Parameterized, SingleWeightVectorM
 
     /**
      * Using &alpha; = 1 corresponds to pure L<sub>1</sub> regularization, and 
-     * &alpha; = 0 corresponds to pure L<sub>s</sub> regularization. Any value 
-     * in-between is then an elastic net regularization.
-     * @param alpha 
+     * &alpha; = 0 corresponds to pure L<sub>2</sub> regularization. Any value 
+     * in-between is then an Elastic Net regularization.
+     * 
+     * @param alpha the value in [0, 1] for determining the regularization 
+     * penalty's interpolation between pure L<sub>2</sub> and L<sub>1</sub>
+     * regularization. 
      */
     public void setAlpha(double alpha)
     {
@@ -106,6 +173,11 @@ public class NewGLMNET implements Classifier, Parameterized, SingleWeightVectorM
         this.alpha = alpha;
     }
 
+    /***
+     * 
+     * @return the fraction of weight (in [0, 1]) to apply to L<sub>1</sub>
+     * regularization instead of L<sub>2</sub> regularization. 
+     */
     public double getAlpha()
     {
         return alpha;
@@ -159,11 +231,26 @@ public class NewGLMNET implements Classifier, Parameterized, SingleWeightVectorM
         return e_out;
     }
 
+    /**
+     * Controls whether or not an un-regularized bias term is added to the 
+     * model. Using a bias term can increase runtime, especially in sparse data 
+     * sets, as each data point will have work done for the implicit bias term. 
+     * However the bias term is usually needed for small dimension problems, and 
+     * can improve the sparsity of the solution for higher dimensional problems. 
+     * 
+     * @param useBias {@code true} if an un-regularized bias term should be used
+     * or {@code false} to not use any bias term. 
+     */
     public void setUseBias(boolean useBias)
     {
         this.useBias = useBias;
     }
 
+    /**
+     * 
+     * @return {@code true} if an un-regularized bias term will be used
+     * or {@code false} to not use any bias term. 
+     */
     public boolean isUseBias()
     {
         return useBias;
@@ -573,7 +660,7 @@ public class NewGLMNET implements Classifier, Parameterized, SingleWeightVectorM
             int t = 0;
             double wPlambda_d_norm_1 = wPd_norm_1;
             double wPlambda_d_norm_2 = wPd_norm_2;
-            while(t < maxLineSearchSteps)//by 14 steps t is probably way too small... probably shuld adjust this depending on beta
+            while(t < maxLineSearchSteps)//we may want to adjust this as beta changes
             {
                 //"For line search, we use the following form of the sufficient decrease condition" eq(45) from LIBLINEAR paper Aug 2014
                 double newTerm = 0;
