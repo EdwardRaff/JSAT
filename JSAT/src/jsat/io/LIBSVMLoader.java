@@ -2,17 +2,14 @@ package jsat.io;
 
 import java.io.*;
 import java.util.*;
+import jsat.DataSet;
 import jsat.classifiers.CategoricalData;
 import jsat.classifiers.ClassificationDataSet;
-import jsat.linear.SparseVector;
-import static java.lang.Integer.*;
-import static java.lang.Double.*;
-import jsat.DataSet;
 import jsat.datatransform.DenseSparceTransform;
-import jsat.linear.IndexValue;
-import jsat.linear.Vec;
+import jsat.linear.*;
 import jsat.regression.RegressionDataSet;
 import jsat.utils.DoubleList;
+import jsat.utils.StringUtils;
 
 /**
  * Loads a LIBSVM data file into a {@link DataSet}. LIVSM files do not indicate 
@@ -38,6 +35,7 @@ import jsat.utils.DoubleList;
  */
 public class LIBSVMLoader
 {
+    private static boolean fastLoad = true;
 
     private LIBSVMLoader()
     {
@@ -117,7 +115,7 @@ public class LIBSVMLoader
      * Loads a new regression data set from a LIBSVM file, assuming the label is
      * a numeric target value to predict.
      * 
-     * @param isr the input stream for the file to load
+     * @param reader the reader for the file to load
      * @param sparseRatio the fraction of non zero values to qualify a data 
      * point as sparse
      * @param vectorLength the pre-determined length of each vector. If given a 
@@ -126,26 +124,102 @@ public class LIBSVMLoader
      * @return a regression data set
      * @throws IOException 
      */
-    public static RegressionDataSet loadR(InputStreamReader isr, double sparseRatio, int vectorLength) throws IOException
+    public static RegressionDataSet loadR(Reader reader, double sparseRatio, int vectorLength) throws IOException
     {
-        BufferedReader br = new BufferedReader(isr);
+        StringBuilder builder = new StringBuilder(1024);
+        char[] buffer = new char[1024];
         List<SparseVector> sparseVecs = new ArrayList<SparseVector>();
         List<Double> targets = new DoubleList();
         int maxLen=1;
         
         
-        String line;
-        
-        while((line = br.readLine()) != null)
+        int charsRead;
+        int pos = 0;
+        while(true)
         {
-            int firstSpace = line.indexOf(' ');
-            targets.add(parseDouble(line.substring(0, firstSpace)));
+            //skip new lines and fill buffer
+            while(true)
+            {
+                if(pos < builder.length() && (builder.charAt(pos) == '\n' || builder.charAt(pos) == '\r'))
+                    pos++;
+                if(pos >= builder.length())
+                {
+                    charsRead = reader.read(buffer);
+                    if(charsRead >= 0)
+                        builder.append(buffer, 0, charsRead);
+                    else
+                        break;
+                }
+                else
+                    break;
+            }
+            if(pos == builder.length())//end of the file
+                break;
+            //now pos should be at the begining of a line, which should start with a key
+            int spaceLoc = findCharOrEOL(builder, buffer, reader, ' ', pos);
             
-            maxLen = loadSparseVec(line, maxLen, sparseVecs, firstSpace+1);
+            //we now have the key
+            
+            double target = Double.parseDouble(builder.subSequence(pos, spaceLoc).toString());
+            pos = spaceLoc+1;//move to next char
+            getMoreChars(pos, builder, reader, buffer);//incase we hit the end
+            
+            targets.add(target);
+            if(builder.charAt(pos) == '\n' || builder.charAt(pos) == '\r')//new line, we had a line that was empty
+            {
+                //add the zero vector 
+                sparseVecs.add(new SparseVector(0, 0));
+                pos++;//now on the new line
+                builder.delete(0, pos);
+                pos = 0;
+                continue;
+            }
+            //else, sart parsing the non zero values
+            SparseVector sv = tempSparseVecs.get();
+            sv.zeroOut();
+            
+            while(builder.charAt(pos) != '\n' && builder.charAt(pos) != '\r')//keep going till we hit EOL
+            {
+                int colonPos = findCharOrEOL(builder, buffer, reader, ':', pos);
+                int index = StringUtils.parseInt(builder, pos, colonPos)-1;
+                pos = colonPos+1;//should now be the start of a float
+                int endPos = findCharOrEOL(builder, buffer, reader, ' ', pos);
+                double value;
+                if(endPos < 0)//we hit EOF, so assume the rest is our float
+                {
+                    if(fastLoad)
+                        value = StringUtils.parseDouble(builder, pos, builder.length());
+                    else
+                        value = Double.parseDouble(builder.subSequence(pos, builder.length()).toString());
+                }
+                else
+                {
+                    if(fastLoad)
+                        value = StringUtils.parseDouble(builder, pos, endPos);
+                    else
+                        value = Double.parseDouble(builder.subSequence(pos, endPos).toString());
+                }
+
+                //set and adjust
+                maxLen = Math.max(maxLen, index+1);
+                sv.setLength(maxLen);
+                sv.set(index, value);
+                //move and adjust buffer
+                pos = endPos+1;
+                getMoreChars(pos, builder, reader, buffer);
+                if(pos == builder.length())//we are EOF
+                {
+                    if (pos > 0)
+                        builder.delete(0, pos - 1);
+                    break;
+                }
+                builder.delete(0, pos);
+                pos = 0;
+                
+            }
+            
+            sparseVecs.add(sv.clone());
         }
-        
-        if(vectorLength > 0)
-            maxLen = vectorLength;
         
         RegressionDataSet rds = new RegressionDataSet(maxLen, new CategoricalData[0]);
         for(int i = 0; i < sparseVecs.size(); i++)
@@ -228,7 +302,7 @@ public class LIBSVMLoader
      * Loads a new classification data set from a LIBSVM file, assuming the 
      * label is a nominal target value 
      * 
-     * @param isr the input stream for the file to load
+     * @param reader the input stream for the file to load
      * @param sparseRatio the fraction of non zero values to qualify a data 
      * point as sparse
      * @param vectorLength the pre-determined length of each vector. If given a 
@@ -237,26 +311,102 @@ public class LIBSVMLoader
      * @return a classification data set
      * @throws IOException if an error occurred reading the input stream
      */
-    public static ClassificationDataSet loadC(InputStreamReader isr, double sparseRatio, int vectorLength) throws IOException
+    public static ClassificationDataSet loadC(Reader reader, double sparseRatio, int vectorLength) throws IOException
     {
-        BufferedReader br = new BufferedReader(isr);
+        StringBuilder builder = new StringBuilder(1024);
+        char[] buffer = new char[1024];
         List<SparseVector> sparceVecs = new ArrayList<SparseVector>();
         List<Double> cats = new ArrayList<Double>();
         Map<Double, Integer> possibleCats = new HashMap<Double, Integer>();
         int maxLen=1;
         
-        
-        String line;
-        
-        while((line = br.readLine()) != null)
+        int charsRead;
+        int pos = 0;
+        while(true)
         {
-            int firstSpace = line.indexOf(' ');
-            double cat = Double.parseDouble(line.substring(0, firstSpace));
+            //skip new lines and fill buffer
+            while(true)
+            {
+                if(pos < builder.length() && (builder.charAt(pos) == '\n' || builder.charAt(pos) == '\r'))
+                    pos++;
+                if(pos >= builder.length())
+                {
+                    charsRead = reader.read(buffer);
+                    if(charsRead >= 0)
+                        builder.append(buffer, 0, charsRead);
+                    else
+                        break;
+                }
+                else
+                    break;
+            }
+            if(pos == builder.length())//end of the file
+                break;
+            //now pos should be at the begining of a line, which should start with a key
+            int spaceLoc = findCharOrEOL(builder, buffer, reader, ' ', pos);
+            
+            //we now have the key
+            
+            double cat = Double.parseDouble(builder.subSequence(pos, spaceLoc).toString());
+            pos = spaceLoc+1;//move to next char
+            getMoreChars(pos, builder, reader, buffer);//incase we hit the end
             if(!possibleCats.containsKey(cat))
                 possibleCats.put(cat, possibleCats.size());
             cats.add(cat);
+            if(builder.charAt(pos) == '\n' || builder.charAt(pos) == '\r')//new line, we had a line that was empty
+            {
+                //add the zero vector 
+                sparceVecs.add(new SparseVector(0, 0));
+                pos++;//now on the new line
+                builder.delete(0, pos);
+                pos = 0;
+                continue;
+            }
+            //else, sart parsing the non zero values
+            SparseVector sv = tempSparseVecs.get();
+            sv.zeroOut();
             
-            maxLen = loadSparseVec(line, maxLen, sparceVecs, firstSpace+1);
+            while(builder.charAt(pos) != '\n' && builder.charAt(pos) != '\r')//keep going till we hit EOL
+            {
+                int colonPos = findCharOrEOL(builder, buffer, reader, ':', pos);
+                int index = StringUtils.parseInt(builder, pos, colonPos)-1;
+                pos = colonPos+1;//should now be the start of a float
+                int endPos = findCharOrEOL(builder, buffer, reader, ' ', pos);
+                double value;
+                if(endPos < 0)//we hit EOF, so assume the rest is our float
+                {
+                    if(fastLoad)
+                        value = StringUtils.parseDouble(builder, pos, builder.length());
+                    else
+                        value = Double.parseDouble(builder.subSequence(pos, builder.length()).toString());
+                }
+                else
+                {
+                    if(fastLoad)
+                        value = StringUtils.parseDouble(builder, pos, endPos);
+                    else
+                        value = Double.parseDouble(builder.subSequence(pos, endPos).toString());
+                }
+
+                //set and adjust
+                maxLen = Math.max(maxLen, index+1);
+                sv.setLength(maxLen);
+                sv.set(index, value);
+                //move and adjust buffer
+                pos = endPos+1;
+                getMoreChars(pos, builder, reader, buffer);
+                if(pos == builder.length())//we are EOF
+                {
+                    if (pos > 0)
+                        builder.delete(0, pos - 1);
+                    break;
+                }
+                builder.delete(0, pos);
+                pos = 0;
+                
+            }
+            
+            sparceVecs.add(sv.clone());
         }
         
         CategoricalData predicting = new CategoricalData(possibleCats.size());
@@ -281,6 +431,63 @@ public class LIBSVMLoader
         cds.applyTransform(new DenseSparceTransform(sparseRatio));
         
         return cds;
+    }
+
+    /**
+     * Loads more characters into the builder if needed
+     * @param pos the current position in the builder
+     * @param builder the builder used as the current window
+     * @param isr the reader to get characters from
+     * @param buffer the buffer to load characters into that are then copied into the builder
+     * @throws IOException 
+     */
+    protected static void getMoreChars(int pos, StringBuilder builder, Reader isr, char[] buffer) throws IOException
+    {
+        int charsRead;
+        while(pos >= builder.length())
+        {
+            charsRead = isr.read(buffer);
+            if (charsRead >= 0)
+                builder.append(buffer, 0, charsRead);
+            else
+                break;
+        }
+    }
+
+    /**
+     * Finds the first occurrence of the given character or a new line is encountered
+     * @param builder the builder used as the current window
+     * @param buffer the buffer to load characters into that are then copied into the builder
+     * @param isr the reader to get characters from
+     * @param findMe the character to find
+     * @param start the position in the builder to start the search from
+     * @return
+     * @throws IOException 
+     */
+    protected static int findCharOrEOL(StringBuilder builder, char[] buffer, Reader isr, char findMe, int start) throws IOException
+    {
+        //first find the key
+        int pos = start;
+        int bytesRead;
+        while(true)
+        {
+            
+            if (builder.length() <= pos)
+                if ((bytesRead = isr.read(buffer)) < 0)
+                    return -1;
+                else if (bytesRead == 0)
+                    continue;//try again, we need to read something before we can continue
+                else
+                {
+                    builder.append(buffer, 0, bytesRead);
+                }
+            //we don't inc pos in the while loop b/c if we have to continue on a read of zero bytes we will skip when we shouldn't
+            if(builder.charAt(pos) != findMe && builder.charAt(pos) != '\n' && builder.charAt(pos) != '\r')
+                pos++;
+            else
+                break;
+        }
+        return pos;
     }
     
     /**
@@ -340,33 +547,4 @@ public class LIBSVMLoader
         
     };
     
-    private static int loadSparseVec(String line, int maxLen, List<SparseVector> sparceVecs, int pos) 
-    {
-        SparseVector sv = tempSparseVecs.get();
-        sv.zeroOut();
-        if(maxLen > sv.length())//we might be used on a new problem, so we need to reduce our length
-            sv.setLength(Math.max(maxLen, 1));
-        
-        while(true)
-        {
-            int colnPos = line.indexOf(':', pos+1);
-            //if -1 then there are no values for this line
-            if(colnPos < 0)
-                break;
-            int valPos = line.indexOf(' ', colnPos+1);
-            boolean breakOut = valPos < 0;//we reached the end of the line?
-            if(breakOut)
-                valPos = line.length();
-            int index = parseInt(line.substring(pos, colnPos))-1;
-            double val = parseDouble(line.substring(colnPos+1, valPos));
-            maxLen = Math.max(maxLen, index+1);
-            sv.setLength(maxLen);
-            sv.set(index, val);
-            pos = valPos+1;
-            if(breakOut || pos == line.length())
-                break;
-        }
-        sparceVecs.add(new SparseVector(sv));//copy of the sv since sv will be reused. Copy will allocate just enough to store the values present
-        return maxLen;
-    }
 }
