@@ -19,7 +19,9 @@ import jsat.parameters.Parameterized;
 import jsat.regression.RegressionDataSet;
 import jsat.regression.Regressor;
 import jsat.utils.DoubleList;
+import jsat.utils.IntList;
 import jsat.utils.PairedReturn;
+import jsat.utils.QuickSort;
 
 /**
  * This class is a 1-rule. It creates one rule that is used to classify all inputs, 
@@ -717,17 +719,16 @@ public class DecisionStump implements Classifier, Regressor, Parameterized
         }
         else if(numericHandlingC == NumericHandlingC.BINARY_BEST_GAIN)
         {
-            Comparator<DataPointPair<Integer>> comparator = new Comparator<DataPointPair<Integer>>()
+
+            //cache misses are killing us, move data into a double[] to get more juice!
+            double[] vals = new double[dataPoints.size()];//TODO put this in a thread local somewhere and re-use
+            for(int i = 0; i < dataPoints.size(); i++)
             {
-                @Override
-                public int compare(DataPointPair<Integer> t, DataPointPair<Integer> t1)
-                {
-                    return Double.compare(t.getVector().get(attribute), 
-                            t1.getVector().get(attribute));
-                }
-            };
-            
-            Collections.sort(dataPoints, comparator);
+                vals[i] = dataPoints.get(i).getVector().get(attribute);
+            }
+            //do what i want!
+            Collection<List<?>> paired = (Collection<List<?>> )(Collection<?> )Arrays.asList(dataPoints);
+            QuickSort.sort(vals, 0, vals.length, paired );//sort the numeric values and put our original list of data points in the correct order at the same time
             
             double bestGain = Double.NEGATIVE_INFINITY;
             double bestSplit = Double.NEGATIVE_INFINITY;
@@ -750,8 +751,8 @@ public class DecisionStump implements Classifier, Regressor, Parameterized
                 DataPointPair<Integer> dpp = dataPoints.get(i);
                 rightSide.removePoint(dpp.getDataPoint(), dpp.getPair());
                 leftSide.addPoint(dpp.getDataPoint(), dpp.getPair());
-                double leftVal = dataPoints.get(i).getVector().get(attribute);
-                double rightVal = dataPoints.get(i+1).getVector().get(attribute);
+                double leftVal = vals[i];
+                double rightVal = vals[i+1];
                 if( (rightVal-leftVal) < 1e-14 )//Values are too close!
                     continue;
                 
