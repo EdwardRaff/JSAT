@@ -236,7 +236,7 @@ public class ClassificationDataSet extends DataSet
 
         IntList rndOrder = new IntList(getSampleSize());
         ListUtils.addRange(rndOrder, 0, getSampleSize(), 1);
-        Collections.shuffle(rndOrder);
+        Collections.shuffle(rndOrder, rnd);
 
         int curFold = 0;
         for(int i : rndOrder)
@@ -261,7 +261,7 @@ public class ClassificationDataSet extends DataSet
             List<DataPoint> subPoints = getSamples(c);
             rndOrder.clear();
             ListUtils.addRange(rndOrder, 0, subPoints.size(), 1);
-            Collections.shuffle(rndOrder);
+            Collections.shuffle(rndOrder, rnd);
             
             for(int i : rndOrder)
             {
