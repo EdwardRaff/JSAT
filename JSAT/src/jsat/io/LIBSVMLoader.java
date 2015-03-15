@@ -340,7 +340,7 @@ public class LIBSVMLoader
                 else
                     break;
             }
-            if(pos == builder.length())//end of the file
+            if(pos >= builder.length())//end of the file
                 break;
             //now pos should be at the begining of a line, which should start with a key
             int spaceLoc = findCharOrEOL(builder, buffer, reader, ' ', pos);
