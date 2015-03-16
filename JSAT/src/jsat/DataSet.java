@@ -1,10 +1,8 @@
 
 package jsat;
 
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Random;
+import java.lang.ref.SoftReference;
+import java.util.*;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.logging.Level;
@@ -41,6 +39,17 @@ public abstract class DataSet
      * that can then be changed later. 
      */
     protected List<String> numericalVariableNames;
+    
+    /**
+     * This cache is used to hold a reference to the column vectors that are 
+     * returned. It is often the case that the column could be requested 
+     * multiple times, especially if someone is doing a grid search, and there 
+     * is no need to do the work over again. If the GC is low on memory it can 
+     * still collect our cache since we use soft references<br>
+     * <br>
+     * This map should be cleared whenever the data set as a whole is mutated
+     */
+    protected Map<Integer, SoftReference<Vec>> columnVecCache = new HashMap<Integer, SoftReference<Vec>>();
     
     /**
      * Sets the unique name associated with the <tt>i</tt>'th numeric attribute. All strings will be converted to lower case first. 
@@ -488,13 +497,105 @@ public abstract class DataSet
         if(i < 0 || i >= getNumNumericalVars())
             throw new IndexOutOfBoundsException("There is no index for column " + i);
 
+        SoftReference<Vec> cachedRef = columnVecCache.get(i);
+        if (cachedRef != null)
+        {
+            Vec v = cachedRef.get();
+            if (v != null)
+                return v;
+        }
+        //no cache, so make it
         DenseVector dv = new DenseVector(getSampleSize());
         for (int j = 0; j < getSampleSize(); j++)
             dv.set(j, getDataPoint(j).getNumericalValues().get(i));
+        Vec toRet;
         if (getSparsityStats().getMean() < 0.6)
-            return new SparseVector(dv);
+            toRet = new SparseVector(dv);
         else
-            return dv;
+            toRet = dv;
+        columnVecCache.put(i, new SoftReference<Vec>(toRet));
+        return toRet;
+    }
+    
+    /**
+     * Creates an array of column vectors for every numeric variable in this 
+     * data set. The index of the array corresponds to the numeric feature 
+     * index. This method is faster and more efficient than calling 
+     * {@link #getNumericColumn(int) } when multiple columns are needed. <br>
+     * <br>
+     * Note, that the columns returned by this method may be cached and re used
+     * by the DataSet itself. If you need to alter the columns you should create
+     * your own copy of these vectors. If you know that you will be the only 
+     * person getting a column vector from this data set, then you may safely 
+     * alter the columns without mutating the data points themselves. However, 
+     * future callers may or may not receive the same vector objects. 
+     * 
+     * @return an array of the column vectors
+     */
+    @SuppressWarnings("unchecked")
+    public Vec[] getNumericColumns()
+    {
+        return getNumericColumns(Collections.EMPTY_SET);
+    }
+    
+    /**
+     * Creates an array of column vectors for every numeric variable in this 
+     * data set. The index of the array corresponds to the numeric feature 
+     * index. This method is faster and more efficient than calling 
+     * {@link #getNumericColumn(int) } when multiple columns are needed. <br>
+     * <br>
+     * A set of columns to skip can be provided in order to save memory if one 
+     * does not need all the columns. <br>
+     * <br>
+     * Note, that the columns returned by this method may be cached and re used
+     * by the DataSet itself. If you need to alter the columns you should create
+     * your own copy of these vectors. If you know that you will be the only 
+     * person getting a column vector from this data set, then you may safely 
+     * alter the columns without mutating the data points themselves. However, 
+     * future callers may or may not receive the same vector objects. 
+     * 
+     * @param skipColumns if a column's index is in this set, a {@code null} 
+     * will be returned in the array at the column's index instead of a vector
+     * 
+     * @return an array of the column vectors
+     */
+    public Vec[] getNumericColumns(Set<Integer> skipColumns)
+    {
+        boolean sparse = getSparsityStats().getMean() < 0.6;
+        Vec[] cols = new Vec[getNumNumericalVars()];
+        boolean[] dontSet = new boolean [cols.length];
+        Arrays.fill(dontSet, false);
+        for(int i = 0; i < cols.length; i++)
+            if(!skipColumns.contains(i))
+            {
+                SoftReference<Vec> cachedRef = columnVecCache.get(i);
+                if(cachedRef != null )
+                {
+                    Vec v = cachedRef.get();
+                    if(v != null)
+                    {
+                        cols[i] = v;
+                        dontSet[i] = true;
+                    }
+                    else
+                        columnVecCache.put(i, new SoftReference<Vec>(cols[i] = sparse ? new SparseVector(getSampleSize()) : new DenseVector(getSampleSize())));
+                }
+                else
+                    columnVecCache.put(i, new SoftReference<Vec>(cols[i] = sparse ? new SparseVector(getSampleSize()) : new DenseVector(getSampleSize())));
+            }
+        for(int i = 0; i < getSampleSize(); i++)
+        {
+            Vec v = getDataPoint(i).getNumericalValues();
+            
+            for(IndexValue iv : v)
+            {
+                int col = iv.getIndex();
+                if(cols[col] != null && !dontSet[col])
+                    cols[col].set(i, iv.getValue());
+            }
+        }
+            
+        return cols;
     }
 
     /**

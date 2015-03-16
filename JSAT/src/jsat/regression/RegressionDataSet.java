@@ -179,11 +179,13 @@ public class RegressionDataSet extends DataSet
         
         DataPointPair<Double> dpp = new DataPointPair<Double>(dp, val);
         dataPoints.add(dpp);
+        columnVecCache.clear();
     }
     
     public void addDataPointPair(DataPointPair<Double> pair)
     {
         dataPoints.add(pair);
+        columnVecCache.clear();
     }
     
     @Override
@@ -238,6 +240,7 @@ public class RegressionDataSet extends DataSet
     public void setDataPoint(int i, DataPoint dp)
     {
         dataPoints.get(i).setDataPoint(dp);
+        columnVecCache.clear();
     }
     
     /**
@@ -337,6 +340,7 @@ public class RegressionDataSet extends DataSet
         RegressionDataSet clone = new RegressionDataSet(numNumerVals, categories);
         for(DataPointPair<Double> dpp : this.dataPoints)
             clone.dataPoints.add(new DataPointPair<Double>(dpp.getDataPoint(), dpp.getPair()));
+        clone.columnVecCache.putAll(this.columnVecCache);
         return clone;
     }
 

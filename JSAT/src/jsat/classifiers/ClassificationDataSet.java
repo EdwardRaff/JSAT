@@ -1,10 +1,7 @@
 
 package jsat.classifiers;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Random;
+import java.util.*;
 import jsat.DataSet;
 import jsat.linear.DenseVector;
 import jsat.linear.Vec;
@@ -150,7 +147,7 @@ public class ClassificationDataSet extends DataSet
     {
         return predicting.getNumOfCategories();
     }
-    
+        
     /**
      * A helper method meant to be used with {@link #cvSet(int) }, this combines all 
      * classification data sets in a given list, but holding out the indicated list. 
@@ -209,6 +206,7 @@ public class ClassificationDataSet extends DataSet
         if(i >= getSampleSize())
             throw new IndexOutOfBoundsException("There are not that many samples in the data set");
         datapoints.set(i, dp);
+        columnVecCache.clear();
     }
     
     /**
@@ -341,7 +339,7 @@ public class ClassificationDataSet extends DataSet
         
         datapoints.add(new DataPoint(v, classes, categories, weight));
         category.add(classification);
-        
+        columnVecCache.clear();
     }
     
     /**
@@ -495,6 +493,7 @@ public class ClassificationDataSet extends DataSet
         ClassificationDataSet clone = new ClassificationDataSet(numNumerVals, categories, predicting.clone());
         clone.datapoints.addAll(this.datapoints);
         clone.category.addAll(this.category);
+        clone.columnVecCache.putAll(this.columnVecCache);
         return clone;
     }
     
