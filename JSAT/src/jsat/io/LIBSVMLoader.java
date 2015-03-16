@@ -392,10 +392,19 @@ public class LIBSVMLoader
                 maxLen = Math.max(maxLen, index+1);
                 sv.setLength(maxLen);
                 sv.set(index, value);
+                
+                if(endPos < 0)//we hit EOF, so stop working
+                {
+                    //set builder empty and pos = 0 to force exit at the top of the loop
+                    builder.setLength(0);
+                    pos = 0;
+                    break;
+                }
+                
                 //move and adjust buffer
                 pos = endPos+1;
                 getMoreChars(pos, builder, reader, buffer);
-                if(pos == builder.length())//we are EOF
+                if(pos >= builder.length())//we are EOF
                 {
                     if (pos > 0)
                         builder.delete(0, pos - 1);
