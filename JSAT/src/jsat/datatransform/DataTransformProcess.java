@@ -64,6 +64,16 @@ public class DataTransformProcess implements DataTransform, Parameterized
     }
     
     /**
+     * 
+     * @return the number of transforms currently chained in this transform 
+     * process
+     */
+    public int getNumberOfTransforms()
+    {
+        return transformSource.size();
+    }
+    
+    /**
      * Consolidates transformation objects when possible. Currently only works with {@link RemoveAttributeTransform}
      */
     private void consolidateTransforms()
