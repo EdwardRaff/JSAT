@@ -335,7 +335,7 @@ public class BBR implements Classifier, Parameterized, SingleWeightVectorModel
         if (D <= 0)
             throw new FailedToFitException("Data set contains no numeric features");
 
-        final Vec[] columnMajor = dataSet.getColumnMajorVecs();
+        final Vec[] columnMajor = dataSet.getNumericColumns();
         w = new DenseVector(D);
 
         double[] delta = new double[useBias ? D + 1 : D];

@@ -173,7 +173,7 @@ public class SCD implements Classifier, Regressor, Parameterized, SingleWeightVe
         double[] targets = new double[dataSet.getSampleSize()];
         for (int i = 0; i < targets.length; i++)
             targets[i] = dataSet.getDataPointCategory(i) * 2 - 1;
-        train(dataSet.getColumnMajorVecs(), targets);
+        train(dataSet.getNumericColumns(), targets);
     }
 
     @Override
@@ -200,7 +200,7 @@ public class SCD implements Classifier, Regressor, Parameterized, SingleWeightVe
     @Override
     public void train(RegressionDataSet dataSet)
     {
-        train(dataSet.getColumnMajorVecs(), dataSet.getTargetValues().arrayCopy());
+        train(dataSet.getNumericColumns(), dataSet.getTargetValues().arrayCopy());
     }
 
     /**
