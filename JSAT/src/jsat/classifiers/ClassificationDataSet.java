@@ -360,6 +360,7 @@ public class ClassificationDataSet extends DataSet
         
         datapoints.add(dp);
         category.add(classification);
+        columnVecCache.clear();
     }
     
     /**

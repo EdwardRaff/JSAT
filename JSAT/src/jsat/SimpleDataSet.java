@@ -46,6 +46,7 @@ public class SimpleDataSet extends DataSet
     public void setDataPoint(int i, DataPoint dp)
     {
         dataPoints.set(i, dp);
+        columnVecCache.clear();
     }
     
     /**
@@ -55,6 +56,7 @@ public class SimpleDataSet extends DataSet
     public void add(DataPoint dp)
     {
         dataPoints.add(dp);
+        columnVecCache.clear();
     }
 
     @Override

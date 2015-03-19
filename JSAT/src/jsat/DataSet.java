@@ -195,6 +195,7 @@ public abstract class DataSet
         try
         {
             latch.await();
+            columnVecCache.clear();
             //TODO this should be added to DataTransform
             numNumerVals = getDataPoint(0).numNumericalValues();
             categories = getDataPoint(0).getCategoricalData();
@@ -225,7 +226,8 @@ public abstract class DataSet
      * Any values associated with the data point, but not apart of
      * it, will remain intact. 
      * 
-     * @param i the <tt>i</tt>'th dataPoint to set. 
+     * @param i the <tt>i</tt>'th dataPoint to set.
+     * @param dp the data point to set at the specified index
      */
     abstract public void setDataPoint(int i, DataPoint dp);
     
