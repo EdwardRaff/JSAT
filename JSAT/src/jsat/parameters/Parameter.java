@@ -35,6 +35,31 @@ public abstract class Parameter implements Serializable
     }
     
     /**
+     * Adding this annotation to a method tells the {@link #getParamsFromMethods(java.lang.Object)
+     * } method to consider the Parameter object generated for that method a
+     * preferred parameter for warm starting.
+     */
+    @Retention(RetentionPolicy.RUNTIME)
+    @Target(ElementType.METHOD)
+    public static @interface WarmParameter
+    {
+        /**
+         * Indicates the ordering that would be preferred by the algorithm when 
+         * training. <br>
+         * <br>
+         * It may be the case that the model has no preference for models to be
+         * trained from low to high or high to low, in which case any arbitrary
+         * value may be returned - so long as it consistently returns the same
+         * value.
+         * 
+         * @return {@code true} if it is preferred to train from low values of
+         * the parameter to high values of the parameter. {@code false} is
+         * returned if it is preferred to go from high to low values.
+         */
+        boolean prefLowToHigh();
+    }
+    
+    /**
      * Some variables of a learning method may be adjustable without having to 
      * re-train the whole data set. <tt>false</tt> is returned if this is such a 
      * parameter, <tt>true</tt> if the learning method will need to be 
@@ -48,6 +73,42 @@ public abstract class Parameter implements Serializable
     public boolean requiresRetrain(){
         return true;
     };
+    
+    /**
+     * If {@code true}, that means this parameter is the preferred parameter to 
+     * be altered when warm starting from a previous version of the same class. 
+     * Being the preferred parameter means that using warms started training on 
+     * a sequence of changes to this parameter should be faster than simply 
+     * training normally for every combination of values.<br>
+     * <br>
+     * If more than one parameter would have this impact on training, the one 
+     * that has the largest and most consistent impact should be selected.<br>
+     * <br>
+     * By default, this method will return {@code false}. 
+     * 
+     * @return {@code true} if warm starting on changes in this parameter has a 
+     * significant impact on training speed, {@code false} otherwise. 
+     */
+    public boolean isWarmParameter(){
+        return false;
+    };
+    
+    /**
+     * This value is meaningless if {@link #isWarmParameter() } is {@code false}
+     * , and by default returns {@code false}. <br>
+     * <br>
+     * This should return the preferred order of warm start value training in 
+     * the progression of the warm parameter, either from low values to high 
+     * values (ie: the model being trained has a higher value for this parameter
+     * than the warm model being trained from). 
+     * 
+     * @return {@code true} if warm starting on this parameter should occur from 
+     * low values to high values, and {@code false} if it should go from high
+     * values to low. 
+     */
+    public boolean preferredLowToHigh() {
+        return false;
+    }
    
     /**
      * Returns the name of this parameter using only valid ACII characters. 
@@ -267,6 +328,24 @@ public abstract class Parameter implements Serializable
     
     private static Parameter getParam(final Object targetObject, final Class varClass, final Method getMethod, final Method setMethod, final String asciiName, final String uniName)
     {
+        final boolean warm;
+        final boolean lowToHigh;
+        //lets find out if this paramter is a "warm" parameter
+        Parameter.WarmParameter warmAna = null;
+        warmAna = setMethod.getAnnotation(Parameter.WarmParameter.class);
+        if(warmAna == null)
+            warmAna = getMethod.getAnnotation(Parameter.WarmParameter.class);
+        if(warmAna != null)
+        {
+            warm = true;
+            lowToHigh = warmAna.prefLowToHigh();
+        }
+        else
+        {
+            warm = false;
+            lowToHigh = false;
+        }
+        //ok, now lets go create the correct object type
         Parameter param = null;
             if(varClass.equals(double.class) || varClass.equals(Double.class))
             {
@@ -301,6 +380,18 @@ public abstract class Parameter implements Serializable
                         }
                         
                         return false;
+                    }
+
+                    @Override
+                    public boolean isWarmParameter()
+                    {
+                        return warm;
+                    }
+
+                    @Override
+                    public boolean preferredLowToHigh()
+                    {
+                        return lowToHigh;
                     }
 
                     @Override
@@ -354,6 +445,18 @@ public abstract class Parameter implements Serializable
                         }
                         
                         return false;
+                    }
+                    
+                    @Override
+                    public boolean isWarmParameter()
+                    {
+                        return warm;
+                    }
+
+                    @Override
+                    public boolean preferredLowToHigh()
+                    {
+                        return lowToHigh;
                     }
 
                     @Override

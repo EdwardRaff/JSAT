@@ -4,11 +4,7 @@ import java.util.*;
 import java.util.concurrent.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import jsat.classifiers.CategoricalResults;
-import jsat.classifiers.ClassificationDataSet;
-import jsat.classifiers.ClassificationModelEvaluation;
-import jsat.classifiers.Classifier;
-import jsat.classifiers.DataPoint;
+import jsat.classifiers.*;
 import jsat.classifiers.evaluation.Accuracy;
 import jsat.classifiers.evaluation.ClassificationScore;
 import jsat.exceptions.FailedToFitException;
@@ -61,6 +57,22 @@ public class GridSearch implements Classifier, Regressor
      * The number of CV folds
      */
     private int folds;
+    
+    /**
+     * Use warm starts when possible
+     */
+    private boolean useWarmStarts = true;
+    
+    /**
+     * If true, parallelism will be obtained by training the models in parallel.
+     * If false, parallelism is obtained from the model itself.
+     */
+    private boolean trainModelsInParallel = true;
+    
+    /**
+     * If true, trains the final model on the parameters used
+     */
+    private boolean trainFinalModel = true;
 
     /**
      * Creates a new GridSearch to tune the specified parameters of a regression
@@ -108,6 +120,92 @@ public class GridSearch implements Classifier, Regressor
         searchValues = new ArrayList<List<Double>>();
         this.folds = folds;
     }
+
+    /**
+     * Sets whether or not warm starts are used, but only if the model in use
+     * supports warm starts. This is set to {@code true} by default. 
+     * 
+     * @param useWarmStarts {@code true} if warm starts should be used when 
+     * possible, {@code false} otherwise. 
+     */
+    public void setUseWarmStarts(boolean useWarmStarts)
+    {
+        this.useWarmStarts = useWarmStarts;
+    }
+
+    /**
+     *
+     * @return {@code true} if warm starts will be used when possible.
+     * {@code false} if they will not.
+     */
+    public boolean isUseWarmStarts()
+    {
+        return useWarmStarts;
+    }
+
+    /**
+     * When set to {@code true} (the default) parallelism is obtained by
+     * training as many models in parallel as possible. If {@code false},
+     * parallelsm will be obtained by training the model using the {@link Classifier#trainC(jsat.classifiers.ClassificationDataSet, java.util.concurrent.ExecutorService)
+     * } and {@link Regressor#train(jsat.regression.RegressionDataSet, java.util.concurrent.ExecutorService)
+     * } methods.<br>
+     * <br>
+     * When a model supports {@link #setUseWarmStarts(boolean) warms starts},
+     * parallelism obtained by training the models in parallel is intrinsically
+     * reduced, as a model can not be warms started until another model has
+     * finished. In the case that one of the parameters is annotated as a
+     * {@link Parameter.WarmParameter warm paramter} , that parameter will be
+     * the one rained sequential, and for every other parameter combination
+     * models will be trained in parallel. If there is no warm parameter, the
+     * first parameter added will be used for warm training. If there is only
+     * one parameter and warm training is occurring, no parallelism will be
+     * obtained.
+     *
+     * @param trainInParallel {@code true} to get parallelism from training many
+     * models at the same time, {@code false} to get parallelism from getting
+     * the model's implicit parallelism.
+     */
+    public void setTrainModelsInParallel(boolean trainInParallel)
+    {
+        this.trainModelsInParallel = trainInParallel;
+    }
+
+    /**
+     * 
+     * @return {@code true} if parallelism is obtained from training many models
+     * at the same time, {@code false} if parallelism is obtained from using the
+     * model's implicit parallelism.
+     */
+    public boolean isTrainModelsInParallel()
+    {
+        return trainModelsInParallel;
+    }
+
+    /**
+     * If {@code true} (the default) the model that was found to be best is
+     * trained on the whole data set at the end. If {@code false}, the final
+     * model will not be trained. This means that this Object will not be usable
+     * for predictoin. This should only be set if you know you will not be using
+     * this model but only want to get the information about which parameter
+     * combination is best.
+     *
+     * @param trainFinalModel {@code true} to train the final model after grid
+     * search, {@code false} to not do that.
+     */
+    public void setTrainFinalModel(boolean trainFinalModel)
+    {
+        this.trainFinalModel = trainFinalModel;
+    }
+
+    /**
+     * 
+     * @return  {@code true} to train the final model after grid
+     * search, {@code false} to not do that.
+     */
+    public boolean isTrainFinalModel()
+    {
+        return trainFinalModel;
+    }
     
     /**
      * Finds the parameter object with the given name, or throws an exception if
@@ -142,7 +240,13 @@ public class GridSearch implements Classifier, Regressor
         DoubleList dl = new DoubleList(initialSearchValues.length);
         for(double d : initialSearchValues)
             dl.add(d);
-        searchValues.add(dl);
+        Arrays.sort(dl.getBackingArray());//convience, only really needed if param is warm
+        if (param.isWarmParameter() && !param.preferredLowToHigh())
+            Collections.reverse(dl);//put it in the prefered order
+        if (param.isWarmParameter())//put it at the front!
+            searchValues.add(0, dl);
+        else
+            searchValues.add(dl);
     }
 
     /**
@@ -173,7 +277,13 @@ public class GridSearch implements Classifier, Regressor
         DoubleList dl = new DoubleList(initialSearchValues.length);
         for(double d : initialSearchValues)
             dl.add(d);
-        searchValues.add(dl);
+        Arrays.sort(dl.getBackingArray());//convience, only really needed if param is warm
+        if (param.isWarmParameter() && !param.preferredLowToHigh())
+            Collections.reverse(dl);//put it in the prefered order
+        if (param.isWarmParameter())//put it at the front!
+            searchValues.add(0, dl);
+        else
+            searchValues.add(dl);
     }
     
     /**
@@ -296,7 +406,7 @@ public class GridSearch implements Classifier, Regressor
     }
 
     @Override
-    public void train(final RegressionDataSet dataSet, ExecutorService threadPool)
+    public void train(final RegressionDataSet dataSet, final ExecutorService threadPool)
     {
         final PriorityQueue<RegressionModelEvaluation> bestModels =
                 new PriorityQueue<RegressionModelEvaluation>(folds,
@@ -320,36 +430,115 @@ public class GridSearch implements Classifier, Regressor
          * possible combinations. 
          */
         int[] setTo = new int[searchParams.size()];
-        
-        final CountDownLatch latch = getLatch();
-        
+        /**
+         * Each model is set to have different combination of parameters. We 
+         * then train each model to determine the best one. 
+         */
+        final List<Regressor> paramsToEval = new ArrayList<Regressor>();
         
         while(true)
         {
             setParameters(setTo);
            
-            final Regressor toTrain = baseRegressor.clone();
-            
-            threadPool.submit(new Runnable() {
-
-                @Override
-                public void run()
-                {
-                    RegressionModelEvaluation rme = new RegressionModelEvaluation(toTrain, dataSet);
-                    rme.addScorer(regressionTargetScore.clone());
-                    rme.evaluateCrossValidation(folds);
-                    synchronized(bestModels)
-                    {
-                        bestModels.add(rme);
-                    }
-                    
-                    latch.countDown();
-                }
-            });
-            
+            paramsToEval.add(baseRegressor.clone());
             
             if(incrementCombination(setTo))
                 break;
+        }
+        /*
+         * This is the Executor used for training the models in parallel. If we 
+         * are not supposed to do that, it will be an executor that executes 
+         * them sequentually. 
+         */
+        final ExecutorService modelService;
+        if(trainModelsInParallel)
+            modelService = threadPool;
+        else
+            modelService = new FakeExecutor();
+        
+        final CountDownLatch latch;//used for stopping in both cases
+        
+        if(useWarmStarts && baseClassifier instanceof WarmClassifier)
+        {
+            /* we want all of the first parameter (which is the warm paramter, 
+             * taken care of for us) values done in a group. So We can get this
+             * by just dividing up the larger list into sub lists, each sub list
+             * is adjacent in the original and is the number of parameter values
+             * we wanted to try
+             */
+            
+            int stepSize = searchValues.get(0).size();
+            int totalJobs = paramsToEval.size()/stepSize;
+            latch = new CountDownLatch(totalJobs);
+            for(int startPos = 0; startPos < paramsToEval.size(); startPos += stepSize)
+            {
+                final List<Regressor> subSet = paramsToEval.subList(startPos, startPos+stepSize);
+                modelService.submit(new Runnable()
+                {
+
+                    @Override
+                    public void run()
+                    {
+                        Regressor[] prevModels = null;
+                        /**
+                         * We do the folds ourselves and re-use the folds. This 
+                         * is necessary for some warm-started models to be warm 
+                         * started from the same training data
+                         */
+                        List<RegressionDataSet> preFolded = dataSet.cvSet(folds);
+                        /**
+                         * Pre-combine our training combinations so that any caching can be re-used
+                         */
+                        List<RegressionDataSet> trainCombinations = new ArrayList<RegressionDataSet>();
+                        for (int i = 0; i < preFolded.size(); i++)
+                            trainCombinations.add(RegressionDataSet.comineAllBut(preFolded, i));
+                        for(Regressor r : subSet)
+                        {
+                            RegressionModelEvaluation rme = trainModelsInParallel ?
+                                    new RegressionModelEvaluation(r, dataSet) 
+                                    : new RegressionModelEvaluation(r, dataSet, threadPool);
+                            rme.setKeepModels(true);//we need these to do warm starts!
+                            rme.setWarmModels(prevModels);
+                            rme.addScorer(regressionTargetScore.clone());
+                            rme.evaluateCrossValidation(preFolded, trainCombinations);
+                            prevModels = rme.getKeptModels();
+                            synchronized(bestModels)
+                            {
+                                bestModels.add(rme);
+                            }
+                        }
+                        latch.countDown();
+                    }
+                });
+            }
+        }
+        else//regular CV, train a new model from scratch at every step
+        {
+            latch = new CountDownLatch(paramsToEval.size());
+
+            for (final Regressor toTrain : paramsToEval)
+            {
+
+                modelService.submit(new Runnable()
+                {
+
+                    @Override
+                    public void run()
+                    {
+                        RegressionModelEvaluation rme = trainModelsInParallel ?
+                                    new RegressionModelEvaluation(toTrain, dataSet) 
+                                    : new RegressionModelEvaluation(toTrain, dataSet, threadPool);
+                        rme.addScorer(regressionTargetScore.clone());
+                        rme.evaluateCrossValidation(folds);
+                        synchronized (bestModels)
+                        {
+                            bestModels.add(rme);
+                        }
+
+                        latch.countDown();
+                    }
+                });
+            }
         }
         
         
@@ -358,11 +547,13 @@ public class GridSearch implements Classifier, Regressor
             latch.await();
             //Now we know the best classifier, we need to train one on the whole data set. 
             Regressor bestRegressor = bestModels.peek().getRegressor();//Just re-train it on the whole set
-            
-            if(threadPool instanceof FakeExecutor)
-                bestRegressor.train(dataSet);
-            else
-                bestRegressor.train(dataSet, threadPool);
+            if(trainFinalModel)
+            {
+                if(threadPool instanceof FakeExecutor)
+                    bestRegressor.train(dataSet);
+                else
+                    bestRegressor.train(dataSet, threadPool);
+            }
             trainedRegressor = bestRegressor;
             
         }
@@ -379,7 +570,7 @@ public class GridSearch implements Classifier, Regressor
     }
     
     @Override
-    public void trainC(final ClassificationDataSet dataSet, ExecutorService threadPool)
+    public void trainC(final ClassificationDataSet dataSet, final ExecutorService threadPool)
     {
         final PriorityQueue<ClassificationModelEvaluation> bestModels =
                 new PriorityQueue<ClassificationModelEvaluation>(folds,
@@ -404,47 +595,130 @@ public class GridSearch implements Classifier, Regressor
          */
         int[] setTo = new int[searchParams.size()];
         
-        final CountDownLatch latch = getLatch();
-        
+        /**
+         * Each model is set to have different combination of parameters. We 
+         * then train each model to determine the best one. 
+         */
+        final List<Classifier> paramsToEval = new ArrayList<Classifier>();
         
         while(true)
         {
             setParameters(setTo);
            
-            final Classifier toTrain = baseClassifier.clone();
-            
-            threadPool.submit(new Runnable() {
-
-                @Override
-                public void run()
-                {
-                    ClassificationModelEvaluation cme = new ClassificationModelEvaluation(toTrain, dataSet);
-                    cme.addScorer(classificationTargetScore.clone());
-                    cme.evaluateCrossValidation(folds);
-                    synchronized(bestModels)
-                    {
-                        bestModels.add(cme);
-                    }
-                    
-                    latch.countDown();
-                }
-            });
+            paramsToEval.add(baseClassifier.clone());
             
             if(incrementCombination(setTo))
                 break;
         }
+        /*
+         * This is the Executor used for training the models in parallel. If we 
+         * are not supposed to do that, it will be an executor that executes 
+         * them sequentually. 
+         */
+        final ExecutorService modelService;
+        if(trainModelsInParallel)
+            modelService = threadPool;
+        else
+            modelService = new FakeExecutor();
         
+        final CountDownLatch latch;//used for stopping in both cases
         
+        if(useWarmStarts && baseClassifier instanceof WarmClassifier)
+        {
+            /* we want all of the first parameter (which is the warm paramter, 
+             * taken care of for us) values done in a group. So We can get this
+             * by just dividing up the larger list into sub lists, each sub list
+             * is adjacent in the original and is the number of parameter values
+             * we wanted to try
+             */
+            
+            int stepSize = searchValues.get(0).size();
+            int totalJobs = paramsToEval.size()/stepSize;
+            latch = new CountDownLatch(totalJobs);
+            for(int startPos = 0; startPos < paramsToEval.size(); startPos += stepSize)
+            {
+                final List<Classifier> subSet = paramsToEval.subList(startPos, startPos+stepSize);
+                modelService.submit(new Runnable()
+                {
+
+                    @Override
+                    public void run()
+                    {
+                        Classifier[] prevModels = null;
+                        /**
+                         * We do the folds ourselves and re-use the folds. This 
+                         * is necessary for some warm-started models to be warm 
+                         * started from the same training data
+                         */
+                        List<ClassificationDataSet> preFolded = dataSet.cvSet(folds);
+                        /**
+                         * Pre-combine our training combinations so that any caching can be re-used
+                         */
+                        List<ClassificationDataSet> trainCombinations = new ArrayList<ClassificationDataSet>();
+                        for (int i = 0; i < preFolded.size(); i++)
+                            trainCombinations.add(ClassificationDataSet.comineAllBut(preFolded, i));
+                        for(Classifier c : subSet)
+                        {
+                            ClassificationModelEvaluation cme = trainModelsInParallel ?
+                                    new ClassificationModelEvaluation(c, dataSet) 
+                                    : new ClassificationModelEvaluation(c, dataSet, threadPool);
+                            cme.setKeepModels(true);//we need these to do warm starts!
+                            cme.setWarmModels(prevModels);
+                            cme.addScorer(classificationTargetScore.clone());
+                            cme.evaluateCrossValidation(preFolded, trainCombinations);
+                            prevModels = cme.getKeptModels();
+                            synchronized(bestModels)
+                            {
+                                bestModels.add(cme);
+                            }
+                        }
+                        latch.countDown();
+                    }
+                });
+            }
+        }
+        else//regular CV, train a new model from scratch at every step
+        {
+            latch = new CountDownLatch(paramsToEval.size());
+
+            for (final Classifier toTrain : paramsToEval)
+            {
+
+                modelService.submit(new Runnable()
+                {
+
+                    @Override
+                    public void run()
+                    {
+                        ClassificationModelEvaluation cme = trainModelsInParallel ?
+                                    new ClassificationModelEvaluation(toTrain, dataSet) 
+                                    : new ClassificationModelEvaluation(toTrain, dataSet, threadPool);
+                        cme.addScorer(classificationTargetScore.clone());
+                        cme.evaluateCrossValidation(folds);
+                        synchronized (bestModels)
+                        {
+                            bestModels.add(cme);
+                        }
+
+                        latch.countDown();
+                    }
+                });
+            }
+        }
+
+        //now wait for everyone to finish
         try
         {
             latch.await();
             //Now we know the best classifier, we need to train one on the whole data set. 
             Classifier bestClassifier = bestModels.peek().getClassifier();//Just re-train it on the whole set
-            
-            if(threadPool instanceof FakeExecutor)
-                bestClassifier.trainC(dataSet);
-            else
-                bestClassifier.trainC(dataSet, threadPool);
+            if(trainFinalModel)
+            {
+                if(threadPool instanceof FakeExecutor)
+                    bestClassifier.trainC(dataSet);
+                else
+                    bestClassifier.trainC(dataSet, threadPool);
+            }
             trainedClassifier = bestClassifier;
             
         }
@@ -469,9 +743,16 @@ public class GridSearch implements Classifier, Regressor
     @Override
     public GridSearch clone()
     {
-        GridSearch clone = new GridSearch(baseClassifier.clone(), folds);
+        GridSearch clone; 
+        if(baseClassifier != null)
+            clone = new GridSearch(baseClassifier.clone(), folds);
+        else
+            clone = new GridSearch(baseRegressor.clone(), folds);
         clone.classificationTargetScore = this.classificationTargetScore.clone();
         clone.regressionTargetScore = this.regressionTargetScore.clone();
+        clone.useWarmStarts = this.useWarmStarts;
+        clone.trainModelsInParallel = this.trainModelsInParallel;
+        clone.trainFinalModel = this.trainFinalModel;
         if(searchParams != null)
             for(Parameter dp : searchParams)
             {
@@ -486,19 +767,6 @@ public class GridSearch implements Classifier, Regressor
             }
         
         return clone;
-    }
-
-    /**
-     * Gets a new CountDownLatch with the appropriate count for the number of models that will be tested. 
-     * @return a new CountDownLatch
-     */
-    private CountDownLatch getLatch()
-    {
-        int models = 1;
-        for(List<Double> vals : searchValues)
-            models *= vals.size();
-        final CountDownLatch latch = new CountDownLatch(models);
-        return latch;
     }
 
     @Override

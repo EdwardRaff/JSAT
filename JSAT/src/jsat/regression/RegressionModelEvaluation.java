@@ -1,14 +1,8 @@
 package jsat.regression;
 
 import static java.lang.Math.*;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.Map.Entry;
-import java.util.Random;
-import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.logging.Level;
@@ -44,6 +38,17 @@ public class RegressionModelEvaluation
     private DataTransformProcess dtp;
     
     private Map<RegressionScore, OnLineStatistics> scoreMap;
+    private boolean keepModels = false;
+    /**
+     * This holds models for each index that will be kept. If using a test set,
+     * only index 0 is used.
+     */
+    private Regressor[] keptModels;
+    /**
+     * This holds models for each fold index that will be used for warm starts.
+     * If using a test set, only index 0 is used.
+     */
+    private Regressor[] warmModels;
 
     /**
      * Creates a new RegressionModelEvaluation that will perform parallel training. 
@@ -69,6 +74,55 @@ public class RegressionModelEvaluation
     public RegressionModelEvaluation(Regressor regressor, RegressionDataSet dataSet)
     {
         this(regressor, dataSet, null);
+    }
+    
+    /**
+     * Set this to {@code true} in order to keep the trained models after
+     * evaluation. They can then be retrieved used the {@link #getKeptModels() }
+     * methods. The default value is {@code false}.
+     *
+     * @param keepModels {@code true} to keep the trained models after
+     * evaluation, {@code false} to discard them.
+     */
+    public void setKeepModels(boolean keepModels)
+    {
+        this.keepModels = keepModels;
+    }
+
+    /**
+     * This will keep the models trained when evaluating the model. The models
+     * can be obtained after an evaluation from {@link #getKeptModels() }.
+     *
+     * @return {@code true} if trained models will be kept after evaluation.
+     */
+    public boolean isKeepModels()
+    {
+        return keepModels;
+    }
+
+    /**
+     * Returns the models that were kept after the last evaluation. {@code null}
+     * will be returned instead if {@link #isKeepModels() } returns
+     * {@code false}, which is the default.
+     *
+     * @return the models that were kept after the last evaluation. Or
+     * {@code null} if if models are not being kept.
+     */
+    public Regressor[] getKeptModels()
+    {
+        return keptModels;
+    }
+
+    /**
+     * Sets the models that will be used for warm starting training. If using
+     * cross-validation, the number of models given should match the number of
+     * folds. If using a test set, only one model should be given.
+     *
+     * @param warmModels the models to use for warm start training
+     */
+    public void setWarmModels(Regressor... warmModels)
+    {
+        this.warmModels = warmModels;
     }
     
     /**
@@ -105,15 +159,68 @@ public class RegressionModelEvaluation
             throw new UntrainedModelException("Model could not be evaluated because " + folds + " is < 2, and not valid for cross validation");
         
         List<RegressionDataSet> lcds = dataSet.cvSet(folds, rand);
+        evaluateCrossValidation(lcds);
+    }
+    
+    /**
+     * Performs an evaluation of the regressor using the training data set,
+     * where the folds of the training data set are provided by the user. The
+     * folds do not need to be the same sizes, though it is assumed that they
+     * are all approximately the same size. It is the caller's responsibility to
+     * ensure that the folds are only from the original training data set. <br>
+     * <br>
+     * This method exists so that the user can provide very specific folds if
+     * they so desire. This can be useful when there is known bias in the data
+     * set, such as when caused by duplicate data point values. The caller can
+     * then manually make sure duplicate values all occur in the same fold to
+     * avoid over-estimating the accuracy of the model.
+     *
+     * @param lcds the training data set already split into folds
+     */
+    public void evaluateCrossValidation(List<RegressionDataSet> lcds)
+    {
+        List<RegressionDataSet> trainCombinations = new ArrayList<RegressionDataSet>(lcds.size());
+        for (int i = 0; i < lcds.size(); i++)
+            trainCombinations.add(RegressionDataSet.comineAllBut(lcds, i));
+        evaluateCrossValidation(lcds, trainCombinations);
+    }
+    
+    /**
+     * Note: Most people should never need to call this method. Make sure you
+     * understand what you are doing before you do.<br>
+     * <br>
+     * Performs an evaluation of the regressor using the training data set,
+     * where the folds of the training data set, and their combinations, are
+     * provided by the user. The folds do not need to be the same sizes, though
+     * it is assumed that they are all approximately the same size - and the the
+     * training combination corresponding to each index will be the sum of the
+     * folds in the other indices. It is the caller's responsibility to ensure
+     * that the folds are only from the original training data set. <br>
+     * <br>
+     * This method exists so that the user can provide very specific folds if
+     * they so desire, and when the same folds will be used multiple times.
+     * Doing so allows the algorithms called to take advantage of any potential
+     * caching of results based on the data set and avoid all possible excessive
+     * memory movement. (For example, {@link DataSet#getNumericColumns() } may
+     * get re-used and benefit from its caching)<br>
+     * The same behavior of this method can be obtained by calling {@link #evaluateCrossValidation(java.util.List)
+     * }.
+     *
+     * @param lcds training data set already split into folds
+     * @param trainCombinations each index contains the training data sans the
+     * data stored in the fold associated with that index
+     */
+    public void evaluateCrossValidation(List<RegressionDataSet> lcds, List<RegressionDataSet> trainCombinations)
+    {
         
         sqrdErrorStats = new OnLineStatistics();
         totalTrainingTime = totalClassificationTime = 0;
         
         for(int i = 0; i < lcds.size(); i++)
         {
-            RegressionDataSet trainSet = RegressionDataSet.comineAllBut(lcds, i);
+            RegressionDataSet trainSet = trainCombinations.get(i);
             RegressionDataSet testSet = lcds.get(i);
-            evaluationWork(trainSet, testSet);
+            evaluationWork(trainSet, testSet, i);
         }
     }
     
@@ -126,21 +233,34 @@ public class RegressionModelEvaluation
     {
         sqrdErrorStats = new OnLineStatistics();
         totalTrainingTime = totalClassificationTime = 0;
-        evaluationWork(dataSet, testSet);
+        evaluationWork(dataSet, testSet, 0);
     }
     
-    private void evaluationWork(RegressionDataSet trainSet, RegressionDataSet testSet)
+    private void evaluationWork(RegressionDataSet trainSet, RegressionDataSet testSet, int index)
     {
         trainSet = trainSet.shallowClone();
         DataTransformProcess curProccess = dtp.clone();
         curProccess.learnApplyTransforms(trainSet);
         
         long startTrain = System.currentTimeMillis();
-        if(threadpool != null)
-            regressor.train(trainSet, threadpool);
-        else
-            regressor.train(trainSet);            
+        if(warmModels != null && regressor instanceof WarmRegressor)//train from the warm model
+        {
+            WarmRegressor wr = (WarmRegressor) regressor;
+            if(threadpool != null)
+                wr.train(trainSet, warmModels[index], threadpool);
+            else
+                wr.train(trainSet, warmModels[index]);
+        }
+        else//do the normal thing
+        {
+            if(threadpool != null)
+                regressor.train(trainSet, threadpool);
+            else
+                regressor.train(trainSet);
+        }
         totalTrainingTime += (System.currentTimeMillis() - startTrain);
+        if(keptModels != null)
+            keptModels[index] = regressor.clone();
         
         //place to store the scores that may get updated by several threads
         final Map<RegressionScore, RegressionScore> scoresToUpdate = new HashMap<RegressionScore, RegressionScore>();
