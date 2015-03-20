@@ -10,9 +10,11 @@ import jsat.utils.ListUtils;
 import static java.lang.Math.*;
 import java.util.*;
 import jsat.SingleWeightVectorModel;
+import jsat.exceptions.FailedToFitException;
 import jsat.linear.*;
 import jsat.lossfunctions.LogisticLoss;
 import jsat.parameters.Parameter;
+import jsat.parameters.Parameter.WarmParameter;
 import jsat.parameters.Parameterized;
 
 /**
@@ -46,7 +48,7 @@ import jsat.parameters.Parameterized;
  * 
  * @author Edward Raff
  */
-public class NewGLMNET implements Classifier, Parameterized, SingleWeightVectorModel
+public class NewGLMNET implements WarmClassifier, Parameterized, SingleWeightVectorModel
 {
     //TODO make these other fields configurable as well
     private static final double DEFAULT_BETA = 0.5;
@@ -56,7 +58,7 @@ public class NewGLMNET implements Classifier, Parameterized, SingleWeightVectorM
     /**
      * The default tolerance for training is {@value #DEFAULT_EPS}. 
      */
-    public static final double DEFAULT_EPS = 1e-3;
+    public static final double DEFAULT_EPS = 1e-2;
     /**
      * The default number of outer iterations of the training algorithm is 
      * {@value #DEFAULT_MAX_OUTER_ITER} . 
@@ -134,13 +136,14 @@ public class NewGLMNET implements Classifier, Parameterized, SingleWeightVectorM
         this.alpha = toCopy.alpha;
         this.useBias = toCopy.useBias;
     }
-    
+        
     /**
      * Sets the regularization term, where smaller values indicate a larger 
      * regularization penalty. 
      * 
      * @param C the positive regularization term
      */
+    @WarmParameter(prefLowToHigh = true)
     public void setC(double C)
     {
         if(C <= 0 || Double.isInfinite(C) || Double.isNaN(C))
@@ -269,7 +272,30 @@ public class NewGLMNET implements Classifier, Parameterized, SingleWeightVectorM
     }
     
     @Override
+    public void trainC(ClassificationDataSet dataSet, Classifier warmSolution, ExecutorService threadPool)
+    {
+        trainC(dataSet, warmSolution);
+    }
+
+    @Override
+    public void trainC(ClassificationDataSet dataSet, Classifier warmSolution)
+    {
+        if(warmSolution instanceof SingleWeightVectorModel) 
+        {
+            SingleWeightVectorModel swv = (SingleWeightVectorModel) warmSolution;
+            train(dataSet, swv.getRawWeight(), swv.getBias(), true);
+        }
+        else 
+            throw new FailedToFitException("Warm solution is not of a");
+    }
+    
+    @Override
     public void trainC(ClassificationDataSet dataSet)
+    {
+        train(dataSet, null, 0, false);
+    }
+    
+    private void train(ClassificationDataSet dataSet, Vec w_init, double b_init, boolean useInit)
     {
         /*
          * The original NewGLMNET paper describes the algorithm as minimizing 
@@ -285,8 +311,16 @@ public class NewGLMNET implements Classifier, Parameterized, SingleWeightVectorM
         //l = # data points
         final int l = dataSet.getSampleSize();
         
-        w = new DenseVector(n);
-        b = 0;
+        if(useInit)
+        {
+            w = new DenseVector(w_init);
+            b = useBias ? b_init : 0;
+        }
+        else
+        {
+            w = new DenseVector(n);
+            b = 0;
+        }
         List<Vec> X = dataSet.getDataVectors();
         
         double first_M_bar = 0;
@@ -323,18 +357,36 @@ public class NewGLMNET implements Classifier, Parameterized, SingleWeightVectorM
          */
         double delta_L_bias = 0;
         float[] y = new float[l];
-        for(int i = 0; i < l; i++)
+        double w_norm_1;
+        double w_norm_2;
+        if(useInit)
         {
-            y[i] = dataSet.getDataPointCategory(i)*2-1;
-            w_dot_x[i] = w.dot(X.get(i))+b;
-            final double tmp = exp_w_dot_x_plus_dx[i] = exp_w_dot_x[i] = exp(w_dot_x[i]);
-            final double D_part_i = D_part[i]= 1/(1+tmp);
-            D[i] = tmp*D_part_i*D_part_i;
+            for(int i = 0; i < l; i++)
+            {
+                y[i] = dataSet.getDataPointCategory(i)*2-1;
+                w_dot_x[i] = w.dot(X.get(i))+b;
+                final double tmp = exp_w_dot_x_plus_dx[i] = exp_w_dot_x[i] = exp(w_dot_x[i]);
+                final double D_part_i = D_part[i]= 1/(1+tmp);
+                D[i] = tmp*D_part_i*D_part_i;
+            }
+            w_norm_1 = w.pNorm(1);
+            w_norm_2 = w.pNorm(2);
         }
-        double w_norm_1 = w.pNorm(1);
-        double w_norm_2 = w.pNorm(2);
+        else//w = 0
+        {
+            for(int i = 0; i < l; i++)
+            {
+                y[i] = dataSet.getDataPointCategory(i)*2-1;
+                w_dot_x[i] = 0.0;
+                exp_w_dot_x_plus_dx[i] = exp_w_dot_x[i] = 1.0;
+                D_part[i]= 0.5;
+                D[i] = 0.25;
+            }
+            w_norm_1 = w.pNorm(1);
+            w_norm_2 = w.pNorm(2);
+        }
         
-        List<Vec> columnsOfX = new ArrayList<Vec>(n);
+        List<Vec> columnsOfX = new ArrayList<Vec>(Arrays.asList(dataSet.getNumericColumns()));
         /**
          * sum of all x_j values in the negative class. Used for ∇_j L in trick
          * from LIBLINEAR eq(44)
@@ -342,8 +394,7 @@ public class NewGLMNET implements Classifier, Parameterized, SingleWeightVectorM
         double[] col_neg_class_sum = new double[n];
         for(int j = 0; j < n; j++)
         {
-            Vec vec = dataSet.getNumericColumn(j);
-            columnsOfX.add(vec);
+            Vec vec = columnsOfX.get(j);
             for(IndexValue iv : vec)
                 if(y[iv.getIndex()] == -1)
                     col_neg_class_sum[j] += iv.getValue();
@@ -461,7 +512,10 @@ public class NewGLMNET implements Classifier, Parameterized, SingleWeightVectorM
             }
             
             if (k == 0)//first run
-                e_in = first_M_bar = M_bar;
+                if (useInit)//we have some value of W already, 
+                    e_in = first_M_bar = getM_Bar_for_w0(n, l, columnsOfX, col_neg_class_sum, col_neg_class_sum_bias);
+                else//normal algo
+                    e_in = first_M_bar = M_bar;
             //algo 3, Step 3. 3. If M_bar ≤ eps_out ,  return w^k 
             
             if(M_bar <= e_out*first_M_bar)
@@ -477,11 +531,21 @@ public class NewGLMNET implements Classifier, Parameterized, SingleWeightVectorM
             d.zeroOut();
             d_bias = 0;
             
+            /**
+             * Sometimes we see the |z| be very small over and over, so we stop 
+             * if we see it too many times in a row (which means we really 
+             * aren't making much progress)
+             */
+            int smallZInARow = 0;
+            
             for(int p = 0; p < 1000; p++)// inner iterations
             {
                 //step 1.
                 double m = 0, m_bar = 0;
-                
+                /**
+                 * Used to check if we aren't really making any progress
+                 */
+                double max_abs_z = 0;
                 Collections.shuffle(T);
                 Iterator<Integer> T_iter = T.iterator();
                 final double dynRange = n*5.0/T.size();//used for dynamic clip, see below
@@ -554,6 +618,8 @@ public class NewGLMNET implements Classifier, Parameterized, SingleWeightVectorM
                          */
                         z = min(max(z,-dynRange),dynRange);
                         
+                        max_abs_z = max(max_abs_z, abs(z));
+                        
                         d.increment(j, z);
                         
                         //book keeping, see eq(17)
@@ -590,6 +656,8 @@ public class NewGLMNET implements Classifier, Parameterized, SingleWeightVectorM
                     if (abs(z) > 1e-11)
                     {
                         z = min(max(z, -dynRange), dynRange);
+                        
+                        max_abs_z = max(max_abs_z, abs(z));
 
                         d_bias += z;
 
@@ -599,8 +667,25 @@ public class NewGLMNET implements Classifier, Parameterized, SingleWeightVectorM
                     }
                 }
                 
+                boolean breakInnerLoopAnyway = false;
+                
+                if(max_abs_z == 0)
+                    breakInnerLoopAnyway = true;
+                else if (max_abs_z <= 1e-6)
+                {
+                    if(smallZInARow++ >= 3)//give it a few chances
+                        breakInnerLoopAnyway = true;
+                }
+                else if(max_abs_z <= 1e-3)
+                {
+                    if(smallZInARow++ >= 30)//give it a lot chances
+                        breakInnerLoopAnyway = true;
+                }
+                else
+                    smallZInARow = 0;//reset, we are making progress!
+                
                 //step 3. 
-                if(m_bar <= e_in)
+                if(m_bar <= e_in || breakInnerLoopAnyway)
                 {
                     
                     if(T.size() == J.size())
@@ -729,6 +814,70 @@ public class NewGLMNET implements Classifier, Parameterized, SingleWeightVectorM
         }
     }
 
+    /**
+     * When we perform a warm start, we want to train to the same point that we
+     * would have if we had not done a warm start. But our stopping point is
+     * based on the initial relative error. To get around that, this method
+     * computes what the error would have been for the zero weight vector
+     * @param n
+     * @param l
+     * @param columnsOfX
+     * @param col_neg_class_sum
+     * @param col_neg_class_sum_bias
+     * @return the error for M_bar that would have been computed if we were using the zero weight vector
+     */
+    private double getM_Bar_for_w0(int n, int l, List<Vec> columnsOfX, double[] col_neg_class_sum, double col_neg_class_sum_bias)
+    {
+        /**
+         * if w=0, then D_part[i] = 0.5 for all i
+         */
+        final double D_part_i = 0.5;
+        
+        
+        //algo 3, Step 1.
+        double M_bar = 0;
+        //algo 3, Step 2. 
+        for(int j = 0; j < n; j++)
+        {
+            final double w_j = 0;
+
+            //2.1. Calculate H^k_{jj}, ∇_j L(w^k) and ∇^S_j f(w^k)
+            double delta_j_L = 0;
+
+            for (IndexValue x_i : columnsOfX.get(j))
+            {
+                double val = x_i.getValue();
+                delta_j_L += -val * D_part_i;
+            }
+            delta_j_L = /* (l2w * w_j) not needed b/c w_j=0*/ + C * (delta_j_L + col_neg_class_sum[j]);
+
+            double deltaS_j_fw;
+            //only the w_j = 0 case applies, b/c that is what this method is for!             
+            //w_j = 0
+            deltaS_j_fw = signum(delta_j_L) * max(abs(delta_j_L) - alpha, 0);
+            //done with step 2, we have all the info
+            M_bar += abs(deltaS_j_fw);
+
+        }
+
+        if (useBias)
+        {
+            //2.1. Calculate H^k_{jj}, ∇_j L(w^k) and ∇^S_j f(w^k)
+            double delta_j_L = 0;
+
+            for (int i = 0; i < l; i++)//all have an implicit bias term
+                delta_j_L += -D_part_i;
+            delta_j_L = C * (delta_j_L + col_neg_class_sum_bias);
+            
+            double deltaS_j_fw = delta_j_L;
+            
+            M_bar += abs(deltaS_j_fw);
+        }
+        return M_bar;
+    }
+    
+    
+    
     @Override
     public boolean supportsWeightedData()
     {
@@ -788,5 +937,10 @@ public class NewGLMNET implements Classifier, Parameterized, SingleWeightVectorM
     {
         return 1;
     }
-    
+
+    @Override
+    public boolean warmFromSameDataOnly()
+    {
+        return false;
+    }
 }
