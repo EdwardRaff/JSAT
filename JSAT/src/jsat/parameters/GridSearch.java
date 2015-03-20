@@ -9,9 +9,7 @@ import jsat.classifiers.evaluation.Accuracy;
 import jsat.classifiers.evaluation.ClassificationScore;
 import jsat.exceptions.FailedToFitException;
 import jsat.exceptions.UntrainedModelException;
-import jsat.regression.RegressionDataSet;
-import jsat.regression.RegressionModelEvaluation;
-import jsat.regression.Regressor;
+import jsat.regression.*;
 import jsat.regression.evaluation.MeanSquaredError;
 import jsat.regression.evaluation.RegressionScore;
 import jsat.utils.DoubleList;
@@ -549,10 +547,23 @@ public class GridSearch implements Classifier, Regressor
             Regressor bestRegressor = bestModels.peek().getRegressor();//Just re-train it on the whole set
             if(trainFinalModel)
             {
-                if(threadPool instanceof FakeExecutor)
-                    bestRegressor.train(dataSet);
+                //try and warm start the final model if we can
+                if(useWarmStarts && bestRegressor instanceof WarmRegressor && 
+                        !((WarmRegressor)bestRegressor).warmFromSameDataOnly())//last line here needed to make sure we can do this warm train
+                {
+                    WarmRegressor wr = (WarmRegressor) bestRegressor;
+                    if(threadPool instanceof FakeExecutor)
+                        wr.train(dataSet, wr.clone());
+                    else
+                        wr.train(dataSet, wr.clone(), threadPool);
+                }
                 else
-                    bestRegressor.train(dataSet, threadPool);
+                {
+                    if (threadPool instanceof FakeExecutor)
+                        bestRegressor.train(dataSet);
+                    else
+                        bestRegressor.train(dataSet, threadPool);
+                }
             }
             trainedRegressor = bestRegressor;
             
@@ -714,10 +725,23 @@ public class GridSearch implements Classifier, Regressor
             Classifier bestClassifier = bestModels.peek().getClassifier();//Just re-train it on the whole set
             if(trainFinalModel)
             {
-                if(threadPool instanceof FakeExecutor)
-                    bestClassifier.trainC(dataSet);
+                //try and warm start the final model if we can
+                if(useWarmStarts && bestClassifier instanceof WarmClassifier && 
+                        !((WarmClassifier)bestClassifier).warmFromSameDataOnly())//last line here needed to make sure we can do this warm train
+                {
+                    WarmClassifier wc = (WarmClassifier) bestClassifier;
+                    if(threadPool instanceof FakeExecutor)
+                        wc.trainC(dataSet, wc.clone());
+                    else
+                        wc.trainC(dataSet, wc.clone(), threadPool);
+                }
                 else
-                    bestClassifier.trainC(dataSet, threadPool);
+                {
+                    if(threadPool instanceof FakeExecutor)
+                        bestClassifier.trainC(dataSet);
+                    else
+                        bestClassifier.trainC(dataSet, threadPool);
+                }
             }
             trainedClassifier = bestClassifier;
             
