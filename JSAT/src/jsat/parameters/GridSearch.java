@@ -71,6 +71,11 @@ public class GridSearch implements Classifier, Regressor
      * If true, trains the final model on the parameters used
      */
     private boolean trainFinalModel = true;
+    
+    /**
+     * If true, create the CV splits once and re-use them for all parameters
+     */
+    private boolean reuseSameCVFolds = true;
 
     /**
      * Creates a new GridSearch to tune the specified parameters of a regression
@@ -203,6 +208,31 @@ public class GridSearch implements Classifier, Regressor
     public boolean isTrainFinalModel()
     {
         return trainFinalModel;
+    }
+
+    /**
+     * Sets whether or not one set of CV folds is created and re used for every
+     * parameter combination (the default), or if a difference set of CV folds
+     * will be used for every parameter combination.
+     *
+     * @param reuseSameSplit {@code true} if the same split is re-used for every
+     * combination, {@code false} if a new CV set is used for every parameter
+     * combination.
+     */
+    public void setReuseSameCVFolds(boolean reuseSameSplit)
+    {
+        this.reuseSameCVFolds = reuseSameSplit;
+    }
+
+    /**
+     * 
+     * @return {@code true} if the same split is re-used for every
+     * combination, {@code false} if a new CV set is used for every parameter
+     * combination.
+     */
+    public boolean isReuseSameCVFolds()
+    {
+        return reuseSameCVFolds;
     }
     
     /**
@@ -456,7 +486,46 @@ public class GridSearch implements Classifier, Regressor
         
         final CountDownLatch latch;//used for stopping in both cases
         
-        if(useWarmStarts && baseClassifier instanceof WarmClassifier)
+        //if we are doing our CV splits ahead of time, get them done now
+        final List<RegressionDataSet> preFolded;
+
+        /**
+         * Pre-combine our training combinations so that any caching can be
+         * re-used
+         */
+        final List<RegressionDataSet> trainCombinations;
+
+        if (reuseSameCVFolds)
+        {
+            preFolded = dataSet.cvSet(folds);
+            trainCombinations = new ArrayList<RegressionDataSet>(preFolded.size());
+            for (int i = 0; i < preFolded.size(); i++)
+                trainCombinations.add(RegressionDataSet.comineAllBut(preFolded, i));
+        }
+        else
+        {
+            preFolded = null;
+            trainCombinations = null;
+        }
+        
+        boolean considerWarm = useWarmStarts && baseRegressor instanceof WarmRegressor;
+        /**
+         * make sure we don't do a warm start if its only supported when trained
+         * on the same data but we aren't reuse-ing the same CV splits So we get
+         * the truth table
+         * 
+         * a | b | (a&&b)||¬a
+         * T | T | T
+         * T | F | F
+         * F | T | T
+         * F | F | T
+         * 
+         * where a = warmFromSameDataOnly and b  = reuseSameSplit
+         * So we can instead use 
+         * ¬ a || b
+         */
+
+        if (considerWarm && (!((WarmRegressor) baseRegressor).warmFromSameDataOnly() || reuseSameCVFolds))
         {
             /* we want all of the first parameter (which is the warm paramter, 
              * taken care of for us) values done in a group. So We can get this
@@ -478,18 +547,6 @@ public class GridSearch implements Classifier, Regressor
                     public void run()
                     {
                         Regressor[] prevModels = null;
-                        /**
-                         * We do the folds ourselves and re-use the folds. This 
-                         * is necessary for some warm-started models to be warm 
-                         * started from the same training data
-                         */
-                        List<RegressionDataSet> preFolded = dataSet.cvSet(folds);
-                        /**
-                         * Pre-combine our training combinations so that any caching can be re-used
-                         */
-                        List<RegressionDataSet> trainCombinations = new ArrayList<RegressionDataSet>();
-                        for (int i = 0; i < preFolded.size(); i++)
-                            trainCombinations.add(RegressionDataSet.comineAllBut(preFolded, i));
                         for(Regressor r : subSet)
                         {
                             RegressionModelEvaluation rme = trainModelsInParallel ?
@@ -498,7 +555,10 @@ public class GridSearch implements Classifier, Regressor
                             rme.setKeepModels(true);//we need these to do warm starts!
                             rme.setWarmModels(prevModels);
                             rme.addScorer(regressionTargetScore.clone());
-                            rme.evaluateCrossValidation(preFolded, trainCombinations);
+                            if(reuseSameCVFolds)
+                                rme.evaluateCrossValidation(preFolded, trainCombinations);
+                            else
+                                rme.evaluateCrossValidation(folds);
                             prevModels = rme.getKeptModels();
                             synchronized(bestModels)
                             {
@@ -527,7 +587,10 @@ public class GridSearch implements Classifier, Regressor
                                     new RegressionModelEvaluation(toTrain, dataSet) 
                                     : new RegressionModelEvaluation(toTrain, dataSet, threadPool);
                         rme.addScorer(regressionTargetScore.clone());
-                        rme.evaluateCrossValidation(folds);
+                        if (reuseSameCVFolds)
+                            rme.evaluateCrossValidation(preFolded, trainCombinations);
+                        else
+                            rme.evaluateCrossValidation(folds);
                         synchronized (bestModels)
                         {
                             bestModels.add(rme);
@@ -634,7 +697,47 @@ public class GridSearch implements Classifier, Regressor
         
         final CountDownLatch latch;//used for stopping in both cases
         
-        if(useWarmStarts && baseClassifier instanceof WarmClassifier)
+        //if we are doing our CV splits ahead of time, get them done now
+        final List<ClassificationDataSet> preFolded;
+
+        /**
+         * Pre-combine our training combinations so that any caching can be
+         * re-used
+         */
+        final List<ClassificationDataSet> trainCombinations;
+
+        if (reuseSameCVFolds)
+        {
+            preFolded = dataSet.cvSet(folds);
+            trainCombinations = new ArrayList<ClassificationDataSet>(preFolded.size());
+            for (int i = 0; i < preFolded.size(); i++)
+                trainCombinations.add(ClassificationDataSet.comineAllBut(preFolded, i));
+        }
+        else
+        {
+            preFolded = null;
+            trainCombinations = null;
+        }
+        
+        boolean considerWarm = useWarmStarts && baseClassifier instanceof WarmClassifier;
+        
+        /**
+         * make sure we don't do a warm start if its only supported when trained
+         * on the same data but we aren't reuse-ing the same CV splits So we get
+         * the truth table
+         * 
+         * a | b | (a&&b)||¬a
+         * T | T | T
+         * T | F | F
+         * F | T | T
+         * F | F | T
+         * 
+         * where a = warmFromSameDataOnly and b  = reuseSameSplit
+         * So we can instead use 
+         * ¬ a || b
+         */
+
+        if (considerWarm && (!((WarmClassifier) baseClassifier).warmFromSameDataOnly() || reuseSameCVFolds))
         {
             /* we want all of the first parameter (which is the warm paramter, 
              * taken care of for us) values done in a group. So We can get this
@@ -656,18 +759,7 @@ public class GridSearch implements Classifier, Regressor
                     public void run()
                     {
                         Classifier[] prevModels = null;
-                        /**
-                         * We do the folds ourselves and re-use the folds. This 
-                         * is necessary for some warm-started models to be warm 
-                         * started from the same training data
-                         */
-                        List<ClassificationDataSet> preFolded = dataSet.cvSet(folds);
-                        /**
-                         * Pre-combine our training combinations so that any caching can be re-used
-                         */
-                        List<ClassificationDataSet> trainCombinations = new ArrayList<ClassificationDataSet>();
-                        for (int i = 0; i < preFolded.size(); i++)
-                            trainCombinations.add(ClassificationDataSet.comineAllBut(preFolded, i));
+                        
                         for(Classifier c : subSet)
                         {
                             ClassificationModelEvaluation cme = trainModelsInParallel ?
@@ -676,7 +768,10 @@ public class GridSearch implements Classifier, Regressor
                             cme.setKeepModels(true);//we need these to do warm starts!
                             cme.setWarmModels(prevModels);
                             cme.addScorer(classificationTargetScore.clone());
-                            cme.evaluateCrossValidation(preFolded, trainCombinations);
+                            if(reuseSameCVFolds)
+                                cme.evaluateCrossValidation(preFolded, trainCombinations);
+                            else
+                                cme.evaluateCrossValidation(folds);
                             prevModels = cme.getKeptModels();
                             synchronized(bestModels)
                             {
@@ -691,7 +786,7 @@ public class GridSearch implements Classifier, Regressor
         else//regular CV, train a new model from scratch at every step
         {
             latch = new CountDownLatch(paramsToEval.size());
-
+            
             for (final Classifier toTrain : paramsToEval)
             {
 
@@ -705,7 +800,10 @@ public class GridSearch implements Classifier, Regressor
                                     new ClassificationModelEvaluation(toTrain, dataSet) 
                                     : new ClassificationModelEvaluation(toTrain, dataSet, threadPool);
                         cme.addScorer(classificationTargetScore.clone());
-                        cme.evaluateCrossValidation(folds);
+                        if(reuseSameCVFolds)
+                            cme.evaluateCrossValidation(preFolded, trainCombinations);
+                        else
+                            cme.evaluateCrossValidation(folds);
                         synchronized (bestModels)
                         {
                             bestModels.add(cme);
