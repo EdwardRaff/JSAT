@@ -28,6 +28,13 @@ public class SimpleSGD implements GradientUpdater
     }
 
     @Override
+    public double update(Vec x, Vec grad, double eta, double bias, double biasGrad)
+    {
+        x.mutableSubtract(eta, grad);
+        return eta*biasGrad;
+    }
+
+    @Override
     public SimpleSGD clone()
     {
         return new SimpleSGD();

@@ -25,6 +25,7 @@ public class SGDMomentum implements GradientUpdater
     private double momentum;
     private boolean nestrov;
     private Vec velocity;
+    private double biasVelocity;
 
     /**
      * Creates a new SGD with Momentum learner
@@ -55,6 +56,7 @@ public class SGDMomentum implements GradientUpdater
         this.momentum = toCopy.momentum;
         if(toCopy.velocity != null)
             this.velocity = toCopy.velocity.clone();
+        this.biasVelocity = toCopy.biasVelocity;
     }
 
     /**
@@ -80,22 +82,34 @@ public class SGDMomentum implements GradientUpdater
     @Override
     public void update(Vec x, Vec grad, double eta)
     {
+        update(x, grad, eta, 0.0, 0.0);
+    }
+
+    @Override
+    public double update(Vec x, Vec grad, double eta, double bias, double biasGrad)
+    {
+        double biasUpdate;
         if (nestrov)
         {
             //update
             x.mutableAdd(momentum * momentum, velocity);
             x.mutableSubtract((1 + momentum) * eta, grad);
+            biasUpdate = -momentum*momentum*biasVelocity + (1+momentum)*eta*biasGrad;
         }
         else//clasic momentum
         {
             //update
             x.mutableAdd(momentum, velocity);
             x.mutableSubtract(eta, grad);
+            biasUpdate = -momentum*biasVelocity + eta*biasGrad;
         }
 
         //velocity
         velocity.mutableMultiply(momentum);
         velocity.mutableSubtract(eta, grad);
+        biasVelocity = biasVelocity*momentum - eta*biasGrad;
+        
+        return biasUpdate;
     }
 
     @Override
@@ -108,6 +122,7 @@ public class SGDMomentum implements GradientUpdater
     public void setup(int d)
     {
         velocity = new ScaledVector(new DenseVector(d));
+        biasVelocity = 0;
     }
     
 }

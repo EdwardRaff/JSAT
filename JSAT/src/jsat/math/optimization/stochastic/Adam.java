@@ -42,6 +42,9 @@ public class Adam implements GradientUpdater
     private double eps;
     private double lambda;
     
+    private double vBias;
+    private double mBias;
+    
     public static final double DEFAULT_ALPHA = 0.0002;
     public static final double DEFAULT_BETA_1 = 0.1;
     public static final double DEFAULT_BETA_2 = 0.001;
@@ -84,6 +87,8 @@ public class Adam implements GradientUpdater
         this.eps = toCopy.eps;
         this.lambda = toCopy.lambda;
         this.t = toCopy.t;
+        this.mBias = toCopy.mBias;
+        this.vBias = toCopy.vBias;
         
         if(toCopy.m != null)
         {
@@ -96,6 +101,12 @@ public class Adam implements GradientUpdater
     @Override
     public void update(Vec x, Vec grad, double eta)
     {
+        update(x, grad, eta, 0, 0);
+    }
+
+    @Override
+    public double update(Vec x, Vec grad, double eta, double bias, double biasGrad)
+    {
         t++;
         //(Decay the first moment running average coefficient
         double beta_1t = 1 - (1-beta_1)*pow(lambda, t-1);
@@ -104,8 +115,10 @@ public class Adam implements GradientUpdater
         //(Update biased first moment estimate)
         m.mutableMultiply(1-beta_1t);
         m.mutableAdd(beta_1t, grad);
+        mBias = (1-beta_1t)+beta_1t*biasGrad;
         //(Update biased second raw moment estimate)
         v.mutableMultiply(1-beta_2);
+        vBias = (1-beta_2)*vBias + beta_2 *biasGrad *biasGrad;
         for(final IndexValue iv : grad)
         {
             final double g_i = iv.getValue();
@@ -123,6 +136,7 @@ public class Adam implements GradientUpdater
         //while the algorithm may converge well with sparse data, m and v are likely to all be non-zero after observing lots of data. 
         for(int i = 0; i < m.length(); i++)
             x.increment(i, -cnst * m.get(i)/(sqrt(v.get(i))+eps));
+        return cnst * mBias/(sqrt(vBias)+eps);
     }
 
     @Override
@@ -137,6 +151,7 @@ public class Adam implements GradientUpdater
         t = 0;
         m = new ScaledVector(new DenseVector(d));
         v = new ScaledVector(new DenseVector(d));
+        vBias = mBias = 0;
     }
     
 }

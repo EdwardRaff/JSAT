@@ -17,6 +17,7 @@ import jsat.linear.Vec;
 public class AdaGrad implements GradientUpdater
 {
     private Vec daigG;
+    private double biasG;
     
     /**
      * Creates a new AdaGrad updater
@@ -33,11 +34,18 @@ public class AdaGrad implements GradientUpdater
     {
         if(toCopy.daigG != null)
             this.daigG = toCopy.daigG.clone();
+        this.biasG = toCopy.biasG;
     }
     
 
     @Override
     public void update(Vec x, Vec grad, double eta)
+    {
+        update(x, grad, eta, 0, 0);
+    }
+
+    @Override
+    public double update(Vec x, Vec grad, double eta, double bias, double biasGrad)
     {
         for(IndexValue iv : grad)
         {
@@ -47,6 +55,10 @@ public class AdaGrad implements GradientUpdater
             x.increment(indx, -eta*grad_i/Math.sqrt(g_ii));
             daigG.increment(indx, grad_i*grad_i);
         }
+        
+        double biasUpdate = eta*biasGrad/Math.sqrt(biasG);
+        biasG += biasGrad*biasGrad;
+        return biasUpdate;
     }
 
     @Override
@@ -59,6 +71,7 @@ public class AdaGrad implements GradientUpdater
     public void setup(int d)
     {
         daigG = new DenseVector(new ConstantVector(1.0, d));
+        biasG = 1;
     }
     
 }

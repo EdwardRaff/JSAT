@@ -15,6 +15,7 @@ public class RMSProp implements GradientUpdater
 {
     private double rho;
     private Vec daigG;
+    private double biasG;
     
     /**
      * Creates a new RMSProp updater that uses a decay rate of 0.9
@@ -64,11 +65,18 @@ public class RMSProp implements GradientUpdater
         if(toCopy.daigG != null)
             this.daigG = toCopy.daigG.clone();
         this.rho = toCopy.rho;
+        this.biasG = toCopy.biasG;
     }
     
 
     @Override
     public void update(Vec x, Vec grad, double eta)
+    {
+        update(x, grad, eta, 0, 0);
+    }
+
+    @Override
+    public double update(Vec x, Vec grad, double eta, double bias, double biasGrad)
     {
         daigG.mutableMultiply(rho);
         for(IndexValue iv : grad)
@@ -79,6 +87,11 @@ public class RMSProp implements GradientUpdater
             double g_iiRoot = Math.max(Math.sqrt(daigG.get(indx)), Math.abs(grad_i));//tiny grad sqrd could result in zero
             x.increment(indx, -eta*grad_i/g_iiRoot);
         }
+        
+        biasG *= rho;
+        biasG += (1-rho)*biasGrad*biasGrad;
+        double g_iiRoot = Math.max(Math.sqrt(biasG), Math.abs(biasGrad));//tiny grad sqrd could result in zero
+        return eta*biasGrad/g_iiRoot;
     }
 
     @Override
@@ -91,6 +104,7 @@ public class RMSProp implements GradientUpdater
     public void setup(int d)
     {
         daigG = new ScaledVector(new DenseVector(d));
+        biasG = 0;
     }
     
 }

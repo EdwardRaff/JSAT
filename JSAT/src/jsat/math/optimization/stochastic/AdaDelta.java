@@ -21,6 +21,8 @@ public class AdaDelta implements GradientUpdater
     private double rho;
     private Vec gSqrd;
     private Vec deltaXSqrt;
+    private double biasGSqrd;
+    private double deltaBiasSqrt;
     private double eps = 0.0001;
     
 
@@ -53,6 +55,8 @@ public class AdaDelta implements GradientUpdater
             this.gSqrd = toCopy.gSqrd.clone();
             this.deltaXSqrt = toCopy.deltaXSqrt.clone();
         }
+        this.biasGSqrd = toCopy.biasGSqrd;
+        this.deltaBiasSqrt = toCopy.deltaBiasSqrt;
     }
     
     /**
@@ -80,7 +84,14 @@ public class AdaDelta implements GradientUpdater
     @Override
     public void update(Vec x, Vec grad, double eta)
     {
+        update(x, grad, eta, 0, 0);
+    }
+
+    @Override
+    public double update(Vec x, Vec grad, double eta, double bias, double biasGrad)
+    {
         gSqrd.mutableMultiply(rho);
+        biasGSqrd *= rho;
         for(IndexValue iv : grad)
         {
             final int indx = iv.getIndex();
@@ -95,6 +106,15 @@ public class AdaDelta implements GradientUpdater
         }
         //step 6 correction, apply rho to the left hand side
         deltaXSqrt.mutableMultiply(rho);
+        
+        //bias term
+        biasGSqrd += biasGrad*biasGrad*(1-rho);
+        double newDeltaBias = Math.sqrt((deltaBiasSqrt+eps)/(biasGSqrd+eps))*biasGrad;
+        double biasUpdate = eta*newDeltaBias;
+        deltaBiasSqrt += (1-rho)/rho*newDeltaBias*newDeltaBias;
+        deltaBiasSqrt *= rho;
+        
+        return biasUpdate;
     }
 
     @Override
@@ -108,6 +128,7 @@ public class AdaDelta implements GradientUpdater
     {
         gSqrd = new ScaledVector(new DenseVector(d));
         deltaXSqrt = new ScaledVector(new DenseVector(d));
+        deltaBiasSqrt = biasGSqrd = 0;
     }
     
 }
