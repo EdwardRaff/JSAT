@@ -9,8 +9,6 @@ import jsat.classifiers.CategoricalData;
 import jsat.classifiers.CategoricalResults;
 import jsat.classifiers.DataPoint;
 import jsat.exceptions.FailedToFitException;
-import jsat.linear.ConcatenatedVec;
-import jsat.linear.ConstantVector;
 import jsat.linear.DenseVector;
 import jsat.linear.IndexValue;
 import jsat.linear.ScaledVector;
@@ -64,11 +62,6 @@ public class LinearSGD extends BaseUpdateableClassifier implements UpdateableReg
     private GradientUpdater gradientUpdater;
     private double eta;
     private DecayRate decay;
-    /**
-     * Used to concatenate ws with a bias term so the gradient update can get 
-     * them all at once
-     */
-    private Vec[] wsWithBias;
     private Vec[] ws;
     private GradientUpdater[] gus;
     private double[] bs;
@@ -143,16 +136,11 @@ public class LinearSGD extends BaseUpdateableClassifier implements UpdateableReg
             this.ws = new Vec[toClone.ws.length];
             this.bs = new double[toClone.bs.length];
             this.gus = new GradientUpdater[toClone.gus.length];
-            this.wsWithBias = new Vec[toClone.wsWithBias.length];
             for(int i = 0; i < ws.length; i++)
             {
                 this.ws[i] = toClone.ws[i].clone();
                 this.bs[i] = toClone.bs[i];
                 this.gus[i] = toClone.gus[i].clone();
-                if(useBias)
-                    this.wsWithBias[i] = new ConcatenatedVec(Arrays.asList(this.ws[i], new DenseVector(this.bs, i, i+1)));
-                else
-                    this.wsWithBias[i] = this.ws[i];
             }
         }
     }
@@ -314,7 +302,6 @@ public class LinearSGD extends BaseUpdateableClassifier implements UpdateableReg
             ws = new Vec[1];
             bs = new double[1];
             gus = new GradientUpdater[1];
-            wsWithBias = new Vec[1];
         }
         else
         {
@@ -323,7 +310,6 @@ public class LinearSGD extends BaseUpdateableClassifier implements UpdateableReg
             ws = new Vec[predicting.getNumOfCategories()];
             bs = new double[predicting.getNumOfCategories()];
             gus = new GradientUpdater[predicting.getNumOfCategories()];
-            wsWithBias = new Vec[predicting.getNumOfCategories()];
         }
         setUpShared(numericAttributes);
     }
@@ -337,7 +323,6 @@ public class LinearSGD extends BaseUpdateableClassifier implements UpdateableReg
         ws = new Vec[1];
         bs = new double[1];
         gus = new GradientUpdater[1];
-        wsWithBias = new Vec[1];
         setUpShared(numericAttributes);
     }
     
@@ -349,16 +334,7 @@ public class LinearSGD extends BaseUpdateableClassifier implements UpdateableReg
         {
             ws[i] = new ScaledVector(new DenseVector(numericAttributes));
             gus[i] = gradientUpdater.clone();
-            if(useBias)
-            {
-                gus[i].setup(ws[i].length()+1);
-                wsWithBias[i] = new ConcatenatedVec(Arrays.asList(ws[i], new DenseVector(bs, i, i+1)));
-            }
-            else
-            {
-                gus[i].setup(ws[i].length());
-                wsWithBias[i] = ws[i];
-            }
+            gus[i].setup(ws[i].length());
         }
         time = 0;
         l1U = 0;
@@ -411,20 +387,11 @@ public class LinearSGD extends BaseUpdateableClassifier implements UpdateableReg
      */
     private void performGradientUpdate(final int i, final double eta_t, final double lossD, Vec x)
     {
-        if(gradientUpdater instanceof SimpleSGD)//special case, use orig code
-        {
-            ws[i].mutableSubtract(eta_t*lossD, x);
-            if(useBias)
-                bs[i] -= eta_t*lossD;
-        }
-        else//new code, can be a bit slower with bias term
-        {
-            final Vec grad = new ScaledVector(lossD, x);
-            if (useBias)
-                gus[i].update(wsWithBias[i], new ConcatenatedVec(Arrays.asList(grad, new ConstantVector(lossD, 1))), eta);
-            else
-                gus[i].update(ws[i], grad, eta);
-        }
+        final Vec grad = new ScaledVector(lossD, x);
+        if (useBias)
+            bs[i] -= gus[i].update(ws[i], grad, eta_t, bs[i], lossD);
+        else
+            gus[i].update(ws[i], grad, eta_t);
     }
     
     @Override
