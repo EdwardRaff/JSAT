@@ -1,10 +1,8 @@
 package jsat.classifiers.trees;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Random;
 import java.util.Set;
 import java.util.concurrent.Callable;
@@ -19,6 +17,7 @@ import jsat.classifiers.ClassificationDataSet;
 import jsat.classifiers.Classifier;
 import jsat.classifiers.DataPoint;
 import jsat.classifiers.boosting.Bagging;
+import jsat.classifiers.trees.ImpurityScore.ImpurityMeasure;
 import jsat.math.OnLineStatistics;
 import jsat.parameters.Parameter;
 import jsat.parameters.Parameterized;
@@ -66,6 +65,7 @@ public class RandomForest implements Classifier, Regressor, Parameterized
         autoFeatureSample();
         baseLearner = new RandomDecisionTree(1, Integer.MAX_VALUE, 3, TreePruner.PruningMethod.NONE, 1e-15);
         baseLearner.setNumericHandling(DecisionStump.NumericHandlingC.BINARY_BEST_GAIN);
+        baseLearner.setGainMethod(ImpurityMeasure.GINI);
     }
     
     /**
