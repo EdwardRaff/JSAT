@@ -126,112 +126,7 @@ public class LIBSVMLoader
      */
     public static RegressionDataSet loadR(Reader reader, double sparseRatio, int vectorLength) throws IOException
     {
-        StringBuilder builder = new StringBuilder(1024);
-        char[] buffer = new char[1024];
-        List<SparseVector> sparseVecs = new ArrayList<SparseVector>();
-        List<Double> targets = new DoubleList();
-        int maxLen=1;
-        
-        
-        int charsRead;
-        int pos = 0;
-        while(true)
-        {
-            //skip new lines and fill buffer
-            while(true)
-            {
-                if(pos < builder.length() && (builder.charAt(pos) == '\n' || builder.charAt(pos) == '\r'))
-                    pos++;
-                if(pos >= builder.length())
-                {
-                    charsRead = reader.read(buffer);
-                    if(charsRead >= 0)
-                        builder.append(buffer, 0, charsRead);
-                    else
-                        break;
-                }
-                else
-                    break;
-            }
-            if(pos == builder.length())//end of the file
-                break;
-            //now pos should be at the begining of a line, which should start with a key
-            int spaceLoc = findCharOrEOL(builder, buffer, reader, ' ', pos);
-            
-            //we now have the key
-            
-            double target = Double.parseDouble(builder.subSequence(pos, spaceLoc).toString());
-            pos = spaceLoc+1;//move to next char
-            getMoreChars(pos, builder, reader, buffer);//incase we hit the end
-            
-            targets.add(target);
-            if(builder.charAt(pos) == '\n' || builder.charAt(pos) == '\r')//new line, we had a line that was empty
-            {
-                //add the zero vector 
-                sparseVecs.add(new SparseVector(0, 0));
-                pos++;//now on the new line
-                builder.delete(0, pos);
-                pos = 0;
-                continue;
-            }
-            //else, sart parsing the non zero values
-            SparseVector sv = tempSparseVecs.get();
-            sv.zeroOut();
-            
-            while(builder.charAt(pos) != '\n' && builder.charAt(pos) != '\r')//keep going till we hit EOL
-            {
-                int colonPos = findCharOrEOL(builder, buffer, reader, ':', pos);
-                int index = StringUtils.parseInt(builder, pos, colonPos)-1;
-                pos = colonPos+1;//should now be the start of a float
-                int endPos = findCharOrEOL(builder, buffer, reader, ' ', pos);
-                double value;
-                if(endPos < 0)//we hit EOF, so assume the rest is our float
-                {
-                    if(fastLoad)
-                        value = StringUtils.parseDouble(builder, pos, builder.length());
-                    else
-                        value = Double.parseDouble(builder.subSequence(pos, builder.length()).toString());
-                }
-                else
-                {
-                    if(fastLoad)
-                        value = StringUtils.parseDouble(builder, pos, endPos);
-                    else
-                        value = Double.parseDouble(builder.subSequence(pos, endPos).toString());
-                }
-
-                //set and adjust
-                maxLen = Math.max(maxLen, index+1);
-                sv.setLength(maxLen);
-                sv.set(index, value);
-                //move and adjust buffer
-                pos = endPos+1;
-                getMoreChars(pos, builder, reader, buffer);
-                if(pos == builder.length())//we are EOF
-                {
-                    if (pos > 0)
-                        builder.delete(0, pos - 1);
-                    break;
-                }
-                builder.delete(0, pos);
-                pos = 0;
-                
-            }
-            
-            sparseVecs.add(sv.clone());
-        }
-        
-        RegressionDataSet rds = new RegressionDataSet(maxLen, new CategoricalData[0]);
-        for(int i = 0; i < sparseVecs.size(); i++)
-        {
-            SparseVector sv = sparseVecs.get(i);
-            sv.setLength(maxLen);
-            rds.addDataPoint(sv, new int[0], targets.get(i));
-        }
-        
-        rds.applyTransform(new DenseSparceTransform(sparseRatio));
-        
-        return rds;
+        return (RegressionDataSet) loadG(reader, sparseRatio, vectorLength, false);
     }
     
     /**
@@ -313,190 +208,255 @@ public class LIBSVMLoader
      */
     public static ClassificationDataSet loadC(Reader reader, double sparseRatio, int vectorLength) throws IOException
     {
-        StringBuilder builder = new StringBuilder(1024);
-        char[] buffer = new char[1024];
-        List<SparseVector> sparceVecs = new ArrayList<SparseVector>();
-        List<Double> cats = new ArrayList<Double>();
-        Map<Double, Integer> possibleCats = new HashMap<Double, Integer>();
-        int maxLen=1;
-        
-        int charsRead;
-        int pos = 0;
-        while(true)
-        {
-            //skip new lines and fill buffer
-            while(true)
-            {
-                if(pos < builder.length() && (builder.charAt(pos) == '\n' || builder.charAt(pos) == '\r'))
-                    pos++;
-                if(pos >= builder.length())
-                {
-                    charsRead = reader.read(buffer);
-                    if(charsRead >= 0)
-                        builder.append(buffer, 0, charsRead);
-                    else
-                        break;
-                }
-                else
-                    break;
-            }
-            if(pos >= builder.length())//end of the file
-                break;
-            //now pos should be at the begining of a line, which should start with a key
-            int spaceLoc = findCharOrEOL(builder, buffer, reader, ' ', pos);
-            
-            //we now have the key
-            
-            double cat = Double.parseDouble(builder.subSequence(pos, spaceLoc).toString());
-            pos = spaceLoc+1;//move to next char
-            getMoreChars(pos, builder, reader, buffer);//incase we hit the end
-            if(!possibleCats.containsKey(cat))
-                possibleCats.put(cat, possibleCats.size());
-            cats.add(cat);
-            if(builder.charAt(pos) == '\n' || builder.charAt(pos) == '\r')//new line, we had a line that was empty
-            {
-                //add the zero vector 
-                sparceVecs.add(new SparseVector(0, 0));
-                pos++;//now on the new line
-                builder.delete(0, pos);
-                pos = 0;
-                continue;
-            }
-            //else, sart parsing the non zero values
-            SparseVector sv = tempSparseVecs.get();
-            sv.zeroOut();
-            
-            while(builder.charAt(pos) != '\n' && builder.charAt(pos) != '\r')//keep going till we hit EOL
-            {
-                int colonPos = findCharOrEOL(builder, buffer, reader, ':', pos);
-                int index = StringUtils.parseInt(builder, pos, colonPos)-1;
-                pos = colonPos+1;//should now be the start of a float
-                int endPos = findCharOrEOL(builder, buffer, reader, ' ', pos);
-                double value;
-                if(endPos < 0)//we hit EOF, so assume the rest is our float
-                {
-                    if(fastLoad)
-                        value = StringUtils.parseDouble(builder, pos, builder.length());
-                    else
-                        value = Double.parseDouble(builder.subSequence(pos, builder.length()).toString());
-                }
-                else
-                {
-                    if(fastLoad)
-                        value = StringUtils.parseDouble(builder, pos, endPos);
-                    else
-                        value = Double.parseDouble(builder.subSequence(pos, endPos).toString());
-                }
-
-                //set and adjust
-                maxLen = Math.max(maxLen, index+1);
-                sv.setLength(maxLen);
-                sv.set(index, value);
-                
-                if(endPos < 0)//we hit EOF, so stop working
-                {
-                    //set builder empty and pos = 0 to force exit at the top of the loop
-                    builder.setLength(0);
-                    pos = 0;
-                    break;
-                }
-                
-                //move and adjust buffer
-                pos = endPos+1;
-                getMoreChars(pos, builder, reader, buffer);
-                if(pos >= builder.length())//we are EOF
-                {
-                    if (pos > 0)
-                        builder.delete(0, pos - 1);
-                    break;
-                }
-                builder.delete(0, pos);
-                pos = 0;
-                
-            }
-            
-            sparceVecs.add(sv.clone());
-        }
-        
-        CategoricalData predicting = new CategoricalData(possibleCats.size());
-        
-        if(vectorLength > 0)
-            maxLen = vectorLength;
-        
-        //Give categories a unique ordering to avoid loading issues based on the order categories are presented
-        List<Double> allCatKeys = new DoubleList(possibleCats.keySet());
-        Collections.sort(allCatKeys);
-        for(int i = 0; i < allCatKeys.size(); i++)
-            possibleCats.put(allCatKeys.get(i), i);
-        
-        ClassificationDataSet cds = new ClassificationDataSet(maxLen, new CategoricalData[0], predicting);
-        for(int i = 0; i < cats.size(); i++)
-        {
-            SparseVector vec = sparceVecs.get(i);
-            vec.setLength(maxLen);
-            cds.addDataPoint(vec, new int[0], possibleCats.get(cats.get(i)));
-        }
-        
-        cds.applyTransform(new DenseSparceTransform(sparseRatio));
-        
-        return cds;
+        return (ClassificationDataSet) loadG(reader, sparseRatio, vectorLength, true);
     }
-
+    
     /**
-     * Loads more characters into the builder if needed
-     * @param pos the current position in the builder
-     * @param builder the builder used as the current window
-     * @param isr the reader to get characters from
-     * @param buffer the buffer to load characters into that are then copied into the builder
-     * @throws IOException 
-     */
-    protected static void getMoreChars(int pos, StringBuilder builder, Reader isr, char[] buffer) throws IOException
-    {
-        int charsRead;
-        while(pos >= builder.length())
-        {
-            charsRead = isr.read(buffer);
-            if (charsRead >= 0)
-                builder.append(buffer, 0, charsRead);
-            else
-                break;
-        }
-    }
-
-    /**
-     * Finds the first occurrence of the given character or a new line is encountered
-     * @param builder the builder used as the current window
-     * @param buffer the buffer to load characters into that are then copied into the builder
-     * @param isr the reader to get characters from
-     * @param findMe the character to find
-     * @param start the position in the builder to start the search from
+     * Generic loader for both Classification and Regression interpretations. 
+     * @param reader
+     * @param sparseRatio
+     * @param vectorLength
+     * @param classification {@code true} to treat as classification,
+     * {@code false} to treat as regression
      * @return
      * @throws IOException 
      */
-    protected static int findCharOrEOL(StringBuilder builder, char[] buffer, Reader isr, char findMe, int start) throws IOException
+    private static DataSet loadG(Reader reader, double sparseRatio, int vectorLength, boolean classification) throws IOException
     {
-        //first find the key
-        int pos = start;
-        int bytesRead;
+        StringBuilder processBuffer = new StringBuilder(20);
+        StringBuilder charBuffer = new StringBuilder(1024);
+        char[] buffer = new char[1024];
+        List<SparseVector> sparceVecs = new ArrayList<SparseVector>();
+        /**
+         * The category "label" for each value loaded in
+         */
+        List<Double> labelVals = new DoubleList();
+        Map<Double, Integer> possibleCats = new HashMap<Double, Integer>();
+        int maxLen= 1;
+        
+        STATE state = STATE.INITIAL;
+        int position = 0;
+        SparseVector tempVec = new SparseVector(1, 1);
+        /**
+         * The index that we have parse out of a non zero pair
+         */
+        int indexProcessing = -1;
         while(true)
         {
             
-            if (builder.length() <= pos)
-                if ((bytesRead = isr.read(buffer)) < 0)
-                    return -1;
-                else if (bytesRead == 0)
-                    continue;//try again, we need to read something before we can continue
-                else
+            while(charBuffer.length()-position <= 1)//make sure we have chars to handle
+            {
+                //move everything to the front
+                charBuffer.delete(0, position);
+                position = 0;
+                
+                int read = reader.read(buffer);
+                if(read < 0)
+                    break;
+                charBuffer.append(buffer, 0, read);
+            }
+            
+            if(charBuffer.length()-position == 0)//EOF, no more chars
+            {
+                if(state == STATE.LABEL)//last line was empty
                 {
-                    builder.append(buffer, 0, bytesRead);
+                    double label = Double.parseDouble(processBuffer.toString());
+
+                    if (!possibleCats.containsKey(label) && classification)
+                        possibleCats.put(label, possibleCats.size());
+                    labelVals.add(label);
+                    
+                    sparceVecs.add(new SparseVector(maxLen, 0));
                 }
-            //we don't inc pos in the while loop b/c if we have to continue on a read of zero bytes we will skip when we shouldn't
-            if(builder.charAt(pos) != findMe && builder.charAt(pos) != '\n' && builder.charAt(pos) != '\r')
-                pos++;
-            else
+                else if(state == STATE.WHITESPACE_AFTER_LABEL)//last line was empty, but we have already eaten the label
+                {
+                    sparceVecs.add(new SparseVector(maxLen, 0));
+                }
+                else if(state == STATE.FEATURE_VALUE || state == STATE.WHITESPACE_AFTER_FEATURE)//line ended after a value pair
+                {
+                    //process the last value pair & insert into vec
+                    double value = StringUtils.parseDouble(processBuffer, 0, processBuffer.length());
+                    processBuffer.delete(0, processBuffer.length());
+
+                    maxLen = Math.max(maxLen, indexProcessing+1);
+                    tempVec.setLength(maxLen);
+                    if (value != 0)
+                        tempVec.set(indexProcessing, value);
+                    sparceVecs.add(tempVec.clone());
+                }
+                else
+                    throw new RuntimeException();
+                //we may have ended on a line, and have a sparse vec to add before returning
                 break;
+            }
+            
+            char ch = charBuffer.charAt(position);
+            switch(state)
+            {
+                case INITIAL:
+                    state = STATE.LABEL;
+                    break;
+                case LABEL:
+                    if (Character.isDigit(ch)  || ch == '.' || ch == 'E' || ch == 'e' || ch == '-' || ch == '+')
+                    {
+                        processBuffer.append(ch);
+                        position++;
+                    }
+                    else if (Character.isWhitespace(ch))//this gets spaces and new lines
+                    {
+                        double label = Double.parseDouble(processBuffer.toString());
+
+                        if (!possibleCats.containsKey(label) && classification)
+                            possibleCats.put(label, possibleCats.size());
+                        labelVals.add(label);
+
+                        //clean up and move to new state
+                        processBuffer.delete(0, processBuffer.length());
+                        
+                        if (ch == '\n' || ch == '\r')//empty line, so add a zero vector
+                        {
+                            tempVec.zeroOut();
+                            sparceVecs.add(new SparseVector(maxLen, 0));
+                            state = STATE.NEWLINE;
+                        }
+                        else//just white space
+                        {
+                            tempVec.zeroOut();
+                            state = STATE.WHITESPACE_AFTER_LABEL;
+                        }
+                    }
+                    else
+                        throw new RuntimeException("Invalid LIBSVM file");
+                    break;
+                case WHITESPACE_AFTER_LABEL:
+                    if (Character.isDigit(ch))//move to next state
+                    {
+                        state = STATE.FEATURE_INDEX;
+                    }
+                    else if (Character.isWhitespace(ch))
+                    {
+                        if (ch == '\n' || ch == '\r')
+                        {
+                            tempVec.zeroOut();
+                            sparceVecs.add(new SparseVector(maxLen, 0));///no features again, add zero vec
+                            state = STATE.NEWLINE;
+                        }
+                        else//normal whie space
+                            position++;
+                    }
+                    else
+                        throw new RuntimeException();
+                    break;
+                case FEATURE_INDEX:
+                    if (Character.isDigit(ch))
+                    {
+                        processBuffer.append(ch);
+                        position++;
+                    }
+                    else if(ch == ':')
+                    {
+                        indexProcessing = StringUtils.parseInt(processBuffer, 0, processBuffer.length())-1;
+                        processBuffer.delete(0, processBuffer.length());
+                        
+                        
+                        state = STATE.FEATURE_VALUE;
+                        position++;
+                    }
+                    else
+                        throw new RuntimeException();
+                    break;
+                case FEATURE_VALUE:
+                    //we need to accept all the values that may be part of a float value
+                    if (Character.isDigit(ch) || ch == '.' || ch == 'E' || ch == 'e' || ch == '-' || ch == '+')
+                    {
+                        processBuffer.append(ch);
+                        position++;
+                    }
+                    else
+                    {
+                        double value = StringUtils.parseDouble(processBuffer, 0, processBuffer.length());
+                        processBuffer.delete(0, processBuffer.length());
+   
+                        maxLen = Math.max(maxLen, indexProcessing+1);
+                        tempVec.setLength(maxLen);
+                        if (value != 0)
+                            tempVec.set(indexProcessing, value);
+                        
+                        if (Character.isWhitespace(ch))
+                            state = STATE.WHITESPACE_AFTER_FEATURE;
+                        else
+                            throw new RuntimeException();
+                    }
+                    
+                    break;
+                case WHITESPACE_AFTER_FEATURE:
+                    if (Character.isDigit(ch))
+                        state = STATE.FEATURE_INDEX;
+                    else if (Character.isWhitespace(ch))
+                    {
+                        if (ch == '\n' || ch == '\r')
+                        {
+                            sparceVecs.add(tempVec.clone());
+                            tempVec.zeroOut();
+                            state = STATE.NEWLINE;
+                        }
+                        else
+                            position++;
+                    }
+                    break;
+                case NEWLINE:
+                    if (ch == '\n' || ch == '\r')
+                        position++;
+                    else
+                    {
+                        state = STATE.LABEL;
+                    }
+                    break;
+            }
         }
-        return pos;
+        
+        if (vectorLength > 0)
+            if (maxLen > vectorLength)
+                throw new RuntimeException("Length given was " + vectorLength + ", but observed length was " + maxLen);
+            else
+                maxLen = vectorLength;
+
+        if(classification)
+        {
+            CategoricalData predicting = new CategoricalData(possibleCats.size());
+
+            //Give categories a unique ordering to avoid loading issues based on the order categories are presented
+            List<Double> allCatKeys = new DoubleList(possibleCats.keySet());
+            Collections.sort(allCatKeys);
+            for(int i = 0; i < allCatKeys.size(); i++)
+                possibleCats.put(allCatKeys.get(i), i);
+
+            ClassificationDataSet cds = new ClassificationDataSet(maxLen, new CategoricalData[0], predicting);
+            for(int i = 0; i < labelVals.size(); i++)
+            {
+                SparseVector vec = sparceVecs.get(i);
+                vec.setLength(maxLen);
+                cds.addDataPoint(vec, new int[0], possibleCats.get(labelVals.get(i)));
+            }
+
+            cds.applyTransform(new DenseSparceTransform(sparseRatio));
+
+            return cds;
+        }
+        else//regression
+        {
+            RegressionDataSet rds = new RegressionDataSet(maxLen, new CategoricalData[0]);
+            for(int i = 0; i < sparceVecs.size(); i++)
+            {
+                SparseVector sv = sparceVecs.get(i);
+                sv.setLength(maxLen);
+                rds.addDataPoint(sv, new int[0], labelVals.get(i));
+            }
+
+            rds.applyTransform(new DenseSparceTransform(sparseRatio));
+
+            return rds;
+        }
     }
     
     /**
@@ -540,20 +500,20 @@ public class LIBSVMLoader
     }
     
     /**
-     * Use thread local of sparse vectors to initialize construction. This way 
-     * we avoid unnecessary object allocation - one base vec will increase to 
-     * the needed size. Then a copy with only the needed space is added instead
-     * of the thread local vector. 
+     * Simple state machine used to parse LIBSVM files
      */
-    private static final ThreadLocal<SparseVector> tempSparseVecs = new ThreadLocal<SparseVector>()
+    private enum STATE
     {
-
-        @Override
-        protected SparseVector initialValue()
-        {
-            return new SparseVector(1);
-        }
-        
-    };
+        /**
+         * Initial state, doesn't actually do anything
+         */
+        INITIAL,
+        LABEL,
+        WHITESPACE_AFTER_LABEL,
+        FEATURE_INDEX,
+        FEATURE_VALUE,
+        WHITESPACE_AFTER_FEATURE,
+        NEWLINE,
+    }
     
 }
