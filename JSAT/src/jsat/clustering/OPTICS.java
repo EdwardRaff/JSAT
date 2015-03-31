@@ -521,6 +521,9 @@ public class OPTICS extends ClustererBase implements Parameterized
     @Override
     public int[] cluster(DataSet dataSet, int[] designations)
     {
+        if(dataSet.getNumNumericalVars() < 1)
+            throw new ClusterFailureException("OPTICS requires numeric features, and non are present.");
+        
         final int n = dataSet.getSampleSize();
         if(designations == null)
             designations = new int[n];
