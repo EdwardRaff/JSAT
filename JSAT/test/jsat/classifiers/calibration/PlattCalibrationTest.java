@@ -87,7 +87,7 @@ public class PlattCalibrationTest
                 Vec v = dp.getNumericalValues();
                 if(v.get(0) < 0.75)
                     assertEquals(1.0, pc.classify(dp).getProb(0), 0.2);
-                else if(1.15 < v.get(0) && v.get(0) < 1.85)
+                else if(1.3 < v.get(0) && v.get(0) < 1.7)
                     assertEquals(0.5, pc.classify(dp).getProb(0), 0.25);
                 else if(2.25 < v.get(0))
                     assertEquals(0.0, pc.classify(dp).getProb(0), 0.2);
