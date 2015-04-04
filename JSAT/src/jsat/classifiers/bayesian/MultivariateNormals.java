@@ -1,5 +1,6 @@
 package jsat.classifiers.bayesian;
 
+import jsat.classifiers.Classifier;
 import jsat.distributions.multivariate.NormalM;
 
 /**
@@ -25,9 +26,26 @@ public class MultivariateNormals extends BestClassDistribution
         super(new NormalM());
     }
 
+    /**
+     * Copy constructor
+     * @param toCopy the object to copy
+     */
+    public MultivariateNormals(MultivariateNormals toCopy)
+    {
+        super(toCopy);
+    }
+    
     @Override
     public boolean supportsWeightedData()
     {
         return true;
     }
+
+    @Override
+    public MultivariateNormals clone()
+    {
+        return new MultivariateNormals(this);
+    }
+    
+    
 }

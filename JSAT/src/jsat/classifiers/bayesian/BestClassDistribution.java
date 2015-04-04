@@ -36,28 +36,6 @@ public class BestClassDistribution implements Classifier, Parameterized
      */
     public static final boolean USE_PRIORS = true;
     
-    private final Parameter usePriorsParam = new BooleanParameter() {
-
-        @Override
-        public boolean getValue()
-        {
-            return useusPriors();
-        }
-
-        @Override
-        public boolean setValue(boolean val)
-        {
-            setUsePriors(val);
-            return true;
-        }
-
-        @Override
-        public String getASCIIName()
-        {
-            return "Use Priors";
-        }
-    };
-
     public BestClassDistribution(MultivariateDistribution baseDist)
     {
         this(baseDist, USE_PRIORS);
@@ -67,6 +45,23 @@ public class BestClassDistribution implements Classifier, Parameterized
     {
         this.baseDist = baseDist;
         this.usePriors = usePriors;
+    }
+    
+    /**
+     * Copy constructor
+     * @param toCopy the object to copy
+     */
+    public BestClassDistribution(BestClassDistribution toCopy)
+    {
+        if(toCopy.priors != null)
+            this.priors = Arrays.copyOf(toCopy.priors, toCopy.priors.length);
+        this.baseDist = toCopy.baseDist.clone();
+        if(toCopy.dists  != null)
+        {
+            this.dists = new ArrayList<MultivariateDistribution>(toCopy.dists.size());
+            for(MultivariateDistribution md : toCopy.dists)
+                this.dists.add(md.clone());
+        }
     }
     
     /**
@@ -85,7 +80,7 @@ public class BestClassDistribution implements Classifier, Parameterized
      * @return {@code true} if the prior probabilities are being used, 
      * {@code false} if not. 
      */
-    public boolean useusPriors()
+    public boolean isUsePriors()
     {
         return usePriors;
     }
@@ -183,40 +178,19 @@ public class BestClassDistribution implements Classifier, Parameterized
     @Override
     public Classifier clone()
     {
-        BestClassDistribution clone = new BestClassDistribution(baseDist.clone(), usePriors);
-        
-        if(this.priors != null)
-            clone.priors = Arrays.copyOf(this.priors, this.priors.length);
-        if(this.dists  != null)
-        {
-            clone.dists = new ArrayList<MultivariateDistribution>(this.dists.size());
-            for(MultivariateDistribution md : this.dists)
-                clone.dists.add(md.clone());
-        }
-        
-        return clone;
+        return new BestClassDistribution(this);
     }
 
     @Override
     public List<Parameter> getParameters()
     {
-        List<Parameter> parameters = new ArrayList<Parameter>();
-        
-        parameters.add(usePriorsParam);
-        if(baseDist instanceof Parameterized)
-            parameters.addAll(((Parameterized)baseDist).getParameters());
-        return parameters;
+        return Parameter.getParamsFromMethods(this);
     }
 
     @Override
     public Parameter getParameter(String paramName)
     {
-        if(paramName.equals(usePriorsParam.getASCIIName()))
-            return usePriorsParam;
-        else if(baseDist instanceof Parameterized)
-            return ((Parameterized)baseDist).getParameter(paramName);
-        else
-            return null;
+        return Parameter.toParameterMap(getParameters()).get(paramName);
     }
     
 }
