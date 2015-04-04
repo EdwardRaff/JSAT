@@ -76,7 +76,10 @@ public class RandomDecisionTree extends DecisionTree
     protected Node makeNodeC(List<DataPointPair<Integer>> dataPoints, Set<Integer> options, int depth, ExecutorService threadPool, ModifiableCountDownLatch mcdl)
     {
         if(dataPoints.isEmpty())
+        {
+            mcdl.countDown();
             return null;
+        }
         final int featureCount = dataPoints.get(0).getDataPoint().numCategoricalValues()+dataPoints.get(0).getDataPoint().numNumericalValues();
         fillWithRandomFeatures(options, featureCount);
         return super.makeNodeC(dataPoints, options, depth, threadPool, mcdl); //To change body of generated methods, choose Tools | Templates.
@@ -86,7 +89,10 @@ public class RandomDecisionTree extends DecisionTree
     protected Node makeNodeR(List<DataPointPair<Double>> dataPoints, Set<Integer> options, int depth, ExecutorService threadPool, ModifiableCountDownLatch mcdl)
     {
         if(dataPoints.isEmpty())
+        {
+            mcdl.countDown();
             return null;
+        }
         final int featureCount = dataPoints.get(0).getDataPoint().numCategoricalValues()+dataPoints.get(0).getDataPoint().numNumericalValues();
         fillWithRandomFeatures(options, featureCount);
         return super.makeNodeR(dataPoints, options, depth, threadPool, mcdl); //To change body of generated methods, choose Tools | Templates.

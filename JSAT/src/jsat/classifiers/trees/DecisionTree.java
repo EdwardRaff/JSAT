@@ -417,6 +417,11 @@ public class DecisionTree implements Classifier, Regressor, Parameterized, TreeL
         }
         DecisionStump stump = baseStump.clone();
         final List<List<DataPointPair<Double>>> splits = stump.trainR(dataPoints, options);
+        if(splits == null)//an error occured, probably not enough data for many categorical values
+        {
+            mcdl.countDown();
+            return null;
+        }
         
         final Node node = new Node(stump);
         if(stump.getNumberOfPaths() > 1)//If there is 1 path, we are perfectly classifier - nothing more to do 

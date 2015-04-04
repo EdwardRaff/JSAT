@@ -57,6 +57,11 @@ public class RandomForest implements Classifier, Regressor, Parameterized
     private double outOfBagError;
     private RandomDecisionTree baseLearner;
     private List<DecisionTree> forest;
+    
+    public RandomForest()
+    {
+        this(100);
+    }
 
     public RandomForest(int maxForestSize)
     {
