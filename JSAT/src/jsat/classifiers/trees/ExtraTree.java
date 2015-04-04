@@ -255,8 +255,9 @@ public class ExtraTree implements Classifier, Regressor, TreeLearner, Parameteri
                     for(DataPointPair<Integer> dpp : subSet)
                     {
                         DataPoint dp = dpp.getDataPoint();
-                        int dest = leftSide.contains(a) ? 0 : 1;
+                        int dest = leftSide.contains(dpp.getDataPoint().getCategoricalValue(a)) ? 0 : 1;
                         scores[dest].addPoint(dp, dpp.getPair());
+                        aSplit.get(dest).add(dpp);
                     }
                     
                 }
@@ -270,6 +271,7 @@ public class ExtraTree implements Classifier, Regressor, TreeLearner, Parameteri
                     {
                         DataPoint dp = dpp.getDataPoint();
                         scores[dp.getCategoricalValue(a)].addPoint(dp, dpp.getPair());
+                        aSplit.get(dp.getCategoricalValue(a)).add(dpp);
                     }
                 }
             }
@@ -405,8 +407,9 @@ public class ExtraTree implements Classifier, Regressor, TreeLearner, Parameteri
                     for(DataPointPair<Double> dpp : subSet)
                     {
                         DataPoint dp = dpp.getDataPoint();
-                        int dest = leftSide.contains(a) ? 0 : 1;
+                        int dest = leftSide.contains(dpp.getDataPoint().getCategoricalValue(a)) ? 0 : 1;
                         stats[dest].add(dpp.getPair(), dp.getWeight());
+                        aSplit.get(dest).add(dpp);
                     }
                     
                 }
@@ -420,6 +423,7 @@ public class ExtraTree implements Classifier, Regressor, TreeLearner, Parameteri
                     {
                         DataPoint dp = dpp.getDataPoint();
                         stats[dp.getCategoricalValue(a)].add(dpp.getPair(), dp.getWeight());
+                        aSplit.get(dp.getCategoricalValue(a)).add(dpp);
                     }
                 }
             }
@@ -477,21 +481,26 @@ public class ExtraTree implements Classifier, Regressor, TreeLearner, Parameteri
         //We are no longer using the full array of all values
         fillStack(reusableLists, Arrays.asList(subSet));
         NodeBase toReturn;
-        if(bestAttribute < catInfo.length)
-            if(bestSplit.size() == 2)//2 paths only
-                toReturn = new NodeRCat(bestAttribute, bestLeftSide, setScore.getMean());
-            else
-            {
-                toReturn = new NodeRCat(goTo, bestSplit.size(), setScore.getMean());
-                features.remove(new Integer(bestAttribute));//Feature nolonger viable in this case
-            }
-        else
-            toReturn = new NodeRNum(bestAttribute-catInfo.length, bestThreshold, setScore.getMean());
-        for(int i = 0; i < toReturn.children.length; i++)
+        if (bestAttribute >= 0)
         {
-            toReturn.children[i] = train(bestScores[i], bestSplit.get(i), features, catInfo, rand, reusableLists);
+            if (bestAttribute < catInfo.length)
+                if (bestSplit.size() == 2)//2 paths only
+                    toReturn = new NodeRCat(bestAttribute, bestLeftSide, setScore.getMean());
+                else
+                {
+                    toReturn = new NodeRCat(goTo, bestSplit.size(), setScore.getMean());
+                    features.remove(new Integer(bestAttribute));//Feature nolonger viable in this case
+                }
+            else
+                toReturn = new NodeRNum(bestAttribute - catInfo.length, bestThreshold, setScore.getMean());
+
+            for (int i = 0; i < toReturn.children.length; i++)
+            {
+                toReturn.children[i] = train(bestScores[i], bestSplit.get(i), features, catInfo, rand, reusableLists);
+            }
+            return toReturn;
         }
-        return toReturn;
+        return new NodeR(setScore.getMean());
     }
     
     @Override
