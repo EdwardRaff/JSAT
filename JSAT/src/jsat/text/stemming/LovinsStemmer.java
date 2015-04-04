@@ -1,9 +1,7 @@
 
 package jsat.text.stemming;
 
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 
 /**
  * Implements Lovins' stemming algorithm described here 
@@ -159,10 +157,10 @@ public class LovinsStemmer extends Stemmer
         put("o", "A"); put("s", "W"); put("y", "B");	
     }};
     
-    private static final List<HashMap<String, String>> endings = new ArrayList<HashMap<String, String>>(11)
+    private static final HashMap<String, String> endings = new HashMap<String, String>()
     {{
-        add(ending11); add(ending10); add(ending9); add(ending8); add(ending7); add(ending6);
-        add(ending5); add(ending4); add(ending3); add(ending2); add(ending1);
+        putAll(ending11); putAll(ending10); putAll(ending9); putAll(ending8); putAll(ending7); putAll(ending6);
+        putAll(ending5); putAll(ending4); putAll(ending3); putAll(ending2); putAll(ending1);
     }};
     
     
@@ -173,7 +171,7 @@ public class LovinsStemmer extends Stemmer
         for(int i = Math.min(11, word.length()-2); i > 0; i--)
         {
             String ending = word.substring(word.length()-i);
-            String condition = endings.get(i-1).get(ending);
+            String condition = endings.get(ending);
             if(condition == null)
                 continue;
             
@@ -313,7 +311,8 @@ public class LovinsStemmer extends Stemmer
     private static String fixStem(String stem)
     {
         //Rule 1 remove one of double b, d, g, l, m, n, p, r, s, t
-        stem = stem.replaceFirst("(dd|bb|gg|ll|mm|nn|pp|rr|ss|tt)$", "");
+        char lastChar = stem.charAt(stem.length()-1);
+        stem = stem.replaceFirst("(dd|bb|gg|ll|mm|nn|pp|rr|ss|tt)$", "" + lastChar);
         //Rule 2
         stem = stem.replaceFirst("iev$", "ief");
         //Rule 3
@@ -331,7 +330,8 @@ public class LovinsStemmer extends Stemmer
         //Rule 8
         stem = stem.replaceFirst("olv$", "olut");
         //Rule 9
-        stem = stem.replaceFirst("[^aoi]ul$", "l");
+        if(stem.endsWith("ul") && !stem.endsWith("aoiul"))
+            stem = stem.replaceFirst("[^aoi]ul$", "l");
         //Rule 10
         stem = stem.replaceFirst("bex$", "bic");
         //Rule 11
@@ -361,7 +361,8 @@ public class LovinsStemmer extends Stemmer
         //Rule 23
         stem = stem.replaceFirst("pand$", "pans");
         //Rule 24
-        stem = stem.replaceFirst("[^s]end$", "ens");
+        if(stem.endsWith("end") && !stem.endsWith("send"))
+            stem = stem.replaceFirst("[^s]end$", "ens");
         //Rule 25
         stem = stem.replaceFirst("ond$", "ons");
         //Rule 26
@@ -373,11 +374,13 @@ public class LovinsStemmer extends Stemmer
         //Rule 29
         stem = stem.replaceFirst("mit$", "mis");
         //Rule 30
-        stem = stem.replaceFirst("[^m]ent$", "ens");
+        if(stem.endsWith("ent") && !stem.endsWith("ment"))
+            stem = stem.replaceFirst("[^m]ent$", "ens");
         //Rule 31
         stem = stem.replaceFirst("ert$", "ers");
         //Rule 32
-        stem = stem.replaceFirst("[^n]et$", "es");
+        if(stem.endsWith("et") && !stem.endsWith("net"))
+            stem = stem.replaceFirst("et$", "es");
         //Rule 33
         stem = stem.replaceFirst("yt$", "ys");
         //Rule 34
