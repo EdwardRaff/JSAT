@@ -131,7 +131,7 @@ public class IsotonicCalibration extends BinaryCalibration
     }
 
     @Override
-    public BinaryCalibration clone()
+    public IsotonicCalibration clone()
     {
         return new IsotonicCalibration(this);
     }
