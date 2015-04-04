@@ -38,6 +38,17 @@ public class OneVSAll implements Classifier, Parameterized
     /**
      * Creates a new One VS All classifier. 
      * 
+     * @param baseClassifier the base classifier to replicate  
+     * @see #setConcurrentTraining(boolean) 
+     */
+    public OneVSAll(Classifier baseClassifier)
+    {
+        this(baseClassifier, true);
+    }
+    
+    /**
+     * Creates a new One VS All classifier. 
+     * 
      * @param baseClassifier the base classifier to replicate
      * @param concurrentTraining controls whether or not classifiers are trained 
      * simultaneously or using sequentially using their 

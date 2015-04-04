@@ -150,12 +150,15 @@ public class Rocchio implements Classifier
     }
 
     @Override
-    public Classifier clone()
+    public Rocchio clone()
     {
         Rocchio copy = new Rocchio(this.dm);
-        copy.rocVecs = new ArrayList<Vec>(this.rocVecs.size());
-        for(Vec v : this.rocVecs)
-            copy.rocVecs.add(v.clone());
+        if(this.rocVecs != null)
+        {
+            copy.rocVecs = new ArrayList<Vec>(this.rocVecs.size());
+            for(Vec v : this.rocVecs)
+                copy.rocVecs.add(v.clone());
+        }
         if(this.summaryConsts != null)
             copy.summaryConsts = Arrays.copyOf(summaryConsts, summaryConsts.length);
         return copy;

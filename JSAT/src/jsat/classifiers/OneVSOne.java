@@ -180,7 +180,7 @@ public class OneVSOne implements Classifier
     }
 
     @Override
-    public Classifier clone()
+    public OneVSOne clone()
     {
         OneVSOne clone = new OneVSOne(baseClassifier.clone(), concurrentTrain);
         if (oneVone != null)

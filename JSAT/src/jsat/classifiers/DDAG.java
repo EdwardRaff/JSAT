@@ -70,7 +70,7 @@ public class DDAG extends OneVSOne
     }
 
     @Override
-    public Classifier clone()
+    public DDAG clone()
     {
         DDAG clone = new DDAG(baseClassifier.clone(), isConcurrentTraining());
         if (oneVone != null)
