@@ -9,7 +9,7 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <maven.compiler.source>1.6</maven.compiler.source>
         <maven.compiler.target>1.6</maven.compiler.target>
-        <skipTests>true</skipTests><!--configured netbeans to set this to false when we ask it to actually run the tests-->
+        <skipTests>false</skipTests><!--configured netbeans to set this to true when we ask the IDE to build -->
     </properties>
     <build>
         <sourceDirectory>src</sourceDirectory>
