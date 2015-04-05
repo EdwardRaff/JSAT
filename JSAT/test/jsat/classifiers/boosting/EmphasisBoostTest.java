@@ -19,11 +19,15 @@ package jsat.classifiers.boosting;
 
 import java.util.List;
 import java.util.concurrent.ExecutorService;
-import jsat.classifiers.CategoricalResults;
-import jsat.classifiers.ClassificationDataSet;
-import jsat.classifiers.Classifier;
-import jsat.classifiers.DataPoint;
+import java.util.concurrent.Executors;
+import jsat.FixedProblems;
+import jsat.classifiers.*;
+import jsat.classifiers.trees.DecisionStump;
+import jsat.classifiers.trees.DecisionTree;
+import jsat.classifiers.trees.TreePruner;
+import jsat.datatransform.LinearTransform;
 import jsat.parameters.Parameter;
+import jsat.utils.SystemInfo;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -62,213 +66,76 @@ public class EmphasisBoostTest
     {
     }
 
-    /**
-     * Test of getMaxIterations method, of class EmphasisBoost.
-     */
-    @Test
-    public void testGetMaxIterations()
-    {
-        System.out.println("getMaxIterations");
-        EmphasisBoost instance = null;
-        int expResult = 0;
-        int result = instance.getMaxIterations();
-        assertEquals(expResult, result);
-        // TODO review the generated test code and remove the default call to fail.
-        fail("The test case is a prototype.");
-    }
-
-    /**
-     * Test of setMaxIterations method, of class EmphasisBoost.
-     */
-    @Test
-    public void testSetMaxIterations()
-    {
-        System.out.println("setMaxIterations");
-        int maxIterations = 0;
-        EmphasisBoost instance = null;
-        instance.setMaxIterations(maxIterations);
-        // TODO review the generated test code and remove the default call to fail.
-        fail("The test case is a prototype.");
-    }
-
-    /**
-     * Test of getWeakLearner method, of class EmphasisBoost.
-     */
-    @Test
-    public void testGetWeakLearner()
-    {
-        System.out.println("getWeakLearner");
-        EmphasisBoost instance = null;
-        Classifier expResult = null;
-        Classifier result = instance.getWeakLearner();
-        assertEquals(expResult, result);
-        // TODO review the generated test code and remove the default call to fail.
-        fail("The test case is a prototype.");
-    }
-
-    /**
-     * Test of setWeakLearner method, of class EmphasisBoost.
-     */
-    @Test
-    public void testSetWeakLearner()
-    {
-        System.out.println("setWeakLearner");
-        Classifier weakLearner = null;
-        EmphasisBoost instance = null;
-        instance.setWeakLearner(weakLearner);
-        // TODO review the generated test code and remove the default call to fail.
-        fail("The test case is a prototype.");
-    }
-
-    /**
-     * Test of setLambda method, of class EmphasisBoost.
-     */
-    @Test
-    public void testSetLambda()
-    {
-        System.out.println("setLambda");
-        double lambda = 0.0;
-        EmphasisBoost instance = null;
-        instance.setLambda(lambda);
-        // TODO review the generated test code and remove the default call to fail.
-        fail("The test case is a prototype.");
-    }
-
-    /**
-     * Test of getLambda method, of class EmphasisBoost.
-     */
-    @Test
-    public void testGetLambda()
-    {
-        System.out.println("getLambda");
-        EmphasisBoost instance = null;
-        double expResult = 0.0;
-        double result = instance.getLambda();
-        assertEquals(expResult, result, 0.0);
-        // TODO review the generated test code and remove the default call to fail.
-        fail("The test case is a prototype.");
-    }
-
-    /**
-     * Test of getScore method, of class EmphasisBoost.
-     */
-    @Test
-    public void testGetScore()
-    {
-        System.out.println("getScore");
-        DataPoint dp = null;
-        EmphasisBoost instance = null;
-        double expResult = 0.0;
-        double result = instance.getScore(dp);
-        assertEquals(expResult, result, 0.0);
-        // TODO review the generated test code and remove the default call to fail.
-        fail("The test case is a prototype.");
-    }
-
-    /**
-     * Test of classify method, of class EmphasisBoost.
-     */
-    @Test
-    public void testClassify()
-    {
-        System.out.println("classify");
-        DataPoint data = null;
-        EmphasisBoost instance = null;
-        CategoricalResults expResult = null;
-        CategoricalResults result = instance.classify(data);
-        assertEquals(expResult, result);
-        // TODO review the generated test code and remove the default call to fail.
-        fail("The test case is a prototype.");
-    }
-
-    /**
-     * Test of trainC method, of class EmphasisBoost.
-     */
     @Test
     public void testTrainC_ClassificationDataSet_ExecutorService()
     {
         System.out.println("trainC");
-        ClassificationDataSet dataSet = null;
-        ExecutorService threadPool = null;
-        EmphasisBoost instance = null;
-        instance.trainC(dataSet, threadPool);
-        // TODO review the generated test code and remove the default call to fail.
-        fail("The test case is a prototype.");
+
+        EmphasisBoost instance = new EmphasisBoost(new DecisionStump(), 50, 0.5);
+
+        ExecutorService ex = Executors.newFixedThreadPool(SystemInfo.LogicalCores);
+
+        ClassificationDataSet train = FixedProblems.getCircles(1000, .1, 10.0);
+        ClassificationDataSet test = FixedProblems.getCircles(100, .1, 10.0);
+
+        ClassificationModelEvaluation cme = new ClassificationModelEvaluation(instance, train, ex);
+        cme.evaluateTestSet(test);
+
+        assertTrue(cme.getErrorRate() <= 0.15);
+
+        ex.shutdownNow();
     }
 
-    /**
-     * Test of trainC method, of class EmphasisBoost.
-     */
     @Test
     public void testTrainC_ClassificationDataSet()
     {
         System.out.println("trainC");
-        ClassificationDataSet dataSet = null;
-        EmphasisBoost instance = null;
-        instance.trainC(dataSet);
-        // TODO review the generated test code and remove the default call to fail.
-        fail("The test case is a prototype.");
+
+        EmphasisBoost instance = new EmphasisBoost(new DecisionStump(), 50, 0.5);
+
+        ClassificationDataSet train = FixedProblems.getCircles(1000, .1, 10.0);
+        ClassificationDataSet test = FixedProblems.getCircles(100, .1, 10.0);
+
+        ClassificationModelEvaluation cme = new ClassificationModelEvaluation(instance, train);
+        cme.evaluateTestSet(test);
+
+        assertTrue(cme.getErrorRate() <= 0.15);
+
     }
 
-    /**
-     * Test of supportsWeightedData method, of class EmphasisBoost.
-     */
-    @Test
-    public void testSupportsWeightedData()
-    {
-        System.out.println("supportsWeightedData");
-        EmphasisBoost instance = null;
-        boolean expResult = false;
-        boolean result = instance.supportsWeightedData();
-        assertEquals(expResult, result);
-        // TODO review the generated test code and remove the default call to fail.
-        fail("The test case is a prototype.");
-    }
-
-    /**
-     * Test of clone method, of class EmphasisBoost.
-     */
     @Test
     public void testClone()
     {
         System.out.println("clone");
-        EmphasisBoost instance = null;
-        EmphasisBoost expResult = null;
+
+        EmphasisBoost instance = new EmphasisBoost(new DecisionTree(10, 10, TreePruner.PruningMethod.NONE, 0.1), 50, 0.5);
+
+        ClassificationDataSet t1 = FixedProblems.getCircles(1000, 0.1, 10.0);
+        ClassificationDataSet t2 = FixedProblems.getCircles(1000, 0.1, 10.0);
+        
+        t2.applyTransform(new LinearTransform(t2));
+
+        int errors;
+        
+        instance = instance.clone();
+
+        instance.trainC(t1);
+
         EmphasisBoost result = instance.clone();
-        assertEquals(expResult, result);
-        // TODO review the generated test code and remove the default call to fail.
-        fail("The test case is a prototype.");
-    }
+        
+        errors = 0;
+        for (int i = 0; i < t1.getSampleSize(); i++)
+            errors += Math.abs(t1.getDataPointCategory(i) -  result.classify(t1.getDataPoint(i)).mostLikely());
+        assertTrue(errors < 100);
+        result.trainC(t2);
 
-    /**
-     * Test of getParameters method, of class EmphasisBoost.
-     */
-    @Test
-    public void testGetParameters()
-    {
-        System.out.println("getParameters");
-        EmphasisBoost instance = null;
-        List<Parameter> expResult = null;
-        List<Parameter> result = instance.getParameters();
-        assertEquals(expResult, result);
-        // TODO review the generated test code and remove the default call to fail.
-        fail("The test case is a prototype.");
-    }
+        for (int i = 0; i < t1.getSampleSize(); i++)
+            errors += Math.abs(t1.getDataPointCategory(i) -  instance.classify(t1.getDataPoint(i)).mostLikely());
+        assertTrue(errors < 100);
 
-    /**
-     * Test of getParameter method, of class EmphasisBoost.
-     */
-    @Test
-    public void testGetParameter()
-    {
-        System.out.println("getParameter");
-        String paramName = "";
-        EmphasisBoost instance = null;
-        Parameter expResult = null;
-        Parameter result = instance.getParameter(paramName);
-        assertEquals(expResult, result);
-        // TODO review the generated test code and remove the default call to fail.
-        fail("The test case is a prototype.");
+        for (int i = 0; i < t2.getSampleSize(); i++)
+            errors += Math.abs(t2.getDataPointCategory(i) -  result.classify(t2.getDataPoint(i)).mostLikely());
+        assertTrue(errors < 100);
     }
     
 }
