@@ -479,7 +479,7 @@ public class VPTree<V extends Vec> implements VectorCollection<V>
             if(this.left != null)
                 clone.left = this.left.clone();
             if(this.right != null)
-                clone.left = this.right.clone();
+                clone.right = this.right.clone();
             return clone;
         }
     }
