@@ -8,15 +8,21 @@ import java.util.List;
 import java.util.Random;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import jsat.FixedProblems;
 import jsat.classifiers.CategoricalResults;
 import jsat.classifiers.ClassificationDataSet;
 import jsat.classifiers.Classifier;
 import jsat.classifiers.DataPoint;
+import jsat.classifiers.svm.DCDs;
 import jsat.distributions.Normal;
+import jsat.linear.distancemetrics.EuclideanDistance;
 import jsat.parameters.Parameter;
 import jsat.regression.RegressionDataSet;
+import jsat.regression.RegressionModelEvaluation;
+import jsat.regression.Regressor;
 import jsat.utils.GridDataGenerator;
 import jsat.utils.SystemInfo;
+import jsat.utils.random.XORWOW;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -63,7 +69,44 @@ public class NearestNeighbourTest
     public void tearDown()
     {
     }
+    
+    @Test
+    public void testTrainC_RegressionDataSet()
+    {
+        System.out.println("train");
 
+        NearestNeighbour instance = new NearestNeighbour(7);
+
+        RegressionDataSet train = FixedProblems.getLinearRegression(1000, new XORWOW());
+        RegressionDataSet test = FixedProblems.getLinearRegression(100, new XORWOW());
+
+        RegressionModelEvaluation rme = new RegressionModelEvaluation(instance, train);
+        rme.evaluateTestSet(test);
+
+        assertTrue(rme.getMeanError() <= test.getTargetValues().mean() * 0.5);
+
+    }
+
+    @Test
+    public void testTrainC_RegressionDataSet_ExecutorService()
+    {
+        System.out.println("train");
+
+        NearestNeighbour instance = new NearestNeighbour(7);
+
+        ExecutorService ex = Executors.newFixedThreadPool(SystemInfo.LogicalCores);
+
+        RegressionDataSet train = FixedProblems.getLinearRegression(1000, new XORWOW());
+        RegressionDataSet test = FixedProblems.getLinearRegression(100, new XORWOW());
+
+        RegressionModelEvaluation rme = new RegressionModelEvaluation(instance, train, ex);
+        rme.evaluateTestSet(test);
+
+        assertTrue(rme.getMeanError() <= test.getTargetValues().mean() * 0.5);
+
+        ex.shutdownNow();
+    }
+    
     @Test
     public void testTrainC_ClassificationDataSet()
     {
