@@ -139,7 +139,7 @@ public class EuclideanDistance implements DenseSparseMetric
             start = end;
         }
 
-        return DoubleList.unmodifiableView(cache, cache.length);
+        return DoubleList.view(cache, cache.length);
     }
 
     @Override

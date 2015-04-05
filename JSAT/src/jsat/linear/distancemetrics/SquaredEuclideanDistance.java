@@ -128,7 +128,7 @@ public class SquaredEuclideanDistance implements DistanceMetric
             start = end;
         }
 
-        return DoubleList.unmodifiableView(cache, cache.length);
+        return DoubleList.view(cache, cache.length);
     }
     
     @Override
