@@ -127,7 +127,7 @@ public class RTree<V extends Vec> implements VectorCollection<V>
     @Override
     public VectorCollection<V> clone()
     {
-        throw new UnsupportedOperationException("Not supported yet.");
+        return new RTree<V>(this);
     }
     
     private class RNode<V extends Vec> implements Comparable<RNode<V>>, Cloneable
@@ -512,6 +512,20 @@ public class RTree<V extends Vec> implements VectorCollection<V>
         this.dcScratch = new DenseVector(dim);
         this.dm = dm;
     }
+
+    /**
+     * Copy constructor
+     * @param toCopy 
+     */
+    public RTree(RTree toCopy)
+    {
+        this(toCopy.dim, toCopy.dm.clone(), toCopy.M, toCopy.m);
+        this.size = toCopy.size;
+        if(toCopy.root != null)
+            this.root = toCopy.root;
+    }
+    
+    
     
     private RNode<V> chooseLeaf(Vec v)
     {

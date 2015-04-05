@@ -109,6 +109,9 @@ public class RandomBallCover<V extends Vec> implements VectorCollection<V>
     private RandomBallCover(RandomBallCover<V> other)
     {
         this.dm = other.dm.clone();
+        this.size = other.size;
+        this.allVecs = new ArrayList<V>(other.allVecs);
+        this.distCache = new DoubleList(other.distCache);
         this.ownedVecs = new ArrayList<List<Integer>>(other.ownedVecs.size());
         this.ownedRDists = new ArrayList<DoubleList>(other.ownedRDists.size());
         for(int i = 0; i < other.ownedRDists.size(); i++)

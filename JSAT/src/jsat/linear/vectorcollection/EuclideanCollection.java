@@ -1,6 +1,7 @@
 package jsat.linear.vectorcollection;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
@@ -46,6 +47,16 @@ public class EuclideanCollection<V extends Vec> implements VectorCollection<V>
         this(source, new FakeExecutor());
     }
 
+    /**
+     * Copy constructor
+     * @param toCopy the object to copy
+     */
+    public EuclideanCollection(EuclideanCollection toCopy)
+    {
+        this.source = new ArrayList<V>(toCopy.source);
+        this.dotCache = Arrays.copyOf(toCopy.dotCache, toCopy.dotCache.length);
+    }
+    
     /**
      * Creates a new Vector Collection that does an efficient brute force search
      * for only the Euclidean distance. 
@@ -130,9 +141,9 @@ public class EuclideanCollection<V extends Vec> implements VectorCollection<V>
     }
 
     @Override
-    public VectorCollection<V> clone()
+    public EuclideanCollection<V> clone()
     {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        return new EuclideanCollection<V>(this);
     }
     
     public static class EuclideanCollectionFactory<V extends Vec> implements VectorCollectionFactory<V>

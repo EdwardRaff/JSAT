@@ -17,7 +17,6 @@ import jsat.utils.BoundedSortedList;
 import jsat.utils.DoubleList;
 import jsat.utils.FakeExecutor;
 import jsat.utils.IntList;
-import jsat.utils.ListUtils;
 import jsat.utils.ModifiableCountDownLatch;
 import jsat.utils.Pair;
 import jsat.utils.ProbailityMatch;
@@ -46,7 +45,7 @@ public class VPTree<V extends Vec> implements VectorCollection<V>
     private Random rand;
     private int sampleSize;
     private int searchIterations;
-    private TreeNode root;
+    private volatile TreeNode root;
     private VPSelection vpSelection;
     private int size;
     private int maxLeafSize = 5;
@@ -126,12 +125,13 @@ public class VPTree<V extends Vec> implements VectorCollection<V>
     protected VPTree(VPTree<V> toClone)
     {
         this.dm = toClone.dm.clone();
-        this.rand = new Random(rand.nextInt());
+        this.rand = this.rand == null ? null : new Random(rand.nextInt());
         this.sampleSize = toClone.sampleSize;
         this.searchIterations = toClone.searchIterations;
         this.root = toClone.root == null ? null : toClone.root.clone();
         this.vpSelection = toClone.vpSelection;
         this.size = toClone.size;
+        this.maxLeafSize = toClone.maxLeafSize;
         if(toClone.allVecs != null)
             this.allVecs = new ArrayList<V>(toClone.allVecs);
         if(toClone.distCache != null)
@@ -184,9 +184,8 @@ public class VPTree<V extends Vec> implements VectorCollection<V>
      */
     private int sortSplitSet(final List<Pair<Double, Integer>> S, final VPNode node)
     {
-        //Compute distance to each point
-        for(int i = 0; i < S.size(); i++)
-            S.get(i).setFirstItem(dm.dist(node.p, S.get(i).getSecondItem(), allVecs, distCache));//Each point gets its distance to the vantage point
+        for (Pair<Double, Integer> S1 : S)
+            S1.setFirstItem(dm.dist(node.p, S1.getSecondItem(), allVecs, distCache)); //Each point gets its distance to the vantage point
         Collections.sort(S, new Comparator<Pair<Double, Integer>>() 
         {
             @Override
@@ -195,7 +194,7 @@ public class VPTree<V extends Vec> implements VectorCollection<V>
                 return Double.compare(o1.getFirstItem(), o2.getFirstItem());
             }
         });
-        int splitIndex = splitListIndex(S);
+        int splitIndex = splitListIndex(S); 
         node.left_low = S.get(0).getFirstItem();
         node.left_high = S.get(splitIndex).getFirstItem();
         node.right_low = S.get(splitIndex+1).getFirstItem();
@@ -248,7 +247,6 @@ public class VPTree<V extends Vec> implements VectorCollection<V>
         else if(S.size() <= maxLeafSize)
         {
             VPLeaf leaf = new VPLeaf(S);
-            S.clear();
             return leaf;
         }
         
@@ -281,31 +279,28 @@ public class VPTree<V extends Vec> implements VectorCollection<V>
             return leaf;
         }
         
-        //Place the vantage point at the front of the array
-        ListUtils.swap(S, 0, selectVantagePointIndex(S));
-        final VPNode node = new VPNode(S.get(0).getSecondItem());
+        final VPNode node = new VPNode(selectVantagePoint(S));
         
-        //Will get sorted, but distance from itself will be zero, so it will 
-        //still be the first element
-        int splitIndex = sortSplitSet(S.subList(1, S.size()), node);
+        int splitIndex = sortSplitSet(S, node);
         
         
         //Start 2 threads, but only 1 of them is "new" 
         mcdl.countUp();
+        
 
         final List<Pair<Double, Integer>> rightS = S.subList(splitIndex+1, S.size());
-        final List<Pair<Double, Integer>> leftS = S.subList(1, splitIndex);
+        final List<Pair<Double, Integer>> leftS = S.subList(0, splitIndex+1);
         
         threadpool.submit(new Runnable() 
         {
             @Override
             public void run()
             {
-                node.right = makeVPTree(rightS, threadpool, mcdl);
+                node.right = makeVPTree(new ArrayList<Pair<Double, Integer>>(rightS), threadpool, mcdl);
             }
         });
-        node.left  = makeVPTree(leftS, threadpool, mcdl);
-        
+        node.left  = makeVPTree(new ArrayList<Pair<Double, Integer>>(leftS), threadpool, mcdl);
+
         return node;
     }
     
@@ -478,7 +473,7 @@ public class VPTree<V extends Vec> implements VectorCollection<V>
         {
             VPNode clone = new VPNode(p);
             clone.left_low  = this.left_low;
-            clone.left_high = this.right_high;
+            clone.left_high = this.left_high;
             clone.right_low = this.right_low;
             clone.right_high = this.right_high;
             if(this.left != null)
