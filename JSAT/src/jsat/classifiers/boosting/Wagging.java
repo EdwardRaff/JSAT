@@ -85,6 +85,9 @@ public class Wagging implements Classifier, Regressor, Parameterized
             setWeakLearner(clone.weakL.clone());
         if(clone.weakR != null)
             setWeakLearner(clone.weakR.clone());
+        if(clone.predicting != null)
+            this.predicting = clone.predicting.clone();
+        
         if(clone.hypotsL != null)
         {
             hypotsL = new Classifier[clone.hypotsL.length];
@@ -222,7 +225,7 @@ public class Wagging implements Classifier, Regressor, Parameterized
                 {
                     for (int j = 0; j < ds.getSampleSize(); j++)
                     {
-                        double newWeight = Math.max(Math.ulp(0), dist.invCdf(rand.nextDouble()));
+                        double newWeight = Math.max(1e-6, dist.invCdf(rand.nextDouble()));
                         ds.getDataPoint(j).setWeight(newWeight);
                     }
                     Classifier hypot = weakL.clone();
@@ -236,7 +239,7 @@ public class Wagging implements Classifier, Regressor, Parameterized
                 for (int i = start; i < end; i++)
                 {
                     for (int j = 0; j < ds.getSampleSize(); j++)
-                        ds.getDataPoint(i).setWeight(Math.max(0, dist.invCdf(rand.nextDouble())));
+                        ds.getDataPoint(i).setWeight(Math.max(1e-6, dist.invCdf(rand.nextDouble())));
                     Regressor hypot = weakR.clone();
                     hypot.train(rds);
                     hypotsR[i] = hypot;

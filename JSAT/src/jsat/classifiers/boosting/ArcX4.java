@@ -238,7 +238,7 @@ public class ArcX4 implements Classifier, Parameterized
     @Override
     public void trainC(ClassificationDataSet dataSet)
     {
-        trainC(dataSet, null);
+        trainC(dataSet, new FakeExecutor());
     }
 
     @Override

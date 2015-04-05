@@ -1,11 +1,6 @@
 
 package jsat.classifiers.boosting;
 
-import jsat.exceptions.FailedToFitException;
-import jsat.classifiers.MajorityVote;
-import jsat.utils.IndexTable;
-import java.util.concurrent.Callable;
-import java.util.concurrent.Future;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
@@ -18,7 +13,7 @@ import jsat.classifiers.DataPointPair;
 import jsat.parameters.Parameter;
 import jsat.parameters.Parameterized;
 import jsat.utils.DoubleList;
-import static jsat.utils.SystemInfo.*;
+import jsat.utils.FakeExecutor;
 
 /**
  * This is an implementation of the Multi-Class AdaBoost method SAMME (Stagewise Additive Modeling using
@@ -28,11 +23,6 @@ import static jsat.utils.SystemInfo.*;
  * This algorithm reduces to {@link AdaBoostM1 } for binary classification problems. Its often performs 
  * better for <i>k</i> class classification problems, and has a weaker requirement of besting 1/<i>k</i>
  * accuracy for any k instead of 1/2. 
- * <br>
- * Note: The original SAMME algorithm does not support Parallel training, however - parallel training has
- * been implemented using the same techniques for the {@link AdaBoostM1PL } that are detained in 
- * <i>Scalable and Parallel Boosting with MapReduce</i>, Indranil Palit and Chandan K. Reddy, 
- * IEEE Transactions on Knowledge and Data Engineering
  * 
  * @author Edward Raff
  */
@@ -58,6 +48,7 @@ public class SAMME implements Classifier, Parameterized
         this.maxIterations = maxIterations;
     }
 
+    @Override
     public CategoricalResults classify(DataPoint data)
     {
         if(predicting == null)
@@ -71,75 +62,8 @@ public class SAMME implements Classifier, Parameterized
         return cr;
     }
 
+    @Override
     public void trainC(ClassificationDataSet dataSet, ExecutorService threadPool)
-    {
-        //Parallel SAMME a la Scalable and Parallel Boosting with MapReduce, Indranil Palit and Chandan K. Reddy, IEEE Transactions on Knowledge and Data Engineering
-        predicting = dataSet.getPredicting();
-
-        //Contains the Boostings we performed on subsets of the data 
-        List<Future<SAMME>> futureBoostings = new ArrayList<Future<SAMME>>(LogicalCores);
-        
-        //We want an even, random split of the data into groups for each learner, the CV set does that for us! 
-        List<ClassificationDataSet> subSets = dataSet.cvSet(LogicalCores);
-        
-        for(int i = 0; i < LogicalCores; i++)
-        {
-            final SAMME learner = new SAMME(weakLearner.clone(), maxIterations);
-            final ClassificationDataSet subDataSet = subSets.get(i);
-            futureBoostings.add(threadPool.submit(new Callable<SAMME>() {
-
-                public SAMME call() throws Exception
-                {
-                    learner.trainC(subDataSet);
-                    return learner;
-                }
-            }));
-        }
-        
-        //Merge
-        try
-        {
-            List<SAMME> boosts = new ArrayList<SAMME>(LogicalCores);
-            List<List<Double>> boostWeights = new ArrayList<List<Double>>(LogicalCores);
-            List<List<Classifier>> boostWeakLearners = new ArrayList<List<Classifier>>(LogicalCores);
-            //Contains the tables to view the weights in sorted order 
-            List<IndexTable> sortedViews = new ArrayList<IndexTable>(LogicalCores);
-            for(Future<SAMME> futureBoost : futureBoostings)
-            {
-                SAMME boost =  futureBoost.get();
-                boosts.add(boost);
-                sortedViews.add(new IndexTable(boost.hypWeights));
-                boostWeights.add(boost.hypWeights);
-                boostWeakLearners.add(boost.hypoths);
-                
-            }
-            
-            //Now we merge the results into our new classifer 
-            int T = maxIterations;
-            hypoths = new ArrayList<Classifier>(T);
-            hypWeights = new DoubleList(T);
-            for (int i = 0; i < T; i++)
-            {
-                Classifier[] toMerge = new Classifier[LogicalCores];
-                double weight = 0.0;
-                for (int m = 0; m < LogicalCores; m++)
-                {
-                    int mSortedIndex = sortedViews.get(m).index(i);
-                    toMerge[m] = boostWeakLearners.get(m).get(mSortedIndex);
-                    weight += boostWeights.get(m).get(mSortedIndex);
-                }
-                weight /= LogicalCores;
-                hypWeights.add(weight);
-                hypoths.add(new MajorityVote(toMerge));
-            }
-        }
-        catch(Exception ex )
-        {
-            throw new FailedToFitException(ex);
-        }
-    }
-
-    public void trainC(ClassificationDataSet dataSet)
     {
         predicting = dataSet.getPredicting();
         hypWeights = new DoubleList(maxIterations);
@@ -162,7 +86,10 @@ public class SAMME implements Classifier, Parameterized
         
         for(int t = 0; t < maxIterations; t++)
         {
-            weakLearner.trainC(new ClassificationDataSet(dataPoints, predicting));
+            if(threadPool == null || threadPool instanceof FakeExecutor)
+                weakLearner.trainC(new ClassificationDataSet(dataPoints, predicting));
+            else
+                weakLearner.trainC(new ClassificationDataSet(dataPoints, predicting), threadPool);
 
             //Error is the same as in AdaBoost.M1
             double error = 0.0;
@@ -193,13 +120,20 @@ public class SAMME implements Classifier, Parameterized
         }
     }
 
+    @Override
+    public void trainC(ClassificationDataSet dataSet)
+    {
+        trainC(dataSet, null);
+    }
+
+    @Override
     public boolean supportsWeightedData()
     {
         return false;
     }
 
     @Override
-    public Classifier clone()
+    public SAMME clone()
     {
         SAMME clone = new SAMME(weakLearner.clone(), maxIterations);
         if(this.hypWeights != null)

@@ -212,7 +212,7 @@ public class LogitBoost implements Classifier, Parameterized
     }
 
     @Override
-    public Classifier clone()
+    public LogitBoost clone()
     {
         LogitBoost clone = new LogitBoost(maxIterations);
         clone.zMax = this.zMax;
