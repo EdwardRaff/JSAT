@@ -41,6 +41,7 @@ public class MeanSquaredError implements RegressionScore
     {
         if(toCopy.meanError != null)
             this.meanError = toCopy.meanError.clone();
+        this.rmse = toCopy.rmse;
     }
     
     @Override

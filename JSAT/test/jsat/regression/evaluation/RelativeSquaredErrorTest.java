@@ -47,6 +47,14 @@ public class RelativeSquaredErrorTest
     {
         System.out.println("getScore");
         RelativeSquaredError scorer = new RelativeSquaredError();
+        RelativeSquaredError otherHalf = scorer.clone();
+        
+        assertEquals(scorer, otherHalf);
+        assertEquals(scorer.hashCode(), otherHalf.hashCode());
+        assertTrue(scorer.lowerIsBetter());
+        
+        assertFalse(scorer.equals(""));
+        assertFalse(scorer.hashCode() == "".hashCode());
         
         double[] pred = new double[]
         {
@@ -59,8 +67,16 @@ public class RelativeSquaredErrorTest
         };
         
         scorer.prepare();
-        for(int i = 0; i < pred.length; i++)
+        otherHalf.prepare();
+        
+        for(int i = 0; i < pred.length/2; i++)
             scorer.addResult(pred[i], truth[i], 1);
+        for(int i = pred.length/2; i < pred.length; i++)
+            otherHalf.addResult(pred[i], truth[i], 1);
+        
+        scorer.addResults(otherHalf);
+        
         assertEquals((0.25+1+25+0.25+1)/82.334, scorer.getScore(), 1e-4);
+        assertEquals((0.25+1+25+0.25+1)/82.334, scorer.clone().getScore(), 1e-4);
     }
 }

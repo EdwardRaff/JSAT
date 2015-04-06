@@ -49,23 +49,35 @@ public class KappaTest
     {
         System.out.println("getScore");
         Kappa scorer = new Kappa();
+        Kappa otherHalf = scorer.clone();
+        
+        assertEquals(scorer, otherHalf);
+        assertEquals(scorer.hashCode(), otherHalf.hashCode());
+        assertFalse(otherHalf.lowerIsBetter());
+        
+        assertFalse(scorer.equals(""));
+        assertFalse(scorer.hashCode() == "".hashCode());
         
         scorer.prepare(new CategoricalData(4));
+        otherHalf.prepare(new CategoricalData(4));
         //from "On Using and Computing the Kappa Statistic"
         //correct
         scorer.addResult(new CategoricalResults(new double[]{1.0, 0.0, 0.0, 0.0}), 0, 317.0);
-        scorer.addResult(new CategoricalResults(new double[]{0.0, 1.0, 0.0, 0.0}), 1, 120.0);
+        otherHalf.addResult(new CategoricalResults(new double[]{0.0, 1.0, 0.0, 0.0}), 1, 120.0);
         scorer.addResult(new CategoricalResults(new double[]{0.0, 0.0, 1.0, 0.0}), 2, 60.0);
-        scorer.addResult(new CategoricalResults(new double[]{0.0, 0.0, 0.0, 1.0}), 3, 8.0);
+        otherHalf.addResult(new CategoricalResults(new double[]{0.0, 0.0, 0.0, 1.0}), 3, 8.0);
         //wrong
         scorer.addResult(new CategoricalResults(new double[]{0.0, 1.0, 0.0, 0.0}), 0, 23.0);
-        scorer.addResult(new CategoricalResults(new double[]{1.0, 0.0, 0.0, 0.0}), 1, 61.0);
+        otherHalf.addResult(new CategoricalResults(new double[]{1.0, 0.0, 0.0, 0.0}), 1, 61.0);
         scorer.addResult(new CategoricalResults(new double[]{0.0, 1.0, 0.0, 0.0}), 2, 4.0);
-        scorer.addResult(new CategoricalResults(new double[]{1.0, 0.0, 0.0, 0.0}), 2, 2.0);
+        otherHalf.addResult(new CategoricalResults(new double[]{1.0, 0.0, 0.0, 0.0}), 2, 2.0);
         scorer.addResult(new CategoricalResults(new double[]{0.0, 1.0, 0.0, 0.0}), 3, 29.0);
-        scorer.addResult(new CategoricalResults(new double[]{1.0, 0.0, 0.0, 0.0}), 3, 35.0);
+        otherHalf.addResult(new CategoricalResults(new double[]{1.0, 0.0, 0.0, 0.0}), 3, 35.0);
+        
+        scorer.addResults(otherHalf);
         
         assertEquals(0.605, scorer.getScore(), 1e-3);
+        assertEquals(0.605, scorer.clone().getScore(), 1e-3);
     }
     
 }

@@ -46,6 +46,14 @@ public class MeanSquaredErrorTest
     {
         System.out.println("getScore");
         MeanSquaredError scorer = new MeanSquaredError();
+        MeanSquaredError otherHalf = scorer.clone();
+        
+        assertEquals(scorer, otherHalf);
+        assertEquals(scorer.hashCode(), otherHalf.hashCode());
+        assertTrue(scorer.lowerIsBetter());
+        
+        assertFalse(scorer.equals(""));
+        assertFalse(scorer.hashCode() == "".hashCode());
         
         double[] pred = new double[]
         {
@@ -58,11 +66,20 @@ public class MeanSquaredErrorTest
         };
         
         scorer.prepare();
-        for(int i = 0; i < pred.length; i++)
+        otherHalf.prepare();
+        
+        for(int i = 0; i < pred.length/2; i++)
             scorer.addResult(pred[i], truth[i], 1);
+        for(int i = pred.length/2; i < pred.length; i++)
+            otherHalf.addResult(pred[i], truth[i], 1);
+        
+        scorer.addResults(otherHalf);
+        
         assertEquals((0.25+1+25+0.25+1)/6, scorer.getScore(), 1e-4);
+        assertEquals((0.25+1+25+0.25+1)/6, scorer.clone().getScore(), 1e-4);
         scorer.setRMSE(true);
         assertEquals(Math.sqrt((0.25+1+25+0.25+1)/6), scorer.getScore(), 1e-4);
+        assertEquals(Math.sqrt((0.25+1+25+0.25+1)/6), scorer.clone().getScore(), 1e-4);
     }
     
 }
