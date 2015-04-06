@@ -396,7 +396,7 @@ public class StochasticGradientBoosting implements Regressor, Parameterized
     }
 
     @Override
-    public Regressor clone()
+    public StochasticGradientBoosting clone()
     {
         StochasticGradientBoosting clone = new StochasticGradientBoosting(weakLearner.clone(), maxIterations, learningRate, trainingProportion);
         

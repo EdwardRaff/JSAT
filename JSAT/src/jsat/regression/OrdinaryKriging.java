@@ -219,7 +219,7 @@ public class OrdinaryKriging implements Regressor, Parameterized
     }
 
     @Override
-    public Regressor clone()
+    public OrdinaryKriging clone()
     {
         OrdinaryKriging clone = new OrdinaryKriging(vari.clone());
         
