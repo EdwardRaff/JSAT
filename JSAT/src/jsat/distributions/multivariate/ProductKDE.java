@@ -68,6 +68,8 @@ public class ProductKDE extends MultivariateKDE
         }
         if(this.bandwidth != null)
             clone.bandwidth = Arrays.copyOf(this.bandwidth, this.bandwidth.length);
+        if(this.originalVecs != null)
+            clone.originalVecs = new ArrayList<Vec>(this.originalVecs);
         return clone;        
     }
 
