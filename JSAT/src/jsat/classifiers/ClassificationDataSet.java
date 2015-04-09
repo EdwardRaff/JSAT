@@ -315,7 +315,7 @@ public class ClassificationDataSet extends DataSet
      */
     public void addDataPoint(Vec v, int classification, double weight)
     {
-        addDataPoint(v, emptyInt, classification, 1.0);
+        addDataPoint(v, emptyInt, classification, weight);
     }
 
     /**
