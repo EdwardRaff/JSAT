@@ -284,6 +284,11 @@ public class LIBSVMLoader
                         tempVec.set(indexProcessing, value);
                     sparceVecs.add(tempVec.clone());
                 }
+                else if(state == STATE.NEWLINE)
+                {
+                    //nothing to do and everything already processed, just return
+                    break;
+                }
                 else
                     throw new RuntimeException();
                 //we may have ended on a line, and have a sparse vec to add before returning
