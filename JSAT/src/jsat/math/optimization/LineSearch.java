@@ -26,21 +26,21 @@ public interface LineSearch
      * 
      * @param alpha_max the maximum value for &alpha; to search for 
      * @param x_k the initial value to search from
-     * @param x_grad the gradient of &Nabla; f(x<sub>k</sub>)
+     * @param x_grad the gradient of &nabla; f(x<sub>k</sub>)
      * @param p_k the direction update
      * @param f the function to minimize the value of 
      * f(x<sub>k</sub> + &alpha; p<sub>k</sub>)
-     * @param fp the gradient of f, &Nabla;f(x), may be {@code null} depending 
+     * @param fp the gradient of f, &nabla;f(x), may be {@code null} depending 
      * upon the linesearch method
      * @param f_x the value of f(x<sub>k</sub>), or {@link Double#NaN} if it needs to be computed
-     * @param gradP the value of &Nabla;f(x<sub>k</sub>)<sup>T</sup>p<sub>k</sub>,
+     * @param gradP the value of &nabla;f(x<sub>k</sub>)<sup>T</sup>p<sub>k</sub>,
      * or {@link Double#NaN} if it needs to be computed
      * @param x_alpha_pk the location to store the value of 
      * x<sub>k</sub> + &alpha; p<sub>k</sub>
      * @param fxApRet an array to store the computed result of 
      * f(x<sub>k</sub> + &alpha; p<sub>k</sub>) in the first index
      * contain. May be {@code null} and the value will not be returned
-     * @param grad_x_alpha_pk location to store the value of &Nabla; f(x<sub>k</sub>&alpha;+p<sub>k</sub>). May be {@code null}, local storage will be allocated if needed
+     * @param grad_x_alpha_pk location to store the value of &nabla; f(x<sub>k</sub>&alpha;+p<sub>k</sub>). May be {@code null}, local storage will be allocated if needed
      * @return the value of &alpha; that satisfies the line search in minimizing f(x<sub>k</sub> + &alpha; p<sub>k</sub>)
      */
     public double lineSearch(double alpha_max, Vec x_k, Vec x_grad, Vec p_k, Function f, FunctionVec fp, double f_x, double gradP, Vec x_alpha_pk, double[] fxApRet, Vec grad_x_alpha_pk);
@@ -51,21 +51,21 @@ public interface LineSearch
      * 
      * @param alpha_max the maximum value for &alpha; to search for 
      * @param x_k the initial value to search from
-     * @param x_grad the gradient of &Nabla; f(x<sub>k</sub>)
+     * @param x_grad the gradient of &nabla; f(x<sub>k</sub>)
      * @param p_k the direction update
      * @param f the function to minimize the value of 
      * f(x<sub>k</sub> + &alpha; p<sub>k</sub>)
-     * @param fp the gradient of f, &Nabla;f(x), may be {@code null} depending 
+     * @param fp the gradient of f, &nabla;f(x), may be {@code null} depending 
      * upon the linesearch method
      * @param f_x the value of f(x<sub>k</sub>), or {@link Double#NaN} if it needs to be computed
-     * @param gradP the value of &Nabla;f(x<sub>k</sub>)<sup>T</sup>p<sub>k</sub>,
+     * @param gradP the value of &nabla;f(x<sub>k</sub>)<sup>T</sup>p<sub>k</sub>,
      * or {@link Double#NaN} if it needs to be computed
      * @param x_alpha_pk the location to store the value of 
      * x<sub>k</sub> + &alpha; p<sub>k</sub>
      * @param fxApRet an array to store the computed result of 
      * f(x<sub>k</sub> + &alpha; p<sub>k</sub>) in the first index
      * contain. May be {@code null} and the value will not be returned
-     * @param grad_x_alpha_pk location to store the value of &Nabla; f(x<sub>k</sub>&alpha;+p<sub>k</sub>). May be {@code null}, local storage will be allocated if needed
+     * @param grad_x_alpha_pk location to store the value of &nabla; f(x<sub>k</sub>&alpha;+p<sub>k</sub>). May be {@code null}, local storage will be allocated if needed
      * @param ex the source of threads for parallel computation, or {@code null}
      * to perform serial computation
      * @return the value of &alpha; that satisfies the line search in minimizing f(x<sub>k</sub> + &alpha; p<sub>k</sub>)

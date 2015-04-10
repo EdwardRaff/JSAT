@@ -22,7 +22,7 @@ import jsat.parameters.Parameterized;
  * buffer of data instances that it uses to form its decision boundary. 
  * <br><br>
  * See:<br>
- * Dekel, O., Shalev-Shwartz, S., & Singer, Y. (2008). <i>The Forgetron: A 
+ * Dekel, O., Shalev-Shwartz, S.,&amp;Singer, Y. (2008). <i>The Forgetron: A 
  * kernel-based perceptron on a fixed budget</i>. SIAM Journal on Computing, 
  * 37(5), 1342–1372.
  * 
@@ -30,7 +30,11 @@ import jsat.parameters.Parameterized;
  */
 public class Forgetron extends BaseUpdateableClassifier implements BinaryScoreClassifier, Parameterized
 {
-    @ParameterHolder
+    /**
+	 * 
+	 */
+	private static final long serialVersionUID = -2631315082407427077L;
+	@ParameterHolder
     private KernelTrick K;
     private Vec[] I;
     /**

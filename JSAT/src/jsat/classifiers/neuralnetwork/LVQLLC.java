@@ -44,7 +44,11 @@ import jsat.math.decayrates.DecayRate;
  */
 public class LVQLLC extends LVQ
 {
-    private Classifier localClassifier;
+    /**
+	 * 
+	 */
+	private static final long serialVersionUID = 3602640001545233744L;
+	private Classifier localClassifier;
     private Classifier[] localClassifeirs;
 
     /**
@@ -52,7 +56,6 @@ public class LVQLLC extends LVQ
      * the local classifier. 
      * @param dm the distance metric to use
      * @param iterations the number of iterations to perform
-     * @param localClasifier the classifier to use as a local classifier for each prototype 
      */
     public LVQLLC(DistanceMetric dm, int iterations)
     {

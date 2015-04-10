@@ -13,6 +13,10 @@ public final class Rayleigh extends Distribution
 {
 
     /**
+	 * 
+	 */
+	private static final long serialVersionUID = 1451949391703281531L;
+	/**
      * scale parameter
      */
     private double sig;

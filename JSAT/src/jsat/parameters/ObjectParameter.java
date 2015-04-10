@@ -10,6 +10,11 @@ import java.util.List;
 public abstract class ObjectParameter<T> extends Parameter
 {
     /**
+	 * 
+	 */
+	private static final long serialVersionUID = 7639067170001873762L;
+
+	/**
      * Returns the current object value
      * @return the current object set for the parameter
      */

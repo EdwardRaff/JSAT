@@ -30,7 +30,11 @@ import jsat.math.Function;
  */
 public class Graph2D extends JComponent  
 {
-    protected double xMin;
+    /**
+	 * 
+	 */
+	private static final long serialVersionUID = -3915414272424355156L;
+	protected double xMin;
     protected double xMax;
 
     protected double yMin;
@@ -466,7 +470,9 @@ public class Graph2D extends JComponent
      */
     public double toYVal(int y)
     {
-        return toYVal(getHeight());
+    	//XXX this was wrong
+//        return toYVal(getHeight());
+    	return toYVal(y,getHeight());
     }
     
     /**

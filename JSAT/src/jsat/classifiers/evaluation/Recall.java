@@ -11,6 +11,11 @@ public class Recall extends SimpleBinaryClassMetric
 {
 
     /**
+	 * 
+	 */
+	private static final long serialVersionUID = 4832185425203972017L;
+
+	/**
      * Creates a new Recall evaluator
      */
     public Recall()

@@ -7,7 +7,12 @@ package jsat.distributions.empirical.kernelfunc;
  */
 public class UniformKF implements KernelFunction
 {
-    private UniformKF()
+    /**
+	 * 
+	 */
+	private static final long serialVersionUID = -6413579643511350896L;
+
+	private UniformKF()
     {
     }
 

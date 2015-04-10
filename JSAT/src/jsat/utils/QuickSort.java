@@ -84,7 +84,7 @@ public class QuickSort
     }
     
     /**
-     * Conditional swap, only swaps the values if array[i] > array[j]
+     * Conditional swap, only swaps the values if array[i] &gt; array[j]
      * @param array the array to potentially swap values in
      * @param i the 1st index
      * @param j the 2nd index

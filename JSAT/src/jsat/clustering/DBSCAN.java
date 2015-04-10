@@ -4,6 +4,7 @@ import java.util.*;
 import java.util.concurrent.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
 import jsat.DataSet;
 import jsat.classifiers.CategoricalData;
 import jsat.classifiers.DataPoint;
@@ -28,16 +29,20 @@ import jsat.utils.SystemInfo;
 public class DBSCAN extends ClustererBase
 {
     /**
-     * Used by {@link #cluster(jsat.DataSet, double, int, jsat.linear.vectorcollection.VectorCollection) } 
+	 * 
+	 */
+	private static final long serialVersionUID = 1627963360642560455L;
+	/**
+     * Used by {@link #cluster(DataSet, double, int, VectorCollection,int[]) } 
      * to mark that a data point as not yet been visited. <br>
      * Clusters that have been visited have a value >= 0, that indicates their cluster. Or have the value {@link #NOISE}
      */
     private static final int UNCLASSIFIED = -1;
     /**
-     * Used by {@link #cluster(jsat.DataSet, double, int, jsat.linear.vectorcollection.VectorCollection) } 
+     * Used by {@link #expandCluster(int[], DataSet, int, int, double, int, VectorCollection) } 
      * to mark that a data point has been visited, but was considered noise. 
      */
-    private static final int NOISE = -2;
+    public static final int NOISE = -2;
     
     /**
      * Factory used to create a vector space of the inputs. 
@@ -46,6 +51,7 @@ public class DBSCAN extends ClustererBase
     private VectorCollectionFactory<VecPaired<Vec, Integer> > vecFactory;
     private DistanceMetric dm;
     private double stndDevs = 2.0;
+	private VectorCollection<VecPaired<Vec, Integer>> lastVectorCollection;
 
     public DBSCAN(DistanceMetric dm, VectorCollectionFactory<VecPaired<Vec, Integer>> vecFactory)
     {
@@ -56,6 +62,11 @@ public class DBSCAN extends ClustererBase
     public DBSCAN()
     {
         this(new EuclideanDistance() ,new KDTree.KDTreeFactory<VecPaired<Vec, Integer>>());
+    }
+    
+    public DBSCAN(DistanceMetric dm)
+    {
+        this(dm ,new KDTree.KDTreeFactory<VecPaired<Vec, Integer>>());
     }
 
     /**
@@ -216,7 +227,7 @@ public class DBSCAN extends ClustererBase
         return cluster(dataSet, eps, minPts, vecFactory.getVectorCollection(getVecIndexPairs(dataSet), dm), threadpool, designations);
     }
     
-    private int[] cluster(DataSet dataSet, double eps, int minPts, VectorCollection<VecPaired<Vec, Integer>> vc, int[] pointCats )
+    public int[] cluster(DataSet dataSet, double eps, int minPts, VectorCollection<VecPaired<Vec, Integer>> vc, int[] pointCats )
     {
         if (pointCats == null)
             pointCats = new int[dataSet.getSampleSize()];
@@ -228,11 +239,11 @@ public class DBSCAN extends ClustererBase
             if(pointCats[i] == UNCLASSIFIED)
             {
                 //All assignments are done by expandCluster
-                if(exapndCluster(pointCats, dataSet, i, curClusterID, eps, minPts, vc))
+                if(expandCluster(pointCats, dataSet, i, curClusterID, eps, minPts, vc))
                     curClusterID++;
             }
         }
-        
+        lastVectorCollection = vc;
         return pointCats;
     }
     
@@ -256,7 +267,7 @@ public class DBSCAN extends ClustererBase
             if(pointCats[i] == UNCLASSIFIED)
             {
                 //All assignments are done by expandCluster
-                if(exapndCluster(pointCats, dataSet, i, curClusterID, eps, minPts, vc, threadpool, resultQ, sourceQ))
+                if(expandCluster(pointCats, dataSet, i, curClusterID, eps, minPts, vc, threadpool, resultQ, sourceQ))
                     curClusterID++;
             }
         }
@@ -270,7 +281,7 @@ public class DBSCAN extends ClustererBase
         catch (InterruptedException interruptedException)
         {
         }
-        
+        lastVectorCollection = vc;
         return pointCats;
     }
     
@@ -285,7 +296,7 @@ public class DBSCAN extends ClustererBase
      * @param vc the collection to use to search with 
      * @return true if a cluster was expanded, false if the point was marked as noise
      */
-    private boolean exapndCluster(int[] pointCats, DataSet dataSet, int point, int clId, double eps, int minPts, VectorCollection<VecPaired<Vec, Integer>> vc)
+    private boolean expandCluster(int[] pointCats, DataSet dataSet, int point, int clId, double eps, int minPts, VectorCollection<VecPaired<Vec, Integer>> vc)
     {
         Vec queryPoint = dataSet.getDataPoint(point).getNumericalValues();
         List<? extends VecPaired<VecPaired<Vec, Integer>, Double>> seeds = vc.search(queryPoint, eps);
@@ -343,7 +354,7 @@ public class DBSCAN extends ClustererBase
             this.resultQ = resultQ;
             this.sourceQ = sourceQ;
         }
-
+        @SuppressWarnings("unused")
         public List<? extends VecPaired<VecPaired<Vec, Integer>,Double>> getResults()
         {
             return results;
@@ -386,7 +397,7 @@ public class DBSCAN extends ClustererBase
      * @param sourceQ blocking queue used to store points that need to be processed
      * @return true if a cluster was expanded, false if the point was marked as noise
      */
-    private boolean exapndCluster(int[] pointCats, DataSet dataSet, int point, int clId, double eps, int minPts, VectorCollection<VecPaired<Vec, Integer>> vc, ExecutorService threadpool, BlockingQueue<List<? extends VecPaired<VecPaired<Vec, Integer>,Double>>> resultQ, BlockingQueue<Vec> sourceQ )
+    private boolean expandCluster(int[] pointCats, DataSet dataSet, int point, int clId, double eps, int minPts, VectorCollection<VecPaired<Vec, Integer>> vc, ExecutorService threadpool, BlockingQueue<List<? extends VecPaired<VecPaired<Vec, Integer>,Double>>> resultQ, BlockingQueue<Vec> sourceQ )
     {
         Vec queryPoint = dataSet.getDataPoint(point).getNumericalValues();
         List<? extends VecPaired<VecPaired<Vec, Integer>, Double>> seeds = vc.search(queryPoint, eps);
@@ -433,6 +444,14 @@ public class DBSCAN extends ClustererBase
         }
         
         return true;
+    }
+    /**
+     * Gets the last(final) vector collection for beeing able to search neighbors for a point
+     * See {@link VectorCollection#search(Vec query, double range)},{@link VectorCollection#search(Vec query, int neighbors)}
+     * @return the last vector collection
+     */
+    public VectorCollection<VecPaired<Vec, Integer>> getLastVectorCollection(){
+    	return lastVectorCollection;
     }
 
 }

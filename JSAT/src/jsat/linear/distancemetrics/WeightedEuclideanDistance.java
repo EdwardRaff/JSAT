@@ -4,11 +4,8 @@ package jsat.linear.distancemetrics;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
-import jsat.linear.IndexValue;
 import jsat.linear.Vec;
 import jsat.linear.VecOps;
-import jsat.math.Function;
-import jsat.math.FunctionBase;
 import jsat.math.MathTricks;
 import jsat.utils.DoubleList;
 import jsat.utils.FakeExecutor;
@@ -16,7 +13,7 @@ import jsat.utils.SystemInfo;
 
 /**
  * Implements the weighted Euclidean distance such that d(a, b) =
- * <big>&accumulateSum;</big><sub>&forall; i &isin; |w|</sub> w<sub>i</sub> 
+ * <big>&sum;</big><sub>&forall; i &isin; |w|</sub> w<sub>i</sub> 
  * (x<sub>i</sub>-y<sub>i</sub>)<sup>2</sup> <br>
  * When used with a weight vector of ones, it degenerates into 
  * the {@link EuclideanDistance}. 
@@ -25,7 +22,11 @@ import jsat.utils.SystemInfo;
  */
 public class WeightedEuclideanDistance implements DistanceMetric
 {
-    private Vec w;
+    /**
+	 * 
+	 */
+	private static final long serialVersionUID = 2959997330647828673L;
+	private Vec w;
 
     /**
      * Creates a new weighted Euclidean distance metric using the 

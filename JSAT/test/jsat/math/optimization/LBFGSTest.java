@@ -1,10 +1,8 @@
 package jsat.math.optimization;
 
-import java.util.List;
 import java.util.Random;
 import jsat.linear.DenseVector;
 import jsat.linear.Vec;
-import jsat.math.Function;
 import jsat.math.FunctionVec;
 import org.junit.After;
 import org.junit.AfterClass;

@@ -1,16 +1,21 @@
 package jsat.linear.vectorcollection.lsh;
 
 import java.util.List;
+
 import jsat.distributions.Normal;
 import jsat.linear.Vec;
 import static java.lang.Math.*;
+
 import java.util.*;
+
 import jsat.linear.DenseVector;
 import jsat.linear.VecPaired;
 import jsat.linear.VecPairedComparable;
 import jsat.linear.distancemetrics.DistanceMetric;
 import jsat.linear.distancemetrics.EuclideanDistance;
 import jsat.linear.distancemetrics.ManhattanDistance;
+import jsat.utils.IntList;
+import jsat.utils.IntSet;
 import jsat.utils.random.XORWOW;
 
 /**
@@ -43,13 +48,13 @@ import jsat.utils.random.XORWOW;
  * <br><br>
  * See:<br>
  * <ul>
- * <li>Datar, M., Immorlica, N., Indyk, P., & Mirrokni, V. S. (2004). <i>
+ * <li>Datar, M., Immorlica, N., Indyk, P.,&amp;Mirrokni, V. S. (2004). <i>
  * Locality-sensitive hashing scheme based on p-stable distributions</i>. 
  * Proceedings of the twentieth annual symposium on Computational geometry - 
  * SCG  ’04 (pp. 253–262). New York, New York, USA: ACM Press. 
  * doi:10.1145/997817.997857</li>
  * <li> Andoni, Alex (2005). 
- * <a href="http://www.mit.edu/~andoni/LSH/manual.pdf">E2LSH Manual 0.1<a/></li>
+ * <a href="http://www.mit.edu/~andoni/LSH/manual.pdf">E2LSH Manual 0.1</a></li>
  * </ul>
  * 
  * @author Edward Raff
@@ -180,7 +185,7 @@ public class E2LSH<V extends Vec>
     {
         List<VecPairedComparable<Vec, Double>> toRet = new ArrayList<VecPairedComparable<Vec, Double>>();
         
-        Set<Integer> candidates = new HashSet<Integer>();
+        Set<Integer> candidates = new IntSet();
         for (int l = 0; l < L; l++)
         {
             int hash = hash(l, q);
@@ -302,7 +307,7 @@ public class E2LSH<V extends Vec>
                 List<Integer> ints = tables.get(l).get(hash);
                 if(ints == null)
                 {
-                    ints = new ArrayList<Integer>(3);
+                    ints = new IntList(3);
                     tables.get(l).put(hash, ints);
                 }
                 ints.add(id);

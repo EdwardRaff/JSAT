@@ -42,10 +42,7 @@ public class BacktrackingArmijoLineSearch implements LineSearch
     
     /**
      * Sets the constant used for the <i>sufficient decrease condition</i> 
-     * f(x+&alpha; p) &le; f(x) + c<sub>1</sub> &alpha; p<sup>T</sup>&Nabla;f(x)
-     * <br>
-     * <br>
-     * This value must always be less than {@link #setC2(double) }
+     * f(x+&alpha; p) &le; f(x) + c<sub>1</sub> &alpha; p<sup>T</sup>&nabla;f(x)
      * @param c1 the <i>sufficient decrease condition</i> 
      */
     public void setC1(double c1)
@@ -95,6 +92,7 @@ public class BacktrackingArmijoLineSearch implements LineSearch
             final double tooSmall = 0.1*alpha;
             final double tooLarge = 0.9*alpha;
             //see INTERPOLATION section of chapter 3.5
+          //XXX double compare.
             if(alpha == alpha_max)//quadratic interpolation
             {
                 double alphaCandidate = -gradP*oldAlpha*oldAlpha/(2*(f_xap-f_x-gradP*oldAlpha));

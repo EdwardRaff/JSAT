@@ -4,29 +4,29 @@
  */
 package jsat.classifiers.trees;
 
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashSet;
+
 import jsat.distributions.Normal;
+
 import java.util.Random;
 import java.util.concurrent.Executors;
+
 import jsat.utils.GridDataGenerator;
+import jsat.utils.IntSet;
 import jsat.utils.SystemInfo;
-import java.util.List;
-import java.util.Set;
+
 import java.util.concurrent.ExecutorService;
-import jsat.classifiers.CategoricalData;
-import jsat.classifiers.CategoricalResults;
+
 import jsat.classifiers.ClassificationDataSet;
 import jsat.classifiers.Classifier;
-import jsat.classifiers.DataPoint;
 import jsat.classifiers.DataPointPair;
 import jsat.datatransform.NumericalToHistogram;
 import jsat.distributions.Distribution;
 import jsat.distributions.Uniform;
-import jsat.regression.RegressionDataSet;
 import jsat.utils.PairedReturn;
+
 import org.junit.*;
+
 import static org.junit.Assert.*;
 
 /**
@@ -158,7 +158,7 @@ public class DecisionStumpTest
     {
         System.out.println("trainC(List<DataPointPair>, Set<integer>)");
         stump.setPredicting(easyNumAtTrain.getPredicting());
-        stump.trainC(easyNumAtTrain.getAsDPPList(), new HashSet<Integer>(Arrays.asList(0)));
+        stump.trainC(easyNumAtTrain.getAsDPPList(), new IntSet(Arrays.asList(0)));
         for(int i = 0; i < easyNumAtTest.getSampleSize(); i++)
             assertEquals(easyNumAtTest.getDataPointCategory(i), stump.classify(easyNumAtTest.getDataPoint(i)).mostLikely());
     }
@@ -198,6 +198,13 @@ public class DecisionStumpTest
         clone = stump.clone();
         for(int i = 0; i < easyNumAtTest.getSampleSize(); i++)
             assertEquals(easyNumAtTest.getDataPointCategory(i), clone.classify(easyNumAtTest.getDataPoint(i)).mostLikely());
+    }
+    
+    @Test
+    public void testIntersection(){
+    	Distribution d = new Uniform(1, 2);
+    	//XXX create the test for double comparison
+    	DecisionStump.intersections(Arrays.asList(new Distribution[]{d}));
     }
 
    

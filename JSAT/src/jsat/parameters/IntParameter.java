@@ -8,6 +8,11 @@ package jsat.parameters;
 public abstract class IntParameter extends Parameter
 {
     /**
+	 * 
+	 */
+	private static final long serialVersionUID = -8467918069240345315L;
+
+	/**
      * Returns the current value for the parameter. 
      * @return the value for this parameter. 
      */

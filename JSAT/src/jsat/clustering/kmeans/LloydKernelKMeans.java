@@ -18,6 +18,11 @@ import jsat.utils.SystemInfo;
 public class LloydKernelKMeans extends KernelKMeans
 {
     /**
+	 * 
+	 */
+	private static final long serialVersionUID = 1880985811243830450L;
+
+	/**
      * Creates a new Kernel K Means object
      * @param kernel the kernel to use
      */

@@ -4,7 +4,6 @@
  */
 package jsat.distributions;
 
-import jsat.linear.Vec;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;

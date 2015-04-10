@@ -12,7 +12,7 @@ public abstract class AbstractClusterDissimilarity implements ClusterDissimilari
 {
 
     /**
-     * A convenience method. If the <t>distanceMatrix</t> was created with
+     * A convenience method. If the <i>distanceMatrix</i> was created with
      * {@link #createDistanceMatrix(jsat.DataSet, jsat.clustering.dissimilarity.ClusterDissimilarity)
      * }, then this method will return the appropriate value for the desired
      * index.
@@ -36,7 +36,7 @@ public abstract class AbstractClusterDissimilarity implements ClusterDissimilari
     }
     
     /**
-     * A convenience method. If the <t>distanceMatrix</t> was created with
+     * A convenience method. If the <i>distanceMatrix</i> was created with
      * {@link #createDistanceMatrix(jsat.DataSet, jsat.clustering.dissimilarity.ClusterDissimilarity)
      * }, then this method will set the appropriate value for the desired
      * index.
@@ -66,7 +66,7 @@ public abstract class AbstractClusterDissimilarity implements ClusterDissimilari
      * staggered, and is of a size such that all elements to the left of the
      * main diagonal are not present. <br> To compute the index into the
      * returned array for the index [i][j], the values should be switched such
-     * that i >= j, and accessed as [i][j-i-1]
+     * that i &ge; j, and accessed as [i][j-i-1]
      *
      * @param dataSet the data set to create distance matrix for
      * @param cd the cluster dissimilarity measure to use

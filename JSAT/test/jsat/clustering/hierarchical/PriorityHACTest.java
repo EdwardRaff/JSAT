@@ -4,28 +4,26 @@
  */
 package jsat.clustering.hierarchical;
 
-import jsat.clustering.hierarchical.SimpleHAC;
+
 import java.util.Set;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Random;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import jsat.DataSet;
+
 import jsat.SimpleDataSet;
 import jsat.classifiers.DataPoint;
-import jsat.clustering.SeedSelectionMethods.SeedSelection;
-import jsat.clustering.dissimilarity.AverageLinkDissimilarity;
-import jsat.clustering.dissimilarity.CompleteLinkDissimilarity;
 import jsat.clustering.dissimilarity.SingleLinkDissimilarity;
 import jsat.distributions.Uniform;
-import jsat.linear.Vec;
 import jsat.linear.distancemetrics.EuclideanDistance;
 import jsat.utils.GridDataGenerator;
+import jsat.utils.IntSet;
+
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
+
 import static org.junit.Assert.*;
 
 /**
@@ -79,7 +77,7 @@ public class PriorityHACTest
         System.out.println("cluster(dataset, int)");
         List<List<DataPoint>> clusters = priorityHAC.cluster(easyData10, 10);
         assertEquals(10, clusters.size());
-        Set<Integer> seenBefore = new HashSet<Integer>();
+        Set<Integer> seenBefore = new IntSet();
         for (List<DataPoint> cluster : clusters)
         {
             int thisClass = cluster.get(0).getCategoricalValue(0);
@@ -95,7 +93,7 @@ public class PriorityHACTest
         System.out.println("cluster(dataset)");
         List<List<DataPoint>> clusters = priorityHAC.cluster(easyData10);
         assertEquals(10, clusters.size());
-        Set<Integer> seenBefore = new HashSet<Integer>();
+        Set<Integer> seenBefore = new IntSet();
         for (List<DataPoint> cluster : clusters)
         {
             int thisClass = cluster.get(0).getCategoricalValue(0);
@@ -111,7 +109,7 @@ public class PriorityHACTest
         System.out.println("cluster(dataset, ExecutorService)");
         List<List<DataPoint>> clusters = priorityHAC.cluster(easyData10, ex);
         assertEquals(10, clusters.size());
-        Set<Integer> seenBefore = new HashSet<Integer>();
+        Set<Integer> seenBefore = new IntSet();
         for (List<DataPoint> cluster : clusters)
         {
             int thisClass = cluster.get(0).getCategoricalValue(0);
@@ -127,7 +125,7 @@ public class PriorityHACTest
         System.out.println("cluster(dataset, int, int)");
         List<List<DataPoint>> clusters = priorityHAC.cluster(easyData10, 2, 20);
         assertEquals(10, clusters.size());
-        Set<Integer> seenBefore = new HashSet<Integer>();
+        Set<Integer> seenBefore = new IntSet();
         for (List<DataPoint> cluster : clusters)
         {
             int thisClass = cluster.get(0).getCategoricalValue(0);
@@ -143,7 +141,7 @@ public class PriorityHACTest
         System.out.println("cluster(dataset, int, int, ExecutorService)");
         List<List<DataPoint>> clusters = priorityHAC.cluster(easyData10, 2, 20, ex);
         assertEquals(10, clusters.size());
-        Set<Integer> seenBefore = new HashSet<Integer>();
+        Set<Integer> seenBefore = new IntSet();
         for (List<DataPoint> cluster : clusters)
         {
             int thisClass = cluster.get(0).getCategoricalValue(0);
@@ -162,7 +160,7 @@ public class PriorityHACTest
         System.out.println("cluster(dataset, int, ExecutorService)");
         List<List<DataPoint>> clusters = priorityHAC.cluster(easyData10, 10, ex);
         assertEquals(10, clusters.size());
-        Set<Integer> seenBefore = new HashSet<Integer>();
+        Set<Integer> seenBefore = new IntSet();
         for (List<DataPoint> cluster : clusters)
         {
             int thisClass = cluster.get(0).getCategoricalValue(0);

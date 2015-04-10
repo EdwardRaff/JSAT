@@ -18,7 +18,12 @@ import jsat.utils.SystemInfo;
 public class EuclideanDistance implements DenseSparseMetric
 {
 
-    @Override
+    /**
+	 * 
+	 */
+	private static final long serialVersionUID = 8155062933851345574L;
+
+	@Override
     public double dist(Vec a, Vec b)
     {
         return a.pNormDist(2, b);

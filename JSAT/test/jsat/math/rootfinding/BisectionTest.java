@@ -25,7 +25,12 @@ public class BisectionTest
      */
     Function sinF = new Function() {
 
-        public double f(double... x)
+        /**
+		 * 
+		 */
+		private static final long serialVersionUID = -5830265331948124543L;
+
+		public double f(double... x)
         {
             return sin(x[0]);
         }
@@ -41,7 +46,12 @@ public class BisectionTest
      */
     Function sinFp1 = new Function() {
 
-        public double f(double... x)
+        /**
+		 * 
+		 */
+		private static final long serialVersionUID = -8881811957419055036L;
+
+		public double f(double... x)
         {
             return sin(x[0]+x[1]);
         }
@@ -57,7 +67,12 @@ public class BisectionTest
      */
     Function polyF = new Function() {
 
-        public double f(double... x)
+        /**
+		 * 
+		 */
+		private static final long serialVersionUID = -6863811831444846780L;
+
+		public double f(double... x)
         {
             double xp = x[0];
             

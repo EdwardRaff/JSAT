@@ -198,7 +198,7 @@ public class SeedSelectionMethods
 
             if (selectionMethod == SeedSelection.RANDOM)
             {
-                Set<Integer> indecies = new HashSet<Integer>(k);
+                Set<Integer> indecies = new IntSet(k);
 
                 while (indecies.size() != k)//Keep sampling, we cant use the same point twice. 
                     indecies.add(rand.nextInt(d.getSampleSize()));//TODO create method to do uniform sampleling for a select range
@@ -273,7 +273,7 @@ public class SeedSelectionMethods
             
             if(sqrdDistSum <= 1e-6)//everyone is too close, randomly fill rest
             {
-                Set<Integer> ind = new HashSet<Integer>();
+                Set<Integer> ind = new IntSet();
                 for(int i = 0;i <j; i++)
                     ind.add(indices[i]);
                 while(ind.size() < k)
@@ -355,7 +355,7 @@ public class SeedSelectionMethods
             
             if(sqrdDistSum <= 1e-6)//everyone is too close, randomly fill rest
             {
-                Set<Integer> ind = new HashSet<Integer>();
+                Set<Integer> ind = new IntSet();
                 for(int i = 0;i <j; i++)
                     ind.add(indices[i]);
                 while(ind.size() < k)

@@ -19,6 +19,11 @@ public class LogisticLoss implements LossC
      */
 
     /**
+	 * 
+	 */
+	private static final long serialVersionUID = -3929171604513497068L;
+
+	/**
      * Computes the logistic loss
      *
      * @param pred the predicted value

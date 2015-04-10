@@ -27,6 +27,10 @@ import jsat.utils.IndexTable;
 public class SparseVector extends  Vec
 {
     /**
+	 * 
+	 */
+	private static final long serialVersionUID = 8591745505666264662L;
+	/**
      * Length of the vector
      */
     private int length;

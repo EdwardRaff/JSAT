@@ -27,6 +27,10 @@ public class KernelDensityEstimator extends Distribution
      */
     
     /**
+	 * 
+	 */
+	private static final long serialVersionUID = 7708020456632603947L;
+	/**
      * The various values 
      */
     private double[] X;
@@ -246,7 +250,12 @@ public class KernelDensityEstimator extends Distribution
 
     private final Function cdfFunc = new Function() {
 
-        public double f(double... x)
+        /**
+		 * 
+		 */
+		private static final long serialVersionUID = -4100975560125048798L;
+
+		public double f(double... x)
         {
             return cdf(x[0]);
         }

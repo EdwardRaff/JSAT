@@ -3,7 +3,6 @@ package jsat.math;
 import static java.lang.Double.*;
 import static java.lang.Math.PI;
 import static java.lang.Math.tan;
-import static jsat.math.SpecialMath.digamma;
 
 /**
  * This class contains fast implementations of many of the methods located in 
@@ -30,7 +29,7 @@ public class FastMath
         return bits & 0x000fffffffffffffL;
     }
     
-    
+    @SuppressWarnings("unused")
     private static long getExponent(long bits)
     {
         return (bits & 0x7ff0000000000000L) >> 52;

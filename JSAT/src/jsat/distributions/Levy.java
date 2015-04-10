@@ -8,13 +8,17 @@ import jsat.math.SpecialMath;
 /**
  * Implementation of the 
  * <a href="http://en.wikipedia.org/wiki/L%C3%A9vy_distribution">Levy 
- * Distribution <a/>
+ * Distribution </a>
  * 
  * @author Edward Raff
  */
 public class Levy extends Distribution
 {
-    private double location;
+    /**
+	 * 
+	 */
+	private static final long serialVersionUID = 3132169946527422816L;
+	private double location;
     private double scale;
     private double logScale;
 

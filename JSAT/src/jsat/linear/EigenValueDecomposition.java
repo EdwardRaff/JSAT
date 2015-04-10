@@ -40,6 +40,10 @@ public class EigenValueDecomposition implements Serializable
 {
 
     /**
+	 * 
+	 */
+	private static final long serialVersionUID = -7169205761148043008L;
+	/**
      * Row and column dimension (square matrix).
      *
      * @serial matrix dimension.

@@ -1,26 +1,25 @@
 package jsat.clustering;
 
-import java.util.HashSet;
 import java.util.List;
 import java.util.Random;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import jsat.DataSet;
+
 import jsat.SimpleDataSet;
 import jsat.classifiers.DataPoint;
 import jsat.distributions.Normal;
-import jsat.distributions.Uniform;
-import jsat.linear.Matrix;
-import jsat.linear.Vec;
 import jsat.linear.distancemetrics.EuclideanDistance;
 import jsat.utils.GridDataGenerator;
+import jsat.utils.IntSet;
 import jsat.utils.SystemInfo;
+
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
+
 import static org.junit.Assert.*;
 
 /**
@@ -71,7 +70,7 @@ public class EMGaussianMixtureTest
         EMGaussianMixture em = new EMGaussianMixture(new EuclideanDistance(), new Random(), SeedSelectionMethods.SeedSelection.KPP);
         List<List<DataPoint>> clusters = em.cluster(easyData, 4);
         assertEquals(4, clusters.size());
-        Set<Integer> seenBefore = new HashSet<Integer>();
+        Set<Integer> seenBefore = new IntSet();
         for(List<DataPoint> cluster :  clusters)
         {
             int thisClass = cluster.get(0).getCategoricalValue(0);
@@ -90,7 +89,7 @@ public class EMGaussianMixtureTest
         EMGaussianMixture em = new EMGaussianMixture(new EuclideanDistance(), new Random(), SeedSelectionMethods.SeedSelection.KPP);
         List<List<DataPoint>> clusters = em.cluster(easyData, 4, ex);
         assertEquals(4, clusters.size());
-        Set<Integer> seenBefore = new HashSet<Integer>();
+        Set<Integer> seenBefore = new IntSet();
         for(List<DataPoint> cluster :  clusters)
         {
             int thisClass = cluster.get(0).getCategoricalValue(0);

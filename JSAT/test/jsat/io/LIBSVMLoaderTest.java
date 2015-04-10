@@ -19,14 +19,18 @@ package jsat.io;
 import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
+
 import jsat.linear.DenseVector;
 import jsat.linear.Vec;
 import jsat.regression.RegressionDataSet;
+import jsat.utils.DoubleList;
+
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
+
 import static org.junit.Assert.*;
 
 /**
@@ -69,7 +73,7 @@ public class LIBSVMLoaderTest
         System.out.println("loadR");
         
         List<String> testLines = new ArrayList<String>();
-        List<Double> expetedLabel = new ArrayList<Double>();
+        List<Double> expetedLabel = new DoubleList();
         List<Vec> expectedVec = new ArrayList<Vec>();
         
         testLines.add("-1 2:3.0");//normal line

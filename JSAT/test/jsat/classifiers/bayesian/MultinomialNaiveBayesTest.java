@@ -16,18 +16,13 @@
  */
 package jsat.classifiers.bayesian;
 
-import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import jsat.FixedProblems;
-import jsat.classifiers.CategoricalData;
-import jsat.classifiers.CategoricalResults;
 import jsat.classifiers.ClassificationDataSet;
 import jsat.classifiers.ClassificationModelEvaluation;
-import jsat.classifiers.DataPoint;
 import jsat.datatransform.DataTransformProcess;
 import jsat.datatransform.NumericalToHistogram;
-import jsat.parameters.Parameter;
 import jsat.utils.SystemInfo;
 import jsat.utils.random.XOR96;
 import org.junit.After;

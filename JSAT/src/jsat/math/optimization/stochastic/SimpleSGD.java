@@ -15,6 +15,11 @@ public class SimpleSGD implements GradientUpdater
 {
 
     /**
+	 * 
+	 */
+	private static final long serialVersionUID = 4022442467298319553L;
+
+	/**
      * Creates a new SGD updater
      */
     public SimpleSGD()

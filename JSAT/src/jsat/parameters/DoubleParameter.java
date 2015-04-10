@@ -8,6 +8,11 @@ package jsat.parameters;
 public abstract class DoubleParameter extends Parameter
 {
     /**
+	 * 
+	 */
+	private static final long serialVersionUID = 4132422231433472554L;
+
+	/**
      * Returns the current value for the parameter. 
      * @return the value for this parameter. 
      */

@@ -14,6 +14,11 @@ public class ScatterplotMatrix extends JDialog
 {
 
     /**
+	 * 
+	 */
+	private static final long serialVersionUID = 8238730449174292088L;
+
+	/**
      * Creates a new ScatterplotMatrix
      * @param parent the parent frame
      * @param title the title to use for the dialog

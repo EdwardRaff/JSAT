@@ -4,17 +4,12 @@
  */
 package jsat.classifiers.svm;
 
-import java.util.List;
 import java.util.Random;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import jsat.FixedProblems;
-import jsat.classifiers.CategoricalResults;
 import jsat.classifiers.ClassificationDataSet;
-import jsat.classifiers.Classifier;
-import jsat.classifiers.DataPoint;
 import jsat.classifiers.DataPointPair;
-import jsat.parameters.Parameter;
 import jsat.utils.SystemInfo;
 import org.junit.After;
 import org.junit.AfterClass;

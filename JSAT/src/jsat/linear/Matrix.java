@@ -29,6 +29,11 @@ import static jsat.utils.SystemInfo.*;
 public abstract class Matrix implements Cloneable, Serializable
 {
     /**
+	 * 
+	 */
+	private static final long serialVersionUID = 6888360415978051714L;
+
+	/**
      * Creates a new Matrix that stores the result of {@code A+B}
      * @param B the matrix to add this <i>this</i>
      * @return {@code A+B}
@@ -627,7 +632,12 @@ public abstract class Matrix implements Cloneable, Serializable
         final Matrix M = this;
         return new Vec() 
         {
-            @Override
+            /**
+			 * 
+			 */
+			private static final long serialVersionUID = 7107290189250645384L;
+
+			@Override
             public int length()
             {
                 return rows();
@@ -692,7 +702,12 @@ public abstract class Matrix implements Cloneable, Serializable
         return new Vec() 
         {
 
-            @Override
+            /**
+			 * 
+			 */
+			private static final long serialVersionUID = 8484494698777822563L;
+
+			@Override
             public int length()
             {
                 return M.cols();

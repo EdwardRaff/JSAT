@@ -12,7 +12,11 @@ import jsat.text.GreekLetters;
  */
 public class LogNormal extends Distribution
 {
-    double mu;
+    /**
+	 * 
+	 */
+	private static final long serialVersionUID = -6938582328705527274L;
+	double mu;
     double sig;
 
     public LogNormal()

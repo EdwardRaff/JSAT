@@ -21,7 +21,11 @@ import static jsat.linear.RowColumnOps.*;
  */
 public class SingularValueDecomposition implements Cloneable, Serializable
 {
-    private Matrix U, V;
+    /**
+	 * 
+	 */
+	private static final long serialVersionUID = 1711766946748622002L;
+	private Matrix U, V;
     /**
      * Stores the diagonal values of the S matrix, and contains the bidiagonal values of A during initial steps. 
      */
@@ -131,7 +135,7 @@ public class SingularValueDecomposition implements Cloneable, Serializable
             
             for (int j = k + 1; j < n; j++)
             {
-                if ((k < nct) & (s[k] != 0.0))
+                if ((k < nct) && (s[k] != 0.0))
                 {
 
                     // Apply the transformation.
@@ -191,7 +195,7 @@ public class SingularValueDecomposition implements Cloneable, Serializable
         }
         
         e[k] = -e[k];
-        if ((k + 1 < m) & (e[k] != 0.0))
+        if ((k + 1 < m) && (e[k] != 0.0))
         {
 
             // Apply the transformation.
@@ -221,7 +225,7 @@ public class SingularValueDecomposition implements Cloneable, Serializable
     {
         for (int k = n - 1; k >= 0; k--)
         {
-            if ((k < nrt) & (e[k] != 0.0))
+            if ((k < nrt) && (e[k] != 0.0))
             {
                 for (int j = k + 1; j < nu; j++)
                 {

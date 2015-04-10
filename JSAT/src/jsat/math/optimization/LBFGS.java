@@ -3,8 +3,10 @@ package jsat.math.optimization;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
+
 import jsat.linear.*;
 import jsat.math.*;
+import jsat.utils.DoubleList;
 
 /**
  * Implementation of the Limited memory variant of {@link BFGS}. It uses a 
@@ -102,7 +104,7 @@ public class LBFGS implements Optimizer2
         final double[] f_xVal = new double[1];//store place for f_x
         
         //history for implicit H
-        List<Double> Rho = new ArrayList<Double>(m);
+        List<Double> Rho = new DoubleList(m);
         List<Vec> S = new ArrayList<Vec>(m);
         List<Vec> Y = new ArrayList<Vec>(m);
         

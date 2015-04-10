@@ -110,7 +110,7 @@ public class OnLineStatisticsTest
             if(!Double.isNaN(A.getVarance()))
                 assertEquals(A.getVarance(), stats.getVarance(), 1e-8);
             //skewness and kurtosis aren't stable any more
-            //min & max are not possible
+            //min&amp;max are not possible
             
             
             stats = OnLineStatistics.remove(total, A);

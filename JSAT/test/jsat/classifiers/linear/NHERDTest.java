@@ -3,14 +3,9 @@ package jsat.classifiers.linear;
 
 import java.util.Random;
 import jsat.FixedProblems;
-import jsat.classifiers.CategoricalData;
-import jsat.classifiers.CategoricalResults;
 import jsat.classifiers.ClassificationDataSet;
-import jsat.classifiers.DataPoint;
 import jsat.classifiers.DataPointPair;
-import org.junit.After;
 import org.junit.AfterClass;
-import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import static org.junit.Assert.*;

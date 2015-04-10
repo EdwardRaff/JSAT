@@ -1,18 +1,21 @@
 package jsat.clustering;
 
-import java.util.HashSet;
 import java.util.List;
 import java.util.Random;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+
 import jsat.SimpleDataSet;
 import jsat.classifiers.DataPoint;
 import jsat.distributions.Normal;
 import jsat.linear.distancemetrics.EuclideanDistance;
 import jsat.utils.GridDataGenerator;
+import jsat.utils.IntSet;
 import jsat.utils.SystemInfo;
+
 import org.junit.*;
+
 import static org.junit.Assert.*;
 
 /**
@@ -58,7 +61,7 @@ public class FLAMETest
         Clusterer toUse = algo.clone();
         List<List<DataPoint>> clusters = toUse.cluster(easyData10);
         assertEquals(10, clusters.size());
-        Set<Integer> seenBefore = new HashSet<Integer>();
+        Set<Integer> seenBefore = new IntSet();
         for(List<DataPoint> cluster :  clusters)
         {
             int thisClass = cluster.get(0).getCategoricalValue(0);
@@ -75,7 +78,7 @@ public class FLAMETest
         Clusterer toUse = algo.clone();
         List<List<DataPoint>> clusters = toUse.cluster(easyData10, ex);
         assertEquals(10, clusters.size());
-        Set<Integer> seenBefore = new HashSet<Integer>();
+        Set<Integer> seenBefore = new IntSet();
         for(List<DataPoint> cluster :  clusters)
         {
             int thisClass = cluster.get(0).getCategoricalValue(0);

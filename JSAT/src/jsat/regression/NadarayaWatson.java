@@ -20,7 +20,11 @@ import jsat.parameters.Parameterized;
  */
 public class NadarayaWatson implements Regressor, Parameterized
 {
-    @ParameterHolder
+    /**
+	 * 
+	 */
+	private static final long serialVersionUID = 8632599345930394763L;
+	@ParameterHolder
     private MultivariateKDE kde;
 
     public NadarayaWatson(MultivariateKDE kde)

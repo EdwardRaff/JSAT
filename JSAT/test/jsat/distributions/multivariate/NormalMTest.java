@@ -2,8 +2,6 @@ package jsat.distributions.multivariate;
 
 import jsat.linear.DenseMatrix;
 import jsat.linear.DenseVector;
-import java.util.List;
-import jsat.DataSet;
 import jsat.linear.Matrix;
 import jsat.linear.Vec;
 import org.junit.AfterClass;

@@ -21,7 +21,7 @@ public class NewGLMNETTest
 {
     /*
      * This test case is based off of the grouping example in the Elatic Net 
-     * Paper Zou, H., & Hastie, T. (2005). Regularization and variable selection
+     * Paper Zou, H.,&amp;Hastie, T. (2005). Regularization and variable selection
      * via the elastic net. Journal of the Royal Statistical Society, Series B, 
      * 67(2), 301–320. doi:10.1111/j.1467-9868.2005.00503.x
      */

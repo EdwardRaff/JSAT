@@ -12,6 +12,10 @@ import static java.lang.Math.*;
 public final class Laplace extends Distribution
 {
     /**
+	 * 
+	 */
+	private static final long serialVersionUID = -4799360517803678236L;
+	/**
      * location
      */
     private double mu;

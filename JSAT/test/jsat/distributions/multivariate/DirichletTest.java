@@ -3,7 +3,6 @@ package jsat.distributions.multivariate;
 
 import java.util.List;
 import java.util.Random;
-import jsat.classifiers.DataPoint;
 import jsat.linear.DenseVector;
 import jsat.linear.Vec;
 import org.junit.AfterClass;

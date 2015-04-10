@@ -140,7 +140,12 @@ public class MathTricks
      */
     public static final Function sqrtFunc = new FunctionBase() 
     {
-        @Override
+        /**
+		 * 
+		 */
+		private static final long serialVersionUID = -5898515135319116600L;
+
+		@Override
         public double f(Vec x)
         {
             return Math.sqrt(x.get(0));
@@ -154,7 +159,12 @@ public class MathTricks
     public static final Function sqrdFunc = new FunctionBase() 
     {
 
-        @Override
+        /**
+		 * 
+		 */
+		private static final long serialVersionUID = 6831886040279358142L;
+
+		@Override
         public double f(Vec x)
         {
             double xx = x.get(0);
@@ -168,7 +178,12 @@ public class MathTricks
      */
     public static final Function invsFunc = new FunctionBase() 
     {
-        @Override
+        /**
+		 * 
+		 */
+		private static final long serialVersionUID = -7745316806635400174L;
+
+		@Override
         public double f(Vec x)
         {
             return 1/x.get(0);
@@ -181,7 +196,12 @@ public class MathTricks
      */
     public static final Function logFunc = new FunctionBase() 
     {
-        @Override
+        /**
+		 * 
+		 */
+		private static final long serialVersionUID = -4653355640520837353L;
+
+		@Override
         public double f(Vec x)
         {
             return Math.log(x.get(0));
@@ -194,7 +214,12 @@ public class MathTricks
      */
     public static final Function expFunc = new FunctionBase() 
     {
-        @Override
+        /**
+		 * 
+		 */
+		private static final long serialVersionUID = 7075309263321302492L;
+
+		@Override
         public double f(Vec x)
         {
             return Math.exp(x.get(0));
@@ -207,7 +232,12 @@ public class MathTricks
      */
     public static final Function absFunc = new FunctionBase() 
     {
-        @Override
+        /**
+		 * 
+		 */
+		private static final long serialVersionUID = -3706702191562872641L;
+
+		@Override
         public double f(Vec x)
         {
             return Math.abs(x.get(0));

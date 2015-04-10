@@ -8,7 +8,12 @@ package jsat.exceptions;
 public class UntrainedModelException extends RuntimeException
 {
 
-    public UntrainedModelException(String message, Throwable cause)
+    /**
+	 * 
+	 */
+	private static final long serialVersionUID = 3693546100471013277L;
+
+	public UntrainedModelException(String message, Throwable cause)
     {
         super(message, cause);
     }

@@ -17,7 +17,11 @@ public class GenericMatrixTest
 {
     protected static class TestImp extends GenericMatrix
     {
-        private double[][] storage;
+        /**
+		 * 
+		 */
+		private static final long serialVersionUID = 1487285165522642650L;
+		private double[][] storage;
 
         public TestImp(double[][] storage)
         {

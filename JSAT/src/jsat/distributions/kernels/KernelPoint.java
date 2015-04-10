@@ -80,11 +80,11 @@ public class KernelPoint
          * <br>
          * See:<br>
          * <ul>
-         * <li>Wang, Z., Crammer, K., & Vucetic, S. (2012). <i>Breaking the 
+         * <li>Wang, Z., Crammer, K.,&amp;Vucetic, S. (2012). <i>Breaking the 
          * Curse of Kernelization : Budgeted Stochastic Gradient Descent for 
          * Large-Scale SVM Training</i>. The Journal of Machine Learning 
          * Research, 13(1), 3103–3131.</li>
-         * <li>Wang, Z., Crammer, K., & Vucetic, S. (2010). <i>Multi-class 
+         * <li>Wang, Z., Crammer, K.,&amp;Vucetic, S. (2010). <i>Multi-class 
          * pegasos on a budget</i>. In 27th International Conference on Machine
          * Learning (pp. 1143–1150). Retrieved from 
          * <a href="http://www.ist.temple.edu/~vucetic/documents/wang10icml.pdf">
@@ -635,7 +635,8 @@ public class KernelPoint
 
 
             vecs.add(n_z);
-            if (kernelAccel != null)
+            //XXX the following check was redundant
+//            if (kernelAccel != null)
                 kernelAccel.addAll(nz_qi);
         }
         alpha.add(n_alpha_z);
@@ -659,7 +660,12 @@ public class KernelPoint
         
         final Function f = new FunctionBase()
         {
-            @Override
+            /**
+			 * 
+			 */
+			private static final long serialVersionUID = -6891301465754898634L;
+
+			@Override
             public double f(Vec x)
             {
                 final double h = x.get(0);

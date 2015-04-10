@@ -25,7 +25,12 @@ public class ZeroinTest
      */
     Function sinF = new Function() {
 
-        public double f(double... x)
+        /**
+		 * 
+		 */
+		private static final long serialVersionUID = -5890031276429818527L;
+
+		public double f(double... x)
         {
             return sin(x[0]);
         }
@@ -41,7 +46,12 @@ public class ZeroinTest
      */
     Function sinFp1 = new Function() {
 
-        public double f(double... x)
+        /**
+		 * 
+		 */
+		private static final long serialVersionUID = 1431139949819019738L;
+
+		public double f(double... x)
         {
             return sin(x[0]+x[1]);
         }
@@ -57,7 +67,12 @@ public class ZeroinTest
      */
     Function polyF = new Function() {
 
-        public double f(double... x)
+        /**
+		 * 
+		 */
+		private static final long serialVersionUID = 4391333129468669534L;
+
+		public double f(double... x)
         {
             double xp = x[0];
             

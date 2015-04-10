@@ -14,7 +14,11 @@ import jsat.text.GreekLetters;
  */
 public class Normal extends Distribution
 {
-    private double mean;
+    /**
+	 * 
+	 */
+	private static final long serialVersionUID = -5298346576152986165L;
+	private double mean;
     private double stndDev;
 
     public Normal()
@@ -191,6 +195,7 @@ public class Normal extends Distribution
          * Algorithum to compute the cdf of the normal distribution for some z score
          */
         double s = x, t = 0, b = x, q = x*x , i = 1;
+        //XXX double comparison
         while(s != t)
             s=(t=s)+(b*=q/(i+=2));
         return 0.5+s*exp(-.5*q-0.91893853320467274178);

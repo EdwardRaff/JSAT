@@ -14,7 +14,11 @@ import java.util.*;
  */
 public class LongList extends AbstractList<Long> implements Serializable
 {
-    private long[] array;
+    /**
+	 * 
+	 */
+	private static final long serialVersionUID = 3060216677615816178L;
+	private long[] array;
     private int end;
     
     private LongList(long[] array, int end)
@@ -54,7 +58,7 @@ public class LongList extends AbstractList<Long> implements Serializable
     }
 
     /**
-     * Operates exactly as {@link #set(int, java.lang.Integer) }
+     * Operates exactly as {@link #set(int, java.lang.Long) }
      * @param index the index to set
      * @param element the value to set
      * @return the previous value at the index

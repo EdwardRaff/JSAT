@@ -15,6 +15,11 @@ public class HingeLoss implements LossMC
 {
 
     /**
+	 * 
+	 */
+	private static final long serialVersionUID = -7001702646530236153L;
+
+	/**
      * Computes the HingeLoss loss
      *
      * @param pred the predicted value

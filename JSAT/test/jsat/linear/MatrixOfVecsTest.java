@@ -8,7 +8,6 @@ package jsat.linear;
 
 import java.util.Arrays;
 import java.util.concurrent.*;
-import static jsat.linear.DenseMatrixTest.A;
 import org.junit.*;
 import static org.junit.Assert.*;
 

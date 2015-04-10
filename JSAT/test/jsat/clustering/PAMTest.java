@@ -4,25 +4,30 @@
  */
 package jsat.clustering;
 
-import java.util.HashSet;
 import java.util.Set;
+
 import jsat.classifiers.DataPoint;
+
 import java.util.concurrent.Executors;
+
 import jsat.distributions.Uniform;
 import jsat.utils.GridDataGenerator;
+import jsat.utils.IntSet;
 import jsat.utils.SystemInfo;
 import jsat.SimpleDataSet;
+
 import java.util.List;
 import java.util.Random;
 import java.util.concurrent.ExecutorService;
-import jsat.DataSet;
+
 import jsat.clustering.SeedSelectionMethods.SeedSelection;
-import jsat.distributions.Normal;
 import jsat.linear.distancemetrics.EuclideanDistance;
+
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
+
 import static org.junit.Assert.*;
 
 /**
@@ -69,7 +74,7 @@ public class PAMTest
         System.out.println("cluster(dataSet, int, ExecutorService)");
         List<List<DataPoint>> clusters = pam.cluster(easyData10, 10, ex);
         assertEquals(10, clusters.size());
-        Set<Integer> seenBefore = new HashSet<Integer>();
+        Set<Integer> seenBefore = new IntSet();
         for(List<DataPoint> cluster :  clusters)
         {
             int thisClass = cluster.get(0).getCategoricalValue(0);
@@ -88,7 +93,7 @@ public class PAMTest
         System.out.println("cluster(dataset, int)");
         List<List<DataPoint>> clusters = pam.cluster(easyData10, 10);
         assertEquals(10, clusters.size());
-        Set<Integer> seenBefore = new HashSet<Integer>();
+        Set<Integer> seenBefore = new IntSet();
         for(List<DataPoint> cluster :  clusters)
         {
             int thisClass = cluster.get(0).getCategoricalValue(0);

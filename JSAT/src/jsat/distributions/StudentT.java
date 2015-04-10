@@ -14,7 +14,11 @@ import jsat.text.GreekLetters;
  */
 public class StudentT extends Distribution
 {
-    double df;
+    /**
+	 * 
+	 */
+	private static final long serialVersionUID = -3157525461647767831L;
+	double df;
     double mu;
     double sig;
 

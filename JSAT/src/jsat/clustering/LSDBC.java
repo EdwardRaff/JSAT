@@ -4,6 +4,7 @@ import java.util.*;
 import java.util.concurrent.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
 import jsat.DataSet;
 import jsat.linear.Vec;
 import jsat.linear.VecPaired;
@@ -17,8 +18,8 @@ import jsat.utils.*;
  * <br><br>
  * See paper:<br>
  * <a href="http://www.springerlink.com/index/0116171485446868.pdf">Biçici, E., 
- * & Yuret, D. (2007). Locally scaled density based clustering. 
- * In B. Beliczynski, A. Dzielinski, M. Iwanowski, & B. Ribeiro (Eds.), 
+ *&amp;Yuret, D. (2007). Locally scaled density based clustering. 
+ * In B. Beliczynski, A. Dzielinski, M. Iwanowski,&amp;B. Ribeiro (Eds.), 
  * Adaptive and Natural Computing Algorithms (pp. 739–748). 
  * Warsaw, Poland: Springer-Verlag. </a>
  * @author Edward Raff
@@ -26,6 +27,10 @@ import jsat.utils.*;
 public class LSDBC extends ClustererBase implements Parameterized
 {
     /**
+	 * 
+	 */
+	private static final long serialVersionUID = 6626217924334267681L;
+	/**
      * {@value #DEFAULT_NEIGHBORS} is the default number of neighbors used when performing clustering
      * @see #setNeighbors(int) 
      */
@@ -126,6 +131,7 @@ public class LSDBC extends ClustererBase implements Parameterized
      * Returns the distance metric used when performing clustering. 
      * @return the distance metric used
      */
+    @SuppressWarnings("unused")
     private DistanceMetric getDistanceMetric()
     {
         return dm;
