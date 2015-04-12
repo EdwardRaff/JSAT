@@ -102,6 +102,17 @@ public class ReliefF extends RemoveAttributeTransform
     }
 
     /**
+     * copy constructor
+     * @param toCopy the object to copy
+     */
+    protected ReliefF(ReliefF toCopy)
+    {
+        super(toCopy);
+        if(toCopy.w != null)
+            this.w = Arrays.copyOf(toCopy.w, toCopy.w.length);
+    }
+    
+    /**
      * Creates a new ReliefF object to measure the importance of the variables with 
      * respect to a classification task. Only numeric features will be removed. 
      * Categorical features will be ignored and left in tact by the transformation
@@ -239,6 +250,12 @@ public class ReliefF extends RemoveAttributeTransform
             return 0;
         return Math.abs(xj.get(i) - xk.get(i))/normalzer[i];
     }
+
+    @Override
+    public ReliefF clone()
+    {
+        return new ReliefF(this);
+    }
     
     /**
      * Factory for producing {@link ReliefF} transforms
@@ -360,7 +377,7 @@ public class ReliefF extends RemoveAttributeTransform
         }
         
         @Override
-        public DataTransform getTransform(DataSet dataset)
+        public ReliefF getTransform(DataSet dataset)
         {
             if(!(dataset instanceof ClassificationDataSet))
                 throw new FailedToFitException("ReliefF transforms can only be learned from classification data sets");

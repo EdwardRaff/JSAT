@@ -4,6 +4,7 @@ package jsat.datatransform.featureselection;
 import java.util.*;
 import jsat.classifiers.CategoricalData;
 import jsat.classifiers.ClassificationDataSet;
+import jsat.classifiers.Classifier;
 import jsat.classifiers.knn.NearestNeighbour;
 import jsat.linear.DenseVector;
 import jsat.linear.Vec;
@@ -57,14 +58,15 @@ public class SFSTest
         
         ClassificationDataSet cds = generate3DimIn10(rand, t0, t1, t2);
        
-        SFS sfs = new SFS(3, 7, cds, 
-                new NearestNeighbour(7), 5, 1e-3);
+        SFS sfs = new SFS.SFSFactory(1e-3, (Classifier)new NearestNeighbour(7), 3, 7).clone().getTransform(cds).clone();
         Set<Integer> found = sfs.getSelectedNumerical();
         
         Set<Integer> shouldHave = new HashSet<Integer>();
         shouldHave.addAll(Arrays.asList(t0, t1, t2));
         assertEquals(shouldHave.size(), found.size());
         assertTrue(shouldHave.containsAll(found));
+        cds.applyTransform(sfs);
+        assertEquals(3, cds.getNumFeatures());
     }
     
     @Test
@@ -77,14 +79,15 @@ public class SFSTest
         
         RegressionDataSet rds = generate3DimIn10R(rand, t0, t1, t2);
        
-        SFS sfs = new SFS(3, 7, rds, 
-                new MultipleLinearRegression(), 5, 10);
+        SFS sfs = new SFS.SFSFactory(10, new MultipleLinearRegression(), 3, 7).clone().getTransform(rds).clone();
         Set<Integer> found = sfs.getSelectedNumerical();
         
         Set<Integer> shouldHave = new HashSet<Integer>();
         shouldHave.addAll(Arrays.asList(t0, t1, t2));
         assertEquals(shouldHave.size(), found.size());
         assertTrue(shouldHave.containsAll(found));
+        rds.applyTransform(sfs);
+        assertEquals(3, rds.getNumFeatures());
     }
 
     /**

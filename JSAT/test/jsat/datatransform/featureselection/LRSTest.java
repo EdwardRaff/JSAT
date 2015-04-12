@@ -3,6 +3,7 @@ package jsat.datatransform.featureselection;
 
 import java.util.*;
 import jsat.classifiers.ClassificationDataSet;
+import jsat.classifiers.Classifier;
 import jsat.classifiers.knn.NearestNeighbour;
 import jsat.regression.MultipleLinearRegression;
 import jsat.regression.RegressionDataSet;
@@ -59,18 +60,23 @@ public class LRSTest
         ClassificationDataSet cds = SFSTest.
                 generate3DimIn10(rand, t0, t1, t2);
         //L > R
-        LRS lrs = new LRS(6, 3, cds, new NearestNeighbour(3), 5);
+        LRS lrs = new LRS.LRSFactory((Classifier)new NearestNeighbour(3), 6, 3).clone().getTransform(cds).clone();
         Set<Integer> found = lrs.getSelectedNumerical();
         
         assertEquals(shouldHave.size(), found.size());
         assertTrue(shouldHave.containsAll(found));
+        ClassificationDataSet copyData = cds.getTwiceShallowClone();
+        copyData.applyTransform(lrs);
+        assertEquals(shouldHave.size(), copyData.getNumFeatures());
         
         //L < R (Leave 1 left then add 2 back
-        lrs = new LRS(2, 10-1, cds, new NearestNeighbour(3), 5);
+        lrs = new LRS.LRSFactory((Classifier)new NearestNeighbour(3), 2, 10-1).clone().getTransform(cds).clone();
         found = lrs.getSelectedNumerical();
         
         assertEquals(shouldHave.size(), found.size());
         assertTrue(shouldHave.containsAll(found));
+        cds.applyTransform(lrs);
+        assertEquals(shouldHave.size(), cds.getNumFeatures());
     }
     
     @Test
@@ -85,19 +91,24 @@ public class LRSTest
         RegressionDataSet cds = SFSTest.
                 generate3DimIn10R(rand, t0, t1, t2);
         //L > R
-        LRS lrs = new LRS(6, 3, cds, new MultipleLinearRegression(), 5);
+        LRS lrs = new LRS.LRSFactory(new MultipleLinearRegression(), 6, 3).clone().getTransform(cds).clone();
         Set<Integer> found = lrs.getSelectedNumerical();
         
         
         assertEquals(shouldHave.size(), found.size());
         assertTrue(shouldHave.containsAll(found));
+        RegressionDataSet copyData = cds.getTwiceShallowClone();
+        copyData.applyTransform(lrs);
+        assertEquals(shouldHave.size(), copyData.getNumFeatures());
         
         //L < R (Leave 1 left then add 2 back
-        lrs = new LRS(2, 10-1, cds, new MultipleLinearRegression(), 5);
+        lrs = new LRS.LRSFactory(new MultipleLinearRegression(), 2, 10-1).clone().getTransform(cds).clone();
         found = lrs.getSelectedNumerical();
         
         assertEquals(shouldHave.size(), found.size());
         assertTrue(shouldHave.containsAll(found));
+        cds.applyTransform(lrs);
+        assertEquals(shouldHave.size(), cds.getNumFeatures());
     }
 
 

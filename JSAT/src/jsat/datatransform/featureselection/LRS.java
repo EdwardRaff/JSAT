@@ -82,7 +82,7 @@ public class LRS implements DataTransform
     }
 
     @Override
-    public DataTransform clone()
+    public LRS clone()
     {
         return new LRS(this);
     }
@@ -196,8 +196,8 @@ public class LRS implements DataTransform
             this.classifier = evaluater;
             if(evaluater instanceof Regressor)
                 this.regressor = (Regressor) evaluater;
-            setFeaturesToAdd(featuresToAdd);
-            setFeaturesToRemove(featuresToRemove);
+            setFeaturesToAdd(toAdd);
+            setFeaturesToRemove(toRemove);
         }
         
         /**
@@ -214,8 +214,8 @@ public class LRS implements DataTransform
             this.regressor = evaluater;
             if(evaluater instanceof Classifier)
                 this.classifier = (Classifier) evaluater;
-            setFeaturesToAdd(featuresToAdd);
-            setFeaturesToRemove(featuresToRemove);
+            setFeaturesToAdd(toAdd);
+            setFeaturesToRemove(toRemove);
         }
 
         /**
@@ -293,7 +293,7 @@ public class LRS implements DataTransform
         
 
         @Override
-        public DataTransform getTransform(DataSet dataset)
+        public LRS getTransform(DataSet dataset)
         {
             if(dataset instanceof ClassificationDataSet)
                 return new LRS(featuresToAdd, featuresToRemove, 

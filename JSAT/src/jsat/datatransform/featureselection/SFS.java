@@ -34,12 +34,13 @@ public class SFS implements DataTransform
             this.finalTransform = toClone.finalTransform.clone();
             this.catSelected = new HashSet<Integer>(toClone.catSelected);
             this.numSelected = new HashSet<Integer>(toClone.numSelected);
-            this.maxIncrease = toClone.maxIncrease;
-            if(toClone.classifier !=null)
-                this.classifier = toClone.classifier.clone();
-            if(toClone.regressor != null)
-                this.regressor = toClone.regressor.clone();
         }
+
+        this.maxIncrease = toClone.maxIncrease;
+        if (toClone.classifier != null)
+            this.classifier = toClone.classifier.clone();
+        if (toClone.regressor != null)
+            this.regressor = toClone.regressor.clone();
     }
     
     /**
@@ -112,6 +113,8 @@ public class SFS implements DataTransform
                 break;
 
         }
+        
+        this.finalTransform = new RemoveAttributeTransform(dataSet, catToRemove, numToRemove);
     }
 
     /**
@@ -151,7 +154,7 @@ public class SFS implements DataTransform
     }
 
     @Override
-    public DataTransform clone()
+    public SFS clone()
     {
         return new SFS(this);
     }
@@ -404,7 +407,7 @@ public class SFS implements DataTransform
         }
 
         @Override
-        public DataTransform getTransform(DataSet dataset)
+        public SFS getTransform(DataSet dataset)
         {
             if(dataset instanceof ClassificationDataSet)
                 return new SFS(minFeatures, maxFeatures, (ClassificationDataSet)dataset, classifier, 5, maxDecrease);

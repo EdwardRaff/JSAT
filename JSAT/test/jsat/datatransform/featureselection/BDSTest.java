@@ -3,6 +3,7 @@ package jsat.datatransform.featureselection;
 
 import java.util.*;
 import jsat.classifiers.ClassificationDataSet;
+import jsat.classifiers.Classifier;
 import jsat.classifiers.knn.NearestNeighbour;
 import jsat.regression.MultipleLinearRegression;
 import jsat.regression.RegressionDataSet;
@@ -59,11 +60,13 @@ public class BDSTest
         ClassificationDataSet cds = SFSTest.
                 generate3DimIn10(rand, t0, t1, t2);
         
-        BDS bds = new BDS(3, cds, new NearestNeighbour(7), 5);
+        BDS bds = new BDS.BDSFactory((Classifier)new NearestNeighbour(7), 3).clone().getTransform(cds).clone();
         Set<Integer> found = bds.getSelectedNumerical();
         
         assertEquals(shouldHave.size(), found.size());
         assertTrue(shouldHave.containsAll(found));
+        cds.applyTransform(bds);
+        assertEquals(shouldHave.size(), cds.getNumFeatures());
     }
     
     @Test
@@ -78,11 +81,13 @@ public class BDSTest
         RegressionDataSet rds = SFSTest.
                 generate3DimIn10R(rand, t0, t1, t2);
         
-        BDS bds = new BDS(3, rds, new MultipleLinearRegression(), 5);
+        BDS bds = new BDS.BDSFactory(new MultipleLinearRegression(), 3).clone().getTransform(rds).clone();
         Set<Integer> found = bds.getSelectedNumerical();
         
         assertEquals(shouldHave.size(), found.size());
         assertTrue(shouldHave.containsAll(found));
+        rds.applyTransform(bds);
+        assertEquals(shouldHave.size(), rds.getNumFeatures());
     }
 
 }

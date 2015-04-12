@@ -78,7 +78,7 @@ public class MutualInfoFSTest
         cds.addDataPoint(toDenseVec(0.0, 1.0, 1.0, 0.0), new int[]{1, 2, 1, 2}, 2);
         cds.addDataPoint(toDenseVec(1.0, 1.0, 0.0, 0.0), new int[]{2, 0, 1, 2}, 2);
         
-        MutualInfoFS minFS = new MutualInfoFS(cds, 4, MutualInfoFS.NumericalHandeling.BINARY);
+        MutualInfoFS minFS = new MutualInfoFS.MutualInfoFSFactory(4, MutualInfoFS.NumericalHandeling.BINARY).clone().getTransform(cds).clone();
         
         for(int i = 0; i < cds.getSampleSize(); i++)
         {

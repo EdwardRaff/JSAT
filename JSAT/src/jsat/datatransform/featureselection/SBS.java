@@ -8,6 +8,7 @@ import static jsat.datatransform.featureselection.SFS.addFeature;
 import static jsat.datatransform.featureselection.SFS.removeFeature;
 import jsat.regression.RegressionDataSet;
 import jsat.regression.Regressor;
+import jsat.utils.IntList;
 import jsat.utils.ListUtils;
 
 /**
@@ -18,11 +19,8 @@ import jsat.utils.ListUtils;
  * 
  * @author Edward Raff
  */
-public class SBS implements DataTransform
+public class SBS extends RemoveAttributeTransform
 {
-    private RemoveAttributeTransform finalTransform;
-    private Set<Integer> catSelected;
-    private Set<Integer> numSelected;
     private double maxDecrease;
     
     /**
@@ -31,13 +29,8 @@ public class SBS implements DataTransform
      */
     private SBS(SBS toClone)
     {
-        if(toClone.catSelected != null)
-        {
-            this.finalTransform = toClone.finalTransform.clone();
-            this.maxDecrease = toClone.maxDecrease;
-            this.catSelected = new HashSet<Integer>(toClone.catSelected);
-            this.numSelected = new HashSet<Integer>(toClone.numSelected);
-        }
+        super(toClone);
+        this.maxDecrease = toClone.maxDecrease;
     }
     
     /**
@@ -84,8 +77,8 @@ public class SBS implements DataTransform
         
         Set<Integer> available = new HashSet<Integer>();
         ListUtils.addRange(available, 0, nF, 1);
-        catSelected = new HashSet<Integer>(dataSet.getNumCategoricalVars());
-        numSelected = new HashSet<Integer>(dataSet.getNumNumericalVars());
+        Set<Integer> catSelected = new HashSet<Integer>(dataSet.getNumCategoricalVars());
+        Set<Integer> numSelected = new HashSet<Integer>(dataSet.getNumNumericalVars());
         
         Set<Integer> catToRemove = new HashSet<Integer>(dataSet.getNumCategoricalVars());
         Set<Integer> numToRemove = new HashSet<Integer>(dataSet.getNumNumericalVars());
@@ -105,16 +98,22 @@ public class SBS implements DataTransform
                 break;
 
         }
+        
+        int pos = 0;
+        catIndexMap = new int[catSelected.size()];
+        for(int i : catSelected)
+            catIndexMap[pos++] = i;
+        Arrays.sort(catIndexMap);
+        
+        pos = 0;
+        numIndexMap = new int[numSelected.size()];
+        for(int i : numSelected)
+            numIndexMap[pos++] = i;
+        Arrays.sort(numIndexMap);
     }
     
     @Override
-    public DataPoint transform(DataPoint dp)
-    {
-        return finalTransform.transform(dp);
-    }
-
-    @Override
-    public DataTransform clone()
+    public SBS clone()
     {
         return new SBS(this);
     }
@@ -127,7 +126,7 @@ public class SBS implements DataTransform
      */
     public Set<Integer> getSelectedCategorical()
     {
-        return new HashSet<Integer>(catSelected);
+        return new HashSet<Integer>(IntList.view(catIndexMap, catIndexMap.length));
     }
     
     /**
@@ -138,7 +137,7 @@ public class SBS implements DataTransform
      */
     public Set<Integer> getSelectedNumerical()
     {
-        return new HashSet<Integer>(numSelected);
+        return new HashSet<Integer>(IntList.view(numIndexMap, numIndexMap.length));
     }
 
     /**
@@ -334,7 +333,7 @@ public class SBS implements DataTransform
         }
         
         @Override
-        public DataTransform getTransform(DataSet dataset)
+        public SBS getTransform(DataSet dataset)
         {
             if(dataset instanceof ClassificationDataSet)
                 return new SBS(minFeatures, maxFeatures, (ClassificationDataSet)dataset, classifier, 5, maxDecrease);

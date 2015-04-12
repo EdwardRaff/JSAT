@@ -79,7 +79,7 @@ public class BDS implements DataTransform
     }
 
     @Override
-    public DataTransform clone()
+    public BDS clone()
     {
         return new BDS(this);
     }
@@ -168,7 +168,7 @@ public class BDS implements DataTransform
         catSelecteedSBS.removeAll(catSelected);
         numSelectedSBS.removeAll(numSelected);
         
-        finalTransform = new RemoveAttributeTransform(dataSet, catToRemoveSBS, numToRemoveSBS);
+        finalTransform = new RemoveAttributeTransform(dataSet, catSelecteedSBS, numSelectedSBS);
     }
     
     /**
@@ -249,7 +249,7 @@ public class BDS implements DataTransform
         }
 
         @Override
-        public DataTransform getTransform(DataSet dataset)
+        public BDS getTransform(DataSet dataset)
         {
             if(dataset instanceof ClassificationDataSet)
                 return new BDS(featureCount, (ClassificationDataSet)dataset, 

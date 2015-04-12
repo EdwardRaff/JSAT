@@ -58,6 +58,15 @@ public class MutualInfoFS extends RemoveAttributeTransform
     }
     
     /**
+     * Copy constructor
+     * @param toCopy the object to copy
+     */
+    protected MutualInfoFS(MutualInfoFS toCopy)
+    {
+        super(toCopy);
+    }
+    
+    /**
      * Creates a new Mutual Information feature selection object.
      *
      * @param dataSet the classification data set to perform feature selection
@@ -199,6 +208,12 @@ public class MutualInfoFS extends RemoveAttributeTransform
         
         setUp(dataSet, catToRemove, numToRemove);
     }
+
+    @Override
+    public MutualInfoFS clone()
+    {
+        return new MutualInfoFS(this);
+    }
     
     /**
      * Factory for producing {@link MutualInfoFS} transforms
@@ -280,7 +295,7 @@ public class MutualInfoFS extends RemoveAttributeTransform
 
         
         @Override
-        public DataTransform getTransform(DataSet dataset)
+        public MutualInfoFS getTransform(DataSet dataset)
         {
             if(!(dataset instanceof ClassificationDataSet))
                 throw new FailedToFitException("The given data set was not a classification data set");
