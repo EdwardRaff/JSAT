@@ -10,7 +10,7 @@ import jsat.linear.Vec;
 import jsat.linear.distancemetrics.DistanceMetric;
 import jsat.linear.distancemetrics.EuclideanDistance;
 import jsat.linear.distancemetrics.TrainableDistanceMetric;
-import jsat.utils.random.XORWOW;
+import jsat.utils.DoubleList;
 
 /**
  *
@@ -151,13 +151,15 @@ public class CLARA extends PAM
          * Key is the sample index [1, 2, 3, ..., sampSize]
          * Value is the coresponding index in the full data set
          */
-        Map<Integer, Integer> samplePoints = new Hashtable<Integer, Integer>();
+        Map<Integer, Integer> samplePoints = new LinkedHashMap<Integer, Integer>();
+        DoubleList subCache = new DoubleList(sampSize);
         
         for(int i = 0; i < sampleCount; i++)
         {
             //Take a sample and use PAM on it to get medoids
             samplePoints.clear();
             sample.clear();
+            subCache.clear();
             
             while (samplePoints.size() < sampSize)
             {
@@ -166,17 +168,20 @@ public class CLARA extends PAM
                     samplePoints.put(samplePoints.size(), indx);
             }
             for (Integer j : samplePoints.values())
+            {
                 sample.add(data.getDataPoint(j));
+                subCache.add(cacheAccel.get(j));
+            }
 
             DataSet sampleSet = new SimpleDataSet(sample);
             
             //Sampling done, now apply PAM
-            SeedSelectionMethods.selectIntialPoints(sampleSet, medioids, dm, cacheAccel, rand, getSeedSelection());
-            super.cluster(sampleSet, false, medioids, sampleAssignments, cacheAccel);
+            SeedSelectionMethods.selectIntialPoints(sampleSet, medioids, dm, subCache, rand, getSeedSelection());
+            super.cluster(sampleSet, false, medioids, sampleAssignments, subCache);
             
             //Map the sample medoids back to the full data set
             for(int j = 0; j < medioids.length; j++)
-                medioids[j] = samplePoints.get(j);
+                medioids[j] = samplePoints.get(medioids[j]);
             
             //Now apply the sample medoids to the full data set
             double sqrdDist = 0.0;

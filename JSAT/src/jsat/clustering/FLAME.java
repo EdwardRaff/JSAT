@@ -266,6 +266,7 @@ public class FLAME extends ClustererBase implements Parameterized
             
             //remove CSO that occur near outliers
             {
+                int origSize = CSOs.size();
                 Iterator<Integer> iter = CSOs.keySet().iterator();
                 while (iter.hasNext())
                 {
@@ -277,6 +278,14 @@ public class FLAME extends ClustererBase implements Parameterized
                             iter.remove();
                             break;
                         }
+                }
+                
+                if(origSize != CSOs.size())//we did a removal, re-order clusters
+                {
+                    Set<Integer> keys = new HashSet<Integer>(CSOs.keySet());
+                    CSOs.clear();
+                    for(int i : keys)
+                        CSOs.put(i, CSOs.size());
                 }
                 //May have gaps, will be fixed in final step
                 for (int i : CSOs.keySet())
