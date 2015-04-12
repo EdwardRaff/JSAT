@@ -1,6 +1,7 @@
 package jsat.classifiers.neuralnetwork;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
@@ -35,6 +36,7 @@ import jsat.parameters.Parameterized;
 import jsat.regression.RegressionDataSet;
 import jsat.regression.Regressor;
 import jsat.utils.BoundedSortedList;
+import jsat.utils.DoubleList;
 import jsat.utils.FakeExecutor;
 import jsat.utils.IntList;
 import jsat.utils.ListUtils;
@@ -185,6 +187,17 @@ public class RBFNet implements Classifier, Regressor, DataTransform, Parameteriz
             if(baseClassifier instanceof Regressor)
                 baseRegressor = (Regressor) baseClassifier;
         }
+        if(toCopy.centroids != null)
+        {
+            this.centroids = new ArrayList<Vec>(toCopy.centroids.size());
+            for(Vec v : toCopy.centroids)
+                this.centroids.add(v.clone());
+            if(toCopy.centroidDistCache != null)
+                this.centroidDistCache = new DoubleList(toCopy.centroidDistCache);
+        }
+        
+        if(toCopy.bandwidths != null)
+            this.bandwidths = Arrays.copyOf(toCopy.bandwidths, toCopy.bandwidths.length);
     }
 
     @Override
