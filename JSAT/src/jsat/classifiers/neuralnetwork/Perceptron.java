@@ -330,6 +330,7 @@ public class Perceptron implements BinaryScoreClassifier, SingleWeightVectorMode
         Perceptron copy = new  Perceptron(learningRate, iteratinLimit);
         if(this.weights != null)
             copy.weights = this.weights.clone();
+        copy.bias = this.bias;
         
         return copy;
     }    

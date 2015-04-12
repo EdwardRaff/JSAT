@@ -63,7 +63,9 @@ public class PerceptronTest
         ClassificationDataSet train = FixedProblems.get2ClassLinear(200, new Random());
         
         Perceptron instance = new Perceptron();
+        instance = instance.clone();
         instance.trainC(train, threadPool);
+        instance = instance.clone();
         
         ClassificationDataSet test = FixedProblems.get2ClassLinear(200, new Random());
         
@@ -82,7 +84,9 @@ public class PerceptronTest
         ClassificationDataSet train = FixedProblems.get2ClassLinear(200, new Random());
 
         Perceptron instance = new Perceptron();
+        instance = instance.clone();
         instance.trainC(train);
+        instance = instance.clone();
 
         ClassificationDataSet test = FixedProblems.get2ClassLinear(200, new Random());
 
@@ -100,7 +104,9 @@ public class PerceptronTest
         ClassificationDataSet train = FixedProblems.get2ClassLinear(200, new Random());
 
         Perceptron instance = new Perceptron();
+        instance = instance.clone();
         instance.trainCOnline(train);
+        instance = instance.clone();
 
         ClassificationDataSet test = FixedProblems.get2ClassLinear(200, new Random());
 
