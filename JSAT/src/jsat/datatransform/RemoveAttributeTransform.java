@@ -22,8 +22,8 @@ public class RemoveAttributeTransform implements DataTransform
      * This means each is in sorted order, and is of the size of the resulting 
      * feature space
      */
-    private int[] catIndexMap;
-    private int[] numIndexMap;
+    protected int[] catIndexMap;
+    protected int[] numIndexMap;
     
     /**
      * Empty constructor that may be used by extending classes. Transforms that 
@@ -133,7 +133,7 @@ public class RemoveAttributeTransform implements DataTransform
      * Copy constructor
      * @param other the transform to copy
      */
-    private RemoveAttributeTransform(RemoveAttributeTransform other)
+    protected RemoveAttributeTransform(RemoveAttributeTransform other)
     {
         this.catIndexMap = Arrays.copyOf(other.catIndexMap, other.catIndexMap.length);
         this.numIndexMap = Arrays.copyOf(other.numIndexMap, other.numIndexMap.length);
