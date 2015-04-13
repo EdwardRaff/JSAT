@@ -60,7 +60,7 @@ public class BestClassDistribution implements Classifier, Parameterized
         {
             this.dists = new ArrayList<MultivariateDistribution>(toCopy.dists.size());
             for(MultivariateDistribution md : toCopy.dists)
-                this.dists.add(md.clone());
+                this.dists.add(md == null? null : md.clone());
         }
     }
     

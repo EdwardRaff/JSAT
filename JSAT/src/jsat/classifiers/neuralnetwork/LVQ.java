@@ -163,16 +163,20 @@ public class LVQ implements Classifier, Parameterized
                 toCopy.learningDecay);
         if(toCopy.weights != null)
         {
-            wins = Arrays.copyOf(this.wins, this.wins.length);
-            weights = new Vec[this.weights.length];
+            wins = Arrays.copyOf(toCopy.wins, toCopy.wins.length);
+            weights = new Vec[toCopy.weights.length];
             weightClass = Arrays.copyOf(toCopy.weightClass, toCopy.weightClass.length);
 
             for(int i = 0; i < toCopy.weights.length; i++)
-                weights[i] = this.weights[i].clone();
+                this.weights[i] = toCopy.weights[i].clone();
         }
         setEpsilonDistance(toCopy.eps);
         setMScale(toCopy.getMScale());
         setSeedSelection(toCopy.getSeedSelection());
+        if(toCopy.vc != null)
+            this.vc = toCopy.vc.clone();
+        setVecCollectionFactory(toCopy.vcf.clone());
+        
     }
 
     /**
@@ -631,7 +635,7 @@ public class LVQ implements Classifier, Parameterized
     }
 
     @Override
-    public Classifier clone()
+    public LVQ clone()
     {   
         return new LVQ(this);
     }
