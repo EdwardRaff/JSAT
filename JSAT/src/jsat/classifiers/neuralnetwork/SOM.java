@@ -548,7 +548,7 @@ public class SOM implements Classifier, Parameterized
     }
 
     @Override
-    public Classifier clone()
+    public SOM clone()
     {
         SOM clone = new SOM(maxIters, kf, initialLearningRate, learningDecay, neighborDecay, dm.clone(), somHeight, somHeight, vcFactory.clone());
         if(this.weights != null)
