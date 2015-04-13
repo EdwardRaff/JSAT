@@ -260,6 +260,8 @@ public class KDTree<V extends Vec> implements VectorCollection<V>
                     pivot = j;
                 }
             }
+            if(pivot < 0)//All dims had NaN as variance? Fall back to incremental selection
+                pivot = depth % mod;
         }
         
         Collections.sort(data, new VecIndexComparator(pivot));
