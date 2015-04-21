@@ -1,7 +1,12 @@
 package jsat.distributions;
 
 
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
+import jsat.classifiers.bayesian.MultivariateNormals;
 import jsat.linear.Vec;
+import jsat.utils.Pair;
 
 public class SingleValueDistribution extends Distribution {
 
@@ -26,26 +31,13 @@ public class SingleValueDistribution extends Distribution {
 
 	@Override
 	public double cdf(double x) {
-		throw new UnsupportedOperationException("Not yet implemented");
+		if(x >= value){
+			return 1;
+		}else{
+			return 0;
+		}
 	}
 
-//	@Override
-//	public double invCdf(double p) {
-//		if (p >= 1) {
-//			return value;
-//		} else {
-//			return value - 0.00001;
-//		}
-//	}
-//	@Override
-//	public double min() {
-//		return value - 0.1;
-//	}
-//
-//	@Override
-//	public double max() {
-//		return value + 0.1;
-//	}
 	@Override
 	public double invCdf(double p) {
 		return value;
@@ -75,20 +67,20 @@ public class SingleValueDistribution extends Distribution {
 	@Override
 	public String[] getVariables() {
 		return new String[] { "value" };
-		// throw new IllegalStateException("Not yet implemented");
 
 	}
 
 	@Override
 	public double[] getCurrentVariableValues() {
 		return new double[] { value };
-		// throw new IllegalStateException("Not yet implemented");
 
 	}
 
 	@Override
 	public void setVariable(String var, double value) {
-		throw new UnsupportedOperationException("Not yet implemented");
+		if(var.equals("value")){
+			this.value = value;
+		}
 	}
 
 	@Override
@@ -98,7 +90,12 @@ public class SingleValueDistribution extends Distribution {
 
 	@Override
 	public void setUsingData(Vec data) {
-		throw new UnsupportedOperationException("Not yet implemented");
+		Pair<Boolean, Double> sameValues = DistributionSearch.checkForDifferentValues(data);
+		if(sameValues.getFirstItem()){
+			value = sameValues.getSecondItem();
+		}else{
+            Logger.getLogger(SingleValueDistribution.class.getName()).log(Level.WARNING,"Trying to use a SingleValueDistribution with data that contains more than one value.");
+		}
 	}
 
 	@Override
@@ -118,7 +115,7 @@ public class SingleValueDistribution extends Distribution {
 
 	@Override
 	public double skewness() {
-		throw new UnsupportedOperationException("Not yet implemented");
+		return Double.NaN;
 	}
 
 }
