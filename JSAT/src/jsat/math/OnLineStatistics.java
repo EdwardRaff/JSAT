@@ -17,9 +17,6 @@ import java.io.Serializable;
  */
 public class OnLineStatistics implements Serializable, Cloneable
 {
-   /**
-	 * 
-	 */
 	private static final long serialVersionUID = -4286295481362462983L;
 /**
      * The current mean

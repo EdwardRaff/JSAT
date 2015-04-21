@@ -45,9 +45,7 @@ import jsat.regression.UpdateableRegressor;
  */
 public class KernelSGD implements UpdateableClassifier, UpdateableRegressor, Parameterized
 {
-    /**
-	 * 
-	 */
+
 	private static final long serialVersionUID = -4956596506787859023L;
 	private LossFunc loss;
     @ParameterHolder

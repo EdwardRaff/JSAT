@@ -40,9 +40,7 @@ import jsat.utils.random.XORWOW;
  */
 public class SGDNetworkTrainer implements Serializable
 {
-    /**
-	 * 
-	 */
+
 	private static final long serialVersionUID = 5753653181230693131L;
 	/**
      * An array where the length indicates the number of layers and the value of

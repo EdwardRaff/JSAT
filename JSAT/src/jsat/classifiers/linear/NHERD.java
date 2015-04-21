@@ -36,9 +36,7 @@ import jsat.parameters.Parameterized;
  */
 public class NHERD extends BaseUpdateableClassifier implements BinaryScoreClassifier, Parameterized, SingleWeightVectorModel
 {
-    /**
-	 * 
-	 */
+
 	private static final long serialVersionUID = -1186002893766449917L;
 	private Vec w;
     /**

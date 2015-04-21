@@ -34,9 +34,7 @@ import jsat.clustering.evaluation.ClusterEvaluation;
  */
 public class DivisiveGlobalClusterer extends KClustererBase
 {
-    /**
-	 * 
-	 */
+
 	private static final long serialVersionUID = -9117751530105155090L;
 	private KClusterer baseClusterer;
     private ClusterEvaluation clusterEvaluation;

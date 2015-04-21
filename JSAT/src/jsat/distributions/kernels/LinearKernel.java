@@ -15,9 +15,7 @@ import jsat.parameters.Parameter;
  */
 public class LinearKernel extends BaseKernelTrick
 {
-    /**
-	 * 
-	 */
+
 	private static final long serialVersionUID = -1870181048970135367L;
 	private double c;
 

@@ -13,9 +13,7 @@ import jsat.linear.Vec;
 public class ChebyshevDistance implements DistanceMetric
 {
 
-    /**
-	 * 
-	 */
+
 	private static final long serialVersionUID = 2528153647402824790L;
 
 	@Override

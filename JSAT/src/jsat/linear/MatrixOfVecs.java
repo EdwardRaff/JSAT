@@ -16,9 +16,7 @@ import java.util.List;
  */
 public class MatrixOfVecs extends GenericMatrix
 {
-    /**
-	 * 
-	 */
+
 	private static final long serialVersionUID = 6120353195388663462L;
 	private List<Vec> rows;
 

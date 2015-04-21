@@ -46,9 +46,7 @@ import jsat.utils.ListUtils;
  */
 public class PlatSMO extends SupportVectorLearner implements BinaryScoreClassifier, Regressor, Parameterized 
 {
-    /**
-	 * 
-	 */
+
 	private static final long serialVersionUID = 1533410993462673127L;
 	/**
      * Bias

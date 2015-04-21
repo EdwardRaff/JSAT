@@ -22,9 +22,7 @@ import javax.swing.JProgressBar;
  */
 public class LongProcessDialog extends JDialog
 {
-    /**
-	 * 
-	 */
+
 	private static final long serialVersionUID = -186028772859867338L;
 	private JLabel messageLabel = new JLabel();
     private JLabel noteLabel = new JLabel();

@@ -24,9 +24,7 @@ import jsat.utils.FakeExecutor;
  */
 public class RidgeRegression implements Regressor, Parameterized
 {
-    /**
-	 * 
-	 */
+
 	private static final long serialVersionUID = -4605757038780391895L;
 	private double lambda;
     private Vec w;

@@ -12,9 +12,7 @@ import java.util.HashMap;
 public class LovinsStemmer extends Stemmer
 {
     
-    /**
-	 * 
-	 */
+
 	private static final long serialVersionUID = -3229865664217642197L;
 
 	//There are 11 ending hash maps, each postfixed with the number of characters

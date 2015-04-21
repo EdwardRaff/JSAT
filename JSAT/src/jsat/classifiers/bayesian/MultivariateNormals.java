@@ -12,9 +12,7 @@ import jsat.distributions.multivariate.NormalM;
  */
 public class MultivariateNormals extends BestClassDistribution
 {
-    /**
-	 * 
-	 */
+
 	private static final long serialVersionUID = 5977979334930517655L;
 
 	public MultivariateNormals(boolean usePriors)

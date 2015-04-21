@@ -42,9 +42,7 @@ import jsat.utils.random.XORWOW;
  */
 public class AMM extends OnlineAMM
 {
-    /**
-	 * 
-	 */
+
 	private static final long serialVersionUID = -9198419566231617395L;
 	private int subEpochs = 1;
 

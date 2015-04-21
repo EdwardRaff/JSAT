@@ -11,9 +11,7 @@ import jsat.linear.DenseVector;
 public abstract class FunctionBase implements Function
 {
 
-    /**
-	 * 
-	 */
+
 	private static final long serialVersionUID = 424945317407895409L;
 
 	@Override

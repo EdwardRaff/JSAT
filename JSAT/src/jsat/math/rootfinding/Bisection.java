@@ -11,9 +11,7 @@ import jsat.math.Function;
 public class Bisection implements RootFinder
 {
     
-    /**
-	 * 
-	 */
+
 	private static final long serialVersionUID = -8107160048637997385L;
 
 	/**

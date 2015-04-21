@@ -33,9 +33,7 @@ import jsat.regression.Regressor;
  */
 public class LogitBoost implements Classifier, Parameterized
 {
-    /**
-	 * 
-	 */
+
 	private static final long serialVersionUID = 1621062168467402062L;
 	/**
      * The constant factor that the sum of regressors is scaled by. 

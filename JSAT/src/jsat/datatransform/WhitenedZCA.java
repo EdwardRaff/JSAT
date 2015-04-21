@@ -13,9 +13,7 @@ import jsat.linear.*;
  */
 public class WhitenedZCA extends WhitenedPCA implements InPlaceTransform
 {
-    /**
-	 * 
-	 */
+
 	private static final long serialVersionUID = 7546033727733619587L;
 	private final ThreadLocal<Vec> tempVecs;
     

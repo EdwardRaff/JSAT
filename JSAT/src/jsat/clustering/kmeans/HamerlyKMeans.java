@@ -38,9 +38,7 @@ import jsat.utils.random.XORWOW;
  */
 public class HamerlyKMeans extends KMeans
 {
-    /**
-	 * 
-	 */
+
 	private static final long serialVersionUID = -4960453870335145091L;
 
 	/**

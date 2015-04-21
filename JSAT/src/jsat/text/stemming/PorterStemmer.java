@@ -9,9 +9,7 @@ package jsat.text.stemming;
 public class PorterStemmer extends Stemmer
 {
 
-    /**
-	 * 
-	 */
+
 	private static final long serialVersionUID = -3809291457988435043L;
 
 	public String stem(String s)

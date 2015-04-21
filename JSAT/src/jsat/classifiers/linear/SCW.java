@@ -50,9 +50,7 @@ import jsat.parameters.Parameterized;
  */
 public class SCW extends BaseUpdateableClassifier implements BinaryScoreClassifier, Parameterized, SingleWeightVectorModel
 {
-    /**
-	 * 
-	 */
+
 	private static final long serialVersionUID = -6721377074407660742L;
 	private double C = 1;
     private double eta;

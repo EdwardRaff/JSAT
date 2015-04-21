@@ -7,9 +7,7 @@ package jsat.exceptions;
  */
 public class FailedToFitException extends RuntimeException
 {
-    /**
-	 * 
-	 */
+
 	private static final long serialVersionUID = 2982189541225068993L;
 	private Exception faultException;
 

@@ -27,9 +27,7 @@ import jsat.utils.*;
  */
 public class ElkanKMeans extends KMeans
 {
-    /**
-	 * 
-	 */
+
 	private static final long serialVersionUID = -1629432283103273051L;
 
 	private DenseSparseMetric dmds;

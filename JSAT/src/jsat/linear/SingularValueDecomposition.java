@@ -21,9 +21,7 @@ import static jsat.linear.RowColumnOps.*;
  */
 public class SingularValueDecomposition implements Cloneable, Serializable
 {
-    /**
-	 * 
-	 */
+
 	private static final long serialVersionUID = 1711766946748622002L;
 	private Matrix U, V;
     /**

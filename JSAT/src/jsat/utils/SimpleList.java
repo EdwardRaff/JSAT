@@ -20,9 +20,7 @@ import java.util.ConcurrentModificationException;
  */
 public class SimpleList<E> extends AbstractList<E> implements Serializable
 {
-    /**
-	 * 
-	 */
+
 	private static final long serialVersionUID = -1641584937585415217L;
 	private Object[] source;
     private int size;

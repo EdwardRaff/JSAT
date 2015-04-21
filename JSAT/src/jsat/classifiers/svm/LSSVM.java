@@ -62,9 +62,7 @@ import static jsat.utils.concurrent.ParallelUtils.*;
  */
 public class LSSVM extends SupportVectorLearner implements BinaryScoreClassifier, Regressor, Parameterized
 {
-    /**
-	 * 
-	 */
+
 	private static final long serialVersionUID = -7569924400631719451L;
 	protected double b = 0, b_low, b_up;
     private double C = 1;

@@ -21,9 +21,7 @@ import jsat.regression.Regressor;
  */
 public class NearestNeighbour implements  Classifier, Regressor, Parameterized
 {
-    /**
-	 * 
-	 */
+
 	private static final long serialVersionUID = 4239569189624285932L;
 	private int k;
     private boolean weighted ;

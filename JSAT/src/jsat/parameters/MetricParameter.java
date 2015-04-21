@@ -10,9 +10,7 @@ import jsat.linear.distancemetrics.DistanceMetric;
  */
 public abstract class MetricParameter extends Parameter
 {
-    /**
-	 * 
-	 */
+
 	private static final long serialVersionUID = -8525270531723322719L;
 
 	/**

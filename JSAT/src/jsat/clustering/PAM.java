@@ -28,9 +28,7 @@ import jsat.utils.random.XORWOW;
  */
 public class PAM extends KClustererBase
 {
-    /**
-	 * 
-	 */
+
 	private static final long serialVersionUID = 4787649180692115514L;
 	protected DistanceMetric dm;
     protected Random rand;

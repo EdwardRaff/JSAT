@@ -10,9 +10,7 @@ import jsat.classifiers.CategoricalResults;
  */
 public class Accuracy implements ClassificationScore
 {
-    /**
-	 * 
-	 */
+
 	private static final long serialVersionUID = 397690693205481128L;
 	private double correct, total;
 

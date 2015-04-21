@@ -49,9 +49,7 @@ import jsat.utils.random.XORWOW;
  */
 public class CSKLRBatch extends SupportVectorLearner implements Parameterized, Classifier
 {
-    /**
-	 * 
-	 */
+
 	private static final long serialVersionUID = -2305532659182911285L;
 	private double eta;
     private double curNorm;

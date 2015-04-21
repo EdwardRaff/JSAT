@@ -13,9 +13,7 @@ import jsat.math.Function;
  */
 public class QQPlotData extends Graph2D
 {
-    /**
-	 * 
-	 */
+
 	private static final long serialVersionUID = -6064799999519303006L;
 	private Vec yData;
     private Vec xData;

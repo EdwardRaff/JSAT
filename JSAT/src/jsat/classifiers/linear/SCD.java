@@ -35,9 +35,7 @@ import jsat.utils.random.XORWOW;
  */
 public class SCD implements Classifier, Regressor, Parameterized, SingleWeightVectorModel
 {
-    /**
-	 * 
-	 */
+
 	private static final long serialVersionUID = 3576901723216525618L;
 	private Vec w;
     private LossFunc loss;

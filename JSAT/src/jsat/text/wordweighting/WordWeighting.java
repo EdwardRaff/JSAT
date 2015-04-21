@@ -17,9 +17,7 @@ import jsat.math.IndexFunction;
 public abstract class WordWeighting extends IndexFunction
 {
 
-    /**
-	 * 
-	 */
+
 	private static final long serialVersionUID = 2372760149718829334L;
 
 	/**

@@ -30,9 +30,7 @@ import jsat.parameters.Parameterized;
  */
 public class Forgetron extends BaseUpdateableClassifier implements BinaryScoreClassifier, Parameterized
 {
-    /**
-	 * 
-	 */
+
 	private static final long serialVersionUID = -2631315082407427077L;
 	@ParameterHolder
     private KernelTrick K;

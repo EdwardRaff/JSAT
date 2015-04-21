@@ -23,9 +23,7 @@ import jsat.exceptions.FailedToFitException;
  */
 public class AODE extends BaseUpdateableClassifier
 {
-    /**
-	 * 
-	 */
+
 	private static final long serialVersionUID = 8386506277969540732L;
 	protected CategoricalData predicting;
     protected ODE[] odes;

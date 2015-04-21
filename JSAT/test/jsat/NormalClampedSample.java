@@ -11,9 +11,7 @@ import jsat.linear.DenseVector;
  */
 public class NormalClampedSample extends Normal
 {
-    /**
-	 * 
-	 */
+
 	private static final long serialVersionUID = 3970933766374506189L;
 	double min, max;
 

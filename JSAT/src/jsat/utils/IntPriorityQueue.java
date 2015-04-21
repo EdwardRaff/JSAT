@@ -13,9 +13,7 @@ import java.util.*;
  */
 public class IntPriorityQueue extends AbstractQueue<Integer> implements Serializable
 {
-    /**
-	 * 
-	 */
+
 	private static final long serialVersionUID = -310756323843109562L;
 	public static final Comparator<Integer> naturalComparator = new Comparator<Integer>() {
 

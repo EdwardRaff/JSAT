@@ -56,9 +56,7 @@ import jsat.utils.random.XORWOW;
  */
 public class GapStatistic extends KClustererBase implements Parameterized
 {
-    /**
-	 * 
-	 */
+
 	private static final long serialVersionUID = 8893929177942856618L;
 	@ParameterHolder
     private KClusterer base;

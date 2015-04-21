@@ -10,9 +10,7 @@ import static java.lang.Math.*;
  */
 public class Zeroin implements RootFinder
 {
-    /**
-	 * 
-	 */
+
 	private static final long serialVersionUID = -8359510619103768778L;
 
 	public static double root(double a, double b, Function f, double... args)

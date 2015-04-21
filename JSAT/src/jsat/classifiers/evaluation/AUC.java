@@ -15,9 +15,7 @@ import jsat.classifiers.CategoricalResults;
  */
 public class AUC implements ClassificationScore
 {
-    /**
-	 * 
-	 */
+
 	private static final long serialVersionUID = 6882234590870560718L;
 
 	private static class Tuple implements Comparable<Tuple>

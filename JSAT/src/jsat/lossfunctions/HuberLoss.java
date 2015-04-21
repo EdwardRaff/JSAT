@@ -11,9 +11,7 @@ package jsat.lossfunctions;
 public class HuberLoss implements LossR
 {
 
-    /**
-	 * 
-	 */
+
 	private static final long serialVersionUID = -4463269746356262940L;
 	private double c;
 

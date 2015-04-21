@@ -13,9 +13,7 @@ import java.util.concurrent.ExecutorService;
  */
 public class MajorityVote implements Classifier
 {
-    /**
-	 * 
-	 */
+
 	private static final long serialVersionUID = 7945429768861275845L;
 	private Classifier[] voters;
 

@@ -45,9 +45,7 @@ import jsat.exceptions.FailedToFitException;
  */
 public class CSKLR extends BaseUpdateableClassifier implements Parameterized
 {
-    /**
-	 * 
-	 */
+
 	private static final long serialVersionUID = 2325605193408720811L;
 	private double eta;
     private DoubleList alpha;

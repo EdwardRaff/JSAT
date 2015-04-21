@@ -33,9 +33,7 @@ import jsat.linear.Vec;
  */
 public class PCA implements DataTransform
 {
-    /**
-	 * 
-	 */
+
 	private static final long serialVersionUID = 8736609877239941617L;
 	/**
      * The transposed matrix of the Principal Components

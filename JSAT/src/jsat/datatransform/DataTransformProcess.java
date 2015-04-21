@@ -24,9 +24,7 @@ import jsat.parameters.Parameterized;
  */
 public class DataTransformProcess implements DataTransform, Parameterized
 {
-    /**
-	 * 
-	 */
+
 	private static final long serialVersionUID = -2844495690944305885L;
 	@ParameterHolder(skipSelfNamePrefix = true)
     private List<DataTransformFactory> transformSource;

@@ -14,9 +14,7 @@ import java.util.NoSuchElementException;
  */
 public class ConcatenatedVec extends Vec
 {
-    /**
-	 * 
-	 */
+
 	private static final long serialVersionUID = -1412322616974470550L;
 	private Vec[] vecs;
     private int[] lengthSums;

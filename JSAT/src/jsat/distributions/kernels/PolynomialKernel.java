@@ -13,9 +13,7 @@ import jsat.parameters.Parameter;
  */
 public class PolynomialKernel extends BaseKernelTrick 
 {
-    /**
-	 * 
-	 */
+
 	private static final long serialVersionUID = 9123109691782934745L;
 	private double degree;
     private double alpha;

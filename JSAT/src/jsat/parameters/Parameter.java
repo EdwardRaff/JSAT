@@ -19,9 +19,7 @@ import jsat.math.decayrates.DecayRate;
  */
 public abstract class Parameter implements Serializable
 {
-    /**
-	 * 
-	 */
+
 	private static final long serialVersionUID = -6903844587637472657L;
 
 	/**

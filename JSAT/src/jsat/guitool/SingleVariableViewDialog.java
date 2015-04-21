@@ -23,9 +23,7 @@ import jsat.linear.Vec;
  */
 public class SingleVariableViewDialog extends JDialog
 {
-    /**
-	 * 
-	 */
+
 	private static final long serialVersionUID = -3635281795623474239L;
 	final JPanel panel;
     final List<Vec> dataSets;

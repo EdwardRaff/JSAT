@@ -13,9 +13,7 @@ import jsat.linear.Vec;
 public class ScatterplotMatrix extends JDialog
 {
 
-    /**
-	 * 
-	 */
+
 	private static final long serialVersionUID = 8238730449174292088L;
 
 	/**

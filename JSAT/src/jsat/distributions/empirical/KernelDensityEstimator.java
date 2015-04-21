@@ -26,9 +26,7 @@ public class KernelDensityEstimator extends Distribution
      * technicaly, O(n), its more accuracly describe as O(n * epsilon * log(n)) , where n * epsilon << n
      */
     
-    /**
-	 * 
-	 */
+
 	private static final long serialVersionUID = 7708020456632603947L;
 	/**
      * The various values 

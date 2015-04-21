@@ -16,9 +16,7 @@ import jsat.regression.Regressor;
  */
 public class ScatterPlot extends Graph2D
 {
-    /**
-	 * 
-	 */
+
 	private static final long serialVersionUID = -2533942800053058839L;
 	private Vec xValues;
     private Vec yValues;

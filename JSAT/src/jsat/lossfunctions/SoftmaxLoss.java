@@ -12,9 +12,7 @@ import jsat.math.MathTricks;
  */
 public class SoftmaxLoss extends LogisticLoss implements LossMC
 {
-    /**
-	 * 
-	 */
+
 	private static final long serialVersionUID = 3936898932252996024L;
 
 	@Override

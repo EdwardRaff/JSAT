@@ -28,9 +28,7 @@ import jsat.linear.distancemetrics.EuclideanDistance;
  */
 public class JLTransform implements DataTransform 
 {
-    /**
-	 * 
-	 */
+
 	private static final long serialVersionUID = -8621368067861343912L;
 
 	//TODO for SPARSE, avoid unecessary computations for 0 values

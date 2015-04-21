@@ -13,9 +13,7 @@ import jsat.linear.Vec;
  */
 public class TfIdf extends WordWeighting
 {
-    /**
-	 * 
-	 */
+
 	private static final long serialVersionUID = 5749882005002311735L;
 
 	public enum TermFrequencyWeight 

@@ -23,9 +23,7 @@ import jsat.parameters.*;
  */
 public class ParameterPanel extends javax.swing.JPanel
 {
-    /**
-	 * 
-	 */
+
 	private static final long serialVersionUID = -7333731204670319776L;
 	final GridLayout gridLayout;
     final DistanceMetric[] distanceMetrics = new DistanceMetric[]

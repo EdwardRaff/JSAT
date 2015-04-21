@@ -21,9 +21,7 @@ import jsat.DataSet;
 public class DataSetSelection extends JDialog
 {
 
-    /**
-	 * 
-	 */
+
 	private static final long serialVersionUID = -2599749949210575182L;
 	final String[] dataSelections;
     final String[] reasons;

@@ -38,9 +38,7 @@ import jsat.utils.random.XORWOW;
 public class NaiveKMeans extends KMeans
 {
 
-    /**
-	 * 
-	 */
+
 	private static final long serialVersionUID = 6164910874898843069L;
 
 	/**

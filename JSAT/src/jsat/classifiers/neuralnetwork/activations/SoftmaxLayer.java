@@ -14,9 +14,7 @@ import jsat.math.MathTricks;
 public class SoftmaxLayer implements ActivationLayer
 {
 
-    /**
-	 * 
-	 */
+
 	private static final long serialVersionUID = -6595701781466123463L;
 
 	@Override

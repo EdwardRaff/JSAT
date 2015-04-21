@@ -32,9 +32,7 @@ import jsat.exceptions.FailedToFitException;
  */
 public class FastICA implements InvertibleTransform
 {
-    /**
-	 * 
-	 */
+
 	private static final long serialVersionUID = -8644025740457515563L;
 
 	private ZeroMeanTransform zeroMean;

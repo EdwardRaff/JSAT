@@ -8,9 +8,7 @@ package jsat.text.stemming;
 public class PaiceHuskStemmer extends Stemmer
 {
     
-    /**
-	 * 
-	 */
+
 	private static final long serialVersionUID = -5949389288166850651L;
 
 	static private class Rule

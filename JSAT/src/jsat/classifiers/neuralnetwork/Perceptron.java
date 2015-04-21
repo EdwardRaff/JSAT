@@ -33,9 +33,7 @@ import jsat.utils.PairedReturn;
 public class Perceptron implements BinaryScoreClassifier, SingleWeightVectorModel
 {
 
-    /**
-	 * 
-	 */
+
 	private static final long serialVersionUID = -3605237847981632021L;
 	private double learningRate;
     private double bias;

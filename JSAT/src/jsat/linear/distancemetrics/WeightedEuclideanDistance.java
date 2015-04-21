@@ -22,9 +22,7 @@ import jsat.utils.SystemInfo;
  */
 public class WeightedEuclideanDistance implements DistanceMetric
 {
-    /**
-	 * 
-	 */
+
 	private static final long serialVersionUID = 2959997330647828673L;
 	private Vec w;
 

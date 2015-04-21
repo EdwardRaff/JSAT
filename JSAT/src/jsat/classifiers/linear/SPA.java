@@ -31,9 +31,7 @@ import jsat.utils.IndexTable;
  */
 public class SPA extends BaseUpdateableClassifier implements Parameterized, SimpleWeightVectorModel
 {
-    /**
-	 * 
-	 */
+
 	private static final long serialVersionUID = 3613279663279244169L;
 	private Vec[] w;
     private double[] bias;

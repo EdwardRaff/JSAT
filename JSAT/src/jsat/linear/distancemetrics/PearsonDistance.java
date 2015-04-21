@@ -15,9 +15,7 @@ import jsat.linear.Vec;
  */
 public class PearsonDistance implements DistanceMetric
 {
-    /**
-	 * 
-	 */
+
 	private static final long serialVersionUID = 1090726755301934198L;
 	private boolean bothNonZero;
     private boolean absoluteDistance;

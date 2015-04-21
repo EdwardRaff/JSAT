@@ -10,9 +10,7 @@ import jsat.math.Function;
  */
 public class Secant implements RootFinder
 {  
-    /**
-	 * 
-	 */
+
 	private static final long serialVersionUID = -5175113107084930582L;
 
 	public static double root(double a, double b, Function f, double... args)

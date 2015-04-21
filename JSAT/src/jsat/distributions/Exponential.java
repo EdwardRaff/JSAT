@@ -9,9 +9,7 @@ import jsat.linear.Vec;
  */
 public class Exponential extends Distribution
 {
-    /**
-	 * 
-	 */
+
 	private static final long serialVersionUID = 1675502925386052588L;
 	private double lambda;
 

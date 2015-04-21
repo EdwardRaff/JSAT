@@ -21,9 +21,7 @@ import jsat.exceptions.FailedToFitException;
  */
 public class ODE extends BaseUpdateableClassifier 
 {
-    /**
-	 * 
-	 */
+
 	private static final long serialVersionUID = -7732070257669428977L;
 	/**
      * The attribute we will be dependent on

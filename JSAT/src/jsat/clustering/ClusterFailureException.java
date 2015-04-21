@@ -9,9 +9,7 @@ package jsat.clustering;
 public class ClusterFailureException extends RuntimeException
 {
 
-    /**
-	 * 
-	 */
+
 	private static final long serialVersionUID = -8084320940762402095L;
 
 	public ClusterFailureException()

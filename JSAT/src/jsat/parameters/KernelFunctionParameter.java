@@ -12,9 +12,7 @@ import jsat.distributions.empirical.kernelfunc.*;
  */
 public abstract class KernelFunctionParameter extends ObjectParameter<KernelFunction>
 {
-    /**
-	 * 
-	 */
+
 	private static final long serialVersionUID = 2100826688956817533L;
 	private final static List<KernelFunction> kernelFuncs = Collections.unmodifiableList(new ArrayList<KernelFunction>()
     {/**

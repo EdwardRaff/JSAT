@@ -18,9 +18,7 @@ import jsat.linear.Vec;
  */
 public class AdaDelta implements GradientUpdater
 {
-    /**
-	 * 
-	 */
+
 	private static final long serialVersionUID = 5855631993426837618L;
 	private double rho;
     private Vec gSqrd;

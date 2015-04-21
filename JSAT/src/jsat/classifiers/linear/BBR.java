@@ -33,9 +33,7 @@ import jsat.parameters.Parameterized;
  */
 public class BBR implements Classifier, Parameterized, SingleWeightVectorModel
 {
-    /**
-	 * 
-	 */
+
 	private static final long serialVersionUID = 8297213093357011082L;
 	//weight vector w is refferd to as beta in the original paper, just replace beta with w
     private Vec w;

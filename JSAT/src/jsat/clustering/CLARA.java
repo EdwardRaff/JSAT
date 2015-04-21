@@ -18,9 +18,7 @@ import jsat.utils.DoubleList;
  */
 public class CLARA extends PAM
 {
-    /**
-	 * 
-	 */
+
 	private static final long serialVersionUID = 174392533688953706L;
 	/**
      * The number of samples to take

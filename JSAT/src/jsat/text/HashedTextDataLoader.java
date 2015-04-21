@@ -20,9 +20,7 @@ import jsat.utils.IntList;
  */
 abstract public class HashedTextDataLoader implements TextVectorCreator
 {
-    /**
-	 * 
-	 */
+
 	private static final long serialVersionUID = 8513621180409278670L;
 	private final int dimensionSize;
     private Tokenizer tokenizer;

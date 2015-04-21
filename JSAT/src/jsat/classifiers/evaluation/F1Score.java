@@ -10,9 +10,7 @@ package jsat.classifiers.evaluation;
 public class F1Score extends SimpleBinaryClassMetric
 {
 
-    /**
-	 * 
-	 */
+
 	private static final long serialVersionUID = -6192302685766444921L;
 
 	public F1Score()

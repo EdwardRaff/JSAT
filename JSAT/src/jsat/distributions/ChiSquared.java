@@ -12,9 +12,7 @@ import static jsat.math.SpecialMath.*;
  */
 public class ChiSquared extends Distribution
 {
-    /**
-	 * 
-	 */
+
 	private static final long serialVersionUID = 2446232102260721666L;
 	double df;//Degrees of freedom
 

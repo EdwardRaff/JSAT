@@ -16,9 +16,7 @@ import jsat.math.decayrates.NoDecay;
 public abstract class DecayRateParameter extends ObjectParameter<DecayRate>
 {
 
-    /**
-	 * 
-	 */
+
 	private static final long serialVersionUID = -3751128637789053385L;
 
 	@Override

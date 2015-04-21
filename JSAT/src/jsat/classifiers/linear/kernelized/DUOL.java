@@ -47,9 +47,7 @@ import jsat.utils.DoubleList;
  */
 public class DUOL extends BaseUpdateableClassifier implements BinaryScoreClassifier, Parameterized
 {
-    /**
-	 * 
-	 */
+
 	private static final long serialVersionUID = -4751569462573287056L;
 	/**
      * Kernel trick to use

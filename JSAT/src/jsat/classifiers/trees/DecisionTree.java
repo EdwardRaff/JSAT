@@ -32,9 +32,7 @@ import jsat.utils.ModifiableCountDownLatch;
  */
 public class DecisionTree implements Classifier, Regressor, Parameterized, TreeLearner
 {
-    /**
-	 * 
-	 */
+
 	private static final long serialVersionUID = 9220980056440500214L;
 	private int maxDepth;
     private int minSamples;

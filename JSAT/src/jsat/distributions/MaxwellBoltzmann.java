@@ -11,9 +11,7 @@ import static jsat.math.SpecialMath.*;
  */
 public class MaxwellBoltzmann extends Distribution
 {
-    /**
-	 * 
-	 */
+
 	private static final long serialVersionUID = -8273087046831433430L;
 	/**
      * shape

@@ -28,9 +28,7 @@ import jsat.utils.FakeExecutor;
  */
 public class SAMME implements Classifier, Parameterized
 {
-    /**
-	 * 
-	 */
+
 	private static final long serialVersionUID = -3584203799253810599L;
 	private Classifier weakLearner;
     private int maxIterations;

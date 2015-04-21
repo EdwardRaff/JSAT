@@ -11,9 +11,7 @@ import jsat.text.GreekLetters;
  */
 public final class Logistic extends Distribution
 {
-    /**
-	 * 
-	 */
+
 	private static final long serialVersionUID = -8720773286818833591L;
 	/** 
      * Location

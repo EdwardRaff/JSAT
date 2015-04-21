@@ -18,9 +18,7 @@ import jsat.linear.Vec;
 public class TanhInitializer implements WeightInitializer, BiastInitializer
 {
 
-    /**
-	 * 
-	 */
+
 	private static final long serialVersionUID = -4770682311082616208L;
 
 	@Override

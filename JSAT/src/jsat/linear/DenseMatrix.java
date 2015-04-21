@@ -22,9 +22,7 @@ import static jsat.utils.SystemInfo.*;
  */
 public class DenseMatrix extends GenericMatrix
 {   
-    /**
-	 * 
-	 */
+
 	private static final long serialVersionUID = -3112110093920307822L;
 	private double[][] matrix;
 

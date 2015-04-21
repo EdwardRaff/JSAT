@@ -31,9 +31,7 @@ import jsat.regression.Regressor;
  */
 public class Stacking implements Classifier, Regressor
 {
-    /**
-	 * 
-	 */
+
 	private static final long serialVersionUID = -6173323872903232074L;
 	private int folds;
     /**

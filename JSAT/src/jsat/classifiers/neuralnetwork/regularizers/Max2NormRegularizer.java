@@ -18,9 +18,7 @@ import jsat.linear.Vec;
  */
 public class Max2NormRegularizer implements WeightRegularizer
 {
-    /**
-	 * 
-	 */
+
 	private static final long serialVersionUID = 1989826758516880355L;
 	private double maxNorm;
 

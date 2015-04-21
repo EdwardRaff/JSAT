@@ -24,9 +24,7 @@ import jsat.utils.IntSet;
  */
 public class SimpleHAC extends KClustererBase
 {
-    /**
-	 * 
-	 */
+
 	private static final long serialVersionUID = 7138073766768205530L;
 	/**
      * notion behind the large stnd devs is that as the clustering progresses, 

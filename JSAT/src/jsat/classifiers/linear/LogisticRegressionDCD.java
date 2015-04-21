@@ -32,9 +32,7 @@ import jsat.utils.ListUtils;
  */
 public class LogisticRegressionDCD implements Classifier, Parameterized, SingleWeightVectorModel
 {
-    /**
-	 * 
-	 */
+
 	private static final long serialVersionUID = -5813704270903243462L;
 	private static final double eps_1 = 1e-3;
     private static final double eps_2 = 1e-8;

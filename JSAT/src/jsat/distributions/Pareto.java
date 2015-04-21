@@ -10,9 +10,7 @@ import static java.lang.Math.*;
  */
 public class Pareto extends Distribution
 {
-    /**
-	 * 
-	 */
+
 	private static final long serialVersionUID = 2055881279858330509L;
 	/**
      * scale

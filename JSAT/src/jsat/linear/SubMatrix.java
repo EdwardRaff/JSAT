@@ -11,9 +11,7 @@ package jsat.linear;
  */
 public class SubMatrix extends GenericMatrix
 {
-    /**
-	 * 
-	 */
+
 	private static final long serialVersionUID = 8842973175562587725L;
 	private Matrix baseMatrix;
     private int firstRow, firstColumn, toRow, toCol;

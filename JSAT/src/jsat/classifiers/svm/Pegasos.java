@@ -27,9 +27,7 @@ import jsat.utils.ListUtils;
  */
 public class Pegasos implements BinaryScoreClassifier, Parameterized, SingleWeightVectorModel
 {
-    /**
-	 * 
-	 */
+
 	private static final long serialVersionUID = -2145631476467081171L;
 	private int epochs;
     private double reg;

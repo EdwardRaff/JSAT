@@ -21,9 +21,7 @@ import jsat.classifiers.CategoricalResults;
  */
 public class LogLoss implements ClassificationScore
 {
-    /**
-	 * 
-	 */
+
 	private static final long serialVersionUID = 3123851772991293430L;
 	private double loss;
     private double weightSum;

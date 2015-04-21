@@ -11,9 +11,7 @@ import jsat.DataSet;
  */
 public class VecTableModel extends AbstractTableModel
 {
-    /**
-	 * 
-	 */
+
 	private static final long serialVersionUID = 876162850502819048L;
 	private final int rows;
     private final int columns;

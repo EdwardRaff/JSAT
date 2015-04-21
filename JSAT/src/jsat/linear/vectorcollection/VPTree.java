@@ -39,9 +39,7 @@ import jsat.utils.SimpleList;
  */
 public class VPTree<V extends Vec> implements VectorCollection<V>
 {
-    /**
-	 * 
-	 */
+
 	private static final long serialVersionUID = -7271540108746353762L;
 	private DistanceMetric dm;
     private List<Double> distCache;

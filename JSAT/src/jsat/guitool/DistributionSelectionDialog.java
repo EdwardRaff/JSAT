@@ -21,9 +21,7 @@ import jsat.distributions.Distribution;
  */
 public class DistributionSelectionDialog extends JDialog
 {
-     /**
-	 * 
-	 */
+ 
 	private static final long serialVersionUID = 4685124905824599836L;
 
 	Distribution[] distributions;

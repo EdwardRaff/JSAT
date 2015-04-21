@@ -13,9 +13,7 @@ import static jsat.math.SpecialMath.*;
  */
 public class Weibull extends Distribution
 {
-    /**
-	 * 
-	 */
+
 	private static final long serialVersionUID = -4083186674624535562L;
 	/**
      * Shape parameter

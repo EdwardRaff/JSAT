@@ -17,9 +17,7 @@ import jsat.classifiers.DataPoint;
 public abstract class ClustererBase implements Clusterer
 {
 
-    /**
-	 * 
-	 */
+
 	private static final long serialVersionUID = 4359554809306681680L;
 
 

@@ -8,9 +8,7 @@ package jsat.regression.evaluation;
  */
 public class CoefficientOfDetermination extends TotalHistoryRegressionScore
 {
-    /**
-	 * 
-	 */
+
 	private static final long serialVersionUID = 1215708502913888821L;
 
 	/**

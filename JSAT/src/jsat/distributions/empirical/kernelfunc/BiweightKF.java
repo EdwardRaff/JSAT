@@ -8,9 +8,7 @@ package jsat.distributions.empirical.kernelfunc;
 public class BiweightKF implements KernelFunction
 {
 
-    /**
-	 * 
-	 */
+
 	private static final long serialVersionUID = -7199542934997154186L;
 
 	private BiweightKF()

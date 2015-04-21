@@ -16,9 +16,7 @@ import jsat.math.FunctionVec;
  */
 public class RosenbrockFunction implements Function
 {
-    /**
-	 * 
-	 */
+
 	private static final long serialVersionUID = -5573482950045304948L;
 
 	@Override

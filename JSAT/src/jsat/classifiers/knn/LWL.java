@@ -43,9 +43,7 @@ import jsat.regression.*;
  */
 public class LWL implements Classifier, Regressor, Parameterized
 {
-    /**
-	 * 
-	 */
+
 	private static final long serialVersionUID = 6942465758987345997L;
 	private CategoricalData predicting;
     private Classifier classifier;

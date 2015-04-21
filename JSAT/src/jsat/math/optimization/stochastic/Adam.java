@@ -20,9 +20,7 @@ import static java.lang.Math.*;
  */
 public class Adam implements GradientUpdater
 {
-    /**
-	 * 
-	 */
+
 	private static final long serialVersionUID = 5352504067435579553L;
 	//internal state
     /**

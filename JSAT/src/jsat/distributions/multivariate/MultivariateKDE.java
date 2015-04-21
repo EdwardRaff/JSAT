@@ -15,9 +15,7 @@ import jsat.linear.VecPaired;
  */
 abstract public class MultivariateKDE extends MultivariateDistributionSkeleton
 {
-    /**
-	 * 
-	 */
+
 	private static final long serialVersionUID = 614136649331326270L;
 
 	/**

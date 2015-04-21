@@ -15,9 +15,7 @@ import jsat.linear.Vec;
 public class ReLU implements ActivationLayer
 {
 
-    /**
-	 * 
-	 */
+
 	private static final long serialVersionUID = -6691240473485759789L;
 
 	@Override

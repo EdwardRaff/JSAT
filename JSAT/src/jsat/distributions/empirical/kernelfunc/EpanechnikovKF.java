@@ -7,9 +7,7 @@ package jsat.distributions.empirical.kernelfunc;
  */
 public class EpanechnikovKF implements KernelFunction
 {
-    /**
-	 * 
-	 */
+
 	private static final long serialVersionUID = 8688942176576932932L;
 
 	private EpanechnikovKF()

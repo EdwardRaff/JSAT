@@ -56,9 +56,7 @@ import jsat.utils.ListUtils;
  */
 public class DCD implements BinaryScoreClassifier, Regressor, Parameterized, SingleWeightVectorModel
 {
-    /**
-	 * 
-	 */
+
 	private static final long serialVersionUID = -1489225034030922798L;
 	private int maxIterations;
     private Vec[] vecs;

@@ -72,9 +72,7 @@ import jsat.utils.random.XORWOW;
  */
 public class RBFNet implements Classifier, Regressor, DataTransform, Parameterized
 {
-    /**
-	 * 
-	 */
+
 	private static final long serialVersionUID = 5418896646203518062L;
 	private int numCentroids;
     private Phase1Learner p1l;

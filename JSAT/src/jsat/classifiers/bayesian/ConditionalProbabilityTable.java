@@ -28,9 +28,7 @@ import jsat.utils.IntSet;
  */
 public class ConditionalProbabilityTable implements Classifier
 {
-    /**
-	 * 
-	 */
+
 	private static final long serialVersionUID = -287709075031023626L;
 	/**
      * The predicting target class

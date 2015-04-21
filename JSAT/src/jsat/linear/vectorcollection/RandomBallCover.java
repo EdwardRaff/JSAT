@@ -34,9 +34,7 @@ import static jsat.utils.SystemInfo.LogicalCores;
  */
 public class RandomBallCover<V extends Vec> implements VectorCollection<V>
 {
-    /**
-	 * 
-	 */
+
 	private static final long serialVersionUID = 2437771973228849200L;
 	private DistanceMetric dm;
     /**

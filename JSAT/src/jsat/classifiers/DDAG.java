@@ -15,9 +15,7 @@ import java.util.PriorityQueue;
 public class DDAG extends OneVSOne
 {
 
-    /**
-	 * 
-	 */
+
 	private static final long serialVersionUID = -9109002614319657144L;
 
 	/**

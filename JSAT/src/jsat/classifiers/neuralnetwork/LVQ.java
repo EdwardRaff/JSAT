@@ -32,9 +32,7 @@ import jsat.utils.FakeExecutor;
  */
 public class LVQ implements Classifier, Parameterized
 {
-    /**
-	 * 
-	 */
+
 	private static final long serialVersionUID = -3911765006048793222L;
 	/**
      * The default number of iterations is {@value #DEFAULT_ITERATIONS}

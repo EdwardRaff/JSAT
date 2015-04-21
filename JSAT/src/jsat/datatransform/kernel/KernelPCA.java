@@ -36,9 +36,7 @@ import jsat.utils.random.XOR96;
  */
 public class KernelPCA implements DataTransform
 {
-    /**
-	 * 
-	 */
+
 	private static final long serialVersionUID = 5676602024560381043L;
 
 	/**

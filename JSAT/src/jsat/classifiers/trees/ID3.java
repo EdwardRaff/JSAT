@@ -25,9 +25,7 @@ import jsat.utils.ModifiableCountDownLatch;
 public class ID3 implements Classifier
 {
     
-    /**
-	 * 
-	 */
+
 	private static final long serialVersionUID = -8473683139353205898L;
 	private CategoricalData predicting;
     private CategoricalData[] attributes;

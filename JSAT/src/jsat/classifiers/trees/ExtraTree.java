@@ -41,9 +41,7 @@ public class ExtraTree implements Classifier, Regressor, TreeLearner, Parameteri
 {
     //TODO in both of the train methods, 2 passes are done for numeric features. This can be done in one pass by fiding the min/max when we split, and passing that info in the argument parameters
     
-    /**
-	 * 
-	 */
+
 	private static final long serialVersionUID = 7433728970041876327L;
 	private int stopSize;
     private int selectionCount;

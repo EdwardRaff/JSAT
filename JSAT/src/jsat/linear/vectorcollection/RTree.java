@@ -23,9 +23,7 @@ import static jsat.linear.VecPaired.*;
 public class RTree<V extends Vec> implements VectorCollection<V>
 {
 
-    /**
-	 * 
-	 */
+
 	private static final long serialVersionUID = -7067110612346062800L;
 
 	@Override

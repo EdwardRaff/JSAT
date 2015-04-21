@@ -10,9 +10,7 @@ import jsat.linear.Vec;
 public class LinearLayer implements ActivationLayer
 {
 
-    /**
-	 * 
-	 */
+
 	private static final long serialVersionUID = -4040058095010471379L;
 
 	@Override

@@ -18,9 +18,7 @@ import jsat.utils.ListUtils;
  */
 public class SFS implements DataTransform
 {
-    /**
-	 * 
-	 */
+
 	private static final long serialVersionUID = 140187978708131002L;
 	private RemoveAttributeTransform finalTransform;
     private Set<Integer> catSelected;

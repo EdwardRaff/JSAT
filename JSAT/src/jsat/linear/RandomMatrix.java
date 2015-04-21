@@ -33,9 +33,7 @@ import java.util.Random;
  */
 abstract public class RandomMatrix extends GenericMatrix
 {
-    /**
-	 * 
-	 */
+
 	private static final long serialVersionUID = 3514801206898749257L;
 	/*
      * Implementation note: It is assumed that the default random object is a

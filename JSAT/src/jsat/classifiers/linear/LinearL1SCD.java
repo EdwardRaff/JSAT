@@ -41,9 +41,7 @@ import jsat.regression.RegressionDataSet;
  */
 public class LinearL1SCD extends StochasticSTLinearL1
 {
-    /**
-	 * 
-	 */
+
 	private static final long serialVersionUID = 3135562347568407186L;
 
 	/**

@@ -14,9 +14,7 @@ import jsat.linear.*;
  */
 public class DenseSparceTransform implements DataTransform
 {
-    /**
-	 * 
-	 */
+
 	private static final long serialVersionUID = -1177913691660616290L;
 	private double factor;
 

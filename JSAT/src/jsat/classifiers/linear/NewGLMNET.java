@@ -50,9 +50,7 @@ import jsat.parameters.Parameterized;
  */
 public class NewGLMNET implements WarmClassifier, Parameterized, SingleWeightVectorModel
 {
-    /**
-	 * 
-	 */
+
 	private static final long serialVersionUID = 4133368677783573518L;
 	//TODO make these other fields configurable as well
     private static final double DEFAULT_BETA = 0.5;

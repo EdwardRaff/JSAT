@@ -30,9 +30,7 @@ import static jsat.math.FastMath.*;
  */
 public class PlattCalibration extends BinaryCalibration
 {
-    /**
-	 * 
-	 */
+
 	private static final long serialVersionUID = 1099230240231262536L;
 	private double A,B;
     private double maxIter = 100;

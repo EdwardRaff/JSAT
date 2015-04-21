@@ -9,9 +9,7 @@ import java.util.*;
  */
 public abstract class BaseDriftDetector<V> implements Cloneable, Serializable
 {
-    /**
-	 * 
-	 */
+
 	private static final long serialVersionUID = -5857845807016446270L;
 
 	/**

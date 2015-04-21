@@ -58,9 +58,7 @@ import jsat.regression.UpdateableRegressor;
 public class LinearSGD extends BaseUpdateableClassifier implements UpdateableRegressor, Parameterized, SimpleWeightVectorModel
 {
     
-    /**
-	 * 
-	 */
+
 	private static final long serialVersionUID = -59695592724956535L;
 	private LossFunc loss;
     private GradientUpdater gradientUpdater;

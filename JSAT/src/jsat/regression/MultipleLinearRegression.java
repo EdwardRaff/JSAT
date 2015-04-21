@@ -18,9 +18,7 @@ import jsat.utils.FakeExecutor;
  */
 public class MultipleLinearRegression implements Regressor, SingleWeightVectorModel
 {
-    /**
-	 * 
-	 */
+
 	private static final long serialVersionUID = 7694194181910565061L;
 	/**
      * The vector B such that Y = X * B is the least squares solution. Will be stored as Y = X * B + a

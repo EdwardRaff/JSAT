@@ -25,9 +25,7 @@ import jsat.utils.*;
  */
 public class MiniBatchKMeans extends KClustererBase
 {
-    /**
-	 * 
-	 */
+
 	private static final long serialVersionUID = 412553399508594014L;
 	private int batchSize;
     private int iterations;

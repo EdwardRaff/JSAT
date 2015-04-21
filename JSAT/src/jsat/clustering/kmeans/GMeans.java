@@ -32,9 +32,7 @@ import static java.lang.Math.*;
  */
 public class GMeans extends KMeans 
 {
-    /**
-	 * 
-	 */
+
 	private static final long serialVersionUID = 7306976407786792661L;
 	private boolean trustH0 = true;
     private boolean iterativeRefine = true;

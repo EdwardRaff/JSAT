@@ -23,9 +23,7 @@ import jsat.utils.IntSet;
  */
 public abstract class TextDataLoader implements TextVectorCreator
 {
-    /**
-	 * 
-	 */
+
 	private static final long serialVersionUID = -657254682338792871L;
 	/**
      * List of original vectors

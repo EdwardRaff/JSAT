@@ -35,9 +35,7 @@ import jsat.utils.concurrent.AtomicDoubleArray;
  */
 public class FLAME extends ClustererBase implements Parameterized
 {
-    /**
-	 * 
-	 */
+
 	private static final long serialVersionUID = 2393091020100706517L;
 	private DistanceMetric dm;
     private int k;

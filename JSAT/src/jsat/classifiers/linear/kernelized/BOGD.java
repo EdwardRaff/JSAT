@@ -29,9 +29,7 @@ import jsat.utils.random.XORWOW;
  */
 public class BOGD extends BaseUpdateableClassifier implements BinaryScoreClassifier, Parameterized
 {
-    /**
-	 * 
-	 */
+
 	private static final long serialVersionUID = -3547832514098781996L;
 	@ParameterHolder
     private KernelTrick k;

@@ -16,9 +16,7 @@ import jsat.text.wordweighting.WordWeighting;
  */
 public class BasicTextVectorCreator implements TextVectorCreator
 {
-    /**
-	 * 
-	 */
+
 	private static final long serialVersionUID = -8620485679300539556L;
 	private Tokenizer tokenizer;
     private Map<String, Integer> wordIndex;

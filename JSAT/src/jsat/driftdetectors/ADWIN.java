@@ -23,9 +23,7 @@ import jsat.math.OnLineStatistics;
  */
 public class ADWIN<V> extends BaseDriftDetector<V>
 {
-    /**
-	 * 
-	 */
+
 	private static final long serialVersionUID = 3287510845017257629L;
 	private double delta;
     private OnLineStatistics allStats;

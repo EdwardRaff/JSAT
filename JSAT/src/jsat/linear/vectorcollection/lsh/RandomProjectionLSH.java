@@ -37,9 +37,7 @@ import jsat.utils.random.XOR96;
  */
 public class RandomProjectionLSH<V extends Vec> implements VectorCollection<V>
 {
-    /**
-	 * 
-	 */
+
 	private static final long serialVersionUID = -2042964665052386855L;
 	private static final int NO_POOL = -1;
     private Matrix randProjMatrix;

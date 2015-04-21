@@ -13,9 +13,7 @@ import jsat.linear.Vec;
 public class BinaryWordPresent extends WordWeighting
 {
 
-    /**
-	 * 
-	 */
+
 	private static final long serialVersionUID = 5633647387188363706L;
 
 	@Override

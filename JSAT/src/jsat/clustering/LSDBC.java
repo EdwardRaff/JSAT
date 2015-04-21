@@ -26,9 +26,7 @@ import jsat.utils.*;
  */
 public class LSDBC extends ClustererBase implements Parameterized
 {
-    /**
-	 * 
-	 */
+
 	private static final long serialVersionUID = 6626217924334267681L;
 	/**
      * {@value #DEFAULT_NEIGHBORS} is the default number of neighbors used when performing clustering

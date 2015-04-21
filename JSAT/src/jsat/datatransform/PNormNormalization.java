@@ -12,9 +12,7 @@ import jsat.linear.Vec;
  */
 public class PNormNormalization implements InPlaceTransform
 {
-    /**
-	 * 
-	 */
+
 	private static final long serialVersionUID = 2934569881395909607L;
 	private double p;
 

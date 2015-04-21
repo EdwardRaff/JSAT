@@ -16,9 +16,7 @@ import jsat.linear.Vec;
  */
 public class PolynomialTransform implements DataTransform
 {
-    /**
-	 * 
-	 */
+
 	private static final long serialVersionUID = -5332216444253168283L;
 	private int degree;
 

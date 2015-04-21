@@ -53,9 +53,7 @@ import jsat.utils.random.XORWOW;
  */
 public class DCDs implements BinaryScoreClassifier, Regressor, Parameterized, SingleWeightVectorModel
 {
-    /**
-	 * 
-	 */
+
 	private static final long serialVersionUID = -1686294187234524696L;
 	private int maxIterations;
     private double tolerance;

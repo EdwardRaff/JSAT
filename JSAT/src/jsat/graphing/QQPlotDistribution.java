@@ -14,9 +14,7 @@ import jsat.math.Function;
  */
 public class QQPlotDistribution extends Graph2D
 {
-    /**
-	 * 
-	 */
+
 	private static final long serialVersionUID = 9156814937052075799L;
 	private Distribution cd;
     private Vec yData;

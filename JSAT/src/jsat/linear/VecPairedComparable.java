@@ -11,9 +11,7 @@ package jsat.linear;
 public class VecPairedComparable<V extends Vec, P extends Comparable<P>> extends VecPaired<V, P> implements Comparable<VecPairedComparable<V, P>>
 {
 
-    /**
-	 * 
-	 */
+
 	private static final long serialVersionUID = -7061543870162459467L;
 
 	public VecPairedComparable(V v, P p)

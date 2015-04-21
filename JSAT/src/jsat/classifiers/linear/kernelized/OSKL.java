@@ -39,9 +39,7 @@ import jsat.utils.random.XORWOW;
  */
 public class OSKL extends BaseUpdateableClassifier implements BinaryScoreClassifier, Parameterized
 {
-    /**
-	 * 
-	 */
+
 	private static final long serialVersionUID = 4207594016856230134L;
 	@ParameterHolder
     private KernelTrick k;

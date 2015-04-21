@@ -13,9 +13,7 @@ import java.util.NoSuchElementException;
  */
 public class SubVector extends Vec
 {
-    /**
-	 * 
-	 */
+
 	private static final long serialVersionUID = -873882618035700676L;
 	private int startPosition;
     private int length;

@@ -38,9 +38,7 @@ import jsat.utils.FakeExecutor;
  */
 public class DANN implements Classifier, Parameterized
 {
-    /**
-	 * 
-	 */
+
 	private static final long serialVersionUID = -272865942127664672L;
 	/**
      * The default number of neighbors to use when building a metric is 

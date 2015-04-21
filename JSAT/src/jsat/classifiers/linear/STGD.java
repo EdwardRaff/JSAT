@@ -32,9 +32,7 @@ import jsat.regression.UpdateableRegressor;
  */
 public class STGD extends BaseUpdateableClassifier implements UpdateableRegressor, BinaryScoreClassifier, Parameterized, SingleWeightVectorModel
 {
-    /**
-	 * 
-	 */
+
 	private static final long serialVersionUID = 5753298014967370769L;
 
 	private Vec w;

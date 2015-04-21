@@ -14,9 +14,7 @@ import jsat.linear.Vec;
  */
 public class ParallelCoordinatesPlot extends Graph2D
 {
-    /**
-	 * 
-	 */
+
 	private static final long serialVersionUID = 8293545570354260288L;
 	private DataSet dataSet;
     private double[] scales;

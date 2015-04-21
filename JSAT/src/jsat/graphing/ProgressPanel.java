@@ -13,9 +13,7 @@ import javax.swing.LayoutStyle.ComponentPlacement;
  */
 public class ProgressPanel extends javax.swing.JPanel
 {
-    /**
-	 * 
-	 */
+
 	private static final long serialVersionUID = 1954372197209603446L;
 	/**
      * Creates new form ProgressPanel

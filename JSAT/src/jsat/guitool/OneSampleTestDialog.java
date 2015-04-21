@@ -24,9 +24,7 @@ import jsat.testing.StatisticTest.H1;
  */
 public class OneSampleTestDialog extends JFrame
 {
-    /**
-	 * 
-	 */
+
 	private static final long serialVersionUID = 4723100928784978203L;
 	final OneSampleTest test;
 //    final String[] titles;

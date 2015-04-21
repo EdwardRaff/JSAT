@@ -20,9 +20,7 @@ import jsat.utils.SystemInfo;
  */
 public class SparseMatrix extends Matrix
 {
-    /**
-	 * 
-	 */
+
 	private static final long serialVersionUID = -4087445771022578544L;
 	private SparseVector[] rows;
 

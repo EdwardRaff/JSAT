@@ -10,9 +10,7 @@ import jsat.linear.Vec;
  */
 public class ConstantInit implements BiastInitializer
 {
-    /**
-	 * 
-	 */
+
 	private static final long serialVersionUID = 2638413936718283757L;
 	private double c;
 

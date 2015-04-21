@@ -12,9 +12,7 @@ import jsat.regression.Regressor;
  */
 public class WaggingNormal extends Wagging
 {   
-    /**
-	 * 
-	 */
+
 	private static final long serialVersionUID = -4149453672311329863L;
 
 	/**

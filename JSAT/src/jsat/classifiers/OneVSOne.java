@@ -21,9 +21,7 @@ import jsat.utils.FakeExecutor;
  */
 public class OneVSOne implements Classifier
 {
-    /**
-	 * 
-	 */
+
 	private static final long serialVersionUID = 733202830281869416L;
 	/**
      * Main binary classifier 

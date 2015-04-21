@@ -27,9 +27,7 @@ import static jsat.utils.SystemInfo.LogicalCores;
  */
 public class EMGaussianMixture extends ElkanKMeans implements MultivariateDistribution
 {
-    /**
-	 * 
-	 */
+
 	private static final long serialVersionUID = 2606159910420221662L;
 	private List<NormalM> gaussians;
     /**

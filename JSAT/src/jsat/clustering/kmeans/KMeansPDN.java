@@ -27,9 +27,7 @@ import jsat.linear.Vec;
  */
 public class KMeansPDN extends KMeans
 {
-    /**
-	 * 
-	 */
+
 	private static final long serialVersionUID = -2358377567814606959L;
 	private KMeans kmeans;
     private double[] fKs;

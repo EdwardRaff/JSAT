@@ -35,9 +35,7 @@ import jsat.utils.DoubleList;
  */
 public class AdaBoostM1 implements Classifier, Parameterized
 {
-    /**
-	 * 
-	 */
+
 	private static final long serialVersionUID = 4205232097748332861L;
 	private Classifier weakLearner;
     private int maxIterations;

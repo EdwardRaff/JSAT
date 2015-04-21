@@ -44,9 +44,7 @@ import jsat.utils.ListUtils;
  */
 public class StochasticGradientBoosting implements Regressor, Parameterized
 {
-    /**
-	 * 
-	 */
+
 	private static final long serialVersionUID = -2855154397476855293L;
 
 	/**

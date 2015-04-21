@@ -17,9 +17,7 @@ import jsat.utils.IntSet;
  */
 public class RemoveAttributeTransform implements DataTransform
 {   
-    /**
-	 * 
-	 */
+
 	private static final long serialVersionUID = 8803223213862922734L;
 	/*
      * Each index map maps the old indecies in the original data set to their 

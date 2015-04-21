@@ -13,9 +13,7 @@ import java.util.Collections;
 public class SortedArrayList<T extends Comparable<T>> extends ArrayList<T> implements Serializable
 {
 
-    /**
-	 * 
-	 */
+
 	private static final long serialVersionUID = -8728381865616791954L;
 
 	public SortedArrayList(Collection<? extends T> c)

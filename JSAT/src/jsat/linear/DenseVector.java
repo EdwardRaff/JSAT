@@ -14,9 +14,7 @@ import java.util.List;
  */
 public class DenseVector extends Vec
 {
-    /**
-	 * 
-	 */
+
 	private static final long serialVersionUID = -889493251793828934L;
 	protected  double[] array;
     private Double sumCache = null;

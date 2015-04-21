@@ -35,9 +35,7 @@ import jsat.utils.ProbailityMatch;
  */
 public class MainGUI extends javax.swing.JFrame
 {
-    /**
-	 * 
-	 */
+
 	private static final long serialVersionUID = -1965204891107163706L;
 
 	Distribution[] distributions = new Distribution[] 

@@ -20,9 +20,7 @@ import java.util.Iterator;
  */
 public class ShiftedVec extends Vec
 {
-    /**
-	 * 
-	 */
+
 	private static final long serialVersionUID = -8318033099234181766L;
 	private Vec base;
     private double shift;

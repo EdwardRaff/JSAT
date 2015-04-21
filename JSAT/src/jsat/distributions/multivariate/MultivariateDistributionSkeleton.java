@@ -19,9 +19,7 @@ import jsat.linear.Vec;
  */
 public abstract class MultivariateDistributionSkeleton implements MultivariateDistribution
 {
-    /**
-	 * 
-	 */
+
 	private static final long serialVersionUID = 4080753806798149915L;
 
 	@Override

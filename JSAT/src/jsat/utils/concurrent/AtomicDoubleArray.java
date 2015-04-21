@@ -13,9 +13,7 @@ import java.util.concurrent.atomic.AtomicLongArray;
  */
 public class AtomicDoubleArray implements Serializable
 {
-    /**
-	 * 
-	 */
+
 	private static final long serialVersionUID = -8799170460903375842L;
 	private AtomicLongArray larray;
 

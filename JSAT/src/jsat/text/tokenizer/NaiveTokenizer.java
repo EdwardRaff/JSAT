@@ -16,9 +16,7 @@ import java.util.List;
  */
 public class NaiveTokenizer implements Tokenizer
 {   
-    /**
-	 * 
-	 */
+
 	private static final long serialVersionUID = -2112091783442076933L;
 	private boolean useLowerCase;
     private boolean otherToWhiteSpace = true;

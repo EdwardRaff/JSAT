@@ -24,9 +24,7 @@ import java.util.NoSuchElementException;
  */
 public class Poly2Vec extends Vec
 {
-    /**
-	 * 
-	 */
+
 	private static final long serialVersionUID = -5653680966558726340L;
 
 	private Vec base;

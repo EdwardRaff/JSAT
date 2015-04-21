@@ -12,9 +12,7 @@ import jsat.linear.Matrix;
  */
 public class Kappa implements ClassificationScore
 {
-    /**
-	 * 
-	 */
+
 	private static final long serialVersionUID = -1684937057234736715L;
 	private Matrix errorMatrix;
 

@@ -46,9 +46,7 @@ import jsat.utils.DoubleList;
  */
 public class Projectron extends BaseUpdateableClassifier implements BinaryScoreClassifier, Parameterized
 {
-    /**
-	 * 
-	 */
+
 	private static final long serialVersionUID = -4025799790045954359L;
 	@ParameterHolder
     private KernelTrick k;

@@ -34,9 +34,7 @@ import jsat.regression.Regressor;
  */
 public abstract class StochasticSTLinearL1 implements Classifier, Regressor, Parameterized, SingleWeightVectorModel
 {
-    /**
-	 * 
-	 */
+
 	private static final long serialVersionUID = -6761456665014802608L;
 	/**
      * The number of training iterations

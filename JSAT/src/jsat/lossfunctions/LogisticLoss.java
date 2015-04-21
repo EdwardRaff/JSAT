@@ -18,9 +18,7 @@ public class LogisticLoss implements LossC
      * the edge of numerical double precision
      */
 
-    /**
-	 * 
-	 */
+
 	private static final long serialVersionUID = -3929171604513497068L;
 
 	/**

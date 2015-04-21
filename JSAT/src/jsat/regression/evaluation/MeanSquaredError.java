@@ -10,9 +10,7 @@ import jsat.math.OnLineStatistics;
  */
 public class MeanSquaredError implements RegressionScore
 {
-    /**
-	 * 
-	 */
+
 	private static final long serialVersionUID = 3655567184376550126L;
 	private OnLineStatistics meanError;
     private boolean rmse;

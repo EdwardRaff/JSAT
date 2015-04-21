@@ -9,9 +9,7 @@ import jsat.distributions.Normal;
  */
 public class GaussKF implements KernelFunction
 {
-    /**
-	 * 
-	 */
+
 	private static final long serialVersionUID = -6765390012694573184L;
 
 	private GaussKF()

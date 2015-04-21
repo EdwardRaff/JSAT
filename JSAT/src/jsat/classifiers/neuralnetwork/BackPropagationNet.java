@@ -41,9 +41,7 @@ import jsat.utils.ListUtils;
  */
 public class BackPropagationNet implements Classifier, Regressor, Parameterized
 {   
-    /**
-	 * 
-	 */
+
 	private static final long serialVersionUID = 335438198218313862L;
 	private int inputSize, outputSize;
     private ActivationFunction f = softsignActiv;

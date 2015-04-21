@@ -12,9 +12,7 @@ import java.util.Random;
  */
 public class XORWOW extends Random
 {
-    /**
-	 * 
-	 */
+
 	private static final long serialVersionUID = 4516396552618366318L;
 	private long x, y, z, w, v, d;
 

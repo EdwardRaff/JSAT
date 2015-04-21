@@ -16,9 +16,7 @@ import jsat.utils.FakeExecutor;
  */
 public class Rocchio implements Classifier
 {
-    /**
-	 * 
-	 */
+
 	private static final long serialVersionUID = 889524967453326517L;
 	private List<Vec> rocVecs;
     private final DistanceMetric dm;

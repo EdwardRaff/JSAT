@@ -12,9 +12,7 @@ import jsat.classifiers.DataPoint;
  */
 public abstract class KClustererBase extends ClustererBase implements KClusterer
 {
-    /**
-	 * 
-	 */
+
 	private static final long serialVersionUID = 2542432122353325407L;
 
 	@Override

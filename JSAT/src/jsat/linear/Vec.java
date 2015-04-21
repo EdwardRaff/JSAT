@@ -24,9 +24,7 @@ import jsat.math.IndexFunction;
  */
 public abstract class Vec implements Cloneable, Iterable<IndexValue>, Serializable
 {
-    /**
-	 * 
-	 */
+
 	private static final long serialVersionUID = 9035784536820782955L;
 
 	/**

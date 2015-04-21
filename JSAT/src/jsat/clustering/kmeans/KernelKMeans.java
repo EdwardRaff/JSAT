@@ -30,9 +30,7 @@ import jsat.utils.random.XOR96;
  */
 public abstract class KernelKMeans extends KClustererBase implements Parameterized
 {
-    /**
-	 * 
-	 */
+
 	private static final long serialVersionUID = -5394680202634779440L;
 
 	/**

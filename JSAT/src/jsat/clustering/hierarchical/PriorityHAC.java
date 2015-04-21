@@ -17,9 +17,7 @@ import jsat.utils.IntPriorityQueue;
  */
 public class PriorityHAC extends KClustererBase
 {
-    /**
-	 * 
-	 */
+
 	private static final long serialVersionUID = -702489462117567542L;
 	private UpdatableClusterDissimilarity distMeasure;
     /**

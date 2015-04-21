@@ -28,9 +28,7 @@ import static jsat.utils.SystemInfo.*;
  */
 public abstract class Matrix implements Cloneable, Serializable
 {
-    /**
-	 * 
-	 */
+
 	private static final long serialVersionUID = 6888360415978051714L;
 
 	/**

@@ -33,9 +33,7 @@ import jsat.parameters.Parameterized;
  */
 public class AROW extends BaseUpdateableClassifier implements BinaryScoreClassifier, Parameterized, SingleWeightVectorModel
 {
-    /**
-	 * 
-	 */
+
 	private static final long serialVersionUID = 443803827811508204L;
 	private Vec w;
     /**

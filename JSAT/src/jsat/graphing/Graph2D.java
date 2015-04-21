@@ -30,9 +30,7 @@ import jsat.math.Function;
  */
 public class Graph2D extends JComponent  
 {
-    /**
-	 * 
-	 */
+
 	private static final long serialVersionUID = -3915414272424355156L;
 	protected double xMin;
     protected double xMax;

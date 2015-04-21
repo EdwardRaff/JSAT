@@ -47,9 +47,7 @@ import jsat.utils.IntList;
  */
 public class OnlineAMM extends BaseUpdateableClassifier implements Parameterized
 {
-    /**
-	 * 
-	 */
+
 	private static final long serialVersionUID = 8291068484917637037L;
 	/*
      * b/c of the batch learner we use a map, so that we dont have to think 

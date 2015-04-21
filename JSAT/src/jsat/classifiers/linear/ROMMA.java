@@ -22,9 +22,7 @@ import jsat.linear.Vec;
  */
 public class ROMMA extends BaseUpdateableClassifier implements BinaryScoreClassifier, SingleWeightVectorModel
 {
-    /**
-	 * 
-	 */
+
 	private static final long serialVersionUID = 8163937542627337711L;
 	private boolean useBias = true;
     private boolean aggressive;

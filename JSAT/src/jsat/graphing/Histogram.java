@@ -17,9 +17,7 @@ import static java.lang.Math.*;
  */
 public class Histogram extends Graph2D
 {
-    /**
-	 * 
-	 */
+
 	private static final long serialVersionUID = 4048138870310152844L;
 	Vec data;
     int[] frequency;

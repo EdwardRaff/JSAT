@@ -33,9 +33,7 @@ import jsat.utils.SystemInfo;
  */
 public class ClassifierCVEvaluation extends JDialog
 {
-    /**
-	 * 
-	 */
+
 	private static final long serialVersionUID = 1817759770295960277L;
 	private ExecutorService threadPool;
 

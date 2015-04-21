@@ -36,9 +36,7 @@ import jsat.utils.SystemInfo;
  */
 public class Wagging implements Classifier, Regressor, Parameterized
 {
-    /**
-	 * 
-	 */
+
 	private static final long serialVersionUID = 4999034730848794619L;
 	private Distribution dist;
     private int iterations;

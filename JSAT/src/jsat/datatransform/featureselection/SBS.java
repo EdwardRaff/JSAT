@@ -23,9 +23,7 @@ import jsat.utils.ListUtils;
  */
 public class SBS extends RemoveAttributeTransform
 {
-    /**
-	 * 
-	 */
+
 	private static final long serialVersionUID = -2516121100148559742L;
 	private double maxDecrease;
     

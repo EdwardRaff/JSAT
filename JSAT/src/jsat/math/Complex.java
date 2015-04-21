@@ -9,9 +9,7 @@ import java.io.Serializable;
  */
 public class Complex implements Cloneable, Serializable
 {
-    /**
-	 * 
-	 */
+
 	private static final long serialVersionUID = -2219274170047061708L;
 	private double real, imag;
     

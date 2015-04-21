@@ -9,9 +9,7 @@ import jsat.linear.Vec;
  */
 public abstract class IndexFunction implements Function
 {
-    /**
-	 * 
-	 */
+
 	private static final long serialVersionUID = -7306754195712805257L;
 
 	/**

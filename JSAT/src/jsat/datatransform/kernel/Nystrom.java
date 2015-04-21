@@ -45,9 +45,7 @@ import jsat.utils.random.XOR96;
  */
 public class Nystrom implements DataTransform
 {
-    /**
-	 * 
-	 */
+
 	private static final long serialVersionUID = -3227844260130709773L;
 	private KernelTrick k;
     private List<Vec> basisVecs;

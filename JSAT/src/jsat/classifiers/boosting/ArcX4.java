@@ -26,9 +26,7 @@ import jsat.utils.SystemInfo;
  */
 public class ArcX4 implements Classifier, Parameterized
 {
-    /**
-	 * 
-	 */
+
 	private static final long serialVersionUID = 3831448932874147550L;
 	private Classifier weakLearner;
     private int iterations;

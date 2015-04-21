@@ -27,9 +27,7 @@ import jsat.linear.Vec;
  */
 public class RFF_RBF implements DataTransform
 {
-    /**
-	 * 
-	 */
+
 	private static final long serialVersionUID = -3478916020648280477L;
 	private Matrix transform;
     private Vec offsets;

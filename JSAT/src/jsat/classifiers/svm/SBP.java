@@ -35,9 +35,7 @@ import jsat.utils.random.XORWOW;
  */
 public class SBP extends SupportVectorLearner implements BinaryScoreClassifier, Parameterized
 {
-    /**
-	 * 
-	 */
+
 	private static final long serialVersionUID = 6112916782260792833L;
 	private double nu = 0.1;
     private int iterations;

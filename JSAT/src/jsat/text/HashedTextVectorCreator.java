@@ -14,9 +14,7 @@ import jsat.text.wordweighting.WordWeighting;
  */
 public class HashedTextVectorCreator implements TextVectorCreator
 {
-    /**
-	 * 
-	 */
+
 	private static final long serialVersionUID = 1081388790985568192L;
 	private int dimensionSize;
     private Tokenizer tokenizer;

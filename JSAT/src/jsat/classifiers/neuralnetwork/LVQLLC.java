@@ -44,9 +44,7 @@ import jsat.math.decayrates.DecayRate;
  */
 public class LVQLLC extends LVQ
 {
-    /**
-	 * 
-	 */
+
 	private static final long serialVersionUID = 3602640001545233744L;
 	private Classifier localClassifier;
     private Classifier[] localClassifeirs;

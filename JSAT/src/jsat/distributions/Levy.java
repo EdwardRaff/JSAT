@@ -14,9 +14,7 @@ import jsat.math.SpecialMath;
  */
 public class Levy extends Distribution
 {
-    /**
-	 * 
-	 */
+
 	private static final long serialVersionUID = 3132169946527422816L;
 	private double location;
     private double scale;

@@ -7,9 +7,7 @@ package jsat.distributions.empirical.kernelfunc;
  */
 public class TriweightKF implements KernelFunction
 {
-    /**
-	 * 
-	 */
+
 	private static final long serialVersionUID = -9156392658970318676L;
 
 	private TriweightKF()

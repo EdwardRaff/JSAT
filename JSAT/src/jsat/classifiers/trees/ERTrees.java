@@ -30,9 +30,7 @@ import jsat.utils.SystemInfo;
  */
 public class ERTrees extends ExtraTree
 {
-    /**
-	 * 
-	 */
+
 	private static final long serialVersionUID = 7139392253403373132L;
 
 	//NOTE ExtraTrees uses the dynamic reflection, so extening it the new getter/setter paris are automatically picked up

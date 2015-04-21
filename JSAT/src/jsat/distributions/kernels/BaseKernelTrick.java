@@ -18,9 +18,7 @@ import jsat.linear.Vec;
 public abstract class BaseKernelTrick implements KernelTrick
 {
 
-    /**
-	 * 
-	 */
+
 	private static final long serialVersionUID = 7230585838672226751L;
 
 	@Override

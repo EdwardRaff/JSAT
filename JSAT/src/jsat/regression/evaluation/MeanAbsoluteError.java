@@ -9,9 +9,7 @@ import jsat.math.OnLineStatistics;
  */
 public class MeanAbsoluteError implements RegressionScore
 {
-    /**
-	 * 
-	 */
+
 	private static final long serialVersionUID = -637676526509989776L;
 	private OnLineStatistics absError;
 

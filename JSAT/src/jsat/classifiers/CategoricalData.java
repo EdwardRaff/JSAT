@@ -11,9 +11,7 @@ import java.util.List;
  */
 public class CategoricalData implements Cloneable, Serializable
 {
-    /**
-	 * 
-	 */
+
 	private static final long serialVersionUID = 5783467611963064930L;
 	private int n;//Number of different categories
     private List<String> catNames;

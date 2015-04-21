@@ -29,9 +29,7 @@ import jsat.utils.ListUtils;
  */
 public class LRS implements DataTransform
 {
-    /**
-	 * 
-	 */
+
 	private static final long serialVersionUID = 3065300352046535656L;
 	private RemoveAttributeTransform finalTransform;
     private Set<Integer> catSelected;

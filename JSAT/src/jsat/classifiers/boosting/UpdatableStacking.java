@@ -40,9 +40,7 @@ public class UpdatableStacking implements UpdateableClassifier, UpdateableRegres
      * predictions
      */
     
-    /**
-	 * 
-	 */
+
 	private static final long serialVersionUID = -5111303510263114862L;
 	/**
      * The number of weights needed per model

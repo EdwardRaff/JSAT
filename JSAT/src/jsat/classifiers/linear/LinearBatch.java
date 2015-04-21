@@ -44,9 +44,7 @@ import jsat.utils.concurrent.ParallelUtils;
  */
 public class LinearBatch implements Classifier, Regressor, Parameterized
 {
-    /**
-	 * 
-	 */
+
 	private static final long serialVersionUID = -446156124954287580L;
 	private Vec[] ws;
     private LossFunc loss;

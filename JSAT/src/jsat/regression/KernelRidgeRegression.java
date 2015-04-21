@@ -30,9 +30,7 @@ import jsat.utils.SystemInfo;
  */
 public class KernelRidgeRegression implements Regressor, Parameterized
 {
-    /**
-	 * 
-	 */
+
 	private static final long serialVersionUID = 6275333785663250072L;
 	private double lambda;
     @ParameterHolder

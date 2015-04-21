@@ -16,9 +16,7 @@ import jsat.linear.distancemetrics.*;
  */
 public class DefaultVectorCollectionFactory<V extends Vec> implements VectorCollectionFactory<V>
 {
-    /**
-	 * 
-	 */
+
 	private static final long serialVersionUID = -7442543159507721642L;
 	private static final int VEC_ARRAY_CUT_OFF = 20; 
     private static final int KD_TREE_CUT_OFF = 14;

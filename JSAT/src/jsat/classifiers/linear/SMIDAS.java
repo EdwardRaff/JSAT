@@ -40,9 +40,7 @@ import jsat.regression.RegressionDataSet;
  */
 public class SMIDAS extends StochasticSTLinearL1
 {
-    /**
-	 * 
-	 */
+
 	private static final long serialVersionUID = -4888083541600164597L;
 	private double eta;
     

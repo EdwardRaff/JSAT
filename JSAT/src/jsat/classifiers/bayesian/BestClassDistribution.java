@@ -20,9 +20,7 @@ import jsat.parameters.*;
  */
 public class BestClassDistribution implements Classifier, Parameterized
 {
-    /**
-	 * 
-	 */
+
 	private static final long serialVersionUID = -1746145372146154228L;
 	private MultivariateDistribution baseDist;
     private List<MultivariateDistribution> dists;

@@ -16,9 +16,7 @@ import jsat.linear.Vec;
  */
 public class KernelDistance implements DistanceMetric
 {
-    /**
-	 * 
-	 */
+
 	private static final long serialVersionUID = -1553315486668768024L;
 	private KernelTrick kf;
 

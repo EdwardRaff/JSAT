@@ -27,9 +27,7 @@ public class CosineDistanceNormalized implements DistanceMetric
      * to avoid this.
      */
     
-    /**
-	 * 
-	 */
+
 	private static final long serialVersionUID = -4041803247001806577L;
 
 	@Override

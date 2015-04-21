@@ -24,9 +24,7 @@ import jsat.utils.IntSet;
  */
 public class MutualInfoFS extends RemoveAttributeTransform
 {
-    /**
-	 * 
-	 */
+
 	private static final long serialVersionUID = -4394620220403363542L;
 
 	/**

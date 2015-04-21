@@ -26,9 +26,7 @@ import jsat.parameters.*;
  */
 public class ClassifierSelectionDialog extends JDialog
 {
-    /**
-	 * 
-	 */
+
 	private static final long serialVersionUID = 208983866163325774L;
 	private Frame owner;
     private List<ClassifierInfo> listInUse;

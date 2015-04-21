@@ -41,9 +41,7 @@ public class RandomForest implements Classifier, Regressor, Parameterized
 {
     //TODO implement Out of Bag estimates of proximity, importance, and outlier detection 
     
-    /**
-	 * 
-	 */
+
 	private static final long serialVersionUID = 2725020584282958141L;
 	/**
      * Only used when training for a classification problem

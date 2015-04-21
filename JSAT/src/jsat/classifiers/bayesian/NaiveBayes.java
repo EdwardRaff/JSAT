@@ -37,9 +37,7 @@ import jsat.utils.FakeExecutor;
  */
 public class NaiveBayes implements Classifier, Parameterized
 {
-    /**
-	 * 
-	 */
+
 	private static final long serialVersionUID = -2437775653277531182L;
 	/**
      * 

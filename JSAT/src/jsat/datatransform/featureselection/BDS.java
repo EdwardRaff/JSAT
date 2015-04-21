@@ -26,9 +26,7 @@ import jsat.utils.ListUtils;
  */
 public class BDS implements DataTransform
 {
-    /**
-	 * 
-	 */
+
 	private static final long serialVersionUID = 8633823674617843754L;
 	private RemoveAttributeTransform finalTransform;
     private Set<Integer> catSelected;

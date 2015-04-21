@@ -34,9 +34,7 @@ import jsat.utils.DoubleList;
 public class AutoDeskewTransform implements InPlaceTransform
 {
 
-    /**
-	 * 
-	 */
+
 	private static final long serialVersionUID = -4894242802345656448L;
 	private final double[] finalLambdas;
     private final double[] mins;

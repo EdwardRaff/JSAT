@@ -34,9 +34,7 @@ import jsat.utils.IntSet;
  */
 public class OPTICS extends ClustererBase implements Parameterized
 {
-    /**
-	 * 
-	 */
+
 	private static final long serialVersionUID = -1093772096278544211L;
 	private static final int NOISE = -1;
     private static double UNDEFINED = Double.POSITIVE_INFINITY;

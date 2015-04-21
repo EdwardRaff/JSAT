@@ -28,9 +28,7 @@ import jsat.utils.SystemInfo;
  */
 public class DBSCAN extends ClustererBase
 {
-    /**
-	 * 
-	 */
+
 	private static final long serialVersionUID = 1627963360642560455L;
 	/**
      * Used by {@link #cluster(DataSet, double, int, VectorCollection,int[]) } 

@@ -10,9 +10,7 @@ import java.util.*;
  */
 public class StopWordTokenizer implements Tokenizer
 {    
-    /**
-	 * 
-	 */
+
 	private static final long serialVersionUID = 445704970760705567L;
 	private Tokenizer base;
     private Set<String> stopWords;

@@ -27,9 +27,7 @@ import jsat.utils.ListUtils;
  */
 public class StochasticRidgeRegression implements Regressor, Parameterized, SingleWeightVectorModel
 {
-    /**
-	 * 
-	 */
+
 	private static final long serialVersionUID = -3462783438115627128L;
 	private double lambda;
     private int epochs;

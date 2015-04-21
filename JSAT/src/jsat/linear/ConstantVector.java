@@ -19,9 +19,7 @@ package jsat.linear;
  */
 public class ConstantVector extends Vec
 {
-    /**
-	 * 
-	 */
+
 	private static final long serialVersionUID = 4840204242189111630L;
 	private double constant;
     private int length;

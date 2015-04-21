@@ -15,9 +15,7 @@ import jsat.math.rootfinding.Zeroin;
  */
 public abstract class Distribution implements Cloneable, Serializable
 {
-    /**
-	 * 
-	 */
+
 	private static final long serialVersionUID = -5079392926462355615L;
 
 	/**

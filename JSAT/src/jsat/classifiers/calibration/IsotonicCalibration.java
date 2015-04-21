@@ -29,9 +29,7 @@ import jsat.classifiers.DataPoint;
  */
 public class IsotonicCalibration extends BinaryCalibration
 {
-    /**
-	 * 
-	 */
+
 	private static final long serialVersionUID = -1295979238755262335L;
 	private double[] outputs;
     private double[] scores;

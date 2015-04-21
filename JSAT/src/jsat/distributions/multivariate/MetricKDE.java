@@ -29,9 +29,7 @@ import jsat.parameters.*;
  */
 public class MetricKDE extends MultivariateKDE implements Parameterized
 {
-    /**
-	 * 
-	 */
+
 	private static final long serialVersionUID = -2084039950938740815L;
 	private KernelFunction kf;
     private double bandwidth;

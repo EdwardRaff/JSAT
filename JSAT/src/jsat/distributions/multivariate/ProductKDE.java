@@ -25,9 +25,7 @@ import jsat.utils.IntSet;
  */
 public class ProductKDE extends MultivariateKDE
 {
-    /**
-	 * 
-	 */
+
 	private static final long serialVersionUID = 7298078759216991650L;
 	private KernelFunction k;
     private double[][] sortedDimVals;

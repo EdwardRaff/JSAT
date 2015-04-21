@@ -28,9 +28,7 @@ import jsat.utils.FakeExecutor;
  */
 public class ModestAdaBoost  implements Classifier, Parameterized, BinaryScoreClassifier
 {
-    /**
-	 * 
-	 */
+
 	private static final long serialVersionUID = 8223388561185098909L;
 	private Classifier weakLearner;
     private int maxIterations;

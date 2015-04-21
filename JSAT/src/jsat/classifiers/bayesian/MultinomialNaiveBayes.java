@@ -35,9 +35,7 @@ import jsat.parameters.Parameterized;
  */
 public class MultinomialNaiveBayes extends BaseUpdateableClassifier implements Parameterized
 {
-    /**
-	 * 
-	 */
+
 	private static final long serialVersionUID = -469977945722725478L;
 	private double[][][] apriori;
     private double[][] wordCounts;

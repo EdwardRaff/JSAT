@@ -30,9 +30,7 @@ import jsat.utils.SystemInfo;
  */
 public class RANSAC implements Regressor, Parameterized
 {
-    /**
-	 * 
-	 */
+
 	private static final long serialVersionUID = -5015748604828907703L;
 	/**
      * the minimum number of data required to fit the model

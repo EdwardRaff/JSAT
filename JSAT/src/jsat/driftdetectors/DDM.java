@@ -18,9 +18,7 @@ package jsat.driftdetectors;
  */
 public class DDM<V> extends BaseDriftDetector<V>
 {
-    /**
-	 * 
-	 */
+
 	private static final long serialVersionUID = 3023405445609636195L;
 
 	/**

@@ -20,9 +20,7 @@ import static jsat.math.SpecialMath.*;
  */
 public class SymmetricDirichlet extends MultivariateDistributionSkeleton
 {
-    /**
-	 * 
-	 */
+
 	private static final long serialVersionUID = -1206894014440494142L;
 	private double alpha;
     private int dim;

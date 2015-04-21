@@ -11,9 +11,7 @@ import java.util.*;
  */
 public class BoundedSortedSet<V> extends TreeSet<V>
 {
-    /**
-	 * 
-	 */
+
 	private static final long serialVersionUID = -4774987058243433217L;
 	private final int maxSize;
 

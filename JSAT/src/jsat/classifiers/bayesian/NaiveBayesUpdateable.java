@@ -22,9 +22,7 @@ import jsat.math.MathTricks;
  */
 public class NaiveBayesUpdateable extends BaseUpdateableClassifier
 {
-    /**
-	 * 
-	 */
+
 	private static final long serialVersionUID = 1835073945715343486L;
 	/**
      * Counts for each option

@@ -15,9 +15,7 @@ import jsat.math.OnLineStatistics;
  */
 public class LinearTransform implements InPlaceInvertibleTransform
 {
-    /**
-	 * 
-	 */
+
 	private static final long serialVersionUID = 5580283565080452022L;
 	/**
      * The max value

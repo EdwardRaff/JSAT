@@ -34,9 +34,7 @@ import jsat.utils.ListUtils;
  */
 public class StochasticMultinomialLogisticRegression implements Classifier, Parameterized, SimpleWeightVectorModel
 {   
-    /**
-	 * 
-	 */
+
 	private static final long serialVersionUID = -492707881682847556L;
 	private int epochs;
     private boolean clipping = true;

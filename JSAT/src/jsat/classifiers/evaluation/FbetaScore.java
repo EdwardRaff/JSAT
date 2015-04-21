@@ -9,9 +9,7 @@ package jsat.classifiers.evaluation;
  */
 public class FbetaScore extends SimpleBinaryClassMetric
 {
-    /**
-	 * 
-	 */
+
 	private static final long serialVersionUID = -7530404462591303694L;
 	private double beta;
     

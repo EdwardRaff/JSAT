@@ -25,9 +25,7 @@ import static jsat.utils.SystemInfo.*;
 public class AdaBoostM1PL extends AdaBoostM1
 {
     
-    /**
-	 * 
-	 */
+
 	private static final long serialVersionUID = 1027211688101553766L;
 
 

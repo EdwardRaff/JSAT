@@ -35,9 +35,7 @@ import static java.lang.Math.*;
  */
 public class XMeans extends KMeans 
 {
-    /**
-	 * 
-	 */
+
 	private static final long serialVersionUID = -2577160317892141870L;
 	private boolean stopAfterFail = false;
     private boolean iterativeRefine = true;

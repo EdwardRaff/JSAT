@@ -37,9 +37,7 @@ import jsat.utils.ListUtils;
  */
 public class DReDNetSimple implements Classifier, Parameterized
 {
-    /**
-	 * 
-	 */
+
 	private static final long serialVersionUID = -342281027279571332L;
 	private SGDNetworkTrainer network;
     private int[] hiddenSizes;

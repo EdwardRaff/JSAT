@@ -18,9 +18,7 @@ import jsat.utils.ListUtils;
  */
 public abstract class BaseUpdateableRegressor implements UpdateableRegressor
 {
-    /**
-	 * 
-	 */
+
 	private static final long serialVersionUID = -679467882721432240L;
 	private int epochs = 1;
 

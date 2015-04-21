@@ -14,9 +14,7 @@ import jsat.linear.Vec;
  */
 public class DataPoint implements Cloneable, Serializable
 {
-    /**
-	 * 
-	 */
+
 	private static final long serialVersionUID = -1363327591317639955L;
 	private double weight;
     protected Vec numericalValues;

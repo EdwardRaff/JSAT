@@ -10,9 +10,7 @@ package jsat.lossfunctions;
 public class AbsoluteLoss implements LossR
 {
 
-    /**
-	 * 
-	 */
+
 	private static final long serialVersionUID = -3398199227407867808L;
 
 	/**

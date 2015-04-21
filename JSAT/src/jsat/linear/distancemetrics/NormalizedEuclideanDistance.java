@@ -31,9 +31,7 @@ import jsat.utils.SystemInfo;
  */
 public class NormalizedEuclideanDistance extends TrainableDistanceMetric
 {
-    /**
-	 * 
-	 */
+
 	private static final long serialVersionUID = 210109457671623688L;
 	private Vec invStndDevs;
 

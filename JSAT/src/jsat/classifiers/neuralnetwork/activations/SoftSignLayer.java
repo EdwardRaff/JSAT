@@ -18,9 +18,7 @@ import jsat.linear.Vec;
 public class SoftSignLayer implements ActivationLayer
 {
 
-    /**
-	 * 
-	 */
+
 	private static final long serialVersionUID = 9137125423044227288L;
 
 	@Override

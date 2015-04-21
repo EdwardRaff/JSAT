@@ -12,9 +12,7 @@ import jsat.linear.DenseVector;
  */
 public class ClassificationPlot extends CategoryPlot
 {
-    /**
-	 * 
-	 */
+
 	private static final long serialVersionUID = -5960348716104033016L;
 	private Classifier classifier;
     private int resolution = 4;

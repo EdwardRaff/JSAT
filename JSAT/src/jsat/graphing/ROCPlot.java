@@ -17,9 +17,7 @@ import jsat.utils.IndexTable;
  */
 public class ROCPlot extends Graph2D
 {
-    /**
-	 * 
-	 */
+
 	private static final long serialVersionUID = -5956609892534834431L;
 
 	/**

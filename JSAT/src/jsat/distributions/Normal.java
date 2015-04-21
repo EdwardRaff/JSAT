@@ -14,9 +14,7 @@ import jsat.text.GreekLetters;
  */
 public class Normal extends Distribution
 {
-    /**
-	 * 
-	 */
+
 	private static final long serialVersionUID = -5298346576152986165L;
 	private double mean;
     private double stndDev;

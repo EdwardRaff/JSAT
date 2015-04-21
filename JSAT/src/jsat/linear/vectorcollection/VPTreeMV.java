@@ -22,9 +22,7 @@ import jsat.utils.Pair;
 public class VPTreeMV<V extends Vec> extends VPTree<V>
 {
 
-    /**
-	 * 
-	 */
+
 	private static final long serialVersionUID = 6668184445206226077L;
 
 	public VPTreeMV(List<V> list, DistanceMetric dm, VPSelection vpSelection, Random rand, int sampleSize, int searchIterations, ExecutorService threadpool)

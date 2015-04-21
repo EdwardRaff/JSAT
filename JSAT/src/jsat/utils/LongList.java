@@ -14,9 +14,7 @@ import java.util.*;
  */
 public class LongList extends AbstractList<Long> implements Serializable
 {
-    /**
-	 * 
-	 */
+
 	private static final long serialVersionUID = 3060216677615816178L;
 	private long[] array;
     private int end;

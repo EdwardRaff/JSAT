@@ -18,9 +18,7 @@ import jsat.linear.Vec;
  */
 public class PukKernel extends BaseL2Kernel
 {
-    /**
-	 * 
-	 */
+
 	private static final long serialVersionUID = 8727097671803148320L;
 	private double sigma;
     private double omega;

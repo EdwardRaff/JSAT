@@ -39,9 +39,7 @@ import jsat.utils.ProbailityMatch;
  */
 public class RandomBallCoverOneShot<V extends Vec> implements VectorCollection<V>
 {
-    /**
-	 * 
-	 */
+
 	private static final long serialVersionUID = -2562499883847452797L;
 	private DistanceMetric dm;
     private List<List<Integer>> ownedVecs;

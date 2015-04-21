@@ -32,9 +32,7 @@ import jsat.utils.FakeExecutor;
  */
 public class EmphasisBoost implements Classifier, Parameterized, BinaryScoreClassifier
 {
-    /**
-	 * 
-	 */
+
 	private static final long serialVersionUID = -6372897830449685891L;
 	private Classifier weakLearner;
     private int maxIterations;

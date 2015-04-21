@@ -11,9 +11,7 @@ import static java.lang.Math.*;
  */
 public class QRDecomposition implements Serializable
 {
-    /**
-	 * 
-	 */
+
 	private static final long serialVersionUID = 7578073062361216223L;
 	private Matrix Q_T, R;
 

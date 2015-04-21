@@ -44,9 +44,7 @@ import jsat.utils.SystemInfo;
  */
 public class PegasosK extends SupportVectorLearner implements BinaryScoreClassifier, Parameterized
 {
-    /**
-	 * 
-	 */
+
 	private static final long serialVersionUID = 5405460830472328107L;
 	private double regularization;
     private int iterations;

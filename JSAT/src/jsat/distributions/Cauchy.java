@@ -10,9 +10,7 @@ import jsat.linear.Vec;
 public final class Cauchy extends Distribution
 {
     
-    /**
-	 * 
-	 */
+
 	private static final long serialVersionUID = -5083645002030551206L;
 	private double location;
     private double scale;

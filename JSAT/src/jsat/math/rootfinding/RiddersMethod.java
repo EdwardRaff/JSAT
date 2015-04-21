@@ -11,9 +11,7 @@ import static java.lang.Math.*;
  */
 public class RiddersMethod implements RootFinder
 {
-    /**
-	 * 
-	 */
+
 	private static final long serialVersionUID = 8154909945080099018L;
 
 	public static double root(double a, double b, Function f, double... args)

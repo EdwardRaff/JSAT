@@ -44,9 +44,7 @@ import static jsat.utils.SystemInfo.LogicalCores;
  */
 public class MeanShift extends ClustererBase
 {
-    /**
-	 * 
-	 */
+
 	private static final long serialVersionUID = 4061491342362690455L;
 	/**
      * The default number of {@link #getMaxIterations() } is {@value #DefaultMaxIterations}

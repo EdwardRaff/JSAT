@@ -29,9 +29,7 @@ import jsat.linear.distancemetrics.EuclideanDistance;
  */
 public abstract class KMeans extends KClustererBase implements Parameterized
 {
-    /**
-	 * 
-	 */
+
 	private static final long serialVersionUID = 8730927112084289722L;
 
 	/**

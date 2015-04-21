@@ -31,9 +31,7 @@ import jsat.utils.FakeExecutor;
  */
 public class LogisticRegression implements Classifier, Regressor, SingleWeightVectorModel
 {
-    /**
-	 * 
-	 */
+
 	private static final long serialVersionUID = -5115807516729861730L;
 	private Vec coefficents;
     /**

@@ -16,9 +16,7 @@ import jsat.linear.Vec;
  */
 public class AdaGrad implements GradientUpdater
 {
-    /**
-	 * 
-	 */
+
 	private static final long serialVersionUID = 5138474612999751777L;
 	private Vec daigG;
     private double biasG;

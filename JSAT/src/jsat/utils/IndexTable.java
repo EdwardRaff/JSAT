@@ -20,9 +20,7 @@ import java.util.*;
  */
 public class IndexTable implements Serializable
 {
-    /**
-	 * 
-	 */
+
 	private static final long serialVersionUID = -1917765351445664286L;
 	static private final Comparator defaultComp = new Comparator()        
     {

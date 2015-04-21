@@ -48,9 +48,7 @@ import jsat.utils.SystemInfo;
  */
 public class ReliefF extends RemoveAttributeTransform
 {
-    /**
-	 * 
-	 */
+
 	private static final long serialVersionUID = -3336500245613075520L;
 	private double[] w;
     

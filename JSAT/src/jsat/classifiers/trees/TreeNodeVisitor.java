@@ -27,9 +27,7 @@ import jsat.classifiers.DataPoint;
  */
 public abstract class TreeNodeVisitor implements Serializable, Cloneable
 {
-    /**
-	 * 
-	 */
+
 	private static final long serialVersionUID = 4026847401940409114L;
 
 	/**

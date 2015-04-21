@@ -31,9 +31,7 @@ import jsat.utils.*;
  */
 public class EuclideanCollection<V extends Vec> implements VectorCollection<V>
 {
-    /**
-	 * 
-	 */
+
 	private static final long serialVersionUID = 3544832051605265927L;
 	private List<V> source;
     /**

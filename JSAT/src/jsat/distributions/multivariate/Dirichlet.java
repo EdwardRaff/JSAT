@@ -23,9 +23,7 @@ import static jsat.math.SpecialMath.*;
  */
 public class Dirichlet extends MultivariateDistributionSkeleton
 {
-    /**
-	 * 
-	 */
+
 	private static final long serialVersionUID = 6229508050763067569L;
 	private Vec alphas;
 

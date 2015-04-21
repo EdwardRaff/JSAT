@@ -25,9 +25,7 @@ import jsat.utils.ProbailityMatch;
  */
 public class VectorArray<V extends Vec> extends ArrayList<V> implements VectorCollection<V>
 {
-    /**
-	 * 
-	 */
+
 	private static final long serialVersionUID = 5365949686370986234L;
 	private DistanceMetric distanceMetric;
     private List<Double> distCache;

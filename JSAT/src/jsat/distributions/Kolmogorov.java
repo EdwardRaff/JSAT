@@ -12,9 +12,7 @@ import static java.lang.Math.*;
 public class Kolmogorov extends Distribution
 {
 
-    /**
-	 * 
-	 */
+
 	private static final long serialVersionUID = 7319511918364286930L;
 
 	public Kolmogorov()

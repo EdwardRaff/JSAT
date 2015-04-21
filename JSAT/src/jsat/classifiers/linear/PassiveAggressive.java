@@ -29,9 +29,7 @@ import jsat.regression.UpdateableRegressor;
  */
 public class PassiveAggressive implements UpdateableClassifier, BinaryScoreClassifier, UpdateableRegressor, Parameterized, SingleWeightVectorModel
 {
-    /**
-	 * 
-	 */
+
 	private static final long serialVersionUID = -7130964391528405832L;
 	private int epochs;
     private double C = 0.01;

@@ -29,9 +29,7 @@ import jsat.utils.ListUtils;
  */
 public class KernelRLS implements UpdateableRegressor, Parameterized
 {
-    /**
-	 * 
-	 */
+
 	private static final long serialVersionUID = -7292074388953854317L;
 	@ParameterHolder
     private KernelTrick k;

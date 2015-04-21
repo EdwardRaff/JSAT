@@ -14,9 +14,7 @@ import jsat.utils.SystemInfo;
  */
 public class LUPDecomposition implements Cloneable, Serializable
 {
-    /**
-	 * 
-	 */
+
 	private static final long serialVersionUID = -149659693838168048L;
 	private static final int threads = SystemInfo.LogicalCores;
     private final Matrix L, U, P;

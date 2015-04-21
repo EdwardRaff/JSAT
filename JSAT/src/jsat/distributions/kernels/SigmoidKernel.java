@@ -15,9 +15,7 @@ import jsat.parameters.Parameter;
  */
 public class SigmoidKernel extends BaseKernelTrick
 {
-    /**
-	 * 
-	 */
+
 	private static final long serialVersionUID = 8066799016611439349L;
 	private double alpha;
     private double c;

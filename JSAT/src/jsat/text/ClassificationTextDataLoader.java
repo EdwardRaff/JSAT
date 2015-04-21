@@ -23,9 +23,7 @@ import jsat.utils.IntList;
  */
 public abstract class ClassificationTextDataLoader extends TextDataLoader
 {
-    /**
-	 * 
-	 */
+
 	private static final long serialVersionUID = -3826551504785136576L;
 	/**
      * The list of the true class labels for the data that was loaded before 

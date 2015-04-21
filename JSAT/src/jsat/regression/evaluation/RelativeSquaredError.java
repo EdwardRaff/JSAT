@@ -8,9 +8,7 @@ package jsat.regression.evaluation;
  */
 public class RelativeSquaredError extends TotalHistoryRegressionScore
 {
-    /**
-	 * 
-	 */
+
 	private static final long serialVersionUID = 8377798320269626429L;
 
 	/**

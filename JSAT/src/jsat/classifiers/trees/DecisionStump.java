@@ -41,9 +41,7 @@ import jsat.utils.QuickSort;
  */
 public class DecisionStump implements Classifier, Regressor, Parameterized
 {
-    /**
-	 * 
-	 */
+
 	private static final long serialVersionUID = -2849268862089019515L;
 	/**
      * Indicates which attribute to split on 

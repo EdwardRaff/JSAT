@@ -33,9 +33,7 @@ import static java.lang.Math.*;
  */
 public class DiscreteBayesNetwork implements Classifier
 {
-    /**
-	 * 
-	 */
+
 	private static final long serialVersionUID = 2980734594356260141L;
 	/**
      * The directed Graph that represents this BN

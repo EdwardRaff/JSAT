@@ -25,9 +25,7 @@ import jsat.utils.*;
  */
 public class KDTree<V extends Vec> implements VectorCollection<V>
 {
-    /**
-	 * 
-	 */
+
 	private static final long serialVersionUID = -7401342201406776463L;
 	private DistanceMetric distanceMetric;
     private KDNode root;
