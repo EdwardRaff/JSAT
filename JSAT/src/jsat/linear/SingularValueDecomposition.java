@@ -133,7 +133,7 @@ public class SingularValueDecomposition implements Cloneable, Serializable
             
             for (int j = k + 1; j < n; j++)
             {
-                if ((k < nct) && (s[k] != 0.0))
+                if ((k < nct) & (s[k] != 0.0))
                 {
 
                     // Apply the transformation.
@@ -193,7 +193,7 @@ public class SingularValueDecomposition implements Cloneable, Serializable
         }
         
         e[k] = -e[k];
-        if ((k + 1 < m) && (e[k] != 0.0))
+        if ((k + 1 < m) & (e[k] != 0.0))
         {
 
             // Apply the transformation.
@@ -223,7 +223,7 @@ public class SingularValueDecomposition implements Cloneable, Serializable
     {
         for (int k = n - 1; k >= 0; k--)
         {
-            if ((k < nrt) && (e[k] != 0.0))
+            if ((k < nrt) & (e[k] != 0.0))
             {
                 for (int j = k + 1; j < nu; j++)
                 {
