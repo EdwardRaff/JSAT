@@ -1,12 +1,9 @@
 
 package jsat.distributions;
 
-import java.util.Arrays;
-
 import jsat.distributions.empirical.KernelDensityEstimator;
 import jsat.linear.Vec;
 import jsat.testing.goodnessoffit.KSTest;
-import jsat.utils.Pair;
 
 /**
  * Provides methods for selecting the distribution that best fits a given data set. 
@@ -80,10 +77,6 @@ public class DistributionSearch
     {
         if(v.length() == 0)
             throw new ArithmeticException("Can not fit a distribution to an empty set");
-		Pair<Boolean, Double> result = checkForDifferentValues(v);
-		if(result.getFirstItem()){
-			return new SingleValueDistribution(result.getSecondItem());
-		}
         //Thread Safety, clone the possible distributions
         
         Distribution[] possDistCopy = new Distribution[possibleDistributions.length];
@@ -132,34 +125,4 @@ public class DistributionSearch
             throw new ArithmeticException("Catistrophic faulure getting a distribution");
         }
     }
-	/**
-	 * True iff there are only identical values in the vector
-	 * @param v
-	 * @return
-	 */
-	public static Pair<Boolean, Double> checkForDifferentValues(Vec v) {
-		double value = v.get(0);
-		for(int i = 1;i<v.length();i++){
-			if(v.get(i)!=value){
-				return new Pair<Boolean, Double>(false, -1.0);
-			}
-		}
-		return new Pair<Boolean, Double>(true, value);
-	}
-
-	/**
-	 * search for all possible distributions and maybe also for a KDE. Does not compare bestProb to cutoff
-	 * @param v
-	 * @param includeKDE
-	 * @return
-	 */
-	public static Distribution getBestDistribution(Vec v, boolean includeKDE) {
-		if(!includeKDE){
-			return getBestDistribution(v);
-		}else{
-			Distribution[] possibleDists = Arrays.copyOf(possibleDistributions, possibleDistributions.length+1);
-			possibleDists[possibleDists.length-1] = new KernelDensityEstimator(v);
-			return getBestDistribution(v,possibleDists);
-		}
-	}
 }
