@@ -225,7 +225,7 @@ public class DBSCAN extends ClustererBase
         return cluster(dataSet, eps, minPts, vecFactory.getVectorCollection(getVecIndexPairs(dataSet), dm), threadpool, designations);
     }
     
-    public int[] cluster(DataSet dataSet, double eps, int minPts, VectorCollection<VecPaired<Vec, Integer>> vc, int[] pointCats )
+    private int[] cluster(DataSet dataSet, double eps, int minPts, VectorCollection<VecPaired<Vec, Integer>> vc, int[] pointCats )
     {
         if (pointCats == null)
             pointCats = new int[dataSet.getSampleSize()];
@@ -444,7 +444,7 @@ public class DBSCAN extends ClustererBase
         return true;
     }
     /**
-     * Gets the last(final) vector collection for beeing able to search neighbors for a point
+     * Gets the last(final) vector collection for being able to search neighbors for a point
      * See {@link VectorCollection#search(Vec query, double range)},{@link VectorCollection#search(Vec query, int neighbors)}
      * @return the last vector collection
      */
