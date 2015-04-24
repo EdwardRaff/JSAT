@@ -144,7 +144,7 @@ public class DivisiveGlobalClusterer extends KClustererBase
             
             for (int z = 0; z < k; z++)//TODO it might be better to do this loop in parallel 
             {
-                if(splitEvaluation[z] == Double.NaN)
+                if(Double.isNaN(splitEvaluation[z]))
                     continue;
                 else if (splitEvaluation[z] == Double.NEGATIVE_INFINITY)//at most 2 will hit this per loop
                 {//Need to compute a split for that cluster & set up helper structures
