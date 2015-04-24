@@ -386,7 +386,7 @@ public class KernelPoints
                 else//standard case
                 {
                     kp_k.mutableAdd(c, x_t, qi);
-                    if(origSize != kp_k.getBasisSize())//update kernels&amp;add alpha
+                    if(origSize != kp_k.getBasisSize())//update kernels & add alpha
                     {
                         for(int i = 0; i < points.size(); i++)
                             if(i != k)

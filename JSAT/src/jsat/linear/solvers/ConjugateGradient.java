@@ -39,7 +39,7 @@ public class ConjugateGradient
     public static Vec solve(double eps, Matrix A, Vec x, Vec b)
     {
         if(!A.isSquare())
-            throw new ArithmeticException("A must be a square (symmetric&amp;positive definite) matrix");
+            throw new ArithmeticException("A must be a square (symmetric & positive definite) matrix");
         else if(A.rows() != b.length() || A.rows() != x.length())
             throw new ArithmeticException("Matrix A dimensions do not agree with x and b");
         int k = 0;
@@ -107,7 +107,7 @@ public class ConjugateGradient
     public static Vec solve(double eps, Matrix A, Vec x, Vec b, Matrix Minv)
     {
         if(!A.isSquare() || !Minv.isSquare())
-            throw new ArithmeticException("A and Minv must be square (symmetric&amp;positive definite) matrix");
+            throw new ArithmeticException("A and Minv must be square (symmetric & positive definite) matrix");
         else if(A.rows() != b.length() || A.rows() != x.length())
             throw new ArithmeticException("Matrix A dimensions do not agree with x and b");
         else if(A.rows() != Minv.rows() || A.cols() != Minv.cols())

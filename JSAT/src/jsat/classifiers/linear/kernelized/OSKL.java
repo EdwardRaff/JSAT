@@ -324,7 +324,7 @@ public class OSKL extends BaseUpdateableClassifier implements BinaryScoreClassif
         vecs.add(x_t);
         if(accelCache != null)
             accelCache.addAll(qi);
-        //update online alpha averages for current&amp;old SVs
+        //update online alpha averages for current & old SVs
         alphaAveraged.add(0.0);//implicit zero for time we didn't have new SVs
         updateAverage();
         //project alphas to maintain norm if needed

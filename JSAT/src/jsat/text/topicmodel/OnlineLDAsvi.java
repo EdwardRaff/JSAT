@@ -621,7 +621,7 @@ public class OnlineLDAsvi implements Parameterized
      */
     private void updateBetas(final List<Vec> docs, ExecutorService ex)
     {
-        final double[] digammaLambdaSum = new double[K];//TODO may want to move this out&amp;reuse
+        final double[] digammaLambdaSum = new double[K];//TODO may want to move this out & reuse
         for(int k = 0; k < K; k++)
             digammaLambdaSum[k] = FastMath.digamma(W*eta+lambdaSums.getD(k));
         List<List<Vec>> docSplits = ListUtils.splitList(docs, SystemInfo.LogicalCores);

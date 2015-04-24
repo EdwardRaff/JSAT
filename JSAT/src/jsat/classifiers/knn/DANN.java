@@ -294,7 +294,7 @@ public class DANN implements Classifier, Parameterized
                 priors[i] /= sumOfWeights;
             }
             
-            //Compute B&amp;W
+            //Compute B & W
             for(int j = 0; j < classMeans.length; j++)
             {
                 //One line for B's work

@@ -545,7 +545,7 @@ public class SpecialMath
          * B(z, w) = -----------------
          *             Gamma(z + w)
          *
-         * However, the definition is numericaly unstable (large value / large value to small result&amp;small input).
+         * However, the definition is numericaly unstable (large value / large value to small result & small input).
          * Taking the log of each size and then exponentiating gives a more stable method of computing the result
          *
          *            lnGamma(z) + lnGamma(w) - lnGamma(z + w)

@@ -261,7 +261,7 @@ public class PlatSMO extends SupportVectorLearner implements BinaryScoreClassifi
         }
         
         if (iter >= maxIterations)
-        {//1 extra pass to get a better guess on bUp&amp;bLow since we quit early
+        {//1 extra pass to get a better guess on bUp & bLow since we quit early
             for (int i = 0; i < N; i++)
                 numChanged += examineExample(i);
         }
@@ -462,7 +462,7 @@ public class PlatSMO extends SupportVectorLearner implements BinaryScoreClassifi
             }
         }
         
-        //case where i1&amp;i2 are not in I0
+        //case where i1 & i2 are not in I0
         for(int i : new int[]{i1, i2})
         {
             if(I3[i] || I4[i])

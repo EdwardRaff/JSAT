@@ -178,7 +178,7 @@ public class MutualInfoFS extends RemoveAttributeTransform
                     }
                 }
             }
-            else//Numeric attribute&amp;it is binary
+            else//Numeric attribute & it is binary
             {
                 for(int tClass = 0; tClass < classPriors.length; tClass++)
                 {

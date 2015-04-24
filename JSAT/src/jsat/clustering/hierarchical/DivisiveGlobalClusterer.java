@@ -138,7 +138,7 @@ public class DivisiveGlobalClusterer extends KClustererBase
         int bestK = -1;
         double bestKEval = Double.POSITIVE_INFINITY;
         
-        //k is the current number of clusters,&amp;the ID of the next cluster
+        //k is the current number of clusters, & the ID of the next cluster
         for(int k = 1; k < highK; k++)
         {
             double bestSplitVal = Double.POSITIVE_INFINITY;
@@ -149,7 +149,7 @@ public class DivisiveGlobalClusterer extends KClustererBase
                 if(Double.isNaN(splitEvaluation[z]))
                     continue;
                 else if (splitEvaluation[z] == Double.NEGATIVE_INFINITY)//at most 2 will hit this per loop
-                {//Need to compute a split for that cluster&amp;set up helper structures
+                {//Need to compute a split for that cluster & set up helper structures
                     List<DataPoint> clusterPointsZ = pointsInCluster.get(z);
                     clusterPointsZ.clear();
                     for (int i = 0; i < dataSet.getSampleSize(); i++)

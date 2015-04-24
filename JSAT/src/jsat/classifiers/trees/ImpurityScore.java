@@ -264,7 +264,7 @@ public class ImpurityScore implements Cloneable
             /*
              * TODO should actualy be 0, but performance bug is consistently 
              * occuring if I use another value. Needs serious investigation. 
-             * I was testing on (Oracle) 1.7u51&amp;u20 smoething and both had the
+             * I was testing on (Oracle) 1.7u51 & u20 smoething and both had the
              * issue, on OSX and Windows. 
              * 
              * I was unable to replicate the issue with a smaller self contained

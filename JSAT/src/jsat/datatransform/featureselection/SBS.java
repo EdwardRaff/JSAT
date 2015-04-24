@@ -202,7 +202,7 @@ public class SBS extends RemoveAttributeTransform
             return curBest;
         }
         else
-            return  -1; //No possible improvment&amp;weve got enough
+            return  -1; //No possible improvment & weve got enough
     }
     
     /**

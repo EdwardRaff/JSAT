@@ -274,7 +274,7 @@ public class LIBSVMLoader
                 }
                 else if(state == STATE.FEATURE_VALUE || state == STATE.WHITESPACE_AFTER_FEATURE)//line ended after a value pair
                 {
-                    //process the last value pair&amp;insert into vec
+                    //process the last value pair & insert into vec
                     double value = StringUtils.parseDouble(processBuffer, 0, processBuffer.length());
                     processBuffer.delete(0, processBuffer.length());
 
