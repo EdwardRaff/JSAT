@@ -4,7 +4,6 @@ import java.util.*;
 import java.util.concurrent.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-
 import jsat.DataSet;
 import jsat.classifiers.CategoricalData;
 import jsat.classifiers.DataPoint;
@@ -40,7 +39,7 @@ public class DBSCAN extends ClustererBase
      * Used by {@link #expandCluster(int[], DataSet, int, int, double, int, VectorCollection) } 
      * to mark that a data point has been visited, but was considered noise. 
      */
-    public static final int NOISE = -2;
+    private static final int NOISE = -2;
     
     /**
      * Factory used to create a vector space of the inputs. 
@@ -49,7 +48,6 @@ public class DBSCAN extends ClustererBase
     private VectorCollectionFactory<VecPaired<Vec, Integer> > vecFactory;
     private DistanceMetric dm;
     private double stndDevs = 2.0;
-	private VectorCollection<VecPaired<Vec, Integer>> lastVectorCollection;
 
     public DBSCAN(DistanceMetric dm, VectorCollectionFactory<VecPaired<Vec, Integer>> vecFactory)
     {
@@ -59,7 +57,7 @@ public class DBSCAN extends ClustererBase
 
     public DBSCAN()
     {
-        this(new EuclideanDistance() ,new KDTree.KDTreeFactory<VecPaired<Vec, Integer>>());
+        this(new EuclideanDistance());
     }
     
     public DBSCAN(DistanceMetric dm)
@@ -241,7 +239,7 @@ public class DBSCAN extends ClustererBase
                     curClusterID++;
             }
         }
-        lastVectorCollection = vc;
+        
         return pointCats;
     }
     
@@ -279,7 +277,7 @@ public class DBSCAN extends ClustererBase
         catch (InterruptedException interruptedException)
         {
         }
-        lastVectorCollection = vc;
+        
         return pointCats;
     }
     
@@ -442,14 +440,6 @@ public class DBSCAN extends ClustererBase
         }
         
         return true;
-    }
-    /**
-     * Gets the last(final) vector collection for being able to search neighbors for a point
-     * See {@link VectorCollection#search(Vec query, double range)},{@link VectorCollection#search(Vec query, int neighbors)}
-     * @return the last vector collection
-     */
-    public VectorCollection<VecPaired<Vec, Integer>> getLastVectorCollection(){
-    	return lastVectorCollection;
     }
 
 }
