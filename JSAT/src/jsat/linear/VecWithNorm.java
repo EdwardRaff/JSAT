@@ -17,7 +17,9 @@ import java.util.Iterator;
  */
 public class VecWithNorm extends Vec
 {
-    final private Vec base;
+
+	private static final long serialVersionUID = 3888178071694466561L;
+	final private Vec base;
     private double normSqrd;
 
     /**

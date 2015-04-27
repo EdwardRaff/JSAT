@@ -15,7 +15,9 @@ import jsat.parameters.Parameter;
  */
 public class LinearKernel extends BaseKernelTrick
 {
-    private double c;
+
+	private static final long serialVersionUID = -1870181048970135367L;
+	private double c;
 
     /**
      * Creates a new Linear Kernel that computes the dot product and offsets it by a specified value
@@ -70,7 +72,12 @@ public class LinearKernel extends BaseKernelTrick
     private Parameter param = new DoubleParameter() 
     {
 
-        @Override
+        /**
+		 * 
+		 */
+		private static final long serialVersionUID = -3811777805710374813L;
+
+		@Override
         public double getValue()
         {
             return getC();

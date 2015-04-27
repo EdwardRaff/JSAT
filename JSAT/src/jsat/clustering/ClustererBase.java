@@ -17,7 +17,11 @@ import jsat.classifiers.DataPoint;
 public abstract class ClustererBase implements Clusterer
 {
 
-    @Override
+
+	private static final long serialVersionUID = 4359554809306681680L;
+
+
+	@Override
     public List<List<DataPoint>> cluster(DataSet dataSet)
     {
         int[] assignments = cluster(dataSet, (int[]) null);

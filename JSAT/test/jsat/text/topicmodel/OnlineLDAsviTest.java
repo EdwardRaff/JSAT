@@ -1,21 +1,26 @@
 package jsat.text.topicmodel;
 
 import jsat.text.topicmodel.OnlineLDAsvi;
+
 import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+
 import jsat.SimpleDataSet;
 import jsat.classifiers.CategoricalData;
 import jsat.classifiers.DataPoint;
 import jsat.distributions.multivariate.Dirichlet;
 import jsat.linear.*;
+import jsat.utils.IntSet;
 import jsat.utils.SystemInfo;
 import jsat.utils.random.XORWOW;
+
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
+
 import static org.junit.Assert.*;
 
 /**
@@ -155,7 +160,7 @@ public class OnlineLDAsviTest
             }
 
             //make sure no basis was closest to 2 or more topics
-            assertEquals(basis.size(), new HashSet<Integer>(ldaTopicToBasis.values()).size());
+            assertEquals(basis.size(), new IntSet(ldaTopicToBasis.values()).size());
 
             //make sure that computing the topic distirbution works
             for(Vec topicSample : dirichlet.sample(100, rand))

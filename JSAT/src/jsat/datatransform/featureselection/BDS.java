@@ -1,16 +1,17 @@
 package jsat.datatransform.featureselection;
 
 import java.util.*;
+
 import jsat.DataSet;
 import jsat.classifiers.ClassificationDataSet;
 import jsat.classifiers.Classifier;
 import jsat.classifiers.DataPoint;
 import jsat.datatransform.DataTransform;
-import jsat.datatransform.DataTransformFactory;
 import jsat.datatransform.DataTransformFactoryParm;
 import jsat.datatransform.RemoveAttributeTransform;
 import jsat.regression.RegressionDataSet;
 import jsat.regression.Regressor;
+import jsat.utils.IntSet;
 import jsat.utils.ListUtils;
 
 /**
@@ -25,7 +26,9 @@ import jsat.utils.ListUtils;
  */
 public class BDS implements DataTransform
 {
-    private RemoveAttributeTransform finalTransform;
+
+	private static final long serialVersionUID = 8633823674617843754L;
+	private RemoveAttributeTransform finalTransform;
     private Set<Integer> catSelected;
     private Set<Integer> numSelected;
 
@@ -39,8 +42,8 @@ public class BDS implements DataTransform
         if(toClone.finalTransform != null)
         {
             this.finalTransform = toClone.finalTransform.clone();
-            this.catSelected = new HashSet<Integer>(toClone.catSelected);
-            this.numSelected = new HashSet<Integer>(toClone.numSelected);
+            this.catSelected = new IntSet(toClone.catSelected);
+            this.numSelected = new IntSet(toClone.numSelected);
         }
     }
 
@@ -92,7 +95,7 @@ public class BDS implements DataTransform
      */
     public Set<Integer> getSelectedCategorical()
     {
-        return new HashSet<Integer>(catSelected);
+        return new IntSet(catSelected);
     }
     
     /**
@@ -103,7 +106,7 @@ public class BDS implements DataTransform
      */
     public Set<Integer> getSelectedNumerical()
     {
-        return new HashSet<Integer>(numSelected);
+        return new IntSet(numSelected);
     }
 
     private void search(DataSet dataSet, int maxFeatures, int folds, Object evaluator)
@@ -113,27 +116,27 @@ public class BDS implements DataTransform
         int nCat = dataSet.getNumCategoricalVars();
         
         //True selected, also used for SFS
-        catSelected = new HashSet<Integer>(dataSet.getNumCategoricalVars());
-        numSelected = new HashSet<Integer>(dataSet.getNumNumericalVars());
+        catSelected = new IntSet(dataSet.getNumCategoricalVars());
+        numSelected = new IntSet(dataSet.getNumNumericalVars());
         
         //Structs for SFS side
-        Set<Integer> availableSFS = new HashSet<Integer>();
+        Set<Integer> availableSFS = new IntSet();
         ListUtils.addRange(availableSFS, 0, nF, 1);
         
         
-        Set<Integer> catToRemoveSFS = new HashSet<Integer>(dataSet.getNumCategoricalVars());
-        Set<Integer> numToRemoveSFS = new HashSet<Integer>(dataSet.getNumNumericalVars());
+        Set<Integer> catToRemoveSFS = new IntSet(dataSet.getNumCategoricalVars());
+        Set<Integer> numToRemoveSFS = new IntSet(dataSet.getNumNumericalVars());
         ListUtils.addRange(catToRemoveSFS, 0, nCat, 1);
         ListUtils.addRange(numToRemoveSFS, 0, nF-nCat, 1);
         
         ///Structes fro SBS side
-        Set<Integer> availableSBS = new HashSet<Integer>();
+        Set<Integer> availableSBS = new IntSet();
         ListUtils.addRange(availableSBS, 0, nF, 1);
-        Set<Integer> catSelecteedSBS = new HashSet<Integer>(dataSet.getNumCategoricalVars());
-        Set<Integer> numSelectedSBS = new HashSet<Integer>(dataSet.getNumNumericalVars());
+        Set<Integer> catSelecteedSBS = new IntSet(dataSet.getNumCategoricalVars());
+        Set<Integer> numSelectedSBS = new IntSet(dataSet.getNumNumericalVars());
         
-        Set<Integer> catToRemoveSBS = new HashSet<Integer>(dataSet.getNumCategoricalVars());
-        Set<Integer> numToRemoveSBS = new HashSet<Integer>(dataSet.getNumNumericalVars());
+        Set<Integer> catToRemoveSBS = new IntSet(dataSet.getNumCategoricalVars());
+        Set<Integer> numToRemoveSBS = new IntSet(dataSet.getNumNumericalVars());
 
         //Start will all selected, and prune them out
         ListUtils.addRange(catSelecteedSBS, 0, nCat, 1);

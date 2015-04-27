@@ -13,7 +13,9 @@ import jsat.linear.Vec;
 public class MinkowskiDistance implements DenseSparseMetric
 {
     
-    private double p;
+
+	private static final long serialVersionUID = 8976696315441171045L;
+	private double p;
 
     public MinkowskiDistance(double p)
     {

@@ -9,7 +9,7 @@ import jsat.linear.Vec;
  * be controlled. The {@link #setSigma(double) sigma} parameter works in the 
  * same way as the RBF Kernel.<br>
  * <br>
- * See: Üstün, B., Melssen, W. J., & Buydens, L. M. C. (2006). <i>Facilitating 
+ * See: Üstün, B., Melssen, W. J.,&amp;Buydens, L. M. C. (2006). <i>Facilitating 
  * the application of Support Vector Regression by using a universal Pearson VII
  * function based kernel</i>. Chemometrics and Intelligent Laboratory Systems, 
  * 81(1), 29–40. doi:10.1016/j.chemolab.2005.09.003
@@ -18,7 +18,9 @@ import jsat.linear.Vec;
  */
 public class PukKernel extends BaseL2Kernel
 {
-    private double sigma;
+
+	private static final long serialVersionUID = 8727097671803148320L;
+	private double sigma;
     private double omega;
     private double cnst;
 

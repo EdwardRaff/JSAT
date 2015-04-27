@@ -21,7 +21,7 @@ import jsat.utils.IndexTable;
  * By default, the {@link #setUseBias(boolean) biast term} is not used. 
  * <br><br>
  * See: <br>
- * Matsushima, S., Shimizu, N., Yoshida, K., Ninomiya, T., & Nakagawa, H. 
+ * Matsushima, S., Shimizu, N., Yoshida, K., Ninomiya, T.,&amp;Nakagawa, H. 
  * (2010). <i>Exact Passive-Aggressive Algorithm for Multiclass Classification 
  * Using Support Class</i>. SIAM International Conference on Data Mining - SDM
  * (pp. 303–314). Retrieved from 
@@ -31,7 +31,9 @@ import jsat.utils.IndexTable;
  */
 public class SPA extends BaseUpdateableClassifier implements Parameterized, SimpleWeightVectorModel
 {
-    private Vec[] w;
+
+	private static final long serialVersionUID = 3613279663279244169L;
+	private Vec[] w;
     private double[] bias;
     private double C = 1;
     private boolean useBias = false;

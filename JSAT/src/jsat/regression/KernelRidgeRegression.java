@@ -3,7 +3,6 @@ package jsat.regression;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.logging.Level;
@@ -31,7 +30,9 @@ import jsat.utils.SystemInfo;
  */
 public class KernelRidgeRegression implements Regressor, Parameterized
 {
-    private double lambda;
+
+	private static final long serialVersionUID = 6275333785663250072L;
+	private double lambda;
     @ParameterHolder
     private KernelTrick k;
     private List<Vec> vecs;

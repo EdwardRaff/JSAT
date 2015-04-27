@@ -14,7 +14,9 @@ import java.util.Iterator;
  */
 public class IntSetFixedSize extends AbstractSet<Integer> implements Serializable
 {
-    private static final int STOP = -1;
+
+	private static final long serialVersionUID = 7743166074116253587L;
+	private static final int STOP = -1;
     private int nnz = 0;
     private int first = -1;
     private boolean[] has;

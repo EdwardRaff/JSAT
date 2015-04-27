@@ -1,11 +1,12 @@
 
 package jsat.classifiers.bayesian.graphicalmodel;
 
-import java.util.HashSet;
 import java.util.Set;
+
 import jsat.classifiers.ClassificationDataSet;
 import jsat.classifiers.DataPoint;
 import jsat.utils.IntList;
+import jsat.utils.IntSet;
 import jsat.utils.ListUtils;
 import static java.lang.Math.*;
 import static jsat.math.SpecialMath.*;
@@ -24,7 +25,10 @@ import static jsat.math.SpecialMath.*;
 public class K2NetworkLearner extends DiscreteBayesNetwork
 {
 
-    public K2NetworkLearner()
+
+	private static final long serialVersionUID = -9681177007308829L;
+
+	public K2NetworkLearner()
     {
         super();
     }
@@ -76,13 +80,13 @@ public class K2NetworkLearner extends DiscreteBayesNetwork
         /**
          * Stores the set of variables preceding the current one being evaluated
          */
-        Set<Integer> preceding = new HashSet<Integer>();
+        Set<Integer> preceding = new IntSet();
         for(int i : varOrder)//Loop of the variables in the intended order
         {
-            Set<Integer> pi = new HashSet<Integer>();//The current parrents of variable i
+            Set<Integer> pi = new IntSet();//The current parrents of variable i
             double pOld = f(i, pi, D);
             boolean OKToProceed = true;
-            Set<Integer> candidates = new HashSet<Integer>(preceding);
+            Set<Integer> candidates = new IntSet(preceding);
             while(OKToProceed && pi.size() < u)
             {
                 if(candidates.isEmpty())

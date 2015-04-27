@@ -3,7 +3,6 @@ package jsat.math.rootfinding;
 
 import jsat.linear.Vec;
 import jsat.math.Function;
-import static java.lang.Math.*;
 
 /**
  *
@@ -12,13 +11,16 @@ import static java.lang.Math.*;
 public class Bisection implements RootFinder
 {
     
-    /**
+
+	private static final long serialVersionUID = -8107160048637997385L;
+
+	/**
      * Uses the bisection method to find the argument of some function <tt>f</tt> for which 
      * <tt>f</tt>(<tt>args</tt>) = 0. If no <tt>args</tt> are given, it will be assumed that
      * <tt>f</tt> takes a single variable input 
      * 
-     * @param a the lower end of the search interval. <tt>f</tt>(<tt>a</tt>) must be <= 0
-     * @param b the uper end of the search interval. <tt>f</tt>(<tt>b</tt>) must be >= 0
+     * @param a the lower end of the search interval. <tt>f</tt>(<tt>a</tt>) must be &le; 0
+     * @param b the uper end of the search interval. <tt>f</tt>(<tt>b</tt>) must be &ge; 0
      * @param f the function to find a root of
      * @param args the list of initial values for the function. The value at 0
      * can be anything, since it will be over written by the search. 
@@ -47,8 +49,8 @@ public class Bisection implements RootFinder
      * 
      * @param eps the accuracy desired 
      * @param maxIterations the maximum number of iterations 
-     * @param a the lower end of the search interval. <tt>f</tt>(<tt>a</tt>) must be <= 0
-     * @param b the uper end of the search interval. <tt>f</tt>(<tt>b</tt>) must be >= 0
+     * @param a the lower end of the search interval. <tt>f</tt>(<tt>a</tt>) must be &le; 0
+     * @param b the uper end of the search interval. <tt>f</tt>(<tt>b</tt>) must be &ge; 0
      * @param f the function to find a root of
      * @param pos which variable in the arguments is going to be the search variable
      * @param args the list of initial values for the function. The value at <tt>pos</tt> 

@@ -743,7 +743,12 @@ public class SparseVectorTest
         System.out.println("applyFunction");
         Function f = new FunctionBase() {
 
-            @Override
+            /**
+			 * 
+			 */
+			private static final long serialVersionUID = 5260043973153571531L;
+
+			@Override
             public double f(Vec x)
             {
                 return -x.get(0);
@@ -787,7 +792,12 @@ public class SparseVectorTest
         System.out.println("applyIndexFunction");
         IndexFunction f = new IndexFunction() {
 
-            @Override
+            /**
+			 * 
+			 */
+			private static final long serialVersionUID = 2804170945957432993L;
+
+			@Override
             public double indexFunc(double value, int index)
             {
                 if(index < 0)

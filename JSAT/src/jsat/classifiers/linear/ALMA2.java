@@ -24,7 +24,9 @@ import jsat.linear.Vec;
  */
 public class ALMA2 extends BaseUpdateableClassifier implements BinaryScoreClassifier, SingleWeightVectorModel
 {
-    private Vec w;
+
+	private static final long serialVersionUID = -4347891273721908507L;
+	private Vec w;
     private static final double p = 2;
     private double alpha;
     private double B;

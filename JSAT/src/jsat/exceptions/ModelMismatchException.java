@@ -8,7 +8,10 @@ package jsat.exceptions;
 public class ModelMismatchException extends RuntimeException
 {
 
-    public ModelMismatchException(String message, Throwable cause)
+
+	private static final long serialVersionUID = 6962636868667470816L;
+
+	public ModelMismatchException(String message, Throwable cause)
     {
         super(message, cause);
     }

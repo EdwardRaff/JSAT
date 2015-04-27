@@ -8,7 +8,10 @@ package jsat.regression.evaluation;
  */
 public class CoefficientOfDetermination extends TotalHistoryRegressionScore
 {
-    /**
+
+	private static final long serialVersionUID = 1215708502913888821L;
+
+	/**
      * Creates a new Coefficient of Determination object
      */
     public CoefficientOfDetermination()
@@ -52,13 +55,13 @@ public class CoefficientOfDetermination extends TotalHistoryRegressionScore
 
     @Override
     public int hashCode()
-    {
+    {//XXX this is a strange hashcode method
         return getName().hashCode();
     }
     
     @Override
     public boolean equals(Object obj)
-    {
+    {//XXX check for equality of fields and obj == null
         if(this.getClass().isAssignableFrom(obj.getClass()) && obj.getClass().isAssignableFrom(this.getClass()))
         {
             return true;

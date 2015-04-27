@@ -8,7 +8,10 @@ package jsat.classifiers.evaluation;
 public class MatthewsCorrelationCoefficient extends SimpleBinaryClassMetric
 {
 
-    public MatthewsCorrelationCoefficient()
+
+	private static final long serialVersionUID = 7102318546460007008L;
+
+	public MatthewsCorrelationCoefficient()
     {
         super();
     }

@@ -1,12 +1,10 @@
 package jsat.classifiers.linear;
 
 import java.util.Random;
-import java.util.concurrent.ExecutorService;
 import jsat.FixedProblems;
 import jsat.classifiers.*;
 import jsat.lossfunctions.LogisticLoss;
 import jsat.lossfunctions.SquaredLoss;
-import jsat.regression.RegressionDataSet;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;

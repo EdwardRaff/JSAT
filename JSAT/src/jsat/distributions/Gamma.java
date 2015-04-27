@@ -11,7 +11,9 @@ import static jsat.math.SpecialMath.*;
  */
 public class Gamma extends Distribution
 {
-    private double k;
+
+	private static final long serialVersionUID = 6380493734491674483L;
+	private double k;
     private double theta;
 
     public Gamma(double k, double theta)

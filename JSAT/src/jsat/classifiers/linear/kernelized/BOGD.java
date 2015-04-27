@@ -20,7 +20,7 @@ import jsat.utils.random.XORWOW;
  * fashion, or weighted by the kernel function and the current coefficient for 
  * the vector. The later is the default method and is referred to as BOGD++.<br>
  * <br>
- * See: Zhao, P., Wang, J., Wu, P., Jin, R., & Hoi, S. C. H. (2012). <i>Fast
+ * See: Zhao, P., Wang, J., Wu, P., Jin, R.,&amp;Hoi, S. C. H. (2012). <i>Fast
  * Bounded Online Gradient Descent Algorithms for Scalable Kernel-Based Online
  * Learning</i>. In Proceedings of the 29th International Conference on Machine 
  * Learning (pp. 169–176). Learning; Machine Learning. Retrieved from 
@@ -29,7 +29,9 @@ import jsat.utils.random.XORWOW;
  */
 public class BOGD extends BaseUpdateableClassifier implements BinaryScoreClassifier, Parameterized
 {
-    @ParameterHolder
+
+	private static final long serialVersionUID = -3547832514098781996L;
+	@ParameterHolder
     private KernelTrick k;
     private int budget;
     private double eta;

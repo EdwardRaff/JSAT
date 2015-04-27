@@ -9,7 +9,9 @@ import jsat.linear.Vec;
  */
 public class Uniform extends Distribution
 {
-    private double a, b;
+
+	private static final long serialVersionUID = 2479606544724378610L;
+	private double a, b;
 
     public Uniform(double a, double b)
     {

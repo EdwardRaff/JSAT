@@ -20,7 +20,9 @@ import jsat.utils.ListUtils;
  */
 public abstract class BaseUpdateableClassifier implements UpdateableClassifier
 {
-    private int epochs = 1;
+
+	private static final long serialVersionUID = 3138493999362400767L;
+	private int epochs = 1;
 
     /**
      * Sets the number of whole iterations through the training set that will be

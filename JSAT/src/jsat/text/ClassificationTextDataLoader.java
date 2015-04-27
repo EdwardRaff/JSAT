@@ -3,7 +3,6 @@ package jsat.text;
 import java.util.List;
 import jsat.classifiers.CategoricalData;
 import jsat.classifiers.ClassificationDataSet;
-import jsat.linear.distancemetrics.DistanceMetric;
 import jsat.text.tokenizer.Tokenizer;
 import jsat.text.wordweighting.WordWeighting;
 import jsat.utils.IntList;
@@ -24,7 +23,9 @@ import jsat.utils.IntList;
  */
 public abstract class ClassificationTextDataLoader extends TextDataLoader
 {
-    /**
+
+	private static final long serialVersionUID = -3826551504785136576L;
+	/**
      * The list of the true class labels for the data that was loaded before 
      * {@link #finishAdding() } was called. 
      */

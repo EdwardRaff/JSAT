@@ -28,7 +28,7 @@ import jsat.utils.random.XOR96;
  * algorithms</i>. Proceedings of the thiry-fourth annual ACM symposium on 
  * Theory of computing - STOC  ’02 (pp. 380–388). New York, New York, USA: 
  * ACM Press. doi:10.1145/509907.509965</li>
- * <li>Durme, B. Van, & Lall, A. (2010). <i>Online Generation of Locality 
+ * <li>Durme, B. Van,&amp;Lall, A. (2010). <i>Online Generation of Locality 
  * Sensitive Hash Signatures</i>. Proceedings of the ACL 2010 Conference Short 
  * Papers (pp. 231–235). Stroudsburg, PA, USA.</li>
  * </ul>
@@ -37,7 +37,9 @@ import jsat.utils.random.XOR96;
  */
 public class RandomProjectionLSH<V extends Vec> implements VectorCollection<V>
 {
-    private static final int NO_POOL = -1;
+
+	private static final long serialVersionUID = -2042964665052386855L;
+	private static final int NO_POOL = -1;
     private Matrix randProjMatrix;
     private int[] projections;
     private int slotsPerEntry;
@@ -253,7 +255,11 @@ public class RandomProjectionLSH<V extends Vec> implements VectorCollection<V>
      */
     private static final class NormalMatrix extends RandomMatrix
     {
-        private final double[] pool;
+        /**
+		 * 
+		 */
+		private static final long serialVersionUID = -5274754647385324984L;
+		private final double[] pool;
         private final long seedMult;
 
         public NormalMatrix(int rows, int cols, int poolSize)
@@ -321,7 +327,11 @@ public class RandomProjectionLSH<V extends Vec> implements VectorCollection<V>
     
     public static class RandomProjectionLSHFactory<V extends Vec> implements VectorCollectionFactory<V>
     {
-        private int intsToUse;
+        /**
+		 * 
+		 */
+		private static final long serialVersionUID = 1805047681811290699L;
+		private int intsToUse;
         private boolean inMemory;
         private int poolSize = -1;
         

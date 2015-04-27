@@ -38,7 +38,10 @@ import jsat.utils.random.XORWOW;
 public class NaiveKMeans extends KMeans
 {
 
-    /**
+
+	private static final long serialVersionUID = 6164910874898843069L;
+
+	/**
      * Creates a new naive k-Means cluster using 
      * {@link SeedSelection#KPP k-means++} for the 
      * seed selection and the {@link EuclideanDistance}

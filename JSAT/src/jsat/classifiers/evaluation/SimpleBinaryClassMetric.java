@@ -15,7 +15,9 @@ import jsat.classifiers.CategoricalResults;
  */
 public abstract class SimpleBinaryClassMetric implements ClassificationScore
 {
-    /**
+
+	private static final long serialVersionUID = -84479984342547212L;
+	/**
      * true positives
      */
     protected double tp;

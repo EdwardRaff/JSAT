@@ -16,7 +16,9 @@ import jsat.utils.ModifiableCountDownLatch;
  */
 public class RandomDecisionTree extends DecisionTree
 {
-    private int numFeatures;
+
+	private static final long serialVersionUID = -809244056947507494L;
+	private int numFeatures;
 
     /**
      * Creates a new Random Decision Tree 

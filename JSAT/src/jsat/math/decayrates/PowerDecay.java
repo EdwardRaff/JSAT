@@ -18,7 +18,9 @@ import jsat.parameters.Parameterized;
  */
 public class PowerDecay implements DecayRate, Parameterized
 {
-    private double tau;
+
+	private static final long serialVersionUID = 6075066391550611699L;
+	private double tau;
     private double alpha;
 
     /**

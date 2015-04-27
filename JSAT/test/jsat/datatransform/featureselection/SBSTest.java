@@ -2,16 +2,20 @@
 package jsat.datatransform.featureselection;
 
 import java.util.*;
+
 import jsat.classifiers.ClassificationDataSet;
 import jsat.classifiers.Classifier;
 import jsat.classifiers.knn.NearestNeighbour;
 import jsat.regression.MultipleLinearRegression;
 import jsat.regression.RegressionDataSet;
+import jsat.utils.IntSet;
+
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
+
 import static org.junit.Assert.*;
 
 /**
@@ -59,7 +63,7 @@ public class SBSTest
         SBS sbs = new SBS.SBSFactory(1e-3, (Classifier)new NearestNeighbour(7), 1, 7).clone().getTransform(cds).clone();
         Set<Integer> found = sbs.getSelectedNumerical();
         
-        Set<Integer> shouldHave = new HashSet<Integer>();
+        Set<Integer> shouldHave = new IntSet();
         shouldHave.addAll(Arrays.asList(t0, t1, t2));
         assertEquals(shouldHave.size(), found.size());
         assertTrue(shouldHave.containsAll(found));
@@ -81,7 +85,7 @@ public class SBSTest
         SBS sbs = new SBS.SBSFactory(1.0, new MultipleLinearRegression(), 1, 7).clone().getTransform(cds).clone();
         Set<Integer> found = sbs.getSelectedNumerical();
         
-        Set<Integer> shouldHave = new HashSet<Integer>();
+        Set<Integer> shouldHave = new IntSet();
         shouldHave.addAll(Arrays.asList(t0, t1, t2));
         assertEquals(shouldHave.size(), found.size());
         assertTrue(shouldHave.containsAll(found));

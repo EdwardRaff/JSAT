@@ -13,7 +13,10 @@ import jsat.linear.Vec;
  */
 public class TfIdf extends WordWeighting
 {
-    public enum TermFrequencyWeight 
+
+	private static final long serialVersionUID = 5749882005002311735L;
+
+	public enum TermFrequencyWeight 
     {
         /**
          * BOOLEAN only takes into account whether or not the word is present in

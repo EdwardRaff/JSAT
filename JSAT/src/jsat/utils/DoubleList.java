@@ -20,7 +20,9 @@ import jsat.linear.Vec;
  */
 public class DoubleList extends AbstractList<Double> implements Serializable
 {
-    private double[] array;
+
+	private static final long serialVersionUID = 653930294509274337L;
+	private double[] array;
     //Exclusive
     private int end;
 

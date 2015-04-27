@@ -10,7 +10,9 @@ import jsat.text.stemming.Stemmer;
  */
 public class StemmingTokenizer implements Tokenizer
 {
-    private Stemmer stemmer;
+
+	private static final long serialVersionUID = 2883247633791522390L;
+	private Stemmer stemmer;
     private Tokenizer baseTokenizer;
 
     public StemmingTokenizer(Stemmer stemmer, Tokenizer baseTokenizer)

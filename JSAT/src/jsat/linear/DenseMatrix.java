@@ -3,7 +3,6 @@ package jsat.linear;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CountDownLatch;
@@ -12,6 +11,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
 import jsat.utils.FakeExecutor;
 import static java.lang.Math.*;
 import static jsat.utils.SystemInfo.*;
@@ -22,7 +22,9 @@ import static jsat.utils.SystemInfo.*;
  */
 public class DenseMatrix extends GenericMatrix
 {   
-    private double[][] matrix;
+
+	private static final long serialVersionUID = -3112110093920307822L;
+	private double[][] matrix;
 
     /**
      * Creates a new matrix based off the given vectors. 
@@ -130,7 +132,7 @@ public class DenseMatrix extends GenericMatrix
                 x.increment(j, c*b_i*A_i[j]);
         }
     }
-    
+    @SuppressWarnings("unused")
     private Matrix blockMultiply(Matrix b)
     {
         if(!canMultiply(this, b))

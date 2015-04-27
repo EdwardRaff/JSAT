@@ -2,7 +2,6 @@ package jsat.datatransform;
 
 import java.util.Random;
 import jsat.classifiers.DataPoint;
-import jsat.distributions.Normal;
 import jsat.linear.DenseMatrix;
 import jsat.linear.Matrix;
 import jsat.linear.RandomMatrix;
@@ -29,7 +28,10 @@ import jsat.linear.distancemetrics.EuclideanDistance;
  */
 public class JLTransform implements DataTransform 
 {
-    //TODO for SPARSE, avoid unecessary computations for 0 values
+
+	private static final long serialVersionUID = -8621368067861343912L;
+
+	//TODO for SPARSE, avoid unecessary computations for 0 values
     /**
      * Determines which distribution to construct the transform matrix from
      */
@@ -120,7 +122,11 @@ public class JLTransform implements DataTransform
     
     private static class RandomMatrixJL extends RandomMatrix
     {
-        private double cnst; 
+        /**
+		 * 
+		 */
+		private static final long serialVersionUID = 2009377824896155918L;
+		private double cnst; 
         private TransformMode mode;
         
         public RandomMatrixJL(int rows, int cols, long XORSeed, TransformMode mode)

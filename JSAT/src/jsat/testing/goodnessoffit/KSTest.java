@@ -1,8 +1,6 @@
 
 package jsat.testing.goodnessoffit;
 
-import java.util.Collection;
-import java.util.Collections;
 import jsat.distributions.Distribution;
 import jsat.distributions.Kolmogorov;
 import jsat.linear.Vec;

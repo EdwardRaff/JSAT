@@ -4,10 +4,8 @@
  */
 package jsat.utils;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.Comparator;
 import org.junit.After;
 import org.junit.AfterClass;
@@ -104,7 +102,7 @@ public class IndexTableTest
     public void testApply_List()
     {
         IndexTable idt = new IndexTable(array);
-        List<Double> test = new ArrayList<Double>();
+        List<Double> test = new DoubleList();
         for(double d : array)
             test.add(d);
         

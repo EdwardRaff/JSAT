@@ -21,7 +21,7 @@ import jsat.utils.ListUtils;
  * projecting data points down onto a set of basis vectors learned from the data
  * stream. 
  * <br><br>
- * See: Engel, Y., Mannor, S., & Meir, R. (2004). <i>The Kernel Recursive 
+ * See: Engel, Y., Mannor, S.,&amp;Meir, R. (2004). <i>The Kernel Recursive 
  * Least-Squares Algorithm</i>. IEEE Transactions on Signal Processing, 52(8), 
  * 2275–2285. doi:10.1109/TSP.2004.830985
  * 
@@ -29,7 +29,9 @@ import jsat.utils.ListUtils;
  */
 public class KernelRLS implements UpdateableRegressor, Parameterized
 {
-    @ParameterHolder
+
+	private static final long serialVersionUID = -7292074388953854317L;
+	@ParameterHolder
     private KernelTrick k;
     private double errorTolerance;
     

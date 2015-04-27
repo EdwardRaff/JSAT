@@ -16,7 +16,9 @@ import jsat.parameters.Parameter.ParameterHolder;
  */
 public abstract class DistanceMetricBasedKernel implements KernelTrick
 {
-    /**
+
+	private static final long serialVersionUID = 8395066824809874527L;
+	/**
      * the distance metric to use for the Kernel
      */
     @ParameterHolder

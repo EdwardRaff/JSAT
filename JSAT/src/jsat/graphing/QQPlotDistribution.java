@@ -4,8 +4,6 @@ package jsat.graphing;
 import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
-import java.awt.geom.Ellipse2D;
-import java.util.ArrayList;
 import jsat.distributions.Distribution;
 import jsat.linear.Vec;
 import jsat.math.Function;
@@ -16,7 +14,9 @@ import jsat.math.Function;
  */
 public class QQPlotDistribution extends Graph2D
 {
-    private Distribution cd;
+
+	private static final long serialVersionUID = 9156814937052075799L;
+	private Distribution cd;
     private Vec yData;
     private double[] xData;
 
@@ -69,7 +69,12 @@ public class QQPlotDistribution extends Graph2D
         g.setColor(Color.BLUE);
         drawFunction(g2, new Function()
         {
-            @Override
+            /**
+			 * 
+			 */
+			private static final long serialVersionUID = -341232144243738477L;
+
+			@Override
             public double f(double... x)
             {
                 return x[0];

@@ -3,10 +3,10 @@ package jsat.classifiers.bayesian;
 
 import java.util.Arrays;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
+
 import jsat.DataSet;
 import jsat.classifiers.CategoricalData;
 import jsat.classifiers.CategoricalResults;
@@ -16,6 +16,7 @@ import jsat.classifiers.DataPoint;
 import jsat.classifiers.DataPointPair;
 import jsat.exceptions.FailedToFitException;
 import jsat.exceptions.UntrainedModelException;
+import jsat.utils.IntSet;
 
 /**
  * The conditional probability table (CPT) is a classifier for categorical attributes. It builds the whole
@@ -27,7 +28,9 @@ import jsat.exceptions.UntrainedModelException;
  */
 public class ConditionalProbabilityTable implements Classifier
 {
-    /**
+
+	private static final long serialVersionUID = -287709075031023626L;
+	/**
      * The predicting target class
      */
     private CategoricalData predicting;
@@ -127,7 +130,7 @@ public class ConditionalProbabilityTable implements Classifier
 
     public void trainC(ClassificationDataSet dataSet)
     {
-        Set<Integer> all = new HashSet<Integer>();
+        Set<Integer> all = new IntSet();
         for(int i = 0; i < dataSet.getNumCategoricalVars()+1; i++)
             all.add(i);
         trainC(dataSet, all);
@@ -266,6 +269,7 @@ public class ConditionalProbabilityTable implements Classifier
      * @param dataPoint the data point to get the index of
      * @return the index for the given data point
      */
+    @SuppressWarnings("unused")
     private int cordToIndex(DataPointPair<Integer> dataPoint)
     {
         DataPoint dp = dataPoint.getDataPoint();

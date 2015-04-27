@@ -1,7 +1,7 @@
 package jsat.classifiers.evaluation;
 
 /**
- * The F<sub>&beta;</sub> score is the generalization of {@link F1Metric}, where 
+ * The F<sub>&beta;</sub> score is the generalization of {@link F1Score}, where 
  * &beta; indicates the level of preference for precision over recall.  
  * This score is only valid for binary classification problems. 
  * 
@@ -9,7 +9,9 @@ package jsat.classifiers.evaluation;
  */
 public class FbetaScore extends SimpleBinaryClassMetric
 {
-    private double beta;
+
+	private static final long serialVersionUID = -7530404462591303694L;
+	private double beta;
     
     /**
      * Creates a new F<sub>&beta;</sub> score

@@ -1,7 +1,6 @@
 package jsat.math;
 
 import jsat.linear.DenseVector;
-import jsat.linear.Vec;
 
 /**
  * Simple base abstract class for implementing a {@link Function} by 
@@ -12,7 +11,10 @@ import jsat.linear.Vec;
 public abstract class FunctionBase implements Function
 {
 
-    @Override
+
+	private static final long serialVersionUID = 424945317407895409L;
+
+	@Override
     public double f(double... x)
     {
         return f(DenseVector.toDenseVec(x));

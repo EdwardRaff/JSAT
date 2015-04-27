@@ -11,7 +11,9 @@ import jsat.linear.Vec;
  */
 public class GaussianNormalInit implements WeightInitializer, BiastInitializer
 {
-    private double stndDev;
+
+	private static final long serialVersionUID = -882418891606717433L;
+	private double stndDev;
 
     /**
      * Creates a new GuassianNormalInit object for initializing weights

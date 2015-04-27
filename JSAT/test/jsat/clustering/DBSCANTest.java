@@ -4,29 +4,32 @@
  */
 package jsat.clustering;
 
-import java.util.HashSet;
 import java.util.Set;
+
 import jsat.classifiers.DataPoint;
+
 import java.util.Random;
 import java.util.concurrent.Executors;
+
 import jsat.distributions.Uniform;
 import jsat.utils.GridDataGenerator;
 import jsat.SimpleDataSet;
+
 import java.util.List;
 import java.util.concurrent.ExecutorService;
-import jsat.DataSet;
+
 import jsat.linear.Vec;
 import jsat.linear.VecPaired;
 import jsat.linear.distancemetrics.EuclideanDistance;
-import jsat.linear.vectorcollection.KDTree.KDTreeFactory;
-import jsat.linear.vectorcollection.VPTree.VPTreeFactory;
 import jsat.linear.vectorcollection.VectorArray.VectorArrayFactory;
-import jsat.utils.FakeExecutor;
+import jsat.utils.IntSet;
 import jsat.utils.SystemInfo;
+
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
+
 import static org.junit.Assert.*;
 
 /**
@@ -71,7 +74,7 @@ public class DBSCANTest
         System.out.println("cluster(dataset, int)");
         List<List<DataPoint>> clusters = dbscan.cluster(easyData10, 5);
         assertEquals(10, clusters.size());
-        Set<Integer> seenBefore = new HashSet<Integer>();
+        Set<Integer> seenBefore = new IntSet();
         for(List<DataPoint> cluster :  clusters)
         {
             int thisClass = cluster.get(0).getCategoricalValue(0);
@@ -90,7 +93,7 @@ public class DBSCANTest
         System.out.println("cluster(dataset)");
         List<List<DataPoint>> clusters = dbscan.cluster(easyData10);
         assertEquals(10, clusters.size());
-        Set<Integer> seenBefore = new HashSet<Integer>();
+        Set<Integer> seenBefore = new IntSet();
         for(List<DataPoint> cluster :  clusters)
         {
             int thisClass = cluster.get(0).getCategoricalValue(0);
@@ -109,7 +112,7 @@ public class DBSCANTest
         System.out.println("cluster(dataset, executorService)");
         List<List<DataPoint>> clusters = dbscan.cluster(easyData10, ex);
         assertEquals(10, clusters.size());
-        Set<Integer> seenBefore = new HashSet<Integer>();
+        Set<Integer> seenBefore = new IntSet();
         for(List<DataPoint> cluster :  clusters)
         {
             int thisClass = cluster.get(0).getCategoricalValue(0);
@@ -129,7 +132,7 @@ public class DBSCANTest
         //We know the range is [-.15, .15]
         List<List<DataPoint>> clusters = dbscan.cluster(easyData10, 0.15, 5);
         assertEquals(10, clusters.size());
-        Set<Integer> seenBefore = new HashSet<Integer>();
+        Set<Integer> seenBefore = new IntSet();
         for(List<DataPoint> cluster :  clusters)
         {
             int thisClass = cluster.get(0).getCategoricalValue(0);
@@ -148,7 +151,7 @@ public class DBSCANTest
         System.out.println("cluster(dataset, int, executorService)");
         List<List<DataPoint>> clusters = dbscan.cluster(easyData10, 3, ex);
         assertEquals(10, clusters.size());
-        Set<Integer> seenBefore = new HashSet<Integer>();
+        Set<Integer> seenBefore = new IntSet();
         for(List<DataPoint> cluster :  clusters)
         {
             int thisClass = cluster.get(0).getCategoricalValue(0);
@@ -168,7 +171,7 @@ public class DBSCANTest
         //We know the range is [-.15, .15]
         List<List<DataPoint>> clusters = dbscan.cluster(easyData10, 0.15, 5, ex);
         assertEquals(10, clusters.size());
-        Set<Integer> seenBefore = new HashSet<Integer>();
+        Set<Integer> seenBefore = new IntSet();
         for(List<DataPoint> cluster :  clusters)
         {
             int thisClass = cluster.get(0).getCategoricalValue(0);

@@ -33,7 +33,9 @@ public class SOM implements Classifier, Parameterized
 {
     //TODO add code for visualizing the SOM
     
-    public static final int DEFAULT_MAX_ITERS = 500;
+
+	private static final long serialVersionUID = -6444988770441043797L;
+	public static final int DEFAULT_MAX_ITERS = 500;
     public static final KernelFunction DEFAULT_KF = EpanechnikovKF.getInstance();
     public static final double DEFAULT_LEARNING_RATE = 0.1;
     public static final DecayRate DEFAULT_LEARNING_DECAY = new ExponetialDecay();

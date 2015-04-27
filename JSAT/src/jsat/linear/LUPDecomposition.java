@@ -3,7 +3,6 @@ package jsat.linear;
 
 import java.io.Serializable;
 import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -15,7 +14,9 @@ import jsat.utils.SystemInfo;
  */
 public class LUPDecomposition implements Cloneable, Serializable
 {
-    private static final int threads = SystemInfo.LogicalCores;
+
+	private static final long serialVersionUID = -149659693838168048L;
+	private static final int threads = SystemInfo.LogicalCores;
     private final Matrix L, U, P;
 
     public LUPDecomposition(Matrix L, Matrix U, Matrix P)
@@ -81,7 +82,7 @@ public class LUPDecomposition implements Cloneable, Serializable
             }
         
         
-        return rowSwaps % 2 == 1 ? -det : det;
+        return rowSwaps % 2 !=0 ? -det : det;
     }
     
     public Vec solve(Vec b)

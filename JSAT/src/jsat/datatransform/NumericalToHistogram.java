@@ -17,7 +17,9 @@ import jsat.linear.Vec;
  */
 public class NumericalToHistogram implements DataTransform
 {
-    private int n;
+
+	private static final long serialVersionUID = -2318706869393636074L;
+	private int n;
     //First index is the vector index, 2nd index is the min value then the increment value
     double[][] conversionArray;
     CategoricalData[] newDataArray;

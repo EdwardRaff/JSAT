@@ -22,7 +22,7 @@ import static java.lang.Math.*;
  * When the value of {@code K} is specified, the implementation will simply call
  * the regular KMeans object it was constructed with. <br>
  * <br>
- * See: Hamerly, G., & Elkan, C. (2003). <i>Learning the K in K-Means</i>. In 
+ * See: Hamerly, G.,&amp;Elkan, C. (2003). <i>Learning the K in K-Means</i>. In 
  * seventeenth annual conference on neural information processing systems (NIPS)
  * (pp. 281–288). Retrieved from 
  * <a href="http://papers.nips.cc/paper/2526-learning-the-k-in-k-means.pdf">here
@@ -32,7 +32,9 @@ import static java.lang.Math.*;
  */
 public class GMeans extends KMeans 
 {
-    private boolean trustH0 = true;
+
+	private static final long serialVersionUID = 7306976407786792661L;
+	private boolean trustH0 = true;
     private boolean iterativeRefine = true;
     
     private int minClusterSize = 25;
@@ -290,6 +292,7 @@ public class GMeans extends KMeans
     @Override
     public void setSeedSelection(SeedSelectionMethods.SeedSelection seedSelection)
     {
+    	//XXX when called from constructor in superclass seed is ignored
         if(kmeans != null)//needed when initing
             kmeans.setSeedSelection(seedSelection);
     }

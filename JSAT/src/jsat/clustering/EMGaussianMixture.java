@@ -2,10 +2,12 @@ package jsat.clustering;
 
 import jsat.clustering.kmeans.ElkanKMeans;
 import static java.lang.Math.log;
+
 import java.util.*;
 import java.util.concurrent.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
 import jsat.DataSet;
 import jsat.SimpleDataSet;
 import jsat.classifiers.CategoricalData;
@@ -25,7 +27,9 @@ import static jsat.utils.SystemInfo.LogicalCores;
  */
 public class EMGaussianMixture extends ElkanKMeans implements MultivariateDistribution
 {
-    private List<NormalM> gaussians;
+
+	private static final long serialVersionUID = 2606159910420221662L;
+	private List<NormalM> gaussians;
     /**
      * The coefficients for the gaussians 
      */
@@ -76,7 +80,8 @@ public class EMGaussianMixture extends ElkanKMeans implements MultivariateDistri
      * @param a_k value to copy
      * @param tolerance value to copy
      */
-    private EMGaussianMixture(List<NormalM> gaussians, double[] a_k, double tolerance)
+    @SuppressWarnings("unused")
+	private EMGaussianMixture(List<NormalM> gaussians, double[] a_k, double tolerance)
     {
         this.gaussians = new ArrayList<NormalM>(a_k.length);
         this.a_k = new double[a_k.length];

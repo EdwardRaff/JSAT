@@ -31,10 +31,10 @@ import jsat.regression.*;
  * of whatever kernel function was set. <br>
  * <br>See:<br>
  * <ul>
- * <li>Atkeson, C., Moore, A., & Schaal, S. (1997). 
+ * <li>Atkeson, C., Moore, A.,&amp;Schaal, S. (1997). 
  * <a href="http://www.springerlink.com/index/G8280541763Q0223.pdf">Locally 
  * Weighted Learning</a>. Artificial intelligence review, 11–73.</li>
- * <li>Frank, E., Hall, M., & Pfahringer, B. (2003). 
+ * <li>Frank, E., Hall, M.,&amp;Pfahringer, B. (2003). 
  * <a href="http://dl.acm.org/citation.cfm?id=2100614">Locally Weighted Naive 
  * Bayes</a>. Proceedings of the Conference on Uncertainty in Artificial 
  * Intelligence (pp. 249–256). Morgan Kaufmann.</li>
@@ -43,7 +43,9 @@ import jsat.regression.*;
  */
 public class LWL implements Classifier, Regressor, Parameterized
 {
-    private CategoricalData predicting;
+
+	private static final long serialVersionUID = 6942465758987345997L;
+	private CategoricalData predicting;
     private Classifier classifier;
     private Regressor regressor;
     private int k;

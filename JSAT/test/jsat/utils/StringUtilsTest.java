@@ -127,6 +127,7 @@ public class StringUtilsTest
             //harder cases, may have nonsense values (over flow to Inf/NegInf, underflows to 0)
             
             //[sign][val]
+            //XXX This code generates a random signed integer and then computes the absolute value of that random integer. If the number returned by the random number generator is Integer.MIN_VALUE, then the result will be negative as well (since Math.abs(Integer.MIN_VALUE) == Integer.MIN_VALUE). (Same problem arised for long values as well).
             toTest = signOps[rand.nextInt(3)].replace("-", "") + zeros[rand.nextInt(zeros.length)] + Math.max(Math.abs(rand.nextLong()), 0);
             truth = Double.parseDouble(toTest);
             attempt = StringUtils.parseDouble(toTest, 0, toTest.length());

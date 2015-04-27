@@ -26,7 +26,7 @@ import jsat.utils.random.XORWOW;
  * Because the SCD needs column major data for efficient implementation, a 
  * second copy of data will be created in memory during training. 
  * <br><br>
- * See: Shalev-Shwartz, S., & Tewari, A. (2009). <i>Stochastic Methods for
+ * See: Shalev-Shwartz, S.,&amp;Tewari, A. (2009). <i>Stochastic Methods for
  * L<sub>1</sub>-regularized Loss Minimization</i>. In 26th International
  * Conference on Machine Learning (Vol. 12, pp. 929–936). Retrieved from
  * <a href="http://eprints.pascal-network.org/archive/00005418/">here</a>
@@ -35,7 +35,9 @@ import jsat.utils.random.XORWOW;
  */
 public class SCD implements Classifier, Regressor, Parameterized, SingleWeightVectorModel
 {
-    private Vec w;
+
+	private static final long serialVersionUID = 3576901723216525618L;
+	private Vec w;
     private LossFunc loss;
     private double reg;
     private int iterations;

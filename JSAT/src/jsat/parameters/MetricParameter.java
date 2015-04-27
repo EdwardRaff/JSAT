@@ -10,7 +10,10 @@ import jsat.linear.distancemetrics.DistanceMetric;
  */
 public abstract class MetricParameter extends Parameter
 {
-    /**
+
+	private static final long serialVersionUID = -8525270531723322719L;
+
+	/**
      * Sets the distance metric that should be sued
      * @param val the distance metric to use
      * @return <tt>true</tt> if the metric is valid and was set, <tt>false</tt> 

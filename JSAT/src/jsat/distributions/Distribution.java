@@ -15,7 +15,10 @@ import jsat.math.rootfinding.Zeroin;
  */
 public abstract class Distribution implements Cloneable, Serializable
 {
-    /**
+
+	private static final long serialVersionUID = -5079392926462355615L;
+
+	/**
      * Computes the log of the Probability Density Function. Note, that then the probability 
      * is zero, {@link Double#NEGATIVE_INFINITY} would be the true value. Instead, this method
      * will always return the negative of {@link Double#MAX_VALUE}. This is to avoid propagating
@@ -74,7 +77,12 @@ public abstract class Distribution implements Cloneable, Serializable
         
         Function newCDF = new Function() {
 
-            public double f(double... x)
+            /**
+			 * 
+			 */
+			private static final long serialVersionUID = 1565805127519338483L;
+
+			public double f(double... x)
             {
                 return cdf.f(x)-p;
             }
@@ -264,7 +272,12 @@ public abstract class Distribution implements Cloneable, Serializable
     {
         return new Function() {
 
-            @Override
+            /**
+			 * 
+			 */
+			private static final long serialVersionUID = -897452735980141746L;
+
+			@Override
             public double f(double... x)
             {
                 return f(DenseVector.toDenseVec(x));
@@ -288,7 +301,12 @@ public abstract class Distribution implements Cloneable, Serializable
     {
         return new Function() {
 
-            @Override
+            /**
+			 * 
+			 */
+			private static final long serialVersionUID = -3794266180670489168L;
+
+			@Override
             public double f(double... x)
             {
                 return f(DenseVector.toDenseVec(x));

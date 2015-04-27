@@ -33,7 +33,9 @@ import jsat.linear.Vec;
  */
 public class PCA implements DataTransform
 {
-    /**
+
+	private static final long serialVersionUID = 8736609877239941617L;
+	/**
      * The transposed matrix of the Principal Components
      */
     private Matrix P;
@@ -76,7 +78,7 @@ public class PCA implements DataTransform
      * number of dimensions. 
      * @param threshold a convergence threshold, any small value will work. Smaller values will 
      * not produce more accurate results, but may make the algorithm take longer if it would 
-     * have terminated before <tt>maxPCs></tt> was reached.  
+     * have terminated before <tt>maxPCs</tt> was reached.  
      */
     public PCA(DataSet dataSet, int maxPCs, double threshold)
     {

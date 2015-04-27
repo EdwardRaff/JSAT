@@ -12,20 +12,38 @@ import java.util.HashMap;
 public class LovinsStemmer extends Stemmer
 {
     
-    //There are 11 ending hash maps, each postfixed with the number of characters
+
+	private static final long serialVersionUID = -3229865664217642197L;
+
+	//There are 11 ending hash maps, each postfixed with the number of characters
     private static final HashMap<String, String> ending11 = new HashMap<String, String>()
-    {{
+    {/**
+		 * 
+		 */
+		private static final long serialVersionUID = 4064350307133685150L;
+
+	{
         put("alistically", "B"); put("arizability", "A"); put("izationally", "B");
     }};
     
     private static final HashMap<String, String> ending10 = new HashMap<String, String>()
-    {{
+    {/**
+		 * 
+		 */
+		private static final long serialVersionUID = -5247798032923242997L;
+
+	{
         put("antialness", "A"); put("arisations", "A"); put("arizations", "A");
         put("entialness", "A");
     }};
     
     private static final HashMap<String, String> ending9 = new HashMap<String, String>()
-    {{
+    {/**
+		 * 
+		 */
+		private static final long serialVersionUID = -9153017770847287495L;
+
+	{
         put("allically", "C"); put("antaneous", "A"); put("antiality", "A");
         put("arisation", "A"); put("arization", "A"); put("ationally", "B");
         put("ativeness", "A"); put("eableness", "E"); put("entations", "A");
@@ -35,7 +53,12 @@ public class LovinsStemmer extends Stemmer
     }};
     
     private static final HashMap<String, String> ending8 = new HashMap<String, String>()
-    {{
+    {/**
+		 * 
+		 */
+		private static final long serialVersionUID = 3671522347706544570L;
+
+	{
         put("ableness", "A"); put("arizable", "A"); put("entation", "A");
         put("entially", "A"); put("eousness", "A"); put("ibleness", "A");
         put("icalness", "A"); put("ionalism", "A"); put("ionality", "A");
@@ -44,7 +67,12 @@ public class LovinsStemmer extends Stemmer
     }};
     
     private static final HashMap<String, String> ending7 = new HashMap<String, String>()
-    {{
+    {/**
+		 * 
+		 */
+		private static final long serialVersionUID = -4697823317524161452L;
+
+	{
         put("ability", "A"); put("aically", "A"); put("alistic", "B");
         put("alities", "A"); put("ariness", "E"); put("aristic", "A");
         put("arizing", "A"); put("ateness", "A"); put("atingly", "A");
@@ -62,7 +90,12 @@ public class LovinsStemmer extends Stemmer
     }};
     
     private static final HashMap<String, String> ending6 = new HashMap<String, String>()
-    {{
+    {/**
+		 * 
+		 */
+		private static final long serialVersionUID = -7030401064572348271L;
+
+	{
         put("aceous", "A"); put("acious", "B"); put("action", "G");
         put("alness", "A"); put("ancial", "A"); put("ancies", "A");
         put("ancing", "B"); put("ariser", "A"); put("arized", "A");
@@ -79,7 +112,12 @@ public class LovinsStemmer extends Stemmer
     }};
     
     private static final HashMap<String, String> ending5 = new HashMap<String, String>()
-    {{
+    {/**
+		 * 
+		 */
+		private static final long serialVersionUID = -5282435864116373834L;
+
+	{
         put("acies", "A"); put("acity", "A"); put("aging", "B");
         put("aical", "A"); put("alism", "B"); put("ality", "A");
         put("alize", "A"); put("allic", "b"); put("anced", "B");
@@ -105,7 +143,12 @@ public class LovinsStemmer extends Stemmer
     }};
     
     private static final HashMap<String, String> ending4 = new HashMap<String, String>()
-    {{
+    {/**
+		 * 
+		 */
+		private static final long serialVersionUID = -7293777277850278026L;
+
+	{
         put("able", "A"); put("ably", "A"); put("ages", "B");
         put("ally", "B"); put("ance", "B"); put("ancy", "B");
         put("ants", "B"); put("aric", "A"); put("arly", "K");
@@ -125,7 +168,12 @@ public class LovinsStemmer extends Stemmer
     }};
     
     private static final HashMap<String, String> ending3 = new HashMap<String, String>()
-    {{
+    {/**
+		 * 
+		 */
+		private static final long serialVersionUID = -5629841014950478203L;
+
+	{
         put("acy", "A"); put("age", "B"); put("aic", "A");
         put("als", "b"); put("ant", "B"); put("ars", "O");
         put("ary", "F"); put("ata", "A"); put("ate", "A");
@@ -142,7 +190,12 @@ public class LovinsStemmer extends Stemmer
     }};
     
     private static final HashMap<String, String> ending2 = new HashMap<String, String>()
-    {{
+    {/**
+		 * 
+		 */
+		private static final long serialVersionUID = -8894812965945848256L;
+
+	{
         put("ae", "A"); put("al", "b"); put("ar", "X");
         put("as", "B"); put("ed", "E"); put("en", "F");
         put("es", "E"); put("ia", "A"); put("ic", "A");
@@ -152,13 +205,23 @@ public class LovinsStemmer extends Stemmer
     }};
     
     private static final HashMap<String, String> ending1 = new HashMap<String, String>()
-    {{
+    {/**
+		 * 
+		 */
+		private static final long serialVersionUID = -7536643426902207427L;
+
+	{
         put("a", "A"); put("e", "A"); put("i", "A");
         put("o", "A"); put("s", "W"); put("y", "B");	
     }};
     
     private static final HashMap<String, String> endings = new HashMap<String, String>()
-    {{
+    {/**
+		 * 
+		 */
+		private static final long serialVersionUID = -8057392854617089310L;
+
+	{
         putAll(ending11); putAll(ending10); putAll(ending9); putAll(ending8); putAll(ending7); putAll(ending6);
         putAll(ending5); putAll(ending4); putAll(ending3); putAll(ending2); putAll(ending1);
     }};

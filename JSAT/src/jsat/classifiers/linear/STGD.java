@@ -24,7 +24,7 @@ import jsat.regression.UpdateableRegressor;
  * {@link #setGravity(double) gravity} parameter, but other parameters 
  * contribute to the level of sparsity. 
  * <br><br>
- * See: Langford, J., Li, L., & Zhang, T. (2009). <i>Sparse online learning via 
+ * See: Langford, J., Li, L.,&amp;Zhang, T. (2009). <i>Sparse online learning via 
  * truncated gradient</i>. The Journal of Machine Learning Research, 10, 
  * 777–801. Retrieved from <a href="http://dl.acm.org/citation.cfm?id=1577097">
  * here</a>
@@ -32,7 +32,10 @@ import jsat.regression.UpdateableRegressor;
  */
 public class STGD extends BaseUpdateableClassifier implements UpdateableRegressor, BinaryScoreClassifier, Parameterized, SingleWeightVectorModel
 {
-    private Vec w;
+
+	private static final long serialVersionUID = 5753298014967370769L;
+
+	private Vec w;
     
     private int K;
     private double learningRate;
@@ -100,7 +103,7 @@ public class STGD extends BaseUpdateableClassifier implements UpdateableRegresso
     
     /**
      * Sets the learning rate to use
-     * @param learningRate the learning rate > 0. 
+     * @param learningRate the learning rate &gt; 0. 
      */
     public void setLearningRate(double learningRate)
     {

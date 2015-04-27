@@ -33,7 +33,9 @@ import java.util.Random;
  */
 abstract public class RandomMatrix extends GenericMatrix
 {
-    /*
+
+	private static final long serialVersionUID = 3514801206898749257L;
+	/*
      * Implementation note: It is assumed that the default random object is a
      * PRNG with a single word / long of state. A higher quality PRNG cant be 
      * used if it requires too many words of state, as the initalization will 

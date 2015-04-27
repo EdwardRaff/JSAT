@@ -12,7 +12,10 @@ import jsat.linear.Vec;
 public class TanhLayer implements ActivationLayer
 {
 
-    @Override
+
+	private static final long serialVersionUID = -8369008344962638121L;
+
+	@Override
     public void activate(Vec input, Vec output)
     {
         for(int i = 0; i < input.length(); i++)

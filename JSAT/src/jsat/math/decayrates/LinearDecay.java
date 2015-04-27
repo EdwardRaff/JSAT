@@ -17,7 +17,9 @@ import jsat.parameters.Parameterized;
  */
 public class LinearDecay implements DecayRate, Parameterized
 {
-    private double min;
+
+	private static final long serialVersionUID = 4934146018742844875L;
+	private double min;
     private double maxTime;
 
     /**

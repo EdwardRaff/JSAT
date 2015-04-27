@@ -5,6 +5,7 @@ import java.util.*;
 import java.util.concurrent.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
 import jsat.classifiers.*;
 import jsat.distributions.multivariate.MultivariateDistribution;
 import jsat.exceptions.FailedToFitException;
@@ -19,7 +20,9 @@ import jsat.parameters.*;
  */
 public class BestClassDistribution implements Classifier, Parameterized
 {
-    private MultivariateDistribution baseDist;
+
+	private static final long serialVersionUID = -1746145372146154228L;
+	private MultivariateDistribution baseDist;
     private List<MultivariateDistribution> dists;
     /**
      * The prior probabilities of each class

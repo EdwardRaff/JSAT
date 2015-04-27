@@ -269,7 +269,6 @@ public class ClassificationModelEvaluation
         evaluationWork(dataSet, testSet, 0);
     }
 
-    @SuppressWarnings("unchecked")
     private void evaluationWork(ClassificationDataSet trainSet, ClassificationDataSet testSet, int index)
     {
         DataTransformProcess curProcess = dtp.clone();
@@ -359,7 +358,7 @@ public class ClassificationModelEvaluation
      * standard deviation comes from multiple folds in cross validation. <br>
      * <br>
      * The score statistics can be obtained from 
-     * {@link #getScoreStats(jsat.classifiers.evaluations.ClassificationScore) }
+     * {@link #getScoreStats(ClassificationScore) }
      * after one of the evaluation methods have been called. 
      * 
      * @param scorer the score method to keep track of. 
@@ -373,7 +372,7 @@ public class ClassificationModelEvaluation
      * Gets the statistics associated with the given score. If the score is not
      * currently in the model evaluation {@code null} will be returned. The 
      * object passed in does not need to be the exact same object passed to 
-     * {@link #addScorer(jsat.classifiers.evaluations.ClassificationScore) },
+     * {@link #addScorer(ClassificationScore) },
      * it only needs to be equal to the object. 
      * 
      * @param score the score type to get the result statistics
@@ -560,7 +559,7 @@ public class ClassificationModelEvaluation
     /**
      * Prints out the classification information in a convenient format. If no
      * additional scores were added via the 
-     * {@link #addScorer(jsat.classifiers.evaluations.ClassificationScore) }
+     * {@link #addScorer(ClassificationScore) }
      * method, nothing will be printed. 
      */
     public void prettyPrintClassificationScores()

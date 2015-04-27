@@ -2,10 +2,8 @@
 package jsat.classifiers.linear;
 
 import java.util.Random;
-import java.util.concurrent.ExecutorService;
 import jsat.FixedProblems;
 import jsat.classifiers.*;
-import jsat.linear.*;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;

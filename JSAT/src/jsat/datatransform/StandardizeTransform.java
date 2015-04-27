@@ -17,7 +17,9 @@ import jsat.linear.Vec;
  */
 public class StandardizeTransform implements InPlaceTransform
 {
-    private Vec means;
+
+	private static final long serialVersionUID = -2349721113741805955L;
+	private Vec means;
     private Vec stdDevs;
 
     public StandardizeTransform(DataSet dataset)

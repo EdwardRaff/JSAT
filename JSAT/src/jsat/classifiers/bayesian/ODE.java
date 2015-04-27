@@ -13,7 +13,7 @@ import jsat.exceptions.FailedToFitException;
  * <br>
  * This class is primarily for use by {@link AODE}
  * <br><br> 
- * See: Webb, G., & Boughton, J. (2005). <i>Not so naive bayes: Aggregating 
+ * See: Webb, G., &amp; Boughton, J. (2005). <i>Not so naive bayes: Aggregating 
  * one-dependence estimators</i>. Machine Learning, 1–24. Retrieved from 
  * <a href="http://www.springerlink.com/index/U8W306673M1P866K.pdf">here</a>
  * 
@@ -21,7 +21,9 @@ import jsat.exceptions.FailedToFitException;
  */
 public class ODE extends BaseUpdateableClassifier 
 {
-    /**
+
+	private static final long serialVersionUID = -7732070257669428977L;
+	/**
      * The attribute we will be dependent on
      */
     protected int dependent;

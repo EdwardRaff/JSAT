@@ -12,7 +12,10 @@ import java.util.*;
  */
 public class IntSet extends AbstractSet<Integer> implements Serializable
 {
-    private static final int defaultSize = 8;
+
+	private static final long serialVersionUID = -2675363824037596497L;
+
+	private static final int defaultSize = 8;
      
     private int[] store;
     private int size;

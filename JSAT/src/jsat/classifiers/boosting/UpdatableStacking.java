@@ -40,7 +40,9 @@ public class UpdatableStacking implements UpdateableClassifier, UpdateableRegres
      * predictions
      */
     
-    /**
+
+	private static final long serialVersionUID = -5111303510263114862L;
+	/**
      * The number of weights needed per model
      */
     private int weightsPerModel;
@@ -76,7 +78,7 @@ public class UpdatableStacking implements UpdateableClassifier, UpdateableRegres
     }
     
     /**
-     * Creates a new Stacking classifier that uses {@value #DEFAULT_FOLDS} folds of cross validation
+     * Creates a new Stacking classifier.
      * @param aggregatingClassifier the classifier used to merge the results of all the input classifiers
      * @param baseClassifiers the array of base classifiers to ensemble
      */
@@ -108,7 +110,7 @@ public class UpdatableStacking implements UpdateableClassifier, UpdateableRegres
     }
     
     /**
-     * Creates a new Stacking regressor that uses {@value #DEFAULT_FOLDS} folds of cross validation
+     * Creates a new Stacking regressor.
      * @param aggregatingRegressor the regressor used to merge the results of all the input classifiers
      * @param baseRegressors the array of base regressors to ensemble
      */

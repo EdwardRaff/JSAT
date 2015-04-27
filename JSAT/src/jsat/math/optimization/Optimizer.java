@@ -6,7 +6,6 @@ import java.util.List;
 import java.util.concurrent.ExecutorService;
 import jsat.linear.Vec;
 import jsat.math.Function;
-import jsat.utils.FakeExecutor;
 
 /**
  * This interface provides the contract for a multivariate numerical optimization method. An 

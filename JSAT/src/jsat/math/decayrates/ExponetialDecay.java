@@ -18,7 +18,9 @@ import jsat.parameters.Parameterized;
  */
 public class ExponetialDecay implements DecayRate, Parameterized
 {
-    private double min;
+
+	private static final long serialVersionUID = 4762109043998381095L;
+	private double min;
     private double maxTime;
 
     /**

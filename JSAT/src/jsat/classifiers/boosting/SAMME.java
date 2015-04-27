@@ -18,7 +18,7 @@ import jsat.utils.FakeExecutor;
 /**
  * This is an implementation of the Multi-Class AdaBoost method SAMME (Stagewise Additive Modeling using
  * a Multi-Class Exponential loss function), presented in <i>Multi-class AdaBoost</i> by Ji Zhu, 
- * Saharon Rosset, Hui Zou, & Trevor Hasstie <br>
+ * Saharon Rosset, Hui Zou,&amp;Trevor Hasstie <br>
  * <br>
  * This algorithm reduces to {@link AdaBoostM1 } for binary classification problems. Its often performs 
  * better for <i>k</i> class classification problems, and has a weaker requirement of besting 1/<i>k</i>
@@ -28,7 +28,9 @@ import jsat.utils.FakeExecutor;
  */
 public class SAMME implements Classifier, Parameterized
 {
-    private Classifier weakLearner;
+
+	private static final long serialVersionUID = -3584203799253810599L;
+	private Classifier weakLearner;
     private int maxIterations;
     /**
      * The list of weak hypothesis
@@ -137,7 +139,7 @@ public class SAMME implements Classifier, Parameterized
     {
         SAMME clone = new SAMME(weakLearner.clone(), maxIterations);
         if(this.hypWeights != null)
-            clone.hypWeights = new ArrayList<Double>(this.hypWeights);
+            clone.hypWeights = new DoubleList(this.hypWeights);
         if(this.hypoths != null)
         {
             clone.hypoths = new ArrayList<Classifier>(this.hypoths.size());

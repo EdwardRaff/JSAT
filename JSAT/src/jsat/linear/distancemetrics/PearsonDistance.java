@@ -6,7 +6,6 @@ import java.util.List;
 import java.util.concurrent.ExecutorService;
 import jsat.linear.IndexValue;
 import jsat.linear.Vec;
-import jsat.utils.DoubleList;
 
 /**
  * A valid distance metric formed from the Pearson Correlation between two vectors.
@@ -16,7 +15,9 @@ import jsat.utils.DoubleList;
  */
 public class PearsonDistance implements DistanceMetric
 {
-    private boolean bothNonZero;
+
+	private static final long serialVersionUID = 1090726755301934198L;
+	private boolean bothNonZero;
     private boolean absoluteDistance;
 
     /**

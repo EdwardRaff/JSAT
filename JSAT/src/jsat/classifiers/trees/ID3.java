@@ -2,13 +2,12 @@
 package jsat.classifiers.trees;
 
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
 import jsat.classifiers.CategoricalData;
 import jsat.classifiers.CategoricalResults;
 import jsat.classifiers.ClassificationDataSet;
@@ -16,6 +15,7 @@ import jsat.classifiers.Classifier;
 import jsat.classifiers.DataPoint;
 import jsat.classifiers.DataPointPair;
 import jsat.utils.FakeExecutor;
+import jsat.utils.IntSet;
 import jsat.utils.ModifiableCountDownLatch;
 
 /**
@@ -25,7 +25,9 @@ import jsat.utils.ModifiableCountDownLatch;
 public class ID3 implements Classifier
 {
     
-    private CategoricalData predicting;
+
+	private static final long serialVersionUID = -8473683139353205898L;
+	private CategoricalData predicting;
     private CategoricalData[] attributes;
     private ID3Node root;
     private ModifiableCountDownLatch latch;
@@ -52,7 +54,7 @@ public class ID3 implements Classifier
         attributes = dataSet.getCategories();
         List<DataPointPair<Integer>> dataPoints = dataSet.getAsDPPList();
         
-        Set<Integer> availableAttributes = new HashSet<Integer>(dataSet.getNumCategoricalVars());
+        Set<Integer> availableAttributes = new IntSet(dataSet.getNumCategoricalVars());
         for(int i = 0; i < dataSet.getNumCategoricalVars(); i++)
             availableAttributes.add(i);
         latch = new ModifiableCountDownLatch(1);
@@ -117,7 +119,7 @@ public class ID3 implements Classifier
         }
         
         final ID3Node node = new ID3Node(attributes[bestAttribute].getNumOfCategories(), bestAttribute);
-        final Set<Integer> newRemaining = new HashSet<Integer>(remainingAtribues);
+        final Set<Integer> newRemaining = new IntSet(remainingAtribues);
         newRemaining.remove(bestAttribute);
         for(int i = 0; i < bestSplit.size(); i++)
         {

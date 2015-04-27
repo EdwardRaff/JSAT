@@ -12,7 +12,10 @@ import jsat.classifiers.DataPoint;
  */
 public abstract class KClustererBase extends ClustererBase implements KClusterer
 {
-    @Override
+
+	private static final long serialVersionUID = 2542432122353325407L;
+
+	@Override
     public List<List<DataPoint>> cluster(DataSet dataSet, int clusters, ExecutorService threadpool)
     {
         int[] assignments = cluster(dataSet, clusters, threadpool, (int[]) null);

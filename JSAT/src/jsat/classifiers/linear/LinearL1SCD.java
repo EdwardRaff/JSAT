@@ -33,15 +33,18 @@ import jsat.regression.RegressionDataSet;
  * <br>
  * See:<br>
  * <a href="http://eprints.pascal-network.org/archive/00005418/">Shalev-Shwartz,
- * S., & Tewari, A. (2009). <i>Stochastic Methods for L<sub>1</sub>-regularized 
+ * S.,&amp;Tewari, A. (2009). <i>Stochastic Methods for L<sub>1</sub>-regularized 
  * Loss Minimization</i>. 26th International Conference on Machine Learning 
- * (Vol. 12, pp. 929–936).
+ * (Vol. 12, pp. 929–936).</a>
  * 
  * @author Edward Raff
  */
 public class LinearL1SCD extends StochasticSTLinearL1
 {
-    /**
+
+	private static final long serialVersionUID = 3135562347568407186L;
+
+	/**
      * Creates a new SCD L<sub>1</sub> learner using default settings. 
      */
     public LinearL1SCD()

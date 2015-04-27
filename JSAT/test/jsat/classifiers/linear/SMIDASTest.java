@@ -1,18 +1,9 @@
 package jsat.classifiers.linear;
 
 import java.util.Random;
-import java.util.concurrent.ExecutorService;
 import jsat.FixedProblems;
-import jsat.classifiers.CategoricalData;
-import jsat.classifiers.CategoricalResults;
 import jsat.classifiers.ClassificationDataSet;
-import jsat.classifiers.DataPoint;
 import jsat.classifiers.DataPointPair;
-import jsat.distributions.multivariate.NormalM;
-import jsat.linear.DenseVector;
-import jsat.linear.Matrix;
-import jsat.linear.Vec;
-import jsat.regression.RegressionDataSet;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;

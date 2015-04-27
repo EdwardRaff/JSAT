@@ -48,10 +48,10 @@ import static jsat.utils.concurrent.ParallelUtils.*;
  * <br>
  * See: <br>
  * <ul>
- * <li>Suykens, J., & Vandewalle, J. (1999). <i>Least Squares Support Vector 
+ * <li>Suykens, J.,&amp;Vandewalle, J. (1999). <i>Least Squares Support Vector 
  * Machine Classifiers</i>. Neural processing letters, 9(3), 293–298. 
  * doi:10.1023/A:1018628609742</li>
- * <li>Keerthi, S. S., & Shevade, S. K. (2003). <i>SMO algorithm for Least 
+ * <li>Keerthi, S. S.,&amp;Shevade, S. K. (2003). <i>SMO algorithm for Least 
  * Squares SVM</i>. In Proceedings of the International Joint Conference on 
  * Neural Networks (Vol. 3, pp. 2088–2093). IEEE. doi:10.1109/IJCNN.2003.1223730
  * </li>
@@ -62,7 +62,9 @@ import static jsat.utils.concurrent.ParallelUtils.*;
  */
 public class LSSVM extends SupportVectorLearner implements BinaryScoreClassifier, Regressor, Parameterized
 {
-    protected double b = 0, b_low, b_up;
+
+	private static final long serialVersionUID = -7569924400631719451L;
+	protected double b = 0, b_low, b_up;
     private double C = 1;
     
     private int i_up, i_low;

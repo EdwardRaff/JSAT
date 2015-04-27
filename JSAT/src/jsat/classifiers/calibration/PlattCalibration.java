@@ -4,7 +4,6 @@ package jsat.classifiers.calibration;
 import jsat.classifiers.CategoricalResults;
 import jsat.classifiers.DataPoint;
 import static jsat.math.FastMath.*;
-import jsat.classifiers.calibration.BinaryCalibration.CalibrationMode;
 
 /**
  * Platt Calibration essentially performs logistic regression on the output 
@@ -13,16 +12,16 @@ import jsat.classifiers.calibration.BinaryCalibration.CalibrationMode;
  * <br><br>
  * See:<br>
  * <ul>
- * <li><Platt, J. C. (1999). <i>Probabilistic Outputs for Support Vector
+ * <li>Platt, J. C. (1999). <i>Probabilistic Outputs for Support Vector
  * Machines and Comparisons to Regularized Likelihood Methods</i>. Advances in 
  * Large Margin Classifiers (pp. 61–74). MIT Press. Retrieved from 
  * <a href="http://www.tu-harburg.de/ti6/lehre/seminarCI/slides/ws0506/SVMprob.pdf">
  * here </a></li>
- * <li>Lin, H.-T., Lin, C.-J., & Weng, R. C. (2007). <i>A note on Platt’s 
+ * <li>Lin, H.-T., Lin, C.-J.,&amp;Weng, R. C. (2007). <i>A note on Platt’s 
  * probabilistic outputs for support vector machines</i>. Machine learning, 
  * 68(3), 267–276. Retrieved from 
- * <a href="http://www.springerlink.com/index/8417V9235M561471.pdf>here</a></li>
- * <li>Niculescu-Mizil, A., & Caruana, R. (2005). <i>Predicting Good 
+ * <a href="http://www.springerlink.com/index/8417V9235M561471.pdf">here</a></li>
+ * <li>Niculescu-Mizil, A.,&amp;Caruana, R. (2005). <i>Predicting Good 
  * Probabilities with Supervised Learning</i>. International Conference on 
  * Machine Learning (pp. 625–632). Retrieved from 
  * <a href="http://dl.acm.org/citation.cfm?id=1102430">here</a></li>
@@ -31,7 +30,9 @@ import jsat.classifiers.calibration.BinaryCalibration.CalibrationMode;
  */
 public class PlattCalibration extends BinaryCalibration
 {
-    private double A,B;
+
+	private static final long serialVersionUID = 1099230240231262536L;
+	private double A,B;
     private double maxIter = 100;
     private double minStep = 1e-10;
     private double sigma = 1e-12;

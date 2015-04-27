@@ -30,10 +30,10 @@ import jsat.utils.ListUtils;
  * See papers:<br>
  * Friedman, J. H. (2002). 
  * <a href="http://onlinelibrary.wiley.com/doi/10.1002/cbdv.200490137/abstract">
- * Stochastic gradient boosting</a>. Computational Statistics & Data Analysis, 
+ * Stochastic gradient boosting</a>. Computational Statistics&amp;Data Analysis, 
  * 38(4), 367–378. 
  * <br><br>
- * Mohan, A., Chen, Z., & Weinberger, K. (2011). 
+ * Mohan, A., Chen, Z.,&amp;Weinberger, K. (2011). 
  * <a href="http://www1.cse.wustl.edu/~kilian/papers/mohan11a.pdf">Web-search 
  * ranking with initialized gradient boosted regression trees</a>. 
  * Journal of Machine Learning Research, 14, 
@@ -44,7 +44,10 @@ import jsat.utils.ListUtils;
  */
 public class StochasticGradientBoosting implements Regressor, Parameterized
 {
-    /**
+
+	private static final long serialVersionUID = -2855154397476855293L;
+
+	/**
      * The default value for the 
      * {@link #setTrainingProportion(double) training proportion} is 
      * {@value #DEFAULT_TRAINING_PROPORTION}. 
@@ -333,7 +336,12 @@ public class StochasticGradientBoosting implements Regressor, Parameterized
     {
         final FunctionBase fhPrime = new FunctionBase()
         {
-            @Override
+            /**
+			 * 
+			 */
+			private static final long serialVersionUID = -2211642040228795719L;
+
+			@Override
             public double f(Vec x)
             {
                 double c1 = x.get(0);//c2=c1-eps

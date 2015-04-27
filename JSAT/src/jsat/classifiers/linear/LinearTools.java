@@ -37,7 +37,7 @@ public class LinearTools
     {
         /**
          * This code was ripped out/modified from NewGLMNET. It follows the
-         * strategy laid out in Schmidt, M., Fung, G., & Rosaless, R. (2009).
+         * strategy laid out in Schmidt, M., Fung, G.,&amp;Rosaless, R. (2009).
          * Optimization Methods for L1-Regularization. Retrieved from
          * http://www.cs.ubc.ca/cgi-bin/tr/2009/TR-2009-19.pdf , where we use
          * the coordinate with the largest magnitude of the gradient

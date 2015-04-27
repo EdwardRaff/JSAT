@@ -25,7 +25,11 @@ import static jsat.utils.SystemInfo.*;
 public class AdaBoostM1PL extends AdaBoostM1
 {
     
-    public AdaBoostM1PL(Classifier weakLearner, int maxIterations)
+
+	private static final long serialVersionUID = 1027211688101553766L;
+
+
+	public AdaBoostM1PL(Classifier weakLearner, int maxIterations)
     {
         super(weakLearner, maxIterations);
     }

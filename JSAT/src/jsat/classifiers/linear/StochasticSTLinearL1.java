@@ -1,9 +1,7 @@
 package jsat.classifiers.linear;
 
-import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
 import jsat.SingleWeightVectorModel;
 import jsat.classifiers.CategoricalResults;
 import jsat.classifiers.Classifier;
@@ -28,15 +26,17 @@ import jsat.regression.Regressor;
  * <br>
  * Both algorithms are from: <br>
  * <a href="http://eprints.pascal-network.org/archive/00005418/">Shalev-Shwartz,
- * S., & Tewari, A. (2009). <i>Stochastic Methods for L<sub>1</sub>-regularized 
+ * S.,&amp;Tewari, A. (2009). <i>Stochastic Methods for L<sub>1</sub>-regularized 
  * Loss Minimization</i>. 26th International Conference on Machine Learning 
- * (Vol. 12, pp. 929–936).
+ * (Vol. 12, pp. 929–936).</a>
  * 
  * @author Edward Raff
  */
 public abstract class StochasticSTLinearL1 implements Classifier, Regressor, Parameterized, SingleWeightVectorModel
 {
-    /**
+
+	private static final long serialVersionUID = -6761456665014802608L;
+	/**
      * The number of training iterations
      */
     protected int epochs;

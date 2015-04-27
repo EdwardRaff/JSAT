@@ -3,7 +3,6 @@ package jsat.classifiers;
 
 import java.io.Serializable;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 /**
@@ -12,7 +11,9 @@ import java.util.List;
  */
 public class CategoricalData implements Cloneable, Serializable
 {
-    private int n;//Number of different categories
+
+	private static final long serialVersionUID = 5783467611963064930L;
+	private int n;//Number of different categories
     private List<String> catNames;
     private String categoryName;
 

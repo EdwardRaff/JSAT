@@ -4,22 +4,15 @@
  */
 package jsat.classifiers.knn;
 
-import java.util.List;
 import java.util.Random;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import jsat.FixedProblems;
-import jsat.classifiers.CategoricalResults;
 import jsat.classifiers.ClassificationDataSet;
 import jsat.classifiers.Classifier;
-import jsat.classifiers.DataPoint;
-import jsat.classifiers.svm.DCDs;
 import jsat.distributions.Normal;
-import jsat.linear.distancemetrics.EuclideanDistance;
-import jsat.parameters.Parameter;
 import jsat.regression.RegressionDataSet;
 import jsat.regression.RegressionModelEvaluation;
-import jsat.regression.Regressor;
 import jsat.utils.GridDataGenerator;
 import jsat.utils.SystemInfo;
 import jsat.utils.random.XORWOW;

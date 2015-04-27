@@ -21,7 +21,9 @@ import jsat.utils.ProbailityMatch;
  */
 public class NelderMead implements Optimizer
 {
-    /**
+
+	private static final long serialVersionUID = -2930235371787386607L;
+	/**
      * Reflection constant
      */
     private double reflection = 1.0;

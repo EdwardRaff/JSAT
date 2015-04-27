@@ -23,7 +23,9 @@ import static jsat.math.SpecialMath.*;
  */
 public class Dirichlet extends MultivariateDistributionSkeleton
 {
-    private Vec alphas;
+
+	private static final long serialVersionUID = 6229508050763067569L;
+	private Vec alphas;
 
     /**
      * Creates a new Dirichlet distribution. 
@@ -123,7 +125,12 @@ public class Dirichlet extends MultivariateDistributionSkeleton
         Function logLike = new Function() 
         {
 
-            public double f(double... x)
+            /**
+			 * 
+			 */
+			private static final long serialVersionUID = -2341982303993570445L;
+
+			public double f(double... x)
             {
                 return f(DenseVector.toDenseVec(x));
             }
@@ -161,7 +168,12 @@ public class Dirichlet extends MultivariateDistributionSkeleton
         Function logLike = new Function() 
         {
 
-            public double f(double... x)
+            /**
+			 * 
+			 */
+			private static final long serialVersionUID = 1597787004137999603L;
+
+			public double f(double... x)
             {
                 return f(DenseVector.toDenseVec(x));
             }

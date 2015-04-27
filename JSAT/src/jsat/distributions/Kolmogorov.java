@@ -5,7 +5,6 @@ import jsat.linear.Vec;
 import jsat.math.Function;
 import jsat.math.rootfinding.RiddersMethod;
 import static java.lang.Math.*;
-import static jsat.math.SpecialMath.*;
 /**
  *
  * @author Edward Raff
@@ -13,7 +12,10 @@ import static jsat.math.SpecialMath.*;
 public class Kolmogorov extends Distribution
 {
 
-    public Kolmogorov()
+
+	private static final long serialVersionUID = 7319511918364286930L;
+
+	public Kolmogorov()
     {
     }
     
@@ -65,7 +67,12 @@ public class Kolmogorov extends Distribution
 
     private final Function fCDF = new Function() {
 
-        public double f(double... x)
+        /**
+		 * 
+		 */
+		private static final long serialVersionUID = -716553015542184045L;
+
+		public double f(double... x)
         {
             return cdf(x[0])-x[1];
         }

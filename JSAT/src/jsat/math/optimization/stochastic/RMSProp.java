@@ -13,7 +13,9 @@ import jsat.linear.Vec;
  */
 public class RMSProp implements GradientUpdater
 {
-    private double rho;
+
+	private static final long serialVersionUID = 3512851084092042727L;
+	private double rho;
     private Vec daigG;
     private double biasG;
     

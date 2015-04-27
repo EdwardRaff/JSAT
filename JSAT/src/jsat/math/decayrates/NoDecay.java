@@ -9,7 +9,10 @@ package jsat.math.decayrates;
  */
 public class NoDecay implements DecayRate
 {
-    @Override
+
+	private static final long serialVersionUID = -4502356199281880268L;
+
+	@Override
     public double rate(double time, double maxTime, double initial)
     {
         return rate(time, initial);

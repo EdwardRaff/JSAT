@@ -13,7 +13,9 @@ import jsat.clustering.OPTICS;
  */
 public class ReachabilityPlot extends Graph2D
 {
-    private double[] reachability;
+
+	private static final long serialVersionUID = -5224740514692200878L;
+	private double[] reachability;
     private double max = -Double.MAX_VALUE;
     
     /**

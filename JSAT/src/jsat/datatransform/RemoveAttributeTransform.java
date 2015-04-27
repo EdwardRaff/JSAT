@@ -1,11 +1,13 @@
 package jsat.datatransform;
 
 import java.util.*;
+
 import jsat.DataSet;
 import jsat.classifiers.CategoricalData;
 import jsat.classifiers.DataPoint;
 import jsat.linear.*;
 import jsat.utils.IntList;
+import jsat.utils.IntSet;
 
 /**
  * This Data Transform allows the complete removal of specific features from the
@@ -15,7 +17,9 @@ import jsat.utils.IntList;
  */
 public class RemoveAttributeTransform implements DataTransform
 {   
-    /*
+
+	private static final long serialVersionUID = 8803223213862922734L;
+	/*
      * Each index map maps the old indecies in the original data set to their 
      * new positions. The value in the array is old index, the index of the 
      * value is the index it would be when the attributes were removed. 
@@ -250,7 +254,7 @@ public class RemoveAttributeTransform implements DataTransform
         @Override
         public RemoveAttributeTransformFactory clone()
         {
-            return new RemoveAttributeTransformFactory(new HashSet<Integer>(this.catToRemove), new HashSet<Integer>(this.numerToRemove));
+            return new RemoveAttributeTransformFactory(new IntSet(this.catToRemove), new IntSet(this.numerToRemove));
         }
     }
 }

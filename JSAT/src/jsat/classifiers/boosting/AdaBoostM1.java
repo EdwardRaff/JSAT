@@ -2,9 +2,9 @@
 package jsat.classifiers.boosting;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
+
 import jsat.classifiers.CategoricalData;
 import jsat.classifiers.CategoricalResults;
 import jsat.classifiers.ClassificationDataSet;
@@ -13,13 +13,12 @@ import jsat.classifiers.DataPoint;
 import jsat.classifiers.DataPointPair;
 import jsat.classifiers.OneVSAll;
 import jsat.exceptions.FailedToFitException;
-import jsat.parameters.IntParameter;
 import jsat.parameters.Parameter;
 import jsat.parameters.Parameterized;
 import jsat.utils.DoubleList;
 
 /**
- * Implementation of Experiments with a New Boosting Algorithm, by Yoav Freund & Robert E. Schapire.
+ * Implementation of Experiments with a New Boosting Algorithm, by Yoav Freund&amp;Robert E. Schapire.
  * <br>
  * This is the first AdaBoost algorithm presented in the paper, and the first boosting algorithm. 
  * Though not often mentioned, AdaBoost does support non binary classification tasks. However, 
@@ -36,7 +35,9 @@ import jsat.utils.DoubleList;
  */
 public class AdaBoostM1 implements Classifier, Parameterized
 {
-    private Classifier weakLearner;
+
+	private static final long serialVersionUID = 4205232097748332861L;
+	private Classifier weakLearner;
     private int maxIterations;
     /**
      * The list of weak hypothesis
@@ -182,7 +183,7 @@ public class AdaBoostM1 implements Classifier, Parameterized
 
     @Override
     public AdaBoostM1 clone()
-    {
+    {	
         AdaBoostM1 copy = new AdaBoostM1( weakLearner.clone(), maxIterations);
         if(hypWeights != null)
             copy.hypWeights = new DoubleList(this.hypWeights);

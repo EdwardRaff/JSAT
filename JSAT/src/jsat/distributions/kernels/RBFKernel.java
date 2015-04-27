@@ -14,7 +14,9 @@ import jsat.text.GreekLetters;
  */
 public class RBFKernel extends BaseL2Kernel
 {
-    private double sigma;
+
+	private static final long serialVersionUID = -6733691081172950067L;
+	private double sigma;
     private double sigmaSqrd2Inv;
 
     /**

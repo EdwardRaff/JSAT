@@ -4,7 +4,6 @@
  */
 package jsat.utils;
 
-import java.util.ArrayList;
 import java.util.List;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -45,7 +44,7 @@ public class ListUtilsTest
     public void testSplitList()
     {
         System.out.println("splitList");
-        List<Integer> sourceList = new ArrayList(500);
+        List<Integer> sourceList = new IntList(500);
         for(int i = 0; i < 500; i++)
             sourceList.add(i);
         List<List<Integer>> ll1 = ListUtils.splitList(sourceList, 5);
@@ -79,7 +78,7 @@ public class ListUtilsTest
     public void testSwap()
     {
         System.out.println("swap");
-        List<Long> test = new ArrayList<Long>();
+        List<Long> test = new LongList();
         test.add(1L);
         test.add(2L);
         ListUtils.swap(test, 0, 1);

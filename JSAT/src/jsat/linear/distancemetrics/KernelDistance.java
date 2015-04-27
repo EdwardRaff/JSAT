@@ -16,7 +16,9 @@ import jsat.linear.Vec;
  */
 public class KernelDistance implements DistanceMetric
 {
-    private KernelTrick kf;
+
+	private static final long serialVersionUID = -1553315486668768024L;
+	private KernelTrick kf;
 
     /**
      * Creates a distane metric from the given kernel. For the metric to be valid, the kernel must be positive definite. This means that

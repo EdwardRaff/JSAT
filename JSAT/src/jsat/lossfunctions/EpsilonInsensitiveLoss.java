@@ -11,7 +11,10 @@ package jsat.lossfunctions;
 public class EpsilonInsensitiveLoss implements LossR
 {
 
-    /**
+
+	private static final long serialVersionUID = -8735274561429676350L;
+
+	/**
      * Computes the &epsilon;-insensitive loss
      *
      * @param pred the predicted value

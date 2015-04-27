@@ -18,7 +18,7 @@ import jsat.utils.ListUtils;
  * Because Pegasos updates the primal directly, there are no support vectors 
  * saved from the training set.
  * <br><br>
- * See: Shalev-Shwartz, S., Singer, Y., & Srebro, N. (2007). <i>Pegasos : Primal
+ * See: Shalev-Shwartz, S., Singer, Y.,&amp;Srebro, N. (2007). <i>Pegasos : Primal
  * Estimated sub-GrAdient SOlver for SVM</i>. 24th international conference on 
  * Machine learning (pp. 807–814). New York, NY: ACM. 
  * doi:10.1145/1273496.1273598
@@ -27,7 +27,9 @@ import jsat.utils.ListUtils;
  */
 public class Pegasos implements BinaryScoreClassifier, Parameterized, SingleWeightVectorModel
 {
-    private int epochs;
+
+	private static final long serialVersionUID = -2145631476467081171L;
+	private int epochs;
     private double reg;
     private int batchSize;
     private boolean projectionStep = false;

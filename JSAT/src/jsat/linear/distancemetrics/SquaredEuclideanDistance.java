@@ -19,7 +19,10 @@ import jsat.utils.SystemInfo;
 public class SquaredEuclideanDistance implements DistanceMetric
 {
 
-    @Override
+
+	private static final long serialVersionUID = 2966818558802484702L;
+
+	@Override
     public double dist(Vec a, Vec b)
     {
         if(a.length() != b.length())

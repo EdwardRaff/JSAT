@@ -13,7 +13,9 @@ import java.util.Random;
  */
 public class CMWC4096 extends Random
 {
-    private static final long a = 18782;
+
+	private static final long serialVersionUID = -5061963074440046713L;
+	private static final long a = 18782;
     private int c = 362436;
     private int i = 4095;
     private int[] Q;

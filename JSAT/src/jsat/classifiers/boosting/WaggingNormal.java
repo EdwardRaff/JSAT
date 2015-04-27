@@ -12,7 +12,10 @@ import jsat.regression.Regressor;
  */
 public class WaggingNormal extends Wagging
 {   
-    /**
+
+	private static final long serialVersionUID = -4149453672311329863L;
+
+	/**
      * Creates a new Wagging classifier 
      * @param weakLearner the weak learner to use
      * @param interations the number of iterations to perform

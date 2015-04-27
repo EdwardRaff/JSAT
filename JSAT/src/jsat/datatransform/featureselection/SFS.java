@@ -1,10 +1,12 @@
 package jsat.datatransform.featureselection;
 
 import java.util.*;
+
 import jsat.DataSet;
 import jsat.classifiers.*;
 import jsat.datatransform.*;
 import jsat.regression.*;
+import jsat.utils.IntSet;
 import jsat.utils.ListUtils;
 
 /**
@@ -16,7 +18,9 @@ import jsat.utils.ListUtils;
  */
 public class SFS implements DataTransform
 {
-    private RemoveAttributeTransform finalTransform;
+
+	private static final long serialVersionUID = 140187978708131002L;
+	private RemoveAttributeTransform finalTransform;
     private Set<Integer> catSelected;
     private Set<Integer> numSelected;
     private double maxIncrease;
@@ -32,8 +36,8 @@ public class SFS implements DataTransform
         if(toClone.catSelected != null)
         {
             this.finalTransform = toClone.finalTransform.clone();
-            this.catSelected = new HashSet<Integer>(toClone.catSelected);
-            this.numSelected = new HashSet<Integer>(toClone.numSelected);
+            this.catSelected = new IntSet(toClone.catSelected);
+            this.numSelected = new IntSet(toClone.numSelected);
         }
 
         this.maxIncrease = toClone.maxIncrease;
@@ -89,13 +93,13 @@ public class SFS implements DataTransform
         int nF = dataSet.getNumFeatures();
         int nCat = dataSet.getNumCategoricalVars();
         
-        Set<Integer> available = new HashSet<Integer>();
+        Set<Integer> available = new IntSet();
         ListUtils.addRange(available, 0, nF, 1);
-        catSelected = new HashSet<Integer>(dataSet.getNumCategoricalVars());
-        numSelected = new HashSet<Integer>(dataSet.getNumNumericalVars());
+        catSelected = new IntSet(dataSet.getNumCategoricalVars());
+        numSelected = new IntSet(dataSet.getNumNumericalVars());
         
-        Set<Integer> catToRemove = new HashSet<Integer>(dataSet.getNumCategoricalVars());
-        Set<Integer> numToRemove = new HashSet<Integer>(dataSet.getNumNumericalVars());
+        Set<Integer> catToRemove = new IntSet(dataSet.getNumCategoricalVars());
+        Set<Integer> numToRemove = new IntSet(dataSet.getNumNumericalVars());
         ListUtils.addRange(catToRemove, 0, nCat, 1);
         ListUtils.addRange(numToRemove, 0, nF-nCat, 1);
         
@@ -167,7 +171,7 @@ public class SFS implements DataTransform
      */
     public Set<Integer> getSelectedCategorical()
     {
-        return new HashSet<Integer>(catSelected);
+        return new IntSet(catSelected);
     }
     
     /**
@@ -178,7 +182,7 @@ public class SFS implements DataTransform
      */
     public Set<Integer> getSelectedNumerical()
     {
-        return new HashSet<Integer>(numSelected);
+        return new IntSet(numSelected);
     }
 
     /**

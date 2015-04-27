@@ -7,22 +7,24 @@
 package jsat.clustering.kmeans;
 
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import jsat.DataSet;
+
 import jsat.FixedProblems;
 import jsat.classifiers.ClassificationDataSet;
 import jsat.distributions.kernels.RBFKernel;
+import jsat.utils.IntSet;
 import jsat.utils.SystemInfo;
 import jsat.utils.random.XOR96;
+
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
+
 import static org.junit.Assert.*;
 
 /**
@@ -69,7 +71,7 @@ public class ElkanKernelKMeansTest
         //make sure each cluster has points from only 1 class. If true then everyone is good
         Map<Integer, Set<Integer>> tmp = new HashMap<Integer, Set<Integer>>();
         for(int c = 0; c< toCluster.getClassSize(); c++)
-            tmp.put(c, new HashSet<Integer>());
+            tmp.put(c, new IntSet());
         for(int i = 0; i < result.length; i++)
             tmp.get(toCluster.getDataPointCategory(i)).add(result[i]);
         for(Set<Integer> set : tmp.values())
@@ -89,7 +91,7 @@ public class ElkanKernelKMeansTest
         //make sure each cluster has points from only 1 class. If true then everyone is good
         Map<Integer, Set<Integer>> tmp = new HashMap<Integer, Set<Integer>>();
         for(int c = 0; c< toCluster.getClassSize(); c++)
-            tmp.put(c, new HashSet<Integer>());
+            tmp.put(c, new IntSet());
         for(int i = 0; i < result.length; i++)
             tmp.get(toCluster.getDataPointCategory(i)).add(result[i]);
         for(Set<Integer> set : tmp.values())

@@ -7,6 +7,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Stack;
 import java.util.concurrent.ExecutorService;
+
 import jsat.linear.DenseVector;
 import jsat.linear.Vec;
 import jsat.linear.VecPaired;
@@ -22,7 +23,10 @@ import static jsat.linear.VecPaired.*;
 public class RTree<V extends Vec> implements VectorCollection<V>
 {
 
-    @Override
+
+	private static final long serialVersionUID = -7067110612346062800L;
+
+	@Override
     public List<? extends VecPaired<V, Double>> search(Vec query, double range)
     {
         Rectangle searchSpace = new Rectangle(dim, range, query);
@@ -167,7 +171,7 @@ public class RTree<V extends Vec> implements VectorCollection<V>
             else
                 return children.get(n).bound;
         }
-        
+        @SuppressWarnings("unused")
         boolean isFull()
         {
             return points.size() >= M;
@@ -276,7 +280,7 @@ public class RTree<V extends Vec> implements VectorCollection<V>
                 lB.set(i, center.get(i)-distance);
             }
         }
-
+        @SuppressWarnings("unused")
         public Rectangle(int dimensions)
         {
             uB = new DenseVector(dimensions);
@@ -288,7 +292,7 @@ public class RTree<V extends Vec> implements VectorCollection<V>
             uB = point.clone();
             lB = point.clone();
         }
-        
+        @SuppressWarnings("unused")
         public Rectangle(Vec... points)
         {
             this(Arrays.asList(points));
@@ -881,6 +885,7 @@ public class RTree<V extends Vec> implements VectorCollection<V>
      * @param r the rectangle compute the distance to
      * @return the minimum of the maximum distance from the point to the rectangle
      */
+    @SuppressWarnings("unused")
     private double minMaxDist(Vec p, Rectangle r)
     {
         if(r.contains(p))
@@ -927,6 +932,7 @@ public class RTree<V extends Vec> implements VectorCollection<V>
      * @param r the rectangle compute the distance to
      * @return the maximum distance from the point to the rectangle
      */
+    @SuppressWarnings("unused")
     private double maxDist(Vec p, Rectangle r)
     {
         if(r.contains(p))
@@ -951,7 +957,12 @@ public class RTree<V extends Vec> implements VectorCollection<V>
     
     public static class RTreeFactory<V extends Vec> implements VectorCollectionFactory<V>
     {
-        @Override
+        /**
+		 * 
+		 */
+		private static final long serialVersionUID = 5690819734453191098L;
+
+		@Override
         public VectorCollection<V> getVectorCollection(List<V> source, DistanceMetric distanceMetric)
         {
             

@@ -2,8 +2,6 @@ package jsat.regression;
 
 import java.util.Collections;
 import java.util.concurrent.ExecutorService;
-import jsat.classifiers.ClassificationDataSet;
-import jsat.classifiers.UpdateableClassifier;
 import jsat.utils.IntList;
 import jsat.utils.ListUtils;
 
@@ -20,7 +18,9 @@ import jsat.utils.ListUtils;
  */
 public abstract class BaseUpdateableRegressor implements UpdateableRegressor
 {
-    private int epochs = 1;
+
+	private static final long serialVersionUID = -679467882721432240L;
+	private int epochs = 1;
 
     /**
      * Sets the number of whole iterations through the training set that will be

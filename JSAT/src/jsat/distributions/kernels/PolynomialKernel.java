@@ -13,7 +13,9 @@ import jsat.parameters.Parameter;
  */
 public class PolynomialKernel extends BaseKernelTrick 
 {
-    private double degree;
+
+	private static final long serialVersionUID = 9123109691782934745L;
+	private double degree;
     private double alpha;
     private double c;
 
@@ -113,10 +115,20 @@ public class PolynomialKernel extends BaseKernelTrick
     }
 
     private List<Parameter> params = Collections.unmodifiableList(new ArrayList<Parameter>(3)
-    {{
+    {/**
+		 * 
+		 */
+		private static final long serialVersionUID = -2547395023960794355L;
+
+	{
         add(new DoubleParameter() {
 
-                @Override
+                /**
+			 * 
+			 */
+			private static final long serialVersionUID = 3713321849395825890L;
+
+				@Override
                 public double getValue()
                 {
                     return getAlpha();
@@ -137,7 +149,12 @@ public class PolynomialKernel extends BaseKernelTrick
             });
         add(new DoubleParameter() {
 
-                @Override
+                /**
+			 * 
+			 */
+			private static final long serialVersionUID = -6181322055654699414L;
+
+				@Override
                 public double getValue()
                 {
                     return getC();
@@ -158,7 +175,12 @@ public class PolynomialKernel extends BaseKernelTrick
             });
         add(new DoubleParameter() {
 
-                @Override
+                /**
+			 * 
+			 */
+			private static final long serialVersionUID = -2097977473290692778L;
+
+				@Override
                 public double getValue()
                 {
                     return getDegree();

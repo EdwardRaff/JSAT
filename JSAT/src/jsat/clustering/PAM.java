@@ -2,6 +2,7 @@
 package jsat.clustering;
 
 import jsat.linear.distancemetrics.TrainableDistanceMetric;
+
 import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
@@ -10,8 +11,8 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ExecutorService;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
 import jsat.DataSet;
-import jsat.classifiers.DataPoint;
 import jsat.linear.Vec;
 import jsat.linear.distancemetrics.DistanceMetric;
 import jsat.linear.distancemetrics.EuclideanDistance;
@@ -27,7 +28,9 @@ import jsat.utils.random.XORWOW;
  */
 public class PAM extends KClustererBase
 {
-    protected DistanceMetric dm;
+
+	private static final long serialVersionUID = 4787649180692115514L;
+	protected DistanceMetric dm;
     protected Random rand;
     protected SeedSelection seedSelection;
     protected int repeats = 1;
@@ -259,10 +262,11 @@ public class PAM extends KClustererBase
         {
             this.dataSet = dataSet;
             this.assignments = new int[dataSet.getSampleSize()];
-            this.medioids = medioids;
+            //XXX useless assignment
+//            this.medioids = medioids;
             this.putSelf = putSelf;
         }
-
+        @SuppressWarnings("unused")
         public void setAssignments(int[] assignments)
         {
             this.assignments = assignments;

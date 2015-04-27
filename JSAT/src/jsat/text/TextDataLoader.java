@@ -2,17 +2,18 @@
 package jsat.text;
 
 import java.util.*;
+
 import jsat.DataSet;
 import jsat.SimpleDataSet;
 import jsat.classifiers.CategoricalData;
 import jsat.classifiers.DataPoint;
-import jsat.datatransform.DataTransformFactory;
 import jsat.datatransform.RemoveAttributeTransform.RemoveAttributeTransformFactory;
 import jsat.linear.SparseVector;
 import jsat.linear.Vec;
 import jsat.text.tokenizer.Tokenizer;
 import jsat.text.wordweighting.WordWeighting;
 import jsat.utils.IntList;
+import jsat.utils.IntSet;
 
 /**
  * This class provides a framework for loading datasets made of Text documents 
@@ -22,7 +23,9 @@ import jsat.utils.IntList;
  */
 public abstract class TextDataLoader implements TextVectorCreator
 {
-    /**
+
+	private static final long serialVersionUID = -657254682338792871L;
+	/**
      * List of original vectors
      */
     protected List<SparseVector> vectors;
@@ -275,7 +278,7 @@ public abstract class TextDataLoader implements TextVectorCreator
     public RemoveAttributeTransformFactory getMinimumOccurrenceDTF(int minCount)
     {
         
-        final Set<Integer> numericToRemove = new HashSet<Integer>();
+        final Set<Integer> numericToRemove = new IntSet();
         for(int i = 0; i < termDocumentFrequencys.size(); i++)
             if(termDocumentFrequencys.get(i) < minCount)
                 numericToRemove.add(i);

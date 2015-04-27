@@ -1,6 +1,5 @@
 package jsat.classifiers.bayesian;
 
-import jsat.classifiers.Classifier;
 import jsat.distributions.multivariate.NormalM;
 
 /**
@@ -13,7 +12,10 @@ import jsat.distributions.multivariate.NormalM;
  */
 public class MultivariateNormals extends BestClassDistribution
 {
-    public MultivariateNormals(boolean usePriors)
+
+	private static final long serialVersionUID = 5977979334930517655L;
+
+	public MultivariateNormals(boolean usePriors)
     {
         super(new NormalM(), usePriors);
     }

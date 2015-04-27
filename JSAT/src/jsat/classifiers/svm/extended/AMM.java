@@ -27,22 +27,24 @@ import jsat.utils.random.XORWOW;
  * <br>
  * See: 
  * <ul>
- * <li>Wang, Z., Djuric, N., Crammer, K., & Vucetic, S. (2011). <i>Trading 
+ * <li>Wang, Z., Djuric, N., Crammer, K., &amp; Vucetic, S. (2011). <i>Trading 
  * representability for scalability Adaptive Multi-Hyperplane Machine for 
  * nonlinear Classification</i>. In Proceedings of the 17th ACM SIGKDD 
  * international conference on Knowledge discovery and data mining - KDD ’11 
  * (p. 24). New York, New York, USA: ACM Press. doi:10.1145/2020408.2020420</li>
- * <li>Djuric, N., Lan, L., Vucetic, S., & Wang, Z. (2014). <i>BudgetedSVM: A 
+ * <li>Djuric, N., Lan, L., Vucetic, S., &amp; Wang, Z. (2014). <i>BudgetedSVM: A 
  * Toolbox for Scalable SVM Approximations</i>. Journal of Machine Learning 
  * Research, 14, 3813–3817. Retrieved from 
- * <a href="http://jmlr.org/papers/v14/djuric13a.html>here</a></li>
+ * <a href="http://jmlr.org/papers/v14/djuric13a.html">here</a></li>
  * </ul>
  * 
  * @author Edward Raff
  */
 public class AMM extends OnlineAMM
 {
-    private int subEpochs = 1;
+
+	private static final long serialVersionUID = -9198419566231617395L;
+	private int subEpochs = 1;
 
     /**
      * Creates a new batch AMM learner

@@ -9,7 +9,10 @@ import jsat.linear.Vec;
  */
 public abstract class IndexFunction implements Function
 {
-    /**
+
+	private static final long serialVersionUID = -7306754195712805257L;
+
+	/**
      * An index function, meant to be applied to vectors where the 
      * value to be computed may vary based on the position in the 
      * vector of the value. 

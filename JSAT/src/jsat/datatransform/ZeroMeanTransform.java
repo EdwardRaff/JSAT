@@ -13,7 +13,9 @@ import jsat.linear.Vec;
  */
 public class ZeroMeanTransform implements InPlaceInvertibleTransform
 {
-    /**
+
+	private static final long serialVersionUID = -7411115746918116163L;
+	/**
      * Shift vector stores the mean value of each variable in the original data set. 
      */
     private Vec shiftVector;

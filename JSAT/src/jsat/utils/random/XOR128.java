@@ -12,7 +12,9 @@ import java.util.Random;
  */
 public class XOR128 extends Random
 {
-    private long x , y , z , w ;
+
+	private static final long serialVersionUID = -5218902638864900490L;
+	private long x , y , z , w ;
     
     /**
      * Creates a new PRNG with a random seed

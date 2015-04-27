@@ -17,7 +17,10 @@ import jsat.utils.IndexTable;
  */
 public class ROCPlot extends Graph2D
 {
-    /**
+
+	private static final long serialVersionUID = -5956609892534834431L;
+
+	/**
      * Index 0: the classifier 
      * Index 1: the x/y set of values
      * Index 2: the individual point values that belong to x or y

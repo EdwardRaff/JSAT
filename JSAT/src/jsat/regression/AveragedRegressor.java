@@ -14,7 +14,9 @@ import jsat.classifiers.DataPoint;
  */
 public class AveragedRegressor implements Regressor
 {
-    /**
+
+	private static final long serialVersionUID = 8870461208829349608L;
+	/**
      * The array of voting regressors 
      */
     protected Regressor[] voters;

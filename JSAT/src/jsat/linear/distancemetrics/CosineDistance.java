@@ -26,7 +26,10 @@ public class CosineDistance implements DistanceMetric
      * to avoid this.
      */
 
-    @Override
+
+	private static final long serialVersionUID = -6475546704095989078L;
+
+	@Override
     public double dist(Vec a, Vec b)
     {
         /*

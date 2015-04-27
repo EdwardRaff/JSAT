@@ -20,7 +20,9 @@ import static jsat.linear.MatrixStatistics.*;
  */
 public class WhitenedPCA implements DataTransform
 {
-    /**
+
+	private static final long serialVersionUID = 6134243673037330608L;
+	/**
      * Regularization parameter
      */
     protected double regularization;

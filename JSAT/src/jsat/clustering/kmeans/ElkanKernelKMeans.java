@@ -27,7 +27,10 @@ import jsat.utils.concurrent.ParallelUtils;
  */
 public class ElkanKernelKMeans extends KernelKMeans
 {
-    /**
+
+	private static final long serialVersionUID = 4998832201379993827L;
+
+	/**
      * Creates a new Kernel K Means object
      * @param kernel the kernel to use
      */

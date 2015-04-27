@@ -46,7 +46,6 @@ public class KernelPoints
      * instead of adding it to the basis set
      * @param mergeGrams whether or not to merge the gram matrices of each 
      * KernelPoint. 
-     * @see #setMergeGrams(boolean) 
      */
     public KernelPoints(KernelTrick k, int points, double errorTolerance, boolean mergeGrams)
     {
@@ -122,7 +121,7 @@ public class KernelPoints
     
     /**
      * Sets the error tolerance used for projection maintenance strategies such 
-     * as {@link BudgetStrategy#PROJECTION}
+     * as {@link KernelPoint.BudgetStrategy#PROJECTION}
      * @param errorTolerance the error tolerance in [0, 1]
      */
     public void setErrorTolerance(double errorTolerance)
@@ -136,7 +135,7 @@ public class KernelPoints
     
     /**
      * Returns the error tolerance that is used depending on the 
-     * {@link BudgetStrategy} in use
+     * {@link KernelPoint.BudgetStrategy} in use
      * @return the error tolerance value
      */
     public double getErrorTolerance()
@@ -574,9 +573,7 @@ public class KernelPoints
     /**
      * Adds a new Kernel Point to the internal list this object represents. The
      * new Kernel Point will be equivalent to creating a new KernelPoint 
-     * directly. <br>
-     * If{@link #isMergeGrams() } is {@code true}, the new point will share the
-     * currently existing kernel matrix. 
+     * directly.
      */
     public void addNewKernelPoint()
     {
@@ -609,10 +606,8 @@ public class KernelPoints
     }
     
     /**
-     * Returns the number of basis vectors in use. If {@link #isMergeGrams() }
-     * is {@code true}, this value is the exact number of basis vectors in use. 
-     * If {@code false}, this returns the sum of the number of basis vectors 
-     * used by each KernelPoint. If a vector has been added to more than one 
+     * Returns the number of basis vectors in use.
+     * If a vector has been added to more than one 
      * Kernel Point it may get double counted (or more), so the value returned 
      * may not be reasonable in that case. 
      * @return the number of basis vectors in use
@@ -625,12 +620,7 @@ public class KernelPoints
     /**
      * Returns a list of the raw vectors being used by the kernel points. 
      * Altering this vectors will alter the same vectors used by these objects
-     * and will cause inconsistent results. <br>
-     * <br>
-     * If {@link #isMergeGrams() } is {@code true}, the returned list contains 
-     * no duplicate vectors and will be the correct number of items. If 
-     * {@code false}, any vectors that were added to more than one KernelPoint 
-     * may be returned multiple times in this list. 
+     * and will cause inconsistent results. 
      * 
      * @return the list of raw basis vectors used by the Kernel points
      */

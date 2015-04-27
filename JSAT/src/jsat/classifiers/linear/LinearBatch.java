@@ -32,10 +32,10 @@ import jsat.utils.concurrent.ParallelUtils;
 
 /**
  * LinearBatch learns either a classification or regression problem depending on 
- * the {@link #setLoss(jsat.lossfunctions.LossFunc) loss function &#x2113;(w,x)}
+ * the {@link #setLoss(jsat.lossfunctions.LossFunc) loss function &#8467;(w,x)}
  * used. The solution attempts to minimize 
- * <big>&sum;</big><sub>i</sub> &#x2113;(w,x<sub>i</sub>) + 
- * {@link #setLambda0(double) &lambda<sub>0</sub>}/2 ||w||<sub>2</sub><sup>2</sup>, and is 
+ * <big>&sum;</big><sub>i</sub> &#8467;(w,x<sub>i</sub>) + 
+ * {@link #setLambda0(double) &lambda;<sub>0</sub>}/2 ||w||<sub>2</sub><sup>2</sup>, and is 
  * trained using a batch optimization method. <br>
  * <br>
  * <br>
@@ -44,7 +44,9 @@ import jsat.utils.concurrent.ParallelUtils;
  */
 public class LinearBatch implements Classifier, Regressor, Parameterized
 {
-    private Vec[] ws;
+
+	private static final long serialVersionUID = -446156124954287580L;
+	private Vec[] ws;
     private LossFunc loss;
     private double lambda0;
     private Optimizer2 optimizer;
@@ -314,7 +316,11 @@ public class LinearBatch implements Classifier, Regressor, Parameterized
      */
     public class LossFunction implements FunctionP
     {
-        private final DataSet D;
+        /**
+		 * 
+		 */
+		private static final long serialVersionUID = -576682206943283356L;
+		private final DataSet D;
         private final LossFunc loss;
 
         public LossFunction(DataSet D, LossFunc loss)
@@ -525,7 +531,11 @@ public class LinearBatch implements Classifier, Regressor, Parameterized
     
     public class LossMCFunction implements FunctionP
     {
-        private final ClassificationDataSet D;
+        /**
+		 * 
+		 */
+		private static final long serialVersionUID = -861700500356609563L;
+		private final ClassificationDataSet D;
         private final LossMC loss;
 
         public LossMCFunction(ClassificationDataSet D, LossMC loss)

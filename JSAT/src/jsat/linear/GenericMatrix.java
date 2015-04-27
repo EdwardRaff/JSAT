@@ -22,7 +22,9 @@ import static java.lang.Math.*;
  */
 public abstract class GenericMatrix extends Matrix
 {
-    /**
+
+	private static final long serialVersionUID = -8173419025024676713L;
+	/**
      * Step size if the computation accesses 2*NB2^2 * dataTypeSize data, 
      * so that the data being worked on fits into the L2 cache
      */

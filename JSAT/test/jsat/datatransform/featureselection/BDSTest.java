@@ -2,16 +2,20 @@
 package jsat.datatransform.featureselection;
 
 import java.util.*;
+
 import jsat.classifiers.ClassificationDataSet;
 import jsat.classifiers.Classifier;
 import jsat.classifiers.knn.NearestNeighbour;
 import jsat.regression.MultipleLinearRegression;
 import jsat.regression.RegressionDataSet;
+import jsat.utils.IntSet;
+
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
+
 import static org.junit.Assert.*;
 
 /**
@@ -54,7 +58,7 @@ public class BDSTest
         System.out.println("transformC");
         Random rand = new Random(13);
         int t0 = 1, t1 = 5, t2 = 8;
-        Set<Integer> shouldHave = new HashSet<Integer>();
+        Set<Integer> shouldHave = new IntSet();
         shouldHave.addAll(Arrays.asList(t0, t1, t2));
         
         ClassificationDataSet cds = SFSTest.
@@ -75,7 +79,7 @@ public class BDSTest
         System.out.println("transformR");
         Random rand = new Random(13);
         int t0 = 1, t1 = 5, t2 = 8;
-        Set<Integer> shouldHave = new HashSet<Integer>();
+        Set<Integer> shouldHave = new IntSet();
         shouldHave.addAll(Arrays.asList(t0, t1, t2));
         
         RegressionDataSet rds = SFSTest.

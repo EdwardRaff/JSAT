@@ -29,7 +29,9 @@ import jsat.parameters.*;
  */
 public class MetricKDE extends MultivariateKDE implements Parameterized
 {
-    private KernelFunction kf;
+
+	private static final long serialVersionUID = -2084039950938740815L;
+	private KernelFunction kf;
     private double bandwidth;
     private DistanceMetric distanceMetric;
     private VectorCollectionFactory<VecPaired<Vec, Integer>> vcf;
@@ -62,10 +64,20 @@ public class MetricKDE extends MultivariateKDE implements Parameterized
     public static final KernelFunction DEFAULT_KF = EpanechnikovKF.getInstance();
     
     private final List<Parameter> parameters = Collections.unmodifiableList(new ArrayList<Parameter>()
-    {{
+    {/**
+		 * 
+		 */
+		private static final long serialVersionUID = -2830924861210733734L;
+
+	{
         add(new KernelFunctionParameter() {
 
-                @Override
+                /**
+			 * 
+			 */
+			private static final long serialVersionUID = 560041843101841185L;
+
+				@Override
                 public KernelFunction getObject()
                 {
                     return getKernelFunction();
@@ -81,7 +93,12 @@ public class MetricKDE extends MultivariateKDE implements Parameterized
         
         add(new MetricParameter() {
 
-                @Override
+                /**
+			 * 
+			 */
+			private static final long serialVersionUID = 1506569342529820853L;
+
+				@Override
                 public boolean setMetric(DistanceMetric val)
                 {
                     setDistanceMetric(val);
@@ -97,7 +114,12 @@ public class MetricKDE extends MultivariateKDE implements Parameterized
         
         add(new IntParameter() {
 
-                @Override
+                /**
+			 * 
+			 */
+			private static final long serialVersionUID = 2109791176169136850L;
+
+				@Override
                 public int getValue()
                 {
                     return getDefaultK();
@@ -121,7 +143,12 @@ public class MetricKDE extends MultivariateKDE implements Parameterized
         
         add(new DoubleParameter() {
 
-                @Override
+                /**
+			 * 
+			 */
+			private static final long serialVersionUID = 685333554755596799L;
+
+				@Override
                 public double getValue()
                 {
                     return getDefaultStndDev();

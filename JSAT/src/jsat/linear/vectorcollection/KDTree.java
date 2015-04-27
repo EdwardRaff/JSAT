@@ -3,9 +3,9 @@ package jsat.linear.vectorcollection;
 
 import java.util.*;
 import java.util.concurrent.ExecutorService;
+
 import jsat.linear.Vec;
 import jsat.linear.VecPaired;
-import static jsat.linear.VecPaired.extractTrueVec;
 import jsat.linear.VecPairedComparable;
 import jsat.linear.distancemetrics.*;
 import jsat.math.OnLineStatistics;
@@ -25,7 +25,9 @@ import jsat.utils.*;
  */
 public class KDTree<V extends Vec> implements VectorCollection<V>
 {
-    private DistanceMetric distanceMetric;
+
+	private static final long serialVersionUID = -7401342201406776463L;
+	private DistanceMetric distanceMetric;
     private KDNode root;
     private PivotSelection pvSelection;
     private int size;
@@ -139,7 +141,7 @@ public class KDTree<V extends Vec> implements VectorCollection<V>
             this.locatin = locatin;
             this.axis = axis;
         }
-        
+        @SuppressWarnings("unused")
         public void setAxis(int axis)
         {
             this.axis = axis;
@@ -149,7 +151,7 @@ public class KDTree<V extends Vec> implements VectorCollection<V>
         {
             this.left = left;
         }
-
+        @SuppressWarnings("unused")
         public void setLocatin(int locatin)
         {
             this.locatin = locatin;
@@ -159,22 +161,22 @@ public class KDTree<V extends Vec> implements VectorCollection<V>
         {
             this.right = right;
         }
-
+        @SuppressWarnings("unused")
         public int getAxis()
         {
             return axis;
         }
-
+        @SuppressWarnings("unused")
         public KDNode getLeft()
         {
             return left;
         }
-
+        @SuppressWarnings("unused")
         public int getLocatin()
         {
             return locatin;
         }
-
+        @SuppressWarnings("unused")
         public KDNode getRight()
         {
             return right;
@@ -420,7 +422,11 @@ public class KDTree<V extends Vec> implements VectorCollection<V>
     
     public static class KDTreeFactory<V extends Vec> implements VectorCollectionFactory<V>
     {
-        private PivotSelection pivotSelectionMethod;
+        /**
+		 * 
+		 */
+		private static final long serialVersionUID = 3508731608962277804L;
+		private PivotSelection pivotSelectionMethod;
 
         public KDTreeFactory(PivotSelection pvSelectionMethod)
         {

@@ -2,7 +2,6 @@
 package jsat.math;
 
 import java.io.Serializable;
-import java.text.DecimalFormat;
 
 /**
  *
@@ -18,7 +17,8 @@ import java.text.DecimalFormat;
  */
 public class OnLineStatistics implements Serializable, Cloneable
 {
-   /**
+	private static final long serialVersionUID = -4286295481362462983L;
+/**
      * The current mean
      */
    private double mean;
@@ -171,7 +171,7 @@ public class OnLineStatistics implements Serializable, Cloneable
     * all observations in {@code B} from {@code A}. <br>
     * NOTE: removing statistics is not as numerically stable. The values of the 
     * 3rd and 4th moments {@link #getSkewness() } and {@link #getKurtosis() }
-    * will be inaccurate for many inputs. The {@link #getMin( min} and 
+    * will be inaccurate for many inputs. The {@link #getMin() min} and 
     * {@link #getMax() max}  can not be determined in this setting, and will not
     * be altered. 
     * @param A the first set of statistics, which must have a larger value for 
@@ -192,7 +192,7 @@ public class OnLineStatistics implements Serializable, Cloneable
     * in {@code B}.<br>
     * NOTE: removing statistics is not as numerically stable. The values of the 
     * 3rd and 4th moments {@link #getSkewness() } and {@link #getKurtosis() }
-    * will be inaccurate for many inputs. The {@link #getMin( min} and 
+    * will be inaccurate for many inputs. The {@link #getMin() min} and 
     * {@link #getMax() max}  can not be determined in this setting, and will not
     * be altered. 
     * @param B the set of statistics to remove
@@ -200,6 +200,7 @@ public class OnLineStatistics implements Serializable, Cloneable
    public void remove(OnLineStatistics B)
    {
        final OnLineStatistics A = this;
+     //XXX double compare.
        if(A.n == B.n)
        {
            n = mean = m2 = m3 = m4 = 0;
@@ -266,6 +267,7 @@ public class OnLineStatistics implements Serializable, Cloneable
    public void add(OnLineStatistics B)
    {
        final OnLineStatistics A = this;
+       //XXX double compare.
        if(A.n == B.n && B.n == 0)
            return;//nothing to do!
        else if(B.n == 0)

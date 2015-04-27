@@ -13,7 +13,9 @@ import java.util.*;
  */
 public class IntPriorityQueue extends AbstractQueue<Integer> implements Serializable
 {
-    public static final Comparator<Integer> naturalComparator = new Comparator<Integer>() {
+
+	private static final long serialVersionUID = -310756323843109562L;
+	public static final Comparator<Integer> naturalComparator = new Comparator<Integer>() {
 
         @Override
         public int compare(Integer o1, Integer o2)
@@ -219,7 +221,7 @@ public class IntPriorityQueue extends AbstractQueue<Integer> implements Serializ
         }
         valueIndexStore[e] = i;
     }
-
+    @SuppressWarnings("unused")
     private int getRightMostChild(int i)
     {
         int rightMostChild = i;

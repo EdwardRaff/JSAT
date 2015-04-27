@@ -1,8 +1,9 @@
 package jsat.datatransform.featureselection;
 
 import static java.lang.Math.log;
-import java.util.HashSet;
+
 import java.util.Set;
+
 import jsat.DataSet;
 import jsat.classifiers.*;
 import jsat.datatransform.*;
@@ -10,6 +11,7 @@ import jsat.exceptions.FailedToFitException;
 import jsat.linear.IndexValue;
 import jsat.linear.Vec;
 import jsat.utils.IndexTable;
+import jsat.utils.IntSet;
 
 /**
  * Performs greedy feature selection based on Mutual Information of the features
@@ -22,7 +24,10 @@ import jsat.utils.IndexTable;
  */
 public class MutualInfoFS extends RemoveAttributeTransform
 {
-    /**
+
+	private static final long serialVersionUID = -4394620220403363542L;
+
+	/**
      * The definition for mutual information for continuous attributes requires 
      * an integration of an unknown function, as such requires some form of 
      * approximation. This controls how the approximation is done
@@ -194,8 +199,8 @@ public class MutualInfoFS extends RemoveAttributeTransform
         
         IndexTable sortedOrder = new IndexTable(mis);
         
-        Set<Integer> catToRemove = new HashSet<Integer>();
-        Set<Integer> numToRemove = new HashSet<Integer>();
+        Set<Integer> catToRemove = new IntSet();
+        Set<Integer> numToRemove = new IntSet();
         
         for(int i = 0; i < consideredCount-featureCount; i++)
         {

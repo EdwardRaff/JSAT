@@ -36,12 +36,12 @@ public class DirectedGraph<N> implements Cloneable
         {
             return outgoing;
         }
-
+        @SuppressWarnings("unused")
         public void setIncoming(A first)
         {
             this.incoming = first;
         }
-
+        @SuppressWarnings("unused")
         public void setOutgoing(B outgoing)
         {
             this.outgoing = outgoing;

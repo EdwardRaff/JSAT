@@ -33,21 +33,21 @@ import jsat.regression.UpdateableRegressor;
  * the {@link #setLoss(jsat.lossfunctions.LossFunc) loss function &#x2113;(w,x)}
  * used. The solution attempts to minimize 
  * <big>&sum;</big><sub>i</sub> &#x2113;(w,x<sub>i</sub>) + 
- * {@link #setLambda0(double) &lambda<sub>0</sub>}/2 ||w||<sub>2</sub><sup>2</sup> + 
- * {@link #setLambda1(double) &lambda<sub>1</sub>} ||w||<sub>1</sub>, and is 
+ * {@link #setLambda0(double) &lambda;<sub>0</sub>}/2 ||w||<sub>2</sub><sup>2</sup> + 
+ * {@link #setLambda1(double) &lambda;<sub>1</sub>} ||w||<sub>1</sub>, and is 
  * trained by Stochastic Gradient Descent. <br>
  * <br>
  * <br>
  * NOTE: To support L<sub>1</sub> regularization with sparse results and online 
  * learning at the same time, the normalization of the regularization penalty by
  * the number of data points is not present in the implementation at this time. 
- * Setting {@link #setLambda1(double) &lambda<sub>1</sub>} to the desired value 
+ * Setting {@link #setLambda1(double) &lambda;<sub>1</sub>} to the desired value 
  * divided by the number of unique data points in the whole set will result in 
  * the correct regularization penalty being applied. 
  * 
  * See:
  * <ul>
- * <li>Tsuruoka, Y., Tsujii, J., & Ananiadou, S. (2009). <i>Stochastic gradient 
+ * <li>Tsuruoka, Y., Tsujii, J.,&amp;Ananiadou, S. (2009). <i>Stochastic gradient 
  * descent training for L1-regularized log-linear models with cumulative 
  * penalty</i>. Proceedings of the Joint Conference of the 47th Annual Meeting 
  * of the ACL and the 4th International Joint Conference on Natural Language 
@@ -58,7 +58,9 @@ import jsat.regression.UpdateableRegressor;
 public class LinearSGD extends BaseUpdateableClassifier implements UpdateableRegressor, Parameterized, SimpleWeightVectorModel
 {
     
-    private LossFunc loss;
+
+	private static final long serialVersionUID = -59695592724956535L;
+	private LossFunc loss;
     private GradientUpdater gradientUpdater;
     private double eta;
     private DecayRate decay;

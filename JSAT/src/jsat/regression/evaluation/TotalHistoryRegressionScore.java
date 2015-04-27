@@ -10,7 +10,9 @@ import jsat.utils.DoubleList;
  */
 public abstract class TotalHistoryRegressionScore implements RegressionScore
 {
-    /**
+
+	private static final long serialVersionUID = -5262934560490160236L;
+	/**
      * List of the true target values
      */
     protected DoubleList truths;

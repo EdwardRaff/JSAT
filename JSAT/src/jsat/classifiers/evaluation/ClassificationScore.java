@@ -55,7 +55,7 @@ public interface ClassificationScore extends Serializable
     public double getScore();
     
     /**
-     * Returns {@code true} if a lower score is better, or {@link false} if a
+     * Returns {@code true} if a lower score is better, or {@code false} if a
      * higher score is better
      * @return {@code true} if a lower score is better
      */

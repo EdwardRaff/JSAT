@@ -16,7 +16,9 @@ import java.util.List;
  */
 public class MatrixOfVecs extends GenericMatrix
 {
-    private List<Vec> rows;
+
+	private static final long serialVersionUID = 6120353195388663462L;
+	private List<Vec> rows;
 
     /**
      * Creates a new Matrix of Vecs from the given array of Vec objects. All Vec

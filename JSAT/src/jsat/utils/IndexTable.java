@@ -20,7 +20,9 @@ import java.util.*;
  */
 public class IndexTable implements Serializable
 {
-    static private final Comparator defaultComp = new Comparator()        
+
+	private static final long serialVersionUID = -1917765351445664286L;
+	static private final Comparator defaultComp = new Comparator()        
     {
 
         @Override
@@ -245,10 +247,10 @@ public class IndexTable implements Serializable
     /**
      * Given the index <tt>i</tt> into what would be the sorted array, the index in the unsorted original array is returned. <br>
      * If the original array was a double array, <i>double[] vals</i>, then the sorted order can be printed with <br>
-     * <code><pre>
+     * <pre><code>
      * for(int i = 0; i &lt; indexTable.{@link #length() length}(); i++)
      *     System.out.println(vals[indexTable.get(i)]);
-     * </pre></code>
+     * </code></pre>
      * @param i the index of the i'th sorted value
      * @return the index in the original list that would be in the i'th position
      */
@@ -298,8 +300,8 @@ public class IndexTable implements Serializable
      * ordering. It will be modified, and may be expanded using the {@link 
      * List#add(java.lang.Object) add} method if it does not contain sufficient 
      * space. Extra size in the tmp list will be ignored. After this method is 
-     * called, {@link tmp} will contain the same ordering that was in 
-     * {@link target} <br>
+     * called, {@code tmp} will contain the same ordering that was in 
+     * {@code target} <br>
      * <br>
      * This method is provided as a means to reducing memory use when multiple 
      * lists need to be sorted. 

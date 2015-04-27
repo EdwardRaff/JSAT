@@ -13,7 +13,9 @@ import java.util.concurrent.ExecutorService;
  */
 public class MajorityVote implements Classifier
 {
-    private Classifier[] voters;
+
+	private static final long serialVersionUID = 7945429768861275845L;
+	private Classifier[] voters;
 
     /**
      * Creates a new Majority Vote classifier using the given voters. If already trained, the 

@@ -29,8 +29,8 @@ import jsat.utils.random.XORWOW;
  * the {@link LogisticLoss logistic loss}. However, it can work with non-smooth 
  * loss functions such as the {@link HingeLoss hinge loss}. <br>
  * <br>
- * See: Zhang, L., Yi, J., Jin, R., Lin, M., & He, X. (2013). <i>Online Kernel 
- * Learning with a Near Optimal Sparsity Bound</i>. In S. Dasgupta & D. 
+ * See: Zhang, L., Yi, J., Jin, R., Lin, M.,&amp;He, X. (2013). <i>Online Kernel 
+ * Learning with a Near Optimal Sparsity Bound</i>. In S. Dasgupta&amp;D. 
  * Mcallester (Eds.), Proceedings of the 30th International Conference on 
  * Machine Learning (ICML-13) (Vol. 28, pp. 621–629). JMLR Workshop and 
  * Conference Proceedings.
@@ -39,7 +39,9 @@ import jsat.utils.random.XORWOW;
  */
 public class OSKL extends BaseUpdateableClassifier implements BinaryScoreClassifier, Parameterized
 {
-    @ParameterHolder
+
+	private static final long serialVersionUID = 4207594016856230134L;
+	@ParameterHolder
     private KernelTrick k;
     private double eta;
     private double R;

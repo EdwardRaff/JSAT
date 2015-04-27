@@ -10,7 +10,10 @@ package jsat.lossfunctions;
 public class SquaredLoss implements LossR
 {
 
-    /**
+
+	private static final long serialVersionUID = 130786305325167077L;
+
+	/**
      * Computes the SquaredLoss loss
      *
      * @param pred the predicted value

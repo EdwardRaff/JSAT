@@ -2,7 +2,6 @@
 package jsat.text.wordweighting;
 
 import java.util.List;
-import jsat.linear.SparseVector;
 import jsat.linear.Vec;
 import jsat.math.IndexFunction;
 
@@ -18,7 +17,10 @@ import jsat.math.IndexFunction;
 public abstract class WordWeighting extends IndexFunction
 {
 
-    /**
+
+	private static final long serialVersionUID = 2372760149718829334L;
+
+	/**
      * Prepares the word weighting to be performed on a data set. This should be
      * called once before being applied to any vectors. Different WordWeightings
      * may require different amounts of computation to set up. 

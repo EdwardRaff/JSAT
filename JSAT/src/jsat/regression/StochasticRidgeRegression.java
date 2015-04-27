@@ -3,7 +3,6 @@ package jsat.regression;
 
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import jsat.SingleWeightVectorModel;
 import jsat.classifiers.DataPoint;
@@ -28,7 +27,9 @@ import jsat.utils.ListUtils;
  */
 public class StochasticRidgeRegression implements Regressor, Parameterized, SingleWeightVectorModel
 {
-    private double lambda;
+
+	private static final long serialVersionUID = -3462783438115627128L;
+	private double lambda;
     private int epochs;
     private int batchSize;
     private double learningRate;

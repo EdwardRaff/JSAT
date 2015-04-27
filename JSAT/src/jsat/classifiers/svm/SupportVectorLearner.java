@@ -228,7 +228,12 @@ public abstract class SupportVectorLearner
         {
             partialCache = new LinkedHashMap<Integer, double[]>(N, 0.75f, true)
             {
-                @Override
+                /**
+				 * 
+				 */
+				private static final long serialVersionUID = 1553368345126287610L;
+
+				@Override
                 protected boolean removeEldestEntry(Map.Entry<Integer, double[]> eldest)
                 {
                     boolean removeEldest = size() > cacheConst;

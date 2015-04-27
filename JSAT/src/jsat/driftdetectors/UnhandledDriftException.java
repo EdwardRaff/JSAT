@@ -9,7 +9,10 @@ package jsat.driftdetectors;
 public class UnhandledDriftException extends RuntimeException
 {
 
-    public UnhandledDriftException()
+
+	private static final long serialVersionUID = -5781626293819651067L;
+
+	public UnhandledDriftException()
     {
         super();
     }

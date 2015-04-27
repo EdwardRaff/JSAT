@@ -2,7 +2,9 @@
 package jsat.distributions.multivariate;
 
 import static java.lang.Math.*;
+
 import java.util.*;
+
 import jsat.classifiers.DataPoint;
 import jsat.distributions.empirical.KernelDensityEstimator;
 import jsat.distributions.empirical.kernelfunc.EpanechnikovKF;
@@ -10,6 +12,7 @@ import jsat.distributions.empirical.kernelfunc.KernelFunction;
 import jsat.exceptions.UntrainedModelException;
 import jsat.linear.*;
 import jsat.utils.IndexTable;
+import jsat.utils.IntSet;
 
 /**
  * The Product Kernel Density Estimator is a generalization of the {@link KernelDensityEstimator} to the multivariate case. 
@@ -22,7 +25,9 @@ import jsat.utils.IndexTable;
  */
 public class ProductKDE extends MultivariateKDE
 {
-    private KernelFunction k;
+
+	private static final long serialVersionUID = 7298078759216991650L;
+	private KernelFunction k;
     private double[][] sortedDimVals;
     private double[] bandwidth;
     private int[][] sortedIndexVals;
@@ -78,7 +83,7 @@ public class ProductKDE extends MultivariateKDE
     {
         
         SparseVector logProd = new SparseVector(sortedDimVals[0].length);
-        Set<Integer> validIndecies = new HashSet<Integer>();
+        Set<Integer> validIndecies = new IntSet();
         double logH = queryWork(x, validIndecies, logProd);
         List<VecPaired<VecPaired<Vec, Integer>, Double>> results = new ArrayList<VecPaired<VecPaired<Vec, Integer>, Double>>(validIndecies.size());
         
@@ -104,7 +109,7 @@ public class ProductKDE extends MultivariateKDE
         int N = sortedDimVals[0].length;
         
         SparseVector logProd = new SparseVector(sortedDimVals[0].length);
-        Set<Integer> validIndecies = new HashSet<Integer>();
+        Set<Integer> validIndecies = new IntSet();
         double logH = queryWork(x, validIndecies, logProd);
         
         for(int i : validIndecies)
@@ -142,7 +147,7 @@ public class ProductKDE extends MultivariateKDE
             //Mostly likely the exact value of x is not in the list, so it retursn the inseration points
             from = from < 0 ? -from-1 : from;
             to = to < 0 ? -to-1 : to;
-            Set<Integer> subIndecies = new HashSet<Integer>();
+            Set<Integer> subIndecies = new IntSet();
             for(int j = max(0, from); j < min(X.length, to+1); j++)
             {
                 int trueIndex = sortedIndexVals[i][j];

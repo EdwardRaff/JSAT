@@ -14,7 +14,10 @@ import jsat.math.MathTricks;
 public class SoftmaxLayer implements ActivationLayer
 {
 
-    @Override
+
+	private static final long serialVersionUID = -6595701781466123463L;
+
+	@Override
     public void activate(Vec input, Vec output)
     {
         input.copyTo(output);

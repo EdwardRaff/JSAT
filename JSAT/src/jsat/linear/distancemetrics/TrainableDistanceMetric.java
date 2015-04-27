@@ -22,7 +22,10 @@ import jsat.utils.FakeExecutor;
 abstract public class TrainableDistanceMetric implements DistanceMetric
 {
     
-    /**
+
+	private static final long serialVersionUID = 6356276953152869105L;
+
+	/**
      * Trains this metric on the given data set
      * @param <V> the type of vectors in the list
      * @param dataSet the data set to train on

@@ -31,7 +31,9 @@ import jsat.utils.IntList;
  */
 public class ALMA2K extends BaseUpdateableClassifier implements BinaryScoreClassifier, Parameterized
 {
-    private static final double p = 2;
+
+	private static final long serialVersionUID = 7247320234799227009L;
+	private static final double p = 2;
     private double alpha;
     private double B;
     private double C = Math.sqrt(2);

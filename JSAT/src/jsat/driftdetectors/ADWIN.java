@@ -16,14 +16,16 @@ import jsat.math.OnLineStatistics;
  * It is important to control its size using {@link #setMaxHistory(int) } when
  * using ADWIN. By default, ADWIN will use a maximum history of 0. <br>
  * <br>
- * See: Bifet, A., & Gavalda, R. (2007). <i>Learning from Time-Changing Data 
+ * See: Bifet, A.,&amp;Gavalda, R. (2007). <i>Learning from Time-Changing Data 
  * with Adaptive Windowing</i>. In SIAM International Conference on Data Mining.
  * 
  * @author Edward Raff
  */
 public class ADWIN<V> extends BaseDriftDetector<V>
 {
-    private double delta;
+
+	private static final long serialVersionUID = 3287510845017257629L;
+	private double delta;
     private OnLineStatistics allStats;
     /**
      * List of all the stats summarizing the windows. New items are added to the

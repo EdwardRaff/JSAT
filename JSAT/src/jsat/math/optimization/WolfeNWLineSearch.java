@@ -59,7 +59,7 @@ public class WolfeNWLineSearch implements LineSearch
 
     /**
      * Sets the constant used for the <i>sufficient decrease condition</i> 
-     * f(x+&alpha; p) &le; f(x) + c<sub>1</sub> &alpha; p<sup>T</sup>&Nabla;f(x)
+     * f(x+&alpha; p) &le; f(x) + c<sub>1</sub> &alpha; p<sup>T</sup>&nabla;f(x)
      * <br>
      * <br>
      * This value must always be less than {@link #setC2(double) }
@@ -85,7 +85,7 @@ public class WolfeNWLineSearch implements LineSearch
     
     /**
      * Sets the constant used for the <i>curvature condition</i> 
-     * p<sup>T</sup> &Nabla;f(x+&alpha; p) &ge; c<sub>2</sub> p<sup>T</sup>&Nabla;f(x)
+     * p<sup>T</sup> &nabla;f(x+&alpha; p) &ge; c<sub>2</sub> p<sup>T</sup>&nabla;f(x)
      * @param c2 the <i>curvature condition</i> constant
      */
     public void setC2(double c2)

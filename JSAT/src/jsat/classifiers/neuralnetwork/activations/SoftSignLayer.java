@@ -8,7 +8,7 @@ import jsat.linear.Vec;
  * similar to the {@link TanhLayer tanh} activation and has a min/max of -1 and
  * 1. However it is significantly faster to compute. <br>
  * <br>
- * See: Glorot, X., & Bengio, Y. (2010). <i>Understanding the difficulty of 
+ * See: Glorot, X., &amp; Bengio, Y. (2010). <i>Understanding the difficulty of 
  * training deep feedforward neural networks</i>. Journal of Machine Learning 
  * Research - Proceedings Track, 9, 249–256. Retrieved from 
  * <a href="http://jmlr.csail.mit.edu/proceedings/papers/v9/glorot10a/glorot10a.pdf">
@@ -18,7 +18,10 @@ import jsat.linear.Vec;
 public class SoftSignLayer implements ActivationLayer
 {
 
-    @Override
+
+	private static final long serialVersionUID = 9137125423044227288L;
+
+	@Override
     public void activate(Vec input, Vec output)
     {
         for(int i = 0; i < input.length(); i++)

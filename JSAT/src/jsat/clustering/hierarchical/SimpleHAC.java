@@ -5,7 +5,6 @@ import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import jsat.DataSet;
-import jsat.clustering.KClusterer;
 import jsat.clustering.KClustererBase;
 import static jsat.clustering.dissimilarity.AbstractClusterDissimilarity.createDistanceMatrix;
 import jsat.clustering.dissimilarity.ClusterDissimilarity;
@@ -25,7 +24,9 @@ import jsat.utils.IntSet;
  */
 public class SimpleHAC extends KClustererBase
 {
-    /**
+
+	private static final long serialVersionUID = 7138073766768205530L;
+	/**
      * notion behind the large stnd devs is that as the clustering progresses, 
      * the min value is (usually) monotonically rising, so we would like a 
      * bigger jump

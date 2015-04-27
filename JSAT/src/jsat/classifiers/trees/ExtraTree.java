@@ -3,13 +3,12 @@ package jsat.classifiers.trees;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Random;
 import java.util.Set;
 import java.util.Stack;
 import java.util.concurrent.ExecutorService;
+
 import jsat.classifiers.CategoricalData;
 import jsat.classifiers.CategoricalResults;
 import jsat.classifiers.ClassificationDataSet;
@@ -23,6 +22,7 @@ import jsat.parameters.Parameterized;
 import jsat.regression.RegressionDataSet;
 import jsat.regression.Regressor;
 import jsat.utils.IntList;
+import jsat.utils.IntSet;
 import jsat.utils.ListUtils;
 
 /**
@@ -32,7 +32,7 @@ import jsat.utils.ListUtils;
  * If set to randomly select one feature for each node, it becomes a <i>Totally 
  * Randomized Tree</i><br>
  * See: <br>
- * Geurts, P., Ernst, D., & Wehenkel, L. (2006). <i>Extremely randomized trees
+ * Geurts, P., Ernst, D.,&amp;Wehenkel, L. (2006). <i>Extremely randomized trees
  * </i>. Machine learning, 63(1), 3–42. doi:10.1007/s10994-006-6226-1
  * 
  * @author Edward Raff
@@ -41,7 +41,9 @@ public class ExtraTree implements Classifier, Regressor, TreeLearner, Parameteri
 {
     //TODO in both of the train methods, 2 passes are done for numeric features. This can be done in one pass by fiding the min/max when we split, and passing that info in the argument parameters
     
-    private int stopSize;
+
+	private static final long serialVersionUID = 7433728970041876327L;
+	private int stopSize;
     private int selectionCount;
     private CategoricalData predicting;
     private boolean binaryCategoricalSplitting = true;
@@ -240,12 +242,12 @@ public class ExtraTree implements Classifier, Regressor, TreeLearner, Parameteri
                 if(binaryCategoricalSplitting || vals == 2)
                 {
                     scores = createScores(2);
-                    Set<Integer> catsValsInUse = new HashSet<Integer>(vals*2);
+                    Set<Integer> catsValsInUse = new IntSet(vals*2);
                     for(DataPointPair<Integer> dpp : subSet)
                         catsValsInUse.add(dpp.getDataPoint().getCategoricalValue(a));
                     if(catsValsInUse.size() == 1)
                         return new NodeC(setScore.getResults());
-                    leftSide = new HashSet<Integer>(vals);
+                    leftSide = new IntSet(vals);
                     int toUse = rand.nextInt(catsValsInUse.size()-1)+1;
                     ListUtils.randomSample(catsValsInUse, leftSide, toUse, rand);
                     //Now we have anything in leftSide is path 0, we can do the bining
@@ -392,12 +394,12 @@ public class ExtraTree implements Classifier, Regressor, TreeLearner, Parameteri
                 if(binaryCategoricalSplitting || vals == 2)
                 {
                     stats = createStats(2);
-                    Set<Integer> catsValsInUse = new HashSet<Integer>(vals*2);
+                    Set<Integer> catsValsInUse = new IntSet(vals*2);
                     for(DataPointPair<Double> dpp : subSet)
                         catsValsInUse.add(dpp.getDataPoint().getCategoricalValue(a));
                     if(catsValsInUse.size() == 1)
                         return new NodeR(setScore.getMean());
-                    leftSide = new HashSet<Integer>(vals);
+                    leftSide = new IntSet(vals);
                     int toUse = rand.nextInt(catsValsInUse.size()-1)+1;
                     ListUtils.randomSample(catsValsInUse, leftSide, toUse, rand);
                     //Now we have anything in leftSide is path 0, we can do the bining
@@ -627,6 +629,10 @@ public class ExtraTree implements Classifier, Regressor, TreeLearner, Parameteri
     private static class NodeCCat extends NodeC
     {
         /**
+		 * 
+		 */
+		private static final long serialVersionUID = 7413428280703235600L;
+		/**
          * Categorical attribute to split on
          */
         private int catAtt;
@@ -690,7 +696,11 @@ public class ExtraTree implements Classifier, Regressor, TreeLearner, Parameteri
      */
     private static class NodeCNum extends NodeC
     {
-        private int numerAtt;
+        /**
+		 * 
+		 */
+		private static final long serialVersionUID = 3967180517059509869L;
+		private int numerAtt;
         private double threshold;
 
         public NodeCNum(int numerAtt, double threshold, CategoricalResults crResult)
@@ -730,7 +740,11 @@ public class ExtraTree implements Classifier, Regressor, TreeLearner, Parameteri
      */
     private static class NodeC extends NodeBase
     {
-        private CategoricalResults crResult;
+        /**
+		 * 
+		 */
+		private static final long serialVersionUID = -3977497656918695759L;
+		private CategoricalResults crResult;
         
         /**
          * Creates a new leaf node
@@ -784,7 +798,11 @@ public class ExtraTree implements Classifier, Regressor, TreeLearner, Parameteri
      */
     private static abstract class NodeBase extends TreeNodeVisitor
     {
-        protected TreeNodeVisitor[] children;
+        /**
+		 * 
+		 */
+		private static final long serialVersionUID = 6783491817922690901L;
+		protected TreeNodeVisitor[] children;
 
         public NodeBase()
         {
@@ -852,7 +870,11 @@ public class ExtraTree implements Classifier, Regressor, TreeLearner, Parameteri
      */
     private static class NodeR extends NodeBase
     {
-        private double result;
+        /**
+		 * 
+		 */
+		private static final long serialVersionUID = -2461046505444129890L;
+		private double result;
         
         /**
          * Creates a new leaf node
@@ -905,7 +927,11 @@ public class ExtraTree implements Classifier, Regressor, TreeLearner, Parameteri
      */
     private static class NodeRNum extends NodeR
     {
-        private int numerAtt;
+        /**
+		 * 
+		 */
+		private static final long serialVersionUID = -6775472771777960211L;
+		private int numerAtt;
         private double threshold;
 
         public NodeRNum(int numerAtt, double threshold, double result)
@@ -943,6 +969,10 @@ public class ExtraTree implements Classifier, Regressor, TreeLearner, Parameteri
     private static class NodeRCat extends NodeR
     {
         /**
+		 * 
+		 */
+		private static final long serialVersionUID = 5868393594474661054L;
+		/**
          * Categorical attribute to split on
          */
         private int catAtt;

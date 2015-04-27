@@ -3,7 +3,6 @@ package jsat.classifiers.linear;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import jsat.SingleWeightVectorModel;
 import jsat.classifiers.*;
@@ -25,7 +24,7 @@ import jsat.utils.ListUtils;
  * C <big>&Sigma;</big> log(1+exp(-y<sub>i</sub>w<sup>T</sup>x<sub>i</sub>)) + w<sup>T</sup>w/2
  * <br><br>
  * See:<br>
- * Yu, H.-F., Huang, F.-L., & Lin, C.-J. (2010). <i>Dual Coordinate Descent 
+ * Yu, H.-F., Huang, F.-L.,&amp;Lin, C.-J. (2010). <i>Dual Coordinate Descent 
  * Methods for Logistic Regression and Maximum Entropy Models</i>. Machine 
  * Learning, 85(1-2), 41–75. doi:10.1007/s10994-010-5221-8
  * 
@@ -33,7 +32,9 @@ import jsat.utils.ListUtils;
  */
 public class LogisticRegressionDCD implements Classifier, Parameterized, SingleWeightVectorModel
 {
-    private static final double eps_1 = 1e-3;
+
+	private static final long serialVersionUID = -5813704270903243462L;
+	private static final double eps_1 = 1e-3;
     private static final double eps_2 = 1e-8;
     
     private Vec w;

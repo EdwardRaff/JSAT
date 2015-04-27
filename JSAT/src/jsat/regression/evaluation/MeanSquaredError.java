@@ -10,7 +10,9 @@ import jsat.math.OnLineStatistics;
  */
 public class MeanSquaredError implements RegressionScore
 {
-    private OnLineStatistics meanError;
+
+	private static final long serialVersionUID = 3655567184376550126L;
+	private OnLineStatistics meanError;
     private boolean rmse;
 
     public MeanSquaredError()
@@ -83,13 +85,13 @@ public class MeanSquaredError implements RegressionScore
     
     @Override
     public int hashCode()
-    {
+    {//XXX this is a strange hashcode method
         return getName().hashCode();
     }
     
     @Override
     public boolean equals(Object obj)
-    {
+    {//XXX check for equality of fields and obj == null
         if(this.getClass().isAssignableFrom(obj.getClass()) && obj.getClass().isAssignableFrom(this.getClass()))
         {
             return this.rmse == ((MeanSquaredError)obj).rmse;

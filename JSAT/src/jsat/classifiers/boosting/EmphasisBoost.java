@@ -2,7 +2,6 @@ package jsat.classifiers.boosting;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import jsat.classifiers.*;
 import jsat.classifiers.calibration.BinaryScoreClassifier;
@@ -25,7 +24,7 @@ import jsat.utils.FakeExecutor;
  * numerical issues occur. 
  * <br><br>
  * See: <br>
- * Gómez-Verdejo, V., Ortega-Moral, M., Arenas-García, J., & Figueiras-Vidal, 
+ * Gómez-Verdejo, V., Ortega-Moral, M., Arenas-García, J.,&amp;Figueiras-Vidal, 
  * A. R. (2006). <i>Boosting by weighting critical and erroneous samples</i>.
  * Neurocomputing, 69(7-9), 679–685. doi:10.1016/j.neucom.2005.12.011
  * 
@@ -33,7 +32,9 @@ import jsat.utils.FakeExecutor;
  */
 public class EmphasisBoost implements Classifier, Parameterized, BinaryScoreClassifier
 {
-    private Classifier weakLearner;
+
+	private static final long serialVersionUID = -6372897830449685891L;
+	private Classifier weakLearner;
     private int maxIterations;
     /**
      * The list of weak hypothesis

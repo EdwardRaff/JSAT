@@ -10,7 +10,6 @@ import java.util.List;
 import javax.swing.BorderFactory;
 import javax.swing.JComboBox;
 import javax.swing.JDialog;
-import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextField;
@@ -24,7 +23,9 @@ import jsat.linear.Vec;
  */
 public class SingleVariableViewDialog extends JDialog
 {
-    final JPanel panel;
+
+	private static final long serialVersionUID = -3635281795623474239L;
+	final JPanel panel;
     final List<Vec> dataSets;
     final String[] titles;
 

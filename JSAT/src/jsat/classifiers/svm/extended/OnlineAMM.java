@@ -32,22 +32,24 @@ import jsat.utils.IntList;
  * <br>
  * See: 
  * <ul>
- * <li>Wang, Z., Djuric, N., Crammer, K., & Vucetic, S. (2011). <i>Trading 
+ * <li>Wang, Z., Djuric, N., Crammer, K., &amp; Vucetic, S. (2011). <i>Trading 
  * representability for scalability Adaptive Multi-Hyperplane Machine for 
  * nonlinear Classification</i>. In Proceedings of the 17th ACM SIGKDD 
  * international conference on Knowledge discovery and data mining - KDD ’11 
  * (p. 24). New York, New York, USA: ACM Press. doi:10.1145/2020408.2020420</li>
- * <li>Djuric, N., Lan, L., Vucetic, S., & Wang, Z. (2014). <i>BudgetedSVM: A 
+ * <li>Djuric, N., Lan, L., Vucetic, S., &amp; Wang, Z. (2014). <i>BudgetedSVM: A 
  * Toolbox for Scalable SVM Approximations</i>. Journal of Machine Learning 
  * Research, 14, 3813–3817. Retrieved from 
- * <a href="http://jmlr.org/papers/v14/djuric13a.html>here</a></li>
+ * <a href="http://jmlr.org/papers/v14/djuric13a.html">here</a></li>
  * </ul>
  * 
  * @author Edward Raff
  */
 public class OnlineAMM extends BaseUpdateableClassifier implements Parameterized
 {
-    /*
+
+	private static final long serialVersionUID = 8291068484917637037L;
+	/*
      * b/c of the batch learner we use a map, so that we dont have to think 
      * about how to handle re-assignment of data points to weight vectors. 
      * Also allows us to handle removed cases by checking if our owner is in the

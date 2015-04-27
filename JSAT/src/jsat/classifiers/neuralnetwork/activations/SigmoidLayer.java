@@ -12,7 +12,10 @@ import jsat.linear.Vec;
 public class SigmoidLayer implements ActivationLayer
 {
 
-    @Override
+
+	private static final long serialVersionUID = 160273287445169627L;
+
+	@Override
     public void activate(Vec input, Vec output)
     {
         for(int i = 0; i < input.length(); i++)

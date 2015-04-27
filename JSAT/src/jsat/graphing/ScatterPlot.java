@@ -16,7 +16,9 @@ import jsat.regression.Regressor;
  */
 public class ScatterPlot extends Graph2D
 {
-    private Vec xValues;
+
+	private static final long serialVersionUID = -2533942800053058839L;
+	private Vec xValues;
     private Vec yValues;
     /**
      * Private function to be used by those who want to plot a regression through the data set
@@ -64,7 +66,12 @@ public class ScatterPlot extends Graph2D
             myReg.train(rds);
             regressionFunction = new Function() {
 
-                @Override
+                /**
+				 * 
+				 */
+				private static final long serialVersionUID = -2078175037671332385L;
+
+				@Override
                 public double f(double... x)
                 {
                     return f(DenseVector.toDenseVec(x));

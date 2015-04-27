@@ -15,7 +15,9 @@ import java.util.Random;
  */
 public abstract class RandomVector extends Vec
 {
-    /*
+
+	private static final long serialVersionUID = -1587968421978707875L;
+	/*
      * Implementation note: It is assumed that the default random object is a
      * PRNG with a single word / long of state. A higher quality PRNG cant be 
      * used if it requires too many words of state, as the initalization will 

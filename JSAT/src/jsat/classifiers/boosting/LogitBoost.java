@@ -2,7 +2,6 @@
 package jsat.classifiers.boosting;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import jsat.classifiers.CategoricalResults;
@@ -13,9 +12,6 @@ import jsat.classifiers.DataPointPair;
 import jsat.classifiers.OneVSAll;
 import jsat.exceptions.FailedToFitException;
 import jsat.exceptions.UntrainedModelException;
-import jsat.linear.DenseVector;
-import jsat.linear.Vec;
-import jsat.math.TrigMath;
 import jsat.parameters.Parameter;
 import jsat.parameters.Parameterized;
 import jsat.regression.MultipleLinearRegression;
@@ -37,7 +33,9 @@ import jsat.regression.Regressor;
  */
 public class LogitBoost implements Classifier, Parameterized
 {
-    /**
+
+	private static final long serialVersionUID = 1621062168467402062L;
+	/**
      * The constant factor that the sum of regressors is scaled by. 
      */
     protected double fScaleConstant = 0.5;

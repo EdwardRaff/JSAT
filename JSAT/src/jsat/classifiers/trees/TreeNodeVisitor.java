@@ -27,7 +27,10 @@ import jsat.classifiers.DataPoint;
  */
 public abstract class TreeNodeVisitor implements Serializable, Cloneable
 {
-    /**
+
+	private static final long serialVersionUID = 4026847401940409114L;
+
+	/**
      * Returns the number of children this node of the tree has, and may return 
      * a non zero value even if the node is a leaf
      * @return the number of children this node has

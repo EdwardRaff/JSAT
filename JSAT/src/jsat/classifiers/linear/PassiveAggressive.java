@@ -1,8 +1,6 @@
 package jsat.classifiers.linear;
 
-import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import jsat.SingleWeightVectorModel;
 import jsat.classifiers.*;
@@ -22,7 +20,7 @@ import jsat.regression.UpdateableRegressor;
  * performs the minimal update necessary to correct for a mistake. 
  * <br><br>
  * See:<br>
- * Crammer, K., Dekel, O., Keshet, J., Shalev-Shwartz, S., & Singer, Y. (2006). 
+ * Crammer, K., Dekel, O., Keshet, J., Shalev-Shwartz, S.,&amp;Singer, Y. (2006). 
  * <a href="http://dl.acm.org/citation.cfm?id=1248566">
  * <i>Online passive-aggressive algorithms</i></a>. Journal of Machine Learning 
  * Research, 7, 551–585. 
@@ -31,7 +29,9 @@ import jsat.regression.UpdateableRegressor;
  */
 public class PassiveAggressive implements UpdateableClassifier, BinaryScoreClassifier, UpdateableRegressor, Parameterized, SingleWeightVectorModel
 {
-    private int epochs;
+
+	private static final long serialVersionUID = -7130964391528405832L;
+	private int epochs;
     private double C = 0.01;
     private double eps = 0.001;
     private Vec w;

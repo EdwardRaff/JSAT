@@ -5,16 +5,20 @@
 package jsat.datatransform;
 
 import java.util.*;
+
 import jsat.SimpleDataSet;
 import jsat.classifiers.CategoricalData;
 import jsat.classifiers.DataPoint;
 import jsat.linear.DenseVector;
 import jsat.linear.Vec;
+import jsat.utils.IntSet;
+
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
+
 import static org.junit.Assert.*;
 
 /**
@@ -66,9 +70,9 @@ public class RemoveAttributeTransformTest
         SimpleDataSet dataSet =new SimpleDataSet(Arrays.asList(dp));
         
         
-        Set<Integer> catToRemove = new HashSet<Integer>();
+        Set<Integer> catToRemove = new IntSet();
         catToRemove.add(1);
-        Set<Integer> numToRemove = new HashSet<Integer>();
+        Set<Integer> numToRemove = new IntSet();
         numToRemove.addAll(Arrays.asList(0, 2, 3));
         
         RemoveAttributeTransform transform = new RemoveAttributeTransform(dataSet, catToRemove, numToRemove);
@@ -122,9 +126,9 @@ public class RemoveAttributeTransformTest
         SimpleDataSet dataSet =new SimpleDataSet(Arrays.asList(dp));
         
         
-        Set<Integer> catToRemove = new HashSet<Integer>();
+        Set<Integer> catToRemove = new IntSet();
         catToRemove.add(1);
-        Set<Integer> numToRemove = new HashSet<Integer>();
+        Set<Integer> numToRemove = new IntSet();
         numToRemove.addAll(Arrays.asList(0, 2, 3));
         
         RemoveAttributeTransform transform = new RemoveAttributeTransform(dataSet, catToRemove, numToRemove);
@@ -161,9 +165,9 @@ public class RemoveAttributeTransformTest
         SimpleDataSet dataSet =new SimpleDataSet(Arrays.asList(dp));
         
         
-        Set<Integer> catToRemove = new HashSet<Integer>();
+        Set<Integer> catToRemove = new IntSet();
         catToRemove.add(1);
-        Set<Integer> numToRemove = new HashSet<Integer>();
+        Set<Integer> numToRemove = new IntSet();
         numToRemove.addAll(Arrays.asList(0, 2, 3));
         
         RemoveAttributeTransform transform = new RemoveAttributeTransform(dataSet, catToRemove, numToRemove);

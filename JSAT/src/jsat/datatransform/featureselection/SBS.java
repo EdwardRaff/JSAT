@@ -1,6 +1,7 @@
 package jsat.datatransform.featureselection;
 
 import java.util.*;
+
 import jsat.DataSet;
 import jsat.classifiers.*;
 import jsat.datatransform.*;
@@ -9,6 +10,7 @@ import static jsat.datatransform.featureselection.SFS.removeFeature;
 import jsat.regression.RegressionDataSet;
 import jsat.regression.Regressor;
 import jsat.utils.IntList;
+import jsat.utils.IntSet;
 import jsat.utils.ListUtils;
 
 /**
@@ -21,7 +23,9 @@ import jsat.utils.ListUtils;
  */
 public class SBS extends RemoveAttributeTransform
 {
-    private double maxDecrease;
+
+	private static final long serialVersionUID = -2516121100148559742L;
+	private double maxDecrease;
     
     /**
      * Copy constructor
@@ -75,13 +79,13 @@ public class SBS extends RemoveAttributeTransform
         int nF = dataSet.getNumFeatures();
         int nCat = dataSet.getNumCategoricalVars();
         
-        Set<Integer> available = new HashSet<Integer>();
+        Set<Integer> available = new IntSet();
         ListUtils.addRange(available, 0, nF, 1);
-        Set<Integer> catSelected = new HashSet<Integer>(dataSet.getNumCategoricalVars());
-        Set<Integer> numSelected = new HashSet<Integer>(dataSet.getNumNumericalVars());
+        Set<Integer> catSelected = new IntSet(dataSet.getNumCategoricalVars());
+        Set<Integer> numSelected = new IntSet(dataSet.getNumNumericalVars());
         
-        Set<Integer> catToRemove = new HashSet<Integer>(dataSet.getNumCategoricalVars());
-        Set<Integer> numToRemove = new HashSet<Integer>(dataSet.getNumNumericalVars());
+        Set<Integer> catToRemove = new IntSet(dataSet.getNumCategoricalVars());
+        Set<Integer> numToRemove = new IntSet(dataSet.getNumNumericalVars());
 
         //Start will all selected, and prune them out
         ListUtils.addRange(catSelected, 0, nCat, 1);
@@ -126,7 +130,7 @@ public class SBS extends RemoveAttributeTransform
      */
     public Set<Integer> getSelectedCategorical()
     {
-        return new HashSet<Integer>(IntList.view(catIndexMap, catIndexMap.length));
+        return new IntSet(IntList.view(catIndexMap, catIndexMap.length));
     }
     
     /**
@@ -137,7 +141,7 @@ public class SBS extends RemoveAttributeTransform
      */
     public Set<Integer> getSelectedNumerical()
     {
-        return new HashSet<Integer>(IntList.view(numIndexMap, numIndexMap.length));
+        return new IntSet(IntList.view(numIndexMap, numIndexMap.length));
     }
 
     /**

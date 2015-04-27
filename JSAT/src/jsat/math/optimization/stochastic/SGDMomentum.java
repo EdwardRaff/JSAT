@@ -10,19 +10,21 @@ import jsat.linear.Vec;
  * <br> 
  * See:<br>
  * <ul>
- * <li>Bengio, Y., Boulanger-Lewandowski, N., & Pascanu, R. (2013). <i>Advances 
+ * <li>Bengio, Y., Boulanger-Lewandowski, N.,&amp;Pascanu, R. (2013). <i>Advances 
  * in optimizing recurrent networks</i>. In 2013 IEEE International Conference 
  * on Acoustics, Speech and Signal Processing (pp. 8624–8628). IEEE. 
  * doi:10.1109/ICASSP.2013.6639349</li>
- * <li>Sutskever, I., Martens, J., Dahl, G., & Hinton, G. (2013). <i>On the 
- * importance of initialization and momentum in deep learning</i>. JMLR W&CP,
+ * <li>Sutskever, I., Martens, J., Dahl, G.,&amp;Hinton, G. (2013). <i>On the 
+ * importance of initialization and momentum in deep learning</i>. JMLR W&amp;CP,
  * 28, 1139–1147.</li>
  * </ul>
  * @author Edward Raff
  */
 public class SGDMomentum implements GradientUpdater
 {
-    private double momentum;
+
+	private static final long serialVersionUID = -3837883539010356899L;
+	private double momentum;
     private boolean nestrov;
     private Vec velocity;
     private double biasVelocity;

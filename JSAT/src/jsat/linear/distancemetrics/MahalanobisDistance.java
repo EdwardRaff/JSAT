@@ -19,7 +19,9 @@ import jsat.regression.RegressionDataSet;
  */
 public class MahalanobisDistance extends TrainableDistanceMetric
 {
-    private boolean reTrain;
+
+	private static final long serialVersionUID = 7878528119699276817L;
+	private boolean reTrain;
     /**
      * The inverse of the covariance matrix 
      */

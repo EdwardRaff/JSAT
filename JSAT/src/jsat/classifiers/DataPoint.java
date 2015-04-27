@@ -14,7 +14,9 @@ import jsat.linear.Vec;
  */
 public class DataPoint implements Cloneable, Serializable
 {
-    private double weight;
+
+	private static final long serialVersionUID = -1363327591317639955L;
+	private double weight;
     protected Vec numericalValues;
     protected int[] categoricalValues;
     protected CategoricalData[] categoricalData;
@@ -86,7 +88,7 @@ public class DataPoint implements Cloneable, Serializable
     /**
      * Set the weight that this data point should carry. The norm is 1.0
      * @param weight the new weight value
-     * @throws ArithmeticException if the weight value is not a number > 0
+     * @throws ArithmeticException if the weight value is not a number &gt; 0
      */
     public void setWeight(double weight)
     {

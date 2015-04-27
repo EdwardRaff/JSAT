@@ -26,7 +26,9 @@ import jsat.parameters.*;
  */
 public class ClassifierSelectionDialog extends JDialog
 {
-    private Frame owner;
+
+	private static final long serialVersionUID = 208983866163325774L;
+	private Frame owner;
     private List<ClassifierInfo> listInUse;
     //Provide a little wrapper class to use and filter classifier options
     private static abstract class ClassifierInfo 
@@ -64,7 +66,12 @@ public class ClassifierSelectionDialog extends JDialog
     }
     
     private static final List<ClassifierInfo> weakClassifiers = new ArrayList<ClassifierSelectionDialog.ClassifierInfo>()
-    {{
+    {/**
+		 * 
+		 */
+		private static final long serialVersionUID = -7137111995902822951L;
+
+	{
         add(new ClassifierInfo() {
 
                 @Override
@@ -94,7 +101,12 @@ public class ClassifierSelectionDialog extends JDialog
     }};
     
     private static final List<ClassifierInfo> possClass = new ArrayList<ClassifierSelectionDialog.ClassifierInfo>()
-    {{
+    {/**
+		 * 
+		 */
+		private static final long serialVersionUID = -8100532426504012898L;
+
+	{
         addAll(weakClassifiers);
 
                 add(new ClassifierInfoWeakLearner()
@@ -263,7 +275,12 @@ public class ClassifierSelectionDialog extends JDialog
             public Classifier getNewClassifier()
             {
                 GridSearch gSearch = new GridSearch((Classifier)new PlatSMO(new LinearKernel()), 5)
-                {{
+                {/**
+					 * 
+					 */
+					private static final long serialVersionUID = 5389228909478509872L;
+
+				{
                     DoubleParameter paramC = (DoubleParameter) ((Parameterized)getBaseClassifier()).getParameter("C");
 
                     addParameter(paramC, 2e-5, 2e-3, 2e-1, 2e1, 2e3, 2e5, 2e7, 2e9, 2e11 , 2e13, 2e15);
@@ -285,7 +302,12 @@ public class ClassifierSelectionDialog extends JDialog
             public Classifier getNewClassifier()
             {
                GridSearch g = new GridSearch((Classifier)new PlatSMO(new RBFKernel(2)), 5)
-                {{
+                {/**
+					 * 
+					 */
+					private static final long serialVersionUID = 5216566364915038112L;
+
+				{
                     DoubleParameter paramC = (DoubleParameter) ((Parameterized)getBaseClassifier()).getParameter("C");
                     DoubleParameter paramRBF = (DoubleParameter) ((Parameterized)getBaseClassifier()).getParameter("RBFKernel_sigma");
 

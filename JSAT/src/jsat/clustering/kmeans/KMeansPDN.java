@@ -3,9 +3,7 @@ package jsat.clustering.kmeans;
 import java.util.*;
 import java.util.concurrent.ExecutorService;
 import jsat.DataSet;
-import jsat.clustering.SeedSelectionMethods.SeedSelection;
 import jsat.linear.Vec;
-import jsat.linear.distancemetrics.DistanceMetric;
 
 /**
  * This class provides a method of performing {@link KMeans} clustering when the
@@ -20,7 +18,7 @@ import jsat.linear.distancemetrics.DistanceMetric;
  * When the value of {@code K} is specified, the implementation will simply call
  * the regular KMeans object it was constructed with. 
  * 
- * See: Pham, D. T., Dimov, S. S., & Nguyen, C. D. (2005). <i>Selection of K in 
+ * See: Pham, D. T., Dimov, S. S.,&amp;Nguyen, C. D. (2005). <i>Selection of K in 
  * K-means clustering</i>. Proceedings of the Institution of Mechanical 
  * Engineers, Part C: Journal of Mechanical Engineering Science, 219(1), 
  * 103–119. doi:10.1243/095440605X8298
@@ -29,7 +27,9 @@ import jsat.linear.distancemetrics.DistanceMetric;
  */
 public class KMeansPDN extends KMeans
 {
-    private KMeans kmeans;
+
+	private static final long serialVersionUID = -2358377567814606959L;
+	private KMeans kmeans;
     private double[] fKs;
     
     /**

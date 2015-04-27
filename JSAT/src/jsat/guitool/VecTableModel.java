@@ -2,10 +2,8 @@
 
 package jsat.guitool;
 
-import java.util.List;
 import javax.swing.table.AbstractTableModel;
 import jsat.DataSet;
-import jsat.linear.Vec;
 
 /**
  *
@@ -13,7 +11,9 @@ import jsat.linear.Vec;
  */
 public class VecTableModel extends AbstractTableModel
 {
-    private final int rows;
+
+	private static final long serialVersionUID = 876162850502819048L;
+	private final int rows;
     private final int columns;
     private final DataSet dataSet;
 

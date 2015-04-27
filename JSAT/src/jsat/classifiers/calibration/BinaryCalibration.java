@@ -1,10 +1,8 @@
 
 package jsat.classifiers.calibration;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import jsat.classifiers.ClassificationDataSet;
 import jsat.classifiers.Classifier;
@@ -31,7 +29,9 @@ import jsat.utils.FakeExecutor;
  */
 public abstract class BinaryCalibration implements Classifier, Parameterized
 {
-    /**
+
+	private static final long serialVersionUID = 2356311701854978890L;
+	/**
      * The base classifier to train and calibrate the outputs of
      */
     @ParameterHolder

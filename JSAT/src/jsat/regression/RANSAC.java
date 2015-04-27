@@ -4,12 +4,14 @@ import java.util.*;
 import java.util.concurrent.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
 import jsat.classifiers.DataPoint;
 import jsat.classifiers.DataPointPair;
 import jsat.exceptions.FailedToFitException;
 import jsat.parameters.*;
 import jsat.parameters.Parameter.ParameterHolder;
 import jsat.utils.FakeExecutor;
+import jsat.utils.IntSet;
 import jsat.utils.SystemInfo;
 
 /**
@@ -28,7 +30,9 @@ import jsat.utils.SystemInfo;
  */
 public class RANSAC implements Regressor, Parameterized
 {
-    /**
+
+	private static final long serialVersionUID = -5015748604828907703L;
+	/**
      * the minimum number of data required to fit the model
      */
     private int initialTrainSize;
@@ -122,7 +126,7 @@ public class RANSAC implements Regressor, Parameterized
             
             boolean[] working_set = new boolean[dataset.getSampleSize()];
             
-            Set<Integer> maybe_inliers = new HashSet<Integer>(initialTrainSize*2);
+            Set<Integer> maybe_inliers = new IntSet(initialTrainSize*2);
             
             for(int iter = 0; iter < maxIterations; iter++)
             {

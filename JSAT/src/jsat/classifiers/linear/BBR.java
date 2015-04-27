@@ -10,7 +10,6 @@ import jsat.exceptions.FailedToFitException;
 import jsat.linear.Vec;
 import static java.lang.Math.*;
 import java.util.List;
-import java.util.Map;
 import jsat.SingleWeightVectorModel;
 import jsat.linear.DenseVector;
 import jsat.linear.IndexValue;
@@ -26,7 +25,7 @@ import jsat.parameters.Parameterized;
  * BBR uses a Trust Region Newton algorithm that allows convergence to occur in
  * a small number of iterations, but each iteration may be costly.
  * <br><br>
- * See: Genkin, A., Lewis, D. D., & Madigan, D. (2007). <i>Large-Scale Bayesian
+ * See: Genkin, A., Lewis, D. D.,&amp;Madigan, D. (2007). <i>Large-Scale Bayesian
  * Logistic Regression for Text Categorization</i>. Technometrics, 49(3),
  * 291–304. doi:10.1198/004017007000000245
  *
@@ -34,7 +33,9 @@ import jsat.parameters.Parameterized;
  */
 public class BBR implements Classifier, Parameterized, SingleWeightVectorModel
 {
-    //weight vector w is refferd to as beta in the original paper, just replace beta with w
+
+	private static final long serialVersionUID = 8297213093357011082L;
+	//weight vector w is refferd to as beta in the original paper, just replace beta with w
     private Vec w;
     private int maxIterations;
     private double regularization;
@@ -50,7 +51,7 @@ public class BBR implements Classifier, Parameterized, SingleWeightVectorModel
     public static enum Prior
     {
         /**
-         * Laplace prior equivalent to L<sub></sub> regularization
+         * Laplace prior equivalent to L<sub>1</sub> regularization
          */
         LAPLACE,
         /**

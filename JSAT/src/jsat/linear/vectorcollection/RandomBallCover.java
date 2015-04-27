@@ -34,7 +34,9 @@ import static jsat.utils.SystemInfo.LogicalCores;
  */
 public class RandomBallCover<V extends Vec> implements VectorCollection<V>
 {
-    private DistanceMetric dm;
+
+	private static final long serialVersionUID = 2437771973228849200L;
+	private DistanceMetric dm;
     /**
      * The indices match with their representatives in R
      */
@@ -279,7 +281,12 @@ public class RandomBallCover<V extends Vec> implements VectorCollection<V>
     public static class RandomBallCoverFactory<V extends Vec> implements VectorCollectionFactory<V>
     {
 
-        @Override
+        /**
+		 * 
+		 */
+		private static final long serialVersionUID = 2707446304590604519L;
+
+		@Override
         public VectorCollection<V> getVectorCollection(List<V> source, DistanceMetric distanceMetric)
         {
             return new RandomBallCover<V>(source, distanceMetric);

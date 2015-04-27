@@ -16,7 +16,9 @@ import jsat.linear.Vec;
  */
 public class CategoryPlot extends Graph2D
 {
-    private List<Color> categoryColors;
+
+	private static final long serialVersionUID = -6193861413284802713L;
+	private List<Color> categoryColors;
     private Vec xVals;
     private Vec yVals;
     private int[] category;

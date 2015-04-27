@@ -4,7 +4,6 @@ package jsat.classifiers.svm;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
 import java.util.Random;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
@@ -12,7 +11,6 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 import jsat.classifiers.CategoricalResults;
 import jsat.classifiers.ClassificationDataSet;
-import jsat.classifiers.Classifier;
 import jsat.classifiers.DataPoint;
 import jsat.classifiers.calibration.BinaryScoreClassifier;
 import jsat.distributions.kernels.KernelTrick;
@@ -37,7 +35,7 @@ import jsat.utils.SystemInfo;
  * errors given regularization, the kernelized version may have more difficulty 
  * with noisy or overlapping class distributions. 
  * <br><br>
- * See: Shalev-Shwartz, S., Singer, Y., & Srebro, N. (2007). <i>Pegasos : Primal
+ * See: Shalev-Shwartz, S., Singer, Y.,&amp;Srebro, N. (2007). <i>Pegasos : Primal
  * Estimated sub-GrAdient SOlver for SVM</i>. 24th international conference on 
  * Machine learning (pp. 807–814). New York, NY: ACM. 
  * doi:10.1145/1273496.1273598
@@ -46,7 +44,9 @@ import jsat.utils.SystemInfo;
  */
 public class PegasosK extends SupportVectorLearner implements BinaryScoreClassifier, Parameterized
 {
-    private double regularization;
+
+	private static final long serialVersionUID = 5405460830472328107L;
+	private double regularization;
     private int iterations;
 
     /**

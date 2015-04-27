@@ -25,7 +25,7 @@ import jsat.parameters.Parameterized;
  * NOTE: This implementation does not add an implicit bias term, so the solution
  * goes through the origin 
  * <br><br>
- * See: Crammer, K., Kulesza, A., & Dredze, M. (2013). <i>Adaptive 
+ * See: Crammer, K., Kulesza, A.,&amp;Dredze, M. (2013). <i>Adaptive 
  * regularization of weight vectors</i>. Machine Learning, 91(2), 155–187. 
  * doi:10.1007/s10994-013-5327-x
  * 
@@ -33,7 +33,9 @@ import jsat.parameters.Parameterized;
  */
 public class AROW extends BaseUpdateableClassifier implements BinaryScoreClassifier, Parameterized, SingleWeightVectorModel
 {
-    private Vec w;
+
+	private static final long serialVersionUID = 443803827811508204L;
+	private Vec w;
     /**
      * Full covariance matrix
      */

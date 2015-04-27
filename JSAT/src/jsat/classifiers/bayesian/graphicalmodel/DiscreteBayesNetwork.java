@@ -1,13 +1,11 @@
 
 package jsat.classifiers.bayesian.graphicalmodel;
 
-import java.util.Arrays;
-import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
+
 import jsat.classifiers.CategoricalData;
 import jsat.classifiers.CategoricalResults;
 import jsat.classifiers.ClassificationDataSet;
@@ -17,6 +15,7 @@ import jsat.classifiers.DataPointPair;
 import jsat.classifiers.bayesian.ConditionalProbabilityTable;
 import jsat.classifiers.bayesian.NaiveBayes;
 import jsat.exceptions.FailedToFitException;
+import jsat.utils.IntSet;
 import static java.lang.Math.*;
 
 /**
@@ -34,7 +33,9 @@ import static java.lang.Math.*;
  */
 public class DiscreteBayesNetwork implements Classifier
 {
-    /**
+
+	private static final long serialVersionUID = 2980734594356260141L;
+	/**
      * The directed Graph that represents this BN
      */
     protected DirectedGraph<Integer> dag;
@@ -115,7 +116,7 @@ public class DiscreteBayesNetwork implements Classifier
         predicting = dataSet.getPredicting();
         priors = dataSet.getPriors();
         cpts = new HashMap<Integer, ConditionalProbabilityTable>();
-        Set<Integer> cptTrainSet = new HashSet<Integer>();
+        Set<Integer> cptTrainSet = new IntSet();
         
         if(dag.getNodes().isEmpty())
         {

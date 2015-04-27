@@ -3,20 +3,22 @@ package jsat.clustering.kmeans;
 import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import jsat.DataSet;
+
 import jsat.SimpleDataSet;
 import jsat.classifiers.DataPoint;
 import jsat.clustering.SeedSelectionMethods;
 import jsat.distributions.Uniform;
-import jsat.linear.distancemetrics.DistanceMetric;
 import jsat.linear.distancemetrics.EuclideanDistance;
 import jsat.utils.GridDataGenerator;
+import jsat.utils.IntSet;
 import jsat.utils.SystemInfo;
+
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
+
 import static org.junit.Assert.*;
 
 /**
@@ -68,7 +70,7 @@ public class MiniBatchKMeansTest
         MiniBatchKMeans kMeans = new MiniBatchKMeans(new EuclideanDistance(), 50, 50, SeedSelectionMethods.SeedSelection.FARTHEST_FIRST);
         List<List<DataPoint>> clusters = kMeans.cluster(easyData10, 10);
         assertEquals(10, clusters.size());
-        Set<Integer> seenBefore = new HashSet<Integer>();
+        Set<Integer> seenBefore = new IntSet();
         for(List<DataPoint> cluster :  clusters)
         {
             int thisClass = cluster.get(0).getCategoricalValue(0);
@@ -88,7 +90,7 @@ public class MiniBatchKMeansTest
         MiniBatchKMeans kMeans = new MiniBatchKMeans(new EuclideanDistance(), 50, 50, SeedSelectionMethods.SeedSelection.FARTHEST_FIRST);
         List<List<DataPoint>> clusters = kMeans.cluster(easyData10, 10, ex);
         assertEquals(10, clusters.size());
-        Set<Integer> seenBefore = new HashSet<Integer>();
+        Set<Integer> seenBefore = new IntSet();
         for(List<DataPoint> cluster :  clusters)
         {
             int thisClass = cluster.get(0).getCategoricalValue(0);

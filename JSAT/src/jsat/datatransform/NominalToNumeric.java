@@ -16,7 +16,9 @@ import jsat.linear.*;
  */
 public class NominalToNumeric implements DataTransform
 {
-    private final int origNumericalCount;
+
+	private static final long serialVersionUID = -7765605678836464143L;
+	private final int origNumericalCount;
     private final CategoricalData[] categoricalData;
     private int addedNumers;
     

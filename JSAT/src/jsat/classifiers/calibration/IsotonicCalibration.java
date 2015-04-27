@@ -20,7 +20,7 @@ import jsat.classifiers.DataPoint;
  * Smooth transitions in output probability are created by simple linear 
  * interpolation between bin values. 
  * <br><br>
- * See: Niculescu-Mizil, A., & Caruana, R. (2005). <i>Predicting Good 
+ * See: Niculescu-Mizil, A.,&amp;Caruana, R. (2005). <i>Predicting Good 
  * Probabilities with Supervised Learning</i>. International Conference on 
  * Machine Learning (pp. 625–632). Retrieved from 
  * <a href="http://dl.acm.org/citation.cfm?id=1102430">here</a>
@@ -29,7 +29,9 @@ import jsat.classifiers.DataPoint;
  */
 public class IsotonicCalibration extends BinaryCalibration
 {
-    private double[] outputs;
+
+	private static final long serialVersionUID = -1295979238755262335L;
+	private double[] outputs;
     private double[] scores;
 
     /**

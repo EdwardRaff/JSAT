@@ -33,7 +33,9 @@ import jsat.utils.FakeExecutor;
  */
 public class GridSearch implements Classifier, Regressor
 {
-    private Classifier baseClassifier;
+
+	private static final long serialVersionUID = -1987196172499143753L;
+	private Classifier baseClassifier;
     private Classifier trainedClassifier;
     
     private ClassificationScore classificationTargetScore = new Accuracy();  

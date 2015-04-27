@@ -30,7 +30,9 @@ import jsat.utils.SystemInfo;
  */
 public class Bagging implements Classifier, Regressor, Parameterized
 {
-    private Classifier baseClassifier;
+
+	private static final long serialVersionUID = -6566453570170428838L;
+	private Classifier baseClassifier;
     private Regressor baseRegressor;
     private CategoricalData predicting;
     private int extraSamples;

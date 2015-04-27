@@ -1,8 +1,8 @@
 package jsat.classifiers.evaluation;
 
 /**
- * The F1 score is the harmonic mean of {@link PrecisionMetric precision} and 
- * {@link RecallMetric recall}. This score is only valid for binary 
+ * The F1 score is the harmonic mean of {@link Precision} and 
+ * {@link Recall}. This score is only valid for binary 
  * classification problems. 
  * 
  * @author Edward Raff
@@ -10,7 +10,10 @@ package jsat.classifiers.evaluation;
 public class F1Score extends SimpleBinaryClassMetric
 {
 
-    public F1Score()
+
+	private static final long serialVersionUID = -6192302685766444921L;
+
+	public F1Score()
     {
         super();
     }

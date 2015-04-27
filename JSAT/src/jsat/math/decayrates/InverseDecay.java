@@ -20,7 +20,9 @@ import jsat.parameters.Parameterized;
  */
 public class InverseDecay implements DecayRate, Parameterized
 {
-    private double tau;
+
+	private static final long serialVersionUID = 2756825625752543664L;
+	private double tau;
     private double alpha;
 
     /**

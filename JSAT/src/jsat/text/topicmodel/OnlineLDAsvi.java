@@ -41,6 +41,7 @@ import jsat.utils.random.XORWOW;
  * {@link #setMiniBatchSize(int) batch size}, {@link #setKappa(double) &kappa;},
  * and {@link #setTau0(double) &tau;<sub>0</sub>} are:<br>
  * <table>
+ * <caption></caption>
  * <tr>
  *   <td>batch size</td>
  *   <td>256</td> 
@@ -59,20 +60,21 @@ import jsat.utils.random.XORWOW;
  *   <td>256</td>
  *   <td>64</td>
  * </tr>
+ *
  * </table><br>
  * For smaller corpuses, reducing &tau;<sub>0</sub> can improve the performance (even down to &tau;<sub>0</sub> = 1)
  * <br>
  * See:<br>
  * <ul>
- * <li>Blei, D. M., Ng, A. Y., & Jordan, M. I. (2003). <i>Latent Dirichlet 
+ * <li>Blei, D. M., Ng, A. Y.,&amp;Jordan, M. I. (2003). <i>Latent Dirichlet 
  * Allocation</i>. Journal of Machine Learning Research, 3(4-5), 993–1022.
  * doi:10.1162/jmlr.2003.3.4-5.993</li>
- * <li>Hoffman, M., Blei, D., & Bach, F. (2010). <i>Online Learning for Latent 
+ * <li>Hoffman, M., Blei, D.,&amp;Bach, F. (2010). <i>Online Learning for Latent 
  * Dirichlet Allocation</i>. In Advances in Neural Information Processing 
  * Systems (pp. 856–864). Retrieved from 
  * <a href="http://videolectures.net/site/normal_dl/tag=83534/nips2010_1291.pdf">
  * here</a></li>
- * <li>Hoffman, M. D., Blei, D. M., Wang, C., & Paisley, J. (2013). 
+ * <li>Hoffman, M. D., Blei, D. M., Wang, C.,&amp;Paisley, J. (2013). 
  * <i>Stochastic Variational Inference</i>. The Journal of Machine Learning 
  * Research, 14(1), 1303–1347.</li>
  * <li>Hoffman, M. D. (2013). <i>Lazy updates for online LDA</i>. Retrieved from

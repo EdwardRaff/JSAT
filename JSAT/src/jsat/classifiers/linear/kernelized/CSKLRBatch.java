@@ -4,14 +4,12 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 import java.util.Random;
 import java.util.concurrent.ExecutorService;
 import jsat.classifiers.CategoricalResults;
 import jsat.classifiers.ClassificationDataSet;
 import jsat.classifiers.Classifier;
 import jsat.classifiers.DataPoint;
-import static jsat.classifiers.linear.kernelized.CSKLR.UpdateMode.NC;
 import jsat.classifiers.svm.SupportVectorLearner;
 import jsat.distributions.kernels.KernelTrick;
 import jsat.exceptions.FailedToFitException;
@@ -42,7 +40,7 @@ import jsat.utils.random.XORWOW;
  * variables. They behave different compared to many algorithms. 
  * <br><br>
  * See paper: <br>
- * Zhang, L., Jin, R., Chen, C., Bu, J., & He, X. (2012). <i>Efficient Online 
+ * Zhang, L., Jin, R., Chen, C., Bu, J.,&amp;He, X. (2012). <i>Efficient Online 
  * Learning for Large-Scale Sparse Kernel Logistic Regression</i>. Twenty-Sixth 
  * AAAI Conference on Artificial Intelligence (pp. 1219–1225). Retrieved from 
  * <a href="http://www.aaai.org/ocs/index.php/AAAI/AAAI12/paper/viewPDFInterstitial/5003/5544">here</a>
@@ -51,7 +49,9 @@ import jsat.utils.random.XORWOW;
  */
 public class CSKLRBatch extends SupportVectorLearner implements Parameterized, Classifier
 {
-    private double eta;
+
+	private static final long serialVersionUID = -2305532659182911285L;
+	private double eta;
     private double curNorm;
     private double R = 10;
     private int T = 0;

@@ -17,7 +17,6 @@
 
 package jsat.classifiers.boosting;
 
-import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import jsat.FixedProblems;
@@ -26,7 +25,6 @@ import jsat.classifiers.trees.DecisionStump;
 import jsat.classifiers.trees.DecisionTree;
 import jsat.classifiers.trees.TreePruner;
 import jsat.datatransform.LinearTransform;
-import jsat.parameters.Parameter;
 import jsat.utils.SystemInfo;
 import org.junit.After;
 import org.junit.AfterClass;

@@ -13,8 +13,8 @@ import jsat.linear.Vec;
  * algorithm, which finds a similar solution to SVMs. By default, the aggressive
  * variant with an implicit bias term is used, which is the suggested form from 
  * the paper. It is a binary classifier. 
- * <br><bt>
- * See: Li, Y., & Long, P. M. (2002). <i>The Relaxed Online Maximum Margin 
+ * <br><br>
+ * See: Li, Y.,&amp;Long, P. M. (2002). <i>The Relaxed Online Maximum Margin 
  * Algorithm</i>. Machine Learning, 46(1-3), 361–387. 
  * doi:10.1023/A:1012435301888
  * 
@@ -22,7 +22,9 @@ import jsat.linear.Vec;
  */
 public class ROMMA extends BaseUpdateableClassifier implements BinaryScoreClassifier, SingleWeightVectorModel
 {
-    private boolean useBias = true;
+
+	private static final long serialVersionUID = 8163937542627337711L;
+	private boolean useBias = true;
     private boolean aggressive;
     private Vec w;
     private double bias;

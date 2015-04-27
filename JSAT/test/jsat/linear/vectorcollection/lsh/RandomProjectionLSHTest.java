@@ -1,17 +1,21 @@
 package jsat.linear.vectorcollection.lsh;
 
 import java.util.*;
+
 import jsat.linear.DenseVector;
 import jsat.linear.Vec;
 import jsat.linear.VecPaired;
 import jsat.linear.distancemetrics.CosineDistanceNormalized;
 import jsat.linear.vectorcollection.VectorArray;
 import jsat.math.OnLineStatistics;
+import jsat.utils.IntSet;
+
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
+
 import static org.junit.Assert.*;
 
 /**
@@ -75,7 +79,7 @@ public class RandomProjectionLSHTest
             knnStats.add(naiveVC.search(v, 11).get(10).getPair());//first nn is itselft
         
         double searchDist = knnStats.getMean()+knnStats.getStandardDeviation()*2;
-        Set<Integer> inTruth = new HashSet<Integer>();
+        Set<Integer> inTruth = new IntSet();
         
         for(Vec v : normalVecs)//now use the stats to compare results
         {
@@ -119,7 +123,7 @@ public class RandomProjectionLSHTest
         VectorArray<VecPaired<Vec, Integer>> naiveVC = new VectorArray<VecPaired<Vec, Integer>>(dm, normalVecs);
         RandomProjectionLSH<VecPaired<Vec, Integer>> rpVC = new RandomProjectionLSH<VecPaired<Vec, Integer>>(normalVecs, 16, true);
         
-        Set<Integer> inTruth = new HashSet<Integer>();
+        Set<Integer> inTruth = new IntSet();
         
         for(Vec v : normalVecs)//now use the stats to compare results
         {

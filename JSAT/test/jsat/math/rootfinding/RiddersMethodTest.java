@@ -25,7 +25,12 @@ public class RiddersMethodTest
      */
     Function sinF = new Function() {
 
-        public double f(double... x)
+        /**
+		 * 
+		 */
+		private static final long serialVersionUID = -4942395915907632276L;
+
+		public double f(double... x)
         {
             return sin(x[0]);
         }
@@ -41,7 +46,12 @@ public class RiddersMethodTest
      */
     Function sinFp1 = new Function() {
 
-        public double f(double... x)
+        /**
+		 * 
+		 */
+		private static final long serialVersionUID = -6913574202545691152L;
+
+		public double f(double... x)
         {
             return sin(x[0]+x[1]);
         }
@@ -57,7 +67,12 @@ public class RiddersMethodTest
      */
     Function polyF = new Function() {
 
-        public double f(double... x)
+        /**
+		 * 
+		 */
+		private static final long serialVersionUID = -206733171455524905L;
+
+		public double f(double... x)
         {
             double xp = x[0];
             

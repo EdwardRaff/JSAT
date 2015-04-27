@@ -16,7 +16,10 @@ import jsat.math.FunctionVec;
  */
 public class RosenbrockFunction implements Function
 {
-    @Override
+
+	private static final long serialVersionUID = -5573482950045304948L;
+
+	@Override
     public double f(double... x)
     {
         return f(DenseVector.toDenseVec(x));

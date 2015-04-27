@@ -2,7 +2,7 @@ package jsat.lossfunctions;
 
 /**
  * The HuberLoss loss function for regression. The HuberLoss loss switches between
- * {@link Squared} and {@link Absolute} loss based on a threshold value.
+ * {@link SquaredLoss} and {@link AbsoluteLoss} loss based on a threshold value.
  * <br>
  * This function is only partially twice differentiable.
  *
@@ -11,7 +11,9 @@ package jsat.lossfunctions;
 public class HuberLoss implements LossR
 {
 
-    private double c;
+
+	private static final long serialVersionUID = -4463269746356262940L;
+	private double c;
 
     /**
      * Creates a new HuberLoss loss

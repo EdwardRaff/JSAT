@@ -15,7 +15,7 @@ import jsat.exceptions.FailedToFitException;
  * extra dependence requirement, the implementation only allows for categorical 
  * features. <br>
  * <br>
- * See: Webb, G., & Boughton, J. (2005). <i>Not so naive bayes: Aggregating 
+ * See: Webb, G., &amp; Boughton, J. (2005). <i>Not so naive bayes: Aggregating 
  * one-dependence estimators</i>. Machine Learning, 1–24. Retrieved from 
  * <a href="http://www.springerlink.com/index/U8W306673M1P866K.pdf">here</a>
  * 
@@ -23,7 +23,9 @@ import jsat.exceptions.FailedToFitException;
  */
 public class AODE extends BaseUpdateableClassifier
 {
-    protected CategoricalData predicting;
+
+	private static final long serialVersionUID = 8386506277969540732L;
+	protected CategoricalData predicting;
     protected ODE[] odes;
 
     /**

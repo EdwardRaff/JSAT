@@ -27,7 +27,10 @@ public class CosineDistanceNormalized implements DistanceMetric
      * to avoid this.
      */
     
-    @Override
+
+	private static final long serialVersionUID = -4041803247001806577L;
+
+	@Override
     public double dist(Vec a, Vec b)
     {
         return CosineDistance.cosineToDistance(Math.min(a.dot(b), 1));

@@ -31,7 +31,9 @@ import jsat.utils.*;
  */
 public class EuclideanCollection<V extends Vec> implements VectorCollection<V>
 {
-    private List<V> source;
+
+	private static final long serialVersionUID = 3544832051605265927L;
+	private List<V> source;
     /**
      * Cache of y dot y values
      */
@@ -148,7 +150,12 @@ public class EuclideanCollection<V extends Vec> implements VectorCollection<V>
     
     public static class EuclideanCollectionFactory<V extends Vec> implements VectorCollectionFactory<V>
     {
-        @Override
+        /**
+		 * 
+		 */
+		private static final long serialVersionUID = 4838578403165658320L;
+
+		@Override
         public VectorCollection<V> getVectorCollection(List<V> source, DistanceMetric distanceMetric)
         {
             if(!(distanceMetric instanceof EuclideanDistance))

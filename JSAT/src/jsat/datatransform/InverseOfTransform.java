@@ -17,7 +17,9 @@ import jsat.classifiers.DataPoint;
  */
 public class InverseOfTransform implements DataTransform 
 {
-    private InvertibleTransform transform;
+
+	private static final long serialVersionUID = 2565737661260748018L;
+	private InvertibleTransform transform;
 
     /**
      * Creates a new transform that uses the 

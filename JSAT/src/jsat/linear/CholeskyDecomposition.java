@@ -21,7 +21,9 @@ public class CholeskyDecomposition implements Serializable
 {
     //TODO add block decomposition for efficency 
     
-    /**
+
+	private static final long serialVersionUID = 8925094456733750112L;
+	/**
      * Contains the matrix 'L', but instead of just keeping the lower triangular, we keep it
      * in a symmetric  copy so {@link LUPDecomposition#forwardSub(jsat.linear.Matrix, jsat.linear.Vec) }
      * and backSub can be done without copying. 

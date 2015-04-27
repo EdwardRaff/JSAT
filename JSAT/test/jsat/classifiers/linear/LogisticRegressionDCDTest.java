@@ -1,14 +1,11 @@
 
 package jsat.classifiers.linear;
 
-import java.util.List;
 import java.util.Random;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import jsat.FixedProblems;
 import jsat.classifiers.*;
-import jsat.linear.Vec;
-import jsat.parameters.Parameter;
 import jsat.utils.SystemInfo;
 import org.junit.After;
 import org.junit.AfterClass;

@@ -15,7 +15,9 @@ import java.util.Iterator;
  */
 public class VecPaired<V extends Vec, P> extends Vec
 {
-    private V vector;
+
+	private static final long serialVersionUID = 8039272826439917423L;
+	private V vector;
     private P pair;
 
     public VecPaired(V v, P p)

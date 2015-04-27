@@ -10,7 +10,10 @@ package jsat.classifiers.evaluation;
 public class Precision extends SimpleBinaryClassMetric
 {
 
-    public Precision()
+
+	private static final long serialVersionUID = 7046590252900909918L;
+
+	public Precision()
     {
         super();
     }

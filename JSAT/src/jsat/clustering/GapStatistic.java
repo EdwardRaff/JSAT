@@ -36,7 +36,7 @@ import jsat.utils.random.XORWOW;
  * original paper specifies that the smallest {@code K} satisfying 
  * {@link #getGap() Gap}(K) &ge; Gap(K+1) - {@link #getElogWkStndDev() sd}(K+1)
  * what the value of {@code K} to use. Instead the condition used is the 
- * smallest {@code K} such that Gap(K) &ge; Gap(K+1)- sd(K+1) and Gap(K) > 0.
+ * smallest {@code K} such that Gap(K) &ge; Gap(K+1)- sd(K+1) and Gap(K) &gt; 0.
  * <br>
  * In addition, if no value of {@code K} satisfies the condition, the largest
  * value of Gap(K) will be used. <br>
@@ -47,7 +47,7 @@ import jsat.utils.random.XORWOW;
  * Note: when called with the desired number of clusters, the result of the base
  * clustering algorithm be returned directly. <br>
  * <br>
- * See: Tibshirani, R., Walther, G., & Hastie, T. (2001). <i>Estimating the 
+ * See: Tibshirani, R., Walther, G.,&amp;Hastie, T. (2001). <i>Estimating the 
  * number of clusters in a data set via the gap statistic</i>. Journal of the 
  * Royal Statistical Society: Series B (Statistical Methodology), 63(2), 
  * 411–423. doi:10.1111/1467-9868.00293
@@ -56,7 +56,9 @@ import jsat.utils.random.XORWOW;
  */
 public class GapStatistic extends KClustererBase implements Parameterized
 {
-    @ParameterHolder
+
+	private static final long serialVersionUID = 8893929177942856618L;
+	@ParameterHolder
     private KClusterer base;
     private int B;
     private DistanceMetric dm;

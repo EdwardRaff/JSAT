@@ -2,7 +2,6 @@ package jsat.datatransform;
 
 import jsat.DataSet;
 import jsat.classifiers.DataPoint;
-import jsat.linear.IndexValue;
 import jsat.linear.Vec;
 
 /**
@@ -13,7 +12,9 @@ import jsat.linear.Vec;
  */
 public class PNormNormalization implements InPlaceTransform
 {
-    private double p;
+
+	private static final long serialVersionUID = 2934569881395909607L;
+	private double p;
 
     /**
      * Creates a new p norm

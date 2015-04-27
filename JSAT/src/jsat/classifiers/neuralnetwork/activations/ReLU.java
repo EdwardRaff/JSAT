@@ -7,7 +7,7 @@ import jsat.linear.Vec;
  * This Activation Layer is for <b>Re</b>ctified <b>L</b>inear <b>U</b>nits. A
  * ReLU activation is simply f(x) = max(0, x), and is thus very fast to compute.
  * <br>
- * See: Nair, V., & Hinton, G. E. (2010). <i>Rectified Linear Units Improve 
+ * See: Nair, V., &amp; Hinton, G. E. (2010). <i>Rectified Linear Units Improve 
  * Restricted Boltzmann Machines</i>. Proceedings of the 27th International 
  * Conference on Machine Learning, 807–814.
  * @author Edward Raff
@@ -15,7 +15,10 @@ import jsat.linear.Vec;
 public class ReLU implements ActivationLayer
 {
 
-    @Override
+
+	private static final long serialVersionUID = -6691240473485759789L;
+
+	@Override
     public void activate(Vec input, Vec output)
     {
         for(int i = 0; i < input.length(); i++)

@@ -16,7 +16,10 @@ import jsat.math.decayrates.NoDecay;
 public abstract class DecayRateParameter extends ObjectParameter<DecayRate>
 {
 
-    @Override
+
+	private static final long serialVersionUID = -3751128637789053385L;
+
+	@Override
     public List<DecayRate> parameterOptions()
     {
         return Arrays.asList(new NoDecay(), new LinearDecay(), new ExponetialDecay(), new InverseDecay());

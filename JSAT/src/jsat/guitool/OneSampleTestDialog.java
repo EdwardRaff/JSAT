@@ -4,7 +4,6 @@ package jsat.guitool;
 import java.awt.BorderLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.util.List;
 import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
 import javax.swing.JComboBox;
@@ -16,7 +15,6 @@ import javax.swing.JTextField;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import jsat.DataSet;
-import jsat.linear.Vec;
 import jsat.testing.onesample.OneSampleTest;
 import jsat.testing.StatisticTest.H1;
 
@@ -26,7 +24,9 @@ import jsat.testing.StatisticTest.H1;
  */
 public class OneSampleTestDialog extends JFrame
 {
-    final OneSampleTest test;
+
+	private static final long serialVersionUID = 4723100928784978203L;
+	final OneSampleTest test;
 //    final String[] titles;
 //    final List<Vec> data;
     final DataSet dataSet;

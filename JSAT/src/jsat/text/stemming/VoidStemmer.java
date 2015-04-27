@@ -8,7 +8,10 @@ package jsat.text.stemming;
 public class VoidStemmer extends Stemmer
 {
 
-    public String stem(String word)
+
+	private static final long serialVersionUID = -5059926028932641447L;
+
+	public String stem(String word)
     {
         return word;
     }

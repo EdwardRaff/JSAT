@@ -25,7 +25,12 @@ public class SecantTest
      */
     Function sinF = new Function() {
 
-        public double f(double... x)
+        /**
+		 * 
+		 */
+		private static final long serialVersionUID = 890226241562590375L;
+
+		public double f(double... x)
         {
             return sin(x[0]);
         }
@@ -41,7 +46,12 @@ public class SecantTest
      */
     Function sinFp1 = new Function() {
 
-        public double f(double... x)
+        /**
+		 * 
+		 */
+		private static final long serialVersionUID = 584093005071141773L;
+
+		public double f(double... x)
         {
             return sin(x[0]+x[1]);
         }
@@ -57,7 +67,12 @@ public class SecantTest
      */
     Function polyF = new Function() {
 
-        public double f(double... x)
+        /**
+		 * 
+		 */
+		private static final long serialVersionUID = -7806653261826680871L;
+
+		public double f(double... x)
         {
             double xp = x[0];
             

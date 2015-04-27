@@ -2,6 +2,7 @@ package jsat.clustering;
 
 import java.util.*;
 import java.util.concurrent.*;
+
 import jsat.DataSet;
 import jsat.linear.Vec;
 import jsat.linear.VecPaired;
@@ -15,6 +16,7 @@ import jsat.math.OnLineStatistics;
 import jsat.parameters.Parameter;
 import jsat.parameters.Parameterized;
 import jsat.utils.FakeExecutor;
+import jsat.utils.IntSet;
 import jsat.utils.SystemInfo;
 import jsat.utils.concurrent.AtomicDoubleArray;
 
@@ -25,7 +27,7 @@ import jsat.utils.concurrent.AtomicDoubleArray;
  * FLAME is highly sensitive to the number of neighbors chosen. Increasing the 
  * neighbors tends to reduce the number of clusters formed.
  * <br><br>
- * See: Fu, L., & Medico, E. (2007). <i>FLAME, a novel fuzzy clustering method 
+ * See: Fu, L.,&amp;Medico, E. (2007). <i>FLAME, a novel fuzzy clustering method 
  * for the analysis of DNA microarray data</i>. BMC Bioinformatics, 8(1), 3. 
  * Retrieved from <a href="http://www.ncbi.nlm.nih.gov/pubmed/17204155">here</a>
  * 
@@ -33,7 +35,9 @@ import jsat.utils.concurrent.AtomicDoubleArray;
  */
 public class FLAME extends ClustererBase implements Parameterized
 {
-    private DistanceMetric dm;
+
+	private static final long serialVersionUID = 2393091020100706517L;
+	private DistanceMetric dm;
     private int k;
     private int maxIterations;
     private VectorCollectionFactory<VecPaired<Vec, Integer>> vectorCollectionFactory = new DefaultVectorCollectionFactory<VecPaired<Vec, Integer>>();
@@ -239,7 +243,7 @@ public class FLAME extends ClustererBase implements Parameterized
             }
             
             final Map<Integer, Integer> CSOs = new HashMap<Integer, Integer>();
-            final Set<Integer> outliers = new HashSet<Integer>();
+            final Set<Integer> outliers = new IntSet();
             Arrays.fill(designations, -1);
             
             final double threshold = densityStats.getMean() + densityStats.getStandardDeviation() * stndDevs;
@@ -282,7 +286,7 @@ public class FLAME extends ClustererBase implements Parameterized
                 
                 if(origSize != CSOs.size())//we did a removal, re-order clusters
                 {
-                    Set<Integer> keys = new HashSet<Integer>(CSOs.keySet());
+                    Set<Integer> keys = new IntSet(CSOs.keySet());
                     CSOs.clear();
                     for(int i : keys)
                         CSOs.put(i, CSOs.size());

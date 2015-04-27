@@ -2,10 +2,7 @@ package jsat.classifiers.neuralnetwork;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Random;
 import java.util.Set;
 import java.util.concurrent.Callable;
@@ -14,6 +11,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicIntegerArray;
+
 import jsat.DataSet;
 import jsat.classifiers.CategoricalResults;
 import jsat.classifiers.ClassificationDataSet;
@@ -39,6 +37,7 @@ import jsat.utils.BoundedSortedList;
 import jsat.utils.DoubleList;
 import jsat.utils.FakeExecutor;
 import jsat.utils.IntList;
+import jsat.utils.IntSet;
 import jsat.utils.ListUtils;
 import jsat.utils.SystemInfo;
 import jsat.utils.random.XORWOW;
@@ -73,7 +72,9 @@ import jsat.utils.random.XORWOW;
  */
 public class RBFNet implements Classifier, Regressor, DataTransform, Parameterized
 {
-    private int numCentroids;
+
+	private static final long serialVersionUID = 5418896646203518062L;
+	private int numCentroids;
     private Phase1Learner p1l;
     private Phase2Learner p2l;
     private double alpha;
@@ -264,7 +265,7 @@ public class RBFNet implements Classifier, Regressor, DataTransform, Parameteriz
             {
                 Random rand = new XORWOW();
                 List<Vec> toRet = new ArrayList<Vec>();
-                Set<Integer> points = new HashSet<Integer>();
+                Set<Integer> points = new IntSet();
                 
                 while (points.size() < centroids)
                     points.add(rand.nextInt(data.getSampleSize()));

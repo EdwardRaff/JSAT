@@ -33,11 +33,11 @@ import jsat.utils.DoubleList;
  * <br><br>
  * See:
  * <ul>
- * <li>Orabona, F., Keshet, J., & Caputo, B. (2008). <i>The Projectron: a
+ * <li>Orabona, F., Keshet, J.,&amp;Caputo, B. (2008). <i>The Projectron: a
  * bounded kernel-based Perceptron</i>. Proceedings of the 25th international
  * conference on Machine learning - ICML ’08 (pp. 720–727). New York, New York,
  * USA: ACM Press. doi:10.1145/1390156.1390247</li>
- * <li>Orabona, F., Keshet, J., & Caputo, B. (2009). <i>Bounded Kernel-Based
+ * <li>Orabona, F., Keshet, J.,&amp;Caputo, B. (2009). <i>Bounded Kernel-Based
  * Online Learning</i>. The Journal of Machine Learning Research, 10, 2643–2666.
  * </li>
  * </ul>
@@ -46,7 +46,9 @@ import jsat.utils.DoubleList;
  */
 public class Projectron extends BaseUpdateableClassifier implements BinaryScoreClassifier, Parameterized
 {
-    @ParameterHolder
+
+	private static final long serialVersionUID = -4025799790045954359L;
+	@ParameterHolder
     private KernelTrick k;
     private double eta;
     /**

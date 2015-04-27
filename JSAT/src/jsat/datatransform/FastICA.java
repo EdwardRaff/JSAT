@@ -23,7 +23,7 @@ import jsat.exceptions.FailedToFitException;
  * doi:10.1109/72.761722
  * </li>
  * <li>
- * Hyvärinen, a., & Oja, E. (2000). <i>Independent component analysis: 
+ * Hyvärinen, a.,&amp;Oja, E. (2000). <i>Independent component analysis: 
  * algorithms and applications</i>. Neural Networks, 13(4-5), 411–430. 
  * doi:10.1016/S0893-6080(00)00026-5
  * </li>
@@ -32,7 +32,10 @@ import jsat.exceptions.FailedToFitException;
  */
 public class FastICA implements InvertibleTransform
 {
-    private ZeroMeanTransform zeroMean;
+
+	private static final long serialVersionUID = -8644025740457515563L;
+
+	private ZeroMeanTransform zeroMean;
     
     /**
      * Un-mixes the observed data into the raw components we learned 

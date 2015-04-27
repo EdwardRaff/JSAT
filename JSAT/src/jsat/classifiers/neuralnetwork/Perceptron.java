@@ -12,7 +12,6 @@ import java.util.concurrent.Future;
 import jsat.SingleWeightVectorModel;
 import jsat.classifiers.CategoricalResults;
 import jsat.classifiers.ClassificationDataSet;
-import jsat.classifiers.Classifier;
 import jsat.classifiers.DataPoint;
 import jsat.classifiers.DataPointPair;
 import jsat.classifiers.calibration.BinaryScoreClassifier;
@@ -34,7 +33,9 @@ import jsat.utils.PairedReturn;
 public class Perceptron implements BinaryScoreClassifier, SingleWeightVectorModel
 {
 
-    private double learningRate;
+
+	private static final long serialVersionUID = -3605237847981632021L;
+	private double learningRate;
     private double bias;
     private Vec weights;
     private int iteratinLimit;

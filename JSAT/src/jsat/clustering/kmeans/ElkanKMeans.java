@@ -8,7 +8,6 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import jsat.DataSet;
 import jsat.clustering.ClusterFailureException;
-import jsat.clustering.KClusterer;
 import jsat.clustering.SeedSelectionMethods.SeedSelection;
 import static jsat.clustering.SeedSelectionMethods.selectIntialPoints;
 import jsat.linear.DenseVector;
@@ -28,7 +27,10 @@ import jsat.utils.*;
  */
 public class ElkanKMeans extends KMeans
 {
-    private DenseSparseMetric dmds;
+
+	private static final long serialVersionUID = -1629432283103273051L;
+
+	private DenseSparseMetric dmds;
     
     private boolean useDenseSparse = false;
     

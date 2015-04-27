@@ -2,7 +2,6 @@ package jsat.regression;
 
 import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import jsat.classifiers.DataPoint;
 import jsat.linear.*;
@@ -25,7 +24,9 @@ import jsat.utils.FakeExecutor;
  */
 public class RidgeRegression implements Regressor, Parameterized
 {
-    private double lambda;
+
+	private static final long serialVersionUID = -4605757038780391895L;
+	private double lambda;
     private Vec w;
     private double bias;
     private SolverMode mode;

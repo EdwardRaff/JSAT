@@ -2,8 +2,10 @@
 package jsat.classifiers.trees;
 
 import static java.lang.Math.*;
+
 import java.util.*;
 import java.util.concurrent.ExecutorService;
+
 import jsat.classifiers.*;
 import jsat.classifiers.trees.ImpurityScore.ImpurityMeasure;
 import jsat.distributions.Distribution;
@@ -20,6 +22,7 @@ import jsat.regression.RegressionDataSet;
 import jsat.regression.Regressor;
 import jsat.utils.DoubleList;
 import jsat.utils.IntList;
+import jsat.utils.IntSet;
 import jsat.utils.PairedReturn;
 import jsat.utils.QuickSort;
 
@@ -38,7 +41,9 @@ import jsat.utils.QuickSort;
  */
 public class DecisionStump implements Classifier, Regressor, Parameterized
 {
-    /**
+
+	private static final long serialVersionUID = -2849268862089019515L;
+	/**
      * Indicates which attribute to split on 
      */
     private int splittingAttribute;
@@ -215,7 +220,7 @@ public class DecisionStump implements Classifier, Regressor, Parameterized
     @Override
     public void train(RegressionDataSet dataSet)
     {
-        Set<Integer> options = new HashSet<Integer>(dataSet.getNumFeatures());
+        Set<Integer> options = new IntSet(dataSet.getNumFeatures());
         for(int i = 0; i < dataSet.getNumFeatures(); i++)
             options.add(i);
         trainR(dataSet.getDPPList(), options);
@@ -284,7 +289,12 @@ public class DecisionStump implements Classifier, Regressor, Parameterized
         //Define a function we would like to find the root of. There may be multiple roots, but we will only use one. 
         Function f = new Function() {
 
-            public double f(double... x)
+            /**
+			 * 
+			 */
+			private static final long serialVersionUID = -8587449421333790319L;
+
+			public double f(double... x)
             {
                 return dist1.pdf(x[0]) - dist2.pdf(x[0]);
             }
@@ -340,8 +350,8 @@ public class DecisionStump implements Classifier, Regressor, Parameterized
         //we choose the step size to be the smallest of the standard deviations, and then divice by a constant
         double stepSize = Double.MAX_VALUE;
         
-        final List<Integer> belongsTo = new ArrayList<Integer>();
-        final List<Double> splitPoints = new ArrayList<Double>();
+        final List<Integer> belongsTo = new IntList();
+        final List<Double> splitPoints = new DoubleList();
         
         for(Distribution cd : dists)
         {
@@ -357,6 +367,7 @@ public class DecisionStump implements Classifier, Regressor, Parameterized
         //TODO is there a better way to avoid small step sizes? 
         if((maxRange-minRange)/stepSize > 50*dists.size())//Limi to 50*|Dists| iterations 
             stepSize = (maxRange-minRange)/(50*dists.size());
+        //XXX Double equal comparison
         else if( (maxRange - minRange) == 0.0 || minRange+stepSize == minRange)//Range is too small to search!
             return null;
         
@@ -371,7 +382,12 @@ public class DecisionStump implements Classifier, Regressor, Parameterized
                 //Create a function to use root finding to find the cross over point 
                 Function f = new Function() {
 
-                    public double f(double... x)
+                    /**
+					 * 
+					 */
+					private static final long serialVersionUID = 2620160933085186146L;
+
+					public double f(double... x)
                     {
                         return dists.get(belongsTo.get(belongsTo.size()-1)).pdf(x[0]) - dists.get(newMax).pdf(x[0]);
                     }
@@ -518,7 +534,7 @@ public class DecisionStump implements Classifier, Regressor, Parameterized
     @Override
     public void trainC(ClassificationDataSet dataSet)
     {
-        Set<Integer> splitOptions = new HashSet<Integer>(dataSet.getNumFeatures());
+        Set<Integer> splitOptions = new IntSet(dataSet.getNumFeatures());
         for(int i = 0; i < dataSet.getNumFeatures(); i++)
             splitOptions.add(i);
         
@@ -964,9 +980,9 @@ public class DecisionStump implements Classifier, Regressor, Parameterized
         copy.removeContinuousAttributes = this.removeContinuousAttributes;
         copy.splittingAttribute = this.splittingAttribute;
         if(this.boundries != null)
-            copy.boundries = new ArrayList<Double>(this.boundries);
+            copy.boundries = new DoubleList(this.boundries);
         if(this.owners != null)
-            copy.owners = new ArrayList<Integer>(this.owners);
+            copy.owners = new IntList(this.owners);
         if(this.predicting != null)
             copy.predicting = this.predicting.clone();
         if(regressionResults != null)

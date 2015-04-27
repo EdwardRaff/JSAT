@@ -30,7 +30,10 @@ import jsat.utils.random.XOR96;
  */
 public abstract class KernelKMeans extends KClustererBase implements Parameterized
 {
-    /**
+
+	private static final long serialVersionUID = -5394680202634779440L;
+
+	/**
      * The kernel trick to use
      */
     @ParameterHolder
@@ -470,7 +473,7 @@ public abstract class KernelKMeans extends KClustererBase implements Parameteriz
         final int N = X.size();
         int a = 0, b = 0;
         /*
-         * Below, unless i & j are somehow in the same cluster - nothing bad will happen 
+         * Below, unless i&amp;j are somehow in the same cluster - nothing bad will happen 
          */
         for(int i = 0; i < N; i++)
         {

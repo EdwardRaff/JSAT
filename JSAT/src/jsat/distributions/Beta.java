@@ -10,7 +10,9 @@ import static jsat.math.SpecialMath.*;
  */
 public class Beta extends Distribution
 {
-    double alpha;
+
+	private static final long serialVersionUID = 8001402067928143972L;
+	double alpha;
     double beta;
 
     public Beta(double alpha, double beta)

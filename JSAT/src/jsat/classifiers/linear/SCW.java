@@ -11,9 +11,7 @@ import jsat.linear.IndexValue;
 import jsat.linear.Matrix;
 import jsat.linear.Vec;
 import static java.lang.Math.*;
-import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 import jsat.SingleWeightVectorModel;
 import jsat.classifiers.calibration.BinaryScoreClassifier;
 import jsat.exceptions.UntrainedModelException;
@@ -35,14 +33,14 @@ import jsat.parameters.Parameterized;
  * See:<br>
  * <ul>
  * <li>
- * Crammer, K., Fern, M., & Pereira, O. (2008). <i>Exact Convex 
+ * Crammer, K., Fern, M.,&amp;Pereira, O. (2008). <i>Exact Convex 
  * Confidence-Weighted Learning</i>. In Advances in Neural Information 
  * Processing Systems 22 (pp. 345–352). Retrieved from
  * <a href="http://citeseerx.ist.psu.edu/viewdoc/summary?doi=10.1.1.169.3364">
  * here</a>
  * </li>
  * <li>
- * Wang, J., Zhao, P., & Hoi, S. C. H. (2012). <i>Exact Soft Confidence-Weighted
+ * Wang, J., Zhao, P.,&amp;Hoi, S. C. H. (2012). <i>Exact Soft Confidence-Weighted
  * Learning</i>. ICML. Learning. Retrieved from 
  * <a href="http://arxiv.org/abs/1206.4612">here</a>
  * </li>
@@ -52,7 +50,9 @@ import jsat.parameters.Parameterized;
  */
 public class SCW extends BaseUpdateableClassifier implements BinaryScoreClassifier, Parameterized, SingleWeightVectorModel
 {
-    private double C = 1;
+
+	private static final long serialVersionUID = -6721377074407660742L;
+	private double C = 1;
     private double eta;
     //all set when eta is set
     private double phi, phiSqrd, zeta, psi;

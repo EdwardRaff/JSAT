@@ -4,7 +4,6 @@ import java.util.*;
 import java.util.concurrent.ExecutorService;
 import jsat.DataSet;
 import jsat.classifiers.DataPoint;
-import jsat.clustering.KClusterer;
 import jsat.clustering.KClustererBase;
 import jsat.clustering.dissimilarity.UpdatableClusterDissimilarity;
 import jsat.math.OnLineStatistics;
@@ -18,7 +17,9 @@ import jsat.utils.IntPriorityQueue;
  */
 public class PriorityHAC extends KClustererBase
 {
-    private UpdatableClusterDissimilarity distMeasure;
+
+	private static final long serialVersionUID = -702489462117567542L;
+	private UpdatableClusterDissimilarity distMeasure;
     /**
      * Stores the merge list, each merge is in a pair of 2 values. The final 
      * merge list should contain the last merged pairs at the front of the array

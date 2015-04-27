@@ -9,7 +9,9 @@ import jsat.math.OnLineStatistics;
  */
 public class MeanAbsoluteError implements RegressionScore
 {
-    private OnLineStatistics absError;
+
+	private static final long serialVersionUID = -637676526509989776L;
+	private OnLineStatistics absError;
 
     public MeanAbsoluteError()
     {
@@ -67,13 +69,13 @@ public class MeanAbsoluteError implements RegressionScore
 
     @Override
     public int hashCode()
-    {
+    {//XXX this is a strange hashcode method
         return getName().hashCode();
     }
     
     @Override
     public boolean equals(Object obj)
-    {
+    {//XXX check for equality of fields and obj == null
         if(this.getClass().isAssignableFrom(obj.getClass()) && obj.getClass().isAssignableFrom(this.getClass()))
         {
             return true;

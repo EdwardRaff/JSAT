@@ -5,6 +5,7 @@ import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
 import jsat.classifiers.CategoricalData;
 import jsat.classifiers.CategoricalResults;
 import jsat.classifiers.ClassificationDataSet;
@@ -20,6 +21,7 @@ import jsat.parameters.Parameterized;
 import jsat.regression.RegressionDataSet;
 import jsat.regression.Regressor;
 import jsat.utils.FakeExecutor;
+import jsat.utils.IntSet;
 import jsat.utils.ModifiableCountDownLatch;
 
 /**
@@ -30,7 +32,9 @@ import jsat.utils.ModifiableCountDownLatch;
  */
 public class DecisionTree implements Classifier, Regressor, Parameterized, TreeLearner
 {
-    private int maxDepth;
+
+	private static final long serialVersionUID = 9220980056440500214L;
+	private int maxDepth;
     private int minSamples;
     private Node root;
     private CategoricalData predicting;
@@ -54,7 +58,7 @@ public class DecisionTree implements Classifier, Regressor, Parameterized, TreeL
     @Override
     public void train(RegressionDataSet dataSet, ExecutorService threadPool)
     {
-        Set<Integer> options = new HashSet<Integer>(dataSet.getNumFeatures());
+        Set<Integer> options = new IntSet(dataSet.getNumFeatures());
         for(int i = 0; i < dataSet.getNumFeatures(); i++)
             options.add(i);
         train(dataSet, options, threadPool);
@@ -301,7 +305,7 @@ public class DecisionTree implements Classifier, Regressor, Parameterized, TreeL
     @Override
     public void trainC(ClassificationDataSet dataSet, ExecutorService threadPool)
     {
-        Set<Integer> options = new HashSet<Integer>(dataSet.getNumFeatures());
+        Set<Integer> options = new IntSet(dataSet.getNumFeatures());
         for(int i = 0; i < dataSet.getNumFeatures(); i++)
             options.add(i);
         trainC(dataSet, options, threadPool);
@@ -389,7 +393,7 @@ public class DecisionTree implements Classifier, Regressor, Parameterized, TreeL
 
                     public void run()
                     {
-                        node.paths[ii] = makeNodeC(splitI, new HashSet<Integer>(options), depth+1, threadPool, mcdl);
+                        node.paths[ii] = makeNodeC(splitI, new IntSet(options), depth+1, threadPool, mcdl);
                     }
                 });
             }
@@ -435,7 +439,7 @@ public class DecisionTree implements Classifier, Regressor, Parameterized, TreeL
                     @Override
                     public void run()
                     {
-                        node.paths[ii] = makeNodeR(splitI, new HashSet<Integer>(options), depth+1, threadPool, mcdl);
+                        node.paths[ii] = makeNodeR(splitI, new IntSet(options), depth+1, threadPool, mcdl);
                     }
                 });
             }
@@ -481,7 +485,11 @@ public class DecisionTree implements Classifier, Regressor, Parameterized, TreeL
     
     protected static class Node extends TreeNodeVisitor
     {
-        final protected DecisionStump stump;
+        /**
+		 * 
+		 */
+		private static final long serialVersionUID = -7507748424627088734L;
+		final protected DecisionStump stump;
         protected Node[] paths;
         
         public Node(DecisionStump stump)

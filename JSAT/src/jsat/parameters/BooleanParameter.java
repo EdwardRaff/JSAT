@@ -7,7 +7,10 @@ package jsat.parameters;
  */
 public abstract class BooleanParameter extends Parameter
 {
-    /**
+
+	private static final long serialVersionUID = 4961692453234546675L;
+
+	/**
      * Returns the current value for the parameter. 
      * @return the value for this parameter. 
      */

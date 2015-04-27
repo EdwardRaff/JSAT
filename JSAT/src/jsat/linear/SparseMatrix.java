@@ -6,7 +6,6 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import static jsat.linear.Matrix.canMultiply;
 import jsat.utils.SystemInfo;
 
 /**
@@ -21,7 +20,9 @@ import jsat.utils.SystemInfo;
  */
 public class SparseMatrix extends Matrix
 {
-    private SparseVector[] rows;
+
+	private static final long serialVersionUID = -4087445771022578544L;
+	private SparseVector[] rows;
 
     /**
      * Creates a new sparse matrix

@@ -2,6 +2,7 @@
 package jsat.datatransform.featureselection;
 
 import java.util.*;
+
 import jsat.classifiers.CategoricalData;
 import jsat.classifiers.ClassificationDataSet;
 import jsat.classifiers.Classifier;
@@ -10,8 +11,10 @@ import jsat.linear.DenseVector;
 import jsat.linear.Vec;
 import jsat.regression.MultipleLinearRegression;
 import jsat.regression.RegressionDataSet;
+import jsat.utils.IntSet;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
+
 import org.junit.*;
 
 /**
@@ -61,7 +64,7 @@ public class SFSTest
         SFS sfs = new SFS.SFSFactory(1e-3, (Classifier)new NearestNeighbour(7), 3, 7).clone().getTransform(cds).clone();
         Set<Integer> found = sfs.getSelectedNumerical();
         
-        Set<Integer> shouldHave = new HashSet<Integer>();
+        Set<Integer> shouldHave = new IntSet();
         shouldHave.addAll(Arrays.asList(t0, t1, t2));
         assertEquals(shouldHave.size(), found.size());
         assertTrue(shouldHave.containsAll(found));
@@ -82,7 +85,7 @@ public class SFSTest
         SFS sfs = new SFS.SFSFactory(10, new MultipleLinearRegression(), 3, 7).clone().getTransform(rds).clone();
         Set<Integer> found = sfs.getSelectedNumerical();
         
-        Set<Integer> shouldHave = new HashSet<Integer>();
+        Set<Integer> shouldHave = new IntSet();
         shouldHave.addAll(Arrays.asList(t0, t1, t2));
         assertEquals(shouldHave.size(), found.size());
         assertTrue(shouldHave.containsAll(found));

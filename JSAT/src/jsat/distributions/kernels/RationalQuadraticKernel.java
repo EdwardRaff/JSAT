@@ -13,7 +13,9 @@ import jsat.linear.Vec;
  */
 public class RationalQuadraticKernel extends BaseL2Kernel
 {
-    private double c;
+
+	private static final long serialVersionUID = 6773399185851115840L;
+	private double c;
 
     /**
      * Creates a new RQ Kernel

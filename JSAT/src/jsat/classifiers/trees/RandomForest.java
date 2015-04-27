@@ -1,7 +1,6 @@
 package jsat.classifiers.trees;
 
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Random;
 import java.util.Set;
@@ -10,6 +9,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
 import jsat.DataSet;
 import jsat.classifiers.CategoricalData;
 import jsat.classifiers.CategoricalResults;
@@ -24,6 +24,7 @@ import jsat.parameters.Parameterized;
 import jsat.regression.RegressionDataSet;
 import jsat.regression.Regressor;
 import jsat.utils.FakeExecutor;
+import jsat.utils.IntSet;
 import jsat.utils.ListUtils;
 import jsat.utils.SystemInfo;
 import jsat.utils.concurrent.AtomicDoubleArray;
@@ -40,7 +41,9 @@ public class RandomForest implements Classifier, Regressor, Parameterized
 {
     //TODO implement Out of Bag estimates of proximity, importance, and outlier detection 
     
-    /**
+
+	private static final long serialVersionUID = 2725020584282958141L;
+	/**
      * Only used when training for a classification problem
      */
     private CategoricalData predicting;
@@ -387,7 +390,7 @@ public class RandomForest implements Classifier, Regressor, Parameterized
         @Override
         public LearningWorker call() throws Exception
         {
-            Set<Integer> features = new HashSet<Integer>(baseLearner.getRandomFeatureCount());
+            Set<Integer> features = new IntSet(baseLearner.getRandomFeatureCount());
             int[] sampleCounts = new int[dataSet.getSampleSize()];
             for(int i = 0; i < toLearn; i++)
             {

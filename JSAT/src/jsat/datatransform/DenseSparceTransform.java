@@ -14,7 +14,9 @@ import jsat.linear.*;
  */
 public class DenseSparceTransform implements DataTransform
 {
-    private double factor;
+
+	private static final long serialVersionUID = -1177913691660616290L;
+	private double factor;
 
     /**
      * Creates a new Dense Sparce Transform. The <tt>factor</tt> gives the maximal 

@@ -4,9 +4,7 @@ package jsat.classifiers.knn;
 import static java.lang.Math.*;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import jsat.classifiers.*;
 import jsat.linear.*;
@@ -33,14 +31,16 @@ import jsat.utils.FakeExecutor;
  * the first convergence step. In homogeneous areas of the data set, queries can
  * be answered in <i>O(log n)</i> if the vector collection supports it. 
  * <br><br>
- * See: Hastie, T., & Tibshirani, R. (1996). <i>Discriminant adaptive nearest
+ * See: Hastie, T.,&amp;Tibshirani, R. (1996). <i>Discriminant adaptive nearest
  * neighbor classification</i>. IEEE Transactions on Pattern Analysis and 
  * Machine Intelligence, 18(6), 607–616. doi:10.1109/34.506411
  * @author Edward Raff
  */
 public class DANN implements Classifier, Parameterized
 {
-    /**
+
+	private static final long serialVersionUID = -272865942127664672L;
+	/**
      * The default number of neighbors to use when building a metric is 
      * {@value #DEFAULT_KN}. 
      */

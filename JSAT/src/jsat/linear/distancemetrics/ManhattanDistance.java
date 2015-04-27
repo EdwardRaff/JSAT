@@ -14,7 +14,10 @@ import jsat.linear.Vec;
 public class ManhattanDistance implements DenseSparseMetric
 {
 
-    @Override
+
+	private static final long serialVersionUID = 3028834823742743351L;
+
+	@Override
     public double dist(Vec a, Vec b)
     {
         return a.pNormDist(1, b);

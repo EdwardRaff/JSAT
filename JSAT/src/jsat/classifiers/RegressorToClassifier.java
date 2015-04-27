@@ -23,7 +23,9 @@ import jsat.regression.Regressor;
  */
 public class RegressorToClassifier implements BinaryScoreClassifier, Parameterized
 {
-    private Regressor regressor;
+
+	private static final long serialVersionUID = -2607433019826385335L;
+	private Regressor regressor;
 
     /**
      * Creates a new Binary Classifier by using the given regressor 

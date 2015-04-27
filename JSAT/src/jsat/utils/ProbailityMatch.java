@@ -9,7 +9,9 @@ import java.io.Serializable;
 public class ProbailityMatch<T> implements Comparable<ProbailityMatch<T>>, Serializable
 {
 
-    private double probability;
+
+	private static final long serialVersionUID = -1544116376166946986L;
+	private double probability;
     private T match;
 
     public ProbailityMatch(double probability, T match)

@@ -24,7 +24,7 @@ public class ConjugateGradient
      * A symmetric positive definite matrix is a matrix A such that: <br>
      * <ul>
      * <li>A<sup>T</sup> = A</li>
-     * <li>x<sup>T</sup> * A * x > 0 for all x != 0</li>
+     * <li>x<sup>T</sup> * A * x &gt; 0 for all x != 0</li>
      * </ul>
      * <br><br>
      * NOTE: No checks will be performed to confirm these properties of the given matrix. 
@@ -88,7 +88,7 @@ public class ConjugateGradient
      * A symmetric positive definite matrix is a matrix A such that: <br>
      * <ul>
      * <li>A<sup>T</sup> = A</li>
-     * <li>x<sup>T</sup> * A * x > 0 for all x != 0</li>
+     * <li>x<sup>T</sup> * A * x &gt; 0 for all x != 0</li>
      * </ul>
      * <br><br>
      * NOTE: No checks will be performed to confirm these properties of the given matrix. 

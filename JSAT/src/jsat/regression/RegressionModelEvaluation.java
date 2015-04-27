@@ -201,7 +201,7 @@ public class RegressionModelEvaluation
      * they so desire, and when the same folds will be used multiple times.
      * Doing so allows the algorithms called to take advantage of any potential
      * caching of results based on the data set and avoid all possible excessive
-     * memory movement. (For example, {@link DataSet#getNumericColumns() } may
+     * memory movement. (For example, {@link jsat.DataSet#getNumericColumns() } may
      * get re-used and benefit from its caching)<br>
      * The same behavior of this method can be obtained by calling {@link #evaluateCrossValidation(java.util.List)
      * }.
@@ -405,7 +405,7 @@ public class RegressionModelEvaluation
     /**
      * Prints out the classification information in a convenient format. If no
      * additional scores were added via the 
-     * {@link #addScorer(jsat.classifiers.evaluations.ClassificationScore) }
+     * {@link #addScorer(RegressionScore) }
      * method, nothing will be printed. 
      */
     public void prettyPrintRegressionScores()

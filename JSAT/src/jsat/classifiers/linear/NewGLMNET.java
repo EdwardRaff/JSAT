@@ -21,27 +21,27 @@ import jsat.parameters.Parameterized;
  * NewGLMNET is a batch method for solving Elastic Net regularized Logistic
  * Regression problems of the form <br>
  * 0.5 * (1-&alpha;) ||w||<sub>2</sub> + &alpha; * ||w||<sub>1</sub> + C * 
- * <big>&sum;</big><sup>N</sup><sub>i=1</sub> &#8467;(w<sup>T</sup> x<sub>i</sub> + b, y<sub>i</sub>). 
+ * <big>&sum;</big><sup>N</sup><sub>i=1</sub> &#8467; (w<sup>T</sup> x<sub>i</sub> + b, y<sub>i</sub>). 
  * <br>
  * <br>
- * For &alpha = 1, this becomes pure Lasso / L<sub>1</sub> regularized Logistic
- * Regression. For &alpha = 0, this becomes pure Ridge/ L<sub>2</sub> regularized
+ * For &alpha; = 1, this becomes pure Lasso / L<sub>1</sub> regularized Logistic
+ * Regression. For &alpha; = 0, this becomes pure Ridge/ L<sub>2</sub> regularized
  * Logistic Regression, however better solvers such as 
- * {@link LogisticRegressionDCD} are faster if using &alpha = 0. <br>
- * The default behavior is to use &alpha=1, and includes the bias term. 
+ * {@link LogisticRegressionDCD} are faster if using &alpha; = 0. <br>
+ * The default behavior is to use &alpha;=1, and includes the bias term. 
  * Including the bias term can take longer to train, but can also increase 
  * sparsity for some problems. 
  * <br>
  * <br>
  * See:
  * <ul>
- * <li>Yuan, G., Ho, C.-H., & Lin, C. (2012). <i>An improved GLMNET for 
+ * <li>Yuan, G., Ho, C.-H.,&amp;Lin, C. (2012). <i>An improved GLMNET for 
  * L1-regularized logistic regression</i>. Journal of Machine Learning Research,
  * 13, 1999–2030. doi:10.1145/2020408.2020421</li>
- * <li>King, R., Morgan, B. J. T., Gimenez, O., Brooks, S. P., Crc, H., & Raton,
+ * <li>King, R., Morgan, B. J. T., Gimenez, O., Brooks, S. P., Crc, H.,&amp;Raton,
  * B. (2010). <i>Regularization Paths for Generalized Linear Models via 
  * Coordinate Descent</i>. Journal of Statistical Software, 36(1), 1–22.</li>
- * <li>Zou, H., & Hastie, T. (2005). <i>Regularization and variable selection 
+ * <li>Zou, H.,&amp;Hastie, T. (2005). <i>Regularization and variable selection 
  * via the elastic net</i>. Journal of the Royal Statistical Society, Series B, 
  * 67(2), 301–320. doi:10.1111/j.1467-9868.2005.00503.x</li>
  * </ul>
@@ -50,7 +50,9 @@ import jsat.parameters.Parameterized;
  */
 public class NewGLMNET implements WarmClassifier, Parameterized, SingleWeightVectorModel
 {
-    //TODO make these other fields configurable as well
+
+	private static final long serialVersionUID = 4133368677783573518L;
+	//TODO make these other fields configurable as well
     private static final double DEFAULT_BETA = 0.5;
     private static final double DEFAULT_V = 1e-12;
     private static final double DEFAULT_GAMMA = 0;

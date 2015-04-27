@@ -23,7 +23,9 @@ import jsat.linear.distancemetrics.EuclideanDistance;
  */
 public class GeneralRBFKernel extends DistanceMetricBasedKernel
 {
-    private double sigma;
+
+	private static final long serialVersionUID = 1368225926995372017L;
+	private double sigma;
     private double sigmaSqrd2Inv;
 
     /**

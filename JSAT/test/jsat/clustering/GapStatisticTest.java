@@ -8,18 +8,22 @@ package jsat.clustering;
 import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+
 import jsat.*;
 import jsat.classifiers.DataPoint;
 import jsat.clustering.kmeans.HamerlyKMeans;
 import jsat.linear.distancemetrics.EuclideanDistance;
 import jsat.utils.GridDataGenerator;
+import jsat.utils.IntSet;
 import jsat.utils.SystemInfo;
 import jsat.utils.random.XORWOW;
+
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
+
 import static org.junit.Assert.*;
 
 /**
@@ -71,7 +75,7 @@ public class GapStatisticTest
             List<List<DataPoint>> clusters = gap.cluster(easyData10, 1, 20, ex);
             
             assertEquals(K, clusters.size());
-            Set<Integer> seenBefore = new HashSet<Integer>();
+            Set<Integer> seenBefore = new IntSet();
             for(List<DataPoint> cluster :  clusters)
             {
                 int thisClass = cluster.get(0).getCategoricalValue(0);
@@ -94,7 +98,7 @@ public class GapStatisticTest
             List<List<DataPoint>> clusters = gap.cluster(easyData10, 1, 20);
             
             assertEquals(K, clusters.size());
-            Set<Integer> seenBefore = new HashSet<Integer>();
+            Set<Integer> seenBefore = new IntSet();
             for(List<DataPoint> cluster :  clusters)
             {
                 int thisClass = cluster.get(0).getCategoricalValue(0);

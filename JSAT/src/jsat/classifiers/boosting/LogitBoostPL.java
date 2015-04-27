@@ -26,7 +26,10 @@ import static jsat.utils.SystemInfo.*;
  */
 public class LogitBoostPL extends LogitBoost
 {
-    public LogitBoostPL(Regressor baseLearner, int M)
+
+	private static final long serialVersionUID = -7932049860430324903L;
+
+	public LogitBoostPL(Regressor baseLearner, int M)
     {
         super(baseLearner, M);
     }

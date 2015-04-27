@@ -22,7 +22,9 @@ import java.util.Iterator;
  */
 public class ScaledVector extends Vec
 {
-    private double scale;
+
+	private static final long serialVersionUID = 7357893957632067299L;
+	private double scale;
     private Vec base;
 
     /**

@@ -13,7 +13,9 @@ import jsat.linear.Vec;
  */
 public class UnitVarianceTransform implements InPlaceTransform
 {
-    private Vec stndDevs;
+
+	private static final long serialVersionUID = 3645532503475641917L;
+	private Vec stndDevs;
     
     public UnitVarianceTransform(DataSet d)
     {

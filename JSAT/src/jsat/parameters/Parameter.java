@@ -19,7 +19,10 @@ import jsat.math.decayrates.DecayRate;
  */
 public abstract class Parameter implements Serializable
 {
-    /**
+
+	private static final long serialVersionUID = -6903844587637472657L;
+
+	/**
      * Adding this annotation to a field tells the 
      * {@link #getParamsFromMethods(java.lang.Object)} method to search this 
      * object recursively for more parameter get/set
@@ -352,7 +355,12 @@ public abstract class Parameter implements Serializable
                 param = new DoubleParameter() 
                 {
 
-                    @Override
+                    /**
+					 * 
+					 */
+					private static final long serialVersionUID = -4741218633343565521L;
+
+					@Override
                     public double getValue()
                     {
                         try
@@ -417,7 +425,12 @@ public abstract class Parameter implements Serializable
                 param = new IntParameter() 
                 {
 
-                    @Override
+                    /**
+					 * 
+					 */
+					private static final long serialVersionUID = 693593136858174197L;
+
+					@Override
                     public int getValue()
                     {
                         try
@@ -480,7 +493,12 @@ public abstract class Parameter implements Serializable
                 param = new BooleanParameter() 
                 {
 
-                    @Override
+                    /**
+					 * 
+					 */
+					private static final long serialVersionUID = 8356074301252766754L;
+
+					@Override
                     public boolean getValue()
                     {
                         try
@@ -530,7 +548,12 @@ public abstract class Parameter implements Serializable
             {
                 param = new KernelFunctionParameter() 
                 {
-                    @Override
+                    /**
+					 * 
+					 */
+					private static final long serialVersionUID = -482809259476649959L;
+
+					@Override
                     public KernelFunction getObject()
                     {
                         try
@@ -565,7 +588,12 @@ public abstract class Parameter implements Serializable
             {
                 param = new MetricParameter() 
                 {
-                    @Override
+                    /**
+					 * 
+					 */
+					private static final long serialVersionUID = -2823576782267398656L;
+
+					@Override
                     public DistanceMetric getMetric()
                     {
                         try
@@ -600,7 +628,12 @@ public abstract class Parameter implements Serializable
             {
                 param = new DecayRateParameter() {
 
-                    @Override
+                    /**
+					 * 
+					 */
+					private static final long serialVersionUID = 5348280386363008701L;
+
+					@Override
                     public DecayRate getObject()
                     {
                         try
@@ -651,7 +684,12 @@ public abstract class Parameter implements Serializable
             {
                 param = new ObjectParameter() {
 
-                    @Override
+                    /**
+					 * 
+					 */
+					private static final long serialVersionUID = -6245401198404522216L;
+
+					@Override
                     public Object getObject()
                     {
                         try

@@ -22,10 +22,10 @@ public interface UpdatableClusterDissimilarity extends ClusterDissimilarity
      * dissimilarity measure can be accurately computed in an updatable manner 
      * that is compatible with a Lance–Williams update. 
      * 
-     * @param i the index of cluster <t>i</t>'s distance in the original data set
-     * @param ni the number of items in the cluster represented by <t>i</t>
-     * @param j the index of cluster <t>j</t>'s distance in the original data set
-     * @param nj the number of items in the cluster represented by <t>j</t>
+     * @param i the index of cluster <tt>i</tt>'s distance in the original data set
+     * @param ni the number of items in the cluster represented by <tt>i</tt>
+     * @param j the index of cluster <tt>j</tt>'s distance in the original data set
+     * @param nj the number of items in the cluster represented by <tt>j</tt>
      * @param distanceMatrix a distance matrix originally created by 
      * {@link AbstractClusterDissimilarity#createDistanceMatrix(jsat.DataSet, 
      * jsat.clustering.dissimilarity.ClusterDissimilarity) }
@@ -49,12 +49,12 @@ public interface UpdatableClusterDissimilarity extends ClusterDissimilarity
      * used by other algorithms to perform an update of the distance matrix in 
      * an efficient manner. 
      * 
-     * @param i the index of cluster <t>i</t>'s distance in the original data set
-     * @param ni the number of items in the cluster represented by <t>i</t>
-     * @param j the index of cluster <t>j</t>'s distance in the original data set
-     * @param nj the number of items in the cluster represented by <t>j</t>
-     * @param k the index of cluster <t>k</t>'s distance in the original data set
-     * @param nk the number of items in the cluster represented by <t>k</t>
+     * @param i the index of cluster <tt>i</tt>'s distance in the original data set
+     * @param ni the number of items in the cluster represented by <tt>i</tt>
+     * @param j the index of cluster <tt>j</tt>'s distance in the original data set
+     * @param nj the number of items in the cluster represented by <tt>j</tt>
+     * @param k the index of cluster <tt>k</tt>'s distance in the original data set
+     * @param nk the number of items in the cluster represented by <tt>k</tt>
      * a distance matrix originally created by 
      * {@link AbstractClusterDissimilarity#createDistanceMatrix(jsat.DataSet, 
      * jsat.clustering.dissimilarity.ClusterDissimilarity) }

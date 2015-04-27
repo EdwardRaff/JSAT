@@ -4,7 +4,6 @@ package jsat.datatransform.featureselection;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Random;
 import java.util.Set;
@@ -12,10 +11,9 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
 import jsat.DataSet;
 import jsat.classifiers.ClassificationDataSet;
-import jsat.datatransform.DataTransform;
-import jsat.datatransform.DataTransformFactory;
 import jsat.datatransform.DataTransformFactoryParm;
 import jsat.datatransform.RemoveAttributeTransform;
 import jsat.exceptions.FailedToFitException;
@@ -29,6 +27,7 @@ import jsat.linear.vectorcollection.VectorCollection;
 import jsat.linear.vectorcollection.VectorCollectionFactory;
 import jsat.utils.FakeExecutor;
 import jsat.utils.IndexTable;
+import jsat.utils.IntSet;
 import jsat.utils.SystemInfo;
 
 /**
@@ -40,7 +39,7 @@ import jsat.utils.SystemInfo;
  * others. <br>
  * The ReliefF algorithm is meant for classification problems, and is computed in a
  * nearest neighbor fashion. <br><br>
- * See:<br>Kononenko, I., Simec, E., & Robnik-Sikonja, M. (1997). 
+ * See:<br>Kononenko, I., Simec, E.,&amp;Robnik-Sikonja, M. (1997). 
  * <i><a href="http://www.springerlink.com/index/W174714344273004.pdf">
  * Overcoming the myopia of inductive learning algorithms with RELIEFF</a></i>. 
  * Applied Intelligence, 7, 39–55. 
@@ -49,7 +48,9 @@ import jsat.utils.SystemInfo;
  */
 public class ReliefF extends RemoveAttributeTransform
 {
-    private double[] w;
+
+	private static final long serialVersionUID = -3336500245613075520L;
+	private double[] w;
     
     /**
      * Creates a new ReliefF object to measure the importance of the variables with 
@@ -227,7 +228,7 @@ public class ReliefF extends RemoveAttributeTransform
         
         IndexTable it = new IndexTable(w);
         
-        Set<Integer> numericalToRemove = new HashSet<Integer>(w.length*2);
+        Set<Integer> numericalToRemove = new IntSet(w.length*2);
         
         for(int i = 0; i < w.length-featureCount; i++)
             numericalToRemove.add(it.index(i));

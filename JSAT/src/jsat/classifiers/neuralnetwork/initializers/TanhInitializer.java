@@ -8,7 +8,7 @@ import jsat.linear.Vec;
  * This initializer samples the weights from an adjusted uniform distribution 
  * in order to provided better behavior of neuron activation and gradients<br>
  * <br>
- * See: Glorot, X., & Bengio, Y. (2010). <i>Understanding the difficulty of 
+ * See: Glorot, X., &amp; Bengio, Y. (2010). <i>Understanding the difficulty of 
  * training deep feedforward neural networks</i>. Journal of Machine Learning 
  * Research - Proceedings Track, 9, 249–256. Retrieved from 
  * <a href="http://jmlr.csail.mit.edu/proceedings/papers/v9/glorot10a/glorot10a.pdf">
@@ -18,7 +18,10 @@ import jsat.linear.Vec;
 public class TanhInitializer implements WeightInitializer, BiastInitializer
 {
 
-    @Override
+
+	private static final long serialVersionUID = -4770682311082616208L;
+
+	@Override
     public void init(Matrix w, Random rand)
     {
         double cnt = Math.sqrt(6)/Math.sqrt(w.rows()+w.cols());

@@ -5,7 +5,6 @@ import java.awt.BorderLayout;
 import java.awt.FlowLayout;
 import java.awt.Font;
 import java.awt.Frame;
-import java.awt.GridBagLayout;
 import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -23,7 +22,9 @@ import javax.swing.JProgressBar;
  */
 public class LongProcessDialog extends JDialog
 {
-    private JLabel messageLabel = new JLabel();
+
+	private static final long serialVersionUID = -186028772859867338L;
+	private JLabel messageLabel = new JLabel();
     private JLabel noteLabel = new JLabel();
     private JProgressBar progressBar;
     private JButton cancelButton = new JButton("Cancel");

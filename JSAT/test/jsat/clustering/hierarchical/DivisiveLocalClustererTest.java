@@ -3,6 +3,7 @@ package jsat.clustering.hierarchical;
 import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+
 import jsat.SimpleDataSet;
 import jsat.classifiers.DataPoint;
 import jsat.clustering.kmeans.ElkanKMeans;
@@ -11,8 +12,10 @@ import jsat.distributions.Uniform;
 import jsat.linear.distancemetrics.DistanceMetric;
 import jsat.linear.distancemetrics.EuclideanDistance;
 import jsat.utils.GridDataGenerator;
+import jsat.utils.IntSet;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+
 import org.junit.*;
 
 /**
@@ -60,7 +63,7 @@ public class DivisiveLocalClustererTest
         System.out.println("cluster(dataset, int)");
         List<List<DataPoint>> clusters = dlc.cluster(easyData, 10);
         assertEquals(10, clusters.size());
-        Set<Integer> seenBefore = new HashSet<Integer>();
+        Set<Integer> seenBefore = new IntSet();
         for (List<DataPoint> cluster : clusters)
         {
             int thisClass = cluster.get(0).getCategoricalValue(0);
@@ -76,7 +79,7 @@ public class DivisiveLocalClustererTest
         System.out.println("cluster(dataset, int, ExecutorService)");
         List<List<DataPoint>> clusters = dlc.cluster(easyData, 10, ex);
         assertEquals(10, clusters.size());
-        Set<Integer> seenBefore = new HashSet<Integer>();
+        Set<Integer> seenBefore = new IntSet();
         for (List<DataPoint> cluster : clusters)
         {
             int thisClass = cluster.get(0).getCategoricalValue(0);

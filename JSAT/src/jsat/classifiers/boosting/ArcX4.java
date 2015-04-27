@@ -1,8 +1,6 @@
 package jsat.classifiers.boosting;
 
-import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.logging.Level;
@@ -28,7 +26,9 @@ import jsat.utils.SystemInfo;
  */
 public class ArcX4 implements Classifier, Parameterized
 {
-    private Classifier weakLearner;
+
+	private static final long serialVersionUID = 3831448932874147550L;
+	private Classifier weakLearner;
     private int iterations;
     
     private double coef = 1;

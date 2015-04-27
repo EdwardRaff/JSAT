@@ -10,7 +10,9 @@ import java.util.Collections;
  */
 public class BoundedSortedList<E extends Comparable<E>> extends ArrayList<E> implements Serializable
 {
-    private final int maxSize;
+
+	private static final long serialVersionUID = 5503813399376102571L;
+	private final int maxSize;
 
     public BoundedSortedList(int maxSize, int initialCapacity)
     {

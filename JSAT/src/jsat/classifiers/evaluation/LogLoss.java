@@ -14,14 +14,16 @@ import jsat.classifiers.CategoricalResults;
  * the better. 
  * <br><br>
  * When <i>p<sub>i, y</sub></i> = 0 the log loss is uninformatively forced to 
- * &infty;, even if all other data points are perfectly correct. To avoid this a 
+ * &infin;, even if all other data points are perfectly correct. To avoid this a 
  * small nudge factor is added. 
  * 
  * @author Edward Raff
  */
 public class LogLoss implements ClassificationScore
 {
-    private double loss;
+
+	private static final long serialVersionUID = 3123851772991293430L;
+	private double loss;
     private double weightSum;
     private double nudge;
 

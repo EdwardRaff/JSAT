@@ -13,7 +13,9 @@ import java.util.*;
  */
 public class IntList extends AbstractList<Integer> implements Serializable
 {
-    private int[] array;
+
+	private static final long serialVersionUID = 8189142393005394477L;
+	private int[] array;
     private int end;
     
     private IntList(int[] array, int end)

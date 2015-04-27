@@ -11,7 +11,9 @@ import jsat.linear.Vec;
  */
 public class DataPointPair<P> implements Serializable
 {
-    DataPoint dataPoint;
+
+	private static final long serialVersionUID = 5091308998873225566L;
+	DataPoint dataPoint;
     P pair;
 
     public DataPointPair(DataPoint dataPoint, P pair)

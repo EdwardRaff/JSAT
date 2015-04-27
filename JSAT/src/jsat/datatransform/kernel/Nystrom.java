@@ -1,6 +1,7 @@
 package jsat.datatransform.kernel;
 
 import java.util.*;
+
 import jsat.DataSet;
 import jsat.classifiers.DataPoint;
 import jsat.clustering.kmeans.HamerlyKMeans;
@@ -11,6 +12,7 @@ import jsat.linear.*;
 import jsat.linear.distancemetrics.EuclideanDistance;
 import jsat.parameters.Parameter.ParameterHolder;
 import jsat.utils.DoubleList;
+import jsat.utils.IntSet;
 import jsat.utils.random.XOR96;
 
 /**
@@ -23,18 +25,18 @@ import jsat.utils.random.XOR96;
  * <br><br>
  * See: <br>
  * <ul>
- * <li>Williams, C., & Seeger, M. (2001). <i>Using the Nyström Method to Speed 
+ * <li>Williams, C.,&amp;Seeger, M. (2001). <i>Using the Nyström Method to Speed 
  * Up Kernel Machines</i>. Advances in Neural Information Processing Systems 13 
  * (pp. 682–688). MIT Press. Retrieved from 
  * <a href="http://citeseerx.ist.psu.edu/viewdoc/summary?doi=10.1.1.18.7519">
  * here</a></li>
- * <li>Yang, T., Li, Y.-F., Mahdavi, M., Jin, R., & Zhou, Z.-H. (2012). <i>
+ * <li>Yang, T., Li, Y.-F., Mahdavi, M., Jin, R.,&amp;Zhou, Z.-H. (2012). <i>
  * Nystrom Method vs Random Fourier Features A Theoretical and Empirical 
  * Comparison</i>. Advances in Neural Information Processing Systems 
  * (pp. 485–493). Retrieved from 
  * <a href="http://books.nips.cc/papers/files/nips25/NIPS2012_0248.txt">here</a>
  * </li>
- * <li>Kumar, S., Mohri, M., & Talwalkar, A. (2012). <i>Sampling methods for the
+ * <li>Kumar, S., Mohri, M.,&amp;Talwalkar, A. (2012). <i>Sampling methods for the
  * Nyström method</i>. The Journal of Machine Learning Research, 5, 981–1006. 
  * Retrieved from <a href="http://dl.acm.org/citation.cfm?id=2343678">here</a>
  * </li>
@@ -43,7 +45,9 @@ import jsat.utils.random.XOR96;
  */
 public class Nystrom implements DataTransform
 {
-    private KernelTrick k;
+
+	private static final long serialVersionUID = -3227844260130709773L;
+	private KernelTrick k;
     private List<Vec> basisVecs;
     private List<Double> accelCache;
     private Matrix transform;
@@ -227,7 +231,7 @@ public class Nystrom implements DataTransform
             default:
                 if (sampleWithReplacment)
                 {
-                    Set<Integer> sampled = new HashSet<Integer>(basisSize);
+                    Set<Integer> sampled = new IntSet(basisSize);
                     while (sampled.size() < basisSize)
                         sampled.add(rand.nextInt(N));
                     for (int indx : sampled)
@@ -253,7 +257,7 @@ public class Nystrom implements DataTransform
      */
     private static void sample(int basisSize, Random rand, double[] weightSume, List<Vec> X, boolean sampleWithReplacment, List<Vec> basisVecs)
     {
-        Set<Integer> sampled = new HashSet<Integer>(basisSize);
+        Set<Integer> sampled = new IntSet(basisSize);
         
         double max = weightSume[weightSume.length-1];
         for(int i = 0; i < basisSize; i++)

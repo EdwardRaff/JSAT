@@ -13,7 +13,9 @@ import jsat.graphing.Graph2D;
  */
 public class GraphDialog extends JFrame
 {
-    Graph2D graph;
+
+	private static final long serialVersionUID = 7093147305020315349L;
+	Graph2D graph;
 
     public GraphDialog(Frame parent, String title, Graph2D graph)
     {

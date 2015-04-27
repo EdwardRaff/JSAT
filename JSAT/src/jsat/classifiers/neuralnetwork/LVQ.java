@@ -3,8 +3,10 @@ package jsat.classifiers.neuralnetwork;
 
 import static java.lang.Math.max;
 import static java.lang.Math.min;
+
 import java.util.*;
 import java.util.concurrent.ExecutorService;
+
 import jsat.classifiers.*;
 import jsat.clustering.SeedSelectionMethods;
 import jsat.clustering.SeedSelectionMethods.SeedSelection;
@@ -17,7 +19,6 @@ import jsat.linear.vectorcollection.VectorCollection;
 import jsat.linear.vectorcollection.VectorCollectionFactory;
 import jsat.math.decayrates.*;
 import jsat.parameters.*;
-import jsat.text.GreekLetters;
 import jsat.utils.FakeExecutor;
 
 /**
@@ -31,7 +32,9 @@ import jsat.utils.FakeExecutor;
  */
 public class LVQ implements Classifier, Parameterized
 {
-    /**
+
+	private static final long serialVersionUID = -3911765006048793222L;
+	/**
      * The default number of iterations is {@value #DEFAULT_ITERATIONS}
      */
     public static final int DEFAULT_ITERATIONS = 200;
@@ -50,7 +53,7 @@ public class LVQ implements Classifier, Parameterized
      */
     public static final double DEFAULT_MSCALE = (0.5-0.1)/2+0.1;
     /**
-     * The default method of LVQ to use {@value #DEFAULT_LVQ_METHOD}
+     * The default method of LVQ to use LVQ3
      */
     public static final LVQVersion DEFAULT_LVQ_METHOD = LVQVersion.LVQ3; 
     /**
@@ -65,7 +68,7 @@ public class LVQ implements Classifier, Parameterized
     public static final double DEFAULT_STOPPING_DIST = 1e-3;
 
     /**
-     * The default seed selection method is {@value #DEFAULT_SEED_SELECTION}
+     * The default seed selection method is SeedSelection.KPP
      */
     public static final SeedSelection DEFAULT_SEED_SELECTION= SeedSelection.KPP;
     
@@ -180,7 +183,7 @@ public class LVQ implements Classifier, Parameterized
     }
 
     /**
-     * When using {@link LVQMode#LVQ3}, a 3rd case exists where up to two 
+     * When using {@link LVQVersion#LVQ3}, a 3rd case exists where up to two 
      * learning vectors can be updated at the same time if they have the same 
      * class. To avoid over fitting, an additional regularizing weight is placed
      * upon the learning rate for their update. THis sets the additional 
@@ -637,7 +640,7 @@ public class LVQ implements Classifier, Parameterized
     @Override
     public LVQ clone()
     {   
-        return new LVQ(this);
+    	return new LVQ(this);
     }
     
 }

@@ -21,7 +21,9 @@ import jsat.utils.SystemInfo;
  */
 public class OrdinaryKriging implements Regressor, Parameterized
 {
-    private Variogram vari;
+
+	private static final long serialVersionUID = -5774553215322383751L;
+	private Variogram vari;
     /**
      * The weight values for each data point
      */

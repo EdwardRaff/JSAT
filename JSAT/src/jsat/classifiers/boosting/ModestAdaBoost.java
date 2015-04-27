@@ -18,7 +18,7 @@ import jsat.utils.FakeExecutor;
  * it easier to obtain the higher accuracy.
  * <br>
  * See: <br>
- * Vezhnevets, A., & Vezhnevets, V. (2005). <i>“Modest AdaBoost” – Teaching 
+ * Vezhnevets, A.,&amp;Vezhnevets, V. (2005). <i>“Modest AdaBoost” – Teaching 
  * AdaBoost to Generalize Better</i>. GraphiCon. Novosibirsk Akademgorodok, 
  * Russia. Retrieved from 
  * <a href="http://www.inf.ethz.ch/personal/vezhneva/Pubs/ModestAdaBoost.pdf">
@@ -28,7 +28,9 @@ import jsat.utils.FakeExecutor;
  */
 public class ModestAdaBoost  implements Classifier, Parameterized, BinaryScoreClassifier
 {
-    private Classifier weakLearner;
+
+	private static final long serialVersionUID = 8223388561185098909L;
+	private Classifier weakLearner;
     private int maxIterations;
     /**
      * The list of weak hypothesis

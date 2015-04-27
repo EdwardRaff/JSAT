@@ -9,7 +9,10 @@ package jsat.text.stemming;
 public class PorterStemmer extends Stemmer
 {
 
-    public String stem(String s)
+
+	private static final long serialVersionUID = -3809291457988435043L;
+
+	public String stem(String s)
     {
         //Step 1a
         if(s.endsWith("sses"))

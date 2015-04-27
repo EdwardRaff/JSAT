@@ -1,8 +1,6 @@
 package jsat.classifiers.linear;
 
-import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 import jsat.SingleWeightVectorModel;
 import jsat.classifiers.BaseUpdateableClassifier;
 import jsat.classifiers.CategoricalData;
@@ -29,7 +27,7 @@ import jsat.parameters.Parameterized;
  * goes through the origin 
  * <br><br>
  * See:<br>
- * Crammer, K., & Lee, D. D. (2010). <i>Learning via Gaussian Herding</i>.
+ * Crammer, K.,&amp;Lee, D. D. (2010). <i>Learning via Gaussian Herding</i>.
  * Pre-proceeding of NIPS (pp. 451–459). Retrieved from 
  * <a href="http://webee.technion.ac.il/Sites/People/koby/publications/gaussian_mob_nips10.pdf">
  * here</a>
@@ -38,7 +36,9 @@ import jsat.parameters.Parameterized;
  */
 public class NHERD extends BaseUpdateableClassifier implements BinaryScoreClassifier, Parameterized, SingleWeightVectorModel
 {
-    private Vec w;
+
+	private static final long serialVersionUID = -1186002893766449917L;
+	private Vec w;
     /**
      * Full covariance matrix
      */

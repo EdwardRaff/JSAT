@@ -12,7 +12,6 @@ import jsat.exceptions.FailedToFitException;
 import jsat.exceptions.UntrainedModelException;
 import jsat.linear.DenseVector;
 import jsat.linear.IndexValue;
-import jsat.linear.SparseVector;
 import jsat.linear.Vec;
 import jsat.regression.RegressionDataSet;
 
@@ -33,15 +32,17 @@ import jsat.regression.RegressionDataSet;
  * <br>
  * See:<br>
  * <a href="http://eprints.pascal-network.org/archive/00005418/">Shalev-Shwartz,
- * S., & Tewari, A. (2009). <i>Stochastic Methods for L<sub>1</sub>-regularized 
+ * S.,&amp;Tewari, A. (2009). <i>Stochastic Methods for L<sub>1</sub>-regularized 
  * Loss Minimization</i>. 26th International Conference on Machine Learning 
- * (Vol. 12, pp. 929–936).
+ * (Vol. 12, pp. 929–936).</a>
  * 
  * @author Edward Raff
  */
 public class SMIDAS extends StochasticSTLinearL1
 {
-    private double eta;
+
+	private static final long serialVersionUID = -4888083541600164597L;
+	private double eta;
     
     /**
      * Creates a new SMIDAS learner

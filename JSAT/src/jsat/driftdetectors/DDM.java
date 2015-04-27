@@ -9,8 +9,8 @@ package jsat.driftdetectors;
  * the object history until a warning state begins. If the warning state ends 
  * before a detection of drift occurs, the history will be dropped. 
  * <br>
- * See: Gama, J., Medas, P., Castillo, G., & Rodrigues, P. (2004). <i>Learning 
- * with Drift Detection</i>. In A. C. Bazzan & S. Labidi (Eds.), Advances in 
+ * See: Gama, J., Medas, P., Castillo, G.,&amp;Rodrigues, P. (2004). <i>Learning 
+ * with Drift Detection</i>. In A. C. Bazzan&amp;S. Labidi (Eds.), Advances in 
  * Artificial Intelligence – SBIA 2004 (pp. 286–295). Springer Berlin 
  * Heidelberg. doi:10.1007/978-3-540-28645-5_29
  * 
@@ -18,7 +18,10 @@ package jsat.driftdetectors;
  */
 public class DDM<V> extends BaseDriftDetector<V>
 {
-    /**
+
+	private static final long serialVersionUID = 3023405445609636195L;
+
+	/**
      * Number of times we won the trial
      */
     private int fails;

@@ -17,7 +17,9 @@ import jsat.utils.FakeExecutor;
  */
 public class MultinomialLogisticRegression implements Classifier
 {
-    private Vec[] classCoefficents;
+
+	private static final long serialVersionUID = -9168502043850569017L;
+	private Vec[] classCoefficents;
     public CategoricalResults classify(DataPoint data)
     {
         if(classCoefficents == null)

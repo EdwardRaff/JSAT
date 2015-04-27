@@ -6,10 +6,8 @@ import java.util.Random;
 import java.util.concurrent.ExecutorService;
 import jsat.linear.Vec;
 import jsat.linear.distancemetrics.DistanceMetric;
-import jsat.linear.vectorcollection.VPTree.VPSelection;
 import jsat.math.OnLineStatistics;
 import jsat.utils.Pair;
-import jsat.utils.ProbailityMatch;
 
 /**
  * The VPTreeMV is an extension of the VPTree, the MV meaning "of Minimum Variance". This extension 
@@ -24,7 +22,10 @@ import jsat.utils.ProbailityMatch;
 public class VPTreeMV<V extends Vec> extends VPTree<V>
 {
 
-    public VPTreeMV(List<V> list, DistanceMetric dm, VPSelection vpSelection, Random rand, int sampleSize, int searchIterations, ExecutorService threadpool)
+
+	private static final long serialVersionUID = 6668184445206226077L;
+
+	public VPTreeMV(List<V> list, DistanceMetric dm, VPSelection vpSelection, Random rand, int sampleSize, int searchIterations, ExecutorService threadpool)
     {
         super(list, dm, vpSelection, rand, sampleSize, searchIterations, threadpool);
     }
@@ -79,7 +80,11 @@ public class VPTreeMV<V extends Vec> extends VPTree<V>
     
     public static class VPTreeMVFactory<V extends Vec> implements VectorCollectionFactory<V>
     {
-        private VPSelection vpSelectionMethod;
+        /**
+		 * 
+		 */
+		private static final long serialVersionUID = 4265451324896792148L;
+		private VPSelection vpSelectionMethod;
 
         public VPTreeMVFactory(VPSelection vpSelectionMethod)
         {

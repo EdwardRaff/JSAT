@@ -26,17 +26,17 @@ import jsat.utils.ListUtils;
  * <li>Platt, J. C. (1998). <i>Sequential Minimal Optimization: A Fast Algorithm
  * for Training Support Vector Machines</i>. Advances in kernel methods 
  * (pp. 185 – 208). Retrieved from <a href="http://www.bradblock.com/Sequential_Minimal_Optimization_A_Fast_Algorithm_for_Training_Support_Vector_Machine.pdf">here</a></li>
- * <li>Keerthi, S. S., Shevade, S. K., Bhattacharyya, C., & Murthy, K. R. K. 
+ * <li>Keerthi, S. S., Shevade, S. K., Bhattacharyya, C.,&amp;Murthy, K. R. K. 
  * (2001). <i>Improvements to Platt’s SMO Algorithm for SVM Classifier Design
  * </i>. Neural Computation, 13(3), 637–649. doi:10.1162/089976601300014493</li>
- * <li>Smola, A. J., & Schölkopf, B. (2004). <i>A tutorial on support vector 
+ * <li>Smola, A. J.,&amp;Schölkopf, B. (2004). <i>A tutorial on support vector 
  * regression</i>. Statistics and Computing, 14(3), 199–222. 
  * doi:10.1023/B:STCO.0000035301.49549.88</li>
- * <li>Shevade, S. K., Keerthi, S. S., Bhattacharyya, C., & Murthy, K. K. (1999)
+ * <li>Shevade, S. K., Keerthi, S. S., Bhattacharyya, C.,&amp;Murthy, K. K. (1999)
  * . <i>Improvements to the SMO algorithm for SVM regression</i>. Control D
  * ivision, Dept. of Mechanical Engineering CD-99–16. Control Division, Dept. of
  * Mechanical Engineering. doi:10.1109/72.870050</li>
- * <li>Shevade, S. K., Keerthi, S. S., Bhattacharyya, C., & Murthy, K. K. (2000)
+ * <li>Shevade, S. K., Keerthi, S. S., Bhattacharyya, C.,&amp;Murthy, K. K. (2000)
  * . <i>Improvements to the SMO algorithm for SVM regression</i>. IEEE 
  * transactions on neural networks / a publication of the IEEE Neural Networks 
  * Council, 11(5), 1188–93. doi:10.1109/72.870050</li>
@@ -46,7 +46,9 @@ import jsat.utils.ListUtils;
  */
 public class PlatSMO extends SupportVectorLearner implements BinaryScoreClassifier, Regressor, Parameterized 
 {
-    /**
+
+	private static final long serialVersionUID = 1533410993462673127L;
+	/**
      * Bias
      */
     protected double b = 0, b_low, b_up;

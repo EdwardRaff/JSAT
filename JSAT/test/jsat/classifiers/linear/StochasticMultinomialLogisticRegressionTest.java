@@ -4,15 +4,10 @@
  */
 package jsat.classifiers.linear;
 
-import java.util.List;
 import java.util.Random;
-import java.util.concurrent.ExecutorService;
 import jsat.FixedProblems;
 import jsat.classifiers.*;
 import jsat.exceptions.UntrainedModelException;
-import jsat.linear.Vec;
-import jsat.math.decayrates.DecayRate;
-import jsat.parameters.Parameter;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;

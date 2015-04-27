@@ -15,7 +15,9 @@ import jsat.parameters.Parameter;
  */
 public class SigmoidKernel extends BaseKernelTrick
 {
-    private double alpha;
+
+	private static final long serialVersionUID = 8066799016611439349L;
+	private double alpha;
     private double c;
 
     /**
@@ -88,10 +90,20 @@ public class SigmoidKernel extends BaseKernelTrick
     }
     
     private List<Parameter> params = Collections.unmodifiableList(new ArrayList<Parameter>(2)
-    {{
+    {/**
+		 * 
+		 */
+		private static final long serialVersionUID = -5176001164596592470L;
+
+	{
         add(new DoubleParameter() {
 
-                @Override
+                /**
+			 * 
+			 */
+			private static final long serialVersionUID = 4759370980371849243L;
+
+				@Override
                 public double getValue()
                 {
                     return getAlpha();
@@ -119,7 +131,12 @@ public class SigmoidKernel extends BaseKernelTrick
             });
         add(new DoubleParameter() {
 
-                @Override
+                /**
+			 * 
+			 */
+			private static final long serialVersionUID = -5163144606854730626L;
+
+				@Override
                 public double getValue()
                 {
                     return getC();

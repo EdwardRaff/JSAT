@@ -23,14 +23,17 @@ import jsat.utils.SystemInfo;
  * stop size suggested (especially for classification) is often too small. You
  * may want to consider increasing it if the accuracy is too low. <br>
  * See: <br>
- * Geurts, P., Ernst, D., & Wehenkel, L. (2006). <i>Extremely randomized trees
+ * Geurts, P., Ernst, D.,&amp;Wehenkel, L. (2006). <i>Extremely randomized trees
  * </i>. Machine learning, 63(1), 3–42. doi:10.1007/s10994-006-6226-1
  * 
  * @author Edward Raff
  */
 public class ERTrees extends ExtraTree
 {
-    //NOTE ExtraTrees uses the dynamic reflection, so extening it the new getter/setter paris are automatically picked up
+
+	private static final long serialVersionUID = 7139392253403373132L;
+
+	//NOTE ExtraTrees uses the dynamic reflection, so extening it the new getter/setter paris are automatically picked up
     private ExtraTree baseTree = new ExtraTree();
     
     private boolean useDefaultSelectionCount = true;

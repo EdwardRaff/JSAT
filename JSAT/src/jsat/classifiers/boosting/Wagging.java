@@ -1,11 +1,10 @@
 package jsat.classifiers.boosting;
 
-import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 import java.util.Random;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
+
 import jsat.DataSet;
 import jsat.classifiers.CategoricalData;
 import jsat.classifiers.CategoricalResults;
@@ -29,7 +28,7 @@ import jsat.utils.SystemInfo;
  * distribution, and set to zero if negative. 
  * <br><br>
  * See: <a href="http://www.springerlink.com/index/L006M1614W023752.pdf"> 
- * Bauer, E., & Kohavi, R. (1999). <i>An empirical comparison of voting 
+ * Bauer, E.,&amp;Kohavi, R. (1999). <i>An empirical comparison of voting 
  * classification algorithms</i>: Bagging, boosting, and variants. Machine 
  * learning, 38(1998), 1–38.</a>
  * 
@@ -37,7 +36,9 @@ import jsat.utils.SystemInfo;
  */
 public class Wagging implements Classifier, Regressor, Parameterized
 {
-    private Distribution dist;
+
+	private static final long serialVersionUID = 4999034730848794619L;
+	private Distribution dist;
     private int iterations;
     private Classifier weakL;
     private Regressor weakR;
@@ -350,7 +351,7 @@ public class Wagging implements Classifier, Regressor, Parameterized
     @Override
     public Wagging clone()
     {
-        return new Wagging(this);
+    	return new Wagging(this);
     }
     
     @Override

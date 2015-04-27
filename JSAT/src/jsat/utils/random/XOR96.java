@@ -12,7 +12,10 @@ import java.util.Random;
  */
 public class XOR96 extends Random
 {
-    private static final long a = 13, b = 19, c= 3;//magic from paper
+
+	private static final long serialVersionUID = 1247900882148980639L;
+
+	private static final long a = 13, b = 19, c= 3;//magic from paper
     
     private long x, y, z;
 

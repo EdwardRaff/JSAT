@@ -22,7 +22,9 @@ import jsat.utils.SystemInfo;
 public class IterativelyReweightedLeastSquares implements Optimizer
 {
     
-    /**
+
+	private static final long serialVersionUID = -6872953184371630318L;
+	/**
      * The hessian matrix
      */
     private DenseMatrix hessian;

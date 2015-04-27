@@ -27,7 +27,9 @@ import jsat.regression.Regressor;
  */
 public class DataModelPipeline implements Classifier, Regressor, Parameterized
 {
-    @ParameterHolder(skipSelfNamePrefix = true)
+
+	private static final long serialVersionUID = -2300996837897094414L;
+	@ParameterHolder(skipSelfNamePrefix = true)
     private DataTransformProcess baseDtp;
     private Classifier baseClassifier;
     private Regressor baseRegressor;

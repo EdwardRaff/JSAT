@@ -2,12 +2,10 @@ package jsat.classifiers.linear.kernelized;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.Random;
 import jsat.classifiers.BaseUpdateableClassifier;
 import jsat.classifiers.CategoricalData;
 import jsat.classifiers.CategoricalResults;
-import jsat.classifiers.Classifier;
 import jsat.classifiers.DataPoint;
 import jsat.distributions.kernels.KernelTrick;
 import jsat.linear.Vec;
@@ -38,7 +36,7 @@ import jsat.exceptions.FailedToFitException;
  * {@link CSKLRBatch batch version} of this algorithm should be used instead. 
  * <br><br>
  * See paper: <br>
- * Zhang, L., Jin, R., Chen, C., Bu, J., & He, X. (2012). <i>Efficient Online 
+ * Zhang, L., Jin, R., Chen, C., Bu, J.,&amp;He, X. (2012). <i>Efficient Online 
  * Learning for Large-Scale Sparse Kernel Logistic Regression</i>. Twenty-Sixth 
  * AAAI Conference on Artificial Intelligence (pp. 1219–1225). Retrieved from 
  * <a href="http://www.aaai.org/ocs/index.php/AAAI/AAAI12/paper/viewPDFInterstitial/5003/5544">here</a>
@@ -47,7 +45,9 @@ import jsat.exceptions.FailedToFitException;
  */
 public class CSKLR extends BaseUpdateableClassifier implements Parameterized
 {
-    private double eta;
+
+	private static final long serialVersionUID = 2325605193408720811L;
+	private double eta;
     private DoubleList alpha;
     private List<Vec> vecs;
     private double curNorm;

@@ -20,7 +20,9 @@ import jsat.utils.IntList;
  */
 abstract public class HashedTextDataLoader implements TextVectorCreator
 {
-    private final int dimensionSize;
+
+	private static final long serialVersionUID = 8513621180409278670L;
+	private final int dimensionSize;
     private Tokenizer tokenizer;
     private WordWeighting weighting;
     
@@ -119,7 +121,7 @@ abstract public class HashedTextDataLoader implements TextVectorCreator
         {
             Entry<String, Integer> entry = iter.next();
             String word = entry.getKey();
-            
+            //XXX This code generates a hashcode and then computes the absolute value of that hashcode. If the hashcode is Integer.MIN_VALUE, then the result will be negative as well (since Math.abs(Integer.MIN_VALUE) == Integer.MIN_VALUE). 
             int index = Math.abs(word.hashCode()) % dimensionSize;
             vec.set(index, entry.getValue());
             termDocumentFrequencys[index] += entry.getValue();

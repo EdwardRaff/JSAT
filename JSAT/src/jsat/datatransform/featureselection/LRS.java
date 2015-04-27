@@ -1,6 +1,7 @@
 package jsat.datatransform.featureselection;
 
 import java.util.*;
+
 import jsat.DataSet;
 import jsat.classifiers.ClassificationDataSet;
 import jsat.classifiers.Classifier;
@@ -8,6 +9,7 @@ import jsat.classifiers.DataPoint;
 import jsat.datatransform.*;
 import jsat.regression.RegressionDataSet;
 import jsat.regression.Regressor;
+import jsat.utils.IntSet;
 import jsat.utils.ListUtils;
 
 /**
@@ -27,7 +29,9 @@ import jsat.utils.ListUtils;
  */
 public class LRS implements DataTransform
 {
-    private RemoveAttributeTransform finalTransform;
+
+	private static final long serialVersionUID = 3065300352046535656L;
+	private RemoveAttributeTransform finalTransform;
     private Set<Integer> catSelected;
     private Set<Integer> numSelected;
     
@@ -40,8 +44,8 @@ public class LRS implements DataTransform
         if(toClone.catSelected != null)
         {
             this.finalTransform = toClone.finalTransform.clone();
-            this.catSelected = new HashSet<Integer>(toClone.catSelected);
-            this.numSelected = new HashSet<Integer>(toClone.numSelected);
+            this.catSelected = new IntSet(toClone.catSelected);
+            this.numSelected = new IntSet(toClone.numSelected);
         }
     }
     
@@ -95,7 +99,7 @@ public class LRS implements DataTransform
      */
     public Set<Integer> getSelectedCategorical()
     {
-        return new HashSet<Integer>(catSelected);
+        return new IntSet(catSelected);
     }
     
     /**
@@ -106,7 +110,7 @@ public class LRS implements DataTransform
      */
     public Set<Integer> getSelectedNumerical()
     {
-        return new HashSet<Integer>(numSelected);
+        return new IntSet(numSelected);
     }
 
     private void search(DataSet cds, int L, int R, Object evaluater, int folds)
@@ -114,12 +118,12 @@ public class LRS implements DataTransform
         int nF = cds.getNumFeatures();
         int nCat = cds.getNumCategoricalVars();
         
-        catSelected = new HashSet<Integer>(nCat);
-        numSelected = new HashSet<Integer>(nF-nCat);
-        Set<Integer> catToRemove = new HashSet<Integer>(nCat);
-        Set<Integer> numToRemove = new HashSet<Integer>(nF-nCat);
+        catSelected = new IntSet(nCat);
+        numSelected = new IntSet(nF-nCat);
+        Set<Integer> catToRemove = new IntSet(nCat);
+        Set<Integer> numToRemove = new IntSet(nF-nCat);
         
-        Set<Integer> available = new HashSet<Integer>(nF);
+        Set<Integer> available = new IntSet(nF);
         ListUtils.addRange(available, 0, nF, 1);
         
         Random rand = new Random();

@@ -20,7 +20,9 @@ import static jsat.math.SpecialMath.*;
  */
 public class SymmetricDirichlet extends MultivariateDistributionSkeleton
 {
-    private double alpha;
+
+	private static final long serialVersionUID = -1206894014440494142L;
+	private double alpha;
     private int dim;
     
     /**
@@ -109,7 +111,12 @@ public class SymmetricDirichlet extends MultivariateDistributionSkeleton
         Function logLike = new Function() 
         {
 
-            public double f(double... x)
+            /**
+			 * 
+			 */
+			private static final long serialVersionUID = -3591420776536183583L;
+
+			public double f(double... x)
             {
                 return f(DenseVector.toDenseVec(x));
             }
@@ -146,7 +153,12 @@ public class SymmetricDirichlet extends MultivariateDistributionSkeleton
         Function logLike = new Function() 
         {
 
-            public double f(double... x)
+            /**
+			 * 
+			 */
+			private static final long serialVersionUID = -1145407955317879017L;
+
+			public double f(double... x)
             {
                 return f(DenseVector.toDenseVec(x));
             }

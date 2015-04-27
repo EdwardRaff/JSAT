@@ -11,7 +11,9 @@ package jsat.linear;
  */
 public class TransposeView extends GenericMatrix
 {
-    private Matrix base;
+
+	private static final long serialVersionUID = 7762422292840392481L;
+	private Matrix base;
 
     public TransposeView(Matrix base)
     {

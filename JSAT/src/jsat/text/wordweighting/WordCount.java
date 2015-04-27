@@ -16,7 +16,10 @@ import jsat.linear.Vec;
 public class WordCount extends WordWeighting
 {
 
-    @Override
+
+	private static final long serialVersionUID = 4665749166722300326L;
+
+	@Override
     public void setWeight(List<? extends Vec> allDocuments, List<Integer> df)
     {
         //No work needed

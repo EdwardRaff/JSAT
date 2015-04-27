@@ -38,9 +38,9 @@ public interface ClusterDissimilarity
      * containing all pairwise distance computations between all points. 
      * 
      * @param a the first set of indices of the original data set that are in a 
-     * cluster, which map to <t>distanceMatrix</t>
+     * cluster, which map to <i>distanceMatrix</i>
      * @param b the second set of indices of the original data set that are in a
-     * cluster, which map to <t>distanceMatrix</t>
+     * cluster, which map to <i>distanceMatrix</i>
      * @param distanceMatrix the upper triangual distance matrix as created by 
      * {@link AbstractClusterDissimilarity#createDistanceMatrix(jsat.DataSet, jsat.clustering.dissimilarity.ClusterDissimilarity) }
      * @return a value &gt;= 0 that describes the dissimilarity of the two 

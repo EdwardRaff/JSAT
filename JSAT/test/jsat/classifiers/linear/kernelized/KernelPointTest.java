@@ -1,14 +1,12 @@
 package jsat.classifiers.linear.kernelized;
 
 import jsat.distributions.kernels.KernelPoint;
-import java.util.ArrayList;
 import static java.lang.Math.*;
 import java.util.List;
 import java.util.Random;
 import jsat.distributions.kernels.LinearKernel;
 import jsat.distributions.multivariate.NormalM;
 import jsat.linear.*;
-import jsat.linear.distancemetrics.DistanceMetric;
 import jsat.linear.distancemetrics.EuclideanDistance;
 import org.junit.After;
 import org.junit.AfterClass;

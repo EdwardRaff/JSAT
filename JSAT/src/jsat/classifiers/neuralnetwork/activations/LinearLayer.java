@@ -10,7 +10,10 @@ import jsat.linear.Vec;
 public class LinearLayer implements ActivationLayer
 {
 
-    @Override
+
+	private static final long serialVersionUID = -4040058095010471379L;
+
+	@Override
     public void activate(Vec input, Vec output)
     {
         input.copyTo(output);

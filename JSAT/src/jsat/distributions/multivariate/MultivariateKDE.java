@@ -15,7 +15,10 @@ import jsat.linear.VecPaired;
  */
 abstract public class MultivariateKDE extends MultivariateDistributionSkeleton
 {
-    /**
+
+	private static final long serialVersionUID = 614136649331326270L;
+
+	/**
      * Returns the list of vectors that have a non zero contribution to the density of the query point <tt>x</tt>. 
      * Each vector is paired with its integer index from the original constructing list vectors, and a double 
      * indicating its weight given the kernel function in use. 

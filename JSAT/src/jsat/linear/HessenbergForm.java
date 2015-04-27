@@ -10,7 +10,10 @@ import static jsat.linear.Matrix.*;
  */
 public class HessenbergForm implements Serializable
 {
-    public static void hess(Matrix A)
+
+	private static final long serialVersionUID = 1411467026933172901L;
+
+	public static void hess(Matrix A)
     {
         hess(A, null);
     }

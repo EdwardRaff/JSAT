@@ -8,7 +8,7 @@ import jsat.linear.Vec;
 /**
  * AdaGrad provides an adaptive learning rate for each individual feature<br>
  * <br>
- * See: Duchi, J., Hazan, E., & Singer, Y. (2011). <i>Adaptive Subgradient 
+ * See: Duchi, J., Hazan, E.,&amp;Singer, Y. (2011). <i>Adaptive Subgradient 
  * Methods for Online Learning and Stochastic Optimization</i>. Journal of 
  * Machine Learning Research, 12, 2121–2159.
  * 
@@ -16,7 +16,9 @@ import jsat.linear.Vec;
  */
 public class AdaGrad implements GradientUpdater
 {
-    private Vec daigG;
+
+	private static final long serialVersionUID = 5138474612999751777L;
+	private Vec daigG;
     private double biasG;
     
     /**

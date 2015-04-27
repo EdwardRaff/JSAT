@@ -15,7 +15,9 @@ import static jsat.math.SpecialMath.*;
 public class FisherSendor extends Distribution
 {
     
-    double v1;
+
+	private static final long serialVersionUID = 7628304882101574242L;
+	double v1;
     double v2;
 
     public FisherSendor(double v1, double v2)

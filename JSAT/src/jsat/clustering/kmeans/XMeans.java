@@ -10,8 +10,6 @@ import jsat.linear.Vec;
 import jsat.clustering.SeedSelectionMethods;
 import jsat.linear.*;
 import static java.lang.Math.*;
-import jsat.clustering.SeedSelectionMethods.SeedSelection;
-import jsat.linear.distancemetrics.DistanceMetric;
 
 /**
  * This class provides a method of performing {@link KMeans} clustering when the
@@ -27,7 +25,7 @@ import jsat.linear.distancemetrics.DistanceMetric;
  * to use at least {@code K=2} as the default minimum, which is what the 
  * implementation will start from when no range of {@code K} is given. <br>
  * <br>
- * See: Pelleg, D., & Moore, A. (2000). <i>X-means: Extending K-means with 
+ * See: Pelleg, D.,&amp;Moore, A. (2000). <i>X-means: Extending K-means with 
  * Efficient Estimation of the Number of Clusters</i>. In ICML (pp. 727–734).
  * San Francisco, CA, USA: Morgan Kaufmann Publishers Inc. Retrieved from 
  * <a href="http://pdf.aminer.org/000/335/443/x_means_extending_k_means_with_efficient_estimation_of_the.pdf">
@@ -37,7 +35,9 @@ import jsat.linear.distancemetrics.DistanceMetric;
  */
 public class XMeans extends KMeans 
 {
-    private boolean stopAfterFail = false;
+
+	private static final long serialVersionUID = -2577160317892141870L;
+	private boolean stopAfterFail = false;
     private boolean iterativeRefine = true;
     
     private int minClusterSize = 25;

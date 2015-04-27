@@ -7,6 +7,7 @@ package jsat.clustering.hierarchical;
 import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+
 import jsat.SimpleDataSet;
 import jsat.classifiers.DataPoint;
 import jsat.clustering.kmeans.ElkanKMeans;
@@ -15,8 +16,10 @@ import jsat.distributions.Uniform;
 import jsat.linear.distancemetrics.DistanceMetric;
 import jsat.linear.distancemetrics.EuclideanDistance;
 import jsat.utils.GridDataGenerator;
+import jsat.utils.IntSet;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+
 import org.junit.*;
 
 /**
@@ -64,7 +67,7 @@ public class DivisiveGlobalClustererTest
         System.out.println("cluster(dataset, int)");
         List<List<DataPoint>> clusters = dgc.cluster(easyData, 4);
         assertEquals(4, clusters.size());
-        Set<Integer> seenBefore = new HashSet<Integer>();
+        Set<Integer> seenBefore = new IntSet();
         for (List<DataPoint> cluster : clusters)
         {
             int thisClass = cluster.get(0).getCategoricalValue(0);
@@ -80,7 +83,7 @@ public class DivisiveGlobalClustererTest
         System.out.println("cluster(dataset)");
         List<List<DataPoint>> clusters = dgc.cluster(easyData);
         assertEquals(4, clusters.size());
-        Set<Integer> seenBefore = new HashSet<Integer>();
+        Set<Integer> seenBefore = new IntSet();
         for (List<DataPoint> cluster : clusters)
         {
             int thisClass = cluster.get(0).getCategoricalValue(0);
@@ -96,7 +99,7 @@ public class DivisiveGlobalClustererTest
         System.out.println("cluster(dataset, ExecutorService)");
         List<List<DataPoint>> clusters = dgc.cluster(easyData, ex);
         assertEquals(4, clusters.size());
-        Set<Integer> seenBefore = new HashSet<Integer>();
+        Set<Integer> seenBefore = new IntSet();
         for (List<DataPoint> cluster : clusters)
         {
             int thisClass = cluster.get(0).getCategoricalValue(0);
@@ -112,7 +115,7 @@ public class DivisiveGlobalClustererTest
         System.out.println("cluster(dataset, int, int)");
         List<List<DataPoint>> clusters = dgc.cluster(easyData, 2, 20);
         assertEquals(4, clusters.size());
-        Set<Integer> seenBefore = new HashSet<Integer>();
+        Set<Integer> seenBefore = new IntSet();
         for (List<DataPoint> cluster : clusters)
         {
             int thisClass = cluster.get(0).getCategoricalValue(0);
@@ -128,7 +131,7 @@ public class DivisiveGlobalClustererTest
         System.out.println("cluster(dataset, int, int, ExecutorService)");
         List<List<DataPoint>> clusters = dgc.cluster(easyData, 2, 20, ex);
         assertEquals(4, clusters.size());
-        Set<Integer> seenBefore = new HashSet<Integer>();
+        Set<Integer> seenBefore = new IntSet();
         for (List<DataPoint> cluster : clusters)
         {
             int thisClass = cluster.get(0).getCategoricalValue(0);
@@ -144,7 +147,7 @@ public class DivisiveGlobalClustererTest
         System.out.println("cluster(dataset, int, ExecutorService)");
         List<List<DataPoint>> clusters = dgc.cluster(easyData, 4, ex);
         assertEquals(4, clusters.size());
-        Set<Integer> seenBefore = new HashSet<Integer>();
+        Set<Integer> seenBefore = new IntSet();
         for (List<DataPoint> cluster : clusters)
         {
             int thisClass = cluster.get(0).getCategoricalValue(0);

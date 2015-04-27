@@ -126,7 +126,7 @@ public class SpecialMath
      * 
      * <br>Special Values: 
      * <ul>
-     * <li>{@link Double#POSITIVE_INFINITY} returned if z <= 0</li>
+     * <li>{@link Double#POSITIVE_INFINITY} returned if z &le; 0</li>
      * <li>{@link Double#NaN} returned if z = {@link Double#NEGATIVE_INFINITY}</li>
      * </ul>
      * 
@@ -439,7 +439,7 @@ public class SpecialMath
             return Double.NaN;
         if(n == 1)
             return -log(2);
-        if(n % 2 == 1)
+        if(n % 2 != 0)
             return Double.NEGATIVE_INFINITY;
         if(n >= 50)//rel err < 1e-14
         {
@@ -459,7 +459,7 @@ public class SpecialMath
      * Computes an approximation to the n'th Bernoulli number 
      * <i>B<sub>n</sub></i>. 
      * The Bernoulli numbers grow in value rapidly, and so the accuracy of this
-     * method decays quickly. n > 20 should have the correct order of magnitude,
+     * method decays quickly. n &gt; 20 should have the correct order of magnitude,
      * but may not have many significant figures. {@link #reLnBn(int) } should
      * be used instead when possible.
      *
@@ -474,7 +474,7 @@ public class SpecialMath
             return 1;
         if(n == 1)
             return -0.5;
-        if(n % 2 == 1)
+        if(n % 2 != 0)
             return 0;
         int sign = 1;
         if(n > 2 && n % 4 == 0)
@@ -558,8 +558,8 @@ public class SpecialMath
      * Computes the regularized incomplete beta function, I<sub>x</sub>(a, b). The result of which is always in the range [0, 1]
      * 
      * @param x any value in the range [0, 1]
-     * @param a any value >= 0
-     * @param b any value >= 0
+     * @param a any value &ge; 0
+     * @param b any value &ge; 0
      * @return the result in a range of [0,1]
      */
     public static double betaIncReg(double x, double a, double b)
@@ -592,7 +592,12 @@ public class SpecialMath
     
     private static final Function betaIncRegFunc = new Function() {
 
-        public double f(double... x)
+        /**
+		 * 
+		 */
+		private static final long serialVersionUID = 5080094630628298264L;
+
+		public double f(double... x)
         {
             return betaIncReg(x[0], x[1], x[2]) - x[3];
         }
@@ -610,8 +615,8 @@ public class SpecialMath
      * The input <tt>p</tt>, must also be in the range [0,1]. 
      * 
      * @param p any value in the range [0,1]
-     * @param a any value >= 0
-     * @param b any value >= 0
+     * @param a any value &ge; 0
+     * @param b any value &ge; 0
      * @return the value x, such that {@link #betaIncReg(double, double, double) I<sub>x</sub>(a, b) }  will return p. 
      */
     public static double invBetaIncReg(double p, double a, double b)
@@ -625,9 +630,9 @@ public class SpecialMath
      * Computes the regularized gamma function Q(a,z) = Γ(a,z)/Γ(a). <br> 
      * This method is more numerically stable and accurate than computing
      * it via the direct method, and is always in the range [0,1]. <br><br>
-     * Note: The this method returns {@link Double#NaN} for a<0, though real values of Q(a,z) do exist
-     * @param a any value >= 0
-     * @param z any value > 0
+     * Note: The this method returns {@link Double#NaN} for a&lt;0, though real values of Q(a,z) do exist
+     * @param a any value &ge; 0
+     * @param z any value &gt; 0
      * @return Q(a,z)
      */
     public static double gammaQ(double a, double z)
@@ -671,9 +676,9 @@ public class SpecialMath
      * Returns the regularized gamma function P(a,z) = γ(a,z)/Γ(a). <br>
      * This method is more numerically stable and accurate than computing
      * it via the direct method, and is always in the range [0,1]. <br><br>
-     * Note: The this method returns {@link Double#NaN} for a<0, though real values of P(a,z) do exist
-     * @param a any value >= 0
-     * @param z any value > 0
+     * Note: The this method returns {@link Double#NaN} for a&lt;0, though real values of P(a,z) do exist
+     * @param a any value &ge; 0
+     * @param z any value &gt; 0
      * @return P(a,z)
      */
     public static double gammaP(double a, double z)
@@ -692,7 +697,7 @@ public class SpecialMath
     }
     
     /**
-     * Finds the value <tt>x</tt> such that {@link #gammaP P(a,x)} = <tt>p</tt>. 
+     * Finds the value <tt>x</tt> such that {@link #gammaP(double,double) P(a,x)} = <tt>p</tt>. 
      * @param a any real value 
      * @param p and value in the range [0, 1]
      * @return the inverse
@@ -757,9 +762,9 @@ public class SpecialMath
     /**
      * Computes the incomplete gamma function, Γ(a,z). 
      * <br>
-     * Returns {@link Double#NaN} for z <= 0
-     * @param a any value (-Infinity, Infinity)
-     * @param z any value > 0
+     * Returns {@link Double#NaN} for z &le; 0
+     * @param a any value (-&infin;, &infin;)
+     * @param z any value &gt; 0
      * @return Γ(a,z)
      */
     public static double gammaIncUp(double a, double z)
@@ -780,9 +785,9 @@ public class SpecialMath
     /**
      * Computes the lower incomplete gamma function, γ(a,z). 
      * <br>
-     * Returns {@link Double#NaN} for z <= 0
-     * @param a any value (-Infinity, Infinity)
-     * @param z any value > 0
+     * Returns {@link Double#NaN} for z &le; 0
+     * @param a any value (-&infin;, &infin;)
+     * @param z any value &gt; 0
      * @return γ(a,z)
      */
     public static double gammaIncLow(double a, double z)
@@ -876,7 +881,7 @@ public class SpecialMath
 
         return -x + lnX*a +log(sum);
     }
-    
+    @SuppressWarnings("unused")
     private static double lnLowIncGamma1(double a, double x)
     {
         double inter = lowIncGamma.lentz(a,x);

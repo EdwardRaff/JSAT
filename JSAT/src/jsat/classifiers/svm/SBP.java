@@ -26,7 +26,7 @@ import jsat.utils.random.XORWOW;
  * algorithm learns. It can learn at most one SV per iteration. 
  * 
  * See:<br>
- * Cotter, A., Shalev-Shwartz, S., & Srebro, N. (2012). <i>The Kernelized 
+ * Cotter, A., Shalev-Shwartz, S.,&amp;Srebro, N. (2012). <i>The Kernelized 
  * Stochastic Batch Perceptron</i>. International Conference on Machine 
  * Learning. Learning. Retrieved from <a href="http://arxiv.org/abs/1204.0566">
  * here</a>
@@ -35,7 +35,9 @@ import jsat.utils.random.XORWOW;
  */
 public class SBP extends SupportVectorLearner implements BinaryScoreClassifier, Parameterized
 {
-    private double nu = 0.1;
+
+	private static final long serialVersionUID = 6112916782260792833L;
+	private double nu = 0.1;
     private int iterations;
     private double burnIn = 1.0/5.0;
 

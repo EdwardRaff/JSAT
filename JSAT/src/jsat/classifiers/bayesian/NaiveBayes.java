@@ -3,9 +3,11 @@ package jsat.classifiers.bayesian;
 
 import static java.lang.Math.exp;
 import static java.lang.Math.log;
+
 import java.util.*;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
+
 import jsat.classifiers.*;
 import static jsat.distributions.DistributionSearch.getBestDistribution;
 import jsat.distributions.*;
@@ -13,6 +15,7 @@ import jsat.distributions.empirical.KernelDensityEstimator;
 import jsat.linear.*;
 import jsat.math.MathTricks;
 import jsat.parameters.*;
+import jsat.utils.DoubleList;
 import jsat.utils.FakeExecutor;
 
 /**
@@ -34,7 +37,9 @@ import jsat.utils.FakeExecutor;
  */
 public class NaiveBayes implements Classifier, Parameterized
 {
-    /**
+
+	private static final long serialVersionUID = -2437775653277531182L;
+	/**
      * 
      */
     private double[][][] apriori;
@@ -89,24 +94,24 @@ public class NaiveBayes implements Classifier, Parameterized
         {
 
             private double cutOff = 0.9;
-
-            /**
-             * Sets the cut off value used before fitting an empirical distribution
-             * @param c the cut off value, should be between (0, 1).
-             */
-            public void setCutOff(double c)
-            {
-                cutOff = c;
-            }
-
-            /**
-             * Returns the cut off value used before fitting an empirical distribution
-             * @return the cut off value used before fitting an empirical distribution
-             */
-            public double getCtrOff()
-            {
-                return cutOff;
-            }
+            //XXX these methods are never and cannot be used
+//            /**
+//             * Sets the cut off value used before fitting an empirical distribution
+//             * @param c the cut off value, should be between (0, 1).
+//             */
+//            public void setCutOff(double c)
+//            {
+//                cutOff = c;
+//            }
+//
+//            /**
+//             * Returns the cut off value used before fitting an empirical distribution
+//             * @return the cut off value used before fitting an empirical distribution
+//             */
+//            public double getCutOff()
+//            {
+//                return cutOff;
+//            }
            
             protected Distribution fit(Vec v)
             {
@@ -391,7 +396,7 @@ public class NaiveBayes implements Classifier, Parameterized
         
         if(sparceInput)
         {
-            List<Double> nonZeroVals = new ArrayList<Double>();
+            List<Double> nonZeroVals = new DoubleList();
             for(int i = 0; i < vals.length(); i++)
                 if(vals.get(i) != 0)
                     nonZeroVals.add(vals.get(i));

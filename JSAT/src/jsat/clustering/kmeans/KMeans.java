@@ -8,7 +8,6 @@ import java.util.logging.Logger;
 import jsat.DataSet;
 import jsat.classifiers.DataPoint;
 import jsat.clustering.ClusterFailureException;
-import jsat.clustering.KClusterer;
 import jsat.clustering.KClustererBase;
 import jsat.clustering.PAM;
 import jsat.clustering.SeedSelectionMethods;
@@ -20,6 +19,7 @@ import jsat.parameters.Parameter.ParameterHolder;
 import jsat.parameters.*;
 import jsat.utils.SystemInfo;
 import jsat.utils.random.XORWOW;
+import jsat.linear.distancemetrics.EuclideanDistance;
 
 /**
  * Base class for the numerous implementations of k-means that exist. This base
@@ -29,7 +29,10 @@ import jsat.utils.random.XORWOW;
  */
 public abstract class KMeans extends KClustererBase implements Parameterized
 {
-    /**
+
+	private static final long serialVersionUID = 8730927112084289722L;
+
+	/**
      * This is the default seed selection method used in ElkanKMeans. When used with 
      * the {@link EuclideanDistance}, it selects seeds that are log optimal with
      * a high probability. 

@@ -23,7 +23,9 @@ import static jsat.linear.MatrixStatistics.*;
  */
 public class NormalM extends MultivariateDistributionSkeleton
 {
-    /**
+
+	private static final long serialVersionUID = -7043369396743253382L;
+	/**
      * When computing the PDF of some x, part of the equation is only dependent on the covariance matrix. This part is
      * <pre>
      *       -k

@@ -24,7 +24,10 @@ import jsat.math.IndexFunction;
  */
 public abstract class Vec implements Cloneable, Iterable<IndexValue>, Serializable
 {
-    /**
+
+	private static final long serialVersionUID = 9035784536820782955L;
+
+	/**
      * Returns the length of this vector
      * @return the length of this vector
      */
@@ -533,7 +536,7 @@ public abstract class Vec implements Cloneable, Iterable<IndexValue>, Serializab
     public double median()
     {
         Vec copy = sortedCopy();
-        if(copy.length() % 2 == 1)
+        if(copy.length() % 2 != 0)
             return copy.get(copy.length()/2);
         else
             return copy.get(copy.length()/2)/2+copy.get(copy.length()/2+1)/2;
@@ -692,7 +695,7 @@ public abstract class Vec implements Cloneable, Iterable<IndexValue>, Serializab
      * index. The index passed to the function is the index in the array
      * that the value came from. 
      * <br><br>
-     * <b><i>NOTE:</b></i> Because negative values are invalid indexes. 
+     * <b><i>NOTE:</i></b> Because negative values are invalid indexes. 
      * The given function should return 0.0 when given a negative index,
      * if and only if, f(0,index) = 0 for any valid index. If f(0, index)
      * != 0 for even one value of index, it should return any non zero 
@@ -1054,13 +1057,13 @@ public abstract class Vec implements Cloneable, Iterable<IndexValue>, Serializab
      * <p><code>
      * int result = 1;<br>
      * <br>
-     *   for (int i = 0; i < length(); i++) <br>
+     *   for (int i = 0; i &lt; length(); i++) <br>
      *   {<br>
      *       double val = get(i);<br>
      *       if(val != 0)<br>
      *       {<br>
      *           long bits = Double.doubleToLongBits(val);<br>
-     *           result = 31 * result + (int)(bits ^ (bits >>> 32));<br>
+     *           result = 31 * result + (int)(bits ^ (bits &gt;&gt;&gt; 32));<br>
      *           result = 31 * result + i;<br>
      *       }<br>
      *   }<br>

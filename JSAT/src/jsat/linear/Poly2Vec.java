@@ -24,7 +24,10 @@ import java.util.NoSuchElementException;
  */
 public class Poly2Vec extends Vec
 {
-    private Vec base;
+
+	private static final long serialVersionUID = -5653680966558726340L;
+
+	private Vec base;
     
     /**
      * This maps values pas the original coefficients (and bias term) shifted to

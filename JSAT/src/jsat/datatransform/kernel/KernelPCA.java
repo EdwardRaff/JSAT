@@ -27,7 +27,7 @@ import jsat.utils.random.XOR96;
  * the number of data points. For this reason, sampling from {@link Nystrom} is
  * used to reduce the data set to a reasonable approximation. 
  * <br><br>
- * See: Schölkopf, B., Smola, A., & Müller, K.-R. (1998). <i>Nonlinear Component
+ * See: Schölkopf, B., Smola, A.,&amp;Müller, K.-R. (1998). <i>Nonlinear Component
  * Analysis as a Kernel Eigenvalue Problem</i>. Neural Computation, 10(5), 
  * 1299–1319. doi:10.1162/089976698300017467
  * 
@@ -36,7 +36,10 @@ import jsat.utils.random.XOR96;
  */
 public class KernelPCA implements DataTransform
 {
-    /**
+
+	private static final long serialVersionUID = 5676602024560381043L;
+
+	/**
      * The dimension to project down to
      */
     private int dimensions;

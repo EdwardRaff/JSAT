@@ -8,7 +8,10 @@ package jsat.regression.evaluation;
  */
 public class RelativeSquaredError extends TotalHistoryRegressionScore
 {
-    /**
+
+	private static final long serialVersionUID = 8377798320269626429L;
+
+	/**
      * Creates a new Relative Squared Error object
      */
     public RelativeSquaredError()
@@ -52,13 +55,13 @@ public class RelativeSquaredError extends TotalHistoryRegressionScore
 
     @Override
     public int hashCode()
-    {
+    {//XXX this is a strange hashcode method
         return getName().hashCode();
     }
     
     @Override
     public boolean equals(Object obj)
-    {
+    {//XXX check for equality of fields and obj == null
         if(this.getClass().isAssignableFrom(obj.getClass()) && obj.getClass().isAssignableFrom(this.getClass()))
         {
             return true;

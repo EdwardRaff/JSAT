@@ -41,7 +41,9 @@ import jsat.utils.ListUtils;
  */
 public class BackPropagationNet implements Classifier, Regressor, Parameterized
 {   
-    private int inputSize, outputSize;
+
+	private static final long serialVersionUID = 335438198218313862L;
+	private int inputSize, outputSize;
     private ActivationFunction f = softsignActiv;
     private DecayRate learningRateDecay = new ExponetialDecay();
     private double momentum = 0.1;
@@ -94,7 +96,12 @@ public class BackPropagationNet implements Classifier, Regressor, Parameterized
             params.add(new IntParameter() 
             {
 
-                @Override
+                /**
+				 * 
+				 */
+				private static final long serialVersionUID = -827784019950722754L;
+
+				@Override
                 public int getValue()
                 {
                     return npl[ii];
@@ -120,7 +127,12 @@ public class BackPropagationNet implements Classifier, Regressor, Parameterized
         params.add(new ObjectParameter<ActivationFunction>() 
         {
 
-            @Override
+            /**
+			 * 
+			 */
+			private static final long serialVersionUID = 6871130865935243583L;
+
+			@Override
             public ActivationFunction getObject()
             {
                 return getActivationFunction();
@@ -612,6 +624,11 @@ public class BackPropagationNet implements Classifier, Regressor, Parameterized
     public static abstract class  ActivationFunction implements Function
     {
         /**
+		 * 
+		 */
+		private static final long serialVersionUID = 8002040194215453918L;
+
+		/**
          * Computes the response of the response of this activation function on 
          * the given input value
          * @param x the input value
@@ -665,7 +682,12 @@ public class BackPropagationNet implements Classifier, Regressor, Parameterized
     public static final ActivationFunction logitActiv = new ActivationFunction() 
     {
 
-        @Override
+        /**
+		 * 
+		 */
+		private static final long serialVersionUID = -5675881412853268432L;
+
+		@Override
         public double response(double x)
         {
             return 1 / (1+exp(-x));
@@ -698,7 +720,12 @@ public class BackPropagationNet implements Classifier, Regressor, Parameterized
     
     private static final Function logitPrime = new FunctionBase()
     {
-        @Override
+        /**
+		 * 
+		 */
+		private static final long serialVersionUID = 7201403465671204173L;
+
+		@Override
         public double f(Vec x)
         {
             double xx = x.get(0);
@@ -712,7 +739,12 @@ public class BackPropagationNet implements Classifier, Regressor, Parameterized
      */
     public static final ActivationFunction tanhActiv = new ActivationFunction() 
     {
-        @Override
+        /**
+		 * 
+		 */
+		private static final long serialVersionUID = 5531922338473526216L;
+
+		@Override
         public double response(double x)
         {
             return tanh(x);
@@ -745,7 +777,12 @@ public class BackPropagationNet implements Classifier, Regressor, Parameterized
     
     private static final Function tanhPrime = new FunctionBase() 
     {
-        @Override
+        /**
+		 * 
+		 */
+		private static final long serialVersionUID = -7271551720122166947L;
+
+		@Override
         public double f(Vec x)
         {
             double xx = x.get(0);
@@ -762,7 +799,12 @@ public class BackPropagationNet implements Classifier, Regressor, Parameterized
     public static final ActivationFunction softsignActiv = new ActivationFunction() 
     {
 
-        @Override
+        /**
+		 * 
+		 */
+		private static final long serialVersionUID = 1618447580574194519L;
+
+		@Override
         public double response(double x)
         {
             return x/(1.0 + abs(x));
@@ -795,7 +837,12 @@ public class BackPropagationNet implements Classifier, Regressor, Parameterized
     
     private static final Function softsignPrime = new FunctionBase() 
     {
-        @Override
+        /**
+		 * 
+		 */
+		private static final long serialVersionUID = -6726314880590071199L;
+
+		@Override
         public double f(Vec x)
         {
             double xx = 1-abs(x.get(0));

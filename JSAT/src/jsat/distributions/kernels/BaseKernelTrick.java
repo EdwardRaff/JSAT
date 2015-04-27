@@ -18,7 +18,10 @@ import jsat.linear.Vec;
 public abstract class BaseKernelTrick implements KernelTrick
 {
 
-    @Override
+
+	private static final long serialVersionUID = 7230585838672226751L;
+
+	@Override
     public boolean supportsAcceleration()
     {
         return false;

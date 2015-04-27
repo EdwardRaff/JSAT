@@ -17,7 +17,10 @@ import java.util.List;
  */
 public abstract class Stemmer implements Serializable
 {
-    /**
+
+	private static final long serialVersionUID = 1889842876393488149L;
+
+	/**
      * Reduce the given input to its stem word
      * @param word the unstemmed input word
      * @return the stemmed version of the word

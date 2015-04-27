@@ -2,6 +2,7 @@ package jsat.clustering;
 
 import java.util.*;
 import java.util.concurrent.ExecutorService;
+
 import jsat.DataSet;
 import jsat.linear.Vec;
 import jsat.linear.VecPaired;
@@ -11,6 +12,7 @@ import jsat.linear.vectorcollection.*;
 import jsat.math.OnLineStatistics;
 import jsat.parameters.*;
 import jsat.utils.IntList;
+import jsat.utils.IntSet;
 
 /**
  * An Implementation of the OPTICS algorithm, which is a generalization of 
@@ -22,7 +24,7 @@ import jsat.utils.IntList;
  * perform some amount of clustering, it may not return the expected results.
  * <br><br>
  * See original paper<br>
- * Ankerst, M., Breunig, M., Kriegel, H.-P., & Sander, J. (1999). 
+ * Ankerst, M., Breunig, M., Kriegel, H.-P.,&amp;Sander, J. (1999). 
  * <a href="http://dl.acm.org/citation.cfm?id=304187"><i>OPTICS: ordering points
  * to identify the clustering structure</i></a>. Proceedings of the 
  * 1999 ACM SIGMOD international conference on Management of data 
@@ -32,7 +34,9 @@ import jsat.utils.IntList;
  */
 public class OPTICS extends ClustererBase implements Parameterized
 {
-    private static final int NOISE = -1;
+
+	private static final long serialVersionUID = -1093772096278544211L;
+	private static final int NOISE = -1;
     private static double UNDEFINED = Double.POSITIVE_INFINITY;
     
     /**
@@ -69,7 +73,8 @@ public class OPTICS extends ClustererBase implements Parameterized
     private Vec[] allVecs;
     
     private double xi;
-    private double one_min_xi = 1.0-xi;
+    //XXX useless assignment
+    private double one_min_xi;// = 1.0-xi;
     private ExtractionMethod extractionMethod = DEFAULT_EXTRACTION_METHOD;
         
     /**
@@ -376,14 +381,14 @@ public class OPTICS extends ClustererBase implements Parameterized
         ///Now obtain clustering
         ///Extract CLustering
         int clustersFound = 0;
-        Set<Integer> sdaSet = new HashSet<Integer>();
+        Set<Integer> sdaSet = new IntSet();
         int orderIndex = 0;
         double mib = 0;
         double[] mibVals = new double[n];
 
         List<OPTICSCluster> clusters = new ArrayList<OPTICSCluster>();
-        List<Integer> allSteepUp = new ArrayList<Integer>();
-        List<Integer> allSDA = new ArrayList<Integer>();
+        List<Integer> allSteepUp = new IntList();
+        List<Integer> allSDA = new IntList();
         /*
          * Ugly else if to increment orderIndex counter and avoid geting stuck 
          * in infinite loops. 
@@ -678,7 +683,7 @@ public class OPTICS extends ClustererBase implements Parameterized
         }
         
     }
-
+    @SuppressWarnings("unused")
     private void extractClusteringDBSCAN(List<Integer> orderedFile, double e, int[] designations)
     {
         int clusterID = NOISE;

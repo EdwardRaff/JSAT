@@ -11,7 +11,9 @@ import jsat.exceptions.UntrainedModelException;
  */
 public class PriorClassifier implements Classifier
 {
-    private CategoricalResults cr;
+
+	private static final long serialVersionUID = 7763388716880766538L;
+	private CategoricalResults cr;
 
     /**
      * Creates a new PriorClassifeir

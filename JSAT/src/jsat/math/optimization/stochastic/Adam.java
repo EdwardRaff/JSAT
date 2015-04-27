@@ -13,14 +13,16 @@ import static java.lang.Math.*;
  * NOTE: that while it will converge, Adam dose not support sparse updates. So
  * runtime when in highly sparse environments will be hampered. <br>
  * <br>
- * See: Kingma, D. P., & Ba, J. L. (2015). <i>Adam: A Method for Stochastic 
+ * See: Kingma, D. P.,&amp;Ba, J. L. (2015). <i>Adam: A Method for Stochastic 
  * Optimization</i>. In ICLR.
  * 
  * @author Edward Raff
  */
 public class Adam implements GradientUpdater
 {
-    //internal state
+
+	private static final long serialVersionUID = 5352504067435579553L;
+	//internal state
     /**
      * 1st moment vector
      */

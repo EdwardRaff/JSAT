@@ -39,7 +39,9 @@ import jsat.utils.SimpleList;
  */
 public class VPTree<V extends Vec> implements VectorCollection<V>
 {
-    private DistanceMetric dm;
+
+	private static final long serialVersionUID = -7271540108746353762L;
+	private DistanceMetric dm;
     private List<Double> distCache;
     private List<V> allVecs;
     private Random rand;
@@ -549,7 +551,11 @@ public class VPTree<V extends Vec> implements VectorCollection<V>
     
     public static class VPTreeFactory<V extends Vec> implements VectorCollectionFactory<V>
     {
-        private VPSelection vpSelectionMethod;
+        /**
+		 * 
+		 */
+		private static final long serialVersionUID = -2739851193676265510L;
+		private VPSelection vpSelectionMethod;
 
         public VPTreeFactory(VPSelection vpSelectionMethod)
         {

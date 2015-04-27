@@ -31,7 +31,9 @@ import jsat.utils.SystemInfo;
  */
 public class NormalizedEuclideanDistance extends TrainableDistanceMetric
 {
-    private Vec invStndDevs;
+
+	private static final long serialVersionUID = 210109457671623688L;
+	private Vec invStndDevs;
 
     /**
      * Creates a new Normalized Euclidean distance metric
@@ -124,7 +126,12 @@ public class NormalizedEuclideanDistance extends TrainableDistanceMetric
     {
         double r = VecOps.accumulateSum(invStndDevs, a, b, new FunctionBase() 
         {
-            @Override
+            /**
+			 * 
+			 */
+			private static final long serialVersionUID = 3190953661114076430L;
+
+			@Override
             public double f(Vec x)
             {
                 return Math.pow(x.get(0), 2);

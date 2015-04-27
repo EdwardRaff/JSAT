@@ -3,7 +3,6 @@ package jsat.regression;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Random;
 import java.util.concurrent.ExecutorService;
 import jsat.SingleWeightVectorModel;
 import jsat.classifiers.CategoricalResults;
@@ -32,7 +31,9 @@ import jsat.utils.FakeExecutor;
  */
 public class LogisticRegression implements Classifier, Regressor, SingleWeightVectorModel
 {
-    private Vec coefficents;
+
+	private static final long serialVersionUID = -5115807516729861730L;
+	private Vec coefficents;
     /**
      * Logistic regression needs values on the range [0, 1]. The shift makes sure that values are on the range [0, x], for some x
      */
@@ -57,7 +58,12 @@ public class LogisticRegression implements Classifier, Regressor, SingleWeightVe
     
     final private Function logitFun = new Function() {
 
-        public double f(double... x)
+        /**
+		 * 
+		 */
+		private static final long serialVersionUID = -653111120605227341L;
+
+		public double f(double... x)
         {
             return logitReg(DenseVector.toDenseVec(x));
         }
@@ -70,7 +76,12 @@ public class LogisticRegression implements Classifier, Regressor, SingleWeightVe
     
     final private Function logitFunD = new Function() {
 
-        public double f(double... x)
+        /**
+		 * 
+		 */
+		private static final long serialVersionUID = 4844651397674391691L;
+
+		public double f(double... x)
         {
             return logitReg(DenseVector.toDenseVec(x));
         }

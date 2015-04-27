@@ -3,10 +3,10 @@ package jsat.classifiers.svm;
 
 import java.util.*;
 import java.util.concurrent.ExecutorService;
+
 import jsat.SingleWeightVectorModel;
 import jsat.classifiers.CategoricalResults;
 import jsat.classifiers.ClassificationDataSet;
-import jsat.classifiers.Classifier;
 import jsat.classifiers.DataPoint;
 import jsat.classifiers.calibration.BinaryScoreClassifier;
 import static jsat.classifiers.svm.DCDs.eq24;
@@ -27,21 +27,21 @@ import jsat.utils.ListUtils;
  * classification and regression.
  * NOTE: While this implementation makes use of the dual formulation only the linear 
  * kernel is ever used. The algorithm also uses the primal representation and uses 
- * the explicit formulation of <i>w></i> in training and classification. As such, 
+ * the explicit formulation of <i>w</i> in training and classification. As such, 
  * the support vectors found are not necessary once training is complete - 
  * and will be discarded.
  * <br><br>
  * See: 
  * <ul>
  * <li>
- * Hsieh, C.-J., Chang, K.-W., Lin, C.-J., Keerthi, S. S., & Sundararajan, S. 
+ * Hsieh, C.-J., Chang, K.-W., Lin, C.-J., Keerthi, S. S.,&amp;Sundararajan, S. 
  * (2008). <i>A Dual Coordinate Descent Method for Large-scale Linear SVM</i>. 
  * Proceedings of the 25th international conference on Machine learning - ICML
  * ’08 (pp. 408–415). New York, New York, USA: ACM Press. 
  * doi:10.1145/1390156.1390208
  * </li>
  * <li>
- * Ho, C.-H., & Lin, C.-J. (2012). <i>Large-scale Linear Support Vector 
+ * Ho, C.-H.,&amp;Lin, C.-J. (2012). <i>Large-scale Linear Support Vector 
  * Regression</i>. Journal of Machine Learning Research, 13, 3323–3348. 
  * Retrieved from <a href="http://ntu.csie.org/~cjlin/papers/linear-svr.pdf">
  * here</a>
@@ -51,7 +51,9 @@ import jsat.utils.ListUtils;
  */
 public class DCD implements BinaryScoreClassifier, Regressor, Parameterized, SingleWeightVectorModel
 {
-    private int maxIterations;
+
+	private static final long serialVersionUID = -1489225034030922798L;
+	private int maxIterations;
     private Vec[] vecs;
     private double[] alpha;
     private double[] y;
@@ -407,7 +409,8 @@ public class DCD implements BinaryScoreClassifier, Regressor, Parameterized, Sin
         IntList activeSet = new IntList(vecs.length);
         ListUtils.addRange(activeSet, 0, vecs.length, 1);
         
-        double M = Double.POSITIVE_INFINITY;
+        @SuppressWarnings("unused")
+		double M = Double.POSITIVE_INFINITY;
 
         for(int iteration = 0; iteration < maxIterations; iteration++)
         {

@@ -31,7 +31,9 @@ import jsat.regression.Regressor;
  */
 public class Stacking implements Classifier, Regressor
 {
-    private int folds;
+
+	private static final long serialVersionUID = -6173323872903232074L;
+	private int folds;
     /**
      * The number of weights needed per model
      */
