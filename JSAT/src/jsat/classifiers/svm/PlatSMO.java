@@ -44,11 +44,11 @@ import jsat.utils.ListUtils;
  * 
  * @author Edward Raff
  */
-public class PlatSMO extends SupportVectorLearner implements BinaryScoreClassifier, Regressor, Parameterized 
+public class PlatSMO extends SupportVectorLearner implements BinaryScoreClassifier, Regressor, Parameterized, WarmClassifier
 {
 
-	private static final long serialVersionUID = 1533410993462673127L;
-	/**
+    private static final long serialVersionUID = 1533410993462673127L;
+    /**
      * Bias
      */
     protected double b = 0, b_low, b_up;
@@ -150,13 +150,30 @@ public class PlatSMO extends SupportVectorLearner implements BinaryScoreClassifi
     }
     
     @Override
+    public void trainC(ClassificationDataSet dataSet, Classifier warmSolution, ExecutorService threadPool)
+    {
+        trainC(dataSet, warmSolution);
+    }
+    
+    @Override
     public void trainC(ClassificationDataSet dataSet, ExecutorService threadPool)
     {
         trainC(dataSet);
     }
 
     @Override
+    public void trainC(ClassificationDataSet dataSet, Classifier warmSolution)
+    {
+        trainC_warm_and_normal(dataSet, warmSolution);
+    }
+
+    @Override
     public void trainC(ClassificationDataSet dataSet)
+    {
+        trainC_warm_and_normal(dataSet, null);
+    }
+    
+    private void trainC_warm_and_normal(ClassificationDataSet dataSet, Classifier warmSolution)
     {
         if(dataSet.getClassSize() != 2)
             throw new FailedToFitException("SVM does not support non binary decisions");
@@ -208,6 +225,100 @@ public class PlatSMO extends SupportVectorLearner implements BinaryScoreClassifi
         fcache[i_up]  = -1;
         b_low =  1;
         fcache[i_low] =  1;
+        
+        //Now lets try and do some warm starting if applicable
+        if(warmSolution instanceof PlatSMO || warmSolution instanceof BinaryScoreClassifier)
+        {
+            WarmScope://We need to use one of the methods to detemrine if the model is a fit
+            {
+                if (warmSolution instanceof PlatSMO)
+                {
+                    //if this SMO object was learend on the same data, we can get a very good guess on C
+                    PlatSMO warmSMO = (PlatSMO) warmSolution;
+
+                    //first, we need to make sure we were actually trained on the same data
+                    //TODO find a better way to ensure this is true, it is POSSIBLE that we could have same labels and different data
+                    boolean sameData = alphas.length == warmSMO.alphas.length;
+                    if(sameData)
+                        for(int i = 0; i < this.label.length && sameData; i++)
+                            //copy sign used so that -0.0 gets picked up as -1.0 and 0.0 as 1.0
+                            if(this.label[i] != Math.copySign(1.0, warmSMO.alphas[i]))
+                                sameData = false;
+                        
+                    if(sameData)
+                    {
+                        double C_prev = warmSMO.C;
+                        double multiplier = this.C / C_prev;
+                        for (int i = 0; i < vecs.size(); i++)
+                            this.alphas[i] = fuzzyClamp(multiplier * Math.abs(warmSMO.alphas[i]), this.C);
+                        break WarmScope;//init sucessful
+                    }
+                    //else, fall through and let 2nd case cick in
+                }
+
+                //last case, should be true
+                if (warmSolution instanceof BinaryScoreClassifier)
+                {
+                    //In this case we can take a decent guess at the values of alpha
+                    BinaryScoreClassifier warmSC = (BinaryScoreClassifier) warmSolution;
+
+                    for (int i = 0; i < vecs.size(); i++)
+                    {
+                        //get the loss, normaly wrapped by max(x, 0), but that will be handled by the clamp
+                        double guess = 1 - label[i] * warmSC.getScore(dataSet.getDataPoint(i));
+                        this.alphas[i] = fuzzyClamp(C * guess, C);
+                    }
+                }
+                else//how did this happen?
+                {
+                    throw new FailedToFitException("BUG: Should not have been able to reach");
+                }
+            }
+            fcache[i_up]  = 0;
+            fcache[i_low] = 0;
+            for (int i = 0; i < vecs.size(); i++)
+            {
+
+                //we can't skip a_i == 0 b/c we still need to make the contribution to w_dot_x
+                final double a_i = this.alphas[i];
+                for (int j = i; j < vecs.size(); j++)
+                {
+                    final double a_j = this.alphas[j];
+                    if (a_j == 0 && a_i == 0)
+                        continue;
+
+                    double dot = kEval(i, j);
+
+                    if (i != j)//avoid double counting
+                        fcache[j] += a_i * label[i] * dot;
+                    fcache[i] += a_j * label[j] * dot;
+
+                }
+
+            }
+
+            //determine i_up and i_low based on equations (11a) and (11b) in Keerthi et al
+            for (int i = 0; i < vecs.size(); i++)
+            {
+                fcache[i] -= label[i];
+                
+                updateSet(i, alphas[i], C*weights.get(i));
+                updateSetsLabeled(i, alphas[i], C*weights.get(i));
+                
+                if(label[i] == -1)
+                    if(I0[i] && (i_low == -1 || fcache[i] > fcache[i_low]) )
+                    {
+                        i_low = i;
+                        b_low = fcache[i];
+                    }
+                else
+                    if(I0[i] && (i_low == -1 || fcache[i] > fcache[i_up]) )
+                    {
+                        i_up = i;
+                        b_up = fcache[i];
+                    }
+            }
+        }
 
         int numChanged = 0;
         boolean examinAll = true;
@@ -266,12 +377,12 @@ public class PlatSMO extends SupportVectorLearner implements BinaryScoreClassifi
                 numChanged += examineExample(i);
         }
         b = (b_up+b_low)/2;
-
+        
         //collapse label into signed alphas
         for(int i = 0; i < label.length; i++)
             alphas[i] *= label[i];
         
-        sparsify();
+//        sparsify();
         label = null;
         
         fcache = null;
@@ -1220,4 +1331,9 @@ public class PlatSMO extends SupportVectorLearner implements BinaryScoreClassifi
         setAlphas(alphas);
     }
 
+    @Override
+    public boolean warmFromSameDataOnly()
+    {
+        return false;
+    }
 }
