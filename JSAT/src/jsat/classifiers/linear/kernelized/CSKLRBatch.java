@@ -49,9 +49,9 @@ import jsat.utils.random.XORWOW;
  */
 public class CSKLRBatch extends SupportVectorLearner implements Parameterized, Classifier
 {
-
-	private static final long serialVersionUID = -2305532659182911285L;
-	private double eta;
+    private static final long serialVersionUID = -2305532659182911285L;
+    
+    private double eta;
     private double curNorm;
     private double R = 10;
     private int T = 0;
@@ -81,7 +81,8 @@ public class CSKLRBatch extends SupportVectorLearner implements Parameterized, C
      */
     protected CSKLRBatch(CSKLRBatch toClone)
     {
-        this(toClone.eta, toClone.getKernel().clone(), toClone.R, toClone.mode, toClone.getCacheMode());
+        super(toClone);
+        
         this.curNorm = toClone.curNorm;
         this.epochs = toClone.epochs;
         this.eta = toClone.eta;
@@ -93,7 +94,7 @@ public class CSKLRBatch extends SupportVectorLearner implements Parameterized, C
     }
 
     @Override
-    public Classifier clone()
+    public CSKLRBatch clone()
     {
         return new CSKLRBatch(this);
     }
