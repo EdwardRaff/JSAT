@@ -72,9 +72,6 @@ public class MetricKDE extends MultivariateKDE implements Parameterized
 	{
         add(new KernelFunctionParameter() {
 
-                /**
-			 * 
-			 */
 			private static final long serialVersionUID = 560041843101841185L;
 
 				@Override
@@ -93,9 +90,6 @@ public class MetricKDE extends MultivariateKDE implements Parameterized
         
         add(new MetricParameter() {
 
-                /**
-			 * 
-			 */
 			private static final long serialVersionUID = 1506569342529820853L;
 
 				@Override
@@ -114,9 +108,6 @@ public class MetricKDE extends MultivariateKDE implements Parameterized
         
         add(new IntParameter() {
 
-                /**
-			 * 
-			 */
 			private static final long serialVersionUID = 2109791176169136850L;
 
 				@Override
@@ -143,9 +134,6 @@ public class MetricKDE extends MultivariateKDE implements Parameterized
         
         add(new DoubleParameter() {
 
-                /**
-			 * 
-			 */
 			private static final long serialVersionUID = 685333554755596799L;
 
 				@Override

@@ -2,6 +2,7 @@
 package jsat.distributions.empirical;
 
 import java.util.*;
+
 import jsat.distributions.Distribution;
 import jsat.distributions.empirical.kernelfunc.*;
 import jsat.linear.Vec;
@@ -401,5 +402,74 @@ public class KernelDensityEstimator extends Distribution
         //TODO cant find anything about what this should really be... 
         return Xskew;
     }
+
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + Arrays.hashCode(X);
+		long temp;
+		temp = Double.doubleToLongBits(Xmean);
+		result = prime * result + (int) (temp ^ (temp >>> 32));
+		temp = Double.doubleToLongBits(Xskew);
+		result = prime * result + (int) (temp ^ (temp >>> 32));
+		temp = Double.doubleToLongBits(Xvar);
+		result = prime * result + (int) (temp ^ (temp >>> 32));
+		temp = Double.doubleToLongBits(h);
+		result = prime * result + (int) (temp ^ (temp >>> 32));
+		result = prime * result + ((k == null) ? 0 : k.hashCode());
+		temp = Double.doubleToLongBits(sumOFWeights);
+		result = prime * result + (int) (temp ^ (temp >>> 32));
+		result = prime * result + Arrays.hashCode(weights);
+		return result;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj) {
+			return true;
+		}
+		if (obj == null) {
+			return false;
+		}
+		if (!(obj instanceof KernelDensityEstimator)) {
+			return false;
+		}
+		KernelDensityEstimator other = (KernelDensityEstimator) obj;
+		if (!Arrays.equals(X, other.X)) {
+			return false;
+		}
+		if (Double.doubleToLongBits(Xmean) != Double
+				.doubleToLongBits(other.Xmean)) {
+			return false;
+		}
+		if (Double.doubleToLongBits(Xskew) != Double
+				.doubleToLongBits(other.Xskew)) {
+			return false;
+		}
+		if (Double.doubleToLongBits(Xvar) != Double
+				.doubleToLongBits(other.Xvar)) {
+			return false;
+		}
+		if (Double.doubleToLongBits(h) != Double.doubleToLongBits(other.h)) {
+			return false;
+		}
+		if (k == null) {
+			if (other.k != null) {
+				return false;
+			}
+		} else if (k.getClass()!=other.k.getClass()) {
+			return false;
+		}
+		if (Double.doubleToLongBits(sumOFWeights) != Double
+				.doubleToLongBits(other.sumOFWeights)) {
+			return false;
+		}
+		if (!Arrays.equals(weights, other.weights)) {
+			return false;
+		}
+		return true;
+	}
+    
     
 }

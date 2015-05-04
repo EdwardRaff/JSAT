@@ -125,9 +125,6 @@ public class Dirichlet extends MultivariateDistributionSkeleton
         Function logLike = new Function() 
         {
 
-            /**
-			 * 
-			 */
 			private static final long serialVersionUID = -2341982303993570445L;
 
 			public double f(double... x)
@@ -168,9 +165,6 @@ public class Dirichlet extends MultivariateDistributionSkeleton
         Function logLike = new Function() 
         {
 
-            /**
-			 * 
-			 */
 			private static final long serialVersionUID = 1597787004137999603L;
 
 			public double f(double... x)

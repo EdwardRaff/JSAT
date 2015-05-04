@@ -160,5 +160,37 @@ public final class Rayleigh extends Distribution
     {
         return 2*sqrt(PI)*(PI-3)/(pow(4-PI, 3.0/2.0));
     }
+
+
+
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		long temp;
+		temp = Double.doubleToLongBits(sig);
+		result = prime * result + (int) (temp ^ (temp >>> 32));
+		return result;
+	}
+
+
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj) {
+			return true;
+		}
+		if (obj == null) {
+			return false;
+		}
+		if (getClass() != obj.getClass()) {
+			return false;
+		}
+		Rayleigh other = (Rayleigh) obj;
+		if (Double.doubleToLongBits(sig) != Double.doubleToLongBits(other.sig)) {
+			return false;
+		}
+		return true;
+	}
     
 }

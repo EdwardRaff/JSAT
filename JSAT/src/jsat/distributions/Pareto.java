@@ -164,5 +164,39 @@ public class Pareto extends Distribution
     {
         return sqrt((alpha-2)/alpha)*(2*(1+alpha)/(alpha-3));
     }
+
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		long temp;
+		temp = Double.doubleToLongBits(alpha);
+		result = prime * result + (int) (temp ^ (temp >>> 32));
+		temp = Double.doubleToLongBits(xm);
+		result = prime * result + (int) (temp ^ (temp >>> 32));
+		return result;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj) {
+			return true;
+		}
+		if (obj == null) {
+			return false;
+		}
+		if (getClass() != obj.getClass()) {
+			return false;
+		}
+		Pareto other = (Pareto) obj;
+		if (Double.doubleToLongBits(alpha) != Double
+				.doubleToLongBits(other.alpha)) {
+			return false;
+		}
+		if (Double.doubleToLongBits(xm) != Double.doubleToLongBits(other.xm)) {
+			return false;
+		}
+		return true;
+	}
     
 }
