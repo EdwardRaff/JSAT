@@ -30,9 +30,9 @@ import jsat.parameters.Parameterized;
  */
 public class Forgetron extends BaseUpdateableClassifier implements BinaryScoreClassifier, Parameterized
 {
-
-	private static final long serialVersionUID = -2631315082407427077L;
-	@ParameterHolder
+    private static final long serialVersionUID = -2631315082407427077L;
+    
+    @ParameterHolder
     private KernelTrick K;
     private Vec[] I;
     /**
@@ -51,7 +51,7 @@ public class Forgetron extends BaseUpdateableClassifier implements BinaryScoreCl
     private double Bconst;
     private double Q, M;
     
-    private boolean selfTurned = true;
+    private boolean selfTuned = true;
 
     /**
      * Creates a new Forgetron 
@@ -62,6 +62,28 @@ public class Forgetron extends BaseUpdateableClassifier implements BinaryScoreCl
     {
         this.K = kernel;
         setBudget(budget);
+    }
+
+    /**
+     * Sets whether or not the self-tuned variant of the Forgetron is used, the
+     * default is {@code true}
+     *
+     * @param selfTurned {@code true} to use the self-tuned variance,
+     * {@code false} otherwise.
+     */
+    public void setSelfTurned(boolean selfTurned)
+    {
+        this.selfTuned = selfTurned;
+    }
+
+    /**
+     * 
+     * @return {@code true} if the self-tuned variant is used, {@code false}
+     * otherwise.
+     */
+    public boolean isSelfTuned()
+    {
+        return selfTuned;
     }
 
     /**
@@ -204,7 +226,7 @@ public class Forgetron extends BaseUpdateableClassifier implements BinaryScoreCl
         else//not cool bro (error)
         {
             M++;
-            if (selfTurned)
+            if (selfTuned)
             {
                 if (size + 1 <= budget)//in budget, we can add safly
                 {
@@ -259,7 +281,7 @@ public class Forgetron extends BaseUpdateableClassifier implements BinaryScoreCl
                 }
                 double fNorm = sqrt(ff);//obtained from after equation 2
                 double phi = min(Bconst, U/fNorm);
-                System.out.println("phi: " + phi);
+                
                 I[curPos] = x;
                 s[curPos] = y_t;
                 if(size < budget)
