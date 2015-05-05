@@ -263,4 +263,13 @@ public class MaxwellBoltzmannTest
         dist = new MaxwellBoltzmann(12);
         assertEquals(0.48569282804959213, dist.skewness(), 1e-10);
     }
+    @Test
+    public void testEquality(){
+    	
+    }
+    
+    @Test
+    public void testHashCode(){
+    	
+    }
 }

@@ -238,4 +238,13 @@ public class ExponentialTest
         dist = new Exponential(12);
         assertEquals(2, dist.skewness(), 1e-10);
     }
+    @Test
+    public void testEquality(){
+    	
+    }
+    
+    @Test
+    public void testHashCode(){
+    	
+    }
 }

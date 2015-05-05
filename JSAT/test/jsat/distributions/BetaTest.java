@@ -233,4 +233,15 @@ public class BetaTest
         dist = new Beta(3, 3);
         assertEquals(0, dist.skewness(), 1e-10);
     }
+    
+    @Test
+    public void testEquality(){
+    	
+    }
+    
+    @Test
+    public void testHashCode(){
+    	
+    }
+    
 }

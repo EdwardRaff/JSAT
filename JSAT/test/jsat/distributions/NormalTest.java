@@ -399,4 +399,13 @@ public class NormalTest
         instance = new Normal(0, 2);
         assertEquals(0, instance.skewness(), 1e-10);
     }
+    @Test
+    public void testEquality(){
+    	
+    }
+    
+    @Test
+    public void testHashCode(){
+    	
+    }
 }

@@ -244,4 +244,14 @@ public class RayleighTest
         dist = new Rayleigh(12);
         assertEquals(0.6311106578189364, dist.skewness(), 1e-10);
     }
+    
+    @Test
+    public void testEquality(){
+    	
+    }
+    
+    @Test
+    public void testHashCode(){
+    	
+    }
 }

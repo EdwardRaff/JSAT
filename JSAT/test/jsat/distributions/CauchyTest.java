@@ -228,4 +228,13 @@ public class CauchyTest
         Cauchy instance = new Cauchy();
         assertTrue(Double.isNaN(instance.skewness()));
     }
+    @Test
+    public void testEquality(){
+    	
+    }
+    
+    @Test
+    public void testHashCode(){
+    	
+    }
 }

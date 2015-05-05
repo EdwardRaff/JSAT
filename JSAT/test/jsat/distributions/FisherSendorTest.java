@@ -271,4 +271,13 @@ public class FisherSendorTest
         dist = new FisherSendor(7, 5);
         assertEquals(Double.NaN, dist.skewness(), 1e-10);
     }
+    @Test
+    public void testEquality(){
+    	
+    }
+    
+    @Test
+    public void testHashCode(){
+    	
+    }
 }

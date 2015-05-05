@@ -233,4 +233,13 @@ public class ChiSquaredTest
         dist = new ChiSquared(0.5);
         assertEquals(4, dist.skewness(), 1e-10);
     }
+    @Test
+    public void testEquality(){
+    	
+    }
+    
+    @Test
+    public void testHashCode(){
+    	
+    }
 }
