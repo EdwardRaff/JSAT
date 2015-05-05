@@ -7,10 +7,10 @@ import jsat.FixedProblems;
 import jsat.classifiers.ClassificationDataSet;
 import jsat.distributions.kernels.KernelPoint;
 import jsat.distributions.kernels.RBFKernel;
-import jsat.lossfunctions.EpsilonInsensitiveLoss;
-import jsat.lossfunctions.HingeLoss;
+import jsat.lossfunctions.*;
 import jsat.regression.RegressionDataSet;
 import jsat.utils.SystemInfo;
+import jsat.utils.random.XORWOW;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -153,6 +153,35 @@ public class KernelSGDTest
         for (int i = 0; i < testSet.getSampleSize(); i++)
             errors += Math.pow(testSet.getTargetValue(i) - classifier.regress(testSet.getDataPoint(i)), 2);
         assertTrue(errors / testSet.getSampleSize() < 1);
+    }
+    
+    @Test
+    public void testClone()
+    {
+        System.out.println("clone");
+
+        KernelSGD instance = new KernelSGD(new LogisticLoss(), new RBFKernel(0.5), 1e-4, KernelPoint.BudgetStrategy.MERGE_RBF, 100);
+        
+        ClassificationDataSet t1 = FixedProblems.getInnerOuterCircle(500, new XORWOW());
+        ClassificationDataSet t2 = FixedProblems.getInnerOuterCircle(500, new XORWOW(), 2.0, 10.0);
+
+        instance = instance.clone();
+
+        instance.trainC(t1);
+
+
+        KernelSGD result = instance.clone();
+        
+        for (int i = 0; i < t1.getSampleSize(); i++)
+            assertEquals(t1.getDataPointCategory(i), result.classify(t1.getDataPoint(i)).mostLikely());
+        result.trainC(t2);
+
+        for (int i = 0; i < t1.getSampleSize(); i++)
+            assertEquals(t1.getDataPointCategory(i), instance.classify(t1.getDataPoint(i)).mostLikely());
+
+        for (int i = 0; i < t2.getSampleSize(); i++)
+            assertEquals(t2.getDataPointCategory(i), result.classify(t2.getDataPoint(i)).mostLikely());
+
     }
 
 }

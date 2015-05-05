@@ -5,6 +5,7 @@ import java.util.*;
 import jsat.distributions.kernels.KernelTrick;
 import jsat.linear.Vec;
 import jsat.parameters.Parameter.ParameterHolder;
+import jsat.utils.DoubleList;
 import jsat.utils.ListUtils;
 
 /**
@@ -122,6 +123,43 @@ public abstract class SupportVectorLearner
     }
     
     /**
+     * Copy constructor
+     * @param toCopy the object to copy
+     */
+    public SupportVectorLearner(SupportVectorLearner toCopy)
+    {
+        if(toCopy.kernel != null)
+            this.kernel = toCopy.kernel.clone();
+        if(toCopy.vecs != null)
+        {
+            this.vecs = new ArrayList<Vec>(toCopy.vecs.size());
+            for(Vec v : toCopy.vecs)
+                this.vecs.add(v.clone());
+        }
+        if(toCopy.alphas != null)
+            this.alphas = Arrays.copyOf(toCopy.alphas, toCopy.alphas.length);
+        this.cacheMode = toCopy.cacheMode;
+        if(toCopy.accelCache != null)
+            this.accelCache = new DoubleList(toCopy.accelCache);
+        if(toCopy.fullCache != null)
+        {
+            this.fullCache = new double[toCopy.fullCache.length][];
+            for(int i = 0; i < toCopy.fullCache.length; i++)
+                this.fullCache[i] = Arrays.copyOf(toCopy.fullCache[i], toCopy.fullCache[i].length);
+        }
+        if(toCopy.partialCache != null)//TODO handling this better needs to be done
+        {
+            setCacheMode(cacheMode);
+            //        if(toCopy.availableRow != null)
+//            this.availableRow = Arrays.copyOf(toCopy.availableRow, toCopy.availableRow.length);
+        }
+
+        this.cacheConst = toCopy.cacheConst;
+                
+        
+    }
+    
+    /**
      * Sets the kernel trick to use
      * @param kernel the kernel trick to use
      */
@@ -228,12 +266,9 @@ public abstract class SupportVectorLearner
         {
             partialCache = new LinkedHashMap<Integer, double[]>(N, 0.75f, true)
             {
-                /**
-				 * 
-				 */
-				private static final long serialVersionUID = 1553368345126287610L;
+                private static final long serialVersionUID = 1553368345126287610L;
 
-				@Override
+                @Override
                 protected boolean removeEldestEntry(Map.Entry<Integer, double[]> eldest)
                 {
                     boolean removeEldest = size() > cacheConst;

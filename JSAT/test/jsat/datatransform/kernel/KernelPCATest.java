@@ -1,9 +1,27 @@
-package jsat.classifiers.linear.kernelized;
+/*
+ * Copyright (C) 2015 Edward Raff
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+package jsat.datatransform.kernel;
 
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import jsat.FixedProblems;
 import jsat.classifiers.*;
+import jsat.classifiers.svm.DCDs;
+import jsat.datatransform.DataModelPipeline;
 import jsat.distributions.kernels.RBFKernel;
 import jsat.utils.SystemInfo;
 import jsat.utils.random.XORWOW;
@@ -18,24 +36,21 @@ import static org.junit.Assert.*;
  *
  * @author Edward Raff
  */
-public class ProjectronTest
+public class KernelPCATest
 {
-    static private ExecutorService ex;
-    
-    public ProjectronTest()
+    //Test uses Transform to solve a problem that is not linearly seprable in the original space
+    public KernelPCATest()
     {
     }
     
     @BeforeClass
     public static void setUpClass()
     {
-        ex = Executors.newFixedThreadPool(SystemInfo.LogicalCores);
     }
     
     @AfterClass
     public static void tearDownClass()
     {
-        ex.shutdown();
     }
     
     @Before
@@ -53,29 +68,21 @@ public class ProjectronTest
     {
         System.out.println("trainC");
 
+        
+
         ExecutorService ex = Executors.newFixedThreadPool(SystemInfo.LogicalCores);
-
-        for(boolean useMargin : new boolean[]{true, false})
+        
+        for(Nystrom.SamplingMethod sampMethod : Nystrom.SamplingMethod.values())
         {
-            Projectron instance = new Projectron(new RBFKernel(0.5));
-            instance.setUseMarginUpdates(useMargin);
-            
-            ClassificationDataSet train = FixedProblems.getInnerOuterCircle(1000, new XORWOW());
-            //add some miss labled data to get the error code to cick in and get exercised
-            for(int i = 0; i < 500; i+=20)
-            {
-                DataPoint dp = train.getDataPoint(i);
-                int y = train.getDataPointCategory(i);
-                int badY = (y == 0) ? 1 : 0;
-                train.addDataPoint(dp, badY);
-            }
+            DataModelPipeline instance = new DataModelPipeline((Classifier)new DCDs(), new KernelPCA.KernelPCATransformFactory(new RBFKernel(0.5), 20, 100, sampMethod)); 
 
+            ClassificationDataSet train = FixedProblems.getInnerOuterCircle(200, new XORWOW());
             ClassificationDataSet test = FixedProblems.getInnerOuterCircle(100, new XORWOW());
 
             ClassificationModelEvaluation cme = new ClassificationModelEvaluation(instance, train, ex);
             cme.evaluateTestSet(test);
 
-            assertEquals(0, cme.getErrorRate(), 0.3);//given some leway due to label noise
+            assertEquals(0, cme.getErrorRate(), 0.0);
         }
         ex.shutdownNow();
 
@@ -85,28 +92,20 @@ public class ProjectronTest
     public void testTrainC_ClassificationDataSet()
     {
         System.out.println("trainC");
-        
-        for(boolean useMargin : new boolean[]{true, false})
-        {
-            Projectron instance = new Projectron(new RBFKernel(0.5));
-            instance.setUseMarginUpdates(useMargin);
-        
-            ClassificationDataSet train = FixedProblems.getInnerOuterCircle(1000, new XORWOW());
-            //add some miss labled data to get the error code to cick in and get exercised
-            for(int i = 0; i < 500; i+=20)
-            {
-                DataPoint dp = train.getDataPoint(i);
-                int y = train.getDataPointCategory(i);
-                int badY = (y == 0) ? 1 : 0;
-                train.addDataPoint(dp, badY);
-            }
 
+        for(Nystrom.SamplingMethod sampMethod : Nystrom.SamplingMethod.values())
+        {
+            DataModelPipeline instance = new DataModelPipeline((Classifier)new DCDs(), new KernelPCA.KernelPCATransformFactory(new RBFKernel(0.5), 20, 100, sampMethod)); 
+        
+            ClassificationDataSet train = FixedProblems.getInnerOuterCircle(200, new XORWOW());
             ClassificationDataSet test = FixedProblems.getInnerOuterCircle(100, new XORWOW());
+
             ClassificationModelEvaluation cme = new ClassificationModelEvaluation(instance, train);
             cme.evaluateTestSet(test);
 
-            assertEquals(0, cme.getErrorRate(), 0.3);//given some leway due to label noise
+            assertEquals(0, cme.getErrorRate(), 0.0);
         }
+
     }
 
     @Test
@@ -114,7 +113,7 @@ public class ProjectronTest
     {
         System.out.println("clone");
 
-        Projectron instance = new Projectron(new RBFKernel(0.5));
+        DataModelPipeline instance = new DataModelPipeline((Classifier)new DCDs(), new KernelPCA.KernelPCATransformFactory(new RBFKernel(0.5), 20, 100, Nystrom.SamplingMethod.KMEANS)); 
         
         ClassificationDataSet t1 = FixedProblems.getInnerOuterCircle(500, new XORWOW());
         ClassificationDataSet t2 = FixedProblems.getInnerOuterCircle(500, new XORWOW(), 2.0, 10.0);
@@ -123,7 +122,8 @@ public class ProjectronTest
 
         instance.trainC(t1);
 
-        Projectron result = instance.clone();
+        
+        DataModelPipeline result = instance.clone();
         
         for (int i = 0; i < t1.getSampleSize(); i++)
             assertEquals(t1.getDataPointCategory(i), result.classify(t1.getDataPoint(i)).mostLikely());
@@ -136,4 +136,5 @@ public class ProjectronTest
             assertEquals(t2.getDataPointCategory(i), result.classify(t2.getDataPoint(i)).mostLikely());
 
     }
+    
 }

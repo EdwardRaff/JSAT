@@ -114,12 +114,9 @@ public class RFF_RBF implements DataTransform
     private static class RandomVectorRFF_RBF extends RandomVector
     {
 
-        /**
-		 * 
-		 */
-		private static final long serialVersionUID = -6132378281909907937L;
+        private static final long serialVersionUID = -6132378281909907937L;
 
-		public RandomVectorRFF_RBF(int length, long seedMult)
+        public RandomVectorRFF_RBF(int length, long seedMult)
         {
             super(length, seedMult);
         }
@@ -157,8 +154,8 @@ public class RFF_RBF implements DataTransform
          */
         public RFF_RBFTransformFactory(double sigma, int dimensions, boolean inMemory)
         {
-            this.sigma = sigma;
-            this.dimensions = dimensions;
+            setSigma(sigma);
+            setDimensions(dimensions);
             this.inMemory = inMemory;
         }
 

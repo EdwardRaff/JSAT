@@ -1,11 +1,27 @@
-package jsat.classifiers.linear.kernelized;
+/*
+ * Copyright (C) 2015 Edward Raff
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+package jsat.datatransform.kernel;
 
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import jsat.FixedProblems;
-import jsat.classifiers.ClassificationDataSet;
-import jsat.classifiers.ClassificationModelEvaluation;
-import jsat.distributions.kernels.RBFKernel;
+import jsat.classifiers.*;
+import jsat.classifiers.svm.DCDs;
+import jsat.datatransform.DataModelPipeline;
 import jsat.utils.SystemInfo;
 import jsat.utils.random.XORWOW;
 import org.junit.After;
@@ -19,10 +35,10 @@ import static org.junit.Assert.*;
  *
  * @author Edward Raff
  */
-public class ALMA2KTest
+public class RFF_RBFTest
 {
     
-    public ALMA2KTest()
+    public RFF_RBFTest()
     {
     }
     
@@ -51,9 +67,9 @@ public class ALMA2KTest
     {
         System.out.println("trainC");
 
-        ALMA2K instance = new ALMA2K(new RBFKernel(0.5), 0.8);
-
         ExecutorService ex = Executors.newFixedThreadPool(SystemInfo.LogicalCores);
+        
+        DataModelPipeline instance = new DataModelPipeline((Classifier) new DCDs(), new RFF_RBF.RFF_RBFTransformFactory(0.5, 100, true));
 
         ClassificationDataSet train = FixedProblems.getInnerOuterCircle(200, new XORWOW());
         ClassificationDataSet test = FixedProblems.getInnerOuterCircle(100, new XORWOW());
@@ -72,9 +88,8 @@ public class ALMA2KTest
     {
         System.out.println("trainC");
 
-        
-        ALMA2K instance = new ALMA2K(new RBFKernel(0.5), 0.8);
-        
+        DataModelPipeline instance = new DataModelPipeline((Classifier) new DCDs(), new RFF_RBF.RFF_RBFTransformFactory(0.5, 100, true));
+
         ClassificationDataSet train = FixedProblems.getInnerOuterCircle(200, new XORWOW());
         ClassificationDataSet test = FixedProblems.getInnerOuterCircle(100, new XORWOW());
 
@@ -90,7 +105,7 @@ public class ALMA2KTest
     {
         System.out.println("clone");
 
-        ALMA2K instance = new ALMA2K(new RBFKernel(0.5), 0.8);
+        DataModelPipeline instance = new DataModelPipeline((Classifier) new DCDs(), new RFF_RBF.RFF_RBFTransformFactory(0.5, 100, false));
         
         ClassificationDataSet t1 = FixedProblems.getInnerOuterCircle(500, new XORWOW());
         ClassificationDataSet t2 = FixedProblems.getInnerOuterCircle(500, new XORWOW(), 2.0, 10.0);
@@ -99,9 +114,9 @@ public class ALMA2KTest
 
         instance.trainC(t1);
 
-        instance.setAveraged(true);
-        ALMA2K result = instance.clone();
-        assertTrue(result.isAveraged());
+        
+        DataModelPipeline result = instance.clone();
+        
         for (int i = 0; i < t1.getSampleSize(); i++)
             assertEquals(t1.getDataPointCategory(i), result.classify(t1.getDataPoint(i)).mostLikely());
         result.trainC(t2);
@@ -113,4 +128,5 @@ public class ALMA2KTest
             assertEquals(t2.getDataPointCategory(i), result.classify(t2.getDataPoint(i)).mostLikely());
 
     }
+    
 }

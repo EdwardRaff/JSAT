@@ -47,9 +47,9 @@ import jsat.utils.DoubleList;
  */
 public class DUOL extends BaseUpdateableClassifier implements BinaryScoreClassifier, Parameterized
 {
-
-	private static final long serialVersionUID = -4751569462573287056L;
-	/**
+    private static final long serialVersionUID = -4751569462573287056L;
+    
+    /**
      * Kernel trick to use
      */
     @ParameterHolder
@@ -86,10 +86,6 @@ public class DUOL extends BaseUpdateableClassifier implements BinaryScoreClassif
     public DUOL(KernelTrick k)
     {
         this.k = k;
-        //XXX these assignments were useless
-        // this.S = S;
-//        this.f_s = f_s;
-//        this.alphas = alphas;
         this.S = new ArrayList<Vec>();
         this.f_s = new DoubleList();
         this.alphas = new DoubleList();
@@ -109,8 +105,10 @@ public class DUOL extends BaseUpdateableClassifier implements BinaryScoreClassif
                 this.S.add(v.clone());
             this.f_s = new DoubleList(other.f_s);
             this.alphas = new DoubleList(other.alphas);
-            this.accelCache = new DoubleList(other.accelCache);
-            this.kTmp = new DoubleList(other.kTmp);
+            if(other.accelCache != null)
+                this.accelCache = new DoubleList(other.accelCache);
+            if(other.kTmp != null)
+                this.kTmp = new DoubleList(other.kTmp);
         }
         this.rho = other.rho;
         this.C = other.C;
