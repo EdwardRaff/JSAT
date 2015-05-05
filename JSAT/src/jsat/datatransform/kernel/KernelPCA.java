@@ -221,7 +221,7 @@ public class KernelPCA implements DataTransform
             this.k = k;
             setDimension(dimension);
             setBasisSize(basisSize);
-            setBasisSamplingMethod(method);
+            setBasisSamplingMethod(samplingMethod);
         }
 
         /**

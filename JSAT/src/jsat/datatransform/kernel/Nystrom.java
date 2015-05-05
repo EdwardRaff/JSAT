@@ -195,7 +195,7 @@ public class Nystrom implements DataTransform
                 double[] diags = new double[N];
                 diags[0] = k.eval(X.get(0), X.get(0));
                 for (int i = 1; i < N; i++)
-                    diags[i] = diags[0] + k.eval(X.get(i), X.get(i));
+                    diags[i] = diags[i-1] + k.eval(X.get(i), X.get(i));
                 sample(basisSize, rand, diags, X, sampleWithReplacment, basisVecs);
                 break;
             case NORM:
