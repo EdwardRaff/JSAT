@@ -27,13 +27,24 @@ public class KolmogorovTest {
 	}
 
     @Test
-    public void testEquality(){
-    	
+    public void testEquals(){
+    	System.out.println("equals");
+    	Distribution d1 = new Kolmogorov();
+    	Distribution d4 = new Kolmogorov();
+    	Integer i = new Integer(1);
+    	assertFalse(d1.equals(i));
+    	assertFalse(d1.equals(null));
+    	assertEquals(d1, d1);
+    	assertEquals(d1, d4);
+    	assertEquals(d1, d1.clone());
     }
     
     @Test
     public void testHashCode(){
-    	
+    	System.out.println("hashCode");
+    	Distribution d1 = new Kolmogorov();
+    	Distribution d4 = new Kolmogorov();
+    	assertEquals(d1.hashCode(), d4.hashCode());
     }
 
 }
