@@ -13,6 +13,8 @@ public class Kolmogorov extends Distribution
 {
 
 
+
+
 	private static final long serialVersionUID = 7319511918364286930L;
 
 	public Kolmogorov()
@@ -67,9 +69,6 @@ public class Kolmogorov extends Distribution
 
     private final Function fCDF = new Function() {
 
-        /**
-		 * 
-		 */
 		private static final long serialVersionUID = -716553015542184045L;
 
 		public double f(double... x)
@@ -166,5 +165,25 @@ public class Kolmogorov extends Distribution
     {
         throw new UnsupportedOperationException("Not supported yet.");
     }
+    
+	@Override
+	public int hashCode() {
+		return 31;
+	}
+
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj) {
+			return true;
+		}
+		if (obj == null) {
+			return false;
+		}
+		if (getClass() != obj.getClass()) {
+			return false;
+		}
+		return true;
+	}
     
 }

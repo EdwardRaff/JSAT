@@ -162,5 +162,42 @@ public final class Laplace extends Distribution
     {
         return 0;
     }
+
+
+
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		long temp;
+		temp = Double.doubleToLongBits(b);
+		result = prime * result + (int) (temp ^ (temp >>> 32));
+		temp = Double.doubleToLongBits(mu);
+		result = prime * result + (int) (temp ^ (temp >>> 32));
+		return result;
+	}
+
+
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj) {
+			return true;
+		}
+		if (obj == null) {
+			return false;
+		}
+		if (getClass() != obj.getClass()) {
+			return false;
+		}
+		Laplace other = (Laplace) obj;
+		if (Double.doubleToLongBits(b) != Double.doubleToLongBits(other.b)) {
+			return false;
+		}
+		if (Double.doubleToLongBits(mu) != Double.doubleToLongBits(other.mu)) {
+			return false;
+		}
+		return true;
+	}
     
 }

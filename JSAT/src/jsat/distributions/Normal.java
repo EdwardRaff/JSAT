@@ -293,5 +293,40 @@ public class Normal extends Distribution
     {
         return 0;
     }
+
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		long temp;
+		temp = Double.doubleToLongBits(mean);
+		result = prime * result + (int) (temp ^ (temp >>> 32));
+		temp = Double.doubleToLongBits(stndDev);
+		result = prime * result + (int) (temp ^ (temp >>> 32));
+		return result;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj) {
+			return true;
+		}
+		if (obj == null) {
+			return false;
+		}
+		if (getClass() != obj.getClass()) {
+			return false;
+		}
+		Normal other = (Normal) obj;
+		if (Double.doubleToLongBits(mean) != Double
+				.doubleToLongBits(other.mean)) {
+			return false;
+		}
+		if (Double.doubleToLongBits(stndDev) != Double
+				.doubleToLongBits(other.stndDev)) {
+			return false;
+		}
+		return true;
+	}
     
 }

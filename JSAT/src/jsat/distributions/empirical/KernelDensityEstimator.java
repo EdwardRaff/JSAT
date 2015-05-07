@@ -2,6 +2,7 @@
 package jsat.distributions.empirical;
 
 import java.util.*;
+
 import jsat.distributions.Distribution;
 import jsat.distributions.empirical.kernelfunc.*;
 import jsat.linear.Vec;
@@ -22,8 +23,8 @@ public class KernelDensityEstimator extends Distribution
      * The values are stored in sorted order, which allows for fast evaluations. 
      * Instead of doing the full loop on each function call, O(n) time, 
      * we know the bounds on the values that will effect results, so we 
-     * can do 2 binary searchs and then a loop. Though this is still 
-     * technicaly, O(n), its more accuracly describe as O(n * epsilon * log(n)) , where n * epsilon << n
+     * can do 2 binary searches and then a loop. Though this is still 
+     * technically, O(n), its more accurately described as O(n * epsilon * log(n)) , where n * epsilon << n
      */
     
 
@@ -33,7 +34,7 @@ public class KernelDensityEstimator extends Distribution
      */
     private double[] X;
     /**
-     * Weights coresponding to each value. If all the same, weights should have a length of 0
+     * Weights corresponding to each value. If all the same, weights should have a length of 0
      */
     private double[] weights;
     /**
@@ -138,7 +139,7 @@ public class KernelDensityEstimator extends Distribution
         X = new double[S.length()];
         this.weights = Arrays.copyOf(weights, S.length());
         
-        //Probability is the X value, mattch is the weights - so that they can be sorted together. 
+        //Probability is the X value, match is the weights - so that they can be sorted together. 
         List<ProbailityMatch<Double>> sorter = new ArrayList<ProbailityMatch<Double>>(S.length());
         for(int i = 0; i < S.length(); i++)
             sorter.add(new ProbailityMatch<Double>(S.get(i), weights[i]));
@@ -149,9 +150,9 @@ public class KernelDensityEstimator extends Distribution
             this.weights[i] = sorter.get(i).getMatch();
             stats.add(this.X[i], this.weights[i]);
         }
-        //Now do some helpfull preprocessing on weights. We will make index i store the sum for [0, i]. 
-        //Each individual weight can still be retrived in O(1) by accesing a 2nd index and a subtraction
-        //Methods that need the sum can now acces it in O(1) time from the weights array isntead of doing an O(n) summations
+        //Now do some helpful preprocessing on weights. We will make index i store the sum for [0, i]. 
+        //Each individual weight can still be retrieved in O(1) by accessing a 2nd index and a subtraction
+        //Methods that need the sum can now access it in O(1) time from the weights array instead of doing an O(n) summations
         for(int i = 1; i < this.weights.length; i++)
             this.weights[i] += this.weights[i-1];
         sumOFWeights = this.weights[this.weights.length-1];
@@ -200,11 +201,11 @@ public class KernelDensityEstimator extends Distribution
         //Only values within a certain range will have an effect on the result, so we will skip to that range!
         int from = Arrays.binarySearch(X, x-h*k.cutOff());
         int to = Arrays.binarySearch(X, x+h*k.cutOff());
-        //Mostly likely the exact value of x is not in the list, so it retursn the inseration points
+        //Mostly likely the exact value of x is not in the list, so it returns the inseration points
         from = from < 0 ? -from-1 : from;
         to = to < 0 ? -to-1 : to;
         
-        //Univareiate opt, if uniform weights, the sum is just the number of elements divide by half
+        //Univariate opt, if uniform weights, the sum is just the number of elements divide by half
         if(weights.length == 0 && k instanceof UniformKF)
             return (to-from)*0.5/ (sumOFWeights*h);
         
@@ -222,7 +223,7 @@ public class KernelDensityEstimator extends Distribution
         //Only values within a certain range will have an effect on the result, so we will skip to that range!
         int from = Arrays.binarySearch(X, x-h*k.cutOff());
         int to = Arrays.binarySearch(X, x+h*k.cutOff());
-        //Mostly likely the exact value of x is not in the list, so it retursn the inseration points
+        //Mostly likely the exact value of x is not in the list, so it returns the inseration points
         from = from < 0 ? -from-1 : from;
         to = to < 0 ? -to-1 : to;
         
@@ -236,7 +237,7 @@ public class KernelDensityEstimator extends Distribution
          * adding 1 to the value, as the value of x would be the integration over 
          * the entire range, which by definition, is equal to 1.
          */
-        //We perform the addition after the summation to reduce the differnce size
+        //We perform the addition after the summation to reduce the difference size
         if(weights.length == 0)//No weights
             sum += Math.max(0, from);
         else
@@ -246,7 +247,8 @@ public class KernelDensityEstimator extends Distribution
         return sum / (X.length);
     }
 
-    private final Function cdfFunc = new Function() {
+    @SuppressWarnings("unused")
+	private final Function cdfFunc = new Function() {
 
         /**
 		 * 
@@ -401,5 +403,75 @@ public class KernelDensityEstimator extends Distribution
         //TODO cant find anything about what this should really be... 
         return Xskew;
     }
+
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + Arrays.hashCode(X);
+		long temp;
+		temp = Double.doubleToLongBits(Xmean);
+		result = prime * result + (int) (temp ^ (temp >>> 32));
+		temp = Double.doubleToLongBits(Xskew);
+		result = prime * result + (int) (temp ^ (temp >>> 32));
+		temp = Double.doubleToLongBits(Xvar);
+		result = prime * result + (int) (temp ^ (temp >>> 32));
+		temp = Double.doubleToLongBits(h);
+		result = prime * result + (int) (temp ^ (temp >>> 32));
+		result = prime * result + ((k == null) ? 0 : k.hashCode());
+		temp = Double.doubleToLongBits(sumOFWeights);
+		result = prime * result + (int) (temp ^ (temp >>> 32));
+		result = prime * result + Arrays.hashCode(weights);
+		return result;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj) {
+			return true;
+		}
+		if (obj == null) {
+			return false;
+		}
+		if (!(obj instanceof KernelDensityEstimator)) {
+			return false;
+		}
+		KernelDensityEstimator other = (KernelDensityEstimator) obj;
+		if (Double.doubleToLongBits(Xmean) != Double
+				.doubleToLongBits(other.Xmean)) {
+			return false;
+		}
+		if (Double.doubleToLongBits(Xskew) != Double
+				.doubleToLongBits(other.Xskew)) {
+			return false;
+		}
+		if (Double.doubleToLongBits(Xvar) != Double
+				.doubleToLongBits(other.Xvar)) {
+			return false;
+		}
+
+		if (Double.doubleToLongBits(h) != Double.doubleToLongBits(other.h)) {
+			return false;
+		}
+		if (Double.doubleToLongBits(sumOFWeights) != Double
+				.doubleToLongBits(other.sumOFWeights)) {
+			return false;
+		}
+		if (k == null) {
+			if (other.k != null) {
+				return false;
+			}
+		} else if (k.getClass()!=other.k.getClass()) {
+			return false;
+		}
+		if (!Arrays.equals(X, other.X)) {
+			return false;
+		}
+		if (!Arrays.equals(weights, other.weights)) {
+			return false;
+		}
+		return true;
+	}
+    
     
 }
