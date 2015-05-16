@@ -91,7 +91,7 @@ public class WeightedEuclideanDistance implements DistanceMetric
     }
 
     @Override
-    public DistanceMetric clone()
+    public WeightedEuclideanDistance clone()
     {
         return new WeightedEuclideanDistance(w.clone());
     }
