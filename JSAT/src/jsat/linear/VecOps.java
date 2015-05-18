@@ -121,7 +121,11 @@ public class VecOps
                 else if(yiv.getIndex() > xiv.getIndex())
                     yiv = yIter.hasNext() ? yIter.next() : badIV;
                 else//on the same page
+                {
                     sum += w.get(xiv.getIndex())*xiv.getValue()*yiv.getValue();
+                    xiv = xIter.hasNext() ? xIter.next() : badIV;
+                    yiv = yIter.hasNext() ? yIter.next() : badIV;
+                }
             }
         }
         else if(x.isSparse())
