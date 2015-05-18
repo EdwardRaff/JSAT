@@ -12,19 +12,42 @@ import jsat.linear.Vec;
  */
 public class MinkowskiDistance implements DenseSparseMetric
 {
-    
 
-	private static final long serialVersionUID = 8976696315441171045L;
-	private double p;
+    private static final long serialVersionUID = 8976696315441171045L;
+    private double p;
 
+    /**
+     * 
+     * @param p the norm to use as the distance
+     */
     public MinkowskiDistance(double p)
     {
-        if(p <= 0 || Double.isNaN(p))
+        if (p <= 0 || Double.isNaN(p))
             throw new ArithmeticException("The pNorm exists only for p > 0");
-        else if(Double.isInfinite(p))
+        else if (Double.isInfinite(p))
             throw new ArithmeticException("Infinity norm is a special case, use ChebyshevDistance for infinity norm");
-        
+
+        setP(p);
+    }
+    
+    /**
+     * 
+     * @param p the norm to use for this metric
+     */
+    public void setP(double p)
+    {
+        if(p <= 0 || Double.isNaN(p) || Double.isInfinite(p))
+            throw new IllegalArgumentException("p must be a positive value, not " + p);
         this.p = p;
+    }
+
+    /**
+     * 
+     * @return the norm to use for this metric. 
+     */
+    public double getP()
+    {
+        return p;
     }
     
     @Override
