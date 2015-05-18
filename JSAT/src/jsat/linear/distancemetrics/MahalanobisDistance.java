@@ -1,7 +1,6 @@
 
 package jsat.linear.distancemetrics;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import jsat.DataSet;
@@ -20,8 +19,8 @@ import jsat.regression.RegressionDataSet;
 public class MahalanobisDistance extends TrainableDistanceMetric
 {
 
-	private static final long serialVersionUID = 7878528119699276817L;
-	private boolean reTrain;
+    private static final long serialVersionUID = 7878528119699276817L;
+    private boolean reTrain;
     /**
      * The inverse of the covariance matrix 
      */
@@ -100,11 +99,7 @@ public class MahalanobisDistance extends TrainableDistanceMetric
     @Override
     public void train(DataSet dataSet, ExecutorService threadpool)
     {
-        List<Vec> dataVecs = new ArrayList<Vec>(dataSet.getSampleSize());
-        for(int i = 0; i < dataSet.getSampleSize(); i++)
-            dataVecs.add(dataSet.getDataPoint(i).getNumericalValues());
-        
-        train(dataVecs, threadpool);
+        train(dataSet.getDataVectors(), threadpool);
     }
 
     @Override
