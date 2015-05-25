@@ -4,6 +4,8 @@ package jsat.linear.distancemetrics;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import jsat.linear.Vec;
 import jsat.linear.VecOps;
 import jsat.math.MathTricks;
@@ -91,7 +93,7 @@ public class WeightedEuclideanDistance implements DistanceMetric
     }
 
     @Override
-    public DistanceMetric clone()
+    public WeightedEuclideanDistance clone()
     {
         return new WeightedEuclideanDistance(w.clone());
     }
@@ -152,6 +154,15 @@ public class WeightedEuclideanDistance implements DistanceMetric
                 }
             });
             start = end;
+        }
+
+        try
+        {
+            latch.await();
+        }
+        catch (InterruptedException ex)
+        {
+            Logger.getLogger(WeightedEuclideanDistance.class.getName()).log(Level.SEVERE, null, ex);
         }
 
         return DoubleList.view(cache, cache.length);
