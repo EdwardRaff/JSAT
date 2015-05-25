@@ -193,13 +193,14 @@ public class NormalizedEuclideanDistance extends TrainableDistanceMetric
         if(threadpool == null || threadpool instanceof FakeExecutor)
             return getAccelerationCache(vecs);
         final double[] cache = new double[vecs.size()];
-   
-        final CountDownLatch latch = new CountDownLatch(SystemInfo.LogicalCores);
+        
+        final int P = Math.min(SystemInfo.LogicalCores, vecs.size());
+        final CountDownLatch latch = new CountDownLatch(P);
 
-        for(int ID = 0; ID < SystemInfo.LogicalCores; ID++)
+        for(int ID = 0; ID < P; ID++)
         {
-            final int start = ParallelUtils.getStartBlock(cache.length, ID, SystemInfo.LogicalCores);
-            final int end = ParallelUtils.getEndBlock(cache.length, ID, SystemInfo.LogicalCores);
+            final int start = ParallelUtils.getStartBlock(cache.length, ID, P);
+            final int end = ParallelUtils.getEndBlock(cache.length, ID, P);
             threadpool.submit(new Runnable()
             {
                 @Override
