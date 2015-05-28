@@ -90,8 +90,8 @@ public class AODETest
         AODE instance = new AODE();
         ExecutorService ex = Executors.newFixedThreadPool(SystemInfo.LogicalCores);
         
-        ClassificationDataSet train = FixedProblems.getSimpleKClassLinear(10000, 3, new XOR96());
-        ClassificationDataSet test = FixedProblems.getSimpleKClassLinear(1000, 3, new XOR96());
+        ClassificationDataSet train = FixedProblems.getSimpleKClassLinear(10000, 3, new XOR96(1234));
+        ClassificationDataSet test = FixedProblems.getSimpleKClassLinear(1000, 3, new XOR96(1234));
 
         ClassificationModelEvaluation cme = new ClassificationModelEvaluation(instance, train, ex);
         cme.setDataTransformProcess(new DataTransformProcess(new NumericalToHistogram.NumericalToHistogramTransformFactory()));
@@ -108,8 +108,8 @@ public class AODETest
         System.out.println("trainC");
         AODE instance = new AODE();
         
-        ClassificationDataSet train = FixedProblems.getSimpleKClassLinear(10000, 3, new XOR96());
-        ClassificationDataSet test = FixedProblems.getSimpleKClassLinear(1000, 3, new XOR96());
+        ClassificationDataSet train = FixedProblems.getSimpleKClassLinear(10000, 3, new XOR96(1234));
+        ClassificationDataSet test = FixedProblems.getSimpleKClassLinear(1000, 3, new XOR96(1234));
 
         ClassificationModelEvaluation cme = new ClassificationModelEvaluation(instance, train);
         cme.setDataTransformProcess(new DataTransformProcess(new NumericalToHistogram.NumericalToHistogramTransformFactory()));
@@ -124,8 +124,8 @@ public class AODETest
     {
         System.out.println("clone");
         
-        ClassificationDataSet t1 = FixedProblems.getSimpleKClassLinear(10000, 3, new XOR96());
-        ClassificationDataSet t2 = FixedProblems.getSimpleKClassLinear(10000, 6, new XOR96());
+        ClassificationDataSet t1 = FixedProblems.getSimpleKClassLinear(10000, 3, new XOR96(1234));
+        ClassificationDataSet t2 = FixedProblems.getSimpleKClassLinear(10000, 6, new XOR96(1234));
         t1.applyTransform(new NumericalToHistogram(t1));
         t2.applyTransform(new NumericalToHistogram(t2));
         

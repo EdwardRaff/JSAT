@@ -57,12 +57,12 @@ public class PegasosTest
     {
         System.out.println("trainC");
         ExecutorService threadPool = Executors.newFixedThreadPool(SystemInfo.LogicalCores);
-        ClassificationDataSet train = FixedProblems.get2ClassLinear(200, new Random());
+        ClassificationDataSet train = FixedProblems.get2ClassLinear(200, new Random(1234));
         
         Pegasos instance = new Pegasos();
         instance.trainC(train, threadPool);
         
-        ClassificationDataSet test = FixedProblems.get2ClassLinear(200, new Random());
+        ClassificationDataSet test = FixedProblems.get2ClassLinear(200, new Random(1234));
         
         for(DataPointPair<Integer> dpp : test.getAsDPPList())
             assertEquals(dpp.getPair().longValue(), instance.classify(dpp.getDataPoint()).mostLikely());
@@ -77,12 +77,12 @@ public class PegasosTest
     {
         System.out.println("trainC");
         
-        ClassificationDataSet train = FixedProblems.get2ClassLinear(200, new Random());
+        ClassificationDataSet train = FixedProblems.get2ClassLinear(200, new Random(1234));
         
         Pegasos instance = new Pegasos();
         instance.trainC(train);
         
-        ClassificationDataSet test = FixedProblems.get2ClassLinear(200, new Random());
+        ClassificationDataSet test = FixedProblems.get2ClassLinear(200, new Random(1234));
         
         for(DataPointPair<Integer> dpp : test.getAsDPPList())
             assertEquals(dpp.getPair().longValue(), instance.classify(dpp.getDataPoint()).mostLikely());

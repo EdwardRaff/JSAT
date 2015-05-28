@@ -47,9 +47,9 @@ public class SCWTest
     public void testTrainC_Full()
     {
         System.out.println("TrainC_Full");
-        ClassificationDataSet train = FixedProblems.get2ClassLinear(200, new Random());
+        ClassificationDataSet train = FixedProblems.get2ClassLinear(200, new Random(1234));
      
-        ClassificationDataSet test = FixedProblems.get2ClassLinear(200, new Random());
+        ClassificationDataSet test = FixedProblems.get2ClassLinear(200, new Random(1234));
 
         for (SCW.Mode mode : SCW.Mode.values())
         {   
@@ -65,9 +65,9 @@ public class SCWTest
     public void testTrainC_Diag()
     {
         System.out.println("TrainC_Diag");
-        ClassificationDataSet train = FixedProblems.get2ClassLinear(200, new Random());
+        ClassificationDataSet train = FixedProblems.get2ClassLinear(200, new Random(1234));
      
-        ClassificationDataSet test = FixedProblems.get2ClassLinear(200, new Random());
+        ClassificationDataSet test = FixedProblems.get2ClassLinear(200, new Random(1234));
 
         for (SCW.Mode mode : SCW.Mode.values())
         {   

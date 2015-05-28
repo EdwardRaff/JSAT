@@ -1,6 +1,7 @@
 package jsat.clustering.kmeans;
 
 import java.util.List;
+import java.util.Random;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -64,7 +65,7 @@ public class GMeansTest
     public void testCluster_4args_1_findK()
     {
         System.out.println("cluster findK");
-        GMeans kMeans = new GMeans(new HamerlyKMeans(new EuclideanDistance(), SeedSelectionMethods.SeedSelection.FARTHEST_FIRST));
+        GMeans kMeans = new GMeans(new HamerlyKMeans(new EuclideanDistance(), SeedSelectionMethods.SeedSelection.FARTHEST_FIRST, new Random(1234)));
         List<List<DataPoint>> clusters = kMeans.cluster(easyData10, 1, 20, ex);
         assertEquals(4, clusters.size());
         Set<Integer> seenBefore = new IntSet();
@@ -81,7 +82,7 @@ public class GMeansTest
     public void testCluster_3args_1_findK()
     {
         System.out.println("cluster findK");
-        GMeans kMeans = new GMeans(new HamerlyKMeans(new EuclideanDistance(), SeedSelectionMethods.SeedSelection.FARTHEST_FIRST));
+        GMeans kMeans = new GMeans(new HamerlyKMeans(new EuclideanDistance(), SeedSelectionMethods.SeedSelection.FARTHEST_FIRST,new Random(1234)));
         List<List<DataPoint>> clusters = kMeans.cluster(easyData10, 1, 20);
         assertEquals(4, clusters.size());
         Set<Integer> seenBefore = new IntSet();

@@ -49,7 +49,7 @@ public class LBFGSTest
     public void testOptimize()
     {
         System.out.println("optimize");
-        Random rand = new Random();
+        Random rand = new Random(1234);
         Vec x0 = new DenseVector(20);
         for(int i = 0; i < x0.length(); i++)
             x0.set(i, rand.nextDouble());

@@ -49,7 +49,7 @@ public class PassiveAggressiveTest
     public void testTrainC_ClassificationDataSet()
     {
         System.out.println("trainC");
-        ClassificationDataSet train = FixedProblems.get2ClassLinear(400, new Random());
+        ClassificationDataSet train = FixedProblems.get2ClassLinear(400, new Random(1234));
         
         for(PassiveAggressive.Mode mode : PassiveAggressive.Mode.values())
         {
@@ -57,7 +57,7 @@ public class PassiveAggressiveTest
             pa.setMode(mode);
             pa.trainC(train);
 
-            ClassificationDataSet test = FixedProblems.get2ClassLinear(400, new Random());
+            ClassificationDataSet test = FixedProblems.get2ClassLinear(400, new Random(1234));
 
             for(DataPointPair<Integer> dpp : test.getAsDPPList())
                 assertEquals(dpp.getPair().longValue(), pa.classify(dpp.getDataPoint()).mostLikely());

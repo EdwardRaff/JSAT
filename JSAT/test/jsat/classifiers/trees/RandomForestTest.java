@@ -73,8 +73,8 @@ public class RandomForestTest
         {
             RandomForest instance = new RandomForest();
 
-            RegressionDataSet train =  FixedProblems.getLinearRegression(1000, new XORWOW());
-            RegressionDataSet test = FixedProblems.getLinearRegression(100, new XORWOW());
+            RegressionDataSet train =  FixedProblems.getLinearRegression(1000, new XORWOW(1234));
+            RegressionDataSet test = FixedProblems.getLinearRegression(100, new XORWOW(1234));
 
             RegressionModelEvaluation rme = new RegressionModelEvaluation(instance, train);
             if(useCatFeatures)
@@ -96,8 +96,8 @@ public class RandomForestTest
             
             ExecutorService ex = Executors.newFixedThreadPool(SystemInfo.LogicalCores);
 
-            RegressionDataSet train =  FixedProblems.getLinearRegression(1000, new XORWOW());
-            RegressionDataSet test = FixedProblems.getLinearRegression(100, new XORWOW());
+            RegressionDataSet train =  FixedProblems.getLinearRegression(1000, new XORWOW(1234));
+            RegressionDataSet test = FixedProblems.getLinearRegression(100, new XORWOW(1234));
 
             RegressionModelEvaluation rme = new RegressionModelEvaluation(instance, train, ex);
             if(useCatFeatures)

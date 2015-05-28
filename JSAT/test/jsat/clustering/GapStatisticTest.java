@@ -43,7 +43,7 @@ public class GapStatisticTest
     @BeforeClass
     public static void setUpClass()
     {
-        GridDataGenerator gdg = new GridDataGenerator(new NormalClampedSample(0.0, 0.05), new XORWOW(), 2, 2);
+        GridDataGenerator gdg = new GridDataGenerator(new NormalClampedSample(0.0, 0.05), new XORWOW(1234), 2, 2);
         easyData10 = gdg.generateData(200);
         ex = Executors.newFixedThreadPool(SystemInfo.LogicalCores);
     }
@@ -70,7 +70,7 @@ public class GapStatisticTest
         System.out.println("cluster findK");
         for(boolean PCSample: new boolean[]{true, false})
         {
-            GapStatistic gap = new GapStatistic(new HamerlyKMeans(new EuclideanDistance(), SeedSelectionMethods.SeedSelection.FARTHEST_FIRST));
+            GapStatistic gap = new GapStatistic(new HamerlyKMeans(new EuclideanDistance(), SeedSelectionMethods.SeedSelection.FARTHEST_FIRST, new Random(1234)));
             gap.setPCSampling(PCSample);
             List<List<DataPoint>> clusters = gap.cluster(easyData10, 1, 20, ex);
             
@@ -93,7 +93,7 @@ public class GapStatisticTest
         System.out.println("cluster findK");
         for(boolean PCSample: new boolean[]{true, false})
         {
-            GapStatistic gap = new GapStatistic(new HamerlyKMeans(new EuclideanDistance(), SeedSelectionMethods.SeedSelection.FARTHEST_FIRST));
+            GapStatistic gap = new GapStatistic(new HamerlyKMeans(new EuclideanDistance(), SeedSelectionMethods.SeedSelection.FARTHEST_FIRST, new Random(1234)));
             gap.setPCSampling(PCSample);
             List<List<DataPoint>> clusters = gap.cluster(easyData10, 1, 20);
             

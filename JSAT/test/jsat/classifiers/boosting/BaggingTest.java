@@ -69,8 +69,8 @@ public class BaggingTest
 
         Bagging instance = new Bagging((Regressor)new DecisionTree());
 
-        RegressionDataSet train = FixedProblems.getLinearRegression(1000, new XORWOW());
-        RegressionDataSet test = FixedProblems.getLinearRegression(100, new XORWOW());
+        RegressionDataSet train = FixedProblems.getLinearRegression(1000, new XORWOW(1234));
+        RegressionDataSet test = FixedProblems.getLinearRegression(100, new XORWOW(1234));
 
         RegressionModelEvaluation rme = new RegressionModelEvaluation(instance, train);
         rme.evaluateTestSet(test);
@@ -88,8 +88,8 @@ public class BaggingTest
 
         ExecutorService ex = Executors.newFixedThreadPool(SystemInfo.LogicalCores);
 
-        RegressionDataSet train = FixedProblems.getLinearRegression(1000, new XORWOW());
-        RegressionDataSet test = FixedProblems.getLinearRegression(100, new XORWOW());
+        RegressionDataSet train = FixedProblems.getLinearRegression(1000, new XORWOW(1234));
+        RegressionDataSet test = FixedProblems.getLinearRegression(100, new XORWOW(1234));
 
         RegressionModelEvaluation rme = new RegressionModelEvaluation(instance, train, ex);
         rme.evaluateTestSet(test);

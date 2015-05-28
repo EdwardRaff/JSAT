@@ -69,11 +69,11 @@ public class LinearSGDTest
                 linearsgd.setUseBias(useBias);
                 linearsgd.setGradientUpdater(gu);
 
-                ClassificationDataSet train = FixedProblems.get2ClassLinear(500, new Random());
+                ClassificationDataSet train = FixedProblems.get2ClassLinear(500, new Random(1234));
 
                 linearsgd.trainC(train);
 
-                ClassificationDataSet test = FixedProblems.get2ClassLinear(200, new Random());
+                ClassificationDataSet test = FixedProblems.get2ClassLinear(200, new Random(1234));
 
                 for(DataPointPair<Integer> dpp : test.getAsDPPList())
                     assertEquals(dpp.getPair().longValue(), linearsgd.classify(dpp.getDataPoint()).mostLikely());
@@ -93,11 +93,11 @@ public class LinearSGDTest
                 linearsgd.setUseBias(useBias);
                 linearsgd.setGradientUpdater(gu);
 
-                ClassificationDataSet train = FixedProblems.getSimpleKClassLinear(500, 6, new Random());
+                ClassificationDataSet train = FixedProblems.getSimpleKClassLinear(500, 6, new Random(1234));
 
                 linearsgd.trainC(train);
 
-                ClassificationDataSet test = FixedProblems.getSimpleKClassLinear(200, 6, new Random());
+                ClassificationDataSet test = FixedProblems.getSimpleKClassLinear(200, 6, new Random(1234));
 
                 for(DataPointPair<Integer> dpp : test.getAsDPPList())
                     assertEquals(dpp.getPair().longValue(), linearsgd.classify(dpp.getDataPoint()).mostLikely());
@@ -119,7 +119,7 @@ public class LinearSGDTest
                 
                 //SGD needs more iterations/data to learn a really close fit
 
-                RegressionDataSet train = FixedProblems.getLinearRegression(10000, new Random());
+                RegressionDataSet train = FixedProblems.getLinearRegression(10000, new Random(1234));
 
                 linearsgd.setEpochs(50);
                 if(!(gu instanceof SimpleSGD))//the others need a higher learning rate than the default
@@ -129,7 +129,7 @@ public class LinearSGDTest
                 }
                 linearsgd.train(train);
 
-                RegressionDataSet test = FixedProblems.getLinearRegression(200, new Random());
+                RegressionDataSet test = FixedProblems.getLinearRegression(200, new Random(1234));
 
                 for(DataPointPair<Double> dpp : test.getAsDPPList())
                 {

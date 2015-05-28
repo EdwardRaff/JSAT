@@ -74,7 +74,7 @@ public class VectorArrayTest
     public void testSearch_Vec_double()
     {
         System.out.println("search");
-        Random rand = new Random();
+        Random rand = new Random(1234);
         
         VectorArray<Vec> vecCol = new VectorArray<Vec>(new EuclideanDistance());
         vecCol.addAll(simpleSet);
@@ -103,7 +103,7 @@ public class VectorArrayTest
     public void testSearch_Vec_int()
     {
         System.out.println("search");
-        Random rand = new Random();
+        Random rand = new Random(1234);
         
         VectorArray<Vec> vecCol = new VectorArray<Vec>(new EuclideanDistance());
         for(Vec v : simpleSet)

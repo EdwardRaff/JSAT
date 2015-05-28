@@ -51,12 +51,12 @@ public class SCDTest
     {
         System.out.println("trainC");
         
-        ClassificationDataSet train = FixedProblems.get2ClassLinear(400, new Random());
+        ClassificationDataSet train = FixedProblems.get2ClassLinear(400, new Random(1234));
         
         SCD scd = new SCD(new LogisticLoss(), 1e-6, 100);
         scd.trainC(train);
         
-        ClassificationDataSet test = FixedProblems.get2ClassLinear(400, new Random());
+        ClassificationDataSet test = FixedProblems.get2ClassLinear(400, new Random(1234));
         
         for(DataPointPair<Integer> dpp : test.getAsDPPList())
         {

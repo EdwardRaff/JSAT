@@ -1,6 +1,7 @@
 package jsat.clustering.kmeans;
 
 import java.util.List;
+import java.util.Random;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -39,7 +40,7 @@ public class XMeansTest
     @BeforeClass
     public static void setUpClass()
     {
-        GridDataGenerator gdg = new GridDataGenerator(new Uniform(0.0, 0.10), new XORWOW(), 2, 2);
+        GridDataGenerator gdg = new GridDataGenerator(new Uniform(0.0, 0.10), new XORWOW(1234), 2, 2);
         easyData10 = gdg.generateData(50);
         ex = Executors.newFixedThreadPool(SystemInfo.LogicalCores);
     }
@@ -64,7 +65,7 @@ public class XMeansTest
     public void testCluster_4args_1_findK()
     {
         System.out.println("cluster findK");
-        XMeans kMeans = new XMeans(new HamerlyKMeans(new EuclideanDistance(), SeedSelectionMethods.SeedSelection.FARTHEST_FIRST));
+        XMeans kMeans = new XMeans(new HamerlyKMeans(new EuclideanDistance(), SeedSelectionMethods.SeedSelection.FARTHEST_FIRST, new Random(1234)));
         List<List<DataPoint>> clusters = kMeans.cluster(easyData10, 2, 40, ex);
         assertEquals(4, clusters.size());
         Set<Integer> seenBefore = new IntSet();
@@ -81,7 +82,7 @@ public class XMeansTest
     public void testCluster_3args_1_findK()
     {
         System.out.println("cluster findK");
-        XMeans kMeans = new XMeans(new HamerlyKMeans(new EuclideanDistance(), SeedSelectionMethods.SeedSelection.FARTHEST_FIRST));
+        XMeans kMeans = new XMeans(new HamerlyKMeans(new EuclideanDistance(), SeedSelectionMethods.SeedSelection.FARTHEST_FIRST, new Random(1234)));
         List<List<DataPoint>> clusters = kMeans.cluster(easyData10, 2, 40);
         assertEquals(4, clusters.size());
         Set<Integer> seenBefore = new IntSet();

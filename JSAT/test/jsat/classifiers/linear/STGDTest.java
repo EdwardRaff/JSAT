@@ -71,12 +71,12 @@ public class STGDTest
     public void testTrainC_ClassificationDataSet()
     {
         System.out.println("trainC");
-        ClassificationDataSet train = FixedProblems.get2ClassLinear(400, new Random());
+        ClassificationDataSet train = FixedProblems.get2ClassLinear(400, new Random(1234));
         
         STGD scd = new STGD(5, 0.5, Double.POSITIVE_INFINITY, 0.1);
         scd.trainC(train);
         
-        ClassificationDataSet test = FixedProblems.get2ClassLinear(400, new Random());
+        ClassificationDataSet test = FixedProblems.get2ClassLinear(400, new Random(1234));
         
         for(DataPointPair<Integer> dpp : test.getAsDPPList())
             assertEquals(dpp.getPair().longValue(), scd.classify(dpp.getDataPoint()).mostLikely());

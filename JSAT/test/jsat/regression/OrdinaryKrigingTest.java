@@ -68,8 +68,8 @@ public class OrdinaryKrigingTest
 
         OrdinaryKriging instance = new OrdinaryKriging(new OrdinaryKriging.PowVariogram());
 
-        RegressionDataSet train = FixedProblems.getLinearRegression(500, new XORWOW());
-        RegressionDataSet test = FixedProblems.getLinearRegression(100, new XORWOW());
+        RegressionDataSet train = FixedProblems.getLinearRegression(500, new XORWOW(1234));
+        RegressionDataSet test = FixedProblems.getLinearRegression(100, new XORWOW(1234));
 
         RegressionModelEvaluation rme = new RegressionModelEvaluation(instance, train);
         rme.evaluateTestSet(test);
@@ -87,8 +87,8 @@ public class OrdinaryKrigingTest
 
         ExecutorService ex = Executors.newFixedThreadPool(SystemInfo.LogicalCores);
 
-        RegressionDataSet train = FixedProblems.getLinearRegression(500, new XORWOW());
-        RegressionDataSet test = FixedProblems.getLinearRegression(100, new XORWOW());
+        RegressionDataSet train = FixedProblems.getLinearRegression(500, new XORWOW(1234));
+        RegressionDataSet test = FixedProblems.getLinearRegression(100, new XORWOW(1234));
 
         RegressionModelEvaluation rme = new RegressionModelEvaluation(instance, train, ex);
         rme.evaluateTestSet(test);
@@ -105,8 +105,8 @@ public class OrdinaryKrigingTest
 
         OrdinaryKriging instance = new OrdinaryKriging(new OrdinaryKriging.PowVariogram());
 
-        RegressionDataSet t1 = FixedProblems.getLinearRegression(100, new XORWOW());
-        RegressionDataSet t2 = FixedProblems.getLinearRegression(100, new XORWOW());
+        RegressionDataSet t1 = FixedProblems.getLinearRegression(100, new XORWOW(1234));
+        RegressionDataSet t2 = FixedProblems.getLinearRegression(100, new XORWOW(1234));
         t2.applyTransform(new LinearTransform(t2, 1, 10));
 
         instance = instance.clone();

@@ -73,8 +73,8 @@ public class LogisticRegressionTest
 
         ExecutorService ex = Executors.newFixedThreadPool(SystemInfo.LogicalCores);
 
-        ClassificationDataSet train = FixedProblems.get2ClassLinear(100, new XORWOW());
-        ClassificationDataSet test = FixedProblems.get2ClassLinear(100, new XORWOW());
+        ClassificationDataSet train = FixedProblems.get2ClassLinear(100, new XORWOW(1234));
+        ClassificationDataSet test = FixedProblems.get2ClassLinear(100, new XORWOW(1234));
 
         ClassificationModelEvaluation cme = new ClassificationModelEvaluation(instance, train, ex);
         cme.evaluateTestSet(test);
@@ -91,8 +91,8 @@ public class LogisticRegressionTest
 
         LogisticRegression instance = new LogisticRegression();
 
-        ClassificationDataSet train = FixedProblems.get2ClassLinear(100, new XORWOW());
-        ClassificationDataSet test = FixedProblems.get2ClassLinear(100, new XORWOW());
+        ClassificationDataSet train = FixedProblems.get2ClassLinear(100, new XORWOW(1234));
+        ClassificationDataSet test = FixedProblems.get2ClassLinear(100, new XORWOW(1234));
 
         ClassificationModelEvaluation cme = new ClassificationModelEvaluation(instance, train);
         cme.evaluateTestSet(test);
@@ -108,8 +108,8 @@ public class LogisticRegressionTest
 
         LogisticRegression instance = new LogisticRegression();
 
-        ClassificationDataSet t1 = FixedProblems.get2ClassLinear(100, new XORWOW());
-        ClassificationDataSet t2 = FixedProblems.get2ClassLinear(100, new XORWOW());
+        ClassificationDataSet t1 = FixedProblems.get2ClassLinear(100, new XORWOW(1234));
+        ClassificationDataSet t2 = FixedProblems.get2ClassLinear(100, new XORWOW(1234));
         t2.applyTransform(new LinearTransform(t2, 0.5, 1));
 
         instance = instance.clone();

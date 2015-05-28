@@ -64,7 +64,7 @@ public class KMeansPDNTest
     public void testCluster_4args_1_findK()
     {
         System.out.println("cluster findK");
-        KMeansPDN kMeans = new KMeansPDN(new HamerlyKMeans(new EuclideanDistance(), SeedSelectionMethods.SeedSelection.FARTHEST_FIRST));
+        KMeansPDN kMeans = new KMeansPDN(new HamerlyKMeans(new EuclideanDistance(), SeedSelectionMethods.SeedSelection.FARTHEST_FIRST, new Random(1234)));
         List<List<DataPoint>> clusters = kMeans.cluster(easyData10, 1, 20, ex);
         assertEquals(4, clusters.size());
         Set<Integer> seenBefore = new IntSet();
@@ -81,7 +81,7 @@ public class KMeansPDNTest
     public void testCluster_3args_1_findK()
     {
         System.out.println("cluster findK");
-        KMeansPDN kMeans = new KMeansPDN(new HamerlyKMeans(new EuclideanDistance(), SeedSelectionMethods.SeedSelection.FARTHEST_FIRST));
+        KMeansPDN kMeans = new KMeansPDN(new HamerlyKMeans(new EuclideanDistance(), SeedSelectionMethods.SeedSelection.FARTHEST_FIRST, new Random(1234)));
         List<List<DataPoint>> clusters = kMeans.cluster(easyData10, 1, 20);
         assertEquals(4, clusters.size());
         Set<Integer> seenBefore = new IntSet();

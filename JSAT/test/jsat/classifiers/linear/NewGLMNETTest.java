@@ -58,7 +58,7 @@ public class NewGLMNETTest
     {
         System.out.println("train");
         
-        Random rand  = new XORWOW();
+        Random rand  = new XORWOW(1234);
         ClassificationDataSet data = new ClassificationDataSet(6, new CategoricalData[0], new CategoricalData(2));
         
         for(int i = 0; i < 500; i++)
@@ -116,6 +116,7 @@ public class NewGLMNETTest
         assertEquals( 1, (int)Math.signum(w.get(0)));
         assertEquals(-1, (int)Math.signum(w.get(1)));
         assertEquals( 1, (int)Math.signum(w.get(2)));
+        //TODO sometimes this test fails
         assertEquals( 1, (int)Math.signum(w.get(3)));
         assertEquals(-1, (int)Math.signum(w.get(4)));
         assertEquals( 1, (int)Math.signum(w.get(5)));

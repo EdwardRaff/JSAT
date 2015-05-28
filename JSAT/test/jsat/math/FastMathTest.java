@@ -36,7 +36,7 @@ public class FastMathTest
     @Before
     public void setUp()
     {
-        rand = new XORWOW();
+        rand = new XORWOW(123456);
     }
     
     @After
