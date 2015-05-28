@@ -296,6 +296,14 @@ public class RegressionModelEvaluation
         try
         {
             latch.await();
+            //accumulate score info
+            for(Entry<RegressionScore, OnLineStatistics> entry : scoreMap.entrySet())
+            {
+                RegressionScore score = entry.getKey().clone();
+                score.prepare();
+                score.addResults(scoresToUpdate.get(score));
+                entry.getValue().add(score.getScore());
+            }
         }
         catch (InterruptedException ex)
         {
