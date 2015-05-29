@@ -59,12 +59,12 @@ public class StochasticRidgeRegressionTest
         {
             StochasticRidgeRegression instance = new StochasticRidgeRegression(1e-9, 40, batchSize, 0.1);
 
-            RegressionDataSet train = FixedProblems.getLinearRegression(500, new XORWOW());
+            RegressionDataSet train = FixedProblems.getLinearRegression(500, new XORWOW(1234));
             for(int i = 0; i < 20; i++)
                 train.addDataPoint(DenseVector.random(train.getNumNumericalVars()), train.getTargetValues().mean());
             if(batchSize == 10)
                 train.applyTransform(new DenseSparceTransform(1));
-            RegressionDataSet test = FixedProblems.getLinearRegression(100, new XORWOW());
+            RegressionDataSet test = FixedProblems.getLinearRegression(100, new XORWOW(1234));
 
             RegressionModelEvaluation rme = new RegressionModelEvaluation(instance, train);
             rme.evaluateTestSet(test);
