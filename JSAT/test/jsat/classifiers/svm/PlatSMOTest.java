@@ -220,4 +220,43 @@ public class PlatSMOTest
         assertTrue(warmTime < normTime*0.75);
         
     }
+    
+    @Test()
+    public void testTrainWarmRFastOther()
+    {
+        RegressionDataSet train = FixedProblems.getLinearRegression(1000, new XORWOW());
+        double eps = train.getTargetValues().mean()/20;
+        
+        DCDs warmModel = new DCDs();
+        warmModel.setEps(eps);
+        warmModel.setUseL1(true);
+        warmModel.setUseBias(true);
+        warmModel.train(train);
+        
+        
+        long start, end;
+        
+        
+        PlatSMO notWarm = new PlatSMO(new LinearKernel(1));
+        notWarm.setEpsilon(eps);
+        notWarm.setC(1e2);
+        
+        start = System.currentTimeMillis();
+        notWarm.train(train);
+        end = System.currentTimeMillis();
+        long normTime = (end-start);
+        
+        
+        PlatSMO warm = new PlatSMO(new LinearKernel(1));
+        warm.setEpsilon(eps);
+        warm.setC(1e2);
+        
+        start = System.currentTimeMillis();
+        warm.train(train, warmModel);
+        end = System.currentTimeMillis();
+        long warmTime = (end-start);
+        
+        assertTrue(warmTime < normTime*0.75);
+        
+    }
 }

@@ -13,8 +13,7 @@ import jsat.linear.ConstantVector;
 import jsat.linear.DenseVector;
 import jsat.linear.Vec;
 import jsat.parameters.*;
-import jsat.regression.RegressionDataSet;
-import jsat.regression.Regressor;
+import jsat.regression.*;
 import jsat.utils.ListUtils;
 
 /**
@@ -44,7 +43,7 @@ import jsat.utils.ListUtils;
  * 
  * @author Edward Raff
  */
-public class PlatSMO extends SupportVectorLearner implements BinaryScoreClassifier, Regressor, Parameterized, WarmClassifier
+public class PlatSMO extends SupportVectorLearner implements BinaryScoreClassifier, WarmRegressor, Parameterized, WarmClassifier
 {
 
     private static final long serialVersionUID = 1533410993462673127L;
@@ -225,10 +224,13 @@ public class PlatSMO extends SupportVectorLearner implements BinaryScoreClassifi
         fcache[i_up]  = -1;
         b_low =  1;
         fcache[i_low] =  1;
+        boolean examinAll = true;
         
         //Now lets try and do some warm starting if applicable
         if(warmSolution instanceof PlatSMO || warmSolution instanceof BinaryScoreClassifier)
         {
+            examinAll = false;
+            
             WarmScope://We need to use one of the methods to detemrine if the model is a fit
             {
                 if (warmSolution instanceof PlatSMO)
@@ -321,8 +323,7 @@ public class PlatSMO extends SupportVectorLearner implements BinaryScoreClassifi
         }
 
         int numChanged = 0;
-        boolean examinAll = true;
-
+        
         int examinAllCount = 0;
         int iter = 0;
         while( (examinAll || numChanged > 0) && iter < maxIterations )
@@ -1212,7 +1213,19 @@ public class PlatSMO extends SupportVectorLearner implements BinaryScoreClassifi
     }
     
     @Override
+    public void train(RegressionDataSet dataSet, Regressor warmSolution, ExecutorService threadPool)
+    {
+        train(dataSet, warmSolution);
+    }
+    
+    @Override
     public void train(RegressionDataSet dataSet)
+    {
+        train(dataSet, (Regressor)null);
+    }
+
+    @Override
+    public void train(RegressionDataSet dataSet, Regressor warmSolution)
     {
         final int N = dataSet.getSampleSize();
         vecs = new ArrayList<Vec>(N);
@@ -1255,11 +1268,54 @@ public class PlatSMO extends SupportVectorLearner implements BinaryScoreClassifi
         b_up  += eps;
         b_low -= eps;
         
+        boolean examinAll = true;
+        
         //no errors set, all zero so far..
+        
+        if(warmSolution != null)
+        {
+            /*
+             * warm for regression is kinda hard, so we use it to set the initial focus on a few data poitns. We set the alpha values to be non zero for the points that are errors and let everything else past the "margin" (ie: in the cone of the espilon) be zero. Then the first few passes of SMO will optimize this intial set, and then when examineAll becomes true larger corrections can be made. 
+             */
+            examinAll = false;
+            b_low = -Double.MAX_VALUE;
+            b_up = Double.MAX_VALUE;
+            
+            for (int i = 0; i < N; i++)
+            {
+                double err = label[i]-warmSolution.regress(dataSet.getDataPoint(i));
+                if(Math.abs(err) < epsilon)
+                    err = 0;
+                else 
+                    err -= Math.signum(err)*epsilon;
+//                err = signum(err)*min(abs(err), 1);
+                
+                double C_i = C*weights.get(i);
+                alphas[i] = fuzzyClamp(err, C_i, 1e-6);
+                alpha_s[i] = fuzzyClamp(-err, C_i, 1e-6);
+            }
+            
+            
+            for (int i = 0; i < N; i++)
+            {
+                //fix F cache and set assignment
+                final double C_i = C*weights.get(i);
+                final double F_i = fcache[i] = label[i]-decisionFunctionR(i);
+                updateSetR(i, C_i);
+                //fix up the bounds on bias term, see eq (3) in "Improvements to the SMO algorithm for SVM regression."
+                if(I0[i] || I1[i] || I3[i])
+                    b_up = min(b_up, F_i);
+                if(I0[i] || I1[i] || I2[i])
+                    b_low = max(b_low, F_i);
+            }
+            
+            b_up-=epsilon;
+            b_low+=epsilon;
+            
+        }
 
         int numChanged = 0;
-        boolean examinAll = true;
-
+        
         int examinAllCount = 0;
         int iter = 0;
         while( (examinAll || numChanged > 0) && iter < maxIterations )
