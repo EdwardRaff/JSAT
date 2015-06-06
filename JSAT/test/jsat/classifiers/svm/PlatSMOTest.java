@@ -5,9 +5,13 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import jsat.FixedProblems;
 import jsat.classifiers.ClassificationDataSet;
+import jsat.classifiers.DataPoint;
+import jsat.datatransform.DataTransform;
+import jsat.distributions.kernels.LinearKernel;
 import jsat.distributions.kernels.RBFKernel;
 import jsat.regression.RegressionDataSet;
 import jsat.utils.SystemInfo;
+import jsat.utils.random.XORWOW;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -145,5 +149,75 @@ public class PlatSMOTest
                     errors += Math.pow(testSet.getTargetValue(i) - smo.regress(testSet.getDataPoint(i)), 2);
                 assertTrue(errors/testSet.getSampleSize() < 1);
             }
+    }
+    
+    @Test()
+    public void testTrainWarmCFastSMO()
+    {
+        //problem needs to be non-linear to make SMO work harder
+        ClassificationDataSet train = FixedProblems.getHalfCircles(250, new XORWOW(), 0.1, 0.2);
+        
+        
+        PlatSMO warmModel = new PlatSMO(new LinearKernel(1));
+        warmModel.setC(1);
+        warmModel.trainC(train);
+        
+        
+        PlatSMO warm = new PlatSMO(new LinearKernel(1));
+        warm.setC(1e4);//too large to train efficently like noraml
+        
+        long start, end;
+        
+        start = System.currentTimeMillis();
+        warm.trainC(train, warmModel);
+        end = System.currentTimeMillis();
+        long warmTime = (end-start);
+        
+        
+        PlatSMO notWarm = new PlatSMO(new LinearKernel(1));
+        notWarm.setC(1e4);//too large to train efficently like noraml
+        
+        start = System.currentTimeMillis();
+        notWarm.trainC(train);
+        end = System.currentTimeMillis();
+        long normTime = (end-start);
+        
+        assertTrue(warmTime < normTime*0.75);
+        
+    }
+    
+    @Test()
+    public void testTrainWarmCFastOther()
+    {
+        ClassificationDataSet train = FixedProblems.getHalfCircles(250, new XORWOW(), 0.1, 0.2);
+        
+        
+        DCDs warmModel = new DCDs();
+        warmModel.setUseL1(true);
+        warmModel.setUseBias(true);
+        warmModel.trainC(train);
+        
+        
+        PlatSMO warm = new PlatSMO(new LinearKernel(1));
+        warm.setC(1e4);//too large to train efficently like noraml
+        
+        long start, end;
+        
+        start = System.currentTimeMillis();
+        warm.trainC(train, warmModel);
+        end = System.currentTimeMillis();
+        long warmTime = (end-start);
+        
+        
+        PlatSMO notWarm = new PlatSMO(new LinearKernel(1));
+        notWarm.setC(1e4);//too large to train efficently like noraml
+        
+        start = System.currentTimeMillis();
+        notWarm.trainC(train);
+        end = System.currentTimeMillis();
+        long normTime = (end-start);
+        
+        assertTrue(warmTime < normTime*0.75);
+        
     }
 }
