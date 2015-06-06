@@ -13,12 +13,19 @@ import jsat.linear.ConstantVector;
 import jsat.linear.DenseVector;
 import jsat.linear.Vec;
 import jsat.parameters.*;
+import jsat.parameters.Parameter.WarmParameter;
 import jsat.regression.*;
 import jsat.utils.ListUtils;
 
 /**
  * An implementation of SVMs using Platt's Sequential Minimum Optimization (SMO) 
- * forboth Classification and Regression. 
+ * for both Classification and Regression problems. <br>
+ * <br>
+ * This algorithm can be warm started for classification problems by any
+ * algorithm implementing the {@link BinaryScoreClassifier} interface. For
+ * regression any algorithm can be used as a warms start. For best results, warm
+ * starts should be from algorithms that will have a similar solution to
+ * PlatSMO.
  * <br><br>
  * See:<br>
  * <ul>
@@ -1084,6 +1091,7 @@ public class PlatSMO extends SupportVectorLearner implements BinaryScoreClassifi
      * misclassification errors. 
      * @param C the soft margin parameter
      */
+    @WarmParameter(prefLowToHigh = true)
     public void setC(double C)
     {
         if(C <= 0)
