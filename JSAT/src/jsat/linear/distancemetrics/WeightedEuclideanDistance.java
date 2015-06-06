@@ -4,12 +4,15 @@ package jsat.linear.distancemetrics;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import jsat.linear.Vec;
 import jsat.linear.VecOps;
 import jsat.math.MathTricks;
 import jsat.utils.DoubleList;
 import jsat.utils.FakeExecutor;
 import jsat.utils.SystemInfo;
+import jsat.utils.concurrent.ParallelUtils;
 
 /**
  * Implements the weighted Euclidean distance such that d(a, b) =
@@ -91,7 +94,7 @@ public class WeightedEuclideanDistance implements DistanceMetric
     }
 
     @Override
-    public DistanceMetric clone()
+    public WeightedEuclideanDistance clone()
     {
         return new WeightedEuclideanDistance(w.clone());
     }
@@ -127,31 +130,33 @@ public class WeightedEuclideanDistance implements DistanceMetric
         if(threadpool == null || threadpool instanceof FakeExecutor)
             return getAccelerationCache(vecs);
         final double[] cache = new double[vecs.size()];
-   
-        final CountDownLatch latch = new CountDownLatch(SystemInfo.LogicalCores);
-        final int blockSize = cache.length / SystemInfo.LogicalCores;
-        int extra = cache.length % SystemInfo.LogicalCores;
-        int start = 0;
+        
+        final int P = Math.min(SystemInfo.LogicalCores, vecs.size());
+        final CountDownLatch latch = new CountDownLatch(P);
 
-        while (start < cache.length)
+        for(int ID = 0; ID < P; ID++)
         {
-            final int S = start;
-            final int end;
-            if (extra-- > 0)
-                end = start + blockSize + 1;
-            else
-                end = start + blockSize;
+            final int start = ParallelUtils.getStartBlock(cache.length, ID, P);
+            final int end = ParallelUtils.getEndBlock(cache.length, ID, P);
             threadpool.submit(new Runnable()
             {
                 @Override
                 public void run()
                 {
-                    for(int i = S; i < end; i++)
+                    for(int i = start; i < end; i++)
                         cache[i] = VecOps.weightedDot(w, vecs.get(i), vecs.get(i));
                     latch.countDown();
                 }
             });
-            start = end;
+        }
+        
+        try
+        {
+            latch.await();
+        }
+        catch (InterruptedException ex)
+        {
+            Logger.getLogger(WeightedEuclideanDistance.class.getName()).log(Level.SEVERE, null, ex);
         }
 
         return DoubleList.view(cache, cache.length);

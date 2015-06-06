@@ -160,5 +160,40 @@ public class Gamma extends Distribution
     {
         return 2 / sqrt(k);
     }
+
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		long temp;
+		temp = Double.doubleToLongBits(k);
+		result = prime * result + (int) (temp ^ (temp >>> 32));
+		temp = Double.doubleToLongBits(theta);
+		result = prime * result + (int) (temp ^ (temp >>> 32));
+		return result;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj) {
+			return true;
+		}
+		if (obj == null) {
+			return false;
+		}
+		if (getClass() != obj.getClass()) {
+			return false;
+		}
+		Gamma other = (Gamma) obj;
+		if (Double.doubleToLongBits(k) != Double.doubleToLongBits(other.k)) {
+			return false;
+		}
+		if (Double.doubleToLongBits(theta) != Double
+				.doubleToLongBits(other.theta)) {
+			return false;
+		}
+		return true;
+	}
+    
     
 }

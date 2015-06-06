@@ -147,6 +147,41 @@ public class Beta extends Distribution
     {
         return 2*(beta-alpha)*sqrt(alpha+beta+1)/((alpha+beta+2)*sqrt(alpha*beta));
     }
+
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		long temp;
+		temp = Double.doubleToLongBits(alpha);
+		result = prime * result + (int) (temp ^ (temp >>> 32));
+		temp = Double.doubleToLongBits(beta);
+		result = prime * result + (int) (temp ^ (temp >>> 32));
+		return result;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj) {
+			return true;
+		}
+		if (obj == null) {
+			return false;
+		}
+		if (getClass() != obj.getClass()) {
+			return false;
+		}
+		Beta other = (Beta) obj;
+		if (Double.doubleToLongBits(alpha) != Double
+				.doubleToLongBits(other.alpha)) {
+			return false;
+		}
+		if (Double.doubleToLongBits(beta) != Double
+				.doubleToLongBits(other.beta)) {
+			return false;
+		}
+		return true;
+	}
     
     
 }

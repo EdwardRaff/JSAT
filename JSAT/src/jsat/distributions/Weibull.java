@@ -219,5 +219,42 @@ public class Weibull extends Distribution
         double stnDev = standardDeviation();
         return (gamma(1 + 3/alpha)*pow(beta, 3)-3*mu*pow(stnDev, 2)-pow(mu, 3))/pow(stnDev, 3);
     }
+
+
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		long temp;
+		temp = Double.doubleToLongBits(alpha);
+		result = prime * result + (int) (temp ^ (temp >>> 32));
+		temp = Double.doubleToLongBits(beta);
+		result = prime * result + (int) (temp ^ (temp >>> 32));
+		return result;
+	}
+
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj) {
+			return true;
+		}
+		if (obj == null) {
+			return false;
+		}
+		if (getClass() != obj.getClass()) {
+			return false;
+		}
+		Weibull other = (Weibull) obj;
+		if (Double.doubleToLongBits(alpha) != Double
+				.doubleToLongBits(other.alpha)) {
+			return false;
+		}
+		if (Double.doubleToLongBits(beta) != Double
+				.doubleToLongBits(other.beta)) {
+			return false;
+		}
+		return true;
+	}
     
 }

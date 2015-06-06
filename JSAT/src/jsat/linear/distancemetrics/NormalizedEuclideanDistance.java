@@ -3,6 +3,8 @@ package jsat.linear.distancemetrics;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import jsat.DataSet;
 import jsat.classifiers.ClassificationDataSet;
 import jsat.datatransform.UnitVarianceTransform;
@@ -15,6 +17,7 @@ import jsat.regression.RegressionDataSet;
 import jsat.utils.DoubleList;
 import jsat.utils.FakeExecutor;
 import jsat.utils.SystemInfo;
+import jsat.utils.concurrent.ParallelUtils;
 
 /**
  * Implementation of the Normalized Euclidean Distance Metric. The normalized 
@@ -113,7 +116,7 @@ public class NormalizedEuclideanDistance extends TrainableDistanceMetric
     }
 
     @Override
-    public TrainableDistanceMetric clone()
+    public NormalizedEuclideanDistance clone()
     {
         NormalizedEuclideanDistance clone = new NormalizedEuclideanDistance();
         if(this.invStndDevs != null)
@@ -126,18 +129,15 @@ public class NormalizedEuclideanDistance extends TrainableDistanceMetric
     {
         double r = VecOps.accumulateSum(invStndDevs, a, b, new FunctionBase() 
         {
-            /**
-			 * 
-			 */
-			private static final long serialVersionUID = 3190953661114076430L;
+            private static final long serialVersionUID = 3190953661114076430L;
 
-			@Override
+            @Override
             public double f(Vec x)
             {
                 return Math.pow(x.get(0), 2);
             }
         });
-        
+
         return Math.sqrt(r);
     }
 
@@ -193,31 +193,33 @@ public class NormalizedEuclideanDistance extends TrainableDistanceMetric
         if(threadpool == null || threadpool instanceof FakeExecutor)
             return getAccelerationCache(vecs);
         final double[] cache = new double[vecs.size()];
-   
-        final CountDownLatch latch = new CountDownLatch(SystemInfo.LogicalCores);
-        final int blockSize = cache.length / SystemInfo.LogicalCores;
-        int extra = cache.length % SystemInfo.LogicalCores;
-        int start = 0;
+        
+        final int P = Math.min(SystemInfo.LogicalCores, vecs.size());
+        final CountDownLatch latch = new CountDownLatch(P);
 
-        while (start < cache.length)
+        for(int ID = 0; ID < P; ID++)
         {
-            final int S = start;
-            final int end;
-            if (extra-- > 0)
-                end = start + blockSize + 1;
-            else
-                end = start + blockSize;
+            final int start = ParallelUtils.getStartBlock(cache.length, ID, P);
+            final int end = ParallelUtils.getEndBlock(cache.length, ID, P);
             threadpool.submit(new Runnable()
             {
                 @Override
                 public void run()
                 {
-                    for(int i = S; i < end; i++)
+                    for(int i = start; i < end; i++)
                         cache[i] = VecOps.weightedDot(invStndDevs, vecs.get(i), vecs.get(i));
                     latch.countDown();
                 }
             });
-            start = end;
+        }
+        
+        try
+        {
+            latch.await();
+        }
+        catch (InterruptedException ex)
+        {
+            Logger.getLogger(NormalizedEuclideanDistance.class.getName()).log(Level.SEVERE, null, ex);
         }
 
         return DoubleList.view(cache, cache.length);

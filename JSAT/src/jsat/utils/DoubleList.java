@@ -170,11 +170,18 @@ public class DoubleList extends AbstractList<Double> implements Serializable
      */
     public void add(int index, double element)
     {
-        boundsCheck(index);
-        enlageIfNeeded(1);
-        System.arraycopy(array, index, array, index+1, size()-index);
-        set(index, element);
-        increasedSize(1);
+        if(index == size())//special case, just appending
+        {
+            add(element);
+        }
+        else
+        {
+            boundsCheck(index);
+            enlageIfNeeded(1);
+            System.arraycopy(array, index, array, index+1, size()-index);
+            set(index, element);
+            increasedSize(1);
+        }
     }
     
     @Override

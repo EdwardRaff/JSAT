@@ -23,8 +23,9 @@ import jsat.linear.Vec;
 public class SGDMomentum implements GradientUpdater
 {
 
-	private static final long serialVersionUID = -3837883539010356899L;
-	private double momentum;
+    private static final long serialVersionUID = -3837883539010356899L;
+    
+    private double momentum;
     private boolean nestrov;
     private Vec velocity;
     private double biasVelocity;
@@ -38,6 +39,7 @@ public class SGDMomentum implements GradientUpdater
     public SGDMomentum(double momentum, boolean nestrov)
     {
         setMomentum(momentum);
+        this.nestrov = nestrov;
     }
     
     /**

@@ -34,10 +34,10 @@ import jsat.utils.FakeExecutor;
 public class GridSearch implements Classifier, Regressor
 {
 
-	private static final long serialVersionUID = -1987196172499143753L;
-	private Classifier baseClassifier;
+    private static final long serialVersionUID = -1987196172499143753L;
+    private Classifier baseClassifier;
     private Classifier trainedClassifier;
-    
+
     private ClassificationScore classificationTargetScore = new Accuracy();  
     private RegressionScore regressionTargetScore = new MeanSquaredError(true);
     
@@ -877,11 +877,13 @@ public class GridSearch implements Classifier, Regressor
         clone.useWarmStarts = this.useWarmStarts;
         clone.trainModelsInParallel = this.trainModelsInParallel;
         clone.trainFinalModel = this.trainFinalModel;
+        clone.reuseSameCVFolds = this.reuseSameCVFolds;
+        
         if(searchParams != null)
             for(Parameter dp : searchParams)
             {
                 Parameter p = ((Parameterized)clone.getBaseClassifier()).getParameter(dp.getName());
-                clone.searchParams.add((DoubleParameter)p);
+                clone.searchParams.add(p);
             }
         if(searchValues != null)
             for(List<Double> ld : searchValues)
@@ -889,6 +891,10 @@ public class GridSearch implements Classifier, Regressor
                 List<Double> newVals = new DoubleList(ld);
                 clone.searchValues.add(newVals);
             }
+        if(this.trainedClassifier != null)
+            clone.trainedClassifier = this.trainedClassifier.clone();
+        if(this.trainedRegressor != null)
+            clone.trainedRegressor = this.trainedRegressor.clone();
         
         return clone;
     }

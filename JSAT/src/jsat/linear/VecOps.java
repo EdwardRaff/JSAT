@@ -30,6 +30,9 @@ public class VecOps
      */
     public static double accumulateSum(final Vec w, final Vec x, final Vec y, final Function f)
     {
+        if(w.length() != x.length() || x.length() != y.length())
+            throw new ArithmeticException("All 3 vector inputs must have equal lengths");
+        
         double val = 0;
         final boolean skipZeros = f.f(0) == 0;
         final boolean wSparse = w.isSparse();
@@ -98,6 +101,9 @@ public class VecOps
      */
     public static double weightedDot(final Vec w, final Vec x, final Vec y)
     {
+        if(w.length() != x.length() || x.length() != y.length())
+            throw new ArithmeticException("All 3 vector inputs must have equal lengths");
+        
         double sum = 0;
         
         if(x.isSparse() && y.isSparse())
@@ -115,7 +121,11 @@ public class VecOps
                 else if(yiv.getIndex() > xiv.getIndex())
                     yiv = yIter.hasNext() ? yIter.next() : badIV;
                 else//on the same page
+                {
                     sum += w.get(xiv.getIndex())*xiv.getValue()*yiv.getValue();
+                    xiv = xIter.hasNext() ? xIter.next() : badIV;
+                    yiv = yIter.hasNext() ? yIter.next() : badIV;
+                }
             }
         }
         else if(x.isSparse())
