@@ -1,10 +1,16 @@
 package jsat.classifiers.linear;
 
 import java.util.Random;
-import jsat.classifiers.CategoricalData;
-import jsat.classifiers.ClassificationDataSet;
-import jsat.linear.DenseVector;
-import jsat.linear.Vec;
+import java.util.concurrent.ExecutorService;
+import jsat.FixedProblems;
+import jsat.SimpleWeightVectorModel;
+import jsat.classifiers.*;
+import jsat.classifiers.svm.DCDs;
+import jsat.classifiers.svm.PlatSMO;
+import jsat.datatransform.PolynomialTransform;
+import jsat.distributions.kernels.LinearKernel;
+import jsat.linear.*;
+import jsat.lossfunctions.LogisticLoss;
 import jsat.utils.random.XORWOW;
 import org.junit.After;
 import org.junit.AfterClass;
@@ -121,6 +127,110 @@ public class NewGLMNETTest
         assertEquals( 1, (int)Math.signum(w.get(5)));
         
         
+    }
+    
+    private static class DumbWeightHolder implements Classifier, SimpleWeightVectorModel
+    {
+        public Vec w;
+        public double b;
+
+        @Override
+        public CategoricalResults classify(DataPoint data)
+        {
+            throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        }
+
+        @Override
+        public void trainC(ClassificationDataSet dataSet, ExecutorService threadPool)
+        {
+            throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        }
+
+        @Override
+        public void trainC(ClassificationDataSet dataSet)
+        {
+            throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        }
+
+        @Override
+        public boolean supportsWeightedData()
+        {
+            throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        }
+
+        @Override
+        public Classifier clone()
+        {
+            throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        }
+
+        @Override
+        public Vec getRawWeight(int index)
+        {
+            return w;
+        }
+
+        @Override
+        public double getBias(int index)
+        {
+            return b;
+        }
+
+        @Override
+        public int numWeightsVecs()
+        {
+            return 1;
+        }
+        
+    }
+    
+    @Test
+    public void testWarmOther()
+    {
+        //Had difficulty making a problem hard enough to show improvment in warms tart but also fast to run. 
+        //so made test check that warm from some weird value gets to the same places
+        Random rand  = new XORWOW();
+        ClassificationDataSet train = new ClassificationDataSet(600, new CategoricalData[0], new CategoricalData(2));
+        
+        for(int i = 0; i < 200; i++)
+        {
+            double Z1 = rand.nextDouble()*20-10;
+            double Z2 = rand.nextDouble()*20-10;
+            
+            Vec v = new DenseVector(train.getNumNumericalVars());
+            for(int j = 0; j < v.length(); j++)
+            {
+                if (j > 500)
+                {
+                    if (j % 2 == 0)
+                        v.set(j, Z2 * ((j + 1) / 600.0) + rand.nextGaussian() / (j + 1));
+                    else
+                        v.set(j, Z1 * ((j + 1) / 600.0) + rand.nextGaussian() / (j + 1));
+                }
+                else
+                    v.set(j, rand.nextGaussian()*20);
+            }
+            
+            train.addDataPoint(v, (int) (Math.signum(Z1+0.1*Z2)+1)/2);
+        }
+        
+        NewGLMNET truth = new NewGLMNET(0.001);
+        truth.setTolerance(1e-11);
+        truth.trainC(train);
+        
+        
+        DumbWeightHolder dumb = new DumbWeightHolder();
+        dumb.w = DenseVector.random(train.getNumNumericalVars()).normalized();
+        dumb.b = rand.nextDouble();
+        
+        
+        
+        NewGLMNET warm = new NewGLMNET(0.001);
+        warm.setTolerance(1e-7);
+        warm.trainC(train, dumb);
+        
+        assertEquals(0, warm.getRawWeight().subtract(truth.getRawWeight()).pNorm(2), 1e-4);
+        assertEquals(0, warm.getBias()-truth.getBias(), 1e-4);
     }
 
     

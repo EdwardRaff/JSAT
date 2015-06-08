@@ -9,6 +9,7 @@ import jsat.utils.IntList;
 import jsat.utils.ListUtils;
 import static java.lang.Math.*;
 import java.util.*;
+import jsat.SimpleWeightVectorModel;
 import jsat.SingleWeightVectorModel;
 import jsat.exceptions.FailedToFitException;
 import jsat.linear.*;
@@ -29,8 +30,11 @@ import jsat.parameters.Parameterized;
  * Logistic Regression, however better solvers such as 
  * {@link LogisticRegressionDCD} are faster if using &alpha; = 0. <br>
  * The default behavior is to use &alpha;=1, and includes the bias term. 
- * Including the bias term can take longer to train, but can also increase 
- * sparsity for some problems. 
+ * Including the bias term can take longer to train, but can also increase
+ * sparsity for some problems. <br>
+ * <br>
+ * This algorithm can be warm started from any classifier implementing the
+ * {@link SingleWeightVectorModel} interface.
  * <br>
  * <br>
  * See:
@@ -51,8 +55,8 @@ import jsat.parameters.Parameterized;
 public class NewGLMNET implements WarmClassifier, Parameterized, SingleWeightVectorModel
 {
 
-	private static final long serialVersionUID = 4133368677783573518L;
-	//TODO make these other fields configurable as well
+    private static final long serialVersionUID = 4133368677783573518L;
+    //TODO make these other fields configurable as well
     private static final double DEFAULT_BETA = 0.5;
     private static final double DEFAULT_V = 1e-12;
     private static final double DEFAULT_GAMMA = 0;
@@ -282,10 +286,10 @@ public class NewGLMNET implements WarmClassifier, Parameterized, SingleWeightVec
     @Override
     public void trainC(ClassificationDataSet dataSet, Classifier warmSolution)
     {
-        if(warmSolution instanceof SingleWeightVectorModel) 
+        if(warmSolution instanceof SimpleWeightVectorModel)
         {
-            SingleWeightVectorModel swv = (SingleWeightVectorModel) warmSolution;
-            train(dataSet, swv.getRawWeight(), swv.getBias(), true);
+            SimpleWeightVectorModel swv = (SimpleWeightVectorModel) warmSolution;
+            train(dataSet, swv.getRawWeight(0), swv.getBias(0), true);
         }
         else 
             throw new FailedToFitException("Warm solution is not of a");
@@ -844,13 +848,8 @@ public class NewGLMNET implements WarmClassifier, Parameterized, SingleWeightVec
             final double w_j = 0;
 
             //2.1. Calculate H^k_{jj}, ∇_j L(w^k) and ∇^S_j f(w^k)
-            double delta_j_L = 0;
+            double delta_j_L = -columnsOfX.get(j).sum()*0.5;
 
-            for (IndexValue x_i : columnsOfX.get(j))
-            {
-                double val = x_i.getValue();
-                delta_j_L += -val * D_part_i;
-            }
             delta_j_L = /* (l2w * w_j) not needed b/c w_j=0*/ + C * (delta_j_L + col_neg_class_sum[j]);
 
             double deltaS_j_fw;
