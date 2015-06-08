@@ -69,8 +69,8 @@ public class AveragedRegressorTest
 
         AveragedRegressor instance = new AveragedRegressor(new KernelRLS(new LinearKernel(1), 1e-1), new KernelRLS(new LinearKernel(1), 1e-2), new KernelRLS(new LinearKernel(1), 1e-4));
 
-        RegressionDataSet train = FixedProblems.getLinearRegression(500, new XORWOW());
-        RegressionDataSet test = FixedProblems.getLinearRegression(100, new XORWOW());
+        RegressionDataSet train = FixedProblems.getLinearRegression(500, new XORWOW(1234));
+        RegressionDataSet test = FixedProblems.getLinearRegression(100, new XORWOW(1234));
 
         RegressionModelEvaluation rme = new RegressionModelEvaluation(instance, train);
         rme.evaluateTestSet(test);
@@ -88,8 +88,8 @@ public class AveragedRegressorTest
 
         ExecutorService ex = Executors.newFixedThreadPool(SystemInfo.LogicalCores);
 
-        RegressionDataSet train = FixedProblems.getLinearRegression(500, new XORWOW());
-        RegressionDataSet test = FixedProblems.getLinearRegression(100, new XORWOW());
+        RegressionDataSet train = FixedProblems.getLinearRegression(500, new XORWOW(1234));
+        RegressionDataSet test = FixedProblems.getLinearRegression(100, new XORWOW(1234));
 
         RegressionModelEvaluation rme = new RegressionModelEvaluation(instance, train, ex);
         rme.evaluateTestSet(test);
@@ -106,8 +106,8 @@ public class AveragedRegressorTest
 
         AveragedRegressor instance = new AveragedRegressor(new KernelRLS(new LinearKernel(1), 1e-1), new KernelRLS(new LinearKernel(1), 1e-2), new KernelRLS(new LinearKernel(1), 1e-4));
 
-        RegressionDataSet t1 = FixedProblems.getLinearRegression(100, new XORWOW());
-        RegressionDataSet t2 = FixedProblems.getLinearRegression(100, new XORWOW());
+        RegressionDataSet t1 = FixedProblems.getLinearRegression(100, new XORWOW(1234));
+        RegressionDataSet t2 = FixedProblems.getLinearRegression(100, new XORWOW(1234));
         t2.applyTransform(new LinearTransform(t2, 1, 10));
 
         instance = instance.clone();

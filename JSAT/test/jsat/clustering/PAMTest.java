@@ -48,8 +48,8 @@ public class PAMTest
     @BeforeClass
     public static void setUpClass() throws Exception
     {
-        pam = new PAM(new EuclideanDistance(), new Random(), SeedSelection.KPP);
-        GridDataGenerator gdg = new GridDataGenerator(new Uniform(-0.05, 0.05), new Random(), 2, 5);
+        pam = new PAM(new EuclideanDistance(), new Random(1234), SeedSelection.KPP);
+        GridDataGenerator gdg = new GridDataGenerator(new Uniform(-0.05, 0.05), new Random(1234), 2, 5);
         easyData10 = gdg.generateData(40);
         ex = Executors.newFixedThreadPool(SystemInfo.LogicalCores);
     }

@@ -91,7 +91,7 @@ public class ConcatenatedVecTest
     public void testSet()
     {
         System.out.println("set");
-        Random rand = new Random();
+        Random rand = new Random(1234);
         for(int i = 0; i < dvec.length(); i++)
         {
             double nv = rand.nextDouble();

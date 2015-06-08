@@ -58,7 +58,7 @@ public class RandomProjectionLSHTest
         System.out.println("search");
         
         List<VecPaired<Vec, Integer>> normalVecs = new ArrayList<VecPaired<Vec, Integer>>();
-        Random rand = new Random();
+        Random rand = new Random(1234);
         
         for(int i = 0; i < 100; i++)
         {
@@ -107,7 +107,7 @@ public class RandomProjectionLSHTest
     {
         System.out.println("search");
         List<VecPaired<Vec, Integer>> normalVecs = new ArrayList<VecPaired<Vec, Integer>>();
-        Random rand = new Random();
+        Random rand = new Random(1234);
         
         for(int i = 0; i < 100; i++)
         {

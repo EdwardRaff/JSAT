@@ -40,7 +40,7 @@ public class IntDoubleMapTest
     @Before
     public void setUp()
     {
-        rand = new XORWOW();
+        rand = new XORWOW(1234);
     }
     
     @After

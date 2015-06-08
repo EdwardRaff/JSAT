@@ -76,13 +76,13 @@ public class LinearL1SCDTest
     public void testTrainC_ClassificationDataSet()
     {
         System.out.println("trainC");
-        ClassificationDataSet train = FixedProblems.get2ClassLinear(400, new Random());
+        ClassificationDataSet train = FixedProblems.get2ClassLinear(400, new Random(1234));
         
         LinearL1SCD scd = new LinearL1SCD();
         scd.setLoss(StochasticSTLinearL1.Loss.LOG);
         scd.trainC(train);
         
-        ClassificationDataSet test = FixedProblems.get2ClassLinear(400, new Random());
+        ClassificationDataSet test = FixedProblems.get2ClassLinear(400, new Random(1234));
         
         for(DataPointPair<Integer> dpp : test.getAsDPPList())
             assertEquals(dpp.getPair().longValue(), scd.classify(dpp.getDataPoint()).mostLikely());

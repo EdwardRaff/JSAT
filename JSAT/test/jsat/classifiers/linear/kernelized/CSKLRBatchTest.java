@@ -56,8 +56,8 @@ public class CSKLRBatchTest
         for(CSKLR.UpdateMode mode : CSKLR.UpdateMode.values())
         {
             CSKLRBatch instance = new CSKLRBatch(0.5, new RBFKernel(0.5), 10, mode, SupportVectorLearner.CacheMode.NONE);
-            ClassificationDataSet train = FixedProblems.getInnerOuterCircle(200, new XORWOW());
-            ClassificationDataSet test = FixedProblems.getInnerOuterCircle(100, new XORWOW());
+            ClassificationDataSet train = FixedProblems.getInnerOuterCircle(200, new XORWOW(1234));
+            ClassificationDataSet test = FixedProblems.getInnerOuterCircle(100, new XORWOW(1234));
 
             ClassificationModelEvaluation cme = new ClassificationModelEvaluation(instance, train, ex);
             cme.evaluateTestSet(test);
@@ -77,8 +77,8 @@ public class CSKLRBatchTest
         {
             CSKLRBatch instance = new CSKLRBatch(0.5, new RBFKernel(0.5), 10, mode, SupportVectorLearner.CacheMode.NONE);
         
-            ClassificationDataSet train = FixedProblems.getInnerOuterCircle(200, new XORWOW());
-            ClassificationDataSet test = FixedProblems.getInnerOuterCircle(100, new XORWOW());
+            ClassificationDataSet train = FixedProblems.getInnerOuterCircle(200, new XORWOW(1234));
+            ClassificationDataSet test = FixedProblems.getInnerOuterCircle(100, new XORWOW(1234));
 
             ClassificationModelEvaluation cme = new ClassificationModelEvaluation(instance, train);
             cme.evaluateTestSet(test);
@@ -97,8 +97,8 @@ public class CSKLRBatchTest
         {
             CSKLRBatch instance = new CSKLRBatch(0.5, new RBFKernel(0.5), 10, mode, SupportVectorLearner.CacheMode.NONE);
 
-            ClassificationDataSet t1 = FixedProblems.getInnerOuterCircle(500, new XORWOW());
-            ClassificationDataSet t2 = FixedProblems.getInnerOuterCircle(500, new XORWOW(), 2.0, 10.0);
+            ClassificationDataSet t1 = FixedProblems.getInnerOuterCircle(500, new XORWOW(1234));
+            ClassificationDataSet t2 = FixedProblems.getInnerOuterCircle(500, new XORWOW(1234), 2.0, 10.0);
 
             instance = instance.clone();
 

@@ -70,8 +70,8 @@ public class NearestNeighbourTest
 
         NearestNeighbour instance = new NearestNeighbour(7);
 
-        RegressionDataSet train = FixedProblems.getLinearRegression(1000, new XORWOW());
-        RegressionDataSet test = FixedProblems.getLinearRegression(100, new XORWOW());
+        RegressionDataSet train = FixedProblems.getLinearRegression(1000, new XORWOW(1234));
+        RegressionDataSet test = FixedProblems.getLinearRegression(100, new XORWOW(1234));
 
         RegressionModelEvaluation rme = new RegressionModelEvaluation(instance, train);
         rme.evaluateTestSet(test);
@@ -89,8 +89,8 @@ public class NearestNeighbourTest
 
         ExecutorService ex = Executors.newFixedThreadPool(SystemInfo.LogicalCores);
 
-        RegressionDataSet train = FixedProblems.getLinearRegression(1000, new XORWOW());
-        RegressionDataSet test = FixedProblems.getLinearRegression(100, new XORWOW());
+        RegressionDataSet train = FixedProblems.getLinearRegression(1000, new XORWOW(1234));
+        RegressionDataSet test = FixedProblems.getLinearRegression(100, new XORWOW(1234));
 
         RegressionModelEvaluation rme = new RegressionModelEvaluation(instance, train, ex);
         rme.evaluateTestSet(test);

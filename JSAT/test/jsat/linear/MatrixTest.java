@@ -134,7 +134,7 @@ public class MatrixTest
         System.out.println("random");
         int rows = 100;
         int cols = 100;
-        Random rand = new XOR128();
+        Random rand = new XOR128(1234);
 
         DenseMatrix result = Matrix.random(rows, cols, rand);
         OnLineStatistics stats = new OnLineStatistics();

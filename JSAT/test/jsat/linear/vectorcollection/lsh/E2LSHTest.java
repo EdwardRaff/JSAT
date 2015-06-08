@@ -63,7 +63,7 @@ public class E2LSHTest
             mainVecs.add(dv);
         }
         
-        Random rand = new Random();
+        Random rand = new Random(1234);
         List<Vec> extraVecs = new ArrayList<Vec>();
         for(int i = 0; i < mainVecs.size(); i++)
         {

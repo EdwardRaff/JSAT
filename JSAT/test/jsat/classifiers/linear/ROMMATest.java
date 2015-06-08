@@ -51,7 +51,7 @@ public class ROMMATest
         System.out.println("supportsWeightedData");
         ROMMA nonAggro = new ROMMA();
         ROMMA aggro = new ROMMA();
-        ClassificationDataSet train = FixedProblems.get2ClassLinear(200, new Random());
+        ClassificationDataSet train = FixedProblems.get2ClassLinear(200, new Random(1234));
         
         nonAggro.setEpochs(1);
         nonAggro.trainC(train);
@@ -59,7 +59,7 @@ public class ROMMATest
         aggro.setEpochs(1);
         aggro.trainC(train);
         
-        ClassificationDataSet test = FixedProblems.get2ClassLinear(200, new Random());
+        ClassificationDataSet test = FixedProblems.get2ClassLinear(200, new Random(1234));
         
         for(DataPointPair<Integer> dpp : test.getAsDPPList())
             assertEquals(dpp.getPair().longValue(), aggro.classify(dpp.getDataPoint()).mostLikely());

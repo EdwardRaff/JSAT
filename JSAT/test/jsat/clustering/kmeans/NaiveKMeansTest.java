@@ -45,7 +45,7 @@ public class NaiveKMeansTest
     @BeforeClass
     public static void setUpClass() throws Exception
     {
-        GridDataGenerator gdg = new GridDataGenerator(new Uniform(-0.15, 0.15), new XORWOW(), 2, 5);
+        GridDataGenerator gdg = new GridDataGenerator(new Uniform(-0.15, 0.15), new XORWOW(1234), 2, 5);
         easyData10 = gdg.generateData(110);
         ex = Executors.newFixedThreadPool(SystemInfo.LogicalCores);
     }
@@ -60,7 +60,7 @@ public class NaiveKMeansTest
     public void setUp()
     {
         //generate seeds that should lead to exact solution 
-        GridDataGenerator gdg = new GridDataGenerator(new Uniform(-1e-10, 1e-10), new XORWOW(), 2, 5);
+        GridDataGenerator gdg = new GridDataGenerator(new Uniform(-1e-10, 1e-10), new XORWOW(1234), 2, 5);
         SimpleDataSet seedData = gdg.generateData(1);
         seeds = seedData.getDataVectors();
         for(Vec v : seeds)
@@ -79,7 +79,7 @@ public class NaiveKMeansTest
     public void testCluster_DataSet_intArr()
     {
         System.out.println("cluster");
-        NaiveKMeans kMeans = new NaiveKMeans(new EuclideanDistance(), SeedSelectionMethods.SeedSelection.FARTHEST_FIRST);
+        NaiveKMeans kMeans = new NaiveKMeans(new EuclideanDistance(), SeedSelectionMethods.SeedSelection.FARTHEST_FIRST, new Random(1234));
         int[] assignment = new int[easyData10.getSampleSize()];
         kMeans.cluster(easyData10, null, 10, seeds, assignment, true, null, true);
         List<List<DataPoint>> clusters = KClustererBase.createClusterListFromAssignmentArray(assignment, easyData10);
@@ -101,7 +101,7 @@ public class NaiveKMeansTest
     public void testCluster_3args_1()
     {
         System.out.println("cluster");
-        NaiveKMeans kMeans = new NaiveKMeans(new EuclideanDistance(), SeedSelectionMethods.SeedSelection.FARTHEST_FIRST);
+        NaiveKMeans kMeans = new NaiveKMeans(new EuclideanDistance(), SeedSelectionMethods.SeedSelection.FARTHEST_FIRST, new Random(1234));
         int[] assignment = new int[easyData10.getSampleSize()];
         kMeans.cluster(easyData10, null, 10, seeds, assignment, true, ex, true);
         List<List<DataPoint>> clusters = KClustererBase.createClusterListFromAssignmentArray(assignment, easyData10);

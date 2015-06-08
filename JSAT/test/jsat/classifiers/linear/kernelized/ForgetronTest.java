@@ -59,7 +59,7 @@ public class ForgetronTest
             Forgetron instance = new Forgetron(new RBFKernel(0.5), 40);
             instance.setSelfTurned(selfTuned);
             
-            ClassificationDataSet train = FixedProblems.getInnerOuterCircle(1000, new XORWOW());
+            ClassificationDataSet train = FixedProblems.getInnerOuterCircle(1000, new XORWOW(1234));
             //add some miss labled data to get the error code to cick in and get exercised
             for(int i = 0; i < 500; i+=20)
             {
@@ -69,7 +69,7 @@ public class ForgetronTest
                 train.addDataPoint(dp, badY);
             }
 
-            ClassificationDataSet test = FixedProblems.getInnerOuterCircle(100, new XORWOW());
+            ClassificationDataSet test = FixedProblems.getInnerOuterCircle(100, new XORWOW(1234));
 
             ClassificationModelEvaluation cme = new ClassificationModelEvaluation(instance, train, ex);
             cme.evaluateTestSet(test);
@@ -90,7 +90,7 @@ public class ForgetronTest
             Forgetron instance = new Forgetron(new RBFKernel(0.5), 40);
             instance.setSelfTurned(selfTuned);
         
-            ClassificationDataSet train = FixedProblems.getInnerOuterCircle(1000, new XORWOW());
+            ClassificationDataSet train = FixedProblems.getInnerOuterCircle(1000, new XORWOW(1234));
             //add some miss labled data to get the error code to cick in and get exercised
             for(int i = 0; i < 500; i+=20)
             {
@@ -100,7 +100,7 @@ public class ForgetronTest
                 train.addDataPoint(dp, badY);
             }
 
-            ClassificationDataSet test = FixedProblems.getInnerOuterCircle(100, new XORWOW());
+            ClassificationDataSet test = FixedProblems.getInnerOuterCircle(100, new XORWOW(1234));
             ClassificationModelEvaluation cme = new ClassificationModelEvaluation(instance, train);
             cme.evaluateTestSet(test);
 
@@ -115,8 +115,8 @@ public class ForgetronTest
 
         Forgetron instance = new Forgetron(new RBFKernel(0.5), 100);
         
-        ClassificationDataSet t1 = FixedProblems.getInnerOuterCircle(500, new XORWOW());
-        ClassificationDataSet t2 = FixedProblems.getInnerOuterCircle(500, new XORWOW(), 2.0, 10.0);
+        ClassificationDataSet t1 = FixedProblems.getInnerOuterCircle(500, new XORWOW(1234));
+        ClassificationDataSet t2 = FixedProblems.getInnerOuterCircle(500, new XORWOW(1234), 2.0, 10.0);
 
         instance = instance.clone();
 

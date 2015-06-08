@@ -92,8 +92,8 @@ public class AMMTest
         System.out.println("trainC");
         AMM instance = new AMM();
         
-        ClassificationDataSet train = FixedProblems.getSimpleKClassLinear(10000, 3, new XOR96());
-        ClassificationDataSet test = FixedProblems.getSimpleKClassLinear(1000, 3, new XOR96());
+        ClassificationDataSet train = FixedProblems.getSimpleKClassLinear(10000, 3, new XOR96(1234));
+        ClassificationDataSet test = FixedProblems.getSimpleKClassLinear(1000, 3, new XOR96(1234));
 
         ClassificationModelEvaluation cme = new ClassificationModelEvaluation(instance, train);
         cme.evaluateTestSet(test);
@@ -109,8 +109,8 @@ public class AMMTest
     {
         System.out.println("clone");
         
-        ClassificationDataSet t1 = FixedProblems.getSimpleKClassLinear(10000, 3, new XOR96());
-        ClassificationDataSet t2 = FixedProblems.getSimpleKClassLinear(10000, 6, new XOR96());
+        ClassificationDataSet t1 = FixedProblems.getSimpleKClassLinear(10000, 3, new XOR96(1234));
+        ClassificationDataSet t2 = FixedProblems.getSimpleKClassLinear(10000, 6, new XOR96(1234));
         
         AMM instance = new AMM();
         

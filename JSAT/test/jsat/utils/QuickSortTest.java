@@ -50,7 +50,7 @@ public class QuickSortTest
     public void testSortD()
     {
         System.out.println("sort");
-        Random rand = new XORWOW();
+        Random rand = new XORWOW(1234);
         for(int size = 2; size < 10000; size*=2)
         {
             double[] x = new double[size];

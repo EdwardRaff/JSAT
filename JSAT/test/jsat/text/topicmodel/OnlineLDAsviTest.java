@@ -89,7 +89,7 @@ public class OnlineLDAsviTest
             double alpha = 0.1;
             List<DataPoint> docs = new ArrayList<DataPoint>();
             Dirichlet dirichlet = new Dirichlet(new ConstantVector(alpha, basis.size()));
-            Random rand = new XORWOW();
+            Random rand = new XORWOW(1234);
             for(Vec topicSample : dirichlet.sample(100000, rand))
             {
                 Vec doc = new DenseVector(basis.get(0).length());

@@ -81,8 +81,8 @@ public class DecisionTreeTest
                         instance.setPruningMethod(pruneMethod);
 
 
-                        RegressionDataSet train =  FixedProblems.getLinearRegression(3000, new XORWOW());
-                        RegressionDataSet test = FixedProblems.getLinearRegression(100, new XORWOW());
+                        RegressionDataSet train =  FixedProblems.getLinearRegression(3000, new XORWOW(1234));
+                        RegressionDataSet test = FixedProblems.getLinearRegression(100, new XORWOW(1234));
 
                         RegressionModelEvaluation rme = new RegressionModelEvaluation(instance, train);
                         if(useCatFeatures)
@@ -111,8 +111,8 @@ public class DecisionTreeTest
 
                         ExecutorService ex = Executors.newFixedThreadPool(SystemInfo.LogicalCores);
 
-                        RegressionDataSet train = FixedProblems.getLinearRegression(3000, new XORWOW());
-                        RegressionDataSet test = FixedProblems.getLinearRegression(100, new XORWOW());
+                        RegressionDataSet train = FixedProblems.getLinearRegression(3000, new XORWOW(123444));
+                        RegressionDataSet test = FixedProblems.getLinearRegression(100, new XORWOW(123444));
 
                         RegressionModelEvaluation rme = new RegressionModelEvaluation(instance, train, ex);
                         if (useCatFeatures)

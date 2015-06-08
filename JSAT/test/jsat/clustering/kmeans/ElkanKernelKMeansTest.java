@@ -66,7 +66,7 @@ public class ElkanKernelKMeansTest
     {
         System.out.println("cluster");
         ElkanKernelKMeans kmeans = new ElkanKernelKMeans(new RBFKernel(0.1));
-        ClassificationDataSet toCluster = FixedProblems.getCircles(1000, new XOR96(), 1e-3, 1.0);
+        ClassificationDataSet toCluster = FixedProblems.getCircles(1000, new XOR96(1234), 1e-3, 1.0);
         int[] result = kmeans.cluster(toCluster, 2, ex, (int[])null);
         //make sure each cluster has points from only 1 class. If true then everyone is good
         Map<Integer, Set<Integer>> tmp = new HashMap<Integer, Set<Integer>>();
@@ -86,7 +86,7 @@ public class ElkanKernelKMeansTest
     {
         System.out.println("cluster");
         ElkanKernelKMeans kmeans = new ElkanKernelKMeans(new RBFKernel(0.1));
-        ClassificationDataSet toCluster = FixedProblems.getCircles(1000, new XOR96(), 1e-3, 1.0);
+        ClassificationDataSet toCluster = FixedProblems.getCircles(1000, new XOR96(1234), 1e-3, 1.0);
         int[] result = kmeans.cluster(toCluster, 2, (int[])null);
         //make sure each cluster has points from only 1 class. If true then everyone is good
         Map<Integer, Set<Integer>> tmp = new HashMap<Integer, Set<Integer>>();

@@ -51,7 +51,7 @@ public class FixedProblems
      */
     public static ClassificationDataSet getSimpleKClassLinear(int dataSetSize, int K)
     {
-        return getSimpleKClassLinear(dataSetSize, K, new XORWOW());
+        return getSimpleKClassLinear(dataSetSize, K, new XORWOW(1234));
     }
     /**
      * Generates a linearly separable multi class problem 
@@ -148,7 +148,7 @@ public class FixedProblems
     }
     public static ClassificationDataSet getCircles(int dataSetSize, double... radi )
     {
-        return getCircles(dataSetSize, new XORWOW(), radi);
+        return getCircles(dataSetSize, new XORWOW(1234), radi);
     }
     
     public static ClassificationDataSet getCircles(int dataSetSize, Random rand, double... radi )

@@ -55,7 +55,7 @@ public class StochasticMultinomialLogisticRegressionTest
     {
         System.out.println("trainC");
         
-        ClassificationDataSet train = FixedProblems.get2ClassLinear(400, new Random());
+        ClassificationDataSet train = FixedProblems.get2ClassLinear(400, new Random(1234));
         
         
         for(StochasticMultinomialLogisticRegression.Prior prior : StochasticMultinomialLogisticRegression.Prior.values())
@@ -65,7 +65,7 @@ public class StochasticMultinomialLogisticRegressionTest
             smlgr.setPrior(prior);
             smlgr.trainC(train);
 
-            ClassificationDataSet test = FixedProblems.get2ClassLinear(400, new Random());
+            ClassificationDataSet test = FixedProblems.get2ClassLinear(400, new Random(1234));
 
             for(DataPointPair<Integer> dpp : test.getAsDPPList())
                 assertEquals(dpp.getPair().longValue(), smlgr.classify(dpp.getDataPoint()).mostLikely());
@@ -83,7 +83,7 @@ public class StochasticMultinomialLogisticRegressionTest
         
         Classifier cloned = smlgr.clone();
         
-        ClassificationDataSet train = FixedProblems.get2ClassLinear(400, new Random());
+        ClassificationDataSet train = FixedProblems.get2ClassLinear(400, new Random(1234));
         cloned.trainC(train);
         
         

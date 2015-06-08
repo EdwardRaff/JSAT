@@ -37,7 +37,7 @@ public class JLTransformTest
     public static void setUpClass()
     {
         List<DataPoint> dps = new ArrayList<DataPoint>(100);
-        Random rand = new Random();
+        Random rand = new Random(1234);
         
         for(int i = 0; i < 100; i++)
         {

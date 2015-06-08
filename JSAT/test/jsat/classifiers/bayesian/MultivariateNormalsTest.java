@@ -100,8 +100,8 @@ public class MultivariateNormalsTest
     {
         System.out.println("clone");
         
-        ClassificationDataSet t1 = FixedProblems.getSimpleKClassLinear(1000, 3, new XOR96());
-        ClassificationDataSet t2 = FixedProblems.getSimpleKClassLinear(1000, 6, new XOR96());
+        ClassificationDataSet t1 = FixedProblems.getSimpleKClassLinear(1000, 3, new XOR96(1234));
+        ClassificationDataSet t2 = FixedProblems.getSimpleKClassLinear(1000, 6, new XOR96(1234));
         
         MultivariateNormals instance = new MultivariateNormals();
         

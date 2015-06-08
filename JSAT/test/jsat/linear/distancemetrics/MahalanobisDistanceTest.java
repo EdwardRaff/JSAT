@@ -69,7 +69,7 @@ public class MahalanobisDistanceTest
     {
         trueCov = new DenseMatrix(5, 5);
         
-        Random rand = new XORWOW();
+        Random rand = new XORWOW(1234);
         for(int i = 0; i < trueCov.rows(); i++)
             for(int j = 0; j < trueCov.cols(); j++)
                 trueCov.set(i, j, rand.nextDouble());
@@ -115,7 +115,7 @@ public class MahalanobisDistanceTest
         
         NormalM normal = new NormalM(new ConstantVector(0.0, 5), trueCov.clone());
         MahalanobisDistance dist = new MahalanobisDistance();
-        dist.train(normal.sample(1000, new XORWOW()));
+        dist.train(normal.sample(1000, new XORWOW(1234)));
         
         List<Double> cache = dist.getAccelerationCache(vecs);
         List<Double> cache2 = dist.getAccelerationCache(vecs, ex);
@@ -160,7 +160,7 @@ public class MahalanobisDistanceTest
         
         NormalM normal = new NormalM(new ConstantVector(0.0, 5), trueCov.clone());
         MahalanobisDistance dist = new MahalanobisDistance();
-        dist.train(normal.sample(1000, new XORWOW()), ex);
+        dist.train(normal.sample(1000, new XORWOW(1234)), ex);
         
         List<Double> cache = dist.getAccelerationCache(vecs);
         List<Double> cache2 = dist.getAccelerationCache(vecs, ex);

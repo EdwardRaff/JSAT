@@ -46,7 +46,7 @@ public class StringUtilsTest
     public void testParseInt()
     {
         System.out.println("parseInt");
-        Random rand = new Random();
+        Random rand = new Random(1234);
         for(int radix = Character.MIN_RADIX; radix <= Character.MAX_RADIX; radix++)
         {
             for(int trials = 0; trials < 1000; trials++)

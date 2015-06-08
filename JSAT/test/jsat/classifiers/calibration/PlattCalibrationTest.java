@@ -99,8 +99,8 @@ public class PlattCalibrationTest
     public void testClone()
     {
         System.out.println("clone");
-        ClassificationDataSet t1 = FixedProblems.getSimpleKClassLinear(1000, 2, new XOR96());
-        ClassificationDataSet t2 = FixedProblems.getSimpleKClassLinear(1000, 2, new XOR96() );
+        ClassificationDataSet t1 = FixedProblems.getSimpleKClassLinear(1000, 2, new XOR96(1234));
+        ClassificationDataSet t2 = FixedProblems.getSimpleKClassLinear(1000, 2, new XOR96(1234) );
         
         t2.applyTransform(new LinearTransform(t2, 100, 105));
         
