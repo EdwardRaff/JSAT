@@ -5,9 +5,11 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import jsat.FixedProblems;
 import jsat.classifiers.*;
+import jsat.distributions.kernels.LinearKernel;
 import jsat.distributions.kernels.RBFKernel;
 import jsat.regression.RegressionDataSet;
 import jsat.utils.SystemInfo;
+import jsat.utils.random.XORWOW;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -139,6 +141,80 @@ public class LSSVMTest
                 errors += Math.pow(testSet.getTargetValue(i) - lssvm.regress(testSet.getDataPoint(i)), 2);
             assertTrue(errors / testSet.getSampleSize() < 1);
         }
+    }
+    
+    @Test()
+    public void testTrainWarmC()
+    {
+        ClassificationDataSet train = FixedProblems.getHalfCircles(100, new XORWOW(), 0.1, 0.2);
+        
+        
+        LSSVM warmModel = new LSSVM();
+        warmModel.setC(1);
+        warmModel.setCacheMode(SupportVectorLearner.CacheMode.FULL);
+        warmModel.trainC(train);
+        
+        
+        LSSVM warm = new LSSVM();
+        warm.setC(2e1);
+        warm.setCacheMode(SupportVectorLearner.CacheMode.FULL);
+        
+        long start, end;
+        
+        start = System.currentTimeMillis();
+        warm.trainC(train, warmModel);
+        end = System.currentTimeMillis();
+        long warmTime = (end-start);
+        
+        
+        LSSVM notWarm = new LSSVM();
+        notWarm.setC(2e1);
+        notWarm.setCacheMode(SupportVectorLearner.CacheMode.FULL);
+        
+        start = System.currentTimeMillis();
+        notWarm.trainC(train);
+        end = System.currentTimeMillis();
+        long normTime = (end-start);
+        
+        assertTrue(warmTime < normTime*0.75);
+        
+    }
+    
+    @Test()
+    public void testTrainWarmR()
+    {
+        RegressionDataSet train = FixedProblems.getSimpleRegression1(75, new XORWOW());
+        
+        
+        LSSVM warmModel = new LSSVM();
+        warmModel.setC(1);
+        warmModel.setCacheMode(SupportVectorLearner.CacheMode.FULL);
+        warmModel.train(train);
+        
+        
+        LSSVM warm = new LSSVM();
+        warm.setC(1e1);
+        warm.setCacheMode(SupportVectorLearner.CacheMode.FULL);
+        
+        long start, end;
+        
+        start = System.currentTimeMillis();
+        warm.train(train, warmModel);
+        end = System.currentTimeMillis();
+        long warmTime = (end-start);
+        
+        
+        LSSVM notWarm = new LSSVM();
+        notWarm.setC(1e1);
+        notWarm.setCacheMode(SupportVectorLearner.CacheMode.FULL);
+        
+        start = System.currentTimeMillis();
+        notWarm.train(train);
+        end = System.currentTimeMillis();
+        long normTime = (end-start);
+        
+        assertTrue(warmTime < normTime*0.75);
+        
     }
 
 }

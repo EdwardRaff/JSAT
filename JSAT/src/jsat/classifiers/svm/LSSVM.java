@@ -14,14 +14,18 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.*;
 import jsat.DataSet;
+import jsat.classifiers.*;
+import jsat.distributions.kernels.LinearKernel;
 import jsat.exceptions.FailedToFitException;
-import jsat.linear.Vec;
 import jsat.parameters.Parameter;
 import jsat.parameters.Parameterized;
+import jsat.parameters.Parameter.WarmParameter;
+import jsat.regression.*;
 import jsat.utils.FakeExecutor;
 import jsat.utils.PairedReturn;
 import jsat.utils.SystemInfo;
 import static jsat.utils.concurrent.ParallelUtils.*;
+
 
 /**
  * The Least Squares Support Vector Machine (LS-SVM) is an alternative to the 
@@ -29,6 +33,9 @@ import static jsat.utils.concurrent.ParallelUtils.*;
  * can be faster to train, but is usually significantly slower to perform 
  * predictions with. This is because the LS-SVM solution is dense, so all 
  * training points become support vectors. <br>
+ * <br>
+ * The LS-SVM algorithm may be warm started only from another LS-SVM object 
+ * trained on the same data set. <br>
  * <br>
  * NOTE: A SMO implementation similar to {@link PlatSMO} is used. This is done 
  * because is can easily operate without explicitly forming the whole kernel 
@@ -60,19 +67,37 @@ import static jsat.utils.concurrent.ParallelUtils.*;
  * 
  * @author Edward Raff
  */
-public class LSSVM extends SupportVectorLearner implements BinaryScoreClassifier, Regressor, Parameterized
+public class LSSVM extends SupportVectorLearner implements BinaryScoreClassifier, Regressor, Parameterized, WarmRegressor, WarmClassifier
 {
 
-	private static final long serialVersionUID = -7569924400631719451L;
-	protected double b = 0, b_low, b_up;
+    private static final long serialVersionUID = -7569924400631719451L;
+    protected double b = 0, b_low, b_up;
     private double C = 1;
-    
+
     private int i_up, i_low;
     private double[] fcache;
     private double dualObjective;
     
     private static double epsilon = 1e-12;
     private static double tol = 1e-3;
+    
+    /**
+     * Creates a new LS-SVM learner that uses a linear model and does not use a
+     * cache
+     */
+    public LSSVM()
+    {
+        this(new LinearKernel());
+    }
+    
+    /**
+     * Creates a new LS-SVM learner that does not use a cache
+     * @param kernel the kernel method to use
+     */
+    public LSSVM(KernelTrick kernel)
+    {
+        this(kernel, CacheMode.NONE);
+    }
     
     /**
      * Creates a new LS-SVM learner
@@ -97,9 +122,9 @@ public class LSSVM extends SupportVectorLearner implements BinaryScoreClassifier
         this.i_low = toCopy.i_low;
         this.C = toCopy.C;
         if(toCopy.alphas != null)
-        {
             this.alphas = Arrays.copyOf(toCopy.alphas, toCopy.alphas.length);
-        }
+        if(toCopy.fcache != null)
+            this.fcache = Arrays.copyOf(toCopy.fcache, toCopy.fcache.length);
     }
     
 
@@ -108,6 +133,7 @@ public class LSSVM extends SupportVectorLearner implements BinaryScoreClassifier
      * to higher amounts of regularization. 
      * @param C the positive regularization parameter
      */
+    @WarmParameter(prefLowToHigh = true)
     public void setC(double C)
     {
         if(C <= 0 || Double.isNaN(C) || Double.isInfinite(C))
@@ -124,7 +150,7 @@ public class LSSVM extends SupportVectorLearner implements BinaryScoreClassifier
         return C;
     }
 
-    
+
     private boolean takeStep(int i1, int i2, ExecutorService ex, int P) throws InterruptedException, ExecutionException
     {
         //these 2 will hold the old values
@@ -182,6 +208,12 @@ public class LSSVM extends SupportVectorLearner implements BinaryScoreClassifier
             }
         }
         
+        return true;
+    }
+
+    @Override
+    public boolean warmFromSameDataOnly()
+    {
         return true;
     }
     
@@ -299,13 +331,29 @@ public class LSSVM extends SupportVectorLearner implements BinaryScoreClassifier
         return gap;
     }
     
-    private void initializeVariables(double[] targets)
+    private void initializeVariables(double[] targets, LSSVM warmSolution, DataSet data)
     {
         alphas = new double[targets.length];
         fcache = new double[targets.length];
         dualObjective = 0;
-        for(int i = 0; i < targets.length; i++)
-            fcache[i] = -targets[i];
+        if(warmSolution != null)
+        {
+            if(warmSolution.alphas.length != this.alphas.length)
+                throw new FailedToFitException("Warm LS-SVM solution could not have been trained on the sama data, different number of alpha values present");
+            double C_ratio = this.C/warmSolution.C;
+            for(int i = 0; i < targets.length; i++)
+            {
+                alphas[i] = warmSolution.alphas[i];
+                fcache[i] = warmSolution.fcache[i]-(C_ratio-1)*warmSolution.alphas[i]/(this.C);
+                dualObjective += alphas[i]*(targets[i]-fcache[i]);
+            }
+            dualObjective /= 2;
+        }
+        else
+        {
+            for(int i = 0; i < targets.length; i++)
+                fcache[i] = -targets[i];
+        }
         
         //Compute (i_low, b_low) and (i_up, b_up) using (3.4)
         b_up = Double.NEGATIVE_INFINITY;
@@ -352,18 +400,47 @@ public class LSSVM extends SupportVectorLearner implements BinaryScoreClassifier
     @Override
     public void trainC(ClassificationDataSet dataSet, ExecutorService threadPool)
     {
-        if(dataSet.getClassSize() != 2)
-            throw new FailedToFitException("LS-SVM only supports binary classification problems");
-        double[] targets = new double[dataSet.getSampleSize()];
-        for(int i = 0; i < dataSet.getSampleSize(); i++)
-            targets[i] = dataSet.getDataPointCategory(i)*2-1;
-        mainLoop(dataSet, targets, threadPool);
+        trainC(dataSet, null, threadPool);
     }
 
     @Override
     public void trainC(ClassificationDataSet dataSet)
     {
-        trainC(dataSet, null);
+        trainC(dataSet, (ExecutorService)null);
+    }
+    
+    @Override
+    public void train(RegressionDataSet dataSet, Regressor warmSolution, ExecutorService threadPool)
+    {
+        if(warmSolution != null && !(warmSolution instanceof LSSVM))
+            throw new FailedToFitException("Warm solution must be an implementation of LS-SVM, not " + warmSolution.getClass());
+        double[] targets = dataSet.getTargetValues().arrayCopy();
+        mainLoop(dataSet, (LSSVM)warmSolution, targets, threadPool);
+    }
+
+    @Override
+    public void train(RegressionDataSet dataSet, Regressor warmSolution)
+    {
+        train(dataSet, warmSolution, null);
+    }
+
+    @Override
+    public void trainC(ClassificationDataSet dataSet, Classifier warmSolution, ExecutorService threadPool)
+    {
+        if(dataSet.getClassSize() != 2)
+            throw new FailedToFitException("LS-SVM only supports binary classification problems");
+        if(warmSolution != null && !(warmSolution instanceof LSSVM))
+            throw new FailedToFitException("Warm solution must be an implementation of LS-SVM, not " + warmSolution.getClass());
+        double[] targets = new double[dataSet.getSampleSize()];
+        for(int i = 0; i < dataSet.getSampleSize(); i++)
+            targets[i] = dataSet.getDataPointCategory(i)*2-1;
+        mainLoop(dataSet, (LSSVM) warmSolution , targets, threadPool);
+    }
+
+    @Override
+    public void trainC(ClassificationDataSet dataSet, Classifier warmSolution)
+    {
+        trainC(dataSet, warmSolution, null);
     }
 
     @Override
@@ -381,14 +458,13 @@ public class LSSVM extends SupportVectorLearner implements BinaryScoreClassifier
     @Override
     public void train(RegressionDataSet dataSet, ExecutorService threadPool)
     {
-        double[] targets = dataSet.getTargetValues().arrayCopy();
-        mainLoop(dataSet, targets, threadPool);
+        train(dataSet, null, threadPool);
     }
 
     @Override
     public void train(RegressionDataSet dataSet)
     {
-        train(dataSet, null);
+        train(dataSet, (ExecutorService)null);
     }
 
     @Override
@@ -409,7 +485,7 @@ public class LSSVM extends SupportVectorLearner implements BinaryScoreClassifier
         return Parameter.toParameterMap(getParameters()).get(paramName);
     }
 
-    private void mainLoop(DataSet dataSet, double[] targets, ExecutorService ex)
+    private void mainLoop(DataSet dataSet, LSSVM warmSolution, double[] targets, ExecutorService ex)
     {
         final int P;
         if(ex == null || ex instanceof FakeExecutor)
@@ -422,10 +498,8 @@ public class LSSVM extends SupportVectorLearner implements BinaryScoreClassifier
         
         try
         {
-            vecs = new ArrayList<Vec>(dataSet.getSampleSize());
-            for (int i = 0; i < dataSet.getSampleSize(); i++)
-                vecs.add(dataSet.getDataPoint(i).getNumericalValues());
-            initializeVariables(targets);
+            vecs = dataSet.getDataVectors();
+            initializeVariables(targets, warmSolution, dataSet);
             
             boolean change = true;
             double dualityGap = computeDualityGap(true, ex, P);
