@@ -173,12 +173,12 @@ public class FixedProblems
     {
         ClassificationDataSet train = new ClassificationDataSet(2, new CategoricalData[0], new CategoricalData(radi.length));
         
-        int n = dataSetSize ;
+        int n = dataSetSize/2 ;
 
         for(int r_i = 0; r_i < radi.length; r_i++)
             for (int i = 0; i < n; i++)
             {
-                double t = 2 * Math.PI * i / n;
+                double t = 2 * Math.PI * (i/2) / n;
                 double x = radi[r_i] * Math.cos(t) + (rand.nextDouble() - 0.5) / 5;
                 double y = radi[r_i] * Math.sin(t) + (rand.nextDouble() - 0.5) / 5;
                 train.addDataPoint(DenseVector.toDenseVec(x, y), new int[0], r_i);
