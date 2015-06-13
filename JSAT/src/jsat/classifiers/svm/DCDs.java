@@ -7,9 +7,7 @@ import java.util.Map;
 import java.util.Random;
 import java.util.concurrent.ExecutorService;
 import jsat.SingleWeightVectorModel;
-import jsat.classifiers.CategoricalResults;
-import jsat.classifiers.ClassificationDataSet;
-import jsat.classifiers.DataPoint;
+import jsat.classifiers.*;
 import jsat.classifiers.calibration.BinaryScoreClassifier;
 import jsat.exceptions.FailedToFitException;
 import jsat.exceptions.UntrainedModelException;
@@ -17,11 +15,11 @@ import jsat.linear.DenseVector;
 import jsat.linear.Vec;
 import jsat.parameters.Parameter;
 import jsat.parameters.Parameterized;
-import jsat.regression.RegressionDataSet;
-import jsat.regression.Regressor;
+import jsat.regression.*;
 import jsat.utils.IntList;
 import jsat.utils.ListUtils;
 import jsat.utils.random.XORWOW;
+import java.util.*;
 
 /**
  * Implements Dual Coordinate Descent with shrinking (DCDs) training algorithms
@@ -31,7 +29,9 @@ import jsat.utils.random.XORWOW;
  * kernel is ever used. The algorithm also uses the primal representation and uses 
  * the explicit formulation of <i>w</i> in training and classification. As such, 
  * the support vectors found are not necessary once training is complete - 
- * and will be discarded.
+ * and will be discarded.<br>
+ * <br>
+ * DCDs man be warm started by other DCDs models trained on the same data set. 
  * <br><br>
  * See: 
  * <ul>
@@ -51,11 +51,11 @@ import jsat.utils.random.XORWOW;
  * @author Edward Raff
  * @see DCD
  */
-public class DCDs implements BinaryScoreClassifier, Regressor, Parameterized, SingleWeightVectorModel
+public class DCDs implements BinaryScoreClassifier, Regressor, Parameterized, SingleWeightVectorModel, WarmClassifier, WarmRegressor
 {
 
-	private static final long serialVersionUID = -1686294187234524696L;
-	private int maxIterations;
+    private static final long serialVersionUID = -1686294187234524696L;
+    private int maxIterations;
     private double tolerance;
     private Vec[] vecs;
     private double[] alpha;
@@ -98,10 +98,10 @@ public class DCDs implements BinaryScoreClassifier, Regressor, Parameterized, Si
      */
     public DCDs(int maxIterations, double tolerance, double C, boolean useL1)
     {
-        this.maxIterations = maxIterations;
-        this.tolerance = tolerance;
-        this.C = C;
-        this.useL1 = useL1;
+        setMaxIterations(maxIterations);
+        setTolerance(tolerance);
+        setC(C);
+        setUseL1(useL1);
     }
     
     /**
@@ -299,6 +299,18 @@ public class DCDs implements BinaryScoreClassifier, Regressor, Parameterized, Si
     @Override
     public void trainC(ClassificationDataSet dataSet)
     {
+        trainC(dataSet, (Classifier)null);
+    }
+
+    @Override
+    public void trainC(ClassificationDataSet dataSet, Classifier warmSolution, ExecutorService threadPool)
+    {
+        trainC(dataSet, warmSolution);
+    }
+            
+    @Override
+    public void trainC(ClassificationDataSet dataSet, Classifier warmSolution)
+    {
         if(dataSet.getClassSize() != 2)
             throw new FailedToFitException("SVM only supports binary classificaiton problems");
         vecs = new Vec[dataSet.getSampleSize()];
@@ -325,6 +337,53 @@ public class DCDs implements BinaryScoreClassifier, Regressor, Parameterized, Si
         List<Integer> A = new IntList(vecs.length);
         ListUtils.addRange(A, 0, vecs.length, 1);
         
+        if(warmSolution != null)
+        {
+            //TODO the below code works OK for warm starting classification problems, but we also need code that works well for warm starting the regression problems to meet the API contract. Having more difficulty with that one. 
+//            if (warmSolution instanceof SimpleWeightVectorModel)
+//            {
+//                SimpleWeightVectorModel swvm = (SimpleWeightVectorModel) warmSolution;
+//                if (swvm.numWeightsVecs() != 1)
+//                    throw new FailedToFitException("Can not warm start from given solution, it has more than 1 weight vector");
+//
+//                Vec w_warm = swvm.getRawWeight(0);
+//                double b_warm = useBias ? swvm.getBias(0) : 0;
+//                //we can't just copy the values in b/c we need the solution to always be a linear combination of the training data
+//                //we we use it to guess at alpha values
+//                Iterator<Integer> iter = A.iterator();
+//                while (iter.hasNext())
+//                {
+//                    int i = iter.next();
+//                    double error = max(1 - y[i] * (vecs[i].dot(w_warm) + b_warm), 0);
+//                    if (!useL1)
+//                        error *= error;
+//                    error = min(C*error, U[i]) * y[i];
+//                    alpha[i] = abs(error);
+//                    if(error != 0)
+//                    {
+//                        w.mutableAdd(error, vecs[i]);
+//                        bias += error;
+//                    }
+//                }
+//            }
+            if(warmSolution instanceof DCDs)
+            {
+                DCDs other = (DCDs) warmSolution;
+                if (this.alpha != null && other.alpha.length != this.alpha.length)
+                    throw new FailedToFitException("Warm solution could not have been trained on the same data set");
+
+                double C_mul = this.C/other.C;
+                other.w.copyTo(this.w);
+                this.w.mutableMultiply(C);
+                this.bias = other.bias*C_mul;
+                System.arraycopy(other.alpha, 0, this.alpha, 0, this.alpha.length);
+                for(int i = 0; i < this.alpha.length; i++)
+                    this.alpha[i] *= C_mul;
+            }
+            else 
+                throw new FailedToFitException("Warm solution can not be used for warm start");
+        }
+        
         double M = Double.NEGATIVE_INFINITY;
         double m = Double.POSITIVE_INFINITY;
         boolean noShrinking = false;
@@ -334,7 +393,7 @@ public class DCDs implements BinaryScoreClassifier, Regressor, Parameterized, Si
          * time on some data sets, so use one of our fast ones
          */
         Random rand = new XORWOW();
-        
+
         for(int t = 0; t < maxIterations; t++ )
         {
             Collections.shuffle(A, rand);
@@ -399,12 +458,18 @@ public class DCDs implements BinaryScoreClassifier, Regressor, Parameterized, Si
         
         //dual problem variables are no longer needed
         vecs = null;
-        alpha = null;
         y = null;
+        //don't delete alpha incase we want to warm start from it
     }
 
     @Override
     public boolean supportsWeightedData()
+    {
+        return true;
+    }
+    
+    @Override
+    public boolean warmFromSameDataOnly()
     {
         return true;
     }
@@ -418,6 +483,8 @@ public class DCDs implements BinaryScoreClassifier, Regressor, Parameterized, Si
         
         if(this.w != null)
             clone.w = this.w.clone();
+        if(this.alpha != null)
+            clone.alpha = Arrays.copyOf(this.alpha, this.alpha.length);
         
         return clone;
     }
@@ -441,6 +508,12 @@ public class DCDs implements BinaryScoreClassifier, Regressor, Parameterized, Si
     }
 
     @Override
+    public void train(RegressionDataSet dataSet, Regressor warmSolution, ExecutorService threadPool)
+    {
+        train(dataSet, warmSolution);
+    }
+    
+    @Override
     public void train(RegressionDataSet dataSet, ExecutorService threadPool)
     {
         train(dataSet);
@@ -448,6 +521,12 @@ public class DCDs implements BinaryScoreClassifier, Regressor, Parameterized, Si
 
     @Override
     public void train(RegressionDataSet dataSet)
+    {
+        train(dataSet, (Regressor) null);
+    }
+    
+    @Override
+    public void train(RegressionDataSet dataSet, Regressor warmSolution)
     {
         vecs = new Vec[dataSet.getSampleSize()];
         /**
@@ -476,6 +555,26 @@ public class DCDs implements BinaryScoreClassifier, Regressor, Parameterized, Si
         
         IntList activeSet = new IntList(2*vecs.length);
         ListUtils.addRange(activeSet, 0, vecs.length, 1);
+        
+        if(warmSolution != null)
+        {
+            if(warmSolution instanceof DCDs)
+            {
+                DCDs other = (DCDs) warmSolution;
+                if (this.alpha != null && other.alpha.length != this.alpha.length)
+                    throw new FailedToFitException("Warm solution could not have been trained on the same data set");
+
+                double C_mul = this.C/other.C;
+                other.w.copyTo(this.w);
+                this.w.mutableMultiply(C);
+                this.bias = other.bias*C_mul;
+                System.arraycopy(other.alpha, 0, this.alpha, 0, this.alpha.length);
+                for(int i = 0; i < this.alpha.length; i++)
+                    this.alpha[i] *= C_mul;
+            }
+            else 
+                throw new FailedToFitException("Warm solution can not be used for warm start");
+        }
         
         /*
          * From profling Shufling & RNG generation takes a suprising amount of 
@@ -559,6 +658,9 @@ public class DCDs implements BinaryScoreClassifier, Regressor, Parameterized, Si
             }
             
         }
+        
+        y = null;
+        vecs = null;
     }
     
     private double getU(double w)
