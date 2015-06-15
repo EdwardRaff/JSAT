@@ -25,8 +25,7 @@ import jsat.math.FunctionVec;
 import jsat.math.optimization.*;
 import jsat.parameters.Parameter;
 import jsat.parameters.Parameterized;
-import jsat.regression.RegressionDataSet;
-import jsat.regression.Regressor;
+import jsat.regression.*;
 import jsat.utils.ListUtils;
 import jsat.utils.SystemInfo;
 import jsat.utils.concurrent.ParallelUtils;
@@ -43,7 +42,7 @@ import jsat.utils.concurrent.ParallelUtils;
  * Note: the current implementation does not currently use bias terms
  * @author Edward Raff
  */
-public class LinearBatch implements Classifier, Regressor, Parameterized
+public class LinearBatch implements Classifier, Regressor, Parameterized, SimpleWeightVectorModel, WarmClassifier, WarmRegressor
 {
 
     private static final long serialVersionUID = -446156124954287580L;
@@ -244,9 +243,22 @@ public class LinearBatch implements Classifier, Regressor, Parameterized
         final Vec x = data.getNumericalValues();
         return ((LossR)loss).getRegression(ws[0].dot(x)+bs[0]);
     }
-
+    
+    @Override
+    public void trainC(ClassificationDataSet dataSet, Classifier warmSolution)
+    {
+        trainC(dataSet, warmSolution, null);
+    }
+    
     @Override
     public void trainC(final ClassificationDataSet D, final ExecutorService threadPool)
+    {
+        trainC(D, null, threadPool);
+    }
+
+    
+    @Override
+    public void trainC(ClassificationDataSet D, Classifier warmSolution, ExecutorService threadPool)
     {
         if(D.getNumNumericalVars() <= 0)
             throw new FailedToFitException("LinearBath requires numeric features to work");
@@ -273,6 +285,9 @@ public class LinearBatch implements Classifier, Regressor, Parameterized
             optimizerToUse = new LBFGS(10);
         else
             optimizerToUse = optimizer.clone();
+        
+        doWarmStartIfNotNull(warmSolution);
+        
         if(ws.length == 1)
         {
             if(useBiasTerm)
@@ -296,19 +311,59 @@ public class LinearBatch implements Classifier, Regressor, Parameterized
             }
             else
                 wAll = new ConcatenatedVec(Arrays.asList(ws));
-            optimizerToUse.optimize(tolerance, wAll, new DenseVector(wAll.length()), new LossMCFunction(D, lossMC), new GradMCFunction(D, lossMC), null, threadPool);
+            optimizerToUse.optimize(tolerance, wAll, new DenseVector(wAll), new LossMCFunction(D, lossMC), new GradMCFunction(D, lossMC), null, threadPool);
         }
         
+    }
+
+    /**
+     * Performs a warm start if the given object is of the appropriate class.
+     * Nothing happens if input it null.
+     *
+     * @param warmSolution
+     * @throws FailedToFitException
+     */
+    private void doWarmStartIfNotNull(Object warmSolution) throws FailedToFitException
+    {
+        if(warmSolution != null )
+        {
+            if(warmSolution instanceof SimpleWeightVectorModel)
+            {
+                SimpleWeightVectorModel warm = (SimpleWeightVectorModel) warmSolution;
+                if(warm.numWeightsVecs() != ws.length)
+                    throw new FailedToFitException("Warm solution has " + warm.numWeightsVecs() + " weight vectors instead of " + ws.length);
+                for(int i = 0; i < ws.length; i++)
+                {
+                    warm.getRawWeight(i).copyTo(ws[i]);
+                    if(useBiasTerm)
+                        bs[i] = warm.getBias(i);
+                }
+            }
+            else
+                throw new FailedToFitException("Can not warm warm from " + warmSolution.getClass().getCanonicalName());
+        }
     }
     
     @Override
     public void trainC(ClassificationDataSet dataSet)
     {
-        trainC(dataSet, null);
+        trainC(dataSet, (ExecutorService) null);
     }
     
     @Override
     public void train(RegressionDataSet D, ExecutorService threadPool)
+    {
+        train(D, null, threadPool);
+    }
+
+    @Override
+    public void train(RegressionDataSet dataSet, Regressor warmSolution)
+    {
+        train(dataSet, warmSolution, null);
+    }
+    
+    @Override
+    public void train(RegressionDataSet D, Regressor warmSolution, ExecutorService threadPool)
     {
         if(D.getNumNumericalVars() <= 0)
             throw new FailedToFitException("LinearBath requires numeric features to work");
@@ -322,6 +377,9 @@ public class LinearBatch implements Classifier, Regressor, Parameterized
             optimizerToUse = new LBFGS(10);
         else
             optimizerToUse = optimizer.clone();
+        
+        doWarmStartIfNotNull(warmSolution);
+        
         if(useBiasTerm)
         {
             Vec w_tmp = new VecWithBias(ws[0], bs);
@@ -334,7 +392,7 @@ public class LinearBatch implements Classifier, Regressor, Parameterized
     @Override
     public void train(RegressionDataSet dataSet)
     {
-        train(dataSet, null);
+        train(dataSet, (ExecutorService)null);
     }
 
     private static double getTargetY(DataSet D, int i)
@@ -357,6 +415,30 @@ public class LinearBatch implements Classifier, Regressor, Parameterized
     public Parameter getParameter(String paramName)
     {
         return Parameter.toParameterMap(getParameters()).get(paramName);
+    }
+
+    @Override
+    public boolean warmFromSameDataOnly()
+    {
+        return false;
+    }
+
+    @Override
+    public Vec getRawWeight(int index)
+    {
+        return ws[index];
+    }
+
+    @Override
+    public double getBias(int index)
+    {
+        return bs[index];
+    }
+
+    @Override
+    public int numWeightsVecs()
+    {
+        return ws.length;
     }
 
     private class VecWithBias extends Vec

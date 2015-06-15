@@ -9,6 +9,7 @@ import jsat.classifiers.DataPointPair;
 import jsat.lossfunctions.*;
 import jsat.regression.RegressionDataSet;
 import jsat.utils.SystemInfo;
+import jsat.utils.random.XORWOW;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -71,6 +72,37 @@ public class LinearBatchTest
         }
     }
     
+    @Test()
+    public void testTrainWarmCFast()
+    {
+        ClassificationDataSet train = FixedProblems.get2ClassLinear(10000, new XORWOW());
+        
+        LinearSGD warmModel = new LinearSGD(new SoftmaxLoss(), 1e-4, 0);
+        warmModel.setEpochs(20);
+        warmModel.trainC(train);
+        
+        
+        long start, end;
+        
+        
+        LinearBatch notWarm = new LinearBatch(new SoftmaxLoss(), 1e-4);
+        
+        start = System.currentTimeMillis();
+        notWarm.trainC(train);
+        end = System.currentTimeMillis();
+        long normTime = (end-start);
+        
+        
+        LinearBatch warm = new LinearBatch(new SoftmaxLoss(), 1e-4);
+        
+        start = System.currentTimeMillis();
+        warm.trainC(train, warmModel);
+        end = System.currentTimeMillis();
+        long warmTime = (end-start);
+        
+        assertTrue(warmTime < normTime*0.75);
+    }
+    
     @Test
     public void testClassifyBinaryMT()
     {
@@ -110,6 +142,37 @@ public class LinearBatchTest
             for(DataPointPair<Integer> dpp : test.getAsDPPList())
                 assertEquals(dpp.getPair().longValue(), linearBatch.classify(dpp.getDataPoint()).mostLikely());
         }
+    }
+    
+    @Test()
+    public void testTrainWarmCMultieFast()
+    {
+        ClassificationDataSet train = FixedProblems.getHalfCircles(1000, new XORWOW(), 0.1, 1.0, 2.0, 5.0);
+        
+        LinearSGD warmModel = new LinearSGD(new SoftmaxLoss(), 1e-4, 0);
+        warmModel.setEpochs(20);
+        warmModel.trainC(train);
+        
+        
+        long start, end;
+        
+        
+        LinearBatch notWarm = new LinearBatch(new SoftmaxLoss(), 1e-4);
+        
+        start = System.currentTimeMillis();
+        notWarm.trainC(train);
+        end = System.currentTimeMillis();
+        long normTime = (end-start);
+        
+        
+        LinearBatch warm = new LinearBatch(new SoftmaxLoss(), 1e-4);
+        
+        start = System.currentTimeMillis();
+        warm.trainC(train, warmModel);
+        end = System.currentTimeMillis();
+        long warmTime = (end-start);
+        
+        assertTrue(warmTime < normTime*0.75);
     }
     
     @Test
@@ -184,4 +247,33 @@ public class LinearBatchTest
         }
     }
 
+    @Test()
+    public void testTrainWarmRFast()
+    {
+        RegressionDataSet train = FixedProblems.getLinearRegression(100000, new XORWOW());
+        
+        LinearBatch warmModel = new LinearBatch(new SquaredLoss(), 1e-4);
+        warmModel.train(train);
+        
+        
+        long start, end;
+        
+        
+        LinearBatch notWarm = new LinearBatch(new SquaredLoss(), 1e-4);
+        
+        start = System.currentTimeMillis();
+        notWarm.train(train);
+        end = System.currentTimeMillis();
+        long normTime = (end-start);
+        
+        
+        LinearBatch warm = new LinearBatch(new SquaredLoss(), 1e-4);
+        
+        start = System.currentTimeMillis();
+        warm.train(train, warmModel);
+        end = System.currentTimeMillis();
+        long warmTime = (end-start);
+        
+        assertTrue(warmTime < normTime*0.75);
+    }
 }
