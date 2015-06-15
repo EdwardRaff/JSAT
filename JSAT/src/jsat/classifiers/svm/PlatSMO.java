@@ -7,6 +7,8 @@ import java.util.concurrent.ExecutorService;
 import jsat.classifiers.*;
 import jsat.classifiers.calibration.BinaryScoreClassifier;
 import jsat.distributions.kernels.KernelTrick;
+import jsat.distributions.kernels.LinearKernel;
+import jsat.distributions.kernels.RBFKernel;
 import jsat.exceptions.FailedToFitException;
 import jsat.exceptions.UntrainedModelException;
 import jsat.linear.ConstantVector;
@@ -120,6 +122,16 @@ public class PlatSMO extends SupportVectorLearner implements BinaryScoreClassifi
      * Weight values to apply to each data point
      */
     protected Vec weights;
+    
+    /**
+     * Creates a new SVM object with a {@link LinearKernel} that uses no cache
+     * mode.
+     *
+     */
+    public PlatSMO()
+    {
+        this(new LinearKernel());
+    }
     
     /**
      * Creates a new SVM object that uses no cache mode. 

@@ -3,6 +3,7 @@ package jsat.classifiers.svm;
 
 import java.util.*;
 import jsat.distributions.kernels.KernelTrick;
+import jsat.distributions.kernels.LinearKernel;
 import jsat.linear.Vec;
 import jsat.parameters.Parameter.ParameterHolder;
 import jsat.utils.DoubleList;
@@ -110,6 +111,15 @@ public abstract class SupportVectorLearner
          */
         ROWS
     };
+    
+    /**
+     * This constructor is meant manly for Serialization to work. It uses a
+     * linear kernel and no caching.
+     */
+    protected SupportVectorLearner()
+    {
+        this(new LinearKernel(), CacheMode.NONE);
+    }
 
     /**
      * Creates a new Support Vector Learner
