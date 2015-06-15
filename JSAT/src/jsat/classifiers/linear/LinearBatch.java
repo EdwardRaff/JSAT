@@ -38,6 +38,9 @@ import jsat.utils.concurrent.ParallelUtils;
  * {@link #setLambda0(double) &lambda;<sub>0</sub>}/2 ||w||<sub>2</sub><sup>2</sup>, and is 
  * trained using a batch optimization method. <br>
  * <br>
+ * LinearBatch can be warm started from any model implementing the
+ * {@link SimpleWeightVectorModel} interface. 
+ * <br>
  * <br>
  * Note: the current implementation does not currently use bias terms
  * @author Edward Raff
