@@ -36,7 +36,7 @@ import jsat.utils.ProbailityMatch;
 public class MainGUI extends javax.swing.JFrame
 {
 	private static final long serialVersionUID = -1965204891107163706L;
-	Distribution[] distributions = new Distribution[] 
+	ContinuousDistribution[] distributions = new ContinuousDistribution[] 
     { 
         new Normal(), new LogNormal(), new Exponential(), new ChiSquared(10), 
         new Gamma(2, 1), new FisherSendor(10, 10), new Weibull(2, 1), 
@@ -588,7 +588,7 @@ public class MainGUI extends javax.swing.JFrame
 
         DistributionSelectionDialog dsd = new DistributionSelectionDialog(null, "Select distribution to compare against", distributions);
         
-        Distribution dist = dsd.getDistribution();
+        ContinuousDistribution dist = dsd.getDistribution();
 
         QQPlotDistribution qq = new QQPlotDistribution(dist, data.getNumericColumn(axie[0]));
 
@@ -708,8 +708,8 @@ public class MainGUI extends javax.swing.JFrame
             }
         
         KSTest ks = new KSTest(data.getNumericColumn(axie[0])) ;
-        List<ProbailityMatch<Distribution>> pValues = 
-                new ArrayList<ProbailityMatch<Distribution>>(distributions.length);
+        List<ProbailityMatch<ContinuousDistribution>> pValues = 
+                new ArrayList<ProbailityMatch<ContinuousDistribution>>(distributions.length);
         
         for (int i = 0; i < distributions.length; i++)
         {
@@ -717,7 +717,7 @@ public class MainGUI extends javax.swing.JFrame
             {
                 double p = ks.testDist(distributions[i]);
                 if(p >= 0.05)
-                    pValues.add(new ProbailityMatch<Distribution>(p, distributions[i]));
+                    pValues.add(new ProbailityMatch<ContinuousDistribution>(p, distributions[i]));
             }
             catch(ArithmeticException ex)
             {
@@ -841,7 +841,7 @@ public class MainGUI extends javax.swing.JFrame
             {
                 super.paintWork(g, imageWidth, imageHeight, pp);
                 g.setColor(Color.BLUE);
-                drawFunction((Graphics2D)g, Distribution.getFunctionPDF(kde));
+                drawFunction((Graphics2D)g, ContinuousDistribution.getFunctionPDF(kde));
             }
             
         };

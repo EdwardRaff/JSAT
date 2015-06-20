@@ -9,7 +9,7 @@ import jsat.text.GreekLetters;
  *
  * @author Edward Raff
  */
-public final class Logistic extends Distribution
+public final class Logistic extends ContinuousDistribution
 {
 
 	private static final long serialVersionUID = -8720773286818833591L;
@@ -108,7 +108,7 @@ public final class Logistic extends Distribution
     }
 
     @Override
-    public Distribution clone()
+    public ContinuousDistribution clone()
     {
         return new Logistic(mu, s);
     }

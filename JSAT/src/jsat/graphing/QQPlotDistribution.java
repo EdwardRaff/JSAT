@@ -4,7 +4,7 @@ package jsat.graphing;
 import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
-import jsat.distributions.Distribution;
+import jsat.distributions.ContinuousDistribution;
 import jsat.linear.Vec;
 import jsat.math.Function;
 
@@ -16,7 +16,7 @@ public class QQPlotDistribution extends Graph2D
 {
 
 	private static final long serialVersionUID = 9156814937052075799L;
-	private Distribution cd;
+	private ContinuousDistribution cd;
     private Vec yData;
     private double[] xData;
 
@@ -25,7 +25,7 @@ public class QQPlotDistribution extends Graph2D
      * @param cd the distribution to compare against. 
      * @param data the data set to compare
      */
-    public QQPlotDistribution(Distribution cd, Vec data)
+    public QQPlotDistribution(ContinuousDistribution cd, Vec data)
     {
         super(0, 0, 0, 0);
         this.cd = cd;

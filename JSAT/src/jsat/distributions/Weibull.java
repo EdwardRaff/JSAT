@@ -11,7 +11,7 @@ import static jsat.math.SpecialMath.*;
  *
  * @author Edward Raff
  */
-public class Weibull extends Distribution
+public class Weibull extends ContinuousDistribution
 {
 
 	private static final long serialVersionUID = -4083186674624535562L;
@@ -139,7 +139,7 @@ public class Weibull extends Distribution
     
 
     @Override
-    public Distribution clone()
+    public ContinuousDistribution clone()
     {
         return new Weibull(alpha, beta);
     }

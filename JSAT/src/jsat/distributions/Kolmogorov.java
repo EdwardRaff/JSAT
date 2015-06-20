@@ -9,7 +9,7 @@ import static java.lang.Math.*;
  *
  * @author Edward Raff
  */
-public class Kolmogorov extends Distribution
+public class Kolmogorov extends ContinuousDistribution
 {
 
 
@@ -125,7 +125,7 @@ public class Kolmogorov extends Distribution
     }
 
     @Override
-    public Distribution clone()
+    public ContinuousDistribution clone()
     {
         return new Kolmogorov();
     }

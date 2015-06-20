@@ -12,7 +12,7 @@ import jsat.text.GreekLetters;
  * 
  * @author Edward Raff
  */
-public class StudentT extends Distribution
+public class StudentT extends ContinuousDistribution
 {
 
 	private static final long serialVersionUID = -3157525461647767831L;
@@ -137,7 +137,7 @@ public class StudentT extends Distribution
     }
 
     @Override
-    public Distribution clone()
+    public ContinuousDistribution clone()
     {
         return new StudentT(df, mu, sig);
     }

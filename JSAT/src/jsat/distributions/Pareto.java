@@ -8,7 +8,7 @@ import static java.lang.Math.*;
  *
  * @author Edward Raff
  */
-public class Pareto extends Distribution
+public class Pareto extends ContinuousDistribution
 {
 
 	private static final long serialVersionUID = 2055881279858330509L;
@@ -114,7 +114,7 @@ public class Pareto extends Distribution
     }
 
     @Override
-    public Distribution clone()
+    public ContinuousDistribution clone()
     {
         return new Pareto(xm, alpha);
     }

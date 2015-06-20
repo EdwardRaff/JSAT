@@ -10,7 +10,7 @@ import jsat.text.GreekLetters;
  *
  * @author Edward Raff
  */
-public class LogNormal extends Distribution
+public class LogNormal extends ContinuousDistribution
 {
 
 	private static final long serialVersionUID = -6938582328705527274L;
@@ -99,7 +99,7 @@ public class LogNormal extends Distribution
     }
 
     @Override
-    public Distribution clone()
+    public ContinuousDistribution clone()
     {
         return new LogNormal(mu, sig);
     }

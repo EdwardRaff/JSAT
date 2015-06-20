@@ -11,7 +11,7 @@ import jsat.classifiers.CategoricalResults;
 import jsat.classifiers.ClassificationDataSet;
 import jsat.classifiers.Classifier;
 import jsat.classifiers.DataPoint;
-import jsat.distributions.Distribution;
+import jsat.distributions.ContinuousDistribution;
 import jsat.exceptions.FailedToFitException;
 import jsat.exceptions.UntrainedModelException;
 import jsat.parameters.Parameter;
@@ -38,7 +38,7 @@ public class Wagging implements Classifier, Regressor, Parameterized
 {
 
 	private static final long serialVersionUID = 4999034730848794619L;
-	private Distribution dist;
+	private ContinuousDistribution dist;
     private int iterations;
     private Classifier weakL;
     private Regressor weakR;
@@ -54,7 +54,7 @@ public class Wagging implements Classifier, Regressor, Parameterized
      * @param weakL the weak learner to use
      * @param iterations the number of iterations to perform
      */
-    public Wagging(Distribution dist, Classifier weakL, int iterations)
+    public Wagging(ContinuousDistribution dist, Classifier weakL, int iterations)
     {
         setDistribution(dist);
         setIterations(iterations);
@@ -67,7 +67,7 @@ public class Wagging implements Classifier, Regressor, Parameterized
      * @param weakR the weak learner to use
      * @param iterations the number of iterations to perform
      */
-    public Wagging(Distribution dist, Regressor weakR, int iterations)
+    public Wagging(ContinuousDistribution dist, Regressor weakR, int iterations)
     {
         setDistribution(dist);
         setIterations(iterations);
@@ -173,7 +173,7 @@ public class Wagging implements Classifier, Regressor, Parameterized
      * Sets the distribution to select the random weights from
      * @param dist the distribution to use
      */
-    public void setDistribution(Distribution dist)
+    public void setDistribution(ContinuousDistribution dist)
     {
         if(dist == null)
             throw new NullPointerException();
@@ -184,7 +184,7 @@ public class Wagging implements Classifier, Regressor, Parameterized
      * Returns the distribution used for weight sampling
      * @return the distribution used 
      */
-    public Distribution getDistribution()
+    public ContinuousDistribution getDistribution()
     {
         return dist;
     }

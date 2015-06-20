@@ -9,7 +9,7 @@ import static jsat.math.SpecialMath.*;
  *
  * @author Edward Raff
  */
-public class ChiSquared extends Distribution
+public class ChiSquared extends ContinuousDistribution
 {
 
 	private static final long serialVersionUID = 2446232102260721666L;
@@ -99,7 +99,7 @@ public class ChiSquared extends Distribution
     }
 
     @Override
-    public Distribution clone()
+    public ContinuousDistribution clone()
     {
         return new ChiSquared(df);
     }

@@ -8,11 +8,11 @@ import jsat.math.SpecialMath;
 /**
  * Implementation of the 
  * <a href="http://en.wikipedia.org/wiki/L%C3%A9vy_distribution">Levy 
- * Distribution </a>
+ ContinuousDistribution </a>
  * 
  * @author Edward Raff
  */
-public class Levy extends Distribution
+public class Levy extends ContinuousDistribution
 {
 
 	private static final long serialVersionUID = 3132169946527422816L;

@@ -1,7 +1,7 @@
 package jsat.classifiers.boosting;
 
 import jsat.classifiers.Classifier;
-import jsat.distributions.Distribution;
+import jsat.distributions.ContinuousDistribution;
 import jsat.distributions.Normal;
 import jsat.regression.Regressor;
 
@@ -45,13 +45,13 @@ public class WaggingNormal extends Wagging
     }
 
     @Override
-    public Distribution getDistribution()
+    public ContinuousDistribution getDistribution()
     {
         return super.getDistribution();
     }
 
     @Override
-    public void setDistribution(Distribution dist)
+    public void setDistribution(ContinuousDistribution dist)
     {
         if(dist instanceof Normal)
             super.setDistribution(dist);

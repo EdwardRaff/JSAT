@@ -9,7 +9,7 @@ import static jsat.math.SpecialMath.*;
  *
  * @author Edward Raff
  */
-public class Gamma extends Distribution
+public class Gamma extends ContinuousDistribution
 {
 
 	private static final long serialVersionUID = 6380493734491674483L;
@@ -109,7 +109,7 @@ public class Gamma extends Distribution
     }
 
     @Override
-    public Distribution clone()
+    public ContinuousDistribution clone()
     {
         return new Gamma(k, theta);
     }

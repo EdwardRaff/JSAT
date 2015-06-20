@@ -9,7 +9,7 @@ import static java.lang.Math.*;
  *
  * @author Edward Raff
  */
-public final class Laplace extends Distribution
+public final class Laplace extends ContinuousDistribution
 {
 
 	private static final long serialVersionUID = -4799360517803678236L;
@@ -111,7 +111,7 @@ public final class Laplace extends Distribution
     }
 
     @Override
-    public Distribution clone()
+    public ContinuousDistribution clone()
     {
         return new Laplace(mu, b);
     }

@@ -21,7 +21,7 @@ import jsat.classifiers.ClassificationDataSet;
 import jsat.classifiers.Classifier;
 import jsat.classifiers.DataPointPair;
 import jsat.datatransform.NumericalToHistogram;
-import jsat.distributions.Distribution;
+import jsat.distributions.ContinuousDistribution;
 import jsat.distributions.Uniform;
 import jsat.utils.PairedReturn;
 
@@ -85,8 +85,8 @@ public class DecisionStumpTest
     public void testThreshholdSplit()
     {
         System.out.println("threshholdSplit");
-        Distribution dist1 = new Normal(0, 1);
-        Distribution dist2 = new Normal(3, 2);
+        ContinuousDistribution dist1 = new Normal(0, 1);
+        ContinuousDistribution dist2 = new Normal(3, 2);
         PairedReturn<Integer, Double> ret = DecisionStump.threshholdSplit(dist1, dist2);
         assertEquals(0, (int) ret.getFirstItem());
         assertEquals(1.418344988105127, ret.getSecondItem(), 1e-6);
@@ -202,9 +202,9 @@ public class DecisionStumpTest
     
     @Test
     public void testIntersection(){
-    	Distribution d = new Uniform(1, 2);
+    	ContinuousDistribution d = new Uniform(1, 2);
     	//XXX create the test for double comparison
-    	DecisionStump.intersections(Arrays.asList(new Distribution[]{d}));
+    	DecisionStump.intersections(Arrays.asList(new ContinuousDistribution[]{d}));
     }
 
    

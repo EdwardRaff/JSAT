@@ -7,7 +7,7 @@ import jsat.linear.Vec;
  *
  * @author Edward Raff
  */
-public class Uniform extends Distribution
+public class Uniform extends ContinuousDistribution
 {
 
 	private static final long serialVersionUID = 2479606544724378610L;
@@ -103,7 +103,7 @@ public class Uniform extends Distribution
     }
 
     @Override
-    public Distribution clone()
+    public ContinuousDistribution clone()
     {
         return new Uniform(a, b);
     }

@@ -8,7 +8,7 @@ import static jsat.math.SpecialMath.*;
  *
  * @author Edward Raff
  */
-public class Beta extends Distribution
+public class Beta extends ContinuousDistribution
 {
 
 	private static final long serialVersionUID = 8001402067928143972L;
@@ -99,7 +99,7 @@ public class Beta extends Distribution
     }
 
     @Override
-    public Distribution clone()
+    public ContinuousDistribution clone()
     {
         return new Beta(alpha, beta);
     }

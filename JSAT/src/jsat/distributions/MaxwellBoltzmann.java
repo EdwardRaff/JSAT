@@ -9,7 +9,7 @@ import static jsat.math.SpecialMath.*;
  *
  * @author Edward Raff
  */
-public class MaxwellBoltzmann extends Distribution
+public class MaxwellBoltzmann extends ContinuousDistribution
 {
 
 	private static final long serialVersionUID = -8273087046831433430L;
@@ -113,7 +113,7 @@ public class MaxwellBoltzmann extends Distribution
     }
 
     @Override
-    public Distribution clone()
+    public ContinuousDistribution clone()
     {
         return new MaxwellBoltzmann(sigma);
     }

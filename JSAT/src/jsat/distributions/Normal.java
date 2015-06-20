@@ -12,7 +12,7 @@ import jsat.text.GreekLetters;
  *
  * @author Edward Raff
  */
-public class Normal extends Distribution
+public class Normal extends ContinuousDistribution
 {
 
 	private static final long serialVersionUID = -5298346576152986165L;
@@ -240,7 +240,7 @@ public class Normal extends Distribution
     }
 
     @Override
-    public Distribution clone()
+    public ContinuousDistribution clone()
     {
         return new Normal(mean, stndDev);
     }

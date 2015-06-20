@@ -29,8 +29,8 @@ public class KolmogorovTest {
     @Test
     public void testEquals(){
     	System.out.println("equals");
-    	Distribution d1 = new Kolmogorov();
-    	Distribution d4 = new Kolmogorov();
+    	ContinuousDistribution d1 = new Kolmogorov();
+    	ContinuousDistribution d4 = new Kolmogorov();
     	Integer i = new Integer(1);
     	assertFalse(d1.equals(i));
     	assertFalse(d1.equals(null));
@@ -42,8 +42,8 @@ public class KolmogorovTest {
     @Test
     public void testHashCode(){
     	System.out.println("hashCode");
-    	Distribution d1 = new Kolmogorov();
-    	Distribution d4 = new Kolmogorov();
+    	ContinuousDistribution d1 = new Kolmogorov();
+    	ContinuousDistribution d4 = new Kolmogorov();
     	assertEquals(d1.hashCode(), d4.hashCode());
     }
 

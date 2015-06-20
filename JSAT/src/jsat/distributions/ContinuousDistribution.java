@@ -9,11 +9,11 @@ import jsat.math.Function;
 import jsat.math.rootfinding.Zeroin;
 
 /**
- * The Distribution represents the contract for a continuous in one dimension. 
+ * The ContinuousDistribution represents the contract for a continuous in one dimension. 
  * 
  * @author Edward Raff
  */
-public abstract class Distribution implements Cloneable, Serializable
+public abstract class ContinuousDistribution implements Cloneable, Serializable
 {
 
 	private static final long serialVersionUID = -5079392926462355615L;
@@ -74,25 +74,23 @@ public abstract class Distribution implements Cloneable, Serializable
             throw new ArithmeticException("Value of p must be in the range [0,1], not " + p);
         double a = Double.isInfinite(min()) ? Double.MIN_VALUE : min();
         double b = Double.isInfinite(max()) ? Double.MAX_VALUE : max();
-        
-        Function newCDF = new Function() {
 
-            /**
-			 * 
-			 */
-			private static final long serialVersionUID = 1565805127519338483L;
+        Function newCDF = new Function()
+        {
 
-			public double f(double... x)
+            @Override
+            public double f(double... x)
             {
-                return cdf.f(x)-p;
+                return cdf.f(x) - p;
             }
-
+            
+            @Override
             public double f(Vec x)
             {
-                return f(x.get(0), x.get(1));
+                return f(x.get(0));
             }
         };
-        return Zeroin.root(a, b, cdf, p);
+        return Zeroin.root(a, b, newCDF, p);
     }
 
     /**
@@ -157,7 +155,7 @@ public abstract class Distribution implements Cloneable, Serializable
     abstract public void setVariable(String var, double value);
     
     @Override
-    abstract public Distribution clone();
+    abstract public ContinuousDistribution clone();
 
     /**
      * Attempts to set the variables used by this distribution based on population sample data, 
@@ -268,7 +266,7 @@ public abstract class Distribution implements Cloneable, Serializable
      * @param dist the distribution to wrap the pdf of
      * @return a function for evaluating the pdf of the given distribution
      */
-    public static Function getFunctionPDF(final Distribution dist)
+    public static Function getFunctionPDF(final ContinuousDistribution dist)
     {
         return new Function() {
 
@@ -297,7 +295,7 @@ public abstract class Distribution implements Cloneable, Serializable
      * @param dist the distribution to wrap the cdf of
      * @return a function for evaluating the cdf of the given distribution
      */
-    public static Function getFunctionCDF(final Distribution dist)
+    public static Function getFunctionCDF(final ContinuousDistribution dist)
     {
         return new Function() {
 

@@ -43,7 +43,7 @@ public class NaiveBayes implements Classifier, Parameterized
      * 
      */
     private double[][][] apriori;
-    private Distribution[][] distributions; 
+    private ContinuousDistribution[][] distributions; 
     private NumericalHandeling numericalHandling;
     private double[] priors;
     
@@ -65,28 +65,30 @@ public class NaiveBayes implements Classifier, Parameterized
     {
         /**
          * All numerical attributes are fit to a {@link Normal} distribution. 
+         *//**
+         * All numerical attributes are fit to a {@link Normal} distribution. 
          */
         NORMAL
         {
-            protected Distribution fit(Vec v)
+            protected ContinuousDistribution fit(Vec v)
             {
                 return getBestDistribution(v, new Normal(0, 1));
             }
         },
         /**
-         * The best fitting {@link Distribution} is selected by 
+         * The best fitting {@link ContinuousDistribution} is selected by 
          * {@link DistributionSearch#getBestDistribution(jsat.linear.Vec) }
          */
         BEST_FIT
         {
 
-            protected Distribution fit(Vec v)
+            protected ContinuousDistribution fit(Vec v)
             {
                 return getBestDistribution(v);
             }
         },
         /**
-         * The best fitting {@link Distribution} is selected by 
+         * The best fitting {@link ContinuousDistribution} is selected by 
          * {@link DistributionSearch#getBestDistribution(jsat.linear.Vec, double) }, 
          * and provides a cut off value to use the {@link KernelDensityEstimator} instead
          */
@@ -113,13 +115,13 @@ public class NaiveBayes implements Classifier, Parameterized
 //                return cutOff;
 //            }
            
-            protected Distribution fit(Vec v)
+            protected ContinuousDistribution fit(Vec v)
             {
                 return getBestDistribution(v, cutOff);
             }
         };
 
-        abstract protected Distribution fit(Vec y);
+        abstract protected ContinuousDistribution fit(Vec y);
     }
 
     /**
@@ -300,10 +302,10 @@ public class NaiveBayes implements Classifier, Parameterized
         
         if(this.distributions != null)
         {
-            newBayes.distributions = new Distribution[this.distributions.length][];
+            newBayes.distributions = new ContinuousDistribution[this.distributions.length][];
             for(int i = 0; i < this.distributions.length; i++)
             {
-                newBayes.distributions[i] = new Distribution[this.distributions[i].length];
+                newBayes.distributions[i] = new ContinuousDistribution[this.distributions[i].length];
                 for(int j = 0; j < this.distributions[i].length; j++)
                     newBayes.distributions[i][j] = this.distributions[i][j].clone();
             }
@@ -411,7 +413,7 @@ public class NaiveBayes implements Classifier, Parameterized
     {
         int nCat = dataSet.getPredicting().getNumOfCategories();
         apriori = new double[nCat][dataSet.getNumCategoricalVars()][];
-        distributions = new Distribution[nCat][dataSet.getNumNumericalVars()] ;
+        distributions = new ContinuousDistribution[nCat][dataSet.getNumNumericalVars()] ;
         priors = dataSet.getPriors();
         
         int totalWorkers = nCat*(dataSet.getNumNumericalVars() + dataSet.getNumCategoricalVars());

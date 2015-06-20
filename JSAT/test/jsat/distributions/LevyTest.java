@@ -29,10 +29,10 @@ public class LevyTest {
     @Test
     public void testEquals(){
     	System.out.println("equals");
-    	Distribution d1 = new Levy(0.5, 0.5);
-    	Distribution d2 = new Levy(0.6, 0.5);
-    	Distribution d3 = new Levy(0.5, 0.6);
-    	Distribution d4 = new Levy(0.5, 0.5);
+    	ContinuousDistribution d1 = new Levy(0.5, 0.5);
+    	ContinuousDistribution d2 = new Levy(0.6, 0.5);
+    	ContinuousDistribution d3 = new Levy(0.5, 0.6);
+    	ContinuousDistribution d4 = new Levy(0.5, 0.5);
     	Integer i = new Integer(1);
     	assertFalse(d1.equals(d2));
     	assertFalse(d1.equals(d3));
@@ -47,9 +47,9 @@ public class LevyTest {
     @Test
     public void testHashCode(){
     	System.out.println("hashCode");
-    	Distribution d1 = new Levy(0.5, 0.5);
-    	Distribution d2 = new Levy(0.6, 0.5);
-    	Distribution d4 = new Levy(0.5, 0.5);
+    	ContinuousDistribution d1 = new Levy(0.5, 0.5);
+    	ContinuousDistribution d2 = new Levy(0.6, 0.5);
+    	ContinuousDistribution d4 = new Levy(0.5, 0.5);
     	assertEquals(d1.hashCode(), d4.hashCode());
     	assertFalse(d1.hashCode()==d2.hashCode());
     }

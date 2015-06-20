@@ -8,7 +8,7 @@ import java.util.concurrent.ExecutorService;
 
 import jsat.classifiers.*;
 import jsat.classifiers.trees.ImpurityScore.ImpurityMeasure;
-import jsat.distributions.Distribution;
+import jsat.distributions.ContinuousDistribution;
 import jsat.distributions.empirical.KernelDensityEstimator;
 import jsat.distributions.empirical.kernelfunc.EpanechnikovKF;
 import jsat.linear.DenseVector;
@@ -270,7 +270,7 @@ public class DecisionStump implements Classifier, Regressor, Parameterized
      * and 1 indicates <tt>dist2</tt>
      * @throws ArithmeticException if finding the splitting point between the two distributions is non trivial 
      */
-    public static PairedReturn<Integer, Double> threshholdSplit(final Distribution dist1, final Distribution dist2)
+    public static PairedReturn<Integer, Double> threshholdSplit(final ContinuousDistribution dist1, final ContinuousDistribution dist2)
     {
         if(dist1 == null && dist2 == null)
             throw new ArithmeticException("No Distributions given");
@@ -343,7 +343,7 @@ public class DecisionStump implements Classifier, Regressor, Parameterized
      * @param dists the distributions for each options
      * @return the paired lists that describe the most probable distribution
      */
-    public static PairedReturn<List<Double>, List<Integer>> intersections(final List<Distribution> dists)
+    public static PairedReturn<List<Double>, List<Integer>> intersections(final List<ContinuousDistribution> dists)
     {
         double minRange = Double.MAX_VALUE;
         double maxRange = Double.MIN_VALUE;
@@ -353,7 +353,7 @@ public class DecisionStump implements Classifier, Regressor, Parameterized
         final List<Integer> belongsTo = new IntList();
         final List<Double> splitPoints = new DoubleList();
         
-        for(Distribution cd : dists)
+        for(ContinuousDistribution cd : dists)
         {
             if(cd == null)
                 continue;
@@ -426,7 +426,7 @@ public class DecisionStump implements Classifier, Regressor, Parameterized
      * @param x the value to test the PDF of each distribution at
      * @return the index of the most likely distribution at the given point
      */
-    private static int maxPDF(List<Distribution> dits, double x)
+    private static int maxPDF(List<ContinuousDistribution> dits, double x)
     {
         double maxVal = -1;
         int best = -1;
@@ -698,7 +698,7 @@ public class DecisionStump implements Classifier, Regressor, Parameterized
                 values.get(theClass).add(value);
             }
             //Convert to usable formats 
-            Distribution[] dist = new Distribution[N];
+            ContinuousDistribution[] dist = new ContinuousDistribution[N];
             for (int i = 0; i < N; i++)
             {
                 if (weights.get(i).isEmpty())

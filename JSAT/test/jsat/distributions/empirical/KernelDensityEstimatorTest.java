@@ -7,7 +7,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
-import jsat.distributions.Distribution;
+import jsat.distributions.ContinuousDistribution;
 import jsat.distributions.empirical.kernelfunc.GaussKF;
 import jsat.distributions.empirical.kernelfunc.UniformKF;
 import jsat.linear.DenseVector;
@@ -19,11 +19,11 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 public class KernelDensityEstimatorTest {
-	static List<Distribution> unequal = new ArrayList<Distribution>();
-	static Distribution d1;
-	static Distribution d2;
-	static Distribution d3;
-	static Distribution d4;
+	static List<ContinuousDistribution> unequal = new ArrayList<ContinuousDistribution>();
+	static ContinuousDistribution d1;
+	static ContinuousDistribution d2;
+	static ContinuousDistribution d3;
+	static ContinuousDistribution d4;
 
 	private static final int vecSize = 1000;
 	@BeforeClass

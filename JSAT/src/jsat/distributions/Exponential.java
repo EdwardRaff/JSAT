@@ -7,7 +7,7 @@ import jsat.linear.Vec;
  *
  * @author Edward Raff
  */
-public class Exponential extends Distribution
+public class Exponential extends ContinuousDistribution
 {
 
 	private static final long serialVersionUID = 1675502925386052588L;
@@ -101,7 +101,7 @@ public class Exponential extends Distribution
     }
 
     @Override
-    public Distribution clone()
+    public ContinuousDistribution clone()
     {
         return new Exponential(lambda);
     }

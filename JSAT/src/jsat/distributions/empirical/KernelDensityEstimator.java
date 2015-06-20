@@ -3,7 +3,7 @@ package jsat.distributions.empirical;
 
 import java.util.*;
 
-import jsat.distributions.Distribution;
+import jsat.distributions.ContinuousDistribution;
 import jsat.distributions.empirical.kernelfunc.*;
 import jsat.linear.Vec;
 import jsat.math.Function;
@@ -15,7 +15,7 @@ import jsat.utils.ProbailityMatch;
  * 
  * @author Edward Raff
  */
-public class KernelDensityEstimator extends Distribution 
+public class KernelDensityEstimator extends ContinuousDistribution 
 {
     /*
      * README

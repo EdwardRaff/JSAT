@@ -13,7 +13,7 @@ import javax.swing.JFormattedTextField;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextField;
-import jsat.distributions.Distribution;
+import jsat.distributions.ContinuousDistribution;
 
 /**
  *
@@ -24,14 +24,14 @@ public class DistributionSelectionDialog extends JDialog
  
 	private static final long serialVersionUID = 4685124905824599836L;
 
-	Distribution[] distributions;
+	ContinuousDistribution[] distributions;
 
      final JPanel variablePanel;
      final JComboBox jc;
      String[] vars;
 
 
-    public DistributionSelectionDialog(Frame owner, String title, Distribution[] distributions)
+    public DistributionSelectionDialog(Frame owner, String title, ContinuousDistribution[] distributions)
     {
         super(owner, title, true);
         this.distributions = distributions;
@@ -39,11 +39,11 @@ public class DistributionSelectionDialog extends JDialog
         JPanel panel = new JPanel(new BorderLayout());
         variablePanel = new JPanel(new GridLayout(1, 1));
         jc = new JComboBox(distributions);
-        jc.addActionListener( new ActionListener() {
+        jc.addActionListener(new ActionListener() {
 
             public void actionPerformed(ActionEvent e)
             {
-                Distribution dist = (Distribution) jc.getSelectedItem();
+                ContinuousDistribution dist = (ContinuousDistribution) jc.getSelectedItem();
 
                 vars = dist.getVariables();
                 double[] defaultVals = dist.getCurrentVariableValues();
@@ -79,7 +79,7 @@ public class DistributionSelectionDialog extends JDialog
         this.getContentPane().add(panel);
     }
 
-    public Distribution getDistribution()
+    public ContinuousDistribution getDistribution()
     {
         setSize(300, 300);
         setVisible(true);
