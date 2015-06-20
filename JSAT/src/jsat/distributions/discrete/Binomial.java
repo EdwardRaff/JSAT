@@ -108,7 +108,7 @@ public class Binomial extends DiscreteDistribution
     @Override
     public double cdf(int x)
     {
-        if(x > trials)
+        if(x >= trials)
             return 1;
         if(x < 0)
             return 0;

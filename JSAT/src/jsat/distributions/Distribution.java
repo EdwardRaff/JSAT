@@ -57,7 +57,7 @@ public abstract class Distribution implements Cloneable, Serializable
             @Override
             public double f(Vec x)
             {
-                return cdf((int) x.get(0));
+                return cdf(x.get(0));
             }
         });
     }

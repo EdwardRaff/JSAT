@@ -17,6 +17,8 @@
 package jsat.distributions.discrete;
 
 import jsat.distributions.Distribution;
+import jsat.linear.Vec;
+import jsat.math.FunctionBase;
 
 /**
  * This abstract class defines the contract for a distribution over the integer
@@ -64,6 +66,38 @@ abstract public class DiscreteDistribution extends Distribution
     public double cdf(double x)
     {
         return cdf((int)Math.floor(x));
+    }
+
+    @Override
+    public double invCdf(double p)
+    {
+        //two special case checks, as they can cause a failure to get a positive and negative value on the ends, which means we can't do a search for the root
+        //Special case check, p < min value
+        if(min() >= Integer.MIN_VALUE)
+            if(p <= cdf(min()))
+                return min();
+        //special case check, p >= max value
+        if(max() < Integer.MAX_VALUE)
+            if(p > cdf(max()-1))
+                return max();
+        //stewpwise nature fo discrete can cause problems for search, so we will use a smoothed cdf to pass in
+        double toRet= invCdf(p, new FunctionBase()
+        {
+            @Override
+            public double f(Vec x)
+            {
+                double query = x.get(0);
+                //if it happens to fall on an int we just compute the regular value
+                if(Math.rint(query) == query)
+                    return cdf((int)query);
+                //else, interpolate
+                double larger = query+1;
+                double diff = larger-query;
+                return cdf(query)*diff + cdf(larger)*(1-diff);
+            }
+        });
+        
+        return Math.round(toRet);
     }
     
     @Override
