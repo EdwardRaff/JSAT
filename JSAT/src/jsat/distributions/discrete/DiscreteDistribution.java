@@ -18,7 +18,9 @@ package jsat.distributions.discrete;
 
 import jsat.distributions.Distribution;
 import jsat.linear.Vec;
+import jsat.math.Function;
 import jsat.math.FunctionBase;
+import jsat.math.rootfinding.Zeroin;
 
 /**
  * This abstract class defines the contract for a distribution over the integer
@@ -98,6 +100,33 @@ abstract public class DiscreteDistribution extends Distribution
         });
         
         return Math.round(toRet);
+    }
+
+    @Override
+    protected double invCdf(final double p, final Function cdf)
+    {
+        if (p < 0 || p > 1)
+            throw new ArithmeticException("Value of p must be in the range [0,1], not " + p);
+        //we can't use the max/min b/c we might overflow on some of the computations, so lets tone it down a little
+        double a = Double.isInfinite(min()) ? Integer.MIN_VALUE*.95 : min();
+        double b = Double.isInfinite(max()) ? Integer.MAX_VALUE*.95 : max();
+
+        Function newCDF = new Function()
+        {
+
+            @Override
+            public double f(double... x)
+            {
+                return cdf.f(x) - p;
+            }
+
+            @Override
+            public double f(Vec x)
+            {
+                return f(x.get(0));
+            }
+        };
+        return Zeroin.root(1e-6, a, b, newCDF, p);
     }
     
     @Override
