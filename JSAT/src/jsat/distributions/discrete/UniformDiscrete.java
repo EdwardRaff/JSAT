@@ -101,13 +101,18 @@ public class UniformDiscrete extends DiscreteDistribution
         if(x < min || x > max)
             return 0;
         else
-            return 1.0/(max-min);
+            return 1.0/(1+max-min);
     }
 
     @Override
     public double cdf(int x)
     {
-        return (x-min)/(double)(max-min);
+        if(x >= max)
+            return 1;
+        else if(x < min)
+            return 0;
+        else
+            return (1-min+x)/(double)(1+max-min);
     }
 
     @Override
@@ -115,10 +120,10 @@ public class UniformDiscrete extends DiscreteDistribution
     {
         if(p <= 0)
             return min;
-        else if(p >= max)
+        else if(p >= 1)
             return max;
         else
-            return max*p+min*(1-p);
+            return Math.max(1, Math.ceil((1+max-min)*p)+min-1);
     }
 
     @Override
@@ -130,7 +135,7 @@ public class UniformDiscrete extends DiscreteDistribution
     @Override
     public double median()
     {
-        return mean();
+        return Math.floor(mean());
     }
 
     @Override
