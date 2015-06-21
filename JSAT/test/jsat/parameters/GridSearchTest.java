@@ -322,7 +322,9 @@ public class GridSearchTest
         @Override
         public CategoricalResults classify(DataPoint data)
         {
-            if(param1 == 1 && param2 == 2 && param3 == 3)
+            //range check done so that RandomSearch can re-use this class for its own test
+            boolean param2InRange = 1.5 < param2 && param2 < 2.5;
+            if(param1 == 1 && param2InRange && param3 == 3)
                 if(data.getNumericalValues().get(0) < 0)
                     return new CategoricalResults(new double[]{0.0, 1.0});
             return new CategoricalResults(new double[]{1.0, 0.0});
@@ -361,7 +363,9 @@ public class GridSearchTest
         @Override
         public double regress(DataPoint data)
         {
-            if (param1 == 1 && param2 == 2 && param3 == 3)
+            //range check done so that RandomSearch can re-use this class for its own test
+            boolean param2InRange = 1.5 < param2 && param2 < 2.5;
+            if(param1 == 1 && param2InRange && param3 == 3)
                 if (data.getNumericalValues().get(0) < 0)
                     return 1;
             return 0;
