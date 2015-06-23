@@ -5,13 +5,8 @@ import java.util.concurrent.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import jsat.classifiers.*;
-import jsat.classifiers.evaluation.Accuracy;
-import jsat.classifiers.evaluation.ClassificationScore;
 import jsat.exceptions.FailedToFitException;
-import jsat.exceptions.UntrainedModelException;
 import jsat.regression.*;
-import jsat.regression.evaluation.MeanSquaredError;
-import jsat.regression.evaluation.RegressionScore;
 import jsat.utils.DoubleList;
 import jsat.utils.FakeExecutor;
 
@@ -31,53 +26,21 @@ import jsat.utils.FakeExecutor;
  * @see #addParameter(jsat.parameters.DoubleParameter, double[]) 
  * @see #addParameter(jsat.parameters.IntParameter, int[]) 
  */
-public class GridSearch implements Classifier, Regressor
+public class GridSearch extends ModelSearch
 {
-
     private static final long serialVersionUID = -1987196172499143753L;
-    private Classifier baseClassifier;
-    private Classifier trainedClassifier;
 
-    private ClassificationScore classificationTargetScore = new Accuracy();  
-    private RegressionScore regressionTargetScore = new MeanSquaredError(true);
-    
-    private Regressor baseRegressor;
-    private Regressor trainedRegressor;
-    
-    /**
-     * The list of parameters we will later, Int and Double
-     */
-    private List<Parameter> searchParams;
     /**
      * The matching list of values we will test. This includes the integer 
      * parameters, which will have to be cast back and forth from doubles. 
      */
     private List<List<Double>> searchValues;
-    /**
-     * The number of CV folds
-     */
-    private int folds;
     
     /**
      * Use warm starts when possible
      */
     private boolean useWarmStarts = true;
-    
-    /**
-     * If true, parallelism will be obtained by training the models in parallel.
-     * If false, parallelism is obtained from the model itself.
-     */
-    private boolean trainModelsInParallel = true;
-    
-    /**
-     * If true, trains the final model on the parameters used
-     */
-    private boolean trainFinalModel = true;
-    
-    /**
-     * If true, create the CV splits once and re-use them for all parameters
-     */
-    private boolean reuseSameCVFolds = true;
+
 
     /**
      * Creates a new GridSearch to tune the specified parameters of a regression
@@ -92,14 +55,8 @@ public class GridSearch implements Classifier, Regressor
      */
     public GridSearch(Regressor baseRegressor, int folds)
     {
-        if(!(baseRegressor instanceof Parameterized))
-            throw new FailedToFitException("Given regressor does not support parameterized alterations");
-        this.baseRegressor = baseRegressor;
-        if(baseRegressor instanceof Classifier)
-            this.baseClassifier = (Classifier) baseRegressor;
-        searchParams = new ArrayList<Parameter>();
+        super(baseRegressor, folds);
         searchValues = new ArrayList<List<Double>>();
-        this.folds = folds;
     }
     
     /**
@@ -116,15 +73,30 @@ public class GridSearch implements Classifier, Regressor
      */
     public GridSearch(Classifier baseClassifier, int folds)
     {
-        if(!(baseClassifier instanceof Parameterized))
-            throw new FailedToFitException("Given classifier does not support parameterized alterations");
-        this.baseClassifier = baseClassifier;
-        if(baseClassifier instanceof Regressor)
-            this.baseRegressor = (Regressor) baseClassifier;
-        searchParams = new ArrayList<Parameter>();
+        super(baseClassifier, folds);
         searchValues = new ArrayList<List<Double>>();
-        this.folds = folds;
     }
+
+    /**
+     * Copy constructor
+     * @param toCopy the object to copy
+     */
+    public GridSearch(GridSearch toCopy)
+    {
+        super(toCopy);
+        this.useWarmStarts = toCopy.useWarmStarts;
+        
+        if(toCopy.searchValues != null)
+        {
+            this.searchValues = new ArrayList<List<Double>>();
+            for(List<Double> ld : toCopy.searchValues)
+            {
+                List<Double> newVals = new DoubleList(ld);
+                this.searchValues.add(newVals);
+            }
+        }
+    }
+    
 
     /**
      * Sets whether or not warm starts are used, but only if the model in use
@@ -146,114 +118,6 @@ public class GridSearch implements Classifier, Regressor
     public boolean isUseWarmStarts()
     {
         return useWarmStarts;
-    }
-
-    /**
-     * When set to {@code true} (the default) parallelism is obtained by
-     * training as many models in parallel as possible. If {@code false},
-     * parallelsm will be obtained by training the model using the {@link Classifier#trainC(jsat.classifiers.ClassificationDataSet, java.util.concurrent.ExecutorService)
-     * } and {@link Regressor#train(jsat.regression.RegressionDataSet, java.util.concurrent.ExecutorService)
-     * } methods.<br>
-     * <br>
-     * When a model supports {@link #setUseWarmStarts(boolean) warms starts},
-     * parallelism obtained by training the models in parallel is intrinsically
-     * reduced, as a model can not be warms started until another model has
-     * finished. In the case that one of the parameters is annotated as a
-     * {@link Parameter.WarmParameter warm paramter} , that parameter will be
-     * the one rained sequential, and for every other parameter combination
-     * models will be trained in parallel. If there is no warm parameter, the
-     * first parameter added will be used for warm training. If there is only
-     * one parameter and warm training is occurring, no parallelism will be
-     * obtained.
-     *
-     * @param trainInParallel {@code true} to get parallelism from training many
-     * models at the same time, {@code false} to get parallelism from getting
-     * the model's implicit parallelism.
-     */
-    public void setTrainModelsInParallel(boolean trainInParallel)
-    {
-        this.trainModelsInParallel = trainInParallel;
-    }
-
-    /**
-     * 
-     * @return {@code true} if parallelism is obtained from training many models
-     * at the same time, {@code false} if parallelism is obtained from using the
-     * model's implicit parallelism.
-     */
-    public boolean isTrainModelsInParallel()
-    {
-        return trainModelsInParallel;
-    }
-
-    /**
-     * If {@code true} (the default) the model that was found to be best is
-     * trained on the whole data set at the end. If {@code false}, the final
-     * model will not be trained. This means that this Object will not be usable
-     * for predictoin. This should only be set if you know you will not be using
-     * this model but only want to get the information about which parameter
-     * combination is best.
-     *
-     * @param trainFinalModel {@code true} to train the final model after grid
-     * search, {@code false} to not do that.
-     */
-    public void setTrainFinalModel(boolean trainFinalModel)
-    {
-        this.trainFinalModel = trainFinalModel;
-    }
-
-    /**
-     * 
-     * @return  {@code true} to train the final model after grid
-     * search, {@code false} to not do that.
-     */
-    public boolean isTrainFinalModel()
-    {
-        return trainFinalModel;
-    }
-
-    /**
-     * Sets whether or not one set of CV folds is created and re used for every
-     * parameter combination (the default), or if a difference set of CV folds
-     * will be used for every parameter combination.
-     *
-     * @param reuseSameSplit {@code true} if the same split is re-used for every
-     * combination, {@code false} if a new CV set is used for every parameter
-     * combination.
-     */
-    public void setReuseSameCVFolds(boolean reuseSameSplit)
-    {
-        this.reuseSameCVFolds = reuseSameSplit;
-    }
-
-    /**
-     * 
-     * @return {@code true} if the same split is re-used for every
-     * combination, {@code false} if a new CV set is used for every parameter
-     * combination.
-     */
-    public boolean isReuseSameCVFolds()
-    {
-        return reuseSameCVFolds;
-    }
-    
-    /**
-     * Finds the parameter object with the given name, or throws an exception if
-     * a parameter with the given name does not exist. 
-     * @param name the name to search for
-     * @return the parameter object in question
-     * @throws IllegalArgumentException if the name is not found
-     */
-    private Parameter getParameterByName(String name) throws IllegalArgumentException
-    {
-        Parameter param;
-        if (baseClassifier != null)
-            param = ((Parameterized) baseClassifier).getParameter(name);
-        else
-            param = ((Parameterized) baseRegressor).getParameter(name);
-        if (param == null)
-            throw new IllegalArgumentException("Parameter " + name + " does not exist");
-        return param;
     }
     
     /**
@@ -331,110 +195,7 @@ public class GridSearch implements Classifier, Regressor
 
         addParameter((IntParameter) param, initialSearchValues);
     }
-
-    /**
-     * Returns the base classifier that was originally passed in when 
-     * constructing this GridSearch. If this was not constructed with a 
-     * classifier, this may return null. 
-     * 
-     * @return the original classifier object given
-     */
-    public Classifier getBaseClassifier()
-    {
-        return baseClassifier;
-    }
     
-    /**
-     * Returns the resultant classifier trained on the whole data set after 
-     * performing parameter tuning. 
-     * 
-     * @return the trained classifier after a call to 
-     * {@link #train(jsat.regression.RegressionDataSet, 
-     * java.util.concurrent.ExecutorService) }, or null if it has not been 
-     * trained. 
-     */
-    public Classifier getTrainedClassifier()
-    {
-        return trainedClassifier;
-    }
-    
-    /**
-     * Returns the base regressor that was originally passed in when 
-     * constructing this GridSearch. If this was not constructed with a 
-     * regressor, this may return null. 
-     * 
-     * @return the original regressor object given
-     */
-    public Regressor getBaseRegressor()
-    {
-        return baseRegressor;
-    }
-    
-    /**
-     * Returns the resultant regressor trained on the whole data set after 
-     * performing parameter tuning. 
-     * 
-     * @return the trained regressor after a call to 
-     * {@link #train(jsat.regression.RegressionDataSet, 
-     * java.util.concurrent.ExecutorService) }, or null if it has not been
-     * trained. 
-     */
-    public Regressor getTrainedRegressor()
-    {
-        return trainedRegressor;
-    }
-
-    /**
-     * Sets the score to attempt to optimize when performing grid search on a
-     * classification problem. 
-     * @param classifierTargetScore the score to optimize via grid search
-     */
-    public void setClassificationTargetScore(ClassificationScore classifierTargetScore)
-    {
-        this.classificationTargetScore = classifierTargetScore;
-    }
-
-    /**
-     * Returns the classification score that is trying to be optimized via 
-     * grid search
-     * @return the classification score that is trying to be optimized via 
-     * grid search
-     */
-    public ClassificationScore getClassificationTargetScore()
-    {
-        return classificationTargetScore;
-    }
-
-    /**
-     * Sets the score to attempt to optimize when performing grid search on a
-     * regression problem. 
-     * @param regressionTargetScore 
-     */
-    public void setRegressionTargetScore(RegressionScore regressionTargetScore)
-    {
-        this.regressionTargetScore = regressionTargetScore;
-    }
-
-    /**
-     * Returns the regression score that is trying to be optimized via 
-     * grid search
-     * @return the regression score that is trying to be optimized via 
-     * grid search
-     */
-    public RegressionScore getRegressionTargetScore()
-    {
-        return regressionTargetScore;
-    }
-    
-    
-    @Override
-    public CategoricalResults classify(DataPoint data)
-    {
-        if(trainedClassifier == null)
-            throw new UntrainedModelException("Model has not yet been trained");
-        return trainedClassifier.classify(data);
-    }
-
     @Override
     public void train(final RegressionDataSet dataSet, final ExecutorService threadPool)
     {
@@ -859,50 +620,9 @@ public class GridSearch implements Classifier, Regressor
     }
 
     @Override
-    public boolean supportsWeightedData()
-    {
-        return baseClassifier.supportsWeightedData();
-    }
-
-    @Override
     public GridSearch clone()
     {
-        GridSearch clone; 
-        if(baseClassifier != null)
-            clone = new GridSearch(baseClassifier.clone(), folds);
-        else
-            clone = new GridSearch(baseRegressor.clone(), folds);
-        clone.classificationTargetScore = this.classificationTargetScore.clone();
-        clone.regressionTargetScore = this.regressionTargetScore.clone();
-        clone.useWarmStarts = this.useWarmStarts;
-        clone.trainModelsInParallel = this.trainModelsInParallel;
-        clone.trainFinalModel = this.trainFinalModel;
-        clone.reuseSameCVFolds = this.reuseSameCVFolds;
-        
-        if(searchParams != null)
-            for(Parameter dp : searchParams)
-            {
-                Parameter p = ((Parameterized)clone.getBaseClassifier()).getParameter(dp.getName());
-                clone.searchParams.add(p);
-            }
-        if(searchValues != null)
-            for(List<Double> ld : searchValues)
-            {
-                List<Double> newVals = new DoubleList(ld);
-                clone.searchValues.add(newVals);
-            }
-        if(this.trainedClassifier != null)
-            clone.trainedClassifier = this.trainedClassifier.clone();
-        if(this.trainedRegressor != null)
-            clone.trainedRegressor = this.trainedRegressor.clone();
-        
-        return clone;
-    }
-
-    @Override
-    public double regress(DataPoint data)
-    {
-        return trainedRegressor.regress(data);
+        return new GridSearch(this);
     }
 
     /**

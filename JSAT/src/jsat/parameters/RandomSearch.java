@@ -23,21 +23,14 @@ import java.util.PriorityQueue;
 import java.util.Random;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
-import jsat.classifiers.CategoricalResults;
 import jsat.classifiers.ClassificationDataSet;
 import jsat.classifiers.ClassificationModelEvaluation;
 import jsat.classifiers.Classifier;
-import jsat.classifiers.DataPoint;
-import jsat.classifiers.evaluation.Accuracy;
-import jsat.classifiers.evaluation.ClassificationScore;
 import jsat.distributions.Distribution;
 import jsat.exceptions.FailedToFitException;
-import jsat.exceptions.UntrainedModelException;
 import jsat.regression.RegressionDataSet;
 import jsat.regression.RegressionModelEvaluation;
 import jsat.regression.Regressor;
-import jsat.regression.evaluation.MeanSquaredError;
-import jsat.regression.evaluation.RegressionScore;
 import jsat.utils.FakeExecutor;
 import jsat.utils.random.XORWOW;
 
@@ -45,78 +38,36 @@ import jsat.utils.random.XORWOW;
  *
  * @author Edward Raff
  */
-public class RandomSearch implements Classifier, Regressor
+public class RandomSearch extends ModelSearch
 {
-    private Classifier baseClassifier;
-    private Classifier trainedClassifier;
-
-    private ClassificationScore classificationTargetScore = new Accuracy();  
-    private RegressionScore regressionTargetScore = new MeanSquaredError(true);
-    
-    private Regressor baseRegressor;
-    private Regressor trainedRegressor;
-    
     private int trials = 25;
-    
+
     /**
-     * The list of parameters we will later, Int and Double
-     */
-    private List<Parameter> searchParams;
-    /**
-     * The matching list of distributions we will test. 
+     * The matching list of distributions we will test.
      */
     private List<Distribution> searchValues;
-    
-    
-    /**
-     * The number of CV folds
-     */
-    private int folds;
-    
-    /**
-     * If true, parallelism will be obtained by training the models in parallel.
-     * If false, parallelism is obtained from the model itself.
-     */
-    private boolean trainModelsInParallel = true;
-    
-    /**
-     * If true, trains the final model on the parameters used
-     */
-    private boolean trainFinalModel = true;
 
     /**
-     * If true, create the CV splits once and re-use them for all parameters
-     */
-    private boolean reuseSameCVFolds = true;
-    
-        /**
      * Creates a new GridSearch to tune the specified parameters of a regression
      * model. The parameters still need to be specified by calling 
      * {@link #addParameter(jsat.parameters.DoubleParameter, double[]) }
-     * 
+     *
      * @param baseRegressor the regressor to tune the parameters of
-     * @param folds the number of folds of cross-validation to perform to 
+     * @param folds the number of folds of cross-validation to perform to
      * evaluate each combination of parameters
-     * @throws FailedToFitException if the base regressor does not implement 
+     * @throws FailedToFitException if the base regressor does not implement
      * {@link Parameterized}
      */
     public RandomSearch(Regressor baseRegressor, int folds)
     {
-        if(!(baseRegressor instanceof Parameterized))
-            throw new FailedToFitException("Given regressor does not support parameterized alterations");
-        this.baseRegressor = baseRegressor;
-        if(baseRegressor instanceof Classifier)
-            this.baseClassifier = (Classifier) baseRegressor;
-        searchParams = new ArrayList<Parameter>();
+        super(baseRegressor, folds);
         searchValues = new ArrayList<Distribution>();
-        this.folds = folds;
     }
-    
-        /**
-     * Creates a new GridSearch to tune the specified parameters of a 
-     * classification model. The parameters still need to be specified by 
-     * calling 
-     * {@link #addParameter(jsat.parameters.DoubleParameter, double[]) }
+
+    /**
+     * Creates a new GridSearch to tune the specified parameters of a
+     * classification model. The parameters still need to be specified by
+     * calling {@link #addParameter(jsat.parameters.DoubleParameter, double[]) }
      * 
      * @param baseClassifier the classifier to tune the parameters of
      * @param folds the number of folds of cross-validation to perform to 
@@ -126,14 +77,8 @@ public class RandomSearch implements Classifier, Regressor
      */
     public RandomSearch(Classifier baseClassifier, int folds)
     {
-        if(!(baseClassifier instanceof Parameterized))
-            throw new FailedToFitException("Given classifier does not support parameterized alterations");
-        this.baseClassifier = baseClassifier;
-        if(baseClassifier instanceof Regressor)
-            this.baseRegressor = (Regressor) baseClassifier;
-        searchParams = new ArrayList<Parameter>();
+        super(baseClassifier, folds);
         searchValues = new ArrayList<Distribution>();
-        this.folds = folds;
     }
 
     /**
@@ -142,136 +87,21 @@ public class RandomSearch implements Classifier, Regressor
      */
     public RandomSearch(RandomSearch toCopy)
     {
-        if(toCopy.baseClassifier != null)
-        {
-            this.baseClassifier = toCopy.baseClassifier.clone();
-            if(this.baseClassifier instanceof Regressor)
-                this.baseRegressor = (Regressor) this.baseClassifier;
-        }
-        else
-        {
-            this.baseRegressor = toCopy.baseRegressor.clone();
-            if (this.baseRegressor instanceof Classifier)
-                this.baseClassifier = (Classifier) this.baseRegressor;
-        }
-        if(toCopy.trainedClassifier != null)
-            this.trainedClassifier = toCopy.trainedClassifier.clone();
-        if(toCopy.trainedRegressor != null)
-            this.trainedRegressor = toCopy.trainedRegressor.clone();
+        super(toCopy);
         this.trials = toCopy.trials;
-        this.searchParams = new ArrayList<Parameter>();
-        for(Parameter p : toCopy.searchParams)
-            this.searchParams.add(getParameterByName(p.getName()));
         this.searchValues = new ArrayList<Distribution>(toCopy.searchValues.size());
         for (Distribution d : toCopy.searchValues)
             this.searchValues.add(d.clone());
-        this.folds = toCopy.folds;
     }
     
-    /**
-     * Returns the base classifier that was originally passed in when
-     * constructing this GridSearch. If this was not constructed with a
-     * classifier, this may return null.
-     *
-     * @return the original classifier object given
-     */
-    public Classifier getBaseClassifier()
-    {
-        return baseClassifier;
-    }
-    
-    /**
-     * Returns the resultant classifier trained on the whole data set after 
-     * performing parameter tuning. 
-     * 
-     * @return the trained classifier after a call to 
-     * {@link #train(jsat.regression.RegressionDataSet, 
-     * java.util.concurrent.ExecutorService) }, or null if it has not been 
-     * trained. 
-     */
-    public Classifier getTrainedClassifier()
-    {
-        return trainedClassifier;
-    }
-
-    /**
-     * Returns the base regressor that was originally passed in when
-     * constructing this GridSearch. If this was not constructed with a
-     * regressor, this may return null.
-     *
-     * @return the original regressor object given
-     */
-    public Regressor getBaseRegressor()
-    {
-        return baseRegressor;
-    }
-
-    /**
-     * Returns the resultant regressor trained on the whole data set after
-     * performing parameter tuning.
-     *
-     * @return the trained regressor after a call to      {@link #train(jsat.regression.RegressionDataSet, 
-     * java.util.concurrent.ExecutorService) }, or null if it has not been
-     * trained.
-     */
-    public Regressor getTrainedRegressor()
-    {
-        return trainedRegressor;
-    }
-
-    /**
-     * Sets the score to attempt to optimize when performing grid search on a
-     * classification problem.
-     *
-     * @param classifierTargetScore the score to optimize via grid search
-     */
-    public void setClassificationTargetScore(ClassificationScore classifierTargetScore)
-    {
-        this.classificationTargetScore = classifierTargetScore;
-    }
-
-    /**
-     * Returns the classification score that is trying to be optimized via grid
-     * search
-     *
-     * @return the classification score that is trying to be optimized via grid
-     * search
-     */
-    public ClassificationScore getClassificationTargetScore()
-    {
-        return classificationTargetScore;
-    }
-
-   
-    /**
-     * Sets the score to attempt to optimize when performing grid search on a
-     * regression problem.
-     *
-     * @param regressionTargetScore
-     */
-    public void setRegressionTargetScore(RegressionScore regressionTargetScore)
-    {
-        this.regressionTargetScore = regressionTargetScore;
-    }
-
-    /**
-     * Returns the regression score that is trying to be optimized via grid
-     * search
-     *
-     * @return the regression score that is trying to be optimized via grid
-     * search
-     */
-    public RegressionScore getRegressionTargetScore()
-    {
-        return regressionTargetScore;
-    }
-
     /**
      * Sets the number of trials or samples that will be taken. This value is the number of models that will be trained and evaluated for their performance
      * @param trials the number of models to build and evaluate
      */
     public void setTrials(int trials)
     {
+        if(trials < 1)
+            throw new IllegalArgumentException("number of trials must be positive, not " + trials);
         this.trials = trials;
     }
 
@@ -284,26 +114,6 @@ public class RandomSearch implements Classifier, Regressor
         return trials;
     }
     
-    /**
-     * Finds the parameter object with the given name, or throws an exception if
-     * a parameter with the given name does not exist.
-     *
-     * @param name the name to search for
-     * @return the parameter object in question
-     * @throws IllegalArgumentException if the name is not found
-     */
-    private Parameter getParameterByName(String name) throws IllegalArgumentException
-    {
-        Parameter param;
-        if (baseClassifier != null)
-            param = ((Parameterized) baseClassifier).getParameter(name);
-        else
-            param = ((Parameterized) baseRegressor).getParameter(name);
-        if (param == null)
-            throw new IllegalArgumentException("Parameter " + name + " does not exist");
-        return param;
-    }
-  
     /**
      * Adds a new double parameter to be altered for the model being tuned.
      *
@@ -349,15 +159,6 @@ public class RandomSearch implements Classifier, Regressor
         else
             throw new IllegalArgumentException("Parameter " + name + " is not for double or int values");
     }
-
-    @Override
-    public CategoricalResults classify(DataPoint data)
-    {
-        if(trainedClassifier == null)
-            throw new UntrainedModelException("Model has not yet been trained");
-        return trainedClassifier.classify(data);
-    }
-
 
     @Override
     public void trainC(final ClassificationDataSet dataSet, final ExecutorService threadPool)
@@ -484,23 +285,6 @@ public class RandomSearch implements Classifier, Regressor
     public void trainC(ClassificationDataSet dataSet)
     {
         trainC(dataSet, null);
-    }
-
-    @Override
-    public boolean supportsWeightedData()
-    {
-        if(baseClassifier != null)
-            return baseClassifier.supportsWeightedData();
-        else
-            return baseRegressor.supportsWeightedData();
-    }
-
-    @Override
-    public double regress(DataPoint data)
-    {
-        if(trainedRegressor == null)
-            throw new UntrainedModelException();
-        return trainedRegressor.regress(data);
     }
 
     @Override
@@ -635,8 +419,5 @@ public class RandomSearch implements Classifier, Regressor
     {
         return new RandomSearch(this);
     }
-    
-    
-    
     
 }
