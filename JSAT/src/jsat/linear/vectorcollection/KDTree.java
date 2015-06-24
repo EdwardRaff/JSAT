@@ -1,6 +1,7 @@
 
 package jsat.linear.vectorcollection;
 
+import java.io.Serializable;
 import java.util.*;
 import java.util.concurrent.ExecutorService;
 
@@ -124,8 +125,16 @@ public class KDTree<V extends Vec> implements VectorCollection<V>
         this.distanceMetric = distanceMetric;
         this.pvSelection = pvSelection;
     }
+
+    /**
+     * no-arg constructor for serialization
+     */
+    public KDTree()
+    {
+        this(new EuclideanDistance(), PivotSelection.Variance);
+    }
     
-    private class KDNode implements Cloneable
+    private class KDNode implements Cloneable, Serializable
     {
         /**
          * The index in {@link #allVecs} of the vector that this node contains
@@ -141,6 +150,7 @@ public class KDTree<V extends Vec> implements VectorCollection<V>
             this.locatin = locatin;
             this.axis = axis;
         }
+        
         @SuppressWarnings("unused")
         public void setAxis(int axis)
         {

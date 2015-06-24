@@ -1,5 +1,6 @@
 package jsat.linear.vectorcollection;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -40,8 +41,8 @@ import jsat.utils.SimpleList;
 public class VPTree<V extends Vec> implements VectorCollection<V>
 {
 
-	private static final long serialVersionUID = -7271540108746353762L;
-	private DistanceMetric dm;
+    private static final long serialVersionUID = -7271540108746353762L;
+    private DistanceMetric dm;
     private List<Double> distCache;
     private List<V> allVecs;
     private Random rand;
@@ -139,6 +140,15 @@ public class VPTree<V extends Vec> implements VectorCollection<V>
         if(toClone.distCache != null)
             this.distCache = new DoubleList(toClone.distCache);
     }
+
+    /**
+     * no-arg constructor for serialization
+     */
+    protected VPTree()
+    {
+    }
+     
+    
     
     @Override
     public int size()
@@ -371,7 +381,7 @@ public class VPTree<V extends Vec> implements VectorCollection<V>
         return new VPTree<V>(this);
     }
     
-    private abstract class TreeNode implements Cloneable
+    private abstract class TreeNode implements Cloneable, Serializable
     {
         /**
          * Performs a KNN query on this node.
