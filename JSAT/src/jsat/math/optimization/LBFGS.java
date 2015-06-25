@@ -63,8 +63,9 @@ public class LBFGS implements Optimizer2
      * @param s
      * @param y
      * @param q the location to store the value of H<sub>k</sub> &nabla; f<sub>k</sub>
+     * @param alphas temp space to do work, should be as large as the number of history vectors
      */
-    public void twoLoopHp(Vec x_grad, List<Double> rho, List<Vec> s, List<Vec> y, Vec q, double[] alphas)
+    public static void twoLoopHp(Vec x_grad, List<Double> rho, List<Vec> s, List<Vec> y, Vec q, double[] alphas)
     {
         //q ← ∇ fk;
         x_grad.copyTo(q);
