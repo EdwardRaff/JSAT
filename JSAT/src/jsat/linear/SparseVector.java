@@ -1,8 +1,7 @@
 
 package jsat.linear;
 
-import static java.lang.Math.pow;
-import static java.lang.Math.sqrt;
+import static java.lang.Math.*;
 import java.util.*;
 import jsat.math.Function;
 import jsat.math.IndexFunction;
@@ -733,12 +732,32 @@ public class SparseVector extends  Vec
     @Override
     public double pNorm(double p)
     {
-        double norm = 0;
-        
-        for(int i = 0; i < used; i++)
-            norm += Math.pow(Math.abs(values[i]), p);
-        
-        return Math.pow(norm, 1.0/p);
+        if (p <= 0)
+            throw new IllegalArgumentException("norm must be a positive value, not " + p);
+        double result = 0;
+        if (p == 1)
+        {
+            for (int i = 0; i < used; i++)
+                result += abs(values[i]);
+        }
+        else if (p == 2)
+        {
+            for (int i = 0; i < used; i++)
+                result += values[i] * values[i];
+            result = Math.sqrt(result);
+        }
+        else if (Double.isInfinite(p))
+        {
+            for (int i = 0; i < used; i++)
+                result = Math.max(result, abs(values[i]));
+        }
+        else
+        {
+            for (int i = 0; i < used; i++)
+                result += Math.pow(Math.abs(values[i]), p);
+            result = pow(result, 1 / p);
+        }
+        return result;
     }
     
     @Override

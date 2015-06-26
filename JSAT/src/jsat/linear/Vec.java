@@ -786,10 +786,32 @@ public abstract class Vec implements Cloneable, Iterable<IndexValue>, Serializab
      */
     public double pNorm(double p)
     {
+        if (p <= 0)
+            throw new IllegalArgumentException("norm must be a positive value, not " + p);
         double result = 0;
-        for(IndexValue iv : this)
-            result += pow(abs(iv.getValue()), p);
-        return pow(result, 1/p);
+        if (p == 1)
+        {
+            for (IndexValue iv : this)
+                result += abs(iv.getValue());
+        }
+        else if (p == 2)
+        {
+            for (IndexValue iv : this)
+                result += iv.getValue() * iv.getValue();
+            result = Math.sqrt(result);
+        }
+        else if (Double.isInfinite(p))
+        {
+            for (IndexValue iv : this)
+                result = Math.max(result, abs(iv.getValue()));
+        }
+        else
+        {
+            for (IndexValue iv : this)
+                result += pow(abs(iv.getValue()), p);
+            result = pow(result, 1 / p);
+        }
+        return result;
     }
     
     /**

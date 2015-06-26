@@ -1,8 +1,7 @@
 
 package jsat.linear;
 
-import static java.lang.Math.pow;
-import static java.lang.Math.sqrt;
+import static java.lang.Math.*;
 import java.util.Arrays;
 import java.util.List;
 
@@ -366,12 +365,32 @@ public class DenseVector extends Vec
     @Override
     public double pNorm(double p)
     {
-        double norm = 0;
-        //TODO this could be done more efficently if y is a sparce vector
-        for(int i = startIndex; i < endIndex; i++)
-            norm += Math.pow(Math.abs(array[i]), p);
-        
-        return Math.pow(norm, 1.0/p);
+        if (p <= 0)
+            throw new IllegalArgumentException("norm must be a positive value, not " + p);
+        double result = 0;
+        if (p == 1)
+        {
+            for (int i = startIndex; i < endIndex; i++)
+                result += abs(array[i]);
+        }
+        else if (p == 2)
+        {
+            for(int i = startIndex; i < endIndex; i++)
+                result += array[i] * array[i];
+            result = Math.sqrt(result);
+        }
+        else if (Double.isInfinite(p))
+        {
+            for(int i = startIndex; i < endIndex; i++)
+                result = Math.max(result, abs(array[i]));
+        }
+        else
+        {
+            for(int i = startIndex; i < endIndex; i++)
+                result += Math.pow(Math.abs(array[i]), p);
+            result = pow(result, 1 / p);
+        }
+        return result;
     }
     
     @Override
