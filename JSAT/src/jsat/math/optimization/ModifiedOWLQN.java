@@ -29,6 +29,23 @@ import jsat.linear.ConstantVector;
 import jsat.linear.IndexValue;
 
 /**
+ * This implements the Modified Orthant-Wise Limited memory
+ * Quasi-Newton(mOWL-QN) optimizer. This algorithm is an extension of
+ * {@link LBFGS}, and solves minimization problems of the form: f(x) +
+ * {@link #setLambda(double) &lambda;} ||x||<sub>1</sub>. It requires the
+ * function and it's gradient to work.  <br>
+ * <br>
+ * See:<br>
+ * <ul>
+ * <li>Gong, P., & Ye, J. (2015). <i>A Modified Orthant-Wise Limited Memory
+ * Quasi-Newton Method with Convergence Analysis</i>. In The 32nd International
+ * Conference on Machine Learning (Vol. 37).</li>
+ * <li>Andrew, G., & Gao, J. (2007). <i>Scalable training of L1 -regularized
+ * log-linear models</i>. In Proceedings of the 24th international conference on
+ * Machine learning - ICML ’07 (pp. 33–40). New York, New York, USA: ACM Press.
+ * doi:10.1145/1273496.1273501</li>
+ * </ul>
+ * 
  *
  * @author Edward Raff <Raff.Edward@gmail.com>
  */
@@ -37,28 +54,55 @@ public class ModifiedOWLQN implements Optimizer2
     private int m = 10;
     private double lambda;
     private Vec lambdaMultipler = null;
-    private double eps = 1e-12;
-    private double alpha_0 = 1;
-    private double beta = 0.2;
-    private double gamma = 1e-2;
+    private static final double DEFAULT_EPS = 1e-12;
+    private static final double DEFAULT_ALPHA_0 = 1;
+    private static final double DEFAULT_BETA = 0.2;
+    private static final double DEFAULT_GAMMA = 1e-2;
+    private double eps = DEFAULT_EPS;
+    private double alpha_0 = DEFAULT_ALPHA_0;
+    private double beta = DEFAULT_BETA;
+    private double gamma = DEFAULT_GAMMA;
     private int maxIterations = 500;
 
+    /**
+     * Creates a new mOWL-QN optimizer with no regularization penalty
+     */
     public ModifiedOWLQN()
     {
         this(0.0);
     }
 
+    /**
+     * Creates a new mOWL-QN optimizer
+     * @param lambda the regularization penalty to use
+     */
     public ModifiedOWLQN(double lambda)
     {
         setLambda(lambda);
     }
     
 
+    /**
+     * Sets the regularization term for the optimizer
+     * @param lambda the regularization penalty
+     */
     public void setLambda(double lambda)
     {
+        if(lambda < 0 || Double.isInfinite(lambda) || Double.isNaN(lambda))
+            throw new IllegalArgumentException("lambda must be non-negative, not " + lambda);
         this.lambda = lambda;
     }
 
+    /**
+     * This method sets a vector that will contain a separate multiplier for
+     * {@link #setLambda(double) lambda} for each dimension of the problem. This
+     * allows for each dimension to have a different regularization penalty.<br>
+     * <br>
+     * If set to {@code null}, all dimensions will simply use &lambda; as their
+     * regularization value.
+     *
+     * @param lambdaMultipler the per-dimension regularization multiplier, or {@code null}. 
+     */
     public void setLambdaMultipler(Vec lambdaMultipler)
     {
         this.lambdaMultipler = lambdaMultipler;
@@ -68,6 +112,64 @@ public class ModifiedOWLQN implements Optimizer2
     {
         return lambdaMultipler;
     }
+
+    /**
+     * Sets the number of history items to keep that are used to approximate the
+     * Hessian of the problem
+     *
+     * @param m the number of history items to keep
+     */
+    public void setM(int m)
+    {
+        if (m < 1)
+            throw new IllegalArgumentException("m must be positive, not " + m);
+        this.m = m;
+    }
+
+    /**
+     * Returns the number of history items that will be used
+     *
+     * @return the number of history items that will be used
+     */
+    public int getM()
+    {
+        return m;
+    }
+
+    /**
+     * Sets the epsilon term that helps control when the gradient descent step
+     * is taken instead of the normal Quasi-Newton step. Larger values cause
+     * more GD steps. You shouldn't need to alter this variable
+     * @param eps tolerance term for GD steps
+     */
+    public void setEps(double eps)
+    {
+        if(eps < 0 || Double.isInfinite(eps) || Double.isNaN(eps))
+            throw new IllegalArgumentException("eps must be non-negative, not " + eps);
+        this.eps = eps;
+    }
+
+    public double getEps()
+    {
+        return eps;
+    }
+
+    /**
+     * Sets the shrinkage term used for the line search. 
+     * @param beta the line search shrinkage term
+     */
+    public void setBeta(double beta)
+    {
+        if(beta <= 0 || beta >= 1 || Double.isNaN(beta))
+            throw new IllegalArgumentException("shrinkage term must be in (0, 1), not " +  beta);
+        this.beta = beta;
+    }
+
+    public double getBeta()
+    {
+        return beta;
+    }
+    
     
 
     @Override
@@ -297,6 +399,8 @@ public class ModifiedOWLQN implements Optimizer2
     @Override
     public void setMaximumIterations(int iterations)
     {
+        if(iterations < 1)
+            throw new IllegalArgumentException("Number of iterations must be positive, not " + iterations);
         this.maxIterations = iterations;
     }
 
