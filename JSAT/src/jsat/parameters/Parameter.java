@@ -7,6 +7,8 @@ import java.lang.reflect.Method;
 import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import jsat.DataSet;
+import jsat.distributions.Distribution;
 import jsat.distributions.empirical.kernelfunc.KernelFunction;
 import jsat.linear.distancemetrics.DistanceMetric;
 import jsat.math.decayrates.DecayRate;
@@ -20,9 +22,9 @@ import jsat.math.decayrates.DecayRate;
 public abstract class Parameter implements Serializable
 {
 
-	private static final long serialVersionUID = -6903844587637472657L;
+    private static final long serialVersionUID = -6903844587637472657L;
 
-	/**
+    /**
      * Adding this annotation to a field tells the 
      * {@link #getParamsFromMethods(java.lang.Object)} method to search this 
      * object recursively for more parameter get/set
@@ -348,400 +350,422 @@ public abstract class Parameter implements Serializable
             warm = false;
             lowToHigh = false;
         }
+        //lets see if we can find a method that corresponds to "guess" for this parameter
+        final Method guessMethod;
+        Method tmp = null;
+        try
+        {
+            tmp = targetObject.getClass().getMethod("guess" + setMethod.getName().replaceFirst("set", ""), DataSet.class);
+        }
+        catch (NoSuchMethodException ex)
+        {
+        }
+        catch (SecurityException ex)
+        {
+        }
+        guessMethod = tmp;//ugly hack so that I can reference a final guess method in anon class below
         //ok, now lets go create the correct object type
         Parameter param = null;
-            if(varClass.equals(double.class) || varClass.equals(Double.class))
+        if (varClass.equals(double.class) || varClass.equals(Double.class))
+        {
+            param = new DoubleParameter()
             {
-                param = new DoubleParameter() 
+                private static final long serialVersionUID = -4741218633343565521L;
+
+                @Override
+                public double getValue()
                 {
-
-                    /**
-					 * 
-					 */
-					private static final long serialVersionUID = -4741218633343565521L;
-
-					@Override
-                    public double getValue()
+                    try
                     {
-                        try
-                        {
-                            return (Double) getMethod.invoke(targetObject);
-                        }
-                        catch (Exception ex)
-                        {
-                            
-                        }
-                        return Double.NaN;
+                        return (Double) getMethod.invoke(targetObject);
                     }
-
-                    @Override
-                    public boolean setValue(double val)
+                    catch (Exception ex)
                     {
-                        try
-                        {
-                            setMethod.invoke(targetObject, val);
-                            return true;
-                        }
-                        catch (Exception ex)
-                        {
-                            
-                        }
-                        
-                        return false;
-                    }
 
-                    @Override
-                    public boolean isWarmParameter()
-                    {
-                        return warm;
                     }
+                    return Double.NaN;
+                }
 
-                    @Override
-                    public boolean preferredLowToHigh()
-                    {
-                        return lowToHigh;
-                    }
-
-                    @Override
-                    public String getASCIIName()
-                    {
-                        return asciiName;
-                    }
-
-                    @Override
-                    public String getName()
-                    {
-                        if(uniName == null)
-                            return super.getName();
-                        else
-                            return uniName;
-                    }
-                    
-                    
-                };
-            }
-            else if(varClass.equals(int.class) || varClass.equals(Integer.class))
-            {
-                param = new IntParameter() 
+                @Override
+                public boolean setValue(double val)
                 {
-
-                    /**
-					 * 
-					 */
-					private static final long serialVersionUID = 693593136858174197L;
-
-					@Override
-                    public int getValue()
+                    try
                     {
-                        try
-                        {
-                            return (Integer) getMethod.invoke(targetObject);
-                        }
-                        catch (Exception ex)
-                        {
-                            
-                        }
-                        return -1;
+                        setMethod.invoke(targetObject, val);
+                        return true;
+                    }
+                    catch (Exception ex)
+                    {
+
                     }
 
-                    @Override
-                    public boolean setValue(int val)
-                    {
-                        try
-                        {
-                            setMethod.invoke(targetObject, val);
-                            return true;
-                        }
-                        catch (Exception ex)
-                        {
-                            
-                        }
-                        
-                        return false;
-                    }
-                    
-                    @Override
-                    public boolean isWarmParameter()
-                    {
-                        return warm;
-                    }
+                    return false;
+                }
 
-                    @Override
-                    public boolean preferredLowToHigh()
-                    {
-                        return lowToHigh;
-                    }
-
-                    @Override
-                    public String getASCIIName()
-                    {
-                        return asciiName;
-                    }
-                    
-                    @Override
-                    public String getName()
-                    {
-                        if(uniName == null)
-                            return super.getName();
-                        else
-                            return uniName;
-                    }
-                };
-            }
-            else if(varClass.equals(boolean.class) || varClass.equals(Boolean.class))
-            {
-                param = new BooleanParameter() 
+                @Override
+                public boolean isWarmParameter()
                 {
+                    return warm;
+                }
 
-                    /**
-					 * 
-					 */
-					private static final long serialVersionUID = 8356074301252766754L;
-
-					@Override
-                    public boolean getValue()
-                    {
-                        try
-                        {
-                            return (Boolean) getMethod.invoke(targetObject);
-                        }
-                        catch (Exception ex)
-                        {
-                            
-                        }
-                        return false;
-                    }
-
-                    @Override
-                    public boolean setValue(boolean val)
-                    {
-                        try
-                        {
-                            setMethod.invoke(targetObject, val);
-                            return true;
-                        }
-                        catch (Exception ex)
-                        {
-                            
-                        }
-                        
-                        return false;
-                    }
-
-                    @Override
-                    public String getASCIIName()
-                    {
-                        return asciiName;
-                    }
-                    
-                    @Override
-                    public String getName()
-                    {
-                        if(uniName == null)
-                            return super.getName();
-                        else
-                            return uniName;
-                    }
-                };
-            }
-            else if(varClass.equals(KernelFunction.class))
-            {
-                param = new KernelFunctionParameter() 
+                @Override
+                public boolean preferredLowToHigh()
                 {
-                    /**
-					 * 
-					 */
-					private static final long serialVersionUID = -482809259476649959L;
+                    return lowToHigh;
+                }
 
-					@Override
-                    public KernelFunction getObject()
-                    {
-                        try
-                        {
-                            return (KernelFunction) getMethod.invoke(targetObject);
-                        }
-                        catch (Exception ex)
-                        {
-                            
-                        }
+                @Override
+                public String getASCIIName()
+                {
+                    return asciiName;
+                }
+
+                @Override
+                public String getName()
+                {
+                    if (uniName == null)
+                        return super.getName();
+                    else
+                        return uniName;
+                }
+
+                @Override
+                public Distribution getGuess(DataSet data)
+                {
+                    if (guessMethod == null)
                         return null;
-                    }
-
-                    @Override
-                    public boolean setObject(KernelFunction val)
+                    try
                     {
-                        try
-                        {
-                            setMethod.invoke(targetObject, val);
-                            return true;
-                        }
-                        catch (Exception ex)
-                        {
-                            
-                        }
-                        
-                        return false;
+                        return (Distribution) guessMethod.invoke(targetObject, data);
                     }
-                };
-            }
-            else if(varClass.equals(DistanceMetric.class))
+                    catch (Exception ex)
+                    {
+                    }
+                    return null;
+                }
+
+            };
+        }
+        else if (varClass.equals(int.class) || varClass.equals(Integer.class))
+        {
+            param = new IntParameter()
             {
-                param = new MetricParameter() 
+
+                private static final long serialVersionUID = 693593136858174197L;
+
+                @Override
+                public int getValue()
                 {
-                    /**
-					 * 
-					 */
-					private static final long serialVersionUID = -2823576782267398656L;
-
-					@Override
-                    public DistanceMetric getMetric()
+                    try
                     {
-                        try
-                        {
-                            return (DistanceMetric) getMethod.invoke(targetObject);
-                        }
-                        catch (Exception ex)
-                        {
-                            
-                        }
+                        return (Integer) getMethod.invoke(targetObject);
+                    }
+                    catch (Exception ex)
+                    {
+
+                    }
+                    return -1;
+                }
+
+                @Override
+                public boolean setValue(int val)
+                {
+                    try
+                    {
+                        setMethod.invoke(targetObject, val);
+                        return true;
+                    }
+                    catch (Exception ex)
+                    {
+
+                    }
+
+                    return false;
+                }
+
+                @Override
+                public Distribution getGuess(DataSet data)
+                {
+                    if (guessMethod == null)
                         return null;
-                    }
-
-                    @Override
-                    public boolean setMetric(DistanceMetric val)
+                    try
                     {
-                        try
-                        {
-                            setMethod.invoke(targetObject, val);
-                            return true;
-                        }
-                        catch (Exception ex)
-                        {
-                            
-                        }
-                        
-                        return false;
+                        return (Distribution) guessMethod.invoke(targetObject, data);
                     }
-                };
-            }
-            else if(varClass.equals(DecayRate.class))
+                    catch (Exception ex)
+                    {
+                    }
+                    return null;
+                }
+
+                @Override
+                public boolean isWarmParameter()
+                {
+                    return warm;
+                }
+
+                @Override
+                public boolean preferredLowToHigh()
+                {
+                    return lowToHigh;
+                }
+
+                @Override
+                public String getASCIIName()
+                {
+                    return asciiName;
+                }
+
+                @Override
+                public String getName()
+                {
+                    if (uniName == null)
+                        return super.getName();
+                    else
+                        return uniName;
+                }
+            };
+        }
+        else if (varClass.equals(boolean.class) || varClass.equals(Boolean.class))
+        {
+            param = new BooleanParameter()
             {
-                param = new DecayRateParameter() {
 
-                    /**
-					 * 
-					 */
-					private static final long serialVersionUID = 5348280386363008701L;
+                private static final long serialVersionUID = 8356074301252766754L;
 
-					@Override
-                    public DecayRate getObject()
+                @Override
+                public boolean getValue()
+                {
+                    try
                     {
-                        try
-                        {
-                            return (DecayRate) getMethod.invoke(targetObject);
-                        }
-                        catch (Exception ex)
-                        {
-                            
-                        }
-                        
-                        return null;
+                        return (Boolean) getMethod.invoke(targetObject);
+                    }
+                    catch (Exception ex)
+                    {
+
+                    }
+                    return false;
+                }
+
+                @Override
+                public boolean setValue(boolean val)
+                {
+                    try
+                    {
+                        setMethod.invoke(targetObject, val);
+                        return true;
+                    }
+                    catch (Exception ex)
+                    {
+
                     }
 
-                    @Override
-                    public boolean setObject(DecayRate obj)
-                    {
-                        try
-                        {
-                            setMethod.invoke(targetObject, obj);
-                            return true;
-                        }
-                        catch (Exception ex)
-                        {
-                            
-                        }
-                        
-                        return false;
-                    }
-                    
-                    @Override
-                    public String getASCIIName()
-                    {
-                        return asciiName;
-                    }
-                    
-                    @Override
-                    public String getName()
-                    {
-                        if(uniName == null)
-                            return super.getName();
-                        else
-                            return uniName;
-                    }
-                };
-            }
-            else if(varClass.isEnum())//We can create an ObjectParameter for enums
+                    return false;
+                }
+
+                @Override
+                public String getASCIIName()
+                {
+                    return asciiName;
+                }
+
+                @Override
+                public String getName()
+                {
+                    if (uniName == null)
+                        return super.getName();
+                    else
+                        return uniName;
+                }
+            };
+        }
+        else if (varClass.equals(KernelFunction.class))
+        {
+            param = new KernelFunctionParameter()
             {
-                param = new ObjectParameter() {
+                private static final long serialVersionUID = -482809259476649959L;
 
-                    /**
-					 * 
-					 */
-					private static final long serialVersionUID = -6245401198404522216L;
-
-					@Override
-                    public Object getObject()
+                @Override
+                public KernelFunction getObject()
+                {
+                    try
                     {
-                        try
-                        {
-                            return getMethod.invoke(targetObject);
-                        }
-                        catch (Exception ex)
-                        {
-                            
-                        }
-                        return null;
+                        return (KernelFunction) getMethod.invoke(targetObject);
+                    }
+                    catch (Exception ex)
+                    {
+
+                    }
+                    return null;
+                }
+
+                @Override
+                public boolean setObject(KernelFunction val)
+                {
+                    try
+                    {
+                        setMethod.invoke(targetObject, val);
+                        return true;
+                    }
+                    catch (Exception ex)
+                    {
+
                     }
 
-                    @Override
-                    public boolean setObject(Object val)
+                    return false;
+                }
+            };
+        }
+        else if (varClass.equals(DistanceMetric.class))
+        {
+            param = new MetricParameter()
+            {
+                private static final long serialVersionUID = -2823576782267398656L;
+
+                @Override
+                public DistanceMetric getMetric()
+                {
+                    try
                     {
-                        try
-                        {
-                            setMethod.invoke(targetObject, val);
-                            return true;
-                        }
-                        catch (Exception ex)
-                        {
-                            
-                        }
-                        
-                        return false;
+                        return (DistanceMetric) getMethod.invoke(targetObject);
+                    }
+                    catch (Exception ex)
+                    {
+
+                    }
+                    return null;
+                }
+
+                @Override
+                public boolean setMetric(DistanceMetric val)
+                {
+                    try
+                    {
+                        setMethod.invoke(targetObject, val);
+                        return true;
+                    }
+                    catch (Exception ex)
+                    {
+
                     }
 
-                    @Override
-                    public List parameterOptions()
+                    return false;
+                }
+            };
+        }
+        else if (varClass.equals(DecayRate.class))
+        {
+            param = new DecayRateParameter()
+            {
+
+                private static final long serialVersionUID = 5348280386363008701L;
+
+                @Override
+                public DecayRate getObject()
+                {
+                    try
                     {
-                        return Collections.unmodifiableList(Arrays.asList(varClass.getEnumConstants()));
+                        return (DecayRate) getMethod.invoke(targetObject);
+                    }
+                    catch (Exception ex)
+                    {
+
                     }
 
-                    @Override
-                    public String getASCIIName()
+                    return null;
+                }
+
+                @Override
+                public boolean setObject(DecayRate obj)
+                {
+                    try
                     {
-                        return asciiName;
+                        setMethod.invoke(targetObject, obj);
+                        return true;
                     }
-                    
-                    @Override
-                    public String getName()
+                    catch (Exception ex)
                     {
-                        if(uniName == null)
-                            return super.getName();
-                        else
-                            return uniName;
+
                     }
-                };
-            }
-            return param;
+
+                    return false;
+                }
+
+                @Override
+                public String getASCIIName()
+                {
+                    return asciiName;
+                }
+
+                @Override
+                public String getName()
+                {
+                    if (uniName == null)
+                        return super.getName();
+                    else
+                        return uniName;
+                }
+            };
+        }
+        else if (varClass.isEnum())//We can create an ObjectParameter for enums
+        {
+            param = new ObjectParameter()
+            {
+                private static final long serialVersionUID = -6245401198404522216L;
+
+                @Override
+                public Object getObject()
+                {
+                    try
+                    {
+                        return getMethod.invoke(targetObject);
+                    }
+                    catch (Exception ex)
+                    {
+
+                    }
+                    return null;
+                }
+
+                @Override
+                public boolean setObject(Object val)
+                {
+                    try
+                    {
+                        setMethod.invoke(targetObject, val);
+                        return true;
+                    }
+                    catch (Exception ex)
+                    {
+
+                    }
+
+                    return false;
+                }
+
+                @Override
+                public List parameterOptions()
+                {
+                    return Collections.unmodifiableList(Arrays.asList(varClass.getEnumConstants()));
+                }
+
+                @Override
+                public String getASCIIName()
+                {
+                    return asciiName;
+                }
+
+                @Override
+                public String getName()
+                {
+                    if (uniName == null)
+                        return super.getName();
+                    else
+                        return uniName;
+                }
+            };
+        }
+        return param;
     }
     
     /**
