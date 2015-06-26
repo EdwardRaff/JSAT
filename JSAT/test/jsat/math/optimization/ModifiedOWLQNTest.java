@@ -160,6 +160,7 @@ public class ModifiedOWLQNTest
         //do it again, but don't regularize one value
         instance.setLambdaMultipler(DenseVector.toDenseVec(1, 1, 1, 1, 0, 1));
         x0.zeroOut();
+        instance = instance.clone();
         instance.optimize(1e-4, w, x0, f, fp, null);
 
         assertTrue(w.nnz() <= 4);

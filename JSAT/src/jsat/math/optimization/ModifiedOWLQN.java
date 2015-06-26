@@ -81,6 +81,23 @@ public class ModifiedOWLQN implements Optimizer2
         setLambda(lambda);
     }
     
+    /**
+     * copy constructor
+     * @param toCopy the object to copy
+     */
+    protected ModifiedOWLQN(ModifiedOWLQN toCopy)
+    {
+        this(toCopy.lambda);
+        if(toCopy.lambdaMultipler != null)
+            this.lambdaMultipler = toCopy.lambdaMultipler.clone();
+        this.eps = toCopy.eps;
+        this.m = toCopy.m;
+        this.alpha_0 = toCopy.alpha_0;
+        this.beta = toCopy.beta;
+        this.gamma = toCopy.gamma;
+        this.maxIterations = toCopy.maxIterations;
+    }
+    
 
     /**
      * Sets the regularization term for the optimizer
@@ -413,7 +430,7 @@ public class ModifiedOWLQN implements Optimizer2
     @Override
     public ModifiedOWLQN clone()
     {
-        return this;
+        return new ModifiedOWLQN(this);
     }
     
     
