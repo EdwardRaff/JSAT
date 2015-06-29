@@ -36,11 +36,8 @@ public class DataModelPipeline implements Classifier, Regressor, Parameterized
     @ParameterHolder(skipSelfNamePrefix = true)
     private Regressor baseRegressor;
     
-    @ParameterHolder(skipSelfNamePrefix = true)
     private DataTransformProcess learnedDtp;
-    @ParameterHolder(skipSelfNamePrefix = true)
     private Classifier learnedClassifier;
-    @ParameterHolder(skipSelfNamePrefix = true)
     private Regressor learnedRegressor;
 
     /**
