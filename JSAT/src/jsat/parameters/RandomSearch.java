@@ -23,6 +23,7 @@ import java.util.PriorityQueue;
 import java.util.Random;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
+import jsat.DataSet;
 import jsat.classifiers.ClassificationDataSet;
 import jsat.classifiers.ClassificationModelEvaluation;
 import jsat.classifiers.Classifier;
@@ -92,6 +93,41 @@ public class RandomSearch extends ModelSearch
         this.searchValues = new ArrayList<Distribution>(toCopy.searchValues.size());
         for (Distribution d : toCopy.searchValues)
             this.searchValues.add(d.clone());
+    }
+    
+    /**
+     * This method will automatically populate the search space with parameters
+     * based on which Parameter objects return non-null distributions.<br>
+     * <br>
+     * Note, using this method with Cross Validation has the potential for
+     * over-estimating the accuracy of results if the data set is actually used
+     * to for parameter guessing.
+     *
+     * @param data the data set to get parameter estimates from
+     */
+    public void autoAddParameters(DataSet data)
+    {
+        Parameterized obj;
+        if (baseClassifier != null)
+            obj = (Parameterized) baseClassifier;
+        else
+            obj = (Parameterized) baseRegressor;
+        for (Parameter param : obj.getParameters())
+        {
+            Distribution dist;
+            if (param instanceof DoubleParameter)
+            {
+                dist = ((DoubleParameter) param).getGuess(data);
+                if (dist != null)
+                    addParameter((DoubleParameter) param, dist);
+            }
+            else if (param instanceof IntParameter)
+            {
+                dist = ((IntParameter) param).getGuess(data);
+                if (dist != null)
+                    addParameter((IntParameter) param, dist);
+            }
+        }
     }
     
     /**

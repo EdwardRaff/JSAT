@@ -4,7 +4,9 @@ import java.util.*;
 import java.util.concurrent.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import jsat.DataSet;
 import jsat.classifiers.*;
+import jsat.distributions.Distribution;
 import jsat.exceptions.FailedToFitException;
 import jsat.regression.*;
 import jsat.utils.DoubleList;
@@ -97,7 +99,76 @@ public class GridSearch extends ModelSearch
         }
     }
     
+    /**
+     * This method will automatically populate the search space with parameters
+     * based on which Parameter objects return non-null distributions.<br>
+     * <br>
+     * Note, using this method with Cross Validation has the potential for
+     * over-estimating the accuracy of results if the data set is actually used
+     * to for parameter guessing.
+     *
+     * @param data the data set to get parameter estimates from
+     * @param trials the minimum number of total parameter combinations to try. 
+     */
+    public void autoAddParameters(DataSet data, int trials)
+    {
+        Parameterized obj;
+        if(baseClassifier != null)
+            obj = (Parameterized) baseClassifier;
+        else 
+            obj = (Parameterized) baseRegressor;
+        int totalParms = 0;
+        for(Parameter param : obj.getParameters())
+        {
+            Distribution dist;
+            if (param instanceof DoubleParameter)
+            {
+                dist = ((DoubleParameter) param).getGuess(data);
+                if (dist != null)
+                    totalParms++;
+            }
+            else if (param instanceof IntParameter)
+            {
+                dist = ((IntParameter) param).getGuess(data);
+                if (dist != null)
+                    totalParms++;
+            }
+        }
+        if(totalParms < 1)
+            return;
+        int paramsEach = (int) Math.max(3, Math.floor(Math.pow(trials, 1.0/totalParms)));
+        double[] quantiles = new double[paramsEach];
+        for(int i = 0; i < quantiles.length; i++)
+            quantiles[i] = (i+1.0)/(paramsEach+1.0);
+        for(Parameter param : obj.getParameters())
+        {
+            Distribution dist;
+            if (param instanceof DoubleParameter)
+            {
+                dist = ((DoubleParameter) param).getGuess(data);
+                if (dist == null)
+                    continue;
+                double[] vals = new double[paramsEach];
+                for (int i = 0; i < vals.length; i++)
+                    vals[i] = dist.invCdf(quantiles[i]);
 
+                addParameter((DoubleParameter) param, vals);
+
+            }
+            else if (param instanceof IntParameter)
+            {
+                dist = ((IntParameter) param).getGuess(data);
+                if (dist == null)
+                    continue;
+                int[] vals = new int[paramsEach];
+                for (int i = 0; i < vals.length; i++)
+                    vals[i] = (int) Math.round(dist.invCdf(quantiles[i]));
+
+                addParameter((IntParameter) param, vals);
+            }
+        }
+    }
+    
     /**
      * Sets whether or not warm starts are used, but only if the model in use
      * supports warm starts. This is set to {@code true} by default. 
