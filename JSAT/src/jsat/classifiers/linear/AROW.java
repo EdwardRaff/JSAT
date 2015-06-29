@@ -1,12 +1,15 @@
 package jsat.classifiers.linear;
 
 import java.util.List;
+import jsat.DataSet;
 import jsat.SingleWeightVectorModel;
 import jsat.classifiers.BaseUpdateableClassifier;
 import jsat.classifiers.CategoricalData;
 import jsat.classifiers.CategoricalResults;
 import jsat.classifiers.DataPoint;
 import jsat.classifiers.calibration.BinaryScoreClassifier;
+import jsat.distributions.Distribution;
+import jsat.distributions.LogUniform;
 import jsat.exceptions.FailedToFitException;
 import jsat.exceptions.UntrainedModelException;
 import jsat.linear.DenseVector;
@@ -34,8 +37,8 @@ import jsat.parameters.Parameterized;
 public class AROW extends BaseUpdateableClassifier implements BinaryScoreClassifier, Parameterized, SingleWeightVectorModel
 {
 
-	private static final long serialVersionUID = 443803827811508204L;
-	private Vec w;
+    private static final long serialVersionUID = 443803827811508204L;
+    private Vec w;
     /**
      * Full covariance matrix
      */
@@ -52,6 +55,14 @@ public class AROW extends BaseUpdateableClassifier implements BinaryScoreClassif
      * before returning from update
      */
     private Vec Sigma_xt;
+
+    /**
+     * Creates a new AROW learner
+     */
+    public AROW()
+    {
+        this(1e-2, true);
+    }
 
     /**
      * Creates a new AROW learner
@@ -298,4 +309,15 @@ public class AROW extends BaseUpdateableClassifier implements BinaryScoreClassif
         return 1;
     }
     
+    /**
+     * Guess the distribution to use for the regularization term
+     * {@link #setR(double) r} .
+     *
+     * @param d the data set to get the guess for
+     * @return the guess for the r parameter
+     */
+    public static Distribution guessR(DataSet d)
+    {
+        return new LogUniform(Math.pow(2, -4), Math.pow(2, 4));//from Exact Soft Confidence-Weighted Learning paper
+    }
 }

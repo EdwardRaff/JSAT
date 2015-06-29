@@ -15,6 +15,7 @@ import java.util.List;
 import java.util.concurrent.*;
 import jsat.DataSet;
 import jsat.classifiers.*;
+import jsat.distributions.Distribution;
 import jsat.distributions.kernels.LinearKernel;
 import jsat.exceptions.FailedToFitException;
 import jsat.parameters.Parameter;
@@ -522,6 +523,18 @@ public class LSSVM extends SupportVectorLearner implements BinaryScoreClassifier
         {
             throw new FailedToFitException(executionException);
         }
+    }
+    
+    /**
+     * Guess the distribution to use for the regularization term
+     * {@link #setC(double) C} in a LS-SVM.
+     *
+     * @param d the data set to get the guess for
+     * @return the guess for the C parameter in the LS-SVM
+     */
+    public static Distribution guessC(DataSet d)
+    {
+        return PlatSMO.guessC(d);//LS-SVM isn't technically the same algo, but still a good search
     }
     
 }

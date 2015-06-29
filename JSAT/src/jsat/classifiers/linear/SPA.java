@@ -2,8 +2,10 @@ package jsat.classifiers.linear;
 
 import static java.lang.Math.*;
 import java.util.*;
+import jsat.DataSet;
 import jsat.SimpleWeightVectorModel;
 import jsat.classifiers.*;
+import jsat.distributions.Distribution;
 import jsat.linear.DenseVector;
 import jsat.linear.Vec;
 import jsat.parameters.Parameter;
@@ -32,8 +34,8 @@ import jsat.utils.IndexTable;
 public class SPA extends BaseUpdateableClassifier implements Parameterized, SimpleWeightVectorModel
 {
 
-	private static final long serialVersionUID = 3613279663279244169L;
-	private Vec[] w;
+    private static final long serialVersionUID = 3613279663279244169L;
+    private Vec[] w;
     private double[] bias;
     private double C = 1;
     private boolean useBias = false;
@@ -279,7 +281,7 @@ public class SPA extends BaseUpdateableClassifier implements Parameterized, Simp
         return false;
     }
 
-@Override
+    @Override
     public List<Parameter> getParameters()
     {
         return Parameter.getParamsFromMethods(this);
@@ -291,4 +293,15 @@ public class SPA extends BaseUpdateableClassifier implements Parameterized, Simp
         return Parameter.toParameterMap(getParameters()).get(paramName);
     }
     
+    /**
+     * Guess the distribution to use for the regularization term
+     * {@link #setC(double) C} in Support PassiveAggressive.
+     *
+     * @param d the data set to get the guess for
+     * @return the guess for the C parameter 
+     */
+    public static Distribution guessC(DataSet d)
+    {
+        return PassiveAggressive.guessC(d);
+    }
 }

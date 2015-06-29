@@ -3,11 +3,14 @@ package jsat.classifiers.linear;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
+import jsat.DataSet;
 import jsat.SimpleWeightVectorModel;
 import jsat.classifiers.BaseUpdateableClassifier;
 import jsat.classifiers.CategoricalData;
 import jsat.classifiers.CategoricalResults;
 import jsat.classifiers.DataPoint;
+import jsat.distributions.Distribution;
+import jsat.distributions.LogUniform;
 import jsat.exceptions.FailedToFitException;
 import jsat.linear.DenseVector;
 import jsat.linear.IndexValue;
@@ -58,9 +61,8 @@ import jsat.regression.UpdateableRegressor;
 public class LinearSGD extends BaseUpdateableClassifier implements UpdateableRegressor, Parameterized, SimpleWeightVectorModel
 {
     
-
-	private static final long serialVersionUID = -59695592724956535L;
-	private LossFunc loss;
+    private static final long serialVersionUID = -59695592724956535L;
+    private LossFunc loss;
     private GradientUpdater gradientUpdater;
     private double eta;
     private DecayRate decay;
@@ -523,6 +525,31 @@ public class LinearSGD extends BaseUpdateableClassifier implements UpdateableReg
     public int numWeightsVecs()
     {
         return ws.length;
+    }
+    
+    /**
+     * Guess the distribution to use for the regularization term
+     * {@link #setLambda0(double) &lambda;<sub>0</sub>} .
+     *
+     * @param d the data set to get the guess for
+     * @return the guess for the &lambda;<sub>0</sub> parameter 
+     */
+    public static Distribution guessLambda0(DataSet d)
+    {
+        return new LogUniform(1e-7, 1e-2);
+    }
+    
+    /**
+     * Guess the distribution to use for the regularization term
+     * {@link #setLambda0(double) &lambda;<sub>1</sub>} .
+     *
+     * @param d the data set to get the guess for
+     * @return the guess for the &lambda;<sub>1</sub> parameter
+     */
+    public static Distribution guessLambda1(DataSet d)
+    {
+        int N = d.getSampleSize();
+        return new LogUniform(1e-7/N, 1e-3/N);
     }
     
 }

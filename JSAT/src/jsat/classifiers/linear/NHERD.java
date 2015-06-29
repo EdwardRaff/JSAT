@@ -1,12 +1,15 @@
 package jsat.classifiers.linear;
 
 import java.util.List;
+import jsat.DataSet;
 import jsat.SingleWeightVectorModel;
 import jsat.classifiers.BaseUpdateableClassifier;
 import jsat.classifiers.CategoricalData;
 import jsat.classifiers.CategoricalResults;
 import jsat.classifiers.DataPoint;
 import jsat.classifiers.calibration.BinaryScoreClassifier;
+import jsat.distributions.Distribution;
+import jsat.distributions.LogUniform;
 import jsat.exceptions.FailedToFitException;
 import jsat.exceptions.UntrainedModelException;
 import jsat.linear.DenseVector;
@@ -37,8 +40,8 @@ import jsat.parameters.Parameterized;
 public class NHERD extends BaseUpdateableClassifier implements BinaryScoreClassifier, Parameterized, SingleWeightVectorModel
 {
 
-	private static final long serialVersionUID = -1186002893766449917L;
-	private Vec w;
+    private static final long serialVersionUID = -1186002893766449917L;
+    private Vec w;
     /**
      * Full covariance matrix
      */
@@ -338,7 +341,7 @@ public class NHERD extends BaseUpdateableClassifier implements BinaryScoreClassi
         return false;
     }
     
-@Override
+    @Override
     public List<Parameter> getParameters()
     {
         return Parameter.getParamsFromMethods(this);
@@ -348,5 +351,17 @@ public class NHERD extends BaseUpdateableClassifier implements BinaryScoreClassi
     public Parameter getParameter(String paramName)
     {
         return Parameter.toParameterMap(getParameters()).get(paramName);
+    }
+    
+    /**
+     * Guess the distribution to use for the regularization term
+     * {@link #setC(double) C} .
+     *
+     * @param d the data set to get the guess for
+     * @return the guess for the C parameter
+     */
+    public static Distribution guessC(DataSet d)
+    {
+        return new LogUniform(Math.pow(2, -4), Math.pow(2, 4));//from Exact Soft Confidence-Weighted Learning paper
     }
 }

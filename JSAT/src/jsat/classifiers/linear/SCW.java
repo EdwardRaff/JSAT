@@ -12,8 +12,12 @@ import jsat.linear.Matrix;
 import jsat.linear.Vec;
 import static java.lang.Math.*;
 import java.util.List;
+import jsat.DataSet;
 import jsat.SingleWeightVectorModel;
 import jsat.classifiers.calibration.BinaryScoreClassifier;
+import jsat.distributions.Distribution;
+import jsat.distributions.LogUniform;
+import jsat.distributions.Uniform;
 import jsat.exceptions.UntrainedModelException;
 import jsat.parameters.Parameter;
 import jsat.parameters.Parameterized;
@@ -51,8 +55,8 @@ import jsat.parameters.Parameterized;
 public class SCW extends BaseUpdateableClassifier implements BinaryScoreClassifier, Parameterized, SingleWeightVectorModel
 {
 
-	private static final long serialVersionUID = -6721377074407660742L;
-	private double C = 1;
+    private static final long serialVersionUID = -6721377074407660742L;
+    private double C = 1;
     private double eta;
     //all set when eta is set
     private double phi, phiSqrd, zeta, psi;
@@ -106,6 +110,14 @@ public class SCW extends BaseUpdateableClassifier implements BinaryScoreClassifi
          * SCW-II, which is strongly related to PA-II
          */
         SCWII
+    }
+
+    /**
+     * Creates a new SCW learner
+     */
+    public SCW()
+    {
+        this(0.5, Mode.SCWI, true);
     }
 
     /**
@@ -436,7 +448,7 @@ public class SCW extends BaseUpdateableClassifier implements BinaryScoreClassifi
         return false;
     }
     
-@Override
+    @Override
     public List<Parameter> getParameters()
     {
         return Parameter.getParamsFromMethods(this);
@@ -447,5 +459,28 @@ public class SCW extends BaseUpdateableClassifier implements BinaryScoreClassifi
     {
         return Parameter.toParameterMap(getParameters()).get(paramName);
     }
+
+    /**
+     * Guess the distribution to use for the regularization term
+     * {@link #setC(double) C} .
+     *
+     * @param d the data set to get the guess for
+     * @return the guess for the C parameter
+     */
+    public static Distribution guessC(DataSet d)
+    {
+        return new LogUniform(Math.pow(2, -4), Math.pow(2, 4));//from Exact Soft Confidence-Weighted Learning paper
+    }
     
+    /**
+     * Guess the distribution to use for the regularization term
+     * {@link #setEta(double) &eta; } .
+     *
+     * @param d the data set to get the guess for
+     * @return the guess for the C parameter
+     */
+    public static Distribution guessEta(DataSet d)
+    {
+        return new Uniform(0.5, 0.95);//from Exact Soft Confidence-Weighted Learning paper
+    }
 }

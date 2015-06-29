@@ -9,6 +9,8 @@ import java.util.logging.Logger;
 import jsat.DataSet;
 import jsat.SimpleWeightVectorModel;
 import jsat.classifiers.*;
+import jsat.distributions.Distribution;
+import jsat.distributions.LogUniform;
 import jsat.exceptions.FailedToFitException;
 import jsat.linear.ConcatenatedVec;
 import jsat.linear.DenseVector;
@@ -987,6 +989,18 @@ public class LinearBatch implements Classifier, Regressor, Parameterized, Simple
     public LinearBatch clone()
     {
         return new LinearBatch(this);
+    }
+    
+     /**
+     * Guess the distribution to use for the regularization term
+     * {@link #setLambda0(double) &lambda;<sub>0</sub>} .
+     *
+     * @param d the data set to get the guess for
+     * @return the guess for the &lambda;<sub>0</sub> parameter
+     */
+    public static Distribution guessLambda0(DataSet d)
+    {
+        return new LogUniform(1e-7, 1e-2);
     }
     
 }

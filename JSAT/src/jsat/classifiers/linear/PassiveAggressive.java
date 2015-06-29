@@ -2,9 +2,13 @@ package jsat.classifiers.linear;
 
 import java.util.List;
 import java.util.concurrent.ExecutorService;
+import jsat.DataSet;
 import jsat.SingleWeightVectorModel;
 import jsat.classifiers.*;
 import jsat.classifiers.calibration.BinaryScoreClassifier;
+import jsat.distributions.Distribution;
+import jsat.distributions.Exponential;
+import jsat.distributions.LogUniform;
 import jsat.exceptions.FailedToFitException;
 import jsat.linear.DenseVector;
 import jsat.linear.Vec;
@@ -30,8 +34,8 @@ import jsat.regression.UpdateableRegressor;
 public class PassiveAggressive implements UpdateableClassifier, BinaryScoreClassifier, UpdateableRegressor, Parameterized, SingleWeightVectorModel
 {
 
-	private static final long serialVersionUID = -7130964391528405832L;
-	private int epochs;
+    private static final long serialVersionUID = -7130964391528405832L;
+    private int epochs;
     private double C = 0.01;
     private double eps = 0.001;
     private Vec w;
@@ -329,7 +333,7 @@ public class PassiveAggressive implements UpdateableClassifier, BinaryScoreClass
         return clone;
     }
     
-@Override
+    @Override
     public List<Parameter> getParameters()
     {
         return Parameter.getParamsFromMethods(this);
@@ -339,5 +343,17 @@ public class PassiveAggressive implements UpdateableClassifier, BinaryScoreClass
     public Parameter getParameter(String paramName)
     {
         return Parameter.toParameterMap(getParameters()).get(paramName);
+    }
+    
+    /**
+     * Guess the distribution to use for the regularization term
+     * {@link #setC(double) C} in PassiveAggressive.
+     *
+     * @param d the data set to get the guess for
+     * @return the guess for the C parameter 
+     */
+    public static Distribution guessC(DataSet d)
+    {
+        return new LogUniform(0.001, 100);
     }
 }

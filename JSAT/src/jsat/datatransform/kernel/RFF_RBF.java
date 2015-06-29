@@ -6,6 +6,7 @@ import jsat.classifiers.DataPoint;
 import jsat.datatransform.DataTransform;
 import jsat.datatransform.DataTransformFactory;
 import jsat.datatransform.DataTransformFactoryParm;
+import jsat.distributions.Distribution;
 import jsat.distributions.kernels.RBFKernel;
 import jsat.linear.DenseVector;
 import jsat.linear.Matrix;
@@ -28,8 +29,8 @@ import jsat.linear.Vec;
 public class RFF_RBF implements DataTransform
 {
 
-	private static final long serialVersionUID = -3478916020648280477L;
-	private Matrix transform;
+    private static final long serialVersionUID = -3478916020648280477L;
+    private Matrix transform;
     private Vec offsets;
 
     /**
@@ -92,11 +93,9 @@ public class RFF_RBF implements DataTransform
     
     private static class RandomMatrixRFF_RBF extends RandomMatrix
     {
-        /**
-		 * 
-		 */
-		private static final long serialVersionUID = 4702514384718636893L;
-		private double coef;
+
+        private static final long serialVersionUID = 4702514384718636893L;
+        private double coef;
 
         public RandomMatrixRFF_RBF(double coef, int rows, int cols, long seedMult)
         {
@@ -221,6 +220,18 @@ public class RFF_RBF implements DataTransform
         public double getSigma()
         {
             return sigma;
+        }
+        
+        /**
+         * Guess the distribution to use for the kernel width term
+         * {@link #setSigma(double) &sigma;} in the RBF kernel being approximated.
+         *
+         * @param d the data set to get the guess for
+         * @return the guess for the &sigma; parameter in the RBF Kernel
+         */
+        public Distribution guessSigma(DataSet d)
+        {
+            return RBFKernel.guessSigma(d);
         }
     }
 }

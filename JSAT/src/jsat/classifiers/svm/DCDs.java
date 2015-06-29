@@ -20,6 +20,9 @@ import jsat.utils.IntList;
 import jsat.utils.ListUtils;
 import jsat.utils.random.XORWOW;
 import java.util.*;
+import jsat.DataSet;
+import jsat.distributions.Distribution;
+import jsat.distributions.Exponential;
 
 /**
  * Implements Dual Coordinate Descent with shrinking (DCDs) training algorithms
@@ -724,5 +727,17 @@ public class DCDs implements BinaryScoreClassifier, Regressor, Parameterized, Si
         }
         
         return vi;
+    }
+    
+    /**
+     * Guess the distribution to use for the regularization term
+     * {@link #setC(double) C} in a SVM.
+     *
+     * @param d the data set to get the guess for
+     * @return the guess for the C parameter in the SVM 
+     */
+    public static Distribution guessC(DataSet d)
+    {
+        return PlatSMO.guessC(d);
     }
 }

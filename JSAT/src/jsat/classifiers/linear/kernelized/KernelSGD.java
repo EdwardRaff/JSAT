@@ -2,6 +2,7 @@ package jsat.classifiers.linear.kernelized;
 
 import java.util.List;
 import java.util.concurrent.ExecutorService;
+import jsat.DataSet;
 import jsat.classifiers.BaseUpdateableClassifier;
 import jsat.classifiers.CategoricalData;
 import jsat.classifiers.CategoricalResults;
@@ -9,9 +10,12 @@ import jsat.classifiers.ClassificationDataSet;
 import jsat.classifiers.DataPoint;
 import jsat.classifiers.UpdateableClassifier;
 import jsat.classifiers.linear.LinearSGD;
+import jsat.distributions.Distribution;
+import jsat.distributions.LogUniform;
 import jsat.distributions.kernels.KernelPoint;
 import jsat.distributions.kernels.KernelPoints;
 import jsat.distributions.kernels.KernelTrick;
+import jsat.distributions.kernels.RBFKernel;
 import jsat.exceptions.FailedToFitException;
 import jsat.linear.DenseVector;
 import jsat.linear.Vec;
@@ -19,6 +23,7 @@ import jsat.lossfunctions.LossC;
 import jsat.lossfunctions.LossFunc;
 import jsat.lossfunctions.LossMC;
 import jsat.lossfunctions.LossR;
+import jsat.lossfunctions.SoftmaxLoss;
 import jsat.parameters.Parameter;
 import jsat.parameters.Parameter.ParameterHolder;
 import jsat.parameters.Parameterized;
@@ -46,8 +51,8 @@ import jsat.regression.UpdateableRegressor;
 public class KernelSGD implements UpdateableClassifier, UpdateableRegressor, Parameterized
 {
 
-	private static final long serialVersionUID = -4956596506787859023L;
-	private LossFunc loss;
+    private static final long serialVersionUID = -4956596506787859023L;
+    private LossFunc loss;
     @ParameterHolder
     private KernelTrick kernel;
     private double lambda;
@@ -59,6 +64,14 @@ public class KernelSGD implements UpdateableClassifier, UpdateableRegressor, Par
     private KernelPoint kpoint;
     private KernelPoints kpoints;
     private int epochs = 1;
+    
+    /**
+     * Creates a new Kernel SGD object for classification with the RBF kernel
+     */
+    public KernelSGD()
+    {
+        this(new SoftmaxLoss(), new RBFKernel(), 1e-4, KernelPoint.BudgetStrategy.MERGE_RBF, 300);
+    }
 
     /**
      * Creates a new Kernel SGD object
@@ -439,6 +452,18 @@ public class KernelSGD implements UpdateableClassifier, UpdateableRegressor, Par
     private double getNextEta()
     {
         return eta / (lambda * (++time + 2 / lambda));
+    }
+    
+    /**
+     * Guess the distribution to use for the regularization term
+     * {@link #setLambda(double) &lambda;} .
+     *
+     * @param d the data set to get the guess for
+     * @return the guess for the &lambda; parameter
+     */
+    public static Distribution guessLambda(DataSet d)
+    {
+        return new LogUniform(1e-7, 1e-2);
     }
 
 }

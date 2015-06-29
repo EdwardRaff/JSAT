@@ -9,8 +9,12 @@ import jsat.utils.IntList;
 import jsat.utils.ListUtils;
 import static java.lang.Math.*;
 import java.util.*;
+import jsat.DataSet;
 import jsat.SimpleWeightVectorModel;
 import jsat.SingleWeightVectorModel;
+import jsat.distributions.Distribution;
+import jsat.distributions.LogUniform;
+import jsat.distributions.Uniform;
 import jsat.exceptions.FailedToFitException;
 import jsat.linear.*;
 import jsat.lossfunctions.LogisticLoss;
@@ -943,5 +947,32 @@ public class NewGLMNET implements WarmClassifier, Parameterized, SingleWeightVec
     public boolean warmFromSameDataOnly()
     {
         return false;
+    }
+    
+    /**
+     * Guess the distribution to use for the trade off term term
+     * {@link #setAlpha(double) (double) &alpha;} in Elastic Net regularization.
+     *
+     * @param d the data set to get the guess for
+     * @return the guess for the &alpha; parameter 
+     */
+    public static Distribution guessAlpha(DataSet d)
+    {
+        //Would do [0, .75], but if you are doing to be so close to full L2 reg you should really be using a different solver
+        return new Uniform(0.25, 0.75);
+    }
+    
+    /**
+     * Guess the distribution to use for the regularization term
+     * {@link #setC(double) C} in Logistic Regression.
+     *
+     * @param d the data set to get the guess for
+     * @return the guess for the C parameter 
+     */
+    public static Distribution guessC(DataSet d)
+    {
+        double maxLambda = LinearTools.maxLambdaLogisticL1((ClassificationDataSet) d);
+        double minC = 1/(2*maxLambda*d.getSampleSize());
+        return new LogUniform(minC*10, minC*1000);
     }
 }

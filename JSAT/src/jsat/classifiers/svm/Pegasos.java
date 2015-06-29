@@ -2,9 +2,13 @@ package jsat.classifiers.svm;
 
 import java.util.*;
 import java.util.concurrent.ExecutorService;
+import jsat.DataSet;
 import jsat.SingleWeightVectorModel;
 import jsat.classifiers.*;
 import jsat.classifiers.calibration.BinaryScoreClassifier;
+import jsat.distributions.Distribution;
+import jsat.distributions.Gamma;
+import jsat.distributions.LogUniform;
 import jsat.exceptions.FailedToFitException;
 import jsat.linear.*;
 import jsat.parameters.Parameter;
@@ -325,5 +329,17 @@ public class Pegasos implements BinaryScoreClassifier, Parameterized, SingleWeig
     public Parameter getParameter(String paramName)
     {
         return Parameter.toParameterMap(getParameters()).get(paramName);
+    }
+    
+     /**
+     * Guess the distribution to use for the regularization term
+     * {@link #setRegularization(double) } in Pegasos.
+     *
+     * @param d the data set to get the guess for
+     * @return the guess for the &lambda; parameter
+     */
+    public static Distribution guessRegularization(DataSet d)
+    {
+        return new LogUniform(1e-7, 1e-2);
     }
 }

@@ -1,10 +1,14 @@
 package jsat.classifiers.svm.extended;
 
 import java.util.*;
+import jsat.DataSet;
 import jsat.classifiers.BaseUpdateableClassifier;
 import jsat.classifiers.CategoricalData;
 import jsat.classifiers.CategoricalResults;
 import jsat.classifiers.DataPoint;
+import jsat.distributions.Distribution;
+import jsat.distributions.Gamma;
+import jsat.distributions.LogUniform;
 import jsat.exceptions.FailedToFitException;
 import jsat.linear.DenseVector;
 import jsat.linear.ScaledVector;
@@ -462,4 +466,15 @@ public class OnlineAMM extends BaseUpdateableClassifier implements Parameterized
         return Parameter.toParameterMap(getParameters()).get(paramName);
     }
     
+    /**
+     * Guess the distribution to use for the regularization term
+     * {@link #setLambda(double) &lambda; } in AMM.
+     *
+     * @param d the data set to get the guess for
+     * @return the guess for the &lambda; parameter
+     */
+    public static Distribution guessLambda(DataSet d)
+    {
+        return new LogUniform(1e-7, 1e-2);
+    }
 }

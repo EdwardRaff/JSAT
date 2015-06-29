@@ -4,8 +4,11 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
+import jsat.DataSet;
 import jsat.SingleWeightVectorModel;
 import jsat.classifiers.*;
+import jsat.classifiers.svm.PlatSMO;
+import jsat.distributions.Distribution;
 import jsat.exceptions.FailedToFitException;
 import jsat.linear.DenseVector;
 import jsat.linear.Vec;
@@ -33,8 +36,8 @@ import jsat.utils.ListUtils;
 public class LogisticRegressionDCD implements Classifier, Parameterized, SingleWeightVectorModel
 {
 
-	private static final long serialVersionUID = -5813704270903243462L;
-	private static final double eps_1 = 1e-3;
+    private static final long serialVersionUID = -5813704270903243462L;
+    private static final double eps_1 = 1e-3;
     private static final double eps_2 = 1e-8;
     
     private Vec w;
@@ -339,7 +342,7 @@ public class LogisticRegressionDCD implements Classifier, Parameterized, SingleW
         return w;
     }
 
-@Override
+    @Override
     public List<Parameter> getParameters()
     {
         return Parameter.getParamsFromMethods(this);
@@ -351,4 +354,15 @@ public class LogisticRegressionDCD implements Classifier, Parameterized, SingleW
         return Parameter.toParameterMap(getParameters()).get(paramName);
     }
     
+    /**
+     * Guess the distribution to use for the regularization term
+     * {@link #setC(double) C} in Logistic Regression.
+     *
+     * @param d the data set to get the guess for
+     * @return the guess for the C parameter 
+     */
+    public static Distribution guessC(DataSet d)
+    {
+        return PlatSMO.guessC(d);
+    }
 }

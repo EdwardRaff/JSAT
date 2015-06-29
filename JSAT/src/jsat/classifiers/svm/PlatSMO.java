@@ -4,8 +4,12 @@ package jsat.classifiers.svm;
 import static java.lang.Math.*;
 import java.util.*;
 import java.util.concurrent.ExecutorService;
+import jsat.DataSet;
 import jsat.classifiers.*;
 import jsat.classifiers.calibration.BinaryScoreClassifier;
+import jsat.distributions.Distribution;
+import jsat.distributions.Exponential;
+import jsat.distributions.LogUniform;
 import jsat.distributions.kernels.KernelTrick;
 import jsat.distributions.kernels.LinearKernel;
 import jsat.distributions.kernels.RBFKernel;
@@ -1411,5 +1415,17 @@ public class PlatSMO extends SupportVectorLearner implements BinaryScoreClassifi
     public boolean warmFromSameDataOnly()
     {
         return false;
+    }
+    
+    /**
+     * Guess the distribution to use for the regularization term
+     * {@link #setC(double) C} in a SVM.
+     *
+     * @param d the data set to get the guess for
+     * @return the guess for the C parameter in the SVM 
+     */
+    public static Distribution guessC(DataSet d)
+    {
+        return new LogUniform(1e-1, 100);
     }
 }
