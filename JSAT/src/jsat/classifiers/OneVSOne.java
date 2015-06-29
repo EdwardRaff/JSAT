@@ -6,6 +6,9 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import jsat.parameters.Parameter;
+import jsat.parameters.Parameter.ParameterHolder;
+import jsat.parameters.Parameterized;
 
 import jsat.utils.FakeExecutor;
 
@@ -19,13 +22,14 @@ import jsat.utils.FakeExecutor;
  * 
  * @author Edward Raff
  */
-public class OneVSOne implements Classifier
+public class OneVSOne implements Classifier, Parameterized
 {
 
-	private static final long serialVersionUID = 733202830281869416L;
-	/**
-     * Main binary classifier 
+    private static final long serialVersionUID = 733202830281869416L;
+    /**
+     * Main binary classifier
      */
+    @ParameterHolder
     protected Classifier baseClassifier;
     /**
      * Uper-diagonal matrix of classifiers sans the first index since a 
@@ -200,5 +204,17 @@ public class OneVSOne implements Classifier
             clone.predicting = predicting.clone();
 
         return clone;
+    }
+
+    @Override
+    public List<Parameter> getParameters()
+    {
+        return Parameter.getParamsFromMethods(this);
+    }
+
+    @Override
+    public Parameter getParameter(String paramName)
+    {
+        return Parameter.toParameterMap(getParameters()).get(paramName);
     }
 }

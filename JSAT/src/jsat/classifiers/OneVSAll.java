@@ -29,8 +29,8 @@ import jsat.utils.FakeExecutor;
 public class OneVSAll implements Classifier, Parameterized
 {
 
-	private static final long serialVersionUID = -326668337438092217L;
-	private Classifier[] oneVsAlls;
+    private static final long serialVersionUID = -326668337438092217L;
+    private Classifier[] oneVsAlls;
     @ParameterHolder
     private Classifier baseClassifier;
     private CategoricalData predicting;
