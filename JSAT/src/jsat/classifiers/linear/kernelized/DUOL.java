@@ -4,12 +4,15 @@ import static java.lang.Math.*;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import jsat.DataSet;
 import jsat.classifiers.BaseUpdateableClassifier;
 import jsat.classifiers.CategoricalData;
 import jsat.classifiers.CategoricalResults;
 import jsat.classifiers.DataPoint;
 import jsat.classifiers.linear.PassiveAggressive;
 import jsat.classifiers.calibration.BinaryScoreClassifier;
+import jsat.distributions.Distribution;
+import jsat.distributions.LogUniform;
 import jsat.distributions.kernels.KernelTrick;
 import jsat.exceptions.FailedToFitException;
 import jsat.exceptions.UntrainedModelException;
@@ -355,6 +358,18 @@ public class DUOL extends BaseUpdateableClassifier implements BinaryScoreClassif
     public boolean supportsWeightedData()
     {
         return false;
+    }
+    
+    /**
+     * Guesses the distribution to use for the C parameter
+     *
+     * @param d the dataset to get the guess for
+     * @return the guess for the C parameter
+     * @see #setC(double)
+     */
+    public static Distribution guessC(DataSet d)
+    {
+        return new LogUniform(1e-4, 1e5);
     }
 
     @Override

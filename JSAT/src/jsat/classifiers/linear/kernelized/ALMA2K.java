@@ -1,9 +1,12 @@
 package jsat.classifiers.linear.kernelized;
 
 import java.util.*;
+import jsat.DataSet;
 import jsat.classifiers.*;
 import jsat.classifiers.linear.ALMA2;
 import jsat.classifiers.calibration.BinaryScoreClassifier;
+import jsat.distributions.Distribution;
+import jsat.distributions.Uniform;
 import jsat.distributions.kernels.KernelTrick;
 import jsat.exceptions.FailedToFitException;
 import jsat.linear.ScaledVector;
@@ -301,6 +304,18 @@ public class ALMA2K extends BaseUpdateableClassifier implements BinaryScoreClass
     public boolean supportsWeightedData()
     {
         return false;
+    }
+    
+    /**
+     * Guesses the distribution to use for the &alpha; parameter
+     *
+     * @param d the dataset to get the guess for
+     * @return the guess for the &alpha; parameter
+     * @see #setAlpha(double)
+     */
+    public static Distribution guessAlpha(DataSet d)
+    {
+        return new Uniform(1e-3, 1.0);
     }
 
     @Override

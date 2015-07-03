@@ -6,11 +6,14 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Random;
 import java.util.concurrent.ExecutorService;
+import jsat.DataSet;
 import jsat.classifiers.CategoricalResults;
 import jsat.classifiers.ClassificationDataSet;
 import jsat.classifiers.Classifier;
 import jsat.classifiers.DataPoint;
 import jsat.classifiers.svm.SupportVectorLearner;
+import jsat.distributions.Distribution;
+import jsat.distributions.LogUniform;
 import jsat.distributions.kernels.KernelTrick;
 import jsat.exceptions.FailedToFitException;
 import jsat.linear.Vec;
@@ -205,6 +208,18 @@ public class CSKLRBatch extends SupportVectorLearner implements Parameterized, C
     public double getGamma()
     {
         return gamma;
+    }
+    
+    /**
+     * Guesses the distribution to use for the R parameter
+     *
+     * @param d the dataset to get the guess for
+     * @return the guess for the R parameter
+     * @see #setR(double) 
+     */
+    public static Distribution guessR(DataSet d)
+    {
+        return new LogUniform(1, 1e5);
     }
 
     @Override

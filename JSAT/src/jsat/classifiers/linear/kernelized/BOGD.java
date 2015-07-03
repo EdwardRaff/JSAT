@@ -1,8 +1,11 @@
 package jsat.classifiers.linear.kernelized;
 
 import java.util.*;
+import jsat.DataSet;
 import jsat.classifiers.*;
 import jsat.classifiers.calibration.BinaryScoreClassifier;
+import jsat.distributions.Distribution;
+import jsat.distributions.LogUniform;
 import jsat.distributions.kernels.KernelTrick;
 import jsat.linear.Vec;
 import jsat.lossfunctions.HingeLoss;
@@ -30,8 +33,8 @@ import jsat.utils.random.XORWOW;
 public class BOGD extends BaseUpdateableClassifier implements BinaryScoreClassifier, Parameterized
 {
 
-	private static final long serialVersionUID = -3547832514098781996L;
-	@ParameterHolder
+    private static final long serialVersionUID = -3547832514098781996L;
+    @ParameterHolder
     private KernelTrick k;
     private int budget;
     private double eta;
@@ -372,6 +375,45 @@ public class BOGD extends BaseUpdateableClassifier implements BinaryScoreClassif
     public boolean supportsWeightedData()
     {
         return false;
+    }
+    
+    /**
+     * Guesses the distribution to use for the Regularization parameter
+     *
+     * @param d the dataset to get the guess for
+     * @return the guess for the Regularization parameter
+     * @see #setRegularization(double) 
+     */
+    public static Distribution guessRegularization(DataSet d)
+    {
+        double T2 = d.getSampleSize();
+        T2*=T2;
+        
+        return new LogUniform(Math.pow(2, -3)/T2, Math.pow(2, 3)/T2);
+    }
+    
+    /**
+     * Guesses the distribution to use for the &eta; parameter
+     *
+     * @param d the dataset to get the guess for
+     * @return the guess for the &eta; parameter
+     * @see #setEta(double) 
+     */
+    public static Distribution guessEta(DataSet d)
+    {
+        return new LogUniform(Math.pow(2, -3), Math.pow(2, 3));
+    }
+    
+    /**
+     * Guesses the distribution to use for the MaxCoeff parameter
+     *
+     * @param d the dataset to get the guess for
+     * @return the guess for the MaxCoeff parameter
+     * @see #setMaxCoeff(double) (double) 
+     */
+    public static Distribution guessMaxCoeff(DataSet d)
+    {
+        return new LogUniform(Math.pow(2, 0), Math.pow(2, 4));
     }
     
     @Override

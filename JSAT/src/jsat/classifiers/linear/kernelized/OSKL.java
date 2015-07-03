@@ -4,8 +4,11 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
+import jsat.DataSet;
 import jsat.classifiers.*;
 import jsat.classifiers.calibration.BinaryScoreClassifier;
+import jsat.distributions.Distribution;
+import jsat.distributions.LogUniform;
 import jsat.distributions.kernels.KernelTrick;
 import jsat.linear.Vec;
 import jsat.lossfunctions.HingeLoss;
@@ -40,8 +43,8 @@ import jsat.utils.random.XORWOW;
 public class OSKL extends BaseUpdateableClassifier implements BinaryScoreClassifier, Parameterized
 {
 
-	private static final long serialVersionUID = 4207594016856230134L;
-	@ParameterHolder
+    private static final long serialVersionUID = 4207594016856230134L;
+    @ParameterHolder
     private KernelTrick k;
     private double eta;
     private double R;
@@ -158,7 +161,7 @@ public class OSKL extends BaseUpdateableClassifier implements BinaryScoreClassif
     {
         return k;
     }
-
+    
     /**
      * Sets the learning rate to use for training. The original paper suggests 
      * setting &eta; = 0.9/{@link #setG(double) G}
@@ -179,7 +182,7 @@ public class OSKL extends BaseUpdateableClassifier implements BinaryScoreClassif
     {
         return eta;
     }
-
+    
     /**
      * Sets the sparsification parameter G. Increasing G reduces the number of 
      * updates to the model, which increases sparsity but may reduce accuracy. 
@@ -201,6 +204,18 @@ public class OSKL extends BaseUpdateableClassifier implements BinaryScoreClassif
     public double getG()
     {
         return G;
+    }
+    
+    /**
+     * Guesses the distribution to use for the R parameter
+     *
+     * @param d the dataset to get the guess for
+     * @return the guess for the R parameter
+     * @see #setR(double)
+     */
+    public static Distribution guessR(DataSet d)
+    {
+        return new LogUniform(1, 1e5);
     }
 
     /**

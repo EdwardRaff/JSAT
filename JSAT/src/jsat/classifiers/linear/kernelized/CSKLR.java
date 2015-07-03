@@ -14,6 +14,9 @@ import jsat.parameters.Parameterized;
 import jsat.utils.DoubleList;
 import jsat.utils.random.XORWOW;
 import static java.lang.Math.*;
+import jsat.DataSet;
+import jsat.distributions.Distribution;
+import jsat.distributions.LogUniform;
 import jsat.exceptions.FailedToFitException;
 
 /**
@@ -71,6 +74,18 @@ public class CSKLR extends BaseUpdateableClassifier implements Parameterized
         setKernel(k);
         setR(R);
         setMode(mode);
+    }
+   
+    /**
+     * Guesses the distribution to use for the R parameter
+     *
+     * @param d the dataset to get the guess for
+     * @return the guess for the R parameter
+     * @see #setR(double) 
+     */
+    public static Distribution guessR(DataSet d)
+    {
+        return new LogUniform(1, 1e5);
     }
 
     @Override
