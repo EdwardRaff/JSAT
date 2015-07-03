@@ -3,9 +3,14 @@ package jsat.classifiers.boosting;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
+import jsat.DataSet;
 import jsat.classifiers.*;
 import jsat.classifiers.calibration.BinaryScoreClassifier;
+import jsat.classifiers.trees.DecisionTree;
+import jsat.distributions.Distribution;
+import jsat.distributions.Uniform;
 import jsat.parameters.Parameter;
+import jsat.parameters.Parameter.ParameterHolder;
 import jsat.parameters.Parameterized;
 import jsat.utils.DoubleList;
 import jsat.utils.FakeExecutor;
@@ -33,8 +38,9 @@ import jsat.utils.FakeExecutor;
 public class EmphasisBoost implements Classifier, Parameterized, BinaryScoreClassifier
 {
 
-	private static final long serialVersionUID = -6372897830449685891L;
-	private Classifier weakLearner;
+    private static final long serialVersionUID = -6372897830449685891L;
+    @ParameterHolder
+    private Classifier weakLearner;
     private int maxIterations;
     /**
      * The list of weak hypothesis
@@ -47,6 +53,14 @@ public class EmphasisBoost implements Classifier, Parameterized, BinaryScoreClas
     protected CategoricalData predicting;
     private double lambda;
 
+    /**
+     * Creates a new EmphasisBooster with shallow decision trees and &lambda; = 0.35
+     */
+    public EmphasisBoost()
+    {
+        this(new DecisionTree(6), 200, 0.35);
+    }
+    
     /**
      * Creates a new EmphasisBoost learner
      * @param weakLearner the weak learner to use
@@ -115,6 +129,18 @@ public class EmphasisBoost implements Classifier, Parameterized, BinaryScoreClas
         if(!weakLearner.supportsWeightedData())
             throw new IllegalArgumentException("WeakLearner must support weighted data to be boosted");
         this.weakLearner = weakLearner;
+    }
+    
+    /**
+     * Guesses the distribution to use for the &lambda; parameter
+     *
+     * @param d the dataset to get the guess for
+     * @return the guess for the &lambda; parameter
+     * @see #setLambda(double) 
+     */
+    public static Distribution guessLambda(DataSet d)
+    {
+        return new Uniform(0.25, 0.45);
     }
 
     /**
