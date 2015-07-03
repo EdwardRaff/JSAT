@@ -33,8 +33,8 @@ import jsat.utils.ModifiableCountDownLatch;
 public class DecisionTree implements Classifier, Regressor, Parameterized, TreeLearner
 {
 
-	private static final long serialVersionUID = 9220980056440500214L;
-	private int maxDepth;
+    private static final long serialVersionUID = 9220980056440500214L;
+    private int maxDepth;
     private int minSamples;
     private Node root;
     private CategoricalData predicting;
@@ -89,13 +89,24 @@ public class DecisionTree implements Classifier, Regressor, Parameterized, TreeL
     {
         train(dataSet, new FakeExecutor());
     }
-    
+
+    /**
+     * Creates a Decision Tree that uses {@link PruningMethod#REDUCED_ERROR}
+     * pruning on a held out 10% of the data.
+     */
     public DecisionTree()
     {
-        maxDepth = Integer.MAX_VALUE;
-        minSamples = 10;
-        testProportion = 0.1;
-        pruningMethod = PruningMethod.REDUCED_ERROR;
+        this(Integer.MAX_VALUE, 10, PruningMethod.REDUCED_ERROR, 0.1);
+        baseStump.setNumericHandling(DecisionStump.NumericHandlingC.BINARY_BEST_GAIN);
+    }
+
+    /**
+     * Creates a Decision Tree that does not do any pruning, and is built out only to the specified depth
+     * @param maxDepth 
+     */
+    public DecisionTree(int maxDepth)
+    {
+        this(maxDepth, 10, PruningMethod.NONE, 0.00001);
         baseStump.setNumericHandling(DecisionStump.NumericHandlingC.BINARY_BEST_GAIN);
     }
 
