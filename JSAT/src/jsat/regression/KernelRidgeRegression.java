@@ -7,8 +7,12 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import jsat.DataSet;
 import jsat.classifiers.DataPoint;
+import jsat.distributions.Distribution;
+import jsat.distributions.LogUniform;
 import jsat.distributions.kernels.KernelTrick;
+import jsat.distributions.kernels.RBFKernel;
 import jsat.linear.CholeskyDecomposition;
 import jsat.linear.DenseMatrix;
 import jsat.linear.Matrix;
@@ -31,12 +35,20 @@ import jsat.utils.SystemInfo;
 public class KernelRidgeRegression implements Regressor, Parameterized
 {
 
-	private static final long serialVersionUID = 6275333785663250072L;
-	private double lambda;
+    private static final long serialVersionUID = 6275333785663250072L;
+    private double lambda;
     @ParameterHolder
     private KernelTrick k;
     private List<Vec> vecs;
     private double[] alphas;
+    
+    /**
+     * Creates a new Kernel Ridge Regression learner that uses an RBF kernel
+     */
+    public KernelRidgeRegression()
+    {
+        this(1e-6, new RBFKernel());
+    }
 
     /**
      * Creates a new Kernel Ridge Regression learner
@@ -61,6 +73,17 @@ public class KernelRidgeRegression implements Regressor, Parameterized
             this.alphas = Arrays.copyOf(toCopy.alphas, toCopy.alphas.length);
         if(toCopy.vecs != null)
             this.vecs = new ArrayList<Vec>(toCopy.vecs);
+    }
+    
+    /**
+     * Guesses the distribution to use for the &lambda; parameter
+     *
+     * @param d the dataset to get the guess for
+     * @return the guess for the &lambda; parameter
+     */
+    public static Distribution guessLambda(DataSet d)
+    {
+        return new LogUniform(1e-7, 1e-2);
     }
 
     /**
