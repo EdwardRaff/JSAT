@@ -2,8 +2,11 @@ package jsat.classifiers.knn;
 
 import java.util.*;
 import java.util.concurrent.ExecutorService;
+import jsat.DataSet;
 import jsat.classifiers.*;
 import jsat.classifiers.bayesian.NaiveBayesUpdateable;
+import jsat.distributions.Distribution;
+import jsat.distributions.discrete.UniformDiscrete;
 import jsat.distributions.empirical.kernelfunc.*;
 import jsat.exceptions.UntrainedModelException;
 import jsat.linear.Vec;
@@ -44,8 +47,8 @@ import jsat.regression.*;
 public class LWL implements Classifier, Regressor, Parameterized
 {
 
-	private static final long serialVersionUID = 6942465758987345997L;
-	private CategoricalData predicting;
+    private static final long serialVersionUID = 6942465758987345997L;
+    private CategoricalData predicting;
     private Classifier classifier;
     private Regressor regressor;
     private int k;
@@ -352,6 +355,17 @@ public class LWL implements Classifier, Regressor, Parameterized
     public KernelFunction getKernelFunction()
     {
         return kf;
+    }
+    
+    /**
+     * Guesses the distribution to use for the number of neighbors to consider
+     *
+     * @param d the dataset to get the guess for
+     * @return the guess for the Neighbors parameter
+     */
+    public static Distribution guessNeighbors(DataSet d)
+    {
+        return new UniformDiscrete(25, Math.min(200, d.getSampleSize()/5));
     }
 
     @Override

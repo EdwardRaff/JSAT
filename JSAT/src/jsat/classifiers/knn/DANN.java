@@ -6,7 +6,10 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
+import jsat.DataSet;
 import jsat.classifiers.*;
+import jsat.distributions.Distribution;
+import jsat.distributions.discrete.UniformDiscrete;
 import jsat.linear.*;
 import jsat.linear.distancemetrics.EuclideanDistance;
 import jsat.linear.distancemetrics.MahalanobisDistance;
@@ -39,8 +42,8 @@ import jsat.utils.FakeExecutor;
 public class DANN implements Classifier, Parameterized
 {
 
-	private static final long serialVersionUID = -272865942127664672L;
-	/**
+    private static final long serialVersionUID = -272865942127664672L;
+    /**
      * The default number of neighbors to use when building a metric is 
      * {@value #DEFAULT_KN}. 
      */
@@ -421,6 +424,28 @@ public class DANN implements Classifier, Parameterized
         }
         
         return (List<VecPaired<VecPaired<Vec, Integer>, Double>>) (Object) knn;
+    }
+   
+    /**
+     * Guesses the distribution to use for the number of neighbors to consider
+     *
+     * @param d the dataset to get the guess for
+     * @return the guess for the K parameter
+     */
+    public static Distribution guessK(DataSet d)
+    {
+        return new UniformDiscrete(1, 25);
+    }
+
+    /**
+     * Guesses the distribution to use for the number of neighbors to consider
+     *
+     * @param d the dataset to get the guess for
+     * @return the guess for the Kn parameter
+     */
+    public static Distribution guessKn(DataSet d)
+    {
+        return new UniformDiscrete(40, Math.max(d.getSampleSize()/5, 50));
     }
 
     @Override

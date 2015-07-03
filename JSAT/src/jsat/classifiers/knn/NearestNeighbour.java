@@ -3,7 +3,10 @@ package jsat.classifiers.knn;
 
 import java.util.*;
 import java.util.concurrent.ExecutorService;
+import jsat.DataSet;
 import jsat.classifiers.*;
+import jsat.distributions.Distribution;
+import jsat.distributions.discrete.UniformDiscrete;
 import jsat.exceptions.FailedToFitException;
 import jsat.exceptions.UntrainedModelException;
 import jsat.linear.Vec;
@@ -22,9 +25,9 @@ import jsat.regression.Regressor;
 public class NearestNeighbour implements  Classifier, Regressor, Parameterized
 {
 
-	private static final long serialVersionUID = 4239569189624285932L;
-	private int k;
-    private boolean weighted ;
+    private static final long serialVersionUID = 4239569189624285932L;
+    private int k;
+    private boolean weighted;
     private DistanceMetric distanceMetric;
     private CategoricalData predicting;
     
@@ -289,6 +292,16 @@ public class NearestNeighbour implements  Classifier, Regressor, Parameterized
             clone.vecCollection = this.vecCollection.clone();
         
         return clone;
+    }
+    
+    /**
+     * Guesses the distribution to use for the number of neighbors to consider
+     * @param d the dataset to get the guess for
+     * @return the guess for the Neighbors parameter
+     */
+    public static Distribution guessNeighbors(DataSet d)
+    {
+        return new UniformDiscrete(1, 25);
     }
     
     @Override
