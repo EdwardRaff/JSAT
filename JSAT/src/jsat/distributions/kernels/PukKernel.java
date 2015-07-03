@@ -1,7 +1,12 @@
 package jsat.distributions.kernels;
 
 import java.util.List;
+import jsat.DataSet;
+import jsat.distributions.Distribution;
+import jsat.distributions.LogUniform;
+import jsat.distributions.Uniform;
 import jsat.linear.Vec;
+import jsat.parameters.Parameterized;
 
 /**
  * The PUK kernel is an alternative to the RBF Kernel. By altering the 
@@ -16,11 +21,11 @@ import jsat.linear.Vec;
  * 
  * @author Edward Raff
  */
-public class PukKernel extends BaseL2Kernel
+public class PukKernel extends BaseL2Kernel implements Parameterized
 {
 
-	private static final long serialVersionUID = 8727097671803148320L;
-	private double sigma;
+    private static final long serialVersionUID = 8727097671803148320L;
+    private double sigma;
     private double omega;
     private double cnst;
 
@@ -96,6 +101,30 @@ public class PukKernel extends BaseL2Kernel
     {
         double tmp = 2*pNormDist*cnst/sigma;
         return 1/Math.pow(1+tmp*tmp, omega);
+    }
+    
+    /**
+     * Guesses the distribution to use for the &omega; parameter
+     *
+     * @param d the dataset to get the guess for
+     * @return the guess for the &omega; parameter
+     * @see #setOmega(double) 
+     */
+    public static Distribution guessOmega(DataSet d)
+    {
+        return new LogUniform(0.25, 50);
+    }
+    
+    /**
+     * Guesses the distribution to use for the &lambda; parameter
+     *
+     * @param d the dataset to get the guess for
+     * @return the guess for the &lambda; parameter
+     * @see #setSigma(double) 
+     */
+    public static Distribution guessSigma(DataSet d)
+    {
+        return RBFKernel.guessSigma(d);
     }
     
 }

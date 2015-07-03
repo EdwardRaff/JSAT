@@ -2,7 +2,10 @@
 package jsat.distributions.kernels;
 
 import java.util.List;
+import jsat.DataSet;
+import jsat.distributions.Distribution;
 import jsat.linear.Vec;
+import jsat.linear.distancemetrics.EuclideanDistance;
 
 /**
  * Provides an implementation of the Rational Quadratic Kernel, which is of the 
@@ -14,8 +17,8 @@ import jsat.linear.Vec;
 public class RationalQuadraticKernel extends BaseL2Kernel
 {
 
-	private static final long serialVersionUID = 6773399185851115840L;
-	private double c;
+    private static final long serialVersionUID = 6773399185851115840L;
+    private double c;
 
     /**
      * Creates a new RQ Kernel
@@ -71,5 +74,18 @@ public class RationalQuadraticKernel extends BaseL2Kernel
     public RationalQuadraticKernel clone()
     {
         return new RationalQuadraticKernel(c);
+    }
+    
+    /**
+     * Guess the distribution to use for the C parameter.
+     *
+     * @param d the data set to get the guess for
+     * @return the guess for the C parameter
+     * @see #setC(double) 
+     */
+    public static Distribution guessC(DataSet d)
+    {
+        //TODO come up with a better estiamte
+        return RBFKernel.guessSigma(d);//suprisingly this seens to work well 
     }
 }

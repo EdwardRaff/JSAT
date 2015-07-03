@@ -2,8 +2,11 @@
 package jsat.distributions.kernels;
 
 import java.util.*;
+import jsat.DataSet;
+import jsat.distributions.Distribution;
+import jsat.distributions.LogUniform;
+import jsat.distributions.Uniform;
 import jsat.linear.Vec;
-import jsat.parameters.DoubleParameter;
 import jsat.parameters.Parameter;
 
 /**
@@ -16,8 +19,8 @@ import jsat.parameters.Parameter;
 public class SigmoidKernel extends BaseKernelTrick
 {
 
-	private static final long serialVersionUID = 8066799016611439349L;
-	private double alpha;
+    private static final long serialVersionUID = 8066799016611439349L;
+    private double alpha;
     private double c;
 
     /**
@@ -89,93 +92,38 @@ public class SigmoidKernel extends BaseKernelTrick
         return Math.tanh(alpha*a.dot(b)+c);
     }
     
-    private List<Parameter> params = Collections.unmodifiableList(new ArrayList<Parameter>(2)
-    {/**
-		 * 
-		 */
-		private static final long serialVersionUID = -5176001164596592470L;
-
-	{
-        add(new DoubleParameter() {
-
-                /**
-			 * 
-			 */
-			private static final long serialVersionUID = 4759370980371849243L;
-
-				@Override
-                public double getValue()
-                {
-                    return getAlpha();
-                }
-
-                @Override
-                public boolean setValue(double val)
-                {
-                    try
-                    {
-                        setAlpha(val);
-                        return true;
-                    }
-                    catch (Exception ex)
-                    {
-                        return false;
-                    }
-                }
-
-                @Override
-                public String getASCIIName()
-                {
-                    return "SigmoidKernel_Alpha";
-                }
-            });
-        add(new DoubleParameter() {
-
-                /**
-			 * 
-			 */
-			private static final long serialVersionUID = -5163144606854730626L;
-
-				@Override
-                public double getValue()
-                {
-                    return getC();
-                }
-
-                @Override
-                public boolean setValue(double val)
-                {
-                    try
-                    {
-                        setC(val);
-                        return true;
-                    }
-                    catch (Exception ex)
-                    {
-                        return false;
-                    }
-                }
-
-                @Override
-                public String getASCIIName()
-                {
-                    return "SigmoidKernel_C";
-                }
-            });
-    }});
+    /**
+     * Guesses a distribution for the &alpha; parameter
+     *
+     * @param d the data to get the guess for
+     * @return a distribution for the &alpha; parameter
+     */
+    public static Distribution guessAlpha(DataSet d)
+    {
+        return new LogUniform(1e-12, 1e3);//from A Study on Sigmoid Kernels for SVM and the Training of non-PSD Kernels by SMO-type Methods
+    }
     
-    private Map<String, Parameter> paramMap = Parameter.toParameterMap(params);
-
+    /**
+     * Guesses a distribution for the &alpha; parameter
+     *
+     * @param d the data to get the guess for
+     * @return a distribution for the &alpha; parameter
+     */
+    public static Distribution guessC(DataSet d)
+    {
+        return new Uniform(-2.4, 2.4);//from A Study on Sigmoid Kernels for SVM and the Training of non-PSD Kernels by SMO-type Methods
+    }
+    
     @Override
     public List<Parameter> getParameters()
     {
-        return params;
+        return Parameter.getParamsFromMethods(this);
     }
 
     @Override
     public Parameter getParameter(String paramName)
     {
-        return paramMap.get(paramName);
+        return Parameter.toParameterMap(getParameters()).get(paramName);
     }
 
     @Override

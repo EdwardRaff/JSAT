@@ -2,6 +2,10 @@
 package jsat.distributions.kernels;
 
 import java.util.*;
+import jsat.DataSet;
+import jsat.distributions.Distribution;
+import jsat.distributions.LogUniform;
+import jsat.distributions.discrete.UniformDiscrete;
 import jsat.linear.Vec;
 import jsat.parameters.DoubleParameter;
 import jsat.parameters.Parameter;
@@ -14,8 +18,8 @@ import jsat.parameters.Parameter;
 public class PolynomialKernel extends BaseKernelTrick 
 {
 
-	private static final long serialVersionUID = 9123109691782934745L;
-	private double degree;
+    private static final long serialVersionUID = 9123109691782934745L;
+    private double degree;
     private double alpha;
     private double c;
 
@@ -113,106 +117,29 @@ public class PolynomialKernel extends BaseKernelTrick
     {
         return "Polynomial Kernel ( degree="+degree + ", c=" + c + ", alpha=" + alpha + ")";
     }
-
-    private List<Parameter> params = Collections.unmodifiableList(new ArrayList<Parameter>(3)
-    {/**
-		 * 
-		 */
-		private static final long serialVersionUID = -2547395023960794355L;
-
-	{
-        add(new DoubleParameter() {
-
-                /**
-			 * 
-			 */
-			private static final long serialVersionUID = 3713321849395825890L;
-
-				@Override
-                public double getValue()
-                {
-                    return getAlpha();
-                }
-
-                @Override
-                public boolean setValue(double val)
-                {
-                    setAlpha(val);
-                    return true;
-                }
-
-                @Override
-                public String getASCIIName()
-                {
-                    return "PolynomialKernel_Alpha";
-                }
-            });
-        add(new DoubleParameter() {
-
-                /**
-			 * 
-			 */
-			private static final long serialVersionUID = -6181322055654699414L;
-
-				@Override
-                public double getValue()
-                {
-                    return getC();
-                }
-
-                @Override
-                public boolean setValue(double val)
-                {
-                    setC(val);
-                    return true;
-                }
-
-                @Override
-                public String getASCIIName()
-                {
-                    return "PolynomialKernel_C";
-                }
-            });
-        add(new DoubleParameter() {
-
-                /**
-			 * 
-			 */
-			private static final long serialVersionUID = -2097977473290692778L;
-
-				@Override
-                public double getValue()
-                {
-                    return getDegree();
-                }
-
-                @Override
-                public boolean setValue(double val)
-                {
-                    setDegree(val);
-                    return true;
-                }
-
-                @Override
-                public String getASCIIName()
-                {
-                    return "PolynomialKernel_Degree";
-                }
-            });
-    }});
     
-    private Map<String, Parameter> paramMap = Parameter.toParameterMap(params);
+    /**
+     * Guesses the distribution to use for the degree parameter
+     *
+     * @param d the dataset to get the guess for
+     * @return the guess for the degree parameter
+     * @see #setDegree(double) 
+     */
+    public static Distribution guessDegree(DataSet d)
+    {
+        return new UniformDiscrete(2, 9);
+    }
     
     @Override
     public List<Parameter> getParameters()
     {
-        return params;
+        return Parameter.getParamsFromMethods(this);
     }
 
     @Override
     public Parameter getParameter(String paramName)
     {
-        return paramMap.get(paramName);
+        return Parameter.toParameterMap(getParameters()).get(paramName);
     }
 
     @Override

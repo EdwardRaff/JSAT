@@ -1,9 +1,18 @@
 package jsat.distributions.kernels;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import jsat.DataSet;
+import jsat.classifiers.ClassificationDataSet;
+import jsat.distributions.Distribution;
+import jsat.distributions.LogUniform;
 import jsat.linear.Vec;
 import jsat.linear.distancemetrics.DistanceMetric;
 import jsat.linear.distancemetrics.EuclideanDistance;
+import jsat.utils.DoubleList;
+import jsat.utils.IntList;
+import jsat.utils.ListUtils;
 
 /**
  * This class provides a generalization of the {@link RBFKernel} to arbitrary 
@@ -24,8 +33,8 @@ import jsat.linear.distancemetrics.EuclideanDistance;
 public class GeneralRBFKernel extends DistanceMetricBasedKernel
 {
 
-	private static final long serialVersionUID = 1368225926995372017L;
-	private double sigma;
+    private static final long serialVersionUID = 1368225926995372017L;
+    private double sigma;
     private double sigmaSqrd2Inv;
 
     /**
@@ -88,5 +97,80 @@ public class GeneralRBFKernel extends DistanceMetricBasedKernel
     {
         double dist = d.dist(a, b, vecs, cache);
         return Math.exp(-dist*dist * sigmaSqrd2Inv);
+    }
+    
+    /**
+     * Guess the distribution to use for the kernel width term
+     * {@link #setSigma(double) &sigma;} in the General RBF kernel.
+     *
+     * @param d the data set to get the guess for
+     * @return the guess for the &sigma; parameter in the General RBF Kernel 
+     */
+    public Distribution guessSigma(DataSet d)
+    {
+        return guessSigma(d, this.d);
+    }
+    
+    /**
+     * Guess the distribution to use for the kernel width term
+     * {@link #setSigma(double) &sigma;} in the General RBF kernel.
+     *
+     * @param d the data set to get the guess for
+     * @param dist the distance metric to assume is being used in the kernel
+     * @return the guess for the &sigma; parameter in the General RBF Kernel 
+     */
+    public static Distribution guessSigma(DataSet d, DistanceMetric dist)
+    {
+        //we will use a simple strategy of estimating the mean sigma to test based on the pair wise distances of random points
+
+        //to avoid n^2 work for this, we will use a sqrt(n) sized sample as n increases so that we only do O(n) work
+        List<Vec> allVecs = d.getDataVectors();
+
+        int toSample = d.getSampleSize();
+        if (toSample > 5000)
+            toSample = 5000 + (int) Math.floor(Math.sqrt(d.getSampleSize() - 5000));
+
+        DoubleList vals = new DoubleList(toSample*toSample);
+
+        if (d instanceof ClassificationDataSet && ((ClassificationDataSet) d).getPredicting().getNumOfCategories() == 2)
+        {
+            ClassificationDataSet cdata = (ClassificationDataSet) d;
+            List<Vec> class0 = new ArrayList<Vec>(toSample / 2);
+            List<Vec> class1 = new ArrayList<Vec>(toSample / 2);
+            IntList randOrder = new IntList(d.getSampleSize());
+            ListUtils.addRange(randOrder, 0, d.getSampleSize(), 1);
+            Collections.shuffle(randOrder);
+            //collet a random sample of data
+            for (int i = 0; i < randOrder.size(); i++)
+            {
+                int indx = randOrder.getI(i);
+                if (cdata.getDataPointCategory(indx) == 0 && class0.size() < toSample / 2)
+                    class0.add(cdata.getDataPoint(indx).getNumericalValues());
+                else if (cdata.getDataPointCategory(indx) == 1 && class0.size() < toSample / 2)
+                    class1.add(cdata.getDataPoint(indx).getNumericalValues());
+            }
+
+            int j_start = class0.size();
+            class0.addAll(class1);
+            List<Double> cache = dist.getAccelerationCache(class0);
+            for (int i = 0; i < j_start; i++)
+                for (int j = j_start; j < class0.size(); j++)
+                    vals.add(dist.dist(i, j, allVecs, cache));
+        }
+        else
+        {
+            Collections.shuffle(allVecs);
+            if (d.getSampleSize() > 5000)
+                allVecs = allVecs.subList(0, toSample);
+
+            List<Double> cache = dist.getAccelerationCache(allVecs);
+            for (int i = 0; i < allVecs.size(); i++)
+                for (int j = i + 1; j < allVecs.size(); j++)
+                    vals.add(dist.dist(i, j, allVecs, cache));
+        }
+        
+        Collections.sort(vals);
+        double median = vals.get(vals.size()/2);
+        return new LogUniform(Math.exp(Math.log(median)-4), Math.exp(Math.log(median)+4));
     }
 }
