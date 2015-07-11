@@ -3,6 +3,7 @@ package jsat.classifiers;
 
 import java.util.*;
 import jsat.DataSet;
+import jsat.SimpleDataSet;
 import jsat.linear.DenseVector;
 import jsat.linear.Vec;
 import jsat.utils.IntList;
@@ -16,7 +17,7 @@ import jsat.utils.ListUtils;
  * Additional functionality specific to classification problems is also available. 
  * @author Edward Raff
  */
-public class ClassificationDataSet extends DataSet
+public class ClassificationDataSet extends DataSet<ClassificationDataSet>
 {
     /**
      * The categories for the predicted value
@@ -226,27 +227,15 @@ public class ClassificationDataSet extends DataSet
     }
     
     @Override
-    public List<ClassificationDataSet> cvSet(int folds, Random rnd)
+    protected ClassificationDataSet getSubset(List<Integer> indicies)
     {
-        ArrayList<ClassificationDataSet> cvList = new ArrayList<ClassificationDataSet>();
-        for(int i = 0; i < folds; i++)
-            cvList.add(new ClassificationDataSet(numNumerVals, categories, predicting));
-
-        IntList rndOrder = new IntList(getSampleSize());
-        ListUtils.addRange(rndOrder, 0, getSampleSize(), 1);
-        Collections.shuffle(rndOrder, rnd);
-
-        int curFold = 0;
-        for(int i : rndOrder)
-        {
-            cvList.get(curFold).datapoints.add(this.datapoints.get(i));
-            cvList.get(curFold).category.add(this.category.get(i));
-            curFold = (curFold + 1) % folds;
-        }
-        
-        return cvList;
+        ClassificationDataSet newData = new ClassificationDataSet(numNumerVals, categories, predicting);
+        for (int i : indicies)
+            newData.addDataPoint(getDataPoint(i), getDataPointCategory(i));
+        return newData;
     }
-
+    
+ 
     public List<ClassificationDataSet> stratSet(int folds, Random rnd)
     {
         ArrayList<ClassificationDataSet> cvList = new ArrayList<ClassificationDataSet>();
@@ -271,13 +260,6 @@ public class ClassificationDataSet extends DataSet
         
         return cvList;
     }
-    
-    @Override
-    public List<ClassificationDataSet> cvSet(int folds)
-    {
-        return (List<ClassificationDataSet>) super.cvSet(folds);
-    }
-
     
     /**
      * Creates a new data point and adds it to this data set. 

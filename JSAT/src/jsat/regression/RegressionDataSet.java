@@ -6,6 +6,8 @@ import jsat.DataSet;
 import jsat.classifiers.*;
 import jsat.linear.DenseVector;
 import jsat.linear.Vec;
+import jsat.utils.IntList;
+import jsat.utils.ListUtils;
 
 /**
  * A RegressionDataSet is a data set specifically for the task of performing regression. 
@@ -15,7 +17,7 @@ import jsat.linear.Vec;
  * 
  * @author Edward Raff
  */
-public class RegressionDataSet extends DataSet
+public class RegressionDataSet extends DataSet<RegressionDataSet>
 {
 
     /**
@@ -257,27 +259,12 @@ public class RegressionDataSet extends DataSet
     }
 
     @Override
-    public List<RegressionDataSet> cvSet(int folds, Random rand)
+    protected RegressionDataSet getSubset(List<Integer> indicies)
     {
-        
-        List<DataPointPair<Double>> shuffleSet = new ArrayList<DataPointPair<Double>>(this.dataPoints);
-        
-        Collections.shuffle(shuffleSet, rand);
-        
-        List<RegressionDataSet> cvSet = new ArrayList<RegressionDataSet>(folds);
-        for(int i = 0; i < folds; i++)
-            cvSet.add(new RegressionDataSet(this.numNumerVals, CategoricalData.copyOf(this.categories)));
-        
-        for(int i = 0; i < dataPoints.size(); i++)
-            cvSet.get(i%folds).dataPoints.add(shuffleSet.get(i));
-        
-        return cvSet;
-    }
-
-    @Override
-    public List<RegressionDataSet> cvSet(int folds)
-    {
-        return (List<RegressionDataSet>) super.cvSet(folds);
+        RegressionDataSet newData = new RegressionDataSet(numNumerVals, categories);
+        for (int i : indicies)
+            newData.addDataPoint(getDataPoint(i), getTargetValue(i));
+        return newData;
     }
     
     @Override

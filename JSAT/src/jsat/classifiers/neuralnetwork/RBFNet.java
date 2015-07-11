@@ -73,8 +73,8 @@ import jsat.utils.random.XORWOW;
 public class RBFNet implements Classifier, Regressor, DataTransform, Parameterized
 {
 
-	private static final long serialVersionUID = 5418896646203518062L;
-	private int numCentroids;
+    private static final long serialVersionUID = 5418896646203518062L;
+    private int numCentroids;
     private Phase1Learner p1l;
     private Phase2Learner p2l;
     private double alpha;
@@ -336,7 +336,7 @@ public class RBFNet implements Classifier, Regressor, DataTransform, Parameteriz
                 /**
                  * Compute the stats for each subset and then merge them
                  */
-                for(final List<Vec> subList : ListUtils.splitList(data.getDataVectors(), SystemInfo.LogicalCores))
+                for (final List<Vec> subList : ListUtils.splitList((List< Vec>) data.getDataVectors(), SystemInfo.LogicalCores))
                 {
                     Future<OnLineStatistics[]> future = threadpool.submit(new Callable<OnLineStatistics[]>() 
                     {

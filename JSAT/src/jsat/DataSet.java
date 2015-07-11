@@ -14,7 +14,10 @@ import jsat.datatransform.InPlaceTransform;
 import jsat.linear.*;
 import jsat.math.OnLineStatistics;
 import jsat.utils.FakeExecutor;
+import jsat.utils.IntList;
+import jsat.utils.ListUtils;
 import jsat.utils.SystemInfo;
+import jsat.utils.random.XORWOW;
 
 /**
  * This is the base class for representing a data set. A data set contains multiple samples,
@@ -23,7 +26,7 @@ import jsat.utils.SystemInfo;
  * 
  * @author Edward Raff
  */
-public abstract class DataSet
+public abstract class DataSet<Type extends DataSet>
 {
     /**
      * The number of numerical values each data point must have
@@ -380,6 +383,54 @@ public abstract class DataSet
         return categories;
     }
     
+    abstract protected Type getSubset(List<Integer> indicies);
+    
+    /**
+     * Splits the dataset randomly into proportionally sized partitions. 
+     *
+     * @param rand the source of randomness for moving data around
+     * @param splits any array, where the length is the number of datasets to
+     * create and the value of in each index is the fraction of samples that
+     * should be placed into that dataset. The sum of values must be less than
+     * or equal to 1.0
+     * @return a list of new datasets
+     */
+    public List<Type> randomSplit(Random rand, double... splits)
+    {
+        if(splits.length < 1)
+            throw new IllegalArgumentException("Input array of split fractions must be non-empty");
+        IntList randOrder = new IntList(getSampleSize());
+        ListUtils.addRange(randOrder, 0, getSampleSize(), 1);
+        Collections.shuffle(randOrder, rand);
+        
+        
+        int[] stops = new int[splits.length];
+        double sum = 0;
+        for(int i = 0; i < splits.length; i++)
+        {
+            sum += splits[i];
+            if(sum >= 1.001/*some flex room for numeric issues*/)
+                throw new IllegalArgumentException("Input splits sum is greater than 1 by index " + i + " reaching a sum of " + sum);
+            stops[i] = (int) Math.round(sum*randOrder.size());
+        }
+        
+        List<Type> datasets = new ArrayList<Type>(splits.length);
+        
+        int prev = 0;
+        for(int i = 0; i < stops.length; i++)
+        {
+            datasets.add(getSubset(randOrder.subList(prev, stops[i])));
+            prev = stops[i];
+        }
+        
+        return datasets;
+    }
+    
+    public List<Type> randomSplit(double... splits)
+    {
+        return randomSplit(new XORWOW(), splits);
+    }
+    
     /**
      * Creates <tt>folds</tt> data sets that contain data from this data set. 
      * The data points in each set will be random. These are meant for cross 
@@ -389,7 +440,12 @@ public abstract class DataSet
      * @param rand the source of randomness 
      * @return the list of data sets. 
      */
-    abstract public List<? extends DataSet> cvSet(int folds, Random rand);
+    public List<Type> cvSet(int folds, Random rand)
+    {
+        double[] splits = new double[folds];
+        Arrays.fill(splits, 1.0/folds);
+        return randomSplit(rand, splits);
+    }
     
     /**
      * Creates <tt>folds</tt> data sets that contain data from this data set. 
@@ -399,9 +455,9 @@ public abstract class DataSet
      * @param folds the number of cross validation sets to create. Should be greater then 1
      * @return the list of data sets. 
      */
-    public List<? extends DataSet> cvSet(int folds)
+    public List<Type> cvSet(int folds)
     {
-        return cvSet(folds, new Random());
+        return cvSet(folds, new XORWOW());
     }
     
     /**

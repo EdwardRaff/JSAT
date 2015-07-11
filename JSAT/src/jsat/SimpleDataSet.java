@@ -7,13 +7,15 @@ import java.util.List;
 import java.util.Random;
 import jsat.classifiers.CategoricalData;
 import jsat.classifiers.DataPoint;
+import jsat.utils.IntList;
+import jsat.utils.ListUtils;
 
 /**
  * SimpleData Set is a basic implementation of a data set. Has no assumptions about the task that is going to be performed. 
  * 
  * @author Edward Raff
  */
-public class SimpleDataSet extends DataSet
+public class SimpleDataSet extends DataSet<SimpleDataSet>
 {
     protected List<DataPoint> dataPoints;
 
@@ -64,24 +66,16 @@ public class SimpleDataSet extends DataSet
     {
         return dataPoints.size();
     }
-
+    
     @Override
-    public List<SimpleDataSet> cvSet(int folds, Random rand)
+    protected SimpleDataSet getSubset(List<Integer> indicies)
     {
-        List<DataPoint> shuffleSet = new ArrayList<DataPoint>(this.dataPoints);
-        
-        Collections.shuffle(shuffleSet, rand);
-        
-        List<SimpleDataSet> cvSet = new ArrayList<SimpleDataSet>(folds);
-        for(int i = 0; i < folds; i++)
-            cvSet.add(new SimpleDataSet(this.categories, this.getNumNumericalVars()));
-        
-        for(int i = 0; i < dataPoints.size(); i++)
-            cvSet.get(i%folds).dataPoints.add(this.dataPoints.get(i));
-        
-        return cvSet;
+        SimpleDataSet newData = new SimpleDataSet(categories, numNumerVals);
+        for(int i : indicies)
+            newData.add(getDataPoint(i));
+        return newData;
     }
-
+    
     /**
      * 
      * @return direct access to the list that backs this data set. 
