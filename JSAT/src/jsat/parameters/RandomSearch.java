@@ -104,14 +104,16 @@ public class RandomSearch extends ModelSearch
      * to for parameter guessing.
      *
      * @param data the data set to get parameter estimates from
+     * @return the number of parameters added
      */
-    public void autoAddParameters(DataSet data)
+    public int autoAddParameters(DataSet data)
     {
         Parameterized obj;
         if (baseClassifier != null)
             obj = (Parameterized) baseClassifier;
         else
             obj = (Parameterized) baseRegressor;
+        int totalParms = 0;
         for (Parameter param : obj.getParameters())
         {
             Distribution dist;
@@ -119,15 +121,23 @@ public class RandomSearch extends ModelSearch
             {
                 dist = ((DoubleParameter) param).getGuess(data);
                 if (dist != null)
+                {
                     addParameter((DoubleParameter) param, dist);
+                    totalParms++;
+                }
             }
             else if (param instanceof IntParameter)
             {
                 dist = ((IntParameter) param).getGuess(data);
                 if (dist != null)
+                {
                     addParameter((IntParameter) param, dist);
+                    totalParms++;
+                }
             }
         }
+        
+        return totalParms;
     }
     
     /**

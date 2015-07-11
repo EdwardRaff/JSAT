@@ -19,19 +19,14 @@ package jsat.parameters;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import jsat.classifiers.CategoricalData;
-import jsat.classifiers.CategoricalResults;
 import jsat.classifiers.ClassificationDataSet;
 import jsat.classifiers.Classifier;
-import jsat.classifiers.DataPoint;
-import jsat.classifiers.evaluation.ClassificationScore;
-import jsat.distributions.Distribution;
 import jsat.distributions.Uniform;
 import jsat.distributions.discrete.UniformDiscrete;
 import jsat.linear.DenseVector;
 import jsat.parameters.GridSearchTest.DumbModel;
 import jsat.regression.RegressionDataSet;
 import jsat.regression.Regressor;
-import jsat.regression.evaluation.RegressionScore;
 import jsat.utils.SystemInfo;
 import org.junit.After;
 import org.junit.AfterClass;
@@ -98,6 +93,27 @@ public class RandomSearchTest
         instance.addParameter("Param1", new UniformDiscrete(0, 5));
         instance.addParameter("Param2", new Uniform(0.0, 5.0));
         instance.addParameter("Param3", new UniformDiscrete(0, 5));
+        
+        instance = instance.clone();
+        instance.trainC(classData);
+        instance = instance.clone();
+        
+        DumbModel model = (DumbModel) instance.getTrainedClassifier();
+        assertEquals(1, model.param1);
+        assertEquals(2, model.param2, 0.5);
+        assertEquals(3, model.param3);
+        assertFalse(model.wasWarmStarted);
+    }
+    
+    @Test
+    public void testClassificationAutoAdd()
+    {
+        System.out.println("testClassificationAutoAdd");
+        RandomSearch instance = new RandomSearch((Classifier)new DumbModel(), 5);
+        
+        instance.setTrials(5*5*5*5);
+        
+        instance.autoAddParameters(classData);
         
         instance = instance.clone();
         instance.trainC(classData);

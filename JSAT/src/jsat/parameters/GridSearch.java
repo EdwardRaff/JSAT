@@ -98,7 +98,24 @@ public class GridSearch extends ModelSearch
             }
         }
     }
-    
+
+    /**
+     * This method will automatically populate the search space with parameters
+     * based on which Parameter objects return non-null distributions. Each
+     * parameter will be tested with 10 different values<br>
+     * <br>
+     * Note, using this method with Cross Validation has the potential for
+     * over-estimating the accuracy of results if the data set is actually used
+     * to for parameter guessing.
+     *
+     * @param data the data set to get parameter estimates from
+     * @return the number of parameters added
+     */
+    public int autoAddParameters(DataSet data)
+    {
+        return autoAddParameters(data, 10);
+    }
+
     /**
      * This method will automatically populate the search space with parameters
      * based on which Parameter objects return non-null distributions.<br>
@@ -108,9 +125,10 @@ public class GridSearch extends ModelSearch
      * to for parameter guessing.
      *
      * @param data the data set to get parameter estimates from
-     * @param trials the minimum number of total parameter combinations to try. 
+     * @param paramsEach the number of parameters value to try for each parameter found
+     * @return the number of parameters added
      */
-    public void autoAddParameters(DataSet data, int trials)
+    public int autoAddParameters(DataSet data, int paramsEach)
     {
         Parameterized obj;
         if(baseClassifier != null)
@@ -135,8 +153,8 @@ public class GridSearch extends ModelSearch
             }
         }
         if(totalParms < 1)
-            return;
-        int paramsEach = (int) Math.max(3, Math.floor(Math.pow(trials, 1.0/totalParms)));
+            return 0;
+        
         double[] quantiles = new double[paramsEach];
         for(int i = 0; i < quantiles.length; i++)
             quantiles[i] = (i+1.0)/(paramsEach+1.0);
@@ -167,6 +185,8 @@ public class GridSearch extends ModelSearch
                 addParameter((IntParameter) param, vals);
             }
         }
+        
+        return totalParms;
     }
     
     /**

@@ -19,7 +19,11 @@ package jsat.parameters;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import jsat.DataSet;
 import jsat.classifiers.*;
+import jsat.distributions.Distribution;
+import jsat.distributions.Uniform;
+import jsat.distributions.discrete.UniformDiscrete;
 import jsat.linear.DenseVector;
 import jsat.parameters.Parameter.WarmParameter;
 import jsat.regression.RegressionDataSet;
@@ -144,6 +148,26 @@ public class GridSearchTest
         DumbModel model = (DumbModel) instance.getTrainedClassifier();
         assertEquals(1, model.param1);
         assertEquals(2, model.param2, 0.0);
+        assertEquals(3, model.param3);
+        assertFalse(model.wasWarmStarted);
+    }
+    
+    @Test
+    public void testClassificationAutoAdd()
+    {
+        System.out.println("classificationAutoAdd");
+        GridSearch instance = new GridSearch((Classifier)new DumbModel(), 5);
+        instance.setUseWarmStarts(false);
+        
+        instance.autoAddParameters(classData);
+        
+        instance = instance.clone();
+        instance.trainC(classData);
+        instance = instance.clone();
+        
+        DumbModel model = (DumbModel) instance.getTrainedClassifier();
+        assertEquals(1, model.param1);
+        assertEquals(2, model.param2, 0.5);
         assertEquals(3, model.param3);
         assertFalse(model.wasWarmStarted);
     }
@@ -277,6 +301,11 @@ public class GridSearchTest
         {
             return param1;
         }
+        
+        public Distribution guessParam1(DataSet d)
+        {
+            return new UniformDiscrete(0, 5);
+        }
 
         public void setParam2(double param2)
         {
@@ -286,6 +315,11 @@ public class GridSearchTest
         public double getParam2()
         {
             return param2;
+        }
+        
+        public Distribution guessParam2(DataSet d)
+        {
+            return new Uniform(0.0, 5.0);
         }
 
         @WarmParameter(prefLowToHigh = false)
@@ -299,7 +333,10 @@ public class GridSearchTest
             return param3;
         }
         
-        
+        public Distribution guessParam3(DataSet d)
+        {
+            return new UniformDiscrete(0, 5);
+        }
 
         @Override
         public boolean warmFromSameDataOnly()
