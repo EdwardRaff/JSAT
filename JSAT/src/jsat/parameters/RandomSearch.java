@@ -36,7 +36,19 @@ import jsat.utils.FakeExecutor;
 import jsat.utils.random.XORWOW;
 
 /**
- *
+ * Random Search is a simple method for tuning the parameters of a
+ * classification or regression algorithm. Each parameter is given a
+ * distribution that represents the values of interest, and trials are done by
+ * randomly sampling each parameter from their respective distributions.
+ * Compared to {@link GridSearch} this method does better when lots of values
+ * are to be tested or when 2 or more parameters are to be evaluated. <br>
+ * The model it takes must implement the {@link Parameterized} interface. By
+ * default, no parameters are selected for optimizations. This is because
+ * parameters value ranges are often algorithm specific. As such, the user must 
+ * specify the parameters and the values to test using the <tt>addParameter</tt>
+ * methods. 
+ * 
+ * See : Bergstra, J., & Bengio, Y. (2012). <i>Random Search for Hyper-Parameter Optimization</i>. Journal ofMachine Learning Research, 13, 281–305.
  * @author Edward Raff
  */
 public class RandomSearch extends ModelSearch
