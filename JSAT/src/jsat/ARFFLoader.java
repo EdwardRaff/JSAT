@@ -223,7 +223,7 @@ public class ARFFLoader
         if(data instanceof ClassificationDataSet)//also write out class variable
             writeCatVar(writer, ((ClassificationDataSet)data).getPredicting());
         if(data instanceof RegressionDataSet)
-            writer.write("@ATRIBUTE target NUMERIC\n");
+            writer.write("@ATTRIBUTE target NUMERIC\n");
         writer.write("@DATA\n");
         for(int row = 0; row < data.getSampleSize(); row++)
         {
