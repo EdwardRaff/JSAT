@@ -196,6 +196,10 @@ public class ARFFLoader
         return dataSet;
     }
     
+    public static void writeArffFile(DataSet data, OutputStream os) {
+    	writeArffFile(data, os, "Default_Relation");
+    }
+    
     /**
      * Writes out the dataset as an ARFF file to the given stream. This method 
      * will automatically handle the target variable of 
@@ -203,10 +207,14 @@ public class ARFFLoader
      * 
      * @param data the dataset to write out
      * @param os the output stream to write too
+     * @param relation the relation label to write out
      */
-    public static void writeArffFile(DataSet data, OutputStream os)
+    public static void writeArffFile(DataSet data, OutputStream os, String relation)
     {
         PrintWriter writer = new PrintWriter(os);
+        //write out the relation tag
+        writer.write(String.format("@relation %s\n", addQuotes(relation)));
+
         //write out attributes
         //first all categorical features
         CategoricalData[] catInfo = data.getCategories();
