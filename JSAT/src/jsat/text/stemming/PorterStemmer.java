@@ -1,6 +1,9 @@
 
 package jsat.text.stemming;
 
+import java.util.LinkedHashMap;
+import java.util.Map;
+
 /**
  * Implements Porter's stemming algorithm http://tartarus.org/~martin/PorterStemmer/def.txt . <br>
  * Implemented for ease of understanding and legibility rather than performance.
@@ -8,17 +11,79 @@ package jsat.text.stemming;
  */
 public class PorterStemmer extends Stemmer
 {
+    private static final long serialVersionUID = -3809291457988435043L;
 
-
-	private static final long serialVersionUID = -3809291457988435043L;
-
-	public String stem(String s)
+    static final Map<String, String> step2_endings = new LinkedHashMap<String, String>();
+    static
     {
+        step2_endings.put("ational", "ate");
+        step2_endings.put("tional", "tion");
+        step2_endings.put("enci", "ence");
+        step2_endings.put("anci", "ance");
+        step2_endings.put("izer", "ize");
+        step2_endings.put("abli", "able");
+        step2_endings.put("alli", "al");
+        step2_endings.put("entli", "ent");
+        step2_endings.put("eli", "e");
+        step2_endings.put("ousli", "ous");
+        step2_endings.put("ization", "ize");
+        step2_endings.put("ation", "ate");
+        step2_endings.put("ator", "ate");
+        step2_endings.put("alsim", "al");
+        step2_endings.put("iveness", "ive");
+        step2_endings.put("fulness", "ful");
+        step2_endings.put("ousness", "ous");
+        step2_endings.put("aliti", "al");
+        step2_endings.put("iviti", "ive");
+        step2_endings.put("biliti", "ble");
+    }
+    
+    static final Map<String, String> step3_endings = new LinkedHashMap<String, String>();
+    static
+    {
+        step3_endings.put("icate", "ic");
+        step3_endings.put("ative", "");
+        step3_endings.put("alize", "al");
+        step3_endings.put("iciti", "ic");
+        step3_endings.put("ical", "ic");
+        step3_endings.put("ful", "");
+        step3_endings.put("ness", "");
+    }
+    
+    static final Map<String, String> step4_endings = new LinkedHashMap<String, String>();
+    static
+    {
+        step4_endings.put("al", "");
+        step4_endings.put("ance", "");
+        step4_endings.put("ence", "");
+        step4_endings.put("er", "");
+        step4_endings.put("ic", "");
+        step4_endings.put("able", "");
+        step4_endings.put("ible", "");
+        step4_endings.put("ant", "");
+        step4_endings.put("ement", "");
+        step4_endings.put("ment", "");
+        step4_endings.put("ent", "");
+        step4_endings.put("ion", "");
+        step4_endings.put("ou", "");
+        step4_endings.put("ism", "");
+        step4_endings.put("ate", "");
+        step4_endings.put("iti", "");
+        step4_endings.put("ous", "");
+        step4_endings.put("ive", "");
+        step4_endings.put("ize", "");
+    }
+    
+    
+    @Override
+    public String stem(String s)
+    {
+        String tmp;
         //Step 1a
-        if(s.endsWith("sses"))
+        if (s.endsWith("sses"))
             s = s.replaceAll("sses$", "ss");
-        else if(s.endsWith("ies"))
-            s = s.replaceAll("ies$", "s");
+        else if (s.endsWith("ies"))
+            s = s.replaceAll("ies$", "i");
         else if(s.endsWith("ss"))
         {
             //Do nothing
@@ -29,17 +94,29 @@ public class PorterStemmer extends Stemmer
 
         //Step 1b
         boolean step1b_specialCase = false;//If the second or third of the rules in Step 1b is successful
-        if (s.endsWith("eed") && measure(s) > 0)
-            s = s.replaceAll("eed$", "ee");
-        else if (s.endsWith("ed") && measure(s) > 1)//(*v*) ED  ->   null, its eqivalent to (m>1) ED ->
+        if (s.endsWith("eed"))
         {
-            s = s.replaceAll("ed$", "");
-            step1b_specialCase = true;
+            tmp = s.replaceAll("eed$", "ee");
+            if(measure(tmp) > 0)
+                s = tmp;
         }
-        else if (s.endsWith("ing") && measure(s) > 1)//(*v*) ING  ->   null, its eqivalent to (m>1) ING ->
+        else if (s.endsWith("ed"))
         {
-            s = s.replaceAll("ing$", "");
-            step1b_specialCase = true;
+            tmp = s.replaceAll("ed$", "");
+            if(containsVowel(tmp))
+            {
+                s = tmp;
+                step1b_specialCase = true;
+            }
+        }
+        else if (s.endsWith("ing"))
+        {
+            tmp = s.replaceAll("ing$", "");
+            if(containsVowel(tmp))
+            {
+                s = tmp;
+                step1b_specialCase = true;
+            }
         }
 
         if (step1b_specialCase)
@@ -61,123 +138,61 @@ public class PorterStemmer extends Stemmer
             s = s.substring(0, s.length()-1).concat("i");
 
         //Step 2
-        if(measure(s) > 0)
-        {
-            if (s.endsWith("ational"))
-                s = s.replaceAll("ational$", "ate");
-            else if(s.endsWith("tional"))
-                s = s.replaceAll("tional$", "tion");
-            else if(s.endsWith("enci"))
-                s = s.replaceAll("enci$", "ence");
-            else if(s.endsWith("anci"))
-                s = s.replaceAll("anci$", "ance");
-            else if(s.endsWith("izer"))
-                s = s.replaceAll("izer$", "ize");
-            else if(s.endsWith("abli"))
-                s = s.replaceAll("abli$", "able");
-            else if(s.endsWith("alli"))
-                s = s.replaceAll("alli$", "al");
-            else if(s.endsWith("entli"))
-                s = s.replaceAll("entli$", "ent");
-            else if(s.endsWith("eli"))
-                s = s.replaceAll("eli$", "e");
-            else if(s.endsWith("ousli"))
-                s = s.replaceAll("ousli$", "ous");
-            else if(s.endsWith("ization"))
-                s = s.replaceAll("ization$", "ize");
-            else if(s.endsWith("ation"))
-                s = s.replaceAll("ation$", "ate");
-            else if(s.endsWith("ator"))
-                s = s.replaceAll("ator$", "ate");
-            else if(s.endsWith("alsim"))
-                s = s.replaceAll("alsim$", "al");
-            else if(s.endsWith("iveness"))
-                s = s.replaceAll("iveness$", "ive");
-            else if(s.endsWith("fulness"))
-                s = s.replaceAll("fulness$", "ful");
-            else if(s.endsWith("ousness"))
-                s = s.replaceAll("ousness$", "ous");
-            else if(s.endsWith("aliti"))
-                s = s.replaceAll("aliti$", "al");
-            else if(s.endsWith("iviti"))
-                s = s.replaceAll("iviti$", "ive");
-            else if(s.endsWith("biliti"))
-                s = s.replaceAll("biliti$", "ble");
-        }
+        for (Map.Entry<String, String> entry : step2_endings.entrySet())
+            if (s.endsWith(entry.getKey()))
+            {
+                tmp = s.replaceAll(entry.getKey() + "$", entry.getValue());
+                if (measure(tmp) > 0)
+                {
+                    s = tmp;
+                    break;
+                }
+            }
 
         //Step 3
-        if(measure(s) > 0)
-        {
-            if(s.endsWith("icate"))
-                s = s.replaceAll("icate$", "oc");
-            else if(s.endsWith("ative"))
-                s = s.replaceAll("ative$", "");
-            else if(s.endsWith("alize"))
-                s = s.replaceAll("alize$", "al");
-            else if(s.endsWith("iciti"))
-                s = s.replaceAll("iciti$", "ic");
-            else if(s.endsWith("ical"))
-                s = s.replaceAll("ical$", "ic");
-            else if(s.endsWith("ful"))
-                s = s.replaceAll("$", "");
-            else if(s.endsWith("ness"))
-                s = s.replaceAll("$", "");
-        }
+        for (Map.Entry<String, String> entry : step3_endings.entrySet())
+            if (s.endsWith(entry.getKey()))
+            {
+                tmp = s.replaceAll(entry.getKey() + "$", entry.getValue());
+                if (measure(tmp) > 0)
+                {
+                    s = tmp;
+                    break;
+                }
+            }
 
         //Step 4
-        if(measure(s) > 1)
-        {
-            if(s.endsWith("al"))
-                s = s.replaceAll("al$", "");
-            else if(s.endsWith("ance"))
-                s = s.replaceAll("ance$", "");
-            else if(s.endsWith("ence"))
-                s = s.replaceAll("ence$", "");
-            else if(s.endsWith("er"))
-                s = s.replaceAll("er$", "");
-            else if(s.endsWith("ic"))
-                s = s.replaceAll("ic$", "");
-            else if(s.endsWith("able"))
-                s = s.replaceAll("able$", "");
-            else if(s.endsWith("ible"))
-                s = s.replaceAll("ible$", "");
-            else if(s.endsWith("ant"))
-                s = s.replaceAll("ant$", "");
-            else if(s.endsWith("ement"))
-                s = s.replaceAll("ement$", "");
-            else if(s.endsWith("ment"))
-                s = s.replaceAll("ment$", "");
-            else if(s.endsWith("ent"))
-                s = s.replaceAll("ent$", "");
-            else if(s.endsWith("ion") &&
-                    (s.charAt(s.length()-4) == 's' || s.charAt(s.length()-4) == 's'))
-                s = s.replaceAll("ion$", "");
-            else if(s.endsWith("ou"))
-                s = s.replaceAll("ou$", "");
-            else if(s.endsWith("ism"))
-                s = s.replaceAll("ism$", "");
-            else if(s.endsWith("ate"))
-                s = s.replaceAll("ate$", "");
-            else if(s.endsWith("iti"))
-                s = s.replaceAll("iti$", "");
-            else if(s.endsWith("ous"))
-                s = s.replaceAll("ous$", "");
-            else if(s.endsWith("ive"))
-                s = s.replaceAll("ive$", "");
-            else if(s.endsWith("ize"))
-                s = s.replaceAll("ize$", "");
-        }
+        for (Map.Entry<String, String> entry : step4_endings.entrySet())
+            if (s.endsWith(entry.getKey()))
+            {
+                if(s.endsWith("ion") && !(s.charAt(s.length()-4) == 's' || s.charAt(s.length()-4) == 't'))
+                    continue;//special case on ion, and they didn't match
+                tmp = s.replaceAll(entry.getKey() + "$", entry.getValue());
+                if (measure(tmp) > 1)
+                {
+                    s = tmp;
+                    break;
+                }
+            }
+        
         //Step 5a
-
-        if (s.endsWith("e") && measure(s) > 1)
-            s = s.substring(0, s.length() - 1);
-        else if(measure(s) == 1 && !oRule(s))
-            s = s.substring(0, s.length() - 1);
+        if (s.endsWith("e"))
+        {
+            tmp = s.substring(0, s.length() - 1);
+            if(measure(tmp) > 1)
+                s = tmp;
+            else if(measure(tmp) == 1 && !oRule(tmp))
+                s = tmp;       
+        }
 
         //Step 5b
         int lp = s.length()-1;
-        if(measure(s) > 1 && s.charAt(lp) == s.charAt(lp-1) && s.charAt(lp) == 'l')
-            s = s.substring(0, s.length() - 1);
+        if(s.charAt(lp) == s.charAt(lp-1) && s.charAt(lp) == 'l')
+        {
+            tmp = s.substring(0, s.length() - 1);
+            if(measure(tmp) > 1)
+                s = tmp;
+        }
         
         return s;
     }
@@ -185,10 +200,10 @@ public class PorterStemmer extends Stemmer
     
     private static int measure(String s)
     {
-        return measure(s.toCharArray(), 0, s.length());
+        return measure(s, 0, s.length());
     }
     
-    private static int measure(char[] c, int start, int length)
+    private static int measure(String c, int start, int length)
     {
         //[C](VC){m}[V]  
         //Measure == the value of m in the above exprsion
@@ -219,32 +234,6 @@ public class PorterStemmer extends Stemmer
             return m;
         else//V <- ended in V, dosnt count
             return m-1;
-    }
-    
-    private static boolean isVowel(char[] c, int pos)
-    {
-        /*
-         * A \consonant\ in a word is a letter other than A, E, I, O or U, and other
-         * than Y preceded by a consonant.
-         */
-        if(pos >= c.length)
-            return false;
-
-        switch (c[pos])
-        {
-            case 'a':
-            case 'e':
-            case 'i':
-            case 'o':
-            case 'u':
-                return true;
-            case 'y':
-                if(pos == c.length-1)//end of the array
-                    return true;
-                return isVowel(c, pos+1);//Y preceded by a constant is a Vowel
-            default:
-                return false;
-        }
     }
 
     private static boolean isVowel(String s, int pos)
