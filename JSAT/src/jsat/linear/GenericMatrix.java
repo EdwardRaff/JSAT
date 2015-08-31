@@ -268,7 +268,7 @@ public abstract class GenericMatrix extends Matrix
         {
             final int kLimit = A.cols();
             final int jLimit = C.cols();
-            final int iLimit = C.cols();
+            final int iLimit = C.rows();
             for (int threadID = 0; threadID < LogicalCores; threadID++)
             {
                 final int ID = threadID;

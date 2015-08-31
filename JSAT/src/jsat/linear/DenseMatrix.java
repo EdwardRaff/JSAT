@@ -14,6 +14,7 @@ import java.util.logging.Logger;
 
 import jsat.utils.FakeExecutor;
 import static java.lang.Math.*;
+import static jsat.linear.GenericMatrix.NB2;
 import static jsat.utils.SystemInfo.*;
 
 /**
@@ -275,10 +276,11 @@ public class DenseMatrix extends GenericMatrix
             this.b = b;
             this.kLimit = cols();
             this.jLimit = result.cols();
-            this.iLimit = result.cols();
+            this.iLimit = result.rows();
             this.threadID = threadID;
         }
         
+        @Override
         public void run()
         {
             for (int i0 = NB2 * threadID; i0 < iLimit; i0 += NB2 * LogicalCores)
@@ -286,7 +288,7 @@ public class DenseMatrix extends GenericMatrix
                     for (int j0 = 0; j0 < jLimit; j0 += NB2)
                         for (int i = i0; i < min(i0 + NB2, iLimit); i++)
                         {
-                            double[] Ci = result.matrix[i];
+                            final double[] Ci = result.matrix[i];
 
                             for (int k = k0; k < min(k0 + NB2, kLimit); k++)
                             {
