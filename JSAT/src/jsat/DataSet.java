@@ -216,6 +216,33 @@ public abstract class DataSet<Type extends DataSet>
     }
     
     /**
+     * This method will replace every numeric feature in this dataset with a Vec
+     * object from the given list. All vecs in the given list must be of the
+     * same size.
+     *
+     * @param newNumericFeatures the list of new numeric features to use
+     */
+    public void replaceNumericFeatures(List<Vec> newNumericFeatures)
+    {
+        if(this.getSampleSize() != newNumericFeatures.size())
+            throw new RuntimeException("Input list does not have the same not of dataums as the dataset");
+        
+        for(int i = 0; i < newNumericFeatures.size(); i++)
+        {
+            DataPoint dp_i = getDataPoint(i);
+            setDataPoint(i, new DataPoint(newNumericFeatures.get(i), dp_i.getCategoricalValues(), dp_i.getCategoricalData(), dp_i.getWeight()));
+        }
+        
+        this.numNumerVals = getDataPoint(0).numNumericalValues();
+        if (this.numericalVariableNames != null)
+            {
+                this.numericalVariableNames.clear();
+                for (int i = 0; i < getNumNumericalVars(); i++)
+                    numericalVariableNames.add("TN" + (i + 1));
+            }
+    }
+    
+    /**
      * Returns the <tt>i</tt>'th data point in this set. The order will never 
      * chance so long as no data points are added or removed from the set. 
      * 
