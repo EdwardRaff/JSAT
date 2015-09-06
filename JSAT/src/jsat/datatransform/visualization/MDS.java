@@ -22,6 +22,8 @@ import java.util.List;
 import java.util.Random;
 import java.util.concurrent.ExecutorService;
 import jsat.DataSet;
+import jsat.SimpleDataSet;
+import jsat.classifiers.CategoricalData;
 import jsat.classifiers.DataPoint;
 import jsat.datatransform.DataTransform;
 import jsat.linear.DenseMatrix;
@@ -83,6 +85,22 @@ public class MDS
         }
         
         
+        SimpleDataSet embeded = transform(delta, ex);
+
+        //place the solution in a dataset of the correct type
+        DataSet<Type> transformed = d.shallowClone();
+        transformed.replaceNumericFeatures(embeded.getDataVectors());
+        return (Type) transformed;
+    }
+
+    public SimpleDataSet transform(Matrix delta)
+    {
+        return transform(delta, new FakeExecutor());
+    }
+    
+    public SimpleDataSet transform(Matrix delta, ExecutorService ex)
+    {
+        final int N = delta.rows();
         Random rand = new XORWOW();
         
         final Matrix X = new DenseMatrix(N, targetSize);
@@ -154,31 +172,10 @@ public class MDS
             oldStress = newStress;
         }
         
-        DataSet<Type> transformed = d.shallowClone();
-        
-        final IdentityHashMap<DataPoint, Integer> indexMap = new IdentityHashMap<DataPoint, Integer>(N);
-        for(int i = 0; i < N; i++)
-            indexMap.put(d.getDataPoint(i), i);
-        
-        transformed.applyTransform(new DataTransform()
-        {
-
-            @Override
-            public DataPoint transform(DataPoint dp)
-            {
-                int i = indexMap.get(dp);
-                
-                return new DataPoint(X.getRow(i), dp.getCategoricalValues(), dp.getCategoricalData(), dp.getWeight());
-            }
-
-            @Override
-            public DataTransform clone()
-            {
-                return this;
-            }
-        });
-        
-        return (Type) transformed;
+        SimpleDataSet sds = new SimpleDataSet(new CategoricalData[0], targetSize);
+        for(Vec v : X_views)
+            sds.add(new DataPoint(v));
+        return sds;
     }
     
     private static double stress(List<Vec> X_views, List<Double> X_rowCache, Matrix delta)
