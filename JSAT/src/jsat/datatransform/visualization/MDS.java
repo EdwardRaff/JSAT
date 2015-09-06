@@ -17,7 +17,6 @@
 package jsat.datatransform.visualization;
 
 import java.util.ArrayList;
-import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Random;
 import java.util.concurrent.ExecutorService;
@@ -25,7 +24,6 @@ import jsat.DataSet;
 import jsat.SimpleDataSet;
 import jsat.classifiers.CategoricalData;
 import jsat.classifiers.DataPoint;
-import jsat.datatransform.DataTransform;
 import jsat.linear.DenseMatrix;
 import jsat.linear.Matrix;
 import jsat.linear.Vec;
