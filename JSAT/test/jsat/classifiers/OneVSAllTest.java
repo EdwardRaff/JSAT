@@ -16,17 +16,21 @@
  */
 package jsat.classifiers;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import jsat.FixedProblems;
-import jsat.classifiers.svm.DCDs;
-import jsat.utils.SystemInfo;
+
 import org.junit.After;
 import org.junit.AfterClass;
-import static org.junit.Assert.*;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
+
+import jsat.FixedProblems;
+import jsat.classifiers.svm.DCDs;
+import jsat.utils.SystemInfo;
 
 /**
  *
@@ -34,15 +38,15 @@ import org.junit.Test;
  */
 public class OneVSAllTest {
 
-  public OneVSAllTest() {
-  }
-
   @BeforeClass
   public static void setUpClass() {
   }
 
   @AfterClass
   public static void tearDownClass() {
+  }
+
+  public OneVSAllTest() {
   }
 
   @Before
@@ -54,45 +58,11 @@ public class OneVSAllTest {
   }
 
   @Test
-  public void testTrainC_ClassificationDataSet_ExecutorService() {
-    System.out.println("trainC");
-    for (boolean conc : new boolean[]{true, false}) {
-      OneVSAll instance = new OneVSAll(new DCDs(), conc);
-
-      ClassificationDataSet train = FixedProblems.getSimpleKClassLinear(1000, 7);
-      ClassificationDataSet test = FixedProblems.getSimpleKClassLinear(100, 7);
-
-      ExecutorService ex = Executors.newFixedThreadPool(SystemInfo.LogicalCores);
-
-      ClassificationModelEvaluation cme = new ClassificationModelEvaluation(instance, train, ex);
-      cme.evaluateTestSet(test);
-
-      assertTrue(cme.getErrorRate() <= 0.001);
-    }
-  }
-
-  @Test
-  public void testTrainC_ClassificationDataSet() {
-    System.out.println("trainC");
-    for (boolean conc : new boolean[]{true, false}) {
-      OneVSAll instance = new OneVSAll(new DCDs(), conc);
-
-      ClassificationDataSet train = FixedProblems.getSimpleKClassLinear(1000, 7);
-      ClassificationDataSet test = FixedProblems.getSimpleKClassLinear(100, 7);
-
-      ClassificationModelEvaluation cme = new ClassificationModelEvaluation(instance, train);
-      cme.evaluateTestSet(test);
-
-      assertTrue(cme.getErrorRate() <= 0.001);
-    }
-  }
-
-  @Test
   public void testClone() {
     System.out.println("clone");
 
-    ClassificationDataSet t1 = FixedProblems.getSimpleKClassLinear(1000, 7);
-    ClassificationDataSet t2 = FixedProblems.getSimpleKClassLinear(1000, 9);
+    final ClassificationDataSet t1 = FixedProblems.getSimpleKClassLinear(1000, 7);
+    final ClassificationDataSet t2 = FixedProblems.getSimpleKClassLinear(1000, 9);
 
     OneVSAll instance = new OneVSAll(new DCDs());
 
@@ -100,7 +70,7 @@ public class OneVSAllTest {
 
     instance.trainC(t1);
 
-    OneVSAll result = instance.clone();
+    final OneVSAll result = instance.clone();
     for (int i = 0; i < t1.getSampleSize(); i++) {
       assertEquals(t1.getDataPointCategory(i), result.classify(t1.getDataPoint(i)).mostLikely());
     }
@@ -112,6 +82,40 @@ public class OneVSAllTest {
 
     for (int i = 0; i < t2.getSampleSize(); i++) {
       assertEquals(t2.getDataPointCategory(i), result.classify(t2.getDataPoint(i)).mostLikely());
+    }
+  }
+
+  @Test
+  public void testTrainC_ClassificationDataSet() {
+    System.out.println("trainC");
+    for (final boolean conc : new boolean[] { true, false }) {
+      final OneVSAll instance = new OneVSAll(new DCDs(), conc);
+
+      final ClassificationDataSet train = FixedProblems.getSimpleKClassLinear(1000, 7);
+      final ClassificationDataSet test = FixedProblems.getSimpleKClassLinear(100, 7);
+
+      final ClassificationModelEvaluation cme = new ClassificationModelEvaluation(instance, train);
+      cme.evaluateTestSet(test);
+
+      assertTrue(cme.getErrorRate() <= 0.001);
+    }
+  }
+
+  @Test
+  public void testTrainC_ClassificationDataSet_ExecutorService() {
+    System.out.println("trainC");
+    for (final boolean conc : new boolean[] { true, false }) {
+      final OneVSAll instance = new OneVSAll(new DCDs(), conc);
+
+      final ClassificationDataSet train = FixedProblems.getSimpleKClassLinear(1000, 7);
+      final ClassificationDataSet test = FixedProblems.getSimpleKClassLinear(100, 7);
+
+      final ExecutorService ex = Executors.newFixedThreadPool(SystemInfo.LogicalCores);
+
+      final ClassificationModelEvaluation cme = new ClassificationModelEvaluation(instance, train, ex);
+      cme.evaluateTestSet(test);
+
+      assertTrue(cme.getErrorRate() <= 0.001);
     }
   }
 

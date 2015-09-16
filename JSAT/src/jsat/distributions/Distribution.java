@@ -18,6 +18,7 @@ package jsat.distributions;
 
 import java.io.Serializable;
 import java.util.Random;
+
 import jsat.linear.DenseVector;
 import jsat.linear.Vec;
 import jsat.math.Function;
@@ -32,60 +33,118 @@ import jsat.math.rootfinding.Zeroin;
 public abstract class Distribution implements Cloneable, Serializable {
 
   /**
-   * Computes the value of the Cumulative Density Function (CDF) at the given point. The CDF returns a value in the
-   * range [0, 1], indicating what portion of values occur at or below that point.
    *
-   * @param x the value to get the CDF of
+   */
+  private static final long serialVersionUID = 1L;
+
+  /**
+   * Wraps the {@link #cdf(double) } function of the given distribution in a
+   * function object for use.
+   *
+   * @param dist
+   *          the distribution to wrap the cdf of
+   * @return a function for evaluating the cdf of the given distribution
+   */
+  public static Function getFunctionCDF(final Distribution dist) {
+    return new Function() {
+      private static final long serialVersionUID = -3794266180670489168L;
+
+      @Override
+      public double f(final double... x) {
+        return f(DenseVector.toDenseVec(x));
+      }
+
+      @Override
+      public double f(final Vec x) {
+        return dist.cdf(x.get(0));
+      }
+    };
+  }
+
+  /**
+   * Computes the value of the Cumulative Density Function (CDF) at the given
+   * point. The CDF returns a value in the range [0, 1], indicating what portion
+   * of values occur at or below that point.
+   *
+   * @param x
+   *          the value to get the CDF of
    * @return the CDF(x)
    */
   abstract public double cdf(double x);
 
+  @Override
+  abstract public Distribution clone();
+
   /**
-   * Computes the inverse Cumulative Density Function (CDF<sup>-1</sup>) at the given point. It takes in a value in the
-   * range of [0, 1] and returns the value x, such that CDF(x) = <tt>p</tt>
+   * Computes the inverse Cumulative Density Function (CDF<sup>-1</sup>) at the
+   * given point. It takes in a value in the range of [0, 1] and returns the
+   * value x, such that CDF(x) = <tt>p</tt>
    *
-   * @param p the probability value
+   * @param p
+   *          the probability value
    * @return the value such that the CDF would return <tt>p</tt>
    */
-  public double invCdf(double p) {
+  public double invCdf(final double p) {
     return invCdf(p, new FunctionBase() {
+      /**
+       *
+       */
+      private static final long serialVersionUID = 1L;
+
       @Override
-      public double f(Vec x) {
+      public double f(final Vec x) {
         return cdf(x.get(0));
       }
     });
   }
 
   /**
-   * This method is provided as a quick helper function, as any CDF has a 1 to 1 mapping with an inverse,
-   * CDF<sup>.-1</sup>. This does a search for that value, and should only be used if the quantile function will be used
+   * This method is provided as a quick helper function, as any CDF has a 1 to 1
+   * mapping with an inverse, CDF<sup>.-1</sup>. This does a search for that
+   * value, and should only be used if the quantile function will be used
    * infrequently or no alternative is available.
    *
-   * @param p the [0,1] probability value
-   * @param cdf a function that provides the CDF we want to emulate the inverse of
+   * @param p
+   *          the [0,1] probability value
+   * @param cdf
+   *          a function that provides the CDF we want to emulate the inverse of
    * @return the quantile function, CDF<sup>-1</sup>(p) = x
    */
   protected double invCdf(final double p, final Function cdf) {
     if (p < 0 || p > 1) {
       throw new ArithmeticException("Value of p must be in the range [0,1], not " + p);
     }
-    double a = Double.isInfinite(min()) ? Double.MIN_VALUE : min();
-    double b = Double.isInfinite(max()) ? Double.MAX_VALUE : max();
+    final double a = Double.isInfinite(min()) ? Double.MIN_VALUE : min();
+    final double b = Double.isInfinite(max()) ? Double.MAX_VALUE : max();
 
-    Function newCDF = new Function() {
+    final Function newCDF = new Function() {
+
+      /**
+       *
+       */
+      private static final long serialVersionUID = 1L;
 
       @Override
-      public double f(double... x) {
+      public double f(final double... x) {
         return cdf.f(x) - p;
       }
 
       @Override
-      public double f(Vec x) {
+      public double f(final Vec x) {
         return f(x.get(0));
       }
     };
     return Zeroin.root(a, b, newCDF, p);
   }
+
+  /**
+   * The maximum value for which the {@link #pdf(double) } is meant to return a
+   * value. Note that {@link Double#POSITIVE_INFINITY} is a valid return value.
+   *
+   * @return the maximum value for which the {@link #pdf(double) } is meant to
+   *         return a value.
+   */
+  abstract public double max();
 
   /**
    * Computes the mean value of the distribution
@@ -104,67 +163,35 @@ public abstract class Distribution implements Cloneable, Serializable {
   }
 
   /**
-   * Computes the mode of the distribution. Not all distributions have a mode for all parameter values.
-   * {@link Double#NaN NaN} may be returned if the mode is not defined for the current values of the distribution.
+   * The minimum value for which the {@link #pdf(double) } is meant to return a
+   * value. Note that {@link Double#NEGATIVE_INFINITY} is a valid return value.
+   *
+   * @return the minimum value for which the {@link #pdf(double) } is meant to
+   *         return a value.
+   */
+  abstract public double min();
+
+  /**
+   * Computes the mode of the distribution. Not all distributions have a mode
+   * for all parameter values. {@link Double#NaN NaN} may be returned if the
+   * mode is not defined for the current values of the distribution.
    *
    * @return the mode of the distribution
    */
   abstract public double mode();
 
   /**
-   * Computes the variance of the distribution. Not all distributions have a finite variance for all parameter values.
-   * {@link Double#NaN NaN} may be returned if the variance is not defined for the current values of the distribution.
-   * {@link Double#POSITIVE_INFINITY Infinity} is a possible value to be returned by some distributions.
+   * This method returns a double array containing the values of random samples
+   * from this distribution.
    *
-   * @return the variance of the distribution.
-   */
-  abstract public double variance();
-
-  /**
-   * Computes the skewness of the distribution. Not all distributions have a finite skewness for all parameter values.
-   * {@link Double#NaN NaN} may be returned if the skewness is not defined for the current values of the distribution.
-   *
-   * @return the skewness of the distribution.
-   */
-  abstract public double skewness();
-
-  /**
-   * Computes the standard deviation of the distribution. Not all distributions have a finite standard deviation for all
-   * parameter values. {@link Double#NaN NaN} may be returned if the variance is not defined for the current values of
-   * the distribution. {@link Double#POSITIVE_INFINITY Infinity} is a possible value to be returned by some
-   * distributions.
-   *
-   * @return the standard deviation of the distribution
-   */
-  public double standardDeviation() {
-    return Math.sqrt(variance());
-  }
-
-  /**
-   * The minimum value for which the {@link #pdf(double) } is meant to return a value. Note that
-   * {@link Double#NEGATIVE_INFINITY} is a valid return value.
-   *
-   * @return the minimum value for which the {@link #pdf(double) } is meant to return a value.
-   */
-  abstract public double min();
-
-  /**
-   * The maximum value for which the {@link #pdf(double) } is meant to return a value. Note that
-   * {@link Double#POSITIVE_INFINITY} is a valid return value.
-   *
-   * @return the maximum value for which the {@link #pdf(double) } is meant to return a value.
-   */
-  abstract public double max();
-
-  /**
-   * This method returns a double array containing the values of random samples from this distribution.
-   *
-   * @param numSamples the number of random samples to take
-   * @param rand the source of randomness
+   * @param numSamples
+   *          the number of random samples to take
+   * @param rand
+   *          the source of randomness
    * @return an array of the random sample values
    */
-  public double[] sample(int numSamples, Random rand) {
-    double[] samples = new double[numSamples];
+  public double[] sample(final int numSamples, final Random rand) {
+    final double[] samples = new double[numSamples];
     for (int i = 0; i < samples.length; i++) {
       samples[i] = invCdf(rand.nextDouble());
     }
@@ -173,38 +200,50 @@ public abstract class Distribution implements Cloneable, Serializable {
   }
 
   /**
-   * This method returns a double array containing the values of random samples from this distribution.
+   * This method returns a double array containing the values of random samples
+   * from this distribution.
    *
-   * @param numSamples the number of random samples to take
-   * @param rand the source of randomness
+   * @param numSamples
+   *          the number of random samples to take
+   * @param rand
+   *          the source of randomness
    * @return a vector of the random sample values
    */
-  public DenseVector sampleVec(int numSamples, Random rand) {
+  public DenseVector sampleVec(final int numSamples, final Random rand) {
     return DenseVector.toDenseVec(sample(numSamples, rand));
   }
 
-  @Override
-  abstract public Distribution clone();
+  /**
+   * Computes the skewness of the distribution. Not all distributions have a
+   * finite skewness for all parameter values. {@link Double#NaN NaN} may be
+   * returned if the skewness is not defined for the current values of the
+   * distribution.
+   *
+   * @return the skewness of the distribution.
+   */
+  abstract public double skewness();
 
   /**
-   * Wraps the {@link #cdf(double) } function of the given distribution in a function object for use.
+   * Computes the standard deviation of the distribution. Not all distributions
+   * have a finite standard deviation for all parameter values.
+   * {@link Double#NaN NaN} may be returned if the variance is not defined for
+   * the current values of the distribution. {@link Double#POSITIVE_INFINITY
+   * Infinity} is a possible value to be returned by some distributions.
    *
-   * @param dist the distribution to wrap the cdf of
-   * @return a function for evaluating the cdf of the given distribution
+   * @return the standard deviation of the distribution
    */
-  public static Function getFunctionCDF(final Distribution dist) {
-    return new Function() {
-      private static final long serialVersionUID = -3794266180670489168L;
-
-      @Override
-      public double f(double... x) {
-        return f(DenseVector.toDenseVec(x));
-      }
-
-      @Override
-      public double f(Vec x) {
-        return dist.cdf(x.get(0));
-      }
-    };
+  public double standardDeviation() {
+    return Math.sqrt(variance());
   }
+
+  /**
+   * Computes the variance of the distribution. Not all distributions have a
+   * finite variance for all parameter values. {@link Double#NaN NaN} may be
+   * returned if the variance is not defined for the current values of the
+   * distribution. {@link Double#POSITIVE_INFINITY Infinity} is a possible value
+   * to be returned by some distributions.
+   *
+   * @return the variance of the distribution.
+   */
+  abstract public double variance();
 }

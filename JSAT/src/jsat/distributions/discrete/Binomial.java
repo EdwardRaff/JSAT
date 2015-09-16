@@ -16,22 +16,29 @@
  */
 package jsat.distributions.discrete;
 
-import static java.lang.Math.*;
-import static jsat.math.SpecialMath.*;
+import static java.lang.Math.exp;
+import static java.lang.Math.log;
+import static jsat.math.SpecialMath.betaIncReg;
+import static jsat.math.SpecialMath.lnGamma;
 
 /**
- * The Binomial distribution is the distribution for the number of successful, independent, trials with a specific
- * probability of success
+ * The Binomial distribution is the distribution for the number of successful,
+ * independent, trials with a specific probability of success
  *
  * @author Edward Raff
  */
 public class Binomial extends DiscreteDistribution {
 
+  /**
+   *
+   */
+  private static final long serialVersionUID = 1L;
   private int trials;
   private double p;
 
   /**
-   * Creates a new Binomial distribution for 1 trial with a 0.5 probability of success
+   * Creates a new Binomial distribution for 1 trial with a 0.5 probability of
+   * success
    */
   public Binomial() {
     this(1, 0.5);
@@ -40,68 +47,18 @@ public class Binomial extends DiscreteDistribution {
   /**
    * Creates a new Binomial distribution
    *
-   * @param trials the number of independent trials
-   * @param p the probability of success
+   * @param trials
+   *          the number of independent trials
+   * @param p
+   *          the probability of success
    */
-  public Binomial(int trials, double p) {
+  public Binomial(final int trials, final double p) {
     setTrials(trials);
     setP(p);
   }
 
-  /**
-   * The number of trials for the distribution
-   *
-   * @param trials the number of trials to perform
-   */
-  public void setTrials(int trials) {
-    if (trials < 1) {
-      throw new IllegalArgumentException("number of trials must be positive, not " + trials);
-    }
-    this.trials = trials;
-  }
-
-  public int getTrials() {
-    return trials;
-  }
-
-  /**
-   * Sets the probability of a trial being a success
-   *
-   * @param p the probability of success for each trial
-   */
-  public void setP(double p) {
-    if (Double.isNaN(p) || p < 0 || p > 1) {
-      throw new IllegalArgumentException("probability of success must be in [0, 1], not " + p);
-    }
-    this.p = p;
-  }
-
-  public double getP() {
-    return p;
-  }
-
   @Override
-  public double logPmf(int x) {
-    if (x > trials || x < 0) {
-      return -Double.MAX_VALUE;
-    }
-
-    //re write as: log((Gamma(n+1) p^x (1-p)^(n-x))/(Gamma(x+1) Gamma(n-x+1)))
-    //then expand to:  n log(1-p)-log(Gamma(n-x+1))+log(Gamma(n+1))-x log(1-p)+x log(p)-log(Gamma(x+1))
-    final int n = trials;
-    return n * log(1 - p) - lnGamma(n - x + 1) + lnGamma(n + 1) - x * log(1 - p) + x * log(p) - lnGamma(x + 1);
-  }
-
-  @Override
-  public double pmf(int x) {
-    if (x > trials || x < 0) {
-      return 0;
-    }
-    return exp(logPmf(x));
-  }
-
-  @Override
-  public double cdf(int x) {
+  public double cdf(final int x) {
     if (x >= trials) {
       return 1;
     }
@@ -112,19 +69,57 @@ public class Binomial extends DiscreteDistribution {
   }
 
   @Override
+  public Binomial clone() {
+    return new Binomial(trials, p);
+  }
+
+  public double getP() {
+    return p;
+  }
+
+  public int getTrials() {
+    return trials;
+  }
+
+  @Override
+  public double logPmf(final int x) {
+    if (x > trials || x < 0) {
+      return -Double.MAX_VALUE;
+    }
+
+    // re write as: log((Gamma(n+1) p^x (1-p)^(n-x))/(Gamma(x+1) Gamma(n-x+1)))
+    // then expand to: n log(1-p)-log(Gamma(n-x+1))+log(Gamma(n+1))-x log(1-p)+x
+    // log(p)-log(Gamma(x+1))
+    final int n = trials;
+    return n * log(1 - p) - lnGamma(n - x + 1) + lnGamma(n + 1) - x * log(1 - p) + x * log(p) - lnGamma(x + 1);
+  }
+
+  @Override
+  public double max() {
+    return trials;
+  }
+
+  @Override
   public double mean() {
     return trials * p;
   }
 
   @Override
   public double median() {
-    if (Math.abs(p - 0.5) < 1e-3) {//special case p = 1/2, trials/2 is the unique median for trials % 2 == 1, and is a valid median if trials % 2 == 0
+    if (Math.abs(p - 0.5) < 1e-3) {// special case p = 1/2, trials/2 is the
+                                   // unique median for trials % 2 == 1, and is
+                                   // a valid median if trials % 2 == 0
       return trials / 2;
     }
     if (p <= 1 - Math.log(2) || p >= Math.log(2)) {
-      return Math.round(trials * p);//exact unique median
+      return Math.round(trials * p);// exact unique median
     }
     return invCdf(0.5);
+  }
+
+  @Override
+  public double min() {
+    return 0;
   }
 
   @Override
@@ -137,8 +132,37 @@ public class Binomial extends DiscreteDistribution {
   }
 
   @Override
-  public double variance() {
-    return trials * p * (1 - p);
+  public double pmf(final int x) {
+    if (x > trials || x < 0) {
+      return 0;
+    }
+    return exp(logPmf(x));
+  }
+
+  /**
+   * Sets the probability of a trial being a success
+   *
+   * @param p
+   *          the probability of success for each trial
+   */
+  public void setP(final double p) {
+    if (Double.isNaN(p) || p < 0 || p > 1) {
+      throw new IllegalArgumentException("probability of success must be in [0, 1], not " + p);
+    }
+    this.p = p;
+  }
+
+  /**
+   * The number of trials for the distribution
+   *
+   * @param trials
+   *          the number of trials to perform
+   */
+  public void setTrials(final int trials) {
+    if (trials < 1) {
+      throw new IllegalArgumentException("number of trials must be positive, not " + trials);
+    }
+    this.trials = trials;
   }
 
   @Override
@@ -147,18 +171,8 @@ public class Binomial extends DiscreteDistribution {
   }
 
   @Override
-  public double min() {
-    return 0;
-  }
-
-  @Override
-  public double max() {
-    return trials;
-  }
-
-  @Override
-  public Binomial clone() {
-    return new Binomial(trials, p);
+  public double variance() {
+    return trials * p * (1 - p);
   }
 
 }

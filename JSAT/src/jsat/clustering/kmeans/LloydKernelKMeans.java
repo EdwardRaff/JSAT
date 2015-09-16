@@ -1,9 +1,15 @@
 package jsat.clustering.kmeans;
 
-import java.util.*;
-import java.util.concurrent.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.Callable;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Future;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
 import jsat.DataSet;
 import jsat.distributions.kernels.KernelTrick;
 import jsat.exceptions.FailedToFitException;
@@ -21,23 +27,30 @@ public class LloydKernelKMeans extends KernelKMeans {
   /**
    * Creates a new Kernel K Means object
    *
-   * @param kernel the kernel to use
+   * @param kernel
+   *          the kernel to use
    */
-  public LloydKernelKMeans(KernelTrick kernel) {
+  public LloydKernelKMeans(final KernelTrick kernel) {
     super(kernel);
   }
 
   /**
    * Copy constructor
    *
-   * @param toCopy the object to copy
+   * @param toCopy
+   *          the object to copy
    */
-  public LloydKernelKMeans(LloydKernelKMeans toCopy) {
+  public LloydKernelKMeans(final LloydKernelKMeans toCopy) {
     super(toCopy);
   }
 
   @Override
-  public int[] cluster(DataSet dataSet, final int K, ExecutorService threadpool, int[] designations) {
+  public KernelKMeans clone() {
+    return new LloydKernelKMeans(this);
+  }
+
+  @Override
+  public int[] cluster(final DataSet dataSet, final int K, final ExecutorService threadpool, int[] designations) {
     if (K < 2) {
       throw new FailedToFitException("Clustering requires at least 2 clusters");
     }
@@ -56,7 +69,7 @@ public class LloydKernelKMeans extends KernelKMeans {
     int iter = 0;
     do {
       changed = 0;
-      //find new closest center
+      // find new closest center
       final CountDownLatch latch = new CountDownLatch(SystemInfo.LogicalCores);
       for (int id = 0; id < SystemInfo.LogicalCores; id++) {
         final int ID = id;
@@ -67,7 +80,7 @@ public class LloydKernelKMeans extends KernelKMeans {
               double minDist = Double.POSITIVE_INFINITY;
               int min_indx = 0;
               for (int k = 0; k < K; k++) {
-                double dist_k = distance(i, k, assignments);
+                final double dist_k = distance(i, k, assignments);
                 if (dist_k < minDist) {
                   minDist = dist_k;
                   min_indx = k;
@@ -84,19 +97,19 @@ public class LloydKernelKMeans extends KernelKMeans {
 
       try {
         latch.await();
-      } catch (InterruptedException ex) {
+      } catch (final InterruptedException ex) {
         Logger.getLogger(LloydKernelKMeans.class.getName()).log(Level.SEVERE, null, ex);
       }
-      //now we have all the new assignments, we can compute the changes
-      List<Future<Integer>> futureChanges = new ArrayList<Future<Integer>>(SystemInfo.LogicalCores);
+      // now we have all the new assignments, we can compute the changes
+      final List<Future<Integer>> futureChanges = new ArrayList<Future<Integer>>(SystemInfo.LogicalCores);
       for (int id = 0; id < SystemInfo.LogicalCores; id++) {
         final int ID = id;
         futureChanges.add(threadpool.submit(new Callable<Integer>() {
 
           @Override
           public Integer call() throws Exception {
-            double[] sqrdChange = new double[K];
-            int[] ownerChange = new int[K];
+            final double[] sqrdChange = new double[K];
+            final int[] ownerChange = new int[K];
 
             int localChagne = 0;
             for (int i = ID; i < N; i += SystemInfo.LogicalCores) {
@@ -112,18 +125,18 @@ public class LloydKernelKMeans extends KernelKMeans {
       }
 
       try {
-        for (Future<Integer> f : futureChanges) {
+        for (final Future<Integer> f : futureChanges) {
           changed += f.get();
         }
-      } catch (InterruptedException ex) {
+      } catch (final InterruptedException ex) {
         Logger.getLogger(LloydKernelKMeans.class.getName()).log(Level.SEVERE, null, ex);
-      } catch (ExecutionException ex) {
+      } catch (final ExecutionException ex) {
         Logger.getLogger(LloydKernelKMeans.class.getName()).log(Level.SEVERE, null, ex);
       }
 
-      //update constatns 
+      // update constatns
       updateNormConsts();
-      //update designations
+      // update designations
       System.arraycopy(newDesignations, 0, designations, 0, N);
     } while (changed > 0 && ++iter < maximumIterations);
 
@@ -131,7 +144,7 @@ public class LloydKernelKMeans extends KernelKMeans {
   }
 
   @Override
-  public int[] cluster(DataSet dataSet, int K, int[] designations) {
+  public int[] cluster(final DataSet dataSet, final int K, int[] designations) {
     if (K < 2) {
       throw new FailedToFitException("Clustering requires at least 2 clusters");
     }
@@ -153,7 +166,7 @@ public class LloydKernelKMeans extends KernelKMeans {
         double minDist = Double.POSITIVE_INFINITY;
         int min_indx = 0;
         for (int k = 0; k < K; k++) {
-          double dist_k = distance(i, k, designations);
+          final double dist_k = distance(i, k, designations);
           if (dist_k < minDist) {
             minDist = dist_k;
             min_indx = k;
@@ -167,19 +180,14 @@ public class LloydKernelKMeans extends KernelKMeans {
         changed += updateMeansFromChange(i, designations);
       }
 
-      //update constatns 
+      // update constatns
       updateNormConsts();
-      //update designations
+      // update designations
       System.arraycopy(newDesignations, 0, designations, 0, N);
 
     } while (changed > 0 && ++iter < maximumIterations);
 
     return designations;
-  }
-
-  @Override
-  public KernelKMeans clone() {
-    return new LloydKernelKMeans(this);
   }
 
 }

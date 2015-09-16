@@ -1,8 +1,9 @@
 package jsat.classifiers.evaluation;
 
 /**
- * Evaluates a classifier based on the Precision, where the class of index 0 is considered the positive class. This
- * score is only valid for binary classification problems.
+ * Evaluates a classifier based on the Precision, where the class of index 0 is
+ * considered the positive class. This score is only valid for binary
+ * classification problems.
  *
  * @author Edward Raff
  */
@@ -14,23 +15,8 @@ public class Precision extends SimpleBinaryClassMetric {
     super();
   }
 
-  public Precision(Precision toClone) {
+  public Precision(final Precision toClone) {
     super(toClone);
-  }
-
-  @Override
-  public double getScore() {
-    return tp / (tp + fp);
-  }
-
-  @Override
-  public boolean equals(Object obj) {
-    return this.getClass().isAssignableFrom(obj.getClass()) && obj.getClass().isAssignableFrom(this.getClass());
-  }
-
-  @Override
-  public int hashCode() {
-    return getName().hashCode();
   }
 
   @Override
@@ -39,8 +25,23 @@ public class Precision extends SimpleBinaryClassMetric {
   }
 
   @Override
+  public boolean equals(final Object obj) {
+    return this.getClass().isAssignableFrom(obj.getClass()) && obj.getClass().isAssignableFrom(this.getClass());
+  }
+
+  @Override
   public String getName() {
     return "Precision";
+  }
+
+  @Override
+  public double getScore() {
+    return tp / (tp + fp);
+  }
+
+  @Override
+  public int hashCode() {
+    return getName().hashCode();
   }
 
 }

@@ -6,15 +6,12 @@ package jsat.distributions.empirical.kernelfunc;
  */
 public class UniformKF implements KernelFunction {
 
-  private static final long serialVersionUID = -6413579643511350896L;
-
-  private UniformKF() {
-  }
-
   private static class SingletonHolder {
 
     public static final UniformKF INSTANCE = new UniformKF();
   }
+
+  private static final long serialVersionUID = -6413579643511350896L;
 
   /**
    * Returns the singleton instance of this class
@@ -25,16 +22,16 @@ public class UniformKF implements KernelFunction {
     return SingletonHolder.INSTANCE;
   }
 
-  @Override
-  public double k(double u) {
-    if (Math.abs(u) > 1) {
-      return 0;
-    }
-    return 0.5;
+  private UniformKF() {
   }
 
   @Override
-  public double intK(double u) {
+  public double cutOff() {
+    return Math.ulp(1) + 1;
+  }
+
+  @Override
+  public double intK(final double u) {
     if (u < -1) {
       return 0;
     }
@@ -45,17 +42,20 @@ public class UniformKF implements KernelFunction {
   }
 
   @Override
+  public double k(final double u) {
+    if (Math.abs(u) > 1) {
+      return 0;
+    }
+    return 0.5;
+  }
+
+  @Override
   public double k2() {
     return 1.0 / 3.0;
   }
 
   @Override
-  public double cutOff() {
-    return Math.ulp(1) + 1;
-  }
-
-  @Override
-  public double kPrime(double u) {
+  public double kPrime(final double u) {
     return 0;
   }
 

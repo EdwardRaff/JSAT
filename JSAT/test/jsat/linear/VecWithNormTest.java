@@ -1,9 +1,12 @@
 package jsat.linear;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotSame;
+
 import java.util.Random;
+
 import org.junit.After;
 import org.junit.AfterClass;
-import static org.junit.Assert.*;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -14,12 +17,6 @@ import org.junit.Test;
  */
 public class VecWithNormTest {
 
-  Vec x, xNrmd;
-  Vec a, b, c;
-
-  public VecWithNormTest() {
-  }
-
   @BeforeClass
   public static void setUpClass() {
   }
@@ -28,10 +25,17 @@ public class VecWithNormTest {
   public static void tearDownClass() {
   }
 
+  Vec x, xNrmd;
+
+  Vec a, b, c;
+
+  public VecWithNormTest() {
+  }
+
   @Before
   public void setUp() {
-    Random rand = new Random(546);
-    x = DenseVector.random(20, rand);
+    final Random rand = new Random(546);
+    x = Vec.random(20, rand);
     xNrmd = new VecWithNorm(x.clone());
 
     a = new SparseVector(x.length());
@@ -50,12 +54,17 @@ public class VecWithNormTest {
   }
 
   /**
-   * Test of length method, of class VecWithNorm.
+   * Test of clone method, of class VecWithNorm.
    */
   @Test
-  public void testLength() {
-    System.out.println("length");
-    assertEquals(x.length(), xNrmd.length());
+  public void testClone() {
+    System.out.println("clone");
+    final Vec xN = x.clone();
+    final Vec xNN = xNrmd.clone();
+
+    assertEquals(xN, x);
+    assertEquals(xNN, xNrmd);
+    assertNotSame(xNN, xNrmd);
   }
 
   /**
@@ -70,31 +79,12 @@ public class VecWithNormTest {
   }
 
   /**
-   * Test of set method, of class VecWithNorm.
+   * Test of length method, of class VecWithNorm.
    */
   @Test
-  public void testSet() {
-    System.out.println("set");
-    int index = 16;
-    double val = Math.PI;
-    x.set(index, val);
-    xNrmd.set(index, val);
-
-    assertEquals(x.pNorm(2), xNrmd.pNorm(2), 1e-6);
-  }
-
-  /**
-   * Test of clone method, of class VecWithNorm.
-   */
-  @Test
-  public void testClone() {
-    System.out.println("clone");
-    Vec xN = x.clone();
-    Vec xNN = xNrmd.clone();
-
-    assertEquals(xN, x);
-    assertEquals(xNN, xNrmd);
-    assertNotSame(xNN, xNrmd);
+  public void testLength() {
+    System.out.println("length");
+    assertEquals(x.length(), xNrmd.length());
   }
 
   /**
@@ -103,7 +93,7 @@ public class VecWithNormTest {
   @Test
   public void testMutableAdd_double() {
     System.out.println("mutableAdd");
-    double val = 3.9;
+    final double val = 3.9;
 
     x.mutableAdd(val);
     xNrmd.mutableAdd(val);
@@ -117,7 +107,7 @@ public class VecWithNormTest {
   public void testMutableAdd_double_Vec() {
     System.out.println("mutableAdd");
 
-    double val = 2.555;
+    final double val = 2.555;
 
     x.mutableAdd(val, a);
     xNrmd.mutableAdd(val, a);
@@ -131,6 +121,33 @@ public class VecWithNormTest {
 
     x.mutableAdd(val, c);
     xNrmd.mutableAdd(val, c);
+
+    assertEquals(x.pNorm(2), xNrmd.pNorm(2), 1e-6);
+  }
+
+  /**
+   * Test of mutableDivide method, of class VecWithNorm.
+   */
+  @Test
+  public void testMutableDivide() {
+    System.out.println("mutableDivide");
+    final double c = 2.54;
+
+    x.mutableDivide(c);
+    xNrmd.mutableDivide(c);
+
+    assertEquals(x.pNorm(2), xNrmd.pNorm(2), 1e-6);
+  }
+
+  /**
+   * Test of mutableMultiply method, of class VecWithNorm.
+   */
+  @Test
+  public void testMutableMultiply() {
+    System.out.println("mutableMultiply");
+    final double c = 1.6;
+    x.mutableMultiply(c);
+    xNrmd.mutableMultiply(c);
 
     assertEquals(x.pNorm(2), xNrmd.pNorm(2), 1e-6);
   }
@@ -159,28 +176,28 @@ public class VecWithNormTest {
   }
 
   /**
-   * Test of mutableMultiply method, of class VecWithNorm.
+   * Test of nnz method, of class VecWithNorm.
    */
   @Test
-  public void testMutableMultiply() {
-    System.out.println("mutableMultiply");
-    double c = 1.6;
-    x.mutableMultiply(c);
-    xNrmd.mutableMultiply(c);
+  public void testNnz() {
+    System.out.println("nnz");
 
-    assertEquals(x.pNorm(2), xNrmd.pNorm(2), 1e-6);
+    assertEquals(x.nnz(), xNrmd.nnz());
+    x.set(5, 0.0);
+    xNrmd.set(5, 0.0);
+    assertEquals(x.nnz(), xNrmd.nnz());
   }
 
   /**
-   * Test of mutableDivide method, of class VecWithNorm.
+   * Test of set method, of class VecWithNorm.
    */
   @Test
-  public void testMutableDivide() {
-    System.out.println("mutableDivide");
-    double c = 2.54;
-
-    x.mutableDivide(c);
-    xNrmd.mutableDivide(c);
+  public void testSet() {
+    System.out.println("set");
+    final int index = 16;
+    final double val = Math.PI;
+    x.set(index, val);
+    xNrmd.set(index, val);
 
     assertEquals(x.pNorm(2), xNrmd.pNorm(2), 1e-6);
   }
@@ -195,19 +212,6 @@ public class VecWithNormTest {
     xNrmd.zeroOut();
 
     assertEquals(x.pNorm(2), xNrmd.pNorm(2), 1e-6);
-  }
-
-  /**
-   * Test of nnz method, of class VecWithNorm.
-   */
-  @Test
-  public void testNnz() {
-    System.out.println("nnz");
-
-    assertEquals(x.nnz(), xNrmd.nnz());
-    x.set(5, 0.0);
-    xNrmd.set(5, 0.0);
-    assertEquals(x.nnz(), xNrmd.nnz());
   }
 
 }

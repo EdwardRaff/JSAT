@@ -1,8 +1,8 @@
 package jsat.classifiers.evaluation;
 
 /**
- * The F1 score is the harmonic mean of {@link Precision} and {@link Recall}. This score is only valid for binary
- * classification problems.
+ * The F1 score is the harmonic mean of {@link Precision} and {@link Recall}.
+ * This score is only valid for binary classification problems.
  *
  * @author Edward Raff
  */
@@ -14,23 +14,8 @@ public class F1Score extends SimpleBinaryClassMetric {
     super();
   }
 
-  public F1Score(F1Score toClone) {
+  public F1Score(final F1Score toClone) {
     super(toClone);
-  }
-
-  @Override
-  public double getScore() {
-    return 2 * tp / (2 * tp + fp + fn);
-  }
-
-  @Override
-  public boolean equals(Object obj) {
-    return this.getClass().isAssignableFrom(obj.getClass()) && obj.getClass().isAssignableFrom(this.getClass());
-  }
-
-  @Override
-  public int hashCode() {
-    return getName().hashCode();
   }
 
   @Override
@@ -39,8 +24,23 @@ public class F1Score extends SimpleBinaryClassMetric {
   }
 
   @Override
+  public boolean equals(final Object obj) {
+    return this.getClass().isAssignableFrom(obj.getClass()) && obj.getClass().isAssignableFrom(this.getClass());
+  }
+
+  @Override
   public String getName() {
     return "F1 Score";
+  }
+
+  @Override
+  public double getScore() {
+    return 2 * tp / (2 * tp + fp + fn);
+  }
+
+  @Override
+  public int hashCode() {
+    return getName().hashCode();
   }
 
 }

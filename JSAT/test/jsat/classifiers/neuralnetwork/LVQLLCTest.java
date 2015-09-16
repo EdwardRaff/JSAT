@@ -16,18 +16,23 @@
  */
 package jsat.classifiers.neuralnetwork;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import jsat.FixedProblems;
-import jsat.classifiers.*;
-import jsat.linear.distancemetrics.EuclideanDistance;
-import jsat.utils.SystemInfo;
+
 import org.junit.After;
 import org.junit.AfterClass;
-import static org.junit.Assert.*;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
+
+import jsat.FixedProblems;
+import jsat.classifiers.ClassificationDataSet;
+import jsat.classifiers.ClassificationModelEvaluation;
+import jsat.linear.distancemetrics.EuclideanDistance;
+import jsat.utils.SystemInfo;
 
 /**
  *
@@ -35,15 +40,15 @@ import org.junit.Test;
  */
 public class LVQLLCTest {
 
-  public LVQLLCTest() {
-  }
-
   @BeforeClass
   public static void setUpClass() {
   }
 
   @AfterClass
   public static void tearDownClass() {
+  }
+
+  public LVQLLCTest() {
   }
 
   @Before
@@ -55,59 +60,19 @@ public class LVQLLCTest {
   }
 
   @Test
-  public void testTrainC_ClassificationDataSet_ExecutorService() {
-    System.out.println("trainC");
-
-    for (LVQ.LVQVersion method : LVQ.LVQVersion.values()) {
-      LVQLLC instance = new LVQLLC(new EuclideanDistance(), 5);
-      instance.setRepresentativesPerClass(20);
-      instance.setLVQMethod(method);
-      ExecutorService ex = Executors.newFixedThreadPool(SystemInfo.LogicalCores);
-
-      ClassificationDataSet train = FixedProblems.getCircles(1000, 1.0, 10.0, 100.0);
-      ClassificationDataSet test = FixedProblems.getCircles(100, 1.0, 10.0, 100.0);
-
-      ClassificationModelEvaluation cme = new ClassificationModelEvaluation(instance, train, ex);
-      cme.evaluateTestSet(test);
-
-      assertTrue(cme.getErrorRate() <= 0.001);
-
-      ex.shutdownNow();
-    }
-  }
-
-  @Test
-  public void testTrainC_ClassificationDataSet() {
-    System.out.println("trainC");
-
-    for (LVQ.LVQVersion method : LVQ.LVQVersion.values()) {
-      LVQLLC instance = new LVQLLC(new EuclideanDistance(), 5);
-      instance.setRepresentativesPerClass(20);
-      instance.setLVQMethod(method);
-      ClassificationDataSet train = FixedProblems.getCircles(1000, 1.0, 10.0, 100.0);
-      ClassificationDataSet test = FixedProblems.getCircles(100, 1.0, 10.0, 100.0);
-
-      ClassificationModelEvaluation cme = new ClassificationModelEvaluation(instance, train);
-      cme.evaluateTestSet(test);
-
-      assertTrue(cme.getErrorRate() <= 0.001);
-    }
-  }
-
-  @Test
   public void testClone() {
     System.out.println("clone");
 
     LVQLLC instance = new LVQLLC(new EuclideanDistance(), 5);
 
-    ClassificationDataSet t1 = FixedProblems.getSimpleKClassLinear(100, 3);
-    ClassificationDataSet t2 = FixedProblems.getSimpleKClassLinear(100, 6);
+    final ClassificationDataSet t1 = FixedProblems.getSimpleKClassLinear(100, 3);
+    final ClassificationDataSet t2 = FixedProblems.getSimpleKClassLinear(100, 6);
 
     instance = instance.clone();
 
     instance.trainC(t1);
 
-    LVQLLC result = instance.clone();
+    final LVQLLC result = instance.clone();
     for (int i = 0; i < t1.getSampleSize(); i++) {
       assertEquals(t1.getDataPointCategory(i), result.classify(t1.getDataPoint(i)).mostLikely());
     }
@@ -121,6 +86,46 @@ public class LVQLLCTest {
       assertEquals(t2.getDataPointCategory(i), result.classify(t2.getDataPoint(i)).mostLikely());
     }
 
+  }
+
+  @Test
+  public void testTrainC_ClassificationDataSet() {
+    System.out.println("trainC");
+
+    for (final LVQ.LVQVersion method : LVQ.LVQVersion.values()) {
+      final LVQLLC instance = new LVQLLC(new EuclideanDistance(), 5);
+      instance.setRepresentativesPerClass(20);
+      instance.setLVQMethod(method);
+      final ClassificationDataSet train = FixedProblems.getCircles(1000, 1.0, 10.0, 100.0);
+      final ClassificationDataSet test = FixedProblems.getCircles(100, 1.0, 10.0, 100.0);
+
+      final ClassificationModelEvaluation cme = new ClassificationModelEvaluation(instance, train);
+      cme.evaluateTestSet(test);
+
+      assertTrue(cme.getErrorRate() <= 0.001);
+    }
+  }
+
+  @Test
+  public void testTrainC_ClassificationDataSet_ExecutorService() {
+    System.out.println("trainC");
+
+    for (final LVQ.LVQVersion method : LVQ.LVQVersion.values()) {
+      final LVQLLC instance = new LVQLLC(new EuclideanDistance(), 5);
+      instance.setRepresentativesPerClass(20);
+      instance.setLVQMethod(method);
+      final ExecutorService ex = Executors.newFixedThreadPool(SystemInfo.LogicalCores);
+
+      final ClassificationDataSet train = FixedProblems.getCircles(1000, 1.0, 10.0, 100.0);
+      final ClassificationDataSet test = FixedProblems.getCircles(100, 1.0, 10.0, 100.0);
+
+      final ClassificationModelEvaluation cme = new ClassificationModelEvaluation(instance, train, ex);
+      cme.evaluateTestSet(test);
+
+      assertTrue(cme.getErrorRate() <= 0.001);
+
+      ex.shutdownNow();
+    }
   }
 
 }

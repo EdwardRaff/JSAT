@@ -16,21 +16,25 @@
  */
 package jsat.classifiers.boosting;
 
+import static org.junit.Assert.assertTrue;
+
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+
+import org.junit.After;
+import org.junit.AfterClass;
+import org.junit.Before;
+import org.junit.BeforeClass;
+import org.junit.Test;
+
 import jsat.FixedProblems;
-import jsat.classifiers.*;
+import jsat.classifiers.ClassificationDataSet;
+import jsat.classifiers.ClassificationModelEvaluation;
 import jsat.classifiers.trees.DecisionStump;
 import jsat.classifiers.trees.DecisionTree;
 import jsat.classifiers.trees.TreePruner;
 import jsat.datatransform.LinearTransform;
 import jsat.utils.SystemInfo;
-import org.junit.After;
-import org.junit.AfterClass;
-import static org.junit.Assert.*;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
 
 /**
  *
@@ -38,15 +42,15 @@ import org.junit.Test;
  */
 public class LogitBoostTest {
 
-  public LogitBoostTest() {
-  }
-
   @BeforeClass
   public static void setUpClass() {
   }
 
   @AfterClass
   public static void tearDownClass() {
+  }
+
+  public LogitBoostTest() {
   }
 
   @Before
@@ -58,48 +62,13 @@ public class LogitBoostTest {
   }
 
   @Test
-  public void testTrainC_ClassificationDataSet_ExecutorService() {
-    System.out.println("trainC");
-
-    LogitBoost instance = new LogitBoost(new DecisionStump(), 50);
-
-    ExecutorService ex = Executors.newFixedThreadPool(SystemInfo.LogicalCores);
-
-    ClassificationDataSet train = FixedProblems.getCircles(1000, .1, 10.0);
-    ClassificationDataSet test = FixedProblems.getCircles(100, .1, 10.0);
-
-    ClassificationModelEvaluation cme = new ClassificationModelEvaluation(instance, train, ex);
-    cme.evaluateTestSet(test);
-
-    assertTrue(cme.getErrorRate() <= 0.15);
-
-    ex.shutdownNow();
-  }
-
-  @Test
-  public void testTrainC_ClassificationDataSet() {
-    System.out.println("trainC");
-
-    LogitBoost instance = new LogitBoost(new DecisionStump(), 50);
-
-    ClassificationDataSet train = FixedProblems.getCircles(1000, .1, 10.0);
-    ClassificationDataSet test = FixedProblems.getCircles(100, .1, 10.0);
-
-    ClassificationModelEvaluation cme = new ClassificationModelEvaluation(instance, train);
-    cme.evaluateTestSet(test);
-
-    assertTrue(cme.getErrorRate() <= 0.15);
-
-  }
-
-  @Test
   public void testClone() {
     System.out.println("clone");
 
     LogitBoost instance = new LogitBoost(new DecisionTree(10, 10, TreePruner.PruningMethod.NONE, 0.1), 50);
 
-    ClassificationDataSet t1 = FixedProblems.getCircles(1000, 0.1, 10.0);
-    ClassificationDataSet t2 = FixedProblems.getCircles(1000, 0.1, 10.0);
+    final ClassificationDataSet t1 = FixedProblems.getCircles(1000, 0.1, 10.0);
+    final ClassificationDataSet t2 = FixedProblems.getCircles(1000, 0.1, 10.0);
 
     t2.applyTransform(new LinearTransform(t2));
 
@@ -109,7 +78,7 @@ public class LogitBoostTest {
 
     instance.trainC(t1);
 
-    LogitBoost result = instance.clone();
+    final LogitBoost result = instance.clone();
 
     errors = 0;
     for (int i = 0; i < t1.getSampleSize(); i++) {
@@ -127,6 +96,41 @@ public class LogitBoostTest {
       errors += Math.abs(t2.getDataPointCategory(i) - result.classify(t2.getDataPoint(i)).mostLikely());
     }
     assertTrue(errors < 100);
+  }
+
+  @Test
+  public void testTrainC_ClassificationDataSet() {
+    System.out.println("trainC");
+
+    final LogitBoost instance = new LogitBoost(new DecisionStump(), 50);
+
+    final ClassificationDataSet train = FixedProblems.getCircles(1000, .1, 10.0);
+    final ClassificationDataSet test = FixedProblems.getCircles(100, .1, 10.0);
+
+    final ClassificationModelEvaluation cme = new ClassificationModelEvaluation(instance, train);
+    cme.evaluateTestSet(test);
+
+    assertTrue(cme.getErrorRate() <= 0.15);
+
+  }
+
+  @Test
+  public void testTrainC_ClassificationDataSet_ExecutorService() {
+    System.out.println("trainC");
+
+    final LogitBoost instance = new LogitBoost(new DecisionStump(), 50);
+
+    final ExecutorService ex = Executors.newFixedThreadPool(SystemInfo.LogicalCores);
+
+    final ClassificationDataSet train = FixedProblems.getCircles(1000, .1, 10.0);
+    final ClassificationDataSet test = FixedProblems.getCircles(100, .1, 10.0);
+
+    final ClassificationModelEvaluation cme = new ClassificationModelEvaluation(instance, train, ex);
+    cme.evaluateTestSet(test);
+
+    assertTrue(cme.getErrorRate() <= 0.15);
+
+    ex.shutdownNow();
   }
 
 }

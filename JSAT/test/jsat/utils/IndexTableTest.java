@@ -4,12 +4,14 @@
  */
 package jsat.utils;
 
+import static org.junit.Assert.assertTrue;
+
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
+
 import org.junit.After;
 import org.junit.AfterClass;
-import static org.junit.Assert.*;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -20,12 +22,9 @@ import org.junit.Test;
  */
 public class IndexTableTest {
 
-  static final double[] array = new double[]{9.0, 4.0, 3.0, 2.0, 1.0, 10.0, 11.0};
-  static final Double[] arrayD = new Double[]{9.0, 4.0, 3.0, 2.0, 1.0, 10.0, 11.0};
+  static final double[] array = new double[] { 9.0, 4.0, 3.0, 2.0, 1.0, 10.0, 11.0 };
+  static final Double[] arrayD = new Double[] { 9.0, 4.0, 3.0, 2.0, 1.0, 10.0, 11.0 };
   static final List<Double> list = Arrays.asList(arrayD);
-
-  public IndexTableTest() {
-  }
 
   @BeforeClass
   public static void setUpClass() throws Exception {
@@ -33,6 +32,9 @@ public class IndexTableTest {
 
   @AfterClass
   public static void tearDownClass() throws Exception {
+  }
+
+  public IndexTableTest() {
   }
 
   @Before
@@ -44,47 +46,9 @@ public class IndexTableTest {
   }
 
   @Test
-  public void testSortD() {
-    IndexTable idt = new IndexTable(array);
-    for (int i = 0; i < idt.length() - 1; i++) {
-      assertTrue(array[idt.index(i)] <= array[idt.index(i + 1)]);
-    }
-  }
-
-  @Test
-  public void testSortG() {
-    IndexTable idt = new IndexTable(arrayD);
-    for (int i = 0; i < idt.length() - 1; i++) {
-      assertTrue(arrayD[idt.index(i)].compareTo(arrayD[idt.index(i + 1)]) <= 0);
-    }
-  }
-
-  @Test
-  public void testSortList() {
-    IndexTable idt = new IndexTable(list);
-    for (int i = 0; i < idt.length() - 1; i++) {
-      assertTrue(list.get(idt.index(i)).compareTo(list.get(idt.index(i + 1))) <= 0);
-    }
-  }
-
-  @Test
-  public void testSortListComparator() {
-    IndexTable idt = new IndexTable(list, new Comparator<Double>() {
-
-      @Override
-      public int compare(Double o1, Double o2) {
-        return -o1.compareTo(o2);
-      }
-    });
-    for (int i = 0; i < idt.length() - 1; i++) {
-      assertTrue(list.get(idt.index(i)).compareTo(list.get(idt.index(i + 1))) >= 0);
-    }
-  }
-
-  @Test
   public void testApply_double() {
-    IndexTable idt = new IndexTable(array);
-    double[] test = Arrays.copyOf(array, array.length);
+    final IndexTable idt = new IndexTable(array);
+    final double[] test = Arrays.copyOf(array, array.length);
     idt.apply(test);
     for (int i = 0; i < test.length - 1; i++) {
       assertTrue(test[i] <= test[i + 1]);
@@ -93,9 +57,9 @@ public class IndexTableTest {
 
   @Test
   public void testApply_List() {
-    IndexTable idt = new IndexTable(array);
-    List<Double> test = new DoubleList();
-    for (double d : array) {
+    final IndexTable idt = new IndexTable(array);
+    final List<Double> test = new DoubleList();
+    for (final double d : array) {
       test.add(d);
     }
 
@@ -106,13 +70,51 @@ public class IndexTableTest {
   }
 
   @Test
+  public void testSortD() {
+    final IndexTable idt = new IndexTable(array);
+    for (int i = 0; i < idt.length() - 1; i++) {
+      assertTrue(array[idt.index(i)] <= array[idt.index(i + 1)]);
+    }
+  }
+
+  @Test
+  public void testSortG() {
+    final IndexTable idt = new IndexTable(arrayD);
+    for (int i = 0; i < idt.length() - 1; i++) {
+      assertTrue(arrayD[idt.index(i)].compareTo(arrayD[idt.index(i + 1)]) <= 0);
+    }
+  }
+
+  @Test
+  public void testSortList() {
+    final IndexTable idt = new IndexTable(list);
+    for (int i = 0; i < idt.length() - 1; i++) {
+      assertTrue(list.get(idt.index(i)).compareTo(list.get(idt.index(i + 1))) <= 0);
+    }
+  }
+
+  @Test
+  public void testSortListComparator() {
+    final IndexTable idt = new IndexTable(list, new Comparator<Double>() {
+
+      @Override
+      public int compare(final Double o1, final Double o2) {
+        return -o1.compareTo(o2);
+      }
+    });
+    for (int i = 0; i < idt.length() - 1; i++) {
+      assertTrue(list.get(idt.index(i)).compareTo(list.get(idt.index(i + 1))) >= 0);
+    }
+  }
+
+  @Test
   public void testSwap() {
     System.out.println("swap");
-    int i = 0;
-    int j = 1;
-    IndexTable idx = new IndexTable(array);
-    double di = array[idx.index(i)];
-    double dj = array[idx.index(j)];
+    final int i = 0;
+    final int j = 1;
+    final IndexTable idx = new IndexTable(array);
+    final double di = array[idx.index(i)];
+    final double dj = array[idx.index(j)];
     idx.swap(i, j);
     assertTrue(di == array[idx.index(j)]);
     assertTrue(dj == array[idx.index(i)]);

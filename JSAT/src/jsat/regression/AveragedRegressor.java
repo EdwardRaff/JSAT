@@ -2,12 +2,15 @@ package jsat.regression;
 
 import java.util.List;
 import java.util.concurrent.ExecutorService;
+
 import jsat.classifiers.DataPoint;
 
 /**
- * Creates a regressor that averages the results of several voting regression methods. Null values are not supported,
- * and will cause errors at a later time. The averaged regressor can be trained, and will train each of its voting
- * regressors. If each regressor is of the same type, training may not be advisable.
+ * Creates a regressor that averages the results of several voting regression
+ * methods. Null values are not supported, and will cause errors at a later
+ * time. The averaged regressor can be trained, and will train each of its
+ * voting regressors. If each regressor is of the same type, training may not be
+ * advisable.
  *
  * @author Edward Raff
  */
@@ -20,51 +23,49 @@ public class AveragedRegressor implements Regressor {
   protected Regressor[] voters;
 
   /**
-   * Constructs a new averaged regressor using the given array of voters
+   * Constructs a new averaged regressor using the given list of voters. The
+   * list of voters will be copied into a new space, so the list may safely be
+   * reused.
    *
-   * @param voters the array of voters to use
+   * @param voters
+   *          the array of voters to use
    */
-  public AveragedRegressor(Regressor... voters) {
-    if (voters == null || voters.length == 0) {
-      throw new RuntimeException("No voters given for construction");
-    }
-    this.voters = voters;
-  }
-
-  /**
-   * Constructs a new averaged regressor using the given list of voters. The list of voters will be copied into a new
-   * space, so the list may safely be reused.
-   *
-   * @param voters the array of voters to use
-   */
-  public AveragedRegressor(List<Regressor> voters) {
+  public AveragedRegressor(final List<Regressor> voters) {
     if (voters == null || voters.isEmpty()) {
       throw new RuntimeException("No voters given for construction");
     }
     this.voters = voters.toArray(new Regressor[0]);
   }
 
+  /**
+   * Constructs a new averaged regressor using the given array of voters
+   *
+   * @param voters
+   *          the array of voters to use
+   */
+  public AveragedRegressor(final Regressor... voters) {
+    if (voters == null || voters.length == 0) {
+      throw new RuntimeException("No voters given for construction");
+    }
+    this.voters = voters;
+  }
+
   @Override
-  public double regress(DataPoint data) {
+  public AveragedRegressor clone() {
+    final Regressor[] clone = new Regressor[voters.length];
+    for (int i = 0; i < clone.length; i++) {
+      clone[i] = voters[i].clone();
+    }
+    return new AveragedRegressor(clone);
+  }
+
+  @Override
+  public double regress(final DataPoint data) {
     double r = 0.0;
-    for (Regressor vote : voters) {
+    for (final Regressor vote : voters) {
       r += vote.regress(data);
     }
     return r / voters.length;
-  }
-
-  @Override
-  public void train(RegressionDataSet dataSet, ExecutorService threadPool) {
-    for (Regressor voter : voters) {
-      voter.train(dataSet, threadPool);
-    }
-  }
-
-  @Override
-  public void train(RegressionDataSet dataSet) {
-    for (Regressor voter : voters) {
-      voter.train(dataSet);
-    }
   }
 
   @Override
@@ -73,12 +74,17 @@ public class AveragedRegressor implements Regressor {
   }
 
   @Override
-  public AveragedRegressor clone() {
-    Regressor[] clone = new Regressor[this.voters.length];
-    for (int i = 0; i < clone.length; i++) {
-      clone[i] = voters[i].clone();
+  public void train(final RegressionDataSet dataSet) {
+    for (final Regressor voter : voters) {
+      voter.train(dataSet);
     }
-    return new AveragedRegressor(clone);
+  }
+
+  @Override
+  public void train(final RegressionDataSet dataSet, final ExecutorService threadPool) {
+    for (final Regressor voter : voters) {
+      voter.train(dataSet, threadPool);
+    }
   }
 
 }

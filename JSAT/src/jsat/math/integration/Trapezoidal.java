@@ -8,15 +8,11 @@ import jsat.math.Function;
  */
 public class Trapezoidal {
 
-  static public double trapz(Function f, double a, double b, int N) {
+  static public double trapz(final Function f, final double a, final double b, final int N) {
     /*
-         *    b               /              N - 1                 \
-         *   /                |              =====                 |
-         *  |           b - a |f(a) + f(b)   \      /    k (b - a)\|
-         *  | f(x) dx = ----- |----------- +  >    f|a + ---------||
-         *  |             N   |     2        /      \        N    /|
-         * /                  |              =====                 |
-         *  a                 \              k = 1                 /
+     * b / N - 1 \ / | ===== | | b - a |f(a) + f(b) \ / k (b - a)\| | f(x) dx =
+     * ----- |----------- + > f|a + ---------|| | N | 2 / \ N /| / | ===== | a \
+     * k = 1 /
      */
     double sum = 0;
     for (int k = 1; k < N; k++) {

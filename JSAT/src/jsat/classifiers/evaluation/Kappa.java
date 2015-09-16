@@ -18,39 +18,48 @@ public class Kappa implements ClassificationScore {
   public Kappa() {
   }
 
-  public Kappa(Kappa toClone) {
+  public Kappa(final Kappa toClone) {
     if (toClone.errorMatrix != null) {
-      this.errorMatrix = toClone.errorMatrix.clone();
+      errorMatrix = toClone.errorMatrix.clone();
     }
   }
 
   @Override
-  public void addResult(CategoricalResults prediction, int trueLabel, double weight) {
+  public void addResult(final CategoricalResults prediction, final int trueLabel, final double weight) {
     errorMatrix.increment(prediction.mostLikely(), trueLabel, weight);
   }
 
   @Override
-  public void addResults(ClassificationScore other) {
-    Kappa otherObj = (Kappa) other;
+  public void addResults(final ClassificationScore other) {
+    final Kappa otherObj = (Kappa) other;
     if (otherObj.errorMatrix == null) {
       return;
     }
-    if (this.errorMatrix == null) {
+    if (errorMatrix == null) {
       throw new RuntimeException("KappaScore has not been prepared");
     }
-    this.errorMatrix.mutableAdd(otherObj.errorMatrix);
+    errorMatrix.mutableAdd(otherObj.errorMatrix);
   }
 
   @Override
-  public void prepare(CategoricalData toPredict) {
-    int N = toPredict.getNumOfCategories();
-    errorMatrix = new DenseMatrix(N, N);
+  public Kappa clone() {
+    return new Kappa(this);
+  }
+
+  @Override
+  public boolean equals(final Object obj) {
+    return this.getClass().isAssignableFrom(obj.getClass()) && obj.getClass().isAssignableFrom(this.getClass());
+  }
+
+  @Override
+  public String getName() {
+    return "Kappa";
   }
 
   @Override
   public double getScore() {
-    double[] rowTotals = new double[errorMatrix.rows()];
-    double[] colTotals = new double[errorMatrix.rows()];
+    final double[] rowTotals = new double[errorMatrix.rows()];
+    final double[] colTotals = new double[errorMatrix.rows()];
     for (int i = 0; i < errorMatrix.rows(); i++) {
       rowTotals[i] = errorMatrix.getRowView(i).sum();
       colTotals[i] = errorMatrix.getColumnView(i).sum();
@@ -71,11 +80,6 @@ public class Kappa implements ClassificationScore {
   }
 
   @Override
-  public boolean equals(Object obj) {
-    return this.getClass().isAssignableFrom(obj.getClass()) && obj.getClass().isAssignableFrom(this.getClass());
-  }
-
-  @Override
   public int hashCode() {
     return getName().hashCode();
   }
@@ -86,13 +90,9 @@ public class Kappa implements ClassificationScore {
   }
 
   @Override
-  public Kappa clone() {
-    return new Kappa(this);
-  }
-
-  @Override
-  public String getName() {
-    return "Kappa";
+  public void prepare(final CategoricalData toPredict) {
+    final int N = toPredict.getNumOfCategories();
+    errorMatrix = new DenseMatrix(N, N);
   }
 
 }

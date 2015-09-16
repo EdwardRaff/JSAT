@@ -4,18 +4,24 @@
  */
 package jsat.utils;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
+
 import java.util.Random;
-import org.junit.*;
-import static org.junit.Assert.*;
+
+import org.junit.After;
+import org.junit.AfterClass;
+import org.junit.Before;
+import org.junit.BeforeClass;
+import org.junit.Test;
 
 /**
  *
  * @author Edward Raff
  */
 public class IntPriorityQueueTest {
-
-  public IntPriorityQueueTest() {
-  }
 
   @BeforeClass
   public static void setUpClass() throws Exception {
@@ -25,33 +31,10 @@ public class IntPriorityQueueTest {
   public static void tearDownClass() throws Exception {
   }
 
-  @Before
-  public void setUp() {
+  public IntPriorityQueueTest() {
   }
 
-  @After
-  public void tearDown() {
-  }
-
-  @Test
-  public void testGeneralStanrdardMode() {
-    IntPriorityQueue ipq = new IntPriorityQueue(8, IntPriorityQueue.Mode.STANDARD);
-    runSmallGambit(ipq);
-  }
-
-  @Test
-  public void testGeneralHashdMode() {
-    IntPriorityQueue ipq = new IntPriorityQueue(8, IntPriorityQueue.Mode.HASH);
-    runSmallGambit(ipq);
-  }
-
-  @Test
-  public void testGeneralBoundedMode() {
-    IntPriorityQueue ipq = new IntPriorityQueue(8, IntPriorityQueue.Mode.BOUNDED);
-    runSmallGambit(ipq);
-  }
-
-  private void runSmallGambit(IntPriorityQueue ipq) {
+  private void runSmallGambit(final IntPriorityQueue ipq) {
     ipq.add(2);
     assertEquals(1, ipq.size());
     assertEquals(2L, ipq.peek().intValue());
@@ -98,16 +81,42 @@ public class IntPriorityQueueTest {
     assertNull(ipq.poll());
     assertEquals(0, ipq.size());
 
-    Random rand = new Random(2);
+    final Random rand = new Random(2);
     for (int i = 0; i < 100; i++) {
       ipq.add(rand.nextInt(200));
     }
 
     int prev = -1;
     while (!ipq.isEmpty()) {
-      int pop = ipq.poll();
+      final int pop = ipq.poll();
       assertTrue(prev <= pop);
       prev = pop;
     }
+  }
+
+  @Before
+  public void setUp() {
+  }
+
+  @After
+  public void tearDown() {
+  }
+
+  @Test
+  public void testGeneralBoundedMode() {
+    final IntPriorityQueue ipq = new IntPriorityQueue(8, IntPriorityQueue.Mode.BOUNDED);
+    runSmallGambit(ipq);
+  }
+
+  @Test
+  public void testGeneralHashdMode() {
+    final IntPriorityQueue ipq = new IntPriorityQueue(8, IntPriorityQueue.Mode.HASH);
+    runSmallGambit(ipq);
+  }
+
+  @Test
+  public void testGeneralStanrdardMode() {
+    final IntPriorityQueue ipq = new IntPriorityQueue(8, IntPriorityQueue.Mode.STANDARD);
+    runSmallGambit(ipq);
   }
 }

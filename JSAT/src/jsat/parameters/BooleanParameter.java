@@ -16,15 +16,16 @@ public abstract class BooleanParameter extends Parameter {
    */
   abstract public boolean getValue();
 
-  /**
-   * Sets the value for this parameter.
-   *
-   * @return <tt>true</tt> if the value was set, <tt>false</tt> if the value was invalid, and thus ignored.
-   */
-  abstract public boolean setValue(boolean val);
-
   @Override
   public String getValueString() {
     return Boolean.toString(getValue());
   }
+
+  /**
+   * Sets the value for this parameter.
+   *
+   * @return <tt>true</tt> if the value was set, <tt>false</tt> if the value was
+   *         invalid, and thus ignored.
+   */
+  abstract public boolean setValue(boolean val);
 }

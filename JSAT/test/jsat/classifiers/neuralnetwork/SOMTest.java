@@ -16,17 +16,21 @@
  */
 package jsat.classifiers.neuralnetwork;
 
+import static org.junit.Assert.assertEquals;
+
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import jsat.FixedProblems;
-import jsat.classifiers.*;
-import jsat.utils.SystemInfo;
+
 import org.junit.After;
 import org.junit.AfterClass;
-import static org.junit.Assert.*;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
+
+import jsat.FixedProblems;
+import jsat.classifiers.ClassificationDataSet;
+import jsat.classifiers.ClassificationModelEvaluation;
+import jsat.utils.SystemInfo;
 
 /**
  *
@@ -34,15 +38,15 @@ import org.junit.Test;
  */
 public class SOMTest {
 
-  public SOMTest() {
-  }
-
   @BeforeClass
   public static void setUpClass() {
   }
 
   @AfterClass
   public static void tearDownClass() {
+  }
+
+  public SOMTest() {
   }
 
   @Before
@@ -54,58 +58,20 @@ public class SOMTest {
   }
 
   @Test
-  public void testTrainC_ClassificationDataSet_ExecutorService() {
-    System.out.println("trainC");
-
-    SOM instance = new SOM(5, 5);
-    instance.setMaxIterations(200);
-
-    ExecutorService ex = Executors.newFixedThreadPool(SystemInfo.LogicalCores);
-
-    ClassificationDataSet train = FixedProblems.getCircles(1000, 1.0, 10.0, 100.0);
-    ClassificationDataSet test = FixedProblems.getCircles(100, 1.0, 10.0, 100.0);
-
-    ClassificationModelEvaluation cme = new ClassificationModelEvaluation(instance, train, ex);
-    cme.evaluateTestSet(test);
-
-    assertEquals(0, cme.getErrorRate(), 0.1);
-
-    ex.shutdownNow();
-
-  }
-
-  @Test
-  public void testTrainC_ClassificationDataSet() {
-    System.out.println("trainC");
-
-    SOM instance = new SOM(5, 5);
-    instance.setMaxIterations(50);
-
-    ClassificationDataSet train = FixedProblems.getCircles(1000, 1.0, 10.0, 100.0);
-    ClassificationDataSet test = FixedProblems.getCircles(100, 1.0, 10.0, 100.0);
-
-    ClassificationModelEvaluation cme = new ClassificationModelEvaluation(instance, train);
-    cme.evaluateTestSet(test);
-
-    assertEquals(0, cme.getErrorRate(), 0.1);
-
-  }
-
-  @Test
   public void testClone() {
     System.out.println("clone");
 
     SOM instance = new SOM(5, 5);
     instance.setMaxIterations(50);
 
-    ClassificationDataSet t1 = FixedProblems.getSimpleKClassLinear(500, 3);
-    ClassificationDataSet t2 = FixedProblems.getSimpleKClassLinear(500, 6);
+    final ClassificationDataSet t1 = FixedProblems.getSimpleKClassLinear(500, 3);
+    final ClassificationDataSet t2 = FixedProblems.getSimpleKClassLinear(500, 6);
 
     instance = instance.clone();
 
     instance.trainC(t1);
 
-    SOM result = instance.clone();
+    final SOM result = instance.clone();
     for (int i = 0; i < t1.getSampleSize(); i++) {
       assertEquals(t1.getDataPointCategory(i), result.classify(t1.getDataPoint(i)).mostLikely());
     }
@@ -118,6 +84,44 @@ public class SOMTest {
     for (int i = 0; i < t2.getSampleSize(); i++) {
       assertEquals(t2.getDataPointCategory(i), result.classify(t2.getDataPoint(i)).mostLikely());
     }
+
+  }
+
+  @Test
+  public void testTrainC_ClassificationDataSet() {
+    System.out.println("trainC");
+
+    final SOM instance = new SOM(5, 5);
+    instance.setMaxIterations(50);
+
+    final ClassificationDataSet train = FixedProblems.getCircles(1000, 1.0, 10.0, 100.0);
+    final ClassificationDataSet test = FixedProblems.getCircles(100, 1.0, 10.0, 100.0);
+
+    final ClassificationModelEvaluation cme = new ClassificationModelEvaluation(instance, train);
+    cme.evaluateTestSet(test);
+
+    assertEquals(0, cme.getErrorRate(), 0.1);
+
+  }
+
+  @Test
+  public void testTrainC_ClassificationDataSet_ExecutorService() {
+    System.out.println("trainC");
+
+    final SOM instance = new SOM(5, 5);
+    instance.setMaxIterations(200);
+
+    final ExecutorService ex = Executors.newFixedThreadPool(SystemInfo.LogicalCores);
+
+    final ClassificationDataSet train = FixedProblems.getCircles(1000, 1.0, 10.0, 100.0);
+    final ClassificationDataSet test = FixedProblems.getCircles(100, 1.0, 10.0, 100.0);
+
+    final ClassificationModelEvaluation cme = new ClassificationModelEvaluation(instance, train, ex);
+    cme.evaluateTestSet(test);
+
+    assertEquals(0, cme.getErrorRate(), 0.1);
+
+    ex.shutdownNow();
 
   }
 

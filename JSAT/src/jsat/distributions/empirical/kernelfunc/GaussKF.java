@@ -1,6 +1,10 @@
 package jsat.distributions.empirical.kernelfunc;
 
-import static java.lang.Math.*;
+import static java.lang.Math.PI;
+import static java.lang.Math.exp;
+import static java.lang.Math.pow;
+import static java.lang.Math.sqrt;
+
 import jsat.distributions.Normal;
 
 /**
@@ -9,15 +13,12 @@ import jsat.distributions.Normal;
  */
 public class GaussKF implements KernelFunction {
 
-  private static final long serialVersionUID = -6765390012694573184L;
-
-  private GaussKF() {
-  }
-
   private static class SingletonHolder {
 
     public static final GaussKF INSTANCE = new GaussKF();
   }
+
+  private static final long serialVersionUID = -6765390012694573184L;
 
   /**
    * Returns the singleton instance of this class
@@ -28,14 +29,29 @@ public class GaussKF implements KernelFunction {
     return SingletonHolder.INSTANCE;
   }
 
-  @Override
-  public double k(double u) {
-    return Normal.pdf(u, 0, 1);
+  private GaussKF() {
   }
 
   @Override
-  public double intK(double u) {
+  public double cutOff() {
+    /*
+     * This is not techincaly correct, as this value of k(u) is still
+     * 7.998827757006813E-38 However, this is very close to zero, and is so
+     * small that k(u)+x = x, for most values of x. Unless this probability si
+     * going to be near zero, values past this point will have no effect on the
+     * result
+     */
+    return 13;
+  }
+
+  @Override
+  public double intK(final double u) {
     return Normal.cdf(u, 0, 1);
+  }
+
+  @Override
+  public double k(final double u) {
+    return Normal.pdf(u, 0, 1);
   }
 
   @Override
@@ -44,18 +60,7 @@ public class GaussKF implements KernelFunction {
   }
 
   @Override
-  public double cutOff() {
-    /*
-         * This is not techincaly correct, as this value of k(u) is still 7.998827757006813E-38
-         * However, this is very close to zero, and is so small that  k(u)+x = x, for most values of x. 
-         * Unless this probability si going to be near zero, values past this point will have 
-         * no effect on the result
-     */
-    return 13;
-  }
-
-  @Override
-  public double kPrime(double u) {
+  public double kPrime(final double u) {
     return -exp(-pow(u, 2) / 2) * u / sqrt(2 * PI);
   }
 

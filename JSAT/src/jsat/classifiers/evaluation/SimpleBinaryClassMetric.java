@@ -4,9 +4,10 @@ import jsat.classifiers.CategoricalData;
 import jsat.classifiers.CategoricalResults;
 
 /**
- * This is a base class for scores that can be computed from simple counts of the true positives, true negatives, false
- * positives, and false negatives. The class with index zero will be considered the positive class and the class with
- * the first index will be the negative class. <br>
+ * This is a base class for scores that can be computed from simple counts of
+ * the true positives, true negatives, false positives, and false negatives. The
+ * class with index zero will be considered the positive class and the class
+ * with the first index will be the negative class. <br>
  * <br>
  * By default this class assumes higher scores are better
  *
@@ -35,16 +36,16 @@ public abstract class SimpleBinaryClassMetric implements ClassificationScore {
   public SimpleBinaryClassMetric() {
   }
 
-  public SimpleBinaryClassMetric(SimpleBinaryClassMetric toClone) {
-    this.tp = toClone.tp;
-    this.tn = toClone.tn;
-    this.fp = toClone.fp;
-    this.fn = toClone.fn;
+  public SimpleBinaryClassMetric(final SimpleBinaryClassMetric toClone) {
+    tp = toClone.tp;
+    tn = toClone.tn;
+    fp = toClone.fp;
+    fn = toClone.fn;
   }
 
   @Override
-  public void addResult(CategoricalResults prediction, int trueLabel, double weight) {
-    int pred = prediction.mostLikely();
+  public void addResult(final CategoricalResults prediction, final int trueLabel, final double weight) {
+    final int pred = prediction.mostLikely();
     if (pred == trueLabel) {
       if (pred == 0) {
         tp += weight;
@@ -60,18 +61,16 @@ public abstract class SimpleBinaryClassMetric implements ClassificationScore {
   }
 
   @Override
-  public void prepare(CategoricalData toPredict) {
-    tp = tn = fp = fn = 0;
+  public void addResults(final ClassificationScore other) {
+    final SimpleBinaryClassMetric otherObj = (SimpleBinaryClassMetric) other;
+    tp += otherObj.tp;
+    tn += otherObj.tn;
+    fp += otherObj.fp;
+    fn += otherObj.fn;
   }
 
   @Override
-  public void addResults(ClassificationScore other) {
-    SimpleBinaryClassMetric otherObj = (SimpleBinaryClassMetric) other;
-    this.tp += otherObj.tp;
-    this.tn += otherObj.tn;
-    this.fp += otherObj.fp;
-    this.fn += otherObj.fn;
-  }
+  abstract public SimpleBinaryClassMetric clone();
 
   @Override
   abstract public double getScore();
@@ -82,6 +81,8 @@ public abstract class SimpleBinaryClassMetric implements ClassificationScore {
   }
 
   @Override
-  abstract public SimpleBinaryClassMetric clone();
+  public void prepare(final CategoricalData toPredict) {
+    tp = tn = fp = fn = 0;
+  }
 
 }

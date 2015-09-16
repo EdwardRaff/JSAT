@@ -3,6 +3,7 @@ package jsat.distributions.kernels;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+
 import jsat.DataSet;
 import jsat.classifiers.ClassificationDataSet;
 import jsat.distributions.Distribution;
@@ -15,103 +16,41 @@ import jsat.utils.IntList;
 import jsat.utils.ListUtils;
 
 /**
- * This class provides a generalization of the {@link RBFKernel} to arbitrary {@link DistanceMetric distance metrics},
- * and is of the form
- * <i>exp(-d(x, y)<sup>2</sup>/(2 {@link #setSigma(double) &sigma;}<sup>2</sup>
- * ))</i>. So long as the distance metric is valid, the resulting kernel trick will be a valid kernel. <br>
+ * This class provides a generalization of the {@link RBFKernel} to arbitrary
+ * {@link DistanceMetric distance metrics}, and is of the form <i>exp(-d(x, y)
+ * <sup>2</sup>/(2 {@link #setSigma(double) &sigma;}<sup>2</sup> ))</i>. So long
+ * as the distance metric is valid, the resulting kernel trick will be a valid
+ * kernel. <br>
  * <br>
- * If the {@link EuclideanDistance} is used, then this becomes equivalent to the {@link RBFKernel}. <br>
+ * If the {@link EuclideanDistance} is used, then this becomes equivalent to the
+ * {@link RBFKernel}. <br>
  * <br>
- * Note, that since the {@link KernelTrick} has no concept of training - the distance metric can not require training
- * either. A pre-trained metric can be admissible thought.
+ * Note, that since the {@link KernelTrick} has no concept of training - the
+ * distance metric can not require training either. A pre-trained metric can be
+ * admissible thought.
  *
  * @author Edward Raff
  */
 public class GeneralRBFKernel extends DistanceMetricBasedKernel {
 
   private static final long serialVersionUID = 1368225926995372017L;
-  private double sigma;
-  private double sigmaSqrd2Inv;
 
   /**
-   * Creates a new Generic RBF Kernel
+   * Guess the distribution to use for the kernel width term
+   * {@link #setSigma(double) &sigma;} in the General RBF kernel.
    *
-   * @param d the distance metric to use
-   * @param sigma the standard deviation to use
-   */
-  public GeneralRBFKernel(DistanceMetric d, double sigma) {
-    super(d);
-    setSigma(sigma);
-  }
-
-  /**
-   * Sets the kernel width parameter, which must be a positive value. Larger values indicate a larger width
-   *
-   * @param sigma the sigma value
-   */
-  public void setSigma(double sigma) {
-    if (sigma <= 0 || Double.isNaN(sigma) || Double.isInfinite(sigma)) {
-      throw new IllegalArgumentException("Sigma must be a positive constant, not " + sigma);
-    }
-    this.sigma = sigma;
-    this.sigmaSqrd2Inv = 0.5 / (sigma * sigma);
-  }
-
-  /**
-   *
-   * @return the width parameter to use for the kernel
-   */
-  public double getSigma() {
-    return sigma;
-  }
-
-  @Override
-  public KernelTrick clone() {
-    return new GeneralRBFKernel(d.clone(), sigma);
-  }
-
-  @Override
-  public double eval(Vec a, Vec b) {
-    double dist = d.dist(a, b);
-    return Math.exp(-dist * dist * sigmaSqrd2Inv);
-  }
-
-  @Override
-  public double eval(int a, Vec b, List<Double> qi, List<? extends Vec> vecs, List<Double> cache) {
-    double dist = d.dist(a, b, qi, vecs, cache);
-    return Math.exp(-dist * dist * sigmaSqrd2Inv);
-
-  }
-
-  @Override
-  public double eval(int a, int b, List<? extends Vec> vecs, List<Double> cache) {
-    double dist = d.dist(a, b, vecs, cache);
-    return Math.exp(-dist * dist * sigmaSqrd2Inv);
-  }
-
-  /**
-   * Guess the distribution to use for the kernel width term {@link #setSigma(double) &sigma;} in the General RBF
-   * kernel.
-   *
-   * @param d the data set to get the guess for
+   * @param d
+   *          the data set to get the guess for
+   * @param dist
+   *          the distance metric to assume is being used in the kernel
    * @return the guess for the &sigma; parameter in the General RBF Kernel
    */
-  public Distribution guessSigma(DataSet d) {
-    return guessSigma(d, this.d);
-  }
+  public static Distribution guessSigma(final DataSet d, final DistanceMetric dist) {
+    // we will use a simple strategy of estimating the mean sigma to test based
+    // on the pair wise distances of random points
 
-  /**
-   * Guess the distribution to use for the kernel width term {@link #setSigma(double) &sigma;} in the General RBF
-   * kernel.
-   *
-   * @param d the data set to get the guess for
-   * @param dist the distance metric to assume is being used in the kernel
-   * @return the guess for the &sigma; parameter in the General RBF Kernel
-   */
-  public static Distribution guessSigma(DataSet d, DistanceMetric dist) {
-        //we will use a simple strategy of estimating the mean sigma to test based on the pair wise distances of random points
-
-    //to avoid n^2 work for this, we will use a sqrt(n) sized sample as n increases so that we only do O(n) work
+    // to avoid n^2 work for this, we will use a sqrt(n) sized sample as n
+    // increases so that we only do O(n) work
     List<Vec> allVecs = d.getDataVectors();
 
     int toSample = d.getSampleSize();
@@ -119,18 +58,18 @@ public class GeneralRBFKernel extends DistanceMetricBasedKernel {
       toSample = 5000 + (int) Math.floor(Math.sqrt(d.getSampleSize() - 5000));
     }
 
-    DoubleList vals = new DoubleList(toSample * toSample);
+    final DoubleList vals = new DoubleList(toSample * toSample);
 
     if (d instanceof ClassificationDataSet && ((ClassificationDataSet) d).getPredicting().getNumOfCategories() == 2) {
-      ClassificationDataSet cdata = (ClassificationDataSet) d;
-      List<Vec> class0 = new ArrayList<Vec>(toSample / 2);
-      List<Vec> class1 = new ArrayList<Vec>(toSample / 2);
-      IntList randOrder = new IntList(d.getSampleSize());
+      final ClassificationDataSet cdata = (ClassificationDataSet) d;
+      final List<Vec> class0 = new ArrayList<Vec>(toSample / 2);
+      final List<Vec> class1 = new ArrayList<Vec>(toSample / 2);
+      final IntList randOrder = new IntList(d.getSampleSize());
       ListUtils.addRange(randOrder, 0, d.getSampleSize(), 1);
       Collections.shuffle(randOrder);
-      //collet a random sample of data
+      // collet a random sample of data
       for (int i = 0; i < randOrder.size(); i++) {
-        int indx = randOrder.getI(i);
+        final int indx = randOrder.getI(i);
         if (cdata.getDataPointCategory(indx) == 0 && class0.size() < toSample / 2) {
           class0.add(cdata.getDataPoint(indx).getNumericalValues());
         } else if (cdata.getDataPointCategory(indx) == 1 && class0.size() < toSample / 2) {
@@ -138,9 +77,9 @@ public class GeneralRBFKernel extends DistanceMetricBasedKernel {
         }
       }
 
-      int j_start = class0.size();
+      final int j_start = class0.size();
       class0.addAll(class1);
-      List<Double> cache = dist.getAccelerationCache(class0);
+      final List<Double> cache = dist.getAccelerationCache(class0);
       for (int i = 0; i < j_start; i++) {
         for (int j = j_start; j < class0.size(); j++) {
           vals.add(dist.dist(i, j, allVecs, cache));
@@ -152,7 +91,7 @@ public class GeneralRBFKernel extends DistanceMetricBasedKernel {
         allVecs = allVecs.subList(0, toSample);
       }
 
-      List<Double> cache = dist.getAccelerationCache(allVecs);
+      final List<Double> cache = dist.getAccelerationCache(allVecs);
       for (int i = 0; i < allVecs.size(); i++) {
         for (int j = i + 1; j < allVecs.size(); j++) {
           vals.add(dist.dist(i, j, allVecs, cache));
@@ -161,7 +100,84 @@ public class GeneralRBFKernel extends DistanceMetricBasedKernel {
     }
 
     Collections.sort(vals);
-    double median = vals.get(vals.size() / 2);
+    final double median = vals.get(vals.size() / 2);
     return new LogUniform(Math.exp(Math.log(median) - 4), Math.exp(Math.log(median) + 4));
+  }
+
+  private double sigma;
+
+  private double sigmaSqrd2Inv;
+
+  /**
+   * Creates a new Generic RBF Kernel
+   *
+   * @param d
+   *          the distance metric to use
+   * @param sigma
+   *          the standard deviation to use
+   */
+  public GeneralRBFKernel(final DistanceMetric d, final double sigma) {
+    super(d);
+    setSigma(sigma);
+  }
+
+  @Override
+  public KernelTrick clone() {
+    return new GeneralRBFKernel(d.clone(), sigma);
+  }
+
+  @Override
+  public double eval(final int a, final int b, final List<? extends Vec> vecs, final List<Double> cache) {
+    final double dist = d.dist(a, b, vecs, cache);
+    return Math.exp(-dist * dist * sigmaSqrd2Inv);
+  }
+
+  @Override
+  public double eval(final int a, final Vec b, final List<Double> qi, final List<? extends Vec> vecs,
+      final List<Double> cache) {
+    final double dist = d.dist(a, b, qi, vecs, cache);
+    return Math.exp(-dist * dist * sigmaSqrd2Inv);
+
+  }
+
+  @Override
+  public double eval(final Vec a, final Vec b) {
+    final double dist = d.dist(a, b);
+    return Math.exp(-dist * dist * sigmaSqrd2Inv);
+  }
+
+  /**
+   *
+   * @return the width parameter to use for the kernel
+   */
+  public double getSigma() {
+    return sigma;
+  }
+
+  /**
+   * Guess the distribution to use for the kernel width term
+   * {@link #setSigma(double) &sigma;} in the General RBF kernel.
+   *
+   * @param d
+   *          the data set to get the guess for
+   * @return the guess for the &sigma; parameter in the General RBF Kernel
+   */
+  public Distribution guessSigma(final DataSet d) {
+    return guessSigma(d, this.d);
+  }
+
+  /**
+   * Sets the kernel width parameter, which must be a positive value. Larger
+   * values indicate a larger width
+   *
+   * @param sigma
+   *          the sigma value
+   */
+  public void setSigma(final double sigma) {
+    if (sigma <= 0 || Double.isNaN(sigma) || Double.isInfinite(sigma)) {
+      throw new IllegalArgumentException("Sigma must be a positive constant, not " + sigma);
+    }
+    this.sigma = sigma;
+    sigmaSqrd2Inv = 0.5 / (sigma * sigma);
   }
 }

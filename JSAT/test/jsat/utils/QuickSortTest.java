@@ -1,16 +1,19 @@
 package jsat.utils;
 
+import static org.junit.Assert.assertTrue;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Random;
-import jsat.utils.random.XORWOW;
+
 import org.junit.After;
 import org.junit.AfterClass;
-import static org.junit.Assert.*;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
+
+import jsat.utils.random.XORWOW;
 
 /**
  *
@@ -18,15 +21,15 @@ import org.junit.Test;
  */
 public class QuickSortTest {
 
-  public QuickSortTest() {
-  }
-
   @BeforeClass
   public static void setUpClass() {
   }
 
   @AfterClass
   public static void tearDownClass() {
+  }
+
+  public QuickSortTest() {
   }
 
   @Before
@@ -43,9 +46,9 @@ public class QuickSortTest {
   @Test
   public void testSortD() {
     System.out.println("sort");
-    Random rand = new XORWOW();
+    final Random rand = new XORWOW();
     for (int size = 2; size < 10000; size *= 2) {
-      double[] x = new double[size];
+      final double[] x = new double[size];
       for (int i = 0; i < x.length; i++) {
         if (rand.nextInt(10) == 0) {
           x[i] = rand.nextInt(10);
@@ -65,12 +68,12 @@ public class QuickSortTest {
   public void testSortDP() {
     System.out.println("sort");
 
-    IntList ints = new IntList();
-    Collection<List<?>> paired = new ArrayList<List<?>>();
+    final IntList ints = new IntList();
+    final Collection<List<?>> paired = new ArrayList<List<?>>();
     paired.add(ints);
     for (int size = 2; size < 10000; size *= 2) {
       ints.clear();
-      double[] x = new double[size];
+      final double[] x = new double[size];
       for (int i = 0; i < x.length; i++) {
         x[i] = x.length - i;
         ints.add(i);
@@ -89,12 +92,12 @@ public class QuickSortTest {
   public void testSortFP() {
     System.out.println("sort");
 
-    IntList ints = new IntList();
-    Collection<List<?>> paired = new ArrayList<List<?>>();
+    final IntList ints = new IntList();
+    final Collection<List<?>> paired = new ArrayList<List<?>>();
     paired.add(ints);
     for (int size = 2; size < 10000; size *= 2) {
       ints.clear();
-      float[] x = new float[size];
+      final float[] x = new float[size];
       for (int i = 0; i < x.length; i++) {
         x[i] = x.length - i;
         ints.add(i);

@@ -1,8 +1,10 @@
 package jsat.distributions;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+
 import org.junit.After;
 import org.junit.AfterClass;
-import static org.junit.Assert.*;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -28,11 +30,11 @@ public class LogNormalTest {
   @Test
   public void testEquals() {
     System.out.println("equals");
-    ContinuousDistribution d1 = new LogNormal(0.5, 0.5);
-    ContinuousDistribution d2 = new LogNormal(0.6, 0.5);
-    ContinuousDistribution d3 = new LogNormal(0.5, 0.6);
-    ContinuousDistribution d4 = new LogNormal(0.5, 0.5);
-    Integer i = 1;
+    final ContinuousDistribution d1 = new LogNormal(0.5, 0.5);
+    final ContinuousDistribution d2 = new LogNormal(0.6, 0.5);
+    final ContinuousDistribution d3 = new LogNormal(0.5, 0.6);
+    final ContinuousDistribution d4 = new LogNormal(0.5, 0.5);
+    final Integer i = 1;
     assertFalse(d1.equals(d2));
     assertFalse(d1.equals(d3));
     assertFalse(d2.equals(d3));
@@ -46,9 +48,9 @@ public class LogNormalTest {
   @Test
   public void testHashCode() {
     System.out.println("hashCode");
-    ContinuousDistribution d1 = new LogNormal(0.5, 0.5);
-    ContinuousDistribution d2 = new LogNormal(0.6, 0.5);
-    ContinuousDistribution d4 = new LogNormal(0.5, 0.5);
+    final ContinuousDistribution d1 = new LogNormal(0.5, 0.5);
+    final ContinuousDistribution d2 = new LogNormal(0.6, 0.5);
+    final ContinuousDistribution d4 = new LogNormal(0.5, 0.5);
     assertEquals(d1.hashCode(), d4.hashCode());
     assertFalse(d1.hashCode() == d2.hashCode());
   }

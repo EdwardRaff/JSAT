@@ -16,9 +16,18 @@
  */
 package jsat.datatransform.visualization;
 
+import static org.junit.Assert.assertTrue;
+
 import java.util.Random;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+
+import org.junit.After;
+import org.junit.AfterClass;
+import org.junit.Before;
+import org.junit.BeforeClass;
+import org.junit.Test;
+
 import jsat.SimpleDataSet;
 import jsat.classifiers.CategoricalData;
 import jsat.classifiers.DataPoint;
@@ -28,12 +37,6 @@ import jsat.linear.Vec;
 import jsat.linear.distancemetrics.EuclideanDistance;
 import jsat.utils.SystemInfo;
 import jsat.utils.random.XORWOW;
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
-import static org.junit.Assert.*;
 
 /**
  *
@@ -41,15 +44,15 @@ import static org.junit.Assert.*;
  */
 public class MDSTest {
 
-  public MDSTest() {
-  }
-
   @BeforeClass
   public static void setUpClass() {
   }
 
   @AfterClass
   public static void tearDownClass() {
+  }
+
+  public MDSTest() {
   }
 
   @Before
@@ -67,49 +70,50 @@ public class MDSTest {
   public void testTransform_DataSet_ExecutorService() {
     System.out.println("transform");
 
-    ExecutorService ex = Executors.newFixedThreadPool(SystemInfo.LogicalCores);
+    final ExecutorService ex = Executors.newFixedThreadPool(SystemInfo.LogicalCores);
 
-    Random rand = new XORWOW();
-    MDS instance = new MDS();
+    final Random rand = new XORWOW();
+    final MDS instance = new MDS();
 
-    //create a small data set, and apply a random projection to a higher dimension
-    //shouuld still be able to distances on the same scaling
-    Matrix orig_dim = new DenseMatrix(20, 2);
+    // create a small data set, and apply a random projection to a higher
+    // dimension
+    // shouuld still be able to distances on the same scaling
+    final Matrix orig_dim = new DenseMatrix(20, 2);
     for (int i = 0; i < orig_dim.rows(); i++) {
-      int offset = i % 2 == 0 ? -5 : 5;
+      final int offset = i % 2 == 0 ? -5 : 5;
       for (int j = 0; j < orig_dim.cols(); j++) {
         orig_dim.set(i, j, rand.nextDouble() + offset);
       }
     }
 
-    Matrix s = Matrix.random(2, 4, rand);
+    final Matrix s = Matrix.random(2, 4, rand);
 
-    Matrix proj_data = orig_dim.multiply(s);
+    final Matrix proj_data = orig_dim.multiply(s);
 
-    SimpleDataSet proj = new SimpleDataSet(new CategoricalData[0], proj_data.cols());
+    final SimpleDataSet proj = new SimpleDataSet(new CategoricalData[0], proj_data.cols());
     for (int i = 0; i < proj_data.rows(); i++) {
       proj.add(new DataPoint(proj_data.getRow(i)));
     }
 
-    SimpleDataSet transformed_0 = instance.transform(proj, ex);
-    SimpleDataSet transformed_1 = instance.transform(proj);
+    final SimpleDataSet transformed_0 = instance.transform(proj, ex);
+    final SimpleDataSet transformed_1 = instance.transform(proj);
 
-    for (SimpleDataSet transformed : new SimpleDataSet[]{transformed_0, transformed_1}) {
+    for (final SimpleDataSet transformed : new SimpleDataSet[] { transformed_0, transformed_1 }) {
 
-      EuclideanDistance dist = new EuclideanDistance();
+      final EuclideanDistance dist = new EuclideanDistance();
 
       for (int i = 0; i < orig_dim.rows(); i++) {
         for (int j = 0; j < orig_dim.rows(); j++) {
-          Vec orig_i = orig_dim.getRowView(i);
-          Vec orig_j = orig_dim.getRowView(j);
-          Vec new_i = transformed.getDataPoint(i).getNumericalValues();
-          Vec new_j = transformed.getDataPoint(j).getNumericalValues();
-          double d_o = dist.dist(orig_i, orig_j);
-          double d_n = dist.dist(new_i, new_j);
+          final Vec orig_i = orig_dim.getRowView(i);
+          final Vec orig_j = orig_dim.getRowView(j);
+          final Vec new_i = transformed.getDataPoint(i).getNumericalValues();
+          final Vec new_j = transformed.getDataPoint(j).getNumericalValues();
+          final double d_o = dist.dist(orig_i, orig_j);
+          final double d_n = dist.dist(new_i, new_j);
           if (d_o > 6) {
             assertTrue(d_n > 6);
           } else {
-            //do is small, we should also be small
+            // do is small, we should also be small
             assertTrue(d_o < 2);
           }
         }

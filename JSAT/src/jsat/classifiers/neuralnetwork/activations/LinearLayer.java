@@ -12,22 +12,23 @@ public class LinearLayer implements ActivationLayer {
   private static final long serialVersionUID = -4040058095010471379L;
 
   @Override
-  public void activate(Vec input, Vec output) {
+  public void activate(final Matrix input, final Matrix output, final boolean rowMajor) {
     input.copyTo(output);
   }
 
   @Override
-  public void activate(Matrix input, Matrix output, boolean rowMajor) {
+  public void activate(final Vec input, final Vec output) {
     input.copyTo(output);
   }
 
   @Override
-  public void backprop(Vec input, Vec output, Vec delta_partial, Vec errout) {
+  public void backprop(final Matrix input, final Matrix output, final Matrix delta_partial, final Matrix errout,
+      final boolean rowMajor) {
     delta_partial.copyTo(errout);
   }
 
   @Override
-  public void backprop(Matrix input, Matrix output, Matrix delta_partial, Matrix errout, boolean rowMajor) {
+  public void backprop(final Vec input, final Vec output, final Vec delta_partial, final Vec errout) {
     delta_partial.copyTo(errout);
   }
 

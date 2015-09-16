@@ -3,8 +3,9 @@ package jsat.clustering.dissimilarity;
 import jsat.linear.distancemetrics.SquaredEuclideanDistance;
 
 /**
- * An implementation of Ward's method for hierarchical clustering. This method merges clusters based on the minimum
- * total variance of the resulting clusters.
+ * An implementation of Ward's method for hierarchical clustering. This method
+ * merges clusters based on the minimum total variance of the resulting
+ * clusters.
  *
  * @author Edward Raff
  */
@@ -15,13 +16,8 @@ public class WardsDissimilarity extends LanceWilliamsDissimilarity {
   }
 
   @Override
-  public WardsDissimilarity clone() {
-    return new WardsDissimilarity();
-  }
-
-  @Override
-  protected double aConst(boolean iFlag, int ni, int nj, int nk) {
-    double totalPoints = ni + nj + nk;
+  protected double aConst(final boolean iFlag, final int ni, final int nj, final int nk) {
+    final double totalPoints = ni + nj + nk;
     if (iFlag) {
       return (ni + nk) / totalPoints;
     } else {
@@ -30,14 +26,19 @@ public class WardsDissimilarity extends LanceWilliamsDissimilarity {
   }
 
   @Override
-  protected double bConst(int ni, int nj, int nk) {
-    double totalPoints = ni + nj + nk;
+  protected double bConst(final int ni, final int nj, final int nk) {
+    final double totalPoints = ni + nj + nk;
     return -nk / totalPoints;
   }
 
   @Override
-  protected double cConst(int ni, int nj, int nk) {
+  protected double cConst(final int ni, final int nj, final int nk) {
     return 0;
+  }
+
+  @Override
+  public WardsDissimilarity clone() {
+    return new WardsDissimilarity();
   }
 
 }

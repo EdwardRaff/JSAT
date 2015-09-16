@@ -1,15 +1,20 @@
 package jsat.utils;
 
 import java.io.Serializable;
-import java.util.*;
+import java.util.AbstractSet;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Iterator;
+import java.util.NoSuchElementException;
+import java.util.SortedSet;
 
 /**
- * A utility class for efficiently storing a set of integers. In order to do this, the integers are stored in their
- * natural order.
+ * A utility class for efficiently storing a set of integers. In order to do
+ * this, the integers are stored in their natural order.
  *
  * @author Edward Raff
  */
-public class IntSet extends AbstractSet<Integer> implements Serializable {
+public class IntSet extends AbstractSet<Integer>implements Serializable {
 
   private static final long serialVersionUID = -2675363824037596497L;
 
@@ -18,42 +23,42 @@ public class IntSet extends AbstractSet<Integer> implements Serializable {
   private int[] store;
   private int size;
 
-  public IntSet(int initialSize) {
-    store = new int[initialSize];
-    size = 0;
-  }
-
-  public IntSet(SortedSet<Integer> sortedSet) {
-    this();
-    for (Integer integer : sortedSet) {
-      this.add(integer);
-    }
-  }
-
-  public IntSet(Collection<Integer> collection) {
-    this();
-    for (Integer integer : collection) {
-      this.add(integer);
-    }
-  }
-
   public IntSet() {
     this(defaultSize);
   }
 
+  public IntSet(final Collection<Integer> collection) {
+    this();
+    for (final Integer integer : collection) {
+      add(integer);
+    }
+  }
+
+  public IntSet(final int initialSize) {
+    store = new int[initialSize];
+    size = 0;
+  }
+
+  public IntSet(final SortedSet<Integer> sortedSet) {
+    this();
+    for (final Integer integer : sortedSet) {
+      add(integer);
+    }
+  }
+
   @Override
-  public boolean add(Integer e) {
+  public boolean add(final Integer e) {
     if (e == null) {
       return false;
     }
     int insertionPoint = Arrays.binarySearch(store, 0, size, e);
     if (insertionPoint >= 0) {
-      return false;//Already in the set
+      return false;// Already in the set
     }
-    //Fix up to where we would like to place it
-    insertionPoint = (-(insertionPoint) - 1);
+    // Fix up to where we would like to place it
+    insertionPoint = -insertionPoint - 1;
 
-    //Increase store size if needed
+    // Increase store size if needed
     if (size >= store.length) {
       store = Arrays.copyOf(store, store.length * 2);
     }

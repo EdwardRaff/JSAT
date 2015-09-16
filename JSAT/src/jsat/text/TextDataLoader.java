@@ -1,6 +1,13 @@
 package jsat.text;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
 import jsat.DataSet;
 import jsat.SimpleDataSet;
 import jsat.classifiers.CategoricalData;
@@ -14,7 +21,8 @@ import jsat.utils.IntList;
 import jsat.utils.IntSet;
 
 /**
- * This class provides a framework for loading datasets made of Text documents as vectors.
+ * This class provides a framework for loading datasets made of Text documents
+ * as vectors.
  *
  * @author Edward Raff
  */
@@ -42,7 +50,7 @@ public abstract class TextDataLoader implements TextVectorCreator {
    * The list of integer counts of how many times each word token was seen
    */
   protected List<Integer> termDocumentFrequencys;
-  private WordWeighting weighting;
+  private final WordWeighting weighting;
 
   /**
    * Temporary work space to use for tokenization
@@ -60,38 +68,33 @@ public abstract class TextDataLoader implements TextVectorCreator {
   private TextVectorCreator tvc;
 
   /**
-   * true when {@link #finishAdding() } is called, and no new original documents can be inserted
+   * true when {@link #finishAdding() } is called, and no new original documents
+   * can be inserted
    */
   protected boolean noMoreAdding;
   private int currentLength = 0;
   private int documents;
 
-  public TextDataLoader(Tokenizer tokenizer, WordWeighting weighting) {
-    this.vectors = new ArrayList<SparseVector>();
+  public TextDataLoader(final Tokenizer tokenizer, final WordWeighting weighting) {
+    vectors = new ArrayList<SparseVector>();
     this.tokenizer = tokenizer;
 
-    this.wordIndex = new HashMap<String, Integer>();
-    this.termDocumentFrequencys = new IntList();
+    wordIndex = new HashMap<String, Integer>();
+    termDocumentFrequencys = new IntList();
     this.weighting = weighting;
-    this.allWords = new ArrayList<String>();
+    allWords = new ArrayList<String>();
     noMoreAdding = false;
   }
 
   /**
-   * This method will load all the text documents that make up the original data set from their source. For each
-   * document, {@link #addOriginalDocument(java.lang.String) } should be called with the text of the document. <br>
-   * This method will be called when {@link #getDataSet() } is called for the first time. <br>
-   * New document vectors can be obtained after loading by calling {@link #newText(java.lang.String) }.
-   */
-  public abstract void initialLoad();
-
-  /**
-   * To be called by the {@link #initialLoad() } method. It will take in the text and add a new document vector to the
-   * data set. Once all text documents have been loaded, this method should never be called again.
+   * To be called by the {@link #initialLoad() } method. It will take in the
+   * text and add a new document vector to the data set. Once all text documents
+   * have been loaded, this method should never be called again.
    *
-   * @param text the text of the document to add
+   * @param text
+   *          the text of the document to add
    */
-  protected void addOriginalDocument(String text) {
+  protected void addOriginalDocument(final String text) {
     if (noMoreAdding) {
       throw new RuntimeException("Initial data set has been finalized");
     }
@@ -106,15 +109,15 @@ public abstract class TextDataLoader implements TextVectorCreator {
 
     tokenizer.tokenize(text, workSpace, storageSpace);
     /**
-     * Create a new one every 50 so that we dont waist iteration time on many null elements when we occasionally load in
-     * an abnormally large document
+     * Create a new one every 50 so that we dont waist iteration time on many
+     * null elements when we occasionally load in an abnormally large document
      */
     if (documents % 50 == 0) {
       wordCounts = new HashMap<String, Integer>(storageSpace.size() * 3 / 2);
     }
 
-    for (String word : storageSpace) {
-      Integer count = wordCounts.get(word);
+    for (final String word : storageSpace) {
+      final Integer count = wordCounts.get(word);
       if (count == null) {
         wordCounts.put(word, 1);
       } else {
@@ -122,20 +125,35 @@ public abstract class TextDataLoader implements TextVectorCreator {
       }
     }
 
-    SparseVector vec = new SparseVector(currentLength + 1, wordCounts.size());//+1 to avoid issues when its length is zero, will be corrected in finalization step anyway
-    for (Iterator<Map.Entry<String, Integer>> iter = wordCounts.entrySet().iterator(); iter.hasNext();) {
-      Map.Entry<String, Integer> entry = iter.next();
-      String word = entry.getKey();
+    final SparseVector vec = new SparseVector(currentLength + 1, wordCounts.size());// +1
+                                                                                    // to
+                                                                                    // avoid
+                                                                                    // issues
+                                                                                    // when
+                                                                                    // its
+                                                                                    // length
+                                                                                    // is
+                                                                                    // zero,
+                                                                                    // will
+                                                                                    // be
+                                                                                    // corrected
+                                                                                    // in
+                                                                                    // finalization
+                                                                                    // step
+                                                                                    // anyway
+    for (final Iterator<Map.Entry<String, Integer>> iter = wordCounts.entrySet().iterator(); iter.hasNext();) {
+      final Map.Entry<String, Integer> entry = iter.next();
+      final String word = entry.getKey();
 
-      Integer indx = wordIndex.get(word);
-      if (indx == null)//this word has never been seen before!
+      final Integer indx = wordIndex.get(word);
+      if (indx == null) // this word has never been seen before!
       {
         allWords.add(word);
         wordIndex.put(word, currentLength++);
         termDocumentFrequencys.add(1);
         vec.setLength(currentLength);
         vec.set(currentLength - 1, entry.getValue());
-      } else//this word has been seen before
+      } else// this word has been seen before
       {
         termDocumentFrequencys.set(indx, termDocumentFrequencys.get(indx) + 1);
         vec.set(indx, entry.getValue());
@@ -148,7 +166,8 @@ public abstract class TextDataLoader implements TextVectorCreator {
   }
 
   /**
-   * Once all original documents have been added, this method is called so that post processing steps can be applied.
+   * Once all original documents have been added, this method is called so that
+   * post processing steps can be applied.
    */
   protected void finishAdding() {
     noMoreAdding = true;
@@ -158,16 +177,18 @@ public abstract class TextDataLoader implements TextVectorCreator {
     wordCounts = null;
 
     weighting.setWeight(vectors, termDocumentFrequencys);
-    for (SparseVector vec : vectors) {
-      //Make sure all the vectors have the same length
+    for (final SparseVector vec : vectors) {
+      // Make sure all the vectors have the same length
       vec.setLength(currentLength);
-      //Unlike normal index functions, WordWeighting needs to use the vector to do some set up first
+      // Unlike normal index functions, WordWeighting needs to use the vector to
+      // do some set up first
       weighting.applyTo(vec);
     }
   }
 
   /**
-   * Returns a new data set containing the original data points that were loaded with this loader.
+   * Returns a new data set containing the original data points that were loaded
+   * with this loader.
    *
    * @return an appropriate data set for this loader
    */
@@ -177,9 +198,9 @@ public abstract class TextDataLoader implements TextVectorCreator {
       finishAdding();
     }
 
-    List<DataPoint> dataPoints = new ArrayList<DataPoint>(vectors.size());
+    final List<DataPoint> dataPoints = new ArrayList<DataPoint>(vectors.size());
 
-    for (SparseVector vec : vectors) {
+    for (final SparseVector vec : vectors) {
       dataPoints.add(new DataPoint(vec, new int[0], new CategoricalData[0]));
     }
 
@@ -187,29 +208,41 @@ public abstract class TextDataLoader implements TextVectorCreator {
   }
 
   /**
-   * To be called after all original texts have been loaded.
+   * Creates a new transform factory to remove all features for tokens that did
+   * not occur a certain number of times
    *
-   * @param text the text of the document to create a document vector from
-   * @return the sparce vector representing this document
+   * @param minCount
+   *          the minimum number of occurrences to be kept as a feature
+   * @return a transform factory for removing features that did not occur often
+   *         enough
    */
-  @Override
-  public Vec newText(String text) {
-    if (!noMoreAdding) {
-      throw new RuntimeException("Initial documents have not yet loaded");
-    }
-    return getTextVectorCreator().newText(text);
-  }
+  @SuppressWarnings("unchecked")
+  public RemoveAttributeTransformFactory getMinimumOccurrenceDTF(final int minCount) {
 
-  @Override
-  public Vec newText(String input, StringBuilder workSpace, List<String> storageSpace) {
-    if (!noMoreAdding) {
-      throw new RuntimeException("Initial documents have not yet loaded");
+    final Set<Integer> numericToRemove = new IntSet();
+    for (int i = 0; i < termDocumentFrequencys.size(); i++) {
+      if (termDocumentFrequencys.get(i) < minCount) {
+        numericToRemove.add(i);
+      }
     }
-    return getTextVectorCreator().newText(input, workSpace, storageSpace);
+
+    return new RemoveAttributeTransformFactory(Collections.EMPTY_SET, numericToRemove);
   }
 
   /**
-   * Returns the {@link TextVectorCreator} used by this data loader to convert documents into vectors.
+   * Return the number of times a token has been seen in the document
+   *
+   * @param index
+   *          the numeric feature index
+   * @return the total occurrence count for the feature
+   */
+  public int getTermFrequency(final int index) {
+    return termDocumentFrequencys.get(index);
+  }
+
+  /**
+   * Returns the {@link TextVectorCreator} used by this data loader to convert
+   * documents into vectors.
    *
    * @return the text vector creator used by this class
    */
@@ -225,10 +258,11 @@ public abstract class TextDataLoader implements TextVectorCreator {
   /**
    * Returns the original token for the given index in the data set
    *
-   * @param index the numeric feature index
+   * @param index
+   *          the numeric feature index
    * @return the word token associated with the index
    */
-  public String getWordForIndex(int index) {
+  public String getWordForIndex(final int index) {
     if (index >= 0 && index < allWords.size()) {
       return allWords.get(index);
     } else {
@@ -237,31 +271,37 @@ public abstract class TextDataLoader implements TextVectorCreator {
   }
 
   /**
-   * Return the number of times a token has been seen in the document
-   *
-   * @param index the numeric feature index
-   * @return the total occurrence count for the feature
+   * This method will load all the text documents that make up the original data
+   * set from their source. For each document,
+   * {@link #addOriginalDocument(java.lang.String) } should be called with the
+   * text of the document. <br>
+   * This method will be called when {@link #getDataSet() } is called for the
+   * first time. <br>
+   * New document vectors can be obtained after loading by calling
+   * {@link #newText(java.lang.String) }.
    */
-  public int getTermFrequency(int index) {
-    return termDocumentFrequencys.get(index);
-  }
+  public abstract void initialLoad();
 
   /**
-   * Creates a new transform factory to remove all features for tokens that did not occur a certain number of times
+   * To be called after all original texts have been loaded.
    *
-   * @param minCount the minimum number of occurrences to be kept as a feature
-   * @return a transform factory for removing features that did not occur often enough
+   * @param text
+   *          the text of the document to create a document vector from
+   * @return the sparce vector representing this document
    */
-  @SuppressWarnings("unchecked")
-  public RemoveAttributeTransformFactory getMinimumOccurrenceDTF(int minCount) {
-
-    final Set<Integer> numericToRemove = new IntSet();
-    for (int i = 0; i < termDocumentFrequencys.size(); i++) {
-      if (termDocumentFrequencys.get(i) < minCount) {
-        numericToRemove.add(i);
-      }
+  @Override
+  public Vec newText(final String text) {
+    if (!noMoreAdding) {
+      throw new RuntimeException("Initial documents have not yet loaded");
     }
+    return getTextVectorCreator().newText(text);
+  }
 
-    return new RemoveAttributeTransformFactory(Collections.EMPTY_SET, numericToRemove);
+  @Override
+  public Vec newText(final String input, final StringBuilder workSpace, final List<String> storageSpace) {
+    if (!noMoreAdding) {
+      throw new RuntimeException("Initial documents have not yet loaded");
+    }
+    return getTextVectorCreator().newText(input, workSpace, storageSpace);
   }
 }

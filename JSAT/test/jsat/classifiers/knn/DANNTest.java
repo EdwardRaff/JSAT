@@ -4,20 +4,23 @@
  */
 package jsat.classifiers.knn;
 
+import static org.junit.Assert.assertEquals;
+
 import java.util.Random;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+
+import org.junit.After;
+import org.junit.AfterClass;
+import org.junit.Before;
+import org.junit.BeforeClass;
+import org.junit.Test;
+
 import jsat.classifiers.ClassificationDataSet;
 import jsat.classifiers.Classifier;
 import jsat.distributions.Normal;
 import jsat.utils.GridDataGenerator;
 import jsat.utils.SystemInfo;
-import org.junit.After;
-import org.junit.AfterClass;
-import static org.junit.Assert.*;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
 
 /**
  *
@@ -30,12 +33,9 @@ public class DANNTest {
   static private ExecutorService ex;
   static private DANN dann;
 
-  public DANNTest() {
-  }
-
   @BeforeClass
   public static void setUpClass() {
-    GridDataGenerator gdg = new GridDataGenerator(new Normal(0, 0.05), new Random(12), 2);
+    final GridDataGenerator gdg = new GridDataGenerator(new Normal(0, 0.05), new Random(12), 2);
     easyTrain = new ClassificationDataSet(gdg.generateData(80).getBackingList(), 0);
     easyTest = new ClassificationDataSet(gdg.generateData(40).getBackingList(), 0);
     ex = Executors.newFixedThreadPool(SystemInfo.LogicalCores);
@@ -43,6 +43,9 @@ public class DANNTest {
 
   @AfterClass
   public static void tearDownClass() {
+  }
+
+  public DANNTest() {
   }
 
   @Before
@@ -55,21 +58,21 @@ public class DANNTest {
   }
 
   @Test
+  public void testClone() {
+    System.out.println("clone");
+    dann.trainC(easyTrain);
+    final Classifier clone = dann.clone();
+    for (int i = 0; i < easyTest.getSampleSize(); i++) {
+      assertEquals(easyTest.getDataPointCategory(i), clone.classify(easyTest.getDataPoint(i)).mostLikely());
+    }
+  }
+
+  @Test
   public void testTrainC_ClassificationDataSet() {
     System.out.println("trainC");
     dann.trainC(easyTrain);
     for (int i = 0; i < easyTest.getSampleSize(); i++) {
       assertEquals(easyTest.getDataPointCategory(i), dann.classify(easyTest.getDataPoint(i)).mostLikely());
-    }
-  }
-
-  @Test
-  public void testClone() {
-    System.out.println("clone");
-    dann.trainC(easyTrain);
-    Classifier clone = dann.clone();
-    for (int i = 0; i < easyTest.getSampleSize(); i++) {
-      assertEquals(easyTest.getDataPointCategory(i), clone.classify(easyTest.getDataPoint(i)).mostLikely());
     }
   }
 

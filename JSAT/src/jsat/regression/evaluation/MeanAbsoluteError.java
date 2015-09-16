@@ -18,21 +18,17 @@ public class MeanAbsoluteError implements RegressionScore {
   /**
    * Copy constructor
    *
-   * @param toCopy the object to copy
+   * @param toCopy
+   *          the object to copy
    */
-  public MeanAbsoluteError(MeanAbsoluteError toCopy) {
+  public MeanAbsoluteError(final MeanAbsoluteError toCopy) {
     if (toCopy.absError != null) {
-      this.absError = toCopy.absError.clone();
+      absError = toCopy.absError.clone();
     }
   }
 
   @Override
-  public void prepare() {
-    absError = new OnLineStatistics();
-  }
-
-  @Override
-  public void addResult(double prediction, double trueValue, double weight) {
+  public void addResult(final double prediction, final double trueValue, final double weight) {
     if (absError == null) {
       throw new RuntimeException("regression score has not been initialized");
     }
@@ -40,21 +36,11 @@ public class MeanAbsoluteError implements RegressionScore {
   }
 
   @Override
-  public void addResults(RegressionScore other) {
-    MeanAbsoluteError otherObj = (MeanAbsoluteError) other;
+  public void addResults(final RegressionScore other) {
+    final MeanAbsoluteError otherObj = (MeanAbsoluteError) other;
     if (otherObj.absError != null) {
-      this.absError.add(otherObj.absError);
+      absError.add(otherObj.absError);
     }
-  }
-
-  @Override
-  public double getScore() {
-    return absError.getMean();
-  }
-
-  @Override
-  public boolean lowerIsBetter() {
-    return true;
   }
 
   @Override
@@ -63,19 +49,34 @@ public class MeanAbsoluteError implements RegressionScore {
   }
 
   @Override
-  public int hashCode() {//XXX this is a strange hashcode method
-    return getName().hashCode();
-  }
-
-  @Override
-  public boolean equals(Object obj) {
-    //XXX check for equality of fields and obj == null
+  public boolean equals(final Object obj) {
+    // XXX check for equality of fields and obj == null
     return this.getClass().isAssignableFrom(obj.getClass()) && obj.getClass().isAssignableFrom(this.getClass());
   }
 
   @Override
   public String getName() {
     return "Mean Absolute Error";
+  }
+
+  @Override
+  public double getScore() {
+    return absError.getMean();
+  }
+
+  @Override
+  public int hashCode() {// XXX this is a strange hashcode method
+    return getName().hashCode();
+  }
+
+  @Override
+  public boolean lowerIsBetter() {
+    return true;
+  }
+
+  @Override
+  public void prepare() {
+    absError = new OnLineStatistics();
   }
 
 }

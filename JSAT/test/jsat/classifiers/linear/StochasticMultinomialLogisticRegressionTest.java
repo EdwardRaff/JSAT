@@ -4,16 +4,22 @@
  */
 package jsat.classifiers.linear;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.fail;
+
 import java.util.Random;
-import jsat.FixedProblems;
-import jsat.classifiers.*;
-import jsat.exceptions.UntrainedModelException;
+
 import org.junit.After;
 import org.junit.AfterClass;
-import static org.junit.Assert.*;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
+
+import jsat.FixedProblems;
+import jsat.classifiers.ClassificationDataSet;
+import jsat.classifiers.Classifier;
+import jsat.classifiers.DataPointPair;
+import jsat.exceptions.UntrainedModelException;
 
 /**
  *
@@ -21,15 +27,15 @@ import org.junit.Test;
  */
 public class StochasticMultinomialLogisticRegressionTest {
 
-  public StochasticMultinomialLogisticRegressionTest() {
-  }
-
   @BeforeClass
   public static void setUpClass() {
   }
 
   @AfterClass
   public static void tearDownClass() {
+  }
+
+  public StochasticMultinomialLogisticRegressionTest() {
   }
 
   @Before
@@ -41,50 +47,51 @@ public class StochasticMultinomialLogisticRegressionTest {
   }
 
   /**
+   * Test of clone method, of class StochasticMultinomialLogisticRegression.
+   */
+  @Test
+  public void testClone() {
+    System.out.println("clone");
+    final StochasticMultinomialLogisticRegression smlgr = new StochasticMultinomialLogisticRegression();
+
+    final Classifier cloned = smlgr.clone();
+
+    final ClassificationDataSet train = FixedProblems.get2ClassLinear(400, new Random());
+    cloned.trainC(train);
+
+    try {
+      smlgr.classify(train.getDataPoint(0));
+      fail("Exception should have occured");
+    } catch (final UntrainedModelException ex) {
+
+    }
+
+    train.classSampleCount(train.getDataPointCategory(0));
+
+  }
+
+  /**
    * Test of trainC method, of class StochasticMultinomialLogisticRegression.
    */
   @Test
   public void testTrainC_ClassificationDataSet() {
     System.out.println("trainC");
 
-    ClassificationDataSet train = FixedProblems.get2ClassLinear(400, new Random());
+    final ClassificationDataSet train = FixedProblems.get2ClassLinear(400, new Random());
 
-    for (StochasticMultinomialLogisticRegression.Prior prior : StochasticMultinomialLogisticRegression.Prior.values()) {
+    for (final StochasticMultinomialLogisticRegression.Prior prior : StochasticMultinomialLogisticRegression.Prior
+        .values()) {
 
-      StochasticMultinomialLogisticRegression smlgr = new StochasticMultinomialLogisticRegression();
+      final StochasticMultinomialLogisticRegression smlgr = new StochasticMultinomialLogisticRegression();
       smlgr.setPrior(prior);
       smlgr.trainC(train);
 
-      ClassificationDataSet test = FixedProblems.get2ClassLinear(400, new Random());
+      final ClassificationDataSet test = FixedProblems.get2ClassLinear(400, new Random());
 
-      for (DataPointPair<Integer> dpp : test.getAsDPPList()) {
+      for (final DataPointPair<Integer> dpp : test.getAsDPPList()) {
         assertEquals(dpp.getPair().longValue(), smlgr.classify(dpp.getDataPoint()).mostLikely());
       }
     }
-  }
-
-  /**
-   * Test of clone method, of class StochasticMultinomialLogisticRegression.
-   */
-  @Test
-  public void testClone() {
-    System.out.println("clone");
-    StochasticMultinomialLogisticRegression smlgr = new StochasticMultinomialLogisticRegression();
-
-    Classifier cloned = smlgr.clone();
-
-    ClassificationDataSet train = FixedProblems.get2ClassLinear(400, new Random());
-    cloned.trainC(train);
-
-    try {
-      smlgr.classify(train.getDataPoint(0));
-      fail("Exception should have occured");
-    } catch (UntrainedModelException ex) {
-
-    }
-
-    train.classSampleCount(train.getDataPointCategory(0));
-
   }
 
 }

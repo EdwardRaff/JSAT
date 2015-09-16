@@ -13,27 +13,8 @@ public class MatthewsCorrelationCoefficient extends SimpleBinaryClassMetric {
     super();
   }
 
-  public MatthewsCorrelationCoefficient(MatthewsCorrelationCoefficient toClone) {
+  public MatthewsCorrelationCoefficient(final MatthewsCorrelationCoefficient toClone) {
     super(toClone);
-  }
-
-  @Override
-  public double getScore() {
-    double denom = (tp + fp) * (tp + fn) * (tn + fp) * (tn + fn);
-    if (denom <= 1e-16) {
-      return 0;
-    }
-    return (tp * tn - fp * fn) / Math.sqrt(denom);
-  }
-
-  @Override
-  public boolean equals(Object obj) {
-    return this.getClass().isAssignableFrom(obj.getClass()) && obj.getClass().isAssignableFrom(this.getClass());
-  }
-
-  @Override
-  public int hashCode() {
-    return getName().hashCode();
   }
 
   @Override
@@ -42,8 +23,27 @@ public class MatthewsCorrelationCoefficient extends SimpleBinaryClassMetric {
   }
 
   @Override
+  public boolean equals(final Object obj) {
+    return this.getClass().isAssignableFrom(obj.getClass()) && obj.getClass().isAssignableFrom(this.getClass());
+  }
+
+  @Override
   public String getName() {
     return "Matthews Correlation Coefficient";
+  }
+
+  @Override
+  public double getScore() {
+    final double denom = (tp + fp) * (tp + fn) * (tn + fp) * (tn + fn);
+    if (denom <= 1e-16) {
+      return 0;
+    }
+    return (tp * tn - fp * fn) / Math.sqrt(denom);
+  }
+
+  @Override
+  public int hashCode() {
+    return getName().hashCode();
   }
 
 }

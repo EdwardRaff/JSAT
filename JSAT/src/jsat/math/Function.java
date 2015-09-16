@@ -1,6 +1,7 @@
 package jsat.math;
 
 import java.io.Serializable;
+
 import jsat.linear.Vec;
 
 /**

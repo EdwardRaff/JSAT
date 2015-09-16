@@ -1,10 +1,12 @@
 package jsat.classifiers;
 
 import java.util.concurrent.ExecutorService;
+
 import jsat.exceptions.UntrainedModelException;
 
 /**
- * A Naive classifier that simply returns the prior probabilities as the classification decision.
+ * A Naive classifier that simply returns the prior probabilities as the
+ * classification decision.
  *
  * @author Edward Raff
  */
@@ -20,16 +22,18 @@ public class PriorClassifier implements Classifier {
   }
 
   /**
-   * Creates a new Prior Classifier that is given the results it should be returning
+   * Creates a new Prior Classifier that is given the results it should be
+   * returning
    *
-   * @param cr the prior probabilities for classification
+   * @param cr
+   *          the prior probabilities for classification
    */
-  public PriorClassifier(CategoricalResults cr) {
+  public PriorClassifier(final CategoricalResults cr) {
     this.cr = cr;
   }
 
   @Override
-  public CategoricalResults classify(DataPoint data) {
+  public CategoricalResults classify(final DataPoint data) {
     if (cr == null) {
       throw new UntrainedModelException("PriorClassifier has not been trained");
     }
@@ -37,17 +41,12 @@ public class PriorClassifier implements Classifier {
   }
 
   @Override
-  public void trainC(ClassificationDataSet dataSet, ExecutorService threadPool) {
-    trainC(dataSet);
-  }
-
-  @Override
-  public void trainC(ClassificationDataSet dataSet) {
-    cr = new CategoricalResults(dataSet.getPredicting().getNumOfCategories());
-    for (int i = 0; i < dataSet.getSampleSize(); i++) {
-      cr.incProb(dataSet.getDataPointCategory(i), dataSet.getDataPoint(i).getWeight());
+  public Classifier clone() {
+    final PriorClassifier clone = new PriorClassifier();
+    if (cr != null) {
+      clone.cr = cr.clone();
     }
-    cr.normalize();
+    return clone;
   }
 
   @Override
@@ -56,11 +55,16 @@ public class PriorClassifier implements Classifier {
   }
 
   @Override
-  public Classifier clone() {
-    PriorClassifier clone = new PriorClassifier();
-    if (this.cr != null) {
-      clone.cr = this.cr.clone();
+  public void trainC(final ClassificationDataSet dataSet) {
+    cr = new CategoricalResults(dataSet.getPredicting().getNumOfCategories());
+    for (int i = 0; i < dataSet.getSampleSize(); i++) {
+      cr.incProb(dataSet.getDataPointCategory(i), dataSet.getDataPoint(i).getWeight());
     }
-    return clone;
+    cr.normalize();
+  }
+
+  @Override
+  public void trainC(final ClassificationDataSet dataSet, final ExecutorService threadPool) {
+    trainC(dataSet);
   }
 }

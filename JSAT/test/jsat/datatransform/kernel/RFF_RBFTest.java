@@ -16,20 +16,25 @@
  */
 package jsat.datatransform.kernel;
 
+import static org.junit.Assert.assertEquals;
+
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+
+import org.junit.After;
+import org.junit.AfterClass;
+import org.junit.Before;
+import org.junit.BeforeClass;
+import org.junit.Test;
+
 import jsat.FixedProblems;
-import jsat.classifiers.*;
+import jsat.classifiers.ClassificationDataSet;
+import jsat.classifiers.ClassificationModelEvaluation;
+import jsat.classifiers.Classifier;
 import jsat.classifiers.svm.DCDs;
 import jsat.datatransform.DataModelPipeline;
 import jsat.utils.SystemInfo;
 import jsat.utils.random.XORWOW;
-import org.junit.After;
-import org.junit.AfterClass;
-import static org.junit.Assert.*;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
 
 /**
  *
@@ -37,15 +42,15 @@ import org.junit.Test;
  */
 public class RFF_RBFTest {
 
-  public RFF_RBFTest() {
-  }
-
   @BeforeClass
   public static void setUpClass() {
   }
 
   @AfterClass
   public static void tearDownClass() {
+  }
+
+  public RFF_RBFTest() {
   }
 
   @Before
@@ -57,55 +62,20 @@ public class RFF_RBFTest {
   }
 
   @Test
-  public void testTrainC_ClassificationDataSet_ExecutorService() {
-    System.out.println("trainC");
-
-    ExecutorService ex = Executors.newFixedThreadPool(SystemInfo.LogicalCores);
-
-    DataModelPipeline instance = new DataModelPipeline((Classifier) new DCDs(), new RFF_RBF.RFF_RBFTransformFactory(0.5, 100, true));
-
-    ClassificationDataSet train = FixedProblems.getInnerOuterCircle(200, new XORWOW());
-    ClassificationDataSet test = FixedProblems.getInnerOuterCircle(100, new XORWOW());
-
-    ClassificationModelEvaluation cme = new ClassificationModelEvaluation(instance, train, ex);
-    cme.evaluateTestSet(test);
-
-    assertEquals(0, cme.getErrorRate(), 0.0);
-
-    ex.shutdownNow();
-
-  }
-
-  @Test
-  public void testTrainC_ClassificationDataSet() {
-    System.out.println("trainC");
-
-    DataModelPipeline instance = new DataModelPipeline((Classifier) new DCDs(), new RFF_RBF.RFF_RBFTransformFactory(0.5, 100, true));
-
-    ClassificationDataSet train = FixedProblems.getInnerOuterCircle(200, new XORWOW());
-    ClassificationDataSet test = FixedProblems.getInnerOuterCircle(100, new XORWOW());
-
-    ClassificationModelEvaluation cme = new ClassificationModelEvaluation(instance, train);
-    cme.evaluateTestSet(test);
-
-    assertEquals(0, cme.getErrorRate(), 0.0);
-
-  }
-
-  @Test
   public void testClone() {
     System.out.println("clone");
 
-    DataModelPipeline instance = new DataModelPipeline((Classifier) new DCDs(), new RFF_RBF.RFF_RBFTransformFactory(0.5, 100, false));
+    DataModelPipeline instance = new DataModelPipeline((Classifier) new DCDs(),
+        new RFF_RBF.RFF_RBFTransformFactory(0.5, 100, false));
 
-    ClassificationDataSet t1 = FixedProblems.getInnerOuterCircle(500, new XORWOW());
-    ClassificationDataSet t2 = FixedProblems.getInnerOuterCircle(500, new XORWOW(), 2.0, 10.0);
+    final ClassificationDataSet t1 = FixedProblems.getInnerOuterCircle(500, new XORWOW());
+    final ClassificationDataSet t2 = FixedProblems.getInnerOuterCircle(500, new XORWOW(), 2.0, 10.0);
 
     instance = instance.clone();
 
     instance.trainC(t1);
 
-    DataModelPipeline result = instance.clone();
+    final DataModelPipeline result = instance.clone();
 
     for (int i = 0; i < t1.getSampleSize(); i++) {
       assertEquals(t1.getDataPointCategory(i), result.classify(t1.getDataPoint(i)).mostLikely());
@@ -119,6 +89,44 @@ public class RFF_RBFTest {
     for (int i = 0; i < t2.getSampleSize(); i++) {
       assertEquals(t2.getDataPointCategory(i), result.classify(t2.getDataPoint(i)).mostLikely());
     }
+
+  }
+
+  @Test
+  public void testTrainC_ClassificationDataSet() {
+    System.out.println("trainC");
+
+    final DataModelPipeline instance = new DataModelPipeline((Classifier) new DCDs(),
+        new RFF_RBF.RFF_RBFTransformFactory(0.5, 100, true));
+
+    final ClassificationDataSet train = FixedProblems.getInnerOuterCircle(200, new XORWOW());
+    final ClassificationDataSet test = FixedProblems.getInnerOuterCircle(100, new XORWOW());
+
+    final ClassificationModelEvaluation cme = new ClassificationModelEvaluation(instance, train);
+    cme.evaluateTestSet(test);
+
+    assertEquals(0, cme.getErrorRate(), 0.0);
+
+  }
+
+  @Test
+  public void testTrainC_ClassificationDataSet_ExecutorService() {
+    System.out.println("trainC");
+
+    final ExecutorService ex = Executors.newFixedThreadPool(SystemInfo.LogicalCores);
+
+    final DataModelPipeline instance = new DataModelPipeline((Classifier) new DCDs(),
+        new RFF_RBF.RFF_RBFTransformFactory(0.5, 100, true));
+
+    final ClassificationDataSet train = FixedProblems.getInnerOuterCircle(200, new XORWOW());
+    final ClassificationDataSet test = FixedProblems.getInnerOuterCircle(100, new XORWOW());
+
+    final ClassificationModelEvaluation cme = new ClassificationModelEvaluation(instance, train, ex);
+    cme.evaluateTestSet(test);
+
+    assertEquals(0, cme.getErrorRate(), 0.0);
+
+    ex.shutdownNow();
 
   }
 

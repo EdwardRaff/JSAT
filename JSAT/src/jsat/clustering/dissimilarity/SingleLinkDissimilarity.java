@@ -2,13 +2,15 @@ package jsat.clustering.dissimilarity;
 
 import java.util.List;
 import java.util.Set;
+
 import jsat.classifiers.DataPoint;
 import jsat.linear.distancemetrics.DistanceMetric;
 import jsat.linear.distancemetrics.EuclideanDistance;
 
 /**
- * Measures the dissimilarity of two clusters by returning the minimum dissimilarity between the two closest data points
- * from the clusters, ie: the minimum distance needed to link the two clusters.
+ * Measures the dissimilarity of two clusters by returning the minimum
+ * dissimilarity between the two closest data points from the clusters, ie: the
+ * minimum distance needed to link the two clusters.
  *
  * @author Edward Raff
  */
@@ -24,18 +26,20 @@ public class SingleLinkDissimilarity extends DistanceMetricDissimilarity impleme
   /**
    * Creates a new SingleLinkDissimilarity
    *
-   * @param dm the distance metric to use between individual points
+   * @param dm
+   *          the distance metric to use between individual points
    */
-  public SingleLinkDissimilarity(DistanceMetric dm) {
+  public SingleLinkDissimilarity(final DistanceMetric dm) {
     super(dm);
   }
 
   /**
    * Copy constructor
    *
-   * @param toCopy the object to copy
+   * @param toCopy
+   *          the object to copy
    */
-  public SingleLinkDissimilarity(SingleLinkDissimilarity toCopy) {
+  public SingleLinkDissimilarity(final SingleLinkDissimilarity toCopy) {
     this(toCopy.dm.clone());
   }
 
@@ -45,12 +49,23 @@ public class SingleLinkDissimilarity extends DistanceMetricDissimilarity impleme
   }
 
   @Override
-  public double dissimilarity(List<DataPoint> a, List<DataPoint> b) {
+  public double dissimilarity(final int i, final int ni, final int j, final int nj, final double[][] distanceMatrix) {
+    return getDistance(distanceMatrix, i, j);
+  }
+
+  @Override
+  public double dissimilarity(final int i, final int ni, final int j, final int nj, final int k, final int nk,
+      final double[][] distanceMatrix) {
+    return Math.min(getDistance(distanceMatrix, i, k), getDistance(distanceMatrix, j, k));
+  }
+
+  @Override
+  public double dissimilarity(final List<DataPoint> a, final List<DataPoint> b) {
     double minDiss = Double.MAX_VALUE;
 
     double tmpDist;
-    for (DataPoint ai : a) {
-      for (DataPoint bi : b) {
+    for (final DataPoint ai : a) {
+      for (final DataPoint bi : b) {
         if ((tmpDist = distance(ai, bi)) < minDiss) {
           minDiss = tmpDist;
         }
@@ -61,11 +76,11 @@ public class SingleLinkDissimilarity extends DistanceMetricDissimilarity impleme
   }
 
   @Override
-  public double dissimilarity(Set<Integer> a, Set<Integer> b, double[][] distanceMatrix) {
+  public double dissimilarity(final Set<Integer> a, final Set<Integer> b, final double[][] distanceMatrix) {
     double minDiss = Double.MAX_VALUE;
 
-    for (int ai : a) {
-      for (int bi : b) {
+    for (final int ai : a) {
+      for (final int bi : b) {
         if (getDistance(distanceMatrix, ai, bi) < minDiss) {
           minDiss = getDistance(distanceMatrix, ai, bi);
         }
@@ -73,16 +88,6 @@ public class SingleLinkDissimilarity extends DistanceMetricDissimilarity impleme
     }
 
     return minDiss;
-  }
-
-  @Override
-  public double dissimilarity(int i, int ni, int j, int nj, double[][] distanceMatrix) {
-    return getDistance(distanceMatrix, i, j);
-  }
-
-  @Override
-  public double dissimilarity(int i, int ni, int j, int nj, int k, int nk, double[][] distanceMatrix) {
-    return Math.min(getDistance(distanceMatrix, i, k), getDistance(distanceMatrix, j, k));
   }
 
 }

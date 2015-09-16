@@ -4,9 +4,12 @@
  */
 package jsat.utils;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+
 import java.util.List;
+
 import org.junit.AfterClass;
-import static org.junit.Assert.*;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -17,15 +20,15 @@ import org.junit.Test;
  */
 public class ListUtilsTest {
 
-  public ListUtilsTest() {
-  }
-
   @BeforeClass
   public static void setUpClass() throws Exception {
   }
 
   @AfterClass
   public static void tearDownClass() throws Exception {
+  }
+
+  public ListUtilsTest() {
   }
 
   @Before
@@ -38,7 +41,7 @@ public class ListUtilsTest {
   @Test
   public void testSplitList() {
     System.out.println("splitList");
-    List<Integer> sourceList = new IntList(500);
+    final List<Integer> sourceList = new IntList(500);
     for (int i = 0; i < 500; i++) {
       sourceList.add(i);
     }
@@ -46,17 +49,20 @@ public class ListUtilsTest {
     assertEquals(5, ll1.size());
 
     for (int i = 0; i < 5; i++) {
-      List<Integer> l = ll1.get(i);
+      final List<Integer> l = ll1.get(i);
       assertEquals(100, l.size());
       for (int j = 0; j < l.size(); j++) {
-        assertEquals(i * 100 + j, l.get(j).intValue());//intValue called b/c it becomes ambigous to the compiler without it
+        assertEquals(i * 100 + j, l.get(j).intValue());// intValue called b/c it
+                                                       // becomes ambigous to
+                                                       // the compiler without
+                                                       // it
       }
     }
 
-    ll1 = ListUtils.splitList(sourceList, 7);//Non divisible amount
+    ll1 = ListUtils.splitList(sourceList, 7);// Non divisible amount
     assertEquals(7, ll1.size());
     int pos = 0;
-    for (List<Integer> l : ll1) {
+    for (final List<Integer> l : ll1) {
       assertTrue("List should have had only 71 or 72 values", l.size() == 72 || l.size() == 71);
       for (int j = 0; j < l.size(); j++) {
         assertEquals(pos + j, l.get(j).intValue());
@@ -69,7 +75,7 @@ public class ListUtilsTest {
   @Test
   public void testSwap() {
     System.out.println("swap");
-    List<Long> test = new LongList();
+    final List<Long> test = new LongList();
     test.add(1L);
     test.add(2L);
     ListUtils.swap(test, 0, 1);

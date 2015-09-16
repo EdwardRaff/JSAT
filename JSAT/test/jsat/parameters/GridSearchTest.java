@@ -16,11 +16,27 @@
  */
 package jsat.parameters;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+
+import org.junit.After;
+import org.junit.AfterClass;
+import org.junit.Before;
+import org.junit.BeforeClass;
+import org.junit.Test;
+
 import jsat.DataSet;
-import jsat.classifiers.*;
+import jsat.classifiers.CategoricalData;
+import jsat.classifiers.CategoricalResults;
+import jsat.classifiers.ClassificationDataSet;
+import jsat.classifiers.Classifier;
+import jsat.classifiers.DataPoint;
+import jsat.classifiers.WarmClassifier;
 import jsat.distributions.Distribution;
 import jsat.distributions.Uniform;
 import jsat.distributions.discrete.UniformDiscrete;
@@ -30,12 +46,6 @@ import jsat.regression.RegressionDataSet;
 import jsat.regression.Regressor;
 import jsat.regression.WarmRegressor;
 import jsat.utils.SystemInfo;
-import org.junit.After;
-import org.junit.AfterClass;
-import static org.junit.Assert.*;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
 
 /**
  *
@@ -43,12 +53,158 @@ import org.junit.Test;
  */
 public class GridSearchTest {
 
-  static ExecutorService ex;
-  ClassificationDataSet classData;
-  RegressionDataSet regData;
+  /**
+   * This model is dumb. It always returns the same thing, unless the parameters
+   * are set to specific values. Then it returns a 2nd option as well.
+   */
+  static class DumbModel implements WarmClassifier, WarmRegressor, Parameterized {
 
-  public GridSearchTest() {
+    /**
+     *
+     */
+    private static final long serialVersionUID = 1L;
+    int param1;
+    double param2;
+    int param3;
+    boolean wasWarmStarted = false;
+
+    @Override
+    public CategoricalResults classify(final DataPoint data) {
+      // range check done so that RandomSearch can re-use this class for its own
+      // test
+      final boolean param2InRange = 1.5 < param2 && param2 < 2.5;
+      if (param1 == 1 && param2InRange && param3 == 3) {
+        if (data.getNumericalValues().get(0) < 0) {
+          return new CategoricalResults(new double[] { 0.0, 1.0 });
+        }
+      }
+      return new CategoricalResults(new double[] { 1.0, 0.0 });
+    }
+
+    @Override
+    public DumbModel clone() {
+      final DumbModel toRet = new DumbModel();
+      toRet.param1 = param1;
+      toRet.param2 = param2;
+      toRet.param3 = param3;
+      toRet.wasWarmStarted = wasWarmStarted;
+      return toRet;
+    }
+
+    public int getParam1() {
+      return param1;
+    }
+
+    public double getParam2() {
+      return param2;
+    }
+
+    public int getParam3() {
+      return param3;
+    }
+
+    @Override
+    public Parameter getParameter(final String paramName) {
+      return Parameter.toParameterMap(getParameters()).get(paramName);
+    }
+
+    @Override
+    public List<Parameter> getParameters() {
+      return Parameter.getParamsFromMethods(this);
+    }
+
+    public Distribution guessParam1(final DataSet d) {
+      return new UniformDiscrete(0, 5);
+    }
+
+    public Distribution guessParam2(final DataSet d) {
+      return new Uniform(0.0, 5.0);
+    }
+
+    public Distribution guessParam3(final DataSet d) {
+      return new UniformDiscrete(0, 5);
+    }
+
+    @Override
+    public double regress(final DataPoint data) {
+      // range check done so that RandomSearch can re-use this class for its own
+      // test
+      final boolean param2InRange = 1.5 < param2 && param2 < 2.5;
+      if (param1 == 1 && param2InRange && param3 == 3) {
+        if (data.getNumericalValues().get(0) < 0) {
+          return 1;
+        }
+      }
+      return 0;
+    }
+
+    public void setParam1(final int param1) {
+      this.param1 = param1;
+    }
+
+    public void setParam2(final double param2) {
+      this.param2 = param2;
+    }
+
+    @WarmParameter(prefLowToHigh = false)
+    public void setParam3(final int param3) {
+      this.param3 = param3;
+    }
+
+    @Override
+    public boolean supportsWeightedData() {
+      return true;
+    }
+
+    @Override
+    public void train(final RegressionDataSet dataSet) {
+      wasWarmStarted = false;
+    }
+
+    @Override
+    public void train(final RegressionDataSet dataSet, final ExecutorService threadPool) {
+      wasWarmStarted = false;
+    }
+
+    @Override
+    public void train(final RegressionDataSet dataSet, final Regressor warmSolution) {
+      wasWarmStarted = ((DumbModel) warmSolution).param3 == param3;
+    }
+
+    @Override
+    public void train(final RegressionDataSet dataSet, final Regressor warmSolution, final ExecutorService threadPool) {
+      wasWarmStarted = ((DumbModel) warmSolution).param3 == param3;
+    }
+
+    @Override
+    public void trainC(final ClassificationDataSet dataSet) {
+      wasWarmStarted = false;
+    }
+
+    @Override
+    public void trainC(final ClassificationDataSet dataSet, final Classifier warmSolution) {
+      wasWarmStarted = ((DumbModel) warmSolution).param3 == param3;
+    }
+
+    @Override
+    public void trainC(final ClassificationDataSet dataSet, final Classifier warmSolution,
+        final ExecutorService threadPool) {
+      wasWarmStarted = ((DumbModel) warmSolution).param3 == param3;
+    }
+
+    @Override
+    public void trainC(final ClassificationDataSet dataSet, final ExecutorService threadPool) {
+      wasWarmStarted = false;
+    }
+
+    @Override
+    public boolean warmFromSameDataOnly() {
+      return false;
+    }
+
   }
+
+  static ExecutorService ex;
 
   @BeforeClass
   public static void setUpClass() {
@@ -58,6 +214,13 @@ public class GridSearchTest {
   @AfterClass
   public static void tearDownClass() {
     ex.shutdown();
+  }
+
+  ClassificationDataSet classData;
+
+  RegressionDataSet regData;
+
+  public GridSearchTest() {
   }
 
   @Before
@@ -85,48 +248,6 @@ public class GridSearchTest {
   }
 
   @Test
-  public void testClassificationWarm() {
-    System.out.println("setUseWarmStarts");
-    GridSearch instance = new GridSearch((Classifier) new DumbModel(), 5);
-    instance.setUseWarmStarts(true);
-
-    instance.addParameter("Param1", 0, 1, 2, 3, 4, 5);
-    instance.addParameter("Param2", 0.0, 1.0, 2.0, 3.0, 4.0, 5.0);
-    instance.addParameter("Param3", 0, 1, 2, 3, 4, 5);
-
-    instance = instance.clone();
-    instance.trainC(classData);
-    instance = instance.clone();
-
-    DumbModel model = (DumbModel) instance.getTrainedClassifier();
-    assertEquals(1, model.param1);
-    assertEquals(2, model.param2, 0.0);
-    assertEquals(3, model.param3);
-    assertTrue(model.wasWarmStarted);
-  }
-
-  @Test
-  public void testClassificationWarmExec() {
-    System.out.println("setUseWarmStarts");
-    GridSearch instance = new GridSearch((Classifier) new DumbModel(), 5);
-    instance.setUseWarmStarts(true);
-
-    instance.addParameter("Param1", 0, 1, 2, 3, 4, 5);
-    instance.addParameter("Param2", 0.0, 1.0, 2.0, 3.0, 4.0, 5.0);
-    instance.addParameter("Param3", 0, 1, 2, 3, 4, 5);
-
-    instance = instance.clone();
-    instance.trainC(classData, ex);
-    instance = instance.clone();
-
-    DumbModel model = (DumbModel) instance.getTrainedClassifier();
-    assertEquals(1, model.param1);
-    assertEquals(2, model.param2, 0.0);
-    assertEquals(3, model.param3);
-    assertTrue(model.wasWarmStarted);
-  }
-
-  @Test
   public void testClassification() {
     System.out.println("setUseWarmStarts");
     GridSearch instance = new GridSearch((Classifier) new DumbModel(), 5);
@@ -140,7 +261,7 @@ public class GridSearchTest {
     instance.trainC(classData);
     instance = instance.clone();
 
-    DumbModel model = (DumbModel) instance.getTrainedClassifier();
+    final DumbModel model = (DumbModel) instance.getTrainedClassifier();
     assertEquals(1, model.param1);
     assertEquals(2, model.param2, 0.0);
     assertEquals(3, model.param3);
@@ -159,7 +280,7 @@ public class GridSearchTest {
     instance.trainC(classData);
     instance = instance.clone();
 
-    DumbModel model = (DumbModel) instance.getTrainedClassifier();
+    final DumbModel model = (DumbModel) instance.getTrainedClassifier();
     assertEquals(1, model.param1);
     assertEquals(2, model.param2, 0.5);
     assertEquals(3, model.param3);
@@ -180,7 +301,7 @@ public class GridSearchTest {
     instance.trainC(classData, ex);
     instance = instance.clone();
 
-    DumbModel model = (DumbModel) instance.getTrainedClassifier();
+    final DumbModel model = (DumbModel) instance.getTrainedClassifier();
     assertEquals(1, model.param1);
     assertEquals(2, model.param2, 0.0);
     assertEquals(3, model.param3);
@@ -188,9 +309,9 @@ public class GridSearchTest {
   }
 
   @Test
-  public void testRegressionWarm() {
+  public void testClassificationWarm() {
     System.out.println("setUseWarmStarts");
-    GridSearch instance = new GridSearch((Regressor) new DumbModel(), 5);
+    GridSearch instance = new GridSearch((Classifier) new DumbModel(), 5);
     instance.setUseWarmStarts(true);
 
     instance.addParameter("Param1", 0, 1, 2, 3, 4, 5);
@@ -198,10 +319,10 @@ public class GridSearchTest {
     instance.addParameter("Param3", 0, 1, 2, 3, 4, 5);
 
     instance = instance.clone();
-    instance.train(regData);
+    instance.trainC(classData);
     instance = instance.clone();
 
-    DumbModel model = (DumbModel) instance.getTrainedRegressor();
+    final DumbModel model = (DumbModel) instance.getTrainedClassifier();
     assertEquals(1, model.param1);
     assertEquals(2, model.param2, 0.0);
     assertEquals(3, model.param3);
@@ -209,9 +330,9 @@ public class GridSearchTest {
   }
 
   @Test
-  public void testRegressionWarmExec() {
+  public void testClassificationWarmExec() {
     System.out.println("setUseWarmStarts");
-    GridSearch instance = new GridSearch((Regressor) new DumbModel(), 5);
+    GridSearch instance = new GridSearch((Classifier) new DumbModel(), 5);
     instance.setUseWarmStarts(true);
 
     instance.addParameter("Param1", 0, 1, 2, 3, 4, 5);
@@ -219,10 +340,10 @@ public class GridSearchTest {
     instance.addParameter("Param3", 0, 1, 2, 3, 4, 5);
 
     instance = instance.clone();
-    instance.train(regData, ex);
+    instance.trainC(classData, ex);
     instance = instance.clone();
 
-    DumbModel model = (DumbModel) instance.getTrainedRegressor();
+    final DumbModel model = (DumbModel) instance.getTrainedClassifier();
     assertEquals(1, model.param1);
     assertEquals(2, model.param2, 0.0);
     assertEquals(3, model.param3);
@@ -243,7 +364,7 @@ public class GridSearchTest {
     instance.train(regData);
     instance = instance.clone();
 
-    DumbModel model = (DumbModel) instance.getTrainedRegressor();
+    final DumbModel model = (DumbModel) instance.getTrainedRegressor();
     assertEquals(1, model.param1);
     assertEquals(2, model.param2, 0.0);
     assertEquals(3, model.param3);
@@ -264,154 +385,52 @@ public class GridSearchTest {
     instance.train(regData, ex);
     instance = instance.clone();
 
-    DumbModel model = (DumbModel) instance.getTrainedRegressor();
+    final DumbModel model = (DumbModel) instance.getTrainedRegressor();
     assertEquals(1, model.param1);
     assertEquals(2, model.param2, 0.0);
     assertEquals(3, model.param3);
     assertFalse(model.wasWarmStarted);
   }
 
-  /**
-   * This model is dumb. It always returns the same thing, unless the parameters are set to specific values. Then it
-   * returns a 2nd option as well.
-   */
-  static class DumbModel implements WarmClassifier, WarmRegressor, Parameterized {
+  @Test
+  public void testRegressionWarm() {
+    System.out.println("setUseWarmStarts");
+    GridSearch instance = new GridSearch((Regressor) new DumbModel(), 5);
+    instance.setUseWarmStarts(true);
 
-    int param1;
-    double param2;
-    int param3;
-    boolean wasWarmStarted = false;
+    instance.addParameter("Param1", 0, 1, 2, 3, 4, 5);
+    instance.addParameter("Param2", 0.0, 1.0, 2.0, 3.0, 4.0, 5.0);
+    instance.addParameter("Param3", 0, 1, 2, 3, 4, 5);
 
-    public void setParam1(int param1) {
-      this.param1 = param1;
-    }
+    instance = instance.clone();
+    instance.train(regData);
+    instance = instance.clone();
 
-    public int getParam1() {
-      return param1;
-    }
+    final DumbModel model = (DumbModel) instance.getTrainedRegressor();
+    assertEquals(1, model.param1);
+    assertEquals(2, model.param2, 0.0);
+    assertEquals(3, model.param3);
+    assertTrue(model.wasWarmStarted);
+  }
 
-    public Distribution guessParam1(DataSet d) {
-      return new UniformDiscrete(0, 5);
-    }
+  @Test
+  public void testRegressionWarmExec() {
+    System.out.println("setUseWarmStarts");
+    GridSearch instance = new GridSearch((Regressor) new DumbModel(), 5);
+    instance.setUseWarmStarts(true);
 
-    public void setParam2(double param2) {
-      this.param2 = param2;
-    }
+    instance.addParameter("Param1", 0, 1, 2, 3, 4, 5);
+    instance.addParameter("Param2", 0.0, 1.0, 2.0, 3.0, 4.0, 5.0);
+    instance.addParameter("Param3", 0, 1, 2, 3, 4, 5);
 
-    public double getParam2() {
-      return param2;
-    }
+    instance = instance.clone();
+    instance.train(regData, ex);
+    instance = instance.clone();
 
-    public Distribution guessParam2(DataSet d) {
-      return new Uniform(0.0, 5.0);
-    }
-
-    @WarmParameter(prefLowToHigh = false)
-    public void setParam3(int param3) {
-      this.param3 = param3;
-    }
-
-    public int getParam3() {
-      return param3;
-    }
-
-    public Distribution guessParam3(DataSet d) {
-      return new UniformDiscrete(0, 5);
-    }
-
-    @Override
-    public boolean warmFromSameDataOnly() {
-      return false;
-    }
-
-    @Override
-    public void trainC(ClassificationDataSet dataSet, Classifier warmSolution, ExecutorService threadPool) {
-      wasWarmStarted = ((DumbModel) warmSolution).param3 == this.param3;
-    }
-
-    @Override
-    public void trainC(ClassificationDataSet dataSet, Classifier warmSolution) {
-      wasWarmStarted = ((DumbModel) warmSolution).param3 == this.param3;
-    }
-
-    @Override
-    public CategoricalResults classify(DataPoint data) {
-      //range check done so that RandomSearch can re-use this class for its own test
-      boolean param2InRange = 1.5 < param2 && param2 < 2.5;
-      if (param1 == 1 && param2InRange && param3 == 3) {
-        if (data.getNumericalValues().get(0) < 0) {
-          return new CategoricalResults(new double[]{0.0, 1.0});
-        }
-      }
-      return new CategoricalResults(new double[]{1.0, 0.0});
-    }
-
-    @Override
-    public void trainC(ClassificationDataSet dataSet, ExecutorService threadPool) {
-      wasWarmStarted = false;
-    }
-
-    @Override
-    public void trainC(ClassificationDataSet dataSet) {
-      wasWarmStarted = false;
-    }
-
-    @Override
-    public boolean supportsWeightedData() {
-      return true;
-    }
-
-    @Override
-    public void train(RegressionDataSet dataSet, Regressor warmSolution, ExecutorService threadPool) {
-      wasWarmStarted = ((DumbModel) warmSolution).param3 == this.param3;
-    }
-
-    @Override
-    public void train(RegressionDataSet dataSet, Regressor warmSolution) {
-      wasWarmStarted = ((DumbModel) warmSolution).param3 == this.param3;
-    }
-
-    @Override
-    public double regress(DataPoint data) {
-      //range check done so that RandomSearch can re-use this class for its own test
-      boolean param2InRange = 1.5 < param2 && param2 < 2.5;
-      if (param1 == 1 && param2InRange && param3 == 3) {
-        if (data.getNumericalValues().get(0) < 0) {
-          return 1;
-        }
-      }
-      return 0;
-    }
-
-    @Override
-    public void train(RegressionDataSet dataSet, ExecutorService threadPool) {
-      wasWarmStarted = false;
-    }
-
-    @Override
-    public void train(RegressionDataSet dataSet) {
-      wasWarmStarted = false;
-    }
-
-    @Override
-    public DumbModel clone() {
-      DumbModel toRet = new DumbModel();
-      toRet.param1 = this.param1;
-      toRet.param2 = this.param2;
-      toRet.param3 = this.param3;
-      toRet.wasWarmStarted = this.wasWarmStarted;
-      return toRet;
-    }
-
-    @Override
-    public List<Parameter> getParameters() {
-      return Parameter.getParamsFromMethods(this);
-    }
-
-    @Override
-    public Parameter getParameter(String paramName) {
-      return Parameter.toParameterMap(getParameters()).get(paramName);
-    }
-
+    final DumbModel model = (DumbModel) instance.getTrainedRegressor();
+    assertEquals(1, model.param1);
+    assertEquals(2, model.param2, 0.0);
+    assertEquals(3, model.param3);
+    assertTrue(model.wasWarmStarted);
   }
 }

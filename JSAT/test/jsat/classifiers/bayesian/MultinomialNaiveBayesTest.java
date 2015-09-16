@@ -16,8 +16,18 @@
  */
 package jsat.classifiers.bayesian;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+
+import org.junit.After;
+import org.junit.AfterClass;
+import org.junit.Before;
+import org.junit.BeforeClass;
+import org.junit.Test;
+
 import jsat.FixedProblems;
 import jsat.classifiers.ClassificationDataSet;
 import jsat.classifiers.ClassificationModelEvaluation;
@@ -25,12 +35,6 @@ import jsat.datatransform.DataTransformProcess;
 import jsat.datatransform.NumericalToHistogram;
 import jsat.utils.SystemInfo;
 import jsat.utils.random.XOR96;
-import org.junit.After;
-import org.junit.AfterClass;
-import static org.junit.Assert.*;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
 
 /**
  *
@@ -38,15 +42,15 @@ import org.junit.Test;
  */
 public class MultinomialNaiveBayesTest {
 
-  public MultinomialNaiveBayesTest() {
-  }
-
   @BeforeClass
   public static void setUpClass() {
   }
 
   @AfterClass
   public static void tearDownClass() {
+  }
+
+  public MultinomialNaiveBayesTest() {
   }
 
   @Before
@@ -58,56 +62,13 @@ public class MultinomialNaiveBayesTest {
   }
 
   @Test
-  public void testTrainC_ClassificationDataSet_ExecutorService() {
-    System.out.println("trainC");
-
-    for (boolean useCatFeatures : new boolean[]{true, false}) {
-      MultinomialNaiveBayes instance = new MultinomialNaiveBayes();
-
-      ExecutorService ex = Executors.newFixedThreadPool(SystemInfo.LogicalCores);
-
-      ClassificationDataSet train = FixedProblems.getSimpleKClassLinear(10000, 3, new XOR96());
-      ClassificationDataSet test = FixedProblems.getSimpleKClassLinear(1000, 3, new XOR96());
-
-      ClassificationModelEvaluation cme = new ClassificationModelEvaluation(instance, train, ex);
-      if (useCatFeatures) {
-        cme.setDataTransformProcess(new DataTransformProcess(new NumericalToHistogram.NumericalToHistogramTransformFactory()));
-      }
-      cme.evaluateTestSet(test);
-
-      assertTrue(cme.getErrorRate() <= 0.001);
-
-      ex.shutdownNow();
-    }
-  }
-
-  @Test
-  public void testTrainC_ClassificationDataSet() {
-    System.out.println("trainC");
-    for (boolean useCatFeatures : new boolean[]{true, false}) {
-      MultinomialNaiveBayes instance = new MultinomialNaiveBayes();
-
-      ClassificationDataSet train = FixedProblems.getSimpleKClassLinear(10000, 3, new XOR96());
-      ClassificationDataSet test = FixedProblems.getSimpleKClassLinear(1000, 3, new XOR96());
-
-      ClassificationModelEvaluation cme = new ClassificationModelEvaluation(instance, train);
-      if (useCatFeatures) {
-        cme.setDataTransformProcess(new DataTransformProcess(new NumericalToHistogram.NumericalToHistogramTransformFactory()));
-      }
-      cme.evaluateTestSet(test);
-
-      assertTrue(cme.getErrorRate() <= 0.001);
-    }
-  }
-
-  @Test
   public void testClone() {
     System.out.println("clone");
-    for (boolean useCatFeatures : new boolean[]{true, false}) {
+    for (final boolean useCatFeatures : new boolean[] { true, false }) {
       MultinomialNaiveBayes instance = new MultinomialNaiveBayes();
 
-      ClassificationDataSet t1 = FixedProblems.getSimpleKClassLinear(1000, 3, new XOR96());
-      ClassificationDataSet t2 = FixedProblems.getSimpleKClassLinear(1000, 6, new XOR96());
+      final ClassificationDataSet t1 = FixedProblems.getSimpleKClassLinear(1000, 3, new XOR96());
+      final ClassificationDataSet t2 = FixedProblems.getSimpleKClassLinear(1000, 6, new XOR96());
       if (useCatFeatures) {
         t1.applyTransform(new NumericalToHistogram(t1));
         t2.applyTransform(new NumericalToHistogram(t2));
@@ -117,7 +78,7 @@ public class MultinomialNaiveBayesTest {
 
       instance.trainC(t1);
 
-      MultinomialNaiveBayes result = instance.clone();
+      final MultinomialNaiveBayes result = instance.clone();
       for (int i = 0; i < t1.getSampleSize(); i++) {
         assertEquals(t1.getDataPointCategory(i), result.classify(t1.getDataPoint(i)).mostLikely());
       }
@@ -130,6 +91,51 @@ public class MultinomialNaiveBayesTest {
       for (int i = 0; i < t2.getSampleSize(); i++) {
         assertEquals(t2.getDataPointCategory(i), result.classify(t2.getDataPoint(i)).mostLikely());
       }
+    }
+  }
+
+  @Test
+  public void testTrainC_ClassificationDataSet() {
+    System.out.println("trainC");
+    for (final boolean useCatFeatures : new boolean[] { true, false }) {
+      final MultinomialNaiveBayes instance = new MultinomialNaiveBayes();
+
+      final ClassificationDataSet train = FixedProblems.getSimpleKClassLinear(10000, 3, new XOR96());
+      final ClassificationDataSet test = FixedProblems.getSimpleKClassLinear(1000, 3, new XOR96());
+
+      final ClassificationModelEvaluation cme = new ClassificationModelEvaluation(instance, train);
+      if (useCatFeatures) {
+        cme.setDataTransformProcess(
+            new DataTransformProcess(new NumericalToHistogram.NumericalToHistogramTransformFactory()));
+      }
+      cme.evaluateTestSet(test);
+
+      assertTrue(cme.getErrorRate() <= 0.001);
+    }
+  }
+
+  @Test
+  public void testTrainC_ClassificationDataSet_ExecutorService() {
+    System.out.println("trainC");
+
+    for (final boolean useCatFeatures : new boolean[] { true, false }) {
+      final MultinomialNaiveBayes instance = new MultinomialNaiveBayes();
+
+      final ExecutorService ex = Executors.newFixedThreadPool(SystemInfo.LogicalCores);
+
+      final ClassificationDataSet train = FixedProblems.getSimpleKClassLinear(10000, 3, new XOR96());
+      final ClassificationDataSet test = FixedProblems.getSimpleKClassLinear(1000, 3, new XOR96());
+
+      final ClassificationModelEvaluation cme = new ClassificationModelEvaluation(instance, train, ex);
+      if (useCatFeatures) {
+        cme.setDataTransformProcess(
+            new DataTransformProcess(new NumericalToHistogram.NumericalToHistogramTransformFactory()));
+      }
+      cme.evaluateTestSet(test);
+
+      assertTrue(cme.getErrorRate() <= 0.001);
+
+      ex.shutdownNow();
     }
   }
 

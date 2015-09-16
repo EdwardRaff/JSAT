@@ -6,6 +6,7 @@ import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
 import jsat.classifiers.CategoricalData;
 import jsat.classifiers.CategoricalResults;
 import jsat.classifiers.ClassificationDataSet;
@@ -22,18 +23,78 @@ import jsat.utils.ModifiableCountDownLatch;
  */
 public class ID3 implements Classifier {
 
-  private static final long serialVersionUID = -8473683139353205898L;
-  private CategoricalData predicting;
-  private CategoricalData[] attributes;
-  private ID3Node root;
-  private ModifiableCountDownLatch latch;
+  static private class ID3Node {
 
-  @Override
-  public CategoricalResults classify(DataPoint data) {
-    return walkTree(root, data);
+    ID3Node[] children;
+    CategoricalResults cr;
+    int attributeId;
+
+    private ID3Node() {
+    }
+
+    /**
+     * Constructs a leaf
+     *
+     * @param cr
+     *          the result to return for reaching this leaf node
+     */
+    public ID3Node(final CategoricalResults cr) {
+      children = null;
+      this.cr = cr;
+    }
+
+    /**
+     * Constructs a parent
+     *
+     * @param atributes
+     *          the number of possible values for the attribute this node should
+     *          split on
+     */
+    public ID3Node(final int atributes, final int attributeId) {
+      cr = null;
+      children = new ID3Node[atributes];
+      this.attributeId = attributeId;
+    }
+
+    public ID3Node copy() {
+      final ID3Node copy = new ID3Node();
+      copy.cr = cr;
+      copy.attributeId = attributeId;
+      if (children != null) {
+        copy.children = new ID3Node[children.length];
+        for (int i = 0; i < children.length; i++) {
+          copy.children[i] = children[i].copy();
+        }
+
+      }
+      return copy;
+    }
+
+    public int getAttributeId() {
+      return attributeId;
+    }
+
+    public ID3Node getNode(final int i) {
+      return children[i];
+    }
+
+    public CategoricalResults getResult() {
+      return cr;
+    }
+
+    public boolean isLeaf() {
+      return cr != null;
+    }
+
+    public void setNode(final int i, final ID3Node node) {
+      children[i] = node;
+    }
+
   }
 
-  static private CategoricalResults walkTree(ID3Node node, DataPoint data) {
+  private static final long serialVersionUID = -8473683139353205898L;
+
+  static private CategoricalResults walkTree(final ID3Node node, final DataPoint data) {
     if (node.isLeaf()) {
       return node.getResult();
     }
@@ -41,41 +102,21 @@ public class ID3 implements Classifier {
     return walkTree(node.getNode(data.getCategoricalValue(node.getAttributeId())), data);
   }
 
-  @Override
-  public void trainC(ClassificationDataSet dataSet, ExecutorService threadPool) {
-    if (dataSet.getNumNumericalVars() != 0) {
-      throw new RuntimeException("ID3 only supports categorical data");
-    }
+  private CategoricalData predicting;
+  private CategoricalData[] attributes;
 
-    predicting = dataSet.getPredicting();
-    attributes = dataSet.getCategories();
-    List<DataPointPair<Integer>> dataPoints = dataSet.getAsDPPList();
+  private ID3Node root;
 
-    Set<Integer> availableAttributes = new IntSet(dataSet.getNumCategoricalVars());
-    for (int i = 0; i < dataSet.getNumCategoricalVars(); i++) {
-      availableAttributes.add(i);
-    }
-    latch = new ModifiableCountDownLatch(1);
-    root = buildTree(dataPoints, availableAttributes, threadPool);
-    try {
-      latch.await();
-    } catch (InterruptedException ex) {
-      Logger.getLogger(ID3.class.getName()).log(Level.SEVERE, null, ex);
-    }
-  }
+  private ModifiableCountDownLatch latch;
 
-  @Override
-  public void trainC(ClassificationDataSet dataSet) {
-    trainC(dataSet, new FakeExecutor());
-  }
-
-  private ID3Node buildTree(List<DataPointPair<Integer>> dataPoints, Set<Integer> remainingAtribues, final ExecutorService threadPool) {
-    double curEntropy = entropy(dataPoints);
-    double size = dataPoints.size();
+  private ID3Node buildTree(final List<DataPointPair<Integer>> dataPoints, final Set<Integer> remainingAtribues,
+      final ExecutorService threadPool) {
+    final double curEntropy = entropy(dataPoints);
+    final double size = dataPoints.size();
 
     if (remainingAtribues.isEmpty() || curEntropy == 0) {
-      CategoricalResults cr = new CategoricalResults(predicting.getNumOfCategories());
-      for (DataPointPair<Integer> dpp : dataPoints) {
+      final CategoricalResults cr = new CategoricalResults(predicting.getNumOfCategories());
+      for (final DataPointPair<Integer> dpp : dataPoints) {
         cr.setProb(dpp.getPair(), cr.getProb(dpp.getPair()) + 1);
       }
       cr.divideConst(size);
@@ -88,14 +129,15 @@ public class ID3 implements Classifier {
     double bestInfoGain = Double.MIN_VALUE;
     List<List<DataPointPair<Integer>>> bestSplit = null;
 
-    for (int attribute : remainingAtribues) {
-      List<List<DataPointPair<Integer>>> newSplit = new ArrayList<List<DataPointPair<Integer>>>(attributes[attribute].getNumOfCategories());
+    for (final int attribute : remainingAtribues) {
+      final List<List<DataPointPair<Integer>>> newSplit = new ArrayList<List<DataPointPair<Integer>>>(
+          attributes[attribute].getNumOfCategories());
       for (int i = 0; i < attributes[attribute].getNumOfCategories(); i++) {
         newSplit.add(new ArrayList<DataPointPair<Integer>>());
       }
 
-      //Putting the datapoints in their respective bins by attribute value
-      for (DataPointPair<Integer> dpp : dataPoints) {
+      // Putting the datapoints in their respective bins by attribute value
+      for (final DataPointPair<Integer> dpp : dataPoints) {
         newSplit.get(dpp.getDataPoint().getCategoricalValue(attribute)).add(dpp);
       }
 
@@ -104,7 +146,7 @@ public class ID3 implements Classifier {
         splitEntrop += entropy(newSplit.get(i)) * newSplit.get(i).size() / size;
       }
 
-      double infoGain = curEntropy - splitEntrop;
+      final double infoGain = curEntropy - splitEntrop;
       if (infoGain > bestInfoGain) {
         bestAttribute = attribute;
         bestInfoGain = infoGain;
@@ -134,78 +176,29 @@ public class ID3 implements Classifier {
     return node;
   }
 
-  static private class ID3Node {
-
-    ID3Node[] children;
-    CategoricalResults cr;
-    int attributeId;
-
-    private ID3Node() {
-    }
-
-    /**
-     * Constructs a parent
-     *
-     * @param atributes the number of possible values for the attribute this node should split on
-     */
-    public ID3Node(int atributes, int attributeId) {
-      cr = null;
-      children = new ID3Node[atributes];
-      this.attributeId = attributeId;
-    }
-
-    /**
-     * Constructs a leaf
-     *
-     * @param cr the result to return for reaching this leaf node
-     */
-    public ID3Node(CategoricalResults cr) {
-      this.children = null;
-      this.cr = cr;
-    }
-
-    public boolean isLeaf() {
-      return cr != null;
-    }
-
-    public void setNode(int i, ID3Node node) {
-      children[i] = node;
-    }
-
-    public ID3Node getNode(int i) {
-      return children[i];
-    }
-
-    public int getAttributeId() {
-      return attributeId;
-    }
-
-    public CategoricalResults getResult() {
-      return cr;
-    }
-
-    public ID3Node copy() {
-      ID3Node copy = new ID3Node();
-      copy.cr = this.cr;
-      copy.attributeId = this.attributeId;
-      if (this.children != null) {
-        copy.children = new ID3Node[this.children.length];
-        for (int i = 0; i < children.length; i++) {
-          copy.children[i] = this.children[i].copy();
-        }
-
-      }
-      return copy;
-    }
-
+  @Override
+  public CategoricalResults classify(final DataPoint data) {
+    return walkTree(root, data);
   }
 
-  private double entropy(List<DataPointPair<Integer>> s) {
+  @Override
+  public Classifier clone() {
+    final ID3 copy = new ID3();
+
+    copy.attributes = attributes;
+    copy.latch = null;
+    copy.predicting = predicting;
+    copy.root = root.copy();
+
+    return copy;
+  }
+
+  private double entropy(final List<DataPointPair<Integer>> s) {
     if (s.isEmpty()) {
       return 0;
     }
-    double[] probs = new double[predicting.getNumOfCategories()];
-    for (DataPointPair<Integer> dpp : s) {
+    final double[] probs = new double[predicting.getNumOfCategories()];
+    for (final DataPointPair<Integer> dpp : s) {
       probs[dpp.getPair()] += 1;
     }
     for (int i = 0; i < probs.length; i++) {
@@ -214,12 +207,13 @@ public class ID3 implements Classifier {
 
     double entr = 0;
 
-    for (int i = 0; i < probs.length; i++) {
-      if (probs[i] != 0) {
-        entr += probs[i] * (Math.log(probs[i]) / Math.log(2));
+    for (final double prob : probs) {
+      if (prob != 0) {
+        entr += prob * (Math.log(prob) / Math.log(2));
       }
     }
-    //The entr will be negative unless it is zero, this way we dont return negative zero
+    // The entr will be negative unless it is zero, this way we dont return
+    // negative zero
     return Math.abs(entr);
   }
 
@@ -229,15 +223,31 @@ public class ID3 implements Classifier {
   }
 
   @Override
-  public Classifier clone() {
-    ID3 copy = new ID3();
+  public void trainC(final ClassificationDataSet dataSet) {
+    trainC(dataSet, new FakeExecutor());
+  }
 
-    copy.attributes = this.attributes;
-    copy.latch = null;
-    copy.predicting = this.predicting;
-    copy.root = this.root.copy();
+  @Override
+  public void trainC(final ClassificationDataSet dataSet, final ExecutorService threadPool) {
+    if (dataSet.getNumNumericalVars() != 0) {
+      throw new RuntimeException("ID3 only supports categorical data");
+    }
 
-    return copy;
+    predicting = dataSet.getPredicting();
+    attributes = dataSet.getCategories();
+    final List<DataPointPair<Integer>> dataPoints = dataSet.getAsDPPList();
+
+    final Set<Integer> availableAttributes = new IntSet(dataSet.getNumCategoricalVars());
+    for (int i = 0; i < dataSet.getNumCategoricalVars(); i++) {
+      availableAttributes.add(i);
+    }
+    latch = new ModifiableCountDownLatch(1);
+    root = buildTree(dataPoints, availableAttributes, threadPool);
+    try {
+      latch.await();
+    } catch (final InterruptedException ex) {
+      Logger.getLogger(ID3.class.getName()).log(Level.SEVERE, null, ex);
+    }
   }
 
 }

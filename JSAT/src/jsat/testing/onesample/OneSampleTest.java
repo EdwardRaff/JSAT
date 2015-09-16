@@ -9,6 +9,14 @@ import jsat.testing.StatisticTest;
  */
 public interface OneSampleTest extends StatisticTest {
 
+  public String getAltVar();
+
+  public String getNullVar();
+
+  public String[] getTestVars();
+
+  public void setAltVar(double altVar);
+
   /**
    * Sets the statistics that will be tested against an alternate hypothesis.
    *
@@ -16,14 +24,6 @@ public interface OneSampleTest extends StatisticTest {
    */
   public void setTestUsingData(Vec data);
 
-  public String[] getTestVars();
-
   public void setTestVars(double[] testVars);
-
-  public String getAltVar();
-
-  public void setAltVar(double altVar);
-
-  public String getNullVar();
 
 }

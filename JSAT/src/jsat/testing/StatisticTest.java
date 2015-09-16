@@ -31,11 +31,7 @@ public interface StatisticTest {
     }
   };
 
-  /**
-   *
-   * @return an array of the valid alternate hypothesis for this test
-   */
-  public H1[] validAlternate();
+  public double pValue();
 
   public void setAltHypothesis(H1 h1);
 
@@ -45,6 +41,10 @@ public interface StatisticTest {
    */
   public String testName();
 
-  public double pValue();
+  /**
+   *
+   * @return an array of the valid alternate hypothesis for this test
+   */
+  public H1[] validAlternate();
 
 }

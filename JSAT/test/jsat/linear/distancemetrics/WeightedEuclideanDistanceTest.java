@@ -16,19 +16,26 @@
  */
 package jsat.linear.distancemetrics;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
+
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import jsat.linear.DenseVector;
-import jsat.linear.Vec;
-import jsat.utils.SystemInfo;
+
 import org.junit.After;
 import org.junit.AfterClass;
-import static org.junit.Assert.*;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
+
+import jsat.linear.DenseVector;
+import jsat.linear.Vec;
+import jsat.utils.SystemInfo;
 
 /**
  *
@@ -47,9 +54,6 @@ public class WeightedEuclideanDistanceTest {
 
   static private double[][] expected;
 
-  public WeightedEuclideanDistanceTest() {
-  }
-
   @BeforeClass
   public static void setUpClass() {
     ex = Executors.newFixedThreadPool(SystemInfo.LogicalCores);
@@ -58,6 +62,9 @@ public class WeightedEuclideanDistanceTest {
   @AfterClass
   public static void tearDownClass() {
     ex.shutdown();
+  }
+
+  public WeightedEuclideanDistanceTest() {
   }
 
   @Before
@@ -76,17 +83,15 @@ public class WeightedEuclideanDistanceTest {
     }
 
     vecs = Arrays.asList(zero, ones, half, inc);
-    //weighting
+    // weighting
     weights = DenseVector.toDenseVec(1, 0.5, 1, 2, 1);
-    for (Vec v : vecs) {
+    for (final Vec v : vecs) {
       v.set(1, v.get(1) * 2);
       v.set(3, v.get(3) / 2);
     }
-    expected = new double[][]{
-      {0.0, 2.34520787991, 1.17260393996, 5.14781507049,},
-      {2.34520787991, 0.0, 1.17260393996, 3.60555127546,},
-      {1.17260393996, 1.17260393996, 0.0, 4.28660704987,},
-      {5.14781507049, 3.60555127546, 4.28660704987, 0.0,},};
+    expected = new double[][] { { 0.0, 2.34520787991, 1.17260393996, 5.14781507049, },
+        { 2.34520787991, 0.0, 1.17260393996, 3.60555127546, }, { 1.17260393996, 1.17260393996, 0.0, 4.28660704987, },
+        { 5.14781507049, 3.60555127546, 4.28660704987, 0.0, }, };
   }
 
   @After
@@ -97,10 +102,10 @@ public class WeightedEuclideanDistanceTest {
   public void testDist_Vec_Vec() {
     System.out.println("dist");
 
-    WeightedEuclideanDistance dist = new WeightedEuclideanDistance(weights);
+    final WeightedEuclideanDistance dist = new WeightedEuclideanDistance(weights);
 
-    List<Double> cache = dist.getAccelerationCache(vecs);
-    List<Double> cache2 = dist.getAccelerationCache(vecs, ex);
+    final List<Double> cache = dist.getAccelerationCache(vecs);
+    final List<Double> cache2 = dist.getAccelerationCache(vecs, ex);
     if (cache != null) {
       assertEquals(cache.size(), cache2.size());
       for (int i = 0; i < cache.size(); i++) {
@@ -115,13 +120,13 @@ public class WeightedEuclideanDistanceTest {
     try {
       dist.dist(half, new DenseVector(half.length() + 1));
       fail("Distance between vecs should have erred");
-    } catch (Exception ex) {
+    } catch (final Exception ex) {
 
     }
 
     for (int i = 0; i < vecs.size(); i++) {
       for (int j = 0; j < vecs.size(); j++) {
-        WeightedEuclideanDistance d = dist.clone();
+        final WeightedEuclideanDistance d = dist.clone();
         assertEquals(expected[i][j], d.dist(vecs.get(i), vecs.get(j)), 1e-8);
         assertEquals(expected[i][j], d.dist(i, j, vecs, cache), 1e-8);
         assertEquals(expected[i][j], d.dist(i, vecs.get(j), vecs, cache), 1e-8);
@@ -131,20 +136,20 @@ public class WeightedEuclideanDistanceTest {
   }
 
   @Test
-  public void testMetricProperties() {
-    System.out.println("isSymmetric");
-    WeightedEuclideanDistance instance = new WeightedEuclideanDistance(weights);
-    assertTrue(instance.isSymmetric());
-    assertTrue(instance.isSubadditive());
-    assertTrue(instance.isIndiscemible());
+  public void testMetricBound() {
+    System.out.println("metricBound");
+    final WeightedEuclideanDistance instance = new WeightedEuclideanDistance(weights);
+    assertTrue(instance.metricBound() > 0);
+    assertTrue(Double.isInfinite(instance.metricBound()));
   }
 
   @Test
-  public void testMetricBound() {
-    System.out.println("metricBound");
-    WeightedEuclideanDistance instance = new WeightedEuclideanDistance(weights);
-    assertTrue(instance.metricBound() > 0);
-    assertTrue(Double.isInfinite(instance.metricBound()));
+  public void testMetricProperties() {
+    System.out.println("isSymmetric");
+    final WeightedEuclideanDistance instance = new WeightedEuclideanDistance(weights);
+    assertTrue(instance.isSymmetric());
+    assertTrue(instance.isSubadditive());
+    assertTrue(instance.isIndiscemible());
   }
 
 }

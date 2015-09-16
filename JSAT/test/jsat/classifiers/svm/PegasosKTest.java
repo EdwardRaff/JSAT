@@ -1,18 +1,21 @@
 package jsat.classifiers.svm;
 
+import static org.junit.Assert.assertEquals;
+
 import java.util.Random;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+
+import org.junit.After;
+import org.junit.AfterClass;
+import org.junit.Before;
+import org.junit.BeforeClass;
+import org.junit.Test;
+
 import jsat.FixedProblems;
 import jsat.classifiers.ClassificationDataSet;
 import jsat.distributions.kernels.RBFKernel;
 import jsat.utils.SystemInfo;
-import org.junit.After;
-import org.junit.AfterClass;
-import static org.junit.Assert.*;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
 
 /**
  *
@@ -21,9 +24,6 @@ import org.junit.Test;
 public class PegasosKTest {
 
   static private ExecutorService ex;
-
-  public PegasosKTest() {
-  }
 
   @BeforeClass
   public static void setUpClass() {
@@ -35,6 +35,9 @@ public class PegasosKTest {
     ex.shutdown();
   }
 
+  public PegasosKTest() {
+  }
+
   @Before
   public void setUp() {
   }
@@ -44,14 +47,14 @@ public class PegasosKTest {
   }
 
   @Test
-  public void testTrainC_ClassificationDataSet_ExecutorService() {
+  public void testTrainC_ClassificationDataSet() {
     System.out.println("trainC");
-    ClassificationDataSet trainSet = FixedProblems.getInnerOuterCircle(150, new Random(2));
-    ClassificationDataSet testSet = FixedProblems.getInnerOuterCircle(50, new Random(3));
+    final ClassificationDataSet trainSet = FixedProblems.getInnerOuterCircle(150, new Random(2));
+    final ClassificationDataSet testSet = FixedProblems.getInnerOuterCircle(50, new Random(3));
 
-    for (SupportVectorLearner.CacheMode cacheMode : SupportVectorLearner.CacheMode.values()) {
-      PegasosK classifier = new PegasosK(1e-6, trainSet.getSampleSize(), new RBFKernel(0.5), cacheMode);
-      classifier.trainC(trainSet, ex);
+    for (final SupportVectorLearner.CacheMode cacheMode : SupportVectorLearner.CacheMode.values()) {
+      final PegasosK classifier = new PegasosK(1e-6, trainSet.getSampleSize(), new RBFKernel(0.5), cacheMode);
+      classifier.trainC(trainSet);
 
       for (int i = 0; i < testSet.getSampleSize(); i++) {
         assertEquals(testSet.getDataPointCategory(i), classifier.classify(testSet.getDataPoint(i)).mostLikely());
@@ -60,14 +63,14 @@ public class PegasosKTest {
   }
 
   @Test
-  public void testTrainC_ClassificationDataSet() {
+  public void testTrainC_ClassificationDataSet_ExecutorService() {
     System.out.println("trainC");
-    ClassificationDataSet trainSet = FixedProblems.getInnerOuterCircle(150, new Random(2));
-    ClassificationDataSet testSet = FixedProblems.getInnerOuterCircle(50, new Random(3));
+    final ClassificationDataSet trainSet = FixedProblems.getInnerOuterCircle(150, new Random(2));
+    final ClassificationDataSet testSet = FixedProblems.getInnerOuterCircle(50, new Random(3));
 
-    for (SupportVectorLearner.CacheMode cacheMode : SupportVectorLearner.CacheMode.values()) {
-      PegasosK classifier = new PegasosK(1e-6, trainSet.getSampleSize(), new RBFKernel(0.5), cacheMode);
-      classifier.trainC(trainSet);
+    for (final SupportVectorLearner.CacheMode cacheMode : SupportVectorLearner.CacheMode.values()) {
+      final PegasosK classifier = new PegasosK(1e-6, trainSet.getSampleSize(), new RBFKernel(0.5), cacheMode);
+      classifier.trainC(trainSet, ex);
 
       for (int i = 0; i < testSet.getSampleSize(); i++) {
         assertEquals(testSet.getDataPointCategory(i), classifier.classify(testSet.getDataPoint(i)).mostLikely());

@@ -6,15 +6,12 @@ package jsat.distributions.empirical.kernelfunc;
  */
 public class BiweightKF implements KernelFunction {
 
-  private static final long serialVersionUID = -7199542934997154186L;
-
-  private BiweightKF() {
-  }
-
   private static class SingletonHolder {
 
     public static final BiweightKF INSTANCE = new BiweightKF();
   }
+
+  private static final long serialVersionUID = -7199542934997154186L;
 
   /**
    * Returns the singleton instance of this class
@@ -25,16 +22,16 @@ public class BiweightKF implements KernelFunction {
     return SingletonHolder.INSTANCE;
   }
 
-  @Override
-  public double k(double u) {
-    if (Math.abs(u) > 1) {
-      return 0;
-    }
-    return Math.pow(1 - u * u, 2) * (15.0 / 16.0);
+  private BiweightKF() {
   }
 
   @Override
-  public double intK(double u) {
+  public double cutOff() {
+    return Math.ulp(1) + 1;
+  }
+
+  @Override
+  public double intK(final double u) {
     if (u < -1) {
       return 0;
     }
@@ -45,21 +42,24 @@ public class BiweightKF implements KernelFunction {
   }
 
   @Override
+  public double k(final double u) {
+    if (Math.abs(u) > 1) {
+      return 0;
+    }
+    return Math.pow(1 - u * u, 2) * (15.0 / 16.0);
+  }
+
+  @Override
   public double k2() {
     return 1.0 / 7.0;
   }
 
   @Override
-  public double cutOff() {
-    return Math.ulp(1) + 1;
-  }
-
-  @Override
-  public double kPrime(double u) {
+  public double kPrime(final double u) {
     if (Math.abs(u) > 1) {
       return 0;
     }
-    return (15.0 / 4.0) * u * (u * u - 1);
+    return 15.0 / 4.0 * u * (u * u - 1);
   }
 
   @Override

@@ -1,10 +1,12 @@
 package jsat.text.tokenizer;
 
+import static org.junit.Assert.assertEquals;
+
 import java.util.Arrays;
 import java.util.List;
+
 import org.junit.After;
 import org.junit.AfterClass;
-import static org.junit.Assert.*;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -15,15 +17,15 @@ import org.junit.Test;
  */
 public class NGramTokenizerTest {
 
-  public NGramTokenizerTest() {
-  }
-
   @BeforeClass
   public static void setUpClass() {
   }
 
   @AfterClass
   public static void tearDownClass() {
+  }
+
+  public NGramTokenizerTest() {
   }
 
   @Before
@@ -40,11 +42,11 @@ public class NGramTokenizerTest {
   @Test
   public void testTokenize_String() {
     System.out.println("tokenize");
-    String input = "the dog barked";
-    NaiveTokenizer naiveToken = new NaiveTokenizer();
-    NGramTokenizer instance = new NGramTokenizer(3, naiveToken, true);
-    List<String> expResult = Arrays.asList("the", "dog", "barked", "the dog", "dog barked", "the dog barked");
-    List<String> result = instance.tokenize(input);
+    final String input = "the dog barked";
+    final NaiveTokenizer naiveToken = new NaiveTokenizer();
+    final NGramTokenizer instance = new NGramTokenizer(3, naiveToken, true);
+    final List<String> expResult = Arrays.asList("the", "dog", "barked", "the dog", "dog barked", "the dog barked");
+    final List<String> result = instance.tokenize(input);
 
     assertEquals(expResult.size(), result.size());
     for (int i = 0; i < expResult.size(); i++) {

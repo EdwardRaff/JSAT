@@ -3,6 +3,7 @@ package jsat.classifiers.boosting;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
+
 import jsat.classifiers.CategoricalData;
 import jsat.classifiers.CategoricalResults;
 import jsat.classifiers.ClassificationDataSet;
@@ -16,17 +17,20 @@ import jsat.parameters.Parameterized;
 import jsat.utils.DoubleList;
 
 /**
- * Implementation of Experiments with a New Boosting Algorithm, by Yoav Freund&amp;Robert E. Schapire.
+ * Implementation of Experiments with a New Boosting Algorithm, by Yoav
+ * Freund&amp;Robert E. Schapire. <br>
+ * This is the first AdaBoost algorithm presented in the paper, and the first
+ * boosting algorithm. Though not often mentioned, AdaBoost does support non
+ * binary classification tasks. However, for any <i>k</i> labels, the weak
+ * learner's error still needs to be better then 1/2, which is not an easy
+ * requirement to satisfy. For this reason, many use AdaBoostM1 by reducing
+ * <i>k</i> class classification problems to several 2 class problems. <br>
  * <br>
- * This is the first AdaBoost algorithm presented in the paper, and the first boosting algorithm. Though not often
- * mentioned, AdaBoost does support non binary classification tasks. However, for any <i>k</i> labels, the weak
- * learner's error still needs to be better then 1/2, which is not an easy requirement to satisfy. For this reason, many
- * use AdaBoostM1 by reducing
- * <i>k</i> class classification problems to several 2 class problems.
- * <br><br>
- * Many Boosting methods, when given a binary classification task, reduce to having the same results as this class.
- * <br> <br>
- * AdaBoost is often combined with {@link OneVSAll} to obtain better classification accuracy.
+ * Many Boosting methods, when given a binary classification task, reduce to
+ * having the same results as this class. <br>
+ * <br>
+ * AdaBoost is often combined with {@link OneVSAll} to obtain better
+ * classification accuracy.
  *
  *
  * @author Edward Raff
@@ -46,9 +50,43 @@ public class AdaBoostM1 implements Classifier, Parameterized {
   protected List<Double> hypWeights;
   protected CategoricalData predicting;
 
-  public AdaBoostM1(Classifier weakLearner, int maxIterations) {
+  public AdaBoostM1(final Classifier weakLearner, final int maxIterations) {
     setWeakLearner(weakLearner);
     this.maxIterations = maxIterations;
+  }
+
+  @Override
+  public CategoricalResults classify(final DataPoint data) {
+    if (predicting == null) {
+      throw new RuntimeException("Classifier has not been trained yet");
+    }
+
+    final CategoricalResults cr = new CategoricalResults(predicting.getNumOfCategories());
+
+    for (int i = 0; i < hypoths.size(); i++) {
+      cr.incProb(hypoths.get(i).classify(data).mostLikely(), hypWeights.get(i));
+    }
+
+    cr.normalize();
+    return cr;
+  }
+
+  @Override
+  public AdaBoostM1 clone() {
+    final AdaBoostM1 copy = new AdaBoostM1(weakLearner.clone(), maxIterations);
+    if (hypWeights != null) {
+      copy.hypWeights = new DoubleList(hypWeights);
+    }
+    if (hypoths != null) {
+      copy.hypoths = new ArrayList<Classifier>(hypoths.size());
+      for (int i = 0; i < hypoths.size(); i++) {
+        copy.hypoths.add(hypoths.get(i).clone());
+      }
+    }
+    if (predicting != null) {
+      copy.predicting = predicting.clone();
+    }
+    return copy;
   }
 
   /**
@@ -60,16 +98,14 @@ public class AdaBoostM1 implements Classifier, Parameterized {
     return maxIterations;
   }
 
-  /**
-   * Sets the maximal number of boosting iterations that may be performed
-   *
-   * @param maxIterations the maximum number of iterations
-   */
-  public void setMaxIterations(int maxIterations) {
-    if (maxIterations < 1) {
-      throw new IllegalArgumentException("Number of iterations must be a positive value, no " + maxIterations);
-    }
-    this.maxIterations = maxIterations;
+  @Override
+  public Parameter getParameter(final String paramName) {
+    return Parameter.toParameterMap(getParameters()).get(paramName);
+  }
+
+  @Override
+  public List<Parameter> getParameters() {
+    return Parameter.getParamsFromMethods(this);
   }
 
   /**
@@ -82,11 +118,25 @@ public class AdaBoostM1 implements Classifier, Parameterized {
   }
 
   /**
+   * Sets the maximal number of boosting iterations that may be performed
+   *
+   * @param maxIterations
+   *          the maximum number of iterations
+   */
+  public void setMaxIterations(final int maxIterations) {
+    if (maxIterations < 1) {
+      throw new IllegalArgumentException("Number of iterations must be a positive value, no " + maxIterations);
+    }
+    this.maxIterations = maxIterations;
+  }
+
+  /**
    * Sets the weak learner used during training.
    *
-   * @param weakLearner the weak learner to use
+   * @param weakLearner
+   *          the weak learner to use
    */
-  public void setWeakLearner(Classifier weakLearner) {
+  public void setWeakLearner(final Classifier weakLearner) {
     if (!weakLearner.supportsWeightedData()) {
       throw new FailedToFitException("WeakLearner must support weighted data to be boosted");
     }
@@ -94,39 +144,35 @@ public class AdaBoostM1 implements Classifier, Parameterized {
   }
 
   @Override
-  public CategoricalResults classify(DataPoint data) {
-    if (predicting == null) {
-      throw new RuntimeException("Classifier has not been trained yet");
-    }
-
-    CategoricalResults cr = new CategoricalResults(predicting.getNumOfCategories());
-
-    for (int i = 0; i < hypoths.size(); i++) {
-      cr.incProb(hypoths.get(i).classify(data).mostLikely(), hypWeights.get(i));
-    }
-
-    cr.normalize();
-    return cr;
+  public boolean supportsWeightedData() {
+    return false;
   }
 
   @Override
-  public void trainC(ClassificationDataSet dataSet, ExecutorService threadPool) {
+  public void trainC(final ClassificationDataSet dataSet) {
+    trainC(dataSet, null);
+  }
+
+  @Override
+  public void trainC(final ClassificationDataSet dataSet, final ExecutorService threadPool) {
     /*
-         * Implementation note: We want all weights to be >= 1, so we will scale all weight values by the smallest weight value 
+     * Implementation note: We want all weights to be >= 1, so we will scale all
+     * weight values by the smallest weight value
      */
     predicting = dataSet.getPredicting();
     hypWeights = new DoubleList(maxIterations);
     hypoths = new ArrayList<Classifier>(maxIterations);
 
-    List<DataPointPair<Integer>> dataPoints = dataSet.getAsDPPList();
-    //Initialization step, set up the weights  so they are all 1 / size of dataset
-    for (DataPointPair<Integer> dpp : dataPoints) {
-      dpp.getDataPoint().setWeight(1.0);//Scaled, they are all 1 
+    final List<DataPointPair<Integer>> dataPoints = dataSet.getAsDPPList();
+    // Initialization step, set up the weights so they are all 1 / size of
+    // dataset
+    for (final DataPointPair<Integer> dpp : dataPoints) {
+      dpp.getDataPoint().setWeight(1.0);// Scaled, they are all 1
     }
     double scaledBy = dataPoints.size();
 
-    //Rather then reclasify points, we just save this list
-    boolean[] wasCorrect = new boolean[dataPoints.size()];
+    // Rather then reclasify points, we just save this list
+    final boolean[] wasCorrect = new boolean[dataPoints.size()];
 
     for (int t = 0; t < maxIterations; t++) {
       if (threadPool != null) {
@@ -137,7 +183,8 @@ public class AdaBoostM1 implements Classifier, Parameterized {
 
       double error = 0.0;
       for (int i = 0; i < dataPoints.size(); i++) {
-        if (!(wasCorrect[i] = weakLearner.classify(dataPoints.get(i).getDataPoint()).mostLikely() == dataPoints.get(i).getPair())) {
+        if (!(wasCorrect[i] = weakLearner.classify(dataPoints.get(i).getDataPoint()).mostLikely() == dataPoints.get(i)
+            .getPair())) {
           error += dataPoints.get(i).getDataPoint().getWeight();
         }
       }
@@ -146,27 +193,27 @@ public class AdaBoostM1 implements Classifier, Parameterized {
         return;
       }
 
-      double bt = error / (1.0 - error);
+      final double bt = error / (1.0 - error);
 
-      //Update Distribution weights 
+      // Update Distribution weights
       double Zt = 0.0;
-      double newScale = scaledBy;//Not scaled
+      double newScale = scaledBy;// Not scaled
       for (int i = 0; i < wasCorrect.length; i++) {
-        DataPoint dp = dataPoints.get(i).getDataPoint();
-        if (wasCorrect[i])//Put less weight on the points we got correct
+        final DataPoint dp = dataPoints.get(i).getDataPoint();
+        if (wasCorrect[i]) // Put less weight on the points we got correct
         {
-          double w = dp.getWeight() * bt;
+          final double w = dp.getWeight() * bt;
           dp.setWeight(w);
         }
-        double trueWeight = dp.getWeight() / scaledBy;
+        final double trueWeight = dp.getWeight() / scaledBy;
         if (1.0 / trueWeight > newScale) {
           newScale = 1.0 / trueWeight;
         }
-        Zt += dp.getWeight() / scaledBy;//Sum the values
+        Zt += dp.getWeight() / scaledBy;// Sum the values
       }
 
-      for (DataPointPair dpp : dataPoints) {
-        //Normalize so the weights make a distribution
+      for (final DataPointPair dpp : dataPoints) {
+        // Normalize so the weights make a distribution
         dpp.getDataPoint().setWeight(dpp.getDataPoint().getWeight() / scaledBy * newScale / Zt);
       }
       scaledBy = newScale;
@@ -174,43 +221,5 @@ public class AdaBoostM1 implements Classifier, Parameterized {
       hypoths.add(weakLearner.clone());
       hypWeights.add(Math.log(1 / bt));
     }
-  }
-
-  @Override
-  public void trainC(ClassificationDataSet dataSet) {
-    trainC(dataSet, null);
-  }
-
-  @Override
-  public boolean supportsWeightedData() {
-    return false;
-  }
-
-  @Override
-  public AdaBoostM1 clone() {
-    AdaBoostM1 copy = new AdaBoostM1(weakLearner.clone(), maxIterations);
-    if (hypWeights != null) {
-      copy.hypWeights = new DoubleList(this.hypWeights);
-    }
-    if (this.hypoths != null) {
-      copy.hypoths = new ArrayList<Classifier>(this.hypoths.size());
-      for (int i = 0; i < this.hypoths.size(); i++) {
-        copy.hypoths.add(this.hypoths.get(i).clone());
-      }
-    }
-    if (this.predicting != null) {
-      copy.predicting = this.predicting.clone();
-    }
-    return copy;
-  }
-
-  @Override
-  public List<Parameter> getParameters() {
-    return Parameter.getParamsFromMethods(this);
-  }
-
-  @Override
-  public Parameter getParameter(String paramName) {
-    return Parameter.toParameterMap(getParameters()).get(paramName);
   }
 }

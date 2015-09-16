@@ -5,22 +5,24 @@ import java.util.concurrent.Semaphore;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
- * Provides a {@link CountDownLatch} that can have the number of counts increased as well as decreased.
+ * Provides a {@link CountDownLatch} that can have the number of counts
+ * increased as well as decreased.
  *
  * @author Edward Raff
  */
 public class ModifiableCountDownLatch {
 
-  private Semaphore awaitSemaphore;
-  private AtomicInteger count;
+  private final Semaphore awaitSemaphore;
+  private final AtomicInteger count;
 
-  public ModifiableCountDownLatch(int count) {
+  public ModifiableCountDownLatch(final int count) {
     this.count = new AtomicInteger(count);
     awaitSemaphore = new Semaphore(0);
   }
 
   /**
-   * Waits until the count gets reduced to zero, and then all threads waiting will get to run.
+   * Waits until the count gets reduced to zero, and then all threads waiting
+   * will get to run.
    *
    * @throws InterruptedException
    */
@@ -30,7 +32,8 @@ public class ModifiableCountDownLatch {
   }
 
   /**
-   * Decrements the counter. Allowing threads that have called {@link #await() } to run once the count reaches zero.
+   * Decrements the counter. Allowing threads that have called {@link #await() }
+   * to run once the count reaches zero.
    */
   public void countDown() {
     if (count.get() == 0) {
@@ -40,8 +43,8 @@ public class ModifiableCountDownLatch {
   }
 
   /**
-   * Increments the count. Once the count has reached zero once, incrementing the count back above zero will have no
-   * affect.
+   * Increments the count. Once the count has reached zero once, incrementing
+   * the count back above zero will have no affect.
    */
   public void countUp() {
     count.addAndGet(1);

@@ -16,14 +16,23 @@
  */
 package jsat.classifiers.boosting;
 
+import static org.junit.Assert.assertTrue;
+
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+
+import org.junit.After;
+import org.junit.AfterClass;
+import org.junit.Before;
+import org.junit.BeforeClass;
+import org.junit.Test;
+
 import jsat.FixedProblems;
-import jsat.classifiers.*;
-import jsat.classifiers.trees.*;
+import jsat.classifiers.ClassificationDataSet;
+import jsat.classifiers.ClassificationModelEvaluation;
+import jsat.classifiers.trees.DecisionTree;
+import jsat.classifiers.trees.TreePruner;
 import jsat.utils.SystemInfo;
-import org.junit.*;
-import static org.junit.Assert.*;
 
 /**
  *
@@ -31,15 +40,15 @@ import static org.junit.Assert.*;
  */
 public class SAMMETest {
 
-  public SAMMETest() {
-  }
-
   @BeforeClass
   public static void setUpClass() {
   }
 
   @AfterClass
   public static void tearDownClass() {
+  }
+
+  public SAMMETest() {
   }
 
   @Before
@@ -51,48 +60,13 @@ public class SAMMETest {
   }
 
   @Test
-  public void testTrainC_ClassificationDataSet_ExecutorService() {
-    System.out.println("trainC");
-
-    SAMME instance = new SAMME(new DecisionTree(2, 2, TreePruner.PruningMethod.NONE, 0.1), 50);
-
-    ExecutorService ex = Executors.newFixedThreadPool(SystemInfo.LogicalCores);
-
-    ClassificationDataSet train = FixedProblems.getCircles(1000, .1, 10.0, 100.0);
-    ClassificationDataSet test = FixedProblems.getCircles(100, .1, 10.0, 100.0);
-
-    ClassificationModelEvaluation cme = new ClassificationModelEvaluation(instance, train, ex);
-    cme.evaluateTestSet(test);
-
-    assertTrue(cme.getErrorRate() <= 0.15);
-
-    ex.shutdownNow();
-  }
-
-  @Test
-  public void testTrainC_ClassificationDataSet() {
-    System.out.println("trainC");
-
-    SAMME instance = new SAMME(new DecisionTree(2, 2, TreePruner.PruningMethod.NONE, 0.1), 50);
-
-    ClassificationDataSet train = FixedProblems.getCircles(1000, .1, 10.0, 100.0);
-    ClassificationDataSet test = FixedProblems.getCircles(100, .1, 10.0, 100.0);
-
-    ClassificationModelEvaluation cme = new ClassificationModelEvaluation(instance, train);
-    cme.evaluateTestSet(test);
-
-    assertTrue(cme.getErrorRate() <= 0.15);
-
-  }
-
-  @Test
   public void testClone() {
     System.out.println("clone");
 
     SAMME instance = new SAMME(new DecisionTree(10, 10, TreePruner.PruningMethod.NONE, 0.1), 50);
 
-    ClassificationDataSet t1 = FixedProblems.getCircles(1000, 0.1, 10.0, 100.0);
-    ClassificationDataSet t2 = FixedProblems.getCircles(1000, 0.1, 10.0);
+    final ClassificationDataSet t1 = FixedProblems.getCircles(1000, 0.1, 10.0, 100.0);
+    final ClassificationDataSet t2 = FixedProblems.getCircles(1000, 0.1, 10.0);
 
     int errors;
 
@@ -100,7 +74,7 @@ public class SAMMETest {
 
     instance.trainC(t1);
 
-    SAMME result = instance.clone();
+    final SAMME result = instance.clone();
 
     errors = 0;
     for (int i = 0; i < t1.getSampleSize(); i++) {
@@ -118,6 +92,41 @@ public class SAMMETest {
       errors += Math.abs(t2.getDataPointCategory(i) - result.classify(t2.getDataPoint(i)).mostLikely());
     }
     assertTrue(errors < 100);
+  }
+
+  @Test
+  public void testTrainC_ClassificationDataSet() {
+    System.out.println("trainC");
+
+    final SAMME instance = new SAMME(new DecisionTree(2, 2, TreePruner.PruningMethod.NONE, 0.1), 50);
+
+    final ClassificationDataSet train = FixedProblems.getCircles(1000, .1, 10.0, 100.0);
+    final ClassificationDataSet test = FixedProblems.getCircles(100, .1, 10.0, 100.0);
+
+    final ClassificationModelEvaluation cme = new ClassificationModelEvaluation(instance, train);
+    cme.evaluateTestSet(test);
+
+    assertTrue(cme.getErrorRate() <= 0.15);
+
+  }
+
+  @Test
+  public void testTrainC_ClassificationDataSet_ExecutorService() {
+    System.out.println("trainC");
+
+    final SAMME instance = new SAMME(new DecisionTree(2, 2, TreePruner.PruningMethod.NONE, 0.1), 50);
+
+    final ExecutorService ex = Executors.newFixedThreadPool(SystemInfo.LogicalCores);
+
+    final ClassificationDataSet train = FixedProblems.getCircles(1000, .1, 10.0, 100.0);
+    final ClassificationDataSet test = FixedProblems.getCircles(100, .1, 10.0, 100.0);
+
+    final ClassificationModelEvaluation cme = new ClassificationModelEvaluation(instance, train, ex);
+    cme.evaluateTestSet(test);
+
+    assertTrue(cme.getErrorRate() <= 0.15);
+
+    ex.shutdownNow();
   }
 
 }

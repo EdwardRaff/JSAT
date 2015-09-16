@@ -1,7 +1,16 @@
 package jsat.clustering;
 
-import java.util.*;
-import java.util.concurrent.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+
 import jsat.DataSet;
 import jsat.linear.Vec;
 import jsat.linear.VecPaired;
@@ -20,13 +29,16 @@ import jsat.utils.SystemInfo;
 import jsat.utils.concurrent.AtomicDoubleArray;
 
 /**
- * Provides an implementation of the FLAME clustering algorithm. The original FLAME paper does not describe all
- * necessary details for an implementation, so results may differ between implementations. <br><br>
- * FLAME is highly sensitive to the number of neighbors chosen. Increasing the neighbors tends to reduce the number of
- * clusters formed.
- * <br><br>
- * See: Fu, L.,&amp;Medico, E. (2007). <i>FLAME, a novel fuzzy clustering method for the analysis of DNA microarray
- * data</i>. BMC Bioinformatics, 8(1), 3. Retrieved from <a href="http://www.ncbi.nlm.nih.gov/pubmed/17204155">here</a>
+ * Provides an implementation of the FLAME clustering algorithm. The original
+ * FLAME paper does not describe all necessary details for an implementation, so
+ * results may differ between implementations. <br>
+ * <br>
+ * FLAME is highly sensitive to the number of neighbors chosen. Increasing the
+ * neighbors tends to reduce the number of clusters formed. <br>
+ * <br>
+ * See: Fu, L.,&amp;Medico, E. (2007). <i>FLAME, a novel fuzzy clustering method
+ * for the analysis of DNA microarray data</i>. BMC Bioinformatics, 8(1), 3.
+ * Retrieved from <a href="http://www.ncbi.nlm.nih.gov/pubmed/17204155">here</a>
  *
  * @author Edward Raff
  */
@@ -43,11 +55,14 @@ public class FLAME extends ClustererBase implements Parameterized {
   /**
    * Creates a new FLAME clustering object
    *
-   * @param dm the distance metric to use
-   * @param k the number of neighbors to consider
-   * @param maxIterations the maximum number of iterations to perform
+   * @param dm
+   *          the distance metric to use
+   * @param k
+   *          the number of neighbors to consider
+   * @param maxIterations
+   *          the maximum number of iterations to perform
    */
-  public FLAME(DistanceMetric dm, int k, int maxIterations) {
+  public FLAME(final DistanceMetric dm, final int k, final int maxIterations) {
     setDistanceMetric(dm);
     setK(k);
     setMaxIterations(maxIterations);
@@ -56,145 +71,32 @@ public class FLAME extends ClustererBase implements Parameterized {
   /**
    * Copy constructor
    *
-   * @param toCopy the object to copy
+   * @param toCopy
+   *          the object to copy
    */
-  public FLAME(FLAME toCopy) {
-    this.dm = toCopy.dm.clone();
-    this.maxIterations = toCopy.maxIterations;
-    this.vectorCollectionFactory = toCopy.vectorCollectionFactory;
-    this.k = toCopy.k;
-    this.stndDevs = toCopy.stndDevs;
-    this.eps = toCopy.eps;
+  public FLAME(final FLAME toCopy) {
+    dm = toCopy.dm.clone();
+    maxIterations = toCopy.maxIterations;
+    vectorCollectionFactory = toCopy.vectorCollectionFactory;
+    k = toCopy.k;
+    stndDevs = toCopy.stndDevs;
+    eps = toCopy.eps;
 
-  }
-
-  /**
-   * Sets the maximum number of iterations to perform. FLAME can require far more iterations to converge than necessary
-   * to get the same hard clustering result.
-   *
-   * @param maxIterations the maximum number of iterations to perform
-   */
-  public void setMaxIterations(int maxIterations) {
-    if (maxIterations < 1) {
-      throw new IllegalArgumentException("Must perform a positive number of iterations, not " + maxIterations);
-    }
-    this.maxIterations = maxIterations;
-  }
-
-  /**
-   * Returns the maximum number of iterations to perform
-   *
-   * @return the maximum number of iterations to perform
-   */
-  public int getMaxIterations() {
-    return maxIterations;
-  }
-
-  /**
-   * Sets the number of neighbors that will be considered in determining Cluster Supporting Points and assignment
-   * contributions.
-   *
-   * @param k the number of neighbors to consider
-   */
-  public void setK(int k) {
-    this.k = k;
-  }
-
-  /**
-   * Returns the number of neighbors used
-   *
-   * @return the number of neighbors used
-   */
-  public int getK() {
-    return k;
-  }
-
-  /**
-   * Sets the convergence goal for the minimum difference in score between rounds. Negative values are allowed to force
-   * all iterations to occur
-   *
-   * @param eps the minimum difference in scores for convergence
-   */
-  public void setEps(double eps) {
-    if (Double.isNaN(eps)) {
-      throw new IllegalArgumentException("Eps can not be NaN");
-    }
-    this.eps = eps;
-  }
-
-  /**
-   * Returns the minimum difference in scores to consider FLAME converged
-   *
-   * @return the minimum difference in scores to consider FLAMe converged
-   */
-  public double getEps() {
-    return eps;
-  }
-
-  /**
-   * Sets the number of standard deviations away from the mean density a candidate outlier must be to be confirmed as an
-   * outlier.
-   *
-   * @param stndDevs the number of standard deviations away from the mean density an outlier must be
-   */
-  public void setStndDevs(double stndDevs) {
-    if (stndDevs < 0 || Double.isInfinite(stndDevs) || Double.isNaN(stndDevs)) {
-      throw new IllegalArgumentException("Standard Deviations must be non negative");
-    }
-    this.stndDevs = stndDevs;
-  }
-
-  /**
-   * Returns the number of standard deviations away from the mean density an outlier must be
-   *
-   * @return the number of standard deviations away from the mean density an outlier must be
-   */
-  public double getStndDevs() {
-    return stndDevs;
-  }
-
-  /**
-   * Sets the distance metric to use for the nearest neighbor search
-   *
-   * @param dm the distance metric to use
-   */
-  public void setDistanceMetric(DistanceMetric dm) {
-    this.dm = dm;
-  }
-
-  /**
-   * Returns the distance metric to use for the nearest neighbor search
-   *
-   * @return the distance metric to use
-   */
-  public DistanceMetric getDistanceMetric() {
-    return dm;
-  }
-
-  /**
-   * Sets the vector collection factory used to accelerate the nearest neighbor search. The nearest neighbor only needs
-   * to be done once for each point, so the collection should be faster than the naive method when considering both
-   * construction and search time.
-   *
-   * @param vectorCollectionFactory
-   */
-  public void setVectorCollectionFactory(VectorCollectionFactory<VecPaired<Vec, Integer>> vectorCollectionFactory) {
-    this.vectorCollectionFactory = vectorCollectionFactory;
   }
 
   @Override
-  public int[] cluster(DataSet dataSet, int[] designations) {
-    return cluster(dataSet, new FakeExecutor(), designations);
+  public FLAME clone() {
+    return new FLAME(this);
   }
 
   @Override
-  public int[] cluster(DataSet dataSet, ExecutorService threadpool, int[] designations) {
+  public int[] cluster(final DataSet dataSet, final ExecutorService threadpool, int[] designations) {
     try {
       final int n = dataSet.getSampleSize();
       if (designations == null || designations.length < dataSet.getSampleSize()) {
         designations = new int[n];
       }
-      List<VecPaired<Vec, Integer>> vecs = new ArrayList<VecPaired<Vec, Integer>>(n);
+      final List<VecPaired<Vec, Integer>> vecs = new ArrayList<VecPaired<Vec, Integer>>(n);
       for (int i = 0; i < dataSet.getSampleSize(); i++) {
         vecs.add(new VecPaired<Vec, Integer>(dataSet.getDataPoint(i).getNumericalValues(), i));
       }
@@ -210,21 +112,22 @@ public class FLAME extends ClustererBase implements Parameterized {
         allNNs = VectorCollectionUtils.allNearestNeighbors(vc, vecs, k + 1, threadpool);
       }
 
-      //NOTE: Density is done in reverse, so large values indicate low density, small values indiciate high density. 
-      //mark density as the sum of distances
+      // NOTE: Density is done in reverse, so large values indicate low density,
+      // small values indiciate high density.
+      // mark density as the sum of distances
       final double[] density = new double[vecs.size()];
       final double[][] weights = new double[n][k];
-      OnLineStatistics densityStats = new OnLineStatistics();
+      final OnLineStatistics densityStats = new OnLineStatistics();
       for (int i = 0; i < density.length; i++) {
-        List<? extends VecPaired<VecPaired<Vec, Integer>, Double>> knns = allNNs.get(i);
+        final List<? extends VecPaired<VecPaired<Vec, Integer>, Double>> knns = allNNs.get(i);
         for (int j = 1; j < knns.size(); j++) {
-          density[i] += (weights[i][j - 1] = knns.get(j).getPair());
+          density[i] += weights[i][j - 1] = knns.get(j).getPair();
         }
         densityStats.add(density[i]);
 
         double sum = 0;
         for (int j = 0; j < k; j++) {
-          sum += (weights[i][j] = Math.min(1.0 / Math.pow(weights[i][j], 2), Double.MAX_VALUE / (k + 1)));
+          sum += weights[i][j] = Math.min(1.0 / Math.pow(weights[i][j], 2), Double.MAX_VALUE / (k + 1));
         }
 
         for (int j = 0; j < k; j++) {
@@ -239,11 +142,12 @@ public class FLAME extends ClustererBase implements Parameterized {
       final double threshold = densityStats.getMean() + densityStats.getStandardDeviation() * stndDevs;
 
       for (int i = 0; i < density.length; i++) {
-        List<? extends VecPaired<VecPaired<Vec, Integer>, Double>> knns = allNNs.get(i);
-        boolean lowest = true;//if my density score is lower then all neighbors, then i am a CSO
-        boolean highest = true;//if heigher, then I am an outlier
+        final List<? extends VecPaired<VecPaired<Vec, Integer>, Double>> knns = allNNs.get(i);
+        boolean lowest = true;// if my density score is lower then all
+                              // neighbors, then i am a CSO
+        boolean highest = true;// if heigher, then I am an outlier
         for (int j = 1; j < knns.size() && (highest || lowest); j++) {
-          int jNN = knns.get(j).getVector().getPair();
+          final int jNN = knns.get(j).getVector().getPair();
           if (density[i] > density[jNN]) {
             lowest = false;
           } else {
@@ -258,13 +162,13 @@ public class FLAME extends ClustererBase implements Parameterized {
         }
       }
 
-      //remove CSO that occur near outliers
+      // remove CSO that occur near outliers
       {
-        int origSize = CSOs.size();
-        Iterator<Integer> iter = CSOs.keySet().iterator();
+        final int origSize = CSOs.size();
+        final Iterator<Integer> iter = CSOs.keySet().iterator();
         while (iter.hasNext()) {
-          int i = iter.next();
-          List<? extends VecPaired<VecPaired<Vec, Integer>, Double>> knns = allNNs.get(i);
+          final int i = iter.next();
+          final List<? extends VecPaired<VecPaired<Vec, Integer>, Double>> knns = allNNs.get(i);
           for (int j = 1; j < knns.size(); j++) {
             if (outliers.contains(knns.get(j).getVector().getPair())) {
               iter.remove();
@@ -273,25 +177,25 @@ public class FLAME extends ClustererBase implements Parameterized {
           }
         }
 
-        if (origSize != CSOs.size())//we did a removal, re-order clusters
+        if (origSize != CSOs.size()) // we did a removal, re-order clusters
         {
-          Set<Integer> keys = new IntSet(CSOs.keySet());
+          final Set<Integer> keys = new IntSet(CSOs.keySet());
           CSOs.clear();
-          for (int i : keys) {
+          for (final int i : keys) {
             CSOs.put(i, CSOs.size());
           }
         }
-        //May have gaps, will be fixed in final step
-        for (int i : CSOs.keySet()) {
+        // May have gaps, will be fixed in final step
+        for (final int i : CSOs.keySet()) {
           designations[i] = CSOs.get(i);
         }
       }
 
-      //outlier is implicit extra term
+      // outlier is implicit extra term
       double[][] fuzzy = new double[n][CSOs.size() + 1];
       for (int i = 0; i < n; i++) {
         if (CSOs.containsKey(i)) {
-          fuzzy[i][CSOs.get(i)] = 1.0;//each CSO is full it itself
+          fuzzy[i][CSOs.get(i)] = 1.0;// each CSO is full it itself
         } else if (outliers.contains(i)) {
           fuzzy[i][CSOs.size()] = 1.0;
         } else {
@@ -299,7 +203,7 @@ public class FLAME extends ClustererBase implements Parameterized {
         }
       }
 
-      //iterate
+      // iterate
       double[][] fuzzy2 = new double[n][CSOs.size() + 1];
 
       double prevScore = Double.POSITIVE_INFINITY;
@@ -321,20 +225,20 @@ public class FLAME extends ClustererBase implements Parameterized {
                 }
                 final double[] fuzzy2_i = TO[i];
                 Arrays.fill(fuzzy2_i, 0);
-                List<? extends VecPaired<VecPaired<Vec, Integer>, Double>> knns = allNNs.get(i);
+                final List<? extends VecPaired<VecPaired<Vec, Integer>, Double>> knns = allNNs.get(i);
 
                 double sum = 0;
                 for (int j = 1; j < weights[i].length; j++) {
-                  int jNN = knns.get(j).getVector().getPair();
+                  final int jNN = knns.get(j).getVector().getPair();
                   final double[] fuzzy_jNN = FROM[jNN];
-                  double weight = weights[i][j - 1];
+                  final double weight = weights[i][j - 1];
                   for (int z = 0; z < FROM[jNN].length; z++) {
                     fuzzy2_i[z] += weight * fuzzy_jNN[z];
                   }
                 }
 
-                for (int z = 0; z < fuzzy2_i.length; z++) {
-                  sum += fuzzy2_i[z];
+                for (final double element : fuzzy2_i) {
+                  sum += element;
                 }
 
                 for (int z = 0; z < fuzzy2_i.length; z++) {
@@ -355,13 +259,13 @@ public class FLAME extends ClustererBase implements Parameterized {
         }
         prevScore = score.get(0);
 
-        double[][] tmp = fuzzy;
+        final double[][] tmp = fuzzy;
         fuzzy = fuzzy2;
         fuzzy2 = tmp;
       }
 
-      //Figure out final clsutering
-      int[] clusterCounts = new int[n];
+      // Figure out final clsutering
+      final int[] clusterCounts = new int[n];
       for (int i = 0; i < fuzzy.length; i++) {
         int pos = -1;
         double maxVal = 0;
@@ -372,19 +276,21 @@ public class FLAME extends ClustererBase implements Parameterized {
           }
         }
 
-        if (pos == -1) {//TODO how di this happen? Mark it as an outlier. Somehow your whole row became zeros to cause this
+        if (pos == -1) {// TODO how di this happen? Mark it as an outlier.
+                        // Somehow your whole row became zeros to cause this
           pos = CSOs.size();
         }
         clusterCounts[pos]++;
-        if (pos == CSOs.size()) {//outlier
+        if (pos == CSOs.size()) {// outlier
           pos = -1;
         }
         designations[i] = pos;
       }
 
-      /* Transform clusterCOunts to indicate the new cluster ID. If 
-             * everyone gets there own id, no clusters removed. Else, people 
-             * with a negative value know they need to remove themsleves 
+      /*
+       * Transform clusterCOunts to indicate the new cluster ID. If everyone
+       * gets there own id, no clusters removed. Else, people with a negative
+       * value know they need to remove themsleves
        */
       int newCCount = 0;
       for (int i = 0; i < clusterCounts.length; i++) {
@@ -395,21 +301,21 @@ public class FLAME extends ClustererBase implements Parameterized {
         }
       }
 
-      //Go through and remove clusters with a count of 1
+      // Go through and remove clusters with a count of 1
       if (newCCount != clusterCounts.length) {
-        double[] tmp = new double[CSOs.size() + 1];
+        final double[] tmp = new double[CSOs.size() + 1];
         for (int i = 0; i < fuzzy.length; i++) {
-          int d = designations[i];
-          if (d > 0)//not outlier
+          final int d = designations[i];
+          if (d > 0) // not outlier
           {
-            if (clusterCounts[d] == -1)//remove self
+            if (clusterCounts[d] == -1) // remove self
             {
-              List<? extends VecPaired<VecPaired<Vec, Integer>, Double>> knns = allNNs.get(i);
+              final List<? extends VecPaired<VecPaired<Vec, Integer>, Double>> knns = allNNs.get(i);
 
               for (int j = 1; j < weights[i].length; j++) {
-                int jNN = knns.get(j).getVector().getPair();
+                final int jNN = knns.get(j).getVector().getPair();
                 final double[] fuzzy_jNN = fuzzy[jNN];
-                double weight = weights[i][j - 1];
+                final double weight = weights[i][j - 1];
                 for (int z = 0; z < fuzzy[jNN].length; z++) {
                   tmp[z] += weight * fuzzy_jNN[z];
                 }
@@ -436,16 +342,57 @@ public class FLAME extends ClustererBase implements Parameterized {
       }
 
       return designations;
-    } catch (InterruptedException interruptedException) {
+    } catch (final InterruptedException interruptedException) {
       throw new ClusterFailureException();
-    } catch (ExecutionException executionException) {
+    } catch (final ExecutionException executionException) {
       throw new ClusterFailureException();
     }
   }
 
   @Override
-  public FLAME clone() {
-    return new FLAME(this);
+  public int[] cluster(final DataSet dataSet, final int[] designations) {
+    return cluster(dataSet, new FakeExecutor(), designations);
+  }
+
+  /**
+   * Returns the distance metric to use for the nearest neighbor search
+   *
+   * @return the distance metric to use
+   */
+  public DistanceMetric getDistanceMetric() {
+    return dm;
+  }
+
+  /**
+   * Returns the minimum difference in scores to consider FLAME converged
+   *
+   * @return the minimum difference in scores to consider FLAMe converged
+   */
+  public double getEps() {
+    return eps;
+  }
+
+  /**
+   * Returns the number of neighbors used
+   *
+   * @return the number of neighbors used
+   */
+  public int getK() {
+    return k;
+  }
+
+  /**
+   * Returns the maximum number of iterations to perform
+   *
+   * @return the maximum number of iterations to perform
+   */
+  public int getMaxIterations() {
+    return maxIterations;
+  }
+
+  @Override
+  public Parameter getParameter(final String paramName) {
+    return Parameter.toParameterMap(getParameters()).get(paramName);
   }
 
   @Override
@@ -453,9 +400,93 @@ public class FLAME extends ClustererBase implements Parameterized {
     return Parameter.getParamsFromMethods(this);
   }
 
-  @Override
-  public Parameter getParameter(String paramName) {
-    return Parameter.toParameterMap(getParameters()).get(paramName);
+  /**
+   * Returns the number of standard deviations away from the mean density an
+   * outlier must be
+   *
+   * @return the number of standard deviations away from the mean density an
+   *         outlier must be
+   */
+  public double getStndDevs() {
+    return stndDevs;
+  }
+
+  /**
+   * Sets the distance metric to use for the nearest neighbor search
+   *
+   * @param dm
+   *          the distance metric to use
+   */
+  public void setDistanceMetric(final DistanceMetric dm) {
+    this.dm = dm;
+  }
+
+  /**
+   * Sets the convergence goal for the minimum difference in score between
+   * rounds. Negative values are allowed to force all iterations to occur
+   *
+   * @param eps
+   *          the minimum difference in scores for convergence
+   */
+  public void setEps(final double eps) {
+    if (Double.isNaN(eps)) {
+      throw new IllegalArgumentException("Eps can not be NaN");
+    }
+    this.eps = eps;
+  }
+
+  /**
+   * Sets the number of neighbors that will be considered in determining Cluster
+   * Supporting Points and assignment contributions.
+   *
+   * @param k
+   *          the number of neighbors to consider
+   */
+  public void setK(final int k) {
+    this.k = k;
+  }
+
+  /**
+   * Sets the maximum number of iterations to perform. FLAME can require far
+   * more iterations to converge than necessary to get the same hard clustering
+   * result.
+   *
+   * @param maxIterations
+   *          the maximum number of iterations to perform
+   */
+  public void setMaxIterations(final int maxIterations) {
+    if (maxIterations < 1) {
+      throw new IllegalArgumentException("Must perform a positive number of iterations, not " + maxIterations);
+    }
+    this.maxIterations = maxIterations;
+  }
+
+  /**
+   * Sets the number of standard deviations away from the mean density a
+   * candidate outlier must be to be confirmed as an outlier.
+   *
+   * @param stndDevs
+   *          the number of standard deviations away from the mean density an
+   *          outlier must be
+   */
+  public void setStndDevs(final double stndDevs) {
+    if (stndDevs < 0 || Double.isInfinite(stndDevs) || Double.isNaN(stndDevs)) {
+      throw new IllegalArgumentException("Standard Deviations must be non negative");
+    }
+    this.stndDevs = stndDevs;
+  }
+
+  /**
+   * Sets the vector collection factory used to accelerate the nearest neighbor
+   * search. The nearest neighbor only needs to be done once for each point, so
+   * the collection should be faster than the naive method when considering both
+   * construction and search time.
+   *
+   * @param vectorCollectionFactory
+   */
+  public void setVectorCollectionFactory(
+      final VectorCollectionFactory<VecPaired<Vec, Integer>> vectorCollectionFactory) {
+    this.vectorCollectionFactory = vectorCollectionFactory;
   }
 
 }

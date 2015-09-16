@@ -1,90 +1,84 @@
 package jsat.classifiers.bayesian;
 
-import java.util.*;
-import java.util.concurrent.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Future;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import jsat.classifiers.*;
+
+import jsat.classifiers.CategoricalResults;
+import jsat.classifiers.ClassificationDataSet;
+import jsat.classifiers.Classifier;
+import jsat.classifiers.DataPoint;
 import jsat.distributions.multivariate.MultivariateDistribution;
 import jsat.exceptions.FailedToFitException;
-import jsat.parameters.*;
+import jsat.parameters.Parameter;
+import jsat.parameters.Parameterized;
 
 /**
- * BestClassDistribution is a generic class for performing classification by fitting a {@link MultivariateDistribution}
- * to each class. The distribution is supplied by the user, and each class if fit to the same type of distribution.
- * Classification is then performed by returning the class of the most likely distribution given the data point.
+ * BestClassDistribution is a generic class for performing classification by
+ * fitting a {@link MultivariateDistribution} to each class. The distribution is
+ * supplied by the user, and each class if fit to the same type of distribution.
+ * Classification is then performed by returning the class of the most likely
+ * distribution given the data point.
  *
  * @author Edward Raff
  */
 public class BestClassDistribution implements Classifier, Parameterized {
 
   private static final long serialVersionUID = -1746145372146154228L;
-  private MultivariateDistribution baseDist;
+  /**
+   * The default value for whether or not to use the prior probability of a
+   * class when making classification decisions is {@value #USE_PRIORS}.
+   */
+  public static final boolean USE_PRIORS = true;
+  private final MultivariateDistribution baseDist;
   private List<MultivariateDistribution> dists;
+
   /**
    * The prior probabilities of each class
    */
   private double priors[];
-
   /**
-   * Controls whether or no the prior probability will be used when computing probabilities
+   * Controls whether or no the prior probability will be used when computing
+   * probabilities
    */
   private boolean usePriors;
-  /**
-   * The default value for whether or not to use the prior probability of a class when making classification decisions
-   * is {@value #USE_PRIORS}.
-   */
-  public static final boolean USE_PRIORS = true;
-
-  public BestClassDistribution(MultivariateDistribution baseDist) {
-    this(baseDist, USE_PRIORS);
-  }
-
-  public BestClassDistribution(MultivariateDistribution baseDist, boolean usePriors) {
-    this.baseDist = baseDist;
-    this.usePriors = usePriors;
-  }
 
   /**
    * Copy constructor
    *
-   * @param toCopy the object to copy
+   * @param toCopy
+   *          the object to copy
    */
-  public BestClassDistribution(BestClassDistribution toCopy) {
+  public BestClassDistribution(final BestClassDistribution toCopy) {
     if (toCopy.priors != null) {
-      this.priors = Arrays.copyOf(toCopy.priors, toCopy.priors.length);
+      priors = Arrays.copyOf(toCopy.priors, toCopy.priors.length);
     }
-    this.baseDist = toCopy.baseDist.clone();
+    baseDist = toCopy.baseDist.clone();
     if (toCopy.dists != null) {
-      this.dists = new ArrayList<MultivariateDistribution>(toCopy.dists.size());
-      for (MultivariateDistribution md : toCopy.dists) {
-        this.dists.add(md == null ? null : md.clone());
+      dists = new ArrayList<MultivariateDistribution>(toCopy.dists.size());
+      for (final MultivariateDistribution md : toCopy.dists) {
+        dists.add(md == null ? null : md.clone());
       }
     }
   }
 
-  /**
-   * Controls whether or not the priors will be used for classification. This value can be changed at any time, before
-   * or after training has occurred.
-   *
-   * @param usePriors <tt>true</tt> to use the prior probabilities for each class, <tt>false</tt> to ignore them.
-   */
-  public void setUsePriors(boolean usePriors) {
+  public BestClassDistribution(final MultivariateDistribution baseDist) {
+    this(baseDist, USE_PRIORS);
+  }
+
+  public BestClassDistribution(final MultivariateDistribution baseDist, final boolean usePriors) {
+    this.baseDist = baseDist;
     this.usePriors = usePriors;
   }
 
-  /**
-   * Returns whether or not this object uses the prior probabilities for classification.
-   *
-   * @return {@code true} if the prior probabilities are being used, {@code false} if not.
-   */
-  public boolean isUsePriors() {
-    return usePriors;
-  }
-
   @Override
-  public CategoricalResults classify(DataPoint data) {
-    CategoricalResults cr = new CategoricalResults(dists.size());
+  public CategoricalResults classify(final DataPoint data) {
+    final CategoricalResults cr = new CategoricalResults(dists.size());
 
     for (int i = 0; i < dists.size(); i++) {
       if (dists.get(i) == null) {
@@ -93,7 +87,7 @@ public class BestClassDistribution implements Classifier, Parameterized {
       double p = 0;
       try {
         p = dists.get(i).pdf(data.getNumericalValues());
-      } catch (ArithmeticException ex) {
+      } catch (final ArithmeticException ex) {
 
       }
       if (usePriors) {
@@ -106,47 +100,56 @@ public class BestClassDistribution implements Classifier, Parameterized {
   }
 
   @Override
-  public void trainC(ClassificationDataSet dataSet, ExecutorService threadPool) {
-    try {
-      this.dists = new ArrayList<MultivariateDistribution>();
-      this.priors = dataSet.getPriors();
-      List<Future<MultivariateDistribution>> newDists = new ArrayList<Future<MultivariateDistribution>>();
-      final MultivariateDistribution sourceDist = baseDist;
-      for (int i = 0; i < dataSet.getPredicting().getNumOfCategories(); i++)//Calculate the Multivariate normal for each category
-      {
-        final List<DataPoint> class_i = dataSet.getSamples(i);
-        Future<MultivariateDistribution> tmp = threadPool.submit(new Callable<MultivariateDistribution>() {
-
-          @Override
-          public MultivariateDistribution call() throws Exception {
-            if (class_i.isEmpty()) {//Nowthing we can do
-              return null;
-            }
-            MultivariateDistribution dist = sourceDist.clone();
-            dist.setUsingDataList(class_i);
-            return dist;
-          }
-        });
-
-        newDists.add(tmp);
-      }
-      for (Future<MultivariateDistribution> future : newDists) {
-        this.dists.add(future.get());
-      }
-    } catch (Exception ex) {
-      Logger.getLogger(MultivariateNormals.class.getName()).log(Level.SEVERE, null, ex);
-      throw new FailedToFitException(ex);
-    }
+  public Classifier clone() {
+    return new BestClassDistribution(this);
   }
 
   @Override
-  public void trainC(ClassificationDataSet dataSet) {
+  public Parameter getParameter(final String paramName) {
+    return Parameter.toParameterMap(getParameters()).get(paramName);
+  }
+
+  @Override
+  public List<Parameter> getParameters() {
+    return Parameter.getParamsFromMethods(this);
+  }
+
+  /**
+   * Returns whether or not this object uses the prior probabilities for
+   * classification.
+   *
+   * @return {@code true} if the prior probabilities are being used,
+   *         {@code false} if not.
+   */
+  public boolean isUsePriors() {
+    return usePriors;
+  }
+
+  /**
+   * Controls whether or not the priors will be used for classification. This
+   * value can be changed at any time, before or after training has occurred.
+   *
+   * @param usePriors
+   *          <tt>true</tt> to use the prior probabilities for each class,
+   *          <tt>false</tt> to ignore them.
+   */
+  public void setUsePriors(final boolean usePriors) {
+    this.usePriors = usePriors;
+  }
+
+  @Override
+  public boolean supportsWeightedData() {
+    return false;
+  }
+
+  @Override
+  public void trainC(final ClassificationDataSet dataSet) {
     priors = dataSet.getPriors();
     dists = new ArrayList<MultivariateDistribution>(dataSet.getClassSize());
 
     for (int i = 0; i < dataSet.getClassSize(); i++) {
-      MultivariateDistribution dist = baseDist.clone();
-      List<DataPoint> samp = dataSet.getSamples(i);
+      final MultivariateDistribution dist = baseDist.clone();
+      final List<DataPoint> samp = dataSet.getSamples(i);
       if (samp.isEmpty()) {
         dists.add(null);
         continue;
@@ -157,23 +160,43 @@ public class BestClassDistribution implements Classifier, Parameterized {
   }
 
   @Override
-  public boolean supportsWeightedData() {
-    return false;
-  }
+  public void trainC(final ClassificationDataSet dataSet, final ExecutorService threadPool) {
+    try {
+      dists = new ArrayList<MultivariateDistribution>();
+      priors = dataSet.getPriors();
+      final List<Future<MultivariateDistribution>> newDists = new ArrayList<Future<MultivariateDistribution>>();
+      final MultivariateDistribution sourceDist = baseDist;
+      for (int i = 0; i < dataSet.getPredicting().getNumOfCategories(); i++)// Calculate
+                                                                            // the
+                                                                            // Multivariate
+                                                                            // normal
+                                                                            // for
+                                                                            // each
+                                                                            // category
+      {
+        final List<DataPoint> class_i = dataSet.getSamples(i);
+        final Future<MultivariateDistribution> tmp = threadPool.submit(new Callable<MultivariateDistribution>() {
 
-  @Override
-  public Classifier clone() {
-    return new BestClassDistribution(this);
-  }
+          @Override
+          public MultivariateDistribution call() throws Exception {
+            if (class_i.isEmpty()) {// Nowthing we can do
+              return null;
+            }
+            final MultivariateDistribution dist = sourceDist.clone();
+            dist.setUsingDataList(class_i);
+            return dist;
+          }
+        });
 
-  @Override
-  public List<Parameter> getParameters() {
-    return Parameter.getParamsFromMethods(this);
-  }
-
-  @Override
-  public Parameter getParameter(String paramName) {
-    return Parameter.toParameterMap(getParameters()).get(paramName);
+        newDists.add(tmp);
+      }
+      for (final Future<MultivariateDistribution> future : newDists) {
+        dists.add(future.get());
+      }
+    } catch (final Exception ex) {
+      Logger.getLogger(MultivariateNormals.class.getName()).log(Level.SEVERE, null, ex);
+      throw new FailedToFitException(ex);
+    }
   }
 
 }

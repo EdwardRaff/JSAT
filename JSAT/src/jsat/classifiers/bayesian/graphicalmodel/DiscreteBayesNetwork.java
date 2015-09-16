@@ -1,10 +1,13 @@
 package jsat.classifiers.bayesian.graphicalmodel;
 
-import static java.lang.Math.*;
+import static java.lang.Math.exp;
+import static java.lang.Math.log;
+
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
+
 import jsat.classifiers.CategoricalData;
 import jsat.classifiers.CategoricalResults;
 import jsat.classifiers.ClassificationDataSet;
@@ -17,14 +20,17 @@ import jsat.exceptions.FailedToFitException;
 import jsat.utils.IntSet;
 
 /**
- * A class for representing a Baysian Network (BN) for discrete variables. A BN use a graph to representing the
- * relations between variables, and these links are called the structure. The structure of a BN must be specified by an
- * expert using the {@link #depends(int, int) } method. The target class should be specified as the parent of the
- * variables which have a causal relationship to it. These children of the target class should then have their own
- * children specified. Once the structure has been specified, the network can be trained and used for classification.
- * <br>
- * If the network structure has not been specified, or has no relationships for the target class, the BN will create an
- * edge from the target class to every variable. If no edges were ever specified, this initialization of edges
+ * A class for representing a Baysian Network (BN) for discrete variables. A BN
+ * use a graph to representing the relations between variables, and these links
+ * are called the structure. The structure of a BN must be specified by an
+ * expert using the {@link #depends(int, int) } method. The target class should
+ * be specified as the parent of the variables which have a causal relationship
+ * to it. These children of the target class should then have their own children
+ * specified. Once the structure has been specified, the network can be trained
+ * and used for classification. <br>
+ * If the network structure has not been specified, or has no relationships for
+ * the target class, the BN will create an edge from the target class to every
+ * variable. If no edges were ever specified, this initialization of edges
  * corresponds to a {@link NaiveBayes} implementation.
  *
  * @author Edward Raff
@@ -32,6 +38,11 @@ import jsat.utils.IntSet;
 public class DiscreteBayesNetwork implements Classifier {
 
   private static final long serialVersionUID = 2980734594356260141L;
+  /**
+   * Whether or not the classifier should take into account the prior
+   * probabilities. Default value is {@value #DEFAULT_USE_PRIORS}.
+   */
+  public static final boolean DEFAULT_USE_PRIORS = true;
   /**
    * The directed Graph that represents this BN
    */
@@ -48,29 +59,24 @@ public class DiscreteBayesNetwork implements Classifier {
    * The prior probabilities of each class value
    */
   protected double[] priors;
-  private boolean usePriors = DEFAULT_USE_PRIORS;
 
-  /**
-   * Whether or not the classifier should take into account the prior probabilities. Default value is
-   * {@value #DEFAULT_USE_PRIORS}.
-   */
-  public static final boolean DEFAULT_USE_PRIORS = true;
+  private final boolean usePriors = DEFAULT_USE_PRIORS;
 
   public DiscreteBayesNetwork() {
     dag = new DirectedGraph<Integer>();
   }
 
   @Override
-  public CategoricalResults classify(DataPoint data) {
-    CategoricalResults cr = new CategoricalResults(predicting.getNumOfCategories());
+  public CategoricalResults classify(final DataPoint data) {
+    final CategoricalResults cr = new CategoricalResults(predicting.getNumOfCategories());
 
-    int classId = data.numCategoricalValues();
-    //Use log proababilities to avoid underflow
+    final int classId = data.numCategoricalValues();
+    // Use log proababilities to avoid underflow
     double logPSum = 0;
-    double[] logProbs = new double[cr.size()];
+    final double[] logProbs = new double[cr.size()];
     for (int i = 0; i < cr.size(); i++) {
-      DataPointPair<Integer> dpp = new DataPointPair<Integer>(data, i);
-      for (int classParent : dag.getChildren(classId)) {
+      final DataPointPair<Integer> dpp = new DataPointPair<Integer>(data, i);
+      for (final int classParent : dag.getChildren(classId)) {
         logProbs[i] += log(cpts.get(classParent).query(classParent, dpp));
       }
 
@@ -87,28 +93,37 @@ public class DiscreteBayesNetwork implements Classifier {
     return cr;
   }
 
+  @Override
+  public Classifier clone() {
+    throw new UnsupportedOperationException("Not supported yet.");
+  }
+
   /**
-   * Adds a dependency relation ship between two variables that will be in the network. The integer value corresponds
-   * the the index of the i'th categorical variable, where the class target's value is the number of categorical
-   * variables.
+   * Adds a dependency relation ship between two variables that will be in the
+   * network. The integer value corresponds the the index of the i'th
+   * categorical variable, where the class target's value is the number of
+   * categorical variables.
    *
-   * @param parent the parent variable, which will be explained in part by the child
-   * @param child the child variable, which contributes to the conditional probability of the parent.
+   * @param parent
+   *          the parent variable, which will be explained in part by the child
+   * @param child
+   *          the child variable, which contributes to the conditional
+   *          probability of the parent.
    */
-  public void depends(int parent, int child) {
+  public void depends(final int parent, final int child) {
     dag.addNode(child);
     dag.addNode(parent);
     dag.addEdge(parent, child);
   }
 
   @Override
-  public void trainC(ClassificationDataSet dataSet, ExecutorService threadPool) {
-    trainC(dataSet);
+  public boolean supportsWeightedData() {
+    return false;
   }
 
   @Override
-  public void trainC(ClassificationDataSet dataSet) {
-    int classID = dataSet.getNumCategoricalVars();
+  public void trainC(final ClassificationDataSet dataSet) {
+    final int classID = dataSet.getNumCategoricalVars();
     if (classID == 0) {
       throw new FailedToFitException("Network needs categorical attribtues to work");
     }
@@ -116,7 +131,7 @@ public class DiscreteBayesNetwork implements Classifier {
     predicting = dataSet.getPredicting();
     priors = dataSet.getPriors();
     cpts = new HashMap<Integer, ConditionalProbabilityTable>();
-    Set<Integer> cptTrainSet = new IntSet();
+    final Set<Integer> cptTrainSet = new IntSet();
 
     if (dag.getNodes().isEmpty()) {
       for (int i = 0; i < classID; i++) {
@@ -124,9 +139,9 @@ public class DiscreteBayesNetwork implements Classifier {
       }
     }
 
-    for (int classParent : dag.getChildren(classID)) {
-      Set<Integer> depends = dag.getChildren(classParent);
-      ConditionalProbabilityTable cpt = new ConditionalProbabilityTable();
+    for (final int classParent : dag.getChildren(classID)) {
+      final Set<Integer> depends = dag.getChildren(classParent);
+      final ConditionalProbabilityTable cpt = new ConditionalProbabilityTable();
 
       cptTrainSet.clear();
       cptTrainSet.addAll(depends);
@@ -138,13 +153,8 @@ public class DiscreteBayesNetwork implements Classifier {
   }
 
   @Override
-  public boolean supportsWeightedData() {
-    return false;
-  }
-
-  @Override
-  public Classifier clone() {
-    throw new UnsupportedOperationException("Not supported yet.");
+  public void trainC(final ClassificationDataSet dataSet, final ExecutorService threadPool) {
+    trainC(dataSet);
   }
 
 }

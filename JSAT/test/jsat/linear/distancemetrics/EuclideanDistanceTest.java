@@ -16,19 +16,26 @@
  */
 package jsat.linear.distancemetrics;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
+
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import jsat.linear.DenseVector;
-import jsat.linear.Vec;
-import jsat.utils.SystemInfo;
+
 import org.junit.After;
 import org.junit.AfterClass;
-import static org.junit.Assert.*;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
+
+import jsat.linear.DenseVector;
+import jsat.linear.Vec;
+import jsat.utils.SystemInfo;
 
 /**
  *
@@ -46,9 +53,6 @@ public class EuclideanDistanceTest {
 
   static private double[][] expected;
 
-  public EuclideanDistanceTest() {
-  }
-
   @BeforeClass
   public static void setUpClass() {
     ex = Executors.newFixedThreadPool(SystemInfo.LogicalCores);
@@ -57,6 +61,9 @@ public class EuclideanDistanceTest {
   @AfterClass
   public static void tearDownClass() {
     ex.shutdown();
+  }
+
+  public EuclideanDistanceTest() {
   }
 
   @Before
@@ -75,11 +82,9 @@ public class EuclideanDistanceTest {
     }
 
     vecs = Arrays.asList(zero, ones, half, inc);
-    expected = new double[][]{
-      {0.0, 2.2360679775, 1.11803398875, 5.47722557505,},
-      {2.2360679775, 0.0, 1.11803398875, 3.87298334621,},
-      {1.11803398875, 1.11803398875, 0.0, 4.60977222865,},
-      {5.47722557505, 3.87298334621, 4.60977222865, 0.0,},};
+    expected = new double[][] { { 0.0, 2.2360679775, 1.11803398875, 5.47722557505, },
+        { 2.2360679775, 0.0, 1.11803398875, 3.87298334621, }, { 1.11803398875, 1.11803398875, 0.0, 4.60977222865, },
+        { 5.47722557505, 3.87298334621, 4.60977222865, 0.0, }, };
   }
 
   @After
@@ -90,10 +95,10 @@ public class EuclideanDistanceTest {
   public void testDist_Vec_Vec() {
     System.out.println("dist");
 
-    EuclideanDistance dist = new EuclideanDistance();
+    final EuclideanDistance dist = new EuclideanDistance();
 
-    List<Double> cache = dist.getAccelerationCache(vecs);
-    List<Double> cache2 = dist.getAccelerationCache(vecs, ex);
+    final List<Double> cache = dist.getAccelerationCache(vecs);
+    final List<Double> cache2 = dist.getAccelerationCache(vecs, ex);
     if (cache != null) {
       assertEquals(cache.size(), cache2.size());
       for (int i = 0; i < cache.size(); i++) {
@@ -108,13 +113,13 @@ public class EuclideanDistanceTest {
     try {
       dist.dist(half, new DenseVector(half.length() + 1));
       fail("Distance between vecs should have erred");
-    } catch (Exception ex) {
+    } catch (final Exception ex) {
 
     }
 
     for (int i = 0; i < vecs.size(); i++) {
       for (int j = 0; j < vecs.size(); j++) {
-        EuclideanDistance d = dist.clone();
+        final EuclideanDistance d = dist.clone();
         assertEquals(expected[i][j], d.dist(vecs.get(i), vecs.get(j)), 1e-8);
         assertEquals(expected[i][j], d.dist(i, j, vecs, cache), 1e-8);
         assertEquals(expected[i][j], d.dist(i, vecs.get(j), vecs, cache), 1e-8);
@@ -124,20 +129,20 @@ public class EuclideanDistanceTest {
   }
 
   @Test
-  public void testMetricProperties() {
-    System.out.println("isSymmetric");
-    EuclideanDistance instance = new EuclideanDistance();
-    assertTrue(instance.isSymmetric());
-    assertTrue(instance.isSubadditive());
-    assertTrue(instance.isIndiscemible());
+  public void testMetricBound() {
+    System.out.println("metricBound");
+    final EuclideanDistance instance = new EuclideanDistance();
+    assertTrue(instance.metricBound() > 0);
+    assertTrue(Double.isInfinite(instance.metricBound()));
   }
 
   @Test
-  public void testMetricBound() {
-    System.out.println("metricBound");
-    EuclideanDistance instance = new EuclideanDistance();
-    assertTrue(instance.metricBound() > 0);
-    assertTrue(Double.isInfinite(instance.metricBound()));
+  public void testMetricProperties() {
+    System.out.println("isSymmetric");
+    final EuclideanDistance instance = new EuclideanDistance();
+    assertTrue(instance.isSymmetric());
+    assertTrue(instance.isSubadditive());
+    assertTrue(instance.isIndiscemible());
   }
 
 }

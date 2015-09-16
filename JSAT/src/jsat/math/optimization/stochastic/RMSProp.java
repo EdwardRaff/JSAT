@@ -6,8 +6,8 @@ import jsat.linear.ScaledVector;
 import jsat.linear.Vec;
 
 /**
- * rmsprop is an adpative learning weight scheme proposed by Geoffrey Hinton. Provides an adaptive learning rate for
- * each individual feature
+ * rmsprop is an adpative learning weight scheme proposed by Geoffrey Hinton.
+ * Provides an adaptive learning rate for each individual feature
  *
  * @author Edward Raff
  */
@@ -28,23 +28,30 @@ public class RMSProp implements GradientUpdater {
   /**
    * Creates a new RMSProp updater
    *
-   * @param rho the decay rate to use
+   * @param rho
+   *          the decay rate to use
    */
-  public RMSProp(double rho) {
+  public RMSProp(final double rho) {
     setRho(rho);
   }
 
   /**
-   * Sets the decay rate used by rmsprop. Lower values focus more on the current gradient, where higher values
-   * incorporate a longer history.
+   * Copy constructor
    *
-   * @param rho the decay rate in (0, 1) to use
+   * @param toCopy
+   *          the object to copy
    */
-  public void setRho(double rho) {
-    if (rho <= 0 || rho >= 1 || Double.isNaN(rho)) {
-      throw new IllegalArgumentException("Rho should be a value in (0, 1) not " + rho);
+  public RMSProp(final RMSProp toCopy) {
+    if (toCopy.daigG != null) {
+      daigG = toCopy.daigG.clone();
     }
-    this.rho = rho;
+    rho = toCopy.rho;
+    biasG = toCopy.biasG;
+  }
+
+  @Override
+  public RMSProp clone() {
+    return new RMSProp(this);
   }
 
   /**
@@ -56,49 +63,57 @@ public class RMSProp implements GradientUpdater {
   }
 
   /**
-   * Copy constructor
+   * Sets the decay rate used by rmsprop. Lower values focus more on the current
+   * gradient, where higher values incorporate a longer history.
    *
-   * @param toCopy the object to copy
+   * @param rho
+   *          the decay rate in (0, 1) to use
    */
-  public RMSProp(RMSProp toCopy) {
-    if (toCopy.daigG != null) {
-      this.daigG = toCopy.daigG.clone();
+  public void setRho(final double rho) {
+    if (rho <= 0 || rho >= 1 || Double.isNaN(rho)) {
+      throw new IllegalArgumentException("Rho should be a value in (0, 1) not " + rho);
     }
-    this.rho = toCopy.rho;
-    this.biasG = toCopy.biasG;
+    this.rho = rho;
   }
 
   @Override
-  public void update(Vec x, Vec grad, double eta) {
+  public void setup(final int d) {
+    daigG = new ScaledVector(new DenseVector(d));
+    biasG = 0;
+  }
+
+  @Override
+  public void update(final Vec x, final Vec grad, final double eta) {
     update(x, grad, eta, 0, 0);
   }
 
   @Override
-  public double update(Vec x, Vec grad, double eta, double bias, double biasGrad) {
+  public double update(final Vec x, final Vec grad, final double eta, final double bias, final double biasGrad) {
     daigG.mutableMultiply(rho);
-    for (IndexValue iv : grad) {
+    for (final IndexValue iv : grad) {
       final int indx = iv.getIndex();
       final double grad_i = iv.getValue();
       daigG.increment(indx, (1 - rho) * grad_i * grad_i);
-      double g_iiRoot = Math.max(Math.sqrt(daigG.get(indx)), Math.abs(grad_i));//tiny grad sqrd could result in zero
+      final double g_iiRoot = Math.max(Math.sqrt(daigG.get(indx)), Math.abs(grad_i));// tiny
+                                                                                     // grad
+                                                                                     // sqrd
+                                                                                     // could
+                                                                                     // result
+                                                                                     // in
+                                                                                     // zero
       x.increment(indx, -eta * grad_i / g_iiRoot);
     }
 
     biasG *= rho;
     biasG += (1 - rho) * biasGrad * biasGrad;
-    double g_iiRoot = Math.max(Math.sqrt(biasG), Math.abs(biasGrad));//tiny grad sqrd could result in zero
+    final double g_iiRoot = Math.max(Math.sqrt(biasG), Math.abs(biasGrad));// tiny
+                                                                           // grad
+                                                                           // sqrd
+                                                                           // could
+                                                                           // result
+                                                                           // in
+                                                                           // zero
     return eta * biasGrad / g_iiRoot;
-  }
-
-  @Override
-  public RMSProp clone() {
-    return new RMSProp(this);
-  }
-
-  @Override
-  public void setup(int d) {
-    daigG = new ScaledVector(new DenseVector(d));
-    biasG = 0;
   }
 
 }

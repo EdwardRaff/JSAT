@@ -2,6 +2,7 @@ package jsat.datatransform;
 
 import java.util.List;
 import java.util.concurrent.ExecutorService;
+
 import jsat.classifiers.CategoricalResults;
 import jsat.classifiers.ClassificationDataSet;
 import jsat.classifiers.Classifier;
@@ -13,12 +14,15 @@ import jsat.regression.RegressionDataSet;
 import jsat.regression.Regressor;
 
 /**
- * A Data Model Pipeline combines several data transforms and a base Classifier or Regressor into a unified object for
- * performing classification and Regression with. This is useful for certain transforms for which their behavior is more
- * tightly coupled with the model being used. In addition this allows a way for easily turning the parameters for a
- * transform along with those of the predictor. <br>
- * When using the Data Model Pipeline, the transforms that are apart of the pipeline should not be added to the model
- * evaluators - as this will cause the transforms to be applied multiple times.
+ * A Data Model Pipeline combines several data transforms and a base Classifier
+ * or Regressor into a unified object for performing classification and
+ * Regression with. This is useful for certain transforms for which their
+ * behavior is more tightly coupled with the model being used. In addition this
+ * allows a way for easily turning the parameters for a transform along with
+ * those of the predictor. <br>
+ * When using the Data Model Pipeline, the transforms that are apart of the
+ * pipeline should not be added to the model evaluators - as this will cause the
+ * transforms to be applied multiple times.
  *
  * @author Edward Raff
  */
@@ -26,7 +30,7 @@ public class DataModelPipeline implements Classifier, Regressor, Parameterized {
 
   private static final long serialVersionUID = -2300996837897094414L;
   @ParameterHolder(skipSelfNamePrefix = true)
-  private DataTransformProcess baseDtp;
+  private final DataTransformProcess baseDtp;
   private Classifier baseClassifier;
   private Regressor baseRegressor;
 
@@ -35,105 +39,132 @@ public class DataModelPipeline implements Classifier, Regressor, Parameterized {
   private Regressor learnedRegressor;
 
   /**
-   * Creates a new Data Model Pipeline from the given transform process and base classifier
+   * Creates a new Data Model Pipeline from the given transform factories and
+   * base classifier
    *
-   * @param dtp the data transforms to apply
-   * @param baseClassifier the classifier to learn with
+   * @param factories
+   *          the data transforms to apply
+   * @param baseClassifier
+   *          the classifier to learn with
    */
-  public DataModelPipeline(Classifier baseClassifier, DataTransformProcess dtp) {
-    this.baseDtp = dtp;
-    this.baseClassifier = baseClassifier;
-    if (baseClassifier instanceof Regressor) {
-      this.baseRegressor = (Regressor) baseClassifier;
-    }
-  }
-
-  /**
-   * Creates a new Data Model Pipeline from the given transform factories and base classifier
-   *
-   * @param factories the data transforms to apply
-   * @param baseClassifier the classifier to learn with
-   */
-  public DataModelPipeline(Classifier baseClassifier, DataTransformFactory... factories) {
+  public DataModelPipeline(final Classifier baseClassifier, final DataTransformFactory... factories) {
     this(baseClassifier, new DataTransformProcess(factories));
   }
 
   /**
-   * Creates a new Data Model Pipeline from the given transform process and base regressor
+   * Creates a new Data Model Pipeline from the given transform process and base
+   * classifier
    *
-   * @param dtp the data transforms to apply
-   * @param baseRegressor the regressor to learn with
+   * @param dtp
+   *          the data transforms to apply
+   * @param baseClassifier
+   *          the classifier to learn with
    */
-  public DataModelPipeline(Regressor baseRegressor, DataTransformProcess dtp) {
-    this.baseDtp = dtp;
-    this.baseRegressor = baseRegressor;
-    if (baseRegressor instanceof Classifier) {
-      this.baseClassifier = (Classifier) baseRegressor;
+  public DataModelPipeline(final Classifier baseClassifier, final DataTransformProcess dtp) {
+    baseDtp = dtp;
+    this.baseClassifier = baseClassifier;
+    if (baseClassifier instanceof Regressor) {
+      baseRegressor = (Regressor) baseClassifier;
     }
-  }
-
-  /**
-   * Creates a new Data Model Pipeline from the given transform factories and base classifier
-   *
-   * @param factories the data transforms to apply
-   * @param baseRegressor the regressor to learn with
-   */
-  public DataModelPipeline(Regressor baseRegressor, DataTransformFactory... factories) {
-    this(baseRegressor, new DataTransformProcess(factories));
   }
 
   /**
    * Copy constructor
    *
-   * @param toCopy the object to copy
+   * @param toCopy
+   *          the object to copy
    */
-  public DataModelPipeline(DataModelPipeline toCopy) {
-    this.baseDtp = toCopy.baseDtp.clone();
-    if (toCopy.baseClassifier != null && toCopy.baseClassifier == toCopy.baseRegressor)//only possible if both a classifier and regressor
+  public DataModelPipeline(final DataModelPipeline toCopy) {
+    baseDtp = toCopy.baseDtp.clone();
+    if (toCopy.baseClassifier != null && toCopy.baseClassifier == toCopy.baseRegressor) // only
+                                                                                        // possible
+                                                                                        // if
+                                                                                        // both
+                                                                                        // a
+                                                                                        // classifier
+                                                                                        // and
+                                                                                        // regressor
     {
-      this.baseClassifier = toCopy.baseClassifier.clone();
-      this.baseRegressor = (Regressor) this.baseClassifier;
+      baseClassifier = toCopy.baseClassifier.clone();
+      baseRegressor = (Regressor) baseClassifier;
     } else if (toCopy.baseClassifier != null) {
-      this.baseClassifier = toCopy.baseClassifier.clone();
+      baseClassifier = toCopy.baseClassifier.clone();
     } else if (toCopy.baseRegressor != null) {
-      this.baseRegressor = toCopy.baseRegressor.clone();
+      baseRegressor = toCopy.baseRegressor.clone();
     } else {
       throw new RuntimeException("BUG: Report Me!");
     }
 
     if (toCopy.learnedDtp != null) {
-      this.learnedDtp = toCopy.learnedDtp.clone();
+      learnedDtp = toCopy.learnedDtp.clone();
     }
     if (toCopy.learnedClassifier != null) {
-      this.learnedClassifier = toCopy.learnedClassifier.clone();
+      learnedClassifier = toCopy.learnedClassifier.clone();
     }
     if (toCopy.learnedRegressor != null) {
-      this.learnedRegressor = toCopy.learnedRegressor.clone();
+      learnedRegressor = toCopy.learnedRegressor.clone();
+    }
+  }
+
+  /**
+   * Creates a new Data Model Pipeline from the given transform factories and
+   * base classifier
+   *
+   * @param factories
+   *          the data transforms to apply
+   * @param baseRegressor
+   *          the regressor to learn with
+   */
+  public DataModelPipeline(final Regressor baseRegressor, final DataTransformFactory... factories) {
+    this(baseRegressor, new DataTransformProcess(factories));
+  }
+
+  /**
+   * Creates a new Data Model Pipeline from the given transform process and base
+   * regressor
+   *
+   * @param dtp
+   *          the data transforms to apply
+   * @param baseRegressor
+   *          the regressor to learn with
+   */
+  public DataModelPipeline(final Regressor baseRegressor, final DataTransformProcess dtp) {
+    baseDtp = dtp;
+    this.baseRegressor = baseRegressor;
+    if (baseRegressor instanceof Classifier) {
+      baseClassifier = (Classifier) baseRegressor;
     }
   }
 
   @Override
-  public CategoricalResults classify(DataPoint data) {
+  public CategoricalResults classify(final DataPoint data) {
     return learnedClassifier.classify(learnedDtp.transform(data));
   }
 
   @Override
-  public void trainC(ClassificationDataSet dataSet, ExecutorService threadPool) {
-    learnedDtp = baseDtp.clone();
-    dataSet = dataSet.shallowClone();//dont want to actually edit the data set they gave us
-    learnedDtp.learnApplyTransforms(dataSet);
-
-    learnedClassifier = baseClassifier.clone();
-    if (threadPool == null) {
-      learnedClassifier.trainC(dataSet);
-    } else {
-      learnedClassifier.trainC(dataSet, threadPool);
-    }
+  public DataModelPipeline clone() {
+    return new DataModelPipeline(this);
   }
 
   @Override
-  public void trainC(ClassificationDataSet dataSet) {
-    trainC(dataSet, null);
+  public Parameter getParameter(final String paramName) {
+    return Parameter.toParameterMap(getParameters()).get(paramName);
+  }
+
+  @Override
+  public List<Parameter> getParameters() {
+    final List<Parameter> params = Parameter.getParamsFromMethods(this);
+    if (baseClassifier != null && baseClassifier instanceof Parameterized) {
+      params.addAll(((Parameterized) baseClassifier).getParameters());
+    } else if (baseRegressor != null && baseRegressor instanceof Parameterized) {
+      params.addAll(((Parameterized) baseRegressor).getParameters());
+    }
+    return params;
+  }
+
+  @Override
+  public double regress(final DataPoint data) {
+    return learnedRegressor.regress(learnedDtp.transform(data));
   }
 
   @Override
@@ -148,14 +179,15 @@ public class DataModelPipeline implements Classifier, Regressor, Parameterized {
   }
 
   @Override
-  public double regress(DataPoint data) {
-    return learnedRegressor.regress(learnedDtp.transform(data));
+  public void train(final RegressionDataSet dataSet) {
+    train(dataSet, null);
   }
 
   @Override
-  public void train(RegressionDataSet dataSet, ExecutorService threadPool) {
+  public void train(RegressionDataSet dataSet, final ExecutorService threadPool) {
     learnedDtp = baseDtp.clone();
-    dataSet = dataSet.shallowClone();//dont want to actually edit the data set they gave us
+    dataSet = dataSet.shallowClone();// dont want to actually edit the data set
+                                     // they gave us
     learnedDtp.learnApplyTransforms(dataSet);
 
     learnedRegressor = baseRegressor.clone();
@@ -167,29 +199,23 @@ public class DataModelPipeline implements Classifier, Regressor, Parameterized {
   }
 
   @Override
-  public void train(RegressionDataSet dataSet) {
-    train(dataSet, null);
+  public void trainC(final ClassificationDataSet dataSet) {
+    trainC(dataSet, null);
   }
 
   @Override
-  public DataModelPipeline clone() {
-    return new DataModelPipeline(this);
-  }
+  public void trainC(ClassificationDataSet dataSet, final ExecutorService threadPool) {
+    learnedDtp = baseDtp.clone();
+    dataSet = dataSet.shallowClone();// dont want to actually edit the data set
+                                     // they gave us
+    learnedDtp.learnApplyTransforms(dataSet);
 
-  @Override
-  public List<Parameter> getParameters() {
-    List<Parameter> params = Parameter.getParamsFromMethods(this);
-    if (baseClassifier != null && baseClassifier instanceof Parameterized) {
-      params.addAll(((Parameterized) baseClassifier).getParameters());
-    } else if (baseRegressor != null && baseRegressor instanceof Parameterized) {
-      params.addAll(((Parameterized) baseRegressor).getParameters());
+    learnedClassifier = baseClassifier.clone();
+    if (threadPool == null) {
+      learnedClassifier.trainC(dataSet);
+    } else {
+      learnedClassifier.trainC(dataSet, threadPool);
     }
-    return params;
-  }
-
-  @Override
-  public Parameter getParameter(String paramName) {
-    return Parameter.toParameterMap(getParameters()).get(paramName);
   }
 
 }

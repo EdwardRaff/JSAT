@@ -16,18 +16,27 @@
  */
 package jsat.linear.distancemetrics;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
+
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import jsat.linear.*;
-import jsat.utils.SystemInfo;
+
 import org.junit.After;
 import org.junit.AfterClass;
-import static org.junit.Assert.*;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
+
+import jsat.linear.DenseVector;
+import jsat.linear.SparseVector;
+import jsat.linear.Vec;
+import jsat.utils.SystemInfo;
 
 /**
  *
@@ -47,9 +56,6 @@ public class MinkowskiDistanceTest {
   static private double[][] expectedP1;
   static private double[][] expectedP1p5;
 
-  public MinkowskiDistanceTest() {
-  }
-
   @BeforeClass
   public static void setUpClass() {
     ex = Executors.newFixedThreadPool(SystemInfo.LogicalCores);
@@ -58,6 +64,9 @@ public class MinkowskiDistanceTest {
   @AfterClass
   public static void tearDownClass() {
     ex.shutdown();
+  }
+
+  public MinkowskiDistanceTest() {
   }
 
   @Before
@@ -76,23 +85,15 @@ public class MinkowskiDistanceTest {
     }
 
     vecs = Arrays.asList(zero, ones, half, inc);
-    expectedP2 = new double[][]{
-      {0.0, 2.2360679775, 1.11803398875, 5.47722557505,},
-      {2.2360679775, 0.0, 1.11803398875, 3.87298334621,},
-      {1.11803398875, 1.11803398875, 0.0, 4.60977222865,},
-      {5.47722557505, 3.87298334621, 4.60977222865, 0.0,},};
+    expectedP2 = new double[][] { { 0.0, 2.2360679775, 1.11803398875, 5.47722557505, },
+        { 2.2360679775, 0.0, 1.11803398875, 3.87298334621, }, { 1.11803398875, 1.11803398875, 0.0, 4.60977222865, },
+        { 5.47722557505, 3.87298334621, 4.60977222865, 0.0, }, };
 
-    expectedP1 = new double[][]{
-      {0, 5, 2.5, 10,},
-      {5, 0, 2.5, 7,},
-      {2.5, 2.5, 0.0, 8.5,},
-      {10, 7, 8.5, 0,},};
+    expectedP1 = new double[][] { { 0, 5, 2.5, 10, }, { 5, 0, 2.5, 7, }, { 2.5, 2.5, 0.0, 8.5, }, { 10, 7, 8.5, 0, }, };
 
-    expectedP1p5 = new double[][]{
-      {0.0, 2.92401773821, 1.46200886911, 6.61786032327,},
-      {2.92401773821, 0.0, 1.46200886911, 4.64919159806,},
-      {1.46200886911, 1.46200886911, 0.0, 5.54151812966,},
-      {6.61786032327, 4.64919159806, 5.54151812966, 0.0,},};
+    expectedP1p5 = new double[][] { { 0.0, 2.92401773821, 1.46200886911, 6.61786032327, },
+        { 2.92401773821, 0.0, 1.46200886911, 4.64919159806, }, { 1.46200886911, 1.46200886911, 0.0, 5.54151812966, },
+        { 6.61786032327, 4.64919159806, 5.54151812966, 0.0, }, };
   }
 
   @After
@@ -103,10 +104,10 @@ public class MinkowskiDistanceTest {
   public void testDist_Vec_Vec() {
     System.out.println("dist");
 
-    MinkowskiDistance dist = new MinkowskiDistance(2.5);
+    final MinkowskiDistance dist = new MinkowskiDistance(2.5);
 
-    List<Double> cache = dist.getAccelerationCache(vecs);
-    List<Double> cache2 = dist.getAccelerationCache(vecs, ex);
+    final List<Double> cache = dist.getAccelerationCache(vecs);
+    final List<Double> cache2 = dist.getAccelerationCache(vecs, ex);
     if (cache != null) {
       assertEquals(cache.size(), cache2.size());
       for (int i = 0; i < cache.size(); i++) {
@@ -121,12 +122,13 @@ public class MinkowskiDistanceTest {
     try {
       dist.dist(half, new DenseVector(half.length() + 1));
       fail("Distance between vecs should have erred");
-    } catch (Exception ex) {
+    } catch (final Exception ex) {
 
     }
 
     for (int rounds = 0; rounds < 3; rounds++) {
-      //some code so that dense on dense, dense on sparse, and sparse on sparse all get run
+      // some code so that dense on dense, dense on sparse, and sparse on sparse
+      // all get run
       if (rounds == 1) {
         for (int i = 0; i < vecs.size(); i += 2) {
           vecs.set(i, new SparseVector(vecs.get(i)));
@@ -139,7 +141,7 @@ public class MinkowskiDistanceTest {
 
       for (int i = 0; i < vecs.size(); i++) {
         for (int j = 0; j < vecs.size(); j++) {
-          MinkowskiDistance d = dist.clone();
+          final MinkowskiDistance d = dist.clone();
 
           d.setP(2.0);
           assertEquals(2.5, dist.getP(), 0.0);
@@ -166,20 +168,20 @@ public class MinkowskiDistanceTest {
   }
 
   @Test
-  public void testMetricProperties() {
-    System.out.println("isSymmetric");
-    EuclideanDistance instance = new EuclideanDistance();
-    assertTrue(instance.isSymmetric());
-    assertTrue(instance.isSubadditive());
-    assertTrue(instance.isIndiscemible());
+  public void testMetricBound() {
+    System.out.println("metricBound");
+    final EuclideanDistance instance = new EuclideanDistance();
+    assertTrue(instance.metricBound() > 0);
+    assertTrue(Double.isInfinite(instance.metricBound()));
   }
 
   @Test
-  public void testMetricBound() {
-    System.out.println("metricBound");
-    EuclideanDistance instance = new EuclideanDistance();
-    assertTrue(instance.metricBound() > 0);
-    assertTrue(Double.isInfinite(instance.metricBound()));
+  public void testMetricProperties() {
+    System.out.println("isSymmetric");
+    final EuclideanDistance instance = new EuclideanDistance();
+    assertTrue(instance.isSymmetric());
+    assertTrue(instance.isSubadditive());
+    assertTrue(instance.isIndiscemible());
   }
 
 }

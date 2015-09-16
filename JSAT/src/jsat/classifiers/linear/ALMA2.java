@@ -1,7 +1,10 @@
 package jsat.classifiers.linear;
 
 import jsat.SingleWeightVectorModel;
-import jsat.classifiers.*;
+import jsat.classifiers.BaseUpdateableClassifier;
+import jsat.classifiers.CategoricalData;
+import jsat.classifiers.CategoricalResults;
+import jsat.classifiers.DataPoint;
 import jsat.classifiers.calibration.BinaryScoreClassifier;
 import jsat.exceptions.FailedToFitException;
 import jsat.exceptions.UntrainedModelException;
@@ -9,22 +12,24 @@ import jsat.linear.DenseVector;
 import jsat.linear.Vec;
 
 /**
- * Provides a linear implementation of the ALMAp algorithm for p = 2, which is considerably more efficient to compute.
- * It is a binary classifier for numeric features.
+ * Provides a linear implementation of the ALMAp algorithm for p = 2, which is
+ * considerably more efficient to compute. It is a binary classifier for numeric
+ * features. <br>
+ * ALMA requires one major parameter {@link #setAlpha(double) alpha} to be set,
+ * the other two have default behavior / values that have provable convergence.
  * <br>
- * ALMA requires one major parameter {@link #setAlpha(double) alpha} to be set, the other two have default behavior /
- * values that have provable convergence.
- * <br><br>
- * See: Gentile, C. (2002). <i>A New Approximate Maximal Margin Classification Algorithm</i>. The Journal of Machine
- * Learning Research, 2, 213–242. Retrieved from <a href="http://dl.acm.org/citation.cfm?id=944811">here</a>
+ * <br>
+ * See: Gentile, C. (2002). <i>A New Approximate Maximal Margin Classification
+ * Algorithm</i>. The Journal of Machine Learning Research, 2, 213–242.
+ * Retrieved from <a href="http://dl.acm.org/citation.cfm?id=944811">here</a>
  *
  * @author Edward Raff
  */
 public class ALMA2 extends BaseUpdateableClassifier implements BinaryScoreClassifier, SingleWeightVectorModel {
 
   private static final long serialVersionUID = -4347891273721908507L;
-  private Vec w;
   private static final double p = 2;
+  private Vec w;
   private double alpha;
   private double B;
   private double C = Math.sqrt(2);
@@ -41,28 +46,105 @@ public class ALMA2 extends BaseUpdateableClassifier implements BinaryScoreClassi
   }
 
   /**
-   * Creates a new ALMA learner using the given alpha
+   * Copy constructor
    *
-   * @param alpha the alpha value to use
-   * @see #setAlpha(double)
+   * @param other
+   *          the object to copy
    */
-  public ALMA2(double alpha) {
-    setAlpha(alpha);
+  protected ALMA2(final ALMA2 other) {
+    if (other.w != null) {
+      w = other.w.clone();
+    }
+    alpha = other.alpha;
+    B = other.B;
+    C = other.C;
+    k = other.k;
   }
 
   /**
-   * Copy constructor
+   * Creates a new ALMA learner using the given alpha
    *
-   * @param other the object to copy
+   * @param alpha
+   *          the alpha value to use
+   * @see #setAlpha(double)
    */
-  protected ALMA2(ALMA2 other) {
-    if (other.w != null) {
-      this.w = other.w.clone();
+  public ALMA2(final double alpha) {
+    setAlpha(alpha);
+  }
+
+  @Override
+  public CategoricalResults classify(final DataPoint data) {
+    if (w == null) {
+      throw new UntrainedModelException("The model has not yet been trained");
     }
-    this.alpha = other.alpha;
-    this.B = other.B;
-    this.C = other.C;
-    this.k = other.k;
+    final double wx = getScore(data);
+    final CategoricalResults cr = new CategoricalResults(2);
+    if (wx < 0) {
+      cr.setProb(0, 1.0);
+    } else {
+      cr.setProb(1, 1.0);
+    }
+    return cr;
+  }
+
+  @Override
+  public ALMA2 clone() {
+    return new ALMA2(this);
+  }
+
+  /**
+   * Returns the approximation coefficient used
+   *
+   * @return the approximation coefficient used
+   */
+  public double getAlpha() {
+    return alpha;
+  }
+
+  /**
+   * Returns the B value of the ALMA algorithm
+   *
+   * @return the B value of the ALMA algorithm
+   */
+  public double getB() {
+    return B;
+  }
+
+  @Override
+  public double getBias() {
+    return bias;
+  }
+
+  @Override
+  public double getBias(final int index) {
+    if (index < 1) {
+      return getBias();
+    } else {
+      throw new IndexOutOfBoundsException("Model has only 1 weight vector");
+    }
+  }
+
+  public double getC() {
+    return C;
+  }
+
+  @Override
+  public Vec getRawWeight() {
+    return w;
+  }
+
+  @Override
+  public Vec getRawWeight(final int index) {
+    if (index < 1) {
+      return getRawWeight();
+    } else {
+      throw new IndexOutOfBoundsException("Model has only 1 weight vector");
+    }
+  }
+
+  @Override
+  public double getScore(final DataPoint dp) {
+    return w.dot(dp.getNumericalValues());
   }
 
   /**
@@ -76,77 +158,6 @@ public class ALMA2 extends BaseUpdateableClassifier implements BinaryScoreClassi
   }
 
   /**
-   * Alpha controls the approximation of the large margin formed by ALMA, with larger values causing more updates. A
-   * value of 1.0 will update only on mistakes, while smaller values update if the error was not far enough away from
-   * the margin.
-   * <br><br>
-   * NOTE: Whenever alpha is set, the value of {@link #setB(double) B} will also be set to an appropriate value. This is
-   * not the only possible value that will lead to convergence, and can be set manually after alpha is set to another
-   * value.
-   *
-   * @param alpha the approximation scale in (0.0, 1.0]
-   */
-  public void setAlpha(double alpha) {
-    if (alpha <= 0 || alpha > 1 || Double.isNaN(alpha)) {
-      throw new ArithmeticException("alpha must be in (0, 1], not " + alpha);
-    }
-    this.alpha = alpha;
-    setB(1.0 / alpha);
-  }
-
-  /**
-   * Returns the approximation coefficient used
-   *
-   * @return the approximation coefficient used
-   */
-  public double getAlpha() {
-    return alpha;
-  }
-
-  /**
-   * Sets the B variable of the ALMA algorithm, this is set automatically by {@link #setAlpha(double) }.
-   *
-   * @param B the value for B
-   */
-  public void setB(double B) {
-    this.B = B;
-  }
-
-  /**
-   * Returns the B value of the ALMA algorithm
-   *
-   * @return the B value of the ALMA algorithm
-   */
-  public double getB() {
-    return B;
-  }
-
-  /**
-   * Sets the C value of the ALMA algorithm. The default value is the one suggested in the paper.
-   *
-   * @param C the C value of ALMA
-   */
-  public void setC(double C) {
-    if (C <= 0 || Double.isInfinite(C) || Double.isNaN(C)) {
-      throw new ArithmeticException("C must be a posative cosntant");
-    }
-    this.C = C;
-  }
-
-  public double getC() {
-    return C;
-  }
-
-  /**
-   * Sets whether or not an implicit bias term will be added to the data set
-   *
-   * @param useBias {@code true} to add an implicit bias term
-   */
-  public void setUseBias(boolean useBias) {
-    this.useBias = useBias;
-  }
-
-  /**
    * Returns whether or not an implicit bias term is in use
    *
    * @return {@code true} if a bias term is in use
@@ -156,12 +167,60 @@ public class ALMA2 extends BaseUpdateableClassifier implements BinaryScoreClassi
   }
 
   @Override
-  public ALMA2 clone() {
-    return new ALMA2(this);
+  public int numWeightsVecs() {
+    return 1;
+  }
+
+  /**
+   * Alpha controls the approximation of the large margin formed by ALMA, with
+   * larger values causing more updates. A value of 1.0 will update only on
+   * mistakes, while smaller values update if the error was not far enough away
+   * from the margin. <br>
+   * <br>
+   * NOTE: Whenever alpha is set, the value of {@link #setB(double) B} will also
+   * be set to an appropriate value. This is not the only possible value that
+   * will lead to convergence, and can be set manually after alpha is set to
+   * another value.
+   *
+   * @param alpha
+   *          the approximation scale in (0.0, 1.0]
+   */
+  public void setAlpha(final double alpha) {
+    if (alpha <= 0 || alpha > 1 || Double.isNaN(alpha)) {
+      throw new ArithmeticException("alpha must be in (0, 1], not " + alpha);
+    }
+    this.alpha = alpha;
+    setB(1.0 / alpha);
+  }
+
+  /**
+   * Sets the B variable of the ALMA algorithm, this is set automatically by
+   * {@link #setAlpha(double) }.
+   *
+   * @param B
+   *          the value for B
+   */
+  public void setB(final double B) {
+    this.B = B;
+  }
+
+  /**
+   * Sets the C value of the ALMA algorithm. The default value is the one
+   * suggested in the paper.
+   *
+   * @param C
+   *          the C value of ALMA
+   */
+  public void setC(final double C) {
+    if (C <= 0 || Double.isInfinite(C) || Double.isNaN(C)) {
+      throw new ArithmeticException("C must be a posative cosntant");
+    }
+    this.C = C;
   }
 
   @Override
-  public void setUp(CategoricalData[] categoricalAttributes, int numericAttributes, CategoricalData predicting) {
+  public void setUp(final CategoricalData[] categoricalAttributes, final int numericAttributes,
+      final CategoricalData predicting) {
     if (numericAttributes <= 0) {
       throw new FailedToFitException("ALMA2 requires numeric features");
     }
@@ -172,16 +231,31 @@ public class ALMA2 extends BaseUpdateableClassifier implements BinaryScoreClassi
     k = 1;
   }
 
+  /**
+   * Sets whether or not an implicit bias term will be added to the data set
+   *
+   * @param useBias
+   *          {@code true} to add an implicit bias term
+   */
+  public void setUseBias(final boolean useBias) {
+    this.useBias = useBias;
+  }
+
   @Override
-  public void update(DataPoint dataPoint, int targetClass) {
+  public boolean supportsWeightedData() {
+    return false;
+  }
+
+  @Override
+  public void update(final DataPoint dataPoint, final int targetClass) {
     final Vec x_t = dataPoint.getNumericalValues();
     final double y_t = targetClass * 2 - 1;
 
-    double gamma = B * Math.sqrt(p - 1) / k;
-    double wx = w.dot(x_t) + bias;
-    if (y_t * wx <= (1 - alpha) * gamma)//update
+    final double gamma = B * Math.sqrt(p - 1) / k;
+    final double wx = w.dot(x_t) + bias;
+    if (y_t * wx <= (1 - alpha) * gamma) // update
     {
-      double eta = C / Math.sqrt(p - 1) / Math.sqrt(k++);
+      final double eta = C / Math.sqrt(p - 1) / Math.sqrt(k++);
       w.mutableAdd(eta * y_t, x_t);
       if (useBias) {
         bias += eta * y_t;
@@ -191,64 +265,6 @@ public class ALMA2 extends BaseUpdateableClassifier implements BinaryScoreClassi
         w.mutableDivide(norm);
       }
     }
-  }
-
-  @Override
-  public CategoricalResults classify(DataPoint data) {
-    if (w == null) {
-      throw new UntrainedModelException("The model has not yet been trained");
-    }
-    double wx = getScore(data);
-    CategoricalResults cr = new CategoricalResults(2);
-    if (wx < 0) {
-      cr.setProb(0, 1.0);
-    } else {
-      cr.setProb(1, 1.0);
-    }
-    return cr;
-  }
-
-  @Override
-  public double getScore(DataPoint dp) {
-    return w.dot(dp.getNumericalValues());
-  }
-
-  @Override
-  public boolean supportsWeightedData() {
-    return false;
-  }
-
-  @Override
-  public Vec getRawWeight() {
-    return w;
-  }
-
-  @Override
-  public double getBias() {
-    return bias;
-  }
-
-  @Override
-  public Vec getRawWeight(int index) {
-    if (index < 1) {
-      return getRawWeight();
-    } else {
-      throw new IndexOutOfBoundsException("Model has only 1 weight vector");
-    }
-  }
-
-  @Override
-  public double getBias(int index) {
-    if (index < 1) {
-      return getBias();
-    } else {
-      throw new IndexOutOfBoundsException("Model has only 1 weight vector");
-    }
-  }
-
-  @Override
-  public int numWeightsVecs() {
-    return 1;
   }
 
 }

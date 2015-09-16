@@ -4,18 +4,23 @@
  */
 package jsat.linear;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+
 import java.util.Random;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import jsat.math.OnLineStatistics;
-import jsat.utils.SystemInfo;
-import jsat.utils.random.XOR128;
+
 import org.junit.After;
 import org.junit.AfterClass;
-import static org.junit.Assert.*;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
+
+import jsat.math.OnLineStatistics;
+import jsat.utils.SystemInfo;
+import jsat.utils.random.XOR128;
 
 /**
  *
@@ -24,9 +29,6 @@ import org.junit.Test;
 public class MatrixTest {
 
   private static ExecutorService ex;
-
-  public MatrixTest() {
-  }
 
   @BeforeClass
   public static void setUpClass() {
@@ -37,105 +39,15 @@ public class MatrixTest {
   public static void tearDownClass() {
   }
 
+  public MatrixTest() {
+  }
+
   @Before
   public void setUp() {
   }
 
   @After
   public void tearDown() {
-  }
-
-  /**
-   * Test of OuterProductUpdate method, of class Matrix.
-   */
-  @Test
-  public void testOuterProductUpdate_4args() {
-    System.out.println("OuterProductUpdate");
-    Matrix A = Matrix.eye(4);
-    Vec x = new DenseVector(new double[]{1, 2, 3, 4});
-    Vec y = new DenseVector(new double[]{5, 6, 7, 8});
-    double c = 2.0;
-
-    double[][] expected = new double[][]{
-      {11, 12, 14, 16},
-      {20, 25, 28, 32},
-      {30, 36, 43, 48},
-      {40, 48, 56, 65},};
-
-    Matrix.OuterProductUpdate(A, x, y, c);
-
-    for (int i = 0; i < expected.length; i++) {
-      for (int j = 0; j < expected.length; j++) {
-        assertEquals(expected[i][j], A.get(i, j), 0.0);
-      }
-    }
-  }
-
-  /**
-   * Test of OuterProductUpdate method, of class Matrix.
-   */
-  @Test
-  public void testOuterProductUpdate_5args() {
-    System.out.println("OuterProductUpdate");
-    Matrix A = Matrix.eye(4);
-    Vec x = new DenseVector(new double[]{1, 2, 3, 4});
-    Vec y = new DenseVector(new double[]{5, 6, 7, 8});
-    double c = 2.0;
-
-    double[][] expected = new double[][]{
-      {11, 12, 14, 16},
-      {20, 25, 28, 32},
-      {30, 36, 43, 48},
-      {40, 48, 56, 65},};
-    Matrix.OuterProductUpdate(A, x, y, c, ex);
-
-    for (int i = 0; i < expected.length; i++) {
-      for (int j = 0; j < expected.length; j++) {
-        assertEquals(expected[i][j], A.get(i, j), 0.0);
-      }
-    }
-  }
-
-  /**
-   * Test of eye method, of class Matrix.
-   */
-  @Test
-  public void testEye() {
-    System.out.println("eye");
-
-    for (int k = 1; k < 10; k++) {
-      Matrix I = Matrix.eye(k);
-      for (int i = 0; i < I.rows(); i++) {
-        for (int j = 0; j < I.cols(); j++) {
-          if (i == j) {
-            assertEquals(1.0, I.get(i, j), 0.0);
-          } else {
-            assertEquals(0.0, I.get(i, j), 0.0);
-          }
-        }
-      }
-    }
-  }
-
-  /**
-   * Test of random method, of class Matrix.
-   */
-  @Test
-  public void testRandom() {
-    System.out.println("random");
-    int rows = 100;
-    int cols = 100;
-    Random rand = new XOR128();
-
-    DenseMatrix result = Matrix.random(rows, cols, rand);
-    OnLineStatistics stats = new OnLineStatistics();
-    for (int i = 0; i < result.rows(); i++) {
-      for (int j = 0; j < result.cols(); j++) {
-        stats.add(result.get(i, j));
-      }
-    }
-    //if its all random from [0, 1], the mean should be 0.5
-    assertEquals(0.5, stats.getMean(), 0.05);
   }
 
   /**
@@ -154,23 +66,15 @@ public class MatrixTest {
    */
   @Test
   public void testDiagMult_Matrix_Vec() {
-    //TODO add diagonal test case
+    // TODO add diagonal test case
     System.out.println("diagMult");
-    Matrix A = new DenseMatrix(new double[][]{
-      {0, 8, 7, 5, 5},
-      {6, 10, 4, 8, 4},
-      {10, 7, 5, 8, 6},
-      {5, 2, 2, 5, 5},
-      {6, 7, 10, 5, 8},});
+    final Matrix A = new DenseMatrix(new double[][] { { 0, 8, 7, 5, 5 }, { 6, 10, 4, 8, 4 }, { 10, 7, 5, 8, 6 },
+        { 5, 2, 2, 5, 5 }, { 6, 7, 10, 5, 8 }, });
 
-    Vec b = new DenseVector(new double[]{4, -3, 3, -4, 2});
+    final Vec b = new DenseVector(new double[] { 4, -3, 3, -4, 2 });
 
-    double[][] expected = new double[][]{
-      {0, -24, 21, -20, 10},
-      {24, -30, 12, -32, 8},
-      {40, -21, 15, -32, 12},
-      {20, -6, 6, -20, 10},
-      {24, -21, 30, -20, 16},};
+    final double[][] expected = new double[][] { { 0, -24, 21, -20, 10 }, { 24, -30, 12, -32, 8 },
+        { 40, -21, 15, -32, 12 }, { 20, -6, 6, -20, 10 }, { 24, -21, 30, -20, 16 }, };
     Matrix.diagMult(A, b);
     assertEquals(new DenseMatrix(expected), A);
   }
@@ -180,47 +84,39 @@ public class MatrixTest {
    */
   @Test
   public void testDiagMult_Vec_Matrix() {
-    //TODO add diagonal test case
+    // TODO add diagonal test case
     System.out.println("diagMult");
-    Matrix A = new DenseMatrix(new double[][]{
-      {0, 8, 7, 5, 5},
-      {6, 10, 4, 8, 4},
-      {10, 7, 5, 8, 6},
-      {5, 2, 2, 5, 5},
-      {6, 7, 10, 5, 8},});
+    final Matrix A = new DenseMatrix(new double[][] { { 0, 8, 7, 5, 5 }, { 6, 10, 4, 8, 4 }, { 10, 7, 5, 8, 6 },
+        { 5, 2, 2, 5, 5 }, { 6, 7, 10, 5, 8 }, });
 
-    Vec b = new DenseVector(new double[]{4, -3, 3, -4, 2});
+    final Vec b = new DenseVector(new double[] { 4, -3, 3, -4, 2 });
 
-    double[][] expected = new double[][]{
-      {0, 32, 28, 20, 20},
-      {-18, -30, -12, -24, -12},
-      {30, 21, 15, 24, 18},
-      {-20, -8, -8, -20, -20},
-      {12, 14, 20, 10, 16},};
+    final double[][] expected = new double[][] { { 0, 32, 28, 20, 20 }, { -18, -30, -12, -24, -12 },
+        { 30, 21, 15, 24, 18 }, { -20, -8, -8, -20, -20 }, { 12, 14, 20, 10, 16 }, };
 
     Matrix.diagMult(b, A);
     assertEquals(new DenseMatrix(expected), A);
   }
 
   /**
-   * Test of isSymmetric method, of class Matrix.
+   * Test of eye method, of class Matrix.
    */
   @Test
-  public void testIsSymmetric_Matrix_double() {
-    System.out.println("isSymmetric");
-    Matrix A = Matrix.eye(5);
+  public void testEye() {
+    System.out.println("eye");
 
-    assertTrue(Matrix.isSymmetric(A, 0.0));
-
-    A.set(3, 4, 2.0);
-    A.set(4, 3, 2.0);
-
-    assertTrue(Matrix.isSymmetric(A, 0.0));
-
-    A.set(3, 2, 0.01);
-
-    assertFalse(Matrix.isSymmetric(A, 0.0));
-    assertTrue(Matrix.isSymmetric(A, 0.1));
+    for (int k = 1; k < 10; k++) {
+      final Matrix I = Matrix.eye(k);
+      for (int i = 0; i < I.rows(); i++) {
+        for (int j = 0; j < I.cols(); j++) {
+          if (i == j) {
+            assertEquals(1.0, I.get(i, j), 0.0);
+          } else {
+            assertEquals(0.0, I.get(i, j), 0.0);
+          }
+        }
+      }
+    }
   }
 
   /**
@@ -229,7 +125,7 @@ public class MatrixTest {
   @Test
   public void testIsSymmetric_Matrix() {
     System.out.println("isSymmetric");
-    Matrix A = Matrix.eye(5);
+    final Matrix A = Matrix.eye(5);
 
     assertTrue(Matrix.isSymmetric(A));
 
@@ -245,13 +141,79 @@ public class MatrixTest {
   }
 
   /**
+   * Test of isSymmetric method, of class Matrix.
+   */
+  @Test
+  public void testIsSymmetric_Matrix_double() {
+    System.out.println("isSymmetric");
+    final Matrix A = Matrix.eye(5);
+
+    assertTrue(Matrix.isSymmetric(A, 0.0));
+
+    A.set(3, 4, 2.0);
+    A.set(4, 3, 2.0);
+
+    assertTrue(Matrix.isSymmetric(A, 0.0));
+
+    A.set(3, 2, 0.01);
+
+    assertFalse(Matrix.isSymmetric(A, 0.0));
+    assertTrue(Matrix.isSymmetric(A, 0.1));
+  }
+
+  /**
+   * Test of OuterProductUpdate method, of class Matrix.
+   */
+  @Test
+  public void testOuterProductUpdate_4args() {
+    System.out.println("OuterProductUpdate");
+    final Matrix A = Matrix.eye(4);
+    final Vec x = new DenseVector(new double[] { 1, 2, 3, 4 });
+    final Vec y = new DenseVector(new double[] { 5, 6, 7, 8 });
+    final double c = 2.0;
+
+    final double[][] expected = new double[][] { { 11, 12, 14, 16 }, { 20, 25, 28, 32 }, { 30, 36, 43, 48 },
+        { 40, 48, 56, 65 }, };
+
+    Matrix.OuterProductUpdate(A, x, y, c);
+
+    for (int i = 0; i < expected.length; i++) {
+      for (int j = 0; j < expected.length; j++) {
+        assertEquals(expected[i][j], A.get(i, j), 0.0);
+      }
+    }
+  }
+
+  /**
+   * Test of OuterProductUpdate method, of class Matrix.
+   */
+  @Test
+  public void testOuterProductUpdate_5args() {
+    System.out.println("OuterProductUpdate");
+    final Matrix A = Matrix.eye(4);
+    final Vec x = new DenseVector(new double[] { 1, 2, 3, 4 });
+    final Vec y = new DenseVector(new double[] { 5, 6, 7, 8 });
+    final double c = 2.0;
+
+    final double[][] expected = new double[][] { { 11, 12, 14, 16 }, { 20, 25, 28, 32 }, { 30, 36, 43, 48 },
+        { 40, 48, 56, 65 }, };
+    Matrix.OuterProductUpdate(A, x, y, c, ex);
+
+    for (int i = 0; i < expected.length; i++) {
+      for (int j = 0; j < expected.length; j++) {
+        assertEquals(expected[i][j], A.get(i, j), 0.0);
+      }
+    }
+  }
+
+  /**
    * Test of pascal method, of class Matrix.
    */
   @Test
   public void testPascal() {
     System.out.println("pascal");
 
-    Matrix P = Matrix.pascal(6);
+    final Matrix P = Matrix.pascal(6);
 
     for (int i = 0; i < P.rows(); i++) {
       assertEquals(1.0, P.get(i, 0), 0.0);
@@ -264,6 +226,27 @@ public class MatrixTest {
       }
     }
 
+  }
+
+  /**
+   * Test of random method, of class Matrix.
+   */
+  @Test
+  public void testRandom() {
+    System.out.println("random");
+    final int rows = 100;
+    final int cols = 100;
+    final Random rand = new XOR128();
+
+    final DenseMatrix result = Matrix.random(rows, cols, rand);
+    final OnLineStatistics stats = new OnLineStatistics();
+    for (int i = 0; i < result.rows(); i++) {
+      for (int j = 0; j < result.cols(); j++) {
+        stats.add(result.get(i, j));
+      }
+    }
+    // if its all random from [0, 1], the mean should be 0.5
+    assertEquals(0.5, stats.getMean(), 0.05);
   }
 
 }

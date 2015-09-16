@@ -1,8 +1,11 @@
 package jsat.regression.evaluation;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+
 import org.junit.After;
 import org.junit.AfterClass;
-import static org.junit.Assert.*;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -13,15 +16,15 @@ import org.junit.Test;
  */
 public class RelativeSquaredErrorTest {
 
-  public RelativeSquaredErrorTest() {
-  }
-
   @BeforeClass
   public static void setUpClass() {
   }
 
   @AfterClass
   public static void tearDownClass() {
+  }
+
+  public RelativeSquaredErrorTest() {
   }
 
   @Before
@@ -38,8 +41,8 @@ public class RelativeSquaredErrorTest {
   @Test
   public void testGetScore() {
     System.out.println("getScore");
-    RelativeSquaredError scorer = new RelativeSquaredError();
-    RelativeSquaredError otherHalf = scorer.clone();
+    final RelativeSquaredError scorer = new RelativeSquaredError();
+    final RelativeSquaredError otherHalf = scorer.clone();
 
     assertEquals(scorer, otherHalf);
     assertEquals(scorer.hashCode(), otherHalf.hashCode());
@@ -48,13 +51,9 @@ public class RelativeSquaredErrorTest {
     assertFalse(scorer.equals(""));
     assertFalse(scorer.hashCode() == "".hashCode());
 
-    double[] pred = new double[]{
-      0, 2, 4, 6, 8, 9
-    };
+    final double[] pred = new double[] { 0, 2, 4, 6, 8, 9 };
 
-    double[] truth = new double[]{
-      0.5, 2, 3, 1, 8.5, 10
-    };
+    final double[] truth = new double[] { 0.5, 2, 3, 1, 8.5, 10 };
 
     scorer.prepare();
     otherHalf.prepare();

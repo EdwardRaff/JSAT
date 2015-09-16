@@ -3,7 +3,8 @@ package jsat.text.stemming;
 import java.util.HashMap;
 
 /**
- * Implements Lovins' stemming algorithm described here http://snowball.tartarus.org/algorithms/lovins/stemmer.html
+ * Implements Lovins' stemming algorithm described here
+ * http://snowball.tartarus.org/algorithms/lovins/stemmer.html
  *
  * @author Edward Raff
  */
@@ -11,7 +12,7 @@ public class LovinsStemmer extends Stemmer {
 
   private static final long serialVersionUID = -3229865664217642197L;
 
-  //There are 11 ending hash maps, each postfixed with the number of characters
+  // There are 11 ending hash maps, each postfixed with the number of characters
   private static final HashMap<String, String> ending11 = new HashMap<String, String>() {
     /**
      *
@@ -435,168 +436,254 @@ public class LovinsStemmer extends Stemmer {
     }
   };
 
-  private static String removeEnding(String word) {
-    //The stem must contain at least 2 characters, so word-2 is the min
+  private static String fixStem(String stem) {
+    // Rule 1 remove one of double b, d, g, l, m, n, p, r, s, t
+    final char lastChar = stem.charAt(stem.length() - 1);
+    stem = stem.replaceFirst("(dd|bb|gg|ll|mm|nn|pp|rr|ss|tt)$", "" + lastChar);
+    // Rule 2
+    stem = stem.replaceFirst("iev$", "ief");
+    // Rule 3
+    stem = stem.replaceFirst("uct$", "uc");
+    // Rule 4
+    stem = stem.replaceFirst("umpt$", "um");
+    // Rule 5
+    stem = stem.replaceFirst("rpt$", "rb");
+    // Rule 6
+    stem = stem.replaceFirst("urs$", "ur");
+    // Rule 7
+    stem = stem.replaceFirst("istr$", "ister");
+    // Rule 7a
+    stem = stem.replaceFirst("metr$", "meter");
+    // Rule 8
+    stem = stem.replaceFirst("olv$", "olut");
+    // Rule 9
+    if (stem.endsWith("ul") && !stem.endsWith("aoiul")) {
+      stem = stem.replaceFirst("[^aoi]ul$", "l");
+    }
+    // Rule 10
+    stem = stem.replaceFirst("bex$", "bic");
+    // Rule 11
+    stem = stem.replaceFirst("dex$", "dic");
+    // Rule 12
+    stem = stem.replaceFirst("pex$", "pic");
+    // Rule 13
+    stem = stem.replaceFirst("tex$", "tic");
+    // Rule 14
+    stem = stem.replaceFirst("ax$", "ac");
+    // Rule 15
+    stem = stem.replaceFirst("ex$", "ec");
+    // Rule 16
+    stem = stem.replaceFirst("ix$", "ic");
+    // Rule 17
+    stem = stem.replaceFirst("lux$", "luc");
+    // Rule 18
+    stem = stem.replaceFirst("uad$", "uas");
+    // Rule 19
+    stem = stem.replaceFirst("vad$", "vas");
+    // Rule 20
+    stem = stem.replaceFirst("cid$", "cis");
+    // Rule 21
+    stem = stem.replaceFirst("lid$", "lis");
+    // Rule 22
+    stem = stem.replaceFirst("erid$", "eris");
+    // Rule 23
+    stem = stem.replaceFirst("pand$", "pans");
+    // Rule 24
+    if (stem.endsWith("end") && !stem.endsWith("send")) {
+      stem = stem.replaceFirst("[^s]end$", "ens");
+    }
+    // Rule 25
+    stem = stem.replaceFirst("ond$", "ons");
+    // Rule 26
+    stem = stem.replaceFirst("lud$", "lus");
+    // Rule 27
+    stem = stem.replaceFirst("rud$", "rus");
+    // Rule 28
+    stem = stem.replaceFirst("[^pt]her$", "hes");
+    // Rule 29
+    stem = stem.replaceFirst("mit$", "mis");
+    // Rule 30
+    if (stem.endsWith("ent") && !stem.endsWith("ment")) {
+      stem = stem.replaceFirst("[^m]ent$", "ens");
+    }
+    // Rule 31
+    stem = stem.replaceFirst("ert$", "ers");
+    // Rule 32
+    if (stem.endsWith("et") && !stem.endsWith("net")) {
+      stem = stem.replaceFirst("et$", "es");
+    }
+    // Rule 33
+    stem = stem.replaceFirst("yt$", "ys");
+    // Rule 34
+    stem = stem.replaceFirst("yz$", "ys");
+
+    return stem;
+  }
+
+  private static String removeEnding(final String word) {
+    // The stem must contain at least 2 characters, so word-2 is the min
     for (int i = Math.min(11, word.length() - 2); i > 0; i--) {
-      String ending = word.substring(word.length() - i);
-      String condition = endings.get(ending);
+      final String ending = word.substring(word.length() - i);
+      final String condition = endings.get(ending);
       if (condition == null) {
         continue;
       }
 
-      String stem = word.substring(0, word.length() - i);
+      final String stem = word.substring(0, word.length() - i);
       switch (condition.charAt(0)) {
-        case 'A'://No restrictions on stem
+      case 'A':// No restrictions on stem
+        return stem;
+      case 'B': // Minimum stem length = 3
+        if (stem.length() >= 3) {
           return stem;
-        case 'B': //Minimum stem length = 3
-          if (stem.length() >= 3) {
-            return stem;
-          }
+        }
+        break;
+      case 'C': // Minimum stem length = 4
+        if (stem.length() >= 4) {
+          return stem;
+        }
+        break;
+      case 'D':// Minimum stem length = 5
+        if (stem.length() >= 5) {
+          return stem;
+        }
+        break;
+      case 'E':// Do not remove ending after e
+        if (stem.endsWith("e")) {
           break;
-        case 'C': //Minimum stem length = 4
+        }
+        return stem;
+      case 'F':// Minimum stem length = 3 and do not remove ending after e
+        if (stem.endsWith("e") || stem.length() < 3) {
+          break;
+        }
+        return stem;
+      case 'G':// Minimum stem length = 3 and remove ending only after f
+        if (stem.endsWith("f") && stem.length() >= 3) {
+          return stem;
+        }
+        break;
+      case 'H':// Remove ending only after t or ll
+        if (stem.endsWith("t") || stem.endsWith("ll")) {
+          return stem;
+        }
+        break;
+      case 'I':// Do not remove ending after o or e
+        if (stem.endsWith("o") || stem.endsWith("e")) {
+          break;
+        }
+        return stem;
+      case 'J': // Do not remove ending after a or e
+        if (stem.endsWith("a") || stem.endsWith("e")) {
+          break;
+        }
+        return stem;
+      case 'K':// Minimum stem length = 3 and remove ending only after l, i or
+               // u*e
+        if (stem.length() >= 3 && stem.matches(".*(i|u.e|l)$")) {
+          return stem;
+        }
+        break;
+      case 'L':// Do not remove ending after u, x or s, unless s follows o
+        if (stem.endsWith("os")) {
+          return stem;
+        } else if (stem.matches(".*(u|x|s)$")) {
+          break;
+        }
+        return stem;
+      case 'M':// Do not remove ending after a, c, e or m
+        if (stem.endsWith("a") || stem.endsWith("c") || stem.endsWith("e") || stem.endsWith("m")) {
+          break;
+        } else {
+          return stem;
+        }
+      case 'N':// Minimum stem length = 4 after s**, elsewhere = 3
+        if (stem.matches(".*s..$")) {
           if (stem.length() >= 4) {
             return stem;
-          }
-          break;
-        case 'D'://Minimum stem length = 5
-          if (stem.length() >= 5) {
-            return stem;
-          }
-          break;
-        case 'E'://Do not remove ending after e
-          if (stem.endsWith("e")) {
-            break;
-          }
-          return stem;
-        case 'F'://Minimum stem length = 3 and do not remove ending after e
-          if (stem.endsWith("e") || stem.length() < 3) {
-            break;
-          }
-          return stem;
-        case 'G'://Minimum stem length = 3 and remove ending only after f
-          if (stem.endsWith("f") && stem.length() >= 3) {
-            return stem;
-          }
-          break;
-        case 'H'://Remove ending only after t or ll
-          if (stem.endsWith("t") || stem.endsWith("ll")) {
-            return stem;
-          }
-          break;
-        case 'I'://Do not remove ending after o or e
-          if (stem.endsWith("o") || stem.endsWith("e")) {
-            break;
-          }
-          return stem;
-        case 'J': //Do not remove ending after a or e
-          if (stem.endsWith("a") || stem.endsWith("e")) {
-            break;
-          }
-          return stem;
-        case 'K'://Minimum stem length = 3 and remove ending only after l, i or u*e
-          if (stem.length() >= 3 && stem.matches(".*(i|u.e|l)$")) {
-            return stem;
-          }
-          break;
-        case 'L'://Do not remove ending after u, x or s, unless s follows o
-          if (stem.endsWith("os")) {
-            return stem;
-          } else if (stem.matches(".*(u|x|s)$")) {
-            break;
-          }
-          return stem;
-        case 'M'://Do not remove ending after a, c, e or m
-          if (stem.endsWith("a") || stem.endsWith("c") || stem.endsWith("e") || stem.endsWith("m")) {
-            break;
           } else {
-            return stem;
-          }
-        case 'N'://Minimum stem length = 4 after s**, elsewhere = 3
-          if (stem.matches(".*s..$")) {
-            if (stem.length() >= 4) {
-              return stem;
-            } else {
-              break;
-            }
-          } else if (stem.length() >= 3) {
-            return stem;
-          }
-          break;
-        case 'O'://Remove ending only after l or i
-          if (stem.endsWith("l") || stem.endsWith("i")) {
-            return stem;
-          }
-          break;
-        case 'P'://Do not remove ending after c
-          if (stem.endsWith("e")) {
             break;
           }
+        } else if (stem.length() >= 3) {
           return stem;
-        case 'Q'://Minimum stem length = 3 and do not remove ending after l or n
-          if (stem.length() < 3 || stem.endsWith("l") || stem.endsWith("n")) {
-            break;
-          }
+        }
+        break;
+      case 'O':// Remove ending only after l or i
+        if (stem.endsWith("l") || stem.endsWith("i")) {
           return stem;
-        case 'R'://Remove ending only after n or r
-          if (stem.endsWith("n") || stem.endsWith("r")) {
-            return stem;
-          }
+        }
+        break;
+      case 'P':// Do not remove ending after c
+        if (stem.endsWith("e")) {
           break;
-        case 'S'://Remove ending only after dr or t, unless t follows t
-          if (stem.endsWith("dr") || (stem.endsWith("t") && !stem.endsWith("tt"))) {
-            return stem;
-          }
+        }
+        return stem;
+      case 'Q':// Minimum stem length = 3 and do not remove ending after l or n
+        if (stem.length() < 3 || stem.endsWith("l") || stem.endsWith("n")) {
           break;
-        case 'T'://Remove ending only after s or t, unless t follows o
-          if (stem.endsWith("s") || (stem.endsWith("t") && !stem.endsWith("ot"))) {
-            return stem;
-          }
-          break;
-        case 'U'://Remove ending only after l, m, n or r
-          if (stem.endsWith("l") || stem.endsWith("m") || stem.endsWith("n") || stem.endsWith("r")) {
-            return stem;
-          }
-          break;
-        case 'V'://Remove ending only after c
-          if (stem.endsWith("c")) {
-            return stem;
-          }
-          break;
-        case 'W'://Do not remove ending after s or u
-          if (stem.endsWith("s") || stem.endsWith("u")) {
-            break;
-          }
+        }
+        return stem;
+      case 'R':// Remove ending only after n or r
+        if (stem.endsWith("n") || stem.endsWith("r")) {
           return stem;
-        case 'X'://Remove ending only after l, i or u*e
-          if (stem.matches(".*(l|i|u.e)$")) {
-            return stem;
-          }
-          break;
-        case 'Y'://Remove ending only after in
-          if (stem.endsWith("in")) {
-            return stem;
-          }
-          break;
-        case 'Z'://Do not remove ending after f
-          if (stem.endsWith("f")) {
-            break;
-          }
+        }
+        break;
+      case 'S':// Remove ending only after dr or t, unless t follows t
+        if (stem.endsWith("dr") || stem.endsWith("t") && !stem.endsWith("tt")) {
           return stem;
-        case 'a'://AA: Remove ending only after d, f, ph, th, l, er, or, es or t
-          if (stem.matches(".*(d|f|ph|th|l|er|or|es|t)$")) {
-            return stem;
-          }
-          break;
-        case 'b'://BB: Minimum stem length = 3 and do not remove ending after met or ryst
-          if (stem.length() < 3 || stem.endsWith("met") || stem.endsWith("ryst")) {
-            break;
-          }
+        }
+        break;
+      case 'T':// Remove ending only after s or t, unless t follows o
+        if (stem.endsWith("s") || stem.endsWith("t") && !stem.endsWith("ot")) {
           return stem;
-        case 'c'://CC: Remove ending only after l
-          if (stem.endsWith("l")) {
-            return stem;
-          }
+        }
+        break;
+      case 'U':// Remove ending only after l, m, n or r
+        if (stem.endsWith("l") || stem.endsWith("m") || stem.endsWith("n") || stem.endsWith("r")) {
+          return stem;
+        }
+        break;
+      case 'V':// Remove ending only after c
+        if (stem.endsWith("c")) {
+          return stem;
+        }
+        break;
+      case 'W':// Do not remove ending after s or u
+        if (stem.endsWith("s") || stem.endsWith("u")) {
           break;
+        }
+        return stem;
+      case 'X':// Remove ending only after l, i or u*e
+        if (stem.matches(".*(l|i|u.e)$")) {
+          return stem;
+        }
+        break;
+      case 'Y':// Remove ending only after in
+        if (stem.endsWith("in")) {
+          return stem;
+        }
+        break;
+      case 'Z':// Do not remove ending after f
+        if (stem.endsWith("f")) {
+          break;
+        }
+        return stem;
+      case 'a':// AA: Remove ending only after d, f, ph, th, l, er, or, es or t
+        if (stem.matches(".*(d|f|ph|th|l|er|or|es|t)$")) {
+          return stem;
+        }
+        break;
+      case 'b':// BB: Minimum stem length = 3 and do not remove ending after met
+               // or ryst
+        if (stem.length() < 3 || stem.endsWith("met") || stem.endsWith("ryst")) {
+          break;
+        }
+        return stem;
+      case 'c':// CC: Remove ending only after l
+        if (stem.endsWith("l")) {
+          return stem;
+        }
+        break;
       }
 
     }
@@ -604,92 +691,8 @@ public class LovinsStemmer extends Stemmer {
     return word;
   }
 
-  private static String fixStem(String stem) {
-    //Rule 1 remove one of double b, d, g, l, m, n, p, r, s, t
-    char lastChar = stem.charAt(stem.length() - 1);
-    stem = stem.replaceFirst("(dd|bb|gg|ll|mm|nn|pp|rr|ss|tt)$", "" + lastChar);
-    //Rule 2
-    stem = stem.replaceFirst("iev$", "ief");
-    //Rule 3
-    stem = stem.replaceFirst("uct$", "uc");
-    //Rule 4
-    stem = stem.replaceFirst("umpt$", "um");
-    //Rule 5
-    stem = stem.replaceFirst("rpt$", "rb");
-    //Rule 6
-    stem = stem.replaceFirst("urs$", "ur");
-    //Rule 7
-    stem = stem.replaceFirst("istr$", "ister");
-    //Rule 7a
-    stem = stem.replaceFirst("metr$", "meter");
-    //Rule 8
-    stem = stem.replaceFirst("olv$", "olut");
-    //Rule 9
-    if (stem.endsWith("ul") && !stem.endsWith("aoiul")) {
-      stem = stem.replaceFirst("[^aoi]ul$", "l");
-    }
-    //Rule 10
-    stem = stem.replaceFirst("bex$", "bic");
-    //Rule 11
-    stem = stem.replaceFirst("dex$", "dic");
-    //Rule 12
-    stem = stem.replaceFirst("pex$", "pic");
-    //Rule 13
-    stem = stem.replaceFirst("tex$", "tic");
-    //Rule 14
-    stem = stem.replaceFirst("ax$", "ac");
-    //Rule 15
-    stem = stem.replaceFirst("ex$", "ec");
-    //Rule 16
-    stem = stem.replaceFirst("ix$", "ic");
-    //Rule 17
-    stem = stem.replaceFirst("lux$", "luc");
-    //Rule 18
-    stem = stem.replaceFirst("uad$", "uas");
-    //Rule 19
-    stem = stem.replaceFirst("vad$", "vas");
-    //Rule 20
-    stem = stem.replaceFirst("cid$", "cis");
-    //Rule 21
-    stem = stem.replaceFirst("lid$", "lis");
-    //Rule 22
-    stem = stem.replaceFirst("erid$", "eris");
-    //Rule 23
-    stem = stem.replaceFirst("pand$", "pans");
-    //Rule 24
-    if (stem.endsWith("end") && !stem.endsWith("send")) {
-      stem = stem.replaceFirst("[^s]end$", "ens");
-    }
-    //Rule 25
-    stem = stem.replaceFirst("ond$", "ons");
-    //Rule 26
-    stem = stem.replaceFirst("lud$", "lus");
-    //Rule 27
-    stem = stem.replaceFirst("rud$", "rus");
-    //Rule 28
-    stem = stem.replaceFirst("[^pt]her$", "hes");
-    //Rule 29
-    stem = stem.replaceFirst("mit$", "mis");
-    //Rule 30
-    if (stem.endsWith("ent") && !stem.endsWith("ment")) {
-      stem = stem.replaceFirst("[^m]ent$", "ens");
-    }
-    //Rule 31
-    stem = stem.replaceFirst("ert$", "ers");
-    //Rule 32
-    if (stem.endsWith("et") && !stem.endsWith("net")) {
-      stem = stem.replaceFirst("et$", "es");
-    }
-    //Rule 33
-    stem = stem.replaceFirst("yt$", "ys");
-    //Rule 34
-    stem = stem.replaceFirst("yz$", "ys");
-
-    return stem;
-  }
-
   @Override
-  public String stem(String word) {
+  public String stem(final String word) {
     return fixStem(removeEnding(word));
   }
 

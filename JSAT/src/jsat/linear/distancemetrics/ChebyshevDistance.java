@@ -2,6 +2,7 @@ package jsat.linear.distancemetrics;
 
 import java.util.List;
 import java.util.concurrent.ExecutorService;
+
 import jsat.linear.Vec;
 
 /**
@@ -14,7 +15,28 @@ public class ChebyshevDistance implements DistanceMetric {
   private static final long serialVersionUID = 2528153647402824790L;
 
   @Override
-  public double dist(Vec a, Vec b) {
+  public ChebyshevDistance clone() {
+    return new ChebyshevDistance();
+  }
+
+  @Override
+  public double dist(final int a, final int b, final List<? extends Vec> vecs, final List<Double> cache) {
+    return dist(vecs.get(a), vecs.get(b));
+  }
+
+  @Override
+  public double dist(final int a, final Vec b, final List<? extends Vec> vecs, final List<Double> cache) {
+    return dist(vecs.get(a), b);
+  }
+
+  @Override
+  public double dist(final int a, final Vec b, final List<Double> qi, final List<? extends Vec> vecs,
+      final List<Double> cache) {
+    return dist(vecs.get(a), b);
+  }
+
+  @Override
+  public double dist(final Vec a, final Vec b) {
     if (a.length() != b.length()) {
       throw new ArithmeticException("Vectors must have the same length");
     }
@@ -28,7 +50,22 @@ public class ChebyshevDistance implements DistanceMetric {
   }
 
   @Override
-  public boolean isSymmetric() {
+  public List<Double> getAccelerationCache(final List<? extends Vec> vecs) {
+    return null;
+  }
+
+  @Override
+  public List<Double> getAccelerationCache(final List<? extends Vec> vecs, final ExecutorService threadpool) {
+    return null;
+  }
+
+  @Override
+  public List<Double> getQueryInfo(final Vec q) {
+    return null;
+  }
+
+  @Override
+  public boolean isIndiscemible() {
     return true;
   }
 
@@ -38,7 +75,7 @@ public class ChebyshevDistance implements DistanceMetric {
   }
 
   @Override
-  public boolean isIndiscemible() {
+  public boolean isSymmetric() {
     return true;
   }
 
@@ -48,47 +85,12 @@ public class ChebyshevDistance implements DistanceMetric {
   }
 
   @Override
-  public String toString() {
-    return "Chebyshev Distance";
-  }
-
-  @Override
-  public ChebyshevDistance clone() {
-    return new ChebyshevDistance();
-  }
-
-  @Override
   public boolean supportsAcceleration() {
     return false;
   }
 
   @Override
-  public List<Double> getAccelerationCache(List<? extends Vec> vecs) {
-    return null;
-  }
-
-  @Override
-  public double dist(int a, int b, List<? extends Vec> vecs, List<Double> cache) {
-    return dist(vecs.get(a), vecs.get(b));
-  }
-
-  @Override
-  public double dist(int a, Vec b, List<? extends Vec> vecs, List<Double> cache) {
-    return dist(vecs.get(a), b);
-  }
-
-  @Override
-  public List<Double> getQueryInfo(Vec q) {
-    return null;
-  }
-
-  @Override
-  public List<Double> getAccelerationCache(List<? extends Vec> vecs, ExecutorService threadpool) {
-    return null;
-  }
-
-  @Override
-  public double dist(int a, Vec b, List<Double> qi, List<? extends Vec> vecs, List<Double> cache) {
-    return dist(vecs.get(a), b);
+  public String toString() {
+    return "Chebyshev Distance";
   }
 }

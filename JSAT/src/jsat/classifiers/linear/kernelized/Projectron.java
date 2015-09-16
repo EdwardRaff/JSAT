@@ -3,6 +3,7 @@ package jsat.classifiers.linear.kernelized;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+
 import jsat.classifiers.BaseUpdateableClassifier;
 import jsat.classifiers.CategoricalData;
 import jsat.classifiers.CategoricalResults;
@@ -23,19 +24,22 @@ import jsat.parameters.Parameterized;
 import jsat.utils.DoubleList;
 
 /**
- * An implementation of the Projectron and Projectrion++ algorithms. These are a kernelized extensions of the
- * {@link Perceptron} that bound the number of support vectors used, with the latter incorporating some similarities
- * from {@link PassiveAggressive}. <br>
- * Unlike many other bounded kernel learners, the number of support vectors is not specified by the user. This value is
- * controlled by a sparsity parameter {@link #setEta(double) }.
- * <br><br>
+ * An implementation of the Projectron and Projectrion++ algorithms. These are a
+ * kernelized extensions of the {@link Perceptron} that bound the number of
+ * support vectors used, with the latter incorporating some similarities from
+ * {@link PassiveAggressive}. <br>
+ * Unlike many other bounded kernel learners, the number of support vectors is
+ * not specified by the user. This value is controlled by a sparsity parameter
+ * {@link #setEta(double) }. <br>
+ * <br>
  * See:
  * <ul>
- * <li>Orabona, F., Keshet, J.,&amp;Caputo, B. (2008). <i>The Projectron: a bounded kernel-based Perceptron</i>.
- * Proceedings of the 25th international conference on Machine learning - ICML ’08 (pp. 720–727). New York, New York,
+ * <li>Orabona, F., Keshet, J.,&amp;Caputo, B. (2008). <i>The Projectron: a
+ * bounded kernel-based Perceptron</i>. Proceedings of the 25th international
+ * conference on Machine learning - ICML ’08 (pp. 720–727). New York, New York,
  * USA: ACM Press. doi:10.1145/1390156.1390247</li>
- * <li>Orabona, F., Keshet, J.,&amp;Caputo, B. (2009). <i>Bounded Kernel-Based Online Learning</i>. The Journal of
- * Machine Learning Research, 10, 2643–2666.
+ * <li>Orabona, F., Keshet, J.,&amp;Caputo, B. (2009). <i>Bounded Kernel-Based
+ * Online Learning</i>. The Journal of Machine Learning Research, 10, 2643–2666.
  * </li>
  * </ul>
  *
@@ -61,30 +65,36 @@ public class Projectron extends BaseUpdateableClassifier implements BinaryScoreC
   /**
    * Creates a new Projectron++ learner
    *
-   * @param k the kernel to use
+   * @param k
+   *          the kernel to use
    */
-  public Projectron(KernelTrick k) {
+  public Projectron(final KernelTrick k) {
     this(k, 0.1);
   }
 
   /**
    * Creates a new Projectron++ learner
    *
-   * @param k the kernel to use
-   * @param eta the sparsity parameter
+   * @param k
+   *          the kernel to use
+   * @param eta
+   *          the sparsity parameter
    */
-  public Projectron(KernelTrick k, double eta) {
+  public Projectron(final KernelTrick k, final double eta) {
     this(k, eta, true);
   }
 
   /**
    * Creates a new Projectron learner
    *
-   * @param k the kernel to use
-   * @param eta the sparsity parameter
-   * @param useMarginUpdates whether or not to perform projection updates on margin errors
+   * @param k
+   *          the kernel to use
+   * @param eta
+   *          the sparsity parameter
+   * @param useMarginUpdates
+   *          whether or not to perform projection updates on margin errors
    */
-  public Projectron(KernelTrick k, double eta, boolean useMarginUpdates) {
+  public Projectron(final KernelTrick k, final double eta, final boolean useMarginUpdates) {
     setKernel(k);
     setEta(eta);
     setUseMarginUpdates(useMarginUpdates);
@@ -93,51 +103,38 @@ public class Projectron extends BaseUpdateableClassifier implements BinaryScoreC
   /**
    * Copy constructor
    *
-   * @param toCopy the object to copy
+   * @param toCopy
+   *          the object to copy
    */
-  protected Projectron(Projectron toCopy) {
-    this.k = toCopy.k.clone();
-    this.eta = toCopy.eta;
+  protected Projectron(final Projectron toCopy) {
+    k = toCopy.k.clone();
+    eta = toCopy.eta;
     if (toCopy.S != null) {
-      this.alpha = new DoubleList(toCopy.alpha);
-      this.S = new ArrayList<Vec>(toCopy.S);
-      this.cacheAccel = new DoubleList(toCopy.cacheAccel);
-      this.InvKExpanded = toCopy.InvKExpanded.clone();
-      this.InvK = new SubMatrix(this.InvKExpanded, 0, 0, toCopy.InvK.rows(), toCopy.InvK.cols());
-      this.k_raw = Arrays.copyOf(toCopy.k_raw, toCopy.k_raw.length);
+      alpha = new DoubleList(toCopy.alpha);
+      S = new ArrayList<Vec>(toCopy.S);
+      cacheAccel = new DoubleList(toCopy.cacheAccel);
+      InvKExpanded = toCopy.InvKExpanded.clone();
+      InvK = new SubMatrix(InvKExpanded, 0, 0, toCopy.InvK.rows(), toCopy.InvK.cols());
+      k_raw = Arrays.copyOf(toCopy.k_raw, toCopy.k_raw.length);
     }
   }
 
-  /**
-   * Sets the kernel trick to be used
-   *
-   * @param k the kernel trick to be use
-   */
-  public void setKernel(KernelTrick k) {
-    this.k = k;
-  }
+  @Override
+  public CategoricalResults classify(final DataPoint data) {
+    final CategoricalResults cr = new CategoricalResults(2);
 
-  /**
-   * Returns the kernel trick in use
-   *
-   * @return the kernel trick in use
-   */
-  public KernelTrick getKernel() {
-    return k;
-  }
-
-  /**
-   * Sets the &eta; parameter which controls the sparsity of the Projection solution. Larger values result in greater
-   * sparsity, at the potential loss of accuracy. If set to 0 and {@link #setUseMarginUpdates(boolean) } is
-   * {@code false}, the Projectron degenerates into the standard kernelized Perceptron.
-   *
-   * @param eta the sparsity parameter in [0, Infinity)
-   */
-  public void setEta(double eta) {
-    if (Double.isNaN(eta) || Double.isInfinite(eta) || eta < 0) {
-      throw new IllegalArgumentException("eta must be in the range [0, Infity), not " + eta);
+    if (getScore(data) < 0) {
+      cr.setProb(0, 1.0);
+    } else {
+      cr.setProb(1, 1.0);
     }
-    this.eta = eta;
+
+    return cr;
+  }
+
+  @Override
+  public Projectron clone() {
+    return new Projectron(this);
   }
 
   /**
@@ -150,31 +147,82 @@ public class Projectron extends BaseUpdateableClassifier implements BinaryScoreC
   }
 
   /**
-   * Sets whether or not projection updates will be performed for margin errors. If {@code true}, this behaves as the
-   * Projectrion++ algorithm. If {@code false}, the behavior is equal to the standard Projectron.
+   * Returns the kernel trick in use
    *
-   * @param useMarginUpdates {@code true} to perform updates on margin errors
+   * @return the kernel trick in use
    */
-  public void setUseMarginUpdates(boolean useMarginUpdates) {
-    this.useMarginUpdates = useMarginUpdates;
+  public KernelTrick getKernel() {
+    return k;
+  }
+
+  @Override
+  public Parameter getParameter(final String paramName) {
+    return Parameter.toParameterMap(getParameters()).get(paramName);
+  }
+
+  @Override
+  public List<Parameter> getParameters() {
+    return Parameter.getParamsFromMethods(this);
+  }
+
+  @Override
+  public double getScore(final DataPoint dp) {
+    return k.evalSum(S, cacheAccel, alpha.getBackingArray(), dp.getNumericalValues(), 0, S.size());
+  }
+
+  private double getScore(final Vec x, final List<Double> qi, final double[] kStore) {
+    double score = 0;
+    for (int i = 0; i < S.size(); i++) {
+      final double tmp = k.eval(i, x, qi, S, cacheAccel);
+      if (kStore != null) {
+        kStore[i] = tmp;
+      }
+      score += alpha.get(i) * tmp;
+    }
+    return score;
   }
 
   /**
-   * Returns {@code true} if margin errors can cause updates, {@code false} if not.
+   * Returns {@code true} if margin errors can cause updates, {@code false} if
+   * not.
    *
-   * @return {@code true} if margin errors can cause updates, {@code false} if not.
+   * @return {@code true} if margin errors can cause updates, {@code false} if
+   *         not.
    */
   public boolean isUseMarginUpdates() {
     return useMarginUpdates;
   }
 
-  @Override
-  public Projectron clone() {
-    return new Projectron(this);
+  /**
+   * Sets the &eta; parameter which controls the sparsity of the Projection
+   * solution. Larger values result in greater sparsity, at the potential loss
+   * of accuracy. If set to 0 and {@link #setUseMarginUpdates(boolean) } is
+   * {@code false}, the Projectron degenerates into the standard kernelized
+   * Perceptron.
+   *
+   * @param eta
+   *          the sparsity parameter in [0, Infinity)
+   */
+  public void setEta(final double eta) {
+    if (Double.isNaN(eta) || Double.isInfinite(eta) || eta < 0) {
+      throw new IllegalArgumentException("eta must be in the range [0, Infity), not " + eta);
+    }
+    this.eta = eta;
+  }
+
+  /**
+   * Sets the kernel trick to be used
+   *
+   * @param k
+   *          the kernel trick to be use
+   */
+  public void setKernel(final KernelTrick k) {
+    this.k = k;
   }
 
   @Override
-  public void setUp(CategoricalData[] categoricalAttributes, int numericAttributes, CategoricalData predicting) {
+  public void setUp(final CategoricalData[] categoricalAttributes, final int numericAttributes,
+      final CategoricalData predicting) {
     if (numericAttributes < 1) {
       throw new IllegalArgumentException("Projectrion requires numeric features");
     } else if (predicting.getNumOfCategories() != 2) {
@@ -188,14 +236,31 @@ public class Projectron extends BaseUpdateableClassifier implements BinaryScoreC
     k_raw = new double[initSize];
   }
 
+  /**
+   * Sets whether or not projection updates will be performed for margin errors.
+   * If {@code true}, this behaves as the Projectrion++ algorithm. If
+   * {@code false}, the behavior is equal to the standard Projectron.
+   *
+   * @param useMarginUpdates
+   *          {@code true} to perform updates on margin errors
+   */
+  public void setUseMarginUpdates(final boolean useMarginUpdates) {
+    this.useMarginUpdates = useMarginUpdates;
+  }
+
   @Override
-  public void update(DataPoint dataPoint, int targetClass) {
+  public boolean supportsWeightedData() {
+    return false;
+  }
+
+  @Override
+  public void update(final DataPoint dataPoint, final int targetClass) {
     final Vec x_t = dataPoint.getNumericalValues();
     final List<Double> qi = k.getQueryInfo(x_t);
     final double score = getScore(x_t, qi, k_raw);
     final double y_t = targetClass * 2 - 1;
 
-    //First instance is a special case
+    // First instance is a special case
     if (S.isEmpty()) {
       InvK = new SubMatrix(InvKExpanded, 0, 0, 1, 1);
       InvK.set(0, 0, 1.0);
@@ -203,32 +268,39 @@ public class Projectron extends BaseUpdateableClassifier implements BinaryScoreC
       alpha.add(y_t);
       cacheAccel.addAll(qi);
       return;
-    } else if (y_t * score > 1) {//No updates needed
+    } else if (y_t * score > 1) {// No updates needed
       return;
-    } else if (y_t * score < 1 && y_t * score > 0 && !useMarginUpdates) {//margin error but we are ignoring it
+    } else if (y_t * score < 1 && y_t * score > 0 && !useMarginUpdates) {// margin
+                                                                         // error
+                                                                         // but
+                                                                         // we
+                                                                         // are
+                                                                         // ignoring
+                                                                         // it
       return;
     }
 
-    //Used for both cases, so hoisted out. 
-    DenseVector k_t = new DenseVector(k_raw, 0, S.size());
-    Vec d = InvK.multiply(k_t);//equation (7)
+    // Used for both cases, so hoisted out.
+    final DenseVector k_t = new DenseVector(k_raw, 0, S.size());
+    final Vec d = InvK.multiply(k_t);// equation (7)
     final double k_xt = k.eval(0, 0, Arrays.asList(x_t), qi);
     final double k_t_d = k_t.dot(d);
-    final double deltaSqrd = Math.max(k_xt - k_t_d, 0);//avoid sqrt(-val)  bellow
+    final double deltaSqrd = Math.max(k_xt - k_t_d, 0);// avoid sqrt(-val)
+                                                       // bellow
     final double delta = Math.sqrt(deltaSqrd);
 
     if (Math.signum(score) != y_t) {
-      if (delta < eta)//Project to the basis vectors
+      if (delta < eta) // Project to the basis vectors
       {
-        //equation (9)
+        // equation (9)
         for (int i = 0; i < S.size(); i++) {
           alpha.set(i, alpha.get(i) + y_t * d.get(i));
         }
-      } else//Add to the basis vectors
+      } else// Add to the basis vectors
       {
-        //Make sure we have space
+        // Make sure we have space
         if (S.size() == InvKExpanded.rows()) {
-          //SubMatrix InvK holds refrence to old one with the correct values
+          // SubMatrix InvK holds refrence to old one with the correct values
           InvKExpanded = new DenseMatrix(S.size() * 2, S.size() * 2);
           for (int i = 0; i < InvK.rows(); i++) {
             for (int j = 0; j < InvK.cols(); j++) {
@@ -239,9 +311,9 @@ public class Projectron extends BaseUpdateableClassifier implements BinaryScoreC
 
           k_raw = Arrays.copyOf(k_raw, S.size() * 2);
         }
-        //Now back to normal
+        // Now back to normal
         InvK = new SubMatrix(InvKExpanded, 0, 0, S.size() + 1, S.size() + 1);
-        Vec dExp = new DenseVector(S.size() + 1);
+        final Vec dExp = new DenseVector(S.size() + 1);
         for (int i = 0; i < d.length(); i++) {
           dExp.set(i, d.get(i));
         }
@@ -255,63 +327,19 @@ public class Projectron extends BaseUpdateableClassifier implements BinaryScoreC
         cacheAccel.addAll(qi);
       }
 
-    } else if (y_t * score <= 1)//(margin error)
+    } else if (y_t * score <= 1) // (margin error)
     {
-      final double loss = 1 - y_t * score;//y_t*score must be in (0, 1), so no checks needed
+      final double loss = 1 - y_t * score;// y_t*score must be in (0, 1), so no
+                                          // checks needed
       if (loss < delta / eta) {
         return;
       }
-      //see page 2655
-      double tau = Math.max(Math.max(loss / k_t_d, 2 * (loss - delta / eta) / k_t_d), 1.0);
+      // see page 2655
+      final double tau = Math.max(Math.max(loss / k_t_d, 2 * (loss - delta / eta) / k_t_d), 1.0);
 
       for (int i = 0; i < S.size(); i++) {
         alpha.set(i, alpha.get(i) + y_t * tau * d.get(i));
       }
     }
-  }
-
-  @Override
-  public CategoricalResults classify(DataPoint data) {
-    CategoricalResults cr = new CategoricalResults(2);
-
-    if (getScore(data) < 0) {
-      cr.setProb(0, 1.0);
-    } else {
-      cr.setProb(1, 1.0);
-    }
-
-    return cr;
-  }
-
-  @Override
-  public boolean supportsWeightedData() {
-    return false;
-  }
-
-  private double getScore(Vec x, List<Double> qi, final double[] kStore) {
-    double score = 0;
-    for (int i = 0; i < S.size(); i++) {
-      double tmp = k.eval(i, x, qi, S, cacheAccel);
-      if (kStore != null) {
-        kStore[i] = tmp;
-      }
-      score += alpha.get(i) * tmp;
-    }
-    return score;
-  }
-
-  @Override
-  public double getScore(DataPoint dp) {
-    return k.evalSum(S, cacheAccel, alpha.getBackingArray(), dp.getNumericalValues(), 0, S.size());
-  }
-
-  @Override
-  public List<Parameter> getParameters() {
-    return Parameter.getParamsFromMethods(this);
-  }
-
-  @Override
-  public Parameter getParameter(String paramName) {
-    return Parameter.toParameterMap(getParameters()).get(paramName);
   }
 }

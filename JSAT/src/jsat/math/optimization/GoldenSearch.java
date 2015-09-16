@@ -18,23 +18,33 @@ public class GoldenSearch {
   /**
    * Finds the local minimum of the function {@code f}.
    *
-   * @param eps the desired accuracy of the result
-   * @param maxIterations the maximum number of iterations to perform
-   * @param a the left bound on the minimum
-   * @param b the right bound on the minimum
-   * @param pos the position of the argument array that should be used as the variable to alter
-   * @param f the function to find the minimize of
-   * @param args the array of variable values for the function, one of which will be altered in the search
+   * @param eps
+   *          the desired accuracy of the result
+   * @param maxIterations
+   *          the maximum number of iterations to perform
+   * @param a
+   *          the left bound on the minimum
+   * @param b
+   *          the right bound on the minimum
+   * @param pos
+   *          the position of the argument array that should be used as the
+   *          variable to alter
+   * @param f
+   *          the function to find the minimize of
+   * @param args
+   *          the array of variable values for the function, one of which will
+   *          be altered in the search
    * @return the value of variable {@code pos} that produces the local minima
    */
-  public static double minimize(double eps, int maxIterations, double a, double b, int pos, Function f, double... args) {
+  public static double minimize(final double eps, final int maxIterations, double a, double b, final int pos,
+      final Function f, final double... args) {
     if (a > b) {
-      double tmp = b;
+      final double tmp = b;
       b = a;
       a = tmp;
     }
 
-    //Intitial values
+    // Intitial values
     int iter = 0;
 
     double x1 = a + om_tau * (b - a);
@@ -53,7 +63,7 @@ public class GoldenSearch {
         x2 = a + tau * (b - a);
         args[pos] = x2;
         f2 = f.f(args);
-      } else//f1 < f2
+      } else// f1 < f2
       {
         b = x2;
         x2 = x1;

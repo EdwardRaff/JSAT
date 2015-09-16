@@ -1,13 +1,17 @@
 package jsat.clustering.dissimilarity;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
+
 import jsat.classifiers.DataPoint;
 import jsat.linear.distancemetrics.DistanceMetric;
 import jsat.linear.distancemetrics.EuclideanDistance;
 
 /**
- * Also known as Group-Average Agglomerative Clustering (GAAC), this measure computer the dissimilarity by summing the
- * distances between all possible data point pairs in the union of the clusters.
+ * Also known as Group-Average Agglomerative Clustering (GAAC), this measure
+ * computer the dissimilarity by summing the distances between all possible data
+ * point pairs in the union of the clusters.
  *
  * @author Edward Raff
  */
@@ -23,9 +27,10 @@ public class AverageLinkDissimilarity extends DistanceMetricDissimilarity implem
   /**
    * Creates a new AverageLinkDissimilarity
    *
-   * @param dm the distance measure to use on individual points
+   * @param dm
+   *          the distance measure to use on individual points
    */
-  public AverageLinkDissimilarity(DistanceMetric dm) {
+  public AverageLinkDissimilarity(final DistanceMetric dm) {
     super(dm);
   }
 
@@ -35,12 +40,25 @@ public class AverageLinkDissimilarity extends DistanceMetricDissimilarity implem
   }
 
   @Override
-  public double dissimilarity(List<DataPoint> a, List<DataPoint> b) {
+  public double dissimilarity(final int i, final int ni, final int j, final int nj, final double[][] distanceMatrix) {
+    return getDistance(distanceMatrix, i, j);
+  }
+
+  @Override
+  public double dissimilarity(final int i, final int ni, final int j, final int nj, final int k, final int nk,
+      final double[][] distanceMatrix) {
+    final double ai = ni / (double) (ni + nj);
+    final double aj = nj / (double) (ni + nj);
+    return ai * getDistance(distanceMatrix, i, k) + aj * getDistance(distanceMatrix, j, k);
+  }
+
+  @Override
+  public double dissimilarity(final List<DataPoint> a, final List<DataPoint> b) {
     double disSum = 0;
 
-    int allSize = a.size() + b.size();
+    final int allSize = a.size() + b.size();
 
-    List<DataPoint> allPoints = new ArrayList<DataPoint>(allSize);
+    final List<DataPoint> allPoints = new ArrayList<DataPoint>(allSize);
     allPoints.addAll(a);
     allPoints.addAll(b);
 
@@ -54,17 +72,17 @@ public class AverageLinkDissimilarity extends DistanceMetricDissimilarity implem
   }
 
   @Override
-  public double dissimilarity(Set<Integer> a, Set<Integer> b, double[][] distanceMatrix) {
+  public double dissimilarity(final Set<Integer> a, final Set<Integer> b, final double[][] distanceMatrix) {
     double disSum = 0;
 
-    int allSize = a.size() + b.size();
+    final int allSize = a.size() + b.size();
 
-    int[] allPoints = new int[allSize];
+    final int[] allPoints = new int[allSize];
     int z = 0;
-    for (int val : a) {
+    for (final int val : a) {
       allPoints[z++] = val;
     }
-    for (int val : b) {
+    for (final int val : b) {
       allPoints[z++] = val;
     }
 
@@ -75,18 +93,6 @@ public class AverageLinkDissimilarity extends DistanceMetricDissimilarity implem
     }
 
     return disSum / (allSize * (allSize - 1));
-  }
-
-  @Override
-  public double dissimilarity(int i, int ni, int j, int nj, double[][] distanceMatrix) {
-    return getDistance(distanceMatrix, i, j);
-  }
-
-  @Override
-  public double dissimilarity(int i, int ni, int j, int nj, int k, int nk, double[][] distanceMatrix) {
-    double ai = ni / (double) (ni + nj);
-    double aj = nj / (double) (ni + nj);
-    return ai * getDistance(distanceMatrix, i, k) + aj * getDistance(distanceMatrix, j, k);
   }
 
 }

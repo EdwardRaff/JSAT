@@ -1,8 +1,9 @@
 package jsat.classifiers.evaluation;
 
 /**
- * Evaluates a classifier based on the Recall rate, where the class of index 0 is considered the positive class. This
- * score is only valid for binary classification problems.
+ * Evaluates a classifier based on the Recall rate, where the class of index 0
+ * is considered the positive class. This score is only valid for binary
+ * classification problems.
  *
  * @author Edward Raff
  */
@@ -20,25 +21,11 @@ public class Recall extends SimpleBinaryClassMetric {
   /**
    * Copy constructor
    *
-   * @param toClone the object to copy
+   * @param toClone
+   *          the object to copy
    */
-  public Recall(Recall toClone) {
+  public Recall(final Recall toClone) {
     super(toClone);
-  }
-
-  @Override
-  public double getScore() {
-    return tp / (tp + fn);
-  }
-
-  @Override
-  public boolean equals(Object obj) {
-    return this.getClass().isAssignableFrom(obj.getClass()) && obj.getClass().isAssignableFrom(this.getClass());
-  }
-
-  @Override
-  public int hashCode() {
-    return getName().hashCode();
   }
 
   @Override
@@ -47,8 +34,23 @@ public class Recall extends SimpleBinaryClassMetric {
   }
 
   @Override
+  public boolean equals(final Object obj) {
+    return this.getClass().isAssignableFrom(obj.getClass()) && obj.getClass().isAssignableFrom(this.getClass());
+  }
+
+  @Override
   public String getName() {
     return "Recall";
+  }
+
+  @Override
+  public double getScore() {
+    return tp / (tp + fn);
+  }
+
+  @Override
+  public int hashCode() {
+    return getName().hashCode();
   }
 
 }

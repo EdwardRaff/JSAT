@@ -3,10 +3,11 @@ package jsat.utils.random;
 import java.util.Random;
 
 /**
- * A fast PRNG that produces medium quality random numbers that passes the diehard tests. It has a period of
- * 2<sup>128</sup>-1
- * <br><br>
- * See: G. Marsaglia. <i>Xorshift RNGs</i>. Journal of Statistical Software, 8, 14:1–9, 2003
+ * A fast PRNG that produces medium quality random numbers that passes the
+ * diehard tests. It has a period of 2<sup>128</sup>-1 <br>
+ * <br>
+ * See: G. Marsaglia. <i>Xorshift RNGs</i>. Journal of Statistical Software, 8,
+ * 14:1–9, 2003
  *
  * @author Edward Raff
  */
@@ -25,15 +26,38 @@ public class XOR128 extends Random {
   /**
    * Creates a new PRNG
    *
-   * @param seed the seed that controls the initial state of the PRNG
+   * @param seed
+   *          the seed that controls the initial state of the PRNG
    * @see #setSeed(long)
    */
-  public XOR128(long seed) {
+  public XOR128(final long seed) {
     super(seed);
   }
 
   @Override
-  public synchronized void setSeed(long seed) {
+  protected int next(final int bits) {
+    return (int) (nextLong() >>> 64 - bits);
+  }
+
+  @Override
+  public double nextDouble() {
+    final long l = nextLong() >>> 11;
+    return l / (double) (1L << 53);
+  }
+
+  @Override
+  public long nextLong() {
+    long t;
+    t = x ^ x << 11;
+    x = y;
+    y = z;
+    z = w;
+    w = w ^ w >>> 19 ^ t ^ t >>> 8;
+    return w;
+  }
+
+  @Override
+  public synchronized void setSeed(final long seed) {
     super.setSeed(seed);
     x = super.next(32);
     x <<= 32;
@@ -50,27 +74,5 @@ public class XOR128 extends Random {
     w = super.next(32);
     w <<= 32;
     w += super.next(32);
-  }
-
-  @Override
-  protected int next(int bits) {
-    return (int) (nextLong() >>> (64 - bits));
-  }
-
-  @Override
-  public long nextLong() {
-    long t;
-    t = (x ^ (x << 11));
-    x = y;
-    y = z;
-    z = w;
-    w = (w ^ (w >>> 19)) ^ (t ^ (t >>> 8));
-    return w;
-  }
-
-  @Override
-  public double nextDouble() {
-    long l = nextLong() >>> 11;
-    return l / (double) (1L << 53);
   }
 }

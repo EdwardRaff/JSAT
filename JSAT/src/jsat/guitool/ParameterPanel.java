@@ -4,43 +4,95 @@ import java.awt.BorderLayout;
 import java.awt.Dialog;
 import java.awt.GridLayout;
 import java.awt.Window;
-import java.awt.event.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.ItemEvent;
+import java.awt.event.ItemListener;
 import java.util.List;
-import javax.swing.*;
+
+import javax.swing.BorderFactory;
+import javax.swing.GroupLayout;
 import javax.swing.GroupLayout.Alignment;
+import javax.swing.JButton;
+import javax.swing.JCheckBox;
+import javax.swing.JComboBox;
+import javax.swing.JDialog;
+import javax.swing.JPanel;
+import javax.swing.JTextField;
 import javax.swing.LayoutStyle.ComponentPlacement;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
-import jsat.linear.distancemetrics.*;
-import jsat.parameters.*;
+
+import jsat.linear.distancemetrics.ChebyshevDistance;
+import jsat.linear.distancemetrics.CosineDistance;
+import jsat.linear.distancemetrics.DistanceMetric;
+import jsat.linear.distancemetrics.EuclideanDistance;
+import jsat.linear.distancemetrics.MahalanobisDistance;
+import jsat.linear.distancemetrics.ManhattanDistance;
+import jsat.parameters.BooleanParameter;
+import jsat.parameters.DoubleParameter;
+import jsat.parameters.IntParameter;
+import jsat.parameters.MetricParameter;
+import jsat.parameters.ObjectParameter;
+import jsat.parameters.Parameter;
+import jsat.parameters.Parameterized;
 
 /**
- * Parameter Panel provides a default GUI to alter the parameter values of any object that implements
- * {@link Parameterized}. For {@link MetricParameter}, it provides a sub list of possible parameters to choose from.
+ * Parameter Panel provides a default GUI to alter the parameter values of any
+ * object that implements {@link Parameterized}. For {@link MetricParameter}, it
+ * provides a sub list of possible parameters to choose from.
  *
  * @author Edward Raff
  */
 public class ParameterPanel extends javax.swing.JPanel {
 
   private static final long serialVersionUID = -7333731204670319776L;
+
+  /**
+   * Shows a modal dialog to alter the parameters of the given object.
+   *
+   * @param owner
+   *          the owner window of the dialog
+   * @param title
+   *          the title for the dialog
+   * @param parameterized
+   *          the parameterized object to provide a dialog for
+   */
+  public static void showParameterDiag(final Window owner, final String title, final Parameterized parameterized) {
+    final ParameterPanel pp = new ParameterPanel(parameterized);
+    final JDialog jd = new JDialog(owner, title, Dialog.ModalityType.APPLICATION_MODAL);
+    jd.setContentPane(pp);
+    pp.getjButtonOk().addActionListener(new ActionListener() {
+      @Override
+      public void actionPerformed(final ActionEvent e) {
+        jd.setVisible(false);
+      }
+    });
+    jd.pack();
+    jd.setVisible(true);
+  }
+
   final GridLayout gridLayout;
-  final DistanceMetric[] distanceMetrics = new DistanceMetric[]{
-    new EuclideanDistance(),
-    new ManhattanDistance(),
-    new ChebyshevDistance(),
-    new CosineDistance(),
-    new MahalanobisDistance(),};
+
+  final DistanceMetric[] distanceMetrics = new DistanceMetric[] { new EuclideanDistance(), new ManhattanDistance(),
+      new ChebyshevDistance(), new CosineDistance(), new MahalanobisDistance(), };
+
+  // Variables declaration - do not modify//GEN-BEGIN:variables
+  private JButton jButtonOk;
+
+  private JPanel jPanelParameters;
+  // End of variables declaration//GEN-END:variables
 
   /**
    * Creates new form ParameterPanel
    */
-  public ParameterPanel(Parameterized parameterized) {
+  public ParameterPanel(final Parameterized parameterized) {
     initComponents();
-    List<Parameter> parameters = parameterized.getParameters();
+    final List<Parameter> parameters = parameterized.getParameters();
     gridLayout = new GridLayout(parameters.size(), 1);
     jPanelParameters.setLayout(gridLayout);
 
-    for (Parameter param : parameters) {
+    for (final Parameter param : parameters) {
       final JPanel subPanel = new JPanel(new BorderLayout());
       subPanel.setBorder(BorderFactory.createTitledBorder(param.getName()));
       if (param instanceof IntParameter) {
@@ -53,37 +105,37 @@ public class ParameterPanel extends javax.swing.JPanel {
         final JTextField textField = new JTextField(Integer.toString(intParam.getValue()));
         textField.getDocument().addDocumentListener(new DocumentListener() {
 
-          @Override
-          public void insertUpdate(DocumentEvent e) {
-            change(e);
+          private void badInput() {
+            checkBox.setSelected(false);
           }
 
-          @Override
-          public void removeUpdate(DocumentEvent e) {
-            change(e);
-          }
-
-          @Override
-          public void changedUpdate(DocumentEvent e) {
-            change(e);
-          }
-
-          public void change(DocumentEvent e) {
+          public void change(final DocumentEvent e) {
             try {
-              int newVal = Integer.parseInt(textField.getText().trim());
-              boolean good = intParam.setValue(newVal);
+              final int newVal = Integer.parseInt(textField.getText().trim());
+              final boolean good = intParam.setValue(newVal);
               if (good) {
                 checkBox.setSelected(true);
               } else {
                 badInput();
               }
-            } catch (Exception ex) {
+            } catch (final Exception ex) {
               badInput();
             }
           }
 
-          private void badInput() {
-            checkBox.setSelected(false);
+          @Override
+          public void changedUpdate(final DocumentEvent e) {
+            change(e);
+          }
+
+          @Override
+          public void insertUpdate(final DocumentEvent e) {
+            change(e);
+          }
+
+          @Override
+          public void removeUpdate(final DocumentEvent e) {
+            change(e);
           }
         });
 
@@ -100,37 +152,37 @@ public class ParameterPanel extends javax.swing.JPanel {
         final JTextField textField = new JTextField(Double.toString(doubleParam.getValue()));
         textField.getDocument().addDocumentListener(new DocumentListener() {
 
-          @Override
-          public void insertUpdate(DocumentEvent e) {
-            change(e);
+          private void badInput() {
+            checkBox.setSelected(false);
           }
 
-          @Override
-          public void removeUpdate(DocumentEvent e) {
-            change(e);
-          }
-
-          @Override
-          public void changedUpdate(DocumentEvent e) {
-            change(e);
-          }
-
-          public void change(DocumentEvent e) {
+          public void change(final DocumentEvent e) {
             try {
-              double newVal = Double.parseDouble(textField.getText().trim());
-              boolean good = doubleParam.setValue(newVal);
+              final double newVal = Double.parseDouble(textField.getText().trim());
+              final boolean good = doubleParam.setValue(newVal);
               if (good) {
                 checkBox.setSelected(true);
               } else {
                 badInput();
               }
-            } catch (Exception ex) {
+            } catch (final Exception ex) {
               badInput();
             }
           }
 
-          private void badInput() {
-            checkBox.setSelected(false);
+          @Override
+          public void changedUpdate(final DocumentEvent e) {
+            change(e);
+          }
+
+          @Override
+          public void insertUpdate(final DocumentEvent e) {
+            change(e);
+          }
+
+          @Override
+          public void removeUpdate(final DocumentEvent e) {
+            change(e);
           }
         });
 
@@ -146,7 +198,7 @@ public class ParameterPanel extends javax.swing.JPanel {
         checkBox.addItemListener(new ItemListener() {
 
           @Override
-          public void itemStateChanged(ItemEvent e) {
+          public void itemStateChanged(final ItemEvent e) {
             boolParam.setValue(checkBox.isSelected());
           }
         });
@@ -161,11 +213,11 @@ public class ParameterPanel extends javax.swing.JPanel {
         comboBox.addActionListener(new ActionListener() {
 
           @Override
-          public void actionPerformed(ActionEvent e) {
+          public void actionPerformed(final ActionEvent e) {
             objParam.setObject(comboBox.getSelectedItem());
           }
         });
-        List options = objParam.parameterOptions();
+        final List options = objParam.parameterOptions();
         for (int i = 0; i < options.size(); i++) {
           if (options.get(i).toString().equals(objParam.getObject().toString())) {
             comboBox.setSelectedIndex(i);
@@ -185,7 +237,7 @@ public class ParameterPanel extends javax.swing.JPanel {
         comboBox.addActionListener(new ActionListener() {
 
           @Override
-          public void actionPerformed(ActionEvent e) {
+          public void actionPerformed(final ActionEvent e) {
             metricParam.setMetric(distanceMetrics[comboBox.getSelectedIndex()].clone());
           }
         });
@@ -196,7 +248,8 @@ public class ParameterPanel extends javax.swing.JPanel {
   }
 
   /**
-   * Obtains the jButton for the OK button, so that custom behavior may be added, or the button hidden if desired.
+   * Obtains the jButton for the OK button, so that custom behavior may be
+   * added, or the button hidden if desired.
    *
    * @return the "OK" button.
    */
@@ -205,31 +258,12 @@ public class ParameterPanel extends javax.swing.JPanel {
   }
 
   /**
-   * Shows a modal dialog to alter the parameters of the given object.
-   *
-   * @param owner the owner window of the dialog
-   * @param title the title for the dialog
-   * @param parameterized the parameterized object to provide a dialog for
+   * This method is called from within the constructor to initialize the form.
+   * WARNING: Do NOT modify this code. The content of this method is always
+   * regenerated by the Form Editor.
    */
-  public static void showParameterDiag(Window owner, String title, Parameterized parameterized) {
-    ParameterPanel pp = new ParameterPanel(parameterized);
-    final JDialog jd = new JDialog(owner, title, Dialog.ModalityType.APPLICATION_MODAL);
-    jd.setContentPane(pp);
-    pp.getjButtonOk().addActionListener(new ActionListener() {
-      @Override
-      public void actionPerformed(ActionEvent e) {
-        jd.setVisible(false);
-      }
-    });
-    jd.pack();
-    jd.setVisible(true);
-  }
-
-  /**
-   * This method is called from within the constructor to initialize the form. WARNING: Do NOT modify this code. The
-   * content of this method is always regenerated by the Form Editor.
-   */
-  // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
+  // <editor-fold defaultstate="collapsed" desc="Generated
+  // Code">//GEN-BEGIN:initComponents
   private void initComponents() {
 
     jButtonOk = new JButton();
@@ -239,43 +273,28 @@ public class ParameterPanel extends javax.swing.JPanel {
 
     jPanelParameters.setBorder(BorderFactory.createTitledBorder("Parameters"));
 
-    GroupLayout jPanelParametersLayout = new GroupLayout(jPanelParameters);
+    final GroupLayout jPanelParametersLayout = new GroupLayout(jPanelParameters);
     jPanelParameters.setLayout(jPanelParametersLayout);
     jPanelParametersLayout.setHorizontalGroup(
-            jPanelParametersLayout.createParallelGroup(Alignment.LEADING)
-            .addGap(0, 0, Short.MAX_VALUE)
-    );
+        jPanelParametersLayout.createParallelGroup(Alignment.LEADING).addGap(0, 0, Short.MAX_VALUE));
     jPanelParametersLayout.setVerticalGroup(
-            jPanelParametersLayout.createParallelGroup(Alignment.LEADING)
-            .addGap(0, 225, Short.MAX_VALUE)
-    );
+        jPanelParametersLayout.createParallelGroup(Alignment.LEADING).addGap(0, 225, Short.MAX_VALUE));
 
-    GroupLayout layout = new GroupLayout(this);
-    this.setLayout(layout);
-    layout.setHorizontalGroup(
+    final GroupLayout layout = new GroupLayout(this);
+    setLayout(layout);
+    layout.setHorizontalGroup(layout.createParallelGroup(Alignment.LEADING)
+        .addGroup(layout.createSequentialGroup().addContainerGap()
+            .addGroup(layout.createParallelGroup(Alignment.LEADING)
+                .addGroup(layout.createSequentialGroup().addGap(0, 313, Short.MAX_VALUE).addComponent(jButtonOk))
+                .addComponent(jPanelParameters, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+        .addContainerGap()));
+    layout
+        .setVerticalGroup(
             layout.createParallelGroup(Alignment.LEADING)
-            .addGroup(layout.createSequentialGroup()
-                    .addContainerGap()
-                    .addGroup(layout.createParallelGroup(Alignment.LEADING)
-                            .addGroup(layout.createSequentialGroup()
-                                    .addGap(0, 313, Short.MAX_VALUE)
-                                    .addComponent(jButtonOk))
-                            .addComponent(jPanelParameters, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-                    .addContainerGap())
-    );
-    layout.setVerticalGroup(
-            layout.createParallelGroup(Alignment.LEADING)
-            .addGroup(Alignment.TRAILING, layout.createSequentialGroup()
-                    .addContainerGap()
-                    .addComponent(jPanelParameters, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addPreferredGap(ComponentPlacement.RELATED)
-                    .addComponent(jButtonOk)
-                    .addContainerGap())
-    );
+                .addGroup(Alignment.TRAILING,
+                    layout.createSequentialGroup().addContainerGap()
+                        .addComponent(jPanelParameters, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE,
+                            Short.MAX_VALUE)
+                        .addPreferredGap(ComponentPlacement.RELATED).addComponent(jButtonOk).addContainerGap()));
   }// </editor-fold>//GEN-END:initComponents
-
-  // Variables declaration - do not modify//GEN-BEGIN:variables
-  private JButton jButtonOk;
-  private JPanel jPanelParameters;
-    // End of variables declaration//GEN-END:variables
 }

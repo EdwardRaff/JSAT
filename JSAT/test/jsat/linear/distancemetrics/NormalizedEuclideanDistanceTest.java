@@ -16,20 +16,33 @@
  */
 package jsat.linear.distancemetrics;
 
-import java.util.*;
+import static jsat.TestTools.assertEqualsRelDiff;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
+
+import java.util.Arrays;
+import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import static jsat.TestTools.*;
-import jsat.distributions.multivariate.NormalM;
-import jsat.linear.*;
-import jsat.utils.SystemInfo;
-import jsat.utils.random.XORWOW;
+
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import static org.junit.Assert.*;
+
+import jsat.distributions.multivariate.NormalM;
+import jsat.linear.ConstantVector;
+import jsat.linear.DenseMatrix;
+import jsat.linear.DenseVector;
+import jsat.linear.Matrix;
+import jsat.linear.SparseVector;
+import jsat.linear.Vec;
+import jsat.utils.SystemInfo;
+import jsat.utils.random.XORWOW;
 
 /**
  *
@@ -48,9 +61,6 @@ public class NormalizedEuclideanDistanceTest {
 
   static private double[][] expected;
 
-  public NormalizedEuclideanDistanceTest() {
-  }
-
   @BeforeClass
   public static void setUpClass() {
     ex = Executors.newFixedThreadPool(SystemInfo.LogicalCores);
@@ -59,6 +69,9 @@ public class NormalizedEuclideanDistanceTest {
   @AfterClass
   public static void tearDownClass() {
     ex.shutdown();
+  }
+
+  public NormalizedEuclideanDistanceTest() {
   }
 
   @Before
@@ -82,8 +95,8 @@ public class NormalizedEuclideanDistanceTest {
     }
 
     vecs = Arrays.asList(zero, ones, half, inc);
-    Vec trueWeight = DenseVector.toDenseVec(1, 1.0 / (2 * 2), 1.0 / (3 * 3), 1.0 / (4 * 4), 1.0 / (5 * 5));
-    WeightedEuclideanDistance weighted = new WeightedEuclideanDistance(trueWeight);
+    final Vec trueWeight = DenseVector.toDenseVec(1, 1.0 / (2 * 2), 1.0 / (3 * 3), 1.0 / (4 * 4), 1.0 / (5 * 5));
+    final WeightedEuclideanDistance weighted = new WeightedEuclideanDistance(trueWeight);
 
     expected = new double[4][4];
     for (int i = 0; i < expected.length; i++) {
@@ -102,12 +115,12 @@ public class NormalizedEuclideanDistanceTest {
   public void testDist_Vec_Vec() {
     System.out.println("dist");
 
-    NormalM normal = new NormalM(new ConstantVector(0.0, 5), trueCov.clone());
-    NormalizedEuclideanDistance dist = new NormalizedEuclideanDistance();
+    final NormalM normal = new NormalM(new ConstantVector(0.0, 5), trueCov.clone());
+    final NormalizedEuclideanDistance dist = new NormalizedEuclideanDistance();
     dist.train(normal.sample(1000, new XORWOW()));
 
-    List<Double> cache = dist.getAccelerationCache(vecs);
-    List<Double> cache2 = dist.getAccelerationCache(vecs, ex);
+    final List<Double> cache = dist.getAccelerationCache(vecs);
+    final List<Double> cache2 = dist.getAccelerationCache(vecs, ex);
 
     if (cache != null) {
       assertEquals(cache.size(), cache2.size());
@@ -123,11 +136,12 @@ public class NormalizedEuclideanDistanceTest {
     try {
       dist.dist(half, new DenseVector(half.length() + 1));
       fail("Distance between vecs should have erred");
-    } catch (Exception ex) {
+    } catch (final Exception ex) {
 
     }
     for (int rounds = 0; rounds < 3; rounds++) {
-      //some code so that dense on dense, dense on sparse, and sparse on sparse all get run
+      // some code so that dense on dense, dense on sparse, and sparse on sparse
+      // all get run
       if (rounds == 1) {
         for (int i = 0; i < vecs.size(); i += 2) {
           vecs.set(i, new SparseVector(vecs.get(i)));
@@ -140,11 +154,12 @@ public class NormalizedEuclideanDistanceTest {
 
       for (int i = 0; i < vecs.size(); i++) {
         for (int j = 0; j < vecs.size(); j++) {
-          NormalizedEuclideanDistance d = dist.clone();
+          final NormalizedEuclideanDistance d = dist.clone();
           assertEqualsRelDiff(expected[i][j], d.dist(vecs.get(i), vecs.get(j)), 1e-1);
           assertEqualsRelDiff(expected[i][j], d.dist(i, j, vecs, cache), 1e-1);
           assertEqualsRelDiff(expected[i][j], d.dist(i, vecs.get(j), vecs, cache), 1e-1);
-          assertEqualsRelDiff(expected[i][j], d.dist(i, vecs.get(j), dist.getQueryInfo(vecs.get(j)), vecs, cache), 1e-1);
+          assertEqualsRelDiff(expected[i][j], d.dist(i, vecs.get(j), dist.getQueryInfo(vecs.get(j)), vecs, cache),
+              1e-1);
         }
       }
     }
@@ -154,12 +169,12 @@ public class NormalizedEuclideanDistanceTest {
   public void testDist_Vec_Vec_ExecutorService() {
     System.out.println("dist");
 
-    NormalM normal = new NormalM(new ConstantVector(0.0, 5), trueCov.clone());
-    NormalizedEuclideanDistance dist = new NormalizedEuclideanDistance();
+    final NormalM normal = new NormalM(new ConstantVector(0.0, 5), trueCov.clone());
+    final NormalizedEuclideanDistance dist = new NormalizedEuclideanDistance();
     dist.train(normal.sample(1000, new XORWOW()), ex);
 
-    List<Double> cache = dist.getAccelerationCache(vecs);
-    List<Double> cache2 = dist.getAccelerationCache(vecs, ex);
+    final List<Double> cache = dist.getAccelerationCache(vecs);
+    final List<Double> cache2 = dist.getAccelerationCache(vecs, ex);
 
     if (cache != null) {
       assertEquals(cache.size(), cache2.size());
@@ -175,12 +190,13 @@ public class NormalizedEuclideanDistanceTest {
     try {
       dist.dist(half, new DenseVector(half.length() + 1));
       fail("Distance between vecs should have erred");
-    } catch (Exception ex) {
+    } catch (final Exception ex) {
 
     }
 
     for (int rounds = 0; rounds < 3; rounds++) {
-      //some code so that dense on dense, dense on sparse, and sparse on sparse all get run
+      // some code so that dense on dense, dense on sparse, and sparse on sparse
+      // all get run
       if (rounds == 1) {
         for (int i = 0; i < vecs.size(); i += 2) {
           vecs.set(i, new SparseVector(vecs.get(i)));
@@ -193,31 +209,32 @@ public class NormalizedEuclideanDistanceTest {
 
       for (int i = 0; i < vecs.size(); i++) {
         for (int j = 0; j < vecs.size(); j++) {
-          NormalizedEuclideanDistance d = dist.clone();
+          final NormalizedEuclideanDistance d = dist.clone();
           assertEqualsRelDiff(expected[i][j], d.dist(vecs.get(i), vecs.get(j)), 1e-1);
           assertEqualsRelDiff(expected[i][j], d.dist(i, j, vecs, cache), 1e-1);
           assertEqualsRelDiff(expected[i][j], d.dist(i, vecs.get(j), vecs, cache), 1e-1);
-          assertEqualsRelDiff(expected[i][j], d.dist(i, vecs.get(j), dist.getQueryInfo(vecs.get(j)), vecs, cache), 1e-1);
+          assertEqualsRelDiff(expected[i][j], d.dist(i, vecs.get(j), dist.getQueryInfo(vecs.get(j)), vecs, cache),
+              1e-1);
         }
       }
     }
   }
 
   @Test
-  public void testMetricProperties() {
-    System.out.println("isSymmetric");
-    EuclideanDistance instance = new EuclideanDistance();
-    assertTrue(instance.isSymmetric());
-    assertTrue(instance.isSubadditive());
-    assertTrue(instance.isIndiscemible());
+  public void testMetricBound() {
+    System.out.println("metricBound");
+    final EuclideanDistance instance = new EuclideanDistance();
+    assertTrue(instance.metricBound() > 0);
+    assertTrue(Double.isInfinite(instance.metricBound()));
   }
 
   @Test
-  public void testMetricBound() {
-    System.out.println("metricBound");
-    EuclideanDistance instance = new EuclideanDistance();
-    assertTrue(instance.metricBound() > 0);
-    assertTrue(Double.isInfinite(instance.metricBound()));
+  public void testMetricProperties() {
+    System.out.println("isSymmetric");
+    final EuclideanDistance instance = new EuclideanDistance();
+    assertTrue(instance.isSymmetric());
+    assertTrue(instance.isSubadditive());
+    assertTrue(instance.isIndiscemible());
   }
 
 }

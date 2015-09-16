@@ -4,10 +4,21 @@
  */
 package jsat.classifiers.trees;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
+
 import java.util.Arrays;
 import java.util.Random;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+
+import org.junit.After;
+import org.junit.AfterClass;
+import org.junit.Before;
+import org.junit.BeforeClass;
+import org.junit.Test;
+
 import jsat.classifiers.ClassificationDataSet;
 import jsat.classifiers.Classifier;
 import jsat.classifiers.DataPointPair;
@@ -19,8 +30,6 @@ import jsat.utils.GridDataGenerator;
 import jsat.utils.IntSet;
 import jsat.utils.PairedReturn;
 import jsat.utils.SystemInfo;
-import org.junit.*;
-import static org.junit.Assert.*;
 
 /**
  *
@@ -35,9 +44,6 @@ public class DecisionStumpTest {
   static private ExecutorService ex;
   static private DecisionStump stump;
 
-  public DecisionStumpTest() {
-  }
-
   @BeforeClass
   public static void setUpClass() throws Exception {
   }
@@ -46,16 +52,19 @@ public class DecisionStumpTest {
   public static void tearDownClass() throws Exception {
   }
 
+  public DecisionStumpTest() {
+  }
+
   @Before
   public void setUp() {
     stump = new DecisionStump();
-    GridDataGenerator gdg = new GridDataGenerator(new Uniform(-0.15, 0.15), new Random(12), 1);
+    final GridDataGenerator gdg = new GridDataGenerator(new Uniform(-0.15, 0.15), new Random(12), 1);
     easyNumAtTrain = new ClassificationDataSet(gdg.generateData(40).getBackingList(), 0);
     easyNumAtTest = new ClassificationDataSet(gdg.generateData(40).getBackingList(), 0);
 
     easyCatAtTrain = new ClassificationDataSet(gdg.generateData(40).getBackingList(), 0);
     easyCatAtTest = new ClassificationDataSet(gdg.generateData(40).getBackingList(), 0);
-    NumericalToHistogram nth = new NumericalToHistogram(easyCatAtTrain, 2);
+    final NumericalToHistogram nth = new NumericalToHistogram(easyCatAtTrain, 2);
     easyCatAtTrain.applyTransform(nth);
     easyCatAtTest.applyTransform(nth);
 
@@ -64,6 +73,136 @@ public class DecisionStumpTest {
 
   @After
   public void tearDown() throws Exception {
+  }
+
+  /**
+   * Test of clone method, of class DecisionStump.
+   */
+  @Test
+  public void testClone() {
+    System.out.println("clone");
+    Classifier clone = stump.clone();
+    clone.trainC(easyNumAtTrain);
+    for (int i = 0; i < easyNumAtTest.getSampleSize(); i++) {
+      assertEquals(easyNumAtTest.getDataPointCategory(i), clone.classify(easyNumAtTest.getDataPoint(i)).mostLikely());
+    }
+    try {
+      stump.classify(easyNumAtTest.getDataPoint(0));
+      fail("Stump should not have been trained");
+    } catch (final Exception ex) {
+
+    }
+    clone = null;
+    stump.trainC(easyNumAtTrain);
+    clone = stump.clone();
+    for (int i = 0; i < easyNumAtTest.getSampleSize(); i++) {
+      assertEquals(easyNumAtTest.getDataPointCategory(i), clone.classify(easyNumAtTest.getDataPoint(i)).mostLikely());
+    }
+  }
+
+  @Test
+  public void testGiniSplit() {
+    System.out.println("testGiniSplit");
+
+    DecisionStump instance = new DecisionStump();
+    instance.setGainMethod(ImpurityScore.ImpurityMeasure.GINI);
+
+    instance.trainC(easyCatAtTrain);
+    for (final DataPointPair<Integer> dpp : easyCatAtTest.getAsDPPList()) {
+      assertEquals(dpp.getPair().longValue(), instance.classify(dpp.getDataPoint()).mostLikely());
+    }
+
+    instance = new DecisionStump();
+    instance.setGainMethod(ImpurityScore.ImpurityMeasure.GINI);
+
+    instance.trainC(easyNumAtTrain);
+    for (final DataPointPair<Integer> dpp : easyNumAtTest.getAsDPPList()) {
+      assertEquals(dpp.getPair().longValue(), instance.classify(dpp.getDataPoint()).mostLikely());
+    }
+  }
+
+  @Test
+  public void testInfoGainRatioSplit() {
+    System.out.println("testInfoGainRatioSplit");
+
+    DecisionStump instance = new DecisionStump();
+    instance.setGainMethod(ImpurityScore.ImpurityMeasure.INFORMATION_GAIN_RATIO);
+
+    instance.trainC(easyCatAtTrain);
+    for (final DataPointPair<Integer> dpp : easyCatAtTest.getAsDPPList()) {
+      assertEquals(dpp.getPair().longValue(), instance.classify(dpp.getDataPoint()).mostLikely());
+    }
+
+    instance = new DecisionStump();
+    instance.setGainMethod(ImpurityScore.ImpurityMeasure.INFORMATION_GAIN_RATIO);
+
+    instance.trainC(easyNumAtTrain);
+    for (final DataPointPair<Integer> dpp : easyNumAtTest.getAsDPPList()) {
+      assertEquals(dpp.getPair().longValue(), instance.classify(dpp.getDataPoint()).mostLikely());
+    }
+  }
+
+  @Test
+  public void testInfoGainSplit() {
+    System.out.println("testInfoGainSplit");
+
+    DecisionStump instance = new DecisionStump();
+    instance.setGainMethod(ImpurityScore.ImpurityMeasure.INFORMATION_GAIN);
+
+    instance.trainC(easyCatAtTrain);
+    for (final DataPointPair<Integer> dpp : easyCatAtTest.getAsDPPList()) {
+      assertEquals(dpp.getPair().longValue(), instance.classify(dpp.getDataPoint()).mostLikely());
+    }
+
+    instance = new DecisionStump();
+    instance.setGainMethod(ImpurityScore.ImpurityMeasure.INFORMATION_GAIN);
+
+    instance.trainC(easyNumAtTrain);
+    for (final DataPointPair<Integer> dpp : easyNumAtTest.getAsDPPList()) {
+      assertEquals(dpp.getPair().longValue(), instance.classify(dpp.getDataPoint()).mostLikely());
+    }
+  }
+
+  @Test
+  public void testIntersection() {
+    final ContinuousDistribution d = new Uniform(1, 2);
+    // XXX create the test for double comparison
+    DecisionStump.intersections(Arrays.asList(new ContinuousDistribution[] { d }));
+  }
+
+  @Test
+  public void testNumericCBinary() {
+    System.out.println("testNumericCBinary");
+
+    final DecisionStump instance = new DecisionStump();
+    instance.setNumericHandling(DecisionStump.NumericHandlingC.BINARY_BEST_GAIN);
+
+    instance.trainC(easyNumAtTrain);
+    for (final DataPointPair<Integer> dpp : easyNumAtTest.getAsDPPList()) {
+      assertEquals(dpp.getPair().longValue(), instance.classify(dpp.getDataPoint()).mostLikely());
+    }
+  }
+
+  @Test
+  public void testNumericCKDEInter() {
+    System.out.println("testNumericCKDEInter");
+
+    final DecisionStump instance = new DecisionStump();
+    instance.setNumericHandling(DecisionStump.NumericHandlingC.PDF_INTERSECTIONS);
+
+    instance.trainC(easyNumAtTrain);
+    for (final DataPointPair<Integer> dpp : easyNumAtTest.getAsDPPList()) {
+      assertEquals(dpp.getPair().longValue(), instance.classify(dpp.getDataPoint()).mostLikely());
+    }
+  }
+
+  /**
+   * Test of supportsWeightedData method, of class DecisionStump.
+   */
+  @Test
+  public void testSupportsWeightedData() {
+    System.out.println("supportsWeightedData");
+    assertTrue(stump.supportsWeightedData());
   }
 
   /**
@@ -92,8 +231,13 @@ public class DecisionStumpTest {
       dist2 = new Normal(3, 10);
       ret = DecisionStump.threshholdSplit(dist2, dist1);
       assertEquals(1, (long) ret.getFirstItem());
-      assertEquals(4.896411863121647, ret.getSecondItem(), 1e-6);//This is the spliting point, but we dont expect it to get it 
-    } catch (ArithmeticException ex) {
+      assertEquals(4.896411863121647, ret.getSecondItem(), 1e-6);// This is the
+                                                                 // spliting
+                                                                 // point, but
+                                                                 // we dont
+                                                                 // expect it to
+                                                                 // get it
+    } catch (final ArithmeticException ex) {
 
     }
 
@@ -114,9 +258,9 @@ public class DecisionStumpTest {
    * Test of trainC method, of class DecisionStump.
    */
   @Test
-  public void testTrainC_ClassificationDataSet_ExecutorService() {
-    System.out.println("trainC(ClassificationDataSet, ExecutorService)");
-    stump.trainC(easyNumAtTrain, ex);
+  public void testTrainC_ClassificationDataSet() {
+    System.out.println("trainC(ClassificationDataSet)");
+    stump.trainC(easyNumAtTrain);
     for (int i = 0; i < easyNumAtTest.getSampleSize(); i++) {
       assertEquals(easyNumAtTest.getDataPointCategory(i), stump.classify(easyNumAtTest.getDataPoint(i)).mostLikely());
     }
@@ -126,9 +270,9 @@ public class DecisionStumpTest {
    * Test of trainC method, of class DecisionStump.
    */
   @Test
-  public void testTrainC_ClassificationDataSet() {
-    System.out.println("trainC(ClassificationDataSet)");
-    stump.trainC(easyNumAtTrain);
+  public void testTrainC_ClassificationDataSet_ExecutorService() {
+    System.out.println("trainC(ClassificationDataSet, ExecutorService)");
+    stump.trainC(easyNumAtTrain, ex);
     for (int i = 0; i < easyNumAtTest.getSampleSize(); i++) {
       assertEquals(easyNumAtTest.getDataPointCategory(i), stump.classify(easyNumAtTest.getDataPoint(i)).mostLikely());
     }
@@ -144,144 +288,6 @@ public class DecisionStumpTest {
     stump.trainC(easyNumAtTrain.getAsDPPList(), new IntSet(Arrays.asList(0)));
     for (int i = 0; i < easyNumAtTest.getSampleSize(); i++) {
       assertEquals(easyNumAtTest.getDataPointCategory(i), stump.classify(easyNumAtTest.getDataPoint(i)).mostLikely());
-    }
-  }
-
-  /**
-   * Test of supportsWeightedData method, of class DecisionStump.
-   */
-  @Test
-  public void testSupportsWeightedData() {
-    System.out.println("supportsWeightedData");
-    assertTrue(stump.supportsWeightedData());
-  }
-
-  /**
-   * Test of clone method, of class DecisionStump.
-   */
-  @Test
-  public void testClone() {
-    System.out.println("clone");
-    Classifier clone = stump.clone();
-    clone.trainC(easyNumAtTrain);
-    for (int i = 0; i < easyNumAtTest.getSampleSize(); i++) {
-      assertEquals(easyNumAtTest.getDataPointCategory(i), clone.classify(easyNumAtTest.getDataPoint(i)).mostLikely());
-    }
-    try {
-      stump.classify(easyNumAtTest.getDataPoint(0));
-      fail("Stump should not have been trained");
-    } catch (Exception ex) {
-
-    }
-    clone = null;
-    stump.trainC(easyNumAtTrain);
-    clone = stump.clone();
-    for (int i = 0; i < easyNumAtTest.getSampleSize(); i++) {
-      assertEquals(easyNumAtTest.getDataPointCategory(i), clone.classify(easyNumAtTest.getDataPoint(i)).mostLikely());
-    }
-  }
-
-  @Test
-  public void testIntersection() {
-    ContinuousDistribution d = new Uniform(1, 2);
-    //XXX create the test for double comparison
-    DecisionStump.intersections(Arrays.asList(new ContinuousDistribution[]{d}));
-  }
-
-  @Test
-  public void testInfoGainSplit() {
-    System.out.println("testInfoGainSplit");
-
-    DecisionStump instance = new DecisionStump();
-    instance.setGainMethod(ImpurityScore.ImpurityMeasure.INFORMATION_GAIN);
-
-    instance.trainC(easyCatAtTrain);
-    for (DataPointPair<Integer> dpp : easyCatAtTest.getAsDPPList()) {
-      assertEquals(dpp.getPair().longValue(),
-              instance.classify(dpp.getDataPoint()).mostLikely());
-    }
-
-    instance = new DecisionStump();
-    instance.setGainMethod(ImpurityScore.ImpurityMeasure.INFORMATION_GAIN);
-
-    instance.trainC(easyNumAtTrain);
-    for (DataPointPair<Integer> dpp : easyNumAtTest.getAsDPPList()) {
-      assertEquals(dpp.getPair().longValue(),
-              instance.classify(dpp.getDataPoint()).mostLikely());
-    }
-  }
-
-  @Test
-  public void testInfoGainRatioSplit() {
-    System.out.println("testInfoGainRatioSplit");
-
-    DecisionStump instance = new DecisionStump();
-    instance.setGainMethod(ImpurityScore.ImpurityMeasure.INFORMATION_GAIN_RATIO);
-
-    instance.trainC(easyCatAtTrain);
-    for (DataPointPair<Integer> dpp : easyCatAtTest.getAsDPPList()) {
-      assertEquals(dpp.getPair().longValue(),
-              instance.classify(dpp.getDataPoint()).mostLikely());
-    }
-
-    instance = new DecisionStump();
-    instance.setGainMethod(ImpurityScore.ImpurityMeasure.INFORMATION_GAIN_RATIO);
-
-    instance.trainC(easyNumAtTrain);
-    for (DataPointPair<Integer> dpp : easyNumAtTest.getAsDPPList()) {
-      assertEquals(dpp.getPair().longValue(),
-              instance.classify(dpp.getDataPoint()).mostLikely());
-    }
-  }
-
-  @Test
-  public void testGiniSplit() {
-    System.out.println("testGiniSplit");
-
-    DecisionStump instance = new DecisionStump();
-    instance.setGainMethod(ImpurityScore.ImpurityMeasure.GINI);
-
-    instance.trainC(easyCatAtTrain);
-    for (DataPointPair<Integer> dpp : easyCatAtTest.getAsDPPList()) {
-      assertEquals(dpp.getPair().longValue(),
-              instance.classify(dpp.getDataPoint()).mostLikely());
-    }
-
-    instance = new DecisionStump();
-    instance.setGainMethod(ImpurityScore.ImpurityMeasure.GINI);
-
-    instance.trainC(easyNumAtTrain);
-    for (DataPointPair<Integer> dpp : easyNumAtTest.getAsDPPList()) {
-      assertEquals(dpp.getPair().longValue(),
-              instance.classify(dpp.getDataPoint()).mostLikely());
-    }
-  }
-
-  @Test
-  public void testNumericCKDEInter() {
-    System.out.println("testNumericCKDEInter");
-
-    DecisionStump instance = new DecisionStump();
-    instance.setNumericHandling(DecisionStump.NumericHandlingC.PDF_INTERSECTIONS);
-
-    instance.trainC(easyNumAtTrain);
-    for (DataPointPair<Integer> dpp : easyNumAtTest.getAsDPPList()) {
-      assertEquals(dpp.getPair().longValue(),
-              instance.classify(dpp.getDataPoint()).mostLikely());
-    }
-  }
-
-  @Test
-  public void testNumericCBinary() {
-    System.out.println("testNumericCBinary");
-
-    DecisionStump instance = new DecisionStump();
-    instance.setNumericHandling(DecisionStump.NumericHandlingC.BINARY_BEST_GAIN);
-
-    instance.trainC(easyNumAtTrain);
-    for (DataPointPair<Integer> dpp : easyNumAtTest.getAsDPPList()) {
-      assertEquals(dpp.getPair().longValue(),
-              instance.classify(dpp.getDataPoint()).mostLikely());
     }
   }
 

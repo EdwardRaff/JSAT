@@ -1,7 +1,8 @@
 package jsat.driftdetectors;
 
 /**
- * This exception is thrown when a drift detector receives new data even through the drift was not handled.
+ * This exception is thrown when a drift detector receives new data even through
+ * the drift was not handled.
  *
  * @author Edward Raff
  */
@@ -13,7 +14,7 @@ public class UnhandledDriftException extends RuntimeException {
     super();
   }
 
-  public UnhandledDriftException(String message) {
+  public UnhandledDriftException(final String message) {
     super(message);
   }
 }

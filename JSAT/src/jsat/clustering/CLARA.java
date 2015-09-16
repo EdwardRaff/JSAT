@@ -1,6 +1,11 @@
 package jsat.clustering;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Random;
+
 import jsat.DataSet;
 import jsat.SimpleDataSet;
 import jsat.classifiers.DataPoint;
@@ -28,32 +33,6 @@ public class CLARA extends PAM {
   private int sampleCount;
   private boolean autoSampleSize;
 
-  public CLARA(int sampleSize, int sampleCount, DistanceMetric dm, Random rand, SeedSelection seedSelection) {
-    super(dm, rand, seedSelection);
-    this.sampleSize = sampleSize;
-    this.sampleCount = sampleCount;
-    this.autoSampleSize = false;
-  }
-
-  public CLARA(int sampleCount, DistanceMetric dm, Random rand, SeedSelection seedSelection) {
-    super(dm, rand, seedSelection);
-    this.sampleSize = -1;
-    this.sampleCount = sampleCount;
-    this.autoSampleSize = true;
-  }
-
-  public CLARA(DistanceMetric dm, Random rand, SeedSelection seedSelection) {
-    this(5, dm, rand, seedSelection);
-  }
-
-  public CLARA(DistanceMetric dm, Random rand) {
-    this(dm, rand, SeedSelection.KPP);
-  }
-
-  public CLARA(DistanceMetric dm) {
-    this(dm, new Random());
-  }
-
   public CLARA() {
     this(new EuclideanDistance());
   }
@@ -61,63 +40,59 @@ public class CLARA extends PAM {
   /**
    * Copy constructor
    *
-   * @param toCopy the object to copy
+   * @param toCopy
+   *          the object to copy
    */
-  public CLARA(CLARA toCopy) {
+  public CLARA(final CLARA toCopy) {
     super(toCopy);
-    this.sampleSize = toCopy.sampleSize;
-    this.sampleCount = toCopy.sampleCount;
-    this.autoSampleSize = toCopy.autoSampleSize;
+    sampleSize = toCopy.sampleSize;
+    sampleCount = toCopy.sampleCount;
+    autoSampleSize = toCopy.autoSampleSize;
   }
 
-  /**
-   *
-   * @return the number of times {@link PAM} will be applied to a sample from the data set.
-   */
-  public int getSampleCount() {
-    return sampleCount;
+  public CLARA(final DistanceMetric dm) {
+    this(dm, new Random());
   }
 
-  /**
-   * Sets the number of times {@link PAM} will be applied to different samples from the data set.
-   *
-   * @param sampleCount the number of times to apply sampeling.
-   */
-  public void setSampleCount(int sampleCount) {
+  public CLARA(final DistanceMetric dm, final Random rand) {
+    this(dm, rand, SeedSelection.KPP);
+  }
+
+  public CLARA(final DistanceMetric dm, final Random rand, final SeedSelection seedSelection) {
+    this(5, dm, rand, seedSelection);
+  }
+
+  public CLARA(final int sampleCount, final DistanceMetric dm, final Random rand, final SeedSelection seedSelection) {
+    super(dm, rand, seedSelection);
+    sampleSize = -1;
     this.sampleCount = sampleCount;
+    autoSampleSize = true;
   }
 
-  /**
-   *
-   * @return the number of samples that will be taken to perform {@link PAM} on.
-   */
-  public int getSampleSize() {
-    return sampleSize;
-  }
-
-  /**
-   * Sets the number of samples CLARA should take from the data set to perform {@link PAM} on.
-   *
-   * @param sampleSize the number of samples to take
-   */
-  public void setSampleSize(int sampleSize) {
-    if (sampleSize >= 0) {
-      autoSampleSize = false;
-      this.sampleSize = sampleSize;
-    } else {
-      autoSampleSize = true;
-    }
+  public CLARA(final int sampleSize, final int sampleCount, final DistanceMetric dm, final Random rand,
+      final SeedSelection seedSelection) {
+    super(dm, rand, seedSelection);
+    this.sampleSize = sampleSize;
+    this.sampleCount = sampleCount;
+    autoSampleSize = false;
   }
 
   @Override
-  protected double cluster(DataSet data, boolean doInit, int[] medioids, int[] assignments, List<Double> cacheAccel) {
-    int k = medioids.length;
-    int[] bestMedoids = new int[medioids.length];
-    int[] bestAssignments = new int[assignments.length];
-    double bestMedoidsDist = Double.MAX_VALUE;
-    List<Vec> X = data.getDataVectors();
+  public CLARA clone() {
+    return new CLARA(this);
+  }
 
-    if (sampleSize >= data.getSampleSize())//Then we might as well just do one round of PAM
+  @Override
+  protected double cluster(final DataSet data, final boolean doInit, final int[] medioids, final int[] assignments,
+      List<Double> cacheAccel) {
+    final int k = medioids.length;
+    final int[] bestMedoids = new int[medioids.length];
+    final int[] bestAssignments = new int[assignments.length];
+    double bestMedoidsDist = Double.MAX_VALUE;
+    final List<Vec> X = data.getDataVectors();
+
+    if (sampleSize >= data.getSampleSize()) // Then we might as well just do one
+                                            // round of PAM
     {
       return super.cluster(data, true, medioids, assignments, cacheAccel);
     } else if (doInit) {
@@ -125,53 +100,54 @@ public class CLARA extends PAM {
       cacheAccel = dm.getAccelerationCache(X);
     }
 
-    int sampSize = autoSampleSize ? 40 + 2 * k : sampleSize;
-    int[] sampleAssignments = new int[sampSize];
+    final int sampSize = autoSampleSize ? 40 + 2 * k : sampleSize;
+    final int[] sampleAssignments = new int[sampSize];
 
-    List<DataPoint> sample = new ArrayList<DataPoint>(sampSize);
+    final List<DataPoint> sample = new ArrayList<DataPoint>(sampSize);
     /**
-     * We need the mapping to be able to go from the sample indicies back to their position in the full data set Key is
-     * the sample index [1, 2, 3, ..., sampSize] Value is the coresponding index in the full data set
+     * We need the mapping to be able to go from the sample indicies back to
+     * their position in the full data set Key is the sample index [1, 2, 3,
+     * ..., sampSize] Value is the coresponding index in the full data set
      */
-    Map<Integer, Integer> samplePoints = new LinkedHashMap<Integer, Integer>();
-    DoubleList subCache = new DoubleList(sampSize);
+    final Map<Integer, Integer> samplePoints = new LinkedHashMap<Integer, Integer>();
+    final DoubleList subCache = new DoubleList(sampSize);
 
     for (int i = 0; i < sampleCount; i++) {
-      //Take a sample and use PAM on it to get medoids
+      // Take a sample and use PAM on it to get medoids
       samplePoints.clear();
       sample.clear();
       subCache.clear();
 
       while (samplePoints.size() < sampSize) {
-        int indx = rand.nextInt(data.getSampleSize());
+        final int indx = rand.nextInt(data.getSampleSize());
         if (!samplePoints.containsValue(indx)) {
           samplePoints.put(samplePoints.size(), indx);
         }
       }
-      for (Integer j : samplePoints.values()) {
+      for (final Integer j : samplePoints.values()) {
         sample.add(data.getDataPoint(j));
         subCache.add(cacheAccel.get(j));
       }
 
-      DataSet sampleSet = new SimpleDataSet(sample);
+      final DataSet sampleSet = new SimpleDataSet(sample);
 
-      //Sampling done, now apply PAM
+      // Sampling done, now apply PAM
       SeedSelectionMethods.selectIntialPoints(sampleSet, medioids, dm, subCache, rand, getSeedSelection());
       super.cluster(sampleSet, false, medioids, sampleAssignments, subCache);
 
-      //Map the sample medoids back to the full data set
+      // Map the sample medoids back to the full data set
       for (int j = 0; j < medioids.length; j++) {
         medioids[j] = samplePoints.get(medioids[j]);
       }
 
-      //Now apply the sample medoids to the full data set
+      // Now apply the sample medoids to the full data set
       double sqrdDist = 0.0;
       for (int j = 0; j < data.getSampleSize(); j++) {
         double smallestDist = Double.MAX_VALUE;
         int assignment = -1;
 
         for (int z = 0; z < k; z++) {
-          double tmp = dm.dist(medioids[z], j, X, cacheAccel);
+          final double tmp = dm.dist(medioids[z], j, X, cacheAccel);
           if (tmp < smallestDist) {
             assignment = z;
             smallestDist = tmp;
@@ -195,7 +171,7 @@ public class CLARA extends PAM {
   }
 
   @Override
-  public int[] cluster(DataSet dataSet, int clusters, int[] designations) {
+  public int[] cluster(final DataSet dataSet, final int clusters, int[] designations) {
     if (designations == null) {
       designations = new int[dataSet.getSampleSize()];
     }
@@ -209,9 +185,48 @@ public class CLARA extends PAM {
     return designations;
   }
 
-  @Override
-  public CLARA clone() {
-    return new CLARA(this);
+  /**
+   *
+   * @return the number of times {@link PAM} will be applied to a sample from
+   *         the data set.
+   */
+  public int getSampleCount() {
+    return sampleCount;
+  }
+
+  /**
+   *
+   * @return the number of samples that will be taken to perform {@link PAM} on.
+   */
+  public int getSampleSize() {
+    return sampleSize;
+  }
+
+  /**
+   * Sets the number of times {@link PAM} will be applied to different samples
+   * from the data set.
+   *
+   * @param sampleCount
+   *          the number of times to apply sampeling.
+   */
+  public void setSampleCount(final int sampleCount) {
+    this.sampleCount = sampleCount;
+  }
+
+  /**
+   * Sets the number of samples CLARA should take from the data set to perform
+   * {@link PAM} on.
+   *
+   * @param sampleSize
+   *          the number of samples to take
+   */
+  public void setSampleSize(final int sampleSize) {
+    if (sampleSize >= 0) {
+      autoSampleSize = false;
+      this.sampleSize = sampleSize;
+    } else {
+      autoSampleSize = true;
+    }
   }
 
 }

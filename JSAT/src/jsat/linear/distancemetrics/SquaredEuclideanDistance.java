@@ -5,6 +5,7 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
 import jsat.linear.SparseVector;
 import jsat.linear.Vec;
 import jsat.utils.DoubleList;
@@ -13,9 +14,10 @@ import jsat.utils.SystemInfo;
 import jsat.utils.concurrent.ParallelUtils;
 
 /**
- * In many applications, the squared {@link EuclideanDistance} is used because it avoids an expensive {@link Math#sqrt(double)
- * } operation. However, the Squared Euclidean Distance is not a truly valid metric, as it does not obey the
- * {@link #isSubadditive() triangle inequality}.
+ * In many applications, the squared {@link EuclideanDistance} is used because
+ * it avoids an expensive {@link Math#sqrt(double) } operation. However, the
+ * Squared Euclidean Distance is not a truly valid metric, as it does not obey
+ * the {@link #isSubadditive() triangle inequality}.
  *
  * @author Edward Raff
  */
@@ -24,14 +26,48 @@ public class SquaredEuclideanDistance implements DistanceMetric {
   private static final long serialVersionUID = 2966818558802484702L;
 
   @Override
-  public double dist(Vec a, Vec b) {
+  public SquaredEuclideanDistance clone() {
+    return new SquaredEuclideanDistance();
+  }
+
+  @Override
+  public double dist(final int a, final int b, final List<? extends Vec> vecs, final List<Double> cache) {
+    if (cache == null) {
+      return dist(vecs.get(a), vecs.get(b));
+    }
+
+    return cache.get(a) + cache.get(b) - 2 * vecs.get(a).dot(vecs.get(b));
+  }
+
+  @Override
+  public double dist(final int a, final Vec b, final List<? extends Vec> vecs, final List<Double> cache) {
+    if (cache == null) {
+      return dist(vecs.get(a), b);
+    }
+
+    return cache.get(a) + b.dot(b) - 2 * vecs.get(a).dot(b);
+  }
+
+  @Override
+  public double dist(final int a, final Vec b, final List<Double> qi, final List<? extends Vec> vecs,
+      final List<Double> cache) {
+    if (cache == null) {
+      return dist(vecs.get(a), b);
+    }
+
+    return cache.get(a) + qi.get(0) - 2 * vecs.get(a).dot(b);
+  }
+
+  @Override
+  public double dist(final Vec a, final Vec b) {
     if (a.length() != b.length()) {
       throw new ArithmeticException("Length miss match, vectors must have the same length");
     }
     double d = 0;
 
     if (a instanceof SparseVector && b instanceof SparseVector) {
-      //Just square the pNorm for now... not easy code to write, and the sparceness is more important
+      // Just square the pNorm for now... not easy code to write, and the
+      // sparceness is more important
       return Math.pow(a.pNormDist(2, b), 2);
     } else {
       double tmp;
@@ -45,51 +81,16 @@ public class SquaredEuclideanDistance implements DistanceMetric {
   }
 
   @Override
-  public boolean isSymmetric() {
-    return true;
-  }
-
-  @Override
-  public boolean isSubadditive() {
-    return false;
-  }
-
-  @Override
-  public boolean isIndiscemible() {
-    return true;
-  }
-
-  @Override
-  public double metricBound() {
-    return Double.POSITIVE_INFINITY;
-  }
-
-  @Override
-  public String toString() {
-    return "Squared Euclidean Distance";
-  }
-
-  @Override
-  public SquaredEuclideanDistance clone() {
-    return new SquaredEuclideanDistance();
-  }
-
-  @Override
-  public boolean supportsAcceleration() {
-    return true;
-  }
-
-  @Override
-  public List<Double> getAccelerationCache(List<? extends Vec> vecs) {
-    DoubleList cache = new DoubleList(vecs.size());
-    for (Vec v : vecs) {
+  public List<Double> getAccelerationCache(final List<? extends Vec> vecs) {
+    final DoubleList cache = new DoubleList(vecs.size());
+    for (final Vec v : vecs) {
       cache.add(v.dot(v));
     }
     return cache;
   }
 
   @Override
-  public List<Double> getAccelerationCache(final List<? extends Vec> vecs, ExecutorService threadpool) {
+  public List<Double> getAccelerationCache(final List<? extends Vec> vecs, final ExecutorService threadpool) {
     if (threadpool == null || threadpool instanceof FakeExecutor) {
       return getAccelerationCache(vecs);
     }
@@ -114,7 +115,7 @@ public class SquaredEuclideanDistance implements DistanceMetric {
 
     try {
       latch.await();
-    } catch (InterruptedException ex) {
+    } catch (final InterruptedException ex) {
       Logger.getLogger(SquaredEuclideanDistance.class.getName()).log(Level.SEVERE, null, ex);
     }
 
@@ -122,36 +123,39 @@ public class SquaredEuclideanDistance implements DistanceMetric {
   }
 
   @Override
-  public double dist(int a, int b, List<? extends Vec> vecs, List<Double> cache) {
-    if (cache == null) {
-      return dist(vecs.get(a), vecs.get(b));
-    }
-
-    return (cache.get(a) + cache.get(b) - 2 * vecs.get(a).dot(vecs.get(b)));
-  }
-
-  @Override
-  public double dist(int a, Vec b, List<? extends Vec> vecs, List<Double> cache) {
-    if (cache == null) {
-      return dist(vecs.get(a), b);
-    }
-
-    return (cache.get(a) + b.dot(b) - 2 * vecs.get(a).dot(b));
-  }
-
-  @Override
-  public List<Double> getQueryInfo(Vec q) {
-    DoubleList qi = new DoubleList(1);
+  public List<Double> getQueryInfo(final Vec q) {
+    final DoubleList qi = new DoubleList(1);
     qi.add(q.dot(q));
     return qi;
   }
 
   @Override
-  public double dist(int a, Vec b, List<Double> qi, List<? extends Vec> vecs, List<Double> cache) {
-    if (cache == null) {
-      return dist(vecs.get(a), b);
-    }
+  public boolean isIndiscemible() {
+    return true;
+  }
 
-    return (cache.get(a) + qi.get(0) - 2 * vecs.get(a).dot(b));
+  @Override
+  public boolean isSubadditive() {
+    return false;
+  }
+
+  @Override
+  public boolean isSymmetric() {
+    return true;
+  }
+
+  @Override
+  public double metricBound() {
+    return Double.POSITIVE_INFINITY;
+  }
+
+  @Override
+  public boolean supportsAcceleration() {
+    return true;
+  }
+
+  @Override
+  public String toString() {
+    return "Squared Euclidean Distance";
   }
 }

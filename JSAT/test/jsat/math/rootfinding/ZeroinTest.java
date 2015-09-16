@@ -4,20 +4,33 @@
  */
 package jsat.math.rootfinding;
 
-import static java.lang.Math.*;
-import jsat.linear.Vec;
-import jsat.math.Function;
+import static java.lang.Math.PI;
+import static java.lang.Math.pow;
+import static java.lang.Math.sin;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.fail;
+
 import org.junit.AfterClass;
-import static org.junit.Assert.*;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
+
+import jsat.linear.Vec;
+import jsat.math.Function;
 
 /**
  *
  * @author Edward Raff
  */
 public class ZeroinTest {
+
+  @BeforeClass
+  public static void setUpClass() throws Exception {
+  }
+
+  @AfterClass
+  public static void tearDownClass() throws Exception {
+  }
 
   /**
    * Root at 0
@@ -30,12 +43,12 @@ public class ZeroinTest {
     private static final long serialVersionUID = -5890031276429818527L;
 
     @Override
-    public double f(double... x) {
+    public double f(final double... x) {
       return sin(x[0]);
     }
 
     @Override
-    public double f(Vec x) {
+    public double f(final Vec x) {
       return f(x.arrayCopy());
     }
   };
@@ -51,12 +64,12 @@ public class ZeroinTest {
     private static final long serialVersionUID = 1431139949819019738L;
 
     @Override
-    public double f(double... x) {
+    public double f(final double... x) {
       return sin(x[0] + x[1]);
     }
 
     @Override
-    public double f(Vec x) {
+    public double f(final Vec x) {
       return f(x.arrayCopy());
     }
   };
@@ -72,27 +85,19 @@ public class ZeroinTest {
     private static final long serialVersionUID = 4391333129468669534L;
 
     @Override
-    public double f(double... x) {
-      double xp = x[0];
+    public double f(final double... x) {
+      final double xp = x[0];
 
       return pow(xp, 3) + 5 * pow(xp, 2) + xp + 2;
     }
 
     @Override
-    public double f(Vec x) {
+    public double f(final Vec x) {
       return f(x.arrayCopy());
     }
   };
 
   public ZeroinTest() {
-  }
-
-  @BeforeClass
-  public static void setUpClass() throws Exception {
-  }
-
-  @AfterClass
-  public static void tearDownClass() throws Exception {
   }
 
   @Before
@@ -105,7 +110,7 @@ public class ZeroinTest {
   @Test
   public void testRoot_4args() {
     System.out.println("root");
-    double eps = 1e-15;
+    final double eps = 1e-15;
     double result = Zeroin.root(-PI / 2, PI / 2, sinF);
     assertEquals(0, result, eps);
 
@@ -121,7 +126,7 @@ public class ZeroinTest {
     try {
       result = Zeroin.root(-PI / 2, PI / 2, sinFp1);
       fail("Should not have run");
-    } catch (Exception ex) {
+    } catch (final Exception ex) {
     }
   }
 
@@ -131,7 +136,7 @@ public class ZeroinTest {
   @Test
   public void testRoot_5args() {
     System.out.println("root");
-    double eps = 1e-15;
+    final double eps = 1e-15;
     double result = Zeroin.root(eps, -PI / 2, PI / 2, sinF);
     assertEquals(0, result, eps);
 
@@ -147,14 +152,14 @@ public class ZeroinTest {
     try {
       result = Zeroin.root(eps, -PI / 2, PI / 2, sinFp1);
       fail("Should not have run");
-    } catch (Exception ex) {
+    } catch (final Exception ex) {
     }
   }
 
   @Test
   public void testRoot_6args() {
     System.out.println("root");
-    double eps = 1e-15;
+    final double eps = 1e-15;
     double result = Zeroin.root(eps, -PI / 2, PI / 2, 0, sinF);
     assertEquals(0, result, eps);
 
@@ -174,8 +179,8 @@ public class ZeroinTest {
   @Test
   public void testRoot_7args() {
     System.out.println("root");
-    double eps = 1e-13;
-    int maxIterations = 1000;
+    final double eps = 1e-13;
+    final int maxIterations = 1000;
     double result = Zeroin.root(eps, maxIterations, -PI / 2, PI / 2, 0, sinF);
     assertEquals(0, result, eps);
 

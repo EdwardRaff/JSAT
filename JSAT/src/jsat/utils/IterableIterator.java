@@ -11,7 +11,7 @@ public final class IterableIterator<T> implements Iterable<T> {
 
   private final Iterator<T> iterator;
 
-  public IterableIterator(Iterator<T> iterator) {
+  public IterableIterator(final Iterator<T> iterator) {
     this.iterator = iterator;
   }
 

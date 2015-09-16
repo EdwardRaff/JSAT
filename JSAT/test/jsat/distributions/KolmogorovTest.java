@@ -1,8 +1,10 @@
 package jsat.distributions;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+
 import org.junit.After;
 import org.junit.AfterClass;
-import static org.junit.Assert.*;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -28,9 +30,9 @@ public class KolmogorovTest {
   @Test
   public void testEquals() {
     System.out.println("equals");
-    ContinuousDistribution d1 = new Kolmogorov();
-    ContinuousDistribution d4 = new Kolmogorov();
-    Integer i = 1;
+    final ContinuousDistribution d1 = new Kolmogorov();
+    final ContinuousDistribution d4 = new Kolmogorov();
+    final Integer i = 1;
     assertFalse(d1.equals(i));
     assertFalse(d1.equals(null));
     assertEquals(d1, d1);
@@ -41,8 +43,8 @@ public class KolmogorovTest {
   @Test
   public void testHashCode() {
     System.out.println("hashCode");
-    ContinuousDistribution d1 = new Kolmogorov();
-    ContinuousDistribution d4 = new Kolmogorov();
+    final ContinuousDistribution d1 = new Kolmogorov();
+    final ContinuousDistribution d4 = new Kolmogorov();
     assertEquals(d1.hashCode(), d4.hashCode());
   }
 

@@ -1,15 +1,18 @@
 package jsat.classifiers.linear;
 
+import static org.junit.Assert.assertEquals;
+
 import java.util.Random;
-import jsat.FixedProblems;
-import jsat.classifiers.ClassificationDataSet;
-import jsat.classifiers.DataPointPair;
+
 import org.junit.After;
 import org.junit.AfterClass;
-import static org.junit.Assert.*;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
+
+import jsat.FixedProblems;
+import jsat.classifiers.ClassificationDataSet;
+import jsat.classifiers.DataPointPair;
 
 /**
  *
@@ -17,15 +20,15 @@ import org.junit.Test;
  */
 public class AROWTest {
 
-  public AROWTest() {
-  }
-
   @BeforeClass
   public static void setUpClass() {
   }
 
   @AfterClass
   public static void tearDownClass() {
+  }
+
+  public AROWTest() {
   }
 
   @Before
@@ -42,20 +45,20 @@ public class AROWTest {
   @Test
   public void testTrain_C() {
     System.out.println("train_C");
-    ClassificationDataSet train = FixedProblems.get2ClassLinear(200, new Random());
+    final ClassificationDataSet train = FixedProblems.get2ClassLinear(200, new Random());
 
-    AROW arow0 = new AROW(1, true);
-    AROW arow1 = new AROW(1, false);
+    final AROW arow0 = new AROW(1, true);
+    final AROW arow1 = new AROW(1, false);
 
     arow0.trainC(train);
     arow1.trainC(train);
 
-    ClassificationDataSet test = FixedProblems.get2ClassLinear(200, new Random());
+    final ClassificationDataSet test = FixedProblems.get2ClassLinear(200, new Random());
 
-    for (DataPointPair<Integer> dpp : test.getAsDPPList()) {
+    for (final DataPointPair<Integer> dpp : test.getAsDPPList()) {
       assertEquals(dpp.getPair().longValue(), arow0.classify(dpp.getDataPoint()).mostLikely());
     }
-    for (DataPointPair<Integer> dpp : test.getAsDPPList()) {
+    for (final DataPointPair<Integer> dpp : test.getAsDPPList()) {
       assertEquals(dpp.getPair().longValue(), arow1.classify(dpp.getDataPoint()).mostLikely());
     }
   }

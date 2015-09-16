@@ -1,10 +1,11 @@
 package jsat.linear;
 
 /**
- * This class allows for the selection of an area of a matrix to operate on independently. Mutable matrix operations
- * perform on this sub matrix, will be visible in the base matrix given. This allows for easy implementation of blocking
- * algorithms, but care must be taken to not create and use two sub matrices that overlap and are altered
- * simultaneously.
+ * This class allows for the selection of an area of a matrix to operate on
+ * independently. Mutable matrix operations perform on this sub matrix, will be
+ * visible in the base matrix given. This allows for easy implementation of
+ * blocking algorithms, but care must be taken to not create and use two sub
+ * matrices that overlap and are altered simultaneously.
  *
  * @author Edward Raff
  */
@@ -17,20 +18,29 @@ public class SubMatrix extends GenericMatrix {
   /**
    * Creates a new matrix that is a sub view of the given base matrix.
    *
-   * @param baseMatrix the base matrix to get a view of
-   * @param firstRow the first row to consider as part of the sub matrix, starting from 0 inclusive
-   * @param firstColumn the first column to consider as part of the sub matrix, starting from 0 inclusive
-   * @param toRow the last row from the base matrix to consider, exclusive
-   * @param toCol the last column from the base matrix to consider, exclusive
+   * @param baseMatrix
+   *          the base matrix to get a view of
+   * @param firstRow
+   *          the first row to consider as part of the sub matrix, starting from
+   *          0 inclusive
+   * @param firstColumn
+   *          the first column to consider as part of the sub matrix, starting
+   *          from 0 inclusive
+   * @param toRow
+   *          the last row from the base matrix to consider, exclusive
+   * @param toCol
+   *          the last column from the base matrix to consider, exclusive
    */
-  public SubMatrix(Matrix baseMatrix, int firstRow, int firstColumn, int toRow, int toCol) {
+  public SubMatrix(final Matrix baseMatrix, final int firstRow, final int firstColumn, final int toRow,
+      final int toCol) {
     this.baseMatrix = baseMatrix;
     if (firstColumn < 0 || firstRow < 0 || toRow < 0 || toCol < 0) {
       throw new ArithmeticException("Can not give negative row or column counts");
     } else if (toRow == 0 || toCol == 0) {
       throw new ArithmeticException("Must give a positive number of rows and columns");
     } else if (toRow > baseMatrix.rows() || toCol > baseMatrix.cols()) {
-      throw new ArithmeticException("You can not specify a matrix that goes past the row / column boundry of the base matrix");
+      throw new ArithmeticException(
+          "You can not specify a matrix that goes past the row / column boundry of the base matrix");
     } else if (firstRow >= toRow || firstColumn >= toCol) {
       throw new ArithmeticException("Illogical bounds given");
     }
@@ -39,15 +49,83 @@ public class SubMatrix extends GenericMatrix {
     this.toRow = toRow;
     this.toCol = toCol;
 
-    //If we are given a SubMatrix, lets adjust to use it directly instead of accesing through layers
+    // If we are given a SubMatrix, lets adjust to use it directly instead of
+    // accesing through layers
     if (baseMatrix instanceof SubMatrix) {
-      SubMatrix given = (SubMatrix) baseMatrix;
+      final SubMatrix given = (SubMatrix) baseMatrix;
       this.baseMatrix = given.baseMatrix;
       this.firstRow += given.firstRow;
       this.firstColumn += given.firstColumn;
       this.toRow = given.toRow;
       this.toCol = given.toCol;
     }
+  }
+
+  /**
+   * This method alters the size of a matrix, either adding or subtracting rows
+   * from the internal structure of the matrix. Every resize call may cause a
+   * new allocation internally, and should not be called for excessive changing
+   * of a matrix. All added rows/ columns will have values of zero. If a row /
+   * column is removed, it is always the bottom/right most row / column removed.
+   * Values of the removed rows / columns will be lost.<br>
+   * <br>
+   * When a SubMatrix attempts to change size, it may alter the values of the
+   * underlying matrix in an unusual way. If the base matrix is large enough to
+   * hold the changed size, then the values in the underlying matrix that this
+   * SubMatrix is expanding to encompass will be set to zero. If the underlying
+   * matrix is not large enough, change size will be called upon it as well.<br>
+   * When decreasing the number of rows / columns, the SubMatrix will always
+   * reduce its view - but never shrink the underling matrix that the view is
+   * of. <br>
+   * To expand the size of a SubMatrix without zeroing out the new values,
+   * create a new SubMatrix object.
+   *
+   * @param newRows
+   *          the new number of rows, must be positive
+   * @param newCols
+   *          the new number of columns, must be positive.
+   */
+  @Override
+  public void changeSize(final int newRows, final int newCols) {
+    if (newRows <= 0) {
+      throw new ArithmeticException("Matrix must have a positive number of rows");
+    }
+    if (newCols <= 0) {
+      throw new ArithmeticException("Matrix must have a positive number of columns");
+    }
+    // Increase the underlying matrix to the needed size
+    final int underNewRows = Math.max(newRows + firstRow, baseMatrix.rows());
+    final int underNewCols = Math.max(newCols + firstColumn, baseMatrix.cols());
+    /*
+     * Either the size for the base stays the same, or gets increased
+     */
+    baseMatrix.changeSize(underNewRows, underNewCols);
+    // Zero out the values we are expanding to
+    if (newRows > rows()) {
+      new SubMatrix(baseMatrix, toRow, firstColumn, firstRow + newRows, firstColumn + newCols).zeroOut();
+    }
+    if (newCols > cols()) {
+      new SubMatrix(baseMatrix, firstRow, toCol, firstRow + newRows, firstColumn + newCols).zeroOut();
+    }
+
+    toRow = firstRow + newRows;
+    toCol = firstColumn + newCols;
+  }
+
+  @Override
+  public int cols() {
+    return toCol - firstColumn;
+  }
+
+  @Override
+  public double get(final int i, final int j) {
+    // We MUST do a bounds check, as they might go past us but an index that
+    // does exist in the base
+    if (i >= rows() || j >= cols()) {
+      throw new ArrayIndexOutOfBoundsException(
+          "Can not access index [" + i + ", " + j + "] in the matrix of dimension [" + rows() + ", " + cols() + "]");
+    }
+    return baseMatrix.get(i + firstRow, j + firstColumn);
   }
 
   /**
@@ -59,13 +137,14 @@ public class SubMatrix extends GenericMatrix {
     return baseMatrix;
   }
 
-  /**
-   * Returns the row offset used from the base matrix
-   *
-   * @return the row offset used from the base matrix
-   */
-  public int getFirstRow() {
-    return firstRow;
+  @Override
+  public Vec getColumnView(final int j) {
+    if (j >= cols()) {
+      throw new IndexOutOfBoundsException("Can not access column " + j + " of " + rows() + " by " + cols() + " matrix");
+    }
+    final Vec origVec = baseMatrix.getColumnView(j - firstColumn);
+
+    return new SubVector(firstRow, toRow - firstRow, origVec);
   }
 
   /**
@@ -77,47 +156,33 @@ public class SubMatrix extends GenericMatrix {
     return firstColumn;
   }
 
-  @Override
-  protected Matrix getMatrixOfSameType(int rows, int cols) {
-    return new DenseMatrix(rows, cols);//Ehhh... all well
+  /**
+   * Returns the row offset used from the base matrix
+   *
+   * @return the row offset used from the base matrix
+   */
+  public int getFirstRow() {
+    return firstRow;
   }
 
   @Override
-  public double get(int i, int j) {
-    //We MUST do a bounds check, as they might go past us but an index that does exist in the base
-    if (i >= rows() || j >= cols()) {
-      throw new ArrayIndexOutOfBoundsException("Can not access index [" + i + ", " + j + "] in the matrix of dimension [" + rows() + ", " + cols() + "]");
-    }
-    return baseMatrix.get(i + firstRow, j + firstColumn);
+  protected Matrix getMatrixOfSameType(final int rows, final int cols) {
+    return new DenseMatrix(rows, cols);// Ehhh... all well
   }
 
   @Override
-  public void set(int i, int j, double value) {
-    //We MUST do a bounds check, as they might go past us but an index that does exist in the base
-    if (i >= rows() || j >= cols()) {
-      throw new ArrayIndexOutOfBoundsException("Can not access index [" + i + ", " + j + "] in the matrix of dimension [" + rows() + ", " + cols() + "]");
-    }
-    baseMatrix.set(i + firstRow, j + firstColumn, value);
-  }
-
-  @Override
-  public Vec getRowView(int r) {
+  public Vec getRowView(final int r) {
     if (r >= rows()) {
       throw new IndexOutOfBoundsException("Can not access row " + r + " of " + rows() + " by " + cols() + " matrix");
     }
-    Vec origVec = baseMatrix.getRowView(r - firstRow);
+    final Vec origVec = baseMatrix.getRowView(r - firstRow);
 
     return new SubVector(firstColumn, toCol - firstColumn, origVec);
   }
 
   @Override
-  public Vec getColumnView(int j) {
-    if (j >= cols()) {
-      throw new IndexOutOfBoundsException("Can not access column " + j + " of " + rows() + " by " + cols() + " matrix");
-    }
-    Vec origVec = baseMatrix.getColumnView(j - firstColumn);
-
-    return new SubVector(firstRow, toRow - firstRow, origVec);
+  public boolean isSparce() {
+    return baseMatrix.isSparce();
   }
 
   @Override
@@ -126,58 +191,14 @@ public class SubMatrix extends GenericMatrix {
   }
 
   @Override
-  public int cols() {
-    return toCol - firstColumn;
-  }
-
-  @Override
-  public boolean isSparce() {
-    return baseMatrix.isSparce();
-  }
-
-  /**
-   * This method alters the size of a matrix, either adding or subtracting rows from the internal structure of the
-   * matrix. Every resize call may cause a new allocation internally, and should not be called for excessive changing of
-   * a matrix. All added rows/ columns will have values of zero. If a row / column is removed, it is always the
-   * bottom/right most row / column removed. Values of the removed rows / columns will be lost.<br>
-   * <br>
-   * When a SubMatrix attempts to change size, it may alter the values of the underlying matrix in an unusual way. If
-   * the base matrix is large enough to hold the changed size, then the values in the underlying matrix that this
-   * SubMatrix is expanding to encompass will be set to zero. If the underlying matrix is not large enough, change size
-   * will be called upon it as well.<br>
-   * When decreasing the number of rows / columns, the SubMatrix will always reduce its view - but never shrink the
-   * underling matrix that the view is of.
-   * <br>
-   * To expand the size of a SubMatrix without zeroing out the new values, create a new SubMatrix object.
-   *
-   * @param newRows the new number of rows, must be positive
-   * @param newCols the new number of columns, must be positive.
-   */
-  @Override
-  public void changeSize(int newRows, int newCols) {
-    if (newRows <= 0) {
-      throw new ArithmeticException("Matrix must have a positive number of rows");
+  public void set(final int i, final int j, final double value) {
+    // We MUST do a bounds check, as they might go past us but an index that
+    // does exist in the base
+    if (i >= rows() || j >= cols()) {
+      throw new ArrayIndexOutOfBoundsException(
+          "Can not access index [" + i + ", " + j + "] in the matrix of dimension [" + rows() + ", " + cols() + "]");
     }
-    if (newCols <= 0) {
-      throw new ArithmeticException("Matrix must have a positive number of columns");
-    }
-    //Increase the underlying matrix to the needed size
-    int underNewRows = Math.max(newRows + firstRow, baseMatrix.rows());
-    int underNewCols = Math.max(newCols + firstColumn, baseMatrix.cols());
-    /*
-         * Either the size for the base stays the same, or gets increased
-     */
-    baseMatrix.changeSize(underNewRows, underNewCols);
-    //Zero out the values we are expanding to
-    if (newRows > rows()) {
-      new SubMatrix(baseMatrix, toRow, firstColumn, firstRow + newRows, firstColumn + newCols).zeroOut();
-    }
-    if (newCols > cols()) {
-      new SubMatrix(baseMatrix, firstRow, toCol, firstRow + newRows, firstColumn + newCols).zeroOut();
-    }
-
-    toRow = firstRow + newRows;
-    toCol = firstColumn + newCols;
+    baseMatrix.set(i + firstRow, j + firstColumn, value);
   }
 
 }

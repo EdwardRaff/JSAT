@@ -4,7 +4,8 @@ import jsat.classifiers.DataPoint;
 import jsat.linear.distancemetrics.DistanceMetric;
 
 /**
- * A base class for Dissimilarity measures that are build ontop the use of some {@link DistanceMetric distance metric}.
+ * A base class for Dissimilarity measures that are build ontop the use of some
+ * {@link DistanceMetric distance metric}.
  *
  * @author Edward Raff
  */
@@ -15,15 +16,15 @@ public abstract class DistanceMetricDissimilarity extends AbstractClusterDissimi
    */
   protected final DistanceMetric dm;
 
-  public DistanceMetricDissimilarity(DistanceMetric dm) {
+  public DistanceMetricDissimilarity(final DistanceMetric dm) {
     this.dm = dm;
   }
 
   @Override
-  public double distance(DataPoint a, DataPoint b) {
-    return dm.dist(a.getNumericalValues(), b.getNumericalValues());
-  }
+  abstract public DistanceMetricDissimilarity clone();
 
   @Override
-  abstract public DistanceMetricDissimilarity clone();
+  public double distance(final DataPoint a, final DataPoint b) {
+    return dm.dist(a.getNumericalValues(), b.getNumericalValues());
+  }
 }

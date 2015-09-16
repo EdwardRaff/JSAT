@@ -16,11 +16,13 @@
  */
 package jsat.text.stemming;
 
+import static org.junit.Assert.assertEquals;
+
 import java.util.LinkedHashMap;
 import java.util.Map;
+
 import org.junit.After;
 import org.junit.AfterClass;
-import static org.junit.Assert.*;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -32,9 +34,6 @@ import org.junit.Test;
 public class PorterStemmerTest {
 
   private static final Map<String, String> testCases = new LinkedHashMap<String, String>();
-
-  public PorterStemmerTest() {
-  }
 
   @BeforeClass
   public static void setUpClass() {
@@ -106,6 +105,9 @@ public class PorterStemmerTest {
   public static void tearDownClass() {
   }
 
+  public PorterStemmerTest() {
+  }
+
   @Before
   public void setUp() {
   }
@@ -120,9 +122,10 @@ public class PorterStemmerTest {
   @Test
   public void testStem() {
     System.out.println("stem");
-    PorterStemmer instance = new PorterStemmer();
-    for (Map.Entry<String, String> entry : testCases.entrySet()) {
-      assertEquals("Looking for '" + entry.getValue() + "' from '" + entry.getKey() + "'", entry.getValue(), instance.stem(entry.getKey()));
+    final PorterStemmer instance = new PorterStemmer();
+    for (final Map.Entry<String, String> entry : testCases.entrySet()) {
+      assertEquals("Looking for '" + entry.getValue() + "' from '" + entry.getKey() + "'", entry.getValue(),
+          instance.stem(entry.getKey()));
     }
   }
 

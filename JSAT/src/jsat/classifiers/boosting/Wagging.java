@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.Random;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
+
 import jsat.DataSet;
 import jsat.classifiers.CategoricalData;
 import jsat.classifiers.CategoricalResults;
@@ -21,37 +22,100 @@ import jsat.utils.FakeExecutor;
 import jsat.utils.SystemInfo;
 
 /**
- * Wagging is a meta-classifier that is related to {@link Bagging}. Instead training on re-sampled data sets, it trains
- * on randomly re-weighted data sets. The weight of each point is selected at random from a specified distribution, and
- * set to zero if negative.
- * <br><br>
- * See: <a href="http://www.springerlink.com/index/L006M1614W023752.pdf">
- * Bauer, E.,&amp;Kohavi, R. (1999). <i>An empirical comparison of voting classification algorithms</i>: Bagging,
- * boosting, and variants. Machine learning, 38(1998), 1–38.</a>
+ * Wagging is a meta-classifier that is related to {@link Bagging}. Instead
+ * training on re-sampled data sets, it trains on randomly re-weighted data
+ * sets. The weight of each point is selected at random from a specified
+ * distribution, and set to zero if negative. <br>
+ * <br>
+ * See: <a href="http://www.springerlink.com/index/L006M1614W023752.pdf"> Bauer,
+ * E.,&amp;Kohavi, R. (1999). <i>An empirical comparison of voting
+ * classification algorithms</i>: Bagging, boosting, and variants. Machine
+ * learning, 38(1998), 1–38.</a>
  *
  * @author Edward Raff
  */
 public class Wagging implements Classifier, Regressor, Parameterized {
 
+  /**
+   * Fills a subset of the array
+   */
+  private class WagFill implements Runnable {
+
+    int start;
+    int end;
+    DataSet ds;
+    Random rand;
+    CountDownLatch latch;
+
+    public WagFill(final int start, final int end, final DataSet ds, final Random rand, final CountDownLatch latch) {
+      this.start = start;
+      this.end = end;
+      this.ds = ds.shallowClone();
+      this.rand = rand;
+      this.latch = latch;
+
+      // point at different objects so we can adjsut weights independently
+      for (int i = 0; i < this.ds.getSampleSize(); i++) {
+        final DataPoint dp = this.ds.getDataPoint(i);
+        this.ds.setDataPoint(i,
+            new DataPoint(dp.getNumericalValues(), dp.getCategoricalValues(), dp.getCategoricalData()));
+      }
+    }
+
+    @Override
+    public void run() {
+      if (ds instanceof ClassificationDataSet) {
+        final ClassificationDataSet cds = (ClassificationDataSet) ds;
+        for (int i = start; i < end; i++) {
+          for (int j = 0; j < ds.getSampleSize(); j++) {
+            final double newWeight = Math.max(1e-6, dist.invCdf(rand.nextDouble()));
+            ds.getDataPoint(j).setWeight(newWeight);
+          }
+          final Classifier hypot = weakL.clone();
+          hypot.trainC(cds);
+          hypotsL[i] = hypot;
+        }
+      } else if (ds instanceof RegressionDataSet) {
+        final RegressionDataSet rds = (RegressionDataSet) ds;
+        for (int i = start; i < end; i++) {
+          for (int j = 0; j < ds.getSampleSize(); j++) {
+            ds.getDataPoint(i).setWeight(Math.max(1e-6, dist.invCdf(rand.nextDouble())));
+          }
+          final Regressor hypot = weakR.clone();
+          hypot.train(rds);
+          hypotsR[i] = hypot;
+        }
+      } else {
+        throw new RuntimeException("BUG: please report");
+      }
+
+      latch.countDown();
+    }
+  }
+
   private static final long serialVersionUID = 4999034730848794619L;
   private ContinuousDistribution dist;
   private int iterations;
   private Classifier weakL;
+
   private Regressor weakR;
 
   private CategoricalData predicting;
-
   private Classifier[] hypotsL;
+
   private Regressor[] hypotsR;
 
   /**
    * Creates a new Wagging classifier
    *
-   * @param dist the distribution to select weights from
-   * @param weakL the weak learner to use
-   * @param iterations the number of iterations to perform
+   * @param dist
+   *          the distribution to select weights from
+   * @param weakL
+   *          the weak learner to use
+   * @param iterations
+   *          the number of iterations to perform
    */
-  public Wagging(ContinuousDistribution dist, Classifier weakL, int iterations) {
+  public Wagging(final ContinuousDistribution dist, final Classifier weakL, final int iterations) {
     setDistribution(dist);
     setIterations(iterations);
     setWeakLearner(weakL);
@@ -60,11 +124,14 @@ public class Wagging implements Classifier, Regressor, Parameterized {
   /**
    * Creates a new Wagging regressor
    *
-   * @param dist the distribution to select weights from
-   * @param weakR the weak learner to use
-   * @param iterations the number of iterations to perform
+   * @param dist
+   *          the distribution to select weights from
+   * @param weakR
+   *          the weak learner to use
+   * @param iterations
+   *          the number of iterations to perform
    */
-  public Wagging(ContinuousDistribution dist, Regressor weakR, int iterations) {
+  public Wagging(final ContinuousDistribution dist, final Regressor weakR, final int iterations) {
     setDistribution(dist);
     setIterations(iterations);
     setWeakLearner(weakR);
@@ -73,11 +140,12 @@ public class Wagging implements Classifier, Regressor, Parameterized {
   /**
    * Copy constructor
    *
-   * @param clone the one to clone
+   * @param clone
+   *          the one to clone
    */
-  protected Wagging(Wagging clone) {
-    this.dist = clone.dist.clone();
-    this.iterations = clone.iterations;
+  protected Wagging(final Wagging clone) {
+    dist = clone.dist.clone();
+    iterations = clone.iterations;
     if (clone.weakL != null) {
       setWeakLearner(clone.weakL.clone());
     }
@@ -85,7 +153,7 @@ public class Wagging implements Classifier, Regressor, Parameterized {
       setWeakLearner(clone.weakR.clone());
     }
     if (clone.predicting != null) {
-      this.predicting = clone.predicting.clone();
+      predicting = clone.predicting.clone();
     }
 
     if (clone.hypotsL != null) {
@@ -102,85 +170,24 @@ public class Wagging implements Classifier, Regressor, Parameterized {
     }
   }
 
-  /**
-   * Sets the weak learner used for classification. If it also supports regressions that will be set as well.
-   *
-   * @param weakL the weak learner to use
-   */
-  public void setWeakLearner(Classifier weakL) {
-    if (weakL == null) {
-      throw new NullPointerException();
+  @Override
+  public CategoricalResults classify(final DataPoint data) {
+    if (hypotsL == null) {
+      throw new UntrainedModelException("Model has not been trained for classification");
     }
-    this.weakL = weakL;
-    if (weakL instanceof Regressor) {
-      this.weakR = (Regressor) weakL;
+
+    final CategoricalResults results = new CategoricalResults(predicting.getNumOfCategories());
+
+    for (final Classifier hypot : hypotsL) {
+      results.incProb(hypot.classify(data).mostLikely(), 1);
     }
+    results.normalize();
+    return results;
   }
 
-  /**
-   * Returns the weak learner used for classification.
-   *
-   * @return the weak learner used for classification.
-   */
-  public Classifier getWeakClassifier() {
-    return weakL;
-  }
-
-  /**
-   * Sets the weak learner used for regressions . If it also supports classification that will be set as well.
-   *
-   * @param weakR the weak learner to use
-   */
-  public void setWeakLearner(Regressor weakR) {
-    if (weakR == null) {
-      throw new NullPointerException();
-    }
-    this.weakR = weakR;
-    if (weakR instanceof Classifier) {
-      this.weakL = (Classifier) weakR;
-    }
-  }
-
-  /**
-   * Returns the weak learner used for regression
-   *
-   * @return the weak learner used for regression
-   */
-  public Regressor getWeakRegressor() {
-    return weakR;
-  }
-
-  /**
-   * Sets the number of iterations to create weak learners
-   *
-   * @param iterations the number of iterations to perform
-   */
-  public void setIterations(int iterations) {
-    if (iterations < 1) {
-      throw new ArithmeticException("The number of iterations must be positive");
-    }
-    this.iterations = iterations;
-  }
-
-  /**
-   * Returns the number of iterations to create weak learners
-   *
-   * @return the number of iterations to perform
-   */
-  public int getIterations() {
-    return iterations;
-  }
-
-  /**
-   * Sets the distribution to select the random weights from
-   *
-   * @param dist the distribution to use
-   */
-  public void setDistribution(ContinuousDistribution dist) {
-    if (dist == null) {
-      throw new NullPointerException();
-    }
-    this.dist = dist;
+  @Override
+  public Wagging clone() {
+    return new Wagging(this);
   }
 
   /**
@@ -193,70 +200,51 @@ public class Wagging implements Classifier, Regressor, Parameterized {
   }
 
   /**
-   * Fills a subset of the array
+   * Returns the number of iterations to create weak learners
+   *
+   * @return the number of iterations to perform
    */
-  private class WagFill implements Runnable {
-
-    int start;
-    int end;
-    DataSet ds;
-    Random rand;
-    CountDownLatch latch;
-
-    public WagFill(int start, int end, DataSet ds, Random rand, CountDownLatch latch) {
-      this.start = start;
-      this.end = end;
-      this.ds = ds.shallowClone();
-      this.rand = rand;
-      this.latch = latch;
-
-      //point at different objects so we can adjsut weights independently
-      for (int i = 0; i < this.ds.getSampleSize(); i++) {
-        DataPoint dp = this.ds.getDataPoint(i);
-        this.ds.setDataPoint(i, new DataPoint(dp.getNumericalValues(), dp.getCategoricalValues(), dp.getCategoricalData()));
-      }
-    }
-
-    @Override
-    public void run() {
-      if (ds instanceof ClassificationDataSet) {
-        ClassificationDataSet cds = (ClassificationDataSet) ds;
-        for (int i = start; i < end; i++) {
-          for (int j = 0; j < ds.getSampleSize(); j++) {
-            double newWeight = Math.max(1e-6, dist.invCdf(rand.nextDouble()));
-            ds.getDataPoint(j).setWeight(newWeight);
-          }
-          Classifier hypot = weakL.clone();
-          hypot.trainC(cds);
-          hypotsL[i] = hypot;
-        }
-      } else if (ds instanceof RegressionDataSet) {
-        RegressionDataSet rds = (RegressionDataSet) ds;
-        for (int i = start; i < end; i++) {
-          for (int j = 0; j < ds.getSampleSize(); j++) {
-            ds.getDataPoint(i).setWeight(Math.max(1e-6, dist.invCdf(rand.nextDouble())));
-          }
-          Regressor hypot = weakR.clone();
-          hypot.train(rds);
-          hypotsR[i] = hypot;
-        }
-      } else {
-        throw new RuntimeException("BUG: please report");
-      }
-
-      latch.countDown();
-    }
+  public int getIterations() {
+    return iterations;
   }
 
-  private void performTraining(ExecutorService threadPool, DataSet dataSet) {
-    int chunkSize = iterations / SystemInfo.LogicalCores;
+  @Override
+  public Parameter getParameter(final String paramName) {
+    return Parameter.toParameterMap(getParameters()).get(paramName);
+  }
+
+  @Override
+  public List<Parameter> getParameters() {
+    return Parameter.getParamsFromMethods(this);
+  }
+
+  /**
+   * Returns the weak learner used for classification.
+   *
+   * @return the weak learner used for classification.
+   */
+  public Classifier getWeakClassifier() {
+    return weakL;
+  }
+
+  /**
+   * Returns the weak learner used for regression
+   *
+   * @return the weak learner used for regression
+   */
+  public Regressor getWeakRegressor() {
+    return weakR;
+  }
+
+  private void performTraining(final ExecutorService threadPool, final DataSet dataSet) {
+    final int chunkSize = iterations / SystemInfo.LogicalCores;
     int extra = iterations % SystemInfo.LogicalCores;
 
     int used = 0;
-    Random rand = new Random();
-    CountDownLatch latch = new CountDownLatch(chunkSize > 0 ? SystemInfo.LogicalCores : extra);
+    final Random rand = new Random();
+    final CountDownLatch latch = new CountDownLatch(chunkSize > 0 ? SystemInfo.LogicalCores : extra);
     while (used < iterations) {
-      int start = used;
+      final int start = used;
       int end = start + chunkSize;
       if (extra-- > 0) {
         end++;
@@ -266,41 +254,83 @@ public class Wagging implements Classifier, Regressor, Parameterized {
     }
     try {
       latch.await();
-    } catch (InterruptedException ex) {
+    } catch (final InterruptedException ex) {
       throw new FailedToFitException(ex);
     }
   }
 
   @Override
-  public CategoricalResults classify(DataPoint data) {
-    if (hypotsL == null) {
-      throw new UntrainedModelException("Model has not been trained for classification");
+  public double regress(final DataPoint data) {
+    if (hypotsR == null) {
+      throw new UntrainedModelException("Model has not been trained for regression");
     }
 
-    CategoricalResults results = new CategoricalResults(predicting.getNumOfCategories());
-
-    for (Classifier hypot : hypotsL) {
-      results.incProb(hypot.classify(data).mostLikely(), 1);
+    double avg = 0.0;
+    for (final Regressor hypot : hypotsR) {
+      avg += hypot.regress(data);
     }
-    results.normalize();
-    return results;
+    avg /= hypotsR.length;
+    return avg;
   }
 
-  @Override
-  public void trainC(ClassificationDataSet dataSet, ExecutorService threadPool) {
+  /**
+   * Sets the distribution to select the random weights from
+   *
+   * @param dist
+   *          the distribution to use
+   */
+  public void setDistribution(final ContinuousDistribution dist) {
+    if (dist == null) {
+      throw new NullPointerException();
+    }
+    this.dist = dist;
+  }
+
+  /**
+   * Sets the number of iterations to create weak learners
+   *
+   * @param iterations
+   *          the number of iterations to perform
+   */
+  public void setIterations(final int iterations) {
+    if (iterations < 1) {
+      throw new ArithmeticException("The number of iterations must be positive");
+    }
+    this.iterations = iterations;
+  }
+
+  /**
+   * Sets the weak learner used for classification. If it also supports
+   * regressions that will be set as well.
+   *
+   * @param weakL
+   *          the weak learner to use
+   */
+  public void setWeakLearner(final Classifier weakL) {
     if (weakL == null) {
-      throw new FailedToFitException("No classification weak learner was provided");
+      throw new NullPointerException();
     }
-    predicting = dataSet.getPredicting();
-    hypotsL = new Classifier[iterations];
-    hypotsR = null;
-
-    performTraining(threadPool, dataSet);
+    this.weakL = weakL;
+    if (weakL instanceof Regressor) {
+      weakR = (Regressor) weakL;
+    }
   }
 
-  @Override
-  public void trainC(ClassificationDataSet dataSet) {
-    trainC(dataSet, new FakeExecutor());
+  /**
+   * Sets the weak learner used for regressions . If it also supports
+   * classification that will be set as well.
+   *
+   * @param weakR
+   *          the weak learner to use
+   */
+  public void setWeakLearner(final Regressor weakR) {
+    if (weakR == null) {
+      throw new NullPointerException();
+    }
+    this.weakR = weakR;
+    if (weakR instanceof Classifier) {
+      weakL = (Classifier) weakR;
+    }
   }
 
   @Override
@@ -309,21 +339,12 @@ public class Wagging implements Classifier, Regressor, Parameterized {
   }
 
   @Override
-  public double regress(DataPoint data) {
-    if (hypotsR == null) {
-      throw new UntrainedModelException("Model has not been trained for regression");
-    }
-
-    double avg = 0.0;
-    for (Regressor hypot : hypotsR) {
-      avg += hypot.regress(data);
-    }
-    avg /= hypotsR.length;
-    return avg;
+  public void train(final RegressionDataSet dataSet) {
+    train(dataSet, new FakeExecutor());
   }
 
   @Override
-  public void train(RegressionDataSet dataSet, ExecutorService threadPool) {
+  public void train(final RegressionDataSet dataSet, final ExecutorService threadPool) {
     if (weakR == null) {
       throw new FailedToFitException("No regression weak learner was provided");
     }
@@ -334,22 +355,19 @@ public class Wagging implements Classifier, Regressor, Parameterized {
   }
 
   @Override
-  public void train(RegressionDataSet dataSet) {
-    train(dataSet, new FakeExecutor());
+  public void trainC(final ClassificationDataSet dataSet) {
+    trainC(dataSet, new FakeExecutor());
   }
 
   @Override
-  public Wagging clone() {
-    return new Wagging(this);
-  }
+  public void trainC(final ClassificationDataSet dataSet, final ExecutorService threadPool) {
+    if (weakL == null) {
+      throw new FailedToFitException("No classification weak learner was provided");
+    }
+    predicting = dataSet.getPredicting();
+    hypotsL = new Classifier[iterations];
+    hypotsR = null;
 
-  @Override
-  public List<Parameter> getParameters() {
-    return Parameter.getParamsFromMethods(this);
-  }
-
-  @Override
-  public Parameter getParameter(String paramName) {
-    return Parameter.toParameterMap(getParameters()).get(paramName);
+    performTraining(threadPool, dataSet);
   }
 }

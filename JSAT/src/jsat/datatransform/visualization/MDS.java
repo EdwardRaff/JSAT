@@ -21,6 +21,7 @@ import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Random;
 import java.util.concurrent.ExecutorService;
+
 import jsat.DataSet;
 import jsat.classifiers.DataPoint;
 import jsat.datatransform.DataTransform;
@@ -40,45 +41,60 @@ import jsat.utils.random.XORWOW;
 public class MDS {
 
   private static DistanceMetric embedMetric = new EuclideanDistance();
-  private DistanceMetric dm = new EuclideanDistance();
-  private double tolerance = 1e-3;
-  private int maxIterations = 300;
-  int targetSize = 2;
 
-  public void setTolerance(double tolerance) {
-    this.tolerance = tolerance;
+  private static double stress(final List<Vec> X_views, final List<Double> X_rowCache, final Matrix delta) {
+    double stress = 0;
+
+    for (int i = 0; i < delta.rows(); i++) {
+
+      for (int j = i + 1; j < delta.rows(); j++) {
+        final double tmp = embedMetric.dist(i, j, X_views, X_rowCache) - delta.get(i, j);
+        stress += tmp * tmp;
+      }
+    }
+    return stress;
   }
+
+  private final DistanceMetric dm = new EuclideanDistance();
+  private double tolerance = 1e-3;
+  private final int maxIterations = 300;
+
+  int targetSize = 2;
 
   public double getTolerance() {
     return tolerance;
   }
 
-  public <Type extends DataSet> Type transform(DataSet<Type> d) {
+  public void setTolerance(final double tolerance) {
+    this.tolerance = tolerance;
+  }
+
+  public <Type extends DataSet> Type transform(final DataSet<Type> d) {
     return transform(d, new FakeExecutor());
   }
 
-  public <Type extends DataSet> Type transform(DataSet<Type> d, ExecutorService ex) {
+  public <Type extends DataSet> Type transform(final DataSet<Type> d, final ExecutorService ex) {
     final List<Vec> orig_vecs = d.getDataVectors();
     final List<Double> orig_distCache = dm.getAccelerationCache(orig_vecs, ex);
     final int N = orig_vecs.size();
 
-    //Delta is the true disimilarity matrix
-    Matrix delta = new DenseMatrix(N, N);
+    // Delta is the true disimilarity matrix
+    final Matrix delta = new DenseMatrix(N, N);
 
-    OnLineStatistics avg = new OnLineStatistics();
+    final OnLineStatistics avg = new OnLineStatistics();
     for (int i = 0; i < d.getSampleSize(); i++) {
       for (int j = i + 1; j < d.getSampleSize(); j++) {
-        double dist = dm.dist(i, j, orig_vecs, orig_distCache);
+        final double dist = dm.dist(i, j, orig_vecs, orig_distCache);
         avg.add(dist);
         delta.set(i, j, dist);
         delta.set(j, i, dist);
       }
     }
 
-    Random rand = new XORWOW();
+    final Random rand = new XORWOW();
 
     final Matrix X = new DenseMatrix(N, targetSize);
-    List<Vec> X_views = new ArrayList<Vec>();
+    final List<Vec> X_views = new ArrayList<Vec>();
     for (int i = 0; i < N; i++) {
       for (int j = 0; j < targetSize; j++) {
         X.set(i, j, rand.nextDouble());
@@ -87,8 +103,9 @@ public class MDS {
     }
     List<Double> X_rowCache = embedMetric.getAccelerationCache(X_views, ex);
 
-    //TODO, special case solution when all weights are the same, want to add general case as well
-    Matrix V_inv = new DenseMatrix(N, N);
+    // TODO, special case solution when all weights are the same, want to add
+    // general case as well
+    final Matrix V_inv = new DenseMatrix(N, N);
     for (int i = 0; i < N; i++) {
       for (int j = 0; j < N; j++) {
         if (i == j) {
@@ -102,19 +119,20 @@ public class MDS {
     double stressChange = Double.POSITIVE_INFINITY;
     double oldStress = stress(X_views, X_rowCache, delta);
 
-    //the gutman transform matrix
-    Matrix B = new DenseMatrix(N, N);
+    // the gutman transform matrix
+    final Matrix B = new DenseMatrix(N, N);
 
     for (int iter = 0; iter < maxIterations && stressChange > tolerance; iter++) {
 
-      //we need to set B correctly
+      // we need to set B correctly
       for (int i = 0; i < B.rows(); i++) {
         for (int j = i + 1; j < B.rows(); j++) {
-          double d_ij = embedMetric.dist(i, j, X_views, X_rowCache);
+          final double d_ij = embedMetric.dist(i, j, X_views, X_rowCache);
 
-          if (d_ij > 1e-5)//avoid creating silly huge values
+          if (d_ij > 1e-5) // avoid creating silly huge values
           {
-            double b_ij = -delta.get(i, j) / d_ij;//-w_ij if we support weights in the future
+            final double b_ij = -delta.get(i, j) / d_ij;// -w_ij if we support
+                                                        // weights in the future
             B.set(i, j, b_ij);
             B.set(j, i, b_ij);
           } else {
@@ -123,7 +141,7 @@ public class MDS {
           }
         }
       }
-      //set the diagonal values
+      // set the diagonal values
       for (int i = 0; i < B.rows(); i++) {
         B.set(i, i, 0);
         for (int k = 0; k < B.cols(); k++) {
@@ -133,19 +151,19 @@ public class MDS {
         }
       }
 
-//            Matrix X_new = V_inv.multiply(B, ex).multiply(X, ex);
-      Matrix X_new = B.multiply(X, ex);
+      // Matrix X_new = V_inv.multiply(B, ex).multiply(X, ex);
+      final Matrix X_new = B.multiply(X, ex);
       X_new.mutableMultiply(1.0 / N);
 
       X_new.copyTo(X);
       X_rowCache = embedMetric.getAccelerationCache(X_views, ex);
 
-      double newStress = stress(X_views, X_rowCache, delta);
+      final double newStress = stress(X_views, X_rowCache, delta);
       stressChange = Math.abs(oldStress - newStress);
       oldStress = newStress;
     }
 
-    DataSet<Type> transformed = d.shallowClone();
+    final DataSet<Type> transformed = d.shallowClone();
 
     final IdentityHashMap<DataPoint, Integer> indexMap = new IdentityHashMap<DataPoint, Integer>(N);
     for (int i = 0; i < N; i++) {
@@ -154,32 +172,24 @@ public class MDS {
 
     transformed.applyTransform(new DataTransform() {
 
-      @Override
-      public DataPoint transform(DataPoint dp) {
-        int i = indexMap.get(dp);
-
-        return new DataPoint(X.getRow(i), dp.getCategoricalValues(), dp.getCategoricalData(), dp.getWeight());
-      }
+      /**
+       *
+       */
+      private static final long serialVersionUID = 1L;
 
       @Override
       public DataTransform clone() {
         return this;
       }
+
+      @Override
+      public DataPoint transform(final DataPoint dp) {
+        final int i = indexMap.get(dp);
+
+        return new DataPoint(X.getRow(i), dp.getCategoricalValues(), dp.getCategoricalData(), dp.getWeight());
+      }
     });
 
     return (Type) transformed;
-  }
-
-  private static double stress(List<Vec> X_views, List<Double> X_rowCache, Matrix delta) {
-    double stress = 0;
-
-    for (int i = 0; i < delta.rows(); i++) {
-
-      for (int j = i + 1; j < delta.rows(); j++) {
-        double tmp = embedMetric.dist(i, j, X_views, X_rowCache) - delta.get(i, j);
-        stress += tmp * tmp;
-      }
-    }
-    return stress;
   }
 }

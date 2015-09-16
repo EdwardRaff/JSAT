@@ -1,14 +1,19 @@
 package jsat.driftdetectors;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+
 import java.util.List;
 import java.util.Random;
-import jsat.utils.random.XORWOW;
+
 import org.junit.After;
 import org.junit.AfterClass;
-import static org.junit.Assert.*;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
+
+import jsat.utils.random.XORWOW;
 
 /**
  *
@@ -16,15 +21,15 @@ import org.junit.Test;
  */
 public class DDMTest {
 
-  public DDMTest() {
-  }
-
   @BeforeClass
   public static void setUpClass() {
   }
 
   @AfterClass
   public static void tearDownClass() {
+  }
+
+  public DDMTest() {
   }
 
   @Before
@@ -41,9 +46,9 @@ public class DDMTest {
   @Test
   public void testAddSample_double_GenericType() {
     System.out.println("addSample");
-    Random rand = new XORWOW(123);
-    DDM<Integer> ddm = new DDM<Integer>();
-    //Start should not ever observe a false positive
+    final Random rand = new XORWOW(123);
+    final DDM<Integer> ddm = new DDM<Integer>();
+    // Start should not ever observe a false positive
     for (int i = 0; i < 50; i++) {
       if (ddm.addSample(rand.nextDouble() < 0.8, i)) {
         assertFalse(ddm.isDrifting());
@@ -51,7 +56,7 @@ public class DDMTest {
     }
     assertEquals(0.8, ddm.getSuccessRate(), 0.15);
 
-    //Increase ina ccuracy, still shouldn't trigger
+    // Increase ina ccuracy, still shouldn't trigger
     for (int i = 0; i < 50; i++) {
       if (ddm.addSample(rand.nextDouble() < 0.9, i)) {
         assertFalse(ddm.isDrifting());
@@ -60,16 +65,16 @@ public class DDMTest {
 
     boolean seenWarning = false;
     boolean seenDrift = false;
-    //Now we should see an error
+    // Now we should see an error
     for (int i = 1; i <= 100; i++) {
       if (ddm.addSample(rand.nextDouble() < 0.7, -i)) {
         if (ddm.isWarning()) {
           seenWarning = true;
         } else if (ddm.isDrifting()) {
-          assertTrue(i < 40); //got to detect it fast enought
+          assertTrue(i < 40); // got to detect it fast enought
           assertFalse(seenDrift);
           assertTrue(seenWarning);
-          List<Integer> drifted = ddm.getDriftedHistory();
+          final List<Integer> drifted = ddm.getDriftedHistory();
           assertTrue(drifted.size() > 5);
           assertTrue(ddm.getDriftAge() > 5);
           assertTrue(ddm.getDriftAge() == drifted.size());

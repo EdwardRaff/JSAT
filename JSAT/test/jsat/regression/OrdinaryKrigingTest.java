@@ -16,18 +16,22 @@
  */
 package jsat.regression;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+
+import org.junit.After;
+import org.junit.AfterClass;
+import org.junit.Before;
+import org.junit.BeforeClass;
+import org.junit.Test;
+
 import jsat.FixedProblems;
 import jsat.datatransform.LinearTransform;
 import jsat.utils.SystemInfo;
 import jsat.utils.random.XORWOW;
-import org.junit.After;
-import org.junit.AfterClass;
-import static org.junit.Assert.*;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
 
 /**
  *
@@ -35,15 +39,15 @@ import org.junit.Test;
  */
 public class OrdinaryKrigingTest {
 
-  public OrdinaryKrigingTest() {
-  }
-
   @BeforeClass
   public static void setUpClass() {
   }
 
   @AfterClass
   public static void tearDownClass() {
+  }
+
+  public OrdinaryKrigingTest() {
   }
 
   @Before
@@ -55,55 +59,20 @@ public class OrdinaryKrigingTest {
   }
 
   @Test
-  public void testTrainC_RegressionDataSet() {
-    System.out.println("train");
-
-    OrdinaryKriging instance = new OrdinaryKriging(new OrdinaryKriging.PowVariogram());
-
-    RegressionDataSet train = FixedProblems.getLinearRegression(500, new XORWOW());
-    RegressionDataSet test = FixedProblems.getLinearRegression(100, new XORWOW());
-
-    RegressionModelEvaluation rme = new RegressionModelEvaluation(instance, train);
-    rme.evaluateTestSet(test);
-
-    assertTrue(rme.getMeanError() <= test.getTargetValues().mean() * 0.25);
-
-  }
-
-  @Test
-  public void testTrainC_RegressionDataSet_ExecutorService() {
-    System.out.println("train");
-
-    OrdinaryKriging instance = new OrdinaryKriging(new OrdinaryKriging.PowVariogram());
-
-    ExecutorService ex = Executors.newFixedThreadPool(SystemInfo.LogicalCores);
-
-    RegressionDataSet train = FixedProblems.getLinearRegression(500, new XORWOW());
-    RegressionDataSet test = FixedProblems.getLinearRegression(100, new XORWOW());
-
-    RegressionModelEvaluation rme = new RegressionModelEvaluation(instance, train, ex);
-    rme.evaluateTestSet(test);
-
-    assertTrue(rme.getMeanError() <= test.getTargetValues().mean() * 0.25);
-
-    ex.shutdownNow();
-  }
-
-  @Test
   public void testClone() {
     System.out.println("clone");
 
     OrdinaryKriging instance = new OrdinaryKriging(new OrdinaryKriging.PowVariogram());
 
-    RegressionDataSet t1 = FixedProblems.getLinearRegression(100, new XORWOW());
-    RegressionDataSet t2 = FixedProblems.getLinearRegression(100, new XORWOW());
+    final RegressionDataSet t1 = FixedProblems.getLinearRegression(100, new XORWOW());
+    final RegressionDataSet t2 = FixedProblems.getLinearRegression(100, new XORWOW());
     t2.applyTransform(new LinearTransform(t2, 1, 10));
 
     instance = instance.clone();
 
     instance.train(t1);
 
-    OrdinaryKriging result = instance.clone();
+    final OrdinaryKriging result = instance.clone();
     for (int i = 0; i < t1.getSampleSize(); i++) {
       assertEquals(t1.getTargetValue(i), result.regress(t1.getDataPoint(i)), t1.getTargetValues().mean() * 0.5);
     }
@@ -117,6 +86,41 @@ public class OrdinaryKrigingTest {
       assertEquals(t2.getTargetValue(i), result.regress(t2.getDataPoint(i)), t2.getTargetValues().mean() * 0.5);
     }
 
+  }
+
+  @Test
+  public void testTrainC_RegressionDataSet() {
+    System.out.println("train");
+
+    final OrdinaryKriging instance = new OrdinaryKriging(new OrdinaryKriging.PowVariogram());
+
+    final RegressionDataSet train = FixedProblems.getLinearRegression(500, new XORWOW());
+    final RegressionDataSet test = FixedProblems.getLinearRegression(100, new XORWOW());
+
+    final RegressionModelEvaluation rme = new RegressionModelEvaluation(instance, train);
+    rme.evaluateTestSet(test);
+
+    assertTrue(rme.getMeanError() <= test.getTargetValues().mean() * 0.25);
+
+  }
+
+  @Test
+  public void testTrainC_RegressionDataSet_ExecutorService() {
+    System.out.println("train");
+
+    final OrdinaryKriging instance = new OrdinaryKriging(new OrdinaryKriging.PowVariogram());
+
+    final ExecutorService ex = Executors.newFixedThreadPool(SystemInfo.LogicalCores);
+
+    final RegressionDataSet train = FixedProblems.getLinearRegression(500, new XORWOW());
+    final RegressionDataSet test = FixedProblems.getLinearRegression(100, new XORWOW());
+
+    final RegressionModelEvaluation rme = new RegressionModelEvaluation(instance, train, ex);
+    rme.evaluateTestSet(test);
+
+    assertTrue(rme.getMeanError() <= test.getTargetValues().mean() * 0.25);
+
+    ex.shutdownNow();
   }
 
 }

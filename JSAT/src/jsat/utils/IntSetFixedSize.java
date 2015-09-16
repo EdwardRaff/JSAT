@@ -5,47 +5,46 @@ import java.util.AbstractSet;
 import java.util.Iterator;
 
 /**
- * A set for integers that is of a fixed initial size, and can only accept integers in the range [0, size). Insertions,
- * removals, and checks are all constant time with a fast iterator. <br>
+ * A set for integers that is of a fixed initial size, and can only accept
+ * integers in the range [0, size). Insertions, removals, and checks are all
+ * constant time with a fast iterator. <br>
  * Null values are not supported
  *
  * @author Edward Raff
  */
-public class IntSetFixedSize extends AbstractSet<Integer> implements Serializable {
+public class IntSetFixedSize extends AbstractSet<Integer>implements Serializable {
 
   private static final long serialVersionUID = 7743166074116253587L;
   private static final int STOP = -1;
   private int nnz = 0;
   private int first = -1;
-  private boolean[] has;
-  //Use as a linked list
-  private int[] prev;
-  private int[] next;
+  private final boolean[] has;
+  // Use as a linked list
+  private final int[] prev;
+  private final int[] next;
 
   /**
    * Creates a new fixed size int set
    *
-   * @param size the size of the int set
+   * @param size
+   *          the size of the int set
    */
-  public IntSetFixedSize(int size) {
+  public IntSetFixedSize(final int size) {
     has = new boolean[size];
     prev = new int[size];
     next = new int[size];
     first = STOP;
   }
 
-  @Override
-  public boolean add(Integer e) {
-    return add(e.intValue());
-  }
-
   /**
    * Adds a new integer into the set
    *
-   * @param e the value to add into the set
-   * @return {@code true} if the operation modified the set, {@code false} otherwise.
+   * @param e
+   *          the value to add into the set
+   * @return {@code true} if the operation modified the set, {@code false}
+   *         otherwise.
    */
-  public boolean add(int e) {
+  public boolean add(final int e) {
     if (e < 0 || e >= has.length) {
       throw new IllegalArgumentException("Input must be in range [0, " + has.length + ") not " + e);
     } else if (contains(e)) {
@@ -66,61 +65,29 @@ public class IntSetFixedSize extends AbstractSet<Integer> implements Serializabl
   }
 
   @Override
-  public boolean remove(Object o) {
-    if (o instanceof Integer) {
-      return remove_int((Integer) o);
-    }
-    return super.remove(o);
-  }
-
-  /**
-   * Removes the specified integer from the set
-   *
-   * @param val the value to remove
-   * @return {@code true} if the set was modified by this operation, {@code false} if it was not.
-   */
-  public boolean remove(int val) {
-    return remove_int(val);
-  }
-
-  @Override
-  public boolean contains(Object o) {
-    if (o instanceof Integer) {
-      int val = (Integer) o;
-      return contains(val);
-    } else {
-      return false;
-    }
+  public boolean add(final Integer e) {
+    return add(e.intValue());
   }
 
   /**
    * Checks if the given value is contained in this set
    *
-   * @param val the value to check for
+   * @param val
+   *          the value to check for
    * @return {@code true} if the value is in the set, {@code false} otherwise.
    */
-  public boolean contains(int val) {
+  public boolean contains(final int val) {
     if (val < 0 || val >= has.length) {
       return false;
     }
     return has[val];
   }
 
-  private boolean remove_int(int index) {
-    if (contains(index)) {
-      if (first == index) {
-        first = next[index];
-      } else {
-        next[prev[index]] = next[index];
-      }
-
-      if (next[index] != STOP) {
-        prev[next[index]] = prev[index];
-      }
-      next[index] = STOP;
-      has[index] = false;
-      nnz--;
-      return true;
+  @Override
+  public boolean contains(final Object o) {
+    if (o instanceof Integer) {
+      final int val = (Integer) o;
+      return contains(val);
     } else {
       return false;
     }
@@ -150,6 +117,46 @@ public class IntSetFixedSize extends AbstractSet<Integer> implements Serializabl
       }
     };
     return iterator;
+  }
+
+  /**
+   * Removes the specified integer from the set
+   *
+   * @param val
+   *          the value to remove
+   * @return {@code true} if the set was modified by this operation,
+   *         {@code false} if it was not.
+   */
+  public boolean remove(final int val) {
+    return remove_int(val);
+  }
+
+  @Override
+  public boolean remove(final Object o) {
+    if (o instanceof Integer) {
+      return remove_int((Integer) o);
+    }
+    return super.remove(o);
+  }
+
+  private boolean remove_int(final int index) {
+    if (contains(index)) {
+      if (first == index) {
+        first = next[index];
+      } else {
+        next[prev[index]] = next[index];
+      }
+
+      if (next[index] != STOP) {
+        prev[next[index]] = prev[index];
+      }
+      next[index] = STOP;
+      has[index] = false;
+      nnz--;
+      return true;
+    } else {
+      return false;
+    }
   }
 
   @Override

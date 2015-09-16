@@ -1,19 +1,22 @@
 package jsat.distributions.empirical;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
+
+import org.junit.After;
+import org.junit.AfterClass;
+import org.junit.Before;
+import org.junit.BeforeClass;
+import org.junit.Test;
+
 import jsat.distributions.ContinuousDistribution;
 import jsat.distributions.empirical.kernelfunc.GaussKF;
 import jsat.distributions.empirical.kernelfunc.UniformKF;
 import jsat.linear.DenseVector;
-import org.junit.After;
-import org.junit.AfterClass;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
 
 public class KernelDensityEstimatorTest {
 
@@ -27,13 +30,13 @@ public class KernelDensityEstimatorTest {
 
   @BeforeClass
   public static void setUpBeforeClass() throws Exception {
-    Random r1 = new Random(5079392926462355615L);
-    Random r2 = new Random(7628304882101574242L);
-    double[] vec1 = new double[vecSize];
-    double[] vec2 = new double[vecSize];
-    double[] vec3 = new double[vecSize];
+    final Random r1 = new Random(5079392926462355615L);
+    final Random r2 = new Random(7628304882101574242L);
+    final double[] vec1 = new double[vecSize];
+    final double[] vec2 = new double[vecSize];
+    final double[] vec3 = new double[vecSize];
     for (int i = 0; i < vecSize; i++) {
-      double temp = r1.nextDouble();
+      final double temp = r1.nextDouble();
       vec1[i] = temp;
       vec2[i] = r2.nextDouble();
       vec3[i] = temp;
@@ -51,11 +54,11 @@ public class KernelDensityEstimatorTest {
     unequal.add(new KernelDensityEstimator(new DenseVector(vec1), UniformKF.getInstance(), 2, vec1));
     unequal.add(new KernelDensityEstimator(new DenseVector(vec1), GaussKF.getInstance(), 2, vec2));
     unequal.add(new KernelDensityEstimator(new DenseVector(vec2), GaussKF.getInstance(), 2, vec1));
-    unequal.add(new KernelDensityEstimator(new DenseVector(new double[]{1, 3, 5})));
-    unequal.add(new KernelDensityEstimator(new DenseVector(new double[]{0, 3, 6})));
-    unequal.add(new KernelDensityEstimator(new DenseVector(new double[]{1, 1, 1})));
-    unequal.add(new KernelDensityEstimator(new DenseVector(new double[]{1, 1, 1, 1, 1})));
-    unequal.add(new KernelDensityEstimator(new DenseVector(new double[]{2, 2, 2, 2, 3, 4, 4, 4, 4})));
+    unequal.add(new KernelDensityEstimator(new DenseVector(new double[] { 1, 3, 5 })));
+    unequal.add(new KernelDensityEstimator(new DenseVector(new double[] { 0, 3, 6 })));
+    unequal.add(new KernelDensityEstimator(new DenseVector(new double[] { 1, 1, 1 })));
+    unequal.add(new KernelDensityEstimator(new DenseVector(new double[] { 1, 1, 1, 1, 1 })));
+    unequal.add(new KernelDensityEstimator(new DenseVector(new double[] { 2, 2, 2, 2, 3, 4, 4, 4, 4 })));
   }
 
   @AfterClass
@@ -73,7 +76,7 @@ public class KernelDensityEstimatorTest {
   @Test
   public void testEquals() {
     System.out.println("equals");
-    Integer k = 1;
+    final Integer k = 1;
     assertFalse(d1.equals(k));
     assertFalse(d1.equals(null));
 

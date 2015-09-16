@@ -16,19 +16,22 @@
  */
 package jsat.math.optimization.stochastic;
 
+import static org.junit.Assert.assertEquals;
+
 import java.util.Random;
+
+import org.junit.After;
+import org.junit.AfterClass;
+import org.junit.Before;
+import org.junit.BeforeClass;
+import org.junit.Test;
+
 import jsat.linear.DenseVector;
 import jsat.linear.SubVector;
 import jsat.linear.Vec;
 import jsat.math.FunctionVec;
 import jsat.math.optimization.RosenbrockFunction;
 import jsat.utils.random.XORWOW;
-import org.junit.After;
-import org.junit.AfterClass;
-import static org.junit.Assert.*;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
 
 /**
  *
@@ -36,15 +39,15 @@ import org.junit.Test;
  */
 public class AdaGradTest {
 
-  public AdaGradTest() {
-  }
-
   @BeforeClass
   public static void setUpClass() {
   }
 
   @AfterClass
   public static void tearDownClass() {
+  }
+
+  public AdaGradTest() {
   }
 
   @Before
@@ -58,15 +61,15 @@ public class AdaGradTest {
   @Test
   public void testUpdate_3args() {
     System.out.println("update");
-    Random rand = new XORWOW();
-    Vec x0 = new DenseVector(10);
+    final Random rand = new XORWOW();
+    final Vec x0 = new DenseVector(10);
     for (int i = 0; i < x0.length(); i++) {
       x0.set(i, rand.nextDouble());
     }
 
-    RosenbrockFunction f = new RosenbrockFunction();
-    FunctionVec fp = f.getDerivative();
-    double eta = 0.01;
+    final RosenbrockFunction f = new RosenbrockFunction();
+    final FunctionVec fp = f.getDerivative();
+    final double eta = 0.01;
     AdaGrad instance = new AdaGrad();
     instance.setup(x0.length());
 
@@ -80,28 +83,28 @@ public class AdaGradTest {
   @Test
   public void testUpdate_5args() {
     System.out.println("update");
-    Random rand = new XORWOW();
-    Vec xWithBias = new DenseVector(21);
+    final Random rand = new XORWOW();
+    final Vec xWithBias = new DenseVector(21);
     for (int i = 0; i < xWithBias.length(); i++) {
       xWithBias.set(i, rand.nextDouble());
     }
 
-    Vec x0 = new SubVector(0, 20, xWithBias);
+    final Vec x0 = new SubVector(0, 20, xWithBias);
 
-    RosenbrockFunction f = new RosenbrockFunction();
-    FunctionVec fp = f.getDerivative();
-    double eta = 0.01;
+    final RosenbrockFunction f = new RosenbrockFunction();
+    final FunctionVec fp = f.getDerivative();
+    final double eta = 0.01;
 
     AdaGrad instance = new AdaGrad();
     instance.setup(x0.length());
 
     for (int i = 0; i < 100000; i++) {
-      double bias = xWithBias.get(20);
-      Vec gradWithBias = fp.f(xWithBias);
+      final double bias = xWithBias.get(20);
+      final Vec gradWithBias = fp.f(xWithBias);
       gradWithBias.normalize();
-      double biasGrad = gradWithBias.get(20);
-      Vec grad = new SubVector(0, 20, gradWithBias);
-      double biasDelta = instance.update(x0, grad, eta, bias, biasGrad);
+      final double biasGrad = gradWithBias.get(20);
+      final Vec grad = new SubVector(0, 20, gradWithBias);
+      final double biasDelta = instance.update(x0, grad, eta, bias, biasGrad);
       xWithBias.set(20, bias - biasDelta);
 
       instance = instance.clone();

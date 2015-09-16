@@ -1,13 +1,17 @@
 package jsat.classifiers.evaluation;
 
-import jsat.classifiers.CategoricalData;
-import jsat.classifiers.CategoricalResults;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+
 import org.junit.After;
 import org.junit.AfterClass;
-import static org.junit.Assert.*;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
+
+import jsat.classifiers.CategoricalData;
+import jsat.classifiers.CategoricalResults;
 
 /**
  *
@@ -15,15 +19,15 @@ import org.junit.Test;
  */
 public class LogLossTest {
 
-  public LogLossTest() {
-  }
-
   @BeforeClass
   public static void setUpClass() {
   }
 
   @AfterClass
   public static void tearDownClass() {
+  }
+
+  public LogLossTest() {
   }
 
   @Before
@@ -40,8 +44,8 @@ public class LogLossTest {
   @Test
   public void testGetScore() {
     System.out.println("getScore");
-    LogLoss scorer = new LogLoss();
-    LogLoss otherHalf = scorer.clone();
+    final LogLoss scorer = new LogLoss();
+    final LogLoss otherHalf = scorer.clone();
 
     assertEquals(scorer, otherHalf);
     assertEquals(scorer.hashCode(), otherHalf.hashCode());
@@ -52,15 +56,15 @@ public class LogLossTest {
 
     scorer.prepare(new CategoricalData(4));
     otherHalf.prepare(new CategoricalData(4));
-    //from "On Using and Computing the Kappa Statistic"
-    //correct
-    scorer.addResult(new CategoricalResults(new double[]{0.9, 0.1, 0.0, 0.0}), 0, 317.0);
-    otherHalf.addResult(new CategoricalResults(new double[]{0.0, 0.8, 0.2, 0.0}), 1, 120.0);
-    scorer.addResult(new CategoricalResults(new double[]{0.0, 0.0, 0.9, 0.0}), 2, 60.0);
-    otherHalf.addResult(new CategoricalResults(new double[]{0.0, 0.0, 0.0, 1.0}), 3, 8.0);
-    //wrong
-    scorer.addResult(new CategoricalResults(new double[]{0.1, 0.9, 0.0, 0.0}), 0, 23.0);
-    otherHalf.addResult(new CategoricalResults(new double[]{0.0, 0.2, 0.9, 0.0}), 1, 61.0);
+    // from "On Using and Computing the Kappa Statistic"
+    // correct
+    scorer.addResult(new CategoricalResults(new double[] { 0.9, 0.1, 0.0, 0.0 }), 0, 317.0);
+    otherHalf.addResult(new CategoricalResults(new double[] { 0.0, 0.8, 0.2, 0.0 }), 1, 120.0);
+    scorer.addResult(new CategoricalResults(new double[] { 0.0, 0.0, 0.9, 0.0 }), 2, 60.0);
+    otherHalf.addResult(new CategoricalResults(new double[] { 0.0, 0.0, 0.0, 1.0 }), 3, 8.0);
+    // wrong
+    scorer.addResult(new CategoricalResults(new double[] { 0.1, 0.9, 0.0, 0.0 }), 0, 23.0);
+    otherHalf.addResult(new CategoricalResults(new double[] { 0.0, 0.2, 0.9, 0.0 }), 1, 61.0);
 
     scorer.addResults(otherHalf);
 

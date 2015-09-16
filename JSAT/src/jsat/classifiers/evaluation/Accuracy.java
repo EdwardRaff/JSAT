@@ -16,13 +16,13 @@ public class Accuracy implements ClassificationScore {
   public Accuracy() {
   }
 
-  public Accuracy(Accuracy toClone) {
-    this.correct = toClone.correct;
-    this.total = toClone.total;
+  public Accuracy(final Accuracy toClone) {
+    correct = toClone.correct;
+    total = toClone.total;
   }
 
   @Override
-  public void addResult(CategoricalResults prediction, int trueLabel, double weight) {
+  public void addResult(final CategoricalResults prediction, final int trueLabel, final double weight) {
     if (prediction.mostLikely() == trueLabel) {
       correct += weight;
     }
@@ -30,36 +30,10 @@ public class Accuracy implements ClassificationScore {
   }
 
   @Override
-  public void addResults(ClassificationScore other) {
-    Accuracy otherObj = (Accuracy) other;
-    this.correct += otherObj.correct;
-    this.total += otherObj.total;
-  }
-
-  @Override
-  public void prepare(CategoricalData toPredict) {
-    correct = 0;
-    total = 0;
-  }
-
-  @Override
-  public double getScore() {
-    return correct / total;
-  }
-
-  @Override
-  public boolean lowerIsBetter() {
-    return false;
-  }
-
-  @Override
-  public boolean equals(Object obj) {
-    return obj instanceof Accuracy;
-  }
-
-  @Override
-  public int hashCode() {
-    return getName().hashCode();
+  public void addResults(final ClassificationScore other) {
+    final Accuracy otherObj = (Accuracy) other;
+    correct += otherObj.correct;
+    total += otherObj.total;
   }
 
   @Override
@@ -68,8 +42,34 @@ public class Accuracy implements ClassificationScore {
   }
 
   @Override
+  public boolean equals(final Object obj) {
+    return obj instanceof Accuracy;
+  }
+
+  @Override
   public String getName() {
     return "Accuracy";
+  }
+
+  @Override
+  public double getScore() {
+    return correct / total;
+  }
+
+  @Override
+  public int hashCode() {
+    return getName().hashCode();
+  }
+
+  @Override
+  public boolean lowerIsBetter() {
+    return false;
+  }
+
+  @Override
+  public void prepare(final CategoricalData toPredict) {
+    correct = 0;
+    total = 0;
   }
 
 }

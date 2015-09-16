@@ -1,13 +1,16 @@
 package jsat.classifiers.evaluation;
 
-import jsat.classifiers.CategoricalData;
-import jsat.classifiers.CategoricalResults;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+
 import org.junit.After;
 import org.junit.AfterClass;
-import static org.junit.Assert.*;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
+
+import jsat.classifiers.CategoricalData;
+import jsat.classifiers.CategoricalResults;
 
 /**
  *
@@ -15,15 +18,15 @@ import org.junit.Test;
  */
 public class RecallTest {
 
-  public RecallTest() {
-  }
-
   @BeforeClass
   public static void setUpClass() {
   }
 
   @AfterClass
   public static void tearDownClass() {
+  }
+
+  public RecallTest() {
   }
 
   @Before
@@ -40,8 +43,8 @@ public class RecallTest {
   @Test
   public void testGetScore() {
     System.out.println("getScore");
-    Recall scorer = new Recall();
-    Recall otherHalf = scorer.clone();
+    final Recall scorer = new Recall();
+    final Recall otherHalf = scorer.clone();
 
     assertEquals(scorer, otherHalf);
     assertEquals(scorer.hashCode(), otherHalf.hashCode());
@@ -52,16 +55,16 @@ public class RecallTest {
 
     scorer.prepare(new CategoricalData(2));
     otherHalf.prepare(new CategoricalData(2));
-    //correct
-    scorer.addResult(new CategoricalResults(new double[]{1.0, 0.0}), 0, 1.0);
-    otherHalf.addResult(new CategoricalResults(new double[]{0.2, 0.8}), 1, 3.0);
-    scorer.addResult(new CategoricalResults(new double[]{7.0, 0.3}), 0, 1.0);
-    //wrong
-    otherHalf.addResult(new CategoricalResults(new double[]{0.6, 0.4}), 1, 1.0);
-    scorer.addResult(new CategoricalResults(new double[]{0.4, 0.6}), 0, 2.0);
-    otherHalf.addResult(new CategoricalResults(new double[]{0.9, 0.1}), 1, 1.0);
+    // correct
+    scorer.addResult(new CategoricalResults(new double[] { 1.0, 0.0 }), 0, 1.0);
+    otherHalf.addResult(new CategoricalResults(new double[] { 0.2, 0.8 }), 1, 3.0);
+    scorer.addResult(new CategoricalResults(new double[] { 7.0, 0.3 }), 0, 1.0);
+    // wrong
+    otherHalf.addResult(new CategoricalResults(new double[] { 0.6, 0.4 }), 1, 1.0);
+    scorer.addResult(new CategoricalResults(new double[] { 0.4, 0.6 }), 0, 2.0);
+    otherHalf.addResult(new CategoricalResults(new double[] { 0.9, 0.1 }), 1, 1.0);
 
-    double tp = 2, tn = 3, fp = 2, fn = 2;
+    final double tp = 2, tn = 3, fp = 2, fn = 2;
     assertEquals(tp / (tp * +fn), scorer.getScore(), 1e-2);
     assertEquals(tp / (tp * +fn), scorer.clone().getScore(), 1e-2);
   }

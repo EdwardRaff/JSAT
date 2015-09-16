@@ -16,20 +16,34 @@
  */
 package jsat.linear.distancemetrics;
 
-import java.util.*;
+import static jsat.TestTools.assertEqualsRelDiff;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
+
+import java.util.Arrays;
+import java.util.List;
+import java.util.Random;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import static jsat.TestTools.*;
-import jsat.distributions.multivariate.NormalM;
-import jsat.linear.*;
-import jsat.utils.SystemInfo;
-import jsat.utils.random.XORWOW;
+
 import org.junit.After;
 import org.junit.AfterClass;
-import static org.junit.Assert.*;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
+
+import jsat.distributions.multivariate.NormalM;
+import jsat.linear.ConstantVector;
+import jsat.linear.DenseMatrix;
+import jsat.linear.DenseVector;
+import jsat.linear.Matrix;
+import jsat.linear.SingularValueDecomposition;
+import jsat.linear.Vec;
+import jsat.utils.SystemInfo;
+import jsat.utils.random.XORWOW;
 
 /**
  *
@@ -48,9 +62,6 @@ public class MahalanobisDistanceTest {
 
   static private double[][] expected;
 
-  public MahalanobisDistanceTest() {
-  }
-
   @BeforeClass
   public static void setUpClass() {
     ex = Executors.newFixedThreadPool(SystemInfo.LogicalCores);
@@ -61,17 +72,21 @@ public class MahalanobisDistanceTest {
     ex.shutdown();
   }
 
+  public MahalanobisDistanceTest() {
+  }
+
   @Before
   public void setUp() {
     trueCov = new DenseMatrix(5, 5);
 
-    Random rand = new XORWOW();
+    final Random rand = new XORWOW();
     for (int i = 0; i < trueCov.rows(); i++) {
       for (int j = 0; j < trueCov.cols(); j++) {
         trueCov.set(i, j, rand.nextDouble());
       }
     }
-    trueCov = trueCov.multiplyTranspose(trueCov);//guaranteed Positive Semi Definite now
+    trueCov = trueCov.multiplyTranspose(trueCov);// guaranteed Positive Semi
+                                                 // Definite now
 
     zero = new DenseVector(5);
 
@@ -87,14 +102,14 @@ public class MahalanobisDistanceTest {
     }
 
     vecs = Arrays.asList(zero, ones, half, inc);
-    Matrix trueInv = new SingularValueDecomposition(trueCov.clone()).getPseudoInverse();
+    final Matrix trueInv = new SingularValueDecomposition(trueCov.clone()).getPseudoInverse();
 
     expected = new double[4][4];
     for (int i = 0; i < expected.length; i++) {
-      Vec vi = vecs.get(i);
+      final Vec vi = vecs.get(i);
       for (int j = 0; j < expected.length; j++) {
-        Vec vj = vecs.get(j);
-        Vec dif = vi.subtract(vj);
+        final Vec vj = vecs.get(j);
+        final Vec dif = vi.subtract(vj);
         expected[i][j] = Math.sqrt(dif.dot(trueInv.multiply(dif)));
       }
     }
@@ -108,12 +123,12 @@ public class MahalanobisDistanceTest {
   public void testDist_Vec_Vec() {
     System.out.println("dist");
 
-    NormalM normal = new NormalM(new ConstantVector(0.0, 5), trueCov.clone());
-    MahalanobisDistance dist = new MahalanobisDistance();
+    final NormalM normal = new NormalM(new ConstantVector(0.0, 5), trueCov.clone());
+    final MahalanobisDistance dist = new MahalanobisDistance();
     dist.train(normal.sample(1000, new XORWOW()));
 
-    List<Double> cache = dist.getAccelerationCache(vecs);
-    List<Double> cache2 = dist.getAccelerationCache(vecs, ex);
+    final List<Double> cache = dist.getAccelerationCache(vecs);
+    final List<Double> cache2 = dist.getAccelerationCache(vecs, ex);
     if (cache != null) {
       assertEquals(cache.size(), cache2.size());
       for (int i = 0; i < cache.size(); i++) {
@@ -128,13 +143,13 @@ public class MahalanobisDistanceTest {
     try {
       dist.dist(half, new DenseVector(half.length() + 1));
       fail("Distance between vecs should have erred");
-    } catch (Exception ex) {
+    } catch (final Exception ex) {
 
     }
 
     for (int i = 0; i < vecs.size(); i++) {
       for (int j = 0; j < vecs.size(); j++) {
-        MahalanobisDistance d = dist.clone();
+        final MahalanobisDistance d = dist.clone();
         assertEqualsRelDiff(expected[i][j], d.dist(vecs.get(i), vecs.get(j)), 1e-1);
         assertEqualsRelDiff(expected[i][j], d.dist(i, j, vecs, cache), 1e-1);
         assertEqualsRelDiff(expected[i][j], d.dist(i, vecs.get(j), vecs, cache), 1e-1);
@@ -147,12 +162,12 @@ public class MahalanobisDistanceTest {
   public void testDist_Vec_Vec_ExecutorService() {
     System.out.println("dist");
 
-    NormalM normal = new NormalM(new ConstantVector(0.0, 5), trueCov.clone());
-    MahalanobisDistance dist = new MahalanobisDistance();
+    final NormalM normal = new NormalM(new ConstantVector(0.0, 5), trueCov.clone());
+    final MahalanobisDistance dist = new MahalanobisDistance();
     dist.train(normal.sample(1000, new XORWOW()), ex);
 
-    List<Double> cache = dist.getAccelerationCache(vecs);
-    List<Double> cache2 = dist.getAccelerationCache(vecs, ex);
+    final List<Double> cache = dist.getAccelerationCache(vecs);
+    final List<Double> cache2 = dist.getAccelerationCache(vecs, ex);
     if (cache != null) {
       assertEquals(cache.size(), cache2.size());
       for (int i = 0; i < cache.size(); i++) {
@@ -167,13 +182,13 @@ public class MahalanobisDistanceTest {
     try {
       dist.dist(half, new DenseVector(half.length() + 1));
       fail("Distance between vecs should have erred");
-    } catch (Exception ex) {
+    } catch (final Exception ex) {
 
     }
 
     for (int i = 0; i < vecs.size(); i++) {
       for (int j = 0; j < vecs.size(); j++) {
-        MahalanobisDistance d = dist.clone();
+        final MahalanobisDistance d = dist.clone();
         assertEqualsRelDiff(expected[i][j], d.dist(vecs.get(i), vecs.get(j)), 1e-1);
         assertEqualsRelDiff(expected[i][j], d.dist(i, j, vecs, cache), 1e-1);
         assertEqualsRelDiff(expected[i][j], d.dist(i, vecs.get(j), vecs, cache), 1e-1);
@@ -183,20 +198,20 @@ public class MahalanobisDistanceTest {
   }
 
   @Test
-  public void testMetricProperties() {
-    System.out.println("isSymmetric");
-    EuclideanDistance instance = new EuclideanDistance();
-    assertTrue(instance.isSymmetric());
-    assertTrue(instance.isSubadditive());
-    assertTrue(instance.isIndiscemible());
+  public void testMetricBound() {
+    System.out.println("metricBound");
+    final EuclideanDistance instance = new EuclideanDistance();
+    assertTrue(instance.metricBound() > 0);
+    assertTrue(Double.isInfinite(instance.metricBound()));
   }
 
   @Test
-  public void testMetricBound() {
-    System.out.println("metricBound");
-    EuclideanDistance instance = new EuclideanDistance();
-    assertTrue(instance.metricBound() > 0);
-    assertTrue(Double.isInfinite(instance.metricBound()));
+  public void testMetricProperties() {
+    System.out.println("isSymmetric");
+    final EuclideanDistance instance = new EuclideanDistance();
+    assertTrue(instance.isSymmetric());
+    assertTrue(instance.isSubadditive());
+    assertTrue(instance.isIndiscemible());
   }
 
 }

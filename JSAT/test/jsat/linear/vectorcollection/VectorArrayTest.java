@@ -16,19 +16,23 @@
  */
 package jsat.linear.vectorcollection;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
+
+import org.junit.After;
+import org.junit.AfterClass;
+import org.junit.Before;
+import org.junit.BeforeClass;
+import org.junit.Test;
+
 import jsat.linear.DenseVector;
 import jsat.linear.Vec;
 import jsat.linear.VecPaired;
 import jsat.linear.distancemetrics.EuclideanDistance;
-import org.junit.After;
-import org.junit.AfterClass;
-import static org.junit.Assert.*;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
 
 /**
  *
@@ -37,9 +41,6 @@ import org.junit.Test;
 public class VectorArrayTest {
 
   static List<Vec> simpleSet;
-
-  public VectorArrayTest() {
-  }
 
   @BeforeClass
   public static void setUpClass() {
@@ -51,6 +52,9 @@ public class VectorArrayTest {
 
   @AfterClass
   public static void tearDownClass() {
+  }
+
+  public VectorArrayTest() {
   }
 
   @Before
@@ -67,18 +71,18 @@ public class VectorArrayTest {
   @Test
   public void testSearch_Vec_double() {
     System.out.println("search");
-    Random rand = new Random();
+    final Random rand = new Random();
 
-    VectorArray<Vec> vecCol = new VectorArray<Vec>(new EuclideanDistance());
+    final VectorArray<Vec> vecCol = new VectorArray<Vec>(new EuclideanDistance());
     vecCol.addAll(simpleSet);
 
     for (int iters = 0; iters < 100; iters++) {
-      for (double range : new double[]{2.0, 5.0, 10.0}) {
-        int randIndex = rand.nextInt(simpleSet.size());
-        List<? extends VecPaired<Vec, Double>> found = vecCol.search(simpleSet.get(randIndex), range);
-        int min = (int) Math.max(randIndex - range, 0);
-        int max = (int) Math.min(randIndex + range, simpleSet.size() - 1);
-        for (Vec v : found) {
+      for (final double range : new double[] { 2.0, 5.0, 10.0 }) {
+        final int randIndex = rand.nextInt(simpleSet.size());
+        final List<? extends VecPaired<Vec, Double>> found = vecCol.search(simpleSet.get(randIndex), range);
+        final int min = (int) Math.max(randIndex - range, 0);
+        final int max = (int) Math.min(randIndex + range, simpleSet.size() - 1);
+        for (final Vec v : found) {
           assertTrue(min <= v.get(0) && v.get(0) <= max);
         }
         assertEquals(1 + max - min, found.size());
@@ -92,23 +96,23 @@ public class VectorArrayTest {
   @Test
   public void testSearch_Vec_int() {
     System.out.println("search");
-    Random rand = new Random();
+    final Random rand = new Random();
 
-    VectorArray<Vec> vecCol = new VectorArray<Vec>(new EuclideanDistance());
-    for (Vec v : simpleSet) {
+    final VectorArray<Vec> vecCol = new VectorArray<Vec>(new EuclideanDistance());
+    for (final Vec v : simpleSet) {
       vecCol.add(v);
     }
 
     for (int numNeighbours = 1; numNeighbours < 100; numNeighbours++) {
-      //get from the midle to avoid more complicated code to hangle edges
-      int randIndex = numNeighbours + rand.nextInt(simpleSet.size() - numNeighbours * 2);
+      // get from the midle to avoid more complicated code to hangle edges
+      final int randIndex = numNeighbours + rand.nextInt(simpleSet.size() - numNeighbours * 2);
 
-      List<? extends VecPaired<Vec, Double>> found = vecCol.search(simpleSet.get(randIndex), numNeighbours);
+      final List<? extends VecPaired<Vec, Double>> found = vecCol.search(simpleSet.get(randIndex), numNeighbours);
 
-      int min = Math.max(randIndex - (numNeighbours) / 2, 0);
-      int max = Math.min(randIndex + (numNeighbours) / 2, simpleSet.size() - 1);
+      final int min = Math.max(randIndex - numNeighbours / 2, 0);
+      final int max = Math.min(randIndex + numNeighbours / 2, simpleSet.size() - 1);
 
-      for (Vec v : found) {
+      for (final Vec v : found) {
         assertTrue(min <= v.get(0) && v.get(0) <= max);
       }
       assertEquals(numNeighbours, found.size());

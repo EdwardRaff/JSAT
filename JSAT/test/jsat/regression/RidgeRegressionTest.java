@@ -1,17 +1,20 @@
 package jsat.regression;
 
+import static org.junit.Assert.assertEquals;
+
 import java.util.Random;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import jsat.FixedProblems;
-import jsat.classifiers.DataPointPair;
-import jsat.utils.SystemInfo;
+
 import org.junit.After;
 import org.junit.AfterClass;
-import static org.junit.Assert.*;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
+
+import jsat.FixedProblems;
+import jsat.classifiers.DataPointPair;
+import jsat.utils.SystemInfo;
 
 /**
  *
@@ -20,9 +23,6 @@ import org.junit.Test;
 public class RidgeRegressionTest {
 
   static ExecutorService ex;
-
-  public RidgeRegressionTest() {
-  }
 
   @BeforeClass
   public static void setUpClass() {
@@ -34,6 +34,9 @@ public class RidgeRegressionTest {
     ex.shutdown();
   }
 
+  public RidgeRegressionTest() {
+  }
+
   @Before
   public void setUp() {
   }
@@ -43,20 +46,20 @@ public class RidgeRegressionTest {
   }
 
   @Test
-  public void testTrain_RegressionDataSet_Executor() {
+  public void testTrain_RegressionDataSet() {
     System.out.println("train");
-    Random rand = new Random(2);
+    final Random rand = new Random(2);
 
-    for (RidgeRegression.SolverMode mode : RidgeRegression.SolverMode.values()) {
-      RidgeRegression regressor = new RidgeRegression(1e-9, mode);
+    for (final RidgeRegression.SolverMode mode : RidgeRegression.SolverMode.values()) {
+      final RidgeRegression regressor = new RidgeRegression(1e-9, mode);
 
-      regressor.train(FixedProblems.getLinearRegression(400, rand), ex);
+      regressor.train(FixedProblems.getLinearRegression(400, rand));
 
-      for (DataPointPair<Double> dpp : FixedProblems.getLinearRegression(100, new Random(3)).getAsDPPList()) {
-        double truth = dpp.getPair();
-        double pred = regressor.regress(dpp.getDataPoint());
+      for (final DataPointPair<Double> dpp : FixedProblems.getLinearRegression(100, new Random(3)).getAsDPPList()) {
+        final double truth = dpp.getPair();
+        final double pred = regressor.regress(dpp.getDataPoint());
 
-        double relErr = (truth - pred) / truth;
+        final double relErr = (truth - pred) / truth;
 
         assertEquals(0.0, relErr, 0.05);
       }
@@ -64,20 +67,20 @@ public class RidgeRegressionTest {
   }
 
   @Test
-  public void testTrain_RegressionDataSet() {
+  public void testTrain_RegressionDataSet_Executor() {
     System.out.println("train");
-    Random rand = new Random(2);
+    final Random rand = new Random(2);
 
-    for (RidgeRegression.SolverMode mode : RidgeRegression.SolverMode.values()) {
-      RidgeRegression regressor = new RidgeRegression(1e-9, mode);
+    for (final RidgeRegression.SolverMode mode : RidgeRegression.SolverMode.values()) {
+      final RidgeRegression regressor = new RidgeRegression(1e-9, mode);
 
-      regressor.train(FixedProblems.getLinearRegression(400, rand));
+      regressor.train(FixedProblems.getLinearRegression(400, rand), ex);
 
-      for (DataPointPair<Double> dpp : FixedProblems.getLinearRegression(100, new Random(3)).getAsDPPList()) {
-        double truth = dpp.getPair();
-        double pred = regressor.regress(dpp.getDataPoint());
+      for (final DataPointPair<Double> dpp : FixedProblems.getLinearRegression(100, new Random(3)).getAsDPPList()) {
+        final double truth = dpp.getPair();
+        final double pred = regressor.regress(dpp.getDataPoint());
 
-        double relErr = (truth - pred) / truth;
+        final double relErr = (truth - pred) / truth;
 
         assertEquals(0.0, relErr, 0.05);
       }

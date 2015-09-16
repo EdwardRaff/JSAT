@@ -4,15 +4,19 @@
  */
 package jsat.datatransform.featureselection;
 
-import jsat.classifiers.*;
-import static jsat.linear.DenseVector.*;
-import jsat.linear.Vec;
+import static jsat.linear.DenseVector.toDenseVec;
+import static org.junit.Assert.assertEquals;
+
 import org.junit.After;
 import org.junit.AfterClass;
-import static org.junit.Assert.*;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
+
+import jsat.classifiers.CategoricalData;
+import jsat.classifiers.ClassificationDataSet;
+import jsat.classifiers.DataPoint;
+import jsat.linear.Vec;
 
 /**
  *
@@ -20,15 +24,15 @@ import org.junit.Test;
  */
 public class MutualInfoFSTest {
 
-  public MutualInfoFSTest() {
-  }
-
   @BeforeClass
   public static void setUpClass() {
   }
 
   @AfterClass
   public static void tearDownClass() {
+  }
+
+  public MutualInfoFSTest() {
   }
 
   @Before
@@ -41,47 +45,46 @@ public class MutualInfoFSTest {
 
   @Test
   public void testSomeMethod() {
-//        List<DataPoint> dps = new ArrayList<DataPoint>();
+    // List<DataPoint> dps = new ArrayList<DataPoint>();
 
-    CategoricalData predicting = new CategoricalData(3);
+    final CategoricalData predicting = new CategoricalData(3);
 
-    CategoricalData[] catAtrs = new CategoricalData[]{
-      new CategoricalData(3),
-      new CategoricalData(3),
-      new CategoricalData(2),//Info
-      new CategoricalData(3)//Info
+    final CategoricalData[] catAtrs = new CategoricalData[] { new CategoricalData(3), new CategoricalData(3),
+        new CategoricalData(2), // Info
+        new CategoricalData(3)// Info
     };
-    //Making numeric attributes at indecies 1 and 3 informative
+    // Making numeric attributes at indecies 1 and 3 informative
 
-    ClassificationDataSet cds = new ClassificationDataSet(4, catAtrs, predicting);
+    final ClassificationDataSet cds = new ClassificationDataSet(4, catAtrs, predicting);
 
-    cds.addDataPoint(toDenseVec(0.0, 0.0, 1.0, 1.0), new int[]{0, 1, 0, 0}, 0);
-    cds.addDataPoint(toDenseVec(1.0, 0.0, 0.0, 1.0), new int[]{1, 2, 0, 0}, 0);
-    cds.addDataPoint(toDenseVec(0.0, 0.0, 1.0, 1.0), new int[]{2, 0, 0, 0}, 0);
-    cds.addDataPoint(toDenseVec(1.0, 0.0, 0.0, 1.0), new int[]{0, 1, 0, 0}, 0);
+    cds.addDataPoint(toDenseVec(0.0, 0.0, 1.0, 1.0), new int[] { 0, 1, 0, 0 }, 0);
+    cds.addDataPoint(toDenseVec(1.0, 0.0, 0.0, 1.0), new int[] { 1, 2, 0, 0 }, 0);
+    cds.addDataPoint(toDenseVec(0.0, 0.0, 1.0, 1.0), new int[] { 2, 0, 0, 0 }, 0);
+    cds.addDataPoint(toDenseVec(1.0, 0.0, 0.0, 1.0), new int[] { 0, 1, 0, 0 }, 0);
 
-    cds.addDataPoint(toDenseVec(1.0, 1.0, 0.0, 1.0), new int[]{1, 2, 0, 1}, 1);
-    cds.addDataPoint(toDenseVec(0.0, 1.0, 1.0, 1.0), new int[]{2, 0, 0, 1}, 1);
-    cds.addDataPoint(toDenseVec(1.0, 1.0, 0.0, 1.0), new int[]{0, 1, 0, 1}, 1);
-    cds.addDataPoint(toDenseVec(0.0, 1.0, 1.0, 1.0), new int[]{1, 2, 0, 1}, 1);
+    cds.addDataPoint(toDenseVec(1.0, 1.0, 0.0, 1.0), new int[] { 1, 2, 0, 1 }, 1);
+    cds.addDataPoint(toDenseVec(0.0, 1.0, 1.0, 1.0), new int[] { 2, 0, 0, 1 }, 1);
+    cds.addDataPoint(toDenseVec(1.0, 1.0, 0.0, 1.0), new int[] { 0, 1, 0, 1 }, 1);
+    cds.addDataPoint(toDenseVec(0.0, 1.0, 1.0, 1.0), new int[] { 1, 2, 0, 1 }, 1);
 
-    cds.addDataPoint(toDenseVec(0.0, 1.0, 1.0, 0.0), new int[]{2, 0, 1, 2}, 2);
-    cds.addDataPoint(toDenseVec(1.0, 1.0, 0.0, 0.0), new int[]{0, 1, 1, 2}, 2);
-    cds.addDataPoint(toDenseVec(0.0, 1.0, 1.0, 0.0), new int[]{1, 2, 1, 2}, 2);
-    cds.addDataPoint(toDenseVec(1.0, 1.0, 0.0, 0.0), new int[]{2, 0, 1, 2}, 2);
+    cds.addDataPoint(toDenseVec(0.0, 1.0, 1.0, 0.0), new int[] { 2, 0, 1, 2 }, 2);
+    cds.addDataPoint(toDenseVec(1.0, 1.0, 0.0, 0.0), new int[] { 0, 1, 1, 2 }, 2);
+    cds.addDataPoint(toDenseVec(0.0, 1.0, 1.0, 0.0), new int[] { 1, 2, 1, 2 }, 2);
+    cds.addDataPoint(toDenseVec(1.0, 1.0, 0.0, 0.0), new int[] { 2, 0, 1, 2 }, 2);
 
-    MutualInfoFS minFS = new MutualInfoFS.MutualInfoFSFactory(4, MutualInfoFS.NumericalHandeling.BINARY).clone().getTransform(cds).clone();
+    final MutualInfoFS minFS = new MutualInfoFS.MutualInfoFSFactory(4, MutualInfoFS.NumericalHandeling.BINARY).clone()
+        .getTransform(cds).clone();
 
     for (int i = 0; i < cds.getSampleSize(); i++) {
-      DataPoint dp = cds.getDataPoint(i);
+      final DataPoint dp = cds.getDataPoint(i);
 
-      DataPoint trDp = minFS.transform(dp);
+      final DataPoint trDp = minFS.transform(dp);
 
-      int[] origCat = dp.getCategoricalValues();
-      int[] tranCat = trDp.getCategoricalValues();
+      final int[] origCat = dp.getCategoricalValues();
+      final int[] tranCat = trDp.getCategoricalValues();
 
-      Vec origVals = dp.getNumericalValues();
-      Vec tranVals = trDp.getNumericalValues();
+      final Vec origVals = dp.getNumericalValues();
+      final Vec tranVals = trDp.getNumericalValues();
 
       assertEquals(origCat[2], tranCat[0]);
       assertEquals(origCat[3], tranCat[1]);
