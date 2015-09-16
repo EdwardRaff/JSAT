@@ -27,76 +27,67 @@ import org.junit.Test;
  *
  * @author Edward Raff
  */
-public class PAMTest
-{
-    //Like KMeans the cluster number detection isnt stable enough yet that we can test that it getst he right result. 
-    static private PAM pam;
-    static private SimpleDataSet easyData10;
-    static private ExecutorService ex;
-    
-    public PAMTest()
-    {
-    }
+public class PAMTest {
 
-    @BeforeClass
-    public static void setUpClass() throws Exception
-    {
-        pam = new PAM(new EuclideanDistance(), new Random(), SeedSelection.KPP);
-        GridDataGenerator gdg = new GridDataGenerator(new Uniform(-0.05, 0.05), new Random(), 2, 5);
-        easyData10 = gdg.generateData(40);
-        ex = Executors.newFixedThreadPool(SystemInfo.LogicalCores);
-    }
+  //Like KMeans the cluster number detection isnt stable enough yet that we can test that it getst he right result. 
+  static private PAM pam;
+  static private SimpleDataSet easyData10;
+  static private ExecutorService ex;
 
-    @AfterClass
-    public static void tearDownClass() throws Exception
-    {
-        ex.shutdown();
-    }
-    
-    @Before
-    public void setUp()
-    {
-    }
+  public PAMTest() {
+  }
 
-    /**
-     * Test of cluster method, of class PAM.
-     */
-    @Test
-    public void testCluster_3args_1()
-    {
-        System.out.println("cluster(dataSet, int, ExecutorService)");
-        List<List<DataPoint>> clusters = pam.cluster(easyData10, 10, ex);
-        assertEquals(10, clusters.size());
-        Set<Integer> seenBefore = new IntSet();
-        for(List<DataPoint> cluster :  clusters)
-        {
-            int thisClass = cluster.get(0).getCategoricalValue(0);
-            assertFalse(seenBefore.contains(thisClass));
-            for(DataPoint dp : cluster) {
-              assertEquals(thisClass, dp.getCategoricalValue(0));
-            }
-        }
-    }
+  @BeforeClass
+  public static void setUpClass() throws Exception {
+    pam = new PAM(new EuclideanDistance(), new Random(), SeedSelection.KPP);
+    GridDataGenerator gdg = new GridDataGenerator(new Uniform(-0.05, 0.05), new Random(), 2, 5);
+    easyData10 = gdg.generateData(40);
+    ex = Executors.newFixedThreadPool(SystemInfo.LogicalCores);
+  }
 
-    /**
-     * Test of cluster method, of class PAM.
-     */
-    @Test
-    public void testCluster_DataSet_int()
-    {
-        System.out.println("cluster(dataset, int)");
-        List<List<DataPoint>> clusters = pam.cluster(easyData10, 10);
-        assertEquals(10, clusters.size());
-        Set<Integer> seenBefore = new IntSet();
-        for(List<DataPoint> cluster :  clusters)
-        {
-            int thisClass = cluster.get(0).getCategoricalValue(0);
-            assertFalse(seenBefore.contains(thisClass));
-            for(DataPoint dp : cluster) {
-              assertEquals(thisClass, dp.getCategoricalValue(0));
-            }
-        }
-    }
+  @AfterClass
+  public static void tearDownClass() throws Exception {
+    ex.shutdown();
+  }
 
-    
+  @Before
+  public void setUp() {
+  }
+
+  /**
+   * Test of cluster method, of class PAM.
+   */
+  @Test
+  public void testCluster_3args_1() {
+    System.out.println("cluster(dataSet, int, ExecutorService)");
+    List<List<DataPoint>> clusters = pam.cluster(easyData10, 10, ex);
+    assertEquals(10, clusters.size());
+    Set<Integer> seenBefore = new IntSet();
+    for (List<DataPoint> cluster : clusters) {
+      int thisClass = cluster.get(0).getCategoricalValue(0);
+      assertFalse(seenBefore.contains(thisClass));
+      for (DataPoint dp : cluster) {
+        assertEquals(thisClass, dp.getCategoricalValue(0));
+      }
+    }
+  }
+
+  /**
+   * Test of cluster method, of class PAM.
+   */
+  @Test
+  public void testCluster_DataSet_int() {
+    System.out.println("cluster(dataset, int)");
+    List<List<DataPoint>> clusters = pam.cluster(easyData10, 10);
+    assertEquals(10, clusters.size());
+    Set<Integer> seenBefore = new IntSet();
+    for (List<DataPoint> cluster : clusters) {
+      int thisClass = cluster.get(0).getCategoricalValue(0);
+      assertFalse(seenBefore.contains(thisClass));
+      for (DataPoint dp : cluster) {
+        assertEquals(thisClass, dp.getCategoricalValue(0));
+      }
+    }
+  }
+
 }

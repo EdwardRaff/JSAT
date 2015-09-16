@@ -7,263 +7,238 @@ import jsat.linear.*;
 import static jsat.linear.MatrixStatistics.*;
 
 /**
- * An extension of {@link PCA} that attempts to capture the variance, and make 
- * the variables in the output space independent from each-other. An of equal 
- * scale, so that the covariance is equal to {@link Matrix#eye(int) I}. The 
- * results may be further from the identity matrix than desired as the target 
- * dimension shrinks<br>
+ * An extension of {@link PCA} that attempts to capture the variance, and make the variables in the output space
+ * independent from each-other. An of equal scale, so that the covariance is equal to {@link Matrix#eye(int) I}. The
+ * results may be further from the identity matrix than desired as the target dimension shrinks<br>
  * <br>
- * The Whitened PCA is more computational expensive than the normal PCA 
- * algorithm, but transforming the data takes the same time. 
- * 
+ * The Whitened PCA is more computational expensive than the normal PCA algorithm, but transforming the data takes the
+ * same time.
+ *
  * @author Edward Raff
  */
-public class WhitenedPCA implements DataTransform
-{
+public class WhitenedPCA implements DataTransform {
 
-	private static final long serialVersionUID = 6134243673037330608L;
-	/**
-     * Regularization parameter
-     */
-    protected double regularization;
-    /**
-     * The number of dimensions to project down to
-     */
-    protected int dims;
-    
-    /**
-     * The final transformation matrix, that will create new points 
-     * <tt>y</tt> = <tt>transform</tt> * x
-     */
-    protected Matrix transform;
+  private static final long serialVersionUID = 6134243673037330608L;
+  /**
+   * Regularization parameter
+   */
+  protected double regularization;
+  /**
+   * The number of dimensions to project down to
+   */
+  protected int dims;
+
+  /**
+   * The final transformation matrix, that will create new points
+   * <tt>y</tt> = <tt>transform</tt> * x
+   */
+  protected Matrix transform;
+
+  /**
+   * Creates a new WhitenedPCA
+   *
+   * @param dataSet the data set to whiten
+   * @param regularization the amount of regularization to add, avoids numerical instability
+   * @param dims the number of dimensions to project down to
+   */
+  public WhitenedPCA(DataSet dataSet, double regularization, int dims) {
+    setRegularization(regularization);
+    setDims(dims);
+
+    setUpTransform(getSVD(dataSet));
+
+  }
+
+  /**
+   * Creates a new WhitenedPCA, the dimensions will be chosen so that the subset of dimensions is of full rank.
+   *
+   * @param dataSet the data set to whiten
+   * @param regularization the amount of regularization to add, avoids numerical instability
+   */
+  public WhitenedPCA(DataSet dataSet, double regularization) {
+    setRegularization(regularization);
+    SingularValueDecomposition svd = getSVD(dataSet);
+    setDims(svd.getRank());
+
+    setUpTransform(svd);
+  }
+
+  /**
+   * Creates a new WhitenedPCA. The dimensions will be chosen so that the subset of dimensions is of full rank. The
+   * regularization parameter will be chosen as the log of the condition of the covariance.
+   *
+   * @param dataSet the data set to whiten
+   */
+  public WhitenedPCA(DataSet dataSet) {
+
+    SingularValueDecomposition svd = getSVD(dataSet);
+    setRegularization(svd);
+    setDims(svd.getRank());
+
+    setUpTransform(svd);
+  }
+
+  /**
+   * Creates a new WhitenedPCA. The regularization parameter will be chosen as the log of the condition of the
+   * covariance.
+   *
+   * @param dataSet the data set to whiten
+   * @param dims the number of dimensions to project down to
+   */
+  public WhitenedPCA(DataSet dataSet, int dims) {
+
+    SingularValueDecomposition svd = getSVD(dataSet);
+    setRegularization(svd);
+    setDims(dims);
+
+    setUpTransform(svd);
+  }
+
+  /**
+   * Copy constructor
+   *
+   * @param other the transform to make a copy of
+   */
+  private WhitenedPCA(WhitenedPCA other) {
+    this.regularization = other.regularization;
+    this.dims = other.dims;
+    this.transform = other.transform.clone();
+  }
+
+  /**
+   * Gets a SVD for the covariance matrix of the data set
+   *
+   * @param dataSet the data set in question
+   * @return the SVD for the covariance
+   */
+  private SingularValueDecomposition getSVD(DataSet dataSet) {
+    Matrix cov = covarianceMatrix(meanVector(dataSet), dataSet);
+    for (int i = 0; i < cov.rows(); i++) {
+      for (int j = 0; j < i; j++) {
+        cov.set(j, i, cov.get(i, j));
+      }
+    }
+    EigenValueDecomposition evd = new EigenValueDecomposition(cov);
+    //Sort form largest to smallest
+    evd.sortByEigenValue(new Comparator<Double>() {
+      @Override
+      public int compare(Double o1, Double o2) {
+        return -Double.compare(o1, o2);
+      }
+    });
+    return new SingularValueDecomposition(evd.getVRaw(), evd.getVRaw(), evd.getRealEigenvalues());
+  }
+
+  /**
+   * Creates the {@link #transform transform matrix} to be used when converting data points. It is called in the
+   * constructor after all values are set.
+   *
+   * @param svd the SVD of the covariance of the source data set
+   */
+  protected void setUpTransform(SingularValueDecomposition svd) {
+    Vec diag = new DenseVector(dims);
+
+    double[] s = svd.getSingularValues();
+
+    for (int i = 0; i < dims; i++) {
+      diag.set(i, 1.0 / Math.sqrt(s[i] + regularization));
+    }
+
+    transform = new SubMatrix(svd.getU().transpose(), 0, 0, dims, s.length).clone();
+
+    Matrix.diagMult(diag, transform);
+  }
+
+  @Override
+  public DataPoint transform(DataPoint dp) {
+    Vec newVec = transform.multiply(dp.getNumericalValues());
+
+    DataPoint newDp = new DataPoint(newVec, dp.getCategoricalValues(), dp.getCategoricalData(), dp.getWeight());
+
+    return newDp;
+  }
+
+  private void setRegularization(double regularization) {
+    if (regularization < 0 || Double.isNaN(regularization) || Double.isInfinite(regularization)) {
+      throw new ArithmeticException("Regularization must be non negative value, not " + regularization);
+    }
+    this.regularization = regularization;
+  }
+
+  private void setDims(int dims) {
+    if (dims < 1) {
+      throw new ArithmeticException("Invalid number of dimensions, bust be > 0");
+    }
+    this.dims = dims;
+  }
+
+  @Override
+  public DataTransform clone() {
+    return new WhitenedPCA(this);
+  }
+
+  private void setRegularization(SingularValueDecomposition svd) {
+    if (svd.isFullRank()) {
+      setRegularization(1e-10);
+    } else {
+      setRegularization(Math.max(Math.log(1.0 + svd.getSingularValues()[svd.getRank()]) * 0.25, 1e-4));
+    }
+  }
+
+  /**
+   * Factory for producing new {@link WhitenedPCA} transforms
+   */
+  static public class WhitenedPCATransformFactory extends DataTransformFactoryParm {
+
+    private int dimensions;
 
     /**
-     * Creates a new WhitenedPCA
-     * @param dataSet the data set to whiten
-     * @param regularization the amount of regularization to add, avoids numerical instability
+     * Creates a new WhitenedPCA Factory
+     *
      * @param dims the number of dimensions to project down to
      */
-    public WhitenedPCA(DataSet dataSet, double regularization, int dims)
-    {
-        setRegularization(regularization);
-        setDims(dims);
-        
-        setUpTransform(getSVD(dataSet));
-        
+    public WhitenedPCATransformFactory(int dims) {
+      setDimensions(dims);
     }
 
     /**
-     * Creates a new WhitenedPCA, the dimensions will be chosen so that the 
-     * subset of dimensions is of full rank. 
-     * 
-     * @param dataSet the data set to whiten
-     * @param regularization the amount of regularization to add, avoids numerical instability
+     * Copy constructor
+     *
+     * @param toCopy the object to copy
      */
-    public WhitenedPCA(DataSet dataSet, double regularization)
-    {
-        setRegularization(regularization);
-        SingularValueDecomposition svd = getSVD(dataSet);
-        setDims(svd.getRank());
-        
-        
-        setUpTransform(svd);
-    }
-    
-    /**
-     * Creates a new WhitenedPCA. The dimensions will be chosen so that the 
-     * subset of dimensions is of full rank. The regularization parameter will be
-     * chosen as the log of the condition of the covariance. 
-     * 
-     * @param dataSet the data set to whiten
-     */
-    public WhitenedPCA(DataSet dataSet)
-    {
-        
-        SingularValueDecomposition svd = getSVD(dataSet);
-        setRegularization(svd);
-        setDims(svd.getRank());
-        
-        
-        setUpTransform(svd);
-    }
-    
-    /**
-     * Creates a new WhitenedPCA. The regularization parameter will be
-     * chosen as the log of the condition of the covariance. 
-     * 
-     * @param dataSet the data set to whiten
-     * @param dims the number of dimensions to project down to
-     */
-    public WhitenedPCA(DataSet dataSet, int dims)
-    {
-        
-        SingularValueDecomposition svd = getSVD(dataSet);
-        setRegularization(svd);
-        setDims(dims);
-        
-        
-        setUpTransform(svd);
-    }
-    
-    /**
-     * Copy constructor 
-     * @param other the transform to make a copy of
-     */
-    private WhitenedPCA(WhitenedPCA other)
-    {
-        this.regularization = other.regularization;
-        this.dims = other.dims;
-        this.transform = other.transform.clone();
+    public WhitenedPCATransformFactory(WhitenedPCATransformFactory toCopy) {
+      this(toCopy.dimensions);
     }
 
     /**
-     * Gets a SVD for the covariance matrix of the data set
-     * @param dataSet the data set in question
-     * @return the SVD for the covariance
+     * Sets the number of dimensions to project down to
+     *
+     * @param dimensions the feature size to project down to
      */
-    private SingularValueDecomposition getSVD(DataSet dataSet)
-    {
-        Matrix cov = covarianceMatrix(meanVector(dataSet), dataSet);
-        for(int i = 0; i < cov.rows(); i++) {
-          for (int j = 0; j < i; j++) {
-            cov.set(j, i, cov.get(i, j));
-          }
-        }
-        EigenValueDecomposition evd = new EigenValueDecomposition(cov);
-        //Sort form largest to smallest
-        evd.sortByEigenValue(new Comparator<Double>() 
-        {
-            @Override
-            public int compare(Double o1, Double o2)
-            {
-                return -Double.compare(o1, o2);
-            }
-        });
-        return new SingularValueDecomposition(evd.getVRaw(), evd.getVRaw(), evd.getRealEigenvalues());
+    public void setDimensions(int dimensions) {
+      if (dimensions < 1) {
+        throw new IllegalArgumentException("Number of dimensions must be positive, not " + dimensions);
+      }
+      this.dimensions = dimensions;
     }
-    
 
     /**
-     * Creates the {@link #transform transform matrix} to be used when 
-     * converting data points. It is called in the constructor after all values
-     * are set. 
-     * 
-     * @param svd the SVD of the covariance of the source data set
+     * Returns the number of dimensions to project down to
+     *
+     * @return the number of dimensions to project down to
      */
-    protected void setUpTransform(SingularValueDecomposition svd)
-    {
-        Vec diag = new DenseVector(dims);
-        
-        double[] s = svd.getSingularValues();
-        
-        for(int i = 0; i < dims; i++) {
-          diag.set(i, 1.0/Math.sqrt(s[i]+regularization));
-        }
-        
-        transform = new SubMatrix(svd.getU().transpose(), 0, 0, dims, s.length).clone();
-        
-        Matrix.diagMult(diag, transform);
-    }
-    
-
-    @Override
-    public DataPoint transform(DataPoint dp)
-    {
-        Vec newVec = transform.multiply(dp.getNumericalValues());
-        
-        DataPoint newDp = new DataPoint(newVec, dp.getCategoricalValues(), dp.getCategoricalData(), dp.getWeight());
-        
-        return newDp;
-    }
-    
-    
-    private void setRegularization(double regularization)
-    {
-        if(regularization < 0 || Double.isNaN(regularization) || Double.isInfinite(regularization)) {
-          throw new ArithmeticException("Regularization must be non negative value, not " + regularization);
-        }
-        this.regularization = regularization;
-    }
-
-    private void setDims(int dims)
-    {
-        if(dims < 1) {
-          throw new ArithmeticException("Invalid number of dimensions, bust be > 0");
-        }
-        this.dims = dims;
+    public int getDimensions() {
+      return dimensions;
     }
 
     @Override
-    public DataTransform clone()
-    {
-        return new WhitenedPCA(this);
+    public DataTransform getTransform(DataSet dataset) {
+      return new WhitenedPCA(dataset, dimensions);
     }
 
-    private void setRegularization(SingularValueDecomposition svd)
-    {
-        if(svd.isFullRank()) {
-          setRegularization(1e-10);
-        } else {
-          setRegularization(Math.max(Math.log(1.0+svd.getSingularValues()[svd.getRank()])*0.25, 1e-4));
-        }
+    @Override
+    public WhitenedPCATransformFactory clone() {
+      return new WhitenedPCATransformFactory(this);
     }
-    
-    /**
-     * Factory for producing new {@link WhitenedPCA} transforms
-     */
-    static public class WhitenedPCATransformFactory extends DataTransformFactoryParm
-    {
-        private int dimensions;
-
-        /**
-         * Creates a new WhitenedPCA Factory
-         * @param dims the number of dimensions to project down to
-         */
-        public WhitenedPCATransformFactory(int dims)
-        {
-            setDimensions(dims);
-        }
-
-        /**
-         * Copy constructor
-         * @param toCopy the object to copy
-         */
-        public WhitenedPCATransformFactory(WhitenedPCATransformFactory toCopy)
-        {
-            this(toCopy.dimensions);
-        }
-
-        /**
-         * Sets the number of dimensions to project down to
-         * @param dimensions the feature size to project down to
-         */
-        public void setDimensions(int dimensions)
-        {
-            if(dimensions < 1) {
-              throw new IllegalArgumentException("Number of dimensions must be positive, not " + dimensions);
-            }
-            this.dimensions = dimensions;
-        }
-
-        /**
-         * Returns the number of dimensions to project down to
-         * @return the number of dimensions to project down to
-         */
-        public int getDimensions()
-        {
-            return dimensions;
-        }
-        
-        @Override
-        public DataTransform getTransform(DataSet dataset)
-        {
-            return new WhitenedPCA(dataset, dimensions);
-        }
-
-        @Override
-        public WhitenedPCATransformFactory clone()
-        {
-            return new WhitenedPCATransformFactory(this);
-        }
-    }
+  }
 }

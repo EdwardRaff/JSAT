@@ -11,77 +11,68 @@ import org.junit.Test;
  *
  * @author Edward Raff
  */
-public class MeanSquaredErrorTest
-{
-    
-    public MeanSquaredErrorTest()
-    {
+public class MeanSquaredErrorTest {
+
+  public MeanSquaredErrorTest() {
+  }
+
+  @BeforeClass
+  public static void setUpClass() {
+  }
+
+  @AfterClass
+  public static void tearDownClass() {
+  }
+
+  @Before
+  public void setUp() {
+  }
+
+  @After
+  public void tearDown() {
+  }
+
+  /**
+   * Test of getScore method, of class MeanSquaredError.
+   */
+  @Test
+  public void testGetScore() {
+    System.out.println("getScore");
+    MeanSquaredError scorer = new MeanSquaredError();
+    MeanSquaredError otherHalf = scorer.clone();
+
+    assertEquals(scorer, otherHalf);
+    assertEquals(scorer.hashCode(), otherHalf.hashCode());
+    assertTrue(scorer.lowerIsBetter());
+
+    assertFalse(scorer.equals(""));
+    assertFalse(scorer.hashCode() == "".hashCode());
+
+    double[] pred = new double[]{
+      0, 2, 4, 6, 8, 9
+    };
+
+    double[] truth = new double[]{
+      0.5, 2, 3, 1, 8.5, 10
+    };
+
+    scorer.prepare();
+    otherHalf.prepare();
+
+    for (int i = 0; i < pred.length / 2; i++) {
+      scorer.addResult(pred[i], truth[i], 1);
     }
-    
-    @BeforeClass
-    public static void setUpClass()
-    {
-    }
-    
-    @AfterClass
-    public static void tearDownClass()
-    {
-    }
-    
-    @Before
-    public void setUp()
-    {
-    }
-    
-    @After
-    public void tearDown()
-    {
+    for (int i = pred.length / 2; i < pred.length; i++) {
+      otherHalf.addResult(pred[i], truth[i], 1);
     }
 
-    /**
-     * Test of getScore method, of class MeanSquaredError.
-     */
-    @Test
-    public void testGetScore()
-    {
-        System.out.println("getScore");
-        MeanSquaredError scorer = new MeanSquaredError();
-        MeanSquaredError otherHalf = scorer.clone();
-        
-        assertEquals(scorer, otherHalf);
-        assertEquals(scorer.hashCode(), otherHalf.hashCode());
-        assertTrue(scorer.lowerIsBetter());
-        
-        assertFalse(scorer.equals(""));
-        assertFalse(scorer.hashCode() == "".hashCode());
-        
-        double[] pred = new double[]
-        {
-            0, 2, 4, 6, 8, 9
-        };
-        
-        double[] truth = new double[]
-        {
-            0.5, 2, 3, 1, 8.5, 10
-        };
-        
-        scorer.prepare();
-        otherHalf.prepare();
-        
-        for(int i = 0; i < pred.length/2; i++) {
-          scorer.addResult(pred[i], truth[i], 1);
-        }
-        for(int i = pred.length/2; i < pred.length; i++) {
-          otherHalf.addResult(pred[i], truth[i], 1);
-        }
-        
-        scorer.addResults(otherHalf);
-        
-        assertEquals((0.25+1+25+0.25+1)/6, scorer.getScore(), 1e-4);
-        assertEquals((0.25+1+25+0.25+1)/6, scorer.clone().getScore(), 1e-4);
-        scorer.setRMSE(true);
-        assertEquals(Math.sqrt((0.25+1+25+0.25+1)/6), scorer.getScore(), 1e-4);
-        assertEquals(Math.sqrt((0.25+1+25+0.25+1)/6), scorer.clone().getScore(), 1e-4);
-    }
-    
+    scorer.addResults(otherHalf);
+
+    assertEquals((0.25 + 1 + 25 + 0.25 + 1) / 6, scorer.getScore(), 1e-4);
+    assertEquals((0.25 + 1 + 25 + 0.25 + 1) / 6, scorer.clone().getScore(), 1e-4);
+    scorer.setRMSE(true);
+    assertEquals(Math.sqrt((0.25 + 1 + 25 + 0.25 + 1) / 6), scorer.getScore(), 1e-4);
+    assertEquals(Math.sqrt((0.25 + 1 + 25 + 0.25 + 1) / 6), scorer.clone().getScore(), 1e-4);
+  }
+
 }

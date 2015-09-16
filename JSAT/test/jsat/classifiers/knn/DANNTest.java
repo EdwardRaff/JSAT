@@ -23,70 +23,62 @@ import org.junit.Test;
  *
  * @author Edward Raff
  */
-public class DANNTest
-{
-    static private ClassificationDataSet easyTrain;
-    static private ClassificationDataSet easyTest;
-    static private ExecutorService ex;
-    static private DANN dann;
-    
-    public DANNTest()
-    {
-    }
-    
-    @BeforeClass
-    public static void setUpClass()
-    {
-        GridDataGenerator gdg = new GridDataGenerator(new Normal(0, 0.05), new Random(12), 2);
-        easyTrain = new ClassificationDataSet(gdg.generateData(80).getBackingList(), 0);
-        easyTest = new ClassificationDataSet(gdg.generateData(40).getBackingList(), 0);
-        ex = Executors.newFixedThreadPool(SystemInfo.LogicalCores);
-    }
-    
-    @AfterClass
-    public static void tearDownClass()
-    {
-    }
-    
-    @Before
-    public void setUp()
-    {
-        dann = new DANN(20, 1);
-    }
-    
-    @After
-    public void tearDown()
-    {
-    }
-    
-    @Test
-    public void testTrainC_ClassificationDataSet()
-    {
-        System.out.println("trainC");
-        dann.trainC(easyTrain);
-        for(int i = 0; i < easyTest.getSampleSize(); i++) {
-          assertEquals(easyTest.getDataPointCategory(i), dann.classify(easyTest.getDataPoint(i)).mostLikely());
-        }
-    }
+public class DANNTest {
 
-    @Test
-    public void testClone()
-    {
-        System.out.println("clone");
-        dann.trainC(easyTrain);
-        Classifier clone = dann.clone();
-        for(int i = 0; i < easyTest.getSampleSize(); i++) {
-          assertEquals(easyTest.getDataPointCategory(i), clone.classify(easyTest.getDataPoint(i)).mostLikely());
-        }
-    }
+  static private ClassificationDataSet easyTrain;
+  static private ClassificationDataSet easyTest;
+  static private ExecutorService ex;
+  static private DANN dann;
 
-    @Test
-    public void testTrainC_ClassificationDataSet_ExecutorService()
-    {
-        System.out.println("trainC");
-        dann.trainC(easyTrain, ex);
-        for(int i = 0; i < easyTest.getSampleSize(); i++) {
-          assertEquals(easyTest.getDataPointCategory(i), dann.classify(easyTest.getDataPoint(i)).mostLikely());
-        }
+  public DANNTest() {
+  }
+
+  @BeforeClass
+  public static void setUpClass() {
+    GridDataGenerator gdg = new GridDataGenerator(new Normal(0, 0.05), new Random(12), 2);
+    easyTrain = new ClassificationDataSet(gdg.generateData(80).getBackingList(), 0);
+    easyTest = new ClassificationDataSet(gdg.generateData(40).getBackingList(), 0);
+    ex = Executors.newFixedThreadPool(SystemInfo.LogicalCores);
+  }
+
+  @AfterClass
+  public static void tearDownClass() {
+  }
+
+  @Before
+  public void setUp() {
+    dann = new DANN(20, 1);
+  }
+
+  @After
+  public void tearDown() {
+  }
+
+  @Test
+  public void testTrainC_ClassificationDataSet() {
+    System.out.println("trainC");
+    dann.trainC(easyTrain);
+    for (int i = 0; i < easyTest.getSampleSize(); i++) {
+      assertEquals(easyTest.getDataPointCategory(i), dann.classify(easyTest.getDataPoint(i)).mostLikely());
     }
+  }
+
+  @Test
+  public void testClone() {
+    System.out.println("clone");
+    dann.trainC(easyTrain);
+    Classifier clone = dann.clone();
+    for (int i = 0; i < easyTest.getSampleSize(); i++) {
+      assertEquals(easyTest.getDataPointCategory(i), clone.classify(easyTest.getDataPoint(i)).mostLikely());
+    }
+  }
+
+  @Test
+  public void testTrainC_ClassificationDataSet_ExecutorService() {
+    System.out.println("trainC");
+    dann.trainC(easyTrain, ex);
+    for (int i = 0; i < easyTest.getSampleSize(); i++) {
+      assertEquals(easyTest.getDataPointCategory(i), dann.classify(easyTest.getDataPoint(i)).mostLikely());
+    }
+  }
 }

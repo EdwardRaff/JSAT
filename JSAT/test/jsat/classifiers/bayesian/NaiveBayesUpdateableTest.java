@@ -22,84 +22,75 @@ import org.junit.Test;
  *
  * @author Edward Raff
  */
-public class NaiveBayesUpdateableTest
-{
-    static private ClassificationDataSet easyTrain;
-    static private ClassificationDataSet easyTest;
-    static private ExecutorService ex;
-    static private NaiveBayesUpdateable nb;
-    
-    public NaiveBayesUpdateableTest()
-    {
-    }
-    
-    @BeforeClass
-    public static void setUpClass()
-    {
-        GridDataGenerator gdg = new GridDataGenerator(new Normal(0, 0.05), new Random(12), 2);
-        easyTrain = new ClassificationDataSet(gdg.generateData(40).getBackingList(), 0);
-        easyTest = new ClassificationDataSet(gdg.generateData(40).getBackingList(), 0);
-        ex = Executors.newFixedThreadPool(SystemInfo.LogicalCores);
-    }
-    
-    @AfterClass
-    public static void tearDownClass()
-    {
-    }
-    
-    @Before
-    public void setUp()
-    {
-        nb = new NaiveBayesUpdateable();
-    }
-    
-    @After
-    public void tearDown()
-    {
-    }
+public class NaiveBayesUpdateableTest {
 
-    @Test
-    public void testTrainC_ClassificationDataSet()
-    {
-        System.out.println("trainC");
-        nb.trainC(easyTrain);
-        for(int i = 0; i < easyTest.getSampleSize(); i++) {
-          assertEquals(easyTest.getDataPointCategory(i), nb.classify(easyTest.getDataPoint(i)).mostLikely());
-        }
-    }
-    
-    @Test
-    public void testSetUpUpdate()
-    {
-        System.out.println("testSetUpUpdate");
-        nb.setUp(easyTrain.getCategories(), easyTrain.getNumNumericalVars(), 
-                easyTrain.getPredicting());
-        for(int i = 0; i < easyTrain.getSampleSize(); i++) {
-          nb.update(easyTrain.getDataPoint(i), easyTrain.getDataPointCategory(i));
-        }
-        for(int i = 0; i < easyTest.getSampleSize(); i++) {
-          assertEquals(easyTest.getDataPointCategory(i), nb.classify(easyTest.getDataPoint(i)).mostLikely());
-        }
-    }
+  static private ClassificationDataSet easyTrain;
+  static private ClassificationDataSet easyTest;
+  static private ExecutorService ex;
+  static private NaiveBayesUpdateable nb;
 
-    @Test
-    public void testClone()
-    {
-        System.out.println("clone");
-        nb.trainC(easyTrain);
-        Classifier clone = nb.clone();
-        for(int i = 0; i < easyTest.getSampleSize(); i++) {
-          assertEquals(easyTest.getDataPointCategory(i), clone.classify(easyTest.getDataPoint(i)).mostLikely());
-        }
-    }
+  public NaiveBayesUpdateableTest() {
+  }
 
-    @Test
-    public void testTrainC_ClassificationDataSet_ExecutorService()
-    {
-        System.out.println("trainC");
-        nb.trainC(easyTrain, ex);
-        for(int i = 0; i < easyTest.getSampleSize(); i++) {
-          assertEquals(easyTest.getDataPointCategory(i), nb.classify(easyTest.getDataPoint(i)).mostLikely());
-        }
+  @BeforeClass
+  public static void setUpClass() {
+    GridDataGenerator gdg = new GridDataGenerator(new Normal(0, 0.05), new Random(12), 2);
+    easyTrain = new ClassificationDataSet(gdg.generateData(40).getBackingList(), 0);
+    easyTest = new ClassificationDataSet(gdg.generateData(40).getBackingList(), 0);
+    ex = Executors.newFixedThreadPool(SystemInfo.LogicalCores);
+  }
+
+  @AfterClass
+  public static void tearDownClass() {
+  }
+
+  @Before
+  public void setUp() {
+    nb = new NaiveBayesUpdateable();
+  }
+
+  @After
+  public void tearDown() {
+  }
+
+  @Test
+  public void testTrainC_ClassificationDataSet() {
+    System.out.println("trainC");
+    nb.trainC(easyTrain);
+    for (int i = 0; i < easyTest.getSampleSize(); i++) {
+      assertEquals(easyTest.getDataPointCategory(i), nb.classify(easyTest.getDataPoint(i)).mostLikely());
     }
+  }
+
+  @Test
+  public void testSetUpUpdate() {
+    System.out.println("testSetUpUpdate");
+    nb.setUp(easyTrain.getCategories(), easyTrain.getNumNumericalVars(),
+            easyTrain.getPredicting());
+    for (int i = 0; i < easyTrain.getSampleSize(); i++) {
+      nb.update(easyTrain.getDataPoint(i), easyTrain.getDataPointCategory(i));
+    }
+    for (int i = 0; i < easyTest.getSampleSize(); i++) {
+      assertEquals(easyTest.getDataPointCategory(i), nb.classify(easyTest.getDataPoint(i)).mostLikely());
+    }
+  }
+
+  @Test
+  public void testClone() {
+    System.out.println("clone");
+    nb.trainC(easyTrain);
+    Classifier clone = nb.clone();
+    for (int i = 0; i < easyTest.getSampleSize(); i++) {
+      assertEquals(easyTest.getDataPointCategory(i), clone.classify(easyTest.getDataPoint(i)).mostLikely());
+    }
+  }
+
+  @Test
+  public void testTrainC_ClassificationDataSet_ExecutorService() {
+    System.out.println("trainC");
+    nb.trainC(easyTrain, ex);
+    for (int i = 0; i < easyTest.getSampleSize(); i++) {
+      assertEquals(easyTest.getDataPointCategory(i), nb.classify(easyTest.getDataPoint(i)).mostLikely());
+    }
+  }
 }

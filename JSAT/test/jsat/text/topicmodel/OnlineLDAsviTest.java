@@ -22,188 +22,163 @@ import org.junit.Test;
  *
  * @author Edward Raff
  */
-public class OnlineLDAsviTest
-{
-    private static final int rows = 5;
-    
-    public OnlineLDAsviTest()
-    {
-    }
-    
-    @BeforeClass
-    public static void setUpClass()
-    {
-    }
-    
-    @AfterClass
-    public static void tearDownClass()
-    {
-    }
-    
-    @Before
-    public void setUp()
-    {
-    }
-    
-    @After
-    public void tearDown()
-    {
-    }
+public class OnlineLDAsviTest {
 
-    /**
-     * Test of model method, of class OnlineLDAsvi.
-     */
-    @Test
-    public void testModel()
-    {
-        System.out.println("model");
-        ExecutorService ex = Executors.newFixedThreadPool(SystemInfo.LogicalCores);
-        
-        for(int iters = 0; iters < 2; iters++)
-        {
-            //create the basis set to sample from
-            List<Vec> basis = new ArrayList<Vec>();
+  private static final int rows = 5;
 
-            for(int i = 0; i < rows; i++)
-            {
-                Vec b0 = new SparseVector(rows*rows);
-                for(int a = 0; a < rows; a++) {
-                  b0.set(i*5+a, 1.0);
-                }
+  public OnlineLDAsviTest() {
+  }
 
-                Vec b1 = new SparseVector(rows*rows);
-                for(int a = 0; a < rows; a++) {
-                  b1.set(a*rows+i, 1.0);
-                }
+  @BeforeClass
+  public static void setUpClass() {
+  }
 
-                b0.mutableDivide(b0.sum());
-                b1.mutableDivide(b1.sum());
-                basis.add(b0);
-                basis.add(b1);
-            }
+  @AfterClass
+  public static void tearDownClass() {
+  }
 
-            //create the training set
-            double alpha = 0.1;
-            List<DataPoint> docs = new ArrayList<DataPoint>();
-            Dirichlet dirichlet = new Dirichlet(new ConstantVector(alpha, basis.size()));
-            Random rand = new XORWOW();
-            for(Vec topicSample : dirichlet.sample(100000, rand))
-            {
-                Vec doc = new DenseVector(basis.get(0).length());
-                //sample 40 times
-                for(int i = 0; i < 100; i++)
-                {
-                    double topicRand = rand.nextDouble();
-                    int topic = 0;
-                    double sum = topicSample.get(0);
-                    while(sum < topicRand)
-                    {
-                        sum+= topicSample.get(++topic);
-                    }
+  @Before
+  public void setUp() {
+  }
 
-                    //sample and index from the topic
-                    Vec basisVec = basis.get(topic);
-                    int randBasisWord = rand.nextInt(basisVec.nnz());
+  @After
+  public void tearDown() {
+  }
 
-                    int pos = 0;
-                    for(IndexValue iv : basisVec)
-                    {
-                        if(pos == randBasisWord)
-                        {
-                            doc.increment(iv.getIndex() , 1.0);
-                            break;
-                        }
-                        pos++;
-                    }
-                }
+  /**
+   * Test of model method, of class OnlineLDAsvi.
+   */
+  @Test
+  public void testModel() {
+    System.out.println("model");
+    ExecutorService ex = Executors.newFixedThreadPool(SystemInfo.LogicalCores);
 
-                docs.add(new DataPoint(doc, new int[0], new CategoricalData[0]));
-            }
+    for (int iters = 0; iters < 2; iters++) {
+      //create the basis set to sample from
+      List<Vec> basis = new ArrayList<Vec>();
 
-            //
-
-            OnlineLDAsvi lda = new OnlineLDAsvi();
-            lda.setAlpha(0.1);
-            lda.setEta(1.0/basis.size());
-            lda.setKappa(0.6);
-            lda.setMiniBatchSize(256);
-            lda.setTau0(64);
-            lda.setEpochs(1);
-
-            
-            if(iters == 0) {
-              lda.model(new SimpleDataSet(docs), basis.size());
-            } else {
-              lda.model(new SimpleDataSet(docs), basis.size(), ex);
-            }
-
-            //map from the LDA topics to the basis topics
-            Map<Integer, Integer> ldaTopicToBasis = new HashMap<Integer, Integer>();
-            for(int i = 0; i < lda.getK(); i++)
-            {
-                Vec topic = lda.getTopicVec(i);
-                int minIndx = 0;
-                double minDist = topic.subtract(basis.get(0)).pNorm(2);
-                for(int j = 1; j < basis.size(); j++)
-                {
-                    double dist = topic.subtract(basis.get(j)).pNorm(2);
-                    if(dist <minDist)
-                    {
-                        minDist = dist;
-                        minIndx = j;
-                    }
-                }
-                ldaTopicToBasis.put(i, minIndx);
-                assertEquals(0.0, minDist, 0.025);//values of around 0.1 are when failure happens
-            }
-
-            //make sure no basis was closest to 2 or more topics
-            assertEquals(basis.size(), new IntSet(ldaTopicToBasis.values()).size());
-
-            //make sure that computing the topic distirbution works
-            for(Vec topicSample : dirichlet.sample(100, rand))
-            {
-                Vec doc = new DenseVector(basis.get(0).length());
-                //sample 40 times
-                for(int i = 0; i < 100; i++)
-                {
-                    double topicRand = rand.nextDouble();
-                    int topic = 0;
-                    double sum = topicSample.get(0);
-                    while(sum < topicRand)
-                    {
-                        sum+= topicSample.get(++topic);
-                    }
-
-                    //sample and index from the topic
-                    Vec basisVec = basis.get(topic);
-                    int randBasisWord = rand.nextInt(basisVec.nnz());
-
-                    int pos = 0;
-                    for(IndexValue iv : basisVec)
-                    {
-                        if(pos == randBasisWord)
-                        {
-                            doc.increment(iv.getIndex(), 1.0);
-                            break;
-                        }
-                        pos++;
-                    }
-                }
-
-                Vec ldaTopics = lda.getTopics(doc);
-                for(int i = 0; i < ldaTopics.length(); i++)
-                {
-                    double ldaVal = ldaTopics.get(i);
-                    if(ldaVal > 0.2)
-                    {
-                        assertEquals(topicSample.get(ldaTopicToBasis.get(i)), ldaVal, 0.25);
-                    }
-                }
-            }
+      for (int i = 0; i < rows; i++) {
+        Vec b0 = new SparseVector(rows * rows);
+        for (int a = 0; a < rows; a++) {
+          b0.set(i * 5 + a, 1.0);
         }
-        
-        ex.shutdown();
+
+        Vec b1 = new SparseVector(rows * rows);
+        for (int a = 0; a < rows; a++) {
+          b1.set(a * rows + i, 1.0);
+        }
+
+        b0.mutableDivide(b0.sum());
+        b1.mutableDivide(b1.sum());
+        basis.add(b0);
+        basis.add(b1);
+      }
+
+      //create the training set
+      double alpha = 0.1;
+      List<DataPoint> docs = new ArrayList<DataPoint>();
+      Dirichlet dirichlet = new Dirichlet(new ConstantVector(alpha, basis.size()));
+      Random rand = new XORWOW();
+      for (Vec topicSample : dirichlet.sample(100000, rand)) {
+        Vec doc = new DenseVector(basis.get(0).length());
+        //sample 40 times
+        for (int i = 0; i < 100; i++) {
+          double topicRand = rand.nextDouble();
+          int topic = 0;
+          double sum = topicSample.get(0);
+          while (sum < topicRand) {
+            sum += topicSample.get(++topic);
+          }
+
+          //sample and index from the topic
+          Vec basisVec = basis.get(topic);
+          int randBasisWord = rand.nextInt(basisVec.nnz());
+
+          int pos = 0;
+          for (IndexValue iv : basisVec) {
+            if (pos == randBasisWord) {
+              doc.increment(iv.getIndex(), 1.0);
+              break;
+            }
+            pos++;
+          }
+        }
+
+        docs.add(new DataPoint(doc, new int[0], new CategoricalData[0]));
+      }
+
+      //
+      OnlineLDAsvi lda = new OnlineLDAsvi();
+      lda.setAlpha(0.1);
+      lda.setEta(1.0 / basis.size());
+      lda.setKappa(0.6);
+      lda.setMiniBatchSize(256);
+      lda.setTau0(64);
+      lda.setEpochs(1);
+
+      if (iters == 0) {
+        lda.model(new SimpleDataSet(docs), basis.size());
+      } else {
+        lda.model(new SimpleDataSet(docs), basis.size(), ex);
+      }
+
+      //map from the LDA topics to the basis topics
+      Map<Integer, Integer> ldaTopicToBasis = new HashMap<Integer, Integer>();
+      for (int i = 0; i < lda.getK(); i++) {
+        Vec topic = lda.getTopicVec(i);
+        int minIndx = 0;
+        double minDist = topic.subtract(basis.get(0)).pNorm(2);
+        for (int j = 1; j < basis.size(); j++) {
+          double dist = topic.subtract(basis.get(j)).pNorm(2);
+          if (dist < minDist) {
+            minDist = dist;
+            minIndx = j;
+          }
+        }
+        ldaTopicToBasis.put(i, minIndx);
+        assertEquals(0.0, minDist, 0.025);//values of around 0.1 are when failure happens
+      }
+
+      //make sure no basis was closest to 2 or more topics
+      assertEquals(basis.size(), new IntSet(ldaTopicToBasis.values()).size());
+
+      //make sure that computing the topic distirbution works
+      for (Vec topicSample : dirichlet.sample(100, rand)) {
+        Vec doc = new DenseVector(basis.get(0).length());
+        //sample 40 times
+        for (int i = 0; i < 100; i++) {
+          double topicRand = rand.nextDouble();
+          int topic = 0;
+          double sum = topicSample.get(0);
+          while (sum < topicRand) {
+            sum += topicSample.get(++topic);
+          }
+
+          //sample and index from the topic
+          Vec basisVec = basis.get(topic);
+          int randBasisWord = rand.nextInt(basisVec.nnz());
+
+          int pos = 0;
+          for (IndexValue iv : basisVec) {
+            if (pos == randBasisWord) {
+              doc.increment(iv.getIndex(), 1.0);
+              break;
+            }
+            pos++;
+          }
+        }
+
+        Vec ldaTopics = lda.getTopics(doc);
+        for (int i = 0; i < ldaTopics.length(); i++) {
+          double ldaVal = ldaTopics.get(i);
+          if (ldaVal > 0.2) {
+            assertEquals(topicSample.get(ldaTopicToBasis.get(i)), ldaVal, 0.25);
+          }
+        }
+      }
     }
+
+    ex.shutdown();
+  }
 
 }

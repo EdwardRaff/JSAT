@@ -14,7 +14,6 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-
 package jsat.classifiers.boosting;
 
 import java.util.concurrent.ExecutorService;
@@ -35,145 +34,132 @@ import static org.junit.Assert.*;
  *
  * @author Edward Raff <Raff.Edward@gmail.com>
  */
-public class BaggingTest
-{
-    
-    public BaggingTest()
-    {
+public class BaggingTest {
+
+  public BaggingTest() {
+  }
+
+  @BeforeClass
+  public static void setUpClass() {
+  }
+
+  @AfterClass
+  public static void tearDownClass() {
+  }
+
+  @Before
+  public void setUp() {
+  }
+
+  @After
+  public void tearDown() {
+  }
+
+  @Test
+  public void testTrainC_RegressionDataSet() {
+    System.out.println("train");
+
+    Bagging instance = new Bagging((Regressor) new DecisionTree());
+
+    RegressionDataSet train = FixedProblems.getLinearRegression(1000, new XORWOW());
+    RegressionDataSet test = FixedProblems.getLinearRegression(100, new XORWOW());
+
+    RegressionModelEvaluation rme = new RegressionModelEvaluation(instance, train);
+    rme.evaluateTestSet(test);
+
+    assertTrue(rme.getMeanError() <= test.getTargetValues().mean() * 0.5);
+
+  }
+
+  @Test
+  public void testTrainC_RegressionDataSet_ExecutorService() {
+    System.out.println("train");
+
+    Bagging instance = new Bagging((Regressor) new DecisionTree());
+
+    ExecutorService ex = Executors.newFixedThreadPool(SystemInfo.LogicalCores);
+
+    RegressionDataSet train = FixedProblems.getLinearRegression(1000, new XORWOW());
+    RegressionDataSet test = FixedProblems.getLinearRegression(100, new XORWOW());
+
+    RegressionModelEvaluation rme = new RegressionModelEvaluation(instance, train, ex);
+    rme.evaluateTestSet(test);
+
+    assertTrue(rme.getMeanError() <= test.getTargetValues().mean() * 0.5);
+
+    ex.shutdownNow();
+  }
+
+  @Test
+  public void testTrainC_ClassificationDataSet_ExecutorService() {
+    System.out.println("trainC");
+
+    Bagging instance = new Bagging((Classifier) new DecisionTree());
+
+    ExecutorService ex = Executors.newFixedThreadPool(SystemInfo.LogicalCores);
+
+    ClassificationDataSet train = FixedProblems.getCircles(1000, .1, 10.0);
+    ClassificationDataSet test = FixedProblems.getCircles(100, .1, 10.0);
+
+    ClassificationModelEvaluation cme = new ClassificationModelEvaluation(instance, train, ex);
+    cme.evaluateTestSet(test);
+
+    assertTrue(cme.getErrorRate() <= 0.05);
+
+    ex.shutdownNow();
+  }
+
+  @Test
+  public void testTrainC_ClassificationDataSet() {
+    System.out.println("trainC");
+
+    Bagging instance = new Bagging((Classifier) new DecisionTree());
+
+    ClassificationDataSet train = FixedProblems.getCircles(1000, .1, 10.0);
+    ClassificationDataSet test = FixedProblems.getCircles(100, .1, 10.0);
+
+    ClassificationModelEvaluation cme = new ClassificationModelEvaluation(instance, train);
+    cme.evaluateTestSet(test);
+
+    assertTrue(cme.getErrorRate() <= 0.05);
+
+  }
+
+  @Test
+  public void testClone() {
+    System.out.println("clone");
+
+    Bagging instance = new Bagging((Classifier) new DecisionTree());
+
+    ClassificationDataSet t1 = FixedProblems.getCircles(1000, 0.1, 10.0);
+    ClassificationDataSet t2 = FixedProblems.getCircles(1000, 0.1, 10.0);
+
+    t2.applyTransform(new LinearTransform(t2));
+
+    int errors;
+
+    instance = instance.clone();
+
+    instance.trainC(t1);
+
+    Bagging result = instance.clone();
+
+    errors = 0;
+    for (int i = 0; i < t1.getSampleSize(); i++) {
+      errors += Math.abs(t1.getDataPointCategory(i) - result.classify(t1.getDataPoint(i)).mostLikely());
     }
-    
-    @BeforeClass
-    public static void setUpClass()
-    {
+    assertTrue(errors < 100);
+    result.trainC(t2);
+
+    for (int i = 0; i < t1.getSampleSize(); i++) {
+      errors += Math.abs(t1.getDataPointCategory(i) - instance.classify(t1.getDataPoint(i)).mostLikely());
     }
-    
-    @AfterClass
-    public static void tearDownClass()
-    {
+    assertTrue(errors < 100);
+
+    for (int i = 0; i < t2.getSampleSize(); i++) {
+      errors += Math.abs(t2.getDataPointCategory(i) - result.classify(t2.getDataPoint(i)).mostLikely());
     }
-    
-    @Before
-    public void setUp()
-    {
-    }
-    
-    @After
-    public void tearDown()
-    {
-    }
-    
-    @Test
-    public void testTrainC_RegressionDataSet()
-    {
-        System.out.println("train");
+    assertTrue(errors < 100);
+  }
 
-        Bagging instance = new Bagging((Regressor)new DecisionTree());
-
-        RegressionDataSet train = FixedProblems.getLinearRegression(1000, new XORWOW());
-        RegressionDataSet test = FixedProblems.getLinearRegression(100, new XORWOW());
-
-        RegressionModelEvaluation rme = new RegressionModelEvaluation(instance, train);
-        rme.evaluateTestSet(test);
-
-        assertTrue(rme.getMeanError() <= test.getTargetValues().mean() * 0.5);
-
-    }
-
-    @Test
-    public void testTrainC_RegressionDataSet_ExecutorService()
-    {
-        System.out.println("train");
-
-        Bagging instance = new Bagging((Regressor)new DecisionTree());
-
-        ExecutorService ex = Executors.newFixedThreadPool(SystemInfo.LogicalCores);
-
-        RegressionDataSet train = FixedProblems.getLinearRegression(1000, new XORWOW());
-        RegressionDataSet test = FixedProblems.getLinearRegression(100, new XORWOW());
-
-        RegressionModelEvaluation rme = new RegressionModelEvaluation(instance, train, ex);
-        rme.evaluateTestSet(test);
-
-        assertTrue(rme.getMeanError() <= test.getTargetValues().mean() * 0.5);
-
-        ex.shutdownNow();
-    }
-
-    
-    @Test
-    public void testTrainC_ClassificationDataSet_ExecutorService()
-    {
-        System.out.println("trainC");
-
-        Bagging instance = new Bagging((Classifier)new DecisionTree());
-
-        ExecutorService ex = Executors.newFixedThreadPool(SystemInfo.LogicalCores);
-
-        ClassificationDataSet train = FixedProblems.getCircles(1000, .1, 10.0);
-        ClassificationDataSet test = FixedProblems.getCircles(100, .1, 10.0);
-
-        ClassificationModelEvaluation cme = new ClassificationModelEvaluation(instance, train, ex);
-        cme.evaluateTestSet(test);
-
-
-        assertTrue(cme.getErrorRate() <= 0.05);
-
-        ex.shutdownNow();
-    }
-
-    @Test
-    public void testTrainC_ClassificationDataSet()
-    {
-        System.out.println("trainC");
-
-        Bagging instance = new Bagging((Classifier)new DecisionTree());
-
-        ClassificationDataSet train = FixedProblems.getCircles(1000, .1, 10.0);
-        ClassificationDataSet test = FixedProblems.getCircles(100, .1, 10.0);
-
-        ClassificationModelEvaluation cme = new ClassificationModelEvaluation(instance, train);
-        cme.evaluateTestSet(test);
-
-        assertTrue(cme.getErrorRate() <= 0.05);
-
-    }
-
-    @Test
-    public void testClone()
-    {
-        System.out.println("clone");
-
-        Bagging instance = new Bagging((Classifier)new DecisionTree());
-
-        ClassificationDataSet t1 = FixedProblems.getCircles(1000, 0.1, 10.0);
-        ClassificationDataSet t2 = FixedProblems.getCircles(1000, 0.1, 10.0);
-        
-        t2.applyTransform(new LinearTransform(t2));
-
-        int errors;
-        
-        instance = instance.clone();
-
-        instance.trainC(t1);
-
-        Bagging result = instance.clone();
-        
-        errors = 0;
-        for (int i = 0; i < t1.getSampleSize(); i++) {
-          errors += Math.abs(t1.getDataPointCategory(i) -  result.classify(t1.getDataPoint(i)).mostLikely());
-        }
-        assertTrue(errors < 100);
-        result.trainC(t2);
-
-        for (int i = 0; i < t1.getSampleSize(); i++) {
-          errors += Math.abs(t1.getDataPointCategory(i) -  instance.classify(t1.getDataPoint(i)).mostLikely());
-        }
-        assertTrue(errors < 100);
-
-        for (int i = 0; i < t2.getSampleSize(); i++) {
-          errors += Math.abs(t2.getDataPointCategory(i) -  result.classify(t2.getDataPoint(i)).mostLikely());
-        }
-        assertTrue(errors < 100);
-    }
-    
 }

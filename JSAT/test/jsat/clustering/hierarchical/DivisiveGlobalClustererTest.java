@@ -24,140 +24,123 @@ import static org.junit.Assert.assertFalse;
  *
  * @author Edward Raff
  */
-public class DivisiveGlobalClustererTest
-{
-    static private DivisiveGlobalClusterer dgc;
-    static private SimpleDataSet easyData;
-    static private ExecutorService ex;
-    
-    public DivisiveGlobalClustererTest()
-    {
-    }
+public class DivisiveGlobalClustererTest {
 
-    @BeforeClass
-    public static void setUpClass() throws Exception
-    {
-        GridDataGenerator gdg = new GridDataGenerator(new Uniform(-0.15, 0.15), new Random(12), 2, 2);
-        easyData = gdg.generateData(60);
-        ex = Executors.newFixedThreadPool(10);
-    }
+  static private DivisiveGlobalClusterer dgc;
+  static private SimpleDataSet easyData;
+  static private ExecutorService ex;
 
-    @AfterClass
-    public static void tearDownClass() throws Exception
-    {
-    }
-    
-    @Before
-    public void setUp()
-    {
-        DistanceMetric dm = new EuclideanDistance();
-        dgc = new DivisiveGlobalClusterer(new ElkanKMeans(dm), new DaviesBouldinIndex(dm));
-    }
-    
-    @After
-    public void tearDown()
-    {
-    }
+  public DivisiveGlobalClustererTest() {
+  }
 
-    @Test
-    public void testCluster_DataSet_int()
-    {
-        System.out.println("cluster(dataset, int)");
-        List<List<DataPoint>> clusters = dgc.cluster(easyData, 4);
-        assertEquals(4, clusters.size());
-        Set<Integer> seenBefore = new IntSet();
-        for (List<DataPoint> cluster : clusters)
-        {
-            int thisClass = cluster.get(0).getCategoricalValue(0);
-            assertFalse(seenBefore.contains(thisClass));
-            for (DataPoint dp : cluster) {
-              assertEquals(thisClass, dp.getCategoricalValue(0));
-            }
-        }
-    }
+  @BeforeClass
+  public static void setUpClass() throws Exception {
+    GridDataGenerator gdg = new GridDataGenerator(new Uniform(-0.15, 0.15), new Random(12), 2, 2);
+    easyData = gdg.generateData(60);
+    ex = Executors.newFixedThreadPool(10);
+  }
 
-    @Test
-    public void testCluster_DataSet()
-    {
-        System.out.println("cluster(dataset)");
-        List<List<DataPoint>> clusters = dgc.cluster(easyData);
-        assertEquals(4, clusters.size());
-        Set<Integer> seenBefore = new IntSet();
-        for (List<DataPoint> cluster : clusters)
-        {
-            int thisClass = cluster.get(0).getCategoricalValue(0);
-            assertFalse(seenBefore.contains(thisClass));
-            for (DataPoint dp : cluster) {
-              assertEquals(thisClass, dp.getCategoricalValue(0));
-            }
-        }
-    }
-    
-    @Test
-    public void testCluster_DataSet_ExecutorService()
-    {
-        System.out.println("cluster(dataset, ExecutorService)");
-        List<List<DataPoint>> clusters = dgc.cluster(easyData, ex);
-        assertEquals(4, clusters.size());
-        Set<Integer> seenBefore = new IntSet();
-        for (List<DataPoint> cluster : clusters)
-        {
-            int thisClass = cluster.get(0).getCategoricalValue(0);
-            assertFalse(seenBefore.contains(thisClass));
-            for (DataPoint dp : cluster) {
-              assertEquals(thisClass, dp.getCategoricalValue(0));
-            }
-        }
-    }
+  @AfterClass
+  public static void tearDownClass() throws Exception {
+  }
 
-    @Test
-    public void testCluster_DataSet_int_int()
-    {
-        System.out.println("cluster(dataset, int, int)");
-        List<List<DataPoint>> clusters = dgc.cluster(easyData, 2, 20);
-        assertEquals(4, clusters.size());
-        Set<Integer> seenBefore = new IntSet();
-        for (List<DataPoint> cluster : clusters)
-        {
-            int thisClass = cluster.get(0).getCategoricalValue(0);
-            assertFalse(seenBefore.contains(thisClass));
-            for (DataPoint dp : cluster) {
-              assertEquals(thisClass, dp.getCategoricalValue(0));
-            }
-        }
-    }
-    
-    @Test
-    public void testCluster_DataSet_int_int_ExecutorService()
-    {
-        System.out.println("cluster(dataset, int, int, ExecutorService)");
-        List<List<DataPoint>> clusters = dgc.cluster(easyData, 2, 20, ex);
-        assertEquals(4, clusters.size());
-        Set<Integer> seenBefore = new IntSet();
-        for (List<DataPoint> cluster : clusters)
-        {
-            int thisClass = cluster.get(0).getCategoricalValue(0);
-            assertFalse(seenBefore.contains(thisClass));
-            for (DataPoint dp : cluster) {
-              assertEquals(thisClass, dp.getCategoricalValue(0));
-            }
-        }
-    }
+  @Before
+  public void setUp() {
+    DistanceMetric dm = new EuclideanDistance();
+    dgc = new DivisiveGlobalClusterer(new ElkanKMeans(dm), new DaviesBouldinIndex(dm));
+  }
 
-    @Test
-    public void testCluster_DataSet_int_ExecutorService()
-    {
-        System.out.println("cluster(dataset, int, ExecutorService)");
-        List<List<DataPoint>> clusters = dgc.cluster(easyData, 4, ex);
-        assertEquals(4, clusters.size());
-        Set<Integer> seenBefore = new IntSet();
-        for (List<DataPoint> cluster : clusters)
-        {
-            int thisClass = cluster.get(0).getCategoricalValue(0);
-            assertFalse(seenBefore.contains(thisClass));
-            for (DataPoint dp : cluster) {
-              assertEquals(thisClass, dp.getCategoricalValue(0));
-            }
-        }
+  @After
+  public void tearDown() {
+  }
+
+  @Test
+  public void testCluster_DataSet_int() {
+    System.out.println("cluster(dataset, int)");
+    List<List<DataPoint>> clusters = dgc.cluster(easyData, 4);
+    assertEquals(4, clusters.size());
+    Set<Integer> seenBefore = new IntSet();
+    for (List<DataPoint> cluster : clusters) {
+      int thisClass = cluster.get(0).getCategoricalValue(0);
+      assertFalse(seenBefore.contains(thisClass));
+      for (DataPoint dp : cluster) {
+        assertEquals(thisClass, dp.getCategoricalValue(0));
+      }
     }
+  }
+
+  @Test
+  public void testCluster_DataSet() {
+    System.out.println("cluster(dataset)");
+    List<List<DataPoint>> clusters = dgc.cluster(easyData);
+    assertEquals(4, clusters.size());
+    Set<Integer> seenBefore = new IntSet();
+    for (List<DataPoint> cluster : clusters) {
+      int thisClass = cluster.get(0).getCategoricalValue(0);
+      assertFalse(seenBefore.contains(thisClass));
+      for (DataPoint dp : cluster) {
+        assertEquals(thisClass, dp.getCategoricalValue(0));
+      }
+    }
+  }
+
+  @Test
+  public void testCluster_DataSet_ExecutorService() {
+    System.out.println("cluster(dataset, ExecutorService)");
+    List<List<DataPoint>> clusters = dgc.cluster(easyData, ex);
+    assertEquals(4, clusters.size());
+    Set<Integer> seenBefore = new IntSet();
+    for (List<DataPoint> cluster : clusters) {
+      int thisClass = cluster.get(0).getCategoricalValue(0);
+      assertFalse(seenBefore.contains(thisClass));
+      for (DataPoint dp : cluster) {
+        assertEquals(thisClass, dp.getCategoricalValue(0));
+      }
+    }
+  }
+
+  @Test
+  public void testCluster_DataSet_int_int() {
+    System.out.println("cluster(dataset, int, int)");
+    List<List<DataPoint>> clusters = dgc.cluster(easyData, 2, 20);
+    assertEquals(4, clusters.size());
+    Set<Integer> seenBefore = new IntSet();
+    for (List<DataPoint> cluster : clusters) {
+      int thisClass = cluster.get(0).getCategoricalValue(0);
+      assertFalse(seenBefore.contains(thisClass));
+      for (DataPoint dp : cluster) {
+        assertEquals(thisClass, dp.getCategoricalValue(0));
+      }
+    }
+  }
+
+  @Test
+  public void testCluster_DataSet_int_int_ExecutorService() {
+    System.out.println("cluster(dataset, int, int, ExecutorService)");
+    List<List<DataPoint>> clusters = dgc.cluster(easyData, 2, 20, ex);
+    assertEquals(4, clusters.size());
+    Set<Integer> seenBefore = new IntSet();
+    for (List<DataPoint> cluster : clusters) {
+      int thisClass = cluster.get(0).getCategoricalValue(0);
+      assertFalse(seenBefore.contains(thisClass));
+      for (DataPoint dp : cluster) {
+        assertEquals(thisClass, dp.getCategoricalValue(0));
+      }
+    }
+  }
+
+  @Test
+  public void testCluster_DataSet_int_ExecutorService() {
+    System.out.println("cluster(dataset, int, ExecutorService)");
+    List<List<DataPoint>> clusters = dgc.cluster(easyData, 4, ex);
+    assertEquals(4, clusters.size());
+    Set<Integer> seenBefore = new IntSet();
+    for (List<DataPoint> cluster : clusters) {
+      int thisClass = cluster.get(0).getCategoricalValue(0);
+      assertFalse(seenBefore.contains(thisClass));
+      for (DataPoint dp : cluster) {
+        assertEquals(thisClass, dp.getCategoricalValue(0));
+      }
+    }
+  }
 }

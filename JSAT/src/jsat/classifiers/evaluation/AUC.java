@@ -7,145 +7,129 @@ import jsat.classifiers.CategoricalData;
 import jsat.classifiers.CategoricalResults;
 
 /**
- * Computes the Area Under the ROC Curve as an evaluation of classification 
- * scores. The AUC takes <i>O(n log n)</i> time for <i>n</i> predictions and is 
- * only valid for binary classification problems. 
- * 
+ * Computes the Area Under the ROC Curve as an evaluation of classification scores. The AUC takes <i>O(n log n)</i> time
+ * for <i>n</i> predictions and is only valid for binary classification problems.
+ *
  * @author Edward Raff
  */
-public class AUC implements ClassificationScore
-{
+public class AUC implements ClassificationScore {
 
-	private static final long serialVersionUID = 6882234590870560718L;
+  private static final long serialVersionUID = 6882234590870560718L;
 
-	private static class Tuple implements Comparable<Tuple>
-    {
-        /**
-         * larger means positive class, smaller means negative class
-         */
-        public double score;
-        /**
-         * Does this point truly belong to the positive class
-         */
-        public boolean positiveClass;
-        
-        public double weight;
-
-        public Tuple(double score, boolean positiveClass, double weight)
-        {
-            this.score = score;
-            this.positiveClass = positiveClass;
-            this.weight = weight;
-        }
-        
-
-        @Override
-        public int compareTo(Tuple o)
-        {
-            return Double.compare(this.score, o.score);
-        }
-        
-    }
-    private List<Tuple> scores;
+  private static class Tuple implements Comparable<Tuple> {
 
     /**
-     * Creates a new AUC object
+     * larger means positive class, smaller means negative class
      */
-    public AUC()
-    {
-    }
-
+    public double score;
     /**
-     * Copy constructor
-     * @param toClone the object to copy
+     * Does this point truly belong to the positive class
      */
-    public AUC(AUC toClone)
-    {
-        if(toClone.scores != null)
-        {
-            this.scores = new ArrayList<Tuple>(toClone.scores);
-            for(int i = 0; i < this.scores.size(); i++) {
-              this.scores.set(i, new Tuple(this.scores.get(i).score, this.scores.get(i).positiveClass, this.scores.get(i).weight));
-            }
-        }
-    }
-    
-    @Override
-    public void addResult(CategoricalResults prediction, int trueLabel, double weight)
-    {
-        scores.add(new Tuple(prediction.getProb(0), trueLabel == 0, weight));
+    public boolean positiveClass;
+
+    public double weight;
+
+    public Tuple(double score, boolean positiveClass, double weight) {
+      this.score = score;
+      this.positiveClass = positiveClass;
+      this.weight = weight;
     }
 
     @Override
-    public void addResults(ClassificationScore other)
-    {
-        AUC otherObj = (AUC) other;
-        this.scores.addAll(otherObj.scores);
-    }
-    
-    @Override
-    public void prepare(CategoricalData toPredict)
-    {
-        if(toPredict.getNumOfCategories() != 2) {
-          throw new IllegalArgumentException("AUC is only defined for binary classification problems");
-        }
-        scores = new ArrayList<Tuple>();
+    public int compareTo(Tuple o) {
+      return Double.compare(this.score, o.score);
     }
 
-    @Override
-    public double getScore()
-    {
-        Collections.sort(scores);
+  }
+  private List<Tuple> scores;
 
-        double pos = 0, neg = 0, sum = 0;
-        for (Tuple i : scores) {
-          if (i.positiveClass) {
-            pos += i.weight;
-          } else {
-            neg += i.weight;
-          }
-        }
-        double posLeft = pos;
-        for (Tuple i : scores) {
-          if (i.positiveClass) {
-            posLeft -= i.weight;
-          } else {
-            //posLeft instances of the positive class were correctly above the negative class
-            sum += posLeft;
-          }
-        }
+  /**
+   * Creates a new AUC object
+   */
+  public AUC() {
+  }
 
-        return sum / (pos * neg);
+  /**
+   * Copy constructor
+   *
+   * @param toClone the object to copy
+   */
+  public AUC(AUC toClone) {
+    if (toClone.scores != null) {
+      this.scores = new ArrayList<Tuple>(toClone.scores);
+      for (int i = 0; i < this.scores.size(); i++) {
+        this.scores.set(i, new Tuple(this.scores.get(i).score, this.scores.get(i).positiveClass, this.scores.get(i).weight));
+      }
+    }
+  }
+
+  @Override
+  public void addResult(CategoricalResults prediction, int trueLabel, double weight) {
+    scores.add(new Tuple(prediction.getProb(0), trueLabel == 0, weight));
+  }
+
+  @Override
+  public void addResults(ClassificationScore other) {
+    AUC otherObj = (AUC) other;
+    this.scores.addAll(otherObj.scores);
+  }
+
+  @Override
+  public void prepare(CategoricalData toPredict) {
+    if (toPredict.getNumOfCategories() != 2) {
+      throw new IllegalArgumentException("AUC is only defined for binary classification problems");
+    }
+    scores = new ArrayList<Tuple>();
+  }
+
+  @Override
+  public double getScore() {
+    Collections.sort(scores);
+
+    double pos = 0, neg = 0, sum = 0;
+    for (Tuple i : scores) {
+      if (i.positiveClass) {
+        pos += i.weight;
+      } else {
+        neg += i.weight;
+      }
+    }
+    double posLeft = pos;
+    for (Tuple i : scores) {
+      if (i.positiveClass) {
+        posLeft -= i.weight;
+      } else {
+        //posLeft instances of the positive class were correctly above the negative class
+        sum += posLeft;
+      }
     }
 
-    @Override
-    public boolean lowerIsBetter()
-    {
-        return false;
-    }
-    
-    @Override
-    public boolean equals(Object obj)
-    {
-        return this.getClass().isAssignableFrom(obj.getClass()) && obj.getClass().isAssignableFrom(this.getClass());
-    }
+    return sum / (pos * neg);
+  }
 
-    @Override
-    public int hashCode()
-    {
-        return getName().hashCode();
-    }
+  @Override
+  public boolean lowerIsBetter() {
+    return false;
+  }
 
-    @Override
-    public AUC clone()
-    {
-        return new AUC(this);
-    }
+  @Override
+  public boolean equals(Object obj) {
+    return this.getClass().isAssignableFrom(obj.getClass()) && obj.getClass().isAssignableFrom(this.getClass());
+  }
 
-    @Override
-    public String getName()
-    {
-        return "AUC";
-    }
-    
+  @Override
+  public int hashCode() {
+    return getName().hashCode();
+  }
+
+  @Override
+  public AUC clone() {
+    return new AUC(this);
+  }
+
+  @Override
+  public String getName() {
+    return "AUC";
+  }
+
 }

@@ -36,117 +36,101 @@ import org.junit.Test;
  *
  * @author Edward Raff
  */
-public class MultinomialNaiveBayesTest
-{
-    
-    public MultinomialNaiveBayesTest()
-    {
+public class MultinomialNaiveBayesTest {
+
+  public MultinomialNaiveBayesTest() {
+  }
+
+  @BeforeClass
+  public static void setUpClass() {
+  }
+
+  @AfterClass
+  public static void tearDownClass() {
+  }
+
+  @Before
+  public void setUp() {
+  }
+
+  @After
+  public void tearDown() {
+  }
+
+  @Test
+  public void testTrainC_ClassificationDataSet_ExecutorService() {
+    System.out.println("trainC");
+
+    for (boolean useCatFeatures : new boolean[]{true, false}) {
+      MultinomialNaiveBayes instance = new MultinomialNaiveBayes();
+
+      ExecutorService ex = Executors.newFixedThreadPool(SystemInfo.LogicalCores);
+
+      ClassificationDataSet train = FixedProblems.getSimpleKClassLinear(10000, 3, new XOR96());
+      ClassificationDataSet test = FixedProblems.getSimpleKClassLinear(1000, 3, new XOR96());
+
+      ClassificationModelEvaluation cme = new ClassificationModelEvaluation(instance, train, ex);
+      if (useCatFeatures) {
+        cme.setDataTransformProcess(new DataTransformProcess(new NumericalToHistogram.NumericalToHistogramTransformFactory()));
+      }
+      cme.evaluateTestSet(test);
+
+      assertTrue(cme.getErrorRate() <= 0.001);
+
+      ex.shutdownNow();
     }
-    
-    @BeforeClass
-    public static void setUpClass()
-    {
+  }
+
+  @Test
+  public void testTrainC_ClassificationDataSet() {
+    System.out.println("trainC");
+    for (boolean useCatFeatures : new boolean[]{true, false}) {
+      MultinomialNaiveBayes instance = new MultinomialNaiveBayes();
+
+      ClassificationDataSet train = FixedProblems.getSimpleKClassLinear(10000, 3, new XOR96());
+      ClassificationDataSet test = FixedProblems.getSimpleKClassLinear(1000, 3, new XOR96());
+
+      ClassificationModelEvaluation cme = new ClassificationModelEvaluation(instance, train);
+      if (useCatFeatures) {
+        cme.setDataTransformProcess(new DataTransformProcess(new NumericalToHistogram.NumericalToHistogramTransformFactory()));
+      }
+      cme.evaluateTestSet(test);
+
+      assertTrue(cme.getErrorRate() <= 0.001);
     }
-    
-    @AfterClass
-    public static void tearDownClass()
-    {
+  }
+
+  @Test
+  public void testClone() {
+    System.out.println("clone");
+    for (boolean useCatFeatures : new boolean[]{true, false}) {
+      MultinomialNaiveBayes instance = new MultinomialNaiveBayes();
+
+      ClassificationDataSet t1 = FixedProblems.getSimpleKClassLinear(1000, 3, new XOR96());
+      ClassificationDataSet t2 = FixedProblems.getSimpleKClassLinear(1000, 6, new XOR96());
+      if (useCatFeatures) {
+        t1.applyTransform(new NumericalToHistogram(t1));
+        t2.applyTransform(new NumericalToHistogram(t2));
+      }
+
+      instance = instance.clone();
+
+      instance.trainC(t1);
+
+      MultinomialNaiveBayes result = instance.clone();
+      for (int i = 0; i < t1.getSampleSize(); i++) {
+        assertEquals(t1.getDataPointCategory(i), result.classify(t1.getDataPoint(i)).mostLikely());
+      }
+      result.trainC(t2);
+
+      for (int i = 0; i < t1.getSampleSize(); i++) {
+        assertEquals(t1.getDataPointCategory(i), instance.classify(t1.getDataPoint(i)).mostLikely());
+      }
+
+      for (int i = 0; i < t2.getSampleSize(); i++) {
+        assertEquals(t2.getDataPointCategory(i), result.classify(t2.getDataPoint(i)).mostLikely());
+      }
     }
-    
-    @Before
-    public void setUp()
-    {
-    }
-    
-    @After
-    public void tearDown()
-    {
-    }
+  }
 
-    
-    @Test
-    public void testTrainC_ClassificationDataSet_ExecutorService()
-    {
-        System.out.println("trainC");
-
-        for(boolean useCatFeatures : new boolean[]{true, false})
-        {
-            MultinomialNaiveBayes instance = new MultinomialNaiveBayes();
-
-            ExecutorService ex = Executors.newFixedThreadPool(SystemInfo.LogicalCores);
-
-            ClassificationDataSet train =  FixedProblems.getSimpleKClassLinear(10000, 3, new XOR96());
-            ClassificationDataSet test = FixedProblems.getSimpleKClassLinear(1000, 3, new XOR96());
-
-            ClassificationModelEvaluation cme = new ClassificationModelEvaluation(instance, train, ex);
-            if(useCatFeatures) {
-              cme.setDataTransformProcess(new DataTransformProcess(new NumericalToHistogram.NumericalToHistogramTransformFactory()));
-            }
-            cme.evaluateTestSet(test);
-
-            assertTrue(cme.getErrorRate() <= 0.001);
-
-            ex.shutdownNow();
-        }
-    }
-
-    @Test
-    public void testTrainC_ClassificationDataSet()
-    {
-        System.out.println("trainC");
-        for(boolean useCatFeatures : new boolean[]{true, false})
-        {
-            MultinomialNaiveBayes instance = new MultinomialNaiveBayes();
-            
-
-            ClassificationDataSet train =  FixedProblems.getSimpleKClassLinear(10000, 3, new XOR96());
-            ClassificationDataSet test = FixedProblems.getSimpleKClassLinear(1000, 3, new XOR96());
-
-            ClassificationModelEvaluation cme = new ClassificationModelEvaluation(instance, train);
-            if(useCatFeatures) {
-              cme.setDataTransformProcess(new DataTransformProcess(new NumericalToHistogram.NumericalToHistogramTransformFactory()));
-            }
-            cme.evaluateTestSet(test);
-
-            assertTrue(cme.getErrorRate() <= 0.001);
-        }
-    }
-
-    
-    @Test
-    public void testClone()
-    {
-        System.out.println("clone");
-        for(boolean useCatFeatures : new boolean[]{true, false})
-        {
-            MultinomialNaiveBayes instance = new MultinomialNaiveBayes();
-            
-            ClassificationDataSet t1 = FixedProblems.getSimpleKClassLinear(1000, 3, new XOR96());
-            ClassificationDataSet t2 = FixedProblems.getSimpleKClassLinear(1000, 6, new XOR96());
-            if(useCatFeatures)
-            {
-                t1.applyTransform(new NumericalToHistogram(t1));
-                t2.applyTransform(new NumericalToHistogram(t2));
-            }
-
-            instance = instance.clone();
-
-            instance.trainC(t1);
-
-            MultinomialNaiveBayes result = instance.clone();
-            for(int i = 0; i < t1.getSampleSize(); i++) {
-              assertEquals(t1.getDataPointCategory(i), result.classify(t1.getDataPoint(i)).mostLikely());
-            }
-            result.trainC(t2);
-
-            for(int i = 0; i < t1.getSampleSize(); i++) {
-              assertEquals(t1.getDataPointCategory(i), instance.classify(t1.getDataPoint(i)).mostLikely());
-            }
-
-            for(int i = 0; i < t2.getSampleSize(); i++) {
-              assertEquals(t2.getDataPointCategory(i), result.classify(t2.getDataPoint(i)).mostLikely());
-            }
-        }
-    }
-    
 }

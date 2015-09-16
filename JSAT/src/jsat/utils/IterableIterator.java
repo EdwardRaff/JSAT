@@ -3,23 +3,21 @@ package jsat.utils;
 import java.util.Iterator;
 
 /**
- * Convenience object for being able to use the for each loop on an iterator. 
- * 
+ * Convenience object for being able to use the for each loop on an iterator.
+ *
  * @author Edward Raff
  */
-public final class IterableIterator<T> implements Iterable<T>
-{
-    private final Iterator<T> iterator;
+public final class IterableIterator<T> implements Iterable<T> {
 
-    public IterableIterator(Iterator<T> iterator)
-    {
-        this.iterator = iterator;
-    }
+  private final Iterator<T> iterator;
 
-    @Override
-    public Iterator<T> iterator()
-    {
-        return iterator;
-    }
-    
+  public IterableIterator(Iterator<T> iterator) {
+    this.iterator = iterator;
+  }
+
+  @Override
+  public Iterator<T> iterator() {
+    return iterator;
+  }
+
 }

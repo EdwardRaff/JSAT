@@ -14,7 +14,6 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-
 package jsat.regression;
 
 import java.util.concurrent.ExecutorService;
@@ -35,99 +34,90 @@ import org.junit.Test;
  *
  * @author Edward Raff <Raff.Edward@gmail.com>
  */
-public class StochasticGradientBoostingTest
-{
-    
-    public StochasticGradientBoostingTest()
-    {
+public class StochasticGradientBoostingTest {
+
+  public StochasticGradientBoostingTest() {
+  }
+
+  @BeforeClass
+  public static void setUpClass() {
+  }
+
+  @AfterClass
+  public static void tearDownClass() {
+  }
+
+  @Before
+  public void setUp() {
+  }
+
+  @After
+  public void tearDown() {
+  }
+
+  @Test
+  public void testTrainC_RegressionDataSet() {
+    System.out.println("train");
+
+    StochasticGradientBoosting instance = new StochasticGradientBoosting(new DecisionTree(), 50);
+
+    RegressionDataSet train = FixedProblems.getLinearRegression(500, new XORWOW());
+    RegressionDataSet test = FixedProblems.getLinearRegression(100, new XORWOW());
+
+    RegressionModelEvaluation rme = new RegressionModelEvaluation(instance, train);
+    rme.evaluateTestSet(test);
+
+    assertTrue(rme.getMeanError() <= test.getTargetValues().mean() * 0.25);
+
+  }
+
+  @Test
+  public void testTrainC_RegressionDataSet_ExecutorService() {
+    System.out.println("train");
+
+    StochasticGradientBoosting instance = new StochasticGradientBoosting(new DecisionTree(), 50);
+
+    ExecutorService ex = Executors.newFixedThreadPool(SystemInfo.LogicalCores);
+
+    RegressionDataSet train = FixedProblems.getLinearRegression(500, new XORWOW());
+    RegressionDataSet test = FixedProblems.getLinearRegression(100, new XORWOW());
+
+    RegressionModelEvaluation rme = new RegressionModelEvaluation(instance, train, ex);
+    rme.evaluateTestSet(test);
+
+    assertTrue(rme.getMeanError() <= test.getTargetValues().mean() * 0.25);
+
+    ex.shutdownNow();
+  }
+
+  @Test
+  public void testClone() {
+    System.out.println("clone");
+
+    StochasticGradientBoosting instance = new StochasticGradientBoosting(new DecisionTree(), 50);
+
+    RegressionDataSet t1 = FixedProblems.getLinearRegression(100, new XORWOW());
+    RegressionDataSet t2 = FixedProblems.getLinearRegression(100, new XORWOW());
+    t2.applyTransform(new LinearTransform(t2, 1, 10));
+
+    instance = instance.clone();
+
+    instance.train(t1);
+
+    StochasticGradientBoosting result = instance.clone();
+    for (int i = 0; i < t1.getSampleSize(); i++) {
+      assertEquals(t1.getTargetValue(i), result.regress(t1.getDataPoint(i)), t1.getTargetValues().mean() * 0.5);
     }
-    
-    @BeforeClass
-    public static void setUpClass()
-    {
-    }
-    
-    @AfterClass
-    public static void tearDownClass()
-    {
-    }
-    
-    @Before
-    public void setUp()
-    {
-    }
-    
-    @After
-    public void tearDown()
-    {
+    result.train(t2);
+
+    for (int i = 0; i < t1.getSampleSize(); i++) {
+      assertEquals(t1.getTargetValue(i), instance.regress(t1.getDataPoint(i)), t1.getTargetValues().mean() * 0.5);
     }
 
-    @Test
-    public void testTrainC_RegressionDataSet()
-    {
-        System.out.println("train");
-
-        StochasticGradientBoosting instance = new StochasticGradientBoosting(new DecisionTree(), 50);
-
-        RegressionDataSet train = FixedProblems.getLinearRegression(500, new XORWOW());
-        RegressionDataSet test = FixedProblems.getLinearRegression(100, new XORWOW());
-
-        RegressionModelEvaluation rme = new RegressionModelEvaluation(instance, train);
-        rme.evaluateTestSet(test);
-
-        assertTrue(rme.getMeanError() <= test.getTargetValues().mean() * 0.25);
-
+    for (int i = 0; i < t2.getSampleSize(); i++) {
+      assertEquals(t2.getTargetValue(i), result.regress(t2.getDataPoint(i)), t2.getTargetValues().mean() * 0.5);
     }
 
-    @Test
-    public void testTrainC_RegressionDataSet_ExecutorService()
-    {
-        System.out.println("train");
+  }
 
-        StochasticGradientBoosting instance = new StochasticGradientBoosting(new DecisionTree(), 50);
-
-        ExecutorService ex = Executors.newFixedThreadPool(SystemInfo.LogicalCores);
-
-        RegressionDataSet train = FixedProblems.getLinearRegression(500, new XORWOW());
-        RegressionDataSet test = FixedProblems.getLinearRegression(100, new XORWOW());
-
-        RegressionModelEvaluation rme = new RegressionModelEvaluation(instance, train, ex);
-        rme.evaluateTestSet(test);
-
-        assertTrue(rme.getMeanError() <= test.getTargetValues().mean() * 0.25);
-
-        ex.shutdownNow();
-    }
-    
-    @Test
-    public void testClone()
-    {
-        System.out.println("clone");
-
-        StochasticGradientBoosting instance = new StochasticGradientBoosting(new DecisionTree(), 50);
-
-        RegressionDataSet t1 = FixedProblems.getLinearRegression(100, new XORWOW());
-        RegressionDataSet t2 = FixedProblems.getLinearRegression(100, new XORWOW());
-        t2.applyTransform(new LinearTransform(t2, 1, 10));
-
-        instance = instance.clone();
-
-        instance.train(t1);
-
-        StochasticGradientBoosting result = instance.clone();
-        for (int i = 0; i < t1.getSampleSize(); i++) {
-          assertEquals(t1.getTargetValue(i), result.regress(t1.getDataPoint(i)), t1.getTargetValues().mean()*0.5);
-        }
-        result.train(t2);
-
-        for (int i = 0; i < t1.getSampleSize(); i++) {
-          assertEquals(t1.getTargetValue(i), instance.regress(t1.getDataPoint(i)), t1.getTargetValues().mean()*0.5);
-        }
-
-        for (int i = 0; i < t2.getSampleSize(); i++) {
-          assertEquals(t2.getTargetValue(i), result.regress(t2.getDataPoint(i)), t2.getTargetValues().mean()*0.5);
-        }
-
-    }
-    
 }

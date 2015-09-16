@@ -4,84 +4,72 @@ import jsat.classifiers.CategoricalData;
 import jsat.classifiers.CategoricalResults;
 
 /**
- * Evaluates a classifier based on its accuracy in predicting the correct class. 
- * 
+ * Evaluates a classifier based on its accuracy in predicting the correct class.
+ *
  * @author Edward Raff
  */
-public class Accuracy implements ClassificationScore
-{
+public class Accuracy implements ClassificationScore {
 
-	private static final long serialVersionUID = 397690693205481128L;
-	private double correct, total;
+  private static final long serialVersionUID = 397690693205481128L;
+  private double correct, total;
 
-    public Accuracy()
-    {
-    }
+  public Accuracy() {
+  }
 
-    public Accuracy(Accuracy toClone)
-    {
-        this.correct = toClone.correct;
-        this.total = toClone.total;
-    }
-    
-    @Override
-    public void addResult(CategoricalResults prediction, int trueLabel, double weight)
-    {
-        if(prediction.mostLikely() == trueLabel) {
-          correct += weight;
-        }
-        total += weight;
-    }
+  public Accuracy(Accuracy toClone) {
+    this.correct = toClone.correct;
+    this.total = toClone.total;
+  }
 
-    @Override
-    public void addResults(ClassificationScore other)
-    {
-        Accuracy otherObj = (Accuracy) other;
-        this.correct += otherObj.correct;
-        this.total += otherObj.total;
+  @Override
+  public void addResult(CategoricalResults prediction, int trueLabel, double weight) {
+    if (prediction.mostLikely() == trueLabel) {
+      correct += weight;
     }
-    
-    @Override
-    public void prepare(CategoricalData toPredict)
-    {
-        correct = 0;
-        total = 0;
-    }
+    total += weight;
+  }
 
-    @Override
-    public double getScore()
-    {
-        return correct/total;
-    }
+  @Override
+  public void addResults(ClassificationScore other) {
+    Accuracy otherObj = (Accuracy) other;
+    this.correct += otherObj.correct;
+    this.total += otherObj.total;
+  }
 
-    @Override
-    public boolean lowerIsBetter()
-    {
-        return false;
-    }
+  @Override
+  public void prepare(CategoricalData toPredict) {
+    correct = 0;
+    total = 0;
+  }
 
-    @Override
-    public boolean equals(Object obj)
-    {
-        return obj instanceof Accuracy;
-    }
+  @Override
+  public double getScore() {
+    return correct / total;
+  }
 
-    @Override
-    public int hashCode()
-    {
-        return getName().hashCode();
-    }
-    
-    @Override
-    public Accuracy clone()
-    {
-        return new Accuracy(this);
-    }
+  @Override
+  public boolean lowerIsBetter() {
+    return false;
+  }
 
-    @Override
-    public String getName()
-    {
-        return "Accuracy";
-    }
-    
+  @Override
+  public boolean equals(Object obj) {
+    return obj instanceof Accuracy;
+  }
+
+  @Override
+  public int hashCode() {
+    return getName().hashCode();
+  }
+
+  @Override
+  public Accuracy clone() {
+    return new Accuracy(this);
+  }
+
+  @Override
+  public String getName() {
+    return "Accuracy";
+  }
+
 }

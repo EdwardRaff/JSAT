@@ -36,106 +36,94 @@ import org.junit.Test;
  *
  * @author Edward Raff
  */
-public class NystromTest
-{
-    
-    public NystromTest()
-    {
+public class NystromTest {
+
+  public NystromTest() {
+  }
+
+  @BeforeClass
+  public static void setUpClass() {
+  }
+
+  @AfterClass
+  public static void tearDownClass() {
+  }
+
+  @Before
+  public void setUp() {
+  }
+
+  @After
+  public void tearDown() {
+  }
+
+  @Test
+  public void testTrainC_ClassificationDataSet_ExecutorService() {
+    System.out.println("trainC");
+
+    ExecutorService ex = Executors.newFixedThreadPool(SystemInfo.LogicalCores);
+
+    for (Nystrom.SamplingMethod sampMethod : Nystrom.SamplingMethod.values()) {
+      DataModelPipeline instance = new DataModelPipeline((Classifier) new DCDs(), new Nystrom.NystromTransformFactory(new RBFKernel(0.5), 250, sampMethod, 1e-5, false));
+
+      ClassificationDataSet train = FixedProblems.getInnerOuterCircle(400, new XORWOW());
+      ClassificationDataSet test = FixedProblems.getInnerOuterCircle(100, new XORWOW());
+
+      ClassificationModelEvaluation cme = new ClassificationModelEvaluation(instance, train, ex);
+      cme.evaluateTestSet(test);
+
+      assertEquals(0, cme.getErrorRate(), 0.0);
     }
-    
-    @BeforeClass
-    public static void setUpClass()
-    {
-    }
-    
-    @AfterClass
-    public static void tearDownClass()
-    {
-    }
-    
-    @Before
-    public void setUp()
-    {
-    }
-    
-    @After
-    public void tearDown()
-    {
-    }
+    ex.shutdownNow();
 
-    @Test
-    public void testTrainC_ClassificationDataSet_ExecutorService()
-    {
-        System.out.println("trainC");
+  }
 
-        ExecutorService ex = Executors.newFixedThreadPool(SystemInfo.LogicalCores);
-        
-        for(Nystrom.SamplingMethod sampMethod : Nystrom.SamplingMethod.values())
-        {
-            DataModelPipeline instance = new DataModelPipeline((Classifier)new DCDs(), new Nystrom.NystromTransformFactory(new RBFKernel(0.5), 250, sampMethod, 1e-5, false)); 
+  @Test
+  public void testTrainC_ClassificationDataSet() {
+    System.out.println("trainC");
 
-            ClassificationDataSet train = FixedProblems.getInnerOuterCircle(400, new XORWOW());
-            ClassificationDataSet test = FixedProblems.getInnerOuterCircle(100, new XORWOW());
+    for (Nystrom.SamplingMethod sampMethod : Nystrom.SamplingMethod.values()) {
+      DataModelPipeline instance = new DataModelPipeline((Classifier) new DCDs(), new Nystrom.NystromTransformFactory(new RBFKernel(0.5), 250, sampMethod, 1e-5, false));
 
-            ClassificationModelEvaluation cme = new ClassificationModelEvaluation(instance, train, ex);
-            cme.evaluateTestSet(test);
+      ClassificationDataSet train = FixedProblems.getInnerOuterCircle(400, new XORWOW());
+      ClassificationDataSet test = FixedProblems.getInnerOuterCircle(100, new XORWOW());
 
-            assertEquals(0, cme.getErrorRate(), 0.0);
-        }
-        ex.shutdownNow();
+      ClassificationModelEvaluation cme = new ClassificationModelEvaluation(instance, train);
+      cme.evaluateTestSet(test);
 
-    }
-
-    @Test
-    public void testTrainC_ClassificationDataSet()
-    {
-        System.out.println("trainC");
-
-        for(Nystrom.SamplingMethod sampMethod : Nystrom.SamplingMethod.values())
-        {
-            DataModelPipeline instance = new DataModelPipeline((Classifier)new DCDs(), new Nystrom.NystromTransformFactory(new RBFKernel(0.5), 250, sampMethod, 1e-5, false)); 
-        
-            ClassificationDataSet train = FixedProblems.getInnerOuterCircle(400, new XORWOW());
-            ClassificationDataSet test = FixedProblems.getInnerOuterCircle(100, new XORWOW());
-
-            ClassificationModelEvaluation cme = new ClassificationModelEvaluation(instance, train);
-            cme.evaluateTestSet(test);
-
-            assertEquals(0, cme.getErrorRate(), 0.0);
-        }
-
+      assertEquals(0, cme.getErrorRate(), 0.0);
     }
 
-    @Test
-    public void testClone()
-    {
-        System.out.println("clone");
+  }
 
-        DataModelPipeline instance = new DataModelPipeline((Classifier)new DCDs(), new Nystrom.NystromTransformFactory(new RBFKernel(0.5), 250, Nystrom.SamplingMethod.NORM, 1e-5, true)); 
-        
-        ClassificationDataSet t1 = FixedProblems.getInnerOuterCircle(500, new XORWOW());
-        ClassificationDataSet t2 = FixedProblems.getInnerOuterCircle(500, new XORWOW(), 2.0, 10.0);
+  @Test
+  public void testClone() {
+    System.out.println("clone");
 
-        instance = instance.clone();
+    DataModelPipeline instance = new DataModelPipeline((Classifier) new DCDs(), new Nystrom.NystromTransformFactory(new RBFKernel(0.5), 250, Nystrom.SamplingMethod.NORM, 1e-5, true));
 
-        instance.trainC(t1);
+    ClassificationDataSet t1 = FixedProblems.getInnerOuterCircle(500, new XORWOW());
+    ClassificationDataSet t2 = FixedProblems.getInnerOuterCircle(500, new XORWOW(), 2.0, 10.0);
 
-        
-        DataModelPipeline result = instance.clone();
-        
-        for (int i = 0; i < t1.getSampleSize(); i++) {
-          assertEquals(t1.getDataPointCategory(i), result.classify(t1.getDataPoint(i)).mostLikely());
-        }
-        result.trainC(t2);
+    instance = instance.clone();
 
-        for (int i = 0; i < t1.getSampleSize(); i++) {
-          assertEquals(t1.getDataPointCategory(i), instance.classify(t1.getDataPoint(i)).mostLikely());
-        }
+    instance.trainC(t1);
 
-        for (int i = 0; i < t2.getSampleSize(); i++) {
-          assertEquals(t2.getDataPointCategory(i), result.classify(t2.getDataPoint(i)).mostLikely());
-        }
+    DataModelPipeline result = instance.clone();
 
+    for (int i = 0; i < t1.getSampleSize(); i++) {
+      assertEquals(t1.getDataPointCategory(i), result.classify(t1.getDataPoint(i)).mostLikely());
     }
-    
+    result.trainC(t2);
+
+    for (int i = 0; i < t1.getSampleSize(); i++) {
+      assertEquals(t1.getDataPointCategory(i), instance.classify(t1.getDataPoint(i)).mostLikely());
+    }
+
+    for (int i = 0; i < t2.getSampleSize(); i++) {
+      assertEquals(t2.getDataPointCategory(i), result.classify(t2.getDataPoint(i)).mostLikely());
+    }
+
+  }
+
 }

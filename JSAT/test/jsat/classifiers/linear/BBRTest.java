@@ -22,77 +22,68 @@ import org.junit.Test;
  *
  * @author Edward Raff
  */
-public class BBRTest
-{
-    private static ExecutorService ex;
-    
-    public BBRTest()
-    {
-    }
-    
-    @BeforeClass
-    public static void setUpClass()
-    {
-        ex = Executors.newFixedThreadPool(SystemInfo.LogicalCores);
-    }
-    
-    @AfterClass
-    public static void tearDownClass()
-    {
-        ex.shutdown();
-    }
-    
-    @Before
-    public void setUp()
-    {
-    }
-    
-    @After
-    public void tearDown()
-    {
-    }
+public class BBRTest {
 
-    /**
-     * Test of trainC method, of class BBR.
-     */
-    @Test
-    public void testTrainC_ClassificationDataSet_ExecutorService()
-    {
-        System.out.println("trainC");
-        ClassificationDataSet train = FixedProblems.get2ClassLinear(200, new Random());
-        
-        for (BBR.Prior prior : BBR.Prior.values())
-        {
-            BBR lr = new BBR(0.01, 1000, prior);
-            lr.trainC(train, ex);
+  private static ExecutorService ex;
 
-            ClassificationDataSet test = FixedProblems.get2ClassLinear(200, new Random());
+  public BBRTest() {
+  }
 
-            for (DataPointPair<Integer> dpp : test.getAsDPPList()) {
-              assertEquals(dpp.getPair().longValue(), lr.classify(dpp.getDataPoint()).mostLikely());
-            }
-        }
+  @BeforeClass
+  public static void setUpClass() {
+    ex = Executors.newFixedThreadPool(SystemInfo.LogicalCores);
+  }
+
+  @AfterClass
+  public static void tearDownClass() {
+    ex.shutdown();
+  }
+
+  @Before
+  public void setUp() {
+  }
+
+  @After
+  public void tearDown() {
+  }
+
+  /**
+   * Test of trainC method, of class BBR.
+   */
+  @Test
+  public void testTrainC_ClassificationDataSet_ExecutorService() {
+    System.out.println("trainC");
+    ClassificationDataSet train = FixedProblems.get2ClassLinear(200, new Random());
+
+    for (BBR.Prior prior : BBR.Prior.values()) {
+      BBR lr = new BBR(0.01, 1000, prior);
+      lr.trainC(train, ex);
+
+      ClassificationDataSet test = FixedProblems.get2ClassLinear(200, new Random());
+
+      for (DataPointPair<Integer> dpp : test.getAsDPPList()) {
+        assertEquals(dpp.getPair().longValue(), lr.classify(dpp.getDataPoint()).mostLikely());
+      }
     }
+  }
 
-    /**
-     * Test of trainC method, of class BBR.
-     */
-    @Test
-    public void testTrainC_ClassificationDataSet()
-    {
-        System.out.println("trainC");
-        ClassificationDataSet train = FixedProblems.get2ClassLinear(200, new Random());
+  /**
+   * Test of trainC method, of class BBR.
+   */
+  @Test
+  public void testTrainC_ClassificationDataSet() {
+    System.out.println("trainC");
+    ClassificationDataSet train = FixedProblems.get2ClassLinear(200, new Random());
 
-        for (BBR.Prior prior : BBR.Prior.values())
-        {
-            BBR lr = new BBR(0.01, 1000, prior);
-            lr.trainC(train);
+    for (BBR.Prior prior : BBR.Prior.values()) {
+      BBR lr = new BBR(0.01, 1000, prior);
+      lr.trainC(train);
 
-            ClassificationDataSet test = FixedProblems.get2ClassLinear(200, new Random());
+      ClassificationDataSet test = FixedProblems.get2ClassLinear(200, new Random());
 
-            for (DataPointPair<Integer> dpp : test.getAsDPPList()) {
-              assertEquals(dpp.getPair().longValue(), lr.classify(dpp.getDataPoint()).mostLikely());
-            }
-        }
+      for (DataPointPair<Integer> dpp : test.getAsDPPList()) {
+        assertEquals(dpp.getPair().longValue(), lr.classify(dpp.getDataPoint()).mostLikely());
+      }
     }
+  }
 }

@@ -24,73 +24,64 @@ import org.junit.Test;
  *
  * @author Edward Raff
  */
-public class GMeansTest
-{
-    static private SimpleDataSet easyData10;
-    static private ExecutorService ex;
-    
-    public GMeansTest()
-    {
+public class GMeansTest {
+
+  static private SimpleDataSet easyData10;
+  static private ExecutorService ex;
+
+  public GMeansTest() {
+  }
+
+  @BeforeClass
+  public static void setUpClass() {
+    GridDataGenerator gdg = new GridDataGenerator(new Normal(0.0, 0.10), new XORWOW(12), 2, 2);
+    easyData10 = gdg.generateData(50);
+    ex = Executors.newFixedThreadPool(SystemInfo.LogicalCores);
+  }
+
+  @AfterClass
+  public static void tearDownClass() {
+    ex.shutdown();
+  }
+
+  @Before
+  public void setUp() {
+  }
+
+  @After
+  public void tearDown() {
+  }
+
+  @Test
+  public void testCluster_4args_1_findK() {
+    System.out.println("cluster findK");
+    GMeans kMeans = new GMeans(new HamerlyKMeans(new EuclideanDistance(), SeedSelectionMethods.SeedSelection.FARTHEST_FIRST));
+    List<List<DataPoint>> clusters = kMeans.cluster(easyData10, 1, 20, ex);
+    assertEquals(4, clusters.size());
+    Set<Integer> seenBefore = new IntSet();
+    for (List<DataPoint> cluster : clusters) {
+      int thisClass = cluster.get(0).getCategoricalValue(0);
+      assertFalse(seenBefore.contains(thisClass));
+      for (DataPoint dp : cluster) {
+        assertEquals(thisClass, dp.getCategoricalValue(0));
+      }
     }
-    
-    @BeforeClass
-    public static void setUpClass()
-    {
-        GridDataGenerator gdg = new GridDataGenerator(new Normal(0.0, 0.10), new XORWOW(12), 2, 2);
-        easyData10 = gdg.generateData(50);
-        ex = Executors.newFixedThreadPool(SystemInfo.LogicalCores);
+  }
+
+  @Test
+  public void testCluster_3args_1_findK() {
+    System.out.println("cluster findK");
+    GMeans kMeans = new GMeans(new HamerlyKMeans(new EuclideanDistance(), SeedSelectionMethods.SeedSelection.FARTHEST_FIRST));
+    List<List<DataPoint>> clusters = kMeans.cluster(easyData10, 1, 20);
+    assertEquals(4, clusters.size());
+    Set<Integer> seenBefore = new IntSet();
+    for (List<DataPoint> cluster : clusters) {
+      int thisClass = cluster.get(0).getCategoricalValue(0);
+      assertFalse(seenBefore.contains(thisClass));
+      for (DataPoint dp : cluster) {
+        assertEquals(thisClass, dp.getCategoricalValue(0));
+      }
     }
-    
-    @AfterClass
-    public static void tearDownClass()
-    {
-        ex.shutdown();
-    }
-    
-    @Before
-    public void setUp()
-    {
-    }
-    
-    @After
-    public void tearDown()
-    {
-    }
-    
-    @Test
-    public void testCluster_4args_1_findK()
-    {
-        System.out.println("cluster findK");
-        GMeans kMeans = new GMeans(new HamerlyKMeans(new EuclideanDistance(), SeedSelectionMethods.SeedSelection.FARTHEST_FIRST));
-        List<List<DataPoint>> clusters = kMeans.cluster(easyData10, 1, 20, ex);
-        assertEquals(4, clusters.size());
-        Set<Integer> seenBefore = new IntSet();
-        for(List<DataPoint> cluster :  clusters)
-        {
-            int thisClass = cluster.get(0).getCategoricalValue(0);
-            assertFalse(seenBefore.contains(thisClass));
-            for(DataPoint dp : cluster) {
-              assertEquals(thisClass, dp.getCategoricalValue(0));
-            }
-        }
-    }
-    
-    @Test
-    public void testCluster_3args_1_findK()
-    {
-        System.out.println("cluster findK");
-        GMeans kMeans = new GMeans(new HamerlyKMeans(new EuclideanDistance(), SeedSelectionMethods.SeedSelection.FARTHEST_FIRST));
-        List<List<DataPoint>> clusters = kMeans.cluster(easyData10, 1, 20);
-        assertEquals(4, clusters.size());
-        Set<Integer> seenBefore = new IntSet();
-        for(List<DataPoint> cluster :  clusters)
-        {
-            int thisClass = cluster.get(0).getCategoricalValue(0);
-            assertFalse(seenBefore.contains(thisClass));
-            for(DataPoint dp : cluster) {
-              assertEquals(thisClass, dp.getCategoricalValue(0));
-            }
-        }
-    }
-    
+  }
+
 }

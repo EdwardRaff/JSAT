@@ -36,108 +36,95 @@ import org.junit.Test;
  *
  * @author Edward Raff
  */
-public class KernelPCATest
-{
-    //Test uses Transform to solve a problem that is not linearly seprable in the original space
-    public KernelPCATest()
-    {
+public class KernelPCATest {
+
+  //Test uses Transform to solve a problem that is not linearly seprable in the original space
+  public KernelPCATest() {
+  }
+
+  @BeforeClass
+  public static void setUpClass() {
+  }
+
+  @AfterClass
+  public static void tearDownClass() {
+  }
+
+  @Before
+  public void setUp() {
+  }
+
+  @After
+  public void tearDown() {
+  }
+
+  @Test
+  public void testTrainC_ClassificationDataSet_ExecutorService() {
+    System.out.println("trainC");
+
+    ExecutorService ex = Executors.newFixedThreadPool(SystemInfo.LogicalCores);
+
+    for (Nystrom.SamplingMethod sampMethod : Nystrom.SamplingMethod.values()) {
+      DataModelPipeline instance = new DataModelPipeline((Classifier) new DCDs(), new KernelPCA.KernelPCATransformFactory(new RBFKernel(0.5), 20, 100, sampMethod));
+
+      ClassificationDataSet train = FixedProblems.getInnerOuterCircle(200, new XORWOW());
+      ClassificationDataSet test = FixedProblems.getInnerOuterCircle(100, new XORWOW());
+
+      ClassificationModelEvaluation cme = new ClassificationModelEvaluation(instance, train, ex);
+      cme.evaluateTestSet(test);
+
+      assertEquals(0, cme.getErrorRate(), 0.0);
     }
-    
-    @BeforeClass
-    public static void setUpClass()
-    {
-    }
-    
-    @AfterClass
-    public static void tearDownClass()
-    {
-    }
-    
-    @Before
-    public void setUp()
-    {
-    }
-    
-    @After
-    public void tearDown()
-    {
-    }
+    ex.shutdownNow();
 
-    @Test
-    public void testTrainC_ClassificationDataSet_ExecutorService()
-    {
-        System.out.println("trainC");
+  }
 
-        
+  @Test
+  public void testTrainC_ClassificationDataSet() {
+    System.out.println("trainC");
 
-        ExecutorService ex = Executors.newFixedThreadPool(SystemInfo.LogicalCores);
-        
-        for(Nystrom.SamplingMethod sampMethod : Nystrom.SamplingMethod.values())
-        {
-            DataModelPipeline instance = new DataModelPipeline((Classifier)new DCDs(), new KernelPCA.KernelPCATransformFactory(new RBFKernel(0.5), 20, 100, sampMethod)); 
+    for (Nystrom.SamplingMethod sampMethod : Nystrom.SamplingMethod.values()) {
+      DataModelPipeline instance = new DataModelPipeline((Classifier) new DCDs(), new KernelPCA.KernelPCATransformFactory(new RBFKernel(0.5), 20, 100, sampMethod));
 
-            ClassificationDataSet train = FixedProblems.getInnerOuterCircle(200, new XORWOW());
-            ClassificationDataSet test = FixedProblems.getInnerOuterCircle(100, new XORWOW());
+      ClassificationDataSet train = FixedProblems.getInnerOuterCircle(200, new XORWOW());
+      ClassificationDataSet test = FixedProblems.getInnerOuterCircle(100, new XORWOW());
 
-            ClassificationModelEvaluation cme = new ClassificationModelEvaluation(instance, train, ex);
-            cme.evaluateTestSet(test);
+      ClassificationModelEvaluation cme = new ClassificationModelEvaluation(instance, train);
+      cme.evaluateTestSet(test);
 
-            assertEquals(0, cme.getErrorRate(), 0.0);
-        }
-        ex.shutdownNow();
-
-    }
-
-    @Test
-    public void testTrainC_ClassificationDataSet()
-    {
-        System.out.println("trainC");
-
-        for(Nystrom.SamplingMethod sampMethod : Nystrom.SamplingMethod.values())
-        {
-            DataModelPipeline instance = new DataModelPipeline((Classifier)new DCDs(), new KernelPCA.KernelPCATransformFactory(new RBFKernel(0.5), 20, 100, sampMethod)); 
-        
-            ClassificationDataSet train = FixedProblems.getInnerOuterCircle(200, new XORWOW());
-            ClassificationDataSet test = FixedProblems.getInnerOuterCircle(100, new XORWOW());
-
-            ClassificationModelEvaluation cme = new ClassificationModelEvaluation(instance, train);
-            cme.evaluateTestSet(test);
-
-            assertEquals(0, cme.getErrorRate(), 0.0);
-        }
-
+      assertEquals(0, cme.getErrorRate(), 0.0);
     }
 
-    @Test
-    public void testClone()
-    {
-        System.out.println("clone");
+  }
 
-        DataModelPipeline instance = new DataModelPipeline((Classifier)new DCDs(), new KernelPCA.KernelPCATransformFactory(new RBFKernel(0.5), 20, 100, Nystrom.SamplingMethod.KMEANS)); 
-        
-        ClassificationDataSet t1 = FixedProblems.getInnerOuterCircle(500, new XORWOW());
-        ClassificationDataSet t2 = FixedProblems.getInnerOuterCircle(500, new XORWOW(), 2.0, 10.0);
+  @Test
+  public void testClone() {
+    System.out.println("clone");
 
-        instance = instance.clone();
+    DataModelPipeline instance = new DataModelPipeline((Classifier) new DCDs(), new KernelPCA.KernelPCATransformFactory(new RBFKernel(0.5), 20, 100, Nystrom.SamplingMethod.KMEANS));
 
-        instance.trainC(t1);
+    ClassificationDataSet t1 = FixedProblems.getInnerOuterCircle(500, new XORWOW());
+    ClassificationDataSet t2 = FixedProblems.getInnerOuterCircle(500, new XORWOW(), 2.0, 10.0);
 
-        
-        DataModelPipeline result = instance.clone();
-        
-        for (int i = 0; i < t1.getSampleSize(); i++) {
-          assertEquals(t1.getDataPointCategory(i), result.classify(t1.getDataPoint(i)).mostLikely());
-        }
-        result.trainC(t2);
+    instance = instance.clone();
 
-        for (int i = 0; i < t1.getSampleSize(); i++) {
-          assertEquals(t1.getDataPointCategory(i), instance.classify(t1.getDataPoint(i)).mostLikely());
-        }
+    instance.trainC(t1);
 
-        for (int i = 0; i < t2.getSampleSize(); i++) {
-          assertEquals(t2.getDataPointCategory(i), result.classify(t2.getDataPoint(i)).mostLikely());
-        }
+    DataModelPipeline result = instance.clone();
 
+    for (int i = 0; i < t1.getSampleSize(); i++) {
+      assertEquals(t1.getDataPointCategory(i), result.classify(t1.getDataPoint(i)).mostLikely());
     }
-    
+    result.trainC(t2);
+
+    for (int i = 0; i < t1.getSampleSize(); i++) {
+      assertEquals(t1.getDataPointCategory(i), instance.classify(t1.getDataPoint(i)).mostLikely());
+    }
+
+    for (int i = 0; i < t2.getSampleSize(); i++) {
+      assertEquals(t2.getDataPointCategory(i), result.classify(t2.getDataPoint(i)).mostLikely());
+    }
+
+  }
+
 }

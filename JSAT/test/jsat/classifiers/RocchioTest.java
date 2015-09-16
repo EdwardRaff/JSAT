@@ -31,92 +31,83 @@ import org.junit.Test;
  *
  * @author Edward Raff
  */
-public class RocchioTest
-{
-    
-    public RocchioTest()
-    {
-    }
-    
-    @BeforeClass
-    public static void setUpClass()
-    {
-    }
-    
-    @AfterClass
-    public static void tearDownClass()
-    {
-    }
-    
-    @Before
-    public void setUp()
-    {
-    }
-    
-    @After
-    public void tearDown()
-    {
-    }
-    
-    @Test
-    public void testTrainC_ClassificationDataSet_ExecutorService()
-    {
-        System.out.println("trainC");
-        Rocchio instance = new Rocchio();
-        
-        ClassificationDataSet train = FixedProblems.getSimpleKClassLinear(10000, 3);
-        ClassificationDataSet test = FixedProblems.getSimpleKClassLinear(1000, 3);
+public class RocchioTest {
 
-        ExecutorService ex = Executors.newFixedThreadPool(SystemInfo.LogicalCores);
-        
-        ClassificationModelEvaluation cme = new ClassificationModelEvaluation(instance, train, ex);
-        cme.evaluateTestSet(test);
-        
-        assertTrue(cme.getErrorRate() <= 0.001);
-    }
-    
-    @Test
-    public void testTrainC_ClassificationDataSet()
-    {
-        System.out.println("trainC");
-        Rocchio instance = new Rocchio();
-        
-        ClassificationDataSet train = FixedProblems.getSimpleKClassLinear(10000, 3);
-        ClassificationDataSet test = FixedProblems.getSimpleKClassLinear(1000, 3);
+  public RocchioTest() {
+  }
 
-        ClassificationModelEvaluation cme = new ClassificationModelEvaluation(instance, train);
-        cme.evaluateTestSet(test);
-        
-        assertTrue(cme.getErrorRate() <= 0.001);
+  @BeforeClass
+  public static void setUpClass() {
+  }
+
+  @AfterClass
+  public static void tearDownClass() {
+  }
+
+  @Before
+  public void setUp() {
+  }
+
+  @After
+  public void tearDown() {
+  }
+
+  @Test
+  public void testTrainC_ClassificationDataSet_ExecutorService() {
+    System.out.println("trainC");
+    Rocchio instance = new Rocchio();
+
+    ClassificationDataSet train = FixedProblems.getSimpleKClassLinear(10000, 3);
+    ClassificationDataSet test = FixedProblems.getSimpleKClassLinear(1000, 3);
+
+    ExecutorService ex = Executors.newFixedThreadPool(SystemInfo.LogicalCores);
+
+    ClassificationModelEvaluation cme = new ClassificationModelEvaluation(instance, train, ex);
+    cme.evaluateTestSet(test);
+
+    assertTrue(cme.getErrorRate() <= 0.001);
+  }
+
+  @Test
+  public void testTrainC_ClassificationDataSet() {
+    System.out.println("trainC");
+    Rocchio instance = new Rocchio();
+
+    ClassificationDataSet train = FixedProblems.getSimpleKClassLinear(10000, 3);
+    ClassificationDataSet test = FixedProblems.getSimpleKClassLinear(1000, 3);
+
+    ClassificationModelEvaluation cme = new ClassificationModelEvaluation(instance, train);
+    cme.evaluateTestSet(test);
+
+    assertTrue(cme.getErrorRate() <= 0.001);
+  }
+
+  @Test
+  public void testClone() {
+    System.out.println("clone");
+
+    ClassificationDataSet t1 = FixedProblems.getSimpleKClassLinear(10000, 3);
+    ClassificationDataSet t2 = FixedProblems.getSimpleKClassLinear(10000, 6);
+
+    Rocchio instance = new Rocchio();
+
+    instance = instance.clone();
+
+    instance.trainC(t1);
+
+    Rocchio result = instance.clone();
+    for (int i = 0; i < t1.getSampleSize(); i++) {
+      assertEquals(t1.getDataPointCategory(i), result.classify(t1.getDataPoint(i)).mostLikely());
+    }
+    result.trainC(t2);
+
+    for (int i = 0; i < t1.getSampleSize(); i++) {
+      assertEquals(t1.getDataPointCategory(i), instance.classify(t1.getDataPoint(i)).mostLikely());
     }
 
-    @Test
-    public void testClone()
-    {
-        System.out.println("clone");
-        
-        ClassificationDataSet t1 = FixedProblems.getSimpleKClassLinear(10000, 3);
-        ClassificationDataSet t2 = FixedProblems.getSimpleKClassLinear(10000, 6);
-        
-        Rocchio instance = new Rocchio();
-        
-        instance = instance.clone();
-                
-        instance.trainC(t1);
-
-        Rocchio result = instance.clone();
-        for(int i = 0; i < t1.getSampleSize(); i++) {
-          assertEquals(t1.getDataPointCategory(i), result.classify(t1.getDataPoint(i)).mostLikely());
-        }
-        result.trainC(t2);
-        
-        for(int i = 0; i < t1.getSampleSize(); i++) {
-          assertEquals(t1.getDataPointCategory(i), instance.classify(t1.getDataPoint(i)).mostLikely());
-        }
-        
-        for(int i = 0; i < t2.getSampleSize(); i++) {
-          assertEquals(t2.getDataPointCategory(i), result.classify(t2.getDataPoint(i)).mostLikely());
-        }
+    for (int i = 0; i < t2.getSampleSize(); i++) {
+      assertEquals(t2.getDataPointCategory(i), result.classify(t2.getDataPoint(i)).mostLikely());
     }
-    
+  }
+
 }
