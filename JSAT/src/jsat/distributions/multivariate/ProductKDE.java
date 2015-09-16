@@ -2,9 +2,7 @@
 package jsat.distributions.multivariate;
 
 import static java.lang.Math.*;
-
 import java.util.*;
-
 import jsat.classifiers.DataPoint;
 import jsat.distributions.empirical.KernelDensityEstimator;
 import jsat.distributions.empirical.kernelfunc.EpanechnikovKF;

@@ -7,15 +7,14 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Stack;
 import java.util.concurrent.ExecutorService;
-
 import jsat.linear.DenseVector;
 import jsat.linear.Vec;
 import jsat.linear.VecPaired;
+import static jsat.linear.VecPaired.*;
 import jsat.linear.distancemetrics.DistanceMetric;
 import jsat.linear.distancemetrics.EuclideanDistance;
 import jsat.utils.BoundedSortedList;
 import jsat.utils.ProbailityMatch;
-import static jsat.linear.VecPaired.*;
 /**
  *
  * @author Edward Raff

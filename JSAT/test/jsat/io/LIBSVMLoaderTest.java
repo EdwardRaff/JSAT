@@ -19,19 +19,16 @@ package jsat.io;
 import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
-
 import jsat.linear.DenseVector;
 import jsat.linear.Vec;
 import jsat.regression.RegressionDataSet;
 import jsat.utils.DoubleList;
-
 import org.junit.After;
 import org.junit.AfterClass;
+import static org.junit.Assert.*;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
-
-import static org.junit.Assert.*;
 
 /**
  *

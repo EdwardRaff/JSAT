@@ -1,12 +1,12 @@
 
 package jsat.distributions;
 
+import static java.lang.Math.*;
 import jsat.linear.DenseVector;
 import jsat.linear.Vec;
 import jsat.math.SimpleLinearRegression;
-import jsat.text.GreekLetters;
-import static java.lang.Math.*;
 import static jsat.math.SpecialMath.*;
+import jsat.text.GreekLetters;
 /**
  *
  * @author Edward Raff

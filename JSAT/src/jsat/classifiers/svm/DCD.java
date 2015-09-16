@@ -3,7 +3,6 @@ package jsat.classifiers.svm;
 
 import java.util.*;
 import java.util.concurrent.ExecutorService;
-
 import jsat.SingleWeightVectorModel;
 import jsat.classifiers.CategoricalResults;
 import jsat.classifiers.ClassificationDataSet;

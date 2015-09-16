@@ -1,10 +1,10 @@
 package jsat.clustering.evaluation;
 
+import static java.lang.Math.*;
 import java.util.List;
 import jsat.DataSet;
 import jsat.classifiers.ClassificationDataSet;
 import jsat.classifiers.DataPoint;
-import static java.lang.Math.*;
 
 /**
  * Adjusted Rand Index (ARI) is a measure to evaluate a cluster based 

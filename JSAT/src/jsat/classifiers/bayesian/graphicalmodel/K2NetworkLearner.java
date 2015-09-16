@@ -1,15 +1,14 @@
 
 package jsat.classifiers.bayesian.graphicalmodel;
 
+import static java.lang.Math.*;
 import java.util.Set;
-
 import jsat.classifiers.ClassificationDataSet;
 import jsat.classifiers.DataPoint;
+import static jsat.math.SpecialMath.*;
 import jsat.utils.IntList;
 import jsat.utils.IntSet;
 import jsat.utils.ListUtils;
-import static java.lang.Math.*;
-import static jsat.math.SpecialMath.*;
 
 /**
  * An implementation of the K2 algorithm for learning the structure of a Bayesian Network. When trained, 

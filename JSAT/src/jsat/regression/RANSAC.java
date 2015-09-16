@@ -4,7 +4,6 @@ import java.util.*;
 import java.util.concurrent.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-
 import jsat.classifiers.DataPoint;
 import jsat.classifiers.DataPointPair;
 import jsat.exceptions.FailedToFitException;

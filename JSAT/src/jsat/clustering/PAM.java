@@ -1,8 +1,6 @@
 
 package jsat.clustering;
 
-import jsat.linear.distancemetrics.TrainableDistanceMetric;
-
 import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
@@ -11,15 +9,16 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ExecutorService;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-
 import jsat.DataSet;
+import static jsat.clustering.SeedSelectionMethods.*;
+import jsat.clustering.SeedSelectionMethods.SeedSelection;
 import jsat.linear.Vec;
 import jsat.linear.distancemetrics.DistanceMetric;
 import jsat.linear.distancemetrics.EuclideanDistance;
+import jsat.linear.distancemetrics.TrainableDistanceMetric;
 import jsat.math.OnLineStatistics;
 import jsat.utils.FakeExecutor;
 import jsat.utils.SystemInfo;
-import static jsat.clustering.SeedSelectionMethods.*;
 import jsat.utils.random.XORWOW;
 
 /**

@@ -1,18 +1,16 @@
 package jsat.clustering;
 
-import jsat.clustering.kmeans.ElkanKMeans;
 import static java.lang.Math.log;
-
 import java.util.*;
 import java.util.concurrent.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-
 import jsat.DataSet;
 import jsat.SimpleDataSet;
 import jsat.classifiers.CategoricalData;
 import jsat.classifiers.DataPoint;
 import jsat.clustering.SeedSelectionMethods.SeedSelection;
+import jsat.clustering.kmeans.ElkanKMeans;
 import jsat.distributions.multivariate.MultivariateDistribution;
 import jsat.distributions.multivariate.NormalM;
 import jsat.linear.*;

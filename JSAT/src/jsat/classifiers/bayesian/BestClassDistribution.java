@@ -5,7 +5,6 @@ import java.util.*;
 import java.util.concurrent.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-
 import jsat.classifiers.*;
 import jsat.distributions.multivariate.MultivariateDistribution;
 import jsat.exceptions.FailedToFitException;

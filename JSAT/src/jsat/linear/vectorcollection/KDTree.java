@@ -4,7 +4,6 @@ package jsat.linear.vectorcollection;
 import java.io.Serializable;
 import java.util.*;
 import java.util.concurrent.ExecutorService;
-
 import jsat.linear.Vec;
 import jsat.linear.VecPaired;
 import jsat.linear.VecPairedComparable;

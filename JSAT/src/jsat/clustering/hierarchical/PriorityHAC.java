@@ -5,10 +5,9 @@ import java.util.concurrent.ExecutorService;
 import jsat.DataSet;
 import jsat.classifiers.DataPoint;
 import jsat.clustering.KClustererBase;
+import static jsat.clustering.dissimilarity.AbstractClusterDissimilarity.*;
 import jsat.clustering.dissimilarity.UpdatableClusterDissimilarity;
 import jsat.math.OnLineStatistics;
-
-import static jsat.clustering.dissimilarity.AbstractClusterDissimilarity.*;
 import jsat.utils.IntPriorityQueue;
 
 /**

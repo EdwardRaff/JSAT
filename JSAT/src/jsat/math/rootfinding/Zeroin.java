@@ -1,9 +1,9 @@
 
 package jsat.math.rootfinding;
 
+import static java.lang.Math.*;
 import jsat.linear.Vec;
 import jsat.math.Function;
-import static java.lang.Math.*;
 /**
  *
  * @author Edward Raff

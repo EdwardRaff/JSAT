@@ -3,10 +3,8 @@ package jsat.classifiers.neuralnetwork;
 
 import static java.lang.Math.max;
 import static java.lang.Math.min;
-
 import java.util.*;
 import java.util.concurrent.ExecutorService;
-
 import jsat.classifiers.*;
 import jsat.clustering.SeedSelectionMethods;
 import jsat.clustering.SeedSelectionMethods.SeedSelection;

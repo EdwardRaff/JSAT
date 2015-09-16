@@ -1,17 +1,17 @@
 
 package jsat.distributions.multivariate;
 
-import jsat.math.Function;
-import jsat.math.optimization.NelderMead;
+import static java.lang.Math.*;
 import java.util.ArrayList;
+import java.util.List;
+import java.util.Random;
+import jsat.classifiers.DataPoint;
 import jsat.distributions.Gamma;
 import jsat.linear.DenseVector;
-import java.util.Random;
-import java.util.List;
-import jsat.classifiers.DataPoint;
 import jsat.linear.Vec;
-import static java.lang.Math.*;
+import jsat.math.Function;
 import static jsat.math.SpecialMath.*;
+import jsat.math.optimization.NelderMead;
 
 /**
  * The Symmetric Dirichlet Distribution is a special case of the {@link Dirichlet} distribution, and occurs when all alphas have the same value. 

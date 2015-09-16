@@ -1,9 +1,7 @@
 package jsat.datatransform.featureselection;
 
 import static java.lang.Math.log;
-
 import java.util.Set;
-
 import jsat.DataSet;
 import jsat.classifiers.*;
 import jsat.datatransform.*;

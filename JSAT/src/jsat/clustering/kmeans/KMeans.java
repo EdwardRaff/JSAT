@@ -14,12 +14,12 @@ import jsat.clustering.SeedSelectionMethods;
 import jsat.clustering.SeedSelectionMethods.SeedSelection;
 import jsat.linear.Vec;
 import jsat.linear.distancemetrics.DistanceMetric;
+import jsat.linear.distancemetrics.EuclideanDistance;
 import jsat.math.OnLineStatistics;
-import jsat.parameters.Parameter.ParameterHolder;
 import jsat.parameters.*;
+import jsat.parameters.Parameter.ParameterHolder;
 import jsat.utils.SystemInfo;
 import jsat.utils.random.XORWOW;
-import jsat.linear.distancemetrics.EuclideanDistance;
 
 /**
  * Base class for the numerous implementations of k-means that exist. This base

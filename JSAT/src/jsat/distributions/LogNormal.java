@@ -1,8 +1,8 @@
 
 package jsat.distributions;
 
-import jsat.linear.Vec;
 import static java.lang.Math.*;
+import jsat.linear.Vec;
 import static jsat.math.SpecialMath.*;
 import jsat.text.GreekLetters;
 

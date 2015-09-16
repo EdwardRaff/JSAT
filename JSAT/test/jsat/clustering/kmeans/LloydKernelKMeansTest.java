@@ -11,16 +11,13 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-
 import jsat.FixedProblems;
 import jsat.classifiers.ClassificationDataSet;
 import jsat.distributions.kernels.RBFKernel;
 import jsat.utils.IntSet;
 import jsat.utils.SystemInfo;
 import jsat.utils.random.XOR96;
-
 import org.junit.*;
-
 import static org.junit.Assert.*;
 
 /**

@@ -4,7 +4,6 @@ import java.util.*;
 import java.util.concurrent.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-
 import jsat.DataSet;
 import jsat.linear.Vec;
 import jsat.linear.VecPaired;

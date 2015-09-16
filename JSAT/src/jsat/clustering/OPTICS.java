@@ -2,7 +2,6 @@ package jsat.clustering;
 
 import java.util.*;
 import java.util.concurrent.ExecutorService;
-
 import jsat.DataSet;
 import jsat.linear.Vec;
 import jsat.linear.VecPaired;

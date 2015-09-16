@@ -1,23 +1,23 @@
 package jsat.classifiers.linear.kernelized;
 
+import static java.lang.Math.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
+import jsat.DataSet;
 import jsat.classifiers.BaseUpdateableClassifier;
 import jsat.classifiers.CategoricalData;
 import jsat.classifiers.CategoricalResults;
 import jsat.classifiers.DataPoint;
+import jsat.distributions.Distribution;
+import jsat.distributions.LogUniform;
 import jsat.distributions.kernels.KernelTrick;
+import jsat.exceptions.FailedToFitException;
 import jsat.linear.Vec;
 import jsat.parameters.Parameter;
 import jsat.parameters.Parameterized;
 import jsat.utils.DoubleList;
 import jsat.utils.random.XORWOW;
-import static java.lang.Math.*;
-import jsat.DataSet;
-import jsat.distributions.Distribution;
-import jsat.distributions.LogUniform;
-import jsat.exceptions.FailedToFitException;
 
 /**
  * An implementation of Conservative Stochastic Kernel Logistic Regression. This

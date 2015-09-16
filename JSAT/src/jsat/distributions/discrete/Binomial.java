@@ -16,8 +16,8 @@
  */
 package jsat.distributions.discrete;
 
-import static jsat.math.SpecialMath.*;
 import static java.lang.Math.*;
+import static jsat.math.SpecialMath.*;
 
 
 /**

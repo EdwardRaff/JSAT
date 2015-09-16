@@ -1,17 +1,12 @@
 package jsat.classifiers.linear;
 
-import java.util.List;
-import java.util.concurrent.ExecutorService;
-import jsat.classifiers.*;
-import jsat.linear.DenseVector;
-import jsat.linear.Vec;
-import jsat.utils.IntList;
-import jsat.utils.ListUtils;
 import static java.lang.Math.*;
 import java.util.*;
+import java.util.concurrent.ExecutorService;
 import jsat.DataSet;
 import jsat.SimpleWeightVectorModel;
 import jsat.SingleWeightVectorModel;
+import jsat.classifiers.*;
 import jsat.distributions.Distribution;
 import jsat.distributions.LogUniform;
 import jsat.distributions.Uniform;
@@ -21,6 +16,8 @@ import jsat.lossfunctions.LogisticLoss;
 import jsat.parameters.Parameter;
 import jsat.parameters.Parameter.WarmParameter;
 import jsat.parameters.Parameterized;
+import jsat.utils.IntList;
+import jsat.utils.ListUtils;
 
 /**
  * NewGLMNET is a batch method for solving Elastic Net regularized Logistic

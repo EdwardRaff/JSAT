@@ -1,14 +1,13 @@
 package jsat.classifiers.evaluation;
 
-import jsat.classifiers.evaluation.Recall;
 import jsat.classifiers.CategoricalData;
 import jsat.classifiers.CategoricalResults;
 import org.junit.After;
 import org.junit.AfterClass;
+import static org.junit.Assert.*;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import static org.junit.Assert.*;
 
 /**
  *

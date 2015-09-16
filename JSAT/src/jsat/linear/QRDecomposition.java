@@ -2,8 +2,8 @@
 package jsat.linear;
 
 import java.io.Serializable;
-import java.util.concurrent.ExecutorService;
 import static java.lang.Math.*;
+import java.util.concurrent.ExecutorService;
 
 /**
  *

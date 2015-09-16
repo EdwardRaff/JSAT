@@ -16,17 +16,17 @@
  */
 package jsat.math.optimization;
 
+import static java.lang.Math.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
+import jsat.linear.ConstantVector;
+import jsat.linear.IndexValue;
 import jsat.linear.Vec;
 import jsat.math.Function;
 import jsat.math.FunctionP;
 import jsat.math.FunctionVec;
 import jsat.utils.DoubleList;
-import static java.lang.Math.*;
-import jsat.linear.ConstantVector;
-import jsat.linear.IndexValue;
 
 /**
  * This implements the Modified Orthant-Wise Limited memory

@@ -4,11 +4,10 @@
  */
 package jsat.clustering.kmeans;
 
-import java.util.Set;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-
 import jsat.SimpleDataSet;
 import jsat.classifiers.DataPoint;
 import jsat.clustering.KClustererBase;
@@ -19,13 +18,11 @@ import jsat.utils.GridDataGenerator;
 import jsat.utils.IntSet;
 import jsat.utils.SystemInfo;
 import jsat.utils.random.XORWOW;
-
 import org.junit.AfterClass;
+import static org.junit.Assert.*;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
-
-import static org.junit.Assert.*;
 
 /**
  *

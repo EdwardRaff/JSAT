@@ -4,11 +4,11 @@
 
 package jsat.math;
 
+import static java.lang.Math.*;
 import jsat.distributions.Normal;
 import jsat.linear.Vec;
-import jsat.math.rootfinding.RiddersMethod;
-import static java.lang.Math.*;
 import static jsat.math.MathTricks.*;
+import jsat.math.rootfinding.RiddersMethod;
 
 /**
  * This class provides static methods for computing accurate approximations to 

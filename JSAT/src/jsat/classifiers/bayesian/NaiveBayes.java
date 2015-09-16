@@ -3,14 +3,12 @@ package jsat.classifiers.bayesian;
 
 import static java.lang.Math.exp;
 import static java.lang.Math.log;
-
 import java.util.*;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
-
 import jsat.classifiers.*;
-import static jsat.distributions.DistributionSearch.getBestDistribution;
 import jsat.distributions.*;
+import static jsat.distributions.DistributionSearch.getBestDistribution;
 import jsat.distributions.empirical.KernelDensityEstimator;
 import jsat.linear.*;
 import jsat.math.MathTricks;

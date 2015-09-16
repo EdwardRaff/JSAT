@@ -5,21 +5,18 @@
 package jsat.datatransform;
 
 import java.util.*;
-
 import jsat.SimpleDataSet;
 import jsat.classifiers.CategoricalData;
 import jsat.classifiers.DataPoint;
 import jsat.linear.DenseVector;
 import jsat.linear.Vec;
 import jsat.utils.IntSet;
-
 import org.junit.After;
 import org.junit.AfterClass;
+import static org.junit.Assert.*;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
-
-import static org.junit.Assert.*;
 
 /**
  *

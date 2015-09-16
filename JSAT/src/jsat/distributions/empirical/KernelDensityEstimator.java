@@ -2,7 +2,6 @@
 package jsat.distributions.empirical;
 
 import java.util.*;
-
 import jsat.distributions.ContinuousDistribution;
 import jsat.distributions.empirical.kernelfunc.*;
 import jsat.linear.Vec;

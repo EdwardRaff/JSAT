@@ -1,14 +1,14 @@
 package jsat.classifiers.bayesian;
 
+import static java.lang.Math.*;
 import java.util.Arrays;
 import jsat.classifiers.*;
 import jsat.distributions.Normal;
 import jsat.exceptions.UntrainedModelException;
 import jsat.linear.IndexValue;
 import jsat.linear.Vec;
-import jsat.math.OnLineStatistics;
-import static java.lang.Math.*;
 import jsat.math.MathTricks;
+import jsat.math.OnLineStatistics;
 
 /**
  * An implementation of Gaussian Naive Bayes that can be updated in an online 

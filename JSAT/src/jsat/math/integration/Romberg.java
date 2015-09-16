@@ -1,8 +1,8 @@
 
 package jsat.math.integration;
 
-import jsat.math.Function;
 import static java.lang.Math.*;
+import jsat.math.Function;
 /**
  *
  * @author Edward Raff

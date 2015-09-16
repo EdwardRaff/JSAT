@@ -4,13 +4,13 @@ package jsat.distributions.multivariate;
 import java.util.List;
 import java.util.Random;
 import jsat.linear.DenseVector;
+import static jsat.linear.DenseVector.*;
 import jsat.linear.Vec;
 import org.junit.AfterClass;
+import static org.junit.Assert.*;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import static org.junit.Assert.*;
-import static jsat.linear.DenseVector.*;
 
 /**
  *

@@ -10,8 +10,8 @@ import jsat.classifiers.CategoricalData;
 import jsat.classifiers.DataPoint;
 import jsat.distributions.multivariate.NormalM;
 import jsat.linear.*;
-import static org.junit.Assert.assertTrue;
 import org.junit.*;
+import static org.junit.Assert.assertTrue;
 
 /**
  *

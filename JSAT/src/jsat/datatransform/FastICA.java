@@ -1,11 +1,11 @@
 package jsat.datatransform;
 
+import static java.lang.Math.*;
 import java.util.*;
 import jsat.DataSet;
 import jsat.classifiers.DataPoint;
-import jsat.linear.*;
-import static java.lang.Math.*;
 import jsat.exceptions.FailedToFitException;
+import jsat.linear.*;
 
 /**
  * Provides an implementation of the FastICA algorithm for Independent Component

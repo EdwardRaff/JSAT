@@ -1,17 +1,17 @@
 
 package jsat.datatransform;
 
+import static java.lang.Math.abs;
 import jsat.SimpleDataSet;
 import jsat.classifiers.CategoricalData;
 import jsat.classifiers.DataPoint;
-import static java.lang.Math.abs;
 import jsat.linear.*;
 import org.junit.After;
 import org.junit.AfterClass;
+import static org.junit.Assert.*;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import static org.junit.Assert.*;
 
 /**
  *

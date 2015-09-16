@@ -1,9 +1,9 @@
 package jsat.linear;
 
 import java.io.Serializable;
+import static java.lang.Math.*;
 import java.util.Arrays;
 import java.util.concurrent.ExecutorService;
-import static java.lang.Math.*;
 import static jsat.linear.RowColumnOps.*;
 
 /**

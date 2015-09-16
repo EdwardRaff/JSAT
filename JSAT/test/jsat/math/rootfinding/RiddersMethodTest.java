@@ -4,15 +4,14 @@
  */
 package jsat.math.rootfinding;
 
+import static java.lang.Math.*;
 import jsat.linear.Vec;
-import jsat.math.rootfinding.RiddersMethod;
 import jsat.math.Function;
 import org.junit.AfterClass;
+import static org.junit.Assert.*;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import static org.junit.Assert.*;
-import static java.lang.Math.*;
 
 /**
  *

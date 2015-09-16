@@ -1,11 +1,8 @@
 package jsat.text.topicmodel;
 
-import jsat.text.topicmodel.OnlineLDAsvi;
-
 import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-
 import jsat.SimpleDataSet;
 import jsat.classifiers.CategoricalData;
 import jsat.classifiers.DataPoint;
@@ -14,14 +11,12 @@ import jsat.linear.*;
 import jsat.utils.IntSet;
 import jsat.utils.SystemInfo;
 import jsat.utils.random.XORWOW;
-
 import org.junit.After;
 import org.junit.AfterClass;
+import static org.junit.Assert.*;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
-
-import static org.junit.Assert.*;
 
 /**
  *

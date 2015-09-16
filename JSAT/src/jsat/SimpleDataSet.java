@@ -2,13 +2,9 @@
 package jsat;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
-import java.util.Random;
 import jsat.classifiers.CategoricalData;
 import jsat.classifiers.DataPoint;
-import jsat.utils.IntList;
-import jsat.utils.ListUtils;
 
 /**
  * SimpleData Set is a basic implementation of a data set. Has no assumptions about the task that is going to be performed. 

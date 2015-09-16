@@ -2,21 +2,18 @@
 package jsat.datatransform.featureselection;
 
 import java.util.*;
-
 import jsat.classifiers.ClassificationDataSet;
 import jsat.classifiers.Classifier;
 import jsat.classifiers.knn.NearestNeighbour;
 import jsat.regression.MultipleLinearRegression;
 import jsat.regression.RegressionDataSet;
 import jsat.utils.IntSet;
-
 import org.junit.After;
 import org.junit.AfterClass;
+import static org.junit.Assert.*;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
-
-import static org.junit.Assert.*;
 
 /**
  *

@@ -9,7 +9,6 @@ import java.util.logging.Logger;
 import jsat.parameters.Parameter;
 import jsat.parameters.Parameter.ParameterHolder;
 import jsat.parameters.Parameterized;
-
 import jsat.utils.FakeExecutor;
 
 /**

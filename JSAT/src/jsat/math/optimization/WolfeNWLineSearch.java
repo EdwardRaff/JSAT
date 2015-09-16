@@ -1,10 +1,8 @@
 package jsat.math.optimization;
 
-import jsat.linear.Vec;
-import jsat.math.Function;
-import jsat.math.FunctionVec;
 import static java.lang.Math.*;
 import java.util.concurrent.ExecutorService;
+import jsat.linear.Vec;
 import jsat.math.*;
 
 /**

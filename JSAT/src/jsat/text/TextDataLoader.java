@@ -2,7 +2,6 @@
 package jsat.text;
 
 import java.util.*;
-
 import jsat.DataSet;
 import jsat.SimpleDataSet;
 import jsat.classifiers.CategoricalData;

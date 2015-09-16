@@ -8,7 +8,6 @@ import java.util.Random;
 import java.util.Set;
 import java.util.Stack;
 import java.util.concurrent.ExecutorService;
-
 import jsat.classifiers.CategoricalData;
 import jsat.classifiers.CategoricalResults;
 import jsat.classifiers.ClassificationDataSet;

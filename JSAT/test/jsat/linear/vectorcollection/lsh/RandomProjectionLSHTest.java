@@ -1,7 +1,6 @@
 package jsat.linear.vectorcollection.lsh;
 
 import java.util.*;
-
 import jsat.linear.DenseVector;
 import jsat.linear.Vec;
 import jsat.linear.VecPaired;
@@ -9,14 +8,12 @@ import jsat.linear.distancemetrics.CosineDistanceNormalized;
 import jsat.linear.vectorcollection.VectorArray;
 import jsat.math.OnLineStatistics;
 import jsat.utils.IntSet;
-
 import org.junit.After;
 import org.junit.AfterClass;
+import static org.junit.Assert.*;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
-
-import static org.junit.Assert.*;
 
 /**
  *

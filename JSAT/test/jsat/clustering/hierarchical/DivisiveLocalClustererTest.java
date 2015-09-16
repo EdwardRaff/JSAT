@@ -3,20 +3,18 @@ package jsat.clustering.hierarchical;
 import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-
 import jsat.SimpleDataSet;
 import jsat.classifiers.DataPoint;
-import jsat.clustering.kmeans.ElkanKMeans;
 import jsat.clustering.evaluation.DaviesBouldinIndex;
+import jsat.clustering.kmeans.ElkanKMeans;
 import jsat.distributions.Uniform;
 import jsat.linear.distancemetrics.DistanceMetric;
 import jsat.linear.distancemetrics.EuclideanDistance;
 import jsat.utils.GridDataGenerator;
 import jsat.utils.IntSet;
+import org.junit.*;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
-
-import org.junit.*;
 
 /**
  *

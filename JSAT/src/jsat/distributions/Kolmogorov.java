@@ -1,10 +1,10 @@
 
 package jsat.distributions;
 
+import static java.lang.Math.*;
 import jsat.linear.Vec;
 import jsat.math.Function;
 import jsat.math.rootfinding.RiddersMethod;
-import static java.lang.Math.*;
 /**
  *
  * @author Edward Raff

@@ -1,6 +1,7 @@
 
 package jsat.distributions.multivariate;
 
+import static java.lang.Math.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
@@ -11,10 +12,9 @@ import jsat.linear.DenseVector;
 import jsat.linear.LUPDecomposition;
 import jsat.linear.Matrix;
 import jsat.linear.MatrixStatistics;
+import static jsat.linear.MatrixStatistics.*;
 import jsat.linear.SingularValueDecomposition;
 import jsat.linear.Vec;
-import static java.lang.Math.*;
-import static jsat.linear.MatrixStatistics.*;
 
 /**
  * Class for the multivariate Normal distribution. It is often called the Multivariate Gaussian distribution. 

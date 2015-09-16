@@ -1,14 +1,10 @@
 package jsat.linear.vectorcollection.lsh;
 
-import java.util.List;
-
-import jsat.distributions.Normal;
-import jsat.linear.Vec;
 import static java.lang.Math.*;
-
 import java.util.*;
-
+import jsat.distributions.Normal;
 import jsat.linear.DenseVector;
+import jsat.linear.Vec;
 import jsat.linear.VecPaired;
 import jsat.linear.VecPairedComparable;
 import jsat.linear.distancemetrics.DistanceMetric;

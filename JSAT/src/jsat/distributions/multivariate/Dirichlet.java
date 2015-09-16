@@ -1,17 +1,17 @@
 
 package jsat.distributions.multivariate;
 
+import static java.lang.Math.*;
 import java.util.ArrayList;
-import java.util.Random;
 import java.util.List;
+import java.util.Random;
 import jsat.classifiers.DataPoint;
 import jsat.distributions.Gamma;
 import jsat.linear.DenseVector;
 import jsat.linear.Vec;
 import jsat.math.Function;
-import jsat.math.optimization.NelderMead;
-import static java.lang.Math.*;
 import static jsat.math.SpecialMath.*;
+import jsat.math.optimization.NelderMead;
 
 /**
  * An implementation of the Dirichlet distribution. The Dirichlet distribution takes a vector of 

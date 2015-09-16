@@ -2,7 +2,6 @@
 package jsat.datatransform.featureselection;
 
 import java.util.*;
-
 import jsat.classifiers.CategoricalData;
 import jsat.classifiers.ClassificationDataSet;
 import jsat.classifiers.Classifier;
@@ -12,10 +11,9 @@ import jsat.linear.Vec;
 import jsat.regression.MultipleLinearRegression;
 import jsat.regression.RegressionDataSet;
 import jsat.utils.IntSet;
+import org.junit.*;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
-
-import org.junit.*;
 
 /**
  *

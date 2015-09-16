@@ -2,10 +2,8 @@
 package jsat.classifiers.trees;
 
 import static java.lang.Math.*;
-
 import java.util.*;
 import java.util.concurrent.ExecutorService;
-
 import jsat.classifiers.*;
 import jsat.classifiers.trees.ImpurityScore.ImpurityMeasure;
 import jsat.distributions.ContinuousDistribution;

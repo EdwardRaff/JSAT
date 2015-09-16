@@ -5,28 +5,21 @@
 package jsat.classifiers.trees;
 
 import java.util.Arrays;
-
-import jsat.distributions.Normal;
-
 import java.util.Random;
-import java.util.concurrent.Executors;
-
-import jsat.utils.GridDataGenerator;
-import jsat.utils.IntSet;
-import jsat.utils.SystemInfo;
-
 import java.util.concurrent.ExecutorService;
-
+import java.util.concurrent.Executors;
 import jsat.classifiers.ClassificationDataSet;
 import jsat.classifiers.Classifier;
 import jsat.classifiers.DataPointPair;
 import jsat.datatransform.NumericalToHistogram;
 import jsat.distributions.ContinuousDistribution;
+import jsat.distributions.Normal;
 import jsat.distributions.Uniform;
+import jsat.utils.GridDataGenerator;
+import jsat.utils.IntSet;
 import jsat.utils.PairedReturn;
-
+import jsat.utils.SystemInfo;
 import org.junit.*;
-
 import static org.junit.Assert.*;
 
 /**

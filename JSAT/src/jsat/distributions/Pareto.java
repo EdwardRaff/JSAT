@@ -1,9 +1,9 @@
 
 package jsat.distributions;
 
+import static java.lang.Math.*;
 import jsat.linear.Vec;
 import jsat.text.GreekLetters;
-import static java.lang.Math.*;
 /**
  *
  * @author Edward Raff

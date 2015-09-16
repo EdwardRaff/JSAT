@@ -2,15 +2,9 @@ package jsat.classifiers.linear;
 
 import java.util.Random;
 import java.util.concurrent.ExecutorService;
-import jsat.FixedProblems;
 import jsat.SimpleWeightVectorModel;
 import jsat.classifiers.*;
-import jsat.classifiers.svm.DCDs;
-import jsat.classifiers.svm.PlatSMO;
-import jsat.datatransform.PolynomialTransform;
-import jsat.distributions.kernels.LinearKernel;
 import jsat.linear.*;
-import jsat.lossfunctions.LogisticLoss;
 import jsat.utils.random.XORWOW;
 import org.junit.After;
 import org.junit.AfterClass;

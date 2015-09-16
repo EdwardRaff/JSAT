@@ -1,6 +1,7 @@
 
 package jsat.linear;
 
+import static java.lang.Math.*;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -11,10 +12,8 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-
-import jsat.utils.FakeExecutor;
-import static java.lang.Math.*;
 import static jsat.linear.GenericMatrix.NB2;
+import jsat.utils.FakeExecutor;
 import static jsat.utils.SystemInfo.*;
 
 /**
