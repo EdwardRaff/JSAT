@@ -16,107 +16,100 @@
  */
 package jsat.classifiers.bayesian;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import jsat.FixedProblems;
-import jsat.classifiers.ClassificationDataSet;
-import jsat.classifiers.ClassificationModelEvaluation;
-import jsat.utils.SystemInfo;
-import jsat.utils.random.XOR96;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import static org.junit.Assert.*;
+import jsat.FixedProblems;
+import jsat.classifiers.ClassificationDataSet;
+import jsat.classifiers.ClassificationModelEvaluation;
+import jsat.utils.SystemInfo;
+import jsat.utils.random.XOR96;
 
 /**
  *
  * @author Edward Raff
  */
-public class MultivariateNormalsTest
-{
-    
-    public MultivariateNormalsTest()
-    {
-    }
-    
-    @BeforeClass
-    public static void setUpClass()
-    {
-    }
-    
-    @AfterClass
-    public static void tearDownClass()
-    {
-    }
-    
-    @Before
-    public void setUp()
-    {
-    }
-    
-    @After
-    public void tearDown()
-    {
+public class MultivariateNormalsTest {
+
+  @BeforeClass
+  public static void setUpClass() {
+  }
+
+  @AfterClass
+  public static void tearDownClass() {
+  }
+
+  public MultivariateNormalsTest() {
+  }
+
+  @Before
+  public void setUp() {
+  }
+
+  @After
+  public void tearDown() {
+  }
+
+  @Test
+  public void testClone() {
+    System.out.println("clone");
+
+    final ClassificationDataSet t1 = FixedProblems.getSimpleKClassLinear(1000, 3, new XOR96());
+    final ClassificationDataSet t2 = FixedProblems.getSimpleKClassLinear(1000, 6, new XOR96());
+
+    MultivariateNormals instance = new MultivariateNormals();
+
+    instance = instance.clone();
+
+    instance.trainC(t1);
+
+    final MultivariateNormals result = instance.clone();
+    result.trainC(t2);
+
+    for (int i = 0; i < t1.getSampleSize(); i++) {
+      assertEquals(t1.getDataPointCategory(i), instance.classify(t1.getDataPoint(i)).mostLikely());
     }
 
-    @Test
-    public void testTrainC_ClassificationDataSet_ExecutorService()
-    {
-        System.out.println("trainC");
-        MultivariateNormals instance = new MultivariateNormals();
-        
-        ClassificationDataSet train = FixedProblems.getCircles(1000, 3, 0.1, 1.0, 10.0);
-        ClassificationDataSet test = FixedProblems.getCircles(100, 3, 0.1, 1.0, 10.0);
-
-        
-        ExecutorService ex = Executors.newFixedThreadPool(SystemInfo.LogicalCores);
-        ClassificationModelEvaluation cme = new ClassificationModelEvaluation(instance, train);
-        cme.evaluateTestSet(test);
-        
-        assertTrue(cme.getErrorRate() <= 0.001);
-        ex.shutdownNow();
-        
+    for (int i = 0; i < t2.getSampleSize(); i++) {
+      assertEquals(t2.getDataPointCategory(i), result.classify(t2.getDataPoint(i)).mostLikely());
     }
-    
-    @Test
-    public void testTrainC_ClassificationDataSet()
-    {
-        System.out.println("trainC");
-        MultivariateNormals instance = new MultivariateNormals();
-        
-        ClassificationDataSet train = FixedProblems.getCircles(1000, 3, 0.1, 1.0, 10.0);
-        ClassificationDataSet test = FixedProblems.getCircles(100, 3, 0.1, 1.0, 10.0);
+  }
 
-        ClassificationModelEvaluation cme = new ClassificationModelEvaluation(instance, train);
-        cme.evaluateTestSet(test);
-        
-        assertTrue(cme.getErrorRate() <= 0.001);
-    }
+  @Test
+  public void testTrainC_ClassificationDataSet() {
+    System.out.println("trainC");
+    final MultivariateNormals instance = new MultivariateNormals();
 
-    @Test
-    public void testClone()
-    {
-        System.out.println("clone");
-        
-        ClassificationDataSet t1 = FixedProblems.getSimpleKClassLinear(1000, 3, new XOR96());
-        ClassificationDataSet t2 = FixedProblems.getSimpleKClassLinear(1000, 6, new XOR96());
-        
-        MultivariateNormals instance = new MultivariateNormals();
-        
-        instance = instance.clone();
-                
-        instance.trainC(t1);
+    final ClassificationDataSet train = FixedProblems.getCircles(1000, 3, 0.1, 1.0, 10.0);
+    final ClassificationDataSet test = FixedProblems.getCircles(100, 3, 0.1, 1.0, 10.0);
 
-        MultivariateNormals result = instance.clone();
-        result.trainC(t2);
-        
-        for(int i = 0; i < t1.getSampleSize(); i++)
-            assertEquals(t1.getDataPointCategory(i), instance.classify(t1.getDataPoint(i)).mostLikely());
-        
-        for(int i = 0; i < t2.getSampleSize(); i++)
-            assertEquals(t2.getDataPointCategory(i), result.classify(t2.getDataPoint(i)).mostLikely());
-    }
-    
+    final ClassificationModelEvaluation cme = new ClassificationModelEvaluation(instance, train);
+    cme.evaluateTestSet(test);
+
+    assertTrue(cme.getErrorRate() <= 0.001);
+  }
+
+  @Test
+  public void testTrainC_ClassificationDataSet_ExecutorService() {
+    System.out.println("trainC");
+    final MultivariateNormals instance = new MultivariateNormals();
+
+    final ClassificationDataSet train = FixedProblems.getCircles(1000, 3, 0.1, 1.0, 10.0);
+    final ClassificationDataSet test = FixedProblems.getCircles(100, 3, 0.1, 1.0, 10.0);
+
+    final ExecutorService ex = Executors.newFixedThreadPool(SystemInfo.LogicalCores);
+    final ClassificationModelEvaluation cme = new ClassificationModelEvaluation(instance, train);
+    cme.evaluateTestSet(test);
+
+    assertTrue(cme.getErrorRate() <= 0.001);
+    ex.shutdownNow();
+
+  }
+
 }

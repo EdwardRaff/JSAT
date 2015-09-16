@@ -14,11 +14,17 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-
 package jsat.regression;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import org.junit.After;
+import org.junit.AfterClass;
+import org.junit.Before;
+import org.junit.BeforeClass;
+import org.junit.Test;
 import jsat.FixedProblems;
 import jsat.datatransform.LinearTransform;
 import jsat.distributions.multivariate.MetricKDE;
@@ -26,114 +32,99 @@ import jsat.distributions.multivariate.MultivariateKDE;
 import jsat.distributions.multivariate.ProductKDE;
 import jsat.utils.SystemInfo;
 import jsat.utils.random.XORWOW;
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
-import static org.junit.Assert.*;
 
 /**
  *
  * @author Edward Raff <Raff.Edward@gmail.com>
  */
-public class NadarayaWatsonTest
-{
-    
-    public NadarayaWatsonTest()
-    {
+public class NadarayaWatsonTest {
+
+  @BeforeClass
+  public static void setUpClass() {
+  }
+
+  @AfterClass
+  public static void tearDownClass() {
+  }
+
+  public NadarayaWatsonTest() {
+  }
+
+  @Before
+  public void setUp() {
+  }
+
+  @After
+  public void tearDown() {
+  }
+
+  @Test
+  public void testClone() {
+    System.out.println("clone");
+
+    for (final MultivariateKDE kde : new MultivariateKDE[] { new MetricKDE(), new ProductKDE() }) {
+      NadarayaWatson instance = new NadarayaWatson(kde);
+
+      final RegressionDataSet t1 = FixedProblems.getLinearRegression(100, new XORWOW());
+      final RegressionDataSet t2 = FixedProblems.getLinearRegression(100, new XORWOW());
+      t2.applyTransform(new LinearTransform(t2, 1, 10));
+
+      instance = instance.clone();
+
+      instance.train(t1);
+
+      final NadarayaWatson result = instance.clone();
+      for (int i = 0; i < t1.getSampleSize(); i++) {
+        assertEquals(t1.getTargetValue(i), result.regress(t1.getDataPoint(i)), t1.getTargetValues().mean() * 1.5);
+      }
+      result.train(t2);
+
+      for (int i = 0; i < t1.getSampleSize(); i++) {
+        assertEquals(t1.getTargetValue(i), instance.regress(t1.getDataPoint(i)), t1.getTargetValues().mean() * 1.5);
+      }
+
+      for (int i = 0; i < t2.getSampleSize(); i++) {
+        assertEquals(t2.getTargetValue(i), result.regress(t2.getDataPoint(i)), t2.getTargetValues().mean() * 1.5);
+      }
     }
-    
-    @BeforeClass
-    public static void setUpClass()
-    {
+  }
+
+  @Test
+  public void testTrainC_RegressionDataSet() {
+    System.out.println("train");
+
+    for (final MultivariateKDE kde : new MultivariateKDE[] { new MetricKDE(), new ProductKDE() }) {
+      final NadarayaWatson instance = new NadarayaWatson(kde);
+
+      final RegressionDataSet train = FixedProblems.getLinearRegression(500, new XORWOW());
+      final RegressionDataSet test = FixedProblems.getLinearRegression(100, new XORWOW());
+
+      final RegressionModelEvaluation rme = new RegressionModelEvaluation(instance, train);
+      rme.evaluateTestSet(test);
+
+      assertTrue(rme.getMeanError() <= test.getTargetValues().mean() * 1.5);
     }
-    
-    @AfterClass
-    public static void tearDownClass()
-    {
+  }
+
+  @Test
+  public void testTrainC_RegressionDataSet_ExecutorService() {
+    System.out.println("train");
+
+    for (final MultivariateKDE kde : new MultivariateKDE[] { new MetricKDE(), new ProductKDE() }) {
+      final NadarayaWatson instance = new NadarayaWatson(kde);
+
+      final ExecutorService ex = Executors.newFixedThreadPool(SystemInfo.LogicalCores);
+
+      final RegressionDataSet train = FixedProblems.getLinearRegression(500, new XORWOW());
+      final RegressionDataSet test = FixedProblems.getLinearRegression(100, new XORWOW());
+
+      final RegressionModelEvaluation rme = new RegressionModelEvaluation(instance, train, ex);
+      rme.evaluateTestSet(test);
+
+      assertTrue(rme.getMeanError() <= test.getTargetValues().mean() * 1.5);
+
+      ex.shutdownNow();
     }
-    
-    @Before
-    public void setUp()
-    {
-    }
-    
-    @After
-    public void tearDown()
-    {
-    }
+  }
 
-    @Test
-    public void testTrainC_RegressionDataSet()
-    {
-        System.out.println("train");
-
-        for(MultivariateKDE kde : new MultivariateKDE[]{new MetricKDE(), new ProductKDE()})
-        {
-            NadarayaWatson instance = new NadarayaWatson(kde);
-
-            RegressionDataSet train = FixedProblems.getLinearRegression(500, new XORWOW());
-            RegressionDataSet test = FixedProblems.getLinearRegression(100, new XORWOW());
-
-            RegressionModelEvaluation rme = new RegressionModelEvaluation(instance, train);
-            rme.evaluateTestSet(test);
-
-            assertTrue(rme.getMeanError() <= test.getTargetValues().mean()*1.5 );
-        }
-    }
-
-    @Test
-    public void testTrainC_RegressionDataSet_ExecutorService()
-    {
-        System.out.println("train");
-
-        for(MultivariateKDE kde : new MultivariateKDE[]{new MetricKDE(), new ProductKDE()})
-        {
-            NadarayaWatson instance = new NadarayaWatson(kde);
-
-            ExecutorService ex = Executors.newFixedThreadPool(SystemInfo.LogicalCores);
-
-            RegressionDataSet train = FixedProblems.getLinearRegression(500, new XORWOW());
-            RegressionDataSet test = FixedProblems.getLinearRegression(100, new XORWOW());
-
-            RegressionModelEvaluation rme = new RegressionModelEvaluation(instance, train, ex);
-            rme.evaluateTestSet(test);
-
-            assertTrue(rme.getMeanError() <= test.getTargetValues().mean()*1.5 );
-
-            ex.shutdownNow();
-        }
-    }
-    
-    @Test
-    public void testClone()
-    {
-        System.out.println("clone");
-
-        for(MultivariateKDE kde : new MultivariateKDE[]{new MetricKDE(), new ProductKDE()})
-        {
-            NadarayaWatson instance = new NadarayaWatson(kde);
-
-            RegressionDataSet t1 = FixedProblems.getLinearRegression(100, new XORWOW());
-            RegressionDataSet t2 = FixedProblems.getLinearRegression(100, new XORWOW());
-            t2.applyTransform(new LinearTransform(t2, 1, 10));
-
-            instance = instance.clone();
-
-            instance.train(t1);
-
-            NadarayaWatson result = instance.clone();
-            for (int i = 0; i < t1.getSampleSize(); i++)
-                assertEquals(t1.getTargetValue(i), result.regress(t1.getDataPoint(i)), t1.getTargetValues().mean()*1.5);
-            result.train(t2);
-
-            for (int i = 0; i < t1.getSampleSize(); i++)
-                assertEquals(t1.getTargetValue(i), instance.regress(t1.getDataPoint(i)), t1.getTargetValues().mean()*1.5);
-
-            for (int i = 0; i < t2.getSampleSize(); i++)
-                assertEquals(t2.getTargetValue(i), result.regress(t2.getDataPoint(i)), t2.getTargetValues().mean()*1.5);
-        }
-    }
-    
 }

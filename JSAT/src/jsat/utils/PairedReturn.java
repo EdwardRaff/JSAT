@@ -1,44 +1,41 @@
-
 package jsat.utils;
 
 /**
  *
- * Utility class that allows the returning of 2 different objects as one. 
- * 
+ * Utility class that allows the returning of 2 different objects as one.
+ *
  * @author Edwartd Raff
  */
-public class PairedReturn<T, V>
-{
-    private final T firstItem;
-    private final V secondItem;
+public class PairedReturn<T, V> {
 
-    public PairedReturn(T t, V v)
-    {
-        this.firstItem = t;
-        this.secondItem = v;
-    }
+  private final T firstItem;
+  private final V secondItem;
 
-    /**
-     * Returns the first object stored.
-     * @return the first object stored
-     */
-    public T getFirstItem()
-    {
-        return firstItem;
-    }
+  public PairedReturn(final T t, final V v) {
+    this.firstItem = t;
+    this.secondItem = v;
+  }
 
-    /**
-     * Returns the second object stored
-     * @return the second object stored
-     */
-    public V getSecondItem()
-    {
-        return secondItem;
-    }
+  /**
+   * Returns the first object stored.
+   *
+   * @return the first object stored
+   */
+  public T getFirstItem() {
+    return firstItem;
+  }
 
-    @Override
-    public String toString()
-    {
-        return "(" + getFirstItem() + ", " + getSecondItem() + ")";
-    }
+  /**
+   * Returns the second object stored
+   *
+   * @return the second object stored
+   */
+  public V getSecondItem() {
+    return secondItem;
+  }
+
+  @Override
+  public String toString() {
+    return "(" + getFirstItem() + ", " + getSecondItem() + ")";
+  }
 }

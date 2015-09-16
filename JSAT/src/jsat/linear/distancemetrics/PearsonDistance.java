@@ -1,4 +1,3 @@
-
 package jsat.linear.distancemetrics;
 
 import java.util.Iterator;
@@ -8,302 +7,289 @@ import jsat.linear.IndexValue;
 import jsat.linear.Vec;
 
 /**
- * A valid distance metric formed from the Pearson Correlation between two vectors.
- * The distance in the range of [0, 1]. 
- * 
+ * A valid distance metric formed from the Pearson Correlation between two
+ * vectors. The distance in the range of [0, 1].
+ *
  * @author Edward Raff
  */
-public class PearsonDistance implements DistanceMetric
-{
+public class PearsonDistance implements DistanceMetric {
 
-	private static final long serialVersionUID = 1090726755301934198L;
-	private boolean bothNonZero;
-    private boolean absoluteDistance;
+  private static final long serialVersionUID = 1090726755301934198L;
 
-    /**
-     * Creates a new standard Pearson Distance that does not ignore zero values 
-     * and anti-correlated values are considered far away. 
-     */
-    public PearsonDistance()
-    {
-        this(false, false);
+  /**
+   * Computes the Pearson correlation between two vectors. If one of the vectors
+   * is all zeros, the result is undefined. In cases where both are zero
+   * vectors, 1 will be returned to indicate they are the same. In cases where
+   * one of the numerator coefficients is zero, its value will be bumped up to
+   * an epsilon to provide a near result. <br>
+   * <br>
+   * In cases where {@code bothNonZero} is {@code true}, and the vectors have no
+   * overlapping non zero values, 0 will be returned.
+   *
+   * @param a
+   *          the first vector
+   * @param b
+   *          the second vector
+   * @param bothNonZero
+   *          {@code false} is the normal Pearson correlation. {@code true} will
+   *          make the computation ignore all indexes where one of the values is
+   *          zero, the mean will be from all non zero values in each vector.
+   * @return the Pearson correlation in [-1, 1]
+   */
+  public static double correlation(final Vec a, final Vec b, final boolean bothNonZero) {
+    final double aMean;
+    final double bMean;
+    if (bothNonZero) {
+      aMean = a.sum() / a.nnz();
+      bMean = b.sum() / b.nnz();
+    } else {
+      aMean = a.mean();
+      bMean = b.mean();
     }
 
-    /**
-     * Creates a new Pearson Distance object
-     * @param bothNonZero {@code true} if non zero values should be treated as 
-     * "missing" or "no vote", and will not contribute. But this will not 
-     * change the mean value used. {@code false} produces the standard Pearson value. 
-     * @param absoluteDistance {@code true} to use the absolute correlation, meaning 
-     * correlated and anti-correlated values will have the same distance. 
-     */
-    public PearsonDistance(boolean bothNonZero, boolean absoluteDistance)
-    {
-        this.bothNonZero = bothNonZero;
-        this.absoluteDistance = absoluteDistance;
-    }
+    double r = 0;
+    double aSqrd = 0, bSqrd = 0;
 
-    @Override
-    public double dist(Vec a, Vec b)
-    {
-        double r = correlation(a, b, bothNonZero);
-        if(Double.isNaN(r))
-            return Double.MAX_VALUE;
-        if(absoluteDistance)
-            return Math.sqrt(1-r*r);
-        else
-            return Math.sqrt((1-r)*0.5);
-    }
+    if (a.isSparse() || b.isSparse()) {
+      final Iterator<IndexValue> aIter = a.getNonZeroIterator();
+      final Iterator<IndexValue> bIter = b.getNonZeroIterator();
 
-    @Override
-    public boolean isSymmetric()
-    {
-        return true;
-    }
-
-    @Override
-    public boolean isSubadditive()
-    {
-        return true;
-    }
-
-    @Override
-    public boolean isIndiscemible()
-    {
-        return true;
-    }
-
-    @Override
-    public double metricBound()
-    {
+      // if one is empty, then a zero forms on the denomrinator
+      if (!aIter.hasNext() && !bIter.hasNext()) {
         return 1;
-    }
+      }
+      if (!aIter.hasNext() || !bIter.hasNext()) {
+        return Double.MAX_VALUE;
+      }
 
-    @Override
-    public PearsonDistance clone()
-    {
-        return new PearsonDistance(bothNonZero, absoluteDistance);
-    }
-    
-    /**
-     * Computes the Pearson correlation between two vectors. If one of the vectors is all zeros, the result is undefined. 
-     * In cases where both are zero vectors, 1 will be returned to indicate they are the same. In cases where one of the 
-     * numerator coefficients is zero, its value will be bumped up to an epsilon to provide a near result. <br>
-     * <br>
-     * In cases where {@code bothNonZero} is {@code true}, and the vectors have no overlapping non zero values, 0 will
-     * be returned. 
-     * @param a the first vector
-     * @param b the second vector
-     * @param bothNonZero {@code false} is the normal Pearson correlation. {@code true} will make the computation ignore 
-     * all indexes where one of the values is zero, the mean will be from all non zero values in each vector. 
-     * @return the Pearson correlation in [-1, 1]
-     */
-    public static double correlation(Vec a, Vec b, boolean bothNonZero)
-    {
-        final double aMean;
-        final double bMean;
-        if(bothNonZero)
-        {
-            aMean = a.sum()/a.nnz();
-            bMean = b.sum()/b.nnz();
+      IndexValue aCur = null;
+      IndexValue bCur = null;
+
+      boolean newA = true, newB = true;
+      int lastObservedIndex = -1;
+      do {
+
+        if (newA) {
+          if (!aIter.hasNext()) {
+            break;
+          }
+          aCur = aIter.next();
+          newA = false;
         }
-        else
-        {
-            aMean = a.mean();
-            bMean = b.mean();
+        if (newB) {
+          if (!bIter.hasNext()) {
+            break;
+          }
+          bCur = bIter.next();
+          newB = false;
         }
 
-        double r = 0;
-        double aSqrd = 0, bSqrd = 0;
+        if (aCur.getIndex() == bCur.getIndex()) {
+          // accumulate skipped positions where both are zero
+          if (!bothNonZero) {
+            r += aMean * bMean * (aCur.getIndex() - lastObservedIndex - 1);
+          }
+          lastObservedIndex = aCur.getIndex();
 
-        if (a.isSparse() || b.isSparse())
-        {
-            Iterator<IndexValue> aIter = a.getNonZeroIterator();
-            Iterator<IndexValue> bIter = b.getNonZeroIterator();
+          final double aVal = aCur.getValue() - aMean;
+          final double bVal = bCur.getValue() - bMean;
+          r += aVal * bVal;
 
-            //if one is empty, then a zero forms on the denomrinator
-            if (!aIter.hasNext() && !bIter.hasNext())
-                return 1;
-            if (!aIter.hasNext() || !bIter.hasNext())
-                return Double.MAX_VALUE;
+          aSqrd += aVal * aVal;
+          bSqrd += bVal * bVal;
 
-            IndexValue aCur = null;
-            IndexValue bCur = null;
+          newA = newB = true;
+        } else if (aCur.getIndex() > bCur.getIndex()) {
+          if (!bothNonZero) {
+            // accumulate skipped positions where both are zero
+            r += aMean * bMean * (bCur.getIndex() - lastObservedIndex - 1);
+            lastObservedIndex = bCur.getIndex();
 
-            boolean newA = true, newB = true;
-            int lastObservedIndex = -1;
-            do
-            {
+            final double bVal = bCur.getValue() - bMean;
+            r += -aMean * bVal;
+            bSqrd += bVal * bVal;
+          }
+          newB = true;
+        } else if (aCur.getIndex() < bCur.getIndex()) {
+          if (!bothNonZero) {
+            // accumulate skipped positions where both are zero
+            r += aMean * bMean * (aCur.getIndex() - lastObservedIndex - 1);
+            lastObservedIndex = aCur.getIndex();
 
-                if (newA)
-                {
-                    if (!aIter.hasNext())
-                        break;
-                    aCur = aIter.next();
-                    newA = false;
-                }
-                if (newB)
-                {
-                    if (!bIter.hasNext())
-                        break;
-                    bCur = bIter.next();
-                    newB = false;
-                }
-
-                if (aCur.getIndex() == bCur.getIndex())
-                {
-                    //accumulate skipped positions where both are zero
-                    if(!bothNonZero)
-                        r += aMean * bMean * (aCur.getIndex()-lastObservedIndex - 1);
-                    lastObservedIndex = aCur.getIndex();
-
-                    double aVal = aCur.getValue() - aMean;
-                    double bVal = bCur.getValue() - bMean;
-                    r += aVal * bVal;
-
-                    aSqrd += aVal * aVal;
-                    bSqrd += bVal * bVal;
-
-                    newA = newB = true;
-                }
-                else if (aCur.getIndex() > bCur.getIndex())
-                {
-                    if (!bothNonZero)
-                    {
-                        //accumulate skipped positions where both are zero
-                        r += aMean * bMean * (bCur.getIndex()-lastObservedIndex - 1);
-                        lastObservedIndex = bCur.getIndex();
-
-                        double bVal = bCur.getValue() - bMean;
-                        r += -aMean * bVal;
-                        bSqrd += bVal * bVal;
-                    }
-                    newB = true;
-                }
-                else if (aCur.getIndex() < bCur.getIndex())
-                {
-                    if (!bothNonZero)
-                    {
-                        //accumulate skipped positions where both are zero
-                        r += aMean * bMean * (aCur.getIndex()-lastObservedIndex - 1);
-                        lastObservedIndex = aCur.getIndex();
-                    
-                        double aVal = aCur.getValue() - aMean;
-                        r += aVal * -bMean;
-                        aSqrd += aVal * aVal;
-                    }
-                    newA = true;
-                }
-            }
-            while (true);
-
-            if (!bothNonZero)
-            {
-                //only one of the loops bellow will execute
-                while (!newA || (newA && aIter.hasNext()))
-                {
-                    if(newA)
-                        aCur = aIter.next();
-                    //accumulate skipped positions where both are zero
-                    r += aMean * bMean * (aCur.getIndex()-lastObservedIndex - 1);
-                    lastObservedIndex = aCur.getIndex();
-
-                    double aVal = aCur.getValue() - aMean;
-                    r += aVal * -bMean;
-                    aSqrd += aVal * aVal;
-                    newA = true;
-                }
-
-                while (!newB || (newB && bIter.hasNext()))
-                {
-                    if(newB)
-                        bCur = bIter.next();
-                    //accumulate skipped positions where both are zero
-                    r += aMean * bMean * (bCur.getIndex()-lastObservedIndex - 1);
-                    lastObservedIndex = bCur.getIndex();
-
-                    double bVal = bCur.getValue() - bMean;
-                    r += -aMean * bVal;
-                    bSqrd += bVal * bVal;
-                    newB = true;
-                }
-
-                r += aMean * bMean * (a.length()-lastObservedIndex - 1);
-                aSqrd += aMean * aMean * (a.length()-a.nnz());
-                bSqrd += bMean * bMean * (b.length()-b.nnz());
-            }
+            final double aVal = aCur.getValue() - aMean;
+            r += aVal * -bMean;
+            aSqrd += aVal * aVal;
+          }
+          newA = true;
         }
-        else//dense!
-        {
-            for(int i = 0; i < a.length(); i++)
-            {
-                double aTmp = a.get(i);
-                double bTmp = b.get(i);
-                if(bothNonZero && (aTmp == 0 || bTmp == 0))
-                    continue;
-                double aVal = aTmp-aMean;
-                double bVal = bTmp-bMean;
-                r += aVal*bVal;
-                aSqrd += aVal*aVal;
-                bSqrd += bVal*bVal;
-            }
+      } while (true);
+
+      if (!bothNonZero) {
+        // only one of the loops bellow will execute
+        while (!newA || newA && aIter.hasNext()) {
+          if (newA) {
+            aCur = aIter.next();
+          }
+          // accumulate skipped positions where both are zero
+          r += aMean * bMean * (aCur.getIndex() - lastObservedIndex - 1);
+          lastObservedIndex = aCur.getIndex();
+
+          final double aVal = aCur.getValue() - aMean;
+          r += aVal * -bMean;
+          aSqrd += aVal * aVal;
+          newA = true;
         }
-        
-        if(bSqrd == 0 && aSqrd == 0)
-            return 0;
-        else if(bSqrd == 0 || aSqrd == 0)
-            return r/Math.sqrt((aSqrd+1e-10)*(bSqrd+1e-10));
 
-        return r/Math.sqrt(aSqrd*bSqrd);
-    }
-    
-    /*
-     * TODO Accerlation for Pearson can be done, its a little complicated (you 
-     * cache the means and Sqrd values - so that you can do just 1 pass over all
-     * values). But thats a good bit of code, and the above needs to be cleaned
-     * up before implementing that. 
-     */
+        while (!newB || newB && bIter.hasNext()) {
+          if (newB) {
+            bCur = bIter.next();
+          }
+          // accumulate skipped positions where both are zero
+          r += aMean * bMean * (bCur.getIndex() - lastObservedIndex - 1);
+          lastObservedIndex = bCur.getIndex();
 
-    @Override
-    public boolean supportsAcceleration()
+          final double bVal = bCur.getValue() - bMean;
+          r += -aMean * bVal;
+          bSqrd += bVal * bVal;
+          newB = true;
+        }
+
+        r += aMean * bMean * (a.length() - lastObservedIndex - 1);
+        aSqrd += aMean * aMean * (a.length() - a.nnz());
+        bSqrd += bMean * bMean * (b.length() - b.nnz());
+      }
+    } else// dense!
     {
-        return false;
-    }
-
-    @Override
-    public List<Double> getAccelerationCache(List<? extends Vec> vecs)
-    {
-        return null;
-    }
-
-    @Override
-    public double dist(int a, int b, List<? extends Vec> vecs, List<Double> cache)
-    {
-        return dist(vecs.get(a), vecs.get(b));
-    }
-
-    @Override
-    public double dist(int a, Vec b, List<? extends Vec> vecs, List<Double> cache)
-    {
-        return dist(vecs.get(a), b);
+      for (int i = 0; i < a.length(); i++) {
+        final double aTmp = a.get(i);
+        final double bTmp = b.get(i);
+        if (bothNonZero && (aTmp == 0 || bTmp == 0)) {
+          continue;
+        }
+        final double aVal = aTmp - aMean;
+        final double bVal = bTmp - bMean;
+        r += aVal * bVal;
+        aSqrd += aVal * aVal;
+        bSqrd += bVal * bVal;
+      }
     }
 
-    @Override
-    public List<Double> getQueryInfo(Vec q)
-    {
-        return null;
+    if (bSqrd == 0 && aSqrd == 0) {
+      return 0;
+    } else if (bSqrd == 0 || aSqrd == 0) {
+      return r / Math.sqrt((aSqrd + 1e-10) * (bSqrd + 1e-10));
     }
 
-    @Override
-    public List<Double> getAccelerationCache(List<? extends Vec> vecs, ExecutorService threadpool)
-    {
-        return null;
+    return r / Math.sqrt(aSqrd * bSqrd);
+  }
+
+  private final boolean bothNonZero;
+
+  private final boolean absoluteDistance;
+
+  /**
+   * Creates a new standard Pearson Distance that does not ignore zero values
+   * and anti-correlated values are considered far away.
+   */
+  public PearsonDistance() {
+    this(false, false);
+  }
+
+  /**
+   * Creates a new Pearson Distance object
+   *
+   * @param bothNonZero
+   *          {@code true} if non zero values should be treated as "missing" or
+   *          "no vote", and will not contribute. But this will not change the
+   *          mean value used. {@code false} produces the standard Pearson
+   *          value.
+   * @param absoluteDistance
+   *          {@code true} to use the absolute correlation, meaning correlated
+   *          and anti-correlated values will have the same distance.
+   */
+  public PearsonDistance(final boolean bothNonZero, final boolean absoluteDistance) {
+    this.bothNonZero = bothNonZero;
+    this.absoluteDistance = absoluteDistance;
+  }
+
+  @Override
+  public PearsonDistance clone() {
+    return new PearsonDistance(bothNonZero, absoluteDistance);
+  }
+
+  @Override
+  public double dist(final int a, final int b, final List<? extends Vec> vecs, final List<Double> cache) {
+    return dist(vecs.get(a), vecs.get(b));
+  }
+
+  @Override
+  public double dist(final int a, final Vec b, final List<? extends Vec> vecs, final List<Double> cache) {
+    return dist(vecs.get(a), b);
+  }
+
+  @Override
+  public double dist(final int a, final Vec b, final List<Double> qi, final List<? extends Vec> vecs,
+      final List<Double> cache) {
+    return dist(vecs.get(a), b);
+  }
+
+  @Override
+  public double dist(final Vec a, final Vec b) {
+    final double r = correlation(a, b, bothNonZero);
+    if (Double.isNaN(r)) {
+      return Double.MAX_VALUE;
     }
-    
-    @Override
-    public double dist(int a, Vec b, List<Double> qi, List<? extends Vec> vecs, List<Double> cache)
-    {
-        return dist(vecs.get(a), b);
+    if (absoluteDistance) {
+      return Math.sqrt(1 - r * r);
+    } else {
+      return Math.sqrt((1 - r) * 0.5);
     }
+  }
+
+  @Override
+  public List<Double> getAccelerationCache(final List<? extends Vec> vecs) {
+    return null;
+  }
+
+  @Override
+  public List<Double> getAccelerationCache(final List<? extends Vec> vecs, final ExecutorService threadpool) {
+    return null;
+  }
+
+  @Override
+  public List<Double> getQueryInfo(final Vec q) {
+    return null;
+  }
+
+  @Override
+  public boolean isIndiscemible() {
+    return true;
+  }
+
+  @Override
+  public boolean isSubadditive() {
+    return true;
+  }
+
+  @Override
+  public boolean isSymmetric() {
+    return true;
+  }
+
+  @Override
+  public double metricBound() {
+    return 1;
+  }
+
+  /*
+   * TODO Accerlation for Pearson can be done, its a little complicated (you
+   * cache the means and Sqrd values - so that you can do just 1 pass over all
+   * values). But thats a good bit of code, and the above needs to be cleaned up
+   * before implementing that.
+   */
+  @Override
+  public boolean supportsAcceleration() {
+    return false;
+  }
 
 }

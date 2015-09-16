@@ -16,8 +16,15 @@
  */
 package jsat.parameters;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import org.junit.After;
+import org.junit.AfterClass;
+import org.junit.Before;
+import org.junit.BeforeClass;
+import org.junit.Test;
 import jsat.classifiers.CategoricalData;
 import jsat.classifiers.ClassificationDataSet;
 import jsat.classifiers.Classifier;
@@ -28,168 +35,158 @@ import jsat.parameters.GridSearchTest.DumbModel;
 import jsat.regression.RegressionDataSet;
 import jsat.regression.Regressor;
 import jsat.utils.SystemInfo;
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
-import static org.junit.Assert.*;
 
 /**
  *
  * @author Edward Raff
  */
-public class RandomSearchTest
-{
-    static ExecutorService ex;
-    ClassificationDataSet classData ;
-    RegressionDataSet regData;
-    
-    public RandomSearchTest()
-    {
-    }
-    
-    @BeforeClass
-    public static void setUpClass()
-    {
-        ex = Executors.newFixedThreadPool(SystemInfo.LogicalCores);
-    }
-    
-    @AfterClass
-    public static void tearDownClass()
-    {
-        ex.shutdown();
-    }
-    
-    @Before
-    public void setUp()
-    {
-        classData = new ClassificationDataSet(1, new CategoricalData[0], new CategoricalData(2));
-        for (int i = 0; i < 100; i++)
-            classData.addDataPoint(DenseVector.toDenseVec(1.0 * i), 0);
-        for (int i = 0; i < 100; i++)
-            classData.addDataPoint(DenseVector.toDenseVec(-1.0 * i), 1);
+public class RandomSearchTest {
 
-        regData = new RegressionDataSet(1, new CategoricalData[0]);
-        for (int i = 0; i < 100; i++)
-            regData.addDataPoint(DenseVector.toDenseVec(1.0 * i), 0);
-        for (int i = 0; i < 100; i++)
-            regData.addDataPoint(DenseVector.toDenseVec(-1.0 * i), 1);
+  static ExecutorService ex;
+
+  @BeforeClass
+  public static void setUpClass() {
+    ex = Executors.newFixedThreadPool(SystemInfo.LogicalCores);
+  }
+
+  @AfterClass
+  public static void tearDownClass() {
+    ex.shutdown();
+  }
+
+  ClassificationDataSet classData;
+
+  RegressionDataSet regData;
+
+  public RandomSearchTest() {
+  }
+
+  @Before
+  public void setUp() {
+    classData = new ClassificationDataSet(1, new CategoricalData[0], new CategoricalData(2));
+    for (int i = 0; i < 100; i++) {
+      classData.addDataPoint(DenseVector.toDenseVec(1.0 * i), 0);
     }
-    
-    @After
-    public void tearDown()
-    {
+    for (int i = 0; i < 100; i++) {
+      classData.addDataPoint(DenseVector.toDenseVec(-1.0 * i), 1);
     }
-    
-    @Test
-    public void testClassification()
-    {
-        System.out.println("testClassification");
-        RandomSearch instance = new RandomSearch((Classifier)new DumbModel(), 5);
-        
-        instance.setTrials(5*5*5*5);
-        
-        instance.addParameter("Param1", new UniformDiscrete(0, 5));
-        instance.addParameter("Param2", new Uniform(0.0, 5.0));
-        instance.addParameter("Param3", new UniformDiscrete(0, 5));
-        
-        instance = instance.clone();
-        instance.trainC(classData);
-        instance = instance.clone();
-        
-        DumbModel model = (DumbModel) instance.getTrainedClassifier();
-        assertEquals(1, model.param1);
-        assertEquals(2, model.param2, 0.5);
-        assertEquals(3, model.param3);
-        assertFalse(model.wasWarmStarted);
+
+    regData = new RegressionDataSet(1, new CategoricalData[0]);
+    for (int i = 0; i < 100; i++) {
+      regData.addDataPoint(DenseVector.toDenseVec(1.0 * i), 0);
     }
-    
-    @Test
-    public void testClassificationAutoAdd()
-    {
-        System.out.println("testClassificationAutoAdd");
-        RandomSearch instance = new RandomSearch((Classifier)new DumbModel(), 5);
-        
-        instance.setTrials(5*5*5*5);
-        
-        instance.autoAddParameters(classData);
-        
-        instance = instance.clone();
-        instance.trainC(classData);
-        instance = instance.clone();
-        
-        DumbModel model = (DumbModel) instance.getTrainedClassifier();
-        assertEquals(1, model.param1);
-        assertEquals(2, model.param2, 0.5);
-        assertEquals(3, model.param3);
-        assertFalse(model.wasWarmStarted);
+    for (int i = 0; i < 100; i++) {
+      regData.addDataPoint(DenseVector.toDenseVec(-1.0 * i), 1);
     }
-    
-    @Test
-    public void testClassificationEx()
-    {
-        System.out.println("testClassificationEx");
-        RandomSearch instance = new RandomSearch((Classifier)new DumbModel(), 5);
-        
-        instance.setTrials(5*5*5*5);
-        
-        instance.addParameter("Param1", new UniformDiscrete(0, 5));
-        instance.addParameter("Param2", new Uniform(0.0, 5.0));
-        instance.addParameter("Param3", new UniformDiscrete(0, 5));
-        
-        instance = instance.clone();
-        instance.trainC(classData, ex);
-        instance = instance.clone();
-        
-        DumbModel model = (DumbModel) instance.getTrainedClassifier();
-        assertEquals(1, model.param1);
-        assertEquals(2, model.param2, 0.5);
-        assertEquals(3, model.param3);
-        assertFalse(model.wasWarmStarted);
-    }
-    
-    @Test
-    public void testRegression()
-    {
-        System.out.println("testRegression");
-        RandomSearch instance = new RandomSearch((Regressor)new DumbModel(), 5);
-        instance.setTrials(5*5*5*5);
-        
-        instance.addParameter("Param1", new UniformDiscrete(0, 5));
-        instance.addParameter("Param2", new Uniform(0.0, 5.0));
-        instance.addParameter("Param3", new UniformDiscrete(0, 5));
-        
-        instance = instance.clone();
-        instance.train(regData);
-        instance = instance.clone();
-        
-        DumbModel model = (DumbModel) instance.getTrainedRegressor();
-        assertEquals(1, model.param1);
-        assertEquals(2, model.param2, 0.5);
-        assertEquals(3, model.param3);
-        assertFalse(model.wasWarmStarted);
-    }
-    
-    @Test
-    public void testRegressionEx()
-    {
-        System.out.println("testRegressionEx");
-        RandomSearch instance = new RandomSearch((Regressor)new DumbModel(), 5);
-        instance.setTrials(5*5*5*5);
-        
-        instance.addParameter("Param1", new UniformDiscrete(0, 5));
-        instance.addParameter("Param2", new Uniform(0.0, 5.0));
-        instance.addParameter("Param3", new UniformDiscrete(0, 5));
-        
-        instance = instance.clone();
-        instance.train(regData, ex);
-        instance = instance.clone();
-        
-        DumbModel model = (DumbModel) instance.getTrainedRegressor();
-        assertEquals(1, model.param1);
-        assertEquals(2, model.param2, 0.5);
-        assertEquals(3, model.param3);
-        assertFalse(model.wasWarmStarted);
-    }
+  }
+
+  @After
+  public void tearDown() {
+  }
+
+  @Test
+  public void testClassification() {
+    System.out.println("testClassification");
+    RandomSearch instance = new RandomSearch((Classifier) new DumbModel(), 5);
+
+    instance.setTrials(5 * 5 * 5 * 5);
+
+    instance.addParameter("Param1", new UniformDiscrete(0, 5));
+    instance.addParameter("Param2", new Uniform(0.0, 5.0));
+    instance.addParameter("Param3", new UniformDiscrete(0, 5));
+
+    instance = instance.clone();
+    instance.trainC(classData);
+    instance = instance.clone();
+
+    final DumbModel model = (DumbModel) instance.getTrainedClassifier();
+    assertEquals(1, model.param1);
+    assertEquals(2, model.param2, 0.5);
+    assertEquals(3, model.param3);
+    assertFalse(model.wasWarmStarted);
+  }
+
+  @Test
+  public void testClassificationAutoAdd() {
+    System.out.println("testClassificationAutoAdd");
+    RandomSearch instance = new RandomSearch((Classifier) new DumbModel(), 5);
+
+    instance.setTrials(5 * 5 * 5 * 5);
+
+    instance.autoAddParameters(classData);
+
+    instance = instance.clone();
+    instance.trainC(classData);
+    instance = instance.clone();
+
+    final DumbModel model = (DumbModel) instance.getTrainedClassifier();
+    assertEquals(1, model.param1);
+    assertEquals(2, model.param2, 0.5);
+    assertEquals(3, model.param3);
+    assertFalse(model.wasWarmStarted);
+  }
+
+  @Test
+  public void testClassificationEx() {
+    System.out.println("testClassificationEx");
+    RandomSearch instance = new RandomSearch((Classifier) new DumbModel(), 5);
+
+    instance.setTrials(5 * 5 * 5 * 5);
+
+    instance.addParameter("Param1", new UniformDiscrete(0, 5));
+    instance.addParameter("Param2", new Uniform(0.0, 5.0));
+    instance.addParameter("Param3", new UniformDiscrete(0, 5));
+
+    instance = instance.clone();
+    instance.trainC(classData, ex);
+    instance = instance.clone();
+
+    final DumbModel model = (DumbModel) instance.getTrainedClassifier();
+    assertEquals(1, model.param1);
+    assertEquals(2, model.param2, 0.5);
+    assertEquals(3, model.param3);
+    assertFalse(model.wasWarmStarted);
+  }
+
+  @Test
+  public void testRegression() {
+    System.out.println("testRegression");
+    RandomSearch instance = new RandomSearch((Regressor) new DumbModel(), 5);
+    instance.setTrials(5 * 5 * 5 * 5);
+
+    instance.addParameter("Param1", new UniformDiscrete(0, 5));
+    instance.addParameter("Param2", new Uniform(0.0, 5.0));
+    instance.addParameter("Param3", new UniformDiscrete(0, 5));
+
+    instance = instance.clone();
+    instance.train(regData);
+    instance = instance.clone();
+
+    final DumbModel model = (DumbModel) instance.getTrainedRegressor();
+    assertEquals(1, model.param1);
+    assertEquals(2, model.param2, 0.5);
+    assertEquals(3, model.param3);
+    assertFalse(model.wasWarmStarted);
+  }
+
+  @Test
+  public void testRegressionEx() {
+    System.out.println("testRegressionEx");
+    RandomSearch instance = new RandomSearch((Regressor) new DumbModel(), 5);
+    instance.setTrials(5 * 5 * 5 * 5);
+
+    instance.addParameter("Param1", new UniformDiscrete(0, 5));
+    instance.addParameter("Param2", new Uniform(0.0, 5.0));
+    instance.addParameter("Param3", new UniformDiscrete(0, 5));
+
+    instance = instance.clone();
+    instance.train(regData, ex);
+    instance = instance.clone();
+
+    final DumbModel model = (DumbModel) instance.getTrainedRegressor();
+    assertEquals(1, model.param1);
+    assertEquals(2, model.param2, 0.5);
+    assertEquals(3, model.param3);
+    assertFalse(model.wasWarmStarted);
+  }
 }

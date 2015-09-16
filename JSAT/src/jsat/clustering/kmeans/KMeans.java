@@ -1,8 +1,12 @@
-
 package jsat.clustering.kmeans;
 
-import java.util.*;
-import java.util.concurrent.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Random;
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.ExecutorService;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import jsat.DataSet;
@@ -14,404 +18,410 @@ import jsat.clustering.SeedSelectionMethods;
 import jsat.clustering.SeedSelectionMethods.SeedSelection;
 import jsat.linear.Vec;
 import jsat.linear.distancemetrics.DistanceMetric;
+import jsat.linear.distancemetrics.EuclideanDistance;
 import jsat.math.OnLineStatistics;
+import jsat.parameters.Parameter;
 import jsat.parameters.Parameter.ParameterHolder;
-import jsat.parameters.*;
+import jsat.parameters.Parameterized;
 import jsat.utils.SystemInfo;
 import jsat.utils.random.XORWOW;
-import jsat.linear.distancemetrics.EuclideanDistance;
 
 /**
  * Base class for the numerous implementations of k-means that exist. This base
- * class provides an slow heuristic approach to the selection of k. 
- * 
+ * class provides an slow heuristic approach to the selection of k.
+ *
  * @author Edward Raff
  */
-public abstract class KMeans extends KClustererBase implements Parameterized
-{
+public abstract class KMeans extends KClustererBase implements Parameterized {
 
-	private static final long serialVersionUID = 8730927112084289722L;
+  // We use the object itself to return the k
+  private class ClusterWorker implements Runnable {
 
-	/**
-     * This is the default seed selection method used in ElkanKMeans. When used with 
-     * the {@link EuclideanDistance}, it selects seeds that are log optimal with
-     * a high probability. 
-     */
-    public static final SeedSelectionMethods.SeedSelection DEFAULT_SEED_SELECTION = SeedSelectionMethods.SeedSelection.KPP;
-    
-    @ParameterHolder
-    protected DistanceMetric dm;
-    protected SeedSelectionMethods.SeedSelection seedSelection;
-    protected Random rand;
-    
-    /**
-     * Indicates whether or not the means from the clustering should be saved
-     */
-    protected boolean storeMeans = true;
-    /**
-     * Indicates whether or not the distance between a datapoint and its nearest
-     * centroid should be saved after clustering. This only applies when the 
-     * error of the model is requested 
-     */
-    protected boolean saveCentroidDistance = true;
-    
-    /**
-     * Distance from a datapoint to its nearest centroid. May be an approximate 
-     * distance 
-     */
-    protected double[] nearestCentroidDist;
-    
-    /**
-     * The list of means
-     */
-    protected List<Vec> means;
-    
-    /**
-     * Control the maximum number of iterations to perform. 
-     */
-    protected int MaxIterLimit = Integer.MAX_VALUE;
+    private final DataSet dataSet;
+    private int k;
+    int[] clusterIDs;
+    private final Random rand;
+    private volatile double result = -1;
+    private volatile BlockingQueue<ClusterWorker> putSelf;
 
-    public KMeans(DistanceMetric dm, SeedSelectionMethods.SeedSelection seedSelection, Random rand)
-    {
-        this.dm = dm;
-        setSeedSelection(seedSelection);
-        this.rand = rand;
+    public ClusterWorker(final DataSet dataSet, final BlockingQueue<ClusterWorker> que) {
+      this(dataSet, 2, que);
     }
 
-    /**
-     * Copy constructor
-     * @param toCopy 
-     */
-    public KMeans(KMeans toCopy)
-    {
-        this.dm = toCopy.dm.clone();
-        this.seedSelection = toCopy.seedSelection;
-        this.rand = new XORWOW();
-        if (toCopy.nearestCentroidDist != null)
-            this.nearestCentroidDist = Arrays.copyOf(toCopy.nearestCentroidDist, toCopy.nearestCentroidDist.length);
-        if (toCopy.means != null)
-        {
-            this.means = new ArrayList<Vec>(toCopy.means.size());
-            for (Vec v : toCopy.means)
-                this.means.add(v.clone());
-        }
-    }
-    
-    /**
-     * Sets the maximum number of iterations allowed
-     * @param iterLimit the maximum number of iterations of the ElkanKMeans algorithm 
-     */
-    public void setIterationLimit(int iterLimit)
-    {
-        if(iterLimit < 1)
-            throw new IllegalArgumentException("Iterations must be a positive value, not " + iterLimit);
-        this.MaxIterLimit = iterLimit;
+    public ClusterWorker(final DataSet dataSet, final int k, final BlockingQueue<ClusterWorker> que) {
+      this.dataSet = dataSet;
+      this.k = k;
+      putSelf = que;
+      clusterIDs = new int[dataSet.getSampleSize()];
+      rand = new Random();
     }
 
-    /**
-     * Returns the maximum number of iterations of the ElkanKMeans algorithm that will be performed. 
-     * @return the maximum number of iterations of the ElkanKMeans algorithm that will be performed. 
-     */
-    public int getIterationLimit()
-    {
-        return MaxIterLimit;
-    }
-    
-    /**
-     * If set to {@code true} the computed means will be stored after clustering
-     * is completed, and can then be retrieved using {@link #getMeans() }. 
-     * @param storeMeans {@code true} if the means should be stored for later, 
-     * {@code false} to discard them once clustering is complete. 
-     */
-    public void setStoreMeans(boolean storeMeans)
-    {
-        this.storeMeans = storeMeans;
+    public int getK() {
+      return k;
     }
 
-    /**
-     * Returns the raw list of means that were used for each class. 
-     * @return the list of means for each class
-     */
-    public List<Vec> getMeans()
-    {
-        return means;
-    }
-    
-    /**
-     * Sets the method of seed selection to use for this algorithm. {@link SeedSelection#KPP} is recommended for this algorithm in particular. 
-     * @param seedSelection the method of seed selection to use
-     */
-    public void setSeedSelection(SeedSelectionMethods.SeedSelection seedSelection)
-    {
-        this.seedSelection = seedSelection;
-    }
-
-    /**
-     * 
-     * @return the method of seed selection used
-     */
-    public SeedSelectionMethods.SeedSelection getSeedSelection()
-    {
-        return seedSelection;
-    }
-
-    /**
-     * Returns the distance metric in use
-     * @return the distance metric in use
-     */
-    public DistanceMetric getDistanceMetric()
-    {
-        return dm;
-    }
-    
-    /**
-     * This is a helper method where the actual cluster is performed. This is because there
-     * are multiple strategies for modifying kmeans, but all of them require this step. 
-     * <br>
-     * The distance metric used is trained if needed
-     * 
-     * @param dataSet The set of data points to perform clustering on
-     * @param accelCache acceleration cache to use, or {@code null}. If
-     * {@code null}, the kmeans code will attempt to create one
-     * @param k the number of clusters
-     * @param means the initial points to use as the means. Its length is the
-     * number of means that will be searched for. These means will be altered,
-     * and should contain deep copies of the points they were drawn from. May be
-     * empty, in which case the list will be filled with some selected means
-     * @param assignment an empty temp space to store the clustering
-     * classifications. Should be the same length as the number of data points
-     * @param exactTotal determines how the objective function (return value)
-     * will be computed. If true, extra work will be done to compute the exact
-     * distance from each data point to its cluster. If false, an upper bound
-     * approximation will be used. This also impacts the value stored in 
-     * {@link #nearestCentroidDist}
-     * @param threadpool the source of threads for parallel computation. If
-     * <tt>null</tt>, single threaded execution will occur
-     * @param returnError {@code true} is the sum of squared distances should be
-     * returned. {@code false} means any value can be returned. 
-     * {@link #saveCentroidDistance} only applies if this is {@code true}
-     * @return the double
-     */
-    abstract protected double cluster(final DataSet dataSet, List<Double> accelCache, final int k, final List<Vec> means, final int[] assignment, boolean exactTotal, ExecutorService threadpool, boolean returnError);
-    
-    static protected List<List<DataPoint>> getListOfLists(int k)
-    {
-        List<List<DataPoint>> ks = new ArrayList<List<DataPoint>>(k);
-        for(int i = 0; i < k; i++)
-            ks.add(new ArrayList<DataPoint>());
-        return ks;
+    public double getResult() {
+      return result;
     }
 
     @Override
-    public int[] cluster(DataSet dataSet, int[] designations)
-    {
-        return cluster(dataSet, 2, (int)Math.sqrt(dataSet.getSampleSize()/2), designations);
+    public void run() {
+      result = cluster(dataSet, null, k, new ArrayList<Vec>(), clusterIDs, true, null, true);
+      putSelf.add(this);
     }
 
-    @Override
-    public int[] cluster(DataSet dataSet, ExecutorService threadpool, int[] designations)
-    {
-        return cluster(dataSet, 2, (int)Math.sqrt(dataSet.getSampleSize()/2), threadpool, designations);
+    public void setK(final int k) {
+      this.k = k;
     }
 
-    @Override
-    public int[] cluster(DataSet dataSet, int clusters, ExecutorService threadpool, int[] designations)
-    {
-        if(designations == null)
-            designations = new int[dataSet.getSampleSize()];
-        if(dataSet.getSampleSize() < clusters)
-            throw new ClusterFailureException("Fewer data points then desired clusters, decrease cluster size");
-        
-        means = new ArrayList<Vec>(clusters);
-        cluster(dataSet, null, clusters, means, designations, false, threadpool, false);
-        if(!storeMeans)
-            means = null;
-        return designations;
+  }
+
+  private static final long serialVersionUID = 8730927112084289722L;
+
+  /**
+   * This is the default seed selection method used in ElkanKMeans. When used
+   * with the {@link EuclideanDistance}, it selects seeds that are log optimal
+   * with a high probability.
+   */
+  public static final SeedSelectionMethods.SeedSelection DEFAULT_SEED_SELECTION = SeedSelectionMethods.SeedSelection.KPP;
+
+  static protected List<List<DataPoint>> getListOfLists(final int k) {
+    final List<List<DataPoint>> ks = new ArrayList<List<DataPoint>>(k);
+    for (int i = 0; i < k; i++) {
+      ks.add(new ArrayList<DataPoint>());
+    }
+    return ks;
+  }
+
+  @ParameterHolder
+  protected DistanceMetric dm;
+
+  protected SeedSelectionMethods.SeedSelection seedSelection;
+  protected Random rand;
+
+  /**
+   * Indicates whether or not the means from the clustering should be saved
+   */
+  protected boolean storeMeans = true;
+
+  /**
+   * Indicates whether or not the distance between a datapoint and its nearest
+   * centroid should be saved after clustering. This only applies when the error
+   * of the model is requested
+   */
+  protected boolean saveCentroidDistance = true;
+
+  /**
+   * Distance from a datapoint to its nearest centroid. May be an approximate
+   * distance
+   */
+  protected double[] nearestCentroidDist;
+
+  /**
+   * The list of means
+   */
+  protected List<Vec> means;
+
+  /**
+   * Control the maximum number of iterations to perform.
+   */
+  protected int MaxIterLimit = Integer.MAX_VALUE;
+
+  public KMeans(final DistanceMetric dm, final SeedSelectionMethods.SeedSelection seedSelection, final Random rand) {
+    this.dm = dm;
+    setSeedSelection(seedSelection);
+    this.rand = rand;
+  }
+
+  /**
+   * Copy constructor
+   *
+   * @param toCopy
+   */
+  public KMeans(final KMeans toCopy) {
+    dm = toCopy.dm.clone();
+    seedSelection = toCopy.seedSelection;
+    rand = new XORWOW();
+    if (toCopy.nearestCentroidDist != null) {
+      nearestCentroidDist = Arrays.copyOf(toCopy.nearestCentroidDist, toCopy.nearestCentroidDist.length);
+    }
+    if (toCopy.means != null) {
+      means = new ArrayList<Vec>(toCopy.means.size());
+      for (final Vec v : toCopy.means) {
+        means.add(v.clone());
+      }
+    }
+  }
+
+  @Override
+  abstract public KMeans clone();
+
+  @Override
+  public int[] cluster(final DataSet dataSet, final ExecutorService threadpool, final int[] designations) {
+    return cluster(dataSet, 2, (int) Math.sqrt(dataSet.getSampleSize() / 2), threadpool, designations);
+  }
+
+  @Override
+  public int[] cluster(final DataSet dataSet, final int clusters, final ExecutorService threadpool,
+      int[] designations) {
+    if (designations == null) {
+      designations = new int[dataSet.getSampleSize()];
+    }
+    if (dataSet.getSampleSize() < clusters) {
+      throw new ClusterFailureException("Fewer data points then desired clusters, decrease cluster size");
     }
 
-    @Override
-    public int[] cluster(DataSet dataSet, int clusters, int[] designations)
-    {
-        if(designations == null)
-            designations = new int[dataSet.getSampleSize()];
-        if(dataSet.getSampleSize() < clusters)
-            throw new ClusterFailureException("Fewer data points then desired clusters, decrease cluster size");
-        means = new ArrayList<Vec>(clusters);
-        cluster(dataSet, null, clusters, means, designations, false, null, false);
-        if(!storeMeans)
-            means = null;
-        
-        return designations;
+    means = new ArrayList<Vec>(clusters);
+    cluster(dataSet, null, clusters, means, designations, false, threadpool, false);
+    if (!storeMeans) {
+      means = null;
     }
-    
-    //We use the object itself to return the k 
-    private class ClusterWorker implements Runnable
-    {
-        private DataSet dataSet;
-        private int k;
-        int[] clusterIDs;
-        private Random rand;
-        private volatile double result = -1;
-        private volatile BlockingQueue<ClusterWorker> putSelf;
+    return designations;
+  }
 
+  @Override
+  public int[] cluster(final DataSet dataSet, final int lowK, final int highK, final ExecutorService threadpool,
+      final int[] designations) {
+    if (dataSet.getSampleSize() < highK) {
+      throw new ClusterFailureException("Fewer data points then desired clusters, decrease cluster size");
+    }
 
-        public ClusterWorker(DataSet dataSet, int k, BlockingQueue<ClusterWorker> que)
+    final double[] totDistances = new double[highK - lowK + 1];
+
+    final BlockingQueue<ClusterWorker> workerQue = new ArrayBlockingQueue<ClusterWorker>(SystemInfo.LogicalCores);
+    for (int i = 0; i < SystemInfo.LogicalCores; i++) {
+      workerQue.add(new ClusterWorker(dataSet, workerQue));
+    }
+
+    int k = lowK;
+    int received = 0;
+    while (received < totDistances.length) {
+      try {
+        final ClusterWorker worker = workerQue.take();
+        if (worker.getResult() != -1) // -1 means not really in use
         {
-            this.dataSet = dataSet;
-            this.k = k;
-            this.putSelf = que;
-            clusterIDs = new int[dataSet.getSampleSize()];
-            rand = new Random();
+          totDistances[worker.getK() - lowK] = worker.getResult();
+          received++;
         }
-
-        public ClusterWorker(DataSet dataSet, BlockingQueue<ClusterWorker> que)
-        {
-            this(dataSet, 2, que);
+        if (k <= highK) {
+          worker.setK(k++);
+          threadpool.submit(worker);
         }
-
-        public void setK(int k)
-        {
-            this.k = k;
-        }
-
-        public int getK()
-        {
-            return k;
-        }
-
-        public double getResult()
-        {
-            return result;
-        }
-
-        public void run()
-        {
-            result = cluster(dataSet, null, k, new ArrayList<Vec>(), clusterIDs, true, null, true);
-            putSelf.add(this);
-        }
-        
-    }
-    
-    @Override
-    public int[] cluster(DataSet dataSet, int lowK, int highK, ExecutorService threadpool, int[] designations)
-    {
-        if(dataSet.getSampleSize() < highK)
-            throw new ClusterFailureException("Fewer data points then desired clusters, decrease cluster size");
-        
-        double[] totDistances = new double[highK-lowK+1];
-        
-        BlockingQueue<ClusterWorker> workerQue = new ArrayBlockingQueue<ClusterWorker>(SystemInfo.LogicalCores);
-        for(int i = 0; i < SystemInfo.LogicalCores; i++)
-            workerQue.add(new ClusterWorker(dataSet, workerQue));
-        
-        int k = lowK;
-        int received = 0;
-        while(received < totDistances.length)
-        {
-            try
-            {
-                ClusterWorker worker = workerQue.take();
-                if(worker.getResult() != -1)//-1 means not really in use
-                {
-                    totDistances[worker.getK() - lowK] = worker.getResult();
-                    received++;
-                }
-                if(k <= highK)
-                {
-                    worker.setK(k++);
-                    threadpool.submit(worker);
-                }
-            }
-            catch (InterruptedException ex)
-            {
-                Logger.getLogger(PAM.class.getName()).log(Level.SEVERE, null, ex);
-            }
-        }
-        
-        return findK(lowK, highK, totDistances, dataSet, designations);
-    }
-    
-    @Override
-    public int[] cluster(DataSet dataSet, int lowK, int highK, int[] designations)
-    {
-        /**
-         * Stores the cluster ids associated with each data point
-         */
-        if(designations == null)
-            designations = new int[dataSet.getSampleSize()];
-        if(dataSet.getSampleSize() < highK)
-            throw new ClusterFailureException("Fewer data points then desired clusters, decrease cluster size");
-        
-        double[] totDistances = new double[highK-lowK+1];
-
-        for(int i = lowK; i <= highK; i++)
-            totDistances[i-lowK] = cluster(dataSet, null, i, new ArrayList<Vec>(), designations, true, null, true);
-
-        return findK(lowK, highK, totDistances, dataSet, designations);
-    }
-    
-    private int[] findK(int lowK, int highK, double[] totDistances, DataSet dataSet, int[] designations)
-    {
-        //Now we process the distance changes
-        /**
-         * Keep track of the changes
-         */
-        OnLineStatistics stats = new OnLineStatistics();
-        
-        double maxChange = Double.MIN_VALUE;
-        int maxChangeK = lowK;
-
-        for(int i = lowK; i <= highK; i++)
-        {
-            double totDist = totDistances[i-lowK];
-            if(i > lowK)
-            {
-                double change = Math.abs(totDist-totDistances[i-lowK-1]);
-                stats.add(change);
-                if(change > maxChange)
-                {
-                    maxChange = change;
-                    maxChangeK = i;
-                }
-            }
-        }
-        
-        double changeMean = stats.getMean();
-        double changeDev = stats.getStandardDeviation();
-        
-        //If we havent had any huge drops in total distance, assume that there are onlu to clusts
-        if(maxChange < changeDev*2+changeMean)
-            maxChangeK = lowK;
-        else
-        {
-            double tmp;
-            for(int i = 1; i < totDistances.length; i++)
-            {
-                if( (tmp = Math.abs(totDistances[i]-totDistances[i-1])) < maxChange )
-                {
-                    maxChange = tmp;
-                    maxChangeK = i+lowK;
-                    break;
-                }
-            }
-        }
-
-        
-        return cluster(dataSet, maxChangeK, designations);
+      } catch (final InterruptedException ex) {
+        Logger.getLogger(PAM.class.getName()).log(Level.SEVERE, null, ex);
+      }
     }
 
-    @Override
-    abstract public KMeans clone();
-    
-    @Override
-    public List<Parameter> getParameters()
-    {
-        return Parameter.getParamsFromMethods(this);
+    return findK(lowK, highK, totDistances, dataSet, designations);
+  }
+
+  @Override
+  public int[] cluster(final DataSet dataSet, final int lowK, final int highK, int[] designations) {
+    /**
+     * Stores the cluster ids associated with each data point
+     */
+    if (designations == null) {
+      designations = new int[dataSet.getSampleSize()];
+    }
+    if (dataSet.getSampleSize() < highK) {
+      throw new ClusterFailureException("Fewer data points then desired clusters, decrease cluster size");
     }
 
-    @Override
-    public Parameter getParameter(String paramName)
-    {
-        return Parameter.toParameterMap(getParameters()).get(paramName);
+    final double[] totDistances = new double[highK - lowK + 1];
+
+    for (int i = lowK; i <= highK; i++) {
+      totDistances[i - lowK] = cluster(dataSet, null, i, new ArrayList<Vec>(), designations, true, null, true);
     }
+
+    return findK(lowK, highK, totDistances, dataSet, designations);
+  }
+
+  @Override
+  public int[] cluster(final DataSet dataSet, final int clusters, int[] designations) {
+    if (designations == null) {
+      designations = new int[dataSet.getSampleSize()];
+    }
+    if (dataSet.getSampleSize() < clusters) {
+      throw new ClusterFailureException("Fewer data points then desired clusters, decrease cluster size");
+    }
+    means = new ArrayList<Vec>(clusters);
+    cluster(dataSet, null, clusters, means, designations, false, null, false);
+    if (!storeMeans) {
+      means = null;
+    }
+
+    return designations;
+  }
+
+  @Override
+  public int[] cluster(final DataSet dataSet, final int[] designations) {
+    return cluster(dataSet, 2, (int) Math.sqrt(dataSet.getSampleSize() / 2), designations);
+  }
+
+  /**
+   * This is a helper method where the actual cluster is performed. This is
+   * because there are multiple strategies for modifying kmeans, but all of them
+   * require this step. <br>
+   * The distance metric used is trained if needed
+   *
+   * @param dataSet
+   *          The set of data points to perform clustering on
+   * @param accelCache
+   *          acceleration cache to use, or {@code null}. If {@code null}, the
+   *          kmeans code will attempt to create one
+   * @param k
+   *          the number of clusters
+   * @param means
+   *          the initial points to use as the means. Its length is the number
+   *          of means that will be searched for. These means will be altered,
+   *          and should contain deep copies of the points they were drawn from.
+   *          May be empty, in which case the list will be filled with some
+   *          selected means
+   * @param assignment
+   *          an empty temp space to store the clustering classifications.
+   *          Should be the same length as the number of data points
+   * @param exactTotal
+   *          determines how the objective function (return value) will be
+   *          computed. If true, extra work will be done to compute the exact
+   *          distance from each data point to its cluster. If false, an upper
+   *          bound approximation will be used. This also impacts the value
+   *          stored in {@link #nearestCentroidDist}
+   * @param threadpool
+   *          the source of threads for parallel computation. If <tt>null</tt>,
+   *          single threaded execution will occur
+   * @param returnError
+   *          {@code true} is the sum of squared distances should be returned.
+   *          {@code false} means any value can be returned.
+   *          {@link #saveCentroidDistance} only applies if this is {@code true}
+   * @return the double
+   */
+  abstract protected double cluster(final DataSet dataSet, List<Double> accelCache, final int k, final List<Vec> means,
+      final int[] assignment, boolean exactTotal, ExecutorService threadpool, boolean returnError);
+
+  private int[] findK(final int lowK, final int highK, final double[] totDistances, final DataSet dataSet,
+      final int[] designations) {
+    // Now we process the distance changes
+    /**
+     * Keep track of the changes
+     */
+    final OnLineStatistics stats = new OnLineStatistics();
+
+    double maxChange = Double.MIN_VALUE;
+    int maxChangeK = lowK;
+
+    for (int i = lowK; i <= highK; i++) {
+      final double totDist = totDistances[i - lowK];
+      if (i > lowK) {
+        final double change = Math.abs(totDist - totDistances[i - lowK - 1]);
+        stats.add(change);
+        if (change > maxChange) {
+          maxChange = change;
+          maxChangeK = i;
+        }
+      }
+    }
+
+    final double changeMean = stats.getMean();
+    final double changeDev = stats.getStandardDeviation();
+
+    // If we havent had any huge drops in total distance, assume that there are
+    // onlu to clusts
+    if (maxChange < changeDev * 2 + changeMean) {
+      maxChangeK = lowK;
+    } else {
+      double tmp;
+      for (int i = 1; i < totDistances.length; i++) {
+        if ((tmp = Math.abs(totDistances[i] - totDistances[i - 1])) < maxChange) {
+          maxChange = tmp;
+          maxChangeK = i + lowK;
+          break;
+        }
+      }
+    }
+
+    return cluster(dataSet, maxChangeK, designations);
+  }
+
+  /**
+   * Returns the distance metric in use
+   *
+   * @return the distance metric in use
+   */
+  public DistanceMetric getDistanceMetric() {
+    return dm;
+  }
+
+  /**
+   * Returns the maximum number of iterations of the ElkanKMeans algorithm that
+   * will be performed.
+   *
+   * @return the maximum number of iterations of the ElkanKMeans algorithm that
+   *         will be performed.
+   */
+  public int getIterationLimit() {
+    return MaxIterLimit;
+  }
+
+  /**
+   * Returns the raw list of means that were used for each class.
+   *
+   * @return the list of means for each class
+   */
+  public List<Vec> getMeans() {
+    return means;
+  }
+
+  @Override
+  public Parameter getParameter(final String paramName) {
+    return Parameter.toParameterMap(getParameters()).get(paramName);
+  }
+
+  @Override
+  public List<Parameter> getParameters() {
+    return Parameter.getParamsFromMethods(this);
+  }
+
+  /**
+   *
+   * @return the method of seed selection used
+   */
+  public SeedSelectionMethods.SeedSelection getSeedSelection() {
+    return seedSelection;
+  }
+
+  /**
+   * Sets the maximum number of iterations allowed
+   *
+   * @param iterLimit
+   *          the maximum number of iterations of the ElkanKMeans algorithm
+   */
+  public void setIterationLimit(final int iterLimit) {
+    if (iterLimit < 1) {
+      throw new IllegalArgumentException("Iterations must be a positive value, not " + iterLimit);
+    }
+    MaxIterLimit = iterLimit;
+  }
+
+  /**
+   * Sets the method of seed selection to use for this algorithm.
+   * {@link SeedSelection#KPP} is recommended for this algorithm in particular.
+   *
+   * @param seedSelection
+   *          the method of seed selection to use
+   */
+  public void setSeedSelection(final SeedSelectionMethods.SeedSelection seedSelection) {
+    this.seedSelection = seedSelection;
+  }
+
+  /**
+   * If set to {@code true} the computed means will be stored after clustering
+   * is completed, and can then be retrieved using {@link #getMeans() }.
+   *
+   * @param storeMeans
+   *          {@code true} if the means should be stored for later,
+   *          {@code false} to discard them once clustering is complete.
+   */
+  public void setStoreMeans(final boolean storeMeans) {
+    this.storeMeans = storeMeans;
+  }
 }

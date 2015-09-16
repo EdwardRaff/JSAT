@@ -25,163 +25,158 @@ import jsat.linear.Vec;
  *
  * @author Edward Raff <Raff.Edward@gmail.com>
  */
-public class LogUniform extends ContinuousDistribution
-{
-    private double min, max;
-    private double logMin, logMax;
-    private double logDiff;
-    private double diff;
+public class LogUniform extends ContinuousDistribution {
 
-    /**
-     * Creates a new Log Uniform distribution between 1e-2 and 1
-     */
-    public LogUniform()
-    {
-        this(1e-2, 1);
-    }
+  /**
+   *
+   */
+  private static final long serialVersionUID = 1L;
+  private double min, max;
+  private double logMin, logMax;
+  private double logDiff;
+  private double diff;
 
-    /**
-     * Creates a new Log Uniform distribution
-     * 
-     * @param min the minimum value to be returned by this distribution 
-     * @param max the maximum value to be returned by this distribution
-     */
-    public LogUniform(double min, double max)
-    {
-        setMinMax(min, max);
-    }
+  /**
+   * Creates a new Log Uniform distribution between 1e-2 and 1
+   */
+  public LogUniform() {
+    this(1e-2, 1);
+  }
 
-    /**
-     * Sets the minimum and maximum values for this distribution 
-     * @param min the minimum value, must be positive
-     * @param max the maximum value, must be larger than {@code min}
-     */
-    public void setMinMax(double min, double max)
-    {
-        if(min <= 0 || Double.isNaN(min) || Double.isInfinite(min))
-            throw new IllegalArgumentException("min value must be positive, not " + min);
-        else if(min >= max || Double.isNaN(max) || Double.isInfinite(max))
-            throw new IllegalArgumentException("max (" + max + ") must be larger than min (" + min+")" );
-        this.max = max;
-        this.min = min;
-        this.logMax = Math.log(max);
-        this.logMin = Math.log(min);
-        this.logDiff = logMax-logMin;
-        this.diff = max-min;
-    }
-    
-    @Override
-    public double pdf(double x)
-    {
-        if(x < min)
-            return 0;
-        else if(x > max)
-            return 0;
-        else
-            return 1.0/(x*(logMax-logMin));
-    }
+  /**
+   * Creates a new Log Uniform distribution
+   *
+   * @param min
+   *          the minimum value to be returned by this distribution
+   * @param max
+   *          the maximum value to be returned by this distribution
+   */
+  public LogUniform(final double min, final double max) {
+    setMinMax(min, max);
+  }
 
-    @Override
-    public String getDistributionName()
-    {
-        return "LogUniform";
+  @Override
+  public double cdf(final double x) {
+    if (x < min) {
+      return 0;
+    } else if (x > max) {
+      return 1;
+    } else {
+      return (Math.log(x) - logMin) / logDiff;
     }
+  }
 
-    @Override
-    public String[] getVariables()
-    {
-        return new String[]{"min", "max"};
-    }
+  @Override
+  public LogUniform clone() {
+    return new LogUniform(min, max);
+  }
 
-    @Override
-    public double[] getCurrentVariableValues()
-    {
-        return new double[]{min, max};
-    }
+  @Override
+  public double[] getCurrentVariableValues() {
+    return new double[] { min, max };
+  }
 
-    @Override
-    public void setVariable(String var, double value)
-    {
-        if(var.equals("min"))
-            setMinMax(value, max);
-        else if(var.equals("max"))
-            setMinMax(min, value);
-    }
+  @Override
+  public String getDistributionName() {
+    return "LogUniform";
+  }
 
-    @Override
-    public LogUniform clone()
-    {
-        return new LogUniform(min, max);
-    }
+  @Override
+  public String[] getVariables() {
+    return new String[] { "min", "max" };
+  }
 
-    @Override
-    public void setUsingData(Vec data)
-    {
-        //probably could do way better, but whatever
-        double guessMin = data.min();
-        double guessMax = data.max();
-        setMinMax(Math.max(guessMin, 1e-10), guessMax);
+  @Override
+  public double invCdf(final double p) {
+    if (p < 0 || p > 1 || Double.isNaN(p)) {
+      throw new IllegalArgumentException("p must be in [0,1], not " + p);
     }
+    return Math.exp(p * logMax - p * logMin) * min;
+  }
 
-    @Override
-    public double cdf(double x)
-    {
-        if(x < min)
-            return 0;
-        else if(x > max)
-            return 1;
-        else
-            return (Math.log(x)-logMin)/(logDiff);
-    }
+  @Override
+  public double max() {
+    return max;
+  }
 
-    @Override
-    public double invCdf(double p)
-    {
-        if(p < 0 || p > 1 || Double.isNaN(p))
-            throw new IllegalArgumentException("p must be in [0,1], not " + p);
-        return Math.exp(p*logMax-p*logMin)*min;
-    }
+  @Override
+  public double mean() {
+    return diff / logDiff;
+  }
 
-    @Override
-    public double mean()
-    {
-        return (diff)/(logDiff);
-    }
+  @Override
+  public double median() {
+    return Math.sqrt(min) * Math.sqrt(max);
+  }
 
-    @Override
-    public double median()
-    {
-        return Math.sqrt(min)*Math.sqrt(max);
-    }
+  @Override
+  public double min() {
+    return min;
+  }
 
-    @Override
-    public double mode()
-    {
-        return min();
-    }
+  @Override
+  public double mode() {
+    return min();
+  }
 
-    @Override
-    public double variance()
-    {
-        return (max*max-min*min)/(2*logDiff) - diff*diff/(logDiff*logDiff);
+  @Override
+  public double pdf(final double x) {
+    if (x < min) {
+      return 0;
+    } else if (x > max) {
+      return 0;
+    } else {
+      return 1.0 / (x * (logMax - logMin));
     }
+  }
 
-    @Override
-    public double skewness()
-    {
-        return Double.NaN;//TODO derive 
+  /**
+   * Sets the minimum and maximum values for this distribution
+   *
+   * @param min
+   *          the minimum value, must be positive
+   * @param max
+   *          the maximum value, must be larger than {@code min}
+   */
+  public void setMinMax(final double min, final double max) {
+    if (min <= 0 || Double.isNaN(min) || Double.isInfinite(min)) {
+      throw new IllegalArgumentException("min value must be positive, not " + min);
+    } else if (min >= max || Double.isNaN(max) || Double.isInfinite(max)) {
+      throw new IllegalArgumentException("max (" + max + ") must be larger than min (" + min + ")");
     }
+    this.max = max;
+    this.min = min;
+    logMax = Math.log(max);
+    logMin = Math.log(min);
+    logDiff = logMax - logMin;
+    diff = max - min;
+  }
 
-    @Override
-    public double min()
-    {
-        return min;
-    }
+  @Override
+  public void setUsingData(final Vec data) {
+    // probably could do way better, but whatever
+    final double guessMin = data.min();
+    final double guessMax = data.max();
+    setMinMax(Math.max(guessMin, 1e-10), guessMax);
+  }
 
-    @Override
-    public double max()
-    {
-        return max;
+  @Override
+  public void setVariable(final String var, final double value) {
+    if (var.equals("min")) {
+      setMinMax(value, max);
+    } else if (var.equals("max")) {
+      setMinMax(min, value);
     }
-    
+  }
+
+  @Override
+  public double skewness() {
+    return Double.NaN;// TODO derive
+  }
+
+  @Override
+  public double variance() {
+    return (max * max - min * min) / (2 * logDiff) - diff * diff / (logDiff * logDiff);
+  }
+
 }

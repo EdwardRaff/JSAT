@@ -1,4 +1,3 @@
-
 package jsat.classifiers.neuralnetwork;
 
 import java.util.ArrayList;
@@ -25,213 +24,205 @@ import jsat.utils.IntList;
 import jsat.utils.ListUtils;
 
 /**
- * This class provides a neural network based on Geoffrey Hinton's 
- * <b>D</b>eep <b>Re</b>ctified <b>D</b>ropout <b>N</b>ets. It is parameterized 
- * to be "simpler" in that the default batch size and gradient updating method
- * should require no tuning to get decent results<br>
+ * This class provides a neural network based on Geoffrey Hinton's <b>D</b>eep
+ * <b>Re</b>ctified <b>D</b>ropout <b>N</b>ets. It is parameterized to be
+ * "simpler" in that the default batch size and gradient updating method should
+ * require no tuning to get decent results<br>
  * <br>
- * NOTE: Training neural networks is computationally expensive, you may want to 
- * consider a GPU implementation from another source. 
- * 
+ * NOTE: Training neural networks is computationally expensive, you may want to
+ * consider a GPU implementation from another source.
+ *
  * @author Edward Raff
  */
-public class DReDNetSimple implements Classifier, Parameterized
-{
+public class DReDNetSimple implements Classifier, Parameterized {
 
-	private static final long serialVersionUID = -342281027279571332L;
-	private SGDNetworkTrainer network;
-    private int[] hiddenSizes;
-    private int batchSize = 256;
-    private int epochs = 100;
+  private static final long serialVersionUID = -342281027279571332L;
+  private SGDNetworkTrainer network;
+  private int[] hiddenSizes;
+  private int batchSize = 256;
+  private int epochs = 100;
 
-    /**
-     * Create a new DReDNet that uses the specified number of hidden layers. A
-     * batch size of 256 and 100 epochs will be used. 
-     * @param hiddenLayerSizes the length indicates the number of hidden layers,
-     * and the value in each index is the number of neurons in that layer
-     */
-    public DReDNetSimple(int... hiddenLayerSizes)
-    {
-        setHiddenSizes(hiddenLayerSizes);
+  /**
+   * Create a new DReDNet that uses the specified number of hidden layers. A
+   * batch size of 256 and 100 epochs will be used.
+   *
+   * @param hiddenLayerSizes
+   *          the length indicates the number of hidden layers, and the value in
+   *          each index is the number of neurons in that layer
+   */
+  public DReDNetSimple(final int... hiddenLayerSizes) {
+    setHiddenSizes(hiddenLayerSizes);
+  }
+
+  @Override
+  public CategoricalResults classify(final DataPoint data) {
+    final Vec x = data.getNumericalValues();
+    final Vec y = network.feedfoward(x);
+    return new CategoricalResults(y.arrayCopy());
+  }
+
+  @Override
+  public DReDNetSimple clone() {
+    final DReDNetSimple clone = new DReDNetSimple(hiddenSizes);
+    if (network != null) {
+      clone.network = network.clone();
     }
+    clone.batchSize = batchSize;
+    clone.epochs = epochs;
+    return clone;
+  }
 
-    /**
-     * Sets the hidden layer sizes for this network. The size of the array is 
-     * the number of hidden layers and the value in each index denotes the size
-     * of that layer. 
-     * @param hiddenSizes 
-     */
-    public void setHiddenSizes(int[] hiddenSizes)
-    {
-        for(int i = 0; i < hiddenSizes.length; i++)
-            if(hiddenSizes[i] <= 0)
-                throw new IllegalArgumentException("Hidden layer " + i + " must contain a positive number of neurons, not " + hiddenSizes[i]);
-        this.hiddenSizes = Arrays.copyOf(hiddenSizes, hiddenSizes.length);
-    }
+  /**
+   *
+   * @return the number of data points to use for one gradient computation
+   */
+  public int getBatchSize() {
+    return batchSize;
+  }
 
-    /**
-     * 
-     * @return the array of hidden layer sizes
-     */
-    public int[] getHiddenSizes()
-    {
-        return hiddenSizes;
-    }
+  /**
+   *
+   * @return the number of training iterations through the data set
+   */
+  public int getEpochs() {
+    return epochs;
+  }
 
-    /**
-     * Sets the batch size for updates
-     * @param batchSize the number of items to compute the gradient from
-     */
-    public void setBatchSize(int batchSize)
-    {
-        this.batchSize = batchSize;
-    }
+  /**
+   *
+   * @return the array of hidden layer sizes
+   */
+  public int[] getHiddenSizes() {
+    return hiddenSizes;
+  }
 
-    /**
-     * 
-     * @return the number of data points to use for one gradient computation
-     */
-    public int getBatchSize()
-    {
-        return batchSize;
-    }
+  @Override
+  public Parameter getParameter(final String paramName) {
+    return Parameter.toParameterMap(getParameters()).get(paramName);
+  }
 
-    /**
-     * Sets the number of epochs to perform
-     * @param epochs the number of training iterations through the whole data 
-     * set
-     */
-    public void setEpochs(int epochs)
-    {
-        if(epochs <= 0)
-            throw new IllegalArgumentException("Number of epochs must be positive");
-        this.epochs = epochs;
-    }
+  @Override
+  public List<Parameter> getParameters() {
+    return Parameter.getParamsFromMethods(this);
+  }
 
-    /**
-     * 
-     * @return the number of training iterations through the data set
-     */
-    public int getEpochs()
-    {
-        return epochs;
-    }
-    
-    @Override
-    public CategoricalResults classify(DataPoint data)
-    {
-        Vec x = data.getNumericalValues();
-        Vec y = network.feedfoward(x);
-        return new CategoricalResults(y.arrayCopy());
-    }
+  /**
+   * Sets the batch size for updates
+   *
+   * @param batchSize
+   *          the number of items to compute the gradient from
+   */
+  public void setBatchSize(final int batchSize) {
+    this.batchSize = batchSize;
+  }
 
-    @Override
-    public void trainC(ClassificationDataSet dataSet, ExecutorService threadPool)
-    {
-        setup(dataSet);
-        
-        List<Vec> X = dataSet.getDataVectors();
-        List<Vec> Y = new ArrayList<Vec>(dataSet.getSampleSize());
-        for(int i = 0; i < dataSet.getSampleSize(); i++)
-        {
-            SparseVector sv = new SparseVector(dataSet.getClassSize(), 1);
-            sv.set(dataSet.getDataPointCategory(i), 1.0);
-            Y.add(sv);
+  /**
+   * Sets the number of epochs to perform
+   *
+   * @param epochs
+   *          the number of training iterations through the whole data set
+   */
+  public void setEpochs(final int epochs) {
+    if (epochs <= 0) {
+      throw new IllegalArgumentException("Number of epochs must be positive");
+    }
+    this.epochs = epochs;
+  }
+
+  /**
+   * Sets the hidden layer sizes for this network. The size of the array is the
+   * number of hidden layers and the value in each index denotes the size of
+   * that layer.
+   *
+   * @param hiddenSizes
+   */
+  public void setHiddenSizes(final int[] hiddenSizes) {
+    for (int i = 0; i < hiddenSizes.length; i++) {
+      if (hiddenSizes[i] <= 0) {
+        throw new IllegalArgumentException(
+            "Hidden layer " + i + " must contain a positive number of neurons, not " + hiddenSizes[i]);
+      }
+    }
+    this.hiddenSizes = Arrays.copyOf(hiddenSizes, hiddenSizes.length);
+  }
+
+  private void setup(final ClassificationDataSet dataSet) {
+    network = new SGDNetworkTrainer();
+    final int[] sizes = new int[hiddenSizes.length + 2];
+    sizes[0] = dataSet.getNumNumericalVars();
+    System.arraycopy(hiddenSizes, 0, sizes, 1, hiddenSizes.length);
+    sizes[sizes.length - 1] = dataSet.getClassSize();
+    network.setLayerSizes(sizes);
+
+    final List<ActivationLayer> activations = new ArrayList<ActivationLayer>(hiddenSizes.length + 2);
+    for (final int size : hiddenSizes) {
+      activations.add(new ReLU());
+    }
+    activations.add(new SoftmaxLayer());
+    network.setLayersActivation(activations);
+    network.setRegularizer(new Max2NormRegularizer(25));
+    network.setWeightInit(new GaussianNormalInit(1e-2));
+    network.setBiasInit(new ConstantInit(0.1));
+
+    network.setEta(1.0);
+    network.setGradientUpdater(new AdaDelta());
+
+    network.setup();
+  }
+
+  @Override
+  public boolean supportsWeightedData() {
+    return false;
+  }
+
+  @Override
+  public void trainC(final ClassificationDataSet dataSet) {
+    trainC(dataSet, null);
+  }
+
+  @Override
+  public void trainC(final ClassificationDataSet dataSet, final ExecutorService threadPool) {
+    setup(dataSet);
+
+    final List<Vec> X = dataSet.getDataVectors();
+    final List<Vec> Y = new ArrayList<Vec>(dataSet.getSampleSize());
+    for (int i = 0; i < dataSet.getSampleSize(); i++) {
+      final SparseVector sv = new SparseVector(dataSet.getClassSize(), 1);
+      sv.set(dataSet.getDataPointCategory(i), 1.0);
+      Y.add(sv);
+    }
+    final IntList randOrder = new IntList(X.size());
+    ListUtils.addRange(randOrder, 0, X.size(), 1);
+    final List<Vec> Xmini = new ArrayList<Vec>(batchSize);
+    final List<Vec> Ymini = new ArrayList<Vec>(batchSize);
+
+    for (int epoch = 0; epoch < epochs; epoch++) {
+      final long start = System.currentTimeMillis();
+      double epochError = 0;
+      Collections.shuffle(randOrder);
+      for (int i = 0; i < X.size(); i += batchSize) {
+        final int to = Math.min(i + batchSize, X.size());
+        Xmini.clear();
+        Ymini.clear();
+        for (int j = i; j < to; j++) {
+          Xmini.add(X.get(j));
+          Ymini.add(Y.get(j));
         }
-        IntList randOrder = new IntList(X.size());
-        ListUtils.addRange(randOrder, 0, X.size(), 1);
-        List<Vec> Xmini = new ArrayList<Vec>(batchSize);
-        List<Vec> Ymini = new ArrayList<Vec>(batchSize);
-        
-        for(int epoch = 0; epoch < epochs; epoch++)
-        {
-            long start = System.currentTimeMillis();
-            double epochError = 0;
-            Collections.shuffle(randOrder);
-            for(int i = 0; i < X.size(); i+=batchSize)
-            {
-                int to = Math.min(i+batchSize, X.size());
-                Xmini.clear();
-                Ymini.clear();
-                for(int j = i; j < to; j++)
-                {
-                    Xmini.add(X.get(j));
-                    Ymini.add(Y.get(j));
-                }
-                
-                double localErr;
-                if(threadPool != null)
-                    localErr = network.updateMiniBatch(Xmini, Ymini, threadPool);
-                else
-                    localErr = network.updateMiniBatch(Xmini, Ymini);
-                epochError += localErr;
-            }
-            long end = System.currentTimeMillis();
-//            System.out.println("Epoch " + epoch + " had error " + epochError + " took " + (end-start)/1000.0 + " seconds");
+
+        double localErr;
+        if (threadPool != null) {
+          localErr = network.updateMiniBatch(Xmini, Ymini, threadPool);
+        } else {
+          localErr = network.updateMiniBatch(Xmini, Ymini);
         }
-        
-        network.finishUpdating();
+        epochError += localErr;
+      }
+      final long end = System.currentTimeMillis();
+      // System.out.println("Epoch " + epoch + " had error " + epochError + "
+      // took " + (end-start)/1000.0 + " seconds");
     }
 
-    private void setup(ClassificationDataSet dataSet)
-    {
-        network = new SGDNetworkTrainer();
-        int[] sizes = new int[hiddenSizes.length+2];
-        sizes[0] = dataSet.getNumNumericalVars();
-        for(int i = 0; i < hiddenSizes.length; i++)
-            sizes[i+1] = hiddenSizes[i];
-        sizes[sizes.length-1] = dataSet.getClassSize();
-        network.setLayerSizes(sizes);
-        
-        List<ActivationLayer> activations = new ArrayList<ActivationLayer>(hiddenSizes.length+2);
-        for(int size : hiddenSizes)
-            activations.add(new ReLU());
-        activations.add(new SoftmaxLayer());
-        network.setLayersActivation(activations);
-        network.setRegularizer(new Max2NormRegularizer(25)); 
-        network.setWeightInit(new GaussianNormalInit(1e-2));
-        network.setBiasInit(new ConstantInit(0.1));
+    network.finishUpdating();
+  }
 
-        network.setEta(1.0);
-        network.setGradientUpdater(new AdaDelta());
-        
-        
-        network.setup();
-    }
-
-    @Override
-    public void trainC(ClassificationDataSet dataSet)
-    {
-        trainC(dataSet, null);
-    }
-
-    @Override
-    public boolean supportsWeightedData()
-    {
-        return false;
-    }
-
-    @Override
-    public DReDNetSimple clone()
-    {
-        DReDNetSimple clone = new DReDNetSimple(hiddenSizes);
-        if(this.network != null)
-            clone.network = this.network.clone();
-        clone.batchSize = this.batchSize;
-        clone.epochs = this.epochs;
-        return clone;
-    }
-
-    @Override
-    public List<Parameter> getParameters()
-    {
-        return Parameter.getParamsFromMethods(this);
-    }
-
-    @Override
-    public Parameter getParameter(String paramName)
-    {
-        return Parameter.toParameterMap(getParameters()).get(paramName);
-    }
-    
 }

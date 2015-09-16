@@ -14,126 +14,120 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-
 package jsat.classifiers.boosting;
 
+import static org.junit.Assert.assertTrue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import jsat.FixedProblems;
-import jsat.classifiers.*;
-import jsat.classifiers.trees.DecisionStump;
-import jsat.classifiers.trees.DecisionTree;
-import jsat.classifiers.trees.TreePruner;
-import jsat.datatransform.LinearTransform;
-import jsat.utils.SystemInfo;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import static org.junit.Assert.*;
+import jsat.FixedProblems;
+import jsat.classifiers.ClassificationDataSet;
+import jsat.classifiers.ClassificationModelEvaluation;
+import jsat.classifiers.trees.DecisionStump;
+import jsat.classifiers.trees.DecisionTree;
+import jsat.classifiers.trees.TreePruner;
+import jsat.datatransform.LinearTransform;
+import jsat.utils.SystemInfo;
 
 /**
  *
  * @author Edward Raff <Raff.Edward@gmail.com>
  */
-public class ArcX4Test
-{
-    
-    public ArcX4Test()
-    {
+public class ArcX4Test {
+
+  @BeforeClass
+  public static void setUpClass() {
+  }
+
+  @AfterClass
+  public static void tearDownClass() {
+  }
+
+  public ArcX4Test() {
+  }
+
+  @Before
+  public void setUp() {
+  }
+
+  @After
+  public void tearDown() {
+  }
+
+  @Test
+  public void testClone() {
+    System.out.println("clone");
+
+    ArcX4 instance = new ArcX4(new DecisionTree(10, 10, TreePruner.PruningMethod.NONE, 0.1), 50);
+
+    final ClassificationDataSet t1 = FixedProblems.getCircles(1000, 0.1, 10.0);
+    final ClassificationDataSet t2 = FixedProblems.getCircles(1000, 0.1, 10.0);
+
+    t2.applyTransform(new LinearTransform(t2));
+
+    int errors;
+
+    instance = instance.clone();
+
+    instance.trainC(t1);
+
+    final ArcX4 result = instance.clone();
+
+    errors = 0;
+    for (int i = 0; i < t1.getSampleSize(); i++) {
+      errors += Math.abs(t1.getDataPointCategory(i) - result.classify(t1.getDataPoint(i)).mostLikely());
     }
-    
-    @BeforeClass
-    public static void setUpClass()
-    {
+    assertTrue(errors < 100);
+    result.trainC(t2);
+
+    for (int i = 0; i < t1.getSampleSize(); i++) {
+      errors += Math.abs(t1.getDataPointCategory(i) - instance.classify(t1.getDataPoint(i)).mostLikely());
     }
-    
-    @AfterClass
-    public static void tearDownClass()
-    {
+    assertTrue(errors < 100);
+
+    for (int i = 0; i < t2.getSampleSize(); i++) {
+      errors += Math.abs(t2.getDataPointCategory(i) - result.classify(t2.getDataPoint(i)).mostLikely());
     }
-    
-    @Before
-    public void setUp()
-    {
-    }
-    
-    @After
-    public void tearDown()
-    {
-    }
+    assertTrue(errors < 100);
+  }
 
-    @Test
-    public void testTrainC_ClassificationDataSet_ExecutorService()
-    {
-        System.out.println("trainC");
+  @Test
+  public void testTrainC_ClassificationDataSet() {
+    System.out.println("trainC");
 
-        ArcX4 instance = new ArcX4(new DecisionStump(), 50);
+    final ArcX4 instance = new ArcX4(new DecisionStump(), 50);
 
-        ExecutorService ex = Executors.newFixedThreadPool(SystemInfo.LogicalCores);
+    final ClassificationDataSet train = FixedProblems.getCircles(1000, .1, 10.0);
+    final ClassificationDataSet test = FixedProblems.getCircles(100, .1, 10.0);
 
-        ClassificationDataSet train = FixedProblems.getCircles(1000, .1, 10.0);
-        ClassificationDataSet test = FixedProblems.getCircles(100, .1, 10.0);
+    final ClassificationModelEvaluation cme = new ClassificationModelEvaluation(instance, train);
+    cme.evaluateTestSet(test);
 
-        ClassificationModelEvaluation cme = new ClassificationModelEvaluation(instance, train, ex);
-        cme.evaluateTestSet(test);
+    assertTrue(cme.getErrorRate() <= 0.05);
 
-        assertTrue(cme.getErrorRate() <= 0.05);
+  }
 
-        ex.shutdownNow();
-    }
+  @Test
+  public void testTrainC_ClassificationDataSet_ExecutorService() {
+    System.out.println("trainC");
 
-    @Test
-    public void testTrainC_ClassificationDataSet()
-    {
-        System.out.println("trainC");
+    final ArcX4 instance = new ArcX4(new DecisionStump(), 50);
 
-        ArcX4 instance = new ArcX4(new DecisionStump(), 50);
+    final ExecutorService ex = Executors.newFixedThreadPool(SystemInfo.LogicalCores);
 
-        ClassificationDataSet train = FixedProblems.getCircles(1000, .1, 10.0);
-        ClassificationDataSet test = FixedProblems.getCircles(100, .1, 10.0);
+    final ClassificationDataSet train = FixedProblems.getCircles(1000, .1, 10.0);
+    final ClassificationDataSet test = FixedProblems.getCircles(100, .1, 10.0);
 
-        ClassificationModelEvaluation cme = new ClassificationModelEvaluation(instance, train);
-        cme.evaluateTestSet(test);
+    final ClassificationModelEvaluation cme = new ClassificationModelEvaluation(instance, train, ex);
+    cme.evaluateTestSet(test);
 
-        assertTrue(cme.getErrorRate() <= 0.05);
+    assertTrue(cme.getErrorRate() <= 0.05);
 
-    }
+    ex.shutdownNow();
+  }
 
-    @Test
-    public void testClone()
-    {
-        System.out.println("clone");
-
-        ArcX4 instance = new ArcX4(new DecisionTree(10, 10, TreePruner.PruningMethod.NONE, 0.1), 50);
-
-        ClassificationDataSet t1 = FixedProblems.getCircles(1000, 0.1, 10.0);
-        ClassificationDataSet t2 = FixedProblems.getCircles(1000, 0.1, 10.0);
-        
-        t2.applyTransform(new LinearTransform(t2));
-
-        int errors;
-        
-        instance = instance.clone();
-
-        instance.trainC(t1);
-
-        ArcX4 result = instance.clone();
-        
-        errors = 0;
-        for (int i = 0; i < t1.getSampleSize(); i++)
-            errors += Math.abs(t1.getDataPointCategory(i) -  result.classify(t1.getDataPoint(i)).mostLikely());
-        assertTrue(errors < 100);
-        result.trainC(t2);
-
-        for (int i = 0; i < t1.getSampleSize(); i++)
-            errors += Math.abs(t1.getDataPointCategory(i) -  instance.classify(t1.getDataPoint(i)).mostLikely());
-        assertTrue(errors < 100);
-
-        for (int i = 0; i < t2.getSampleSize(); i++)
-            errors += Math.abs(t2.getDataPointCategory(i) -  result.classify(t2.getDataPoint(i)).mostLikely());
-        assertTrue(errors < 100);
-    }
-    
 }

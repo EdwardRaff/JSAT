@@ -4,93 +4,86 @@
  */
 package jsat.classifiers.linear;
 
+import static org.junit.Assert.assertEquals;
 import java.util.Random;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import jsat.FixedProblems;
-import jsat.classifiers.ClassificationDataSet;
-import jsat.classifiers.DataPointPair;
-import jsat.utils.SystemInfo;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import static org.junit.Assert.*;
+import jsat.FixedProblems;
+import jsat.classifiers.ClassificationDataSet;
+import jsat.classifiers.DataPointPair;
+import jsat.utils.SystemInfo;
 
 /**
  *
  * @author Edward Raff
  */
-public class BBRTest
-{
-    private static ExecutorService ex;
-    
-    public BBRTest()
-    {
-    }
-    
-    @BeforeClass
-    public static void setUpClass()
-    {
-        ex = Executors.newFixedThreadPool(SystemInfo.LogicalCores);
-    }
-    
-    @AfterClass
-    public static void tearDownClass()
-    {
-        ex.shutdown();
-    }
-    
-    @Before
-    public void setUp()
-    {
-    }
-    
-    @After
-    public void tearDown()
-    {
-    }
+public class BBRTest {
 
-    /**
-     * Test of trainC method, of class BBR.
-     */
-    @Test
-    public void testTrainC_ClassificationDataSet_ExecutorService()
-    {
-        System.out.println("trainC");
-        ClassificationDataSet train = FixedProblems.get2ClassLinear(200, new Random());
-        
-        for (BBR.Prior prior : BBR.Prior.values())
-        {
-            BBR lr = new BBR(0.01, 1000, prior);
-            lr.trainC(train, ex);
+  private static ExecutorService ex;
 
-            ClassificationDataSet test = FixedProblems.get2ClassLinear(200, new Random());
+  @BeforeClass
+  public static void setUpClass() {
+    ex = Executors.newFixedThreadPool(SystemInfo.LogicalCores);
+  }
 
-            for (DataPointPair<Integer> dpp : test.getAsDPPList())
-                assertEquals(dpp.getPair().longValue(), lr.classify(dpp.getDataPoint()).mostLikely());
-        }
+  @AfterClass
+  public static void tearDownClass() {
+    ex.shutdown();
+  }
+
+  public BBRTest() {
+  }
+
+  @Before
+  public void setUp() {
+  }
+
+  @After
+  public void tearDown() {
+  }
+
+  /**
+   * Test of trainC method, of class BBR.
+   */
+  @Test
+  public void testTrainC_ClassificationDataSet() {
+    System.out.println("trainC");
+    final ClassificationDataSet train = FixedProblems.get2ClassLinear(200, new Random());
+
+    for (final BBR.Prior prior : BBR.Prior.values()) {
+      final BBR lr = new BBR(0.01, 1000, prior);
+      lr.trainC(train);
+
+      final ClassificationDataSet test = FixedProblems.get2ClassLinear(200, new Random());
+
+      for (final DataPointPair<Integer> dpp : test.getAsDPPList()) {
+        assertEquals(dpp.getPair().longValue(), lr.classify(dpp.getDataPoint()).mostLikely());
+      }
     }
+  }
 
-    /**
-     * Test of trainC method, of class BBR.
-     */
-    @Test
-    public void testTrainC_ClassificationDataSet()
-    {
-        System.out.println("trainC");
-        ClassificationDataSet train = FixedProblems.get2ClassLinear(200, new Random());
+  /**
+   * Test of trainC method, of class BBR.
+   */
+  @Test
+  public void testTrainC_ClassificationDataSet_ExecutorService() {
+    System.out.println("trainC");
+    final ClassificationDataSet train = FixedProblems.get2ClassLinear(200, new Random());
 
-        for (BBR.Prior prior : BBR.Prior.values())
-        {
-            BBR lr = new BBR(0.01, 1000, prior);
-            lr.trainC(train);
+    for (final BBR.Prior prior : BBR.Prior.values()) {
+      final BBR lr = new BBR(0.01, 1000, prior);
+      lr.trainC(train, ex);
 
-            ClassificationDataSet test = FixedProblems.get2ClassLinear(200, new Random());
+      final ClassificationDataSet test = FixedProblems.get2ClassLinear(200, new Random());
 
-            for (DataPointPair<Integer> dpp : test.getAsDPPList())
-                assertEquals(dpp.getPair().longValue(), lr.classify(dpp.getDataPoint()).mostLikely());
-        }
+      for (final DataPointPair<Integer> dpp : test.getAsDPPList()) {
+        assertEquals(dpp.getPair().longValue(), lr.classify(dpp.getDataPoint()).mostLikely());
+      }
     }
+  }
 }

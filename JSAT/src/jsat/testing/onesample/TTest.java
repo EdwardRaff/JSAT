@@ -1,4 +1,3 @@
-
 package jsat.testing.onesample;
 
 import jsat.distributions.StudentT;
@@ -9,115 +8,103 @@ import jsat.text.GreekLetters;
  *
  * @author Edward Raff
  */
-public class TTest implements OneSampleTest
-{
-    
-    private StudentT tDist;
-    private H1 h1;
-    
-    private double hypothMean;
-    
-    private double sampleMean;
-    private double sampleDev;
-    private double sampleSize;
+public class TTest implements OneSampleTest {
 
-    public TTest(H1 h1, double hypothMean, double sampleMean, double sampleDev, double sampleSize)
-    {
-        this.h1 = h1;
-        this.hypothMean = hypothMean;
-        this.sampleMean = sampleMean;
-        this.sampleDev = sampleDev;
-        this.sampleSize = sampleSize;
-        tDist = new StudentT(sampleSize-1);
-    }
-    
-    public TTest(double hypothMean, double sampleMean, double sampleDev, double sampleSize)
-    {
-        this(H1.NOT_EQUAL, hypothMean, sampleMean, sampleDev, sampleSize);
-    }
+  private final StudentT tDist;
+  private H1 h1;
 
-    public TTest(H1 h1, double hypothMean, Vec data)
-    {
-        this(h1, hypothMean, data.mean(), data.standardDeviation(), data.length());
-                
-    }
+  private double hypothMean;
 
-    public TTest()
-    {
-        this(1, 2, 2, 2);
-    }
-    
-    
-    public void setTestUsingData(Vec data)
-    {
-        this.sampleMean = data.mean();
-        this.sampleDev = data.standardDeviation();
-        this.sampleSize = data.length();
-        tDist.setDf(sampleSize-1);
-    }
+  private double sampleMean;
+  private double sampleDev;
+  private double sampleSize;
 
-    public String[] getTestVars()
-    {
-        return new String[]
-                {
-            GreekLetters.bar("x"), 
-            GreekLetters.sigma, 
-            "n"
-                };
-    }
+  public TTest() {
+    this(1, 2, 2, 2);
+  }
 
-    public void setTestVars(double[] testVars)
-    {
-        this.sampleMean = testVars[0];
-        this.sampleDev = testVars[1];
-        this.sampleSize = testVars[2];
-        tDist.setDf(sampleSize-1);
-    }
+  public TTest(final double hypothMean, final double sampleMean, final double sampleDev, final double sampleSize) {
+    this(H1.NOT_EQUAL, hypothMean, sampleMean, sampleDev, sampleSize);
+  }
 
-    public String getAltVar()
-    {
-        return GreekLetters.mu + "0";
-    }
+  public TTest(final H1 h1, final double hypothMean, final double sampleMean, final double sampleDev,
+      final double sampleSize) {
+    this.h1 = h1;
+    this.hypothMean = hypothMean;
+    this.sampleMean = sampleMean;
+    this.sampleDev = sampleDev;
+    this.sampleSize = sampleSize;
+    tDist = new StudentT(sampleSize - 1);
+  }
 
-    public void setAltVar(double altVar)
-    {
-        hypothMean = altVar;
-    }
+  public TTest(final H1 h1, final double hypothMean, final Vec data) {
+    this(h1, hypothMean, data.mean(), data.standardDeviation(), data.length());
 
-    public String getNullVar()
-    {
-        return GreekLetters.mu;
-    }
+  }
 
-    public H1[] validAlternate()
-    {
-        return new H1[]
-                {
-                    H1.LESS_THAN, H1.NOT_EQUAL, H1.GREATER_THAN
-                };
-    }
+  @Override
+  public String getAltVar() {
+    return GreekLetters.mu + "0";
+  }
 
-    public void setAltHypothesis(H1 h1)
-    {
-        this.h1 = h1;
-    }
+  @Override
+  public String getNullVar() {
+    return GreekLetters.mu;
+  }
 
-    public String testName()
-    {
-        return "T Test";
-    }
+  @Override
+  public String[] getTestVars() {
+    return new String[] { GreekLetters.bar("x"), GreekLetters.sigma, "n" };
+  }
 
-    public double pValue()
-    {
+  @Override
+  public double pValue() {
 
-        double tScore = (sampleMean - hypothMean)*Math.sqrt(sampleSize)/sampleDev;
-        
-        if(h1 == H1.NOT_EQUAL)
-            return tDist.cdf(-Math.abs(tScore))*2;
-        else if(h1 == H1.LESS_THAN)
-            return tDist.cdf(tScore);
-        else
-            return 1-tDist.cdf(tScore);
+    final double tScore = (sampleMean - hypothMean) * Math.sqrt(sampleSize) / sampleDev;
+
+    if (h1 == H1.NOT_EQUAL) {
+      return tDist.cdf(-Math.abs(tScore)) * 2;
+    } else if (h1 == H1.LESS_THAN) {
+      return tDist.cdf(tScore);
+    } else {
+      return 1 - tDist.cdf(tScore);
     }
-    
+  }
+
+  @Override
+  public void setAltHypothesis(final H1 h1) {
+    this.h1 = h1;
+  }
+
+  @Override
+  public void setAltVar(final double altVar) {
+    hypothMean = altVar;
+  }
+
+  @Override
+  public void setTestUsingData(final Vec data) {
+    sampleMean = data.mean();
+    sampleDev = data.standardDeviation();
+    sampleSize = data.length();
+    tDist.setDf(sampleSize - 1);
+  }
+
+  @Override
+  public void setTestVars(final double[] testVars) {
+    sampleMean = testVars[0];
+    sampleDev = testVars[1];
+    sampleSize = testVars[2];
+    tDist.setDf(sampleSize - 1);
+  }
+
+  @Override
+  public String testName() {
+    return "T Test";
+  }
+
+  @Override
+  public H1[] validAlternate() {
+    return new H1[] { H1.LESS_THAN, H1.NOT_EQUAL, H1.GREATER_THAN };
+  }
+
 }

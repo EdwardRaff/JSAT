@@ -14,119 +14,112 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-
 package jsat.regression;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import org.junit.After;
+import org.junit.AfterClass;
+import org.junit.Before;
+import org.junit.BeforeClass;
+import org.junit.Test;
 import jsat.FixedProblems;
 import jsat.classifiers.ClassificationDataSet;
 import jsat.classifiers.ClassificationModelEvaluation;
 import jsat.datatransform.LinearTransform;
 import jsat.utils.SystemInfo;
 import jsat.utils.random.XORWOW;
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
-import static org.junit.Assert.*;
 
 /**
  *
  * @author Edward Raff <Raff.Edward@gmail.com>
  */
-public class LogisticRegressionTest
-{
-    
-    public LogisticRegressionTest()
-    {
+public class LogisticRegressionTest {
+
+  @BeforeClass
+  public static void setUpClass() {
+  }
+
+  @AfterClass
+  public static void tearDownClass() {
+  }
+
+  public LogisticRegressionTest() {
+  }
+
+  @Before
+  public void setUp() {
+  }
+
+  @After
+  public void tearDown() {
+  }
+
+  @Test
+  public void testClone() {
+    System.out.println("clone");
+
+    LogisticRegression instance = new LogisticRegression();
+
+    final ClassificationDataSet t1 = FixedProblems.get2ClassLinear(100, new XORWOW());
+    final ClassificationDataSet t2 = FixedProblems.get2ClassLinear(100, new XORWOW());
+    t2.applyTransform(new LinearTransform(t2, 0.5, 1));
+
+    instance = instance.clone();
+
+    instance.trainC(t1);
+
+    final LogisticRegression result = instance.clone();
+    for (int i = 0; i < t1.getSampleSize(); i++) {
+      assertEquals(t1.getDataPointCategory(i), result.classify(t1.getDataPoint(i)).mostLikely());
     }
-    
-    @BeforeClass
-    public static void setUpClass()
-    {
-    }
-    
-    @AfterClass
-    public static void tearDownClass()
-    {
-    }
-    
-    @Before
-    public void setUp()
-    {
-    }
-    
-    @After
-    public void tearDown()
-    {
-    }
+    result.trainC(t2);
 
-    
-    @Test
-    public void testTrainC_ClassificationDataSet_ExecutorService()
-    {
-        System.out.println("trainC");
-
-        LogisticRegression instance = new LogisticRegression();
-
-        ExecutorService ex = Executors.newFixedThreadPool(SystemInfo.LogicalCores);
-
-        ClassificationDataSet train = FixedProblems.get2ClassLinear(100, new XORWOW());
-        ClassificationDataSet test = FixedProblems.get2ClassLinear(100, new XORWOW());
-
-        ClassificationModelEvaluation cme = new ClassificationModelEvaluation(instance, train, ex);
-        cme.evaluateTestSet(test);
-
-        assertTrue(cme.getErrorRate() <= 0.001);
-
-        ex.shutdownNow();
+    for (int i = 0; i < t1.getSampleSize(); i++) {
+      assertEquals(t1.getDataPointCategory(i), instance.classify(t1.getDataPoint(i)).mostLikely());
     }
 
-    @Test
-    public void testTrainC_ClassificationDataSet()
-    {
-        System.out.println("trainC");
-
-        LogisticRegression instance = new LogisticRegression();
-
-        ClassificationDataSet train = FixedProblems.get2ClassLinear(100, new XORWOW());
-        ClassificationDataSet test = FixedProblems.get2ClassLinear(100, new XORWOW());
-
-        ClassificationModelEvaluation cme = new ClassificationModelEvaluation(instance, train);
-        cme.evaluateTestSet(test);
-
-        assertTrue(cme.getErrorRate() <= 0.001);
-
+    for (int i = 0; i < t2.getSampleSize(); i++) {
+      assertEquals(t2.getDataPointCategory(i), result.classify(t2.getDataPoint(i)).mostLikely());
     }
 
-    @Test
-    public void testClone()
-    {
-        System.out.println("clone");
+  }
 
-        LogisticRegression instance = new LogisticRegression();
+  @Test
+  public void testTrainC_ClassificationDataSet() {
+    System.out.println("trainC");
 
-        ClassificationDataSet t1 = FixedProblems.get2ClassLinear(100, new XORWOW());
-        ClassificationDataSet t2 = FixedProblems.get2ClassLinear(100, new XORWOW());
-        t2.applyTransform(new LinearTransform(t2, 0.5, 1));
+    final LogisticRegression instance = new LogisticRegression();
 
-        instance = instance.clone();
+    final ClassificationDataSet train = FixedProblems.get2ClassLinear(100, new XORWOW());
+    final ClassificationDataSet test = FixedProblems.get2ClassLinear(100, new XORWOW());
 
-        instance.trainC(t1);
+    final ClassificationModelEvaluation cme = new ClassificationModelEvaluation(instance, train);
+    cme.evaluateTestSet(test);
 
-        LogisticRegression result = instance.clone();
-        for (int i = 0; i < t1.getSampleSize(); i++)
-            assertEquals(t1.getDataPointCategory(i), result.classify(t1.getDataPoint(i)).mostLikely());
-        result.trainC(t2);
+    assertTrue(cme.getErrorRate() <= 0.001);
 
-        for (int i = 0; i < t1.getSampleSize(); i++)
-            assertEquals(t1.getDataPointCategory(i), instance.classify(t1.getDataPoint(i)).mostLikely());
+  }
 
-        for (int i = 0; i < t2.getSampleSize(); i++)
-            assertEquals(t2.getDataPointCategory(i), result.classify(t2.getDataPoint(i)).mostLikely());
+  @Test
+  public void testTrainC_ClassificationDataSet_ExecutorService() {
+    System.out.println("trainC");
 
-    }
-    
+    final LogisticRegression instance = new LogisticRegression();
+
+    final ExecutorService ex = Executors.newFixedThreadPool(SystemInfo.LogicalCores);
+
+    final ClassificationDataSet train = FixedProblems.get2ClassLinear(100, new XORWOW());
+    final ClassificationDataSet test = FixedProblems.get2ClassLinear(100, new XORWOW());
+
+    final ClassificationModelEvaluation cme = new ClassificationModelEvaluation(instance, train, ex);
+    cme.evaluateTestSet(test);
+
+    assertTrue(cme.getErrorRate() <= 0.001);
+
+    ex.shutdownNow();
+  }
+
 }
