@@ -29,8 +29,9 @@ public abstract class BaseUpdateableRegressor implements UpdateableRegressor
      */
     public void setEpochs(int epochs)
     {
-        if(epochs < 1)
-            throw new IllegalArgumentException("epochs must be a positive value");
+        if(epochs < 1) {
+          throw new IllegalArgumentException("epochs must be a positive value");
+        }
         this.epochs = epochs;
     }
 
@@ -65,16 +66,18 @@ public abstract class BaseUpdateableRegressor implements UpdateableRegressor
      */
     public static void trainEpochs(RegressionDataSet dataSet, UpdateableRegressor toTrain, int epochs)
     {
-        if(epochs < 1)
-            throw new IllegalArgumentException("epochs must be positive");
+        if(epochs < 1) {
+          throw new IllegalArgumentException("epochs must be positive");
+        }
         toTrain.setUp(dataSet.getCategories(), dataSet.getNumNumericalVars());
         IntList randomOrder = new IntList(dataSet.getSampleSize());
         ListUtils.addRange(randomOrder, 0, dataSet.getSampleSize(), 1);
         for (int epoch = 0; epoch < epochs; epoch++)
         {
             Collections.shuffle(randomOrder);
-            for (int i : randomOrder)
-                toTrain.update(dataSet.getDataPoint(i), dataSet.getTargetValue(i));
+            for (int i : randomOrder) {
+              toTrain.update(dataSet.getDataPoint(i), dataSet.getTargetValue(i));
+            }
         }
     }
 

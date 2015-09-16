@@ -74,16 +74,19 @@ public class DiscreteBayesNetwork implements Classifier
         for(int i = 0; i < cr.size(); i++)
         {
             DataPointPair<Integer> dpp = new DataPointPair<Integer>(data, i);
-            for(int classParent : dag.getChildren(classId))
-                logProbs[i] += log(cpts.get(classParent).query(classParent, dpp));
+            for(int classParent : dag.getChildren(classId)) {
+              logProbs[i] += log(cpts.get(classParent).query(classParent, dpp));
+            }
             
-            if(usePriors)
-                logProbs[i] += log(priors[i]);
+            if(usePriors) {
+              logProbs[i] += log(priors[i]);
+            }
             logPSum += logProbs[i];
         }
         
-        for(int i = 0; i < cr.size(); i++)
-            cr.setProb(i, exp(logProbs[i]-logPSum));
+        for(int i = 0; i < cr.size(); i++) {
+          cr.setProb(i, exp(logProbs[i]-logPSum));
+        }
         
         return cr;
     }
@@ -110,8 +113,9 @@ public class DiscreteBayesNetwork implements Classifier
     public void trainC(ClassificationDataSet dataSet)
     {
         int classID = dataSet.getNumCategoricalVars();
-        if(classID == 0 )
-            throw new FailedToFitException("Network needs categorical attribtues to work");
+        if(classID == 0 ) {
+          throw new FailedToFitException("Network needs categorical attribtues to work");
+        }
         
         predicting = dataSet.getPredicting();
         priors = dataSet.getPriors();
@@ -120,8 +124,9 @@ public class DiscreteBayesNetwork implements Classifier
         
         if(dag.getNodes().isEmpty())
         {
-            for(int i = 0; i < classID; i++)
-                depends(classID, i);
+            for(int i = 0; i < classID; i++) {
+              depends(classID, i);
+            }
         }
         
         for(int classParent : dag.getChildren(classID))

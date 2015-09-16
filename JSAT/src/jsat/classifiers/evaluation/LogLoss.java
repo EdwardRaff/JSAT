@@ -42,8 +42,9 @@ public class LogLoss implements ClassificationScore
      */
     public LogLoss(double nudge)
     {
-        if(nudge < 0 || nudge >= 0.1)
-            throw new IllegalArgumentException("nudge must be a small non-negative value in [0, 0.1) not " + nudge);
+        if(nudge < 0 || nudge >= 0.1) {
+          throw new IllegalArgumentException("nudge must be a small non-negative value in [0, 0.1) not " + nudge);
+        }
         this.nudge = nudge;
     }
 

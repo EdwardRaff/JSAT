@@ -91,8 +91,9 @@ public class DirichletTest
         
         //5% error would be fine 
         Vec alpha = setI.getAlphas();
-        for(int i = 0; i < alpha.length(); i++ )
-            assertEquals(0, Math.abs(alpha.get(i)-2.5)/2.5, 0.05);
+        for(int i = 0; i < alpha.length(); i++ ) {
+          assertEquals(0, Math.abs(alpha.get(i)-2.5)/2.5, 0.05);
+        }
     }
 
 }

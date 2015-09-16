@@ -118,8 +118,9 @@ public class SpecialMathTest
             -0.0613845445851161,0.4227843350984672,1.506117668431801,
             1.7061176684318,2.14064147795561,2.97052399224215,4.600161852738087
         };
-        for(int i = 0; i < input.length; i++)
-            assertEquals(expected[i], SpecialMath.digamma(input[i]), 1e-14);
+        for(int i = 0; i < input.length; i++) {
+          assertEquals(expected[i], SpecialMath.digamma(input[i]), 1e-14);
+        }
     }
 
     /**
@@ -142,8 +143,9 @@ public class SpecialMathTest
             102.4807960976827,180.6448160951889
         };
         
-        for(int i = 0; i < input.length; i++)
-            assertEquals(expected[i], SpecialMath.reLnBn(input[i]), 1e-11);
+        for(int i = 0; i < input.length; i++) {
+          assertEquals(expected[i], SpecialMath.reLnBn(input[i]), 1e-11);
+        }
     }
 
     /**
@@ -165,8 +167,9 @@ public class SpecialMathTest
             -529.1242424242425
         };
         
-        for(int i = 0; i < input.length; i++)
-            assertEquals(expected[i], SpecialMath.bernoulli(input[i]), 1e-11);
+        for(int i = 0; i < input.length; i++) {
+          assertEquals(expected[i], SpecialMath.bernoulli(input[i]), 1e-11);
+        }
     }
 
 

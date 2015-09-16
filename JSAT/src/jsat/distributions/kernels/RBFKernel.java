@@ -53,16 +53,18 @@ public class RBFKernel extends BaseL2Kernel
     @Override
     public double eval(Vec a, Vec b)
     {
-        if(a == b)//Same refrence means dist of 0, exp(0) = 1
-            return 1;
+        if(a == b) {//Same refrence means dist of 0, exp(0) = 1
+          return 1;
+        }
         return Math.exp(-Math.pow(a.pNormDist(2, b),2) * sigmaSqrd2Inv);
     }
 
     @Override
     public double eval(int a, int b, List<? extends Vec> trainingSet, List<Double> cache)
     {
-        if(a == b)
-            return 1; 
+        if(a == b) {
+          return 1;
+        } 
         return Math.exp(-getSqrdNorm(a, b, trainingSet, cache)* sigmaSqrd2Inv);
     }
     
@@ -78,8 +80,9 @@ public class RBFKernel extends BaseL2Kernel
      */
     public void setSigma(double sigma)
     {
-        if(sigma <= 0)
-            throw new IllegalArgumentException("Sigma must be a positive constant, not " + sigma);
+        if(sigma <= 0) {
+          throw new IllegalArgumentException("Sigma must be a positive constant, not " + sigma);
+        }
         this.sigma = sigma;
         this.sigmaSqrd2Inv = 0.5/(sigma*sigma);
     }
@@ -110,8 +113,9 @@ public class RBFKernel extends BaseL2Kernel
      */
     public static double sigmaToGamma(double sigma)
     {
-        if(sigma <= 0 || Double.isNaN(sigma) || Double.isInfinite(sigma))
-            throw new IllegalArgumentException("sigma must be positive, not " + sigma);
+        if(sigma <= 0 || Double.isNaN(sigma) || Double.isInfinite(sigma)) {
+          throw new IllegalArgumentException("sigma must be positive, not " + sigma);
+        }
         return 1/(2*sigma*sigma);
     }
     
@@ -124,8 +128,9 @@ public class RBFKernel extends BaseL2Kernel
      */
     public static double gammToSigma(double gamma)
     {
-        if(gamma <= 0 || Double.isNaN(gamma) || Double.isInfinite(gamma))
-            throw new IllegalArgumentException("gamma must be positive, not " + gamma);
+        if(gamma <= 0 || Double.isNaN(gamma) || Double.isInfinite(gamma)) {
+          throw new IllegalArgumentException("gamma must be positive, not " + gamma);
+        }
         return 1/Math.sqrt(2*gamma);
     }
     

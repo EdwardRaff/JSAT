@@ -301,8 +301,9 @@ public class VecPaired<V extends Vec, P> extends Vec
     @Override
     public Iterator<IndexValue> getNonZeroIterator()
     {
-        if(extractTrueVec(vector) instanceof SparseVector)
-            return extractTrueVec(vector).getNonZeroIterator();
+        if(extractTrueVec(vector) instanceof SparseVector) {
+          return extractTrueVec(vector).getNonZeroIterator();
+        }
         return super.getNonZeroIterator();
     }
     
@@ -317,8 +318,9 @@ public class VecPaired<V extends Vec, P> extends Vec
      */
     public static Vec extractTrueVec(Vec b)
     {
-        while(b instanceof VecPaired)
-            b = ((VecPaired) b).getVector();
+        while(b instanceof VecPaired) {
+          b = ((VecPaired) b).getVector();
+        }
         return b;
     }
     

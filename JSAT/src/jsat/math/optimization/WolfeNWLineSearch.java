@@ -67,10 +67,11 @@ public class WolfeNWLineSearch implements LineSearch
      */
     public void setC1(double c1)
     {
-        if(c1 <= 0)
-            throw new IllegalArgumentException("c1 must be greater than 0, not " + c1);
-        else if(c1 >= c2)
-            throw new IllegalArgumentException("c1 must be less than c2");
+        if(c1 <= 0) {
+          throw new IllegalArgumentException("c1 must be greater than 0, not " + c1);
+        } else if(c1 >= c2) {
+          throw new IllegalArgumentException("c1 must be less than c2");
+        }
         this.c1 = c1;
     }
 
@@ -90,10 +91,11 @@ public class WolfeNWLineSearch implements LineSearch
      */
     public void setC2(double c2)
     {
-        if(c2 >= 1)
-            throw new IllegalArgumentException("c2 must be less than 1, not " + c2);
-        else if(c2 <= c1)
-            throw new IllegalArgumentException("c2 must be greater than c1");
+        if(c2 >= 1) {
+          throw new IllegalArgumentException("c2 must be less than 1, not " + c2);
+        } else if(c2 <= c1) {
+          throw new IllegalArgumentException("c2 must be greater than c1");
+        }
         this.c2 = c2;
     }
 
@@ -115,10 +117,12 @@ public class WolfeNWLineSearch implements LineSearch
     @Override
     public double lineSearch(double alpha_max, Vec x_k, Vec x_grad, Vec p_k, Function f, FunctionVec fp, double f_x, double gradP, Vec x_alpha_pk, double[] fxApRet, Vec grad_x_alpha_pk, ExecutorService ex)
     {
-        if(Double.isNaN(f_x))
-            f_x = (ex != null && f instanceof FunctionP) ? ((FunctionP)f).f(x_k, ex): f.f(x_k);
-        if(Double.isNaN(gradP))
-            gradP = x_grad.dot(p_k);
+        if(Double.isNaN(f_x)) {
+          f_x = (ex != null && f instanceof FunctionP) ? ((FunctionP)f).f(x_k, ex): f.f(x_k);
+        }
+        if(Double.isNaN(gradP)) {
+          gradP = x_grad.dot(p_k);
+        }
         final double phi0 = f_x, phi0P = gradP;
         
         double alpha_cur = 1;
@@ -146,8 +150,9 @@ public class WolfeNWLineSearch implements LineSearch
             //Evaluate φ(αi );
             x_alpha_pk.mutableAdd(alpha_cur-alpha_prev, p_k);
             double phi_cur = (ex != null && f instanceof FunctionP) ? ((FunctionP)f).f(x_alpha_pk, ex): f.f(x_alpha_pk);
-            if(fxApRet != null)
-                fxApRet[0] = phi_cur;
+            if(fxApRet != null) {
+              fxApRet[0] = phi_cur;
+            }
             double phi_curP = (ex != null) ? fp.f(x_alpha_pk, grad_x_alpha_pk, ex).dot(p_k) : fp.f(x_alpha_pk, grad_x_alpha_pk).dot(p_k);//computed early b/c used in interpolation in zoom
             //if φ(αi)>φ(0)+c1 αi φ'(0) or[φ(αi)≥φ(αi−1) and i >1]
             if(phi_cur > phi0 + c1*alpha_cur*phi0P || (phi_cur >= phi_prev && iter > 1) )
@@ -227,15 +232,17 @@ public class WolfeNWLineSearch implements LineSearch
                 alpha_j = alphaHi-(alphaHi-alphaLow)*(phi_alphaHighP+d2-d1)/(phi_alphaHighP-phi_alphaLowP+2*d2);
             }
             //check if we were too close to the edge
-            if(alpha_j-(alphaHi-alphaLow)/2*0.1 < alphaLow || alpha_j > alphaHi*0.9)
-                alpha_j = min(alphaLow, alphaHi) + abs(alphaHi-alphaLow)/2;
+            if(alpha_j-(alphaHi-alphaLow)/2*0.1 < alphaLow || alpha_j > alphaHi*0.9) {
+              alpha_j = min(alphaLow, alphaHi) + abs(alphaHi-alphaLow)/2;
+            }
             x.copyTo(x_alpha_p);
             x_alpha_p.mutableAdd(alpha_j, p);
             
             //Evaluate φ(αj );
             double phi_j = (ex != null && f instanceof FunctionP) ? ((FunctionP)f).f(x_alpha_p, ex): f.f(x_alpha_p);
-            if(fxApRet != null)
-                fxApRet[0] = phi_j;
+            if(fxApRet != null) {
+              fxApRet[0] = phi_j;
+            }
             double phi_jP = (ex != null) ? fp.f(x_alpha_p, grad_x_alpha_pk, ex).dot(p) : fp.f(x_alpha_p, grad_x_alpha_pk).dot(p);//computed early
             //if φ(αj ) > φ(0) + c1αj φ'(0) or φ(αj ) ≥ φ(αlo)
             if(phi_j > phi0 + c1*alpha_j*phi0 || phi_j >= phi_alphaLow)
@@ -250,8 +257,9 @@ public class WolfeNWLineSearch implements LineSearch
                 //Evaluate φ'(αj );
                 
                 //if |φ'(αj )| ≤ −c2φ'(0)
-                if(abs(phi_jP) <= c2*phi0P)
-                    return alpha_j;//Set α∗ ← αj and stop;
+                if(abs(phi_jP) <= c2*phi0P) {
+                  return alpha_j;//Set α∗ ← αj and stop;
+                }
                 //if φ'(αj)(αhi −αlo)≥0
                 if(phi_jP*(alphaHi-alphaLow) >= 0)
                 {

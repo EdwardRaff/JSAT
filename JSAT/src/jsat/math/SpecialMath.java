@@ -31,21 +31,24 @@ public class SpecialMath
     public static double invXlnX(double y)
     {
         //Method from Numerical Recipies, 3rd edition
-        if(y >= 0 || y <= -exp(-1))
-            throw new ArithmeticException("Inverse value can not be computed for the range [-e^-1, 0]");
+        if(y >= 0 || y <= -exp(-1)) {
+          throw new ArithmeticException("Inverse value can not be computed for the range [-e^-1, 0]");
+        }
         double u;
         
-        if(y < -0.2)
-            u = log(exp(-1) - sqrt(2*exp(-1)* (y+exp(-1)) ) );
-        else
-            u = 10;
+        if(y < -0.2) {
+          u = log(exp(-1) - sqrt(2*exp(-1)* (y+exp(-1)) ) );
+        } else {
+          u = 10;
+        }
         double previousT = 0, t;
         do
         {
             t = (log(y/u)-u)*(u/(1+u));
             u += t;
-            if (t < 1e-8 && abs(t + previousT) < 0.01 * abs(t))
-                break;
+            if (t < 1e-8 && abs(t + previousT) < 0.01 * abs(t)) {
+              break;
+            }
             previousT = t;
         }
         while (abs(t / u) < 1e-15);
@@ -66,12 +69,11 @@ public class SpecialMath
      */
     public static double gamma(double z)
     {
-        if(z == 0)//It is actualy infinity*I, where I - sqrt(-1).
-            return Double.NaN;
-        else if(z == Double.POSITIVE_INFINITY)
-            return z;
-                
-        else if(z < 0)
+        if(z == 0) {//It is actualy infinity*I, where I - sqrt(-1).
+          return Double.NaN;
+        } else if(z == Double.POSITIVE_INFINITY) {
+          return z;
+        } else if(z < 0)
         {
             /*
              * Using the identity
@@ -110,8 +112,9 @@ public class SpecialMath
         };
 
         double innerLoop = 0;
-        for(int n = 1; n < p.length; n++)
-            innerLoop += p[n]/(z+n);
+        for(int n = 1; n < p.length; n++) {
+          innerLoop += p[n]/(z+n);
+        }
 
         double result = p[0] + innerLoop;
 
@@ -135,12 +138,13 @@ public class SpecialMath
      */
     public static double lnGamma(double z)
     {
-        if(z == Double.NEGATIVE_INFINITY)
-            return Double.NaN;
-        else if(z == Double.POSITIVE_INFINITY)
-            return z;
-        else if(z <= 0)
-            return Double.POSITIVE_INFINITY;
+        if(z == Double.NEGATIVE_INFINITY) {
+          return Double.NaN;
+        } else if(z == Double.POSITIVE_INFINITY) {
+          return z;
+        } else if(z <= 0) {
+          return Double.POSITIVE_INFINITY;
+        }
 
         /*
          * Lanczos approximation for the log of the gamma function, with |error| < 10^-15 for all z > 0 (Almost full double precision)
@@ -191,28 +195,32 @@ public class SpecialMath
      */
     public static double digamma(double x)
     {
-        if(x == 0)
-            return Double.NaN;//complex infinity
-        else if(x < 0)//digamma(1-x) == digamma(x)+pi/tan(pi*x), to make x positive
+        if(x == 0) {
+          return Double.NaN;//complex infinity
+        } else if(x < 0)//digamma(1-x) == digamma(x)+pi/tan(pi*x), to make x positive
         {
-            if(Math.rint(x) == x)
-                return Double.NaN;//the zeros are complex infinity
+            if(Math.rint(x) == x) {
+              return Double.NaN;//the zeros are complex infinity
+          }
             return digamma(1-x)-PI/tan(PI*x); 
         }
-        else if(x < 2)//shift the value into [2, Inf]
-            return digamma(x+1) - 1/x;
+        else if(x < 2) {//shift the value into [2, Inf]
+          return digamma(x+1) - 1/x;
+        }
         double approx= log(x);//rel error of 10^-11 for x >= 100 10^-13 for x >= 250, near machine precision at x >= 500
         double approxS = -1/(2*x);
         double approxSS = -1/(12*x*x);
 
-        if(x <= 7)
-            return (x-digammaPosZero)*hornerPolyR(digamma_p_2_7, x)/hornerPolyR(digamma_q_2_7, x);
-        else if(x <= 70)
-            return approx + (approxS + (approxSS + hornerPolyR(digamma_p_7_70, x)/hornerPolyR(digamma_q_7_70, x)));
-        if(x < 500)
-            return approx + (approxS + (approxSS + hornerPolyR(digamma_adj_p, x)/hornerPolyR(digamma_adj_q, x)));
-        else
-            return approx;
+        if(x <= 7) {
+          return (x-digammaPosZero)*hornerPolyR(digamma_p_2_7, x)/hornerPolyR(digamma_q_2_7, x);
+        } else if(x <= 70) {
+          return approx + (approxS + (approxSS + hornerPolyR(digamma_p_7_70, x)/hornerPolyR(digamma_q_7_70, x)));
+        }
+        if(x < 500) {
+          return approx + (approxS + (approxSS + hornerPolyR(digamma_adj_p, x)/hornerPolyR(digamma_adj_q, x)));
+        } else {
+          return approx;
+        }
     }
     
     /**
@@ -315,8 +323,9 @@ public class SpecialMath
      */
     public static double zeta(double x)
     {
-        if(x == 1)
-            return Double.NaN;
+        if(x == 1) {
+          return Double.NaN;
+        }
         if(x < 0 || abs(1-x) <= 0.2)
         {
             if(x <= 0.2 && x > -2.)
@@ -338,23 +347,30 @@ public class SpecialMath
              * Reflect if just more than 1 to an area that is easier to approximate
              */
             double otherPart = 2*pow(2*PI, x-1)*sin(PI/2*x);
-            if(x < 0)
-                return otherPart*exp(lnGamma(1-x)*log(zeta(1-x)));
-            else//log(zeta(1-x)) would have caused a NaN
-                return otherPart*gamma(1-x)*zeta(1-x);
+            if(x < 0) {
+              return otherPart*exp(lnGamma(1-x)*log(zeta(1-x)));
+            } else {
+              //log(zeta(1-x)) would have caused a NaN
+              return otherPart*gamma(1-x)*zeta(1-x);
+            }
         }
-        if(x < 14)
-            return hornerPolyR(zeta_p_l14, x)/hornerPolyR(zeta_q_l14, x);
+        if(x < 14) {
+          return hornerPolyR(zeta_p_l14, x)/hornerPolyR(zeta_q_l14, x);
+        }
         if(x < 50)
         {
             //use truncated form of http://dlmf.nist.gov/25.2#E3
             double mul = 1/(1-pow(2, 1-x));
             double sumP = 0;
             double sumN = 0;
-            for(int i = 11; i >= 1; i-=2)//all odd values are positive
-                sumP += pow(i, -x);
-            for(int i = 10; i >= 1; i-=2)//all even values are negative
-                sumN -= pow(i, -x);
+            for(int i = 11; i >= 1; i-=2) {
+              //all odd values are positive
+              sumP += pow(i, -x);
+            }
+            for(int i = 10; i >= 1; i-=2) {
+              //all even values are negative
+              sumN -= pow(i, -x);
+            }
             return mul*(sumP+sumN);
         }
         //else x>=50, 1 is so close we might as well use it
@@ -435,12 +451,15 @@ public class SpecialMath
      */
     public static double reLnBn(int n)
     {
-        if(n < 0)
-            return Double.NaN;
-        if(n == 1)
-            return -log(2);
-        if(n % 2 != 0)
-            return Double.NEGATIVE_INFINITY;
+        if(n < 0) {
+          return Double.NaN;
+        }
+        if(n == 1) {
+          return -log(2);
+        }
+        if(n % 2 != 0) {
+          return Double.NEGATIVE_INFINITY;
+        }
         if(n >= 50)//rel err < 1e-14
         {
             //Log[-2^(3/2 - n) ((3 i)/e)^n n^(1/2 + n) ((3 + 40 n^2)/(-1 + 120 n^2))^n Pi^(1/2 - n)]
@@ -468,17 +487,22 @@ public class SpecialMath
      */
     public static double bernoulli(int n)
     {
-        if(n < 0)
-            return Double.NaN;
-        if(n == 0)
-            return 1;
-        if(n == 1)
-            return -0.5;
-        if(n % 2 != 0)
-            return 0;
+        if(n < 0) {
+          return Double.NaN;
+        }
+        if(n == 0) {
+          return 1;
+        }
+        if(n == 1) {
+          return -0.5;
+        }
+        if(n % 2 != 0) {
+          return 0;
+        }
         int sign = 1;
-        if(n > 2 && n % 4 == 0)
-            sign = -1;
+        if(n > 2 && n % 4 == 0) {
+          sign = -1;
+        }
         return sign*exp(reLnBn(n));
     }
     
@@ -564,16 +588,19 @@ public class SpecialMath
      */
     public static double betaIncReg(double x, double a, double b)
     {
-        if(a <= 0 || b <= 0)
-            throw new ArithmeticException("a and b must be > 0, not" + a+ ", and " + b);
-        if(x == 0 || x == 1)
-            return x;
-        else if(x < 0 || x > 1)
-            throw new ArithmeticException("x must be in the range [0,1], not " + x);
+        if(a <= 0 || b <= 0) {
+          throw new ArithmeticException("a and b must be > 0, not" + a+ ", and " + b);
+        }
+        if(x == 0 || x == 1) {
+          return x;
+        } else if(x < 0 || x > 1) {
+          throw new ArithmeticException("x must be in the range [0,1], not " + x);
+        }
         
         //We use this identity to make sure that our continued fraction is always in a range for which it converges faster
-        if(x > (a+1)/(a+b+2) || (1-x) < (b+1)/(a+b+2) )
-            return 1-betaIncReg(1-x, b, a);
+        if(x > (a+1)/(a+b+2) || (1-x) < (b+1)/(a+b+2) ) {
+          return 1-betaIncReg(1-x, b, a);
+        }
         
         
         /*
@@ -621,8 +648,9 @@ public class SpecialMath
      */
     public static double invBetaIncReg(double p, double a, double b)
     {
-        if(p < 0 || p > 1)
-            throw new ArithmeticException("The value p must be in the range [0,1], not" + p);
+        if(p < 0 || p > 1) {
+          throw new ArithmeticException("The value p must be in the range [0,1], not" + p);
+        }
         return RiddersMethod.root(0, 1, betaIncRegFunc, p, a, b, p);
     }
     
@@ -637,11 +665,13 @@ public class SpecialMath
      */
     public static double gammaQ(double a, double z)
     {
-        if(z<= 0 || a < 0 )
-            return Double.NaN;
+        if(z<= 0 || a < 0 ) {
+          return Double.NaN;
+        }
         
-        if(z < a+1)
-            return 1-gammaPSeries(a, z);
+        if(z < a+1) {
+          return 1-gammaPSeries(a, z);
+        }
         
         /**
          * On the range of x from 0.5 to 50
@@ -665,8 +695,9 @@ public class SpecialMath
             ap += 1.0;
             del *= z/ap;
             sum += del;
-            if(abs(del) < abs(sum)*1e-15)
-                return sum*exp(-z+a*log(z)-lnGamma(a));
+            if(abs(del) < abs(sum)*1e-15) {
+              return sum*exp(-z+a*log(z)-lnGamma(a));
+            }
         }
         while(true);
         
@@ -683,11 +714,13 @@ public class SpecialMath
      */
     public static double gammaP(double a, double z)
     {
-        if(z<= 0 || a < 0)
-            return Double.NaN;
+        if(z<= 0 || a < 0) {
+          return Double.NaN;
+        }
         
-        if(z < a+1)
-            return gammaPSeries(a, z);
+        if(z < a+1) {
+          return gammaPSeries(a, z);
+        }
         
         /*
          * This method is currently usntable for values of z that grow larger, so it is not currently in use
@@ -705,8 +738,9 @@ public class SpecialMath
     public static double invGammaP(double p, double a)
     {
         //Method from Numerical Recipies 3rd edition p 263
-        if(p < 0 || p > 1)
-            throw new ArithmeticException("Probability p must be in the range [0,1], "+ p + "is not valid");
+        if(p < 0 || p > 1) {
+          throw new ArithmeticException("Probability p must be in the range [0,1], "+ p + "is not valid");
+        }
         //First an estimate must be obtained
         double am1 = a-1;
         double lnGamA = lnGamma(a);
@@ -721,39 +755,45 @@ public class SpecialMath
             double t = sqrt(-2*log(pp));
             //Now our inital estimate
             x = (2.30753+t*0.27061)/(1.+t*(0.99229+t*0.04481)) - t;
-            if(p < 0.5)
-                x = -x;
+            if(p < 0.5) {
+              x = -x;
+            }
             x = max(1e-3, a * pow(1.0 - (1.0/(9.*a)) - x/(3.*sqrt(a))  , 3) );//if the estimate is too small, increase it
             
         }
         else
         {
             double t = 1.0 - a*(0.253+a*0.12);
-            if(p < t)
-                x = pow(p/t, 1.0/a);
-            else
-                x = 1-log(1-(p-t)/(1.0-t));
+            if(p < t) {
+              x = pow(p/t, 1.0/a);
+            } else {
+              x = 1-log(1-(p-t)/(1.0-t));
+            }
         }
         
         //Estimate obtained, now refinement
         for(int j = 0; j < 12; j++)
         {
-            if (x <= 0)//x is very small, return 0 b/c rounding errors and loss of precision will make accuracy imposible
-                return 0;
+            if (x <= 0) {//x is very small, return 0 b/c rounding errors and loss of precision will make accuracy imposible
+              return 0;
+            }
             double err = gammaP(a, x) - p;
             double t;
-            if(a > 1)
-                t = afac*exp(-(x-am1)+am1*(log(x)-lna1));
-            else
-                t = exp(-x+am1*log(x)-lnGamA);
+            if(a > 1) {
+              t = afac*exp(-(x-am1)+am1*(log(x)-lna1));
+            } else {
+              t = exp(-x+am1*log(x)-lnGamA);
+            }
             
             double u = err/t;
             t = u / (1-0.5*min(1 , u*(am1/x - 1)) );//Halley's method
             x -= t;
-            if(x <= 0)//bais x from going negative (means we are getting a bad value)
-                x = (x+t)/2;
-            if(abs(t) < 1e-8*x)
-                break;//the error is the (1e-8)^2, if we reach this point we have already converged
+            if(x <= 0) {//bais x from going negative (means we are getting a bad value)
+              x = (x+t)/2;
+            }
+            if(abs(t) < 1e-8*x) {
+              break;//the error is the (1e-8)^2, if we reach this point we have already converged
+            }
         }
         
         return x;
@@ -769,8 +809,9 @@ public class SpecialMath
      */
     public static double gammaIncUp(double a, double z)
     {
-        if(z <= 0)
-            return Double.NaN;
+        if(z <= 0) {
+          return Double.NaN;
+        }
         /**
          * On the range of x from 0.5 to 50
          * a=0.15, max |rel error| is ~1.3e-11, but only in a small range x ~= 11. Otherwise rel error ~ 2e-15
@@ -792,8 +833,9 @@ public class SpecialMath
      */
     public static double gammaIncLow(double a, double z)
     {
-         if(z <= 0)
-            return Double.NaN;
+         if(z <= 0) {
+           return Double.NaN;
+         }
         /**
          * On the range of x from 0.5 to 50
          * a=0.15, see a=1
@@ -885,8 +927,9 @@ public class SpecialMath
     private static double lnLowIncGamma1(double a, double x)
     {
         double inter = lowIncGamma.lentz(a,x);
-        if(inter <= 1e-16)//The result was ~0, in which case Gamma[a,z] ~= Gamma[a]
-            return lnGamma(a);
+        if(inter <= 1e-16) {//The result was ~0, in which case Gamma[a,z] ~= Gamma[a]
+          return lnGamma(a);
+        }
         return a*log(x)-x-log(inter);
     }
     

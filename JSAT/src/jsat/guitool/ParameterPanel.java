@@ -88,8 +88,9 @@ public class ParameterPanel extends javax.swing.JPanel
                             {
                                 checkBox.setSelected(true);
                             }
-                            else
-                                badInput();
+                            else {
+                              badInput();
+                            }
                         }
                         catch(Exception ex)
                         {
@@ -146,8 +147,9 @@ public class ParameterPanel extends javax.swing.JPanel
                             {
                                 checkBox.setSelected(true);
                             }
-                            else
-                                badInput();
+                            else {
+                              badInput();
+                            }
                         }
                         catch(Exception ex)
                         {
@@ -201,9 +203,11 @@ public class ParameterPanel extends javax.swing.JPanel
                     }
                 });
                 List options = objParam.parameterOptions();
-                for(int i = 0; i < options.size(); i++)
-                    if(options.get(i).toString().equals(objParam.getObject().toString()))
-                        comboBox.setSelectedIndex(i);
+                for(int i = 0; i < options.size(); i++) {
+                  if (options.get(i).toString().equals(objParam.getObject().toString())) {
+                    comboBox.setSelectedIndex(i);
+                  }
+                }
                 subPanel.add(comboBox, BorderLayout.CENTER);
                 jPanelParameters.add(subPanel);
             }
@@ -212,9 +216,11 @@ public class ParameterPanel extends javax.swing.JPanel
                 final MetricParameter metricParam = (MetricParameter) param;
                 
                 final JComboBox comboBox = new JComboBox(distanceMetrics);
-                for(int i = 0; i < distanceMetrics.length; i++)
-                    if(distanceMetrics[i].toString().equals(metricParam.getMetric().toString()))
-                        comboBox.setSelectedIndex(i);
+                for(int i = 0; i < distanceMetrics.length; i++) {
+                  if (distanceMetrics[i].toString().equals(metricParam.getMetric().toString())) {
+                    comboBox.setSelectedIndex(i);
+                  }
+                }
                 comboBox.addActionListener(new ActionListener()
                 {
 

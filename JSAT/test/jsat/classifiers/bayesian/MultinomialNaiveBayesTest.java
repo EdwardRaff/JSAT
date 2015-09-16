@@ -79,8 +79,9 @@ public class MultinomialNaiveBayesTest
             ClassificationDataSet test = FixedProblems.getSimpleKClassLinear(1000, 3, new XOR96());
 
             ClassificationModelEvaluation cme = new ClassificationModelEvaluation(instance, train, ex);
-            if(useCatFeatures)
-                cme.setDataTransformProcess(new DataTransformProcess(new NumericalToHistogram.NumericalToHistogramTransformFactory()));
+            if(useCatFeatures) {
+              cme.setDataTransformProcess(new DataTransformProcess(new NumericalToHistogram.NumericalToHistogramTransformFactory()));
+            }
             cme.evaluateTestSet(test);
 
             assertTrue(cme.getErrorRate() <= 0.001);
@@ -102,8 +103,9 @@ public class MultinomialNaiveBayesTest
             ClassificationDataSet test = FixedProblems.getSimpleKClassLinear(1000, 3, new XOR96());
 
             ClassificationModelEvaluation cme = new ClassificationModelEvaluation(instance, train);
-            if(useCatFeatures)
-                cme.setDataTransformProcess(new DataTransformProcess(new NumericalToHistogram.NumericalToHistogramTransformFactory()));
+            if(useCatFeatures) {
+              cme.setDataTransformProcess(new DataTransformProcess(new NumericalToHistogram.NumericalToHistogramTransformFactory()));
+            }
             cme.evaluateTestSet(test);
 
             assertTrue(cme.getErrorRate() <= 0.001);
@@ -132,15 +134,18 @@ public class MultinomialNaiveBayesTest
             instance.trainC(t1);
 
             MultinomialNaiveBayes result = instance.clone();
-            for(int i = 0; i < t1.getSampleSize(); i++)
-                assertEquals(t1.getDataPointCategory(i), result.classify(t1.getDataPoint(i)).mostLikely());
+            for(int i = 0; i < t1.getSampleSize(); i++) {
+              assertEquals(t1.getDataPointCategory(i), result.classify(t1.getDataPoint(i)).mostLikely());
+            }
             result.trainC(t2);
 
-            for(int i = 0; i < t1.getSampleSize(); i++)
-                assertEquals(t1.getDataPointCategory(i), instance.classify(t1.getDataPoint(i)).mostLikely());
+            for(int i = 0; i < t1.getSampleSize(); i++) {
+              assertEquals(t1.getDataPointCategory(i), instance.classify(t1.getDataPoint(i)).mostLikely());
+            }
 
-            for(int i = 0; i < t2.getSampleSize(); i++)
-                assertEquals(t2.getDataPointCategory(i), result.classify(t2.getDataPoint(i)).mostLikely());
+            for(int i = 0; i < t2.getSampleSize(); i++) {
+              assertEquals(t2.getDataPointCategory(i), result.classify(t2.getDataPoint(i)).mostLikely());
+            }
         }
     }
     

@@ -35,8 +35,9 @@ public class ListUtils
      */
     public static <T> List<List<T>> splitList(List<T> source, int count)
     {
-        if(count <= 0)
-            throw new RuntimeException("Chunks must be greater then 0, not " + count);
+        if(count <= 0) {
+          throw new RuntimeException("Chunks must be greater then 0, not " + count);
+        }
         List<List<T>> chunks = new ArrayList<List<T>>(count);
         int baseSize = source.size() / count;
         int remainder = source.size() % count;
@@ -46,8 +47,9 @@ public class ListUtils
         for(int i = 0; i < count; i++)
         {
             int end = start+baseSize;
-            if(remainder-- > 0)
-                end++;
+            if(remainder-- > 0) {
+              end++;
+            }
             chunks.add(source.subList(start, end));
             start = end;
         }
@@ -70,12 +72,13 @@ public class ListUtils
             @Override
             public T get(int index)
             {
-                if(index < left.size())
-                    return left.get(index);
-                else if(index-left.size() < right.size())
-                    return right.get(index-left.size());
-                else
-                    throw new IndexOutOfBoundsException("List of lengt " + size() + " has no index " + index);
+                if(index < left.size()) {
+                  return left.get(index);
+                } else if(index-left.size() < right.size()) {
+                  return right.get(index-left.size());
+                } else {
+                  throw new IndexOutOfBoundsException("List of lengt " + size() + " has no index " + index);
+                }
             }
 
             @Override
@@ -112,8 +115,9 @@ public class ListUtils
     {
         ArrayList<T> collected = new ArrayList<T>(futures.size());
 
-        for (Future<T> future : futures)
-                collected.add(future.get());
+        for (Future<T> future : futures) {
+          collected.add(future.get());
+        }
 
         return collected;
     }
@@ -131,11 +135,13 @@ public class ListUtils
      */
     public static void addRange(Collection<Integer> c, int start, int to, int step)
     {
-        if(step <= 0)
-            throw new RuntimeException("Would create an infinite loop");
+        if(step <= 0) {
+          throw new RuntimeException("Would create an infinite loop");
+        }
         
-        for(int i = start; i < to; i+= step)
-            c.add(i);
+        for(int i = start; i < to; i+= step) {
+          c.add(i);
+        }
     }
     
     /**
@@ -174,10 +180,11 @@ public class ListUtils
      */
     public static <T> void randomSample(Collection<T> source, Collection<T> dest, int samples, Random rand)
     {
-        if(samples > source.size())
-            throw new IllegalArgumentException("Can not obtain a number of samples larger than the source population");
-        else if(samples <= 0)
-            throw new IllegalArgumentException("Sample size must be positive");
+        if(samples > source.size()) {
+          throw new IllegalArgumentException("Can not obtain a number of samples larger than the source population");
+        } else if(samples <= 0) {
+          throw new IllegalArgumentException("Sample size must be positive");
+        }
         //Use samples to keep track of how many more samples we need
         int remainingPopulation = source.size();
         for(T member : source)

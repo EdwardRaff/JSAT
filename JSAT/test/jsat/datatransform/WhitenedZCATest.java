@@ -61,8 +61,9 @@ public class WhitenedZCATest
         
         List<Vec> sample = normal.sample(500, new Random(17));
         List<DataPoint> dataPoints  = new ArrayList<DataPoint>(sample.size());
-        for( Vec v : sample)
-            dataPoints.add(new DataPoint(v, new int[0], new CategoricalData[0]));
+        for( Vec v : sample) {
+          dataPoints.add(new DataPoint(v, new int[0], new CategoricalData[0]));
+        }
         
         SimpleDataSet data = new SimpleDataSet(dataPoints);
         

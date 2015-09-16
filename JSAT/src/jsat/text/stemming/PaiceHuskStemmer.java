@@ -64,27 +64,35 @@ public class PaiceHuskStemmer extends Stemmer
                 if(isVowel(input.charAt(0)))
                 {
                     //Stats with a vowel, stemmed result must be at least 2 chars long
-                    if(input.length()-toRemove+newEnding.length() < 2)
-                        return input;
+                    if(input.length()-toRemove+newEnding.length() < 2) {
+                      return input;
+                    }
                 }
                 else//Starts with a consonant, 3 lets must remain
                 {
-                    if(input.length()-toRemove+newEnding.length() < 3)
-                        return input;//Not long enought
+                    if(input.length()-toRemove+newEnding.length() < 3) {
+                      return input;//Not long enought
+                    }
                     //Result must also contain at least one vowel
                     boolean noVowels = true;
-                    for(int i = 0; i < input.length()-toRemove && noVowels; i++)
-                        if(isVowel(input.charAt(i)) || input.charAt(i)== 'y')
-                            noVowels = false;
-                    for(int i = 0; i < newEnding.length() && noVowels; i++)
-                        if(isVowel(newEnding.charAt(i)) || newEnding.charAt(i)== 'y')
-                            noVowels = false;
-                    if(noVowels)
-                        return input;//No vowels left, stemmin is not valid to aply
+                    for(int i = 0; i < input.length()-toRemove && noVowels; i++) {
+                      if (isVowel(input.charAt(i)) || input.charAt(i)== 'y') {
+                        noVowels = false;
+                      }
+                    }
+                    for(int i = 0; i < newEnding.length() && noVowels; i++) {
+                      if (isVowel(newEnding.charAt(i)) || newEnding.charAt(i)== 'y') {
+                        noVowels = false;
+                      }
+                    }
+                    if(noVowels) {
+                      return input;//No vowels left, stemmin is not valid to aply
+                    }
                 }
                 //We made it, we can apply the stem and return a new string
-                if(toRemove == 0)//Proctected word, return a new string explicitly to be super sure
-                    return new String(input);
+                if(toRemove == 0) {//Proctected word, return a new string explicitly to be super sure
+                  return new String(input);
+                }
                 return input.substring(0, input.length()-toRemove) + newEnding;
             }
             return input;
@@ -328,21 +336,24 @@ public class PaiceHuskStemmer extends Stemmer
             stop = true;
             
             int ruleIndex = word.charAt(word.length()-1)-charOffset;
-            if(ruleIndex < 0 || ruleIndex > rules.length)
-                continue;
+            if(ruleIndex < 0 || ruleIndex > rules.length) {
+              continue;
+            }
             for(Rule rule : rules[ruleIndex])
             {
-                if(rule.virgin && !virginRound)
-                    continue;
+                if(rule.virgin && !virginRound) {
+                  continue;
+                }
                 String test = rule.apply(word);
                 if(test != word)//Rule was applied, is it acceptable?
                 {
                     word = test;
                     stop = false;
-                    if(rule.terminal)
-                        return word;
-                    else
-                        break;
+                    if(rule.terminal) {
+                      return word;
+                    } else {
+                      break;
+                    }
                 }
             }
             

@@ -116,8 +116,9 @@ public class DCDs implements BinaryScoreClassifier, Regressor, Parameterized, Si
      */
     public void setC(double C)
     {
-        if(Double.isNaN(C) || Double.isInfinite(C) || C <= 0)
-            throw new ArithmeticException("Penalty parameter must be a positive value, not " + C);
+        if(Double.isNaN(C) || Double.isInfinite(C) || C <= 0) {
+          throw new ArithmeticException("Penalty parameter must be a positive value, not " + C);
+        }
         this.C = C;
     }
 
@@ -141,8 +142,9 @@ public class DCDs implements BinaryScoreClassifier, Regressor, Parameterized, Si
      */
     public void setEps(double eps)
     {
-        if(Double.isNaN(eps) || eps < 0 || Double.isInfinite(eps))
-            throw new IllegalArgumentException("eps must be non-negative, not "+eps);
+        if(Double.isNaN(eps) || eps < 0 || Double.isInfinite(eps)) {
+          throw new IllegalArgumentException("eps must be non-negative, not "+eps);
+        }
         this.eps = eps;
     }
 
@@ -201,8 +203,9 @@ public class DCDs implements BinaryScoreClassifier, Regressor, Parameterized, Si
      */
     public void setMaxIterations(int maxIterations)
     {
-        if(maxIterations <= 0)
-            throw new IllegalArgumentException("Number of iterations must be positive, not " + maxIterations);
+        if(maxIterations <= 0) {
+          throw new IllegalArgumentException("Number of iterations must be positive, not " + maxIterations);
+        }
         this.maxIterations = maxIterations;
     }
 
@@ -251,19 +254,21 @@ public class DCDs implements BinaryScoreClassifier, Regressor, Parameterized, Si
     @Override
     public Vec getRawWeight(int index)
     {
-        if(index < 1)
-            return getRawWeight();
-        else
-            throw new IndexOutOfBoundsException("Model has only 1 weight vector");
+        if(index < 1) {
+          return getRawWeight();
+        } else {
+          throw new IndexOutOfBoundsException("Model has only 1 weight vector");
+        }
     }
 
     @Override
     public double getBias(int index)
     {
-        if (index < 1)
-            return getBias();
-        else
-            throw new IndexOutOfBoundsException("Model has only 1 weight vector");
+        if (index < 1) {
+          return getBias();
+        } else {
+          throw new IndexOutOfBoundsException("Model has only 1 weight vector");
+        }
     }
     
     @Override
@@ -275,14 +280,16 @@ public class DCDs implements BinaryScoreClassifier, Regressor, Parameterized, Si
     @Override
     public CategoricalResults classify(DataPoint data)
     {
-        if(w == null)
-            throw new UntrainedModelException("The model has not been trained");
+        if(w == null) {
+          throw new UntrainedModelException("The model has not been trained");
+        }
         CategoricalResults cr = new CategoricalResults(2);
         
-        if(getScore(data) < 0)
-            cr.setProb(0, 1.0);
-        else
-            cr.setProb(1, 1.0);
+        if(getScore(data) < 0) {
+          cr.setProb(0, 1.0);
+        } else {
+          cr.setProb(1, 1.0);
+        }
         
         return cr;
     }
@@ -314,8 +321,9 @@ public class DCDs implements BinaryScoreClassifier, Regressor, Parameterized, Si
     @Override
     public void trainC(ClassificationDataSet dataSet, Classifier warmSolution)
     {
-        if(dataSet.getClassSize() != 2)
-            throw new FailedToFitException("SVM only supports binary classificaiton problems");
+        if(dataSet.getClassSize() != 2) {
+          throw new FailedToFitException("SVM only supports binary classificaiton problems");
+        }
         vecs = new Vec[dataSet.getSampleSize()];
         alpha = new double[vecs.length];
         y = new double[vecs.length];
@@ -332,8 +340,9 @@ public class DCDs implements BinaryScoreClassifier, Regressor, Parameterized, Si
             U[i] = getU(dp.getWeight());
             D[i] = getD(dp.getWeight());
             Qhs[i] = vecs[i].dot(vecs[i])+D[i];
-            if(useBias)//+1 for implicit bias term
-                Qhs[i]++;
+            if(useBias) {//+1 for implicit bias term
+              Qhs[i]++;
+            }
         }
         w = new DenseVector(vecs[0].length());
         
@@ -372,19 +381,22 @@ public class DCDs implements BinaryScoreClassifier, Regressor, Parameterized, Si
             if(warmSolution instanceof DCDs)
             {
                 DCDs other = (DCDs) warmSolution;
-                if (this.alpha != null && other.alpha.length != this.alpha.length)
-                    throw new FailedToFitException("Warm solution could not have been trained on the same data set");
+                if (this.alpha != null && other.alpha.length != this.alpha.length) {
+                  throw new FailedToFitException("Warm solution could not have been trained on the same data set");
+                }
 
                 double C_mul = this.C/other.C;
                 other.w.copyTo(this.w);
                 this.w.mutableMultiply(C);
                 this.bias = other.bias*C_mul;
                 System.arraycopy(other.alpha, 0, this.alpha, 0, this.alpha.length);
-                for(int i = 0; i < this.alpha.length; i++)
-                    this.alpha[i] *= C_mul;
+                for(int i = 0; i < this.alpha.length; i++) {
+                  this.alpha[i] *= C_mul;
+                }
             }
-            else 
-                throw new FailedToFitException("Warm solution can not be used for warm start");
+            else {
+              throw new FailedToFitException("Warm solution can not be used for warm start");
+            }
         }
         
         double M = Double.NEGATIVE_INFINITY;
@@ -412,20 +424,25 @@ public class DCDs implements BinaryScoreClassifier, Regressor, Parameterized, Si
                 double PG = 0;
                 if(alpha[i] == 0)
                 {
-                    if(G > M && !noShrinking)
-                        iter.remove();
-                    if(G < 0)
-                        PG = G;
+                    if(G > M && !noShrinking) {
+                      iter.remove();
+                    }
+                    if(G < 0) {
+                      PG = G;
+                    }
                 }
                 else if(alpha[i] == U[i])
                 {
-                    if(G < m && !noShrinking)
-                        iter.remove();
-                    if(G > 0)
-                        PG = G;
+                    if(G < m && !noShrinking) {
+                      iter.remove();
+                    }
+                    if(G > 0) {
+                      PG = G;
+                    }
                 }
-                else
-                    PG = G;
+                else {
+                  PG = G;
+                }
                 //c
                 M = Math.max(M, PG);
                 m = Math.min(m, PG);
@@ -436,27 +453,29 @@ public class DCDs implements BinaryScoreClassifier, Regressor, Parameterized, Si
                     alpha[i] = Math.min(Math.max(alpha[i]-G/Qhs[i], 0), U[i]);
                     double scale = (alpha[i]-alphaOld)*y[i];
                     w.mutableAdd(scale, vecs[i]);
-                    if(useBias)
-                        bias += scale;
+                    if(useBias) {
+                      bias += scale;
+                    }
                 }
             }
             
             if(M - m < tolerance)//3.
             {
                 //a
-                if(A.size() == alpha.length)
-                    break;//We have converged
-                else //repeat without shrinking
+                if(A.size() == alpha.length) {
+                  break;//We have converged
+                } else //repeat without shrinking
                 {
                     A.clear();
                     ListUtils.addRange(A, 0, vecs.length, 1);
                     noShrinking = true;
                 }
             }
-            else if(M <= 0 || m >= 0)//technically less agressive then the original paper
-                noShrinking = true;
-            else
-                noShrinking = false;
+            else if(M <= 0 || m >= 0) {//technically less agressive then the original paper
+              noShrinking = true;
+            } else {
+              noShrinking = false;
+            }
         }
         
         //dual problem variables are no longer needed
@@ -484,10 +503,12 @@ public class DCDs implements BinaryScoreClassifier, Regressor, Parameterized, Si
         clone.bias = this.bias;
         clone.useBias = this.useBias;
         
-        if(this.w != null)
-            clone.w = this.w.clone();
-        if(this.alpha != null)
-            clone.alpha = Arrays.copyOf(this.alpha, this.alpha.length);
+        if(this.w != null) {
+          clone.w = this.w.clone();
+        }
+        if(this.alpha != null) {
+          clone.alpha = Arrays.copyOf(this.alpha, this.alpha.length);
+        }
         
         return clone;
     }
@@ -550,8 +571,9 @@ public class DCDs implements BinaryScoreClassifier, Regressor, Parameterized, Si
             U[i] = getU(dp.getWeight());
             lambda[i] = getD(dp.getWeight());
             Qhs[i] = vecs[i].dot(vecs[i])+lambda[i];
-            if (useBias)
-                Qhs[i] += 1.0;
+            if (useBias) {
+              Qhs[i] += 1.0;
+            }
             v_0 += Math.abs(eq24(0, -y[i]-eps, -y[i]+eps, U[i]));
         }
         w = new DenseVector(vecs[0].length());
@@ -564,19 +586,22 @@ public class DCDs implements BinaryScoreClassifier, Regressor, Parameterized, Si
             if(warmSolution instanceof DCDs)
             {
                 DCDs other = (DCDs) warmSolution;
-                if (this.alpha != null && other.alpha.length != this.alpha.length)
-                    throw new FailedToFitException("Warm solution could not have been trained on the same data set");
+                if (this.alpha != null && other.alpha.length != this.alpha.length) {
+                  throw new FailedToFitException("Warm solution could not have been trained on the same data set");
+                }
 
                 double C_mul = this.C/other.C;
                 other.w.copyTo(this.w);
                 this.w.mutableMultiply(C);
                 this.bias = other.bias*C_mul;
                 System.arraycopy(other.alpha, 0, this.alpha, 0, this.alpha.length);
-                for(int i = 0; i < this.alpha.length; i++)
-                    this.alpha[i] *= C_mul;
+                for(int i = 0; i < this.alpha.length; i++) {
+                  this.alpha[i] *= C_mul;
+                }
             }
-            else 
-                throw new FailedToFitException("Warm solution can not be used for warm start");
+            else {
+              throw new FailedToFitException("Warm solution can not be used for warm start");
+            }
         }
         
         /*
@@ -613,42 +638,48 @@ public class DCDs implements BinaryScoreClassifier, Regressor, Parameterized, Si
                 //6.2.3 shrinking work
                 //eq (26) beta_i = 0 and g'n(βi) < −M < 0 <M < g'p(βi)
                 boolean shrink = false;
-                if(alpha[i] == 0 && gN < -M && -M < 0 && M < gP)
-                    shrink = true;
-                if( (alpha[i] == U[i] &&  gP < -M) || (alpha[i] == -U[i] && gN > M))
-                    shrink = true;
+                if(alpha[i] == 0 && gN < -M && -M < 0 && M < gP) {
+                  shrink = true;
+                }
+                if( (alpha[i] == U[i] &&  gP < -M) || (alpha[i] == -U[i] && gN > M)) {
+                  shrink = true;
+                }
                 
-                if(shrink)
-                    iter.remove();
+                if(shrink) {
+                  iter.remove();
+                }
                 
                 //eq (22)
                 final double Q_ii = Qhs[i];
                 final double d;
-                if (gP < Q_ii * alpha[i])
-                    d = -gP / Q_ii;
-                else if (gN > Q_ii * alpha[i])
-                    d = -gN / Q_ii;
-                else
-                    d = -alpha[i];
+                if (gP < Q_ii * alpha[i]) {
+                  d = -gP / Q_ii;
+                } else if (gN > Q_ii * alpha[i]) {
+                  d = -gN / Q_ii;
+                } else {
+                  d = -alpha[i];
+                }
 
-                if (Math.abs(d) < 1e-14)
-                    continue;
+                if (Math.abs(d) < 1e-14) {
+                  continue;
+                }
                 
                 //s = max(−U, min(U,beta_i +d))     eq (21) 
                 final double s = Math.max(-U[i], Math.min(U[i], alpha[i]+d));
                 
                 w.mutableAdd(s-alpha[i], x_i);
-                if(useBias)
-                    bias += (s-alpha[i]);
+                if(useBias) {
+                  bias += (s-alpha[i]);
+                }
                 alpha[i] = s;
             }
             
             //convergence check
             if(vKSum/v_0 < tolerance)//converged
             {
-                if(activeSet.size() == vecs.length)//we converged on all the data
-                    break;
-                else//reset to do a pass through the whole data set
+                if(activeSet.size() == vecs.length) {//we converged on all the data
+                  break;
+                } else//reset to do a pass through the whole data set
                 {
                     activeSet.clear();
                     ListUtils.addRange(activeSet, 0, vecs.length, 1);
@@ -668,18 +699,20 @@ public class DCDs implements BinaryScoreClassifier, Regressor, Parameterized, Si
     
     private double getU(double w)
     {
-        if(useL1)
-            return C*w;
-        else
-            return Double.POSITIVE_INFINITY;
+        if(useL1) {
+          return C*w;
+        } else {
+          return Double.POSITIVE_INFINITY;
+        }
     }
     
     private double getD(double w)
     {
-        if(useL1)
-            return 0;
-        else
-            return 1/(2*C*w);
+        if(useL1) {
+          return 0;
+        } else {
+          return 1/(2*C*w);
+        }
     }
 
     /**
@@ -698,10 +731,11 @@ public class DCDs implements BinaryScoreClassifier, Regressor, Parameterized, Si
         if(beta_i == 0)//if beta_i = 0 ...
         {
             //if beta_i = 0 and g'n(beta_i) >= 0
-            if(gN >= 0)
-                vi = gN;
-            else if(gP <= 0) //if beta_i = 0 and g'p(beta_i) <= 0
-                vi = -gP;
+            if(gN >= 0) {
+              vi = gN;
+            } else if(gP <= 0) { //if beta_i = 0 and g'p(beta_i) <= 0
+              vi = -gP;
+            }
         }
         else//beta_i is non zero
         {
@@ -716,13 +750,15 @@ public class DCDs implements BinaryScoreClassifier, Regressor, Parameterized, Si
             
             if(beta_i < 0)//first set of cases
             {
-                if(beta_i > -U || (beta_i == -U && gN <= 0))
-                    vi = Math.abs(gN);
+                if(beta_i > -U || (beta_i == -U && gN <= 0)) {
+                  vi = Math.abs(gN);
+                }
             }
             else//second case
             {
-                if(beta_i < U || (beta_i == U && gP >= 0))
-                    vi = Math.abs(gP);
+                if(beta_i < U || (beta_i == U && gP >= 0)) {
+                  vi = Math.abs(gP);
+                }
             }
         }
         

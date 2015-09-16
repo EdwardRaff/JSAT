@@ -16,8 +16,9 @@ public class RowColumnOps
      */
     public static void addDiag(Matrix A, int start, int to, double c)
     {
-        for(int i = start; i < to; i++)
-            A.increment(i, i, c);
+        for(int i = start; i < to; i++) {
+          A.increment(i, i, c);
+        }
     }
     
     /**
@@ -31,8 +32,9 @@ public class RowColumnOps
      */
     public static void addRow(Matrix A, int i, int start, int to, double c)
     {
-        for(int j = start; j < to; j++)
-            A.increment(i, j, c);
+        for(int j = start; j < to; j++) {
+          A.increment(i, j, c);
+        }
     }
     
     /**
@@ -58,8 +60,9 @@ public class RowColumnOps
      */
     public static void multRow(Matrix A, int i, int start, int to, double c)
     {
-        for(int j = start; j < to; j++)
-            A.set(i, j, A.get(i, j)*c);
+        for(int j = start; j < to; j++) {
+          A.set(i, j, A.get(i, j)*c);
+        }
     }
     
     /**
@@ -87,8 +90,9 @@ public class RowColumnOps
      */
     public static void multRow(Matrix A, int i, int start, int to, Vec c)
     {
-        for(int j = start; j < to; j++)
-            A.set(i, j, A.get(i, j)*c.get(j));
+        for(int j = start; j < to; j++) {
+          A.set(i, j, A.get(i, j)*c.get(j));
+        }
     }
     
     /**
@@ -102,8 +106,9 @@ public class RowColumnOps
      */
     public static void multRow(Matrix A, int i, Vec c)
     {
-        if(A.cols() != c.length())
-            throw new ArithmeticException("Can not perform row update, length miss match " + A.cols() + " and " + c.length());
+        if(A.cols() != c.length()) {
+          throw new ArithmeticException("Can not perform row update, length miss match " + A.cols() + " and " + c.length());
+        }
         multRow(A, i, 0, c.length(), c);
     }
     
@@ -120,8 +125,9 @@ public class RowColumnOps
      */
     public static void multRow(Matrix A, int i, int start, int to, double[] c)
     {
-        for(int j = start; j < to; j++)
-            A.set(i, j, A.get(i, j)*c[j]);
+        for(int j = start; j < to; j++) {
+          A.set(i, j, A.get(i, j)*c[j]);
+        }
     }
     
     /**
@@ -133,8 +139,9 @@ public class RowColumnOps
      */
     public static void multRow(Matrix A, int i, double[] c)
     {
-        if(A.cols() != c.length)
-            throw new ArithmeticException("Can not perform row update, length miss match " + A.cols() + " and " + c.length);
+        if(A.cols() != c.length) {
+          throw new ArithmeticException("Can not perform row update, length miss match " + A.cols() + " and " + c.length);
+        }
         multRow(A, i, 0, c.length, c);
     }
     
@@ -149,8 +156,9 @@ public class RowColumnOps
      */
     public static void divRow(Matrix A, int i, int start, int to, double c)
     {
-        for(int j = start; j < to; j++)
-            A.set(i, j, A.get(i, j)/c);
+        for(int j = start; j < to; j++) {
+          A.set(i, j, A.get(i, j)/c);
+        }
     }
     
     /**
@@ -176,8 +184,9 @@ public class RowColumnOps
      */
     public static void addCol(Matrix A, int j, int start, int to, double c)
     {
-        for(int i = start; i < to; i++)
-            A.increment(i, j, c);
+        for(int i = start; i < to; i++) {
+          A.increment(i, j, c);
+        }
     }
     
     /**
@@ -203,8 +212,9 @@ public class RowColumnOps
      */
     public static void multCol(Matrix A, int j, int start, int to, double c)
     {
-        for(int i = start; i < to; i++)
-            A.set(i, j, A.get(i, j)*c);
+        for(int i = start; i < to; i++) {
+          A.set(i, j, A.get(i, j)*c);
+        }
     }
     
     /**
@@ -230,8 +240,9 @@ public class RowColumnOps
      */
     public static void divCol(Matrix A, int j, int start, int to, double c)
     {
-        for(int i = start; i < to; i++)
-            A.set(i, j, A.get(i, j)/c);
+        for(int i = start; i < to; i++) {
+          A.set(i, j, A.get(i, j)/c);
+        }
     }
     
     /**
@@ -259,8 +270,9 @@ public class RowColumnOps
      */
     public static void divCol(Matrix A, int j, int start, int to, Vec c)
     {
-        for(int i = start; i < to; i++)
-            A.set(i, j, A.get(i, j)/c.get(i));
+        for(int i = start; i < to; i++) {
+          A.set(i, j, A.get(i, j)/c.get(i));
+        }
     }
     
     /**
@@ -275,8 +287,9 @@ public class RowColumnOps
      */
     public static void divCol(Matrix A, int j, int start, int to, double[] c)
     {
-        for(int i = start; i < to; i++)
-            A.set(i, j, A.get(i, j)/c[i]);
+        for(int i = start; i < to; i++) {
+          A.set(i, j, A.get(i, j)/c[i]);
+        }
     }
 
     /**
@@ -292,8 +305,9 @@ public class RowColumnOps
      */
     public static void addMultRow(Matrix A, int i, int start, int to, double t, double[] c)
     {
-        for(int j = start; j < to; j++)
-            A.increment(i, j, c[j]*t);
+        for(int j = start; j < to; j++) {
+          A.increment(i, j, c[j]*t);
+        }
     }
     
     /**
@@ -309,8 +323,9 @@ public class RowColumnOps
      */
     public static void addMultRow(Matrix A, int i, int start, int to, double t, Vec c)
     {
-        for(int j = start; j < to; j++)
-            A.increment(i, j, c.get(j)*t);
+        for(int j = start; j < to; j++) {
+          A.increment(i, j, c.get(j)*t);
+        }
     }
     
     /**
@@ -326,8 +341,9 @@ public class RowColumnOps
      */
     public static void addMultCol(Matrix A, int j, int start, int to, double t, double[] c)
     {
-        for(int i = start; i < to; i++)
-            A.increment(i, j, c[i]*t);
+        for(int i = start; i < to; i++) {
+          A.increment(i, j, c[i]*t);
+        }
     }
     
     /**
@@ -343,8 +359,9 @@ public class RowColumnOps
      */
     public static void addMultCol(Matrix A, int j, int start, int to, double t, Vec c)
     {
-        for(int i = start; i < to; i++)
-            A.increment(i, j, c.get(i)*t);
+        for(int i = start; i < to; i++) {
+          A.increment(i, j, c.get(i)*t);
+        }
     }
     
     /**
@@ -417,8 +434,9 @@ public class RowColumnOps
      */
     public static void fillRow(Matrix A, int i, int from, int to, double val)
     {
-        for(int j = from; j < to; j++)
-            A.set(i, j, val);
+        for(int j = from; j < to; j++) {
+          A.set(i, j, val);
+        }
     }
     
     /**
@@ -431,7 +449,8 @@ public class RowColumnOps
      */
     public static void fillCol(Matrix A, int j, int from, int to, double val)
     {
-        for(int i = from; i < to; i++)
-            A.set(i, j, val);
+        for(int i = from; i < to; i++) {
+          A.set(i, j, val);
+        }
     }
 }

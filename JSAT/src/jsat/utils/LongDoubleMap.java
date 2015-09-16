@@ -37,10 +37,12 @@ public final class LongDoubleMap extends AbstractMap<Long, Double>
     
     public LongDoubleMap(int capacity, float loadFactor)
     {
-        if(capacity < 1)
-            throw new IllegalArgumentException("Capacity must be a positive value, not " + capacity);
-        if(loadFactor <= 0 || loadFactor >= 1 || Float.isNaN(loadFactor))
-            throw new IllegalArgumentException("loadFactor must be in (0, 1), not " + loadFactor);
+        if(capacity < 1) {
+          throw new IllegalArgumentException("Capacity must be a positive value, not " + capacity);
+        }
+        if(loadFactor <= 0 || loadFactor >= 1 || Float.isNaN(loadFactor)) {
+          throw new IllegalArgumentException("loadFactor must be in (0, 1), not " + loadFactor);
+        }
         this.loadFactor = loadFactor;
         
         int size = getNextPow2TwinPrime(Math.max(capacity, 3));
@@ -60,16 +62,18 @@ public final class LongDoubleMap extends AbstractMap<Long, Double>
     public Double put(Long key, Double value)
     {
         double prev = put(key.longValue(), value.doubleValue());
-        if(Double.isNaN(prev))
-            return null;
-        else
-            return prev;
+        if(Double.isNaN(prev)) {
+          return null;
+        } else {
+          return prev;
+        }
     }
     
     public double put(long key, double value)
     {
-        if(Double.isNaN(value))
-            throw new IllegalArgumentException("NaN is not an allowable value");
+        if(Double.isNaN(value)) {
+          throw new IllegalArgumentException("NaN is not an allowable value");
+        }
         long pair_index = getIndex(key);
         int deletedIndex = (int) (pair_index >>> 32);
         int valOrFreeIndex = (int) (pair_index & INT_MASK);
@@ -84,8 +88,9 @@ public final class LongDoubleMap extends AbstractMap<Long, Double>
         //else, not present
         prev = Double.NaN;
         int i = valOrFreeIndex;
-        if(deletedIndex >= 0)//use occupied spot instead
-            i = deletedIndex;
+        if(deletedIndex >= 0) {//use occupied spot instead
+          i = deletedIndex;
+        }
         
         status[i] = OCCUPIED;
         keys[i] = key;
@@ -105,20 +110,23 @@ public final class LongDoubleMap extends AbstractMap<Long, Double>
      */
     public double increment(long key, double delta)
     {
-        if(Double.isNaN(delta))
-            throw new IllegalArgumentException("NaN is not an allowable value");
+        if(Double.isNaN(delta)) {
+          throw new IllegalArgumentException("NaN is not an allowable value");
+        }
         
         long pair_index = getIndex(key);
         int deletedIndex = (int) (pair_index >>> 32);
         int valOrFreeIndex = (int) (pair_index & INT_MASK);
         
-        if(status[valOrFreeIndex] == OCCUPIED)//easy case
-            return (table[valOrFreeIndex] += delta);
+        if(status[valOrFreeIndex] == OCCUPIED) {//easy case
+          return (table[valOrFreeIndex] += delta);
+        }
         //else, not present
         double toReturn;
         int i = valOrFreeIndex;
-        if(deletedIndex >= 0)//use occupied spot instead
-            i = deletedIndex;
+        if(deletedIndex >= 0) {//use occupied spot instead
+          i = deletedIndex;
+        }
         
         status[i] = OCCUPIED;
         keys[i] = key;
@@ -136,10 +144,11 @@ public final class LongDoubleMap extends AbstractMap<Long, Double>
         if(key instanceof Long)
         {
             double oldValue = remove(((Long)key).longValue());
-            if(Double.isNaN(oldValue))
-                return null;
-            else
-                return oldValue;
+            if(Double.isNaN(oldValue)) {
+              return null;
+            } else {
+              return oldValue;
+            }
         }
         
         return null;
@@ -155,8 +164,9 @@ public final class LongDoubleMap extends AbstractMap<Long, Double>
     {
         long pair_index = getIndex(key);
         int valOrFreeIndex = (int) (pair_index & INT_MASK);
-        if(status[valOrFreeIndex] == EMPTY)//ret index is always EMPTY or OCCUPIED
-            return Double.NaN;
+        if(status[valOrFreeIndex] == EMPTY) {//ret index is always EMPTY or OCCUPIED
+          return Double.NaN;
+        }
         //else
         double toRet = table[valOrFreeIndex];
         status[valOrFreeIndex] = DELETED;
@@ -173,8 +183,9 @@ public final class LongDoubleMap extends AbstractMap<Long, Double>
     
     private void enlargeIfNeeded()
     {
-        if(used < keys.length*loadFactor)
-            return;
+        if(used < keys.length*loadFactor) {
+          return;
+        }
         //enlarge
         final byte[] oldSatus = status;
         final long[] oldKeys = keys;
@@ -186,20 +197,23 @@ public final class LongDoubleMap extends AbstractMap<Long, Double>
         table = new double[newSize];
         
         used = 0;
-        for(int oldIndex = 0; oldIndex < oldSatus.length; oldIndex++)
-            if(oldSatus[oldIndex] == OCCUPIED)
-                put(oldKeys[oldIndex], oldTable[oldIndex]);
+        for(int oldIndex = 0; oldIndex < oldSatus.length; oldIndex++) {
+          if (oldSatus[oldIndex] == OCCUPIED) {
+            put(oldKeys[oldIndex], oldTable[oldIndex]);
+          }
+        }
     }
     
     @Override
     public boolean containsKey(Object key)
     {
-        if(key instanceof Integer)
-            return containsKey( ((Integer)key).longValue());
-        else if(key instanceof Long)
-            return containsKey(((Long)key).longValue());
-        else
-            return false;
+        if(key instanceof Integer) {
+          return containsKey( ((Integer)key).longValue());
+        } else if(key instanceof Long) {
+          return containsKey(((Long)key).longValue());
+        } else {
+          return false;
+        }
     }
     
     public boolean containsKey(long key)
@@ -234,10 +248,12 @@ public final class LongDoubleMap extends AbstractMap<Long, Double>
         
         //D2
         int satus_i = status[i];
-        if((keys[i] == key && satus_i != DELETED) || satus_i == EMPTY)
-            return extraInfo | i;
-        if(extraInfo == EXTRA_INDEX_INFO && satus_i == DELETED)
-            extraInfo = ((long)i) << 32;
+        if((keys[i] == key && satus_i != DELETED) || satus_i == EMPTY) {
+          return extraInfo | i;
+        }
+        if(extraInfo == EXTRA_INDEX_INFO && satus_i == DELETED) {
+          extraInfo = ((long)i) << 32;
+        }
         
         //D3
         final int c = 1 + (hash % (keys.length -2));
@@ -246,14 +262,17 @@ public final class LongDoubleMap extends AbstractMap<Long, Double>
         {
             //D4
             i -= c;
-            if(i < 0)
-                i += keys.length;
+            if(i < 0) {
+              i += keys.length;
+            }
             //D5
             satus_i = status[i];
-            if( (keys[i] == key && satus_i != DELETED) || satus_i == EMPTY)
-                return extraInfo | i;
-            if(extraInfo == EXTRA_INDEX_INFO && satus_i == DELETED)
-                extraInfo = ((long)i) << 32;
+            if( (keys[i] == key && satus_i != DELETED) || satus_i == EMPTY) {
+              return extraInfo | i;
+            }
+            if(extraInfo == EXTRA_INDEX_INFO && satus_i == DELETED) {
+              extraInfo = ((long)i) << 32;
+            }
         }
     }
     
@@ -291,10 +310,12 @@ public final class LongDoubleMap extends AbstractMap<Long, Double>
         {
             //find the first starting inded
             int START = 0;
-            while(START < status.length && status[START] != OCCUPIED)
-                START++;
-            if(START == status.length)
-                return Collections.emptyIterator();
+            while(START < status.length && status[START] != OCCUPIED) {
+              START++;
+            }
+            if(START == status.length) {
+              return Collections.emptyIterator();
+            }
             final int startPos = START;
             
             return new Iterator<Entry<Long, Double>>()
@@ -314,8 +335,9 @@ public final class LongDoubleMap extends AbstractMap<Long, Double>
                     //final int make so that object remains good after we call next again
                     final int oldPos = prevPos = pos++;
                     //find next
-                    while (pos < status.length && status[pos] != OCCUPIED)
-                        pos++;
+                    while (pos < status.length && status[pos] != OCCUPIED) {
+                      pos++;
+                    }
                     //and return new object
                     return new Entry<Long, Double>()
                     {

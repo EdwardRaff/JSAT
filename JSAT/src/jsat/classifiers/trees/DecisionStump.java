@@ -165,8 +165,9 @@ public class DecisionStump implements Classifier, Regressor, Parameterized
      */
     public void setMinResultSplitSize(int minResultSplitSize)
     {
-        if(minResultSplitSize <= 1)
-            throw new ArithmeticException("Min split size must be a positive value ");
+        if(minResultSplitSize <= 1) {
+          throw new ArithmeticException("Min split size must be a positive value ");
+        }
         this.minResultSplitSize = minResultSplitSize;
     }
 
@@ -206,8 +207,9 @@ public class DecisionStump implements Classifier, Regressor, Parameterized
     @Override
     public double regress(DataPoint data)
     {
-        if(regressionResults == null)
-            throw new RuntimeException("Decusion stump has not been trained for regression");
+        if(regressionResults == null) {
+          throw new RuntimeException("Decusion stump has not been trained for regression");
+        }
         return regressionResults[whichPath(data)];
     }
 
@@ -221,8 +223,9 @@ public class DecisionStump implements Classifier, Regressor, Parameterized
     public void train(RegressionDataSet dataSet)
     {
         Set<Integer> options = new IntSet(dataSet.getNumFeatures());
-        for(int i = 0; i < dataSet.getNumFeatures(); i++)
-            options.add(i);
+        for(int i = 0; i < dataSet.getNumFeatures(); i++) {
+          options.add(i);
+        }
         trainR(dataSet.getDPPList(), options);
     }
 
@@ -237,8 +240,9 @@ public class DecisionStump implements Classifier, Regressor, Parameterized
     {
         
         ImpurityScore[] scores = new ImpurityScore[aSplit.size()];
-        for(int i = 0; i < aSplit.size(); i++)
-            scores[i] = getClassGainScore(aSplit.get(i));
+        for(int i = 0; i < aSplit.size(); i++) {
+          scores[i] = getClassGainScore(aSplit.get(i));
+        }
        
         return ImpurityScore.gain(origScore, scores);
     }
@@ -272,19 +276,21 @@ public class DecisionStump implements Classifier, Regressor, Parameterized
      */
     public static PairedReturn<Integer, Double> threshholdSplit(final ContinuousDistribution dist1, final ContinuousDistribution dist2)
     {
-        if(dist1 == null && dist2 == null)
-            throw new ArithmeticException("No Distributions given");
-        else if(dist1 == null)
-            return new PairedReturn<Integer, Double>(1, Double.POSITIVE_INFINITY);
-        else if(dist2 == null)
-            return new PairedReturn<Integer, Double>(0, Double.POSITIVE_INFINITY);
+        if(dist1 == null && dist2 == null) {
+          throw new ArithmeticException("No Distributions given");
+        } else if(dist1 == null) {
+          return new PairedReturn<Integer, Double>(1, Double.POSITIVE_INFINITY);
+        } else if(dist2 == null) {
+          return new PairedReturn<Integer, Double>(0, Double.POSITIVE_INFINITY);
+        }
         
         double tmp1, tmp2;
         //Special case: no overlap if there is no overlap between the two distributions,we can easily return a seperating value 
-        if( (tmp1 = dist1.invCdf(almost0)) >  (tmp2 = dist2.invCdf(almost1) ) )//If dist1 is completly to the right of dist2
-            return new PairedReturn<Integer, Double>(1, (tmp1+tmp2)*0.5);
-        else if( (tmp1 = dist1.invCdf(almost1)) <  (tmp2 = dist2.invCdf(almost0) ) )//If dist2 is completly to the right of dist1
-            return new PairedReturn<Integer, Double>(0, (tmp1+tmp2)*0.5);
+        if( (tmp1 = dist1.invCdf(almost0)) >  (tmp2 = dist2.invCdf(almost1) ) ) {//If dist1 is completly to the right of dist2
+          return new PairedReturn<Integer, Double>(1, (tmp1+tmp2)*0.5);
+        } else if( (tmp1 = dist1.invCdf(almost1)) <  (tmp2 = dist2.invCdf(almost0) ) ) {//If dist2 is completly to the right of dist1
+          return new PairedReturn<Integer, Double>(0, (tmp1+tmp2)*0.5);
+        }
         
         //Define a function we would like to find the root of. There may be multiple roots, but we will only use one. 
         Function f = new Function() {
@@ -327,8 +333,9 @@ public class DecisionStump implements Classifier, Regressor, Parameterized
         double minStnd = Math.min(dist1.standardDeviation(), dist2.standardDeviation());
         
         int left = 0;
-        if(dist2.pdf(split-minStnd/2) > dist1.pdf(split-minStnd/2))
-            left = 1;
+        if(dist2.pdf(split-minStnd/2) > dist1.pdf(split-minStnd/2)) {
+          left = 1;
+        }
         return new PairedReturn<Integer, Double>(left, split);
     }
     
@@ -355,21 +362,24 @@ public class DecisionStump implements Classifier, Regressor, Parameterized
         
         for(ContinuousDistribution cd : dists)
         {
-            if(cd == null)
-                continue;
+            if(cd == null) {
+              continue;
+            }
             minRange = min(minRange, cd.invCdf(almost0));
             maxRange = max(maxRange, cd.invCdf(almost1));
             double stndDev = cd.standardDeviation();
-            if(stndDev > 0 )//zero is a valid standard deviation, we dont want to deal with that! 
-                stepSize = min(stepSize, stndDev);
+            if(stndDev > 0 ) {//zero is a valid standard deviation, we dont want to deal with that!
+              stepSize = min(stepSize, stndDev);
+            }
         }
         stepSize/=4;
         //TODO is there a better way to avoid small step sizes? 
-        if((maxRange-minRange)/stepSize > 50*dists.size())//Limi to 50*|Dists| iterations 
-            stepSize = (maxRange-minRange)/(50*dists.size());
-        //XXX Double equal comparison
-        else if( (maxRange - minRange) == 0.0 || minRange+stepSize == minRange)//Range is too small to search!
-            return null;
+        if((maxRange-minRange)/stepSize > 50*dists.size()) {//Limi to 50*|Dists| iterations
+          stepSize = (maxRange-minRange)/(50*dists.size());
+          //XXX Double equal comparison
+        } else if( (maxRange - minRange) == 0.0 || minRange+stepSize == minRange) {//Range is too small to search!
+          return null;
+        }
         
         //First value
         belongsTo.add(maxPDF(dists, minRange));
@@ -432,8 +442,9 @@ public class DecisionStump implements Classifier, Regressor, Parameterized
         int best = -1;
         for(int i = 0; i < dits.size(); i++)
         {
-            if(dits.get(i) == null)
-                continue;
+            if(dits.get(i) == null) {
+              continue;
+            }
             double tmp = dits.get(i).pdf(x);
             if(tmp > maxVal)
             {
@@ -455,12 +466,13 @@ public class DecisionStump implements Classifier, Regressor, Parameterized
     public int whichPath(DataPoint data)
     {
         int paths = getNumberOfPaths();
-        if(paths < 0)
-            return paths;//Not trained
-        else if(paths == 1)//ONLY one option, entropy was zero
-            return 0;
-        else if(splittingAttribute < catAttributes.length)//Same for classification and regression
-            return data.getCategoricalValue(splittingAttribute);
+        if(paths < 0) {
+          return paths;//Not trained
+        } else if(paths == 1) {//ONLY one option, entropy was zero
+          return 0;
+        } else if(splittingAttribute < catAttributes.length) {//Same for classification and regression
+          return data.getCategoricalValue(splittingAttribute);
+        }
         //else, is Numerical attribute - but regression or classification?
         int numerAttribute = splittingAttribute - catAttributes.length;
         if(results != null)//Categorical!
@@ -471,12 +483,13 @@ public class DecisionStump implements Classifier, Regressor, Parameterized
         }
         else//Regression! It is trained, it would have been grabed at the top if not
         {
-            if(regressionResults.length == 1)
-                return 0;
-            else if(data.getNumericalValues().get(numerAttribute) <= regressionResults[2])
-                return 0;
-            else
-                return 1;
+            if(regressionResults.length == 1) {
+              return 0;
+            } else if(data.getNumericalValues().get(numerAttribute) <= regressionResults[2]) {
+              return 0;
+            } else {
+              return 1;
+            }
         }
     }
     
@@ -491,23 +504,27 @@ public class DecisionStump implements Classifier, Regressor, Parameterized
      */
     public int getNumberOfPaths()
     {
-        if(results != null)//Categorical!
-            return results.length;
-        else if(catAttributes != null)//Regression!
-            if(regressionResults.length == 1)
-                return 1;
-            else if(splittingAttribute < catAttributes.length)//Categorical
-                return catAttributes[splittingAttribute].getNumOfCategories();
-            else//Numerical is always binary
-                return 2;
+        if(results != null) {//Categorical!
+          return results.length;
+        } else if(catAttributes != null) {//Regression!
+          if (regressionResults.length == 1) {
+            return 1;
+          } else if (splittingAttribute < catAttributes.length) {
+            return catAttributes[splittingAttribute].getNumOfCategories();
+          } else {
+            //Numerical is always binary
+            return 2;
+          }
+        }
         return -1;//Not trained!
     }
     
     @Override
     public CategoricalResults classify(DataPoint data)
     {
-        if(results == null)
-            throw new RuntimeException("DecisionStump has not been trained for classification");
+        if(results == null) {
+          throw new RuntimeException("DecisionStump has not been trained for classification");
+        }
         return results[whichPath(data)];
     }
     
@@ -520,8 +537,9 @@ public class DecisionStump implements Classifier, Regressor, Parameterized
      */
     public CategoricalResults result(int i)
     {
-        if(i < 0 || i >= getNumberOfPaths())
-            throw new IndexOutOfBoundsException("Invalid path, can to return a result for path " + i);
+        if(i < 0 || i >= getNumberOfPaths()) {
+          throw new IndexOutOfBoundsException("Invalid path, can to return a result for path " + i);
+        }
         return results[i];
     }
 
@@ -535,8 +553,9 @@ public class DecisionStump implements Classifier, Regressor, Parameterized
     public void trainC(ClassificationDataSet dataSet)
     {
         Set<Integer> splitOptions = new IntSet(dataSet.getNumFeatures());
-        for(int i = 0; i < dataSet.getNumFeatures(); i++)
-            splitOptions.add(i);
+        for(int i = 0; i < dataSet.getNumFeatures(); i++) {
+          splitOptions.add(i);
+        }
         
         this.predicting = dataSet.getPredicting();
         
@@ -555,8 +574,9 @@ public class DecisionStump implements Classifier, Regressor, Parameterized
     public List<List<DataPointPair<Integer>>> trainC(List<DataPointPair<Integer>> dataPoints, Set<Integer> options)
     {
         //TODO remove paths that have zero probability of occuring, so that stumps do not have an inflated branch value 
-        if(predicting == null)
-            throw new RuntimeException("Predicting value has not been set");
+        if(predicting == null) {
+          throw new RuntimeException("Predicting value has not been set");
+        }
         catAttributes = dataPoints.get(0).getDataPoint().getCategoricalData();
         ImpurityScore origScoreObj = getClassGainScore(dataPoints);
         double origScore =  origScoreObj.getScore();
@@ -596,8 +616,9 @@ public class DecisionStump implements Classifier, Regressor, Parameterized
                 aSplit = listOfLists(catAttributes[attribute].getNumOfCategories());
                 
                 //Now seperate the values in our current list into their proper split bins 
-                for(DataPointPair<Integer> dpp :  dataPoints)
-                    aSplit.get(dpp.getDataPoint().getCategoricalValue(attribute)).add(dpp);
+                for(DataPointPair<Integer> dpp :  dataPoints) {
+                  aSplit.get(dpp.getDataPoint().getCategoricalValue(attribute)).add(dpp);
+                }
             }
             else//Spliting on a numerical value
             {
@@ -609,8 +630,9 @@ public class DecisionStump implements Classifier, Regressor, Parameterized
                 
                 tmp = createNumericCSplit(dataPoints, N, attribute, aSplit, 
                         origScoreObj, gainRet);
-                if(tmp == null)
-                    continue;
+                if(tmp == null) {
+                  continue;
+                }
                 
                 //Fix it back so it can be used below
                 attribute+= catAttributes.length;
@@ -637,20 +659,23 @@ public class DecisionStump implements Classifier, Regressor, Parameterized
             bestSplit = new ArrayList<List<DataPointPair<Integer>>>(1);
             bestSplit.add(dataPoints);
             CategoricalResults badResult = new CategoricalResults(predicting.getNumOfCategories());
-            for(DataPointPair<Integer> dpp : dataPoints)
-                badResult.incProb(dpp.getPair(), 1.0);
+            for(DataPointPair<Integer> dpp : dataPoints) {
+              badResult.incProb(dpp.getPair(), 1.0);
+            }
             badResult.normalize();
             results = new CategoricalResults[] {badResult};
             return bestSplit;
         }
-        if(splittingAttribute < catAttributes.length || removeContinuousAttributes)
-            options.remove(splittingAttribute);
+        if(splittingAttribute < catAttributes.length || removeContinuousAttributes) {
+          options.remove(splittingAttribute);
+        }
         results = new CategoricalResults[bestSplit.size()];
         for(int i = 0; i < bestSplit.size(); i++)
         {
             results[i] = new CategoricalResults(predicting.getNumOfCategories());
-            for(DataPointPair<Integer> dpp : bestSplit.get(i))
-                results[i].incProb(dpp.getPair(), dpp.getDataPoint().getWeight());
+            for(DataPointPair<Integer> dpp : bestSplit.get(i)) {
+              results[i].incProb(dpp.getPair(), dpp.getDataPoint().getWeight());
+            }
             results[i].normalize();
         }
         
@@ -678,8 +703,9 @@ public class DecisionStump implements Classifier, Regressor, Parameterized
     {
         if (numericHandlingC == NumericHandlingC.PDF_INTERSECTIONS)
         {
-            while(aSplit.size() < N)
-                aSplit.add(new ArrayList<DataPointPair<Integer>>());
+            while(aSplit.size() < N) {
+              aSplit.add(new ArrayList<DataPointPair<Integer>>());
+            }
             //This requires more set up and work then just spliting on categories 
             //First we need to seperate class values on the attribute to create distributions to compare
             List<List<Double>> weights = new ArrayList<List<Double>>(N);
@@ -718,8 +744,9 @@ public class DecisionStump implements Classifier, Regressor, Parameterized
 
             //Now compute the speration boundrys 
             PairedReturn<List<Double>, List<Integer>> tmp = intersections(Arrays.asList(dist));
-            if (tmp == null)
-                return null;
+            if (tmp == null) {
+              return null;
+            }
             List<Double> tmpBoundries = tmp.getFirstItem();
             List<Integer> tmpOwners = tmp.getSecondItem();
 
@@ -769,8 +796,9 @@ public class DecisionStump implements Classifier, Regressor, Parameterized
                 leftSide.addPoint(dpp.getDataPoint(), dpp.getPair());
                 double leftVal = vals[i];
                 double rightVal = vals[i+1];
-                if( (rightVal-leftVal) < 1e-14 )//Values are too close!
-                    continue;
+                if( (rightVal-leftVal) < 1e-14 ) {//Values are too close!
+                  continue;
+                }
                 
                 double curGain = ImpurityScore.gain(origScore, leftSide, rightSide);
                 
@@ -782,11 +810,13 @@ public class DecisionStump implements Classifier, Regressor, Parameterized
                     splitIndex = i+1;
                 }
             }
-            if(splitIndex == -1)
-                return null;
+            if(splitIndex == -1) {
+              return null;
+            }
             
-            if(finalGain != null)
-                finalGain[0] = bestGain;
+            if(finalGain != null) {
+              finalGain[0] = bestGain;
+            }
             aSplit.set(0, new ArrayList<DataPointPair<Integer>>(dataPoints.subList(0, splitIndex)));
             aSplit.set(1, new ArrayList<DataPointPair<Integer>>(dataPoints.subList(splitIndex, dataPoints.size())));
             PairedReturn<List<Double>, List<Integer>> tmp = 
@@ -796,8 +826,10 @@ public class DecisionStump implements Classifier, Regressor, Parameterized
             
             return tmp;
         }
-        else //What? 
-            return null;
+        else {
+          //What?
+          return null;
+        }
     }
     
     public List<List<DataPointPair<Double>>> trainR(List<DataPointPair<Double>> dataPoints, Set<Integer> options)
@@ -839,8 +871,9 @@ public class DecisionStump implements Classifier, Regressor, Parameterized
             {
                 thisSplit = listOfListsD(catAttributes[attribute].getNumOfCategories());
                 OnLineStatistics[] stats = new OnLineStatistics[thisSplit.size()];
-                for(int i = 0; i < thisSplit.size(); i++)
-                    stats[i] = new OnLineStatistics();
+                for(int i = 0; i < thisSplit.size(); i++) {
+                  stats[i] = new OnLineStatistics();
+                }
                 //Now seperate the values in our current list into their proper split bins 
                 for(DataPointPair<Double> dpp : dataPoints)
                 {
@@ -874,8 +907,9 @@ public class DecisionStump implements Classifier, Regressor, Parameterized
                 OnLineStatistics rightSide = new OnLineStatistics();
                 OnLineStatistics leftSide = new OnLineStatistics();
                 
-                for(DataPointPair<Double> dpp : dataPoints)
-                    rightSide.add(dpp.getPair(), dpp.getDataPoint().getWeight());
+                for(DataPointPair<Double> dpp : dataPoints) {
+                  rightSide.add(dpp.getPair(), dpp.getDataPoint().getWeight());
+                }
                 int bestS = 0;
                 thisSplitSqrdErr = Double.POSITIVE_INFINITY;
                 
@@ -890,10 +924,11 @@ public class DecisionStump implements Classifier, Regressor, Parameterized
                     leftSide.add(val, weight);
                     
                     
-                    if(i < minResultSplitSize)
-                        continue;
-                    else if(i > dataPoints.size()-minResultSplitSize)
-                        break;
+                    if(i < minResultSplitSize) {
+                      continue;
+                    } else if(i > dataPoints.size()-minResultSplitSize) {
+                      break;
+                    }
                     
                     double tmpSVariance = rightSide.getVarance()*rightSide.getSumOfWeights() 
                             + leftSide.getVarance()*leftSide.getSumOfWeights();
@@ -924,8 +959,9 @@ public class DecisionStump implements Classifier, Regressor, Parameterized
         }
         
         //Removal of attribute from list if needed
-        if(splittingAttribute < catAttributes.length || removeContinuousAttributes)
-            options.remove(splittingAttribute);
+        if(splittingAttribute < catAttributes.length || removeContinuousAttributes) {
+          options.remove(splittingAttribute);
+        }
         
         
         return bestSplit;
@@ -935,8 +971,9 @@ public class DecisionStump implements Classifier, Regressor, Parameterized
     {
         List<List<DataPointPair<Integer>>> aSplit =
                 new ArrayList<List<DataPointPair<Integer>>>(n);
-        for (int i = 0; i < n; i++)
-            aSplit.add(new ArrayList<DataPointPair<Integer>>());
+        for (int i = 0; i < n; i++) {
+          aSplit.add(new ArrayList<DataPointPair<Integer>>());
+        }
         return aSplit;
     }
     
@@ -944,8 +981,9 @@ public class DecisionStump implements Classifier, Regressor, Parameterized
     {
         List<List<DataPointPair<Double>>> aSplit =
                 new ArrayList<List<DataPointPair<Double>>>(n);
-        for (int i = 0; i < n; i++)
-            aSplit.add(new ArrayList<DataPointPair<Double>>());
+        for (int i = 0; i < n; i++) {
+          aSplit.add(new ArrayList<DataPointPair<Double>>());
+        }
         return aSplit;
     }
 
@@ -959,8 +997,9 @@ public class DecisionStump implements Classifier, Regressor, Parameterized
     {
         ImpurityScore cgs = new ImpurityScore(predicting.getNumOfCategories(), gainMethod);
         
-        for(DataPointPair<Integer> dpp : dataPoints)
-            cgs.addPoint(dpp.getDataPoint(), dpp.getPair());
+        for(DataPointPair<Integer> dpp : dataPoints) {
+          cgs.addPoint(dpp.getDataPoint(), dpp.getPair());
+        }
         
         return cgs;
     }
@@ -969,24 +1008,30 @@ public class DecisionStump implements Classifier, Regressor, Parameterized
     public DecisionStump clone()
     {
         DecisionStump copy = new DecisionStump();
-        if(this.catAttributes != null)
-            copy.catAttributes = CategoricalData.copyOf(catAttributes);
+        if(this.catAttributes != null) {
+          copy.catAttributes = CategoricalData.copyOf(catAttributes);
+        }
         if(this.results != null)
         {
             copy.results = new CategoricalResults[this.results.length];
-            for(int i = 0; i < this.results.length; i++ )
-                copy.results[i] = this.results[i].clone();
+            for(int i = 0; i < this.results.length; i++ ) {
+              copy.results[i] = this.results[i].clone();
+            }
         }
         copy.removeContinuousAttributes = this.removeContinuousAttributes;
         copy.splittingAttribute = this.splittingAttribute;
-        if(this.boundries != null)
-            copy.boundries = new DoubleList(this.boundries);
-        if(this.owners != null)
-            copy.owners = new IntList(this.owners);
-        if(this.predicting != null)
-            copy.predicting = this.predicting.clone();
-        if(regressionResults != null)
-            copy.regressionResults = Arrays.copyOf(this.regressionResults, this.regressionResults.length);
+        if(this.boundries != null) {
+          copy.boundries = new DoubleList(this.boundries);
+        }
+        if(this.owners != null) {
+          copy.owners = new IntList(this.owners);
+        }
+        if(this.predicting != null) {
+          copy.predicting = this.predicting.clone();
+        }
+        if(regressionResults != null) {
+          copy.regressionResults = Arrays.copyOf(this.regressionResults, this.regressionResults.length);
+        }
         copy.minResultSplitSize = this.minResultSplitSize;
         copy.numericHandlingC = this.numericHandlingC;
         copy.gainMethod = this.gainMethod;

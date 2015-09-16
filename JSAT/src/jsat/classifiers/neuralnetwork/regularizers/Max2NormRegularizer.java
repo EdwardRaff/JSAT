@@ -33,8 +33,9 @@ public class Max2NormRegularizer implements WeightRegularizer
      */
     public void setMaxNorm(double maxNorm)
     {
-        if(Double.isNaN(maxNorm) || Double.isInfinite(maxNorm) || maxNorm <= 0)
-            throw new IllegalArgumentException("The maximum norm must be a positive constant, not " + maxNorm);
+        if(Double.isNaN(maxNorm) || Double.isInfinite(maxNorm) || maxNorm <= 0) {
+          throw new IllegalArgumentException("The maximum norm must be a positive constant, not " + maxNorm);
+        }
         this.maxNorm = maxNorm;
     }
 
@@ -91,8 +92,9 @@ public class Max2NormRegularizer implements WeightRegularizer
         
         try
         {
-            for (Future<?> future : futures)
-                future.get();
+            for (Future<?> future : futures) {
+              future.get();
+            }
         }
         catch (InterruptedException ex1)
         {

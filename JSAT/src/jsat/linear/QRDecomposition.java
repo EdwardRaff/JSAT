@@ -17,10 +17,11 @@ public class QRDecomposition implements Serializable
 
     public QRDecomposition(Matrix Q, Matrix R)
     {
-        if(!Q.isSquare())
-            throw new ArithmeticException("Q is always square, rectangular Q is invalid");
-        else if(Q.rows() != R.rows())
-            throw new ArithmeticException("Q and R do not agree");
+        if(!Q.isSquare()) {
+          throw new ArithmeticException("Q is always square, rectangular Q is invalid");
+        } else if(Q.rows() != R.rows()) {
+          throw new ArithmeticException("Q and R do not agree");
+        }
         
         this.Q_T = Q;
         this.Q_T.mutableTranspose();
@@ -49,23 +50,26 @@ public class QRDecomposition implements Serializable
      */
     public double absDet()
     {
-        if(!R.isSquare())
-            throw new ArithmeticException("Can only compute the determinant of a square matrix");
+        if(!R.isSquare()) {
+          throw new ArithmeticException("Can only compute the determinant of a square matrix");
+        }
             
         double absD = 1;
-        for(int i = 0; i < min(R.rows(), R.cols()); i++)
-            absD *= R.get(i, i);
+        for(int i = 0; i < min(R.rows(), R.cols()); i++) {
+          absD *= R.get(i, i);
+        }
         
         return abs(absD);
     }
     
     public Vec solve(Vec b)
     {
-        if(b.length() != R.rows())
-            throw new ArithmeticException("Matrix vector dimensions do not agree");
-        //A * x = b, we want x
-        //QR x = b
-        //R * x = Q' * b
+        if(b.length() != R.rows()) {
+          throw new ArithmeticException("Matrix vector dimensions do not agree");
+          //A * x = b, we want x
+          //QR x = b
+          //R * x = Q' * b
+        }
         
         Vec y = Q_T.multiply(b);
         

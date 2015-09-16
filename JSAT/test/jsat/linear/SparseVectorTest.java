@@ -730,8 +730,9 @@ public class SparseVectorTest
         
         double[] xArray = x.arrayCopy();
         
-        for(int i = 0; i < x.length(); i++)
-            assertEquals(x.get(i), xArray[i], 0.0);
+        for(int i = 0; i < x.length(); i++) {
+          assertEquals(x.get(i), xArray[i], 0.0);
+        }
     }
 
     /**
@@ -800,8 +801,9 @@ public class SparseVectorTest
 			@Override
             public double indexFunc(double value, int index)
             {
-                if(index < 0)
-                    return 0;
+                if(index < 0) {
+                  return 0;
+                }
                 return value*index;
             }
         };
@@ -844,8 +846,9 @@ public class SparseVectorTest
         
         x.zeroOut();
         
-        for(int i = 0; i < x.length(); i++)
-            assertEquals(0.0, x.get(i), 0.0);
+        for(int i = 0; i < x.length(); i++) {
+          assertEquals(0.0, x.get(i), 0.0);
+        }
     }
 
     /**

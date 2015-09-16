@@ -27,8 +27,9 @@ public class NormalizedMutualInformation implements ClusterEvaluation
     @Override
     public double evaluate(int[] designations, DataSet dataSet)
     {
-        if( !(dataSet instanceof ClassificationDataSet))
-            throw new RuntimeException("NMI can only be calcuate for classification data sets");
+        if( !(dataSet instanceof ClassificationDataSet)) {
+          throw new RuntimeException("NMI can only be calcuate for classification data sets");
+        }
         ClassificationDataSet cds = (ClassificationDataSet)dataSet;
         double nmiNumer = 0.0;
         double nmiC = 0.0;
@@ -39,22 +40,26 @@ public class NormalizedMutualInformation implements ClusterEvaluation
         for(int i= 0; i < cds.getSampleSize(); i++)
         {
             int ki = designations[i];
-            if(ki < 0)//outlier, not clustered
-                continue;
-            while(kPriors.size() <= ki)
-                kPriors.add(0.0);
+            if(ki < 0) {//outlier, not clustered
+              continue;
+            }
+            while(kPriors.size() <= ki) {
+              kPriors.add(0.0);
+            }
             kPriors.set(ki, kPriors.get(ki)+cds.getDataPoint(i).getWeight());
         }
         
         double N = 0.0;
-        for(int i = 0; i < kPriors.size(); i++)
-            N += kPriors.get(i);
+        for(int i = 0; i < kPriors.size(); i++) {
+          N += kPriors.get(i);
+        }
         for(int i = 0; i < kPriors.size(); i++)
         {
             kPriors.set(i, kPriors.get(i)/N);
             double pKi = kPriors.get(i);
-            if(pKi > 0)
-                nmiK += - pKi*Math.log(pKi);
+            if(pKi > 0) {
+              nmiK += - pKi*Math.log(pKi);
+            }
         }
             
         
@@ -66,8 +71,9 @@ public class NormalizedMutualInformation implements ClusterEvaluation
         {
             int ci = cds.getDataPointCategory(i);
             int kj = designations[i];
-            if(kj < 0)//outlier, ignore
-                continue;
+            if(kj < 0) {//outlier, ignore
+              continue;
+            }
             
             ck[ci][kj] += cds.getDataPoint(i).getWeight();
         }
@@ -75,17 +81,20 @@ public class NormalizedMutualInformation implements ClusterEvaluation
         for(int i = 0; i < cPriors.length; i++)
         {
             double pCi = cPriors[i];
-            if(pCi <= 0.0)
-                continue;
+            if(pCi <= 0.0) {
+              continue;
+            }
             double logPCi = Math.log(pCi);
             for(int j = 0; j < kPriors.size(); j++)
             {
                 double pKj = kPriors.get(j);
-                if(pKj <= 0.0)
-                    continue;
+                if(pKj <= 0.0) {
+                  continue;
+                }
                 double pCiKj = ck[i][j]/N;
-                if(pCiKj <= 0.0)
-                    continue;
+                if(pCiKj <= 0.0) {
+                  continue;
+                }
                 nmiNumer += pCiKj* (Math.log(pCiKj) - Math.log(pKj) - logPCi);
             }
             nmiC += -pCi*logPCi;

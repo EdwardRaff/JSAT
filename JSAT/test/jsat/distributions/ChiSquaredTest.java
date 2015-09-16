@@ -58,14 +58,17 @@ public class ChiSquaredTest
         double[] df12 = new double[]{0,1.1221528404039961e-7,3.1689484988257036e-6,0.00002123658431322813,0.00007897534631674914,0.0002126937820589504,0.0004670616549319115,0.0008908843949301007,0.0015328310048810098,0.002437642866140136,0.0036430968839033773,0.005177824623610207,0.007059977723446413,0.00929666221893194,0.011884027781460088,0.014807882683800707,0.018044704431548358,0.021562924197423262,0.025324376672987984,0.029285823023482597,0.03340047144527132,0.03761943615510857,0.041893090719406986,0.04617228502682505,0.05040940672246224};
         
         instance = new ChiSquared(0.5);
-        for(int i = 0; i < range.length; i++)
-            assertEquals(df0p5[i], instance.pdf(range[i]+3), 1e-10);
+        for(int i = 0; i < range.length; i++) {
+          assertEquals(df0p5[i], instance.pdf(range[i]+3), 1e-10);
+        }
         instance = new ChiSquared(2);
-        for(int i = 0; i < range.length; i++)
-            assertEquals(df2[i], instance.pdf(range[i]+3), 1e-10);
+        for(int i = 0; i < range.length; i++) {
+          assertEquals(df2[i], instance.pdf(range[i]+3), 1e-10);
+        }
         instance = new ChiSquared(12);
-        for(int i = 0; i < range.length; i++)
-            assertEquals(df12[i], instance.pdf(range[i]+3), 1e-10);
+        for(int i = 0; i < range.length; i++) {
+          assertEquals(df12[i], instance.pdf(range[i]+3), 1e-10);
+        }
     }
 
     /**
@@ -82,14 +85,17 @@ public class ChiSquaredTest
         double[] df12 = new double[]{0,4.7604532844419965e-9,2.7381356338284025e-7,2.803736903342154e-6,0.00001416493732234249,0.00004859953912795168,0.00013055446292196965,0.0002962521561470425,0.0005941848175816929,0.0010845927305314122,0.0018380854505885185,0.0029336100162652462,0.0044559807752478486,0.006493173769154503,0.009133564163468133,0.01246325444683668,0.016563608480614434,0.021509074844324818,0.02736535406330157,0.03418793918529287,0.04202103819530612,0.05089686994361906,0.06083531238569402,0.0718438726220419,0.08391794203130346};
         
         instance = new ChiSquared(0.5);
-        for(int i = 0; i < range.length; i++)
-            assertEquals(df0p5[i], instance.cdf(range[i]+3), 1e-10);
+        for(int i = 0; i < range.length; i++) {
+          assertEquals(df0p5[i], instance.cdf(range[i]+3), 1e-10);
+        }
         instance = new ChiSquared(2);
-        for(int i = 0; i < range.length; i++)
-            assertEquals(df2[i], instance.cdf(range[i]+3), 1e-10);
+        for(int i = 0; i < range.length; i++) {
+          assertEquals(df2[i], instance.cdf(range[i]+3), 1e-10);
+        }
         instance = new ChiSquared(12);
-        for(int i = 0; i < range.length; i++)
-            assertEquals(df12[i], instance.cdf(range[i]+3), 1e-10);
+        for(int i = 0; i < range.length; i++) {
+          assertEquals(df12[i], instance.cdf(range[i]+3), 1e-10);
+        }
     }
         
 
@@ -128,14 +134,18 @@ public class ChiSquaredTest
         };
 
         instance = new ChiSquared(0.5);
-        for(int i = 0; i < range.length-2; i++)//-2 b/c it enters a numerically unstable range that isnt fair
-            assertEquals(df0p5[i], instance.invCdf(range[i]/6.1+0.5), 1e-10);
+        for(int i = 0; i < range.length-2; i++) {
+          //-2 b/c it enters a numerically unstable range that isnt fair
+          assertEquals(df0p5[i], instance.invCdf(range[i]/6.1+0.5), 1e-10);
+        }
         instance = new ChiSquared(2);
-        for(int i = 0; i < range.length; i++)
-            assertEquals(df2[i], instance.invCdf(range[i]/6.1+0.5), 1e-10);
+        for(int i = 0; i < range.length; i++) {
+          assertEquals(df2[i], instance.invCdf(range[i]/6.1+0.5), 1e-10);
+        }
         instance = new ChiSquared(12);
-        for(int i = 0; i < range.length; i++)
-            assertEquals(df12[i], instance.invCdf(range[i]/6.1+0.5), 1e-10);
+        for(int i = 0; i < range.length; i++) {
+          assertEquals(df12[i], instance.invCdf(range[i]/6.1+0.5), 1e-10);
+        }
     }
 
     /**

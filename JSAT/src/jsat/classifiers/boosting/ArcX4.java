@@ -55,8 +55,9 @@ public class ArcX4 implements Classifier, Parameterized
      */
     public void setWeakLearner(Classifier weakLearner)
     {
-        if(!weakLearner.supportsWeightedData())
-            throw new RuntimeException("Weak learners must support weighted data samples");
+        if(!weakLearner.supportsWeightedData()) {
+          throw new RuntimeException("Weak learners must support weighted data samples");
+        }
         this.weakLearner = weakLearner;
     }
 
@@ -95,8 +96,9 @@ public class ArcX4 implements Classifier, Parameterized
      */
     public void setCoefficient(double coef)
     {
-        if(coef <= 0 || Double.isInfinite(coef) || Double.isNaN(coef))
-            throw new ArithmeticException("The coefficient must be a positive constant");
+        if(coef <= 0 || Double.isInfinite(coef) || Double.isNaN(coef)) {
+          throw new ArithmeticException("The coefficient must be a positive constant");
+        }
         this.coef = coef;
     }
 
@@ -116,8 +118,9 @@ public class ArcX4 implements Classifier, Parameterized
      */
     public void setExponent(double expo)
     {
-        if(expo <= 0 || Double.isInfinite(expo) || Double.isNaN(expo))
-            throw new ArithmeticException("The exponent must be a positive constant");
+        if(expo <= 0 || Double.isInfinite(expo) || Double.isNaN(expo)) {
+          throw new ArithmeticException("The exponent must be a positive constant");
+        }
         this.expo = expo;
     }
 
@@ -135,8 +138,9 @@ public class ArcX4 implements Classifier, Parameterized
     {
         CategoricalResults cr = new CategoricalResults(predicing.getNumOfCategories());
         
-        for(Classifier hypoth : hypoths)
-            cr.incProb(hypoth.classify(data).mostLikely(), 1.0);
+        for(Classifier hypoth : hypoths) {
+          cr.incProb(hypoth.classify(data).mostLikely(), 1.0);
+        }
         
         cr.normalize();
         
@@ -166,9 +170,11 @@ public class ArcX4 implements Classifier, Parameterized
         @Override
         public void run()
         {
-            for(int i = start; i < end; i++)
-                if(hypoth.classify(cds.getDataPoint(i)).mostLikely() != cds.getDataPointCategory(i))
-                    errors[i]++;
+            for(int i = start; i < end; i++) {
+              if (hypoth.classify(cds.getDataPoint(i)).mostLikely() != cds.getDataPointCategory(i)) {
+                errors[i]++;
+              }
+            }
             latch.countDown();
         }
     }
@@ -192,15 +198,17 @@ public class ArcX4 implements Classifier, Parameterized
         hypoths = new Classifier[iterations];
         for(int t = 0; t < hypoths.length; t++)
         {
-            for(int i = 0; i < cds.getSampleSize(); i++)
-                cds.getDataPoint(i).setWeight(1+coef*Math.pow(errors[i], expo));
+            for(int i = 0; i < cds.getSampleSize(); i++) {
+              cds.getDataPoint(i).setWeight(1+coef*Math.pow(errors[i], expo));
+            }
             
             Classifier hypoth = weakLearner.clone();
             
-            if(threadPool == null || threadPool instanceof FakeExecutor)
-                hypoth.trainC(cds);
-            else
-                hypoth.trainC(cds, threadPool);
+            if(threadPool == null || threadPool instanceof FakeExecutor) {
+              hypoth.trainC(cds);
+            } else {
+              hypoth.trainC(cds, threadPool);
+            }
             
             hypoths[t] = hypoth;
             if(blockSize > 0)
@@ -211,8 +219,9 @@ public class ArcX4 implements Classifier, Parameterized
                 while(start < errors.length)
                 {
                     int end = start + blockSize;
-                    if(extra-- > 0)
-                        end++;
+                    if(extra-- > 0) {
+                      end++;
+                    }
                     threadPool.submit(new Tester(cds, errors, start, end, hypoth, latch));
                     start = end;
                 }
@@ -255,13 +264,15 @@ public class ArcX4 implements Classifier, Parameterized
         clone.coef = this.coef;
         clone.expo = this.expo;
         
-        if(this.predicing != null)
-            clone.predicing = this.predicing.clone();
+        if(this.predicing != null) {
+          clone.predicing = this.predicing.clone();
+        }
         if(this.hypoths != null)
         {
             clone.hypoths = new Classifier[this.hypoths.length];
-            for(int i = 0; i < clone.hypoths.length; i++)
-                clone.hypoths[i] = this.hypoths[i].clone();
+            for(int i = 0; i < clone.hypoths.length; i++) {
+              clone.hypoths[i] = this.hypoths[i].clone();
+            }
         }
         
         return clone;

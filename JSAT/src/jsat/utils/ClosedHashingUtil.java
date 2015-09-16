@@ -55,10 +55,11 @@ public class ClosedHashingUtil
     public static int getNextPow2TwinPrime(int m)
     {
         int pos = Arrays.binarySearch(twinPrimesP2, m+1);
-        if(pos > 0)
-            return twinPrimesP2[pos];
-        else
-            return twinPrimesP2[-pos - 1];
+        if(pos > 0) {
+          return twinPrimesP2[pos];
+        } else {
+          return twinPrimesP2[-pos - 1];
+        }
     }
     
     /**

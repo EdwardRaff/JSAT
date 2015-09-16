@@ -63,18 +63,22 @@ public class LWL implements Classifier, Regressor, Parameterized
      */
     private LWL(LWL toCopy)
     {
-        if(toCopy.predicting != null)
-            this.predicting = toCopy.predicting.clone();
-        if(toCopy.classifier != null)
-            setClassifier(toCopy.classifier);
-        if(toCopy.regressor != null)
-            setRegressor(toCopy.regressor);
+        if(toCopy.predicting != null) {
+          this.predicting = toCopy.predicting.clone();
+        }
+        if(toCopy.classifier != null) {
+          setClassifier(toCopy.classifier);
+        }
+        if(toCopy.regressor != null) {
+          setRegressor(toCopy.regressor);
+        }
         setNeighbors(toCopy.k);
         setDistanceMetric(toCopy.dm.clone());
         setKernelFunction(toCopy.kf);
         this.vcf = toCopy.vcf;
-        if(toCopy.vc != null)
-            this.vc = toCopy.vc.clone();
+        if(toCopy.vc != null) {
+          this.vc = toCopy.vc.clone();
+        }
     }
 
     /**
@@ -161,8 +165,9 @@ public class LWL implements Classifier, Regressor, Parameterized
     @Override
     public CategoricalResults classify(DataPoint data)
     {
-        if(classifier == null || vc == null)
-            throw new UntrainedModelException("Model has not been trained");
+        if(classifier == null || vc == null) {
+          throw new UntrainedModelException("Model has not been trained");
+        }
         
         List<? extends VecPaired<VecPaired<Vec, Double>, Double>> knn = 
                 vc.search(data.getNumericalValues(), k);
@@ -216,8 +221,9 @@ public class LWL implements Classifier, Regressor, Parameterized
     @Override
     public double regress(DataPoint data)
     {
-        if(regressor == null || vc == null)
-            throw new UntrainedModelException("Model has not been trained");
+        if(regressor == null || vc == null) {
+          throw new UntrainedModelException("Model has not been trained");
+        }
         
         List<? extends VecPaired<VecPaired<Vec, Double>, Double>> knn = 
                 vc.search(data.getNumericalValues(), k);
@@ -268,10 +274,11 @@ public class LWL implements Classifier, Regressor, Parameterized
     {
         List<VecPaired<Vec, Double>> trainList = 
                 new ArrayList<VecPaired<Vec, Double>>(dataSet.getSampleSize());
-        for(int i = 0; i < dataSet.getSampleSize(); i++)
-            trainList.add(new VecPaired<Vec, Double>(
-                    dataSet.getDataPoint(i).getNumericalValues(), 
-                    new Double(dataSet.getDataPointCategory(i))));
+        for(int i = 0; i < dataSet.getSampleSize(); i++) {
+          trainList.add(new VecPaired<Vec, Double>(
+                  dataSet.getDataPoint(i).getNumericalValues(),
+                  new Double(dataSet.getDataPointCategory(i))));
+        }
         return trainList;
     }
     
@@ -279,25 +286,28 @@ public class LWL implements Classifier, Regressor, Parameterized
     {
         List<VecPaired<Vec, Double>> trainList = 
                 new ArrayList<VecPaired<Vec, Double>>(dataSet.getSampleSize());
-        for(int i = 0; i < dataSet.getSampleSize(); i++)
-            trainList.add(new VecPaired<Vec, Double>(
-                    dataSet.getDataPoint(i).getNumericalValues(), 
-                    dataSet.getTargetValue(i)));
+        for(int i = 0; i < dataSet.getSampleSize(); i++) {
+          trainList.add(new VecPaired<Vec, Double>(
+                  dataSet.getDataPoint(i).getNumericalValues(),
+                  dataSet.getTargetValue(i)));
+        }
         return trainList;
     }
 
     private void setClassifier(Classifier classifier)
     {
         this.classifier = classifier;
-        if(classifier instanceof Regressor)
-            this.regressor = (Regressor) classifier;
+        if(classifier instanceof Regressor) {
+          this.regressor = (Regressor) classifier;
+        }
     }
 
     private void setRegressor(Regressor regressor)
     {
         this.regressor = regressor;
-        if(regressor instanceof Classifier)
-            this.classifier = (Classifier)regressor;
+        if(regressor instanceof Classifier) {
+          this.classifier = (Classifier)regressor;
+        }
     }
 
     /**
@@ -306,8 +316,9 @@ public class LWL implements Classifier, Regressor, Parameterized
      */
     public void setNeighbors(int k)
     {
-        if(k <= 1)
-            throw new RuntimeException("An average requires at least 2 neighbors to be taken into account");
+        if(k <= 1) {
+          throw new RuntimeException("An average requires at least 2 neighbors to be taken into account");
+        }
         this.k = k;
     }
 

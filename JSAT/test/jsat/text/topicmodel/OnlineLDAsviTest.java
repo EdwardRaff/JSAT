@@ -72,12 +72,14 @@ public class OnlineLDAsviTest
             for(int i = 0; i < rows; i++)
             {
                 Vec b0 = new SparseVector(rows*rows);
-                for(int a = 0; a < rows; a++)
-                    b0.set(i*5+a, 1.0);
+                for(int a = 0; a < rows; a++) {
+                  b0.set(i*5+a, 1.0);
+                }
 
                 Vec b1 = new SparseVector(rows*rows);
-                for(int a = 0; a < rows; a++)
-                    b1.set(a*rows+i, 1.0);
+                for(int a = 0; a < rows; a++) {
+                  b1.set(a*rows+i, 1.0);
+                }
 
                 b0.mutableDivide(b0.sum());
                 b1.mutableDivide(b1.sum());
@@ -134,10 +136,11 @@ public class OnlineLDAsviTest
             lda.setEpochs(1);
 
             
-            if(iters == 0)
-                lda.model(new SimpleDataSet(docs), basis.size());
-            else
-                lda.model(new SimpleDataSet(docs), basis.size(), ex);
+            if(iters == 0) {
+              lda.model(new SimpleDataSet(docs), basis.size());
+            } else {
+              lda.model(new SimpleDataSet(docs), basis.size(), ex);
+            }
 
             //map from the LDA topics to the basis topics
             Map<Integer, Integer> ldaTopicToBasis = new HashMap<Integer, Integer>();

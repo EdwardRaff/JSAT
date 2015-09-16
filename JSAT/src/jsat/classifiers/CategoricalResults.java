@@ -54,10 +54,11 @@ public class CategoricalResults implements Cloneable
      */
     public void setProb(int cat, double prob)
     {
-        if(cat > probabilities.length)
-            throw new IndexOutOfBoundsException("There are only " + probabilities.length + " posibilties, " + cat + " is invalid");
-        else if(prob < 0 || Double.isInfinite(prob) || Double.isNaN(prob))
-            throw new ArithmeticException("Only zero and positive values are valid, not " + prob);
+        if(cat > probabilities.length) {
+          throw new IndexOutOfBoundsException("There are only " + probabilities.length + " posibilties, " + cat + " is invalid");
+        } else if(prob < 0 || Double.isInfinite(prob) || Double.isNaN(prob)) {
+          throw new ArithmeticException("Only zero and positive values are valid, not " + prob);
+        }
         probabilities[cat] = prob;
     }
     
@@ -70,10 +71,11 @@ public class CategoricalResults implements Cloneable
      */
     public void incProb(int cat, double prob)
     {
-        if(cat > probabilities.length)
-            throw new IndexOutOfBoundsException("There are only " + probabilities.length + " posibilties, " + cat + " is invalid");
-        else if(prob < 0 || Double.isInfinite(prob) || Double.isNaN(prob))
-            throw new ArithmeticException("Only zero and positive values are valid, not " + prob);
+        if(cat > probabilities.length) {
+          throw new IndexOutOfBoundsException("There are only " + probabilities.length + " posibilties, " + cat + " is invalid");
+        } else if(prob < 0 || Double.isInfinite(prob) || Double.isNaN(prob)) {
+          throw new ArithmeticException("Only zero and positive values are valid, not " + prob);
+        }
         probabilities[cat] += prob;
     }
     
@@ -86,8 +88,9 @@ public class CategoricalResults implements Cloneable
         int top = 0;
         for(int i = 1; i < probabilities.length; i++)
         {
-            if(probabilities[i] > probabilities[top])
-                top = i;
+            if(probabilities[i] > probabilities[top]) {
+              top = i;
+            }
         }
         
         return top;
@@ -99,8 +102,9 @@ public class CategoricalResults implements Cloneable
      */
     public void divideConst(double c)
     {
-        for(int i = 0; i < probabilities.length; i++)
-            probabilities[i]/=c;
+        for(int i = 0; i < probabilities.length; i++) {
+          probabilities[i]/=c;
+        }
     }
     
     /**
@@ -110,10 +114,12 @@ public class CategoricalResults implements Cloneable
     public void normalize()
     {
         double sum = 0;
-        for(double d : probabilities)
-            sum += d;
-        if(sum != 0)
-            divideConst(sum);
+        for(double d : probabilities) {
+          sum += d;
+        }
+        if(sum != 0) {
+          divideConst(sum);
+        }
     }
     
     public Vec getVecView()

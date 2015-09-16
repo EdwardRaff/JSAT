@@ -58,8 +58,9 @@ public class SGDMomentum implements GradientUpdater
     public SGDMomentum(SGDMomentum toCopy)
     {
         this.momentum = toCopy.momentum;
-        if(toCopy.velocity != null)
-            this.velocity = toCopy.velocity.clone();
+        if(toCopy.velocity != null) {
+          this.velocity = toCopy.velocity.clone();
+        }
         this.biasVelocity = toCopy.biasVelocity;
     }
 
@@ -69,8 +70,9 @@ public class SGDMomentum implements GradientUpdater
      */
     public void setMomentum(double momentum)
     {
-        if(momentum <= 0 || momentum >= 1 || Double.isNaN(momentum))
-            throw new IllegalArgumentException("Momentum must be in (0,1) not " + momentum);
+        if(momentum <= 0 || momentum >= 1 || Double.isNaN(momentum)) {
+          throw new IllegalArgumentException("Momentum must be in (0,1) not " + momentum);
+        }
         this.momentum = momentum;
     }
 

@@ -51,8 +51,9 @@ public class LogisticRegression implements Classifier, Regressor, SingleWeightVe
     private double logitReg(Vec input)
     {
         double z = coefficents.get(0);
-        for(int i = 1; i < coefficents.length(); i++)
-            z += input.get(i-1)*coefficents.get(i);
+        for(int i = 1; i < coefficents.length(); i++) {
+          z += input.get(i-1)*coefficents.get(i);
+        }
         return logit(z);
     }
     
@@ -104,16 +105,18 @@ public class LogisticRegression implements Classifier, Regressor, SingleWeightVe
 
     public double regress(DataPoint data)
     {
-        if(coefficents == null)
-            throw new UntrainedModelException("Model has not been trained");
+        if(coefficents == null) {
+          throw new UntrainedModelException("Model has not been trained");
+        }
         return logitReg(data.getNumericalValues())*scale+shift;
     }
 
     public void train(RegressionDataSet dataSet, ExecutorService threadPool)
     {
         List<Vec> inputs = new ArrayList<Vec>(dataSet.getSampleSize());
-        for(int i = 0; i < dataSet.getSampleSize(); i++)
-            inputs.add(dataSet.getDataPoint(i).getNumericalValues());
+        for(int i = 0; i < dataSet.getSampleSize(); i++) {
+          inputs.add(dataSet.getDataPoint(i).getNumericalValues());
+        }
         
         coefficents = new DenseVector(dataSet.getNumNumericalVars()+1);
         Vec targetValues = dataSet.getTargetValues();
@@ -156,19 +159,21 @@ public class LogisticRegression implements Classifier, Regressor, SingleWeightVe
     @Override
     public Vec getRawWeight(int index)
     {
-        if(index < 1)
-            return getRawWeight();
-        else
-            throw new IndexOutOfBoundsException("Model has only 1 weight vector");
+        if(index < 1) {
+          return getRawWeight();
+        } else {
+          throw new IndexOutOfBoundsException("Model has only 1 weight vector");
+        }
     }
 
     @Override
     public double getBias(int index)
     {
-        if (index < 1)
-            return getBias();
-        else
-            throw new IndexOutOfBoundsException("Model has only 1 weight vector");
+        if (index < 1) {
+          return getBias();
+        } else {
+          throw new IndexOutOfBoundsException("Model has only 1 weight vector");
+        }
     }
     
     @Override
@@ -181,8 +186,9 @@ public class LogisticRegression implements Classifier, Regressor, SingleWeightVe
     public LogisticRegression clone()
     {
         LogisticRegression clone = new LogisticRegression();
-        if(this.coefficents != null)
-            clone.coefficents = this.coefficents.clone();
+        if(this.coefficents != null) {
+          clone.coefficents = this.coefficents.clone();
+        }
         clone.scale = this.scale;
         clone.shift = this.shift;
         return clone;
@@ -190,10 +196,11 @@ public class LogisticRegression implements Classifier, Regressor, SingleWeightVe
 
     public CategoricalResults classify(DataPoint data)
     {
-        if(coefficents == null)
-            throw new UntrainedModelException("Model has not yet been trained");
-        else if(shift != 0 || scale != 1)
-            throw new UntrainedModelException("Model was trained for regression, not classifiaction");
+        if(coefficents == null) {
+          throw new UntrainedModelException("Model has not yet been trained");
+        } else if(shift != 0 || scale != 1) {
+          throw new UntrainedModelException("Model was trained for regression, not classifiaction");
+        }
         CategoricalResults results = new CategoricalResults(2);
         
         //It looks a little backwards. But if the true class is 0, and we are accurate, then we expect regress to return a value near zero. 
@@ -204,9 +211,10 @@ public class LogisticRegression implements Classifier, Regressor, SingleWeightVe
 
     public void trainC(ClassificationDataSet dataSet, ExecutorService threadPool)
     {
-        if(dataSet.getClassSize() != 2)
-            throw new FailedToFitException("Logistic Regression works only in the case of two classes, and can not handle " +
-                                           dataSet.getClassSize() + " classes");
+        if(dataSet.getClassSize() != 2) {
+          throw new FailedToFitException("Logistic Regression works only in the case of two classes, and can not handle " +
+                  dataSet.getClassSize() + " classes");
+        }
         RegressionDataSet rds = new RegressionDataSet(dataSet.getNumNumericalVars(), dataSet.getCategories());
         for(int i = 0; i < dataSet.getSampleSize(); i++)
         {

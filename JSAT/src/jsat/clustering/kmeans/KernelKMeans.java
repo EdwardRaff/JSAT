@@ -95,26 +95,33 @@ public abstract class KernelKMeans extends KClustererBase implements Parameteriz
         if(toCopy.X != null)
         {
             this.X = new ArrayList<Vec>(toCopy.X.size());
-            for( Vec v : toCopy.X)
-                this.X.add(v.clone());
+            for( Vec v : toCopy.X) {
+              this.X.add(v.clone());
+            }
             
         }
-        if(toCopy.accel != null)
-            this.accel = new DoubleList(toCopy.accel);
-        if(toCopy.selfK != null)
-            this.selfK = Arrays.copyOf(toCopy.selfK, toCopy.selfK.length);
+        if(toCopy.accel != null) {
+          this.accel = new DoubleList(toCopy.accel);
+        }
+        if(toCopy.selfK != null) {
+          this.selfK = Arrays.copyOf(toCopy.selfK, toCopy.selfK.length);
+        }
         
-        if(toCopy.meanSqrdNorms != null)
-            this.meanSqrdNorms = Arrays.copyOf(toCopy.meanSqrdNorms, toCopy.meanSqrdNorms.length);
+        if(toCopy.meanSqrdNorms != null) {
+          this.meanSqrdNorms = Arrays.copyOf(toCopy.meanSqrdNorms, toCopy.meanSqrdNorms.length);
+        }
         
-        if(toCopy.normConsts != null)
-            this.normConsts = Arrays.copyOf(toCopy.normConsts, toCopy.normConsts.length);
+        if(toCopy.normConsts != null) {
+          this.normConsts = Arrays.copyOf(toCopy.normConsts, toCopy.normConsts.length);
+        }
         
-        if(toCopy.ownes != null)
-            this.ownes = Arrays.copyOf(toCopy.ownes, toCopy.ownes.length);
+        if(toCopy.ownes != null) {
+          this.ownes = Arrays.copyOf(toCopy.ownes, toCopy.ownes.length);
+        }
         
-        if(toCopy.newDesignations != null)
-            this.newDesignations = Arrays.copyOf(toCopy.newDesignations, toCopy.newDesignations.length);
+        if(toCopy.newDesignations != null) {
+          this.newDesignations = Arrays.copyOf(toCopy.newDesignations, toCopy.newDesignations.length);
+        }
     }
     
     
@@ -125,8 +132,9 @@ public abstract class KernelKMeans extends KClustererBase implements Parameteriz
      */
     public void setMaximumIterations(int iterLimit)
     {
-        if(iterLimit <= 0)
-            throw new IllegalArgumentException("iterations must be a positive value, not " + iterLimit);
+        if(iterLimit <= 0) {
+          throw new IllegalArgumentException("iterations must be a positive value, not " + iterLimit);
+        }
         this.maximumIterations = iterLimit;
     }
 
@@ -174,9 +182,11 @@ public abstract class KernelKMeans extends KClustererBase implements Parameteriz
     protected double evalSumK(int i, int clusterID, int[] d)
     {
         double sum = 0;
-        for(int j = 0; j < X.size(); j++)
-            if(d[j] == clusterID)
-                sum += kernel.eval(i, j, X, accel);
+        for(int j = 0; j < X.size(); j++) {
+          if (d[j] == clusterID) {
+            sum += kernel.eval(i, j, X, accel);
+          }
+        }
         return sum;
     }
     
@@ -192,9 +202,11 @@ public abstract class KernelKMeans extends KClustererBase implements Parameteriz
     protected double evalSumK(Vec x, List<Double> qi, int clusterID, int[] d)
     {
         double sum = 0;
-        for(int j = 0; j < X.size(); j++)
-            if(d[j] == clusterID)
-                sum += kernel.eval(j, x, qi, X, accel);
+        for(int j = 0; j < X.size(); j++) {
+          if (d[j] == clusterID) {
+            sum += kernel.eval(j, x, qi, X, accel);
+          }
+        }
         return sum;
     }
     
@@ -209,8 +221,9 @@ public abstract class KernelKMeans extends KClustererBase implements Parameteriz
         
         final int N = X.size();
         selfK = new double[N];
-        for(int i = 0; i < selfK.length; i++)
-            selfK[i] = kernel.eval(i, i, X, accel);
+        for(int i = 0; i < selfK.length; i++) {
+          selfK[i] = kernel.eval(i, i, X, accel);
+        }
         ownes = new int[K];
         meanSqrdNorms = new double[K];
         newDesignations = new int[N];
@@ -231,9 +244,11 @@ public abstract class KernelKMeans extends KClustererBase implements Parameteriz
         {
             int i_k = designations[i];
             meanSqrdNorms[i_k] += selfK[i];
-            for (int j = i + 1; j < N; j++)
-                if (i_k == designations[j])
-                    meanSqrdNorms[i_k] += 2 * kernel.eval(i, j, X, accel);
+            for (int j = i + 1; j < N; j++) {
+              if (i_k == designations[j]) {
+                meanSqrdNorms[i_k] += 2 * kernel.eval(i, j, X, accel);
+              }
+            }
         }
     }
 
@@ -243,8 +258,9 @@ public abstract class KernelKMeans extends KClustererBase implements Parameteriz
      */
     protected void updateNormConsts()
     {
-        for(int i = 0; i < normConsts.length; i++)
-            normConsts[i] = 1.0/(ownes[i]*(long)ownes[i]);
+        for(int i = 0; i < normConsts.length; i++) {
+          normConsts[i] = 1.0/(ownes[i]*(long)ownes[i]);
+        }
     }
     
     /**
@@ -279,8 +295,9 @@ public abstract class KernelKMeans extends KClustererBase implements Parameteriz
      */
     public double distance(Vec x, List<Double> qi, int k)
     {
-        if(k >= meanSqrdNorms.length || k < 0)
-            throw new IndexOutOfBoundsException("Only " + meanSqrdNorms.length + " clusters. " + k + " is not a valid index");
+        if(k >= meanSqrdNorms.length || k < 0) {
+          throw new IndexOutOfBoundsException("Only " + meanSqrdNorms.length + " clusters. " + k + " is not a valid index");
+        }
         return Math.sqrt(Math.max(kernel.eval(0, 0, Arrays.asList(x), qi) - 2.0/ownes[k] * evalSumK(x, qi, k, newDesignations) + meanSqrdNorms[k]*normConsts[k], 0));
     }
     
@@ -343,8 +360,9 @@ public abstract class KernelKMeans extends KClustererBase implements Parameteriz
         final int old_d = designations[i];
         final int new_d = newDesignations[i];
         
-        if (old_d == new_d)//this one has not changed!
-            return 0;
+        if (old_d == new_d) {//this one has not changed!
+          return 0;
+        }
         
         final int N = X.size();
         
@@ -375,8 +393,10 @@ public abstract class KernelKMeans extends KClustererBase implements Parameteriz
                          * person with the later index gets to do the update
                          */
                     }
-                    else//safe to remove the k_ij contribution
-                        sqrdNorms[old_d] -= 2 * kernel.eval(i, j, X, accel);
+                    else {
+                      //safe to remove the k_ij contribution
+                      sqrdNorms[old_d] -= 2 * kernel.eval(i, j, X, accel);
+                    }
                 }
                 //handle adding contributiont to new mean
                 if (new_d == newD_j)
@@ -391,8 +411,9 @@ public abstract class KernelKMeans extends KClustererBase implements Parameteriz
                          * person with the later index gets to do the update
                          */
                     }
-                    else
-                        sqrdNorms[new_d] += 2 * kernel.eval(i, j, X, accel);
+                    else {
+                      sqrdNorms[new_d] += 2 * kernel.eval(i, j, X, accel);
+                    }
                 }
             }
         }
@@ -417,10 +438,12 @@ public abstract class KernelKMeans extends KClustererBase implements Parameteriz
      */
     public double meanToMeanDistance(int k0, int k1)
     {
-        if(k0 >= meanSqrdNorms.length || k0 < 0)
-            throw new IndexOutOfBoundsException("Only " + meanSqrdNorms.length + " clusters. " + k0 + " is not a valid index");
-        if(k1 >= meanSqrdNorms.length || k1 < 0)
-            throw new IndexOutOfBoundsException("Only " + meanSqrdNorms.length + " clusters. " + k1 + " is not a valid index");
+        if(k0 >= meanSqrdNorms.length || k0 < 0) {
+          throw new IndexOutOfBoundsException("Only " + meanSqrdNorms.length + " clusters. " + k0 + " is not a valid index");
+        }
+        if(k1 >= meanSqrdNorms.length || k1 < 0) {
+          throw new IndexOutOfBoundsException("Only " + meanSqrdNorms.length + " clusters. " + k1 + " is not a valid index");
+        }
         
         return meanToMeanDistance(k0, k1, newDesignations);
     }
@@ -477,19 +500,23 @@ public abstract class KernelKMeans extends KClustererBase implements Parameteriz
          */
         for(int i = 0; i < N; i++)
         {
-            if(assignment0[i] != k0)
-                continue;
+            if(assignment0[i] != k0) {
+              continue;
+            }
             a++;
             for(int j = 0; j < N; j++)
             {
-                if(assignment1[j] != k1)
-                    continue;
+                if(assignment1[j] != k1) {
+                  continue;
+                }
                 dot += kernel.eval(i, j, X, accel);
             }
         }
-        for(int j = 0; j < N; j++)
-            if(assignment1[j] == k1)
-                b++;
+        for(int j = 0; j < N; j++) {
+          if (assignment1[j] == k1) {
+            b++;
+          }
+        }
         return dot/(a*b);
     }
     

@@ -70,8 +70,9 @@ public class AdaBoostM1 implements Classifier, Parameterized
      */
     public void setMaxIterations(int maxIterations)
     {
-        if(maxIterations < 1)
-            throw new IllegalArgumentException("Number of iterations must be a positive value, no " + maxIterations);
+        if(maxIterations < 1) {
+          throw new IllegalArgumentException("Number of iterations must be a positive value, no " + maxIterations);
+        }
         this.maxIterations = maxIterations;
     }
 
@@ -90,20 +91,23 @@ public class AdaBoostM1 implements Classifier, Parameterized
      */
     public void setWeakLearner(Classifier weakLearner)
     {
-        if(!weakLearner.supportsWeightedData())
-            throw new FailedToFitException("WeakLearner must support weighted data to be boosted");
+        if(!weakLearner.supportsWeightedData()) {
+          throw new FailedToFitException("WeakLearner must support weighted data to be boosted");
+        }
         this.weakLearner = weakLearner;
     }
     
     public CategoricalResults classify(DataPoint data)
     {
-        if(predicting == null)
-            throw new RuntimeException("Classifier has not been trained yet");
+        if(predicting == null) {
+          throw new RuntimeException("Classifier has not been trained yet");
+        }
         
         CategoricalResults cr = new CategoricalResults(predicting.getNumOfCategories());
         
-        for(int i=0; i < hypoths.size(); i++)
-            cr.incProb(hypoths.get(i).classify(data).mostLikely(), hypWeights.get(i));
+        for(int i=0; i < hypoths.size(); i++) {
+          cr.incProb(hypoths.get(i).classify(data).mostLikely(), hypWeights.get(i));
+        }
         
         cr.normalize();
         return cr;
@@ -120,8 +124,9 @@ public class AdaBoostM1 implements Classifier, Parameterized
         
         List<DataPointPair<Integer>> dataPoints = dataSet.getAsDPPList();
         //Initialization step, set up the weights  so they are all 1 / size of dataset
-        for(DataPointPair<Integer> dpp : dataPoints)
-            dpp.getDataPoint().setWeight(1.0);//Scaled, they are all 1 
+        for(DataPointPair<Integer> dpp : dataPoints) {
+          dpp.getDataPoint().setWeight(1.0);//Scaled, they are all 1 
+        }
         double scaledBy = dataPoints.size();
         
         
@@ -130,18 +135,22 @@ public class AdaBoostM1 implements Classifier, Parameterized
         
         for(int t = 0; t < maxIterations; t++)
         {
-            if(threadPool != null)
-                weakLearner.trainC(new ClassificationDataSet(dataPoints, predicting), threadPool);
-            else
-                weakLearner.trainC(new ClassificationDataSet(dataPoints, predicting));
+            if(threadPool != null) {
+              weakLearner.trainC(new ClassificationDataSet(dataPoints, predicting), threadPool);
+            } else {
+              weakLearner.trainC(new ClassificationDataSet(dataPoints, predicting));
+            }
 
             double error = 0.0;
-            for(int i = 0; i < dataPoints.size(); i++)
-                if( !(wasCorrect[i] = weakLearner.classify(dataPoints.get(i).getDataPoint()).mostLikely() == dataPoints.get(i).getPair()) )
-                    error += dataPoints.get(i).getDataPoint().getWeight();
+            for(int i = 0; i < dataPoints.size(); i++) {
+              if (!(wasCorrect[i] = weakLearner.classify(dataPoints.get(i).getDataPoint()).mostLikely() == dataPoints.get(i).getPair())) {
+                error += dataPoints.get(i).getDataPoint().getWeight();
+              }
+            }
             error /= scaledBy;
-            if(error > 0.5 || error == 0.0)
-                return;
+            if(error > 0.5 || error == 0.0) {
+              return;
+            }
             
             double bt = error /( 1.0 - error );
             
@@ -157,13 +166,16 @@ public class AdaBoostM1 implements Classifier, Parameterized
                     dp.setWeight(w);
                 }
                 double trueWeight = dp.getWeight()/scaledBy;
-                if(1.0/trueWeight > newScale)
-                    newScale = 1.0/trueWeight;
+                if(1.0/trueWeight > newScale) {
+                  newScale = 1.0/trueWeight;
+                }
                 Zt += dp.getWeight()/scaledBy;//Sum the values
             }
             
-            for(DataPointPair dpp : dataPoints)//Normalize so the weights make a distribution
-                dpp.getDataPoint().setWeight(dpp.getDataPoint().getWeight()/scaledBy*newScale/Zt);
+            for(DataPointPair dpp : dataPoints) {
+              //Normalize so the weights make a distribution
+              dpp.getDataPoint().setWeight(dpp.getDataPoint().getWeight()/scaledBy*newScale/Zt);
+            }
             scaledBy = newScale;
             
             hypoths.add(weakLearner.clone());
@@ -185,16 +197,19 @@ public class AdaBoostM1 implements Classifier, Parameterized
     public AdaBoostM1 clone()
     {	
         AdaBoostM1 copy = new AdaBoostM1( weakLearner.clone(), maxIterations);
-        if(hypWeights != null)
-            copy.hypWeights = new DoubleList(this.hypWeights);
+        if(hypWeights != null) {
+          copy.hypWeights = new DoubleList(this.hypWeights);
+        }
         if(this.hypoths != null)
         {
             copy.hypoths = new ArrayList<Classifier>(this.hypoths.size());
-            for(int i = 0; i < this.hypoths.size(); i++)
-                copy.hypoths.add(this.hypoths.get(i).clone());
+            for(int i = 0; i < this.hypoths.size(); i++) {
+              copy.hypoths.add(this.hypoths.get(i).clone());
+            }
         }
-        if(this.predicting != null)
-            copy.predicting = this.predicting.clone();
+        if(this.predicting != null) {
+          copy.predicting = this.predicting.clone();
+        }
         return copy;
     }
     

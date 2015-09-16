@@ -58,8 +58,9 @@ public class KMeansPDN extends KMeans
     {
         super(toCopy);
         this.kmeans = toCopy.kmeans.clone();
-        if(toCopy.fKs != null)
-            this.fKs = Arrays.copyOf(toCopy.fKs, toCopy.fKs.length);
+        if(toCopy.fKs != null) {
+          this.fKs = Arrays.copyOf(toCopy.fKs, toCopy.fKs.length);
+        }
     }
 
     /**
@@ -90,10 +91,11 @@ public class KMeansPDN extends KMeans
     @Override
     public int[] cluster(DataSet dataSet, int lowK, int highK, ExecutorService threadpool, int[] designations)
     {
-        if(highK == lowK)
-            return cluster(dataSet, lowK, threadpool, designations);
-        else if(highK < lowK)
-            throw new IllegalArgumentException("low value of k (" + lowK + ") must be higher than the high value of k(" + highK + ")");
+        if(highK == lowK) {
+          return cluster(dataSet, lowK, threadpool, designations);
+        } else if(highK < lowK) {
+          throw new IllegalArgumentException("low value of k (" + lowK + ") must be higher than the high value of k(" + highK + ")");
+        }
         final int N = dataSet.getSampleSize();
         final int D = dataSet.getNumNumericalVars();
         fKs = new double[highK-1];//we HAVE to start from k=2
@@ -102,8 +104,9 @@ public class KMeansPDN extends KMeans
         int[] bestCluster = new int[N];
         double minFk = lowK == 1 ? 1.0 : Double.POSITIVE_INFINITY;//If our low k is > 1, force the check later to kick in at the first candidate k by making fK appear Inf
         
-        if(designations == null || designations.length < N)
-            designations = new int[N];
+        if(designations == null || designations.length < N) {
+          designations = new int[N];
+        }
         
         
         double alphaKprev = 0, S_k_prev = 0;
@@ -122,16 +125,18 @@ public class KMeansPDN extends KMeans
 
 
             double alpha_k;
-            if(k == 2)
-                alpha_k = 1 - 3.0/(4*D); //eq(3a)
-            else 
-                alpha_k = alphaKprev + (1-alphaKprev)/6;//eq(3b)
+            if(k == 2) {
+              alpha_k = 1 - 3.0/(4*D); //eq(3a)
+            } else {
+              alpha_k = alphaKprev + (1-alphaKprev)/6;//eq(3b)
+            }
             
             double fK;//eq(2)
-            if(S_k_prev == 0)
-                fKs[k-1] = fK = 1;
-            else
-                fKs[k-1] = fK = S_k/(alpha_k*S_k_prev);
+            if(S_k_prev == 0) {
+              fKs[k-1] = fK = 1;
+            } else {
+              fKs[k-1] = fK = S_k/(alpha_k*S_k_prev);
+            }
             
             alphaKprev = alpha_k;
             S_k_prev = S_k;
@@ -141,8 +146,9 @@ public class KMeansPDN extends KMeans
                 System.arraycopy(designations, 0, bestCluster, 0, N);
                 minFk = fK;
                 means.clear();
-                for(Vec mean : curMeans)
-                    means.add(mean.clone());
+                for(Vec mean : curMeans) {
+                  means.add(mean.clone());
+                }
             }
         }
         

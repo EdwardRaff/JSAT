@@ -28,8 +28,9 @@ public final class Rayleigh extends ContinuousDistribution
 
     public void setScale(double sig)
     {
-        if(sig <=0 || Double.isInfinite(sig) || Double.isNaN(sig))
-            throw new ArithmeticException("The " + GreekLetters.sigma + " parameter must be > 0, not " + sig);
+        if(sig <=0 || Double.isInfinite(sig) || Double.isNaN(sig)) {
+          throw new ArithmeticException("The " + GreekLetters.sigma + " parameter must be > 0, not " + sig);
+        }
         this.sig = sig;
     }
 
@@ -41,8 +42,9 @@ public final class Rayleigh extends ContinuousDistribution
     @Override
     public double pdf(double x)
     {
-        if (x < 0)
-            return 0;
+        if (x < 0) {
+          return 0;
+        }
         double sigSqr = sig*sig;
         return x / sigSqr * exp(-x*x/(2*sigSqr));
     }
@@ -93,8 +95,9 @@ public final class Rayleigh extends ContinuousDistribution
     @Override
     public void setVariable(String var, double value)
     {
-        if(var.equals(GreekLetters.sigma))
-            setScale(value);
+        if(var.equals(GreekLetters.sigma)) {
+          setScale(value);
+        }
     }
 
     @Override
@@ -122,8 +125,9 @@ public final class Rayleigh extends ContinuousDistribution
         
         //TODO Need to add some API to SparceVector to make this summation more efficient
         double tmp = 0;
-        for(int i = 0; i < data.length(); i++)
-            tmp += pow(data.get(i), 2);
+        for(int i = 0; i < data.length(); i++) {
+          tmp += pow(data.get(i), 2);
+        }
         
         tmp /= (2*data.length());
         tmp = sqrt(tmp);

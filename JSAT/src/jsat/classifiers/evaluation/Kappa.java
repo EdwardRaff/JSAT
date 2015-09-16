@@ -22,8 +22,9 @@ public class Kappa implements ClassificationScore
 
     public Kappa(Kappa toClone)
     {
-        if(toClone.errorMatrix != null)
-            this.errorMatrix = toClone.errorMatrix.clone();
+        if(toClone.errorMatrix != null) {
+          this.errorMatrix = toClone.errorMatrix.clone();
+        }
     }
     
     @Override
@@ -36,10 +37,12 @@ public class Kappa implements ClassificationScore
     public void addResults(ClassificationScore other)
     {
         Kappa otherObj = (Kappa) other;
-        if(otherObj.errorMatrix == null)
-            return;
-        if(this.errorMatrix == null)
-            throw new RuntimeException("KappaScore has not been prepared");
+        if(otherObj.errorMatrix == null) {
+          return;
+        }
+        if(this.errorMatrix == null) {
+          throw new RuntimeException("KappaScore has not been prepared");
+        }
         this.errorMatrix.mutableAdd(otherObj.errorMatrix);
     }
 

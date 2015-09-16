@@ -68,8 +68,9 @@ public class RidgeRegression implements Regressor, Parameterized
      */
     public void setLambda(double lambda)
     {
-        if(Double.isNaN(lambda) || Double.isInfinite(lambda) || lambda <= 0)
-            throw new IllegalArgumentException("lambda must be a positive constant, not " + lambda);
+        if(Double.isNaN(lambda) || Double.isInfinite(lambda) || lambda <= 0) {
+          throw new IllegalArgumentException("lambda must be a positive constant, not " + lambda);
+        }
         this.lambda = lambda;
     }
 
@@ -118,8 +119,9 @@ public class RidgeRegression implements Regressor, Parameterized
         {
             Vec from = dataSet.getDataPoint(i).getNumericalValues();
             X.set(i, 0, 1.0);
-            for(int j = 0; j < from.length(); j++)
-                X.set(i, j+1, from.get(j));
+            for(int j = 0; j < from.length(); j++) {
+              X.set(i, j+1, from.get(j));
+            }
 
         }
 
@@ -131,8 +133,9 @@ public class RidgeRegression implements Regressor, Parameterized
             SingularValueDecomposition svd = new SingularValueDecomposition(X);
             double[] ridgeD;
             ridgeD = Arrays.copyOf(svd.getSingularValues(), dim);
-            for(int i = 0; i < ridgeD.length; i++)
-                ridgeD[i] = 1 / (Math.pow(ridgeD[i], 2)+lambda);
+            for(int i = 0; i < ridgeD.length; i++) {
+              ridgeD[i] = 1 / (Math.pow(ridgeD[i], 2)+lambda);
+            }
             Matrix U = svd.getU();
             Matrix V = svd.getV();
 
@@ -147,8 +150,9 @@ public class RidgeRegression implements Regressor, Parameterized
             
             Matrix H = serial ? X.transposeMultiply(X) : X.transposeMultiply(X, threadPool);
             //H + I * reg     equiv to H.mutableAdd(Matrix.eye(H.rows()).multiply(regularization));
-            for(int i = 0; i < H.rows(); i++)
-                H.increment(i, i, lambda);
+            for(int i = 0; i < H.rows(); i++) {
+              H.increment(i, i, lambda);
+            }
             CholeskyDecomposition cd = serial ? new CholeskyDecomposition(H) : new CholeskyDecomposition(H, threadPool);
             w = cd.solve(Matrix.eye(H.rows())).multiply(X.transpose()).multiply(Y);
         }
@@ -156,8 +160,9 @@ public class RidgeRegression implements Regressor, Parameterized
         //reformat w and seperate out bias term
         bias = w.get(0);
         Vec newW = new DenseVector(w.length()-1);
-        for(int i = 0; i < newW.length(); i++)
-            newW.set(i, w.get(i+1));
+        for(int i = 0; i < newW.length(); i++) {
+          newW.set(i, w.get(i+1));
+        }
         w = newW;
     }
 
@@ -177,8 +182,9 @@ public class RidgeRegression implements Regressor, Parameterized
     public RidgeRegression clone()
     {
         RidgeRegression clone = new RidgeRegression(lambda);
-        if(this.w != null)
-            clone.w = this.w.clone();
+        if(this.w != null) {
+          clone.w = this.w.clone();
+        }
         clone.bias = this.bias;
         return clone;
     }

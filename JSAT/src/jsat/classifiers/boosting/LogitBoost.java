@@ -69,8 +69,9 @@ public class LogitBoost implements Classifier, Parameterized
      */
     public LogitBoost(Regressor baseLearner, int M)
     {
-        if(!baseLearner.supportsWeightedData())
-            throw new RuntimeException("Base Learner must support weighted data points to be boosted");
+        if(!baseLearner.supportsWeightedData()) {
+          throw new RuntimeException("Base Learner must support weighted data points to be boosted");
+        }
         this.baseLearner = baseLearner;
         this.maxIterations = M;
     }
@@ -104,8 +105,9 @@ public class LogitBoost implements Classifier, Parameterized
      */
     public void setzMax(double zMax)
     {
-        if(Double.isInfinite(zMax) || Double.isNaN(zMax) || zMax <= 0)
-            throw new ArithmeticException("Invalid penalty given: " + zMax);
+        if(Double.isInfinite(zMax) || Double.isNaN(zMax) || zMax <= 0) {
+          throw new ArithmeticException("Invalid penalty given: " + zMax);
+        }
         this.zMax = zMax;
     }
 
@@ -120,8 +122,9 @@ public class LogitBoost implements Classifier, Parameterized
     
     public CategoricalResults classify(DataPoint data)
     {
-        if(baseLearner == null)
-            throw new UntrainedModelException("Model has not yet been trained");
+        if(baseLearner == null) {
+          throw new UntrainedModelException("Model has not yet been trained");
+        }
         double p = P(data);
         
         CategoricalResults cr  = new CategoricalResults(2);
@@ -139,8 +142,9 @@ public class LogitBoost implements Classifier, Parameterized
 
     public void trainC(ClassificationDataSet dataSet)
     {
-        if(dataSet.getClassSize() != 2)
-            throw new FailedToFitException("LogitBoost only supports binary decision tasks, not " + dataSet.getClassSize() + " class problems");
+        if(dataSet.getClassSize() != 2) {
+          throw new FailedToFitException("LogitBoost only supports binary decision tasks, not " + dataSet.getClassSize() + " class problems");
+        }
         /**
          * The data points paired with what we will use to store the target regression values. 
          */
@@ -156,10 +160,11 @@ public class LogitBoost implements Classifier, Parameterized
                 DataPoint dp = dataPoints.get(i).getDataPoint();
                 double pi = P(dp);
                 double zi;
-                if(dataSet.getDataPointCategory(i) == 1)
-                    zi = Math.min(zMax, 1.0/pi);
-                else
-                    zi = Math.max(-zMax, -1.0/(1.0-pi));
+                if(dataSet.getDataPointCategory(i) == 1) {
+                  zi = Math.min(zMax, 1.0/pi);
+                } else {
+                  zi = Math.max(-zMax, -1.0/(1.0-pi));
+                }
                 double wi = Math.max(pi*(1-pi), 2*1e-15);
 
                 dp.setWeight(wi);
@@ -177,8 +182,9 @@ public class LogitBoost implements Classifier, Parameterized
     {
         double fx = 0.0;//0 so when we are uninitalized P will return 0.5
         
-        for(Regressor fm : baseLearners)
-            fx += fm.regress(x);
+        for(Regressor fm : baseLearners) {
+          fx += fm.regress(x);
+        }
         return fx*fScaleConstant;
     }
     
@@ -199,8 +205,9 @@ public class LogitBoost implements Classifier, Parameterized
         double fx = F(x);
         double efx = Math.exp(fx);
         double enfx = Math.exp(-fx);
-        if(Double.isInfinite(efx) && efx > 0 && enfx < 1e-15)//Well classified point could return a Infinity which turns into NaN
-            return 1.0;
+        if(Double.isInfinite(efx) && efx > 0 && enfx < 1e-15) {//Well classified point could return a Infinity which turns into NaN
+          return 1.0;
+        }
         return efx/(efx + enfx);
     }
 
@@ -214,13 +221,15 @@ public class LogitBoost implements Classifier, Parameterized
     {
         LogitBoost clone = new LogitBoost(maxIterations);
         clone.zMax = this.zMax;
-        if(this.baseLearner != null) 
-            clone.baseLearner = this.baseLearner.clone();
+        if(this.baseLearner != null) {
+          clone.baseLearner = this.baseLearner.clone();
+        }
         if(this.baseLearners != null)
         {
             clone.baseLearners = new ArrayList<Regressor>(this.baseLearners.size());
-            for(Regressor r :  baseLearners)
-                clone.baseLearners.add(r.clone());
+            for(Regressor r :  baseLearners) {
+              clone.baseLearners.add(r.clone());
+            }
         }
         return clone;
     }

@@ -75,8 +75,9 @@ public class EigenValueDecomposition implements Serializable
      */
     private void tred2()
     {
-        for(int j = 0; j < n; j++)
-            d[j] = V.get(n-1, j);
+        for(int j = 0; j < n; j++) {
+          d[j] = V.get(n-1, j);
+        }
 
         // Householder reduction to tridiagonal form.
 
@@ -113,8 +114,9 @@ public class EigenValueDecomposition implements Serializable
                 }
                 double f = d[i - 1];
                 double g = sqrt(h);
-                if (f > 0)
-                    g = -g;
+                if (f > 0) {
+                  g = -g;
+                }
                 e[i] = scale * g;
                 h -= f * g;
                 d[i - 1] = f - g;
@@ -348,8 +350,9 @@ public class EigenValueDecomposition implements Serializable
             // Scale column.
 
             double scale = 0.0;
-            for (int i = m; i <= high; i++)
-                scale = scale + abs(H.get(i, m-1));
+            for (int i = m; i <= high; i++) {
+              scale = scale + abs(H.get(i, m-1));
+            }
 
             if (scale != 0.0)
             {
@@ -364,8 +367,9 @@ public class EigenValueDecomposition implements Serializable
                     h += tmp*tmp;
                 }
                 double g = sqrt(h);
-                if ((tmp = ort[m]) > 0)
-                    g = -g;
+                if ((tmp = ort[m]) > 0) {
+                  g = -g;
+                }
                 
                 h = h - tmp * g;
                 ort[m] = tmp - g;
@@ -560,8 +564,9 @@ public class EigenValueDecomposition implements Serializable
                         }
                     }
                     
-                    if (x == 0.0)
-                        break;
+                    if (x == 0.0) {
+                      break;
+                    }
                     
                     s = sqrt(p * p + q * q + r * r);
                     if (p < 0)
@@ -601,19 +606,21 @@ public class EigenValueDecomposition implements Serializable
         
         // Backsubstitute to find vectors of upper triangular form
 
-        if (norm == 0.0)
-            return;
+        if (norm == 0.0) {
+          return;
+        }
         
         backsubtituteFindVectors(nn, z, s, eps, norm, cr);
         
         // Vectors of isolated roots
 
-        for (int i = 0; i < nn; i++)
-            if (i < low | i > high)
-            {
-                for(int j = i; j < nn-1; j++)
-                    H.set(i, j, V.get(i, j));
+        for (int i = 0; i < nn; i++) {
+          if (i < low | i > high) {
+            for (int j = i; j < nn-1; j++) {
+              H.set(i, j, V.get(i, j));
             }
+          }
+        }
         backtransform(nn, low, high);
     }
     
@@ -640,8 +647,9 @@ public class EigenValueDecomposition implements Serializable
      */
     public EigenValueDecomposition(Matrix A, double eps)
     {
-        if (!A.isSquare())
-            throw new ArithmeticException("");
+        if (!A.isSquare()) {
+          throw new ArithmeticException("");
+        }
         n = A.cols();
         d = new double[n];
         e = new double[n];
@@ -676,9 +684,11 @@ public class EigenValueDecomposition implements Serializable
             
             complexResult = false;
             //Check if the result has complex eigen values
-            for (int i = 0; i < n; i++)
-                if (e[i] != 0)
-                    complexResult = true;
+            for (int i = 0; i < n; i++) {
+              if (e[i] != 0) {
+                complexResult = true;
+              }
+            }
             V = VWork.transpose();
         }
     }
@@ -691,8 +701,9 @@ public class EigenValueDecomposition implements Serializable
      */
     public void sortByEigenValue(Comparator<Double> cmp)
     {
-        if(isComplex())
-            throw new ArithmeticException("Eigen values can not be sorted due to complex results");
+        if(isComplex()) {
+          throw new ArithmeticException("Eigen values can not be sorted due to complex results");
+        }
         IndexTable it = new IndexTable(DoubleList.unmodifiableView(d, d.length), cmp);
         
         for(int i = 0; i < d.length; i++)
@@ -912,10 +923,11 @@ public class EigenValueDecomposition implements Serializable
         {
             X.set(i, i, d[i]);
             
-            if (e[i] > 0)
-                X.set(i, i+1, e[i]);
-            else if (e[i] < 0)
-                X.set(i, i-1, e[i]);
+            if (e[i] > 0) {
+              X.set(i, i+1, e[i]);
+            } else if (e[i] < 0) {
+              X.set(i, i-1, e[i]);
+            }
         }
         return X;
     }
@@ -1167,15 +1179,17 @@ public class EigenValueDecomposition implements Serializable
 
         if (q >= 0)
         {
-            if (p >= 0)
-                z = p + z;
-            else
-                z = p - z;
+            if (p >= 0) {
+              z = p + z;
+            } else {
+              z = p - z;
+            }
 
             d[n - 1] = x + z;
             d[n] = d[n - 1];
-            if (z != 0.0)
-                d[n] = x - w / z;
+            if (z != 0.0) {
+              d[n] = x - w / z;
+            }
 
             e[n - 1] = 0.0;
             e[n] = 0.0;

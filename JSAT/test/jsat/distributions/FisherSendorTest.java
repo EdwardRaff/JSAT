@@ -59,17 +59,21 @@ public class FisherSendorTest
         double[] paramTwo3 = new double[]{0,0,0,0,0,0,0,0,0,0,0,0,0,-0.42786617867213905,-0.62825725877403,-0.8879767442017231,-1.1447298858494002,-1.3865072171614459,-1.6114279857379477,-1.8202831852372927,-2.0145516198939206,-2.1957882250863383,-2.3654318837185913,-2.5247554082772825,-2.6748652831951816};
         
         instance = new FisherSendor(0.5, 0.5);
-        for(int i = 0; i < range.length; i++)
-            assertEquals(parmTwo0[i], instance.logPdf(range[i]), 1e-10);
+        for(int i = 0; i < range.length; i++) {
+          assertEquals(parmTwo0[i], instance.logPdf(range[i]), 1e-10);
+        }
         instance = new FisherSendor(0.5, 3);
-        for(int i = 0; i < range.length; i++)
-            assertEquals(paramTwo1[i], instance.logPdf(range[i]), 1e-10);
+        for(int i = 0; i < range.length; i++) {
+          assertEquals(paramTwo1[i], instance.logPdf(range[i]), 1e-10);
+        }
         instance = new FisherSendor(3, 0.5);
-        for(int i = 0; i < range.length; i++)
-            assertEquals(paramTwo2[i], instance.logPdf(range[i]), 1e-10);
+        for(int i = 0; i < range.length; i++) {
+          assertEquals(paramTwo2[i], instance.logPdf(range[i]), 1e-10);
+        }
         instance = new FisherSendor(3, 3);
-        for(int i = 0; i < range.length; i++)
-            assertEquals(paramTwo3[i], instance.logPdf(range[i]), 1e-10);
+        for(int i = 0; i < range.length; i++) {
+          assertEquals(paramTwo3[i], instance.logPdf(range[i]), 1e-10);
+        }
     }
 
     /**
@@ -87,17 +91,21 @@ public class FisherSendorTest
         double[] paramTwo3 = new double[]{0,0,0,0,0,0,0,0,0,0,0,0,0,0.6518986469044031,0.5335207799449517,0.4114874554751566,0.3183098861837907,0.2499467916526712,0.19960238111582101,0.1619798741292785,0.13338019498623793,0.11127082047753811,0.09390873395589414,0.08007789678230687,0.068916111927724};
         
         instance = new FisherSendor(0.5, 0.5);
-        for(int i = 0; i < range.length; i++)
-            assertEquals(parmTwo0[i], instance.pdf(range[i]), 1e-10);
+        for(int i = 0; i < range.length; i++) {
+          assertEquals(parmTwo0[i], instance.pdf(range[i]), 1e-10);
+        }
         instance = new FisherSendor(0.5, 3);
-        for(int i = 0; i < range.length; i++)
-            assertEquals(paramTwo1[i], instance.pdf(range[i]), 1e-10);
+        for(int i = 0; i < range.length; i++) {
+          assertEquals(paramTwo1[i], instance.pdf(range[i]), 1e-10);
+        }
         instance = new FisherSendor(3, 0.5);
-        for(int i = 0; i < range.length; i++)
-            assertEquals(paramTwo2[i], instance.pdf(range[i]), 1e-10);
+        for(int i = 0; i < range.length; i++) {
+          assertEquals(paramTwo2[i], instance.pdf(range[i]), 1e-10);
+        }
         instance = new FisherSendor(3, 3);
-        for(int i = 0; i < range.length; i++)
-            assertEquals(paramTwo3[i], instance.pdf(range[i]), 1e-10);
+        for(int i = 0; i < range.length; i++) {
+          assertEquals(paramTwo3[i], instance.pdf(range[i]), 1e-10);
+        }
     }
 
     /**
@@ -115,17 +123,21 @@ public class FisherSendorTest
         double[] paramTwo3 = new double[]{0,0,0,0,0,0,0,0,0,0,0,0,0,0.14237848993264704,0.2917914057909287,0.40936461121441453,0.49999999999999983,0.5705897131786168,0.6264699609476689,0.6714465399972,0.7082085942090712,0.7386753434255021,0.764238177345735,0.7859230176565496,0.8044988905221148};
         
         instance = new FisherSendor(0.5, 0.5);
-        for(int i = 0; i < range.length; i++)
-            assertEquals(parmTwo0[i], instance.cdf(range[i]), 1e-10);
+        for(int i = 0; i < range.length; i++) {
+          assertEquals(parmTwo0[i], instance.cdf(range[i]), 1e-10);
+        }
         instance = new FisherSendor(0.5, 3);
-        for(int i = 0; i < range.length; i++)
-            assertEquals(paramTwo1[i], instance.cdf(range[i]), 1e-10);
+        for(int i = 0; i < range.length; i++) {
+          assertEquals(paramTwo1[i], instance.cdf(range[i]), 1e-10);
+        }
         instance = new FisherSendor(3, 0.5);
-        for(int i = 0; i < range.length; i++)
-            assertEquals(paramTwo2[i], instance.cdf(range[i]), 1e-10);
+        for(int i = 0; i < range.length; i++) {
+          assertEquals(paramTwo2[i], instance.cdf(range[i]), 1e-10);
+        }
         instance = new FisherSendor(3, 3);
-        for(int i = 0; i < range.length; i++)
-            assertEquals(paramTwo3[i], instance.cdf(range[i]), 1e-10);
+        for(int i = 0; i < range.length; i++) {
+          assertEquals(paramTwo3[i], instance.cdf(range[i]), 1e-10);
+        }
     }
 
     /**
@@ -143,17 +155,21 @@ public class FisherSendorTest
         double[] paramTwo3 = new double[]{0.029582973445028582,0.10646321922955648,0.17053427217757644,0.23282567658262066,0.29615129152974795,0.3620484899223977,0.4316934431570105,0.5061867593792821,0.5866920309095274,0.674534975988236,0.7713012301239432,0.8789549312280995,1.,1.1377147615552636,1.2965103139266438,1.4825028139347958,1.7044717625527248,1.9755554278548542,2.31645862556289,2.7620609609898974,3.376652503639516,4.295058924246869,5.863923932889599,9.39291529259317,33.80322812573971};
         
         instance = new FisherSendor(0.5, 0.5);
-        for(int i = 0; i < parmTwo0.length; i++)
-            assertEquals(parmTwo0[i], instance.invCdf(range[i]/6.1+0.5), 1e-8);
+        for(int i = 0; i < parmTwo0.length; i++) {
+          assertEquals(parmTwo0[i], instance.invCdf(range[i]/6.1+0.5), 1e-8);
+        }
         instance = new FisherSendor(0.5, 3);
-        for(int i = 0; i < range.length; i++)
-            assertEquals(paramTwo1[i], instance.invCdf(range[i]/6.1+0.5), 1e-10);
+        for(int i = 0; i < range.length; i++) {
+          assertEquals(paramTwo1[i], instance.invCdf(range[i]/6.1+0.5), 1e-10);
+        }
         instance = new FisherSendor(3, 0.5);
-        for(int i = 0; i < paramTwo2.length; i++)
-            assertEquals(paramTwo2[i], instance.invCdf(range[i]/6.1+0.5), 1e-10);
+        for(int i = 0; i < paramTwo2.length; i++) {
+          assertEquals(paramTwo2[i], instance.invCdf(range[i]/6.1+0.5), 1e-10);
+        }
         instance = new FisherSendor(3, 3);
-        for(int i = 0; i < range.length; i++)
-            assertEquals(paramTwo3[i], instance.invCdf(range[i]/6.1+0.5), 1e-10);
+        for(int i = 0; i < range.length; i++) {
+          assertEquals(paramTwo3[i], instance.invCdf(range[i]/6.1+0.5), 1e-10);
+        }
     }
 
     /**

@@ -34,12 +34,13 @@ public class WordCount extends WordWeighting
     @Override
     public double indexFunc(double value, int index)
     {
-        if(index < 0)
-            return 0.0;
-        else if(value > 0.0)
-            return value;
-        else
-            return 0.0;
+        if(index < 0) {
+          return 0.0;
+        } else if(value > 0.0) {
+          return value;
+        } else {
+          return 0.0;
+        }
     }
     
 }

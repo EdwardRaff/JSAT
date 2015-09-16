@@ -73,8 +73,9 @@ public class StochasticRidgeRegression implements Regressor, Parameterized, Sing
      */
     public void setLambda(double lambda)
     {
-        if(Double.isNaN(lambda) || Double.isInfinite(lambda) || lambda <= 0)
-            throw new IllegalArgumentException("lambda must be a positive constant, not " + lambda);
+        if(Double.isNaN(lambda) || Double.isInfinite(lambda) || lambda <= 0) {
+          throw new IllegalArgumentException("lambda must be a positive constant, not " + lambda);
+        }
         this.lambda = lambda;
     }
 
@@ -134,8 +135,9 @@ public class StochasticRidgeRegression implements Regressor, Parameterized, Sing
      */
     public void setBatchSize(int batchSize)
     {
-        if(batchSize <= 0)
-            throw new IllegalArgumentException("Batch size must be a positive constant, not " + batchSize);
+        if(batchSize <= 0) {
+          throw new IllegalArgumentException("Batch size must be a positive constant, not " + batchSize);
+        }
         this.batchSize = batchSize;
     }
 
@@ -155,8 +157,9 @@ public class StochasticRidgeRegression implements Regressor, Parameterized, Sing
      */
     public void setEpochs(int epochs)
     {
-        if(epochs <= 0)
-            throw new IllegalArgumentException("At least one epoch must be performed, can not use " + epochs);
+        if(epochs <= 0) {
+          throw new IllegalArgumentException("At least one epoch must be performed, can not use " + epochs);
+        }
         this.epochs = epochs;
     }
 
@@ -184,19 +187,21 @@ public class StochasticRidgeRegression implements Regressor, Parameterized, Sing
     @Override
     public Vec getRawWeight(int index)
     {
-        if(index < 1)
-            return getRawWeight();
-        else
-            throw new IndexOutOfBoundsException("Model has only 1 weight vector");
+        if(index < 1) {
+          return getRawWeight();
+        } else {
+          throw new IndexOutOfBoundsException("Model has only 1 weight vector");
+        }
     }
 
     @Override
     public double getBias(int index)
     {
-        if (index < 1)
-            return getBias();
-        else
-            throw new IndexOutOfBoundsException("Model has only 1 weight vector");
+        if (index < 1) {
+          return getBias();
+        } else {
+          throw new IndexOutOfBoundsException("Model has only 1 weight vector");
+        }
     }
 
     @Override
@@ -239,13 +244,16 @@ public class StochasticRidgeRegression implements Regressor, Parameterized, Sing
         final boolean sparseUpdates;
         {
             int sparse = 0;
-            for (int i = 0; i < dataSet.getSampleSize(); i++)
-                if(dataSet.getDataPoint(i).getNumericalValues().isSparse())
-                    sparse++;
-            if(sparse > dataSet.getSampleSize()/4)
-                sparseUpdates = true;
-            else
-                sparseUpdates = false;
+            for (int i = 0; i < dataSet.getSampleSize(); i++) {
+              if (dataSet.getDataPoint(i).getNumericalValues().isSparse()) {
+                sparse++;
+              }
+            }
+            if(sparse > dataSet.getSampleSize()/4) {
+              sparseUpdates = true;
+            } else {
+              sparseUpdates = false;
+            }
         }
         
         int[] lastTime = sparseUpdates ? new int[w.length()] : null;
@@ -259,13 +267,15 @@ public class StochasticRidgeRegression implements Regressor, Parameterized, Sing
             
             for(int i = 0; i < sample.size(); i+= batch)
             {
-                if(i+batch >= sample.size())
-                    continue;//skip, not enough in the batch
+                if(i+batch >= sample.size()) {
+                  continue;//skip, not enough in the batch
+                }
                 
                 time++;
                 //get errors
-                for(int b = i; b < i+batch; b++)
-                    errors[b-i] = regress(dataSet.getDataPoint(sample.get(i)))-dataSet.getTargetValue(sample.get(i));
+                for(int b = i; b < i+batch; b++) {
+                  errors[b-i] = regress(dataSet.getDataPoint(sample.get(i)))-dataSet.getTargetValue(sample.get(i));
+                }
                 
                 //perform updates 
                 for(int b = i; b < i+batch; b++)
@@ -293,8 +303,9 @@ public class StochasticRidgeRegression implements Regressor, Parameterized, Sing
                     }
                     else//dense updates, no need to track last time we updated weight values
                     {
-                        if(b == i)//update on first access
-                            w.mutableMultiply(1-alphaReg);
+                        if(b == i) {//update on first access
+                          w.mutableMultiply(1-alphaReg);
+                        }
                         //add error
                         w.mutableSubtract(alphaError, x);
                     }
@@ -332,8 +343,9 @@ public class StochasticRidgeRegression implements Regressor, Parameterized, Sing
     public StochasticRidgeRegression clone()
     {
         StochasticRidgeRegression clone = new StochasticRidgeRegression(lambda, epochs, batchSize, learningRate, learningDecay);
-        if(this.w != null)
-            clone.w = this.w.clone();
+        if(this.w != null) {
+          clone.w = this.w.clone();
+        }
         clone.bias = this.bias;
         return clone;
     }

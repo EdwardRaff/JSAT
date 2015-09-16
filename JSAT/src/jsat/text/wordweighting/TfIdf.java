@@ -74,8 +74,9 @@ public class TfIdf extends WordWeighting
     @Override
     public double indexFunc(double value, int index)
     {
-        if (index < 0 || value == 0.0)
-            return 0.0;
+        if (index < 0 || value == 0.0) {
+          return 0.0;
+        }
 
         double tf;// = 1+log(value);
         switch(tfWeighting)
@@ -100,8 +101,9 @@ public class TfIdf extends WordWeighting
     @Override
     public void applyTo(Vec vec)
     {
-        if(tfWeighting == TermFrequencyWeight.DOC_NORMALIZED)
-            docMax = vec.max();
+        if(tfWeighting == TermFrequencyWeight.DOC_NORMALIZED) {
+          docMax = vec.max();
+        }
         vec.applyIndexFunction(this);
     }
 }

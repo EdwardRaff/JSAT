@@ -69,10 +69,12 @@ public class KernelRidgeRegression implements Regressor, Parameterized
     protected KernelRidgeRegression(KernelRidgeRegression toCopy)
     {
         this(toCopy.lambda, toCopy.getKernel().clone());
-        if(toCopy.alphas != null)
-            this.alphas = Arrays.copyOf(toCopy.alphas, toCopy.alphas.length);
-        if(toCopy.vecs != null)
-            this.vecs = new ArrayList<Vec>(toCopy.vecs);
+        if(toCopy.alphas != null) {
+          this.alphas = Arrays.copyOf(toCopy.alphas, toCopy.alphas.length);
+        }
+        if(toCopy.vecs != null) {
+          this.vecs = new ArrayList<Vec>(toCopy.vecs);
+        }
     }
     
     /**
@@ -93,8 +95,9 @@ public class KernelRidgeRegression implements Regressor, Parameterized
      */
     public void setLambda(double lambda)
     {
-        if(Double.isNaN(lambda) || Double.isInfinite(lambda) || lambda <= 0)
-            throw new IllegalArgumentException("lambda must be a positive constant, not " + lambda);
+        if(Double.isNaN(lambda) || Double.isInfinite(lambda) || lambda <= 0) {
+          throw new IllegalArgumentException("lambda must be a positive constant, not " + lambda);
+        }
         this.lambda = lambda;
     }
 
@@ -130,8 +133,9 @@ public class KernelRidgeRegression implements Regressor, Parameterized
     {
         Vec x = data.getNumericalValues();
         double score = 0;
-        for(int i = 0; i < alphas.length; i++)
-            score += alphas[i] * k.eval(vecs.get(i), x);
+        for(int i = 0; i < alphas.length; i++) {
+          score += alphas[i] * k.eval(vecs.get(i), x);
+        }
         return score;
     }
 
@@ -142,8 +146,9 @@ public class KernelRidgeRegression implements Regressor, Parameterized
         vecs = new ArrayList<Vec>(N);
         //alphas initalized later
         Vec Y = dataSet.getTargetValues();
-        for(int i = 0; i < N; i++)
-            vecs.add(dataSet.getDataPoint(i).getNumericalValues());
+        for(int i = 0; i < N; i++) {
+          vecs.add(dataSet.getDataPoint(i).getNumericalValues());
+        }
         
         final Matrix K = new DenseMatrix(N, N);
         final CountDownLatch cdl = new CountDownLatch(SystemInfo.LogicalCores);
@@ -181,10 +186,11 @@ public class KernelRidgeRegression implements Regressor, Parameterized
         }
         
         CholeskyDecomposition cd;
-        if(threadPool instanceof FakeExecutor)
-            cd = new CholeskyDecomposition(K);
-        else
-            cd = new CholeskyDecomposition(K, threadPool);
+        if(threadPool instanceof FakeExecutor) {
+          cd = new CholeskyDecomposition(K);
+        } else {
+          cd = new CholeskyDecomposition(K, threadPool);
+        }
         Vec alphaTmp = cd.solve(Y);
         alphas = alphaTmp.arrayCopy();
     }

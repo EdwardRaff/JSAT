@@ -55,8 +55,9 @@ public class IterativelyReweightedLeastSquares implements Optimizer
         {
             Vec x_i = inputs.get(i);
             coefficentMatrix.set(i, 0, 1.0);
-            for(int j = 1; j < vars.length(); j++)
-                coefficentMatrix.set(i, j, x_i.get(j-1));
+            for(int j = 1; j < vars.length(); j++) {
+              coefficentMatrix.set(i, j, x_i.get(j-1));
+            }
         }
         
         derivatives = new DenseVector(inputs.size());
@@ -109,8 +110,9 @@ public class IterativelyReweightedLeastSquares implements Optimizer
                 
                 double multFactor = derivatives.get(k) * coefficient_kj;
                 
-                for (int i = 0; i < hessian.rows(); i++)
-                    hessian.increment(j, i, coefficentMatrix.get(k, i) * multFactor);
+                for (int i = 0; i < hessian.rows(); i++) {
+                  hessian.increment(j, i, coefficentMatrix.get(k, i) * multFactor);
+                }
             }
             
             gradiant.set(j, gradTmp);
@@ -168,8 +170,9 @@ public class IterativelyReweightedLeastSquares implements Optimizer
 
                             double multFactor = derivatives.get(k) * coefficient_kj;
 
-                            for (int i = 0; i < hessian.rows(); i++)
-                                hessian.increment(j, i, coefficentMatrix.get(k, i) * multFactor);
+                            for (int i = 0; i < hessian.rows(); i++) {
+                              hessian.increment(j, i, coefficentMatrix.get(k, i) * multFactor);
+                            }
                         }
 
                         gradiant.set(j, gradTmp);

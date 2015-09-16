@@ -98,8 +98,9 @@ public class PassiveAggressive implements UpdateableClassifier, BinaryScoreClass
      */
     public void setC(double C)
     {
-        if(Double.isNaN(C) || Double.isInfinite(C) || C <= 0)
-            throw new ArithmeticException("Aggressiveness must be a positive constant");
+        if(Double.isNaN(C) || Double.isInfinite(C) || C <= 0) {
+          throw new ArithmeticException("Aggressiveness must be a positive constant");
+        }
         this.C = C;
     }
     
@@ -156,8 +157,9 @@ public class PassiveAggressive implements UpdateableClassifier, BinaryScoreClass
      */
     public void setEpochs(int epochs)
     {
-        if(epochs < 1)
-            throw new IllegalArgumentException("epochs must be a positive value");
+        if(epochs < 1) {
+          throw new IllegalArgumentException("epochs must be a positive value");
+        }
         this.epochs = epochs;
     }
 
@@ -185,19 +187,21 @@ public class PassiveAggressive implements UpdateableClassifier, BinaryScoreClass
     @Override
     public Vec getRawWeight(int index)
     {
-        if(index < 1)
-            return getRawWeight();
-        else
-            throw new IndexOutOfBoundsException("Model has only 1 weight vector");
+        if(index < 1) {
+          return getRawWeight();
+        } else {
+          throw new IndexOutOfBoundsException("Model has only 1 weight vector");
+        }
     }
 
     @Override
     public double getBias(int index)
     {
-        if (index < 1)
-            return getBias();
-        else
-            throw new IndexOutOfBoundsException("Model has only 1 weight vector");
+        if (index < 1) {
+          return getBias();
+        } else {
+          throw new IndexOutOfBoundsException("Model has only 1 weight vector");
+        }
     }
 
     @Override
@@ -210,10 +214,11 @@ public class PassiveAggressive implements UpdateableClassifier, BinaryScoreClass
     public CategoricalResults classify(DataPoint data)
     {
         CategoricalResults cr = new CategoricalResults(2);
-        if(getScore(data) > 0)
-            cr.setProb(1, 1);
-        else
-            cr.setProb(0, 1);
+        if(getScore(data) > 0) {
+          cr.setProb(1, 1);
+        } else {
+          cr.setProb(0, 1);
+        }
         
         return cr;
     }
@@ -245,18 +250,20 @@ public class PassiveAggressive implements UpdateableClassifier, BinaryScoreClass
     @Override
     public void setUp(CategoricalData[] categoricalAttributes, int numericAttributes, CategoricalData predicting)
     {
-        if(predicting.getNumOfCategories() != 2)
-            throw new FailedToFitException("Only supports binary classification problems");
-        else if(numericAttributes < 1)
-            throw new FailedToFitException("only suppors learning from numeric attributes");
+        if(predicting.getNumOfCategories() != 2) {
+          throw new FailedToFitException("Only supports binary classification problems");
+        } else if(numericAttributes < 1) {
+          throw new FailedToFitException("only suppors learning from numeric attributes");
+        }
         w = new DenseVector(numericAttributes);
     }
     
     @Override
     public void setUp(CategoricalData[] categoricalAttributes, int numericAttributes)
     {
-        if(numericAttributes < 1)
-            throw new FailedToFitException("only suppors learning from numeric attributes");
+        if(numericAttributes < 1) {
+          throw new FailedToFitException("only suppors learning from numeric attributes");
+        }
         w = new DenseVector(numericAttributes);
     }
 
@@ -268,8 +275,9 @@ public class PassiveAggressive implements UpdateableClassifier, BinaryScoreClass
         final double dot = x.dot(w);
         
         final double loss = Math.max(0, 1-y_t*dot);
-        if(loss == 0)
-            return;
+        if(loss == 0) {
+          return;
+        }
         
         final double tau = getCorrection(loss, x);
         
@@ -284,8 +292,9 @@ public class PassiveAggressive implements UpdateableClassifier, BinaryScoreClass
         final double y_p = x.dot(w);
         
         final double loss = Math.max(0, Math.abs(y_p-y_t)-eps);
-        if(loss == 0)
-            return;
+        if(loss == 0) {
+          return;
+        }
         
         final double tau = getCorrection(loss, x);
         
@@ -295,12 +304,13 @@ public class PassiveAggressive implements UpdateableClassifier, BinaryScoreClass
     private double getCorrection(final double loss, Vec x)
     {
         final double xNorm = Math.pow(x.pNorm(2), 2);
-        if(mode == Mode.PA1)
-            return Math.min(C, loss/xNorm);
-        else if(mode == Mode.PA2)
-            return loss/(xNorm+1.0/(2*C));
-        else
-            return loss/xNorm;
+        if(mode == Mode.PA1) {
+          return Math.min(C, loss/xNorm);
+        } else if(mode == Mode.PA2) {
+          return loss/(xNorm+1.0/(2*C));
+        } else {
+          return loss/xNorm;
+        }
     }
 
     @Override
@@ -327,8 +337,9 @@ public class PassiveAggressive implements UpdateableClassifier, BinaryScoreClass
         PassiveAggressive clone = new PassiveAggressive(epochs, mode);
         clone.eps = this.eps;
         clone.C = this.C;
-        if(this.w != null)
-            clone.w = this.w;
+        if(this.w != null) {
+          clone.w = this.w;
+        }
         
         return clone;
     }

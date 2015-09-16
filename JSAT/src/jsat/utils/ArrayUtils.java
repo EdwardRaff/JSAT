@@ -37,8 +37,9 @@ public class ArrayUtils
      */
     static public void shuffle(int[] array, int from, int to, Random rand)
     {
-        for(int i = to-1; i > from; i--)
-            swap(array, i, rand.nextInt(i));
+        for(int i = to-1; i > from; i--) {
+          swap(array, i, rand.nextInt(i));
+        }
     }
 
     /**

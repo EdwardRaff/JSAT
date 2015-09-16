@@ -110,8 +110,9 @@ public class FastMathTest
     public void testPow2_int()
     {
         System.out.println("pow2");
-        for(int i = 0; i < 20; i++)
-            assertEquals(Math.pow(2,i), FastMath.pow2(i), 0.0);//docs say it must be exact
+        for(int i = 0; i < 20; i++) {
+          assertEquals(Math.pow(2,i), FastMath.pow2(i), 0.0);//docs say it must be exact
+        }
     }
 
     /**

@@ -127,8 +127,9 @@ public class PorterStemmerTest
     {
         System.out.println("stem");
         PorterStemmer instance = new PorterStemmer();
-        for(Map.Entry<String, String> entry : testCases.entrySet())
-            assertEquals("Looking for '" + entry.getValue() + "' from '" + entry.getKey() + "'", entry.getValue(), instance.stem(entry.getKey()));
+        for(Map.Entry<String, String> entry : testCases.entrySet()) {
+          assertEquals("Looking for '" + entry.getValue() + "' from '" + entry.getKey() + "'", entry.getValue(), instance.stem(entry.getKey()));
+        }
     }
     
 }

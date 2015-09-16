@@ -53,10 +53,11 @@ public class WaggingNormal extends Wagging
     @Override
     public void setDistribution(ContinuousDistribution dist)
     {
-        if(dist instanceof Normal)
-            super.setDistribution(dist);
-        else
-            throw new RuntimeException("Only the Normal distribution is valid");
+        if(dist instanceof Normal) {
+          super.setDistribution(dist);
+        } else {
+          throw new RuntimeException("Only the Normal distribution is valid");
+        }
     }
     
     /**
@@ -65,8 +66,9 @@ public class WaggingNormal extends Wagging
      */
     public void setMean(double mean)
     {
-        if(Double.isInfinite(mean) || Double.isNaN(mean))
-            throw new ArithmeticException("Mean must be a real number, not " + mean);
+        if(Double.isInfinite(mean) || Double.isNaN(mean)) {
+          throw new ArithmeticException("Mean must be a real number, not " + mean);
+        }
         ((Normal)getDistribution()).setMean(mean);
     }
     
@@ -85,8 +87,9 @@ public class WaggingNormal extends Wagging
      */
     public void setStandardDeviations(double devs)
     {
-        if(devs <= 0 || Double.isInfinite(devs) || Double.isNaN(devs))
-            throw new ArithmeticException("The stnd devs must be a positive value");
+        if(devs <= 0 || Double.isInfinite(devs) || Double.isNaN(devs)) {
+          throw new ArithmeticException("The stnd devs must be a positive value");
+        }
         ((Normal)getDistribution()).setStndDev(devs);
     }
     

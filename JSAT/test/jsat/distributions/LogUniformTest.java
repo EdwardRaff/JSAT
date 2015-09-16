@@ -76,8 +76,9 @@ public class LogUniformTest
             0.014476482730108394
         };
         
-        for(int i = 0; i < testVals.length; i++)
-            assertEquals(expected[i], instance.pdf(testVals[i]), 1e-10);
+        for(int i = 0; i < testVals.length; i++) {
+          assertEquals(expected[i], instance.pdf(testVals[i]), 1e-10);
+        }
     }
 
     @Test
@@ -92,8 +93,9 @@ public class LogUniformTest
             -Double.MAX_VALUE,-1.9326447339160655,-2.62579191447601080,-3.0312570225841752,-3.3189390950359561,-3.5420826463501659,-3.7244042031441205,-3.8785548829713788,-4.0120862755959014,-4.1298693112522849,-4.2352298269101112
         };
         
-        for(int i = 0; i < testVals.length; i++)
-            assertEquals(expected[i], instance.logPdf(testVals[i]), 1e-10);
+        for(int i = 0; i < testVals.length; i++) {
+          assertEquals(expected[i], instance.logPdf(testVals[i]), 1e-10);
+        }
     }
 
     /**
@@ -114,8 +116,9 @@ public class LogUniformTest
             0.98474750314644162, 1.0000000000000000
         };
         
-        for(int i = 0; i < testVals.length; i++)
-            assertEquals(expected[i], instance.cdf(testVals[i]), 1e-10);
+        for(int i = 0; i < testVals.length; i++) {
+          assertEquals(expected[i], instance.cdf(testVals[i]), 1e-10);
+        }
     }
 
     /**
@@ -145,8 +148,9 @@ public class LogUniformTest
             .75, .8, .85, .9, .95
         };
         
-        for(int i = 0; i < ps.length; i++)
-            assertEquals(expected[i], instance.invCdf(ps[i]), 1e-10);
+        for(int i = 0; i < ps.length; i++) {
+          assertEquals(expected[i], instance.invCdf(ps[i]), 1e-10);
+        }
     }
 
     /**

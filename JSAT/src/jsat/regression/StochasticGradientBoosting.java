@@ -173,8 +173,9 @@ public class StochasticGradientBoosting implements Regressor, Parameterized
     public void setLearningRate(double learningRate)
     {
         //+- Inf case captured in >1 <= 0 case
-        if(learningRate > 1 || learningRate <= 0 || Double.isNaN(learningRate))
-            throw new ArithmeticException("Invalid learning rate");
+        if(learningRate > 1 || learningRate <= 0 || Double.isNaN(learningRate)) {
+          throw new ArithmeticException("Invalid learning rate");
+        }
         this.learningRate = learningRate;
     }
 
@@ -200,8 +201,9 @@ public class StochasticGradientBoosting implements Regressor, Parameterized
     public void setTrainingProportion(double trainingProportion)
     {
         //+- Inf case captured in >1 <= 0 case
-        if(trainingProportion > 1 || trainingProportion <= 0 || Double.isNaN(trainingProportion))
-            throw new ArithmeticException("Training Proportion is invalid");
+        if(trainingProportion > 1 || trainingProportion <= 0 || Double.isNaN(trainingProportion)) {
+          throw new ArithmeticException("Training Proportion is invalid");
+        }
         this.trainingProportion = trainingProportion;
     }
 
@@ -220,12 +222,14 @@ public class StochasticGradientBoosting implements Regressor, Parameterized
     @Override
     public double regress(DataPoint data)
     {
-        if(F == null || F.isEmpty())
-            throw new UntrainedModelException();
+        if(F == null || F.isEmpty()) {
+          throw new UntrainedModelException();
+        }
         
         double result = 0;
-        for(int i =0; i < F.size(); i++)
-            result += F.get(i).regress(data)*coef.get(i);
+        for(int i =0; i < F.size(); i++) {
+          result += F.get(i).regress(data)*coef.get(i);
+        }
         
         return result;
     }
@@ -241,10 +245,11 @@ public class StochasticGradientBoosting implements Regressor, Parameterized
         
         //Add the first learner. Either an instance of the weak learner, or a strong initial estimate
         Regressor lastF = strongLearner == null ? weakLearner.clone() : strongLearner.clone();
-        if(threadPool == null || threadPool instanceof FakeExecutor)
-            lastF.train(dataSet);
-        else
-            lastF.train(dataSet, threadPool);
+        if(threadPool == null || threadPool instanceof FakeExecutor) {
+          lastF.train(dataSet);
+        } else {
+          lastF.train(dataSet, threadPool);
+        }
         F.add(lastF);
         coef.add(learningRate*getMinimizingErrorConst(backingResidsList, lastF));
         
@@ -293,10 +298,11 @@ public class StochasticGradientBoosting implements Regressor, Parameterized
             final Regressor h = weakLearner.clone();
             final RegressionDataSet tmpDataSet = RegressionDataSet.usingDPPList(randSampleList);
             
-            if(threadPool == null || threadPool instanceof FakeExecutor)
-                h.train(tmpDataSet);
-            else
-                h.train(tmpDataSet, threadPool);
+            if(threadPool == null || threadPool instanceof FakeExecutor) {
+              h.train(tmpDataSet);
+            } else {
+              h.train(tmpDataSet, threadPool);
+            }
             
             
             double y = getMinimizingErrorConst( backingResidsList, h);
@@ -397,8 +403,9 @@ public class StochasticGradientBoosting implements Regressor, Parameterized
     @Override
     public boolean supportsWeightedData()
     {
-        if(strongLearner != null)
-            return strongLearner.supportsWeightedData() && weakLearner.supportsWeightedData();
+        if(strongLearner != null) {
+          return strongLearner.supportsWeightedData() && weakLearner.supportsWeightedData();
+        }
         
         return weakLearner.supportsWeightedData();
     }
@@ -411,18 +418,21 @@ public class StochasticGradientBoosting implements Regressor, Parameterized
         if(F != null)
         {
             clone.F = new ArrayList<Regressor>(F.size());
-            for(Regressor f : this.F)
-                clone.F.add(f.clone());
+            for(Regressor f : this.F) {
+              clone.F.add(f.clone());
+            }
         }
         if(coef != null)
         {
             clone.coef = new DoubleList(this.coef.size());
-            for(double d : this.coef)
-                clone.coef.add(d);
+            for(double d : this.coef) {
+              clone.coef.add(d);
+            }
         }
         
-        if(strongLearner != null)
-            clone.strongLearner = this.strongLearner.clone();
+        if(strongLearner != null) {
+          clone.strongLearner = this.strongLearner.clone();
+        }
         return clone;
     }
 

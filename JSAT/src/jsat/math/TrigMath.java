@@ -36,22 +36,25 @@ public class TrigMath
     
     public static double acosh(double x)
     {
-        if(x < 1)
-            return Double.NaN;//Complex result
+        if(x < 1) {
+          return Double.NaN;//Complex result
+        }
         return log(x + sqrt(x*x - 1));
     }
     
     public static double atanh(double x)
     {
-        if(abs(x) >= 1)
-            return Double.NaN;
+        if(abs(x) >= 1) {
+          return Double.NaN;
+        }
         return 0.5* log((x+1) / (x-1));
     }
     
     public static double asech(double x)
     {
-        if(x <= 0 || x > 1)
-            return Double.NaN;
+        if(x <= 0 || x > 1) {
+          return Double.NaN;
+        }
         return log((1 + sqrt(1-x*x))/x);
     }
     
@@ -62,8 +65,9 @@ public class TrigMath
     
     public static double acotch(double x)
     {
-        if(abs(x) <= 1)
-            return Double.NaN;
+        if(abs(x) <= 1) {
+          return Double.NaN;
+        }
         return 0.5* log((x+1) / (x-1));
     }
             

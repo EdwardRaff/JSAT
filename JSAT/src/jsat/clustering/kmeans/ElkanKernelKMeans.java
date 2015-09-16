@@ -69,8 +69,9 @@ public class ElkanKernelKMeans extends KernelKMeans
              * N data points
              */
             final int N = dataSet.getSampleSize();
-            if(N < k)//Not enough points
-                throw new ClusterFailureException("Fewer data points then desired clusters, decrease cluster size");
+            if(N < k) {//Not enough points
+              throw new ClusterFailureException("Fewer data points then desired clusters, decrease cluster size");
+            }
             
             X = dataSet.getDataVectors();
             setup(k, assignment);
@@ -90,10 +91,11 @@ public class ElkanKernelKMeans extends KernelKMeans
             final boolean[] r = new boolean[N];//Default value of a boolean is false, which is what we want
 
             
-            if (threadpool == null)
-                initialClusterSetUp(k, N, lowerBound, upperBound, centroidSelfDistances, assignment);
-            else
-                initialClusterSetUp(k, N, lowerBound, upperBound, centroidSelfDistances, assignment, threadpool);
+            if (threadpool == null) {
+              initialClusterSetUp(k, N, lowerBound, upperBound, centroidSelfDistances, assignment);
+            } else {
+              initialClusterSetUp(k, N, lowerBound, upperBound, centroidSelfDistances, assignment, threadpool);
+            }
 
             int iterLimit = maximumIterations;
             while ((changeOccurred.get() || atLeast > 0) && iterLimit-- >= 0)
@@ -101,8 +103,9 @@ public class ElkanKernelKMeans extends KernelKMeans
                 atLeast--;
                 changeOccurred.set(false);
                 //Step 1 
-                if(iterLimit < maximumIterations-1)//we already did this on before iteration
-                    calculateCentroidDistances(k, centroidSelfDistances, sC, assignment, threadpool);
+                if(iterLimit < maximumIterations-1) {//we already did this on before iteration
+                  calculateCentroidDistances(k, centroidSelfDistances, sC, assignment, threadpool);
+                }
                 
                 final CountDownLatch latch = new CountDownLatch(SystemInfo.LogicalCores);
 
@@ -112,15 +115,17 @@ public class ElkanKernelKMeans extends KernelKMeans
                     for (int q = 0; q < N; q++)
                     {
                         //Step 2, skip those that u(v) < s(c(v))
-                        if (upperBound[q] <= sC[assignment[q]])
-                            continue;
+                        if (upperBound[q] <= sC[assignment[q]]) {
+                          continue;
+                        }
 
-                        for (int c = 0; c < k; c++)
-                            if (c != assignment[q] && upperBound[q] > lowerBound[q][c] && upperBound[q] > centroidSelfDistances[assignment[q]][c] * 0.5)
-                            {
-                                step3aBoundsUpdate(r, q, assignment, upperBound, lowerBound);
-                                step3bUpdate(upperBound, q, lowerBound, c, centroidSelfDistances, assignment, changeOccurred);
-                            }
+                        for (int c = 0; c < k; c++) {
+                          if (c != assignment[q] && upperBound[q] > lowerBound[q][c] && upperBound[q] > centroidSelfDistances[assignment[q]][c] * 0.5)
+                          {
+                            step3aBoundsUpdate(r, q, assignment, upperBound, lowerBound);
+                            step3bUpdate(upperBound, q, lowerBound, c, centroidSelfDistances, assignment, changeOccurred);
+                          }
+                        }
                     }
                 }
                 else
@@ -137,15 +142,17 @@ public class ElkanKernelKMeans extends KernelKMeans
                                 for (int q = ID; q < N; q += SystemInfo.LogicalCores)
                                 {
                                     //Step 2, skip those that u(v) < s(c(v))
-                                    if (upperBound[q] <= sC[assignment[q]])
-                                        continue;
+                                    if (upperBound[q] <= sC[assignment[q]]) {
+                                      continue;
+                                    }
 
-                                    for (int c = 0; c < k; c++)
-                                        if (c != assignment[q] && upperBound[q] > lowerBound[q][c] && upperBound[q] > centroidSelfDistances[assignment[q]][c] * 0.5)
-                                        {
-                                            step3aBoundsUpdate(r, q, assignment, upperBound, lowerBound);
-                                            step3bUpdate(upperBound, q, lowerBound, c, centroidSelfDistances, assignment, changeOccurred);
-                                        }
+                                    for (int c = 0; c < k; c++) {
+                                      if (c != assignment[q] && upperBound[q] > lowerBound[q][c] && upperBound[q] > centroidSelfDistances[assignment[q]][c] * 0.5)
+                                      {
+                                        step3aBoundsUpdate(r, q, assignment, upperBound, lowerBound);
+                                        step3bUpdate(upperBound, q, lowerBound, c, centroidSelfDistances, assignment, changeOccurred);
+                                      }
+                                    }
                                 }
 
                                 latch.countDown();
@@ -172,12 +179,15 @@ public class ElkanKernelKMeans extends KernelKMeans
             double totalDistance = 0.0;
 
             //TODO do I realy want to keep this around for the kernel version?
-            if (exactTotal == true)
-                for (int i = 0; i < N; i++)
-                    totalDistance += Math.pow(upperBound[i], 2);//TODO this isn't exact any more
-            else
-                for (int i = 0; i < N; i++)
-                    totalDistance += Math.pow(upperBound[i], 2);
+            if (exactTotal == true) {
+              for (int i = 0; i < N; i++) {
+                totalDistance += Math.pow(upperBound[i], 2);//TODO this isn't exact any more
+              }
+            } else {
+              for (int i = 0; i < N; i++) {
+                totalDistance += Math.pow(upperBound[i], 2);
+              }
+            }
 
             return totalDistance;
         }
@@ -201,8 +211,9 @@ public class ElkanKernelKMeans extends KernelKMeans
             Arrays.fill(skip, false);
             for (int i = 0; i < k; i++)
             {
-                if (skip[i])
-                    continue;
+                if (skip[i]) {
+                  continue;
+                }
                 double d = distance(q, i, assignment);
                 lowerBound[q][i] = d;
 
@@ -211,9 +222,11 @@ public class ElkanKernelKMeans extends KernelKMeans
                     minDistance = upperBound[q] = d;
                     index = i;
                     //We now have some information, use lemma 1 to see if we can skip anything
-                    for (int z = i + 1; z < k; z++)
-                        if (centroidSelfDistances[i][z] >= 2 * d)
-                            skip[z] = true;
+                    for (int z = i + 1; z < k; z++) {
+                      if (centroidSelfDistances[i][z] >= 2 * d) {
+                        skip[z] = true;
+                      }
+                    }
                 }
             }
 
@@ -251,8 +264,9 @@ public class ElkanKernelKMeans extends KernelKMeans
                         Arrays.fill(skip, false);
                         for (int i = 0; i < k; i++)
                         {
-                            if (skip[i])
-                                continue;
+                            if (skip[i]) {
+                              continue;
+                            }
                             double d = distance(q, i, assignment);
                             lowerBound[q][i] = d;
 
@@ -261,9 +275,11 @@ public class ElkanKernelKMeans extends KernelKMeans
                                 minDistance = upperBound[q] = d;
                                 index = i;
                                 //We now have some information, use lemma 1 to see if we can skip anything
-                                for (int z = i + 1; z < k; z++)
-                                    if (centroidSelfDistances[i][z] >= 2 * d)
-                                        skip[z] = true;
+                                for (int z = i + 1; z < k; z++) {
+                                  if (centroidSelfDistances[i][z] >= 2 * d) {
+                                    skip[z] = true;
+                                  }
+                                }
                             }
                         }
 
@@ -273,8 +289,9 @@ public class ElkanKernelKMeans extends KernelKMeans
                 }
             });
         }
-        while(pos++ < SystemInfo.LogicalCores)
-            latch.countDown();
+        while(pos++ < SystemInfo.LogicalCores) {
+          latch.countDown();
+        }
         try
         {
             latch.await();
@@ -292,8 +309,9 @@ public class ElkanKernelKMeans extends KernelKMeans
         final double[] distancesMoved = new double[k];
         //copy the originonal sqrd norms b/c we need them to compute the distance means moved
         final double[] oldSqrdNorms = new double[meanSqrdNorms.length];
-        for(int i = 0; i < meanSqrdNorms.length; i++)
-            oldSqrdNorms[i] = meanSqrdNorms[i]*normConsts[i];
+        for(int i = 0; i < meanSqrdNorms.length; i++) {
+          oldSqrdNorms[i] = meanSqrdNorms[i]*normConsts[i];
+        }
         int moved = 0;
         if(threadpool != null)
         {
@@ -313,8 +331,9 @@ public class ElkanKernelKMeans extends KernelKMeans
                             double[] sqrdChange = new double[k];
                             int[] ownerChange = new int[k];
                             int localChange = 0;
-                            for(int q = start; q < end; q++)
-                                localChange += updateMeansFromChange(q, assignment, sqrdChange, ownerChange);
+                            for(int q = start; q < end; q++) {
+                              localChange += updateMeansFromChange(q, assignment, sqrdChange, ownerChange);
+                            }
                             synchronized(assignment)
                             {
                                 applyMeanUpdates(sqrdChange, ownerChange);
@@ -326,8 +345,9 @@ public class ElkanKernelKMeans extends KernelKMeans
                 
                 try
                 {
-                    for (Future<Integer> f : futureChanges)
-                        moved += f.get();
+                    for (Future<Integer> f : futureChanges) {
+                      moved += f.get();
+                    }
                 }
                 catch (ExecutionException ex)
                 {
@@ -348,8 +368,9 @@ public class ElkanKernelKMeans extends KernelKMeans
                         {
                             distancesMoved[c] = meanToMeanDistance(c, c, newDesignations, assignment, oldSqrdNorms[c]);
                             
-                            for (int q = 0; q < N; q++)
-                                lowerBound[q][c] = Math.max(lowerBound[q][c] - distancesMoved[c], 0);
+                            for (int q = 0; q < N; q++) {
+                              lowerBound[q][c] = Math.max(lowerBound[q][c] - distancesMoved[c], 0);
+                            }
                             latch2.countDown();
                         }
                     });
@@ -391,20 +412,24 @@ public class ElkanKernelKMeans extends KernelKMeans
         //else, single threaded case
         
         //Re compute centroids. Hold off on copying newDesignations into assignment until after we do needed movement calculations
-        for (int i = 0; i < N; i++)
-            moved += updateMeansFromChange(i, assignment);
+        for (int i = 0; i < N; i++) {
+          moved += updateMeansFromChange(i, assignment);
+        }
         updateNormConsts();
         
         //compute how far each cluster moved
-        for (int i = 0; i < k; i++)
-            distancesMoved[i] = meanToMeanDistance(i, i, newDesignations, assignment, oldSqrdNorms[i]);
+        for (int i = 0; i < k; i++) {
+          distancesMoved[i] = meanToMeanDistance(i, i, newDesignations, assignment, oldSqrdNorms[i]);
+        }
         //now we can move the assignments over
         System.arraycopy(newDesignations, 0, assignment, 0, N);
 
         //Step 5
-        for(int c = 0; c < k; c++)
-            for(int q = 0; q < N; q++)
-                lowerBound[q][c] = Math.max(lowerBound[q][c] - distancesMoved[c], 0);
+        for(int c = 0; c < k; c++) {
+          for (int q = 0; q < N; q++) {
+            lowerBound[q][c] = Math.max(lowerBound[q][c] - distancesMoved[c], 0);
+          }
+        }
 
         //Step 6
         for(int q = 0; q < N; q++)
@@ -488,26 +513,32 @@ public class ElkanKernelKMeans extends KernelKMeans
             for (int i = 0; i < k; i++)
             {
                 double sCmin = Double.MAX_VALUE;
-                for (int z = 0; z < k; z++)
-                    if(i != z)
-                        sCmin = Math.min(sCmin, centroidSelfDistances[i][z]);
+                for (int z = 0; z < k; z++) {
+                  if (i != z) {
+                    sCmin = Math.min(sCmin, centroidSelfDistances[i][z]);
+                  }
+                }
                 sC[i] = sCmin / 2.0;
             }
         
             return;
         }
         //compute self distances
-        for (int i = 0; i < k; i++)
-            for (int z = i + 1; z < k; z++)
-                centroidSelfDistances[z][i] = centroidSelfDistances[i][z] = meanToMeanDistance(i, z, curAssignments);
+        for (int i = 0; i < k; i++) {
+          for (int z = i + 1; z < k; z++) {
+            centroidSelfDistances[z][i] = centroidSelfDistances[i][z] = meanToMeanDistance(i, z, curAssignments);
+          }
+        }
         
         //update sC
         for (int i = 0; i < k; i++)
         {
             double sCmin = Double.MAX_VALUE;
-            for (int z = 0; z < k; z++)
-                if(i != z)
-                    sCmin = Math.min(sCmin, centroidSelfDistances[i][z]);
+            for (int z = 0; z < k; z++) {
+              if (i != z) {
+                sCmin = Math.min(sCmin, centroidSelfDistances[i][z]);
+              }
+            }
             sC[i] = sCmin / 2.0;
         }
     }
@@ -515,10 +546,12 @@ public class ElkanKernelKMeans extends KernelKMeans
     @Override
     public int[] cluster(DataSet dataSet, int clusters, ExecutorService threadpool, int[] designations)
     {
-        if(designations == null)
-            designations = new int[dataSet.getSampleSize()];
-        if(dataSet.getSampleSize() < clusters)
-            throw new ClusterFailureException("Fewer data points then desired clusters, decrease cluster size");
+        if(designations == null) {
+          designations = new int[dataSet.getSampleSize()];
+        }
+        if(dataSet.getSampleSize() < clusters) {
+          throw new ClusterFailureException("Fewer data points then desired clusters, decrease cluster size");
+        }
         
         cluster(dataSet, clusters, designations, false, threadpool);
         return designations;
@@ -527,10 +560,12 @@ public class ElkanKernelKMeans extends KernelKMeans
     @Override
     public int[] cluster(DataSet dataSet, int clusters, int[] designations)
     {
-        if(designations == null)
-            designations = new int[dataSet.getSampleSize()];
-        if(dataSet.getSampleSize() < clusters)
-            throw new ClusterFailureException("Fewer data points then desired clusters, decrease cluster size");
+        if(designations == null) {
+          designations = new int[dataSet.getSampleSize()];
+        }
+        if(dataSet.getSampleSize() < clusters) {
+          throw new ClusterFailureException("Fewer data points then desired clusters, decrease cluster size");
+        }
 
         cluster(dataSet, clusters, designations, false, null);
         

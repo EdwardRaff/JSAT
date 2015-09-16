@@ -59,16 +59,17 @@ public class NormalMTest
         
         Matrix[] shouldFail = new Matrix[] {t1, t2, t3};
 
-        for (Matrix badMatrix : shouldFail)
-            try
-            {
-                normalM.setCovariance(badMatrix);
-                fail("Matrix was invalid, should have caused an exception");
-            }
-            catch (ArithmeticException ex)
-            {
-                //Good! Should fail
-            }
+        for (Matrix badMatrix : shouldFail) {
+          try
+          {
+            normalM.setCovariance(badMatrix);
+            fail("Matrix was invalid, should have caused an exception");
+          }
+          catch (ArithmeticException ex)
+          {
+            //Good! Should fail
+          }
+        }
 
     }
 
@@ -98,8 +99,9 @@ public class NormalMTest
             -7.342396098144846e-001, -3.709787597345088e+001,
         };
 
-        for(int i = 0; i < pVals.length; i++)
-            assertEquals(pVals[i], normalM.logPdf(xVals[i]), 1e-12);//Slightly smaller error b/c the absolute error can get large, but relative should still be good
+        for(int i = 0; i < pVals.length; i++) {
+          assertEquals(pVals[i], normalM.logPdf(xVals[i]), 1e-12);//Slightly smaller error b/c the absolute error can get large, but relative should still be good
+        }
     }
 
     /**
@@ -128,7 +130,8 @@ public class NormalMTest
             4.798702088783484e-001, 7.737437863769670e-017,
         };
         
-        for(int i = 0; i < pVals.length; i++)
-            assertEquals(pVals[i], normalM.pdf(xVals[i]), 1e-14);
+        for(int i = 0; i < pVals.length; i++) {
+          assertEquals(pVals[i], normalM.pdf(xVals[i]), 1e-14);
+        }
     }
 }

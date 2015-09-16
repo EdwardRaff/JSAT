@@ -26,32 +26,37 @@ public class Normal extends ContinuousDistribution
 
     public Normal(double mean, double stndDev)
     {
-        if(stndDev <= 0)
-            throw new RuntimeException("Standerd deviation of the normal distribution needs to be greater than zero");
+        if(stndDev <= 0) {
+          throw new RuntimeException("Standerd deviation of the normal distribution needs to be greater than zero");
+        }
         setMean(mean);
         setStndDev(stndDev);
     }
 
     public void setMean(double mean)
     {
-        if(Double.isInfinite(mean) || Double.isNaN(mean))
-            throw new ArithmeticException("Mean can not be infinite of NaN");
+        if(Double.isInfinite(mean) || Double.isNaN(mean)) {
+          throw new ArithmeticException("Mean can not be infinite of NaN");
+        }
         this.mean = mean;
     }
 
     public void setStndDev(double stndDev)
     {
-        if(Double.isInfinite(stndDev) || Double.isNaN(stndDev))
-            throw new ArithmeticException("Standard devation can not be infinite of NaN");
-        if(stndDev <= 0)
-            throw new ArithmeticException("The standard devation can not be <= 0");
+        if(Double.isInfinite(stndDev) || Double.isNaN(stndDev)) {
+          throw new ArithmeticException("Standard devation can not be infinite of NaN");
+        }
+        if(stndDev <= 0) {
+          throw new ArithmeticException("The standard devation can not be <= 0");
+        }
         this.stndDev = stndDev;
     }
     
     public static double cdf(double x, double mu, double sigma)
     {
-        if (Double.isNaN(x) || Double.isInfinite(x))
-            throw new ArithmeticException("X is not a real number");
+        if (Double.isNaN(x) || Double.isInfinite(x)) {
+          throw new ArithmeticException("X is not a real number");
+        }
         
         return cdfApproxMarsaglia2004(zTransform(x, mu, sigma));
     }
@@ -63,8 +68,9 @@ public class Normal extends ContinuousDistribution
 
     public static double invcdf(double x, double mu, double sigma)
     {
-        if(x < 0 || x > 1)
-            throw new RuntimeException("Inverse of a probability requires a probablity in the range [0,1], not " + x);
+        if(x < 0 || x > 1) {
+          throw new RuntimeException("Inverse of a probability requires a probablity in the range [0,1], not " + x);
+        }
         //http://home.online.no/~pjacklam/notes/invnorm/
         double a[] =
         {
@@ -194,8 +200,9 @@ public class Normal extends ContinuousDistribution
          */
         double s = x, t = 0, b = x, q = x*x , i = 1;
         //XXX double comparison
-        while(s != t)
-            s=(t=s)+(b*=q/(i+=2));
+        while(s != t) {
+          s=(t=s)+(b*=q/(i+=2));
+        }
         return 0.5+s*exp(-.5*q-0.91893853320467274178);
     }
 
@@ -232,10 +239,11 @@ public class Normal extends ContinuousDistribution
     @Override
     public void setVariable(String var, double value)
     {
-        if(var.equals(GreekLetters.mu))
-            mean = value;
-        else if(var.equals(GreekLetters.sigma))
-            setStndDev(value);
+        if(var.equals(GreekLetters.mu)) {
+          mean = value;
+        } else if(var.equals(GreekLetters.sigma)) {
+          setStndDev(value);
+        }
 
     }
 

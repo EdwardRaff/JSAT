@@ -68,25 +68,28 @@ public class VPTree<V extends Vec> implements VectorCollection<V>
     public VPTree(List<V> list, DistanceMetric dm, VPSelection vpSelection, Random rand, int sampleSize, int searchIterations, ExecutorService threadpool)
     {
         this.dm = dm;
-        if(!dm.isSubadditive())
-            throw new RuntimeException("VPTree only supports metrics that support the triangle inequality");
+        if(!dm.isSubadditive()) {
+          throw new RuntimeException("VPTree only supports metrics that support the triangle inequality");
+        }
         this.rand = rand;
         this.sampleSize = sampleSize;
         this.searchIterations = searchIterations;
         this.size = list.size();
         this.vpSelection = vpSelection;
         this.allVecs = list;
-        if(threadpool == null || threadpool instanceof FakeExecutor)
-            distCache = dm.getAccelerationCache(allVecs);
-        else
-            distCache = dm.getAccelerationCache(allVecs, threadpool);
+        if(threadpool == null || threadpool instanceof FakeExecutor) {
+          distCache = dm.getAccelerationCache(allVecs);
+        } else {
+          distCache = dm.getAccelerationCache(allVecs, threadpool);
+        }
         //Use simple list so both halves can be modified simultaniously
         List<Pair<Double, Integer>> tmpList = new SimpleList<Pair<Double, Integer>>(list.size());
-        for(int i = 0; i < allVecs.size(); i++)
-            tmpList.add(new Pair<Double, Integer>(-1.0, i));
-        if(threadpool == null)
-            this.root = makeVPTree(tmpList);
-        else
+        for(int i = 0; i < allVecs.size(); i++) {
+          tmpList.add(new Pair<Double, Integer>(-1.0, i));
+        }
+        if(threadpool == null) {
+          this.root = makeVPTree(tmpList);
+        } else
         {
             ModifiableCountDownLatch mcdl = new ModifiableCountDownLatch(1);
             this.root = makeVPTree(tmpList, threadpool, mcdl);
@@ -99,8 +102,9 @@ public class VPTree<V extends Vec> implements VectorCollection<V>
                 Logger.getLogger(VPTree.class.getName()).log(Level.SEVERE, null, ex);
                 System.err.println("Falling back to single threaded VPTree constructor");
                 tmpList.clear();
-                for(int i = 0; i < list.size(); i++)
-                    tmpList.add(new Pair<Double, Integer>(-1.0, i));
+                for(int i = 0; i < list.size(); i++) {
+                  tmpList.add(new Pair<Double, Integer>(-1.0, i));
+            }
                 this.root = makeVPTree(tmpList);
             }
         }
@@ -135,10 +139,12 @@ public class VPTree<V extends Vec> implements VectorCollection<V>
         this.vpSelection = toClone.vpSelection;
         this.size = toClone.size;
         this.maxLeafSize = toClone.maxLeafSize;
-        if(toClone.allVecs != null)
-            this.allVecs = new ArrayList<V>(toClone.allVecs);
-        if(toClone.distCache != null)
-            this.distCache = new DoubleList(toClone.distCache);
+        if(toClone.allVecs != null) {
+          this.allVecs = new ArrayList<V>(toClone.allVecs);
+        }
+        if(toClone.distCache != null) {
+          this.distCache = new DoubleList(toClone.distCache);
+        }
     }
 
     /**
@@ -160,8 +166,9 @@ public class VPTree<V extends Vec> implements VectorCollection<V>
     @SuppressWarnings("unchecked")
     public List<? extends VecPaired<V, Double>> search(Vec query, double range)
     {
-        if(range <= 0)
-            throw new RuntimeException("Range must be a positive number");
+        if(range <= 0) {
+          throw new RuntimeException("Range must be a positive number");
+        }
         List<VecPairedComparable<V, Double>> returnList = new ArrayList<VecPairedComparable<V, Double>>();
         
         List<Double> qi = dm.getQueryInfo(query);
@@ -181,8 +188,9 @@ public class VPTree<V extends Vec> implements VectorCollection<V>
         root.searchKNN(VecPaired.extractTrueVec(query), neighbors, boundedList, 0.0, qi);
         
         List<VecPaired<V, Double>> list = new ArrayList<VecPaired<V, Double>>(boundedList.size());
-        for(ProbailityMatch<V> pm : boundedList)
-            list.add(new VecPaired<V, Double>(pm.getMatch(), pm.getProbability()));
+        for(ProbailityMatch<V> pm : boundedList) {
+          list.add(new VecPaired<V, Double>(pm.getMatch(), pm.getProbability()));
+        }
         return list;
     }
     
@@ -196,8 +204,9 @@ public class VPTree<V extends Vec> implements VectorCollection<V>
      */
     private int sortSplitSet(final List<Pair<Double, Integer>> S, final VPNode node)
     {
-        for (Pair<Double, Integer> S1 : S)
-            S1.setFirstItem(dm.dist(node.p, S1.getSecondItem(), allVecs, distCache)); //Each point gets its distance to the vantage point
+        for (Pair<Double, Integer> S1 : S) {
+          S1.setFirstItem(dm.dist(node.p, S1.getSecondItem(), allVecs, distCache)); //Each point gets its distance to the vantage point
+        }
         Collections.sort(S, new Comparator<Pair<Double, Integer>>() 
         {
             @Override
@@ -254,9 +263,9 @@ public class VPTree<V extends Vec> implements VectorCollection<V>
     //The probability match is used to store and sort by median distances. 
     private TreeNode makeVPTree(List<Pair<Double, Integer>> S)
     {
-        if(S.isEmpty())
-            return null;
-        else if(S.size() <= maxLeafSize)
+        if(S.isEmpty()) {
+          return null;
+        } else if(S.size() <= maxLeafSize)
         {
             VPLeaf leaf = new VPLeaf(S);
             return leaf;
@@ -320,17 +329,20 @@ public class VPTree<V extends Vec> implements VectorCollection<V>
     private int selectVantagePointIndex(List<Pair<Double, Integer>> S)
     {
         int vpIndex;
-        if (vpSelection == VPSelection.Random)
-            vpIndex = rand.nextInt(S.size());
-        else//Sampling
+        if (vpSelection == VPSelection.Random) {
+          vpIndex = rand.nextInt(S.size());
+        } else//Sampling
         {
             List<Integer> samples = new IntList(sampleSize);
-            if (sampleSize <= S.size())
-                for (int i = 0; i < sampleSize; i++)
-                    samples.add(S.get(i).getSecondItem());
-            else
-                for (int i = 0; i < sampleSize; i++)
-                    samples.add(S.get(rand.nextInt(S.size())).getSecondItem());
+            if (sampleSize <= S.size()) {
+            for (int i = 0; i < sampleSize; i++) {
+              samples.add(S.get(i).getSecondItem());
+            }
+          } else {
+            for (int i = 0; i < sampleSize; i++) {
+              samples.add(S.get(rand.nextInt(S.size())).getSecondItem());
+            }
+          }
 
             double[] distances = new double[sampleSize];
 
@@ -343,14 +355,16 @@ public class VPTree<V extends Vec> implements VectorCollection<V>
                 int candIndx = searchIterations <= S.size() ? i : rand.nextInt(S.size());
                 int candV = S.get(candIndx).getSecondItem();
 
-                for (int j = 0; j < samples.size(); j++)
-                    distances[j] = dm.dist(candV, samples.get(j), allVecs, distCache);
+                for (int j = 0; j < samples.size(); j++) {
+                  distances[j] = dm.dist(candV, samples.get(j), allVecs, distCache);
+            }
 
                 Arrays.sort(distances);
                 double median = distances[distances.length / 2];
                 double spread = 0;
-                for (double distance : distances)
-                    spread += Math.abs(distance - median);
+                for (double distance : distances) {
+                  spread += Math.abs(distance - median);
+            }
                 if (spread > bestSpread)
                 {
                     bestSpread = spread;
@@ -428,15 +442,17 @@ public class VPTree<V extends Vec> implements VectorCollection<V>
         
         private boolean searchInLeft(double x, double tau)
         {
-            if(left == null)
-                return false;
+            if(left == null) {
+              return false;
+            }
             return left_low-tau <= x && x <= left_high+tau;
         }
         
         private boolean searchInRight(double x, double tau)
         {
-            if(right == null)
-                return false;
+            if(right == null) {
+              return false;
+            }
             return right_low-tau <= x && x <= right_high+tau;
         }
         
@@ -444,26 +460,31 @@ public class VPTree<V extends Vec> implements VectorCollection<V>
         public void searchKNN(Vec query, int k, BoundedSortedList<ProbailityMatch<V>> list, double x, List<Double> qi)
         {
             x = dm.dist(p, query, qi, allVecs, distCache);
-            if(list.size() < k || x < list.get(k-1).getProbability())
-                list.add(new ProbailityMatch<V>(x, allVecs.get(this.p)));
+            if(list.size() < k || x < list.get(k-1).getProbability()) {
+              list.add(new ProbailityMatch<V>(x, allVecs.get(this.p)));
+            }
             double tau = list.get(list.size()-1).getProbability();
             double middle = (this.left_high+this.right_low)*0.5;
 
             if( x < middle)
             {
-                if(searchInLeft(x, tau) || list.size() < k)
-                    this.left.searchKNN(query, k, list, x, qi);
+                if(searchInLeft(x, tau) || list.size() < k) {
+                  this.left.searchKNN(query, k, list, x, qi);
+                }
                 tau = list.get(list.size()-1).getProbability();
-                if(searchInRight(x, tau) || list.size() < k)
-                    this.right.searchKNN(query, k, list, x, qi);
+                if(searchInRight(x, tau) || list.size() < k) {
+                  this.right.searchKNN(query, k, list, x, qi);
+                }
             }
             else
             {
-                if(searchInRight(x, tau) || list.size() < k)
-                    this.right.searchKNN(query, k, list, x, qi);
+                if(searchInRight(x, tau) || list.size() < k) {
+                  this.right.searchKNN(query, k, list, x, qi);
+                }
                 tau = list.get(list.size()-1).getProbability();
-                if(searchInLeft(x, tau) || list.size() < k)
-                    this.left.searchKNN(query, k, list, x, qi);
+                if(searchInLeft(x, tau) || list.size() < k) {
+                  this.left.searchKNN(query, k, list, x, qi);
+                }
             }
         }
 
@@ -471,13 +492,16 @@ public class VPTree<V extends Vec> implements VectorCollection<V>
         public void searchRange(Vec query, double range, List<VecPaired<V, Double>> list, double x, List<Double> qi)
         {
             x = dm.dist(this.p, query, qi, allVecs, distCache);
-            if(x <= range)
-                list.add(new VecPairedComparable<V, Double>(allVecs.get(this.p), x));
+            if(x <= range) {
+              list.add(new VecPairedComparable<V, Double>(allVecs.get(this.p), x));
+            }
 
-            if (searchInLeft(x, range))
-                this.left.searchRange(query, range, list, x, qi);
-            if (searchInRight(x, range))
-                this.right.searchRange(query, range, list, x, qi);
+            if (searchInLeft(x, range)) {
+              this.left.searchRange(query, range, list, x, qi);
+            }
+            if (searchInRight(x, range)) {
+              this.right.searchRange(query, range, list, x, qi);
+            }
         }
 
         @Override
@@ -488,10 +512,12 @@ public class VPTree<V extends Vec> implements VectorCollection<V>
             clone.left_high = this.left_high;
             clone.right_low = this.right_low;
             clone.right_high = this.right_high;
-            if(this.left != null)
-                clone.left = this.left.clone();
-            if(this.right != null)
-                clone.right = this.right.clone();
+            if(this.left != null) {
+              clone.left = this.left.clone();
+            }
+            if(this.right != null) {
+              clone.right = this.right.clone();
+            }
             return clone;
         }
     }
@@ -516,8 +542,9 @@ public class VPTree<V extends Vec> implements VectorCollection<V>
         {
             this.bounds = Arrays.copyOf(bounds, bounds.length);
             this.points = new int[points.length];
-            for(int i = 0; i < points.length; i++)
-                this.points[i] = points[i];
+            for(int i = 0; i < points.length; i++) {
+              this.points[i] = points[i];
+            }
         }
 
         @Override
@@ -527,18 +554,18 @@ public class VPTree<V extends Vec> implements VectorCollection<V>
             
             //The zero check, for the case that the leaf is the ONLY node, x will be passed as 0.0 <= Max value will be true 
             double tau = list.size() == 0 ? Double.MAX_VALUE : list.get(list.size()-1).getProbability();
-            for (int i = 0; i < points.length; i++)
-                if (list.size() < k)
+            for (int i = 0; i < points.length; i++) {
+              if (list.size() < k) {
+                list.add(new ProbailityMatch<V>(dm.dist(points[i], query, qi, allVecs, distCache), allVecs.get(points[i])));
+                tau = list.get(list.size() - 1).getProbability();
+              } else if (bounds[i] - tau <= x && x <= bounds[i] + tau) {
+                if ((dist = dm.dist(points[i], query, qi, allVecs, distCache)) < tau)
                 {
-                    list.add(new ProbailityMatch<V>(dm.dist(points[i], query, qi, allVecs, distCache), allVecs.get(points[i])));
-                    tau = list.get(list.size() - 1).getProbability();
+                  list.add(new ProbailityMatch<V>(dist, allVecs.get(points[i])));
+                  tau = list.get(list.size() - 1).getProbability();
                 }
-                else if (bounds[i] - tau <= x && x <= bounds[i] + tau)//Bound check agains the distance to our parrent node, provided by x
-                    if ((dist = dm.dist(points[i], query, qi, allVecs, distCache)) < tau)
-                    {
-                        list.add(new ProbailityMatch<V>(dist, allVecs.get(points[i])));
-                        tau = list.get(list.size() - 1).getProbability();
-                    }
+              }
+            }
         }
 
         @Override
@@ -546,10 +573,13 @@ public class VPTree<V extends Vec> implements VectorCollection<V>
         {
             double dist = Double.MAX_VALUE;
             
-            for (int i = 0; i < points.length; i++)
-                if (bounds[i] - range <= x && x <= bounds[i] + range)//Bound check agains the distance to our parrent node, provided by x
-                    if ((dist = dm.dist(points[i], query, qi, allVecs, distCache)) < range)
-                        list.add(new VecPairedComparable<V, Double>(allVecs.get(points[i]), dist));
+            for (int i = 0; i < points.length; i++) {
+              if (bounds[i] - range <= x && x <= bounds[i] + range) {
+                if ((dist = dm.dist(points[i], query, qi, allVecs, distCache)) < range) {
+                  list.add(new VecPairedComparable<V, Double>(allVecs.get(points[i]), dist));
+                }
+              }
+            }
         }
 
         @Override

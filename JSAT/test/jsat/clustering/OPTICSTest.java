@@ -70,8 +70,9 @@ public class OPTICSTest
             {
                 int thisClass = cluster.get(0).getCategoricalValue(0);
                 assertFalse(seenBefore.contains(thisClass));
-                for(DataPoint dp : cluster)
-                    assertEquals(thisClass, dp.getCategoricalValue(0));
+                for(DataPoint dp : cluster) {
+                  assertEquals(thisClass, dp.getCategoricalValue(0));
+                }
             }
         }
     }
@@ -90,8 +91,9 @@ public class OPTICSTest
             {
                 int thisClass = cluster.get(0).getCategoricalValue(0);
                 assertFalse(seenBefore.contains(thisClass));
-                for(DataPoint dp : cluster)
-                    assertEquals(thisClass, dp.getCategoricalValue(0));
+                for(DataPoint dp : cluster) {
+                  assertEquals(thisClass, dp.getCategoricalValue(0));
+                }
             }
         }
     }

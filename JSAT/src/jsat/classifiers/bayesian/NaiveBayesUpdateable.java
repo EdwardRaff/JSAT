@@ -73,13 +73,15 @@ public class NaiveBayesUpdateable extends BaseUpdateableClassifier
             for(int i = 0; i < other.apriori.length; i++)
             {
                 this.apriori[i] = new double[other.apriori[i].length][];
-                for(int j = 0; j < other.apriori[i].length; j++)
-                    this.apriori[i][j] = Arrays.copyOf(other.apriori[i][j], 
-                            other.apriori[i][j].length);
+                for(int j = 0; j < other.apriori[i].length; j++) {
+                  this.apriori[i][j] = Arrays.copyOf(other.apriori[i][j],
+                          other.apriori[i][j].length);
+                }
                 this.valueStats[i] = new OnLineStatistics[other.valueStats[i].length];
                 
-                for(int j = 0; j < this.valueStats[i].length; j++)
-                    this.valueStats[i][j] = new OnLineStatistics(other.valueStats[i][j]);
+                for(int j = 0; j < this.valueStats[i].length; j++) {
+                  this.valueStats[i][j] = new OnLineStatistics(other.valueStats[i][j]);
+                }
             }
             
             this.priorSum = other.priorSum;
@@ -112,11 +114,13 @@ public class NaiveBayesUpdateable extends BaseUpdateableClassifier
                 apriori[i][j] = new double[categoricalAttributes[j].getNumOfCategories()];
 
                 //Laplace correction, put in an extra occurance for each variable
-                for (int z = 0; z < apriori[i][j].length; z++)
-                    apriori[i][j][z] = 1;
+                for (int z = 0; z < apriori[i][j].length; z++) {
+                  apriori[i][j][z] = 1;
+                }
             }
-            for(int j = 0; j < numericAttributes; j++)
-                valueStats[i][j] = new OnLineStatistics();
+            for(int j = 0; j < numericAttributes; j++) {
+              valueStats[i][j] = new OnLineStatistics();
+            }
         }
     }
 
@@ -125,17 +129,21 @@ public class NaiveBayesUpdateable extends BaseUpdateableClassifier
     {
         double weight = dataPoint.getWeight();
         Vec x = dataPoint.getNumericalValues();
-        if (sparseInput)
-            for (IndexValue iv : x)
-                valueStats[targetClass][iv.getIndex()].add(iv.getValue(), weight);
-        else
-            for (int j = 0; j < x.length(); j++)
-                valueStats[targetClass][j].add(x.get(j), weight);
+        if (sparseInput) {
+          for (IndexValue iv : x) {
+            valueStats[targetClass][iv.getIndex()].add(iv.getValue(), weight);
+          }
+        } else {
+          for (int j = 0; j < x.length(); j++) {
+            valueStats[targetClass][j].add(x.get(j), weight);
+          }
+        }
         
         //Categorical value updates
         int[] catValues = dataPoint.getCategoricalValues();
-        for(int j = 0; j < apriori[targetClass].length; j++)
-            apriori[targetClass][j][catValues[j]]++;
+        for(int j = 0; j < apriori[targetClass].length; j++) {
+          apriori[targetClass][j][catValues[j]]++;
+        }
         priorSum++;
         priors[targetClass]++;
     }
@@ -143,8 +151,9 @@ public class NaiveBayesUpdateable extends BaseUpdateableClassifier
     @Override
     public CategoricalResults classify(DataPoint data)
     {
-        if(apriori == null)
-            throw new UntrainedModelException("Model has not been intialized");
+        if(apriori == null) {
+          throw new UntrainedModelException("Model has not been intialized");
+        }
         CategoricalResults results = new CategoricalResults(apriori.length);
         double[] logProbs = new double[apriori.length];
         double maxLogProg = Double.NEGATIVE_INFINITY;
@@ -161,12 +170,13 @@ public class NaiveBayesUpdateable extends BaseUpdateableClassifier
                     double mean = valueStats[i][indx].getMean();
                     double stndDev = valueStats[i][indx].getStandardDeviation();
                     double logPDF = Normal.logPdf(iv.getValue(), mean, stndDev);
-                    if(Double.isNaN(logPDF))
-                        logProb += Math.log(1e-16);
-                    else if(Double.isInfinite(logPDF))//Avoid propigation -infinty when the probability is zero
-                        logProb += Math.log(1e-16);
-                    else
-                        logProb += logPDF;
+                    if(Double.isNaN(logPDF)) {
+                      logProb += Math.log(1e-16);
+                    } else if(Double.isInfinite(logPDF)) {//Avoid propigation -infinty when the probability is zero
+                      logProb += Math.log(1e-16);
+                    } else {
+                      logProb += logPDF;
+                    }
                 }
             }
             else
@@ -176,10 +186,11 @@ public class NaiveBayesUpdateable extends BaseUpdateableClassifier
                     double mean = valueStats[i][j].getMean();
                     double stdDev = valueStats[i][j].getStandardDeviation();
                     double logPDF = Normal.logPdf(numVals.get(j), mean, stdDev);
-                    if(Double.isInfinite(logPDF))//Avoid propigation -infinty when the probability is zero
-                        logProb += Math.log(1e-16);//
-                    else
-                        logProb += logPDF;
+                    if(Double.isInfinite(logPDF)) {//Avoid propigation -infinty when the probability is zero
+                      logProb += Math.log(1e-16);//
+                    } else {
+                      logProb += logPDF;
+                    }
                 }
             }
             
@@ -187,8 +198,9 @@ public class NaiveBayesUpdateable extends BaseUpdateableClassifier
             for(int j = 0; j < apriori[i].length; j++)
             {
                 double sum = 0;
-                for(int z = 0; z < apriori[i][j].length; z++)
-                    sum += apriori[i][j][z];
+                for(int z = 0; z < apriori[i][j].length; z++) {
+                  sum += apriori[i][j][z];
+                }
                 double p = apriori[i][j][data.getCategoricalValue(j)];
                 logProb += Math.log(p/sum);
             }
@@ -199,8 +211,9 @@ public class NaiveBayesUpdateable extends BaseUpdateableClassifier
         
         double denom =MathTricks.logSumExp(logProbs, maxLogProg);
         
-        for(int i = 0; i < results.size(); i++)
-            results.setProb(i, exp(logProbs[i]-denom));
+        for(int i = 0; i < results.size(); i++) {
+          results.setProb(i, exp(logProbs[i]-denom));
+        }
         results.normalize();
         return results;
     }

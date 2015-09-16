@@ -62,8 +62,9 @@ public abstract class BaseDriftDetector<V> implements Cloneable, Serializable
         if(toCopy.history != null)
         {
             this.history = new ArrayDeque<V>(toCopy.history.size());
-            for(V v : toCopy.history)
-                this.history.add(v);
+            for(V v : toCopy.history) {
+              this.history.add(v);
+            }
         }
     }
     
@@ -113,12 +114,15 @@ public abstract class BaseDriftDetector<V> implements Cloneable, Serializable
     public void setMaxHistory(int maxHistory)
     {
         this.maxHistory = maxHistory;
-        if(history != null)
-            if (this.maxHistory == 0)
-                history.clear();
-            else
-                while (history.size() > maxHistory)
-                    history.removeFirst();
+        if(history != null) {
+          if (this.maxHistory == 0) {
+            history.clear();
+          } else {
+            while (history.size() > maxHistory) {
+              history.removeFirst();
+            }
+          }
+        }
     }
     
     /**
@@ -129,26 +133,28 @@ public abstract class BaseDriftDetector<V> implements Cloneable, Serializable
      */
     protected void addToHistory(V obj)
     {
-        if(maxHistory < 1)
-            return;
-        if(history == null)
-            if (maxHistory != Integer.MAX_VALUE)//we probably set it to a reasonable value
+        if(maxHistory < 1) {
+          return;
+        }
+        if(history == null) {
+          if (maxHistory != Integer.MAX_VALUE) {
+            try
             {
-                try
-                {
-                    history = new ArrayDeque<V>(maxHistory);
-                }
-                catch (Exception ex)
-                {
-                    //what is we cause one of the many OOM exceptiosn b/c initial history was too big?
-                    //AKA we googed on being helpful
-                    history = new ArrayDeque<V>();
-                }
+              history = new ArrayDeque<V>(maxHistory);
             }
-            else
-                history = new ArrayDeque<V>();
-        if(history.size() == maxHistory)//make room
-            history.removeFirst();
+            catch (Exception ex)
+            {
+              //what is we cause one of the many OOM exceptiosn b/c initial history was too big?
+              //AKA we googed on being helpful
+              history = new ArrayDeque<V>();
+            }
+          } else {
+            history = new ArrayDeque<V>();
+          }
+        }
+        if(history.size() == maxHistory) {//make room
+          history.removeFirst();
+        }
         history.add(obj);
     }
    
@@ -157,8 +163,9 @@ public abstract class BaseDriftDetector<V> implements Cloneable, Serializable
      */
     public void clearHistory()
     {
-        if(history != null)
-            history.clear();
+        if(history != null) {
+          history.clear();
+        }
     }
     
     /**
@@ -171,8 +178,9 @@ public abstract class BaseDriftDetector<V> implements Cloneable, Serializable
      */
     public int getDriftAge()
     {
-        if(driftStart == -1)
-            return -1;
+        if(driftStart == -1) {
+          return -1;
+        }
         return time-driftStart;
     }
     

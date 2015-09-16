@@ -77,8 +77,9 @@ public class RandomForestTest
             RegressionDataSet test = FixedProblems.getLinearRegression(100, new XORWOW());
 
             RegressionModelEvaluation rme = new RegressionModelEvaluation(instance, train);
-            if(useCatFeatures)
-                rme.setDataTransformProcess(new DataTransformProcess(new NumericalToHistogram.NumericalToHistogramTransformFactory()));
+            if(useCatFeatures) {
+              rme.setDataTransformProcess(new DataTransformProcess(new NumericalToHistogram.NumericalToHistogramTransformFactory()));
+            }
             rme.evaluateTestSet(test);
             
             assertTrue(rme.getMeanError() <= test.getTargetValues().mean()*2.5);
@@ -100,8 +101,9 @@ public class RandomForestTest
             RegressionDataSet test = FixedProblems.getLinearRegression(100, new XORWOW());
 
             RegressionModelEvaluation rme = new RegressionModelEvaluation(instance, train, ex);
-            if(useCatFeatures)
-                rme.setDataTransformProcess(new DataTransformProcess(new NumericalToHistogram.NumericalToHistogramTransformFactory()));
+            if(useCatFeatures) {
+              rme.setDataTransformProcess(new DataTransformProcess(new NumericalToHistogram.NumericalToHistogramTransformFactory()));
+            }
             rme.evaluateTestSet(test);
 
             assertTrue(rme.getMeanError() <= test.getTargetValues().mean()*2.5);
@@ -125,8 +127,9 @@ public class RandomForestTest
             ClassificationDataSet test = FixedProblems.getCircles(100, 1.0, 10.0, 100.0);
 
             ClassificationModelEvaluation cme = new ClassificationModelEvaluation(instance, train, ex);
-            if(useCatFeatures)
-                cme.setDataTransformProcess(new DataTransformProcess(new NumericalToHistogram.NumericalToHistogramTransformFactory()));
+            if(useCatFeatures) {
+              cme.setDataTransformProcess(new DataTransformProcess(new NumericalToHistogram.NumericalToHistogramTransformFactory()));
+            }
             cme.evaluateTestSet(test);
 
             assertTrue(cme.getErrorRate() <= 0.001);
@@ -147,8 +150,9 @@ public class RandomForestTest
             ClassificationDataSet test = FixedProblems.getCircles(100, 1.0, 10.0, 100.0);
 
             ClassificationModelEvaluation cme = new ClassificationModelEvaluation(instance, train);
-            if(useCatFeatures)
-                cme.setDataTransformProcess(new DataTransformProcess(new NumericalToHistogram.NumericalToHistogramTransformFactory()));
+            if(useCatFeatures) {
+              cme.setDataTransformProcess(new DataTransformProcess(new NumericalToHistogram.NumericalToHistogramTransformFactory()));
+            }
             cme.evaluateTestSet(test);
 
             assertTrue(cme.getErrorRate() <= 0.001);
@@ -177,15 +181,18 @@ public class RandomForestTest
             instance.trainC(t1);
 
             RandomForest result = instance.clone();
-            for(int i = 0; i < t1.getSampleSize(); i++)
-                assertEquals(t1.getDataPointCategory(i), result.classify(t1.getDataPoint(i)).mostLikely());
+            for(int i = 0; i < t1.getSampleSize(); i++) {
+              assertEquals(t1.getDataPointCategory(i), result.classify(t1.getDataPoint(i)).mostLikely());
+            }
             result.trainC(t2);
 
-            for(int i = 0; i < t1.getSampleSize(); i++)
-                assertEquals(t1.getDataPointCategory(i), instance.classify(t1.getDataPoint(i)).mostLikely());
+            for(int i = 0; i < t1.getSampleSize(); i++) {
+              assertEquals(t1.getDataPointCategory(i), instance.classify(t1.getDataPoint(i)).mostLikely());
+            }
 
-            for(int i = 0; i < t2.getSampleSize(); i++)
-                assertEquals(t2.getDataPointCategory(i), result.classify(t2.getDataPoint(i)).mostLikely());
+            for(int i = 0; i < t2.getSampleSize(); i++) {
+              assertEquals(t2.getDataPointCategory(i), result.classify(t2.getDataPoint(i)).mostLikely());
+            }
         }
     }
     

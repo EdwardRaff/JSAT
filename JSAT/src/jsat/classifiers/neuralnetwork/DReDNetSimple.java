@@ -63,9 +63,11 @@ public class DReDNetSimple implements Classifier, Parameterized
      */
     public void setHiddenSizes(int[] hiddenSizes)
     {
-        for(int i = 0; i < hiddenSizes.length; i++)
-            if(hiddenSizes[i] <= 0)
-                throw new IllegalArgumentException("Hidden layer " + i + " must contain a positive number of neurons, not " + hiddenSizes[i]);
+        for(int i = 0; i < hiddenSizes.length; i++) {
+          if (hiddenSizes[i] <= 0) {
+            throw new IllegalArgumentException("Hidden layer " + i + " must contain a positive number of neurons, not " + hiddenSizes[i]);
+          }
+        }
         this.hiddenSizes = Arrays.copyOf(hiddenSizes, hiddenSizes.length);
     }
 
@@ -103,8 +105,9 @@ public class DReDNetSimple implements Classifier, Parameterized
      */
     public void setEpochs(int epochs)
     {
-        if(epochs <= 0)
-            throw new IllegalArgumentException("Number of epochs must be positive");
+        if(epochs <= 0) {
+          throw new IllegalArgumentException("Number of epochs must be positive");
+        }
         this.epochs = epochs;
     }
 
@@ -160,10 +163,11 @@ public class DReDNetSimple implements Classifier, Parameterized
                 }
                 
                 double localErr;
-                if(threadPool != null)
-                    localErr = network.updateMiniBatch(Xmini, Ymini, threadPool);
-                else
-                    localErr = network.updateMiniBatch(Xmini, Ymini);
+                if(threadPool != null) {
+                  localErr = network.updateMiniBatch(Xmini, Ymini, threadPool);
+                } else {
+                  localErr = network.updateMiniBatch(Xmini, Ymini);
+                }
                 epochError += localErr;
             }
             long end = System.currentTimeMillis();
@@ -178,14 +182,16 @@ public class DReDNetSimple implements Classifier, Parameterized
         network = new SGDNetworkTrainer();
         int[] sizes = new int[hiddenSizes.length+2];
         sizes[0] = dataSet.getNumNumericalVars();
-        for(int i = 0; i < hiddenSizes.length; i++)
-            sizes[i+1] = hiddenSizes[i];
+        for(int i = 0; i < hiddenSizes.length; i++) {
+          sizes[i+1] = hiddenSizes[i];
+        }
         sizes[sizes.length-1] = dataSet.getClassSize();
         network.setLayerSizes(sizes);
         
         List<ActivationLayer> activations = new ArrayList<ActivationLayer>(hiddenSizes.length+2);
-        for(int size : hiddenSizes)
-            activations.add(new ReLU());
+        for(int size : hiddenSizes) {
+          activations.add(new ReLU());
+        }
         activations.add(new SoftmaxLayer());
         network.setLayersActivation(activations);
         network.setRegularizer(new Max2NormRegularizer(25)); 
@@ -215,8 +221,9 @@ public class DReDNetSimple implements Classifier, Parameterized
     public DReDNetSimple clone()
     {
         DReDNetSimple clone = new DReDNetSimple(hiddenSizes);
-        if(this.network != null)
-            clone.network = this.network.clone();
+        if(this.network != null) {
+          clone.network = this.network.clone();
+        }
         clone.batchSize = this.batchSize;
         clone.epochs = this.epochs;
         return clone;

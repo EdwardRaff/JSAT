@@ -107,12 +107,14 @@ public class StochasticMultinomialLogisticRegression implements Classifier, Para
         if(toClone.B != null)
         {
             this.B = new Vec[toClone.B.length];
-            for(int i = 0; i < toClone.B.length; i++)
-                this.B[i] = toClone.B[i].clone();
+            for(int i = 0; i < toClone.B.length; i++) {
+              this.B[i] = toClone.B[i].clone();
+            }
         }
         
-        if(toClone.biases != null)
-            this.biases = Arrays.copyOf(toClone.biases, toClone.biases.length);
+        if(toClone.biases != null) {
+          this.biases = Arrays.copyOf(toClone.biases, toClone.biases.length);
+        }
     }
     
     /**
@@ -290,8 +292,9 @@ public class StochasticMultinomialLogisticRegression implements Classifier, Para
      */
     public void setEpochs(int epochs)
     {
-        if(epochs <= 0)
-            throw new IllegalArgumentException("Number of epochs must be positive");
+        if(epochs <= 0) {
+          throw new IllegalArgumentException("Number of epochs must be positive");
+        }
         this.epochs = epochs;
     }
 
@@ -314,8 +317,9 @@ public class StochasticMultinomialLogisticRegression implements Classifier, Para
      */
     public void setAlpha(double alpha)
     {
-        if(alpha < 0 || Double.isNaN(alpha) || Double.isInfinite(alpha))
-            throw new IllegalArgumentException("Extra parameter must be non negative, not " + alpha);
+        if(alpha < 0 || Double.isNaN(alpha) || Double.isInfinite(alpha)) {
+          throw new IllegalArgumentException("Extra parameter must be non negative, not " + alpha);
+        }
         this.alpha = alpha;
     }
 
@@ -362,8 +366,9 @@ public class StochasticMultinomialLogisticRegression implements Classifier, Para
      */
     public void setInitialLearningRate(double initialLearningRate)
     {
-        if(initialLearningRate <= 0 || Double.isInfinite(initialLearningRate) || Double.isNaN(initialLearningRate))
-            throw new IllegalArgumentException("Learning rate must be a positive constant, not " + initialLearningRate);
+        if(initialLearningRate <= 0 || Double.isInfinite(initialLearningRate) || Double.isNaN(initialLearningRate)) {
+          throw new IllegalArgumentException("Learning rate must be a positive constant, not " + initialLearningRate);
+        }
         this.initialLearningRate = initialLearningRate;
     }
 
@@ -404,8 +409,9 @@ public class StochasticMultinomialLogisticRegression implements Classifier, Para
      */
     public void setRegularization(double regularization)
     {
-        if(regularization < 0 || Double.isNaN(regularization) || Double.isInfinite(regularization))
-            throw new IllegalArgumentException("Regualrization must be a non negative constant, not " + regularization);
+        if(regularization < 0 || Double.isNaN(regularization) || Double.isInfinite(regularization)) {
+          throw new IllegalArgumentException("Regualrization must be a non negative constant, not " + regularization);
+        }
         this.regularization = regularization;
     }
 
@@ -505,19 +511,21 @@ public class StochasticMultinomialLogisticRegression implements Classifier, Para
     @Override
     public Vec getRawWeight(int index)
     {
-        if(index == B.length)
-            return new ConstantVector(0, B[0].length());
-        else
-            return B[index];
+        if(index == B.length) {
+          return new ConstantVector(0, B[0].length());
+        } else {
+          return B[index];
+        }
     }
 
     @Override
     public double getBias(int index)
     {
-        if(index == biases.length)
-            return 0;
-        else
-            return biases[index];
+        if(index == biases.length) {
+          return 0;
+        } else {
+          return biases[index];
+        }
     }
     
     @Override
@@ -529,14 +537,16 @@ public class StochasticMultinomialLogisticRegression implements Classifier, Para
     @Override
     public CategoricalResults classify(DataPoint data)
     {
-        if(B == null)
-            throw new UntrainedModelException("Model has not yet been trained");
+        if(B == null) {
+          throw new UntrainedModelException("Model has not yet been trained");
+        }
         final Vec x = data.getNumericalValues();
 
         double[] probs = new double[B.length + 1];
 
-        for (int i = 0; i < B.length; i++)
-            probs[i] = x.dot(B[i])+biases[i];
+        for (int i = 0; i < B.length; i++) {
+          probs[i] = x.dot(B[i])+biases[i];
+        }
         probs[B.length] = 1;
         MathTricks.softmax(probs, false);
 
@@ -555,12 +565,14 @@ public class StochasticMultinomialLogisticRegression implements Classifier, Para
         final int n = dataSet.getSampleSize();
         final double N = n;
         final int d = dataSet.getNumNumericalVars();
-        if(d < 1)
-            throw new FailedToFitException("Data set has no numeric attributes to train on");
+        if(d < 1) {
+          throw new FailedToFitException("Data set has no numeric attributes to train on");
+        }
         B = new Vec[dataSet.getClassSize()-1];
         biases = new double[B.length];
-        for(int i = 0; i < B.length; i++)
-            B[i] = new DenseVector(d);
+        for(int i = 0; i < B.length; i++) {
+          B[i] = new DenseVector(d);
+        }
         
         IntList randOrder = new IntList(n);
         ListUtils.addRange(randOrder, 0, n, 1);
@@ -614,8 +626,9 @@ public class StochasticMultinomialLogisticRegression implements Classifier, Para
                     final Vec x_j = dataSet.getDataPoint(j).getNumericalValues();
 
                     //compute softmax
-                    for (int i = 0; i < B.length; i++)
-                        zs[i] = x_j.dot(B[i]) + biases[i];
+                    for (int i = 0; i < B.length; i++) {
+                      zs[i] = x_j.dot(B[i]) + biases[i];
+                    }
 
                     MathTricks.softmax(zs, true);
 
@@ -626,22 +639,25 @@ public class StochasticMultinomialLogisticRegression implements Classifier, Para
                         for (IndexValue iv : x_j)
                         {
                             int i = iv.getIndex();
-                            if(u[i] == 0)
-                                continue;
+                            if(u[i] == 0) {
+                              continue;
+                            }
                             double etaRegScaled = etaReg * (u[i] - q) / N;
                             for (Vec b : B)
                             {
                                 double bVal = b.get(i);
                                 double bNewVal = bVal;
-                                if (standardized)
-                                    bNewVal += etaRegScaled * prior.gradientError(bVal * stdDevs.get(i) - means.get(i), 1, alpha);
-                                else
-                                    bNewVal += etaRegScaled * prior.gradientError(bVal, 1, alpha);
+                                if (standardized) {
+                                  bNewVal += etaRegScaled * prior.gradientError(bVal * stdDevs.get(i) - means.get(i), 1, alpha);
+                                } else {
+                                  bNewVal += etaRegScaled * prior.gradientError(bVal, 1, alpha);
+                                }
 
-                                if (clipping && signum(bVal) != signum(bNewVal))
-                                    b.set(i, 0);
-                                else
-                                    b.set(i, bNewVal);
+                                if (clipping && signum(bVal) != signum(bNewVal)) {
+                                  b.set(i, 0);
+                                } else {
+                                  b.set(i, bNewVal);
+                                }
                             }
                             u[i] = q;
                         }
@@ -654,12 +670,14 @@ public class StochasticMultinomialLogisticRegression implements Classifier, Para
                         Vec b = B[c];
                         double p_c = zs[c];
                         double log_pc = log(p_c);
-                        if (!Double.isInfinite(log_pc))
-                            logLike += log_pc;
+                        if (!Double.isInfinite(log_pc)) {
+                          logLike += log_pc;
+                        }
                         double errScaling = (c == c_j ? 1 : 0) - p_c;
                         b.mutableAdd(batchFrac*eta * errScaling, x_j);
-                        if (useBias)
-                            biases[c] += batchFrac*eta * errScaling + etaReg * prior.gradientError(biases[c] - 1, 1, alpha);
+                        if (useBias) {
+                          biases[c] += batchFrac*eta * errScaling + etaReg * prior.gradientError(biases[c] - 1, 1, alpha);
+                        }
                     }
                 }
                 
@@ -673,44 +691,51 @@ public class StochasticMultinomialLogisticRegression implements Classifier, Para
                 {
                     if (u[i] - q == 0)
                     {
-                        for (Vec b : B)
-                            if (standardized)
-                                logLike += regularization*prior.logProb(b.get(i) * stdDevs.get(i) - means.get(i), 1, alpha);
-                            else
-                                logLike += regularization*prior.logProb(b.get(i), 1, alpha);
+                        for (Vec b : B) {
+                          if (standardized) {
+                            logLike += regularization*prior.logProb(b.get(i) * stdDevs.get(i) - means.get(i), 1, alpha);
+                          } else {
+                            logLike += regularization*prior.logProb(b.get(i), 1, alpha);
+                          }
+                        }
                         continue;
                     }
                     double etaRegScaled = etaReg * (u[i] - q) / N;
                     for (Vec b : B)
                     {
                         double bVal = b.get(i);
-                        if (bVal == 0.0)
-                            continue;
+                        if (bVal == 0.0) {
+                          continue;
+                        }
                         double bNewVal = bVal;
-                        if (standardized)
-                            bNewVal += etaRegScaled * prior.gradientError(bVal * stdDevs.get(i) - means.get(i), 1, alpha);
-                        else
-                            bNewVal += etaRegScaled * prior.gradientError(bVal, 1, alpha);
+                        if (standardized) {
+                          bNewVal += etaRegScaled * prior.gradientError(bVal * stdDevs.get(i) - means.get(i), 1, alpha);
+                        } else {
+                          bNewVal += etaRegScaled * prior.gradientError(bVal, 1, alpha);
+                        }
                         
-                        if (clipping && signum(bVal) != signum(bNewVal))
-                            b.set(i, 0);
-                        else
-                            b.set(i, bNewVal);
+                        if (clipping && signum(bVal) != signum(bNewVal)) {
+                          b.set(i, 0);
+                        } else {
+                          b.set(i, bNewVal);
+                        }
 
-                        if(standardized)
-                            logLike += regularization*prior.logProb(b.get(i) * stdDevs.get(i) - means.get(i), 1, alpha);
-                        else
-                            logLike += regularization*prior.logProb(b.get(i), 1, alpha);
+                        if(standardized) {
+                          logLike += regularization*prior.logProb(b.get(i) * stdDevs.get(i) - means.get(i), 1, alpha);
+                        } else {
+                          logLike += regularization*prior.logProb(b.get(i), 1, alpha);
+                        }
                     }
                     u[i] = q;
                 }
             }
             
             double dif = abs(prevLogLike-logLike)/(abs(prevLogLike)+abs(logLike));
-            if(dif < tolerance)
-                break;
-            else
-                prevLogLike = logLike;
+            if(dif < tolerance) {
+              break;
+            } else {
+              prevLogLike = logLike;
+            }
             
         }
     }

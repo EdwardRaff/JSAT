@@ -65,12 +65,13 @@ public abstract class DataSet<Type extends DataSet>
     {
         name = name.toLowerCase();
         
-        if(numericalVariableNames.contains(name))
-            return false;
-        else if(i < getNumNumericalVars() && i >= 0)
-            numericalVariableNames.set(i, name);
-        else
-            return false;
+        if(numericalVariableNames.contains(name)) {
+          return false;
+        } else if(i < getNumNumericalVars() && i >= 0) {
+          numericalVariableNames.set(i, name);
+        } else {
+          return false;
+        }
         
         return true;
     }
@@ -82,10 +83,11 @@ public abstract class DataSet<Type extends DataSet>
      */
     public String getNumericName(int i )
     {
-        if(i < getNumNumericalVars() && i >= 0)
-            return numericalVariableNames == null ? null : numericalVariableNames.get(i);
-        else
-            throw new IndexOutOfBoundsException("Can not acces variable for invalid index  " + i );
+        if(i < getNumNumericalVars() && i >= 0) {
+          return numericalVariableNames == null ? null : numericalVariableNames.get(i);
+        } else {
+          throw new IndexOutOfBoundsException("Can not acces variable for invalid index  " + i );
+        }
     }
     
     /**
@@ -95,10 +97,11 @@ public abstract class DataSet<Type extends DataSet>
      */
     public String getCategoryName(int i )
     {
-        if(i < getNumCategoricalVars() && i >= 0)
-            return categories[i].getCategoryName();
-        else
-            throw new IndexOutOfBoundsException("Can not acces variable for invalid index  " + i );
+        if(i < getNumCategoricalVars() && i >= 0) {
+          return categories[i].getCategoryName();
+        } else {
+          throw new IndexOutOfBoundsException("Can not acces variable for invalid index  " + i );
+        }
     }
         
     /**
@@ -124,10 +127,11 @@ public abstract class DataSet<Type extends DataSet>
      */
     public void applyTransform(DataTransform dt, ExecutorService ex)
     {
-        if(ex == null || ex instanceof FakeExecutor)
-            applyTransform(dt);
-        else
-            applyTransform(dt, false, ex);
+        if(ex == null || ex instanceof FakeExecutor) {
+          applyTransform(dt);
+        } else {
+          applyTransform(dt, false, ex);
+        }
     }
 
     /**
@@ -159,8 +163,9 @@ public abstract class DataSet<Type extends DataSet>
     public void applyTransform(final DataTransform dt, boolean mutate, ExecutorService ex)
     {
         final CountDownLatch latch = new CountDownLatch(SystemInfo.LogicalCores);
-        if(ex == null)
-            ex = new FakeExecutor();
+        if(ex == null) {
+          ex = new FakeExecutor();
+        }
         
         if (mutate && dt instanceof InPlaceTransform)
         {
@@ -173,28 +178,28 @@ public abstract class DataSet<Type extends DataSet>
                     @Override
                     public void run()
                     {
-                        for (int i = ID; i < getSampleSize(); i+=SystemInfo.LogicalCores)
-                            ipt.mutableTransform(getDataPoint(i));
+                        for (int i = ID; i < getSampleSize(); i+=SystemInfo.LogicalCores) {
+                          ipt.mutableTransform(getDataPoint(i));
+                        }
                         latch.countDown();
                     }
                 });
             }
         }
-        else
-            for(int id = 0; id < SystemInfo.LogicalCores; id++)
-            {
-                final int ID = id;
-                ex.submit(new Runnable() 
-                {
-                    @Override
-                    public void run()
-                    {
-                        for (int i = ID; i < getSampleSize(); i+=SystemInfo.LogicalCores)
-                            setDataPoint(i, dt.transform(getDataPoint(i)));
-                        latch.countDown();
-                    }
-                });
-            }
+        else {
+          for (int id = 0; id < SystemInfo.LogicalCores; id++) {
+            final int ID = id;
+            ex.submit(new Runnable() {
+              @Override
+              public void run() {
+                for (int i = ID; i < getSampleSize(); i+=SystemInfo.LogicalCores) {
+                  setDataPoint(i, dt.transform(getDataPoint(i)));
+                }
+                latch.countDown();
+              }
+            });
+          }
+        }
         try
         {
             latch.await();
@@ -205,8 +210,9 @@ public abstract class DataSet<Type extends DataSet>
             if (this.numericalVariableNames != null)
             {
                 this.numericalVariableNames.clear();
-                for (int i = 0; i < getNumNumericalVars(); i++)
-                    numericalVariableNames.add("TN" + (i + 1));
+                for (int i = 0; i < getNumNumericalVars(); i++) {
+                  numericalVariableNames.add("TN" + (i + 1));
+                }
             }
         }
         catch (InterruptedException ex1)
@@ -246,8 +252,9 @@ public abstract class DataSet<Type extends DataSet>
     public OnLineStatistics[] getOnlineColumnStats(boolean useWeights)
     {
         OnLineStatistics[] stats = new OnLineStatistics[numNumerVals];
-        for(int i = 0; i < stats.length; i++)
-            stats[i] = new OnLineStatistics();
+        for(int i = 0; i < stats.length; i++) {
+          stats[i] = new OnLineStatistics();
+        }
         
         double totalSoW = 0.0;
         
@@ -257,17 +264,20 @@ public abstract class DataSet<Type extends DataSet>
             totalSoW += dp.getWeight();
             
             Vec v = dp.getNumericalValues();
-            for(IndexValue iv : v)
-                if(useWeights)
-                    stats[iv.getIndex()].add(iv.getValue(), dp.getWeight());
-                else
-                    stats[iv.getIndex()].add(iv.getValue());
+            for(IndexValue iv : v) {
+              if (useWeights) {
+                stats[iv.getIndex()].add(iv.getValue(), dp.getWeight());
+              } else {
+                stats[iv.getIndex()].add(iv.getValue());
+              }
+            }
         }
         
         double expected = useWeights ? totalSoW : getSampleSize();
         //Add zero counts back in
-        for(OnLineStatistics stat : stats)
-            stat.add(0.0, expected-stat.getSumOfWeights());
+        for(OnLineStatistics stat : stats) {
+          stat.add(0.0, expected-stat.getSumOfWeights());
+        }
         
         return stats;
     }
@@ -284,8 +294,9 @@ public abstract class DataSet<Type extends DataSet>
     {
         OnLineStatistics stats = new OnLineStatistics();
         double N = getNumNumericalVars();;
-        for(int i = 0; i < getSampleSize(); i++)
-            stats.add(getDataPoint(i).getNumericalValues().nnz()/N);
+        for(int i = 0; i < getSampleSize(); i++) {
+          stats.add(getDataPoint(i).getNumericalValues().nnz()/N);
+        }
         return stats;
     }
     
@@ -397,8 +408,9 @@ public abstract class DataSet<Type extends DataSet>
      */
     public List<Type> randomSplit(Random rand, double... splits)
     {
-        if(splits.length < 1)
-            throw new IllegalArgumentException("Input array of split fractions must be non-empty");
+        if(splits.length < 1) {
+          throw new IllegalArgumentException("Input array of split fractions must be non-empty");
+        }
         IntList randOrder = new IntList(getSampleSize());
         ListUtils.addRange(randOrder, 0, getSampleSize(), 1);
         Collections.shuffle(randOrder, rand);
@@ -409,8 +421,9 @@ public abstract class DataSet<Type extends DataSet>
         for(int i = 0; i < splits.length; i++)
         {
             sum += splits[i];
-            if(sum >= 1.001/*some flex room for numeric issues*/)
-                throw new IllegalArgumentException("Input splits sum is greater than 1 by index " + i + " reaching a sum of " + sum);
+            if(sum >= 1.001/*some flex room for numeric issues*/) {
+              throw new IllegalArgumentException("Input splits sum is greater than 1 by index " + i + " reaching a sum of " + sum);
+            }
             stops[i] = (int) Math.round(sum*randOrder.size());
         }
         
@@ -471,8 +484,9 @@ public abstract class DataSet<Type extends DataSet>
     public List<DataPoint> getDataPoints()
     {
         List<DataPoint> list = new ArrayList<DataPoint>(getSampleSize());
-        for(int i = 0; i < getSampleSize(); i++)
-            list.add(getDataPoint(i));
+        for(int i = 0; i < getSampleSize(); i++) {
+          list.add(getDataPoint(i));
+        }
         return list;
     }
     
@@ -483,8 +497,9 @@ public abstract class DataSet<Type extends DataSet>
     public List<Vec> getDataVectors()
     {
         List<Vec> vecs = new ArrayList<Vec>(getSampleSize());
-        for(int i = 0; i < getSampleSize(); i++)
-            vecs.add(getDataPoint(i).getNumericalValues());
+        for(int i = 0; i < getSampleSize(); i++) {
+          vecs.add(getDataPoint(i).getNumericalValues());
+        }
         return vecs;
     }
     
@@ -500,25 +515,29 @@ public abstract class DataSet<Type extends DataSet>
      */
     public Vec getNumericColumn(int i )
     {
-        if(i < 0 || i >= getNumNumericalVars())
-            throw new IndexOutOfBoundsException("There is no index for column " + i);
+        if(i < 0 || i >= getNumNumericalVars()) {
+          throw new IndexOutOfBoundsException("There is no index for column " + i);
+        }
 
         SoftReference<Vec> cachedRef = columnVecCache.get(i);
         if (cachedRef != null)
         {
             Vec v = cachedRef.get();
-            if (v != null)
-                return v;
+            if (v != null) {
+              return v;
+            }
         }
         //no cache, so make it
         DenseVector dv = new DenseVector(getSampleSize());
-        for (int j = 0; j < getSampleSize(); j++)
-            dv.set(j, getDataPoint(j).getNumericalValues().get(i));
+        for (int j = 0; j < getSampleSize(); j++) {
+          dv.set(j, getDataPoint(j).getNumericalValues().get(i));
+        }
         Vec toRet;
-        if (getSparsityStats().getMean() < 0.6)
-            toRet = new SparseVector(dv);
-        else
-            toRet = dv;
+        if (getSparsityStats().getMean() < 0.6) {
+          toRet = new SparseVector(dv);
+        } else {
+          toRet = dv;
+        }
         columnVecCache.put(i, new SoftReference<Vec>(toRet));
         return toRet;
     }
@@ -571,24 +590,22 @@ public abstract class DataSet<Type extends DataSet>
         Vec[] cols = new Vec[getNumNumericalVars()];
         boolean[] dontSet = new boolean [cols.length];
         Arrays.fill(dontSet, false);
-        for(int i = 0; i < cols.length; i++)
-            if(!skipColumns.contains(i))
-            {
-                SoftReference<Vec> cachedRef = columnVecCache.get(i);
-                if(cachedRef != null )
-                {
-                    Vec v = cachedRef.get();
-                    if(v != null)
-                    {
-                        cols[i] = v;
-                        dontSet[i] = true;
-                    }
-                    else
-                        columnVecCache.put(i, new SoftReference<Vec>(cols[i] = sparse ? new SparseVector(getSampleSize()) : new DenseVector(getSampleSize())));
-                }
-                else
-                    columnVecCache.put(i, new SoftReference<Vec>(cols[i] = sparse ? new SparseVector(getSampleSize()) : new DenseVector(getSampleSize())));
+        for(int i = 0; i < cols.length; i++) {
+          if (!skipColumns.contains(i)) {
+            SoftReference<Vec> cachedRef = columnVecCache.get(i);
+            if (cachedRef != null) {
+              Vec v = cachedRef.get();
+              if (v != null) {
+                cols[i] = v;
+                dontSet[i] = true;
+              } else {
+                columnVecCache.put(i, new SoftReference<Vec>(cols[i] = sparse ? new SparseVector(getSampleSize()) : new DenseVector(getSampleSize())));
+              }
+            } else {
+              columnVecCache.put(i, new SoftReference<Vec>(cols[i] = sparse ? new SparseVector(getSampleSize()) : new DenseVector(getSampleSize())));
             }
+          }
+        }
         for(int i = 0; i < getSampleSize(); i++)
         {
             Vec v = getDataPoint(i).getNumericalValues();
@@ -596,8 +613,9 @@ public abstract class DataSet<Type extends DataSet>
             for(IndexValue iv : v)
             {
                 int col = iv.getIndex();
-                if(cols[col] != null && !dontSet[col])
-                    cols[col].set(i, iv.getValue());
+                if(cols[col] != null && !dontSet[col]) {
+                  cols[col].set(i, iv.getValue());
+                }
             }
         }
             
@@ -619,8 +637,9 @@ public abstract class DataSet<Type extends DataSet>
         for(int i = 0; i < getSampleSize(); i++)
         {
             Vec row = getDataPoint(i).getNumericalValues();
-            for(int j = 0; j < row.length(); j++)
-                matrix.set(i, j, row.get(j));
+            for(int j = 0; j < row.length(); j++) {
+              matrix.set(i, j, row.get(j));
+            }
         }
         
         return matrix;
@@ -694,10 +713,11 @@ public abstract class DataSet<Type extends DataSet>
         for(int i = 0; i < getSampleSize(); i++)
         {
             Vec v = getDataPoint(i).getNumericalValues();
-            if(v.isSparse())
-                stats.add(v.nnz() / (double)v.length());
-            else
-                stats.add(1.0);
+            if(v.isSparse()) {
+              stats.add(v.nnz() / (double)v.length());
+            } else {
+              stats.add(1.0);
+            }
         }
         
         return stats;

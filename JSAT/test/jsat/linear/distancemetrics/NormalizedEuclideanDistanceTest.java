@@ -71,8 +71,9 @@ public class NormalizedEuclideanDistanceTest
     public void setUp()
     {
         trueCov = new DenseMatrix(5, 5);
-        for(int i = 0; i < trueCov.rows(); i++)
-            trueCov.set(i, i, i+1.0);
+        for(int i = 0; i < trueCov.rows(); i++) {
+          trueCov.set(i, i, i+1.0);
+        }
         
         zero = new DenseVector(5);
         
@@ -83,17 +84,20 @@ public class NormalizedEuclideanDistanceTest
         half.mutableAdd(0.5);
         
         inc = new DenseVector(5);
-        for(int i = 0; i < inc.length(); i++)
-            inc.set(i, i);
+        for(int i = 0; i < inc.length(); i++) {
+          inc.set(i, i);
+        }
         
         vecs = Arrays.asList(zero, ones, half, inc);
         Vec trueWeight = DenseVector.toDenseVec(1, 1.0/(2*2), 1.0/(3*3), 1.0/(4*4), 1.0/(5*5));
         WeightedEuclideanDistance weighted = new WeightedEuclideanDistance(trueWeight);
         
         expected = new double[4][4];
-        for (int i = 0; i < expected.length; i++)
-            for (int j = 0; j < expected.length; j++)
-                expected[i][j] = weighted.dist(vecs.get(i), vecs.get(j));
+        for (int i = 0; i < expected.length; i++) {
+          for (int j = 0; j < expected.length; j++) {
+            expected[i][j] = weighted.dist(vecs.get(i), vecs.get(j));
+          }
+        }
         
     }
 
@@ -117,8 +121,9 @@ public class NormalizedEuclideanDistanceTest
         if(cache != null)
         {
             assertEquals(cache.size(), cache2.size());
-            for(int i = 0; i < cache.size(); i++)
-                assertEquals(cache.get(i), cache2.get(i), 0.0);
+            for(int i = 0; i < cache.size(); i++) {
+              assertEquals(cache.get(i), cache2.get(i), 0.0);
+            }
             assertTrue(dist.supportsAcceleration());
         }
         else
@@ -139,22 +144,26 @@ public class NormalizedEuclideanDistanceTest
         for (int rounds = 0; rounds < 3; rounds++)
         {
             //some code so that dense on dense, dense on sparse, and sparse on sparse all get run
-            if (rounds == 1)
-                for (int i = 0; i < vecs.size(); i += 2)
-                    vecs.set(i, new SparseVector(vecs.get(i)));
-            else if (rounds == 2)
-                for (int i = 1; i < vecs.size(); i += 2)
-                    vecs.set(i, new SparseVector(vecs.get(i)));
+            if (rounds == 1) {
+              for (int i = 0; i < vecs.size(); i += 2) {
+                vecs.set(i, new SparseVector(vecs.get(i)));
+              }
+            } else if (rounds == 2) {
+              for (int i = 1; i < vecs.size(); i += 2) {
+                vecs.set(i, new SparseVector(vecs.get(i)));
+              }
+            }
             
-            for (int i = 0; i < vecs.size(); i++)
-                for (int j = 0; j < vecs.size(); j++)
-                {
-                    NormalizedEuclideanDistance d = dist.clone();
-                    assertEqualsRelDiff(expected[i][j], d.dist(vecs.get(i), vecs.get(j)), 1e-1);
-                    assertEqualsRelDiff(expected[i][j], d.dist(i, j, vecs, cache), 1e-1);
-                    assertEqualsRelDiff(expected[i][j], d.dist(i, vecs.get(j), vecs, cache), 1e-1);
-                    assertEqualsRelDiff(expected[i][j], d.dist(i, vecs.get(j), dist.getQueryInfo(vecs.get(j)), vecs, cache), 1e-1);
-                }
+            for (int i = 0; i < vecs.size(); i++) {
+              for (int j = 0; j < vecs.size(); j++)
+              {
+                NormalizedEuclideanDistance d = dist.clone();
+                assertEqualsRelDiff(expected[i][j], d.dist(vecs.get(i), vecs.get(j)), 1e-1);
+                assertEqualsRelDiff(expected[i][j], d.dist(i, j, vecs, cache), 1e-1);
+                assertEqualsRelDiff(expected[i][j], d.dist(i, vecs.get(j), vecs, cache), 1e-1);
+                assertEqualsRelDiff(expected[i][j], d.dist(i, vecs.get(j), dist.getQueryInfo(vecs.get(j)), vecs, cache), 1e-1);
+              }
+            }
         }
     }
     
@@ -173,8 +182,9 @@ public class NormalizedEuclideanDistanceTest
         if(cache != null)
         {
             assertEquals(cache.size(), cache2.size());
-            for(int i = 0; i < cache.size(); i++)
-                assertEquals(cache.get(i), cache2.get(i), 0.0);
+            for(int i = 0; i < cache.size(); i++) {
+              assertEquals(cache.get(i), cache2.get(i), 0.0);
+            }
             assertTrue(dist.supportsAcceleration());
         }
         else
@@ -196,22 +206,26 @@ public class NormalizedEuclideanDistanceTest
         for(int rounds = 0; rounds < 3; rounds++)
         {
             //some code so that dense on dense, dense on sparse, and sparse on sparse all get run
-            if(rounds == 1)
-                for(int i = 0; i <vecs.size(); i+=2)
-                    vecs.set(i, new SparseVector(vecs.get(i)));
-            else if(rounds == 2)
-                for(int i = 1; i <vecs.size(); i+=2)
-                    vecs.set(i, new SparseVector(vecs.get(i)));
+            if(rounds == 1) {
+              for (int i = 0; i <vecs.size(); i+=2) {
+                vecs.set(i, new SparseVector(vecs.get(i)));
+              }
+            } else if(rounds == 2) {
+              for (int i = 1; i <vecs.size(); i+=2) {
+                vecs.set(i, new SparseVector(vecs.get(i)));
+              }
+            }
             
-            for (int i = 0; i < vecs.size(); i++)
-                for (int j = 0; j < vecs.size(); j++)
-                {
-                    NormalizedEuclideanDistance d = dist.clone();
-                    assertEqualsRelDiff(expected[i][j], d.dist(vecs.get(i), vecs.get(j)), 1e-1);
-                    assertEqualsRelDiff(expected[i][j], d.dist(i, j, vecs, cache), 1e-1);
-                    assertEqualsRelDiff(expected[i][j], d.dist(i, vecs.get(j), vecs, cache), 1e-1);
-                    assertEqualsRelDiff(expected[i][j], d.dist(i, vecs.get(j), dist.getQueryInfo(vecs.get(j)), vecs, cache), 1e-1);
-                }
+            for (int i = 0; i < vecs.size(); i++) {
+              for (int j = 0; j < vecs.size(); j++)
+              {
+                NormalizedEuclideanDistance d = dist.clone();
+                assertEqualsRelDiff(expected[i][j], d.dist(vecs.get(i), vecs.get(j)), 1e-1);
+                assertEqualsRelDiff(expected[i][j], d.dist(i, j, vecs, cache), 1e-1);
+                assertEqualsRelDiff(expected[i][j], d.dist(i, vecs.get(j), vecs, cache), 1e-1);
+                assertEqualsRelDiff(expected[i][j], d.dist(i, vecs.get(j), dist.getQueryInfo(vecs.get(j)), vecs, cache), 1e-1);
+              }
+            }
         }
     }
     @Test

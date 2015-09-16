@@ -26,8 +26,9 @@ public class MatrixStatistics
      */
     public static <V extends Vec> Vec meanVector(List<V> dataSet)
     {
-        if(dataSet.isEmpty())
-            throw new ArithmeticException("Can not compute the mean of zero data points");
+        if(dataSet.isEmpty()) {
+          throw new ArithmeticException("Can not compute the mean of zero data points");
+        }
         
         Vec mean = new DenseVector(dataSet.get(0).length());
         meanVector(mean, dataSet);
@@ -55,13 +56,15 @@ public class MatrixStatistics
      */
     public static <V extends Vec> void meanVector(Vec mean, List<V> dataSet)
     {
-        if(dataSet.isEmpty())
-            throw new ArithmeticException("Can not compute the mean of zero data points");
-        else if(dataSet.get(0).length() != mean.length())
-            throw new ArithmeticException("Vector dimensions do not agree");
+        if(dataSet.isEmpty()) {
+          throw new ArithmeticException("Can not compute the mean of zero data points");
+        } else if(dataSet.get(0).length() != mean.length()) {
+          throw new ArithmeticException("Vector dimensions do not agree");
+        }
 
-        for (Vec x : dataSet)
-            mean.mutableAdd(x);
+        for (Vec x : dataSet) {
+          mean.mutableAdd(x);
+        }
         mean.mutableDivide(dataSet.size());
     }
     
@@ -72,8 +75,9 @@ public class MatrixStatistics
      */
     public static void meanVector(Vec mean, DataSet dataSet)
     {
-        if(dataSet.getSampleSize() == 0)
-            throw new ArithmeticException("Can not compute the mean of zero data points");
+        if(dataSet.getSampleSize() == 0) {
+          throw new ArithmeticException("Can not compute the mean of zero data points");
+        }
         double sumOfWeights = 0;
         for(int i = 0; i < dataSet.getSampleSize(); i++)
         {
@@ -94,14 +98,15 @@ public class MatrixStatistics
     
     public static <V extends Vec> void covarianceMatrix(Vec mean, Matrix covariance, List<V> dataSet)
     {
-        if(!covariance.isSquare())
-            throw new ArithmeticException("Storage for covariance matrix must be square");
-        else if(covariance.rows() != mean.length())
-            throw new ArithmeticException("Covariance Matrix size and mean size do not agree");
-        else if(dataSet.isEmpty())
-            throw new ArithmeticException("No data points to compute covariance from");
-        else if(mean.length() != dataSet.get(0).length())
-            throw new ArithmeticException("Data vectors do not agree with mean and covariance matrix");
+        if(!covariance.isSquare()) {
+          throw new ArithmeticException("Storage for covariance matrix must be square");
+        } else if(covariance.rows() != mean.length()) {
+          throw new ArithmeticException("Covariance Matrix size and mean size do not agree");
+        } else if(dataSet.isEmpty()) {
+          throw new ArithmeticException("No data points to compute covariance from");
+        } else if(mean.length() != dataSet.get(0).length()) {
+          throw new ArithmeticException("Data vectors do not agree with mean and covariance matrix");
+        }
         /**
          * Covariance definition
          * 
@@ -159,14 +164,15 @@ public class MatrixStatistics
      */
     public static void covarianceMatrix(Vec mean, List<DataPoint> dataSet, Matrix covariance, double sumOfWeights, double sumOfSquaredWeights)
     {
-        if (!covariance.isSquare())
-            throw new ArithmeticException("Storage for covariance matrix must be square");
-        else if (covariance.rows() != mean.length())
-            throw new ArithmeticException("Covariance Matrix size and mean size do not agree");
-        else if (dataSet.isEmpty())
-            throw new ArithmeticException("No data points to compute covariance from");
-        else if (mean.length() != dataSet.get(0).getNumericalValues().length())
-            throw new ArithmeticException("Data vectors do not agree with mean and covariance matrix");
+        if (!covariance.isSquare()) {
+          throw new ArithmeticException("Storage for covariance matrix must be square");
+        } else if (covariance.rows() != mean.length()) {
+          throw new ArithmeticException("Covariance Matrix size and mean size do not agree");
+        } else if (dataSet.isEmpty()) {
+          throw new ArithmeticException("No data points to compute covariance from");
+        } else if (mean.length() != dataSet.get(0).getNumericalValues().length()) {
+          throw new ArithmeticException("Data vectors do not agree with mean and covariance matrix");
+        }
 
         /**
          * Weighted definition of the covariance matrix 
@@ -245,14 +251,15 @@ public class MatrixStatistics
      */
     public static void covarianceMatrix(Vec mean, DataSet dataSet, Matrix covariance, double sumOfWeights, double sumOfSquaredWeights)
     {
-        if (!covariance.isSquare())
-            throw new ArithmeticException("Storage for covariance matrix must be square");
-        else if (covariance.rows() != mean.length())
-            throw new ArithmeticException("Covariance Matrix size and mean size do not agree");
-        else if (dataSet.getSampleSize() == 0)
-            throw new ArithmeticException("No data points to compute covariance from");
-        else if (mean.length() != dataSet.getNumNumericalVars())
-            throw new ArithmeticException("Data vectors do not agree with mean and covariance matrix");
+        if (!covariance.isSquare()) {
+          throw new ArithmeticException("Storage for covariance matrix must be square");
+        } else if (covariance.rows() != mean.length()) {
+          throw new ArithmeticException("Covariance Matrix size and mean size do not agree");
+        } else if (dataSet.getSampleSize() == 0) {
+          throw new ArithmeticException("No data points to compute covariance from");
+        } else if (mean.length() != dataSet.getNumNumericalVars()) {
+          throw new ArithmeticException("Data vectors do not agree with mean and covariance matrix");
+        }
 
         /**
          * Weighted definition of the covariance matrix 
@@ -319,8 +326,9 @@ public class MatrixStatistics
         }
         
         //add zero observations
-        for(int i = 0; i < nnzCounts.length; i++)
-            diag.increment(i, pow(means.get(i), 2)*(n-nnzCounts[i]) );
+        for(int i = 0; i < nnzCounts.length; i++) {
+          diag.increment(i, pow(means.get(i), 2)*(n-nnzCounts[i]) );
+        }
         diag.mutableDivide(sumOfWeights);
     }
     
@@ -367,8 +375,9 @@ public class MatrixStatistics
         }
         
         //add zero observations
-        for(int i = 0; i < nnzCounts.length; i++)
-            diag.increment(i, pow(means.get(i), 2)*(n-nnzCounts[i]) );
+        for(int i = 0; i < nnzCounts.length; i++) {
+          diag.increment(i, pow(means.get(i), 2)*(n-nnzCounts[i]) );
+        }
         diag.mutableDivide(n);
     }
     

@@ -42,9 +42,11 @@ public class Romberg
                 }
             }
 
-            if( abs(lastVal - s[k]) < 1e-15 )//there is only approximatly 15.955 accurate decimal digits in a double, this is as close as we will get
-                return s[k];
-            else lastVal = s[k];
+            if( abs(lastVal - s[k]) < 1e-15 ) {//there is only approximatly 15.955 accurate decimal digits in a double, this is as close as we will get
+              return s[k];
+            } else {
+              lastVal = s[k];
+            }
         }
 
 

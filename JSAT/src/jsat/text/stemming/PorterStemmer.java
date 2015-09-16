@@ -80,16 +80,17 @@ public class PorterStemmer extends Stemmer
     {
         String tmp;
         //Step 1a
-        if (s.endsWith("sses"))
-            s = s.replaceAll("sses$", "ss");
-        else if (s.endsWith("ies"))
-            s = s.replaceAll("ies$", "i");
-        else if(s.endsWith("ss"))
+        if (s.endsWith("sses")) {
+          s = s.replaceAll("sses$", "ss");
+        } else if (s.endsWith("ies")) {
+          s = s.replaceAll("ies$", "i");
+        } else if(s.endsWith("ss"))
         {
             //Do nothing
         }
-        else if(s.endsWith("s"))
-            s = s.substring(0, s.length()-1);
+        else if(s.endsWith("s")) {
+          s = s.substring(0, s.length()-1);
+        }
 
 
         //Step 1b
@@ -97,8 +98,9 @@ public class PorterStemmer extends Stemmer
         if (s.endsWith("eed"))
         {
             tmp = s.replaceAll("eed$", "ee");
-            if(measure(tmp) > 0)
-                s = tmp;
+            if(measure(tmp) > 0) {
+              s = tmp;
+            }
         }
         else if (s.endsWith("ed"))
         {
@@ -121,68 +123,74 @@ public class PorterStemmer extends Stemmer
 
         if (step1b_specialCase)
         {
-            if (s.endsWith("at"))
-                s = s.concat("e");
-            else if (s.endsWith("bl"))
-                s = s.concat("e");
-            else if (s.endsWith("iz"))
-                s = s.concat("e");
-            else if(doubleConstant(s, 'l', 's', 'z'))
-                s = s.substring(0, s.length()-1);//remove last letter
-            else if(oRule(s) && measure(s) == 1)
-                s = s.concat("e");
+            if (s.endsWith("at")) {
+              s = s.concat("e");
+            } else if (s.endsWith("bl")) {
+              s = s.concat("e");
+            } else if (s.endsWith("iz")) {
+              s = s.concat("e");
+            } else if(doubleConstant(s, 'l', 's', 'z')) {
+              s = s.substring(0, s.length()-1);//remove last letter
+            } else if(oRule(s) && measure(s) == 1) {
+              s = s.concat("e");
+            }
         }
 
         //Step 1c
-        if(s.endsWith("y") && containsVowel(s.substring(0, s.length()-1)))
-            s = s.substring(0, s.length()-1).concat("i");
+        if(s.endsWith("y") && containsVowel(s.substring(0, s.length()-1))) {
+          s = s.substring(0, s.length()-1).concat("i");
+        }
 
         //Step 2
-        for (Map.Entry<String, String> entry : step2_endings.entrySet())
-            if (s.endsWith(entry.getKey()))
+        for (Map.Entry<String, String> entry : step2_endings.entrySet()) {
+          if (s.endsWith(entry.getKey()))
+          {
+            tmp = s.replaceAll(entry.getKey() + "$", entry.getValue());
+            if (measure(tmp) > 0)
             {
-                tmp = s.replaceAll(entry.getKey() + "$", entry.getValue());
-                if (measure(tmp) > 0)
-                {
-                    s = tmp;
-                    break;
-                }
+              s = tmp;
+              break;
             }
+          }
+        }
 
         //Step 3
-        for (Map.Entry<String, String> entry : step3_endings.entrySet())
-            if (s.endsWith(entry.getKey()))
+        for (Map.Entry<String, String> entry : step3_endings.entrySet()) {
+          if (s.endsWith(entry.getKey()))
+          {
+            tmp = s.replaceAll(entry.getKey() + "$", entry.getValue());
+            if (measure(tmp) > 0)
             {
-                tmp = s.replaceAll(entry.getKey() + "$", entry.getValue());
-                if (measure(tmp) > 0)
-                {
-                    s = tmp;
-                    break;
-                }
+              s = tmp;
+              break;
             }
+          }
+        }
 
         //Step 4
-        for (Map.Entry<String, String> entry : step4_endings.entrySet())
-            if (s.endsWith(entry.getKey()))
-            {
-                if(s.endsWith("ion") && !(s.charAt(s.length()-4) == 's' || s.charAt(s.length()-4) == 't'))
-                    continue;//special case on ion, and they didn't match
-                tmp = s.replaceAll(entry.getKey() + "$", entry.getValue());
-                if (measure(tmp) > 1)
-                {
-                    s = tmp;
-                    break;
-                }
+        for (Map.Entry<String, String> entry : step4_endings.entrySet()) {
+          if (s.endsWith(entry.getKey())) {
+            if (s.endsWith("ion") && !(s.charAt(s.length()-4) == 's' || s.charAt(s.length()-4) == 't')) {
+              continue;//special case on ion, and they didn't match
             }
+            tmp = s.replaceAll(entry.getKey() + "$", entry.getValue());
+            if (measure(tmp) > 1)
+            {
+              s = tmp;
+              break;
+            }
+          }
+        }
         
         //Step 5a
         if (s.endsWith("e"))
         {
             tmp = s.substring(0, s.length() - 1);
-            if(measure(tmp) > 1)
-                s = tmp;
-            else if(measure(tmp) == 1 && !oRule(tmp))
-                s = tmp;       
+            if(measure(tmp) > 1) {
+              s = tmp;
+            } else if(measure(tmp) == 1 && !oRule(tmp)) {
+              s = tmp;
+            }       
         }
 
         //Step 5b
@@ -190,8 +198,9 @@ public class PorterStemmer extends Stemmer
         if(s.charAt(lp) == s.charAt(lp-1) && s.charAt(lp) == 'l')
         {
             tmp = s.substring(0, s.length() - 1);
-            if(measure(tmp) > 1)
-                s = tmp;
+            if(measure(tmp) > 1) {
+              s = tmp;
+            }
         }
         
         return s;
@@ -210,16 +219,18 @@ public class PorterStemmer extends Stemmer
         int pos = start;
         int m = 0;
         //Move past first C, now we are detecing   (VC){m}[V]
-        while(!isVowel(c, pos) && pos < (length - start))
-            pos++;
+        while(!isVowel(c, pos) && pos < (length - start)) {
+          pos++;
+        }
 
         boolean vFollowedByC = false;
 
         do
         {
             vFollowedByC = false;
-            while (isVowel(c, pos)&& pos < (length-start))
-                pos++;
+            while (isVowel(c, pos)&& pos < (length-start)) {
+              pos++;
+            }
             while (!isVowel(c, pos) && pos < (length-start))
             {
                 pos++;
@@ -230,10 +241,12 @@ public class PorterStemmer extends Stemmer
         }
         while (pos < (length - start) && vFollowedByC);
 
-        if(vFollowedByC)//VC <- endded like that, it counts
-            return m;
-        else//V <- ended in V, dosnt count
-            return m-1;
+        if(vFollowedByC) {//VC <- endded like that, it counts
+          return m;
+        } else {
+          //V <- ended in V, dosnt count
+          return m-1;
+        }
     }
 
     private static boolean isVowel(String s, int pos)
@@ -242,8 +255,9 @@ public class PorterStemmer extends Stemmer
          * A \consonant\ in a word is a letter other than A, E, I, O or U, and other
          * than Y preceded by a consonant.
          */
-        if (pos >= s.length())
-            return false;
+        if (pos >= s.length()) {
+          return false;
+        }
 
         switch (s.charAt(pos))
         {
@@ -254,8 +268,9 @@ public class PorterStemmer extends Stemmer
             case 'u':
                 return true;
             case 'y':
-                if (pos == s.length() - 1)//end of the array
-                    return true;
+                if (pos == s.length() - 1) {//end of the array
+                  return true;
+        }
                 return isVowel(s, pos + 1);//Y preceded by a constant is a Vowel
             default:
                 return false;
@@ -268,8 +283,9 @@ public class PorterStemmer extends Stemmer
     private static boolean oRule(String s)
     {
         int pos = s.length()-1;
-        if(pos < 2)
-            return false;
+        if(pos < 2) {
+          return false;
+        }
         if (!isVowel(s, pos) && isVowel(s, pos - 1) && !isVowel(s, pos - 2))
         {
             switch (s.charAt(pos))
@@ -287,23 +303,28 @@ public class PorterStemmer extends Stemmer
     
     private static boolean containsVowel(String s)
     {
-        for (int i = 0; i < s.length(); i++)
-            if (isVowel(s, i))
-                return true;
+        for (int i = 0; i < s.length(); i++) {
+          if (isVowel(s, i)) {
+            return true;
+          }
+        }
         return false;
     }
     
     private static boolean doubleConstant(String s, char... except)
     {
-        if (s.length() <= 1)
-            return false;
+        if (s.length() <= 1) {
+          return false;
+        }
 
         char c;
         if ((c = s.charAt(s.length() - 1)) == s.charAt(s.length() - 2))
         {
-            for (char e : except)
-                if (c == e)
-                    return false;
+            for (char e : except) {
+              if (c == e) {
+                return false;
+              }
+            }
             return true;
         }
 

@@ -75,8 +75,9 @@ public abstract class Distribution implements Cloneable, Serializable
      */
     protected double invCdf(final double p, final Function cdf)
     {
-        if (p < 0 || p > 1)
-            throw new ArithmeticException("Value of p must be in the range [0,1], not " + p);
+        if (p < 0 || p > 1) {
+          throw new ArithmeticException("Value of p must be in the range [0,1], not " + p);
+        }
         double a = Double.isInfinite(min()) ? Double.MIN_VALUE : min();
         double b = Double.isInfinite(max()) ? Double.MAX_VALUE : max();
 
@@ -188,8 +189,9 @@ public abstract class Distribution implements Cloneable, Serializable
     public double[] sample(int numSamples, Random rand)
     {
         double[] samples = new double[numSamples];
-        for(int i = 0; i < samples.length; i++)
-            samples[i] = invCdf(rand.nextDouble());
+        for(int i = 0; i < samples.length; i++) {
+          samples[i] = invCdf(rand.nextDouble());
+        }
         
         return samples;
     }

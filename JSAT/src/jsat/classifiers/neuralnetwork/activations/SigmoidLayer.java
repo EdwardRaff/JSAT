@@ -18,16 +18,19 @@ public class SigmoidLayer implements ActivationLayer
 	@Override
     public void activate(Vec input, Vec output)
     {
-        for(int i = 0; i < input.length(); i++)
-            output.set(i, 1/(1+Math.exp(-input.get(i))));
+        for(int i = 0; i < input.length(); i++) {
+          output.set(i, 1/(1+Math.exp(-input.get(i))));
+        }
     }
     
     @Override
     public void activate(Matrix input, Matrix output, boolean rowMajor)
     {
-        for(int i = 0; i < input.rows(); i++)
-            for(int j = 0; j < input.cols(); j++)
-                output.set(i, j, 1.0/(1+Math.exp(-input.get(i, j))));
+        for(int i = 0; i < input.rows(); i++) {
+          for (int j = 0; j < input.cols(); j++) {
+            output.set(i, j, 1.0/(1+Math.exp(-input.get(i, j))));
+          }
+        }
     }
 
     @Override
@@ -46,13 +49,14 @@ public class SigmoidLayer implements ActivationLayer
     @Override
     public void backprop(Matrix input, Matrix output, Matrix delta_partial, Matrix errout, boolean rowMajor)
     {
-        for(int i = 0; i < input.rows(); i++)
-            for(int j = 0; j < input.cols(); j++)
-            {
-                double out_ij = output.get(i, j);
-                double errin_ij = delta_partial.get(i, j);
-                errout.set(i, j, out_ij*(1-out_ij)*errin_ij);
-            }
+        for(int i = 0; i < input.rows(); i++) {
+          for(int j = 0; j < input.cols(); j++)
+          {
+            double out_ij = output.get(i, j);
+            double errin_ij = delta_partial.get(i, j);
+            errout.set(i, j, out_ij*(1-out_ij)*errin_ij);
+          }
+        }
     }
 
     @Override

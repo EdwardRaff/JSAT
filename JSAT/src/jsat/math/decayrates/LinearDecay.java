@@ -53,8 +53,9 @@ public class LinearDecay implements DecayRate, Parameterized
      */
     public void setMinRate(double min)
     {
-        if(min <= 0 || Double.isNaN(min) || Double.isInfinite(min))
-            throw new RuntimeException("minRate should be positive, not " + min);
+        if(min <= 0 || Double.isNaN(min) || Double.isInfinite(min)) {
+          throw new RuntimeException("minRate should be positive, not " + min);
+        }
         this.min = min;
     }
 
@@ -77,8 +78,9 @@ public class LinearDecay implements DecayRate, Parameterized
      */
     public void setMaxTime(double maxTime)
     {
-        if(maxTime <= 0 || Double.isInfinite(maxTime) || Double.isNaN(maxTime))
-            throw new RuntimeException("maxTime should be positive, not " + maxTime);
+        if(maxTime <= 0 || Double.isInfinite(maxTime) || Double.isNaN(maxTime)) {
+          throw new RuntimeException("maxTime should be positive, not " + maxTime);
+        }
         this.maxTime = maxTime;
     }
 
@@ -94,8 +96,9 @@ public class LinearDecay implements DecayRate, Parameterized
     @Override
     public double rate(double time, double maxTime, double initial)
     {
-        if(time < 0)
-            throw new ArithmeticException("Negative time value given");
+        if(time < 0) {
+          throw new ArithmeticException("Negative time value given");
+        }
         return (initial-min)*(1.0-Math.min(time, maxTime)/maxTime)+min;
     }
     

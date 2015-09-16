@@ -27,10 +27,11 @@ public class WardsDissimilarity extends LanceWilliamsDissimilarity
     protected double aConst(boolean iFlag, int ni, int nj, int nk)
     {
         double totalPoints = ni+nj+nk;
-        if(iFlag)
-            return (ni+nk)/totalPoints;
-        else
-            return (nj+nk)/totalPoints;
+        if(iFlag) {
+          return (ni+nk)/totalPoints;
+        } else {
+          return (nj+nk)/totalPoints;
+        }
     }
 
     @Override

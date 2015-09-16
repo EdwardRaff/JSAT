@@ -21,8 +21,9 @@ public class Trapezoidal
          *  a                 \              k = 1                 /
          */
         double sum =0;
-        for(int k = 1; k < N; k++)
-            sum += f.f(a+k*(b-a)/N);
+        for(int k = 1; k < N; k++) {
+          sum += f.f(a+k*(b-a)/N);
+        }
 
         sum+= (f.f(a)+f.f(b))/2;
 

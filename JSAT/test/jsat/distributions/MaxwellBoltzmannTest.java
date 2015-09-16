@@ -86,14 +86,17 @@ public class MaxwellBoltzmannTest
         double[] param12 = new double[]{0,0,0,-10.4533170381374,-9.067673718684174,-8.25782857191229,-7.683983524230951,-7.239649546602531,-6.8773935857924,-6.571913406693438,-6.308105829777727,-6.076228994576071,-5.869631227149307,-5.683568159207324,-5.514536724672509,-5.359876656547658,-5.2175200872402145,-5.08582774704409,-4.963478135324503,-4.849390350024966,-4.74266900845618,-4.642564079804518,-4.548441032696084,-4.459758273801663,-4.3760498397541};
         
         instance = new MaxwellBoltzmann(0.5);
-        for(int i = 0; i < range.length; i++)
-            assertEquals(param0p5[i], instance.logPdf(range[i]+2.5), 1e-10);
+        for(int i = 0; i < range.length; i++) {
+          assertEquals(param0p5[i], instance.logPdf(range[i]+2.5), 1e-10);
+        }
         instance = new MaxwellBoltzmann(2);
-        for(int i = 0; i < range.length; i++)
-            assertEquals(param2[i], instance.logPdf(range[i]+2.5), 1e-10);
+        for(int i = 0; i < range.length; i++) {
+          assertEquals(param2[i], instance.logPdf(range[i]+2.5), 1e-10);
+        }
         instance = new MaxwellBoltzmann(12);
-        for(int i = 0; i < range.length; i++)
-            assertEquals(param12[i], instance.logPdf(range[i]+2.5), 1e-10);
+        for(int i = 0; i < range.length; i++) {
+          assertEquals(param12[i], instance.logPdf(range[i]+2.5), 1e-10);
+        }
     }
     
     /**
@@ -110,14 +113,17 @@ public class MaxwellBoltzmannTest
         double[] param12 = new double[]{0,0,0,0.000028852409850921587,0.00011533452737288349,0.00025922126086385847,0.00046013827113234023,0.0007175631885070832,0.0010308273097519517,0.0013991177680274776,0.0018214801671386106,0.0022968216694486633,0.002823914525031556,0.003401400027886845,0.004027792883363012,0.004701485969332062,0.005420755472140021,0.00618376637693079,0.006988578290610984,0.00783315157449754,0.008715353762572708,0.009632966240267904,0.01058369115781257,0.011565158551420455,0.012574933644946164};
         
         instance = new MaxwellBoltzmann(0.5);
-        for(int i = 0; i < range.length; i++)
-            assertEquals(param0p5[i], instance.pdf(range[i]+2.5), 1e-10);
+        for(int i = 0; i < range.length; i++) {
+          assertEquals(param0p5[i], instance.pdf(range[i]+2.5), 1e-10);
+        }
         instance = new MaxwellBoltzmann(2);
-        for(int i = 0; i < range.length; i++)
-            assertEquals(param2[i], instance.pdf(range[i]+2.5), 1e-10);
+        for(int i = 0; i < range.length; i++) {
+          assertEquals(param2[i], instance.pdf(range[i]+2.5), 1e-10);
+        }
         instance = new MaxwellBoltzmann(12);
-        for(int i = 0; i < range.length; i++)
-            assertEquals(param12[i], instance.pdf(range[i]+2.5), 1e-10);
+        for(int i = 0; i < range.length; i++) {
+          assertEquals(param12[i], instance.pdf(range[i]+2.5), 1e-10);
+        }
     }
 
     /**
@@ -134,14 +140,17 @@ public class MaxwellBoltzmannTest
         double[] param12 = new double[]{0,0,0,2.4045762129741577e-6,0.00001922909733632211,0.00006485597263361509,0.00015359266218761825,0.0002996345070972878,0.0005170279240384046,0.0008196340833463434,0.0012210931878273434,0.0017347894670798891,0.002373816999227285,0.0031509464686337862,0.004078592964422811,0.005168784920450115,0.0064331342928277135,0.00788280806617181,0.009528501174477233,0.01138041091693437,0.013448212943120874,0.015741038875855595,0.0182674556336187,0.02103544650785194,0.024052394043691305};
         
         instance = new MaxwellBoltzmann(0.5);
-        for(int i = 0; i < range.length; i++)
-            assertEquals(param0p5[i], instance.cdf(range[i]+2.5), 1e-10);
+        for(int i = 0; i < range.length; i++) {
+          assertEquals(param0p5[i], instance.cdf(range[i]+2.5), 1e-10);
+        }
         instance = new MaxwellBoltzmann(2);
-        for(int i = 0; i < range.length; i++)
-            assertEquals(param2[i], instance.cdf(range[i]+2.5), 1e-10);
+        for(int i = 0; i < range.length; i++) {
+          assertEquals(param2[i], instance.cdf(range[i]+2.5), 1e-10);
+        }
         instance = new MaxwellBoltzmann(12);
-        for(int i = 0; i < range.length; i++)
-            assertEquals(param12[i], instance.cdf(range[i]+2.5), 1e-10);
+        for(int i = 0; i < range.length; i++) {
+          assertEquals(param12[i], instance.cdf(range[i]+2.5), 1e-10);
+        }
     }
 
     /**
@@ -161,14 +170,18 @@ public class MaxwellBoltzmannTest
         {3.8001245428792427,7.076015866385732,8.824858880875512,10.171477185026411,11.320025568506171,12.35120488576236,13.306761751324832,14.21192884165189,15.083739125159328,15.934774938809017,16.775117471040108,17.613496499475474,18.458067053460628,19.31702725931225,20.199211793982435,21.114778032504553,22.076131270734024,23.099328159473174,24.206419221990274,25.429734057837628,26.820584751562286,28.4695393411916,30.564260353378554,33.624849626581685,41.176887424724164};
 
         instance = new MaxwellBoltzmann(0.5);
-        for(int i = 0; i < range.length-2; i++)//-2 b/c it enters a numerically unstable range that isnt fair
-            assertEquals(param0p5[i], instance.invCdf(range[i]/6.1+0.5), 1e-10);
+        for(int i = 0; i < range.length-2; i++) {
+          //-2 b/c it enters a numerically unstable range that isnt fair
+          assertEquals(param0p5[i], instance.invCdf(range[i]/6.1+0.5), 1e-10);
+        }
         instance = new MaxwellBoltzmann(2);
-        for(int i = 0; i < range.length; i++)
-            assertEquals(param2[i], instance.invCdf(range[i]/6.1+0.5), 1e-10);
+        for(int i = 0; i < range.length; i++) {
+          assertEquals(param2[i], instance.invCdf(range[i]/6.1+0.5), 1e-10);
+        }
         instance = new MaxwellBoltzmann(12);
-        for(int i = 0; i < range.length; i++)
-            assertEquals(param12[i], instance.invCdf(range[i]/6.1+0.5), 1e-10);
+        for(int i = 0; i < range.length; i++) {
+          assertEquals(param12[i], instance.invCdf(range[i]/6.1+0.5), 1e-10);
+        }
     }
 
     /**

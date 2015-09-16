@@ -50,20 +50,23 @@ public class MeanCentroidDistance implements IntraClusterEvaluation
         Vec mean = new DenseVector(dataSet.getNumNumericalVars());
         
         int clusterSize = 0;
-        for(int i = 0; i < dataSet.getSampleSize(); i++)
-            if(designations[i] == clusterID)
-            {
-                clusterSize++;
-                mean.mutableAdd(dataSet.getDataPoint(i).getNumericalValues());
-            }
+        for(int i = 0; i < dataSet.getSampleSize(); i++) {
+          if(designations[i] == clusterID)
+          {
+            clusterSize++;
+            mean.mutableAdd(dataSet.getDataPoint(i).getNumericalValues());
+          }
+        }
         mean.mutableDivide(clusterSize);
         
         
         double dists = 0.0;
         
-        for(int i = 0; i < dataSet.getSampleSize(); i++)
-            if(designations[i] == clusterID)
-                dists += dm.dist(dataSet.getDataPoint(i).getNumericalValues(), mean);
+        for(int i = 0; i < dataSet.getSampleSize(); i++) {
+          if (designations[i] == clusterID) {
+            dists += dm.dist(dataSet.getDataPoint(i).getNumericalValues(), mean);
+          }
+        }
         
         return dists/dataSet.getSampleSize();
     }
@@ -74,8 +77,9 @@ public class MeanCentroidDistance implements IntraClusterEvaluation
         Vec mean = MatrixStatistics.meanVector(new SimpleDataSet(dataPoints));
         
         double dists = 0.0;
-        for(DataPoint dp : dataPoints)
-            dists += dm.dist(dp.getNumericalValues(), mean);
+        for(DataPoint dp : dataPoints) {
+          dists += dm.dist(dp.getNumericalValues(), mean);
+        }
         
         return dists/dataPoints.size();
     }

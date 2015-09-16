@@ -57,8 +57,9 @@ public class Perceptron implements BinaryScoreClassifier, SingleWeightVectorMode
      */
     public Perceptron(double learningRate, int iteratinLimit)
     {
-        if(learningRate <= 0 || learningRate > 1)
-            throw new RuntimeException("Preceptron learning rate must be in the range (0,1]");
+        if(learningRate <= 0 || learningRate > 1) {
+          throw new RuntimeException("Preceptron learning rate must be in the range (0,1]");
+        }
         this.learningRate = learningRate;
         this.iteratinLimit = iteratinLimit;
     }
@@ -130,10 +131,11 @@ public class Perceptron implements BinaryScoreClassifier, SingleWeightVectorMode
     @Override
     public void trainC(ClassificationDataSet dataSet, ExecutorService threadPool)
     {
-        if(dataSet.getClassSize() != 2)
-            throw new FailedToFitException("Preceptron only supports binary calssification");
-        else if(dataSet.getNumCategoricalVars() != 0)
-            throw new FailedToFitException("Preceptron only supports vector classification");
+        if(dataSet.getClassSize() != 2) {
+          throw new FailedToFitException("Preceptron only supports binary calssification");
+        } else if(dataSet.getNumCategoricalVars() != 0) {
+          throw new FailedToFitException("Preceptron only supports vector classification");
+        }
 
         List<DataPointPair<Integer>> dataPoints = dataSet.getAsDPPList();
         Collections.shuffle(dataPoints);
@@ -144,8 +146,10 @@ public class Perceptron implements BinaryScoreClassifier, SingleWeightVectorMode
         int numerVars = dataSet.getNumNumericalVars();
         
         weights = new DenseVector(numerVars);
-        for(int i = 0; i < weights.length(); i++)//give all variables a random weight in the range [0,1]
-            weights.set(i, r.nextDouble());
+        for(int i = 0; i < weights.length(); i++) {
+          //give all variables a random weight in the range [0,1]
+          weights.set(i, r.nextDouble());
+        }
         
         
         Vec bestWeightsSoFar = null;
@@ -168,10 +172,11 @@ public class Perceptron implements BinaryScoreClassifier, SingleWeightVectorMode
             for(int i = 0; i < partions; i++)
             {
                 List<DataPointPair<Integer>> subList;
-                if(i == partions -1)
-                    subList = dataPoints.subList(i*blockSize, dataPoints.size());
-                else
-                    subList = dataPoints.subList(i*blockSize, (i+1)*blockSize);
+                if(i == partions -1) {
+                  subList = dataPoints.subList(i*blockSize, dataPoints.size());
+                } else {
+                  subList = dataPoints.subList(i*blockSize, (i+1)*blockSize);
+                }
                 
                 futures.add(threadPool.submit(new BatchTrainingUnit(subList))); 
             }
@@ -221,10 +226,11 @@ public class Perceptron implements BinaryScoreClassifier, SingleWeightVectorMode
     //Uses the online training algorithm instead of the batch one. 
     public void trainCOnline(ClassificationDataSet dataSet)
     {
-        if(dataSet.getClassSize() != 2)
-            throw new FailedToFitException("Preceptron only supports binary calssification");
-        else if(dataSet.getNumCategoricalVars() != 0)
-            throw new FailedToFitException("Preceptron only supports vector classification");
+        if(dataSet.getClassSize() != 2) {
+          throw new FailedToFitException("Preceptron only supports binary calssification");
+        } else if(dataSet.getNumCategoricalVars() != 0) {
+          throw new FailedToFitException("Preceptron only supports vector classification");
+        }
 
         List<DataPointPair<Integer>> dataPoints = dataSet.getAsDPPList();
         Collections.shuffle(dataPoints);
@@ -233,8 +239,10 @@ public class Perceptron implements BinaryScoreClassifier, SingleWeightVectorMode
         int numerVars = dataSet.getNumNumericalVars();
         
         weights = new DenseVector(numerVars);
-        for(int i = 0; i < weights.length(); i++)//give all variables a random weight in the range [0,1]
-            weights.set(i, r.nextDouble());
+        for(int i = 0; i < weights.length(); i++) {
+          //give all variables a random weight in the range [0,1]
+          weights.set(i, r.nextDouble());
+        }
         
         Vec bestWeightsSoFar = null;
         double lowestErrorSoFar = Double.MAX_VALUE;
@@ -304,19 +312,21 @@ public class Perceptron implements BinaryScoreClassifier, SingleWeightVectorMode
     @Override
     public Vec getRawWeight(int index)
     {
-        if(index < 1)
-            return getRawWeight();
-        else
-            throw new IndexOutOfBoundsException("Model has only 1 weight vector");
+        if(index < 1) {
+          return getRawWeight();
+        } else {
+          throw new IndexOutOfBoundsException("Model has only 1 weight vector");
+        }
     }
 
     @Override
     public double getBias(int index)
     {
-        if (index < 1)
-            return getBias();
-        else
-            throw new IndexOutOfBoundsException("Model has only 1 weight vector");
+        if (index < 1) {
+          return getBias();
+        } else {
+          throw new IndexOutOfBoundsException("Model has only 1 weight vector");
+        }
     }
 
     @Override
@@ -329,8 +339,9 @@ public class Perceptron implements BinaryScoreClassifier, SingleWeightVectorMode
     public Perceptron clone()
     {
         Perceptron copy = new  Perceptron(learningRate, iteratinLimit);
-        if(this.weights != null)
-            copy.weights = this.weights.clone();
+        if(this.weights != null) {
+          copy.weights = this.weights.clone();
+        }
         copy.bias = this.bias;
         
         return copy;

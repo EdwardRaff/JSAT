@@ -39,24 +39,27 @@ public class ID3 implements Classifier
     
     static private CategoricalResults walkTree(ID3Node node, DataPoint data)
     {
-        if(node.isLeaf())
-            return node.getResult();
+        if(node.isLeaf()) {
+          return node.getResult();
+        }
         
         return walkTree(node.getNode(data.getCategoricalValue(node.getAttributeId())), data);
     }
 
     public void trainC(ClassificationDataSet dataSet, ExecutorService threadPool)
     {
-        if(dataSet.getNumNumericalVars() != 0)
-            throw new RuntimeException("ID3 only supports categorical data");
+        if(dataSet.getNumNumericalVars() != 0) {
+          throw new RuntimeException("ID3 only supports categorical data");
+        }
         
         predicting = dataSet.getPredicting();
         attributes = dataSet.getCategories();
         List<DataPointPair<Integer>> dataPoints = dataSet.getAsDPPList();
         
         Set<Integer> availableAttributes = new IntSet(dataSet.getNumCategoricalVars());
-        for(int i = 0; i < dataSet.getNumCategoricalVars(); i++)
-            availableAttributes.add(i);
+        for(int i = 0; i < dataSet.getNumCategoricalVars(); i++) {
+          availableAttributes.add(i);
+        }
         latch = new ModifiableCountDownLatch(1);
         root = buildTree(dataPoints, availableAttributes, threadPool);    
         try
@@ -82,8 +85,9 @@ public class ID3 implements Classifier
         if(remainingAtribues.isEmpty() || curEntropy == 0)
         {
             CategoricalResults cr = new CategoricalResults(predicting.getNumOfCategories());
-            for(DataPointPair<Integer> dpp : dataPoints)
-                cr.setProb(dpp.getPair(), cr.getProb(dpp.getPair()) + 1);
+            for(DataPointPair<Integer> dpp : dataPoints) {
+              cr.setProb(dpp.getPair(), cr.getProb(dpp.getPair()) + 1);
+            }
             cr.divideConst(size);
 
             latch.countDown();
@@ -97,16 +101,19 @@ public class ID3 implements Classifier
         for(int attribute : remainingAtribues)
         {
             List<List<DataPointPair<Integer>>> newSplit = new ArrayList<List<DataPointPair<Integer>>>(attributes[attribute].getNumOfCategories());
-            for( int i = 0; i < attributes[attribute].getNumOfCategories(); i++)
-                newSplit.add( new ArrayList<DataPointPair<Integer>>());
+            for( int i = 0; i < attributes[attribute].getNumOfCategories(); i++) {
+              newSplit.add( new ArrayList<DataPointPair<Integer>>());
+            }
             
             //Putting the datapoints in their respective bins by attribute value
-            for(DataPointPair<Integer> dpp : dataPoints)
-                newSplit.get(dpp.getDataPoint().getCategoricalValue(attribute)).add(dpp);
+            for(DataPointPair<Integer> dpp : dataPoints) {
+              newSplit.get(dpp.getDataPoint().getCategoricalValue(attribute)).add(dpp);
+            }
             
             double splitEntrop = 0;
-            for(int i = 0; i < newSplit.size(); i++)
-                splitEntrop += entropy(newSplit.get(i))*newSplit.get(i).size()/size;
+            for(int i = 0; i < newSplit.size(); i++) {
+              splitEntrop += entropy(newSplit.get(i))*newSplit.get(i).size()/size;
+            }
             
             double infoGain = curEntropy - splitEntrop;
             if(infoGain > bestInfoGain)
@@ -204,8 +211,9 @@ public class ID3 implements Classifier
             if(this.children != null)
             {
                 copy.children = new ID3Node[this.children.length];
-                for(int i = 0; i < children.length; i++)
-                    copy.children[i] = this.children[i].copy();
+                for(int i = 0; i < children.length; i++) {
+                  copy.children[i] = this.children[i].copy();
+                }
                     
             }
             return copy;
@@ -216,19 +224,24 @@ public class ID3 implements Classifier
     
     private double entropy( List<DataPointPair<Integer>> s)
     {
-        if(s.isEmpty())
-            return 0;
+        if(s.isEmpty()) {
+          return 0;
+        }
         double[] probs = new double[predicting.getNumOfCategories()];
-        for(DataPointPair<Integer> dpp : s)
-            probs[dpp.getPair()] += 1;
-        for(int i = 0; i < probs.length; i++)
-            probs[i] /= s.size();
+        for(DataPointPair<Integer> dpp : s) {
+          probs[dpp.getPair()] += 1;
+        }
+        for(int i = 0; i < probs.length; i++) {
+          probs[i] /= s.size();
+        }
         
         double entr = 0;
         
-        for(int i = 0; i < probs.length; i++)
-            if(probs[i] != 0)
-                entr += probs[i] * (Math.log(probs[i])/Math.log(2));
+        for(int i = 0; i < probs.length; i++) {
+          if (probs[i] != 0) {
+            entr += probs[i] * (Math.log(probs[i])/Math.log(2));
+          }
+        }
         //The entr will be negative unless it is zero, this way we dont return negative zero
         return Math.abs(entr);
     }

@@ -122,8 +122,9 @@ public class IndexTable implements Serializable
      */
     public void reset()
     {
-        for(int i = 0; i < index.size(); i++)
-            index.set(i, i);
+        for(int i = 0; i < index.size(); i++) {
+          index.set(i, i);
+        }
     }
     
     /**
@@ -187,12 +188,14 @@ public class IndexTable implements Serializable
      */
     public <T> void sort(List<T> list, Comparator<T> cmp)
     {
-        if(index.size() < list.size())
-            for(int i = index.size(); i < list.size(); i++ )
-                index.add(i);
-        if(list.size() == index.size())
-            Collections.sort(index, new IndexViewCompList(list, cmp));
-        else
+        if(index.size() < list.size()) {
+          for (int i = index.size(); i < list.size(); i++) {
+            index.add(i);
+          }
+        }
+        if(list.size() == index.size()) {
+          Collections.sort(index, new IndexViewCompList(list, cmp));
+        } else
         {
             Collections.sort(index);//so [0, list.size) is at the front
             Collections.sort(index.subList(0, list.size()), new IndexViewCompList(list, cmp));
@@ -256,8 +259,9 @@ public class IndexTable implements Serializable
      */
     public int index(int i)
     {
-        if(i >= prevSize || i < 0)
-            throw new IndexOutOfBoundsException("The size of the previously sorted array/list is " + prevSize + " so index " + i + " is not valid");
+        if(i >= prevSize || i < 0) {
+          throw new IndexOutOfBoundsException("The size of the previously sorted array/list is " + prevSize + " so index " + i + " is not valid");
+        }
         return index.get(i);
     }
     
@@ -312,17 +316,21 @@ public class IndexTable implements Serializable
      */
     public void apply(List target, List tmp)
     {
-        if (target.size() != length())
-            throw new RuntimeException("target array does not have the same length as the index table");
+        if (target.size() != length()) {
+          throw new RuntimeException("target array does not have the same length as the index table");
+        }
         //fill tmp with the original ordering or target, adding when needed
-        for (int i = 0; i < target.size(); i++)
-            if (i >= tmp.size())
-                tmp.add(target.get(i));
-            else
-                tmp.set(i, target.get(i));
+        for (int i = 0; i < target.size(); i++) {
+          if (i >= tmp.size()) {
+            tmp.add(target.get(i));
+          } else {
+            tmp.set(i, target.get(i));
+          }
+        }
         //place back into target from tmp to get sorted order
-        for(int i = 0; i < target.size(); i++)
-            target.set(i, tmp.get(index(i)));
+        for(int i = 0; i < target.size(); i++) {
+          target.set(i, tmp.get(index(i)));
+        }
     }
     
 }

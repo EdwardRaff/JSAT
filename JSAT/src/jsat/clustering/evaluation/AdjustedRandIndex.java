@@ -29,12 +29,14 @@ public class AdjustedRandIndex implements ClusterEvaluation
     @Override
     public double evaluate(int[] designations, DataSet dataSet)
     {
-        if( !(dataSet instanceof ClassificationDataSet))
-            throw new RuntimeException("NMI can only be calcuate for classification data sets");
+        if( !(dataSet instanceof ClassificationDataSet)) {
+          throw new RuntimeException("NMI can only be calcuate for classification data sets");
+        }
         ClassificationDataSet cds = (ClassificationDataSet)dataSet;
         int clusters = 0;//how many clusters are there? 
-        for(int clusterID : designations)
-            clusters = Math.max(clusterID+1, clusters);
+        for(int clusterID : designations) {
+          clusters = Math.max(clusterID+1, clusters);
+        }
         double[] truthSums = new double[cds.getClassSize()];
         double[] clusterSums = new double[clusters];
         double[][] table = new double[clusterSums.length][truthSums.length];
@@ -42,8 +44,9 @@ public class AdjustedRandIndex implements ClusterEvaluation
         for(int i = 0; i < designations.length; i++)
         {
             int cluster = designations[i];
-            if(cluster < 0)
-                continue;//noisy point 
+            if(cluster < 0) {
+              continue;//noisy point 
+            }
             int label = cds.getDataPointCategory(i);
             double weight = cds.getDataPoint(i).getWeight();
             table[cluster][label] += weight;

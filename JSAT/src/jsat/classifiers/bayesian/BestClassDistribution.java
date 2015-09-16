@@ -56,14 +56,16 @@ public class BestClassDistribution implements Classifier, Parameterized
      */
     public BestClassDistribution(BestClassDistribution toCopy)
     {
-        if(toCopy.priors != null)
-            this.priors = Arrays.copyOf(toCopy.priors, toCopy.priors.length);
+        if(toCopy.priors != null) {
+          this.priors = Arrays.copyOf(toCopy.priors, toCopy.priors.length);
+        }
         this.baseDist = toCopy.baseDist.clone();
         if(toCopy.dists  != null)
         {
             this.dists = new ArrayList<MultivariateDistribution>(toCopy.dists.size());
-            for(MultivariateDistribution md : toCopy.dists)
-                this.dists.add(md == null? null : md.clone());
+            for(MultivariateDistribution md : toCopy.dists) {
+              this.dists.add(md == null? null : md.clone());
+            }
         }
     }
     
@@ -96,8 +98,9 @@ public class BestClassDistribution implements Classifier, Parameterized
         
         for(int i = 0; i < dists.size(); i++)
         {
-            if(dists.get(i) == null)
-                continue;
+            if(dists.get(i) == null) {
+              continue;
+            }
             double  p = 0 ;
             try
             {
@@ -107,8 +110,9 @@ public class BestClassDistribution implements Classifier, Parameterized
             {
                 
             }
-            if(usePriors)
-                p *= priors[i];
+            if(usePriors) {
+              p *= priors[i];
+            }
             cr.setProb(i, p);
         }
         cr.normalize();
@@ -132,8 +136,9 @@ public class BestClassDistribution implements Classifier, Parameterized
 
                     public MultivariateDistribution call() throws Exception
                     {
-                        if (class_i.isEmpty())//Nowthing we can do 
-                            return null;
+                        if (class_i.isEmpty()) {//Nowthing we can do
+                          return null;
+                        }
                         MultivariateDistribution dist = sourceDist.clone();
                         dist.setUsingDataList(class_i);
                         return dist;
@@ -142,8 +147,9 @@ public class BestClassDistribution implements Classifier, Parameterized
 
                 newDists.add(tmp);
             }
-            for (Future<MultivariateDistribution> future : newDists)
-                this.dists.add(future.get());
+            for (Future<MultivariateDistribution> future : newDists) {
+              this.dists.add(future.get());
+            }
         }
         catch (Exception ex)
         {

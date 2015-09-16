@@ -52,10 +52,11 @@ public class KernelDensityEstimator extends ContinuousDistribution
     
     public static double BandwithGuassEstimate(Vec X)
     {
-        if(X.length() == 1 )
-            return 1;
-        else if(X.standardDeviation() == 0)
-            return 1.06 * Math.pow(X.length(), -1.0/5.0);
+        if(X.length() == 1 ) {
+          return 1;
+        } else if(X.standardDeviation() == 0) {
+          return 1.06 * Math.pow(X.length(), -1.0/5.0);
+        }
         return 1.06 * X.standardDeviation() * Math.pow(X.length(), -1.0/5.0);
     }
     
@@ -66,12 +67,14 @@ public class KernelDensityEstimator extends ContinuousDistribution
      */
     public static KernelFunction autoKernel(Vec dataPoints )
     {
-        if(dataPoints.length() < 30)
-            return GaussKF.getInstance();
-        else if(dataPoints.length() < 1000)
-            return EpanechnikovKF.getInstance();
-        else//For very large data sets, Uniform is FAST and just as accurate
-            return UniformKF.getInstance();
+        if(dataPoints.length() < 30) {
+          return GaussKF.getInstance();
+        } else if(dataPoints.length() < 1000) {
+          return EpanechnikovKF.getInstance();
+        } else {
+          //For very large data sets, Uniform is FAST and just as accurate
+          return UniformKF.getInstance();
+        }
     }
     
     public KernelDensityEstimator(Vec dataPoints)
@@ -131,8 +134,9 @@ public class KernelDensityEstimator extends ContinuousDistribution
     
     private void setUpX(Vec S, double[] weights)
     {
-        if(S.length() != weights.length)
-            throw new RuntimeException("Weights and variables do not have the same length");
+        if(S.length() != weights.length) {
+          throw new RuntimeException("Weights and variables do not have the same length");
+        }
         
         OnLineStatistics stats = new OnLineStatistics();
         
@@ -141,8 +145,9 @@ public class KernelDensityEstimator extends ContinuousDistribution
         
         //Probability is the X value, match is the weights - so that they can be sorted together. 
         List<ProbailityMatch<Double>> sorter = new ArrayList<ProbailityMatch<Double>>(S.length());
-        for(int i = 0; i < S.length(); i++)
-            sorter.add(new ProbailityMatch<Double>(S.get(i), weights[i]));
+        for(int i = 0; i < S.length(); i++) {
+          sorter.add(new ProbailityMatch<Double>(S.get(i), weights[i]));
+        }
         Collections.sort(sorter);
         for(int i = 0; i < sorter.size(); i++)
         {
@@ -153,8 +158,9 @@ public class KernelDensityEstimator extends ContinuousDistribution
         //Now do some helpful preprocessing on weights. We will make index i store the sum for [0, i]. 
         //Each individual weight can still be retrieved in O(1) by accessing a 2nd index and a subtraction
         //Methods that need the sum can now access it in O(1) time from the weights array instead of doing an O(n) summations
-        for(int i = 1; i < this.weights.length; i++)
-            this.weights[i] += this.weights[i-1];
+        for(int i = 1; i < this.weights.length; i++) {
+          this.weights[i] += this.weights[i-1];
+        }
         sumOFWeights = this.weights[this.weights.length-1];
         this.Xmean = stats.getMean();
         this.Xvar = stats.getVarance();
@@ -163,12 +169,13 @@ public class KernelDensityEstimator extends ContinuousDistribution
     
     private double getWeight(int i)
     {
-        if(weights.length == 0)
-            return 1.0;
-        else if(i == 0)
-            return weights[i];
-        else
-            return weights[i] - weights[i-1];
+        if(weights.length == 0) {
+          return 1.0;
+        } else if(i == 0) {
+          return weights[i];
+        } else {
+          return weights[i] - weights[i-1];
+        }
     }
     
 
@@ -206,13 +213,16 @@ public class KernelDensityEstimator extends ContinuousDistribution
         to = to < 0 ? -to-1 : to;
         
         //Univariate opt, if uniform weights, the sum is just the number of elements divide by half
-        if(weights.length == 0 && k instanceof UniformKF)
-            return (to-from)*0.5/ (sumOFWeights*h);
+        if(weights.length == 0 && k instanceof UniformKF) {
+          return (to-from)*0.5/ (sumOFWeights*h);
+        }
         
         double sum = 0;
-        for(int i = Math.max(0, from); i < Math.min(X.length, to+1); i++)
-            if(i != j)
-                sum += k.k( (x-X[i])/h )*getWeight(i);
+        for(int i = Math.max(0, from); i < Math.min(X.length, to+1); i++) {
+          if (i != j) {
+            sum += k.k( (x-X[i])/h )*getWeight(i);
+          }
+        }
         
         return sum / (sumOFWeights * h);
     }
@@ -229,8 +239,9 @@ public class KernelDensityEstimator extends ContinuousDistribution
         
         double sum = 0;
         
-        for(int i = Math.max(0, from); i < Math.min(X.length, to+1); i++)
-            sum += k.intK( (x-X[i]) /h )*getWeight(i);
+        for(int i = Math.max(0, from); i < Math.min(X.length, to+1); i++) {
+          sum += k.intK( (x-X[i]) /h )*getWeight(i);
+        }
         
         /* 
          * Slightly different, all things below the from value for the cdf would be 
@@ -238,10 +249,11 @@ public class KernelDensityEstimator extends ContinuousDistribution
          * the entire range, which by definition, is equal to 1.
          */
         //We perform the addition after the summation to reduce the difference size
-        if(weights.length == 0)//No weights
-            sum += Math.max(0, from);
-        else
-            sum += weights[from];
+        if(weights.length == 0) {//No weights
+          sum += Math.max(0, from);
+        } else {
+          sum += weights[from];
+        }
             
         
         return sum / (X.length);
@@ -284,15 +296,17 @@ public class KernelDensityEstimator extends ContinuousDistribution
             double XEstimate = p*sumOFWeights;
             index = Arrays.binarySearch(weights, XEstimate);
             index = index < 0 ? -index-1 : index;
-            if(X[index] != 0)//TODO fix this bit
-                kd0 = 1.0;//-Math.abs((XEstimate-X[index])/X[index]);
-            else
-                kd0 = 1.0;
+            if(X[index] != 0) {//TODO fix this bit
+              kd0 = 1.0;//-Math.abs((XEstimate-X[index])/X[index]);
+            } else {
+              kd0 = 1.0;
+            }
         }
         
         
-        if(index == X.length-1)//at the tail end
-            return X[index]*kd0;
+        if(index == X.length-1) {//at the tail end
+          return X[index]*kd0;
+        }
         double x  = X[index]*kd0 + X[index+1]*(1-kd0);
         
         return x;
@@ -335,8 +349,9 @@ public class KernelDensityEstimator extends ContinuousDistribution
      */
     public void setBandwith(double val)
     {
-        if(val <= 0 || Double.isInfinite(val))
-            throw new ArithmeticException("Bandwith parameter h must be greater than zero, not " + 0);
+        if(val <= 0 || Double.isInfinite(val)) {
+          throw new ArithmeticException("Bandwith parameter h must be greater than zero, not " + 0);
+        }
         this.h = val;
     }
 
@@ -352,8 +367,9 @@ public class KernelDensityEstimator extends ContinuousDistribution
     @Override
     public void setVariable(String var, double value)
     {
-        if(var.equals("h"))
-            setBandwith(value);
+        if(var.equals("h")) {
+          setBandwith(value);
+        }
     }
 
     @Override
@@ -381,12 +397,13 @@ public class KernelDensityEstimator extends ContinuousDistribution
     {
         double maxP = 0, pTmp;
         double maxV = Double.NaN;
-        for(int i = 0; i < X.length; i++)
-            if( (pTmp = pdf(X[i]) ) > maxP)
-            {
-                maxP = pTmp;
-                maxV = X[i];
-            }
+        for(int i = 0; i < X.length; i++) {
+          if( (pTmp = pdf(X[i]) ) > maxP)
+          {
+            maxP = pTmp;
+            maxV = X[i];
+          }
+        }
         
         return maxV;
     }

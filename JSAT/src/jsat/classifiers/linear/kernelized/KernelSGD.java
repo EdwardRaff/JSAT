@@ -122,10 +122,12 @@ public class KernelSGD implements UpdateableClassifier, UpdateableRegressor, Par
         this.errorTolerance = toCopy.errorTolerance;
         this.time = toCopy.time;
         this.epochs = toCopy.epochs;
-        if(toCopy.kpoint != null)
-            this.kpoint = toCopy.kpoint.clone();
-        if(toCopy.kpoints != null)
-            this.kpoints = toCopy.kpoints.clone();
+        if(toCopy.kpoint != null) {
+          this.kpoint = toCopy.kpoint.clone();
+        }
+        if(toCopy.kpoints != null) {
+          this.kpoints = toCopy.kpoints.clone();
+        }
     }
 
     /**
@@ -135,8 +137,9 @@ public class KernelSGD implements UpdateableClassifier, UpdateableRegressor, Par
      */
     public void setEpochs(int epochs)
     {
-        if(epochs < 1)
-            throw new IllegalArgumentException("Epochs must be a poistive constant, not " + epochs);
+        if(epochs < 1) {
+          throw new IllegalArgumentException("Epochs must be a poistive constant, not " + epochs);
+        }
         this.epochs = epochs;
     }
 
@@ -156,8 +159,9 @@ public class KernelSGD implements UpdateableClassifier, UpdateableRegressor, Par
      */
     public void setLoss(LossFunc loss)
     {
-        if(loss == null)
-            throw new NullPointerException("Loss may not be null");
+        if(loss == null) {
+          throw new NullPointerException("Loss may not be null");
+        }
         this.loss = loss;
     }
 
@@ -176,8 +180,9 @@ public class KernelSGD implements UpdateableClassifier, UpdateableRegressor, Par
      */
     public void setLambda(double lambda)
     {
-        if(lambda <= 0 || Double.isNaN(lambda) || Double.isInfinite(lambda))
-            throw new IllegalArgumentException("lambda must be a positive constant, not " + lambda);
+        if(lambda <= 0 || Double.isNaN(lambda) || Double.isInfinite(lambda)) {
+          throw new IllegalArgumentException("lambda must be a positive constant, not " + lambda);
+        }
         this.lambda = lambda;
     }
 
@@ -197,8 +202,9 @@ public class KernelSGD implements UpdateableClassifier, UpdateableRegressor, Par
      */
     public void setErrorTolerance(double errorTolerance)
     {
-        if(errorTolerance < 0 || errorTolerance > 1 || Double.isNaN(errorTolerance))
-            throw new IllegalArgumentException("Error tolerance must be in [0, 1], not " + errorTolerance);
+        if(errorTolerance < 0 || errorTolerance > 1 || Double.isNaN(errorTolerance)) {
+          throw new IllegalArgumentException("Error tolerance must be in [0, 1], not " + errorTolerance);
+        }
         this.errorTolerance = errorTolerance;
     }
 
@@ -219,8 +225,9 @@ public class KernelSGD implements UpdateableClassifier, UpdateableRegressor, Par
      */
     public void setBudgetSize(int budgetSize)
     {
-        if(budgetSize < 1)
-            throw new IllegalArgumentException("Budgest size must be a positive constant, not " + budgetSize);
+        if(budgetSize < 1) {
+          throw new IllegalArgumentException("Budgest size must be a positive constant, not " + budgetSize);
+        }
         this.budgetSize = budgetSize;
     }
 
@@ -239,8 +246,9 @@ public class KernelSGD implements UpdateableClassifier, UpdateableRegressor, Par
      */
     public void setBudgetStrategy(KernelPoint.BudgetStrategy budgetStrategy)
     {
-        if(budgetStrategy == null)
-            throw new NullPointerException("Budget strategy must be non null");
+        if(budgetStrategy == null) {
+          throw new NullPointerException("Budget strategy must be non null");
+        }
         this.budgetStrategy = budgetStrategy;
     }
 
@@ -278,8 +286,9 @@ public class KernelSGD implements UpdateableClassifier, UpdateableRegressor, Par
      */
     public void setKernel(KernelTrick kernel)
     {
-        if(kernel == null)
-            throw new NullPointerException("kernel trick must be non null");
+        if(kernel == null) {
+          throw new NullPointerException("kernel trick must be non null");
+        }
         this.kernel = kernel;
     }
 
@@ -295,8 +304,9 @@ public class KernelSGD implements UpdateableClassifier, UpdateableRegressor, Par
     @Override
     public void setUp(CategoricalData[] categoricalAttributes, int numericAttributes, CategoricalData predicting)
     {
-        if(!(loss instanceof LossC))
-            throw new FailedToFitException("Loss in use (" + loss.getClass().getSimpleName() + ") does not support classification");
+        if(!(loss instanceof LossC)) {
+          throw new FailedToFitException("Loss in use (" + loss.getClass().getSimpleName() + ") does not support classification");
+        }
         if(predicting.getNumOfCategories() == 2)
         {
             kpoint = new KernelPoint(kernel, errorTolerance);
@@ -308,8 +318,9 @@ public class KernelSGD implements UpdateableClassifier, UpdateableRegressor, Par
         }
         else
         {
-            if(!(loss instanceof LossMC))
-                throw new FailedToFitException("Loss in use (" + loss.getClass().getSimpleName() + ") does not support multi-class classification");
+            if(!(loss instanceof LossMC)) {
+              throw new FailedToFitException("Loss in use (" + loss.getClass().getSimpleName() + ") does not support multi-class classification");
+            }
             kpoint = null;
             kpoints = new KernelPoints(kernel, predicting.getNumOfCategories(), errorTolerance);
             kpoints.setBudgetStrategy(budgetStrategy);
@@ -323,8 +334,9 @@ public class KernelSGD implements UpdateableClassifier, UpdateableRegressor, Par
     @Override
     public void setUp(CategoricalData[] categoricalAttributes, int numericAttributes)
     {
-        if(!(loss instanceof LossR))
-            throw new FailedToFitException("Loss in use (" + loss.getClass().getSimpleName() + ") does not support regession");
+        if(!(loss instanceof LossR)) {
+          throw new FailedToFitException("Loss in use (" + loss.getClass().getSimpleName() + ") does not support regession");
+        }
         kpoint = new KernelPoint(kernel, errorTolerance);
         kpoint.setBudgetStrategy(budgetStrategy);
         kpoint.setErrorTolerance(errorTolerance);
@@ -347,8 +359,9 @@ public class KernelSGD implements UpdateableClassifier, UpdateableRegressor, Par
             final double y = targetClass*2-1;
             double dot = kpoint.dot(x, qi);
             double lossD = ((LossC)loss).getDeriv(dot, y);
-            if(lossD != 0)
-                kpoint.mutableAdd(-eta_t*lossD, x, qi);
+            if(lossD != 0) {
+              kpoint.mutableAdd(-eta_t*lossD, x, qi);
+            }
         }
         else if(kpoints != null)
         {
@@ -373,8 +386,9 @@ public class KernelSGD implements UpdateableClassifier, UpdateableRegressor, Par
         final double y = targetValue;
         double dot = kpoint.dot(x, qi);
         double lossD = ((LossR) loss).getDeriv(dot, y);
-        if (lossD != 0)
-            kpoint.mutableAdd(-eta_t * lossD, x, qi);
+        if (lossD != 0) {
+          kpoint.mutableAdd(-eta_t * lossD, x, qi);
+        }
 
     }
 
@@ -383,9 +397,9 @@ public class KernelSGD implements UpdateableClassifier, UpdateableRegressor, Par
     {
         final Vec x = data.getNumericalValues();
         final List<Double> qi = kernel.getQueryInfo(x);
-        if(kpoint != null)
-            return ((LossC)loss).getClassification(kpoint.dot(x, qi));
-        else
+        if(kpoint != null) {
+          return ((LossC)loss).getClassification(kpoint.dot(x, qi));
+        } else
         {
             Vec pred = new DenseVector(kpoints.dot(x, qi));
             ((LossMC)loss).process(pred, pred);

@@ -35,8 +35,9 @@ public class RationalQuadraticKernel extends BaseL2Kernel
      */
     public void setC(double c)
     {
-        if(c <= 0 || Double.isNaN(c) || Double.isInfinite(c))
-            throw new IllegalArgumentException("coefficient must be in (0, Inf), not " + c);
+        if(c <= 0 || Double.isNaN(c) || Double.isInfinite(c)) {
+          throw new IllegalArgumentException("coefficient must be in (0, Inf), not " + c);
+        }
         this.c = c;
     }
 

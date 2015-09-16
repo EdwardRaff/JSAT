@@ -49,8 +49,9 @@ public class NearestNeighbour implements  Classifier, Regressor, Parameterized
      */
     public void setNeighbors(int k)
     {
-        if(k < 1)
-            throw new ArithmeticException("Must be a positive number of neighbors");
+        if(k < 1) {
+          throw new ArithmeticException("Must be a positive number of neighbors");
+        }
         this.k = k;
     }
     
@@ -66,8 +67,9 @@ public class NearestNeighbour implements  Classifier, Regressor, Parameterized
 
     public void setDistanceMetric(DistanceMetric distanceMetric)
     {
-        if(distanceMetric == null)
-            throw new NullPointerException("given metric was null");
+        if(distanceMetric == null) {
+          throw new NullPointerException("given metric was null");
+        }
         this.distanceMetric = distanceMetric;
     }
     
@@ -150,8 +152,9 @@ public class NearestNeighbour implements  Classifier, Regressor, Parameterized
     @Override
     public CategoricalResults classify(DataPoint data)
     {
-        if(vecCollection == null || mode != Mode.CLASSIFICATION)
-            throw new UntrainedModelException("Classifier has not been trained for classification");
+        if(vecCollection == null || mode != Mode.CLASSIFICATION) {
+          throw new UntrainedModelException("Classifier has not been trained for classification");
+        }
         Vec query  = data.getNumericalValues();
         
         List<? extends VecPaired<VecPaired<Vec, Double>, Double>> knns = vecCollection.search(query, k);
@@ -168,8 +171,9 @@ public class NearestNeighbour implements  Classifier, Regressor, Parameterized
                 double prob = -Math.exp(-distance);
                 results.setProb(index, results.getProb(index) + prob);//Sum weights
             }
-            else
-                results.setProb(index, results.getProb(index) + 1.0);//all weights are 1
+            else {
+              results.setProb(index, results.getProb(index) + 1.0);//all weights are 1
+            }
         }
         
         results.normalize();
@@ -186,8 +190,9 @@ public class NearestNeighbour implements  Classifier, Regressor, Parameterized
     @Override
     public void trainC(ClassificationDataSet dataSet, ExecutorService threadPool)
     {
-        if(dataSet.getNumCategoricalVars() != 0)
-            throw new FailedToFitException("KNN requires vector data only");
+        if(dataSet.getNumCategoricalVars() != 0) {
+          throw new FailedToFitException("KNN requires vector data only");
+        }
         
         mode = Mode.CLASSIFICATION;
         this.predicting = dataSet.getPredicting();
@@ -205,17 +210,19 @@ public class NearestNeighbour implements  Classifier, Regressor, Parameterized
         
         TrainableDistanceMetric.trainIfNeeded(distanceMetric, dataSet, threadPool);
         
-        if(threadPool == null)
-            vecCollection = vcf.getVectorCollection(dataPoints, distanceMetric);
-        else
-            vecCollection = vcf.getVectorCollection(dataPoints, distanceMetric, threadPool);
+        if(threadPool == null) {
+          vecCollection = vcf.getVectorCollection(dataPoints, distanceMetric);
+        } else {
+          vecCollection = vcf.getVectorCollection(dataPoints, distanceMetric, threadPool);
+        }
     }
     
     @Override
     public double regress(DataPoint data)
     {
-        if(vecCollection == null || mode != Mode.REGRESSION)
-            throw new UntrainedModelException("Classifier has not been trained for regression");
+        if(vecCollection == null || mode != Mode.REGRESSION) {
+          throw new UntrainedModelException("Classifier has not been trained for regression");
+        }
         Vec query  = data.getNumericalValues();
         
         List<? extends VecPaired<VecPaired<Vec, Double>, Double>> knns = vecCollection.search(query, k);
@@ -256,8 +263,9 @@ public class NearestNeighbour implements  Classifier, Regressor, Parameterized
     @Override
     public void train(RegressionDataSet dataSet, ExecutorService threadPool)
     {
-        if(dataSet.getNumCategoricalVars() != 0)
-            throw new FailedToFitException("KNN requires vector data only");
+        if(dataSet.getNumCategoricalVars() != 0) {
+          throw new FailedToFitException("KNN requires vector data only");
+        }
         
         mode = Mode.REGRESSION;
 
@@ -273,10 +281,11 @@ public class NearestNeighbour implements  Classifier, Regressor, Parameterized
         
         TrainableDistanceMetric.trainIfNeeded(distanceMetric, dataSet, threadPool);
 
-        if(threadPool == null)
-            vecCollection = vcf.getVectorCollection(dataPoints, distanceMetric);
-        else
-            vecCollection = vcf.getVectorCollection(dataPoints, distanceMetric, threadPool);
+        if(threadPool == null) {
+          vecCollection = vcf.getVectorCollection(dataPoints, distanceMetric);
+        } else {
+          vecCollection = vcf.getVectorCollection(dataPoints, distanceMetric, threadPool);
+        }
     }
     
     @Override
@@ -284,12 +293,14 @@ public class NearestNeighbour implements  Classifier, Regressor, Parameterized
     {
         NearestNeighbour clone = new NearestNeighbour(k, weighted, distanceMetric.clone(), vcf.clone());
         
-        if(this.predicting != null)
-            clone.predicting = this.predicting.clone();
+        if(this.predicting != null) {
+          clone.predicting = this.predicting.clone();
+        }
         clone.mode = this.mode;
         
-        if(this.vecCollection != null)
-            clone.vecCollection = this.vecCollection.clone();
+        if(this.vecCollection != null) {
+          clone.vecCollection = this.vecCollection.clone();
+        }
         
         return clone;
     }

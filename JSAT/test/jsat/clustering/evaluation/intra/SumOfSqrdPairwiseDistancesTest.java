@@ -54,8 +54,9 @@ public class SumOfSqrdPairwiseDistancesTest
         int[] designations = new int[10];
         SimpleDataSet dataSet = new SimpleDataSet(new CategoricalData[0], 1);
         int clusterID = 2;
-        for(int i = 0; i < 10; i++)
-            dataSet.add(new DataPoint(new DenseVector(new double[]{i})));
+        for(int i = 0; i < 10; i++) {
+          dataSet.add(new DataPoint(new DenseVector(new double[]{i})));
+        }
         designations[1] = designations[3] = designations[5] = designations[9] = clusterID;
         
         
@@ -81,8 +82,9 @@ public class SumOfSqrdPairwiseDistancesTest
     {
         System.out.println("evaluate");
         SimpleDataSet dataSet = new SimpleDataSet(new CategoricalData[0], 1);
-        for(int i = 0; i < 10; i++)
-            dataSet.add(new DataPoint(new DenseVector(new double[]{i})));
+        for(int i = 0; i < 10; i++) {
+          dataSet.add(new DataPoint(new DenseVector(new double[]{i})));
+        }
         List<DataPoint> dataPoints = dataSet.getBackingList();
         SumOfSqrdPairwiseDistances instance = new SumOfSqrdPairwiseDistances();
         double expResult = 1650.0/(2*10);

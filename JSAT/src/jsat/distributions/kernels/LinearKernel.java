@@ -42,8 +42,9 @@ public class LinearKernel extends BaseKernelTrick
      */
     public void setC(double c)
     {
-        if(c < 0 || Double.isInfinite(c) || Double.isNaN(c))
-            throw new IllegalArgumentException("C must be a positive constant, not " + c);
+        if(c < 0 || Double.isInfinite(c) || Double.isNaN(c)) {
+          throw new IllegalArgumentException("C must be a positive constant, not " + c);
+        }
         this.c = c;
     }
 
@@ -86,8 +87,9 @@ public class LinearKernel extends BaseKernelTrick
         @Override
         public boolean setValue(double val)
         {
-            if(val < 0 || Double.isInfinite(val))
-                return false;
+            if(val < 0 || Double.isInfinite(val)) {
+              return false;
+            }
             setC(val);
             return true;
         }
@@ -108,8 +110,9 @@ public class LinearKernel extends BaseKernelTrick
     @Override
     public Parameter getParameter(String paramName)
     {
-        if(paramName.equals(param.getASCIIName()))
-            return param;
+        if(paramName.equals(param.getASCIIName())) {
+          return param;
+        }
         return null;
     }
 

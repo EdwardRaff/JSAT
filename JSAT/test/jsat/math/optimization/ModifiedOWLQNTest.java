@@ -61,8 +61,9 @@ public class ModifiedOWLQNTest
         System.out.println("optimize");
         Random rand = new Random();
         Vec x0 = new DenseVector(10);
-        for(int i = 0; i < x0.length(); i++)
-            x0.set(i, rand.nextDouble()+0.5);
+        for(int i = 0; i < x0.length(); i++) {
+          x0.set(i, rand.nextDouble()+0.5);
+        }
 
         RosenbrockFunction f = new RosenbrockFunction();
         FunctionVec fp = f.getDerivative();
@@ -73,8 +74,9 @@ public class ModifiedOWLQNTest
         Vec w = new DenseVector(x0.length());
         instance.optimize(1e-8, w, x0, f, fp, null);
 
-        for (int i = 0; i < w.length(); i++)
-            assertEquals(1.0, w.get(i), 1e-2);
+        for (int i = 0; i < w.length(); i++) {
+          assertEquals(1.0, w.get(i), 1e-2);
+        }
         assertEquals(0.0, f.f(w), 1e-3);
     }
 
@@ -84,8 +86,9 @@ public class ModifiedOWLQNTest
         System.out.println("optimize");
         Random rand = new Random();
         Vec x0 = new DenseVector(10);
-        for(int i = 0; i < x0.length(); i++)
-            x0.set(i, rand.nextDouble()+0.5);
+        for(int i = 0; i < x0.length(); i++) {
+          x0.set(i, rand.nextDouble()+0.5);
+        }
 
         RosenbrockFunction f = new RosenbrockFunction();
         FunctionVec fp = f.getDerivative();
@@ -97,8 +100,9 @@ public class ModifiedOWLQNTest
         Vec w = new DenseVector(x0.length());
         instance.optimize(1e-4, w, x0, f, fp, null);
 
-        for (int i = 0; i < w.length(); i++)
-            assertEquals(1.0, w.get(i), 0.5);
+        for (int i = 0; i < w.length(); i++) {
+          assertEquals(1.0, w.get(i), 0.5);
+        }
         assertEquals(0.0, f.f(w), 1e-1);
     }
     
@@ -129,8 +133,9 @@ public class ModifiedOWLQNTest
         }
         
         Vec x0 = new DenseVector(data.getNumNumericalVars());
-        for(int i = 0; i < x0.length(); i++)
-            x0.set(i, rand.nextDouble()*2-1);
+        for(int i = 0; i < x0.length(); i++) {
+          x0.set(i, rand.nextDouble()*2-1);
+        }
         
         
         double lambda = LinearTools.maxLambdaLogisticL1(data);
@@ -151,10 +156,11 @@ public class ModifiedOWLQNTest
         for(IndexValue iv : w)
         {
             assertTrue(iv.getIndex() < 3);
-            if(iv.getIndex() % 2 == 0)
-                assertTrue(iv.getValue() > 0);
-            else
-                assertTrue(iv.getValue() < 0);
+            if(iv.getIndex() % 2 == 0) {
+              assertTrue(iv.getValue() > 0);
+            } else {
+              assertTrue(iv.getValue() < 0);
+            }
         }
         
         //do it again, but don't regularize one value
@@ -166,10 +172,11 @@ public class ModifiedOWLQNTest
         assertTrue(w.nnz() <= 4);
         for(IndexValue iv : w)
         {
-            if(iv.getIndex() % 2 == 0)
-                assertTrue(iv.getValue() > 0);
-            else
-                assertTrue(iv.getValue() < 0);
+            if(iv.getIndex() % 2 == 0) {
+              assertTrue(iv.getValue() > 0);
+            } else {
+              assertTrue(iv.getValue() < 0);
+            }
         }
         assertEquals(0.0, w.get(5), 0.0);
         assertEquals(0.0, w.get(3), 0.0);
@@ -236,8 +243,9 @@ public class ModifiedOWLQNTest
         @Override
         public Vec f(Vec w, Vec s)
         {
-            if (s == null)
-                s = w.clone();
+            if (s == null) {
+              s = w.clone();
+            }
             s.zeroOut();
             double weightSum = 0;
             for (int i = 0; i < D.getSampleSize(); i++)

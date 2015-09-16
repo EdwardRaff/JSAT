@@ -89,29 +89,34 @@ public class HamerlyKMeans extends KMeans
         final List<Double> distAccel;//used like htis b/c we want it final for convinence, but input may be null
         if(accelCache == null)
         {
-            if(threadpool == null || threadpool instanceof FakeExecutor)
-                distAccel = dm.getAccelerationCache(X);
-            else
-                distAccel = dm.getAccelerationCache(X, threadpool);
+            if(threadpool == null || threadpool instanceof FakeExecutor) {
+              distAccel = dm.getAccelerationCache(X);
+            } else {
+              distAccel = dm.getAccelerationCache(X, threadpool);
+            }
         }
-        else
-            distAccel = accelCache;
+        else {
+          distAccel = accelCache;
+        }
         
         final List<List<Double>> meanQI = new ArrayList<List<Double>>(k);
         
         if (means.size() != k)
         {
             means.clear();
-            if (threadpool == null || threadpool instanceof FakeExecutor)
-                means.addAll(selectIntialPoints(dataSet, k, dm, distAccel, rand, seedSelection));
-            else
-                means.addAll(selectIntialPoints(dataSet, k, dm, distAccel, rand, seedSelection, threadpool));
+            if (threadpool == null || threadpool instanceof FakeExecutor) {
+              means.addAll(selectIntialPoints(dataSet, k, dm, distAccel, rand, seedSelection));
+            } else {
+              means.addAll(selectIntialPoints(dataSet, k, dm, distAccel, rand, seedSelection, threadpool));
+            }
         }
 
         //Make our means dense
-        for (int i = 0; i < means.size(); i++)
-            if (means.get(i).isSparse())
-                means.set(i, new DenseVector(means.get(i)));
+        for (int i = 0; i < means.size(); i++) {
+          if (means.get(i).isSparse()) {
+            means.set(i, new DenseVector(means.get(i)));
+          }
+        }
 
         /**
          * vector sum of all points in cluster j <br>
@@ -156,8 +161,9 @@ public class HamerlyKMeans extends KMeans
             protected Vec[] initialValue()
             {
                 Vec[] toRet = new Vec[means.size()];
-                for(int i = 0; i < k; i++)
-                    toRet[i] = new DenseVector(D);
+                for(int i = 0; i < k; i++) {
+                  toRet[i] = new DenseVector(D);
+                }
                 return toRet;
             }
         };
@@ -165,9 +171,11 @@ public class HamerlyKMeans extends KMeans
         //Start of algo
         Initialize(dataSet, q, means, tmpVecs, cP, u, l, assignment, threadpool, localDeltas, X, distAccel, meanQI);
         //Use dense mean objects
-        for(int i = 0; i < means.size(); i++)
-            if(means.get(i).isSparse())
-                means.set(i, new DenseVector(means.get(i)));
+        for(int i = 0; i < means.size(); i++) {
+          if (means.get(i).isSparse()) {
+            means.set(i, new DenseVector(means.get(i)));
+          }
+        }
         final AtomicInteger updates = new AtomicInteger(N);
         while(updates.get() > 0)
         {
@@ -234,31 +242,34 @@ public class HamerlyKMeans extends KMeans
         {
             double totalDistance = 0;
             
-            if (saveCentroidDistance)
-                nearestCentroidDist = new double[N];
-            else
-                nearestCentroidDist = null;
+            if (saveCentroidDistance) {
+              nearestCentroidDist = new double[N];
+            } else {
+              nearestCentroidDist = null;
+            }
 
-            if (exactTotal == true)
-                for (int i = 0; i < N; i++)
-                {
-                    double dist = dm.dist(i, means.get(assignment[i]), meanQI.get(assignment[i]), X, distAccel);
-                    totalDistance += Math.pow(dist, 2);
-                    if (saveCentroidDistance)
-                        nearestCentroidDist[i] = dist;
+            if (exactTotal == true) {
+              for (int i = 0; i < N; i++) {
+                double dist = dm.dist(i, means.get(assignment[i]), meanQI.get(assignment[i]), X, distAccel);
+                totalDistance += Math.pow(dist, 2);
+                if (saveCentroidDistance) {
+                  nearestCentroidDist[i] = dist;
                 }
-            else
-                for (int i = 0; i < N; i++)
-                {
-                    totalDistance += Math.pow(u[i], 2);
-                    if (saveCentroidDistance)
-                        nearestCentroidDist[i] = u[i];
+              }
+            } else {
+              for (int i = 0; i < N; i++) {
+                totalDistance += Math.pow(u[i], 2);
+                if (saveCentroidDistance) {
+                  nearestCentroidDist[i] = u[i];
                 }
+              }
+            }
 
             return totalDistance;
         }
-        else
-            return 0;//who cares
+        else {
+          return 0;//who cares
+        }
     }
 
     /**
@@ -305,9 +316,11 @@ public class HamerlyKMeans extends KMeans
         Arrays.fill(s, Double.MAX_VALUE);
         //TODO temp object for puting all the query info into a cache, should probably be cleaned up - or change original code to have one massive list and then use sub lits to get the QIs individualy 
         final DoubleList meanCache = meanQIs.get(0).isEmpty() ? null : new DoubleList(meanQIs.size());
-        if (meanCache != null)
-            for (List<Double> qi : meanQIs)
-                meanCache.addAll(qi);
+        if (meanCache != null) {
+          for (List<Double> qi : meanQIs) {
+            meanCache.addAll(qi);
+          }
+        }
 
         for (int j = 0; j < means.size(); j++)
         {
@@ -316,16 +329,18 @@ public class HamerlyKMeans extends KMeans
                 double tmp;
                 double min = Double.POSITIVE_INFINITY;
                 int otherIndx = Integer.MAX_VALUE;
-                for(int jp = j+1; jp < means.size(); jp++)
-                    if((tmp = dm.dist(j, jp, means, meanCache)) < min)
-                    {
-                        min = tmp;
-                        otherIndx = jp;
-                    }
+                for(int jp = j+1; jp < means.size(); jp++) {
+                  if((tmp = dm.dist(j, jp, means, meanCache)) < min)
+                  {
+                    min = tmp;
+                    otherIndx = jp;
+                  }
+                }
                 s[j] = Math.min(min, s[j]);
                 //trick to avoid computing twice as many distances as needed
-                if(otherIndx < s.length)//if index i is our min, we may be their min too
-                    s[otherIndx] = Math.min(s[otherIndx], s[j]);
+                if(otherIndx < s.length) {//if index i is our min, we may be their min too
+                  s[otherIndx] = Math.min(s[otherIndx], s[j]);
+                }
             }
             else
             {
@@ -338,18 +353,20 @@ public class HamerlyKMeans extends KMeans
                         double tmp;
                         double min = Double.POSITIVE_INFINITY;
                         int otherIndx = Integer.MAX_VALUE;
-                        for (int jp = J+1; jp < means.size(); jp++)
-                            if ((tmp = dm.dist(J, jp, means, meanCache)) < min)
-                            {
-                                min = tmp;
-                                otherIndx = jp;
-                            }
+                        for (int jp = J+1; jp < means.size(); jp++) {
+                          if ((tmp = dm.dist(J, jp, means, meanCache)) < min)
+                          {
+                            min = tmp;
+                            otherIndx = jp;
+                          }
+                        }
 
                         synchronized (s)
                         {
                             min = s[J] = Math.min(min, s[J]);
-                            if (otherIndx < s.length)
-                                s[otherIndx] = Math.min(min, s[otherIndx]);
+                            if (otherIndx < s.length) {
+                              s[otherIndx] = Math.min(min, s[otherIndx]);
+                            }
                         }
                         latch.countDown();
                     }
@@ -357,15 +374,16 @@ public class HamerlyKMeans extends KMeans
             }
         }
         
-        if (threadpool != null)
-            try
-            {
-                latch.await();
-            }
-            catch (InterruptedException ex)
-            {
-                Logger.getLogger(HamerlyKMeans.class.getName()).log(Level.SEVERE, null, ex);
-            }
+        if (threadpool != null) {
+          try
+          {
+            latch.await();
+          }
+          catch (InterruptedException ex)
+          {
+            Logger.getLogger(HamerlyKMeans.class.getName()).log(Level.SEVERE, null, ex);
+          }
+        }
     }
     
     private void Initialize(final DataSet d, final AtomicLongArray q, final List<Vec> means, final Vec[] tmp, final Vec[] cP, final double[] u, final double[] l, final int[] a, ExecutorService threadpool, final ThreadLocal<Vec[]> localDeltas, final List<Vec> X, final List<Double> distAccel, final List<List<Double>> meanQI)
@@ -377,10 +395,11 @@ public class HamerlyKMeans extends KMeans
             tmp[j] = cP[j].clone();
             
             //set up Quer Info for means
-            if(dm.supportsAcceleration())
-                meanQI.add(dm.getQueryInfo(means.get(j)));
-            else
-                meanQI.add(Collections.EMPTY_LIST);
+            if(dm.supportsAcceleration()) {
+              meanQI.add(dm.getQueryInfo(means.get(j)));
+            } else {
+              meanQI.add(Collections.EMPTY_LIST);
+            }
         }
 
         if(threadpool==null)
@@ -503,8 +522,9 @@ public class HamerlyKMeans extends KMeans
             tmpSpace[j].copyTo(means.get(j));
             
             //update QI
-            if(dm.supportsAcceleration())
-                meanQI.set(j, dm.getQueryInfo(means.get(j)));
+            if(dm.supportsAcceleration()) {
+              meanQI.set(j, dm.getQueryInfo(means.get(j)));
+            }
         }
     }
     
@@ -543,10 +563,11 @@ public class HamerlyKMeans extends KMeans
         {
             final int j = a[i];
             u[i] += p[j];
-            if(r == j)
-                l[i] -= p[rP];
-            else
-                l[i] -= p[r];
+            if(r == j) {
+              l[i] -= p[rP];
+            } else {
+              l[i] -= p[r];
+            }
         }
     }
 

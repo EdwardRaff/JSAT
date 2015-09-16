@@ -119,16 +119,17 @@ public class IntPriorityQueue extends AbstractQueue<Integer> implements Serializ
         this.size = 0;
         this.fastValueRemove = fastValueRemove;
         valueIndexStore = null;
-        if(fastValueRemove == Mode.HASH)
-            valueIndexMap = new HashMap<Integer, Integer>(initialSize);
-        else if(fastValueRemove == Mode.BOUNDED)
+        if(fastValueRemove == Mode.HASH) {
+          valueIndexMap = new HashMap<Integer, Integer>(initialSize);
+        } else if(fastValueRemove == Mode.BOUNDED)
         {
             valueIndexStore = new int[initialSize];
             Arrays.fill(valueIndexStore, -1);
             valueIndexMap = null;
         }
-        else
-            valueIndexMap = null;
+        else {
+          valueIndexMap = null;
+        }
     }
 
     @Override
@@ -159,9 +160,9 @@ public class IntPriorityQueue extends AbstractQueue<Integer> implements Serializ
             @Override
             public void remove()
             {
-                if(!canRemove)
-                    throw new IllegalStateException("An element can not currently be removed");
-                else
+                if(!canRemove) {
+                  throw new IllegalStateException("An element can not currently be removed");
+                } else
                 {
                     canRemove = false;
                     removeHeapNode(pos+1);
@@ -179,28 +180,30 @@ public class IntPriorityQueue extends AbstractQueue<Integer> implements Serializ
     @Override
     public boolean offer(Integer e)
     {
-        if(e == null)
-            return false;
+        if(e == null) {
+          return false;
+        }
         return offer((int)e);
     }
     
     public boolean offer(int e)
     {
         int i = size++;
-        if(heap.length < size)
-            heap = Arrays.copyOf(heap, heap.length*2);
+        if(heap.length < size) {
+          heap = Arrays.copyOf(heap, heap.length*2);
+        }
         heap[i] = e;
-        if(fastValueRemove == Mode.HASH)
-            valueIndexMap.put(e, i);
-        else if (fastValueRemove == Mode.BOUNDED )
-            if(e >= 0)
-                indexArrayStore(e, i);
-            else
-            {
-                heap[i] = 0;
-                size--;
-                return false;
-            }
+        if(fastValueRemove == Mode.HASH) {
+          valueIndexMap.put(e, i);
+        } else if (fastValueRemove == Mode.BOUNDED ) {
+          if (e >= 0) {
+            indexArrayStore(e, i);
+          } else {
+            heap[i] = 0;
+            size--;
+            return false;
+          }
+        }
         
         heapifyUp(i);
         return true;
@@ -226,11 +229,13 @@ public class IntPriorityQueue extends AbstractQueue<Integer> implements Serializ
     {
         int rightMostChild = i;
         //Get the right most child in this tree
-        while(rightChild(rightMostChild) < size)
-            rightMostChild = rightChild(rightMostChild);
+        while(rightChild(rightMostChild) < size) {
+          rightMostChild = rightChild(rightMostChild);
+        }
         //Could be at a level with a left but no right
-        while(leftChild(rightMostChild) < size)
-            rightMostChild = leftChild(rightMostChild);
+        while(leftChild(rightMostChild) < size) {
+          rightMostChild = leftChild(rightMostChild);
+        }
         
         return rightMostChild;
     }
@@ -327,8 +332,9 @@ public class IntPriorityQueue extends AbstractQueue<Integer> implements Serializ
         if(fastValueRemove == Mode.HASH)
         {
             valueIndexMap.remove(val);
-            if(size != 0)
-                valueIndexMap.put(heap[i], i);
+            if(size != 0) {
+              valueIndexMap.put(heap[i], i);
+            }
         }
         else if(fastValueRemove == Mode.BOUNDED)
         {
@@ -351,25 +357,27 @@ public class IntPriorityQueue extends AbstractQueue<Integer> implements Serializ
     @Override
     public Integer poll()
     {
-        if(isEmpty())
-            return null;
+        if(isEmpty()) {
+          return null;
+        }
         return removeHeapNode(0);
     }
 
     @Override
     public Integer peek()
     {
-        if(isEmpty())
-            return null;
+        if(isEmpty()) {
+          return null;
+        }
         return heap[0];
     }
 
     @Override
     public boolean contains(Object o)
     {
-        if(fastValueRemove == Mode.HASH)
-            return valueIndexMap.containsKey(o);
-        else if(fastValueRemove == Mode.BOUNDED)
+        if(fastValueRemove == Mode.HASH) {
+          return valueIndexMap.containsKey(o);
+        } else if(fastValueRemove == Mode.BOUNDED)
         {
             if( o instanceof Integer)
             {
@@ -386,10 +394,11 @@ public class IntPriorityQueue extends AbstractQueue<Integer> implements Serializ
     {
         Arrays.fill(heap, 0, size, 0);
         size = 0;
-        if(fastValueRemove == Mode.HASH)
-            valueIndexMap.clear();
-        else if(fastValueRemove == Mode.BOUNDED)
-            Arrays.fill(valueIndexStore, -1);
+        if(fastValueRemove == Mode.HASH) {
+          valueIndexMap.clear();
+        } else if(fastValueRemove == Mode.BOUNDED) {
+          Arrays.fill(valueIndexStore, -1);
+        }
     }
 
     @Override
@@ -398,8 +407,9 @@ public class IntPriorityQueue extends AbstractQueue<Integer> implements Serializ
         if(fastValueRemove == Mode.HASH)
         {
             Integer index = valueIndexMap.get(o);
-            if(index == null)
-                return false;
+            if(index == null) {
+              return false;
+            }
             removeHeapNode(index);
             return true;
         }
@@ -408,11 +418,13 @@ public class IntPriorityQueue extends AbstractQueue<Integer> implements Serializ
             if(o instanceof Integer)
             {
                 int val = ((Integer) o).intValue();
-                if(val <0 || val >= valueIndexStore.length)
-                    return false;
+                if(val <0 || val >= valueIndexStore.length) {
+                  return false;
+                }
                 int index = valueIndexStore[val];
-                if(index == -1)
-                    return false;
+                if(index == -1) {
+                  return false;
+                }
                 removeHeapNode(index);
                 return true;
             }

@@ -60,8 +60,9 @@ public class Bisection implements RootFinder
      */
     public static double root(double eps, int maxIterations, double a, double b, int pos, Function f, double... args)
     {
-        if(b <= a)
-            throw new ArithmeticException("a musbt be < b for Bisection to work");
+        if(b <= a) {
+          throw new ArithmeticException("a musbt be < b for Bisection to work");
+        }
         
         //We assume 1 dimensional function then 
         if(args == null ||args.length == 0)
@@ -75,8 +76,9 @@ public class Bisection implements RootFinder
         args[pos] = a;
         double fa = f.f(args);
         
-        if(fa* fb >= 0)
-            throw new ArithmeticException("The given interval does not appear to bracket the root");
+        if(fa* fb >= 0) {
+          throw new ArithmeticException("The given interval does not appear to bracket the root");
+        }
    
         while(b - a > 2*eps && maxIterations-- > 0)
         {
@@ -93,8 +95,9 @@ public class Bisection implements RootFinder
                 a = args[pos];
                 fa = ftmp;
             }
-            else
-                break;//We converged
+            else {
+              break;//We converged
+            }
         }
         
         return (a+b)*0.5;

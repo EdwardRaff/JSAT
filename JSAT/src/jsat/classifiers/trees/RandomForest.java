@@ -107,8 +107,9 @@ public class RandomForest implements Classifier, Regressor, Parameterized
      */
     public void setFeatureSamples(int featureSamples)
     {
-        if(featureSamples <= 0)
-            throw new ArithmeticException("A positive number of features must be given");
+        if(featureSamples <= 0) {
+          throw new ArithmeticException("A positive number of features must be given");
+        }
         this.featureSamples = featureSamples;
     }
     
@@ -138,8 +139,9 @@ public class RandomForest implements Classifier, Regressor, Parameterized
      */
     public void setMaxForestSize(int maxForestSize)
     {
-        if(maxForestSize <= 0)
-            throw new ArithmeticException("Must train a positive number of learners");
+        if(maxForestSize <= 0) {
+          throw new ArithmeticException("Must train a positive number of learners");
+        }
         this.maxForestSize = maxForestSize;
     }
 
@@ -185,13 +187,15 @@ public class RandomForest implements Classifier, Regressor, Parameterized
     @Override
     public CategoricalResults classify(DataPoint data)
     {
-        if(forest == null || forest.isEmpty())
-            throw new RuntimeException("Classifier has not yet been trained");
-        else if(predicting == null)
-            throw new RuntimeException("Classifier has been trained for regression");
+        if(forest == null || forest.isEmpty()) {
+          throw new RuntimeException("Classifier has not yet been trained");
+        } else if(predicting == null) {
+          throw new RuntimeException("Classifier has been trained for regression");
+        }
         CategoricalResults totalResult = new CategoricalResults(predicting.getNumOfCategories());
-        for(DecisionTree tree : forest)
-            totalResult.incProb(tree.classify(data).mostLikely(), 1.0);
+        for(DecisionTree tree : forest) {
+          totalResult.incProb(tree.classify(data).mostLikely(), 1.0);
+        }
         
         totalResult.normalize();
         return totalResult;
@@ -220,13 +224,15 @@ public class RandomForest implements Classifier, Regressor, Parameterized
     @Override
     public double regress(DataPoint data)
     {
-        if(forest == null || forest.isEmpty())
-            throw new RuntimeException("Classifier has not yet been trained");
-        else if(predicting != null)
-            throw new RuntimeException("Classifier has been trained for classification");
+        if(forest == null || forest.isEmpty()) {
+          throw new RuntimeException("Classifier has not yet been trained");
+        } else if(predicting != null) {
+          throw new RuntimeException("Classifier has been trained for classification");
+        }
         OnLineStatistics stats = new OnLineStatistics();
-        for(DecisionTree tree : forest)
-            stats.add(tree.regress(data));
+        for(DecisionTree tree : forest) {
+          stats.add(tree.regress(data));
+        }
         return stats.getMean();
     }
 
@@ -254,17 +260,19 @@ public class RandomForest implements Classifier, Regressor, Parameterized
     private void trainStep(DataSet dataSet, ExecutorService threadPool)
     {
         boolean autoLearners = isAutoFeatureSample();//We will need to set it back after, so remember if we need to
-        if(autoLearners)
-            baseLearner.setRandomFeatureCount(Math.max((int)Math.sqrt(dataSet.getNumFeatures()), 1));
-        else
-            baseLearner.setRandomFeatureCount(featureSamples);
+        if(autoLearners) {
+          baseLearner.setRandomFeatureCount(Math.max((int)Math.sqrt(dataSet.getNumFeatures()), 1));
+        } else {
+          baseLearner.setRandomFeatureCount(featureSamples);
+        }
         
         int roundsToDistribut = maxForestSize;
         int roundShare = roundsToDistribut / SystemInfo.LogicalCores;//The number of rounds each thread gets
         int extraRounds = roundsToDistribut % SystemInfo.LogicalCores;//The number of extra rounds that need to get distributed
                 
-        if(threadPool == null || threadPool instanceof FakeExecutor)//No point in duplicatin recources
-            roundShare = roundsToDistribut;//All the rounds get shoved onto one thread
+        if(threadPool == null || threadPool instanceof FakeExecutor) {//No point in duplicatin recources
+          roundShare = roundsToDistribut;//All the rounds get shoved onto one thread
+        }
         
         //Random used for creating more random objects, faster to duplicate such a small recourse then share and lock
         Random rand = new Random();
@@ -295,8 +303,9 @@ public class RandomForest implements Classifier, Regressor, Parameterized
         outOfBagError = 0;
         try
         {
-            for (LearningWorker worker : ListUtils.collectFutures(futures))
-                forest.addAll(worker.learned);
+            for (LearningWorker worker : ListUtils.collectFutures(futures)) {
+              forest.addAll(worker.learned);
+            }
         }
         catch (Exception ex)
         {
@@ -311,19 +320,22 @@ public class RandomForest implements Classifier, Regressor, Parameterized
                 for (int i = 0; i < counts.length; i++)
                 {
                     int max = 0;
-                    for (int j = 1; j < counts[i].length; j++)
-                    if(counts[i][j] > counts[i][max])
-                    
+                    for (int j = 1; j < counts[i].length; j++) {
+                      if (counts[i][j] > counts[i][max]) {
                         max = j;
-                    if(max != cds.getDataPointCategory(i))
-                        outOfBagError++;
+                      }
+                    }
+                    if(max != cds.getDataPointCategory(i)) {
+                      outOfBagError++;
+                    }
                 }
             }
             else
             {
                 RegressionDataSet rds = (RegressionDataSet) dataSet;
-                for (int i = 0; i < counts.length; i++)
-                    outOfBagError += Math.pow(pred.get(i)/counts[i][0]-rds.getTargetValue(i), 2);
+                for (int i = 0; i < counts.length; i++) {
+                  outOfBagError += Math.pow(pred.get(i)/counts[i][0]-rds.getTargetValue(i), 2);
+                }
             }
             outOfBagError /= dataSet.getSampleSize();
         }
@@ -336,13 +348,15 @@ public class RandomForest implements Classifier, Regressor, Parameterized
         RandomForest clone = new RandomForest(maxForestSize);
         clone.extraSamples = this.extraSamples;
         clone.featureSamples = this.featureSamples;
-        if(this.predicting != null)
-            clone.predicting = this.predicting.clone();
+        if(this.predicting != null) {
+          clone.predicting = this.predicting.clone();
+        }
         if(this.forest != null)
         {
             clone.forest = new ArrayList<DecisionTree>(this.forest.size());
-            for(DecisionTree tree : this.forest)
-                clone.forest.add(tree.clone());
+            for(DecisionTree tree : this.forest) {
+              clone.forest.add(tree.clone());
+            }
         }
         clone.baseLearner = this.baseLearner.clone();
         
@@ -398,22 +412,26 @@ public class RandomForest implements Classifier, Regressor, Parameterized
                 Bagging.sampleWithReplacement(sampleCounts, sampleCounts.length+extraSamples, random);
                 //Sample to select the feature subset
                 features.clear();
-                while(features.size() < Math.min(baseLearner.getRandomFeatureCount(), dataSet.getNumFeatures()))//The user could have specified too many
-                    features.add(random.nextInt(dataSet.getNumFeatures()));
+                while(features.size() < Math.min(baseLearner.getRandomFeatureCount(), dataSet.getNumFeatures())) {
+                  features.add(random.nextInt(dataSet.getNumFeatures()));
+                }
                                 
                 DecisionTree learner = baseLearner.clone();
                 
-                if(dataSet instanceof ClassificationDataSet)
-                    learner.trainC(Bagging.getWeightSampledDataSet((ClassificationDataSet)dataSet, sampleCounts), features);
-                else //It must be regression!
-                    learner.train(Bagging.getWeightSampledDataSet((RegressionDataSet)dataSet, sampleCounts), features);
+                if(dataSet instanceof ClassificationDataSet) {
+                  learner.trainC(Bagging.getWeightSampledDataSet((ClassificationDataSet)dataSet, sampleCounts), features);
+                } else {
+                  //It must be regression!
+                  learner.train(Bagging.getWeightSampledDataSet((RegressionDataSet)dataSet, sampleCounts), features);
+                }
                 learned.add(learner);
                 if(useOutOfBagError)
                 {
                     for(int j = 0; j < sampleCounts.length; j++)
                     {
-                        if(sampleCounts[j] != 0)
-                            continue;
+                        if(sampleCounts[j] != 0) {
+                          continue;
+                        }
 
                         DataPoint dp = dataSet.getDataPoint(j);
                         if(dataSet instanceof ClassificationDataSet)

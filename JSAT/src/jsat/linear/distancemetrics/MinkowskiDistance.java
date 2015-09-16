@@ -22,10 +22,11 @@ public class MinkowskiDistance implements DenseSparseMetric
      */
     public MinkowskiDistance(double p)
     {
-        if (p <= 0 || Double.isNaN(p))
-            throw new ArithmeticException("The pNorm exists only for p > 0");
-        else if (Double.isInfinite(p))
-            throw new ArithmeticException("Infinity norm is a special case, use ChebyshevDistance for infinity norm");
+        if (p <= 0 || Double.isNaN(p)) {
+          throw new ArithmeticException("The pNorm exists only for p > 0");
+        } else if (Double.isInfinite(p)) {
+          throw new ArithmeticException("Infinity norm is a special case, use ChebyshevDistance for infinity norm");
+        }
 
         setP(p);
     }
@@ -36,8 +37,9 @@ public class MinkowskiDistance implements DenseSparseMetric
      */
     public void setP(double p)
     {
-        if(p <= 0 || Double.isNaN(p) || Double.isInfinite(p))
-            throw new IllegalArgumentException("p must be a positive value, not " + p);
+        if(p <= 0 || Double.isNaN(p) || Double.isInfinite(p)) {
+          throw new IllegalArgumentException("p must be a positive value, not " + p);
+        }
         this.p = p;
     }
 
@@ -101,8 +103,9 @@ public class MinkowskiDistance implements DenseSparseMetric
     @Override
     public double dist(double summaryConst, Vec main, Vec target)
     {
-        if(!target.isSparse())
-            return dist(main, target);
+        if(!target.isSparse()) {
+          return dist(main, target);
+        }
         /**
          * Summary contains the differences^p to the zero vec, only a few 
          * of the indices are actually non zero -  we correct those values

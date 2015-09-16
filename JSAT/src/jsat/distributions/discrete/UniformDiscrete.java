@@ -54,8 +54,9 @@ public class UniformDiscrete extends DiscreteDistribution
      */
     public void setMinMax(int min, int max)
     {
-        if(min >= max)
-            throw new IllegalArgumentException("The input minimum (" + min + ") must be less than the given max (" + max  + ")");
+        if(min >= max) {
+          throw new IllegalArgumentException("The input minimum (" + min + ") must be less than the given max (" + max  + ")");
+        }
         this.min = min;
         this.max = max;
     }
@@ -68,8 +69,9 @@ public class UniformDiscrete extends DiscreteDistribution
      */
     public void setMin(int min)
     {
-        if (min >= max)
-            throw new IllegalArgumentException(min + " must be less than the max value " + max);
+        if (min >= max) {
+          throw new IllegalArgumentException(min + " must be less than the max value " + max);
+        }
         this.min = min;
     }
 
@@ -85,8 +87,9 @@ public class UniformDiscrete extends DiscreteDistribution
      */
     public void setMax(int max)
     {
-        if(max <= min)
-            throw new IllegalArgumentException(max + " must be greater than the min value " + min);
+        if(max <= min) {
+          throw new IllegalArgumentException(max + " must be greater than the min value " + min);
+        }
         this.max = max;
     }
 
@@ -98,32 +101,35 @@ public class UniformDiscrete extends DiscreteDistribution
     @Override
     public double pmf(int x)
     {
-        if(x < min || x > max)
-            return 0;
-        else
-            return 1.0/(1+max-min);
+        if(x < min || x > max) {
+          return 0;
+        } else {
+          return 1.0/(1+max-min);
+        }
     }
 
     @Override
     public double cdf(int x)
     {
-        if(x >= max)
-            return 1;
-        else if(x < min)
-            return 0;
-        else
-            return (1-min+x)/(double)(1+max-min);
+        if(x >= max) {
+          return 1;
+        } else if(x < min) {
+          return 0;
+        } else {
+          return (1-min+x)/(double)(1+max-min);
+        }
     }
 
     @Override
     public double invCdf(double p)
     {
-        if(p <= 0)
-            return min;
-        else if(p >= 1)
-            return max;
-        else
-            return Math.max(1, Math.ceil((1+max-min)*p)+min-1);
+        if(p <= 0) {
+          return min;
+        } else if(p >= 1) {
+          return max;
+        } else {
+          return Math.max(1, Math.ceil((1+max-min)*p)+min-1);
+        }
     }
 
     @Override

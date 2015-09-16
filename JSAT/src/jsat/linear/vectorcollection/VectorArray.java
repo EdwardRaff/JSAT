@@ -34,24 +34,27 @@ public class VectorArray<V extends Vec> extends ArrayList<V> implements VectorCo
     {
         super(initialCapacity);
         this.distanceMetric = distanceMetric;
-        if(distanceMetric.supportsAcceleration())
-            distCache = new DoubleList(initialCapacity);
+        if(distanceMetric.supportsAcceleration()) {
+          distCache = new DoubleList(initialCapacity);
+        }
     }
 
     public VectorArray(DistanceMetric distanceMetric, Collection<? extends V> c)
     {
         super(c);
         this.distanceMetric = distanceMetric;
-        if(distanceMetric.supportsAcceleration())
-            distCache = distanceMetric.getAccelerationCache(this);
+        if(distanceMetric.supportsAcceleration()) {
+          distCache = distanceMetric.getAccelerationCache(this);
+        }
     }
 
     public VectorArray(DistanceMetric distanceMetric)
     {
         super();
         this.distanceMetric = distanceMetric;
-        if(distanceMetric.supportsAcceleration())
-            distCache = new DoubleList();
+        if(distanceMetric.supportsAcceleration()) {
+          distCache = new DoubleList();
+        }
     }
 
     public DistanceMetric getDistanceMetric()
@@ -62,18 +65,20 @@ public class VectorArray<V extends Vec> extends ArrayList<V> implements VectorCo
     public void setDistanceMetric(DistanceMetric distanceMetric)
     {
         this.distanceMetric = distanceMetric;
-        if(distanceMetric.supportsAcceleration())
-            this.distCache = distanceMetric.getAccelerationCache(this);
-        else
-            this.distCache = null;
+        if(distanceMetric.supportsAcceleration()) {
+          this.distCache = distanceMetric.getAccelerationCache(this);
+        } else {
+          this.distCache = null;
+        }
     }
 
     @Override
     public boolean add(V e)
     {
         boolean toRet = super.add(e);
-        if(distCache != null)
-            this.distCache.addAll(distanceMetric.getQueryInfo(e));
+        if(distCache != null) {
+          this.distCache.addAll(distanceMetric.getQueryInfo(e));
+        }
         return toRet;
     }
 
@@ -81,9 +86,11 @@ public class VectorArray<V extends Vec> extends ArrayList<V> implements VectorCo
     public boolean addAll(Collection<? extends V> c)
     {
         boolean toRet = super.addAll(c);
-        if(this.distCache != null)
-            for(V v : c)
-                this.distCache.addAll(this.distanceMetric.getQueryInfo(v));
+        if(this.distCache != null) {
+          for (V v : c) {
+            this.distCache.addAll(this.distanceMetric.getQueryInfo(v));
+          }
+        }
         return toRet;
     }
 
@@ -105,8 +112,9 @@ public class VectorArray<V extends Vec> extends ArrayList<V> implements VectorCo
         for(int i = 0; i < size(); i++)
         {
             double distance = distanceMetric.dist(i, query, qi, this, distCache);
-            if(distance <= range)
-                list.add(new VecPairedComparable<V, Double>(get(i), distance));
+            if(distance <= range) {
+              list.add(new VecPairedComparable<V, Double>(get(i), distance));
+            }
         }
         Collections.sort(list);
         return list;

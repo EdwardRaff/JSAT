@@ -64,10 +64,11 @@ public class ScaledVector extends Vec
      */
     public void setScale(double scale)
     {
-        if(scale == 0.0)
-            zeroOut();
-        else
-            this.scale = scale;
+        if(scale == 0.0) {
+          zeroOut();
+        } else {
+          this.scale = scale;
+        }
     }
 
     /**
@@ -135,10 +136,11 @@ public class ScaledVector extends Vec
     public void mutableMultiply(double c)
     {
         scale *= c;
-        if(scale == 0.0)
-            this.zeroOut();
-        else if(Math.abs(scale) < 1e-10 || Math.abs(scale) > 1e10)
-            embedScale();
+        if(scale == 0.0) {
+          this.zeroOut();
+        } else if(Math.abs(scale) < 1e-10 || Math.abs(scale) > 1e10) {
+          embedScale();
+        }
     }
 
     @Override
@@ -151,8 +153,9 @@ public class ScaledVector extends Vec
     public void mutableDivide(double c)
     {
         scale /= c;
-        if(scale == 0.0)
-            this.zeroOut();
+        if(scale == 0.0) {
+          this.zeroOut();
+        }
     }
 
     @Override
@@ -164,19 +167,21 @@ public class ScaledVector extends Vec
     @Override
     public double min()
     {
-        if(scale >= 0)
-            return base.min()*scale;
-        else
-            return base.max()*scale;
+        if(scale >= 0) {
+          return base.min()*scale;
+        } else {
+          return base.max()*scale;
+        }
     }
 
     @Override
     public double max()
     {
-        if(scale >= 0)
-            return base.max()*scale;
-        else
-            return base.min()*scale;
+        if(scale >= 0) {
+          return base.max()*scale;
+        } else {
+          return base.min()*scale;
+        }
     }
 
     @Override
@@ -243,8 +248,9 @@ public class ScaledVector extends Vec
     public double[] arrayCopy()
     {
         double[] copy = base.arrayCopy();
-        for(int i = 0; i < copy.length; i++)
-            copy[i] *= scale;
+        for(int i = 0; i < copy.length; i++) {
+          copy[i] *= scale;
+        }
         return copy;
     }
 
@@ -279,8 +285,9 @@ public class ScaledVector extends Vec
             public IndexValue next()
             {
                 IndexValue iv = origIter.next();
-                if( iv != null)
-                    iv.setValue(scale*iv.getValue());
+                if( iv != null) {
+                  iv.setValue(scale*iv.getValue());
+                }
                 return iv;
             }
 

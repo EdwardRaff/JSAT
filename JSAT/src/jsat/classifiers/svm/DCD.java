@@ -134,8 +134,9 @@ public class DCD implements BinaryScoreClassifier, Regressor, Parameterized, Sin
      */
     public void setEps(double eps)
     {
-        if(Double.isNaN(eps) || eps < 0 || Double.isInfinite(eps))
-            throw new IllegalArgumentException("eps must be non-negative, not "+eps);
+        if(Double.isNaN(eps) || eps < 0 || Double.isInfinite(eps)) {
+          throw new IllegalArgumentException("eps must be non-negative, not "+eps);
+        }
         this.eps = eps;
     }
 
@@ -157,8 +158,9 @@ public class DCD implements BinaryScoreClassifier, Regressor, Parameterized, Sin
      */
     public void setC(double C)
     {
-        if(Double.isNaN(C) || Double.isInfinite(C) || C <= 0)
-            throw new ArithmeticException("Penalty parameter must be a positive value, not " + C);
+        if(Double.isNaN(C) || Double.isInfinite(C) || C <= 0) {
+          throw new ArithmeticException("Penalty parameter must be a positive value, not " + C);
+        }
         this.C = C;
     }
 
@@ -196,8 +198,9 @@ public class DCD implements BinaryScoreClassifier, Regressor, Parameterized, Sin
      */
     public void setMaxIterations(int maxIterations)
     {
-        if(maxIterations <= 0)
-            throw new IllegalArgumentException("Number of iterations must be positive, not " + maxIterations);
+        if(maxIterations <= 0) {
+          throw new IllegalArgumentException("Number of iterations must be positive, not " + maxIterations);
+        }
         this.maxIterations = maxIterations;
     }
 
@@ -246,19 +249,21 @@ public class DCD implements BinaryScoreClassifier, Regressor, Parameterized, Sin
     @Override
     public Vec getRawWeight(int index)
     {
-        if(index < 1)
-            return getRawWeight();
-        else
-            throw new IndexOutOfBoundsException("Model has only 1 weight vector");
+        if(index < 1) {
+          return getRawWeight();
+        } else {
+          throw new IndexOutOfBoundsException("Model has only 1 weight vector");
+        }
     }
 
     @Override
     public double getBias(int index)
     {
-        if (index < 1)
-            return getBias();
-        else
-            throw new IndexOutOfBoundsException("Model has only 1 weight vector");
+        if (index < 1) {
+          return getBias();
+        } else {
+          throw new IndexOutOfBoundsException("Model has only 1 weight vector");
+        }
     }
     
     @Override
@@ -270,14 +275,16 @@ public class DCD implements BinaryScoreClassifier, Regressor, Parameterized, Sin
     @Override
     public CategoricalResults classify(DataPoint data)
     {
-        if (w == null)
-            throw new UntrainedModelException("The model has not been trained");
+        if (w == null) {
+          throw new UntrainedModelException("The model has not been trained");
+        }
         CategoricalResults cr = new CategoricalResults(2);
 
-        if (getScore(data) < 0)
-            cr.setProb(0, 1.0);
-        else
-            cr.setProb(1, 1.0);
+        if (getScore(data) < 0) {
+          cr.setProb(0, 1.0);
+        } else {
+          cr.setProb(1, 1.0);
+        }
 
         return cr;
     }
@@ -297,8 +304,9 @@ public class DCD implements BinaryScoreClassifier, Regressor, Parameterized, Sin
     @Override
     public void trainC(ClassificationDataSet dataSet)
     {
-        if(dataSet.getClassSize() != 2)
-            throw new FailedToFitException("SVM only supports binary classificaiton problems");
+        if(dataSet.getClassSize() != 2) {
+          throw new FailedToFitException("SVM only supports binary classificaiton problems");
+        }
         vecs = new Vec[dataSet.getSampleSize()];
         alpha = new double[vecs.length];
         y = new double[vecs.length];
@@ -312,8 +320,9 @@ public class DCD implements BinaryScoreClassifier, Regressor, Parameterized, Sin
             vecs[i] = dataSet.getDataPoint(i).getNumericalValues();
             y[i] = dataSet.getDataPointCategory(i)*2-1;
             Qhs[i] = vecs[i].dot(vecs[i])+D;
-            if(useBias)
-                Qhs[i] += 1.0;
+            if(useBias) {
+              Qhs[i] += 1.0;
+            }
         }
         w = new DenseVector(vecs[0].length());
         
@@ -331,8 +340,9 @@ public class DCD implements BinaryScoreClassifier, Regressor, Parameterized, Sin
             else
             {
                 Collections.shuffle(A, rand);
-                for(int i : A)
-                    performUpdate(i, D, U, Qhs[i]);
+                for(int i : A) {
+                  performUpdate(i, D, U, Qhs[i]);
+                }
             }
         }
         
@@ -351,12 +361,13 @@ public class DCD implements BinaryScoreClassifier, Regressor, Parameterized, Sin
         final double G = y[i]*(w.dot(vecs[i])+bias)-1+D*alpha[i];
         //b
         final double PG;
-        if(alpha[i] == 0)
-            PG = Math.min(G, 0);
-        else if(alpha[i] == U)
-            PG = Math.max(G, 0);
-        else
-            PG = G;
+        if(alpha[i] == 0) {
+          PG = Math.min(G, 0);
+        } else if(alpha[i] == U) {
+          PG = Math.max(G, 0);
+        } else {
+          PG = G;
+        }
         //c
         if(PG != 0)
         {
@@ -364,8 +375,9 @@ public class DCD implements BinaryScoreClassifier, Regressor, Parameterized, Sin
             alpha[i] = Math.min(Math.max(alpha[i]-G/Qh_ii, 0), U);
             final double scale = (alpha[i]-alphaOld)*y[i];
             w.mutableAdd(scale, vecs[i]);
-            if(useBias)
-                bias += scale;
+            if(useBias) {
+              bias += scale;
+            }
         }
     }
     
@@ -400,8 +412,9 @@ public class DCD implements BinaryScoreClassifier, Regressor, Parameterized, Sin
             vecs[i] = dataSet.getDataPoint(i).getNumericalValues();
             y[i] = dataSet.getTargetValue(i);
             Qhs[i] = vecs[i].dot(vecs[i])+lambda;
-            if (useBias)
-                Qhs[i] += 1.0;
+            if (useBias) {
+              Qhs[i] += 1.0;
+            }
             v_0 += Math.abs(eq24(0, -y[i]-eps, -y[i]+eps, U));
         }
         w = new DenseVector(vecs[0].length());
@@ -438,47 +451,53 @@ public class DCD implements BinaryScoreClassifier, Regressor, Parameterized, Sin
                 //eq (22)
                 final double Q_ii = Qhs[i];
                 final double d;
-                if (gP < Q_ii * alpha[i])
-                    d = -gP / Q_ii;
-                else if (gN > Q_ii * alpha[i])
-                    d = -gN / Q_ii;
-                else
-                    d = -alpha[i];
+                if (gP < Q_ii * alpha[i]) {
+                  d = -gP / Q_ii;
+                } else if (gN > Q_ii * alpha[i]) {
+                  d = -gN / Q_ii;
+                } else {
+                  d = -alpha[i];
+                }
 
-                if (Math.abs(d) < 1e-14)
-                    continue;
+                if (Math.abs(d) < 1e-14) {
+                  continue;
+                }
                 
                 //s = max(−U, min(U,beta_i +d))     eq (21) 
                 final double s = Math.max(-U, Math.min(U, alpha[i]+d));
                 
                 w.mutableAdd(s-alpha[i], x_i);
-                if(useBias)
-                    bias += (s-alpha[i]);
+                if(useBias) {
+                  bias += (s-alpha[i]);
+                }
                 alpha[i] = s;
             }
             
             //convergence check
-            if(vKSum/v_0 < 1e-4)//converged
-                break;
-            else
-                M = maxVk;
+            if(vKSum/v_0 < 1e-4) {//converged
+              break;
+            } else {
+              M = maxVk;
+            }
         }
     }
     
     private double getU()
     {
-        if(useL1)
-            return C;
-        else
-            return Double.POSITIVE_INFINITY;
+        if(useL1) {
+          return C;
+        } else {
+          return Double.POSITIVE_INFINITY;
+        }
     }
     
     private double getD()
     {
-        if(useL1)
-            return 0;
-        else
-            return 1/(2*C);
+        if(useL1) {
+          return 0;
+        } else {
+          return 1/(2*C);
+        }
     }
 
     @Override
@@ -495,8 +514,9 @@ public class DCD implements BinaryScoreClassifier, Regressor, Parameterized, Sin
         clone.bias = this.bias;
         clone.useBias = this.useBias;
         
-        if(this.w != null)
-            clone.w = this.w.clone();
+        if(this.w != null) {
+          clone.w = this.w.clone();
+        }
         
         return clone;
     }

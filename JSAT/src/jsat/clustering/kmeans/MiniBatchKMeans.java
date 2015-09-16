@@ -90,8 +90,9 @@ public class MiniBatchKMeans extends KClustererBase
         if(toCopy.means != null)
         {
             this.means = new ArrayList<Vec>();
-            for(Vec v : toCopy.means)
-                this.means.add(v.clone());
+            for(Vec v : toCopy.means) {
+              this.means.add(v.clone());
+            }
         }
     }
     
@@ -143,8 +144,9 @@ public class MiniBatchKMeans extends KClustererBase
      */
     public void setBatchSize(int batchSize)
     {
-        if(batchSize < 1)
-            throw new ArithmeticException("Batch size must be a positive value, not " + batchSize);
+        if(batchSize < 1) {
+          throw new ArithmeticException("Batch size must be a positive value, not " + batchSize);
+        }
         this.batchSize = batchSize;
     }
 
@@ -163,8 +165,9 @@ public class MiniBatchKMeans extends KClustererBase
      */
     public void setIterations(int iterations)
     {
-        if(iterations < 1)
-            throw new ArithmeticException("Iterations must be a positive value, not " + iterations);
+        if(iterations < 1) {
+          throw new ArithmeticException("Iterations must be a positive value, not " + iterations);
+        }
         this.iterations = iterations;
     }
 
@@ -211,26 +214,30 @@ public class MiniBatchKMeans extends KClustererBase
     @Override
     public int[] cluster(DataSet dataSet, int clusters, ExecutorService threadpool, int[] designations) 
     {
-        if(designations == null)
-            designations = new int[dataSet.getSampleSize()];
+        if(designations == null) {
+          designations = new int[dataSet.getSampleSize()];
+        }
         
         TrainableDistanceMetric.trainIfNeeded(dm, dataSet, threadpool);
         
         final List<Vec> source = dataSet.getDataVectors();
         final List<Double> distCache;
-        if(threadpool == null || threadpool instanceof FakeExecutor)
-            distCache = dm.getAccelerationCache(source);
-        else
-            distCache = dm.getAccelerationCache(source, threadpool);
+        if(threadpool == null || threadpool instanceof FakeExecutor) {
+          distCache = dm.getAccelerationCache(source);
+        } else {
+          distCache = dm.getAccelerationCache(source, threadpool);
+        }
         
         means = SeedSelectionMethods.selectIntialPoints(dataSet, clusters, dm, distCache, new Random(), seedSelection, threadpool);
         
         final List<List<Double>> meanQIs = new ArrayList<List<Double>>(means.size());
-        for (int i = 0; i < means.size(); i++)
-            if (dm.supportsAcceleration())
-                meanQIs.add(dm.getQueryInfo(means.get(i)));
-            else
-                meanQIs.add(Collections.EMPTY_LIST);
+        for (int i = 0; i < means.size(); i++) {
+          if (dm.supportsAcceleration()) {
+            meanQIs.add(dm.getQueryInfo(means.get(i)));
+          } else {
+            meanQIs.add(Collections.EMPTY_LIST);
+          }
+        }
 
         final int[] v = new int[means.size()];
         
@@ -310,9 +317,11 @@ public class MiniBatchKMeans extends KClustererBase
             }
             
             //update mean caches
-            if(dm.supportsAcceleration())
-                for(int i = 0; i < means.size(); i++)
-                    meanQIs.set(i, dm.getQueryInfo(means.get(i)));
+            if(dm.supportsAcceleration()) {
+              for (int i = 0; i < means.size(); i++) {
+                meanQIs.set(i, dm.getQueryInfo(means.get(i)));
+              }
+            }
         }
         
         //Stochastic travel complete, calculate all
@@ -364,8 +373,9 @@ public class MiniBatchKMeans extends KClustererBase
 
         try
         {
-            for (Future<Double> future : futures)
-                sumErr += future.get();
+            for (Future<Double> future : futures) {
+              sumErr += future.get();
+            }
         }
         catch (InterruptedException ex)
         {
@@ -375,8 +385,9 @@ public class MiniBatchKMeans extends KClustererBase
         {
             Logger.getLogger(MiniBatchKMeans.class.getName()).log(Level.SEVERE, null, ex);
         }
-        if(!storeMeans)
-            means = null;
+        if(!storeMeans) {
+          means = null;
+        }
 
         return des;
     }

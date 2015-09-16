@@ -89,22 +89,24 @@ public class MDS
         List<Vec> X_views = new ArrayList<Vec>();
         for(int i = 0; i < N; i++)
         {
-            for(int j = 0; j < targetSize; j++)
-                X.set(i, j, rand.nextDouble());
+            for(int j = 0; j < targetSize; j++) {
+              X.set(i, j, rand.nextDouble());
+            }
             X_views.add(X.getRowView(i));
         }
         List<Double> X_rowCache = embedMetric.getAccelerationCache(X_views, ex);
         
         //TODO, special case solution when all weights are the same, want to add general case as well
         Matrix V_inv = new DenseMatrix(N, N);
-        for(int i = 0; i < N; i++)
-            for(int j = 0; j < N; j++)
-            {
-                if(i == j)
-                    V_inv.set(i, j, (1.0-1.0/N)/N);
-                else
-                    V_inv.set(i, j, (0.0-1.0/N)/N);
+        for(int i = 0; i < N; i++) {
+          for (int j = 0; j < N; j++) {
+            if (i == j) {
+              V_inv.set(i, j, (1.0-1.0/N)/N);
+            } else {
+              V_inv.set(i, j, (0.0-1.0/N)/N);
             }
+          }
+        }
         
         double stressChange = Double.POSITIVE_INFINITY;
         double oldStress = stress(X_views, X_rowCache, delta);
@@ -116,30 +118,33 @@ public class MDS
         {
             
             //we need to set B correctly
-            for(int i = 0; i < B.rows(); i++)
-                for(int j = i+1; j < B.rows(); j++)
+            for(int i = 0; i < B.rows(); i++) {
+              for(int j = i+1; j < B.rows(); j++)
+              {
+                double d_ij = embedMetric.dist(i, j, X_views, X_rowCache);
+                
+                if(d_ij > 1e-5)//avoid creating silly huge values
                 {
-                    double d_ij = embedMetric.dist(i, j, X_views, X_rowCache);
-
-                    if(d_ij > 1e-5)//avoid creating silly huge values
-                    {
-                        double b_ij = -delta.get(i, j)/d_ij;//-w_ij if we support weights in the future
-                        B.set(i, j, b_ij);
-                        B.set(j, i, b_ij);
-                    }
-                    else
-                    {
-                        B.set(i, j, 0);
-                        B.set(j, i, 0);
-                    }
+                  double b_ij = -delta.get(i, j)/d_ij;//-w_ij if we support weights in the future
+                  B.set(i, j, b_ij);
+                  B.set(j, i, b_ij);
                 }
+                else
+                {
+                  B.set(i, j, 0);
+                  B.set(j, i, 0);
+                }
+              }
+            }
             //set the diagonal values
             for(int i = 0; i < B.rows(); i++)
             {   
                 B.set(i, i, 0);
-                for (int k = 0; k < B.cols(); k++)
-                    if (k != i)
-                        B.increment(i, i, -B.get(i, k));
+                for (int k = 0; k < B.cols(); k++) {
+                  if (k != i) {
+                    B.increment(i, i, -B.get(i, k));
+                  }
+                }
             }
             
 //            Matrix X_new = V_inv.multiply(B, ex).multiply(X, ex);
@@ -157,8 +162,9 @@ public class MDS
         DataSet<Type> transformed = d.shallowClone();
         
         final IdentityHashMap<DataPoint, Integer> indexMap = new IdentityHashMap<DataPoint, Integer>(N);
-        for(int i = 0; i < N; i++)
-            indexMap.put(d.getDataPoint(i), i);
+        for(int i = 0; i < N; i++) {
+          indexMap.put(d.getDataPoint(i), i);
+        }
         
         transformed.applyTransform(new DataTransform()
         {

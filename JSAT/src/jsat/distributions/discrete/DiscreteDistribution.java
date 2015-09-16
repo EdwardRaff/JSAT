@@ -47,8 +47,9 @@ abstract public class DiscreteDistribution extends Distribution
     public double logPmf(int x)
     {
         double pmf = pmf(x);
-        if (pmf <= 0)
-            return -Double.MAX_VALUE;
+        if (pmf <= 0) {
+          return -Double.MAX_VALUE;
+        }
         return Math.log(pmf);
     }
 
@@ -75,13 +76,17 @@ abstract public class DiscreteDistribution extends Distribution
     {
         //two special case checks, as they can cause a failure to get a positive and negative value on the ends, which means we can't do a search for the root
         //Special case check, p < min value
-        if(min() >= Integer.MIN_VALUE)
-            if(p <= cdf(min()))
-                return min();
+        if(min() >= Integer.MIN_VALUE) {
+          if (p <= cdf(min())) {
+            return min();
+          }
+        }
         //special case check, p >= max value
-        if(max() < Integer.MAX_VALUE)
-            if(p > cdf(max()-1))
-                return max();
+        if(max() < Integer.MAX_VALUE) {
+          if (p > cdf(max()-1)) {
+            return max();
+          }
+        }
         //stewpwise nature fo discrete can cause problems for search, so we will use a smoothed cdf to pass in
         double toRet= invCdf(p, new FunctionBase()
         {
@@ -90,8 +95,9 @@ abstract public class DiscreteDistribution extends Distribution
             {
                 double query = x.get(0);
                 //if it happens to fall on an int we just compute the regular value
-                if(Math.rint(query) == query)
-                    return cdf((int)query);
+                if(Math.rint(query) == query) {
+                  return cdf((int)query);
+                }
                 //else, interpolate
                 double larger = query+1;
                 double diff = larger-query;
@@ -105,8 +111,9 @@ abstract public class DiscreteDistribution extends Distribution
     @Override
     protected double invCdf(final double p, final Function cdf)
     {
-        if (p < 0 || p > 1)
-            throw new ArithmeticException("Value of p must be in the range [0,1], not " + p);
+        if (p < 0 || p > 1) {
+          throw new ArithmeticException("Value of p must be in the range [0,1], not " + p);
+        }
         //we can't use the max/min b/c we might overflow on some of the computations, so lets tone it down a little
         double a = Double.isInfinite(min()) ? Integer.MIN_VALUE*.95 : min();
         double b = Double.isInfinite(max()) ? Integer.MAX_VALUE*.95 : max();

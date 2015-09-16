@@ -74,13 +74,15 @@ public class Poly2Vec extends Vec
     
     private int[] getReverseIndex()
     {
-        if(reverseIndex != null && reverseIndex.length == base.length())
-            Arrays.fill(reverseIndex, 0);
-        else
-            reverseIndex = new int[base.length()];
+        if(reverseIndex != null && reverseIndex.length == base.length()) {
+          Arrays.fill(reverseIndex, 0);
+        } else {
+          reverseIndex = new int[base.length()];
+        }
         reverseIndex[0] = base.length();
-        for(int i = 1; i < reverseIndex.length; i++)
-            reverseIndex[i] = reverseIndex[i-1]+(base.length()-i);
+        for(int i = 1; i < reverseIndex.length; i++) {
+          reverseIndex[i] = reverseIndex[i-1]+(base.length()-i);
+        }
         return reverseIndex;
     }
     
@@ -99,17 +101,19 @@ public class Poly2Vec extends Vec
     @Override
     public double get(int index)
     {
-        if(index == 0)
-            return 1;
-        else if (index <= base.length())
-            return base.get(index-1);
-        else if (index >= length())
-            throw new IndexOutOfBoundsException("Vector is of length " + length() +", but index "+ index + " was requested");
+        if(index == 0) {
+          return 1;
+        } else if (index <= base.length()) {
+          return base.get(index-1);
+        } else if (index >= length()) {
+          throw new IndexOutOfBoundsException("Vector is of length " + length() +", but index "+ index + " was requested");
+        }
         int x = Arrays.binarySearch(getReverseIndex(), index-base.length()-1);
-        if(x < 0)
-            x = -x -1;
-        else 
-            x++;
+        if(x < 0) {
+          x = -x -1;
+        } else {
+          x++;
+        }
         double xVal = base.get(x);
         
         int y = (x*x+x)/2 + (index-base.length()-1) - base.length()*x;//the first term is safe b/c it will always be an even number before division
@@ -138,32 +142,32 @@ public class Poly2Vec extends Vec
     public Iterator<IndexValue> getNonZeroIterator(int start)
     {
         //First case: empty base vector
-        if (base.nnz() == 0)
-            return new Iterator<IndexValue>()
+        if (base.nnz() == 0) {
+          return new Iterator<IndexValue>() {
+            boolean hasNext = true;
+
+            @Override
+            public boolean hasNext()
             {
-                boolean hasNext = true;
+              return hasNext;
+            }
 
-                @Override
-                public boolean hasNext()
-                {
-                    return hasNext;
-                }
+            @Override
+            public IndexValue next() {
+              if (!hasNext) {
+                throw new NoSuchElementException("Iterator is empty");
+              }
+              hasNext = false;
+              return new IndexValue(0, 1.0);
+            }
 
-                @Override
-                public IndexValue next()
-                {
-                    if (!hasNext)
-                        throw new NoSuchElementException("Iterator is empty");
-                    hasNext = false;
-                    return new IndexValue(0, 1.0);
-                }
-
-                @Override
-                public void remove()
-                {
-                    throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-                }
-            };
+            @Override
+            public void remove()
+            {
+              throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+            }
+          };
+        }
         //Else, general case
         final int startStage;
         final Iterator<IndexValue> startOuterIter, startInerIter;
@@ -186,18 +190,20 @@ public class Poly2Vec extends Vec
         }
         else//where do we start?
         {
-            if (!stage1Good)
-                start = base.length() + 1;
+            if (!stage1Good) {
+              start = base.length() + 1;
+            }
             Iterator<IndexValue> candidateOuterIter, candidateInerIter;
             start--;//lazy ness so we can update first thing in each iteration (we dont actually want to change the first value in the looping
             do
             {
                 start++;
                 int x = Arrays.binarySearch(getReverseIndex(), start - base.length() - 1);
-                if (x < 0)
-                    x = -x - 1;
-                else
-                    x++;
+                if (x < 0) {
+                  x = -x - 1;
+                } else {
+                  x++;
+                }
                 int y = (x * x + x) / 2 + (start - base.length() - 1) - base.length() * x;//the first term is safe b/c it will always be an even number before division
                 candidateOuterIter = base.getNonZeroIterator(x);
                 /*
@@ -208,10 +214,11 @@ public class Poly2Vec extends Vec
                  * x's value
                  */
                 int nextXIndex = candidateOuterIter.hasNext() ? base.getNonZeroIterator(x).next().getIndex() : -1;
-                if(candidateOuterIter.hasNext() && nextXIndex > x)//x is at a zero, so we need to inner iter to go back to the "begining"
-                    candidateInerIter = base.getNonZeroIterator(nextXIndex);//next variable starts at val^2
-                else
-                    candidateInerIter = base.getNonZeroIterator(y);
+                if(candidateOuterIter.hasNext() && nextXIndex > x) {//x is at a zero, so we need to inner iter to go back to the "begining"
+                  candidateInerIter = base.getNonZeroIterator(nextXIndex);//next variable starts at val^2
+                } else {
+                  candidateInerIter = base.getNonZeroIterator(y);
+                }
             }
             while ( (!candidateOuterIter.hasNext() || !candidateInerIter.hasNext()) && start < length());
             if (candidateOuterIter.hasNext() && candidateInerIter.hasNext() && start < length())
@@ -220,27 +227,28 @@ public class Poly2Vec extends Vec
                 startOuterIter = candidateOuterIter;
                 startInerIter = candidateInerIter;
             }
-            else
-                return new Iterator<IndexValue>()
+            else {
+              return new Iterator<IndexValue>()
+              {
+                @Override
+                public boolean hasNext()
                 {
-                    @Override
-                    public boolean hasNext()
-                    {
-                        return false;
-                    }
-
-                    @Override
-                    public IndexValue next()
-                    {
-                        throw new NoSuchElementException("Iterator is empty");
-                    }
-
-                    @Override
-                    public void remove()
-                    {
-                        throw new UnsupportedOperationException("Not supported yet.");
-                    }
-                };
+                  return false;
+                }
+                
+                @Override
+                public IndexValue next()
+                {
+                  throw new NoSuchElementException("Iterator is empty");
+                }
+                
+                @Override
+                public void remove()
+                {
+                  throw new UnsupportedOperationException("Not supported yet.");
+                }
+              };
+            }
         }
 
         return new Iterator<IndexValue>() 
@@ -254,8 +262,9 @@ public class Poly2Vec extends Vec
             @Override
             public boolean hasNext()
             {
-                if(stage < 3)
-                    return true;
+                if(stage < 3) {
+                  return true;
+                }
                 return false;
             }
 
@@ -308,8 +317,10 @@ public class Poly2Vec extends Vec
                     
                     return toReturn;
                 }
-                else //stage >= 3
-                    throw new NoSuchElementException("Iterator is empty");
+                else {
+                  //stage >= 3
+                  throw new NoSuchElementException("Iterator is empty");
+                }
             }
 
             @Override

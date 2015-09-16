@@ -57,10 +57,12 @@ public class DivisiveGlobalClusterer extends KClustererBase
     {
         this.baseClusterer = toCopy.baseClusterer.clone();
         this.clusterEvaluation = toCopy.clusterEvaluation.clone();
-        if(toCopy.splitList != null)
-            this.splitList = Arrays.copyOf(toCopy.splitList, toCopy.splitList.length);
-        if(toCopy.fullDesignations != null)
-            this.fullDesignations = Arrays.copyOf(toCopy.fullDesignations, toCopy.fullDesignations.length);
+        if(toCopy.splitList != null) {
+          this.splitList = Arrays.copyOf(toCopy.splitList, toCopy.splitList.length);
+        }
+        if(toCopy.fullDesignations != null) {
+          this.fullDesignations = Arrays.copyOf(toCopy.fullDesignations, toCopy.fullDesignations.length);
+        }
         this.originalDataSet = toCopy.originalDataSet.shallowClone();
     }
     
@@ -91,8 +93,9 @@ public class DivisiveGlobalClusterer extends KClustererBase
     @Override
     public int[] cluster(DataSet dataSet, int lowK, int highK, ExecutorService threadpool, int[] designations)
     {
-        if(designations == null)
-            designations = new int[dataSet.getSampleSize()];
+        if(designations == null) {
+          designations = new int[dataSet.getSampleSize()];
+        }
         /**
          * Is used to copy the value of designations and then alter to test the quality of a potential new clustering
          */
@@ -113,8 +116,9 @@ public class DivisiveGlobalClusterer extends KClustererBase
          * List of Lists for holding the data points of each cluster in
          */
         List<List<DataPoint>> pointsInCluster = new ArrayList<List<DataPoint>>(highK);
-        for(int i = 0; i < highK; i++)
-            pointsInCluster.add(new ArrayList<DataPoint>(dataSet.getSampleSize()));
+        for(int i = 0; i < highK; i++) {
+          pointsInCluster.add(new ArrayList<DataPoint>(dataSet.getSampleSize()));
+        }
         
         
         /**
@@ -146,16 +150,17 @@ public class DivisiveGlobalClusterer extends KClustererBase
             
             for (int z = 0; z < k; z++)//TODO it might be better to do this loop in parallel 
             {
-                if(Double.isNaN(splitEvaluation[z]))
-                    continue;
-                else if (splitEvaluation[z] == Double.NEGATIVE_INFINITY)//at most 2 will hit this per loop
+                if(Double.isNaN(splitEvaluation[z])) {
+                  continue;
+                } else if (splitEvaluation[z] == Double.NEGATIVE_INFINITY)//at most 2 will hit this per loop
                 {//Need to compute a split for that cluster & set up helper structures
                     List<DataPoint> clusterPointsZ = pointsInCluster.get(z);
                     clusterPointsZ.clear();
                     for (int i = 0; i < dataSet.getSampleSize(); i++)
                     {
-                        if (designations[i] != z)
-                            continue;
+                        if (designations[i] != z) {
+                          continue;
+                    }
                         originalPositions[z][clusterPointsZ.size()] = i;
                         clusterPointsZ.add(dataSet.getDataPoint(i));
                     }
@@ -182,9 +187,11 @@ public class DivisiveGlobalClusterer extends KClustererBase
                 }
 
                 System.arraycopy(designations, 0, fakeWorld, 0, fakeWorld.length);
-                for(int i = 0; i < subDesignation[z].length; i++)
-                    if (subDesignation[z][i] == 1)
-                        fakeWorld[originalPositions[z][i]] = k;
+                for(int i = 0; i < subDesignation[z].length; i++) {
+                  if (subDesignation[z][i] == 1) {
+                    fakeWorld[originalPositions[z][i]] = k;
+                  }
+                }
                 try
                 {
                     splitEvaluation[z] = clusterEvaluation.evaluate(fakeWorld, dataSet);
@@ -203,9 +210,11 @@ public class DivisiveGlobalClusterer extends KClustererBase
             }
             
             //We now know which cluster we should use the split of
-            for (int i = 0; i < subDesignation[bestID].length; i++)
-                if (subDesignation[bestID][i] == 1)
-                    designations[originalPositions[bestID][i]] = k;
+            for (int i = 0; i < subDesignation[bestID].length; i++) {
+              if (subDesignation[bestID][i] == 1) {
+                designations[originalPositions[bestID][i]] = k;
+              }
+            }
             
             //The original clsuter id, and the new one should be set to -Inf
             splitEvaluation[bestID] = splitEvaluation[k] = Double.NEGATIVE_INFINITY;
@@ -229,11 +238,14 @@ public class DivisiveGlobalClusterer extends KClustererBase
         //Merge the split clusters back to the one that had the best score
         for (int k = splitList.length/2-1; k >= bestK; k--)
         {
-            if (splitList[k * 2] == splitList[k * 2 + 1])
-                continue;//Happens when we bail out early
-            for (int j = 0; j < designations.length; j++)
-                if (designations[j] == splitList[k * 2 + 1])
-                    designations[j] = splitList[k * 2];
+            if (splitList[k * 2] == splitList[k * 2 + 1]) {
+              continue;//Happens when we bail out early
+            }
+            for (int j = 0; j < designations.length; j++) {
+              if (designations[j] == splitList[k * 2 + 1]) {
+                designations[j] = splitList[k * 2];
+              }
+            }
         }
         
         
@@ -252,17 +264,21 @@ public class DivisiveGlobalClusterer extends KClustererBase
      */
     public int[] clusterSplit(int targetK)
     {
-        if(originalDataSet == null)
-            throw new ClusterFailureException("No prior cluster stored");
+        if(originalDataSet == null) {
+          throw new ClusterFailureException("No prior cluster stored");
+        }
         int[] newDesignations = Arrays.copyOf(fullDesignations, fullDesignations.length);
         //Merge the split clusters back to the one that had the best score
         for (int k = splitList.length/2-1; k >= targetK; k--)
         {
-            if (splitList[k * 2] == splitList[k * 2 + 1])
-                continue;//Happens when we bail out early
-            for (int j = 0; j < newDesignations.length; j++)
-                if (newDesignations[j] == splitList[k * 2 + 1])
-                    newDesignations[j] = splitList[k * 2];
+            if (splitList[k * 2] == splitList[k * 2 + 1]) {
+              continue;//Happens when we bail out early
+            }
+            for (int j = 0; j < newDesignations.length; j++) {
+              if (newDesignations[j] == splitList[k * 2 + 1]) {
+                newDesignations[j] = splitList[k * 2];
+              }
+            }
         }
         return newDesignations;
     }

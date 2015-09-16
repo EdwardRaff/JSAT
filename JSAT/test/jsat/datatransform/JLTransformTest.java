@@ -80,8 +80,9 @@ public class JLTransformTest
             JLTransform jl = new JLTransform(k, ds.getNumNumericalVars(), mode, rand, true);
 
             transformed.clear();
-            for(int i = 0; i < ds.getSampleSize(); i++)
-                transformed.add(jl.transform(ds.getDataPoint(i)).getNumericalValues());
+            for(int i = 0; i < ds.getSampleSize(); i++) {
+              transformed.add(jl.transform(ds.getDataPoint(i)).getNumericalValues());
+            }
             
             int violations = 0;
             int count = 0;
@@ -105,8 +106,9 @@ public class JLTransformTest
                     double embDist = Math.pow(d.dist(vti, vtj), 2);
 
                     double err = (embDist-trueDist)/trueDist;
-                    if( Math.abs(err) > eps)
-                        violations++;
+                    if( Math.abs(err) > eps) {
+                      violations++;
+                    }
                 }
             }
 

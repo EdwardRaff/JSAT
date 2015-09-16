@@ -94,8 +94,9 @@ public class AMM extends OnlineAMM
      */
     public void setSubEpochs(int subEpochs)
     {
-        if(subEpochs < 1)
-            throw new IllegalArgumentException("subEpochs must be positive, not " + subEpochs);
+        if(subEpochs < 1) {
+          throw new IllegalArgumentException("subEpochs must be positive, not " + subEpochs);
+        }
         this.subEpochs = subEpochs;
     }
 
@@ -130,8 +131,9 @@ public class AMM extends OnlineAMM
         setUp(dataSet.getCategories(), dataSet.getNumNumericalVars(), dataSet.getPredicting());
         Collections.shuffle(randOrder, rand);
         //also perform step 1: initialize z(1)
-        for(int i : randOrder)
-            Z[i] = update(dataSet.getDataPoint(i), dataSet.getDataPointCategory(i), Integer.MIN_VALUE);
+        for(int i : randOrder) {
+          Z[i] = update(dataSet.getDataPoint(i), dataSet.getDataPointCategory(i), Integer.MIN_VALUE);
+        }
         
         time = 1;//rest the time since we are "Starting" now, and before was just a better than random intial state
         
@@ -142,8 +144,9 @@ public class AMM extends OnlineAMM
             for(int subEpoch = 0; subEpoch < subEpochs; subEpoch++)
             {
                 Collections.shuffle(randOrder, rand);
-                for(int i : randOrder)
-                    Z[i] = update(dataSet.getDataPoint(i), dataSet.getDataPointCategory(i), Z[i]);//only changing value in certain valid cases
+                for(int i : randOrder) {
+                  Z[i] = update(dataSet.getDataPoint(i), dataSet.getDataPointCategory(i), Z[i]);//only changing value in certain valid cases
+                }
             }
             // 8: compute z(++r) using (9); /* Reassign z */
             int changed = 0;
@@ -171,8 +174,9 @@ public class AMM extends OnlineAMM
                 }
             }
             
-            if(changed == 0)
-                break;
+            if(changed == 0) {
+              break;
+            }
         }
         while(++outerEpoch < getEpochs());
     }

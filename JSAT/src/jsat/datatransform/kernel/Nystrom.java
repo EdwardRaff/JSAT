@@ -115,8 +115,9 @@ public class Nystrom implements DataTransform
     {
         Random rand = new XOR96();
 
-        if(ridge < 0)
-            throw new IllegalArgumentException("ridge must be positive, not " + ridge);
+        if(ridge < 0) {
+          throw new IllegalArgumentException("ridge must be positive, not " + ridge);
+        }
         final int N = dataset.getSampleSize();
         final int D = dataset.getNumNumericalVars();
         final List<Vec> X = dataset.getDataVectors();
@@ -144,8 +145,9 @@ public class Nystrom implements DataTransform
 
         double[] eigenVals = eig.getRealEigenvalues();
         DenseVector eigNorm = new DenseVector(eigenVals.length);
-        for (int i = 0; i < eigenVals.length; i++)
-            eigNorm.set(i, 1.0 / Math.sqrt(Math.max(1e-7, eigenVals[i]+ridge)));
+        for (int i = 0; i < eigenVals.length; i++) {
+          eigNorm.set(i, 1.0 / Math.sqrt(Math.max(1e-7, eigenVals[i]+ridge)));
+        }
 
         //U * 1/sqrt(S)
         Matrix U = eig.getV();
@@ -162,10 +164,12 @@ public class Nystrom implements DataTransform
     {
         this.k = toCopy.k.clone();
         this.basisVecs = new ArrayList<Vec>(toCopy.basisVecs.size());
-        for(Vec v : toCopy.basisVecs)
-            this.basisVecs.add(v.clone());
-        if(toCopy.accelCache != null)
-            this.accelCache = new DoubleList(toCopy.accelCache);
+        for(Vec v : toCopy.basisVecs) {
+          this.basisVecs.add(v.clone());
+        }
+        if(toCopy.accelCache != null) {
+          this.accelCache = new DoubleList(toCopy.accelCache);
+        }
         this.transform = toCopy.transform.clone();
     }
     
@@ -194,15 +198,17 @@ public class Nystrom implements DataTransform
             case DIAGONAL:
                 double[] diags = new double[N];
                 diags[0] = k.eval(X.get(0), X.get(0));
-                for (int i = 1; i < N; i++)
-                    diags[i] = diags[i-1] + k.eval(X.get(i), X.get(i));
+                for (int i = 1; i < N; i++) {
+                  diags[i] = diags[i-1] + k.eval(X.get(i), X.get(i));
+        }
                 sample(basisSize, rand, diags, X, sampleWithReplacment, basisVecs);
                 break;
             case NORM:
                 double[] norms = new double[N];
                 List<Vec> gramVecs = new ArrayList<Vec>();
-                for (int i = 0; i < N; i++)
-                    gramVecs.add(new DenseVector(N));
+                for (int i = 0; i < N; i++) {
+                  gramVecs.add(new DenseVector(N));
+        }
 
                 List<Double> tmpCache = k.getAccelerationCache(X);
                 for (int i = 0; i < N; i++)
@@ -217,8 +223,9 @@ public class Nystrom implements DataTransform
                 }
 
                 norms[0] = gramVecs.get(0).pNorm(2);
-                for (int i = 1; i < gramVecs.size(); i++)
-                    norms[i] = norms[i - 1] + gramVecs.get(i).pNorm(2);
+                for (int i = 1; i < gramVecs.size(); i++) {
+                  norms[i] = norms[i - 1] + gramVecs.get(i).pNorm(2);
+        }
                 sample(basisSize, rand, norms, X, sampleWithReplacment, basisVecs);
                 break;
             case KMEANS:
@@ -232,14 +239,18 @@ public class Nystrom implements DataTransform
                 if (sampleWithReplacment)
                 {
                     Set<Integer> sampled = new IntSet(basisSize);
-                    while (sampled.size() < basisSize)
-                        sampled.add(rand.nextInt(N));
-                    for (int indx : sampled)
-                        basisVecs.add(X.get(indx));
+                    while (sampled.size() < basisSize) {
+                      sampled.add(rand.nextInt(N));
+                    }
+                    for (int indx : sampled) {
+                      basisVecs.add(X.get(indx));
+                    }
                 }
-                else
-                    for (int i = 0; i < basisSize; i++)
-                        basisVecs.add(X.get(rand.nextInt(N)));
+                else {
+          for (int i = 0; i < basisSize; i++) {
+            basisVecs.add(X.get(rand.nextInt(N)));
+          }
+        }
 
         }
         return basisVecs;
@@ -264,18 +275,20 @@ public class Nystrom implements DataTransform
         {
             double rndVal = rand.nextDouble()*max;
             int indx = Arrays.binarySearch(weightSume, rndVal);
-            if(indx < 0)
-                indx = (-(indx) - 1);
-            if(sampleWithReplacment)//no need to do anything
-                basisVecs.add(X.get(indx));
-            else
+            if(indx < 0) {
+              indx = (-(indx) - 1);
+            }
+            if(sampleWithReplacment) {//no need to do anything
+              basisVecs.add(X.get(indx));
+            } else
             {
                 int size = sampled.size();
                 sampled.add(indx);
-                if(sampled.size() == size)
-                    i--;//do it again
-                else
-                    basisVecs.add(X.get(indx));
+                if(sampled.size() == size) {
+                  i--;//do it again
+              } else {
+                  basisVecs.add(X.get(indx));
+              }
             }
         }
     }
@@ -286,8 +299,9 @@ public class Nystrom implements DataTransform
         Vec x = dp.getNumericalValues();
         List<Double> qi = k.getQueryInfo(x);
         Vec kVec = new DenseVector(basisVecs.size());
-        for(int i = 0; i < basisVecs.size(); i++)
-            kVec.set(i, k.eval(i, x, qi, basisVecs, accelCache));
+        for(int i = 0; i < basisVecs.size(); i++) {
+          kVec.set(i, k.eval(i, x, qi, basisVecs, accelCache));
+        }
         return new DataPoint(kVec.multiply(transform), dp.getCategoricalValues(), dp.getCategoricalData(), dp.getWeight());
     }
 
@@ -346,8 +360,9 @@ public class Nystrom implements DataTransform
          */
         public void setRidge(double ridge)
         {
-            if(ridge < 0 || Double.isNaN(ridge) || Double.isInfinite(ridge))
-                throw new IllegalArgumentException("Ridge must be non negative, not " + ridge);
+            if(ridge < 0 || Double.isNaN(ridge) || Double.isInfinite(ridge)) {
+              throw new IllegalArgumentException("Ridge must be non negative, not " + ridge);
+            }
             this.ridge = ridge;
         }
 
@@ -368,8 +383,9 @@ public class Nystrom implements DataTransform
          */
         public void setDimension(int dimension)
         {
-            if(dimension < 1)
-                throw new IllegalArgumentException("The number of dimensions must be positive, not " + dimension);
+            if(dimension < 1) {
+              throw new IllegalArgumentException("The number of dimensions must be positive, not " + dimension);
+            }
             this.dimension = dimension;
         }
 

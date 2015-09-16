@@ -17,10 +17,11 @@ public class Beta extends ContinuousDistribution
 
     public Beta(double alpha, double beta)
     {
-        if(alpha <= 0)
-            throw new ArithmeticException("Alpha must be > 0, not " + alpha);
-        else if(beta <= 0)
-            throw new ArithmeticException("Beta must be > 0, not " + beta);
+        if(alpha <= 0) {
+          throw new ArithmeticException("Alpha must be > 0, not " + alpha);
+        } else if(beta <= 0) {
+          throw new ArithmeticException("Beta must be > 0, not " + beta);
+        }
         this.alpha = alpha;
         this.beta = beta;
     }
@@ -28,28 +29,31 @@ public class Beta extends ContinuousDistribution
     @Override
     public double pdf(double x)
     {
-        if(x <= 0)
-            return 0;
-        else if(x >= 1)
-            return 0;
+        if(x <= 0) {
+          return 0;
+        } else if(x >= 1) {
+          return 0;
+        }
         return exp((alpha-1)*log(x)+(beta-1)*log(1-x)-lnBeta(alpha, beta));
     }
 
     @Override
     public double cdf(double x)
     {
-        if(x <= 0)
-            return 0;
-        else if(x >= 1)
-            return 1;
+        if(x <= 0) {
+          return 0;
+        } else if(x >= 1) {
+          return 1;
+        }
         return betaIncReg(x, alpha, beta);
     }
 
     @Override
     public double invCdf(double p)
     {
-        if(p < 0 || p > 1)
-            throw new ArithmeticException("p must be in the range [0,1], not " + p);
+        if(p < 0 || p > 1) {
+          throw new ArithmeticException("p must be in the range [0,1], not " + p);
+        }
         return invBetaIncReg(p, alpha, beta);
     }
 
@@ -86,16 +90,19 @@ public class Beta extends ContinuousDistribution
     @Override
     public void setVariable(String var, double value)
     {
-        if (var.equals("alpha"))
-            if (value > 0)
-                alpha = value;
-            else
-                throw new RuntimeException("Alpha must be > 0, not " + value);
-        else if (var.equals("beta"))
-            if (value > 0)
-                beta = value;
-            else
-                throw new RuntimeException("Beta must be > 0, not " + value);
+        if (var.equals("alpha")) {
+          if (value > 0) {
+            alpha = value;
+          } else {
+            throw new RuntimeException("Alpha must be > 0, not " + value);
+          }
+        } else if (var.equals("beta")) {
+          if (value > 0) {
+            beta = value;
+          } else {
+            throw new RuntimeException("Beta must be > 0, not " + value);
+          }
+        }
     }
 
     @Override
@@ -130,10 +137,11 @@ public class Beta extends ContinuousDistribution
     @Override
     public double mode()
     {
-        if(alpha > 1 && beta > 1)
-            return (alpha-1)/(alpha+beta-2);
-        else
-            return Double.NaN;
+        if(alpha > 1 && beta > 1) {
+          return (alpha-1)/(alpha+beta-2);
+        } else {
+          return Double.NaN;
+        }
     }
 
     @Override

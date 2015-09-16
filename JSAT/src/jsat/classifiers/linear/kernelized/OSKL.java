@@ -132,14 +132,16 @@ public class OSKL extends BaseUpdateableClassifier implements BinaryScoreClassif
         if(toCopy.vecs != null)
         {
             this.vecs = new ArrayList<Vec>();
-            for(Vec v : toCopy.vecs)
-                this.vecs.add(v.clone());
+            for(Vec v : toCopy.vecs) {
+              this.vecs.add(v.clone());
+            }
             this.alphas = new DoubleList(toCopy.alphas);
             this.alphaAveraged = new DoubleList(toCopy.alphaAveraged);
             this.inputKEvals = new DoubleList(toCopy.inputKEvals);
         }
-        if(toCopy.accelCache != null)
-            this.accelCache = new DoubleList(toCopy.accelCache);
+        if(toCopy.accelCache != null) {
+          this.accelCache = new DoubleList(toCopy.accelCache);
+        }
         
         this.rand = new XORWOW();
     }
@@ -169,8 +171,9 @@ public class OSKL extends BaseUpdateableClassifier implements BinaryScoreClassif
      */
     public void setEta(double eta)
     {
-        if(eta <= 0 || Double.isNaN(eta) || Double.isInfinite(eta))
-            throw new IllegalArgumentException("Eta must be positive, not " + eta);
+        if(eta <= 0 || Double.isNaN(eta) || Double.isInfinite(eta)) {
+          throw new IllegalArgumentException("Eta must be positive, not " + eta);
+        }
         this.eta = eta;
     }
 
@@ -192,8 +195,9 @@ public class OSKL extends BaseUpdateableClassifier implements BinaryScoreClassif
      */
     public void setG(double G)
     {
-        if(G < 1 || Double.isInfinite(G) || Double.isNaN(G))
-            throw new IllegalArgumentException("G must be in [1, Infinity), not " + G);
+        if(G < 1 || Double.isInfinite(G) || Double.isNaN(G)) {
+          throw new IllegalArgumentException("G must be in [1, Infinity), not " + G);
+        }
         this.G = G;
     }
 
@@ -226,8 +230,9 @@ public class OSKL extends BaseUpdateableClassifier implements BinaryScoreClassif
      */
     public void setR(double R)
     {
-        if(R <= 0 || Double.isNaN(R) || Double.isInfinite(R))
-            throw new IllegalArgumentException("R must be positive, not " + R);
+        if(R <= 0 || Double.isNaN(R) || Double.isInfinite(R)) {
+          throw new IllegalArgumentException("R must be positive, not " + R);
+        }
         this.R = R;
     }
 
@@ -273,8 +278,9 @@ public class OSKL extends BaseUpdateableClassifier implements BinaryScoreClassif
      */
     public void setBurnIn(int burnIn)
     {
-        if(burnIn < 0)
-            throw new IllegalArgumentException("Burn in must be non negative, not " + burnIn);
+        if(burnIn < 0) {
+          throw new IllegalArgumentException("Burn in must be non negative, not " + burnIn);
+        }
         this.burnIn = burnIn;
     }
 
@@ -297,10 +303,11 @@ public class OSKL extends BaseUpdateableClassifier implements BinaryScoreClassif
         t = 0;
         last_t = 0;
         inputKEvals = new DoubleList();
-        if(k.supportsAcceleration())
-            accelCache = new DoubleList();
-        else
-            accelCache = null;
+        if(k.supportsAcceleration()) {
+          accelCache = new DoubleList();
+        } else {
+          accelCache = null;
+        }
         curSqrdNorm = 0;
     }
     
@@ -310,10 +317,11 @@ public class OSKL extends BaseUpdateableClassifier implements BinaryScoreClassif
      */
     public int getSupportVectorCount()
     {
-        if(vecs == null)
-            return 0;
-        else
-            return vecs.size();
+        if(vecs == null) {
+          return 0;
+        } else {
+          return vecs.size();
+        }
     }
 
     @Override
@@ -327,18 +335,21 @@ public class OSKL extends BaseUpdateableClassifier implements BinaryScoreClassif
         final double lossD = lossC.getDeriv(score, y_t);
         t++;
         // Step 5: Sample a binary random variable Zt with
-        if(rand.nextDouble() > Math.abs(lossD)/G)
-            return;//"failed", no update
+        if(rand.nextDouble() > Math.abs(lossD)/G) {
+          return;//"failed", no update
+        }
         final double alpha_t = -eta*Math.signum(lossD)*G;
         //Update the squared norm 
         curSqrdNorm += alpha_t*alpha_t*inputKEvals.getD(0);
-        for(int i = 0; i < alphas.size(); i++)
-            curSqrdNorm += 2*alpha_t*alphas.getD(i)*inputKEvals.getD(i+1);
+        for(int i = 0; i < alphas.size(); i++) {
+          curSqrdNorm += 2*alpha_t*alphas.getD(i)*inputKEvals.getD(i+1);
+        }
         //add values
         alphas.add(alpha_t);
         vecs.add(x_t);
-        if(accelCache != null)
-            accelCache.addAll(qi);
+        if(accelCache != null) {
+          accelCache.addAll(qi);
+        }
         //update online alpha averages for current & old SVs
         alphaAveraged.add(0.0);//implicit zero for time we didn't have new SVs
         updateAverage();
@@ -359,8 +370,9 @@ public class OSKL extends BaseUpdateableClassifier implements BinaryScoreClassif
             updateAverage();
             alphToUse = alphaAveraged;
         }
-        else
-            alphToUse = alphas;
+        else {
+          alphToUse = alphas;
+        }
         return k.evalSum(vecs, accelCache, alphToUse.getBackingArray(), x, qi, 0, alphToUse.size());
     }
     
@@ -429,12 +441,13 @@ public class OSKL extends BaseUpdateableClassifier implements BinaryScoreClassif
      */
     private void updateAverage()
     {
-        if(t == last_t || t < burnIn)
-            return;
-        else if(last_t < burnIn)//first update since done burning 
+        if(t == last_t || t < burnIn) {
+          return;
+        } else if(last_t < burnIn)//first update since done burning 
         {
-            for(int i = 0; i < alphaAveraged.size(); i++)
-                alphaAveraged.set(i, alphas.get(i));
+            for(int i = 0; i < alphaAveraged.size(); i++) {
+              alphaAveraged.set(i, alphas.get(i));
+          }
         }
         double w = t-last_t;//time elapsed
         for(int i = 0; i < alphaAveraged.size(); i++)

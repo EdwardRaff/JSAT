@@ -88,8 +88,9 @@ public class SMIDAS extends StochasticSTLinearL1
      */
     public void setEta(double eta)
     {
-        if(Double.isNaN(eta) || Double.isInfinite(eta) || eta <= 0)
-            throw new ArithmeticException("convergence parameter must be a positive value");
+        if(Double.isNaN(eta) || Double.isInfinite(eta) || eta <= 0) {
+          throw new ArithmeticException("convergence parameter must be a positive value");
+        }
         this.eta = eta;
     }
 
@@ -105,8 +106,9 @@ public class SMIDAS extends StochasticSTLinearL1
     @Override
     public CategoricalResults classify(DataPoint data)
     {
-        if(w == null)
-            throw new UntrainedModelException("Model has not been trained");
+        if(w == null) {
+          throw new UntrainedModelException("Model has not been trained");
+        }
         Vec x = data.getNumericalValues();
         return loss.classify(wDot(x));
     }
@@ -114,8 +116,9 @@ public class SMIDAS extends StochasticSTLinearL1
     @Override
     public double regress(DataPoint data)
     {
-        if(w == null)
-            throw new UntrainedModelException("Model has not been trained");
+        if(w == null) {
+          throw new UntrainedModelException("Model has not been trained");
+        }
         Vec x = data.getNumericalValues();
         return loss.regress(wDot(x));
     }
@@ -129,10 +132,11 @@ public class SMIDAS extends StochasticSTLinearL1
     @Override
     public void trainC(ClassificationDataSet dataSet)
     {
-        if(dataSet.getNumNumericalVars() < 3)
-            throw new FailedToFitException("SMIDAS requires at least 3 features");
-        else if(dataSet.getClassSize() != 2)
-            throw new FailedToFitException("SMIDAS only supports binary classification problems");
+        if(dataSet.getNumNumericalVars() < 3) {
+          throw new FailedToFitException("SMIDAS requires at least 3 features");
+        } else if(dataSet.getClassSize() != 2) {
+          throw new FailedToFitException("SMIDAS only supports binary classification problems");
+        }
         Vec[] x = setUpVecs(dataSet);
         
         Vec obvMinV = DenseVector.toDenseVec(obvMin);
@@ -142,9 +146,11 @@ public class SMIDAS extends StochasticSTLinearL1
         multitpliers.mutablePairwiseDivide(obvMaxV.subtract(obvMinV));
         
         boolean allZeroMins = true;
-        for(double min : obvMin)
-            if(min != 0)
-                allZeroMins = false;
+        for(double min : obvMin) {
+          if (min != 0) {
+            allZeroMins = false;
+          }
+        }
         double[] target = new double[x.length];
         for(int i = 0; i < dataSet.getSampleSize(); i++)
         {
@@ -173,8 +179,9 @@ public class SMIDAS extends StochasticSTLinearL1
     @Override
     public void train(RegressionDataSet dataSet)
     {
-        if(dataSet.getNumNumericalVars() < 3)
-            throw new FailedToFitException("SMIDAS requires at least 3 features");
+        if(dataSet.getNumNumericalVars() < 3) {
+          throw new FailedToFitException("SMIDAS requires at least 3 features");
+        }
         Vec[] x = setUpVecs(dataSet);
         
         Vec obvMinV = DenseVector.toDenseVec(obvMin);
@@ -184,9 +191,11 @@ public class SMIDAS extends StochasticSTLinearL1
         multitpliers.mutablePairwiseDivide(obvMaxV.subtract(obvMinV));
         
         boolean allZeroMins = true;
-        for(double min : obvMin)
-            if(min != 0)
-                allZeroMins = false;
+        for(double min : obvMin) {
+          if (min != 0) {
+            allZeroMins = false;
+          }
+        }
         double[] target = new double[x.length];
         for(int i = 0; i < dataSet.getSampleSize(); i++)
         {
@@ -269,15 +278,18 @@ public class SMIDAS extends StochasticSTLinearL1
     public SMIDAS clone()
     {
         SMIDAS clone = new SMIDAS(eta, epochs, lambda, loss, reScale);
-        if(this.w != null)
-            clone.w = this.w.clone();
+        if(this.w != null) {
+          clone.w = this.w.clone();
+        }
         clone.bias = this.bias;
         clone.minScaled = this.minScaled;
         clone.maxScaled = this.maxScaled;
-        if(this.obvMin != null)
-            clone.obvMin = Arrays.copyOf(this.obvMin, this.obvMin.length);
-        if(this.obvMax != null)
-            clone.obvMax = Arrays.copyOf(this.obvMax, this.obvMax.length);
+        if(this.obvMin != null) {
+          clone.obvMin = Arrays.copyOf(this.obvMin, this.obvMin.length);
+        }
+        if(this.obvMax != null) {
+          clone.obvMax = Arrays.copyOf(this.obvMax, this.obvMax.length);
+        }
         return clone;
     }
 
@@ -301,18 +313,24 @@ public class SMIDAS extends StochasticSTLinearL1
             }
         }
         
-        if(x[0].isSparse())//Assume implicit min zeros from sparsity
-            for(int i = 0; i < obvMin.length; i++)
-                obvMin[i] = Math.min(obvMin[i], 0);
+        if(x[0].isSparse()) {//Assume implicit min zeros from sparsity
+          for (int i = 0; i < obvMin.length; i++) {
+            obvMin[i] = Math.min(obvMin[i], 0);
+          }
+        }
         
         if(!reScale)
         {
-            for(double min : obvMin)
-                if(min < -1)
-                    throw new FailedToFitException("Values must be in the range [-1,1], " + min + " violation encountered");
-            for(double max : obvMax)
-                if(max > 1)
-                    throw new FailedToFitException("Values must be in the range [-1,1], " + max + " violation encountered");
+            for(double min : obvMin) {
+              if (min < -1) {
+                throw new FailedToFitException("Values must be in the range [-1,1], " + min + " violation encountered");
+              }
+            }
+            for(double max : obvMax) {
+              if (max > 1) {
+                throw new FailedToFitException("Values must be in the range [-1,1], " + max + " violation encountered");
+              }
+            }
             
         }
         return x;

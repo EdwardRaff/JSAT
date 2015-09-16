@@ -86,11 +86,13 @@ public class SCW extends BaseUpdateableClassifier implements BinaryScoreClassifi
     private void zeroOutSigmaXt(final Vec x_t)
     {
         //Zero out temp store
-       if(diagonalOnly && x_t.isSparse())//only these values will be non zero 
-           for(IndexValue iv : x_t)
-               Sigma_xt.set(iv.getIndex(), 0.0);
-       else
-           Sigma_xt.zeroOut();
+       if(diagonalOnly && x_t.isSparse()) {//only these values will be non zero
+         for (IndexValue iv : x_t) {
+           Sigma_xt.set(iv.getIndex(), 0.0);
+         }
+       } else {
+         Sigma_xt.zeroOut();
+       }
     }
     
     /**
@@ -147,14 +149,18 @@ public class SCW extends BaseUpdateableClassifier implements BinaryScoreClassifi
         this.diagonalOnly = other.diagonalOnly;
         this.mode = other.mode;
         this.setEta(other.eta);
-        if(other.w != null)
-            this.w = other.w.clone();
-        if(other.sigmaM != null)
-            this.sigmaM = other.sigmaM.clone();
-        if(other.sigmaV != null)
-            this.sigmaV = other.sigmaV.clone();
-        if(other.Sigma_xt != null)
-            this.Sigma_xt = other.Sigma_xt.clone();
+        if(other.w != null) {
+          this.w = other.w.clone();
+        }
+        if(other.sigmaM != null) {
+          this.sigmaM = other.sigmaM.clone();
+        }
+        if(other.sigmaV != null) {
+          this.sigmaV = other.sigmaV.clone();
+        }
+        if(other.Sigma_xt != null) {
+          this.Sigma_xt = other.Sigma_xt.clone();
+        }
     }
 
     /**
@@ -168,8 +174,9 @@ public class SCW extends BaseUpdateableClassifier implements BinaryScoreClassifi
      */
     public void setEta(double eta)
     {
-        if(Double.isNaN(eta) || eta < 0.5 || eta > 1.0)
-            throw new IllegalArgumentException("eta must be in [0.5, 1] not " + eta);
+        if(Double.isNaN(eta) || eta < 0.5 || eta > 1.0) {
+          throw new IllegalArgumentException("eta must be in [0.5, 1] not " + eta);
+        }
         this.eta = eta;
         this.phi = Normal.invcdf(eta, 0, 1);
         this.phiSqrd = phi*phi;
@@ -276,19 +283,21 @@ public class SCW extends BaseUpdateableClassifier implements BinaryScoreClassifi
     @Override
     public Vec getRawWeight(int index)
     {
-        if(index < 1)
-            return getRawWeight();
-        else
-            throw new IndexOutOfBoundsException("Model has only 1 weight vector");
+        if(index < 1) {
+          return getRawWeight();
+        } else {
+          throw new IndexOutOfBoundsException("Model has only 1 weight vector");
+        }
     }
 
     @Override
     public double getBias(int index)
     {
-        if (index < 1)
-            return getBias();
-        else
-            throw new IndexOutOfBoundsException("Model has only 1 weight vector");
+        if (index < 1) {
+          return getBias();
+        } else {
+          throw new IndexOutOfBoundsException("Model has only 1 weight vector");
+        }
     }
     
     @Override
@@ -306,10 +315,11 @@ public class SCW extends BaseUpdateableClassifier implements BinaryScoreClassifi
     @Override
     public void setUp(CategoricalData[] categoricalAttributes, int numericAttributes, CategoricalData predicting)
     {
-        if(numericAttributes <= 0)
-            throw new FailedToFitException("SCW requires numeric attributes to perform classification");
-        else if(predicting.getNumOfCategories() != 2)
-            throw new FailedToFitException("SCW is a binary classifier");
+        if(numericAttributes <= 0) {
+          throw new FailedToFitException("SCW requires numeric attributes to perform classification");
+        } else if(predicting.getNumOfCategories() != 2) {
+          throw new FailedToFitException("SCW is a binary classifier");
+        }
         w = new DenseVector(numericAttributes);
         Sigma_xt = new DenseVector(numericAttributes);
         if(diagonalOnly)
@@ -317,8 +327,9 @@ public class SCW extends BaseUpdateableClassifier implements BinaryScoreClassifi
             sigmaV = new DenseVector(numericAttributes);
             sigmaV.mutableAdd(1);
         }
-        else
-            sigmaM = Matrix.eye(numericAttributes);
+        else {
+          sigmaM = Matrix.eye(numericAttributes);
+        }
     }
 
     @Override
@@ -346,8 +357,9 @@ public class SCW extends BaseUpdateableClassifier implements BinaryScoreClassifi
         }
         
         //Check for numerical issues
-        if(v_t <= 0)//semi positive definit, should not happen
-            throw new FailedToFitException("Numerical issues occured");
+        if(v_t <= 0) {//semi positive definit, should not happen
+          throw new FailedToFitException("Numerical issues occured");
+        }
         
         double m_t = y_t*score;
         
@@ -355,8 +367,9 @@ public class SCW extends BaseUpdateableClassifier implements BinaryScoreClassifi
         
         if(loss <= 1e-15)
         {
-            if(!diagonalOnly)
-                zeroOutSigmaXt(x_t);
+            if(!diagonalOnly) {
+              zeroOutSigmaXt(x_t);
+            }
             return;
         }
         final double alpha_t;
@@ -365,10 +378,11 @@ public class SCW extends BaseUpdateableClassifier implements BinaryScoreClassifi
         if(mode == Mode.SCWI || mode == Mode.CW)
         {
             double tmp = max(0, (-m_t*psi+sqrt(m_t*m_t*phiSqrd*phiSqrd/4+v_t*phiSqrd*zeta))/(v_t*zeta) );
-            if(mode == Mode.SCWI)
-                alpha_t = min(C, tmp);
-            else
-                alpha_t = tmp;
+            if(mode == Mode.SCWI) {
+              alpha_t = min(C, tmp);
+            } else {
+              alpha_t = tmp;
+            }
             
         }
         else//SCWII
@@ -380,8 +394,9 @@ public class SCW extends BaseUpdateableClassifier implements BinaryScoreClassifi
         
         if(alpha_t < 1e-7)//update is numerically unstable
         {
-            if(!diagonalOnly)
-                zeroOutSigmaXt(x_t);
+            if(!diagonalOnly) {
+              zeroOutSigmaXt(x_t);
+            }
             return;
         }
         
@@ -399,8 +414,9 @@ public class SCW extends BaseUpdateableClassifier implements BinaryScoreClassifi
                 w.increment(iv.getIndex(), alpha_t * y_t * tmp);
             }
         }
-        else
-            w.mutableAdd(alpha_t * y_t, Sigma_xt);
+        else {
+          w.mutableAdd(alpha_t * y_t, Sigma_xt);
+        }
         
         if(diagonalOnly)//diag does not need beta
         {
@@ -425,14 +441,16 @@ public class SCW extends BaseUpdateableClassifier implements BinaryScoreClassifi
     @Override
     public CategoricalResults classify(DataPoint data)
     {
-        if(w == null)
-            throw new UntrainedModelException("Model has not yet ben trained");
+        if(w == null) {
+          throw new UntrainedModelException("Model has not yet ben trained");
+        }
         CategoricalResults cr = new CategoricalResults(2);
         double score = getScore(data);
-        if(score < 0)
-            cr.setProb(0, 1.0);
-        else
-            cr.setProb(1, 1.0);
+        if(score < 0) {
+          cr.setProb(0, 1.0);
+        } else {
+          cr.setProb(1, 1.0);
+        }
         return cr;
     }
 

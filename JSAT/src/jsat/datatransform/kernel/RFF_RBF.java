@@ -46,12 +46,15 @@ public class RFF_RBF implements DataTransform
      */
     public RFF_RBF(int featurSize, double sigma, int dim, Random rand, boolean inMemory)
     {
-        if(featurSize <= 0)
-            throw new IllegalArgumentException("The number of numeric features must be positive, not " + featurSize);
-        if(sigma <= 0 || Double.isInfinite(sigma) || Double.isNaN(sigma))
-            throw new IllegalArgumentException("The sigma parameter must be positive, not " + sigma);
-        if(dim <= 1)
-            throw new IllegalArgumentException("The target dimension must be positive, not " + dim);
+        if(featurSize <= 0) {
+          throw new IllegalArgumentException("The number of numeric features must be positive, not " + featurSize);
+        }
+        if(sigma <= 0 || Double.isInfinite(sigma) || Double.isNaN(sigma)) {
+          throw new IllegalArgumentException("The sigma parameter must be positive, not " + sigma);
+        }
+        if(dim <= 1) {
+          throw new IllegalArgumentException("The target dimension must be positive, not " + dim);
+        }
         transform = new RandomMatrixRFF_RBF(Math.sqrt(0.5/(sigma*sigma)), featurSize, dim, rand.nextLong());
         offsets = new RandomVectorRFF_RBF(dim, rand.nextLong());
         
@@ -79,8 +82,9 @@ public class RFF_RBF implements DataTransform
         Vec newX = oldX.multiply(transform);
         
         final double coef = Math.sqrt(2.0/transform.cols());
-        for(int i = 0; i < newX.length(); i++)
-            newX.set(i, Math.cos(newX.get(i)+offsets.get(i))*coef);
+        for(int i = 0; i < newX.length(); i++) {
+          newX.set(i, Math.cos(newX.get(i)+offsets.get(i))*coef);
+        }
         
         return new DataPoint(newX, dp.getCategoricalValues(), dp.getCategoricalData(), dp.getWeight());
     }
@@ -187,8 +191,9 @@ public class RFF_RBF implements DataTransform
          */
         public void setDimensions(int dimensions) 
         {
-            if(dimensions < 1)
-                throw new ArithmeticException("Number of dimensions must be a positive value, not " + dimensions);
+            if(dimensions < 1) {
+              throw new ArithmeticException("Number of dimensions must be a positive value, not " + dimensions);
+            }
             this.dimensions = dimensions;
         }
 
@@ -208,8 +213,9 @@ public class RFF_RBF implements DataTransform
          */
         public void setSigma(double sigma)
         {
-            if(sigma <= 0.0 || Double.isInfinite(sigma) || Double.isNaN(sigma))
-                throw new IllegalArgumentException("Sigma must be a positive value, not " + sigma);
+            if(sigma <= 0.0 || Double.isInfinite(sigma) || Double.isNaN(sigma)) {
+              throw new IllegalArgumentException("Sigma must be a positive value, not " + sigma);
+            }
             this.sigma = sigma;
         }
 

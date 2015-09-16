@@ -98,21 +98,24 @@ public class SBS extends RemoveAttributeTransform
             
             if(SBSRemoveFeature(available, dataSet, catToRemove, numToRemove, 
                     catSelected, numSelected, learner, folds, rand, 
-                    maxFeatures, bestScore, maxDecrease) < 0)
-                break;
+                    maxFeatures, bestScore, maxDecrease) < 0) {
+              break;
+            }
 
         }
         
         int pos = 0;
         catIndexMap = new int[catSelected.size()];
-        for(int i : catSelected)
-            catIndexMap[pos++] = i;
+        for(int i : catSelected) {
+          catIndexMap[pos++] = i;
+        }
         Arrays.sort(catIndexMap);
         
         pos = 0;
         numIndexMap = new int[numSelected.size()];
-        for(int i : numSelected)
-            numIndexMap[pos++] = i;
+        for(int i : numSelected) {
+          numIndexMap[pos++] = i;
+        }
         Arrays.sort(numIndexMap);
     }
     
@@ -201,8 +204,9 @@ public class SBS extends RemoveAttributeTransform
             available.remove(curBest);
             return curBest;
         }
-        else
-            return  -1; //No possible improvment & weve got enough
+        else {
+          return  -1; //No possible improvment & weve got enough
+        }
     }
     
     /**
@@ -228,8 +232,9 @@ public class SBS extends RemoveAttributeTransform
         {
             setMaxDecrease(maxDecrease);
             this.classifier = evaluater;
-            if(evaluater instanceof Regressor)
-                this.regressor = (Regressor) evaluater;
+            if(evaluater instanceof Regressor) {
+              this.regressor = (Regressor) evaluater;
+            }
             setMinFeatures(minFeatures);
             setMaxFeatures(maxFeatures);
         }
@@ -247,8 +252,9 @@ public class SBS extends RemoveAttributeTransform
         {
             setMaxDecrease(maxDecrease);
             this.regressor = evaluater;
-            if(evaluater instanceof Classifier)
-                this.classifier = (Classifier) evaluater;
+            if(evaluater instanceof Classifier) {
+              this.classifier = (Classifier) evaluater;
+            }
             setMinFeatures(minFeatures);
             setMaxFeatures(maxFeatures);
         }
@@ -264,12 +270,13 @@ public class SBS extends RemoveAttributeTransform
                 this.classifier = toCopy.classifier.clone();
                 this.regressor = (Regressor) this.classifier;
             }
-            else if(toCopy.classifier != null)
-                this.classifier = toCopy.classifier.clone();
-            else if(toCopy.regressor != null)
-                this.regressor = toCopy.regressor.clone();
-            else
-                throw new RuntimeException("BUG: Please report");
+            else if(toCopy.classifier != null) {
+              this.classifier = toCopy.classifier.clone();
+            } else if(toCopy.regressor != null) {
+              this.regressor = toCopy.regressor.clone();
+            } else {
+              throw new RuntimeException("BUG: Please report");
+            }
             this.maxDecrease = toCopy.maxDecrease;
             this.minFeatures = toCopy.minFeatures;
             this.maxFeatures = toCopy.maxFeatures;
@@ -284,8 +291,9 @@ public class SBS extends RemoveAttributeTransform
          */
         public void setMaxDecrease(double maxDecrease)
         {
-            if(maxDecrease < 0)
-                throw new IllegalArgumentException("Decarese must be a positive value, not " + maxDecrease);
+            if(maxDecrease < 0) {
+              throw new IllegalArgumentException("Decarese must be a positive value, not " + maxDecrease);
+            }
             this.maxDecrease = maxDecrease;
         }
 
@@ -339,10 +347,11 @@ public class SBS extends RemoveAttributeTransform
         @Override
         public SBS getTransform(DataSet dataset)
         {
-            if(dataset instanceof ClassificationDataSet)
-                return new SBS(minFeatures, maxFeatures, (ClassificationDataSet)dataset, classifier, 5, maxDecrease);
-            else
-                return new SBS(minFeatures, maxFeatures, (RegressionDataSet)dataset, regressor, 5, maxDecrease);
+            if(dataset instanceof ClassificationDataSet) {
+              return new SBS(minFeatures, maxFeatures, (ClassificationDataSet)dataset, classifier, 5, maxDecrease);
+            } else {
+              return new SBS(minFeatures, maxFeatures, (RegressionDataSet)dataset, regressor, 5, maxDecrease);
+            }
         }
 
         @Override

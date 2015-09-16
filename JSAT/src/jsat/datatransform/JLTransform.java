@@ -134,10 +134,11 @@ public class JLTransform implements DataTransform
             super(rows, cols, XORSeed);
             this.mode = mode;
             int k = rows;
-            if (mode == TransformMode.GAUSS || mode == TransformMode.BINARY)
-                cnst = 1.0 / Math.sqrt(k);
-            else if (mode == TransformMode.SPARSE)
-                cnst = Math.sqrt(3) / Math.sqrt(k);
+            if (mode == TransformMode.GAUSS || mode == TransformMode.BINARY) {
+              cnst = 1.0 / Math.sqrt(k);
+            } else if (mode == TransformMode.SPARSE) {
+              cnst = Math.sqrt(3) / Math.sqrt(k);
+            }
         }
         
         @Override
@@ -155,15 +156,18 @@ public class JLTransform implements DataTransform
             {
                 int val = rand.nextInt(6);
                 //1 with prob 1/6, -1 with prob 1/6
-                if(val == 0)
-                    return -cnst;
-                else if(val == 1)
-                    return cnst;
-                else //0 with prob 2/3
-                    return 0;
+                if(val == 0) {
+                  return -cnst;
+                } else if(val == 1) {
+                  return cnst;
+                } else {
+                  //0 with prob 2/3
+                  return 0;
+                }
             }
-            else
-                throw new RuntimeException("BUG: Please report");
+            else {
+              throw new RuntimeException("BUG: Please report");
+            }
         }
         
     }

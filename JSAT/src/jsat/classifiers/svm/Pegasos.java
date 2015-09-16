@@ -83,8 +83,9 @@ public class Pegasos implements BinaryScoreClassifier, Parameterized, SingleWeig
         this.epochs = toCopy.epochs;
         this.reg = toCopy.reg;
         this.batchSize = toCopy.batchSize;
-        if(toCopy.w != null)
-            this.w = toCopy.w.clone();
+        if(toCopy.w != null) {
+          this.w = toCopy.w.clone();
+        }
         this.bias = toCopy.bias;
         this.projectionStep = toCopy.projectionStep;
     }
@@ -97,8 +98,9 @@ public class Pegasos implements BinaryScoreClassifier, Parameterized, SingleWeig
      */
     public void setBatchSize(int batchSize)
     {
-        if(batchSize < 1)
-            throw new ArithmeticException("At least one sample must be take at each iteration");
+        if(batchSize < 1) {
+          throw new ArithmeticException("At least one sample must be take at each iteration");
+        }
         this.batchSize = batchSize;
     }
 
@@ -118,8 +120,9 @@ public class Pegasos implements BinaryScoreClassifier, Parameterized, SingleWeig
      */
     public void setEpochs(int epochs)
     {
-        if(epochs < 1)
-            throw new ArithmeticException("Must perform a positive number of epochs");
+        if(epochs < 1) {
+          throw new ArithmeticException("Must perform a positive number of epochs");
+        }
         this.epochs = epochs;
     }
 
@@ -162,8 +165,9 @@ public class Pegasos implements BinaryScoreClassifier, Parameterized, SingleWeig
      */
     public void setRegularization(double reg)
     {
-        if(Double.isInfinite(reg) || Double.isNaN(reg) || reg <= 0.0)
-            throw new ArithmeticException("Pegasos requires a positive regularization cosntant");
+        if(Double.isInfinite(reg) || Double.isNaN(reg) || reg <= 0.0) {
+          throw new ArithmeticException("Pegasos requires a positive regularization cosntant");
+        }
         this.reg = reg;
     }
 
@@ -191,19 +195,21 @@ public class Pegasos implements BinaryScoreClassifier, Parameterized, SingleWeig
     @Override
     public Vec getRawWeight(int index)
     {
-        if(index < 1)
-            return getRawWeight();
-        else
-            throw new IndexOutOfBoundsException("Model has only 1 weight vector");
+        if(index < 1) {
+          return getRawWeight();
+        } else {
+          throw new IndexOutOfBoundsException("Model has only 1 weight vector");
+        }
     }
 
     @Override
     public double getBias(int index)
     {
-        if (index < 1)
-            return getBias();
-        else
-            throw new IndexOutOfBoundsException("Model has only 1 weight vector");
+        if (index < 1) {
+          return getBias();
+        } else {
+          throw new IndexOutOfBoundsException("Model has only 1 weight vector");
+        }
     }
 
     @Override
@@ -223,10 +229,11 @@ public class Pegasos implements BinaryScoreClassifier, Parameterized, SingleWeig
     {
         CategoricalResults cr = new CategoricalResults(2);
         
-        if(getScore(data) < 0)
-            cr.setProb(0, 1.0);
-        else
-            cr.setProb(1, 1.0);
+        if(getScore(data) < 0) {
+          cr.setProb(0, 1.0);
+        } else {
+          cr.setProb(1, 1.0);
+        }
         
         return cr;
     }
@@ -246,12 +253,14 @@ public class Pegasos implements BinaryScoreClassifier, Parameterized, SingleWeig
     @Override
     public void trainC(ClassificationDataSet dataSet)
     {
-        if(dataSet.getClassSize() != 2)
-            throw new FailedToFitException("SVM only supports binary classificaiton problems");
+        if(dataSet.getClassSize() != 2) {
+          throw new FailedToFitException("SVM only supports binary classificaiton problems");
+        }
         final int m = dataSet.getSampleSize();
         w = new DenseVector(dataSet.getNumNumericalVars());
-        if(projectionStep)
-            w = new VecWithNorm(w, 0.0);
+        if(projectionStep) {
+          w = new VecWithNorm(w, 0.0);
+        }
         w = new ScaledVector(w);
         bias = 0;
         
@@ -275,8 +284,9 @@ public class Pegasos implements BinaryScoreClassifier, Parameterized, SingleWeig
                 while (iter.hasNext())
                 {
                     int i = iter.next();
-                    if (getSign(dataSet, i) * (w.dot(getX(dataSet, i)) + bias) >= 1)
-                        iter.remove();
+                    if (getSign(dataSet, i) * (w.dot(getX(dataSet, i)) + bias) >= 1) {
+                      iter.remove();
+                    }
                 }
 
                 final double nt = 1.0 / (reg * t);

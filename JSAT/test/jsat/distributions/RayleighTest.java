@@ -91,14 +91,17 @@ public class RayleighTest
         double[] param12 = new double[]{0,0.001735734391765489,0.0034692094482488734,0.005198170734934769,0.006920373603960896,0.0086335880503019,0.010335603523544203,0.012024233680718716,0.013697321065887724,0.015352741702467192,0.01698840958460465,0.018602281054324005,0.020192359051590503,0.0217566972249391,0.02329340389084611,0.02480064583060355,0.026276651914076816,0.027719716540384763,0.029128202886235237,0.03050054595337441,0.03183525540736211,0.03313091820066401,0.03438620097385169,0.0355998522295194,0.03677070427435814};
         
         instance = new Rayleigh(0.5);
-        for(int i = 0; i < range.length; i++)
-            assertEquals(param0p5[i], instance.pdf(range[i]+3), 1e-10);
+        for(int i = 0; i < range.length; i++) {
+          assertEquals(param0p5[i], instance.pdf(range[i]+3), 1e-10);
+        }
         instance = new Rayleigh(2);
-        for(int i = 0; i < range.length; i++)
-            assertEquals(param2[i], instance.pdf(range[i]+3), 1e-10);
+        for(int i = 0; i < range.length; i++) {
+          assertEquals(param2[i], instance.pdf(range[i]+3), 1e-10);
+        }
         instance = new Rayleigh(12);
-        for(int i = 0; i < range.length; i++)
-            assertEquals(param12[i], instance.pdf(range[i]+3), 1e-10);
+        for(int i = 0; i < range.length; i++) {
+          assertEquals(param12[i], instance.pdf(range[i]+3), 1e-10);
+        }
     }
 
     /**
@@ -115,14 +118,17 @@ public class RayleighTest
         double[] param12 = new double[]{0,0.00021699034307820497,0.000867678904324376,0.0019512188925244756,0.003466201029630911,0.005410656605221109,0.007782061739756485,0.01057734284371692,0.013792883256083743,0.017424531042099622,0.02146760792677216,0.025916919337215627,0.03076676552365587,0.03601095372577512,0.041642811348045816,0.0476552001048236,0.05404053109323459,0.06079078074931621,0.06789750764047242,0.07535187004507038,0.08314464426797108,0.09126624363892988,0.09970673813915565,0.10845587459986206,0.11750309741540454};
         
         instance = new Rayleigh(0.5);
-        for(int i = 0; i < range.length; i++)
-            assertEquals(param0p5[i], instance.cdf(range[i]+3), 1e-10);
+        for(int i = 0; i < range.length; i++) {
+          assertEquals(param0p5[i], instance.cdf(range[i]+3), 1e-10);
+        }
         instance = new Rayleigh(2);
-        for(int i = 0; i < range.length; i++)
-            assertEquals(param2[i], instance.cdf(range[i]+3), 1e-10);
+        for(int i = 0; i < range.length; i++) {
+          assertEquals(param2[i], instance.cdf(range[i]+3), 1e-10);
+        }
         instance = new Rayleigh(12);
-        for(int i = 0; i < range.length; i++)
-            assertEquals(param12[i], instance.cdf(range[i]+3), 1e-10);
+        for(int i = 0; i < range.length; i++) {
+          assertEquals(param12[i], instance.cdf(range[i]+3), 1e-10);
+        }
     }
 
     /**
@@ -142,14 +148,18 @@ public class RayleighTest
         {1.5396050634225715,3.811047866997324,5.2166428769109405,6.362986859871905,7.375862799218486,8.308175596389443,9.18860832805083,10.035239885631416,10.860787463969432,11.675052842737566,12.486242681258403,13.301785413228082,14.128920270185695,14.975205305819848,15.849046616707644,16.760350196052542,17.721436332090498,18.748456112646135,19.863779750879633,21.10038525555851,22.510788498380773,24.187858707998956,26.324213612513617,29.453884866779433,37.19621030270666};
 
         instance = new Rayleigh(0.5);
-        for(int i = 0; i < range.length-2; i++)//-2 b/c it enters a numerically unstable range that isnt fair
-            assertEquals(param0p5[i], instance.invCdf(range[i]/6.1+0.5), 1e-10);
+        for(int i = 0; i < range.length-2; i++) {
+          //-2 b/c it enters a numerically unstable range that isnt fair
+          assertEquals(param0p5[i], instance.invCdf(range[i]/6.1+0.5), 1e-10);
+        }
         instance = new Rayleigh(2);
-        for(int i = 0; i < range.length; i++)
-            assertEquals(param2[i], instance.invCdf(range[i]/6.1+0.5), 1e-10);
+        for(int i = 0; i < range.length; i++) {
+          assertEquals(param2[i], instance.invCdf(range[i]/6.1+0.5), 1e-10);
+        }
         instance = new Rayleigh(12);
-        for(int i = 0; i < range.length; i++)
-            assertEquals(param12[i], instance.invCdf(range[i]/6.1+0.5), 1e-10);
+        for(int i = 0; i < range.length; i++) {
+          assertEquals(param12[i], instance.invCdf(range[i]/6.1+0.5), 1e-10);
+        }
     }
 
     @Test

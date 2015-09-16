@@ -111,16 +111,19 @@ public class AdaBoostM1PL extends AdaBoostM1
     public AdaBoostM1PL clone()
     {
         AdaBoostM1PL copy = new AdaBoostM1PL( getWeakLearner().clone(), getMaxIterations());
-        if(hypWeights != null)
-            copy.hypWeights = new DoubleList(this.hypWeights);
+        if(hypWeights != null) {
+          copy.hypWeights = new DoubleList(this.hypWeights);
+        }
         if(this.hypoths != null)
         {
             copy.hypoths = new ArrayList<Classifier>(this.hypoths.size());
-            for(int i = 0; i < this.hypoths.size(); i++)
-                copy.hypoths.add(this.hypoths.get(i).clone());
+            for(int i = 0; i < this.hypoths.size(); i++) {
+              copy.hypoths.add(this.hypoths.get(i).clone());
+            }
         }
-        if(this.predicting != null)
-            copy.predicting = this.predicting.clone();
+        if(this.predicting != null) {
+          copy.predicting = this.predicting.clone();
+        }
         return copy;
     }
 

@@ -50,11 +50,11 @@ public class IntSetFixedSize extends AbstractSet<Integer> implements Serializabl
      */
     public boolean add(int e)
     {
-        if(e < 0 || e >= has.length)
-            throw new IllegalArgumentException("Input must be in range [0, " + has.length + ") not " + e);
-        else if(contains(e) )
-            return false;
-        else
+        if(e < 0 || e >= has.length) {
+          throw new IllegalArgumentException("Input must be in range [0, " + has.length + ") not " + e);
+        } else if(contains(e) ) {
+          return false;
+        } else
         {
             if (nnz == 0)
             {
@@ -76,8 +76,9 @@ public class IntSetFixedSize extends AbstractSet<Integer> implements Serializabl
     @Override
     public boolean remove(Object o)
     {
-        if(o instanceof Integer)
-            return remove_int((Integer)o);
+        if(o instanceof Integer) {
+          return remove_int((Integer)o);
+        }
         return super.remove(o);
     }
     
@@ -100,8 +101,9 @@ public class IntSetFixedSize extends AbstractSet<Integer> implements Serializabl
             int val = (Integer)o;
             return contains(val);
         }
-        else
-            return false;
+        else {
+          return false;
+        }
     }
     
     /**
@@ -111,8 +113,9 @@ public class IntSetFixedSize extends AbstractSet<Integer> implements Serializabl
      */
     public boolean contains(int val)
     {
-        if(val < 0 || val >= has.length)
-            return false;
+        if(val < 0 || val >= has.length) {
+          return false;
+        }
         return has[val];
     }
     
@@ -121,20 +124,23 @@ public class IntSetFixedSize extends AbstractSet<Integer> implements Serializabl
     {
         if (contains(index))
         {
-            if (first == index)
-                first = next[index];
-            else
-                next[prev[index]] = next[index];
+            if (first == index) {
+              first = next[index];
+            } else {
+              next[prev[index]] = next[index];
+            }
             
-            if (next[index] != STOP)
-                prev[next[index]] = prev[index];
+            if (next[index] != STOP) {
+              prev[next[index]] = prev[index];
+            }
             next[index] = STOP;
             has[index] = false;
             nnz--;
             return true;
         }
-        else
-            return false;
+        else {
+          return false;
+        }
     }
     
 

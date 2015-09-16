@@ -40,11 +40,13 @@ public class OkapiBM25 extends WordWeighting
      */
     public OkapiBM25(double k1, double b)
     {
-        if(Double.isNaN(k1) || Double.isInfinite(k1) || k1 < 0)
-            throw new IllegalArgumentException("coefficient k1 must be a non negative constant, not " + k1);
+        if(Double.isNaN(k1) || Double.isInfinite(k1) || k1 < 0) {
+          throw new IllegalArgumentException("coefficient k1 must be a non negative constant, not " + k1);
+        }
         this.k1 = k1;
-        if(Double.isNaN(b) || b < 0 || b > 1)
-            throw new IllegalArgumentException("coefficient b must be in the range [0,1], not " + b);
+        if(Double.isNaN(b) || b < 0 || b > 1) {
+          throw new IllegalArgumentException("coefficient b must be in the range [0,1], not " + b);
+        }
         this.b = b;
     }
     
@@ -85,8 +87,9 @@ public class OkapiBM25 extends WordWeighting
     @Override
     public double indexFunc(double value, int index)
     {
-        if (index < 0 || value == 0.0)
-            return 0.0;
+        if (index < 0 || value == 0.0) {
+          return 0.0;
+        }
         
         return 0;
     }

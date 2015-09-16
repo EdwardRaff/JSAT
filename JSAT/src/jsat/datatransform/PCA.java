@@ -116,8 +116,9 @@ public class PCA implements DataTransform
             loadings.add(p);//p is a new vecor each time created at step 1, and does not get altered after this. So no clone needed
             //4. Check for convergence.
             double tauNew = t.dot(t);
-            if(Math.abs(tauNew-tauOld) <= threshold*tauNew)
-                return;
+            if(Math.abs(tauNew-tauOld) <= threshold*tauNew) {
+              return;
+            }
             tauOld =  tauNew;
             
             //5. Remove the estimated PC component from E[i-1]
@@ -128,8 +129,9 @@ public class PCA implements DataTransform
         for(int i = 0; i < loadings.size(); i++)
         {
             Vec pi = loadings.get(i);
-            for(int j = 0; j < pi.length(); j++)
-                P.set(i, j, pi.get(j));
+            for(int j = 0; j < pi.length(); j++) {
+              P.set(i, j, pi.get(j));
+            }
         }
     }
     
@@ -139,8 +141,9 @@ public class PCA implements DataTransform
      */
     private PCA(PCA other)
     {
-        if(other.P != null)
-            this.P = other.P.clone();
+        if(other.P != null) {
+          this.P = other.P.clone();
+        }
     }
     
     /**
@@ -155,8 +158,9 @@ public class PCA implements DataTransform
         for(int i = 0; i < x.cols(); i++)
         {
             t = x.getColumn(i);
-            if(t.dot(t) > 0 )
-                return t;
+            if(t.dot(t) > 0 ) {
+              return t;
+            }
         }
         
         throw new ArithmeticException("Matrix is essentially zero");
@@ -227,8 +231,9 @@ public class PCA implements DataTransform
          */
         public void setMaxPCs(int maxPCs)
         {
-            if(maxPCs < 1)
-                throw new IllegalArgumentException("Number of PCs must be positive, not " + maxPCs);
+            if(maxPCs < 1) {
+              throw new IllegalArgumentException("Number of PCs must be positive, not " + maxPCs);
+            }
             this.maxPCs = maxPCs;
         }
 

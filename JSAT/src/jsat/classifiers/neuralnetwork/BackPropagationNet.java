@@ -84,15 +84,17 @@ public class BackPropagationNet implements Classifier, Regressor, Parameterized
      */
     public BackPropagationNet(final int... npl )
     {
-        if(npl.length < 1)
-            throw new IllegalArgumentException("There must be at least one hidden layer");
+        if(npl.length < 1) {
+          throw new IllegalArgumentException("There must be at least one hidden layer");
+        }
         this.npl = npl;
         params = new ArrayList<Parameter>(Parameter.getParamsFromMethods(this));
         for(int i = 0; i < npl.length; i++)
         {
             final int ii = i;
-            if(npl[ii] < 1)
-                throw new ArithmeticException("There must be a poistive number of hidden neurons in each layer");
+            if(npl[ii] < 1) {
+              throw new ArithmeticException("There must be a poistive number of hidden neurons in each layer");
+            }
             params.add(new IntParameter() 
             {
 
@@ -110,8 +112,9 @@ public class BackPropagationNet implements Classifier, Regressor, Parameterized
                 @Override
                 public boolean setValue(int val)
                 {
-                    if(val <= 0)
-                        return false;
+                    if(val <= 0) {
+                      return false;
+                    }
                     npl[ii] = val;
                     return true;
                 }
@@ -187,15 +190,17 @@ public class BackPropagationNet implements Classifier, Regressor, Parameterized
         if(toClone.Ws != null)
         {
             this.Ws = new ArrayList<Matrix>(toClone.Ws);
-            for(int i = 0; i < this.Ws.size(); i++)
-                this.Ws.set(i, this.Ws.get(i).clone());
+            for(int i = 0; i < this.Ws.size(); i++) {
+              this.Ws.set(i, this.Ws.get(i).clone());
+            }
         }
         
         if(toClone.bs != null)
         {
             this.bs = new ArrayList<Vec>(toClone.bs);
-            for(int i = 0; i < this.bs.size(); i++)
-                this.bs.set(i, this.bs.get(i).clone());
+            for(int i = 0; i < this.bs.size(); i++) {
+              this.bs.set(i, this.bs.get(i).clone());
+            }
         }
     }
 
@@ -228,8 +233,9 @@ public class BackPropagationNet implements Classifier, Regressor, Parameterized
                 activations.get(i).add(new DenseVector(L));
                 derivatives.get(i).add(new DenseVector(L));
                 deltas.get(i).add(new DenseVector(L));
-                if(i == 0)
-                    updates.add(new DenseMatrix(w.rows(), w.cols()));
+                if(i == 0) {
+                  updates.add(new DenseMatrix(w.rows(), w.cols()));
+                }
             }
         }
         
@@ -245,8 +251,9 @@ public class BackPropagationNet implements Classifier, Regressor, Parameterized
             double error = 0.0;
             for(int iter = 0; iter < dataSet.getSampleSize(); iter+=batchSize)
             {
-                if(dataSet.getSampleSize() - iter < batchSize)
-                    continue;//we have run out of enough sampels to do an update
+                if(dataSet.getSampleSize() - iter < batchSize) {
+                  continue;//we have run out of enough sampels to do an update
+                }
                 
                 cur_x.clear();
                 
@@ -375,8 +382,9 @@ public class BackPropagationNet implements Classifier, Regressor, Parameterized
      */
     public void setMomentum(double momentum)
     {
-        if(momentum < 0 || Double.isNaN(momentum) || Double.isInfinite(momentum))
-            throw new ArithmeticException("Momentum must be non negative, not " + momentum);
+        if(momentum < 0 || Double.isNaN(momentum) || Double.isInfinite(momentum)) {
+          throw new ArithmeticException("Momentum must be non negative, not " + momentum);
+        }
         this.momentum = momentum;
     }
 
@@ -395,8 +403,9 @@ public class BackPropagationNet implements Classifier, Regressor, Parameterized
      */
     public void setInitialLearningRate(double initialLearningRate)
     {
-        if(initialLearningRate <= 0 || Double.isNaN(initialLearningRate) || Double.isInfinite(initialLearningRate))
-            throw new ArithmeticException("Learning rate must be a positive cosntant, not " + initialLearningRate );
+        if(initialLearningRate <= 0 || Double.isNaN(initialLearningRate) || Double.isInfinite(initialLearningRate)) {
+          throw new ArithmeticException("Learning rate must be a positive cosntant, not " + initialLearningRate );
+        }
         this.initialLearningRate = initialLearningRate;
     }
 
@@ -434,8 +443,9 @@ public class BackPropagationNet implements Classifier, Regressor, Parameterized
      */
     public void setEpochs(int epochs)
     {
-        if(epochs < 1)
-            throw new ArithmeticException("number of training epochs must be positive, not " + epochs);
+        if(epochs < 1) {
+          throw new ArithmeticException("number of training epochs must be positive, not " + epochs);
+        }
         this.epochs = epochs;
     }
 
@@ -457,8 +467,9 @@ public class BackPropagationNet implements Classifier, Regressor, Parameterized
      */
     public void setWeightDecay(double weightDecay)
     {
-        if(weightDecay < 0 || weightDecay >= 1 || Double.isNaN(weightDecay))
-            throw new ArithmeticException("Weight decay must be in [0,1), not " + weightDecay);
+        if(weightDecay < 0 || weightDecay >= 1 || Double.isNaN(weightDecay)) {
+          throw new ArithmeticException("Weight decay must be in [0,1), not " + weightDecay);
+        }
         this.weightDecay = weightDecay;
     }
 
@@ -535,8 +546,9 @@ public class BackPropagationNet implements Classifier, Regressor, Parameterized
         x.mutableSubtract(f.min()+targetBump);
         
         
-        for(int i = 0; i < x.length(); i++)
-            cr.setProb(i, Math.max(x.get(i), 0));
+        for(int i = 0; i < x.length(); i++) {
+          cr.setProb(i, Math.max(x.get(i), 0));
+        }
         cr.normalize();
         
         return cr;
@@ -904,11 +916,13 @@ public class BackPropagationNet implements Classifier, Regressor, Parameterized
         {
             ClassificationDataSet cds = (ClassificationDataSet) dataSet;
             final int ct = cds.getDataPointCategory(idx);
-            for (int i = 0; i < outputSize; i++)
-                if (i == ct)
-                    delta_out.set(i, f.max() - targetBump);
-                else
-                    delta_out.set(i, f.min() + targetBump);
+            for (int i = 0; i < outputSize; i++) {
+              if (i == ct) {
+                delta_out.set(i, f.max() - targetBump);
+              } else {
+                delta_out.set(i, f.min() + targetBump);
+              }
+            }
 
 
             for (int j = 0; j < delta_out.length(); j++)
@@ -992,15 +1006,18 @@ public class BackPropagationNet implements Classifier, Regressor, Parameterized
     
     private void initializeWeights(Matrix W, Random rand)
     {
-        for(int i = 0; i < W.rows(); i++)
-            for(int j = 0; j < W.cols(); j++)
-                W.set(i, j, weightInitialization.getWeight(W.cols(), W.rows(), initialLearningRate, rand));
+        for(int i = 0; i < W.rows(); i++) {
+          for (int j = 0; j < W.cols(); j++) {
+            W.set(i, j, weightInitialization.getWeight(W.cols(), W.rows(), initialLearningRate, rand));
+          }
+        }
     }
     
     private void initializeWeights(Vec b, int inputSize, Random rand)
     {
-        for(int i = 0; i < b.length(); i++)
-            b.set(i, weightInitialization.getWeight(inputSize, b.length(), initialLearningRate, rand));
+        for(int i = 0; i < b.length(); i++) {
+          b.set(i, weightInitialization.getWeight(inputSize, b.length(), initialLearningRate, rand));
+        }
     }
     
     @Override

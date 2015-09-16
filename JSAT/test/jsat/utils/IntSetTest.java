@@ -86,8 +86,9 @@ public class IntSetTest
         while(iter.hasNext())
         {
             int val = iter.next();
-            if(val == 2 || val == 4)
-                iter.remove();
+            if(val == 2 || val == 4) {
+              iter.remove();
+            }
         }
         assertEquals(3, set.size());
         

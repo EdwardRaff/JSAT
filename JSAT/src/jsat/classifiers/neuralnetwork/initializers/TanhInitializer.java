@@ -25,9 +25,11 @@ public class TanhInitializer implements WeightInitializer, BiastInitializer
     public void init(Matrix w, Random rand)
     {
         double cnt = Math.sqrt(6)/Math.sqrt(w.rows()+w.cols());
-        for(int i = 0; i < w.rows(); i++)
-            for(int j = 0; j < w.cols(); j++)
-                w.set(i, j, rand.nextDouble()*cnt*2-cnt);
+        for(int i = 0; i < w.rows(); i++) {
+          for (int j = 0; j < w.cols(); j++) {
+            w.set(i, j, rand.nextDouble()*cnt*2-cnt);
+          }
+        }
         
     }
 
@@ -35,8 +37,9 @@ public class TanhInitializer implements WeightInitializer, BiastInitializer
     public void init(Vec b, int fanIn, Random rand)
     {
         double cnt = Math.sqrt(6)/Math.sqrt(b.length()+fanIn);
-        for(int i = 0; i < b.length(); i++)
-            b.set(i, rand.nextDouble()*cnt*2-cnt);
+        for(int i = 0; i < b.length(); i++) {
+          b.set(i, rand.nextDouble()*cnt*2-cnt);
+        }
     }
 
     @Override

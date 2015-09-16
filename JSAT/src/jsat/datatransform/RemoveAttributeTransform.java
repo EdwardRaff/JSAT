@@ -70,8 +70,9 @@ public class RemoveAttributeTransform implements DataTransform
     public Map<Integer, Integer> getReverseNumericMap()
     {
         Map<Integer, Integer> map = new HashMap<Integer, Integer>();
-        for(int newIndex = 0; newIndex < numIndexMap.length; newIndex++)
-            map.put(newIndex, numIndexMap[newIndex]);
+        for(int newIndex = 0; newIndex < numIndexMap.length; newIndex++) {
+          map.put(newIndex, numIndexMap[newIndex]);
+        }
         return map;
     }
     
@@ -94,8 +95,9 @@ public class RemoveAttributeTransform implements DataTransform
     public Map<Integer, Integer> getReverseNominalMap()
     {
         Map<Integer, Integer> map = new HashMap<Integer, Integer>();
-        for(int newIndex = 0; newIndex < catIndexMap.length; newIndex++)
-            map.put(newIndex, catIndexMap[newIndex]);
+        for(int newIndex = 0; newIndex < catIndexMap.length; newIndex++) {
+          map.put(newIndex, catIndexMap[newIndex]);
+        }
         return map;
     }
     
@@ -108,27 +110,33 @@ public class RemoveAttributeTransform implements DataTransform
      */
     protected final void setUp(DataSet dataSet, Set<Integer> categoricalToRemove, Set<Integer> numericalToRemove)
     {
-        for(int i : categoricalToRemove)
-            if (i >= dataSet.getNumCategoricalVars())
-                throw new RuntimeException("The data set does not have a categorical value " + i + " to remove");
-        for(int i : numericalToRemove)
-            if (i >= dataSet.getNumNumericalVars())
-                throw new RuntimeException("The data set does not have a numercal value " + i + " to remove");
+        for(int i : categoricalToRemove) {
+          if (i >= dataSet.getNumCategoricalVars()) {
+            throw new RuntimeException("The data set does not have a categorical value " + i + " to remove");
+          }
+        }
+        for(int i : numericalToRemove) {
+          if (i >= dataSet.getNumNumericalVars()) {
+            throw new RuntimeException("The data set does not have a numercal value " + i + " to remove");
+          }
+        }
         
         catIndexMap = new int[dataSet.getNumCategoricalVars()-categoricalToRemove.size()];
         numIndexMap = new int[dataSet.getNumNumericalVars()-numericalToRemove.size()];
         int k = 0;
         for(int i = 0; i < dataSet.getNumCategoricalVars(); i++)
         {
-            if(categoricalToRemove.contains(i))
-                continue;
+            if(categoricalToRemove.contains(i)) {
+              continue;
+            }
             catIndexMap[k++] = i;
         }
         k = 0;
         for(int i = 0; i < dataSet.getNumNumericalVars(); i++)
         {
-            if(numericalToRemove.contains(i))
-                continue;
+            if(numericalToRemove.contains(i)) {
+              continue;
+            }
             numIndexMap[k++] = i;
         }
     }
@@ -166,10 +174,12 @@ public class RemoveAttributeTransform implements DataTransform
      */
     public void consolidate(RemoveAttributeTransform preceding)
     {
-        for(int i = 0; i < catIndexMap.length; i++)
-            catIndexMap[i] = preceding.catIndexMap[catIndexMap[i]];
-        for(int i = 0; i < numIndexMap.length; i++)
-            numIndexMap[i] = preceding.numIndexMap[numIndexMap[i]];
+        for(int i = 0; i < catIndexMap.length; i++) {
+          catIndexMap[i] = preceding.catIndexMap[catIndexMap[i]];
+        }
+        for(int i = 0; i < numIndexMap.length; i++) {
+          numIndexMap[i] = preceding.numIndexMap[numIndexMap[i]];
+        }
     }
     
     @Override
@@ -181,16 +191,19 @@ public class RemoveAttributeTransform implements DataTransform
         CategoricalData[] newCatData = new CategoricalData[catIndexMap.length];
         int[] newCatVals = new int[newCatData.length];
         Vec newNumVals;
-        if (numVals.isSparse())
-            if (numVals instanceof SparseVector)
-                newNumVals = new SparseVector(numIndexMap.length, ((SparseVector) numVals).nnz());
-            else
-                newNumVals = new SparseVector(numIndexMap.length);
-        else
-            newNumVals = new DenseVector(numIndexMap.length);
+        if (numVals.isSparse()) {
+          if (numVals instanceof SparseVector) {
+            newNumVals = new SparseVector(numIndexMap.length, ((SparseVector) numVals).nnz());
+          } else {
+            newNumVals = new SparseVector(numIndexMap.length);
+          }
+        } else {
+          newNumVals = new DenseVector(numIndexMap.length);
+        }
 
-        for(int i = 0; i < catIndexMap.length; i++)
-            newCatVals[i] = catVals[catIndexMap[i]];
+        for(int i = 0; i < catIndexMap.length; i++) {
+          newCatVals[i] = catVals[catIndexMap[i]];
+        }
 
         int k = 0;
 
@@ -202,24 +215,30 @@ public class RemoveAttributeTransform implements DataTransform
             {
                 if (numVals.isSparse())//log(n) insert and loopups to avoid!
                 {
-                    if (curIV == null)
-                        continue;
-                    if (numIndexMap[i] > curIV.getIndex())//We skipped a value that existed
-                        while (numIndexMap[i] > curIV.getIndex() && iter.hasNext())
-                            curIV = iter.next();
-                    if (numIndexMap[i] < curIV.getIndex())//Index is zero, nothing to set
-                        continue;
-                    else if (numIndexMap[i] == curIV.getIndex())
+                    if (curIV == null) {
+                      continue;
+                    }
+                    if (numIndexMap[i] > curIV.getIndex()) {//We skipped a value that existed
+                      while (numIndexMap[i] > curIV.getIndex() && iter.hasNext()) {
+                        curIV = iter.next();
+                      }
+                    }
+                    if (numIndexMap[i] < curIV.getIndex()) {//Index is zero, nothing to set
+                      continue;
+                    } else if (numIndexMap[i] == curIV.getIndex())
                     {
                         newNumVals.set(i, curIV.getValue());
-                        if (iter.hasNext())
-                            curIV = iter.next();
-                        else
-                            curIV = null;
+                        if (iter.hasNext()) {
+                          curIV = iter.next();
+                      } else {
+                          curIV = null;
+                      }
                     }
                 }
-                else//All dense, just set them all
-                    newNumVals.set(i, numVals.get(numIndexMap[i]));
+                else {
+                  //All dense, just set them all
+                  newNumVals.set(i, numVals.get(numIndexMap[i]));
+                }
             }
         }
         return new DataPoint(newNumVals, newCatVals, newCatData, dp.getWeight());

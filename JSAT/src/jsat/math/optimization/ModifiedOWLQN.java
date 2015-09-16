@@ -88,8 +88,9 @@ public class ModifiedOWLQN implements Optimizer2
     protected ModifiedOWLQN(ModifiedOWLQN toCopy)
     {
         this(toCopy.lambda);
-        if(toCopy.lambdaMultipler != null)
-            this.lambdaMultipler = toCopy.lambdaMultipler.clone();
+        if(toCopy.lambdaMultipler != null) {
+          this.lambdaMultipler = toCopy.lambdaMultipler.clone();
+        }
         this.eps = toCopy.eps;
         this.m = toCopy.m;
         this.alpha_0 = toCopy.alpha_0;
@@ -105,8 +106,9 @@ public class ModifiedOWLQN implements Optimizer2
      */
     public void setLambda(double lambda)
     {
-        if(lambda < 0 || Double.isInfinite(lambda) || Double.isNaN(lambda))
-            throw new IllegalArgumentException("lambda must be non-negative, not " + lambda);
+        if(lambda < 0 || Double.isInfinite(lambda) || Double.isNaN(lambda)) {
+          throw new IllegalArgumentException("lambda must be non-negative, not " + lambda);
+        }
         this.lambda = lambda;
     }
 
@@ -138,8 +140,9 @@ public class ModifiedOWLQN implements Optimizer2
      */
     public void setM(int m)
     {
-        if (m < 1)
-            throw new IllegalArgumentException("m must be positive, not " + m);
+        if (m < 1) {
+          throw new IllegalArgumentException("m must be positive, not " + m);
+        }
         this.m = m;
     }
 
@@ -161,8 +164,9 @@ public class ModifiedOWLQN implements Optimizer2
      */
     public void setEps(double eps)
     {
-        if(eps < 0 || Double.isInfinite(eps) || Double.isNaN(eps))
-            throw new IllegalArgumentException("eps must be non-negative, not " + eps);
+        if(eps < 0 || Double.isInfinite(eps) || Double.isNaN(eps)) {
+          throw new IllegalArgumentException("eps must be non-negative, not " + eps);
+        }
         this.eps = eps;
     }
 
@@ -177,8 +181,9 @@ public class ModifiedOWLQN implements Optimizer2
      */
     public void setBeta(double beta)
     {
-        if(beta <= 0 || beta >= 1 || Double.isNaN(beta))
-            throw new IllegalArgumentException("shrinkage term must be in (0, 1), not " +  beta);
+        if(beta <= 0 || beta >= 1 || Double.isNaN(beta)) {
+          throw new IllegalArgumentException("shrinkage term must be in (0, 1), not " +  beta);
+        }
         this.beta = beta;
     }
 
@@ -201,8 +206,9 @@ public class ModifiedOWLQN implements Optimizer2
         //Algorithm 2 mOWL-QN: modified Orthant-Wise Limited memory Quasi-Newton
         
         Vec lambdaMul = lambdaMultipler;
-        if(lambdaMultipler == null)
-            lambdaMul = new ConstantVector(1.0, x0.length());
+        if(lambdaMultipler == null) {
+          lambdaMul = new ConstantVector(1.0, x0.length());
+        }
         
         
         Vec x_cur = x0.clone();
@@ -246,16 +252,17 @@ public class ModifiedOWLQN implements Optimizer2
                 double l_i = x_grad.get(i);
                 double lambda_i = lambda*lambdaMul.get(i);
                 double newVal;
-                if(x_i > 0)
-                    newVal = l_i+lambda_i;
-                else if(x_i < 0)
-                    newVal = l_i-lambda_i;
-                else if(l_i+lambda_i < 0)//x_i == 0 is implicit
-                    newVal = l_i+lambda_i;
-                else if(l_i-lambda_i > 0)//x_i == 0 is implicit
-                    newVal = l_i-lambda_i;
-                else
-                    newVal = 0;
+                if(x_i > 0) {
+                  newVal = l_i+lambda_i;
+                } else if(x_i < 0) {
+                  newVal = l_i-lambda_i;
+                } else if(l_i+lambda_i < 0) {//x_i == 0 is implicit
+                  newVal = l_i+lambda_i;
+                } else if(l_i-lambda_i > 0) {//x_i == 0 is implicit
+                  newVal = l_i-lambda_i;
+                } else {
+                  newVal = 0;
+                }
                 
                 v_k.set(i, -newVal);
                 v_k_norm += newVal*newVal;
@@ -272,8 +279,9 @@ public class ModifiedOWLQN implements Optimizer2
                 double x_i = x_cur.get(i);
                 double v_i = v_k.get(i);
                 boolean isInI = 0 < abs(x_i) && abs(x_i) < eps_k && x_i*v_i < 0;
-                if(isInI)
-                    doGDstep = true;
+                if(isInI) {
+                  doGDstep = true;
+                }
             }
             
             //5: Initialize α←α0;
@@ -287,11 +295,13 @@ public class ModifiedOWLQN implements Optimizer2
                 LBFGS.twoLoopHp(v_k, Rho, S, Y, d_k, alphas);
                 
                 //9: Alignment: pk ←π(dk;vk);
-                for (int i = 0; i < p_k.length(); i++)
-                    if (Math.signum(d_k.get(i)) == Math.signum(v_k.get(i)))
-                        p_k.set(i, d_k.get(i));
-                    else
-                        p_k.set(i, 0.0);
+                for (int i = 0; i < p_k.length(); i++) {
+                  if (Math.signum(d_k.get(i)) == Math.signum(v_k.get(i))) {
+                    p_k.set(i, d_k.get(i));
+                  } else {
+                    p_k.set(i, 0.0);
+                  }
+                }
                 
                 //10: while Eq. (7) is not satisfied do
                 double rightSideMainTerm = gamma*v_k.dot(d_k);
@@ -310,8 +320,9 @@ public class ModifiedOWLQN implements Optimizer2
                         double x_i = x_cur.get(i);
                         double v_i = v_k.get(i);
                         double toUse = x_i != 0 ? x_i : v_i;
-                        if (Math.signum(x_alpha.get(i)) != Math.signum(toUse))
-                            x_alpha.set(i, 0.0);
+                        if (Math.signum(x_alpha.get(i)) != Math.signum(toUse)) {
+                          x_alpha.set(i, 0.0);
+                        }
 
                     }
                     f_x_alpha = (ex != null && f instanceof FunctionP) ? ((FunctionP) f).f(x_alpha, ex) : f.f(x_alpha);
@@ -369,11 +380,13 @@ public class ModifiedOWLQN implements Optimizer2
             
             //convergence check
             double maxGrad = 0;
-            for(int i = 0; i < x_gradNext.length(); i++)
-                maxGrad = max(maxGrad, abs(x_gradNext.get(i)));
+            for(int i = 0; i < x_gradNext.length(); i++) {
+              maxGrad = max(maxGrad, abs(x_gradNext.get(i)));
+            }
             
-            if(maxGrad < tolerance || f_x < tolerance || x_diff.pNorm(1) < tolerance )
-                break;
+            if(maxGrad < tolerance || f_x < tolerance || x_diff.pNorm(1) < tolerance ) {
+              break;
+            }
             
             x_gradNext.copyTo(x_grad_diff);
             x_grad_diff.mutableSubtract(x_grad);
@@ -405,19 +418,22 @@ public class ModifiedOWLQN implements Optimizer2
 
     private double getL1Penalty(Vec w, Vec lambdaMul)
     {
-        if(lambda <= 0)
-            return 0;
+        if(lambda <= 0) {
+          return 0;
+        }
         double pen = 0;
-        for(IndexValue iv : w)
-            pen += lambda*lambdaMul.get(iv.getIndex())*abs(iv.getValue());
+        for(IndexValue iv : w) {
+          pen += lambda*lambdaMul.get(iv.getIndex())*abs(iv.getValue());
+        }
         return pen;
     }
     
     @Override
     public void setMaximumIterations(int iterations)
     {
-        if(iterations < 1)
-            throw new IllegalArgumentException("Number of iterations must be positive, not " + iterations);
+        if(iterations < 1) {
+          throw new IllegalArgumentException("Number of iterations must be positive, not " + iterations);
+        }
         this.maxIterations = iterations;
     }
 

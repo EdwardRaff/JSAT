@@ -33,8 +33,9 @@ public final class Cauchy extends ContinuousDistribution
 
     public void setScale(double y)
     {
-        if(y <= 0)
-            throw new ArithmeticException("The scale parameter must be > 0, not " + y);
+        if(y <= 0) {
+          throw new ArithmeticException("The scale parameter must be > 0, not " + y);
+        }
         this.scale = y;
     }
 
@@ -99,10 +100,11 @@ public final class Cauchy extends ContinuousDistribution
     @Override
     public void setVariable(String var, double value)
     {
-        if(var.equals("y"))
-            setScale(value);
-        else if(var.equals("x0"))
-            setLocation(value);
+        if(var.equals("y")) {
+          setScale(value);
+        } else if(var.equals("x0")) {
+          setLocation(value);
+        }
     }
 
     @Override

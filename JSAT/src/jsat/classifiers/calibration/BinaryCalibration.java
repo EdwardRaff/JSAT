@@ -96,10 +96,11 @@ public abstract class BinaryCalibration implements Classifier, Parameterized
      */
     private void train(ClassificationDataSet train, ExecutorService threadPool)
     {
-        if(threadPool == null || threadPool instanceof FakeExecutor)
-            base.trainC(train);
-        else
-            base.trainC(train, threadPool);
+        if(threadPool == null || threadPool instanceof FakeExecutor) {
+          base.trainC(train);
+        } else {
+          base.trainC(train, threadPool);
+        }
     }
     
     @Override
@@ -190,8 +191,9 @@ public abstract class BinaryCalibration implements Classifier, Parameterized
      */
     public void setCalibrationFolds(int folds)
     {
-        if(folds < 1)
-            throw new IllegalArgumentException("Folds must be a positive value, not " + folds);
+        if(folds < 1) {
+          throw new IllegalArgumentException("Folds must be a positive value, not " + folds);
+        }
         this.folds = folds;
     }
 
@@ -213,8 +215,9 @@ public abstract class BinaryCalibration implements Classifier, Parameterized
      */
     public void setCalibrationHoldOut(double holdOut)
     {
-        if(Double.isNaN(holdOut) || holdOut <= 0 || holdOut >= 1)
-            throw new IllegalArgumentException("HoldOut must be in (0, 1), not " + holdOut);
+        if(Double.isNaN(holdOut) || holdOut <= 0 || holdOut >= 1) {
+          throw new IllegalArgumentException("HoldOut must be in (0, 1), not " + holdOut);
+        }
         this.holdOut = holdOut;
     }
 

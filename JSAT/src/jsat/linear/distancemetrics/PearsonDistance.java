@@ -47,12 +47,14 @@ public class PearsonDistance implements DistanceMetric
     public double dist(Vec a, Vec b)
     {
         double r = correlation(a, b, bothNonZero);
-        if(Double.isNaN(r))
-            return Double.MAX_VALUE;
-        if(absoluteDistance)
-            return Math.sqrt(1-r*r);
-        else
-            return Math.sqrt((1-r)*0.5);
+        if(Double.isNaN(r)) {
+          return Double.MAX_VALUE;
+        }
+        if(absoluteDistance) {
+          return Math.sqrt(1-r*r);
+        } else {
+          return Math.sqrt((1-r)*0.5);
+        }
     }
 
     @Override
@@ -122,10 +124,12 @@ public class PearsonDistance implements DistanceMetric
             Iterator<IndexValue> bIter = b.getNonZeroIterator();
 
             //if one is empty, then a zero forms on the denomrinator
-            if (!aIter.hasNext() && !bIter.hasNext())
-                return 1;
-            if (!aIter.hasNext() || !bIter.hasNext())
-                return Double.MAX_VALUE;
+            if (!aIter.hasNext() && !bIter.hasNext()) {
+              return 1;
+            }
+            if (!aIter.hasNext() || !bIter.hasNext()) {
+              return Double.MAX_VALUE;
+            }
 
             IndexValue aCur = null;
             IndexValue bCur = null;
@@ -137,15 +141,17 @@ public class PearsonDistance implements DistanceMetric
 
                 if (newA)
                 {
-                    if (!aIter.hasNext())
-                        break;
+                    if (!aIter.hasNext()) {
+                      break;
+                    }
                     aCur = aIter.next();
                     newA = false;
                 }
                 if (newB)
                 {
-                    if (!bIter.hasNext())
-                        break;
+                    if (!bIter.hasNext()) {
+                      break;
+                    }
                     bCur = bIter.next();
                     newB = false;
                 }
@@ -153,8 +159,9 @@ public class PearsonDistance implements DistanceMetric
                 if (aCur.getIndex() == bCur.getIndex())
                 {
                     //accumulate skipped positions where both are zero
-                    if(!bothNonZero)
-                        r += aMean * bMean * (aCur.getIndex()-lastObservedIndex - 1);
+                    if(!bothNonZero) {
+                      r += aMean * bMean * (aCur.getIndex()-lastObservedIndex - 1);
+                    }
                     lastObservedIndex = aCur.getIndex();
 
                     double aVal = aCur.getValue() - aMean;
@@ -202,8 +209,9 @@ public class PearsonDistance implements DistanceMetric
                 //only one of the loops bellow will execute
                 while (!newA || (newA && aIter.hasNext()))
                 {
-                    if(newA)
-                        aCur = aIter.next();
+                    if(newA) {
+                      aCur = aIter.next();
+                    }
                     //accumulate skipped positions where both are zero
                     r += aMean * bMean * (aCur.getIndex()-lastObservedIndex - 1);
                     lastObservedIndex = aCur.getIndex();
@@ -216,8 +224,9 @@ public class PearsonDistance implements DistanceMetric
 
                 while (!newB || (newB && bIter.hasNext()))
                 {
-                    if(newB)
-                        bCur = bIter.next();
+                    if(newB) {
+                      bCur = bIter.next();
+                    }
                     //accumulate skipped positions where both are zero
                     r += aMean * bMean * (bCur.getIndex()-lastObservedIndex - 1);
                     lastObservedIndex = bCur.getIndex();
@@ -239,8 +248,9 @@ public class PearsonDistance implements DistanceMetric
             {
                 double aTmp = a.get(i);
                 double bTmp = b.get(i);
-                if(bothNonZero && (aTmp == 0 || bTmp == 0))
-                    continue;
+                if(bothNonZero && (aTmp == 0 || bTmp == 0)) {
+                  continue;
+                }
                 double aVal = aTmp-aMean;
                 double bVal = bTmp-bMean;
                 r += aVal*bVal;
@@ -249,10 +259,11 @@ public class PearsonDistance implements DistanceMetric
             }
         }
         
-        if(bSqrd == 0 && aSqrd == 0)
-            return 0;
-        else if(bSqrd == 0 || aSqrd == 0)
-            return r/Math.sqrt((aSqrd+1e-10)*(bSqrd+1e-10));
+        if(bSqrd == 0 && aSqrd == 0) {
+          return 0;
+        } else if(bSqrd == 0 || aSqrd == 0) {
+          return r/Math.sqrt((aSqrd+1e-10)*(bSqrd+1e-10));
+        }
 
         return r/Math.sqrt(aSqrd*bSqrd);
     }

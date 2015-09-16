@@ -106,25 +106,28 @@ public class NaiveTokenizer implements Tokenizer
         for(int i = 0; i < input.length(); i++)
         {
             char c = input.charAt(i);
-            if(Character.isLetter(c))
-                if (useLowerCase)
-                    workSpace.append(Character.toLowerCase(c));
-                else
-                    workSpace.append(c);
-            else if (!noDigits && Character.isDigit(c))
+            if(Character.isLetter(c)) {
+              if (useLowerCase) {
+                workSpace.append(Character.toLowerCase(c));
+              } else {
                 workSpace.append(c);
-            else if(!otherToWhiteSpace && !Character.isWhitespace(c))
-                continue;
-            else //end of token
+              }
+            } else if (!noDigits && Character.isDigit(c)) {
+              workSpace.append(c);
+            } else if(!otherToWhiteSpace && !Character.isWhitespace(c)) {
+              continue;
+            } else //end of token
             {
-                if(workSpace.length() >= minTokenLength && workSpace.length() <= maxTokenLength)
-                    storageSpace.add(workSpace.toString());
+                if(workSpace.length() >= minTokenLength && workSpace.length() <= maxTokenLength) {
+                  storageSpace.add(workSpace.toString());
+              }
                 workSpace.setLength(0);
             }
         }
         
-        if(workSpace.length() >= minTokenLength && workSpace.length() <= maxTokenLength)
-            storageSpace.add(workSpace.toString());
+        if(workSpace.length() >= minTokenLength && workSpace.length() <= maxTokenLength) {
+          storageSpace.add(workSpace.toString());
+        }
     }
 
     /**
@@ -136,10 +139,12 @@ public class NaiveTokenizer implements Tokenizer
      */
     public void setMaxTokenLength(int maxTokenLength)
     {
-        if(maxTokenLength < 1)
-            throw new IllegalArgumentException("Max token length must be positive, not " + maxTokenLength);
-        if(maxTokenLength <= minTokenLength)
-            throw new IllegalArgumentException("Max token length must be larger than the min token length");
+        if(maxTokenLength < 1) {
+          throw new IllegalArgumentException("Max token length must be positive, not " + maxTokenLength);
+        }
+        if(maxTokenLength <= minTokenLength) {
+          throw new IllegalArgumentException("Max token length must be larger than the min token length");
+        }
         this.maxTokenLength = maxTokenLength;
     }
 
@@ -160,10 +165,12 @@ public class NaiveTokenizer implements Tokenizer
      */
     public void setMinTokenLength(int minTokenLength)
     {
-        if(minTokenLength < 0)
-            throw new IllegalArgumentException("Minimum token length must be non negative, not " + minTokenLength);
-        if(minTokenLength > maxTokenLength)
-            throw new IllegalArgumentException("Minimum token length can not exced the maximum token length");
+        if(minTokenLength < 0) {
+          throw new IllegalArgumentException("Minimum token length must be non negative, not " + minTokenLength);
+        }
+        if(minTokenLength > maxTokenLength) {
+          throw new IllegalArgumentException("Minimum token length can not exced the maximum token length");
+        }
         this.minTokenLength = minTokenLength;
     }
 

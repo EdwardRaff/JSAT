@@ -53,16 +53,17 @@ public class IntSetFixedSizeTest
         assertFalse(set.add( new Integer(1) ));
         assertTrue(set.add( new Integer(3) ));
 
-        for (int badVal : Arrays.asList(-1, 5, 10, -23))
-            try
-            {
-                set.add( new Integer(badVal));
-                fail("Should not have been added");
-            }
-            catch (Exception ex)
-            {
+        for (int badVal : Arrays.asList(-1, 5, 10, -23)) {
+          try
+          {
+            set.add( new Integer(badVal));
+            fail("Should not have been added");
+          }
+          catch (Exception ex)
+          {
             
-            }
+          }
+        }
     }
 
     /**
@@ -78,15 +79,16 @@ public class IntSetFixedSizeTest
         assertFalse(set.add(1));
         assertTrue(set.add(3));
 
-        for (int badVal : Arrays.asList(-1, 5, 10, -23))
-            try
-            {
-                set.add(badVal);
-                fail("Should not have been added");
-            }
-            catch (Exception ex)
-            {
-            }
+        for (int badVal : Arrays.asList(-1, 5, 10, -23)) {
+          try
+          {
+            set.add(badVal);
+            fail("Should not have been added");
+          }
+          catch (Exception ex)
+          {
+          }
+        }
     }
 
     /**
@@ -102,10 +104,12 @@ public class IntSetFixedSizeTest
         Collections.shuffle(intList);
         
         instance.addAll(intList.subList(0, 50));
-        for(int i : intList.subList(0, 50))
-            assertTrue(instance.contains(i));
-        for(int i : intList.subList(50, 100))
-            assertFalse(instance.contains(i));
+        for(int i : intList.subList(0, 50)) {
+          assertTrue(instance.contains(i));
+        }
+        for(int i : intList.subList(50, 100)) {
+          assertFalse(instance.contains(i));
+        }
         
     }
 
@@ -122,10 +126,12 @@ public class IntSetFixedSizeTest
         Collections.shuffle(intList);
         
         instance.addAll(intList.subList(0, 50));
-        for(int i : intList.subList(0, 50))
-            assertTrue(instance.contains(i));
-        for(int i : intList.subList(50, 100))
-            assertFalse(instance.contains(i));
+        for(int i : intList.subList(0, 50)) {
+          assertTrue(instance.contains(i));
+        }
+        for(int i : intList.subList(50, 100)) {
+          assertFalse(instance.contains(i));
+        }
     }
 
     /**
@@ -160,8 +166,9 @@ public class IntSetFixedSizeTest
         while(iter.hasNext())
         {
             int val = iter.next();
-            if(val == 2 || val == 4)
-                iter.remove();
+            if(val == 2 || val == 4) {
+              iter.remove();
+            }
         }
         assertEquals(3, set.size());
         

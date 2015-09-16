@@ -93,14 +93,17 @@ public class DDM<V> extends BaseDriftDetector<V>
      */
     public boolean addSample(boolean trial, V obj)
     {
-        if(drifting)
-            throw new UnhandledDriftException();
-        if(!trial)
-            fails++;
+        if(drifting) {
+          throw new UnhandledDriftException();
+        }
+        if(!trial) {
+          fails++;
+        }
         time++;
         
-        if(time < minSamples)
-            return false;
+        if(time < minSamples) {
+          return false;
+        }
         
         final double p_i = fails/(double)time;
         final double s_i = Math.sqrt(p_i*(1-p_i)/time);
@@ -151,8 +154,9 @@ public class DDM<V> extends BaseDriftDetector<V>
      */
     public void setWarningThreshold(double warningThreshold)
     {
-        if(warningThreshold <= 0 || Double.isNaN(warningThreshold) || Double.isInfinite(warningThreshold))
-            throw new IllegalArgumentException("warning threshold must be positive, not " + warningThreshold);
+        if(warningThreshold <= 0 || Double.isNaN(warningThreshold) || Double.isInfinite(warningThreshold)) {
+          throw new IllegalArgumentException("warning threshold must be positive, not " + warningThreshold);
+        }
         this.warningThreshold = warningThreshold;
     }
 
@@ -176,8 +180,9 @@ public class DDM<V> extends BaseDriftDetector<V>
      */
     public void setDriftThreshold(double driftThreshold)
     {
-        if(driftThreshold <= 0 || Double.isNaN(driftThreshold) || Double.isInfinite(driftThreshold))
-            throw new IllegalArgumentException("Dritf threshold must be positive, not " + driftThreshold);
+        if(driftThreshold <= 0 || Double.isNaN(driftThreshold) || Double.isInfinite(driftThreshold)) {
+          throw new IllegalArgumentException("Dritf threshold must be positive, not " + driftThreshold);
+        }
         this.driftThreshold = driftThreshold;
     }
 

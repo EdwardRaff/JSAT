@@ -51,8 +51,9 @@ public class DataTransformProcess implements DataTransform, Parameterized
     public DataTransformProcess(DataTransformFactory... factories)
     {
         this();
-        for(DataTransformFactory factory : factories)
-            this.addTransform(factory);
+        for(DataTransformFactory factory : factories) {
+          this.addTransform(factory);
+        }
     }
     
     /**
@@ -84,8 +85,9 @@ public class DataTransformProcess implements DataTransform, Parameterized
         {
             DataTransform t1 = learnedTransforms.get(i);
             DataTransform t2 = learnedTransforms.get(i+1);
-            if(!(t1 instanceof RemoveAttributeTransform && t2 instanceof RemoveAttributeTransform))
-                continue;//They are not both RATs
+            if(!(t1 instanceof RemoveAttributeTransform && t2 instanceof RemoveAttributeTransform)) {
+              continue;//They are not both RATs
+            }
             RemoveAttributeTransform r1 = (RemoveAttributeTransform) t1;
             RemoveAttributeTransform r2 = (RemoveAttributeTransform) t2;
             
@@ -159,13 +161,16 @@ public class DataTransformProcess implements DataTransform, Parameterized
                 }
                 
                 //Now we know if we can apply the mutations or not
-                if(vecSafe && (!ipt.mutatesNominal() || catSafe))
-                    dataSet.applyTransform(ipt, true);
-                else//go back to normal
-                    dataSet.applyTransform(transform);
+                if(vecSafe && (!ipt.mutatesNominal() || catSafe)) {
+                  dataSet.applyTransform(ipt, true);
+                } else {
+                  //go back to normal
+                  dataSet.applyTransform(transform);
+                }
             }
-            else
-                dataSet.applyTransform(transform);
+            else {
+              dataSet.applyTransform(transform);
+            }
             
             learnedTransforms.add(transform);
             iter++;
@@ -200,11 +205,13 @@ public class DataTransformProcess implements DataTransform, Parameterized
     {
         DataTransformProcess clone = new DataTransformProcess();
         
-        for(DataTransformFactory dtf : this.transformSource)
-            clone.transformSource.add(dtf.clone());
+        for(DataTransformFactory dtf : this.transformSource) {
+          clone.transformSource.add(dtf.clone());
+        }
         
-        for(DataTransform dt : this.learnedTransforms)
-            clone.learnedTransforms.add(dt.clone());
+        for(DataTransform dt : this.learnedTransforms) {
+          clone.learnedTransforms.add(dt.clone());
+        }
         
         return clone;
     }

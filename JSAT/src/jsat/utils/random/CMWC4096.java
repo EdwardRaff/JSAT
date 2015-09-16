@@ -43,10 +43,12 @@ public class CMWC4096 extends Random
     public synchronized void setSeed(long seed)
     {
         super.setSeed(seed);
-        if(Q == null)
-            Q = new int[4096];
-        for (int j = 0; j < Q.length; j++)
-            Q[j] = super.next(32);
+        if(Q == null) {
+          Q = new int[4096];
+        }
+        for (int j = 0; j < Q.length; j++) {
+          Q[j] = super.next(32);
+        }
     }
     
     @Override

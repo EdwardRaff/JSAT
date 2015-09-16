@@ -114,20 +114,23 @@ public class E2LSH<V extends Vec>
         setRadius(radius);
         this.delta = delta;
         setEps(eps);
-        if(w <= 0)
-            this.w = 4;
-        else
-            this.w = w;
+        if(w <= 0) {
+          this.w = 4;
+        } else {
+          this.w = w;
+        }
         setDistanceMetric(dm);
         this.distCache = distCache;
 
-        if(k <= 0)
-            this.k = (int) ceil(log(vecs.size())/log(1/p2));
-        else
-            this.k = k;
+        if(k <= 0) {
+          this.k = (int) ceil(log(vecs.size())/log(1/p2));
+        } else {
+          this.k = k;
+        }
         
-        if(delta <= 0 || delta >= 1)
-            throw new IllegalArgumentException("dleta must be in range (0,1)");
+        if(delta <= 0 || delta >= 1) {
+          throw new IllegalArgumentException("dleta must be in range (0,1)");
+        }
         L = (int)ceil(log(1/delta)/-log(1-pow(p1, this.k)));
         
         
@@ -190,8 +193,9 @@ public class E2LSH<V extends Vec>
         {
             int hash = hash(l, q);
             List<Integer> list = tables.get(l).get(hash);
-            for(int id : list)
-                candidates.add(id);
+            for(int id : list) {
+              candidates.add(id);
+            }
         }
         
         final List<Double> q_qi = dm.getQueryInfo(q);
@@ -200,8 +204,9 @@ public class E2LSH<V extends Vec>
         for(int id : candidates)
         {
             double trueDist = dm.dist(id, q, q_qi, vecs, distCache);
-            if(trueDist <= R)
-                toRet.add(new VecPairedComparable<Vec, Double>(vecs.get(id), trueDist));
+            if(trueDist <= R) {
+              toRet.add(new VecPairedComparable<Vec, Double>(vecs.get(id), trueDist));
+            }
         }
         Collections.sort(toRet);
         return toRet;
@@ -211,8 +216,9 @@ public class E2LSH<V extends Vec>
     {
         final int[] vals = new int[k];
         
-        for(int i = 0; i < k; i++)
-            vals[i] = (int) floor(  ( (v.dot(h[l][i])/radius)+b[l][i])/w  );
+        for(int i = 0; i < k; i++) {
+          vals[i] = (int) floor(  ( (v.dot(h[l][i])/radius)+b[l][i])/w  );
+        }
 
         return Arrays.hashCode(vals);
     }
@@ -287,15 +293,16 @@ public class E2LSH<V extends Vec>
         h = new Vec[L][k];
         b = new double[L][k];
         
-        for(int l = 0; l < L; l++)
-            for(int i = 0; i < k; i++)
-            {
-                DenseVector dv = new DenseVector(D);
-                for(int j = 0; j < D; j++)
-                    dv.set(j, rand.nextGaussian());
-                h[l][i] = dv;
-                b[l][i] = rand.nextDouble()*w;
+        for(int l = 0; l < L; l++) {
+          for (int i = 0; i < k; i++) {
+            DenseVector dv = new DenseVector(D);
+            for (int j = 0; j < D; j++) {
+              dv.set(j, rand.nextGaussian());
             }
+            h[l][i] = dv;
+            b[l][i] = rand.nextDouble()*w;
+          }
+        }
         
         tables = new ArrayList<Map<Integer, List<Integer>>>(L);
         for(int l = 0; l < L; l++)
@@ -336,14 +343,16 @@ public class E2LSH<V extends Vec>
                 p2 = getP2L1(w, c);
             }
         }
-        else
-            throw new IllegalArgumentException("only Euclidean and Manhatan (L1 and L2 norm) distances are supported");
+        else {
+          throw new IllegalArgumentException("only Euclidean and Manhatan (L1 and L2 norm) distances are supported");
+        }
     }
 
     private void setRadius(double radius)
     {
-        if(Double.isInfinite(radius) || Double.isNaN(radius) || radius <= 0)
-            throw new IllegalArgumentException("Radius must be a positive constant, not " + radius);
+        if(Double.isInfinite(radius) || Double.isNaN(radius) || radius <= 0) {
+          throw new IllegalArgumentException("Radius must be a positive constant, not " + radius);
+        }
         this.radius = radius;
     }
     

@@ -66,8 +66,9 @@ public class LSSVMTest
             classifier.setC(1);
             classifier.trainC(trainSet, ex);
 
-            for (int i = 0; i < testSet.getSampleSize(); i++)
-                assertEquals(testSet.getDataPointCategory(i), classifier.classify(testSet.getDataPoint(i)).mostLikely());
+            for (int i = 0; i < testSet.getSampleSize(); i++) {
+              assertEquals(testSet.getDataPointCategory(i), classifier.classify(testSet.getDataPoint(i)).mostLikely());
+            }
         }
     }
 
@@ -88,8 +89,9 @@ public class LSSVMTest
             classifier.setC(1);
             classifier.trainC(trainSet);
 
-            for (int i = 0; i < testSet.getSampleSize(); i++)
-                assertEquals(testSet.getDataPointCategory(i), classifier.classify(testSet.getDataPoint(i)).mostLikely());
+            for (int i = 0; i < testSet.getSampleSize(); i++) {
+              assertEquals(testSet.getDataPointCategory(i), classifier.classify(testSet.getDataPoint(i)).mostLikely());
+            }
         }
     }
 
@@ -112,8 +114,9 @@ public class LSSVMTest
             lssvm.train(trainSet, ex);
 
             double errors = 0;
-            for (int i = 0; i < testSet.getSampleSize(); i++)
-                errors += Math.pow(testSet.getTargetValue(i) - lssvm.regress(testSet.getDataPoint(i)), 2);
+            for (int i = 0; i < testSet.getSampleSize(); i++) {
+              errors += Math.pow(testSet.getTargetValue(i) - lssvm.regress(testSet.getDataPoint(i)), 2);
+            }
             assertTrue(errors / testSet.getSampleSize() < 1);
         }
     }
@@ -137,8 +140,9 @@ public class LSSVMTest
             lssvm.train(trainSet);
 
             double errors = 0;
-            for (int i = 0; i < testSet.getSampleSize(); i++)
-                errors += Math.pow(testSet.getTargetValue(i) - lssvm.regress(testSet.getDataPoint(i)), 2);
+            for (int i = 0; i < testSet.getSampleSize(); i++) {
+              errors += Math.pow(testSet.getTargetValue(i) - lssvm.regress(testSet.getDataPoint(i)), 2);
+            }
             assertTrue(errors / testSet.getSampleSize() < 1);
         }
     }

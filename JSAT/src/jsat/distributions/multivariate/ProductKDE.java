@@ -57,24 +57,29 @@ public class ProductKDE extends MultivariateKDE
     public ProductKDE clone()
     {
         ProductKDE clone = new ProductKDE();
-        if(this.k != null)
-            clone.k = k;
+        if(this.k != null) {
+          clone.k = k;
+        }
         if(this.sortedDimVals != null)
         {
             clone.sortedDimVals = new double[sortedDimVals.length][];
-            for(int i = 0; i < this.sortedDimVals.length; i++)
-                clone.sortedDimVals[i] = Arrays.copyOf(this.sortedDimVals[i], this.sortedDimVals[i].length);
+            for(int i = 0; i < this.sortedDimVals.length; i++) {
+              clone.sortedDimVals[i] = Arrays.copyOf(this.sortedDimVals[i], this.sortedDimVals[i].length);
+            }
         }
         if(this.sortedIndexVals != null)
         {
             clone.sortedIndexVals = new int[sortedIndexVals.length][];
-            for(int i = 0; i < this.sortedIndexVals.length; i++)
-                clone.sortedIndexVals[i] = Arrays.copyOf(this.sortedIndexVals[i], this.sortedIndexVals[i].length);
+            for(int i = 0; i < this.sortedIndexVals.length; i++) {
+              clone.sortedIndexVals[i] = Arrays.copyOf(this.sortedIndexVals[i], this.sortedIndexVals[i].length);
+            }
         }
-        if(this.bandwidth != null)
-            clone.bandwidth = Arrays.copyOf(this.bandwidth, this.bandwidth.length);
-        if(this.originalVecs != null)
-            clone.originalVecs = new ArrayList<Vec>(this.originalVecs);
+        if(this.bandwidth != null) {
+          clone.bandwidth = Arrays.copyOf(this.bandwidth, this.bandwidth.length);
+        }
+        if(this.originalVecs != null) {
+          clone.originalVecs = new ArrayList<Vec>(this.originalVecs);
+        }
         return clone;        
     }
 
@@ -112,8 +117,9 @@ public class ProductKDE extends MultivariateKDE
         Set<Integer> validIndecies = new IntSet();
         double logH = queryWork(x, validIndecies, logProd);
         
-        for(int i : validIndecies)
-            PDF += exp(logProd.get(i)-logH);
+        for(int i : validIndecies) {
+          PDF += exp(logProd.get(i)-logH);
+        }
         
         return PDF/N;
     }
@@ -131,8 +137,9 @@ public class ProductKDE extends MultivariateKDE
      */
     private double queryWork(Vec x, Set<Integer> validIndecies, SparseVector logProd)
     {
-        if(originalVecs == null)
-            throw new UntrainedModelException("Model has not yet been created, queries can not be perfomed");
+        if(originalVecs == null) {
+          throw new UntrainedModelException("Model has not yet been created, queries can not be perfomed");
+        }
         double logH = 0;
         for(int i = 0; i < sortedDimVals.length; i++)
         {
@@ -167,8 +174,9 @@ public class ProductKDE extends MultivariateKDE
             if (i > 0)
             {
                 validIndecies.retainAll(subIndecies);
-                if(validIndecies.isEmpty())
-                    break;
+                if(validIndecies.isEmpty()) {
+                  break;
+                }
             }
         }
         return logH;
@@ -185,16 +193,18 @@ public class ProductKDE extends MultivariateKDE
         for(int i = 0; i < dataSet.size(); i++)
         {
             Vec v = dataSet.get(i);
-            for(int j = 0; j < v.length(); j++)
-                sortedDimVals[j][i] = v.get(j);
+            for(int j = 0; j < v.length(); j++) {
+              sortedDimVals[j][i] = v.get(j);
+            }
         }
         
         
         for(int i = 0; i < dimSize; i++)
         {
             IndexTable idt = new IndexTable(sortedDimVals[i]);
-            for( int j = 0; j < idt.length(); j++)
-                sortedIndexVals[i][j] = idt.index(j);
+            for( int j = 0; j < idt.length(); j++) {
+              sortedIndexVals[i][j] = idt.index(j);
+            }
             idt.apply(sortedDimVals[i]);
             bandwidth[i] = KernelDensityEstimator.BandwithGuassEstimate(DenseVector.toDenseVec(sortedDimVals[i]))*dimSize;
         }
@@ -207,8 +217,9 @@ public class ProductKDE extends MultivariateKDE
     public boolean setUsingDataList(List<DataPoint> dataPoints)
     {
         List<Vec> dataSet = new ArrayList<Vec>(dataPoints.size());
-        for(DataPoint dp : dataPoints)
-            dataSet.add(dp.getNumericalValues());
+        for(DataPoint dp : dataPoints) {
+          dataSet.add(dp.getNumericalValues());
+        }
         return setUsingData(dataSet);
     }
 
@@ -227,7 +238,8 @@ public class ProductKDE extends MultivariateKDE
     @Override
     public void scaleBandwidth(double scale)
     {
-        for(int i = 0; i < bandwidth.length; i++)
-            bandwidth[i] *= 2;
+        for(int i = 0; i < bandwidth.length; i++) {
+          bandwidth[i] *= 2;
+        }
     }
 }

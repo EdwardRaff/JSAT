@@ -134,8 +134,9 @@ public class DecisionStumpTest
     {
         System.out.println("trainC(ClassificationDataSet, ExecutorService)");
         stump.trainC(easyNumAtTrain, ex);
-        for(int i = 0; i < easyNumAtTest.getSampleSize(); i++)
-            assertEquals(easyNumAtTest.getDataPointCategory(i), stump.classify(easyNumAtTest.getDataPoint(i)).mostLikely());
+        for(int i = 0; i < easyNumAtTest.getSampleSize(); i++) {
+          assertEquals(easyNumAtTest.getDataPointCategory(i), stump.classify(easyNumAtTest.getDataPoint(i)).mostLikely());
+        }
     }
 
     /**
@@ -146,8 +147,9 @@ public class DecisionStumpTest
     {
         System.out.println("trainC(ClassificationDataSet)");
         stump.trainC(easyNumAtTrain);
-        for(int i = 0; i < easyNumAtTest.getSampleSize(); i++)
-            assertEquals(easyNumAtTest.getDataPointCategory(i), stump.classify(easyNumAtTest.getDataPoint(i)).mostLikely());
+        for(int i = 0; i < easyNumAtTest.getSampleSize(); i++) {
+          assertEquals(easyNumAtTest.getDataPointCategory(i), stump.classify(easyNumAtTest.getDataPoint(i)).mostLikely());
+        }
     }
 
     /**
@@ -159,8 +161,9 @@ public class DecisionStumpTest
         System.out.println("trainC(List<DataPointPair>, Set<integer>)");
         stump.setPredicting(easyNumAtTrain.getPredicting());
         stump.trainC(easyNumAtTrain.getAsDPPList(), new IntSet(Arrays.asList(0)));
-        for(int i = 0; i < easyNumAtTest.getSampleSize(); i++)
-            assertEquals(easyNumAtTest.getDataPointCategory(i), stump.classify(easyNumAtTest.getDataPoint(i)).mostLikely());
+        for(int i = 0; i < easyNumAtTest.getSampleSize(); i++) {
+          assertEquals(easyNumAtTest.getDataPointCategory(i), stump.classify(easyNumAtTest.getDataPoint(i)).mostLikely());
+        }
     }
 
     /**
@@ -182,8 +185,9 @@ public class DecisionStumpTest
         System.out.println("clone");
         Classifier clone = stump.clone();
         clone.trainC(easyNumAtTrain);
-        for(int i = 0; i < easyNumAtTest.getSampleSize(); i++)
-            assertEquals(easyNumAtTest.getDataPointCategory(i), clone.classify(easyNumAtTest.getDataPoint(i)).mostLikely());
+        for(int i = 0; i < easyNumAtTest.getSampleSize(); i++) {
+          assertEquals(easyNumAtTest.getDataPointCategory(i), clone.classify(easyNumAtTest.getDataPoint(i)).mostLikely());
+        }
         try
         {
             stump.classify(easyNumAtTest.getDataPoint(0));
@@ -196,8 +200,9 @@ public class DecisionStumpTest
         clone = null;
         stump.trainC(easyNumAtTrain);
         clone = stump.clone();
-        for(int i = 0; i < easyNumAtTest.getSampleSize(); i++)
-            assertEquals(easyNumAtTest.getDataPointCategory(i), clone.classify(easyNumAtTest.getDataPoint(i)).mostLikely());
+        for(int i = 0; i < easyNumAtTest.getSampleSize(); i++) {
+          assertEquals(easyNumAtTest.getDataPointCategory(i), clone.classify(easyNumAtTest.getDataPoint(i)).mostLikely());
+        }
     }
     
     @Test
@@ -217,17 +222,19 @@ public class DecisionStumpTest
         instance.setGainMethod(ImpurityScore.ImpurityMeasure.INFORMATION_GAIN);
         
         instance.trainC(easyCatAtTrain);
-        for(DataPointPair<Integer> dpp : easyCatAtTest.getAsDPPList())
-            assertEquals(dpp.getPair().longValue(),
-                    instance.classify(dpp.getDataPoint()).mostLikely());
+        for(DataPointPair<Integer> dpp : easyCatAtTest.getAsDPPList()) {
+          assertEquals(dpp.getPair().longValue(),
+                  instance.classify(dpp.getDataPoint()).mostLikely());
+        }
         
         instance = new DecisionStump();
         instance.setGainMethod(ImpurityScore.ImpurityMeasure.INFORMATION_GAIN);
         
         instance.trainC(easyNumAtTrain);
-        for(DataPointPair<Integer> dpp : easyNumAtTest.getAsDPPList())
-            assertEquals(dpp.getPair().longValue(),
-                    instance.classify(dpp.getDataPoint()).mostLikely());
+        for(DataPointPair<Integer> dpp : easyNumAtTest.getAsDPPList()) {
+          assertEquals(dpp.getPair().longValue(),
+                  instance.classify(dpp.getDataPoint()).mostLikely());
+        }
     }
     
     @Test
@@ -239,17 +246,19 @@ public class DecisionStumpTest
         instance.setGainMethod(ImpurityScore.ImpurityMeasure.INFORMATION_GAIN_RATIO);
         
         instance.trainC(easyCatAtTrain);
-        for(DataPointPair<Integer> dpp : easyCatAtTest.getAsDPPList())
-            assertEquals(dpp.getPair().longValue(),
-                    instance.classify(dpp.getDataPoint()).mostLikely());
+        for(DataPointPair<Integer> dpp : easyCatAtTest.getAsDPPList()) {
+          assertEquals(dpp.getPair().longValue(),
+                  instance.classify(dpp.getDataPoint()).mostLikely());
+        }
         
         instance = new DecisionStump();
         instance.setGainMethod(ImpurityScore.ImpurityMeasure.INFORMATION_GAIN_RATIO);
         
         instance.trainC(easyNumAtTrain);
-        for(DataPointPair<Integer> dpp : easyNumAtTest.getAsDPPList())
-            assertEquals(dpp.getPair().longValue(),
-                    instance.classify(dpp.getDataPoint()).mostLikely());
+        for(DataPointPair<Integer> dpp : easyNumAtTest.getAsDPPList()) {
+          assertEquals(dpp.getPair().longValue(),
+                  instance.classify(dpp.getDataPoint()).mostLikely());
+        }
     }
     
     @Test
@@ -261,17 +270,19 @@ public class DecisionStumpTest
         instance.setGainMethod(ImpurityScore.ImpurityMeasure.GINI);
         
         instance.trainC(easyCatAtTrain);
-        for(DataPointPair<Integer> dpp : easyCatAtTest.getAsDPPList())
-            assertEquals(dpp.getPair().longValue(),
-                    instance.classify(dpp.getDataPoint()).mostLikely());
+        for(DataPointPair<Integer> dpp : easyCatAtTest.getAsDPPList()) {
+          assertEquals(dpp.getPair().longValue(),
+                  instance.classify(dpp.getDataPoint()).mostLikely());
+        }
         
         instance = new DecisionStump();
         instance.setGainMethod(ImpurityScore.ImpurityMeasure.GINI);
         
         instance.trainC(easyNumAtTrain);
-        for(DataPointPair<Integer> dpp : easyNumAtTest.getAsDPPList())
-            assertEquals(dpp.getPair().longValue(),
-                    instance.classify(dpp.getDataPoint()).mostLikely());
+        for(DataPointPair<Integer> dpp : easyNumAtTest.getAsDPPList()) {
+          assertEquals(dpp.getPair().longValue(),
+                  instance.classify(dpp.getDataPoint()).mostLikely());
+        }
     }
     
     @Test
@@ -283,9 +294,10 @@ public class DecisionStumpTest
         instance.setNumericHandling(DecisionStump.NumericHandlingC.PDF_INTERSECTIONS);
         
         instance.trainC(easyNumAtTrain);
-        for(DataPointPair<Integer> dpp : easyNumAtTest.getAsDPPList())
-            assertEquals(dpp.getPair().longValue(),
-                    instance.classify(dpp.getDataPoint()).mostLikely());
+        for(DataPointPair<Integer> dpp : easyNumAtTest.getAsDPPList()) {
+          assertEquals(dpp.getPair().longValue(),
+                  instance.classify(dpp.getDataPoint()).mostLikely());
+        }
     }
 
     @Test
@@ -297,9 +309,10 @@ public class DecisionStumpTest
         instance.setNumericHandling(DecisionStump.NumericHandlingC.BINARY_BEST_GAIN);
         
         instance.trainC(easyNumAtTrain);
-        for(DataPointPair<Integer> dpp : easyNumAtTest.getAsDPPList())
-            assertEquals(dpp.getPair().longValue(),
-                    instance.classify(dpp.getDataPoint()).mostLikely());
+        for(DataPointPair<Integer> dpp : easyNumAtTest.getAsDPPList()) {
+          assertEquals(dpp.getPair().longValue(),
+                  instance.classify(dpp.getDataPoint()).mostLikely());
+        }
     }
    
 }

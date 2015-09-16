@@ -69,10 +69,11 @@ public class RegressionDataSet extends DataSet<RegressionDataSet>
             //Set up the new vector
             for(int i = 0; i < origVec.length()-1; i++)
             {
-                if(i >= predicting)
-                    newVec.set(i, origVec.get(i+1));
-                else
-                    newVec.set(i, origVec.get(i));
+                if(i >= predicting) {
+                  newVec.set(i, origVec.get(i+1));
+                } else {
+                  newVec.set(i, origVec.get(i));
+                }
             }
             
             DataPoint newDp = new DataPoint(newVec, dp.getCategoricalValues(), categories);
@@ -97,8 +98,9 @@ public class RegressionDataSet extends DataSet<RegressionDataSet>
         setUpGenericNumericNames();
         this.categories = CategoricalData.copyOf(list.get(0).getDataPoint().getCategoricalData());
         this.dataPoints =new ArrayList<DataPointPair<Double>>(list.size());
-        for(DataPointPair<Double> dpp : list)
-            dataPoints.add(new DataPointPair<Double>(dpp.getDataPoint().clone(), dpp.getPair()));
+        for(DataPointPair<Double> dpp : list) {
+          dataPoints.add(new DataPointPair<Double>(dpp.getDataPoint().clone(), dpp.getPair()));
+        }
     }
 
     /**
@@ -106,10 +108,12 @@ public class RegressionDataSet extends DataSet<RegressionDataSet>
      */
     private void setUpGenericNumericNames()
     {
-        if(getNumNumericalVars() > 100)
-            return;
-        for(int i = 0; i < getNumNumericalVars(); i++)
-            this.numericalVariableNames.add("Numeric Input " + (i+1));
+        if(getNumNumericalVars() > 100) {
+          return;
+        }
+        for(int i = 0; i < getNumNumericalVars(); i++) {
+          this.numericalVariableNames.add("Numeric Input " + (i+1));
+        }
     }
     
     private RegressionDataSet()
@@ -125,11 +129,13 @@ public class RegressionDataSet extends DataSet<RegressionDataSet>
         RegressionDataSet rds = new RegressionDataSet(numer, categories);
 
         //The list of data sets
-        for (int i = 0; i < list.size(); i++)
-            if (i == exception)
-                continue;
-            else
-                rds.dataPoints.addAll(list.get(i).dataPoints);
+        for (int i = 0; i < list.size(); i++) {
+          if (i == exception) {
+            continue;
+          } else {
+            rds.dataPoints.addAll(list.get(i).dataPoints);
+          }
+        }
         
         return rds;
     }
@@ -159,14 +165,18 @@ public class RegressionDataSet extends DataSet<RegressionDataSet>
      */
     public void addDataPoint(Vec numerical, int[] categories, double val)
     {
-        if(numerical.length() != numNumerVals)
-            throw new RuntimeException("Data point does not contain enough numerical data points");
-        if(categories.length != categories.length)
-            throw new RuntimeException("Data point does not contain enough categorical data points");
+        if(numerical.length() != numNumerVals) {
+          throw new RuntimeException("Data point does not contain enough numerical data points");
+        }
+        if(categories.length != categories.length) {
+          throw new RuntimeException("Data point does not contain enough categorical data points");
+        }
         
-        for(int i = 0; i < categories.length; i++)
-            if(!this.categories[i].isValidCategory(categories[i]))
-                throw new RuntimeException("Categoriy value given is invalid");
+        for(int i = 0; i < categories.length; i++) {
+          if (!this.categories[i].isValidCategory(categories[i])) {
+            throw new RuntimeException("Categoriy value given is invalid");
+          }
+        }
         
         DataPoint dp = new DataPoint(numerical, categories, this.categories);
         addDataPoint(dp, val);
@@ -174,10 +184,11 @@ public class RegressionDataSet extends DataSet<RegressionDataSet>
     
     public void addDataPoint(DataPoint dp, double val)
     {
-        if(dp.numNumericalValues() != getNumNumericalVars() || dp.numCategoricalValues() != getNumCategoricalVars())
-            throw new RuntimeException("The added data point does not match the number of values and categories for the data set");
-        else if(Double.isInfinite(val) || Double.isNaN(val))
-            throw new ArithmeticException("Unregressiable value " + val + " given for regression");
+        if(dp.numNumericalValues() != getNumNumericalVars() || dp.numCategoricalValues() != getNumCategoricalVars()) {
+          throw new RuntimeException("The added data point does not match the number of values and categories for the data set");
+        } else if(Double.isInfinite(val) || Double.isNaN(val)) {
+          throw new ArithmeticException("Unregressiable value " + val + " given for regression");
+        }
         
         DataPointPair<Double> dpp = new DataPointPair<Double>(dp, val);
         dataPoints.add(dpp);
@@ -218,8 +229,9 @@ public class RegressionDataSet extends DataSet<RegressionDataSet>
     public List<DataPointPair<Double>> getAsDPPList()
     {
         ArrayList<DataPointPair<Double>> list = new ArrayList<DataPointPair<Double>>(dataPoints.size());
-        for(DataPointPair<Double> dpp : dataPoints)
-            list.add(new DataPointPair<Double>(dpp.getDataPoint().clone(), dpp.getPair()));
+        for(DataPointPair<Double> dpp : dataPoints) {
+          list.add(new DataPointPair<Double>(dpp.getDataPoint().clone(), dpp.getPair()));
+        }
         return list;
     }
     
@@ -253,8 +265,9 @@ public class RegressionDataSet extends DataSet<RegressionDataSet>
      */
     public void setTargetValue(int i, double val)
     {
-        if(Double.isInfinite(val) || Double.isNaN(val))
-            throw new ArithmeticException("Can not predict a " + val + " value");
+        if(Double.isInfinite(val) || Double.isNaN(val)) {
+          throw new ArithmeticException("Can not predict a " + val + " value");
+        }
         dataPoints.get(i).setPair(val);
     }
 
@@ -262,8 +275,9 @@ public class RegressionDataSet extends DataSet<RegressionDataSet>
     protected RegressionDataSet getSubset(List<Integer> indicies)
     {
         RegressionDataSet newData = new RegressionDataSet(numNumerVals, categories);
-        for (int i : indicies)
-            newData.addDataPoint(getDataPoint(i), getTargetValue(i));
+        for (int i : indicies) {
+          newData.addDataPoint(getDataPoint(i), getTargetValue(i));
+        }
         return newData;
     }
     
@@ -284,8 +298,9 @@ public class RegressionDataSet extends DataSet<RegressionDataSet>
     {
         DenseVector vals = new DenseVector(getSampleSize());
         
-        for(int i = 0; i < getSampleSize(); i++)
-            vals.set(i, dataPoints.get(i).getPair());
+        for(int i = 0; i < getSampleSize(); i++) {
+          vals.set(i, dataPoints.get(i).getPair());
+        }
         
         return vals;
     }
@@ -315,8 +330,9 @@ public class RegressionDataSet extends DataSet<RegressionDataSet>
         rds.dataPoints = list;
         rds.numNumerVals = list.get(0).getDataPoint().numNumericalValues();
         rds.numericalVariableNames = new ArrayList<String>(rds.getNumNumericalVars());
-        for(int i = 0; i < rds.getNumNumericalVars(); i++)
-            rds.numericalVariableNames.add("Numeric Input " + (i+1));
+        for(int i = 0; i < rds.getNumNumericalVars(); i++) {
+          rds.numericalVariableNames.add("Numeric Input " + (i+1));
+        }
         rds.categories = CategoricalData.copyOf(list.get(0).getDataPoint().getCategoricalData());
         return rds;
     }
@@ -325,8 +341,9 @@ public class RegressionDataSet extends DataSet<RegressionDataSet>
     public RegressionDataSet shallowClone()
     {
         RegressionDataSet clone = new RegressionDataSet(numNumerVals, categories);
-        for(DataPointPair<Double> dpp : this.dataPoints)
-            clone.dataPoints.add(new DataPointPair<Double>(dpp.getDataPoint(), dpp.getPair()));
+        for(DataPointPair<Double> dpp : this.dataPoints) {
+          clone.dataPoints.add(new DataPointPair<Double>(dpp.getDataPoint(), dpp.getPair()));
+        }
         clone.columnVecCache.putAll(this.columnVecCache);
         return clone;
     }

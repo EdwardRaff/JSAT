@@ -109,8 +109,9 @@ public class IntPriorityQueueTest
         assertEquals(0, ipq.size());
         
         Random rand = new Random(2);
-        for(int i = 0; i < 100; i++)
-            ipq.add(rand.nextInt(200));
+        for(int i = 0; i < 100; i++) {
+          ipq.add(rand.nextInt(200));
+        }
         
         int prev = -1;
         while(!ipq.isEmpty())

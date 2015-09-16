@@ -34,22 +34,25 @@ public class Pareto extends ContinuousDistribution
     
     public final void setAlpha(double alpha)
     {
-        if(alpha <= 0)
-            throw new ArithmeticException("Shape parameter must be > 0, not " + alpha);
+        if(alpha <= 0) {
+          throw new ArithmeticException("Shape parameter must be > 0, not " + alpha);
+        }
         this.alpha = alpha;
     }
 
     public final void setXm(double xm)
     {
-        if(xm <= 0)
-            throw new ArithmeticException("Scale parameter must be > 0, not " + xm);
+        if(xm <= 0) {
+          throw new ArithmeticException("Scale parameter must be > 0, not " + xm);
+        }
         this.xm = xm;
     }
     
     public double logPdf(double x)
     {
-        if(x < xm )
-            return Double.NEGATIVE_INFINITY;
+        if(x < xm ) {
+          return Double.NEGATIVE_INFINITY;
+        }
         
         return log(alpha) + alpha*log(xm) - (alpha+1)*log(x);
     }
@@ -57,8 +60,9 @@ public class Pareto extends ContinuousDistribution
     @Override
     public double pdf(double x)
     {
-        if(x < xm )
-            return 0;
+        if(x < xm ) {
+          return 0;
+        }
         return exp(logPdf(x));
     }
 
@@ -107,10 +111,11 @@ public class Pareto extends ContinuousDistribution
     @Override
     public void setVariable(String var, double value)
     {
-        if(var.equals("x_m"))
-            setXm(value);
-        else if(var.equals(GreekLetters.alpha))
-            setAlpha(value);
+        if(var.equals("x_m")) {
+          setXm(value);
+        } else if(var.equals(GreekLetters.alpha)) {
+          setAlpha(value);
+        }
     }
 
     @Override
@@ -139,8 +144,9 @@ public class Pareto extends ContinuousDistribution
     @Override
     public double mean()
     {
-        if(alpha > 1)
-            return alpha*xm/(alpha-1);
+        if(alpha > 1) {
+          return alpha*xm/(alpha-1);
+        }
         return Double.NaN;
     }
 
@@ -153,8 +159,9 @@ public class Pareto extends ContinuousDistribution
     @Override
     public double variance()
     {
-        if(alpha > 2)
-            return xm*xm*alpha/ (pow(alpha-1, 2)*(alpha-2) );
+        if(alpha > 2) {
+          return xm*xm*alpha/ (pow(alpha-1, 2)*(alpha-2) );
+        }
         
         return Double.NaN;
     }

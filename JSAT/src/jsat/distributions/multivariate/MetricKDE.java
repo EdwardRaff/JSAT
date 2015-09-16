@@ -119,8 +119,9 @@ public class MetricKDE extends MultivariateKDE implements Parameterized
                 @Override
                 public boolean setValue(int val)
                 {
-                    if(val < 1)
-                        return false;
+                    if(val < 1) {
+                      return false;
+                    }
                     setDefaultK(val);
                     return true;
                 }
@@ -236,8 +237,9 @@ public class MetricKDE extends MultivariateKDE implements Parameterized
      */
     public void setBandwith(double bandwidth)
     {
-        if(bandwidth <= 0 || Double.isNaN(bandwidth) || Double.isInfinite(bandwidth))
-            throw new ArithmeticException("Invalid bandwith given, bandwith must be a positive number, not " + bandwidth);
+        if(bandwidth <= 0 || Double.isNaN(bandwidth) || Double.isInfinite(bandwidth)) {
+          throw new ArithmeticException("Invalid bandwith given, bandwith must be a positive number, not " + bandwidth);
+        }
         this.bandwidth = bandwidth;
     }
 
@@ -258,8 +260,9 @@ public class MetricKDE extends MultivariateKDE implements Parameterized
      */
     public void setDefaultK(int defaultK)
     {
-        if(defaultK <= 0)
-            throw new ArithmeticException("At least one neighbor must be taken into acount, " + defaultK + " is invalid");
+        if(defaultK <= 0) {
+          throw new ArithmeticException("At least one neighbor must be taken into acount, " + defaultK + " is invalid");
+        }
         this.defaultK = defaultK;
     }
 
@@ -281,8 +284,9 @@ public class MetricKDE extends MultivariateKDE implements Parameterized
      */
     public void setDefaultStndDev(double defaultStndDev)
     {
-        if(Double.isInfinite(defaultStndDev) || Double.isNaN(defaultStndDev) || defaultStndDev <= 0)
-            throw new ArithmeticException("The number of standard deviations to remove must bea postive number, not " + defaultStndDev);
+        if(Double.isInfinite(defaultStndDev) || Double.isNaN(defaultStndDev) || defaultStndDev <= 0) {
+          throw new ArithmeticException("The number of standard deviations to remove must bea postive number, not " + defaultStndDev);
+        }
         this.defaultStndDev = defaultStndDev;
     }
 
@@ -318,32 +322,37 @@ public class MetricKDE extends MultivariateKDE implements Parameterized
     {
         MetricKDE clone = new MetricKDE(kf, distanceMetric.clone(), vcf.clone(), defaultK, defaultStndDev);
         clone.bandwidth = this.bandwidth;
-        if(this.vecCollection != null)
-            clone.vecCollection = this.vecCollection.clone();
+        if(this.vecCollection != null) {
+          clone.vecCollection = this.vecCollection.clone();
+        }
         return clone;
     }
 
     @Override
     public List<? extends VecPaired<VecPaired<Vec, Integer>, Double>> getNearby(Vec x)
     {
-        if(vecCollection == null)
-            throw new UntrainedModelException("Model has not yet been created");
+        if(vecCollection == null) {
+          throw new UntrainedModelException("Model has not yet been created");
+        }
         List<? extends VecPaired<VecPaired<Vec, Integer>, Double>> nearBy = getNearbyRaw(x);
         //Normalize from their distances to their weights by kernel function
-        for(VecPaired<VecPaired<Vec, Integer>, Double> result : nearBy)
-            result.setPair(kf.k(result.getPair()));
+        for(VecPaired<VecPaired<Vec, Integer>, Double> result : nearBy) {
+          result.setPair(kf.k(result.getPair()));
+        }
         return nearBy;
     }
     
     @Override
     public List<? extends VecPaired<VecPaired<Vec, Integer>, Double>> getNearbyRaw(Vec x)
     {
-        if(vecCollection == null)
-            throw new UntrainedModelException("Model has not yet been created");
+        if(vecCollection == null) {
+          throw new UntrainedModelException("Model has not yet been created");
+        }
         List<? extends VecPaired<VecPaired<Vec, Integer>, Double>> nearBy = vecCollection.search(x, bandwidth*kf.cutOff());
 
-        for(VecPaired<VecPaired<Vec, Integer>, Double> result : nearBy)
-            result.setPair(result.getPair()/bandwidth);
+        for(VecPaired<VecPaired<Vec, Integer>, Double> result : nearBy) {
+          result.setPair(result.getPair()/bandwidth);
+        }
         return nearBy;
     }
         
@@ -352,12 +361,14 @@ public class MetricKDE extends MultivariateKDE implements Parameterized
     {
         List<? extends VecPaired<VecPaired<Vec, Integer>, Double>> nearBy = getNearby(x);
         
-        if(nearBy.isEmpty())
-            return 0;
+        if(nearBy.isEmpty()) {
+          return 0;
+        }
         
         double PDF = 0;
-        for(VecPaired<VecPaired<Vec, Integer>, Double> result : nearBy)
-            PDF+= result.getPair();
+        for(VecPaired<VecPaired<Vec, Integer>, Double> result : nearBy) {
+          PDF+= result.getPair();
+        }
         
         return PDF / (vecCollection.size() * Math.pow(bandwidth, nearBy.get(0).length()));
     }
@@ -384,15 +395,17 @@ public class MetricKDE extends MultivariateKDE implements Parameterized
     {
         setBandwith(bandwith);
         List<VecPaired<Vec, Integer>> indexVectorPair = new ArrayList<VecPaired<Vec, Integer>>(dataSet.size());
-        for(int i = 0; i < dataSet.size(); i++)
-            indexVectorPair.add(new VecPaired<Vec, Integer>(dataSet.get(i), i));
+        for(int i = 0; i < dataSet.size(); i++) {
+          indexVectorPair.add(new VecPaired<Vec, Integer>(dataSet.get(i), i));
+        }
         
         TrainableDistanceMetric.trainIfNeeded(distanceMetric, dataSet, threadpool);
         
-        if(threadpool == null)
-            vecCollection = vcf.getVectorCollection(indexVectorPair, distanceMetric);
-        else
-            vecCollection = vcf.getVectorCollection(indexVectorPair, distanceMetric, threadpool);
+        if(threadpool == null) {
+          vecCollection = vcf.getVectorCollection(indexVectorPair, distanceMetric);
+        } else {
+          vecCollection = vcf.getVectorCollection(indexVectorPair, distanceMetric, threadpool);
+        }
         
         return true;
     }
@@ -453,30 +466,32 @@ public class MetricKDE extends MultivariateKDE implements Parameterized
     public <V extends Vec> boolean setUsingData(List<V> dataSet, int k, double stndDevs, ExecutorService threadpool)
     {
         List<VecPaired<Vec, Integer>> indexVectorPair = new ArrayList<VecPaired<Vec, Integer>>(dataSet.size());
-        for(int i = 0; i < dataSet.size(); i++)
-            indexVectorPair.add(new VecPaired<Vec, Integer>(dataSet.get(i), i));
+        for(int i = 0; i < dataSet.size(); i++) {
+          indexVectorPair.add(new VecPaired<Vec, Integer>(dataSet.get(i), i));
+        }
         TrainableDistanceMetric.trainIfNeeded(distanceMetric, dataSet, threadpool);
         vecCollection = vcf.getVectorCollection(indexVectorPair, distanceMetric);
         
         //Take the average of the k'th neighbor distance to use as the bandwith
         OnLineStatistics stats;
-        if(threadpool == null)//k+1 b/c the first nearest neighbor will be itself
-            stats = VectorCollectionUtils.getKthNeighborStats(vecCollection, dataSet, k + 1);
-        else
-            try
-            {
-                stats = VectorCollectionUtils.getKthNeighborStats(vecCollection, dataSet, k + 1, threadpool);
-            }
-            catch (InterruptedException ex)
-            {
-                Logger.getLogger(MetricKDE.class.getName()).log(Level.SEVERE, null, ex);
-                return false;
-            }
-            catch (ExecutionException ex)
-            {
-                Logger.getLogger(MetricKDE.class.getName()).log(Level.SEVERE, null, ex);
-                return false;
-            }
+        if(threadpool == null) {//k+1 b/c the first nearest neighbor will be itself
+          stats = VectorCollectionUtils.getKthNeighborStats(vecCollection, dataSet, k + 1);
+        } else {
+          try
+          {
+            stats = VectorCollectionUtils.getKthNeighborStats(vecCollection, dataSet, k + 1, threadpool);
+          }
+          catch (InterruptedException ex)
+          {
+            Logger.getLogger(MetricKDE.class.getName()).log(Level.SEVERE, null, ex);
+            return false;
+          }
+          catch (ExecutionException ex)
+          {
+            Logger.getLogger(MetricKDE.class.getName()).log(Level.SEVERE, null, ex);
+            return false;
+          }
+        }
 
         setBandwith(stats.getMean() + stats.getStandardDeviation() * stndDevs);
 
@@ -499,8 +514,9 @@ public class MetricKDE extends MultivariateKDE implements Parameterized
     public boolean setUsingDataList(List<DataPoint> dataPoints)
     {
         List<Vec> dataSet = new ArrayList<Vec>(dataPoints.size());
-        for(DataPoint dp : dataPoints)
-            dataSet.add(dp.getNumericalValues());
+        for(DataPoint dp : dataPoints) {
+          dataSet.add(dp.getNumericalValues());
+        }
         return setUsingData(dataSet);
     }
 
@@ -508,8 +524,9 @@ public class MetricKDE extends MultivariateKDE implements Parameterized
     public boolean setUsingDataList(List<DataPoint> dataPoints, ExecutorService threadpool)
     {
         List<Vec> dataSet = new ArrayList<Vec>(dataPoints.size());
-        for(DataPoint dp : dataPoints)
-            dataSet.add(dp.getNumericalValues());
+        for(DataPoint dp : dataPoints) {
+          dataSet.add(dp.getNumericalValues());
+        }
         return setUsingData(dataSet, threadpool);
     }
 

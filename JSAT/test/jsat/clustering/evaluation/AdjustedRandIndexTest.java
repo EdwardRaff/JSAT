@@ -56,9 +56,11 @@ public class AdjustedRandIndexTest
         System.out.println("evaluate");
         //using example from http://www.otlet-institute.org/wikics/Clustering_Problems.html
         ClassificationDataSet cds = new ClassificationDataSet(1, new CategoricalData[0], new CategoricalData(3));
-        for(int i = 0; i < 3; i++)
-            for(int j = 0; j < 3; j++)
-                cds.addDataPoint(Vec.random(1), new int[0], i);
+        for(int i = 0; i < 3; i++) {
+          for (int j = 0; j < 3; j++) {
+            cds.addDataPoint(Vec.random(1), new int[0], i);
+          }
+        }
         int[] d = new int[9];
         d[0] = d[1] = 0;
         d[2] = d[3] = d[4] = d[5] = 1;

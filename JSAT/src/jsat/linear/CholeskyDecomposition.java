@@ -43,8 +43,9 @@ public class CholeskyDecomposition implements Serializable
      */
     public CholeskyDecomposition(final Matrix A)
     {
-        if(!A.isSquare())
-            throw new ArithmeticException("Input matrix must be symmetric positive definite");
+        if(!A.isSquare()) {
+          throw new ArithmeticException("Input matrix must be symmetric positive definite");
+        }
         
         L = A;
         final int ROWS = A.rows();
@@ -72,8 +73,9 @@ public class CholeskyDecomposition implements Serializable
      */
     public CholeskyDecomposition(final Matrix A, ExecutorService threadpool)
     {
-        if(!A.isSquare())
-            throw new ArithmeticException("Input matrix must be symmetric positive definite");
+        if(!A.isSquare()) {
+          throw new ArithmeticException("Input matrix must be symmetric positive definite");
+        }
         
         L = A;
         final int ROWS = A.rows();
@@ -100,8 +102,9 @@ public class CholeskyDecomposition implements Serializable
             try
             {
                 updateRows(J, J+1, ROWS, SystemInfo.LogicalCores, A, L_jj);
-                if(j+1 < ROWS)
-                    nextLJJ = computeLJJ(A, j+1);
+                if(j+1 < ROWS) {
+                  nextLJJ = computeLJJ(A, j+1);
+                }
                 latch.await();
             }
             catch (InterruptedException ex)
@@ -121,9 +124,11 @@ public class CholeskyDecomposition implements Serializable
     {
         Matrix LT = new DenseMatrix(L.rows(), L.cols());
         
-        for(int i = 0; i < L.rows(); i++)
-            for(int j = i; j < L.rows(); j++)
-                LT.set(i, j, L.get(i, j));
+        for(int i = 0; i < L.rows(); i++) {
+          for (int j = i; j < L.rows(); j++) {
+            LT.set(i, j, L.get(i, j));
+          }
+        }
         
         return LT;
     }
@@ -187,8 +192,9 @@ public class CholeskyDecomposition implements Serializable
     public double getDet()
     {
         double det = 1;
-        for(int i = 0; i < L.rows(); i++)
-            det *= L.get(i, i);
+        for(int i = 0; i < L.rows(); i++) {
+          det *= L.get(i, i);
+        }
         return det;
     }
 
@@ -205,11 +211,13 @@ public class CholeskyDecomposition implements Serializable
          *        \/             k = 1
          */
         double L_jj = A.get(j, j);
-        for(int k = 0; k < j; k++)
-            L_jj -= pow(L.get(j, k), 2);
+        for(int k = 0; k < j; k++) {
+          L_jj -= pow(L.get(j, k), 2);
+        }
         final double result = sqrt(L_jj);
-        if(Double.isNaN(result))
-            throw new ArithmeticException("input matrix is not positive definite");
+        if(Double.isNaN(result)) {
+          throw new ArithmeticException("input matrix is not positive definite");
+        }
         return result;
     }
 
@@ -228,8 +236,9 @@ public class CholeskyDecomposition implements Serializable
         for(int i = start; i < end; i+=skip)
         {
             double L_ij = A.get(i, j);
-            for(int k = 0; k < j; k++)
-                L_ij -= L.get(i, k)*L.get(j, k);
+            for(int k = 0; k < j; k++) {
+              L_ij -= L.get(i, k)*L.get(j, k);
+            }
             L.set(i, j, L_ij/L_jj);
         }
     }
@@ -237,8 +246,10 @@ public class CholeskyDecomposition implements Serializable
     private void copyUpperToLower(final int ROWS)
     {
         //Now copy so that All of L is filled 
-        for (int i = 0; i < ROWS; i++)
-            for (int j = 0; j < i; j++)
-                L.set(j, i, L.get(i, j));
+        for (int i = 0; i < ROWS; i++) {
+          for (int j = 0; j < i; j++) {
+            L.set(j, i, L.get(i, j));
+          }
+        }
     }
 }

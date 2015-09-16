@@ -133,8 +133,9 @@ public class NewGLMNET implements WarmClassifier, Parameterized, SingleWeightVec
      */
     protected NewGLMNET(NewGLMNET toCopy)
     {
-        if(toCopy.w !=null)
-            this.w = toCopy.w.clone();
+        if(toCopy.w !=null) {
+          this.w = toCopy.w.clone();
+        }
         this.b = toCopy.b;
         this.beta = toCopy.beta;
         this.v = toCopy.v;
@@ -156,8 +157,9 @@ public class NewGLMNET implements WarmClassifier, Parameterized, SingleWeightVec
     @WarmParameter(prefLowToHigh = true)
     public void setC(double C)
     {
-        if(C <= 0 || Double.isInfinite(C) || Double.isNaN(C))
-            throw new IllegalArgumentException("Regularization term C must be a positive value, not " + C);
+        if(C <= 0 || Double.isInfinite(C) || Double.isNaN(C)) {
+          throw new IllegalArgumentException("Regularization term C must be a positive value, not " + C);
+        }
         this.C = C;
     }
 
@@ -181,8 +183,9 @@ public class NewGLMNET implements WarmClassifier, Parameterized, SingleWeightVec
      */
     public void setAlpha(double alpha)
     {
-        if(alpha < 0 || alpha > 1 || Double.isNaN(alpha))
-            throw new IllegalArgumentException("alpha must be in [0, 1], not " + alpha);
+        if(alpha < 0 || alpha > 1 || Double.isNaN(alpha)) {
+          throw new IllegalArgumentException("alpha must be in [0, 1], not " + alpha);
+        }
         this.alpha = alpha;
     }
 
@@ -206,8 +209,9 @@ public class NewGLMNET implements WarmClassifier, Parameterized, SingleWeightVec
      */
     public void setMaxIters(int maxOuterIters)
     {
-        if(maxOuterIters < 1)
-            throw new IllegalArgumentException("Number of training iterations must be positive, not " + maxOuterIters);
+        if(maxOuterIters < 1) {
+          throw new IllegalArgumentException("Number of training iterations must be positive, not " + maxOuterIters);
+        }
         this.maxOuterIters = maxOuterIters;
     }
 
@@ -230,8 +234,9 @@ public class NewGLMNET implements WarmClassifier, Parameterized, SingleWeightVec
      */
     public void setTolerance(double e_out)
     {
-        if(e_out <= 0 || Double.isNaN(e_out))
-            throw new IllegalArgumentException("convergence tolerance paramter must be positive, not " + e_out);
+        if(e_out <= 0 || Double.isNaN(e_out)) {
+          throw new IllegalArgumentException("convergence tolerance paramter must be positive, not " + e_out);
+        }
         this.e_out = e_out;
     }
     
@@ -295,8 +300,9 @@ public class NewGLMNET implements WarmClassifier, Parameterized, SingleWeightVec
             SimpleWeightVectorModel swv = (SimpleWeightVectorModel) warmSolution;
             train(dataSet, swv.getRawWeight(0), swv.getBias(0), true);
         }
-        else 
-            throw new FailedToFitException("Warm solution is not of a");
+        else {
+          throw new FailedToFitException("Warm solution is not of a");
+        }
     }
     
     @Override
@@ -405,9 +411,11 @@ public class NewGLMNET implements WarmClassifier, Parameterized, SingleWeightVec
         for(int j = 0; j < n; j++)
         {
             Vec vec = columnsOfX.get(j);
-            for(IndexValue iv : vec)
-                if(y[iv.getIndex()] == -1)
-                    col_neg_class_sum[j] += iv.getValue();
+            for(IndexValue iv : vec) {
+              if (y[iv.getIndex()] == -1) {
+                col_neg_class_sum[j] += iv.getValue();
+              }
+            }
         }
         
         /**
@@ -416,9 +424,11 @@ public class NewGLMNET implements WarmClassifier, Parameterized, SingleWeightVec
         double col_neg_class_sum_bias = 0;
         if(useBias)
         {
-            for(int i = 0; i < l; i++)
-                if(y[i] == -1)
-                    col_neg_class_sum_bias++;
+            for(int i = 0; i < l; i++) {
+              if (y[i] == -1) {
+                col_neg_class_sum_bias++;
+              }
+            }
         }
                 
         /**
@@ -479,21 +489,23 @@ public class NewGLMNET implements WarmClassifier, Parameterized, SingleWeightVec
                 H[j] = C*deltaSqrd_L + max(v, l2w);
 
                 double deltaS_j_fw;
-                if(w_j > 0)
-                    deltaS_j_fw = delta_j_L+alpha;
-                else if(w_j < 0)
-                    deltaS_j_fw = delta_j_L-alpha;
-                else//w_j = 0
-                    deltaS_j_fw = signum(delta_j_L)*max(abs(delta_j_L)-alpha, 0);
-                //done with step 2, we have all the info
+                if(w_j > 0) {
+                  deltaS_j_fw = delta_j_L+alpha;
+                } else if(w_j < 0) {
+                  deltaS_j_fw = delta_j_L-alpha;
+                } else {
+                  //w_j = 0
+                  deltaS_j_fw = signum(delta_j_L)*max(abs(delta_j_L)-alpha, 0);
+                  //done with step 2, we have all the info
+                }
                 
                 //2.2. If w^k_j = 0 and |∇_j L(w^k)| < 1−M^out/l   // outer-level shrinking
                 //then J ←J\{j}.
                 //else M ←max(M, |∇^S_j f(w^k)|) and M_bar ← M_bar +|∇^S_j f(w^k)|
                 
-                if(w_j == 0 && abs(delta_j_L) < alpha-M_out/l)
-                    j_iter.remove();
-                else
+                if(w_j == 0 && abs(delta_j_L) < alpha-M_out/l) {
+                  j_iter.remove();
+                } else
                 {
                     M = max(M, abs(deltaS_j_fw));
                     M_bar += abs(deltaS_j_fw);
@@ -521,15 +533,19 @@ public class NewGLMNET implements WarmClassifier, Parameterized, SingleWeightVec
                 M_bar += abs(deltaS_j_fw);
             }
             
-            if (k == 0)//first run
-                if (useInit)//we have some value of W already, 
-                    e_in = first_M_bar = getM_Bar_for_w0(n, l, columnsOfX, col_neg_class_sum, col_neg_class_sum_bias);
-                else//normal algo
-                    e_in = first_M_bar = M_bar;
-            //algo 3, Step 3. 3. If M_bar ≤ eps_out ,  return w^k 
+            if (k == 0) {//first run
+              if (useInit) {
+                e_in = first_M_bar = getM_Bar_for_w0(n, l, columnsOfX, col_neg_class_sum, col_neg_class_sum_bias);
+              } else {
+                //normal algo
+                e_in = first_M_bar = M_bar;
+                //algo 3, Step 3. 3. If M_bar ≤ eps_out ,  return w^k 
+              }
+            }
             
-            if(M_bar <= e_out*first_M_bar)
-                break;
+            if(M_bar <= e_out*first_M_bar) {
+              break;
+            }
             //algo 3, Step 4. Let M_out ←M
             M_out = M;
             
@@ -589,12 +605,14 @@ public class NewGLMNET implements WarmClassifier, Parameterized, SingleWeightVec
                     delta_qBar_j += l2w*d_j;
                     
                     double deltaS_q_k_j;
-                    if(w_j + d_j > 0)
-                        deltaS_q_k_j = delta_qBar_j + alpha;
-                    else if(w_j + d_j < 0)
-                        deltaS_q_k_j = delta_qBar_j - alpha;
-                    else //w_j + d_j == 0
-                        deltaS_q_k_j = signum(delta_qBar_j)*max(abs(delta_qBar_j)-alpha, 0);
+                    if(w_j + d_j > 0) {
+                      deltaS_q_k_j = delta_qBar_j + alpha;
+                    } else if(w_j + d_j < 0) {
+                      deltaS_q_k_j = delta_qBar_j - alpha;
+                    } else {
+                      //w_j + d_j == 0
+                      deltaS_q_k_j = signum(delta_qBar_j)*max(abs(delta_qBar_j)-alpha, 0);
+                    }
                     
                     double deltaSqrd_q_jj = H[j];
                     
@@ -609,15 +627,17 @@ public class NewGLMNET implements WarmClassifier, Parameterized, SingleWeightVec
                         double z;
                         //find z by eq (9), our w_j is actuall w_j+d_j
                         
-                        if(delta_qBar_j+alpha <= deltaSqrd_q_jj*(w_j+d_j))
-                            z = -(delta_qBar_j+alpha)/deltaSqrd_q_jj;
-                        else if(delta_qBar_j-alpha >= deltaSqrd_q_jj*(w_j+d_j))
-                            z = -(delta_qBar_j-alpha)/deltaSqrd_q_jj;
-                        else
-                            z = -(w_j+d_j);
+                        if(delta_qBar_j+alpha <= deltaSqrd_q_jj*(w_j+d_j)) {
+                          z = -(delta_qBar_j+alpha)/deltaSqrd_q_jj;
+                        } else if(delta_qBar_j-alpha >= deltaSqrd_q_jj*(w_j+d_j)) {
+                          z = -(delta_qBar_j-alpha)/deltaSqrd_q_jj;
+                        } else {
+                          z = -(w_j+d_j);
+                        }
                         
-                        if(abs(z) < 1e-11)
-                            continue;
+                        if(abs(z) < 1e-11) {
+                          continue;
+                        }
                         
                         /*
                          * When everyone is active, clip the updates to a 
@@ -633,8 +653,9 @@ public class NewGLMNET implements WarmClassifier, Parameterized, SingleWeightVec
                         d.increment(j, z);
                         
                         //book keeping, see eq(17)
-                        for(IndexValue iv : columnsOfX.get(j))
-                            d_dot_x[iv.getIndex()] += z*iv.getValue();
+                        for(IndexValue iv : columnsOfX.get(j)) {
+                          d_dot_x[iv.getIndex()] += z*iv.getValue();
+                        }
                     }
                 }
                 
@@ -647,8 +668,9 @@ public class NewGLMNET implements WarmClassifier, Parameterized, SingleWeightVec
                     double delta_qBar_j = 0;
                     //first compute the (∇^2 L(w^k) d)_j portion
                     //see after algo 2 before eq (17)
-                    for(int i = 0; i < l; i++)
-                        delta_qBar_j += 1*D[i]*d_dot_x[i];//compiler will take out 1*, left just to remind us its the bias term
+                    for(int i = 0; i < l; i++) {
+                      delta_qBar_j += 1*D[i]*d_dot_x[i];//compiler will take out 1*, left just to remind us its the bias term
+                    }
                     delta_qBar_j *= C;
                     
                     //now add the part we know from before
@@ -672,27 +694,31 @@ public class NewGLMNET implements WarmClassifier, Parameterized, SingleWeightVec
                         d_bias += z;
 
                         //book keeping, see eq(17)
-                        for(int i = 0; i < l ; i++)
-                            d_dot_x[i] += z;
+                        for(int i = 0; i < l ; i++) {
+                          d_dot_x[i] += z;
+                        }
                     }
                 }
                 
                 boolean breakInnerLoopAnyway = false;
                 
-                if(max_abs_z == 0)
-                    breakInnerLoopAnyway = true;
-                else if (max_abs_z <= 1e-6)
+                if(max_abs_z == 0) {
+                  breakInnerLoopAnyway = true;
+                } else if (max_abs_z <= 1e-6)
                 {
-                    if(smallZInARow++ >= 3)//give it a few chances
-                        breakInnerLoopAnyway = true;
+                    if(smallZInARow++ >= 3) {//give it a few chances
+                      breakInnerLoopAnyway = true;
+                  }
                 }
                 else if(max_abs_z <= 1e-3)
                 {
-                    if(smallZInARow++ >= 30)//give it a lot chances
-                        breakInnerLoopAnyway = true;
+                    if(smallZInARow++ >= 30) {//give it a lot chances
+                      breakInnerLoopAnyway = true;
+                  }
                 }
-                else
-                    smallZInARow = 0;//reset, we are making progress!
+                else {
+                  smallZInARow = 0;//reset, we are making progress!
+                }
                 
                 //step 3. 
                 if(m_bar <= e_in || breakInnerLoopAnyway)
@@ -708,8 +734,9 @@ public class NewGLMNET implements WarmClassifier, Parameterized, SingleWeightVec
                          * finds that too few CD steps are conducted for 
                          * minimizing qk(d)
                          */
-                        if(p == 0)
-                            e_in /= 4;
+                        if(p == 0) {
+                          e_in /= 4;
+                        }
                         break;
                     }
                     else
@@ -719,8 +746,9 @@ public class NewGLMNET implements WarmClassifier, Parameterized, SingleWeightVec
                         M_in = Double.POSITIVE_INFINITY;
                     }
                 }
-                else
-                    M_in = m;
+                else {
+                  M_in = m;
+                }
                 
             }
             //END: Algorithm 4 Inner iterations of NewGLMNET with shrinking
@@ -764,15 +792,17 @@ public class NewGLMNET implements WarmClassifier, Parameterized, SingleWeightVec
                     double exp_lamda_d_dot_x = exp(lambda*d_dot_x[i]);
                     exp_w_dot_x_plus_dx[i] = exp_w_dot_x[i]*exp_lamda_d_dot_x;
                     newTerm += log((exp_w_dot_x_plus_dx[i]+1)/(exp_w_dot_x_plus_dx[i]+exp_lamda_d_dot_x  ));
-                    if(y[i] == -1)
-                        newTerm += lambda*d_dot_x[i];
+                    if(y[i] == -1) {
+                      newTerm += lambda*d_dot_x[i];
+                    }
                 }
                 
                 newTerm = l2w*(wPlambda_d_norm_2 - w_norm_2) +//l2 reg
                         alpha*(wPlambda_d_norm_1 - w_norm_1) + //l1 reg
                         C*newTerm;//loss
-                if(newTerm <= lambda * breakCondition)
-                    break;
+                if(newTerm <= lambda * breakCondition) {
+                  break;
+                }
                 //else
                 lambda = pow(beta, ++t);
                 //update norm 
@@ -790,13 +820,15 @@ public class NewGLMNET implements WarmClassifier, Parameterized, SingleWeightVec
             }
 
             //if line search fails twice in a row, just quit
-            if(t == maxLineSearchSteps)//this shouldn't happen unless we are having serious trouble improving our results
-                if (prevLineSearchFail)
-                    break;//jsut finish. 
-                else
-                    prevLineSearchFail = true;
-            else
-                prevLineSearchFail = false;
+            if(t == maxLineSearchSteps) {//this shouldn't happen unless we are having serious trouble improving our results
+              if (prevLineSearchFail) {
+                break;//jsut finish. 
+              } else {
+                prevLineSearchFail = true;
+              }
+            } else {
+              prevLineSearchFail = false;
+            }
 
             //algo 3, Step 7. 7. w^{k+1} = w^k +λ d.
             w.mutableAdd(lambda, d);
@@ -870,8 +902,10 @@ public class NewGLMNET implements WarmClassifier, Parameterized, SingleWeightVec
             //2.1. Calculate H^k_{jj}, ∇_j L(w^k) and ∇^S_j f(w^k)
             double delta_j_L = 0;
 
-            for (int i = 0; i < l; i++)//all have an implicit bias term
-                delta_j_L += -D_part_i;
+            for (int i = 0; i < l; i++) {
+              //all have an implicit bias term
+              delta_j_L += -D_part_i;
+            }
             delta_j_L = C * (delta_j_L + col_neg_class_sum_bias);
             
             double deltaS_j_fw = delta_j_L;
@@ -922,19 +956,21 @@ public class NewGLMNET implements WarmClassifier, Parameterized, SingleWeightVec
     @Override
     public Vec getRawWeight(int index)
     {
-        if(index < 1)
-            return getRawWeight();
-        else
-            throw new IndexOutOfBoundsException("Model has only 1 weight vector");
+        if(index < 1) {
+          return getRawWeight();
+        } else {
+          throw new IndexOutOfBoundsException("Model has only 1 weight vector");
+        }
     }
 
     @Override
     public double getBias(int index)
     {
-        if(index < 1)
-            return getBias();
-        else
-            throw new IndexOutOfBoundsException("Model has only 1 weight vector");
+        if(index < 1) {
+          return getBias();
+        } else {
+          throw new IndexOutOfBoundsException("Model has only 1 weight vector");
+        }
     }
 
     @Override

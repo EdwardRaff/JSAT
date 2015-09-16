@@ -62,24 +62,27 @@ public class StudentT extends ContinuousDistribution
         
         double p =  betaIncReg(x, df/2, 0.5)/2;
         
-        if( t > mu)
-            return 1 - p;
-        else 
-            return p;
+        if( t > mu) {
+          return 1 - p;
+        } else {
+          return p;
+        }
     }
 
     @Override
     public double invCdf(double p)
     {
-        if(p < 0 || p > 1)
-            throw new ArithmeticException("Probability must be in the range [0,1], not " + p);
+        if(p < 0 || p > 1) {
+          throw new ArithmeticException("Probability must be in the range [0,1], not " + p);
+        }
         double x = invBetaIncReg(2*Math.min(p,1-p), df/2, 0.5);
         x = sig*sqrt(df*(1-x)/x);
 
-        if(p >= 0.5)
-            return mu+x;
-        else
-            return mu-x;
+        if(p >= 0.5) {
+          return mu+x;
+        } else {
+          return mu-x;
+        }
     }
 
     @Override
@@ -121,18 +124,21 @@ public class StudentT extends ContinuousDistribution
     @Override
     public void setVariable(String var, double value)
     {
-        if (var.equals("df"))
-            if (value > 0)
-                df = value;
-            else
-                throw new ArithmeticException("Degrees of Fredom must be greater than 0");
-        else if (var.equals(GreekLetters.mu))
-            mu = value;
-        else if (var.equals(GreekLetters.sigma))
-            if (value > 0)
-                sig = value;
-            else
-                throw new ArithmeticException("Standard deviation must be greater than zero");
+        if (var.equals("df")) {
+          if (value > 0) {
+            df = value;
+          } else {
+            throw new ArithmeticException("Degrees of Fredom must be greater than 0");
+          }
+        } else if (var.equals(GreekLetters.mu)) {
+          mu = value;
+        } else if (var.equals(GreekLetters.sigma)) {
+          if (value > 0) {
+            sig = value;
+          } else {
+            throw new ArithmeticException("Standard deviation must be greater than zero");
+          }
+        }
                         
     }
 
@@ -176,18 +182,20 @@ public class StudentT extends ContinuousDistribution
     @Override
     public double variance()
     {
-        if(df<=1)
-            return Double.NaN;
-        else if(1 < df && df <= 2)
-            return Double.POSITIVE_INFINITY;
+        if(df<=1) {
+          return Double.NaN;
+        } else if(1 < df && df <= 2) {
+          return Double.POSITIVE_INFINITY;
+        }
         return df/(df-2)*sig*sig;
     }
 
     @Override
     public double skewness()
     {
-        if(df <= 3)//Undefined for df <= 3
-            return Double.NaN;
+        if(df <= 3) {//Undefined for df <= 3
+          return Double.NaN;
+        }
         return 0;
     }
 

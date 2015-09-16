@@ -44,8 +44,9 @@ public class RMSProp implements GradientUpdater
      */
     public void setRho(double rho)
     {
-        if(rho <= 0 || rho >= 1 || Double.isNaN(rho))
-            throw new IllegalArgumentException("Rho should be a value in (0, 1) not " + rho);
+        if(rho <= 0 || rho >= 1 || Double.isNaN(rho)) {
+          throw new IllegalArgumentException("Rho should be a value in (0, 1) not " + rho);
+        }
         this.rho = rho;
     }
 
@@ -64,8 +65,9 @@ public class RMSProp implements GradientUpdater
      */
     public RMSProp(RMSProp toCopy)
     {
-        if(toCopy.daigG != null)
-            this.daigG = toCopy.daigG.clone();
+        if(toCopy.daigG != null) {
+          this.daigG = toCopy.daigG.clone();
+        }
         this.rho = toCopy.rho;
         this.biasG = toCopy.biasG;
     }

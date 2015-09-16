@@ -27,14 +27,15 @@ public class SubMatrix extends GenericMatrix
     public SubMatrix(Matrix baseMatrix, int firstRow, int firstColumn, int toRow, int toCol)
     {
         this.baseMatrix = baseMatrix;
-        if(firstColumn < 0 || firstRow < 0 || toRow < 0 || toCol < 0)
-            throw new ArithmeticException("Can not give negative row or column counts");
-        else if(toRow == 0 || toCol == 0)
-            throw new ArithmeticException("Must give a positive number of rows and columns");
-        else if(toRow > baseMatrix.rows() || toCol > baseMatrix.cols())
-            throw new ArithmeticException("You can not specify a matrix that goes past the row / column boundry of the base matrix");
-        else if(firstRow >= toRow || firstColumn >= toCol)
-            throw new ArithmeticException("Illogical bounds given");
+        if(firstColumn < 0 || firstRow < 0 || toRow < 0 || toCol < 0) {
+          throw new ArithmeticException("Can not give negative row or column counts");
+        } else if(toRow == 0 || toCol == 0) {
+          throw new ArithmeticException("Must give a positive number of rows and columns");
+        } else if(toRow > baseMatrix.rows() || toCol > baseMatrix.cols()) {
+          throw new ArithmeticException("You can not specify a matrix that goes past the row / column boundry of the base matrix");
+        } else if(firstRow >= toRow || firstColumn >= toCol) {
+          throw new ArithmeticException("Illogical bounds given");
+        }
         this.firstRow = firstRow;
         this.firstColumn = firstColumn;
         this.toRow = toRow;
@@ -89,8 +90,9 @@ public class SubMatrix extends GenericMatrix
     public double get(int i, int j)
     {
         //We MUST do a bounds check, as they might go past us but an index that does exist in the base
-        if(i >= rows() || j >= cols())
-            throw new ArrayIndexOutOfBoundsException("Can not access index [" + i + ", " + j + "] in the matrix of dimension [" + rows() + ", " + cols() + "]");
+        if(i >= rows() || j >= cols()) {
+          throw new ArrayIndexOutOfBoundsException("Can not access index [" + i + ", " + j + "] in the matrix of dimension [" + rows() + ", " + cols() + "]");
+        }
         return baseMatrix.get(i+firstRow, j+firstColumn);
     }
 
@@ -98,16 +100,18 @@ public class SubMatrix extends GenericMatrix
     public void set(int i, int j, double value)
     {
         //We MUST do a bounds check, as they might go past us but an index that does exist in the base
-        if(i >= rows() || j >= cols())
-            throw new ArrayIndexOutOfBoundsException("Can not access index [" + i + ", " + j + "] in the matrix of dimension [" + rows() + ", " + cols() + "]");
+        if(i >= rows() || j >= cols()) {
+          throw new ArrayIndexOutOfBoundsException("Can not access index [" + i + ", " + j + "] in the matrix of dimension [" + rows() + ", " + cols() + "]");
+        }
         baseMatrix.set(i+firstRow, j+firstColumn, value);
     }
 
     @Override
     public Vec getRowView(int r)
     {
-        if(r >= rows())
-            throw new IndexOutOfBoundsException("Can not access row " + r + " of " + rows() +" by " + cols() + " matrix");
+        if(r >= rows()) {
+          throw new IndexOutOfBoundsException("Can not access row " + r + " of " + rows() +" by " + cols() + " matrix");
+        }
         Vec origVec = baseMatrix.getRowView(r-firstRow);
         
         return new SubVector(firstColumn, toCol-firstColumn, origVec);
@@ -116,8 +120,9 @@ public class SubMatrix extends GenericMatrix
     @Override
     public Vec getColumnView(int j)
     {
-        if(j >= cols())
-            throw new IndexOutOfBoundsException("Can not access column " + j + " of " + rows() +" by " + cols() + " matrix");
+        if(j >= cols()) {
+          throw new IndexOutOfBoundsException("Can not access column " + j + " of " + rows() +" by " + cols() + " matrix");
+        }
         Vec origVec = baseMatrix.getColumnView(j-firstColumn);
         
         return new SubVector(firstRow, toRow-firstRow, origVec);
@@ -168,10 +173,12 @@ public class SubMatrix extends GenericMatrix
     @Override
     public void changeSize(int newRows, int newCols)
     {
-        if(newRows <= 0)
-            throw new ArithmeticException("Matrix must have a positive number of rows");
-        if(newCols <= 0)
-            throw new ArithmeticException("Matrix must have a positive number of columns");
+        if(newRows <= 0) {
+          throw new ArithmeticException("Matrix must have a positive number of rows");
+        }
+        if(newCols <= 0) {
+          throw new ArithmeticException("Matrix must have a positive number of columns");
+        }
         //Increase the underlying matrix to the needed size
         int underNewRows = Math.max(newRows+firstRow, baseMatrix.rows());
         int underNewCols = Math.max(newCols+firstColumn, baseMatrix.cols());
@@ -180,10 +187,12 @@ public class SubMatrix extends GenericMatrix
          */
         baseMatrix.changeSize(underNewRows, underNewCols);
         //Zero out the values we are expanding to
-        if(newRows > rows())
-            new SubMatrix(baseMatrix, toRow, firstColumn, firstRow+newRows, firstColumn+newCols).zeroOut();
-        if(newCols > cols())
-            new SubMatrix(baseMatrix, firstRow, toCol, firstRow+newRows, firstColumn+newCols).zeroOut();
+        if(newRows > rows()) {
+          new SubMatrix(baseMatrix, toRow, firstColumn, firstRow+newRows, firstColumn+newCols).zeroOut();
+        }
+        if(newCols > cols()) {
+          new SubMatrix(baseMatrix, firstRow, toCol, firstRow+newRows, firstColumn+newCols).zeroOut();
+        }
         
         toRow = firstRow+newRows;
         toCol = firstColumn+newCols;

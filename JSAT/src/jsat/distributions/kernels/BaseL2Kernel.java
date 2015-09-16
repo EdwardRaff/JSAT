@@ -45,8 +45,9 @@ public abstract class BaseL2Kernel implements KernelTrick
      */
     protected double getSqrdNorm(int i, int j, List<? extends Vec> vecs, List<Double> cache)
     {
-        if(cache == null)
-            return Math.pow(vecs.get(i).pNormDist(2.0, vecs.get(j)), 2);
+        if(cache == null) {
+          return Math.pow(vecs.get(i).pNormDist(2.0, vecs.get(j)), 2);
+        }
         return cache.get(i)+cache.get(j)-2*vecs.get(i).dot(vecs.get(j));
     }
     
@@ -73,8 +74,9 @@ public abstract class BaseL2Kernel implements KernelTrick
      */
     protected double getSqrdNorm(int i, Vec y, List<Double> qi, List<? extends Vec> vecs, List<Double> cache)
     {
-        if(cache == null)
-            return Math.pow(vecs.get(i).pNormDist(2.0, y), 2);
+        if(cache == null) {
+          return Math.pow(vecs.get(i).pNormDist(2.0, y), 2);
+        }
         return cache.get(i)+qi.get(0)-2*vecs.get(i).dot(y);
     }
 
@@ -82,8 +84,9 @@ public abstract class BaseL2Kernel implements KernelTrick
     public List<Double> getAccelerationCache(List<? extends Vec> trainingSet)
     {
         DoubleList cache = new DoubleList(trainingSet.size());
-        for(int i = 0; i < trainingSet.size(); i++)
-            cache.add(trainingSet.get(i).dot(trainingSet.get(i)));
+        for(int i = 0; i < trainingSet.size(); i++) {
+          cache.add(trainingSet.get(i).dot(trainingSet.get(i)));
+        }
         return cache;
     }
 
@@ -118,9 +121,11 @@ public abstract class BaseL2Kernel implements KernelTrick
     {
         double sum = 0;
         
-        for(int i = start; i < end; i++)
-            if(alpha[i] != 0.0)
-                sum += alpha[i] * eval(i, y, qi, finalSet, cache);
+        for(int i = start; i < end; i++) {
+          if (alpha[i] != 0.0) {
+            sum += alpha[i] * eval(i, y, qi, finalSet, cache);
+          }
+        }
         
         return sum;
     }

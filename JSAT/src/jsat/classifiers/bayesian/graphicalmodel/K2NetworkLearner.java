@@ -67,15 +67,18 @@ public class K2NetworkLearner extends DiscreteBayesNetwork
         varOrder.add(D.getNumCategoricalVars());//Classification target will be evaluated first
         ListUtils.addRange(varOrder, 0, D.getNumCategoricalVars(), 1);
         ri = new int[varOrder.size()];
-        for(int i : varOrder)
-            if(i == D.getNumCategoricalVars())
-                ri[i] = D.getClassSize();
-            else
-                ri[i] = D.getCategories()[i].getNumOfCategories();
+        for(int i : varOrder) {
+          if (i == D.getNumCategoricalVars()) {
+            ri[i] = D.getClassSize();
+          } else {
+            ri[i] = D.getCategories()[i].getNumOfCategories();
+          }
+        }
         
         int u = maxParents;
-        if(u <= 0)
-            u = ri.length;
+        if(u <= 0) {
+          u = ri.length;
+        }
         
         /**
          * Stores the set of variables preceding the current one being evaluated
@@ -89,8 +92,9 @@ public class K2NetworkLearner extends DiscreteBayesNetwork
             Set<Integer> candidates = new IntSet(preceding);
             while(OKToProceed && pi.size() < u)
             {
-                if(candidates.isEmpty())
-                    break;//Break out of the loop, no candidates left. 
+                if(candidates.isEmpty()) {
+                  break;//Break out of the loop, no candidates left. 
+                }
                 
                 //Best candidate solution
                 double pNew = Double.NEGATIVE_INFINITY;
@@ -115,12 +119,14 @@ public class K2NetworkLearner extends DiscreteBayesNetwork
                     pOld = pNew;
                     pi.add(z);
                 }
-                else
-                    OKToProceed = false;
+                else {
+                  OKToProceed = false;
+                }
             }
             
-            for(int parrent : pi)
-                depends(parrent, i);
+            for(int parrent : pi) {
+              depends(parrent, i);
+            }
             
             preceding.add(i);
         }
@@ -131,8 +137,9 @@ public class K2NetworkLearner extends DiscreteBayesNetwork
     @Override
     public void trainC(ClassificationDataSet dataSet)
     {
-        if(dag.getNodes().isEmpty() || dag.getParents(dataSet.getNumCategoricalVars()).isEmpty())
-            learnNetwork(dataSet);
+        if(dag.getNodes().isEmpty() || dag.getParents(dataSet.getNumCategoricalVars()).isEmpty()) {
+          learnNetwork(dataSet);
+        }
             
         super.trainC(dataSet);
     }
@@ -164,15 +171,18 @@ public class K2NetworkLearner extends DiscreteBayesNetwork
             {
                 if(classes[j] == D.getNumCategoricalVars())//Special case
                 {
-                    if(D.getDataPointCategory(i) != values[j])
-                        j = classes.length+1;
+                    if(D.getDataPointCategory(i) != values[j]) {
+                      j = classes.length+1;
+                    }
                 }
-                else if(dp.getCategoricalValue(j) != values[j])
-                    j = classes.length+1;
+                else if(dp.getCategoricalValue(j) != values[j]) {
+                  j = classes.length+1;
+                }
             }
             
-            if(j == classes.length)
-                count+=dp.getWeight();
+            if(j == classes.length) {
+              count+=dp.getWeight();
+            }
         }
         
         return count;
@@ -203,8 +213,9 @@ public class K2NetworkLearner extends DiscreteBayesNetwork
         int[] classes = new int[pi.size()+1];
         int[] values = new int[pi.size()+1];
         int c = 0;
-        for(int clas : pi)
-            classes[c++] = clas;
+        for(int clas : pi) {
+          classes[c++] = clas;
+        }
         classes[c] = i;//Last one is the one we are currently evaluating
         //Default all values to zero, which is fine
         
@@ -236,8 +247,9 @@ public class K2NetworkLearner extends DiscreteBayesNetwork
                 values[pos++] = 0;
                 values[pos]++;
             }
-            if(values[pi.size()] != 0)
-                break;
+            if(values[pi.size()] != 0) {
+              break;
+            }
         }
         
         return (fullProduct);

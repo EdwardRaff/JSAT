@@ -59,16 +59,19 @@ public class UpdatableStacking implements UpdateableClassifier, UpdateableRegres
      */
     public UpdatableStacking(UpdateableClassifier aggregatingClassifier, List<UpdateableClassifier> baseClassifiers)
     {
-        if(baseClassifiers.size() < 2)
-            throw new IllegalArgumentException("base classifiers must contain at least 2 elements, not " + baseClassifiers.size());
+        if(baseClassifiers.size() < 2) {
+          throw new IllegalArgumentException("base classifiers must contain at least 2 elements, not " + baseClassifiers.size());
+        }
         
         this.aggregatingClassifier = aggregatingClassifier;
         this.baseClassifiers = baseClassifiers;
         
         boolean allRegressors = aggregatingClassifier instanceof UpdateableRegressor;
-        for(UpdateableClassifier cl : baseClassifiers)
-            if(!(cl instanceof UpdateableRegressor))
-                allRegressors = false;
+        for(UpdateableClassifier cl : baseClassifiers) {
+          if (!(cl instanceof UpdateableRegressor)) {
+            allRegressors = false;
+          }
+        }
         
         if(allRegressors)
         {
@@ -98,9 +101,11 @@ public class UpdatableStacking implements UpdateableClassifier, UpdateableRegres
         this.baseRegressors = baseRegressors;
         
         boolean allClassifiers = aggregatingRegressor instanceof UpdateableClassifier;
-        for(UpdateableRegressor reg : baseRegressors)
-            if(!(reg instanceof UpdateableClassifier))
-                allClassifiers = false;
+        for(UpdateableRegressor reg : baseRegressors) {
+          if (!(reg instanceof UpdateableClassifier)) {
+            allClassifiers = false;
+          }
+        }
         
         if(allClassifiers)
         {
@@ -130,8 +135,9 @@ public class UpdatableStacking implements UpdateableClassifier, UpdateableRegres
         {
             this.aggregatingClassifier = toCopy.aggregatingClassifier.clone();
             this.baseClassifiers = new ArrayList<UpdateableClassifier>(toCopy.baseClassifiers.size());
-            for(UpdateableClassifier bc : toCopy.baseClassifiers)
-                this.baseClassifiers.add(bc.clone());
+            for(UpdateableClassifier bc : toCopy.baseClassifiers) {
+              this.baseClassifiers.add(bc.clone());
+            }
             
             if(toCopy.aggregatingRegressor == toCopy.aggregatingClassifier)//supports both
             {
@@ -143,8 +149,9 @@ public class UpdatableStacking implements UpdateableClassifier, UpdateableRegres
         {
             this.aggregatingRegressor = toCopy.aggregatingRegressor.clone();
             this.baseRegressors = new ArrayList<UpdateableRegressor>(toCopy.baseRegressors.size());
-            for(UpdateableRegressor br : toCopy.baseRegressors)
-                this.baseRegressors.add(br.clone());
+            for(UpdateableRegressor br : toCopy.baseRegressors) {
+              this.baseRegressors.add(br.clone());
+            }
         }
     }
 
@@ -164,16 +171,18 @@ public class UpdatableStacking implements UpdateableClassifier, UpdateableRegres
     private DataPoint getPredVecC(DataPoint data, double weight)
     {
         Vec w = new DenseVector(weightsPerModel*baseClassifiers.size());
-        if(weightsPerModel == 1)
-            for(int i = 0; i < baseClassifiers.size(); i++)
-                w.set(i, baseClassifiers.get(i).classify(data).getProb(0)*2-1);
-        else
+        if(weightsPerModel == 1) {
+          for (int i = 0; i < baseClassifiers.size(); i++) {
+            w.set(i, baseClassifiers.get(i).classify(data).getProb(0)*2-1);
+          }
+        } else
         {
             for(int i = 0; i < baseClassifiers.size(); i++)
             {
                 CategoricalResults pred = baseClassifiers.get(i).classify(data);
-                for(int j = 0; j < weightsPerModel; j++)
-                    w.set(i*weightsPerModel+j, pred.getProb(j));
+                for(int j = 0; j < weightsPerModel; j++) {
+                  w.set(i*weightsPerModel+j, pred.getProb(j));
+            }
             }
                     
         }
@@ -190,8 +199,9 @@ public class UpdatableStacking implements UpdateableClassifier, UpdateableRegres
     private DataPoint getPredVecR(DataPoint data, double weight)
     {
         Vec w = new DenseVector(baseRegressors.size());
-        for (int i = 0; i < baseRegressors.size(); i++)
-            w.set(i, baseRegressors.get(i).regress(data));
+        for (int i = 0; i < baseRegressors.size(); i++) {
+          w.set(i, baseRegressors.get(i).regress(data));
+        }
         return new DataPoint(w, weight);
     }
     
@@ -202,8 +212,9 @@ public class UpdatableStacking implements UpdateableClassifier, UpdateableRegres
         weightsPerModel = C == 2 ? 1 : C;
         //set up all models, agregating gets different arugmetns since it gets the created input from the base models
         aggregatingClassifier.setUp(new CategoricalData[0], weightsPerModel*baseClassifiers.size(), predicting);
-        for(UpdateableClassifier uc : baseClassifiers)
-            uc.setUp(categoricalAttributes, numericAttributes, predicting);
+        for(UpdateableClassifier uc : baseClassifiers) {
+          uc.setUp(categoricalAttributes, numericAttributes, predicting);
+        }
     }
 
     @Override
@@ -212,8 +223,9 @@ public class UpdatableStacking implements UpdateableClassifier, UpdateableRegres
         //predate first, gives an unbiased udpdate for the aggregator
         aggregatingClassifier.update(getPredVecC(dataPoint, dataPoint.getWeight()), targetClass);
         //now update the base models
-        for(UpdateableClassifier uc : baseClassifiers)
-            uc.update(dataPoint, targetClass);
+        for(UpdateableClassifier uc : baseClassifiers) {
+          uc.update(dataPoint, targetClass);
+        }
         
     }
     
@@ -222,8 +234,9 @@ public class UpdatableStacking implements UpdateableClassifier, UpdateableRegres
     {
         weightsPerModel = 1;
         aggregatingRegressor.setUp(new CategoricalData[0], weightsPerModel*baseRegressors.size());
-        for(UpdateableRegressor ur : baseRegressors)
-            ur.setUp(categoricalAttributes, numericAttributes);
+        for(UpdateableRegressor ur : baseRegressors) {
+          ur.setUp(categoricalAttributes, numericAttributes);
+        }
     }
 
     @Override
@@ -232,8 +245,9 @@ public class UpdatableStacking implements UpdateableClassifier, UpdateableRegres
         //predate first, gives an unbiased udpdate for the aggregator
         aggregatingRegressor.update(getPredVecR(dataPoint, dataPoint.getWeight()), targetValue);
         //now update the base models
-        for(UpdateableRegressor ur : baseRegressors)
-            ur.update(dataPoint, targetValue);
+        for(UpdateableRegressor ur : baseRegressors) {
+          ur.update(dataPoint, targetValue);
+        }
     }
 
     @Override
@@ -251,10 +265,11 @@ public class UpdatableStacking implements UpdateableClassifier, UpdateableRegres
     @Override
     public boolean supportsWeightedData()
     {
-        if(aggregatingClassifier != null)
-            return aggregatingClassifier.supportsWeightedData();
-        else 
-            return aggregatingRegressor.supportsWeightedData();
+        if(aggregatingClassifier != null) {
+          return aggregatingClassifier.supportsWeightedData();
+        } else {
+          return aggregatingRegressor.supportsWeightedData();
+        }
     }
 
     @Override

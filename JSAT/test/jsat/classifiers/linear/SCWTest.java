@@ -56,8 +56,9 @@ public class SCWTest
             SCW scwFull = new SCW(0.9, mode, false);
             scwFull.trainC(train);
             
-            for (DataPointPair<Integer> dpp : test.getAsDPPList())
-                assertEquals(dpp.getPair().longValue(), scwFull.classify(dpp.getDataPoint()).mostLikely());
+            for (DataPointPair<Integer> dpp : test.getAsDPPList()) {
+              assertEquals(dpp.getPair().longValue(), scwFull.classify(dpp.getDataPoint()).mostLikely());
+            }
         }
     }
     
@@ -74,8 +75,9 @@ public class SCWTest
             SCW scwDiag = new SCW(0.9, mode, true);
             scwDiag.trainC(train);
             
-            for (DataPointPair<Integer> dpp : test.getAsDPPList())
-                assertEquals(dpp.getPair().longValue(), scwDiag.classify(dpp.getDataPoint()).mostLikely());
+            for (DataPointPair<Integer> dpp : test.getAsDPPList()) {
+              assertEquals(dpp.getPair().longValue(), scwDiag.classify(dpp.getDataPoint()).mostLikely());
+            }
         }
     }
 }

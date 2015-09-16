@@ -52,10 +52,11 @@ public class RegressorToClassifier implements BinaryScoreClassifier, Parameteriz
     public CategoricalResults classify(DataPoint data)
     {
         CategoricalResults cr = new CategoricalResults(2);
-        if(getScore(data) > 0)
-            cr.setProb(1, 1.0);
-        else
-            cr.setProb(0, 1.0);
+        if(getScore(data) > 0) {
+          cr.setProb(1, 1.0);
+        } else {
+          cr.setProb(0, 1.0);
+        }
             
         return cr;
     }
@@ -83,27 +84,30 @@ public class RegressorToClassifier implements BinaryScoreClassifier, Parameteriz
     private RegressionDataSet getRegressionDataSet(ClassificationDataSet dataSet)
     {
         RegressionDataSet rds = new RegressionDataSet(dataSet.getNumNumericalVars(), dataSet.getCategories());
-        for(int i = 0; i < dataSet.getSampleSize(); i++)
-            rds.addDataPoint(dataSet.getDataPoint(i), dataSet.getDataPointCategory(i)*2-1);
+        for(int i = 0; i < dataSet.getSampleSize(); i++) {
+          rds.addDataPoint(dataSet.getDataPoint(i), dataSet.getDataPointCategory(i)*2-1);
+        }
         return rds;
     }
 
     @Override
     public List<Parameter> getParameters()
     {
-        if(regressor instanceof Parameterized)
-            return ((Parameterized)regressor).getParameters();
-        else
-            return Collections.EMPTY_LIST;
+        if(regressor instanceof Parameterized) {
+          return ((Parameterized)regressor).getParameters();
+        } else {
+          return Collections.EMPTY_LIST;
+        }
     }
 
     @Override
     public Parameter getParameter(String paramName)
     {
-        if(regressor instanceof Parameterized)
-            return ((Parameterized)regressor).getParameter(paramName);
-        else
-            return null;
+        if(regressor instanceof Parameterized) {
+          return ((Parameterized)regressor).getParameter(paramName);
+        } else {
+          return null;
+        }
     }
     
 }

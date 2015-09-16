@@ -106,8 +106,9 @@ public abstract class TextDataLoader implements TextVectorCreator
      */
     protected void addOriginalDocument(String text)
     {
-        if(noMoreAdding)
-            throw new RuntimeException("Initial data set has been finalized");
+        if(noMoreAdding) {
+          throw new RuntimeException("Initial data set has been finalized");
+        }
         if(workSpace == null)
         {
             workSpace = new StringBuilder();
@@ -124,16 +125,18 @@ public abstract class TextDataLoader implements TextVectorCreator
          * on many null elements when we occasionally load in an abnormally
          * large document 
          */
-        if(documents % 50 == 0)
-            wordCounts = new HashMap<String, Integer>(storageSpace.size()*3/2);
+        if(documents % 50 == 0) {
+          wordCounts = new HashMap<String, Integer>(storageSpace.size()*3/2);
+        }
         
         for(String word : storageSpace)
         {
             Integer count = wordCounts.get(word);
-            if(count == null)
-                wordCounts.put(word, 1);
-            else
-                wordCounts.put(word, count+1);
+            if(count == null) {
+              wordCounts.put(word, 1);
+            } else {
+              wordCounts.put(word, count+1);
+            }
         }
         
         SparseVector vec = new SparseVector(currentLength+1, wordCounts.size());//+1 to avoid issues when its length is zero, will be corrected in finalization step anyway
@@ -201,8 +204,9 @@ public abstract class TextDataLoader implements TextVectorCreator
         
         List<DataPoint> dataPoints= new ArrayList<DataPoint>(vectors.size());
         
-        for(SparseVector vec : vectors)
-            dataPoints.add(new DataPoint(vec, new int[0], new CategoricalData[0]));
+        for(SparseVector vec : vectors) {
+          dataPoints.add(new DataPoint(vec, new int[0], new CategoricalData[0]));
+        }
         
         return new SimpleDataSet(dataPoints);
     }
@@ -216,16 +220,18 @@ public abstract class TextDataLoader implements TextVectorCreator
     @Override
     public Vec newText(String text)
     {
-        if(!noMoreAdding)
-            throw new RuntimeException("Initial documents have not yet loaded");
+        if(!noMoreAdding) {
+          throw new RuntimeException("Initial documents have not yet loaded");
+        }
         return getTextVectorCreator().newText(text);
     }
 
     @Override
     public Vec newText(String input, StringBuilder workSpace, List<String> storageSpace)
     {
-        if(!noMoreAdding)
-            throw new RuntimeException("Initial documents have not yet loaded");
+        if(!noMoreAdding) {
+          throw new RuntimeException("Initial documents have not yet loaded");
+        }
         return getTextVectorCreator().newText(input, workSpace, storageSpace);
     }
     
@@ -237,10 +243,11 @@ public abstract class TextDataLoader implements TextVectorCreator
      */
     public TextVectorCreator getTextVectorCreator()
     {
-        if(!noMoreAdding)
-            throw new RuntimeException("Initial documents have not yet loaded");
-        else if(tvc == null)
-            tvc = new BasicTextVectorCreator(tokenizer, wordIndex, weighting);
+        if(!noMoreAdding) {
+          throw new RuntimeException("Initial documents have not yet loaded");
+        } else if(tvc == null) {
+          tvc = new BasicTextVectorCreator(tokenizer, wordIndex, weighting);
+        }
         return tvc;
     }
     
@@ -251,10 +258,11 @@ public abstract class TextDataLoader implements TextVectorCreator
      */
     public String getWordForIndex(int index)
     {
-        if(index >= 0 && index < allWords.size())
-            return allWords.get(index);
-        else
-            return null;
+        if(index >= 0 && index < allWords.size()) {
+          return allWords.get(index);
+        } else {
+          return null;
+        }
     }
     
     /**
@@ -279,9 +287,11 @@ public abstract class TextDataLoader implements TextVectorCreator
     {
         
         final Set<Integer> numericToRemove = new IntSet();
-        for(int i = 0; i < termDocumentFrequencys.size(); i++)
-            if(termDocumentFrequencys.get(i) < minCount)
-                numericToRemove.add(i);
+        for(int i = 0; i < termDocumentFrequencys.size(); i++) {
+          if (termDocumentFrequencys.get(i) < minCount) {
+            numericToRemove.add(i);
+          }
+        }
         
         return new RemoveAttributeTransformFactory(Collections.EMPTY_SET, numericToRemove);
     }

@@ -71,9 +71,11 @@ public abstract class DistanceMetricBasedKernel implements KernelTrick
     {
         double sum = 0;
 
-        for (int i = start; i < end; i++)
-            if (alpha[i] != 0)
-                sum += alpha[i] * eval(i, y, qi, finalSet, cache);
+        for (int i = start; i < end; i++) {
+          if (alpha[i] != 0) {
+            sum += alpha[i] * eval(i, y, qi, finalSet, cache);
+          }
+        }
 
         return sum;
     }

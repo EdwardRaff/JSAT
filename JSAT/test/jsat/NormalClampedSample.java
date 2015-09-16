@@ -37,8 +37,9 @@ public class NormalClampedSample extends Normal
     public double[] sample(int numSamples, Random rand)
     {
         double[] ret =  super.sample(numSamples, rand); 
-        for(int i = 0; i < ret.length; i++)
-            ret[i] = Math.max(min, Math.min(max, ret[i]));
+        for(int i = 0; i < ret.length; i++) {
+          ret[i] = Math.max(min, Math.min(max, ret[i]));
+        }
         return ret;
     }
 
@@ -46,8 +47,9 @@ public class NormalClampedSample extends Normal
     public DenseVector sampleVec(int numSamples, Random rand)
     {
         DenseVector ret =  super.sampleVec(numSamples, rand); 
-        for(int i = 0; i < ret.length(); i++)
-            ret.set(i, Math.max(min, Math.min(max, ret.get(i))));
+        for(int i = 0; i < ret.length(); i++) {
+          ret.set(i, Math.max(min, Math.min(max, ret.get(i))));
+        }
         return ret;
     }
     

@@ -92,8 +92,9 @@ public class DataPoint implements Cloneable, Serializable
      */
     public void setWeight(double weight)
     {
-        if(Double.isNaN(weight) || Double.isInfinite(weight) || weight <= 0)
-            throw new ArithmeticException("Invalid weight assignment of  " + weight);
+        if(Double.isNaN(weight) || Double.isInfinite(weight) || weight <= 0) {
+          throw new ArithmeticException("Invalid weight assignment of  " + weight);
+        }
         this.weight = weight;
     }
     

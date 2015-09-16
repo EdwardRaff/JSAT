@@ -46,11 +46,14 @@ public class MeanDistance implements IntraClusterEvaluation
     public double evaluate(int[] designations, DataSet dataSet, int clusterID)
     {
         double distances = 0;
-        for (int i = 0; i < dataSet.getSampleSize(); i++)
-            for (int j = i + 1; j < dataSet.getSampleSize(); j++)
-                if (designations[i] == clusterID)
-                    distances += dm.dist(dataSet.getDataPoint(i).getNumericalValues(),
-                                         dataSet.getDataPoint(j).getNumericalValues());
+        for (int i = 0; i < dataSet.getSampleSize(); i++) {
+          for (int j = i + 1; j < dataSet.getSampleSize(); j++) {
+            if (designations[i] == clusterID) {
+              distances += dm.dist(dataSet.getDataPoint(i).getNumericalValues(),
+                      dataSet.getDataPoint(j).getNumericalValues());
+            }
+          }
+        }
         return distances/(dataSet.getSampleSize()*(dataSet.getSampleSize()-1));
     }
 
@@ -58,10 +61,12 @@ public class MeanDistance implements IntraClusterEvaluation
     public double evaluate(List<DataPoint> dataPoints)
     {
         double distances = 0.0;
-        for(int i = 0; i < dataPoints.size(); i++)
-            for(int j = i+1; j < dataPoints.size(); j++ )
-                distances += dm.dist(dataPoints.get(i).getNumericalValues(),
-                                     dataPoints.get(j).getNumericalValues());
+        for(int i = 0; i < dataPoints.size(); i++) {
+          for (int j = i+1; j < dataPoints.size(); j++) {
+            distances += dm.dist(dataPoints.get(i).getNumericalValues(),
+                    dataPoints.get(j).getNumericalValues());
+          }
+        }
         
         return distances/(dataPoints.size()*(dataPoints.size()-1));
     }

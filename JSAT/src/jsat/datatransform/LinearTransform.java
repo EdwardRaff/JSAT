@@ -60,9 +60,9 @@ public class LinearTransform implements InPlaceInvertibleTransform
      */
     public LinearTransform(DataSet dataSet, double A, double B)
     {
-         if(A == B)
-            throw new RuntimeException("Values must be different");
-        else if(B > A)
+         if(A == B) {
+           throw new RuntimeException("Values must be different");
+         } else if(B > A)
         {
             double tmp = A;
             A = B;
@@ -123,10 +123,12 @@ public class LinearTransform implements InPlaceInvertibleTransform
     {
         this.A = other.A;
         this.B = other.B;
-        if(other.mins != null)
-            this.mins = other.mins.clone();
-        if(other.mutliplyConstants != null)
-            this.mutliplyConstants = other.mutliplyConstants.clone();
+        if(other.mins != null) {
+          this.mins = other.mins.clone();
+        }
+        if(other.mutliplyConstants != null) {
+          this.mutliplyConstants = other.mutliplyConstants.clone();
+        }
     }
     
     @Override

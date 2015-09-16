@@ -29,10 +29,11 @@ public class SubVector extends Vec
      */
     public SubVector(int startPosition, int length, Vec vec)
     {
-        if(startPosition < 0 || startPosition >= vec.length())
-            throw new IndexOutOfBoundsException("Start position out of bounds for input vector");
-        else if(length+startPosition > vec.length())
-            throw new IndexOutOfBoundsException("Length too long for start position for the given vector");
+        if(startPosition < 0 || startPosition >= vec.length()) {
+          throw new IndexOutOfBoundsException("Start position out of bounds for input vector");
+        } else if(length+startPosition > vec.length()) {
+          throw new IndexOutOfBoundsException("Length too long for start position for the given vector");
+        }
         
         this.startPosition = startPosition;
         this.length = length;
@@ -48,16 +49,18 @@ public class SubVector extends Vec
     @Override
     public double get(int index)
     {
-        if(index >= length)
-            throw new IndexOutOfBoundsException("Index of " + index + " can not be accessed for length of " + length);
+        if(index >= length) {
+          throw new IndexOutOfBoundsException("Index of " + index + " can not be accessed for length of " + length);
+        }
         return vec.get(startPosition+index);
     }
 
     @Override
     public void set(int index, double val)
     {
-        if(index >= length)
-            throw new IndexOutOfBoundsException("Index of " + index + " can not be accessed for length of " + length);
+        if(index >= length) {
+          throw new IndexOutOfBoundsException("Index of " + index + " can not be accessed for length of " + length);
+        }
         vec.set(startPosition+index, val);
     }
 
@@ -85,14 +88,16 @@ public class SubVector extends Vec
             @Override
             public IndexValue next()
             {
-                if(!hasNext())
-                    throw new NoSuchElementException();
+                if(!hasNext()) {
+                  throw new NoSuchElementException();
+                }
                 curVal.setIndex(nextVal.getIndex()-startPosition);
                 curVal.setValue(nextVal.getValue());
-                if(origIter.hasNext())
-                    nextVal = origIter.next();
-                else
-                    nextVal.setIndex(Integer.MAX_VALUE);
+                if(origIter.hasNext()) {
+                  nextVal = origIter.next();
+                } else {
+                  nextVal.setIndex(Integer.MAX_VALUE);
+                }
                 
                 return curVal;
             }
@@ -110,10 +115,11 @@ public class SubVector extends Vec
     @Override
     public Vec clone()
     {
-        if(vec.isSparse())
-            return new SparseVector(this);
-        else
-            return new DenseVector(this);
+        if(vec.isSparse()) {
+          return new SparseVector(this);
+        } else {
+          return new DenseVector(this);
+        }
     }
 
 }

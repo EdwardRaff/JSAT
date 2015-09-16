@@ -75,14 +75,16 @@ public class DistributionSearch
      */
     public static ContinuousDistribution getBestDistribution(Vec v, double KDECutOff, ContinuousDistribution... possibleDistributions)
     {
-        if(v.length() == 0)
-            throw new ArithmeticException("Can not fit a distribution to an empty set");
-        //Thread Safety, clone the possible distributions
+        if(v.length() == 0) {
+          throw new ArithmeticException("Can not fit a distribution to an empty set");
+          //Thread Safety, clone the possible distributions
+        }
         
         ContinuousDistribution[] possDistCopy = new ContinuousDistribution[possibleDistributions.length];
         
-        for(int i = 0; i < possibleDistributions.length; i++)
-            possDistCopy[i] = possibleDistributions[i].clone();
+        for(int i = 0; i < possibleDistributions.length; i++) {
+          possDistCopy[i] = possibleDistributions[i].clone();
+        }
         
         
         KSTest ksTest = new KSTest(v);
@@ -113,15 +115,17 @@ public class DistributionSearch
         ///Return the best distribution, or if somehow everythign went wrong, a normal distribution
         try
         {
-            if(bestProb >= KDECutOff)
-                return bestDist == null ? new Normal(v.mean(), v.standardDeviation()) : bestDist.clone();
-            else
-                return new KernelDensityEstimator(v);
+            if(bestProb >= KDECutOff) {
+              return bestDist == null ? new Normal(v.mean(), v.standardDeviation()) : bestDist.clone();
+            } else {
+              return new KernelDensityEstimator(v);
+            }
         }
         catch (RuntimeException ex)//Mostly likely occurs if all values are all zero
         {
-            if(v.standardDeviation() == 0)
-                return null;
+            if(v.standardDeviation() == 0) {
+              return null;
+            }
             throw new ArithmeticException("Catistrophic faulure getting a distribution");
         }
     }

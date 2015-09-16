@@ -59,17 +59,21 @@ public class BetaTest
         double[] paramTwo3 = new double[]{0,0.03217532266307823,0.14891252930402912,0.32803182145023146,0.5474832246889396,0.7875378145455926,1.0307877164838113,1.2621461059054015,1.4688472081503543,1.6404462984968413,1.7688197021612204,1.8481647942980308,1.8749999999999987,1.8481647942980308,1.7688197021612204,1.6404462984968413,1.4688472081503543,1.2621461059054015,1.0307877164838113,0.7875378145455926,0.5474832246889396,0.32803182145023146,0.14891252930402912,0.03217532266307823,0};
         
         instance = new Beta(0.5, 0.5);
-        for(int i = 0; i < range.length; i++)
-            assertEquals(parmTwo0[i], instance.pdf(range[i]/5.9+0.5), 1e-10);
+        for(int i = 0; i < range.length; i++) {
+          assertEquals(parmTwo0[i], instance.pdf(range[i]/5.9+0.5), 1e-10);
+        }
         instance = new Beta(0.5, 3);
-        for(int i = 0; i < range.length; i++)
-            assertEquals(paramTwo1[i], instance.pdf(range[i]/5.9+0.5), 1e-10);
+        for(int i = 0; i < range.length; i++) {
+          assertEquals(paramTwo1[i], instance.pdf(range[i]/5.9+0.5), 1e-10);
+        }
         instance = new Beta(3, 0.5);
-        for(int i = 0; i < range.length; i++)
-            assertEquals(paramTwo2[i], instance.pdf(range[i]/5.9+0.5), 1e-10);
+        for(int i = 0; i < range.length; i++) {
+          assertEquals(paramTwo2[i], instance.pdf(range[i]/5.9+0.5), 1e-10);
+        }
         instance = new Beta(3, 3);
-        for(int i = 0; i < range.length; i++)
-            assertEquals(paramTwo3[i], instance.pdf(range[i]/5.9+0.5), 1e-10);
+        for(int i = 0; i < range.length; i++) {
+          assertEquals(paramTwo3[i], instance.pdf(range[i]/5.9+0.5), 1e-10);
+        }
     }
 
     /**
@@ -87,17 +91,21 @@ public class BetaTest
         double[] paramTwo3 = new double[]{0,0.00036998602561136404,0.003944791957616764,0.013869702028410147,0.03231266867319054,0.06055649816429026,0.09909720018482686,0.14774233740235485,0.2057093750425177,0.27172403046269944,0.34411862272567684,0.42093042217327137,0.5000000000000001,0.5790695778267286,0.6558813772743232,0.7282759695373006,0.7942906249574823,0.8522576625976451,0.9009027998151732,0.9394435018357097,0.9676873313268095,0.9861302979715898,0.9960552080423832,0.9996300139743887,1.00000000000000};
         
         instance = new Beta(0.5, 0.5);
-        for(int i = 0; i < range.length; i++)
-            assertEquals(parmTwo0[i], instance.cdf(range[i]/5.9+0.5), 1e-10);
+        for(int i = 0; i < range.length; i++) {
+          assertEquals(parmTwo0[i], instance.cdf(range[i]/5.9+0.5), 1e-10);
+        }
         instance = new Beta(0.5, 3);
-        for(int i = 0; i < range.length; i++)
-            assertEquals(paramTwo1[i], instance.cdf(range[i]/5.9+0.5), 1e-10);
+        for(int i = 0; i < range.length; i++) {
+          assertEquals(paramTwo1[i], instance.cdf(range[i]/5.9+0.5), 1e-10);
+        }
         instance = new Beta(3, 0.5);
-        for(int i = 0; i < range.length; i++)
-            assertEquals(paramTwo2[i], instance.cdf(range[i]/5.9+0.5), 1e-10);
+        for(int i = 0; i < range.length; i++) {
+          assertEquals(paramTwo2[i], instance.cdf(range[i]/5.9+0.5), 1e-10);
+        }
         instance = new Beta(3, 3);
-        for(int i = 0; i < range.length; i++)
-            assertEquals(paramTwo3[i], instance.cdf(range[i]/5.9+0.5), 1e-10);
+        for(int i = 0; i < range.length; i++) {
+          assertEquals(paramTwo3[i], instance.cdf(range[i]/5.9+0.5), 1e-10);
+        }
     }
 
     /**
@@ -115,17 +123,21 @@ public class BetaTest
         double[] paramTwo3 = new double[]{0.09848468152143303,0.18808934769778385,0.23687906456075017,0.2746049499190648,0.30675508011185254,0.3355120289556864,0.36200518342617627,0.3869129426302727,0.41068664797302484,0.4336514783763557,0.45605842357305015,0.4781141375560683,0.5,0.5218858624439316,0.5439415764269498,0.5663485216236444,0.5893133520269751,0.6130870573697274,0.6379948165738237,0.6644879710443137,0.6932449198881474,0.7253950500809352,0.7631209354392499,0.8119106523022162,0.9015153184785673};
         
         instance = new Beta(0.5, 0.5);
-        for(int i = 0; i < range.length; i++)
-            assertEquals(parmTwo0[i], instance.invCdf(range[i]/6.1+0.5), 1e-10);
+        for(int i = 0; i < range.length; i++) {
+          assertEquals(parmTwo0[i], instance.invCdf(range[i]/6.1+0.5), 1e-10);
+        }
         instance = new Beta(0.5, 3);
-        for(int i = 0; i < range.length; i++)
-            assertEquals(paramTwo1[i], instance.invCdf(range[i]/6.1+0.5), 1e-10);
+        for(int i = 0; i < range.length; i++) {
+          assertEquals(paramTwo1[i], instance.invCdf(range[i]/6.1+0.5), 1e-10);
+        }
         instance = new Beta(3, 0.5);
-        for(int i = 0; i < range.length; i++)
-            assertEquals(paramTwo2[i], instance.invCdf(range[i]/6.1+0.5), 1e-10);
+        for(int i = 0; i < range.length; i++) {
+          assertEquals(paramTwo2[i], instance.invCdf(range[i]/6.1+0.5), 1e-10);
+        }
         instance = new Beta(3, 3);
-        for(int i = 0; i < range.length; i++)
-            assertEquals(paramTwo3[i], instance.invCdf(range[i]/6.1+0.5), 1e-10);
+        for(int i = 0; i < range.length; i++) {
+          assertEquals(paramTwo3[i], instance.invCdf(range[i]/6.1+0.5), 1e-10);
+        }
     }
 
     /**

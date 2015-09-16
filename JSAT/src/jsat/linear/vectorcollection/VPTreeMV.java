@@ -55,10 +55,12 @@ public class VPTreeMV<V extends Vec> extends VPTree<V>
         {
             OnLineStatistics rightV = new OnLineStatistics();
             OnLineStatistics leftV = new OnLineStatistics();
-            for(int i = 0; i < maxLeafSize; i++)
-                leftV.add(S.get(i).getFirstItem());
-            for(int i = maxLeafSize; i < S.size(); i++)
-                rightV.add(S.get(i).getFirstItem());
+            for(int i = 0; i < maxLeafSize; i++) {
+              leftV.add(S.get(i).getFirstItem());
+            }
+            for(int i = maxLeafSize; i < S.size(); i++) {
+              rightV.add(S.get(i).getFirstItem());
+            }
             splitIndex = maxLeafSize;
             double bestVar = leftV.getVarance()*maxLeafSize+rightV.getVarance()*(S.size()-maxLeafSize);
             for(int i = maxLeafSize+1; i < S.size()-maxLeafSize; i++)

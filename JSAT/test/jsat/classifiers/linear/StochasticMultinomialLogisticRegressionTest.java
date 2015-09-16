@@ -67,8 +67,9 @@ public class StochasticMultinomialLogisticRegressionTest
 
             ClassificationDataSet test = FixedProblems.get2ClassLinear(400, new Random());
 
-            for(DataPointPair<Integer> dpp : test.getAsDPPList())
-                assertEquals(dpp.getPair().longValue(), smlgr.classify(dpp.getDataPoint()).mostLikely());
+            for(DataPointPair<Integer> dpp : test.getAsDPPList()) {
+              assertEquals(dpp.getPair().longValue(), smlgr.classify(dpp.getDataPoint()).mostLikely());
+            }
         }
     }
 

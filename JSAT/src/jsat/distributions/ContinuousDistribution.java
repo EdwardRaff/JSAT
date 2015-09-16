@@ -28,8 +28,9 @@ public abstract class ContinuousDistribution extends Distribution
     public double logPdf(double x)
     {
         double pdf = pdf(x);
-        if(pdf <= 0)
-            return -Double.MAX_VALUE;
+        if(pdf <= 0) {
+          return -Double.MAX_VALUE;
+        }
         return Math.log(pdf);
     }
     
@@ -53,8 +54,9 @@ public abstract class ContinuousDistribution extends Distribution
         
         sb.append(vars[0]).append(" = ").append(vals[0]);
         
-        for(int i  = 1; i < vars.length; i++)
-            sb.append(", ").append(vars[i]).append(" = ").append(vals[i]);
+        for(int i  = 1; i < vars.length; i++) {
+          sb.append(", ").append(vars[i]).append(" = ").append(vals[i]);
+        }
         
         sb.append(")");
         

@@ -44,8 +44,9 @@ public class RiddersMethod implements RootFinder
         double fx2 = f.f(args);
         double halfEps = eps*0.5;
         
-        if(fx1* fx2 >= 0)
-            throw new ArithmeticException("The given interval does not appear to bracket the root");
+        if(fx1* fx2 >= 0) {
+          throw new ArithmeticException("The given interval does not appear to bracket the root");
+        }
         
         double dif = 1;//Measure the change interface values
         while( abs(x1-x2) > eps && maxIterations-->0)
@@ -69,16 +70,18 @@ public class RiddersMethod implements RootFinder
             else if(fx1 * fx4 < 0)
             {
                 dif = abs(x4 - x2);
-                if(dif <= halfEps)//WE are no longer updating, return the value
-                    return x4;
+                if(dif <= halfEps) {//WE are no longer updating, return the value
+                  return x4;
+                }
                 x2 = x4;
                 fx2 = fx4;
             }
             else
             {
                 dif = abs(x4 - x1);
-                if(dif <= halfEps)//WE are no longer updating, return the value
-                    return x4;
+                if(dif <= halfEps) {//WE are no longer updating, return the value
+                  return x4;
+                }
                 x1 = x4;
                 fx1 = fx4;
             }

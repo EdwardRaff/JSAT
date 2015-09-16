@@ -51,8 +51,9 @@ public class ConstantVector extends Vec
      */
     public void setLength(int length)
     {
-        if(length < 1)
-            throw new ArithmeticException("Vector length must be a positive constant");
+        if(length < 1) {
+          throw new ArithmeticException("Vector length must be a positive constant");
+        }
         this.length = length;
     }
 

@@ -41,8 +41,9 @@ public class MeanSquaredError implements RegressionScore
      */
     public MeanSquaredError(MeanSquaredError toCopy)
     {
-        if(toCopy.meanError != null)
-            this.meanError = toCopy.meanError.clone();
+        if(toCopy.meanError != null) {
+          this.meanError = toCopy.meanError.clone();
+        }
         this.rmse = toCopy.rmse;
     }
     
@@ -55,8 +56,9 @@ public class MeanSquaredError implements RegressionScore
     @Override
     public void addResult(double prediction, double trueValue, double weight)
     {
-        if(meanError == null)
-            throw new RuntimeException("regression score has not been initialized");
+        if(meanError == null) {
+          throw new RuntimeException("regression score has not been initialized");
+        }
         meanError.add(Math.pow(prediction-trueValue, 2), weight);
     }
 
@@ -64,17 +66,19 @@ public class MeanSquaredError implements RegressionScore
     public void addResults(RegressionScore other)
     {
         MeanSquaredError otherObj = (MeanSquaredError) other;
-        if(otherObj.meanError != null)
-            this.meanError.add(otherObj.meanError);
+        if(otherObj.meanError != null) {
+          this.meanError.add(otherObj.meanError);
+        }
     }
 
     @Override
     public double getScore()
     {
-        if(rmse)
-            return Math.sqrt(meanError.getMean());
-        else
-            return meanError.getMean();
+        if(rmse) {
+          return Math.sqrt(meanError.getMean());
+        } else {
+          return meanError.getMean();
+        }
     }
 
     @Override

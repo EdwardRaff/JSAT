@@ -63,8 +63,9 @@ public class HamerlyKMeansTest
         GridDataGenerator gdg = new GridDataGenerator(new Uniform(-1e-10, 1e-10), new XORWOW(), 2, 5);
         SimpleDataSet seedData = gdg.generateData(1);
         seeds = seedData.getDataVectors();
-        for(Vec v : seeds)
-            v.mutableAdd(0.1);//shift off center so we aren't starting at the expected solution
+        for(Vec v : seeds) {
+          v.mutableAdd(0.1);//shift off center so we aren't starting at the expected solution
+        }
     }
     
     @After
@@ -89,8 +90,9 @@ public class HamerlyKMeansTest
         {
             int thisClass = cluster.get(0).getCategoricalValue(0);
             assertFalse(seenBefore.contains(thisClass));
-            for(DataPoint dp : cluster)
-                assertEquals(thisClass, dp.getCategoricalValue(0));
+            for(DataPoint dp : cluster) {
+              assertEquals(thisClass, dp.getCategoricalValue(0));
+            }
         }
     }
 
@@ -111,8 +113,9 @@ public class HamerlyKMeansTest
         {
             int thisClass = cluster.get(0).getCategoricalValue(0);
             assertFalse(seenBefore.contains(thisClass));
-            for(DataPoint dp : cluster)
-                assertEquals(thisClass, dp.getCategoricalValue(0));
+            for(DataPoint dp : cluster) {
+              assertEquals(thisClass, dp.getCategoricalValue(0));
+            }
         }
     }
 

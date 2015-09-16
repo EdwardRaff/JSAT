@@ -39,8 +39,9 @@ public class RunnableConsumer implements Runnable
 
                 toRun.run();
 
-                if(toRun instanceof PoisonRunnable)
-                    return;
+                if(toRun instanceof PoisonRunnable) {
+                  return;
+                }
             }
             catch (InterruptedException ex)
             {

@@ -80,14 +80,17 @@ public class BFGS implements Optimizer2
             x_grad.copyTo(x_gradPrev);
             
             double alpha_k = search.lineSearch(1.0, x_prev, x_gradPrev, p_k, f, fp, f_xVal[0], x_gradPrev.dot(p_k), x_cur, f_xVal, x_grad, ex);
-            if(alpha_k < 1e-12 && iter > 5)//if we are making near epsilon steps consider it done
-                break;
+            if(alpha_k < 1e-12 && iter > 5) {//if we are making near epsilon steps consider it done
+              break;
+            }
 
-            if(!search.updatesGrad())
-                if (ex != null)
-                    fp.f(x_cur, x_grad, ex);
-                else
-                    fp.f(x_cur, x_grad);
+            if(!search.updatesGrad()) {
+              if (ex != null) {
+                fp.f(x_cur, x_grad, ex);
+              } else {
+                fp.f(x_cur, x_grad);
+              }
+            }
             
             //Define s_k =x_k+1 −x_k and y_k = ∇f_k+1 −∇f_k;
             x_cur.copyTo(s_k);
@@ -101,13 +104,16 @@ public class BFGS implements Optimizer2
             if(skyk <= 0)
             {
                 H.zeroOut();
-                for(int i = 0; i < H.rows(); i++)
-                    H.set(i, i, 1);
+                for(int i = 0; i < H.rows(); i++) {
+                  H.set(i, i, 1);
+                }
                 continue;
             }
-            if(iter == 0 && skyk > 1e-12)
-                for(int i = 0; i < H.rows(); i++)
-                    H.set(i, i, skyk/y_k.dot(y_k));
+            if(iter == 0 && skyk > 1e-12) {
+              for (int i = 0; i < H.rows(); i++) {
+                H.set(i, i, skyk/y_k.dot(y_k));
+              }
+            }
             
             /*
              * From "A Perfect Example for The BFGS Method" equation 1.5
@@ -161,19 +167,22 @@ public class BFGS implements Optimizer2
     
     private double gradConvgHelper(Vec grad)
     {
-        if(!inftNormCriterion)
-            return grad.pNorm(2);
+        if(!inftNormCriterion) {
+          return grad.pNorm(2);
+        }
         double max = 0;
-        for(IndexValue iv : grad)
-            max = Math.max(max, Math.abs(iv.getValue()));
+        for(IndexValue iv : grad) {
+          max = Math.max(max, Math.abs(iv.getValue()));
+        }
         return max;
     }
 
     @Override
     public void setMaximumIterations(int iterations)
     {
-        if(iterations < 1)
-            throw new IllegalArgumentException("Iterations must be a positive value, not " + iterations);
+        if(iterations < 1) {
+          throw new IllegalArgumentException("Iterations must be a positive value, not " + iterations);
+        }
         this.maxIterations = iterations;
     }
 

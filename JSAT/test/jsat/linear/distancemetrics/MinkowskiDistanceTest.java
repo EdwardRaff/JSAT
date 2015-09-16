@@ -75,8 +75,9 @@ public class MinkowskiDistanceTest
         half.mutableAdd(0.5);
         
         inc = new DenseVector(5);
-        for(int i = 0; i < inc.length(); i++)
-            inc.set(i, i);
+        for(int i = 0; i < inc.length(); i++) {
+          inc.set(i, i);
+        }
         
         vecs = Arrays.asList(zero, ones, half, inc);
         expectedP2 = new double[][]
@@ -121,8 +122,9 @@ public class MinkowskiDistanceTest
         if(cache != null)
         {
             assertEquals(cache.size(), cache2.size());
-            for(int i = 0; i < cache.size(); i++)
-                assertEquals(cache.get(i), cache2.get(i), 0.0);
+            for(int i = 0; i < cache.size(); i++) {
+              assertEquals(cache.get(i), cache2.get(i), 0.0);
+            }
             assertTrue(dist.supportsAcceleration());
         }
         else
@@ -144,38 +146,42 @@ public class MinkowskiDistanceTest
         for(int rounds = 0; rounds < 3; rounds++)
         {
             //some code so that dense on dense, dense on sparse, and sparse on sparse all get run
-            if(rounds == 1)
-                for(int i = 0; i <vecs.size(); i+=2)
-                    vecs.set(i, new SparseVector(vecs.get(i)));
-            else if(rounds == 2)
-                for(int i = 1; i <vecs.size(); i+=2)
-                    vecs.set(i, new SparseVector(vecs.get(i)));
+            if(rounds == 1) {
+              for (int i = 0; i <vecs.size(); i+=2) {
+                vecs.set(i, new SparseVector(vecs.get(i)));
+              }
+            } else if(rounds == 2) {
+              for (int i = 1; i <vecs.size(); i+=2) {
+                vecs.set(i, new SparseVector(vecs.get(i)));
+              }
+            }
             
-            for (int i = 0; i < vecs.size(); i++)
-                for (int j = 0; j < vecs.size(); j++)
-                {
-                    MinkowskiDistance d = dist.clone();
-
-                    d.setP(2.0);
-                    assertEquals(2.5, dist.getP(), 0.0);
-
-                    assertEquals(expectedP2[i][j], d.dist(vecs.get(i), vecs.get(j)), 1e-8);
-                    assertEquals(expectedP2[i][j], d.dist(i, j, vecs, cache), 1e-8);
-                    assertEquals(expectedP2[i][j], d.dist(i, vecs.get(j), vecs, cache), 1e-8);
-                    assertEquals(expectedP2[i][j], d.dist(i, vecs.get(j), dist.getQueryInfo(vecs.get(j)), vecs, cache), 1e-8);
-
-                    d.setP(1.0);
-                    assertEquals(expectedP1[i][j], d.dist(vecs.get(i), vecs.get(j)), 1e-8);
-                    assertEquals(expectedP1[i][j], d.dist(i, j, vecs, cache), 1e-8);
-                    assertEquals(expectedP1[i][j], d.dist(i, vecs.get(j), vecs, cache), 1e-8);
-                    assertEquals(expectedP1[i][j], d.dist(i, vecs.get(j), dist.getQueryInfo(vecs.get(j)), vecs, cache), 1e-8);
-
-                    d.setP(1.5);
-                    assertEquals(expectedP1p5[i][j], d.dist(vecs.get(i), vecs.get(j)), 1e-8);
-                    assertEquals(expectedP1p5[i][j], d.dist(i, j, vecs, cache), 1e-8);
-                    assertEquals(expectedP1p5[i][j], d.dist(i, vecs.get(j), vecs, cache), 1e-8);
-                    assertEquals(expectedP1p5[i][j], d.dist(i, vecs.get(j), dist.getQueryInfo(vecs.get(j)), vecs, cache), 1e-8);
-                }
+            for (int i = 0; i < vecs.size(); i++) {
+              for (int j = 0; j < vecs.size(); j++)
+              {
+                MinkowskiDistance d = dist.clone();
+                
+                d.setP(2.0);
+                assertEquals(2.5, dist.getP(), 0.0);
+                
+                assertEquals(expectedP2[i][j], d.dist(vecs.get(i), vecs.get(j)), 1e-8);
+                assertEquals(expectedP2[i][j], d.dist(i, j, vecs, cache), 1e-8);
+                assertEquals(expectedP2[i][j], d.dist(i, vecs.get(j), vecs, cache), 1e-8);
+                assertEquals(expectedP2[i][j], d.dist(i, vecs.get(j), dist.getQueryInfo(vecs.get(j)), vecs, cache), 1e-8);
+                
+                d.setP(1.0);
+                assertEquals(expectedP1[i][j], d.dist(vecs.get(i), vecs.get(j)), 1e-8);
+                assertEquals(expectedP1[i][j], d.dist(i, j, vecs, cache), 1e-8);
+                assertEquals(expectedP1[i][j], d.dist(i, vecs.get(j), vecs, cache), 1e-8);
+                assertEquals(expectedP1[i][j], d.dist(i, vecs.get(j), dist.getQueryInfo(vecs.get(j)), vecs, cache), 1e-8);
+                
+                d.setP(1.5);
+                assertEquals(expectedP1p5[i][j], d.dist(vecs.get(i), vecs.get(j)), 1e-8);
+                assertEquals(expectedP1p5[i][j], d.dist(i, j, vecs, cache), 1e-8);
+                assertEquals(expectedP1p5[i][j], d.dist(i, vecs.get(j), vecs, cache), 1e-8);
+                assertEquals(expectedP1p5[i][j], d.dist(i, vecs.get(j), dist.getQueryInfo(vecs.get(j)), vecs, cache), 1e-8);
+              }
+            }
         }
     }
 

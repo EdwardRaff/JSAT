@@ -112,12 +112,13 @@ public class TTest implements OneSampleTest
 
         double tScore = (sampleMean - hypothMean)*Math.sqrt(sampleSize)/sampleDev;
         
-        if(h1 == H1.NOT_EQUAL)
-            return tDist.cdf(-Math.abs(tScore))*2;
-        else if(h1 == H1.LESS_THAN)
-            return tDist.cdf(tScore);
-        else
-            return 1-tDist.cdf(tScore);
+        if(h1 == H1.NOT_EQUAL) {
+          return tDist.cdf(-Math.abs(tScore))*2;
+        } else if(h1 == H1.LESS_THAN) {
+          return tDist.cdf(tScore);
+        } else {
+          return 1-tDist.cdf(tScore);
+        }
     }
     
 }

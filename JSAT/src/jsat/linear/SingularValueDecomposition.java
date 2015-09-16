@@ -68,14 +68,17 @@ public class SingularValueDecomposition implements Cloneable, Serializable
         // Set up the final bidiagonal matrix or order p.
 
         int p = min(n, m + 1);
-        if (nct < n)
-            s[nct] = AA.get(nct, nct);
+        if (nct < n) {
+          s[nct] = AA.get(nct, nct);
+        }
         
-        if (m < p)
-            s[p - 1] = 0.0;
+        if (m < p) {
+          s[p - 1] = 0.0;
+        }
         
-        if (nrt + 1 < p)
-            e[nrt] = AA.get(nrt, p - 1);
+        if (nrt + 1 < p) {
+          e[nrt] = AA.get(nrt, p - 1);
+        }
         
         e[p - 1] = 0.0;
 
@@ -119,12 +122,14 @@ public class SingularValueDecomposition implements Cloneable, Serializable
                 // Compute the transformation for the k-th column and
                 // place the k-th diagonal in s[k].
                 s[k] = 0;
-                for (int i = k; i < m; i++)
-                    s[k] = hypot(s[k], A.get(i, k));
+                for (int i = k; i < m; i++) {
+                  s[k] = hypot(s[k], A.get(i, k));
+                }
                 if (s[k] != 0.0)
                 {
-                    if (A.get(k, k) < 0.0)
-                        s[k] = -s[k];
+                    if (A.get(k, k) < 0.0) {
+                      s[k] = -s[k];
+                    }
                     divCol(A, k, k, m, s[k]);
                     A.increment(k, k, 1.0);
                 }
@@ -139,12 +144,14 @@ public class SingularValueDecomposition implements Cloneable, Serializable
                     // Apply the transformation.
 
                     double t = 0;
-                    for (int i = k; i < m; i++)
-                        t += A.get(i, k) * A.get(i, j);
+                    for (int i = k; i < m; i++) {
+                      t += A.get(i, k) * A.get(i, j);
+                    }
                     t = -t / A.get(k, k);
                     
-                    for(int i = k; i < m; i++)
-                        A.increment(i, j, t*A.get(i, k));
+                    for(int i = k; i < m; i++) {
+                      A.increment(i, j, t*A.get(i, k));
+                    }
                 }
 
                 // Place the k-th row of A into e for the
@@ -157,8 +164,9 @@ public class SingularValueDecomposition implements Cloneable, Serializable
                 // Place the transformation in U for subsequent back
                 // multiplication.
 
-                for (int i = k; i < m; i++)
-                    U.set(i, k, A.get(i, k));
+                for (int i = k; i < m; i++) {
+                  U.set(i, k, A.get(i, k));
+                }
             }
 
             if (k < nrt)
@@ -178,16 +186,19 @@ public class SingularValueDecomposition implements Cloneable, Serializable
         // Compute the k-th row transformation and place the
         // k-th super-diagonal in e[k].
         e[k] = 0;
-        for (int i = k + 1; i < n; i++)
-            e[k] = Math.hypot(e[k], e[i]);
+        for (int i = k + 1; i < n; i++) {
+          e[k] = Math.hypot(e[k], e[i]);
+        }
         
         if (e[k] != 0.0)
         {
-            if (e[k + 1] < 0.0)
-                e[k] = -e[k];
+            if (e[k + 1] < 0.0) {
+              e[k] = -e[k];
+            }
             
-            for (int i = k + 1; i < n; i++)
-                e[i] /= e[k];
+            for (int i = k + 1; i < n; i++) {
+              e[i] /= e[k];
+            }
             
             e[k + 1] += 1.0;
         }
@@ -199,9 +210,11 @@ public class SingularValueDecomposition implements Cloneable, Serializable
             // Apply the transformation.
 
             Arrays.fill(work, k+1, m, 0.0);
-            for (int j = k + 1; j < n; j++)
-                for (int i = k + 1; i < m; i++)
-                    work[i] += e[j] * A.get(i, j);
+            for (int j = k + 1; j < n; j++) {
+              for (int i = k + 1; i < m; i++) {
+                work[i] += e[j] * A.get(i, j);
+              }
+            }
                 
             
             for (int j = k + 1; j < n; j++)
@@ -215,8 +228,9 @@ public class SingularValueDecomposition implements Cloneable, Serializable
         // Place the transformation in V for subsequent
         // back multiplication.
 
-        for (int i = k + 1; i < n; i++)
-            V.set(i, k, e[i]);
+        for (int i = k + 1; i < n; i++) {
+          V.set(i, k, e[i]);
+        }
     }
 
     private void generateV(int n, int nrt, double[] e, int nu)
@@ -228,15 +242,18 @@ public class SingularValueDecomposition implements Cloneable, Serializable
                 for (int j = k + 1; j < nu; j++)
                 {
                     double t = 0;
-                    for (int i = k + 1; i < n; i++)
-                        t += V.get(i, k) * V.get(i, j);
+                    for (int i = k + 1; i < n; i++) {
+                      t += V.get(i, k) * V.get(i, j);
+                    }
                     t = -t / V.get(k + 1, k);
-                    for (int i = k + 1; i < n; i++)
-                        V.increment(i, j, t * V.get(i, k));
+                    for (int i = k + 1; i < n; i++) {
+                      V.increment(i, j, t * V.get(i, k));
+                    }
                 }
             }
-            for (int i = 0; i < n; i++)
-                V.set(i, k, 0.0);
+            for (int i = 0; i < n; i++) {
+              V.set(i, k, 0.0);
+            }
             V.set(k, k, 1.0);
         }
     }
@@ -245,8 +262,9 @@ public class SingularValueDecomposition implements Cloneable, Serializable
     {
         for (int j = nct; j < nu; j++)
         {
-            for (int i = 0; i < m; i++)
-                U.set(i, j, 0.0);
+            for (int i = 0; i < m; i++) {
+              U.set(i, j, 0.0);
+            }
             
             U.set(j, j, 1.0);
         }
@@ -257,24 +275,29 @@ public class SingularValueDecomposition implements Cloneable, Serializable
                 for (int j = k + 1; j < nu; j++)
                 {
                     double t = 0;
-                    for (int i = k; i < m; i++)
-                        t += U.get(i, k) * U.get(i, j);
+                    for (int i = k; i < m; i++) {
+                      t += U.get(i, k) * U.get(i, j);
+                    }
                     
                     t = -t / U.get(k, k);
-                    for (int i = k; i < m; i++)
-                        U.increment(i, j, t * U.get(i, k));
+                    for (int i = k; i < m; i++) {
+                      U.increment(i, j, t * U.get(i, k));
+                    }
                     
                 }
-                for (int i = k; i < m; i++)
-                    U.set(i, k, -U.get(i, k));
+                for (int i = k; i < m; i++) {
+                  U.set(i, k, -U.get(i, k));
+                }
                 U.set(k, k, 1.0 + U.get(k, k));
-                for (int i = 0; i < k - 1; i++)
-                    U.set(i, k, 0.0);
+                for (int i = 0; i < k - 1; i++) {
+                  U.set(i, k, 0.0);
+                }
             }
             else
             {
-                for (int i = 0; i < m; i++)
-                    U.set(i, k, 0.0);
+                for (int i = 0; i < m; i++) {
+                  U.set(i, k, 0.0);
+                }
                 U.set(k, k, 1.0);
             }
         }
@@ -322,8 +345,9 @@ public class SingularValueDecomposition implements Cloneable, Serializable
                 int ks;
                 for (ks = p - 1; ks >= k; ks--)
                 {
-                    if (ks == k)
-                        break;
+                    if (ks == k) {
+                      break;
+                    }
                     
                     double t = (ks != p ? abs(e[ks]) : 0.)
                             + (ks != k + 1 ? abs(e[ks - 1]) : 0.);
@@ -395,17 +419,20 @@ public class SingularValueDecomposition implements Cloneable, Serializable
 
                     while (k < pp)
                     {
-                        if (s[k] >= s[k + 1])
-                            break;
+                        if (s[k] >= s[k + 1]) {
+                          break;
+                        }
                         
                         double t = s[k];
                         s[k] = s[k + 1];
                         s[k + 1] = t;
 
-                        if (k < n - 1)
-                            swapCol(V, k, k+1, 0, n);
-                        if (k < m - 1)
-                            swapCol(U, k, k+1, 0, m);
+                        if (k < n - 1) {
+                          swapCol(V, k, k+1, 0, n);
+                        }
+                        if (k < m - 1) {
+                          swapCol(U, k, k+1, 0, m);
+                        }
                         
                         k++;
                     }
@@ -499,8 +526,9 @@ public class SingularValueDecomposition implements Cloneable, Serializable
             double t = hypot(f, g);
             double cs = f / t;
             double sn = g / t;
-            if (j != k)
-                e[j - 1] = t;
+            if (j != k) {
+              e[j - 1] = t;
+            }
             f = cs * s[j] + sn * e[j];
             e[j] = cs * e[j] - sn * s[j];
             g = sn * s[j + 1];
@@ -569,8 +597,9 @@ public class SingularValueDecomposition implements Cloneable, Serializable
     public Matrix getS()
     {
         Matrix DS = new DenseMatrix(U.rows(), V.rows());
-        for(int i = 0; i < sLength(); i++)
-            DS.set(i, i, s[i]);
+        for(int i = 0; i < sLength(); i++) {
+          DS.set(i, i, s[i]);
+        }
         return DS;
     }
     
@@ -626,9 +655,11 @@ public class SingularValueDecomposition implements Cloneable, Serializable
      */
     public int getRank(double tol)
     {
-        for(int i = 0; i < sLength(); i++)
-            if(s[i] <= tol)
-                return i;
+        for(int i = 0; i < sLength(); i++) {
+          if (s[i] <= tol) {
+            return i;
+          }
+        }
         return sLength();
     }
     
@@ -648,11 +679,13 @@ public class SingularValueDecomposition implements Cloneable, Serializable
     public double[] getInverseSingularValues(double tol)
     {
         double[] sInv = Arrays.copyOf(s, sLength());
-        for(int i = 0; i < sInv.length; i++)
-            if(sInv[i] > tol)
-                sInv[i] = 1.0/sInv[i];
-            else
-                sInv[i] = 0;
+        for(int i = 0; i < sInv.length; i++) {
+          if (sInv[i] > tol) {
+            sInv[i] = 1.0/sInv[i];
+          } else {
+            sInv[i] = 0;
+          }
+        }
         return sInv;
     }
     
@@ -703,11 +736,13 @@ public class SingularValueDecomposition implements Cloneable, Serializable
     public double getPseudoDet(double tol)
     {
         double det = 1;
-        for (double d : s)
-            if (d <= tol)
-                break;
-            else
-                det *= d;
+        for (double d : s) {
+          if (d <= tol) {
+            break;
+          } else {
+            det *= d;
+          }
+        }
 
         return det;
     }
@@ -720,8 +755,9 @@ public class SingularValueDecomposition implements Cloneable, Serializable
     {
         double absDet = 1.0;
         
-        for(double d : s)
-            absDet *= d;
+        for(double d : s) {
+          absDet *= d;
+        }
         
         return absDet;
     }

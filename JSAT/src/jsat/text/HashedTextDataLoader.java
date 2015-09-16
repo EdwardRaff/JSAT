@@ -86,8 +86,9 @@ abstract public class HashedTextDataLoader implements TextVectorCreator
      */
     protected void addOriginalDocument(String text)
     {
-        if(noMoreAdding)
-            throw new RuntimeException("Initial data set has been finalized");
+        if(noMoreAdding) {
+          throw new RuntimeException("Initial data set has been finalized");
+        }
         if(workSpace == null)
         {
             workSpace = new StringBuilder();
@@ -104,16 +105,18 @@ abstract public class HashedTextDataLoader implements TextVectorCreator
          * on many null elements when we occasionally load in an abnormally
          * large document 
          */
-        if(documents % 50 == 0)
-            wordCounts = new HashMap<String, Integer>(storageSpace.size());
+        if(documents % 50 == 0) {
+          wordCounts = new HashMap<String, Integer>(storageSpace.size());
+        }
         
         for(String word : storageSpace)
         {
             Integer count = wordCounts.get(word);
-            if(count == null)
-                wordCounts.put(word, 1);
-            else
-                wordCounts.put(word, count+1);
+            if(count == null) {
+              wordCounts.put(word, 1);
+            } else {
+              wordCounts.put(word, count+1);
+            }
         }
         
         SparseVector vec = new SparseVector(dimensionSize, wordCounts.size());
@@ -145,8 +148,9 @@ abstract public class HashedTextDataLoader implements TextVectorCreator
         wordCounts = null;
         
         weighting.setWeight(vectors, IntList.unmodifiableView(termDocumentFrequencys, dimensionSize));
-        for(SparseVector vec : vectors)
-            weighting.applyTo(vec);
+        for(SparseVector vec : vectors) {
+          weighting.applyTo(vec);
+        }
         termDocumentFrequencys = null;
     }
     
@@ -166,8 +170,9 @@ abstract public class HashedTextDataLoader implements TextVectorCreator
         
         List<DataPoint> dataPoints= new ArrayList<DataPoint>(vectors.size());
         
-        for(SparseVector vec : vectors)
-            dataPoints.add(new DataPoint(vec, new int[0], new CategoricalData[0]));
+        for(SparseVector vec : vectors) {
+          dataPoints.add(new DataPoint(vec, new int[0], new CategoricalData[0]));
+        }
         
         return new SimpleDataSet(dataPoints);
     }
@@ -192,8 +197,9 @@ abstract public class HashedTextDataLoader implements TextVectorCreator
      */
     public TextVectorCreator getTextVectorCreator()
     {
-        if(!noMoreAdding)
-            throw new RuntimeException("Initial documents have not yet loaded");
+        if(!noMoreAdding) {
+          throw new RuntimeException("Initial documents have not yet loaded");
+        }
         return tvc;
     }
     

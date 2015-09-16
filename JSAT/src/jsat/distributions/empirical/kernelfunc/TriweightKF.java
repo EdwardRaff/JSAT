@@ -32,18 +32,21 @@ public class TriweightKF implements KernelFunction
     @Override
     public double k(double u)
     {
-        if(Math.abs(u) > 1)
-            return 0;
+        if(Math.abs(u) > 1) {
+          return 0;
+        }
         return Math.pow(1 - u*u, 3)*(35.0/32.0);
     }
 
     @Override
     public double intK(double u)
     {
-        if(u < -1)
-            return 0;
-        if(u > 1)
-            return 1;
+        if(u < -1) {
+          return 0;
+        }
+        if(u > 1) {
+          return 1;
+        }
         return (-5*Math.pow(u, 7) + 21*Math.pow(u, 5) - 35 * Math.pow(u, 3) + 35 *u + 16)/32;
     }
 
@@ -62,8 +65,9 @@ public class TriweightKF implements KernelFunction
     @Override
     public double kPrime(double u)
     {
-        if(Math.abs(u) > 1)
-            return 0;
+        if(Math.abs(u) > 1) {
+          return 0;
+        }
         return -u;
     }
 

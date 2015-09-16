@@ -93,10 +93,11 @@ public class NewGLMNETTest
         assertEquals(1, w.nnz());
         int nonZeroIndex = w.getNonZeroIterator().next().getIndex();
         assertTrue(nonZeroIndex < 3);//should be one of the more important weights
-        if(nonZeroIndex == 1) //check the sign is correct
-            assertEquals(-1, (int)Math.signum(w.get(nonZeroIndex)));
-        else
-            assertEquals(1, (int)Math.signum(w.get(nonZeroIndex)));
+        if(nonZeroIndex == 1) { //check the sign is correct
+          assertEquals(-1, (int)Math.signum(w.get(nonZeroIndex)));
+        } else {
+          assertEquals(1, (int)Math.signum(w.get(nonZeroIndex)));
+        }
         
         glmnet.setC(1);
         glmnet.setAlpha(0.5);//now we should get the top 3 on
@@ -202,13 +203,15 @@ public class NewGLMNETTest
             {
                 if (j > 500)
                 {
-                    if (j % 2 == 0)
-                        v.set(j, Z2 * ((j + 1) / 600.0) + rand.nextGaussian() / (j + 1));
-                    else
-                        v.set(j, Z1 * ((j + 1) / 600.0) + rand.nextGaussian() / (j + 1));
+                    if (j % 2 == 0) {
+                      v.set(j, Z2 * ((j + 1) / 600.0) + rand.nextGaussian() / (j + 1));
+                    } else {
+                      v.set(j, Z1 * ((j + 1) / 600.0) + rand.nextGaussian() / (j + 1));
+                    }
                 }
-                else
-                    v.set(j, rand.nextGaussian()*20);
+                else {
+                  v.set(j, rand.nextGaussian()*20);
+                }
             }
             
             train.addDataPoint(v, (int) (Math.signum(Z1+0.1*Z2)+1)/2);

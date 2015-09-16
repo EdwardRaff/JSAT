@@ -25,35 +25,39 @@ public class Uniform extends ContinuousDistribution
     @Override
     public double pdf(double x)
     {
-        if(a == b && a == x)
-            return 0;
-        else if(a <=  x && x <= b)
-            return 1/(b-a);
-        else
-            return 0;
+        if(a == b && a == x) {
+          return 0;
+        } else if(a <=  x && x <= b) {
+          return 1/(b-a);
+        } else {
+          return 0;
+        }
     }
 
     @Override
     public double cdf(double x)
     {
-        if(a > x)
-            return 0;
-        else if( x >= b)
-            return 1;
-        else if(a == b && a == x)
-            return 1;
-        else
-            return (x-a)/(b-a);
+        if(a > x) {
+          return 0;
+        } else if( x >= b) {
+          return 1;
+        } else if(a == b && a == x) {
+          return 1;
+        } else {
+          return (x-a)/(b-a);
+        }
     }
 
     @Override
     public double invCdf(double p)
     {
-        if( p < 0 || p > 1)
-            throw new ArithmeticException("Probability must be interface the range [0,1], not " + p);
+        if( p < 0 || p > 1) {
+          throw new ArithmeticException("Probability must be interface the range [0,1], not " + p);
+        }
         
-        if(a == b && p == 1)
-            return a;
+        if(a == b && p == 1) {
+          return a;
+        }
         
         return a + p*(b-a);
     }
@@ -91,10 +95,11 @@ public class Uniform extends ContinuousDistribution
     @Override
     public void setVariable(String var, double value)
     {
-        if(var.equals("a"))
-            a = value;
-        else if(var.equals("b"))
-            b = value;
+        if(var.equals("a")) {
+          a = value;
+        } else if(var.equals("b")) {
+          b = value;
+        }
         
         double min = Math.min(a, b);
         double max = Math.max(a, b);

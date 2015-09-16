@@ -67,12 +67,15 @@ public class LloydKernelKMeansTest
         int[] result = kmeans.cluster(toCluster, 2, ex, (int[])null);
         //make sure each cluster has points from only 1 class. If true then everyone is good
         Map<Integer, Set<Integer>> tmp = new HashMap<Integer, Set<Integer>>();
-        for(int c = 0; c< toCluster.getClassSize(); c++)
-            tmp.put(c, new IntSet());
-        for(int i = 0; i < result.length; i++)
-            tmp.get(toCluster.getDataPointCategory(i)).add(result[i]);
-        for(Set<Integer> set : tmp.values())
-            assertEquals(1, set.size());
+        for(int c = 0; c< toCluster.getClassSize(); c++) {
+          tmp.put(c, new IntSet());
+        }
+        for(int i = 0; i < result.length; i++) {
+          tmp.get(toCluster.getDataPointCategory(i)).add(result[i]);
+        }
+        for(Set<Integer> set : tmp.values()) {
+          assertEquals(1, set.size());
+        }
     }
 
     /**
@@ -87,12 +90,15 @@ public class LloydKernelKMeansTest
         int[] result = kmeans.cluster(toCluster, 2, (int[])null);
         //make sure each cluster has points from only 1 class. If true then everyone is good
         Map<Integer, Set<Integer>> tmp = new HashMap<Integer, Set<Integer>>();
-        for(int c = 0; c< toCluster.getClassSize(); c++)
-            tmp.put(c, new IntSet());
-        for(int i = 0; i < result.length; i++)
-            tmp.get(toCluster.getDataPointCategory(i)).add(result[i]);
-        for(Set<Integer> set : tmp.values())
-            assertEquals(1, set.size());
+        for(int c = 0; c< toCluster.getClassSize(); c++) {
+          tmp.put(c, new IntSet());
+        }
+        for(int i = 0; i < result.length; i++) {
+          tmp.get(toCluster.getDataPointCategory(i)).add(result[i]);
+        }
+        for(Set<Integer> set : tmp.values()) {
+          assertEquals(1, set.size());
+        }
     }
     
 }

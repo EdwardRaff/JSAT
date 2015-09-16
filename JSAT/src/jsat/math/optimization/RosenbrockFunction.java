@@ -73,8 +73,9 @@ public class RosenbrockFunction implements Function
         {
             int N = x.length();
 
-            if (drv == null)
-                drv = x.clone();
+            if (drv == null) {
+              drv = x.clone();
+            }
             drv.zeroOut();
 
             drv.set(0, -400 * x.get(0) * (x.get(1) - pow(x.get(0), 2)) - 2 * (1 - x.get(0)));

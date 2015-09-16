@@ -29,8 +29,9 @@ public class MathTricks
     public static double logSumExp(Vec vals, double maxValue)
     {
         double expSum = 0.0;
-        for(int i = 0; i < vals.length(); i++)
-            expSum += exp(vals.get(i)-maxValue);
+        for(int i = 0; i < vals.length(); i++) {
+          expSum += exp(vals.get(i)-maxValue);
+        }
         
         return maxValue + log(expSum);
     }
@@ -47,8 +48,9 @@ public class MathTricks
     public static double logSumExp(double[] vals, double maxValue)
     {
         double expSum = 0.0;
-        for(int i = 0; i < vals.length; i++)
-            expSum += exp(vals[i]-maxValue);
+        for(int i = 0; i < vals.length; i++) {
+          expSum += exp(vals[i]-maxValue);
+        }
         
         return maxValue + log(expSum);
     }
@@ -65,14 +67,17 @@ public class MathTricks
     public static void softmax(double[] x, boolean implicitExtra)
     {
         double max = implicitExtra ? 1 : Double.NEGATIVE_INFINITY;
-        for(int i = 0; i < x.length; i++)
-            max = max(max, x[i]);
+        for(int i = 0; i < x.length; i++) {
+          max = max(max, x[i]);
+        }
         
         double z =implicitExtra ? exp(-max) : 0;
-        for (int c = 0; c < x.length; c++)
-            z += (x[c] = exp(x[c] - max));
-        for (int c = 0; c < x.length; c++)
-            x[c] /= z;
+        for (int c = 0; c < x.length; c++) {
+          z += (x[c] = exp(x[c] - max));
+        }
+        for (int c = 0; c < x.length; c++) {
+          x[c] /= z;
+        }
     }
     
     /**
@@ -112,8 +117,9 @@ public class MathTricks
     public static double hornerPolyR(double[] coef, double x)
     {
         double result = 0;
-        for(double c : coef)
-            result = result*x+c;
+        for(double c : coef) {
+          result = result*x+c;
+        }
         return result;
     }
     
@@ -129,8 +135,9 @@ public class MathTricks
     public static double hornerPoly(double[] coef, double x)
     {
         double result = 0;
-        for(int i = coef.length-1; i >= 0; i--)
-            result = result*x + coef[i];
+        for(int i = coef.length-1; i >= 0; i--) {
+          result = result*x + coef[i];
+        }
         return result;
     }
     

@@ -65,16 +65,20 @@ public class RandomSearchTest
     public void setUp()
     {
         classData = new ClassificationDataSet(1, new CategoricalData[0], new CategoricalData(2));
-        for (int i = 0; i < 100; i++)
-            classData.addDataPoint(DenseVector.toDenseVec(1.0 * i), 0);
-        for (int i = 0; i < 100; i++)
-            classData.addDataPoint(DenseVector.toDenseVec(-1.0 * i), 1);
+        for (int i = 0; i < 100; i++) {
+          classData.addDataPoint(DenseVector.toDenseVec(1.0 * i), 0);
+        }
+        for (int i = 0; i < 100; i++) {
+          classData.addDataPoint(DenseVector.toDenseVec(-1.0 * i), 1);
+        }
 
         regData = new RegressionDataSet(1, new CategoricalData[0]);
-        for (int i = 0; i < 100; i++)
-            regData.addDataPoint(DenseVector.toDenseVec(1.0 * i), 0);
-        for (int i = 0; i < 100; i++)
-            regData.addDataPoint(DenseVector.toDenseVec(-1.0 * i), 1);
+        for (int i = 0; i < 100; i++) {
+          regData.addDataPoint(DenseVector.toDenseVec(1.0 * i), 0);
+        }
+        for (int i = 0; i < 100; i++) {
+          regData.addDataPoint(DenseVector.toDenseVec(-1.0 * i), 1);
+        }
     }
     
     @After

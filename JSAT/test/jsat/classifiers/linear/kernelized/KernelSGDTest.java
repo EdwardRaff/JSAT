@@ -63,8 +63,9 @@ public class KernelSGDTest
 
         classifier.trainC(trainSet, ex);
 
-        for (int i = 0; i < testSet.getSampleSize(); i++)
-            assertEquals(testSet.getDataPointCategory(i), classifier.classify(testSet.getDataPoint(i)).mostLikely());
+        for (int i = 0; i < testSet.getSampleSize(); i++) {
+          assertEquals(testSet.getDataPointCategory(i), classifier.classify(testSet.getDataPoint(i)).mostLikely());
+        }
     }
 
     @Test
@@ -78,8 +79,9 @@ public class KernelSGDTest
 
         classifier.trainC(trainSet);
 
-        for (int i = 0; i < testSet.getSampleSize(); i++)
-            assertEquals(testSet.getDataPointCategory(i), classifier.classify(testSet.getDataPoint(i)).mostLikely());
+        for (int i = 0; i < testSet.getSampleSize(); i++) {
+          assertEquals(testSet.getDataPointCategory(i), classifier.classify(testSet.getDataPoint(i)).mostLikely());
+        }
 
     }
     
@@ -94,8 +96,9 @@ public class KernelSGDTest
 
         classifier.trainC(trainSet, ex);
 
-        for (int i = 0; i < testSet.getSampleSize(); i++)
-            assertEquals(testSet.getDataPointCategory(i), classifier.classify(testSet.getDataPoint(i)).mostLikely());
+        for (int i = 0; i < testSet.getSampleSize(); i++) {
+          assertEquals(testSet.getDataPointCategory(i), classifier.classify(testSet.getDataPoint(i)).mostLikely());
+        }
 
     }
     
@@ -110,8 +113,9 @@ public class KernelSGDTest
 
         classifier.trainC(trainSet);
 
-        for (int i = 0; i < testSet.getSampleSize(); i++)
-            assertEquals(testSet.getDataPointCategory(i), classifier.classify(testSet.getDataPoint(i)).mostLikely());
+        for (int i = 0; i < testSet.getSampleSize(); i++) {
+          assertEquals(testSet.getDataPointCategory(i), classifier.classify(testSet.getDataPoint(i)).mostLikely());
+        }
 
     }
 
@@ -130,8 +134,9 @@ public class KernelSGDTest
         classifier.train(trainSet, ex);
 
         double errors = 0;
-        for (int i = 0; i < testSet.getSampleSize(); i++)
-            errors += Math.pow(testSet.getTargetValue(i) - classifier.regress(testSet.getDataPoint(i)), 2);
+        for (int i = 0; i < testSet.getSampleSize(); i++) {
+          errors += Math.pow(testSet.getTargetValue(i) - classifier.regress(testSet.getDataPoint(i)), 2);
+        }
         assertTrue(errors / testSet.getSampleSize() < 1);
     }
 
@@ -150,8 +155,9 @@ public class KernelSGDTest
         classifier.train(trainSet);
 
         double errors = 0;
-        for (int i = 0; i < testSet.getSampleSize(); i++)
-            errors += Math.pow(testSet.getTargetValue(i) - classifier.regress(testSet.getDataPoint(i)), 2);
+        for (int i = 0; i < testSet.getSampleSize(); i++) {
+          errors += Math.pow(testSet.getTargetValue(i) - classifier.regress(testSet.getDataPoint(i)), 2);
+        }
         assertTrue(errors / testSet.getSampleSize() < 1);
     }
     
@@ -172,15 +178,18 @@ public class KernelSGDTest
 
         KernelSGD result = instance.clone();
         
-        for (int i = 0; i < t1.getSampleSize(); i++)
-            assertEquals(t1.getDataPointCategory(i), result.classify(t1.getDataPoint(i)).mostLikely());
+        for (int i = 0; i < t1.getSampleSize(); i++) {
+          assertEquals(t1.getDataPointCategory(i), result.classify(t1.getDataPoint(i)).mostLikely());
+        }
         result.trainC(t2);
 
-        for (int i = 0; i < t1.getSampleSize(); i++)
-            assertEquals(t1.getDataPointCategory(i), instance.classify(t1.getDataPoint(i)).mostLikely());
+        for (int i = 0; i < t1.getSampleSize(); i++) {
+          assertEquals(t1.getDataPointCategory(i), instance.classify(t1.getDataPoint(i)).mostLikely());
+        }
 
-        for (int i = 0; i < t2.getSampleSize(); i++)
-            assertEquals(t2.getDataPointCategory(i), result.classify(t2.getDataPoint(i)).mostLikely());
+        for (int i = 0; i < t2.getSampleSize(); i++) {
+          assertEquals(t2.getDataPointCategory(i), result.classify(t2.getDataPoint(i)).mostLikely());
+        }
 
     }
 

@@ -33,8 +33,9 @@ public abstract class Stemmer implements Serializable
      */
     public void applyTo(List<String> list)
     {
-        for(int i = 0; i < list.size(); i++)
-            list.set(i, stem(list.get(i)));
+        for(int i = 0; i < list.size(); i++) {
+          list.set(i, stem(list.get(i)));
+        }
     }
     
     /**
@@ -43,7 +44,8 @@ public abstract class Stemmer implements Serializable
      */
     public void applyTo(String[] arr)
     {
-        for(int i = 0; i < arr.length; i++)
-            arr[i] = stem(arr[i]);
+        for(int i = 0; i < arr.length; i++) {
+          arr[i] = stem(arr[i]);
+        }
     }
 }

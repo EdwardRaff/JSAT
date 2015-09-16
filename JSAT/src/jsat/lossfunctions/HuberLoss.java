@@ -44,10 +44,11 @@ public class HuberLoss implements LossR
     public static double loss(double pred, double y, double c)
     {
         final double x = y - pred;
-        if (Math.abs(x) <= c)
-            return x * x * 0.5;
-        else
-            return c * (Math.abs(x) - c / 2);
+        if (Math.abs(x) <= c) {
+          return x * x * 0.5;
+        } else {
+          return c * (Math.abs(x) - c / 2);
+        }
     }
 
     /**
@@ -62,10 +63,11 @@ public class HuberLoss implements LossR
     {
         double x = pred-y;
 
-        if (Math.abs(x) <= c)
-            return x;
-        else
-            return c * Math.signum(x);
+        if (Math.abs(x) <= c) {
+          return x;
+        } else {
+          return c * Math.signum(x);
+        }
     }
 
     /**
@@ -79,10 +81,11 @@ public class HuberLoss implements LossR
      */
     public static double deriv2(double pred, double y, double c)
     {
-        if (Math.abs(pred-y) < c)
-            return 1;
-        else
-            return 0;
+        if (Math.abs(pred-y) < c) {
+          return 1;
+        } else {
+          return 0;
+        }
     }
 
     public static double regress(double score)

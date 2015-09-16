@@ -50,20 +50,23 @@ public class SoSCentroidDistance implements IntraClusterEvaluation
         Vec mean = new DenseVector(dataSet.getNumNumericalVars());
         
         int clusterSize = 0;
-        for(int i = 0; i < dataSet.getSampleSize(); i++)
-            if(designations[i] == clusterID)
-            {
-                clusterSize++;
-                mean.mutableAdd(dataSet.getDataPoint(i).getNumericalValues());
-            }
+        for(int i = 0; i < dataSet.getSampleSize(); i++) {
+          if(designations[i] == clusterID)
+          {
+            clusterSize++;
+            mean.mutableAdd(dataSet.getDataPoint(i).getNumericalValues());
+          }
+        }
         mean.mutableDivide(clusterSize);
         
         
         double score = 0.0;
         
-        for(int i = 0; i < dataSet.getSampleSize(); i++)
-            if(designations[i] == clusterID)
-                score += Math.pow(dm.dist(dataSet.getDataPoint(i).getNumericalValues(), mean), 2);
+        for(int i = 0; i < dataSet.getSampleSize(); i++) {
+          if (designations[i] == clusterID) {
+            score += Math.pow(dm.dist(dataSet.getDataPoint(i).getNumericalValues(), mean), 2);
+          }
+        }
         
         return score;
     }
@@ -71,13 +74,15 @@ public class SoSCentroidDistance implements IntraClusterEvaluation
     @Override
     public double evaluate(List<DataPoint> dataPoints)
     {
-        if(dataPoints.isEmpty())
-            return 0;
+        if(dataPoints.isEmpty()) {
+          return 0;
+        }
         Vec mean = MatrixStatistics.meanVector(new SimpleDataSet(dataPoints));
         
         double score = 0.0;
-        for(DataPoint dp : dataPoints)
-            score += Math.pow(dm.dist(dp.getNumericalValues(), mean), 2);
+        for(DataPoint dp : dataPoints) {
+          score += Math.pow(dm.dist(dp.getNumericalValues(), mean), 2);
+        }
         
         return score;
     }

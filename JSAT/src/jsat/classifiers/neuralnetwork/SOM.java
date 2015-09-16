@@ -117,8 +117,9 @@ public class SOM implements Classifier, Parameterized
      */
     public void setMaxIterations(int maxIters)
     {
-        if(maxIters < 1)
-            throw new ArithmeticException("At least one iteration must be performed");
+        if(maxIters < 1) {
+          throw new ArithmeticException("At least one iteration must be performed");
+        }
         this.maxIters = maxIters;
     }
 
@@ -137,8 +138,9 @@ public class SOM implements Classifier, Parameterized
      */
     public void setSomWidth(int somWidth)
     {
-        if(somWidth < 1)
-            throw new ArithmeticException("Lattice width must be positive, not " + somWidth);
+        if(somWidth < 1) {
+          throw new ArithmeticException("Lattice width must be positive, not " + somWidth);
+        }
         this.somWidth = somWidth;
     }
 
@@ -148,8 +150,9 @@ public class SOM implements Classifier, Parameterized
      */
     public void setSomHeight(int somHeight)
     {
-        if(somHeight < 1)
-            throw new ArithmeticException("ALttice height must be positive, not " + somHeight);
+        if(somHeight < 1) {
+          throw new ArithmeticException("ALttice height must be positive, not " + somHeight);
+        }
         this.somHeight = somHeight;
     }
 
@@ -179,8 +182,9 @@ public class SOM implements Classifier, Parameterized
      */
     public void setInitialLearningRate(double initialLearningRate)
     {
-        if(Double.isInfinite(initialLearningRate) || Double.isNaN(initialLearningRate) || initialLearningRate <= 0)
-            throw new ArithmeticException("Learning rate must be a positive constant, not " + initialLearningRate);
+        if(Double.isInfinite(initialLearningRate) || Double.isNaN(initialLearningRate) || initialLearningRate <= 0) {
+          throw new ArithmeticException("Learning rate must be a positive constant, not " + initialLearningRate);
+        }
         this.initialLearningRate = initialLearningRate;
     }
 
@@ -200,8 +204,9 @@ public class SOM implements Classifier, Parameterized
      */
     public void setLearningDecay(DecayRate learningDecay)
     {
-        if(learningDecay == null)
-            throw new NullPointerException("Can not set a decay rate to null");
+        if(learningDecay == null) {
+          throw new NullPointerException("Can not set a decay rate to null");
+        }
         this.learningDecay = learningDecay;
     }
 
@@ -223,8 +228,9 @@ public class SOM implements Classifier, Parameterized
      */
     public void setNeighborDecay(DecayRate neighborDecay)
     {
-        if(neighborDecay == null)
-            throw new NullPointerException("Can not set a decay rate to null");
+        if(neighborDecay == null) {
+          throw new NullPointerException("Can not set a decay rate to null");
+        }
         this.neighborDecay = neighborDecay;
     }
 
@@ -248,9 +254,11 @@ public class SOM implements Classifier, Parameterized
     private double intitalizeWeights(int D)
     {
         //TODO random intialization is theoretical interesting, but technically slower. Faster intializations exist
-        for(int i = 0; i < somHeight; i++)
-            for(int j = 0; j < somWidth; j++)
-                weights[i][j] = DenseVector.random(D);
+        for(int i = 0; i < somHeight; i++) {
+          for (int j = 0; j < somWidth; j++) {
+            weights[i][j] = DenseVector.random(D);
+          }
+        }
         return max(somWidth, somHeight);
     }
 
@@ -281,10 +289,11 @@ public class SOM implements Classifier, Parameterized
                 {
                     double distWeight = kf.k(sqrt(pointDistSqrd)/nbrRange);
                     Vec weights_xy = weights_x[y];
-                    if(execServ == null)
-                        updateWeight(input_i, scratch, weights_xy, distWeight*learnRate);
-                    else
-                        weightUpdates.get(x).get(y).add(dataSet.getDataPoint(i));
+                    if(execServ == null) {
+                      updateWeight(input_i, scratch, weights_xy, distWeight*learnRate);
+                    } else {
+                      weightUpdates.get(x).get(y).add(dataSet.getDataPoint(i));
+                    }
                 }
             }
                 
@@ -294,13 +303,16 @@ public class SOM implements Classifier, Parameterized
     private List<VecPaired<Vec, Integer>> setUpVectorCollection(ExecutorService threadPool)
     {
         List<VecPaired<Vec, Integer>> vecList = new ArrayList<VecPaired<Vec, Integer>>(somWidth*somHeight);
-        for(int i = 0; i < weights.length; i++)
-            for(int j = 0; j < weights[i].length; j++)
-                vecList.add(new VecPaired<Vec, Integer>(weights[i][j], vecList.size()));
-        if(threadPool == null)
-            vcCollection = vcFactory.getVectorCollection(vecList, dm);
-        else
-            vcCollection = vcFactory.getVectorCollection(vecList, dm, threadPool);
+        for(int i = 0; i < weights.length; i++) {
+          for (int j = 0; j < weights[i].length; j++) {
+            vecList.add(new VecPaired<Vec, Integer>(weights[i][j], vecList.size()));
+          }
+        }
+        if(threadPool == null) {
+          vcCollection = vcFactory.getVectorCollection(vecList, dm);
+        } else {
+          vcCollection = vcFactory.getVectorCollection(vecList, dm, threadPool);
+        }
         return vecList;
     }
 
@@ -364,8 +376,9 @@ public class SOM implements Classifier, Parameterized
          * this array is used to access the data in a random order to improve convergence
          */
         final int[] pointAccessOrder = new int[dataSet.getSampleSize()];
-        for(int i = 0; i < pointAccessOrder.length; i++)
-            pointAccessOrder[i] = i;
+        for(int i = 0; i < pointAccessOrder.length; i++) {
+          pointAccessOrder[i] = i;
+        }
         
         final ThreadLocal<Vec> localScratch1;
         final ThreadLocal<Vec> localScratch2;
@@ -401,8 +414,9 @@ public class SOM implements Classifier, Parameterized
                 }
             };
         }
-        else
-            localScratch2 = localScratch1 = null;
+        else {
+          localScratch2 = localScratch1 = null;
+        }
         
         for(int iter = 0; iter < maxIters; iter++)
         {
@@ -412,24 +426,26 @@ public class SOM implements Classifier, Parameterized
             final double learnRate = learningDecay.rate(iter, maxIters, initialLearningRate);
             
             //Set up before data loop. Shuffle for better convergence if single threaded, create result queus for paralllel collection
-            if(execServ == null)
-                ArrayUtils.shuffle(pointAccessOrder, rand);
-            else//Prep parallel structures
+            if(execServ == null) {
+              ArrayUtils.shuffle(pointAccessOrder, rand);
+            } else//Prep parallel structures
             {
-                for(int i = 0; i < somHeight; i++)
-                    for(int j = 0; j < somWidth; j++)
-                        weightUpdates.get(i).get(j).clear();
+                for(int i = 0; i < somHeight; i++) {
+                for (int j = 0; j < somWidth; j++) {
+                  weightUpdates.get(i).get(j).clear();
+                }
+              }
             }
             
             
             
             //Performe main loop over all data points
-            if(execServ == null)
-                for(int ir = 0; ir <pointAccessOrder.length; ir++)
-                {
-                    iterationStep(execServ, pointAccessOrder[ir], dataSet, nbrRange, nbrRangeSqrd, scratch, learnRate);
-                }
-            else//parallel 
+            if(execServ == null) {
+              for(int ir = 0; ir <pointAccessOrder.length; ir++)
+              {
+                iterationStep(execServ, pointAccessOrder[ir], dataSet, nbrRange, nbrRangeSqrd, scratch, learnRate);
+              }
+            } else//parallel 
             {
                 int pos = 0;
                 final int size = dataSet.getSampleSize() / SystemInfo.LogicalCores;
@@ -446,8 +462,9 @@ public class SOM implements Classifier, Parameterized
                         @Override
                         public void run()
                         {
-                            for(int i = start; i < to; i++)
-                                iterationStep(execServ, i, dataSet, nbrRange, nbrRangeSqrd, localScratch1.get(), learnRate);
+                            for(int i = start; i < to; i++) {
+                              iterationStep(execServ, i, dataSet, nbrRange, nbrRangeSqrd, localScratch1.get(), learnRate);
+                    }
                             cdl.countDown();
                         }
                     });
@@ -460,35 +477,36 @@ public class SOM implements Classifier, Parameterized
             if(execServ != null)//Apply changes 
             {
                 final CountDownLatch cdl = new CountDownLatch(somHeight*somWidth);
-                for(int i = 0; i < somHeight; i++)
-                    for(int j = 0; j < somWidth; j++)
-                    {
-                        final List<DataPoint> dataList = weightUpdates.get(i).get(j);
-                        final int x = i, y = j;
-
-                        execServ.submit(new Runnable() {
-
-                            @Override
-                            public void run()
-                            {
-                                Vec mean = localScratch1.get();
-                                mean.zeroOut();
-
-                                double denom = 0.0;
-                                for(DataPoint dp : dataList)
-                                {
-                                    denom += dp.getWeight();
-                                    mean.mutableAdd(dp.getWeight(), dp.getNumericalValues());
-                                }
-
-                                mean.mutableDivide(denom);
-
-                                updateWeight(mean, localScratch2.get(), weights[x][y], learnRate);
-                                
-                                cdl.countDown();
-                            }
-                        });
-                    }
+                for(int i = 0; i < somHeight; i++) {
+                  for(int j = 0; j < somWidth; j++)
+                  {
+                    final List<DataPoint> dataList = weightUpdates.get(i).get(j);
+                    final int x = i, y = j;
+                    
+                    execServ.submit(new Runnable() {
+                      
+                      @Override
+                      public void run()
+                      {
+                        Vec mean = localScratch1.get();
+                        mean.zeroOut();
+                        
+                        double denom = 0.0;
+                        for(DataPoint dp : dataList)
+                        {
+                          denom += dp.getWeight();
+                          mean.mutableAdd(dp.getWeight(), dp.getNumericalValues());
+                        }
+                        
+                        mean.mutableDivide(denom);
+                        
+                        updateWeight(mean, localScratch2.get(), weights[x][y], learnRate);
+                        
+                        cdl.countDown();
+                      }
+                    });
+                  }
+                }
                 cdl.await();
             }
         }
@@ -497,8 +515,9 @@ public class SOM implements Classifier, Parameterized
     @Override
     public CategoricalResults classify(DataPoint data)
     {
-        if(crWeightPairs == null)
-            throw new UntrainedModelException();
+        if(crWeightPairs == null) {
+          throw new UntrainedModelException();
+        }
         return crWeightPairs[vcCollection.search(data.getNumericalValues(), 1).get(0).getVector().getPair()];
     }
 
@@ -511,8 +530,9 @@ public class SOM implements Classifier, Parameterized
             List<VecPaired<Vec, Integer>> vecList = setUpVectorCollection(threadPool);
             crWeightPairs = new CategoricalResults[vecList.size()];
 
-            for(int i = 0; i < crWeightPairs.length; i++)
-                crWeightPairs[i] = new CategoricalResults(dataSet.getClassSize());
+            for(int i = 0; i < crWeightPairs.length; i++) {
+              crWeightPairs[i] = new CategoricalResults(dataSet.getClassSize());
+            }
 
             for(int i = 0; i < dataSet.getSampleSize(); i++)
             {
@@ -526,8 +546,9 @@ public class SOM implements Classifier, Parameterized
                 crWeightPairs[index].incProb(dataSet.getDataPointCategory(i), dp.getWeight());
             }
 
-            for(int i = 0; i < crWeightPairs.length; i++)
-                crWeightPairs[i].normalize();
+            for(int i = 0; i < crWeightPairs.length; i++) {
+              crWeightPairs[i].normalize();
+            }
         }
         catch (InterruptedException ex)
         {
@@ -556,17 +577,21 @@ public class SOM implements Classifier, Parameterized
         if(this.weights != null)
         {
             clone.weights = new Vec[this.weights.length][this.weights[0].length];
-            for(int i = 0; i < this.weights.length; i++)
-                for(int j = 0; j < this.weights[i].length; j++)
-                    clone.weights[i][j] = this.weights[i][j].clone();
+            for(int i = 0; i < this.weights.length; i++) {
+              for (int j = 0; j < this.weights[i].length; j++) {
+                clone.weights[i][j] = this.weights[i][j].clone();
+              }
+            }
         }
-        if(this.vcCollection != null)
-            clone.vcCollection = this.vcCollection.clone();
+        if(this.vcCollection != null) {
+          clone.vcCollection = this.vcCollection.clone();
+        }
         if(this.crWeightPairs != null)
         {
             clone.crWeightPairs = new CategoricalResults[this.crWeightPairs.length];
-            for(int i = 0; i < this.crWeightPairs.length; i++)
-                clone.crWeightPairs[i] = this.crWeightPairs[i].clone();
+            for(int i = 0; i < this.crWeightPairs.length; i++) {
+              clone.crWeightPairs[i] = this.crWeightPairs[i].clone();
+            }
         }
         return clone;
     }

@@ -30,8 +30,9 @@ public class TreeBarrier
     {
         this.parties = parties;
         locks = new Lock[parties-1];
-        for(int i = 0; i < locks.length; i++)
-            locks[i] = new ReentrantLock(false);
+        for(int i = 0; i < locks.length; i++) {
+          locks[i] = new ReentrantLock(false);
+        }
         competitionCondition = true;
     }
     
@@ -44,8 +45,9 @@ public class TreeBarrier
      */
     public void await(int ID) throws InterruptedException
     {
-        if(parties == 1)//what are you doing?!
-            return;
+        if(parties == 1) {//what are you doing?!
+          return;
+        }
         final boolean startCondition = competitionCondition;
         int competingFor = (locks.length*2-1-ID)/2;
         
@@ -56,8 +58,9 @@ public class TreeBarrier
             {
                 synchronized (node)//ignore warning, its correct. We are using the lock both for competition AND to do an internal wait
                 {
-                    while(competitionCondition == startCondition)
-                        node.wait();
+                    while(competitionCondition == startCondition) {
+                      node.wait();
+                    }
                 }
                 node.unlock();
                 
@@ -67,8 +70,9 @@ public class TreeBarrier
             }
             else //we win, comete for another round!
             {
-                if(competingFor == 0)
-                    break;//we have won the last round!
+                if(competingFor == 0) {
+                  break;//we have won the last round!
+                }
                 competingFor = (competingFor-1)/2;
             }
         }

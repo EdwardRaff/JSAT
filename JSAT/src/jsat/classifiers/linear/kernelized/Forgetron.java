@@ -103,12 +103,15 @@ public class Forgetron extends BaseUpdateableClassifier implements BinaryScoreCl
         if(toClone.I != null)
         {
             this.I = new Vec[toClone.I.length];
-            for(int i = 0; i < toClone.I.length; i++)
-                if(toClone.I[i] != null)
-                    this.I[i] = toClone.I[i].clone();
+            for(int i = 0; i < toClone.I.length; i++) {
+              if (toClone.I[i] != null) {
+                this.I[i] = toClone.I[i].clone();
+              }
+            }
         }
-        if(toClone.s != null)
-            this.s = Arrays.copyOf(toClone.s, toClone.s.length);
+        if(toClone.s != null) {
+          this.s = Arrays.copyOf(toClone.s, toClone.s.length);
+        }
     }
 
     /**
@@ -169,8 +172,9 @@ public class Forgetron extends BaseUpdateableClassifier implements BinaryScoreCl
     private double classify(Vec x)
     {
         double r = 0;
-        for(int i = 0; i < size; i++)
-            r += s[i]*K.eval(I[i], x);
+        for(int i = 0; i < size; i++) {
+          r += s[i]*K.eval(I[i], x);
+        }
         return r;
     }
 
@@ -189,10 +193,11 @@ public class Forgetron extends BaseUpdateableClassifier implements BinaryScoreCl
     @Override
     public void setUp(CategoricalData[] categoricalAttributes, int numericAttributes, CategoricalData predicting)
     {
-        if(predicting.getNumOfCategories() != 2)
-            throw new FailedToFitException("Forgetron only supports binary classification");
-        else if(numericAttributes == 0)
-            throw new FailedToFitException("Forgetron requires numeric attributes");
+        if(predicting.getNumOfCategories() != 2) {
+          throw new FailedToFitException("Forgetron only supports binary classification");
+        } else if(numericAttributes == 0) {
+          throw new FailedToFitException("Forgetron requires numeric attributes");
+        }
         I = new Vec[budget];
         s = new double[budget];
         Q = M = 0;
@@ -251,12 +256,13 @@ public class Forgetron extends BaseUpdateableClassifier implements BinaryScoreCl
 
                     //equations (43)
                     double phi_t;
-                    if ((a > 0 || (a < 0 && d > 0 && (-b - sqrt(d)) / (2 * a) > 1)))
-                        phi_t = min(1, (-b + sqrt(d)) / (2 * a));
-                    else if (a == 0)
-                        phi_t = min(1, -c / b);
-                    else
-                        phi_t = 1;
+                    if ((a > 0 || (a < 0 && d > 0 && (-b - sqrt(d)) / (2 * a) > 1))) {
+                      phi_t = min(1, (-b + sqrt(d)) / (2 * a));
+                    } else if (a == 0) {
+                      phi_t = min(1, -c / b);
+                    } else {
+                      phi_t = 1;
+                    }
 
 
                     double fpp_t_r = phi_t * fp_t;
@@ -264,9 +270,11 @@ public class Forgetron extends BaseUpdateableClassifier implements BinaryScoreCl
 
                     I[curPos] = x;
                     s[curPos] = y_t;
-                    if (phi_t != 1)
-                        for (int i = 0; i < s.length; i++)
-                            s[i] *= phi_t;
+                    if (phi_t != 1) {
+                      for (int i = 0; i < s.length; i++) {
+                        s[i] *= phi_t;
+                      }
+                    }
 
                 }
             }
@@ -276,18 +284,21 @@ public class Forgetron extends BaseUpdateableClassifier implements BinaryScoreCl
                 double ff = 1;//for the added term that makes us remove one. 
                 if(size > 0)
                 {
-                    for (int i = 0; i < size; i++)
-                        ff += pow(s[i], 2) * K.eval(I[i], I[i]);
+                    for (int i = 0; i < size; i++) {
+                      ff += pow(s[i], 2) * K.eval(I[i], I[i]);
+                    }
                 }
                 double fNorm = sqrt(ff);//obtained from after equation 2
                 double phi = min(Bconst, U/fNorm);
                 
                 I[curPos] = x;
                 s[curPos] = y_t;
-                if(size < budget)
-                    size++;
-                for(int i = 0; i < size; i++)
-                    s[i] *= phi;
+                if(size < budget) {
+                  size++;
+                }
+                for(int i = 0; i < size; i++) {
+                  s[i] *= phi;
+                }
             }
 
             curPos = (curPos + 1) % I.length;

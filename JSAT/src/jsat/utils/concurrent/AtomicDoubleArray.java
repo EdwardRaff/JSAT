@@ -26,8 +26,9 @@ public class AtomicDoubleArray implements Serializable
     {
         larray = new AtomicLongArray(length);
         long ZERO = Double.doubleToRawLongBits(0.0);
-        for(int i = 0; i < length; i++)
-            larray.set(i, ZERO);
+        for(int i = 0; i < length; i++) {
+          larray.set(i, ZERO);
+        }
     }
     /**
      * Creates a new AtomixDouble Array that is of the same length
@@ -38,8 +39,9 @@ public class AtomicDoubleArray implements Serializable
     public AtomicDoubleArray(double[] array)
     {
         this(array.length);
-        for(int i = 0; i < array.length; i++)
-            set(i, array[i]);
+        for(int i = 0; i < array.length; i++) {
+          set(i, array[i]);
+        }
     }
     
     /**
@@ -77,8 +79,9 @@ public class AtomicDoubleArray implements Serializable
         {
             double orig = get(i);
             double newVal = orig + delta;
-            if(compareAndSet(i, orig, newVal))
-                return orig;
+            if(compareAndSet(i, orig, newVal)) {
+              return orig;
+            }
         }
     }
     
@@ -95,8 +98,9 @@ public class AtomicDoubleArray implements Serializable
         {
             double orig = get(i);
             double newVal = orig + delta;
-            if(compareAndSet(i, orig, newVal))
-                return newVal;
+            if(compareAndSet(i, orig, newVal)) {
+              return newVal;
+            }
         }
     }
 

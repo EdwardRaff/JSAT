@@ -70,9 +70,11 @@ public class MahalanobisDistanceTest
         trueCov = new DenseMatrix(5, 5);
         
         Random rand = new XORWOW();
-        for(int i = 0; i < trueCov.rows(); i++)
-            for(int j = 0; j < trueCov.cols(); j++)
-                trueCov.set(i, j, rand.nextDouble());
+        for(int i = 0; i < trueCov.rows(); i++) {
+          for (int j = 0; j < trueCov.cols(); j++) {
+            trueCov.set(i, j, rand.nextDouble());
+          }
+        }
         trueCov = trueCov.multiplyTranspose(trueCov);//guaranteed Positive Semi Definite now
         
         zero = new DenseVector(5);
@@ -84,8 +86,9 @@ public class MahalanobisDistanceTest
         half.mutableAdd(0.5);
         
         inc = new DenseVector(5);
-        for(int i = 0; i < inc.length(); i++)
-            inc.set(i, i);
+        for(int i = 0; i < inc.length(); i++) {
+          inc.set(i, i);
+        }
         
         vecs = Arrays.asList(zero, ones, half, inc);
         Matrix trueInv = new SingularValueDecomposition(trueCov.clone()).getPseudoInverse();
@@ -122,8 +125,9 @@ public class MahalanobisDistanceTest
         if(cache != null)
         {
             assertEquals(cache.size(), cache2.size());
-            for(int i = 0; i < cache.size(); i++)
-                assertEquals(cache.get(i), cache2.get(i), 0.0);
+            for(int i = 0; i < cache.size(); i++) {
+              assertEquals(cache.get(i), cache2.get(i), 0.0);
+            }
             assertTrue(dist.supportsAcceleration());
         }
         else
@@ -142,15 +146,16 @@ public class MahalanobisDistanceTest
 
         }
         
-        for (int i = 0; i < vecs.size(); i++)
-            for (int j = 0; j < vecs.size(); j++)
-            {
-                MahalanobisDistance d = dist.clone();
-                assertEqualsRelDiff(expected[i][j], d.dist(vecs.get(i), vecs.get(j)), 1e-1);
-                assertEqualsRelDiff(expected[i][j], d.dist(i, j, vecs, cache), 1e-1);
-                assertEqualsRelDiff(expected[i][j], d.dist(i, vecs.get(j), vecs, cache), 1e-1);
-                assertEqualsRelDiff(expected[i][j], d.dist(i, vecs.get(j), dist.getQueryInfo(vecs.get(j)), vecs, cache), 1e-1);
-            }
+        for (int i = 0; i < vecs.size(); i++) {
+          for (int j = 0; j < vecs.size(); j++)
+          {
+            MahalanobisDistance d = dist.clone();
+            assertEqualsRelDiff(expected[i][j], d.dist(vecs.get(i), vecs.get(j)), 1e-1);
+            assertEqualsRelDiff(expected[i][j], d.dist(i, j, vecs, cache), 1e-1);
+            assertEqualsRelDiff(expected[i][j], d.dist(i, vecs.get(j), vecs, cache), 1e-1);
+            assertEqualsRelDiff(expected[i][j], d.dist(i, vecs.get(j), dist.getQueryInfo(vecs.get(j)), vecs, cache), 1e-1);
+          }
+        }
     }
     
     @Test
@@ -167,8 +172,9 @@ public class MahalanobisDistanceTest
         if(cache != null)
         {
             assertEquals(cache.size(), cache2.size());
-            for(int i = 0; i < cache.size(); i++)
-                assertEquals(cache.get(i), cache2.get(i), 0.0);
+            for(int i = 0; i < cache.size(); i++) {
+              assertEquals(cache.get(i), cache2.get(i), 0.0);
+            }
             assertTrue(dist.supportsAcceleration());
         }
         else
@@ -187,15 +193,16 @@ public class MahalanobisDistanceTest
 
         }
         
-        for (int i = 0; i < vecs.size(); i++)
-            for (int j = 0; j < vecs.size(); j++)
-            {
-                MahalanobisDistance d = dist.clone();
-                assertEqualsRelDiff(expected[i][j], d.dist(vecs.get(i), vecs.get(j)), 1e-1);
-                assertEqualsRelDiff(expected[i][j], d.dist(i, j, vecs, cache), 1e-1);
-                assertEqualsRelDiff(expected[i][j], d.dist(i, vecs.get(j), vecs, cache), 1e-1);
-                assertEqualsRelDiff(expected[i][j], d.dist(i, vecs.get(j), dist.getQueryInfo(vecs.get(j)), vecs, cache), 1e-1);
-            }
+        for (int i = 0; i < vecs.size(); i++) {
+          for (int j = 0; j < vecs.size(); j++)
+          {
+            MahalanobisDistance d = dist.clone();
+            assertEqualsRelDiff(expected[i][j], d.dist(vecs.get(i), vecs.get(j)), 1e-1);
+            assertEqualsRelDiff(expected[i][j], d.dist(i, j, vecs, cache), 1e-1);
+            assertEqualsRelDiff(expected[i][j], d.dist(i, vecs.get(j), vecs, cache), 1e-1);
+            assertEqualsRelDiff(expected[i][j], d.dist(i, vecs.get(j), dist.getQueryInfo(vecs.get(j)), vecs, cache), 1e-1);
+          }
+        }
     }
     @Test
     public void testMetricProperties()

@@ -63,8 +63,9 @@ public class RandomProjectionLSHTest
         for(int i = 0; i < 100; i++)
         {
             DenseVector dv = new DenseVector(20);
-            for(int j = 0; j < dv.length(); j++)
-                dv.set(j, rand.nextGaussian());
+            for(int j = 0; j < dv.length(); j++) {
+              dv.set(j, rand.nextGaussian());
+            }
             dv.normalize();
             normalVecs.add(new VecPaired<Vec, Integer>(dv, i));
         }
@@ -75,8 +76,9 @@ public class RandomProjectionLSHTest
         RandomProjectionLSH<VecPaired<Vec, Integer>> rpVC = new RandomProjectionLSH<VecPaired<Vec, Integer>>(normalVecs, 16, true);
         
         OnLineStatistics knnStats = new OnLineStatistics();
-        for(Vec v : normalVecs)
-            knnStats.add(naiveVC.search(v, 11).get(10).getPair());//first nn is itselft
+        for(Vec v : normalVecs) {
+          knnStats.add(naiveVC.search(v, 11).get(10).getPair());//first nn is itselft
+        }
         
         double searchDist = knnStats.getMean()+knnStats.getStandardDeviation()*2;
         Set<Integer> inTruth = new IntSet();
@@ -87,12 +89,15 @@ public class RandomProjectionLSHTest
             List<? extends VecPaired<VecPaired<Vec, Integer>, Double>> aprxResults = rpVC.search(v, searchDist);
             
             inTruth.clear();
-            for(VecPaired<VecPaired<Vec, Integer>,Double> vp : trueResults)
-                inTruth.add(vp.getVector().getPair());
+            for(VecPaired<VecPaired<Vec, Integer>,Double> vp : trueResults) {
+              inTruth.add(vp.getVector().getPair());
+            }
             int contained = 0;
-            for(VecPaired<VecPaired<Vec, Integer>,Double> vp : aprxResults)
-                if(inTruth.contains(vp.getVector().getPair()))
-                    contained++;
+            for(VecPaired<VecPaired<Vec, Integer>,Double> vp : aprxResults) {
+              if (inTruth.contains(vp.getVector().getPair())) {
+                contained++;
+              }
+            }
             
             //Recall must be at least 0.5, should be an easy target
             assertTrue(contained >= inTruth.size()/2);
@@ -112,8 +117,9 @@ public class RandomProjectionLSHTest
         for(int i = 0; i < 100; i++)
         {
             DenseVector dv = new DenseVector(20);
-            for(int j = 0; j < dv.length(); j++)
-                dv.set(j, rand.nextGaussian());
+            for(int j = 0; j < dv.length(); j++) {
+              dv.set(j, rand.nextGaussian());
+            }
             dv.normalize();
             normalVecs.add(new VecPaired<Vec, Integer>(dv, i));
         }
@@ -131,12 +137,15 @@ public class RandomProjectionLSHTest
             List<? extends VecPaired<VecPaired<Vec, Integer>, Double>> aprxResults = rpVC.search(v, 15);
             
             inTruth.clear();
-            for(VecPaired<VecPaired<Vec, Integer>,Double> vp : trueResults)
-                inTruth.add(vp.getVector().getPair());
+            for(VecPaired<VecPaired<Vec, Integer>,Double> vp : trueResults) {
+              inTruth.add(vp.getVector().getPair());
+            }
             int contained = 0;
-            for(VecPaired<VecPaired<Vec, Integer>,Double> vp : aprxResults)
-                if(inTruth.contains(vp.getVector().getPair()))
-                    contained++;
+            for(VecPaired<VecPaired<Vec, Integer>,Double> vp : aprxResults) {
+              if (inTruth.contains(vp.getVector().getPair())) {
+                contained++;
+              }
+            }
             
             //Recall must be at least 0.5, should be an easy target
             assertTrue(contained >= inTruth.size()/2);

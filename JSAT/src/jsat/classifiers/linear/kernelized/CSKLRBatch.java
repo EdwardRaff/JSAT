@@ -131,8 +131,9 @@ public class CSKLRBatch extends SupportVectorLearner implements Parameterized, C
      */
     public void setEta(double eta)
     {
-        if(eta < 0 || Double.isNaN(eta) || Double.isInfinite(eta))
-            throw new IllegalArgumentException("The learning rate should be in (0, Inf), not " + eta);
+        if(eta < 0 || Double.isNaN(eta) || Double.isInfinite(eta)) {
+          throw new IllegalArgumentException("The learning rate should be in (0, Inf), not " + eta);
+        }
         this.eta = eta;
     }
 
@@ -156,8 +157,9 @@ public class CSKLRBatch extends SupportVectorLearner implements Parameterized, C
      */
     public void setR(double R)
     {
-        if(R < 0 || Double.isNaN(R) || Double.isInfinite(R))
-            throw new IllegalArgumentException("The max norm should be in (0, Inf), not " + R);
+        if(R < 0 || Double.isNaN(R) || Double.isInfinite(R)) {
+          throw new IllegalArgumentException("The max norm should be in (0, Inf), not " + R);
+        }
         this.R = R;
     }
 
@@ -196,8 +198,9 @@ public class CSKLRBatch extends SupportVectorLearner implements Parameterized, C
      */
     public void setGamma(double gamma)
     {
-        if(gamma < 0 || Double.isNaN(gamma) || Double.isInfinite(gamma))
-            throw new IllegalArgumentException("Gamma must be in (0, Infity), not " + gamma);
+        if(gamma < 0 || Double.isNaN(gamma) || Double.isInfinite(gamma)) {
+          throw new IllegalArgumentException("Gamma must be in (0, Infity), not " + gamma);
+        }
         this.gamma = gamma;
     }
 
@@ -256,15 +259,17 @@ public class CSKLRBatch extends SupportVectorLearner implements Parameterized, C
     @Override
     public void trainC(ClassificationDataSet dataSet)
     {
-        if(dataSet.getClassSize() != 2)
-            throw new FailedToFitException("CSKLR supports only binary classification");
-        //First we need to set up the vectors array
+        if(dataSet.getClassSize() != 2) {
+          throw new FailedToFitException("CSKLR supports only binary classification");
+          //First we need to set up the vectors array
+        }
 
         final int N = dataSet.getSampleSize();
         vecs = new ArrayList<Vec>(N);
         alphas = new double[N];
-        for(int i = 0; i < N; i++)
-            vecs.add(dataSet.getDataPoint(i).getNumericalValues());
+        for(int i = 0; i < N; i++) {
+          vecs.add(dataSet.getDataPoint(i).getNumericalValues());
+        }
         
         curNorm = 0;
         T = 0;
@@ -293,8 +298,9 @@ public class CSKLRBatch extends SupportVectorLearner implements Parameterized, C
                         break;
                     default:
                         double pt = mode.pt(y_t, score, pre, eta, gamma);
-                        if(rand.nextDouble() > pt)
-                            continue;
+                        if(rand.nextDouble() > pt) {
+                          continue;
+                }
                      break;   
                 }
 
@@ -309,8 +315,9 @@ public class CSKLRBatch extends SupportVectorLearner implements Parameterized, C
                 if(curNorm > R)
                 {
                     double coef = R/curNorm;
-                    for(int j = 0; j < alphas.length; j++)
-                        alphas[j] *= coef;
+                    for(int j = 0; j < alphas.length; j++) {
+                      alphas[j] *= coef;
+                    }
                     curNorm = coef;
                 }
             }
@@ -318,12 +325,13 @@ public class CSKLRBatch extends SupportVectorLearner implements Parameterized, C
         }
         
         int supportVectorCount = 0;
-        for(int i = 0; i < N; i++)
-            if(alphas[i] > 0 || alphas[i] < 0)//Its a support vector
-            {
-                ListUtils.swap(vecs, supportVectorCount, i);
-                alphas[supportVectorCount++] = alphas[i];
-            }
+        for(int i = 0; i < N; i++) {
+          if(alphas[i] > 0 || alphas[i] < 0)//Its a support vector
+          {
+            ListUtils.swap(vecs, supportVectorCount, i);
+            alphas[supportVectorCount++] = alphas[i];
+          }
+        }
         vecs = new ArrayList<Vec>(vecs.subList(0, supportVectorCount));
         alphas = Arrays.copyOfRange(alphas, 0, supportVectorCount);
         

@@ -46,9 +46,11 @@ public class Dirichlet extends MultivariateDistributionSkeleton
     public void setAlphas(Vec alphas) throws ArithmeticException
     {
         double tmp;
-        for(int i = 0; i < alphas.length(); i++)
-            if( (tmp = alphas.get(i)) <= 0 || Double.isNaN(tmp) || Double.isInfinite(tmp))
-                throw new ArithmeticException("Dirichlet Distribution parameters must be positive, " + tmp + " is invalid");
+        for(int i = 0; i < alphas.length(); i++) {
+          if ((tmp = alphas.get(i)) <= 0 || Double.isNaN(tmp) || Double.isInfinite(tmp)) {
+            throw new ArithmeticException("Dirichlet Distribution parameters must be positive, " + tmp + " is invalid");
+          }
+        }
         this.alphas = alphas.clone();
     }
 
@@ -70,22 +72,25 @@ public class Dirichlet extends MultivariateDistributionSkeleton
     @Override
     public double logPdf(Vec x)
     {
-         if(x.length() != alphas.length())
-                throw new ArithmeticException( alphas.length() + " variable distribution can not awnser a " + x.length() + " dimension variable");
+         if(x.length() != alphas.length()) {
+           throw new ArithmeticException( alphas.length() + " variable distribution can not awnser a " + x.length() + " dimension variable");
+         }
         double logVal = 0;
         double tmp;
         double sum = 0.0;
         for(int i = 0; i < alphas.length(); i++)
         {
             tmp = x.get(i);
-            if(tmp <= 0)//All values must be positive to be possible 
-                return -Double.MAX_VALUE;
+            if(tmp <= 0) {//All values must be positive to be possible
+              return -Double.MAX_VALUE;
+            }
             sum += tmp;
             logVal += log(x.get(i))*(alphas.get(i)-1.0);
         }
         
-        if(abs(sum - 1.0) > 1e-14)//Some wiglle room, but should sum to one
-            return -Double.MAX_VALUE;
+        if(abs(sum - 1.0) > 1e-14) {//Some wiglle room, but should sum to one
+          return -Double.MAX_VALUE;
+         }
         
         /**
          * Normalizing constant is defined by 
@@ -108,8 +113,9 @@ public class Dirichlet extends MultivariateDistributionSkeleton
          */
         double logNormalizer = 0.0;
         
-        for(int i = 0; i < alphas.length(); i++)
-            logNormalizer += lnGamma(alphas.get(i));
+        for(int i = 0; i < alphas.length(); i++) {
+          logNormalizer += lnGamma(alphas.get(i));
+         }
         logNormalizer -= lnGamma(alphas.sum());
         
         return logVal - logNormalizer;
@@ -135,15 +141,17 @@ public class Dirichlet extends MultivariateDistributionSkeleton
             public double f(Vec x)
             {
                 double constantTerm = lnGamma(x.sum());
-                for(int i = 0; i < x.length(); i++)
-                    constantTerm -= lnGamma(x.get(i));
+                for(int i = 0; i < x.length(); i++) {
+                  constantTerm -= lnGamma(x.get(i));
+                }
                 
                 double sum = 0.0;
                 for(int i = 0; i < dataSet.size(); i++)
                 {
                     Vec s = dataSet.get(i);
-                    for(int j = 0; j < x.length(); j++)
-                        sum += log(s.get(j))*(x.get(j)-1.0);
+                    for(int j = 0; j < x.length(); j++) {
+                      sum += log(s.get(j))*(x.get(j)-1.0);
+                    }
                 }
                 
                 return -(sum+constantTerm*dataSet.size());
@@ -175,8 +183,9 @@ public class Dirichlet extends MultivariateDistributionSkeleton
             public double f(Vec x)
             {
                 double constantTerm = lnGamma(x.sum());
-                for(int i = 0; i < x.length(); i++)
-                    constantTerm -= lnGamma(x.get(i));
+                for(int i = 0; i < x.length(); i++) {
+                  constantTerm -= lnGamma(x.get(i));
+                }
                 double weightSum = 0.0;
                 
                 double sum = 0.0;
@@ -186,8 +195,9 @@ public class Dirichlet extends MultivariateDistributionSkeleton
                     DataPoint dp = dataPoint.get(i);
                     Vec s = dp.getNumericalValues();
                     weightSum += dp.getWeight();
-                    for(int j = 0; j < x.length(); j++)
-                        sum += log(s.get(j))*(x.get(j)-1.0)*dp.getWeight();
+                    for(int j = 0; j < x.length(); j++) {
+                      sum += log(s.get(j))*(x.get(j)-1.0)*dp.getWeight();
+                    }
                 }
                 
                 return -(sum+constantTerm*weightSum);
@@ -218,8 +228,9 @@ public class Dirichlet extends MultivariateDistributionSkeleton
         for(int i = 0; i < count; i++)
         {
             Vec sample = new DenseVector(alphas.length());
-            for(int j = 0; j < alphas.length(); j++)
-                sample.set(j, gammaSamples[j][i]);
+            for(int j = 0; j < alphas.length(); j++) {
+              sample.set(j, gammaSamples[j][i]);
+            }
             sample.mutableDivide(sample.sum());
             samples.add(sample);
         }

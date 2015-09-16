@@ -32,8 +32,9 @@ public class Levy extends ContinuousDistribution
      */
     public void setScale(double scale)
     {
-        if(scale <= 0 || Double.isNaN(scale) || Double.isInfinite(scale))
-            throw new ArithmeticException("Scale must be a positive value, not " + scale);
+        if(scale <= 0 || Double.isNaN(scale) || Double.isInfinite(scale)) {
+          throw new ArithmeticException("Scale must be a positive value, not " + scale);
+        }
         this.scale = scale;
         this.logScale = log(scale);
     }
@@ -53,8 +54,9 @@ public class Levy extends ContinuousDistribution
      */
     public void setLocation(double location)
     {
-        if(Double.isNaN(location) || Double.isInfinite(location))
-            throw new ArithmeticException("location must be a real number");
+        if(Double.isNaN(location) || Double.isInfinite(location)) {
+          throw new ArithmeticException("location must be a real number");
+        }
         this.location = location;
     }
 
@@ -70,16 +72,18 @@ public class Levy extends ContinuousDistribution
     @Override
     public double pdf(double x)
     {
-        if(x < location)
-            return 0;
+        if(x < location) {
+          return 0;
+        }
         return exp(logPdf(x));
     }
 
     @Override
     public double logPdf(double x)
     {
-        if(x < location)
-            return Double.NEGATIVE_INFINITY;
+        if(x < location) {
+          return Double.NEGATIVE_INFINITY;
+        }
         final double mu = x-location;
         return -(-mu*logScale+scale+3*mu*log(mu)+mu*log(PI)+mu*log(2))/(2*mu);
     }
@@ -87,16 +91,18 @@ public class Levy extends ContinuousDistribution
     @Override
     public double cdf(double x)
     {
-        if(x < location)
-            return 0;
+        if(x < location) {
+          return 0;
+        }
         return SpecialMath.erfc(sqrt(scale/(2*(x-location))));
     }
     
     @Override
     public double invCdf(double p)
     {
-        if(p < 0 || p > 1)
-            throw new ArithmeticException("Invalid probability " + p);
+        if(p < 0 || p > 1) {
+          throw new ArithmeticException("Invalid probability " + p);
+        }
         return scale/(2*pow(SpecialMath.invErfc(p), 2))+location;
     }
 
@@ -133,10 +139,11 @@ public class Levy extends ContinuousDistribution
     @Override
     public void setVariable(String var, double value)
     {
-        if(var.equals(getVariables()[0]))
-            setScale(value);
-        else if(var.equals(getVariables()[1]))
-            setLocation(value);
+        if(var.equals(getVariables()[0])) {
+          setScale(value);
+        } else if(var.equals(getVariables()[1])) {
+          setLocation(value);
+        }
     }
 
     @Override

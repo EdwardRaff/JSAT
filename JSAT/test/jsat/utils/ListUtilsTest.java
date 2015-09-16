@@ -45,8 +45,9 @@ public class ListUtilsTest
     {
         System.out.println("splitList");
         List<Integer> sourceList = new IntList(500);
-        for(int i = 0; i < 500; i++)
-            sourceList.add(i);
+        for(int i = 0; i < 500; i++) {
+          sourceList.add(i);
+        }
         List<List<Integer>> ll1 = ListUtils.splitList(sourceList, 5);
         assertEquals(5, ll1.size());
         
@@ -54,8 +55,9 @@ public class ListUtilsTest
         {
             List<Integer> l = ll1.get(i);
             assertEquals(100, l.size());
-            for(int j = 0; j < l.size(); j++)
-                assertEquals( i*100+j, l.get(j).intValue());//intValue called b/c it becomes ambigous to the compiler without it
+            for(int j = 0; j < l.size(); j++) {
+              assertEquals( i*100+j, l.get(j).intValue());//intValue called b/c it becomes ambigous to the compiler without it
+            }
         }
         
         

@@ -51,10 +51,12 @@ public abstract class ClustererBase implements Clusterer
         
         for(int i = 0; i < dataSet.getSampleSize(); i++)
         {
-            while(clusterings.size() <= assignments[i])
-                clusterings.add(new ArrayList<DataPoint>());
-            if(assignments[i] >= 0)
-                clusterings.get(assignments[i]).add(dataSet.getDataPoint(i));
+            while(clusterings.size() <= assignments[i]) {
+              clusterings.add(new ArrayList<DataPoint>());
+            }
+            if(assignments[i] >= 0) {
+              clusterings.get(assignments[i]).add(dataSet.getDataPoint(i));
+            }
         }
         
         return clusterings;
@@ -75,13 +77,14 @@ public abstract class ClustererBase implements Clusterer
     {
         List<DataPoint> list = new ArrayList<DataPoint>();
         int pos = 0;
-        for(int i = 0; i < dataSet.getSampleSize(); i++)
-            if(assignments[i] == c)
-            {
-                list.add(dataSet.getDataPoint(i));
-                if(indexFrom != null)
-                    indexFrom[pos++] = i;
+        for(int i = 0; i < dataSet.getSampleSize(); i++) {
+          if (assignments[i] == c) {
+            list.add(dataSet.getDataPoint(i));
+            if (indexFrom != null) {
+              indexFrom[pos++] = i;
             }
+          }
+        }
         return list;
     }
 

@@ -138,24 +138,29 @@ public abstract class SupportVectorLearner
      */
     public SupportVectorLearner(SupportVectorLearner toCopy)
     {
-        if(toCopy.kernel != null)
-            this.kernel = toCopy.kernel.clone();
+        if(toCopy.kernel != null) {
+          this.kernel = toCopy.kernel.clone();
+        }
         if(toCopy.vecs != null)
         {
             this.vecs = new ArrayList<Vec>(toCopy.vecs.size());
-            for(Vec v : toCopy.vecs)
-                this.vecs.add(v.clone());
+            for(Vec v : toCopy.vecs) {
+              this.vecs.add(v.clone());
+            }
         }
-        if(toCopy.alphas != null)
-            this.alphas = Arrays.copyOf(toCopy.alphas, toCopy.alphas.length);
+        if(toCopy.alphas != null) {
+          this.alphas = Arrays.copyOf(toCopy.alphas, toCopy.alphas.length);
+        }
         this.cacheMode = toCopy.cacheMode;
-        if(toCopy.accelCache != null)
-            this.accelCache = new DoubleList(toCopy.accelCache);
+        if(toCopy.accelCache != null) {
+          this.accelCache = new DoubleList(toCopy.accelCache);
+        }
         if(toCopy.fullCache != null)
         {
             this.fullCache = new double[toCopy.fullCache.length][];
-            for(int i = 0; i < toCopy.fullCache.length; i++)
-                this.fullCache[i] = Arrays.copyOf(toCopy.fullCache[i], toCopy.fullCache[i].length);
+            for(int i = 0; i < toCopy.fullCache.length; i++) {
+              this.fullCache[i] = Arrays.copyOf(toCopy.fullCache[i], toCopy.fullCache[i].length);
+            }
         }
         if(toCopy.partialCache != null)//TODO handling this better needs to be done
         {
@@ -205,9 +210,9 @@ public abstract class SupportVectorLearner
     {
         int DS = Double.SIZE/8;
         bytes /= DS;//Gets the total number of doubles we can store
-        if(bytes > N*N/2)
-            setCacheMode(CacheMode.FULL);
-        else//How many rows can we handle?
+        if(bytes > N*N/2) {
+          setCacheMode(CacheMode.FULL);
+        } else//How many rows can we handle?
         {
             //guessing 2 work overhead for object header + one pointer reference to the array, asusming 64 bit
             long bytesPerRow = N*DS+3*Long.SIZE/8;
@@ -255,8 +260,9 @@ public abstract class SupportVectorLearner
         }
         this.cacheMode = cacheMode;
         
-        if(vecs != null)
-            accelCache = kernel.getAccelerationCache(vecs);
+        if(vecs != null) {
+          accelCache = kernel.getAccelerationCache(vecs);
+        }
         evalCount = 0;
         cacheEvictions = 0;
         
@@ -265,12 +271,15 @@ public abstract class SupportVectorLearner
         if(cacheMode == CacheMode.FULL && vecs != null)
         {
             fullCache = new double[N][];
-            for(int i = 0; i < N; i++)
-                fullCache[i] = new double[N-i];
+            for(int i = 0; i < N; i++) {
+              fullCache[i] = new double[N-i];
+            }
             
-            for(int i = 0; i < N; i++)
-                for(int j = i; j < N; j++)
-                    fullCache[i][j-i] = k(i, j);
+            for(int i = 0; i < N; i++) {
+              for (int j = i; j < N; j++) {
+                fullCache[i][j-i] = k(i, j);
+              }
+            }
         }
         else if(cacheMode == CacheMode.ROWS && vecs != null)
         {
@@ -285,17 +294,20 @@ public abstract class SupportVectorLearner
                     if(removeEldest)
                     {
                         availableRow = eldest.getValue();
-                        for(int i = 0; i < availableRow.length; i++)
-                            if(!Double.isNaN(availableRow[i]))
-                                availableRow[i] = Double.NaN;
+                        for(int i = 0; i < availableRow.length; i++) {
+                          if (!Double.isNaN(availableRow[i])) {
+                            availableRow[i] = Double.NaN;
+                          }
+                        }
                         cacheEvictions++;
                     }
                     return removeEldest;
                 }
             };
         }
-        else if(cacheMode == CacheMode.NONE)
-            fullCache = null;
+        else if(cacheMode == CacheMode.NONE) {
+          fullCache = null;
+        }
     }
 
     protected int evalCount = 0;
@@ -318,8 +330,9 @@ public abstract class SupportVectorLearner
      */
     protected double kEvalSum(Vec y)
     {
-        if (alphas == null)
-            throw new RuntimeException("alphas have not been set");
+        if (alphas == null) {
+          throw new RuntimeException("alphas have not been set");
+        }
 
         return kernel.evalSum(vecs, accelCache, alphas, y, 0, alphas.length);
     }
@@ -366,11 +379,13 @@ public abstract class SupportVectorLearner
             if (cache == null)//try seeing if b has a row present
             {
                 double[] b_cache = partialCache.get(b);
-                if (b_cache != null)
-                    if (Double.isNaN(b_cache[a]))
-                        return b_cache[a] = k(a, b);
-                    else
-                        return b_cache[a];
+                if (b_cache != null) {
+                  if (Double.isNaN(b_cache[a])) {
+                    return b_cache[a] = k(a, b);
+                  } else {
+                    return b_cache[a];
+                  }
+                }
             }
             //else, neither are in - lets go with a
 
@@ -390,10 +405,11 @@ public abstract class SupportVectorLearner
                 
                 partialCache.put(a, cache);
                 
-                if (Double.isNaN(cache[a]))
-                    return cache[a] = k(a, b);
-                else
-                    return cache[a];
+                if (Double.isNaN(cache[a])) {
+                  return cache[a] = k(a, b);
+                } else {
+                  return cache[a];
+                }
                 
             }
         }
@@ -421,15 +437,17 @@ public abstract class SupportVectorLearner
         final int N = vecs.size();
         int accSize = accelCache == null ? 0 : accelCache.size()/N;
         int svCount = 0;
-        for(int i = 0; i < N; i++)
-            if(alphas[i] != 0)//Its a support vector
-            {
-                ListUtils.swap(vecs, svCount, i);
-                if(accelCache != null)
-                    for(int j = i*accSize; j < (i+1)*accSize; j++)
-                        ListUtils.swap(accelCache, svCount*accSize+j-i*accSize, j);
-                alphas[svCount++] = alphas[i];
+        for(int i = 0; i < N; i++) {
+          if (alphas[i] != 0) {
+            ListUtils.swap(vecs, svCount, i);
+            if (accelCache != null) {
+              for (int j = i*accSize; j < (i+1)*accSize; j++) {
+                ListUtils.swap(accelCache, svCount*accSize+j-i*accSize, j);
+              }
             }
+            alphas[svCount++] = alphas[i];
+          }
+        }
 
         vecs = new ArrayList<Vec>(vecs.subList(0, svCount));
         alphas = Arrays.copyOfRange(alphas, 0, svCount);

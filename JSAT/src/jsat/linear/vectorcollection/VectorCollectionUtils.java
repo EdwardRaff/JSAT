@@ -28,8 +28,9 @@ public class VectorCollectionUtils
     public static <V0 extends Vec, V1 extends Vec> List<List<? extends VecPaired<V0, Double>>> allNearestNeighbors(VectorCollection<V0> collection, List<V1> search, int k)
     {
         List<List<? extends VecPaired<V0, Double>>> results = new ArrayList<List<? extends VecPaired<V0, Double>>>(search.size());
-        for(Vec v : search)
-            results.add(collection.search(v, k));
+        for(Vec v : search) {
+          results.add(collection.search(v, k));
+        }
         return results;
     }
     
@@ -72,16 +73,18 @@ public class VectorCollectionUtils
                 {
                     List<List<? extends VecPaired<V0, Double>>> subResult = new ArrayList<List<? extends VecPaired<V0, Double>>>(subSearch.size());
                     
-                    for(Vec v : subSearch )
-                        subResult.add(collection.search(v, k));
+                    for(Vec v : subSearch ) {
+                      subResult.add(collection.search(v, k));
+                    }
                     
                     return subResult;
                 }
             }));
         }
 
-        for (List<List<? extends VecPaired<V0, Double>>> subResult : ListUtils.collectFutures(subResults))
-            results.addAll(subResult);
+        for (List<List<? extends VecPaired<V0, Double>>> subResult : ListUtils.collectFutures(subResults)) {
+          results.addAll(subResult);
+        }
 
         return results;
     }
@@ -115,8 +118,9 @@ public class VectorCollectionUtils
     public static <V0 extends Vec, V1 extends Vec> OnLineStatistics getKthNeighborStats(VectorCollection<V0> collection, List<V1> search, int k)
     {
         OnLineStatistics stats = new OnLineStatistics();
-        for(Vec v : search)
-            stats.add(collection.search(v, k).get(k-1).getPair());
+        for(Vec v : search) {
+          stats.add(collection.search(v, k).get(k-1).getPair());
+        }
         
         return stats;
     }
@@ -160,8 +164,9 @@ public class VectorCollectionUtils
                 {
                     OnLineStatistics stats = new OnLineStatistics();
                     
-                    for(Vec v: subSearch)
-                        stats.add(collection.search(v, k).get(k-1).getPair());
+                    for(Vec v: subSearch) {
+                      stats.add(collection.search(v, k).get(k-1).getPair());
+                    }
                     
                     return stats;
                 }
@@ -169,8 +174,9 @@ public class VectorCollectionUtils
         }
 
         OnLineStatistics stats = new OnLineStatistics();
-        for (OnLineStatistics subResult : ListUtils.collectFutures(futureStats))
-            stats = OnLineStatistics.add(stats, subResult);
+        for (OnLineStatistics subResult : ListUtils.collectFutures(futureStats)) {
+          stats = OnLineStatistics.add(stats, subResult);
+        }
 
         return stats;
     }

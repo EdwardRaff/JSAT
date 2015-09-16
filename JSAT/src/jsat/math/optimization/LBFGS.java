@@ -69,8 +69,9 @@ public class LBFGS implements Optimizer2
     {
         //q ← ∇ fk;
         x_grad.copyTo(q);
-        if(s.isEmpty())
-            return;//identity, we are done
+        if(s.isEmpty()) {
+          return;//identity, we are done
+        }
         //for i = k−1,k−2,...,k−m
         for(int i = 0; i < s.size(); i++)
         {
@@ -137,14 +138,17 @@ public class LBFGS implements Optimizer2
             x_grad.copyTo(x_gradPrev);
             
             double alpha_k = search.lineSearch(1.0, x_prev, x_gradPrev, p_k, f, fp, f_xVal[0], x_gradPrev.dot(p_k), x_cur, f_xVal, x_grad, ex);
-            if(alpha_k < 1e-12 && iter > 25)//if we are making near epsilon steps consider it done
-                break;
+            if(alpha_k < 1e-12 && iter > 25) {//if we are making near epsilon steps consider it done
+              break;
+            }
             
-            if(!search.updatesGrad())
-                if (ex != null)
-                    fp.f(x_cur, x_grad, ex);
-                else
-                    fp.f(x_cur, x_grad);
+            if(!search.updatesGrad()) {
+              if (ex != null) {
+                fp.f(x_cur, x_grad, ex);
+              } else {
+                fp.f(x_cur, x_grad);
+              }
+            }
             
             //Define s_k =x_k+1 −x_k and y_k = ∇f_k+1 −∇f_k;
             x_cur.copyTo(s_k);
@@ -198,11 +202,13 @@ public class LBFGS implements Optimizer2
     
     private double gradConvgHelper(Vec grad)
     {
-        if(!inftNormCriterion)
-            return grad.pNorm(2);
+        if(!inftNormCriterion) {
+          return grad.pNorm(2);
+        }
         double max = 0;
-        for(IndexValue iv : grad)
-            max = Math.max(max, Math.abs(iv.getValue()));
+        for(IndexValue iv : grad) {
+          max = Math.max(max, Math.abs(iv.getValue()));
+        }
         return max;
     }
 
@@ -213,8 +219,9 @@ public class LBFGS implements Optimizer2
      */
     public void setM(int m)
     {
-        if(m < 1)
-            throw new IllegalArgumentException("m must be positive, not " + m);
+        if(m < 1) {
+          throw new IllegalArgumentException("m must be positive, not " + m);
+        }
         this.m = m;
     }
 
@@ -248,8 +255,9 @@ public class LBFGS implements Optimizer2
     @Override
     public void setMaximumIterations(int iterations)
     {
-        if(iterations < 1)
-            throw new IllegalArgumentException("Number of iterations must be positive, not " + iterations);
+        if(iterations < 1) {
+          throw new IllegalArgumentException("Number of iterations must be positive, not " + iterations);
+        }
         this.maxIterations = iterations;
     }
 

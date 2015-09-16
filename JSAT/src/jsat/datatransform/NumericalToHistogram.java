@@ -43,8 +43,9 @@ public class NumericalToHistogram implements DataTransform
      */
     public NumericalToHistogram(DataSet dataSet, int n)
     {
-        if(n <= 0)
-            throw new RuntimeException("Must partition into a positive number of groups");
+        if(n <= 0) {
+          throw new RuntimeException("Must partition into a positive number of groups");
+        }
         this.n = n;
         
         conversionArray = new double[dataSet.getNumNumericalVars()][2];
@@ -73,8 +74,9 @@ public class NumericalToHistogram implements DataTransform
         }
         
         newDataArray = new CategoricalData[dataSet.getNumNumericalVars() + dataSet.getNumCategoricalVars()];
-        for(int i = 0; i < dataSet.getNumNumericalVars(); i++)
-            newDataArray[i] = new CategoricalData(n);
+        for(int i = 0; i < dataSet.getNumNumericalVars(); i++) {
+          newDataArray[i] = new CategoricalData(n);
+        }
         System.arraycopy(dataSet.getCategories(), 0, newDataArray, dataSet.getNumNumericalVars(), dataSet.getNumCategoricalVars());
     }
     
@@ -86,11 +88,13 @@ public class NumericalToHistogram implements DataTransform
     {
         this.n = other.n;
         this.conversionArray = new double[other.conversionArray.length][];
-        for(int i = 0; i < other.conversionArray.length; i++)
-            this.conversionArray[i] = Arrays.copyOf(other.conversionArray[i], other.conversionArray[i].length);
+        for(int i = 0; i < other.conversionArray.length; i++) {
+          this.conversionArray[i] = Arrays.copyOf(other.conversionArray[i], other.conversionArray[i].length);
+        }
         this.newDataArray = new CategoricalData[other.newDataArray.length];
-        for(int i = 0; i < other.newDataArray.length; i++)
-            this.newDataArray[i] = other.newDataArray[i].clone();
+        for(int i = 0; i < other.newDataArray.length; i++) {
+          this.newDataArray[i] = other.newDataArray[i].clone();
+        }
     }
     
     @Override
@@ -105,10 +109,11 @@ public class NumericalToHistogram implements DataTransform
             double val = v.get(i) - conversionArray[i][0];
             
             int catVal = (int) Math.floor(val / conversionArray[i][1]);
-            if(catVal < 0)
-                catVal = 0;
-            else if(catVal >= n)
-                catVal = n-1;
+            if(catVal < 0) {
+              catVal = 0;
+            } else if(catVal >= n) {
+              catVal = n-1;
+            }
             
             newCatVals[i] = catVal;
         }
@@ -162,8 +167,9 @@ public class NumericalToHistogram implements DataTransform
          */
         public void setBins(int n)
         {
-            if(n < 1)
-                throw new IllegalArgumentException("Number of bins must be a positive value");
+            if(n < 1) {
+              throw new IllegalArgumentException("Number of bins must be a positive value");
+            }
             this.n = n;
         }
 
@@ -179,10 +185,11 @@ public class NumericalToHistogram implements DataTransform
         @Override
         public DataTransform getTransform(DataSet dataset)
         {
-            if(n == Integer.MAX_VALUE)
-                return new NumericalToHistogram(dataset);
-            else
-                return new NumericalToHistogram(dataset, n);
+            if(n == Integer.MAX_VALUE) {
+              return new NumericalToHistogram(dataset);
+            } else {
+              return new NumericalToHistogram(dataset, n);
+            }
         }
 
         @Override

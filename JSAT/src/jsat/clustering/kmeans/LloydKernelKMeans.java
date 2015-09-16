@@ -41,12 +41,14 @@ public class LloydKernelKMeans extends KernelKMeans
     @Override
     public int[] cluster(DataSet dataSet, final int K, ExecutorService threadpool, int[] designations)
     {
-        if(K < 2)
-            throw new FailedToFitException("Clustering requires at least 2 clusters");
+        if(K < 2) {
+          throw new FailedToFitException("Clustering requires at least 2 clusters");
+        }
         
         final int N = dataSet.getSampleSize();
-        if(designations == null)
-            designations = new int[N];
+        if(designations == null) {
+          designations = new int[N];
+        }
         
         X = dataSet.getDataVectors();
         
@@ -113,8 +115,9 @@ public class LloydKernelKMeans extends KernelKMeans
                         int[] ownerChange = new int[K];
                         
                         int localChagne = 0;
-                        for (int i = ID; i < N; i+=SystemInfo.LogicalCores)
-                            localChagne += updateMeansFromChange(i, assignments, sqrdChange, ownerChange);
+                        for (int i = ID; i < N; i+=SystemInfo.LogicalCores) {
+                          localChagne += updateMeansFromChange(i, assignments, sqrdChange, ownerChange);
+                        }
                         
                         synchronized(assignments)
                         {
@@ -128,8 +131,9 @@ public class LloydKernelKMeans extends KernelKMeans
             
             try
             {
-                for (Future<Integer> f : futureChanges)
-                    changed += f.get();
+                for (Future<Integer> f : futureChanges) {
+                  changed += f.get();
+                }
             }
             catch (InterruptedException ex)
             {
@@ -153,12 +157,14 @@ public class LloydKernelKMeans extends KernelKMeans
     @Override
     public int[] cluster(DataSet dataSet, int K, int[] designations)
     {
-        if(K < 2)
-            throw new FailedToFitException("Clustering requires at least 2 clusters");
+        if(K < 2) {
+          throw new FailedToFitException("Clustering requires at least 2 clusters");
+        }
         
         final int N = dataSet.getSampleSize();
-        if(designations == null)
-            designations = new int[N];
+        if(designations == null) {
+          designations = new int[N];
+        }
         
         X = dataSet.getDataVectors();
         
@@ -188,8 +194,9 @@ public class LloydKernelKMeans extends KernelKMeans
             }
 
             
-            for(int i = 0; i < N; i++)
-                changed += updateMeansFromChange(i, designations);
+            for(int i = 0; i < N; i++) {
+              changed += updateMeansFromChange(i, designations);
+            }
 
             //update constatns 
             updateNormConsts();

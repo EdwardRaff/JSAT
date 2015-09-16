@@ -131,8 +131,9 @@ public class OnlineAMM extends BaseUpdateableClassifier implements Parameterized
             for(Map<Integer, Vec> oldW : toCopy.weightMatrix)
             {
                 Map<Integer, Vec> newW = new LinkedHashMap<Integer, Vec>(oldW.size());
-                for(Map.Entry<Integer, Vec> entry : oldW.entrySet())
-                    newW.put(entry.getKey(), entry.getValue().clone());
+                for(Map.Entry<Integer, Vec> entry : oldW.entrySet()) {
+                  newW.put(entry.getKey(), entry.getValue().clone());
+                }
                 this.weightMatrix.add(newW);
             }
             this.nextID = Arrays.copyOf(toCopy.nextID, toCopy.nextID.length);
@@ -161,8 +162,9 @@ public class OnlineAMM extends BaseUpdateableClassifier implements Parameterized
      */
     public void setLambda(double lambda)
     {
-        if(lambda <= 0 || Double.isNaN(lambda) || Double.isInfinite(lambda))
-            throw new IllegalArgumentException("Lambda must be positive, not " + lambda);
+        if(lambda <= 0 || Double.isNaN(lambda) || Double.isInfinite(lambda)) {
+          throw new IllegalArgumentException("Lambda must be positive, not " + lambda);
+        }
         this.lambda = lambda;
     }
 
@@ -183,8 +185,9 @@ public class OnlineAMM extends BaseUpdateableClassifier implements Parameterized
      */
     public void setPruneFrequency(int frequency )
     {
-        if(frequency < 1)
-            throw new IllegalArgumentException("Pruning frequency must be positive, not " + frequency);
+        if(frequency < 1) {
+          throw new IllegalArgumentException("Pruning frequency must be positive, not " + frequency);
+        }
         this.k = frequency;
     }
     
@@ -209,8 +212,9 @@ public class OnlineAMM extends BaseUpdateableClassifier implements Parameterized
      */
     public void setC(double c)
     {
-        if(c <= 0 || Double.isNaN(c) || Double.isInfinite(c))
-            throw new IllegalArgumentException("C must be positive, not " + c);
+        if(c <= 0 || Double.isNaN(c) || Double.isInfinite(c)) {
+          throw new IllegalArgumentException("C must be positive, not " + c);
+        }
         this.c = c;
     }
 
@@ -231,8 +235,9 @@ public class OnlineAMM extends BaseUpdateableClassifier implements Parameterized
      */
     public void setClassBudget(int classBudget)
     {
-        if(classBudget < 1)
-            throw new IllegalArgumentException("Number of hyperplanes must be positive, not " + classBudget);
+        if(classBudget < 1) {
+          throw new IllegalArgumentException("Number of hyperplanes must be positive, not " + classBudget);
+        }
         this.classBudget = classBudget;
     }
 
@@ -248,11 +253,13 @@ public class OnlineAMM extends BaseUpdateableClassifier implements Parameterized
     @Override
     public void setUp(CategoricalData[] categoricalAttributes, int numericAttributes, CategoricalData predicting)
     {
-        if(numericAttributes < 1)
-            throw new FailedToFitException("OnlineAMM requires numeric features to perform classification");
+        if(numericAttributes < 1) {
+          throw new FailedToFitException("OnlineAMM requires numeric features to perform classification");
+        }
         weightMatrix = new ArrayList<Map<Integer, Vec>>(predicting.getNumOfCategories());
-        for(int i = 0; i < predicting.getNumOfCategories(); i++)
-            weightMatrix.add(new LinkedHashMap<Integer, Vec>());
+        for(int i = 0; i < predicting.getNumOfCategories(); i++) {
+          weightMatrix.add(new LinkedHashMap<Integer, Vec>());
+        }
         nextID = new int[weightMatrix.size()];
         time = 1;
     }
@@ -317,10 +324,11 @@ public class OnlineAMM extends BaseUpdateableClassifier implements Parameterized
                 //happens if we were owned by a vec that has been removed
                 return update(dataPoint, y_t, Integer.MIN_VALUE);//restart and have a new assignment given
             }
-            if(z_t == -1)
-                z_t_val = 0.0;//again, implicit
-            else
-                z_t_val = weightMatrix.get(y_t).get(z_t).dot(x_t);
+            if(z_t == -1) {
+              z_t_val = 0.0;//again, implicit
+            } else {
+              z_t_val = weightMatrix.get(y_t).get(z_t).dot(x_t);
+            }
         }
         
         //4: update W(++t) by (11)
@@ -334,8 +342,9 @@ public class OnlineAMM extends BaseUpdateableClassifier implements Parameterized
         
         for(int k = 0; k < weightMatrix.size(); k++)
         {
-            if(k == y_t)
-                continue;
+            if(k == y_t) {
+              continue;
+            }
             Map<Integer, Vec> w_k = weightMatrix.get(k);
             for(Map.Entry<Integer, Vec> entry_kj : w_k.entrySet())
             {
@@ -361,10 +370,11 @@ public class OnlineAMM extends BaseUpdateableClassifier implements Parameterized
                 int j = w_entry_ij.getKey();
                 Vec w_ij = w_entry_ij.getValue();
                 w_ij.mutableMultiply(-(eta*lambda-1));
-                if(i == i_t && j == j_t && nonZeroLoss)
-                    w_ij.mutableSubtract(eta, x_t);
-                else if(i == y_t && j == z_t && nonZeroLoss)
-                    w_ij.mutableAdd(eta, x_t);
+                if(i == i_t && j == j_t && nonZeroLoss) {
+                  w_ij.mutableSubtract(eta, x_t);
+                } else if(i == y_t && j == z_t && nonZeroLoss) {
+                  w_ij.mutableAdd(eta, x_t);
+                }
             }
             //Also must check for implicit weight vectors needing an update (making them non-implicit)
             if (i == i_t && j_t == -1 && nonZeroLoss && w_i.size() < classBudget)
@@ -413,8 +423,9 @@ public class OnlineAMM extends BaseUpdateableClassifier implements Parameterized
             {
                 int i = it.index(orderIndx);
                 double norm = normVal.get(i);
-                if(norm >= threshold)
-                    break;
+                if(norm >= threshold) {
+                  break;
+                }
                 threshold -= norm;
                 int classOf = classOwner.getI(i);
                 weightMatrix.get(classOf).remove(vecID.getI(i));

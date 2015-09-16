@@ -75,10 +75,11 @@ public class KSTest
         int mid = (min+max) /2;
         do
         {
-            if(x > s.get(mid))
-                min = mid+1;
-            else
-                max = mid-1;
+            if(x > s.get(mid)) {
+              min = mid+1;
+            } else {
+              max = mid-1;
+            }
         }
         while(s.get(mid) != x && min <= max);
         

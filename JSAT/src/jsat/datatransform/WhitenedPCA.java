@@ -124,9 +124,11 @@ public class WhitenedPCA implements DataTransform
     private SingularValueDecomposition getSVD(DataSet dataSet)
     {
         Matrix cov = covarianceMatrix(meanVector(dataSet), dataSet);
-        for(int i = 0; i < cov.rows(); i++)//force it to be symmetric
-            for(int j = 0; j < i; j++)
-                cov.set(j, i, cov.get(i, j));
+        for(int i = 0; i < cov.rows(); i++) {
+          for (int j = 0; j < i; j++) {
+            cov.set(j, i, cov.get(i, j));
+          }
+        }
         EigenValueDecomposition evd = new EigenValueDecomposition(cov);
         //Sort form largest to smallest
         evd.sortByEigenValue(new Comparator<Double>() 
@@ -154,8 +156,9 @@ public class WhitenedPCA implements DataTransform
         
         double[] s = svd.getSingularValues();
         
-        for(int i = 0; i < dims; i++)
-            diag.set(i, 1.0/Math.sqrt(s[i]+regularization));
+        for(int i = 0; i < dims; i++) {
+          diag.set(i, 1.0/Math.sqrt(s[i]+regularization));
+        }
         
         transform = new SubMatrix(svd.getU().transpose(), 0, 0, dims, s.length).clone();
         
@@ -176,15 +179,17 @@ public class WhitenedPCA implements DataTransform
     
     private void setRegularization(double regularization)
     {
-        if(regularization < 0 || Double.isNaN(regularization) || Double.isInfinite(regularization))
-            throw new ArithmeticException("Regularization must be non negative value, not " + regularization);
+        if(regularization < 0 || Double.isNaN(regularization) || Double.isInfinite(regularization)) {
+          throw new ArithmeticException("Regularization must be non negative value, not " + regularization);
+        }
         this.regularization = regularization;
     }
 
     private void setDims(int dims)
     {
-        if(dims < 1)
-            throw new ArithmeticException("Invalid number of dimensions, bust be > 0");
+        if(dims < 1) {
+          throw new ArithmeticException("Invalid number of dimensions, bust be > 0");
+        }
         this.dims = dims;
     }
 
@@ -196,10 +201,11 @@ public class WhitenedPCA implements DataTransform
 
     private void setRegularization(SingularValueDecomposition svd)
     {
-        if(svd.isFullRank())
-            setRegularization(1e-10);
-        else
-            setRegularization(Math.max(Math.log(1.0+svd.getSingularValues()[svd.getRank()])*0.25, 1e-4));
+        if(svd.isFullRank()) {
+          setRegularization(1e-10);
+        } else {
+          setRegularization(Math.max(Math.log(1.0+svd.getSingularValues()[svd.getRank()])*0.25, 1e-4));
+        }
     }
     
     /**
@@ -233,8 +239,9 @@ public class WhitenedPCA implements DataTransform
          */
         public void setDimensions(int dimensions)
         {
-            if(dimensions < 1)
-                throw new IllegalArgumentException("Number of dimensions must be positive, not " + dimensions);
+            if(dimensions < 1) {
+              throw new IllegalArgumentException("Number of dimensions must be positive, not " + dimensions);
+            }
             this.dimensions = dimensions;
         }
 

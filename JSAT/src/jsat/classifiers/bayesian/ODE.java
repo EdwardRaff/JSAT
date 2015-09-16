@@ -85,8 +85,9 @@ public class ODE extends BaseUpdateableClassifier
             }
             
             this.priors = new double[toClone.priors.length][];
-            for(int i = 0; i < this.priors.length; i++)
-                this.priors[i] = Arrays.copyOf(toClone.priors[i], toClone.priors[i].length);
+            for(int i = 0; i < this.priors.length; i++) {
+              this.priors[i] = Arrays.copyOf(toClone.priors[i], toClone.priors[i].length);
+            }
             this.priorSum = toClone.priorSum;
         }
     }
@@ -123,19 +124,22 @@ public class ODE extends BaseUpdateableClassifier
     @Override
     public void setUp(CategoricalData[] categoricalAttributes, int numericAttributes, CategoricalData predicting)
     {
-        if(categoricalAttributes.length < 1)
-            throw new FailedToFitException("At least 2 categorical varaibles are needed for ODE");
+        if(categoricalAttributes.length < 1) {
+          throw new FailedToFitException("At least 2 categorical varaibles are needed for ODE");
+        }
         CategoricalData[] catData = categoricalAttributes;
         predTargets = predicting.getNumOfCategories();
         depTargets = catData[dependent].getNumOfCategories();
         counts = new double[predTargets][depTargets][catData.length][];
-        for(int i = 0; i < counts.length; i++)
-            for(int j = 0; j < counts[i].length; j++)
-                for(int z = 0; z < counts[i][j].length; z++)
-                {
-                    counts[i][j][z] = new double[catData[z].getNumOfCategories()];
-                    Arrays.fill(counts[i][j][z], 1.0);//Fill will laplace
-                }
+        for(int i = 0; i < counts.length; i++) {
+          for (int j = 0; j < counts[i].length; j++) {
+            for(int z = 0; z < counts[i][j].length; z++)
+            {
+              counts[i][j][z] = new double[catData[z].getNumOfCategories()];
+              Arrays.fill(counts[i][j][z], 1.0);//Fill will laplace
+            }
+          }
+        }
         
         priors = new double[predTargets][depTargets];
         for(int i = 0; i < priors.length; i++)
@@ -150,11 +154,13 @@ public class ODE extends BaseUpdateableClassifier
     {
         int[] catVals = dataPoint.getCategoricalValues();
         double weight = dataPoint.getWeight();
-        for (int j = 0; j < catVals.length; j++)
-            if (j == dependent)
-                continue;
-            else
-                counts[targetClass][catVals[dependent]][j][catVals[j]] += weight;
+        for (int j = 0; j < catVals.length; j++) {
+          if (j == dependent) {
+            continue;
+          } else {
+            counts[targetClass][catVals[dependent]][j][catVals[j]] += weight;
+          }
+        }
         priors[targetClass][catVals[dependent]] += weight;
         priorSum += weight;
     }
@@ -172,11 +178,13 @@ public class ODE extends BaseUpdateableClassifier
         int xi = catVals[dependent];
         for (int j = 0; j < catVals.length; j++)
         {
-            if(j == dependent)
-                continue;
+            if(j == dependent) {
+              continue;
+            }
             double sum = 0;
-            for(int z = 0; z < counts[c][xi][j].length; z++)
-                sum += counts[c][xi][j][z];
+            for(int z = 0; z < counts[c][xi][j].length; z++) {
+              sum += counts[c][xi][j][z];
+            }
             logProb += Math.log(counts[c][xi][j][catVals[j]]/sum);
         }
         

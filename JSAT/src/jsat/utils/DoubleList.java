@@ -104,8 +104,9 @@ public class DoubleList extends AbstractList<Double> implements Serializable
 
     private void boundsCheck(int index) throws IndexOutOfBoundsException
     {
-        if(index >= size())
-            throw new IndexOutOfBoundsException("List is of size " + size() + ", index requested " + index);
+        if(index >= size()) {
+          throw new IndexOutOfBoundsException("List is of size " + size() + ", index requested " + index);
+        }
     }
 
     /**
@@ -114,15 +115,17 @@ public class DoubleList extends AbstractList<Double> implements Serializable
      */
     private void enlageIfNeeded(int i)
     {
-        while(end+i > array.length)
-            array = Arrays.copyOf(array, Math.max(array.length*2, 8));
+        while(end+i > array.length) {
+          array = Arrays.copyOf(array, Math.max(array.length*2, 8));
+        }
     }
     
     @Override
     public boolean add(Double e)
     {
-        if(e == null)
-            return false;
+        if(e == null) {
+          return false;
+        }
         return add(e.doubleValue());
     }
 
@@ -199,8 +202,9 @@ public class DoubleList extends AbstractList<Double> implements Serializable
     {
         boundsCheck(index);
         double ret = array[index];
-        for(int i = index; i < end-1; i++)
-            array[i] = array[i+1];
+        for(int i = index; i < end-1; i++) {
+          array[i] = array[i+1];
+        }
         decreaseSize(1);
         return ret;
     }
@@ -267,8 +271,9 @@ public class DoubleList extends AbstractList<Double> implements Serializable
      */
     public static DoubleList view(double[] array, int length)
     {
-        if(length > array.length || length < 0)
-            throw new IllegalArgumentException("length must be non-negative and no more than the size of the array("+array.length+"), not " + length);
+        if(length > array.length || length < 0) {
+          throw new IllegalArgumentException("length must be non-negative and no more than the size of the array("+array.length+"), not " + length);
+        }
         return new DoubleList(array, length);
     }
 }

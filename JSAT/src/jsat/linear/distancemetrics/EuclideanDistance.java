@@ -79,8 +79,9 @@ public class EuclideanDistance implements DenseSparseMetric
     @Override
     public double dist(double summaryConst, Vec main, Vec target)
     {
-        if(!target.isSparse())
-            return dist(main, target);
+        if(!target.isSparse()) {
+          return dist(main, target);
+        }
         /**
          * Summary contains the squared differences to the zero vec, only a few 
          * of the indices are actually non zero -  we correct those values
@@ -107,16 +108,18 @@ public class EuclideanDistance implements DenseSparseMetric
     public List<Double> getAccelerationCache(List<? extends Vec> vecs)
     {
         DoubleList cache = new DoubleList(vecs.size());
-        for(Vec v : vecs)
-            cache.add(v.dot(v));
+        for(Vec v : vecs) {
+          cache.add(v.dot(v));
+        }
         return cache;
     }
     
     @Override
     public List<Double> getAccelerationCache(final List<? extends Vec> vecs, ExecutorService threadpool)
     {
-        if(threadpool == null || threadpool instanceof FakeExecutor)
-            return getAccelerationCache(vecs);
+        if(threadpool == null || threadpool instanceof FakeExecutor) {
+          return getAccelerationCache(vecs);
+        }
         final double[] cache = new double[vecs.size()];
 
         final int P = Math.min(SystemInfo.LogicalCores, vecs.size());
@@ -131,8 +134,9 @@ public class EuclideanDistance implements DenseSparseMetric
                 @Override
                 public void run()
                 {
-                    for(int i = start; i < end; i++)
-                        cache[i] = vecs.get(i).dot(vecs.get(i));
+                    for(int i = start; i < end; i++) {
+                      cache[i] = vecs.get(i).dot(vecs.get(i));
+                    }
                     latch.countDown();
                 }
             });
@@ -153,8 +157,9 @@ public class EuclideanDistance implements DenseSparseMetric
     @Override
     public double dist(int a, int b, List<? extends Vec> vecs, List<Double> cache)
     {
-        if(cache == null)
-            return dist(vecs.get(a), vecs.get(b));
+        if(cache == null) {
+          return dist(vecs.get(a), vecs.get(b));
+        }
         
         return Math.sqrt(Math.max(cache.get(a)+cache.get(b)-2*vecs.get(a).dot(vecs.get(b)), 0));//Max incase of numerical issues
     }
@@ -162,8 +167,9 @@ public class EuclideanDistance implements DenseSparseMetric
     @Override
     public double dist(int a, Vec b, List<? extends Vec> vecs, List<Double> cache)
     {
-        if(cache == null)
-            return dist(vecs.get(a), b);
+        if(cache == null) {
+          return dist(vecs.get(a), b);
+        }
         
         return Math.sqrt(Math.max(cache.get(a)+b.dot(b)-2*vecs.get(a).dot(b), 0));//Max incase of numerical issues
     }
@@ -179,8 +185,9 @@ public class EuclideanDistance implements DenseSparseMetric
     @Override
     public double dist(int a, Vec b, List<Double> qi, List<? extends Vec> vecs, List<Double> cache)
     {
-        if(cache == null)
-            return dist(vecs.get(a), b);
+        if(cache == null) {
+          return dist(vecs.get(a), b);
+        }
         
         return Math.sqrt(Math.max(cache.get(a)+qi.get(0)-2*vecs.get(a).dot(b), 0));//Max incase of numerical issues
     }
