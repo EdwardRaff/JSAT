@@ -11,7 +11,6 @@ import static jsat.linear.RowColumnOps.addMultCol;
 import static jsat.linear.RowColumnOps.divCol;
 import static jsat.linear.RowColumnOps.multCol;
 import static jsat.linear.RowColumnOps.swapCol;
-
 import java.io.Serializable;
 import java.util.Arrays;
 import java.util.concurrent.ExecutorService;

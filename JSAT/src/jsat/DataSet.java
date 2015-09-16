@@ -14,7 +14,6 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-
 import jsat.classifiers.CategoricalData;
 import jsat.classifiers.DataPoint;
 import jsat.datatransform.DataTransform;

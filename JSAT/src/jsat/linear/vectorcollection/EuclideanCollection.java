@@ -8,7 +8,6 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-
 import jsat.linear.Vec;
 import jsat.linear.VecPaired;
 import jsat.linear.VecPairedComparable;

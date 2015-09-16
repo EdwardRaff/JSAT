@@ -1,7 +1,6 @@
 package jsat.datatransform;
 
 import java.util.Iterator;
-
 import jsat.classifiers.DataPoint;
 import jsat.linear.DenseVector;
 import jsat.linear.IndexValue;

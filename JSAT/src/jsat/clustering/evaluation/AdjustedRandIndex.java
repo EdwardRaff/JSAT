@@ -2,9 +2,7 @@ package jsat.clustering.evaluation;
 
 import static java.lang.Math.exp;
 import static java.lang.Math.log;
-
 import java.util.List;
-
 import jsat.DataSet;
 import jsat.classifiers.ClassificationDataSet;
 import jsat.classifiers.DataPoint;

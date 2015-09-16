@@ -1,7 +1,6 @@
 package jsat;
 
 import java.util.Random;
-
 import jsat.distributions.Normal;
 import jsat.linear.DenseVector;
 

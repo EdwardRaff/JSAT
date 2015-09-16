@@ -1,7 +1,6 @@
 package jsat.math.decayrates;
 
 import java.util.List;
-
 import jsat.classifiers.svm.Pegasos;
 import jsat.parameters.Parameter;
 import jsat.parameters.Parameterized;

@@ -3,7 +3,6 @@ package jsat.math.optimization;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
-
 import jsat.linear.DenseMatrix;
 import jsat.linear.DenseVector;
 import jsat.linear.LUPDecomposition;

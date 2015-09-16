@@ -2,9 +2,7 @@ package jsat.datatransform;
 
 import static jsat.linear.MatrixStatistics.covarianceMatrix;
 import static jsat.linear.MatrixStatistics.meanVector;
-
 import java.util.Comparator;
-
 import jsat.DataSet;
 import jsat.classifiers.DataPoint;
 import jsat.linear.DenseVector;

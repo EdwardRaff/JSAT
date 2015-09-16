@@ -3,7 +3,6 @@ package jsat.classifiers.svm;
 import static java.lang.Math.abs;
 import static jsat.utils.concurrent.ParallelUtils.getEndBlock;
 import static jsat.utils.concurrent.ParallelUtils.getStartBlock;
-
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -11,7 +10,6 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
-
 import jsat.DataSet;
 import jsat.classifiers.CategoricalResults;
 import jsat.classifiers.ClassificationDataSet;

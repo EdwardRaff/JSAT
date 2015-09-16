@@ -4,7 +4,6 @@ import java.util.List;
 import java.util.Random;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
-
 import jsat.classifiers.DataPointPair;
 import jsat.utils.ModifiableCountDownLatch;
 

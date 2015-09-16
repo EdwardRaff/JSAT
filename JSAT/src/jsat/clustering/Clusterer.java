@@ -3,7 +3,6 @@ package jsat.clustering;
 import java.io.Serializable;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
-
 import jsat.DataSet;
 import jsat.classifiers.DataPoint;
 

@@ -1,7 +1,6 @@
 package jsat.linear.vectorcollection;
 
 import static jsat.utils.SystemInfo.LogicalCores;
-
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -9,7 +8,6 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
-
 import jsat.linear.Vec;
 import jsat.linear.VecPaired;
 import jsat.math.OnLineStatistics;

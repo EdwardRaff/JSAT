@@ -2,7 +2,6 @@ package jsat.classifiers.neuralnetwork.regularizers;
 
 import java.io.Serializable;
 import java.util.concurrent.ExecutorService;
-
 import jsat.linear.Matrix;
 import jsat.linear.Vec;
 

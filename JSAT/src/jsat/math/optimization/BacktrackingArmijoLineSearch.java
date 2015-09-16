@@ -1,7 +1,6 @@
 package jsat.math.optimization;
 
 import java.util.concurrent.ExecutorService;
-
 import jsat.linear.Vec;
 import jsat.math.Function;
 import jsat.math.FunctionP;

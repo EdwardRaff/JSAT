@@ -2,11 +2,9 @@ package jsat.datatransform.featureselection;
 
 import static jsat.datatransform.featureselection.SFS.addFeature;
 import static jsat.datatransform.featureselection.SFS.removeFeature;
-
 import java.util.Arrays;
 import java.util.Random;
 import java.util.Set;
-
 import jsat.DataSet;
 import jsat.classifiers.ClassificationDataSet;
 import jsat.classifiers.Classifier;

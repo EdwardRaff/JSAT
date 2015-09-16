@@ -2,11 +2,9 @@ package jsat.classifiers.linear.kernelized;
 
 import static java.lang.Math.exp;
 import static java.lang.Math.log;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
-
 import jsat.DataSet;
 import jsat.classifiers.BaseUpdateableClassifier;
 import jsat.classifiers.CategoricalData;

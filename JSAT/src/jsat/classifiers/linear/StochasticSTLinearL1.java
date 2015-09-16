@@ -2,7 +2,6 @@ package jsat.classifiers.linear;
 
 import java.util.Iterator;
 import java.util.List;
-
 import jsat.SingleWeightVectorModel;
 import jsat.classifiers.CategoricalResults;
 import jsat.classifiers.Classifier;

@@ -1,7 +1,6 @@
 package jsat.math.rootfinding;
 
 import java.io.Serializable;
-
 import jsat.linear.Vec;
 import jsat.math.Function;
 

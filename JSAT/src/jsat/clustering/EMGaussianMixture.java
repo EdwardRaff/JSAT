@@ -2,7 +2,6 @@ package jsat.clustering;
 
 import static java.lang.Math.log;
 import static jsat.utils.SystemInfo.LogicalCores;
-
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -14,7 +13,6 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-
 import jsat.DataSet;
 import jsat.SimpleDataSet;
 import jsat.classifiers.CategoricalData;

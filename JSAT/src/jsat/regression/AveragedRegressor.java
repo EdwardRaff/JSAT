@@ -2,7 +2,6 @@ package jsat.regression;
 
 import java.util.List;
 import java.util.concurrent.ExecutorService;
-
 import jsat.classifiers.DataPoint;
 
 /**

@@ -1,7 +1,6 @@
 package jsat.classifiers;
 
 import java.util.concurrent.ExecutorService;
-
 import jsat.exceptions.UntrainedModelException;
 import jsat.linear.Vec;
 import jsat.regression.LogisticRegression;

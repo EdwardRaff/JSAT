@@ -1,7 +1,6 @@
 package jsat.classifiers.linear;
 
 import java.util.List;
-
 import jsat.DataSet;
 import jsat.SingleWeightVectorModel;
 import jsat.classifiers.BaseUpdateableClassifier;

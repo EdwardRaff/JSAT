@@ -9,7 +9,6 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-
 import jsat.DataSet;
 import jsat.linear.Vec;
 import jsat.linear.VecPaired;

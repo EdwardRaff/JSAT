@@ -3,7 +3,6 @@ package jsat.parameters;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-
 import jsat.distributions.empirical.kernelfunc.BiweightKF;
 import jsat.distributions.empirical.kernelfunc.EpanechnikovKF;
 import jsat.distributions.empirical.kernelfunc.GaussKF;

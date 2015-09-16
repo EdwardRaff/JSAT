@@ -2,7 +2,6 @@ package jsat.clustering.dissimilarity;
 
 import java.util.List;
 import java.util.Set;
-
 import jsat.classifiers.DataPoint;
 
 /**

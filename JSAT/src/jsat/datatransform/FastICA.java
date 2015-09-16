@@ -3,10 +3,8 @@ package jsat.datatransform;
 import static java.lang.Math.abs;
 import static java.lang.Math.exp;
 import static java.lang.Math.tanh;
-
 import java.util.ArrayList;
 import java.util.List;
-
 import jsat.DataSet;
 import jsat.classifiers.DataPoint;
 import jsat.exceptions.FailedToFitException;

@@ -39,7 +39,7 @@ public class MajorityVote implements Classifier {
    *          the list of voters to use
    */
   public MajorityVote(final List<Classifier> voters) {
-    this.voters = voters.toArray(new Classifier[0]);
+    this.voters = voters.toArray(new Classifier[voters.size()]);
   }
 
   @Override

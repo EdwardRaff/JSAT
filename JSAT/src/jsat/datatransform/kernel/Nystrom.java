@@ -5,7 +5,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
 import java.util.Set;
-
 import jsat.DataSet;
 import jsat.classifiers.DataPoint;
 import jsat.clustering.SeedSelectionMethods;

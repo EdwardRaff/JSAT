@@ -3,7 +3,6 @@ package jsat.math.rootfinding;
 import static java.lang.Math.abs;
 import static java.lang.Math.signum;
 import static java.lang.Math.sqrt;
-
 import jsat.linear.Vec;
 import jsat.math.Function;
 

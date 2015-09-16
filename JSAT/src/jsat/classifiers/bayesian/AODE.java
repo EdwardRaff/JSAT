@@ -2,7 +2,6 @@ package jsat.classifiers.bayesian;
 
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
-
 import jsat.classifiers.BaseUpdateableClassifier;
 import jsat.classifiers.CategoricalData;
 import jsat.classifiers.CategoricalResults;

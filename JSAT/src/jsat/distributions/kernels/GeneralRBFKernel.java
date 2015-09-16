@@ -3,7 +3,6 @@ package jsat.distributions.kernels;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-
 import jsat.DataSet;
 import jsat.classifiers.ClassificationDataSet;
 import jsat.distributions.Distribution;

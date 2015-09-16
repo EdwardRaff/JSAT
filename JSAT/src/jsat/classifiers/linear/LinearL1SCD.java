@@ -3,7 +3,6 @@ package jsat.classifiers.linear;
 import java.util.Arrays;
 import java.util.Random;
 import java.util.concurrent.ExecutorService;
-
 import jsat.DataSet;
 import jsat.classifiers.CategoricalResults;
 import jsat.classifiers.ClassificationDataSet;

@@ -1,7 +1,6 @@
 package jsat.linear;
 
 import java.util.Iterator;
-
 import jsat.math.Function;
 
 /**

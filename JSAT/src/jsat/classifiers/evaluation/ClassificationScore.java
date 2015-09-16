@@ -1,7 +1,6 @@
 package jsat.classifiers.evaluation;
 
 import java.io.Serializable;
-
 import jsat.classifiers.CategoricalData;
 import jsat.classifiers.CategoricalResults;
 

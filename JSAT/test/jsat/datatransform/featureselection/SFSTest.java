@@ -2,17 +2,14 @@ package jsat.datatransform.featureselection;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
-
 import java.util.Arrays;
 import java.util.Random;
 import java.util.Set;
-
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
-
 import jsat.classifiers.CategoricalData;
 import jsat.classifiers.ClassificationDataSet;
 import jsat.classifiers.Classifier;

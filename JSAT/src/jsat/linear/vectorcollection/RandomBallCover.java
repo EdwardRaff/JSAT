@@ -1,14 +1,12 @@
 package jsat.linear.vectorcollection;
 
 import static jsat.utils.SystemInfo.LogicalCores;
-
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
-
 import jsat.linear.Vec;
 import jsat.linear.VecPaired;
 import jsat.linear.VecPairedComparable;

@@ -1,7 +1,6 @@
 package jsat.text.tokenizer;
 
 import java.util.List;
-
 import jsat.text.stemming.Stemmer;
 
 /**

@@ -5,16 +5,13 @@
 package jsat.datatransform;
 
 import static org.junit.Assert.assertEquals;
-
 import java.util.Arrays;
 import java.util.Set;
-
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
-
 import jsat.SimpleDataSet;
 import jsat.classifiers.CategoricalData;
 import jsat.classifiers.DataPoint;

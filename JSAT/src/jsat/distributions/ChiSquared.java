@@ -8,7 +8,6 @@ import static java.lang.Math.sqrt;
 import static jsat.math.SpecialMath.gammaP;
 import static jsat.math.SpecialMath.invGammaP;
 import static jsat.math.SpecialMath.lnGamma;
-
 import jsat.linear.Vec;
 
 /**

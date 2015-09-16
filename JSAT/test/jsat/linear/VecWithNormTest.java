@@ -2,9 +2,7 @@ package jsat.linear;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotSame;
-
 import java.util.Random;
-
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;

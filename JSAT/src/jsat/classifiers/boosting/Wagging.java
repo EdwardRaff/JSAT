@@ -4,7 +4,6 @@ import java.util.List;
 import java.util.Random;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
-
 import jsat.DataSet;
 import jsat.classifiers.CategoricalData;
 import jsat.classifiers.CategoricalResults;

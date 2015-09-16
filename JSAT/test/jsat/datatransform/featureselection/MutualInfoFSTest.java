@@ -6,13 +6,11 @@ package jsat.datatransform.featureselection;
 
 import static jsat.linear.DenseVector.toDenseVec;
 import static org.junit.Assert.assertEquals;
-
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
-
 import jsat.classifiers.CategoricalData;
 import jsat.classifiers.ClassificationDataSet;
 import jsat.classifiers.DataPoint;

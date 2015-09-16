@@ -1,7 +1,6 @@
 package jsat.text.wordweighting;
 
 import java.util.List;
-
 import jsat.linear.Vec;
 import jsat.math.IndexFunction;
 

@@ -2,7 +2,6 @@ package jsat.distributions.multivariate;
 
 import java.util.List;
 import java.util.concurrent.ExecutorService;
-
 import jsat.DataSet;
 import jsat.classifiers.DataPoint;
 import jsat.linear.DenseVector;

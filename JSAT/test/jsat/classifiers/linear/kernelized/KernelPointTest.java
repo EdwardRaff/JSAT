@@ -2,16 +2,13 @@ package jsat.classifiers.linear.kernelized;
 
 import static java.lang.Math.pow;
 import static org.junit.Assert.assertEquals;
-
 import java.util.List;
 import java.util.Random;
-
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
-
 import jsat.distributions.kernels.KernelPoint;
 import jsat.distributions.kernels.LinearKernel;
 import jsat.distributions.multivariate.NormalM;

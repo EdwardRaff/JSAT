@@ -1,7 +1,6 @@
 package jsat.clustering.evaluation;
 
 import java.util.List;
-
 import jsat.DataSet;
 import jsat.classifiers.ClassificationDataSet;
 import jsat.classifiers.DataPoint;

@@ -1,9 +1,7 @@
 package jsat.linear;
 
 import static java.lang.Math.pow;
-
 import java.util.List;
-
 import jsat.DataSet;
 import jsat.classifiers.DataPoint;
 

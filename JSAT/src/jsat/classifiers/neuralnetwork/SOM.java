@@ -2,7 +2,6 @@ package jsat.classifiers.neuralnetwork;
 
 import static java.lang.Math.max;
 import static java.lang.Math.sqrt;
-
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -11,7 +10,6 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-
 import jsat.DataSet;
 import jsat.classifiers.CategoricalResults;
 import jsat.classifiers.ClassificationDataSet;
@@ -396,8 +394,8 @@ public class SOM implements Classifier, Parameterized {
   private List<VecPaired<Vec, Integer>> setUpVectorCollection(final ExecutorService threadPool) {
     final List<VecPaired<Vec, Integer>> vecList = new ArrayList<VecPaired<Vec, Integer>>(somWidth * somHeight);
     for (final Vec[] weight : weights) {
-      for (int j = 0; j < weight.length; j++) {
-        vecList.add(new VecPaired<Vec, Integer>(weight[j], vecList.size()));
+      for (final Vec element : weight) {
+        vecList.add(new VecPaired<Vec, Integer>(element, vecList.size()));
       }
     }
     if (threadPool == null) {

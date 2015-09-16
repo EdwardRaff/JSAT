@@ -5,7 +5,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
 import java.util.concurrent.ExecutorService;
-
 import jsat.DataSet;
 import jsat.clustering.KClustererBase;
 import jsat.distributions.kernels.KernelTrick;
@@ -195,7 +194,7 @@ public abstract class KernelKMeans extends KClustererBase implements Parameteriz
    *          the query information for the given data point generated for the
    *          kernel in use. See
    *          {@link KernelTrick#getQueryInfo(jsat.linear.Vec) } @ param k the
-   * cluster id to get the distance to
+   *          cluster id to get the distance to
    * @return the distance between the given data point and the specified cluster
    */
   public double distance(final Vec x, final List<Double> qi, final int k) {
@@ -291,7 +290,7 @@ public abstract class KernelKMeans extends KClustererBase implements Parameteriz
    *          the query information for the given data point generated from the
    *          kernel in use. See
    *          {@link KernelTrick#getQueryInfo(jsat.linear.Vec) } @ param
-   * clusterID the cluster index to get the sum of kernel products
+   *          clusterID the cluster index to get the sum of kernel products
    * @param d
    *          the array of cluster assignments
    * @return the sum <big>&Sigma;</big>k(x<sub>i</sub>, x<sub>j</sub>), &forall;
@@ -327,7 +326,7 @@ public abstract class KernelKMeans extends KClustererBase implements Parameteriz
    *          the query information for the given data point generated for the
    *          kernel in use. See
    *          {@link KernelTrick#getQueryInfo(jsat.linear.Vec) } @ return the
-   * index of the closest cluster
+   *          index of the closest cluster
    */
   public int findClosestCluster(final Vec x, final List<Double> qi) {
     double min = distance(x, qi, 0);

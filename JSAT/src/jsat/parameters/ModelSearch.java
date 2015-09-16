@@ -18,7 +18,6 @@ package jsat.parameters;
 
 import java.util.ArrayList;
 import java.util.List;
-
 import jsat.classifiers.CategoricalResults;
 import jsat.classifiers.Classifier;
 import jsat.classifiers.DataPoint;

@@ -3,10 +3,8 @@ package jsat.classifiers.linear;
 import static java.lang.Math.max;
 import static java.lang.Math.min;
 import static java.lang.Math.pow;
-
 import java.util.Arrays;
 import java.util.List;
-
 import jsat.DataSet;
 import jsat.SimpleWeightVectorModel;
 import jsat.classifiers.BaseUpdateableClassifier;

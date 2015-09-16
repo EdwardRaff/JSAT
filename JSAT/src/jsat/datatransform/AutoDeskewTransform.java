@@ -2,7 +2,6 @@ package jsat.datatransform;
 
 import java.util.Arrays;
 import java.util.List;
-
 import jsat.DataSet;
 import jsat.classifiers.DataPoint;
 import jsat.linear.IndexValue;

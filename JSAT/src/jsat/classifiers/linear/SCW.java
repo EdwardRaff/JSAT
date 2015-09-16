@@ -4,9 +4,7 @@ import static java.lang.Math.max;
 import static java.lang.Math.min;
 import static java.lang.Math.pow;
 import static java.lang.Math.sqrt;
-
 import java.util.List;
-
 import jsat.DataSet;
 import jsat.SingleWeightVectorModel;
 import jsat.classifiers.BaseUpdateableClassifier;

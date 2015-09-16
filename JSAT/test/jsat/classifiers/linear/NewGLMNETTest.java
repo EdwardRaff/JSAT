@@ -2,16 +2,13 @@ package jsat.classifiers.linear;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
-
 import java.util.Random;
 import java.util.concurrent.ExecutorService;
-
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
-
 import jsat.SimpleWeightVectorModel;
 import jsat.classifiers.CategoricalData;
 import jsat.classifiers.CategoricalResults;

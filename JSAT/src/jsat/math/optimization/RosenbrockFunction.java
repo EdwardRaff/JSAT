@@ -1,9 +1,7 @@
 package jsat.math.optimization;
 
 import static java.lang.Math.pow;
-
 import java.util.concurrent.ExecutorService;
-
 import jsat.linear.DenseVector;
 import jsat.linear.Vec;
 import jsat.math.Function;

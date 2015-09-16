@@ -7,7 +7,6 @@ import static java.lang.Math.sqrt;
 import static jsat.math.SpecialMath.betaIncReg;
 import static jsat.math.SpecialMath.invBetaIncReg;
 import static jsat.math.SpecialMath.lnBeta;
-
 import jsat.linear.Vec;
 
 /**

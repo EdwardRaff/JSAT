@@ -1,7 +1,6 @@
 package jsat.math;
 
 import java.util.concurrent.ExecutorService;
-
 import jsat.linear.Matrix;
 import jsat.linear.Vec;
 

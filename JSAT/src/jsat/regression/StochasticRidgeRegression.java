@@ -3,7 +3,6 @@ package jsat.regression;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
-
 import jsat.SingleWeightVectorModel;
 import jsat.classifiers.DataPoint;
 import jsat.linear.DenseVector;

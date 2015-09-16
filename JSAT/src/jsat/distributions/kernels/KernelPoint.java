@@ -4,13 +4,11 @@ import static java.lang.Math.abs;
 import static java.lang.Math.max;
 import static java.lang.Math.min;
 import static java.lang.Math.pow;
-
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Random;
-
 import jsat.classifiers.linear.kernelized.Projectron;
 import jsat.linear.DenseMatrix;
 import jsat.linear.DenseVector;

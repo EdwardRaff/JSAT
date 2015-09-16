@@ -2,15 +2,12 @@ package jsat.distributions.multivariate;
 
 import static jsat.linear.DenseVector.toDenseVec;
 import static org.junit.Assert.assertEquals;
-
 import java.util.List;
 import java.util.Random;
-
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
-
 import jsat.linear.DenseVector;
 import jsat.linear.Vec;
 

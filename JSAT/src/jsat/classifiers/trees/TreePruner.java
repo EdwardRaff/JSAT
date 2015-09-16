@@ -2,7 +2,6 @@ package jsat.classifiers.trees;
 
 import java.util.ArrayList;
 import java.util.List;
-
 import jsat.classifiers.ClassificationDataSet;
 import jsat.classifiers.DataPoint;
 import jsat.classifiers.DataPointPair;

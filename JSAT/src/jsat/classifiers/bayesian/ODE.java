@@ -1,7 +1,6 @@
 package jsat.classifiers.bayesian;
 
 import java.util.Arrays;
-
 import jsat.classifiers.BaseUpdateableClassifier;
 import jsat.classifiers.CategoricalData;
 import jsat.classifiers.CategoricalResults;

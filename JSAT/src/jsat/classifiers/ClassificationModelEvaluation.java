@@ -13,7 +13,6 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-
 import jsat.DataSet;
 import jsat.classifiers.evaluation.ClassificationScore;
 import jsat.datatransform.DataTransformProcess;
@@ -33,7 +32,8 @@ public class ClassificationModelEvaluation {
 
     ClassificationDataSet testSet;
     DataTransformProcess curProcess;
-    int start, end;
+    int start;
+    int end;
     CountDownLatch latch;
     long localClassificationTime;
     double localCorrect;
@@ -41,7 +41,7 @@ public class ClassificationModelEvaluation {
     double[] errorStats;
     final Map<ClassificationScore, ClassificationScore> scoresToUpdate;
 
-    public Evaluator(final ClassificationDataSet testSet, final DataTransformProcess curProcess, final int start,
+    Evaluator(final ClassificationDataSet testSet, final DataTransformProcess curProcess, final int start,
         final int end, final double[] errorStats, final Map<ClassificationScore, ClassificationScore> scoresToUpdate,
         final CountDownLatch latch) {
       this.testSet = testSet;
@@ -103,10 +103,8 @@ public class ClassificationModelEvaluation {
 
         latch.countDown();
       } catch (final Exception ex) {
-        ex.printStackTrace();
       }
     }
-
   }
 
   /**
@@ -135,6 +133,7 @@ public class ClassificationModelEvaluation {
   private final OnLineStatistics errorStats;
   private final Map<ClassificationScore, OnLineStatistics> scoreMap;
   private boolean keepModels = false;
+
   /**
    * This holds models for each index that will be kept. If using a test set,
    * only index 0 is used.

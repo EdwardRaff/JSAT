@@ -2,7 +2,6 @@ package jsat.classifiers;
 
 import java.util.Collections;
 import java.util.concurrent.ExecutorService;
-
 import jsat.utils.IntList;
 import jsat.utils.ListUtils;
 

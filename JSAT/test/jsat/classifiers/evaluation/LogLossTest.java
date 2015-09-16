@@ -3,13 +3,11 @@ package jsat.classifiers.evaluation;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
-
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
-
 import jsat.classifiers.CategoricalData;
 import jsat.classifiers.CategoricalResults;
 

@@ -1,7 +1,6 @@
 package jsat.classifiers;
 
 import java.io.Serializable;
-
 import jsat.linear.Vec;
 
 /**

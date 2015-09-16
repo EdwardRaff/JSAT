@@ -4,7 +4,6 @@ import java.util.Collections;
 import java.util.Map;
 import java.util.Random;
 import java.util.concurrent.ExecutorService;
-
 import jsat.classifiers.ClassificationDataSet;
 import jsat.linear.Vec;
 import jsat.utils.IntList;

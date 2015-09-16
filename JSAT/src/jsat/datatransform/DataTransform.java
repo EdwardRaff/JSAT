@@ -1,7 +1,6 @@
 package jsat.datatransform;
 
 import java.io.Serializable;
-
 import jsat.classifiers.DataPoint;
 
 /**

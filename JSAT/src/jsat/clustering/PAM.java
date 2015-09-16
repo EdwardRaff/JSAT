@@ -1,7 +1,6 @@
 package jsat.clustering;
 
 import static jsat.clustering.SeedSelectionMethods.selectIntialPoints;
-
 import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
@@ -10,7 +9,6 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ExecutorService;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-
 import jsat.DataSet;
 import jsat.clustering.SeedSelectionMethods.SeedSelection;
 import jsat.linear.Vec;

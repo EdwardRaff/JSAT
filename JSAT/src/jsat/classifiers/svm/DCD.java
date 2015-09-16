@@ -1,14 +1,12 @@
 package jsat.classifiers.svm;
 
 import static jsat.classifiers.svm.DCDs.eq24;
-
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
 import java.util.concurrent.ExecutorService;
-
 import jsat.SingleWeightVectorModel;
 import jsat.classifiers.CategoricalResults;
 import jsat.classifiers.ClassificationDataSet;

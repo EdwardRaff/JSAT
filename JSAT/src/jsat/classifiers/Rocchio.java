@@ -5,7 +5,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
-
 import jsat.exceptions.FailedToFitException;
 import jsat.linear.DenseVector;
 import jsat.linear.Vec;
@@ -28,15 +27,12 @@ public class Rocchio implements Classifier {
   private class RocchioAdder implements Runnable {
 
     double weightSum;
-
     final CountDownLatch latch;
-
     final Vec rocchioVec;
     final List<DataPoint> input;
     final int index;
 
-    public RocchioAdder(final CountDownLatch latch, final int index, final Vec rocchioVec,
-        final List<DataPoint> input) {
+    RocchioAdder(final CountDownLatch latch, final int index, final Vec rocchioVec, final List<DataPoint> input) {
       this.latch = latch;
       this.index = index;
       this.rocchioVec = rocchioVec;
@@ -59,12 +55,12 @@ public class Rocchio implements Classifier {
       }
       latch.countDown();
     }
-
   }
 
   private static final long serialVersionUID = 889524967453326517L;
   private List<Vec> rocVecs;
   private final DistanceMetric dm;
+
   private final DenseSparseMetric dsdm;
 
   private double[] summaryConsts;

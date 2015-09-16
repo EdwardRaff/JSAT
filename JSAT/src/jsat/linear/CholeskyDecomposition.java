@@ -4,13 +4,11 @@ import static java.lang.Math.pow;
 import static java.lang.Math.sqrt;
 import static jsat.linear.LUPDecomposition.backSub;
 import static jsat.linear.LUPDecomposition.forwardSub;
-
 import java.io.Serializable;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-
 import jsat.utils.SystemInfo;
 
 /**

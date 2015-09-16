@@ -7,14 +7,12 @@ import static java.lang.Math.max;
 import static java.lang.Math.min;
 import static java.lang.Math.pow;
 import static java.lang.Math.signum;
-
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
-
 import jsat.DataSet;
 import jsat.SimpleWeightVectorModel;
 import jsat.SingleWeightVectorModel;

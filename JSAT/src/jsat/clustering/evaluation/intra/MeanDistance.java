@@ -1,7 +1,6 @@
 package jsat.clustering.evaluation.intra;
 
 import java.util.List;
-
 import jsat.DataSet;
 import jsat.classifiers.DataPoint;
 import jsat.linear.distancemetrics.DistanceMetric;

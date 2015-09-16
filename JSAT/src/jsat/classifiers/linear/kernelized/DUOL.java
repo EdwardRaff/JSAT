@@ -4,11 +4,9 @@ import static java.lang.Math.abs;
 import static java.lang.Math.max;
 import static java.lang.Math.min;
 import static java.lang.Math.signum;
-
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-
 import jsat.DataSet;
 import jsat.classifiers.BaseUpdateableClassifier;
 import jsat.classifiers.CategoricalData;

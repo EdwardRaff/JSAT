@@ -1,7 +1,6 @@
 package jsat.datatransform;
 
 import java.util.Random;
-
 import jsat.classifiers.DataPoint;
 import jsat.linear.DenseMatrix;
 import jsat.linear.Matrix;

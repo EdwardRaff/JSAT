@@ -6,7 +6,6 @@ import static jsat.utils.ClosedHashingUtil.EXTRA_INDEX_INFO;
 import static jsat.utils.ClosedHashingUtil.INT_MASK;
 import static jsat.utils.ClosedHashingUtil.OCCUPIED;
 import static jsat.utils.ClosedHashingUtil.getNextPow2TwinPrime;
-
 import java.util.AbstractMap;
 import java.util.AbstractSet;
 import java.util.Arrays;

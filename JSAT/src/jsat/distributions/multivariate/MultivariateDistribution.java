@@ -4,7 +4,6 @@ import java.io.Serializable;
 import java.util.List;
 import java.util.Random;
 import java.util.concurrent.ExecutorService;
-
 import jsat.DataSet;
 import jsat.classifiers.DataPoint;
 import jsat.linear.Vec;

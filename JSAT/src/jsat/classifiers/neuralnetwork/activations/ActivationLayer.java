@@ -1,7 +1,6 @@
 package jsat.classifiers.neuralnetwork.activations;
 
 import java.io.Serializable;
-
 import jsat.linear.Matrix;
 import jsat.linear.Vec;
 

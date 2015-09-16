@@ -2,9 +2,7 @@ package jsat.classifiers.bayesian.graphicalmodel;
 
 import static java.lang.Math.max;
 import static jsat.math.SpecialMath.lnGamma;
-
 import java.util.Set;
-
 import jsat.classifiers.ClassificationDataSet;
 import jsat.classifiers.DataPoint;
 import jsat.utils.IntList;

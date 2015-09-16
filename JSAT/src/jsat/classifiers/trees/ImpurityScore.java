@@ -2,9 +2,7 @@ package jsat.classifiers.trees;
 
 import static java.lang.Math.abs;
 import static java.lang.Math.log;
-
 import java.util.Arrays;
-
 import jsat.classifiers.CategoricalResults;
 import jsat.classifiers.DataPoint;
 

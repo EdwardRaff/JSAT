@@ -3,7 +3,6 @@ package jsat.regression;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
-
 import jsat.classifiers.DataPoint;
 import jsat.linear.CholeskyDecomposition;
 import jsat.linear.DenseMatrix;

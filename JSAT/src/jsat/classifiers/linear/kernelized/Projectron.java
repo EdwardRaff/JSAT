@@ -3,7 +3,6 @@ package jsat.classifiers.linear.kernelized;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-
 import jsat.classifiers.BaseUpdateableClassifier;
 import jsat.classifiers.CategoricalData;
 import jsat.classifiers.CategoricalResults;

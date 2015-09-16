@@ -1,7 +1,6 @@
 package jsat.clustering;
 
 import static jsat.utils.SystemInfo.LogicalCores;
-
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.ArrayBlockingQueue;
@@ -11,7 +10,6 @@ import java.util.concurrent.CyclicBarrier;
 import java.util.concurrent.ExecutorService;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-
 import jsat.DataSet;
 import jsat.distributions.empirical.kernelfunc.GaussKF;
 import jsat.distributions.empirical.kernelfunc.KernelFunction;

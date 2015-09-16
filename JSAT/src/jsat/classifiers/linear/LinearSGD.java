@@ -3,7 +3,6 @@ package jsat.classifiers.linear;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
-
 import jsat.DataSet;
 import jsat.SimpleWeightVectorModel;
 import jsat.classifiers.BaseUpdateableClassifier;

@@ -11,7 +11,6 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-
 import jsat.classifiers.neuralnetwork.activations.ActivationLayer;
 import jsat.classifiers.neuralnetwork.initializers.BiastInitializer;
 import jsat.classifiers.neuralnetwork.initializers.WeightInitializer;

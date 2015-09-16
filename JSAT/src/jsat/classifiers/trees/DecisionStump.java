@@ -2,7 +2,6 @@ package jsat.classifiers.trees;
 
 import static java.lang.Math.max;
 import static java.lang.Math.min;
-
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -11,7 +10,6 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
-
 import jsat.classifiers.CategoricalData;
 import jsat.classifiers.CategoricalResults;
 import jsat.classifiers.ClassificationDataSet;

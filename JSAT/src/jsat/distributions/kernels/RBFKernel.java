@@ -1,7 +1,6 @@
 package jsat.distributions.kernels;
 
 import java.util.List;
-
 import jsat.DataSet;
 import jsat.distributions.Distribution;
 import jsat.linear.Vec;

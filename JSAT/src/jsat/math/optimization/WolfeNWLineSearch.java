@@ -5,9 +5,7 @@ import static java.lang.Math.max;
 import static java.lang.Math.min;
 import static java.lang.Math.pow;
 import static java.lang.Math.signum;
-
 import java.util.concurrent.ExecutorService;
-
 import jsat.linear.Vec;
 import jsat.math.Function;
 import jsat.math.FunctionP;

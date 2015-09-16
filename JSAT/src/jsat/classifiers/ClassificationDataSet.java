@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Random;
-
 import jsat.DataSet;
 import jsat.linear.DenseVector;
 import jsat.linear.Vec;

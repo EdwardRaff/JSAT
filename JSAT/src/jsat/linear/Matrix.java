@@ -1,7 +1,6 @@
 package jsat.linear;
 
 import static jsat.utils.SystemInfo.LogicalCores;
-
 import java.io.Serializable;
 import java.util.Iterator;
 import java.util.Random;
@@ -9,7 +8,6 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-
 import jsat.utils.ModifiableCountDownLatch;
 
 /**

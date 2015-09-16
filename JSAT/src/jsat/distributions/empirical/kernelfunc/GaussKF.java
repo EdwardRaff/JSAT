@@ -4,7 +4,6 @@ import static java.lang.Math.PI;
 import static java.lang.Math.exp;
 import static java.lang.Math.pow;
 import static java.lang.Math.sqrt;
-
 import jsat.distributions.Normal;
 
 /**

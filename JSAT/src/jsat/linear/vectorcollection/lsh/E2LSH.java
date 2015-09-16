@@ -8,7 +8,6 @@ import static java.lang.Math.floor;
 import static java.lang.Math.log;
 import static java.lang.Math.pow;
 import static java.lang.Math.sqrt;
-
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -17,7 +16,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Random;
 import java.util.Set;
-
 import jsat.distributions.Normal;
 import jsat.linear.DenseVector;
 import jsat.linear.Vec;

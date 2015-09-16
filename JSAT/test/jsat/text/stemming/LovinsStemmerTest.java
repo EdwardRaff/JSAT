@@ -17,7 +17,6 @@
 package jsat.text.stemming;
 
 import static org.junit.Assert.assertEquals;
-
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;

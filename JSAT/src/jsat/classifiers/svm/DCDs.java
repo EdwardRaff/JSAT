@@ -7,7 +7,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Random;
 import java.util.concurrent.ExecutorService;
-
 import jsat.DataSet;
 import jsat.SingleWeightVectorModel;
 import jsat.classifiers.CategoricalResults;

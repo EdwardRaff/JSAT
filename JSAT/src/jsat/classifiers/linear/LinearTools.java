@@ -2,9 +2,7 @@ package jsat.classifiers.linear;
 
 import static java.lang.Math.abs;
 import static java.lang.Math.max;
-
 import java.util.List;
-
 import jsat.classifiers.ClassificationDataSet;
 import jsat.linear.DenseVector;
 import jsat.linear.Vec;

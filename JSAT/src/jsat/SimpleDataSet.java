@@ -2,7 +2,6 @@ package jsat;
 
 import java.util.ArrayList;
 import java.util.List;
-
 import jsat.classifiers.CategoricalData;
 import jsat.classifiers.DataPoint;
 

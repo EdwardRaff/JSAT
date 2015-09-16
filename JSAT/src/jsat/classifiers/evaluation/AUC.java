@@ -3,7 +3,6 @@ package jsat.classifiers.evaluation;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-
 import jsat.classifiers.CategoricalData;
 import jsat.classifiers.CategoricalResults;
 

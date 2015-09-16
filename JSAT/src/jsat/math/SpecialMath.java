@@ -11,7 +11,6 @@ import static java.lang.Math.sin;
 import static java.lang.Math.sqrt;
 import static java.lang.Math.tan;
 import static jsat.math.MathTricks.hornerPolyR;
-
 import jsat.distributions.Normal;
 import jsat.linear.Vec;
 import jsat.math.rootfinding.RiddersMethod;

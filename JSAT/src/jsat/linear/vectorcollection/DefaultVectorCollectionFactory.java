@@ -3,7 +3,6 @@ package jsat.linear.vectorcollection;
 import java.util.List;
 import java.util.Random;
 import java.util.concurrent.ExecutorService;
-
 import jsat.linear.Vec;
 import jsat.linear.distancemetrics.ChebyshevDistance;
 import jsat.linear.distancemetrics.DistanceMetric;

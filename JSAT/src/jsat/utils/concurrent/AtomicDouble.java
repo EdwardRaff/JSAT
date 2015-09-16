@@ -2,7 +2,6 @@ package jsat.utils.concurrent;
 
 import static java.lang.Double.doubleToRawLongBits;
 import static java.lang.Double.longBitsToDouble;
-
 import java.util.concurrent.atomic.AtomicLong;
 
 /**

@@ -3,10 +3,8 @@ package jsat.classifiers.trees;
 import static java.lang.Math.max;
 import static java.lang.Math.round;
 import static java.lang.Math.sqrt;
-
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
-
 import jsat.DataSet;
 import jsat.classifiers.CategoricalData;
 import jsat.classifiers.CategoricalResults;

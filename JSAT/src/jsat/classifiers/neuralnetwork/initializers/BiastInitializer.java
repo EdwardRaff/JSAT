@@ -2,7 +2,6 @@ package jsat.classifiers.neuralnetwork.initializers;
 
 import java.io.Serializable;
 import java.util.Random;
-
 import jsat.linear.Vec;
 
 /**

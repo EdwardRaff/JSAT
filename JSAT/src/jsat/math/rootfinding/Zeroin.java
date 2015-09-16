@@ -1,7 +1,6 @@
 package jsat.math.rootfinding;
 
 import static java.lang.Math.abs;
-
 import jsat.linear.Vec;
 import jsat.math.Function;
 

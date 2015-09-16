@@ -1,7 +1,6 @@
 package jsat.classifiers;
 
 import java.util.Arrays;
-
 import jsat.linear.DenseVector;
 import jsat.linear.Vec;
 

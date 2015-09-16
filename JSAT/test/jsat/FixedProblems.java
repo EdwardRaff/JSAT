@@ -1,7 +1,6 @@
 package jsat;
 
 import java.util.Random;
-
 import jsat.classifiers.CategoricalData;
 import jsat.classifiers.ClassificationDataSet;
 import jsat.distributions.multivariate.NormalM;

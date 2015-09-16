@@ -1,13 +1,11 @@
 package jsat.clustering.kmeans;
 
 import static java.lang.Math.log;
-
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
-
 import jsat.DataSet;
 import jsat.SimpleDataSet;
 import jsat.classifiers.DataPoint;

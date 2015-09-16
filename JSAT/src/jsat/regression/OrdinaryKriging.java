@@ -2,7 +2,6 @@ package jsat.regression;
 
 import static java.lang.Math.pow;
 import static jsat.linear.DenseVector.toDenseVec;
-
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -10,7 +9,6 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-
 import jsat.classifiers.DataPoint;
 import jsat.linear.DenseMatrix;
 import jsat.linear.DenseVector;

@@ -1,7 +1,6 @@
 package jsat.text;
 
 import java.util.List;
-
 import jsat.classifiers.CategoricalData;
 import jsat.classifiers.ClassificationDataSet;
 import jsat.text.tokenizer.Tokenizer;

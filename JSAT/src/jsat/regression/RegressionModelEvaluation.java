@@ -1,7 +1,6 @@
 package jsat.regression;
 
 import static java.lang.Math.pow;
-
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -15,7 +14,6 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-
 import jsat.classifiers.ClassificationModelEvaluation;
 import jsat.classifiers.DataPoint;
 import jsat.datatransform.DataTransformProcess;

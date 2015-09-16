@@ -11,7 +11,6 @@ import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-
 import jsat.DataSet;
 import jsat.clustering.ClusterFailureException;
 import jsat.distributions.kernels.KernelTrick;

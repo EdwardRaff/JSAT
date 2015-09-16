@@ -2,7 +2,6 @@ package jsat.linear;
 
 import static java.lang.Math.abs;
 import static java.lang.Math.pow;
-
 import java.util.Iterator;
 
 /**

@@ -5,12 +5,10 @@ import static java.lang.Math.abs;
 import static java.lang.Math.log;
 import static java.lang.Math.signum;
 import static java.lang.Math.sqrt;
-
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
-
 import jsat.SimpleWeightVectorModel;
 import jsat.classifiers.CategoricalResults;
 import jsat.classifiers.ClassificationDataSet;

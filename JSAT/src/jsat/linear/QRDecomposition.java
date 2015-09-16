@@ -2,7 +2,6 @@ package jsat.linear;
 
 import static java.lang.Math.abs;
 import static java.lang.Math.min;
-
 import java.io.Serializable;
 import java.util.concurrent.ExecutorService;
 

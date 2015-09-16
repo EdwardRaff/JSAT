@@ -9,12 +9,10 @@ import static java.lang.Math.pow;
 import static java.lang.Math.sin;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
-
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
-
 import jsat.linear.Vec;
 import jsat.math.Function;
 

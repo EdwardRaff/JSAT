@@ -3,12 +3,10 @@ package jsat.linear;
 import static java.lang.Math.abs;
 import static java.lang.Math.pow;
 import static java.lang.Math.sqrt;
-
 import java.io.Serializable;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.Random;
-
 import jsat.math.Function;
 import jsat.math.IndexFunction;
 

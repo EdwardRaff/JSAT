@@ -5,7 +5,6 @@ import static java.lang.Math.signum;
 import static java.lang.Math.sqrt;
 import static jsat.utils.SystemInfo.L2CacheSize;
 import static jsat.utils.SystemInfo.LogicalCores;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Callable;
@@ -15,7 +14,6 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-
 import jsat.utils.FakeExecutor;
 
 /**

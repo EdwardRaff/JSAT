@@ -1,7 +1,6 @@
 package jsat.regression;
 
 import java.util.concurrent.ExecutorService;
-
 import jsat.SingleWeightVectorModel;
 import jsat.classifiers.DataPoint;
 import jsat.classifiers.DataPointPair;

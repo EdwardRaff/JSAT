@@ -1,12 +1,10 @@
 package jsat.classifiers.knn;
 
 import static java.lang.Math.pow;
-
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
-
 import jsat.DataSet;
 import jsat.classifiers.CategoricalData;
 import jsat.classifiers.CategoricalResults;
@@ -209,7 +207,7 @@ public class DANN implements Classifier, Parameterized {
       knn.add(new VecPairedComparable<VecPaired<Vec, Integer>, Double>(v, d));
     }
 
-    return (List<? extends VecPaired<VecPaired<Vec, Integer>, Double>>) knn;
+    return knn;
   }
 
   @Override

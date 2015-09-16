@@ -5,13 +5,11 @@
 package jsat.linear.distancemetrics;
 
 import static org.junit.Assert.assertEquals;
-
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
-
 import jsat.linear.DenseVector;
 import jsat.linear.SparseVector;
 import jsat.linear.Vec;

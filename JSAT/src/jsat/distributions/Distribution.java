@@ -18,7 +18,6 @@ package jsat.distributions;
 
 import java.io.Serializable;
 import java.util.Random;
-
 import jsat.linear.DenseVector;
 import jsat.linear.Vec;
 import jsat.math.Function;

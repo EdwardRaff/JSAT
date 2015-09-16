@@ -17,15 +17,12 @@
 package jsat.math.optimization.stochastic;
 
 import static org.junit.Assert.assertEquals;
-
 import java.util.Random;
-
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
-
 import jsat.linear.DenseVector;
 import jsat.linear.SubVector;
 import jsat.linear.Vec;

@@ -25,7 +25,7 @@ public interface DenseSparseMetric extends DistanceMetric {
    * @param summaryConst
    *          the summary constant for the main vector obtained with
    *          {@link #getVectorConstant(jsat.linear.Vec) } @ param main the main
-   * vector the summary constant is for
+   *          vector the summary constant is for
    * @param target
    *          the target vector to compute the distance to
    * @return the distance between the two vectors dist(main, target)

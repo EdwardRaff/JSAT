@@ -23,7 +23,6 @@ import java.util.IdentityHashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Random;
-
 import jsat.DataSet;
 import jsat.classifiers.DataPoint;
 import jsat.datatransform.DataTransform;

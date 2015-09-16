@@ -2,17 +2,14 @@ package jsat.distributions.empirical;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
-
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
-
 import jsat.distributions.ContinuousDistribution;
 import jsat.distributions.empirical.kernelfunc.GaussKF;
 import jsat.distributions.empirical.kernelfunc.UniformKF;

@@ -5,7 +5,6 @@
 package jsat.math;
 
 import static org.junit.Assert.assertEquals;
-
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;

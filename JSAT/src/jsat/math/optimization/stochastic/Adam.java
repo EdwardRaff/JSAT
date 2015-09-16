@@ -2,7 +2,6 @@ package jsat.math.optimization.stochastic;
 
 import static java.lang.Math.pow;
 import static java.lang.Math.sqrt;
-
 import jsat.linear.DenseVector;
 import jsat.linear.IndexValue;
 import jsat.linear.ScaledVector;

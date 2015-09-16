@@ -4,7 +4,6 @@ import static java.lang.Math.exp;
 import static java.lang.Math.log;
 import static java.lang.Math.pow;
 import static jsat.math.SpecialMath.gamma;
-
 import jsat.linear.DenseVector;
 import jsat.linear.Vec;
 import jsat.math.SimpleLinearRegression;

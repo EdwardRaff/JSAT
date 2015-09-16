@@ -2,7 +2,6 @@ package jsat.classifiers.calibration;
 
 import static jsat.math.FastMath.exp;
 import static jsat.math.FastMath.log;
-
 import jsat.classifiers.CategoricalResults;
 import jsat.classifiers.DataPoint;
 
