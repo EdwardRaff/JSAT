@@ -157,7 +157,7 @@ public final class IntDoubleMap extends AbstractMap<Integer, Double>
     {
         if(key instanceof Integer)
         {
-            double oldValue = remove(((Integer)key).intValue());
+            double oldValue = remove(((Number)key).intValue());
             if(Double.isNaN(oldValue)) {
               return null;
             } else {
@@ -222,7 +222,7 @@ public final class IntDoubleMap extends AbstractMap<Integer, Double>
     public boolean containsKey(Object key)
     {
         if(key instanceof Integer) {
-          return containsKey( ((Integer)key).intValue());
+          return containsKey( ((Number)key).intValue());
         } else {
           return false;
         }

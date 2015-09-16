@@ -62,6 +62,7 @@ public class DiscreteBayesNetwork implements Classifier
         dag = new DirectedGraph<Integer>();
     }
     
+  @Override
     public CategoricalResults classify(DataPoint data)
     {
         CategoricalResults cr = new CategoricalResults(predicting.getNumOfCategories());
@@ -104,11 +105,13 @@ public class DiscreteBayesNetwork implements Classifier
         dag.addEdge(parent, child);
     }
 
+  @Override
     public void trainC(ClassificationDataSet dataSet, ExecutorService threadPool)
     {
         trainC(dataSet);
     }
 
+  @Override
     public void trainC(ClassificationDataSet dataSet)
     {
         int classID = dataSet.getNumCategoricalVars();
@@ -142,6 +145,7 @@ public class DiscreteBayesNetwork implements Classifier
         }
     }
 
+  @Override
     public boolean supportsWeightedData()
     {
         return false;

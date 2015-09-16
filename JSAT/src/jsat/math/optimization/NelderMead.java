@@ -90,11 +90,13 @@ public class NelderMead implements Optimizer
         this.shrink = shrink;
     }
     
+  @Override
     public Vec optimize(double eps, int iterationLimit, Function f, Function fd, Vec vars, List<Vec> inputs, Vec outputs, ExecutorService threadpool)
     {
         return optimize(eps, iterationLimit, f, fd, vars, inputs, outputs);
     }
 
+  @Override
     public Vec optimize(double eps, int iterationLimit, Function f, Function fd, Vec vars, List<Vec> inputs, Vec outputs)
     {
         List<Vec> initialPoints = new ArrayList<Vec>();

@@ -97,7 +97,7 @@ public class IntDoubleMapTest
         
         for(int i = 0; i < TEST_SIZE; i++)
         {
-            key = Integer.valueOf(rand.nextInt(50000));
+            key = rand.nextInt(50000);
             value = Double.valueOf(rand.nextInt(1000));
             
             Double prevTruth = truthMap.put(key, value);
@@ -213,7 +213,7 @@ public class IntDoubleMapTest
         
         for(int i = 0; i < TEST_SIZE; i++)
         {
-            key = Integer.valueOf(rand.nextInt(50000));
+            key = rand.nextInt(50000);
             value = Double.valueOf(rand.nextInt(1000));
             
             Double prevTruth = truthMap.put(key, value);
@@ -260,7 +260,7 @@ public class IntDoubleMapTest
         int times =0;
         for(int i = 0; i < MAX; i++)
         {
-            key = Integer.valueOf(rand.nextInt(MAX));
+            key = rand.nextInt(MAX);
             value = Double.valueOf(rand.nextInt(1000));
             if(truthMap.containsKey(key)) {
               times++;
@@ -292,12 +292,12 @@ public class IntDoubleMapTest
         
         for(int i = MAX; i < MAX*2; i++)
         {
-            key = Integer.valueOf(i);//force it to be new
+            key = i;//force it to be new
             value = Double.valueOf(rand.nextInt(1000));
             
             truthMap.put(key, value);
             double ldNew =idMap.increment(key, value);
-            assertEquals(value.doubleValue(), ldNew, 0.0);
+            assertEquals(value, ldNew, 0.0);
         }
         
         assertEntriesAreEqual(truthMap, idMap);
@@ -319,7 +319,7 @@ public class IntDoubleMapTest
         int MAX = TEST_SIZE/2;
         for(int i = 0; i < MAX; i++)
         {
-            key = Integer.valueOf(rand.nextInt(MAX));
+            key = rand.nextInt(MAX);
             value = Double.valueOf(rand.nextInt(1000));
             
             Double prevTruth = truthMap.put(key, value);
@@ -333,7 +333,7 @@ public class IntDoubleMapTest
         
         for(int i = 0; i < MAX/4; i++)
         {
-            key = Integer.valueOf(rand.nextInt(MAX));
+            key = rand.nextInt(MAX);
             
             Double prevTruth = truthMap.remove(key);
             Double prev = ldMap.remove(key);
@@ -364,7 +364,7 @@ public class IntDoubleMapTest
         int MAX = TEST_SIZE/2;
         for(int i = 0; i < MAX; i++)
         {
-            key = Integer.valueOf(rand.nextInt(MAX));
+            key = rand.nextInt(MAX);
             value = Double.valueOf(rand.nextInt(1000));
             
             Double prevTruth = truthMap.put(key, value);
@@ -378,7 +378,7 @@ public class IntDoubleMapTest
         
         for(int i = 0; i < MAX/4; i++)
         {
-            key = Integer.valueOf(rand.nextInt(MAX));
+            key = rand.nextInt(MAX);
             
             Double prevTruth = truthMap.remove(key);
             Double prev = idMap.remove(key.intValue());
@@ -409,7 +409,7 @@ public class IntDoubleMapTest
         int MAX = TEST_SIZE/2;
         for(int i = 0; i < MAX; i++)
         {
-            key = Integer.valueOf(rand.nextInt(MAX));
+            key = rand.nextInt(MAX);
             value = Double.valueOf(rand.nextInt(1000));
             
             Double prevTruth = truthMap.put(key, value);
@@ -425,7 +425,7 @@ public class IntDoubleMapTest
         }
         
         for(long i = MAX+1; i < MAX*2; i++) {
-          assertFalse(idMap.containsKey(Long.valueOf(i)));
+          assertFalse(idMap.containsKey(i));
         }
     }
 
@@ -445,7 +445,7 @@ public class IntDoubleMapTest
         int MAX = TEST_SIZE/2;
         for(int i = 0; i < MAX; i++)
         {
-            key = Integer.valueOf(rand.nextInt(MAX));
+            key = rand.nextInt(MAX);
             value = Double.valueOf(rand.nextInt(1000));
             
             Double prevTruth = truthMap.put(key, value);

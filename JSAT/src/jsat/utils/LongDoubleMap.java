@@ -143,7 +143,7 @@ public final class LongDoubleMap extends AbstractMap<Long, Double>
     {
         if(key instanceof Long)
         {
-            double oldValue = remove(((Long)key).longValue());
+            double oldValue = remove(((Number)key).longValue());
             if(Double.isNaN(oldValue)) {
               return null;
             } else {
@@ -208,9 +208,9 @@ public final class LongDoubleMap extends AbstractMap<Long, Double>
     public boolean containsKey(Object key)
     {
         if(key instanceof Integer) {
-          return containsKey( ((Integer)key).longValue());
+          return containsKey( ((Number)key).longValue());
         } else if(key instanceof Long) {
-          return containsKey(((Long)key).longValue());
+          return containsKey(((Number)key).longValue());
         } else {
           return false;
         }

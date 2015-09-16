@@ -48,6 +48,7 @@ public class Pareto extends ContinuousDistribution
         this.xm = xm;
     }
     
+  @Override
     public double logPdf(double x)
     {
         if(x < xm ) {
@@ -200,10 +201,7 @@ public class Pareto extends ContinuousDistribution
 				.doubleToLongBits(other.alpha)) {
 			return false;
 		}
-		if (Double.doubleToLongBits(xm) != Double.doubleToLongBits(other.xm)) {
-			return false;
-		}
-		return true;
+		return Double.doubleToLongBits(xm) == Double.doubleToLongBits(other.xm);
 	}
     
 }

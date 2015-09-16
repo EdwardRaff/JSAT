@@ -120,6 +120,7 @@ public class LogitBoost implements Classifier, Parameterized
         return zMax;
     }
     
+  @Override
     public CategoricalResults classify(DataPoint data)
     {
         if(baseLearner == null) {
@@ -135,11 +136,13 @@ public class LogitBoost implements Classifier, Parameterized
         return cr;
     }
 
+  @Override
     public void trainC(ClassificationDataSet dataSet, ExecutorService threadPool)
     {
         trainC(dataSet);
     }
 
+  @Override
     public void trainC(ClassificationDataSet dataSet)
     {
         if(dataSet.getClassSize() != 2) {
@@ -211,6 +214,7 @@ public class LogitBoost implements Classifier, Parameterized
         return efx/(efx + enfx);
     }
 
+  @Override
     public boolean supportsWeightedData()
     {
         return false;

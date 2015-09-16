@@ -191,10 +191,7 @@ public final class Rayleigh extends ContinuousDistribution
 			return false;
 		}
 		Rayleigh other = (Rayleigh) obj;
-		if (Double.doubleToLongBits(sig) != Double.doubleToLongBits(other.sig)) {
-			return false;
-		}
-		return true;
+		return Double.doubleToLongBits(sig) == Double.doubleToLongBits(other.sig);
 	}
     
 }

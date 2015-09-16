@@ -71,7 +71,7 @@ public class KernelDensityEstimatorTest {
     @Test
     public void testEquals(){
     	System.out.println("equals");
-    	Integer k = new Integer(1);
+    	Integer k = 1;
     	assertFalse(d1.equals(k));
     	assertFalse(d1.equals(null));
     	

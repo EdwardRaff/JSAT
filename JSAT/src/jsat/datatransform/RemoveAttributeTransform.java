@@ -192,7 +192,7 @@ public class RemoveAttributeTransform implements DataTransform
         Vec newNumVals;
         if (numVals.isSparse()) {
           if (numVals instanceof SparseVector) {
-            newNumVals = new SparseVector(numIndexMap.length, ((SparseVector) numVals).nnz());
+            newNumVals = new SparseVector(numIndexMap.length, numVals.nnz());
           } else {
             newNumVals = new SparseVector(numIndexMap.length);
           }
@@ -222,8 +222,9 @@ public class RemoveAttributeTransform implements DataTransform
                         curIV = iter.next();
                       }
                     }
-                    if (numIndexMap[i] < curIV.getIndex()) {//Index is zero, nothing to set
-                      continue;
+                    if (numIndexMap[i] < curIV.getIndex()) {
+                      //Index is zero, nothing to set
+                      //Index is zero, nothing to set
                     } else if (numIndexMap[i] == curIV.getIndex())
                     {
                         newNumVals.set(i, curIV.getValue());

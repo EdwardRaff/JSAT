@@ -30,7 +30,7 @@ public class KolmogorovTest {
     	System.out.println("equals");
     	ContinuousDistribution d1 = new Kolmogorov();
     	ContinuousDistribution d4 = new Kolmogorov();
-    	Integer i = new Integer(1);
+    	Integer i = 1;
     	assertFalse(d1.equals(i));
     	assertFalse(d1.equals(null));
     	assertEquals(d1, d1);

@@ -66,6 +66,7 @@ public class LogitBoostPL extends LogitBoost
             futuerBoosts.add(threadPool.submit(new Callable<LogitBoost>()
             {
 
+                @Override
                 public LogitBoost call() throws Exception
                 {
                     LogitBoost boost = new LogitBoost(baseLearner.clone(), getMaxIterations());

@@ -251,7 +251,7 @@ public class ChiSquaredTest
 		ContinuousDistribution d1 = new ChiSquared(0.5);
 		ContinuousDistribution d2 = new ChiSquared(0.6);
 		ContinuousDistribution d4 = new ChiSquared(0.5);
-		Integer i = new Integer(1);
+		Integer i = 1;
 		assertFalse(d1.equals(d2));
 		assertFalse(d1.equals(i));
 		assertFalse(d1.equals(null));

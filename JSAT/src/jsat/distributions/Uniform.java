@@ -177,10 +177,7 @@ public class Uniform extends ContinuousDistribution
 		if (Double.doubleToLongBits(a) != Double.doubleToLongBits(other.a)) {
 			return false;
 		}
-		if (Double.doubleToLongBits(b) != Double.doubleToLongBits(other.b)) {
-			return false;
-		}
-		return true;
+		return Double.doubleToLongBits(b) == Double.doubleToLongBits(other.b);
 	}
     
 }

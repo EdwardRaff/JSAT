@@ -233,7 +233,6 @@ public class StringUtils
                     else {
                       throw new NumberFormatException();
             }
-                    continue;
             }
         }
         

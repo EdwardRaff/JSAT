@@ -156,7 +156,6 @@ public class ODE extends BaseUpdateableClassifier
         double weight = dataPoint.getWeight();
         for (int j = 0; j < catVals.length; j++) {
           if (j == dependent) {
-            continue;
           } else {
             counts[targetClass][catVals[dependent]][j][catVals[j]] += weight;
           }

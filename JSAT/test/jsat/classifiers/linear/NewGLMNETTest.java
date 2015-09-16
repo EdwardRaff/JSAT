@@ -88,9 +88,9 @@ public class NewGLMNETTest
         int nonZeroIndex = w.getNonZeroIterator().next().getIndex();
         assertTrue(nonZeroIndex < 3);//should be one of the more important weights
         if(nonZeroIndex == 1) { //check the sign is correct
-          assertEquals(-1, (int)Math.signum(w.get(nonZeroIndex)));
+          assertEquals(-1, (long)Math.signum(w.get(nonZeroIndex)));
         } else {
-          assertEquals(1, (int)Math.signum(w.get(nonZeroIndex)));
+          assertEquals(1, (long)Math.signum(w.get(nonZeroIndex)));
         }
         
         glmnet.setC(1);
@@ -103,9 +103,9 @@ public class NewGLMNETTest
         }
         while (w.nnz() > 3);//we should be able to find this pretty easily
         assertEquals(3, w.nnz());
-        assertEquals( 1, (int)Math.signum(w.get(0)));
-        assertEquals(-1, (int)Math.signum(w.get(1)));
-        assertEquals( 1, (int)Math.signum(w.get(2)));
+        assertEquals( 1, (long)Math.signum(w.get(0)));
+        assertEquals(-1, (long)Math.signum(w.get(1)));
+        assertEquals( 1, (long)Math.signum(w.get(2)));
         //also want to make sure that they are all about equal in size
         assertTrue(Math.abs((w.get(0)+w.get(1)*2+w.get(2))/3) < 0.2);
         
@@ -114,12 +114,12 @@ public class NewGLMNETTest
         glmnet.trainC(data);
         w = glmnet.getRawWeight();
         assertEquals(6, w.nnz());
-        assertEquals( 1, (int)Math.signum(w.get(0)));
-        assertEquals(-1, (int)Math.signum(w.get(1)));
-        assertEquals( 1, (int)Math.signum(w.get(2)));
-        assertEquals( 1, (int)Math.signum(w.get(3)));
-        assertEquals(-1, (int)Math.signum(w.get(4)));
-        assertEquals( 1, (int)Math.signum(w.get(5)));
+        assertEquals( 1, (long)Math.signum(w.get(0)));
+        assertEquals(-1, (long)Math.signum(w.get(1)));
+        assertEquals( 1, (long)Math.signum(w.get(2)));
+        assertEquals( 1, (long)Math.signum(w.get(3)));
+        assertEquals(-1, (long)Math.signum(w.get(4)));
+        assertEquals( 1, (long)Math.signum(w.get(5)));
         
         
     }

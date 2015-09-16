@@ -282,7 +282,7 @@ public class MaxwellBoltzmannTest
 		ContinuousDistribution d1 = new MaxwellBoltzmann(0.5);
 		ContinuousDistribution d2 = new MaxwellBoltzmann(0.6);
 		ContinuousDistribution d4 = new MaxwellBoltzmann(0.5);
-		Integer i = new Integer(1);
+		Integer i = 1;
 		assertFalse(d1.equals(d2));
 		assertFalse(d1.equals(i));
 		assertFalse(d1.equals(null));

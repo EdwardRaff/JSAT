@@ -345,7 +345,7 @@ public class PaiceHuskStemmer extends Stemmer
                   continue;
                 }
                 String test = rule.apply(word);
-                if(test != word)//Rule was applied, is it acceptable?
+                if(test == null ? word != null : !test.equals(word))//Rule was applied, is it acceptable?
                 {
                     word = test;
                     stop = false;

@@ -30,6 +30,7 @@ public class NadarayaWatson implements Regressor, Parameterized
         this.kde = kde;
     }
     
+  @Override
     public double regress(DataPoint data)
     {
         List<? extends VecPaired<VecPaired<Vec, Integer>, Double>> nearBy = kde.getNearby(data.getNumericalValues());

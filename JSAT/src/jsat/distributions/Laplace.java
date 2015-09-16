@@ -197,10 +197,7 @@ public final class Laplace extends ContinuousDistribution
 		if (Double.doubleToLongBits(b) != Double.doubleToLongBits(other.b)) {
 			return false;
 		}
-		if (Double.doubleToLongBits(mu) != Double.doubleToLongBits(other.mu)) {
-			return false;
-		}
-		return true;
+		return Double.doubleToLongBits(mu) == Double.doubleToLongBits(other.mu);
 	}
     
 }

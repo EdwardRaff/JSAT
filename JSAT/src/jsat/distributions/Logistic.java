@@ -182,10 +182,7 @@ public final class Logistic extends ContinuousDistribution
 		if (Double.doubleToLongBits(mu) != Double.doubleToLongBits(other.mu)) {
 			return false;
 		}
-		if (Double.doubleToLongBits(s) != Double.doubleToLongBits(other.s)) {
-			return false;
-		}
-		return true;
+		return Double.doubleToLongBits(s) == Double.doubleToLongBits(other.s);
 	}
     
 }

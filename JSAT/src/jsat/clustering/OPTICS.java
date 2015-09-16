@@ -329,8 +329,9 @@ public class OPTICS extends ClustererBase implements Parameterized
             for(VecPaired<VecPaired<Vec, Integer>, Double> v : neighbors)
             {
                 int subC = designations[v.getVector().getPair()];
-                if(subC == NOISE) {//ignore
-                  continue;
+                if(subC == NOISE) {
+                  //ignore
+                  //ignore
                 } else if(CLASS == -1) {//First class set
                   CLASS = subC;
                 } else if (CLASS != subC) {//Conflict

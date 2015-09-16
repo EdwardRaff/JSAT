@@ -193,11 +193,8 @@ public class Gamma extends ContinuousDistribution
 		if (Double.doubleToLongBits(k) != Double.doubleToLongBits(other.k)) {
 			return false;
 		}
-		if (Double.doubleToLongBits(theta) != Double
-				.doubleToLongBits(other.theta)) {
-			return false;
-		}
-		return true;
+		return Double.doubleToLongBits(theta) == Double
+            .doubleToLongBits(other.theta);
 	}
     
     

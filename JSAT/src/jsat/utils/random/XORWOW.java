@@ -39,27 +39,27 @@ public class XORWOW extends Random
     {
         super.setSeed(seed);
         x = super.next(32);
-        x = x << 32;
+        x <<= 32;
         x += super.next(32);
         
         y = super.next(32);
-        y = y << 32;
+        y <<= 32;
         y += super.next(32);
         
         z = super.next(32);
-        z = z << 32;
+        z <<= 32;
         z += super.next(32);
         
         w = super.next(32);
-        w = w << 32;
+        w <<= 32;
         w += super.next(32);
         
         v = super.next(32);
-        v = v << 32;
+        v <<= 32;
         v += super.next(32);
         
         d = super.next(32);
-        d = d << 32;
+        d <<= 32;
         d += super.next(32);
     }
     

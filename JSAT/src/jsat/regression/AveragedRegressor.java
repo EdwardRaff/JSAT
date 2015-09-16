@@ -47,6 +47,7 @@ public class AveragedRegressor implements Regressor
         this.voters = voters.toArray(new Regressor[0]);
     }
     
+  @Override
     public double regress(DataPoint data)
     {
         double r = 0.0;
@@ -56,6 +57,7 @@ public class AveragedRegressor implements Regressor
         return r / voters.length;
     }
 
+  @Override
     public void train(RegressionDataSet dataSet, ExecutorService threadPool)
     {
         for(Regressor voter : voters) {
@@ -63,6 +65,7 @@ public class AveragedRegressor implements Regressor
         }
     }
 
+  @Override
     public void train(RegressionDataSet dataSet)
     {
         for(Regressor voter :  voters) {
@@ -70,6 +73,7 @@ public class AveragedRegressor implements Regressor
         }
     }
 
+  @Override
     public boolean supportsWeightedData()
     {
         return false;

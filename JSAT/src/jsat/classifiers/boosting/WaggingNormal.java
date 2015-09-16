@@ -78,7 +78,7 @@ public class WaggingNormal extends Wagging
      */
     public double getMean()
     {
-        return ((Normal)getDistribution()).mean();
+        return getDistribution().mean();
     }
     
     /**
@@ -99,7 +99,7 @@ public class WaggingNormal extends Wagging
      */
     public double getStandardDeviations()
     {
-        return ((Normal)getDistribution()).standardDeviation();
+        return getDistribution().standardDeviation();
     }
 
     @Override

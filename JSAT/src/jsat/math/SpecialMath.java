@@ -624,11 +624,13 @@ public class SpecialMath
 		 */
 		private static final long serialVersionUID = 5080094630628298264L;
 
+    @Override
 		public double f(double... x)
         {
             return betaIncReg(x[0], x[1], x[2]) - x[3];
         }
 
+    @Override
         public double f(Vec x)
         {
             return betaIncReg(x.get(0), x.get(1), x.get(2))-x.get(3);

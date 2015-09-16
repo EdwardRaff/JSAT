@@ -262,10 +262,7 @@ public class Poly2Vec extends Vec
             @Override
             public boolean hasNext()
             {
-                if(stage < 3) {
-                  return true;
-                }
-                return false;
+                return stage < 3;
             }
 
             @Override

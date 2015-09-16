@@ -542,9 +542,7 @@ public class VPTree<V extends Vec> implements VectorCollection<V>
         {
             this.bounds = Arrays.copyOf(bounds, bounds.length);
             this.points = new int[points.length];
-            for(int i = 0; i < points.length; i++) {
-              this.points[i] = points[i];
-            }
+          System.arraycopy(points, 0, this.points, 0, points.length);
         }
 
         @Override
@@ -553,7 +551,7 @@ public class VPTree<V extends Vec> implements VectorCollection<V>
             double dist = -1;
             
             //The zero check, for the case that the leaf is the ONLY node, x will be passed as 0.0 <= Max value will be true 
-            double tau = list.size() == 0 ? Double.MAX_VALUE : list.get(list.size()-1).getProbability();
+            double tau = list.isEmpty() ? Double.MAX_VALUE : list.get(list.size()-1).getProbability();
             for (int i = 0; i < points.length; i++) {
               if (list.size() < k) {
                 list.add(new ProbailityMatch<V>(dm.dist(points[i], query, qi, allVecs, distCache), allVecs.get(points[i])));

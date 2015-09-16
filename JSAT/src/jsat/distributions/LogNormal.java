@@ -177,10 +177,7 @@ public class LogNormal extends ContinuousDistribution
 		if (Double.doubleToLongBits(mu) != Double.doubleToLongBits(other.mu)) {
 			return false;
 		}
-		if (Double.doubleToLongBits(sig) != Double.doubleToLongBits(other.sig)) {
-			return false;
-		}
-		return true;
+		return Double.doubleToLongBits(sig) == Double.doubleToLongBits(other.sig);
 	}
     
 }

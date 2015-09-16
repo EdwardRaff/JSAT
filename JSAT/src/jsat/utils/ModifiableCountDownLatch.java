@@ -37,7 +37,6 @@ public class ModifiableCountDownLatch
     public void countDown()
     {
         if(count.get() == 0) {
-          return;
         } else if( count.decrementAndGet() == 0) {
           awaitSemaphore.release();
         }

@@ -294,7 +294,7 @@ public class FisherSendorTest
     	ContinuousDistribution d2 = new FisherSendor(0.6, 0.5);
     	ContinuousDistribution d3 = new FisherSendor(0.5, 0.6);
     	ContinuousDistribution d4 = new FisherSendor(0.5, 0.5);
-    	Integer i = new Integer(1);
+    	Integer i = 1;
     	assertFalse(d1.equals(d2));
     	assertFalse(d1.equals(d3));
     	assertFalse(d2.equals(d3));

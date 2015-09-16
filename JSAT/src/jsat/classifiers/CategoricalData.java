@@ -42,11 +42,7 @@ public class CategoricalData implements Cloneable, Serializable
     
     public boolean isValidCategory(int i)
     {
-        if (i < 0 || i >= n) {
-          return false;
-        }
-        
-        return true;
+        return !(i < 0 || i >= n);
     }
     
     public String getOptionName(int i)
@@ -91,6 +87,7 @@ public class CategoricalData implements Cloneable, Serializable
         
         return true;
     }
+  @Override
     public CategoricalData clone()
     {
         CategoricalData copy = new CategoricalData(n);

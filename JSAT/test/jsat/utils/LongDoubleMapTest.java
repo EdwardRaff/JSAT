@@ -301,7 +301,7 @@ public class LongDoubleMapTest
             
             truthMap.put(key, value);
             double ldNew =ldMap.increment(key, value);
-            assertEquals(value.doubleValue(), ldNew, 0.0);
+            assertEquals(value, ldNew, 0.0);
         }
         
         assertEntriesAreEqual(truthMap, ldMap);

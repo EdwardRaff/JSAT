@@ -101,11 +101,13 @@ public class DBSCAN extends ClustererBase
         return cluster(dataSet, eps, minPts, vc, designations);
     }
 
+  @Override
     public int[] cluster(DataSet dataSet, int[] designations)
     {
         return cluster(dataSet, 3, designations);
     }
 
+  @Override
     public int[] cluster(DataSet dataSet, ExecutorService threadpool, int[] designations)
     {
         return cluster(dataSet, 3, threadpool, designations);
@@ -130,6 +132,7 @@ public class DBSCAN extends ClustererBase
             this.minPts = minPts;
         }
 
+        @Override
         public OnLineStatistics call() throws Exception
         {
             OnLineStatistics stats = new OnLineStatistics();
@@ -369,6 +372,7 @@ public class DBSCAN extends ClustererBase
             return results;
         }
         
+        @Override
         public void run()
         {
             Vec searchPoint;

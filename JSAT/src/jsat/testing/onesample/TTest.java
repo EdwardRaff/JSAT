@@ -48,6 +48,7 @@ public class TTest implements OneSampleTest
     }
     
     
+    @Override
     public void setTestUsingData(Vec data)
     {
         this.sampleMean = data.mean();
@@ -56,6 +57,7 @@ public class TTest implements OneSampleTest
         tDist.setDf(sampleSize-1);
     }
 
+    @Override
     public String[] getTestVars()
     {
         return new String[]
@@ -66,6 +68,7 @@ public class TTest implements OneSampleTest
                 };
     }
 
+    @Override
     public void setTestVars(double[] testVars)
     {
         this.sampleMean = testVars[0];
@@ -74,21 +77,25 @@ public class TTest implements OneSampleTest
         tDist.setDf(sampleSize-1);
     }
 
+    @Override
     public String getAltVar()
     {
         return GreekLetters.mu + "0";
     }
 
+    @Override
     public void setAltVar(double altVar)
     {
         hypothMean = altVar;
     }
 
+    @Override
     public String getNullVar()
     {
         return GreekLetters.mu;
     }
 
+    @Override
     public H1[] validAlternate()
     {
         return new H1[]
@@ -97,16 +104,19 @@ public class TTest implements OneSampleTest
                 };
     }
 
+    @Override
     public void setAltHypothesis(H1 h1)
     {
         this.h1 = h1;
     }
 
+    @Override
     public String testName()
     {
         return "T Test";
     }
 
+    @Override
     public double pValue()
     {
 

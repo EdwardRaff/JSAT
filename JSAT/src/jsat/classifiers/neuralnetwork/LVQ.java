@@ -627,7 +627,6 @@ public class LVQ implements Classifier, Parameterized
         List<VecPaired<Vec, Integer>> finalLVs = new ArrayList<VecPaired<Vec, Integer>>(weights.length);
         for(int i = 0; i < weights.length; i++) {
           if (wins[i] == 0) {
-            continue;
           } else {
             finalLVs.add(new VecPaired<Vec, Integer>(weights[i], i));
           }

@@ -24,6 +24,7 @@ public class CholeskyDecompositionTest
     Matrix pascal5;
     static ExecutorService threadpool = Executors.newFixedThreadPool(SystemInfo.LogicalCores+1, new ThreadFactory() {
 
+        @Override
         public Thread newThread(Runnable r)
         {
             Thread thread = new Thread(r);

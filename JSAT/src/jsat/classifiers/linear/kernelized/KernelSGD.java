@@ -358,7 +358,7 @@ public class KernelSGD implements UpdateableClassifier, UpdateableRegressor, Par
             kpoint.mutableMultiply(1-eta_t*lambda);
             final double y = targetClass*2-1;
             double dot = kpoint.dot(x, qi);
-            double lossD = ((LossC)loss).getDeriv(dot, y);
+            double lossD = loss.getDeriv(dot, y);
             if(lossD != 0) {
               kpoint.mutableAdd(-eta_t*lossD, x, qi);
             }
@@ -385,7 +385,7 @@ public class KernelSGD implements UpdateableClassifier, UpdateableRegressor, Par
         kpoint.mutableMultiply(1 - eta_t * lambda);
         final double y = targetValue;
         double dot = kpoint.dot(x, qi);
-        double lossD = ((LossR) loss).getDeriv(dot, y);
+        double lossD = loss.getDeriv(dot, y);
         if (lossD != 0) {
           kpoint.mutableAdd(-eta_t * lossD, x, qi);
         }

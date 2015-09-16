@@ -75,7 +75,6 @@ public class TreePruner
     {
         //TODO add vargs for extra arguments that may be used by pruning methods
         if(method == PruningMethod.NONE ) {
-          return;
         } else if(method == PruningMethod.REDUCED_ERROR) {
           pruneReduceError(null, -1, root, testSet);
         } else if(method == PruningMethod.ERROR_BASED) {

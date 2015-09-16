@@ -68,6 +68,7 @@ public class NaiveBayes implements Classifier, Parameterized
          */
         NORMAL
         {
+            @Override
             protected ContinuousDistribution fit(Vec v)
             {
                 return getBestDistribution(v, new Normal(0, 1));
@@ -80,6 +81,7 @@ public class NaiveBayes implements Classifier, Parameterized
         BEST_FIT
         {
 
+            @Override
             protected ContinuousDistribution fit(Vec v)
             {
                 return getBestDistribution(v);
@@ -113,6 +115,7 @@ public class NaiveBayes implements Classifier, Parameterized
 //                return cutOff;
 //            }
            
+            @Override
             protected ContinuousDistribution fit(Vec v)
             {
                 return getBestDistribution(v, cutOff);
@@ -348,6 +351,7 @@ public class NaiveBayes implements Classifier, Parameterized
             this.countDown = countDown;
         }
 
+        @Override
         public void run()
         {
             try

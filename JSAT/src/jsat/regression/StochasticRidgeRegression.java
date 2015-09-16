@@ -249,11 +249,7 @@ public class StochasticRidgeRegression implements Regressor, Parameterized, Sing
                 sparse++;
               }
             }
-            if(sparse > dataSet.getSampleSize()/4) {
-              sparseUpdates = true;
-            } else {
-              sparseUpdates = false;
-            }
+            sparseUpdates = sparse > dataSet.getSampleSize()/4;
         }
         
         int[] lastTime = sparseUpdates ? new int[w.length()] : null;

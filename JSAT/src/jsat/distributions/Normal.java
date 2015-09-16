@@ -61,6 +61,7 @@ public class Normal extends ContinuousDistribution
         return cdfApproxMarsaglia2004(zTransform(x, mu, sigma));
     }
 
+  @Override
     public double cdf(double x)
     {
         return cdf(x, mean, stndDev);
@@ -128,11 +129,12 @@ public class Normal extends ContinuousDistribution
 
         double e = cdf(result, 0, 1) - p;
         double u = e*sqrt(2*PI)*exp(result*result/2);
-        result = result - u / (1 + result*u/2);
+        result -= u / (1 + result*u/2);
 
         return result * sigma + mu;
     }
 
+  @Override
     public double invCdf(double d)
     {
         return invcdf(d, mean, stndDev);
@@ -143,6 +145,7 @@ public class Normal extends ContinuousDistribution
         return 1/sqrt(2*PI*sigma*sigma)*exp(-pow(x-mu,2)/(2*sigma*sigma));
     }
 
+  @Override
     public double pdf(double d)
     {
         return pdf(d, mean, stndDev);
@@ -330,11 +333,8 @@ public class Normal extends ContinuousDistribution
 				.doubleToLongBits(other.mean)) {
 			return false;
 		}
-		if (Double.doubleToLongBits(stndDev) != Double
-				.doubleToLongBits(other.stndDev)) {
-			return false;
-		}
-		return true;
+		return Double.doubleToLongBits(stndDev) == Double
+            .doubleToLongBits(other.stndDev);
 	}
     
 }

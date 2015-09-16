@@ -182,9 +182,7 @@ public class DReDNetSimple implements Classifier, Parameterized
         network = new SGDNetworkTrainer();
         int[] sizes = new int[hiddenSizes.length+2];
         sizes[0] = dataSet.getNumNumericalVars();
-        for(int i = 0; i < hiddenSizes.length; i++) {
-          sizes[i+1] = hiddenSizes[i];
-        }
+    System.arraycopy(hiddenSizes, 0, sizes, 1, hiddenSizes.length);
         sizes[sizes.length-1] = dataSet.getClassSize();
         network.setLayerSizes(sizes);
         

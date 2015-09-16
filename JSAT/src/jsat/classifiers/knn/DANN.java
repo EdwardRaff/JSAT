@@ -438,7 +438,7 @@ public class DANN implements Classifier, Parameterized
             knn.add(new VecPairedComparable<VecPaired<Vec, Integer>, Double>(v, d));
         }
         
-        return (List<VecPaired<VecPaired<Vec, Integer>, Double>>) (Object) knn;
+        return (List<VecPaired<VecPaired<Vec, Integer>, Double>>) (List<? extends VecPaired<VecPaired<Vec, Integer>, Double>>) knn;
     }
    
     /**

@@ -115,7 +115,6 @@ public class NaiveTokenizer implements Tokenizer
             } else if (!noDigits && Character.isDigit(c)) {
               workSpace.append(c);
             } else if(!otherToWhiteSpace && !Character.isWhitespace(c)) {
-              continue;
             } else //end of token
             {
                 if(workSpace.length() >= minTokenLength && workSpace.length() <= maxTokenLength) {

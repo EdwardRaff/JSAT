@@ -29,11 +29,13 @@ public class BisectionTest
 		 */
 		private static final long serialVersionUID = -5830265331948124543L;
 
+    @Override
 		public double f(double... x)
         {
             return sin(x[0]);
         }
 
+    @Override
         public double f(Vec x)
         {
             return f(x.arrayCopy());
@@ -50,11 +52,13 @@ public class BisectionTest
 		 */
 		private static final long serialVersionUID = -8881811957419055036L;
 
+    @Override
 		public double f(double... x)
         {
             return sin(x[0]+x[1]);
         }
 
+    @Override
         public double f(Vec x)
         {
             return f(x.arrayCopy());
@@ -71,6 +75,7 @@ public class BisectionTest
 		 */
 		private static final long serialVersionUID = -6863811831444846780L;
 
+    @Override
 		public double f(double... x)
         {
             double xp = x[0];
@@ -78,6 +83,7 @@ public class BisectionTest
             return pow(xp, 3)+5*pow(xp,2)+xp+2;
         }
 
+    @Override
         public double f(Vec x)
         {
             return f(x.arrayCopy());

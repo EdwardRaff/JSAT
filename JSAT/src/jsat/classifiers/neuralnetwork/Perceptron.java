@@ -102,6 +102,7 @@ public class Perceptron implements BinaryScoreClassifier, SingleWeightVectorMode
             this.biasChange = 0;
         }
 
+        @Override
         public PairedReturn<Vec, Double[]> call() throws Exception
         {
             for(DataPointPair<Integer> dpp : dataPoints)
