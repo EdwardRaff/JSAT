@@ -21,6 +21,7 @@ import java.util.*;
 /**
  *
  * @author Edward Raff <Raff.Edward@gmail.com>
+ * @param <T>
  */
 public class FibHeap<T>
 {
@@ -309,6 +310,16 @@ public class FibHeap<T>
             this.value = value;
             this.key = key;
             this.left = this.right = this;//yes, this is intentional. We make a linked list of 1 item, ourselves. 
+        }
+
+        public T getValue()
+        {
+            return value;
+        }
+        
+        public double getPriority()
+        {
+            return key;
         }
         
         /**
