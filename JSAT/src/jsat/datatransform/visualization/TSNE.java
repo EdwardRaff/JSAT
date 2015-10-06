@@ -17,6 +17,7 @@
 package jsat.datatransform.visualization;
 
 import java.util.*;
+import java.util.concurrent.ExecutorService;
 import jsat.DataSet;
 import jsat.classifiers.DataPoint;
 import jsat.datatransform.*;
@@ -37,20 +38,55 @@ import jsat.utils.random.XORWOW;
  */
 public class TSNE
 {
-    public double alpha = 4;
-    public double exageratedPortion = 0.25;
-    DistanceMetric dm = new EuclideanDistance();
-    public int T = 1000;
-    public double perplexity = 30;
-    double theta = 0.5;
+    private double alpha = 4;
+    private double exageratedPortion = 0.25;
+    private DistanceMetric dm = new EuclideanDistance();
+    private int T = 1000;
+    private double perplexity = 30;
+    private double theta = 0.5;
     /**
      * The target embedding dimension, hard coded to 2 for now
      */
-    int s = 2;
+    private int s = 2;
+
+    public void setAlpha(double alpha)
+    {
+        this.alpha = alpha;
+    }
+
+    public double getAlpha()
+    {
+        return alpha;
+    }
+
+    public void setPerplexity(double perplexity)
+    {
+        this.perplexity = perplexity;
+    }
+
+    public double getPerplexity()
+    {
+        return perplexity;
+    }
+
+    public void setIterations(int T)
+    {
+        this.T = T;
+    }
+
+    public int getIterations()
+    {
+        return T;
+    }
     
     public <Type extends DataSet> Type transform(DataSet<Type> d)
     {
-        Random rand = new XORWOW(123);
+        return transform(d, null);
+    }
+    
+    public <Type extends DataSet> Type transform(DataSet<Type> d, ExecutorService ex)
+    {
+        Random rand = new XORWOW();
         final int N = d.getSampleSize();
         //If perp set too big, the search size would be larger than the dataset size. So min to N
         /**
@@ -135,7 +171,7 @@ public class TSNE
 
                     sigma[i]= sigma_i;
                 }
-                catch(ArithmeticException ex)//perp not in search range? 
+                catch(ArithmeticException exception)//perp not in search range? 
                 {
                     tryAgain = true;
                     minSigma = Math.max(minSigma/2, 1e-6);
