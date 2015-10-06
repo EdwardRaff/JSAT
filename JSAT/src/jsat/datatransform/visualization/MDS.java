@@ -41,7 +41,7 @@ public class MDS
 {
     private static DistanceMetric embedMetric = new EuclideanDistance();
     private DistanceMetric dm = new EuclideanDistance();
-    private double tolerance = 1e-3;
+    private double tolerance = 1e-2;
     private int maxIterations = 300;
     int targetSize = 2;
 
@@ -128,7 +128,7 @@ public class MDS
         //the gutman transform matrix
         Matrix B = new DenseMatrix(N, N);
         
-        for(int iter = 0; iter < maxIterations && stressChange > tolerance; iter++ )
+        for(int iter = 0; iter < maxIterations && stressChange > tolerance*N*N; iter++ )
         {
             
             //we need to set B correctly
