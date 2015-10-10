@@ -19,7 +19,9 @@ package jsat.datatransform.visualization;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
-import java.util.concurrent.ExecutorService;
+import java.util.concurrent.*;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import jsat.DataSet;
 import jsat.SimpleDataSet;
 import jsat.classifiers.CategoricalData;
@@ -31,6 +33,8 @@ import jsat.linear.distancemetrics.DistanceMetric;
 import jsat.linear.distancemetrics.EuclideanDistance;
 import jsat.math.OnLineStatistics;
 import jsat.utils.FakeExecutor;
+import jsat.utils.SystemInfo;
+import jsat.utils.concurrent.AtomicDouble;
 import jsat.utils.random.XORWOW;
 
 /**
@@ -41,9 +45,9 @@ public class MDS
 {
     private static DistanceMetric embedMetric = new EuclideanDistance();
     private DistanceMetric dm = new EuclideanDistance();
-    private double tolerance = 1e-2;
+    private double tolerance = 1e-3;
     private int maxIterations = 300;
-    int targetSize = 2;
+    private int targetSize = 2;
 
     public void setTolerance(double tolerance)
     {
@@ -60,29 +64,58 @@ public class MDS
         return transform(d, new FakeExecutor());
     }
     
-    public <Type extends DataSet> Type transform(DataSet<Type> d, ExecutorService ex)
+    public <Type extends DataSet> Type transform(final DataSet<Type> d, ExecutorService ex)
     {
         final List<Vec> orig_vecs = d.getDataVectors();
         final List<Double> orig_distCache = dm.getAccelerationCache(orig_vecs, ex);
         final int N = orig_vecs.size();
         
         //Delta is the true disimilarity matrix
-        Matrix delta = new DenseMatrix(N, N);
-        
+        final Matrix delta = new DenseMatrix(N, N);
+
         
         OnLineStatistics avg = new OnLineStatistics();
-        for(int i = 0; i < d.getSampleSize(); i++)
+        List<Future<OnLineStatistics>> futureStats = new ArrayList<Future<OnLineStatistics>>();
+        for(int id = 0; id < SystemInfo.LogicalCores; id++)
         {
-            for(int j = i+1; j < d.getSampleSize(); j++)
+            final int ID = id;
+            futureStats.add(ex.submit(new Callable<OnLineStatistics>()
             {
-                double dist = dm.dist(i, j, orig_vecs, orig_distCache);
-                avg.add(dist);
-                delta.set(i, j, dist);
-                delta.set(j, i, dist);
-            }
+
+                @Override
+                public OnLineStatistics call() throws Exception
+                {
+                    OnLineStatistics local_avg = new OnLineStatistics();
+                    for(int i = ID; i < d.getSampleSize(); i+=SystemInfo.LogicalCores)
+                    {
+                        for(int j = i+1; j < d.getSampleSize(); j++)
+                        {
+                            double dist = dm.dist(i, j, orig_vecs, orig_distCache);
+                            local_avg.add(dist);
+                            delta.set(i, j, dist);
+                            delta.set(j, i, dist);
+                        }
+                    }
+                    return local_avg;
+                }
+            }));
         }
         
-        
+        for (Future<OnLineStatistics> fut : futureStats)
+            try
+            {
+                avg.add(fut.get());
+            }
+            catch (InterruptedException ex1)
+            {
+                Logger.getLogger(MDS.class.getName()).log(Level.SEVERE, null, ex1);
+            }
+            catch (ExecutionException ex1)
+            {
+                Logger.getLogger(MDS.class.getName()).log(Level.SEVERE, null, ex1);
+            }
+
+
         SimpleDataSet embeded = transform(delta, ex);
 
         //place the solution in a dataset of the correct type
@@ -96,20 +129,20 @@ public class MDS
         return transform(delta, new FakeExecutor());
     }
     
-    public SimpleDataSet transform(Matrix delta, ExecutorService ex)
+    public SimpleDataSet transform(final Matrix delta, ExecutorService ex)
     {
         final int N = delta.rows();
         Random rand = new XORWOW();
         
         final Matrix X = new DenseMatrix(N, targetSize);
-        List<Vec> X_views = new ArrayList<Vec>();
+        final List<Vec> X_views = new ArrayList<Vec>();
         for(int i = 0; i < N; i++)
         {
             for(int j = 0; j < targetSize; j++)
                 X.set(i, j, rand.nextDouble());
             X_views.add(X.getRowView(i));
         }
-        List<Double> X_rowCache = embedMetric.getAccelerationCache(X_views, ex);
+        final List<Double> X_rowCache = embedMetric.getAccelerationCache(X_views, ex);
         
         //TODO, special case solution when all weights are the same, want to add general case as well
         Matrix V_inv = new DenseMatrix(N, N);
@@ -123,32 +156,59 @@ public class MDS
             }
         
         double stressChange = Double.POSITIVE_INFINITY;
-        double oldStress = stress(X_views, X_rowCache, delta);
+        double oldStress = stress(X_views, X_rowCache, delta, ex);
         
         //the gutman transform matrix
-        Matrix B = new DenseMatrix(N, N);
-        
-        for(int iter = 0; iter < maxIterations && stressChange > tolerance*N*N; iter++ )
+        final Matrix B = new DenseMatrix(N, N);
+        final Matrix X_new = new DenseMatrix(X.rows(), X.cols());
+                
+        for(int iter = 0; iter < maxIterations && stressChange > tolerance; iter++ )
         {
             
-            //we need to set B correctly
-            for(int i = 0; i < B.rows(); i++)
-                for(int j = i+1; j < B.rows(); j++)
+            final CountDownLatch latch = new CountDownLatch(SystemInfo.LogicalCores);
+        
+            for (int id = 0; id < SystemInfo.LogicalCores; id++)
+            {
+                final int ID = id;
+                ex.submit(new Runnable()
                 {
-                    double d_ij = embedMetric.dist(i, j, X_views, X_rowCache);
 
-                    if(d_ij > 1e-5)//avoid creating silly huge values
+                    @Override
+                    public void run()
                     {
-                        double b_ij = -delta.get(i, j)/d_ij;//-w_ij if we support weights in the future
-                        B.set(i, j, b_ij);
-                        B.set(j, i, b_ij);
+                        //we need to set B correctly
+                        for (int i = ID; i < B.rows(); i += SystemInfo.LogicalCores)
+                            for (int j = i + 1; j < B.rows(); j++)
+                            {
+                                double d_ij = embedMetric.dist(i, j, X_views, X_rowCache);
+
+                                if(d_ij > 1e-5)//avoid creating silly huge values
+                                {
+                                    double b_ij = -delta.get(i, j)/d_ij;//-w_ij if we support weights in the future
+                                    B.set(i, j, b_ij);
+                                    B.set(j, i, b_ij);
+                                }
+                                else
+                                {
+                                    B.set(i, j, 0);
+                                    B.set(j, i, 0);
+                                }
+                            }
+                        latch.countDown();
                     }
-                    else
-                    {
-                        B.set(i, j, 0);
-                        B.set(j, i, 0);
-                    }
-                }
+                });
+            }
+            
+            X_new.zeroOut();
+            try
+            {
+                latch.await();
+            }
+            catch (InterruptedException ex1)
+            {
+                Logger.getLogger(MDS.class.getName()).log(Level.SEVERE, null, ex1);
+            }
+            
             //set the diagonal values
             for(int i = 0; i < B.rows(); i++)
             {   
@@ -159,13 +219,15 @@ public class MDS
             }
             
 //            Matrix X_new = V_inv.multiply(B, ex).multiply(X, ex);
-            Matrix X_new = B.multiply(X, ex);
+            
+            B.multiply(X, X_new, ex);
             X_new.mutableMultiply(1.0/N);
             
             X_new.copyTo(X);
-            X_rowCache = embedMetric.getAccelerationCache(X_views, ex);
+            X_rowCache.clear();
+            X_rowCache.addAll(embedMetric.getAccelerationCache(X_views, ex));
             
-            double newStress = stress(X_views, X_rowCache, delta);
+            double newStress = stress(X_views, X_rowCache, delta, ex);
             stressChange = Math.abs(oldStress-newStress);
             oldStress = newStress;
         }
@@ -176,19 +238,47 @@ public class MDS
         return sds;
     }
     
-    private static double stress(List<Vec> X_views, List<Double> X_rowCache, Matrix delta)
+    private static double stress(final List<Vec> X_views, final List<Double> X_rowCache, final Matrix delta, ExecutorService ex)
     {
-        double stress = 0;
+        final AtomicDouble stress = new AtomicDouble(0);
+        final CountDownLatch latch = new CountDownLatch(SystemInfo.LogicalCores);
         
-        for(int i = 0; i < delta.rows(); i++)
+        for(int id = 0; id < SystemInfo.LogicalCores; id++)
         {
-            
-            for(int j = i+1; j < delta.rows(); j++)
+            final int ID= id;
+            ex.submit(new Runnable()
             {
-                double tmp = embedMetric.dist(i, j, X_views, X_rowCache)-delta.get(i, j);
-                stress += tmp*tmp;
-            }
+
+                @Override
+                public void run()
+                {
+                    double localStress = 0;
+                    for(int i = ID; i < delta.rows(); i+=SystemInfo.LogicalCores)
+                    {
+
+                        for(int j = i+1; j < delta.rows(); j++)
+                        {
+                            double tmp = embedMetric.dist(i, j, X_views, X_rowCache)-delta.get(i, j);
+                            localStress += tmp*tmp;
+                        }
+                    }
+                    
+                    stress.addAndGet(localStress);
+                    latch.countDown();
+                }
+            });
+            
         }
-        return stress;
+        
+        try
+        {
+            latch.await();
+        }
+        catch (InterruptedException ex1)
+        {
+            Logger.getLogger(MDS.class.getName()).log(Level.SEVERE, null, ex1);
+        }
+        
+        return stress.get();
     }
 }
