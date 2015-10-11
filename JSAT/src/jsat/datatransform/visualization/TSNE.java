@@ -41,6 +41,26 @@ import jsat.utils.concurrent.ParallelUtils;
 import jsat.utils.random.XORWOW;
 
 /**
+ * t-distributed Stochastic Neighbor Embedding is an algorithm for creating low
+ * dimensional embeddings of datasets, for the purpose of visualization. It
+ * attempts to keep points that are near each other in the original space near
+ * each other in the low dimensional space as well, with less emphasis on
+ * maintaining far-away relationships in the data. This implementation uses the
+ * approximated gradients to learn the embedding in O(n log n) time.<br>
+ * <br>
+ * If the input dataset has a dimension greater than 50, it is advisable to
+ * project the data set down to 50 dimensions using {@link PCA} or some similar
+ * technique.<br>
+ * <br>
+ * See:<br>
+ * <ul>
+ * <li>Maaten, L. Van Der, & Hinton, G. (2008). <i>Visualizing Data using
+ * t-SNE</i>. Journal of Machine Learning Research, 9, 2579–2605.</li>
+ * <li>Van der Maaten, L. (2014). <i>Accelerating t-SNE using Tree-Based
+ * Algorithms</i>. Journal of Machine Learning Research, 15, 3221–3245.
+ * Retrieved from
+ * <a href="http://jmlr.org/papers/v15/vandermaaten14a.html">here</a></li>
+ * </ul>
  *
  * @author Edward Raff
  */
@@ -57,31 +77,71 @@ public class TSNE
      */
     private int s = 2;
 
+    /**
+     * &alpha; is the "early exaggeration" constant. It is a multiple applied to
+     * part of the gradient for th first quarter of iterations, and can improve
+     * the quality of the solution found. A value in the range of [4, 20] is
+     * recommended.
+     *
+     * @param alpha the exaggeration constant
+     */
     public void setAlpha(double alpha)
     {
+        if(alpha <= 0 || Double.isNaN(alpha) || Double.isInfinite(alpha))
+            throw new IllegalArgumentException("alpha must be positive, not " + alpha);
         this.alpha = alpha;
     }
 
+    /**
+     * 
+     * @return the "early exaggeration" constant
+     */
     public double getAlpha()
     {
         return alpha;
     }
 
+    /**
+     * Sets the target perplexity of the gaussian used over each data point. The
+     * perplexity can be thought of as a quasi desired number of nearest
+     * neighbors to be considered, but is adapted based on the distribution of
+     * the data. Increasing the perplexity can increase the amount of time it
+     * takes to get an embedding. Using a value in the range of [5, 50] is
+     * recommended.
+     *
+     * @param perplexity the quasi number of neighbors to consider for each data point
+     */
     public void setPerplexity(double perplexity)
     {
+        if(perplexity <= 0 || Double.isNaN(perplexity) || Double.isInfinite(perplexity))
+            throw new IllegalArgumentException("perplexity must be positive, not " + perplexity);
         this.perplexity = perplexity;
     }
 
+    /**
+     * 
+     * @return the target perplexity to use for each data point
+     */
     public double getPerplexity()
     {
         return perplexity;
     }
 
+    /**
+     * Sets the desired number of gradient descent iterations to perform. 
+     * @param T the number of gradient descent iterations 
+     */
     public void setIterations(int T)
     {
+        if(T <= 1)
+            throw new IllegalArgumentException("number of iterations must be positive, not " + T);
         this.T = T;
     }
 
+    /**
+     * 
+     * @return the number of gradient descent iterations to perform
+     */
     public int getIterations()
     {
         return T;
@@ -173,9 +233,6 @@ public class TSNE
             minSigma.set(Math.min(minSigma.get(), min));
             maxSigma.set(Math.max(maxSigma.get(), max));
         }
-        
-        System.out.println("Bandwidth");
-        
         
         //now compute the bandwidth for each datum 
         final CountDownLatch latch0 = new CountDownLatch(SystemInfo.LogicalCores);
@@ -285,13 +342,9 @@ public class TSNE
         GradientUpdater gradUpdater = new Adam();
         gradUpdater.setup(y.length);
         
-        System.out.println("GD");
-
         for (int iter = 0; iter < T; iter++)//optimization
         {
             final int ITER = iter;
-            if (iter % 100 == 0)
-                System.out.println((iter) + "/" + T);
 
             Arrays.fill(y_grad, 0);
             
