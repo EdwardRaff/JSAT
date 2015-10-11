@@ -17,7 +17,10 @@
 package jsat.datatransform.visualization;
 
 import java.util.*;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import jsat.DataSet;
 import jsat.classifiers.DataPoint;
 import jsat.datatransform.*;
@@ -25,11 +28,16 @@ import jsat.distributions.Normal;
 import jsat.linear.*;
 import jsat.linear.distancemetrics.DistanceMetric;
 import jsat.linear.distancemetrics.EuclideanDistance;
+import jsat.linear.vectorcollection.VPTree;
 import jsat.linear.vectorcollection.VPTreeMV;
 import jsat.math.FastMath;
 import jsat.math.FunctionBase;
 import jsat.math.optimization.stochastic.*;
 import jsat.math.rootfinding.Zeroin;
+import jsat.utils.FakeExecutor;
+import jsat.utils.SystemInfo;
+import jsat.utils.concurrent.AtomicDouble;
+import jsat.utils.concurrent.ParallelUtils;
 import jsat.utils.random.XORWOW;
 
 /**
@@ -81,7 +89,7 @@ public class TSNE
     
     public <Type extends DataSet> Type transform(DataSet<Type> d)
     {
-        return transform(d, null);
+        return transform(d, new FakeExecutor());
     }
     
     public <Type extends DataSet> Type transform(DataSet<Type> d, ExecutorService ex)
@@ -99,12 +107,13 @@ public class TSNE
         
         
         final List<Vec> vecs = d.getDataVectors();
-        final List<Double> accelCache = dm.getAccelerationCache(vecs);
+        final List<Double> accelCache = dm.getAccelerationCache(vecs, ex);
         
-        VPTreeMV<Vec> vp = new VPTreeMV<Vec>(vecs, dm);
+        final VPTreeMV<Vec> vp = new VPTreeMV<Vec>(vecs, dm, VPTree.VPSelection.Random, rand, 2, 1, ex);
         
         final List<List<? extends VecPaired<Vec, Double>>> neighbors = new ArrayList<List<? extends VecPaired<Vec, Double>>>(N);
-        
+        for(int i = 0; i < N; i++)
+            neighbors.add(null);
         
         /**
          * Each row is the set of 3*u indices returned by the NN search
@@ -114,87 +123,151 @@ public class TSNE
         //new scope b/c I don't want to leark the silly vecIndex thing
         {
             //Used to map vecs back to their index so we can store only the ones we need in nearMe
-            IdentityHashMap<Vec, Integer> vecIndex = new IdentityHashMap<Vec, Integer>(N);
+            final IdentityHashMap<Vec, Integer> vecIndex = new IdentityHashMap<Vec, Integer>(N);
             for(int i = 0; i < N; i++)
                 vecIndex.put(vecs.get(i), i);
         
-            for(int i = 0; i < N; i++)//lets pre-compute the 3u nearesst neighbors used in eq(1)
-            {
-                Vec x_i = vecs.get(i);
-                List<? extends VecPaired<Vec, Double>> closest = vp.search(x_i, knn+1);//+1 b/c self is closest
-                neighbors.add(closest);
-                if(i % 100 == 0)
-                    System.out.println((i+1)+"/"+N);
-                for (int j = 1; j < closest.size(); j++)
-                    nearMe[i][j - 1] = vecIndex.get(closest.get(j).getVector());
-            }
+            final CountDownLatch latch = new CountDownLatch(SystemInfo.LogicalCores);
         
+            for (int id = 0; id < SystemInfo.LogicalCores; id++)
+            {
+                final int ID = id;
+                ex.submit(new Runnable()
+                {
+                    @Override
+                    public void run()
+                    {
+                        for (int i = ID; i < N; i += SystemInfo.LogicalCores)//lets pre-compute the 3u nearesst neighbors used in eq(1)
+                        {
+                            Vec x_i = vecs.get(i);
+                            List<? extends VecPaired<Vec, Double>> closest = vp.search(x_i, knn+1);//+1 b/c self is closest
+                            neighbors.set(i, closest);
+                            for (int j = 1; j < closest.size(); j++)
+                                nearMe[i][j - 1] = vecIndex.get(closest.get(j).getVector());
+                        }
+                        latch.countDown();
+                    }
+                });
+            }
+            
+            try
+            {
+                latch.await();
+            }
+            catch (InterruptedException ex1)
+            {
+                Logger.getLogger(TSNE.class.getName()).log(Level.SEVERE, null, ex1);
+            }
+
         }
         //Now lets figure out everyone's sigmas
-        double[] sigma = new double[N];
+        final double[] sigma = new double[N];
         
-        double minSigma = Double.POSITIVE_INFINITY;
-        double maxSigma = 0;
+        final AtomicDouble minSigma = new AtomicDouble(Double.POSITIVE_INFINITY);
+        final AtomicDouble maxSigma = new AtomicDouble(0);
 
         for(int i = 0; i < N; i++)//first lets figure out a min/max range
         {
             double min = neighbors.get(i).get(1).getPair();
             double max = neighbors.get(i).get(knn).getPair();
-            minSigma = Math.min(minSigma, min);
-            maxSigma = Math.max(maxSigma, max);
+            minSigma.set(Math.min(minSigma.get(), min));
+            maxSigma.set(Math.max(maxSigma.get(), max));
         }
         
         System.out.println("Bandwidth");
         
         
         //now compute the bandwidth for each datum 
-        for(int i = 0; i < N; i++)
+        final CountDownLatch latch0 = new CountDownLatch(SystemInfo.LogicalCores);
+
+        for (int id = 0; id < SystemInfo.LogicalCores; id++)
         {
-            if(i % 100 == 0)
-                    System.out.println((i+1)+"/"+N);
-            final int I = i;
-
-            boolean tryAgain = false;
-            do
+            final int ID = id;
+            ex.submit(new Runnable()
             {
-                tryAgain = false;
-                try
+                @Override
+                public void run()
                 {
-                    double sigma_i = Zeroin.root(1e-1, 100, minSigma, maxSigma, 0, new FunctionBase()
+                    for (int i = ID; i < N; i += SystemInfo.LogicalCores)
                     {
-                        @Override
-                        public double f(Vec x)
-                        {
-                            return perp(I, nearMe, x.get(0), neighbors, vecs, accelCache)-perplexity;
-                        }
-                    });
+                        final int I = i;
 
-                    sigma[i]= sigma_i;
+                        boolean tryAgain = false;
+                        do
+                        {
+                            tryAgain = false;
+                            try
+                            {
+                                double sigma_i = Zeroin.root(1e-1, 100, minSigma.get(), maxSigma.get(), 0, new FunctionBase()
+                                {
+                                    @Override
+                                    public double f(Vec x)
+                                    {
+                                        return perp(I, nearMe, x.get(0), neighbors, vecs, accelCache) - perplexity;
+                                    }
+                                });
+
+                                sigma[i] = sigma_i;
+                            }
+                            catch (ArithmeticException exception)//perp not in search range? 
+                            {
+                                tryAgain = true;
+                                minSigma.set(Math.max(minSigma.get() / 2, 1e-6));
+                                maxSigma.set(Math.min(maxSigma.get() * 2, Double.MAX_VALUE / 2));
+                            }
+                        }
+                        while (tryAgain);
+                    }
+                    latch0.countDown();
                 }
-                catch(ArithmeticException exception)//perp not in search range? 
-                {
-                    tryAgain = true;
-                    minSigma = Math.max(minSigma/2, 1e-6);
-                    maxSigma = Math.min(maxSigma*2, Double.MAX_VALUE/2);
-                }
-            }
-            while(tryAgain);
+            });
         }
-        
+
+        try
+        {
+            latch0.await();
+        }
+        catch (InterruptedException ex1)
+        {
+            Logger.getLogger(TSNE.class.getName()).log(Level.SEVERE, null, ex1);
+        }
         
         /**
          * P_ij does not change at this point, so lets compute these values only
          * once please! j index matches up to the value stored in nearMe
          */
-        double[][] nearMePij = new double[N][knn];
+        final double[][] nearMePij = new double[N][knn];
         
-        for(int i = 0; i < N; i++)
+        final CountDownLatch latch1 = new CountDownLatch(SystemInfo.LogicalCores);
+
+        for (int id = 0; id < SystemInfo.LogicalCores; id++)
         {
-            for(int j_indx = 0; j_indx < knn; j_indx++)
+            final int ID = id;
+            ex.submit(new Runnable()
             {
-                int j = nearMe[i][j_indx];
-                nearMePij[i][j_indx] =  p_ij(i, j, sigma[i], sigma[j], neighbors, vecs, accelCache);
-            }
+                @Override
+                public void run()
+                {
+                    for (int i = ID; i < N; i += SystemInfo.LogicalCores)
+                    {
+                        for(int j_indx = 0; j_indx < knn; j_indx++)
+                        {
+                            int j = nearMe[i][j_indx];
+                            nearMePij[i][j_indx] =  p_ij(i, j, sigma[i], sigma[j], neighbors, vecs, accelCache);
+                        }
+                    }
+                    latch1.countDown();
+                }
+            });
+        }
+        
+        try
+        {
+            latch1.await();
+        }
+        catch (InterruptedException ex1)
+        {
+            Logger.getLogger(TSNE.class.getName()).log(Level.SEVERE, null, ex1);
         }
         
         Normal normalDIst = new Normal(0, 1e-4);
@@ -203,7 +276,7 @@ public class TSNE
          */
         final double[] y = normalDIst.sample(N*s, rand);
         
-        double[] y_grad = new double[y.length];
+        final double[] y_grad = new double[y.length];
         
         //vec wraped version for convinence 
         final Vec y_vec = DenseVector.toDenseVec(y);
@@ -216,49 +289,101 @@ public class TSNE
 
         for (int iter = 0; iter < T; iter++)//optimization
         {
+            final int ITER = iter;
             if (iter % 100 == 0)
                 System.out.println((iter) + "/" + T);
 
             Arrays.fill(y_grad, 0);
             
             //First loop for the F_rep forces, we do this first to normalize so we can use 1 work space for the gradient
-            Quadtree qt = new Quadtree(y);
-            double[] workSpace = new double[s];
-            double Z = 0;
-            for (int i = 0; i < N; i++)
-            {
-                Arrays.fill(workSpace, 0.0);
-                Z += computeF_rep(qt.root, i, y, workSpace);
+            final Quadtree qt = new Quadtree(y);
+            
+            final AtomicDouble Z = new AtomicDouble(0);
+            final CountDownLatch latch_g0 = new CountDownLatch(SystemInfo.LogicalCores);
 
-//                double cnst = 1*4;
-                //should be multiplied by 4, rolling it into the normalization by Z after
-                for (int k = 0; k < s; k++)
-                    inc_z_ij(workSpace[k], i, k, y_grad, s);
+            for (int id = 0; id < SystemInfo.LogicalCores; id++)
+            {
+                final int ID = id;
+                ex.submit(new Runnable()
+                {
+                    @Override
+                    public void run()
+                    {
+                        double[] workSpace = new double[s];
+                        double local_Z = 0;
+                        for (int i = ID; i < N; i += SystemInfo.LogicalCores)
+                        {
+                            Arrays.fill(workSpace, 0.0);
+                            local_Z += computeF_rep(qt.root, i, y, workSpace);
+
+                            //should be multiplied by 4, rolling it into the normalization by Z after
+                            for (int k = 0; k < s; k++)
+                                inc_z_ij(workSpace[k], i, k, y_grad, s);
+                        }
+                        Z.addAndGet(local_Z);
+                        latch_g0.countDown();
+                    }
+                });
             }
+            
+            try
+            {
+                latch_g0.await();
+            }
+            catch (InterruptedException ex1)
+            {
+                Logger.getLogger(TSNE.class.getName()).log(Level.SEVERE, null, ex1);
+            }
+            
             //normalize by Z
-            final double zNorm = 4.0/(Z+1e-13);
+            final double zNorm = 4.0/(Z.get()+1e-13);
             for(int i = 0; i < y.length; i++)
                 y_grad[i] *= zNorm;
             
             //This second loops computes the F_attr forces
-            for (int i = 0; i < N; i++)//N
+            final CountDownLatch latch_g1 = new CountDownLatch(SystemInfo.LogicalCores);
+
+            for (int id = 0; id < SystemInfo.LogicalCores; id++)
             {
-                for(int j_indx = 0; j_indx < knn; j_indx ++) //O(u)
+                final int ID = id;
+                ex.submit(new Runnable()
                 {
-                    int j = nearMe[i][j_indx];
-                    if(i == j)//this should never happen b/c we skipped that when creating nearMe
-                        continue;
-                    double pij = nearMePij[i][j_indx];
-                    if(iter < T*exageratedPortion)
-                        pij *= alpha;
-                    double cnst = pij*q_ijZ(i, j, y, s)*4;
-                    
-                    for(int k = 0; k < s; k++)
+                    @Override
+                    public void run()
                     {
-                        double diff = z_ij(i, k, y, s)-z_ij(j, k, y, s);
-                        inc_z_ij(cnst*diff, i, k, y_grad, s);
+                        int start = ParallelUtils.getStartBlock(N, ID, SystemInfo.LogicalCores);
+                        int end = ParallelUtils.getEndBlock(N, ID, SystemInfo.LogicalCores);
+                        for (int i = start; i < end; i++)//N
+                        {
+                            for(int j_indx = 0; j_indx < knn; j_indx ++) //O(u)
+                            {
+                                int j = nearMe[i][j_indx];
+                                if(i == j)//this should never happen b/c we skipped that when creating nearMe
+                                    continue;
+                                double pij = nearMePij[i][j_indx];
+                                if(ITER < T*exageratedPortion)
+                                    pij *= alpha;
+                                double cnst = pij*q_ijZ(i, j, y, s)*4;
+
+                                for(int k = 0; k < s; k++)
+                                {
+                                    double diff = z_ij(i, k, y, s)-z_ij(j, k, y, s);
+                                    inc_z_ij(cnst*diff, i, k, y_grad, s);
+                                }
+                            }
+                        }
+                        latch_g1.countDown();
                     }
-                }
+                });
+            }
+            
+            try
+            {
+                latch_g1.await();
+            }
+            catch (InterruptedException ex1)
+            {
+                Logger.getLogger(TSNE.class.getName()).log(Level.SEVERE, null, ex1);
             }
             
             //now we have accumulated all gradients
