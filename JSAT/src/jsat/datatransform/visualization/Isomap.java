@@ -249,8 +249,9 @@ public class Isomap
         List<FibHeap.FibNode<Integer>> nodes = new ArrayList<FibHeap.FibNode<Integer>>(N);
 
         FibHeap<Integer> Q = new FibHeap<Integer>();
-        for (int i = 0; i < neighborGraph.size(); i++)
-            nodes.add(Q.insert(i, dist[i]));
+        for (int i = 0; i < N; i++)
+            nodes.add(null);
+        nodes.set(sourceIndex, Q.insert(sourceIndex, dist[sourceIndex]));
 
         while (Q.size() > 0)
         {
@@ -269,7 +270,10 @@ public class Isomap
                 {
                     dist[j] = alt;
                     //prev[j] ← u
-                    Q.decreaseKey(nodes.get(j), alt);
+                    if(nodes.get(j) == null)
+                        nodes.set(j, Q.insert(j, alt));
+                    else
+                        Q.decreaseKey(nodes.get(j), alt);
                 }
             }
         }
