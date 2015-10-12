@@ -42,6 +42,14 @@ import jsat.utils.SystemInfo;
  * {@link #setCIsomap(boolean) C-Isomap}, which further weights distances by
  * density.<br>
  * <br>
+ * Note, that Isomap normally will fail on some datasets when two or more
+ * regions can not be connected in the induced neighbor graph. While increasing
+ * the number of neighbors considered will eventually resolve this problem, the
+ * separated groups may be desirable in practice. This implementation includes a
+ * non-standard addition that will forcibly connect such isolated regions with
+ * very large values, hoping to preserve the farther distances in the given
+ * dataset while maintaining local structure.<br>
+ * <br>
  *
  * See:<br>
  * <ul>
