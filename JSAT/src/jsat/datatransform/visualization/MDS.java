@@ -38,6 +38,14 @@ import jsat.utils.concurrent.AtomicDouble;
 import jsat.utils.random.XORWOW;
 
 /**
+ * Multidimensional scaling is an algorithm for finding low dimensional
+ * embeddings of arbitrary distance matrices. MDS will attempt to find an
+ * embedding that maintains the same pair-wise distances between all items in
+ * the distance matrix. MDS is a non-convex problem, so different runs can
+ * produce different results. <br>
+ * <br>
+ * MDS can be used on arbitrary dissimilarity matrices by calling {@link #transform(jsat.linear.Matrix, java.util.concurrent.ExecutorService)
+ * }.
  *
  * @author Edward Raff <Raff.Edward@gmail.com>
  */
@@ -49,15 +57,49 @@ public class MDS
     private int maxIterations = 300;
     private int targetSize = 2;
 
+    /**
+     * Sets the tolerance parameter for determining convergence. 
+     * @param tolerance the tolerance for declaring convergence
+     */
     public void setTolerance(double tolerance)
     {
+        if(tolerance < 0 || Double.isInfinite(tolerance) || Double.isNaN(tolerance))
+            throw new IllegalArgumentException("tolerance must be a non-negative value, not " + tolerance);
         this.tolerance = tolerance;
     }
 
+    /**
+     * 
+     * @return the tolerance parameter 
+     */
     public double getTolerance()
     {
         return tolerance;
     }
+
+    /**
+     * Sets the distance metric to use when creating the initial dissimilarity
+     * matrix of a new dataset. By default the {@link EuclideanDistance Euclidean
+     * } distance is used, but any distance may be substituted.The chosen
+     * distance need not be a valid metric, its only requirement is symmetry.
+     *
+     * @param embedMetric the distance metric to use when creating the
+     * dissimilarity matrix.
+     */
+    public void setEmbeddingMetric(DistanceMetric embedMetric)
+    {
+        this.embedMetric = embedMetric;
+    }
+    
+    /**
+     * 
+     * @return the distance metric used when creating a dissimilarity matrix
+     */
+    public DistanceMetric getEmbeddingMetric()
+    {
+        return embedMetric;
+    }
+    
     
     public <Type extends DataSet> Type transform(DataSet<Type> d)
     {
