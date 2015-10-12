@@ -36,6 +36,23 @@ import jsat.utils.FibHeap;
 import jsat.utils.SystemInfo;
 
 /**
+ * Isomap is an extension of {@link MDS}. It uses a geodesic distance made from
+ * a nearest neighbor search of all the points in the data set. This
+ * implementation also includes the extension
+ * {@link #setCIsomap(boolean) C-Isomap}, which further weights distances by
+ * density.<br>
+ * <br>
+ *
+ * See:<br>
+ * <ul>
+ * <li>Tenenbaum, J. B., Silva, V. De, & Langford, J. C. (2000). <i>A Global
+ * Geometric Framework for Nonlinear Dimensionality Reduction</i>. Science, 290,
+ * 2319–2323. doi:10.1126/science.290.5500.2319</li>
+ * <li>De Silva, V., & Tenenbaum, J. B. (2003). <i>Global Versus Local Methods
+ * in Nonlinear Dimensionality Reduction</i>. In Advances in Neural Information
+ * Processing Systems 15 (pp. 705–712). MIT Press. Retrieved from
+ * <a href="http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.9.3407&amp;rep=rep1&amp;type=pdf">here</a></li>
+ * </ul>
  *
  * @author Edward Raff <Raff.Edward@gmail.com>
  */
@@ -47,27 +64,77 @@ public class Isomap
     private MDS mds = new MDS();
     private boolean c_isomap = false;
 
+    /**
+     *
+     */
+    public Isomap()
+    {
+        this(15, false);
+    }
+
+    /**
+     *
+     * @param searchNeighbors the number of nearest neighbors to consider
+     */
+    public Isomap(int searchNeighbors)
+    {
+        this(searchNeighbors, false);
+    }
+
+    /**
+     * 
+     * @param searchNeighbors the number of nearest neighbors to consider
+     * @param c_isomap {@code true} to use the C-Isomap extension, {@code false}
+     * for normal Isomap.
+     */
+    public Isomap(int searchNeighbors, boolean c_isomap)
+    {
+        setNeighbors(searchNeighbors);
+        setCIsomap(c_isomap);
+    }
+    
+    /**
+     * Set the number of neighbors to consider for the initial graph in Isomap
+     * @param searchNeighbors the number of nearest neighbors to consider
+     */
     public void setNeighbors(int searchNeighbors)
     {
+        if(searchNeighbors < 2)
+            throw new IllegalArgumentException("number of neighbors considered must be at least 2, not " + searchNeighbors);
         this.searchNeighbors = searchNeighbors;
     }
 
+    /**
+     * 
+     * @return the number of neighbors used when creating the initial graph
+     */
     public int getNeighbors()
     {
         return searchNeighbors;
     }
     
+    /**
+     * Controls whether the C-Isomap extension is used. If set true, the initial
+     * distances will also be scaled based on the density of the region between
+     * the points. If false, normal Isomap will be used.
+     *
+     * @param c_isomap {@code true} to use the C-Isomap extension, {@code false}
+     * for normal Isomap.
+     */
     public void setCIsomap(boolean c_isomap)
     {
         this.c_isomap = c_isomap;
     }
 
+    /**
+     *
+     * @return {@code true} if the C-Isomap extension is in use, {@code false}
+     * for normal Isomap.
+     */
     public boolean isCIsomap()
     {
         return c_isomap;
     }
-    
-    
             
     public <Type extends DataSet> Type transform(DataSet<Type> d)
     {
