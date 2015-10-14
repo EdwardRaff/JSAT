@@ -226,15 +226,16 @@ public class RandomBallCover<V extends Vec> implements VectorCollection<V>
 
         //Find the best representative r_q, and add its owned children to knn list. 
         double[] queryRDists = new double[R.size()];
+        Arrays.fill(queryRDists, Double.MAX_VALUE);
         int bestRep = 0;
         for (int i = 0; i < R.size(); i++)
-            if ((queryRDists[i] = dm.dist(R.get(i), query, qi, allVecs, distCache)) < queryRDists[i])
+            if ((queryRDists[i] = dm.dist(R.get(i), query, qi, allVecs, distCache)) < queryRDists[bestRep])
                 bestRep = i;
         knn.add(new VecPairedComparable<V, Double>(allVecs.get(R.get(bestRep)), queryRDists[bestRep]));
 
         for (int v : ownedVecs.get(bestRep))
             knn.add(new VecPairedComparable<V, Double>(allVecs.get(v), dm.dist(v, query, qi, allVecs, distCache)));
-
+        
         //k-nn search through the rest of the data set
         for (int i = 0; i < R.size(); i++)
         {
@@ -244,8 +245,9 @@ public class RandomBallCover<V extends Vec> implements VectorCollection<V>
             //Prune out representatives that are just too far
             if (queryRDists[i] > knn.last().getPair() + repRadius[i])
                 continue;
-            else if (queryRDists[i] > 3 * queryRDists[bestRep])
-                continue;
+            //TODO this bound from the paper seems to not be working... figure out why
+//            else if (queryRDists[i] > 3 * queryRDists[bestRep])
+//                continue;
 
             //Add any new nn imediatly, hopefully shrinking the bound before
             //the next representative is tested
@@ -281,12 +283,9 @@ public class RandomBallCover<V extends Vec> implements VectorCollection<V>
     public static class RandomBallCoverFactory<V extends Vec> implements VectorCollectionFactory<V>
     {
 
-        /**
-		 * 
-		 */
-		private static final long serialVersionUID = 2707446304590604519L;
+        private static final long serialVersionUID = 2707446304590604519L;
 
-		@Override
+        @Override
         public VectorCollection<V> getVectorCollection(List<V> source, DistanceMetric distanceMetric)
         {
             return new RandomBallCover<V>(source, distanceMetric);
