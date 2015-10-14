@@ -153,6 +153,11 @@ public class FixedProblems
     
     public static ClassificationDataSet getCircles(int dataSetSize, Random rand, double... radi )
     {
+        return getCircles(dataSetSize, 1.0/5.0, rand, radi);
+    }
+    
+    public static ClassificationDataSet getCircles(int dataSetSize, double randNoiseMultiplier, Random rand, double... radi )
+    {
         ClassificationDataSet train = new ClassificationDataSet(2, new CategoricalData[0], new CategoricalData(radi.length));
         
         int n = dataSetSize / 2;
@@ -161,8 +166,8 @@ public class FixedProblems
             for (int i = 0; i < n; i++)
             {
                 double t = 2 * Math.PI * i / n;
-                double x = radi[r_i] * Math.cos(t) + (rand.nextDouble() - 0.5) / 5;
-                double y = radi[r_i] * Math.sin(t) + (rand.nextDouble() - 0.5) / 5;
+                double x = radi[r_i] * Math.cos(t) + (rand.nextDouble() - 0.5) * randNoiseMultiplier;
+                double y = radi[r_i] * Math.sin(t) + (rand.nextDouble() - 0.5) * randNoiseMultiplier;
                 train.addDataPoint(DenseVector.toDenseVec(x, y), new int[0], r_i);
             }
 

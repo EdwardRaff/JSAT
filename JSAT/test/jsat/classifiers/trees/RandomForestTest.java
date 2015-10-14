@@ -23,6 +23,7 @@ import jsat.classifiers.ClassificationDataSet;
 import jsat.classifiers.ClassificationModelEvaluation;
 import jsat.datatransform.DataTransformProcess;
 import jsat.datatransform.NumericalToHistogram;
+import jsat.linear.DenseVector;
 import jsat.regression.RegressionDataSet;
 import jsat.regression.RegressionModelEvaluation;
 import jsat.utils.SystemInfo;
@@ -40,7 +41,8 @@ import static org.junit.Assert.*;
  */
 public class RandomForestTest
 {
-    
+ 
+    static DenseVector coefs = new DenseVector(new double[]{0.1, 0.9, -0.2, 0.4, -0.5});
     public RandomForestTest()
     {
     }
@@ -73,8 +75,8 @@ public class RandomForestTest
         {
             RandomForest instance = new RandomForest();
 
-            RegressionDataSet train =  FixedProblems.getLinearRegression(1000, new XORWOW());
-            RegressionDataSet test = FixedProblems.getLinearRegression(100, new XORWOW());
+            RegressionDataSet train =  FixedProblems.getLinearRegression(1000, new XORWOW(), coefs);
+            RegressionDataSet test = FixedProblems.getLinearRegression(100, new XORWOW(), coefs);
 
             RegressionModelEvaluation rme = new RegressionModelEvaluation(instance, train);
             if(useCatFeatures)
@@ -96,8 +98,8 @@ public class RandomForestTest
             
             ExecutorService ex = Executors.newFixedThreadPool(SystemInfo.LogicalCores);
 
-            RegressionDataSet train =  FixedProblems.getLinearRegression(1000, new XORWOW());
-            RegressionDataSet test = FixedProblems.getLinearRegression(100, new XORWOW());
+            RegressionDataSet train =  FixedProblems.getLinearRegression(1000, new XORWOW(), coefs);
+            RegressionDataSet test = FixedProblems.getLinearRegression(100, new XORWOW(), coefs);
 
             RegressionModelEvaluation rme = new RegressionModelEvaluation(instance, train, ex);
             if(useCatFeatures)
@@ -122,7 +124,8 @@ public class RandomForestTest
             ExecutorService ex = Executors.newFixedThreadPool(SystemInfo.LogicalCores);
 
             ClassificationDataSet train = FixedProblems.getCircles(1000, 1.0, 10.0, 100.0);
-            ClassificationDataSet test = FixedProblems.getCircles(100, 1.0, 10.0, 100.0);
+            //RF may not get boundry perfect, so use noiseless for testing
+            ClassificationDataSet test = FixedProblems.getCircles(100, 0.0, new XORWOW(), 1.0, 10.0, 100.0);
 
             ClassificationModelEvaluation cme = new ClassificationModelEvaluation(instance, train, ex);
             if(useCatFeatures)
@@ -144,7 +147,8 @@ public class RandomForestTest
             RandomForest instance = new RandomForest();
 
             ClassificationDataSet train =  FixedProblems.getCircles(1000, 1.0, 10.0, 100.0);
-            ClassificationDataSet test = FixedProblems.getCircles(100, 1.0, 10.0, 100.0);
+            //RF may not get boundry perfect, so use noiseless for testing
+            ClassificationDataSet test = FixedProblems.getCircles(100, 0.0, new XORWOW(), 1.0, 10.0, 100.0);
 
             ClassificationModelEvaluation cme = new ClassificationModelEvaluation(instance, train);
             if(useCatFeatures)
