@@ -49,7 +49,7 @@ import jsat.utils.random.XORWOW;
  *
  * @author Edward Raff <Raff.Edward@gmail.com>
  */
-public class MDS
+public class MDS implements VisualizationTransform
 {
     private static DistanceMetric embedMetric = new EuclideanDistance();
     private DistanceMetric dm = new EuclideanDistance();
@@ -101,11 +101,13 @@ public class MDS
     }
     
     
+    @Override
     public <Type extends DataSet> Type transform(DataSet<Type> d)
     {
         return transform(d, new FakeExecutor());
     }
     
+    @Override
     public <Type extends DataSet> Type transform(final DataSet<Type> d, ExecutorService ex)
     {
         final List<Vec> orig_vecs = d.getDataVectors();
@@ -322,5 +324,20 @@ public class MDS
         }
         
         return stress.get();
+    }
+
+    @Override
+    public int getTargetDimension()
+    {
+        return targetSize;
+    }
+
+    @Override
+    public boolean setTargetDimension(int target)
+    {
+        if(target < 1)
+            return false;
+        this.targetSize = target;
+        return true;
     }
 }

@@ -64,7 +64,7 @@ import jsat.utils.SystemInfo;
  *
  * @author Edward Raff <Raff.Edward@gmail.com>
  */
-public class Isomap
+public class Isomap implements VisualizationTransform
 {
     private DistanceMetric dm = new EuclideanDistance();
     private VectorCollectionFactory<VecPaired<Vec, Integer>> vcf = new DefaultVectorCollectionFactory<VecPaired<Vec, Integer>>();
@@ -144,11 +144,13 @@ public class Isomap
         return c_isomap;
     }
             
+    @Override
     public <Type extends DataSet> Type transform(DataSet<Type> d)
     {
         return transform(d, new FakeExecutor());
     }
     
+    @Override
     public <Type extends DataSet> Type transform(DataSet<Type> d, ExecutorService ex)
     {
         final int N = d.getSampleSize();
@@ -354,5 +356,17 @@ public class Isomap
         }
 
         return dist;
+    }
+    
+    @Override
+    public int getTargetDimension()
+    {
+        return mds.getTargetDimension();
+    }
+
+    @Override
+    public boolean setTargetDimension(int target)
+    {
+        return mds.setTargetDimension(target);
     }
 }

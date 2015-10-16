@@ -64,7 +64,7 @@ import jsat.utils.random.XORWOW;
  *
  * @author Edward Raff
  */
-public class TSNE
+public class TSNE implements VisualizationTransform
 {
     private double alpha = 4;
     private double exageratedPortion = 0.25;
@@ -147,11 +147,13 @@ public class TSNE
         return T;
     }
     
+    @Override
     public <Type extends DataSet> Type transform(DataSet<Type> d)
     {
         return transform(d, new FakeExecutor());
     }
     
+    @Override
     public <Type extends DataSet> Type transform(DataSet<Type> d, ExecutorService ex)
     {
         Random rand = new XORWOW();
@@ -772,5 +774,19 @@ public class TSNE
             }
             
         }
+    }
+    
+    //Current implementation only supports 2D, so hard code it. 
+    
+    @Override
+    public int getTargetDimension()
+    {
+        return 2;
+    }
+
+    @Override
+    public boolean setTargetDimension(int target)
+    {
+        return target == 2;
     }
 }
