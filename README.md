@@ -25,14 +25,14 @@ You can download JSAT from my maven repo, add the below to your pom file
 </dependencies>
 ```
 
-I will also host a snapshot directory, to access it - chang "maven-repo" to "maven-snapshot-repo" for the "\<url>" tag. 
+I will also host a snapshot directory, to access it - change "maven-repo" to "maven-snapshot-repo" for the "\<url>" tag. 
 
 ## Why use JSAT? 
 
 For reasarch and specialized needs, JSAT has one of the largest collections of algorithms available in any framework. See an incomplete list [here](https://github.com/EdwardRaff/JSAT/wiki/Algorithms). 
 
-Additional, there are unfortinatly not as many ML tools for Java as there are for other lanagues. Compared to Weka, JSAT is [usually faster](http://jsatml.blogspot.com/2015/03/jsat-vs-weka-on-mnist.html). 
+Additional, there are unfortunately not as many ML tools for Java as there are for other lanagues. Compared to Weka, JSAT is [usually faster](http://jsatml.blogspot.com/2015/03/jsat-vs-weka-on-mnist.html). 
 
-If you want to use JSAT and the GPL is not something that will work for you, let me know and we can discus the issue.
+If you want to use JSAT and the GPL is not something that will work for you, let me know and we can discuss the issue.
 
 See the wiki for more information as well as some examples on how to use JSAT. 
