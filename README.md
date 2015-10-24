@@ -35,4 +35,4 @@ Additional, there are unfortunately not as many ML tools for Java as there are f
 
 If you want to use JSAT and the GPL is not something that will work for you, let me know and we can discuss the issue.
 
-See the wiki for more information as well as some examples on how to use JSAT. 
+See the [wiki](https://github.com/EdwardRaff/JSAT/wiki) for more information as well as some examples on how to use JSAT. 
