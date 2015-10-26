@@ -24,13 +24,13 @@ public class FastMath
      * so exponentValue-1023 = unbiased value
      */
     
-    private static long getMantissa(long bits)
+    private static long getMantissa(final long bits)
     {
         return bits & 0x000fffffffffffffL;
     }
     
     @SuppressWarnings("unused")
-    private static long getExponent(long bits)
+    private static long getExponent(final long bits)
     {
         return (bits & 0x7ff0000000000000L) >> 52;
     }
@@ -42,7 +42,7 @@ public class FastMath
      * @param x the input
      * @return log<sub>e</sub>(x)
      */
-    public static double log(double x)
+    public static double log(final double x)
     {
         return logConst*log2(x);
     }
@@ -52,7 +52,7 @@ public class FastMath
      * @param x the input
      * @return the log base 2 of {@code x}
      */
-    public static double log2(double x)
+    public static double log2(final double x)
     {
         return log2_2pd1(x);
     }
@@ -65,17 +65,17 @@ public class FastMath
      * @param x the input
      * @return the log base 2 of {@code x}
      */
-    public static double log2_2pd1(double x)
+    public static double log2_2pd1(final double x)
     {
         if(x < 0) {
           return Double.NaN;
         }
-        long rawBits = doubleToLongBits(x);
-        long mantissa = getMantissa(rawBits);
-        int e = Math.getExponent(x);
-        double m = longBitsToDouble(1023L << 52 | mantissa);//m in [1, 2]
+        final long rawBits = doubleToLongBits(x);
+        final long mantissa = getMantissa(rawBits);
+        final int e = Math.getExponent(x);
+        final double m = longBitsToDouble(1023L << 52 | mantissa);//m in [1, 2]
 
-        double log2m = 1.847320661499000 + 0.240449173481494 * m - 3.651821822250191 / (0.750000000000000 + m);
+        final double log2m = 1.847320661499000 + 0.240449173481494 * m - 3.651821822250191 / (0.750000000000000 + m);
 
         return log2m + e;
     }
@@ -99,14 +99,14 @@ public class FastMath
      * @param x the input
      * @return the log base 2 of {@code x}
      */
-    public static double log2_c11(double x)
+    public static double log2_c11(final double x)
     {
         if(x < 0) {
           return Double.NaN;
         }
-        long rawBits = doubleToLongBits(x);
-        long mantissa = getMantissa(rawBits);
-        int e = Math.getExponent(x);
+        final long rawBits = doubleToLongBits(x);
+        final long mantissa = getMantissa(rawBits);
+        final int e = Math.getExponent(x);
         
         return log2Cache11[(int)(mantissa >>> (52-11))] + e;
     }
@@ -116,7 +116,7 @@ public class FastMath
      * @param x the integer power to raise 2 too
      * @return 2<sup>x</sup>
      */
-    public static double pow2(int x)
+    public static double pow2(final int x)
     {
         if(x > Double.MAX_EXPONENT) {
           return Double.POSITIVE_INFINITY;
@@ -135,7 +135,7 @@ public class FastMath
      * @param x the power to raise to
      * @return 
      */
-    public static double pow2(double x)
+    public static double pow2(final double x)
     {
         if(x > Double.MAX_EXPONENT) {
           return Double.POSITIVE_INFINITY;
@@ -146,11 +146,11 @@ public class FastMath
           //x is positive at this point
         }
 
-        double floorXd = Math.floor(x);
-        int floorX = (int) floorXd;
-        double frac = x-floorXd;
+        final double floorXd = Math.floor(x);
+        final int floorX = (int) floorXd;
+        final double frac = x-floorXd;
         
-        double pow2frac = -4.704682932438695+27.543765058113320/(4.828085122666891-frac)-0.490129071734273 * frac;
+        final double pow2frac = -4.704682932438695+27.543765058113320/(4.828085122666891-frac)-0.490129071734273 * frac;
         
         return pow2frac*longBitsToDouble((floorX+1023L)<<52);
     }
@@ -163,7 +163,7 @@ public class FastMath
      * @param b the power
      * @return a<sup>b</sup>
      */
-    public static double pow(double a, double b)
+    public static double pow(final double a, final double b)
     {
 
         /*
@@ -178,12 +178,12 @@ public class FastMath
           return 1 / pow(a, -b);//b is now made positive
         }
 
-        long rawBits_a = doubleToLongBits(a);
-        long mantissa_a = getMantissa(rawBits_a);
+        final long rawBits_a = doubleToLongBits(a);
+        final long mantissa_a = getMantissa(rawBits_a);
         final int e_a = Math.getExponent(a);
 
         //compute m^b and exploit the fact that we know there is no need for the exponent
-        double m = longBitsToDouble(1023L << 52 | mantissa_a);//m in [1, 2]
+        final double m = longBitsToDouble(1023L << 52 | mantissa_a);//m in [1, 2]
         
         final double log2m = 1.790711564253215 + 0.248597253161674 * m - 3.495545043418375 / (0.714309275671154 + 1.000000000000000 * m);
 
@@ -198,7 +198,7 @@ public class FastMath
      * @param x the input
      * @return e<sup>x</sup>
      */
-    public static double exp(double x)
+    public static double exp(final double x)
     {
         return pow2(expPowConst*x);
     }
@@ -208,7 +208,7 @@ public class FastMath
      * @param x the input value
      * @return &psi;(x)
      */
-    public static double digamma(double x)
+    public static double digamma(final double x)
     {
         if(x == 0) {
           return Double.NaN;//complex infinity
@@ -225,7 +225,7 @@ public class FastMath
          * log(x+2)-1/(2 (x+2))-1/(12 (x+2)^2) -1/x-1/(x+1), 
          * the x+2 and x and x+1 are grouped sepratly 
          */
-        double xp2 = x+2;
+        final double xp2 = x+2;
         
         return log(xp2)-(6*x+13)/(12*xp2*xp2)-(2*x+1)/(x*x+x);
     }

@@ -48,8 +48,8 @@ public class KappaTest
     public void testGetScore()
     {
         System.out.println("getScore");
-        Kappa scorer = new Kappa();
-        Kappa otherHalf = scorer.clone();
+        final Kappa scorer = new Kappa();
+        final Kappa otherHalf = scorer.clone();
         
         assertEquals(scorer, otherHalf);
         assertEquals(scorer.hashCode(), otherHalf.hashCode());

@@ -58,12 +58,12 @@ public class MatrixTest
     public void testOuterProductUpdate_4args()
     {
         System.out.println("OuterProductUpdate");
-        Matrix A = Matrix.eye(4);
-        Vec x = new DenseVector(new double[]{1, 2, 3, 4});
-        Vec y = new DenseVector(new double[]{5, 6, 7, 8});
-        double c = 2.0;
+        final Matrix A = Matrix.eye(4);
+        final Vec x = new DenseVector(new double[]{1, 2, 3, 4});
+        final Vec y = new DenseVector(new double[]{5, 6, 7, 8});
+        final double c = 2.0;
         
-        double[][] expected = new double[][]
+        final double[][] expected = new double[][]
         {
             {11, 12, 14, 16},
             {20, 25, 28, 32},
@@ -87,12 +87,12 @@ public class MatrixTest
     public void testOuterProductUpdate_5args()
     {
         System.out.println("OuterProductUpdate");
-        Matrix A = Matrix.eye(4);
-        Vec x = new DenseVector(new double[]{1, 2, 3, 4});
-        Vec y = new DenseVector(new double[]{5, 6, 7, 8});
-        double c = 2.0;
+        final Matrix A = Matrix.eye(4);
+        final Vec x = new DenseVector(new double[]{1, 2, 3, 4});
+        final Vec y = new DenseVector(new double[]{5, 6, 7, 8});
+        final double c = 2.0;
         
-        double[][] expected = new double[][]
+        final double[][] expected = new double[][]
         {
             {11, 12, 14, 16},
             {20, 25, 28, 32},
@@ -119,7 +119,7 @@ public class MatrixTest
         
         for(int k = 1; k < 10; k++)
         {
-            Matrix I = Matrix.eye(k);
+            final Matrix I = Matrix.eye(k);
             for(int i = 0; i < I.rows(); i++) {
               for (int j = 0; j < I.cols(); j++) {
                 if (i == j) {
@@ -139,12 +139,12 @@ public class MatrixTest
     public void testRandom()
     {
         System.out.println("random");
-        int rows = 100;
-        int cols = 100;
-        Random rand = new XOR128();
+        final int rows = 100;
+        final int cols = 100;
+        final Random rand = new XOR128();
 
-        DenseMatrix result = Matrix.random(rows, cols, rand);
-        OnLineStatistics stats = new OnLineStatistics();
+        final DenseMatrix result = Matrix.random(rows, cols, rand);
+        final OnLineStatistics stats = new OnLineStatistics();
         for (int i = 0; i < result.rows(); i++) {
           for (int j = 0; j < result.cols(); j++) {
             stats.add(result.get(i, j));
@@ -174,7 +174,7 @@ public class MatrixTest
     {
         //TODO add diagonal test case
         System.out.println("diagMult");
-        Matrix A = new DenseMatrix(new double[][]
+        final Matrix A = new DenseMatrix(new double[][]
         {
             { 0,    8,    7,    5,    5},
             { 6,   10,    4,    8,    4},
@@ -183,9 +183,9 @@ public class MatrixTest
             { 6,    7,   10,    5,    8},
         });
         
-        Vec b = new DenseVector(new double[]{4, -3, 3, -4, 2});
+        final Vec b = new DenseVector(new double[]{4, -3, 3, -4, 2});
         
-        double[][] expected = new double[][]
+        final double[][] expected = new double[][]
         {
             { 0,  -24,   21,  -20,   10},
             {24,  -30,   12,  -32,    8},
@@ -205,7 +205,7 @@ public class MatrixTest
     {
         //TODO add diagonal test case
         System.out.println("diagMult");
-        Matrix A = new DenseMatrix(new double[][]
+        final Matrix A = new DenseMatrix(new double[][]
         {
             { 0,    8,    7,    5,    5},
             { 6,   10,    4,    8,    4},
@@ -214,9 +214,9 @@ public class MatrixTest
             { 6,    7,   10,    5,    8},
         });
         
-        Vec b = new DenseVector(new double[]{4, -3, 3, -4, 2});
+        final Vec b = new DenseVector(new double[]{4, -3, 3, -4, 2});
         
-        double[][] expected = new double[][]
+        final double[][] expected = new double[][]
         {
             {  0,   32,   28,   20,   20},
             {-18,  -30,  -12,  -24,  -12},
@@ -236,7 +236,7 @@ public class MatrixTest
     public void testIsSymmetric_Matrix_double()
     {
         System.out.println("isSymmetric");
-        Matrix A = Matrix.eye(5);
+        final Matrix A = Matrix.eye(5);
         
         assertTrue(Matrix.isSymmetric(A, 0.0));
         
@@ -258,7 +258,7 @@ public class MatrixTest
     public void testIsSymmetric_Matrix()
     {
         System.out.println("isSymmetric");
-        Matrix A = Matrix.eye(5);
+        final Matrix A = Matrix.eye(5);
         
         assertTrue(Matrix.isSymmetric(A));
         
@@ -281,7 +281,7 @@ public class MatrixTest
     {
         System.out.println("pascal");
         
-        Matrix P = Matrix.pascal(6);
+        final Matrix P = Matrix.pascal(6);
         
         for(int i = 0; i < P.rows(); i++)
         {

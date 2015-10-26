@@ -23,11 +23,11 @@ public abstract class AbstractClusterDissimilarity implements ClusterDissimilari
      * @return the correct value from the distance matrix from the index given
      * as if the distance matrix was of full form
      */
-    public static double getDistance(double[][] distanceMatrix, int i, int j)
+    public static double getDistance(final double[][] distanceMatrix, int i, int j)
     {
         if (i > j)
         {
-            int tmp = j;
+            final int tmp = j;
             j = i;
             i = tmp;
         }
@@ -46,11 +46,11 @@ public abstract class AbstractClusterDissimilarity implements ClusterDissimilari
      * @param j the second index
      * @param dist the new distance value to store in the matrix
      */
-    public static void setDistance(double[][] distanceMatrix, int i, int j, double dist)
+    public static void setDistance(final double[][] distanceMatrix, int i, int j, final double dist)
     {
         if (i > j)
         {
-            int tmp = j;
+            final int tmp = j;
             j = i;
             i = tmp;
         }
@@ -72,9 +72,9 @@ public abstract class AbstractClusterDissimilarity implements ClusterDissimilari
      * @param cd the cluster dissimilarity measure to use
      * @return a upper triangular distance matrix
      */
-    public static double[][] createDistanceMatrix(DataSet dataSet, ClusterDissimilarity cd)
+    public static double[][] createDistanceMatrix(final DataSet dataSet, final ClusterDissimilarity cd)
     {
-        double[][] distances = new double[dataSet.getSampleSize()][];
+        final double[][] distances = new double[dataSet.getSampleSize()][];
 
 
         for (int i = 0; i < distances.length; i++)

@@ -42,7 +42,7 @@ public class TfIdf extends WordWeighting
     private double totalDocuments;
     private List<Integer> df;
     private double docMax = 0.0;
-    private TermFrequencyWeight tfWeighting;
+    private final TermFrequencyWeight tfWeighting;
 
     /**
      * Creates a new TF-IDF document weighting scheme that uses 
@@ -59,20 +59,20 @@ public class TfIdf extends WordWeighting
      * @param tfWeighting the weighting method to use for the term frequency 
      * (tf) component 
      */
-    public TfIdf(TermFrequencyWeight tfWeighting)
+    public TfIdf(final TermFrequencyWeight tfWeighting)
     {
         this.tfWeighting = tfWeighting;
     }
 
     @Override
-    public void setWeight(List<? extends Vec> allDocuments, List<Integer> df)
+    public void setWeight(final List<? extends Vec> allDocuments, final List<Integer> df)
     {
         this.totalDocuments = allDocuments.size();
         this.df = df;
     }
 
     @Override
-    public double indexFunc(double value, int index)
+    public double indexFunc(final double value, final int index)
     {
         if (index < 0 || value == 0.0) {
           return 0.0;
@@ -93,13 +93,13 @@ public class TfIdf extends WordWeighting
             default:
                 tf = value;
         }
-        double idf = log(totalDocuments / df.get(index));
+        final double idf = log(totalDocuments / df.get(index));
 
         return tf * idf;
     }
 
     @Override
-    public void applyTo(Vec vec)
+    public void applyTo(final Vec vec)
     {
         if(tfWeighting == TermFrequencyWeight.DOC_NORMALIZED) {
           docMax = vec.max();

@@ -41,7 +41,7 @@ public class LinearDecay implements DecayRate, Parameterized
      * minimum returned value 
      * @param maxTime the maximum amount of time
      */
-    public LinearDecay(double min, double maxTime)
+    public LinearDecay(final double min, final double maxTime)
     {
         setMinRate(min);
         setMaxTime(maxTime);
@@ -51,7 +51,7 @@ public class LinearDecay implements DecayRate, Parameterized
      * Sets the minimum learning rate to return
      * @param min the minimum learning rate to return
      */
-    public void setMinRate(double min)
+    public void setMinRate(final double min)
     {
         if(min <= 0 || Double.isNaN(min) || Double.isInfinite(min)) {
           throw new RuntimeException("minRate should be positive, not " + min);
@@ -76,7 +76,7 @@ public class LinearDecay implements DecayRate, Parameterized
      * provided in that method call instead. 
      * @param maxTime the maximum amount of time to allow
      */
-    public void setMaxTime(double maxTime)
+    public void setMaxTime(final double maxTime)
     {
         if(maxTime <= 0 || Double.isInfinite(maxTime) || Double.isNaN(maxTime)) {
           throw new RuntimeException("maxTime should be positive, not " + maxTime);
@@ -94,7 +94,7 @@ public class LinearDecay implements DecayRate, Parameterized
     }
 
     @Override
-    public double rate(double time, double maxTime, double initial)
+    public double rate(final double time, final double maxTime, final double initial)
     {
         if(time < 0) {
           throw new ArithmeticException("Negative time value given");
@@ -103,7 +103,7 @@ public class LinearDecay implements DecayRate, Parameterized
     }
     
     @Override
-    public double rate(double time, double initial)
+    public double rate(final double time, final double initial)
     {
         return rate(time, maxTime, initial);
     }
@@ -127,7 +127,7 @@ public class LinearDecay implements DecayRate, Parameterized
     }
 
     @Override
-    public Parameter getParameter(String paramName)
+    public Parameter getParameter(final String paramName)
     {
         return Parameter.toParameterMap(getParameters()).get(paramName);
     }

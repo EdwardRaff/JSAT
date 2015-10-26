@@ -49,7 +49,7 @@ public class OnLineStatistics implements Serializable, Cloneable
      * @param kurt the starting kurtosis. If <tt>n</tt> is zero, this value will be ignored. 
      * @throws ArithmeticException if <tt>n</tt> is a negative number
      */
-    public OnLineStatistics(double n, double mean, double variance, double skew, double kurt)
+    public OnLineStatistics(final double n, final double mean, final double variance, final double skew, final double kurt)
     {
         if(n < 0) {
           throw new ArithmeticException("Can not have a negative set of weights");
@@ -68,7 +68,7 @@ public class OnLineStatistics implements Serializable, Cloneable
         min = max  = null;
     }
    
-    private OnLineStatistics(double n, double mean, double m2, double m3, double m4, Double min, Double max)
+    private OnLineStatistics(final double n, final double mean, final double m2, final double m3, final double m4, final Double min, final Double max)
     {
         this.n = n;
         this.mean = mean;
@@ -83,7 +83,7 @@ public class OnLineStatistics implements Serializable, Cloneable
      * Copy Constructor
      * @param other the version to make a copy of
      */
-    public OnLineStatistics(OnLineStatistics other)
+    public OnLineStatistics(final OnLineStatistics other)
     {
         this(other.n, other.mean, other.m2, other.m3, other.m4, 
                 other.min, other.max);
@@ -93,7 +93,7 @@ public class OnLineStatistics implements Serializable, Cloneable
      * Adds a data sample with unit weight to the counts. 
      * @param x the data value to add
      */
-   public void add(double x)
+   public void add(final double x)
    {
        add(x, 1.0);
    }
@@ -104,7 +104,7 @@ public class OnLineStatistics implements Serializable, Cloneable
     * @param weight the weight to give the value
     * @throws ArithmeticException if a negative weight is given 
     */
-   public void add(double x, double weight)
+   public void add(final double x, final double weight)
    {
        //See http://en.wikipedia.org/wiki/Algorithms_for_calculating_variance
        
@@ -114,12 +114,12 @@ public class OnLineStatistics implements Serializable, Cloneable
          return;
        }
        
-       double n1 = n;
+       final double n1 = n;
        n+=weight;
-       double delta = x - mean;
-       double delta_n = delta*weight/n;
-       double delta_n2 = delta_n*delta_n;
-       double term1 = delta*delta_n*n1;
+       final double delta = x - mean;
+       final double delta_n = delta*weight/n;
+       final double delta_n2 = delta_n*delta_n;
+       final double term1 = delta*delta_n*n1;
        
        
        mean += delta_n;
@@ -146,7 +146,7 @@ public class OnLineStatistics implements Serializable, Cloneable
     * @param weight the weight of the sample
     * @throws ArithmeticException if a negative weight is given
     */
-   public void remove(double x, double weight)
+   public void remove(final double x, final double weight)
    {
        if(weight < 0) {
          throw new ArithmeticException("Can not remove a negative weight");
@@ -154,12 +154,12 @@ public class OnLineStatistics implements Serializable, Cloneable
          return;
        }
        
-       double n1 = n;
+       final double n1 = n;
        n-=weight;
-       double delta = x - mean;
-       double delta_n = delta*weight/n;
-       double delta_n2 = delta_n*delta_n;
-       double term1 = delta*delta_n*n1;
+       final double delta = x - mean;
+       final double delta_n = delta*weight/n;
+       final double delta_n2 = delta_n*delta_n;
+       final double term1 = delta*delta_n*n1;
        
        
        mean -= delta_n;
@@ -184,9 +184,9 @@ public class OnLineStatistics implements Serializable, Cloneable
     * @return a new set of statistics that is the removal of {@code B} from 
     * {@code A}
     */
-   public static OnLineStatistics remove(OnLineStatistics A, OnLineStatistics B)
+   public static OnLineStatistics remove(final OnLineStatistics A, final OnLineStatistics B)
    {
-       OnLineStatistics toRet = A.clone();
+       final OnLineStatistics toRet = A.clone();
        toRet.remove(B);
        return toRet;
    }
@@ -201,7 +201,7 @@ public class OnLineStatistics implements Serializable, Cloneable
     * be altered. 
     * @param B the set of statistics to remove
     */
-   public void remove(OnLineStatistics B)
+   public void remove(final OnLineStatistics B)
    {
        final OnLineStatistics A = this;
      //XXX double compare.
@@ -217,20 +217,20 @@ public class OnLineStatistics implements Serializable, Cloneable
          throw new ArithmeticException("Can not have negative samples");
        }
        
-       double nX = A.n-B.n;
-       double nXsqrd = nX*nX;
-       double nAnB = B.n*A.n;
-       double AnSqrd = A.n*A.n;
-       double BnSqrd = B.n*B.n;
+       final double nX = A.n-B.n;
+       final double nXsqrd = nX*nX;
+       final double nAnB = B.n*A.n;
+       final double AnSqrd = A.n*A.n;
+       final double BnSqrd = B.n*B.n;
        
-       double delta = B.mean - A.mean;
-       double deltaSqrd = delta*delta;
-       double deltaCbd = deltaSqrd*delta;
-       double deltaQad = deltaSqrd*deltaSqrd;
-       double newMean = (A.n* A.mean - B.n * B.mean)/(A.n - B.n);
-       double newM2 = A.m2 - B.m2 - deltaSqrd / nX *nAnB;
-       double newM3 = A.m3 - B.m3 - deltaCbd* nAnB*(A.n - B.n) / nXsqrd - 3 * delta * (A.n * B.m2 - B.n * A.m2)/nX;
-       double newM4 = A.m4 - B.m4 
+       final double delta = B.mean - A.mean;
+       final double deltaSqrd = delta*delta;
+       final double deltaCbd = deltaSqrd*delta;
+       final double deltaQad = deltaSqrd*deltaSqrd;
+       final double newMean = (A.n* A.mean - B.n * B.mean)/(A.n - B.n);
+       final double newM2 = A.m2 - B.m2 - deltaSqrd / nX *nAnB;
+       final double newM3 = A.m3 - B.m3 - deltaCbd* nAnB*(A.n - B.n) / nXsqrd - 3 * delta * (A.n * B.m2 - B.n * A.m2)/nX;
+       final double newM4 = A.m4 - B.m4 
                - deltaQad * (nAnB*(AnSqrd - nAnB + BnSqrd)/(nXsqrd*nX)) 
                - 6 * deltaSqrd*(AnSqrd*B.m2 - BnSqrd*A.m2)/nXsqrd
                - 4 * delta *(A.n*B.m3 - B.n*A.m3)/nX;
@@ -253,9 +253,9 @@ public class OnLineStatistics implements Serializable, Cloneable
     * @param B the second set of statistics 
     * @return a new set of statistics that is the addition of the two. 
     */
-   public static OnLineStatistics add(OnLineStatistics A, OnLineStatistics B)
+   public static OnLineStatistics add(final OnLineStatistics A, final OnLineStatistics B)
    {
-       OnLineStatistics toRet = A.clone();
+       final OnLineStatistics toRet = A.clone();
        toRet.add(B);
        return toRet;
    }
@@ -269,7 +269,7 @@ public class OnLineStatistics implements Serializable, Cloneable
     * be as accurate. 
     * @param B the set of statistics to add to this set
     */
-   public void add(OnLineStatistics B)
+   public void add(final OnLineStatistics B)
    {
        final OnLineStatistics A = this;
        //XXX double compare.
@@ -289,20 +289,20 @@ public class OnLineStatistics implements Serializable, Cloneable
            return;
        }
        
-       double nX = B.n + A.n;
-       double nXsqrd = nX*nX;
-       double nAnB = B.n*A.n;
-       double AnSqrd = A.n*A.n;
-       double BnSqrd = B.n*B.n;
+       final double nX = B.n + A.n;
+       final double nXsqrd = nX*nX;
+       final double nAnB = B.n*A.n;
+       final double AnSqrd = A.n*A.n;
+       final double BnSqrd = B.n*B.n;
        
-       double delta = B.mean - A.mean;
-       double deltaSqrd = delta*delta;
-       double deltaCbd = deltaSqrd*delta;
-       double deltaQad = deltaSqrd*deltaSqrd;
-       double newMean = (A.n* A.mean + B.n * B.mean)/(A.n + B.n);
-       double newM2 = A.m2 + B.m2 + deltaSqrd / nX *nAnB;
-       double newM3 = A.m3 + B.m3 + deltaCbd* nAnB*(A.n - B.n) / nXsqrd + 3 * delta * (A.n * B.m2 - B.n * A.m2)/nX;
-       double newM4 = A.m4 + B.m4 
+       final double delta = B.mean - A.mean;
+       final double deltaSqrd = delta*delta;
+       final double deltaCbd = deltaSqrd*delta;
+       final double deltaQad = deltaSqrd*deltaSqrd;
+       final double newMean = (A.n* A.mean + B.n * B.mean)/(A.n + B.n);
+       final double newM2 = A.m2 + B.m2 + deltaSqrd / nX *nAnB;
+       final double newM3 = A.m3 + B.m3 + deltaCbd* nAnB*(A.n - B.n) / nXsqrd + 3 * delta * (A.n * B.m2 - B.n * A.m2)/nX;
+       final double newM4 = A.m4 + B.m4 
                + deltaQad * (nAnB*(AnSqrd - nAnB + BnSqrd)/(nXsqrd*nX)) 
                + 6 * deltaSqrd*(AnSqrd*B.m2 + BnSqrd*A.m2)/nXsqrd
                + 4 * delta *(A.n*B.m3 - B.n*A.m3)/nX;

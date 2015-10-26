@@ -38,7 +38,7 @@ public abstract class ContinuedFraction
      * @param args the values to input for the variables of the continued fraction
      * @return an approximation of the value of the continued fraciton
      */
-    public double backwardNaive(int n, double... args)
+    public double backwardNaive(int n, final double... args)
     {
         double term = getA(n, args)/getB(n,args);
         
@@ -57,7 +57,7 @@ public abstract class ContinuedFraction
      * @param args the numeric inputs to the continued fraction
      * @return the approximate value of the continued fraction
      */
-    public double lentz(double... args)
+    public double lentz(final double... args)
     {
         double f_n = getB(0, args);
         if(f_n == 0.0) {

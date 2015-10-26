@@ -44,7 +44,7 @@ public class EuclideanCollection<V extends Vec> implements VectorCollection<V>
      * for only the Euclidean distance. 
      * @param source the set of vectors to form the collection
      */
-    public EuclideanCollection(List<V> source)
+    public EuclideanCollection(final List<V> source)
     {
         this(source, new FakeExecutor());
     }
@@ -53,7 +53,7 @@ public class EuclideanCollection<V extends Vec> implements VectorCollection<V>
      * Copy constructor
      * @param toCopy the object to copy
      */
-    public EuclideanCollection(EuclideanCollection toCopy)
+    public EuclideanCollection(final EuclideanCollection toCopy)
     {
         this.source = new ArrayList<V>(toCopy.source);
         this.dotCache = Arrays.copyOf(toCopy.dotCache, toCopy.dotCache.length);
@@ -65,7 +65,7 @@ public class EuclideanCollection<V extends Vec> implements VectorCollection<V>
      * @param source the set of vectors to form the collection
      * @param threadpool the source of threads for parallel construction
      */
-    public EuclideanCollection(final List<V> source, ExecutorService threadpool)
+    public EuclideanCollection(final List<V> source, final ExecutorService threadpool)
     {
         this.source = source;
         dotCache = new double[source.size()];
@@ -84,7 +84,7 @@ public class EuclideanCollection<V extends Vec> implements VectorCollection<V>
                 {
                     for(int i = S; i < E; i++)
                     {
-                        Vec c = source.get(i);
+                        final Vec c = source.get(i);
                         dotCache[i] = c.dot(c);
                     }
                     latch.countDown();
@@ -95,22 +95,22 @@ public class EuclideanCollection<V extends Vec> implements VectorCollection<V>
         {
             latch.await();
         }
-        catch (InterruptedException ex)
+        catch (final InterruptedException ex)
         {
             Logger.getLogger(EuclideanCollection.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
 
     @Override
-    public List<? extends VecPaired<V, Double>> search(Vec query, double range)
+    public List<? extends VecPaired<V, Double>> search(final Vec query, final double range)
     {
-        List<VecPairedComparable<V, Double>> list = new ArrayList<VecPairedComparable<V, Double>>();
+        final List<VecPairedComparable<V, Double>> list = new ArrayList<VecPairedComparable<V, Double>>();
         //get the sacled and shifted value of range for fast comparison for d(x, y)^2
         final double xx = query.dot(query);
         final double cmpRange = range*range-xx;
         for(int i = 0; i < dotCache.length; i++)
         {
-            double v = dotCache[i]-2*query.dot(source.get(i));
+            final double v = dotCache[i]-2*query.dot(source.get(i));
             if(v <= cmpRange) {
               list.add(new VecPairedComparable<V, Double>(source.get(i), Math.sqrt(xx+v)));
             }
@@ -120,20 +120,20 @@ public class EuclideanCollection<V extends Vec> implements VectorCollection<V>
     }
 
     @Override
-    public List<? extends VecPaired<V, Double>> search(Vec query, int neighbors)
+    public List<? extends VecPaired<V, Double>> search(final Vec query, final int neighbors)
     {
-        BoundedSortedList<ProbailityMatch<V>> boundedList= new BoundedSortedList<ProbailityMatch<V>>(neighbors, neighbors);
+        final BoundedSortedList<ProbailityMatch<V>> boundedList= new BoundedSortedList<ProbailityMatch<V>>(neighbors, neighbors);
         for(int i = 0; i < dotCache.length; i++)
         {
-            double v = dotCache[i]-2*query.dot(source.get(i));
+            final double v = dotCache[i]-2*query.dot(source.get(i));
             if(boundedList.size() < neighbors || v < boundedList.get(neighbors-1).getProbability()) {
               boundedList.add(new ProbailityMatch<V>(v, source.get(i)));
             }
         }
         
-        double xx = query.dot(query);
-        List<VecPaired<V, Double>> list = new ArrayList<VecPaired<V, Double>>(boundedList.size());
-        for(ProbailityMatch<V> pm : boundedList) {
+        final double xx = query.dot(query);
+        final List<VecPaired<V, Double>> list = new ArrayList<VecPaired<V, Double>>(boundedList.size());
+        for(final ProbailityMatch<V> pm : boundedList) {
           list.add(new VecPaired<V, Double>(pm.getMatch(), Math.sqrt(xx+pm.getProbability())));
         }
         return list;
@@ -159,7 +159,7 @@ public class EuclideanCollection<V extends Vec> implements VectorCollection<V>
 		private static final long serialVersionUID = 4838578403165658320L;
 
 		@Override
-        public VectorCollection<V> getVectorCollection(List<V> source, DistanceMetric distanceMetric)
+        public VectorCollection<V> getVectorCollection(final List<V> source, final DistanceMetric distanceMetric)
         {
             if(!(distanceMetric instanceof EuclideanDistance)) {
               throw new IllegalArgumentException("EuclideanCollection only supports Euclidean Distanse");
@@ -168,7 +168,7 @@ public class EuclideanCollection<V extends Vec> implements VectorCollection<V>
         }
 
         @Override
-        public VectorCollection<V> getVectorCollection(List<V> source, DistanceMetric distanceMetric, ExecutorService threadpool)
+        public VectorCollection<V> getVectorCollection(final List<V> source, final DistanceMetric distanceMetric, final ExecutorService threadpool)
         {
             if(!(distanceMetric instanceof EuclideanDistance)) {
               throw new IllegalArgumentException("EuclideanCollection only supports Euclidean Distanse");

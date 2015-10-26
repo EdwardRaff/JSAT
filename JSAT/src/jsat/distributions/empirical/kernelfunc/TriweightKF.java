@@ -30,7 +30,7 @@ public class TriweightKF implements KernelFunction
     }
     
     @Override
-    public double k(double u)
+    public double k(final double u)
     {
         if(Math.abs(u) > 1) {
           return 0;
@@ -39,7 +39,7 @@ public class TriweightKF implements KernelFunction
     }
 
     @Override
-    public double intK(double u)
+    public double intK(final double u)
     {
         if(u < -1) {
           return 0;
@@ -63,7 +63,7 @@ public class TriweightKF implements KernelFunction
     }
 
     @Override
-    public double kPrime(double u)
+    public double kPrime(final double u)
     {
         if(Math.abs(u) > 1) {
           return 0;

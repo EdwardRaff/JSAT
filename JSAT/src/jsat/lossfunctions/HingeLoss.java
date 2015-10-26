@@ -24,7 +24,7 @@ public class HingeLoss implements LossMC
      * @param y the target value
      * @return the HingeLoss loss
      */
-    public static double loss(double pred, double y)
+    public static double loss(final double pred, final double y)
     {
         return Math.max(0, 1 - y * pred);
     }
@@ -36,7 +36,7 @@ public class HingeLoss implements LossMC
      * @param y the target value
      * @return the first derivative of the HingeLoss loss
      */
-    public static double deriv(double pred, double y)
+    public static double deriv(final double pred, final double y)
     {
         if (pred * y > 1) {
           return 0;
@@ -45,9 +45,9 @@ public class HingeLoss implements LossMC
         }
     }
     
-    public static CategoricalResults classify(double score)
+    public static CategoricalResults classify(final double score)
     {
-        CategoricalResults cr = new CategoricalResults(2);
+        final CategoricalResults cr = new CategoricalResults(2);
         if(score > 0) {
           cr.setProb(1, 1.0);
         } else {
@@ -57,19 +57,19 @@ public class HingeLoss implements LossMC
     }
 
     @Override
-    public double getLoss(double pred, double y)
+    public double getLoss(final double pred, final double y)
     {
         return loss(pred, y);
     }
 
     @Override
-    public double getDeriv(double pred, double y)
+    public double getDeriv(final double pred, final double y)
     {
         return deriv(pred, y);
     }
 
     @Override
-    public double getDeriv2(double pred, double y)
+    public double getDeriv2(final double pred, final double y)
     {
         return 0;
     }
@@ -87,13 +87,13 @@ public class HingeLoss implements LossMC
     }
 
     @Override
-    public CategoricalResults getClassification(double score)
+    public CategoricalResults getClassification(final double score)
     {
         return classify(score);
     }
 
     @Override
-    public double getLoss(Vec processed, int y)
+    public double getLoss(final Vec processed, final int y)
     {
         double max_not_y = Double.NEGATIVE_INFINITY;
         for(int i = 0; i < processed.length(); i++) {
@@ -105,7 +105,7 @@ public class HingeLoss implements LossMC
     }
 
     @Override
-    public void process(Vec pred, Vec processed)
+    public void process(final Vec pred, final Vec processed)
     {
         if(pred != processed) {
           pred.copyTo(processed);
@@ -113,7 +113,7 @@ public class HingeLoss implements LossMC
     }
 
     @Override
-    public void deriv(Vec processed, Vec derivs, int y)
+    public void deriv(final Vec processed, final Vec derivs, final int y)
     {
         final double proccessed_y = processed.get(y);
         double maxVal_not_y = Double.NEGATIVE_INFINITY;
@@ -135,7 +135,7 @@ public class HingeLoss implements LossMC
     }
 
     @Override
-    public CategoricalResults getClassification(Vec processed)
+    public CategoricalResults getClassification(final Vec processed)
     {
         int maxIndx = 0;
         double maxVal_not_y = processed.get(maxIndx);
@@ -146,7 +146,7 @@ public class HingeLoss implements LossMC
             maxVal_not_y = processed.get(i);
           }
         }
-        CategoricalResults toRet = new CategoricalResults(processed.length());
+        final CategoricalResults toRet = new CategoricalResults(processed.length());
         toRet.setProb(maxIndx, 1.0);
         return toRet;
     }

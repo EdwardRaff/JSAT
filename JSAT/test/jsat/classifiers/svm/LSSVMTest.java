@@ -56,12 +56,12 @@ public class LSSVMTest
     public void testTrainC_ClassificationDataSet_ExecutorService()
     {
         System.out.println("trainC");
-        ClassificationDataSet trainSet = FixedProblems.getInnerOuterCircle(150, new Random(2));
-        ClassificationDataSet testSet = FixedProblems.getInnerOuterCircle(50, new Random(3));
+        final ClassificationDataSet trainSet = FixedProblems.getInnerOuterCircle(150, new Random(2));
+        final ClassificationDataSet testSet = FixedProblems.getInnerOuterCircle(50, new Random(3));
 
-        for (SupportVectorLearner.CacheMode cacheMode : SupportVectorLearner.CacheMode.values())
+        for (final SupportVectorLearner.CacheMode cacheMode : SupportVectorLearner.CacheMode.values())
         {
-            LSSVM classifier = new LSSVM(new RBFKernel(0.5), cacheMode);
+            final LSSVM classifier = new LSSVM(new RBFKernel(0.5), cacheMode);
             classifier.setCacheMode(cacheMode);
             classifier.setC(1);
             classifier.trainC(trainSet, ex);
@@ -79,12 +79,12 @@ public class LSSVMTest
     public void testTrainC_ClassificationDataSet()
     {
         System.out.println("trainC");
-        ClassificationDataSet trainSet = FixedProblems.getInnerOuterCircle(150, new Random(2));
-        ClassificationDataSet testSet = FixedProblems.getInnerOuterCircle(50, new Random(3));
+        final ClassificationDataSet trainSet = FixedProblems.getInnerOuterCircle(150, new Random(2));
+        final ClassificationDataSet testSet = FixedProblems.getInnerOuterCircle(50, new Random(3));
 
-        for (SupportVectorLearner.CacheMode cacheMode : SupportVectorLearner.CacheMode.values())
+        for (final SupportVectorLearner.CacheMode cacheMode : SupportVectorLearner.CacheMode.values())
         {
-            LSSVM classifier = new LSSVM(new RBFKernel(0.5), cacheMode);
+            final LSSVM classifier = new LSSVM(new RBFKernel(0.5), cacheMode);
             classifier.setCacheMode(cacheMode);
             classifier.setC(1);
             classifier.trainC(trainSet);
@@ -102,13 +102,13 @@ public class LSSVMTest
     public void testTrain_RegressionDataSet_ExecutorService()
     {
         System.out.println("train");
-        RegressionDataSet trainSet = FixedProblems.getSimpleRegression1(150, new Random(2));
-        RegressionDataSet testSet = FixedProblems.getSimpleRegression1(50, new Random(3));
+        final RegressionDataSet trainSet = FixedProblems.getSimpleRegression1(150, new Random(2));
+        final RegressionDataSet testSet = FixedProblems.getSimpleRegression1(50, new Random(3));
 
 
-        for (SupportVectorLearner.CacheMode cacheMode : SupportVectorLearner.CacheMode.values())
+        for (final SupportVectorLearner.CacheMode cacheMode : SupportVectorLearner.CacheMode.values())
         {
-            LSSVM lssvm = new LSSVM(new RBFKernel(0.5), cacheMode);
+            final LSSVM lssvm = new LSSVM(new RBFKernel(0.5), cacheMode);
             lssvm.setCacheMode(cacheMode);
             lssvm.setC(1);
             lssvm.train(trainSet, ex);
@@ -128,13 +128,13 @@ public class LSSVMTest
     public void testTrain_RegressionDataSet()
     {
         System.out.println("train");
-        RegressionDataSet trainSet = FixedProblems.getSimpleRegression1(150, new Random(2));
-        RegressionDataSet testSet = FixedProblems.getSimpleRegression1(50, new Random(3));
+        final RegressionDataSet trainSet = FixedProblems.getSimpleRegression1(150, new Random(2));
+        final RegressionDataSet testSet = FixedProblems.getSimpleRegression1(50, new Random(3));
 
 
-        for (SupportVectorLearner.CacheMode cacheMode : SupportVectorLearner.CacheMode.values())
+        for (final SupportVectorLearner.CacheMode cacheMode : SupportVectorLearner.CacheMode.values())
         {
-            LSSVM lssvm = new LSSVM(new RBFKernel(0.5), cacheMode);
+            final LSSVM lssvm = new LSSVM(new RBFKernel(0.5), cacheMode);
             lssvm.setCacheMode(cacheMode);
             lssvm.setC(1);
             lssvm.train(trainSet);
@@ -150,16 +150,16 @@ public class LSSVMTest
     @Test()
     public void testTrainWarmC()
     {
-        ClassificationDataSet train = FixedProblems.getHalfCircles(100, new XORWOW(), 0.1, 0.2);
+        final ClassificationDataSet train = FixedProblems.getHalfCircles(100, new XORWOW(), 0.1, 0.2);
         
         
-        LSSVM warmModel = new LSSVM();
+        final LSSVM warmModel = new LSSVM();
         warmModel.setC(1);
         warmModel.setCacheMode(SupportVectorLearner.CacheMode.FULL);
         warmModel.trainC(train);
         
         
-        LSSVM warm = new LSSVM();
+        final LSSVM warm = new LSSVM();
         warm.setC(2e1);
         warm.setCacheMode(SupportVectorLearner.CacheMode.FULL);
         
@@ -168,17 +168,17 @@ public class LSSVMTest
         start = System.currentTimeMillis();
         warm.trainC(train, warmModel);
         end = System.currentTimeMillis();
-        long warmTime = (end-start);
+        final long warmTime = (end-start);
         
         
-        LSSVM notWarm = new LSSVM();
+        final LSSVM notWarm = new LSSVM();
         notWarm.setC(2e1);
         notWarm.setCacheMode(SupportVectorLearner.CacheMode.FULL);
         
         start = System.currentTimeMillis();
         notWarm.trainC(train);
         end = System.currentTimeMillis();
-        long normTime = (end-start);
+        final long normTime = (end-start);
         
         assertTrue(warmTime < normTime*0.75);
         
@@ -187,16 +187,16 @@ public class LSSVMTest
     @Test()
     public void testTrainWarmR()
     {
-        RegressionDataSet train = FixedProblems.getSimpleRegression1(75, new XORWOW());
+        final RegressionDataSet train = FixedProblems.getSimpleRegression1(75, new XORWOW());
         
         
-        LSSVM warmModel = new LSSVM();
+        final LSSVM warmModel = new LSSVM();
         warmModel.setC(1);
         warmModel.setCacheMode(SupportVectorLearner.CacheMode.FULL);
         warmModel.train(train);
         
         
-        LSSVM warm = new LSSVM();
+        final LSSVM warm = new LSSVM();
         warm.setC(1e1);
         warm.setCacheMode(SupportVectorLearner.CacheMode.FULL);
         
@@ -205,17 +205,17 @@ public class LSSVMTest
         start = System.currentTimeMillis();
         warm.train(train, warmModel);
         end = System.currentTimeMillis();
-        long warmTime = (end-start);
+        final long warmTime = (end-start);
         
         
-        LSSVM notWarm = new LSSVM();
+        final LSSVM notWarm = new LSSVM();
         notWarm.setC(1e1);
         notWarm.setCacheMode(SupportVectorLearner.CacheMode.FULL);
         
         start = System.currentTimeMillis();
         notWarm.train(train);
         end = System.currentTimeMillis();
-        long normTime = (end-start);
+        final long normTime = (end-start);
         
         assertTrue(warmTime < normTime*0.75);
         

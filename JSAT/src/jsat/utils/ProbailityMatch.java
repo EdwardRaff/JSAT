@@ -14,13 +14,13 @@ public class ProbailityMatch<T> implements Comparable<ProbailityMatch<T>>, Seria
 	private double probability;
     private T match;
 
-    public ProbailityMatch(double probability, T match)
+    public ProbailityMatch(final double probability, final T match)
     {
         this.probability = probability;
         this.match = match;
     }
 
-    public int compareTo(ProbailityMatch t)
+    public int compareTo(final ProbailityMatch t)
     {
         return new Double(probability).compareTo(t.probability);
     }
@@ -30,7 +30,7 @@ public class ProbailityMatch<T> implements Comparable<ProbailityMatch<T>>, Seria
         return probability;
     }
 
-    public void setProbability(double probability)
+    public void setProbability(final double probability)
     {
         this.probability = probability;
     }
@@ -40,7 +40,7 @@ public class ProbailityMatch<T> implements Comparable<ProbailityMatch<T>>, Seria
         return match;
     }
 
-    public void setMatch(T match)
+    public void setMatch(final T match)
     {
         this.match = match;
     }

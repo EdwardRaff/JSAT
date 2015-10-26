@@ -11,7 +11,7 @@ import jsat.text.GreekLetters;
  */
 public class ZTest implements OneSampleTest
 {
-    private Normal norm;
+    private final Normal norm;
     
     private double sampleMean;
     private double sampleDev;
@@ -30,12 +30,12 @@ public class ZTest implements OneSampleTest
 
     
     
-    public ZTest(double sampleMean, double sampleDev, int sampleSize)
+    public ZTest(final double sampleMean, final double sampleDev, final int sampleSize)
     {
         this(H1.NOT_EQUAL, sampleMean, sampleDev, sampleSize);
     }
     
-    public ZTest(H1 h1, double sampleMean, double sampleDev, int sampleSize)
+    public ZTest(final H1 h1, final double sampleMean, final double sampleDev, final int sampleSize)
     {
         this.h1 = h1;
         this.hypoMean = 0;
@@ -45,12 +45,12 @@ public class ZTest implements OneSampleTest
         this.norm = new Normal();
     }
 
-    public ZTest(Vec data)
+    public ZTest(final Vec data)
     {
         this(data.mean(), data.standardDeviation(), data.length());
     }
     
-    public ZTest(H1 h1, Vec data)
+    public ZTest(final H1 h1, final Vec data)
     {
         this(h1, data.mean(), data.standardDeviation(), data.length());
     }
@@ -68,7 +68,7 @@ public class ZTest implements OneSampleTest
         return "One Sample Z-Test";
     }
 
-    public void setTestUsingData(Vec data)
+    public void setTestUsingData(final Vec data)
     {
         this.sampleMean = data.mean();
         this.sampleDev = data.standardDeviation();
@@ -80,7 +80,7 @@ public class ZTest implements OneSampleTest
         return new String[]{GreekLetters.bar("x"), GreekLetters.sigma, "n"};
     }
 
-    public void setTestVars(double[] testVars)
+    public void setTestVars(final double[] testVars)
     {
         this.sampleMean = testVars[0];
         this.sampleDev = testVars[1];
@@ -92,16 +92,16 @@ public class ZTest implements OneSampleTest
         return GreekLetters.mu + "0";
     }
 
-    public void setAltVar(double altVar)
+    public void setAltVar(final double altVar)
     {
         this.hypoMean = altVar;
     }
 
     public double pValue()
     {
-        double se = sampleDev/Math.sqrt(sampleSize);
+        final double se = sampleDev/Math.sqrt(sampleSize);
         
-        double zScore = (sampleMean-hypoMean)/se;
+        final double zScore = (sampleMean-hypoMean)/se;
         
         if(h1 == H1.NOT_EQUAL) {
           return norm.cdf(-Math.abs(zScore))*2;
@@ -112,7 +112,7 @@ public class ZTest implements OneSampleTest
         }
     }
 
-    public void setAltHypothesis(H1 h1)
+    public void setAltHypothesis(final H1 h1)
     {
         this.h1 = h1;
     }

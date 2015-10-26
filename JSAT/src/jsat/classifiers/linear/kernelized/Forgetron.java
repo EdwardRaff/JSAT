@@ -58,7 +58,7 @@ public class Forgetron extends BaseUpdateableClassifier implements BinaryScoreCl
      * @param kernel the kernel function to use
      * @param budget the maximum number of data points to use
      */
-    public Forgetron(KernelTrick kernel, int budget)
+    public Forgetron(final KernelTrick kernel, final int budget)
     {
         this.K = kernel;
         setBudget(budget);
@@ -71,7 +71,7 @@ public class Forgetron extends BaseUpdateableClassifier implements BinaryScoreCl
      * @param selfTurned {@code true} to use the self-tuned variance,
      * {@code false} otherwise.
      */
-    public void setSelfTurned(boolean selfTurned)
+    public void setSelfTurned(final boolean selfTurned)
     {
         this.selfTuned = selfTurned;
     }
@@ -90,7 +90,7 @@ public class Forgetron extends BaseUpdateableClassifier implements BinaryScoreCl
      * Copy constructor
      * @param toClone the forgetron to clone
      */
-    protected Forgetron(Forgetron toClone)
+    protected Forgetron(final Forgetron toClone)
     {
         this.K = toClone.K.clone();
         this.budget = toClone.budget;
@@ -119,10 +119,10 @@ public class Forgetron extends BaseUpdateableClassifier implements BinaryScoreCl
      * Forgetron can use to form its decision boundary. 
      * @param budget the maximum number of data points to use
      */
-    public void setBudget(int budget)
+    public void setBudget(final int budget)
     {
         this.budget = budget;
-        double B = budget;
+        final double B = budget;
         U = sqrt((B+1)/log(B+1))/4;
         Bconst = pow(B+1, 1.0/(2*B+2));
     }
@@ -140,7 +140,7 @@ public class Forgetron extends BaseUpdateableClassifier implements BinaryScoreCl
      * Sets the kernel trick to use
      * @param K the kernel trick to use 
      */
-    public void setKernelTrick(KernelTrick K)
+    public void setKernelTrick(final KernelTrick K)
     {
         this.K = K;
     }
@@ -155,21 +155,21 @@ public class Forgetron extends BaseUpdateableClassifier implements BinaryScoreCl
     }
     
     @Override
-    public CategoricalResults classify(DataPoint data)
+    public CategoricalResults classify(final DataPoint data)
     {
-        CategoricalResults cr = new CategoricalResults(2);
-        int winner = (int) ((signum(getScore(data))+1)/2);
+        final CategoricalResults cr = new CategoricalResults(2);
+        final int winner = (int) ((signum(getScore(data))+1)/2);
         cr.setProb(winner, 1);
         return cr;
     }
 
     @Override
-    public double getScore(DataPoint dp)
+    public double getScore(final DataPoint dp)
     {
         return classify(dp.getNumericalValues());
     }
     
-    private double classify(Vec x)
+    private double classify(final Vec x)
     {
         double r = 0;
         for(int i = 0; i < size; i++) {
@@ -191,7 +191,7 @@ public class Forgetron extends BaseUpdateableClassifier implements BinaryScoreCl
     }
 
     @Override
-    public void setUp(CategoricalData[] categoricalAttributes, int numericAttributes, CategoricalData predicting)
+    public void setUp(final CategoricalData[] categoricalAttributes, final int numericAttributes, final CategoricalData predicting)
     {
         if(predicting.getNumOfCategories() != 2) {
           throw new FailedToFitException("Forgetron only supports binary classification");
@@ -211,18 +211,18 @@ public class Forgetron extends BaseUpdateableClassifier implements BinaryScoreCl
      * @param mu
      * @return the update for equation 15
      */
-    private double psi(double lambda, double mu)
+    private double psi(final double lambda, final double mu)
     {
         return lambda*lambda+2*lambda-2*lambda*mu;
     }
     
     @Override
-    public void update(DataPoint dataPoint, int targetClass)
+    public void update(final DataPoint dataPoint, final int targetClass)
     {
-        Vec x = dataPoint.getNumericalValues();
+        final Vec x = dataPoint.getNumericalValues();
         
-        double f_t = classify(x);
-        double y_t = targetClass*2-1;
+        final double f_t = classify(x);
+        final double y_t = targetClass*2-1;
         
         if(y_t*f_t > 0)
         {
@@ -265,7 +265,7 @@ public class Forgetron extends BaseUpdateableClassifier implements BinaryScoreCl
                     }
 
 
-                    double fpp_t_r = phi_t * fp_t;
+                    final double fpp_t_r = phi_t * fp_t;
                     Q += psi(s_r, y_r * fpp_t_r);
 
                     I[curPos] = x;
@@ -288,8 +288,8 @@ public class Forgetron extends BaseUpdateableClassifier implements BinaryScoreCl
                       ff += pow(s[i], 2) * K.eval(I[i], I[i]);
                     }
                 }
-                double fNorm = sqrt(ff);//obtained from after equation 2
-                double phi = min(Bconst, U/fNorm);
+                final double fNorm = sqrt(ff);//obtained from after equation 2
+                final double phi = min(Bconst, U/fNorm);
                 
                 I[curPos] = x;
                 s[curPos] = y_t;
@@ -314,7 +314,7 @@ public class Forgetron extends BaseUpdateableClassifier implements BinaryScoreCl
     }
 
     @Override
-    public Parameter getParameter(String paramName)
+    public Parameter getParameter(final String paramName)
     {
         return Parameter.toParameterMap(getParameters()).get(paramName);
     }

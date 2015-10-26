@@ -58,7 +58,7 @@ public class LinearL1SCD extends StochasticSTLinearL1
      * @param lambda the regularization penalty
      * @param loss the loss function to use
      */
-    public LinearL1SCD(int epochs, double lambda, Loss loss)
+    public LinearL1SCD(final int epochs, final double lambda, final Loss loss)
     {
         this(epochs, lambda, loss, true);
     }
@@ -70,7 +70,7 @@ public class LinearL1SCD extends StochasticSTLinearL1
      * @param loss the loss function to use
      * @param reScale whether or not to rescale the feature values 
      */
-    public LinearL1SCD(int epochs, double lambda, Loss loss, boolean reScale)
+    public LinearL1SCD(final int epochs, final double lambda, final Loss loss, final boolean reScale)
     {
         setEpochs(epochs);
         setLambda(lambda);
@@ -79,22 +79,22 @@ public class LinearL1SCD extends StochasticSTLinearL1
     }
     
     @Override
-    public CategoricalResults classify(DataPoint data)
+    public CategoricalResults classify(final DataPoint data)
     {
         if(w == null) {
           throw new UntrainedModelException("Model has not been trained");
         }
-        Vec x = data.getNumericalValues();
+        final Vec x = data.getNumericalValues();
         return loss.classify(wDot(x));
     }
     
     @Override
-    public double regress(DataPoint data)
+    public double regress(final DataPoint data)
     {
         if(w == null) {
           throw new UntrainedModelException("Model has not been trained");
         }
-        Vec x = data.getNumericalValues();
+        final Vec x = data.getNumericalValues();
         return loss.regress(wDot(x));
     }
     
@@ -105,7 +105,7 @@ public class LinearL1SCD extends StochasticSTLinearL1
      * @param m the number of data points
      * @throws FailedToFitException 
      */
-    private void featureScaleCheck(Vec[] featureVals, int m) throws FailedToFitException
+    private void featureScaleCheck(final Vec[] featureVals, final int m) throws FailedToFitException
     {
         if(reScale) {
           for (int j = 0; j < featureVals.length; j++) {
@@ -132,7 +132,7 @@ public class LinearL1SCD extends StochasticSTLinearL1
         }
     }
 
-    private void setUpFeatureVals(Vec[] featureVals, boolean sparse, int m, DataSet dataSet)
+    private void setUpFeatureVals(final Vec[] featureVals, final boolean sparse, final int m, final DataSet dataSet)
     {
         //All feature values need to be scaled into -1, 1
         obvMin = new double[featureVals.length];
@@ -148,11 +148,11 @@ public class LinearL1SCD extends StochasticSTLinearL1
         
         for(int i = 0; i < dataSet.getSampleSize(); i++)
         {
-            Vec x = dataSet.getDataPoint(i).getNumericalValues();
-            for(IndexValue iv : x)
+            final Vec x = dataSet.getDataPoint(i).getNumericalValues();
+            for(final IndexValue iv : x)
             {
-                int j = iv.getIndex();
-                double v = iv.getValue();
+                final int j = iv.getIndex();
+                final double v = iv.getValue();
                 featureVals[j].set(i, v);
                 obvMax[j] = Math.max(obvMax[j], v);
                 obvMin[j] = Math.min(obvMin[j], v);
@@ -161,18 +161,18 @@ public class LinearL1SCD extends StochasticSTLinearL1
     }
 
     @Override
-    public void train(RegressionDataSet dataSet, ExecutorService threadPool)
+    public void train(final RegressionDataSet dataSet, final ExecutorService threadPool)
     {
         train(dataSet);
     }
 
     @Override
-    public void train(RegressionDataSet dataSet)
+    public void train(final RegressionDataSet dataSet)
     {
-        boolean sparse = dataSet.getDataPoint(0).getNumericalValues().isSparse();
-        int m = dataSet.getSampleSize();
+        final boolean sparse = dataSet.getDataPoint(0).getNumericalValues().isSparse();
+        final int m = dataSet.getSampleSize();
         
-        Vec[] featureVals = new Vec[dataSet.getNumNumericalVars()];
+        final Vec[] featureVals = new Vec[dataSet.getNumNumericalVars()];
         for(int i = 0; i < featureVals.length; i++) {
           featureVals[i] = sparse ? new SparseVector(m) : new DenseVector(m);
         }
@@ -181,7 +181,7 @@ public class LinearL1SCD extends StochasticSTLinearL1
         
         featureScaleCheck(featureVals, m);
         
-        double[] target = new double[m];
+        final double[] target = new double[m];
         for(int i = 0; i < dataSet.getSampleSize(); i++) {
           target[i] = dataSet.getTargetValue(i);
         }
@@ -190,26 +190,26 @@ public class LinearL1SCD extends StochasticSTLinearL1
     }
     
     @Override
-    public void trainC(ClassificationDataSet dataSet, ExecutorService threadPool)
+    public void trainC(final ClassificationDataSet dataSet, final ExecutorService threadPool)
     {
         trainC(dataSet);
     }
 
     @Override
-    public void trainC(ClassificationDataSet dataSet)
+    public void trainC(final ClassificationDataSet dataSet)
     {
         if(dataSet.getClassSize() != 2) {
           throw new FailedToFitException("Only binary classification problems are supported");
         }
-        boolean sparse = dataSet.getDataPoint(0).getNumericalValues().isSparse();
-        int m = dataSet.getSampleSize();
-        Vec[] featureVals = new Vec[dataSet.getNumNumericalVars()];
+        final boolean sparse = dataSet.getDataPoint(0).getNumericalValues().isSparse();
+        final int m = dataSet.getSampleSize();
+        final Vec[] featureVals = new Vec[dataSet.getNumNumericalVars()];
         
         setUpFeatureVals(featureVals, sparse, m, dataSet);
         
         featureScaleCheck(featureVals, m);
         
-        double[] target = new double[m];
+        final double[] target = new double[m];
         for(int i = 0; i < dataSet.getSampleSize(); i++) {
           target[i] = dataSet.getDataPointCategory(i)*2-1;
         }
@@ -222,7 +222,7 @@ public class LinearL1SCD extends StochasticSTLinearL1
      * @param featureVals a vector for each feature, where each vector contains all values for the feature in dataset order
      * @param target target values
      */
-    private void train(Vec[] featureVals, double[] target)
+    private void train(final Vec[] featureVals, final double[] target)
     {
         final int d = featureVals.length;
         final int m = target.length;
@@ -230,18 +230,18 @@ public class LinearL1SCD extends StochasticSTLinearL1
         final double[] z = new double[m];
         final double beta = loss.beta();
 
-        Random rand = new Random();
+        final Random rand = new Random();
         for (int t = 1; t <= epochs; t++)
         {
-            int j = rand.nextInt(d + 1);//+1 for the bias term
+            final int j = rand.nextInt(d + 1);//+1 for the bias term
 
             double g = 0.0;
             if (j < d)
             {
-                Vec xj = featureVals[j];
-                for (IndexValue iv : xj)
+                final Vec xj = featureVals[j];
+                for (final IndexValue iv : xj)
                 {
-                    int i = iv.getIndex();
+                    final int i = iv.getIndex();
                     g += loss.deriv(z[i], target[i]) * iv.getValue();
                 }
             }
@@ -254,7 +254,7 @@ public class LinearL1SCD extends StochasticSTLinearL1
             g /= m;
 
             double eta;
-            double w_j = j == d ? bias : w.get(j);
+            final double w_j = j == d ? bias : w.get(j);
             if (w_j - g / beta > lambda / beta) {
               eta = -g / beta - lambda / beta;
             } else if (w_j - g / beta < -lambda / beta) {
@@ -270,7 +270,7 @@ public class LinearL1SCD extends StochasticSTLinearL1
             }
 
             if (j < d) {
-              for (IndexValue iv : featureVals[j]) {
+              for (final IndexValue iv : featureVals[j]) {
                 z[iv.getIndex()] += eta * iv.getValue();
               }
             } else {
@@ -290,7 +290,7 @@ public class LinearL1SCD extends StochasticSTLinearL1
     @Override
     public LinearL1SCD clone()
     {
-        LinearL1SCD clone = new LinearL1SCD(epochs, lambda, loss, reScale);
+        final LinearL1SCD clone = new LinearL1SCD(epochs, lambda, loss, reScale);
         
         if(this.w != null) {
           clone.w = this.w.clone();

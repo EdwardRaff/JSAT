@@ -17,15 +17,15 @@ import jsat.clustering.evaluation.intra.IntraClusterEvaluation;
  */
 public class DunnIndex implements ClusterEvaluation
 {
-    private IntraClusterEvaluation ice;
-    private ClusterDissimilarity cd;
+    private final IntraClusterEvaluation ice;
+    private final ClusterDissimilarity cd;
 
     /**
      * Creates a new DunnIndex
      * @param ice the metric to measure the quality of a single cluster
      * @param cd the metric to measure the distance between two clusters
      */
-    public DunnIndex(IntraClusterEvaluation ice, ClusterDissimilarity cd)
+    public DunnIndex(final IntraClusterEvaluation ice, final ClusterDissimilarity cd)
     {
         this.ice = ice;
         this.cd = cd;
@@ -35,19 +35,19 @@ public class DunnIndex implements ClusterEvaluation
      * Copy constructor
      * @param toCopy the object to copy
      */
-    public DunnIndex(DunnIndex toCopy)
+    public DunnIndex(final DunnIndex toCopy)
     {
         this(toCopy.ice.clone(), toCopy.cd.clone());
     }
     
     @Override
-    public double evaluate(int[] designations, DataSet dataSet)
+    public double evaluate(final int[] designations, final DataSet dataSet)
     {
         return evaluate(ClustererBase.createClusterListFromAssignmentArray(designations, dataSet));
     }
 
     @Override
-    public double evaluate(List<List<DataPoint>> dataSets)
+    public double evaluate(final List<List<DataPoint>> dataSets)
     {
         double minVal = Double.POSITIVE_INFINITY;
         double maxIntra = Double.NEGATIVE_INFINITY;

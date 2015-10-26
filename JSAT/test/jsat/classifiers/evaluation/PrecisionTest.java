@@ -48,8 +48,8 @@ public class PrecisionTest
     public void testGetScore()
     {
         System.out.println("getScore");
-        Precision scorer = new Precision();
-        Precision otherHalf = scorer.clone();
+        final Precision scorer = new Precision();
+        final Precision otherHalf = scorer.clone();
         
         assertEquals(scorer, otherHalf);
         assertEquals(scorer.hashCode(), otherHalf.hashCode());
@@ -71,7 +71,7 @@ public class PrecisionTest
         
         scorer.addResults(otherHalf);
         
-        double tp = 2, tn = 3, fp = 2, fn = 2;
+        final double tp = 2, tn = 3, fp = 2, fn = 2;
         assertEquals(tp/(tp*+fp), scorer.getScore(), 1e-2);
         assertEquals(tp/(tp*+fp), scorer.clone().getScore(), 1e-2);
     }

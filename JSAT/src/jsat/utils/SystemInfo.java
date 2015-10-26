@@ -65,7 +65,7 @@ public class SystemInfo
                 {
                     //On windows, the comand line tool WMIC is used, see http://msdn.microsoft.com/en-us/library/aa394531(v=vs.85).aspx 
 
-                    Process pr = Runtime.getRuntime().exec("wmic cpu get L2CacheSize, NumberOfCores");
+                    final Process pr = Runtime.getRuntime().exec("wmic cpu get L2CacheSize, NumberOfCores");
                     /*
                      * Will print out the total L2 Cache for each CPU, and the number of cores - something like this (2 CPUs) 
                      * L2CacheSize  NumberOfCores
@@ -73,8 +73,8 @@ public class SystemInfo
                      * 1024         4
                      */
 
-                    BufferedReader br = new BufferedReader(new InputStreamReader(pr.getInputStream()));
-                    StringBuilder sb = new StringBuilder();
+                    final BufferedReader br = new BufferedReader(new InputStreamReader(pr.getInputStream()));
+                    final StringBuilder sb = new StringBuilder();
                     String line = null;
                     while( (line = br.readLine()) != null) {
                       sb.append(line).append("\n");
@@ -82,7 +82,7 @@ public class SystemInfo
 
                     output = sb.toString();
                 }
-                catch (IOException ex)
+                catch (final IOException ex)
                 {
                     Logger.getLogger(SystemInfo.class.getName()).log(Level.SEVERE, null, ex);
                 }
@@ -91,7 +91,7 @@ public class SystemInfo
                 if(output.indexOf("\n") > 0) {//Multi line is bad!
                   output = output.substring(0, output.indexOf("\n")).trim();//Get first line
                 }
-                String[] vals = output.split("\\s+");//Seperate into 2 seperate numbers, first is total L2 cahce, 2nd is # CPU cores
+                final String[] vals = output.split("\\s+");//Seperate into 2 seperate numbers, first is total L2 cahce, 2nd is # CPU cores
                 sizeToUse = (Integer.valueOf(vals[0]) / Integer.valueOf(vals[1]))*1024 ; //the value is in KB, we want it in bytes
             }
             else if(isLinux())
@@ -100,9 +100,9 @@ public class SystemInfo
                 try
                 {
                     //Nix, use /proc/cpuinfo
-                    Process pr = Runtime.getRuntime().exec("cat /proc/cpuinfo");
+                    final Process pr = Runtime.getRuntime().exec("cat /proc/cpuinfo");
 
-                    BufferedReader br = new BufferedReader(new InputStreamReader(pr.getInputStream()));
+                    final BufferedReader br = new BufferedReader(new InputStreamReader(pr.getInputStream()));
 
                     String line = null;
                     while( (line = br.readLine()) != null) {
@@ -113,13 +113,13 @@ public class SystemInfo
 
 
                 }
-                catch (IOException ex)
+                catch (final IOException ex)
                 {
                     Logger.getLogger(SystemInfo.class.getName()).log(Level.SEVERE, null, ex);
                 }
 
                 output = output.substring(output.indexOf(":")+1);
-                String[] vals = output.trim().split(" ");
+                final String[] vals = output.trim().split(" ");
                 int size = Integer.parseInt(vals[0]);
                 if(vals[1].equals("KB")) {
                   size*=1024;
@@ -135,9 +135,9 @@ public class SystemInfo
                 try
                 {
                     //Nix, use /proc/cpuinfo
-                    Process pr = Runtime.getRuntime().exec("sysctl -a hw");
+                    final Process pr = Runtime.getRuntime().exec("sysctl -a hw");
 
-                    BufferedReader br = new BufferedReader(new InputStreamReader(pr.getInputStream()));
+                    final BufferedReader br = new BufferedReader(new InputStreamReader(pr.getInputStream()));
 
                     String line = null;
     //                StringBuilder sb = new StringBuilder();
@@ -149,12 +149,12 @@ public class SystemInfo
                     }
 
                 }
-                catch (IOException ex)
+                catch (final IOException ex)
                 {
                     Logger.getLogger(SystemInfo.class.getName()).log(Level.SEVERE, null, ex);
                 }
 
-                String[] vals = output.split("\\s+");
+                final String[] vals = output.split("\\s+");
                 sizeToUse = Integer.parseInt(vals[1]);
 
             }
@@ -163,7 +163,7 @@ public class SystemInfo
               sizeToUse = 0;
             }
         }
-        catch(Exception ex)
+        catch(final Exception ex)
         {
             //make sure we at least set the default by avoiding any possible weird exception 
         }

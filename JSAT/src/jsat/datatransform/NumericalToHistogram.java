@@ -19,7 +19,7 @@ public class NumericalToHistogram implements DataTransform
 {
 
 	private static final long serialVersionUID = -2318706869393636074L;
-	private int n;
+	private final int n;
     //First index is the vector index, 2nd index is the min value then the increment value
     double[][] conversionArray;
     CategoricalData[] newDataArray;
@@ -30,7 +30,7 @@ public class NumericalToHistogram implements DataTransform
      * 
      * @param dataSet the data set to create the transform from
      */
-    public NumericalToHistogram(DataSet dataSet)
+    public NumericalToHistogram(final DataSet dataSet)
     {
         this(dataSet, (int) Math.ceil(Math.sqrt(dataSet.getSampleSize())));
     }
@@ -41,7 +41,7 @@ public class NumericalToHistogram implements DataTransform
      * @param dataSet the data set to create the transform from
      * @param n the number of bins to create
      */
-    public NumericalToHistogram(DataSet dataSet, int n)
+    public NumericalToHistogram(final DataSet dataSet, final int n)
     {
         if(n <= 0) {
           throw new RuntimeException("Must partition into a positive number of groups");
@@ -50,8 +50,8 @@ public class NumericalToHistogram implements DataTransform
         
         conversionArray = new double[dataSet.getNumNumericalVars()][2];
         
-        double[] mins = new double[conversionArray.length];
-        double[] maxs = new double[conversionArray.length];
+        final double[] mins = new double[conversionArray.length];
+        final double[] maxs = new double[conversionArray.length];
         for(int i = 0; i < mins.length; i++)
         {
             mins[i] = Double.MAX_VALUE;
@@ -59,7 +59,7 @@ public class NumericalToHistogram implements DataTransform
         }
         for(int i = 0; i < dataSet.getSampleSize(); i++)
         {
-            Vec v = dataSet.getDataPoint(i).getNumericalValues();
+            final Vec v = dataSet.getDataPoint(i).getNumericalValues();
             for(int j = 0; j < mins.length; j++)
             {
                 mins[j] = Math.min(mins[j], v.get(j));
@@ -84,7 +84,7 @@ public class NumericalToHistogram implements DataTransform
      * Copy constructor
      * @param other the transform to copy
      */
-    private NumericalToHistogram(NumericalToHistogram other)
+    private NumericalToHistogram(final NumericalToHistogram other)
     {
         this.n = other.n;
         this.conversionArray = new double[other.conversionArray.length][];
@@ -98,15 +98,15 @@ public class NumericalToHistogram implements DataTransform
     }
     
     @Override
-    public DataPoint transform(DataPoint dp)
+    public DataPoint transform(final DataPoint dp)
     {
         
-        int[] newCatVals = new int[newDataArray.length];
+        final int[] newCatVals = new int[newDataArray.length];
         
-        Vec v = dp.getNumericalValues();
+        final Vec v = dp.getNumericalValues();
         for(int i = 0; i < conversionArray.length; i++)
         {
-            double val = v.get(i) - conversionArray[i][0];
+            final double val = v.get(i) - conversionArray[i][0];
             
             int catVal = (int) Math.floor(val / conversionArray[i][1]);
             if(catVal < 0) {
@@ -147,12 +147,12 @@ public class NumericalToHistogram implements DataTransform
          * Creates a new NumericalToHistogram factory. 
          * @param n the number of bins to create
          */
-        public NumericalToHistogramTransformFactory(int n)
+        public NumericalToHistogramTransformFactory(final int n)
         {
             setBins(n);
         }
         
-        public NumericalToHistogramTransformFactory(NumericalToHistogramTransformFactory toCopy)
+        public NumericalToHistogramTransformFactory(final NumericalToHistogramTransformFactory toCopy)
         {
             this(toCopy.n);
         }
@@ -165,7 +165,7 @@ public class NumericalToHistogram implements DataTransform
          * @param n the number of bins to use, or {@link Integer#MAX_VALUE} to
          * use sqrt(n) bins. 
          */
-        public void setBins(int n)
+        public void setBins(final int n)
         {
             if(n < 1) {
               throw new IllegalArgumentException("Number of bins must be a positive value");
@@ -183,7 +183,7 @@ public class NumericalToHistogram implements DataTransform
         }
         
         @Override
-        public DataTransform getTransform(DataSet dataset)
+        public DataTransform getTransform(final DataSet dataset)
         {
             if(n == Integer.MAX_VALUE) {
               return new NumericalToHistogram(dataset);

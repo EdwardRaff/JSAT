@@ -16,7 +16,7 @@ import jsat.linear.distancemetrics.EuclideanDistance;
  */
 public class SoSCentroidDistance implements IntraClusterEvaluation
 {
-    private DistanceMetric dm;
+    private final DistanceMetric dm;
 
     /**
      * Creates a new MeanCentroidDistance using the {@link EuclideanDistance}
@@ -30,7 +30,7 @@ public class SoSCentroidDistance implements IntraClusterEvaluation
      * Creates a new MeanCentroidDistance. 
      * @param dm the metric to measure the distance between two points by
      */
-    public SoSCentroidDistance(DistanceMetric dm)
+    public SoSCentroidDistance(final DistanceMetric dm)
     {
         this.dm = dm;
     }
@@ -39,15 +39,15 @@ public class SoSCentroidDistance implements IntraClusterEvaluation
      * Copy constructor
      * @param toCopy the object to copy
      */
-    public SoSCentroidDistance(SoSCentroidDistance toCopy)
+    public SoSCentroidDistance(final SoSCentroidDistance toCopy)
     {
         this(toCopy.dm.clone());
     }
     
     @Override
-    public double evaluate(int[] designations, DataSet dataSet, int clusterID)
+    public double evaluate(final int[] designations, final DataSet dataSet, final int clusterID)
     {
-        Vec mean = new DenseVector(dataSet.getNumNumericalVars());
+        final Vec mean = new DenseVector(dataSet.getNumNumericalVars());
         
         int clusterSize = 0;
         for(int i = 0; i < dataSet.getSampleSize(); i++) {
@@ -72,15 +72,15 @@ public class SoSCentroidDistance implements IntraClusterEvaluation
     }
 
     @Override
-    public double evaluate(List<DataPoint> dataPoints)
+    public double evaluate(final List<DataPoint> dataPoints)
     {
         if(dataPoints.isEmpty()) {
           return 0;
         }
-        Vec mean = MatrixStatistics.meanVector(new SimpleDataSet(dataPoints));
+        final Vec mean = MatrixStatistics.meanVector(new SimpleDataSet(dataPoints));
         
         double score = 0.0;
-        for(DataPoint dp : dataPoints) {
+        for(final DataPoint dp : dataPoints) {
           score += Math.pow(dm.dist(dp.getNumericalValues(), mean), 2);
         }
         

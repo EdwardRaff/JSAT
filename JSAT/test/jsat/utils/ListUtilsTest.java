@@ -44,7 +44,7 @@ public class ListUtilsTest
     public void testSplitList()
     {
         System.out.println("splitList");
-        List<Integer> sourceList = new IntList(500);
+        final List<Integer> sourceList = new IntList(500);
         for(int i = 0; i < 500; i++) {
           sourceList.add(i);
         }
@@ -53,7 +53,7 @@ public class ListUtilsTest
         
         for(int i = 0; i < 5; i++)
         {
-            List<Integer> l = ll1.get(i);
+            final List<Integer> l = ll1.get(i);
             assertEquals(100, l.size());
             for(int j = 0; j < l.size(); j++) {
               assertEquals( i*100+j, l.get(j).intValue());//intValue called b/c it becomes ambigous to the compiler without it
@@ -64,7 +64,7 @@ public class ListUtilsTest
         ll1 = ListUtils.splitList(sourceList, 7);//Non divisible amount
         assertEquals(7, ll1.size());
         int pos = 0;
-        for(List<Integer> l : ll1)
+        for(final List<Integer> l : ll1)
         {
             assertTrue("List should have had only 71 or 72 values", l.size() == 72 || l.size() == 71 );
             for(int j = 0; j < l.size(); j++)
@@ -80,7 +80,7 @@ public class ListUtilsTest
     public void testSwap()
     {
         System.out.println("swap");
-        List<Long> test = new LongList();
+        final List<Long> test = new LongList();
         test.add(1L);
         test.add(2L);
         ListUtils.swap(test, 0, 1);

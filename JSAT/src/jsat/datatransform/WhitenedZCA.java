@@ -24,7 +24,7 @@ public class WhitenedZCA extends WhitenedPCA implements InPlaceTransform
      * @param regularization the amount of regularization to add, avoids 
      * numerical instability
      */
-    public WhitenedZCA(DataSet dataSet, double regularization)
+    public WhitenedZCA(final DataSet dataSet, final double regularization)
     {
         super(dataSet, regularization);
         tempVecs = getThreadLocal(dataSet.getNumNumericalVars());
@@ -36,16 +36,16 @@ public class WhitenedZCA extends WhitenedPCA implements InPlaceTransform
      * 
      * @param dataSet the data set to whiten
      */
-    public WhitenedZCA(DataSet dataSet)
+    public WhitenedZCA(final DataSet dataSet)
     {
         super(dataSet);
         tempVecs = getThreadLocal(dataSet.getNumNumericalVars());
     }
 
     @Override
-    public void mutableTransform(DataPoint dp)
+    public void mutableTransform(final DataPoint dp)
     {
-        Vec target = tempVecs.get();
+        final Vec target = tempVecs.get();
         target.zeroOut();
         transform.multiply(dp.getNumericalValues(), 1.0, target);
         target.copyTo(dp.getNumericalValues());
@@ -58,16 +58,16 @@ public class WhitenedZCA extends WhitenedPCA implements InPlaceTransform
     }
 
     @Override
-    protected void setUpTransform(SingularValueDecomposition svd)
+    protected void setUpTransform(final SingularValueDecomposition svd)
     {
-        double[] s = svd.getSingularValues();
-        Vec diag = new DenseVector(s.length);
+        final double[] s = svd.getSingularValues();
+        final Vec diag = new DenseVector(s.length);
 
         for(int i = 0; i < s.length; i++) {
           diag.set(i, 1.0/Math.sqrt(s[i]+regularization));
         }
         
-        Matrix U = svd.getU();
+        final Matrix U = svd.getU();
         
         transform = U.multiply(Matrix.diag(diag)).multiply(U.transpose());
     }
@@ -98,7 +98,7 @@ public class WhitenedZCA extends WhitenedPCA implements InPlaceTransform
          * value provided
          * @param reg the regularization to use
          */
-        public WhitenedZCATransformFactory(double reg)
+        public WhitenedZCATransformFactory(final double reg)
         {
             setRegularization(reg);
             autoReg = true;
@@ -118,7 +118,7 @@ public class WhitenedZCA extends WhitenedPCA implements InPlaceTransform
          * Copy constructor
          * @param toCopy the object to copy
          */
-        public WhitenedZCATransformFactory(WhitenedZCATransformFactory toCopy)
+        public WhitenedZCATransformFactory(final WhitenedZCATransformFactory toCopy)
         {
             this.reg = toCopy.reg;
             this.autoReg = toCopy.autoReg;
@@ -130,7 +130,7 @@ public class WhitenedZCA extends WhitenedPCA implements InPlaceTransform
          * vale, {@code false} to use the value set by 
          * {@link #setRegularization(double) }
          */
-        public void setAutoReg(boolean autoReg)
+        public void setAutoReg(final boolean autoReg)
         {
             this.autoReg = autoReg;
         }
@@ -150,7 +150,7 @@ public class WhitenedZCA extends WhitenedPCA implements InPlaceTransform
          * if {@link #setAutoReg(boolean) } is set to {@code true}
          * @param reg the positive regularization parameter
          */
-        public void setRegularization(double reg)
+        public void setRegularization(final double reg)
         {
             if(reg <= 0 || Double.isNaN(reg) || Double.isInfinite(reg)) {
               throw new IllegalArgumentException("Regularization must be a positive value, not " + reg);
@@ -169,7 +169,7 @@ public class WhitenedZCA extends WhitenedPCA implements InPlaceTransform
         }
         
         @Override
-        public DataTransform getTransform(DataSet dataset)
+        public DataTransform getTransform(final DataSet dataset)
         {
             if(autoReg) {
               return new WhitenedZCA(dataset);

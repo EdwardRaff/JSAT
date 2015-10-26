@@ -98,10 +98,10 @@ public class ManhattanDistanceTest
     {
         System.out.println("dist");
         
-        ManhattanDistance dist = new ManhattanDistance();
+        final ManhattanDistance dist = new ManhattanDistance();
         
-        List<Double> cache = dist.getAccelerationCache(vecs);
-        List<Double> cache2 = dist.getAccelerationCache(vecs, ex);
+        final List<Double> cache = dist.getAccelerationCache(vecs);
+        final List<Double> cache2 = dist.getAccelerationCache(vecs, ex);
         if(cache != null)
         {
             assertEquals(cache.size(), cache2.size());
@@ -121,7 +121,7 @@ public class ManhattanDistanceTest
             dist.dist(half, new DenseVector(half.length()+1));
             fail("Distance between vecs should have erred");
         }
-        catch (Exception ex)
+        catch (final Exception ex)
         {
 
         }
@@ -129,7 +129,7 @@ public class ManhattanDistanceTest
         for (int i = 0; i < vecs.size(); i++) {
           for (int j = 0; j < vecs.size(); j++)
           {
-            ManhattanDistance d = dist.clone();
+            final ManhattanDistance d = dist.clone();
             assertEquals(expected[i][j], d.dist(vecs.get(i), vecs.get(j)), 1e-12);
             assertEquals(expected[i][j], d.dist(i, j, vecs, cache), 1e-12);
             assertEquals(expected[i][j], d.dist(i, vecs.get(j), vecs, cache), 1e-12);
@@ -142,7 +142,7 @@ public class ManhattanDistanceTest
     public void testMetricProperties()
     {
         System.out.println("isSymmetric");
-        ManhattanDistance instance = new ManhattanDistance();
+        final ManhattanDistance instance = new ManhattanDistance();
         assertTrue(instance.isSymmetric());
         assertTrue(instance.isSubadditive());
         assertTrue(instance.isIndiscemible());
@@ -152,7 +152,7 @@ public class ManhattanDistanceTest
     public void testMetricBound()
     {
         System.out.println("metricBound");
-        ManhattanDistance instance = new ManhattanDistance();
+        final ManhattanDistance instance = new ManhattanDistance();
         assertTrue(instance.metricBound() > 0);
         assertTrue(Double.isInfinite(instance.metricBound()));
     }

@@ -69,7 +69,7 @@ public abstract class SupportVectorLearner
      * 
      * @param alphas the final array of alphas
      */
-    protected void setAlphas(double[] alphas)
+    protected void setAlphas(final double[] alphas)
     {
         this.alphas = alphas;
         accelCache = kernel.getAccelerationCache(vecs);
@@ -126,7 +126,7 @@ public abstract class SupportVectorLearner
      * @param kernel the kernel trick to use
      * @param cacheMode the kernel caching method to use
      */
-    public SupportVectorLearner(KernelTrick kernel, CacheMode cacheMode)
+    public SupportVectorLearner(final KernelTrick kernel, final CacheMode cacheMode)
     {
         this.cacheMode = cacheMode;
         setKernel(kernel);
@@ -136,7 +136,7 @@ public abstract class SupportVectorLearner
      * Copy constructor
      * @param toCopy the object to copy
      */
-    public SupportVectorLearner(SupportVectorLearner toCopy)
+    public SupportVectorLearner(final SupportVectorLearner toCopy)
     {
         if(toCopy.kernel != null) {
           this.kernel = toCopy.kernel.clone();
@@ -144,7 +144,7 @@ public abstract class SupportVectorLearner
         if(toCopy.vecs != null)
         {
             this.vecs = new ArrayList<Vec>(toCopy.vecs.size());
-            for(Vec v : toCopy.vecs) {
+            for(final Vec v : toCopy.vecs) {
               this.vecs.add(v.clone());
             }
         }
@@ -178,7 +178,7 @@ public abstract class SupportVectorLearner
      * Sets the kernel trick to use
      * @param kernel the kernel trick to use
      */
-    public void setKernel(KernelTrick kernel)
+    public void setKernel(final KernelTrick kernel)
     {
         this.kernel = kernel;
     }
@@ -191,7 +191,7 @@ public abstract class SupportVectorLearner
      * 
      * @param cacheValue the cache value to be used
      */
-    public void setCacheValue(int cacheValue)
+    public void setCacheValue(final int cacheValue)
     {
         this.cacheConst = cacheValue;
     }
@@ -206,16 +206,16 @@ public abstract class SupportVectorLearner
      * @param N the number of data points
      * @param bytes the number of bytes of memory to make the cache
      */
-    public void setCacheSize(long N, long bytes)
+    public void setCacheSize(final long N, long bytes)
     {
-        int DS = Double.SIZE/8;
+        final int DS = Double.SIZE/8;
         bytes /= DS;//Gets the total number of doubles we can store
         if(bytes > N*N/2) {
           setCacheMode(CacheMode.FULL);
         } else//How many rows can we handle?
         {
             //guessing 2 work overhead for object header + one pointer reference to the array, asusming 64 bit
-            long bytesPerRow = N*DS+3*Long.SIZE/8;
+            final long bytesPerRow = N*DS+3*Long.SIZE/8;
             setCacheValue((int) Math.min(Math.max(1, bytes/bytesPerRow), Integer.MAX_VALUE));
         }
     }
@@ -248,7 +248,7 @@ public abstract class SupportVectorLearner
      * 
      * @param cacheMode 
      */
-    public void setCacheMode(CacheMode cacheMode)
+    public void setCacheMode(final CacheMode cacheMode)
     {
         if(cacheMode == null)
         {
@@ -288,9 +288,9 @@ public abstract class SupportVectorLearner
                 private static final long serialVersionUID = 1553368345126287610L;
 
                 @Override
-                protected boolean removeEldestEntry(Map.Entry<Integer, double[]> eldest)
+                protected boolean removeEldestEntry(final Map.Entry<Integer, double[]> eldest)
                 {
-                    boolean removeEldest = size() > cacheConst;
+                    final boolean removeEldest = size() > cacheConst;
                     if(removeEldest)
                     {
                         availableRow = eldest.getValue();
@@ -328,7 +328,7 @@ public abstract class SupportVectorLearner
      * @param y the vector to perform the kernel product sum against
      * @return the sum of the scaled kernel products 
      */
-    protected double kEvalSum(Vec y)
+    protected double kEvalSum(final Vec y)
     {
         if (alphas == null) {
           throw new RuntimeException("alphas have not been set");
@@ -347,7 +347,7 @@ public abstract class SupportVectorLearner
      * @param b the second vector
      * @return the kernel evaluation of k(a, b)
      */
-    protected double kEval(Vec a, Vec b)
+    protected double kEval(final Vec a, final Vec b)
     {
         return kernel.eval(a, b);
     }
@@ -366,7 +366,7 @@ public abstract class SupportVectorLearner
         {
             if(a > b)
             {
-                int tmp = a;
+                final int tmp = a;
                 a = b;
                 b = tmp;
             }
@@ -378,7 +378,7 @@ public abstract class SupportVectorLearner
             double[] cache = partialCache.get(a);
             if (cache == null)//try seeing if b has a row present
             {
-                double[] b_cache = partialCache.get(b);
+                final double[] b_cache = partialCache.get(b);
                 if (b_cache != null) {
                   if (Double.isNaN(b_cache[a])) {
                     return b_cache[a] = k(a, b);
@@ -422,7 +422,7 @@ public abstract class SupportVectorLearner
      * @param b the second vector index
      * @return the kernel evaluation of k(a, b)
      */
-    private double k(int a, int b)
+    private double k(final int a, final int b)
     {
         evalCount++;
         return kernel.eval(a, b, vecs, accelCache);
@@ -435,7 +435,7 @@ public abstract class SupportVectorLearner
     protected void sparsify()
     {
         final int N = vecs.size();
-        int accSize = accelCache == null ? 0 : accelCache.size()/N;
+        final int accSize = accelCache == null ? 0 : accelCache.size()/N;
         int svCount = 0;
         for(int i = 0; i < N; i++) {
           if (alphas[i] != 0) {

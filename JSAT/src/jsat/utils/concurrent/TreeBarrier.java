@@ -19,14 +19,14 @@ import java.util.concurrent.locks.ReentrantLock;
 public class TreeBarrier 
 {
     final private int parties;
-    private Lock[] locks;
+    private final Lock[] locks;
     private volatile boolean competitionCondition;
 
     /**
      * Creates a new Tree Barrier for synchronization
      * @param parties the number of threads that must arrive to synchronize
      */
-    public TreeBarrier(int parties)
+    public TreeBarrier(final int parties)
     {
         this.parties = parties;
         locks = new Lock[parties-1];
@@ -43,7 +43,7 @@ public class TreeBarrier
      * @throws InterruptedException if one of the threads was interrupted 
      * while waiting on the barrier
      */
-    public void await(int ID) throws InterruptedException
+    public void await(final int ID) throws InterruptedException
     {
         if(parties == 1) {//what are you doing?!
           return;
@@ -82,7 +82,7 @@ public class TreeBarrier
         wakeUpTarget(0);//biggest loser
     }
     
-    private void wakeUpTarget(int nodeID)
+    private void wakeUpTarget(final int nodeID)
     {
         if(nodeID < locks.length)
         {

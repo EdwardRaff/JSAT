@@ -20,11 +20,11 @@ public class LinearTransform implements InPlaceInvertibleTransform
 	/**
      * The max value
      */
-    private double A;
+    private final double A;
     /**
      * The min value
      */
-    private double B;
+    private final double B;
     
     /**
      * The minimum observed value for each attribute 
@@ -46,7 +46,7 @@ public class LinearTransform implements InPlaceInvertibleTransform
      * 
      * @param dataSet the data set to learn the transform from
      */
-    public LinearTransform(DataSet dataSet)
+    public LinearTransform(final DataSet dataSet)
     {
         this(dataSet, 1, 0);
     }
@@ -58,13 +58,13 @@ public class LinearTransform implements InPlaceInvertibleTransform
      * @param A the maximum value for the transformed data set
      * @param B the minimum value for the transformed data set
      */
-    public LinearTransform(DataSet dataSet, double A, double B)
+    public LinearTransform(final DataSet dataSet, double A, double B)
     {
          if(A == B) {
            throw new RuntimeException("Values must be different");
          } else if(B > A)
         {
-            double tmp = A;
+            final double tmp = A;
             A = B;
             B = tmp;
         }
@@ -73,15 +73,15 @@ public class LinearTransform implements InPlaceInvertibleTransform
         
         
         mins = new DenseVector(dataSet.getNumNumericalVars());
-        Vec maxs = new DenseVector(mins.length());
+        final Vec maxs = new DenseVector(mins.length());
         mutliplyConstants = new DenseVector(mins.length());
         
-        OnLineStatistics[] stats = dataSet.getOnlineColumnStats(false);
+        final OnLineStatistics[] stats = dataSet.getOnlineColumnStats(false);
         
         for(int i = 0; i < mins.length(); i++)
         {
-            double min = stats[i].getMin();
-            double max = stats[i].getMax();
+            final double min = stats[i].getMin();
+            final double max = stats[i].getMax();
             if (max - min < 1e-6)//No change
             {
                 mins.set(i, 0);
@@ -119,7 +119,7 @@ public class LinearTransform implements InPlaceInvertibleTransform
      * Copy constructor
      * @param other the transform to copy
      */
-    private LinearTransform(LinearTransform other)
+    private LinearTransform(final LinearTransform other)
     {
         this.A = other.A;
         this.B = other.B;
@@ -132,9 +132,9 @@ public class LinearTransform implements InPlaceInvertibleTransform
     }
     
     @Override
-    public DataPoint transform(DataPoint dp)
+    public DataPoint transform(final DataPoint dp)
     {
-        DataPoint toRet = dp.clone();
+        final DataPoint toRet = dp.clone();
         mutableTransform(toRet);
         return toRet;
     }
@@ -146,9 +146,9 @@ public class LinearTransform implements InPlaceInvertibleTransform
     }
 
     @Override
-    public void mutableInverse(DataPoint dp)
+    public void mutableInverse(final DataPoint dp)
     {
-        Vec v = dp.getNumericalValues();
+        final Vec v = dp.getNumericalValues();
         v.mutableSubtract(B);
         v.mutablePairwiseDivide(mutliplyConstants);
         v.mutableAdd(mins);
@@ -156,9 +156,9 @@ public class LinearTransform implements InPlaceInvertibleTransform
 
 
     @Override
-    public void mutableTransform(DataPoint dp)
+    public void mutableTransform(final DataPoint dp)
     {
-        Vec v = dp.getNumericalValues();
+        final Vec v = dp.getNumericalValues();
         v.mutableSubtract(mins);
         v.mutablePairwiseMultiply(mutliplyConstants);
         v.mutableAdd(B);
@@ -171,9 +171,9 @@ public class LinearTransform implements InPlaceInvertibleTransform
     }
 
     @Override
-    public DataPoint inverse(DataPoint dp)
+    public DataPoint inverse(final DataPoint dp)
     {
-        DataPoint toRet = dp.clone();
+        final DataPoint toRet = dp.clone();
         mutableInverse(toRet);
         return toRet;
     }
@@ -183,15 +183,15 @@ public class LinearTransform implements InPlaceInvertibleTransform
      */
     static public class LinearTransformFactory implements DataTransformFactory
     {
-        private Double A;
-        private Double B;
+        private final Double A;
+        private final Double B;
 
         /**
          * Creates a new Linear Transform factory 
          * @param A the maximum value for the transformed data set
          * @param B the minimum value for the transformed data set
          */
-        public LinearTransformFactory(double A, double B)
+        public LinearTransformFactory(final double A, final double B)
         {
             this.A = A;
             this.B = B;
@@ -209,13 +209,13 @@ public class LinearTransform implements InPlaceInvertibleTransform
          * Copy constructor
          * @param toCopy the object to copy
          */
-        public LinearTransformFactory(LinearTransformFactory toCopy)
+        public LinearTransformFactory(final LinearTransformFactory toCopy)
         {
             this(toCopy.A, toCopy.B);
         }
         
         @Override
-        public DataTransform getTransform(DataSet dataset)
+        public DataTransform getTransform(final DataSet dataset)
         {
             return new LinearTransform(dataset, A, B);
         }

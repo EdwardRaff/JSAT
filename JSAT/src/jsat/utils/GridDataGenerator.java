@@ -26,9 +26,9 @@ import jsat.linear.DenseVector;
  */
 public class GridDataGenerator
 {
-   private ContinuousDistribution noiseSource; 
-   private int[] dimensions;
-   private Random rand;
+   private final ContinuousDistribution noiseSource; 
+   private final int[] dimensions;
+   private final Random rand;
    private CategoricalData[] catDataInfo;
 
    /**
@@ -43,7 +43,7 @@ public class GridDataGenerator
     * 
     * @throws ArithmeticException if one of the dimension values is not a positive value, or a zero number of dimensions is given
     */
-    public GridDataGenerator(ContinuousDistribution noiseSource, Random rand, int... dimensions)
+    public GridDataGenerator(final ContinuousDistribution noiseSource, final Random rand, final int... dimensions)
     {
         this.noiseSource = noiseSource;
         this.rand = rand;
@@ -66,7 +66,7 @@ public class GridDataGenerator
      * 
      * @throws ArithmeticException if one of the dimension values is not a positive value, or a zero number of dimensions is given
      */
-    public GridDataGenerator(ContinuousDistribution noiseSource, int... dimensions)
+    public GridDataGenerator(final ContinuousDistribution noiseSource, final int... dimensions)
     {
         this(noiseSource, new Random(), dimensions);
     }
@@ -88,12 +88,12 @@ public class GridDataGenerator
      * @param dataPoints the location to put the data points in 
      * @param dim the array specifying the current point we are working from. 
      */
-    private void addSamples(int[] curClass, int curDim, int samples, List<DataPoint> dataPoints, int[] dim)
+    private void addSamples(final int[] curClass, final int curDim, final int samples, final List<DataPoint> dataPoints, final int[] dim)
     {
         if(curDim < dimensions.length-1) {
           for(int i = 0; i < dimensions[curDim+1]; i++ )
           {
-            int[] nextDim = Arrays.copyOf(dim, dim.length);
+            final int[] nextDim = Arrays.copyOf(dim, dim.length);
             nextDim[curDim+1] = i;
             addSamples(curClass, curDim+1, samples, dataPoints, nextDim);
           }
@@ -101,7 +101,7 @@ public class GridDataGenerator
         {
             for(int i = 0; i < samples; i++)
             {
-                DenseVector dv = new DenseVector(dim.length);
+                final DenseVector dv = new DenseVector(dim.length);
                 for(int j = 0; j < dim.length; j++) {
                   dv.set(j, dim[j]+noiseSource.invCdf(rand.nextDouble()));
             }
@@ -117,19 +117,19 @@ public class GridDataGenerator
      * @param samples the number of sample data points to create for each class in the data set. 
      * @return A data set the contains the data points with matching class labels. 
      */
-    public SimpleDataSet generateData(int samples)
+    public SimpleDataSet generateData(final int samples)
     {
         int totalClasses = 1;
-        for(int d : dimensions) {
+        for(final int d : dimensions) {
           totalClasses *= d;
         }
         catDataInfo = new CategoricalData[] { new CategoricalData(totalClasses) } ;
-        List<DataPoint> dataPoints = new ArrayList<DataPoint>(totalClasses*samples);
-        int[] curClassPointer = new int[1];
+        final List<DataPoint> dataPoints = new ArrayList<DataPoint>(totalClasses*samples);
+        final int[] curClassPointer = new int[1];
                 
         for(int i = 0; i < dimensions[0]; i++)
         {
-            int[] curDim = new int[dimensions.length];
+            final int[] curDim = new int[dimensions.length];
             curDim[0] = i;
             addSamples(curClassPointer, 0, samples, dataPoints, curDim);
         }

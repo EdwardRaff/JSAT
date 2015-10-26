@@ -28,7 +28,7 @@ public class PowerDecay implements DecayRate, Parameterized
      * @param tau the initial time offset
      * @param alpha the time scaling 
      */
-    public PowerDecay(double tau, double alpha)
+    public PowerDecay(final double tau, final double alpha)
     {
         setTau(tau);
         setAlpha(alpha);
@@ -49,7 +49,7 @@ public class PowerDecay implements DecayRate, Parameterized
      * @param alpha the scaling parameter in [0, &infin;), but should generally 
      * be kept in (0, 1). 
      */
-    public void setAlpha(double alpha)
+    public void setAlpha(final double alpha)
     {
         if(alpha < 0 || Double.isInfinite(alpha) || Double.isNaN(alpha)) {
           throw new IllegalArgumentException("alpha must be a non negative constant, not " + alpha);
@@ -73,7 +73,7 @@ public class PowerDecay implements DecayRate, Parameterized
      * 
      * @param tau the early rate dampening parameter
      */
-    public void setTau(double tau)
+    public void setTau(final double tau)
     {
         if(tau <= 0 || Double.isInfinite(tau) || Double.isNaN(tau)) {
           throw new IllegalArgumentException("tau must be a positive constant, not " + tau);
@@ -91,13 +91,13 @@ public class PowerDecay implements DecayRate, Parameterized
     }
     
     @Override
-    public double rate(double time, double maxTime, double initial)
+    public double rate(final double time, final double maxTime, final double initial)
     {
         return rate(time, initial);
     }
     
     @Override
-    public double rate(double time, double initial)
+    public double rate(final double time, final double initial)
     {
         return initial * FastMath.pow(tau + time, -alpha);
     }
@@ -121,7 +121,7 @@ public class PowerDecay implements DecayRate, Parameterized
     }
 
     @Override
-    public Parameter getParameter(String paramName)
+    public Parameter getParameter(final String paramName)
     {
         return Parameter.toParameterMap(getParameters()).get(paramName);
     }

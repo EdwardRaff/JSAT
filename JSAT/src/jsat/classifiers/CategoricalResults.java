@@ -11,14 +11,14 @@ import jsat.linear.Vec;
  */
 public class CategoricalResults implements Cloneable
 {
-    private int n;//The number of categories
+    private final int n;//The number of categories
     private double[] probabilities;
 
     /**
      * Create a new Categorical Results, values will default to all zero. 
      * @param numCategories the number of options to support. 
      */
-    public CategoricalResults(int numCategories)
+    public CategoricalResults(final int numCategories)
     {
         n = numCategories;
         probabilities = new double[numCategories];
@@ -30,7 +30,7 @@ public class CategoricalResults implements Cloneable
      * normalized and sum to one. 
      * @param probabilities the array of probabilities for each outcome
      */
-    public CategoricalResults(double[] probabilities)
+    public CategoricalResults(final double[] probabilities)
     {
         this.probabilities = probabilities;
         n = probabilities.length;
@@ -52,7 +52,7 @@ public class CategoricalResults implements Cloneable
      * @throws IndexOutOfBoundsException if a non existent category is specified
      * @throws ArithmeticException if the value set is negative or not a number
      */
-    public void setProb(int cat, double prob)
+    public void setProb(final int cat, final double prob)
     {
         if(cat > probabilities.length) {
           throw new IndexOutOfBoundsException("There are only " + probabilities.length + " posibilties, " + cat + " is invalid");
@@ -69,7 +69,7 @@ public class CategoricalResults implements Cloneable
      * @throws IndexOutOfBoundsException if a non existent category is specified
      * @throws ArithmeticException if the value set is negative or not a number
      */
-    public void incProb(int cat, double prob)
+    public void incProb(final int cat, final double prob)
     {
         if(cat > probabilities.length) {
           throw new IndexOutOfBoundsException("There are only " + probabilities.length + " posibilties, " + cat + " is invalid");
@@ -100,7 +100,7 @@ public class CategoricalResults implements Cloneable
      * Divides all the probabilities by a constant value in order to scale them
      * @param c the constant to divide all probabilities by
      */
-    public void divideConst(double c)
+    public void divideConst(final double c)
     {
         for(int i = 0; i < probabilities.length; i++) {
           probabilities[i]/=c;
@@ -114,7 +114,7 @@ public class CategoricalResults implements Cloneable
     public void normalize()
     {
         double sum = 0;
-        for(double d : probabilities) {
+        for(final double d : probabilities) {
           sum += d;
         }
         if(sum != 0) {
@@ -132,7 +132,7 @@ public class CategoricalResults implements Cloneable
      * @param cat the category
      * @return the associated probability
      */
-    public double getProb(int cat)
+    public double getProb(final int cat)
     {
         return probabilities[cat];
     }
@@ -144,7 +144,7 @@ public class CategoricalResults implements Cloneable
     @Override
     public CategoricalResults clone()
     {
-        CategoricalResults copy = new CategoricalResults(n);
+        final CategoricalResults copy = new CategoricalResults(n);
         copy.probabilities = Arrays.copyOf(probabilities, probabilities.length);
         return copy;
     }

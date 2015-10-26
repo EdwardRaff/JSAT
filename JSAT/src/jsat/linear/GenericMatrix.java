@@ -40,7 +40,7 @@ public abstract class GenericMatrix extends Matrix
     abstract protected Matrix getMatrixOfSameType(int rows, int cols);
     
     @Override
-    public void mutableAdd(double c, Matrix b)
+    public void mutableAdd(final double c, final Matrix b)
     {
         if(!sameDimensions(this, b)) {
           throw new ArithmeticException("Matrix dimensions do not agree");
@@ -54,7 +54,7 @@ public abstract class GenericMatrix extends Matrix
     }
     
     @Override
-    public void mutableAdd(final double c, final Matrix b, ExecutorService threadPool)
+    public void mutableAdd(final double c, final Matrix b, final ExecutorService threadPool)
     {
         if(!sameDimensions(this, b)) {
           throw new ArithmeticException("Matrix dimensions do not agree");
@@ -83,14 +83,14 @@ public abstract class GenericMatrix extends Matrix
         {
             latch.await();
         }
-        catch (InterruptedException ex)
+        catch (final InterruptedException ex)
         {
             Logger.getLogger(DenseMatrix.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
     
     @Override
-    public void mutableAdd(double c)
+    public void mutableAdd(final double c)
     {
         for(int i = 0; i < rows(); i++) {
           for (int j = 0; j < cols(); j++) {
@@ -100,7 +100,7 @@ public abstract class GenericMatrix extends Matrix
     }
     
     @Override
-    public void mutableAdd(final double c, ExecutorService threadPool)
+    public void mutableAdd(final double c, final ExecutorService threadPool)
     {
         final CountDownLatch latch = new CountDownLatch(LogicalCores);
 
@@ -126,14 +126,14 @@ public abstract class GenericMatrix extends Matrix
         {
             latch.await();
         }
-        catch (InterruptedException ex)
+        catch (final InterruptedException ex)
         {
             Logger.getLogger(DenseMatrix.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
     
     @Override
-    public void multiply(Vec b, double z, Vec c)
+    public void multiply(final Vec b, final double z, final Vec c)
     {
         if(this.cols() != b.length()) {
           throw new ArithmeticException("Matrix dimensions do not agree, [" + rows() +"," + cols() + "] x [" + b.length() + ",1]" );
@@ -147,7 +147,7 @@ public abstract class GenericMatrix extends Matrix
             for (int i = 0; i < rows(); i++)
             {
                 double dot = 0;
-                for(IndexValue iv : b) {
+                for(final IndexValue iv : b) {
                   dot += this.get(i, iv.getIndex()) * iv.getValue();
                 }
                 c.increment(i, dot * z);
@@ -167,7 +167,7 @@ public abstract class GenericMatrix extends Matrix
     }
 
     @Override
-    public void multiply(Matrix b, Matrix C)
+    public void multiply(final Matrix b, final Matrix C)
     {
         if(!canMultiply(this, b)) {
           throw new ArithmeticException("Matrix dimensions do not agree: [" + this.rows() + ", " + this.cols() + "] * [" + b.rows() + ", " + b.cols() + "]");
@@ -184,7 +184,7 @@ public abstract class GenericMatrix extends Matrix
 
         for (int i = 0; i < C.rows(); i++) {
           for (int k = 0; k < this.cols(); k++) {
-            double a = this.get(i, k);
+            final double a = this.get(i, k);
             for (int j = 0; j < C.cols(); j++) {
               C.increment(i, j, a * b.get(k, j));
             }
@@ -193,7 +193,7 @@ public abstract class GenericMatrix extends Matrix
     }
     
     @Override
-    public void multiplyTranspose(Matrix b, Matrix C)
+    public void multiplyTranspose(final Matrix b, final Matrix C)
     {
         if(this.cols() != b.cols()) {
           throw new ArithmeticException("Matrix dimensions do not agree");
@@ -223,7 +223,7 @@ public abstract class GenericMatrix extends Matrix
     }
     
     @Override
-    public void multiplyTranspose(final Matrix b, final Matrix C, ExecutorService threadPool)
+    public void multiplyTranspose(final Matrix b, final Matrix C, final ExecutorService threadPool)
     {
         if(this.cols() != b.cols()) {
           throw new ArithmeticException("Matrix dimensions do not agree");
@@ -272,7 +272,7 @@ public abstract class GenericMatrix extends Matrix
         {
             cdl.await();
         }
-        catch (InterruptedException ex)
+        catch (final InterruptedException ex)
         {
             Logger.getLogger(DenseMatrix.class.getName()).log(Level.SEVERE, null, ex);
         }
@@ -280,7 +280,7 @@ public abstract class GenericMatrix extends Matrix
     }
 
     @Override
-    public void multiply(final Matrix b, final Matrix C, ExecutorService threadPool)
+    public void multiply(final Matrix b, final Matrix C, final ExecutorService threadPool)
     {
         if(!canMultiply(this, b)) {
           throw new ArithmeticException("Matrix dimensions do not agree");
@@ -309,7 +309,7 @@ public abstract class GenericMatrix extends Matrix
                             for (int j0 = 0; j0 < jLimit; j0 += NB2) {
                               for (int i = i0; i < min(i0 + NB2, iLimit); i++) {
                                 for (int k = k0; k < min(k0 + NB2, kLimit); k++) {
-                                  double a = A.get(i, k);
+                                  final double a = A.get(i, k);
                                   for (int j = j0; j < min(j0 + NB2, jLimit); j++) {
                                     C.increment(i, j, a * b.get(k, j));
                                   }
@@ -334,7 +334,7 @@ public abstract class GenericMatrix extends Matrix
                 {
                     for (int i = 0 + ID; i < C.rows(); i += LogicalCores) {
                       for (int k = 0; k < A.cols(); k++) {
-                        double a = A.get(i, k);
+                        final double a = A.get(i, k);
                         for (int j = 0; j < C.cols(); j++) {
                           C.increment(i, j, a * b.get(k, j));
                         }
@@ -349,7 +349,7 @@ public abstract class GenericMatrix extends Matrix
         {
             cdl.await();
         }
-        catch (InterruptedException ex)
+        catch (final InterruptedException ex)
         {
             //faulre? Gah - try seriel
             this.multiply(b, C);
@@ -357,7 +357,7 @@ public abstract class GenericMatrix extends Matrix
     }
     
     @Override
-    public void mutableMultiply(double c)
+    public void mutableMultiply(final double c)
     {
         for(int i = 0; i < rows(); i++) {
           for (int j = 0; j < cols(); j++) {
@@ -367,7 +367,7 @@ public abstract class GenericMatrix extends Matrix
     }
     
     @Override
-    public void mutableMultiply(final double c, ExecutorService threadPool)
+    public void mutableMultiply(final double c, final ExecutorService threadPool)
     {
         final CountDownLatch latch = new CountDownLatch(LogicalCores);
         for(int threadID = 0; threadID < LogicalCores; threadID++)
@@ -390,7 +390,7 @@ public abstract class GenericMatrix extends Matrix
         {
             latch.await();
         }
-        catch (InterruptedException ex)
+        catch (final InterruptedException ex)
         {
             Logger.getLogger(DenseMatrix.class.getName()).log(Level.SEVERE, null, ex);
         }
@@ -398,7 +398,7 @@ public abstract class GenericMatrix extends Matrix
     }
 
     @Override
-    public void transposeMultiply(double c, Vec b, Vec x)
+    public void transposeMultiply(final double c, final Vec b, final Vec x)
     {
         if(this.rows() != b.length()) {
           throw new ArithmeticException("Matrix dimensions do not agree, [" + cols() +"," + rows() + "] x [" + b.length() + ",1]" );
@@ -408,7 +408,7 @@ public abstract class GenericMatrix extends Matrix
         
         for(int i = 0; i < rows(); i++)//if b was sparce, we want to skip every time b_i = 0
         {
-            double b_i = b.get(i);
+            final double b_i = b.get(i);
             if(b_i == 0) {//Skip, not quite as good as sparce handeling
               continue;//TODO handle sparce input vector better
             }
@@ -420,13 +420,13 @@ public abstract class GenericMatrix extends Matrix
     }
     
     @Override
-    public void transposeMultiply(final Matrix b, Matrix C)
+    public void transposeMultiply(final Matrix b, final Matrix C)
     {
         transposeMultiply(b, C, new FakeExecutor());
     }
     
     @Override
-    public void transposeMultiply(final Matrix b, final Matrix C, ExecutorService threadPool)
+    public void transposeMultiply(final Matrix b, final Matrix C, final ExecutorService threadPool)
     {
         if(this.rows() != b.rows()) {//Normaly it is A_cols == B_rows, but we are doint A'*B, not A*B
           throw new ArithmeticException("Matrix dimensions do not agree");
@@ -455,7 +455,7 @@ public abstract class GenericMatrix extends Matrix
                         for (int j0 = 0; j0 < jLimit; j0 += blockStep) {
                           for (int k = k0; k < min(k0 + blockStep, kLimit); k++) {
                             for (int i = i0; i < min(i0 + blockStep, iLimit); i++) {
-                              double a = A.get(k, i);
+                              final double a = A.get(k, i);
                               for (int j = j0; j < min(j0 + blockStep, jLimit); j++) {
                                 C.increment(i, j, a * b.get(k, j));
                               }
@@ -474,7 +474,7 @@ public abstract class GenericMatrix extends Matrix
         {
             cdl.await();
         }
-        catch (InterruptedException ex)
+        catch (final InterruptedException ex)
         {
             Logger.getLogger(DenseMatrix.class.getName()).log(Level.SEVERE, null, ex);
         }
@@ -490,7 +490,7 @@ public abstract class GenericMatrix extends Matrix
         for (int i = 0; i < rows() - 1; i++) {
           for (int j = i + 1; j < cols(); j++)
           {
-            double tmp = get(j, i);
+            final double tmp = get(j, i);
             set(j, i, get(i, j));
             set(i, j, tmp);
           }
@@ -498,7 +498,7 @@ public abstract class GenericMatrix extends Matrix
     }
     
     @Override
-    public void transpose(Matrix C)
+    public void transpose(final Matrix C)
     {
         if(this.rows() != C.cols() || this.cols() != C.rows()) {
           throw new ArithmeticException("Target matrix does not have the correct dimensions");
@@ -516,7 +516,7 @@ public abstract class GenericMatrix extends Matrix
     }
 
     @Override
-    public void swapRows(int r1, int r2)
+    public void swapRows(final int r1, final int r2)
     {
         if(r1 >= rows() || r2 >= rows()) {
           throw new ArithmeticException("Can not swap row, matrix is smaller then requested");
@@ -525,7 +525,7 @@ public abstract class GenericMatrix extends Matrix
         }
         for(int j = 0; j < cols(); j++)
         {
-            double tmp = get(r1, j);
+            final double tmp = get(r1, j);
             set(r1, j, get(r2, j));
             set(r2, j, tmp);
         }
@@ -544,9 +544,9 @@ public abstract class GenericMatrix extends Matrix
     @Override
     public Matrix[] lup()
     {
-        Matrix[] lup = new Matrix[3];
+        final Matrix[] lup = new Matrix[3];
         
-        Matrix P = eye(rows());
+        final Matrix P = eye(rows());
         Matrix L;
         Matrix U = this;
         
@@ -568,7 +568,7 @@ public abstract class GenericMatrix extends Matrix
                 double largestVal = Math.abs(U.get(i, i));
                 for (int j = i + 1; j < U.rows(); j++)
                 {
-                    double rowJLeadVal = Math.abs(U.get(j, i));
+                    final double rowJLeadVal = Math.abs(U.get(j, i));
                     if (rowJLeadVal > largestVal)
                     {
                         largestRow = j;
@@ -587,7 +587,7 @@ public abstract class GenericMatrix extends Matrix
             //Seting up L 
             for(int k = 0; k < Math.min(i, U.cols()); k++)
             {
-                double tmp = U.get(i, k)/U.get(k, k); 
+                final double tmp = U.get(i, k)/U.get(k, k); 
                 L.set(i, k, (Double.isNaN(tmp) ? 0.0 : tmp) );
                 U.set(i, k, 0.0);
 
@@ -602,7 +602,7 @@ public abstract class GenericMatrix extends Matrix
         if(rows() > cols())//Clean up!
         {
             //We need to change U to a square nxn matrix in this case, we can safely drop the last 2 rows!
-            Matrix newU = getMatrixOfSameType(cols(), cols());
+            final Matrix newU = getMatrixOfSameType(cols(), cols());
             for(int i = 0; i < cols(); i++) {
               for (int j = 0; j < cols(); j++) {
                 newU.set(i, j, U.get(i, j));
@@ -619,9 +619,9 @@ public abstract class GenericMatrix extends Matrix
     }
     
     @Override
-    public Matrix[] lup(ExecutorService threadPool)
+    public Matrix[] lup(final ExecutorService threadPool)
     {
-        Matrix[] lup = new Matrix[3];
+        final Matrix[] lup = new Matrix[3];
         
         final Matrix P = eye(rows());
         final Matrix L;
@@ -635,7 +635,7 @@ public abstract class GenericMatrix extends Matrix
         }
         try
         {
-            List<Future<Integer>> bigIndecies = new ArrayList<Future<Integer>>(LogicalCores);
+            final List<Future<Integer>> bigIndecies = new ArrayList<Future<Integer>>(LogicalCores);
             for (int k = 0; k < Math.min(rows(), cols()); k++)
             {
                 //Partial pivoting, find the largest value in this colum and move it to the top! 
@@ -645,7 +645,7 @@ public abstract class GenericMatrix extends Matrix
                 if (bigIndecies.isEmpty()) {
                   for (int j = k + 1; j < U.rows(); j++)
                   {
-                    double rowJLeadVal = Math.abs(U.get(j, k));
+                    final double rowJLeadVal = Math.abs(U.get(j, k));
                     if (rowJLeadVal > largestVal)
                     {
                       largestRow = j;
@@ -654,14 +654,14 @@ public abstract class GenericMatrix extends Matrix
                   }
                 } else
                 {
-                    for (Future<Integer> fut : bigIndecies)
+                    for (final Future<Integer> fut : bigIndecies)
                     {
 
-                        int j = fut.get();
+                        final int j = fut.get();
                         if(j < 0) {//Can happen if they are all zeros
                           continue;
                     }
-                        double rowJLeadVal = Math.abs(U.get(j, k));
+                        final double rowJLeadVal = Math.abs(U.get(j, k));
                         if (rowJLeadVal > largestVal)
                         {
                             largestRow = j;
@@ -694,7 +694,7 @@ public abstract class GenericMatrix extends Matrix
                             int largestIndex = -1;
                             for(int i = kk+1+threadID; i < UU.rows(); i+=LogicalCores)
                             {
-                                double tmp = UU.get(i, kk)/UU.get(kk, kk); 
+                                final double tmp = UU.get(i, kk)/UU.get(kk, kk); 
                                 L.set(i, kk, (Double.isNaN(tmp) ? 0.0 : tmp) );
 
                                 //We perform the first iteration of the loop outside, as we want to cache its value for searching later
@@ -728,7 +728,7 @@ public abstract class GenericMatrix extends Matrix
             if(rows() > cols())//Clean up!
             {
                 //We need to change U to a square nxn matrix in this case, we can safely drop the last 2 rows!
-                Matrix newU = getMatrixOfSameType(cols(), cols());
+                final Matrix newU = getMatrixOfSameType(cols(), cols());
                 for(int i = 0; i < cols(); i++) {
                   for (int j = 0; j < cols(); j++) {
                     newU.set(i, j, U.get(i, j));
@@ -743,11 +743,11 @@ public abstract class GenericMatrix extends Matrix
 
             return lup;
         }
-        catch (InterruptedException ex)
+        catch (final InterruptedException ex)
         {
             Logger.getLogger(DenseMatrix.class.getName()).log(Level.SEVERE, null, ex);
         }
-        catch (ExecutionException ex)
+        catch (final ExecutionException ex)
         {
             Logger.getLogger(DenseMatrix.class.getName()).log(Level.SEVERE, null, ex);
         }
@@ -758,10 +758,10 @@ public abstract class GenericMatrix extends Matrix
     @Override
     public Matrix[] qr()
     {
-        int N = cols(), M  = rows();
-        Matrix[] qr = new Matrix[2];
+        final int N = cols(), M  = rows();
+        final Matrix[] qr = new Matrix[2];
         
-        Matrix Q = Matrix.eye(M);
+        final Matrix Q = Matrix.eye(M);
         Matrix A;
         if(isSquare())
         {
@@ -771,8 +771,8 @@ public abstract class GenericMatrix extends Matrix
         else {
           A = this.transpose();
         }
-        int to = cols() > rows() ? M : N;
-        double[] vk = new double[M];
+        final int to = cols() > rows() ? M : N;
+        final double[] vk = new double[M];
         for(int k = 0; k < to; k++)
         {
             
@@ -784,7 +784,7 @@ public abstract class GenericMatrix extends Matrix
             vkNorm = sqrt(vkNorm);
             
             
-            double alpha = -signum(vk_k) * vkNorm;
+            final double alpha = -signum(vk_k) * vkNorm;
             vk_k  -= alpha;
             vk[k] = vk_k;
             beta += vk_k*vk_k;
@@ -793,7 +793,7 @@ public abstract class GenericMatrix extends Matrix
             if (beta == 0) {
               continue;
             }
-            double TwoOverBeta = 2.0 / beta;
+            final double TwoOverBeta = 2.0 / beta;
 
             qrUpdateQ(Q, k, vk, TwoOverBeta);
             qrUpdateR(k, N, A, vk, TwoOverBeta, M);
@@ -810,7 +810,7 @@ public abstract class GenericMatrix extends Matrix
         return qr;
     }
 
-    private void qrUpdateR(int k, int N, Matrix A, double[] vk, double TwoOverBeta, int M)
+    private void qrUpdateR(final int k, final int N, final Matrix A, final double[] vk, final double TwoOverBeta, final int M)
     {
         //First run of loop removed, as it will be setting zeros. More accurate to just set them ourselves
         if(k < N)
@@ -832,7 +832,7 @@ public abstract class GenericMatrix extends Matrix
         }
     }
 
-    private void qrUpdateRInitalLoop(int k, Matrix A, double[] vk, double TwoOverBeta, int M)
+    private void qrUpdateRInitalLoop(final int k, final Matrix A, final double[] vk, final double TwoOverBeta, final int M)
     {
         double y = 0;//y = vk dot A_j
         for(int i = k; i < A.cols(); i++) {
@@ -847,7 +847,7 @@ public abstract class GenericMatrix extends Matrix
         }
     }
 
-    private void qrUpdateQ(Matrix Q, int k, double[] vk, double TwoOverBeta)
+    private void qrUpdateQ(final Matrix Q, final int k, final double[] vk, final double TwoOverBeta)
     {
         //We are computing Q' in what we are treating as the column major order, which represents Q in row major order, which is what we want!
         for(int j = 0; j < Q.cols(); j++)
@@ -865,7 +865,7 @@ public abstract class GenericMatrix extends Matrix
         }
     }
 
-    private double initalVKNormCompute(int k, int M, double[] vk, Matrix A)
+    private double initalVKNormCompute(final int k, final int M, final double[] vk, final Matrix A)
     {
         double vkNorm = 0.0;
         for(int i = k+1; i < M; i++)
@@ -877,10 +877,10 @@ public abstract class GenericMatrix extends Matrix
     }
     
     @Override
-    public Matrix[] qr(ExecutorService threadPool)
+    public Matrix[] qr(final ExecutorService threadPool)
     {
         final int N = cols(), M  = rows();
-        Matrix[] qr = new Matrix[2];
+        final Matrix[] qr = new Matrix[2];
         
         final Matrix Q = Matrix.eye(M);
         final Matrix A;
@@ -895,7 +895,7 @@ public abstract class GenericMatrix extends Matrix
         
         final double[] vk = new double[M];
         
-        int to = cols() > rows() ? M : N;
+        final int to = cols() > rows() ? M : N;
         for(int k = 0; k < to; k++)
         {
             double vkNorm = initalVKNormCompute(k, M, vk, A);
@@ -906,7 +906,7 @@ public abstract class GenericMatrix extends Matrix
             vkNorm = sqrt(vkNorm);
             
             
-            double alpha = -signum(vk_k) * vkNorm;
+            final double alpha = -signum(vk_k) * vkNorm;
             vk_k -= alpha;
             beta += vk_k*vk_k;
             vk[k] = vk_k;
@@ -992,7 +992,7 @@ public abstract class GenericMatrix extends Matrix
             {
                 latch.await();
             }
-            catch (InterruptedException ex)
+            catch (final InterruptedException ex)
             {
                 Logger.getLogger(DenseMatrix.class.getName()).log(Level.SEVERE, null, ex);
             }
@@ -1012,7 +1012,7 @@ public abstract class GenericMatrix extends Matrix
     @Override
     public Matrix clone()
     {
-        Matrix clone = getMatrixOfSameType(rows(), cols());
+        final Matrix clone = getMatrixOfSameType(rows(), cols());
         clone.mutableAdd(this);
         return clone;
     }

@@ -42,7 +42,7 @@ public class Poisson extends DiscreteDistribution
      * Creates a new Poisson distribution 
      * @param lambda the average rate of the event
      */
-    public Poisson(double lambda)
+    public Poisson(final double lambda)
     {
         setLambda(lambda);
     }
@@ -52,7 +52,7 @@ public class Poisson extends DiscreteDistribution
      *
      * @param lambda the average rate of the event occurring
      */
-    public void setLambda(double lambda)
+    public void setLambda(final double lambda)
     {
         if (Double.isNaN(lambda) || lambda <= 0 || Double.isInfinite(lambda)) {
           throw new IllegalArgumentException("lambda must be positive, not " + lambda);
@@ -70,7 +70,7 @@ public class Poisson extends DiscreteDistribution
     }
 
     @Override
-    public double logPmf(int x)
+    public double logPmf(final int x)
     {
         if(x < 0) {
           return -Double.MAX_VALUE;
@@ -81,7 +81,7 @@ public class Poisson extends DiscreteDistribution
     }
     
     @Override
-    public double pmf(int x)
+    public double pmf(final int x)
     {
         if(x < 0) {
           return 0;
@@ -90,7 +90,7 @@ public class Poisson extends DiscreteDistribution
     }
 
     @Override
-    public double cdf(int x)
+    public double cdf(final int x)
     {
         if(x < 0) {
           return 0;

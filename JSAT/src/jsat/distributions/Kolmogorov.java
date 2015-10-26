@@ -23,13 +23,13 @@ public class Kolmogorov extends ContinuousDistribution
     
 
     @Override
-    public double pdf(double x)
+    public double pdf(final double x)
     {
         throw new UnsupportedOperationException("Not supported yet.");
     }
 
     @Override
-    public double cdf(double x)
+    public double cdf(final double x)
     {
         if(x < 0) {
           throw new ArithmeticException("Invalid value of x, x must be > 0, not " + x);
@@ -47,7 +47,7 @@ public class Kolmogorov extends ContinuousDistribution
          * according to Numerical Recipies, 3rd Edition p(334-335)
          */
         double tmp = 0;
-        double x2 = x*x;
+        final double x2 = x*x;
         if(x < 1.18)
         {
             
@@ -73,19 +73,19 @@ public class Kolmogorov extends ContinuousDistribution
 
 		private static final long serialVersionUID = -716553015542184045L;
 
-		public double f(double... x)
+		public double f(final double... x)
         {
             return cdf(x[0])-x[1];
         }
 
-        public double f(Vec x)
+        public double f(final Vec x)
         {
             return f(x.get(0), x.get(1));
         }
     };
     
     @Override
-    public double invCdf(double p)
+    public double invCdf(final double p)
     {
         return RiddersMethod.root(0, 5, fCDF, p, p);
     }
@@ -121,7 +121,7 @@ public class Kolmogorov extends ContinuousDistribution
     }
 
     @Override
-    public void setVariable(String var, double value)
+    public void setVariable(final String var, final double value)
     {
         
     }
@@ -133,7 +133,7 @@ public class Kolmogorov extends ContinuousDistribution
     }
 
     @Override
-    public void setUsingData(Vec data)
+    public void setUsingData(final Vec data)
     {
         
     }
@@ -175,7 +175,7 @@ public class Kolmogorov extends ContinuousDistribution
 
 
 	@Override
-	public boolean equals(Object obj) {
+	public boolean equals(final Object obj) {
 		if (this == obj) {
 			return true;
 		}

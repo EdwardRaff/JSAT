@@ -35,16 +35,16 @@ public class NHERDTest
     public void testTrain_C()
     {
         System.out.println("train_C");
-        ClassificationDataSet train = FixedProblems.get2ClassLinear(200, new Random(132));
+        final ClassificationDataSet train = FixedProblems.get2ClassLinear(200, new Random(132));
      
-        ClassificationDataSet test = FixedProblems.get2ClassLinear(200, new Random(231));
+        final ClassificationDataSet test = FixedProblems.get2ClassLinear(200, new Random(231));
 
-        for (NHERD.CovMode mode : NHERD.CovMode.values())
+        for (final NHERD.CovMode mode : NHERD.CovMode.values())
         {
-            NHERD nherd0 = new NHERD(1, mode);
+            final NHERD nherd0 = new NHERD(1, mode);
             nherd0.trainC(train);
             
-            for (DataPointPair<Integer> dpp : test.getAsDPPList()) {
+            for (final DataPointPair<Integer> dpp : test.getAsDPPList()) {
               assertEquals(dpp.getPair().longValue(), nherd0.classify(dpp.getDataPoint()).mostLikely());
             }
         }

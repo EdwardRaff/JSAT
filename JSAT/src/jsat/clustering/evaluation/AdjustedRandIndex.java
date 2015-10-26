@@ -27,28 +27,28 @@ public class AdjustedRandIndex implements ClusterEvaluation
 {
 
     @Override
-    public double evaluate(int[] designations, DataSet dataSet)
+    public double evaluate(final int[] designations, final DataSet dataSet)
     {
         if( !(dataSet instanceof ClassificationDataSet)) {
           throw new RuntimeException("NMI can only be calcuate for classification data sets");
         }
-        ClassificationDataSet cds = (ClassificationDataSet)dataSet;
+        final ClassificationDataSet cds = (ClassificationDataSet)dataSet;
         int clusters = 0;//how many clusters are there? 
-        for(int clusterID : designations) {
+        for(final int clusterID : designations) {
           clusters = Math.max(clusterID+1, clusters);
         }
-        double[] truthSums = new double[cds.getClassSize()];
-        double[] clusterSums = new double[clusters];
-        double[][] table = new double[clusterSums.length][truthSums.length];
+        final double[] truthSums = new double[cds.getClassSize()];
+        final double[] clusterSums = new double[clusters];
+        final double[][] table = new double[clusterSums.length][truthSums.length];
         double n = 0.0;
         for(int i = 0; i < designations.length; i++)
         {
-            int cluster = designations[i];
+            final int cluster = designations[i];
             if(cluster < 0) {
               continue;//noisy point 
             }
-            int label = cds.getDataPointCategory(i);
-            double weight = cds.getDataPoint(i).getWeight();
+            final int label = cds.getDataPointCategory(i);
+            final double weight = cds.getDataPoint(i).getWeight();
             table[cluster][label] += weight;
             truthSums[label] += weight;
             clusterSums[cluster] += weight;
@@ -64,29 +64,29 @@ public class AdjustedRandIndex implements ClusterEvaluation
         
         for(int i = 0; i < table.length; i++)
         {
-            double a_i = clusterSums[i];
+            final double a_i = clusterSums[i];
             addCTerm += a_i*(a_i-1)/2;
             
             for(int j = 0; j < table[i].length; j++)
             {
                 if(i == 0)
                 {
-                    double b_j = truthSums[j];
+                    final double b_j = truthSums[j];
                     addLTerm += b_j*(b_j-1)/2;
                 }
                 
-                double n_ij = table[i][j];
-                double n_ij_c2 = n_ij*(n_ij-1)/2;
+                final double n_ij = table[i][j];
+                final double n_ij_c2 = n_ij*(n_ij-1)/2;
                 sumAllTable += n_ij_c2;
             }
         }
         
-        double longMultTerm = exp(log(addCTerm)+log(addLTerm)-(log(n)+log(n-1)-log(2)));//numericaly more stable verison
+        final double longMultTerm = exp(log(addCTerm)+log(addLTerm)-(log(n)+log(n-1)-log(2)));//numericaly more stable verison
         return 1.0-(sumAllTable-longMultTerm)/(addCTerm/2+addLTerm/2-longMultTerm);
     }
 
     @Override
-    public double evaluate(List<List<DataPoint>> dataSets)
+    public double evaluate(final List<List<DataPoint>> dataSets)
     {
         throw new UnsupportedOperationException("Adjusted Rand Index requires the true data set"
                 + " labels, call evaluate(int[] designations, DataSet dataSet)"

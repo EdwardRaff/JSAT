@@ -87,7 +87,7 @@ public class DCDs implements BinaryScoreClassifier, Regressor, Parameterized, Si
      * @param maxIterations the maximum number of training iterations
      * @param useL1 whether or not to use L1 or L2 form
      */
-    public DCDs(int maxIterations, boolean useL1)
+    public DCDs(final int maxIterations, final boolean useL1)
     {
         this(maxIterations, 1e-3, 1, useL1);
     }
@@ -99,7 +99,7 @@ public class DCDs implements BinaryScoreClassifier, Regressor, Parameterized, Si
      * @param C the misclassification penalty
      * @param useL1 whether or not to use L1 or L2 form
      */
-    public DCDs(int maxIterations, double tolerance, double C, boolean useL1)
+    public DCDs(final int maxIterations, final double tolerance, final double C, final boolean useL1)
     {
         setMaxIterations(maxIterations);
         setTolerance(tolerance);
@@ -114,7 +114,7 @@ public class DCDs implements BinaryScoreClassifier, Regressor, Parameterized, Si
      * 
      * @param C the penalty parameter in (0, Inf)
      */
-    public void setC(double C)
+    public void setC(final double C)
     {
         if(Double.isNaN(C) || Double.isInfinite(C) || C <= 0) {
           throw new ArithmeticException("Penalty parameter must be a positive value, not " + C);
@@ -140,7 +140,7 @@ public class DCDs implements BinaryScoreClassifier, Regressor, Parameterized, Si
      * 
      * @param eps the non-negative value to use as the error tolerance in regression
      */
-    public void setEps(double eps)
+    public void setEps(final double eps)
     {
         if(Double.isNaN(eps) || eps < 0 || Double.isInfinite(eps)) {
           throw new IllegalArgumentException("eps must be non-negative, not "+eps);
@@ -164,7 +164,7 @@ public class DCDs implements BinaryScoreClassifier, Regressor, Parameterized, Si
      * 
      * @param tolerance the tolerance value to use to stop early
      */
-    public void setTolerance(double tolerance)
+    public void setTolerance(final double tolerance)
     {
         this.tolerance = tolerance;
     }
@@ -182,7 +182,7 @@ public class DCDs implements BinaryScoreClassifier, Regressor, Parameterized, Si
      * Determines whether or not to use the L<sup>1</sup> or L<sup>2</sup> SVM
      * @param useL1 <tt>true</tt> to use the L<sup>1</sup> form, <tt>false</tt> to use the L<sup>2</sup> form. 
      */
-    public void setUseL1(boolean useL1)
+    public void setUseL1(final boolean useL1)
     {
         this.useL1 = useL1;
     }
@@ -201,7 +201,7 @@ public class DCDs implements BinaryScoreClassifier, Regressor, Parameterized, Si
      * set. 
      * @param maxIterations the maximum number of training epochs
      */
-    public void setMaxIterations(int maxIterations)
+    public void setMaxIterations(final int maxIterations)
     {
         if(maxIterations <= 0) {
           throw new IllegalArgumentException("Number of iterations must be positive, not " + maxIterations);
@@ -223,7 +223,7 @@ public class DCDs implements BinaryScoreClassifier, Regressor, Parameterized, Si
      * @param useBias {@code true} to add an implicit bias term to inputs, 
      * {@code false} to use the input data as provided. 
      */
-    public void setUseBias(boolean useBias)
+    public void setUseBias(final boolean useBias)
     {
         this.useBias = useBias;
     }
@@ -252,7 +252,7 @@ public class DCDs implements BinaryScoreClassifier, Regressor, Parameterized, Si
     }
     
     @Override
-    public Vec getRawWeight(int index)
+    public Vec getRawWeight(final int index)
     {
         if(index < 1) {
           return getRawWeight();
@@ -262,7 +262,7 @@ public class DCDs implements BinaryScoreClassifier, Regressor, Parameterized, Si
     }
 
     @Override
-    public double getBias(int index)
+    public double getBias(final int index)
     {
         if (index < 1) {
           return getBias();
@@ -278,12 +278,12 @@ public class DCDs implements BinaryScoreClassifier, Regressor, Parameterized, Si
     }
     
     @Override
-    public CategoricalResults classify(DataPoint data)
+    public CategoricalResults classify(final DataPoint data)
     {
         if(w == null) {
           throw new UntrainedModelException("The model has not been trained");
         }
-        CategoricalResults cr = new CategoricalResults(2);
+        final CategoricalResults cr = new CategoricalResults(2);
         
         if(getScore(data) < 0) {
           cr.setProb(0, 1.0);
@@ -295,31 +295,31 @@ public class DCDs implements BinaryScoreClassifier, Regressor, Parameterized, Si
     }
 
     @Override
-    public double getScore(DataPoint dp)
+    public double getScore(final DataPoint dp)
     {
         return w.dot(dp.getNumericalValues())+bias;
     }
 
     @Override
-    public void trainC(ClassificationDataSet dataSet, ExecutorService threadPool)
+    public void trainC(final ClassificationDataSet dataSet, final ExecutorService threadPool)
     {
         trainC(dataSet);
     }
 
     @Override
-    public void trainC(ClassificationDataSet dataSet)
+    public void trainC(final ClassificationDataSet dataSet)
     {
         trainC(dataSet, (Classifier)null);
     }
 
     @Override
-    public void trainC(ClassificationDataSet dataSet, Classifier warmSolution, ExecutorService threadPool)
+    public void trainC(final ClassificationDataSet dataSet, final Classifier warmSolution, final ExecutorService threadPool)
     {
         trainC(dataSet, warmSolution);
     }
             
     @Override
-    public void trainC(ClassificationDataSet dataSet, Classifier warmSolution)
+    public void trainC(final ClassificationDataSet dataSet, final Classifier warmSolution)
     {
         if(dataSet.getClassSize() != 2) {
           throw new FailedToFitException("SVM only supports binary classificaiton problems");
@@ -346,7 +346,7 @@ public class DCDs implements BinaryScoreClassifier, Regressor, Parameterized, Si
         }
         w = new DenseVector(vecs[0].length());
         
-        List<Integer> A = new IntList(vecs.length);
+        final List<Integer> A = new IntList(vecs.length);
         ListUtils.addRange(A, 0, vecs.length, 1);
         
         if(warmSolution != null)
@@ -380,12 +380,12 @@ public class DCDs implements BinaryScoreClassifier, Regressor, Parameterized, Si
 //            }
             if(warmSolution instanceof DCDs)
             {
-                DCDs other = (DCDs) warmSolution;
+                final DCDs other = (DCDs) warmSolution;
                 if (this.alpha != null && other.alpha.length != this.alpha.length) {
                   throw new FailedToFitException("Warm solution could not have been trained on the same data set");
                 }
 
-                double C_mul = this.C/other.C;
+                final double C_mul = this.C/other.C;
                 other.w.copyTo(this.w);
                 this.w.mutableMultiply(C);
                 this.bias = other.bias*C_mul;
@@ -407,17 +407,17 @@ public class DCDs implements BinaryScoreClassifier, Regressor, Parameterized, Si
          * From profling Shufling & RNG generation takes a suprising amount of 
          * time on some data sets, so use one of our fast ones
          */
-        Random rand = new XORWOW();
+        final Random rand = new XORWOW();
 
         for(int t = 0; t < maxIterations; t++ )
         {
             Collections.shuffle(A, rand);
             M = Double.NEGATIVE_INFINITY;
             m = Double.POSITIVE_INFINITY;
-            Iterator<Integer> iter = A.iterator();
+            final Iterator<Integer> iter = A.iterator();
             while(iter.hasNext())//2. 
             {
-                int i = iter.next();
+                final int i = iter.next();
                 //a
                 final double G = y[i]*(w.dot(vecs[i])+bias)-1+D[i]*alpha[i];//bias will be zero if usebias is off
                 //b
@@ -449,9 +449,9 @@ public class DCDs implements BinaryScoreClassifier, Regressor, Parameterized, Si
                 //d
                 if(PG != 0)
                 {
-                    double alphaOld = alpha[i];
+                    final double alphaOld = alpha[i];
                     alpha[i] = Math.min(Math.max(alpha[i]-G/Qhs[i], 0), U[i]);
-                    double scale = (alpha[i]-alphaOld)*y[i];
+                    final double scale = (alpha[i]-alphaOld)*y[i];
                     w.mutableAdd(scale, vecs[i]);
                     if(useBias) {
                       bias += scale;
@@ -499,7 +499,7 @@ public class DCDs implements BinaryScoreClassifier, Regressor, Parameterized, Si
     @Override
     public DCDs clone()
     {
-        DCDs clone = new DCDs(maxIterations, tolerance, C, useL1);
+        final DCDs clone = new DCDs(maxIterations, tolerance, C, useL1);
         clone.bias = this.bias;
         clone.useBias = this.useBias;
         
@@ -520,37 +520,37 @@ public class DCDs implements BinaryScoreClassifier, Regressor, Parameterized, Si
     }
 
     @Override
-    public Parameter getParameter(String paramName)
+    public Parameter getParameter(final String paramName)
     {
         return paramMap.get(paramName);
     }
 
     @Override
-    public double regress(DataPoint data)
+    public double regress(final DataPoint data)
     {
         return w.dot(data.getNumericalValues())+bias;
     }
 
     @Override
-    public void train(RegressionDataSet dataSet, Regressor warmSolution, ExecutorService threadPool)
+    public void train(final RegressionDataSet dataSet, final Regressor warmSolution, final ExecutorService threadPool)
     {
         train(dataSet, warmSolution);
     }
     
     @Override
-    public void train(RegressionDataSet dataSet, ExecutorService threadPool)
+    public void train(final RegressionDataSet dataSet, final ExecutorService threadPool)
     {
         train(dataSet);
     }
 
     @Override
-    public void train(RegressionDataSet dataSet)
+    public void train(final RegressionDataSet dataSet)
     {
         train(dataSet, (Regressor) null);
     }
     
     @Override
-    public void train(RegressionDataSet dataSet, Regressor warmSolution)
+    public void train(final RegressionDataSet dataSet, final Regressor warmSolution)
     {
         vecs = new Vec[dataSet.getSampleSize()];
         /**
@@ -578,19 +578,19 @@ public class DCDs implements BinaryScoreClassifier, Regressor, Parameterized, Si
         }
         w = new DenseVector(vecs[0].length());
         
-        IntList activeSet = new IntList(2*vecs.length);
+        final IntList activeSet = new IntList(2*vecs.length);
         ListUtils.addRange(activeSet, 0, vecs.length, 1);
         
         if(warmSolution != null)
         {
             if(warmSolution instanceof DCDs)
             {
-                DCDs other = (DCDs) warmSolution;
+                final DCDs other = (DCDs) warmSolution;
                 if (this.alpha != null && other.alpha.length != this.alpha.length) {
                   throw new FailedToFitException("Warm solution could not have been trained on the same data set");
                 }
 
-                double C_mul = this.C/other.C;
+                final double C_mul = this.C/other.C;
                 other.w.copyTo(this.w);
                 this.w.mutableMultiply(C);
                 this.bias = other.bias*C_mul;
@@ -608,7 +608,7 @@ public class DCDs implements BinaryScoreClassifier, Regressor, Parameterized, Si
          * From profling Shufling & RNG generation takes a suprising amount of 
          * time on some data sets, so use one of our fast ones
          */
-        Random rand = new XORWOW();
+        final Random rand = new XORWOW();
         
         double M = Double.POSITIVE_INFINITY;
 
@@ -620,7 +620,7 @@ public class DCDs implements BinaryScoreClassifier, Regressor, Parameterized, Si
             Collections.shuffle(activeSet, rand);
 
             //6.2 For i in T
-            Iterator<Integer> iter = activeSet.iterator();
+            final Iterator<Integer> iter = activeSet.iterator();
             while(iter.hasNext())
             {
                 final int i = iter.next();
@@ -697,7 +697,7 @@ public class DCDs implements BinaryScoreClassifier, Regressor, Parameterized, Si
         vecs = null;
     }
     
-    private double getU(double w)
+    private double getU(final double w)
     {
         if(useL1) {
           return C*w;
@@ -706,7 +706,7 @@ public class DCDs implements BinaryScoreClassifier, Regressor, Parameterized, Si
         }
     }
     
-    private double getD(double w)
+    private double getD(final double w)
     {
         if(useL1) {
           return 0;
@@ -772,7 +772,7 @@ public class DCDs implements BinaryScoreClassifier, Regressor, Parameterized, Si
      * @param d the data set to get the guess for
      * @return the guess for the C parameter in the SVM 
      */
-    public static Distribution guessC(DataSet d)
+    public static Distribution guessC(final DataSet d)
     {
         return PlatSMO.guessC(d);
     }

@@ -15,17 +15,17 @@ public class AtomicDoubleArray implements Serializable
 {
 
 	private static final long serialVersionUID = -8799170460903375842L;
-	private AtomicLongArray larray;
+	private final AtomicLongArray larray;
 
     /**
      * Creates a new AtomicDoubleArray of the given length, with all values 
      * initialized to zero
      * @param length the length of the array
      */
-    public AtomicDoubleArray(int length)
+    public AtomicDoubleArray(final int length)
     {
         larray = new AtomicLongArray(length);
-        long ZERO = Double.doubleToRawLongBits(0.0);
+        final long ZERO = Double.doubleToRawLongBits(0.0);
         for(int i = 0; i < length; i++) {
           larray.set(i, ZERO);
         }
@@ -36,7 +36,7 @@ public class AtomicDoubleArray implements Serializable
      * new object
      * @param array the array of values to copy
      */
-    public AtomicDoubleArray(double[] array)
+    public AtomicDoubleArray(final double[] array)
     {
         this(array.length);
         for(int i = 0; i < array.length; i++) {
@@ -50,7 +50,7 @@ public class AtomicDoubleArray implements Serializable
      * @param i the index
      * @return the previous value
      */
-    public double getAndIncrement(int i)
+    public double getAndIncrement(final int i)
     {
         return getAndAdd(i, 1.0);
     }
@@ -61,7 +61,7 @@ public class AtomicDoubleArray implements Serializable
      * @param i the index
      * @return the previous value
      */
-    public double getAndDecrement(int i)
+    public double getAndDecrement(final int i)
     {
         return getAndAdd(i, -1.0);
     }
@@ -73,12 +73,12 @@ public class AtomicDoubleArray implements Serializable
      * @param delta the value to add
      * @return the previous value
      */
-    public double getAndAdd(int i, double delta)
+    public double getAndAdd(final int i, final double delta)
     {
         while(true)
         {
-            double orig = get(i);
-            double newVal = orig + delta;
+            final double orig = get(i);
+            final double newVal = orig + delta;
             if(compareAndSet(i, orig, newVal)) {
               return orig;
             }
@@ -92,12 +92,12 @@ public class AtomicDoubleArray implements Serializable
      * @param delta the value to add
      * @return the updated value
      */
-    public double addAndGet(int i, double delta)
+    public double addAndGet(final int i, final double delta)
     {
         while(true)
         {
-            double orig = get(i);
-            double newVal = orig + delta;
+            final double orig = get(i);
+            final double newVal = orig + delta;
             if(compareAndSet(i, orig, newVal)) {
               return newVal;
             }
@@ -112,9 +112,9 @@ public class AtomicDoubleArray implements Serializable
      * @param newValue the new value
      * @return the previous value
      */
-    public double getAndSet(int i, double newValue)
+    public double getAndSet(final int i, final double newValue)
     {
-        long oldL = larray.getAndSet(i, Double.doubleToRawLongBits(newValue));
+        final long oldL = larray.getAndSet(i, Double.doubleToRawLongBits(newValue));
         return Double.longBitsToDouble(oldL);
     }
 
@@ -124,7 +124,7 @@ public class AtomicDoubleArray implements Serializable
      * @param i the index
      * @param newValue the new value
      */
-    public void set(int i, double newValue)
+    public void set(final int i, final double newValue)
     {
         larray.set(i, Double.doubleToRawLongBits(newValue));
     }
@@ -135,7 +135,7 @@ public class AtomicDoubleArray implements Serializable
      * @param i the index
      * @param newValue the new value
      */
-    public void lazySet(int i, double newValue)
+    public void lazySet(final int i, final double newValue)
     {
         larray.lazySet(i, Double.doubleToRawLongBits(newValue));
     }
@@ -150,10 +150,10 @@ public class AtomicDoubleArray implements Serializable
      * @return true if successful. False return indicates that
      * the actual value was not equal to the expected value.
      */
-    public boolean compareAndSet(int i, double expected, double update)
+    public boolean compareAndSet(final int i, final double expected, final double update)
     {
-        long expectedL = Double.doubleToRawLongBits(expected);
-        long updateL = Double.doubleToRawLongBits(update);
+        final long expectedL = Double.doubleToRawLongBits(expected);
+        final long updateL = Double.doubleToRawLongBits(update);
         return larray.compareAndSet(i, expectedL, updateL);
     }
     
@@ -170,10 +170,10 @@ public class AtomicDoubleArray implements Serializable
      * @param update the new value
      * @return true if successful.
      */
-    public boolean weakCompareAndSet(int i, double expected, double update)
+    public boolean weakCompareAndSet(final int i, final double expected, final double update)
     {
-        long expectedL = Double.doubleToRawLongBits(expected);
-        long updateL = Double.doubleToRawLongBits(update);
+        final long expectedL = Double.doubleToRawLongBits(expected);
+        final long updateL = Double.doubleToRawLongBits(update);
         return larray.weakCompareAndSet(i, expectedL, updateL);
     }
     
@@ -183,7 +183,7 @@ public class AtomicDoubleArray implements Serializable
      * @param i the index
      * @return the current value
      */
-    public double get(int i)
+    public double get(final int i)
     {
         return Double.longBitsToDouble(larray.get(i));
     }

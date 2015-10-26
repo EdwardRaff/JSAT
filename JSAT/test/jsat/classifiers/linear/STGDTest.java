@@ -48,17 +48,17 @@ public class STGDTest
     public void testTrain_RegressionDataSet()
     {
         System.out.println("train");
-        Random rand = new Random(123);
+        final Random rand = new Random(123);
         
-        STGD scd = new STGD(5, 0.1, Double.POSITIVE_INFINITY, 0.1);
+        final STGD scd = new STGD(5, 0.1, Double.POSITIVE_INFINITY, 0.1);
         scd.train(FixedProblems.getLinearRegression(400, rand));
         
-        for(DataPointPair<Double> dpp : FixedProblems.getLinearRegression(400, rand).getAsDPPList())
+        for(final DataPointPair<Double> dpp : FixedProblems.getLinearRegression(400, rand).getAsDPPList())
         {
-            double truth = dpp.getPair();
-            double pred = scd.regress(dpp.getDataPoint());
+            final double truth = dpp.getPair();
+            final double pred = scd.regress(dpp.getDataPoint());
             
-            double relErr = (truth-pred)/truth;
+            final double relErr = (truth-pred)/truth;
             assertEquals(0.0, relErr, 0.1);//Give it a decent wiggle room b/c of regularization
         }
     }
@@ -71,14 +71,14 @@ public class STGDTest
     public void testTrainC_ClassificationDataSet()
     {
         System.out.println("trainC");
-        ClassificationDataSet train = FixedProblems.get2ClassLinear(400, new Random());
+        final ClassificationDataSet train = FixedProblems.get2ClassLinear(400, new Random());
         
-        STGD scd = new STGD(5, 0.5, Double.POSITIVE_INFINITY, 0.1);
+        final STGD scd = new STGD(5, 0.5, Double.POSITIVE_INFINITY, 0.1);
         scd.trainC(train);
         
-        ClassificationDataSet test = FixedProblems.get2ClassLinear(400, new Random());
+        final ClassificationDataSet test = FixedProblems.get2ClassLinear(400, new Random());
         
-        for(DataPointPair<Integer> dpp : test.getAsDPPList()) {
+        for(final DataPointPair<Integer> dpp : test.getAsDPPList()) {
           assertEquals(dpp.getPair().longValue(), scd.classify(dpp.getDataPoint()).mostLikely());
         }
     }

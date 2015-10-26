@@ -71,14 +71,14 @@ public class RandomForestTest
     public void testTrainC_RegressionDataSet()
     {
         System.out.println("train");
-        for(boolean useCatFeatures : new boolean[]{true, false})
+        for(final boolean useCatFeatures : new boolean[]{true, false})
         {
-            RandomForest instance = new RandomForest();
+            final RandomForest instance = new RandomForest();
 
-            RegressionDataSet train =  FixedProblems.getLinearRegression(1000, new XORWOW(), coefs);
-            RegressionDataSet test = FixedProblems.getLinearRegression(100, new XORWOW(), coefs);
+            final RegressionDataSet train =  FixedProblems.getLinearRegression(1000, new XORWOW(), coefs);
+            final RegressionDataSet test = FixedProblems.getLinearRegression(100, new XORWOW(), coefs);
 
-            RegressionModelEvaluation rme = new RegressionModelEvaluation(instance, train);
+            final RegressionModelEvaluation rme = new RegressionModelEvaluation(instance, train);
             if(useCatFeatures) {
               rme.setDataTransformProcess(new DataTransformProcess(new NumericalToHistogram.NumericalToHistogramTransformFactory()));
             }
@@ -93,16 +93,16 @@ public class RandomForestTest
     {
         System.out.println("train");
 
-        for(boolean useCatFeatures : new boolean[]{true, false})
+        for(final boolean useCatFeatures : new boolean[]{true, false})
         {
-            RandomForest instance = new RandomForest();
+            final RandomForest instance = new RandomForest();
             
-            ExecutorService ex = Executors.newFixedThreadPool(SystemInfo.LogicalCores);
+            final ExecutorService ex = Executors.newFixedThreadPool(SystemInfo.LogicalCores);
 
-            RegressionDataSet train =  FixedProblems.getLinearRegression(1000, new XORWOW(), coefs);
-            RegressionDataSet test = FixedProblems.getLinearRegression(100, new XORWOW(), coefs);
+            final RegressionDataSet train =  FixedProblems.getLinearRegression(1000, new XORWOW(), coefs);
+            final RegressionDataSet test = FixedProblems.getLinearRegression(100, new XORWOW(), coefs);
 
-            RegressionModelEvaluation rme = new RegressionModelEvaluation(instance, train, ex);
+            final RegressionModelEvaluation rme = new RegressionModelEvaluation(instance, train, ex);
             if(useCatFeatures) {
               rme.setDataTransformProcess(new DataTransformProcess(new NumericalToHistogram.NumericalToHistogramTransformFactory()));
             }
@@ -119,17 +119,17 @@ public class RandomForestTest
     {
         System.out.println("trainC");
 
-        for(boolean useCatFeatures : new boolean[]{true, false})
+        for(final boolean useCatFeatures : new boolean[]{true, false})
         {
-            RandomForest instance = new RandomForest();
+            final RandomForest instance = new RandomForest();
 
-            ExecutorService ex = Executors.newFixedThreadPool(SystemInfo.LogicalCores);
+            final ExecutorService ex = Executors.newFixedThreadPool(SystemInfo.LogicalCores);
 
-            ClassificationDataSet train = FixedProblems.getCircles(1000, 1.0, 10.0, 100.0);
+            final ClassificationDataSet train = FixedProblems.getCircles(1000, 1.0, 10.0, 100.0);
             //RF may not get boundry perfect, so use noiseless for testing
-            ClassificationDataSet test = FixedProblems.getCircles(100, 0.0, new XORWOW(), 1.0, 10.0, 100.0);
+            final ClassificationDataSet test = FixedProblems.getCircles(100, 0.0, new XORWOW(), 1.0, 10.0, 100.0);
 
-            ClassificationModelEvaluation cme = new ClassificationModelEvaluation(instance, train, ex);
+            final ClassificationModelEvaluation cme = new ClassificationModelEvaluation(instance, train, ex);
             if(useCatFeatures) {
               cme.setDataTransformProcess(new DataTransformProcess(new NumericalToHistogram.NumericalToHistogramTransformFactory()));
             }
@@ -145,15 +145,15 @@ public class RandomForestTest
     public void testTrainC_ClassificationDataSet()
     {
         System.out.println("trainC");
-        for(boolean useCatFeatures : new boolean[]{true, false})
+        for(final boolean useCatFeatures : new boolean[]{true, false})
         {
-            RandomForest instance = new RandomForest();
+            final RandomForest instance = new RandomForest();
 
-            ClassificationDataSet train =  FixedProblems.getCircles(1000, 1.0, 10.0, 100.0);
+            final ClassificationDataSet train =  FixedProblems.getCircles(1000, 1.0, 10.0, 100.0);
             //RF may not get boundry perfect, so use noiseless for testing
-            ClassificationDataSet test = FixedProblems.getCircles(100, 0.0, new XORWOW(), 1.0, 10.0, 100.0);
+            final ClassificationDataSet test = FixedProblems.getCircles(100, 0.0, new XORWOW(), 1.0, 10.0, 100.0);
 
-            ClassificationModelEvaluation cme = new ClassificationModelEvaluation(instance, train);
+            final ClassificationModelEvaluation cme = new ClassificationModelEvaluation(instance, train);
             if(useCatFeatures) {
               cme.setDataTransformProcess(new DataTransformProcess(new NumericalToHistogram.NumericalToHistogramTransformFactory()));
             }
@@ -168,12 +168,12 @@ public class RandomForestTest
     public void testClone()
     {
         System.out.println("clone");
-        for(boolean useCatFeatures : new boolean[]{true, false})
+        for(final boolean useCatFeatures : new boolean[]{true, false})
         {
             RandomForest instance = new RandomForest();
             
-            ClassificationDataSet t1 = FixedProblems.getSimpleKClassLinear(100, 3);
-            ClassificationDataSet t2 = FixedProblems.getSimpleKClassLinear(100, 6);
+            final ClassificationDataSet t1 = FixedProblems.getSimpleKClassLinear(100, 3);
+            final ClassificationDataSet t2 = FixedProblems.getSimpleKClassLinear(100, 6);
             if(useCatFeatures)
             {
                 t1.applyTransform(new NumericalToHistogram(t1));
@@ -184,7 +184,7 @@ public class RandomForestTest
 
             instance.trainC(t1);
 
-            RandomForest result = instance.clone();
+            final RandomForest result = instance.clone();
             for(int i = 0; i < t1.getSampleSize(); i++) {
               assertEquals(t1.getDataPointCategory(i), result.classify(t1.getDataPoint(i)).mostLikely());
             }

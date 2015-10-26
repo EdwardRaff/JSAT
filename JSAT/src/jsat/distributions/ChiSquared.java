@@ -15,14 +15,14 @@ public class ChiSquared extends ContinuousDistribution
 	private static final long serialVersionUID = 2446232102260721666L;
 	double df;//Degrees of freedom
 
-    public ChiSquared(double df)
+    public ChiSquared(final double df)
     {
         this.df = df;
     }
 
     
     @Override
-    public double pdf(double x)
+    public double pdf(final double x)
     {
         if(x <= 0) {
           return 0;
@@ -45,7 +45,7 @@ public class ChiSquared extends ContinuousDistribution
 
 
     @Override
-    public double cdf(double x)
+    public double cdf(final double x)
     {
         if(x <= 0) {
           return 0;
@@ -57,7 +57,7 @@ public class ChiSquared extends ContinuousDistribution
     }
 
     @Override
-    public double invCdf(double p)
+    public double invCdf(final double p)
     {
         if(df == 2) {//special case with a closed form that is more accurate to compute, we include it b/c df = 2 is not uncomon
           return 2*abs(log(1-p));
@@ -96,7 +96,7 @@ public class ChiSquared extends ContinuousDistribution
     }
 
     @Override
-    public void setVariable(String var, double value)
+    public void setVariable(final String var, final double value)
     {
         if(var.equals("df")) {
           df = value;
@@ -110,7 +110,7 @@ public class ChiSquared extends ContinuousDistribution
     }
 
     @Override
-    public void setUsingData(Vec data)
+    public void setUsingData(final Vec data)
     {
         df = ceil(data.variance()/2);
     }
@@ -159,7 +159,7 @@ public class ChiSquared extends ContinuousDistribution
 
 
 	@Override
-	public boolean equals(Object obj) {
+	public boolean equals(final Object obj) {
 		if (this == obj) {
 			return true;
 		}
@@ -169,7 +169,7 @@ public class ChiSquared extends ContinuousDistribution
 		if (getClass() != obj.getClass()) {
 			return false;
 		}
-		ChiSquared other = (ChiSquared) obj;
+		final ChiSquared other = (ChiSquared) obj;
 		if (Double.doubleToLongBits(df) != Double.doubleToLongBits(other.df)) {
 			return false;
 		}

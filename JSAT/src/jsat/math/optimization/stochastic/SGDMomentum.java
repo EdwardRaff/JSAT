@@ -36,7 +36,7 @@ public class SGDMomentum implements GradientUpdater
      * @param nestrov {@code true} to use Nestrov momentum, {@code false} for
      * standard. 
      */
-    public SGDMomentum(double momentum, boolean nestrov)
+    public SGDMomentum(final double momentum, final boolean nestrov)
     {
         setMomentum(momentum);
         this.nestrov = nestrov;
@@ -46,7 +46,7 @@ public class SGDMomentum implements GradientUpdater
      * Creates a new SGD with Nestrov Momentum learner
      * @param momentum the amount of momentum to use
      */
-    public SGDMomentum(double momentum)
+    public SGDMomentum(final double momentum)
     {
         this(momentum, true);
     }
@@ -55,7 +55,7 @@ public class SGDMomentum implements GradientUpdater
      * Copy constructor
      * @param toCopy the object to copy
      */
-    public SGDMomentum(SGDMomentum toCopy)
+    public SGDMomentum(final SGDMomentum toCopy)
     {
         this.momentum = toCopy.momentum;
         if(toCopy.velocity != null) {
@@ -68,7 +68,7 @@ public class SGDMomentum implements GradientUpdater
      * Sets the momentum for accumulating gradients. 
      * @param momentum the momentum buildup term in (0, 1)
      */
-    public void setMomentum(double momentum)
+    public void setMomentum(final double momentum)
     {
         if(momentum <= 0 || momentum >= 1 || Double.isNaN(momentum)) {
           throw new IllegalArgumentException("Momentum must be in (0,1) not " + momentum);
@@ -86,13 +86,13 @@ public class SGDMomentum implements GradientUpdater
     }
     
     @Override
-    public void update(Vec x, Vec grad, double eta)
+    public void update(final Vec x, final Vec grad, final double eta)
     {
         update(x, grad, eta, 0.0, 0.0);
     }
 
     @Override
-    public double update(Vec x, Vec grad, double eta, double bias, double biasGrad)
+    public double update(final Vec x, final Vec grad, final double eta, final double bias, final double biasGrad)
     {
         double biasUpdate;
         if (nestrov)
@@ -125,7 +125,7 @@ public class SGDMomentum implements GradientUpdater
     }
 
     @Override
-    public void setup(int d)
+    public void setup(final int d)
     {
         velocity = new ScaledVector(new DenseVector(d));
         biasVelocity = 0;

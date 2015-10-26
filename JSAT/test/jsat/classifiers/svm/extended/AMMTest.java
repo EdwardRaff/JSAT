@@ -65,7 +65,7 @@ public class AMMTest
     public void testSubEpochs()
     {
         System.out.println("getSubEpochs");
-        AMM instance = new AMM();
+        final AMM instance = new AMM();
         
         instance.setSubEpochs(10);
         assertEquals(10, instance.getSubEpochs());
@@ -76,7 +76,7 @@ public class AMMTest
             instance.setSubEpochs(i);
             fail("Invalid value should have thrown an error");
           }
-          catch (Exception ex)
+          catch (final Exception ex)
           {
             
           }
@@ -91,12 +91,12 @@ public class AMMTest
     {
         //Hard to come up witha  good test problem for AMM, since it works better on higher dim problems
         System.out.println("trainC");
-        AMM instance = new AMM();
+        final AMM instance = new AMM();
         
-        ClassificationDataSet train = FixedProblems.getSimpleKClassLinear(10000, 3, new XOR96());
-        ClassificationDataSet test = FixedProblems.getSimpleKClassLinear(1000, 3, new XOR96());
+        final ClassificationDataSet train = FixedProblems.getSimpleKClassLinear(10000, 3, new XOR96());
+        final ClassificationDataSet test = FixedProblems.getSimpleKClassLinear(1000, 3, new XOR96());
 
-        ClassificationModelEvaluation cme = new ClassificationModelEvaluation(instance, train);
+        final ClassificationModelEvaluation cme = new ClassificationModelEvaluation(instance, train);
         cme.evaluateTestSet(test);
         
         assertTrue(cme.getErrorRate() <= 0.001);
@@ -110,8 +110,8 @@ public class AMMTest
     {
         System.out.println("clone");
         
-        ClassificationDataSet t1 = FixedProblems.getSimpleKClassLinear(10000, 3, new XOR96());
-        ClassificationDataSet t2 = FixedProblems.getSimpleKClassLinear(10000, 6, new XOR96());
+        final ClassificationDataSet t1 = FixedProblems.getSimpleKClassLinear(10000, 3, new XOR96());
+        final ClassificationDataSet t2 = FixedProblems.getSimpleKClassLinear(10000, 6, new XOR96());
         
         AMM instance = new AMM();
         
@@ -119,7 +119,7 @@ public class AMMTest
                 
         instance.trainC(t1);
 
-        AMM result = instance.clone();
+        final AMM result = instance.clone();
         result.trainC(t2);
         
         for(int i = 0; i < t1.getSampleSize(); i++) {

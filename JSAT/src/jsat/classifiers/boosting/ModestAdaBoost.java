@@ -47,7 +47,7 @@ public class ModestAdaBoost  implements Classifier, Parameterized, BinaryScoreCl
      * @param weakLearner the weak learner to use
      * @param maxIterations the maximum number of boosting iterations
      */
-    public ModestAdaBoost(Classifier weakLearner, int maxIterations)
+    public ModestAdaBoost(final Classifier weakLearner, final int maxIterations)
     {
         setWeakLearner(weakLearner);
         setMaxIterations(maxIterations);
@@ -57,14 +57,14 @@ public class ModestAdaBoost  implements Classifier, Parameterized, BinaryScoreCl
      * Copy constructor
      * @param toClone the object to clone
      */
-    protected ModestAdaBoost(ModestAdaBoost toClone)
+    protected ModestAdaBoost(final ModestAdaBoost toClone)
     {
         this(toClone.weakLearner.clone(), toClone.maxIterations);
         if(toClone.hypWeights != null)
         {
             this.hypWeights = new DoubleList(toClone.hypWeights);
             this.hypoths = new ArrayList<Classifier>(toClone.maxIterations);
-            for(Classifier weak : toClone.hypoths) {
+            for(final Classifier weak : toClone.hypoths) {
               this.hypoths.add(weak.clone());
             }
             this.predicting = toClone.predicting.clone();
@@ -84,7 +84,7 @@ public class ModestAdaBoost  implements Classifier, Parameterized, BinaryScoreCl
      * Sets the maximal number of boosting iterations that may be performed 
      * @param maxIterations the maximum number of iterations
      */
-    public void setMaxIterations(int maxIterations)
+    public void setMaxIterations(final int maxIterations)
     {
         if(maxIterations < 1) {
           throw new IllegalArgumentException("Iterations must be positive, not " + maxIterations);
@@ -105,7 +105,7 @@ public class ModestAdaBoost  implements Classifier, Parameterized, BinaryScoreCl
      * Sets the weak learner used during training. 
      * @param weakLearner the weak learner to use
      */
-    public void setWeakLearner(Classifier weakLearner)
+    public void setWeakLearner(final Classifier weakLearner)
     {
         if(!weakLearner.supportsWeightedData()) {
           throw new IllegalArgumentException("WeakLearner must support weighted data to be boosted");
@@ -114,7 +114,7 @@ public class ModestAdaBoost  implements Classifier, Parameterized, BinaryScoreCl
     }
     
     @Override
-    public double getScore(DataPoint dp)
+    public double getScore(final DataPoint dp)
     {
         double score = 0;
         for(int i = 0; i < hypoths.size(); i++) {
@@ -124,15 +124,15 @@ public class ModestAdaBoost  implements Classifier, Parameterized, BinaryScoreCl
     }
 
     @Override
-    public CategoricalResults classify(DataPoint data)
+    public CategoricalResults classify(final DataPoint data)
     {
         if(predicting == null) {
           throw new RuntimeException("Classifier has not been trained yet");
         }
         
-        CategoricalResults cr = new CategoricalResults(predicting.getNumOfCategories());
+        final CategoricalResults cr = new CategoricalResults(predicting.getNumOfCategories());
         
-        double score =  getScore(data);
+        final double score =  getScore(data);
         if(score < 0) {
           cr.setProb(0, 1.0);
         } else {
@@ -142,28 +142,28 @@ public class ModestAdaBoost  implements Classifier, Parameterized, BinaryScoreCl
     }
 
     @Override
-    public void trainC(ClassificationDataSet dataSet, ExecutorService threadPool)
+    public void trainC(final ClassificationDataSet dataSet, final ExecutorService threadPool)
     {
         predicting = dataSet.getPredicting();
         hypWeights = new DoubleList(maxIterations);
         hypoths = new ArrayList<Classifier>(maxIterations);
         final int N = dataSet.getSampleSize();
         
-        double[] D_inv = new double[N];
-        double[] D = new double[N];
+        final double[] D_inv = new double[N];
+        final double[] D = new double[N];
         
-        List<DataPointPair<Integer>> dataPoints = dataSet.getTwiceShallowClone().getAsDPPList();
+        final List<DataPointPair<Integer>> dataPoints = dataSet.getTwiceShallowClone().getAsDPPList();
         Arrays.fill(D, 1.0/N);
-        for(DataPointPair<Integer> dpp : dataPoints) {
+        for(final DataPointPair<Integer> dpp : dataPoints) {
           dpp.getDataPoint().setWeight(D[0]);//Scaled, they are all 1 
         }
         double weightSum = 1;
         
-        double[] H_cur = new double[N];
+        final double[] H_cur = new double[N];
         
         for(int t = 0; t < maxIterations; t++)
         {
-            Classifier weak = weakLearner.clone();
+            final Classifier weak = weakLearner.clone();
             if(threadPool == null || threadPool instanceof FakeExecutor) {
               weak.trainC(new ClassificationDataSet(dataPoints, predicting));
             } else {
@@ -182,11 +182,11 @@ public class ModestAdaBoost  implements Classifier, Parameterized, BinaryScoreCl
             
             for(int i = 0; i < N; i++)
             {
-                DataPointPair<Integer> dpp = dataPoints.get(i);
+                final DataPointPair<Integer> dpp = dataPoints.get(i);
                 
                 H_cur[i] = (weak.classify(dpp.getDataPoint()).getProb(1)*2-1);
-                double outPut = Math.signum(H_cur[i]);
-                int c = dpp.getPair();
+                final double outPut = Math.signum(H_cur[i]);
+                final int c = dpp.getPair();
                 if(c == 1)//positive example case
                 {
                     p_d  += outPut * D[i];
@@ -200,7 +200,7 @@ public class ModestAdaBoost  implements Classifier, Parameterized, BinaryScoreCl
                 
             }
             
-            double alpha_m = p_d * (1 - p_id) - n_d * (1 - n_id); 
+            final double alpha_m = p_d * (1 - p_id) - n_d * (1 - n_id); 
             
             if(Math.signum(alpha_m) != Math.signum(p_d-n_d) || Math.abs((p_d - n_d)) < 1e-6 || alpha_m <= 0) {
               return;
@@ -209,9 +209,9 @@ public class ModestAdaBoost  implements Classifier, Parameterized, BinaryScoreCl
             weightSum = 0;
             for(int i = 0; i < N; i++)
             {
-                DataPoint dp = dataPoints.get(i).getDataPoint();
+                final DataPoint dp = dataPoints.get(i).getDataPoint();
                 double w_i = dp.getWeight();
-                int y_i = dataPoints.get(i).getPair()*2-1;
+                final int y_i = dataPoints.get(i).getPair()*2-1;
                 w_i *= Math.exp(-y_i*alpha_m*H_cur[i]);
                 if(Double.isInfinite(w_i)) {
                   w_i = 1;//Let it grow back
@@ -224,8 +224,8 @@ public class ModestAdaBoost  implements Classifier, Parameterized, BinaryScoreCl
             
             for(int i = 0; i < N; i++)
             {
-                DataPoint dp = dataPoints.get(i).getDataPoint();
-                double w_i = dp.getWeight();
+                final DataPoint dp = dataPoints.get(i).getDataPoint();
+                final double w_i = dp.getWeight();
                 dp.setWeight(Math.max(w_i/weightSum, 1e-10));//no zeros allowed
             }
             
@@ -235,7 +235,7 @@ public class ModestAdaBoost  implements Classifier, Parameterized, BinaryScoreCl
     }
 
     @Override
-    public void trainC(ClassificationDataSet dataSet)
+    public void trainC(final ClassificationDataSet dataSet)
     {
         trainC(dataSet, null);
     }
@@ -259,7 +259,7 @@ public class ModestAdaBoost  implements Classifier, Parameterized, BinaryScoreCl
     }
 
     @Override
-    public Parameter getParameter(String paramName)
+    public Parameter getParameter(final String paramName)
     {
         return Parameter.toParameterMap(getParameters()).get(paramName);
     }

@@ -25,13 +25,13 @@ public class SimpleSGD implements GradientUpdater
     }
 
     @Override
-    public void update(Vec x, Vec grad, double eta)
+    public void update(final Vec x, final Vec grad, final double eta)
     {
         x.mutableSubtract(eta, grad);
     }
 
     @Override
-    public double update(Vec x, Vec grad, double eta, double bias, double biasGrad)
+    public double update(final Vec x, final Vec grad, final double eta, final double bias, final double biasGrad)
     {
         x.mutableSubtract(eta, grad);
         return eta*biasGrad;
@@ -44,7 +44,7 @@ public class SimpleSGD implements GradientUpdater
     }
 
     @Override
-    public void setup(int d)
+    public void setup(final int d)
     {
         //no setup to be done
     }

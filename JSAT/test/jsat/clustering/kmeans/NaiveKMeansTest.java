@@ -45,7 +45,7 @@ public class NaiveKMeansTest
     @BeforeClass
     public static void setUpClass() throws Exception
     {
-        GridDataGenerator gdg = new GridDataGenerator(new Uniform(-0.15, 0.15), new XORWOW(), 2, 5);
+        final GridDataGenerator gdg = new GridDataGenerator(new Uniform(-0.15, 0.15), new XORWOW(), 2, 5);
         easyData10 = gdg.generateData(110);
         ex = Executors.newFixedThreadPool(SystemInfo.LogicalCores);
     }
@@ -60,10 +60,10 @@ public class NaiveKMeansTest
     public void setUp()
     {
         //generate seeds that should lead to exact solution 
-        GridDataGenerator gdg = new GridDataGenerator(new Uniform(-1e-10, 1e-10), new XORWOW(), 2, 5);
-        SimpleDataSet seedData = gdg.generateData(1);
+        final GridDataGenerator gdg = new GridDataGenerator(new Uniform(-1e-10, 1e-10), new XORWOW(), 2, 5);
+        final SimpleDataSet seedData = gdg.generateData(1);
         seeds = seedData.getDataVectors();
-        for(Vec v : seeds) {
+        for(final Vec v : seeds) {
           v.mutableAdd(0.1);//shift off center so we aren't starting at the expected solution
         }
     }
@@ -80,17 +80,17 @@ public class NaiveKMeansTest
     public void testCluster_DataSet_intArr()
     {
         System.out.println("cluster");
-        NaiveKMeans kMeans = new NaiveKMeans(new EuclideanDistance(), SeedSelectionMethods.SeedSelection.FARTHEST_FIRST);
-        int[] assignment = new int[easyData10.getSampleSize()];
+        final NaiveKMeans kMeans = new NaiveKMeans(new EuclideanDistance(), SeedSelectionMethods.SeedSelection.FARTHEST_FIRST);
+        final int[] assignment = new int[easyData10.getSampleSize()];
         kMeans.cluster(easyData10, null, 10, seeds, assignment, true, null, true);
-        List<List<DataPoint>> clusters = KClustererBase.createClusterListFromAssignmentArray(assignment, easyData10);
+        final List<List<DataPoint>> clusters = KClustererBase.createClusterListFromAssignmentArray(assignment, easyData10);
         assertEquals(10, clusters.size());
-        Set<Integer> seenBefore = new IntSet();
-        for(List<DataPoint> cluster :  clusters)
+        final Set<Integer> seenBefore = new IntSet();
+        for(final List<DataPoint> cluster :  clusters)
         {
-            int thisClass = cluster.get(0).getCategoricalValue(0);
+            final int thisClass = cluster.get(0).getCategoricalValue(0);
             assertFalse(seenBefore.contains(thisClass));
-            for(DataPoint dp : cluster) {
+            for(final DataPoint dp : cluster) {
               assertEquals(thisClass, dp.getCategoricalValue(0));
             }
         }
@@ -103,17 +103,17 @@ public class NaiveKMeansTest
     public void testCluster_3args_1()
     {
         System.out.println("cluster");
-        NaiveKMeans kMeans = new NaiveKMeans(new EuclideanDistance(), SeedSelectionMethods.SeedSelection.FARTHEST_FIRST);
-        int[] assignment = new int[easyData10.getSampleSize()];
+        final NaiveKMeans kMeans = new NaiveKMeans(new EuclideanDistance(), SeedSelectionMethods.SeedSelection.FARTHEST_FIRST);
+        final int[] assignment = new int[easyData10.getSampleSize()];
         kMeans.cluster(easyData10, null, 10, seeds, assignment, true, ex, true);
-        List<List<DataPoint>> clusters = KClustererBase.createClusterListFromAssignmentArray(assignment, easyData10);
+        final List<List<DataPoint>> clusters = KClustererBase.createClusterListFromAssignmentArray(assignment, easyData10);
         assertEquals(10, clusters.size());
-        Set<Integer> seenBefore = new IntSet();
-        for(List<DataPoint> cluster :  clusters)
+        final Set<Integer> seenBefore = new IntSet();
+        for(final List<DataPoint> cluster :  clusters)
         {
-            int thisClass = cluster.get(0).getCategoricalValue(0);
+            final int thisClass = cluster.get(0).getCategoricalValue(0);
             assertFalse(seenBefore.contains(thisClass));
-            for(DataPoint dp : cluster) {
+            for(final DataPoint dp : cluster) {
               assertEquals(thisClass, dp.getCategoricalValue(0));
             }
         }

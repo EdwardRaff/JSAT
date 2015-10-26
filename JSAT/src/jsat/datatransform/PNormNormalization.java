@@ -14,13 +14,13 @@ public class PNormNormalization implements InPlaceTransform
 {
 
 	private static final long serialVersionUID = 2934569881395909607L;
-	private double p;
+	private final double p;
 
     /**
      * Creates a new p norm
      * @param p the norm to use
      */
-    public PNormNormalization(double p)
+    public PNormNormalization(final double p)
     {
         if(p <= 0 || Double.isNaN(p)) {
           throw new IllegalArgumentException("p must be greater than zero, not " + p);
@@ -29,19 +29,19 @@ public class PNormNormalization implements InPlaceTransform
     }
     
     @Override
-    public DataPoint transform(DataPoint dp)
+    public DataPoint transform(final DataPoint dp)
     {
-        DataPoint dpNew = dp.clone();
+        final DataPoint dpNew = dp.clone();
         
         mutableTransform(dpNew);
         return dpNew;
     }
         
     @Override
-    public void mutableTransform(DataPoint dp)
+    public void mutableTransform(final DataPoint dp)
     {
-        Vec vec = dp.getNumericalValues();
-        double norm = vec.pNorm(p);
+        final Vec vec = dp.getNumericalValues();
+        final double norm = vec.pNorm(p);
         if(norm != 0) {
           vec.mutableDivide(norm);
         }
@@ -70,7 +70,7 @@ public class PNormNormalization implements InPlaceTransform
          * Creates a new p norm factory
          * @param p the norm to use
          */
-        public PNormNormalizationFactory(double p)
+        public PNormNormalizationFactory(final double p)
         {
             this.p = p;
         }
@@ -79,7 +79,7 @@ public class PNormNormalization implements InPlaceTransform
          * Copy constructor 
          * @param toCopy the object to copy
          */
-        public PNormNormalizationFactory(PNormNormalizationFactory toCopy)
+        public PNormNormalizationFactory(final PNormNormalizationFactory toCopy)
         {
             this.p = toCopy.p;
         }
@@ -88,7 +88,7 @@ public class PNormNormalization implements InPlaceTransform
          * Sets the norm that the vector should be normalized by. 
          * @param p the norm to use in (0, Infinity]
          */
-        public void setPNorm(double p)
+        public void setPNorm(final double p)
         {
             if(p <= 0 || Double.isNaN(p)) {
               throw new IllegalArgumentException("p must be greater than zero, not " + p);
@@ -106,7 +106,7 @@ public class PNormNormalization implements InPlaceTransform
         }
 
         @Override
-        public DataTransform getTransform(DataSet dataset)
+        public DataTransform getTransform(final DataSet dataset)
         {
             return new PNormNormalization(p);
         }

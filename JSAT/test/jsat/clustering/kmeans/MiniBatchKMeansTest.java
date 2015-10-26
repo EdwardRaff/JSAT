@@ -39,7 +39,7 @@ public class MiniBatchKMeansTest
     @BeforeClass
     public static void setUpClass()
     {
-        GridDataGenerator gdg = new GridDataGenerator(new Uniform(-0.15, 0.15), new Random(12), 2, 2);
+        final GridDataGenerator gdg = new GridDataGenerator(new Uniform(-0.15, 0.15), new Random(12), 2, 2);
         easyData10 = gdg.generateData(110);
         ex = Executors.newFixedThreadPool(SystemInfo.LogicalCores);
     }
@@ -67,15 +67,15 @@ public class MiniBatchKMeansTest
     public void testCluster_DataSet_intArr()
     {
         System.out.println("cluster");
-        MiniBatchKMeans kMeans = new MiniBatchKMeans(new EuclideanDistance(), 50, 50, SeedSelectionMethods.SeedSelection.FARTHEST_FIRST);
-        List<List<DataPoint>> clusters = kMeans.cluster(easyData10, 10);
+        final MiniBatchKMeans kMeans = new MiniBatchKMeans(new EuclideanDistance(), 50, 50, SeedSelectionMethods.SeedSelection.FARTHEST_FIRST);
+        final List<List<DataPoint>> clusters = kMeans.cluster(easyData10, 10);
         assertEquals(10, clusters.size());
-        Set<Integer> seenBefore = new IntSet();
-        for(List<DataPoint> cluster :  clusters)
+        final Set<Integer> seenBefore = new IntSet();
+        for(final List<DataPoint> cluster :  clusters)
         {
-            int thisClass = cluster.get(0).getCategoricalValue(0);
+            final int thisClass = cluster.get(0).getCategoricalValue(0);
             assertFalse(seenBefore.contains(thisClass));
-            for(DataPoint dp : cluster) {
+            for(final DataPoint dp : cluster) {
               assertEquals(thisClass, dp.getCategoricalValue(0));
             }
         }
@@ -88,15 +88,15 @@ public class MiniBatchKMeansTest
     public void testCluster_3args_1()
     {
         System.out.println("cluster");
-        MiniBatchKMeans kMeans = new MiniBatchKMeans(new EuclideanDistance(), 50, 50, SeedSelectionMethods.SeedSelection.FARTHEST_FIRST);
-        List<List<DataPoint>> clusters = kMeans.cluster(easyData10, 10, ex);
+        final MiniBatchKMeans kMeans = new MiniBatchKMeans(new EuclideanDistance(), 50, 50, SeedSelectionMethods.SeedSelection.FARTHEST_FIRST);
+        final List<List<DataPoint>> clusters = kMeans.cluster(easyData10, 10, ex);
         assertEquals(10, clusters.size());
-        Set<Integer> seenBefore = new IntSet();
-        for(List<DataPoint> cluster :  clusters)
+        final Set<Integer> seenBefore = new IntSet();
+        for(final List<DataPoint> cluster :  clusters)
         {
-            int thisClass = cluster.get(0).getCategoricalValue(0);
+            final int thisClass = cluster.get(0).getCategoricalValue(0);
             assertFalse(seenBefore.contains(thisClass));
-            for(DataPoint dp : cluster) {
+            for(final DataPoint dp : cluster) {
               assertEquals(thisClass, dp.getCategoricalValue(0));
             }
         }

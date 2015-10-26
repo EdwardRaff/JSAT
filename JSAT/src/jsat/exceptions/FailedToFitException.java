@@ -11,31 +11,31 @@ public class FailedToFitException extends RuntimeException
 	private static final long serialVersionUID = 2982189541225068993L;
 	private Exception faultException;
 
-    public FailedToFitException(Exception faultException, String message)
+    public FailedToFitException(final Exception faultException, final String message)
     {
         super(message);
         this.faultException = faultException;
     }
 
-    public FailedToFitException(Exception faultException, Throwable cause)
+    public FailedToFitException(final Exception faultException, final Throwable cause)
     {
         super(cause);
         this.faultException = faultException;
     }
 
-    public FailedToFitException(Exception faultException, String message, Throwable cause)
+    public FailedToFitException(final Exception faultException, final String message, final Throwable cause)
     {
         super(message, cause);
         this.faultException = faultException;
     }
 
-    public FailedToFitException(Exception faultException)
+    public FailedToFitException(final Exception faultException)
     {
         super(faultException.getMessage());
         this.faultException = faultException;
     }
 
-    public FailedToFitException(String string)
+    public FailedToFitException(final String string)
     {
         super(string);
     }

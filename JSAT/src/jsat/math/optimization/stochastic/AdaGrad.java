@@ -32,7 +32,7 @@ public class AdaGrad implements GradientUpdater
      * Copy constructor
      * @param toCopy the object to copy
      */
-    public AdaGrad(AdaGrad toCopy)
+    public AdaGrad(final AdaGrad toCopy)
     {
         if(toCopy.daigG != null) {
           this.daigG = toCopy.daigG.clone();
@@ -42,15 +42,15 @@ public class AdaGrad implements GradientUpdater
     
 
     @Override
-    public void update(Vec x, Vec grad, double eta)
+    public void update(final Vec x, final Vec grad, final double eta)
     {
         update(x, grad, eta, 0, 0);
     }
 
     @Override
-    public double update(Vec x, Vec grad, double eta, double bias, double biasGrad)
+    public double update(final Vec x, final Vec grad, final double eta, final double bias, final double biasGrad)
     {
-        for(IndexValue iv : grad)
+        for(final IndexValue iv : grad)
         {
             final int indx = iv.getIndex();
             final double grad_i = iv.getValue();
@@ -59,7 +59,7 @@ public class AdaGrad implements GradientUpdater
             daigG.increment(indx, grad_i*grad_i);
         }
         
-        double biasUpdate = eta*biasGrad/Math.sqrt(biasG);
+        final double biasUpdate = eta*biasGrad/Math.sqrt(biasG);
         biasG += biasGrad*biasGrad;
         return biasUpdate;
     }
@@ -71,7 +71,7 @@ public class AdaGrad implements GradientUpdater
     }
 
     @Override
-    public void setup(int d)
+    public void setup(final int d)
     {
         daigG = new DenseVector(new ConstantVector(1.0, d));
         biasG = 1;

@@ -20,24 +20,24 @@ public class IntSet extends AbstractSet<Integer> implements Serializable
     private int[] store;
     private int size;
     
-    public IntSet(int initialSize)
+    public IntSet(final int initialSize)
     {
         store = new int[initialSize];
         size = 0;
     }
     
-    public IntSet(SortedSet<Integer> sortedSet)
+    public IntSet(final SortedSet<Integer> sortedSet)
     {
         this();
-        for(Integer integer : sortedSet) {
+        for(final Integer integer : sortedSet) {
           this.add(integer);
         }
     }
     
-    public IntSet(Collection<Integer> collection)
+    public IntSet(final Collection<Integer> collection)
     {
         this();
-        for(Integer integer : collection) {
+        for(final Integer integer : collection) {
           this.add(integer);
         }
     }
@@ -48,7 +48,7 @@ public class IntSet extends AbstractSet<Integer> implements Serializable
     }
 
     @Override
-    public boolean add(Integer e)
+    public boolean add(final Integer e)
     {
         if(e == null) {
           return false;

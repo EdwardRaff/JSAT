@@ -16,10 +16,10 @@ public class SimpleLinearRegression
      * @param xData the X data set (the predictor)
      * @return an array containing the a and b, such that index 0 contains a and index 1 contains b
      */
-    static public double[] regres(Vec xData, Vec yData)
+    static public double[] regres(final Vec xData, final Vec yData)
     {
         //find y = a + B *x
-        double[] toReturn = new double[2];
+        final double[] toReturn = new double[2];
 
         //B value
         toReturn[1] = DescriptiveStatistics.sampleCorCoeff(xData, yData)*yData.standardDeviation()/xData.standardDeviation();

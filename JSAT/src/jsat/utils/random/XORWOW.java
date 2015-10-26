@@ -29,13 +29,13 @@ public class XORWOW extends Random
      * @param seed the seed that controls the initial state of the PRNG
      * @see #setSeed(long) 
      */
-    public XORWOW(long seed)
+    public XORWOW(final long seed)
     {
         super(seed);
     }
 
     @Override
-    public synchronized void setSeed(long seed)
+    public synchronized void setSeed(final long seed)
     {
         super.setSeed(seed);
         x = super.next(32);
@@ -64,7 +64,7 @@ public class XORWOW extends Random
     }
     
     @Override
-    protected int next(int bits)
+    protected int next(final int bits)
     {
         return (int)(nextLong() >>> (64 - bits));
     }
@@ -87,7 +87,7 @@ public class XORWOW extends Random
     @Override
     public double nextDouble()
     {
-        long l = nextLong() >>> 11; 
+        final long l = nextLong() >>> 11; 
         return l / (double)(1L << 53);
     }
 }

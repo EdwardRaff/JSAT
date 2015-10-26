@@ -29,11 +29,11 @@ public class LogisticTest {
     @Test
     public void testEquals(){
     	System.out.println("equals");
-    	ContinuousDistribution d1 = new Logistic(0.5, 0.5);
-    	ContinuousDistribution d2 = new Logistic(0.6, 0.5);
-    	ContinuousDistribution d3 = new Logistic(0.5, 0.6);
-    	ContinuousDistribution d4 = new Logistic(0.5, 0.5);
-    	Integer i = new Integer(1);
+    	final ContinuousDistribution d1 = new Logistic(0.5, 0.5);
+    	final ContinuousDistribution d2 = new Logistic(0.6, 0.5);
+    	final ContinuousDistribution d3 = new Logistic(0.5, 0.6);
+    	final ContinuousDistribution d4 = new Logistic(0.5, 0.5);
+    	final Integer i = new Integer(1);
     	assertFalse(d1.equals(d2));
     	assertFalse(d1.equals(d3));
     	assertFalse(d2.equals(d3));
@@ -47,9 +47,9 @@ public class LogisticTest {
     @Test
     public void testHashCode(){
     	System.out.println("hashCode");
-    	ContinuousDistribution d1 = new Logistic(0.5, 0.5);
-    	ContinuousDistribution d2 = new Logistic(0.6, 0.5);
-    	ContinuousDistribution d4 = new Logistic(0.5, 0.5);
+    	final ContinuousDistribution d1 = new Logistic(0.5, 0.5);
+    	final ContinuousDistribution d2 = new Logistic(0.6, 0.5);
+    	final ContinuousDistribution d4 = new Logistic(0.5, 0.5);
     	assertEquals(d1.hashCode(), d4.hashCode());
     	assertFalse(d1.hashCode()==d2.hashCode());
     }

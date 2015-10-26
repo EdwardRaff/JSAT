@@ -32,9 +32,9 @@ public class LUPDecompositionTest
     
     static ExecutorService threadpool = Executors.newFixedThreadPool(SystemInfo.LogicalCores+1, new ThreadFactory() {
 
-        public Thread newThread(Runnable r)
+        public Thread newThread(final Runnable r)
         {
-            Thread thread = new Thread(r);
+            final Thread thread = new Thread(r);
             thread.setDaemon(true);
             return thread;
         }
@@ -128,7 +128,7 @@ public class LUPDecompositionTest
             instance.det();
             fail("Can not take the determinant of a non square matrix");
         }
-        catch(ArithmeticException ex)
+        catch(final ArithmeticException ex)
         {
             
         }
@@ -141,7 +141,7 @@ public class LUPDecompositionTest
     public void testSolve_Vec()
     {
         System.out.println("solve");
-        Vec b = new DenseVector(Arrays.asList(1.0, 2.0, 3.0, 4.0, 5.0 ));
+        final Vec b = new DenseVector(Arrays.asList(1.0, 2.0, 3.0, 4.0, 5.0 ));
         LUPDecomposition instance = null;
         
         instance = new LUPDecomposition(A);
@@ -182,7 +182,7 @@ public class LUPDecompositionTest
             instance.solve(A);
             fail("The matrix dimensions do not agree!");
         }
-        catch(ArithmeticException ex)
+        catch(final ArithmeticException ex)
         {
             
         }
@@ -193,7 +193,7 @@ public class LUPDecompositionTest
             instance.solve(C.transpose());
             fail("The matrix dimensions do not agree!");
         }
-        catch(ArithmeticException ex)
+        catch(final ArithmeticException ex)
         {
             
         }
@@ -227,7 +227,7 @@ public class LUPDecompositionTest
             instance.solve(A, threadpool);
             fail("The matrix dimensions do not agree!");
         }
-        catch(ArithmeticException ex)
+        catch(final ArithmeticException ex)
         {
             
         }
@@ -238,7 +238,7 @@ public class LUPDecompositionTest
             instance.solve(C.transpose(), threadpool);
             fail("The matrix dimensions do not agree!");
         }
-        catch(ArithmeticException ex)
+        catch(final ArithmeticException ex)
         {
             
         }
@@ -251,7 +251,7 @@ public class LUPDecompositionTest
     public void testForwardSub_Matrix_Vec()
     {
         System.out.println("forwardSub");
-        DenseMatrix L = new DenseMatrix(new double[][] 
+        final DenseMatrix L = new DenseMatrix(new double[][] 
         {
             {1.0000,         0,         0,         0,         0},
             {0.1111,    1.0000,         0,         0,         0},
@@ -263,7 +263,7 @@ public class LUPDecompositionTest
         Vec b = new DenseVector(Arrays.asList(1.0, 2.0, 3.0, 4.0, 5.0 ));
         
         
-        Vec x = LUPDecomposition.forwardSub(L, b);
+        final Vec x = LUPDecomposition.forwardSub(L, b);
         
         assertTrue(L.multiply(x).equals(b, 1e-10));
         
@@ -275,7 +275,7 @@ public class LUPDecompositionTest
            LUPDecomposition.forwardSub(L, b);
            fail("Dimensions dont agree!");
        }
-       catch(ArithmeticException ex)
+       catch(final ArithmeticException ex)
        {
            
        }
@@ -286,7 +286,7 @@ public class LUPDecompositionTest
            LUPDecomposition.forwardSub(L, b);
            fail("Dimensions dont agree!");
        }
-       catch(ArithmeticException ex)
+       catch(final ArithmeticException ex)
        {
            
        }
@@ -301,7 +301,7 @@ public class LUPDecompositionTest
     {
         System.out.println("forwardSub");
         
-        DenseMatrix L = new DenseMatrix(new double[][] 
+        final DenseMatrix L = new DenseMatrix(new double[][] 
         {
             {1.0000,         0,         0,         0,         0},
             {0.1111,    1.0000,         0,         0,         0},
@@ -310,7 +310,7 @@ public class LUPDecompositionTest
             {0.8889,   -0.4706,    1.9719,   -1.1457,    1.0000}
         } );
         
-        DenseMatrix b = new DenseMatrix(new double[][] 
+        final DenseMatrix b = new DenseMatrix(new double[][] 
         {
             {1, 2},
             {3, 4},
@@ -319,7 +319,7 @@ public class LUPDecompositionTest
             {9, 10}
         } );
         
-        Matrix x = LUPDecomposition.forwardSub(L, b);
+        final Matrix x = LUPDecomposition.forwardSub(L, b);
         assertTrue(L.multiply(x).equals(b, 1e-10));
     }
 
@@ -330,7 +330,7 @@ public class LUPDecompositionTest
     public void testForwardSub_3args()
     {
         System.out.println("forwardSub");
-        DenseMatrix L = new DenseMatrix(new double[][] 
+        final DenseMatrix L = new DenseMatrix(new double[][] 
         {
             {1.0000,         0,         0,         0,         0},
             {0.1111,    1.0000,         0,         0,         0},
@@ -339,7 +339,7 @@ public class LUPDecompositionTest
             {0.8889,   -0.4706,    1.9719,   -1.1457,    1.0000}
         } );
         
-        DenseMatrix b = new DenseMatrix(new double[][] 
+        final DenseMatrix b = new DenseMatrix(new double[][] 
         {
             {1, 2},
             {3, 4},
@@ -348,7 +348,7 @@ public class LUPDecompositionTest
             {9, 10}
         } );
         
-        Matrix x = LUPDecomposition.forwardSub(L, b, threadpool);
+        final Matrix x = LUPDecomposition.forwardSub(L, b, threadpool);
         assertTrue(L.multiply(x).equals(b, 1e-10));
     }
 
@@ -359,7 +359,7 @@ public class LUPDecompositionTest
     public void testBackSub_Matrix_Vec()
     {
         System.out.println("backSub");
-        DenseMatrix U = new DenseMatrix(new double[][] 
+        final DenseMatrix U = new DenseMatrix(new double[][] 
         {
             {9.0000,    3.0000,    2.0000,    7.0000,    2.0000},
             {     0,    5.6667,    7.7778,    2.2222,    0.7778},
@@ -368,10 +368,10 @@ public class LUPDecompositionTest
             {     0,         0,         0,         0,   -0.1469}
         } );
         
-        Vec b = new DenseVector(Arrays.asList(1.0, 2.0, 3.0, 4.0, 5.0 ));
+        final Vec b = new DenseVector(Arrays.asList(1.0, 2.0, 3.0, 4.0, 5.0 ));
         
         
-        Vec x = LUPDecomposition.backSub(U, b);
+        final Vec x = LUPDecomposition.backSub(U, b);
         
         assertTrue(U.multiply(x).equals(b, 1e-10));
     }
@@ -383,7 +383,7 @@ public class LUPDecompositionTest
     public void testBackSub_Matrix_Matrix()
     {
         System.out.println("backSub");
-        DenseMatrix U = new DenseMatrix(new double[][] 
+        final DenseMatrix U = new DenseMatrix(new double[][] 
         {
             {9.0000,    3.0000,    2.0000,    7.0000,    2.0000},
             {     0,    5.6667,    7.7778,    2.2222,    0.7778},
@@ -392,7 +392,7 @@ public class LUPDecompositionTest
             {     0,         0,         0,         0,   -0.1469}
         } );
         
-        DenseMatrix b = new DenseMatrix(new double[][] 
+        final DenseMatrix b = new DenseMatrix(new double[][] 
         {
             {1, 2},
             {3, 4},
@@ -401,7 +401,7 @@ public class LUPDecompositionTest
             {9, 10}
         } );
         
-        Matrix x = LUPDecomposition.backSub(U, b);
+        final Matrix x = LUPDecomposition.backSub(U, b);
         assertTrue(U.multiply(x).equals(b, 1e-10));
     }
 
@@ -412,7 +412,7 @@ public class LUPDecompositionTest
     public void testBackSub_3args()
     {
         System.out.println("backSub");
-        DenseMatrix U = new DenseMatrix(new double[][] 
+        final DenseMatrix U = new DenseMatrix(new double[][] 
         {
             {9.0000,    3.0000,    2.0000,    7.0000,    2.0000},
             {     0,    5.6667,    7.7778,    2.2222,    0.7778},
@@ -421,7 +421,7 @@ public class LUPDecompositionTest
             {     0,         0,         0,         0,   -0.1469}
         } );
         
-        DenseMatrix b = new DenseMatrix(new double[][] 
+        final DenseMatrix b = new DenseMatrix(new double[][] 
         {
             {1, 2},
             {3, 4},
@@ -430,7 +430,7 @@ public class LUPDecompositionTest
             {9, 10}
         } );
         
-        Matrix x = LUPDecomposition.backSub(U, b, threadpool);
+        final Matrix x = LUPDecomposition.backSub(U, b, threadpool);
         assertTrue(U.multiply(x).equals(b, 1e-10));
     }
 }

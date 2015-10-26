@@ -23,7 +23,7 @@ public class LinearKernel extends BaseKernelTrick
      * Creates a new Linear Kernel that computes the dot product and offsets it by a specified value
      * @param c the positive bias term for the dot product
      */
-    public LinearKernel(double c)
+    public LinearKernel(final double c)
     {
         this.c = c;
     }
@@ -40,7 +40,7 @@ public class LinearKernel extends BaseKernelTrick
      * The positive bias term added to the result of the dot product
      * @param c the added product term
      */
-    public void setC(double c)
+    public void setC(final double c)
     {
         if(c < 0 || Double.isInfinite(c) || Double.isNaN(c)) {
           throw new IllegalArgumentException("C must be a positive constant, not " + c);
@@ -59,7 +59,7 @@ public class LinearKernel extends BaseKernelTrick
     
     
     @Override
-    public double eval(Vec a, Vec b)
+    public double eval(final Vec a, final Vec b)
     {
         return a.dot(b) + c;
     }
@@ -70,7 +70,7 @@ public class LinearKernel extends BaseKernelTrick
         return "Linear Kernel (c=" + c + ")";
     }
     
-    private Parameter param = new DoubleParameter() 
+    private final Parameter param = new DoubleParameter() 
     {
 
         /**
@@ -85,7 +85,7 @@ public class LinearKernel extends BaseKernelTrick
         }
 
         @Override
-        public boolean setValue(double val)
+        public boolean setValue(final double val)
         {
             if(val < 0 || Double.isInfinite(val)) {
               return false;
@@ -108,7 +108,7 @@ public class LinearKernel extends BaseKernelTrick
     }
 
     @Override
-    public Parameter getParameter(String paramName)
+    public Parameter getParameter(final String paramName)
     {
         if(paramName.equals(param.getASCIIName())) {
           return param;

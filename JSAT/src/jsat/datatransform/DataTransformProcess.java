@@ -27,8 +27,8 @@ public class DataTransformProcess implements DataTransform, Parameterized
 
 	private static final long serialVersionUID = -2844495690944305885L;
 	@ParameterHolder(skipSelfNamePrefix = true)
-    private List<DataTransformFactory> transformSource;
-    private List<DataTransform> learnedTransforms;
+    private final List<DataTransformFactory> transformSource;
+    private final List<DataTransform> learnedTransforms;
     
 
     /**
@@ -48,10 +48,10 @@ public class DataTransformProcess implements DataTransform, Parameterized
      * 
      * @param factories the array of factories to apply as the data transform process
      */
-    public DataTransformProcess(DataTransformFactory... factories)
+    public DataTransformProcess(final DataTransformFactory... factories)
     {
         this();
-        for(DataTransformFactory factory : factories) {
+        for(final DataTransformFactory factory : factories) {
           this.addTransform(factory);
         }
     }
@@ -61,7 +61,7 @@ public class DataTransformProcess implements DataTransform, Parameterized
      * applied in the order in which they are added. 
      * @param transform the factory for the transform to add
      */
-    public void addTransform(DataTransformFactory transform)
+    public void addTransform(final DataTransformFactory transform)
     {
         transformSource.add(transform);
     }
@@ -83,13 +83,13 @@ public class DataTransformProcess implements DataTransform, Parameterized
     {
         for(int i = 0; i < learnedTransforms.size()-1; i++)
         {
-            DataTransform t1 = learnedTransforms.get(i);
-            DataTransform t2 = learnedTransforms.get(i+1);
+            final DataTransform t1 = learnedTransforms.get(i);
+            final DataTransform t2 = learnedTransforms.get(i+1);
             if(!(t1 instanceof RemoveAttributeTransform && t2 instanceof RemoveAttributeTransform)) {
               continue;//They are not both RATs
             }
-            RemoveAttributeTransform r1 = (RemoveAttributeTransform) t1;
-            RemoveAttributeTransform r2 = (RemoveAttributeTransform) t2;
+            final RemoveAttributeTransform r1 = (RemoveAttributeTransform) t1;
+            final RemoveAttributeTransform r2 = (RemoveAttributeTransform) t2;
             
             r2.consolidate(r1);
             learnedTransforms.remove(i);
@@ -105,7 +105,7 @@ public class DataTransformProcess implements DataTransform, Parameterized
      * 
      * @param dataSet the data set to learn a series of transforms from
      */
-    public void leanTransforms(DataSet dataSet)
+    public void leanTransforms(final DataSet dataSet)
     {
         learnApplyTransforms(dataSet.shallowClone());
     }
@@ -121,7 +121,7 @@ public class DataTransformProcess implements DataTransform, Parameterized
      * @param dataSet the data set to learn a series of transforms from and 
      * alter into the final transformed form
      */
-    public void learnApplyTransforms(DataSet dataSet)
+    public void learnApplyTransforms(final DataSet dataSet)
     {
         learnedTransforms.clear();
         //used to keep track if we can start using in place transforms
@@ -130,28 +130,28 @@ public class DataTransformProcess implements DataTransform, Parameterized
         int iter = 0;
         
         //copy original references so we can check saftey of inplace mutation later
-        Vec[] origVecs = new Vec[dataSet.getSampleSize()];
-        int[][] origCats = new int[dataSet.getSampleSize()][];
+        final Vec[] origVecs = new Vec[dataSet.getSampleSize()];
+        final int[][] origCats = new int[dataSet.getSampleSize()][];
         for (int i = 0; i < origVecs.length; i++)
         {
-            DataPoint dp = dataSet.getDataPoint(i);
+            final DataPoint dp = dataSet.getDataPoint(i);
             origVecs[i] = dp.getNumericalValues();
             origCats[i] = dp.getCategoricalValues();
         }
 
-        for (DataTransformFactory dtf : transformSource)
+        for (final DataTransformFactory dtf : transformSource)
         {
-            DataTransform transform = dtf.getTransform(dataSet);
+            final DataTransform transform = dtf.getTransform(dataSet);
             if(transform instanceof InPlaceTransform)
             {
-                InPlaceTransform ipt = (InPlaceTransform) transform;
+                final InPlaceTransform ipt = (InPlaceTransform) transform;
                 //check if it is safe to apply mutations
                 if(iter > 0 && !vecSafe || (ipt.mutatesNominal() && !catSafe))
                 {
                     boolean vecClear = true, catClear = true;
                     for (int i = 0; i < origVecs.length && (vecClear || catClear); i++)
                     {
-                        DataPoint dp = dataSet.getDataPoint(i);
+                        final DataPoint dp = dataSet.getDataPoint(i);
                         vecClear = origVecs[i] != dp.getNumericalValues();
                         catClear = origCats[i] != dp.getCategoricalValues();
                     }
@@ -183,11 +183,11 @@ public class DataTransformProcess implements DataTransform, Parameterized
     {
         final Vec origNum = dp.getNumericalValues();
         final int[] origCat = dp.getCategoricalValues();
-        for(DataTransform dt : learnedTransforms)
+        for(final DataTransform dt : learnedTransforms)
         {
             if(dt instanceof InPlaceTransform)
             {
-                InPlaceTransform it = (InPlaceTransform) dt;
+                final InPlaceTransform it = (InPlaceTransform) dt;
                 //check if we can safley mutableTransform instead of allocate
                 if(origNum != dp.getNumericalValues() && (!it.mutatesNominal() || origCat != dp.getCategoricalValues()))
                 {
@@ -203,13 +203,13 @@ public class DataTransformProcess implements DataTransform, Parameterized
     @Override
     public DataTransformProcess clone()
     {
-        DataTransformProcess clone = new DataTransformProcess();
+        final DataTransformProcess clone = new DataTransformProcess();
         
-        for(DataTransformFactory dtf : this.transformSource) {
+        for(final DataTransformFactory dtf : this.transformSource) {
           clone.transformSource.add(dtf.clone());
         }
         
-        for(DataTransform dt : this.learnedTransforms) {
+        for(final DataTransform dt : this.learnedTransforms) {
           clone.learnedTransforms.add(dt.clone());
         }
         
@@ -223,7 +223,7 @@ public class DataTransformProcess implements DataTransform, Parameterized
     }
 
     @Override
-    public Parameter getParameter(String paramName)
+    public Parameter getParameter(final String paramName)
     {
         return Parameter.toParameterMap(getParameters()).get(paramName);
     }

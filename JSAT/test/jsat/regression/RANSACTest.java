@@ -68,15 +68,15 @@ public class RANSACTest
     {
         System.out.println("train");
 
-        RANSAC instance = new RANSAC(new KernelRLS(new LinearKernel(1), 1e-1), 10, 20, 40, 5);
+        final RANSAC instance = new RANSAC(new KernelRLS(new LinearKernel(1), 1e-1), 10, 20, 40, 5);
 
-        RegressionDataSet train = FixedProblems.getLinearRegression(500, new XORWOW());
+        final RegressionDataSet train = FixedProblems.getLinearRegression(500, new XORWOW());
         for(int i = 0; i < 20; i++) {
           train.addDataPoint(DenseVector.random(train.getNumNumericalVars()), train.getTargetValues().mean());
         }
-        RegressionDataSet test = FixedProblems.getLinearRegression(100, new XORWOW());
+        final RegressionDataSet test = FixedProblems.getLinearRegression(100, new XORWOW());
 
-        RegressionModelEvaluation rme = new RegressionModelEvaluation(instance, train);
+        final RegressionModelEvaluation rme = new RegressionModelEvaluation(instance, train);
         rme.evaluateTestSet(test);
 
         assertTrue(rme.getMeanError() <= test.getTargetValues().mean() * 0.25);
@@ -88,17 +88,17 @@ public class RANSACTest
     {
         System.out.println("train");
 
-        RANSAC instance = new RANSAC(new KernelRLS(new LinearKernel(1), 1e-1), 10, 20, 40, 5);
+        final RANSAC instance = new RANSAC(new KernelRLS(new LinearKernel(1), 1e-1), 10, 20, 40, 5);
 
-        ExecutorService ex = Executors.newFixedThreadPool(SystemInfo.LogicalCores);
+        final ExecutorService ex = Executors.newFixedThreadPool(SystemInfo.LogicalCores);
 
-        RegressionDataSet train = FixedProblems.getLinearRegression(500, new XORWOW());
+        final RegressionDataSet train = FixedProblems.getLinearRegression(500, new XORWOW());
         for(int i = 0; i < 20; i++) {
           train.addDataPoint(DenseVector.random(train.getNumNumericalVars()), train.getTargetValues().mean());
         }
-        RegressionDataSet test = FixedProblems.getLinearRegression(100, new XORWOW());
+        final RegressionDataSet test = FixedProblems.getLinearRegression(100, new XORWOW());
 
-        RegressionModelEvaluation rme = new RegressionModelEvaluation(instance, train, ex);
+        final RegressionModelEvaluation rme = new RegressionModelEvaluation(instance, train, ex);
         rme.evaluateTestSet(test);
 
         assertTrue(rme.getMeanError() <= test.getTargetValues().mean() * 0.25);
@@ -113,18 +113,18 @@ public class RANSACTest
 
         RANSAC instance = new RANSAC(new KernelRLS(new LinearKernel(1), 1e-1), 10, 20, 40, 5);
 
-        RegressionDataSet t1 = FixedProblems.getLinearRegression(500, new XORWOW());
+        final RegressionDataSet t1 = FixedProblems.getLinearRegression(500, new XORWOW());
         for(int i = 0; i < 20; i++) {
           t1.addDataPoint(DenseVector.random(t1.getNumNumericalVars()), t1.getTargetValues().mean());
         }
-        RegressionDataSet t2 = FixedProblems.getLinearRegression(100, new XORWOW());
+        final RegressionDataSet t2 = FixedProblems.getLinearRegression(100, new XORWOW());
         t2.applyTransform(new LinearTransform(t2, 1, 10));
 
         instance = instance.clone();
 
         instance.train(t1);
 
-        RANSAC result = instance.clone();
+        final RANSAC result = instance.clone();
         for (int i = 0; i < t1.getSampleSize(); i++) {
           assertEquals(t1.getTargetValue(i), result.regress(t1.getDataPoint(i)), t1.getTargetValues().mean());
         }

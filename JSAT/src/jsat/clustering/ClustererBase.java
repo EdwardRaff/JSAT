@@ -22,17 +22,17 @@ public abstract class ClustererBase implements Clusterer
 
 
 	@Override
-    public List<List<DataPoint>> cluster(DataSet dataSet)
+    public List<List<DataPoint>> cluster(final DataSet dataSet)
     {
-        int[] assignments = cluster(dataSet, (int[]) null);
+        final int[] assignments = cluster(dataSet, (int[]) null);
         
         return createClusterListFromAssignmentArray(assignments, dataSet);
     }
 
     @Override
-    public List<List<DataPoint>> cluster(DataSet dataSet, ExecutorService threadpool)
+    public List<List<DataPoint>> cluster(final DataSet dataSet, final ExecutorService threadpool)
     {
-        int[] assignments = cluster(dataSet, threadpool, (int[]) null);
+        final int[] assignments = cluster(dataSet, threadpool, (int[]) null);
         return createClusterListFromAssignmentArray(assignments, dataSet);
     }
 
@@ -45,9 +45,9 @@ public abstract class ClustererBase implements Clusterer
      * @param dataSet the original data set, with data in the same order as was used to create the assignments array
      * @return a List of lists where each list contains the data points for one cluster, and the lists are in order by cluster id. 
      */
-    public static List<List<DataPoint>> createClusterListFromAssignmentArray(int[] assignments, DataSet dataSet)
+    public static List<List<DataPoint>> createClusterListFromAssignmentArray(final int[] assignments, final DataSet dataSet)
     {
-        List<List<DataPoint>> clusterings = new ArrayList<List<DataPoint>>();
+        final List<List<DataPoint>> clusterings = new ArrayList<List<DataPoint>>();
         
         for(int i = 0; i < dataSet.getSampleSize(); i++)
         {
@@ -73,9 +73,9 @@ public abstract class ClustererBase implements Clusterer
      * May be {@code null}
      * @return a list of datapoints that were assignment to the designated cluster
      */
-    public static List<DataPoint> getDatapointsFromCluster(int c, int[] assignments, DataSet dataSet, int[] indexFrom)
+    public static List<DataPoint> getDatapointsFromCluster(final int c, final int[] assignments, final DataSet dataSet, final int[] indexFrom)
     {
-        List<DataPoint> list = new ArrayList<DataPoint>();
+        final List<DataPoint> list = new ArrayList<DataPoint>();
         int pos = 0;
         for(int i = 0; i < dataSet.getSampleSize(); i++) {
           if (assignments[i] == c) {

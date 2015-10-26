@@ -30,7 +30,7 @@ public class NaiveBayesTest
     static private NaiveBayes nb;
     public NaiveBayesTest()
     {
-        GridDataGenerator gdg = new GridDataGenerator(new Normal(0, 0.05), new Random(12), 2);
+        final GridDataGenerator gdg = new GridDataGenerator(new Normal(0, 0.05), new Random(12), 2);
         easyTrain = new ClassificationDataSet(gdg.generateData(40).getBackingList(), 0);
         easyTest = new ClassificationDataSet(gdg.generateData(40).getBackingList(), 0);
         ex = Executors.newFixedThreadPool(SystemInfo.LogicalCores);
@@ -73,7 +73,7 @@ public class NaiveBayesTest
     {
         System.out.println("clone");
         nb.trainC(easyTrain);
-        Classifier clone = nb.clone();
+        final Classifier clone = nb.clone();
         for(int i = 0; i < easyTest.getSampleSize(); i++) {
           assertEquals(easyTest.getDataPointCategory(i), clone.classify(easyTest.getDataPoint(i)).mostLikely());
         }

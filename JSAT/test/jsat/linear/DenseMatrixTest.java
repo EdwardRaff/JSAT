@@ -38,9 +38,9 @@ public class DenseMatrixTest
      */
     static ExecutorService threadpool = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors()+1, new ThreadFactory() {
 
-        public Thread newThread(Runnable r)
+        public Thread newThread(final Runnable r)
         {
-            Thread thread = new Thread(r);
+            final Thread thread = new Thread(r);
             thread.setDaemon(true);
             return thread;
         }
@@ -121,7 +121,7 @@ public class DenseMatrixTest
     @Test
     public void testMutableAdd_Matrix()
     {
-        DenseMatrix ApB = new DenseMatrix(new double[][] 
+        final DenseMatrix ApB = new DenseMatrix(new double[][] 
         {
             {6,     8,     6,    16,    17},
             {2,    13,    10,     9,    15},
@@ -130,8 +130,8 @@ public class DenseMatrixTest
             {9,    12,     6,    12,     7}
         } );
         
-        Matrix aCopy = A.clone();
-        Matrix bCopy = B.clone();
+        final Matrix aCopy = A.clone();
+        final Matrix bCopy = B.clone();
         
         aCopy.mutableAdd(B);
         bCopy.mutableAdd(A);
@@ -144,7 +144,7 @@ public class DenseMatrixTest
             C.clone().mutableAdd(A);
             fail("Expected error about matrix dimensions"); 
         }
-        catch(ArithmeticException ex)
+        catch(final ArithmeticException ex)
         {
             //Good! We expected failure
         }
@@ -156,7 +156,7 @@ public class DenseMatrixTest
     @Test
     public void testMutableAdd_Matrix_ExecutorService()
     {
-        DenseMatrix ApB = new DenseMatrix(new double[][] 
+        final DenseMatrix ApB = new DenseMatrix(new double[][] 
         {
             {6,     8,     6,    16,    17},
             {2,    13,    10,     9,    15},
@@ -165,8 +165,8 @@ public class DenseMatrixTest
             {9,    12,     6,    12,     7}
         } );
         
-        Matrix aCopy = A.clone();
-        Matrix bCopy = B.clone();
+        final Matrix aCopy = A.clone();
+        final Matrix bCopy = B.clone();
         
         aCopy.mutableAdd(B, threadpool);
         bCopy.mutableAdd(A, threadpool);
@@ -179,7 +179,7 @@ public class DenseMatrixTest
             C.clone().mutableAdd(A, threadpool);
             fail("Expected error about matrix dimensions"); 
         }
-        catch(ArithmeticException ex)
+        catch(final ArithmeticException ex)
         {
             //Good! We expected failure
         }
@@ -188,7 +188,7 @@ public class DenseMatrixTest
     @Test
     public void testMutableAdd_double_Matrix_ExecutorService()
     {
-        DenseMatrix ApB = new DenseMatrix(new double[][] 
+        final DenseMatrix ApB = new DenseMatrix(new double[][] 
         {
             {6,     8,     6,    16,    17},
             {2,    13,    10,     9,    15},
@@ -197,8 +197,8 @@ public class DenseMatrixTest
             {9,    12,     6,    12,     7}
         } );
         
-        Matrix aCopy = A.clone();
-        Matrix bCopy = B.clone();
+        final Matrix aCopy = A.clone();
+        final Matrix bCopy = B.clone();
         
         aCopy.mutableAdd(1.0, B, threadpool);
         bCopy.mutableAdd(1.0, A, threadpool);
@@ -209,7 +209,7 @@ public class DenseMatrixTest
         aCopy.mutableAdd(-1.0, B, threadpool);
         assertEquals(A, aCopy);
         
-        Matrix Aadd5  = new DenseMatrix(A.rows(), A.cols());
+        final Matrix Aadd5  = new DenseMatrix(A.rows(), A.cols());
         Aadd5.mutableAdd(5.0, A, threadpool);
         assertEquals(A.multiply(5), Aadd5);
         
@@ -218,7 +218,7 @@ public class DenseMatrixTest
             C.clone().mutableAdd(1.0, A, threadpool);
             fail("Expected error about matrix dimensions"); 
         }
-        catch(ArithmeticException ex)
+        catch(final ArithmeticException ex)
         {
             //Good! We expected failure
         }
@@ -230,7 +230,7 @@ public class DenseMatrixTest
     @Test
     public void testMutableAdd_double()
     {
-        DenseMatrix ApTwo = new DenseMatrix(new double[][] 
+        final DenseMatrix ApTwo = new DenseMatrix(new double[][] 
         {
             {1+2, 5+2, 4+2, 8+2, 9+2},
             {1+2, 5+2, 7+2, 3+2, 7+2},
@@ -239,7 +239,7 @@ public class DenseMatrixTest
             {1+2, 9+2, 2+2, 9+2, 6+2}
         } );
         
-        Matrix aCopy = A.clone();
+        final Matrix aCopy = A.clone();
         
         aCopy.mutableAdd(2);
         
@@ -252,7 +252,7 @@ public class DenseMatrixTest
     @Test
     public void testMutableAdd_double_ExecutorService()
     {
-        DenseMatrix ApTwo = new DenseMatrix(new double[][] 
+        final DenseMatrix ApTwo = new DenseMatrix(new double[][] 
         {
             {1+2, 5+2, 4+2, 8+2, 9+2},
             {1+2, 5+2, 7+2, 3+2, 7+2},
@@ -261,7 +261,7 @@ public class DenseMatrixTest
             {1+2, 9+2, 2+2, 9+2, 6+2}
         } );
         
-        Matrix aCopy = A.clone();
+        final Matrix aCopy = A.clone();
         
         aCopy.mutableAdd(2, threadpool);
         
@@ -274,7 +274,7 @@ public class DenseMatrixTest
     @Test
     public void testMutableSubtract_Matrix()
     {
-        DenseMatrix AmB = new DenseMatrix(new double[][] 
+        final DenseMatrix AmB = new DenseMatrix(new double[][] 
         {
             {-4,     2,     2,     0,     1},
             { 0,    -3,     4,    -3,    -1},
@@ -283,7 +283,7 @@ public class DenseMatrixTest
             {-7,     6,    -2,     6,     5}
         } );
         
-        DenseMatrix BmA = new DenseMatrix(new double[][] 
+        final DenseMatrix BmA = new DenseMatrix(new double[][] 
         {
             {-4*-1,     2*-1,     2*-1,     0*-1,     1*-1},
             { 0*-1,    -3*-1,     4*-1,    -3*-1,    -1*-1},
@@ -292,8 +292,8 @@ public class DenseMatrixTest
             {-7*-1,     6*-1,    -2*-1,     6*-1,     5*-1}
         } );
         
-        Matrix aCopy = A.clone();
-        Matrix bCopy = B.clone();
+        final Matrix aCopy = A.clone();
+        final Matrix bCopy = B.clone();
         
         aCopy.mutableSubtract(B);
         bCopy.mutableSubtract(A);
@@ -306,7 +306,7 @@ public class DenseMatrixTest
             C.clone().mutableSubtract(A);
             fail("Expected error about matrix dimensions"); 
         }
-        catch(ArithmeticException ex)
+        catch(final ArithmeticException ex)
         {
             //Good! We expected failure
         }
@@ -318,7 +318,7 @@ public class DenseMatrixTest
     @Test
     public void testMutableSubtract_Matrix_ExecutorService()
     {
-        DenseMatrix AmB = new DenseMatrix(new double[][] 
+        final DenseMatrix AmB = new DenseMatrix(new double[][] 
         {
             {-4,     2,     2,     0,     1},
             { 0,    -3,     4,    -3,    -1},
@@ -327,7 +327,7 @@ public class DenseMatrixTest
             {-7,     6,    -2,     6,     5}
         } );
         
-        DenseMatrix BmA = new DenseMatrix(new double[][] 
+        final DenseMatrix BmA = new DenseMatrix(new double[][] 
         {
             {-4*-1,     2*-1,     2*-1,     0*-1,     1*-1},
             { 0*-1,    -3*-1,     4*-1,    -3*-1,    -1*-1},
@@ -336,8 +336,8 @@ public class DenseMatrixTest
             {-7*-1,     6*-1,    -2*-1,     6*-1,     5*-1}
         } );
         
-        Matrix aCopy = A.clone();
-        Matrix bCopy = B.clone();
+        final Matrix aCopy = A.clone();
+        final Matrix bCopy = B.clone();
         
         aCopy.mutableSubtract(B, threadpool);
         bCopy.mutableSubtract(A, threadpool);
@@ -350,7 +350,7 @@ public class DenseMatrixTest
             C.clone().mutableSubtract(A, threadpool);
             fail("Expected error about matrix dimensions"); 
         }
-        catch(ArithmeticException ex)
+        catch(final ArithmeticException ex)
         {
             //Good! We expected failure
         }
@@ -362,15 +362,15 @@ public class DenseMatrixTest
     @Test
     public void testMultiply_Vec()
     {
-        DenseVector b = new DenseVector(Arrays.asList(4.0, 5.0, 2.0, 6.0, 7.0));
+        final DenseVector b = new DenseVector(Arrays.asList(4.0, 5.0, 2.0, 6.0, 7.0));
         
-        DenseVector z = new DenseVector(Arrays.asList(2.0, 1.0, 2.0, 3.0, 4.0, 5.0, 0.0));
+        final DenseVector z = new DenseVector(Arrays.asList(2.0, 1.0, 2.0, 3.0, 4.0, 5.0, 0.0));
         
-        DenseVector Ab = new DenseVector(Arrays.asList(148.0, 110.0, 103.0, 94.0, 149.0));
+        final DenseVector Ab = new DenseVector(Arrays.asList(148.0, 110.0, 103.0, 94.0, 149.0));
         
         assertEquals(Ab, A.multiply(b));
         
-        DenseVector Cz = new DenseVector(Arrays.asList(62.0, 100.0, 88.0, 74.0, 68.0));
+        final DenseVector Cz = new DenseVector(Arrays.asList(62.0, 100.0, 88.0, 74.0, 68.0));
         
         assertEquals(Cz, C.multiply(z));
     }
@@ -381,16 +381,16 @@ public class DenseMatrixTest
     @Test
     public void testMultiply_Vec_Double_Vec()
     {
-        DenseVector b = new DenseVector(Arrays.asList(4.0, 5.0, 2.0, 6.0, 7.0));
+        final DenseVector b = new DenseVector(Arrays.asList(4.0, 5.0, 2.0, 6.0, 7.0));
         
-        DenseVector z = new DenseVector(Arrays.asList(2.0, 1.0, 2.0, 3.0, 4.0, 5.0, 0.0));
+        final DenseVector z = new DenseVector(Arrays.asList(2.0, 1.0, 2.0, 3.0, 4.0, 5.0, 0.0));
                 
-        DenseVector store = b.deepCopy();
+        final DenseVector store = b.deepCopy();
         
         A.multiply(b, 3.0, store);
         assertEquals(new DenseVector(new double[]{ 448, 335, 311, 288, 454}), store);
         
-        DenseVector Cz = new DenseVector(Arrays.asList(62.0, 100.0, 88.0, 74.0, 68.0));
+        final DenseVector Cz = new DenseVector(Arrays.asList(62.0, 100.0, 88.0, 74.0, 68.0));
         
         store.zeroOut();
         C.multiply(z, 1.0, store);
@@ -419,7 +419,7 @@ public class DenseMatrixTest
             C.multiply(A);
             fail("Expected error about matrix dimensions"); 
         }
-        catch(ArithmeticException ex)
+        catch(final ArithmeticException ex)
         {
             //Good! We expected failure
         }
@@ -452,7 +452,7 @@ public class DenseMatrixTest
             R.multiply(A, C);
             fail("Expected error about matrix dimensions"); 
         }
-        catch(ArithmeticException ex)
+        catch(final ArithmeticException ex)
         {
             //Good! We expected failure
         }
@@ -462,7 +462,7 @@ public class DenseMatrixTest
             A.multiply(B, C);
             fail("Expected error about target matrix dimensions"); 
         }
-        catch(ArithmeticException ex)
+        catch(final ArithmeticException ex)
         {
             //Good! We expected failure
         }
@@ -490,7 +490,7 @@ public class DenseMatrixTest
             C.multiply(A, threadpool);
             fail("Expected error about matrix dimensions"); 
         }
-        catch(ArithmeticException ex)
+        catch(final ArithmeticException ex)
         {
             //Good! We expected failure
         }
@@ -523,7 +523,7 @@ public class DenseMatrixTest
             R.multiply(A, C, threadpool);
             fail("Expected error about matrix dimensions"); 
         }
-        catch(ArithmeticException ex)
+        catch(final ArithmeticException ex)
         {
             //Good! We expected failure
         }
@@ -533,7 +533,7 @@ public class DenseMatrixTest
             A.multiply(B, C, threadpool);
             fail("Expected error about target matrix dimensions"); 
         }
-        catch(ArithmeticException ex)
+        catch(final ArithmeticException ex)
         {
             //Good! We expected failure
         }
@@ -545,7 +545,7 @@ public class DenseMatrixTest
     @Test
     public void testMutableMultiply_double()
     {
-        DenseMatrix AtTwo = new DenseMatrix(new double[][] 
+        final DenseMatrix AtTwo = new DenseMatrix(new double[][] 
         {
             {1*2, 5*2, 4*2, 8*2, 9*2},
             {1*2, 5*2, 7*2, 3*2, 7*2},
@@ -554,7 +554,7 @@ public class DenseMatrixTest
             {1*2, 9*2, 2*2, 9*2, 6*2}
         } );
         
-        Matrix aCopy = A.clone();
+        final Matrix aCopy = A.clone();
         
         aCopy.mutableMultiply(2);
         
@@ -567,7 +567,7 @@ public class DenseMatrixTest
     @Test
     public void testMutableMultiply_double_ExecutorService()
     {
-        DenseMatrix AtTwo = new DenseMatrix(new double[][] 
+        final DenseMatrix AtTwo = new DenseMatrix(new double[][] 
         {
             {1*2, 5*2, 4*2, 8*2, 9*2},
             {1*2, 5*2, 7*2, 3*2, 7*2},
@@ -576,7 +576,7 @@ public class DenseMatrixTest
             {1*2, 9*2, 2*2, 9*2, 6*2}
         } );
         
-        Matrix aCopy = A.clone();
+        final Matrix aCopy = A.clone();
         
         aCopy.mutableMultiply(2, threadpool);
         
@@ -589,7 +589,7 @@ public class DenseMatrixTest
     @Test
     public void testTranspose()
     {
-        DenseMatrix CTranspose = new DenseMatrix(new double[][] 
+        final DenseMatrix CTranspose = new DenseMatrix(new double[][] 
         {
             {1, 5, 8, 9, 1},
             {6, 5, 0, 3, 2},
@@ -619,7 +619,7 @@ public class DenseMatrixTest
     @Test
     public void testSet()
     {
-        DenseMatrix toSet = new DenseMatrix(A.rows(), A.cols());
+        final DenseMatrix toSet = new DenseMatrix(A.rows(), A.cols());
         
         for(int i = 0; i < A.rows(); i++) {
           for (int j = 0; j < A.cols(); j++) {
@@ -674,7 +674,7 @@ public class DenseMatrixTest
     @Test
     public void testCopy()
     {
-        Matrix ACopy = A.clone();
+        final Matrix ACopy = A.clone();
         
         assertEquals(A, ACopy);
         assertEquals(A.multiply(B), ACopy.multiply(B));
@@ -688,7 +688,7 @@ public class DenseMatrixTest
     {
         System.out.println("swapRows");
         
-        Matrix Expected = new DenseMatrix(new double[][] 
+        final Matrix Expected = new DenseMatrix(new double[][] 
         {
             {5, 5, 3, 7, 2, 10, 0},
             {1, 2, 6, 5, 8, 1, 9},
@@ -729,7 +729,7 @@ public class DenseMatrixTest
     {
         System.out.println("zeroOut");
         
-        Matrix test = C.clone();
+        final Matrix test = C.clone();
         test.zeroOut();
         
         for(int i = 0; i < test.rows(); i++) {
@@ -794,13 +794,13 @@ public class DenseMatrixTest
             C.clone().mutableTranspose();
             fail("Can not do a mutable transpose for rectangular matrix, error should have been thrown");
         }
-        catch(Exception ex)
+        catch(final Exception ex)
         {
             
         }
         
         
-        DenseMatrix ATranspose = new DenseMatrix(new double[][] 
+        final DenseMatrix ATranspose = new DenseMatrix(new double[][] 
         {
             {1,     1,     0,     3,     1},
             {5,     5,     3,     8,     9},
@@ -809,7 +809,7 @@ public class DenseMatrixTest
             {9,     7,     6,     0,     6}, 
         } );
         
-        Matrix AT = A.clone();
+        final Matrix AT = A.clone();
         AT.mutableTranspose();
         assertEquals(ATranspose, AT);
         
@@ -927,7 +927,7 @@ public class DenseMatrixTest
             C.transpose().transposeMultiply(A);
             fail("Expected error about matrix dimensions"); 
         }
-        catch(ArithmeticException ex)
+        catch(final ArithmeticException ex)
         {
             //Good! We expected failure
         }
@@ -957,7 +957,7 @@ public class DenseMatrixTest
         
         R = new DenseMatrix(C.cols(), A.cols());
         C.transposeMultiply(A, R);
-        Matrix CtA = new DenseMatrix(new double[][] 
+        final Matrix CtA = new DenseMatrix(new double[][] 
         { 
             {34,   135,   105,   135,    98},
             {22,    97,    63,   102,   101},
@@ -973,7 +973,7 @@ public class DenseMatrixTest
         
         R = new DenseMatrix(C.cols(), C.cols());
         C.transposeMultiply(C, R);
-        Matrix CtC = new DenseMatrix(new double[][]
+        final Matrix CtC = new DenseMatrix(new double[][]
         {
             {172,    60,    87,   162,   109,   100,   155},
             { 60,    74,    81,    84,    38,    94,   102},
@@ -992,7 +992,7 @@ public class DenseMatrixTest
             A.transpose().transposeMultiply(B, R);
             fail("Expected error about target matrix dimensions"); 
         }
-        catch(ArithmeticException ex)
+        catch(final ArithmeticException ex)
         {
             //Good! We expected failure
         }
@@ -1002,7 +1002,7 @@ public class DenseMatrixTest
             C.transpose().transposeMultiply(A, R);
             fail("Expected error about matrix dimensions"); 
         }
-        catch(ArithmeticException ex)
+        catch(final ArithmeticException ex)
         {
             //Good! We expected failure
         }
@@ -1052,7 +1052,7 @@ public class DenseMatrixTest
             C.transpose().transposeMultiply(A, threadpool);
             fail("Expected error about matrix dimensions"); 
         }
-        catch(ArithmeticException ex)
+        catch(final ArithmeticException ex)
         {
             //Good! We expected failure
         }
@@ -1082,7 +1082,7 @@ public class DenseMatrixTest
         
         R = new DenseMatrix(C.cols(), A.cols());
         C.transposeMultiply(A, R, threadpool);
-        Matrix CtA = new DenseMatrix(new double[][] 
+        final Matrix CtA = new DenseMatrix(new double[][] 
         { 
             {34,   135,   105,   135,    98},
             {22,    97,    63,   102,   101},
@@ -1098,7 +1098,7 @@ public class DenseMatrixTest
         
         R = new DenseMatrix(C.cols(), C.cols());
         C.transposeMultiply(C, R, threadpool);
-        Matrix CtC = new DenseMatrix(new double[][]
+        final Matrix CtC = new DenseMatrix(new double[][]
         {
             {172,    60,    87,   162,   109,   100,   155},
             { 60,    74,    81,    84,    38,    94,   102},
@@ -1117,7 +1117,7 @@ public class DenseMatrixTest
             A.transpose().transposeMultiply(B, R, threadpool);
             fail("Expected error about target matrix dimensions"); 
         }
-        catch(ArithmeticException ex)
+        catch(final ArithmeticException ex)
         {
             //Good! We expected failure
         }
@@ -1127,7 +1127,7 @@ public class DenseMatrixTest
             C.transpose().transposeMultiply(A, R, threadpool);
             fail("Expected error about matrix dimensions"); 
         }
-        catch(ArithmeticException ex)
+        catch(final ArithmeticException ex)
         {
             //Good! We expected failure
         }
@@ -1136,17 +1136,17 @@ public class DenseMatrixTest
     @Test
     public void testTransposeMultiply_Double_Vec()
     {
-        DenseVector b = new DenseVector(Arrays.asList(4.0, 5.0, 2.0, 6.0, 7.0));
+        final DenseVector b = new DenseVector(Arrays.asList(4.0, 5.0, 2.0, 6.0, 7.0));
         
-        DenseVector z = new DenseVector(Arrays.asList(2.0, 1.0, 2.0, 3.0, 4.0, 5.0, 0.0));
+        final DenseVector z = new DenseVector(Arrays.asList(2.0, 1.0, 2.0, 3.0, 4.0, 5.0, 0.0));
         
-        DenseVector Ab = new DenseVector(Arrays.asList(148.0, 110.0, 103.0, 94.0, 149.0));
+        final DenseVector Ab = new DenseVector(Arrays.asList(148.0, 110.0, 103.0, 94.0, 149.0));
         
         assertEquals(Ab, A.transpose().transposeMultiply(1.0, b));
         
         assertEquals(Ab.multiply(7.0), A.transpose().transposeMultiply(7.0, b));
         
-        DenseVector Cz = new DenseVector(Arrays.asList(62.0, 100.0, 88.0, 74.0, 68.0));
+        final DenseVector Cz = new DenseVector(Arrays.asList(62.0, 100.0, 88.0, 74.0, 68.0));
         
         assertEquals(Cz, C.transpose().transposeMultiply(1.0, z));
         
@@ -1157,7 +1157,7 @@ public class DenseMatrixTest
             C.transposeMultiply(1.0, z);
             fail("Dimensions were in disagreement, should not have worked");
         }
-        catch(Exception ex)
+        catch(final Exception ex)
         {
             
         }
@@ -1166,7 +1166,7 @@ public class DenseMatrixTest
     @Test
     public void testChangeSize()
     {
-        DenseMatrix Acpy = A.clone();
+        final DenseMatrix Acpy = A.clone();
         Acpy.changeSize(Acpy.rows()-1, Acpy.cols()-1);
         assertEquals(Acpy.rows(), A.rows()-1);
         assertEquals(Acpy.cols(), A.cols()-1);

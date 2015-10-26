@@ -15,7 +15,7 @@ public class Beta extends ContinuousDistribution
 	double alpha;
     double beta;
 
-    public Beta(double alpha, double beta)
+    public Beta(final double alpha, final double beta)
     {
         if(alpha <= 0) {
           throw new ArithmeticException("Alpha must be > 0, not " + alpha);
@@ -27,7 +27,7 @@ public class Beta extends ContinuousDistribution
     }
 
     @Override
-    public double pdf(double x)
+    public double pdf(final double x)
     {
         if(x <= 0) {
           return 0;
@@ -38,7 +38,7 @@ public class Beta extends ContinuousDistribution
     }
 
     @Override
-    public double cdf(double x)
+    public double cdf(final double x)
     {
         if(x <= 0) {
           return 0;
@@ -49,7 +49,7 @@ public class Beta extends ContinuousDistribution
     }
 
     @Override
-    public double invCdf(double p)
+    public double invCdf(final double p)
     {
         if(p < 0 || p > 1) {
           throw new ArithmeticException("p must be in the range [0,1], not " + p);
@@ -88,7 +88,7 @@ public class Beta extends ContinuousDistribution
     }
 
     @Override
-    public void setVariable(String var, double value)
+    public void setVariable(final String var, final double value)
     {
         if (var.equals("alpha")) {
           if (value > 0) {
@@ -112,10 +112,10 @@ public class Beta extends ContinuousDistribution
     }
 
     @Override
-    public void setUsingData(Vec data)
+    public void setUsingData(final Vec data)
     {
-        double mean = data.mean();
-        double var = data.variance();
+        final double mean = data.mean();
+        final double var = data.variance();
         
         //alpha = (mean^2 - mean^3 - mean * var) / var
         alpha = (mean*mean-mean*mean*mean-mean*var)/var;
@@ -169,7 +169,7 @@ public class Beta extends ContinuousDistribution
 	}
 
 	@Override
-	public boolean equals(Object obj) {
+	public boolean equals(final Object obj) {
 		if (this == obj) {
 			return true;
 		}
@@ -179,7 +179,7 @@ public class Beta extends ContinuousDistribution
 		if (getClass() != obj.getClass()) {
 			return false;
 		}
-		Beta other = (Beta) obj;
+		final Beta other = (Beta) obj;
 		if (Double.doubleToLongBits(alpha) != Double
 				.doubleToLongBits(other.alpha)) {
 			return false;

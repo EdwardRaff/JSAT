@@ -44,7 +44,7 @@ public abstract class ClassificationTextDataLoader extends TextDataLoader
      * @param weighting the weighting scheme to apply to each vector in the 
      * collection
      */
-    public ClassificationTextDataLoader(Tokenizer tokenizer, WordWeighting weighting)
+    public ClassificationTextDataLoader(final Tokenizer tokenizer, final WordWeighting weighting)
     {
         super(tokenizer, weighting);
         classLabels = new IntList();
@@ -65,7 +65,7 @@ public abstract class ClassificationTextDataLoader extends TextDataLoader
      * @param text the text of the data to add
      */
     @Override
-    protected void addOriginalDocument(String text)
+    protected void addOriginalDocument(final String text)
     {
         throw new UnsupportedOperationException("addOriginalDocument(String"
                 + " text, int label) should be used instead");
@@ -81,7 +81,7 @@ public abstract class ClassificationTextDataLoader extends TextDataLoader
      * @param text the text of the document to add
      * @param label the classification label for this document
      */
-    protected void addOriginalDocument(String text, int label)
+    protected void addOriginalDocument(final String text, final int label)
     {
         if(label >= labelInfo.getNumOfCategories()) {
           throw new RuntimeException("Invalid label given");
@@ -100,7 +100,7 @@ public abstract class ClassificationTextDataLoader extends TextDataLoader
             finishAdding();
         }
         
-        ClassificationDataSet cds = 
+        final ClassificationDataSet cds = 
                 new ClassificationDataSet(vectors.get(0).length(), 
                 new CategoricalData[]{}, labelInfo);
         for(int i = 0; i < vectors.size(); i++) {

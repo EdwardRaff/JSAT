@@ -36,12 +36,12 @@ public class JLTransformTest
     @BeforeClass
     public static void setUpClass()
     {
-        List<DataPoint> dps = new ArrayList<DataPoint>(100);
-        Random rand = new Random();
+        final List<DataPoint> dps = new ArrayList<DataPoint>(100);
+        final Random rand = new Random();
         
         for(int i = 0; i < 100; i++)
         {
-            Vec v = DenseVector.random(2000, rand);
+            final Vec v = DenseVector.random(2000, rand);
             dps.add(new DataPoint(v, new int[0], new CategoricalData[0]));
         }
         
@@ -71,13 +71,13 @@ public class JLTransformTest
     public void testTransform()
     {
         System.out.println("transform");
-        Random rand = new Random(124);
-        int k = 550;
+        final Random rand = new Random(124);
+        final int k = 550;
         
-        List<Vec> transformed = new ArrayList<Vec>(ds.getSampleSize());
-        for( JLTransform.TransformMode mode : JLTransform.TransformMode.values())
+        final List<Vec> transformed = new ArrayList<Vec>(ds.getSampleSize());
+        for( final JLTransform.TransformMode mode : JLTransform.TransformMode.values())
         {
-            JLTransform jl = new JLTransform(k, ds.getNumNumericalVars(), mode, rand, true);
+            final JLTransform jl = new JLTransform(k, ds.getNumNumericalVars(), mode, rand, true);
 
             transformed.clear();
             for(int i = 0; i < ds.getSampleSize(); i++) {
@@ -87,25 +87,25 @@ public class JLTransformTest
             int violations = 0;
             int count = 0;
 
-            EuclideanDistance d = new EuclideanDistance();
+            final EuclideanDistance d = new EuclideanDistance();
             for(int i = 0; i < ds.getSampleSize(); i++)
             {
-                DataPoint dpi = ds.getDataPoint(i);
-                Vec vi = dpi.getNumericalValues();
-                Vec vti = transformed.get(i);
+                final DataPoint dpi = ds.getDataPoint(i);
+                final Vec vi = dpi.getNumericalValues();
+                final Vec vti = transformed.get(i);
 
                 for(int j = i+1; j < ds.getSampleSize(); j++)
                 {
                     count++;
 
-                    DataPoint dpj = ds.getDataPoint(j);
-                    Vec vj = dpj.getNumericalValues();
-                    Vec vtj = transformed.get(j);
+                    final DataPoint dpj = ds.getDataPoint(j);
+                    final Vec vj = dpj.getNumericalValues();
+                    final Vec vtj = transformed.get(j);
 
-                    double trueDist = Math.pow(d.dist(vi, vj), 2);
-                    double embDist = Math.pow(d.dist(vti, vtj), 2);
+                    final double trueDist = Math.pow(d.dist(vi, vj), 2);
+                    final double embDist = Math.pow(d.dist(vti, vtj), 2);
 
-                    double err = (embDist-trueDist)/trueDist;
+                    final double err = (embDist-trueDist)/trueDist;
                     if( Math.abs(err) > eps) {
                       violations++;
                     }

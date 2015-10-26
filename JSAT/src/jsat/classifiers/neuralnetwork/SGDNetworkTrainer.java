@@ -148,7 +148,7 @@ public class SGDNetworkTrainer implements Serializable
      * Copy constructor
      * @param toCopy the object to copy
      */
-    public SGDNetworkTrainer(SGDNetworkTrainer toCopy)
+    public SGDNetworkTrainer(final SGDNetworkTrainer toCopy)
     {
         this.layerSizes = Arrays.copyOf(toCopy.layerSizes, toCopy.layerSizes.length);
         this.eta = toCopy.eta;
@@ -161,43 +161,43 @@ public class SGDNetworkTrainer implements Serializable
         if(toCopy.W != null)
         {
             this.W = new ArrayList<Matrix>();
-            for(Matrix w : toCopy.W) {
+            for(final Matrix w : toCopy.W) {
               this.W.add(w.clone());
             }
             this.B = new ArrayList<Vec>();
-            for(Vec b : toCopy.B) {
+            for(final Vec b : toCopy.B) {
               this.B.add(b.clone());
             }
         }
         if(toCopy.W_deltas != null)
         {
             this.W_deltas = new ArrayList<Matrix>();
-            for(Matrix w : toCopy.W_deltas) {
+            for(final Matrix w : toCopy.W_deltas) {
               this.W_deltas.add(w.clone());
             }
             this.B_deltas = new ArrayList<Vec>();
-            for(Vec b : toCopy.B_deltas) {
+            for(final Vec b : toCopy.B_deltas) {
               this.B_deltas.add(b.clone());
             }
         }
         if(toCopy.W_updaters != null)
         {
             this.W_updaters = new ArrayList<List<GradientUpdater>>();
-            for(List<GradientUpdater> updaters : toCopy.W_updaters)
+            for(final List<GradientUpdater> updaters : toCopy.W_updaters)
             {
-                List<GradientUpdater> copyUpdaters = new ArrayList<GradientUpdater>(updaters.size());
+                final List<GradientUpdater> copyUpdaters = new ArrayList<GradientUpdater>(updaters.size());
                 this.W_updaters.add(copyUpdaters);
-                for(GradientUpdater item : updaters) {
+                for(final GradientUpdater item : updaters) {
                   copyUpdaters.add(item.clone());
                 }
             }
             this.B_updaters = new ArrayList<GradientUpdater>(toCopy.B_updaters);
-            for(GradientUpdater item : toCopy.B_updaters) {
+            for(final GradientUpdater item : toCopy.B_updaters) {
               this.B_updaters.add(item.clone());
             }
         }
         this.layersActivation = new ArrayList<ActivationLayer>(toCopy.layersActivation.size());
-        for(ActivationLayer activation : toCopy.layersActivation) {
+        for(final ActivationLayer activation : toCopy.layersActivation) {
           this.layersActivation.add(activation.clone());
         }
     }
@@ -206,7 +206,7 @@ public class SGDNetworkTrainer implements Serializable
      * Sets the probability of dropping a value from the input layer
      * @param p the probability in [0, 1) of dropping a value in the input layer
      */
-    public void setDropoutInput(double p)
+    public void setDropoutInput(final double p)
     {
         if(p < 0 || p >= 1 || Double.isNaN(p)) {
           throw new IllegalArgumentException("Dropout probability must be in [0,1) not " + p);
@@ -229,7 +229,7 @@ public class SGDNetworkTrainer implements Serializable
      * @param p the probability in [0, 1) of dropping a value in the hidden
      * layer
      */
-    public void setDropoutHidden(double p)
+    public void setDropoutHidden(final double p)
     {
         if(p < 0 || p >= 1 || Double.isNaN(p)) {
           throw new IllegalArgumentException("Dropout probability must be in [0,1) not " + p);
@@ -251,7 +251,7 @@ public class SGDNetworkTrainer implements Serializable
      * Sets the decay rate on the global learning rate over time
      * @param etaDecay the decay rate to use
      */
-    public void setEtaDecay(DecayRate etaDecay)
+    public void setEtaDecay(final DecayRate etaDecay)
     {
         this.etaDecay = etaDecay;
     }
@@ -269,7 +269,7 @@ public class SGDNetworkTrainer implements Serializable
      * Sets the base global learning rate. 
      * @param eta the learning rate to use
      */
-    public void setEta(double eta)
+    public void setEta(final double eta)
     {
         if(eta <= 0 || Double.isNaN(eta) || Double.isInfinite(eta)) {
           throw new IllegalArgumentException("eta must be a positive constant, not " + eta);
@@ -290,7 +290,7 @@ public class SGDNetworkTrainer implements Serializable
      * Sets the method of regularizing the connections weights
      * @param regularizer the method of regularizing the network
      */
-    public void setRegularizer(WeightRegularizer regularizer)
+    public void setRegularizer(final WeightRegularizer regularizer)
     {
         this.regularizer = regularizer;
     }
@@ -310,7 +310,7 @@ public class SGDNetworkTrainer implements Serializable
      * and the value at each index is the size of that layer. 
      * @param layerSizes the array of layer sizes
      */
-    public void setLayerSizes(int... layerSizes)
+    public void setLayerSizes(final int... layerSizes)
     {
         this.layerSizes = layerSizes;
     }
@@ -329,7 +329,7 @@ public class SGDNetworkTrainer implements Serializable
      * layer. 
      * @param layersActivation the list of hidden and output layer activations
      */
-    public void setLayersActivation(List<ActivationLayer> layersActivation)
+    public void setLayersActivation(final List<ActivationLayer> layersActivation)
     {
         this.layersActivation = layersActivation;
     }
@@ -339,7 +339,7 @@ public class SGDNetworkTrainer implements Serializable
      * matrices and bias terms. 
      * @param updater the updater to use
      */
-    public void setGradientUpdater(GradientUpdater updater)
+    public void setGradientUpdater(final GradientUpdater updater)
     {
         this.updater = updater;
     }
@@ -357,7 +357,7 @@ public class SGDNetworkTrainer implements Serializable
      * Sets the method used to initialize matrix connection weights
      * @param weightInit the weight initialization method
      */
-    public void setWeightInit(WeightInitializer weightInit)
+    public void setWeightInit(final WeightInitializer weightInit)
     {
         this.weightInit = weightInit;
     }
@@ -375,7 +375,7 @@ public class SGDNetworkTrainer implements Serializable
      * Sets the method to use when initializing neuron bias values
      * @param biasInit the bias initialization method
      */
-    public void setBiasInit(BiastInitializer biasInit)
+    public void setBiasInit(final BiastInitializer biasInit)
     {
         this.biasInit = biasInit;
     }
@@ -402,7 +402,7 @@ public class SGDNetworkTrainer implements Serializable
         B = new ArrayList<Vec>(layersActivation.size());
         
         
-        Random rand = new XOR96();
+        final Random rand = new XOR96();
         
         for(int l = 1; l < layerSizes.length; l++)
         {
@@ -437,10 +437,10 @@ public class SGDNetworkTrainer implements Serializable
             W_deltas.add(new DenseMatrix(layerSizes[l], layerSizes[l-1]));
             B_deltas.add(new DenseVector(layerSizes[l]));
             //updaters
-            List<GradientUpdater> W_updaters_l = new ArrayList<GradientUpdater>(layerSizes[l]);
+            final List<GradientUpdater> W_updaters_l = new ArrayList<GradientUpdater>(layerSizes[l]);
             for(int i = 0; i < layerSizes[l]; i++)
             {
-                GradientUpdater W_updater = updater.clone();
+                final GradientUpdater W_updater = updater.clone();
                 W_updater.setup(layerSizes[l-1]);
                 W_updaters_l.add(W_updater);
             }
@@ -483,7 +483,7 @@ public class SGDNetworkTrainer implements Serializable
      * @param y the list of output values
      * @return the error incurred on the given mini batch
      */
-    public double updateMiniBatch(List<Vec> x, List<Vec> y)
+    public double updateMiniBatch(final List<Vec> x, final List<Vec> y)
     {
         return updateMiniBatch(x, y, null);
     }
@@ -497,13 +497,13 @@ public class SGDNetworkTrainer implements Serializable
      * {@code null}
      * @return the error incurred on the given mini batch
      */
-    public double updateMiniBatch(List<Vec> x, List<Vec> y, ExecutorService ex)
+    public double updateMiniBatch(final List<Vec> x, final List<Vec> y, final ExecutorService ex)
     {
-        Random rand = new XORWOW();
-        for(Matrix w : W_deltas) {
+        final Random rand = new XORWOW();
+        for(final Matrix w : W_deltas) {
           w.zeroOut();
         }
-        for(Vec b : B_deltas) {
+        for(final Vec b : B_deltas) {
           b.zeroOut();
         }
         
@@ -521,7 +521,7 @@ public class SGDNetworkTrainer implements Serializable
             }
         }
         
-        Matrix X = new DenseMatrix(layerSizes[0], x.size());
+        final Matrix X = new DenseMatrix(layerSizes[0], x.size());
         for (int j = 0; j < x.size(); j++) {
           x.get(j).copyTo(X.getColumnView(j));
         }
@@ -539,7 +539,7 @@ public class SGDNetworkTrainer implements Serializable
         
         accumulateUpdates(X, activations, deltas, ex, x);
 
-        double eta_cur = etaDecay.rate(time++, eta);
+        final double eta_cur = etaDecay.rate(time++, eta);
         if(ex == null) {
           applyGradient(eta_cur);
         } else {
@@ -549,7 +549,7 @@ public class SGDNetworkTrainer implements Serializable
         return errorMade;
     }
 
-    private void feedforward(Matrix X, Matrix[] activationsM, Matrix[] unactivatedM, ExecutorService ex, Random rand)
+    private void feedforward(final Matrix X, final Matrix[] activationsM, final Matrix[] unactivatedM, final ExecutorService ex, final Random rand)
     {
         //feed forward
         for (int l = 0; l < layersActivation.size(); l++)
@@ -605,7 +605,7 @@ public class SGDNetworkTrainer implements Serializable
                 {
                     latch.await();
                 }
-                catch (InterruptedException ex1)
+                catch (final InterruptedException ex1)
                 {
                     Logger.getLogger(SGDNetworkTrainer.class.getName()).log(Level.SEVERE, null, ex1);
                 }
@@ -625,12 +625,12 @@ public class SGDNetworkTrainer implements Serializable
      * @param x the input vector to feed forward through the network
      * @return the final activation for this network
      */
-    public Vec feedfoward(Vec x)
+    public Vec feedfoward(final Vec x)
     {
         Vec a_lprev = x;
         for (int l = 0; l < layersActivation.size(); l++)
         {
-            Vec z_l = new DenseVector(layerSizes[l+1]);
+            final Vec z_l = new DenseVector(layerSizes[l+1]);
             z_l.zeroOut();
             W.get(l).multiply(a_lprev, 1.0, z_l);
 
@@ -645,12 +645,12 @@ public class SGDNetworkTrainer implements Serializable
         return a_lprev;
     }
     
-    private double backpropagateError(Matrix[] deltasM, Matrix[] activationsM, List<Vec> x, List<Vec> y, double errorMade, ExecutorService ex, Matrix[] unactivatedM)
+    private double backpropagateError(final Matrix[] deltasM, final Matrix[] activationsM, final List<Vec> x, final List<Vec> y, double errorMade, final ExecutorService ex, final Matrix[] unactivatedM)
     {
         //backpropagate the error
         for (int l = layersActivation.size() - 1; l >= 0; l--)
         {
-            Matrix delta_l = deltasM[l];
+            final Matrix delta_l = deltasM[l];
 
             if (l == layersActivation.size() - 1)//output layer
             {
@@ -676,7 +676,7 @@ public class SGDNetworkTrainer implements Serializable
         return errorMade;
     }
 
-    private void accumulateUpdates(Matrix X, Matrix[] activationsM, Matrix[] deltasM, ExecutorService ex, final List<Vec> x)
+    private void accumulateUpdates(final Matrix X, final Matrix[] activationsM, final Matrix[] deltasM, final ExecutorService ex, final List<Vec> x)
     {
         final double invXsize = 1.0/x.size();
         //accumulate updates
@@ -728,7 +728,7 @@ public class SGDNetworkTrainer implements Serializable
                 {
                     latch.await();
                 }
-                catch (InterruptedException ex1)
+                catch (final InterruptedException ex1)
                 {
                     Logger.getLogger(SGDNetworkTrainer.class.getName()).log(Level.SEVERE, null, ex1);
                 }
@@ -736,7 +736,7 @@ public class SGDNetworkTrainer implements Serializable
         }
     }
 
-    private void applyGradient(double eta_cur)
+    private void applyGradient(final double eta_cur)
     {
         //apply gradient
         for(int l = 0; l < layersActivation.size(); l++)
@@ -746,16 +746,16 @@ public class SGDNetworkTrainer implements Serializable
             final Matrix W_dl = W_deltas.get(l);
             for(int i = 0; i < W_l.rows(); i++)
             {
-                Vec W_li = W_l.getRowView(i);
+                final Vec W_li = W_l.getRowView(i);
                 W_updaters.get(l).get(i).update(W_li, W_dl.getRowView(i), eta_cur);
             }
             regularizer.applyRegularization(W_l, B.get(l));
         }
     }
     
-    private void applyGradient(final double eta_cur, ExecutorService ex)
+    private void applyGradient(final double eta_cur, final ExecutorService ex)
     {
-        List<Future<?>> futures = new ArrayList<Future<?>>();
+        final List<Future<?>> futures = new ArrayList<Future<?>>();
         //apply gradient
         for(int l = 0; l < layersActivation.size(); l++)
         {
@@ -772,7 +772,7 @@ public class SGDNetworkTrainer implements Serializable
                     @Override
                     public void run()
                     {
-                        Vec W_li = W_l.getRowView(i);
+                        final Vec W_li = W_l.getRowView(i);
                         W_updaters.get(L).get(i).update(W_li, W_dl.getRowView(i), eta_cur);
                         B.get(L).set(i, regularizer.applyRegularizationToRow(W_li, B.get(L).get(i)));
                     }
@@ -782,14 +782,14 @@ public class SGDNetworkTrainer implements Serializable
         
         try
         {
-            for(Future<?> future : futures) {
+            for(final Future<?> future : futures) {
               future.get();
             }
         }
-        catch (InterruptedException e)
+        catch (final InterruptedException e)
         {
         }
-        catch (ExecutionException e)
+        catch (final ExecutionException e)
         {
         }
     }
@@ -801,7 +801,7 @@ public class SGDNetworkTrainer implements Serializable
      * @param rand the source of randomness
      * @param ex the source of threads for parlallel computation, or {@code null} 
      */
-    private static void applyDropout(final Matrix X, final int randThresh, final Random rand, ExecutorService ex)
+    private static void applyDropout(final Matrix X, final int randThresh, final Random rand, final ExecutorService ex)
     {
         if (ex == null)
         {
@@ -841,7 +841,7 @@ public class SGDNetworkTrainer implements Serializable
             {
                 latch.await();
             }
-            catch (InterruptedException ex1)
+            catch (final InterruptedException ex1)
             {
                 Logger.getLogger(SGDNetworkTrainer.class.getName()).log(Level.SEVERE, null, ex1);
             }

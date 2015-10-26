@@ -24,7 +24,7 @@ public class Normal extends ContinuousDistribution
         this(0, 1);
     }
 
-    public Normal(double mean, double stndDev)
+    public Normal(final double mean, final double stndDev)
     {
         if(stndDev <= 0) {
           throw new RuntimeException("Standerd deviation of the normal distribution needs to be greater than zero");
@@ -33,7 +33,7 @@ public class Normal extends ContinuousDistribution
         setStndDev(stndDev);
     }
 
-    public void setMean(double mean)
+    public void setMean(final double mean)
     {
         if(Double.isInfinite(mean) || Double.isNaN(mean)) {
           throw new ArithmeticException("Mean can not be infinite of NaN");
@@ -41,7 +41,7 @@ public class Normal extends ContinuousDistribution
         this.mean = mean;
     }
 
-    public void setStndDev(double stndDev)
+    public void setStndDev(final double stndDev)
     {
         if(Double.isInfinite(stndDev) || Double.isNaN(stndDev)) {
           throw new ArithmeticException("Standard devation can not be infinite of NaN");
@@ -52,7 +52,7 @@ public class Normal extends ContinuousDistribution
         this.stndDev = stndDev;
     }
     
-    public static double cdf(double x, double mu, double sigma)
+    public static double cdf(final double x, final double mu, final double sigma)
     {
         if (Double.isNaN(x) || Double.isInfinite(x)) {
           throw new ArithmeticException("X is not a real number");
@@ -61,89 +61,89 @@ public class Normal extends ContinuousDistribution
         return cdfApproxMarsaglia2004(zTransform(x, mu, sigma));
     }
 
-    public double cdf(double x)
+    public double cdf(final double x)
     {
         return cdf(x, mean, stndDev);
     }
 
-    public static double invcdf(double x, double mu, double sigma)
+    public static double invcdf(final double x, final double mu, final double sigma)
     {
         if(x < 0 || x > 1) {
           throw new RuntimeException("Inverse of a probability requires a probablity in the range [0,1], not " + x);
         }
         //http://home.online.no/~pjacklam/notes/invnorm/
-        double a[] =
+        final double a[] =
         {
             -3.969683028665376e+01,2.209460984245205e+02,
             -2.759285104469687e+02,1.383577518672690e+02,
             -3.066479806614716e+01,2.506628277459239e+00
         };
 
-        double b[] =
+        final double b[] =
         {
             -5.447609879822406e+01,1.615858368580409e+02,
             -1.556989798598866e+02,6.680131188771972e+01,-1.328068155288572e+01
         };
 
-        double c[] =
+        final double c[] =
         {
             -7.784894002430293e-03,-3.223964580411365e-01,
             -2.400758277161838e+00,-2.549732539343734e+00,
             4.374664141464968e+00,2.938163982698783e+00
         };
 
-        double d[] =
+        final double d[] =
         {
             7.784695709041462e-03,3.224671290700398e-01,
             2.445134137142996e+00,3.754408661907416e+00
         };
 
-        double p_low = 0.02425;
-        double p_high = 1 - p_low;
+        final double p_low = 0.02425;
+        final double p_high = 1 - p_low;
 
-        double p = x;
+        final double p = x;
         double result;
 
         if(0 < p && p < p_low)
         {
-            double q = sqrt(-2*log(p));
+            final double q = sqrt(-2*log(p));
             result = (((((c[0]*q+c[1])*q+c[2])*q+c[3])*q+c[4])*q+c[5]) /
                         ((((d[0]*q+d[1])*q+d[2])*q+d[3])*q+1);
         }
         else if (p_low <= p && p <= p_high)
         {
-            double q = p - 0.5;
-            double r = q*q;
+            final double q = p - 0.5;
+            final double r = q*q;
             result = (((((a[0]*r+a[1])*r+a[2])*r+a[3])*r+a[4])*r+a[5])*q /
                         (((((b[0]*r+b[1])*r+b[2])*r+b[3])*r+b[4])*r+1);
         }
         else//upper region
         {
-            double q = sqrt(-2*log(1-p));
+            final double q = sqrt(-2*log(1-p));
             result = -(((((c[0]*q+c[1])*q+c[2])*q+c[3])*q+c[4])*q+c[5]) /
                         ((((d[0]*q+d[1])*q+d[2])*q+d[3])*q+1);
         }
 
         //Refining step
 
-        double e = cdf(result, 0, 1) - p;
-        double u = e*sqrt(2*PI)*exp(result*result/2);
+        final double e = cdf(result, 0, 1) - p;
+        final double u = e*sqrt(2*PI)*exp(result*result/2);
         result = result - u / (1 + result*u/2);
 
         return result * sigma + mu;
     }
 
-    public double invCdf(double d)
+    public double invCdf(final double d)
     {
         return invcdf(d, mean, stndDev);
     }
 
-    public static double pdf(double x, double mu, double sigma)
+    public static double pdf(final double x, final double mu, final double sigma)
     {
         return 1/sqrt(2*PI*sigma*sigma)*exp(-pow(x-mu,2)/(2*sigma*sigma));
     }
 
-    public double pdf(double d)
+    public double pdf(final double d)
     {
         return pdf(d, mean, stndDev);
     }
@@ -155,18 +155,18 @@ public class Normal extends ContinuousDistribution
      * @param sigma the standard deviation of the distribution
      * @return the log probability 
      */
-    public static double logPdf(double x, double mu, double sigma)
+    public static double logPdf(final double x, final double mu, final double sigma)
     {
         return -0.5*log(2*PI) - log(sigma) + -pow(x-mu,2)/(2*sigma*sigma);
     }
 
     @Override
-    public double logPdf(double x)
+    public double logPdf(final double x)
     {
         return logPdf(x, mean, stndDev);
     }
 
-    public double invPdf(double d)
+    public double invPdf(final double d)
     {
         /**
          * inverse pdf of a normal distribution is
@@ -182,23 +182,25 @@ public class Normal extends ContinuousDistribution
         return exp(pow(mean-d, 2)/(2*pow(stndDev, 2)))*sqrt(2*PI)*stndDev;
     }
 
-    public static double zTransform(double x, double mu, double sigma)
+    public static double zTransform(final double x, final double mu, final double sigma)
     {
         return (x-mu)/sigma;
     }
 
-    public double zTransform(double x)
+    public double zTransform(final double x)
     {
         return zTransform(x, mean, stndDev);
     }
 
-    private static double cdfApproxMarsaglia2004(double x)
+    private static double cdfApproxMarsaglia2004(final double x)
     {
         /*
          * Journal of Statistical Software (July 2004, Volume 11, Issue 5), George Marsaglia
          * Algorithum to compute the cdf of the normal distribution for some z score
          */
-        double s = x, t = 0, b = x, q = x*x , i = 1;
+        double s = x, t = 0, b = x;
+        final double q = x*x;
+        double i = 1;
         //XXX double comparison
         while(s != t) {
           s=(t=s)+(b*=q/(i+=2));
@@ -237,7 +239,7 @@ public class Normal extends ContinuousDistribution
     }
 
     @Override
-    public void setVariable(String var, double value)
+    public void setVariable(final String var, final double value)
     {
         if(var.equals(GreekLetters.mu)) {
           mean = value;
@@ -254,7 +256,7 @@ public class Normal extends ContinuousDistribution
     }
 
     @Override
-    public void setUsingData(Vec data)
+    public void setUsingData(final Vec data)
     {
         mean = data.mean();
         setStndDev(data.standardDeviation());
@@ -315,7 +317,7 @@ public class Normal extends ContinuousDistribution
 	}
 
 	@Override
-	public boolean equals(Object obj) {
+	public boolean equals(final Object obj) {
 		if (this == obj) {
 			return true;
 		}
@@ -325,7 +327,7 @@ public class Normal extends ContinuousDistribution
 		if (getClass() != obj.getClass()) {
 			return false;
 		}
-		Normal other = (Normal) obj;
+		final Normal other = (Normal) obj;
 		if (Double.doubleToLongBits(mean) != Double
 				.doubleToLongBits(other.mean)) {
 			return false;

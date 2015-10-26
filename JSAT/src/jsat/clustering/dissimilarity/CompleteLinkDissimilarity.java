@@ -28,7 +28,7 @@ public class CompleteLinkDissimilarity extends DistanceMetricDissimilarity imple
      * Creates a new CompleteLinkDissimilarity 
      * @param dm the distance metric to use between individual points
      */
-    public CompleteLinkDissimilarity(DistanceMetric dm)
+    public CompleteLinkDissimilarity(final DistanceMetric dm)
     {
         super(dm);
     }
@@ -37,7 +37,7 @@ public class CompleteLinkDissimilarity extends DistanceMetricDissimilarity imple
      * Copy constructor
      * @param toCopy the object to copy
      */
-    public CompleteLinkDissimilarity(CompleteLinkDissimilarity toCopy)
+    public CompleteLinkDissimilarity(final CompleteLinkDissimilarity toCopy)
     {
         this(toCopy.dm.clone());
     }
@@ -49,13 +49,13 @@ public class CompleteLinkDissimilarity extends DistanceMetricDissimilarity imple
     }
 
     @Override
-    public double dissimilarity(List<DataPoint> a, List<DataPoint> b)
+    public double dissimilarity(final List<DataPoint> a, final List<DataPoint> b)
     {
         double maxDiss = Double.MIN_VALUE;
 
         double tmpDist;
-        for (DataPoint ai : a) {
-          for (DataPoint bi : b) {
+        for (final DataPoint ai : a) {
+          for (final DataPoint bi : b) {
             if ((tmpDist = distance(ai, bi)) > maxDiss) {
               maxDiss = tmpDist;
             }
@@ -66,12 +66,12 @@ public class CompleteLinkDissimilarity extends DistanceMetricDissimilarity imple
     }
 
     @Override
-    public double dissimilarity(Set<Integer> a, Set<Integer> b, double[][] distanceMatrix)
+    public double dissimilarity(final Set<Integer> a, final Set<Integer> b, final double[][] distanceMatrix)
     {
         double maxDiss = Double.MIN_VALUE;
 
-        for (int ai : a) {
-          for (int bi : b) {
+        for (final int ai : a) {
+          for (final int bi : b) {
             if (getDistance(distanceMatrix, ai, bi) > maxDiss) {
               maxDiss = getDistance(distanceMatrix, ai, bi);
             }
@@ -82,13 +82,13 @@ public class CompleteLinkDissimilarity extends DistanceMetricDissimilarity imple
     }
 
     @Override
-    public double dissimilarity(int i, int ni, int j, int nj, double[][] distanceMatrix)
+    public double dissimilarity(final int i, final int ni, final int j, final int nj, final double[][] distanceMatrix)
     {
         return getDistance(distanceMatrix, i, j);
     }
 
     @Override
-    public double dissimilarity(int i, int ni, int j, int nj, int k, int nk, double[][] distanceMatrix)
+    public double dissimilarity(final int i, final int ni, final int j, final int nj, final int k, final int nk, final double[][] distanceMatrix)
     {
         return Math.max(getDistance(distanceMatrix, i, k), getDistance(distanceMatrix, j, k));
     }

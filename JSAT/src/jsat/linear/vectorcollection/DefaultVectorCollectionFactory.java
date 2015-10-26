@@ -23,13 +23,13 @@ public class DefaultVectorCollectionFactory<V extends Vec> implements VectorColl
     private static final int KD_TREE_PIVOT = 5;
     private static final int BRUTE_FORCE_DIM = 1000;
     @Override
-    public VectorCollection<V> getVectorCollection(List<V> source, DistanceMetric distanceMetric)
+    public VectorCollection<V> getVectorCollection(final List<V> source, final DistanceMetric distanceMetric)
     {
         if(source.size() < VEC_ARRAY_CUT_OFF)
         {
             return new VectorArray<V>(distanceMetric, source);
         }
-        int dimension = source.get(0).length();
+        final int dimension = source.get(0).length();
         if(dimension >= BRUTE_FORCE_DIM)
         {
             return new VectorArray<V>(distanceMetric, source);
@@ -40,8 +40,8 @@ public class DefaultVectorCollectionFactory<V extends Vec> implements VectorColl
                 distanceMetric instanceof ManhattanDistance || 
                 distanceMetric instanceof MinkowskiDistance))
         {
-            KDTree.PivotSelection pivotSelect = dimension <= KD_TREE_PIVOT ? KDTree.PivotSelection.Variance : KDTree.PivotSelection.Incremental;
-            KDTree<V> kd = new KDTree<V>(source, distanceMetric, pivotSelect);
+            final KDTree.PivotSelection pivotSelect = dimension <= KD_TREE_PIVOT ? KDTree.PivotSelection.Variance : KDTree.PivotSelection.Incremental;
+            final KDTree<V> kd = new KDTree<V>(source, distanceMetric, pivotSelect);
             return kd;
         }
         
@@ -49,13 +49,13 @@ public class DefaultVectorCollectionFactory<V extends Vec> implements VectorColl
     }
 
     @Override
-    public VectorCollection<V> getVectorCollection(List<V> source, DistanceMetric distanceMetric, ExecutorService threadpool)
+    public VectorCollection<V> getVectorCollection(final List<V> source, final DistanceMetric distanceMetric, final ExecutorService threadpool)
     {
         if(source.size() < VEC_ARRAY_CUT_OFF)
         {
             return new VectorArray<V>(distanceMetric, source);
         }
-        int dimension = source.get(0).length();
+        final int dimension = source.get(0).length();
         if(dimension >= BRUTE_FORCE_DIM)
         {
             return new VectorArray<V>(distanceMetric, source);
@@ -66,8 +66,8 @@ public class DefaultVectorCollectionFactory<V extends Vec> implements VectorColl
                 distanceMetric instanceof ManhattanDistance || 
                 distanceMetric instanceof MinkowskiDistance))
         {
-            KDTree.PivotSelection pivotSelect = dimension <= KD_TREE_PIVOT ? KDTree.PivotSelection.Variance : KDTree.PivotSelection.Incremental;
-            KDTree<V> kd = new KDTree<V>(source, distanceMetric, pivotSelect, threadpool);
+            final KDTree.PivotSelection pivotSelect = dimension <= KD_TREE_PIVOT ? KDTree.PivotSelection.Variance : KDTree.PivotSelection.Incremental;
+            final KDTree<V> kd = new KDTree<V>(source, distanceMetric, pivotSelect, threadpool);
             return kd;
         }
         return new VPTree<V>(source, distanceMetric, VPTree.VPSelection.Random, new Random(), 50, 50, threadpool);

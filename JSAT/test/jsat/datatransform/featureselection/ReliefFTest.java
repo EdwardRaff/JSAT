@@ -53,16 +53,16 @@ public class ReliefFTest
     public void testTransformC()
     {
         System.out.println("transformC");
-        Random rand = new Random(13);
-        int t0 = 1, t1 = 5, t2 = 8;
-        Set<Integer> shouldHave = new IntSet();
+        final Random rand = new Random(13);
+        final int t0 = 1, t1 = 5, t2 = 8;
+        final Set<Integer> shouldHave = new IntSet();
         shouldHave.addAll(Arrays.asList(t0, t1, t2));
         
-        ClassificationDataSet cds = SFSTest.
+        final ClassificationDataSet cds = SFSTest.
                 generate3DimIn10(rand, t0, t1, t2);
         
-        ReliefF relieff = new ReliefF.ReliefFFactory(3, 50, 7, new EuclideanDistance()).clone().getTransform(cds).clone();
-        Set<Integer> found = new IntSet(relieff.getKeptNumeric());
+        final ReliefF relieff = new ReliefF.ReliefFFactory(3, 50, 7, new EuclideanDistance()).clone().getTransform(cds).clone();
+        final Set<Integer> found = new IntSet(relieff.getKeptNumeric());
         
         assertEquals(shouldHave.size(), found.size());
         assertTrue(shouldHave.containsAll(found));

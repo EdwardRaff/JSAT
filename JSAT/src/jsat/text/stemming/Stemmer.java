@@ -31,7 +31,7 @@ public abstract class Stemmer implements Serializable
      * Replaces each value in the list with the stemmed version of the word
      * @param list the list to apply stemming to
      */
-    public void applyTo(List<String> list)
+    public void applyTo(final List<String> list)
     {
         for(int i = 0; i < list.size(); i++) {
           list.set(i, stem(list.get(i)));
@@ -42,7 +42,7 @@ public abstract class Stemmer implements Serializable
      * Replaces each value in the array with the stemmed version of the word
      * @param arr the array to apply stemming to
      */
-    public void applyTo(String[] arr)
+    public void applyTo(final String[] arr)
     {
         for(int i = 0; i < arr.length; i++) {
           arr[i] = stem(arr[i]);

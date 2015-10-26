@@ -39,7 +39,7 @@ public class IsotonicCalibration extends BinaryCalibration
      * @param base the base model to calibrate the outputs of
      * @param mode the calibration mode to use
      */
-    public IsotonicCalibration(BinaryScoreClassifier base, CalibrationMode mode)
+    public IsotonicCalibration(final BinaryScoreClassifier base, final CalibrationMode mode)
     {
         super(base, mode);
     }
@@ -48,7 +48,7 @@ public class IsotonicCalibration extends BinaryCalibration
      * Copy constructor
      * @param toCopy the object to copy
      */
-    protected IsotonicCalibration(IsotonicCalibration toCopy)
+    protected IsotonicCalibration(final IsotonicCalibration toCopy)
     {
         super(toCopy.base.clone(), toCopy.mode);
         if (toCopy.outputs != null) {
@@ -68,16 +68,16 @@ public class IsotonicCalibration extends BinaryCalibration
         public double min, max;
         
 
-        public Point(double score, double output)
+        public Point(final double score, final double output)
         {
             this.weight = 1;
             min = max = this.score = score;
             this.output = output;
         }
         
-        public void merge(Point next)
+        public void merge(final Point next)
         {
-            double newWeight = this.weight +next.weight;
+            final double newWeight = this.weight +next.weight;
             this.score = (this.weight*this.score + next.weight*next.score)/newWeight;
             this.output = (this.weight*this.output + next.weight*next.output)/newWeight;
             this.weight = newWeight;
@@ -85,13 +85,13 @@ public class IsotonicCalibration extends BinaryCalibration
             this.max = Math.max(this.max, next.max);
         }
         
-        public boolean nextViolates(Point next)
+        public boolean nextViolates(final Point next)
         {
             return this.output >= next.output;
         }
 
         @Override
-        public int compareTo(Point o)
+        public int compareTo(final Point o)
         {
             return Double.compare(score, o.score);
         }
@@ -99,9 +99,9 @@ public class IsotonicCalibration extends BinaryCalibration
     }
 
     @Override
-    protected void calibrate(boolean[] label, double[] deci, int len)
+    protected void calibrate(final boolean[] label, final double[] deci, final int len)
     {
-        List<Point> points = new ArrayList<Point>(len);
+        final List<Point> points = new ArrayList<Point>(len);
         for(int i = 0; i < len; i++) {
           points.add(new Point(deci[i], label[i] ? 1 : 0));
         }
@@ -125,7 +125,7 @@ public class IsotonicCalibration extends BinaryCalibration
         outputs = new double[points.size()*2];
         
         int pos = 0;
-        for(Point p : points)
+        for(final Point p : points)
         {
             scores[pos] = p.min;
             outputs[pos++] = p.output;
@@ -142,11 +142,11 @@ public class IsotonicCalibration extends BinaryCalibration
     }
 
     @Override
-    public CategoricalResults classify(DataPoint data)
+    public CategoricalResults classify(final DataPoint data)
     {
-        double score = base.getScore(data);
+        final double score = base.getScore(data);
         
-        CategoricalResults cr = new CategoricalResults(2);
+        final CategoricalResults cr = new CategoricalResults(2);
         int indx = Arrays.binarySearch(scores, score);
         if(indx < 0) {
           indx = (-(indx) - 1);
@@ -154,32 +154,32 @@ public class IsotonicCalibration extends BinaryCalibration
         
         if(indx == scores.length)
         {
-            double maxScore = scores[scores.length-1];
+            final double maxScore = scores[scores.length-1];
             if(score > maxScore*3) {
               cr.setProb(1, 1.0);
             } else
             {
-                double p = (maxScore*3-score)/(maxScore*2)*outputs[scores.length-1];
+                final double p = (maxScore*3-score)/(maxScore*2)*outputs[scores.length-1];
                 cr.setProb(0, 1-p);
                 cr.setProb(1, p);
             }
         }
         else if(indx == 0)
         {
-            double minScore = scores[0];
+            final double minScore = scores[0];
             if(score < minScore/3) {
               cr.setProb(0, 1.0);
             } else
             {
-                double p = (minScore-score)/(minScore-minScore/3)*outputs[0];
+                final double p = (minScore-score)/(minScore-minScore/3)*outputs[0];
                 cr.setProb(0, 1-p);
                 cr.setProb(1, p);
             }
         }
         else
         {
-            double score0 = scores[indx-1];
-            double score1 = scores[indx];
+            final double score0 = scores[indx-1];
+            final double score1 = scores[indx];
             
             if(score0 == score1)
             {
@@ -188,8 +188,8 @@ public class IsotonicCalibration extends BinaryCalibration
                 return cr;
             }
             
-            double weight = (score1-score)/(score1-score0);
-            double p = outputs[indx-1]*weight + outputs[indx]*(1-weight);
+            final double weight = (score1-score)/(score1-score0);
+            final double p = outputs[indx-1]*weight + outputs[indx]*(1-weight);
             cr.setProb(0, 1-p);
             cr.setProb(1, p);   
         }

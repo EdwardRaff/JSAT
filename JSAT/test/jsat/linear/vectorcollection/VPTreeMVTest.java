@@ -51,7 +51,7 @@ public class VPTreeMVTest
     public static void setUpClass()
     {
         collectionFactories = new ArrayList<VectorCollectionFactory<Vec>>();
-        for(VPTree.VPSelection samplingStrat : VPTree.VPSelection.values()) {
+        for(final VPTree.VPSelection samplingStrat : VPTree.VPSelection.values()) {
           collectionFactories.add(new VPTreeMV.VPTreeMVFactory<Vec>(samplingStrat));
         }
     }
@@ -75,48 +75,48 @@ public class VPTreeMVTest
     public void testSearch_Vec_double()
     {
         System.out.println("search");
-        Random rand = new XORWOW(123);
+        final Random rand = new XORWOW(123);
         
-        VectorArray<Vec> vecCol = new VectorArray<Vec>(new EuclideanDistance());
+        final VectorArray<Vec> vecCol = new VectorArray<Vec>(new EuclideanDistance());
         for(int i = 0; i < 250; i++) {
           vecCol.add(DenseVector.random(3, rand));
         }
         
         
 
-        for(VectorCollectionFactory<Vec> factory : collectionFactories)
+        for(final VectorCollectionFactory<Vec> factory : collectionFactories)
         {
-            ExecutorService ex = Executors.newFixedThreadPool(SystemInfo.LogicalCores);
+            final ExecutorService ex = Executors.newFixedThreadPool(SystemInfo.LogicalCores);
             
-            VectorCollection<Vec> collection0 = factory.getVectorCollection(vecCol, new EuclideanDistance());
-            VectorCollection<Vec> collection1 = factory.getVectorCollection(vecCol, new EuclideanDistance(), ex);
+            final VectorCollection<Vec> collection0 = factory.getVectorCollection(vecCol, new EuclideanDistance());
+            final VectorCollection<Vec> collection1 = factory.getVectorCollection(vecCol, new EuclideanDistance(), ex);
             
             ex.shutdownNow();
             
             for(int iters = 0; iters < 10; iters++) {
-              for(double range : new double[]{0.25, 0.5, 0.75, 2.0})
+              for(final double range : new double[]{0.25, 0.5, 0.75, 2.0})
               {
-                int randIndex=  rand.nextInt(vecCol.size());
+                final int randIndex=  rand.nextInt(vecCol.size());
                 
-                List<? extends VecPaired<Vec, Double>> foundTrue = vecCol.search(vecCol.get(randIndex), range);
-                List<? extends VecPaired<Vec, Double>> foundTest0 = collection0.search(vecCol.get(randIndex), range);
-                List<? extends VecPaired<Vec, Double>> foundTest1 = collection1.search(vecCol.get(randIndex), range);
+                final List<? extends VecPaired<Vec, Double>> foundTrue = vecCol.search(vecCol.get(randIndex), range);
+                final List<? extends VecPaired<Vec, Double>> foundTest0 = collection0.search(vecCol.get(randIndex), range);
+                final List<? extends VecPaired<Vec, Double>> foundTest1 = collection1.search(vecCol.get(randIndex), range);
                 
-                VectorArray<VecPaired<Vec, Double>>  testSearch0 = new VectorArray<VecPaired<Vec, Double>>(new EuclideanDistance(), foundTest0);
+                final VectorArray<VecPaired<Vec, Double>>  testSearch0 = new VectorArray<VecPaired<Vec, Double>>(new EuclideanDistance(), foundTest0);
                 assertEquals(factory.getClass().getName() + " failed", foundTrue.size(), foundTest0.size());
-                for(Vec v : foundTrue)
+                for(final Vec v : foundTrue)
                 {
-                  List<? extends VecPaired<VecPaired<Vec, Double>, Double>> nn = testSearch0.search(v, 1);
+                  final List<? extends VecPaired<VecPaired<Vec, Double>, Double>> nn = testSearch0.search(v, 1);
                   assertTrue(factory.getClass().getName() + " failed", nn.get(0).equals(v, 1e-13));
                 }
                 
                 
                 
-                VectorArray<VecPaired<Vec, Double>>  testSearch1 = new VectorArray<VecPaired<Vec, Double>>(new EuclideanDistance(), foundTest1);
+                final VectorArray<VecPaired<Vec, Double>>  testSearch1 = new VectorArray<VecPaired<Vec, Double>>(new EuclideanDistance(), foundTest1);
                 assertEquals(factory.getClass().getName() + " failed", foundTrue.size(), foundTest1.size());
-                for(Vec v : foundTrue)
+                for(final Vec v : foundTrue)
                 {
-                  List<? extends VecPaired<VecPaired<Vec, Double>, Double>> nn = testSearch1.search(v, 1);
+                  final List<? extends VecPaired<VecPaired<Vec, Double>, Double>> nn = testSearch1.search(v, 1);
                   assertTrue(factory.getClass().getName() + " failed", nn.get(0).equals(v, 1e-13));
                 }
                 
@@ -131,16 +131,16 @@ public class VPTreeMVTest
     public void testSearch_Vec_int()
     {
         System.out.println("search");
-        Random rand = new XORWOW(123);
+        final Random rand = new XORWOW(123);
         
-        VectorArray<Vec> vecCol = new VectorArray<Vec>(new EuclideanDistance());
+        final VectorArray<Vec> vecCol = new VectorArray<Vec>(new EuclideanDistance());
         for(int i = 0; i < 250; i++) {
           vecCol.add(DenseVector.random(3, rand));
         }
         
-        for(VectorCollectionFactory<Vec> factory : collectionFactories)
+        for(final VectorCollectionFactory<Vec> factory : collectionFactories)
         {
-            ExecutorService ex = Executors.newFixedThreadPool(SystemInfo.LogicalCores);
+            final ExecutorService ex = Executors.newFixedThreadPool(SystemInfo.LogicalCores);
             
             VectorCollection<Vec> collection0 = factory.getVectorCollection(vecCol, new EuclideanDistance());
             VectorCollection<Vec> collection1 = factory.getVectorCollection(vecCol, new EuclideanDistance(), ex);
@@ -151,27 +151,27 @@ public class VPTreeMVTest
             ex.shutdownNow();
             
             for(int iters = 0; iters < 10; iters++) {
-              for(int neighbours : new int[]{1, 2, 4, 10, 20})
+              for(final int neighbours : new int[]{1, 2, 4, 10, 20})
               {
-                int randIndex=  rand.nextInt(vecCol.size());
+                final int randIndex=  rand.nextInt(vecCol.size());
                 
-                List<? extends VecPaired<Vec, Double>> foundTrue = vecCol.search(vecCol.get(randIndex), neighbours);
-                List<? extends VecPaired<Vec, Double>> foundTest0 = collection0.search(vecCol.get(randIndex), neighbours);
-                List<? extends VecPaired<Vec, Double>> foundTest1 = collection1.search(vecCol.get(randIndex), neighbours);
+                final List<? extends VecPaired<Vec, Double>> foundTrue = vecCol.search(vecCol.get(randIndex), neighbours);
+                final List<? extends VecPaired<Vec, Double>> foundTest0 = collection0.search(vecCol.get(randIndex), neighbours);
+                final List<? extends VecPaired<Vec, Double>> foundTest1 = collection1.search(vecCol.get(randIndex), neighbours);
                 
-                VectorArray<VecPaired<Vec, Double>>  testSearch0 = new VectorArray<VecPaired<Vec, Double>>(new EuclideanDistance(), foundTest0);
+                final VectorArray<VecPaired<Vec, Double>>  testSearch0 = new VectorArray<VecPaired<Vec, Double>>(new EuclideanDistance(), foundTest0);
                 assertEquals(factory.getClass().getName() + " failed", foundTrue.size(), foundTest0.size());
-                for(Vec v : foundTrue)
+                for(final Vec v : foundTrue)
                 {
-                  List<? extends VecPaired<VecPaired<Vec, Double>, Double>> nn = testSearch0.search(v, 1);
+                  final List<? extends VecPaired<VecPaired<Vec, Double>, Double>> nn = testSearch0.search(v, 1);
                   assertTrue(factory.getClass().getName() + " failed", nn.get(0).equals(v, 1e-13));
                 }
                 
-                VectorArray<VecPaired<Vec, Double>>  testSearch1 = new VectorArray<VecPaired<Vec, Double>>(new EuclideanDistance(), foundTest1);
+                final VectorArray<VecPaired<Vec, Double>>  testSearch1 = new VectorArray<VecPaired<Vec, Double>>(new EuclideanDistance(), foundTest1);
                 assertEquals(factory.getClass().getName() + " failed " + neighbours, foundTrue.size(), foundTest1.size());
-                for(Vec v : foundTrue)
+                for(final Vec v : foundTrue)
                 {
-                  List<? extends VecPaired<VecPaired<Vec, Double>, Double>> nn = testSearch1.search(v, 1);
+                  final List<? extends VecPaired<VecPaired<Vec, Double>, Double>> nn = testSearch1.search(v, 1);
                   assertTrue(factory.getClass().getName() + " failed " + neighbours, nn.get(0).equals(v, 1e-13));
                 }
                 

@@ -29,7 +29,7 @@ public class SimpleList<E> extends AbstractList<E> implements Serializable
      * Creates a new SimpleList 
      * @param initialCapacity the initial storage size of the list
      */
-    public SimpleList(int initialCapacity)
+    public SimpleList(final int initialCapacity)
     {
         source = new Object[initialCapacity];
         size = 0;
@@ -47,14 +47,14 @@ public class SimpleList<E> extends AbstractList<E> implements Serializable
      * Creates a new SimpleList 
      * @param c the collection of elements to place into the list. 
      */
-    public SimpleList(Collection<? extends E> c)
+    public SimpleList(final Collection<? extends E> c)
     {
         this(c.size());
         this.addAll(c);
     }
 
     @Override
-    public E get(int index)
+    public E get(final int index)
     {
         if(index >= size()) {
           throw new IndexOutOfBoundsException();
@@ -69,7 +69,7 @@ public class SimpleList<E> extends AbstractList<E> implements Serializable
     }
 
     @Override
-    public void add(int index, E element)
+    public void add(final int index, final E element)
     {
         if(index > size()) {
           throw new IndexOutOfBoundsException();
@@ -89,24 +89,24 @@ public class SimpleList<E> extends AbstractList<E> implements Serializable
     }
 
     @Override
-    public E remove(int index)
+    public E remove(final int index)
     {
         if(index >= size()) {
           throw new IndexOutOfBoundsException();
         }
-        E removed = (E) source[index];
+        final E removed = (E) source[index];
         System.arraycopy(source, index+1, source, index, size-index-1);
         size--;
         return removed;
     }
 
     @Override
-    public E set(int index, E element)
+    public E set(final int index, final E element)
     {
         if(index >= size()) {
           throw new IndexOutOfBoundsException();
         }
-        E prev = (E) source[index];
+        final E prev = (E) source[index];
         source[index] = element;
         return prev;
     }

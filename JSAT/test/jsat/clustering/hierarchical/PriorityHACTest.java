@@ -50,7 +50,7 @@ public class PriorityHACTest
     public static void setUpClass() throws Exception
     {
         priorityHAC = new PriorityHAC(new SingleLinkDissimilarity(new EuclideanDistance()));
-        GridDataGenerator gdg = new GridDataGenerator(new Uniform(-0.15, 0.15), new Random(12), 2, 5);
+        final GridDataGenerator gdg = new GridDataGenerator(new Uniform(-0.15, 0.15), new Random(12), 2, 5);
         easyData10 = gdg.generateData(50);
         ex = Executors.newFixedThreadPool(10);
     }
@@ -75,14 +75,14 @@ public class PriorityHACTest
     public void testCluster_DataSet_int()
     {
         System.out.println("cluster(dataset, int)");
-        List<List<DataPoint>> clusters = priorityHAC.cluster(easyData10, 10);
+        final List<List<DataPoint>> clusters = priorityHAC.cluster(easyData10, 10);
         assertEquals(10, clusters.size());
-        Set<Integer> seenBefore = new IntSet();
-        for (List<DataPoint> cluster : clusters)
+        final Set<Integer> seenBefore = new IntSet();
+        for (final List<DataPoint> cluster : clusters)
         {
-            int thisClass = cluster.get(0).getCategoricalValue(0);
+            final int thisClass = cluster.get(0).getCategoricalValue(0);
             assertFalse(seenBefore.contains(thisClass));
-            for (DataPoint dp : cluster) {
+            for (final DataPoint dp : cluster) {
               assertEquals(thisClass, dp.getCategoricalValue(0));
             }
         }
@@ -92,14 +92,14 @@ public class PriorityHACTest
     public void testCluster_DataSet()
     {
         System.out.println("cluster(dataset)");
-        List<List<DataPoint>> clusters = priorityHAC.cluster(easyData10);
+        final List<List<DataPoint>> clusters = priorityHAC.cluster(easyData10);
         assertEquals(10, clusters.size());
-        Set<Integer> seenBefore = new IntSet();
-        for (List<DataPoint> cluster : clusters)
+        final Set<Integer> seenBefore = new IntSet();
+        for (final List<DataPoint> cluster : clusters)
         {
-            int thisClass = cluster.get(0).getCategoricalValue(0);
+            final int thisClass = cluster.get(0).getCategoricalValue(0);
             assertFalse(seenBefore.contains(thisClass));
-            for (DataPoint dp : cluster) {
+            for (final DataPoint dp : cluster) {
               assertEquals(thisClass, dp.getCategoricalValue(0));
             }
         }
@@ -109,14 +109,14 @@ public class PriorityHACTest
     public void testCluster_DataSet_ExecutorService()
     {
         System.out.println("cluster(dataset, ExecutorService)");
-        List<List<DataPoint>> clusters = priorityHAC.cluster(easyData10, ex);
+        final List<List<DataPoint>> clusters = priorityHAC.cluster(easyData10, ex);
         assertEquals(10, clusters.size());
-        Set<Integer> seenBefore = new IntSet();
-        for (List<DataPoint> cluster : clusters)
+        final Set<Integer> seenBefore = new IntSet();
+        for (final List<DataPoint> cluster : clusters)
         {
-            int thisClass = cluster.get(0).getCategoricalValue(0);
+            final int thisClass = cluster.get(0).getCategoricalValue(0);
             assertFalse(seenBefore.contains(thisClass));
-            for (DataPoint dp : cluster) {
+            for (final DataPoint dp : cluster) {
               assertEquals(thisClass, dp.getCategoricalValue(0));
             }
         }
@@ -126,14 +126,14 @@ public class PriorityHACTest
     public void testCluster_DataSet_int_int()
     {
         System.out.println("cluster(dataset, int, int)");
-        List<List<DataPoint>> clusters = priorityHAC.cluster(easyData10, 2, 20);
+        final List<List<DataPoint>> clusters = priorityHAC.cluster(easyData10, 2, 20);
         assertEquals(10, clusters.size());
-        Set<Integer> seenBefore = new IntSet();
-        for (List<DataPoint> cluster : clusters)
+        final Set<Integer> seenBefore = new IntSet();
+        for (final List<DataPoint> cluster : clusters)
         {
-            int thisClass = cluster.get(0).getCategoricalValue(0);
+            final int thisClass = cluster.get(0).getCategoricalValue(0);
             assertFalse(seenBefore.contains(thisClass));
-            for (DataPoint dp : cluster) {
+            for (final DataPoint dp : cluster) {
               assertEquals(thisClass, dp.getCategoricalValue(0));
             }
         }
@@ -143,14 +143,14 @@ public class PriorityHACTest
     public void testCluster_DataSet_int_int_ExecutorService()
     {
         System.out.println("cluster(dataset, int, int, ExecutorService)");
-        List<List<DataPoint>> clusters = priorityHAC.cluster(easyData10, 2, 20, ex);
+        final List<List<DataPoint>> clusters = priorityHAC.cluster(easyData10, 2, 20, ex);
         assertEquals(10, clusters.size());
-        Set<Integer> seenBefore = new IntSet();
-        for (List<DataPoint> cluster : clusters)
+        final Set<Integer> seenBefore = new IntSet();
+        for (final List<DataPoint> cluster : clusters)
         {
-            int thisClass = cluster.get(0).getCategoricalValue(0);
+            final int thisClass = cluster.get(0).getCategoricalValue(0);
             assertFalse(seenBefore.contains(thisClass));
-            for (DataPoint dp : cluster) {
+            for (final DataPoint dp : cluster) {
               assertEquals(thisClass, dp.getCategoricalValue(0));
             }
         }
@@ -163,14 +163,14 @@ public class PriorityHACTest
     public void testCluster_DataSet_int_ExecutorService()
     {
         System.out.println("cluster(dataset, int, ExecutorService)");
-        List<List<DataPoint>> clusters = priorityHAC.cluster(easyData10, 10, ex);
+        final List<List<DataPoint>> clusters = priorityHAC.cluster(easyData10, 10, ex);
         assertEquals(10, clusters.size());
-        Set<Integer> seenBefore = new IntSet();
-        for (List<DataPoint> cluster : clusters)
+        final Set<Integer> seenBefore = new IntSet();
+        for (final List<DataPoint> cluster : clusters)
         {
-            int thisClass = cluster.get(0).getCategoricalValue(0);
+            final int thisClass = cluster.get(0).getCategoricalValue(0);
             assertFalse(seenBefore.contains(thisClass));
-            for (DataPoint dp : cluster) {
+            for (final DataPoint dp : cluster) {
               assertEquals(thisClass, dp.getCategoricalValue(0));
             }
         }

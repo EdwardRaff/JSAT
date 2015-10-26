@@ -11,7 +11,7 @@ public class VoidStemmer extends Stemmer
 
 	private static final long serialVersionUID = -5059926028932641447L;
 
-	public String stem(String word)
+	public String stem(final String word)
     {
         return word;
     }

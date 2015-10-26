@@ -110,7 +110,7 @@ public class LVQ implements Classifier, Parameterized
      * @param dm the distance metric to use
      * @param iterations the number of iterations to perform
      */
-    public LVQ(DistanceMetric dm, int iterations)
+    public LVQ(final DistanceMetric dm, final int iterations)
     {
         this(dm, iterations, DEFAULT_LEARNING_RATE, DEFAULT_REPS_PER_CLASS);
     }
@@ -123,8 +123,8 @@ public class LVQ implements Classifier, Parameterized
      * @param representativesPerClass the number of representatives to create 
      * for each class
      */
-    public LVQ(DistanceMetric dm, int iterations, double learningRate, 
-            int representativesPerClass)
+    public LVQ(final DistanceMetric dm, final int iterations, final double learningRate, 
+            final int representativesPerClass)
     {
         this(dm, iterations, learningRate, representativesPerClass, DEFAULT_LVQ_METHOD, new ExponetialDecay());
     }
@@ -139,9 +139,9 @@ public class LVQ implements Classifier, Parameterized
      * @param lvqVersion the version of LVQ to use
      * @param learningDecay the amount of decay to apply to the learning rate
      */
-    public LVQ(DistanceMetric dm, int iterations, double learningRate, 
-            int representativesPerClass, LVQVersion lvqVersion, 
-            DecayRate learningDecay)
+    public LVQ(final DistanceMetric dm, final int iterations, final double learningRate, 
+            final int representativesPerClass, final LVQVersion lvqVersion, 
+            final DecayRate learningDecay)
     {
         setLearningDecay(learningDecay);
         setIterations(iterations);
@@ -159,7 +159,7 @@ public class LVQ implements Classifier, Parameterized
      * Copy Constructor
      * @param toCopy version to copy
      */
-    protected LVQ(LVQ toCopy)
+    protected LVQ(final LVQ toCopy)
     {
         this(toCopy.dm.clone(), toCopy.iterations, toCopy.learningRate, 
                 toCopy.representativesPerClass, toCopy.lvqVersion, 
@@ -193,7 +193,7 @@ public class LVQ implements Classifier, Parameterized
      * 
      * @param mScale the multiplication factor to apply to the learning vectors
      */
-    public void setMScale(double mScale)
+    public void setMScale(final double mScale)
     {
         if(mScale <= 0 || Double.isInfinite(mScale) || Double.isNaN(mScale)) {
           throw new ArithmeticException("Scale factor must be a positive constant, not " + mScale);
@@ -219,7 +219,7 @@ public class LVQ implements Classifier, Parameterized
      * @param eps the scale factor of the maximum distance for two learning 
      * vectors to be updated at the same time
      */
-    public void setEpsilonDistance(double eps)
+    public void setEpsilonDistance(final double eps)
     {
         if(eps <= 0 || Double.isInfinite(eps) || Double.isNaN(eps)) {
           throw new ArithmeticException("eps factor must be a positive constant, not " + eps);
@@ -245,7 +245,7 @@ public class LVQ implements Classifier, Parameterized
      * 
      * @param learningRate the learning rate to use
      */
-    public void setLearningRate(double learningRate)
+    public void setLearningRate(final double learningRate)
     {
         if(learningRate <= 0 || Double.isInfinite(learningRate) || Double.isNaN(learningRate)) {
           throw new ArithmeticException("learning rate must be a positive constant, not " + learningRate);
@@ -268,7 +268,7 @@ public class LVQ implements Classifier, Parameterized
      * 
      * @param learningDecay the rate to decay the learning rate 
      */
-    public void setLearningDecay(DecayRate learningDecay)
+    public void setLearningDecay(final DecayRate learningDecay)
     {
         this.learningDecay = learningDecay;
     }
@@ -287,7 +287,7 @@ public class LVQ implements Classifier, Parameterized
      * 
      * @param iterations the number of iterations for the algorithm to use
      */
-    public void setIterations(int iterations)
+    public void setIterations(final int iterations)
     {
         if(iterations < 0) {
           throw new ArithmeticException("Can not perform a negative number of iterations");
@@ -314,7 +314,7 @@ public class LVQ implements Classifier, Parameterized
      * @param representativesPerClass the number of representatives to create 
      * for each class
      */
-    public void setRepresentativesPerClass(int representativesPerClass)
+    public void setRepresentativesPerClass(final int representativesPerClass)
     {
         this.representativesPerClass = representativesPerClass;
     }
@@ -333,7 +333,7 @@ public class LVQ implements Classifier, Parameterized
      * 
      * @param lvqMethod the version of LVQ to use
      */
-    public void setLVQMethod(LVQVersion lvqMethod)
+    public void setLVQMethod(final LVQVersion lvqMethod)
     {
         this.lvqVersion = lvqMethod;
     }
@@ -351,7 +351,7 @@ public class LVQ implements Classifier, Parameterized
      * Sets the distance used for learning
      * @param dm the distance metric to use
      */
-    public void setDistanceMetric(DistanceMetric dm)
+    public void setDistanceMetric(final DistanceMetric dm)
     {
         this.dm = dm;
     }
@@ -372,7 +372,7 @@ public class LVQ implements Classifier, Parameterized
      * 
      * @param stoppingDist the minimum distance for each learning vector to move
      */
-    public void setStoppingDist(double stoppingDist)
+    public void setStoppingDist(final double stoppingDist)
     {
         if(stoppingDist < 0 || Double.isInfinite(stoppingDist) || Double.isNaN(stoppingDist)) {
           throw new ArithmeticException("stopping dist must be a zero or positive constant, not " + stoppingDist);
@@ -393,7 +393,7 @@ public class LVQ implements Classifier, Parameterized
      * Sets the seed selection method used to select the initial learning vectors 
      * @param seedSelection the method of initialing LVQ
      */
-    public void setSeedSelection(SeedSelection seedSelection)
+    public void setSeedSelection(final SeedSelection seedSelection)
     {
         this.seedSelection = seedSelection;
     }
@@ -414,7 +414,7 @@ public class LVQ implements Classifier, Parameterized
     }
 
     @Override
-    public Parameter getParameter(String paramName)
+    public Parameter getParameter(final String paramName)
     {
         return Parameter.toParameterMap(getParameters()).get(paramName);
     }
@@ -451,18 +451,18 @@ public class LVQ implements Classifier, Parameterized
      * Sets the vector collection factory to use when storing the final learning vectors
      * @param vcf the vector collection factory to use
      */
-    public void setVecCollectionFactory(VectorCollectionFactory<VecPaired<Vec, Integer>> vcf)
+    public void setVecCollectionFactory(final VectorCollectionFactory<VecPaired<Vec, Integer>> vcf)
     {
         this.vcf = vcf;
     }
     
     @Override
-    public CategoricalResults classify(DataPoint data)
+    public CategoricalResults classify(final DataPoint data)
     {
-        CategoricalResults cr = new CategoricalResults(weightClass.length/representativesPerClass);
+        final CategoricalResults cr = new CategoricalResults(weightClass.length/representativesPerClass);
         
         
-        int index = vc.search(data.getNumericalValues(), 1).get(0).getVector().getPair();
+        final int index = vc.search(data.getNumericalValues(), 1).get(0).getVector().getPair();
         cr.setProb(weightClass[index], 1.0);
         
         return cr;
@@ -475,24 +475,24 @@ public class LVQ implements Classifier, Parameterized
      * @param minDist2 the second distance
      * @return <tt>true</tt> if the are acceptable close
      */
-    protected boolean epsClose(double minDist, double minDist2)
+    protected boolean epsClose(final double minDist, final double minDist2)
     {
         return min(minDist/minDist2, minDist2/minDist) > (1 - eps)
                         && max(minDist/minDist2, minDist2/minDist) < (1 + eps);
     }
     
     @Override
-    public void trainC(ClassificationDataSet dataSet, ExecutorService threadPool)
+    public void trainC(final ClassificationDataSet dataSet, final ExecutorService threadPool)
     {
         if(threadPool == null || threadPool instanceof FakeExecutor) {
           TrainableDistanceMetric.trainIfNeeded(dm, dataSet);
         } else {
           TrainableDistanceMetric.trainIfNeeded(dm, dataSet, threadPool);
         }
-        Random rand = new Random();
-        int classCount = dataSet.getPredicting().getNumOfCategories();
+        final Random rand = new Random();
+        final int classCount = dataSet.getPredicting().getNumOfCategories();
         weights = new Vec[classCount*representativesPerClass];
-        Vec[] weightsPrev = new Vec[weights.length];
+        final Vec[] weightsPrev = new Vec[weights.length];
         weightClass = new int[weights.length];
         wins = new int[weights.length];
 
@@ -502,18 +502,18 @@ public class LVQ implements Classifier, Parameterized
         int curPos = 0;
         while(curClass < classCount)
         {
-            List<DataPoint> origSubList = dataSet.getSamples(curClass);
-            List<DataPointPair<Integer>> subList =
+            final List<DataPoint> origSubList = dataSet.getSamples(curClass);
+            final List<DataPointPair<Integer>> subList =
                     new ArrayList<DataPointPair<Integer>>(origSubList.size());
-            for(DataPoint dp : origSubList) {
+            for(final DataPoint dp : origSubList) {
               subList.add(new DataPointPair<Integer>(dp, curClass));
             }
-            ClassificationDataSet subSet = 
+            final ClassificationDataSet subSet = 
                     new ClassificationDataSet(subList, dataSet.getPredicting());
-            List<Vec> classSeeds = 
+            final List<Vec> classSeeds = 
                     SeedSelectionMethods.selectIntialPoints(subSet, 
                     representativesPerClass, dm, rand, seedSelection);
-            for(Vec v : classSeeds)
+            for(final Vec v : classSeeds)
             {
                 weights[curPos] = v.clone();
                 weightsPrev[curPos] = weights[curPos].clone();
@@ -521,7 +521,7 @@ public class LVQ implements Classifier, Parameterized
             }
             curClass++;
         }
-        Vec tmp = weights[0].clone();
+        final Vec tmp = weights[0].clone();
 
         for(int iteration = 0; iteration < iterations; iteration++)
         {
@@ -529,17 +529,17 @@ public class LVQ implements Classifier, Parameterized
               weights[j].copyTo(weightsPrev[j]);
             }
             Arrays.fill(wins, 0);
-            double alpha = learningDecay.rate(iteration, iterations, learningRate);
+            final double alpha = learningDecay.rate(iteration, iterations, learningRate);
             for(int i = 0; i < dataSet.getSampleSize(); i++)
             {
-                Vec x = dataSet.getDataPoint(i).getNumericalValues();
+                final Vec x = dataSet.getDataPoint(i).getNumericalValues();
                 int closestClass = -1;
                 int minDistIndx = 0, minDistIndx2 = 0;
                 double minDist = Double.POSITIVE_INFINITY, minDist2 = Double.POSITIVE_INFINITY;
                 
                 for(int j = 0; j < weights.length; j++)
                 {
-                    double dist = dm.dist(x, weights[j]);
+                    final double dist = dm.dist(x, weights[j]);
                     if(dist < minDist)
                     {
                         if(lvqVersion == LVQVersion.LVQ2)
@@ -626,7 +626,7 @@ public class LVQ implements Classifier, Parameterized
             }
         }
         
-        List<VecPaired<Vec, Integer>> finalLVs = new ArrayList<VecPaired<Vec, Integer>>(weights.length);
+        final List<VecPaired<Vec, Integer>> finalLVs = new ArrayList<VecPaired<Vec, Integer>>(weights.length);
         for(int i = 0; i < weights.length; i++) {
           if (wins[i] == 0) {
             continue;
@@ -642,7 +642,7 @@ public class LVQ implements Classifier, Parameterized
     }
 
     @Override
-    public void trainC(ClassificationDataSet dataSet)
+    public void trainC(final ClassificationDataSet dataSet)
     {
         trainC(dataSet, null);
     }

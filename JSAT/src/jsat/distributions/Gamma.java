@@ -16,14 +16,14 @@ public class Gamma extends ContinuousDistribution
 	private double k;
     private double theta;
 
-    public Gamma(double k, double theta)
+    public Gamma(final double k, final double theta)
     {
         this.k = k;
         this.theta = theta;
     }
     
     @Override
-    public double pdf(double x)
+    public double pdf(final double x)
     {
         if(x < 0) {
           return 0;
@@ -33,7 +33,7 @@ public class Gamma extends ContinuousDistribution
     }
 
     @Override
-    public double logPdf(double x)
+    public double logPdf(final double x)
     {
         /*
          *  k - 1    / -x  \
@@ -44,13 +44,13 @@ public class Gamma extends ContinuousDistribution
          *  Gamma(k) theta
          */
         
-        double p1 = -k *log(theta);
-        double p2 = k*log(x);
-        double p3 = -lnGamma(k);
-        double p4 = -x/theta;
-        double p5 = -log(x);
+        final double p1 = -k *log(theta);
+        final double p2 = k*log(x);
+        final double p3 = -lnGamma(k);
+        final double p4 = -x/theta;
+        final double p5 = -log(x);
         
-        double pdf = p1+p2+p3+p4+p5;
+        final double pdf = p1+p2+p3+p4+p5;
         if(Double.isNaN(pdf) || Double.isInfinite(pdf)) {//Bad extreme values when x is very small
           return -Double.MAX_VALUE;
         }
@@ -58,7 +58,7 @@ public class Gamma extends ContinuousDistribution
     }
 
     @Override
-    public double cdf(double x)
+    public double cdf(final double x)
     {
         if(x < 0) {
           throw new ArithmeticException("CDF goes from 0 to Infinity, " + x + " is invalid");
@@ -67,7 +67,7 @@ public class Gamma extends ContinuousDistribution
     }
 
     @Override
-    public double invCdf(double p)
+    public double invCdf(final double p)
     {
         return invGammaP(p, k)*theta;
     }
@@ -103,7 +103,7 @@ public class Gamma extends ContinuousDistribution
     }
 
     @Override
-    public void setVariable(String var, double value)
+    public void setVariable(final String var, final double value)
     {
         if(var.equals("k")) {
           k = value;
@@ -119,7 +119,7 @@ public class Gamma extends ContinuousDistribution
     }
 
     @Override
-    public void setUsingData(Vec data)
+    public void setUsingData(final Vec data)
     {
         /*
          * Using:
@@ -179,7 +179,7 @@ public class Gamma extends ContinuousDistribution
 	}
 
 	@Override
-	public boolean equals(Object obj) {
+	public boolean equals(final Object obj) {
 		if (this == obj) {
 			return true;
 		}
@@ -189,7 +189,7 @@ public class Gamma extends ContinuousDistribution
 		if (getClass() != obj.getClass()) {
 			return false;
 		}
-		Gamma other = (Gamma) obj;
+		final Gamma other = (Gamma) obj;
 		if (Double.doubleToLongBits(k) != Double.doubleToLongBits(other.k)) {
 			return false;
 		}

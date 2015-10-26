@@ -20,12 +20,12 @@ public class StudentT extends ContinuousDistribution
     double mu;
     double sig;
 
-    public StudentT(double df)
+    public StudentT(final double df)
     {
         this(df, 0, 1);
     }
 
-    public StudentT(double df, double mu, double sig)
+    public StudentT(final double df, final double mu, final double sig)
     {
         this.df = df;
         this.mu = mu;
@@ -38,29 +38,29 @@ public class StudentT extends ContinuousDistribution
      * 
      * @param df the new value for the degrees of freedom. 
      */
-    public void setDf(double df)
+    public void setDf(final double df)
     {
         this.df = df;
     }
 
     
     @Override
-    public double pdf(double t)
+    public double pdf(final double t)
     {
         
-        double leftSide = lnGamma((df+1)/2) - lnGamma(df/2) - lnGamma(df*PI)/2 - log(sig);
-        double rightSide = -(df+1)/2*log(1+pow((t-mu)/sig, 2)/df);
+        final double leftSide = lnGamma((df+1)/2) - lnGamma(df/2) - lnGamma(df*PI)/2 - log(sig);
+        final double rightSide = -(df+1)/2*log(1+pow((t-mu)/sig, 2)/df);
         
         return exp(leftSide+rightSide);
     }
 
 
     @Override
-    public double cdf(double t)
+    public double cdf(final double t)
     {
-        double x = df/(df + pow((t-mu)/sig, 2));
+        final double x = df/(df + pow((t-mu)/sig, 2));
         
-        double p =  betaIncReg(x, df/2, 0.5)/2;
+        final double p =  betaIncReg(x, df/2, 0.5)/2;
         
         if( t > mu) {
           return 1 - p;
@@ -70,7 +70,7 @@ public class StudentT extends ContinuousDistribution
     }
 
     @Override
-    public double invCdf(double p)
+    public double invCdf(final double p)
     {
         if(p < 0 || p > 1) {
           throw new ArithmeticException("Probability must be in the range [0,1], not " + p);
@@ -122,7 +122,7 @@ public class StudentT extends ContinuousDistribution
     }
 
     @Override
-    public void setVariable(String var, double value)
+    public void setVariable(final String var, final double value)
     {
         if (var.equals("df")) {
           if (value > 0) {
@@ -149,7 +149,7 @@ public class StudentT extends ContinuousDistribution
     }
 
     @Override
-    public void setUsingData(Vec data)
+    public void setUsingData(final Vec data)
     {
         /*
          * While not true in every use of the t-distribution, 
@@ -214,7 +214,7 @@ public class StudentT extends ContinuousDistribution
 	}
 
 	@Override
-	public boolean equals(Object obj) {
+	public boolean equals(final Object obj) {
 		if (this == obj) {
 			return true;
 		}
@@ -224,7 +224,7 @@ public class StudentT extends ContinuousDistribution
 		if (getClass() != obj.getClass()) {
 			return false;
 		}
-		StudentT other = (StudentT) obj;
+		final StudentT other = (StudentT) obj;
 		if (Double.doubleToLongBits(df) != Double.doubleToLongBits(other.df)) {
 			return false;
 		}

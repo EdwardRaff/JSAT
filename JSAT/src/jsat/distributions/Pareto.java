@@ -26,13 +26,13 @@ public class Pareto extends ContinuousDistribution
         this(1, 3);
     }
 
-    public Pareto(double xm, double alpha)
+    public Pareto(final double xm, final double alpha)
     {
         setXm(xm);
         setAlpha(alpha);
     }
     
-    public final void setAlpha(double alpha)
+    public final void setAlpha(final double alpha)
     {
         if(alpha <= 0) {
           throw new ArithmeticException("Shape parameter must be > 0, not " + alpha);
@@ -40,7 +40,7 @@ public class Pareto extends ContinuousDistribution
         this.alpha = alpha;
     }
 
-    public final void setXm(double xm)
+    public final void setXm(final double xm)
     {
         if(xm <= 0) {
           throw new ArithmeticException("Scale parameter must be > 0, not " + xm);
@@ -48,7 +48,7 @@ public class Pareto extends ContinuousDistribution
         this.xm = xm;
     }
     
-    public double logPdf(double x)
+    public double logPdf(final double x)
     {
         if(x < xm ) {
           return Double.NEGATIVE_INFINITY;
@@ -58,7 +58,7 @@ public class Pareto extends ContinuousDistribution
     }
 
     @Override
-    public double pdf(double x)
+    public double pdf(final double x)
     {
         if(x < xm ) {
           return 0;
@@ -67,13 +67,13 @@ public class Pareto extends ContinuousDistribution
     }
 
     @Override
-    public double cdf(double x)
+    public double cdf(final double x)
     {
         return 1 - exp( alpha * log(xm/x));
     }
 
     @Override
-    public double invCdf(double p)
+    public double invCdf(final double p)
     {
         return xm * pow(1-p, -1/alpha);
     }
@@ -109,7 +109,7 @@ public class Pareto extends ContinuousDistribution
     }
 
     @Override
-    public void setVariable(String var, double value)
+    public void setVariable(final String var, final double value)
     {
         if(var.equals("x_m")) {
           setXm(value);
@@ -125,13 +125,13 @@ public class Pareto extends ContinuousDistribution
     }
 
     @Override
-    public void setUsingData(Vec data)
+    public void setUsingData(final Vec data)
     {
-        double mean = data.mean();
-        double var = data.variance();
+        final double mean = data.mean();
+        final double var = data.variance();
         
-        double aP = sqrt( (mean*mean+var)/var), alphaC = aP+1;
-        double xmC = mean*aP /alphaC;
+        final double aP = sqrt( (mean*mean+var)/var), alphaC = aP+1;
+        final double xmC = mean*aP /alphaC;
         
         if(alphaC > 0 && xmC > 0)
         {
@@ -185,7 +185,7 @@ public class Pareto extends ContinuousDistribution
 	}
 
 	@Override
-	public boolean equals(Object obj) {
+	public boolean equals(final Object obj) {
 		if (this == obj) {
 			return true;
 		}
@@ -195,7 +195,7 @@ public class Pareto extends ContinuousDistribution
 		if (getClass() != obj.getClass()) {
 			return false;
 		}
-		Pareto other = (Pareto) obj;
+		final Pareto other = (Pareto) obj;
 		if (Double.doubleToLongBits(alpha) != Double
 				.doubleToLongBits(other.alpha)) {
 			return false;

@@ -55,8 +55,8 @@ public class OnLineStatisticsTest
     public void testAdd_double()
     {
         System.out.println("add(double)");
-        OnLineStatistics stats = new OnLineStatistics();
-        for(double x :  data) {
+        final OnLineStatistics stats = new OnLineStatistics();
+        for(final double x :  data) {
           stats.add(x);
         }
         assertEquals(mean, stats.getMean(), 1e-8);
@@ -71,7 +71,7 @@ public class OnLineStatisticsTest
     public void testAdd_double_double()
     {
         System.out.println("add(double, double)");
-        OnLineStatistics stats = new OnLineStatistics();
+        final OnLineStatistics stats = new OnLineStatistics();
         stats.add(10, 10);
         stats.add(100,1);
         assertEquals(200.0/11.0, stats.getMean(), 1e-10); 
@@ -93,9 +93,9 @@ public class OnLineStatisticsTest
         
         for(int j = 1; j < data.length-1; j++)
         {
-            OnLineStatistics total = new OnLineStatistics();
-            OnLineStatistics A = new OnLineStatistics();
-            OnLineStatistics B = new OnLineStatistics();
+            final OnLineStatistics total = new OnLineStatistics();
+            final OnLineStatistics A = new OnLineStatistics();
+            final OnLineStatistics B = new OnLineStatistics();
         
             for(int i = 0; i < data.length; i++)
             {
@@ -133,8 +133,8 @@ public class OnLineStatisticsTest
         for(int j = 1; j < data.length-1; j++)
         {
             
-            OnLineStatistics A = new OnLineStatistics();
-            OnLineStatistics B = new OnLineStatistics();
+            final OnLineStatistics A = new OnLineStatistics();
+            final OnLineStatistics B = new OnLineStatistics();
         
             for(int i = 0; i < data.length; i++)
             {
@@ -144,7 +144,7 @@ public class OnLineStatisticsTest
                   B.add(data[i]);
                 }
             }
-            OnLineStatistics stats = OnLineStatistics.add(A, B);
+            final OnLineStatistics stats = OnLineStatistics.add(A, B);
             assertEquals(mean, stats.getMean(), 1e-8);
             assertEquals(variance, stats.getVarance(), 1e-8);
             assertEquals(skewness, stats.getSkewness(), 1e-8);

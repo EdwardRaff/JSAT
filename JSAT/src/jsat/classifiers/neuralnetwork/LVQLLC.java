@@ -55,7 +55,7 @@ public class LVQLLC extends LVQ
      * @param dm the distance metric to use
      * @param iterations the number of iterations to perform
      */
-    public LVQLLC(DistanceMetric dm, int iterations)
+    public LVQLLC(final DistanceMetric dm, final int iterations)
     {
         this(dm, iterations, new MultivariateNormals(true));
     }
@@ -66,7 +66,7 @@ public class LVQLLC extends LVQ
      * @param iterations the number of iterations to perform
      * @param localClasifier the classifier to use as a local classifier for each prototype 
      */
-    public LVQLLC(DistanceMetric dm, int iterations, Classifier localClasifier)
+    public LVQLLC(final DistanceMetric dm, final int iterations, final Classifier localClasifier)
     {
         super(dm, iterations);
         setLocalClassifier(localClasifier);
@@ -81,7 +81,7 @@ public class LVQLLC extends LVQ
      * @param representativesPerClass the number of representatives to create 
      * for each class
      */
-    public LVQLLC(DistanceMetric dm, int iterations, Classifier localClasifier, double learningRate, int representativesPerClass)
+    public LVQLLC(final DistanceMetric dm, final int iterations, final Classifier localClasifier, final double learningRate, final int representativesPerClass)
     {
         super(dm, iterations, learningRate, representativesPerClass);
         setLocalClassifier(localClasifier);
@@ -98,13 +98,13 @@ public class LVQLLC extends LVQ
      * @param lvqVersion the version of LVQ to use
      * @param learningDecay the amount of decay to apply to the learning rate
      */
-    public LVQLLC(DistanceMetric dm, int iterations, Classifier localClasifier, double learningRate, int representativesPerClass, LVQVersion lvqVersion, DecayRate learningDecay)
+    public LVQLLC(final DistanceMetric dm, final int iterations, final Classifier localClasifier, final double learningRate, final int representativesPerClass, final LVQVersion lvqVersion, final DecayRate learningDecay)
     {
         super(dm, iterations, learningRate, representativesPerClass, lvqVersion, learningDecay);
         setLocalClassifier(localClasifier);
     }
 
-    protected LVQLLC(LVQLLC toCopy)
+    protected LVQLLC(final LVQLLC toCopy)
     {
         super(toCopy);
         if(toCopy.localClassifier != null) {
@@ -126,7 +126,7 @@ public class LVQLLC extends LVQ
      * 
      * @param localClassifier the local classifier to use for each prototype
      */
-    public void setLocalClassifier(Classifier localClassifier)
+    public void setLocalClassifier(final Classifier localClassifier)
     {
         this.localClassifier = localClassifier;
     }
@@ -141,22 +141,22 @@ public class LVQLLC extends LVQ
     }
     
     @Override
-    public CategoricalResults classify(DataPoint data)
+    public CategoricalResults classify(final DataPoint data)
     {
-        List<? extends VecPaired<VecPaired<Vec, Integer>, Double>> nns = 
+        final List<? extends VecPaired<VecPaired<Vec, Integer>, Double>> nns = 
                 vc.search(data.getNumericalValues(), 2);
-        double d1 = nns.get(0).getPair();
-        int index1 = nns.get(0).getVector().getPair();
-        double d2 = nns.get(1).getPair();
-        int index2 = nns.get(1).getVector().getPair();
+        final double d1 = nns.get(0).getPair();
+        final int index1 = nns.get(0).getVector().getPair();
+        final double d2 = nns.get(1).getPair();
+        final int index2 = nns.get(1).getVector().getPair();
         
-        CategoricalResults r1 = localClassifeirs[index1].classify(data);
+        final CategoricalResults r1 = localClassifeirs[index1].classify(data);
         
         if(getLVQMethod().ordinal() >= LVQVersion.LVQ2.ordinal() && epsClose(d1, d2))
         {
-            CategoricalResults result = new CategoricalResults(r1.size());
-            CategoricalResults r2 = localClassifeirs[index2].classify(data);
-            double distSum = d1+d2;
+            final CategoricalResults result = new CategoricalResults(r1.size());
+            final CategoricalResults r2 = localClassifeirs[index2].classify(data);
+            final double distSum = d1+d2;
             
             for(int i = 0; i < r1.size(); i++)
             {
@@ -172,33 +172,33 @@ public class LVQLLC extends LVQ
     }
 
     @Override
-    public void trainC(ClassificationDataSet dataSet, ExecutorService threadPool)
+    public void trainC(final ClassificationDataSet dataSet, final ExecutorService threadPool)
     {
         super.trainC(dataSet, threadPool);
         
-        List<List<DataPointPair<Integer>>> listOfLocalPoints = new ArrayList<List<DataPointPair<Integer>>>(weights.length);
+        final List<List<DataPointPair<Integer>>> listOfLocalPoints = new ArrayList<List<DataPointPair<Integer>>>(weights.length);
         for (int i = 0; i < weights.length; i++) {
           listOfLocalPoints.add(new ArrayList<DataPointPair<Integer>>(wins[i] * 3 / 2));
         }
-        for (DataPointPair<Integer> dpp : dataSet.getAsDPPList())
+        for (final DataPointPair<Integer> dpp : dataSet.getAsDPPList())
         {
-            Vec x = dpp.getVector();
+            final Vec x = dpp.getVector();
             int minDistIndx = 0, minDistIndx2 = 0;
             double minDist = Double.POSITIVE_INFINITY, minDist2 = Double.POSITIVE_INFINITY;
 
-            List<? extends VecPaired<VecPaired<Vec, Integer>, Double>> closestWeightVecs = vc.search(x, 2);
+            final List<? extends VecPaired<VecPaired<Vec, Integer>, Double>> closestWeightVecs = vc.search(x, 2);
             
-            VecPaired<VecPaired<Vec, Integer>, Double> closest = closestWeightVecs.get(0);
+            final VecPaired<VecPaired<Vec, Integer>, Double> closest = closestWeightVecs.get(0);
             minDistIndx = closest.getVector().getPair();
             minDist = closest.getPair();
             
-            VecPaired<VecPaired<Vec, Integer>, Double> closest2nd = closestWeightVecs.get(0);
+            final VecPaired<VecPaired<Vec, Integer>, Double> closest2nd = closestWeightVecs.get(0);
             minDistIndx2 = closest2nd.getVector().getPair();
             minDist2 = closest2nd.getPair();
             
 
             listOfLocalPoints.get(minDistIndx).add(dpp);
-            double tmpEps = getEpsilonDistance();
+            final double tmpEps = getEpsilonDistance();
             if(Math.min(minDist/minDist2, minDist2/minDist) > (1 - tmpEps) 
                     && Math.max(minDist/minDist2, minDist2/minDist) < (1 + tmpEps))
             {
@@ -213,10 +213,10 @@ public class LVQLLC extends LVQ
             if(wins[i] == 0) {
               continue;
             }
-            ClassificationDataSet localSet = new ClassificationDataSet(listOfLocalPoints.get(i), dataSet.getPredicting());
+            final ClassificationDataSet localSet = new ClassificationDataSet(listOfLocalPoints.get(i), dataSet.getPredicting());
             if(wins[i] < 10)
             {
-                CategoricalResults cr = new CategoricalResults(dataSet.getPredicting().getNumOfCategories());
+                final CategoricalResults cr = new CategoricalResults(dataSet.getPredicting().getNumOfCategories());
                 cr.setProb(weightClass[i], 1.0);
                 localClassifeirs[i] = new PriorClassifier(cr);
             }
@@ -229,7 +229,7 @@ public class LVQLLC extends LVQ
     }
 
     @Override
-    public void trainC(ClassificationDataSet dataSet)
+    public void trainC(final ClassificationDataSet dataSet)
     {
         trainC(dataSet, null);
     }

@@ -28,7 +28,7 @@ public class Rocchio implements Classifier
         this(new EuclideanDistance());
     }
 
-    public Rocchio(DistanceMetric dm)
+    public Rocchio(final DistanceMetric dm)
     {
         this.dm = dm;
         this.dsdm = dm instanceof DenseSparseMetric ? (DenseSparseMetric) dm : null;
@@ -36,12 +36,12 @@ public class Rocchio implements Classifier
     }
     
     @Override
-    public CategoricalResults classify(DataPoint data)
+    public CategoricalResults classify(final DataPoint data)
     {
-        CategoricalResults cr = new CategoricalResults(rocVecs.size());
+        final CategoricalResults cr = new CategoricalResults(rocVecs.size());
         double sum = 0;
         
-        Vec target = data.getNumericalValues();
+        final Vec target = data.getNumericalValues();
         
         //Record the average for each class
         for(int i = 0; i < rocVecs.size(); i++)
@@ -71,7 +71,7 @@ public class Rocchio implements Classifier
     private class RocchioAdder implements Runnable
     {
 
-        public RocchioAdder(CountDownLatch latch, int index, Vec rocchioVec, List<DataPoint> input)
+        public RocchioAdder(final CountDownLatch latch, final int index, final Vec rocchioVec, final List<DataPoint> input)
         {
             this.latch = latch;
             this.index = index;
@@ -90,10 +90,10 @@ public class Rocchio implements Classifier
         @Override
         public void run()
         {
-            for(DataPoint dp : input)
+            for(final DataPoint dp : input)
             {
-                double w = dp.getWeight();
-                Vec v = dp.getNumericalValues();
+                final double w = dp.getWeight();
+                final Vec v = dp.getNumericalValues();
                 weightSum += w;
                 rocchioVec.mutableAdd(w, v);
             }
@@ -108,23 +108,23 @@ public class Rocchio implements Classifier
     }
 
     @Override
-    public void trainC(ClassificationDataSet dataSet, ExecutorService threadPool)
+    public void trainC(final ClassificationDataSet dataSet, final ExecutorService threadPool)
     {
         if(dataSet.getNumCategoricalVars() != 0) {
           throw new FailedToFitException("Classifier requires all variables be numerical");
         }
-        int N = dataSet.getClassSize();
+        final int N = dataSet.getClassSize();
         rocVecs = new ArrayList<Vec>(N);
         
         TrainableDistanceMetric.trainIfNeeded(dm, dataSet, threadPool);
         
         //dimensions
-        int d = dataSet.getNumNumericalVars();
+        final int d = dataSet.getNumNumericalVars();
         
         summaryConsts = new double[d];
         
         //Set up a bunch of threads to add vectors together in the background
-        CountDownLatch cdl = new CountDownLatch(N);
+        final CountDownLatch cdl = new CountDownLatch(N);
         for(int i = 0; i < N; i++)
         {
             final Vec rochVec = new DenseVector(d);
@@ -137,14 +137,14 @@ public class Rocchio implements Classifier
         {
             cdl.await();
         }
-        catch (InterruptedException ex)
+        catch (final InterruptedException ex)
         {
         }
         
     }
 
     @Override
-    public void trainC(ClassificationDataSet dataSet)
+    public void trainC(final ClassificationDataSet dataSet)
     {
         trainC(dataSet, new FakeExecutor());
     }
@@ -158,11 +158,11 @@ public class Rocchio implements Classifier
     @Override
     public Rocchio clone()
     {
-        Rocchio copy = new Rocchio(this.dm);
+        final Rocchio copy = new Rocchio(this.dm);
         if(this.rocVecs != null)
         {
             copy.rocVecs = new ArrayList<Vec>(this.rocVecs.size());
-            for(Vec v : this.rocVecs) {
+            for(final Vec v : this.rocVecs) {
               copy.rocVecs.add(v.clone());
             }
         }

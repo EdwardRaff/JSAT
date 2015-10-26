@@ -36,17 +36,17 @@ public class EMGaussianMixture extends ElkanKMeans implements MultivariateDistri
     private double[] a_k;
     private double tolerance = 1e-3;
 
-    public EMGaussianMixture(DistanceMetric dm, Random rand, SeedSelection seedSelection)
+    public EMGaussianMixture(final DistanceMetric dm, final Random rand, final SeedSelection seedSelection)
     {
         super(dm, rand, seedSelection);
     }
 
-    public EMGaussianMixture(DistanceMetric dm, Random rand)
+    public EMGaussianMixture(final DistanceMetric dm, final Random rand)
     {
         super(dm, rand);
     }
 
-    public EMGaussianMixture(DistanceMetric dm)
+    public EMGaussianMixture(final DistanceMetric dm)
     {
         super(dm);
     }
@@ -60,12 +60,12 @@ public class EMGaussianMixture extends ElkanKMeans implements MultivariateDistri
      * Copy constructor. The new Gaussian Mixture can be altered without effecting <tt>gm</tt>
      * @param gm the Guassian Mixture to duplicate
      */
-    public EMGaussianMixture(EMGaussianMixture gm)
+    public EMGaussianMixture(final EMGaussianMixture gm)
     {
         if(gm.gaussians != null && !gm.gaussians.isEmpty())
         {
             this.gaussians = new ArrayList<NormalM>(gm.gaussians.size());
-            for(NormalM gaussian : gm.gaussians) {
+            for(final NormalM gaussian : gm.gaussians) {
               this.gaussians.add(gaussian.clone());
             }
         }
@@ -83,7 +83,7 @@ public class EMGaussianMixture extends ElkanKMeans implements MultivariateDistri
      * @param tolerance value to copy
      */
     @SuppressWarnings("unused")
-	private EMGaussianMixture(List<NormalM> gaussians, double[] a_k, double tolerance)
+	private EMGaussianMixture(final List<NormalM> gaussians, final double[] a_k, final double tolerance)
     {
         this.gaussians = new ArrayList<NormalM>(a_k.length);
         this.a_k = new double[a_k.length];
@@ -95,27 +95,27 @@ public class EMGaussianMixture extends ElkanKMeans implements MultivariateDistri
     }
     
     @Override
-    protected double cluster(final DataSet dataSet, final List<Double> accelCache, final int K, final List<Vec> means, final int[] assignment, boolean exactTotal, ExecutorService threadpool, boolean returnError)
+    protected double cluster(final DataSet dataSet, final List<Double> accelCache, final int K, final List<Vec> means, final int[] assignment, final boolean exactTotal, final ExecutorService threadpool, final boolean returnError)
     {
         //Perform intial clustering with ElkanKMeans 
         super.cluster(dataSet, accelCache, K, means, assignment, exactTotal, threadpool, false);
         
         //Use the ElkanKMeans result to initalize GuassianMixture 
-        List<Matrix> covariances = new ArrayList<Matrix>(K);
-        int dimension = dataSet.getNumNumericalVars();
+        final List<Matrix> covariances = new ArrayList<Matrix>(K);
+        final int dimension = dataSet.getNumNumericalVars();
         for(int k = 0; k < means.size(); k++) {
           covariances.add(new DenseMatrix(dimension, dimension));
         }
         
         a_k = new double[K];
-        double sum = dataSet.getSampleSize();
+        final double sum = dataSet.getSampleSize();
         
         //Compute inital Covariances
-        Vec scratch = new DenseVector(dimension);
+        final Vec scratch = new DenseVector(dimension);
         for(int i = 0; i < dataSet.getSampleSize(); i++)
         {
-            Vec x = dataSet.getDataPoint(i).getNumericalValues();
-            int k = assignment[i];
+            final Vec x = dataSet.getDataPoint(i).getNumericalValues();
+            final int k = assignment[i];
             a_k[k]++;
             x.copyTo(scratch);
             scratch.mutableSubtract(means.get(k));
@@ -132,10 +132,10 @@ public class EMGaussianMixture extends ElkanKMeans implements MultivariateDistri
         return clusterCompute(K, dataSet, assignment, means, covariances, threadpool);
     }
     
-    protected double clusterCompute(int K, DataSet dataSet, int[] assignment, List<Vec> means, List<Matrix> covs, ExecutorService execServ)
+    protected double clusterCompute(final int K, final DataSet dataSet, final int[] assignment, final List<Vec> means, final List<Matrix> covs, final ExecutorService execServ)
     {
-        List<DataPoint> dataPoints = dataSet.getDataPoints();
-        int N = dataPoints.size();
+        final List<DataPoint> dataPoints = dataSet.getDataPoints();
+        final int N = dataPoints.size();
         
         double currentLogLike = -Double.MAX_VALUE;
 
@@ -146,7 +146,7 @@ public class EMGaussianMixture extends ElkanKMeans implements MultivariateDistri
           gaussians.add(new NormalM(means.get(k), covs.get(k)));
         }
         
-        double[][] p_ik = new double[dataPoints.size()][K];
+        final double[][] p_ik = new double[dataPoints.size()][K];
         
         while(true)
         {
@@ -155,10 +155,10 @@ public class EMGaussianMixture extends ElkanKMeans implements MultivariateDistri
             try
             {
                 //E-Step:
-                double logLike = eStep(N, dataPoints, K, p_ik, execServ);
+                final double logLike = eStep(N, dataPoints, K, p_ik, execServ);
 
                 //Convergence check! 
-                double logDifference = Math.abs(currentLogLike - logLike);
+                final double logDifference = Math.abs(currentLogLike - logLike);
                 if(logDifference < tolerance) {
                   break;//We accept this as converged. Probablities could be refined, but no one should be changing class anymore
                 } else {
@@ -167,11 +167,11 @@ public class EMGaussianMixture extends ElkanKMeans implements MultivariateDistri
                 
                 mStep(means, N, dataPoints, K, p_ik, covs, execServ);
             }
-            catch (ExecutionException ex)
+            catch (final ExecutionException ex)
             {
                 Logger.getLogger(EMGaussianMixture.class.getName()).log(Level.SEVERE, null, ex);
             }
-            catch (InterruptedException ex)
+            catch (final InterruptedException ex)
             {
                 Logger.getLogger(EMGaussianMixture.class.getName()).log(Level.SEVERE, null, ex);
             }
@@ -210,7 +210,7 @@ public class EMGaussianMixture extends ElkanKMeans implements MultivariateDistri
          */
         //Recompute a_k and update means in the same loop
 
-        for(Vec mean : means) {
+        for(final Vec mean : means) {
           mean.zeroOut();
         }
 
@@ -220,7 +220,7 @@ public class EMGaussianMixture extends ElkanKMeans implements MultivariateDistri
         {
             for(int i = 0; i < N; i++)
             {
-                Vec x_i = dataPoints.get(i).getNumericalValues();
+                final Vec x_i = dataPoints.get(i).getNumericalValues();
                 for(int k = 0; k < K; k++)
                 {
                     a_k[k] += p_ik[i][k];
@@ -232,7 +232,7 @@ public class EMGaussianMixture extends ElkanKMeans implements MultivariateDistri
         {   
             final CountDownLatch latch = new CountDownLatch(LogicalCores);
             int start = 0; 
-            int step = N / LogicalCores;
+            final int step = N / LogicalCores;
             int remainder = N % LogicalCores;
             while( start < N)
             {
@@ -244,15 +244,15 @@ public class EMGaussianMixture extends ElkanKMeans implements MultivariateDistri
                     @Override
                     public void run()
                     {
-                        Vec[] partialMean = new Vec[means.size()];
+                        final Vec[] partialMean = new Vec[means.size()];
                         for(int i = 0; i < partialMean.length; i++) {
                           partialMean[i] = new DenseVector(means.get(i).length());
                         }
-                        double[] partial_a_k = new double[a_k.length];
+                        final double[] partial_a_k = new double[a_k.length];
                         
                         for(int i = Start; i < to; i++)
                         {
-                            Vec x_i = dataPoints.get(i).getNumericalValues();
+                            final Vec x_i = dataPoints.get(i).getNumericalValues();
                             for(int k = 0; k < K; k++)
                             {
                                 partial_a_k[k] += p_ik[i][k];
@@ -284,7 +284,7 @@ public class EMGaussianMixture extends ElkanKMeans implements MultivariateDistri
 
         //We hold off on nomralized a_k, becase we will use its values to update the covariances
 
-        for(Matrix cov : covs) {
+        for(final Matrix cov : covs) {
           cov.zeroOut();
         }
 
@@ -292,13 +292,13 @@ public class EMGaussianMixture extends ElkanKMeans implements MultivariateDistri
         {
             for(int k = 0; k < K; k++)
             {
-                Matrix covariance = covs.get(k);
-                Vec mean = means.get(k);
-                Vec scratch = new DenseVector(mean.length());
+                final Matrix covariance = covs.get(k);
+                final Vec mean = means.get(k);
+                final Vec scratch = new DenseVector(mean.length());
                 for(int i = 0; i < dataPoints.size(); i++)
                 {
-                    DataPoint dp = dataPoints.get(i);
-                    Vec x = dp.getNumericalValues();
+                    final DataPoint dp = dataPoints.get(i);
+                    final Vec x = dp.getNumericalValues();
                     x.copyTo(scratch);
                     scratch.mutableSubtract(mean);
                     Matrix.OuterProductUpdate(covariance, scratch, scratch, p_ik[i][k]);
@@ -310,7 +310,7 @@ public class EMGaussianMixture extends ElkanKMeans implements MultivariateDistri
         {
             final CountDownLatch latch = new CountDownLatch(LogicalCores);
             int start = 0; 
-            int step = N / LogicalCores;
+            final int step = N / LogicalCores;
             int remainder = N % LogicalCores;
             while( start < N)
             {
@@ -322,21 +322,21 @@ public class EMGaussianMixture extends ElkanKMeans implements MultivariateDistri
                     @Override
                     public void run()
                     {
-                        Matrix[] partialCovs = new Matrix[K];
+                        final Matrix[] partialCovs = new Matrix[K];
                         for(int i = 0; i < partialCovs.length; i++) {
                           partialCovs[i] = new DenseMatrix(D, D);
                         }
                         
                         for(int i = Start; i < to; i++)
                         {
-                            DataPoint dp = dataPoints.get(i);
-                            Vec x = dp.getNumericalValues();
-                            Vec scratch = new DenseVector(x.length());
+                            final DataPoint dp = dataPoints.get(i);
+                            final Vec x = dp.getNumericalValues();
+                            final Vec scratch = new DenseVector(x.length());
                             
                             for(int k = 0; k < K; k++)
                             {
-                                Matrix covariance = partialCovs[k];
-                                Vec mean = means.get(k);
+                                final Matrix covariance = partialCovs[k];
+                                final Vec mean = means.get(k);
                                 
                                 x.copyTo(scratch);
                                 scratch.mutableSubtract(mean);
@@ -409,12 +409,12 @@ public class EMGaussianMixture extends ElkanKMeans implements MultivariateDistri
         {
             for(int i = 0; i < N; i++)
             {
-                Vec x_i = dataPoints.get(i).getNumericalValues();
+                final Vec x_i = dataPoints.get(i).getNumericalValues();
                 double p_ikNormalizer = 0.0;
 
                 for(int k = 0; k < K; k++)
                 {
-                    double tmp = a_k[k] * gaussians.get(k).pdf(x_i);
+                    final double tmp = a_k[k] * gaussians.get(k).pdf(x_i);
                     p_ik[i][k] = tmp;
                     p_ikNormalizer += tmp;
                 }
@@ -430,9 +430,9 @@ public class EMGaussianMixture extends ElkanKMeans implements MultivariateDistri
         }
         else 
         {
-            List<Future<Double>> partialLogLikes = new ArrayList<Future<Double>>(LogicalCores);
+            final List<Future<Double>> partialLogLikes = new ArrayList<Future<Double>>(LogicalCores);
             int start = 0; 
-            int step = N / LogicalCores;
+            final int step = N / LogicalCores;
             int remainder = N % LogicalCores;
             while( start < N)
             {
@@ -449,12 +449,12 @@ public class EMGaussianMixture extends ElkanKMeans implements MultivariateDistri
                         double partialLog = 0;
                         for(int i = Start; i < to; i++)
                         {
-                            Vec x_i = dataPoints.get(i).getNumericalValues();
+                            final Vec x_i = dataPoints.get(i).getNumericalValues();
                             double p_ikNormalizer = 0.0;
 
                             for(int k = 0; k < K; k++)
                             {
-                                double tmp = a_k[k] * gaussians.get(k).pdf(x_i);
+                                final double tmp = a_k[k] * gaussians.get(k).pdf(x_i);
                                 p_ik[i][k] = tmp;
                                 p_ikNormalizer += tmp;
                             }
@@ -473,7 +473,7 @@ public class EMGaussianMixture extends ElkanKMeans implements MultivariateDistri
                 }));
             }
             
-            for(double partialLogLike : ListUtils.collectFutures(partialLogLikes)) {
+            for(final double partialLogLike : ListUtils.collectFutures(partialLogLikes)) {
               logLike += partialLogLike;
             }
         }
@@ -481,15 +481,15 @@ public class EMGaussianMixture extends ElkanKMeans implements MultivariateDistri
     }
 
     @Override
-    public double logPdf(double... x)
+    public double logPdf(final double... x)
     {
         return logPdf(DenseVector.toDenseVec(x));
     }
 
     @Override
-    public double logPdf(Vec x)
+    public double logPdf(final Vec x)
     {
-        double pdf = pdf(x);
+        final double pdf = pdf(x);
         if(pdf == 0) {
           return -Double.MAX_VALUE;
         }
@@ -497,13 +497,13 @@ public class EMGaussianMixture extends ElkanKMeans implements MultivariateDistri
     }
 
     @Override
-    public double pdf(double... x)
+    public double pdf(final double... x)
     {
         return pdf(DenseVector.toDenseVec(x));
     }
 
     @Override
-    public double pdf(Vec x)
+    public double pdf(final Vec x)
     {
         double PDF = 0.0;
         for(int i = 0; i < a_k.length; i++) {
@@ -513,49 +513,49 @@ public class EMGaussianMixture extends ElkanKMeans implements MultivariateDistri
     }
 
     @Override
-    public <V extends Vec> boolean setUsingData(List<V> dataSet)
+    public <V extends Vec> boolean setUsingData(final List<V> dataSet)
     {
-        List<DataPoint> dataPoints = new ArrayList<DataPoint>(dataSet.size());
-        for(Vec x :  dataSet) {
+        final List<DataPoint> dataPoints = new ArrayList<DataPoint>(dataSet.size());
+        for(final Vec x :  dataSet) {
           dataPoints.add(new DataPoint(x, new int[0], new CategoricalData[0]));
         }
         return setUsingDataList(dataPoints);
     }
 
     @Override
-    public boolean setUsingDataList(List<DataPoint> dataPoint)
+    public boolean setUsingDataList(final List<DataPoint> dataPoint)
     {
         return setUsingData(new SimpleDataSet(dataPoint));
     }
 
     @Override
-    public boolean setUsingData(DataSet dataSet)
+    public boolean setUsingData(final DataSet dataSet)
     {
         try
         {
             cluster(dataSet);
             return true;
         }
-        catch (ArithmeticException ex)
+        catch (final ArithmeticException ex)
         {
             return false;
         }
     }
 
     @Override
-    public boolean setUsingData(DataSet dataSet, ExecutorService threadpool)
+    public boolean setUsingData(final DataSet dataSet, final ExecutorService threadpool)
     {
         return setUsingData(dataSet);
     }
 
     @Override
-    public <V extends Vec> boolean setUsingData(List<V> dataSet, ExecutorService threadpool)
+    public <V extends Vec> boolean setUsingData(final List<V> dataSet, final ExecutorService threadpool)
     {
         return setUsingData(dataSet);
     }
 
     @Override
-    public boolean setUsingDataList(List<DataPoint> dataPoints, ExecutorService threadpool)
+    public boolean setUsingDataList(final List<DataPoint> dataPoints, final ExecutorService threadpool)
     {
         return setUsingDataList(dataPoints);
     }
@@ -567,13 +567,13 @@ public class EMGaussianMixture extends ElkanKMeans implements MultivariateDistri
     }
 
     @Override
-    public List<Vec> sample(int count, Random rand)
+    public List<Vec> sample(final int count, final Random rand)
     {
-        List<Vec> samples = new ArrayList<Vec>(count);
+        final List<Vec> samples = new ArrayList<Vec>(count);
         
         //First we need the figure out which of the mixtures to sample from
         //So generate [0,1] uniform values to determine 
-        double[] priorTargets = new double[count];
+        final double[] priorTargets = new double[count];
         for(int i = 0; i < count; i++) {
           priorTargets[i] = rand.nextDouble();
         }

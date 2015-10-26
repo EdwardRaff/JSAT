@@ -71,7 +71,7 @@ public class AROW extends BaseUpdateableClassifier implements BinaryScoreClassif
      * @see #setR(double) 
      * @see #setDiagonalOnly(boolean) 
      */
-    public AROW(double r, boolean diagonalOnly)
+    public AROW(final double r, final boolean diagonalOnly)
     {
         setR(r);
         setDiagonalOnly(diagonalOnly);
@@ -81,7 +81,7 @@ public class AROW extends BaseUpdateableClassifier implements BinaryScoreClassif
      * Copy constructor
      * @param other object to copy
      */
-    protected AROW(AROW other)
+    protected AROW(final AROW other)
     {
         this.r = other.r;
         this.diagonalOnly = other.diagonalOnly;
@@ -107,7 +107,7 @@ public class AROW extends BaseUpdateableClassifier implements BinaryScoreClassif
      * values in the input
      * @param diagonalOnly {@code true} to use only the diagonal of the covariance
      */
-    public void setDiagonalOnly(boolean diagonalOnly)
+    public void setDiagonalOnly(final boolean diagonalOnly)
     {
         this.diagonalOnly = diagonalOnly;
     }
@@ -126,7 +126,7 @@ public class AROW extends BaseUpdateableClassifier implements BinaryScoreClassif
      * values reduce the change in the model on each update. 
      * @param r the regularization parameter in (0, Inf)
      */
-    public void setR(double r)
+    public void setR(final double r)
     {
         if(Double.isNaN(r) || Double.isInfinite(r) || r <= 0) {
           throw new IllegalArgumentException("r must be a postive constant, not " + r);
@@ -160,7 +160,7 @@ public class AROW extends BaseUpdateableClassifier implements BinaryScoreClassif
     }
 
     @Override
-    public void setUp(CategoricalData[] categoricalAttributes, int numericAttributes, CategoricalData predicting)
+    public void setUp(final CategoricalData[] categoricalAttributes, final int numericAttributes, final CategoricalData predicting)
     {
         if(numericAttributes <= 0) {
           throw new FailedToFitException("AROW requires numeric attributes to perform classification");
@@ -182,12 +182,12 @@ public class AROW extends BaseUpdateableClassifier implements BinaryScoreClassif
     
 
     @Override
-    public void update(DataPoint dataPoint, int targetClass)
+    public void update(final DataPoint dataPoint, final int targetClass)
     {
         final Vec x_t = dataPoint.getNumericalValues();
         final double y_t = targetClass*2-1;
         
-        double m_t = x_t.dot(w);
+        final double m_t = x_t.dot(w);
         if(y_t == Math.signum(m_t)) {
           return;//no update needed
         }
@@ -196,9 +196,9 @@ public class AROW extends BaseUpdateableClassifier implements BinaryScoreClassif
         
         if(diagonalOnly)
         {
-            for(IndexValue iv : x_t)
+            for(final IndexValue iv : x_t)
             {
-                double x_ti = iv.getValue();
+                final double x_ti = iv.getValue();
                 v_t += x_ti * x_ti * sigmaV.get(iv.getIndex());
             }
         }
@@ -208,13 +208,13 @@ public class AROW extends BaseUpdateableClassifier implements BinaryScoreClassif
             v_t = x_t.dot(Sigma_xt);
         }
         
-        double b_t_inv = v_t+r;
+        final double b_t_inv = v_t+r;
         
-        double alpha_t = Math.max(0, 1-y_t*m_t)/b_t_inv;
+        final double alpha_t = Math.max(0, 1-y_t*m_t)/b_t_inv;
         if(!diagonalOnly) {
           w.mutableAdd(alpha_t * y_t, Sigma_xt);
         } else {
-          for (IndexValue iv : x_t) {
+          for (final IndexValue iv : x_t) {
             w.increment(iv.getIndex(), alpha_t * y_t * iv.getValue() * sigmaV.get(iv.getIndex()));
           }
         }
@@ -227,10 +227,10 @@ public class AROW extends BaseUpdateableClassifier implements BinaryScoreClassif
              * S += Sx Sx
              * so just square the values and then add 
              */
-            for(IndexValue iv : x_t)
+            for(final IndexValue iv : x_t)
             {
-                int idx = iv.getIndex();
-                double xt_i = iv.getValue()*sigmaV.get(idx);
+                final int idx = iv.getIndex();
+                final double xt_i = iv.getValue()*sigmaV.get(idx);
                 sigmaV.increment(idx, -(xt_i*xt_i)/b_t_inv);
             }
         }
@@ -247,13 +247,13 @@ public class AROW extends BaseUpdateableClassifier implements BinaryScoreClassif
     }
 
     @Override
-    public CategoricalResults classify(DataPoint data)
+    public CategoricalResults classify(final DataPoint data)
     {
         if(w == null) {
           throw new UntrainedModelException("Model has not yet ben trained");
         }
-        CategoricalResults cr = new CategoricalResults(2);
-        double score = getScore(data);
+        final CategoricalResults cr = new CategoricalResults(2);
+        final double score = getScore(data);
         if(score < 0) {
           cr.setProb(0, 1.0);
         } else {
@@ -263,7 +263,7 @@ public class AROW extends BaseUpdateableClassifier implements BinaryScoreClassif
     }
 
     @Override
-    public double getScore(DataPoint dp)
+    public double getScore(final DataPoint dp)
     {
         return w.dot(dp.getNumericalValues());
     }
@@ -281,7 +281,7 @@ public class AROW extends BaseUpdateableClassifier implements BinaryScoreClassif
     }
 
     @Override
-    public Parameter getParameter(String paramName)
+    public Parameter getParameter(final String paramName)
     {
         return Parameter.toParameterMap(getParameters()).get(paramName);
     }
@@ -299,7 +299,7 @@ public class AROW extends BaseUpdateableClassifier implements BinaryScoreClassif
     }
 
     @Override
-    public Vec getRawWeight(int index)
+    public Vec getRawWeight(final int index)
     {
         if(index < 1) {
           return getRawWeight();
@@ -309,7 +309,7 @@ public class AROW extends BaseUpdateableClassifier implements BinaryScoreClassif
     }
 
     @Override
-    public double getBias(int index)
+    public double getBias(final int index)
     {
         if (index < 1) {
           return getBias();
@@ -331,7 +331,7 @@ public class AROW extends BaseUpdateableClassifier implements BinaryScoreClassif
      * @param d the data set to get the guess for
      * @return the guess for the r parameter
      */
-    public static Distribution guessR(DataSet d)
+    public static Distribution guessR(final DataSet d)
     {
         return new LogUniform(Math.pow(2, -4), Math.pow(2, 4));//from Exact Soft Confidence-Weighted Learning paper
     }

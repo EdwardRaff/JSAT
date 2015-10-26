@@ -52,7 +52,7 @@ public class STGD extends BaseUpdateableClassifier implements UpdateableRegresso
      * @param threshold the regularization threshold
      * @param gravity the regularization parameter
      */
-    public STGD(int K, double learningRate, double threshold, double gravity)
+    public STGD(final int K, final double learningRate, final double threshold, final double gravity)
     {
         setK(K);
         setLearningRate(learningRate);
@@ -64,7 +64,7 @@ public class STGD extends BaseUpdateableClassifier implements UpdateableRegresso
      * Copy constructor
      * @param toCopy the object to copy
      */
-    protected STGD(STGD toCopy)
+    protected STGD(final STGD toCopy)
     {
         if(toCopy.w != null) {
           this.w = toCopy.w.clone();
@@ -87,7 +87,7 @@ public class STGD extends BaseUpdateableClassifier implements UpdateableRegresso
      * 
      * @param K the frequency to apply regularization in [1, Infinity )
      */
-    public void setK(int K)
+    public void setK(final int K)
     {
         if(K < 1) {
           throw new IllegalArgumentException("K must be positive, not " + K);
@@ -108,7 +108,7 @@ public class STGD extends BaseUpdateableClassifier implements UpdateableRegresso
      * Sets the learning rate to use
      * @param learningRate the learning rate &gt; 0. 
      */
-    public void setLearningRate(double learningRate)
+    public void setLearningRate(final double learningRate)
     {
         if(Double.isInfinite(learningRate) || Double.isNaN(learningRate) || learningRate <= 0) {
           throw new IllegalArgumentException("Learning rate must be positive, not " + learningRate);
@@ -131,7 +131,7 @@ public class STGD extends BaseUpdateableClassifier implements UpdateableRegresso
      * @param threshold the coefficient regularization threshold in 
      * ( 0, Infinity ]
      */
-    public void setThreshold(double threshold)
+    public void setThreshold(final double threshold)
     {
         if(Double.isNaN(threshold) || threshold <= 0) {
           throw new IllegalArgumentException("Threshold must be positive, not " + threshold);
@@ -155,7 +155,7 @@ public class STGD extends BaseUpdateableClassifier implements UpdateableRegresso
      * 
      * @param gravity the regularization parameter in ( 0, Infinity )
      */
-    public void setGravity(double gravity)
+    public void setGravity(final double gravity)
     {
         if(Double.isInfinite(gravity) || Double.isNaN(gravity) || gravity <= 0) {
           throw new IllegalArgumentException("Gravity must be positive, not " + gravity);
@@ -185,7 +185,7 @@ public class STGD extends BaseUpdateableClassifier implements UpdateableRegresso
     }
     
     @Override
-    public Vec getRawWeight(int index)
+    public Vec getRawWeight(final int index)
     {
         if(index < 1) {
           return getRawWeight();
@@ -195,7 +195,7 @@ public class STGD extends BaseUpdateableClassifier implements UpdateableRegresso
     }
 
     @Override
-    public double getBias(int index)
+    public double getBias(final int index)
     {
         if (index < 1) {
           return getBias();
@@ -217,7 +217,7 @@ public class STGD extends BaseUpdateableClassifier implements UpdateableRegresso
     }
 
     @Override
-    public void setUp(CategoricalData[] categoricalAttributes, int numericAttributes, CategoricalData predicting)
+    public void setUp(final CategoricalData[] categoricalAttributes, final int numericAttributes, final CategoricalData predicting)
     {
         if(predicting.getNumOfCategories() != 2) {
           throw new FailedToFitException("STGD supports only binary classification");
@@ -226,7 +226,7 @@ public class STGD extends BaseUpdateableClassifier implements UpdateableRegresso
     }
     
     @Override
-    public void setUp(CategoricalData[] categoricalAttributes, int numericAttributes)
+    public void setUp(final CategoricalData[] categoricalAttributes, final int numericAttributes)
     {
         if(numericAttributes < 1) {
           throw new FailedToFitException("STGD requires numeric features");
@@ -236,18 +236,18 @@ public class STGD extends BaseUpdateableClassifier implements UpdateableRegresso
     }
     
     @Override
-    public void train(RegressionDataSet dataSet, ExecutorService threadPool)
+    public void train(final RegressionDataSet dataSet, final ExecutorService threadPool)
     {
         train(dataSet);
     }
 
     @Override
-    public void train(RegressionDataSet dataSet)
+    public void train(final RegressionDataSet dataSet)
     {
         BaseUpdateableRegressor.trainEpochs(dataSet, this, getEpochs());
     }
     
-    private static double T(double v_j, double a, double theta)
+    private static double T(final double v_j, final double a, final double theta)
     {
         if(v_j >= 0 && v_j <= theta) {
           return Math.max(0, v_j-a);
@@ -259,7 +259,7 @@ public class STGD extends BaseUpdateableClassifier implements UpdateableRegresso
     }
 
     @Override
-    public void update(DataPoint dataPoint, int targetClass)
+    public void update(final DataPoint dataPoint, final int targetClass)
     {
         time++;
         final Vec x = dataPoint.getNumericalValues();
@@ -272,7 +272,7 @@ public class STGD extends BaseUpdateableClassifier implements UpdateableRegresso
     }
     
     @Override
-    public void update(DataPoint dataPoint, final double y)
+    public void update(final DataPoint dataPoint, final double y)
     {
         time++;
         final Vec x = dataPoint.getNumericalValues();
@@ -288,7 +288,7 @@ public class STGD extends BaseUpdateableClassifier implements UpdateableRegresso
      */
     private void performUpdate(final Vec x, final double y, final double yHat)
     {
-        for(IndexValue iv : x)
+        for(final IndexValue iv : x)
         {
             final int j = iv.getIndex();
             w.set(j, 
@@ -301,9 +301,9 @@ public class STGD extends BaseUpdateableClassifier implements UpdateableRegresso
     }
     
     @Override
-    public CategoricalResults classify(DataPoint data)
+    public CategoricalResults classify(final DataPoint data)
     {
-        CategoricalResults cr = new CategoricalResults(2);
+        final CategoricalResults cr = new CategoricalResults(2);
         if(getScore(data) > 0) {
           cr.setProb(1, 1.0);
         } else {
@@ -313,7 +313,7 @@ public class STGD extends BaseUpdateableClassifier implements UpdateableRegresso
     }
     
     @Override
-    public double regress(DataPoint data)
+    public double regress(final DataPoint data)
     {
         return getScore(data);
     }
@@ -325,7 +325,7 @@ public class STGD extends BaseUpdateableClassifier implements UpdateableRegresso
     }
 
     @Override
-    public double getScore(DataPoint dp)
+    public double getScore(final DataPoint dp)
     {
         return w.dot(dp.getNumericalValues());
     }
@@ -337,7 +337,7 @@ public class STGD extends BaseUpdateableClassifier implements UpdateableRegresso
     }
 
     @Override
-    public Parameter getParameter(String paramName)
+    public Parameter getParameter(final String paramName)
     {
         return Parameter.toParameterMap(getParameters()).get(paramName);
     }

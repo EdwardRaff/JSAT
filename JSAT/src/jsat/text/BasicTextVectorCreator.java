@@ -18,9 +18,9 @@ public class BasicTextVectorCreator implements TextVectorCreator
 {
 
 	private static final long serialVersionUID = -8620485679300539556L;
-	private Tokenizer tokenizer;
-    private Map<String, Integer> wordIndex;
-    private WordWeighting weighting;
+	private final Tokenizer tokenizer;
+    private final Map<String, Integer> wordIndex;
+    private final WordWeighting weighting;
 
     /**
      * Creates a new basic text vector creator
@@ -29,7 +29,7 @@ public class BasicTextVectorCreator implements TextVectorCreator
      * map indicating the maximum (exclusive) index
      * @param weighting the weighting process to apply to each loaded document. 
      */
-    public BasicTextVectorCreator(Tokenizer tokenizer, Map<String, Integer> wordIndex, WordWeighting weighting)
+    public BasicTextVectorCreator(final Tokenizer tokenizer, final Map<String, Integer> wordIndex, final WordWeighting weighting)
     {
         this.tokenizer = tokenizer;
         this.wordIndex = wordIndex;
@@ -37,21 +37,21 @@ public class BasicTextVectorCreator implements TextVectorCreator
     }
 
     @Override
-    public Vec newText(String text)
+    public Vec newText(final String text)
     {
         return newText(text, new StringBuilder(), new ArrayList<String>());
     }
 
     @Override
-    public Vec newText(String input, StringBuilder workSpace, List<String> storageSpace)
+    public Vec newText(final String input, final StringBuilder workSpace, final List<String> storageSpace)
     {
         tokenizer.tokenize(input, workSpace, storageSpace);
-        SparseVector vec = new SparseVector(wordIndex.size());
-        for( String word : storageSpace)
+        final SparseVector vec = new SparseVector(wordIndex.size());
+        for( final String word : storageSpace)
         {
             if(wordIndex.containsKey(word))//Could also call retainAll on words before looping. Worth while to investigate 
             {
-                int index = wordIndex.get(word);
+                final int index = wordIndex.get(word);
                 vec.increment(index, 1.0);
             }
         }

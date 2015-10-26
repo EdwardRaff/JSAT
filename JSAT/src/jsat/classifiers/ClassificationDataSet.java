@@ -33,14 +33,14 @@ public class ClassificationDataSet extends DataSet<ClassificationDataSet>
      * @param dataSet the source data set
      * @param predicting the categorical attribute to use as the target class
      */
-    public ClassificationDataSet(DataSet dataSet, int predicting)
+    public ClassificationDataSet(final DataSet dataSet, final int predicting)
     {
         this(dataSet.getDataPoints(), predicting);
         //Fix up numeric names
         if(numericalVariableNames == null)
         {
             numericalVariableNames = new ArrayList<String>();
-            String s = "";
+            final String s = "";
             for(int i = 0; i < getNumNumericalVars(); i++) {
               numericalVariableNames.add(s);
             }
@@ -55,10 +55,10 @@ public class ClassificationDataSet extends DataSet<ClassificationDataSet>
      * @param data the list of data points for the problem. 
      * @param predicting the categorical attribute to use as the target class
      */
-    public ClassificationDataSet(List<DataPoint> data, int predicting)
+    public ClassificationDataSet(final List<DataPoint> data, final int predicting)
     {
         //Use the first data point to set up
-        DataPoint tmp = data.get(0);
+        final DataPoint tmp = data.get(0);
         categories = new CategoricalData[tmp.numCategoricalValues()-1];
         for(int i = 0; i < categories.length; i++)
         {
@@ -73,10 +73,10 @@ public class ClassificationDataSet extends DataSet<ClassificationDataSet>
         
         
         //Fill up data
-        for(DataPoint dp : data)
+        for(final DataPoint dp : data)
         {
-            int[] newCats = new int[dp.numCategoricalValues()-1];
-            int[] prevCats = dp.getCategoricalValues();
+            final int[] newCats = new int[dp.numCategoricalValues()-1];
+            final int[] prevCats = dp.getCategoricalValues();
             int k = 0;//index for the newCats 
             for(int i = 0; i < prevCats.length; i++)
             {
@@ -84,7 +84,7 @@ public class ClassificationDataSet extends DataSet<ClassificationDataSet>
                   newCats[k++] = prevCats[i];
                 }
             }
-            DataPoint newPoint = new DataPoint(dp.getNumericalValues(), newCats, categories);
+            final DataPoint newPoint = new DataPoint(dp.getNumericalValues(), newCats, categories);
             datapoints.add(newPoint);
             category.add(prevCats[predicting]);
         }
@@ -99,14 +99,14 @@ public class ClassificationDataSet extends DataSet<ClassificationDataSet>
      * @param data the list of data points, paired with their class values
      * @param predicting the information about the target class
      */
-    public ClassificationDataSet(List<DataPointPair<Integer>> data, CategoricalData predicting)
+    public ClassificationDataSet(final List<DataPointPair<Integer>> data, final CategoricalData predicting)
     {
         this.predicting = predicting;
         numNumerVals = data.get(0).getVector().length();
         categories = CategoricalData.copyOf(data.get(0).getDataPoint().getCategoricalData());
         datapoints = new ArrayList<DataPoint>(data.size());
         category = new IntList(data.size());
-        for(DataPointPair<Integer> dpp : data)
+        for(final DataPointPair<Integer> dpp : data)
         {
             datapoints.add(dpp.getDataPoint());
             category.add(dpp.getPair());
@@ -121,7 +121,7 @@ public class ClassificationDataSet extends DataSet<ClassificationDataSet>
      * @param categories the information about each categorical variable in the problem. 
      * @param predicting the information about the target class
      */
-    public ClassificationDataSet(int numerical, CategoricalData[] categories, CategoricalData predicting)
+    public ClassificationDataSet(final int numerical, final CategoricalData[] categories, final CategoricalData predicting)
     {
         this.predicting = predicting;
         this.categories = categories;
@@ -162,13 +162,13 @@ public class ClassificationDataSet extends DataSet<ClassificationDataSet>
      * @param exception the one data set in the list NOT to combine into one file
      * @return a combination of all the data sets in <tt>list</tt> except the one at index <tt>exception</tt>
      */
-    public static ClassificationDataSet comineAllBut(List<ClassificationDataSet> list, int exception)
+    public static ClassificationDataSet comineAllBut(final List<ClassificationDataSet> list, final int exception)
     {
-        int numer = list.get(exception).getNumNumericalVars();
-        CategoricalData[] categories = list.get(exception).getCategories();
-        CategoricalData predicting = list.get(exception).getPredicting();
+        final int numer = list.get(exception).getNumNumericalVars();
+        final CategoricalData[] categories = list.get(exception).getCategories();
+        final CategoricalData predicting = list.get(exception).getPredicting();
         
-        ClassificationDataSet cds = new ClassificationDataSet(numer, categories, predicting);
+        final ClassificationDataSet cds = new ClassificationDataSet(numer, categories, predicting);
         
         //The list of data sets
         for(int i = 0; i < list.size(); i++)
@@ -189,7 +189,7 @@ public class ClassificationDataSet extends DataSet<ClassificationDataSet>
      * @return the ith data point in this set
      */
     @Override
-    public DataPoint getDataPoint(int i)
+    public DataPoint getDataPoint(final int i)
     {
         return getDataPointPair(i).getDataPoint();
     }
@@ -199,7 +199,7 @@ public class ClassificationDataSet extends DataSet<ClassificationDataSet>
      * @param i the i'th data point in this set
      * @return the i'th data point from the data set, paired with the integer indicating its true class
      */
-    public DataPointPair<Integer> getDataPointPair(int i)
+    public DataPointPair<Integer> getDataPointPair(final int i)
     {
         if(i >= getSampleSize()) {
           throw new IndexOutOfBoundsException("There are not that many samples in the data set");
@@ -209,7 +209,7 @@ public class ClassificationDataSet extends DataSet<ClassificationDataSet>
     }
     
     @Override
-    public void setDataPoint(int i, DataPoint dp)
+    public void setDataPoint(final int i, final DataPoint dp)
     {
         if(i >= getSampleSize()) {
           throw new IndexOutOfBoundsException("There are not that many samples in the data set");
@@ -224,7 +224,7 @@ public class ClassificationDataSet extends DataSet<ClassificationDataSet>
      * @return the integer value for the category of the <tt>i</tt>'th data point. 
      * @throws IndexOutOfBoundsException if <tt>i</tt> is not a valid index into the data set. 
      */
-    public int getDataPointCategory(int i)
+    public int getDataPointCategory(final int i)
     {
         if(i >= getSampleSize()) {
           throw new IndexOutOfBoundsException("There are not that many samples in the data set: " + i);
@@ -236,31 +236,31 @@ public class ClassificationDataSet extends DataSet<ClassificationDataSet>
     }
     
     @Override
-    protected ClassificationDataSet getSubset(List<Integer> indicies)
+    protected ClassificationDataSet getSubset(final List<Integer> indicies)
     {
-        ClassificationDataSet newData = new ClassificationDataSet(numNumerVals, categories, predicting);
-        for (int i : indicies) {
+        final ClassificationDataSet newData = new ClassificationDataSet(numNumerVals, categories, predicting);
+        for (final int i : indicies) {
           newData.addDataPoint(getDataPoint(i), getDataPointCategory(i));
         }
         return newData;
     }
     
  
-    public List<ClassificationDataSet> stratSet(int folds, Random rnd)
+    public List<ClassificationDataSet> stratSet(final int folds, final Random rnd)
     {
-        ArrayList<ClassificationDataSet> cvList = new ArrayList<ClassificationDataSet>();
+        final ArrayList<ClassificationDataSet> cvList = new ArrayList<ClassificationDataSet>();
         
-        IntList rndOrder = new IntList();
+        final IntList rndOrder = new IntList();
         
         int curFold = 0;
         for(int c = 0; c < getClassSize(); c++)
         {
-            List<DataPoint> subPoints = getSamples(c);
+            final List<DataPoint> subPoints = getSamples(c);
             rndOrder.clear();
             ListUtils.addRange(rndOrder, 0, subPoints.size(), 1);
             Collections.shuffle(rndOrder, rnd);
             
-            for(int i : rndOrder)
+            for(final int i : rndOrder)
             {
                 cvList.get(curFold).datapoints.add(subPoints.get(i));
                 cvList.get(curFold).category.add(c);
@@ -278,7 +278,7 @@ public class ClassificationDataSet extends DataSet<ClassificationDataSet>
      * @param classification the true class value for the data point
      * @throws IllegalArgumentException if the given values are inconsistent with the data this class stores. 
      */
-    public void addDataPoint(Vec v, int[] classes, int classification)
+    public void addDataPoint(final Vec v, final int[] classes, final int classification)
     {
         addDataPoint(v, classes, classification, 1.0);
     }
@@ -292,7 +292,7 @@ public class ClassificationDataSet extends DataSet<ClassificationDataSet>
      * @param classification the true class value for the data point
      * @throws IllegalArgumentException if the given values are inconsistent with the data this class stores. 
      */
-    public void addDataPoint(Vec v, int classification)
+    public void addDataPoint(final Vec v, final int classification)
     {
         addDataPoint(v, emptyInt, classification, 1.0);
     }
@@ -305,7 +305,7 @@ public class ClassificationDataSet extends DataSet<ClassificationDataSet>
      * @param weight the weight value to give to the data point
      * @throws IllegalArgumentException if the given values are inconsistent with the data this class stores. 
      */
-    public void addDataPoint(Vec v, int classification, double weight)
+    public void addDataPoint(final Vec v, final int classification, final double weight)
     {
         addDataPoint(v, emptyInt, classification, weight);
     }
@@ -318,7 +318,7 @@ public class ClassificationDataSet extends DataSet<ClassificationDataSet>
      * @param weight the weight value to give to the data point
      * @throws IllegalArgumentException if the given values are inconsistent with the data this class stores. 
      */
-    public void addDataPoint(Vec v, int[] classes, int classification, double weight)
+    public void addDataPoint(final Vec v, final int[] classes, final int classification, final double weight)
     {
         if(v.length() != numNumerVals) {
           throw new RuntimeException("Data point does not contain enough numerical data points");
@@ -343,7 +343,7 @@ public class ClassificationDataSet extends DataSet<ClassificationDataSet>
      * @param dp the data point to add to this set
      * @param classification the label for this data point
      */
-    public void addDataPoint(DataPoint dp, int classification)
+    public void addDataPoint(final DataPoint dp, final int classification)
     {
         if(dp.getNumericalValues().length() != numNumerVals) {
           throw new RuntimeException("Data point does not contain enough numerical data points");
@@ -368,9 +368,9 @@ public class ClassificationDataSet extends DataSet<ClassificationDataSet>
      * @param category the category desired
      * @return all given examples that belong to the given category
      */
-    public List<DataPoint> getSamples(int category)
+    public List<DataPoint> getSamples(final int category)
     {
-        ArrayList<DataPoint> subSet = new ArrayList<DataPoint>();
+        final ArrayList<DataPoint> subSet = new ArrayList<DataPoint>();
         for(int i = 0; i < this.category.size(); i++) {
           if (this.category.getI(i) == category) {
             subSet.add(datapoints.get(i));
@@ -388,10 +388,10 @@ public class ClassificationDataSet extends DataSet<ClassificationDataSet>
      * @param n the n'th numerical variable
      * @return a vector of all the values for the n'th numerical variable for the given category
      */
-    public Vec getSampleVariableVector(int category, int n)
+    public Vec getSampleVariableVector(final int category, final int n)
     {
-        List<DataPoint> categoryList = getSamples(category);
-        DenseVector vec = new DenseVector(categoryList.size());
+        final List<DataPoint> categoryList = getSamples(category);
+        final DenseVector vec = new DenseVector(categoryList.size());
         
         for(int i = 0; i < vec.length(); i++) {
           vec.set(i, categoryList.get(i).getNumericalValues().get(n));
@@ -421,7 +421,7 @@ public class ClassificationDataSet extends DataSet<ClassificationDataSet>
      */
     public List<DataPointPair<Integer>> getAsDPPList()
     {
-        List<DataPointPair<Integer>> dataPoints = new ArrayList<DataPointPair<Integer>>(getSampleSize());
+        final List<DataPointPair<Integer>> dataPoints = new ArrayList<DataPointPair<Integer>>(getSampleSize());
         for(int i = 0; i < getSampleSize(); i++) {
           dataPoints.add(new DataPointPair<Integer>(datapoints.get(i), category.get(i)));
         }
@@ -441,7 +441,7 @@ public class ClassificationDataSet extends DataSet<ClassificationDataSet>
      */
     public List<DataPointPair<Double>> getAsFloatDPPList()
     {
-        List<DataPointPair<Double>> dataPoints = new ArrayList<DataPointPair<Double>>(getSampleSize());
+        final List<DataPointPair<Double>> dataPoints = new ArrayList<DataPointPair<Double>>(getSampleSize());
         for(int i = 0; i < getSampleSize(); i++) {
           dataPoints.add(new DataPointPair<Double>(datapoints.get(i), (double) category.getI(i)));
         }
@@ -455,12 +455,12 @@ public class ClassificationDataSet extends DataSet<ClassificationDataSet>
      */
     public double[] getPriors()
     {
-        double[] priors = new double[getClassSize()];
+        final double[] priors = new double[getClassSize()];
         
         double sum = 0.0;
         for(int i = 0; i < getSampleSize(); i++)
         {
-            double w = datapoints.get(i).getWeight();
+            final double w = datapoints.get(i).getWeight();
             priors[category.getI(i)] += w;
             sum += w;
         }
@@ -479,10 +479,10 @@ public class ClassificationDataSet extends DataSet<ClassificationDataSet>
      * @param targetClass the target class 
      * @return how many data points belong to the given class
      */
-    public int classSampleCount(int targetClass)
+    public int classSampleCount(final int targetClass)
     {
         int count = 0;
-        for(int i : category) {
+        for(final int i : category) {
           if (i == targetClass) {
             count++;
           }
@@ -499,7 +499,7 @@ public class ClassificationDataSet extends DataSet<ClassificationDataSet>
     @Override
     public ClassificationDataSet shallowClone()
     {
-        ClassificationDataSet clone = new ClassificationDataSet(numNumerVals, categories, predicting.clone());
+        final ClassificationDataSet clone = new ClassificationDataSet(numNumerVals, categories, predicting.clone());
         clone.datapoints.addAll(this.datapoints);
         clone.category.addAll(this.category);
         clone.columnVecCache.putAll(this.columnVecCache);

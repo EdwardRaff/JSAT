@@ -32,12 +32,12 @@ public class DenseMatrix extends GenericMatrix
      * @param a the first Vector, this new Matrix will have as many rows as the length of this vector
      * @param b the second Vector, this new Matrix will have as many columns as this length of this vector
      */
-    public DenseMatrix(Vec a, Vec b)
+    public DenseMatrix(final Vec a, final Vec b)
     {
         matrix = new double[a.length()][b.length()];
         for(int i = 0; i < a.length(); i++)
         {
-            Vec rowVals = b.multiply(a.get(i));
+            final Vec rowVals = b.multiply(a.get(i));
             for(int j = 0; j < b.length(); j++) {
               matrix[i][j] = rowVals.get(j);
             }
@@ -49,7 +49,7 @@ public class DenseMatrix extends GenericMatrix
      * @param rows the number of rows
      * @param cols the number of columns
      */
-    public DenseMatrix(int rows, int cols)
+    public DenseMatrix(final int rows, final int cols)
     {
         matrix = new double[rows][cols];
     }
@@ -61,7 +61,7 @@ public class DenseMatrix extends GenericMatrix
      * 
      * @param matrix the matrix to clone the values of
      */
-    public DenseMatrix(double[][] matrix)
+    public DenseMatrix(final double[][] matrix)
     {
         this.matrix = new double[matrix.length][matrix[0].length];
         for(int i = 0; i < this.matrix.length; i++) {
@@ -78,20 +78,20 @@ public class DenseMatrix extends GenericMatrix
      * given one
      * @param toCopy the matrix to copy
      */
-    public DenseMatrix(Matrix toCopy)
+    public DenseMatrix(final Matrix toCopy)
     {
         this(toCopy.rows(), toCopy.cols());
         toCopy.copyTo(this);
     }
 
     @Override
-    protected Matrix getMatrixOfSameType(int rows, int cols)
+    protected Matrix getMatrixOfSameType(final int rows, final int cols)
     {
         return new DenseMatrix(rows, cols);
     }
     
     @Override
-    public void mutableAdd(double c, Matrix b)
+    public void mutableAdd(final double c, final Matrix b)
     {
         if(!sameDimensions(this, b)) {
           throw new ArithmeticException("Matrix dimensions do not agree");
@@ -105,7 +105,7 @@ public class DenseMatrix extends GenericMatrix
     }
     
     @Override
-    public void multiply(Vec b, double z, Vec c)
+    public void multiply(final Vec b, final double z, final Vec c)
     {
         if(this.cols() != b.length()) {
           throw new ArithmeticException("Matrix dimensions do not agree, [" + rows() +"," + cols() + "] x [" + b.length() + ",1]" );
@@ -117,13 +117,13 @@ public class DenseMatrix extends GenericMatrix
         for(int i = 0; i < rows(); i++)
         {
             //The Dense construcure does not clone the matrix, it just takes the refernce -making it fast
-            DenseVector row = new DenseVector(matrix[i]);
+            final DenseVector row = new DenseVector(matrix[i]);
             c.increment(i, row.dot(b)*z);//We use the dot product in this way so that if the incoming matrix is sparce, we can take advantage of save computaitons
         }
     }
     
     @Override
-    public void transposeMultiply(double c, Vec b, Vec x)
+    public void transposeMultiply(final double c, final Vec b, final Vec x)
     {
         if(this.rows() != b.length()) {
           throw new ArithmeticException("Matrix dimensions do not agree, [" + cols() +"," + rows() + "] x [" + b.length() + ",1]" );
@@ -133,37 +133,37 @@ public class DenseMatrix extends GenericMatrix
         
         for(int i = 0; i < rows(); i++)//if b was sparce, we want to skip every time b_i = 0
         {
-            double b_i = b.get(i);
+            final double b_i = b.get(i);
             if(b_i == 0) {//Skip, not quite as good as sparce handeling
               continue;//TODO handle sparce input vector better
             }
             
-            double[] A_i = this.matrix[i];
+            final double[] A_i = this.matrix[i];
             for(int j = 0; j < cols(); j++) {
               x.increment(j, c*b_i*A_i[j]);
             }
         }
     }
     @SuppressWarnings("unused")
-    private Matrix blockMultiply(Matrix b)
+    private Matrix blockMultiply(final Matrix b)
     {
         if(!canMultiply(this, b)) {
           throw new ArithmeticException("Matrix dimensions do not agree");
         }
-        DenseMatrix result = new DenseMatrix(this.rows(), b.cols());
+        final DenseMatrix result = new DenseMatrix(this.rows(), b.cols());
         ///Should choose step size such that 2*NB2^2 * dataTypeSize <= CacheSize
         
-        int iLimit = result.rows();
-        int jLimit = result.cols();
-        int kLimit = this.cols();
+        final int iLimit = result.rows();
+        final int jLimit = result.cols();
+        final int kLimit = this.cols();
         
         for(int i0 = 0; i0 < iLimit; i0+=NB2) {
           for (int k0 = 0; k0 < kLimit; k0+=NB2) {
             for (int j0 = 0; j0 < jLimit; j0+=NB2) {
               for (int i = i0; i < min(i0+NB2, iLimit); i++) {
-                double[] c_row_i = result.matrix[i];
+                final double[] c_row_i = result.matrix[i];
                 for (int k = k0; k < min(k0+NB2, kLimit); k++) {
-                  double a = this.matrix[i][k];
+                  final double a = this.matrix[i][k];
                   for (int j = j0; j < min(j0+NB2, jLimit); j++) {
                     c_row_i[j] += a * b.get(k, j);
                   }
@@ -185,7 +185,7 @@ public class DenseMatrix extends GenericMatrix
      * @param vkNorm the initial value for vkNorm
      * @return vkNorm plus the summation of the squared values for all values copied into vk
      */
-    private double initalVKNormCompute(int k, int M, double[] vk, double[] A_k)
+    private double initalVKNormCompute(final int k, final int M, final double[] vk, final double[] A_k)
     {
         double vkNorm = 0.0;
         for(int i = k+1; i < M; i++)
@@ -196,14 +196,14 @@ public class DenseMatrix extends GenericMatrix
         return vkNorm;
     }
 
-    private void qrUpdateQ(DenseMatrix Q, int k, double[] vk, double TwoOverBeta)
+    private void qrUpdateQ(final DenseMatrix Q, final int k, final double[] vk, final double TwoOverBeta)
     {
         //Computing Q
 
         //We are computing Q' in what we are treating as the column major order, which represents Q in row major order, which is what we want!
         for (int j = 0; j < Q.cols(); j++)
         {
-            double[] Q_j = Q.matrix[j];
+            final double[] Q_j = Q.matrix[j];
             double y = 0;//y = vk dot A_j
             for (int i = k; i < Q.cols(); i++) {
               y += vk[i] * Q_j[i];
@@ -218,7 +218,7 @@ public class DenseMatrix extends GenericMatrix
 
     }
 
-    private void qrUpdateR(int k, int N, DenseMatrix A, double[] vk, double TwoOverBeta, int M)
+    private void qrUpdateR(final int k, final int N, final DenseMatrix A, final double[] vk, final double TwoOverBeta, final int M)
     {
         //First run of loop removed, as it will be setting zeros. More accurate to just set them ourselves
         if(k < N)
@@ -228,7 +228,7 @@ public class DenseMatrix extends GenericMatrix
         //The rest of the normal look
         for(int j = k+1; j < N; j++)
         {
-            double[] A_j = A.matrix[j];
+            final double[] A_j = A.matrix[j];
             double y = 0;//y = vk dot A_j
             for(int i = k; i < A.cols(); i++) {
               y += vk[i]*A_j[i];
@@ -241,9 +241,9 @@ public class DenseMatrix extends GenericMatrix
         }
     }
 
-    private void qrUpdateRFirstIteration(DenseMatrix A, int k, double[] vk, double TwoOverBeta, int M)
+    private void qrUpdateRFirstIteration(final DenseMatrix A, final int k, final double[] vk, final double TwoOverBeta, final int M)
     {
-        double[] A_j = A.matrix[k];
+        final double[] A_j = A.matrix[k];
         double y = 0;//y = vk dot A_j
         for(int i = k; i < A.cols(); i++) {
           y += vk[i]*A_j[i];
@@ -258,7 +258,7 @@ public class DenseMatrix extends GenericMatrix
     }
 
     @Override
-    public void changeSize(int newRows, int newCols)
+    public void changeSize(final int newRows, final int newCols)
     {
         if(newRows <= 0) {
           throw new ArithmeticException("Matrix must have a positive number of rows");
@@ -288,7 +288,7 @@ public class DenseMatrix extends GenericMatrix
         final DenseMatrix b;
         final int kLimit, jLimit, iLimit, threadID;
         
-        public BlockMultRun(CountDownLatch latch, DenseMatrix result, DenseMatrix b, int threadID)
+        public BlockMultRun(final CountDownLatch latch, final DenseMatrix result, final DenseMatrix b, final int threadID)
         {
             this.latch = latch;
             this.result = result;
@@ -308,8 +308,8 @@ public class DenseMatrix extends GenericMatrix
                   for (int i = i0; i < min(i0 + NB2, iLimit); i++) {
                     final double[] Ci = result.matrix[i];
                     for (int k = k0; k < min(k0 + NB2, kLimit); k++) {
-                      double a = matrix[i][k];
-                      double[] Bk = b.matrix[k];
+                      final double a = matrix[i][k];
+                      final double[] Bk = b.matrix[k];
                       for (int j = j0; j < min(j0 + NB2, jLimit); j++) {
                         Ci[j] += a * Bk[j];
                       }
@@ -324,7 +324,7 @@ public class DenseMatrix extends GenericMatrix
         
     }
     
-    private void blockMultiply(DenseMatrix b, ExecutorService threadPool, DenseMatrix C)
+    private void blockMultiply(final DenseMatrix b, final ExecutorService threadPool, final DenseMatrix C)
     {
         if(!canMultiply(this, b)) {
           throw new ArithmeticException("Matrix dimensions do not agree");
@@ -332,7 +332,7 @@ public class DenseMatrix extends GenericMatrix
           throw new ArithmeticException("Destination matrix does not match the multiplication dimensions");
         }
         
-        CountDownLatch latch = new CountDownLatch(LogicalCores);
+        final CountDownLatch latch = new CountDownLatch(LogicalCores);
         
         for(int threadID = 0; threadID < LogicalCores; threadID++) {
           threadPool.submit(new BlockMultRun(latch, C, b, threadID));
@@ -341,21 +341,21 @@ public class DenseMatrix extends GenericMatrix
         {
             latch.await();
         }
-        catch (InterruptedException ex)
+        catch (final InterruptedException ex)
         {
             Logger.getLogger(DenseMatrix.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
     
     @Override
-    public void transposeMultiply(final Matrix b, Matrix C)
+    public void transposeMultiply(final Matrix b, final Matrix C)
     {
         transposeMultiply(b, C, new FakeExecutor());
     }
             
     
     @Override
-    public void transposeMultiply(final Matrix b, final Matrix C, ExecutorService threadPool)
+    public void transposeMultiply(final Matrix b, final Matrix C, final ExecutorService threadPool)
     {
         if(this.rows() != b.rows()) {//Normaly it is A_cols == B_rows, but we are doint A'*B, not A*B
           throw new ArithmeticException("Matrix dimensions do not agree [" + this.cols() + ", " + this.rows()+ "] * [" + b.rows() + ", " + b.cols() + "]");
@@ -385,14 +385,14 @@ public class DenseMatrix extends GenericMatrix
 
                 public void run()
                 {
-                    DenseMatrix BB = (DenseMatrix) b;
-                    DenseMatrix CC = (DenseMatrix) C;
+                    final DenseMatrix BB = (DenseMatrix) b;
+                    final DenseMatrix CC = (DenseMatrix) C;
                     for (int i0 = blockStep * threadID; i0 < iLimit; i0 += blockStep * LogicalCores) {
                       for (int k0 = 0; k0 < kLimit; k0 += blockStep) {
                         for (int j0 = 0; j0 < jLimit; j0 += blockStep) {
                           for (int k = k0; k < min(k0 + blockStep, kLimit); k++) {
-                            double[] A_row_k = A.matrix[k];
-                            double[] B_row_k = BB.matrix[k];
+                            final double[] A_row_k = A.matrix[k];
+                            final double[] B_row_k = BB.matrix[k];
                             for (int i = i0; i < min(i0 + blockStep, iLimit); i++) {
                               final double a = A_row_k[i];
                               final double[] c_row_i = CC.matrix[i];
@@ -415,7 +415,7 @@ public class DenseMatrix extends GenericMatrix
         {
             cdl.await();
         }
-        catch (InterruptedException ex)
+        catch (final InterruptedException ex)
         {
             Logger.getLogger(DenseMatrix.class.getName()).log(Level.SEVERE, null, ex);
         }
@@ -423,7 +423,7 @@ public class DenseMatrix extends GenericMatrix
     }
     
     @Override
-    public void multiply(Matrix b, Matrix C)
+    public void multiply(final Matrix b, final Matrix C)
     {
         if(!canMultiply(this, b)) {
           throw new ArithmeticException("Matrix dimensions do not agree");
@@ -451,8 +451,8 @@ public class DenseMatrix extends GenericMatrix
          */
 
 
-        DenseMatrix result = (DenseMatrix) C;
-        DenseMatrix B = (DenseMatrix) b;
+        final DenseMatrix result = (DenseMatrix) C;
+        final DenseMatrix B = (DenseMatrix) b;
         //Pull out the index operations to hand optimize for speed. 
         double[] Arowi;
         double[] Browk;
@@ -464,7 +464,7 @@ public class DenseMatrix extends GenericMatrix
 
             for (int k = 0; k < this.cols(); k++)
             {
-                double a = Arowi[k];
+                final double a = Arowi[k];
                 Browk = B.matrix[k];
                 for (int j = 0; j < Crowi.length; j++) {
                   Crowi[j] += a * Browk[j];
@@ -485,7 +485,7 @@ public class DenseMatrix extends GenericMatrix
         final DenseMatrix B, result;
         final int threadID;
 
-        public MultRun(CountDownLatch latch, DenseMatrix A, DenseMatrix result, DenseMatrix B, int threadID)
+        public MultRun(final CountDownLatch latch, final DenseMatrix A, final DenseMatrix result, final DenseMatrix B, final int threadID)
         {
             this.latch = latch;
             this.A = A;
@@ -508,7 +508,7 @@ public class DenseMatrix extends GenericMatrix
 
                 for (int k = 0; k < A.cols(); k++)
                 {
-                    double a = Ai[k];
+                    final double a = Ai[k];
                     Bi = B.matrix[k];
                     for (int j = 0; j < Ci.length; j++) {
                       Ci[j] += a * Bi[j];
@@ -521,7 +521,7 @@ public class DenseMatrix extends GenericMatrix
     }
 
     @Override
-    public void multiply(Matrix b, Matrix C, ExecutorService threadPool)
+    public void multiply(final Matrix b, final Matrix C, final ExecutorService threadPool)
     {
         //We only care when everyone is of this class, else let the generic implementatino handle quirks
         if(!(b instanceof DenseMatrix && C instanceof DenseMatrix))
@@ -540,7 +540,7 @@ public class DenseMatrix extends GenericMatrix
         } else if(this.rows() != C.rows() || b.cols() != C.cols()) {
           throw new ArithmeticException("Destination matrix does not match the multiplication dimensions");
         }
-        CountDownLatch cdl = new CountDownLatch(LogicalCores);
+        final CountDownLatch cdl = new CountDownLatch(LogicalCores);
         
         for (int threadID = 0; threadID < LogicalCores; threadID++) {
           threadPool.submit(new MultRun(cdl, this, (DenseMatrix)C, (DenseMatrix)b, threadID));
@@ -550,7 +550,7 @@ public class DenseMatrix extends GenericMatrix
         {
             cdl.await();
         }
-        catch (InterruptedException ex)
+        catch (final InterruptedException ex)
         {
             //faulre? Gah - try seriel
             this.multiply(b, C);
@@ -558,7 +558,7 @@ public class DenseMatrix extends GenericMatrix
     }
     
     @Override
-    public void mutableMultiply(double c)
+    public void mutableMultiply(final double c)
     {
         for(int i = 0; i < rows(); i++) {
           for (int j = 0; j < cols(); j++) {
@@ -573,7 +573,7 @@ public class DenseMatrix extends GenericMatrix
        for(int i = 0; i < rows()-1; i++) {
          for(int j = i+1; j < cols(); j++)
          {
-           double tmp = matrix[j][i];
+           final double tmp = matrix[j][i];
            matrix[j][i] = matrix[i][j];
            matrix[i][j] = tmp;
          }
@@ -583,13 +583,13 @@ public class DenseMatrix extends GenericMatrix
     @Override
     public DenseMatrix transpose()
     {
-        DenseMatrix toReturn = new DenseMatrix(cols(), rows());
+        final DenseMatrix toReturn = new DenseMatrix(cols(), rows());
         this.transpose(toReturn);
         return toReturn;
     }
         
     @Override
-    public void transpose(Matrix C)
+    public void transpose(final Matrix C)
     {
         if(this.rows() != C.cols() || this.cols() != C.rows()) {
           throw new ArithmeticException("Target matrix does not have the correct dimensions");
@@ -607,13 +607,13 @@ public class DenseMatrix extends GenericMatrix
     }
     
     @Override
-    public double get(int i, int j)
+    public double get(final int i, final int j)
     {
         return matrix[i][j];
     }
 
     @Override
-    public void set(int i, int j, double value)
+    public void set(final int i, final int j, final double value)
     {
         matrix[i][j] = value;
     }
@@ -637,14 +637,14 @@ public class DenseMatrix extends GenericMatrix
     }
 
     @Override
-    public void swapRows(int r1, int r2)
+    public void swapRows(final int r1, final int r2)
     {
         if(r1 >= rows() || r2 >= rows()) {
           throw new ArithmeticException("Can not swap row, matrix is smaller then requested");
         } else if(r1 < 0 || r2 < 0) {
           throw new ArithmeticException("Can not swap row, there are no negative row indices");
         }
-        double[] tmp = matrix[r1];
+        final double[] tmp = matrix[r1];
         matrix[r1] = matrix[r2];
         matrix[r2] = tmp;
     }
@@ -658,7 +658,7 @@ public class DenseMatrix extends GenericMatrix
     }
 
     @Override
-    public Vec getRowView(int r)
+    public Vec getRowView(final int r)
     {
         return new DenseVector(matrix[r]);
     }
@@ -666,9 +666,9 @@ public class DenseMatrix extends GenericMatrix
     @Override
     public Matrix[] lup()
     {
-        Matrix[] lup = new Matrix[3];
+        final Matrix[] lup = new Matrix[3];
         
-        Matrix P = eye(rows());
+        final Matrix P = eye(rows());
         DenseMatrix L;
         DenseMatrix U = this;
         
@@ -690,7 +690,7 @@ public class DenseMatrix extends GenericMatrix
                 double largestVal = Math.abs(U.matrix[i][i]);
                 for (int j = i + 1; j < U.rows(); j++)
                 {
-                    double rowJLeadVal = Math.abs(U.matrix[j][i]);
+                    final double rowJLeadVal = Math.abs(U.matrix[j][i]);
                     if (rowJLeadVal > largestVal)
                     {
                         largestRow = j;
@@ -709,7 +709,7 @@ public class DenseMatrix extends GenericMatrix
             //Seting up L 
             for(int k = 0; k < Math.min(i, U.cols()); k++)
             {
-                double tmp = U.matrix[i][k]/U.matrix[k][k];
+                final double tmp = U.matrix[i][k]/U.matrix[k][k];
                 L.matrix[i][k] = Double.isNaN(tmp) ? 0.0 : tmp;
                 U.matrix[i][k] = 0;
 
@@ -724,7 +724,7 @@ public class DenseMatrix extends GenericMatrix
         if(rows() > cols())//Clean up!
         {
             //We need to change U to a square nxn matrix in this case, we can safely drop the last 2 rows!
-            double[][] newU = new double[cols()][];
+            final double[][] newU = new double[cols()][];
             System.arraycopy(U.matrix, 0, newU, 0, newU.length);
             U = new DenseMatrix(newU);//We have made U point at a new object, but the array is still pointing at the same rows! 
         }
@@ -744,7 +744,7 @@ public class DenseMatrix extends GenericMatrix
         double largestSeen = Double.MIN_VALUE;
         int largestIndex ;
 
-        public LUProwRun(DenseMatrix L, DenseMatrix U, int k, int threadNumber)
+        public LUProwRun(final DenseMatrix L, final DenseMatrix U, final int k, final int threadNumber)
         {
             this.L = L;
             this.U = U;
@@ -760,7 +760,7 @@ public class DenseMatrix extends GenericMatrix
         {
             for(int i = k+1+threadNumber; i < U.rows(); i+=LogicalCores)
             {
-                double tmp = U.matrix[i][k]/U.matrix[k][k];
+                final double tmp = U.matrix[i][k]/U.matrix[k][k];
                 L.matrix[i][k] = Double.isNaN(tmp) ? 0.0 : tmp;
 
                 //We perform the first iteration of the loop outside, as we want to cache its value for searching later
@@ -782,11 +782,11 @@ public class DenseMatrix extends GenericMatrix
     }
     
     @Override
-    public Matrix[] lup(ExecutorService threadPool)
+    public Matrix[] lup(final ExecutorService threadPool)
     {
-        Matrix[] lup = new Matrix[3];
+        final Matrix[] lup = new Matrix[3];
         
-        Matrix P = eye(rows());
+        final Matrix P = eye(rows());
         DenseMatrix L;
         DenseMatrix U = this;
         
@@ -797,7 +797,7 @@ public class DenseMatrix extends GenericMatrix
           L = new DenseMatrix(rows(), rows());
         }
         
-        List<Future<Integer>> bigIndecies = new ArrayList<Future<Integer>>(LogicalCores);
+        final List<Future<Integer>> bigIndecies = new ArrayList<Future<Integer>>(LogicalCores);
         for(int k = 0; k < Math.min(rows(), cols()); k++)
         {
             //Partial pivoting, find the largest value in this colum and move it to the top! 
@@ -807,7 +807,7 @@ public class DenseMatrix extends GenericMatrix
             if(bigIndecies.isEmpty()) {
               for(int j = k+1; j < U.rows(); j++)
               {
-                double rowJLeadVal = Math.abs(U.matrix[j][k]);
+                final double rowJLeadVal = Math.abs(U.matrix[j][k]);
                 if(rowJLeadVal > largestVal)
                 {
                   largestRow = j;
@@ -816,23 +816,23 @@ public class DenseMatrix extends GenericMatrix
               }
             } else
             {
-                for(Future<Integer> fut : bigIndecies)
+                for(final Future<Integer> fut : bigIndecies)
                 {
                     try
                     {
-                        int j = fut.get();
-                        double rowJLeadVal = Math.abs(U.matrix[j][k]);
+                        final int j = fut.get();
+                        final double rowJLeadVal = Math.abs(U.matrix[j][k]);
                         if(rowJLeadVal > largestVal)
                         {
                             largestRow = j;
                             largestVal = rowJLeadVal;
                         }
                     }
-                    catch (InterruptedException ex)
+                    catch (final InterruptedException ex)
                     {
                         Logger.getLogger(DenseMatrix.class.getName()).log(Level.SEVERE, null, ex);
                     }
-                    catch (ExecutionException ex)
+                    catch (final ExecutionException ex)
                     {
                         Logger.getLogger(DenseMatrix.class.getName()).log(Level.SEVERE, null, ex);
                     }
@@ -866,7 +866,7 @@ public class DenseMatrix extends GenericMatrix
         if(rows() > cols())//Clean up!
         {
             //We need to change U to a square nxn matrix in this case, we can safely drop the last 2 columns!
-            double[][] newU = new double[cols()][];
+            final double[][] newU = new double[cols()][];
             System.arraycopy(U.matrix, 0, newU, 0, newU.length);
             U = new DenseMatrix(newU);//We have made U point at a new object, but the array is still pointing at the same rows! 
         }
@@ -881,10 +881,10 @@ public class DenseMatrix extends GenericMatrix
     @Override
     public Matrix[] qr()
     {
-        int N = cols(), M  = rows();
-        Matrix[] qr = new Matrix[2];
+        final int N = cols(), M  = rows();
+        final Matrix[] qr = new Matrix[2];
         
-        DenseMatrix Q = Matrix.eye(M);
+        final DenseMatrix Q = Matrix.eye(M);
         DenseMatrix A;
         if(isSquare())
         {
@@ -894,11 +894,11 @@ public class DenseMatrix extends GenericMatrix
         else {
           A = (DenseMatrix) this.transpose();
         }
-        int to = cols() > rows() ? M : N;
-        double[] vk = new double[M];
+        final int to = cols() > rows() ? M : N;
+        final double[] vk = new double[M];
         for(int k = 0; k < to; k++)
         {
-            double[] A_k = A.matrix[k];
+            final double[] A_k = A.matrix[k];
             
             double vkNorm = initalVKNormCompute(k, M, vk, A_k);
             double beta = vkNorm;
@@ -908,7 +908,7 @@ public class DenseMatrix extends GenericMatrix
             vkNorm = sqrt(vkNorm);
             
             
-            double alpha = -signum(vk_k) * vkNorm;
+            final double alpha = -signum(vk_k) * vkNorm;
             vk_k  -= alpha;
             vk[k] = vk_k;
             beta += vk_k*vk_k;
@@ -917,7 +917,7 @@ public class DenseMatrix extends GenericMatrix
             if(beta == 0) {
               continue;
             }
-            double TwoOverBeta = 2.0/beta;
+            final double TwoOverBeta = 2.0/beta;
             qrUpdateQ(Q, k, vk, TwoOverBeta);
             qrUpdateR(k, N, A, vk, TwoOverBeta, M);
         }
@@ -941,7 +941,7 @@ public class DenseMatrix extends GenericMatrix
         int k, threadID, N, M;
         CountDownLatch latch;
 
-        public QRRun(DenseMatrix A, DenseMatrix Q, double[] vk, double TwoOverBeta, int k, int threadID, CountDownLatch latch)
+        public QRRun(final DenseMatrix A, final DenseMatrix Q, final double[] vk, final double TwoOverBeta, final int k, final int threadID, final CountDownLatch latch)
         {
             this.A = A;
             this.Q = Q;
@@ -961,7 +961,7 @@ public class DenseMatrix extends GenericMatrix
                 //We are computing Q' in what we are treating as the column major order, which represents Q in row major order, which is what we want!
                 for(int j = 0+threadID; j < Q.cols(); j+=LogicalCores)
                 {
-                    double[] Q_j = Q.matrix[j];
+                    final double[] Q_j = Q.matrix[j];
                     double y = 0;//y = vk dot A_j
                     for (int i = k; i < Q.cols(); i++) {
                       y += vk[i] * Q_j[i];
@@ -983,7 +983,7 @@ public class DenseMatrix extends GenericMatrix
             //The rest of the normal look
             for(int j = k+1+threadID; j < N; j+=LogicalCores)
             {
-                double[] A_j = A.matrix[j];
+                final double[] A_j = A.matrix[j];
                 double y = 0;//y = vk dot A_j
                 for(int i = k; i < A.cols(); i++) {
                   y += vk[i]*A_j[i];
@@ -1000,12 +1000,12 @@ public class DenseMatrix extends GenericMatrix
     }
     
     @Override
-    public Matrix[] qr(ExecutorService threadPool)
+    public Matrix[] qr(final ExecutorService threadPool)
     {
-        int N = cols(), M  = rows();
-        Matrix[] qr = new Matrix[2];
+        final int N = cols(), M  = rows();
+        final Matrix[] qr = new Matrix[2];
         
-        DenseMatrix Q = Matrix.eye(M);
+        final DenseMatrix Q = Matrix.eye(M);
         DenseMatrix A;
         if(isSquare())
         {
@@ -1016,12 +1016,12 @@ public class DenseMatrix extends GenericMatrix
           A = (DenseMatrix) this.transpose();
         }
         
-        double[] vk = new double[M];
+        final double[] vk = new double[M];
         
-        int to = cols() > rows() ? M : N;
+        final int to = cols() > rows() ? M : N;
         for(int k = 0; k < to; k++)
         {
-            double[] A_k = A.matrix[k];
+            final double[] A_k = A.matrix[k];
             
             double vkNorm = initalVKNormCompute(k, M, vk, A_k);
             double beta = vkNorm;
@@ -1031,7 +1031,7 @@ public class DenseMatrix extends GenericMatrix
             vkNorm = sqrt(vkNorm);
             
             
-            double alpha = -signum(vk_k) * vkNorm;
+            final double alpha = -signum(vk_k) * vkNorm;
             vk_k -= alpha;
             beta += vk_k*vk_k;
             vk[k] = vk_k;
@@ -1041,9 +1041,9 @@ public class DenseMatrix extends GenericMatrix
               continue;
             }
             
-            double TwoOverBeta = 2.0/beta;
+            final double TwoOverBeta = 2.0/beta;
             
-            CountDownLatch latch = new CountDownLatch(LogicalCores);
+            final CountDownLatch latch = new CountDownLatch(LogicalCores);
             for(int threadID = 0; threadID < LogicalCores; threadID++) {
               threadPool.submit(new QRRun(A, Q, vk, TwoOverBeta, k, threadID, latch));
             }
@@ -1051,7 +1051,7 @@ public class DenseMatrix extends GenericMatrix
             {
                 latch.await();
             }
-            catch (InterruptedException ex)
+            catch (final InterruptedException ex)
             {
                 Logger.getLogger(DenseMatrix.class.getName()).log(Level.SEVERE, null, ex);
             }
@@ -1071,7 +1071,7 @@ public class DenseMatrix extends GenericMatrix
     @Override
     public DenseMatrix clone()
     {
-        DenseMatrix copy = new DenseMatrix(rows(), cols());
+        final DenseMatrix copy = new DenseMatrix(rows(), cols());
         for(int i = 0; i < matrix.length; i++) {
           System.arraycopy(matrix[i], 0, copy.matrix[i], 0, matrix[i].length);
         }

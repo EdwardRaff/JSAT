@@ -23,7 +23,7 @@ public class RunnableConsumer implements Runnable
      * Creates a new runnable that will consume and run other runnables. 
      * @param jobQueue the queue from which to obtain runnable objects. 
      */
-    public RunnableConsumer(BlockingQueue<Runnable> jobQueue)
+    public RunnableConsumer(final BlockingQueue<Runnable> jobQueue)
     {
         this.jobQueue = jobQueue;
     }
@@ -35,7 +35,7 @@ public class RunnableConsumer implements Runnable
         {
             try
             {
-                Runnable toRun = jobQueue.take();
+                final Runnable toRun = jobQueue.take();
 
                 toRun.run();
 
@@ -43,7 +43,7 @@ public class RunnableConsumer implements Runnable
                   return;
                 }
             }
-            catch (InterruptedException ex)
+            catch (final InterruptedException ex)
             {
                 Logger.getLogger(RunnableConsumer.class.getName()).log(Level.SEVERE, null, ex);
             }

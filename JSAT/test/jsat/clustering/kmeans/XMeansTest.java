@@ -39,7 +39,7 @@ public class XMeansTest
     @BeforeClass
     public static void setUpClass()
     {
-        GridDataGenerator gdg = new GridDataGenerator(new Uniform(0.0, 0.10), new XORWOW(), 2, 2);
+        final GridDataGenerator gdg = new GridDataGenerator(new Uniform(0.0, 0.10), new XORWOW(), 2, 2);
         easyData10 = gdg.generateData(50);
         ex = Executors.newFixedThreadPool(SystemInfo.LogicalCores);
     }
@@ -64,15 +64,15 @@ public class XMeansTest
     public void testCluster_4args_1_findK()
     {
         System.out.println("cluster findK");
-        XMeans kMeans = new XMeans(new HamerlyKMeans(new EuclideanDistance(), SeedSelectionMethods.SeedSelection.FARTHEST_FIRST));
-        List<List<DataPoint>> clusters = kMeans.cluster(easyData10, 2, 40, ex);
+        final XMeans kMeans = new XMeans(new HamerlyKMeans(new EuclideanDistance(), SeedSelectionMethods.SeedSelection.FARTHEST_FIRST));
+        final List<List<DataPoint>> clusters = kMeans.cluster(easyData10, 2, 40, ex);
         assertEquals(4, clusters.size());
-        Set<Integer> seenBefore = new IntSet();
-        for(List<DataPoint> cluster :  clusters)
+        final Set<Integer> seenBefore = new IntSet();
+        for(final List<DataPoint> cluster :  clusters)
         {
-            int thisClass = cluster.get(0).getCategoricalValue(0);
+            final int thisClass = cluster.get(0).getCategoricalValue(0);
             assertFalse(seenBefore.contains(thisClass));
-            for(DataPoint dp : cluster) {
+            for(final DataPoint dp : cluster) {
               assertEquals(thisClass, dp.getCategoricalValue(0));
             }
         }
@@ -82,15 +82,15 @@ public class XMeansTest
     public void testCluster_3args_1_findK()
     {
         System.out.println("cluster findK");
-        XMeans kMeans = new XMeans(new HamerlyKMeans(new EuclideanDistance(), SeedSelectionMethods.SeedSelection.FARTHEST_FIRST));
-        List<List<DataPoint>> clusters = kMeans.cluster(easyData10, 2, 40);
+        final XMeans kMeans = new XMeans(new HamerlyKMeans(new EuclideanDistance(), SeedSelectionMethods.SeedSelection.FARTHEST_FIRST));
+        final List<List<DataPoint>> clusters = kMeans.cluster(easyData10, 2, 40);
         assertEquals(4, clusters.size());
-        Set<Integer> seenBefore = new IntSet();
-        for(List<DataPoint> cluster :  clusters)
+        final Set<Integer> seenBefore = new IntSet();
+        for(final List<DataPoint> cluster :  clusters)
         {
-            int thisClass = cluster.get(0).getCategoricalValue(0);
+            final int thisClass = cluster.get(0).getCategoricalValue(0);
             assertFalse(seenBefore.contains(thisClass));
-            for(DataPoint dp : cluster) {
+            for(final DataPoint dp : cluster) {
               assertEquals(thisClass, dp.getCategoricalValue(0));
             }
         }

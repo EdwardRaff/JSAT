@@ -25,13 +25,13 @@ public class SBS extends RemoveAttributeTransform
 {
 
 	private static final long serialVersionUID = -2516121100148559742L;
-	private double maxDecrease;
+	private final double maxDecrease;
     
     /**
      * Copy constructor
      * @param toClone the version to copy
      */
-    private SBS(SBS toClone)
+    private SBS(final SBS toClone)
     {
         super(toClone);
         this.maxDecrease = toClone.maxDecrease;
@@ -50,7 +50,7 @@ public class SBS extends RemoveAttributeTransform
      * when a feature is removed
      */
     
-    public SBS(int minFeatures, int maxFeatures, ClassificationDataSet cds, Classifier evaluater, int folds, double maxDecrease)
+    public SBS(final int minFeatures, final int maxFeatures, final ClassificationDataSet cds, final Classifier evaluater, final int folds, final double maxDecrease)
     {
         this.maxDecrease = maxDecrease;
         search(cds, evaluater, minFeatures, maxFeatures, folds);
@@ -67,31 +67,31 @@ public class SBS extends RemoveAttributeTransform
      * a feature is removed
      */
     
-    public SBS(int minFeatures, int maxFeatures, RegressionDataSet rds, Regressor evaluater, int folds, double maxDecrease)
+    public SBS(final int minFeatures, final int maxFeatures, final RegressionDataSet rds, final Regressor evaluater, final int folds, final double maxDecrease)
     {
         this.maxDecrease = maxDecrease;
         search(rds, evaluater, minFeatures, maxFeatures, folds);
     }
     
-    private void search(DataSet dataSet, Object learner, int minFeatures, int maxFeatures, int folds)
+    private void search(final DataSet dataSet, final Object learner, final int minFeatures, final int maxFeatures, final int folds)
     {
-        Random rand = new Random();
-        int nF = dataSet.getNumFeatures();
-        int nCat = dataSet.getNumCategoricalVars();
+        final Random rand = new Random();
+        final int nF = dataSet.getNumFeatures();
+        final int nCat = dataSet.getNumCategoricalVars();
         
-        Set<Integer> available = new IntSet();
+        final Set<Integer> available = new IntSet();
         ListUtils.addRange(available, 0, nF, 1);
-        Set<Integer> catSelected = new IntSet(dataSet.getNumCategoricalVars());
-        Set<Integer> numSelected = new IntSet(dataSet.getNumNumericalVars());
+        final Set<Integer> catSelected = new IntSet(dataSet.getNumCategoricalVars());
+        final Set<Integer> numSelected = new IntSet(dataSet.getNumNumericalVars());
         
-        Set<Integer> catToRemove = new IntSet(dataSet.getNumCategoricalVars());
-        Set<Integer> numToRemove = new IntSet(dataSet.getNumNumericalVars());
+        final Set<Integer> catToRemove = new IntSet(dataSet.getNumCategoricalVars());
+        final Set<Integer> numToRemove = new IntSet(dataSet.getNumNumericalVars());
 
         //Start will all selected, and prune them out
         ListUtils.addRange(catSelected, 0, nCat, 1);
         ListUtils.addRange(numSelected, 0, nF-nCat, 1);
         
-        double[] bestScore = new double[]{Double.POSITIVE_INFINITY};
+        final double[] bestScore = new double[]{Double.POSITIVE_INFINITY};
 
         while(catSelected.size() + numSelected.size() > minFeatures)
         {
@@ -106,14 +106,14 @@ public class SBS extends RemoveAttributeTransform
         
         int pos = 0;
         catIndexMap = new int[catSelected.size()];
-        for(int i : catSelected) {
+        for(final int i : catSelected) {
           catIndexMap[pos++] = i;
         }
         Arrays.sort(catIndexMap);
         
         pos = 0;
         numIndexMap = new int[numSelected.size()];
-        for(int i : numSelected) {
+        for(final int i : numSelected) {
           numIndexMap[pos++] = i;
         }
         Arrays.sort(numIndexMap);
@@ -169,24 +169,24 @@ public class SBS extends RemoveAttributeTransform
      * @return the feature that was selected to be removed, or -1 if none were 
      * removed
      */
-    protected static int SBSRemoveFeature(Set<Integer> available, DataSet dataSet,
-            Set<Integer> catToRemove, Set<Integer> numToRemove, 
-            Set<Integer> catSelecteed, Set<Integer> numSelected, 
-            Object evaluater, int folds, Random rand, int maxFeatures, 
-            double[] PbestScore, double maxDecrease)
+    protected static int SBSRemoveFeature(final Set<Integer> available, final DataSet dataSet,
+            final Set<Integer> catToRemove, final Set<Integer> numToRemove, 
+            final Set<Integer> catSelecteed, final Set<Integer> numSelected, 
+            final Object evaluater, final int folds, final Random rand, final int maxFeatures, 
+            final double[] PbestScore, final double maxDecrease)
     {
         int curBest = -1;
-        int nCat = dataSet.getNumCategoricalVars();
+        final int nCat = dataSet.getNumCategoricalVars();
         double curBestScore = Double.POSITIVE_INFINITY;
-        for(int feature : available)
+        for(final int feature : available)
         {
-            DataSet workOn = dataSet.shallowClone();
+            final DataSet workOn = dataSet.shallowClone();
             addFeature(feature, nCat, catToRemove, numToRemove);
             
-            RemoveAttributeTransform remove = new RemoveAttributeTransform(workOn, catToRemove, numToRemove);
+            final RemoveAttributeTransform remove = new RemoveAttributeTransform(workOn, catToRemove, numToRemove);
             workOn.applyTransform(remove);
             
-            double score = SFS.getScore(workOn, evaluater, folds, rand);
+            final double score = SFS.getScore(workOn, evaluater, folds, rand);
             
             if(score < curBestScore)
             {
@@ -228,7 +228,7 @@ public class SBS extends RemoveAttributeTransform
          * @param minFeatures the minimum number of features to learn
          * @param maxFeatures the maximum number of features to learn
          */
-        public SBSFactory(double maxDecrease, Classifier evaluater, int minFeatures, int maxFeatures)
+        public SBSFactory(final double maxDecrease, final Classifier evaluater, final int minFeatures, final int maxFeatures)
         {
             setMaxDecrease(maxDecrease);
             this.classifier = evaluater;
@@ -248,7 +248,7 @@ public class SBS extends RemoveAttributeTransform
          * @param minFeatures the minimum number of features to learn
          * @param maxFeatures the maximum number of features to learn
          */
-        public SBSFactory(double maxDecrease, Regressor evaluater, int minFeatures, int maxFeatures)
+        public SBSFactory(final double maxDecrease, final Regressor evaluater, final int minFeatures, final int maxFeatures)
         {
             setMaxDecrease(maxDecrease);
             this.regressor = evaluater;
@@ -263,7 +263,7 @@ public class SBS extends RemoveAttributeTransform
          * Copy constructor
          * @param toCopy the object to copy
          */
-        public SBSFactory(SBSFactory toCopy)
+        public SBSFactory(final SBSFactory toCopy)
         {
             if(toCopy.classifier == toCopy.regressor)
             {
@@ -289,7 +289,7 @@ public class SBS extends RemoveAttributeTransform
          * @param maxDecrease the maximum allowable decrease in the accuracy
          * from removing a feature
          */
-        public void setMaxDecrease(double maxDecrease)
+        public void setMaxDecrease(final double maxDecrease)
         {
             if(maxDecrease < 0) {
               throw new IllegalArgumentException("Decarese must be a positive value, not " + maxDecrease);
@@ -312,7 +312,7 @@ public class SBS extends RemoveAttributeTransform
          * Sets the minimum number of features that must be selected
          * @param minFeatures the minimum number of features to learn
          */
-        public void setMinFeatures(int minFeatures)
+        public void setMinFeatures(final int minFeatures)
         {
             this.minFeatures = minFeatures;
         }
@@ -330,7 +330,7 @@ public class SBS extends RemoveAttributeTransform
          * Sets the maximum number of features that must be selected
          * @param maxFeatures the maximum number of features to find
          */
-        public void setMaxFeatures(int maxFeatures)
+        public void setMaxFeatures(final int maxFeatures)
         {
             this.maxFeatures = maxFeatures;
         }
@@ -345,7 +345,7 @@ public class SBS extends RemoveAttributeTransform
         }
         
         @Override
-        public SBS getTransform(DataSet dataset)
+        public SBS getTransform(final DataSet dataset)
         {
             if(dataset instanceof ClassificationDataSet) {
               return new SBS(minFeatures, maxFeatures, (ClassificationDataSet)dataset, classifier, 5, maxDecrease);

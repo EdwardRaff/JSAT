@@ -16,8 +16,8 @@ public class ConcatenatedVec extends Vec
 {
 
 	private static final long serialVersionUID = -1412322616974470550L;
-	private Vec[] vecs;
-    private int[] lengthSums;
+	private final Vec[] vecs;
+    private final int[] lengthSums;
     private int totalLength;
 
     /**
@@ -27,7 +27,7 @@ public class ConcatenatedVec extends Vec
      * 
      * @param vecs the list of vectors to concatenate
      */
-    public ConcatenatedVec(List<Vec> vecs)
+    public ConcatenatedVec(final List<Vec> vecs)
     {
         this.vecs = new Vec[vecs.size()];
         lengthSums = new int[vecs.size()];
@@ -47,25 +47,25 @@ public class ConcatenatedVec extends Vec
     }
 
     @Override
-    public double get(int index)
+    public double get(final int index)
     {
-        int baseIndex = getBaseIndex(index);
+        final int baseIndex = getBaseIndex(index);
         return vecs[baseIndex].get(index-lengthSums[baseIndex]);
     }
 
     @Override
-    public void set(int index, double val)
+    public void set(final int index, final double val)
     {
-        int baseIndex = getBaseIndex(index);
+        final int baseIndex = getBaseIndex(index);
         vecs[baseIndex].set(index-lengthSums[baseIndex], val);
     }
     
     //The following are implemented only for performance reasons
     
     @Override
-    public void increment(int index, double val)
+    public void increment(final int index, final double val)
     {
-        int baseIndex = getBaseIndex(index);
+        final int baseIndex = getBaseIndex(index);
         vecs[baseIndex].increment(index-lengthSums[baseIndex], val);
     }
 
@@ -73,14 +73,14 @@ public class ConcatenatedVec extends Vec
     public int nnz()
     {
         int nnz = 0;
-        for(Vec v : vecs) {
+        for(final Vec v : vecs) {
           nnz += v.nnz();
         }
         return nnz;
     }
 
     @Override
-    public void mutableAdd(double c, Vec b)
+    public void mutableAdd(final double c, final Vec b)
     {
         for(int i = 0; i < vecs.length; i++)
         {
@@ -169,7 +169,7 @@ public class ConcatenatedVec extends Vec
     @Override
     public boolean isSparse()
     {
-        for(Vec v : vecs) {
+        for(final Vec v : vecs) {
           if (v.isSparse()) {
             return true;
           }
@@ -180,14 +180,14 @@ public class ConcatenatedVec extends Vec
     @Override
     public ConcatenatedVec clone()
     {
-        Vec[] newVecs = new Vec[vecs.length];
+        final Vec[] newVecs = new Vec[vecs.length];
         for(int i = 0; i < vecs.length; i++) {
           newVecs[i] = vecs[i].clone();
         }
         return new ConcatenatedVec(Arrays.asList(newVecs));
     }
 
-    private int getBaseIndex(int index)
+    private int getBaseIndex(final int index)
     {
         int basIndex = Arrays.binarySearch(lengthSums, index);
         if(basIndex < 0) {

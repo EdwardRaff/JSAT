@@ -46,7 +46,7 @@ public class Binomial extends DiscreteDistribution
      * @param trials the number of independent trials
      * @param p the probability of success
      */
-    public Binomial(int trials, double p)
+    public Binomial(final int trials, final double p)
     {
         setTrials(trials);
         setP(p);
@@ -56,7 +56,7 @@ public class Binomial extends DiscreteDistribution
      * The number of trials for the distribution
      * @param trials the number of trials to perform
      */
-    public void setTrials(int trials)
+    public void setTrials(final int trials)
     {
         if(trials < 1) {
           throw new IllegalArgumentException("number of trials must be positive, not " + trials);
@@ -73,7 +73,7 @@ public class Binomial extends DiscreteDistribution
      * Sets the probability of a trial being a success
      * @param p the probability of success for each trial  
      */
-    public void setP(double p)
+    public void setP(final double p)
     {
         if(Double.isNaN(p) || p < 0 || p > 1) {
           throw new IllegalArgumentException("probability of success must be in [0, 1], not " + p);
@@ -87,7 +87,7 @@ public class Binomial extends DiscreteDistribution
     }
 
     @Override
-    public double logPmf(int x)
+    public double logPmf(final int x)
     {
         if(x > trials || x < 0) {
           return -Double.MAX_VALUE;
@@ -101,7 +101,7 @@ public class Binomial extends DiscreteDistribution
     
 
     @Override
-    public double pmf(int x)
+    public double pmf(final int x)
     {
         if(x > trials || x < 0) {
           return 0;
@@ -110,7 +110,7 @@ public class Binomial extends DiscreteDistribution
     }
 
     @Override
-    public double cdf(int x)
+    public double cdf(final int x)
     {
         if(x >= trials) {
           return 1;

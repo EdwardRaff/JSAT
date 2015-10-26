@@ -67,12 +67,12 @@ public class AveragedRegressorTest
     {
         System.out.println("train");
 
-        AveragedRegressor instance = new AveragedRegressor(new KernelRLS(new LinearKernel(1), 1e-1), new KernelRLS(new LinearKernel(1), 1e-2), new KernelRLS(new LinearKernel(1), 1e-4));
+        final AveragedRegressor instance = new AveragedRegressor(new KernelRLS(new LinearKernel(1), 1e-1), new KernelRLS(new LinearKernel(1), 1e-2), new KernelRLS(new LinearKernel(1), 1e-4));
 
-        RegressionDataSet train = FixedProblems.getLinearRegression(500, new XORWOW());
-        RegressionDataSet test = FixedProblems.getLinearRegression(100, new XORWOW());
+        final RegressionDataSet train = FixedProblems.getLinearRegression(500, new XORWOW());
+        final RegressionDataSet test = FixedProblems.getLinearRegression(100, new XORWOW());
 
-        RegressionModelEvaluation rme = new RegressionModelEvaluation(instance, train);
+        final RegressionModelEvaluation rme = new RegressionModelEvaluation(instance, train);
         rme.evaluateTestSet(test);
 
         assertTrue(rme.getMeanError() <= test.getTargetValues().mean() * 0.25);
@@ -84,14 +84,14 @@ public class AveragedRegressorTest
     {
         System.out.println("train");
 
-        AveragedRegressor instance = new AveragedRegressor(new KernelRLS(new LinearKernel(1), 1e-1), new KernelRLS(new LinearKernel(1), 1e-2), new KernelRLS(new LinearKernel(1), 1e-4));
+        final AveragedRegressor instance = new AveragedRegressor(new KernelRLS(new LinearKernel(1), 1e-1), new KernelRLS(new LinearKernel(1), 1e-2), new KernelRLS(new LinearKernel(1), 1e-4));
 
-        ExecutorService ex = Executors.newFixedThreadPool(SystemInfo.LogicalCores);
+        final ExecutorService ex = Executors.newFixedThreadPool(SystemInfo.LogicalCores);
 
-        RegressionDataSet train = FixedProblems.getLinearRegression(500, new XORWOW());
-        RegressionDataSet test = FixedProblems.getLinearRegression(100, new XORWOW());
+        final RegressionDataSet train = FixedProblems.getLinearRegression(500, new XORWOW());
+        final RegressionDataSet test = FixedProblems.getLinearRegression(100, new XORWOW());
 
-        RegressionModelEvaluation rme = new RegressionModelEvaluation(instance, train, ex);
+        final RegressionModelEvaluation rme = new RegressionModelEvaluation(instance, train, ex);
         rme.evaluateTestSet(test);
 
         assertTrue(rme.getMeanError() <= test.getTargetValues().mean() * 0.25);
@@ -106,15 +106,15 @@ public class AveragedRegressorTest
 
         AveragedRegressor instance = new AveragedRegressor(new KernelRLS(new LinearKernel(1), 1e-1), new KernelRLS(new LinearKernel(1), 1e-2), new KernelRLS(new LinearKernel(1), 1e-4));
 
-        RegressionDataSet t1 = FixedProblems.getLinearRegression(100, new XORWOW());
-        RegressionDataSet t2 = FixedProblems.getLinearRegression(100, new XORWOW());
+        final RegressionDataSet t1 = FixedProblems.getLinearRegression(100, new XORWOW());
+        final RegressionDataSet t2 = FixedProblems.getLinearRegression(100, new XORWOW());
         t2.applyTransform(new LinearTransform(t2, 1, 10));
 
         instance = instance.clone();
 
         instance.train(t1);
 
-        AveragedRegressor result = instance.clone();
+        final AveragedRegressor result = instance.clone();
         for (int i = 0; i < t1.getSampleSize(); i++) {
           assertEquals(t1.getTargetValue(i), result.regress(t1.getDataPoint(i)), t1.getTargetValues().mean()*0.5);
         }

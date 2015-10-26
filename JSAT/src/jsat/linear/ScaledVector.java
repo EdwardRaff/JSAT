@@ -25,14 +25,14 @@ public class ScaledVector extends Vec
 
 	private static final long serialVersionUID = 7357893957632067299L;
 	private double scale;
-    private Vec base;
+    private final Vec base;
 
     /**
      * Creates a new scaled vector 
      * @param scale the initial scaling constant 
      * @param base the vector to implicitly scale
      */
-    public ScaledVector(double scale, Vec base)
+    public ScaledVector(final double scale, final Vec base)
     {
         this.scale = scale;
         this.base = base;
@@ -42,7 +42,7 @@ public class ScaledVector extends Vec
      * Creates a new scaled vector with a default scale of 1. 
      * @param vec the vector to implicitly scale
      */
-    public ScaledVector(Vec vec)
+    public ScaledVector(final Vec vec)
     {
         this(1.0, vec);
     }
@@ -62,7 +62,7 @@ public class ScaledVector extends Vec
      * zeroed out, and the scale set to 1. 
      * @param scale the new multiplicative constant to set for the scale
      */
-    public void setScale(double scale)
+    public void setScale(final double scale)
     {
         if(scale == 0.0) {
           zeroOut();
@@ -97,43 +97,43 @@ public class ScaledVector extends Vec
     }
 
     @Override
-    public double get(int index)
+    public double get(final int index)
     {
         return base.get(index)*scale;
     }
 
     @Override
-    public void set(int index, double val)
+    public void set(final int index, final double val)
     {
         base.set(index, val/scale);
     }
 
     @Override
-    public void multiply(double c, Matrix A, Vec b)
+    public void multiply(final double c, final Matrix A, final Vec b)
     {
         base.multiply(c/scale, A, b);
     }
 
     @Override
-    public void mutableAdd(double c)
+    public void mutableAdd(final double c)
     {
         base.mutableAdd(c/scale);
     }
 
     @Override
-    public void mutableAdd(double c, Vec b)
+    public void mutableAdd(final double c, final Vec b)
     {
         base.mutableAdd(c/scale, b);
     }
 
     @Override
-    public void mutablePairwiseMultiply(Vec b)
+    public void mutablePairwiseMultiply(final Vec b)
     {
         base.mutablePairwiseMultiply(b);
     }
 
     @Override
-    public void mutableMultiply(double c)
+    public void mutableMultiply(final double c)
     {
         scale *= c;
         if(scale == 0.0) {
@@ -144,13 +144,13 @@ public class ScaledVector extends Vec
     }
 
     @Override
-    public void mutablePairwiseDivide(Vec b)
+    public void mutablePairwiseDivide(final Vec b)
     {
         base.mutablePairwiseDivide(b);
     }
 
     @Override
-    public void mutableDivide(double c)
+    public void mutableDivide(final double c)
     {
         scale /= c;
         if(scale == 0.0) {
@@ -233,13 +233,13 @@ public class ScaledVector extends Vec
     }
 
     @Override
-    public double pNorm(double p)
+    public double pNorm(final double p)
     {
         return scale*base.pNorm(p);
     }
 
     @Override
-    public double dot(Vec v)
+    public double dot(final Vec v)
     {
         return scale*base.dot(v);
     }
@@ -247,7 +247,7 @@ public class ScaledVector extends Vec
     @Override
     public double[] arrayCopy()
     {
-        double[] copy = base.arrayCopy();
+        final double[] copy = base.arrayCopy();
         for(int i = 0; i < copy.length; i++) {
           copy[i] *= scale;
         }
@@ -268,11 +268,11 @@ public class ScaledVector extends Vec
     }
 
     @Override
-    public Iterator<IndexValue> getNonZeroIterator(int start)
+    public Iterator<IndexValue> getNonZeroIterator(final int start)
     {
         final Iterator<IndexValue> origIter = base.getNonZeroIterator(start);
         
-        Iterator<IndexValue> wrapedIter = new Iterator<IndexValue>() 
+        final Iterator<IndexValue> wrapedIter = new Iterator<IndexValue>() 
         {
 
             @Override
@@ -284,7 +284,7 @@ public class ScaledVector extends Vec
             @Override
             public IndexValue next()
             {
-                IndexValue iv = origIter.next();
+                final IndexValue iv = origIter.next();
                 if( iv != null) {
                   iv.setValue(scale*iv.getValue());
                 }

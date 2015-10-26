@@ -20,7 +20,7 @@ public class WaggingNormal extends Wagging
      * @param weakLearner the weak learner to use
      * @param interations the number of iterations to perform
      */
-    public WaggingNormal(Classifier weakLearner, int interations)
+    public WaggingNormal(final Classifier weakLearner, final int interations)
     {
         super(new Normal(1, 2), weakLearner, interations);
     }
@@ -30,7 +30,7 @@ public class WaggingNormal extends Wagging
      * @param weakLearner the weak learner to use
      * @param interations the number of iterations to perform
      */
-    public WaggingNormal(Regressor weakLearner, int interations)
+    public WaggingNormal(final Regressor weakLearner, final int interations)
     {
         super(new Normal(1, 2), weakLearner, interations);
     }
@@ -39,7 +39,7 @@ public class WaggingNormal extends Wagging
      * Copy constructor
      * @param clone to copy
      */
-    protected WaggingNormal(Wagging clone)
+    protected WaggingNormal(final Wagging clone)
     {
         super(clone);
     }
@@ -51,7 +51,7 @@ public class WaggingNormal extends Wagging
     }
 
     @Override
-    public void setDistribution(ContinuousDistribution dist)
+    public void setDistribution(final ContinuousDistribution dist)
     {
         if(dist instanceof Normal) {
           super.setDistribution(dist);
@@ -64,7 +64,7 @@ public class WaggingNormal extends Wagging
      * Sets the mean value used for the normal distribution
      * @param mean the new mean value
      */
-    public void setMean(double mean)
+    public void setMean(final double mean)
     {
         if(Double.isInfinite(mean) || Double.isNaN(mean)) {
           throw new ArithmeticException("Mean must be a real number, not " + mean);
@@ -85,7 +85,7 @@ public class WaggingNormal extends Wagging
      * Sets the standard deviations used for the normal distribution
      * @param devs the standard deviations to set
      */
-    public void setStandardDeviations(double devs)
+    public void setStandardDeviations(final double devs)
     {
         if(devs <= 0 || Double.isInfinite(devs) || Double.isNaN(devs)) {
           throw new ArithmeticException("The stnd devs must be a positive value");

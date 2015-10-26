@@ -23,7 +23,7 @@ public class CoefficientOfDetermination extends TotalHistoryRegressionScore
      * Copy constructor
      * @param toCopy the object to copy
      */
-    public CoefficientOfDetermination(CoefficientOfDetermination toCopy)
+    public CoefficientOfDetermination(final CoefficientOfDetermination toCopy)
     {
         super(toCopy);
     }
@@ -31,7 +31,7 @@ public class CoefficientOfDetermination extends TotalHistoryRegressionScore
     @Override
     public double getScore()
     {
-        double trueMean = truths.getVecView().mean();
+        final double trueMean = truths.getVecView().mean();
         double numer = 0, denom = 0;
         for(int i = 0; i < truths.size(); i++)
         {
@@ -60,7 +60,7 @@ public class CoefficientOfDetermination extends TotalHistoryRegressionScore
     }
     
     @Override
-    public boolean equals(Object obj)
+    public boolean equals(final Object obj)
     {//XXX check for equality of fields and obj == null
         if(this.getClass().isAssignableFrom(obj.getClass()) && obj.getClass().isAssignableFrom(this.getClass()))
         {

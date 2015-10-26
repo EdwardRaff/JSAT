@@ -24,7 +24,7 @@ public class RelativeAbsoluteError extends TotalHistoryRegressionScore
      * Copy constructor
      * @param toCopy the object to copy
      */
-    public RelativeAbsoluteError(RelativeAbsoluteError toCopy)
+    public RelativeAbsoluteError(final RelativeAbsoluteError toCopy)
     {
         super(toCopy);
     }
@@ -32,7 +32,7 @@ public class RelativeAbsoluteError extends TotalHistoryRegressionScore
     @Override
     public double getScore()
     {
-        double trueMean = truths.getVecView().mean();
+        final double trueMean = truths.getVecView().mean();
         double numer = 0, denom = 0;
         for(int i = 0; i < truths.size(); i++)
         {
@@ -61,7 +61,7 @@ public class RelativeAbsoluteError extends TotalHistoryRegressionScore
     }
     
     @Override
-    public boolean equals(Object obj)
+    public boolean equals(final Object obj)
     {//XXX check for equality of fields and obj == null
         if(this.getClass().isAssignableFrom(obj.getClass()) && obj.getClass().isAssignableFrom(this.getClass()))
         {

@@ -28,7 +28,7 @@ public class SigmoidKernel extends BaseKernelTrick
      * @param alpha the scaling factor for the dot product
      * @param C the additive constant
      */
-    public SigmoidKernel(double alpha, double C)
+    public SigmoidKernel(final double alpha, final double C)
     {
         this.alpha = alpha;
         this.c = C;
@@ -38,7 +38,7 @@ public class SigmoidKernel extends BaseKernelTrick
      * Creates a new Sigmoid Kernel with a bias term of 1
      * @param alpha the scaling factor for the dot product
      */
-    public SigmoidKernel(double alpha)
+    public SigmoidKernel(final double alpha)
     {
         this(alpha, 1);
     }
@@ -48,7 +48,7 @@ public class SigmoidKernel extends BaseKernelTrick
      * multiplying each value in the data set by a constant factor 
      * @param alpha the scaling factor
      */
-    public void setAlpha(double alpha)
+    public void setAlpha(final double alpha)
     {
         if(Double.isInfinite(alpha) || Double.isNaN(alpha) || alpha == 0) {
           throw new IllegalArgumentException("alpha must be a real non zero value, not " + alpha);
@@ -71,7 +71,7 @@ public class SigmoidKernel extends BaseKernelTrick
      * {@link #setAlpha(double) alpha}. 
      * @param c the non negative additive term
      */
-    public void setC(double c)
+    public void setC(final double c)
     {
         if(c < 0 || Double.isNaN(c) || Double.isInfinite(c)) {
           throw new IllegalArgumentException("C must be non negative, not " + c);
@@ -89,7 +89,7 @@ public class SigmoidKernel extends BaseKernelTrick
     }
     
     @Override
-    public double eval(Vec a, Vec b)
+    public double eval(final Vec a, final Vec b)
     {
         return Math.tanh(alpha*a.dot(b)+c);
     }
@@ -100,7 +100,7 @@ public class SigmoidKernel extends BaseKernelTrick
      * @param d the data to get the guess for
      * @return a distribution for the &alpha; parameter
      */
-    public static Distribution guessAlpha(DataSet d)
+    public static Distribution guessAlpha(final DataSet d)
     {
         return new LogUniform(1e-12, 1e3);//from A Study on Sigmoid Kernels for SVM and the Training of non-PSD Kernels by SMO-type Methods
     }
@@ -111,7 +111,7 @@ public class SigmoidKernel extends BaseKernelTrick
      * @param d the data to get the guess for
      * @return a distribution for the &alpha; parameter
      */
-    public static Distribution guessC(DataSet d)
+    public static Distribution guessC(final DataSet d)
     {
         return new Uniform(-2.4, 2.4);//from A Study on Sigmoid Kernels for SVM and the Training of non-PSD Kernels by SMO-type Methods
     }
@@ -123,7 +123,7 @@ public class SigmoidKernel extends BaseKernelTrick
     }
 
     @Override
-    public Parameter getParameter(String paramName)
+    public Parameter getParameter(final String paramName)
     {
         return Parameter.toParameterMap(getParameters()).get(paramName);
     }

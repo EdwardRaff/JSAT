@@ -22,7 +22,7 @@ public class ShiftedVec extends Vec
 {
 
 	private static final long serialVersionUID = -8318033099234181766L;
-	private Vec base;
+	private final Vec base;
     private double shift;
 
     /**
@@ -30,7 +30,7 @@ public class ShiftedVec extends Vec
      * @param base the base vector to represent
      * @param shift the scalar shift to add to the base vector
      */
-    public ShiftedVec(Vec base, double shift)
+    public ShiftedVec(final Vec base, final double shift)
     {
         this.base = base;
         this.shift = shift;
@@ -49,7 +49,7 @@ public class ShiftedVec extends Vec
      * "forgotten" immediately. 
      * @param shift the new value to use for the additive scalar
      */
-    public void setShift(double shift)
+    public void setShift(final double shift)
     {
         this.shift = shift;
     }
@@ -82,29 +82,29 @@ public class ShiftedVec extends Vec
     }
 
     @Override
-    public double get(int index)
+    public double get(final int index)
     {
         return base.get(index)+shift;
     }
 
     @Override
-    public void set(int index, double val)
+    public void set(final int index, final double val)
     {
         base.set(index, val-shift);
     }
 
     @Override
-    public void increment(int index, double val)
+    public void increment(final int index, final double val)
     {
         base.increment(index, val);
     }
 
     @Override
-    public void mutableAdd(Vec b)
+    public void mutableAdd(final Vec b)
     {
         if(b instanceof ShiftedVec)
         {
-            ShiftedVec other = (ShiftedVec) b;
+            final ShiftedVec other = (ShiftedVec) b;
             base.mutableAdd(other.base);
             shift += other.shift;
         }
@@ -114,17 +114,17 @@ public class ShiftedVec extends Vec
     }
 
     @Override
-    public void mutableAdd(double c)
+    public void mutableAdd(final double c)
     {
         shift += c;
     }
 
     @Override
-    public void mutableAdd(double c, Vec b)
+    public void mutableAdd(final double c, final Vec b)
     {
         if(b instanceof ShiftedVec)
         {
-            ShiftedVec other = (ShiftedVec) b;
+            final ShiftedVec other = (ShiftedVec) b;
             base.mutableAdd(c, other.base);
             shift += other.shift*c;
         }
@@ -134,7 +134,7 @@ public class ShiftedVec extends Vec
     }
 
     @Override
-    public void mutableDivide(double c)
+    public void mutableDivide(final double c)
     {
         base.mutableDivide(c);
         shift /= c;
@@ -144,14 +144,14 @@ public class ShiftedVec extends Vec
     }
 
     @Override
-    public void mutableMultiply(double c)
+    public void mutableMultiply(final double c)
     {
         base.mutableMultiply(c);
         shift*=c;
     }
 
     @Override
-    public void mutablePairwiseDivide(Vec b)
+    public void mutablePairwiseDivide(final Vec b)
     {
         //this would require multiple different shifts, so we have to fold it back into the base vector
         base.mutableAdd(shift);
@@ -160,7 +160,7 @@ public class ShiftedVec extends Vec
     }
 
     @Override
-    public void mutablePairwiseMultiply(Vec b)
+    public void mutablePairwiseMultiply(final Vec b)
     {
         //this would require multiple different shifts, so we have to fold it back into the base vector
         base.mutableAdd(shift);
@@ -174,11 +174,11 @@ public class ShiftedVec extends Vec
 //    public void multiply(double c, Matrix A, Vec b)
     
     @Override
-    public double dot(Vec v)
+    public double dot(final Vec v)
     {
         if(v instanceof  ShiftedVec)
         {
-            ShiftedVec other = (ShiftedVec) v;
+            final ShiftedVec other = (ShiftedVec) v;
             return this.base.dot(other.base) + other.base.sum()*this.shift + this.base.sum()*other.shift + this.length()*this.shift*other.shift;
         }
         return base.dot(v) + v.sum()*shift;
@@ -192,17 +192,17 @@ public class ShiftedVec extends Vec
     }
 
     @Override
-    public double pNorm(double p)
+    public double pNorm(final double p)
     {
         if(!isSparse()) {
           return super.pNorm(p);
         }
         //else sparse base, we can save some work
         //contributes of zero values
-        double baseZeroContribs = pow(abs(shift), p)*(length()-base.nnz());
+        final double baseZeroContribs = pow(abs(shift), p)*(length()-base.nnz());
         //+ contribution of non zero values
         double baseNonZeroContribs = 0;
-        for(IndexValue iv : base) {
+        for(final IndexValue iv : base) {
           baseNonZeroContribs += pow(abs(iv.getValue()+shift), p);
         }
         return pow(baseNonZeroContribs+baseZeroContribs, 1/p);

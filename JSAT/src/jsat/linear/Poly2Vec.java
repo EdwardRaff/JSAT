@@ -38,7 +38,7 @@ public class Poly2Vec extends Vec
      */
     private int[] reverseIndex;
 
-    public Poly2Vec(Vec base)
+    public Poly2Vec(final Vec base)
     {
         setBase(base);
     }
@@ -67,7 +67,7 @@ public class Poly2Vec extends Vec
      *
      * @param base the base vector
      */
-    public void setBase(Vec base)
+    public void setBase(final Vec base)
     {
         this.base = base;
     }
@@ -99,7 +99,7 @@ public class Poly2Vec extends Vec
     }
     
     @Override
-    public double get(int index)
+    public double get(final int index)
     {
         if(index == 0) {
           return 1;
@@ -114,14 +114,14 @@ public class Poly2Vec extends Vec
         } else {
           x++;
         }
-        double xVal = base.get(x);
+        final double xVal = base.get(x);
         
-        int y = (x*x+x)/2 + (index-base.length()-1) - base.length()*x;//the first term is safe b/c it will always be an even number before division
+        final int y = (x*x+x)/2 + (index-base.length()-1) - base.length()*x;//the first term is safe b/c it will always be an even number before division
         return xVal*base.get(y);
     }
 
     @Override
-    public void set(int index, double val)
+    public void set(final int index, final double val)
     {
         throw new UnsupportedOperationException("Poly2Vec may not be altered");
     }
@@ -204,7 +204,7 @@ public class Poly2Vec extends Vec
                 } else {
                   x++;
                 }
-                int y = (x * x + x) / 2 + (start - base.length() - 1) - base.length() * x;//the first term is safe b/c it will always be an even number before division
+                final int y = (x * x + x) / 2 + (start - base.length() - 1) - base.length() * x;//the first term is safe b/c it will always be an even number before division
                 candidateOuterIter = base.getNonZeroIterator(x);
                 /*
                  * If the x coefficeint is zero, we will jump to the next non 
@@ -213,7 +213,7 @@ public class Poly2Vec extends Vec
                  * value. If this has happened, we know that y should be set to 
                  * x's value
                  */
-                int nextXIndex = candidateOuterIter.hasNext() ? base.getNonZeroIterator(x).next().getIndex() : -1;
+                final int nextXIndex = candidateOuterIter.hasNext() ? base.getNonZeroIterator(x).next().getIndex() : -1;
                 if(candidateOuterIter.hasNext() && nextXIndex > x) {//x is at a zero, so we need to inner iter to go back to the "begining"
                   candidateInerIter = base.getNonZeroIterator(nextXIndex);//next variable starts at val^2
                 } else {
@@ -279,7 +279,7 @@ public class Poly2Vec extends Vec
                 }
                 else if (stage == 1)//outerIter must always have a next item if stage = 1
                 {
-                    IndexValue iv = outerIter.next();
+                    final IndexValue iv = outerIter.next();
                     if (!outerIter.hasNext())
                     {
                         stage++;
@@ -293,10 +293,10 @@ public class Poly2Vec extends Vec
                 }
                 else if(stage == 2)
                 {
-                    IndexValue innerVal = inerIter.next();
-                    int x = curOuterVal.getIndex();
-                    int y = innerVal.getIndex();
-                    int N = base.length();
+                    final IndexValue innerVal = inerIter.next();
+                    final int x = curOuterVal.getIndex();
+                    final int y = innerVal.getIndex();
+                    final int N = base.length();
                     toReturn.setIndex(1+N+x*N+y-x*(x+1)/2);
                     toReturn.setValue(curOuterVal.getValue()*innerVal.getValue());
                     

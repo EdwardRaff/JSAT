@@ -24,14 +24,14 @@ import static org.junit.Assert.assertEquals;
  */
 public class TestTools
 {
-    public static void assertEqualsRelDiff(double expected, double actual, double delta)
+    public static void assertEqualsRelDiff(final double expected, final double actual, final double delta)
     {
         double denom = expected;
         if(expected == 0) {
           denom = 1e-6;
         }
 
-        double relError = Math.abs(expected-actual)/denom;
+        final double relError = Math.abs(expected-actual)/denom;
         assertEquals(0.0, relError, delta);
     }
 }

@@ -54,7 +54,7 @@ public class SparseVector extends  Vec
      * 
      * @param length the length of the sparse vector
      */
-    public SparseVector(int length)
+    public SparseVector(final int length)
     {
         this(length, 10);
     }
@@ -65,7 +65,7 @@ public class SparseVector extends  Vec
      * 
      * @param vals the list of values to create a vector from
      */
-    public SparseVector(List<Double> vals)
+    public SparseVector(final List<Double> vals)
     {
         this(vals.size());
         int z = 0;
@@ -91,7 +91,7 @@ public class SparseVector extends  Vec
      * @param length the length of the sparse vector
      * @param capacity the number of non zero values to allocate space for
      */
-    public SparseVector(int length, int capacity)
+    public SparseVector(final int length, final int capacity)
     {
         this(new int[capacity], new double[capacity], length, 0);
     }
@@ -116,7 +116,7 @@ public class SparseVector extends  Vec
      * @param used the number of non zero values in the vector taken from the 
      * given input arrays. 
      */
-    public SparseVector(int[] indexes, double[] values, int length, int used)
+    public SparseVector(final int[] indexes, final double[] values, final int length, final int used)
     {
         if(values.length != indexes.length) {
           throw new IllegalArgumentException();
@@ -137,10 +137,10 @@ public class SparseVector extends  Vec
      * Creates a new sparse vector by copying the values from another
      * @param toCopy the vector to copy the values of
      */
-    public SparseVector(Vec toCopy)
+    public SparseVector(final Vec toCopy)
     {
         this(toCopy.length(), toCopy.nnz());
-        for(IndexValue iv : toCopy)
+        for(final IndexValue iv : toCopy)
         {
             indexes[used] = iv.getIndex();
             values[used++] = iv.getValue();
@@ -172,7 +172,7 @@ public class SparseVector extends  Vec
      * 
      * @param length the new length of this vector
      */
-    public void setLength(int length)
+    public void setLength(final int length)
     {
         if(used > 0 && length < indexes[used-1]) {
           throw new RuntimeException("Can not set the length to a value less then an index already in use");
@@ -190,7 +190,7 @@ public class SparseVector extends  Vec
      * Removes a non zero value by shifting everything to the right over by one
      * @param nzIndex the index to remove (setting it to zero)
      */
-    private void removeNonZero(int nzIndex)
+    private void removeNonZero(final int nzIndex)
     {
         for(int i = nzIndex+1; i < used; i++)
         {
@@ -206,7 +206,7 @@ public class SparseVector extends  Vec
      * @param val the value to be added to the index
      */
     @Override
-    public void increment(int index, double val)
+    public void increment(final int index, final double val)
     {
         if (index > length - 1 || index < 0) {
           throw new IndexOutOfBoundsException("Can not access an index larger then the vector or a negative index");
@@ -214,7 +214,7 @@ public class SparseVector extends  Vec
         if(val == 0) {//donst want to insert a zero, and a zero changes nothing
           return;
         }
-        int location = Arrays.binarySearch(indexes, 0, used, index);
+        final int location = Arrays.binarySearch(indexes, 0, used, index);
         if(location < 0) {
           insertValue(location, index, val);
         } else
@@ -227,13 +227,13 @@ public class SparseVector extends  Vec
     }
     
     @Override
-    public double get(int index)
+    public double get(final int index)
     {
         if (index > length - 1 || index < 0) {
           throw new ArithmeticException("Can not access an index larger then the vector or a negative index");
         }
 
-        int location = Arrays.binarySearch(indexes, 0, used, index);
+        final int location = Arrays.binarySearch(indexes, 0, used, index);
 
         if (location < 0) {
           return 0.0;
@@ -243,7 +243,7 @@ public class SparseVector extends  Vec
     }
 
     @Override
-    public void set(int index, double val)
+    public void set(final int index, final double val)
     {
         if(index > length()-1 || index < 0) {
           throw new IndexOutOfBoundsException(index + " does not fit in [0," + length + ")");
@@ -251,7 +251,7 @@ public class SparseVector extends  Vec
 
         
         clearCaches();
-        int insertLocation = Arrays.binarySearch(indexes, 0, used, index);
+        final int insertLocation = Arrays.binarySearch(indexes, 0, used, index);
         if(insertLocation >= 0)
         {
             if(val != 0) {//set it
@@ -276,12 +276,12 @@ public class SparseVector extends  Vec
      * @param index the index that is being added
      * @param val the value that is being added for the given index
      */
-    private void insertValue(int insertLocation, int index, double val)
+    private void insertValue(int insertLocation, final int index, final double val)
     {
         insertLocation = -(insertLocation+1);//Convert from negative value to the location is should be placed, see JavaDoc of binarySearch
         if(used == indexes.length)//Full, expand
         {
-            int newIndexesSize = Math.max(Math.min(indexes.length*3/2, Integer.MAX_VALUE), 8);
+            final int newIndexesSize = Math.max(Math.min(indexes.length*3/2, Integer.MAX_VALUE), 8);
             indexes = Arrays.copyOf(indexes, newIndexesSize);
             values = Arrays.copyOf(values, newIndexesSize);
         }
@@ -300,15 +300,15 @@ public class SparseVector extends  Vec
     @Override
     public Vec sortedCopy()
     {
-        IndexTable it = new IndexTable(DoubleList.unmodifiableView(values, used));
+        final IndexTable it = new IndexTable(DoubleList.unmodifiableView(values, used));
         
-        double[] newValues = new double[used];
-        int[] newIndecies = new int[used];
+        final double[] newValues = new double[used];
+        final int[] newIndecies = new int[used];
         
         int lessThanZero = 0;
         for(int i = 0; i < used; i++)
         {
-            int origIndex = it.index(i);
+            final int origIndex = it.index(i);
             newValues[i] = values[origIndex];
             if(newValues[i] < 0) {
               lessThanZero++;
@@ -320,7 +320,7 @@ public class SparseVector extends  Vec
           newIndecies[i] = length-(used-lessThanZero)+(i-lessThanZero);
         }
         
-        SparseVector sv = new SparseVector(length);
+        final SparseVector sv = new SparseVector(length);
         sv.used = this.used;
         sv.values = newValues;
         sv.indexes = newIndecies;
@@ -387,9 +387,9 @@ public class SparseVector extends  Vec
         double c = 0;
         for(int i = 0; i < used; i++)
         {
-            double d = values[i];
-            double y = d - c;
-            double t = sum+y;
+            final double d = values[i];
+            final double y = d - c;
+            final double t = sum+y;
             c = (t - sum) - y;
             sum = t;
         }
@@ -404,10 +404,10 @@ public class SparseVector extends  Vec
           return varianceCache;
         }
         
-        double mu = mean();
+        final double mu = mean();
         double tmp = 0;
 
-        double N = length();
+        final double N = length();
 
 
         for(int i = 0; i < used; i++) {
@@ -433,7 +433,7 @@ public class SparseVector extends  Vec
     @Override
     public double skewness()
     {
-        double mean = mean();
+        final double mean = mean();
         
         double numer = 0, denom = 0;
         
@@ -450,7 +450,7 @@ public class SparseVector extends  Vec
         numer /= length;
         denom /= length;
         
-        double s1 = numer / (pow(denom, 3.0/2.0) );
+        final double s1 = numer / (pow(denom, 3.0/2.0) );
         
         if(length >= 3) {//We can use the bias corrected formula
           return sqrt(length*(length-1))/(length-2)*s1;
@@ -462,7 +462,7 @@ public class SparseVector extends  Vec
     @Override
     public double kurtosis()
     {
-        double mean = mean();
+        final double mean = mean();
         
         double tmp = 0;
         double var = 0;
@@ -484,11 +484,11 @@ public class SparseVector extends  Vec
     }
 
     @Override
-    public void copyTo(Vec destination)
+    public void copyTo(final Vec destination)
     {
         if(destination instanceof SparseVector)
         {
-            SparseVector other = (SparseVector) destination;
+            final SparseVector other = (SparseVector) destination;
             if(other.indexes.length < this.used)
             {
                 other.indexes = Arrays.copyOf(this.indexes, this.used);
@@ -510,17 +510,17 @@ public class SparseVector extends  Vec
     }
     
     @Override
-    public double dot(Vec v)
+    public double dot(final Vec v)
     {
         double dot = 0;
         
         if(v instanceof SparseVector)
         {
-            SparseVector b = (SparseVector) v;
+            final SparseVector b = (SparseVector) v;
             int p1 = 0, p2 = 0;
             while (p1 < used && p2 < b.used)
             {
-                int a1 = indexes[p1], a2 = b.indexes[p2];
+                final int a1 = indexes[p1], a2 = b.indexes[p2];
                 if (a1 == a2) {
                   dot += values[p1++] * b.values[p2++];
                 } else if (a1 > a2) {
@@ -544,7 +544,7 @@ public class SparseVector extends  Vec
     @Override
     public String toString()
     {
-        StringBuilder sb = new StringBuilder("[");
+        final StringBuilder sb = new StringBuilder("[");
         
         int p = 0;
         for(int i = 0; i < length(); i++)
@@ -565,7 +565,7 @@ public class SparseVector extends  Vec
     }
 
     @Override
-    public void multiply(double c, Matrix A, Vec b)
+    public void multiply(final double c, final Matrix A, final Vec b)
     {
         if(this.length() != A.rows()) {
           throw new ArithmeticException("Vector x Matrix dimensions do not agree");
@@ -575,8 +575,8 @@ public class SparseVector extends  Vec
         
         for(int i = 0; i < used; i++)
         {
-            double val = c*this.values[i];
-            int index = this.indexes[i];
+            final double val = c*this.values[i];
+            final int index = this.indexes[i];
             for(int j = 0; j < A.cols(); j++) {
               b.increment(j, val*A.get(index, j));
             }
@@ -584,7 +584,7 @@ public class SparseVector extends  Vec
     }
     
     @Override
-    public void mutableAdd(double c)
+    public void mutableAdd(final double c)
     {
         if(c == 0.0) {
           return;
@@ -600,7 +600,7 @@ public class SparseVector extends  Vec
     }
 
     @Override
-    public void mutableAdd(double c, Vec v)
+    public void mutableAdd(final double c, final Vec v)
     {
         clearCaches();
         if(c == 0.0) {
@@ -608,11 +608,11 @@ public class SparseVector extends  Vec
         }
         if(v instanceof SparseVector)
         {
-            SparseVector b = (SparseVector) v;
+            final SparseVector b = (SparseVector) v;
             int p1 = 0, p2 = 0;
             while (p1 < used && p2 < b.used)
             {
-                int a1 = indexes[p1], a2 = b.indexes[p2];
+                final int a1 = indexes[p1], a2 = b.indexes[p2];
                 if (a1 == a2)
                 {
                     values[p1] += c*b.values[p2];
@@ -652,12 +652,12 @@ public class SparseVector extends  Vec
               return;
             }
             int p1 = 0;
-            Iterator<IndexValue> iter = v.getNonZeroIterator();
+            final Iterator<IndexValue> iter = v.getNonZeroIterator();
             IndexValue iv = iter.next();
             while(p1 < used && iv != null)
             {
-                int a1 = indexes[p1];
-                int a2 = iv.getIndex();
+                final int a1 = indexes[p1];
+                final int a2 = iv.getIndex();
                 
                 if(a1 == a2)
                 {
@@ -694,7 +694,7 @@ public class SparseVector extends  Vec
     }
 
     @Override
-    public void mutableMultiply(double c)
+    public void mutableMultiply(final double c)
     {
         clearCaches();
         if(c == 0.0)
@@ -709,7 +709,7 @@ public class SparseVector extends  Vec
     }
 
     @Override
-    public void mutableDivide(double c)
+    public void mutableDivide(final double c)
     {
         clearCaches();
         if(c == 0 && used != length) {
@@ -721,7 +721,7 @@ public class SparseVector extends  Vec
     }
 
     @Override
-    public double pNormDist(double p, Vec y)
+    public double pNormDist(final double p, final Vec y)
     {
         if(this.length() != y.length()) {
           throw new ArithmeticException("Vectors must be of the same length");
@@ -732,11 +732,11 @@ public class SparseVector extends  Vec
         if (y instanceof SparseVector)
         {
             int p1 = 0, p2 = 0;
-            SparseVector b = (SparseVector) y;            
+            final SparseVector b = (SparseVector) y;            
             
             while (p1 < this.used && p2 < b.used)
             {
-                int a1 = indexes[p1], a2 = b.indexes[p2];
+                final int a1 = indexes[p1], a2 = b.indexes[p2];
                 if (a1 == a2)
                 {
                     norm += Math.pow(Math.abs(this.values[p1] - b.values[p2]), p);
@@ -782,7 +782,7 @@ public class SparseVector extends  Vec
     }
 
     @Override
-    public double pNorm(double p)
+    public double pNorm(final double p)
     {
         if (p <= 0) {
           throw new IllegalArgumentException("norm must be a positive value, not " + p);
@@ -820,7 +820,7 @@ public class SparseVector extends  Vec
     @Override
     public SparseVector clone()
     {
-        SparseVector copy = new SparseVector(length, Math.max(used, 10));
+        final SparseVector copy = new SparseVector(length, Math.max(used, 10));
         
         System.arraycopy(this.values, 0, copy.values, 0, this.used);
         System.arraycopy(this.indexes, 0, copy.indexes, 0, this.used);
@@ -844,7 +844,7 @@ public class SparseVector extends  Vec
     }
 
     @Override
-    public void mutablePairwiseMultiply(Vec b)
+    public void mutablePairwiseMultiply(final Vec b)
     {
         if(this.length() != b.length()) {
           throw new ArithmeticException("Vectors must have the same length");
@@ -857,7 +857,7 @@ public class SparseVector extends  Vec
     }
 
     @Override
-    public void mutablePairwiseDivide(Vec b)
+    public void mutablePairwiseDivide(final Vec b)
     {
         if(this.length() != b.length()) {
           throw new ArithmeticException("Vectors must have the same length");
@@ -870,12 +870,12 @@ public class SparseVector extends  Vec
     }
     
     @Override
-    public boolean equals(Object obj)
+    public boolean equals(final Object obj)
     {
         if(!(obj instanceof Vec)) {
           return false;
         }
-        Vec otherVec = (Vec) obj;
+        final Vec otherVec = (Vec) obj;
         
         if(this.length() != otherVec.length()) {
           return false;
@@ -905,12 +905,12 @@ public class SparseVector extends  Vec
     }
 
     @Override
-    public boolean equals(Object obj, double range)
+    public boolean equals(final Object obj, double range)
     {
         if(!(obj instanceof Vec)) {
           return false;
         }
-        Vec otherVec = (Vec) obj;
+        final Vec otherVec = (Vec) obj;
         range = Math.abs(range);
         
         if(this.length() != otherVec.length()) {
@@ -943,7 +943,7 @@ public class SparseVector extends  Vec
     @Override
     public double[] arrayCopy()
     {
-        double[] array = new double[length()];
+        final double[] array = new double[length()];
         
         for(int i = 0; i < used; i++) {
           array[indexes[i]] = values[i];
@@ -953,7 +953,7 @@ public class SparseVector extends  Vec
     }
 
     @Override
-    public void applyFunction(Function f)
+    public void applyFunction(final Function f)
     {
         if(f.f(0.0) != 0.0) {
           super.applyFunction(f);
@@ -966,7 +966,7 @@ public class SparseVector extends  Vec
     }
 
     @Override
-    public void applyIndexFunction(IndexFunction f)
+    public void applyIndexFunction(final IndexFunction f)
     {
         if(f.f(0.0, -1) != 0.0) {
           super.applyIndexFunction(f);
@@ -1008,14 +1008,14 @@ public class SparseVector extends  Vec
           startPos = 0;
         } else
         {
-            int tmpIndx = Arrays.binarySearch(indexes, 0, used, start);
+            final int tmpIndx = Arrays.binarySearch(indexes, 0, used, start);
             if(tmpIndx >= 0) {
               startPos = tmpIndx;
           } else {
               startPos = -(tmpIndx)-1;
           }
         }
-        Iterator<IndexValue> itor = new Iterator<IndexValue>() 
+        final Iterator<IndexValue> itor = new Iterator<IndexValue>() 
         {
             int curUsedPos = startPos;
             IndexValue indexValue = new IndexValue(-1, Double.NaN);
@@ -1050,7 +1050,7 @@ public class SparseVector extends  Vec
         
         for (int i = 0; i < used; i++) 
         {
-            long bits = Double.doubleToLongBits(values[i]);
+            final long bits = Double.doubleToLongBits(values[i]);
             result = 31 * result + (int)(bits ^ (bits >>> 32));
             result = 31 * result + indexes[i];
         }

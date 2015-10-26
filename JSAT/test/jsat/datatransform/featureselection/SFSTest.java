@@ -55,16 +55,16 @@ public class SFSTest
     public void testTransform()
     {
         System.out.println("transform");
-        Random rand = new Random(12343);
-        int t0 = 1, t1 = 5, t2 = 8;
+        final Random rand = new Random(12343);
+        final int t0 = 1, t1 = 5, t2 = 8;
         
         
-        ClassificationDataSet cds = generate3DimIn10(rand, t0, t1, t2);
+        final ClassificationDataSet cds = generate3DimIn10(rand, t0, t1, t2);
        
-        SFS sfs = new SFS.SFSFactory(1e-3, (Classifier)new NearestNeighbour(7), 3, 7).clone().getTransform(cds).clone();
-        Set<Integer> found = sfs.getSelectedNumerical();
+        final SFS sfs = new SFS.SFSFactory(1e-3, (Classifier)new NearestNeighbour(7), 3, 7).clone().getTransform(cds).clone();
+        final Set<Integer> found = sfs.getSelectedNumerical();
         
-        Set<Integer> shouldHave = new IntSet();
+        final Set<Integer> shouldHave = new IntSet();
         shouldHave.addAll(Arrays.asList(t0, t1, t2));
         assertEquals(shouldHave.size(), found.size());
         assertTrue(shouldHave.containsAll(found));
@@ -76,16 +76,16 @@ public class SFSTest
     public void testTransformR()
     {
         System.out.println("transformR");
-        Random rand = new Random(12343);
-        int t0 = 1, t1 = 5, t2 = 8;
+        final Random rand = new Random(12343);
+        final int t0 = 1, t1 = 5, t2 = 8;
         
         
-        RegressionDataSet rds = generate3DimIn10R(rand, t0, t1, t2);
+        final RegressionDataSet rds = generate3DimIn10R(rand, t0, t1, t2);
        
-        SFS sfs = new SFS.SFSFactory(10, new MultipleLinearRegression(), 3, 7).clone().getTransform(rds).clone();
-        Set<Integer> found = sfs.getSelectedNumerical();
+        final SFS sfs = new SFS.SFSFactory(10, new MultipleLinearRegression(), 3, 7).clone().getTransform(rds).clone();
+        final Set<Integer> found = sfs.getSelectedNumerical();
         
-        Set<Integer> shouldHave = new IntSet();
+        final Set<Integer> shouldHave = new IntSet();
         shouldHave.addAll(Arrays.asList(t0, t1, t2));
         assertEquals(shouldHave.size(), found.size());
         assertTrue(shouldHave.containsAll(found));
@@ -103,15 +103,15 @@ public class SFSTest
      * @param t1 the true index in the 10 dimensional space to place the second value
      * @param t2 the true index in the 10 dimensional space to place the third value
      */
-    public static ClassificationDataSet generate3DimIn10(Random rand, 
-            int t0, int t1, int t2)
+    public static ClassificationDataSet generate3DimIn10(final Random rand, 
+            final int t0, final int t1, final int t2)
     {
-        ClassificationDataSet cds = new ClassificationDataSet(10, 
+        final ClassificationDataSet cds = new ClassificationDataSet(10, 
                 new CategoricalData[0], new CategoricalData(4));
-        int cSize = 40;
+        final int cSize = 40;
         for(int i = 0; i < cSize; i++)
         {
-            Vec dv = DenseVector.random(10, rand);
+            final Vec dv = DenseVector.random(10, rand);
             dv.mutableDivide(3);
             
             dv.set(t0, 5.0);
@@ -123,7 +123,7 @@ public class SFSTest
         
         for(int i = 0; i < cSize; i++)
         {
-            Vec dv = DenseVector.random(10, rand);
+            final Vec dv = DenseVector.random(10, rand);
             dv.mutableDivide(3);
             
             dv.set(t0, 5.0);
@@ -134,7 +134,7 @@ public class SFSTest
         
         for(int i = 0; i < cSize; i++)
         {
-            Vec dv = DenseVector.random(10, rand);
+            final Vec dv = DenseVector.random(10, rand);
             dv.mutableDivide(3);
             
             dv.set(t0, 5.0);
@@ -145,7 +145,7 @@ public class SFSTest
         
         for(int i = 0; i < cSize; i++)
         {
-            Vec dv = DenseVector.random(10, rand);
+            final Vec dv = DenseVector.random(10, rand);
             dv.mutableDivide(3);
             
             dv.set(t0, 0.0);
@@ -157,14 +157,14 @@ public class SFSTest
         return cds;
     }
     
-    public static RegressionDataSet generate3DimIn10R(Random rand, 
-            int t0, int t1, int t2)
+    public static RegressionDataSet generate3DimIn10R(final Random rand, 
+            final int t0, final int t1, final int t2)
     {
-        RegressionDataSet cds = new RegressionDataSet(10, new CategoricalData[0]);
-        int cSize = 40;
+        final RegressionDataSet cds = new RegressionDataSet(10, new CategoricalData[0]);
+        final int cSize = 40;
         for(int i = 0; i < cSize; i++)
         {
-            Vec dv = DenseVector.random(10, rand);
+            final Vec dv = DenseVector.random(10, rand);
             
             cds.addDataPoint(dv, new int[0], dv.get(t0)*6 + dv.get(t1)*4 + dv.get(t2)*8);
             

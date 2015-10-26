@@ -46,7 +46,7 @@ public class NormalizedEuclideanDistance extends TrainableDistanceMetric
     }
 
     @Override
-    public <V extends Vec> void train(List<V> dataSet)
+    public <V extends Vec> void train(final List<V> dataSet)
     {
         invStndDevs = MatrixStatistics.covarianceDiag(MatrixStatistics.meanVector(dataSet), dataSet);
         invStndDevs.applyFunction(MathTricks.sqrdFunc);
@@ -54,13 +54,13 @@ public class NormalizedEuclideanDistance extends TrainableDistanceMetric
     }
 
     @Override
-    public <V extends Vec> void train(List<V> dataSet, ExecutorService threadpool)
+    public <V extends Vec> void train(final List<V> dataSet, final ExecutorService threadpool)
     {
         train(dataSet);
     }
 
     @Override
-    public void train(DataSet dataSet)
+    public void train(final DataSet dataSet)
     {
         invStndDevs = dataSet.getColumnMeanVariance()[1];
         invStndDevs.applyFunction(MathTricks.sqrdFunc);
@@ -68,19 +68,19 @@ public class NormalizedEuclideanDistance extends TrainableDistanceMetric
     }
 
     @Override
-    public void train(DataSet dataSet, ExecutorService threadpool)
+    public void train(final DataSet dataSet, final ExecutorService threadpool)
     {
         train(dataSet);
     }
 
     @Override
-    public void train(ClassificationDataSet dataSet)
+    public void train(final ClassificationDataSet dataSet)
     {
         train((DataSet)dataSet);
     }
 
     @Override
-    public void train(ClassificationDataSet dataSet, ExecutorService threadpool)
+    public void train(final ClassificationDataSet dataSet, final ExecutorService threadpool)
     {
         train(dataSet);
     }
@@ -92,13 +92,13 @@ public class NormalizedEuclideanDistance extends TrainableDistanceMetric
     }
 
     @Override
-    public void train(RegressionDataSet dataSet)
+    public void train(final RegressionDataSet dataSet)
     {
         train((DataSet)dataSet);
     }
 
     @Override
-    public void train(RegressionDataSet dataSet, ExecutorService threadpool)
+    public void train(final RegressionDataSet dataSet, final ExecutorService threadpool)
     {
         train(dataSet);
     }
@@ -118,7 +118,7 @@ public class NormalizedEuclideanDistance extends TrainableDistanceMetric
     @Override
     public NormalizedEuclideanDistance clone()
     {
-        NormalizedEuclideanDistance clone = new NormalizedEuclideanDistance();
+        final NormalizedEuclideanDistance clone = new NormalizedEuclideanDistance();
         if(this.invStndDevs != null) {
           clone.invStndDevs = this.invStndDevs.clone();
         }
@@ -126,14 +126,14 @@ public class NormalizedEuclideanDistance extends TrainableDistanceMetric
     }
 
     @Override
-    public double dist(Vec a, Vec b)
+    public double dist(final Vec a, final Vec b)
     {
-        double r = VecOps.accumulateSum(invStndDevs, a, b, new FunctionBase() 
+        final double r = VecOps.accumulateSum(invStndDevs, a, b, new FunctionBase() 
         {
             private static final long serialVersionUID = 3190953661114076430L;
 
             @Override
-            public double f(Vec x)
+            public double f(final Vec x)
             {
                 return Math.pow(x.get(0), 2);
             }
@@ -178,11 +178,11 @@ public class NormalizedEuclideanDistance extends TrainableDistanceMetric
     }
 
     @Override
-    public List<Double> getAccelerationCache(List<? extends Vec> vecs)
+    public List<Double> getAccelerationCache(final List<? extends Vec> vecs)
     {
-        DoubleList cache = new DoubleList(vecs.size());
+        final DoubleList cache = new DoubleList(vecs.size());
         
-        for(Vec v : vecs) {
+        for(final Vec v : vecs) {
           cache.add(VecOps.weightedDot(invStndDevs, v, v));
         }
         
@@ -190,7 +190,7 @@ public class NormalizedEuclideanDistance extends TrainableDistanceMetric
     }
     
     @Override
-    public List<Double> getAccelerationCache(final List<? extends Vec> vecs, ExecutorService threadpool)
+    public List<Double> getAccelerationCache(final List<? extends Vec> vecs, final ExecutorService threadpool)
     {
         if(threadpool == null || threadpool instanceof FakeExecutor) {
           return getAccelerationCache(vecs);
@@ -221,7 +221,7 @@ public class NormalizedEuclideanDistance extends TrainableDistanceMetric
         {
             latch.await();
         }
-        catch (InterruptedException ex)
+        catch (final InterruptedException ex)
         {
             Logger.getLogger(NormalizedEuclideanDistance.class.getName()).log(Level.SEVERE, null, ex);
         }
@@ -230,7 +230,7 @@ public class NormalizedEuclideanDistance extends TrainableDistanceMetric
     }
 
     @Override
-    public double dist(int a, int b, List<? extends Vec> vecs, List<Double> cache)
+    public double dist(final int a, final int b, final List<? extends Vec> vecs, final List<Double> cache)
     {
         if(cache == null) {
           return dist(vecs.get(a), vecs.get(b));
@@ -240,7 +240,7 @@ public class NormalizedEuclideanDistance extends TrainableDistanceMetric
     }
 
     @Override
-    public double dist(int a, Vec b, List<? extends Vec> vecs, List<Double> cache)
+    public double dist(final int a, final Vec b, final List<? extends Vec> vecs, final List<Double> cache)
     {
         if(cache == null) {
           return dist(vecs.get(a), b);
@@ -250,15 +250,15 @@ public class NormalizedEuclideanDistance extends TrainableDistanceMetric
     }
 
     @Override
-    public List<Double> getQueryInfo(Vec q)
+    public List<Double> getQueryInfo(final Vec q)
     {
-        DoubleList qi = new DoubleList(1);
+        final DoubleList qi = new DoubleList(1);
         qi.add(VecOps.weightedDot(invStndDevs, q, q));
         return qi;
     }
 
     @Override
-    public double dist(int a, Vec b, List<Double> qi, List<? extends Vec> vecs, List<Double> cache)
+    public double dist(final int a, final Vec b, final List<Double> qi, final List<? extends Vec> vecs, final List<Double> cache)
     {
         if(cache == null) {
           return dist(vecs.get(a), b);

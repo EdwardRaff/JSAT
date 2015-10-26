@@ -16,7 +16,7 @@ public class MatthewsCorrelationCoefficient extends SimpleBinaryClassMetric
         super();
     }
     
-    public MatthewsCorrelationCoefficient(MatthewsCorrelationCoefficient toClone)
+    public MatthewsCorrelationCoefficient(final MatthewsCorrelationCoefficient toClone)
     {
         super(toClone);
     }
@@ -24,7 +24,7 @@ public class MatthewsCorrelationCoefficient extends SimpleBinaryClassMetric
     @Override
     public double getScore()
     {
-        double denom = (tp+fp)*(tp+fn)*(tn+fp)*(tn+fn);
+        final double denom = (tp+fp)*(tp+fn)*(tn+fp)*(tn+fn);
         if(denom <= 1e-16) {
           return 0;
         }
@@ -32,7 +32,7 @@ public class MatthewsCorrelationCoefficient extends SimpleBinaryClassMetric
     }
     
     @Override
-    public boolean equals(Object obj)
+    public boolean equals(final Object obj)
     {
         if(this.getClass().isAssignableFrom(obj.getClass()) && obj.getClass().isAssignableFrom(this.getClass()))
         {

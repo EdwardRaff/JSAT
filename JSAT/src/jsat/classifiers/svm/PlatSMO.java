@@ -142,21 +142,21 @@ public class PlatSMO extends SupportVectorLearner implements BinaryScoreClassifi
      * 
      * @param kf the kernel trick to use
      */
-    public PlatSMO(KernelTrick kf)
+    public PlatSMO(final KernelTrick kf)
     {
         super(kf, SupportVectorLearner.CacheMode.NONE);
     }
 
     @Override
-    public CategoricalResults classify(DataPoint data)
+    public CategoricalResults classify(final DataPoint data)
     {
         if(vecs == null) {
           throw new UntrainedModelException("Classifier has yet to be trained");
         }
         
-        CategoricalResults cr = new CategoricalResults(2);
+        final CategoricalResults cr = new CategoricalResults(2);
         
-        double sum = getScore(data);
+        final double sum = getScore(data);
 
         if(sum > 0) {
           cr.setProb(1, 1);
@@ -168,36 +168,36 @@ public class PlatSMO extends SupportVectorLearner implements BinaryScoreClassifi
     }
 
     @Override
-    public double getScore(DataPoint dp)
+    public double getScore(final DataPoint dp)
     {
         return kEvalSum(dp.getNumericalValues())-b;
     }
     
     @Override
-    public void trainC(ClassificationDataSet dataSet, Classifier warmSolution, ExecutorService threadPool)
+    public void trainC(final ClassificationDataSet dataSet, final Classifier warmSolution, final ExecutorService threadPool)
     {
         trainC(dataSet, warmSolution);
     }
     
     @Override
-    public void trainC(ClassificationDataSet dataSet, ExecutorService threadPool)
+    public void trainC(final ClassificationDataSet dataSet, final ExecutorService threadPool)
     {
         trainC(dataSet);
     }
 
     @Override
-    public void trainC(ClassificationDataSet dataSet, Classifier warmSolution)
+    public void trainC(final ClassificationDataSet dataSet, final Classifier warmSolution)
     {
         trainC_warm_and_normal(dataSet, warmSolution);
     }
 
     @Override
-    public void trainC(ClassificationDataSet dataSet)
+    public void trainC(final ClassificationDataSet dataSet)
     {
         trainC_warm_and_normal(dataSet, null);
     }
     
-    private void trainC_warm_and_normal(ClassificationDataSet dataSet, Classifier warmSolution)
+    private void trainC_warm_and_normal(final ClassificationDataSet dataSet, final Classifier warmSolution)
     {
         if(dataSet.getClassSize() != 2) {
           throw new FailedToFitException("SVM does not support non binary decisions");
@@ -219,7 +219,7 @@ public class PlatSMO extends SupportVectorLearner implements BinaryScoreClassifi
         boolean allWeightsAreOne = true;
         for(int i = 0; i < N; i++)
         {
-            DataPoint dataPoint = dataSet.getDataPoint(i);
+            final DataPoint dataPoint = dataSet.getDataPoint(i);
             vecs.add(dataPoint.getNumericalValues());
             weights.set(i, dataPoint.getWeight());
             if(dataPoint.getWeight() != 1) {
@@ -264,7 +264,7 @@ public class PlatSMO extends SupportVectorLearner implements BinaryScoreClassifi
                 if (warmSolution instanceof PlatSMO)
                 {
                     //if this SMO object was learend on the same data, we can get a very good guess on C
-                    PlatSMO warmSMO = (PlatSMO) warmSolution;
+                    final PlatSMO warmSMO = (PlatSMO) warmSolution;
 
                     //first, we need to make sure we were actually trained on the same data
                     //TODO find a better way to ensure this is true, it is POSSIBLE that we could have same labels and different data
@@ -279,8 +279,8 @@ public class PlatSMO extends SupportVectorLearner implements BinaryScoreClassifi
                         
                     if(sameData)
                     {
-                        double C_prev = warmSMO.C;
-                        double multiplier = this.C / C_prev;
+                        final double C_prev = warmSMO.C;
+                        final double multiplier = this.C / C_prev;
                         for (int i = 0; i < vecs.size(); i++) {
                           this.alphas[i] = fuzzyClamp(multiplier * Math.abs(warmSMO.alphas[i]), this.C);
                         }
@@ -293,12 +293,12 @@ public class PlatSMO extends SupportVectorLearner implements BinaryScoreClassifi
                 if (warmSolution instanceof BinaryScoreClassifier)
                 {
                     //In this case we can take a decent guess at the values of alpha
-                    BinaryScoreClassifier warmSC = (BinaryScoreClassifier) warmSolution;
+                    final BinaryScoreClassifier warmSC = (BinaryScoreClassifier) warmSolution;
 
                     for (int i = 0; i < vecs.size(); i++)
                     {
                         //get the loss, normaly wrapped by max(x, 0), but that will be handled by the clamp
-                        double guess = 1 - label[i] * warmSC.getScore(dataSet.getDataPoint(i));
+                        final double guess = 1 - label[i] * warmSC.getScore(dataSet.getDataPoint(i));
                         this.alphas[i] = fuzzyClamp(C * guess, C);
                     }
                 }
@@ -321,7 +321,7 @@ public class PlatSMO extends SupportVectorLearner implements BinaryScoreClassifi
                       continue;
                     }
 
-                    double dot = kEval(i, j);
+                    final double dot = kEval(i, j);
 
                     if (i != j) {//avoid double counting
                       fcache[j] += a_i * label[i] * dot;
@@ -441,17 +441,17 @@ public class PlatSMO extends SupportVectorLearner implements BinaryScoreClassifi
      * @param a1 the value of a1
      * @param C the regularization value to use for this datum
      */
-    private void updateSet(int i1, double a1, double C )
+    private void updateSet(final int i1, final double a1, final double C )
     {
         I0[i1] = a1 > 0 && a1 < C;
     }
     
-    private double fuzzyClamp(double val, double max)
+    private double fuzzyClamp(final double val, final double max)
     {
         return fuzzyClamp(val, max, max*1e-7);
     }
     
-    private double fuzzyClamp(double val, double max, double e)
+    private double fuzzyClamp(final double val, final double max, final double e)
     {
         if(val > max-e) {
           return max;
@@ -462,14 +462,14 @@ public class PlatSMO extends SupportVectorLearner implements BinaryScoreClassifi
         return val;
     }
     
-    private void updateSetR(int i, double C)
+    private void updateSetR(final int i, final double C)
     {
         /**
          * See page 5 of he pseudo code paper version of "Improvements to the SMO algorithm for SVM regression."
          */
         //TODO, this can be done with less work.. but I messed that up
-        double a_i = alphas[i];
-        double as_i = alpha_s[i];
+        final double a_i = alphas[i];
+        final double as_i = alpha_s[i];
         I0_a[i] = 0 < a_i && a_i < C;
         I0_b[i] = 0 < as_i && as_i < C;
         I0[i] = I0_a[i] || I0_b[i];
@@ -484,7 +484,7 @@ public class PlatSMO extends SupportVectorLearner implements BinaryScoreClassifi
      * @param a1 the alphas value for the index
      * @param C the regularization value to use for this datum
      */
-    private void updateSetsLabeled(int i1, final double a1, final double C)
+    private void updateSetsLabeled(final int i1, final double a1, final double C)
     {
         final double y_i = label[i1];
         I1[i1] = a1 == 0 && y_i == 1;
@@ -493,22 +493,22 @@ public class PlatSMO extends SupportVectorLearner implements BinaryScoreClassifi
         I4[i1] = a1 == 0 && y_i == -1;
     }
     
-    protected boolean takeStep(int i1, int i2)
+    protected boolean takeStep(final int i1, final int i2)
     {
         if(i1 == i2) {
           return false;
         }
         //alph1 = Lagrange multiplier for i
-        double alpha1 = alphas[i1], alpha2 = alphas[i2];
+        final double alpha1 = alphas[i1], alpha2 = alphas[i2];
         //y1 = target[i1]
-        double y1 = label[i1], y2 = label[i2];
-        double F1 = fcache[i1];
-        double F2 = fcache[i2];
+        final double y1 = label[i1], y2 = label[i2];
+        final double F1 = fcache[i1];
+        final double F2 = fcache[i2];
         final double C1 = C*weights.get(i1);
         final double C2 = C*weights.get(i2);
 
         //s = y1*y2
-        double s = y1*y2;
+        final double s = y1*y2;
 
         //Compute L, H : see smo-book, page 46
         //also "A tutorial on support vector regression" page 30
@@ -536,11 +536,11 @@ public class PlatSMO extends SupportVectorLearner implements BinaryScoreClassifi
          * k12 = kernel(point[i1],point[i2])
          * k22 = kernel(point[i2],point[i2]
          */
-        double k11 = kEval(i1, i1);
-        double k12 = kEval(i1, i2);
-        double k22 = kEval(i2, i2);
+        final double k11 = kEval(i1, i1);
+        final double k12 = kEval(i1, i2);
+        final double k22 = kEval(i2, i2);
         //eta = 2*k12-k11-k22
-        double eta = 2*k12 - k11 - k22;
+        final double eta = 2*k12 - k11 - k22;
 
         if (eta < 0)
         {
@@ -558,12 +558,12 @@ public class PlatSMO extends SupportVectorLearner implements BinaryScoreClassifi
              * Hobj = objective function at a2=H
              */
             
-            double L1 = alpha1 + s * (alpha2 - L);
-            double H1 = alpha1 + s * (alpha2 - H);
-            double f1 = y1 * F1 - alpha1 * k11 - s * alpha2 * k12;
-            double f2 = y2 * F2 - alpha2 * k22 - s * alpha1 * k12;
-            double Lobj = -0.5 * L1 * L1 * k11 - 0.5 * L * L * k22 - s * L * L1 * k12 - L1 * f1 - L * f2;
-            double Hobj = -0.5 * H1 * H1 * k11 - 0.5 * H * H * k22 - s * H * H1 * k12 - H1 * f1 - H * f2;
+            final double L1 = alpha1 + s * (alpha2 - L);
+            final double H1 = alpha1 + s * (alpha2 - H);
+            final double f1 = y1 * F1 - alpha1 * k11 - s * alpha2 * k12;
+            final double f2 = y2 * F2 - alpha2 * k22 - s * alpha1 * k12;
+            final double Lobj = -0.5 * L1 * L1 * k11 - 0.5 * L * L * k22 - s * L * L1 * k12 - L1 * f1 - L * f2;
+            final double Hobj = -0.5 * H1 * H1 * k11 - 0.5 * H * H * k22 - s * H * H1 * k12 - H1 * f1 - H * f2;
             
             if(Lobj > Hobj + eps) {
               a2 = L;
@@ -583,8 +583,8 @@ public class PlatSMO extends SupportVectorLearner implements BinaryScoreClassifi
         a1 = alpha1 + s *(alpha2-a2);
         a1 = fuzzyClamp(a1, C1);
 
-        double newF1C = F1 + y1*(a1-alpha1)*k11 + y2*(a2-alpha2)*k12;
-        double newF2C = F2 + y1*(a1-alpha1)*k12 + y2*(a2-alpha2)*k22;
+        final double newF1C = F1 + y1*(a1-alpha1)*k11 + y2*(a2-alpha2)*k12;
+        final double newF2C = F2 + y1*(a1-alpha1)*k12 + y2*(a2-alpha2)*k22;
         
         updateSet(i1, a1, C1);
         updateSet(i2, a2, C2);
@@ -610,7 +610,7 @@ public class PlatSMO extends SupportVectorLearner implements BinaryScoreClassifi
               fcache[i] += y1 * (a1 - alpha1) * kEval(i1, i) + y2 * (a2 - alpha2) * kEval(i2, i);
             }
             
-            double bCand = fcache[i];
+            final double bCand = fcache[i];
             if (bCand > b_low)
             {
                 i_low = i;
@@ -625,11 +625,11 @@ public class PlatSMO extends SupportVectorLearner implements BinaryScoreClassifi
         }
         
         //case where i1 & i2 are not in I0
-        for(int i : new int[]{i1, i2})
+        for(final int i : new int[]{i1, i2})
         {
             if(I3[i] || I4[i])
             {
-                double bCand = fcache[i];
+                final double bCand = fcache[i];
                 if (bCand > b_low )
                 {
                     i_low = i;
@@ -638,7 +638,7 @@ public class PlatSMO extends SupportVectorLearner implements BinaryScoreClassifi
             }
             if(I1[i] || I2[i])
             {
-                double bCand = fcache[i];
+                final double bCand = fcache[i];
                 if (bCand < b_up )
                 {
                     i_up = i;
@@ -655,7 +655,7 @@ public class PlatSMO extends SupportVectorLearner implements BinaryScoreClassifi
         return true;
     }
     
-    protected boolean takeStepR(int i1, int i2)
+    protected boolean takeStepR(final int i1, final int i2)
     {
         if(i1 == i2) {
           return false;
@@ -663,8 +663,8 @@ public class PlatSMO extends SupportVectorLearner implements BinaryScoreClassifi
         //alph1 = Lagrange multiplier for i
         double alpha1 = alphas[i1], alpha2 = alphas[i2];
         double alpha1_S = alpha_s[i1], alpha2_S = alpha_s[i2];
-        double F1 = fcache[i1];//phi1 in paper 
-        double F2 = fcache[i2];
+        final double F1 = fcache[i1];//phi1 in paper 
+        final double F2 = fcache[i2];
         final double C1 = C*weights.get(i1);
         final double C2 = C*weights.get(i2);
 
@@ -673,9 +673,9 @@ public class PlatSMO extends SupportVectorLearner implements BinaryScoreClassifi
          * k12 = kernel(point[i1],point[i2])
          * k22 = kernel(point[i2],point[i2]
          */
-        double k11 = kEval(i1, i1);
-        double k12 = kEval(i2, i1);
-        double k22 = kEval(i2, i2);
+        final double k11 = kEval(i1, i1);
+        final double k12 = kEval(i2, i1);
+        final double k22 = kEval(i2, i2);
         //eta = -2*k12+k11+k22
         double eta = -2*k12 + k11 + k22;
         if(eta < 0) {
@@ -683,12 +683,12 @@ public class PlatSMO extends SupportVectorLearner implements BinaryScoreClassifi
         }
         
         //gamma = alpha1-alpha1*+alpha2-alpha2*
-        double gamma = alpha1-alpha1_S+alpha2-alpha2_S;
+        final double gamma = alpha1-alpha1_S+alpha2-alpha2_S;
         
         boolean case1, case2, case3, case4, finished;
         case1 = case2 = case3 = case4 = finished = false;
-        double alpha1_old = alpha1, alpha1_oldS = alpha1_S;
-        double alpha2_old = alpha2, alpha2_oldS = alpha2_S;
+        final double alpha1_old = alpha1, alpha1_oldS = alpha1_S;
+        final double alpha2_old = alpha2, alpha2_oldS = alpha2_S;
         double deltaPhi = F1-F2;
 
         double L, H;
@@ -813,8 +813,8 @@ public class PlatSMO extends SupportVectorLearner implements BinaryScoreClassifi
         alpha_s[i2] = alpha2_S;
         
         //Update error cache using new Lagrange multipliers
-        double ceof1 = alpha1 - alpha1_old - (alpha1_S - alpha1_oldS);
-        double ceof2 = alpha2 - alpha2_old - (alpha2_S - alpha2_oldS);
+        final double ceof1 = alpha1 - alpha1_old - (alpha1_S - alpha1_oldS);
+        final double ceof2 = alpha2 - alpha2_old - (alpha2_S - alpha2_oldS);
 
         for(int i = 0; i < I0.length; i++) {
           if (I0[i] && i != i1 && i != i2) {
@@ -855,9 +855,9 @@ public class PlatSMO extends SupportVectorLearner implements BinaryScoreClassifi
      * "using only i1, i2, and indices in I_0"
      * @param i the index to update from that MUST have a value in {@link #fcache}
      */
-    private void updateThreshold(int i)
+    private void updateThreshold(final int i)
     {
-        double Fi = fcache[i];
+        final double Fi = fcache[i];
         double F_tilde_i = b_low;
         
         if (I0_b[i] || I2[i]) {
@@ -888,10 +888,10 @@ public class PlatSMO extends SupportVectorLearner implements BinaryScoreClassifi
         }
     }
     
-    private int examineExample(int i2)
+    private int examineExample(final int i2)
     {
         //y2 = target[i2]
-        double y2 = label[i2];
+        final double y2 = label[i2];
         
         double F2;
         if(I0[i2]) {
@@ -957,10 +957,10 @@ public class PlatSMO extends SupportVectorLearner implements BinaryScoreClassifi
         }
     }
     
-    private int examineExampleR(int i2)
+    private int examineExampleR(final int i2)
     {
         //y2 = target[i2]
-        double y2 = label[i2];
+        final double y2 = label[i2];
         
         double F2;
         if(I0[i2]) {
@@ -1093,7 +1093,7 @@ public class PlatSMO extends SupportVectorLearner implements BinaryScoreClassifi
      * @param v the index of the point to select
      * @return the decision function output sans bias
      */
-    protected double decisionFunction(int v)
+    protected double decisionFunction(final int v)
     {
         double sum = 0;
         for(int i = 0; i < vecs.size(); i++) {
@@ -1111,7 +1111,7 @@ public class PlatSMO extends SupportVectorLearner implements BinaryScoreClassifi
      * @param v the index of the point to select
      * @return the decision function output sans bias
      */
-    protected double decisionFunctionR(int v)
+    protected double decisionFunctionR(final int v)
     {
         double sum = 0;
         for (int i = 0; i < vecs.size(); i++) {
@@ -1126,7 +1126,7 @@ public class PlatSMO extends SupportVectorLearner implements BinaryScoreClassifi
     @Override
     public PlatSMO clone()
     {
-        PlatSMO copy = new PlatSMO(this.getKernel().clone());
+        final PlatSMO copy = new PlatSMO(this.getKernel().clone());
         
         copy.C = this.C;
         if(this.alphas != null) {
@@ -1168,7 +1168,7 @@ public class PlatSMO extends SupportVectorLearner implements BinaryScoreClassifi
      * @param C the soft margin parameter
      */
     @WarmParameter(prefLowToHigh = true)
-    public void setC(double C)
+    public void setC(final double C)
     {
         if(C <= 0) {
           throw new ArithmeticException("C must be a positive constant");
@@ -1191,7 +1191,7 @@ public class PlatSMO extends SupportVectorLearner implements BinaryScoreClassifi
      * linear problem, which can result in SVM failing to converge. 
      * @param maxIterations the maximum number of main iteration loops
      */
-    public void setMaxIterations(int maxIterations)
+    public void setMaxIterations(final int maxIterations)
     {
         this.maxIterations = maxIterations;
     }
@@ -1213,7 +1213,7 @@ public class PlatSMO extends SupportVectorLearner implements BinaryScoreClassifi
      * @param modificationOne {@code true} to us modificaiotn one, {@code false}
      * to use modification two. 
      */
-    public void setModificationOne(boolean modificationOne)
+    public void setModificationOne(final boolean modificationOne)
     {
         this.modificationOne = modificationOne;
     }
@@ -1232,7 +1232,7 @@ public class PlatSMO extends SupportVectorLearner implements BinaryScoreClassifi
      * solutions, but do so faster
      * @param tolerance the tolerance for the solution
      */
-    public void setTolerance(double tolerance)
+    public void setTolerance(final double tolerance)
     {
         this.tolerance = tolerance;
     }
@@ -1253,19 +1253,19 @@ public class PlatSMO extends SupportVectorLearner implements BinaryScoreClassifi
     }
 
     @Override
-    public Parameter getParameter(String paramName)
+    public Parameter getParameter(final String paramName)
     {
         return Parameter.toParameterMap(getParameters()).get(paramName);
     }
 
     @Override
-    public double regress(DataPoint data)
+    public double regress(final DataPoint data)
     {
         return kEvalSum(data.getNumericalValues())+b;
     }
 
     @Override
-    public void train(RegressionDataSet dataSet, ExecutorService threadPool)
+    public void train(final RegressionDataSet dataSet, final ExecutorService threadPool)
     {
         train(dataSet);
     }
@@ -1281,7 +1281,7 @@ public class PlatSMO extends SupportVectorLearner implements BinaryScoreClassifi
      * @param epsilon the positive value for the acceptable error when doing 
      * regression
      */
-    public void setEpsilon(double epsilon)
+    public void setEpsilon(final double epsilon)
     {
         if(Double.isNaN(epsilon) || Double.isInfinite(epsilon) || epsilon <= 0) {
           throw new IllegalArgumentException("epsilon must be in (0, infty), not " + epsilon);
@@ -1299,19 +1299,19 @@ public class PlatSMO extends SupportVectorLearner implements BinaryScoreClassifi
     }
     
     @Override
-    public void train(RegressionDataSet dataSet, Regressor warmSolution, ExecutorService threadPool)
+    public void train(final RegressionDataSet dataSet, final Regressor warmSolution, final ExecutorService threadPool)
     {
         train(dataSet, warmSolution);
     }
     
     @Override
-    public void train(RegressionDataSet dataSet)
+    public void train(final RegressionDataSet dataSet)
     {
         train(dataSet, (Regressor)null);
     }
 
     @Override
-    public void train(RegressionDataSet dataSet, Regressor warmSolution)
+    public void train(final RegressionDataSet dataSet, final Regressor warmSolution)
     {
         final int N = dataSet.getSampleSize();
         vecs = new ArrayList<Vec>(N);
@@ -1322,7 +1322,7 @@ public class PlatSMO extends SupportVectorLearner implements BinaryScoreClassifi
         boolean allWeightsAreOne = true;
         for(int i = 0; i < N; i++)
         {
-            DataPoint dataPoint = dataSet.getDataPoint(i);
+            final DataPoint dataPoint = dataSet.getDataPoint(i);
             vecs.add(dataPoint.getNumericalValues());
             fcache[i] = label[i] = dataSet.getTargetValue(i);
             weights.set(i, dataPoint.getWeight());
@@ -1379,7 +1379,7 @@ public class PlatSMO extends SupportVectorLearner implements BinaryScoreClassifi
 //                err = signum(err)*min(abs(err), 1);
                 }
                 
-                double C_i = C*weights.get(i);
+                final double C_i = C*weights.get(i);
                 alphas[i] = fuzzyClamp(err, C_i, 1e-6);
                 alpha_s[i] = fuzzyClamp(-err, C_i, 1e-6);
             }
@@ -1441,7 +1441,7 @@ public class PlatSMO extends SupportVectorLearner implements BinaryScoreClassifi
                 }
                 else//modification 2
                 {
-                    boolean inner_loop_success = true;
+                    final boolean inner_loop_success = true;
                     do
                     {
                         if(inner_loop_success == takeStepR(i_up, i_low)) {
@@ -1496,7 +1496,7 @@ public class PlatSMO extends SupportVectorLearner implements BinaryScoreClassifi
      * @param d the data set to get the guess for
      * @return the guess for the C parameter in the SVM 
      */
-    public static Distribution guessC(DataSet d)
+    public static Distribution guessC(final DataSet d)
     {
         return new LogUniform(1e-1, 100);
     }

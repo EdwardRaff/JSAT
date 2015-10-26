@@ -18,14 +18,14 @@ public class Accuracy implements ClassificationScore
     {
     }
 
-    public Accuracy(Accuracy toClone)
+    public Accuracy(final Accuracy toClone)
     {
         this.correct = toClone.correct;
         this.total = toClone.total;
     }
     
     @Override
-    public void addResult(CategoricalResults prediction, int trueLabel, double weight)
+    public void addResult(final CategoricalResults prediction, final int trueLabel, final double weight)
     {
         if(prediction.mostLikely() == trueLabel) {
           correct += weight;
@@ -34,15 +34,15 @@ public class Accuracy implements ClassificationScore
     }
 
     @Override
-    public void addResults(ClassificationScore other)
+    public void addResults(final ClassificationScore other)
     {
-        Accuracy otherObj = (Accuracy) other;
+        final Accuracy otherObj = (Accuracy) other;
         this.correct += otherObj.correct;
         this.total += otherObj.total;
     }
     
     @Override
-    public void prepare(CategoricalData toPredict)
+    public void prepare(final CategoricalData toPredict)
     {
         correct = 0;
         total = 0;
@@ -61,7 +61,7 @@ public class Accuracy implements ClassificationScore
     }
 
     @Override
-    public boolean equals(Object obj)
+    public boolean equals(final Object obj)
     {
         if(obj instanceof Accuracy)
         {

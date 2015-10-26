@@ -18,7 +18,7 @@ public class IntList extends AbstractList<Integer> implements Serializable
 	private int[] array;
     private int end;
     
-    private IntList(int[] array, int end)
+    private IntList(final int[] array, final int end)
     {
         this.array = array;
         this.end = end;
@@ -42,13 +42,13 @@ public class IntList extends AbstractList<Integer> implements Serializable
      * Creates a new IntList with the given initial capacity 
      * @param capacity the starting internal storage space size 
      */
-    public IntList(int capacity)
+    public IntList(final int capacity)
     {
         array = new int[capacity];
         end = 0;
     }
     
-    public IntList(Collection<Integer> c)
+    public IntList(final Collection<Integer> c)
     {
         this(c.size());
         addAll(c);
@@ -60,16 +60,16 @@ public class IntList extends AbstractList<Integer> implements Serializable
      * @param element the value to set
      * @return the previous value at the index
      */
-    public int set(int index, int element)
+    public int set(final int index, final int element)
     {
         boundsCheck(index);
-        int prev = array[index];
+        final int prev = array[index];
         array[index] = element;
         return prev;
     }
     
     @Override
-    public Integer set(int index, Integer element)
+    public Integer set(final int index, final Integer element)
     {
         return set(index, element.intValue());
     }
@@ -79,7 +79,7 @@ public class IntList extends AbstractList<Integer> implements Serializable
      * @param index the index to add the value into
      * @param element the value to add
      */
-    public void add(int index, int element)
+    public void add(final int index, final int element)
     {
         if (index == size())//special case, just appending
         {
@@ -95,7 +95,7 @@ public class IntList extends AbstractList<Integer> implements Serializable
     }
 
     @Override
-    public void add(int index, Integer element)
+    public void add(final int index, final Integer element)
     {
         add(index, element.intValue());
     }
@@ -105,7 +105,7 @@ public class IntList extends AbstractList<Integer> implements Serializable
      * @param e the value to add
      * @return true if it was added, false otherwise
      */
-    public boolean add(int e)
+    public boolean add(final int e)
     {
         enlargeIfNeeded(1);
         array[end++] = e;
@@ -113,7 +113,7 @@ public class IntList extends AbstractList<Integer> implements Serializable
     }
     
     @Override
-    public boolean add(Integer e)
+    public boolean add(final Integer e)
     {
         if(e == null) {
           return false;
@@ -126,19 +126,19 @@ public class IntList extends AbstractList<Integer> implements Serializable
      * @param index the index of the value to get
      * @return the value at the index
      */
-    public int getI(int index)
+    public int getI(final int index)
     {
         boundsCheck(index);
         return array[index];
     }
     
     @Override
-    public Integer get(int index)
+    public Integer get(final int index)
     {
         return getI(index);
     }
 
-    private void boundsCheck(int index) throws IndexOutOfBoundsException
+    private void boundsCheck(final int index) throws IndexOutOfBoundsException
     {
         if(index >= end) {
           throw new IndexOutOfBoundsException("List of of size " + size() + ", index requested was " + index);
@@ -152,12 +152,12 @@ public class IntList extends AbstractList<Integer> implements Serializable
     }
 
     @Override
-    public Integer remove(int index)
+    public Integer remove(final int index)
     {
         if(index < 0 || index > size()) {
           throw new IndexOutOfBoundsException("Can not remove invalid index " + index);
         }
-        int removed = array[index];
+        final int removed = array[index];
         
         for(int i = index; i < end-1; i++) {
           array[i] = array[i+1];
@@ -166,7 +166,7 @@ public class IntList extends AbstractList<Integer> implements Serializable
         return removed;
     }
 
-    private void enlargeIfNeeded(int i)
+    private void enlargeIfNeeded(final int i)
     {
         while(end+i > array.length) {
           array = Arrays.copyOf(array, Math.max(array.length*2, 8));
@@ -181,7 +181,7 @@ public class IntList extends AbstractList<Integer> implements Serializable
      * @param length the number of values of the array to use, starting from zero
      * @return an unmodifiable list view of the array
      */
-    public static List<Integer> unmodifiableView(int[] array, int length)
+    public static List<Integer> unmodifiableView(final int[] array, final int length)
     {
         return Collections.unmodifiableList(view(array, length));
     }
@@ -198,7 +198,7 @@ public class IntList extends AbstractList<Integer> implements Serializable
      * @return an IntList backed by the given array, unless modified to the 
      * point of requiring the allocation of a new array
      */
-    public static IntList view(int[] array, int length)
+    public static IntList view(final int[] array, final int length)
     {
         if(length > array.length || length < 0) {
           throw new IllegalArgumentException("length must be non-negative and no more than the size of the array("+array.length+"), not " + length);

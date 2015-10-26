@@ -34,7 +34,7 @@ public class WeightedEuclideanDistance implements DistanceMetric
      * given set of weights.
      * @param w the weight to apply to each variable
      */
-    public WeightedEuclideanDistance(Vec w)
+    public WeightedEuclideanDistance(final Vec w)
     {
         setWeight(w);
     }
@@ -56,7 +56,7 @@ public class WeightedEuclideanDistance implements DistanceMetric
      * @param w the weight vector to use
      * @throws NullPointerException if {@code w} is null
      */
-    public void setWeight(Vec w)
+    public void setWeight(final Vec w)
     {
         if(w == null) {
           throw new NullPointerException();
@@ -65,7 +65,7 @@ public class WeightedEuclideanDistance implements DistanceMetric
     }
 
     @Override
-    public double dist(Vec a, Vec b)
+    public double dist(final Vec a, final Vec b)
     {
         return Math.sqrt(VecOps.accumulateSum(w, a, b, MathTricks.sqrdFunc));
     }
@@ -115,11 +115,11 @@ public class WeightedEuclideanDistance implements DistanceMetric
     }
 
     @Override
-    public List<Double> getAccelerationCache(List<? extends Vec> vecs)
+    public List<Double> getAccelerationCache(final List<? extends Vec> vecs)
     {
-        DoubleList cache = new DoubleList(vecs.size());
+        final DoubleList cache = new DoubleList(vecs.size());
         
-        for(Vec v : vecs) {
+        for(final Vec v : vecs) {
           cache.add(VecOps.weightedDot(w, v, v));
         }
         
@@ -127,7 +127,7 @@ public class WeightedEuclideanDistance implements DistanceMetric
     }
     
     @Override
-    public List<Double> getAccelerationCache(final List<? extends Vec> vecs, ExecutorService threadpool)
+    public List<Double> getAccelerationCache(final List<? extends Vec> vecs, final ExecutorService threadpool)
     {
         if(threadpool == null || threadpool instanceof FakeExecutor) {
           return getAccelerationCache(vecs);
@@ -158,7 +158,7 @@ public class WeightedEuclideanDistance implements DistanceMetric
         {
             latch.await();
         }
-        catch (InterruptedException ex)
+        catch (final InterruptedException ex)
         {
             Logger.getLogger(WeightedEuclideanDistance.class.getName()).log(Level.SEVERE, null, ex);
         }
@@ -167,7 +167,7 @@ public class WeightedEuclideanDistance implements DistanceMetric
     }
 
     @Override
-    public double dist(int a, int b, List<? extends Vec> vecs, List<Double> cache)
+    public double dist(final int a, final int b, final List<? extends Vec> vecs, final List<Double> cache)
     {
         if(cache == null) {
           return dist(vecs.get(a), vecs.get(b));
@@ -177,7 +177,7 @@ public class WeightedEuclideanDistance implements DistanceMetric
     }
 
     @Override
-    public double dist(int a, Vec b, List<? extends Vec> vecs, List<Double> cache)
+    public double dist(final int a, final Vec b, final List<? extends Vec> vecs, final List<Double> cache)
     {
         if(cache == null) {
           return dist(vecs.get(a), b);
@@ -187,15 +187,15 @@ public class WeightedEuclideanDistance implements DistanceMetric
     }
 
     @Override
-    public List<Double> getQueryInfo(Vec q)
+    public List<Double> getQueryInfo(final Vec q)
     {
-        DoubleList qi = new DoubleList(1);
+        final DoubleList qi = new DoubleList(1);
         qi.add(VecOps.weightedDot(w, q, q));
         return qi;
     }
 
     @Override
-    public double dist(int a, Vec b, List<Double> qi, List<? extends Vec> vecs, List<Double> cache)
+    public double dist(final int a, final Vec b, final List<Double> qi, final List<? extends Vec> vecs, final List<Double> cache)
     {
         if(cache == null) {
           return dist(vecs.get(a), b);

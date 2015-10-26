@@ -70,7 +70,7 @@ public class PlattCalibrationTest
     {
         System.out.println("calibrate");
         
-        ClassificationDataSet cds = new ClassificationDataSet(1, new CategoricalData[0], new CategoricalData(2));
+        final ClassificationDataSet cds = new ClassificationDataSet(1, new CategoricalData[0], new CategoricalData(2));
         
         for(double pos = 0; pos < 2; pos += 0.01) {
           cds.addDataPoint(DenseVector.toDenseVec(pos), 0);
@@ -79,15 +79,15 @@ public class PlattCalibrationTest
           cds.addDataPoint(DenseVector.toDenseVec(pos), 1);
         }
         
-        for(BinaryCalibration.CalibrationMode mode : BinaryCalibration.CalibrationMode.values())
+        for(final BinaryCalibration.CalibrationMode mode : BinaryCalibration.CalibrationMode.values())
         {
-            PlattCalibration pc = new PlattCalibration(new DCDs(), mode);
+            final PlattCalibration pc = new PlattCalibration(new DCDs(), mode);
             pc.trainC(cds);
             
             for(int i = 0; i < cds.getSampleSize(); i++)
             {
-                DataPoint dp = cds.getDataPoint(i);
-                Vec v = dp.getNumericalValues();
+                final DataPoint dp = cds.getDataPoint(i);
+                final Vec v = dp.getNumericalValues();
                 
                 if(v.get(0) < 0.25) {
                   assertEquals(1.0, pc.classify(dp).getProb(0), 0.2);
@@ -104,8 +104,8 @@ public class PlattCalibrationTest
     public void testClone()
     {
         System.out.println("clone");
-        ClassificationDataSet t1 = FixedProblems.getSimpleKClassLinear(1000, 2, new XOR96());
-        ClassificationDataSet t2 = FixedProblems.getSimpleKClassLinear(1000, 2, new XOR96() );
+        final ClassificationDataSet t1 = FixedProblems.getSimpleKClassLinear(1000, 2, new XOR96());
+        final ClassificationDataSet t2 = FixedProblems.getSimpleKClassLinear(1000, 2, new XOR96() );
         
         t2.applyTransform(new LinearTransform(t2, 100, 105));
         
@@ -117,7 +117,7 @@ public class PlattCalibrationTest
                 
         instance.trainC(t1);
 
-        PlattCalibration result = instance.clone();
+        final PlattCalibration result = instance.clone();
         
         for(int i = 0; i < t1.getSampleSize(); i++) {
           assertEquals(t1.getDataPointCategory(i), result.classify(t1.getDataPoint(i)).mostLikely());

@@ -38,7 +38,7 @@ public class GreekLetters
      * @param s the character to put a line over
      * @return the input with a line over
      */
-    public static String bar(String s)
+    public static String bar(final String s)
     {
         return s + "\u0305";
     }

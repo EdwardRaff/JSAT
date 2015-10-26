@@ -87,7 +87,7 @@ public class SCW extends BaseUpdateableClassifier implements BinaryScoreClassifi
     {
         //Zero out temp store
        if(diagonalOnly && x_t.isSparse()) {//only these values will be non zero
-         for (IndexValue iv : x_t) {
+         for (final IndexValue iv : x_t) {
            Sigma_xt.set(iv.getIndex(), 0.0);
          }
        } else {
@@ -132,7 +132,7 @@ public class SCW extends BaseUpdateableClassifier implements BinaryScoreClassifi
      * @see #setMode(jsat.classifiers.linear.SCW.Mode) 
      * @see #setDiagonalOnly(boolean) 
      */
-    public SCW(double eta, Mode mode, boolean diagonalOnly)
+    public SCW(final double eta, final Mode mode, final boolean diagonalOnly)
     {
         setEta(eta);
         setMode(mode);
@@ -143,7 +143,7 @@ public class SCW extends BaseUpdateableClassifier implements BinaryScoreClassifi
      * Copy constructor
      * @param other object to copy
      */
-    protected SCW(SCW other)
+    protected SCW(final SCW other)
     {
         this.C = other.C;
         this.diagonalOnly = other.diagonalOnly;
@@ -172,7 +172,7 @@ public class SCW extends BaseUpdateableClassifier implements BinaryScoreClassifi
      * 
      * @param eta the confidence to correct to
      */
-    public void setEta(double eta)
+    public void setEta(final double eta)
     {
         if(Double.isNaN(eta) || eta < 0.5 || eta > 1.0) {
           throw new IllegalArgumentException("eta must be in [0.5, 1] not " + eta);
@@ -204,7 +204,7 @@ public class SCW extends BaseUpdateableClassifier implements BinaryScoreClassifi
      * 
      * @param C the positive aggressiveness parameter
      */
-    public void setC(double C)
+    public void setC(final double C)
     {
         this.C = C;
     }
@@ -222,7 +222,7 @@ public class SCW extends BaseUpdateableClassifier implements BinaryScoreClassifi
      * Controls which version of the algorithm is used
      * @param mode which algorithm to use
      */
-    public void setMode(Mode mode)
+    public void setMode(final Mode mode)
     {
         this.mode = mode;
     }
@@ -244,7 +244,7 @@ public class SCW extends BaseUpdateableClassifier implements BinaryScoreClassifi
      * values in the input
      * @param diagonalOnly {@code true} to use only the diagonal of the covariance
      */
-    public void setDiagonalOnly(boolean diagonalOnly)
+    public void setDiagonalOnly(final boolean diagonalOnly)
     {
         this.diagonalOnly = diagonalOnly;
     }
@@ -281,7 +281,7 @@ public class SCW extends BaseUpdateableClassifier implements BinaryScoreClassifi
     }
     
     @Override
-    public Vec getRawWeight(int index)
+    public Vec getRawWeight(final int index)
     {
         if(index < 1) {
           return getRawWeight();
@@ -291,7 +291,7 @@ public class SCW extends BaseUpdateableClassifier implements BinaryScoreClassifi
     }
 
     @Override
-    public double getBias(int index)
+    public double getBias(final int index)
     {
         if (index < 1) {
           return getBias();
@@ -313,7 +313,7 @@ public class SCW extends BaseUpdateableClassifier implements BinaryScoreClassifi
     }
 
     @Override
-    public void setUp(CategoricalData[] categoricalAttributes, int numericAttributes, CategoricalData predicting)
+    public void setUp(final CategoricalData[] categoricalAttributes, final int numericAttributes, final CategoricalData predicting)
     {
         if(numericAttributes <= 0) {
           throw new FailedToFitException("SCW requires numeric attributes to perform classification");
@@ -333,19 +333,19 @@ public class SCW extends BaseUpdateableClassifier implements BinaryScoreClassifi
     }
 
     @Override
-    public void update(DataPoint dataPoint, int targetClass)
+    public void update(final DataPoint dataPoint, final int targetClass)
     {
         final Vec x_t = dataPoint.getNumericalValues();
         final double y_t = targetClass*2-1;
-        double score = x_t.dot(w);
+        final double score = x_t.dot(w);
         
         double v_t = 0;
         if (diagonalOnly)
         {
             //Faster to set only the needed final values
-            for (IndexValue iv : x_t)
+            for (final IndexValue iv : x_t)
             {
-                double x_t_i = iv.getValue();
+                final double x_t_i = iv.getValue();
                 v_t += x_t_i * x_t_i * sigmaV.get(iv.getIndex());
             }
 
@@ -361,7 +361,7 @@ public class SCW extends BaseUpdateableClassifier implements BinaryScoreClassifi
           throw new FailedToFitException("Numerical issues occured");
         }
         
-        double m_t = y_t*score;
+        final double m_t = y_t*score;
         
         final double loss = max(0, phi*sqrt(v_t)-m_t);
         
@@ -377,7 +377,7 @@ public class SCW extends BaseUpdateableClassifier implements BinaryScoreClassifi
         
         if(mode == Mode.SCWI || mode == Mode.CW)
         {
-            double tmp = max(0, (-m_t*psi+sqrt(m_t*m_t*phiSqrd*phiSqrd/4+v_t*phiSqrd*zeta))/(v_t*zeta) );
+            final double tmp = max(0, (-m_t*psi+sqrt(m_t*m_t*phiSqrd*phiSqrd/4+v_t*phiSqrd*zeta))/(v_t*zeta) );
             if(mode == Mode.SCWI) {
               alpha_t = min(C, tmp);
             } else {
@@ -407,10 +407,10 @@ public class SCW extends BaseUpdateableClassifier implements BinaryScoreClassifi
         //Now update mean and variance
         if (diagonalOnly)
         {
-            for (IndexValue iv : x_t)
+            for (final IndexValue iv : x_t)
             {
-                double x_t_i = iv.getValue();
-                double tmp = x_t_i * sigmaV.get(iv.getIndex());
+                final double x_t_i = iv.getValue();
+                final double tmp = x_t_i * sigmaV.get(iv.getIndex());
                 w.increment(iv.getIndex(), alpha_t * y_t * tmp);
             }
         }
@@ -422,10 +422,10 @@ public class SCW extends BaseUpdateableClassifier implements BinaryScoreClassifi
         {
             //Only non zeros change the cov values
             final double coef = alpha_t*phi*pow(u_t, -0.5);
-            for(IndexValue iv : x_t)
+            for(final IndexValue iv : x_t)
             {
-                int idx = iv.getIndex();
-                double S_rr = sigmaV.get(idx);
+                final int idx = iv.getIndex();
+                final double S_rr = sigmaV.get(idx);
                 sigmaV.set(idx, 1/(1/S_rr+coef*pow(iv.getValue(), 2)));
             }
         }
@@ -439,13 +439,13 @@ public class SCW extends BaseUpdateableClassifier implements BinaryScoreClassifi
     }
 
     @Override
-    public CategoricalResults classify(DataPoint data)
+    public CategoricalResults classify(final DataPoint data)
     {
         if(w == null) {
           throw new UntrainedModelException("Model has not yet ben trained");
         }
-        CategoricalResults cr = new CategoricalResults(2);
-        double score = getScore(data);
+        final CategoricalResults cr = new CategoricalResults(2);
+        final double score = getScore(data);
         if(score < 0) {
           cr.setProb(0, 1.0);
         } else {
@@ -455,7 +455,7 @@ public class SCW extends BaseUpdateableClassifier implements BinaryScoreClassifi
     }
 
     @Override
-    public double getScore(DataPoint dp)
+    public double getScore(final DataPoint dp)
     {
         return w.dot(dp.getNumericalValues());
     }
@@ -473,7 +473,7 @@ public class SCW extends BaseUpdateableClassifier implements BinaryScoreClassifi
     }
 
     @Override
-    public Parameter getParameter(String paramName)
+    public Parameter getParameter(final String paramName)
     {
         return Parameter.toParameterMap(getParameters()).get(paramName);
     }
@@ -485,7 +485,7 @@ public class SCW extends BaseUpdateableClassifier implements BinaryScoreClassifi
      * @param d the data set to get the guess for
      * @return the guess for the C parameter
      */
-    public static Distribution guessC(DataSet d)
+    public static Distribution guessC(final DataSet d)
     {
         return new LogUniform(Math.pow(2, -4), Math.pow(2, 4));//from Exact Soft Confidence-Weighted Learning paper
     }
@@ -497,7 +497,7 @@ public class SCW extends BaseUpdateableClassifier implements BinaryScoreClassifi
      * @param d the data set to get the guess for
      * @return the guess for the C parameter
      */
-    public static Distribution guessEta(DataSet d)
+    public static Distribution guessEta(final DataSet d)
     {
         return new Uniform(0.5, 0.95);//from Exact Soft Confidence-Weighted Learning paper
     }

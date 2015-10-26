@@ -43,7 +43,7 @@ public abstract class BaseL2Kernel implements KernelTrick
      * @param cache the cache of values for each vector in the collection
      * @return the squared norm ||x<sub>i</sub>-x<sub>j</sub>||<sup>2</sup>
      */
-    protected double getSqrdNorm(int i, int j, List<? extends Vec> vecs, List<Double> cache)
+    protected double getSqrdNorm(final int i, final int j, final List<? extends Vec> vecs, final List<Double> cache)
     {
         if(cache == null) {
           return Math.pow(vecs.get(i).pNormDist(2.0, vecs.get(j)), 2);
@@ -58,7 +58,7 @@ public abstract class BaseL2Kernel implements KernelTrick
      * @param cache the cache of values for each vector in the collection
      * @return the squared norm ||x<sub>i</sub>||<sup>2</sup>
      */
-    protected double getSqrdNorm(int i, List<? extends Vec> vecs, List<Double> cache)
+    protected double getSqrdNorm(final int i, final List<? extends Vec> vecs, final List<Double> cache)
     {
         return cache.get(i);
     }
@@ -72,7 +72,7 @@ public abstract class BaseL2Kernel implements KernelTrick
      * @param cache the cache of values for each vector in the collection
      * @return the squared norm ||x<sub>i</sub>-y||<sup>2</sup>
      */
-    protected double getSqrdNorm(int i, Vec y, List<Double> qi, List<? extends Vec> vecs, List<Double> cache)
+    protected double getSqrdNorm(final int i, final Vec y, final List<Double> qi, final List<? extends Vec> vecs, final List<Double> cache)
     {
         if(cache == null) {
           return Math.pow(vecs.get(i).pNormDist(2.0, y), 2);
@@ -81,9 +81,9 @@ public abstract class BaseL2Kernel implements KernelTrick
     }
 
     @Override
-    public List<Double> getAccelerationCache(List<? extends Vec> trainingSet)
+    public List<Double> getAccelerationCache(final List<? extends Vec> trainingSet)
     {
-        DoubleList cache = new DoubleList(trainingSet.size());
+        final DoubleList cache = new DoubleList(trainingSet.size());
         for(int i = 0; i < trainingSet.size(); i++) {
           cache.add(trainingSet.get(i).dot(trainingSet.get(i)));
         }
@@ -91,15 +91,15 @@ public abstract class BaseL2Kernel implements KernelTrick
     }
 
     @Override
-    public List<Double> getQueryInfo(Vec q)
+    public List<Double> getQueryInfo(final Vec q)
     {
-        DoubleList dl = new DoubleList(1);
+        final DoubleList dl = new DoubleList(1);
         dl.add(q.dot(q));
         return dl;
     }
 
     @Override
-    public void addToCache(Vec newVec, List<Double> cache)
+    public void addToCache(final Vec newVec, final List<Double> cache)
     {
         cache.add(newVec.dot(newVec));
     }
@@ -111,13 +111,13 @@ public abstract class BaseL2Kernel implements KernelTrick
     abstract public double eval(int a, int b, List<? extends Vec> trainingSet, List<Double> cache);
 
     @Override
-    public double evalSum(List<? extends Vec> finalSet, List<Double> cache, double[] alpha, Vec y, int start, int end)
+    public double evalSum(final List<? extends Vec> finalSet, final List<Double> cache, final double[] alpha, final Vec y, final int start, final int end)
     {
         return evalSum(finalSet, cache, alpha, y, getQueryInfo(y), start, end);
     }
 
     @Override
-    public double evalSum(List<? extends Vec> finalSet, List<Double> cache, double[] alpha, Vec y, List<Double> qi, int start, int end)
+    public double evalSum(final List<? extends Vec> finalSet, final List<Double> cache, final double[] alpha, final Vec y, final List<Double> qi, final int start, final int end)
     {
         double sum = 0;
         
@@ -137,7 +137,7 @@ public abstract class BaseL2Kernel implements KernelTrick
     }
 
     @Override
-    public Parameter getParameter(String paramName)
+    public Parameter getParameter(final String paramName)
     {
         return Parameter.toParameterMap(getParameters()).get(paramName);
     }

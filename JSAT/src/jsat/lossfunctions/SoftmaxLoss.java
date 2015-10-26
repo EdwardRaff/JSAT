@@ -16,13 +16,13 @@ public class SoftmaxLoss extends LogisticLoss implements LossMC
 	private static final long serialVersionUID = 3936898932252996024L;
 
 	@Override
-    public double getLoss(Vec processed, int y)
+    public double getLoss(final Vec processed, final int y)
     {
         return -Math.log(processed.get(y));
     }
 
     @Override
-    public void process(Vec pred, Vec processed)
+    public void process(final Vec pred, final Vec processed)
     {
         if(pred != processed) {
           pred.copyTo(processed);
@@ -31,7 +31,7 @@ public class SoftmaxLoss extends LogisticLoss implements LossMC
     }
 
     @Override
-    public void deriv(Vec processed, Vec derivs, int y)
+    public void deriv(final Vec processed, final Vec derivs, final int y)
     {
         for(int i = 0; i < processed.length(); i++) {
           if (i == y) {
@@ -43,7 +43,7 @@ public class SoftmaxLoss extends LogisticLoss implements LossMC
     }
 
     @Override
-    public CategoricalResults getClassification(Vec processed)
+    public CategoricalResults getClassification(final Vec processed)
     {
         return new CategoricalResults(processed.arrayCopy());
     }

@@ -26,10 +26,10 @@ public class IndexTable implements Serializable
     {
 
         @Override
-        public int compare(Object o1, Object o2)
+        public int compare(final Object o1, final Object o2)
         {
-            Comparable co1 = (Comparable) o1;
-            Comparable co2 = (Comparable) o2;
+            final Comparable co1 = (Comparable) o1;
+            final Comparable co2 = (Comparable) o2;
             return co1.compareTo(co2);
         }
     };
@@ -45,7 +45,7 @@ public class IndexTable implements Serializable
         return new Comparator<T>() 
         {
             @Override
-            public int compare(T o1, T o2)
+            public int compare(final T o1, final T o2)
             {
                 return -cmp.compare(o1, o2);
             }
@@ -66,7 +66,7 @@ public class IndexTable implements Serializable
      * Creates a new index table of a specified size that is in linear order. 
      * @param size the size of the index table to create
      */
-    public IndexTable(int size)
+    public IndexTable(final int size)
     {
         index = new IntList(size);
         ListUtils.addRange(index, 0, size, 1);
@@ -76,7 +76,7 @@ public class IndexTable implements Serializable
      * Creates a new index table based on the given array. The array will not be altered. 
      * @param array the array to create an index table for. 
      */
-    public IndexTable(double[] array)
+    public IndexTable(final double[] array)
     {
         this(DoubleList.unmodifiableView(array, array.length));
     }
@@ -85,7 +85,7 @@ public class IndexTable implements Serializable
      * Creates a new index table based on the given array. The array will not be altered. 
      * @param array the array to create an index table for
      */
-    public <T extends Comparable<T>> IndexTable(T[] array)
+    public <T extends Comparable<T>> IndexTable(final T[] array)
     {
         index = new IntList(array.length);
         ListUtils.addRange(index, 0, array.length, 1);
@@ -96,7 +96,7 @@ public class IndexTable implements Serializable
      * Creates a new index table based on the given list. The list will not be altered. 
      * @param list the list to create an index table for
      */
-    public <T extends Comparable<T>> IndexTable(List<T> list)
+    public <T extends Comparable<T>> IndexTable(final List<T> list)
     {
         this(list, defaultComp);
     }
@@ -108,7 +108,7 @@ public class IndexTable implements Serializable
      * @param list the list of points to obtain a sorted IndexTable for
      * @param comparator the comparator to determined the sorted order
      */
-    public <T> IndexTable(List<T> list, Comparator<T> comparator)
+    public <T> IndexTable(final List<T> list, final Comparator<T> comparator)
     {
         index = new IntList(list.size());
         ListUtils.addRange(index, 0, list.size(), 1);
@@ -140,7 +140,7 @@ public class IndexTable implements Serializable
      * array
      * @param array the input to get sorted order of
      */
-    public void sort(double[] array)
+    public void sort(final double[] array)
     {
         sort(DoubleList.unmodifiableView(array, array.length));
     }
@@ -150,7 +150,7 @@ public class IndexTable implements Serializable
      * the given array
      * @param array the input to get sorted order of
      */
-    public void sortR(double[] array)
+    public void sortR(final double[] array)
     {
         sortR(DoubleList.unmodifiableView(array, array.length));
     }
@@ -161,7 +161,7 @@ public class IndexTable implements Serializable
      * @param <T> the data type
      * @param list the list of objects
      */
-    public <T extends Comparable<T>> void sort(List<T> list)
+    public <T extends Comparable<T>> void sort(final List<T> list)
     {
         sort(list, defaultComp);
     }
@@ -172,7 +172,7 @@ public class IndexTable implements Serializable
      * @param <T> the data type
      * @param list the list of objects
      */
-    public <T extends Comparable<T>> void sortR(List<T> list)
+    public <T extends Comparable<T>> void sortR(final List<T> list)
     {
         sort(list, getReverse(defaultComp));
     }
@@ -186,7 +186,7 @@ public class IndexTable implements Serializable
      * @param list the list of points to obtain a sorted IndexTable for
      * @param cmp the comparator to determined the sorted order
      */
-    public <T> void sort(List<T> list, Comparator<T> cmp)
+    public <T> void sort(final List<T> list, final Comparator<T> cmp)
     {
         if(index.size() < list.size()) {
           for (int i = index.size(); i < list.size(); i++) {
@@ -207,13 +207,13 @@ public class IndexTable implements Serializable
     {
         T[] base;
 
-        public IndexViewCompG(T[] base)
+        public IndexViewCompG(final T[] base)
         {
             this.base = base;
         }
 
         @Override
-        public int compare(Integer t, Integer t1)
+        public int compare(final Integer t, final Integer t1)
         {
             return base[t].compareTo(base[t1]);
         }        
@@ -224,14 +224,14 @@ public class IndexTable implements Serializable
         final List<T> base;
         final Comparator<T> comparator;
         
-        public IndexViewCompList(List<T> base, Comparator<T> comparator)
+        public IndexViewCompList(final List<T> base, final Comparator<T> comparator)
         {
             this.base = base;
             this.comparator = comparator;
         }
 
         @Override
-        public int compare(Integer t, Integer t1)
+        public int compare(final Integer t, final Integer t1)
         {
             return comparator.compare(base.get(t), base.get(t1));
         }        
@@ -242,7 +242,7 @@ public class IndexTable implements Serializable
      * @param i the second index to swap 
      * @param j the first index to swap
      */
-    public void swap(int i, int j)
+    public void swap(final int i, final int j)
     {
         Collections.swap(index, i, j);
     }
@@ -257,7 +257,7 @@ public class IndexTable implements Serializable
      * @param i the index of the i'th sorted value
      * @return the index in the original list that would be in the i'th position
      */
-    public int index(int i)
+    public int index(final int i)
     {
         if(i >= prevSize || i < 0) {
           throw new IndexOutOfBoundsException("The size of the previously sorted array/list is " + prevSize + " so index " + i + " is not valid");
@@ -280,7 +280,7 @@ public class IndexTable implements Serializable
      * 
      * @throws RuntimeException if the length of the target array is not the same as the index table
      */
-    public void apply(double[] target)
+    public void apply(final double[] target)
     {
         //use DoubleList view b/d we are only using set ops, so we wont run into an issue of re-allocating the array
         apply(DoubleList.view(target, target.length), new DoubleList(target.length));
@@ -292,7 +292,7 @@ public class IndexTable implements Serializable
      * 
      * @throws RuntimeException if the length of the target List is not the same as the index table
      */
-    public void apply(List target)
+    public void apply(final List target)
     {
         apply(target, new ArrayList(target.size()));
     }
@@ -314,7 +314,7 @@ public class IndexTable implements Serializable
      * previously sorted list. 
      * @param tmp the temp list that may be of any size
      */
-    public void apply(List target, List tmp)
+    public void apply(final List target, final List tmp)
     {
         if (target.size() != length()) {
           throw new RuntimeException("target array does not have the same length as the index table");

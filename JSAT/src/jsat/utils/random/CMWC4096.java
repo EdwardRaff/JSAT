@@ -33,14 +33,14 @@ public class CMWC4096 extends Random
      * @param seed the seed that controls the initial state of the PRNG
      * @see #setSeed(long) 
      */
-    public CMWC4096(long seed)
+    public CMWC4096(final long seed)
     {
         super(seed);
     }
     
 
     @Override
-    public synchronized void setSeed(long seed)
+    public synchronized void setSeed(final long seed)
     {
         super.setSeed(seed);
         if(Q == null) {
@@ -52,11 +52,12 @@ public class CMWC4096 extends Random
     }
     
     @Override
-    protected int next(int bits)
+    protected int next(final int bits)
     {
         long t;
 
-        long x, r = 0xfffffffe;
+        long x;
+        final long r = 0xfffffffe;
         i = (i + 1) & 4095;
         t = a * Q[i] + c;
         c = (int) (t >>> 32);

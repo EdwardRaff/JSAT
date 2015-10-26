@@ -31,7 +31,7 @@ public class AUC implements ClassificationScore
         
         public double weight;
 
-        public Tuple(double score, boolean positiveClass, double weight)
+        public Tuple(final double score, final boolean positiveClass, final double weight)
         {
             this.score = score;
             this.positiveClass = positiveClass;
@@ -40,7 +40,7 @@ public class AUC implements ClassificationScore
         
 
         @Override
-        public int compareTo(Tuple o)
+        public int compareTo(final Tuple o)
         {
             return Double.compare(this.score, o.score);
         }
@@ -59,7 +59,7 @@ public class AUC implements ClassificationScore
      * Copy constructor
      * @param toClone the object to copy
      */
-    public AUC(AUC toClone)
+    public AUC(final AUC toClone)
     {
         if(toClone.scores != null)
         {
@@ -71,20 +71,20 @@ public class AUC implements ClassificationScore
     }
     
     @Override
-    public void addResult(CategoricalResults prediction, int trueLabel, double weight)
+    public void addResult(final CategoricalResults prediction, final int trueLabel, final double weight)
     {
         scores.add(new Tuple(prediction.getProb(0), trueLabel == 0, weight));
     }
 
     @Override
-    public void addResults(ClassificationScore other)
+    public void addResults(final ClassificationScore other)
     {
-        AUC otherObj = (AUC) other;
+        final AUC otherObj = (AUC) other;
         this.scores.addAll(otherObj.scores);
     }
     
     @Override
-    public void prepare(CategoricalData toPredict)
+    public void prepare(final CategoricalData toPredict)
     {
         if(toPredict.getNumOfCategories() != 2) {
           throw new IllegalArgumentException("AUC is only defined for binary classification problems");
@@ -98,7 +98,7 @@ public class AUC implements ClassificationScore
         Collections.sort(scores);
 
         double pos = 0, neg = 0, sum = 0;
-        for (Tuple i : scores) {
+        for (final Tuple i : scores) {
           if (i.positiveClass) {
             pos += i.weight;
           } else {
@@ -106,7 +106,7 @@ public class AUC implements ClassificationScore
           }
         }
         double posLeft = pos;
-        for (Tuple i : scores) {
+        for (final Tuple i : scores) {
           if (i.positiveClass) {
             posLeft -= i.weight;
           } else {
@@ -125,7 +125,7 @@ public class AUC implements ClassificationScore
     }
     
     @Override
-    public boolean equals(Object obj)
+    public boolean equals(final Object obj)
     {
         if(this.getClass().isAssignableFrom(obj.getClass()) && obj.getClass().isAssignableFrom(this.getClass()))
         {

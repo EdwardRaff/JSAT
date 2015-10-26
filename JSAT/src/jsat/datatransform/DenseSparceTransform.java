@@ -16,7 +16,7 @@ public class DenseSparceTransform implements DataTransform
 {
 
 	private static final long serialVersionUID = -1177913691660616290L;
-	private double factor;
+	private final double factor;
 
     /**
      * Creates a new Dense Sparce Transform. The <tt>factor</tt> gives the maximal 
@@ -28,28 +28,28 @@ public class DenseSparceTransform implements DataTransform
      * 
      * @param factor the fraction of the vectors values that may be non zero to qualify as sparce
      */
-    public DenseSparceTransform(double factor)
+    public DenseSparceTransform(final double factor)
     {
         this.factor = factor;
     }
     
     @Override
-    public DataPoint transform(DataPoint dp)
+    public DataPoint transform(final DataPoint dp)
     {
-        Vec orig = dp.getNumericalValues();
+        final Vec orig = dp.getNumericalValues();
 
         if (orig instanceof SparseVector)
         {
-            SparseVector sv = (SparseVector) orig;
+            final SparseVector sv = (SparseVector) orig;
             if (sv.nnz() / (double) sv.length() < factor) {///Stay sparce
               return dp;
             }
 
-            DenseVector dv = new DenseVector(sv.length());
-            Iterator<IndexValue> iter = sv.getNonZeroIterator();
+            final DenseVector dv = new DenseVector(sv.length());
+            final Iterator<IndexValue> iter = sv.getNonZeroIterator();
             while (iter.hasNext())
             {
-                IndexValue indexValue = iter.next();
+                final IndexValue indexValue = iter.next();
                 dv.set(indexValue.getIndex(), indexValue.getValue());
             }
             return new DataPoint(dv, dp.getCategoricalValues(), dp.getCategoricalData(), dp.getWeight());
@@ -66,7 +66,7 @@ public class DenseSparceTransform implements DataTransform
           return dp;
         }
         //Else, to sparce
-        SparseVector sv = new SparseVector(orig.length(), nnz);//TODO create a constructor for this 
+        final SparseVector sv = new SparseVector(orig.length(), nnz);//TODO create a constructor for this 
         for(int i  = 0; i < orig.length(); i++) {
           if (orig.get(i) != 0) {
             sv.set(i, orig.get(i));

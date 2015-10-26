@@ -25,7 +25,7 @@ public class AdaDelta implements GradientUpdater
     private Vec deltaXSqrt;
     private double biasGSqrd;
     private double deltaBiasSqrt;
-    private double eps = 0.0001;
+    private final double eps = 0.0001;
     
 
     /**
@@ -40,7 +40,7 @@ public class AdaDelta implements GradientUpdater
      * Creates a new AdaDelta updater
      * @param rho the decay rate to use
      */
-    public AdaDelta(double rho)
+    public AdaDelta(final double rho)
     {
         setRho(rho);
     }
@@ -49,7 +49,7 @@ public class AdaDelta implements GradientUpdater
      * Copy constructor
      * @param toCopy the object to copy
      */
-    public AdaDelta(AdaDelta toCopy)
+    public AdaDelta(final AdaDelta toCopy)
     {
         this.rho = toCopy.rho;
         if(toCopy.gSqrd != null)
@@ -67,7 +67,7 @@ public class AdaDelta implements GradientUpdater
      * 
      * @param rho the decay rate in (0, 1) to use
      */
-    public void setRho(double rho)
+    public void setRho(final double rho)
     {
         if(rho <= 0 || rho >= 1 || Double.isNaN(rho)) {
           throw new IllegalArgumentException("Rho must be in (0, 1)");
@@ -85,17 +85,17 @@ public class AdaDelta implements GradientUpdater
     }
 
     @Override
-    public void update(Vec x, Vec grad, double eta)
+    public void update(final Vec x, final Vec grad, final double eta)
     {
         update(x, grad, eta, 0, 0);
     }
 
     @Override
-    public double update(Vec x, Vec grad, double eta, double bias, double biasGrad)
+    public double update(final Vec x, final Vec grad, final double eta, final double bias, final double biasGrad)
     {
         gSqrd.mutableMultiply(rho);
         biasGSqrd *= rho;
-        for(IndexValue iv : grad)
+        for(final IndexValue iv : grad)
         {
             final int indx = iv.getIndex();
             final double grad_i = iv.getValue();
@@ -112,8 +112,8 @@ public class AdaDelta implements GradientUpdater
         
         //bias term
         biasGSqrd += biasGrad*biasGrad*(1-rho);
-        double newDeltaBias = Math.sqrt((deltaBiasSqrt+eps)/(biasGSqrd+eps))*biasGrad;
-        double biasUpdate = eta*newDeltaBias;
+        final double newDeltaBias = Math.sqrt((deltaBiasSqrt+eps)/(biasGSqrd+eps))*biasGrad;
+        final double biasUpdate = eta*newDeltaBias;
         deltaBiasSqrt += (1-rho)/rho*newDeltaBias*newDeltaBias;
         deltaBiasSqrt *= rho;
         
@@ -127,7 +127,7 @@ public class AdaDelta implements GradientUpdater
     }
 
     @Override
-    public void setup(int d)
+    public void setup(final int d)
     {
         gSqrd = new ScaledVector(new DenseVector(d));
         deltaXSqrt = new ScaledVector(new DenseVector(d));

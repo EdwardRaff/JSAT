@@ -14,7 +14,7 @@ public class BoundedSortedList<E extends Comparable<E>> extends ArrayList<E> imp
 	private static final long serialVersionUID = 5503813399376102571L;
 	private final int maxSize;
 
-    public BoundedSortedList(int maxSize, int initialCapacity)
+    public BoundedSortedList(final int maxSize, final int initialCapacity)
     {
         super(initialCapacity);
         if(maxSize < 1) {
@@ -23,7 +23,7 @@ public class BoundedSortedList<E extends Comparable<E>> extends ArrayList<E> imp
         this.maxSize = maxSize;
     }
 
-    public BoundedSortedList(int maxSize)
+    public BoundedSortedList(final int maxSize)
     {
         if(maxSize < 1) {
           throw new RuntimeException("Invalid max size");
@@ -33,7 +33,7 @@ public class BoundedSortedList<E extends Comparable<E>> extends ArrayList<E> imp
         
 
     @Override
-    public boolean add(E e)
+    public boolean add(final E e)
     {
         if(isEmpty())
         {
@@ -97,7 +97,7 @@ public class BoundedSortedList<E extends Comparable<E>> extends ArrayList<E> imp
     }
 
     @Override
-    public void add(int index, E element)
+    public void add(final int index, final E element)
     {
         add(element);
     }

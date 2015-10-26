@@ -50,7 +50,7 @@ public class OSKL extends BaseUpdateableClassifier implements BinaryScoreClassif
     private double R;
     private double G;
     private double curSqrdNorm;
-    private LossC lossC;
+    private final LossC lossC;
     private boolean useAverageModel = true;
     
     //Data used for capturing the average
@@ -80,7 +80,7 @@ public class OSKL extends BaseUpdateableClassifier implements BinaryScoreClassif
      * @param k the kernel to use
      * @param R the maximum allowed norm for the model
      */
-    public OSKL(KernelTrick k, double R)
+    public OSKL(final KernelTrick k, final double R)
     {
         this(k, 0.9, 1, R);
     }
@@ -92,7 +92,7 @@ public class OSKL extends BaseUpdateableClassifier implements BinaryScoreClassif
      * @param G the sparsification parameter
      * @param R the maximum allowed norm for the model
      */
-    public OSKL(KernelTrick k, double eta, double G, double R)
+    public OSKL(final KernelTrick k, final double eta, final double G, final double R)
     {
         this(k, eta, G, R, new LogisticLoss());
     }
@@ -104,7 +104,7 @@ public class OSKL extends BaseUpdateableClassifier implements BinaryScoreClassif
      * @param R the maximum allowed norm for the model
      * @param lossC the loss function to use
      */
-    public OSKL(KernelTrick k, double eta, double G, double R, LossC lossC)
+    public OSKL(final KernelTrick k, final double eta, final double G, final double R, final LossC lossC)
     {
         setKernel(k);
         setEta(eta);
@@ -117,7 +117,7 @@ public class OSKL extends BaseUpdateableClassifier implements BinaryScoreClassif
      * Copy constructor
      * @param toCopy the object to copy
      */
-    public OSKL(OSKL toCopy)
+    public OSKL(final OSKL toCopy)
     {
         this.k = toCopy.k.clone();
         this.eta = toCopy.eta;
@@ -132,7 +132,7 @@ public class OSKL extends BaseUpdateableClassifier implements BinaryScoreClassif
         if(toCopy.vecs != null)
         {
             this.vecs = new ArrayList<Vec>();
-            for(Vec v : toCopy.vecs) {
+            for(final Vec v : toCopy.vecs) {
               this.vecs.add(v.clone());
             }
             this.alphas = new DoubleList(toCopy.alphas);
@@ -150,7 +150,7 @@ public class OSKL extends BaseUpdateableClassifier implements BinaryScoreClassif
      * Sets the kernel to use
      * @param k the kernel to use
      */
-    public void setKernel(KernelTrick k)
+    public void setKernel(final KernelTrick k)
     {
         this.k = k;
     }
@@ -169,7 +169,7 @@ public class OSKL extends BaseUpdateableClassifier implements BinaryScoreClassif
      * setting &eta; = 0.9/{@link #setG(double) G}
      * @param eta the positive learning rate to use
      */
-    public void setEta(double eta)
+    public void setEta(final double eta)
     {
         if(eta <= 0 || Double.isNaN(eta) || Double.isInfinite(eta)) {
           throw new IllegalArgumentException("Eta must be positive, not " + eta);
@@ -193,7 +193,7 @@ public class OSKL extends BaseUpdateableClassifier implements BinaryScoreClassif
      * paper tests values of G &isin; {1, 2, 4, 10}
      * @param G the sparsification parameter in [1, &infin;)
      */
-    public void setG(double G)
+    public void setG(final double G)
     {
         if(G < 1 || Double.isInfinite(G) || Double.isNaN(G)) {
           throw new IllegalArgumentException("G must be in [1, Infinity), not " + G);
@@ -217,7 +217,7 @@ public class OSKL extends BaseUpdateableClassifier implements BinaryScoreClassif
      * @return the guess for the R parameter
      * @see #setR(double)
      */
-    public static Distribution guessR(DataSet d)
+    public static Distribution guessR(final DataSet d)
     {
         return new LogUniform(1, 1e5);
     }
@@ -228,7 +228,7 @@ public class OSKL extends BaseUpdateableClassifier implements BinaryScoreClassif
      * &isin; {0, 1, 2, 3, 4, 5}. 
      * @param R the maximum allowed norm for the model
      */
-    public void setR(double R)
+    public void setR(final double R)
     {
         if(R <= 0 || Double.isNaN(R) || Double.isInfinite(R)) {
           throw new IllegalArgumentException("R must be positive, not " + R);
@@ -251,7 +251,7 @@ public class OSKL extends BaseUpdateableClassifier implements BinaryScoreClassif
      * @param useAverageModel {@code true} to use the average model, 
      * {@code false} to use the last model update
      */
-    public void setUseAverageModel(boolean useAverageModel)
+    public void setUseAverageModel(final boolean useAverageModel)
     {
         this.useAverageModel = useAverageModel;
     }
@@ -276,7 +276,7 @@ public class OSKL extends BaseUpdateableClassifier implements BinaryScoreClassif
      * @param burnIn the number of updates to ignore before averaging. Must be 
      * non negative. 
      */
-    public void setBurnIn(int burnIn)
+    public void setBurnIn(final int burnIn)
     {
         if(burnIn < 0) {
           throw new IllegalArgumentException("Burn in must be non negative, not " + burnIn);
@@ -294,7 +294,7 @@ public class OSKL extends BaseUpdateableClassifier implements BinaryScoreClassif
     }
     
     @Override
-    public void setUp(CategoricalData[] categoricalAttributes, int numericAttributes, CategoricalData predicting)
+    public void setUp(final CategoricalData[] categoricalAttributes, final int numericAttributes, final CategoricalData predicting)
     {
         rand = new XORWOW();
         vecs = new ArrayList<Vec>();
@@ -325,7 +325,7 @@ public class OSKL extends BaseUpdateableClassifier implements BinaryScoreClassif
     }
 
     @Override
-    public void update(DataPoint dataPoint, int targetClass)
+    public void update(final DataPoint dataPoint, final int targetClass)
     {
         final Vec x_t = dataPoint.getNumericalValues();
         final List<Double> qi = k.getQueryInfo(x_t);
@@ -356,13 +356,13 @@ public class OSKL extends BaseUpdateableClassifier implements BinaryScoreClassif
         //project alphas to maintain norm if needed
         if(curSqrdNorm > R*R)
         {
-            double coeff = R/Math.sqrt(curSqrdNorm);
+            final double coeff = R/Math.sqrt(curSqrdNorm);
             alphas.getVecView().mutableMultiply(coeff);
             curSqrdNorm *= coeff*coeff;
         }
     };
 
-    private double score(Vec x, List<Double> qi)
+    private double score(final Vec x, final List<Double> qi)
     {
         DoubleList alphToUse;
         if(useAverageModel && t > burnIn)
@@ -384,14 +384,14 @@ public class OSKL extends BaseUpdateableClassifier implements BinaryScoreClassif
      * @param qi the query information for the vector
      * @return the dot product in the kernel space
      */
-    private double scoreSaveEval(Vec x, List<Double> qi)
+    private double scoreSaveEval(final Vec x, final List<Double> qi)
     {
         inputKEvals.clear();
         inputKEvals.add(k.eval(0, 0, Arrays.asList(x), qi));
         double sum = 0;
         for(int i = 0; i < alphas.size(); i++)
         {
-            double k_ix = k.eval(i, x, qi, vecs, accelCache);
+            final double k_ix = k.eval(i, x, qi, vecs, accelCache);
             inputKEvals.add(k_ix);
             sum += alphas.getD(i)*k_ix;
         }
@@ -399,9 +399,9 @@ public class OSKL extends BaseUpdateableClassifier implements BinaryScoreClassif
     }
 
     @Override
-    public CategoricalResults classify(DataPoint data)
+    public CategoricalResults classify(final DataPoint data)
     {
-        Vec x = data.getNumericalValues();
+        final Vec x = data.getNumericalValues();
         return lossC.getClassification(score(x, k.getQueryInfo(x)));
     }
 
@@ -412,9 +412,9 @@ public class OSKL extends BaseUpdateableClassifier implements BinaryScoreClassif
     }
 
     @Override
-    public double getScore(DataPoint dp)
+    public double getScore(final DataPoint dp)
     {
-        Vec x = dp.getNumericalValues();
+        final Vec x = dp.getNumericalValues();
         return score(x, k.getQueryInfo(x));
     }
 
@@ -431,7 +431,7 @@ public class OSKL extends BaseUpdateableClassifier implements BinaryScoreClassif
     }
 
     @Override
-    public Parameter getParameter(String paramName)
+    public Parameter getParameter(final String paramName)
     {
         return Parameter.toParameterMap(getParameters()).get(paramName);
     }
@@ -449,10 +449,10 @@ public class OSKL extends BaseUpdateableClassifier implements BinaryScoreClassif
               alphaAveraged.set(i, alphas.get(i));
           }
         }
-        double w = t-last_t;//time elapsed
+        final double w = t-last_t;//time elapsed
         for(int i = 0; i < alphaAveraged.size(); i++)
         {
-            double delta = alphas.getD(i) - alphaAveraged.getD(i);
+            final double delta = alphas.getD(i) - alphaAveraged.getD(i);
             alphaAveraged.set(i, alphaAveraged.getD(i)+delta*w/t);
         }
         last_t = t;//average done

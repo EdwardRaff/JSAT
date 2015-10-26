@@ -6,14 +6,14 @@ package jsat.utils;
  */
 public class StringUtils
 {
-    public static int parseInt(CharSequence s, int start, int end, int radix)
+    public static int parseInt(final CharSequence s, final int start, final int end, final int radix)
     {
         boolean negative = false;
         int val = 0;
         
         for(int i = start; i < end; i++)
         {
-            char c = s.charAt(i);
+            final char c = s.charAt(i);
             if (c == '-') {
               if (i == start) {
                 negative = true;
@@ -28,7 +28,7 @@ public class StringUtils
               }
             } else
             {
-                int digit = Character.digit(c, radix);
+                final int digit = Character.digit(c, radix);
                 if(digit < 0) {
                   throw new NumberFormatException("Non digit character '" + c + "' encountered");
               }
@@ -43,7 +43,7 @@ public class StringUtils
         }
     }
 
-    public static int parseInt(CharSequence s, int start, int end)
+    public static int parseInt(final CharSequence s, final int start, final int end)
     {
         return parseInt(s, start, end, 10);
     }
@@ -87,7 +87,7 @@ public class StringUtils
         EXPO,
     }
     
-    public static double parseDouble(CharSequence s, int start, int end)
+    public static double parseDouble(final CharSequence s, final int start, final int end)
     {
         States state = States.SIGN;
         int pos = start;
@@ -106,7 +106,7 @@ public class StringUtils
         
         while(pos < end)//run the state machine
         {
-            char c = s.charAt(pos);
+            final char c = s.charAt(pos);
             switch(state)
             {
                 case SIGN:
@@ -237,7 +237,7 @@ public class StringUtils
             }
         }
         
-        int finalExpo = expoSign*explicitExponent + implicitExponent;
+        final int finalExpo = expoSign*explicitExponent + implicitExponent;
         if(mantissa == 0) {//easiest case!
           if (sign == -1) {
             return -0.0;

@@ -64,19 +64,19 @@ public class NewGLMNETTest
     {
         System.out.println("train");
         
-        Random rand  = new XORWOW();
-        ClassificationDataSet data = new ClassificationDataSet(6, new CategoricalData[0], new CategoricalData(2));
+        final Random rand  = new XORWOW();
+        final ClassificationDataSet data = new ClassificationDataSet(6, new CategoricalData[0], new CategoricalData(2));
         
         for(int i = 0; i < 500; i++)
         {
-            double Z1 = rand.nextDouble()*20-10;
-            double Z2 = rand.nextDouble()*20-10;
-            Vec v = DenseVector.toDenseVec(Z1, -Z1, Z1, Z2, -Z2, Z2);
+            final double Z1 = rand.nextDouble()*20-10;
+            final double Z2 = rand.nextDouble()*20-10;
+            final Vec v = DenseVector.toDenseVec(Z1, -Z1, Z1, Z2, -Z2, Z2);
             data.addDataPoint(v, (int) (Math.signum(Z1+0.1*Z2)+1)/2);
         }
         
         Vec w;
-        NewGLMNET glmnet = new NewGLMNET();
+        final NewGLMNET glmnet = new NewGLMNET();
         glmnet.setUseBias(false);
         
         glmnet.setC(1e-2);
@@ -91,7 +91,7 @@ public class NewGLMNETTest
         while (w.nnz() > 1);//we should be able to find this pretty easily
         
         assertEquals(1, w.nnz());
-        int nonZeroIndex = w.getNonZeroIterator().next().getIndex();
+        final int nonZeroIndex = w.getNonZeroIterator().next().getIndex();
         assertTrue(nonZeroIndex < 3);//should be one of the more important weights
         if(nonZeroIndex == 1) { //check the sign is correct
           assertEquals(-1, (int)Math.signum(w.get(nonZeroIndex)));
@@ -136,19 +136,19 @@ public class NewGLMNETTest
         public double b;
 
         @Override
-        public CategoricalResults classify(DataPoint data)
+        public CategoricalResults classify(final DataPoint data)
         {
             throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
         }
 
         @Override
-        public void trainC(ClassificationDataSet dataSet, ExecutorService threadPool)
+        public void trainC(final ClassificationDataSet dataSet, final ExecutorService threadPool)
         {
             throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
         }
 
         @Override
-        public void trainC(ClassificationDataSet dataSet)
+        public void trainC(final ClassificationDataSet dataSet)
         {
             throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
         }
@@ -166,13 +166,13 @@ public class NewGLMNETTest
         }
 
         @Override
-        public Vec getRawWeight(int index)
+        public Vec getRawWeight(final int index)
         {
             return w;
         }
 
         @Override
-        public double getBias(int index)
+        public double getBias(final int index)
         {
             return b;
         }
@@ -190,15 +190,15 @@ public class NewGLMNETTest
     {
         //Had difficulty making a problem hard enough to show improvment in warms tart but also fast to run. 
         //so made test check that warm from some weird value gets to the same places
-        Random rand  = new XORWOW();
-        ClassificationDataSet train = new ClassificationDataSet(600, new CategoricalData[0], new CategoricalData(2));
+        final Random rand  = new XORWOW();
+        final ClassificationDataSet train = new ClassificationDataSet(600, new CategoricalData[0], new CategoricalData(2));
         
         for(int i = 0; i < 200; i++)
         {
-            double Z1 = rand.nextDouble()*20-10;
-            double Z2 = rand.nextDouble()*20-10;
+            final double Z1 = rand.nextDouble()*20-10;
+            final double Z2 = rand.nextDouble()*20-10;
             
-            Vec v = new DenseVector(train.getNumNumericalVars());
+            final Vec v = new DenseVector(train.getNumNumericalVars());
             for(int j = 0; j < v.length(); j++)
             {
                 if (j > 500)
@@ -217,18 +217,18 @@ public class NewGLMNETTest
             train.addDataPoint(v, (int) (Math.signum(Z1+0.1*Z2)+1)/2);
         }
         
-        NewGLMNET truth = new NewGLMNET(0.001);
+        final NewGLMNET truth = new NewGLMNET(0.001);
         truth.setTolerance(1e-11);
         truth.trainC(train);
         
         
-        DumbWeightHolder dumb = new DumbWeightHolder();
+        final DumbWeightHolder dumb = new DumbWeightHolder();
         dumb.w = DenseVector.random(train.getNumNumericalVars()).normalized();
         dumb.b = rand.nextDouble();
         
         
         
-        NewGLMNET warm = new NewGLMNET(0.001);
+        final NewGLMNET warm = new NewGLMNET(0.001);
         warm.setTolerance(1e-7);
         warm.trainC(train, dumb);
         

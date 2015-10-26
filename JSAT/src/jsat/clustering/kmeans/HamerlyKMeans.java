@@ -47,7 +47,7 @@ public class HamerlyKMeans extends KMeans
      * @param seedSelection the method of initial seed selection
      * @param rand the source of randomnes to use
      */
-    public HamerlyKMeans(DistanceMetric dm, SeedSelectionMethods.SeedSelection seedSelection, Random rand)
+    public HamerlyKMeans(final DistanceMetric dm, final SeedSelectionMethods.SeedSelection seedSelection, final Random rand)
     {
         super(dm, seedSelection, rand);
     }
@@ -57,7 +57,7 @@ public class HamerlyKMeans extends KMeans
      * @param dm the distance metric to use for clustering
      * @param seedSelection the method of initial seed selection
      */
-    public HamerlyKMeans(DistanceMetric dm, SeedSelectionMethods.SeedSelection seedSelection)
+    public HamerlyKMeans(final DistanceMetric dm, final SeedSelectionMethods.SeedSelection seedSelection)
     {
         this(dm, seedSelection, new XORWOW());
     }
@@ -70,7 +70,7 @@ public class HamerlyKMeans extends KMeans
         this(new EuclideanDistance(), SeedSelectionMethods.SeedSelection.KPP);
     }
 
-    public HamerlyKMeans(HamerlyKMeans toCopy)
+    public HamerlyKMeans(final HamerlyKMeans toCopy)
     {
         super(toCopy);
     }
@@ -78,7 +78,7 @@ public class HamerlyKMeans extends KMeans
     //TODO reduce some code duplication in the methods bellow 
     
     @Override
-    protected double cluster(final DataSet dataSet, List<Double> accelCache, final int k, final List<Vec> means, final int[] assignment, final boolean exactTotal, ExecutorService threadpool, boolean returnError)
+    protected double cluster(final DataSet dataSet, final List<Double> accelCache, final int k, final List<Vec> means, final int[] assignment, final boolean exactTotal, final ExecutorService threadpool, final boolean returnError)
     {
         final int N = dataSet.getSampleSize();
         final int D = dataSet.getNumNumericalVars();
@@ -160,7 +160,7 @@ public class HamerlyKMeans extends KMeans
             @Override
             protected Vec[] initialValue()
             {
-                Vec[] toRet = new Vec[means.size()];
+                final Vec[] toRet = new Vec[means.size()];
                 for(int i = 0; i < k; i++) {
                   toRet[i] = new DenseVector(D);
                 }
@@ -204,7 +204,7 @@ public class HamerlyKMeans extends KMeans
                         @Override
                         public void run()
                         {
-                            Vec[] deltas = localDeltas.get();
+                            final Vec[] deltas = localDeltas.get();
                             int localUpdates = 0;
                             for(int i = ID; i < N; i+=SystemInfo.LogicalCores)
                             {
@@ -231,7 +231,7 @@ public class HamerlyKMeans extends KMeans
                 {
                     latch.await();
                 }
-                catch (InterruptedException ex)
+                catch (final InterruptedException ex)
                 {
                     Logger.getLogger(HamerlyKMeans.class.getName()).log(Level.SEVERE, null, ex);
                 }
@@ -250,7 +250,7 @@ public class HamerlyKMeans extends KMeans
 
             if (exactTotal == true) {
               for (int i = 0; i < N; i++) {
-                double dist = dm.dist(i, means.get(assignment[i]), meanQI.get(assignment[i]), X, distAccel);
+                final double dist = dm.dist(i, means.get(assignment[i]), meanQI.get(assignment[i]), X, distAccel);
                 totalDistance += Math.pow(dist, 2);
                 if (saveCentroidDistance) {
                   nearestCentroidDist[i] = dist;
@@ -284,14 +284,14 @@ public class HamerlyKMeans extends KMeans
      * @param deltas the location to store the computed delta if one occurs 
      * @return 0 if no changes in assignment were made, 1 if a change in assignment was made
      */
-    private int mainLoopWork(DataSet dataSet, int i, double[] s, int[] assignment, double[] u, 
-            double[] l, AtomicLongArray q, Vec[] deltas, final List<Vec> X, final List<Double> distAccel, final List<Vec> means, final List<List<Double>> meanQI)
+    private int mainLoopWork(final DataSet dataSet, final int i, final double[] s, final int[] assignment, final double[] u, 
+            final double[] l, final AtomicLongArray q, final Vec[] deltas, final List<Vec> X, final List<Double> distAccel, final List<Vec> means, final List<List<Double>> meanQI)
     {
         final int a_i = assignment[i];
-        double m = Math.max(s[a_i] / 2, l[i]);
+        final double m = Math.max(s[a_i] / 2, l[i]);
         if (u[i] > m)//first bound test
         {
-            Vec x = X.get(i);
+            final Vec x = X.get(i);
             u[i] = dm.dist(i, means.get(a_i), meanQI.get(a_i), X, distAccel);//tighten upper bound
             if (u[i] > m)  //second bound test
             {
@@ -317,7 +317,7 @@ public class HamerlyKMeans extends KMeans
         //TODO temp object for puting all the query info into a cache, should probably be cleaned up - or change original code to have one massive list and then use sub lits to get the QIs individualy 
         final DoubleList meanCache = meanQIs.get(0).isEmpty() ? null : new DoubleList(meanQIs.size());
         if (meanCache != null) {
-          for (List<Double> qi : meanQIs) {
+          for (final List<Double> qi : meanQIs) {
             meanCache.addAll(qi);
           }
         }
@@ -379,14 +379,14 @@ public class HamerlyKMeans extends KMeans
           {
             latch.await();
           }
-          catch (InterruptedException ex)
+          catch (final InterruptedException ex)
           {
             Logger.getLogger(HamerlyKMeans.class.getName()).log(Level.SEVERE, null, ex);
           }
         }
     }
     
-    private void Initialize(final DataSet d, final AtomicLongArray q, final List<Vec> means, final Vec[] tmp, final Vec[] cP, final double[] u, final double[] l, final int[] a, ExecutorService threadpool, final ThreadLocal<Vec[]> localDeltas, final List<Vec> X, final List<Double> distAccel, final List<List<Double>> meanQI)
+    private void Initialize(final DataSet d, final AtomicLongArray q, final List<Vec> means, final Vec[] tmp, final Vec[] cP, final double[] u, final double[] l, final int[] a, final ExecutorService threadpool, final ThreadLocal<Vec[]> localDeltas, final List<Vec> X, final List<Double> distAccel, final List<List<Double>> meanQI)
     {
         for(int j = 0; j < means.size(); j++)
         {
@@ -406,8 +406,8 @@ public class HamerlyKMeans extends KMeans
         {
             for(int i = 0; i < u.length; i++)
             {
-                Vec x = X.get(i);
-                int j = PointAllCtrs(x, i, means, a, u, l, X, distAccel, meanQI);
+                final Vec x = X.get(i);
+                final int j = PointAllCtrs(x, i, means, a, u, l, X, distAccel, meanQI);
                 q.incrementAndGet(j);
                 cP[j].mutableAdd(x);
             }
@@ -423,11 +423,11 @@ public class HamerlyKMeans extends KMeans
                     @Override
                     public void run()
                     {
-                        Vec[] deltas = localDeltas.get();
+                        final Vec[] deltas = localDeltas.get();
                         for (int i = ID; i < u.length; i+=SystemInfo.LogicalCores)
                         {
-                            Vec x = X.get(i);
-                            int j = PointAllCtrs(x, i, means, a, u, l, X, distAccel, meanQI);
+                            final Vec x = X.get(i);
+                            final int j = PointAllCtrs(x, i, means, a, u, l, X, distAccel, meanQI);
                             q.incrementAndGet(j);
                             deltas[j].mutableAdd(x);
                         }
@@ -449,7 +449,7 @@ public class HamerlyKMeans extends KMeans
             {
                 latch.await();
             }
-            catch (InterruptedException ex)
+            catch (final InterruptedException ex)
             {
                 Logger.getLogger(HamerlyKMeans.class.getName()).log(Level.SEVERE, null, ex);
             }
@@ -466,7 +466,7 @@ public class HamerlyKMeans extends KMeans
      * @param l
      * @return the index of the closest cluster center 
      */
-    private int PointAllCtrs(Vec x, int i, List<Vec> means, int[] a, double[] u, double[] l, final List<Vec> X, final List<Double> distAccel, final List<List<Double>> meanQI)
+    private int PointAllCtrs(final Vec x, final int i, final List<Vec> means, final int[] a, final double[] u, final double[] l, final List<Vec> X, final List<Double> distAccel, final List<List<Double>> meanQI)
     {
         double secondLowest = Double.POSITIVE_INFINITY;
         int slIndex = -1;
@@ -475,7 +475,7 @@ public class HamerlyKMeans extends KMeans
         
         for(int j = 0; j < means.size(); j++)
         {
-            double dist = dm.dist(i, means.get(j), meanQI.get(j), X, distAccel);
+            final double dist = dm.dist(i, means.get(j), meanQI.get(j), X, distAccel);
 
             if(dist < secondLowest)
             {
@@ -500,11 +500,11 @@ public class HamerlyKMeans extends KMeans
         return lIndex;
     }
     
-    private void moveCenters(List<Vec> means, Vec[] tmpSpace, Vec[] cP, AtomicLongArray q, double[] p, final List<List<Double>> meanQI)
+    private void moveCenters(final List<Vec> means, final Vec[] tmpSpace, final Vec[] cP, final AtomicLongArray q, final double[] p, final List<List<Double>> meanQI)
     {
         for(int j = 0; j < means.size(); j++)
         {
-            long count = q.get(j);
+            final long count = q.get(j);
             if(count > 0)
             {
                 //compute new mean
@@ -528,7 +528,7 @@ public class HamerlyKMeans extends KMeans
         }
     }
     
-    private void UpdateBounds(double[] p, int[] a, double[] u, double[] l)
+    private void UpdateBounds(final double[] p, final int[] a, final double[] u, final double[] l)
     {
         double secondHighest = Double.NEGATIVE_INFINITY;
         int shIndex = -1;
@@ -538,7 +538,7 @@ public class HamerlyKMeans extends KMeans
         //find argmax values 
         for(int j = 0; j < p.length; j++)
         {
-            double dist = p[j];
+            final double dist = p[j];
             if(dist > secondHighest)
             {
                 if(dist > highest)

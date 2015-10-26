@@ -60,7 +60,7 @@ public class TreePruner
      * @param method the pruning method to use
      * @param testSet the test set of data points to use for pruning
      */
-    public static void prune(TreeNodeVisitor root, PruningMethod method, ClassificationDataSet testSet)
+    public static void prune(final TreeNodeVisitor root, final PruningMethod method, final ClassificationDataSet testSet)
     {
         prune(root, method, testSet.getAsDPPList());
     }
@@ -71,7 +71,7 @@ public class TreePruner
      * @param method the pruning method to use
      * @param testSet the test set of data points to use for pruning
      */
-    public static void prune(TreeNodeVisitor root, PruningMethod method, List<DataPointPair<Integer>> testSet)
+    public static void prune(final TreeNodeVisitor root, final PruningMethod method, final List<DataPointPair<Integer>> testSet)
     {
         //TODO add vargs for extra arguments that may be used by pruning methods
         if(method == PruningMethod.NONE ) {
@@ -93,7 +93,7 @@ public class TreePruner
      * @param testSet the set of testing points to apply to this node
      * @return the number of nodes pruned from the tree
      */
-    private static int pruneReduceError(TreeNodeVisitor parent, int pathFollowed, TreeNodeVisitor current, List<DataPointPair<Integer>> testSet)
+    private static int pruneReduceError(final TreeNodeVisitor parent, final int pathFollowed, final TreeNodeVisitor current, final List<DataPointPair<Integer>> testSet)
     {
         if(current == null) {
           return 0;
@@ -104,13 +104,13 @@ public class TreePruner
         if(!current.isLeaf())
         {
             //Each child should only be given testing points that would decend down that path
-            int numSplits = current.childrenCount();
-            List<List<DataPointPair<Integer>>> splits = new ArrayList<List<DataPointPair<Integer>>>(numSplits);
+            final int numSplits = current.childrenCount();
+            final List<List<DataPointPair<Integer>>> splits = new ArrayList<List<DataPointPair<Integer>>>(numSplits);
             //TODO if splits = 2, reorder the original array and use subList to return memory efficent references
             for (int i = 0; i < numSplits; i++) {
               splits.add(new ArrayList<DataPointPair<Integer>>());
             }
-            for (DataPointPair<Integer> dpp : testSet) {
+            for (final DataPointPair<Integer> dpp : testSet) {
               splits.get(current.getPath(dpp.getDataPoint())).add(dpp);
             }
 
@@ -127,10 +127,10 @@ public class TreePruner
             double childCorrect = 0;
             double parrentCorrect = 0;
             
-            for(DataPointPair<Integer> dpp : testSet)
+            for(final DataPointPair<Integer> dpp : testSet)
             {
-                DataPoint dp = dpp.getDataPoint();
-                int truth = dpp.getPair();
+                final DataPoint dp = dpp.getDataPoint();
+                final int truth = dpp.getPair();
                 if(current.localClassify(dp).mostLikely() == truth) {
                   childCorrect += dp.getWeight();
                 }
@@ -160,7 +160,7 @@ public class TreePruner
      * @param alpha the Confidence 
      * @return expected upperbound on errors
      */
-    private static double pruneErrorBased(TreeNodeVisitor parent, int pathFollowed, TreeNodeVisitor current, List<DataPointPair<Integer>> testSet, double alpha)
+    private static double pruneErrorBased(final TreeNodeVisitor parent, final int pathFollowed, final TreeNodeVisitor current, final List<DataPointPair<Integer>> testSet, final double alpha)
     {
         //TODO this does a lot of redundant computation. Re-write this code to keep track of where datapoints came from to avoid redudancy. 
         if(current == null || testSet.isEmpty()) {
@@ -168,14 +168,14 @@ public class TreePruner
         } else if(current.isLeaf())//return number of errors
         {
             int errors = 0;
-            for(DataPointPair<Integer> dpp : testSet) {
+            for(final DataPointPair<Integer> dpp : testSet) {
             if (current.localClassify(dpp.getDataPoint()).mostLikely() != dpp.getPair()) {
               errors++;
             }
           }
             return computeBinomialUpperBound(testSet.size(), alpha, errors);
         }
-        List<List<DataPointPair<Integer>>> splitSet = new ArrayList<List<DataPointPair<Integer>>>(current.childrenCount());
+        final List<List<DataPointPair<Integer>>> splitSet = new ArrayList<List<DataPointPair<Integer>>>(current.childrenCount());
         for(int i = 0; i < current.childrenCount(); i++) {
           splitSet.add(new ArrayList<DataPointPair<Integer>>());
         }
@@ -183,14 +183,14 @@ public class TreePruner
         int localErrors = 0;
         double subTreeScore = 0;
         
-        for(DataPointPair<Integer> dpp : testSet)
+        for(final DataPointPair<Integer> dpp : testSet)
         {
-            DataPoint dp = dpp.getDataPoint();
+            final DataPoint dp = dpp.getDataPoint();
             if(current.localClassify(dp).mostLikely() != dpp.getPair()) {
               localErrors++;
             }
             
-            int path = current.getPath(dp);
+            final int path = current.getPath(dp);
             if(path >= 0) {
               splitSet.get(path).add(dpp);
             }
@@ -224,16 +224,16 @@ public class TreePruner
           maxChildTreeScore = Double.POSITIVE_INFINITY;
         } else
         {
-            TreeNodeVisitor maxChildNode = current.getChild(maxChild);
+            final TreeNodeVisitor maxChildNode = current.getChild(maxChild);
             int otherE = 0;
             for (int path = 0; path < splitSet.size(); path++) {
-            for (DataPointPair<Integer> dpp : splitSet.get(path)) {
+            for (final DataPointPair<Integer> dpp : splitSet.get(path)) {
               if (maxChildNode.classify(dpp.getDataPoint()).mostLikely() != dpp.getPair()) {
                 otherE++;
               }
             }
           }
-            int otherN = testSet.size();
+            final int otherN = testSet.size();
 
             maxChildTreeScore = computeBinomialUpperBound(otherN, alpha, otherE);
         }
@@ -247,7 +247,7 @@ public class TreePruner
 
                 return maxChildTreeScore;
             }
-            catch(UnsupportedOperationException ex)
+            catch(final UnsupportedOperationException ex)
             {
                 //fall out to others, this is ok
             }
@@ -267,7 +267,7 @@ public class TreePruner
         
     }
     
-    private static double computeBinomialUpperBound(final int N, double alpha, int errors)
+    private static double computeBinomialUpperBound(final int N, final double alpha, final int errors)
     {
         return N * (1.0 - SpecialMath.invBetaIncReg(alpha, N - errors+1e-9, errors + 1.0));
     }

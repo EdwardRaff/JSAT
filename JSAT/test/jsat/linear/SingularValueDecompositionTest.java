@@ -47,9 +47,9 @@ public class SingularValueDecompositionTest
         
     static ExecutorService threadpool = Executors.newFixedThreadPool(SystemInfo.LogicalCores+1, new ThreadFactory() {
 
-        public Thread newThread(Runnable r)
+        public Thread newThread(final Runnable r)
         {
-            Thread thread = new Thread(r);
+            final Thread thread = new Thread(r);
             thread.setDaemon(true);
             return thread;
         }
@@ -154,13 +154,13 @@ public class SingularValueDecompositionTest
     public void testGetSingularValues()
     {
         System.out.println("getSingularValues");
-        double[] sValsATrue = new double[] {25.615015549269760,   9.967372402268001 ,  4.046901102951370 ,  2.356215314072247,   1.262262517005518};
-        double[] sValsDTrue = new double[] {10.866928472828468,   4.351234464538032,   3.997076957108316,                   0,                   0};
-        double[] sValsCTrue = new double[] {29.846912916029009,  11.902860295602228,   9.905493706861000,   6.102122989264148,   1.768896722137177};
+        final double[] sValsATrue = new double[] {25.615015549269760,   9.967372402268001 ,  4.046901102951370 ,  2.356215314072247,   1.262262517005518};
+        final double[] sValsDTrue = new double[] {10.866928472828468,   4.351234464538032,   3.997076957108316,                   0,                   0};
+        final double[] sValsCTrue = new double[] {29.846912916029009,  11.902860295602228,   9.905493706861000,   6.102122989264148,   1.768896722137177};
         
-        double[] sValsA = new SingularValueDecomposition(A).getSingularValues();
-        double[] sValsD = new SingularValueDecomposition(D).getSingularValues();
-        double[] sValsC = new SingularValueDecomposition(C).getSingularValues();
+        final double[] sValsA = new SingularValueDecomposition(A).getSingularValues();
+        final double[] sValsD = new SingularValueDecomposition(D).getSingularValues();
+        final double[] sValsC = new SingularValueDecomposition(C).getSingularValues();
         
         for(int i = 0; i < sValsA.length; i++)
         {
@@ -177,9 +177,9 @@ public class SingularValueDecompositionTest
     public void testGetNorm2()
     {
         System.out.println("getNorm2");
-        double trueNormA = 25.615015549269760;
-        double trueNormC = 29.846912916029009;
-        double trueNormD = 10.866928472828468;
+        final double trueNormA = 25.615015549269760;
+        final double trueNormC = 29.846912916029009;
+        final double trueNormD = 10.866928472828468;
         
         assertEquals(trueNormA, new SingularValueDecomposition(A).getNorm2(), delta);
         assertEquals(trueNormC, new SingularValueDecomposition(C).getNorm2(), delta);
@@ -193,9 +193,9 @@ public class SingularValueDecompositionTest
     public void testGetCondition()
     {
         System.out.println("getCondition");
-        double trueCondA = 20.292938437272621;
-        double trueCondC = 16.873180068968665;
-        double trueCondD = Double.POSITIVE_INFINITY;
+        final double trueCondA = 20.292938437272621;
+        final double trueCondC = 16.873180068968665;
+        final double trueCondD = Double.POSITIVE_INFINITY;
         
         assertEquals(trueCondA, new SingularValueDecomposition(A).getCondition(), delta);
         assertEquals(trueCondC, new SingularValueDecomposition(C).getCondition(), delta);
@@ -209,9 +209,9 @@ public class SingularValueDecompositionTest
     public void testGetRank_0args()
     {
         System.out.println("getRank");
-        int rankA = 5;
-        int rankC = 5;
-        int rankD = 3;
+        final int rankA = 5;
+        final int rankC = 5;
+        final int rankD = 3;
         
         assertEquals(rankA, new SingularValueDecomposition(A).getRank());
         assertEquals(rankC, new SingularValueDecomposition(C).getRank());
@@ -225,10 +225,10 @@ public class SingularValueDecompositionTest
     public void testGetRank_double()
     {
         System.out.println("getRank");
-        double tol = 5.0;//A very large tolerance!
-        int rankA = 2;
-        int rankC = 4;
-        int rankD = 1;
+        final double tol = 5.0;//A very large tolerance!
+        final int rankA = 2;
+        final int rankC = 4;
+        final int rankD = 1;
         
         assertEquals(rankA, new SingularValueDecomposition(A).getRank(tol));
         assertEquals(rankC, new SingularValueDecomposition(C).getRank(tol));
@@ -242,13 +242,13 @@ public class SingularValueDecompositionTest
     public void testGetInverseSingularValues_0args()
     {
         System.out.println("getInverseSingularValues");
-        double[] sValsATrue = new double[] {1.0/25.615015549269760,   1.0/9.967372402268001 ,  1.0/4.046901102951370 ,  1.0/2.356215314072247,   1.0/1.262262517005518};
-        double[] sValsDTrue = new double[] {1.0/10.866928472828468,   1.0/4.351234464538032,   1.0/3.997076957108316,                   0,                   0};
-        double[] sValsCTrue = new double[] {1.0/29.846912916029009,  1.0/11.902860295602228,   1.0/9.905493706861000,   1.0/6.102122989264148,   1.0/1.768896722137177};
+        final double[] sValsATrue = new double[] {1.0/25.615015549269760,   1.0/9.967372402268001 ,  1.0/4.046901102951370 ,  1.0/2.356215314072247,   1.0/1.262262517005518};
+        final double[] sValsDTrue = new double[] {1.0/10.866928472828468,   1.0/4.351234464538032,   1.0/3.997076957108316,                   0,                   0};
+        final double[] sValsCTrue = new double[] {1.0/29.846912916029009,  1.0/11.902860295602228,   1.0/9.905493706861000,   1.0/6.102122989264148,   1.0/1.768896722137177};
         
-        double[] sValsA = new SingularValueDecomposition(A).getInverseSingularValues();
-        double[] sValsD = new SingularValueDecomposition(D).getInverseSingularValues();
-        double[] sValsC = new SingularValueDecomposition(C).getInverseSingularValues();
+        final double[] sValsA = new SingularValueDecomposition(A).getInverseSingularValues();
+        final double[] sValsD = new SingularValueDecomposition(D).getInverseSingularValues();
+        final double[] sValsC = new SingularValueDecomposition(C).getInverseSingularValues();
         
         for(int i = 0; i < sValsA.length; i++)
         {
@@ -265,14 +265,14 @@ public class SingularValueDecompositionTest
     public void testGetInverseSingularValues_double()
     {
         System.out.println("getInverseSingularValues");
-        double tol = 5.0;
-        double[] sValsATrue = new double[] {1.0/25.615015549269760,   1.0/9.967372402268001 ,  0 ,  0,   0};
-        double[] sValsDTrue = new double[] {1.0/10.866928472828468,   0,   0,                   0,                   0};
-        double[] sValsCTrue = new double[] {1.0/29.846912916029009,  1.0/11.902860295602228,   1.0/9.905493706861000,   1.0/6.102122989264148,   0};
+        final double tol = 5.0;
+        final double[] sValsATrue = new double[] {1.0/25.615015549269760,   1.0/9.967372402268001 ,  0 ,  0,   0};
+        final double[] sValsDTrue = new double[] {1.0/10.866928472828468,   0,   0,                   0,                   0};
+        final double[] sValsCTrue = new double[] {1.0/29.846912916029009,  1.0/11.902860295602228,   1.0/9.905493706861000,   1.0/6.102122989264148,   0};
         
-        double[] sValsA = new SingularValueDecomposition(A).getInverseSingularValues(tol);
-        double[] sValsD = new SingularValueDecomposition(D).getInverseSingularValues(tol);
-        double[] sValsC = new SingularValueDecomposition(C).getInverseSingularValues(tol);
+        final double[] sValsA = new SingularValueDecomposition(A).getInverseSingularValues(tol);
+        final double[] sValsD = new SingularValueDecomposition(D).getInverseSingularValues(tol);
+        final double[] sValsC = new SingularValueDecomposition(C).getInverseSingularValues(tol);
         
         for(int i = 0; i < sValsA.length; i++)
         {
@@ -289,7 +289,7 @@ public class SingularValueDecompositionTest
     public void testGetPseudoInverse()
     {
         System.out.println("getPseudoInverse");
-        Matrix truePInvC = new DenseMatrix(new double[][]
+        final Matrix truePInvC = new DenseMatrix(new double[][]
         {
             {   0.062400933442643,  -0.016718531213984,   0.168007905973973,  -0.020034948098766,  -0.198766823807711 },
             {  -0.005194625607728,   0.020172975789774,  -0.094455454689009,   0.047276210963183,   0.067661938176502 },
@@ -300,7 +300,7 @@ public class SingularValueDecompositionTest
             {  -0.003172181333343,  -0.061497842572707,  -0.093209356832114,   0.109623741697116,   0.088614156738433 }
         });
         
-        Matrix truePInvD = new DenseMatrix(new double[][]
+        final Matrix truePInvD = new DenseMatrix(new double[][]
         {
             {   0.222222222222222,  -0.074074074074074,  -0.037037037037037,                   0,                   0},
             {  -0.015873015873016,   0.148148148148148,  -0.068783068783069,                   0,                   0},
@@ -309,8 +309,8 @@ public class SingularValueDecompositionTest
             {                   0,                   0,                   0,                   0,                   0}
         });
         
-        Matrix pInvC = new SingularValueDecomposition(C.clone()).getPseudoInverse();
-        Matrix pInvD = new SingularValueDecomposition(D.clone()).getPseudoInverse();
+        final Matrix pInvC = new SingularValueDecomposition(C.clone()).getPseudoInverse();
+        final Matrix pInvD = new SingularValueDecomposition(D.clone()).getPseudoInverse();
         
         assertTrue(truePInvD.equals(pInvD, delta));
         assertTrue(truePInvC.equals(pInvC, delta));
@@ -324,10 +324,10 @@ public class SingularValueDecompositionTest
     public void testGetPseudoDet_0args()
     {
         System.out.println("getPseudoDet");
-        double pDetA = 3073;
-        double pDetB = 8068;
-        double pDetC = 3.798484118697878e+004;
-        double pDetD = 189;
+        final double pDetA = 3073;
+        final double pDetB = 8068;
+        final double pDetC = 3.798484118697878e+004;
+        final double pDetD = 189;
         
         assertEquals(pDetA, new SingularValueDecomposition(A).getPseudoDet(), delta);
         assertEquals(pDetB, new SingularValueDecomposition(B).getPseudoDet(), delta);
@@ -343,7 +343,7 @@ public class SingularValueDecompositionTest
     public void testSolve_Vec()
     {
         System.out.println("solve");
-        Vec b = DenseVector.toDenseVec(1.0, 2.0, 3.0, 4.0, 5.0);
+        final Vec b = DenseVector.toDenseVec(1.0, 2.0, 3.0, 4.0, 5.0);
         SingularValueDecomposition instance = null;
         
         instance = new SingularValueDecomposition(A.clone());
@@ -356,7 +356,7 @@ public class SingularValueDecompositionTest
             x = instance.solve(b);
             fail("Should not have occured");
         }
-        catch(ArithmeticException ex)
+        catch(final ArithmeticException ex)
         {
             
         }

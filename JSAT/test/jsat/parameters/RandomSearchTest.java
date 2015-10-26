@@ -102,7 +102,7 @@ public class RandomSearchTest
         instance.trainC(classData);
         instance = instance.clone();
         
-        DumbModel model = (DumbModel) instance.getTrainedClassifier();
+        final DumbModel model = (DumbModel) instance.getTrainedClassifier();
         assertEquals(1, model.param1);
         assertEquals(2, model.param2, 0.5);
         assertEquals(3, model.param3);
@@ -123,7 +123,7 @@ public class RandomSearchTest
         instance.trainC(classData);
         instance = instance.clone();
         
-        DumbModel model = (DumbModel) instance.getTrainedClassifier();
+        final DumbModel model = (DumbModel) instance.getTrainedClassifier();
         assertEquals(1, model.param1);
         assertEquals(2, model.param2, 0.5);
         assertEquals(3, model.param3);
@@ -146,7 +146,7 @@ public class RandomSearchTest
         instance.trainC(classData, ex);
         instance = instance.clone();
         
-        DumbModel model = (DumbModel) instance.getTrainedClassifier();
+        final DumbModel model = (DumbModel) instance.getTrainedClassifier();
         assertEquals(1, model.param1);
         assertEquals(2, model.param2, 0.5);
         assertEquals(3, model.param3);
@@ -168,7 +168,7 @@ public class RandomSearchTest
         instance.train(regData);
         instance = instance.clone();
         
-        DumbModel model = (DumbModel) instance.getTrainedRegressor();
+        final DumbModel model = (DumbModel) instance.getTrainedRegressor();
         assertEquals(1, model.param1);
         assertEquals(2, model.param2, 0.5);
         assertEquals(3, model.param3);
@@ -190,7 +190,7 @@ public class RandomSearchTest
         instance.train(regData, ex);
         instance = instance.clone();
         
-        DumbModel model = (DumbModel) instance.getTrainedRegressor();
+        final DumbModel model = (DumbModel) instance.getTrainedRegressor();
         assertEquals(1, model.param1);
         assertEquals(2, model.param2, 0.5);
         assertEquals(3, model.param3);

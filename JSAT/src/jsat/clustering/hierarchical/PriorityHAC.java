@@ -19,7 +19,7 @@ public class PriorityHAC extends KClustererBase
 {
 
 	private static final long serialVersionUID = -702489462117567542L;
-	private UpdatableClusterDissimilarity distMeasure;
+	private final UpdatableClusterDissimilarity distMeasure;
     /**
      * Stores the merge list, each merge is in a pair of 2 values. The final 
      * merge list should contain the last merged pairs at the front of the array
@@ -31,7 +31,7 @@ public class PriorityHAC extends KClustererBase
     private int[] merges;
     private DataSet curDataSet;
 
-    public PriorityHAC(UpdatableClusterDissimilarity dissMeasure)
+    public PriorityHAC(final UpdatableClusterDissimilarity dissMeasure)
     {
         this.distMeasure = dissMeasure;
     }
@@ -40,7 +40,7 @@ public class PriorityHAC extends KClustererBase
      * Copy constructor
      * @param toCopy the object to copy
      */
-    public PriorityHAC(PriorityHAC toCopy)
+    public PriorityHAC(final PriorityHAC toCopy)
     {
         this.distMeasure = toCopy.distMeasure.clone();
         if(toCopy.merges != null) {
@@ -52,70 +52,70 @@ public class PriorityHAC extends KClustererBase
     
     
     @Override
-    public int[] cluster(DataSet dataSet, int[] designations)
+    public int[] cluster(final DataSet dataSet, final int[] designations)
     {
         return cluster(dataSet, 2, (int)Math.sqrt(dataSet.getSampleSize()), designations);
     }
 
     @Override
-    public int[] cluster(DataSet dataSet, ExecutorService threadpool, int[] designations)
+    public int[] cluster(final DataSet dataSet, final ExecutorService threadpool, final int[] designations)
     {
         return cluster(dataSet, 2, (int)Math.sqrt(dataSet.getSampleSize()), threadpool, designations);
     }
 
     @Override
-    public int[] cluster(DataSet dataSet, int clusters, ExecutorService threadpool, int[] designations)
+    public int[] cluster(final DataSet dataSet, final int clusters, final ExecutorService threadpool, final int[] designations)
     {
         return cluster(dataSet, clusters, clusters, threadpool, designations);
     }
 
     @Override
-    public int[] cluster(DataSet dataSet, int clusters, int[] designations)
+    public int[] cluster(final DataSet dataSet, final int clusters, final int[] designations)
     {
         return cluster(dataSet, clusters, clusters, designations);
     }
 
     @Override
-    public int[] cluster(DataSet dataSet, int lowK, int highK, ExecutorService threadpool, int[] designations)
+    public int[] cluster(final DataSet dataSet, final int lowK, final int highK, final ExecutorService threadpool, final int[] designations)
     {
         return cluster(dataSet, lowK, highK, designations);
     }
 
     
-    private void updateDistanceTableAndQueues(List<IntPriorityQueue> P, int[] I, int k1, int k2, final double[][] distanceMatrix)
+    private void updateDistanceTableAndQueues(final List<IntPriorityQueue> P, final int[] I, final int k1, final int k2, final double[][] distanceMatrix)
     {
-        IntPriorityQueue Pk1 = P.get(k1);
+        final IntPriorityQueue Pk1 = P.get(k1);
         for(int i = 0; i < P.size(); i++)
         {
             if(I[i] == 0 || i == k2 || i == k1) {
               continue;
             }
-            IntPriorityQueue curTargetQ = P.get(i);
+            final IntPriorityQueue curTargetQ = P.get(i);
             
             curTargetQ.remove(k1);
             curTargetQ.remove(k2);
             
-            double dis = distMeasure.dissimilarity(k1, I[k1], k2, I[k2], i, I[i], distanceMatrix);
+            final double dis = distMeasure.dissimilarity(k1, I[k1], k2, I[k2], i, I[i], distanceMatrix);
             setDistance(distanceMatrix, i, k1, dis);
             curTargetQ.add(k1);
             Pk1.add(i);
         }
     }
     
-    private List<IntPriorityQueue> setUpProrityQueue(int[] I, final double[][] distanceMatrix)
+    private List<IntPriorityQueue> setUpProrityQueue(final int[] I, final double[][] distanceMatrix)
     {
-        List<IntPriorityQueue> P = new ArrayList<IntPriorityQueue>(I.length);
+        final List<IntPriorityQueue> P = new ArrayList<IntPriorityQueue>(I.length);
         for(int i = 0; i < I.length; i++)
         {
             //The row index we are considering
             final int supremeIndex = i;
-            IntPriorityQueue pq = new IntPriorityQueue(I.length, new Comparator<Integer>() 
+            final IntPriorityQueue pq = new IntPriorityQueue(I.length, new Comparator<Integer>() 
             {
                 @Override
-                public int compare(Integer o1, Integer o2)
+                public int compare(final Integer o1, final Integer o2)
                 {
-                    double d1 = getDistance(distanceMatrix, supremeIndex, o1);
-                    double d2 = getDistance(distanceMatrix, supremeIndex, o2);
+                    final double d1 = getDistance(distanceMatrix, supremeIndex, o1);
+                    final double d2 = getDistance(distanceMatrix, supremeIndex, o2);
                     
                     return Double.compare(d1, d2);
                 }
@@ -138,7 +138,7 @@ public class PriorityHAC extends KClustererBase
     }
 
     @Override
-    public int[] cluster(DataSet dataSet, int lowK, int highK, int[] designations)
+    public int[] cluster(final DataSet dataSet, final int lowK, final int highK, int[] designations)
     {
         this.curDataSet = dataSet;
         merges = new int[dataSet.getSampleSize()*2-2];
@@ -149,19 +149,19 @@ public class PriorityHAC extends KClustererBase
          * points in its implicit cluster. All points start out in their own 
          * implicit cluster. 
          */
-        int[] I = new int[dataSet.getSampleSize()];
+        final int[] I = new int[dataSet.getSampleSize()];
         Arrays.fill(I, 1);
         this.curDataSet = dataSet;
         
         /*
          * Keep track of the average dist when merging, stop when it becomes abnormaly large
          */
-        OnLineStatistics distChange = new OnLineStatistics();
+        final OnLineStatistics distChange = new OnLineStatistics();
         
         final double[][] distanceMatrix = createDistanceMatrix(dataSet, distMeasure);
         
         //Create priority ques for each data point
-        List<IntPriorityQueue> P = setUpProrityQueue(I, distanceMatrix);
+        final List<IntPriorityQueue> P = setUpProrityQueue(I, distanceMatrix);
         
         //We will choose the cluster size as the most abnormal jump in dissimilarity from a merge
         int clusterSize = lowK;
@@ -189,7 +189,7 @@ public class PriorityHAC extends KClustererBase
             
             if( (I.length - k) >= lowK && (I.length - k) <= highK)//IN the cluster window?
             {
-                double stndDevs = (dk1-distChange.getMean())/distChange.getStandardDeviation();
+                final double stndDevs = (dk1-distChange.getMean())/distChange.getStandardDeviation();
                 if(stndDevs > maxStndDevs)
                 {
                     maxStndDevs = stndDevs;
@@ -233,7 +233,7 @@ public class PriorityHAC extends KClustererBase
     {
         for(int i = 0; i < merges.length/2; i++)
         {
-            int tmp = merges[i];
+            final int tmp = merges[i];
             merges[i] = merges[merges.length-i-1];
             merges[merges.length-i-1] = tmp;
         }
@@ -263,7 +263,7 @@ public class PriorityHAC extends KClustererBase
      * @return the original array passed in, or <tt>null</tt> if no data set has been clustered. 
      * @see #hasStoredClustering() 
      */
-    public int[] getClusterDesignations(int[] designations, int clusters)
+    public int[] getClusterDesignations(final int[] designations, final int clusters)
     {
         if(!hasStoredClustering()) {
           return null;
@@ -280,12 +280,12 @@ public class PriorityHAC extends KClustererBase
      * data set has been clustered. 
      * @see #hasStoredClustering() 
      */
-    public List<List<DataPoint>> getClusterDesignations(int clusters)
+    public List<List<DataPoint>> getClusterDesignations(final int clusters)
     {
         if(!hasStoredClustering()) {
           return null;
         }
-        int[] assignments = new int[curDataSet.getSampleSize()];
+        final int[] assignments = new int[curDataSet.getSampleSize()];
         return createClusterListFromAssignmentArray(assignments, curDataSet);
     }
 
@@ -295,7 +295,7 @@ public class PriorityHAC extends KClustererBase
      * @param clusters the number of clusters to assume
      * @return the array storing the designations. A new one will be created and returned if <tt>designations</tt> was null. 
      */
-    private int[] assignClusterDesignations(int[] designations, int clusters)
+    private int[] assignClusterDesignations(final int[] designations, final int clusters)
     {
         int curCluster = 0;
         Arrays.fill(designations, -1);

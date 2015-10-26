@@ -74,7 +74,7 @@ abstract public class ModelSearch implements Classifier, Regressor
      */
     protected boolean reuseSameCVFolds = true;
 
-    public ModelSearch(Regressor baseRegressor, int folds)
+    public ModelSearch(final Regressor baseRegressor, final int folds)
     {
         if (!(baseRegressor instanceof Parameterized)) {
           throw new FailedToFitException("Given regressor does not support parameterized alterations");
@@ -87,7 +87,7 @@ abstract public class ModelSearch implements Classifier, Regressor
         this.folds = folds;
     }
 
-    public ModelSearch(Classifier baseClassifier, int folds)
+    public ModelSearch(final Classifier baseClassifier, final int folds)
     {
         if (!(baseClassifier instanceof Parameterized)) {
           throw new FailedToFitException("Given classifier does not support parameterized alterations");
@@ -104,7 +104,7 @@ abstract public class ModelSearch implements Classifier, Regressor
      * Copy constructor
      * @param toCopy the object to copy
      */
-    public ModelSearch(ModelSearch toCopy)
+    public ModelSearch(final ModelSearch toCopy)
     {
         if (toCopy.baseClassifier != null)
         {
@@ -127,7 +127,7 @@ abstract public class ModelSearch implements Classifier, Regressor
           this.trainedRegressor = toCopy.trainedRegressor.clone();
         }
         this.searchParams = new ArrayList<Parameter>();
-        for (Parameter p : toCopy.searchParams) {
+        for (final Parameter p : toCopy.searchParams) {
           this.searchParams.add(getParameterByName(p.getName()));
         }
         this.folds = toCopy.folds;
@@ -155,7 +155,7 @@ abstract public class ModelSearch implements Classifier, Regressor
      * models at the same time, {@code false} to get parallelism from getting
      * the model's implicit parallelism.
      */
-    public void setTrainModelsInParallel(boolean trainInParallel)
+    public void setTrainModelsInParallel(final boolean trainInParallel)
     {
         this.trainModelsInParallel = trainInParallel;
     }
@@ -182,7 +182,7 @@ abstract public class ModelSearch implements Classifier, Regressor
      * @param trainFinalModel {@code true} to train the final model after grid
      * search, {@code false} to not do that.
      */
-    public void setTrainFinalModel(boolean trainFinalModel)
+    public void setTrainFinalModel(final boolean trainFinalModel)
     {
         this.trainFinalModel = trainFinalModel;
     }
@@ -206,7 +206,7 @@ abstract public class ModelSearch implements Classifier, Regressor
      * combination, {@code false} if a new CV set is used for every parameter
      * combination.
      */
-    public void setReuseSameCVFolds(boolean reuseSameSplit)
+    public void setReuseSameCVFolds(final boolean reuseSameSplit)
     {
         this.reuseSameCVFolds = reuseSameSplit;
     }
@@ -277,7 +277,7 @@ abstract public class ModelSearch implements Classifier, Regressor
      *
      * @param classifierTargetScore the score to optimize via grid search
      */
-    public void setClassificationTargetScore(ClassificationScore classifierTargetScore)
+    public void setClassificationTargetScore(final ClassificationScore classifierTargetScore)
     {
         this.classificationTargetScore = classifierTargetScore;
     }
@@ -300,7 +300,7 @@ abstract public class ModelSearch implements Classifier, Regressor
      *
      * @param regressionTargetScore
      */
-    public void setRegressionTargetScore(RegressionScore regressionTargetScore)
+    public void setRegressionTargetScore(final RegressionScore regressionTargetScore)
     {
         this.regressionTargetScore = regressionTargetScore;
     }
@@ -325,7 +325,7 @@ abstract public class ModelSearch implements Classifier, Regressor
      * @return the parameter object in question
      * @throws IllegalArgumentException if the name is not found
      */
-    protected Parameter getParameterByName(String name) throws IllegalArgumentException
+    protected Parameter getParameterByName(final String name) throws IllegalArgumentException
     {
         Parameter param;
         if (baseClassifier != null) {
@@ -340,7 +340,7 @@ abstract public class ModelSearch implements Classifier, Regressor
     }
 
     @Override
-    public CategoricalResults classify(DataPoint data)
+    public CategoricalResults classify(final DataPoint data)
     {
         if (trainedClassifier == null) {
           throw new UntrainedModelException("Model has not yet been trained");
@@ -349,7 +349,7 @@ abstract public class ModelSearch implements Classifier, Regressor
     }
 
     @Override
-    public double regress(DataPoint data)
+    public double regress(final DataPoint data)
     {
         if (trainedRegressor == null) {
           throw new UntrainedModelException("Model has not yet been trained");

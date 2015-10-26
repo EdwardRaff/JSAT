@@ -52,26 +52,26 @@ public class ForgetronTest
 
         
 
-        ExecutorService ex = Executors.newFixedThreadPool(SystemInfo.LogicalCores);
+        final ExecutorService ex = Executors.newFixedThreadPool(SystemInfo.LogicalCores);
 
-        for(boolean selfTuned : new boolean[]{true, false})
+        for(final boolean selfTuned : new boolean[]{true, false})
         {
-            Forgetron instance = new Forgetron(new RBFKernel(0.5), 40);
+            final Forgetron instance = new Forgetron(new RBFKernel(0.5), 40);
             instance.setSelfTurned(selfTuned);
             
-            ClassificationDataSet train = FixedProblems.getInnerOuterCircle(1000, new XORWOW());
+            final ClassificationDataSet train = FixedProblems.getInnerOuterCircle(1000, new XORWOW());
             //add some miss labled data to get the error code to cick in and get exercised
             for(int i = 0; i < 500; i+=20)
             {
-                DataPoint dp = train.getDataPoint(i);
-                int y = train.getDataPointCategory(i);
-                int badY = (y == 0) ? 1 : 0;
+                final DataPoint dp = train.getDataPoint(i);
+                final int y = train.getDataPointCategory(i);
+                final int badY = (y == 0) ? 1 : 0;
                 train.addDataPoint(dp, badY);
             }
 
-            ClassificationDataSet test = FixedProblems.getInnerOuterCircle(100, new XORWOW());
+            final ClassificationDataSet test = FixedProblems.getInnerOuterCircle(100, new XORWOW());
 
-            ClassificationModelEvaluation cme = new ClassificationModelEvaluation(instance, train, ex);
+            final ClassificationModelEvaluation cme = new ClassificationModelEvaluation(instance, train, ex);
             cme.evaluateTestSet(test);
 
             assertEquals(0, cme.getErrorRate(), 0.3);//given some leway due to label noise
@@ -85,23 +85,23 @@ public class ForgetronTest
     {
         System.out.println("trainC");
         
-        for(boolean selfTuned : new boolean[]{true, false})
+        for(final boolean selfTuned : new boolean[]{true, false})
         {
-            Forgetron instance = new Forgetron(new RBFKernel(0.5), 40);
+            final Forgetron instance = new Forgetron(new RBFKernel(0.5), 40);
             instance.setSelfTurned(selfTuned);
         
-            ClassificationDataSet train = FixedProblems.getInnerOuterCircle(1000, new XORWOW());
+            final ClassificationDataSet train = FixedProblems.getInnerOuterCircle(1000, new XORWOW());
             //add some miss labled data to get the error code to cick in and get exercised
             for(int i = 0; i < 500; i+=20)
             {
-                DataPoint dp = train.getDataPoint(i);
-                int y = train.getDataPointCategory(i);
-                int badY = (y == 0) ? 1 : 0;
+                final DataPoint dp = train.getDataPoint(i);
+                final int y = train.getDataPointCategory(i);
+                final int badY = (y == 0) ? 1 : 0;
                 train.addDataPoint(dp, badY);
             }
 
-            ClassificationDataSet test = FixedProblems.getInnerOuterCircle(100, new XORWOW());
-            ClassificationModelEvaluation cme = new ClassificationModelEvaluation(instance, train);
+            final ClassificationDataSet test = FixedProblems.getInnerOuterCircle(100, new XORWOW());
+            final ClassificationModelEvaluation cme = new ClassificationModelEvaluation(instance, train);
             cme.evaluateTestSet(test);
 
             assertEquals(0, cme.getErrorRate(), 0.3);//given some leway due to label noise
@@ -115,14 +115,14 @@ public class ForgetronTest
 
         Forgetron instance = new Forgetron(new RBFKernel(0.5), 100);
         
-        ClassificationDataSet t1 = FixedProblems.getInnerOuterCircle(500, new XORWOW());
-        ClassificationDataSet t2 = FixedProblems.getInnerOuterCircle(500, new XORWOW(), 2.0, 10.0);
+        final ClassificationDataSet t1 = FixedProblems.getInnerOuterCircle(500, new XORWOW());
+        final ClassificationDataSet t2 = FixedProblems.getInnerOuterCircle(500, new XORWOW(), 2.0, 10.0);
 
         instance = instance.clone();
 
         instance.trainC(t1);
 
-        Forgetron result = instance.clone();
+        final Forgetron result = instance.clone();
         
         for (int i = 0; i < t1.getSampleSize(); i++) {
           assertEquals(t1.getDataPointCategory(i), result.classify(t1.getDataPoint(i)).mostLikely());

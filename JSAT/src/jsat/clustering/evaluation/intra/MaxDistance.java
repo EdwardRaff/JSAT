@@ -15,7 +15,7 @@ import jsat.linear.distancemetrics.EuclideanDistance;
  */
 public class MaxDistance implements IntraClusterEvaluation
 {
-    private DistanceMetric dm;
+    private final DistanceMetric dm;
 
     /**
      * Creates a new MaxDistance measure using the {@link EuclideanDistance}
@@ -28,7 +28,7 @@ public class MaxDistance implements IntraClusterEvaluation
      * Creates a new MaxDistance
      * @param dm the metric to measure the distance between two points by
      */
-    public MaxDistance(DistanceMetric dm)
+    public MaxDistance(final DistanceMetric dm)
     {
         this.dm = dm;
     }
@@ -37,13 +37,13 @@ public class MaxDistance implements IntraClusterEvaluation
      * Copy constructor
      * @param toCopy the object to copy
      */
-    public MaxDistance(MaxDistance toCopy)
+    public MaxDistance(final MaxDistance toCopy)
     {
         this(toCopy.dm.clone());
     }
     
     @Override
-    public double evaluate(int[] designations, DataSet dataSet, int clusterID)
+    public double evaluate(final int[] designations, final DataSet dataSet, final int clusterID)
     {
         double maxDistance = 0;
         for (int i = 0; i < dataSet.getSampleSize(); i++) {
@@ -60,7 +60,7 @@ public class MaxDistance implements IntraClusterEvaluation
     }
 
     @Override
-    public double evaluate(List<DataPoint> dataPoints)
+    public double evaluate(final List<DataPoint> dataPoints)
     {
         double maxDistance = 0;
         for(int i = 0; i < dataPoints.size(); i++) {

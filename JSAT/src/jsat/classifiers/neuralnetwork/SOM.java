@@ -44,12 +44,12 @@ public class SOM implements Classifier, Parameterized
     private int somWidth;
     private int somHeight;
     private int maxIters;
-    private KernelFunction kf;
+    private final KernelFunction kf;
     private double initialLearningRate;
     private DecayRate learningDecay;
     private DecayRate neighborDecay;
-    private DistanceMetric dm;
-    private VectorCollectionFactory<VecPaired<Vec, Integer>> vcFactory;
+    private final DistanceMetric dm;
+    private final VectorCollectionFactory<VecPaired<Vec, Integer>> vcFactory;
     
     private Vec[][] weights;
     private CategoricalResults[] crWeightPairs;
@@ -70,7 +70,7 @@ public class SOM implements Classifier, Parameterized
      * @param somHeight the height of the SOM lattice
      * @param somWeight the weight of the SOM lattice 
      */
-    public SOM(int somHeight, int somWeight)
+    public SOM(final int somHeight, final int somWeight)
     {
         this(new EuclideanDistance(), somHeight, somWeight);
     }
@@ -81,7 +81,7 @@ public class SOM implements Classifier, Parameterized
      * @param somHeight the height of the SOM lattice
      * @param somWeight the weight of the SOM lattice 
      */
-    public SOM(DistanceMetric dm, int somHeight, int somWeight)
+    public SOM(final DistanceMetric dm, final int somHeight, final int somWeight)
     {
         this(dm, somHeight, somWeight, new DefaultVectorCollectionFactory<VecPaired<Vec, Integer>>());
     }
@@ -93,12 +93,12 @@ public class SOM implements Classifier, Parameterized
      * @param somWeight the weight of the SOM lattice
      * @param vcFactory the vector collection factory to use for containing points
      */
-    public SOM(DistanceMetric dm, int somHeight, int somWeight, VectorCollectionFactory<VecPaired<Vec, Integer>> vcFactory)
+    public SOM(final DistanceMetric dm, final int somHeight, final int somWeight, final VectorCollectionFactory<VecPaired<Vec, Integer>> vcFactory)
     {
         this(DEFAULT_MAX_ITERS, DEFAULT_KF, DEFAULT_LEARNING_RATE, DEFAULT_LEARNING_DECAY, DEFAULT_NEIGHBOR_DECAY, dm, somHeight, somWeight, vcFactory);
     }
     
-    private SOM(int maxIters, KernelFunction kf, double initialLearningRate, DecayRate learningDecay, DecayRate neighborDecay, DistanceMetric dm, int somHeight, int somWeight,  VectorCollectionFactory<VecPaired<Vec, Integer>> vcFactory)
+    private SOM(final int maxIters, final KernelFunction kf, final double initialLearningRate, final DecayRate learningDecay, final DecayRate neighborDecay, final DistanceMetric dm, final int somHeight, final int somWeight,  final VectorCollectionFactory<VecPaired<Vec, Integer>> vcFactory)
     {
         this.somHeight = somHeight;
         this.somWidth = somWeight;
@@ -115,7 +115,7 @@ public class SOM implements Classifier, Parameterized
      * Sets the maximum number of iterations that will be used to converge
      * @param maxIters the max iterations of the algorithm
      */
-    public void setMaxIterations(int maxIters)
+    public void setMaxIterations(final int maxIters)
     {
         if(maxIters < 1) {
           throw new ArithmeticException("At least one iteration must be performed");
@@ -136,7 +136,7 @@ public class SOM implements Classifier, Parameterized
      * Sets the width of the SOM lattice to create
      * @param somWidth the width of the lattice
      */
-    public void setSomWidth(int somWidth)
+    public void setSomWidth(final int somWidth)
     {
         if(somWidth < 1) {
           throw new ArithmeticException("Lattice width must be positive, not " + somWidth);
@@ -148,7 +148,7 @@ public class SOM implements Classifier, Parameterized
      * Sets the height of the SOM lattice to create
      * @param somHeight the height of the lattice
      */
-    public void setSomHeight(int somHeight)
+    public void setSomHeight(final int somHeight)
     {
         if(somHeight < 1) {
           throw new ArithmeticException("ALttice height must be positive, not " + somHeight);
@@ -180,7 +180,7 @@ public class SOM implements Classifier, Parameterized
      * 
      * @param initialLearningRate the rate the SOM learns at
      */
-    public void setInitialLearningRate(double initialLearningRate)
+    public void setInitialLearningRate(final double initialLearningRate)
     {
         if(Double.isInfinite(initialLearningRate) || Double.isNaN(initialLearningRate) || initialLearningRate <= 0) {
           throw new ArithmeticException("Learning rate must be a positive constant, not " + initialLearningRate);
@@ -202,7 +202,7 @@ public class SOM implements Classifier, Parameterized
      * way in which the rate decays. 
      * @param learningDecay the decay for the learning rate
      */
-    public void setLearningDecay(DecayRate learningDecay)
+    public void setLearningDecay(final DecayRate learningDecay)
     {
         if(learningDecay == null) {
           throw new NullPointerException("Can not set a decay rate to null");
@@ -226,7 +226,7 @@ public class SOM implements Classifier, Parameterized
      * 
      * @param neighborDecay the decay for the neighbor range. 
      */
-    public void setNeighborDecay(DecayRate neighborDecay)
+    public void setNeighborDecay(final DecayRate neighborDecay)
     {
         if(neighborDecay == null) {
           throw new NullPointerException("Can not set a decay rate to null");
@@ -251,7 +251,7 @@ public class SOM implements Classifier, Parameterized
      * @param D the dimension of the data set
      * @return the initial neighbor radius
      */
-    private double intitalizeWeights(int D)
+    private double intitalizeWeights(final int D)
     {
         //TODO random intialization is theoretical interesting, but technically slower. Faster intializations exist
         for(int i = 0; i < somHeight; i++) {
@@ -264,31 +264,31 @@ public class SOM implements Classifier, Parameterized
 
     private void iterationStep(final ExecutorService execServ, final int i, final DataSet dataSet, final double nbrRange, final double nbrRangeSqrd, final Vec scratch, final double learnRate)
     {   
-        Vec input_i = dataSet.getDataPoint(i).getNumericalValues();
-        PairedReturn<Integer, Integer> closestBMUPR = getBMU(input_i);
-        int xBest = closestBMUPR.getFirstItem();
-        int yBest = closestBMUPR.getSecondItem();
+        final Vec input_i = dataSet.getDataPoint(i).getNumericalValues();
+        final PairedReturn<Integer, Integer> closestBMUPR = getBMU(input_i);
+        final int xBest = closestBMUPR.getFirstItem();
+        final int yBest = closestBMUPR.getSecondItem();
         
         //The bounding square of values that need to be updated
         
-        int xStart = Math.max((int)(xBest - nbrRange)-1, 0);
-        int yStart = Math.max((int)(yBest - nbrRange)-1, 0);
-        int xEnd   = Math.min((int)(xBest + nbrRange)+1, somWidth);
-        int yEnd   = Math.min((int)(yBest + nbrRange)+1, somHeight);
+        final int xStart = Math.max((int)(xBest - nbrRange)-1, 0);
+        final int yStart = Math.max((int)(yBest - nbrRange)-1, 0);
+        final int xEnd   = Math.min((int)(xBest + nbrRange)+1, somWidth);
+        final int yEnd   = Math.min((int)(yBest + nbrRange)+1, somHeight);
         
         for(int x = xStart; x < xEnd; x++)
         {
-            Vec[] weights_x = weights[x];
+            final Vec[] weights_x = weights[x];
             for(int y = yStart; y < yEnd; y++)
             {
-                int xLength = xBest - x;
-                int yLength = yBest - y;
-                int pointDistSqrd = xLength*xLength + yLength*yLength;
+                final int xLength = xBest - x;
+                final int yLength = yBest - y;
+                final int pointDistSqrd = xLength*xLength + yLength*yLength;
                 
                 if(pointDistSqrd < nbrRangeSqrd)//point is in the circle range, 
                 {
-                    double distWeight = kf.k(sqrt(pointDistSqrd)/nbrRange);
-                    Vec weights_xy = weights_x[y];
+                    final double distWeight = kf.k(sqrt(pointDistSqrd)/nbrRange);
+                    final Vec weights_xy = weights_x[y];
                     if(execServ == null) {
                       updateWeight(input_i, scratch, weights_xy, distWeight*learnRate);
                     } else {
@@ -300,9 +300,9 @@ public class SOM implements Classifier, Parameterized
         }
     }
 
-    private List<VecPaired<Vec, Integer>> setUpVectorCollection(ExecutorService threadPool)
+    private List<VecPaired<Vec, Integer>> setUpVectorCollection(final ExecutorService threadPool)
     {
-        List<VecPaired<Vec, Integer>> vecList = new ArrayList<VecPaired<Vec, Integer>>(somWidth*somHeight);
+        final List<VecPaired<Vec, Integer>> vecList = new ArrayList<VecPaired<Vec, Integer>>(somWidth*somHeight);
         for(int i = 0; i < weights.length; i++) {
           for (int j = 0; j < weights[i].length; j++) {
             vecList.add(new VecPaired<Vec, Integer>(weights[i][j], vecList.size()));
@@ -316,7 +316,7 @@ public class SOM implements Classifier, Parameterized
         return vecList;
     }
 
-    private void updateWeight(Vec input_i, Vec scratch, Vec weightVec, double scale)
+    private void updateWeight(final Vec input_i, final Vec scratch, final Vec weightVec, final double scale)
     {
         input_i.copyTo(scratch);
         scratch.mutableSubtract(weightVec);
@@ -328,16 +328,16 @@ public class SOM implements Classifier, Parameterized
      * @param numericalValues the vector to find hte BMU of
      * @return the BMU of the given vector 
      */
-    private PairedReturn<Integer, Integer> getBMU(Vec numericalValues)
+    private PairedReturn<Integer, Integer> getBMU(final Vec numericalValues)
     {
         double bestDist = Double.MAX_VALUE;
         int x = -1, y = -1;
         for(int i = 0; i < weights.length; i++)
         {
-            Vec[] weights_i = weights[i];
+            final Vec[] weights_i = weights[i];
             for(int j = 0; j < weights[i].length; j++)
             {
-                double dist = dm.dist(weights_i[j], numericalValues);
+                final double dist = dm.dist(weights_i[j], numericalValues);
                 if(dist < bestDist)
                 {
                     bestDist =dist;
@@ -357,7 +357,7 @@ public class SOM implements Classifier, Parameterized
     }
 
     @Override
-    public Parameter getParameter(String paramName)
+    public Parameter getParameter(final String paramName)
     {
         return Parameter.toParameterMap(getParameters()).get(paramName);
     }
@@ -367,11 +367,11 @@ public class SOM implements Classifier, Parameterized
         final int D = dataSet.getNumNumericalVars();
         weights = new Vec[somHeight][somWidth];
         
-        double neighborRadius = intitalizeWeights(D);
+        final double neighborRadius = intitalizeWeights(D);
         
-        Random rand = new Random();
+        final Random rand = new Random();
         
-        Vec scratch = new DenseVector(D);
+        final Vec scratch = new DenseVector(D);
         /**
          * this array is used to access the data in a random order to improve convergence
          */
@@ -389,7 +389,7 @@ public class SOM implements Classifier, Parameterized
             
             for(int i = 0; i < somHeight; i++)
             {
-                ArrayList<List<DataPoint>> subList = new ArrayList<List<DataPoint>>(somWidth);
+                final ArrayList<List<DataPoint>> subList = new ArrayList<List<DataPoint>>(somWidth);
                 weightUpdates.add(subList);
                 for(int j = 0; j < somWidth; j++)
                 {
@@ -488,11 +488,11 @@ public class SOM implements Classifier, Parameterized
                       @Override
                       public void run()
                       {
-                        Vec mean = localScratch1.get();
+                        final Vec mean = localScratch1.get();
                         mean.zeroOut();
                         
                         double denom = 0.0;
-                        for(DataPoint dp : dataList)
+                        for(final DataPoint dp : dataList)
                         {
                           denom += dp.getWeight();
                           mean.mutableAdd(dp.getWeight(), dp.getNumericalValues());
@@ -513,7 +513,7 @@ public class SOM implements Classifier, Parameterized
     }
     
     @Override
-    public CategoricalResults classify(DataPoint data)
+    public CategoricalResults classify(final DataPoint data)
     {
         if(crWeightPairs == null) {
           throw new UntrainedModelException();
@@ -522,12 +522,12 @@ public class SOM implements Classifier, Parameterized
     }
 
     @Override
-    public void trainC(ClassificationDataSet dataSet, ExecutorService threadPool)
+    public void trainC(final ClassificationDataSet dataSet, final ExecutorService threadPool)
     {
         try
         {
             trainSOM(dataSet, threadPool);
-            List<VecPaired<Vec, Integer>> vecList = setUpVectorCollection(threadPool);
+            final List<VecPaired<Vec, Integer>> vecList = setUpVectorCollection(threadPool);
             crWeightPairs = new CategoricalResults[vecList.size()];
 
             for(int i = 0; i < crWeightPairs.length; i++) {
@@ -536,12 +536,12 @@ public class SOM implements Classifier, Parameterized
 
             for(int i = 0; i < dataSet.getSampleSize(); i++)
             {
-                DataPoint dp = dataSet.getDataPoint(i);
+                final DataPoint dp = dataSet.getDataPoint(i);
 
                 //Single nearest neighbor is the BMU
-                VecPaired<Vec, Integer> vpBMU = vcCollection.search(dp.getNumericalValues(), 1).get(0).getVector();
+                final VecPaired<Vec, Integer> vpBMU = vcCollection.search(dp.getNumericalValues(), 1).get(0).getVector();
 
-                int index = vpBMU.getPair();
+                final int index = vpBMU.getPair();
 
                 crWeightPairs[index].incProb(dataSet.getDataPointCategory(i), dp.getWeight());
             }
@@ -550,7 +550,7 @@ public class SOM implements Classifier, Parameterized
               crWeightPairs[i].normalize();
             }
         }
-        catch (InterruptedException ex)
+        catch (final InterruptedException ex)
         {
             Logger.getLogger(SOM.class.getName()).log(Level.SEVERE, null, ex);
         }
@@ -558,7 +558,7 @@ public class SOM implements Classifier, Parameterized
     }
 
     @Override
-    public void trainC(ClassificationDataSet dataSet)
+    public void trainC(final ClassificationDataSet dataSet)
     {
         trainC(dataSet, null);
         
@@ -573,7 +573,7 @@ public class SOM implements Classifier, Parameterized
     @Override
     public SOM clone()
     {
-        SOM clone = new SOM(maxIters, kf, initialLearningRate, learningDecay, neighborDecay, dm.clone(), somHeight, somHeight, vcFactory.clone());
+        final SOM clone = new SOM(maxIters, kf, initialLearningRate, learningDecay, neighborDecay, dm.clone(), somHeight, somHeight, vcFactory.clone());
         if(this.weights != null)
         {
             clone.weights = new Vec[this.weights.length][this.weights[0].length];

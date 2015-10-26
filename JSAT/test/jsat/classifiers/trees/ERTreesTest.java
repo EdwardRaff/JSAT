@@ -73,16 +73,16 @@ public class ERTreesTest
 
         for(int i = 0; i < 3; i++)
         {
-            boolean useCatFeatures = i < 2;
-            ERTrees instance = new ERTrees();
+            final boolean useCatFeatures = i < 2;
+            final ERTrees instance = new ERTrees();
             instance.setBinaryCategoricalSplitting(i == 1);
 
-            ExecutorService ex = Executors.newFixedThreadPool(SystemInfo.LogicalCores);
+            final ExecutorService ex = Executors.newFixedThreadPool(SystemInfo.LogicalCores);
 
-            ClassificationDataSet train = FixedProblems.getCircles(10000, new XOR96(), 1.0, 10.0, 100.0);
-            ClassificationDataSet test = FixedProblems.getCircles(1000, new XOR96(), 1.0, 10.0, 100.0);
+            final ClassificationDataSet train = FixedProblems.getCircles(10000, new XOR96(), 1.0, 10.0, 100.0);
+            final ClassificationDataSet test = FixedProblems.getCircles(1000, new XOR96(), 1.0, 10.0, 100.0);
 
-            ClassificationModelEvaluation cme = new ClassificationModelEvaluation(instance, train, ex);
+            final ClassificationModelEvaluation cme = new ClassificationModelEvaluation(instance, train, ex);
             if(useCatFeatures) {
               cme.setDataTransformProcess(new DataTransformProcess(new NumericalToHistogram.NumericalToHistogramTransformFactory()));
             }
@@ -100,15 +100,15 @@ public class ERTreesTest
         System.out.println("train");
         for(int i = 0; i < 3; i++)
         {
-            boolean useCatFeatures = i < 2;
-            ERTrees instance = new ERTrees();
+            final boolean useCatFeatures = i < 2;
+            final ERTrees instance = new ERTrees();
             instance.setBinaryCategoricalSplitting(i == 1);
             
 
-            RegressionDataSet train =  FixedProblems.getLinearRegression(1000, new XORWOW());
-            RegressionDataSet test = FixedProblems.getLinearRegression(100, new XORWOW());
+            final RegressionDataSet train =  FixedProblems.getLinearRegression(1000, new XORWOW());
+            final RegressionDataSet test = FixedProblems.getLinearRegression(100, new XORWOW());
 
-            RegressionModelEvaluation cme = new RegressionModelEvaluation(instance, train);
+            final RegressionModelEvaluation cme = new RegressionModelEvaluation(instance, train);
             if(useCatFeatures) {
               cme.setDataTransformProcess(new DataTransformProcess(new NumericalToHistogram.NumericalToHistogramTransformFactory()));
             }
@@ -126,16 +126,16 @@ public class ERTreesTest
 
         for(int i = 0; i < 3; i++)
         {
-            boolean useCatFeatures = i < 2;
-            ERTrees instance = new ERTrees();
+            final boolean useCatFeatures = i < 2;
+            final ERTrees instance = new ERTrees();
             instance.setBinaryCategoricalSplitting(i == 1);
 
-            ExecutorService ex = Executors.newFixedThreadPool(SystemInfo.LogicalCores);
+            final ExecutorService ex = Executors.newFixedThreadPool(SystemInfo.LogicalCores);
 
-            RegressionDataSet train =  FixedProblems.getLinearRegression(1000, new XORWOW());
-            RegressionDataSet test = FixedProblems.getLinearRegression(100, new XORWOW());
+            final RegressionDataSet train =  FixedProblems.getLinearRegression(1000, new XORWOW());
+            final RegressionDataSet test = FixedProblems.getLinearRegression(100, new XORWOW());
 
-            RegressionModelEvaluation cme = new RegressionModelEvaluation(instance, train, ex);
+            final RegressionModelEvaluation cme = new RegressionModelEvaluation(instance, train, ex);
             if(useCatFeatures) {
               cme.setDataTransformProcess(new DataTransformProcess(new NumericalToHistogram.NumericalToHistogramTransformFactory()));
             }
@@ -153,15 +153,15 @@ public class ERTreesTest
         System.out.println("trainC");
         for(int i = 0; i < 3; i++)
         {
-            boolean useCatFeatures = i < 2;
-            ERTrees instance = new ERTrees();
+            final boolean useCatFeatures = i < 2;
+            final ERTrees instance = new ERTrees();
             instance.setBinaryCategoricalSplitting(i == 1);
             
 
-            ClassificationDataSet train =  FixedProblems.getCircles(10000, new XOR96(), 1.0, 10.0, 100.0);
-            ClassificationDataSet test = FixedProblems.getCircles(1000, new XOR96(), 1.0, 10.0, 100.0);
+            final ClassificationDataSet train =  FixedProblems.getCircles(10000, new XOR96(), 1.0, 10.0, 100.0);
+            final ClassificationDataSet test = FixedProblems.getCircles(1000, new XOR96(), 1.0, 10.0, 100.0);
 
-            ClassificationModelEvaluation cme = new ClassificationModelEvaluation(instance, train);
+            final ClassificationModelEvaluation cme = new ClassificationModelEvaluation(instance, train);
             if(useCatFeatures) {
               cme.setDataTransformProcess(new DataTransformProcess(new NumericalToHistogram.NumericalToHistogramTransformFactory()));
             }
@@ -178,12 +178,12 @@ public class ERTreesTest
         System.out.println("clone");
         for(int k = 0; k < 3; k++)
         {
-            boolean useCatFeatures = k < 2;
+            final boolean useCatFeatures = k < 2;
             ERTrees instance = new ERTrees();
             instance.setBinaryCategoricalSplitting(k == 1);
             
-            ClassificationDataSet t1 = FixedProblems.getSimpleKClassLinear(1000, 3, new XOR96());
-            ClassificationDataSet t2 = FixedProblems.getSimpleKClassLinear(1000, 6, new XOR96());
+            final ClassificationDataSet t1 = FixedProblems.getSimpleKClassLinear(1000, 3, new XOR96());
+            final ClassificationDataSet t2 = FixedProblems.getSimpleKClassLinear(1000, 6, new XOR96());
             if(useCatFeatures)
             {
                 t1.applyTransform(new NumericalToHistogram(t1));
@@ -194,7 +194,7 @@ public class ERTreesTest
 
             instance.trainC(t1);
 
-            ERTrees result = instance.clone();
+            final ERTrees result = instance.clone();
             for(int i = 0; i < t1.getSampleSize(); i++) {
               assertEquals(t1.getDataPointCategory(i), result.classify(t1.getDataPoint(i)).mostLikely());
             }

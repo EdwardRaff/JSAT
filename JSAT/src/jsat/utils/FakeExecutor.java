@@ -41,7 +41,7 @@ public class FakeExecutor implements ExecutorService
         return false;
     }
 
-    public boolean awaitTermination(long l, TimeUnit tu) throws InterruptedException
+    public boolean awaitTermination(final long l, final TimeUnit tu) throws InterruptedException
     {
         return true;
     }
@@ -50,7 +50,7 @@ public class FakeExecutor implements ExecutorService
     {
         return new Future<T>() {
 
-            public boolean cancel(boolean bln)
+            public boolean cancel(final boolean bln)
             {
                 return false;
             }
@@ -71,52 +71,52 @@ public class FakeExecutor implements ExecutorService
                 {
                     return clbl.call();
                 }
-                catch (Exception ex)
+                catch (final Exception ex)
                 {
                     return null;
                 }
             }
 
-            public T get(long l, TimeUnit tu) throws InterruptedException, ExecutionException, TimeoutException
+            public T get(final long l, final TimeUnit tu) throws InterruptedException, ExecutionException, TimeoutException
             {
                 return get();
             }
         };
     }
 
-    public <T> Future<T> submit(Runnable r, T t)
+    public <T> Future<T> submit(final Runnable r, final T t)
     {
         r.run();
         return null;
     }
 
-    public Future<?> submit(Runnable r)
+    public Future<?> submit(final Runnable r)
     {
         r.run();
         return null;
     }
 
-    public <T> List<Future<T>> invokeAll(Collection<? extends Callable<T>> clctn) throws InterruptedException
+    public <T> List<Future<T>> invokeAll(final Collection<? extends Callable<T>> clctn) throws InterruptedException
     {
         throw new UnsupportedOperationException("Not supported yet.");
     }
 
-    public <T> List<Future<T>> invokeAll(Collection<? extends Callable<T>> clctn, long l, TimeUnit tu) throws InterruptedException
+    public <T> List<Future<T>> invokeAll(final Collection<? extends Callable<T>> clctn, final long l, final TimeUnit tu) throws InterruptedException
     {
         throw new UnsupportedOperationException("Not supported yet.");
     }
 
-    public <T> T invokeAny(Collection<? extends Callable<T>> clctn) throws InterruptedException, ExecutionException
+    public <T> T invokeAny(final Collection<? extends Callable<T>> clctn) throws InterruptedException, ExecutionException
     {
         throw new UnsupportedOperationException("Not supported yet.");
     }
 
-    public <T> T invokeAny(Collection<? extends Callable<T>> clctn, long l, TimeUnit tu) throws InterruptedException, ExecutionException, TimeoutException
+    public <T> T invokeAny(final Collection<? extends Callable<T>> clctn, final long l, final TimeUnit tu) throws InterruptedException, ExecutionException, TimeoutException
     {
         throw new UnsupportedOperationException("Not supported yet.");
     }
 
-    public void execute(Runnable r)
+    public void execute(final Runnable r)
     {
         r.run();
     }

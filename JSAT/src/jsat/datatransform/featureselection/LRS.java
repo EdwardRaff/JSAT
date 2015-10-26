@@ -39,7 +39,7 @@ public class LRS implements DataTransform
      * Copy constructor
      * @param toClone the version to copy
      */
-    private LRS(LRS toClone)
+    private LRS(final LRS toClone)
     {
         if(toClone.catSelected != null)
         {
@@ -59,7 +59,7 @@ public class LRS implements DataTransform
      * feature subset
      * @param folds the number of cross validation folds to use in selection
      */
-    public LRS(int L, int R, ClassificationDataSet cds, Classifier evaluater, int folds)
+    public LRS(final int L, final int R, final ClassificationDataSet cds, final Classifier evaluater, final int folds)
     {
         search(cds, L, R, evaluater, folds);
     }
@@ -74,13 +74,13 @@ public class LRS implements DataTransform
      * feature subset
      * @param folds the number of cross validation folds to use in selection
      */
-    public LRS(int L, int R, RegressionDataSet rds, Regressor evaluater, int folds)
+    public LRS(final int L, final int R, final RegressionDataSet rds, final Regressor evaluater, final int folds)
     {
         search(rds, L, R, evaluater, folds);
     }
 
     @Override
-    public DataPoint transform(DataPoint dp)
+    public DataPoint transform(final DataPoint dp)
     {
         return finalTransform.transform(dp);
     }
@@ -113,21 +113,21 @@ public class LRS implements DataTransform
         return new IntSet(numSelected);
     }
 
-    private void search(DataSet cds, int L, int R, Object evaluater, int folds)
+    private void search(final DataSet cds, final int L, final int R, final Object evaluater, final int folds)
     {
-        int nF = cds.getNumFeatures();
-        int nCat = cds.getNumCategoricalVars();
+        final int nF = cds.getNumFeatures();
+        final int nCat = cds.getNumCategoricalVars();
         
         catSelected = new IntSet(nCat);
         numSelected = new IntSet(nF-nCat);
-        Set<Integer> catToRemove = new IntSet(nCat);
-        Set<Integer> numToRemove = new IntSet(nF-nCat);
+        final Set<Integer> catToRemove = new IntSet(nCat);
+        final Set<Integer> numToRemove = new IntSet(nF-nCat);
         
-        Set<Integer> available = new IntSet(nF);
+        final Set<Integer> available = new IntSet(nF);
         ListUtils.addRange(available, 0, nF, 1);
         
-        Random rand = new Random();
-        double[] pBestScore = new double[]{Double.POSITIVE_INFINITY};
+        final Random rand = new Random();
+        final double[] pBestScore = new double[]{Double.POSITIVE_INFINITY};
         
         if (L > R)
         {
@@ -143,7 +143,7 @@ public class LRS implements DataTransform
             //We now restrict ourselves to the L features
             available.clear();
             available.addAll(catSelected);
-            for(int i : numSelected) {
+            for(final int i : numSelected) {
               available.add(i+nCat);
             }
             //Now remove R features from the L selected
@@ -168,7 +168,7 @@ public class LRS implements DataTransform
             //Now we restrict out selves to adding back the features that were removed
             available.clear();
             available.addAll(catToRemove);
-            for(int i : numToRemove) {
+            for(final int i : numToRemove) {
               available.add(i+nCat);
             }
             
@@ -199,7 +199,7 @@ public class LRS implements DataTransform
          * @param toAdd the number of features to add
          * @param toRemove the number of features to remove
          */
-        public LRSFactory(Classifier evaluater, int toAdd, int toRemove)
+        public LRSFactory(final Classifier evaluater, final int toAdd, final int toRemove)
         {
             if(toAdd == toRemove) {
               throw new RuntimeException("L and R must be different");
@@ -219,7 +219,7 @@ public class LRS implements DataTransform
          * @param toAdd the number of features to add
          * @param toRemove the number of features to remove
          */
-        public LRSFactory(Regressor evaluater, int toAdd, int toRemove)
+        public LRSFactory(final Regressor evaluater, final int toAdd, final int toRemove)
         {
             if(toAdd == toRemove) {
               throw new RuntimeException("L and R must be different");
@@ -236,7 +236,7 @@ public class LRS implements DataTransform
          * Copy constructor
          * @param toCopy the object to copy
          */
-        public LRSFactory(LRSFactory toCopy)
+        public LRSFactory(final LRSFactory toCopy)
         {
             if(toCopy.classifier == toCopy.regressor)
             {
@@ -264,7 +264,7 @@ public class LRS implements DataTransform
          * 
          * @param featuresToAdd the number of features to greedily add
          */
-        public void setFeaturesToAdd(int featuresToAdd)
+        public void setFeaturesToAdd(final int featuresToAdd)
         {
             if(featuresToAdd < 1) {
               throw new IllegalArgumentException("Number of features to add must be positive, not "+featuresToAdd);
@@ -291,7 +291,7 @@ public class LRS implements DataTransform
          * 
          * @param featuresToRemove the number of features to greedily remove
          */
-        public void setFeaturesToRemove(int featuresToRemove)
+        public void setFeaturesToRemove(final int featuresToRemove)
         {
             if(featuresToRemove < 1) {
               throw new IllegalArgumentException("Number of features to remove must be positive, not " + featuresToRemove);
@@ -310,7 +310,7 @@ public class LRS implements DataTransform
         
 
         @Override
-        public LRS getTransform(DataSet dataset)
+        public LRS getTransform(final DataSet dataset)
         {
             if(dataset instanceof ClassificationDataSet) {
               return new LRS(featuresToAdd, featuresToRemove,

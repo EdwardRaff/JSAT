@@ -25,7 +25,7 @@ public class AveragedRegressor implements Regressor
      * Constructs a new averaged regressor using the given array of voters
      * @param voters the array of voters to use
      */
-    public AveragedRegressor(Regressor... voters)
+    public AveragedRegressor(final Regressor... voters)
     {
         if(voters == null ||voters.length == 0) {
           throw new RuntimeException("No voters given for construction");
@@ -39,7 +39,7 @@ public class AveragedRegressor implements Regressor
      * safely be reused. 
      * @param voters the array of voters to use 
      */
-    public AveragedRegressor(List<Regressor> voters)
+    public AveragedRegressor(final List<Regressor> voters)
     {
         if(voters == null || voters.isEmpty()) {
           throw new RuntimeException("No voters given for construction");
@@ -47,25 +47,25 @@ public class AveragedRegressor implements Regressor
         this.voters = voters.toArray(new Regressor[0]);
     }
     
-    public double regress(DataPoint data)
+    public double regress(final DataPoint data)
     {
         double r = 0.0;
-        for(Regressor vote : voters) {
+        for(final Regressor vote : voters) {
           r += vote.regress(data);
         }
         return r / voters.length;
     }
 
-    public void train(RegressionDataSet dataSet, ExecutorService threadPool)
+    public void train(final RegressionDataSet dataSet, final ExecutorService threadPool)
     {
-        for(Regressor voter : voters) {
+        for(final Regressor voter : voters) {
           voter.train(dataSet, threadPool);
         }
     }
 
-    public void train(RegressionDataSet dataSet)
+    public void train(final RegressionDataSet dataSet)
     {
-        for(Regressor voter :  voters) {
+        for(final Regressor voter :  voters) {
           voter.train(dataSet);
         }
     }
@@ -78,7 +78,7 @@ public class AveragedRegressor implements Regressor
     @Override
     public AveragedRegressor clone()
     {
-        Regressor[] clone = new Regressor[this.voters.length];
+        final Regressor[] clone = new Regressor[this.voters.length];
         for(int i = 0; i < clone.length; i++) {
           clone[i] = voters[i].clone();
         }

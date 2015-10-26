@@ -49,7 +49,7 @@ public class DBSCANTest
     public static void setUpClass() throws Exception
     {
         dbscan = new DBSCAN(new EuclideanDistance(), new VectorArrayFactory<VecPaired<Vec, Integer>>());
-        GridDataGenerator gdg = new GridDataGenerator(new Uniform(-0.15, 0.15), new Random(12), 2, 5);
+        final GridDataGenerator gdg = new GridDataGenerator(new Uniform(-0.15, 0.15), new Random(12), 2, 5);
         easyData10 = gdg.generateData(40);
         ex = Executors.newFixedThreadPool(SystemInfo.LogicalCores);
     }
@@ -72,14 +72,14 @@ public class DBSCANTest
     public void testCluster_DataSet_int()
     {
         System.out.println("cluster(dataset, int)");
-        List<List<DataPoint>> clusters = dbscan.cluster(easyData10, 5);
+        final List<List<DataPoint>> clusters = dbscan.cluster(easyData10, 5);
         assertEquals(10, clusters.size());
-        Set<Integer> seenBefore = new IntSet();
-        for(List<DataPoint> cluster :  clusters)
+        final Set<Integer> seenBefore = new IntSet();
+        for(final List<DataPoint> cluster :  clusters)
         {
-            int thisClass = cluster.get(0).getCategoricalValue(0);
+            final int thisClass = cluster.get(0).getCategoricalValue(0);
             assertFalse(seenBefore.contains(thisClass));
-            for(DataPoint dp : cluster) {
+            for(final DataPoint dp : cluster) {
               assertEquals(thisClass, dp.getCategoricalValue(0));
             }
         }
@@ -92,14 +92,14 @@ public class DBSCANTest
     public void testCluster_DataSet()
     {
         System.out.println("cluster(dataset)");
-        List<List<DataPoint>> clusters = dbscan.cluster(easyData10);
+        final List<List<DataPoint>> clusters = dbscan.cluster(easyData10);
         assertEquals(10, clusters.size());
-        Set<Integer> seenBefore = new IntSet();
-        for(List<DataPoint> cluster :  clusters)
+        final Set<Integer> seenBefore = new IntSet();
+        for(final List<DataPoint> cluster :  clusters)
         {
-            int thisClass = cluster.get(0).getCategoricalValue(0);
+            final int thisClass = cluster.get(0).getCategoricalValue(0);
             assertFalse(seenBefore.contains(thisClass));
-            for(DataPoint dp : cluster) {
+            for(final DataPoint dp : cluster) {
               assertEquals(thisClass, dp.getCategoricalValue(0));
             }
         }
@@ -112,14 +112,14 @@ public class DBSCANTest
     public void testCluster_DataSet_ExecutorService()
     {
         System.out.println("cluster(dataset, executorService)");
-        List<List<DataPoint>> clusters = dbscan.cluster(easyData10, ex);
+        final List<List<DataPoint>> clusters = dbscan.cluster(easyData10, ex);
         assertEquals(10, clusters.size());
-        Set<Integer> seenBefore = new IntSet();
-        for(List<DataPoint> cluster :  clusters)
+        final Set<Integer> seenBefore = new IntSet();
+        for(final List<DataPoint> cluster :  clusters)
         {
-            int thisClass = cluster.get(0).getCategoricalValue(0);
+            final int thisClass = cluster.get(0).getCategoricalValue(0);
             assertFalse(seenBefore.contains(thisClass));
-            for(DataPoint dp : cluster) {
+            for(final DataPoint dp : cluster) {
               assertEquals(thisClass, dp.getCategoricalValue(0));
             }
         }
@@ -133,14 +133,14 @@ public class DBSCANTest
     {
         System.out.println("cluster(dataset, double, int)");
         //We know the range is [-.15, .15]
-        List<List<DataPoint>> clusters = dbscan.cluster(easyData10, 0.15, 5);
+        final List<List<DataPoint>> clusters = dbscan.cluster(easyData10, 0.15, 5);
         assertEquals(10, clusters.size());
-        Set<Integer> seenBefore = new IntSet();
-        for(List<DataPoint> cluster :  clusters)
+        final Set<Integer> seenBefore = new IntSet();
+        for(final List<DataPoint> cluster :  clusters)
         {
-            int thisClass = cluster.get(0).getCategoricalValue(0);
+            final int thisClass = cluster.get(0).getCategoricalValue(0);
             assertFalse(seenBefore.contains(thisClass));
-            for(DataPoint dp : cluster) {
+            for(final DataPoint dp : cluster) {
               assertEquals(thisClass, dp.getCategoricalValue(0));
             }
         }
@@ -153,14 +153,14 @@ public class DBSCANTest
     public void testCluster_3args_2()
     {
         System.out.println("cluster(dataset, int, executorService)");
-        List<List<DataPoint>> clusters = dbscan.cluster(easyData10, 3, ex);
+        final List<List<DataPoint>> clusters = dbscan.cluster(easyData10, 3, ex);
         assertEquals(10, clusters.size());
-        Set<Integer> seenBefore = new IntSet();
-        for(List<DataPoint> cluster :  clusters)
+        final Set<Integer> seenBefore = new IntSet();
+        for(final List<DataPoint> cluster :  clusters)
         {
-            int thisClass = cluster.get(0).getCategoricalValue(0);
+            final int thisClass = cluster.get(0).getCategoricalValue(0);
             assertFalse(seenBefore.contains(thisClass));
-            for(DataPoint dp : cluster) {
+            for(final DataPoint dp : cluster) {
               assertEquals(thisClass, dp.getCategoricalValue(0));
             }
         }
@@ -174,14 +174,14 @@ public class DBSCANTest
     {
         System.out.println("cluster(dataset, double, int, executorService)");
         //We know the range is [-.15, .15]
-        List<List<DataPoint>> clusters = dbscan.cluster(easyData10, 0.15, 5, ex);
+        final List<List<DataPoint>> clusters = dbscan.cluster(easyData10, 0.15, 5, ex);
         assertEquals(10, clusters.size());
-        Set<Integer> seenBefore = new IntSet();
-        for(List<DataPoint> cluster :  clusters)
+        final Set<Integer> seenBefore = new IntSet();
+        for(final List<DataPoint> cluster :  clusters)
         {
-            int thisClass = cluster.get(0).getCategoricalValue(0);
+            final int thisClass = cluster.get(0).getCategoricalValue(0);
             assertFalse(seenBefore.contains(thisClass));
-            for(DataPoint dp : cluster) {
+            for(final DataPoint dp : cluster) {
               assertEquals(thisClass, dp.getCategoricalValue(0));
             }
         }

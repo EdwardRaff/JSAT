@@ -105,7 +105,7 @@ public class GridSearchTest
         instance.trainC(classData);
         instance = instance.clone();
         
-        DumbModel model = (DumbModel) instance.getTrainedClassifier();
+        final DumbModel model = (DumbModel) instance.getTrainedClassifier();
         assertEquals(1, model.param1);
         assertEquals(2, model.param2, 0.0);
         assertEquals(3, model.param3);
@@ -127,7 +127,7 @@ public class GridSearchTest
         instance.trainC(classData, ex);
         instance = instance.clone();
         
-        DumbModel model = (DumbModel) instance.getTrainedClassifier();
+        final DumbModel model = (DumbModel) instance.getTrainedClassifier();
         assertEquals(1, model.param1);
         assertEquals(2, model.param2, 0.0);
         assertEquals(3, model.param3);
@@ -149,7 +149,7 @@ public class GridSearchTest
         instance.trainC(classData);
         instance = instance.clone();
         
-        DumbModel model = (DumbModel) instance.getTrainedClassifier();
+        final DumbModel model = (DumbModel) instance.getTrainedClassifier();
         assertEquals(1, model.param1);
         assertEquals(2, model.param2, 0.0);
         assertEquals(3, model.param3);
@@ -169,7 +169,7 @@ public class GridSearchTest
         instance.trainC(classData);
         instance = instance.clone();
         
-        DumbModel model = (DumbModel) instance.getTrainedClassifier();
+        final DumbModel model = (DumbModel) instance.getTrainedClassifier();
         assertEquals(1, model.param1);
         assertEquals(2, model.param2, 0.5);
         assertEquals(3, model.param3);
@@ -191,7 +191,7 @@ public class GridSearchTest
         instance.trainC(classData, ex);
         instance = instance.clone();
         
-        DumbModel model = (DumbModel) instance.getTrainedClassifier();
+        final DumbModel model = (DumbModel) instance.getTrainedClassifier();
         assertEquals(1, model.param1);
         assertEquals(2, model.param2, 0.0);
         assertEquals(3, model.param3);
@@ -213,7 +213,7 @@ public class GridSearchTest
         instance.train(regData);
         instance = instance.clone();
         
-        DumbModel model = (DumbModel) instance.getTrainedRegressor();
+        final DumbModel model = (DumbModel) instance.getTrainedRegressor();
         assertEquals(1, model.param1);
         assertEquals(2, model.param2, 0.0);
         assertEquals(3, model.param3);
@@ -235,7 +235,7 @@ public class GridSearchTest
         instance.train(regData, ex);
         instance = instance.clone();
         
-        DumbModel model = (DumbModel) instance.getTrainedRegressor();
+        final DumbModel model = (DumbModel) instance.getTrainedRegressor();
         assertEquals(1, model.param1);
         assertEquals(2, model.param2, 0.0);
         assertEquals(3, model.param3);
@@ -257,7 +257,7 @@ public class GridSearchTest
         instance.train(regData);
         instance = instance.clone();
         
-        DumbModel model = (DumbModel) instance.getTrainedRegressor();
+        final DumbModel model = (DumbModel) instance.getTrainedRegressor();
         assertEquals(1, model.param1);
         assertEquals(2, model.param2, 0.0);
         assertEquals(3, model.param3);
@@ -279,7 +279,7 @@ public class GridSearchTest
         instance.train(regData, ex);
         instance = instance.clone();
         
-        DumbModel model = (DumbModel) instance.getTrainedRegressor();
+        final DumbModel model = (DumbModel) instance.getTrainedRegressor();
         assertEquals(1, model.param1);
         assertEquals(2, model.param2, 0.0);
         assertEquals(3, model.param3);
@@ -296,7 +296,7 @@ public class GridSearchTest
         int param3;
         boolean wasWarmStarted = false;
 
-        public void setParam1(int param1)
+        public void setParam1(final int param1)
         {
             this.param1 = param1;
         }
@@ -306,12 +306,12 @@ public class GridSearchTest
             return param1;
         }
         
-        public Distribution guessParam1(DataSet d)
+        public Distribution guessParam1(final DataSet d)
         {
             return new UniformDiscrete(0, 5);
         }
 
-        public void setParam2(double param2)
+        public void setParam2(final double param2)
         {
             this.param2 = param2;
         }
@@ -321,13 +321,13 @@ public class GridSearchTest
             return param2;
         }
         
-        public Distribution guessParam2(DataSet d)
+        public Distribution guessParam2(final DataSet d)
         {
             return new Uniform(0.0, 5.0);
         }
 
         @WarmParameter(prefLowToHigh = false)
-        public void setParam3(int param3)
+        public void setParam3(final int param3)
         {
             this.param3 = param3;
         }
@@ -337,7 +337,7 @@ public class GridSearchTest
             return param3;
         }
         
-        public Distribution guessParam3(DataSet d)
+        public Distribution guessParam3(final DataSet d)
         {
             return new UniformDiscrete(0, 5);
         }
@@ -349,22 +349,22 @@ public class GridSearchTest
         }
 
         @Override
-        public void trainC(ClassificationDataSet dataSet, Classifier warmSolution, ExecutorService threadPool)
+        public void trainC(final ClassificationDataSet dataSet, final Classifier warmSolution, final ExecutorService threadPool)
         {
             wasWarmStarted = ((DumbModel)warmSolution).param3 == this.param3;
         }
 
         @Override
-        public void trainC(ClassificationDataSet dataSet, Classifier warmSolution)
+        public void trainC(final ClassificationDataSet dataSet, final Classifier warmSolution)
         {
             wasWarmStarted = ((DumbModel)warmSolution).param3 == this.param3;
         }
 
         @Override
-        public CategoricalResults classify(DataPoint data)
+        public CategoricalResults classify(final DataPoint data)
         {
             //range check done so that RandomSearch can re-use this class for its own test
-            boolean param2InRange = 1.5 < param2 && param2 < 2.5;
+            final boolean param2InRange = 1.5 < param2 && param2 < 2.5;
             if(param1 == 1 && param2InRange && param3 == 3) {
               if (data.getNumericalValues().get(0) < 0) {
                 return new CategoricalResults(new double[]{0.0, 1.0});
@@ -374,13 +374,13 @@ public class GridSearchTest
         }
 
         @Override
-        public void trainC(ClassificationDataSet dataSet, ExecutorService threadPool)
+        public void trainC(final ClassificationDataSet dataSet, final ExecutorService threadPool)
         {
             wasWarmStarted = false;
         }
 
         @Override
-        public void trainC(ClassificationDataSet dataSet)
+        public void trainC(final ClassificationDataSet dataSet)
         {
             wasWarmStarted = false;
         }
@@ -392,22 +392,22 @@ public class GridSearchTest
         }
 
         @Override
-        public void train(RegressionDataSet dataSet, Regressor warmSolution, ExecutorService threadPool)
+        public void train(final RegressionDataSet dataSet, final Regressor warmSolution, final ExecutorService threadPool)
         {
             wasWarmStarted = ((DumbModel)warmSolution).param3 == this.param3;
         }
 
         @Override
-        public void train(RegressionDataSet dataSet, Regressor warmSolution)
+        public void train(final RegressionDataSet dataSet, final Regressor warmSolution)
         {
             wasWarmStarted = ((DumbModel)warmSolution).param3 == this.param3;
         }
 
         @Override
-        public double regress(DataPoint data)
+        public double regress(final DataPoint data)
         {
             //range check done so that RandomSearch can re-use this class for its own test
-            boolean param2InRange = 1.5 < param2 && param2 < 2.5;
+            final boolean param2InRange = 1.5 < param2 && param2 < 2.5;
             if(param1 == 1 && param2InRange && param3 == 3) {
               if (data.getNumericalValues().get(0) < 0) {
                 return 1;
@@ -417,13 +417,13 @@ public class GridSearchTest
         }
 
         @Override
-        public void train(RegressionDataSet dataSet, ExecutorService threadPool)
+        public void train(final RegressionDataSet dataSet, final ExecutorService threadPool)
         {
             wasWarmStarted = false;
         }
 
         @Override
-        public void train(RegressionDataSet dataSet)
+        public void train(final RegressionDataSet dataSet)
         {
             wasWarmStarted = false;
         }
@@ -431,7 +431,7 @@ public class GridSearchTest
         @Override
         public DumbModel clone()
         {
-            DumbModel toRet = new DumbModel();
+            final DumbModel toRet = new DumbModel();
             toRet.param1 = this.param1;
             toRet.param2 = this.param2;
             toRet.param3 = this.param3;
@@ -446,7 +446,7 @@ public class GridSearchTest
         }
 
         @Override
-        public Parameter getParameter(String paramName)
+        public Parameter getParameter(final String paramName)
         {
             return Parameter.toParameterMap(getParameters()).get(paramName);
         }

@@ -69,14 +69,14 @@ public class EmphasisBoostTest
     {
         System.out.println("trainC");
 
-        EmphasisBoost instance = new EmphasisBoost(new DecisionStump(), 50, 0.5);
+        final EmphasisBoost instance = new EmphasisBoost(new DecisionStump(), 50, 0.5);
 
-        ExecutorService ex = Executors.newFixedThreadPool(SystemInfo.LogicalCores);
+        final ExecutorService ex = Executors.newFixedThreadPool(SystemInfo.LogicalCores);
 
-        ClassificationDataSet train = FixedProblems.getCircles(1000, .1, 10.0);
-        ClassificationDataSet test = FixedProblems.getCircles(100, .1, 10.0);
+        final ClassificationDataSet train = FixedProblems.getCircles(1000, .1, 10.0);
+        final ClassificationDataSet test = FixedProblems.getCircles(100, .1, 10.0);
 
-        ClassificationModelEvaluation cme = new ClassificationModelEvaluation(instance, train, ex);
+        final ClassificationModelEvaluation cme = new ClassificationModelEvaluation(instance, train, ex);
         cme.evaluateTestSet(test);
 
         assertTrue(cme.getErrorRate() <= 0.15);
@@ -89,12 +89,12 @@ public class EmphasisBoostTest
     {
         System.out.println("trainC");
 
-        EmphasisBoost instance = new EmphasisBoost(new DecisionStump(), 50, 0.5);
+        final EmphasisBoost instance = new EmphasisBoost(new DecisionStump(), 50, 0.5);
 
-        ClassificationDataSet train = FixedProblems.getCircles(1000, .1, 10.0);
-        ClassificationDataSet test = FixedProblems.getCircles(100, .1, 10.0);
+        final ClassificationDataSet train = FixedProblems.getCircles(1000, .1, 10.0);
+        final ClassificationDataSet test = FixedProblems.getCircles(100, .1, 10.0);
 
-        ClassificationModelEvaluation cme = new ClassificationModelEvaluation(instance, train);
+        final ClassificationModelEvaluation cme = new ClassificationModelEvaluation(instance, train);
         cme.evaluateTestSet(test);
 
         assertTrue(cme.getErrorRate() <= 0.15);
@@ -108,8 +108,8 @@ public class EmphasisBoostTest
 
         EmphasisBoost instance = new EmphasisBoost(new DecisionTree(10, 10, TreePruner.PruningMethod.NONE, 0.1), 50, 0.5);
 
-        ClassificationDataSet t1 = FixedProblems.getCircles(1000, 0.1, 10.0);
-        ClassificationDataSet t2 = FixedProblems.getCircles(1000, 0.1, 10.0);
+        final ClassificationDataSet t1 = FixedProblems.getCircles(1000, 0.1, 10.0);
+        final ClassificationDataSet t2 = FixedProblems.getCircles(1000, 0.1, 10.0);
         
         t2.applyTransform(new LinearTransform(t2));
 
@@ -119,7 +119,7 @@ public class EmphasisBoostTest
 
         instance.trainC(t1);
 
-        EmphasisBoost result = instance.clone();
+        final EmphasisBoost result = instance.clone();
         
         errors = 0;
         for (int i = 0; i < t1.getSampleSize(); i++) {

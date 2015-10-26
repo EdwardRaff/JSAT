@@ -18,7 +18,7 @@ public class ManhattanDistance implements DenseSparseMetric
 	private static final long serialVersionUID = 3028834823742743351L;
 
 	@Override
-    public double dist(Vec a, Vec b)
+    public double dist(final Vec a, final Vec b)
     {
         return a.pNormDist(1, b);
     }
@@ -60,13 +60,13 @@ public class ManhattanDistance implements DenseSparseMetric
     }
 
     @Override
-    public double getVectorConstant(Vec vec)
+    public double getVectorConstant(final Vec vec)
     {
         return vec.pNorm(1);
     }
 
     @Override
-    public double dist(double summaryConst, Vec main, Vec target)
+    public double dist(final double summaryConst, final Vec main, final Vec target)
     {
         if(!target.isSparse()) {
           return dist(main, target);
@@ -76,10 +76,10 @@ public class ManhattanDistance implements DenseSparseMetric
          * of the indices are actually non zero -  we correct those values
          */
         double takeOut = 0.0;
-        for(IndexValue iv : target)
+        for(final IndexValue iv : target)
         {
-            int i = iv.getIndex();
-            double mainVal = main.get(i);
+            final int i = iv.getIndex();
+            final double mainVal = main.get(i);
             takeOut += mainVal-Math.abs(mainVal-iv.getValue());
         }
         return summaryConst-takeOut;
@@ -92,37 +92,37 @@ public class ManhattanDistance implements DenseSparseMetric
     }
 
     @Override
-    public List<Double> getAccelerationCache(List<? extends Vec> vecs)
+    public List<Double> getAccelerationCache(final List<? extends Vec> vecs)
     {
         return null;
     }
 
     @Override
-    public double dist(int a, int b, List<? extends Vec> vecs, List<Double> cache)
+    public double dist(final int a, final int b, final List<? extends Vec> vecs, final List<Double> cache)
     {
         return dist(vecs.get(a), vecs.get(b));
     }
 
     @Override
-    public double dist(int a, Vec b, List<? extends Vec> vecs, List<Double> cache)
+    public double dist(final int a, final Vec b, final List<? extends Vec> vecs, final List<Double> cache)
     {
         return dist(vecs.get(a), b);
     }
 
     @Override
-    public List<Double> getQueryInfo(Vec q)
+    public List<Double> getQueryInfo(final Vec q)
     {
         return null;
     }
     
     @Override
-    public List<Double> getAccelerationCache(List<? extends Vec> vecs, ExecutorService threadpool)
+    public List<Double> getAccelerationCache(final List<? extends Vec> vecs, final ExecutorService threadpool)
     {
         return null;
     }
 
     @Override
-    public double dist(int a, Vec b, List<Double> qi, List<? extends Vec> vecs, List<Double> cache)
+    public double dist(final int a, final Vec b, final List<Double> qi, final List<? extends Vec> vecs, final List<Double> cache)
     {
         return dist(vecs.get(a), b);
     }

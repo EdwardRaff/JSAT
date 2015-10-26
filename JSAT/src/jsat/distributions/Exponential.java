@@ -18,7 +18,7 @@ public class Exponential extends ContinuousDistribution
         this(1);
     }
 
-    public Exponential(double lambda)
+    public Exponential(final double lambda)
     {
         if(lambda <= 0) {
           throw new RuntimeException("The rate parameter must be greater than zero, not " + lambda);
@@ -27,7 +27,7 @@ public class Exponential extends ContinuousDistribution
     }
 
     @Override
-    public double logPdf(double x)
+    public double logPdf(final double x)
     {
         if(x < 0) {
           return 0;
@@ -37,7 +37,7 @@ public class Exponential extends ContinuousDistribution
 
     
     @Override
-    public double pdf(double d)
+    public double pdf(final double d)
     {
         if(d < 0) {
           return 0;
@@ -47,7 +47,7 @@ public class Exponential extends ContinuousDistribution
 
 
     @Override
-    public double cdf(double d)
+    public double cdf(final double d)
     {
         if(d < 0) {
           return 0;
@@ -56,7 +56,7 @@ public class Exponential extends ContinuousDistribution
     }
 
     @Override
-    public double invCdf(double d)
+    public double invCdf(final double d)
     {
         if(d < 0 || d > 1) {
           throw new ArithmeticException("Inverse CDF only exists on the range [0,1]");
@@ -95,7 +95,7 @@ public class Exponential extends ContinuousDistribution
     }
 
     @Override
-    public void setVariable(String var, double value)
+    public void setVariable(final String var, final double value)
     {
         if(var.equals("\u03BB"))
         {
@@ -113,7 +113,7 @@ public class Exponential extends ContinuousDistribution
     }
 
     @Override
-    public void setUsingData(Vec data)
+    public void setUsingData(final Vec data)
     {
         /**
          * mean of an exponential distribution is lambda^-1
@@ -171,7 +171,7 @@ public class Exponential extends ContinuousDistribution
 	}
 
 	@Override
-	public boolean equals(Object obj) {
+	public boolean equals(final Object obj) {
 		if (this == obj) {
 			return true;
 		}
@@ -181,7 +181,7 @@ public class Exponential extends ContinuousDistribution
 		if (getClass() != obj.getClass()) {
 			return false;
 		}
-		Exponential other = (Exponential) obj;
+		final Exponential other = (Exponential) obj;
 		if (Double.doubleToLongBits(lambda) != Double
 				.doubleToLongBits(other.lambda)) {
 			return false;

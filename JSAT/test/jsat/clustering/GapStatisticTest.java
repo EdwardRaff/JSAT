@@ -43,7 +43,7 @@ public class GapStatisticTest
     @BeforeClass
     public static void setUpClass()
     {
-        GridDataGenerator gdg = new GridDataGenerator(new NormalClampedSample(0.0, 0.05), new XORWOW(), 2, 2);
+        final GridDataGenerator gdg = new GridDataGenerator(new NormalClampedSample(0.0, 0.05), new XORWOW(), 2, 2);
         easyData10 = gdg.generateData(200);
         ex = Executors.newFixedThreadPool(SystemInfo.LogicalCores);
     }
@@ -68,20 +68,20 @@ public class GapStatisticTest
     public void testCluster_4args_1_findK()
     {
         System.out.println("cluster findK");
-        for(boolean PCSample: new boolean[]{true, false})
+        for(final boolean PCSample: new boolean[]{true, false})
         {
-            GapStatistic gap = new GapStatistic(new HamerlyKMeans(new EuclideanDistance(), SeedSelectionMethods.SeedSelection.FARTHEST_FIRST));
+            final GapStatistic gap = new GapStatistic(new HamerlyKMeans(new EuclideanDistance(), SeedSelectionMethods.SeedSelection.FARTHEST_FIRST));
             gap.setPCSampling(PCSample);
-            List<List<DataPoint>> clusters = gap.cluster(easyData10, 1, 20, ex);
+            final List<List<DataPoint>> clusters = gap.cluster(easyData10, 1, 20, ex);
             
             assertEquals(K, clusters.size());
-            Set<Integer> seenBefore = new IntSet();
-            for(List<DataPoint> cluster :  clusters)
+            final Set<Integer> seenBefore = new IntSet();
+            for(final List<DataPoint> cluster :  clusters)
             {
-                int thisClass = cluster.get(0).getCategoricalValue(0);
+                final int thisClass = cluster.get(0).getCategoricalValue(0);
                 assertFalse(seenBefore.contains(thisClass));
                 seenBefore.add(thisClass);
-                for(DataPoint dp : cluster) {
+                for(final DataPoint dp : cluster) {
                   assertEquals(thisClass, dp.getCategoricalValue(0));
                 }
             }
@@ -92,20 +92,20 @@ public class GapStatisticTest
     public void testCluster_3args_1_findK()
     {
         System.out.println("cluster findK");
-        for(boolean PCSample: new boolean[]{true, false})
+        for(final boolean PCSample: new boolean[]{true, false})
         {
-            GapStatistic gap = new GapStatistic(new HamerlyKMeans(new EuclideanDistance(), SeedSelectionMethods.SeedSelection.FARTHEST_FIRST));
+            final GapStatistic gap = new GapStatistic(new HamerlyKMeans(new EuclideanDistance(), SeedSelectionMethods.SeedSelection.FARTHEST_FIRST));
             gap.setPCSampling(PCSample);
-            List<List<DataPoint>> clusters = gap.cluster(easyData10, 1, 20);
+            final List<List<DataPoint>> clusters = gap.cluster(easyData10, 1, 20);
             
             assertEquals(K, clusters.size());
-            Set<Integer> seenBefore = new IntSet();
-            for(List<DataPoint> cluster :  clusters)
+            final Set<Integer> seenBefore = new IntSet();
+            for(final List<DataPoint> cluster :  clusters)
             {
-                int thisClass = cluster.get(0).getCategoricalValue(0);
+                final int thisClass = cluster.get(0).getCategoricalValue(0);
                 assertFalse(seenBefore.contains(thisClass));
                 seenBefore.add(thisClass);
-                for(DataPoint dp : cluster) {
+                for(final DataPoint dp : cluster) {
                   assertEquals(thisClass, dp.getCategoricalValue(0));
                 }
             }

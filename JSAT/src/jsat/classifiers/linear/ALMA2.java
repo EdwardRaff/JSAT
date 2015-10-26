@@ -49,7 +49,7 @@ public class ALMA2 extends BaseUpdateableClassifier implements BinaryScoreClassi
      * @param alpha the alpha value to use
      * @see #setAlpha(double) 
      */
-    public ALMA2(double alpha)
+    public ALMA2(final double alpha)
     {
         setAlpha(alpha);
     }
@@ -58,7 +58,7 @@ public class ALMA2 extends BaseUpdateableClassifier implements BinaryScoreClassi
      * Copy constructor
      * @param other the object to copy
      */
-    protected ALMA2(ALMA2 other)
+    protected ALMA2(final ALMA2 other)
     {
         if(other.w != null) {
           this.w = other.w.clone();
@@ -92,7 +92,7 @@ public class ALMA2 extends BaseUpdateableClassifier implements BinaryScoreClassi
      * 
      * @param alpha the approximation scale in (0.0, 1.0]
      */
-    public void setAlpha(double alpha)
+    public void setAlpha(final double alpha)
     {
         if(alpha <= 0 || alpha > 1 || Double.isNaN(alpha)) {
           throw new ArithmeticException("alpha must be in (0, 1], not " + alpha);
@@ -115,7 +115,7 @@ public class ALMA2 extends BaseUpdateableClassifier implements BinaryScoreClassi
      * {@link #setAlpha(double) }. 
      * @param B the value for B
      */
-    public void setB(double B)
+    public void setB(final double B)
     {
         this.B = B;
     }
@@ -134,7 +134,7 @@ public class ALMA2 extends BaseUpdateableClassifier implements BinaryScoreClassi
      * suggested in the paper. 
      * @param C the C value of ALMA
      */
-    public void setC(double C)
+    public void setC(final double C)
     {
         if(C <= 0 || Double.isInfinite(C) || Double.isNaN(C)) {
           throw new ArithmeticException("C must be a posative cosntant");
@@ -151,7 +151,7 @@ public class ALMA2 extends BaseUpdateableClassifier implements BinaryScoreClassi
      * Sets whether or not an implicit bias term will be added to the data set
      * @param useBias {@code true} to add an implicit bias term
      */
-    public void setUseBias(boolean useBias)
+    public void setUseBias(final boolean useBias)
     {
         this.useBias = useBias;
     }
@@ -172,7 +172,7 @@ public class ALMA2 extends BaseUpdateableClassifier implements BinaryScoreClassi
     }
 
     @Override
-    public void setUp(CategoricalData[] categoricalAttributes, int numericAttributes, CategoricalData predicting)
+    public void setUp(final CategoricalData[] categoricalAttributes, final int numericAttributes, final CategoricalData predicting)
     {
         if(numericAttributes <= 0) {
           throw new FailedToFitException("ALMA2 requires numeric features");
@@ -185,16 +185,16 @@ public class ALMA2 extends BaseUpdateableClassifier implements BinaryScoreClassi
     }
 
     @Override
-    public void update(DataPoint dataPoint, int targetClass)
+    public void update(final DataPoint dataPoint, final int targetClass)
     {
         final Vec x_t = dataPoint.getNumericalValues();
         final double y_t = targetClass*2-1;
         
-        double gamma = B * Math.sqrt(p-1) / k;
-        double wx = w.dot(x_t)+bias;
+        final double gamma = B * Math.sqrt(p-1) / k;
+        final double wx = w.dot(x_t)+bias;
         if(y_t*wx <= (1-alpha)*gamma)//update
         {
-            double eta = C/Math.sqrt(p-1)/Math.sqrt(k++);
+            final double eta = C/Math.sqrt(p-1)/Math.sqrt(k++);
             w.mutableAdd(eta*y_t, x_t);
             if(useBias) {
               bias += eta*y_t;
@@ -207,13 +207,13 @@ public class ALMA2 extends BaseUpdateableClassifier implements BinaryScoreClassi
     }
 
     @Override
-    public CategoricalResults classify(DataPoint data)
+    public CategoricalResults classify(final DataPoint data)
     {
         if(w == null) {
           throw new UntrainedModelException("The model has not yet been trained");
         }
-        double wx = getScore(data);
-        CategoricalResults cr =new CategoricalResults(2);
+        final double wx = getScore(data);
+        final CategoricalResults cr =new CategoricalResults(2);
         if(wx < 0) {
           cr.setProb(0, 1.0);
         } else {
@@ -223,7 +223,7 @@ public class ALMA2 extends BaseUpdateableClassifier implements BinaryScoreClassi
     }
 
     @Override
-    public double getScore(DataPoint dp)
+    public double getScore(final DataPoint dp)
     {
         return w.dot(dp.getNumericalValues());
     }
@@ -247,7 +247,7 @@ public class ALMA2 extends BaseUpdateableClassifier implements BinaryScoreClassi
     }
 
     @Override
-    public Vec getRawWeight(int index)
+    public Vec getRawWeight(final int index)
     {
         if(index < 1) {
           return getRawWeight();
@@ -257,7 +257,7 @@ public class ALMA2 extends BaseUpdateableClassifier implements BinaryScoreClassi
     }
 
     @Override
-    public double getBias(int index)
+    public double getBias(final int index)
     {
         if (index < 1) {
           return getBias();

@@ -43,7 +43,7 @@ public class WhitenedPCA implements DataTransform
      * @param regularization the amount of regularization to add, avoids numerical instability
      * @param dims the number of dimensions to project down to
      */
-    public WhitenedPCA(DataSet dataSet, double regularization, int dims)
+    public WhitenedPCA(final DataSet dataSet, final double regularization, final int dims)
     {
         setRegularization(regularization);
         setDims(dims);
@@ -59,10 +59,10 @@ public class WhitenedPCA implements DataTransform
      * @param dataSet the data set to whiten
      * @param regularization the amount of regularization to add, avoids numerical instability
      */
-    public WhitenedPCA(DataSet dataSet, double regularization)
+    public WhitenedPCA(final DataSet dataSet, final double regularization)
     {
         setRegularization(regularization);
-        SingularValueDecomposition svd = getSVD(dataSet);
+        final SingularValueDecomposition svd = getSVD(dataSet);
         setDims(svd.getRank());
         
         
@@ -76,10 +76,10 @@ public class WhitenedPCA implements DataTransform
      * 
      * @param dataSet the data set to whiten
      */
-    public WhitenedPCA(DataSet dataSet)
+    public WhitenedPCA(final DataSet dataSet)
     {
         
-        SingularValueDecomposition svd = getSVD(dataSet);
+        final SingularValueDecomposition svd = getSVD(dataSet);
         setRegularization(svd);
         setDims(svd.getRank());
         
@@ -94,10 +94,10 @@ public class WhitenedPCA implements DataTransform
      * @param dataSet the data set to whiten
      * @param dims the number of dimensions to project down to
      */
-    public WhitenedPCA(DataSet dataSet, int dims)
+    public WhitenedPCA(final DataSet dataSet, final int dims)
     {
         
-        SingularValueDecomposition svd = getSVD(dataSet);
+        final SingularValueDecomposition svd = getSVD(dataSet);
         setRegularization(svd);
         setDims(dims);
         
@@ -109,7 +109,7 @@ public class WhitenedPCA implements DataTransform
      * Copy constructor 
      * @param other the transform to make a copy of
      */
-    private WhitenedPCA(WhitenedPCA other)
+    private WhitenedPCA(final WhitenedPCA other)
     {
         this.regularization = other.regularization;
         this.dims = other.dims;
@@ -121,20 +121,20 @@ public class WhitenedPCA implements DataTransform
      * @param dataSet the data set in question
      * @return the SVD for the covariance
      */
-    private SingularValueDecomposition getSVD(DataSet dataSet)
+    private SingularValueDecomposition getSVD(final DataSet dataSet)
     {
-        Matrix cov = covarianceMatrix(meanVector(dataSet), dataSet);
+        final Matrix cov = covarianceMatrix(meanVector(dataSet), dataSet);
         for(int i = 0; i < cov.rows(); i++) {
           for (int j = 0; j < i; j++) {
             cov.set(j, i, cov.get(i, j));
           }
         }
-        EigenValueDecomposition evd = new EigenValueDecomposition(cov);
+        final EigenValueDecomposition evd = new EigenValueDecomposition(cov);
         //Sort form largest to smallest
         evd.sortByEigenValue(new Comparator<Double>() 
         {
             @Override
-            public int compare(Double o1, Double o2)
+            public int compare(final Double o1, final Double o2)
             {
                 return -Double.compare(o1, o2);
             }
@@ -150,11 +150,11 @@ public class WhitenedPCA implements DataTransform
      * 
      * @param svd the SVD of the covariance of the source data set
      */
-    protected void setUpTransform(SingularValueDecomposition svd)
+    protected void setUpTransform(final SingularValueDecomposition svd)
     {
-        Vec diag = new DenseVector(dims);
+        final Vec diag = new DenseVector(dims);
         
-        double[] s = svd.getSingularValues();
+        final double[] s = svd.getSingularValues();
         
         for(int i = 0; i < dims; i++) {
           diag.set(i, 1.0/Math.sqrt(s[i]+regularization));
@@ -167,17 +167,17 @@ public class WhitenedPCA implements DataTransform
     
 
     @Override
-    public DataPoint transform(DataPoint dp)
+    public DataPoint transform(final DataPoint dp)
     {
-        Vec newVec = transform.multiply(dp.getNumericalValues());
+        final Vec newVec = transform.multiply(dp.getNumericalValues());
         
-        DataPoint newDp = new DataPoint(newVec, dp.getCategoricalValues(), dp.getCategoricalData(), dp.getWeight());
+        final DataPoint newDp = new DataPoint(newVec, dp.getCategoricalValues(), dp.getCategoricalData(), dp.getWeight());
         
         return newDp;
     }
     
     
-    private void setRegularization(double regularization)
+    private void setRegularization(final double regularization)
     {
         if(regularization < 0 || Double.isNaN(regularization) || Double.isInfinite(regularization)) {
           throw new ArithmeticException("Regularization must be non negative value, not " + regularization);
@@ -185,7 +185,7 @@ public class WhitenedPCA implements DataTransform
         this.regularization = regularization;
     }
 
-    private void setDims(int dims)
+    private void setDims(final int dims)
     {
         if(dims < 1) {
           throw new ArithmeticException("Invalid number of dimensions, bust be > 0");
@@ -199,7 +199,7 @@ public class WhitenedPCA implements DataTransform
         return new WhitenedPCA(this);
     }
 
-    private void setRegularization(SingularValueDecomposition svd)
+    private void setRegularization(final SingularValueDecomposition svd)
     {
         if(svd.isFullRank()) {
           setRegularization(1e-10);
@@ -219,7 +219,7 @@ public class WhitenedPCA implements DataTransform
          * Creates a new WhitenedPCA Factory
          * @param dims the number of dimensions to project down to
          */
-        public WhitenedPCATransformFactory(int dims)
+        public WhitenedPCATransformFactory(final int dims)
         {
             setDimensions(dims);
         }
@@ -228,7 +228,7 @@ public class WhitenedPCA implements DataTransform
          * Copy constructor
          * @param toCopy the object to copy
          */
-        public WhitenedPCATransformFactory(WhitenedPCATransformFactory toCopy)
+        public WhitenedPCATransformFactory(final WhitenedPCATransformFactory toCopy)
         {
             this(toCopy.dimensions);
         }
@@ -237,7 +237,7 @@ public class WhitenedPCA implements DataTransform
          * Sets the number of dimensions to project down to
          * @param dimensions the feature size to project down to
          */
-        public void setDimensions(int dimensions)
+        public void setDimensions(final int dimensions)
         {
             if(dimensions < 1) {
               throw new IllegalArgumentException("Number of dimensions must be positive, not " + dimensions);
@@ -255,7 +255,7 @@ public class WhitenedPCA implements DataTransform
         }
         
         @Override
-        public DataTransform getTransform(DataSet dataset)
+        public DataTransform getTransform(final DataSet dataset)
         {
             return new WhitenedPCA(dataset, dimensions);
         }

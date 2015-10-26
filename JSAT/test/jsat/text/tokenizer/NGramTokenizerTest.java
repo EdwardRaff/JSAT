@@ -48,11 +48,11 @@ public class NGramTokenizerTest
     public void testTokenize_String()
     {
         System.out.println("tokenize");
-        String input = "the dog barked";
-        NaiveTokenizer naiveToken = new NaiveTokenizer();
-        NGramTokenizer instance = new NGramTokenizer(3, naiveToken, true);
-        List<String> expResult = Arrays.asList("the", "dog", "barked", "the dog", "dog barked", "the dog barked");
-        List<String> result = instance.tokenize(input);
+        final String input = "the dog barked";
+        final NaiveTokenizer naiveToken = new NaiveTokenizer();
+        final NGramTokenizer instance = new NGramTokenizer(3, naiveToken, true);
+        final List<String> expResult = Arrays.asList("the", "dog", "barked", "the dog", "dog barked", "the dog barked");
+        final List<String> result = instance.tokenize(input);
         
         assertEquals(expResult.size(), result.size());
         for(int i = 0; i < expResult.size(); i++) {

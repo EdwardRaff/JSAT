@@ -50,35 +50,35 @@ public class DecisionTree implements Classifier, Regressor, Parameterized, TreeL
     private DecisionStump baseStump = new DecisionStump();
 
     @Override
-    public double regress(DataPoint data)
+    public double regress(final DataPoint data)
     {
         return root.regress(data);
     }
     
     @Override
-    public void train(RegressionDataSet dataSet, ExecutorService threadPool)
+    public void train(final RegressionDataSet dataSet, final ExecutorService threadPool)
     {
-        Set<Integer> options = new IntSet(dataSet.getNumFeatures());
+        final Set<Integer> options = new IntSet(dataSet.getNumFeatures());
         for(int i = 0; i < dataSet.getNumFeatures(); i++) {
           options.add(i);
         }
         train(dataSet, options, threadPool);
     }
     
-    public void train(RegressionDataSet dataSet, Set<Integer> options)
+    public void train(final RegressionDataSet dataSet, final Set<Integer> options)
     {
         train(dataSet, options, new FakeExecutor());
     }
 
-    public void train(RegressionDataSet dataSet, Set<Integer> options, ExecutorService threadPool)
+    public void train(final RegressionDataSet dataSet, final Set<Integer> options, final ExecutorService threadPool)
     {
-        ModifiableCountDownLatch mcdl = new ModifiableCountDownLatch(1);
+        final ModifiableCountDownLatch mcdl = new ModifiableCountDownLatch(1);
         root = makeNodeR(dataSet.getDPPList(), options, 0, threadPool, mcdl);
         try
         {
             mcdl.await();
         }
-        catch (InterruptedException ex)
+        catch (final InterruptedException ex)
         {
             Logger.getLogger(DecisionTree.class.getName()).log(Level.SEVERE, null, ex);
         }
@@ -86,7 +86,7 @@ public class DecisionTree implements Classifier, Regressor, Parameterized, TreeL
     }
 
     @Override
-    public void train(RegressionDataSet dataSet)
+    public void train(final RegressionDataSet dataSet)
     {
         train(dataSet, new FakeExecutor());
     }
@@ -105,7 +105,7 @@ public class DecisionTree implements Classifier, Regressor, Parameterized, TreeL
      * Creates a Decision Tree that does not do any pruning, and is built out only to the specified depth
      * @param maxDepth 
      */
-    public DecisionTree(int maxDepth)
+    public DecisionTree(final int maxDepth)
     {
         this(maxDepth, 10, PruningMethod.NONE, 0.00001);
         baseStump.setNumericHandling(DecisionStump.NumericHandlingC.BINARY_BEST_GAIN);
@@ -119,7 +119,7 @@ public class DecisionTree implements Classifier, Regressor, Parameterized, TreeL
      * @param pruningMethod the method of pruning to use after construction 
      * @param testProportion the proportion of the data set to put aside to use for pruning
      */
-    public DecisionTree(int maxDepth, int minSamples, PruningMethod pruningMethod, double testProportion)
+    public DecisionTree(final int maxDepth, final int minSamples, final PruningMethod pruningMethod, final double testProportion)
     {
         setMaxDepth(maxDepth);
         setMinSamples(minSamples);
@@ -131,7 +131,7 @@ public class DecisionTree implements Classifier, Regressor, Parameterized, TreeL
      * Copy constructor
      * @param toCopy the object to copy
      */
-    protected DecisionTree(DecisionTree toCopy)
+    protected DecisionTree(final DecisionTree toCopy)
     {
         this.maxDepth = toCopy.maxDepth;
         this.minSamples = toCopy.minSamples;
@@ -163,7 +163,7 @@ public class DecisionTree implements Classifier, Regressor, Parameterized, TreeL
      */
     public static DecisionTree getC45Tree()
     {
-        DecisionTree tree = new DecisionTree();
+        final DecisionTree tree = new DecisionTree();
         tree.setMinResultSplitSize(2);
         tree.setMinSamples(3);
         tree.setMinResultSplitSize(2);
@@ -180,7 +180,7 @@ public class DecisionTree implements Classifier, Regressor, Parameterized, TreeL
      * @param handling the method of numeric attribute handling to use during 
      * classification
      */
-    public void setNumericHandling(DecisionStump.NumericHandlingC handling)
+    public void setNumericHandling(final DecisionStump.NumericHandlingC handling)
     {
         baseStump.setNumericHandling(handling);
     }
@@ -196,7 +196,7 @@ public class DecisionTree implements Classifier, Regressor, Parameterized, TreeL
         return baseStump.getNumericHandling();
     }
     
-    public void setGainMethod(ImpurityMeasure gainMethod)
+    public void setGainMethod(final ImpurityMeasure gainMethod)
     {
         baseStump.setGainMethod(gainMethod);
     }
@@ -213,7 +213,7 @@ public class DecisionTree implements Classifier, Regressor, Parameterized, TreeL
      * in one of the splits for it to be admisible for consideration.
      * @param size the minimum result split size to use
      */
-    public void setMinResultSplitSize(int size)
+    public void setMinResultSplitSize(final int size)
     {
         baseStump.setMinResultSplitSize(size);
     }
@@ -232,7 +232,7 @@ public class DecisionTree implements Classifier, Regressor, Parameterized, TreeL
      * Sets the maximum depth that this classifier may build trees to. 
      * @param maxDepth the maximum depth of the trained tree
      */
-    public void setMaxDepth(int maxDepth)
+    public void setMaxDepth(final int maxDepth)
     {
         if(maxDepth < 0) {
           throw new RuntimeException("The maximum depth must be a positive number");
@@ -253,7 +253,7 @@ public class DecisionTree implements Classifier, Regressor, Parameterized, TreeL
      * Sets the minimum number of samples needed at each step in order to continue branching 
      * @param minSamples the minimum number of samples needed to branch
      */
-    public void setMinSamples(int minSamples)
+    public void setMinSamples(final int minSamples)
     {
         this.minSamples = minSamples;
     }
@@ -272,7 +272,7 @@ public class DecisionTree implements Classifier, Regressor, Parameterized, TreeL
      * @param pruningMethod the method of pruning that will be used after tree construction 
      * @see PruningMethod
      */
-    public void setPruningMethod(PruningMethod pruningMethod)
+    public void setPruningMethod(final PruningMethod pruningMethod)
     {
         this.pruningMethod = pruningMethod;
     }
@@ -303,7 +303,7 @@ public class DecisionTree implements Classifier, Regressor, Parameterized, TreeL
      * valid for some pruning methods. 
      * @param testProportion the proportion, must be in the range [0, 1]
      */
-    public void setTestProportion(double testProportion)
+    public void setTestProportion(final double testProportion)
     {
         if(testProportion < 0 || testProportion > 1 || Double.isInfinite(testProportion) || Double.isNaN(testProportion)) {
           throw new ArithmeticException("Proportion must be in the range [0, 1], not " + testProportion);
@@ -313,15 +313,15 @@ public class DecisionTree implements Classifier, Regressor, Parameterized, TreeL
 
     
     @Override
-    public CategoricalResults classify(DataPoint data)
+    public CategoricalResults classify(final DataPoint data)
     {
         return root.classify(data);
     }
 
     @Override
-    public void trainC(ClassificationDataSet dataSet, ExecutorService threadPool)
+    public void trainC(final ClassificationDataSet dataSet, final ExecutorService threadPool)
     {
-        Set<Integer> options = new IntSet(dataSet.getNumFeatures());
+        final Set<Integer> options = new IntSet(dataSet.getNumFeatures());
         for(int i = 0; i < dataSet.getNumFeatures(); i++) {
           options.add(i);
         }
@@ -336,7 +336,7 @@ public class DecisionTree implements Classifier, Regressor, Parameterized, TreeL
      * @param options the subset of features to split on
      * @param threadPool the source of threads for training. 
      */
-    protected void trainC(ClassificationDataSet dataSet, Set<Integer> options, ExecutorService threadPool)
+    protected void trainC(final ClassificationDataSet dataSet, final Set<Integer> options, final ExecutorService threadPool)
     {
         if(dataSet.getSampleSize() < minSamples) {
           throw new FailedToFitException("There are only " +
@@ -346,17 +346,17 @@ public class DecisionTree implements Classifier, Regressor, Parameterized, TreeL
         }
         this.predicting = dataSet.getPredicting();
         
-        ModifiableCountDownLatch mcdl = new ModifiableCountDownLatch(1);
+        final ModifiableCountDownLatch mcdl = new ModifiableCountDownLatch(1);
         
-        List<DataPointPair<Integer>> dataPoints = dataSet.getAsDPPList();
-        List<DataPointPair<Integer>> testPoints = new ArrayList<DataPointPair<Integer>>();
+        final List<DataPointPair<Integer>> dataPoints = dataSet.getAsDPPList();
+        final List<DataPointPair<Integer>> testPoints = new ArrayList<DataPointPair<Integer>>();
         
         if(pruningMethod != PruningMethod.NONE && testProportion != 0.0)//Then we need to set aside a testing set
         {
             if(testProportion != 1)
             {
-                int testSize = (int) (dataPoints.size()*testProportion);
-                Random rand = new Random(testSize);
+                final int testSize = (int) (dataPoints.size()*testProportion);
+                final Random rand = new Random(testSize);
                 for(int i = 0; i < testSize; i++) {
                   testPoints.add(dataPoints.remove(rand.nextInt(dataPoints.size())));
                 }
@@ -372,7 +372,7 @@ public class DecisionTree implements Classifier, Regressor, Parameterized, TreeL
         {
             mcdl.await();
         }
-        catch (InterruptedException ex)
+        catch (final InterruptedException ex)
         {
             System.err.println(ex.getMessage());
             Logger.getLogger(DecisionTree.class.getName()).log(Level.SEVERE, null, ex);
@@ -390,7 +390,7 @@ public class DecisionTree implements Classifier, Regressor, Parameterized, TreeL
      * @param mcdl count down latch 
      * @return the node created, or null if no node was created
      */
-    protected Node makeNodeC(List<DataPointPair<Integer>> dataPoints, final Set<Integer> options, final int depth,
+    protected Node makeNodeC(final List<DataPointPair<Integer>> dataPoints, final Set<Integer> options, final int depth,
             final ExecutorService threadPool, final ModifiableCountDownLatch mcdl)
     {
         if(depth > maxDepth || options.isEmpty() || dataPoints.size() < minSamples || dataPoints.isEmpty())
@@ -398,7 +398,7 @@ public class DecisionTree implements Classifier, Regressor, Parameterized, TreeL
             mcdl.countDown();
             return null;
         }
-        DecisionStump stump = baseStump.clone();
+        final DecisionStump stump = baseStump.clone();
         stump.setPredicting(this.predicting);
         final List<List<DataPointPair<Integer>>> splits = stump.trainC(dataPoints, options);
         
@@ -432,7 +432,7 @@ public class DecisionTree implements Classifier, Regressor, Parameterized, TreeL
      * @param mcdl count down latch 
      * @return the node created, or null if no node was created
      */
-    protected Node makeNodeR(List<DataPointPair<Double>> dataPoints, final Set<Integer> options, final int depth,
+    protected Node makeNodeR(final List<DataPointPair<Double>> dataPoints, final Set<Integer> options, final int depth,
             final ExecutorService threadPool, final ModifiableCountDownLatch mcdl)
     {
         if(depth > maxDepth || options.isEmpty() || dataPoints.size() < minSamples || dataPoints.isEmpty())
@@ -440,7 +440,7 @@ public class DecisionTree implements Classifier, Regressor, Parameterized, TreeL
             mcdl.countDown();
             return null;
         }
-        DecisionStump stump = baseStump.clone();
+        final DecisionStump stump = baseStump.clone();
         final List<List<DataPointPair<Double>>> splits = stump.trainR(dataPoints, options);
         if(splits == null)//an error occured, probably not enough data for many categorical values
         {
@@ -471,12 +471,12 @@ public class DecisionTree implements Classifier, Regressor, Parameterized, TreeL
     }
 
     @Override
-    public void trainC(ClassificationDataSet dataSet)
+    public void trainC(final ClassificationDataSet dataSet)
     {
         trainC(dataSet, new FakeExecutor());
     }
     
-    public void trainC(ClassificationDataSet dataSet, Set<Integer> options)
+    public void trainC(final ClassificationDataSet dataSet, final Set<Integer> options)
     {
         trainC(dataSet, options, new FakeExecutor());
     }
@@ -490,7 +490,7 @@ public class DecisionTree implements Classifier, Regressor, Parameterized, TreeL
     @Override
     public DecisionTree clone()
     {
-        DecisionTree copy = new DecisionTree(maxDepth, minSamples, pruningMethod, testProportion);
+        final DecisionTree copy = new DecisionTree(maxDepth, minSamples, pruningMethod, testProportion);
         if(this.predicting != null) {
           copy.predicting = this.predicting.clone();
         }
@@ -516,7 +516,7 @@ public class DecisionTree implements Classifier, Regressor, Parameterized, TreeL
 		final protected DecisionStump stump;
         protected Node[] paths;
         
-        public Node(DecisionStump stump)
+        public Node(final DecisionStump stump)
         {
             this.stump = stump;
             paths = new Node[stump.getNumberOfPaths()];
@@ -543,13 +543,13 @@ public class DecisionTree implements Classifier, Regressor, Parameterized, TreeL
         }
 
         @Override
-        public CategoricalResults localClassify(DataPoint dp)
+        public CategoricalResults localClassify(final DataPoint dp)
         {
             return stump.classify(dp);
         }
 
         @Override
-        public double localRegress(DataPoint dp)
+        public double localRegress(final DataPoint dp)
         {
             return stump.regress(dp);
         }
@@ -557,7 +557,7 @@ public class DecisionTree implements Classifier, Regressor, Parameterized, TreeL
         @Override
         public Node clone()
         {
-            Node copy = new Node( (DecisionStump)this.stump.clone());
+            final Node copy = new Node( (DecisionStump)this.stump.clone());
             for(int i = 0; i < this.paths.length; i++) {
               copy.paths[i] = this.paths[i] == null ? null : this.paths[i].clone();
             }
@@ -566,7 +566,7 @@ public class DecisionTree implements Classifier, Regressor, Parameterized, TreeL
         }
 
         @Override
-        public TreeNodeVisitor getChild(int child)
+        public TreeNodeVisitor getChild(final int child)
         {
             if(isLeaf()) {
               return null;
@@ -576,7 +576,7 @@ public class DecisionTree implements Classifier, Regressor, Parameterized, TreeL
         }
 
         @Override
-        public void setPath(int child, TreeNodeVisitor node)
+        public void setPath(final int child, final TreeNodeVisitor node)
         {
             if(node instanceof Node) {
               paths[child] = (Node) node;
@@ -586,19 +586,19 @@ public class DecisionTree implements Classifier, Regressor, Parameterized, TreeL
         }
 
         @Override
-        public void disablePath(int child)
+        public void disablePath(final int child)
         {
             paths[child] = null;
         }
 
         @Override
-        public int getPath(DataPoint dp)
+        public int getPath(final DataPoint dp)
         {
             return stump.whichPath(dp);
         }
 
         @Override
-        public boolean isPathDisabled(int child)
+        public boolean isPathDisabled(final int child)
         {
             if(isLeaf()) {
               return true;
@@ -607,15 +607,15 @@ public class DecisionTree implements Classifier, Regressor, Parameterized, TreeL
         }
     }
     
-    private List<Parameter> params = new ArrayList<Parameter>(Parameter.getParamsFromMethods(this));
+    private final List<Parameter> params = new ArrayList<Parameter>(Parameter.getParamsFromMethods(this));
     
-    private Map<String, Parameter> paramMap = Parameter.toParameterMap(params);
+    private final Map<String, Parameter> paramMap = Parameter.toParameterMap(params);
 
     @Override
     public List<Parameter> getParameters()
     {
-        List<Parameter> toRet = new ArrayList<Parameter>(params);
-        for (Parameter param : baseStump.getParameters()) {
+        final List<Parameter> toRet = new ArrayList<Parameter>(params);
+        for (final Parameter param : baseStump.getParameters()) {
           if (!param.getName().contains("Gain Method") && !param.getName().contains("Numeric Handling")) {
             toRet.add(param);
           }
@@ -624,7 +624,7 @@ public class DecisionTree implements Classifier, Regressor, Parameterized, TreeL
     }
 
     @Override
-    public Parameter getParameter(String paramName)
+    public Parameter getParameter(final String paramName)
     {
         return paramMap.get(paramName);
     }

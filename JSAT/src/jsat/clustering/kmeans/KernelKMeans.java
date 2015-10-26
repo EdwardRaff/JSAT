@@ -79,7 +79,7 @@ public abstract class KernelKMeans extends KClustererBase implements Parameteriz
      * 
      * @param kernel the kernel to use
      */
-    public KernelKMeans(KernelTrick kernel)
+    public KernelKMeans(final KernelTrick kernel)
     {
         this.kernel = kernel;
     }
@@ -88,14 +88,14 @@ public abstract class KernelKMeans extends KClustererBase implements Parameteriz
      * Copy constructor
      * @param toCopy the object to copy
      */
-    public KernelKMeans(KernelKMeans toCopy)
+    public KernelKMeans(final KernelKMeans toCopy)
     {
         this.kernel = toCopy.kernel.clone();
         this.maximumIterations = toCopy.maximumIterations;
         if(toCopy.X != null)
         {
             this.X = new ArrayList<Vec>(toCopy.X.size());
-            for( Vec v : toCopy.X) {
+            for( final Vec v : toCopy.X) {
               this.X.add(v.clone());
             }
             
@@ -130,7 +130,7 @@ public abstract class KernelKMeans extends KClustererBase implements Parameteriz
      * Sets the maximum number of iterations allowed
      * @param iterLimit the maximum number of iterations of the KMeans algorithm 
      */
-    public void setMaximumIterations(int iterLimit)
+    public void setMaximumIterations(final int iterLimit)
     {
         if(iterLimit <= 0) {
           throw new IllegalArgumentException("iterations must be a positive value, not " + iterLimit);
@@ -148,25 +148,25 @@ public abstract class KernelKMeans extends KClustererBase implements Parameteriz
     }
     
     @Override
-    public int[] cluster(DataSet dataSet, int[] designations)
+    public int[] cluster(final DataSet dataSet, final int[] designations)
     {
         throw new UnsupportedOperationException("Not supported.");
     }
 
     @Override
-    public int[] cluster(DataSet dataSet, ExecutorService threadpool, int[] designations)
+    public int[] cluster(final DataSet dataSet, final ExecutorService threadpool, final int[] designations)
     {
         throw new UnsupportedOperationException("Not supported.");
     }
     
     @Override
-    public int[] cluster(DataSet dataSet, int lowK, int highK, ExecutorService threadpool, int[] designations)
+    public int[] cluster(final DataSet dataSet, final int lowK, final int highK, final ExecutorService threadpool, final int[] designations)
     {
         throw new UnsupportedOperationException("Not supported.");
     }
 
     @Override
-    public int[] cluster(DataSet dataSet, int lowK, int highK, int[] designations)
+    public int[] cluster(final DataSet dataSet, final int lowK, final int highK, final int[] designations)
     {
         throw new UnsupportedOperationException("Not supported.");
     }
@@ -179,7 +179,7 @@ public abstract class KernelKMeans extends KClustererBase implements Parameteriz
      * @param d
      * @return the sum <big>&Sigma;</big>k(x<sub>i</sub>, x<sub>j</sub>), &forall; j, d[<i>j</i>] == <i>clusterID</i>
      */
-    protected double evalSumK(int i, int clusterID, int[] d)
+    protected double evalSumK(final int i, final int clusterID, final int[] d)
     {
         double sum = 0;
         for(int j = 0; j < X.size(); j++) {
@@ -199,7 +199,7 @@ public abstract class KernelKMeans extends KClustererBase implements Parameteriz
      * @param d the array of cluster assignments 
      * @return the sum <big>&Sigma;</big>k(x<sub>i</sub>, x<sub>j</sub>), &forall; j, d[<i>j</i>] == <i>clusterID</i>
      */
-    protected double evalSumK(Vec x, List<Double> qi, int clusterID, int[] d)
+    protected double evalSumK(final Vec x, final List<Double> qi, final int clusterID, final int[] d)
     {
         double sum = 0;
         for(int j = 0; j < X.size(); j++) {
@@ -215,7 +215,7 @@ public abstract class KernelKMeans extends KClustererBase implements Parameteriz
      * @param K the number of clusters to find
      * @param designations the initial designations array to fill with values
      */
-    protected void setup(int K, int[] designations)
+    protected void setup(final int K, final int[] designations)
     {
         accel = kernel.getAccelerationCache(X);
         
@@ -228,10 +228,10 @@ public abstract class KernelKMeans extends KClustererBase implements Parameteriz
         meanSqrdNorms = new double[K];
         newDesignations = new int[N];
         
-        Random rand = new XOR96();
+        final Random rand = new XOR96();
         for (int i = 0; i < N; i++)
         {
-            int to = rand.nextInt(K);
+            final int to = rand.nextInt(K);
             ownes[to]++;
             newDesignations[i] = designations[i] = to;
         }
@@ -242,7 +242,7 @@ public abstract class KernelKMeans extends KClustererBase implements Parameteriz
         
         for (int i = 0; i < N; i++)
         {
-            int i_k = designations[i];
+            final int i_k = designations[i];
             meanSqrdNorms[i_k] += selfK[i];
             for (int j = i + 1; j < N; j++) {
               if (i_k == designations[j]) {
@@ -270,7 +270,7 @@ public abstract class KernelKMeans extends KClustererBase implements Parameteriz
      * @param designations the array if ownership designations for each cluster to use
      * @return the distance between data point {@link #X x}<sub>i</sub> and mean {@code k}
      */
-    protected double distance(int i, int k, int[] designations)
+    protected double distance(final int i, final int k, final int[] designations)
     {
         return Math.sqrt(Math.max(selfK[i] - 2.0/ownes[k] * evalSumK(i, k, designations) + meanSqrdNorms[k]*normConsts[k], 0));
     }
@@ -281,7 +281,7 @@ public abstract class KernelKMeans extends KClustererBase implements Parameteriz
      * @param k the cluster id to get the distance to
      * @return the distance between the given data point and the specified cluster
      */
-    public double distance(Vec x, int k)
+    public double distance(final Vec x, final int k)
     {
         return distance(x, kernel.getQueryInfo(x), k);
     }
@@ -293,7 +293,7 @@ public abstract class KernelKMeans extends KClustererBase implements Parameteriz
      * @param k the cluster id to get the distance to
      * @return the distance between the given data point and the specified cluster
      */
-    public double distance(Vec x, List<Double> qi, int k)
+    public double distance(final Vec x, final List<Double> qi, final int k)
     {
         if(k >= meanSqrdNorms.length || k < 0) {
           throw new IndexOutOfBoundsException("Only " + meanSqrdNorms.length + " clusters. " + k + " is not a valid index");
@@ -306,7 +306,7 @@ public abstract class KernelKMeans extends KClustererBase implements Parameteriz
      * @param x the data point to get the closest cluster for
      * @return the index of the closest cluster
      */
-    public int findClosestCluster(Vec x)
+    public int findClosestCluster(final Vec x)
     {
         return findClosestCluster(x, kernel.getQueryInfo(x));
     }
@@ -317,13 +317,13 @@ public abstract class KernelKMeans extends KClustererBase implements Parameteriz
      * @param qi the query information for the given data point generated for the kernel in use. See {@link KernelTrick#getQueryInfo(jsat.linear.Vec) }
      * @return the index of the closest cluster
      */
-    public int findClosestCluster(Vec x, List<Double> qi)
+    public int findClosestCluster(final Vec x, final List<Double> qi)
     {
         double min = distance(x, qi, 0);
         int min_indx = 0;
         for(int i  = 1; i < meanSqrdNorms.length; i++)
         {
-            double dist = distance(x, qi, i);
+            final double dist = distance(x, qi, i);
             if(dist < min)
             {
                 min = dist;
@@ -341,7 +341,7 @@ public abstract class KernelKMeans extends KClustererBase implements Parameteriz
      * @param designations the old assignments for ownership of each data point to one of the means
      * @return {@code 1} if the index changed ownership, {@code 0} if the index did not change ownership
      */
-    protected int updateMeansFromChange(int i, int[] designations)
+    protected int updateMeansFromChange(final int i, final int[] designations)
     {
         return updateMeansFromChange(i, designations, meanSqrdNorms, ownes);
     }
@@ -421,7 +421,7 @@ public abstract class KernelKMeans extends KClustererBase implements Parameteriz
         return 1;
     }
     
-    protected void applyMeanUpdates(double[] sqrdNorms, int[] ownerships)
+    protected void applyMeanUpdates(final double[] sqrdNorms, final int[] ownerships)
     {
         for(int i = 0; i < sqrdNorms.length; i++)
         {
@@ -436,7 +436,7 @@ public abstract class KernelKMeans extends KClustererBase implements Parameteriz
      * @param k1 the index of the second mean
      * @return the distance between the two
      */
-    public double meanToMeanDistance(int k0, int k1)
+    public double meanToMeanDistance(final int k0, final int k1)
     {
         if(k0 >= meanSqrdNorms.length || k0 < 0) {
           throw new IndexOutOfBoundsException("Only " + meanSqrdNorms.length + " clusters. " + k0 + " is not a valid index");
@@ -448,9 +448,9 @@ public abstract class KernelKMeans extends KClustererBase implements Parameteriz
         return meanToMeanDistance(k0, k1, newDesignations);
     }
     
-    protected double meanToMeanDistance(int k0, int k1, int[] assignments)
+    protected double meanToMeanDistance(final int k0, final int k1, final int[] assignments)
     {
-        double d = meanSqrdNorms[k0]*normConsts[k0]+meanSqrdNorms[k1]*normConsts[k1]-2*dot(k0, k1, assignments);
+        final double d = meanSqrdNorms[k0]*normConsts[k0]+meanSqrdNorms[k1]*normConsts[k1]-2*dot(k0, k1, assignments);
         return Math.sqrt(Math.max(0, d));//Avoid rare cases wehre 2*dot might be slightly larger
     }
     
@@ -464,9 +464,9 @@ public abstract class KernelKMeans extends KClustererBase implements Parameteriz
      * indicated by {@code k1}. (ie: {@link #meanSqrdNorms} multiplied by {@link #normConsts}
      * @return 
      */
-    protected double meanToMeanDistance(int k0, int k1, int[] assignments0, int[] assignments1, double k1SqrdNorm)
+    protected double meanToMeanDistance(final int k0, final int k1, final int[] assignments0, final int[] assignments1, final double k1SqrdNorm)
     {
-        double d = meanSqrdNorms[k0]*normConsts[k0]+k1SqrdNorm-2*dot(k0, k1, assignments0, assignments1);
+        final double d = meanSqrdNorms[k0]*normConsts[k0]+k1SqrdNorm-2*dot(k0, k1, assignments0, assignments1);
         return Math.sqrt(Math.max(0, d));//Avoid rare cases wehre 2*dot might be slightly larger
     }
     
@@ -530,7 +530,7 @@ public abstract class KernelKMeans extends KClustererBase implements Parameteriz
     }
 
     @Override
-    public Parameter getParameter(String paramName)
+    public Parameter getParameter(final String paramName)
     {
         return Parameter.toParameterMap(getParameters()).get(paramName);
     }

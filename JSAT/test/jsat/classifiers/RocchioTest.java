@@ -62,14 +62,14 @@ public class RocchioTest
     public void testTrainC_ClassificationDataSet_ExecutorService()
     {
         System.out.println("trainC");
-        Rocchio instance = new Rocchio();
+        final Rocchio instance = new Rocchio();
         
-        ClassificationDataSet train = FixedProblems.getSimpleKClassLinear(10000, 3);
-        ClassificationDataSet test = FixedProblems.getSimpleKClassLinear(1000, 3);
+        final ClassificationDataSet train = FixedProblems.getSimpleKClassLinear(10000, 3);
+        final ClassificationDataSet test = FixedProblems.getSimpleKClassLinear(1000, 3);
 
-        ExecutorService ex = Executors.newFixedThreadPool(SystemInfo.LogicalCores);
+        final ExecutorService ex = Executors.newFixedThreadPool(SystemInfo.LogicalCores);
         
-        ClassificationModelEvaluation cme = new ClassificationModelEvaluation(instance, train, ex);
+        final ClassificationModelEvaluation cme = new ClassificationModelEvaluation(instance, train, ex);
         cme.evaluateTestSet(test);
         
         assertTrue(cme.getErrorRate() <= 0.001);
@@ -79,12 +79,12 @@ public class RocchioTest
     public void testTrainC_ClassificationDataSet()
     {
         System.out.println("trainC");
-        Rocchio instance = new Rocchio();
+        final Rocchio instance = new Rocchio();
         
-        ClassificationDataSet train = FixedProblems.getSimpleKClassLinear(10000, 3);
-        ClassificationDataSet test = FixedProblems.getSimpleKClassLinear(1000, 3);
+        final ClassificationDataSet train = FixedProblems.getSimpleKClassLinear(10000, 3);
+        final ClassificationDataSet test = FixedProblems.getSimpleKClassLinear(1000, 3);
 
-        ClassificationModelEvaluation cme = new ClassificationModelEvaluation(instance, train);
+        final ClassificationModelEvaluation cme = new ClassificationModelEvaluation(instance, train);
         cme.evaluateTestSet(test);
         
         assertTrue(cme.getErrorRate() <= 0.001);
@@ -95,8 +95,8 @@ public class RocchioTest
     {
         System.out.println("clone");
         
-        ClassificationDataSet t1 = FixedProblems.getSimpleKClassLinear(10000, 3);
-        ClassificationDataSet t2 = FixedProblems.getSimpleKClassLinear(10000, 6);
+        final ClassificationDataSet t1 = FixedProblems.getSimpleKClassLinear(10000, 3);
+        final ClassificationDataSet t2 = FixedProblems.getSimpleKClassLinear(10000, 6);
         
         Rocchio instance = new Rocchio();
         
@@ -104,7 +104,7 @@ public class RocchioTest
                 
         instance.trainC(t1);
 
-        Rocchio result = instance.clone();
+        final Rocchio result = instance.clone();
         for(int i = 0; i < t1.getSampleSize(); i++) {
           assertEquals(t1.getDataPointCategory(i), result.classify(t1.getDataPoint(i)).mostLikely());
         }

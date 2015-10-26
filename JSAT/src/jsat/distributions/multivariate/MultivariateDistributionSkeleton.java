@@ -23,15 +23,15 @@ public abstract class MultivariateDistributionSkeleton implements MultivariateDi
 	private static final long serialVersionUID = 4080753806798149915L;
 
 	@Override
-    public double logPdf(double... x)
+    public double logPdf(final double... x)
     {
         return logPdf(DenseVector.toDenseVec(x));
     }
     
     @Override
-    public double logPdf(Vec x)
+    public double logPdf(final Vec x)
     {
-        double logPDF = Math.log(pdf(x));
+        final double logPDF = Math.log(pdf(x));
         if(Double.isInfinite(logPDF) && logPDF < 0) {//log(0) == -Infinty
           return -Double.MAX_VALUE;
         }
@@ -39,31 +39,31 @@ public abstract class MultivariateDistributionSkeleton implements MultivariateDi
     }
     
     @Override
-    public double pdf(double... x)
+    public double pdf(final double... x)
     {
         return pdf(DenseVector.toDenseVec(x));
     }
     
     @Override
-    public boolean setUsingData(DataSet dataSet)
+    public boolean setUsingData(final DataSet dataSet)
     {
         return setUsingDataList(dataSet.getDataPoints());
     }
 
     @Override
-    public boolean setUsingData(DataSet dataSet, ExecutorService threadpool)
+    public boolean setUsingData(final DataSet dataSet, final ExecutorService threadpool)
     {
         return setUsingDataList(dataSet.getDataPoints(), threadpool);
     }
 
     @Override
-    public <V extends Vec> boolean setUsingData(List<V> dataSet, ExecutorService threadpool)
+    public <V extends Vec> boolean setUsingData(final List<V> dataSet, final ExecutorService threadpool)
     {
         return setUsingData(dataSet);
     }
 
     @Override
-    public boolean setUsingDataList(List<DataPoint> dataPoints, ExecutorService threadpool)
+    public boolean setUsingDataList(final List<DataPoint> dataPoints, final ExecutorService threadpool)
     {
         return setUsingDataList(dataPoints);
     }

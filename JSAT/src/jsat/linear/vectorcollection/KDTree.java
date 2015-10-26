@@ -64,7 +64,7 @@ public class KDTree<V extends Vec> implements VectorCollection<V>
      * @param threadpool the source of threads to use when constructing. Null is permitted,
      * in which case a serial construction will occur. 
      */
-    public KDTree(List<V> vecs, DistanceMetric distanceMetric, PivotSelection pvSelection, ExecutorService threadpool)
+    public KDTree(List<V> vecs, final DistanceMetric distanceMetric, final PivotSelection pvSelection, final ExecutorService threadpool)
     {
         if(!( distanceMetric instanceof EuclideanDistance || distanceMetric instanceof ChebyshevDistance || 
               distanceMetric instanceof ManhattanDistance || distanceMetric instanceof MinkowskiDistance) ) {
@@ -79,19 +79,19 @@ public class KDTree<V extends Vec> implements VectorCollection<V>
         } else {
           distCache = distanceMetric.getAccelerationCache(vecs, threadpool);
         }
-        List<Integer> vecIndices = new IntList(size);
+        final List<Integer> vecIndices = new IntList(size);
         ListUtils.addRange(vecIndices, 0, size, 1);
         if(threadpool == null) {
           this.root = buildTree(vecIndices, 0, null, null);
         } else
         {
-            ModifiableCountDownLatch mcdl = new ModifiableCountDownLatch(1);
+            final ModifiableCountDownLatch mcdl = new ModifiableCountDownLatch(1);
             this.root = buildTree(vecIndices, 0, threadpool, mcdl);
             try
             {
                 mcdl.await();
             }
-            catch (InterruptedException ex)
+            catch (final InterruptedException ex)
             {
                 //Failure, fall back to single threaded version
                 this.root = buildTree(vecIndices, 0, null, null);
@@ -106,7 +106,7 @@ public class KDTree<V extends Vec> implements VectorCollection<V>
      * @param distanceMetric the metric to use for the space
      * @param pvSelection the method of selection to use for determining what pivot to use. 
      */
-    public KDTree(List<V> vecs, DistanceMetric distanceMetric, PivotSelection pvSelection)
+    public KDTree(final List<V> vecs, final DistanceMetric distanceMetric, final PivotSelection pvSelection)
     {
         this(vecs, distanceMetric, pvSelection, null);
     }
@@ -117,12 +117,12 @@ public class KDTree<V extends Vec> implements VectorCollection<V>
      * @param vecs the list of vectors to place in this structure
      * @param distanceMetric the metric to use for the space
      */
-    public KDTree(List<V> vecs, DistanceMetric distanceMetric)
+    public KDTree(final List<V> vecs, final DistanceMetric distanceMetric)
     {
         this(vecs, distanceMetric, PivotSelection.Variance);
     }
     
-    private KDTree(DistanceMetric distanceMetric, PivotSelection pvSelection)
+    private KDTree(final DistanceMetric distanceMetric, final PivotSelection pvSelection)
     {
         this.distanceMetric = distanceMetric;
         this.pvSelection = pvSelection;
@@ -147,29 +147,29 @@ public class KDTree<V extends Vec> implements VectorCollection<V>
         KDNode left;
         KDNode right;
         
-        public KDNode(int locatin, int axis)
+        public KDNode(final int locatin, final int axis)
         {
             this.locatin = locatin;
             this.axis = axis;
         }
         
         @SuppressWarnings("unused")
-        public void setAxis(int axis)
+        public void setAxis(final int axis)
         {
             this.axis = axis;
         }
 
-        public void setLeft(KDNode left)
+        public void setLeft(final KDNode left)
         {
             this.left = left;
         }
         @SuppressWarnings("unused")
-        public void setLocatin(int locatin)
+        public void setLocatin(final int locatin)
         {
             this.locatin = locatin;
         }
 
-        public void setRight(KDNode right)
+        public void setRight(final KDNode right)
         {
             this.right = right;
         }
@@ -197,7 +197,7 @@ public class KDTree<V extends Vec> implements VectorCollection<V>
         @Override
         protected KDNode clone() 
         {
-            KDNode clone = new KDNode(locatin, axis);
+            final KDNode clone = new KDNode(locatin, axis);
             if(this.left != null) {
               clone.left = this.left.clone();
             }
@@ -212,13 +212,13 @@ public class KDTree<V extends Vec> implements VectorCollection<V>
     {
         private final int index;
 
-        public VecIndexComparator(int index)
+        public VecIndexComparator(final int index)
         {
             this.index = index;
         }
         
         @Override
-        public int compare(Integer o1, Integer o2)
+        public int compare(final Integer o1, final Integer o2)
         {
             return Double.compare( allVecs.get(o1).get(index), allVecs.get(o2).get(index));
         }
@@ -242,7 +242,7 @@ public class KDTree<V extends Vec> implements VectorCollection<V>
             }
             return null;
         }
-        int mod = allVecs.get(0).length();
+        final int mod = allVecs.get(0).length();
         
         if(data.size() == 1)
         {
@@ -257,14 +257,14 @@ public class KDTree<V extends Vec> implements VectorCollection<V>
           pivot = depth % mod;
         } else//Variance 
         {
-            OnLineStatistics[] allStats = new OnLineStatistics[mod];
+            final OnLineStatistics[] allStats = new OnLineStatistics[mod];
             for(int j = 0; j < allStats.length; j++) {
               allStats[j] = new OnLineStatistics();
           }
             
             for(int i = 0; i < data.size(); i++)//For each data point
             {
-                V vec = allVecs.get(data.get(i));
+                final V vec = allVecs.get(data.get(i));
                 for(int j = 0; j < allStats.length; j++) {
                   //For each dimension
                   allStats[j].add(vec.get(j));
@@ -321,26 +321,26 @@ public class KDTree<V extends Vec> implements VectorCollection<V>
     }
     
     //Use the Probaility match to pair a distance with the vector
-    private void knnKDSearch(Vec query, BoundedSortedList<ProbailityMatch<V>> knns)
+    private void knnKDSearch(final Vec query, final BoundedSortedList<ProbailityMatch<V>> knns)
     {
-        Stack<KDNode> stack = new Stack<KDNode>();
+        final Stack<KDNode> stack = new Stack<KDNode>();
         stack.push(root);
         
-        List<Double> qi = distanceMetric.supportsAcceleration() ? distanceMetric.getQueryInfo(query) : null;
+        final List<Double> qi = distanceMetric.supportsAcceleration() ? distanceMetric.getQueryInfo(query) : null;
         
         while(!stack.isEmpty())
         {
-            KDNode node = stack.pop();
+            final KDNode node = stack.pop();
             if(node == null) {
               continue;
             }
-            V curData = allVecs.get(node.locatin);
-            double distance = distanceMetric.dist(node.locatin, query, qi, allVecs, distCache);
+            final V curData = allVecs.get(node.locatin);
+            final double distance = distanceMetric.dist(node.locatin, query, qi, allVecs, distCache);
             
             knns.add( new ProbailityMatch<V>(distance, curData));
             
             double qVal, cVal;
-            double diff = (qVal = query.get(node.axis)) - (cVal = curData.get(node.axis));
+            final double diff = (qVal = query.get(node.axis)) - (cVal = curData.get(node.axis));
 
             if(diff <= 0)
             {
@@ -365,39 +365,39 @@ public class KDTree<V extends Vec> implements VectorCollection<V>
     }
     
     @Override
-    public List<? extends VecPaired<V, Double>> search(Vec query, int neighbors)
+    public List<? extends VecPaired<V, Double>> search(final Vec query, final int neighbors)
     {
         if(neighbors < 1) {
           throw new RuntimeException("Invalid number of neighbors to search for");
         }
         
-        BoundedSortedList<ProbailityMatch<V>> knns = new BoundedSortedList<ProbailityMatch<V>>(neighbors);
+        final BoundedSortedList<ProbailityMatch<V>> knns = new BoundedSortedList<ProbailityMatch<V>>(neighbors);
         
         knnKDSearch(query, knns);
         
-        List<VecPaired<V, Double>> knnsList = new ArrayList<VecPaired<V, Double>>(knns.size());
+        final List<VecPaired<V, Double>> knnsList = new ArrayList<VecPaired<V, Double>>(knns.size());
         for(int i = 0; i < knns.size(); i++)
         {
-            ProbailityMatch<V> pm = knns.get(i);
+            final ProbailityMatch<V> pm = knns.get(i);
             knnsList.add(new VecPaired<V, Double>(pm.getMatch(), pm.getProbability()));
         }
         
         return knnsList;
     }
     
-    private void distanceSearch(Vec query, List<Double> qi, KDNode node, List<VecPairedComparable<V, Double>> knns, double range)
+    private void distanceSearch(final Vec query, final List<Double> qi, final KDNode node, final List<VecPairedComparable<V, Double>> knns, final double range)
     {
         if(node == null) {
           return;
         }
-        V curData = allVecs.get(node.locatin);
-        double distance = distanceMetric.dist(node.locatin, query, qi, allVecs, distCache);
+        final V curData = allVecs.get(node.locatin);
+        final double distance = distanceMetric.dist(node.locatin, query, qi, allVecs, distCache);
         
         if(distance <= range) {
           knns.add( new VecPairedComparable<V, Double>(curData, distance) );
         }
         
-        double diff = query.get(node.axis) - curData.get(node.axis);
+        final double diff = query.get(node.axis) - curData.get(node.axis);
         
         KDNode close = node.left, far = node.right;
         if(diff > 0)
@@ -419,14 +419,14 @@ public class KDTree<V extends Vec> implements VectorCollection<V>
     }
     
     @Override
-    public List<? extends VecPaired<V, Double>> search(Vec query, double range)
+    public List<? extends VecPaired<V, Double>> search(final Vec query, final double range)
     {
         if(range <= 0) {
           throw new RuntimeException("Range must be a positive number");
         }
-        ArrayList<VecPairedComparable<V, Double>> vecs = new ArrayList<VecPairedComparable<V, Double>>();
+        final ArrayList<VecPairedComparable<V, Double>> vecs = new ArrayList<VecPairedComparable<V, Double>>();
         
-        List<Double> qi = distanceMetric.supportsAcceleration() ? distanceMetric.getQueryInfo(query) : null;
+        final List<Double> qi = distanceMetric.supportsAcceleration() ? distanceMetric.getQueryInfo(query) : null;
         
         distanceSearch(query, qi, root, vecs, range);
         
@@ -439,7 +439,7 @@ public class KDTree<V extends Vec> implements VectorCollection<V>
     @Override
     public KDTree<V> clone()
     {
-        KDTree<V> clone = new KDTree<V>(distanceMetric, pvSelection);
+        final KDTree<V> clone = new KDTree<V>(distanceMetric, pvSelection);
         if(this.distCache != null) {
           clone.distCache = new DoubleList(this.distCache);
         }
@@ -461,7 +461,7 @@ public class KDTree<V extends Vec> implements VectorCollection<V>
 		private static final long serialVersionUID = 3508731608962277804L;
 		private PivotSelection pivotSelectionMethod;
 
-        public KDTreeFactory(PivotSelection pvSelectionMethod)
+        public KDTreeFactory(final PivotSelection pvSelectionMethod)
         {
             this.pivotSelectionMethod = pvSelectionMethod;
         }
@@ -476,19 +476,19 @@ public class KDTree<V extends Vec> implements VectorCollection<V>
             return pivotSelectionMethod;
         }
 
-        public void setPivotSelectionMethod(PivotSelection pivotSelectionMethod)
+        public void setPivotSelectionMethod(final PivotSelection pivotSelectionMethod)
         {
             this.pivotSelectionMethod = pivotSelectionMethod;
         }
         
         @Override
-        public VectorCollection<V> getVectorCollection(List<V> source, DistanceMetric distanceMetric)
+        public VectorCollection<V> getVectorCollection(final List<V> source, final DistanceMetric distanceMetric)
         {
             return getVectorCollection(source, distanceMetric, null);
         }
 
         @Override
-        public VectorCollection<V> getVectorCollection(List<V> source, DistanceMetric distanceMetric, ExecutorService threadpool)
+        public VectorCollection<V> getVectorCollection(final List<V> source, final DistanceMetric distanceMetric, final ExecutorService threadpool)
         {
             return new KDTree<V>(source, distanceMetric, pivotSelectionMethod, threadpool);
         }

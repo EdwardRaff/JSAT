@@ -35,10 +35,10 @@ public class Perceptron implements BinaryScoreClassifier, SingleWeightVectorMode
 
 
 	private static final long serialVersionUID = -3605237847981632021L;
-	private double learningRate;
+	private final double learningRate;
     private double bias;
     private Vec weights;
-    private int iteratinLimit;
+    private final int iteratinLimit;
 
     /**
      * Creates a new Perceptron learner
@@ -55,7 +55,7 @@ public class Perceptron implements BinaryScoreClassifier, SingleWeightVectorMode
      * into the model
      * @param iteratinLimit the maximum number of iterations to perform when converging
      */
-    public Perceptron(double learningRate, int iteratinLimit)
+    public Perceptron(final double learningRate, final int iteratinLimit)
     {
         if(learningRate <= 0 || learningRate > 1) {
           throw new RuntimeException("Preceptron learning rate must be in the range (0,1]");
@@ -65,16 +65,16 @@ public class Perceptron implements BinaryScoreClassifier, SingleWeightVectorMode
     }
     
     @Override
-    public CategoricalResults classify(DataPoint data)
+    public CategoricalResults classify(final DataPoint data)
     {
-        CategoricalResults cr = new CategoricalResults(2);
+        final CategoricalResults cr = new CategoricalResults(2);
         cr.setProb(output(data), 1);
         
         return cr;
     }
 
     @Override
-    public double getScore(DataPoint dp)
+    public double getScore(final DataPoint dp)
     {
         return weights.dot(dp.getNumericalValues()) + bias;
     }
@@ -87,14 +87,14 @@ public class Perceptron implements BinaryScoreClassifier, SingleWeightVectorMode
     private class BatchTrainingUnit implements Callable<PairedReturn<Vec, Double[]>>
     {
         //this will be updated incrementally
-        private Vec tmpSummedErrors;
+        private final Vec tmpSummedErrors;
         private double biasChange;
         private double globalError;
 
         
         List<DataPointPair<Integer>> dataPoints;
 
-        public BatchTrainingUnit(List<DataPointPair<Integer>> toOperateOn)
+        public BatchTrainingUnit(final List<DataPointPair<Integer>> toOperateOn)
         {
             this.tmpSummedErrors = new DenseVector(weights.length());
             this.dataPoints = toOperateOn;
@@ -104,19 +104,19 @@ public class Perceptron implements BinaryScoreClassifier, SingleWeightVectorMode
 
         public PairedReturn<Vec, Double[]> call() throws Exception
         {
-            for(DataPointPair<Integer> dpp : dataPoints)
+            for(final DataPointPair<Integer> dpp : dataPoints)
             {
                 
-                int output = output(dpp.getDataPoint());
-                double localError = dpp.getPair() - output;
+                final int output = output(dpp.getDataPoint());
+                final double localError = dpp.getPair() - output;
                 
                 
                 if(localError != 0)
                 {//Update the weight vecotrs
                     //The weight of this sample, take it into account!
-                    double extraWeight = dpp.getDataPoint().getWeight();
+                    final double extraWeight = dpp.getDataPoint().getWeight();
                     
-                    double magnitude = learningRate*localError*extraWeight;
+                    final double magnitude = learningRate*localError*extraWeight;
                 
                     tmpSummedErrors.mutableAdd(magnitude, dpp.getVector());
                     biasChange += magnitude;
@@ -129,7 +129,7 @@ public class Perceptron implements BinaryScoreClassifier, SingleWeightVectorMode
     }
     
     @Override
-    public void trainC(ClassificationDataSet dataSet, ExecutorService threadPool)
+    public void trainC(final ClassificationDataSet dataSet, final ExecutorService threadPool)
     {
         if(dataSet.getClassSize() != 2) {
           throw new FailedToFitException("Preceptron only supports binary calssification");
@@ -137,13 +137,13 @@ public class Perceptron implements BinaryScoreClassifier, SingleWeightVectorMode
           throw new FailedToFitException("Preceptron only supports vector classification");
         }
 
-        List<DataPointPair<Integer>> dataPoints = dataSet.getAsDPPList();
+        final List<DataPointPair<Integer>> dataPoints = dataSet.getAsDPPList();
         Collections.shuffle(dataPoints);
         
-        int partions = Runtime.getRuntime().availableProcessors();
+        final int partions = Runtime.getRuntime().availableProcessors();
         
-        Random r = new Random();
-        int numerVars = dataSet.getNumNumericalVars();
+        final Random r = new Random();
+        final int numerVars = dataSet.getNumNumericalVars();
         
         weights = new DenseVector(numerVars);
         for(int i = 0; i < weights.length(); i++) {
@@ -165,10 +165,10 @@ public class Perceptron implements BinaryScoreClassifier, SingleWeightVectorMode
             
             
             //Where our intermediate partial results will be stored
-            List<Future<PairedReturn<Vec, Double[]>>> futures = 
+            final List<Future<PairedReturn<Vec, Double[]>>> futures = 
                     new ArrayList<Future<PairedReturn<Vec, Double[]>>> (partions);
             //create a task for each thing being submitied
-            int blockSize = dataPoints.size() / partions;
+            final int blockSize = dataPoints.size() / partions;
             for(int i = 0; i < partions; i++)
             {
                 List<DataPointPair<Integer>> subList;
@@ -182,20 +182,20 @@ public class Perceptron implements BinaryScoreClassifier, SingleWeightVectorMode
             }
             
             //Now collect the results
-            for(Future<PairedReturn<Vec, Double[]>> future : futures)
+            for(final Future<PairedReturn<Vec, Double[]>> future : futures)
             {
                 try
                 {
-                    PairedReturn<Vec, Double[]> partialResult = future.get();
+                    final PairedReturn<Vec, Double[]> partialResult = future.get();
                     sumedErrors.mutableAdd(partialResult.getFirstItem());
                     biasChange += partialResult.getSecondItem()[0];
                     globalError += partialResult.getSecondItem()[1];
                 }
-                catch (InterruptedException ex)
+                catch (final InterruptedException ex)
                 {
                     
                 }
-                catch (ExecutionException ex)
+                catch (final ExecutionException ex)
                 {
                     
                 }
@@ -218,13 +218,13 @@ public class Perceptron implements BinaryScoreClassifier, SingleWeightVectorMode
     }
 
     @Override
-    public void trainC(ClassificationDataSet dataSet)
+    public void trainC(final ClassificationDataSet dataSet)
     {
         trainCOnline(dataSet);
     }
     
     //Uses the online training algorithm instead of the batch one. 
-    public void trainCOnline(ClassificationDataSet dataSet)
+    public void trainCOnline(final ClassificationDataSet dataSet)
     {
         if(dataSet.getClassSize() != 2) {
           throw new FailedToFitException("Preceptron only supports binary calssification");
@@ -232,11 +232,11 @@ public class Perceptron implements BinaryScoreClassifier, SingleWeightVectorMode
           throw new FailedToFitException("Preceptron only supports vector classification");
         }
 
-        List<DataPointPair<Integer>> dataPoints = dataSet.getAsDPPList();
+        final List<DataPointPair<Integer>> dataPoints = dataSet.getAsDPPList();
         Collections.shuffle(dataPoints);
         
-        Random r = new Random();
-        int numerVars = dataSet.getNumNumericalVars();
+        final Random r = new Random();
+        final int numerVars = dataSet.getNumNumericalVars();
         
         weights = new DenseVector(numerVars);
         for(int i = 0; i < weights.length(); i++) {
@@ -253,18 +253,18 @@ public class Perceptron implements BinaryScoreClassifier, SingleWeightVectorMode
         {
             globalError = 0;
             //For each data point
-            for(DataPointPair<Integer> dpp : dataPoints)
+            for(final DataPointPair<Integer> dpp : dataPoints)
             {
-                int output = output(dpp.getDataPoint());
-                double localError = dpp.getPair() - output;
+                final int output = output(dpp.getDataPoint());
+                final double localError = dpp.getPair() - output;
                 
                 
                 if(localError != 0)
                 {//Update the weight vecotrs
                     //The weight of this sample, take it into account!
-                    double extraWeight = dpp.getDataPoint().getWeight();
+                    final double extraWeight = dpp.getDataPoint().getWeight();
                     
-                    double magnitude = learningRate*localError*extraWeight;
+                    final double magnitude = learningRate*localError*extraWeight;
                 
                     weights.mutableAdd(magnitude, dpp.getVector());
                     bias += magnitude;
@@ -284,9 +284,9 @@ public class Perceptron implements BinaryScoreClassifier, SingleWeightVectorMode
         weights = bestWeightsSoFar;
     }
     
-    private int output(DataPoint input)
+    private int output(final DataPoint input)
     {
-        double dot = getScore(input);
+        final double dot = getScore(input);
         
         return (dot >= 0) ? 1 : 0;
     }
@@ -310,7 +310,7 @@ public class Perceptron implements BinaryScoreClassifier, SingleWeightVectorMode
     }
     
     @Override
-    public Vec getRawWeight(int index)
+    public Vec getRawWeight(final int index)
     {
         if(index < 1) {
           return getRawWeight();
@@ -320,7 +320,7 @@ public class Perceptron implements BinaryScoreClassifier, SingleWeightVectorMode
     }
 
     @Override
-    public double getBias(int index)
+    public double getBias(final int index)
     {
         if (index < 1) {
           return getBias();
@@ -338,7 +338,7 @@ public class Perceptron implements BinaryScoreClassifier, SingleWeightVectorMode
     @Override
     public Perceptron clone()
     {
-        Perceptron copy = new  Perceptron(learningRate, iteratinLimit);
+        final Perceptron copy = new  Perceptron(learningRate, iteratinLimit);
         if(this.weights != null) {
           copy.weights = this.weights.clone();
         }

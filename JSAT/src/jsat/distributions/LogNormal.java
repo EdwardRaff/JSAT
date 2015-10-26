@@ -23,7 +23,7 @@ public class LogNormal extends ContinuousDistribution
     }
     
     
-    public LogNormal(double mu, double sig)
+    public LogNormal(final double mu, final double sig)
     {
         this.mu = mu;
         this.sig = sig;
@@ -32,18 +32,18 @@ public class LogNormal extends ContinuousDistribution
     
     
     @Override
-    public double pdf(double x)
+    public double pdf(final double x)
     {
         if(x <= 0) {
           return 0;
         }
-        double num = exp(-pow(log(x)-mu, 2)/(2*sig*sig));
-        double denom = x*sqrt(2*PI*sig*sig);
+        final double num = exp(-pow(log(x)-mu, 2)/(2*sig*sig));
+        final double denom = x*sqrt(2*PI*sig*sig);
         return num/denom;
     }
 
     @Override
-    public double cdf(double x)
+    public double cdf(final double x)
     {
         if(x <= 0) {
           return 0;
@@ -52,9 +52,9 @@ public class LogNormal extends ContinuousDistribution
     }
 
     @Override
-    public double invCdf(double p)
+    public double invCdf(final double p)
     {
-        double expo = mu+sqrt(2)*sqrt(sig*sig)*invErf(2*p-1.0);
+        final double expo = mu+sqrt(2)*sqrt(sig*sig)*invErf(2*p-1.0);
         return exp(expo);
     }
 
@@ -89,7 +89,7 @@ public class LogNormal extends ContinuousDistribution
     }
 
     @Override
-    public void setVariable(String var, double value)
+    public void setVariable(final String var, final double value)
     {
         if(var.equals(GreekLetters.mu)) {
           mu = value;
@@ -109,10 +109,10 @@ public class LogNormal extends ContinuousDistribution
     }
 
     @Override
-    public void setUsingData(Vec data)
+    public void setUsingData(final Vec data)
     {
-        double mean = data.mean();
-        double var = data.variance();
+        final double mean = data.mean();
+        final double var = data.variance();
         
         mu = log(mean) - 0.5*log(1 + var/(mean*mean));
         sig = sqrt(1 + var/(mean*mean));
@@ -163,7 +163,7 @@ public class LogNormal extends ContinuousDistribution
 
 
 	@Override
-	public boolean equals(Object obj) {
+	public boolean equals(final Object obj) {
 		if (this == obj) {
 			return true;
 		}
@@ -173,7 +173,7 @@ public class LogNormal extends ContinuousDistribution
 		if (getClass() != obj.getClass()) {
 			return false;
 		}
-		LogNormal other = (LogNormal) obj;
+		final LogNormal other = (LogNormal) obj;
 		if (Double.doubleToLongBits(mu) != Double.doubleToLongBits(other.mu)) {
 			return false;
 		}

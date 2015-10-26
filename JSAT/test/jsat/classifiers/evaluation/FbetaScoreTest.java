@@ -49,7 +49,7 @@ public class FbetaScoreTest
     {
         System.out.println("getScore");
         FbetaScore scorer = new FbetaScore(1.0);
-        FbetaScore otherHalf = scorer.clone();
+        final FbetaScore otherHalf = scorer.clone();
         
         assertEquals(scorer, otherHalf);
         assertEquals(scorer.hashCode(), otherHalf.hashCode());
@@ -70,7 +70,7 @@ public class FbetaScoreTest
         otherHalf.addResult(new CategoricalResults(new double[]{0.9, 0.1}), 1, 1.0);
         
         scorer.addResults(otherHalf);
-        double tp = 2, tn = 3, fp = 2, fn = 2;
+        final double tp = 2, tn = 3, fp = 2, fn = 2;
         assertEquals(2*tp/(2*tp+fp+fn), scorer.getScore(), 1e-2);
         assertEquals(2*tp/(2*tp+fp+fn), scorer.clone().getScore(), 1e-2);
         

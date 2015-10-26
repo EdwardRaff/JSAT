@@ -56,7 +56,7 @@ public class NaiveKMeans extends KMeans
      * {@link SeedSelection#KPP k-means++} for the seed selection.
      * @param dm the distance function to use
      */
-    public NaiveKMeans(DistanceMetric dm)
+    public NaiveKMeans(final DistanceMetric dm)
     {
         this(dm, SeedSelectionMethods.SeedSelection.KPP);
     }
@@ -66,7 +66,7 @@ public class NaiveKMeans extends KMeans
      * @param dm the distance function to use
      * @param seedSelection the method of selecting the initial seeds
      */
-    public NaiveKMeans(DistanceMetric dm, SeedSelection seedSelection)
+    public NaiveKMeans(final DistanceMetric dm, final SeedSelection seedSelection)
     {
         this(dm, seedSelection, new XORWOW());
     }
@@ -77,7 +77,7 @@ public class NaiveKMeans extends KMeans
      * @param seedSelection the method of selecting the initial seeds
      * @param rand the source of randomness to use
      */
-    public NaiveKMeans(DistanceMetric dm, SeedSelection seedSelection, Random rand)
+    public NaiveKMeans(final DistanceMetric dm, final SeedSelection seedSelection, final Random rand)
     {
         super(dm, seedSelection, rand);
     }
@@ -86,13 +86,13 @@ public class NaiveKMeans extends KMeans
      * Copy constructor
      * @param toCopy the object to copy
      */
-    public NaiveKMeans(NaiveKMeans toCopy)
+    public NaiveKMeans(final NaiveKMeans toCopy)
     {
         super(toCopy);
     }
 
     @Override
-    protected double cluster(final DataSet dataSet, List<Double> accelCacheInit, final int k, final List<Vec> means, final int[] assignment, final boolean exactTotal, ExecutorService threadpool, boolean returnError)
+    protected double cluster(final DataSet dataSet, final List<Double> accelCacheInit, final int k, final List<Vec> means, final int[] assignment, final boolean exactTotal, ExecutorService threadpool, final boolean returnError)
     {
         TrainableDistanceMetric.trainIfNeeded(dm, dataSet, threadpool);
         
@@ -155,7 +155,7 @@ public class NaiveKMeans extends KMeans
             @Override
             protected Vec[] initialValue()
             {
-                Vec[] deltas = new Vec[k];
+                final Vec[] deltas = new Vec[k];
                 for(int i = 0; i < k; i++) {
                   deltas[i] = new DenseVector(means.get(0).length());
                 }
@@ -179,7 +179,7 @@ public class NaiveKMeans extends KMeans
                     @Override
                     public void run()
                     {
-                        Vec[] deltas = localMeanDeltas.get();
+                        final Vec[] deltas = localMeanDeltas.get();
                         double tmp;
                         for (int i = s; i < end; i++)
                         {
@@ -243,7 +243,7 @@ public class NaiveKMeans extends KMeans
                     }
                 }
             }
-            catch (InterruptedException ex)
+            catch (final InterruptedException ex)
             {
                 Logger.getLogger(NaiveKMeans.class.getName()).log(Level.SEVERE, null, ex);
             }
@@ -261,7 +261,7 @@ public class NaiveKMeans extends KMeans
             
             for (int i = 0; i < dataSet.getSampleSize(); i++)
             {
-                double dist = dm.dist(i, means.get(assignment[i]), meanQIs.get(assignment[i]), X, accelCache);
+                final double dist = dm.dist(i, means.get(assignment[i]), meanQIs.get(assignment[i]), X, accelCache);
                 totalDistance += Math.pow(dist, 2);
                 if(saveCentroidDistance) {
                   nearestCentroidDist[i] = dist;

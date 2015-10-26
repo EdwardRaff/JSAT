@@ -24,9 +24,9 @@ public class WardsDissimilarity extends LanceWilliamsDissimilarity
     }
 
     @Override
-    protected double aConst(boolean iFlag, int ni, int nj, int nk)
+    protected double aConst(final boolean iFlag, final int ni, final int nj, final int nk)
     {
-        double totalPoints = ni+nj+nk;
+        final double totalPoints = ni+nj+nk;
         if(iFlag) {
           return (ni+nk)/totalPoints;
         } else {
@@ -35,14 +35,14 @@ public class WardsDissimilarity extends LanceWilliamsDissimilarity
     }
 
     @Override
-    protected double bConst(int ni, int nj, int nk)
+    protected double bConst(final int ni, final int nj, final int nk)
     {
-        double totalPoints = ni+nj+nk;
+        final double totalPoints = ni+nj+nk;
         return -nk/totalPoints;
     }
 
     @Override
-    protected double cConst(int ni, int nj, int nk)
+    protected double cConst(final int ni, final int nj, final int nk)
     {
         return 0;
     }

@@ -83,7 +83,7 @@ public class WeightedEuclideanDistanceTest
         vecs = Arrays.asList(zero, ones, half, inc);
         //weighting
         weights = DenseVector.toDenseVec(1, 0.5, 1, 2, 1);
-        for(Vec v : vecs)
+        for(final Vec v : vecs)
         {
             v.set(1, v.get(1)*2);
             v.set(3, v.get(3)/2);
@@ -107,10 +107,10 @@ public class WeightedEuclideanDistanceTest
     {
         System.out.println("dist");
         
-        WeightedEuclideanDistance dist = new WeightedEuclideanDistance(weights);
+        final WeightedEuclideanDistance dist = new WeightedEuclideanDistance(weights);
         
-        List<Double> cache = dist.getAccelerationCache(vecs);
-        List<Double> cache2 = dist.getAccelerationCache(vecs, ex);
+        final List<Double> cache = dist.getAccelerationCache(vecs);
+        final List<Double> cache2 = dist.getAccelerationCache(vecs, ex);
         if(cache != null)
         {
             assertEquals(cache.size(), cache2.size());
@@ -130,7 +130,7 @@ public class WeightedEuclideanDistanceTest
             dist.dist(half, new DenseVector(half.length()+1));
             fail("Distance between vecs should have erred");
         }
-        catch (Exception ex)
+        catch (final Exception ex)
         {
 
         }
@@ -138,7 +138,7 @@ public class WeightedEuclideanDistanceTest
         for (int i = 0; i < vecs.size(); i++) {
           for (int j = 0; j < vecs.size(); j++)
           {
-            WeightedEuclideanDistance d = dist.clone();
+            final WeightedEuclideanDistance d = dist.clone();
             assertEquals(expected[i][j], d.dist(vecs.get(i), vecs.get(j)), 1e-8);
             assertEquals(expected[i][j], d.dist(i, j, vecs, cache), 1e-8);
             assertEquals(expected[i][j], d.dist(i, vecs.get(j), vecs, cache), 1e-8);
@@ -151,7 +151,7 @@ public class WeightedEuclideanDistanceTest
     public void testMetricProperties()
     {
         System.out.println("isSymmetric");
-        WeightedEuclideanDistance instance = new WeightedEuclideanDistance(weights);
+        final WeightedEuclideanDistance instance = new WeightedEuclideanDistance(weights);
         assertTrue(instance.isSymmetric());
         assertTrue(instance.isSubadditive());
         assertTrue(instance.isIndiscemible());
@@ -161,7 +161,7 @@ public class WeightedEuclideanDistanceTest
     public void testMetricBound()
     {
         System.out.println("metricBound");
-        WeightedEuclideanDistance instance = new WeightedEuclideanDistance(weights);
+        final WeightedEuclideanDistance instance = new WeightedEuclideanDistance(weights);
         assertTrue(instance.metricBound() > 0);
         assertTrue(Double.isInfinite(instance.metricBound()));
     }

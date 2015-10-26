@@ -65,7 +65,7 @@ public class VPTree<V extends Vec> implements VectorCollection<V>
         Random
     }
 
-    public VPTree(List<V> list, DistanceMetric dm, VPSelection vpSelection, Random rand, int sampleSize, int searchIterations, ExecutorService threadpool)
+    public VPTree(final List<V> list, final DistanceMetric dm, final VPSelection vpSelection, final Random rand, final int sampleSize, final int searchIterations, final ExecutorService threadpool)
     {
         this.dm = dm;
         if(!dm.isSubadditive()) {
@@ -83,7 +83,7 @@ public class VPTree<V extends Vec> implements VectorCollection<V>
           distCache = dm.getAccelerationCache(allVecs, threadpool);
         }
         //Use simple list so both halves can be modified simultaniously
-        List<Pair<Double, Integer>> tmpList = new SimpleList<Pair<Double, Integer>>(list.size());
+        final List<Pair<Double, Integer>> tmpList = new SimpleList<Pair<Double, Integer>>(list.size());
         for(int i = 0; i < allVecs.size(); i++) {
           tmpList.add(new Pair<Double, Integer>(-1.0, i));
         }
@@ -91,13 +91,13 @@ public class VPTree<V extends Vec> implements VectorCollection<V>
           this.root = makeVPTree(tmpList);
         } else
         {
-            ModifiableCountDownLatch mcdl = new ModifiableCountDownLatch(1);
+            final ModifiableCountDownLatch mcdl = new ModifiableCountDownLatch(1);
             this.root = makeVPTree(tmpList, threadpool, mcdl);
             try
             {
                 mcdl.await();
             }
-            catch (InterruptedException ex)
+            catch (final InterruptedException ex)
             {
                 Logger.getLogger(VPTree.class.getName()).log(Level.SEVERE, null, ex);
                 System.err.println("Falling back to single threaded VPTree constructor");
@@ -110,17 +110,17 @@ public class VPTree<V extends Vec> implements VectorCollection<V>
         }
     }
     
-    public VPTree(List<V> list, DistanceMetric dm, VPSelection vpSelection, Random rand, int sampleSize, int searchIterations)
+    public VPTree(final List<V> list, final DistanceMetric dm, final VPSelection vpSelection, final Random rand, final int sampleSize, final int searchIterations)
     {
         this(list, dm, vpSelection, rand, sampleSize, searchIterations, null);
     }
 
-    public VPTree(List<V> list, DistanceMetric dm, VPSelection vpSelection)
+    public VPTree(final List<V> list, final DistanceMetric dm, final VPSelection vpSelection)
     {
         this(list, dm, vpSelection, new Random(), 80, 40);
     }
     
-    public VPTree(List<V> list, DistanceMetric dm)
+    public VPTree(final List<V> list, final DistanceMetric dm)
     {
         this(list, dm, VPSelection.Random);
     }
@@ -129,7 +129,7 @@ public class VPTree<V extends Vec> implements VectorCollection<V>
      * Copy constructor
      * @param toClone the object ot copy
      */
-    protected VPTree(VPTree<V> toClone)
+    protected VPTree(final VPTree<V> toClone)
     {
         this.dm = toClone.dm.clone();
         this.rand = this.rand == null ? null : new Random(rand.nextInt());
@@ -164,14 +164,14 @@ public class VPTree<V extends Vec> implements VectorCollection<V>
         
     @Override
     @SuppressWarnings("unchecked")
-    public List<? extends VecPaired<V, Double>> search(Vec query, double range)
+    public List<? extends VecPaired<V, Double>> search(final Vec query, final double range)
     {
         if(range <= 0) {
           throw new RuntimeException("Range must be a positive number");
         }
-        List<VecPairedComparable<V, Double>> returnList = new ArrayList<VecPairedComparable<V, Double>>();
+        final List<VecPairedComparable<V, Double>> returnList = new ArrayList<VecPairedComparable<V, Double>>();
         
-        List<Double> qi = dm.getQueryInfo(query);
+        final List<Double> qi = dm.getQueryInfo(query);
         root.searchRange(VecPaired.extractTrueVec(query), range, (List)returnList, 0.0, qi);
         
         Collections.sort(returnList);
@@ -180,15 +180,15 @@ public class VPTree<V extends Vec> implements VectorCollection<V>
     }
     
     @Override
-    public List<? extends VecPaired<V, Double>> search(Vec query, int neighbors)
+    public List<? extends VecPaired<V, Double>> search(final Vec query, final int neighbors)
     {
-        BoundedSortedList<ProbailityMatch<V>> boundedList= new BoundedSortedList<ProbailityMatch<V>>(neighbors, neighbors);
+        final BoundedSortedList<ProbailityMatch<V>> boundedList= new BoundedSortedList<ProbailityMatch<V>>(neighbors, neighbors);
 
-        List<Double> qi = dm.getQueryInfo(query);
+        final List<Double> qi = dm.getQueryInfo(query);
         root.searchKNN(VecPaired.extractTrueVec(query), neighbors, boundedList, 0.0, qi);
         
-        List<VecPaired<V, Double>> list = new ArrayList<VecPaired<V, Double>>(boundedList.size());
-        for(ProbailityMatch<V> pm : boundedList) {
+        final List<VecPaired<V, Double>> list = new ArrayList<VecPaired<V, Double>>(boundedList.size());
+        for(final ProbailityMatch<V> pm : boundedList) {
           list.add(new VecPaired<V, Double>(pm.getMatch(), pm.getProbability()));
         }
         return list;
@@ -204,18 +204,18 @@ public class VPTree<V extends Vec> implements VectorCollection<V>
      */
     private int sortSplitSet(final List<Pair<Double, Integer>> S, final VPNode node)
     {
-        for (Pair<Double, Integer> S1 : S) {
+        for (final Pair<Double, Integer> S1 : S) {
           S1.setFirstItem(dm.dist(node.p, S1.getSecondItem(), allVecs, distCache)); //Each point gets its distance to the vantage point
         }
         Collections.sort(S, new Comparator<Pair<Double, Integer>>() 
         {
             @Override
-            public int compare(Pair<Double, Integer> o1, Pair<Double, Integer> o2)
+            public int compare(final Pair<Double, Integer> o1, final Pair<Double, Integer> o2)
             {
                 return Double.compare(o1.getFirstItem(), o2.getFirstItem());
             }
         });
-        int splitIndex = splitListIndex(S); 
+        final int splitIndex = splitListIndex(S); 
         node.left_low = S.get(0).getFirstItem();
         node.left_high = S.get(splitIndex).getFirstItem();
         node.right_low = S.get(splitIndex+1).getFirstItem();
@@ -229,7 +229,7 @@ public class VPTree<V extends Vec> implements VectorCollection<V>
      * @param S the non empty list of elements 
      * @return the index that should be used to split on [0, index] belonging to the left, and (index, S.size() ) belonging to the right. 
      */
-    protected int splitListIndex(List<Pair<Double, Integer>> S)
+    protected int splitListIndex(final List<Pair<Double, Integer>> S)
     {
         return S.size()/2;
     }
@@ -254,26 +254,26 @@ public class VPTree<V extends Vec> implements VectorCollection<V>
      * 
      * @param maxLeafSize the new maximum leaf node size. 
      */
-    public void setMaxLeafSize(int maxLeafSize)
+    public void setMaxLeafSize(final int maxLeafSize)
     {
         this.maxLeafSize = Math.max(5, maxLeafSize);
     }
     
     
     //The probability match is used to store and sort by median distances. 
-    private TreeNode makeVPTree(List<Pair<Double, Integer>> S)
+    private TreeNode makeVPTree(final List<Pair<Double, Integer>> S)
     {
         if(S.isEmpty()) {
           return null;
         } else if(S.size() <= maxLeafSize)
         {
-            VPLeaf leaf = new VPLeaf(S);
+            final VPLeaf leaf = new VPLeaf(S);
             return leaf;
         }
         
-        VPNode node = new VPNode(selectVantagePoint(S));
+        final VPNode node = new VPNode(selectVantagePoint(S));
         
-        int splitIndex = sortSplitSet(S, node);
+        final int splitIndex = sortSplitSet(S, node);
         
         /*
          * Re use the list and let it get altered. We must compute the right side first. 
@@ -295,14 +295,14 @@ public class VPTree<V extends Vec> implements VectorCollection<V>
         }
         else if(S.size() <= maxLeafSize)
         {
-            VPLeaf leaf = new VPLeaf(S);
+            final VPLeaf leaf = new VPLeaf(S);
             mcdl.countDown();
             return leaf;
         }
         
         final VPNode node = new VPNode(selectVantagePoint(S));
         
-        int splitIndex = sortSplitSet(S, node);
+        final int splitIndex = sortSplitSet(S, node);
         
         
         //Start 2 threads, but only 1 of them is "new" 
@@ -326,14 +326,14 @@ public class VPTree<V extends Vec> implements VectorCollection<V>
     }
     
     
-    private int selectVantagePointIndex(List<Pair<Double, Integer>> S)
+    private int selectVantagePointIndex(final List<Pair<Double, Integer>> S)
     {
         int vpIndex;
         if (vpSelection == VPSelection.Random) {
           vpIndex = rand.nextInt(S.size());
         } else//Sampling
         {
-            List<Integer> samples = new IntList(sampleSize);
+            final List<Integer> samples = new IntList(sampleSize);
             if (sampleSize <= S.size()) {
             for (int i = 0; i < sampleSize; i++) {
               samples.add(S.get(i).getSecondItem());
@@ -344,7 +344,7 @@ public class VPTree<V extends Vec> implements VectorCollection<V>
             }
           }
 
-            double[] distances = new double[sampleSize];
+            final double[] distances = new double[sampleSize];
 
             int bestVP = -1;
             double bestSpread = Double.NEGATIVE_INFINITY;
@@ -352,17 +352,17 @@ public class VPTree<V extends Vec> implements VectorCollection<V>
             for (int i = 0; i < Math.min(searchIterations, S.size()); i++)
             {
                 //When low on samples, just brute force!
-                int candIndx = searchIterations <= S.size() ? i : rand.nextInt(S.size());
-                int candV = S.get(candIndx).getSecondItem();
+                final int candIndx = searchIterations <= S.size() ? i : rand.nextInt(S.size());
+                final int candV = S.get(candIndx).getSecondItem();
 
                 for (int j = 0; j < samples.size(); j++) {
                   distances[j] = dm.dist(candV, samples.get(j), allVecs, distCache);
             }
 
                 Arrays.sort(distances);
-                double median = distances[distances.length / 2];
+                final double median = distances[distances.length / 2];
                 double spread = 0;
-                for (double distance : distances) {
+                for (final double distance : distances) {
                   spread += Math.abs(distance - median);
             }
                 if (spread > bestSpread)
@@ -382,9 +382,9 @@ public class VPTree<V extends Vec> implements VectorCollection<V>
      * @param S the set to select a vantage point from
      * @return the index of thevantage point removed from the set
      */
-    private int selectVantagePoint(List<Pair<Double, Integer>> S)
+    private int selectVantagePoint(final List<Pair<Double, Integer>> S)
     {
-        int vpIndex = selectVantagePointIndex(S);
+        final int vpIndex = selectVantagePointIndex(S);
         
         return S.remove(vpIndex).getSecondItem();
     }
@@ -435,12 +435,12 @@ public class VPTree<V extends Vec> implements VectorCollection<V>
         double left_low, left_high, right_low, right_high;
         TreeNode right, left;
 
-        public VPNode(int p)
+        public VPNode(final int p)
         {
             this.p = p;
         }
         
-        private boolean searchInLeft(double x, double tau)
+        private boolean searchInLeft(final double x, final double tau)
         {
             if(left == null) {
               return false;
@@ -448,7 +448,7 @@ public class VPTree<V extends Vec> implements VectorCollection<V>
             return left_low-tau <= x && x <= left_high+tau;
         }
         
-        private boolean searchInRight(double x, double tau)
+        private boolean searchInRight(final double x, final double tau)
         {
             if(right == null) {
               return false;
@@ -457,14 +457,14 @@ public class VPTree<V extends Vec> implements VectorCollection<V>
         }
         
         @Override
-        public void searchKNN(Vec query, int k, BoundedSortedList<ProbailityMatch<V>> list, double x, List<Double> qi)
+        public void searchKNN(final Vec query, final int k, final BoundedSortedList<ProbailityMatch<V>> list, double x, final List<Double> qi)
         {
             x = dm.dist(p, query, qi, allVecs, distCache);
             if(list.size() < k || x < list.get(k-1).getProbability()) {
               list.add(new ProbailityMatch<V>(x, allVecs.get(this.p)));
             }
             double tau = list.get(list.size()-1).getProbability();
-            double middle = (this.left_high+this.right_low)*0.5;
+            final double middle = (this.left_high+this.right_low)*0.5;
 
             if( x < middle)
             {
@@ -489,7 +489,7 @@ public class VPTree<V extends Vec> implements VectorCollection<V>
         }
 
         @Override
-        public void searchRange(Vec query, double range, List<VecPaired<V, Double>> list, double x, List<Double> qi)
+        public void searchRange(final Vec query, final double range, final List<VecPaired<V, Double>> list, double x, final List<Double> qi)
         {
             x = dm.dist(this.p, query, qi, allVecs, distCache);
             if(x <= range) {
@@ -507,7 +507,7 @@ public class VPTree<V extends Vec> implements VectorCollection<V>
         @Override
         public TreeNode clone()
         {
-            VPNode clone = new VPNode(p);
+            final VPNode clone = new VPNode(p);
             clone.left_low  = this.left_low;
             clone.left_high = this.left_high;
             clone.right_low = this.right_low;
@@ -527,7 +527,7 @@ public class VPTree<V extends Vec> implements VectorCollection<V>
         int[] points;
         double[] bounds;
         
-        public VPLeaf(List<Pair<Double, Integer>> points)
+        public VPLeaf(final List<Pair<Double, Integer>> points)
         {
             this.points = new int[points.size()];
             this.bounds = new double[this.points.length];
@@ -538,7 +538,7 @@ public class VPTree<V extends Vec> implements VectorCollection<V>
             }
         }
         
-        public VPLeaf(int[] points, double[] bounds)
+        public VPLeaf(final int[] points, final double[] bounds)
         {
             this.bounds = Arrays.copyOf(bounds, bounds.length);
             this.points = new int[points.length];
@@ -548,7 +548,7 @@ public class VPTree<V extends Vec> implements VectorCollection<V>
         }
 
         @Override
-        public void searchKNN(Vec query, int k, BoundedSortedList<ProbailityMatch<V>> list, double x, List<Double> qi)
+        public void searchKNN(final Vec query, final int k, final BoundedSortedList<ProbailityMatch<V>> list, final double x, final List<Double> qi)
         {
             double dist = -1;
             
@@ -569,7 +569,7 @@ public class VPTree<V extends Vec> implements VectorCollection<V>
         }
 
         @Override
-        public void searchRange(Vec query, double range, List<VecPaired<V, Double>> list, double x, List<Double> qi)
+        public void searchRange(final Vec query, final double range, final List<VecPaired<V, Double>> list, final double x, final List<Double> qi)
         {
             double dist = Double.MAX_VALUE;
             
@@ -597,7 +597,7 @@ public class VPTree<V extends Vec> implements VectorCollection<V>
 		private static final long serialVersionUID = -2739851193676265510L;
 		private VPSelection vpSelectionMethod;
 
-        public VPTreeFactory(VPSelection vpSelectionMethod)
+        public VPTreeFactory(final VPSelection vpSelectionMethod)
         {
             this.vpSelectionMethod = vpSelectionMethod;
         }
@@ -608,13 +608,13 @@ public class VPTree<V extends Vec> implements VectorCollection<V>
         }
         
         @Override
-        public VectorCollection<V> getVectorCollection(List<V> source, DistanceMetric distanceMetric)
+        public VectorCollection<V> getVectorCollection(final List<V> source, final DistanceMetric distanceMetric)
         {
             return new VPTree<V>(source, distanceMetric, vpSelectionMethod);
         }
 
         @Override
-        public VectorCollection<V> getVectorCollection(List<V> source, DistanceMetric distanceMetric, ExecutorService threadpool)
+        public VectorCollection<V> getVectorCollection(final List<V> source, final DistanceMetric distanceMetric, final ExecutorService threadpool)
         {
             return new VPTree<V>(source, distanceMetric, vpSelectionMethod, new Random(10), 80, 40, threadpool);
         }

@@ -56,7 +56,7 @@ public class PassiveAggressive implements UpdateableClassifier, BinaryScoreClass
      * @param epochs the number of training epochs to use during batch training
      * @param mode which version of the update to perform 
      */
-    public PassiveAggressive(int epochs, Mode mode)
+    public PassiveAggressive(final int epochs, final Mode mode)
     {
         this.epochs = epochs;
         this.mode = mode;
@@ -96,7 +96,7 @@ public class PassiveAggressive implements UpdateableClassifier, BinaryScoreClass
      * 
      * @param C the positive aggressiveness parameter
      */
-    public void setC(double C)
+    public void setC(final double C)
     {
         if(Double.isNaN(C) || Double.isInfinite(C) || C <= 0) {
           throw new ArithmeticException("Aggressiveness must be a positive constant");
@@ -117,7 +117,7 @@ public class PassiveAggressive implements UpdateableClassifier, BinaryScoreClass
      * Sets which version of the PA update is used. 
      * @param mode which PA update style to perform
      */
-    public void setMode(Mode mode)
+    public void setMode(final Mode mode)
     {
         this.mode = mode;
     }
@@ -136,7 +136,7 @@ public class PassiveAggressive implements UpdateableClassifier, BinaryScoreClass
      * given value, no error will be incurred. 
      * @param eps the maximum acceptable difference in prediction and truth 
      */
-    public void setEps(double eps)
+    public void setEps(final double eps)
     {
         this.eps = eps;
     }
@@ -155,7 +155,7 @@ public class PassiveAggressive implements UpdateableClassifier, BinaryScoreClass
      * performed for training
      * @param epochs the number of whole iterations through the data set
      */
-    public void setEpochs(int epochs)
+    public void setEpochs(final int epochs)
     {
         if(epochs < 1) {
           throw new IllegalArgumentException("epochs must be a positive value");
@@ -185,7 +185,7 @@ public class PassiveAggressive implements UpdateableClassifier, BinaryScoreClass
     }
     
     @Override
-    public Vec getRawWeight(int index)
+    public Vec getRawWeight(final int index)
     {
         if(index < 1) {
           return getRawWeight();
@@ -195,7 +195,7 @@ public class PassiveAggressive implements UpdateableClassifier, BinaryScoreClass
     }
 
     @Override
-    public double getBias(int index)
+    public double getBias(final int index)
     {
         if (index < 1) {
           return getBias();
@@ -211,9 +211,9 @@ public class PassiveAggressive implements UpdateableClassifier, BinaryScoreClass
     }
     
     @Override
-    public CategoricalResults classify(DataPoint data)
+    public CategoricalResults classify(final DataPoint data)
     {
-        CategoricalResults cr = new CategoricalResults(2);
+        final CategoricalResults cr = new CategoricalResults(2);
         if(getScore(data) > 0) {
           cr.setProb(1, 1);
         } else {
@@ -224,19 +224,19 @@ public class PassiveAggressive implements UpdateableClassifier, BinaryScoreClass
     }
 
     @Override
-    public double getScore(DataPoint dp)
+    public double getScore(final DataPoint dp)
     {
         return dp.getNumericalValues().dot(w);
     }
 
     @Override
-    public void trainC(ClassificationDataSet dataSet, ExecutorService threadPool)
+    public void trainC(final ClassificationDataSet dataSet, final ExecutorService threadPool)
     {
         trainC(dataSet);
     }
 
     @Override
-    public void trainC(ClassificationDataSet dataSet)
+    public void trainC(final ClassificationDataSet dataSet)
     {
         BaseUpdateableClassifier.trainEpochs(dataSet, this, epochs);
     }
@@ -248,7 +248,7 @@ public class PassiveAggressive implements UpdateableClassifier, BinaryScoreClass
     }
 
     @Override
-    public void setUp(CategoricalData[] categoricalAttributes, int numericAttributes, CategoricalData predicting)
+    public void setUp(final CategoricalData[] categoricalAttributes, final int numericAttributes, final CategoricalData predicting)
     {
         if(predicting.getNumOfCategories() != 2) {
           throw new FailedToFitException("Only supports binary classification problems");
@@ -259,7 +259,7 @@ public class PassiveAggressive implements UpdateableClassifier, BinaryScoreClass
     }
     
     @Override
-    public void setUp(CategoricalData[] categoricalAttributes, int numericAttributes)
+    public void setUp(final CategoricalData[] categoricalAttributes, final int numericAttributes)
     {
         if(numericAttributes < 1) {
           throw new FailedToFitException("only suppors learning from numeric attributes");
@@ -268,9 +268,9 @@ public class PassiveAggressive implements UpdateableClassifier, BinaryScoreClass
     }
 
     @Override
-    public void update(DataPoint dataPoint, int targetClass)
+    public void update(final DataPoint dataPoint, final int targetClass)
     {
-        Vec x = dataPoint.getNumericalValues();
+        final Vec x = dataPoint.getNumericalValues();
         final int y_t = targetClass*2-1;
         final double dot = x.dot(w);
         
@@ -285,9 +285,9 @@ public class PassiveAggressive implements UpdateableClassifier, BinaryScoreClass
     }
     
     @Override
-    public void update(DataPoint dataPoint, double targetValue)
+    public void update(final DataPoint dataPoint, final double targetValue)
     {
-        Vec x = dataPoint.getNumericalValues();
+        final Vec x = dataPoint.getNumericalValues();
         final double y_t = targetValue;
         final double y_p = x.dot(w);
         
@@ -301,7 +301,7 @@ public class PassiveAggressive implements UpdateableClassifier, BinaryScoreClass
         w.mutableAdd(Math.signum(y_t-y_p)*tau, x);
     }
     
-    private double getCorrection(final double loss, Vec x)
+    private double getCorrection(final double loss, final Vec x)
     {
         final double xNorm = Math.pow(x.pNorm(2), 2);
         if(mode == Mode.PA1) {
@@ -314,19 +314,19 @@ public class PassiveAggressive implements UpdateableClassifier, BinaryScoreClass
     }
 
     @Override
-    public double regress(DataPoint data)
+    public double regress(final DataPoint data)
     {
         return w.dot(data.getNumericalValues());
     }
 
     @Override
-    public void train(RegressionDataSet dataSet, ExecutorService threadPool)
+    public void train(final RegressionDataSet dataSet, final ExecutorService threadPool)
     {
         train(dataSet);
     }
 
     @Override
-    public void train(RegressionDataSet dataSet)
+    public void train(final RegressionDataSet dataSet)
     {
         BaseUpdateableRegressor.trainEpochs(dataSet, this, epochs);
     }
@@ -334,7 +334,7 @@ public class PassiveAggressive implements UpdateableClassifier, BinaryScoreClass
     @Override
     public PassiveAggressive clone()
     {
-        PassiveAggressive clone = new PassiveAggressive(epochs, mode);
+        final PassiveAggressive clone = new PassiveAggressive(epochs, mode);
         clone.eps = this.eps;
         clone.C = this.C;
         if(this.w != null) {
@@ -351,7 +351,7 @@ public class PassiveAggressive implements UpdateableClassifier, BinaryScoreClass
     }
 
     @Override
-    public Parameter getParameter(String paramName)
+    public Parameter getParameter(final String paramName)
     {
         return Parameter.toParameterMap(getParameters()).get(paramName);
     }
@@ -363,7 +363,7 @@ public class PassiveAggressive implements UpdateableClassifier, BinaryScoreClass
      * @param d the data set to get the guess for
      * @return the guess for the C parameter 
      */
-    public static Distribution guessC(DataSet d)
+    public static Distribution guessC(final DataSet d)
     {
         return new LogUniform(0.001, 100);
     }

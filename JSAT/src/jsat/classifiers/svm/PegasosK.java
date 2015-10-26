@@ -56,7 +56,7 @@ public class PegasosK extends SupportVectorLearner implements BinaryScoreClassif
      * @param iterations the number of update iterations to perform
      * @param kernel the kernel to use
      */
-    public PegasosK(double regularization, int iterations, KernelTrick kernel)
+    public PegasosK(final double regularization, final int iterations, final KernelTrick kernel)
     {
         this(regularization, iterations, kernel, CacheMode.NONE);
     }
@@ -69,7 +69,7 @@ public class PegasosK extends SupportVectorLearner implements BinaryScoreClassif
      * @param kernel the kernel to use
      * @param cacheMode what type of kernel caching to use
      */
-    public PegasosK(double regularization, int iterations, KernelTrick kernel, CacheMode cacheMode)
+    public PegasosK(final double regularization, final int iterations, final KernelTrick kernel, final CacheMode cacheMode)
     {
         super(kernel, cacheMode);
         setRegularization(regularization);
@@ -82,7 +82,7 @@ public class PegasosK extends SupportVectorLearner implements BinaryScoreClassif
      * 
      * @param iterations the number of learning iterations to perform
      */
-    public void setIterations(int iterations)
+    public void setIterations(final int iterations)
     {
         this.iterations = iterations;
     }
@@ -101,7 +101,7 @@ public class PegasosK extends SupportVectorLearner implements BinaryScoreClassif
      * positive value
      * @param regularization the amount of regularization to apply
      */
-    public void setRegularization(double regularization)
+    public void setRegularization(final double regularization)
     {
         if(Double.isNaN(regularization) || Double.isInfinite(regularization) || regularization <= 0) {
           throw new ArithmeticException("Regularization must be a positive constant, not " + regularization);
@@ -121,7 +121,7 @@ public class PegasosK extends SupportVectorLearner implements BinaryScoreClassif
     @Override
     public PegasosK clone()
     {
-        PegasosK clone = new PegasosK(regularization, iterations, getKernel().clone(), getCacheMode());
+        final PegasosK clone = new PegasosK(regularization, iterations, getKernel().clone(), getCacheMode());
         
         if(this.vecs != null)
         {
@@ -138,15 +138,15 @@ public class PegasosK extends SupportVectorLearner implements BinaryScoreClassif
     }
 
     @Override
-    public CategoricalResults classify(DataPoint data)
+    public CategoricalResults classify(final DataPoint data)
     {
         if(alphas == null) {
           throw new UntrainedModelException("Model has not been trained");
         }
         
-        CategoricalResults cr = new CategoricalResults(2);
+        final CategoricalResults cr = new CategoricalResults(2);
         
-        double sum = getScore(data);
+        final double sum = getScore(data);
 
         //SVM only says yess / no, can not give a percentage
         if(sum > 0) {
@@ -159,7 +159,7 @@ public class PegasosK extends SupportVectorLearner implements BinaryScoreClassif
     }
 
     @Override
-    public double getScore(DataPoint dp)
+    public double getScore(final DataPoint dp)
     {
         return kEvalSum(dp.getNumericalValues());
     }
@@ -174,7 +174,7 @@ public class PegasosK extends SupportVectorLearner implements BinaryScoreClassif
         int end;
         int[] sign;
 
-        public PredictPart(int i, int start, int end, int[] sign)
+        public PredictPart(final int i, final int start, final int end, final int[] sign)
         {
             this.i = i;
             this.start = start;
@@ -200,18 +200,18 @@ public class PegasosK extends SupportVectorLearner implements BinaryScoreClassif
     }
     
     @Override
-    public void trainC(ClassificationDataSet dataSet, ExecutorService threadPool)
+    public void trainC(final ClassificationDataSet dataSet, final ExecutorService threadPool)
     {
         if (dataSet.getClassSize() != 2) {
           throw new FailedToFitException("Pegasos only supports binary classification problems");
         }
         try
         {
-            Random rand = new Random();
+            final Random rand = new Random();
             final int m = dataSet.getSampleSize();
 
             alphas = new double[m];
-            int[] sign = new int[m];
+            final int[] sign = new int[m];
             vecs = new ArrayList<Vec>(m);
             for (int i = 0; i < dataSet.getSampleSize(); i++)
             {
@@ -219,7 +219,7 @@ public class PegasosK extends SupportVectorLearner implements BinaryScoreClassif
                 sign[i] = dataSet.getDataPointCategory(i) == 1 ? 1 : -1;
             }
 
-            List<Future<Double>> futures = new ArrayList<Future<Double>>(SystemInfo.LogicalCores);
+            final List<Future<Double>> futures = new ArrayList<Future<Double>>(SystemInfo.LogicalCores);
             final int blockSize = m / SystemInfo.LogicalCores + (m % SystemInfo.LogicalCores == 0 ? 0 : 1);//1 extra if we want
 
             setCacheMode(getCacheMode());//Initiates the cahce
@@ -239,7 +239,7 @@ public class PegasosK extends SupportVectorLearner implements BinaryScoreClassif
                     start += blockSize;
                 }
                 //collect
-                for(Future<Double> partialVal : futures) {
+                for(final Future<Double> partialVal : futures) {
                   val += partialVal.get();
                 }
                 val *= sign_i / (regularization * t);
@@ -267,18 +267,18 @@ public class PegasosK extends SupportVectorLearner implements BinaryScoreClassif
             setAlphas(alphas);
 
         }
-        catch (ExecutionException ex)
+        catch (final ExecutionException ex)
         {
             throw new FailedToFitException(ex);
         }
-        catch (InterruptedException ex)
+        catch (final InterruptedException ex)
         {
             throw new FailedToFitException(ex);
         }
     }
 
     @Override
-    public void trainC(ClassificationDataSet dataSet)
+    public void trainC(final ClassificationDataSet dataSet)
     {
         trainC(dataSet, new FakeExecutor());
     }
@@ -296,7 +296,7 @@ public class PegasosK extends SupportVectorLearner implements BinaryScoreClassif
     }
 
     @Override
-    public Parameter getParameter(String paramName)
+    public Parameter getParameter(final String paramName)
     {
         return Parameter.toParameterMap(getParameters()).get(paramName);
     }

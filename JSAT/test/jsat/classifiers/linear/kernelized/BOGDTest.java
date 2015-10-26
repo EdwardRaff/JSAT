@@ -54,17 +54,17 @@ public class BOGDTest
 
         
 
-        ExecutorService ex = Executors.newFixedThreadPool(SystemInfo.LogicalCores);
+        final ExecutorService ex = Executors.newFixedThreadPool(SystemInfo.LogicalCores);
         
-        for(boolean sampling : new boolean[]{true, false})
+        for(final boolean sampling : new boolean[]{true, false})
         {
-            BOGD instance = new BOGD(new RBFKernel(0.5), 30, 0.5, 1e-3, 10, new HingeLoss());
+            final BOGD instance = new BOGD(new RBFKernel(0.5), 30, 0.5, 1e-3, 10, new HingeLoss());
             instance.setUniformSampling(sampling);
        
-            ClassificationDataSet train = FixedProblems.getInnerOuterCircle(200, new XORWOW());
-            ClassificationDataSet test = FixedProblems.getInnerOuterCircle(100, new XORWOW());
+            final ClassificationDataSet train = FixedProblems.getInnerOuterCircle(200, new XORWOW());
+            final ClassificationDataSet test = FixedProblems.getInnerOuterCircle(100, new XORWOW());
 
-            ClassificationModelEvaluation cme = new ClassificationModelEvaluation(instance, train, ex);
+            final ClassificationModelEvaluation cme = new ClassificationModelEvaluation(instance, train, ex);
             cme.evaluateTestSet(test);
 
             assertEquals(0, cme.getErrorRate(), 0.0);
@@ -79,15 +79,15 @@ public class BOGDTest
     {
         System.out.println("trainC");
         
-        for(boolean sampling : new boolean[]{true, false})
+        for(final boolean sampling : new boolean[]{true, false})
         {
-            BOGD instance = new BOGD(new RBFKernel(0.5), 30, 0.5, 1e-3, 10, new HingeLoss());
+            final BOGD instance = new BOGD(new RBFKernel(0.5), 30, 0.5, 1e-3, 10, new HingeLoss());
             instance.setUniformSampling(sampling);
         
-            ClassificationDataSet train = FixedProblems.getInnerOuterCircle(200, new XORWOW());
-            ClassificationDataSet test = FixedProblems.getInnerOuterCircle(100, new XORWOW());
+            final ClassificationDataSet train = FixedProblems.getInnerOuterCircle(200, new XORWOW());
+            final ClassificationDataSet test = FixedProblems.getInnerOuterCircle(100, new XORWOW());
 
-            ClassificationModelEvaluation cme = new ClassificationModelEvaluation(instance, train);
+            final ClassificationModelEvaluation cme = new ClassificationModelEvaluation(instance, train);
             cme.evaluateTestSet(test);
 
             assertEquals(0, cme.getErrorRate(), 0.0);
@@ -101,8 +101,8 @@ public class BOGDTest
 
         BOGD instance = new BOGD(new RBFKernel(0.5), 30, 0.5, 1e-3, 10, new HingeLoss());
         
-        ClassificationDataSet t1 = FixedProblems.getInnerOuterCircle(500, new XORWOW());
-        ClassificationDataSet t2 = FixedProblems.getInnerOuterCircle(500, new XORWOW(), 2.0, 10.0);
+        final ClassificationDataSet t1 = FixedProblems.getInnerOuterCircle(500, new XORWOW());
+        final ClassificationDataSet t2 = FixedProblems.getInnerOuterCircle(500, new XORWOW(), 2.0, 10.0);
 
         instance.setUniformSampling(true);
         instance = instance.clone();
@@ -110,7 +110,7 @@ public class BOGDTest
         instance.trainC(t1);
 
         instance.setUniformSampling(false);
-        BOGD result = instance.clone();
+        final BOGD result = instance.clone();
         assertFalse(result.isUniformSampling());
         
         for (int i = 0; i < t1.getSampleSize(); i++) {

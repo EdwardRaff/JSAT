@@ -27,11 +27,11 @@ public class NearestNeighbour implements  Classifier, Regressor, Parameterized
 
     private static final long serialVersionUID = 4239569189624285932L;
     private int k;
-    private boolean weighted;
+    private final boolean weighted;
     private DistanceMetric distanceMetric;
     private CategoricalData predicting;
     
-    private VectorCollectionFactory<VecPaired<Vec, Double>> vcf;
+    private final VectorCollectionFactory<VecPaired<Vec, Double>> vcf;
     private VectorCollection<VecPaired<Vec, Double>> vecCollection;
 
     /**
@@ -47,7 +47,7 @@ public class NearestNeighbour implements  Classifier, Regressor, Parameterized
      * Sets the number of neighbors to consult when making decisions
      * @param k the number of neighbors to use
      */
-    public void setNeighbors(int k)
+    public void setNeighbors(final int k)
     {
         if(k < 1) {
           throw new ArithmeticException("Must be a positive number of neighbors");
@@ -55,7 +55,7 @@ public class NearestNeighbour implements  Classifier, Regressor, Parameterized
         this.k = k;
     }
     
-    public int getNeighbors(int k)
+    public int getNeighbors(final int k)
     {
         return k;
     }
@@ -65,7 +65,7 @@ public class NearestNeighbour implements  Classifier, Regressor, Parameterized
         return distanceMetric;
     }
 
-    public void setDistanceMetric(DistanceMetric distanceMetric)
+    public void setDistanceMetric(final DistanceMetric distanceMetric)
     {
         if(distanceMetric == null) {
           throw new NullPointerException("given metric was null");
@@ -82,7 +82,7 @@ public class NearestNeighbour implements  Classifier, Regressor, Parameterized
     }
 
     @Override
-    public Parameter getParameter(String paramName)
+    public Parameter getParameter(final String paramName)
     {
         return Parameter.toParameterMap(getParameters()).get(paramName);
     }
@@ -97,7 +97,7 @@ public class NearestNeighbour implements  Classifier, Regressor, Parameterized
      * Constructs a new Nearest Neighbor Classifier
      * @param k the number of neighbors to use
      */
-    public NearestNeighbour(int k)
+    public NearestNeighbour(final int k)
     {
         this(k, false);
     }
@@ -107,7 +107,7 @@ public class NearestNeighbour implements  Classifier, Regressor, Parameterized
      * @param k the number of neighbors to use
      * @param vcf the vector collection factory to use for storing and querying 
      */
-    public NearestNeighbour(int k, VectorCollectionFactory<VecPaired<Vec, Double>> vcf)
+    public NearestNeighbour(final int k, final VectorCollectionFactory<VecPaired<Vec, Double>> vcf)
     {
         this(k, false, new EuclideanDistance(), vcf);
     }
@@ -117,7 +117,7 @@ public class NearestNeighbour implements  Classifier, Regressor, Parameterized
      * @param k the number of neighbors to use
      * @param weighted whether or not to weight the influence of neighbors by their distance
      */
-    public NearestNeighbour(int k, boolean weighted)
+    public NearestNeighbour(final int k, final boolean weighted)
     {
         this(k, weighted, new EuclideanDistance());
     }
@@ -128,7 +128,7 @@ public class NearestNeighbour implements  Classifier, Regressor, Parameterized
      * @param weighted whether or not to weight the influence of neighbors by their distance
      * @param distanceMetric the method of computing distance between two vectors. 
      */
-    public NearestNeighbour(int k, boolean weighted, DistanceMetric distanceMetric )
+    public NearestNeighbour(final int k, final boolean weighted, final DistanceMetric distanceMetric )
     {
         this(k, weighted, distanceMetric, new DefaultVectorCollectionFactory<VecPaired<Vec, Double>>());
     }
@@ -140,7 +140,7 @@ public class NearestNeighbour implements  Classifier, Regressor, Parameterized
      * @param distanceMetric the method of computing distance between two vectors. 
      * @param vcf the vector collection factory to use for storing and querying 
      */
-    public NearestNeighbour(int k, boolean weighted, DistanceMetric distanceMetric, VectorCollectionFactory<VecPaired<Vec, Double>> vcf )
+    public NearestNeighbour(final int k, final boolean weighted, final DistanceMetric distanceMetric, final VectorCollectionFactory<VecPaired<Vec, Double>> vcf )
     {
         this.mode = null;
         this.vcf = vcf;
@@ -150,25 +150,25 @@ public class NearestNeighbour implements  Classifier, Regressor, Parameterized
     }
 
     @Override
-    public CategoricalResults classify(DataPoint data)
+    public CategoricalResults classify(final DataPoint data)
     {
         if(vecCollection == null || mode != Mode.CLASSIFICATION) {
           throw new UntrainedModelException("Classifier has not been trained for classification");
         }
-        Vec query  = data.getNumericalValues();
+        final Vec query  = data.getNumericalValues();
         
-        List<? extends VecPaired<VecPaired<Vec, Double>, Double>> knns = vecCollection.search(query, k);
+        final List<? extends VecPaired<VecPaired<Vec, Double>, Double>> knns = vecCollection.search(query, k);
         
-        CategoricalResults results = new CategoricalResults(predicting.getNumOfCategories());
+        final CategoricalResults results = new CategoricalResults(predicting.getNumOfCategories());
         
         for(int i = 0; i < knns.size(); i++)
         {
-            double distance = knns.get(i).getPair();
-            VecPaired<Vec, Double> pm = knns.get(i).getVector();
-            int index =  (int) Math.round(pm.getPair());
+            final double distance = knns.get(i).getPair();
+            final VecPaired<Vec, Double> pm = knns.get(i).getVector();
+            final int index =  (int) Math.round(pm.getPair());
             if(weighted)
             {
-                double prob = -Math.exp(-distance);
+                final double prob = -Math.exp(-distance);
                 results.setProb(index, results.getProb(index) + prob);//Sum weights
             }
             else {
@@ -182,13 +182,13 @@ public class NearestNeighbour implements  Classifier, Regressor, Parameterized
     }
     
     @Override
-    public void trainC(ClassificationDataSet dataSet)
+    public void trainC(final ClassificationDataSet dataSet)
     {
         trainC(dataSet, null); 
     }
 
     @Override
-    public void trainC(ClassificationDataSet dataSet, ExecutorService threadPool)
+    public void trainC(final ClassificationDataSet dataSet, final ExecutorService threadPool)
     {
         if(dataSet.getNumCategoricalVars() != 0) {
           throw new FailedToFitException("KNN requires vector data only");
@@ -196,12 +196,12 @@ public class NearestNeighbour implements  Classifier, Regressor, Parameterized
         
         mode = Mode.CLASSIFICATION;
         this.predicting = dataSet.getPredicting();
-        List<VecPaired<Vec, Double>> dataPoints = new ArrayList<VecPaired<Vec, Double>>(dataSet.getSampleSize());
+        final List<VecPaired<Vec, Double>> dataPoints = new ArrayList<VecPaired<Vec, Double>>(dataSet.getSampleSize());
                 
         //Add all the data points
         for(int i = 0; i < dataSet.getClassSize(); i++)
         {
-            for(DataPoint dp : dataSet.getSamples(i))
+            for(final DataPoint dp : dataSet.getSamples(i))
             {
                 //We want to include the category in this case, so we will add it to the vector
                 dataPoints.add(new VecPaired(dp.getNumericalValues(), (double)i));//bug? why isnt this auto boxed to double w/o a cast?
@@ -218,29 +218,29 @@ public class NearestNeighbour implements  Classifier, Regressor, Parameterized
     }
     
     @Override
-    public double regress(DataPoint data)
+    public double regress(final DataPoint data)
     {
         if(vecCollection == null || mode != Mode.REGRESSION) {
           throw new UntrainedModelException("Classifier has not been trained for regression");
         }
-        Vec query  = data.getNumericalValues();
+        final Vec query  = data.getNumericalValues();
         
-        List<? extends VecPaired<VecPaired<Vec, Double>, Double>> knns = vecCollection.search(query, k);
+        final List<? extends VecPaired<VecPaired<Vec, Double>, Double>> knns = vecCollection.search(query, k);
         
         double result = 0, weightSum = 0;
         
         for(int i = 0; i < knns.size(); i++)
         {
             double distance = knns.get(i).getPair();
-            VecPaired<Vec, Double> pm = knns.get(i).getVector();
+            final VecPaired<Vec, Double> pm = knns.get(i).getVector();
             
-            double value = pm.getPair();
+            final double value = pm.getPair();
             
             
             if(weighted)
             {
                 distance = Math.max(1e-8, distance);//Avoiding zero distances which will result in Infinty getting propigated around
-                double weight = 1.0/Math.pow(distance, 2);
+                final double weight = 1.0/Math.pow(distance, 2);
                 weightSum += weight;
                 result += value*weight;
             }
@@ -255,13 +255,13 @@ public class NearestNeighbour implements  Classifier, Regressor, Parameterized
     }
 
     @Override
-    public void train(RegressionDataSet dataSet)
+    public void train(final RegressionDataSet dataSet)
     {
         train(dataSet, null);
     }
 
     @Override
-    public void train(RegressionDataSet dataSet, ExecutorService threadPool)
+    public void train(final RegressionDataSet dataSet, final ExecutorService threadPool)
     {
         if(dataSet.getNumCategoricalVars() != 0) {
           throw new FailedToFitException("KNN requires vector data only");
@@ -269,12 +269,12 @@ public class NearestNeighbour implements  Classifier, Regressor, Parameterized
         
         mode = Mode.REGRESSION;
 
-        List<VecPaired<Vec, Double>> dataPoints = new ArrayList<VecPaired<Vec, Double>>(dataSet.getSampleSize());
+        final List<VecPaired<Vec, Double>> dataPoints = new ArrayList<VecPaired<Vec, Double>>(dataSet.getSampleSize());
                 
         //Add all the data points
         for (int i = 0; i < dataSet.getSampleSize(); i++)
         {
-            DataPointPair<Double> dpp = dataSet.getDataPointPair(i);
+            final DataPointPair<Double> dpp = dataSet.getDataPointPair(i);
 
             dataPoints.add(new VecPaired(dpp.getVector(), dpp.getPair()));
         }
@@ -291,7 +291,7 @@ public class NearestNeighbour implements  Classifier, Regressor, Parameterized
     @Override
     public NearestNeighbour clone()
     {
-        NearestNeighbour clone = new NearestNeighbour(k, weighted, distanceMetric.clone(), vcf.clone());
+        final NearestNeighbour clone = new NearestNeighbour(k, weighted, distanceMetric.clone(), vcf.clone());
         
         if(this.predicting != null) {
           clone.predicting = this.predicting.clone();
@@ -310,7 +310,7 @@ public class NearestNeighbour implements  Classifier, Regressor, Parameterized
      * @param d the dataset to get the guess for
      * @return the guess for the Neighbors parameter
      */
-    public static Distribution guessNeighbors(DataSet d)
+    public static Distribution guessNeighbors(final DataSet d)
     {
         return new UniformDiscrete(1, 25);
     }

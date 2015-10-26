@@ -70,7 +70,7 @@ public abstract class TreeNodeVisitor implements Serializable, Cloneable
      * @param child the child path
      * @param node the node to make the child
      */
-    public void setPath(int child, TreeNodeVisitor node)
+    public void setPath(final int child, final TreeNodeVisitor node)
     {
         throw new UnsupportedOperationException("setPath is an optional operation.");
     }
@@ -95,7 +95,7 @@ public abstract class TreeNodeVisitor implements Serializable, Cloneable
      * @throws UnsupportedOperationException if the tree node does not support 
      * or was not trained for classification
      */
-    public CategoricalResults localClassify(DataPoint dp)
+    public CategoricalResults localClassify(final DataPoint dp)
     {
         throw new UnsupportedOperationException("This tree does not support classification");
     }
@@ -108,12 +108,12 @@ public abstract class TreeNodeVisitor implements Serializable, Cloneable
      */
     abstract public int getPath(DataPoint dp);
     
-    public CategoricalResults classify(DataPoint dp)
+    public CategoricalResults classify(final DataPoint dp)
     {
         TreeNodeVisitor node = this;
         while(!node.isLeaf())
         {
-            int path = node.getPath(dp);
+            final int path = node.getPath(dp);
             if(node.isPathDisabled(path)) {
               break;
             }
@@ -131,7 +131,7 @@ public abstract class TreeNodeVisitor implements Serializable, Cloneable
      * @throws UnsupportedOperationException if the tree node does not support 
      * or was not trained for classification
      */
-    public double localRegress(DataPoint dp)
+    public double localRegress(final DataPoint dp)
     {
         throw new UnsupportedOperationException("This tree does not support classification");
     }
@@ -143,12 +143,12 @@ public abstract class TreeNodeVisitor implements Serializable, Cloneable
      * @param dp the data point to regress
      * @return the regression result from the tree starting from the current node
      */
-    public double regress(DataPoint dp)
+    public double regress(final DataPoint dp)
     {
         TreeNodeVisitor node = this;
         while(!node.isLeaf())
         {
-            int path = node.getPath(dp);
+            final int path = node.getPath(dp);
             if(node.isPathDisabled(path)) {
               break;
             }

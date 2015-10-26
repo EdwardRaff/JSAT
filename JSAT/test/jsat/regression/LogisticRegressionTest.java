@@ -69,14 +69,14 @@ public class LogisticRegressionTest
     {
         System.out.println("trainC");
 
-        LogisticRegression instance = new LogisticRegression();
+        final LogisticRegression instance = new LogisticRegression();
 
-        ExecutorService ex = Executors.newFixedThreadPool(SystemInfo.LogicalCores);
+        final ExecutorService ex = Executors.newFixedThreadPool(SystemInfo.LogicalCores);
 
-        ClassificationDataSet train = FixedProblems.get2ClassLinear(100, new XORWOW());
-        ClassificationDataSet test = FixedProblems.get2ClassLinear(100, new XORWOW());
+        final ClassificationDataSet train = FixedProblems.get2ClassLinear(100, new XORWOW());
+        final ClassificationDataSet test = FixedProblems.get2ClassLinear(100, new XORWOW());
 
-        ClassificationModelEvaluation cme = new ClassificationModelEvaluation(instance, train, ex);
+        final ClassificationModelEvaluation cme = new ClassificationModelEvaluation(instance, train, ex);
         cme.evaluateTestSet(test);
 
         assertTrue(cme.getErrorRate() <= 0.001);
@@ -89,12 +89,12 @@ public class LogisticRegressionTest
     {
         System.out.println("trainC");
 
-        LogisticRegression instance = new LogisticRegression();
+        final LogisticRegression instance = new LogisticRegression();
 
-        ClassificationDataSet train = FixedProblems.get2ClassLinear(100, new XORWOW());
-        ClassificationDataSet test = FixedProblems.get2ClassLinear(100, new XORWOW());
+        final ClassificationDataSet train = FixedProblems.get2ClassLinear(100, new XORWOW());
+        final ClassificationDataSet test = FixedProblems.get2ClassLinear(100, new XORWOW());
 
-        ClassificationModelEvaluation cme = new ClassificationModelEvaluation(instance, train);
+        final ClassificationModelEvaluation cme = new ClassificationModelEvaluation(instance, train);
         cme.evaluateTestSet(test);
 
         assertTrue(cme.getErrorRate() <= 0.001);
@@ -108,15 +108,15 @@ public class LogisticRegressionTest
 
         LogisticRegression instance = new LogisticRegression();
 
-        ClassificationDataSet t1 = FixedProblems.get2ClassLinear(100, new XORWOW());
-        ClassificationDataSet t2 = FixedProblems.get2ClassLinear(100, new XORWOW());
+        final ClassificationDataSet t1 = FixedProblems.get2ClassLinear(100, new XORWOW());
+        final ClassificationDataSet t2 = FixedProblems.get2ClassLinear(100, new XORWOW());
         t2.applyTransform(new LinearTransform(t2, 0.5, 1));
 
         instance = instance.clone();
 
         instance.trainC(t1);
 
-        LogisticRegression result = instance.clone();
+        final LogisticRegression result = instance.clone();
         for (int i = 0; i < t1.getSampleSize(); i++) {
           assertEquals(t1.getDataPointCategory(i), result.classify(t1.getDataPoint(i)).mostLikely());
         }

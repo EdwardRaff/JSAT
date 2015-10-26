@@ -43,7 +43,7 @@ public class MiniBatchKMeans extends KClustererBase
      * @param batchSize the mini-batch size
      * @param iterations the number of mini batches to perform
      */
-    public MiniBatchKMeans(int batchSize, int iterations)
+    public MiniBatchKMeans(final int batchSize, final int iterations)
     {
         this(new EuclideanDistance(), batchSize, iterations);
     }
@@ -56,7 +56,7 @@ public class MiniBatchKMeans extends KClustererBase
      * @param batchSize the mini-batch size
      * @param iterations the number of mini batches to perform
      */
-    public MiniBatchKMeans(DistanceMetric dm, int batchSize, int iterations)
+    public MiniBatchKMeans(final DistanceMetric dm, final int batchSize, final int iterations)
     {
         this(dm, batchSize, iterations, SeedSelectionMethods.SeedSelection.KPP);
     }
@@ -68,7 +68,7 @@ public class MiniBatchKMeans extends KClustererBase
      * @param iterations the number of mini batches to perform
      * @param seedSelection the seed selection algorithm to initiate clustering
      */
-    public MiniBatchKMeans(DistanceMetric dm, int batchSize, int iterations, SeedSelection seedSelection)
+    public MiniBatchKMeans(final DistanceMetric dm, final int batchSize, final int iterations, final SeedSelection seedSelection)
     {
         setBatchSize(batchSize);
         setIterations(iterations);
@@ -80,7 +80,7 @@ public class MiniBatchKMeans extends KClustererBase
      * Copy constructor
      * @param toCopy the object to copy
      */
-    public MiniBatchKMeans(MiniBatchKMeans toCopy)
+    public MiniBatchKMeans(final MiniBatchKMeans toCopy)
     {
         this.batchSize = toCopy.batchSize;
         this.iterations = toCopy.iterations;
@@ -90,7 +90,7 @@ public class MiniBatchKMeans extends KClustererBase
         if(toCopy.means != null)
         {
             this.means = new ArrayList<Vec>();
-            for(Vec v : toCopy.means) {
+            for(final Vec v : toCopy.means) {
               this.means.add(v.clone());
             }
         }
@@ -102,7 +102,7 @@ public class MiniBatchKMeans extends KClustererBase
      * @param storeMeans {@code true} if the means should be stored for later, 
      * {@code false} to discard them once clustering is complete. 
      */
-    public void setStoreMeans(boolean storeMeans)
+    public void setStoreMeans(final boolean storeMeans)
     {
         this.storeMeans = storeMeans;
     }
@@ -120,7 +120,7 @@ public class MiniBatchKMeans extends KClustererBase
      * Sets the distance metric used for determining the nearest cluster center
      * @param dm the distance metric to use
      */
-    public void setDistanceMetric(DistanceMetric dm)
+    public void setDistanceMetric(final DistanceMetric dm)
     {
         this.dm = dm;
     }
@@ -142,7 +142,7 @@ public class MiniBatchKMeans extends KClustererBase
      * it reduces to the {@link NaiveKMeans naive k-means} algorithm.
      * @param batchSize the number of points to use at each iteration
      */
-    public void setBatchSize(int batchSize)
+    public void setBatchSize(final int batchSize)
     {
         if(batchSize < 1) {
           throw new ArithmeticException("Batch size must be a positive value, not " + batchSize);
@@ -163,7 +163,7 @@ public class MiniBatchKMeans extends KClustererBase
      * Sets the number of mini-batch iterations to perform
      * @param iterations the number of algorithm iterations to perform
      */
-    public void setIterations(int iterations)
+    public void setIterations(final int iterations)
     {
         if(iterations < 1) {
           throw new ArithmeticException("Iterations must be a positive value, not " + iterations);
@@ -185,7 +185,7 @@ public class MiniBatchKMeans extends KClustererBase
      * seed the clustering algorithm. 
      * @param seedSelection the seed selection algorithm to use
      */
-    public void setSeedSelection(SeedSelection seedSelection)
+    public void setSeedSelection(final SeedSelection seedSelection)
     {
         this.seedSelection = seedSelection;
     }
@@ -200,19 +200,19 @@ public class MiniBatchKMeans extends KClustererBase
     }
     
     @Override
-    public int[] cluster(DataSet dataSet, int[] designations)
+    public int[] cluster(final DataSet dataSet, final int[] designations)
     {
         throw new UnsupportedOperationException("Not supported yet.");
     }
 
     @Override
-    public int[] cluster(DataSet dataSet, ExecutorService threadpool, int[] designations)
+    public int[] cluster(final DataSet dataSet, final ExecutorService threadpool, final int[] designations)
     {
         throw new UnsupportedOperationException("Not supported yet.");
     }
 
     @Override
-    public int[] cluster(DataSet dataSet, int clusters, ExecutorService threadpool, int[] designations) 
+    public int[] cluster(final DataSet dataSet, final int clusters, final ExecutorService threadpool, int[] designations) 
     {
         if(designations == null) {
           designations = new int[dataSet.getSampleSize()];
@@ -300,7 +300,7 @@ public class MiniBatchKMeans extends KClustererBase
                 {
                     latch.await();
                 }
-                catch (InterruptedException ex)
+                catch (final InterruptedException ex)
                 {
                     Logger.getLogger(MiniBatchKMeans.class.getName()).log(Level.SEVERE, null, ex);
                 }
@@ -309,9 +309,9 @@ public class MiniBatchKMeans extends KClustererBase
             //Update centers
             for(int j = 0; j < M.size(); j++)
             {
-                int c_i = nearestCenter[j];
-                double eta = 1.0/(++v[c_i]);
-                Vec c = means.get(c_i);
+                final int c_i = nearestCenter[j];
+                final double eta = 1.0/(++v[c_i]);
+                final Vec c = means.get(c_i);
                 c.mutableMultiply(1-eta);
                 c.mutableAdd(eta, source.get(M.get(j)));
             }
@@ -325,7 +325,7 @@ public class MiniBatchKMeans extends KClustererBase
         }
         
         //Stochastic travel complete, calculate all
-        List<Future<Double>> futures = new ArrayList<Future<Double>>(SystemInfo.LogicalCores);//Getting the objective function
+        final List<Future<Double>> futures = new ArrayList<Future<Double>>(SystemInfo.LogicalCores);//Getting the objective function
         final int blockSize = dataSet.getSampleSize() / SystemInfo.LogicalCores;
         int extra = dataSet.getSampleSize() % SystemInfo.LogicalCores;
         int start = 0;
@@ -373,15 +373,15 @@ public class MiniBatchKMeans extends KClustererBase
 
         try
         {
-            for (Future<Double> future : futures) {
+            for (final Future<Double> future : futures) {
               sumErr += future.get();
             }
         }
-        catch (InterruptedException ex)
+        catch (final InterruptedException ex)
         {
             Logger.getLogger(MiniBatchKMeans.class.getName()).log(Level.SEVERE, null, ex);
         }
-        catch (ExecutionException ex)
+        catch (final ExecutionException ex)
         {
             Logger.getLogger(MiniBatchKMeans.class.getName()).log(Level.SEVERE, null, ex);
         }
@@ -393,19 +393,19 @@ public class MiniBatchKMeans extends KClustererBase
     }
 
     @Override
-    public int[] cluster(DataSet dataSet, int clusters, int[] designations)
+    public int[] cluster(final DataSet dataSet, final int clusters, final int[] designations)
     {
         return cluster(dataSet, clusters, new FakeExecutor(), designations);
     }
 
     @Override
-    public int[] cluster(DataSet dataSet, int lowK, int highK, ExecutorService threadpool, int[] designations)
+    public int[] cluster(final DataSet dataSet, final int lowK, final int highK, final ExecutorService threadpool, final int[] designations)
     {
         throw new UnsupportedOperationException("Not supported yet.");
     }
 
     @Override
-    public int[] cluster(DataSet dataSet, int lowK, int highK, int[] designations)
+    public int[] cluster(final DataSet dataSet, final int lowK, final int highK, final int[] designations)
     {
         throw new UnsupportedOperationException("Not supported yet.");
     }

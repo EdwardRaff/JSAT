@@ -12,7 +12,7 @@ import jsat.text.GreekLetters;
 public class TTest implements OneSampleTest
 {
     
-    private StudentT tDist;
+    private final StudentT tDist;
     private H1 h1;
     
     private double hypothMean;
@@ -21,7 +21,7 @@ public class TTest implements OneSampleTest
     private double sampleDev;
     private double sampleSize;
 
-    public TTest(H1 h1, double hypothMean, double sampleMean, double sampleDev, double sampleSize)
+    public TTest(final H1 h1, final double hypothMean, final double sampleMean, final double sampleDev, final double sampleSize)
     {
         this.h1 = h1;
         this.hypothMean = hypothMean;
@@ -31,12 +31,12 @@ public class TTest implements OneSampleTest
         tDist = new StudentT(sampleSize-1);
     }
     
-    public TTest(double hypothMean, double sampleMean, double sampleDev, double sampleSize)
+    public TTest(final double hypothMean, final double sampleMean, final double sampleDev, final double sampleSize)
     {
         this(H1.NOT_EQUAL, hypothMean, sampleMean, sampleDev, sampleSize);
     }
 
-    public TTest(H1 h1, double hypothMean, Vec data)
+    public TTest(final H1 h1, final double hypothMean, final Vec data)
     {
         this(h1, hypothMean, data.mean(), data.standardDeviation(), data.length());
                 
@@ -48,7 +48,7 @@ public class TTest implements OneSampleTest
     }
     
     
-    public void setTestUsingData(Vec data)
+    public void setTestUsingData(final Vec data)
     {
         this.sampleMean = data.mean();
         this.sampleDev = data.standardDeviation();
@@ -66,7 +66,7 @@ public class TTest implements OneSampleTest
                 };
     }
 
-    public void setTestVars(double[] testVars)
+    public void setTestVars(final double[] testVars)
     {
         this.sampleMean = testVars[0];
         this.sampleDev = testVars[1];
@@ -79,7 +79,7 @@ public class TTest implements OneSampleTest
         return GreekLetters.mu + "0";
     }
 
-    public void setAltVar(double altVar)
+    public void setAltVar(final double altVar)
     {
         hypothMean = altVar;
     }
@@ -97,7 +97,7 @@ public class TTest implements OneSampleTest
                 };
     }
 
-    public void setAltHypothesis(H1 h1)
+    public void setAltHypothesis(final H1 h1)
     {
         this.h1 = h1;
     }
@@ -110,7 +110,7 @@ public class TTest implements OneSampleTest
     public double pValue()
     {
 
-        double tScore = (sampleMean - hypothMean)*Math.sqrt(sampleSize)/sampleDev;
+        final double tScore = (sampleMean - hypothMean)*Math.sqrt(sampleSize)/sampleDev;
         
         if(h1 == H1.NOT_EQUAL) {
           return tDist.cdf(-Math.abs(tScore))*2;

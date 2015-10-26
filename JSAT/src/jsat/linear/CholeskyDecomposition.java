@@ -28,7 +28,7 @@ public class CholeskyDecomposition implements Serializable
      * in a symmetric  copy so {@link LUPDecomposition#forwardSub(jsat.linear.Matrix, jsat.linear.Vec) }
      * and backSub can be done without copying. 
      */
-    private Matrix L;
+    private final Matrix L;
 
     /**
      * Computes the Cholesky Decomposition of the matrix A. The matrix 
@@ -52,7 +52,7 @@ public class CholeskyDecomposition implements Serializable
 
         for (int j = 0; j < ROWS; j++)
         {
-            double L_jj = computeLJJ(A, j);
+            final double L_jj = computeLJJ(A, j);
             L.set(j, j, L_jj);
             updateRows(j, j + 1, ROWS, 1, A, L_jj);
         }
@@ -71,7 +71,7 @@ public class CholeskyDecomposition implements Serializable
      * @param A the matrix to create the Cholesky Decomposition of
      * @param threadpool the source of threads for computation
      */
-    public CholeskyDecomposition(final Matrix A, ExecutorService threadpool)
+    public CholeskyDecomposition(final Matrix A, final ExecutorService threadpool)
     {
         if(!A.isSquare()) {
           throw new ArithmeticException("Input matrix must be symmetric positive definite");
@@ -107,7 +107,7 @@ public class CholeskyDecomposition implements Serializable
                 }
                 latch.await();
             }
-            catch (InterruptedException ex)
+            catch (final InterruptedException ex)
             {
                 Logger.getLogger(CholeskyDecomposition.class.getName()).log(Level.SEVERE, null, ex);
             }
@@ -122,7 +122,7 @@ public class CholeskyDecomposition implements Serializable
      */
     public Matrix getLT()
     {
-        Matrix LT = new DenseMatrix(L.rows(), L.cols());
+        final Matrix LT = new DenseMatrix(L.rows(), L.cols());
         
         for(int i = 0; i < L.rows(); i++) {
           for (int j = i; j < L.rows(); j++) {
@@ -138,14 +138,14 @@ public class CholeskyDecomposition implements Serializable
      * @param b the vectors of values
      * @return the vector x such that A x = b
      */
-    public Vec solve(Vec b)
+    public Vec solve(final Vec b)
     {
         //Solve  A x = L L^T x = b, for x 
         
         //First solve L y = b
-        Vec y = forwardSub(L, b);
+        final Vec y = forwardSub(L, b);
         //Sole L^T x = y
-        Vec x = backSub(L, y);
+        final Vec x = backSub(L, y);
         
         return x;
     }
@@ -155,14 +155,14 @@ public class CholeskyDecomposition implements Serializable
      * @param B the matrix of values 
      * @return the matrix c such that A x = B
      */
-    public Matrix solve(Matrix B)
+    public Matrix solve(final Matrix B)
     {
         //Solve  A x = L L^T x = b, for x 
         
         //First solve L y = b
-        Matrix y = forwardSub(L, B);
+        final Matrix y = forwardSub(L, B);
         //Sole L^T x = y
-        Matrix x = backSub(L, y);
+        final Matrix x = backSub(L, y);
         
         return x;
     }
@@ -173,14 +173,14 @@ public class CholeskyDecomposition implements Serializable
      * @param threadpool the source of threads for parallel evaluation
      * @return the matrix c such that A x = B
      */
-    public Matrix solve(Matrix B, ExecutorService threadpool)
+    public Matrix solve(final Matrix B, final ExecutorService threadpool)
     {
         //Solve  A x = L L^T x = b, for x 
         
         //First solve L y = b
-        Matrix y = forwardSub(L, B, threadpool);
+        final Matrix y = forwardSub(L, B, threadpool);
         //Sole L^T x = y
-        Matrix x = backSub(L, y, threadpool);
+        final Matrix x = backSub(L, y, threadpool);
         
         return x;
     }

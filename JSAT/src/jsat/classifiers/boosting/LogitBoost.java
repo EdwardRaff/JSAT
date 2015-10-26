@@ -57,7 +57,7 @@ public class LogitBoost implements Classifier, Parameterized
      * Creates a new LogitBoost using the standard {@link MultipleLinearRegression} .
      * @param M the maximum number of iterations. 
      */
-    public LogitBoost(int M)
+    public LogitBoost(final int M)
     {
         this(new MultipleLinearRegression(true), M);
     }
@@ -67,7 +67,7 @@ public class LogitBoost implements Classifier, Parameterized
      * @param baseLearner the weak learner to build an ensemble out of. 
      * @param M the maximum number of iterations. 
      */
-    public LogitBoost(Regressor baseLearner, int M)
+    public LogitBoost(final Regressor baseLearner, final int M)
     {
         if(!baseLearner.supportsWeightedData()) {
           throw new RuntimeException("Base Learner must support weighted data points to be boosted");
@@ -81,7 +81,7 @@ public class LogitBoost implements Classifier, Parameterized
      * the maximum number of base learners that may be trained
      * @param maxIterations the maximum number of iterations
      */
-    public void setMaxIterations(int maxIterations)
+    public void setMaxIterations(final int maxIterations)
     {
         this.maxIterations = maxIterations;
     }
@@ -103,7 +103,7 @@ public class LogitBoost implements Classifier, Parameterized
      * @param zMax the penalty bound
      * @throws ArithmeticException if the value is not in (0, {@link Double#MAX_VALUE}]
      */
-    public void setzMax(double zMax)
+    public void setzMax(final double zMax)
     {
         if(Double.isInfinite(zMax) || Double.isNaN(zMax) || zMax <= 0) {
           throw new ArithmeticException("Invalid penalty given: " + zMax);
@@ -120,14 +120,14 @@ public class LogitBoost implements Classifier, Parameterized
         return zMax;
     }
     
-    public CategoricalResults classify(DataPoint data)
+    public CategoricalResults classify(final DataPoint data)
     {
         if(baseLearner == null) {
           throw new UntrainedModelException("Model has not yet been trained");
         }
-        double p = P(data);
+        final double p = P(data);
         
-        CategoricalResults cr  = new CategoricalResults(2);
+        final CategoricalResults cr  = new CategoricalResults(2);
         
         cr.setProb(1, p);
         cr.setProb(0, 1.0-p);
@@ -135,12 +135,12 @@ public class LogitBoost implements Classifier, Parameterized
         return cr;
     }
 
-    public void trainC(ClassificationDataSet dataSet, ExecutorService threadPool)
+    public void trainC(final ClassificationDataSet dataSet, final ExecutorService threadPool)
     {
         trainC(dataSet);
     }
 
-    public void trainC(ClassificationDataSet dataSet)
+    public void trainC(final ClassificationDataSet dataSet)
     {
         if(dataSet.getClassSize() != 2) {
           throw new FailedToFitException("LogitBoost only supports binary decision tasks, not " + dataSet.getClassSize() + " class problems");
@@ -148,41 +148,41 @@ public class LogitBoost implements Classifier, Parameterized
         /**
          * The data points paired with what we will use to store the target regression values. 
          */
-        List<DataPointPair<Double>> dataPoints = dataSet.getAsFloatDPPList();
+        final List<DataPointPair<Double>> dataPoints = dataSet.getAsFloatDPPList();
         
         baseLearners = new ArrayList<Regressor>(maxIterations);
-        int N = dataSet.getSampleSize();
+        final int N = dataSet.getSampleSize();
         
         for(int m = 0; m < maxIterations; m++)
         {
             for(int i = 0; i < N; i++)
             {
-                DataPoint dp = dataPoints.get(i).getDataPoint();
-                double pi = P(dp);
+                final DataPoint dp = dataPoints.get(i).getDataPoint();
+                final double pi = P(dp);
                 double zi;
                 if(dataSet.getDataPointCategory(i) == 1) {
                   zi = Math.min(zMax, 1.0/pi);
                 } else {
                   zi = Math.max(-zMax, -1.0/(1.0-pi));
                 }
-                double wi = Math.max(pi*(1-pi), 2*1e-15);
+                final double wi = Math.max(pi*(1-pi), 2*1e-15);
 
                 dp.setWeight(wi);
                 dataPoints.get(i).setPair(zi);
             }
             
-            Regressor f = baseLearner.clone();
+            final Regressor f = baseLearner.clone();
             f.train(new RegressionDataSet(dataPoints));
             baseLearners.add(f);
         }
         
     }
     
-    private double F(DataPoint x)
+    private double F(final DataPoint x)
     {
         double fx = 0.0;//0 so when we are uninitalized P will return 0.5
         
-        for(Regressor fm : baseLearners) {
+        for(final Regressor fm : baseLearners) {
           fx += fm.regress(x);
         }
         return fx*fScaleConstant;
@@ -193,7 +193,7 @@ public class LogitBoost implements Classifier, Parameterized
      * @param x the data point in question
      * @return P(y = 1 | x)
      */
-    protected double P(DataPoint x)
+    protected double P(final DataPoint x)
     {
         /**
          *              F(x)
@@ -202,9 +202,9 @@ public class LogitBoost implements Classifier, Parameterized
          *         F(x)    - F(x)
          *        e     + e
          */
-        double fx = F(x);
-        double efx = Math.exp(fx);
-        double enfx = Math.exp(-fx);
+        final double fx = F(x);
+        final double efx = Math.exp(fx);
+        final double enfx = Math.exp(-fx);
         if(Double.isInfinite(efx) && efx > 0 && enfx < 1e-15) {//Well classified point could return a Infinity which turns into NaN
           return 1.0;
         }
@@ -219,7 +219,7 @@ public class LogitBoost implements Classifier, Parameterized
     @Override
     public LogitBoost clone()
     {
-        LogitBoost clone = new LogitBoost(maxIterations);
+        final LogitBoost clone = new LogitBoost(maxIterations);
         clone.zMax = this.zMax;
         if(this.baseLearner != null) {
           clone.baseLearner = this.baseLearner.clone();
@@ -227,7 +227,7 @@ public class LogitBoost implements Classifier, Parameterized
         if(this.baseLearners != null)
         {
             clone.baseLearners = new ArrayList<Regressor>(this.baseLearners.size());
-            for(Regressor r :  baseLearners) {
+            for(final Regressor r :  baseLearners) {
               clone.baseLearners.add(r.clone());
             }
         }
@@ -241,7 +241,7 @@ public class LogitBoost implements Classifier, Parameterized
     }
 
     @Override
-    public Parameter getParameter(String paramName)
+    public Parameter getParameter(final String paramName)
     {
         return Parameter.toParameterMap(getParameters()).get(paramName);
     }

@@ -22,7 +22,7 @@ public class EpsilonInsensitiveLoss implements LossR
      * @param eps the epsilon tolerance
      * @return the &epsilon;-insensitive loss
      */
-    public static double loss(double pred, double y, double eps)
+    public static double loss(final double pred, final double y, final double eps)
     {
         final double x = Math.abs(pred - y);
         return Math.max(0, x-eps);
@@ -36,7 +36,7 @@ public class EpsilonInsensitiveLoss implements LossR
      * @param eps the epsilon tolerance
      * @return the first derivative of the &epsilon;-insensitive loss
      */
-    public static double deriv(double pred, double y, double eps)
+    public static double deriv(final double pred, final double y, final double eps)
     {
         final double x = pred - y;
         if(eps < Math.abs(x)) {
@@ -46,13 +46,13 @@ public class EpsilonInsensitiveLoss implements LossR
         }
     }
     
-    private double eps;
+    private final double eps;
 
     /**
      * Creates a new Epsilon Insensitive loss
      * @param eps the epsilon tolerance on error
      */
-    public EpsilonInsensitiveLoss(double eps)
+    public EpsilonInsensitiveLoss(final double eps)
     {
         if(eps < 0 || Double.isNaN(eps) || Double.isInfinite(eps)) {
           throw new IllegalArgumentException("Epsilon must be non-negative, not " + eps);
@@ -64,26 +64,26 @@ public class EpsilonInsensitiveLoss implements LossR
      * Copy constructor
      * @param toCopy the object to copy
      */
-    public EpsilonInsensitiveLoss(EpsilonInsensitiveLoss toCopy)
+    public EpsilonInsensitiveLoss(final EpsilonInsensitiveLoss toCopy)
     {
         this.eps = toCopy.eps;
     }
 
 
     @Override
-    public double getLoss(double pred, double y)
+    public double getLoss(final double pred, final double y)
     {
         return loss(pred, y, eps);
     }
 
     @Override
-    public double getDeriv(double pred, double y)
+    public double getDeriv(final double pred, final double y)
     {
         return deriv(pred, y, eps);
     }
 
     @Override
-    public double getDeriv2(double pred, double y)
+    public double getDeriv2(final double pred, final double y)
     {
         return 0;
     }
@@ -101,7 +101,7 @@ public class EpsilonInsensitiveLoss implements LossR
     }
 
     @Override
-    public double getRegression(double score)
+    public double getRegression(final double score)
     {
         return score;
     }

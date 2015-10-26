@@ -56,10 +56,10 @@ public class KernelSGDTest
     public void testTrainC_ClassificationDataSet_ExecutorService()
     {
         System.out.println("trainC");
-        ClassificationDataSet trainSet = FixedProblems.getInnerOuterCircle(150, new Random(2));
-        ClassificationDataSet testSet = FixedProblems.getInnerOuterCircle(50, new Random(3));
+        final ClassificationDataSet trainSet = FixedProblems.getInnerOuterCircle(150, new Random(2));
+        final ClassificationDataSet testSet = FixedProblems.getInnerOuterCircle(50, new Random(3));
 
-        KernelSGD classifier = new KernelSGD(new HingeLoss(), new RBFKernel(0.5), 1e-5, KernelPoint.BudgetStrategy.STOP, 100);
+        final KernelSGD classifier = new KernelSGD(new HingeLoss(), new RBFKernel(0.5), 1e-5, KernelPoint.BudgetStrategy.STOP, 100);
 
         classifier.trainC(trainSet, ex);
 
@@ -72,10 +72,10 @@ public class KernelSGDTest
     public void testTrainC_ClassificationDataSet()
     {
         System.out.println("trainC");
-        ClassificationDataSet trainSet = FixedProblems.getInnerOuterCircle(150, new Random(2));
-        ClassificationDataSet testSet = FixedProblems.getInnerOuterCircle(50, new Random(3));
+        final ClassificationDataSet trainSet = FixedProblems.getInnerOuterCircle(150, new Random(2));
+        final ClassificationDataSet testSet = FixedProblems.getInnerOuterCircle(50, new Random(3));
 
-        KernelSGD classifier = new KernelSGD(new HingeLoss(), new RBFKernel(0.5), 1e-5, KernelPoint.BudgetStrategy.STOP, 100);
+        final KernelSGD classifier = new KernelSGD(new HingeLoss(), new RBFKernel(0.5), 1e-5, KernelPoint.BudgetStrategy.STOP, 100);
 
         classifier.trainC(trainSet);
 
@@ -89,10 +89,10 @@ public class KernelSGDTest
     public void testTrainC_ClassificationDataSet_Multi_ExecutorService()
     {
         System.out.println("trainC");
-        ClassificationDataSet trainSet = FixedProblems.getCircles(150, new Random(2), 1.0, 2.0, 4.0);
-        ClassificationDataSet testSet = FixedProblems.getCircles(50, new Random(3), 1.0, 2.0, 4.0);
+        final ClassificationDataSet trainSet = FixedProblems.getCircles(150, new Random(2), 1.0, 2.0, 4.0);
+        final ClassificationDataSet testSet = FixedProblems.getCircles(50, new Random(3), 1.0, 2.0, 4.0);
 
-        KernelSGD classifier = new KernelSGD(new HingeLoss(), new RBFKernel(0.5), 1e-5, KernelPoint.BudgetStrategy.STOP, 100);
+        final KernelSGD classifier = new KernelSGD(new HingeLoss(), new RBFKernel(0.5), 1e-5, KernelPoint.BudgetStrategy.STOP, 100);
 
         classifier.trainC(trainSet, ex);
 
@@ -106,10 +106,10 @@ public class KernelSGDTest
     public void testTrainC_ClassificationDataSet_Multi()
     {
         System.out.println("trainC");
-        ClassificationDataSet trainSet = FixedProblems.getCircles(150, new Random(2), 1.0, 2.0, 4.0);
-        ClassificationDataSet testSet = FixedProblems.getCircles(50, new Random(3), 1.0, 2.0, 4.0);
+        final ClassificationDataSet trainSet = FixedProblems.getCircles(150, new Random(2), 1.0, 2.0, 4.0);
+        final ClassificationDataSet testSet = FixedProblems.getCircles(50, new Random(3), 1.0, 2.0, 4.0);
 
-        KernelSGD classifier = new KernelSGD(new HingeLoss(), new RBFKernel(0.5), 1e-5, KernelPoint.BudgetStrategy.STOP, 100);
+        final KernelSGD classifier = new KernelSGD(new HingeLoss(), new RBFKernel(0.5), 1e-5, KernelPoint.BudgetStrategy.STOP, 100);
 
         classifier.trainC(trainSet);
 
@@ -126,10 +126,10 @@ public class KernelSGDTest
     public void testTrain_RegressionDataSet_ExecutorService()
     {
         System.out.println("train");
-        RegressionDataSet trainSet = FixedProblems.getSimpleRegression1(150, new Random(2));
-        RegressionDataSet testSet = FixedProblems.getSimpleRegression1(50, new Random(3));
+        final RegressionDataSet trainSet = FixedProblems.getSimpleRegression1(150, new Random(2));
+        final RegressionDataSet testSet = FixedProblems.getSimpleRegression1(50, new Random(3));
 
-        KernelSGD classifier = new KernelSGD(new EpsilonInsensitiveLoss(0.1), new RBFKernel(0.5), 1e-5, KernelPoint.BudgetStrategy.MERGE_RBF, 50);
+        final KernelSGD classifier = new KernelSGD(new EpsilonInsensitiveLoss(0.1), new RBFKernel(0.5), 1e-5, KernelPoint.BudgetStrategy.MERGE_RBF, 50);
         classifier.setEpochs(10);
         classifier.train(trainSet, ex);
 
@@ -147,10 +147,10 @@ public class KernelSGDTest
     public void testTrain_RegressionDataSet()
     {
         System.out.println("train");
-        RegressionDataSet trainSet = FixedProblems.getSimpleRegression1(150, new Random(2));
-        RegressionDataSet testSet = FixedProblems.getSimpleRegression1(50, new Random(3));
+        final RegressionDataSet trainSet = FixedProblems.getSimpleRegression1(150, new Random(2));
+        final RegressionDataSet testSet = FixedProblems.getSimpleRegression1(50, new Random(3));
 
-        KernelSGD classifier = new KernelSGD(new EpsilonInsensitiveLoss(0.1), new RBFKernel(0.5), 1e-5, KernelPoint.BudgetStrategy.MERGE_RBF, 50);
+        final KernelSGD classifier = new KernelSGD(new EpsilonInsensitiveLoss(0.1), new RBFKernel(0.5), 1e-5, KernelPoint.BudgetStrategy.MERGE_RBF, 50);
         classifier.setEpochs(10);
         classifier.train(trainSet);
 
@@ -168,15 +168,15 @@ public class KernelSGDTest
 
         KernelSGD instance = new KernelSGD(new LogisticLoss(), new RBFKernel(0.5), 1e-4, KernelPoint.BudgetStrategy.MERGE_RBF, 100);
         
-        ClassificationDataSet t1 = FixedProblems.getInnerOuterCircle(500, new XORWOW());
-        ClassificationDataSet t2 = FixedProblems.getInnerOuterCircle(500, new XORWOW(), 2.0, 10.0);
+        final ClassificationDataSet t1 = FixedProblems.getInnerOuterCircle(500, new XORWOW());
+        final ClassificationDataSet t2 = FixedProblems.getInnerOuterCircle(500, new XORWOW(), 2.0, 10.0);
 
         instance = instance.clone();
 
         instance.trainC(t1);
 
 
-        KernelSGD result = instance.clone();
+        final KernelSGD result = instance.clone();
         
         for (int i = 0; i < t1.getSampleSize(); i++) {
           assertEquals(t1.getDataPointCategory(i), result.classify(t1.getDataPoint(i)).mostLikely());

@@ -28,7 +28,7 @@ public class SpecialMath
      * indications of their expected accuracies. 
      */
     
-    public static double invXlnX(double y)
+    public static double invXlnX(final double y)
     {
         //Method from Numerical Recipies, 3rd edition
         if(y >= 0 || y <= -exp(-1)) {
@@ -105,7 +105,7 @@ public class SpecialMath
          * 
          */
 
-        double p[] =
+        final double p[] =
         {
             1.000000000190015,76.18009172947146,-86.50532032941677,
             24.01409824083091,-1.231739572450155,1.208650973866179e-3,-5.395239384953e-6
@@ -136,7 +136,7 @@ public class SpecialMath
      * @param z any real number value
      * @return Log(Γ(z))
      */
-    public static double lnGamma(double z)
+    public static double lnGamma(final double z)
     {
         if(z == Double.NEGATIVE_INFINITY) {
           return Double.NaN;
@@ -152,7 +152,7 @@ public class SpecialMath
 
         int j;
         double x, tmp, y, ser = 0.999999999999997092;
-        double[] c = new double[]
+        final double[] c = new double[]
         {
             57.1562356658629235, -59.5979603554754912,
             14.1360979747417471, -0.491913816097620199, .339946499848118887e-4,
@@ -193,7 +193,7 @@ public class SpecialMath
      * @param x the value to compute the digamma function at
      * @return the value of &#936;(x)
      */
-    public static double digamma(double x)
+    public static double digamma(final double x)
     {
         if(x == 0) {
           return Double.NaN;//complex infinity
@@ -207,9 +207,9 @@ public class SpecialMath
         else if(x < 2) {//shift the value into [2, Inf]
           return digamma(x+1) - 1/x;
         }
-        double approx= log(x);//rel error of 10^-11 for x >= 100 10^-13 for x >= 250, near machine precision at x >= 500
-        double approxS = -1/(2*x);
-        double approxSS = -1/(12*x*x);
+        final double approx= log(x);//rel error of 10^-11 for x >= 100 10^-13 for x >= 250, near machine precision at x >= 500
+        final double approxS = -1/(2*x);
+        final double approxSS = -1/(12*x*x);
 
         if(x <= 7) {
           return (x-digammaPosZero)*hornerPolyR(digamma_p_2_7, x)/hornerPolyR(digamma_q_2_7, x);
@@ -321,7 +321,7 @@ public class SpecialMath
      * @param x a real valued input 
      * @return &zeta;(x)
      */
-    public static double zeta(double x)
+    public static double zeta(final double x)
     {
         if(x == 1) {
           return Double.NaN;
@@ -346,7 +346,7 @@ public class SpecialMath
              * 
              * Reflect if just more than 1 to an area that is easier to approximate
              */
-            double otherPart = 2*pow(2*PI, x-1)*sin(PI/2*x);
+            final double otherPart = 2*pow(2*PI, x-1)*sin(PI/2*x);
             if(x < 0) {
               return otherPart*exp(lnGamma(1-x)*log(zeta(1-x)));
             } else {
@@ -360,7 +360,7 @@ public class SpecialMath
         if(x < 50)
         {
             //use truncated form of http://dlmf.nist.gov/25.2#E3
-            double mul = 1/(1-pow(2, 1-x));
+            final double mul = 1/(1-pow(2, 1-x));
             double sumP = 0;
             double sumN = 0;
             for(int i = 11; i >= 1; i-=2) {
@@ -449,7 +449,7 @@ public class SpecialMath
      * @param n the integer Bernoulli value to obtain an approximation of
      * @return <i>Re(Log(B<sub>n</sub>))</i> 
      */
-    public static double reLnBn(int n)
+    public static double reLnBn(final int n)
     {
         if(n < 0) {
           return Double.NaN;
@@ -485,7 +485,7 @@ public class SpecialMath
      * @param n the bernoulli number to compute
      * @return <i>B<sub>n</sub></i>
      */
-    public static double bernoulli(int n)
+    public static double bernoulli(final int n)
     {
         if(n < 0) {
           return Double.NaN;
@@ -506,7 +506,7 @@ public class SpecialMath
         return sign*exp(reLnBn(n));
     }
     
-    public static double erf(double x)
+    public static double erf(final double x)
     {
        /*
         * erf(x) = 2 * cdf(x sqrt(2)) -1
@@ -517,7 +517,7 @@ public class SpecialMath
         return 2 * Normal.cdf(x * sqrt(2.0), 0, 1)-1; 
     }
 
-    public static double invErf(double x)
+    public static double invErf(final double x)
     {
         /*
         * inverf(x) = invcdf(x/2+1/2)/sqrt(2)
@@ -528,7 +528,7 @@ public class SpecialMath
         return Normal.invcdf(x/2+0.5, 0, 1)/sqrt(2.0);
     }
 
-    public static double erfc(double x)
+    public static double erfc(final double x)
     {
         /*
         * erf(x) = 2 * cdf(-x sqrt(2))
@@ -538,7 +538,7 @@ public class SpecialMath
         return 2 * Normal.cdf(-x * sqrt(2.0), 0, 1);
     }
 
-    public static double invErfc(double x)
+    public static double invErfc(final double x)
     {
        /*
         * inverf(x) = invcdf(x/2)/-sqrt(2)
@@ -555,12 +555,12 @@ public class SpecialMath
      * @param w
      * @return B(z,w)
      */
-    public static double beta(double z, double w)
+    public static double beta(final double z, final double w)
     {
         return exp(lnBeta(z, w));
     }
     
-    public static double lnBeta(double z, double w)
+    public static double lnBeta(final double z, final double w)
     {
         /*
          * The beta function is defined by
@@ -586,7 +586,7 @@ public class SpecialMath
      * @param b any value &ge; 0
      * @return the result in a range of [0,1]
      */
-    public static double betaIncReg(double x, double a, double b)
+    public static double betaIncReg(final double x, final double a, final double b)
     {
         if(a <= 0 || b <= 0) {
           throw new ArithmeticException("a and b must be > 0, not" + a+ ", and " + b);
@@ -612,7 +612,7 @@ public class SpecialMath
          * a = 80, b = 100: max rel error ~ 1.2e-14, rel error is clearly not uniform but always small
          */
         
-        double numer = a*log(x)+b*log(1-x)-(log(a)+lnBeta(a, b));
+        final double numer = a*log(x)+b*log(1-x)-(log(a)+lnBeta(a, b));
         
         return exp(numer)/regIncBeta.lentz(x,a,b);
     }
@@ -624,12 +624,12 @@ public class SpecialMath
 		 */
 		private static final long serialVersionUID = 5080094630628298264L;
 
-		public double f(double... x)
+		public double f(final double... x)
         {
             return betaIncReg(x[0], x[1], x[2]) - x[3];
         }
 
-        public double f(Vec x)
+        public double f(final Vec x)
         {
             return betaIncReg(x.get(0), x.get(1), x.get(2))-x.get(3);
         }
@@ -646,7 +646,7 @@ public class SpecialMath
      * @param b any value &ge; 0
      * @return the value x, such that {@link #betaIncReg(double, double, double) I<sub>x</sub>(a, b) }  will return p. 
      */
-    public static double invBetaIncReg(double p, double a, double b)
+    public static double invBetaIncReg(final double p, final double a, final double b)
     {
         if(p < 0 || p > 1) {
           throw new ArithmeticException("The value p must be in the range [0,1], not" + p);
@@ -663,7 +663,7 @@ public class SpecialMath
      * @param z any value &gt; 0
      * @return Q(a,z)
      */
-    public static double gammaQ(double a, double z)
+    public static double gammaQ(final double a, final double z)
     {
         if(z<= 0 || a < 0 ) {
           return Double.NaN;
@@ -684,7 +684,7 @@ public class SpecialMath
         return exp(a*log(z)-z-lnGamma(a))/gammaQ.lentz(a, z);
     }
     
-    public static double gammaPSeries(double a, double z)
+    public static double gammaPSeries(final double a, final double z)
     {
         double ap = a;
         double sum;
@@ -712,7 +712,7 @@ public class SpecialMath
      * @param z any value &gt; 0
      * @return P(a,z)
      */
-    public static double gammaP(double a, double z)
+    public static double gammaP(final double a, final double z)
     {
         if(z<= 0 || a < 0) {
           return Double.NaN;
@@ -735,15 +735,15 @@ public class SpecialMath
      * @param p and value in the range [0, 1]
      * @return the inverse
      */
-    public static double invGammaP(double p, double a)
+    public static double invGammaP(final double p, final double a)
     {
         //Method from Numerical Recipies 3rd edition p 263
         if(p < 0 || p > 1) {
           throw new ArithmeticException("Probability p must be in the range [0,1], "+ p + "is not valid");
         }
         //First an estimate must be obtained
-        double am1 = a-1;
-        double lnGamA = lnGamma(a);
+        final double am1 = a-1;
+        final double lnGamA = lnGamma(a);
         double x;//the to be returned
         double afac = 1;//ONLY used when a>1
         double lna1 =1;//ONLY used when a>1
@@ -751,8 +751,8 @@ public class SpecialMath
         {
             lna1 = log(am1);
             afac = exp(am1*(lna1-1)-lnGamA);
-            double pp = (p < 0.5) ? p : 1-p;
-            double t = sqrt(-2*log(pp));
+            final double pp = (p < 0.5) ? p : 1-p;
+            final double t = sqrt(-2*log(pp));
             //Now our inital estimate
             x = (2.30753+t*0.27061)/(1.+t*(0.99229+t*0.04481)) - t;
             if(p < 0.5) {
@@ -763,7 +763,7 @@ public class SpecialMath
         }
         else
         {
-            double t = 1.0 - a*(0.253+a*0.12);
+            final double t = 1.0 - a*(0.253+a*0.12);
             if(p < t) {
               x = pow(p/t, 1.0/a);
             } else {
@@ -777,7 +777,7 @@ public class SpecialMath
             if (x <= 0) {//x is very small, return 0 b/c rounding errors and loss of precision will make accuracy imposible
               return 0;
             }
-            double err = gammaP(a, x) - p;
+            final double err = gammaP(a, x) - p;
             double t;
             if(a > 1) {
               t = afac*exp(-(x-am1)+am1*(log(x)-lna1));
@@ -785,7 +785,7 @@ public class SpecialMath
               t = exp(-x+am1*log(x)-lnGamA);
             }
             
-            double u = err/t;
+            final double u = err/t;
             t = u / (1-0.5*min(1 , u*(am1/x - 1)) );//Halley's method
             x -= t;
             if(x <= 0) {//bais x from going negative (means we are getting a bad value)
@@ -807,7 +807,7 @@ public class SpecialMath
      * @param z any value &gt; 0
      * @return Γ(a,z)
      */
-    public static double gammaIncUp(double a, double z)
+    public static double gammaIncUp(final double a, final double z)
     {
         if(z <= 0) {
           return Double.NaN;
@@ -831,7 +831,7 @@ public class SpecialMath
      * @param z any value &gt; 0
      * @return γ(a,z)
      */
-    public static double gammaIncLow(double a, double z)
+    public static double gammaIncLow(final double a, final double z)
     {
          if(z <= 0) {
            return Double.NaN;
@@ -847,7 +847,7 @@ public class SpecialMath
         return exp(lnLowIncGamma(a, z));
     }
     
-    private static double lnLowIncGamma(double a, double x)
+    private static double lnLowIncGamma(final double a, final double x)
     {
 
         /*
@@ -892,7 +892,7 @@ public class SpecialMath
 
         //Sumation first
 
-        double lnGa = lnGamma(a);
+        final double lnGa = lnGamma(a);
         /**
          * This value will be updated by the property Gamma(z+1) = Gamma(z) * z, which - when taken the log of, is <br>
          * LnGamma(z+1) = LnGamma(z) + ln(z)
@@ -903,7 +903,7 @@ public class SpecialMath
          * this is the n * ln(x)  term. it will be updated by adding the log of x at each step
          */
         double lnXN = 0;
-        double lnX = log(x);
+        final double lnX = log(x);
 
         //Set up, now start summing
         double term = exp(lnGa - lnGan + lnXN);
@@ -924,9 +924,9 @@ public class SpecialMath
         return -x + lnX*a +log(sum);
     }
     @SuppressWarnings("unused")
-    private static double lnLowIncGamma1(double a, double x)
+    private static double lnLowIncGamma1(final double a, final double x)
     {
-        double inter = lowIncGamma.lentz(a,x);
+        final double inter = lowIncGamma.lentz(a,x);
         if(inter <= 1e-16) {//The result was ~0, in which case Gamma[a,z] ~= Gamma[a]
           return lnGamma(a);
         }
@@ -937,7 +937,7 @@ public class SpecialMath
     {
 
         @Override
-        public double getA(int pos, double... args)
+        public double getA(int pos, final double... args)
         {
 
             if (pos % 2 == 0)
@@ -955,7 +955,7 @@ public class SpecialMath
         }
 
         @Override
-        public double getB(int pos, double... args)
+        public double getB(final int pos, final double... args)
         {
 
             return args[0] + pos;
@@ -969,13 +969,13 @@ public class SpecialMath
     {
 
         @Override
-        public double getA(int pos, double... args)
+        public double getA(final int pos, final double... args)
         {
             return pos*(args[0]-pos);
         }
 
         @Override
-        public double getB(int pos, double... args)
+        public double getB(final int pos, final double... args)
         {
 
             return (1 +pos*2) - args[0] + args[1];
@@ -994,7 +994,7 @@ public class SpecialMath
     {
 
         @Override
-        public double getA(int pos, double... args)
+        public double getA(int pos, final double... args)
         {
             if(pos % 2 == 0)//even step
             {
@@ -1007,7 +1007,7 @@ public class SpecialMath
         }
 
         @Override
-        public double getB(int pos, double... args)
+        public double getB(final int pos, final double... args)
         {
             return args[0] + pos;
         }
@@ -1026,13 +1026,13 @@ public class SpecialMath
     {
 
         @Override
-        public double getA(int pos, double... args)
+        public double getA(final int pos, final double... args)
         {
             return (args[0]-pos)*pos;
         }
 
         @Override
-        public double getB(int pos, double... args)
+        public double getB(final int pos, final double... args)
         {
             return (1+pos*2)-args[0]+args[1];
         }
@@ -1044,7 +1044,7 @@ public class SpecialMath
     private static final ContinuedFraction regIncBeta = new ContinuedFraction() {
 
         @Override
-        public double getA(int pos, double... args)
+        public double getA(int pos, final double... args)
         {
             if(pos % 2 == 0)
             {
@@ -1054,14 +1054,14 @@ public class SpecialMath
             
             pos = (pos-1)/2;
             
-            double numer  = -(args[1] + pos)*(args[1]+args[2]+pos)*args[0];
-            double denom = (args[1] + 2*pos)*(args[1]+1+2*pos);
+            final double numer  = -(args[1] + pos)*(args[1]+args[2]+pos)*args[0];
+            final double denom = (args[1] + 2*pos)*(args[1]+1+2*pos);
             
             return numer/denom;
         }
 
         @Override
-        public double getB(int pos, double... args)
+        public double getB(final int pos, final double... args)
         {
             return 1.0;
         }

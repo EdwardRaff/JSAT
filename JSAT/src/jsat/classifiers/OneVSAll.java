@@ -32,10 +32,10 @@ public class OneVSAll implements Classifier, Parameterized
     private static final long serialVersionUID = -326668337438092217L;
     private Classifier[] oneVsAlls;
     @ParameterHolder
-    private Classifier baseClassifier;
+    private final Classifier baseClassifier;
     private CategoricalData predicting;
     private boolean concurrentTraining;
-    private boolean useScoreIfAvailable = true;
+    private final boolean useScoreIfAvailable = true;
     
     /**
      * Creates a new One VS All classifier. 
@@ -43,7 +43,7 @@ public class OneVSAll implements Classifier, Parameterized
      * @param baseClassifier the base classifier to replicate  
      * @see #setConcurrentTraining(boolean) 
      */
-    public OneVSAll(Classifier baseClassifier)
+    public OneVSAll(final Classifier baseClassifier)
     {
         this(baseClassifier, true);
     }
@@ -57,7 +57,7 @@ public class OneVSAll implements Classifier, Parameterized
      * {@link Classifier#trainC(jsat.classifiers.ClassificationDataSet, java.util.concurrent.ExecutorService) } method.  
      * @see #setConcurrentTraining(boolean) 
      */
-    public OneVSAll(Classifier baseClassifier, boolean concurrentTraining)
+    public OneVSAll(final Classifier baseClassifier, final boolean concurrentTraining)
     {
         this.baseClassifier = baseClassifier;
         this.concurrentTraining = concurrentTraining;
@@ -75,16 +75,16 @@ public class OneVSAll implements Classifier, Parameterized
      * Setting this to true also uses <i>k</i> times the memory, since each classifier is being created and trained at the same time. 
      * @param concurrentTraining whether or not to train the classifiers in parallel 
      */
-    public void setConcurrentTraining(boolean concurrentTraining)
+    public void setConcurrentTraining(final boolean concurrentTraining)
     {
         this.concurrentTraining = concurrentTraining;
     }
     
     
     @Override
-    public CategoricalResults classify(DataPoint data)
+    public CategoricalResults classify(final DataPoint data)
     {
-        CategoricalResults cr = new CategoricalResults(predicting.getNumOfCategories());
+        final CategoricalResults cr = new CategoricalResults(predicting.getNumOfCategories());
         
         if(useScoreIfAvailable && oneVsAlls[0] instanceof BinaryScoreClassifier)
         {
@@ -92,7 +92,7 @@ public class OneVSAll implements Classifier, Parameterized
             double maxScore = Double.NEGATIVE_INFINITY;
             for(int i = 0; i < predicting.getNumOfCategories(); i++)
             {
-                double score = -( (BinaryScoreClassifier)oneVsAlls[i]).getScore(data);
+                final double score = -( (BinaryScoreClassifier)oneVsAlls[i]).getScore(data);
                 
                 if(score > maxScore)
                 {
@@ -107,8 +107,8 @@ public class OneVSAll implements Classifier, Parameterized
         {
             for(int i = 0; i < predicting.getNumOfCategories(); i++)
             {
-                CategoricalResults oneVsAllCR = oneVsAlls[i].classify(data);
-                double tmp = oneVsAllCR.getProb(0);
+                final CategoricalResults oneVsAllCR = oneVsAlls[i].classify(data);
+                final double tmp = oneVsAllCR.getProb(0);
                 if(tmp > 0) {
                   cr.setProb(i, tmp);
                 }
@@ -121,37 +121,37 @@ public class OneVSAll implements Classifier, Parameterized
     }
 
     @Override
-    public void trainC(ClassificationDataSet dataSet, ExecutorService threadPool)
+    public void trainC(final ClassificationDataSet dataSet, final ExecutorService threadPool)
     {
         oneVsAlls = new Classifier[dataSet.getClassSize()];
         
         predicting = dataSet.getPredicting();
         
-        List<List<DataPoint>> categorized = new ArrayList<List<DataPoint>>();
+        final List<List<DataPoint>> categorized = new ArrayList<List<DataPoint>>();
         for(int i = 0; i < oneVsAlls.length; i++)
         {
-            List<DataPoint> tmp = dataSet.getSamples(i);
-            ArrayList<DataPoint> oneCat = new ArrayList<DataPoint>(tmp.size());
+            final List<DataPoint> tmp = dataSet.getSamples(i);
+            final ArrayList<DataPoint> oneCat = new ArrayList<DataPoint>(tmp.size());
             oneCat.addAll(tmp);
             categorized.add(oneCat);
         }
         
-        int numer = dataSet.getNumNumericalVars();
-        CategoricalData[] categories = dataSet.getCategories();
+        final int numer = dataSet.getNumNumericalVars();
+        final CategoricalData[] categories = dataSet.getCategories();
         //Latch only used when all the classifiers are trained in parallel 
         final CountDownLatch latch = new CountDownLatch(oneVsAlls.length);
         for(int i = 0; i < oneVsAlls.length; i++)
         {
             final ClassificationDataSet cds = 
                     new ClassificationDataSet(numer, categories, new CategoricalData(2));
-            for(DataPoint dp : categorized.get(i)) {
+            for(final DataPoint dp : categorized.get(i)) {
               //add the ones
               cds.addDataPoint(dp.getNumericalValues(), dp.getCategoricalValues(), 0);
             }
             //Add all the 'others'
             for(int j = 0; j < categorized.size(); j++) {
               if (j != i) {
-                for (DataPoint dp : categorized.get(j)) {
+                for (final DataPoint dp : categorized.get(j)) {
                   cds.addDataPoint(dp.getNumericalValues(), dp.getCategoricalValues(), 1);
                 }
               }
@@ -189,7 +189,7 @@ public class OneVSAll implements Classifier, Parameterized
           {
             latch.await();
           }
-          catch (InterruptedException ex)
+          catch (final InterruptedException ex)
           {
             Logger.getLogger(OneVSAll.class.getName()).log(Level.SEVERE, null, ex);
           }
@@ -199,7 +199,7 @@ public class OneVSAll implements Classifier, Parameterized
     }
 
     @Override
-    public void trainC(ClassificationDataSet dataSet)
+    public void trainC(final ClassificationDataSet dataSet)
     {
         trainC(dataSet, new FakeExecutor());
     }
@@ -207,7 +207,7 @@ public class OneVSAll implements Classifier, Parameterized
     @Override
     public OneVSAll clone()
     {
-        OneVSAll clone = new OneVSAll(baseClassifier.clone(), concurrentTraining);
+        final OneVSAll clone = new OneVSAll(baseClassifier.clone(), concurrentTraining);
         if(this.predicting != null) {
           clone.predicting = this.predicting.clone();
         }
@@ -236,7 +236,7 @@ public class OneVSAll implements Classifier, Parameterized
     }
 
     @Override
-    public Parameter getParameter(String paramName)
+    public Parameter getParameter(final String paramName)
     {
         return Parameter.toParameterMap(getParameters()).get(paramName);
     }

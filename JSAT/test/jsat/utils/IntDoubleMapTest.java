@@ -66,8 +66,8 @@ public class IntDoubleMapTest
             key = rand.nextInt();
             value = Double.valueOf(rand.nextInt(1000));
             
-            Double prevTruth = truthMap.put(key, value);
-            Double prev = idMap.put(key, value);
+            final Double prevTruth = truthMap.put(key, value);
+            final Double prev = idMap.put(key, value);
             assertEquals(prevTruth, prev);
             assertEquals(truthMap.size(), idMap.size());
         }
@@ -80,10 +80,10 @@ public class IntDoubleMapTest
         
         assertEntriesAreEqual(truthMap, idMap);
         
-        for(Entry<Integer, Double> entry : idMap.entrySet()) {
+        for(final Entry<Integer, Double> entry : idMap.entrySet()) {
           entry.setValue(1.0);
         }
-        for(Entry<Integer, Double> entry : truthMap.entrySet()) {
+        for(final Entry<Integer, Double> entry : truthMap.entrySet()) {
           entry.setValue(1.0);
         }
         
@@ -100,8 +100,8 @@ public class IntDoubleMapTest
             key = Integer.valueOf(rand.nextInt(50000));
             value = Double.valueOf(rand.nextInt(1000));
             
-            Double prevTruth = truthMap.put(key, value);
-            Double prev = idMap.put(key, value);
+            final Double prevTruth = truthMap.put(key, value);
+            final Double prev = idMap.put(key, value);
             assertEquals(prevTruth, prev);
             assertEquals(truthMap.size(), idMap.size());
         }
@@ -114,39 +114,39 @@ public class IntDoubleMapTest
         
         assertEntriesAreEqual(truthMap, idMap);
         
-        for(Entry<Integer, Double> entry : idMap.entrySet()) {
+        for(final Entry<Integer, Double> entry : idMap.entrySet()) {
           entry.setValue(1.0);
         }
-        for(Entry<Integer, Double> entry : truthMap.entrySet()) {
+        for(final Entry<Integer, Double> entry : truthMap.entrySet()) {
           entry.setValue(1.0);
         }
         
         assertEntriesAreEqual(truthMap, idMap);
     }
 
-    private void removeEvenByIterator(Iterator<Entry<Integer, Double>> iterator)
+    private void removeEvenByIterator(final Iterator<Entry<Integer, Double>> iterator)
     {
         while(iterator.hasNext())
         {
-            Entry<Integer, Double> entry = iterator.next();
+            final Entry<Integer, Double> entry = iterator.next();
             if(entry.getKey() % 2 == 0) {
               iterator.remove();
             }
         }
     }
 
-    private void assertEntriesAreEqual(Map<Integer, Double> truthMap, IntDoubleMap idMap)
+    private void assertEntriesAreEqual(final Map<Integer, Double> truthMap, final IntDoubleMap idMap)
     {
         assertEquals(truthMap.size(), idMap.size());
         
-        Map<Integer, Double> copy = new HashMap<Integer, Double>();
+        final Map<Integer, Double> copy = new HashMap<Integer, Double>();
         
-        for(Entry<Integer, Double> entry : truthMap.entrySet()) {
+        for(final Entry<Integer, Double> entry : truthMap.entrySet()) {
           assertEquals(entry.getValue(), idMap.get(entry.getKey()));
         }
         
         int observed = 0;
-        for(Entry<Integer, Double> entry : idMap.entrySet())
+        for(final Entry<Integer, Double> entry : idMap.entrySet())
         {
             copy.put(entry.getKey(), entry.getValue());
             observed++;
@@ -156,7 +156,7 @@ public class IntDoubleMapTest
         assertEquals(truthMap.size(), observed);
         
         //make sure we put every value into the copy!
-        for(Entry<Integer, Double> entry : truthMap.entrySet()) {
+        for(final Entry<Integer, Double> entry : truthMap.entrySet()) {
           assertEquals(truthMap.get(entry.getKey()), copy.get(entry.getKey()));
         }
     }
@@ -179,7 +179,7 @@ public class IntDoubleMapTest
             key = rand.nextInt();
             value = Double.valueOf(rand.nextInt(1000));
             
-            Double prevTruth = truthMap.put(key, value);
+            final Double prevTruth = truthMap.put(key, value);
             Double prev = idMap.put(key, value);
             if(prev.isNaN()) {
               prev = null;
@@ -196,10 +196,10 @@ public class IntDoubleMapTest
         
         assertEntriesAreEqual(truthMap, idMap);
         
-        for(Entry<Integer, Double> entry : idMap.entrySet()) {
+        for(final Entry<Integer, Double> entry : idMap.entrySet()) {
           entry.setValue(1.0);
         }
-        for(Entry<Integer, Double> entry : truthMap.entrySet()) {
+        for(final Entry<Integer, Double> entry : truthMap.entrySet()) {
           entry.setValue(1.0);
         }
         
@@ -216,7 +216,7 @@ public class IntDoubleMapTest
             key = Integer.valueOf(rand.nextInt(50000));
             value = Double.valueOf(rand.nextInt(1000));
             
-            Double prevTruth = truthMap.put(key, value);
+            final Double prevTruth = truthMap.put(key, value);
             Double prev = idMap.put(key, value);
             if(prev.isNaN()) {
               prev = null;
@@ -233,10 +233,10 @@ public class IntDoubleMapTest
         
         assertEntriesAreEqual(truthMap, idMap);
         
-        for(Entry<Integer, Double> entry : idMap.entrySet()) {
+        for(final Entry<Integer, Double> entry : idMap.entrySet()) {
           entry.setValue(1.0);
         }
-        for(Entry<Integer, Double> entry : truthMap.entrySet()) {
+        for(final Entry<Integer, Double> entry : truthMap.entrySet()) {
           entry.setValue(1.0);
         }
         
@@ -253,10 +253,10 @@ public class IntDoubleMapTest
         Integer key = null;
         Double value = null;
         
-        Map<Integer, Double> truthMap = new HashMap<Integer, Double>();
-        IntDoubleMap idMap = new IntDoubleMap();
+        final Map<Integer, Double> truthMap = new HashMap<Integer, Double>();
+        final IntDoubleMap idMap = new IntDoubleMap();
         
-        int MAX = TEST_SIZE/2;
+        final int MAX = TEST_SIZE/2;
         int times =0;
         for(int i = 0; i < MAX; i++)
         {
@@ -265,8 +265,8 @@ public class IntDoubleMapTest
             if(truthMap.containsKey(key)) {
               times++;
             }
-            Double prevTruth = truthMap.put(key, value);
-            Double prev = idMap.put(key, value);
+            final Double prevTruth = truthMap.put(key, value);
+            final Double prev = idMap.put(key, value);
             
             if(prev == null && prevTruth != null) {
               System.out.println(idMap.put(key, value));
@@ -281,12 +281,12 @@ public class IntDoubleMapTest
         
         assertEntriesAreEqual(truthMap, idMap);
         
-        for(Entry<Integer, Double> entry : truthMap.entrySet())
+        for(final Entry<Integer, Double> entry : truthMap.entrySet())
         {
-            double delta = Double.valueOf(rand.nextInt(100));
-            double trueNewValue =entry.getValue()+delta;
+            final double delta = Double.valueOf(rand.nextInt(100));
+            final double trueNewValue =entry.getValue()+delta;
             entry.setValue(trueNewValue);
-            double newValue = idMap.increment(entry.getKey(), delta);
+            final double newValue = idMap.increment(entry.getKey(), delta);
             assertEquals(trueNewValue, newValue, 0.0);
         }
         
@@ -296,7 +296,7 @@ public class IntDoubleMapTest
             value = Double.valueOf(rand.nextInt(1000));
             
             truthMap.put(key, value);
-            double ldNew =idMap.increment(key, value);
+            final double ldNew =idMap.increment(key, value);
             assertEquals(value.doubleValue(), ldNew, 0.0);
         }
         
@@ -313,17 +313,17 @@ public class IntDoubleMapTest
         Integer key = null;
         Double value = null;
         
-        Map<Integer, Double> truthMap = new HashMap<Integer, Double>();
-        IntDoubleMap ldMap = new IntDoubleMap();
+        final Map<Integer, Double> truthMap = new HashMap<Integer, Double>();
+        final IntDoubleMap ldMap = new IntDoubleMap();
         
-        int MAX = TEST_SIZE/2;
+        final int MAX = TEST_SIZE/2;
         for(int i = 0; i < MAX; i++)
         {
             key = Integer.valueOf(rand.nextInt(MAX));
             value = Double.valueOf(rand.nextInt(1000));
             
-            Double prevTruth = truthMap.put(key, value);
-            Double prev = ldMap.put(key, value);
+            final Double prevTruth = truthMap.put(key, value);
+            final Double prev = ldMap.put(key, value);
             assertEquals(prevTruth, prev);
             assertEquals(truthMap.size(), ldMap.size());
         }
@@ -335,7 +335,7 @@ public class IntDoubleMapTest
         {
             key = Integer.valueOf(rand.nextInt(MAX));
             
-            Double prevTruth = truthMap.remove(key);
+            final Double prevTruth = truthMap.remove(key);
             Double prev = ldMap.remove(key);
             if(prevTruth == null && prev != null) {
               prev = ldMap.remove(key);
@@ -358,17 +358,17 @@ public class IntDoubleMapTest
         Integer key = null;
         Double value = null;
         
-        Map<Integer, Double> truthMap = new HashMap<Integer, Double>();
-        IntDoubleMap idMap = new IntDoubleMap();
+        final Map<Integer, Double> truthMap = new HashMap<Integer, Double>();
+        final IntDoubleMap idMap = new IntDoubleMap();
         
-        int MAX = TEST_SIZE/2;
+        final int MAX = TEST_SIZE/2;
         for(int i = 0; i < MAX; i++)
         {
             key = Integer.valueOf(rand.nextInt(MAX));
             value = Double.valueOf(rand.nextInt(1000));
             
-            Double prevTruth = truthMap.put(key, value);
-            Double prev = idMap.put(key, value);
+            final Double prevTruth = truthMap.put(key, value);
+            final Double prev = idMap.put(key, value);
             assertEquals(prevTruth, prev);
             assertEquals(truthMap.size(), idMap.size());
         }
@@ -380,7 +380,7 @@ public class IntDoubleMapTest
         {
             key = Integer.valueOf(rand.nextInt(MAX));
             
-            Double prevTruth = truthMap.remove(key);
+            final Double prevTruth = truthMap.remove(key);
             Double prev = idMap.remove(key.intValue());
             if(prev.isNaN()) {
               prev = null;
@@ -403,24 +403,24 @@ public class IntDoubleMapTest
         Integer key = null;
         Double value = null;
         
-        Map<Integer, Double> truthMap = new HashMap<Integer, Double>();
-        IntDoubleMap idMap = new IntDoubleMap();
+        final Map<Integer, Double> truthMap = new HashMap<Integer, Double>();
+        final IntDoubleMap idMap = new IntDoubleMap();
         
-        int MAX = TEST_SIZE/2;
+        final int MAX = TEST_SIZE/2;
         for(int i = 0; i < MAX; i++)
         {
             key = Integer.valueOf(rand.nextInt(MAX));
             value = Double.valueOf(rand.nextInt(1000));
             
-            Double prevTruth = truthMap.put(key, value);
-            Double prev = idMap.put(key, value);
+            final Double prevTruth = truthMap.put(key, value);
+            final Double prev = idMap.put(key, value);
             assertEquals(prevTruth, prev);
             assertEquals(truthMap.size(), idMap.size());
         }
         
         assertEntriesAreEqual(truthMap, idMap);
         
-        for(Integer keyInSet : truthMap.keySet()) {
+        for(final Integer keyInSet : truthMap.keySet()) {
           assertTrue(idMap.containsKey(keyInSet));
         }
         
@@ -439,24 +439,24 @@ public class IntDoubleMapTest
         Integer key = null;
         Double value = null;
         
-        Map<Integer, Double> truthMap = new HashMap<Integer, Double>();
-        IntDoubleMap idMap = new IntDoubleMap();
+        final Map<Integer, Double> truthMap = new HashMap<Integer, Double>();
+        final IntDoubleMap idMap = new IntDoubleMap();
         
-        int MAX = TEST_SIZE/2;
+        final int MAX = TEST_SIZE/2;
         for(int i = 0; i < MAX; i++)
         {
             key = Integer.valueOf(rand.nextInt(MAX));
             value = Double.valueOf(rand.nextInt(1000));
             
-            Double prevTruth = truthMap.put(key, value);
-            Double prev = idMap.put(key, value);
+            final Double prevTruth = truthMap.put(key, value);
+            final Double prev = idMap.put(key, value);
             assertEquals(prevTruth, prev);
             assertEquals(truthMap.size(), idMap.size());
         }
         
         assertEntriesAreEqual(truthMap, idMap);
         
-        for(Integer keyInSet : truthMap.keySet()) {
+        for(final Integer keyInSet : truthMap.keySet()) {
           assertTrue(idMap.containsKey(keyInSet.intValue()));
         }
         

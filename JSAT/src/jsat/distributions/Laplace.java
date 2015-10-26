@@ -22,7 +22,7 @@ public final class Laplace extends ContinuousDistribution
      */
     private double b;
 
-    public Laplace(double mu, double b)
+    public Laplace(final double mu, final double b)
     {
         setB(b);
         setMu(mu);
@@ -30,7 +30,7 @@ public final class Laplace extends ContinuousDistribution
     
     
 
-    public void setMu(double mu)
+    public void setMu(final double mu)
     {
         this.mu = mu;
     }
@@ -40,7 +40,7 @@ public final class Laplace extends ContinuousDistribution
         return mu;
     }
 
-    public void setB(double b)
+    public void setB(final double b)
     {
         if (b <= 0) {
           throw new ArithmeticException("The scale parameter must be > 0");
@@ -54,20 +54,20 @@ public final class Laplace extends ContinuousDistribution
     }
     
     @Override
-    public double pdf(double x)
+    public double pdf(final double x)
     {
         return 1/(2*b)*exp(-abs(x-mu)/b);
     }
 
     @Override
-    public double cdf(double x)
+    public double cdf(final double x)
     {
-        double xMu = x - mu;
+        final double xMu = x - mu;
         return 0.5 * (1 + signum(x)*(1-exp(-abs(xMu)/b)) );
     }
 
     @Override
-    public double invCdf(double p)
+    public double invCdf(final double p)
     {
         return mu - b * signum(p - 0.5) * log(1-2*abs(p-0.5));
     }
@@ -103,7 +103,7 @@ public final class Laplace extends ContinuousDistribution
     }
 
     @Override
-    public void setVariable(String var, double value)
+    public void setVariable(final String var, final double value)
     {
         if(var.equals(GreekLetters.mu)) {
           setMu(value);
@@ -119,10 +119,10 @@ public final class Laplace extends ContinuousDistribution
     }
 
     @Override
-    public void setUsingData(Vec data)
+    public void setUsingData(final Vec data)
     {
         //Donst sent mu yet incase b turns out to be a bad value
-        double tmpMu = data.mean();
+        final double tmpMu = data.mean();
         
         double newB = 0;
         //TODO add APIs so that sparce vector can do this more efficiently
@@ -183,7 +183,7 @@ public final class Laplace extends ContinuousDistribution
 
 
 	@Override
-	public boolean equals(Object obj) {
+	public boolean equals(final Object obj) {
 		if (this == obj) {
 			return true;
 		}
@@ -193,7 +193,7 @@ public final class Laplace extends ContinuousDistribution
 		if (getClass() != obj.getClass()) {
 			return false;
 		}
-		Laplace other = (Laplace) obj;
+		final Laplace other = (Laplace) obj;
 		if (Double.doubleToLongBits(b) != Double.doubleToLongBits(other.b)) {
 			return false;
 		}

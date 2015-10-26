@@ -61,9 +61,9 @@ public class BinomialTest
     public void testLogPmf()
     {
         System.out.println("logPmf");
-        Binomial instance = new Binomial();
+        final Binomial instance = new Binomial();
         
-        double[] expected_7_5 = new double[]
+        final double[] expected_7_5 = new double[]
         {
             -4.85203026391962,-2.90612011486430,-1.80750782619619,-1.29668220243020,
             -1.29668220243020,-1.80750782619619,-2.90612011486430,-4.85203026391962,
@@ -83,9 +83,9 @@ public class BinomialTest
     public void testPmf()
     {
         System.out.println("pmf");
-        Binomial instance = new Binomial();
+        final Binomial instance = new Binomial();
         
-        double[] expected_7_5 = new double[]
+        final double[] expected_7_5 = new double[]
         {
             0.00781250000000000, 0.0546875000000000, 0.164062500000000, 0.273437500000000, 0.273437500000000, 0.164062500000000, 0.0546875000000000, 0.00781250000000000, 0, 0, 0
         };
@@ -102,9 +102,9 @@ public class BinomialTest
     public void testCdf()
     {
         System.out.println("cdf");
-        Binomial instance = new Binomial();
+        final Binomial instance = new Binomial();
         
-        double[] expected_7_5 = new double[]
+        final double[] expected_7_5 = new double[]
         {
             0.00781250000000000, 0.0625000000000000, 0.226562500000000, 0.500000000000000, 
             0.773437500000000, 0.937500000000000, 0.992187500000000, 1.00000000000000, 
@@ -125,7 +125,7 @@ public class BinomialTest
               val = instance.invCdf(expected_7_5[i-1]+(expected_7_5[i]-expected_7_5[i-1])*0.95);
             }
             
-            double expected = testVals[i] >= instance.max() ? instance.max() : testVals[i];
+            final double expected = testVals[i] >= instance.max() ? instance.max() : testVals[i];
             assertEquals(expected, val, 1e-3);
         }
     }
@@ -134,9 +134,9 @@ public class BinomialTest
     public void testSummaryStats()
     {
         System.out.println("stats");
-        Binomial instance = new Binomial();
+        final Binomial instance = new Binomial();
         //mean, median, variance, standard dev, skew
-        double[] expected_7_5 = {3.50000000000000,3.00000000000000,1.75000000000000,1.32287565553230, 0};
+        final double[] expected_7_5 = {3.50000000000000,3.00000000000000,1.75000000000000,1.32287565553230, 0};
         
         instance.setTrials(7);
         instance.setP(0.5);
@@ -154,12 +154,12 @@ public class BinomialTest
     public void testSample()
     {
         System.out.println("sample");
-        Binomial instance = new Binomial();
+        final Binomial instance = new Binomial();
         
         instance.setTrials(7);
         instance.setP(0.5);
         
-        Vec samples = instance.sampleVec(10000, new XORWOW());
+        final Vec samples = instance.sampleVec(10000, new XORWOW());
         
         assertEquals(instance.mean(), samples.mean(), 2e-1);
 //        assertEquals(instance.median(), samples.median(), 1e-1);

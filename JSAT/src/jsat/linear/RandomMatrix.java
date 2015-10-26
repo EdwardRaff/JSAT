@@ -41,15 +41,15 @@ abstract public class RandomMatrix extends GenericMatrix
      * used if it requires too many words of state, as the initalization will 
      * then dominate the computation of every index. 
      */
-    private int rows, cols;
-    private long seedMult;
+    private final int rows, cols;
+    private final long seedMult;
 
     /**
      * Creates a new random matrix object
      * @param rows the number of rows for the random matrix
      * @param cols the number of columns for the random matrix
      */
-    public RandomMatrix(int rows, int cols)
+    public RandomMatrix(final int rows, final int cols)
     {
         this(rows, cols, new Random().nextLong());
     }
@@ -61,7 +61,7 @@ abstract public class RandomMatrix extends GenericMatrix
      * @param seedMult a value to multiply with the seed used for each 
      * individual index. It should be a large value
      */
-    public RandomMatrix(int rows, int cols, long seedMult)
+    public RandomMatrix(final int rows, final int cols, final long seedMult)
     {
         if(rows <= 0) {
           throw new IllegalArgumentException("rows must be positive, not " + rows);
@@ -78,12 +78,12 @@ abstract public class RandomMatrix extends GenericMatrix
      * Copy constructor
      * @param toCopy the object to copy
      */
-    public RandomMatrix(RandomMatrix toCopy)
+    public RandomMatrix(final RandomMatrix toCopy)
     {
         this(toCopy.rows, toCopy.cols, toCopy.seedMult);
     }
     
-    private ThreadLocal<Random> localRand = new ThreadLocal<Random>()
+    private final ThreadLocal<Random> localRand = new ThreadLocal<Random>()
     {
         @Override
         protected Random initialValue()
@@ -93,7 +93,7 @@ abstract public class RandomMatrix extends GenericMatrix
     };
 
     @Override
-    protected Matrix getMatrixOfSameType(int rows, int cols)
+    protected Matrix getMatrixOfSameType(final int rows, final int cols)
     {
         return new DenseMatrix(rows, cols);
     }
@@ -111,17 +111,17 @@ abstract public class RandomMatrix extends GenericMatrix
 
 
     @Override
-    public double get(int i, int j)
+    public double get(final int i, final int j)
     {
-        long seed = (i+1)*(j+cols)*seedMult;
+        final long seed = (i+1)*(j+cols)*seedMult;
 
-        Random rand = localRand.get();
+        final Random rand = localRand.get();
         rand.setSeed(seed);
         return getVal(rand);
     }
 
     @Override
-    public void set(int i, int j, double value)
+    public void set(final int i, final int j, final double value)
     {
         throw new UnsupportedOperationException("Random Matrix can not be altered"); 
     }
@@ -151,7 +151,7 @@ abstract public class RandomMatrix extends GenericMatrix
     }
 
     @Override
-    public void changeSize(int newRows, int newCols)
+    public void changeSize(final int newRows, final int newCols)
     {
         throw new UnsupportedOperationException("Random Matrix can not be altered"); 
     }

@@ -32,9 +32,9 @@ public class HessenbergFormTest
      */
     static ExecutorService threadpool = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors()+1, new ThreadFactory() {
 
-        public Thread newThread(Runnable r)
+        public Thread newThread(final Runnable r)
         {
-            Thread thread = new Thread(r);
+            final Thread thread = new Thread(r);
             thread.setDaemon(true);
             return thread;
         }

@@ -43,14 +43,14 @@ public class DCDTest
     public void testTrainC_ClassificationDataSet_ExecutorService()
     {
         System.out.println("trainC");
-        ClassificationDataSet train = FixedProblems.get2ClassLinear(200, new Random());
+        final ClassificationDataSet train = FixedProblems.get2ClassLinear(200, new Random());
         
-        DCD instance = new DCD();
+        final DCD instance = new DCD();
         instance.trainC(train, threadPool);
         
-        ClassificationDataSet test = FixedProblems.get2ClassLinear(200, new Random());
+        final ClassificationDataSet test = FixedProblems.get2ClassLinear(200, new Random());
         
-        for(DataPointPair<Integer> dpp : test.getAsDPPList()) {
+        for(final DataPointPair<Integer> dpp : test.getAsDPPList()) {
           assertEquals(dpp.getPair().longValue(), instance.classify(dpp.getDataPoint()).mostLikely());
         }
     }
@@ -62,14 +62,14 @@ public class DCDTest
     public void testTrainC_ClassificationDataSet()
     {
         System.out.println("trainC");
-        ClassificationDataSet train = FixedProblems.get2ClassLinear(200, new Random());
+        final ClassificationDataSet train = FixedProblems.get2ClassLinear(200, new Random());
 
-        DCD instance = new DCD();
+        final DCD instance = new DCD();
         instance.trainC(train);
 
-        ClassificationDataSet test = FixedProblems.get2ClassLinear(200, new Random());
+        final ClassificationDataSet test = FixedProblems.get2ClassLinear(200, new Random());
 
-        for (DataPointPair<Integer> dpp : test.getAsDPPList()) {
+        for (final DataPointPair<Integer> dpp : test.getAsDPPList()) {
           assertEquals(dpp.getPair().longValue(), instance.classify(dpp.getDataPoint()).mostLikely());
         }
     }
@@ -78,17 +78,17 @@ public class DCDTest
     public void testTrain_RegressionDataSet_ExecutorService()
     {
         System.out.println("train");
-        Random rand = new Random();
+        final Random rand = new Random();
 
-        DCD dcd = new DCD();
+        final DCD dcd = new DCD();
         dcd.train(FixedProblems.getLinearRegression(400, rand), threadPool);
 
-        for (DataPointPair<Double> dpp : FixedProblems.getLinearRegression(100, rand).getAsDPPList())
+        for (final DataPointPair<Double> dpp : FixedProblems.getLinearRegression(100, rand).getAsDPPList())
         {
-            double truth = dpp.getPair();
-            double pred = dcd.regress(dpp.getDataPoint());
+            final double truth = dpp.getPair();
+            final double pred = dcd.regress(dpp.getDataPoint());
 
-            double relErr = (truth - pred) / truth;
+            final double relErr = (truth - pred) / truth;
             assertEquals(0.0, relErr, 0.1);//Give it a decent wiggle room b/c of regularization
         }
     }
@@ -97,17 +97,17 @@ public class DCDTest
     public void testTrain_RegressionDataSet()
     {
         System.out.println("train");
-        Random rand = new Random();
+        final Random rand = new Random();
 
-        DCD dcd = new DCD();
+        final DCD dcd = new DCD();
         dcd.train(FixedProblems.getLinearRegression(400, rand));
 
-        for (DataPointPair<Double> dpp : FixedProblems.getLinearRegression(100, rand).getAsDPPList())
+        for (final DataPointPair<Double> dpp : FixedProblems.getLinearRegression(100, rand).getAsDPPList())
         {
-            double truth = dpp.getPair();
-            double pred = dcd.regress(dpp.getDataPoint());
+            final double truth = dpp.getPair();
+            final double pred = dcd.regress(dpp.getDataPoint());
 
-            double relErr = (truth - pred) / truth;
+            final double relErr = (truth - pred) / truth;
             assertEquals(0.0, relErr, 0.1);//Give it a decent wiggle room b/c of regularization
         }
     }

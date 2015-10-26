@@ -44,7 +44,7 @@ public class VecOps
 
         if (wSparse && !xSparse && !ySparse)
         {
-            for (IndexValue wiv : w)
+            for (final IndexValue wiv : w)
             {
                 final int idx = wiv.getIndex();
                 val += wiv.getValue() * f.f(x.get(idx) - y.get(idx));
@@ -58,16 +58,16 @@ public class VecOps
         }
         else //Best for all sparse, but also works well in general
         {
-            Iterator<IndexValue> xIter = x.iterator();
-            Iterator<IndexValue> yIter = y.iterator();
+            final Iterator<IndexValue> xIter = x.iterator();
+            final Iterator<IndexValue> yIter = y.iterator();
 
             IndexValue xiv = xIter.hasNext() ? xIter.next() : badIV;
             IndexValue yiv = yIter.hasNext() ? yIter.next() : badIV;
 
-            for (IndexValue wiv : w)
+            for (final IndexValue wiv : w)
             {
-                int index = wiv.getIndex();
-                double w_i = wiv.getValue();
+                final int index = wiv.getIndex();
+                final double w_i = wiv.getValue();
 
                 while (xiv.getIndex() < index && xIter.hasNext()) {
                   xiv = xIter.next();
@@ -116,8 +116,8 @@ public class VecOps
         
         if(x.isSparse() && y.isSparse())
         {
-            Iterator<IndexValue> xIter = x.iterator();
-            Iterator<IndexValue> yIter = y.iterator();
+            final Iterator<IndexValue> xIter = x.iterator();
+            final Iterator<IndexValue> yIter = y.iterator();
 
             IndexValue xiv = xIter.hasNext() ? xIter.next() : badIV;
             IndexValue yiv = yIter.hasNext() ? yIter.next() : badIV;
@@ -138,9 +138,9 @@ public class VecOps
         }
         else if(x.isSparse())
         {
-            for(IndexValue iv : x)
+            for(final IndexValue iv : x)
             {
-                int indx = iv.getIndex();
+                final int indx = iv.getIndex();
                 sum += w.get(indx)*iv.getValue()*y.get(indx);
             }
         }

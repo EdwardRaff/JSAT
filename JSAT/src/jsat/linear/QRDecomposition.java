@@ -13,9 +13,9 @@ public class QRDecomposition implements Serializable
 {
 
 	private static final long serialVersionUID = 7578073062361216223L;
-	private Matrix Q_T, R;
+	private final Matrix Q_T, R;
 
-    public QRDecomposition(Matrix Q, Matrix R)
+    public QRDecomposition(final Matrix Q, final Matrix R)
     {
         if(!Q.isSquare()) {
           throw new ArithmeticException("Q is always square, rectangular Q is invalid");
@@ -28,17 +28,17 @@ public class QRDecomposition implements Serializable
         this.R = R;
     }
     
-    public QRDecomposition(Matrix A)
+    public QRDecomposition(final Matrix A)
     {
-        Matrix[] qr = A.clone().qr();
+        final Matrix[] qr = A.clone().qr();
         Q_T = qr[0];
         Q_T.mutableTranspose();
         R = qr[1];
     }
     
-    public QRDecomposition(Matrix A, ExecutorService threadpool)
+    public QRDecomposition(final Matrix A, final ExecutorService threadpool)
     {
-        Matrix[] qr = A.clone().qr(threadpool);
+        final Matrix[] qr = A.clone().qr(threadpool);
         Q_T = qr[0];
         Q_T.mutableTranspose();
         R = qr[1];
@@ -62,7 +62,7 @@ public class QRDecomposition implements Serializable
         return abs(absD);
     }
     
-    public Vec solve(Vec b)
+    public Vec solve(final Vec b)
     {
         if(b.length() != R.rows()) {
           throw new ArithmeticException("Matrix vector dimensions do not agree");
@@ -71,38 +71,38 @@ public class QRDecomposition implements Serializable
           //R * x = Q' * b
         }
         
-        Vec y = Q_T.multiply(b);
+        final Vec y = Q_T.multiply(b);
         
         //Solve R * x = y using back substitution
-        Vec x = LUPDecomposition.backSub(R, y);
+        final Vec x = LUPDecomposition.backSub(R, y);
         
         return x;
     }
     
-    public Matrix solve(Matrix B)
+    public Matrix solve(final Matrix B)
     {
         //A * x = B, we want x
         //QR x = b
         //R * x = Q' * b
         
-        Matrix y = Q_T.multiply(B);
+        final Matrix y = Q_T.multiply(B);
         
         //Solve R * x = y using back substitution
-        Matrix x = LUPDecomposition.backSub(R, y);
+        final Matrix x = LUPDecomposition.backSub(R, y);
         
         return x;
     }
     
-    public Matrix solve(Matrix B, ExecutorService threadpool)
+    public Matrix solve(final Matrix B, final ExecutorService threadpool)
     {
         //A * x = B, we want x
         //QR x = b
         //R * x = Q' * b
         
-        Matrix y = Q_T.multiply(B, threadpool);
+        final Matrix y = Q_T.multiply(B, threadpool);
         
         //Solve R * x = y using back substitution
-        Matrix x = LUPDecomposition.backSub(R, y, threadpool);
+        final Matrix x = LUPDecomposition.backSub(R, y, threadpool);
         
         return x;
     }

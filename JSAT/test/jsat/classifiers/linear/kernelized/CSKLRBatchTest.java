@@ -51,15 +51,15 @@ public class CSKLRBatchTest
     {
         System.out.println("trainC");
 
-        ExecutorService ex = Executors.newFixedThreadPool(SystemInfo.LogicalCores);
+        final ExecutorService ex = Executors.newFixedThreadPool(SystemInfo.LogicalCores);
 
-        for(CSKLR.UpdateMode mode : CSKLR.UpdateMode.values())
+        for(final CSKLR.UpdateMode mode : CSKLR.UpdateMode.values())
         {
-            CSKLRBatch instance = new CSKLRBatch(0.5, new RBFKernel(0.5), 10, mode, SupportVectorLearner.CacheMode.NONE);
-            ClassificationDataSet train = FixedProblems.getInnerOuterCircle(200, new XORWOW());
-            ClassificationDataSet test = FixedProblems.getInnerOuterCircle(100, new XORWOW());
+            final CSKLRBatch instance = new CSKLRBatch(0.5, new RBFKernel(0.5), 10, mode, SupportVectorLearner.CacheMode.NONE);
+            final ClassificationDataSet train = FixedProblems.getInnerOuterCircle(200, new XORWOW());
+            final ClassificationDataSet test = FixedProblems.getInnerOuterCircle(100, new XORWOW());
 
-            ClassificationModelEvaluation cme = new ClassificationModelEvaluation(instance, train, ex);
+            final ClassificationModelEvaluation cme = new ClassificationModelEvaluation(instance, train, ex);
             cme.evaluateTestSet(test);
 
             assertEquals(0, cme.getErrorRate(), 0.0);
@@ -73,14 +73,14 @@ public class CSKLRBatchTest
     {
         System.out.println("trainC");
 
-        for(CSKLR.UpdateMode mode : CSKLR.UpdateMode.values())
+        for(final CSKLR.UpdateMode mode : CSKLR.UpdateMode.values())
         {
-            CSKLRBatch instance = new CSKLRBatch(0.5, new RBFKernel(0.5), 10, mode, SupportVectorLearner.CacheMode.NONE);
+            final CSKLRBatch instance = new CSKLRBatch(0.5, new RBFKernel(0.5), 10, mode, SupportVectorLearner.CacheMode.NONE);
         
-            ClassificationDataSet train = FixedProblems.getInnerOuterCircle(200, new XORWOW());
-            ClassificationDataSet test = FixedProblems.getInnerOuterCircle(100, new XORWOW());
+            final ClassificationDataSet train = FixedProblems.getInnerOuterCircle(200, new XORWOW());
+            final ClassificationDataSet test = FixedProblems.getInnerOuterCircle(100, new XORWOW());
 
-            ClassificationModelEvaluation cme = new ClassificationModelEvaluation(instance, train);
+            final ClassificationModelEvaluation cme = new ClassificationModelEvaluation(instance, train);
             cme.evaluateTestSet(test);
 
             assertEquals(0, cme.getErrorRate(), 0.0);
@@ -93,18 +93,18 @@ public class CSKLRBatchTest
     {
         System.out.println("clone");
 
-        for(CSKLR.UpdateMode mode : CSKLR.UpdateMode.values())
+        for(final CSKLR.UpdateMode mode : CSKLR.UpdateMode.values())
         {
             CSKLRBatch instance = new CSKLRBatch(0.5, new RBFKernel(0.5), 10, mode, SupportVectorLearner.CacheMode.NONE);
 
-            ClassificationDataSet t1 = FixedProblems.getInnerOuterCircle(500, new XORWOW());
-            ClassificationDataSet t2 = FixedProblems.getInnerOuterCircle(500, new XORWOW(), 2.0, 10.0);
+            final ClassificationDataSet t1 = FixedProblems.getInnerOuterCircle(500, new XORWOW());
+            final ClassificationDataSet t2 = FixedProblems.getInnerOuterCircle(500, new XORWOW(), 2.0, 10.0);
 
             instance = instance.clone();
 
             instance.trainC(t1);
 
-            CSKLRBatch result = instance.clone();
+            final CSKLRBatch result = instance.clone();
             
             for (int i = 0; i < t1.getSampleSize(); i++) {
               assertEquals(t1.getDataPointCategory(i), result.classify(t1.getDataPoint(i)).mostLikely());

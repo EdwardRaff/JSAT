@@ -45,7 +45,7 @@ public class StochasticRidgeRegression implements Regressor, Parameterized, Sing
      * @param batchSize the batch size for updates
      * @param learningRate the learning rate 
      */
-    public StochasticRidgeRegression(double lambda, int epochs, int batchSize, double learningRate)
+    public StochasticRidgeRegression(final double lambda, final int epochs, final int batchSize, final double learningRate)
     {
         this(lambda, epochs, batchSize, learningRate, new NoDecay());
     }
@@ -58,7 +58,7 @@ public class StochasticRidgeRegression implements Regressor, Parameterized, Sing
      * @param learningRate the learning rate 
      * @param learningDecay the learning rate decay
      */
-    public StochasticRidgeRegression(double lambda, int epochs, int batchSize, double learningRate, DecayRate learningDecay)
+    public StochasticRidgeRegression(final double lambda, final int epochs, final int batchSize, final double learningRate, final DecayRate learningDecay)
     {
         setLambda(lambda);
         setEpochs(epochs);
@@ -71,7 +71,7 @@ public class StochasticRidgeRegression implements Regressor, Parameterized, Sing
      * Sets the regularization parameter used.  
      * @param lambda the positive regularization constant in (0, Inf)
      */
-    public void setLambda(double lambda)
+    public void setLambda(final double lambda)
     {
         if(Double.isNaN(lambda) || Double.isInfinite(lambda) || lambda <= 0) {
           throw new IllegalArgumentException("lambda must be a positive constant, not " + lambda);
@@ -93,7 +93,7 @@ public class StochasticRidgeRegression implements Regressor, Parameterized, Sing
      * 
      * @param learningRate the learning rate to use
      */
-    public void setLearningRate(double learningRate)
+    public void setLearningRate(final double learningRate)
     {
         this.learningRate = learningRate;
     }
@@ -113,7 +113,7 @@ public class StochasticRidgeRegression implements Regressor, Parameterized, Sing
      * to converge and quality of the solution for difficult problems. 
      * @param learningDecay the decay function to apply to the learning rate
      */
-    public void setLearningDecay(DecayRate learningDecay)
+    public void setLearningDecay(final DecayRate learningDecay)
     {
         this.learningDecay = learningDecay;
     }
@@ -133,7 +133,7 @@ public class StochasticRidgeRegression implements Regressor, Parameterized, Sing
      * 
      * @param batchSize the number of training points to use in each batch update
      */
-    public void setBatchSize(int batchSize)
+    public void setBatchSize(final int batchSize)
     {
         if(batchSize <= 0) {
           throw new IllegalArgumentException("Batch size must be a positive constant, not " + batchSize);
@@ -155,7 +155,7 @@ public class StochasticRidgeRegression implements Regressor, Parameterized, Sing
      * performed. 
      * @param epochs the number of training iterations 
      */
-    public void setEpochs(int epochs)
+    public void setEpochs(final int epochs)
     {
         if(epochs <= 0) {
           throw new IllegalArgumentException("At least one epoch must be performed, can not use " + epochs);
@@ -185,7 +185,7 @@ public class StochasticRidgeRegression implements Regressor, Parameterized, Sing
     }
     
     @Override
-    public Vec getRawWeight(int index)
+    public Vec getRawWeight(final int index)
     {
         if(index < 1) {
           return getRawWeight();
@@ -195,7 +195,7 @@ public class StochasticRidgeRegression implements Regressor, Parameterized, Sing
     }
 
     @Override
-    public double getBias(int index)
+    public double getBias(final int index)
     {
         if (index < 1) {
           return getBias();
@@ -211,35 +211,35 @@ public class StochasticRidgeRegression implements Regressor, Parameterized, Sing
     }
 
     @Override
-    public double regress(DataPoint data)
+    public double regress(final DataPoint data)
     {
         return regress(data.getNumericalValues());
     }
     
-    private double regress(Vec data)
+    private double regress(final Vec data)
     {
         return w.dot(data) + bias;
     }
 
     @Override
-    public void train(RegressionDataSet dataSet, ExecutorService threadPool)
+    public void train(final RegressionDataSet dataSet, final ExecutorService threadPool)
     {
         train(dataSet);
     }
 
     @Override
-    public void train(RegressionDataSet dataSet)
+    public void train(final RegressionDataSet dataSet)
     {
-        int batch = Math.min(batchSize, dataSet.getSampleSize());
+        final int batch = Math.min(batchSize, dataSet.getSampleSize());
         w = new DenseVector(dataSet.getNumNumericalVars());
         
-        IntList sample = new IntList(dataSet.getSampleSize());
+        final IntList sample = new IntList(dataSet.getSampleSize());
         ListUtils.addRange(sample, 0, dataSet.getSampleSize(), 1);
         
         //Time and last time used to lazy update the parameters that do not get touched on a sparse update
         int time = 0;
         
-        double[] errors = new double[batch];
+        final double[] errors = new double[batch];
         
         final boolean sparseUpdates;
         {
@@ -256,7 +256,7 @@ public class StochasticRidgeRegression implements Regressor, Parameterized, Sing
             }
         }
         
-        int[] lastTime = sparseUpdates ? new int[w.length()] : null;
+        final int[] lastTime = sparseUpdates ? new int[w.length()] : null;
         
         for(int epoch = 0; epoch < epochs; epoch++)
         {
@@ -284,16 +284,16 @@ public class StochasticRidgeRegression implements Regressor, Parameterized, Sing
                     final double alphaError = alpha*error;
                     //update bias
                     bias -= alphaError;
-                    Vec x = dataSet.getDataPoint(sample.get(i)).getNumericalValues();
+                    final Vec x = dataSet.getDataPoint(sample.get(i)).getNumericalValues();
                     
                     if(sparseUpdates)
                     {
-                        for(IndexValue iv : x)
+                        for(final IndexValue iv : x)
                         {
-                            int idx = iv.getIndex();
+                            final int idx = iv.getIndex();
                             if(lastTime[idx] != time)//update the theta for all missed updates
                             {
-                                double theta_idx = w.get(idx);
+                                final double theta_idx = w.get(idx);
                                 w.set(idx, theta_idx*Math.pow(1-alphaReg, time-lastTime[idx]));
                                 lastTime[idx] = time;
                             }
@@ -324,7 +324,7 @@ public class StochasticRidgeRegression implements Regressor, Parameterized, Sing
                 {
                     if (lastTime[idx] != time)//update the theta for all missed updates
                     {
-                        double theta_idx = w.get(idx);
+                        final double theta_idx = w.get(idx);
                         w.set(idx, theta_idx * Math.pow(1 - alphaReg, time - lastTime[idx]));
                         lastTime[idx] = time;
                     }
@@ -342,7 +342,7 @@ public class StochasticRidgeRegression implements Regressor, Parameterized, Sing
     @Override
     public StochasticRidgeRegression clone()
     {
-        StochasticRidgeRegression clone = new StochasticRidgeRegression(lambda, epochs, batchSize, learningRate, learningDecay);
+        final StochasticRidgeRegression clone = new StochasticRidgeRegression(lambda, epochs, batchSize, learningRate, learningDecay);
         if(this.w != null) {
           clone.w = this.w.clone();
         }
@@ -357,7 +357,7 @@ public class StochasticRidgeRegression implements Regressor, Parameterized, Sing
     }
 
     @Override
-    public Parameter getParameter(String paramName)
+    public Parameter getParameter(final String paramName)
     {
         return Parameter.toParameterMap(getParameters()).get(paramName);
     }

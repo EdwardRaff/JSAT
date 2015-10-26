@@ -55,19 +55,19 @@ public class StochasticMultinomialLogisticRegressionTest
     {
         System.out.println("trainC");
         
-        ClassificationDataSet train = FixedProblems.get2ClassLinear(400, new Random());
+        final ClassificationDataSet train = FixedProblems.get2ClassLinear(400, new Random());
         
         
-        for(StochasticMultinomialLogisticRegression.Prior prior : StochasticMultinomialLogisticRegression.Prior.values())
+        for(final StochasticMultinomialLogisticRegression.Prior prior : StochasticMultinomialLogisticRegression.Prior.values())
         {
         
-            StochasticMultinomialLogisticRegression smlgr = new StochasticMultinomialLogisticRegression();
+            final StochasticMultinomialLogisticRegression smlgr = new StochasticMultinomialLogisticRegression();
             smlgr.setPrior(prior);
             smlgr.trainC(train);
 
-            ClassificationDataSet test = FixedProblems.get2ClassLinear(400, new Random());
+            final ClassificationDataSet test = FixedProblems.get2ClassLinear(400, new Random());
 
-            for(DataPointPair<Integer> dpp : test.getAsDPPList()) {
+            for(final DataPointPair<Integer> dpp : test.getAsDPPList()) {
               assertEquals(dpp.getPair().longValue(), smlgr.classify(dpp.getDataPoint()).mostLikely());
             }
         }
@@ -80,11 +80,11 @@ public class StochasticMultinomialLogisticRegressionTest
     public void testClone()
     {
         System.out.println("clone");
-        StochasticMultinomialLogisticRegression smlgr = new StochasticMultinomialLogisticRegression();
+        final StochasticMultinomialLogisticRegression smlgr = new StochasticMultinomialLogisticRegression();
         
-        Classifier cloned = smlgr.clone();
+        final Classifier cloned = smlgr.clone();
         
-        ClassificationDataSet train = FixedProblems.get2ClassLinear(400, new Random());
+        final ClassificationDataSet train = FixedProblems.get2ClassLinear(400, new Random());
         cloned.trainC(train);
         
         
@@ -94,7 +94,7 @@ public class StochasticMultinomialLogisticRegressionTest
             smlgr.classify(train.getDataPoint(0));
             fail("Exception should have occured");
         }
-        catch(UntrainedModelException ex)
+        catch(final UntrainedModelException ex)
         {
             
         }

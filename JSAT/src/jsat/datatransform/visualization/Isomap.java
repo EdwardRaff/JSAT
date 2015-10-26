@@ -66,10 +66,10 @@ import jsat.utils.SystemInfo;
  */
 public class Isomap implements VisualizationTransform
 {
-    private DistanceMetric dm = new EuclideanDistance();
-    private VectorCollectionFactory<VecPaired<Vec, Integer>> vcf = new DefaultVectorCollectionFactory<VecPaired<Vec, Integer>>();
+    private final DistanceMetric dm = new EuclideanDistance();
+    private final VectorCollectionFactory<VecPaired<Vec, Integer>> vcf = new DefaultVectorCollectionFactory<VecPaired<Vec, Integer>>();
     private int searchNeighbors = 15;
-    private MDS mds = new MDS();
+    private final MDS mds = new MDS();
     private boolean c_isomap = false;
 
     /**
@@ -84,7 +84,7 @@ public class Isomap implements VisualizationTransform
      *
      * @param searchNeighbors the number of nearest neighbors to consider
      */
-    public Isomap(int searchNeighbors)
+    public Isomap(final int searchNeighbors)
     {
         this(searchNeighbors, false);
     }
@@ -95,7 +95,7 @@ public class Isomap implements VisualizationTransform
      * @param c_isomap {@code true} to use the C-Isomap extension, {@code false}
      * for normal Isomap.
      */
-    public Isomap(int searchNeighbors, boolean c_isomap)
+    public Isomap(final int searchNeighbors, final boolean c_isomap)
     {
         setNeighbors(searchNeighbors);
         setCIsomap(c_isomap);
@@ -105,7 +105,7 @@ public class Isomap implements VisualizationTransform
      * Set the number of neighbors to consider for the initial graph in Isomap
      * @param searchNeighbors the number of nearest neighbors to consider
      */
-    public void setNeighbors(int searchNeighbors)
+    public void setNeighbors(final int searchNeighbors)
     {
         if(searchNeighbors < 2) {
           throw new IllegalArgumentException("number of neighbors considered must be at least 2, not " + searchNeighbors);
@@ -130,7 +130,7 @@ public class Isomap implements VisualizationTransform
      * @param c_isomap {@code true} to use the C-Isomap extension, {@code false}
      * for normal Isomap.
      */
-    public void setCIsomap(boolean c_isomap)
+    public void setCIsomap(final boolean c_isomap)
     {
         this.c_isomap = c_isomap;
     }
@@ -146,13 +146,13 @@ public class Isomap implements VisualizationTransform
     }
             
     @Override
-    public <Type extends DataSet> Type transform(DataSet<Type> d)
+    public <Type extends DataSet> Type transform(final DataSet<Type> d)
     {
         return transform(d, new FakeExecutor());
     }
     
     @Override
-    public <Type extends DataSet> Type transform(DataSet<Type> d, ExecutorService ex)
+    public <Type extends DataSet> Type transform(final DataSet<Type> d, final ExecutorService ex)
     {
         final int N = d.getSampleSize();
         final Matrix delta = new DenseMatrix(N, N);
@@ -197,13 +197,13 @@ public class Isomap implements VisualizationTransform
                 {
                     for (int i = ID; i < N; i+=SystemInfo.LogicalCores)
                     {
-                        List<? extends VecPaired<VecPaired<Vec, Integer>, Double>> neighbors = vc.search(vecs.get(i).getVector(), knn);
+                        final List<? extends VecPaired<VecPaired<Vec, Integer>, Double>> neighbors = vc.search(vecs.get(i).getVector(), knn);
                         neighborGraph.set(i, neighbors);
                         //Compute stats that may be used for c-isomap version
                         for (int z = 1; z < neighbors.size(); z++)
                         {
-                            VecPaired<VecPaired<Vec, Integer>, Double> neighbor = neighbors.get(z);
-                            double dist = neighbor.getPair();
+                            final VecPaired<VecPaired<Vec, Integer>, Double> neighbor = neighbors.get(z);
+                            final double dist = neighbor.getPair();
                             avgNeighborDist[i] += dist;
                         }
                         avgNeighborDist[i] /= (neighbors.size()-1);
@@ -217,7 +217,7 @@ public class Isomap implements VisualizationTransform
         {
             latch1.await();
         }
-        catch (InterruptedException ex1)
+        catch (final InterruptedException ex1)
         {
             Logger.getLogger(Isomap.class.getName()).log(Level.SEVERE, null, ex1);
         }
@@ -225,9 +225,9 @@ public class Isomap implements VisualizationTransform
         if(c_isomap)
         {
             int i = 0;
-            for(List<? extends VecPaired<VecPaired<Vec, Integer>, Double>> neighbors : neighborGraph)
+            for(final List<? extends VecPaired<VecPaired<Vec, Integer>, Double>> neighbors : neighborGraph)
             {
-                for(VecPaired<VecPaired<Vec, Integer>, Double> neighbor : neighbors) {
+                for(final VecPaired<VecPaired<Vec, Integer>, Double> neighbor : neighbors) {
                   neighbor.setPair(neighbor.getPair()/Math.sqrt(avgNeighborDist[neighbor.getVector().getPair()]+avgNeighborDist[i]+1e-6));
                 }
                 i++;
@@ -246,7 +246,7 @@ public class Isomap implements VisualizationTransform
                 {
                     for (int k = ID; k < N; k += SystemInfo.LogicalCores)
                     {
-                        double[] tmp_dist = dijkstra(neighborGraph, k);
+                        final double[] tmp_dist = dijkstra(neighborGraph, k);
                         for (int i = 0; i < N; i++)
                         {
                             tmp_dist[i] = Math.min(tmp_dist[i], delta.get(k, i));
@@ -264,7 +264,7 @@ public class Isomap implements VisualizationTransform
         {
             latch2.await();
         }
-        catch (InterruptedException ex1)
+        catch (final InterruptedException ex1)
         {
             Logger.getLogger(Isomap.class.getName()).log(Level.SEVERE, null, ex1);
         }
@@ -314,28 +314,28 @@ public class Isomap implements VisualizationTransform
         {
             latch3.await();
         }
-        catch (InterruptedException ex1)
+        catch (final InterruptedException ex1)
         {
             Logger.getLogger(Isomap.class.getName()).log(Level.SEVERE, null, ex1);
         }
         
-        SimpleDataSet emedded = mds.transform(delta, ex);
+        final SimpleDataSet emedded = mds.transform(delta, ex);
         
-        DataSet<Type> transformed = d.shallowClone();
+        final DataSet<Type> transformed = d.shallowClone();
         transformed.replaceNumericFeatures(emedded.getDataVectors());
         return (Type) transformed;
     }
 
-    private double[] dijkstra(List<List<? extends VecPaired<VecPaired<Vec, Integer>, Double>>> neighborGraph, int sourceIndex)
+    private double[] dijkstra(final List<List<? extends VecPaired<VecPaired<Vec, Integer>, Double>>> neighborGraph, final int sourceIndex)
     {
         //TODO generalize and move this out into some other class as a static method 
         final int N = neighborGraph.size();
-        double[] dist = new double[N];
+        final double[] dist = new double[N];
         Arrays.fill(dist, Double.POSITIVE_INFINITY);
         dist[sourceIndex] = 0;
-        List<FibHeap.FibNode<Integer>> nodes = new ArrayList<FibHeap.FibNode<Integer>>(N);
+        final List<FibHeap.FibNode<Integer>> nodes = new ArrayList<FibHeap.FibNode<Integer>>(N);
 
-        FibHeap<Integer> Q = new FibHeap<Integer>();
+        final FibHeap<Integer> Q = new FibHeap<Integer>();
         for (int i = 0; i < N; i++) {
           nodes.add(null);
         }
@@ -343,16 +343,16 @@ public class Isomap implements VisualizationTransform
 
         while (Q.size() > 0)
         {
-            FibHeap.FibNode<Integer> u = Q.removeMin();
-            int u_indx = u.getValue();
+            final FibHeap.FibNode<Integer> u = Q.removeMin();
+            final int u_indx = u.getValue();
 
-            List<? extends VecPaired<VecPaired<Vec, Integer>, Double>> neighbors = neighborGraph.get(u_indx);
+            final List<? extends VecPaired<VecPaired<Vec, Integer>, Double>> neighbors = neighborGraph.get(u_indx);
             for (int z = 1; z < neighbors.size(); z++)
             {
-                VecPaired<VecPaired<Vec, Integer>, Double> neighbor = neighbors.get(z);
-                int j = neighbor.getVector().getPair();
-                double u_j_dist = neighbor.getPair();
-                double alt = dist[u_indx] + u_j_dist;
+                final VecPaired<VecPaired<Vec, Integer>, Double> neighbor = neighbors.get(z);
+                final int j = neighbor.getVector().getPair();
+                final double u_j_dist = neighbor.getPair();
+                final double alt = dist[u_indx] + u_j_dist;
 
                 if (alt < dist[j])
                 {
@@ -377,7 +377,7 @@ public class Isomap implements VisualizationTransform
     }
 
     @Override
-    public boolean setTargetDimension(int target)
+    public boolean setTargetDimension(final int target)
     {
         return mds.setTargetDimension(target);
     }

@@ -13,39 +13,39 @@ public class TransposeView extends GenericMatrix
 {
 
 	private static final long serialVersionUID = 7762422292840392481L;
-	private Matrix base;
+	private final Matrix base;
 
-    public TransposeView(Matrix base)
+    public TransposeView(final Matrix base)
     {
         this.base = base;
     }
 
     @Override
-    public Vec getColumnView(int j)
+    public Vec getColumnView(final int j)
     {
         return base.getRowView(j);
     }
 
     @Override
-    public Vec getRowView(int r)
+    public Vec getRowView(final int r)
     {
         return base.getColumnView(r);
     }
     
     @Override
-    protected Matrix getMatrixOfSameType(int rows, int cols)
+    protected Matrix getMatrixOfSameType(final int rows, final int cols)
     {
         return new DenseMatrix(rows, cols);
     }
 
     @Override
-    public double get(int i, int j)
+    public double get(final int i, final int j)
     {
         return base.get(j, i);
     }
 
     @Override
-    public void set(int i, int j, double value)
+    public void set(final int i, final int j, final double value)
     {
         base.set(j, i, value);
     }
@@ -69,7 +69,7 @@ public class TransposeView extends GenericMatrix
     }
 
     @Override
-    public void changeSize(int newRows, int newCols)
+    public void changeSize(final int newRows, final int newCols)
     {
         base.changeSize(newCols, newRows);
     }

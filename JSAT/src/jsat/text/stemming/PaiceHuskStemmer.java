@@ -38,7 +38,7 @@ public class PaiceHuskStemmer extends Stemmer
          */
         public final boolean terminal;
 
-        public Rule(String ending, int toRemove, String newEnding, boolean virgin, boolean terminal)
+        public Rule(final String ending, final int toRemove, final String newEnding, final boolean virgin, final boolean terminal)
         {
             this.ending = ending;
             this.toRemove = toRemove;
@@ -57,7 +57,7 @@ public class PaiceHuskStemmer extends Stemmer
          * @param input the unstemmed input
          * @return the stemmed output
          */
-        public String apply(String input)
+        public String apply(final String input)
         {
             if(input.endsWith(ending))
             {
@@ -318,7 +318,7 @@ public class PaiceHuskStemmer extends Stemmer
     };
     
     
-    private static boolean isVowel(char letter)
+    private static boolean isVowel(final char letter)
     {
         return letter == 'a' || letter == 'e' || letter == 'i' || letter == 'o' || letter == 'u';
     }
@@ -330,21 +330,21 @@ public class PaiceHuskStemmer extends Stemmer
         boolean stop;
         
         
-        int charOffset = "a".charAt(0);
+        final int charOffset = "a".charAt(0);
         do
         {
             stop = true;
             
-            int ruleIndex = word.charAt(word.length()-1)-charOffset;
+            final int ruleIndex = word.charAt(word.length()-1)-charOffset;
             if(ruleIndex < 0 || ruleIndex > rules.length) {
               continue;
             }
-            for(Rule rule : rules[ruleIndex])
+            for(final Rule rule : rules[ruleIndex])
             {
                 if(rule.virgin && !virginRound) {
                   continue;
                 }
-                String test = rule.apply(word);
+                final String test = rule.apply(word);
                 if(test != word)//Rule was applied, is it acceptable?
                 {
                     word = test;

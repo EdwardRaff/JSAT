@@ -61,12 +61,12 @@ public class LovinsStemmerTest
     public void testStem()
     {
         System.out.println("stem");
-        String[] origSent = ("such an analysis can reveal features that are not easily visible "
+        final String[] origSent = ("such an analysis can reveal features that are not easily visible "
                 + "from the variations in the individual genes and can lead to a picture of "
                 + "expression that is more biologically transparent and accessible to "
                 + "interpretation").split(" ");
-        LovinsStemmer instance = new LovinsStemmer();
-        String[] expResult = ("such an analys can reve featur that ar not eas vis from th "
+        final LovinsStemmer instance = new LovinsStemmer();
+        final String[] expResult = ("such an analys can reve featur that ar not eas vis from th "
                 + "vari in th individu gen and can lead to a pictur of expres that is mor "
                 + "biolog transpar and acces to interpres").split(" ");
         

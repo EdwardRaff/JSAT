@@ -60,16 +60,16 @@ public class CLARATest
     public void testCluster_DataSet_int()
     {
         System.out.println("cluster(dataset, int)");
-        CLARA toUse = algo.clone();
+        final CLARA toUse = algo.clone();
         toUse.setSampleSize(easyData10.getSampleSize()/2);
-        List<List<DataPoint>> clusters = toUse.cluster(easyData10, 10);
+        final List<List<DataPoint>> clusters = toUse.cluster(easyData10, 10);
         assertEquals(10, clusters.size());
-        Set<Integer> seenBefore = new IntSet();
-        for(List<DataPoint> cluster :  clusters)
+        final Set<Integer> seenBefore = new IntSet();
+        for(final List<DataPoint> cluster :  clusters)
         {
-            int thisClass = cluster.get(0).getCategoricalValue(0);
+            final int thisClass = cluster.get(0).getCategoricalValue(0);
             assertFalse(seenBefore.contains(thisClass));
-            for(DataPoint dp : cluster) {
+            for(final DataPoint dp : cluster) {
               assertEquals(thisClass, dp.getCategoricalValue(0));
             }
         }
@@ -79,17 +79,17 @@ public class CLARATest
     public void testCluster_DataSet_int_ExecutorService()
     {
         System.out.println("cluster(dataset, int, ExecutorService)");
-        CLARA toUse = algo.clone();
+        final CLARA toUse = algo.clone();
         toUse.setSampleCount(10);
         toUse.setSampleSize(easyData10.getSampleSize()/2);
-        List<List<DataPoint>> clusters = toUse.cluster(easyData10, 10, ex);
+        final List<List<DataPoint>> clusters = toUse.cluster(easyData10, 10, ex);
         assertEquals(10, clusters.size());
-        Set<Integer> seenBefore = new IntSet();
-        for(List<DataPoint> cluster :  clusters)
+        final Set<Integer> seenBefore = new IntSet();
+        for(final List<DataPoint> cluster :  clusters)
         {
-            int thisClass = cluster.get(0).getCategoricalValue(0);
+            final int thisClass = cluster.get(0).getCategoricalValue(0);
             assertFalse(seenBefore.contains(thisClass));
-            for(DataPoint dp : cluster) {
+            for(final DataPoint dp : cluster) {
               assertEquals(thisClass, dp.getCategoricalValue(0));
             }
         }
@@ -99,15 +99,15 @@ public class CLARATest
     public void testCluster_DataSet_ExecutorService()
     {
         System.out.println("cluster(dataset, int, ExecutorService)");
-        CLARA toUse = algo.clone();
-        List<List<DataPoint>> clusters = toUse.cluster(easyData2, ex);
+        final CLARA toUse = algo.clone();
+        final List<List<DataPoint>> clusters = toUse.cluster(easyData2, ex);
         assertEquals(2, clusters.size());
-        Set<Integer> seenBefore = new IntSet();
-        for(List<DataPoint> cluster :  clusters)
+        final Set<Integer> seenBefore = new IntSet();
+        for(final List<DataPoint> cluster :  clusters)
         {
-            int thisClass = cluster.get(0).getCategoricalValue(0);
+            final int thisClass = cluster.get(0).getCategoricalValue(0);
             assertFalse(seenBefore.contains(thisClass));
-            for(DataPoint dp : cluster) {
+            for(final DataPoint dp : cluster) {
               assertEquals(thisClass, dp.getCategoricalValue(0));
             }
         }

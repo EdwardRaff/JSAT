@@ -45,7 +45,7 @@ public class OneVSOne implements Classifier, Parameterized
      * Creates a new One-vs-One classifier
      * @param baseClassifier the binary classifier to extend
      */
-    public OneVSOne(Classifier baseClassifier)
+    public OneVSOne(final Classifier baseClassifier)
     {
         this(baseClassifier, false);
     }
@@ -57,7 +57,7 @@ public class OneVSOne implements Classifier, Parameterized
      * classifiers occur in parallel, <tt>false</tt> to have them use their 
      * native parallel training method. 
      */
-    public OneVSOne(Classifier baseClassifier, boolean concurrentTrain)
+    public OneVSOne(final Classifier baseClassifier, final boolean concurrentTrain)
     {
         this.baseClassifier = baseClassifier;
         this.concurrentTrain = concurrentTrain;
@@ -69,7 +69,7 @@ public class OneVSOne implements Classifier, Parameterized
      * classifiers occur in parallel, <tt>false</tt> to have them use their 
      * native parallel training method. 
      */
-    public void setConcurrentTraining(boolean concurrentTrain)
+    public void setConcurrentTraining(final boolean concurrentTrain)
     {
         this.concurrentTrain = concurrentTrain;
     }
@@ -86,15 +86,15 @@ public class OneVSOne implements Classifier, Parameterized
     }
     
     @Override
-    public CategoricalResults classify(DataPoint data)
+    public CategoricalResults classify(final DataPoint data)
     {
-        CategoricalResults cr = new CategoricalResults(predicting.getNumOfCategories());
+        final CategoricalResults cr = new CategoricalResults(predicting.getNumOfCategories());
         for (int i = 0; i < oneVone.length; i++)
         {
             for (int j = 0; j < oneVone[i].length; j++)
             {
-                CategoricalResults subRes = oneVone[i][j].classify(data);
-                int mostLikely = subRes.mostLikely();
+                final CategoricalResults subRes = oneVone[i][j].classify(data);
+                final int mostLikely = subRes.mostLikely();
                 if(mostLikely == 0) {
                   cr.incProb(i, 1.0);
                 } else {
@@ -112,7 +112,7 @@ public class OneVSOne implements Classifier, Parameterized
     {
         oneVone = new Classifier[dataSet.getClassSize()][];
         
-        List<List<DataPoint>> dataByCategory = new ArrayList<List<DataPoint>>(dataSet.getClassSize());
+        final List<List<DataPoint>> dataByCategory = new ArrayList<List<DataPoint>>(dataSet.getClassSize());
         for(int i = 0; i < dataSet.getClassSize(); i++) {
           dataByCategory.add(dataSet.getSamples(i));
         }
@@ -129,17 +129,17 @@ public class OneVSOne implements Classifier, Parameterized
                 
                 oneVone[i][j] = curClassifier;
                 final int otherClass = j+i+1;
-                CategoricalData subPred = new CategoricalData(2);
+                final CategoricalData subPred = new CategoricalData(2);
                 subPred.setOptionName(dataSet.getPredicting().getOptionName(i), 0);
                 subPred.setOptionName(dataSet.getPredicting().getOptionName(otherClass), 1);
                 
                 final ClassificationDataSet subDataSet = new ClassificationDataSet(dataSet.getNumNumericalVars(), dataSet.getCategories(), subPred); 
                 
                 //Fill sub data set with the two classes
-                for(DataPoint dp : dataByCategory.get(i)) {
+                for(final DataPoint dp : dataByCategory.get(i)) {
                   subDataSet.addDataPoint(dp.getNumericalValues(), dp.getCategoricalValues(), 0);
                 }
-                for(DataPoint dp : dataByCategory.get(otherClass)) {
+                for(final DataPoint dp : dataByCategory.get(otherClass)) {
                   subDataSet.addDataPoint(dp.getNumericalValues(), dp.getCategoricalValues(), 1);
                 }
 
@@ -170,7 +170,7 @@ public class OneVSOne implements Classifier, Parameterized
           {
             latch.await();
           }
-          catch (InterruptedException ex)
+          catch (final InterruptedException ex)
           {
             Logger.getLogger(OneVSOne.class.getName()).log(Level.SEVERE, null, ex);
           }
@@ -181,7 +181,7 @@ public class OneVSOne implements Classifier, Parameterized
     }
 
     @Override
-    public void trainC(ClassificationDataSet dataSet)
+    public void trainC(final ClassificationDataSet dataSet)
     {
         trainC(dataSet, new FakeExecutor());
     }
@@ -195,7 +195,7 @@ public class OneVSOne implements Classifier, Parameterized
     @Override
     public OneVSOne clone()
     {
-        OneVSOne clone = new OneVSOne(baseClassifier.clone(), concurrentTrain);
+        final OneVSOne clone = new OneVSOne(baseClassifier.clone(), concurrentTrain);
         if (oneVone != null)
         {
             clone.oneVone = new Classifier[oneVone.length][];
@@ -221,7 +221,7 @@ public class OneVSOne implements Classifier, Parameterized
     }
 
     @Override
-    public Parameter getParameter(String paramName)
+    public Parameter getParameter(final String paramName)
     {
         return Parameter.toParameterMap(getParameters()).get(paramName);
     }

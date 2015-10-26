@@ -41,7 +41,7 @@ public class NearestNeighbourTest
     @BeforeClass
     public static void setUpClass()
     {
-        GridDataGenerator gdg = new GridDataGenerator(new Normal(0, 0.05), new Random(12), 2);
+        final GridDataGenerator gdg = new GridDataGenerator(new Normal(0, 0.05), new Random(12), 2);
         easyTrain = new ClassificationDataSet(gdg.generateData(80).getBackingList(), 0);
         easyTest = new ClassificationDataSet(gdg.generateData(40).getBackingList(), 0);
         ex = Executors.newFixedThreadPool(SystemInfo.LogicalCores);
@@ -68,12 +68,12 @@ public class NearestNeighbourTest
     {
         System.out.println("train");
 
-        NearestNeighbour instance = new NearestNeighbour(7);
+        final NearestNeighbour instance = new NearestNeighbour(7);
 
-        RegressionDataSet train = FixedProblems.getLinearRegression(1000, new XORWOW());
-        RegressionDataSet test = FixedProblems.getLinearRegression(100, new XORWOW());
+        final RegressionDataSet train = FixedProblems.getLinearRegression(1000, new XORWOW());
+        final RegressionDataSet test = FixedProblems.getLinearRegression(100, new XORWOW());
 
-        RegressionModelEvaluation rme = new RegressionModelEvaluation(instance, train);
+        final RegressionModelEvaluation rme = new RegressionModelEvaluation(instance, train);
         rme.evaluateTestSet(test);
 
         assertTrue(rme.getMeanError() <= test.getTargetValues().mean() * 0.5);
@@ -85,14 +85,14 @@ public class NearestNeighbourTest
     {
         System.out.println("train");
 
-        NearestNeighbour instance = new NearestNeighbour(7);
+        final NearestNeighbour instance = new NearestNeighbour(7);
 
-        ExecutorService ex = Executors.newFixedThreadPool(SystemInfo.LogicalCores);
+        final ExecutorService ex = Executors.newFixedThreadPool(SystemInfo.LogicalCores);
 
-        RegressionDataSet train = FixedProblems.getLinearRegression(1000, new XORWOW());
-        RegressionDataSet test = FixedProblems.getLinearRegression(100, new XORWOW());
+        final RegressionDataSet train = FixedProblems.getLinearRegression(1000, new XORWOW());
+        final RegressionDataSet test = FixedProblems.getLinearRegression(100, new XORWOW());
 
-        RegressionModelEvaluation rme = new RegressionModelEvaluation(instance, train, ex);
+        final RegressionModelEvaluation rme = new RegressionModelEvaluation(instance, train, ex);
         rme.evaluateTestSet(test);
 
         assertTrue(rme.getMeanError() <= test.getTargetValues().mean() * 0.5);
@@ -115,7 +115,7 @@ public class NearestNeighbourTest
     {
         System.out.println("clone");
         nn.trainC(easyTrain);
-        Classifier clone = nn.clone();
+        final Classifier clone = nn.clone();
         for(int i = 0; i < easyTest.getSampleSize(); i++) {
           assertEquals(easyTest.getDataPointCategory(i), clone.classify(easyTest.getDataPoint(i)).mostLikely());
         }

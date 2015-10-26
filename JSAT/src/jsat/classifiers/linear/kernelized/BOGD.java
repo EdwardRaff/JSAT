@@ -40,7 +40,7 @@ public class BOGD extends BaseUpdateableClassifier implements BinaryScoreClassif
     private double eta;
     private double reg;
     private double maxCoeff;
-    private LossC lossC;
+    private final LossC lossC;
     
     private boolean uniformSampling;
     
@@ -65,7 +65,7 @@ public class BOGD extends BaseUpdateableClassifier implements BinaryScoreClassif
      * @param reg the regularization parameter
      * @param maxCoeff the maximum support vector coefficient to allow
      */
-    public BOGD(KernelTrick k, int budget, double eta, double reg, double maxCoeff)
+    public BOGD(final KernelTrick k, final int budget, final double eta, final double reg, final double maxCoeff)
     {
         this(k, budget, eta, reg, maxCoeff, new HingeLoss());
     }
@@ -79,7 +79,7 @@ public class BOGD extends BaseUpdateableClassifier implements BinaryScoreClassif
      * @param maxCoeff the maximum support vector coefficient to allow
      * @param lossC the loss function to use
      */
-    public BOGD(KernelTrick k, int budget, double eta, double reg, double maxCoeff, LossC lossC)
+    public BOGD(final KernelTrick k, final int budget, final double eta, final double reg, final double maxCoeff, final LossC lossC)
     {
         setKernel(k);
         setBudget(budget);
@@ -94,7 +94,7 @@ public class BOGD extends BaseUpdateableClassifier implements BinaryScoreClassif
      * Copy constructor
      * @param toCopy the object to make a copy of
      */
-    public BOGD(BOGD toCopy)
+    public BOGD(final BOGD toCopy)
     {
         this.k = toCopy.k.clone();
         this.budget = toCopy.budget;
@@ -107,7 +107,7 @@ public class BOGD extends BaseUpdateableClassifier implements BinaryScoreClassif
         if(toCopy.vecs != null)
         {
             this.vecs = new ArrayList<Vec>(budget);
-            for(Vec v : toCopy.vecs) {
+            for(final Vec v : toCopy.vecs) {
               this.vecs.add(v.clone());
             }
             this.selfK = new DoubleList(toCopy.selfK);
@@ -129,7 +129,7 @@ public class BOGD extends BaseUpdateableClassifier implements BinaryScoreClassif
      * 
      * @param regularization the positive regularization parameter to use. 
      */
-    public void setRegularization(double regularization)
+    public void setRegularization(final double regularization)
     {
         if(regularization <= 0 || Double.isNaN(regularization) || Double.isInfinite(regularization)) {
           throw new IllegalArgumentException("Regularization must be positive, not " + regularization);
@@ -152,7 +152,7 @@ public class BOGD extends BaseUpdateableClassifier implements BinaryScoreClassif
      * &isin; {-3, -2, -1, 0, 1, 2, 3}
      * @param eta the positive learning rate to use
      */
-    public void setEta(double eta)
+    public void setEta(final double eta)
     {
         if(eta <= 0 || Double.isNaN(eta) || Double.isInfinite(eta)) {
           throw new IllegalArgumentException("Eta must be positive, not " + eta);
@@ -175,7 +175,7 @@ public class BOGD extends BaseUpdateableClassifier implements BinaryScoreClassif
      * &isin; {0, 1, 2, 3, 4}
      * @param maxCoeff the maximum value for any support vector
      */
-    public void setMaxCoeff(double maxCoeff)
+    public void setMaxCoeff(final double maxCoeff)
     {
         if(maxCoeff <= 0 || Double.isNaN(maxCoeff) || Double.isInfinite(maxCoeff)) {
           throw new IllegalArgumentException("MaxCoeff must be positive, not " + maxCoeff);
@@ -196,7 +196,7 @@ public class BOGD extends BaseUpdateableClassifier implements BinaryScoreClassif
      * Sets the budget for support vectors
      * @param budget the allowed budget for support vectors
      */
-    public void setBudget(int budget)
+    public void setBudget(final int budget)
     {
         if(budget <= 0 ) {
           throw new IllegalArgumentException("Budget must be positive, not " + budget);
@@ -217,7 +217,7 @@ public class BOGD extends BaseUpdateableClassifier implements BinaryScoreClassif
      * Sets the kernel to use
      * @param k the kernel to use
      */
-    public void setKernel(KernelTrick k)
+    public void setKernel(final KernelTrick k)
     {
         this.k = k;
     }
@@ -237,7 +237,7 @@ public class BOGD extends BaseUpdateableClassifier implements BinaryScoreClassif
      * @param uniformSampling {@code true} to use uniform sampling, 
      * {@code false} otherwise. 
      */
-    public void setUniformSampling(boolean uniformSampling)
+    public void setUniformSampling(final boolean uniformSampling)
     {
         this.uniformSampling = uniformSampling;
     }
@@ -260,7 +260,7 @@ public class BOGD extends BaseUpdateableClassifier implements BinaryScoreClassif
     }
 
     @Override
-    public void setUp(CategoricalData[] categoricalAttributes, int numericAttributes, CategoricalData predicting)
+    public void setUp(final CategoricalData[] categoricalAttributes, final int numericAttributes, final CategoricalData predicting)
     {
         vecs = new ArrayList<Vec>(budget);
         alphas = new DoubleList(budget);
@@ -277,19 +277,19 @@ public class BOGD extends BaseUpdateableClassifier implements BinaryScoreClassif
     }
     
     @Override
-    public double getScore(DataPoint dp)
+    public double getScore(final DataPoint dp)
     {
-        Vec x = dp.getNumericalValues();
+        final Vec x = dp.getNumericalValues();
         return score(x, k.getQueryInfo(x));
     }
     
-    private double score(Vec x, List<Double> qi)
+    private double score(final Vec x, final List<Double> qi)
     {
         return k.evalSum(vecs, accelCache, alphas.getBackingArray(), x, qi, 0, alphas.size());
     }
 
     @Override
-    public void update(DataPoint dataPoint, int targetClass)
+    public void update(final DataPoint dataPoint, final int targetClass)
     {
         final Vec x_t = dataPoint.getNumericalValues();
         final double y_t = targetClass*2-1;
@@ -351,16 +351,16 @@ public class BOGD extends BaseUpdateableClassifier implements BinaryScoreClassif
                       continue;
                     }
                     double alpha_i = alphas.getD(i);
-                    double sign = Math.signum(alpha_i);
+                    final double sign = Math.signum(alpha_i);
                     alpha_i = Math.abs(alpha_i);
-                    double tmp = uniformSampling ? 1.0/budget : dist[i]/normalize;
+                    final double tmp = uniformSampling ? 1.0/budget : dist[i]/normalize;
                     alphas.set(i, sign*Math.min((1-reg*eta)/(1-tmp)*alpha_i, maxCoeff*eta));
                 }
                 
                 //Remove old point
                 if(k.supportsAcceleration())
                 {
-                    int catToRet = accelCache.size()/budget;
+                    final int catToRet = accelCache.size()/budget;
                     for(int i = 0; i < catToRet; i++) {
                       accelCache.remove(toRemove*catToRet);
                     }
@@ -379,9 +379,9 @@ public class BOGD extends BaseUpdateableClassifier implements BinaryScoreClassif
     }
 
     @Override
-    public CategoricalResults classify(DataPoint data)
+    public CategoricalResults classify(final DataPoint data)
     {
-        Vec x = data.getNumericalValues();
+        final Vec x = data.getNumericalValues();
         return lossC.getClassification(score(x, k.getQueryInfo(x)));
     }
 
@@ -398,7 +398,7 @@ public class BOGD extends BaseUpdateableClassifier implements BinaryScoreClassif
      * @return the guess for the Regularization parameter
      * @see #setRegularization(double) 
      */
-    public static Distribution guessRegularization(DataSet d)
+    public static Distribution guessRegularization(final DataSet d)
     {
         double T2 = d.getSampleSize();
         T2*=T2;
@@ -413,7 +413,7 @@ public class BOGD extends BaseUpdateableClassifier implements BinaryScoreClassif
      * @return the guess for the &eta; parameter
      * @see #setEta(double) 
      */
-    public static Distribution guessEta(DataSet d)
+    public static Distribution guessEta(final DataSet d)
     {
         return new LogUniform(Math.pow(2, -3), Math.pow(2, 3));
     }
@@ -425,7 +425,7 @@ public class BOGD extends BaseUpdateableClassifier implements BinaryScoreClassif
      * @return the guess for the MaxCoeff parameter
      * @see #setMaxCoeff(double) (double) 
      */
-    public static Distribution guessMaxCoeff(DataSet d)
+    public static Distribution guessMaxCoeff(final DataSet d)
     {
         return new LogUniform(Math.pow(2, 0), Math.pow(2, 4));
     }
@@ -437,7 +437,7 @@ public class BOGD extends BaseUpdateableClassifier implements BinaryScoreClassif
     }
 
     @Override
-    public Parameter getParameter(String paramName)
+    public Parameter getParameter(final String paramName)
     {
         return Parameter.toParameterMap(getParameters()).get(paramName);
     }

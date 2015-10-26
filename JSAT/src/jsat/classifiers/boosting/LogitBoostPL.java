@@ -29,18 +29,18 @@ public class LogitBoostPL extends LogitBoost
 
 	private static final long serialVersionUID = -7932049860430324903L;
 
-	public LogitBoostPL(Regressor baseLearner, int M)
+	public LogitBoostPL(final Regressor baseLearner, final int M)
     {
         super(baseLearner, M);
     }
 
-    public LogitBoostPL(int M)
+    public LogitBoostPL(final int M)
     {
         super(M);
     }
 
     @Override
-    public void trainC(ClassificationDataSet dataSet, ExecutorService threadPool)
+    public void trainC(final ClassificationDataSet dataSet, final ExecutorService threadPool)
     {
         /*
          * Implementation Note:
@@ -56,8 +56,8 @@ public class LogitBoostPL extends LogitBoost
          *
          */
         
-        List<ClassificationDataSet> subSets = dataSet.cvSet(LogicalCores);
-        List<Future<LogitBoost>> futuerBoosts = new ArrayList<Future<LogitBoost>>(LogicalCores);
+        final List<ClassificationDataSet> subSets = dataSet.cvSet(LogicalCores);
+        final List<Future<LogitBoost>> futuerBoosts = new ArrayList<Future<LogitBoost>>(LogicalCores);
 
         for (int i = 0; i < LogicalCores; i++)
         {
@@ -68,7 +68,7 @@ public class LogitBoostPL extends LogitBoost
 
                 public LogitBoost call() throws Exception
                 {
-                    LogitBoost boost = new LogitBoost(baseLearner.clone(), getMaxIterations());
+                    final LogitBoost boost = new LogitBoost(baseLearner.clone(), getMaxIterations());
 
                     boost.trainC(subSet);
 
@@ -82,16 +82,16 @@ public class LogitBoostPL extends LogitBoost
             this.baseLearners = new ArrayList<Regressor>(LogicalCores * getMaxIterations());
             this.fScaleConstant = 1.0 / LogicalCores;
             //We now collect all our regressors
-            for(Future<LogitBoost> boost :  futuerBoosts) {
+            for(final Future<LogitBoost> boost :  futuerBoosts) {
               this.baseLearners.addAll(boost.get().baseLearners);
             }
             
         }
-        catch (InterruptedException interruptedException)
+        catch (final InterruptedException interruptedException)
         {
             throw new FailedToFitException(interruptedException);
         }
-        catch (ExecutionException executionException)
+        catch (final ExecutionException executionException)
         {
             throw new FailedToFitException(executionException);
         }
@@ -101,7 +101,7 @@ public class LogitBoostPL extends LogitBoost
     @Override
     public LogitBoostPL clone()
     {
-        LogitBoostPL clone = new LogitBoostPL(getMaxIterations());
+        final LogitBoostPL clone = new LogitBoostPL(getMaxIterations());
         clone.setzMax(getzMax());
         if(this.baseLearner != null) {
           clone.baseLearner = this.baseLearner.clone();
@@ -109,7 +109,7 @@ public class LogitBoostPL extends LogitBoost
         if(this.baseLearners != null)
         {
             clone.baseLearners = new ArrayList<Regressor>(this.baseLearners.size());
-            for(Regressor r :  baseLearners) {
+            for(final Regressor r :  baseLearners) {
               clone.baseLearners.add(r.clone());
             }
         }

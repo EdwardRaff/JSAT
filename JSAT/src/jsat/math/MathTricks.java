@@ -26,7 +26,7 @@ public class MathTricks
      * @param maxValue the maximum value in the array 
      * @return the log of the sum of the exponentiated values
      */
-    public static double logSumExp(Vec vals, double maxValue)
+    public static double logSumExp(final Vec vals, final double maxValue)
     {
         double expSum = 0.0;
         for(int i = 0; i < vals.length(); i++) {
@@ -45,7 +45,7 @@ public class MathTricks
      * @param maxValue the maximum value in the array 
      * @return the log of the sum of the exponentiated values
      */
-    public static double logSumExp(double[] vals, double maxValue)
+    public static double logSumExp(final double[] vals, final double maxValue)
     {
         double expSum = 0.0;
         for(int i = 0; i < vals.length; i++) {
@@ -64,7 +64,7 @@ public class MathTricks
      * @param implicitExtra {@code true} if the softmax will assume there is 
      * an extra implicit value not included in the array with a value of 0.0 
      */
-    public static void softmax(double[] x, boolean implicitExtra)
+    public static void softmax(final double[] x, final boolean implicitExtra)
     {
         double max = implicitExtra ? 1 : Double.NEGATIVE_INFINITY;
         for(int i = 0; i < x.length; i++) {
@@ -90,7 +90,7 @@ public class MathTricks
      * @param implicitExtra {@code true} if the softmax will assume there is 
      * an extra implicit value not included in the array with a value of 0.0 
      */
-    public static void softmax(Vec x, boolean implicitExtra)
+    public static void softmax(final Vec x, final boolean implicitExtra)
     {
         double max = implicitExtra ? 1 : Double.NEGATIVE_INFINITY;
         max = max(max, x.max());
@@ -98,7 +98,7 @@ public class MathTricks
         double z =implicitExtra ? exp(-max) : 0;
         for (int c = 0; c < x.length(); c++)
         {
-            double newVal = exp(x.get(c) - max);
+            final double newVal = exp(x.get(c) - max);
             x.set(c, newVal);
             z += newVal;
         }
@@ -114,10 +114,10 @@ public class MathTricks
      * @param x the value to evaluate the polynomial at
      * @return the value of the polynomial at {@code x}
      */
-    public static double hornerPolyR(double[] coef, double x)
+    public static double hornerPolyR(final double[] coef, final double x)
     {
         double result = 0;
-        for(double c : coef) {
+        for(final double c : coef) {
           result = result*x+c;
         }
         return result;
@@ -132,7 +132,7 @@ public class MathTricks
      * @param x the value to evaluate the polynomial at
      * @return the value of the polynomial at {@code x}
      */
-    public static double hornerPoly(double[] coef, double x)
+    public static double hornerPoly(final double[] coef, final double x)
     {
         double result = 0;
         for(int i = coef.length-1; i >= 0; i--) {
@@ -153,7 +153,7 @@ public class MathTricks
 		private static final long serialVersionUID = -5898515135319116600L;
 
 		@Override
-        public double f(Vec x)
+        public double f(final Vec x)
         {
             return Math.sqrt(x.get(0));
         }
@@ -172,9 +172,9 @@ public class MathTricks
 		private static final long serialVersionUID = 6831886040279358142L;
 
 		@Override
-        public double f(Vec x)
+        public double f(final Vec x)
         {
-            double xx = x.get(0);
+            final double xx = x.get(0);
             return xx*xx;
         }
     };
@@ -191,7 +191,7 @@ public class MathTricks
 		private static final long serialVersionUID = -7745316806635400174L;
 
 		@Override
-        public double f(Vec x)
+        public double f(final Vec x)
         {
             return 1/x.get(0);
         }
@@ -209,7 +209,7 @@ public class MathTricks
 		private static final long serialVersionUID = -4653355640520837353L;
 
 		@Override
-        public double f(Vec x)
+        public double f(final Vec x)
         {
             return Math.log(x.get(0));
         }
@@ -227,7 +227,7 @@ public class MathTricks
 		private static final long serialVersionUID = 7075309263321302492L;
 
 		@Override
-        public double f(Vec x)
+        public double f(final Vec x)
         {
             return Math.exp(x.get(0));
         }
@@ -245,7 +245,7 @@ public class MathTricks
 		private static final long serialVersionUID = -3706702191562872641L;
 
 		@Override
-        public double f(Vec x)
+        public double f(final Vec x)
         {
             return Math.abs(x.get(0));
         }

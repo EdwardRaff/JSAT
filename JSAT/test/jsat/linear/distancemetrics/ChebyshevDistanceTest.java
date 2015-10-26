@@ -98,10 +98,10 @@ public class ChebyshevDistanceTest
     {
         System.out.println("dist");
         
-        ChebyshevDistance dist = new ChebyshevDistance();
+        final ChebyshevDistance dist = new ChebyshevDistance();
         
-        List<Double> cache = dist.getAccelerationCache(vecs);
-        List<Double> cache2 = dist.getAccelerationCache(vecs, ex);
+        final List<Double> cache = dist.getAccelerationCache(vecs);
+        final List<Double> cache2 = dist.getAccelerationCache(vecs, ex);
         if(cache != null)
         {
             assertEquals(cache.size(), cache2.size());
@@ -121,7 +121,7 @@ public class ChebyshevDistanceTest
             dist.dist(half, new DenseVector(half.length()+1));
             fail("Distance between vecs should have erred");
         }
-        catch (Exception ex)
+        catch (final Exception ex)
         {
 
         }
@@ -129,7 +129,7 @@ public class ChebyshevDistanceTest
         for (int i = 0; i < vecs.size(); i++) {
           for (int j = 0; j < vecs.size(); j++)
           {
-            ChebyshevDistance d = dist.clone();
+            final ChebyshevDistance d = dist.clone();
             assertEquals(expected[i][j], d.dist(vecs.get(i), vecs.get(j)), 1e-12);
             assertEquals(expected[i][j], d.dist(i, j, vecs, cache), 1e-12);
             assertEquals(expected[i][j], d.dist(i, vecs.get(j), vecs, cache), 1e-12);
@@ -142,7 +142,7 @@ public class ChebyshevDistanceTest
     public void testMetricProperties()
     {
         System.out.println("isSymmetric");
-        ChebyshevDistance instance = new ChebyshevDistance();
+        final ChebyshevDistance instance = new ChebyshevDistance();
         assertTrue(instance.isSymmetric());
         assertTrue(instance.isSubadditive());
         assertTrue(instance.isIndiscemible());
@@ -152,7 +152,7 @@ public class ChebyshevDistanceTest
     public void testMetricBound()
     {
         System.out.println("metricBound");
-        ChebyshevDistance instance = new ChebyshevDistance();
+        final ChebyshevDistance instance = new ChebyshevDistance();
         assertTrue(instance.metricBound() > 0);
         assertTrue(Double.isInfinite(instance.metricBound()));
     }

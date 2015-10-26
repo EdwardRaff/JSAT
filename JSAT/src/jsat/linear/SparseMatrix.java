@@ -30,7 +30,7 @@ public class SparseMatrix extends Matrix
      * @param cols the number of columns for the matrix
      * @param rowCapacity the initial capacity for non zero values for each row
      */
-    public SparseMatrix(int rows, int cols, int rowCapacity)
+    public SparseMatrix(final int rows, final int cols, final int rowCapacity)
     {
         this.rows = new SparseVector[rows];
         for(int i = 0; i < rows; i++) {
@@ -44,7 +44,7 @@ public class SparseMatrix extends Matrix
      * 
      * @param rows the array to back this SparseMatrix
      */
-    public SparseMatrix(SparseVector[] rows)
+    public SparseMatrix(final SparseVector[] rows)
     {
         this.rows = rows;
         for(int i = 0; i < rows.length; i++) {
@@ -59,7 +59,7 @@ public class SparseMatrix extends Matrix
      * @param rows the number of rows for the matrix
      * @param cols the number of columns for the matrix
      */
-    public SparseMatrix(int rows, int cols)
+    public SparseMatrix(final int rows, final int cols)
     {
         this.rows = new SparseVector[rows];
         for(int i = 0; i < rows; i++) {
@@ -70,7 +70,7 @@ public class SparseMatrix extends Matrix
      * Copy constructor
      * @param toCopy the object to copy
      */
-    protected SparseMatrix(SparseMatrix toCopy)
+    protected SparseMatrix(final SparseMatrix toCopy)
     {
         this.rows = new SparseVector[toCopy.rows.length];
         for(int i = 0; i < rows.length; i++) {
@@ -79,7 +79,7 @@ public class SparseMatrix extends Matrix
     }
 
     @Override
-    public void mutableAdd(double c, Matrix B)
+    public void mutableAdd(final double c, final Matrix B)
     {
         if(!Matrix.sameDimensions(this, B)) {
           throw new ArithmeticException("Matrices must be the same dimension to be added");
@@ -90,7 +90,7 @@ public class SparseMatrix extends Matrix
     }
 
     @Override
-    public void mutableAdd(final double c, final Matrix B, ExecutorService threadPool)
+    public void mutableAdd(final double c, final Matrix B, final ExecutorService threadPool)
     {
         if(!Matrix.sameDimensions(this, B)) {
           throw new ArithmeticException("Matrices must be the same dimension to be added");
@@ -114,22 +114,22 @@ public class SparseMatrix extends Matrix
         {
             latch.await();
         }
-        catch (InterruptedException ex)
+        catch (final InterruptedException ex)
         {
             Logger.getLogger(SparseMatrix.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
 
     @Override
-    public void mutableAdd(double c)
+    public void mutableAdd(final double c)
     {
-        for(SparseVector row : rows) {
+        for(final SparseVector row : rows) {
           row.mutableAdd(c);
         }
     }
 
     @Override
-    public void mutableAdd(final double c, ExecutorService threadPool)
+    public void mutableAdd(final double c, final ExecutorService threadPool)
     {
         final CountDownLatch latch = new CountDownLatch(rows.length);
         for(final SparseVector row : rows)
@@ -148,14 +148,14 @@ public class SparseMatrix extends Matrix
         {
             latch.await();
         }
-        catch (InterruptedException ex)
+        catch (final InterruptedException ex)
         {
             Logger.getLogger(SparseMatrix.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
 
     @Override
-    public void multiply(Vec b, double z, Vec c)
+    public void multiply(final Vec b, final double z, final Vec c)
     {
         if(this.cols() != b.length()) {
           throw new ArithmeticException("Matrix dimensions do not agree, [" + rows() +"," + cols() + "] x [" + b.length() + ",1]" );
@@ -166,13 +166,13 @@ public class SparseMatrix extends Matrix
         
         for(int i = 0; i < rows(); i++)
         {
-            SparseVector row = rows[i];
+            final SparseVector row = rows[i];
             c.increment(i, row.dot(b)*z);
         }
     }
 
     @Override
-    public void multiply(Matrix B, Matrix C)
+    public void multiply(final Matrix B, final Matrix C)
     {
         if(!canMultiply(this, B)) {
           throw new ArithmeticException("Matrix dimensions do not agree");
@@ -182,21 +182,21 @@ public class SparseMatrix extends Matrix
         
         for (int i = 0; i < C.rows(); i++)
         {
-            Vec Arowi = this.rows[i];
-            Vec Crowi = C.getRowView(i);
+            final Vec Arowi = this.rows[i];
+            final Vec Crowi = C.getRowView(i);
 
-            for(IndexValue iv : Arowi)
+            for(final IndexValue iv : Arowi)
             {
                 final int k = iv.getIndex();
-                double a = iv.getValue();
-                Vec Browk = B.getRowView(k);
+                final double a = iv.getValue();
+                final Vec Browk = B.getRowView(k);
                 Crowi.mutableAdd(a, Browk);
             }
         }
     }
 
     @Override
-    public void multiply(final Matrix B, Matrix C, ExecutorService threadPool)
+    public void multiply(final Matrix B, final Matrix C, final ExecutorService threadPool)
     {
         if (!canMultiply(this, B)) {
           throw new ArithmeticException("Matrix dimensions do not agree");
@@ -215,11 +215,11 @@ public class SparseMatrix extends Matrix
                 @Override
                 public void run()
                 {
-                    for (IndexValue iv : Arowi)
+                    for (final IndexValue iv : Arowi)
                     {
                         final int k = iv.getIndex();
-                        double a = iv.getValue();
-                        Vec Browk = B.getRowView(k);
+                        final double a = iv.getValue();
+                        final Vec Browk = B.getRowView(k);
                         Crowi.mutableAdd(a, Browk);
                     }
                     
@@ -231,22 +231,22 @@ public class SparseMatrix extends Matrix
         {
             latch.await();
         }
-        catch (InterruptedException ex)
+        catch (final InterruptedException ex)
         {
             Logger.getLogger(SparseMatrix.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
 
     @Override
-    public void mutableMultiply(double c)
+    public void mutableMultiply(final double c)
     {
-        for(SparseVector row : rows) {
+        for(final SparseVector row : rows) {
           row.mutableMultiply(c);
         }
     }
 
     @Override
-    public void mutableMultiply(final double c, ExecutorService threadPool)
+    public void mutableMultiply(final double c, final ExecutorService threadPool)
     {
         final CountDownLatch latch = new CountDownLatch(rows.length);
         for(final SparseVector row : rows)
@@ -265,7 +265,7 @@ public class SparseMatrix extends Matrix
         {
             latch.await();
         }
-        catch (InterruptedException ex)
+        catch (final InterruptedException ex)
         {
             Logger.getLogger(SparseMatrix.class.getName()).log(Level.SEVERE, null, ex);
         }
@@ -278,7 +278,7 @@ public class SparseMatrix extends Matrix
     }
 
     @Override
-    public Matrix[] lup(ExecutorService threadPool)
+    public Matrix[] lup(final ExecutorService threadPool)
     {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
@@ -290,7 +290,7 @@ public class SparseMatrix extends Matrix
     }
 
     @Override
-    public Matrix[] qr(ExecutorService threadPool)
+    public Matrix[] qr(final ExecutorService threadPool)
     {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
@@ -301,7 +301,7 @@ public class SparseMatrix extends Matrix
         for(int i = 0; i < rows()-1; i++) {
           for(int j = i+1; j < cols(); j++)
           {
-            double tmp = get(j, i);
+            final double tmp = get(j, i);
             set(j, i, get(i, j));
             set(i, j, tmp);
           }
@@ -309,7 +309,7 @@ public class SparseMatrix extends Matrix
     }
 
     @Override
-    public void transpose(Matrix C)
+    public void transpose(final Matrix C)
     {
         if(this.rows() != C.cols() || this.cols() != C.rows()) {
           throw new ArithmeticException("Target matrix does not have the correct dimensions");
@@ -317,14 +317,14 @@ public class SparseMatrix extends Matrix
         
         C.zeroOut();
         for(int row = 0; row < rows.length; row++) {
-          for (IndexValue iv : rows[row]) {
+          for (final IndexValue iv : rows[row]) {
             C.set(iv.getIndex(), row, iv.getValue());
           }
         }
     }
 
     @Override
-    public void transposeMultiply(Matrix B, Matrix C)
+    public void transposeMultiply(final Matrix B, final Matrix C)
     {
         if(this.rows() != B.rows()) {//Normaly it is A_cols == B_rows, but we are doint A'*B, not A*B
           throw new ArithmeticException("Matrix dimensions do not agree");
@@ -338,14 +338,14 @@ public class SparseMatrix extends Matrix
 
         for (int k = 0; k < kLimit; k++)
         {
-            Vec bRow_k = B.getRowView(k);
-            Vec aRow_k = A.getRowView(k);
+            final Vec bRow_k = B.getRowView(k);
+            final Vec aRow_k = A.getRowView(k);
 
-            for (IndexValue iv : aRow_k)//iterating over "i"
+            for (final IndexValue iv : aRow_k)//iterating over "i"
             {
 
-                Vec cRow_i = C.getRowView(iv.getIndex());
-                double a = iv.getValue();//A.get(k, i);
+                final Vec cRow_i = C.getRowView(iv.getIndex());
+                final double a = iv.getValue();//A.get(k, i);
 
                 cRow_i.mutableAdd(a, bRow_k);
             }
@@ -353,13 +353,13 @@ public class SparseMatrix extends Matrix
     }
 
     @Override
-    public void transposeMultiply(final Matrix B, final Matrix C, ExecutorService threadPool)
+    public void transposeMultiply(final Matrix B, final Matrix C, final ExecutorService threadPool)
     {
         transposeMultiply(B, C);//TODO use the multiple threads
     }
 
     @Override
-    public void transposeMultiply(double c, Vec b, Vec x)
+    public void transposeMultiply(final double c, final Vec b, final Vec x)
     {
         if(this.rows() != b.length()) {
           throw new ArithmeticException("Matrix dimensions do not agree, [" + cols() +"," + rows() + "] x [" + b.length() + ",1]" );
@@ -367,31 +367,31 @@ public class SparseMatrix extends Matrix
           throw new ArithmeticException("Matrix dimensions do not agree with target vector");
         }
         
-        for(IndexValue b_iv : b) {
+        for(final IndexValue b_iv : b) {
           x.mutableAdd(c*b_iv.getValue(), rows[b_iv.getIndex()]);
         }
     }
 
     @Override
-    public Vec getRowView(int r)
+    public Vec getRowView(final int r)
     {
         return rows[r];
     }
 
     @Override
-    public double get(int i, int j)
+    public double get(final int i, final int j)
     {
         return rows[i].get(j);
     }
 
     @Override
-    public void set(int i, int j, double value)
+    public void set(final int i, final int j, final double value)
     {
         rows[i].set(j, value);
     }
 
     @Override
-    public void increment(int i, int j, double value)
+    public void increment(final int i, final int j, final double value)
     {
         rows[i].increment(j, value);
     }
@@ -415,9 +415,9 @@ public class SparseMatrix extends Matrix
     }
 
     @Override
-    public void swapRows(int r1, int r2)
+    public void swapRows(final int r1, final int r2)
     {
-        SparseVector tmp = rows[r2];
+        final SparseVector tmp = rows[r2];
         rows[r2] = rows[r1];
         rows[r1] = tmp;
     }
@@ -425,7 +425,7 @@ public class SparseMatrix extends Matrix
     @Override
     public void zeroOut()
     {
-        for(Vec row : rows) {
+        for(final Vec row : rows) {
           row.zeroOut();
         }
     }
@@ -440,14 +440,14 @@ public class SparseMatrix extends Matrix
     public long nnz()
     {
         int nnz = 0;
-        for(Vec v : rows) {
+        for(final Vec v : rows) {
           nnz += v.nnz();
         }
         return nnz;
     }
 
     @Override
-    public void changeSize(int newRows, int newCols)
+    public void changeSize(final int newRows, final int newCols)
     {
         if(newRows <= 0) {
           throw new ArithmeticException("Matrix must have a positive number of rows");
@@ -475,7 +475,7 @@ public class SparseMatrix extends Matrix
     }
 
     @Override
-    public void multiplyTranspose(Matrix B, Matrix C)
+    public void multiplyTranspose(final Matrix B, final Matrix C)
     {
         if(this.cols() != B.cols()) {
           throw new ArithmeticException("Matrix dimensions do not agree");
@@ -493,15 +493,15 @@ public class SparseMatrix extends Matrix
                 
                 if(!B_j.isSparse())//B is dense, lets do this the easy way
                 {
-                    for (IndexValue iv : A_i) {
+                    for (final IndexValue iv : A_i) {
                       C_ij += iv.getValue() * B_j.get(iv.getIndex());
                     }
                     C.increment(i, j, C_ij);
                     continue;//Skip early, we did it!
                 }
                 //else, sparse 
-                Iterator<IndexValue> A_iter = A_i.getNonZeroIterator();
-                Iterator<IndexValue> B_iter = B_j.getNonZeroIterator();
+                final Iterator<IndexValue> A_iter = A_i.getNonZeroIterator();
+                final Iterator<IndexValue> B_iter = B_j.getNonZeroIterator();
                 if(!B_iter.hasNext() || !A_iter.hasNext()) {//one is all zeros, nothing to do
                   continue;
                 }
@@ -549,7 +549,7 @@ public class SparseMatrix extends Matrix
     }
 
     @Override
-    public void multiplyTranspose(final Matrix B, final Matrix C, ExecutorService threadPool)
+    public void multiplyTranspose(final Matrix B, final Matrix C, final ExecutorService threadPool)
     {
         if(this.cols() != B.cols()) {
           throw new ArithmeticException("Matrix dimensions do not agree");
@@ -579,15 +579,15 @@ public class SparseMatrix extends Matrix
 
                             if(!B_j.isSparse())//B is dense, lets do this the easy way
                             {
-                                for (IndexValue iv : A_i) {
+                                for (final IndexValue iv : A_i) {
                                   C_ij += iv.getValue() * B_j.get(iv.getIndex());
                                 }
                                 C.increment(i, j, C_ij);
                                 continue;//Skip early, we did it!
                             }
                             //else, sparse 
-                            Iterator<IndexValue> A_iter = A_i.getNonZeroIterator();
-                            Iterator<IndexValue> B_iter = B_j.getNonZeroIterator();
+                            final Iterator<IndexValue> A_iter = A_i.getNonZeroIterator();
+                            final Iterator<IndexValue> B_iter = B_j.getNonZeroIterator();
                             if(!B_iter.hasNext() || !A_iter.hasNext()) {//one is all zeros, nothing to do
                               continue;
                             }
@@ -634,7 +634,7 @@ public class SparseMatrix extends Matrix
                     }
                     
                     }
-                    catch(Exception ex)
+                    catch(final Exception ex)
                     {
                         ex.printStackTrace();
                     }
@@ -648,7 +648,7 @@ public class SparseMatrix extends Matrix
         {
             latch.await();
         }
-        catch (InterruptedException ex)
+        catch (final InterruptedException ex)
         {
             Logger.getLogger(SparseMatrix.class.getName()).log(Level.SEVERE, null, ex);
         }

@@ -23,7 +23,7 @@ public class OrdinaryKriging implements Regressor, Parameterized
 {
 
 	private static final long serialVersionUID = -5774553215322383751L;
-	private Variogram vari;
+	private final Variogram vari;
     /**
      * The weight values for each data point
      */
@@ -43,7 +43,7 @@ public class OrdinaryKriging implements Regressor, Parameterized
     
     List<Parameter> params = Collections.unmodifiableList(Parameter.getParamsFromMethods(this));
     
-    private Map<String, Parameter> paramMap = Parameter.toParameterMap(params);
+    private final Map<String, Parameter> paramMap = Parameter.toParameterMap(params);
 
     /**
      * Creates a new Ordinary Kriging. 
@@ -52,7 +52,7 @@ public class OrdinaryKriging implements Regressor, Parameterized
      * @param error the global measurement error
      * @param nugget the nugget value to add to the variogram
      */
-    public OrdinaryKriging(Variogram vari, double error, double nugget)
+    public OrdinaryKriging(final Variogram vari, final double error, final double nugget)
     {
         this.vari = vari;
         setMeasurementError(error);
@@ -64,7 +64,7 @@ public class OrdinaryKriging implements Regressor, Parameterized
      * @param vari the variogram to fit to the data
      * @param error the global measurement error
      */
-    public OrdinaryKriging(Variogram vari, double error)
+    public OrdinaryKriging(final Variogram vari, final double error)
     {
         this(vari, error, DEFAULT_NUGGET);
     }
@@ -73,7 +73,7 @@ public class OrdinaryKriging implements Regressor, Parameterized
      * Creates a new Ordinary Kriging with a small error value
      * @param vari the variogram to fit to the data
      */
-    public OrdinaryKriging(Variogram vari)
+    public OrdinaryKriging(final Variogram vari)
     {
         this(vari, DEFAULT_ERROR);
     }
@@ -88,11 +88,11 @@ public class OrdinaryKriging implements Regressor, Parameterized
     }
     
     @Override
-    public double regress(DataPoint data)
+    public double regress(final DataPoint data)
     {
-        Vec x = data.getNumericalValues();
-        int npt = X.length()-1;
-        double[] distVals = new double[npt+1];
+        final Vec x = data.getNumericalValues();
+        final int npt = X.length()-1;
+        final double[] distVals = new double[npt+1];
         for (int i = 0; i < npt; i++) {
           distVals[i] = vari.val(x.pNormDist(2, dataSet.getDataPoint(i).getNumericalValues()));
         }
@@ -102,19 +102,19 @@ public class OrdinaryKriging implements Regressor, Parameterized
     }
 
     @Override
-    public void train(RegressionDataSet dataSet, ExecutorService threadPool)
+    public void train(final RegressionDataSet dataSet, final ExecutorService threadPool)
     {
         this.dataSet = dataSet;
         /**
          * Size of the data set
          */
-        int N = dataSet.getSampleSize();
+        final int N = dataSet.getSampleSize();
         /**
          * Stores the target values
          */
-        Vec Y = new DenseVector(N+1);
+        final Vec Y = new DenseVector(N+1);
         
-        Matrix V = new DenseMatrix(N+1, N+1);
+        final Matrix V = new DenseMatrix(N+1, N+1);
         
         vari.train(dataSet, nugget);
         
@@ -138,21 +138,21 @@ public class OrdinaryKriging implements Regressor, Parameterized
         X = lup.solve(Y);
         if(Double.isNaN(lup.det()) || Math.abs(lup.det()) < 1e-5)
         {
-            SingularValueDecomposition svd = new SingularValueDecomposition(V);
+            final SingularValueDecomposition svd = new SingularValueDecomposition(V);
             X = svd.solve(Y);
         }
     }
 
-    private void setUpVectorMatrix(final int N, RegressionDataSet dataSet, Matrix V, Vec Y)
+    private void setUpVectorMatrix(final int N, final RegressionDataSet dataSet, final Matrix V, final Vec Y)
     {
         for(int i = 0; i < N; i++)
         {
-            DataPoint dpi = dataSet.getDataPoint(i);
-            Vec xi = dpi.getNumericalValues();
+            final DataPoint dpi = dataSet.getDataPoint(i);
+            final Vec xi = dpi.getNumericalValues();
             for(int j = 0; j < N; j++)
             {
-                Vec xj = dataSet.getDataPoint(j).getNumericalValues();
-                double val = vari.val(xi.pNormDist(2, xj));
+                final Vec xj = dataSet.getDataPoint(j).getNumericalValues();
+                final double val = vari.val(xi.pNormDist(2, xj));
                 V.set(i, j, val);
                 V.set(j, i, val);
             }
@@ -163,7 +163,7 @@ public class OrdinaryKriging implements Regressor, Parameterized
         V.set(N, N, 0);
     }
 
-    private void setUpVectorMatrix(final int N, final RegressionDataSet dataSet, final Matrix V, final Vec Y, ExecutorService threadPool)
+    private void setUpVectorMatrix(final int N, final RegressionDataSet dataSet, final Matrix V, final Vec Y, final ExecutorService threadPool)
     {
         int pos = 0;
         final CountDownLatch latch = new CountDownLatch(SystemInfo.LogicalCores);
@@ -179,12 +179,12 @@ public class OrdinaryKriging implements Regressor, Parameterized
                 {
                     for(int i = id; i < N; i+=SystemInfo.LogicalCores)
                     {
-                        DataPoint dpi = dataSet.getDataPoint(i);
-                        Vec xi = dpi.getNumericalValues();
+                        final DataPoint dpi = dataSet.getDataPoint(i);
+                        final Vec xi = dpi.getNumericalValues();
                         for(int j = 0; j < N; j++)
                         {
-                            Vec xj = dataSet.getDataPoint(j).getNumericalValues();
-                            double val = vari.val(xi.pNormDist(2, xj));
+                            final Vec xj = dataSet.getDataPoint(j).getNumericalValues();
+                            final double val = vari.val(xi.pNormDist(2, xj));
                             V.set(i, j, val);
                             V.set(j, i, val);
                         }
@@ -207,14 +207,14 @@ public class OrdinaryKriging implements Regressor, Parameterized
         {
             latch.await();
         }
-        catch (InterruptedException ex)
+        catch (final InterruptedException ex)
         {
             Logger.getLogger(OrdinaryKriging.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
     
     @Override
-    public void train(RegressionDataSet dataSet)
+    public void train(final RegressionDataSet dataSet)
     {
         train(dataSet, null);
     }
@@ -228,7 +228,7 @@ public class OrdinaryKriging implements Regressor, Parameterized
     @Override
     public OrdinaryKriging clone()
     {
-        OrdinaryKriging clone = new OrdinaryKriging(vari.clone());
+        final OrdinaryKriging clone = new OrdinaryKriging(vari.clone());
         
         clone.setMeasurementError(getMeasurementError());
         clone.setNugget(getNugget());
@@ -253,7 +253,7 @@ public class OrdinaryKriging implements Regressor, Parameterized
      * 
      * @param error the measurement error for all data points
      */
-    public void setMeasurementError(double error)
+    public void setMeasurementError(final double error)
     {
         this.errorSqrd = error*error;
     }
@@ -281,7 +281,7 @@ public class OrdinaryKriging implements Regressor, Parameterized
      * @param nugget the new nugget value
      * @throws ArithmeticException if a negative nugget value is provided
      */
-    public void setNugget(double nugget)
+    public void setNugget(final double nugget)
     {
         if(nugget < 0 || Double.isNaN(nugget) || Double.isInfinite(nugget)) {
           throw new ArithmeticException("Nugget must be a positive value");
@@ -308,7 +308,7 @@ public class OrdinaryKriging implements Regressor, Parameterized
     }
 
     @Override
-    public Parameter getParameter(String paramName)
+    public Parameter getParameter(final String paramName)
     {
         return paramMap.get(paramName);
     }
@@ -335,33 +335,34 @@ public class OrdinaryKriging implements Regressor, Parameterized
     public static class PowVariogram implements Variogram
     {
         private double alpha;
-        private double beta;
+        private final double beta;
 
         public PowVariogram()
         {
             this(1.5);
         }
 
-        public PowVariogram(double beta)
+        public PowVariogram(final double beta)
         {
             this.beta = beta;
         }
 
         @Override
-        public void train(RegressionDataSet dataSet, double nugget)
+        public void train(final RegressionDataSet dataSet, final double nugget)
         {
-            int npt=dataSet.getSampleSize();
-            double num=0,denom=0, nugSqrd = nugget*nugget;
+            final int npt=dataSet.getSampleSize();
+            double num=0,denom=0;
+            final double nugSqrd = nugget*nugget;
 
             for (int i = 0; i < npt; i++)
             {
-                Vec xi = dataSet.getDataPoint(i).getNumericalValues();
-                double yi = dataSet.getTargetValue(i);
+                final Vec xi = dataSet.getDataPoint(i).getNumericalValues();
+                final double yi = dataSet.getTargetValue(i);
                 for (int j = i + 1; j < npt; j++)
                 {
-                    Vec xj = dataSet.getDataPoint(j).getNumericalValues();
-                    double yj = dataSet.getTargetValue(j);
-                    double rb = pow(xi.pNormDist(2, xj), beta);
+                    final Vec xj = dataSet.getDataPoint(j).getNumericalValues();
+                    final double yj = dataSet.getTargetValue(j);
+                    final double rb = pow(xi.pNormDist(2, xj), beta);
                     
                     num += rb* (0.5* pow(yi-yj, 2)-nugSqrd);
                     denom += rb*rb;
@@ -371,7 +372,7 @@ public class OrdinaryKriging implements Regressor, Parameterized
         }
         
         @Override
-        public double val(double r)
+        public double val(final double r)
         {
             return alpha*pow(r, beta);
         }
@@ -379,7 +380,7 @@ public class OrdinaryKriging implements Regressor, Parameterized
         @Override
         public Variogram clone()
         {
-            PowVariogram clone = new PowVariogram(beta);
+            final PowVariogram clone = new PowVariogram(beta);
             clone.alpha = this.alpha;
             
             return clone;

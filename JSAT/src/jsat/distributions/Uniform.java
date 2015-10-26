@@ -13,17 +13,17 @@ public class Uniform extends ContinuousDistribution
 	private static final long serialVersionUID = 2479606544724378610L;
 	private double a, b;
 
-    public Uniform(double a, double b)
+    public Uniform(final double a, final double b)
     {
-        double min = Math.min(a, b);
-        double max = Math.max(a, b);
+        final double min = Math.min(a, b);
+        final double max = Math.max(a, b);
         
         this.a = min;
         this.b = max;  
     }
     
     @Override
-    public double pdf(double x)
+    public double pdf(final double x)
     {
         if(a == b && a == x) {
           return 0;
@@ -35,7 +35,7 @@ public class Uniform extends ContinuousDistribution
     }
 
     @Override
-    public double cdf(double x)
+    public double cdf(final double x)
     {
         if(a > x) {
           return 0;
@@ -49,7 +49,7 @@ public class Uniform extends ContinuousDistribution
     }
 
     @Override
-    public double invCdf(double p)
+    public double invCdf(final double p)
     {
         if( p < 0 || p > 1) {
           throw new ArithmeticException("Probability must be interface the range [0,1], not " + p);
@@ -93,7 +93,7 @@ public class Uniform extends ContinuousDistribution
     }
 
     @Override
-    public void setVariable(String var, double value)
+    public void setVariable(final String var, final double value)
     {
         if(var.equals("a")) {
           a = value;
@@ -101,8 +101,8 @@ public class Uniform extends ContinuousDistribution
           b = value;
         }
         
-        double min = Math.min(a, b);
-        double max = Math.max(a, b);
+        final double min = Math.min(a, b);
+        final double max = Math.max(a, b);
         a = min;
         b = max;
     }
@@ -114,7 +114,7 @@ public class Uniform extends ContinuousDistribution
     }
 
     @Override
-    public void setUsingData(Vec data)
+    public void setUsingData(final Vec data)
     {
         a = data.min();
         b = data.max();
@@ -163,7 +163,7 @@ public class Uniform extends ContinuousDistribution
 	}
 
 	@Override
-	public boolean equals(Object obj) {
+	public boolean equals(final Object obj) {
 		if (this == obj) {
 			return true;
 		}
@@ -173,7 +173,7 @@ public class Uniform extends ContinuousDistribution
 		if (getClass() != obj.getClass()) {
 			return false;
 		}
-		Uniform other = (Uniform) obj;
+		final Uniform other = (Uniform) obj;
 		if (Double.doubleToLongBits(a) != Double.doubleToLongBits(other.a)) {
 			return false;
 		}

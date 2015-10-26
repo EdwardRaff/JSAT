@@ -47,10 +47,10 @@ public class KernelDensityEstimator extends ContinuousDistribution
     private double h;
     private double Xmean, Xvar, Xskew;
     
-    private KernelFunction k;
+    private final KernelFunction k;
     
     
-    public static double BandwithGuassEstimate(Vec X)
+    public static double BandwithGuassEstimate(final Vec X)
     {
         if(X.length() == 1 ) {
           return 1;
@@ -65,7 +65,7 @@ public class KernelDensityEstimator extends ContinuousDistribution
      * @param dataPoints
      * @return a kernel that will work well for the given distribution
      */
-    public static KernelFunction autoKernel(Vec dataPoints )
+    public static KernelFunction autoKernel(final Vec dataPoints )
     {
         if(dataPoints.length() < 30) {
           return GaussKF.getInstance();
@@ -77,29 +77,29 @@ public class KernelDensityEstimator extends ContinuousDistribution
         }
     }
     
-    public KernelDensityEstimator(Vec dataPoints)
+    public KernelDensityEstimator(final Vec dataPoints)
     {
         this(dataPoints, autoKernel(dataPoints));
     }
     
-    public KernelDensityEstimator(Vec dataPoints, KernelFunction k)
+    public KernelDensityEstimator(final Vec dataPoints, final KernelFunction k)
     {
         this(dataPoints, k, BandwithGuassEstimate(dataPoints));
     }
     
-    public KernelDensityEstimator(Vec dataPoints, KernelFunction k, double[] weights)
+    public KernelDensityEstimator(final Vec dataPoints, final KernelFunction k, final double[] weights)
     {
         this(dataPoints, k, BandwithGuassEstimate(dataPoints), weights);
     }
 
-    public KernelDensityEstimator(Vec dataPoints, KernelFunction k, double h)
+    public KernelDensityEstimator(final Vec dataPoints, final KernelFunction k, final double h)
     {
         setUpX(dataPoints);
         this.k = k;
         this.h = h;
     }
     
-    public KernelDensityEstimator(Vec dataPoints, KernelFunction k, double h, double[] weights)
+    public KernelDensityEstimator(final Vec dataPoints, final KernelFunction k, final double h, final double[] weights)
     {
         setUpX(dataPoints, weights);
         this.k = k;
@@ -109,7 +109,7 @@ public class KernelDensityEstimator extends ContinuousDistribution
     /**
      * Copy constructor 
      */
-    private KernelDensityEstimator(double[] X, double h, double Xmean, double Xvar, double Xskew, KernelFunction k, double sumOfWeights, double[] weights)
+    private KernelDensityEstimator(final double[] X, final double h, final double Xmean, final double Xvar, final double Xskew, final KernelFunction k, final double sumOfWeights, final double[] weights)
     {
         this.X = Arrays.copyOf(X, X.length);
         this.h = h;
@@ -121,7 +121,7 @@ public class KernelDensityEstimator extends ContinuousDistribution
         this.weights = Arrays.copyOf(weights, weights.length);
     }
     
-    private void setUpX(Vec S)
+    private void setUpX(final Vec S)
     {
         Xmean = S.mean();
         Xvar = S.variance();
@@ -132,19 +132,19 @@ public class KernelDensityEstimator extends ContinuousDistribution
         weights = new double[0];
     }
     
-    private void setUpX(Vec S, double[] weights)
+    private void setUpX(final Vec S, final double[] weights)
     {
         if(S.length() != weights.length) {
           throw new RuntimeException("Weights and variables do not have the same length");
         }
         
-        OnLineStatistics stats = new OnLineStatistics();
+        final OnLineStatistics stats = new OnLineStatistics();
         
         X = new double[S.length()];
         this.weights = Arrays.copyOf(weights, S.length());
         
         //Probability is the X value, match is the weights - so that they can be sorted together. 
-        List<ProbailityMatch<Double>> sorter = new ArrayList<ProbailityMatch<Double>>(S.length());
+        final List<ProbailityMatch<Double>> sorter = new ArrayList<ProbailityMatch<Double>>(S.length());
         for(int i = 0; i < S.length(); i++) {
           sorter.add(new ProbailityMatch<Double>(S.get(i), weights[i]));
         }
@@ -167,7 +167,7 @@ public class KernelDensityEstimator extends ContinuousDistribution
         this.Xskew = stats.getSkewness();
     }
     
-    private double getWeight(int i)
+    private double getWeight(final int i)
     {
         if(weights.length == 0) {
           return 1.0;
@@ -180,7 +180,7 @@ public class KernelDensityEstimator extends ContinuousDistribution
     
 
     @Override
-    public double pdf(double x)
+    public double pdf(final double x)
     {
         return pdf(x, -1);
     }
@@ -191,7 +191,7 @@ public class KernelDensityEstimator extends ContinuousDistribution
      * @param j the sorted index of the value to leave. If a negative value is given, the PDF with all values is returned
      * @return the pdf with the given index left out
      */
-    private double pdf(double x, int j)
+    private double pdf(final double x, final int j)
     {
         /*
          *              n
@@ -228,7 +228,7 @@ public class KernelDensityEstimator extends ContinuousDistribution
     }
 
     @Override
-    public double cdf(double x)
+    public double cdf(final double x)
     {
         //Only values within a certain range will have an effect on the result, so we will skip to that range!
         int from = Arrays.binarySearch(X, x-h*k.cutOff());
@@ -267,33 +267,33 @@ public class KernelDensityEstimator extends ContinuousDistribution
 		 */
 		private static final long serialVersionUID = -4100975560125048798L;
 
-		public double f(double... x)
+		public double f(final double... x)
         {
             return cdf(x[0]);
         }
 
-        public double f(Vec x)
+        public double f(final Vec x)
         {
             return f(x.get(0));
         }
     };
     
     @Override
-    public double invCdf(double p)
+    public double invCdf(final double p)
     {
         int index;
         double kd0;
         
         if(weights.length == 0)
         {
-            double r = p*X.length;
+            final double r = p*X.length;
             index = (int)r;
-            double pd0 = r - index, pd1 = 1-pd0;
+            final double pd0 = r - index, pd1 = 1-pd0;
             kd0 = k.intK(pd1);
         }
         else//CDF can be found from the weights summings
         {
-            double XEstimate = p*sumOFWeights;
+            final double XEstimate = p*sumOFWeights;
             index = Arrays.binarySearch(weights, XEstimate);
             index = index < 0 ? -index-1 : index;
             if(X[index] != 0) {//TODO fix this bit
@@ -307,7 +307,7 @@ public class KernelDensityEstimator extends ContinuousDistribution
         if(index == X.length-1) {//at the tail end
           return X[index]*kd0;
         }
-        double x  = X[index]*kd0 + X[index+1]*(1-kd0);
+        final double x  = X[index]*kd0 + X[index+1]*(1-kd0);
         
         return x;
     }
@@ -347,7 +347,7 @@ public class KernelDensityEstimator extends ContinuousDistribution
      * obscure features. Too small a bandwidth will causes spikes at only the data points.  
      * @param val new bandwidth 
      */
-    public void setBandwith(double val)
+    public void setBandwith(final double val)
     {
         if(val <= 0 || Double.isInfinite(val)) {
           throw new ArithmeticException("Bandwith parameter h must be greater than zero, not " + 0);
@@ -365,7 +365,7 @@ public class KernelDensityEstimator extends ContinuousDistribution
     }
     
     @Override
-    public void setVariable(String var, double value)
+    public void setVariable(final String var, final double value)
     {
         if(var.equals("h")) {
           setBandwith(value);
@@ -379,7 +379,7 @@ public class KernelDensityEstimator extends ContinuousDistribution
     }
 
     @Override
-    public void setUsingData(Vec data)
+    public void setUsingData(final Vec data)
     {
         setUpX(data);
         this.h = BandwithGuassEstimate(data);
@@ -443,7 +443,7 @@ public class KernelDensityEstimator extends ContinuousDistribution
 	}
 
 	@Override
-	public boolean equals(Object obj) {
+	public boolean equals(final Object obj) {
 		if (this == obj) {
 			return true;
 		}
@@ -453,7 +453,7 @@ public class KernelDensityEstimator extends ContinuousDistribution
 		if (!(obj instanceof KernelDensityEstimator)) {
 			return false;
 		}
-		KernelDensityEstimator other = (KernelDensityEstimator) obj;
+		final KernelDensityEstimator other = (KernelDensityEstimator) obj;
 		if (Double.doubleToLongBits(Xmean) != Double
 				.doubleToLongBits(other.Xmean)) {
 			return false;

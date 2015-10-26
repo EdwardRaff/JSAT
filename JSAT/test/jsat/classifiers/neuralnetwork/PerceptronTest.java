@@ -56,17 +56,17 @@ public class PerceptronTest
     public void testTrainC_ClassificationDataSet_ExecutorService()
     {
         System.out.println("trainC");
-        ExecutorService threadPool = Executors.newFixedThreadPool(SystemInfo.LogicalCores);
-        ClassificationDataSet train = FixedProblems.get2ClassLinear(200, new Random());
+        final ExecutorService threadPool = Executors.newFixedThreadPool(SystemInfo.LogicalCores);
+        final ClassificationDataSet train = FixedProblems.get2ClassLinear(200, new Random());
         
         Perceptron instance = new Perceptron();
         instance = instance.clone();
         instance.trainC(train, threadPool);
         instance = instance.clone();
         
-        ClassificationDataSet test = FixedProblems.get2ClassLinear(200, new Random());
+        final ClassificationDataSet test = FixedProblems.get2ClassLinear(200, new Random());
         
-        for(DataPointPair<Integer> dpp : test.getAsDPPList()) {
+        for(final DataPointPair<Integer> dpp : test.getAsDPPList()) {
           assertEquals(dpp.getPair().longValue(), instance.classify(dpp.getDataPoint()).mostLikely());
         }
         threadPool.shutdown();
@@ -79,16 +79,16 @@ public class PerceptronTest
     public void testTrainC_ClassificationDataSet()
     {
         System.out.println("trainC");
-        ClassificationDataSet train = FixedProblems.get2ClassLinear(200, new Random());
+        final ClassificationDataSet train = FixedProblems.get2ClassLinear(200, new Random());
 
         Perceptron instance = new Perceptron();
         instance = instance.clone();
         instance.trainC(train);
         instance = instance.clone();
 
-        ClassificationDataSet test = FixedProblems.get2ClassLinear(200, new Random());
+        final ClassificationDataSet test = FixedProblems.get2ClassLinear(200, new Random());
 
-        for (DataPointPair<Integer> dpp : test.getAsDPPList()) {
+        for (final DataPointPair<Integer> dpp : test.getAsDPPList()) {
           assertEquals(dpp.getPair().longValue(), instance.classify(dpp.getDataPoint()).mostLikely());
         }
     }
@@ -100,16 +100,16 @@ public class PerceptronTest
     public void testTrainCOnline()
     {
         System.out.println("trainCOnline");
-        ClassificationDataSet train = FixedProblems.get2ClassLinear(200, new Random());
+        final ClassificationDataSet train = FixedProblems.get2ClassLinear(200, new Random());
 
         Perceptron instance = new Perceptron();
         instance = instance.clone();
         instance.trainCOnline(train);
         instance = instance.clone();
 
-        ClassificationDataSet test = FixedProblems.get2ClassLinear(200, new Random());
+        final ClassificationDataSet test = FixedProblems.get2ClassLinear(200, new Random());
 
-        for (DataPointPair<Integer> dpp : test.getAsDPPList()) {
+        for (final DataPointPair<Integer> dpp : test.getAsDPPList()) {
           assertEquals(dpp.getPair().longValue(), instance.classify(dpp.getDataPoint()).mostLikely());
         }
     }

@@ -34,12 +34,12 @@ public class ElkanKernelKMeans extends KernelKMeans
      * Creates a new Kernel K Means object
      * @param kernel the kernel to use
      */
-    public ElkanKernelKMeans(KernelTrick kernel)
+    public ElkanKernelKMeans(final KernelTrick kernel)
     {
         super(kernel);
     }
 
-    public ElkanKernelKMeans(ElkanKernelKMeans toCopy)
+    public ElkanKernelKMeans(final ElkanKernelKMeans toCopy)
     {
         super(toCopy);
     }
@@ -61,7 +61,7 @@ public class ElkanKernelKMeans extends KernelKMeans
      * @param threadpool the source of threads for parallel computation. If <tt>null</tt>, single threaded execution will occur
      * @return the sum of squares distances from each data point to its closest cluster
      */
-    protected double cluster(final DataSet dataSet, final int k, final int[] assignment, boolean exactTotal, ExecutorService threadpool)
+    protected double cluster(final DataSet dataSet, final int k, final int[] assignment, final boolean exactTotal, final ExecutorService threadpool)
     {
         try
         {
@@ -167,13 +167,13 @@ public class ElkanKernelKMeans extends KernelKMeans
                     {
                         latch.await();
                     }
-                    catch (InterruptedException ex)
+                    catch (final InterruptedException ex)
                     {
                         throw new ClusterFailureException("Clustering failed");
                     }
                 }
                 
-                int moved = step4_5_6_distanceMovedBoundsUpdate(k, N, lowerBound, upperBound, assignment, r, threadpool);
+                final int moved = step4_5_6_distanceMovedBoundsUpdate(k, N, lowerBound, upperBound, assignment, r, threadpool);
             }
 
             double totalDistance = 0.0;
@@ -191,7 +191,7 @@ public class ElkanKernelKMeans extends KernelKMeans
 
             return totalDistance;
         }
-        catch (Exception ex)
+        catch (final Exception ex)
         {
             Logger.getLogger(ElkanKernelKMeans.class.getName()).log(Level.SEVERE, null, ex);
         }
@@ -214,7 +214,7 @@ public class ElkanKernelKMeans extends KernelKMeans
                 if (skip[i]) {
                   continue;
                 }
-                double d = distance(q, i, assignment);
+                final double d = distance(q, i, assignment);
                 lowerBound[q][i] = d;
 
                 if (d < minDistance)
@@ -236,7 +236,7 @@ public class ElkanKernelKMeans extends KernelKMeans
     
     private void initialClusterSetUp(final int k, final int N, final double[][] lowerBound, 
             final double[] upperBound, final double[][] centroidSelfDistances, final int[] assignment,
-            ExecutorService threadpool)
+            final ExecutorService threadpool)
     {
         final int blockSize = N / SystemInfo.LogicalCores;
         int extra = N % SystemInfo.LogicalCores;
@@ -267,7 +267,7 @@ public class ElkanKernelKMeans extends KernelKMeans
                             if (skip[i]) {
                               continue;
                             }
-                            double d = distance(q, i, assignment);
+                            final double d = distance(q, i, assignment);
                             lowerBound[q][i] = d;
 
                             if (d < minDistance)
@@ -296,7 +296,7 @@ public class ElkanKernelKMeans extends KernelKMeans
         {
             latch.await();
         }
-        catch (InterruptedException ex)
+        catch (final InterruptedException ex)
         {
             Logger.getLogger(ElkanKernelKMeans.class.getName()).log(Level.SEVERE, null, ex);
         }
@@ -304,7 +304,7 @@ public class ElkanKernelKMeans extends KernelKMeans
 
     private int step4_5_6_distanceMovedBoundsUpdate(final int k, final int N, 
             final double[][] lowerBound, final double[] upperBound, 
-            final int[] assignment, final boolean[] r, ExecutorService threadpool)
+            final int[] assignment, final boolean[] r, final ExecutorService threadpool)
     {
         final double[] distancesMoved = new double[k];
         //copy the originonal sqrd norms b/c we need them to compute the distance means moved
@@ -318,7 +318,7 @@ public class ElkanKernelKMeans extends KernelKMeans
             try
             {
                 //first we need to do assignment movement updated, otherwise the sqrdNorms will be wrong and we will get incorrect values for cluster movemnt
-                List<Future<Integer>> futureChanges = new ArrayList<Future<Integer>>(SystemInfo.LogicalCores);
+                final List<Future<Integer>> futureChanges = new ArrayList<Future<Integer>>(SystemInfo.LogicalCores);
                 for(int id = 0; id < SystemInfo.LogicalCores; id++)
                 {
                     final int start = ParallelUtils.getStartBlock(N, id, SystemInfo.LogicalCores);
@@ -328,8 +328,8 @@ public class ElkanKernelKMeans extends KernelKMeans
                         @Override
                         public Integer call()
                         {
-                            double[] sqrdChange = new double[k];
-                            int[] ownerChange = new int[k];
+                            final double[] sqrdChange = new double[k];
+                            final int[] ownerChange = new int[k];
                             int localChange = 0;
                             for(int q = start; q < end; q++) {
                               localChange += updateMeansFromChange(q, assignment, sqrdChange, ownerChange);
@@ -345,11 +345,11 @@ public class ElkanKernelKMeans extends KernelKMeans
                 
                 try
                 {
-                    for (Future<Integer> f : futureChanges) {
+                    for (final Future<Integer> f : futureChanges) {
                       moved += f.get();
                     }
                 }
-                catch (ExecutionException ex)
+                catch (final ExecutionException ex)
                 {
                     Logger.getLogger(ElkanKernelKMeans.class.getName()).log(Level.SEVERE, null, ex);
                 }
@@ -404,7 +404,7 @@ public class ElkanKernelKMeans extends KernelKMeans
                 
                 return moved;
             }
-            catch (InterruptedException ex)
+            catch (final InterruptedException ex)
             {
                 Logger.getLogger(ElkanKernelKMeans.class.getName()).log(Level.SEVERE, null, ex);
             }
@@ -441,27 +441,27 @@ public class ElkanKernelKMeans extends KernelKMeans
         return moved;
     }
 
-    private void step3aBoundsUpdate(boolean[] r, int q, final int[] assignment, double[] upperBound, double[][] lowerBound)
+    private void step3aBoundsUpdate(final boolean[] r, final int q, final int[] assignment, final double[] upperBound, final double[][] lowerBound)
     {
         //3(a)
         if (r[q])
         {
             r[q] = false;
-            int meanIndx = assignment[q];
-            double d = distance(q, meanIndx, assignment);
+            final int meanIndx = assignment[q];
+            final double d = distance(q, meanIndx, assignment);
             lowerBound[q][meanIndx] = d;///Not sure if this is supposed to be here
             upperBound[q] = d;
         }
     }
 
-    private void step3bUpdate(double[] upperBound, final int q, double[][] lowerBound,
-            final int c, double[][] centroidSelfDistances, final int[] assignment, 
+    private void step3bUpdate(final double[] upperBound, final int q, final double[][] lowerBound,
+            final int c, final double[][] centroidSelfDistances, final int[] assignment, 
             final AtomicBoolean changeOccurred)
     {
         //3(b)
         if (upperBound[q] > lowerBound[q][c] || upperBound[q] > centroidSelfDistances[assignment[q]][c] / 2)
         {
-            double d = distance(q, c, assignment);
+            final double d = distance(q, c, assignment);
             lowerBound[q][c] = d;
             if (d < upperBound[q])
             {
@@ -474,12 +474,12 @@ public class ElkanKernelKMeans extends KernelKMeans
         }
     }
 
-    private void calculateCentroidDistances(final int k, final double[][] centroidSelfDistances, final double[] sC, final int[] curAssignments, ExecutorService threadpool)
+    private void calculateCentroidDistances(final int k, final double[][] centroidSelfDistances, final double[] sC, final int[] curAssignments, final ExecutorService threadpool)
     {
         if(threadpool != null)
         {
             //# of items in the upper triangle of a matrix excluding diagonal is (1+k)*k/2-k
-            int jobs = (1+k)*k/2-k;
+            final int jobs = (1+k)*k/2-k;
             //compute self distances
             final CountDownLatch latch = new CountDownLatch(jobs);
             for (int i = 0; i < k; i++)
@@ -504,7 +504,7 @@ public class ElkanKernelKMeans extends KernelKMeans
             {
                 latch.await();
             }
-            catch (InterruptedException ex)
+            catch (final InterruptedException ex)
             {
                 Logger.getLogger(ElkanKernelKMeans.class.getName()).log(Level.SEVERE, null, ex);
             }
@@ -544,7 +544,7 @@ public class ElkanKernelKMeans extends KernelKMeans
     }
 
     @Override
-    public int[] cluster(DataSet dataSet, int clusters, ExecutorService threadpool, int[] designations)
+    public int[] cluster(final DataSet dataSet, final int clusters, final ExecutorService threadpool, int[] designations)
     {
         if(designations == null) {
           designations = new int[dataSet.getSampleSize()];
@@ -558,7 +558,7 @@ public class ElkanKernelKMeans extends KernelKMeans
     }
 
     @Override
-    public int[] cluster(DataSet dataSet, int clusters, int[] designations)
+    public int[] cluster(final DataSet dataSet, final int clusters, int[] designations)
     {
         if(designations == null) {
           designations = new int[dataSet.getSampleSize()];

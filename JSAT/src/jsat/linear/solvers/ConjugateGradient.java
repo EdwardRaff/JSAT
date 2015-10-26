@@ -36,7 +36,7 @@ public class ConjugateGradient
      * @param b the target values
      * @return the approximate solution to the equation <i>A x = b</i>
      */
-    public static Vec solve(double eps, Matrix A, Vec x, Vec b)
+    public static Vec solve(final double eps, final Matrix A, final Vec x, final Vec b)
     {
         if(!A.isSquare()) {
           throw new ArithmeticException("A must be a square (symmetric & positive definite) matrix");
@@ -44,28 +44,28 @@ public class ConjugateGradient
           throw new ArithmeticException("Matrix A dimensions do not agree with x and b");
         }
         int k = 0;
-        Vec r_k = b.subtract(A.multiply(x));
-        Vec p_k = r_k.clone();
+        final Vec r_k = b.subtract(A.multiply(x));
+        final Vec p_k = r_k.clone();
         Vec Apk;
         
         double RdR = r_k.dot(r_k);
         do
         {
             Apk = A.multiply(p_k);
-            double alpha_k = RdR /  p_k.dot(Apk) ;
+            final double alpha_k = RdR /  p_k.dot(Apk) ;
             
             x.mutableAdd(alpha_k, p_k);
             
             r_k.mutableAdd(-alpha_k, Apk);
             
-            double newRdR = r_k.dot(r_k);
+            final double newRdR = r_k.dot(r_k);
             
             //Stop when we are close enough
             if(newRdR < eps*eps) {
               return x;
             }
             
-            double beta_k = newRdR/RdR;
+            final double beta_k = newRdR/RdR;
             
             p_k.mutableMultiply(beta_k);
             p_k.mutableAdd(r_k);
@@ -78,9 +78,9 @@ public class ConjugateGradient
         return x;
     }
     
-    public static Vec solve(Matrix A, Vec b)
+    public static Vec solve(final Matrix A, final Vec b)
     {
-        DenseVector x = new DenseVector(b.length());
+        final DenseVector x = new DenseVector(b.length());
         return solve(1e-10, A, x, b);
     }
     
@@ -106,7 +106,7 @@ public class ConjugateGradient
      * 
      * @return the approximate solution to the equation <i>A x = b</i>
      */
-    public static Vec solve(double eps, Matrix A, Vec x, Vec b, Matrix Minv)
+    public static Vec solve(final double eps, final Matrix A, final Vec x, final Vec b, final Matrix Minv)
     {
         if(!A.isSquare() || !Minv.isSquare()) {
           throw new ArithmeticException("A and Minv must be square (symmetric & positive definite) matrix");
@@ -117,9 +117,9 @@ public class ConjugateGradient
         }
         
         int k = 0;
-        Vec r_k = b.subtract(A.multiply(x));
+        final Vec r_k = b.subtract(A.multiply(x));
         Vec z_k = Minv.multiply(r_k);
-        Vec p_k = z_k.clone();
+        final Vec p_k = z_k.clone();
         Vec Apk;
         double rkzk = r_k.dot(z_k);
         
@@ -127,7 +127,7 @@ public class ConjugateGradient
         {
             Apk = A.multiply(p_k);
             
-            double alpha = rkzk/p_k.dot(Apk);
+            final double alpha = rkzk/p_k.dot(Apk);
             x.mutableAdd(alpha, p_k);
             r_k.mutableSubtract(alpha, Apk);
             
@@ -137,8 +137,8 @@ public class ConjugateGradient
             
             z_k = Minv.multiply(r_k);//TODO implement method so we can reuse z_k space, instead of creating a new vector
             
-            double newRkZk = r_k.dot(z_k);
-            double beta = newRkZk/rkzk;
+            final double newRkZk = r_k.dot(z_k);
+            final double beta = newRkZk/rkzk;
             rkzk = newRkZk;
             
             p_k.mutableMultiply(beta);
@@ -168,7 +168,7 @@ public class ConjugateGradient
      * @param b the target values
      * @return the least squares solution to A x = b
      */
-    public static Vec solveCGNR(double eps, Matrix A, Vec x, Vec b)
+    public static Vec solveCGNR(final double eps, final Matrix A, final Vec x, final Vec b)
     {
         if(A.rows() != b.length()) {
           throw new ArithmeticException("Dimensions do not agree for Matrix A and Vector b");
@@ -177,16 +177,16 @@ public class ConjugateGradient
         }
         
         //TODO write a version that does not explicityly form the transpose matrix
-        Matrix At = A.transpose();
-        Matrix AtA = At.multiply(A);
-        Vec AtB = At.multiply(b);
+        final Matrix At = A.transpose();
+        final Matrix AtA = At.multiply(A);
+        final Vec AtB = At.multiply(b);
         
         return solve(eps, AtA, x, AtB);
     }
     
-    public static Vec solveCGNR(Matrix A, Vec b)
+    public static Vec solveCGNR(final Matrix A, final Vec b)
     {
-        DenseVector x = new DenseVector(A.cols());
+        final DenseVector x = new DenseVector(A.cols());
         return solveCGNR(1e-10, A, x, b);
     }
 }

@@ -14,7 +14,7 @@ import jsat.linear.distancemetrics.EuclideanDistance;
  */
 public class MeanDistance implements IntraClusterEvaluation
 {
-    private DistanceMetric dm;
+    private final DistanceMetric dm;
 
     /**
      * Creates a new MeanDistance using the {@link EuclideanDistance}
@@ -28,7 +28,7 @@ public class MeanDistance implements IntraClusterEvaluation
      * Creates a new MeanDistance
      * @param dm the metric to measure the distance between two points by
      */
-    public MeanDistance(DistanceMetric dm)
+    public MeanDistance(final DistanceMetric dm)
     {
         this.dm = dm;
     }
@@ -37,13 +37,13 @@ public class MeanDistance implements IntraClusterEvaluation
      * Copy constructor
      * @param toCopy the object to copy
      */
-    public MeanDistance(MeanDistance toCopy)
+    public MeanDistance(final MeanDistance toCopy)
     {
         this(toCopy.dm.clone());
     }
     
     @Override
-    public double evaluate(int[] designations, DataSet dataSet, int clusterID)
+    public double evaluate(final int[] designations, final DataSet dataSet, final int clusterID)
     {
         double distances = 0;
         for (int i = 0; i < dataSet.getSampleSize(); i++) {
@@ -58,7 +58,7 @@ public class MeanDistance implements IntraClusterEvaluation
     }
 
     @Override
-    public double evaluate(List<DataPoint> dataPoints)
+    public double evaluate(final List<DataPoint> dataPoints)
     {
         double distances = 0.0;
         for(int i = 0; i < dataPoints.size(); i++) {

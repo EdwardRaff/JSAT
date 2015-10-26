@@ -16,7 +16,7 @@ public class SigmoidLayer implements ActivationLayer
 	private static final long serialVersionUID = 160273287445169627L;
 
 	@Override
-    public void activate(Vec input, Vec output)
+    public void activate(final Vec input, final Vec output)
     {
         for(int i = 0; i < input.length(); i++) {
           output.set(i, 1/(1+Math.exp(-input.get(i))));
@@ -24,7 +24,7 @@ public class SigmoidLayer implements ActivationLayer
     }
     
     @Override
-    public void activate(Matrix input, Matrix output, boolean rowMajor)
+    public void activate(final Matrix input, final Matrix output, final boolean rowMajor)
     {
         for(int i = 0; i < input.rows(); i++) {
           for (int j = 0; j < input.cols(); j++) {
@@ -34,12 +34,12 @@ public class SigmoidLayer implements ActivationLayer
     }
 
     @Override
-    public void backprop(Vec input, Vec output, Vec delta_partial, Vec errout)
+    public void backprop(final Vec input, final Vec output, final Vec delta_partial, final Vec errout)
     {
         for(int i = 0; i < input.length(); i++)
         {
-            double out_i = output.get(i);
-            double errin_i = delta_partial.get(i);
+            final double out_i = output.get(i);
+            final double errin_i = delta_partial.get(i);
             errout.set(i, out_i*(1-out_i)*errin_i);
         }
     }
@@ -47,13 +47,13 @@ public class SigmoidLayer implements ActivationLayer
     
 
     @Override
-    public void backprop(Matrix input, Matrix output, Matrix delta_partial, Matrix errout, boolean rowMajor)
+    public void backprop(final Matrix input, final Matrix output, final Matrix delta_partial, final Matrix errout, final boolean rowMajor)
     {
         for(int i = 0; i < input.rows(); i++) {
           for(int j = 0; j < input.cols(); j++)
           {
-            double out_ij = output.get(i, j);
-            double errin_ij = delta_partial.get(i, j);
+            final double out_ij = output.get(i, j);
+            final double errin_ij = delta_partial.get(i, j);
             errout.set(i, j, out_ij*(1-out_ij)*errin_ij);
           }
         }

@@ -57,7 +57,7 @@ public class UpdatableStacking implements UpdateableClassifier, UpdateableRegres
      * @param aggregatingClassifier the classifier used to merge the results of all the input classifiers
      * @param baseClassifiers the list of base classifiers to ensemble
      */
-    public UpdatableStacking(UpdateableClassifier aggregatingClassifier, List<UpdateableClassifier> baseClassifiers)
+    public UpdatableStacking(final UpdateableClassifier aggregatingClassifier, final List<UpdateableClassifier> baseClassifiers)
     {
         if(baseClassifiers.size() < 2) {
           throw new IllegalArgumentException("base classifiers must contain at least 2 elements, not " + baseClassifiers.size());
@@ -67,7 +67,7 @@ public class UpdatableStacking implements UpdateableClassifier, UpdateableRegres
         this.baseClassifiers = baseClassifiers;
         
         boolean allRegressors = aggregatingClassifier instanceof UpdateableRegressor;
-        for(UpdateableClassifier cl : baseClassifiers) {
+        for(final UpdateableClassifier cl : baseClassifiers) {
           if (!(cl instanceof UpdateableRegressor)) {
             allRegressors = false;
           }
@@ -85,7 +85,7 @@ public class UpdatableStacking implements UpdateableClassifier, UpdateableRegres
      * @param aggregatingClassifier the classifier used to merge the results of all the input classifiers
      * @param baseClassifiers the array of base classifiers to ensemble
      */
-    public UpdatableStacking(UpdateableClassifier aggregatingClassifier, UpdateableClassifier... baseClassifiers)
+    public UpdatableStacking(final UpdateableClassifier aggregatingClassifier, final UpdateableClassifier... baseClassifiers)
     {
         this(aggregatingClassifier, Arrays.asList(baseClassifiers));
     }
@@ -95,13 +95,13 @@ public class UpdatableStacking implements UpdateableClassifier, UpdateableRegres
      * @param aggregatingRegressor the regressor used to merge the results of all the input classifiers
      * @param baseRegressors the list of base regressors to ensemble
      */
-    public UpdatableStacking(UpdateableRegressor aggregatingRegressor, List<UpdateableRegressor> baseRegressors)
+    public UpdatableStacking(final UpdateableRegressor aggregatingRegressor, final List<UpdateableRegressor> baseRegressors)
     {
         this.aggregatingRegressor = aggregatingRegressor;
         this.baseRegressors = baseRegressors;
         
         boolean allClassifiers = aggregatingRegressor instanceof UpdateableClassifier;
-        for(UpdateableRegressor reg : baseRegressors) {
+        for(final UpdateableRegressor reg : baseRegressors) {
           if (!(reg instanceof UpdateableClassifier)) {
             allClassifiers = false;
           }
@@ -119,7 +119,7 @@ public class UpdatableStacking implements UpdateableClassifier, UpdateableRegres
      * @param aggregatingRegressor the regressor used to merge the results of all the input classifiers
      * @param baseRegressors the array of base regressors to ensemble
      */
-    public UpdatableStacking(UpdateableRegressor aggregatingRegressor, UpdateableRegressor... baseRegressors)
+    public UpdatableStacking(final UpdateableRegressor aggregatingRegressor, final UpdateableRegressor... baseRegressors)
     {
         this(aggregatingRegressor, Arrays.asList(baseRegressors));
     }
@@ -128,14 +128,14 @@ public class UpdatableStacking implements UpdateableClassifier, UpdateableRegres
      * Copy constructor
      * @param toCopy the object to copy
      */
-    public UpdatableStacking(UpdatableStacking toCopy)
+    public UpdatableStacking(final UpdatableStacking toCopy)
     {
         this.weightsPerModel = toCopy.weightsPerModel;
         if(toCopy.aggregatingClassifier != null)
         {
             this.aggregatingClassifier = toCopy.aggregatingClassifier.clone();
             this.baseClassifiers = new ArrayList<UpdateableClassifier>(toCopy.baseClassifiers.size());
-            for(UpdateableClassifier bc : toCopy.baseClassifiers) {
+            for(final UpdateableClassifier bc : toCopy.baseClassifiers) {
               this.baseClassifiers.add(bc.clone());
             }
             
@@ -149,14 +149,14 @@ public class UpdatableStacking implements UpdateableClassifier, UpdateableRegres
         {
             this.aggregatingRegressor = toCopy.aggregatingRegressor.clone();
             this.baseRegressors = new ArrayList<UpdateableRegressor>(toCopy.baseRegressors.size());
-            for(UpdateableRegressor br : toCopy.baseRegressors) {
+            for(final UpdateableRegressor br : toCopy.baseRegressors) {
               this.baseRegressors.add(br.clone());
             }
         }
     }
 
     @Override
-    public CategoricalResults classify(DataPoint data)
+    public CategoricalResults classify(final DataPoint data)
     {
         return aggregatingClassifier.classify(getPredVecC(data, 1.0));
     }
@@ -168,9 +168,9 @@ public class UpdatableStacking implements UpdateableClassifier, UpdateableRegres
      * @param weight the weight to use for the data point object
      * @return the vector of predictions from each classifier
      */
-    private DataPoint getPredVecC(DataPoint data, double weight)
+    private DataPoint getPredVecC(final DataPoint data, final double weight)
     {
-        Vec w = new DenseVector(weightsPerModel*baseClassifiers.size());
+        final Vec w = new DenseVector(weightsPerModel*baseClassifiers.size());
         if(weightsPerModel == 1) {
           for (int i = 0; i < baseClassifiers.size(); i++) {
             w.set(i, baseClassifiers.get(i).classify(data).getProb(0)*2-1);
@@ -179,7 +179,7 @@ public class UpdatableStacking implements UpdateableClassifier, UpdateableRegres
         {
             for(int i = 0; i < baseClassifiers.size(); i++)
             {
-                CategoricalResults pred = baseClassifiers.get(i).classify(data);
+                final CategoricalResults pred = baseClassifiers.get(i).classify(data);
                 for(int j = 0; j < weightsPerModel; j++) {
                   w.set(i*weightsPerModel+j, pred.getProb(j));
             }
@@ -196,9 +196,9 @@ public class UpdatableStacking implements UpdateableClassifier, UpdateableRegres
      * @param weight the weight to use for the data point object
      * @return the vector of predictions from each regressor
      */
-    private DataPoint getPredVecR(DataPoint data, double weight)
+    private DataPoint getPredVecR(final DataPoint data, final double weight)
     {
-        Vec w = new DenseVector(baseRegressors.size());
+        final Vec w = new DenseVector(baseRegressors.size());
         for (int i = 0; i < baseRegressors.size(); i++) {
           w.set(i, baseRegressors.get(i).regress(data));
         }
@@ -206,58 +206,58 @@ public class UpdatableStacking implements UpdateableClassifier, UpdateableRegres
     }
     
     @Override
-    public void setUp(CategoricalData[] categoricalAttributes, int numericAttributes, CategoricalData predicting)
+    public void setUp(final CategoricalData[] categoricalAttributes, final int numericAttributes, final CategoricalData predicting)
     {
         final int C = predicting.getNumOfCategories();
         weightsPerModel = C == 2 ? 1 : C;
         //set up all models, agregating gets different arugmetns since it gets the created input from the base models
         aggregatingClassifier.setUp(new CategoricalData[0], weightsPerModel*baseClassifiers.size(), predicting);
-        for(UpdateableClassifier uc : baseClassifiers) {
+        for(final UpdateableClassifier uc : baseClassifiers) {
           uc.setUp(categoricalAttributes, numericAttributes, predicting);
         }
     }
 
     @Override
-    public void update(DataPoint dataPoint, int targetClass)
+    public void update(final DataPoint dataPoint, final int targetClass)
     {
         //predate first, gives an unbiased udpdate for the aggregator
         aggregatingClassifier.update(getPredVecC(dataPoint, dataPoint.getWeight()), targetClass);
         //now update the base models
-        for(UpdateableClassifier uc : baseClassifiers) {
+        for(final UpdateableClassifier uc : baseClassifiers) {
           uc.update(dataPoint, targetClass);
         }
         
     }
     
     @Override
-    public void setUp(CategoricalData[] categoricalAttributes, int numericAttributes)
+    public void setUp(final CategoricalData[] categoricalAttributes, final int numericAttributes)
     {
         weightsPerModel = 1;
         aggregatingRegressor.setUp(new CategoricalData[0], weightsPerModel*baseRegressors.size());
-        for(UpdateableRegressor ur : baseRegressors) {
+        for(final UpdateableRegressor ur : baseRegressors) {
           ur.setUp(categoricalAttributes, numericAttributes);
         }
     }
 
     @Override
-    public void update(DataPoint dataPoint, double targetValue)
+    public void update(final DataPoint dataPoint, final double targetValue)
     {
         //predate first, gives an unbiased udpdate for the aggregator
         aggregatingRegressor.update(getPredVecR(dataPoint, dataPoint.getWeight()), targetValue);
         //now update the base models
-        for(UpdateableRegressor ur : baseRegressors) {
+        for(final UpdateableRegressor ur : baseRegressors) {
           ur.update(dataPoint, targetValue);
         }
     }
 
     @Override
-    public void trainC(ClassificationDataSet dataSet, ExecutorService threadPool)
+    public void trainC(final ClassificationDataSet dataSet, final ExecutorService threadPool)
     {
         trainC(dataSet);
     }
 
     @Override
-    public void trainC(ClassificationDataSet dataSet)
+    public void trainC(final ClassificationDataSet dataSet)
     {
         BaseUpdateableClassifier.trainEpochs(dataSet, this, 1);
     }
@@ -273,19 +273,19 @@ public class UpdatableStacking implements UpdateableClassifier, UpdateableRegres
     }
 
     @Override
-    public double regress(DataPoint data)
+    public double regress(final DataPoint data)
     {
         return aggregatingRegressor.regress(getPredVecR(data, 1.0));
     }
 
     @Override
-    public void train(RegressionDataSet dataSet, ExecutorService threadPool)
+    public void train(final RegressionDataSet dataSet, final ExecutorService threadPool)
     {
         train(dataSet);
     }
 
     @Override
-    public void train(RegressionDataSet dataSet)
+    public void train(final RegressionDataSet dataSet)
     {
         BaseUpdateableRegressor.trainEpochs(dataSet, this, 1);
     }

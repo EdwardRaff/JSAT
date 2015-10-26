@@ -70,7 +70,7 @@ public class KernelPCA implements DataTransform
      * will be used. 
      * @param samplingMethod the sampling method to select the basis vectors
      */
-    public KernelPCA(KernelTrick k, DataSet ds, int dimensions, int basisSize, Nystrom.SamplingMethod samplingMethod)
+    public KernelPCA(final KernelTrick k, final DataSet ds, final int dimensions, final int basisSize, final Nystrom.SamplingMethod samplingMethod)
     {
         this.dimensions = dimensions;
         this.k = k;
@@ -85,13 +85,13 @@ public class KernelPCA implements DataTransform
         else
         {
             int i = 0;
-            List<Vec> sample = Nystrom.sampleBasisVectors(k, ds, ds.getDataVectors(), samplingMethod, basisSize, false, new XOR96());
+            final List<Vec> sample = Nystrom.sampleBasisVectors(k, ds, ds.getDataVectors(), samplingMethod, basisSize, false, new XOR96());
             vecs = new Vec[sample.size()];
-            for(Vec v : sample) {
+            for(final Vec v : sample) {
               vecs[i++] = v;
             }
         }
-        Matrix K = new DenseMatrix(vecs.length, vecs.length);
+        final Matrix K = new DenseMatrix(vecs.length, vecs.length);
         
         //Info used to compute centered Kernel matrix
         rowAvg = new double[K.rows()];
@@ -99,10 +99,10 @@ public class KernelPCA implements DataTransform
         
         for(int i = 0; i < K.rows(); i++)
         {
-            Vec x_i = vecs[i];
+            final Vec x_i = vecs[i];
             for(int j = i; j < K.cols(); j++)
             {
-                double K_ij = k.eval(x_i, vecs[j]);
+                final double K_ij = k.eval(x_i, vecs[j]);
                 K.set(i, j, K_ij);
 
                 K.set(j, i, K_ij);//K = K'
@@ -136,11 +136,11 @@ public class KernelPCA implements DataTransform
         }
         
         
-        EigenValueDecomposition evd = new EigenValueDecomposition(K);
+        final EigenValueDecomposition evd = new EigenValueDecomposition(K);
         evd.sortByEigenValue(new Comparator<Double>() 
         {
             @Override
-            public int compare(Double o1, Double o2)
+            public int compare(final Double o1, final Double o2)
             {
                 return -Double.compare(o1, o2);
             }
@@ -158,7 +158,7 @@ public class KernelPCA implements DataTransform
      * Copy constructor
      * @param toCopy the object to copy
      */
-    protected KernelPCA(KernelPCA toCopy)
+    protected KernelPCA(final KernelPCA toCopy)
     {
         this.dimensions = toCopy.dimensions;
         this.k = toCopy.k.clone();
@@ -173,10 +173,10 @@ public class KernelPCA implements DataTransform
     }
     
     @Override
-    public DataPoint transform(DataPoint dp)
+    public DataPoint transform(final DataPoint dp)
     {
-        Vec oldVec = dp.getNumericalValues();
-        Vec newVec = new DenseVector(dimensions);
+        final Vec oldVec = dp.getNumericalValues();
+        final Vec newVec = new DenseVector(dimensions);
         
         //TODO put this in a thread local object? Or hope JVM puts a large array on the stack? 
         final double[] kEvals = new double[vecs.length];
@@ -213,7 +213,7 @@ public class KernelPCA implements DataTransform
     static public class KernelPCATransformFactory extends DataTransformFactoryParm
     {
         @ParameterHolder
-        private KernelTrick k;
+        private final KernelTrick k;
         private int dimension;
         private int basisSize;
         private Nystrom.SamplingMethod method;
@@ -227,7 +227,7 @@ public class KernelPCA implements DataTransform
          * set will be used.
          * @param samplingMethod the sampling method to select the basis vectors
          */
-        public KernelPCATransformFactory(KernelTrick k, int dimension, int basisSize, Nystrom.SamplingMethod samplingMethod)
+        public KernelPCATransformFactory(final KernelTrick k, final int dimension, final int basisSize, final Nystrom.SamplingMethod samplingMethod)
         {
             this.k = k;
             setDimension(dimension);
@@ -239,7 +239,7 @@ public class KernelPCA implements DataTransform
          * Copy constructor
          * @param toCopy the object to copy
          */
-        public KernelPCATransformFactory(KernelPCATransformFactory toCopy)
+        public KernelPCATransformFactory(final KernelPCATransformFactory toCopy)
         {
             this(toCopy.k.clone(), toCopy.dimension, toCopy.basisSize, toCopy.method);
         }
@@ -251,7 +251,7 @@ public class KernelPCA implements DataTransform
          * 
          * @param basisSize the number of basis vectors to build Kernel PCA from
          */
-        public void setBasisSize(int basisSize)
+        public void setBasisSize(final int basisSize)
         {
             if(basisSize < 1) {
               throw new IllegalArgumentException("The basis size must be positive, not " + basisSize);
@@ -274,7 +274,7 @@ public class KernelPCA implements DataTransform
          * 
          * @param dimension the number of dimensions to project down too
          */
-        public void setDimension(int dimension)
+        public void setDimension(final int dimension)
         {
             if(dimension < 1) {
               throw new IllegalArgumentException("The number of dimensions must be positive, not " + dimension);
@@ -295,7 +295,7 @@ public class KernelPCA implements DataTransform
          * Sets the method of selecting the basis vectors
          * @param method the method of selecting the basis vectors
          */
-        public void setBasisSamplingMethod(SamplingMethod method)
+        public void setBasisSamplingMethod(final SamplingMethod method)
         {
             this.method = method;
         }
@@ -311,7 +311,7 @@ public class KernelPCA implements DataTransform
         
         
         @Override
-        public DataTransform getTransform(DataSet dataset)
+        public DataTransform getTransform(final DataSet dataset)
         {
             return new KernelPCA(k, dataset, dimension, basisSize, method);
         }

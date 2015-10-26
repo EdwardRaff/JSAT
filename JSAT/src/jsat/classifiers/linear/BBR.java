@@ -67,7 +67,7 @@ public class BBR implements Classifier, Parameterized, SingleWeightVectorModel
      * @param regularization the regularization penalty to apply
      * @param maxIterations the maximum number of training iterations to perform
      */
-    public BBR(double regularization, int maxIterations)
+    public BBR(final double regularization, final int maxIterations)
     {
         this(regularization, maxIterations, Prior.LAPLACE);
     }
@@ -80,7 +80,7 @@ public class BBR implements Classifier, Parameterized, SingleWeightVectorModel
      * @param maxIterations the maximum number of training iterations to perform
      * @param prior the prior to apply for regularization
      */
-    public BBR(double regularization, int maxIterations, Prior prior)
+    public BBR(final double regularization, final int maxIterations, final Prior prior)
     {
         setMaxIterations(maxIterations);
         setRegularization(regularization);
@@ -94,7 +94,7 @@ public class BBR implements Classifier, Parameterized, SingleWeightVectorModel
      *
      * @param maxIterations the maximum number of training iterations to perform
      */
-    public BBR(int maxIterations)
+    public BBR(final int maxIterations)
     {
     }
 
@@ -105,7 +105,7 @@ public class BBR implements Classifier, Parameterized, SingleWeightVectorModel
      * @param maxIterations the maximum number of training iterations to perform
      * @param prior the prior to apply for regularization
      */
-    public BBR(int maxIterations, Prior prior)
+    public BBR(final int maxIterations, final Prior prior)
     {
         setMaxIterations(maxIterations);
         setRegularization(0.01);
@@ -118,7 +118,7 @@ public class BBR implements Classifier, Parameterized, SingleWeightVectorModel
      *
      * @param toCopy the object to copy
      */
-    protected BBR(BBR toCopy)
+    protected BBR(final BBR toCopy)
     {
         if (toCopy.w != null) {
           this.w = toCopy.w.clone();
@@ -138,7 +138,7 @@ public class BBR implements Classifier, Parameterized, SingleWeightVectorModel
      *
      * @param regularization sets the positive regularization penalty to use
      */
-    public void setRegularization(double regularization)
+    public void setRegularization(final double regularization)
     {
         if (Double.isNaN(regularization) || Double.isNaN(regularization) || regularization <= 0) {
           throw new IllegalArgumentException("Regularization must be positive, not " + regularization);
@@ -169,7 +169,7 @@ public class BBR implements Classifier, Parameterized, SingleWeightVectorModel
      * @param autoSetRegularization {@code true} to choose the regularization
      * term automatically, {@code false} to use whatever value was set before.
      */
-    public void setAutoSetRegularization(boolean autoSetRegularization)
+    public void setAutoSetRegularization(final boolean autoSetRegularization)
     {
         this.autoSetRegularization = autoSetRegularization;
     }
@@ -192,7 +192,7 @@ public class BBR implements Classifier, Parameterized, SingleWeightVectorModel
      *
      * @param maxIterations the maximum number of training iterations
      */
-    public void setMaxIterations(int maxIterations)
+    public void setMaxIterations(final int maxIterations)
     {
         this.maxIterations = maxIterations;
     }
@@ -215,7 +215,7 @@ public class BBR implements Classifier, Parameterized, SingleWeightVectorModel
      *
      * @param tolerance the positive convergence tolerance goal
      */
-    public void setTolerance(double tolerance)
+    public void setTolerance(final double tolerance)
     {
         if (Double.isNaN(tolerance) || Double.isInfinite(tolerance) || tolerance <= 0) {
           throw new IllegalArgumentException("Tolerance must be positive, not " + tolerance);
@@ -239,7 +239,7 @@ public class BBR implements Classifier, Parameterized, SingleWeightVectorModel
      * @param useBias {@code true} to add a bias term, {@code false} to exclude
      * the bias term.
      */
-    public void setUseBias(boolean useBias)
+    public void setUseBias(final boolean useBias)
     {
         this.useBias = useBias;
     }
@@ -259,7 +259,7 @@ public class BBR implements Classifier, Parameterized, SingleWeightVectorModel
      *
      * @param prior the prior to use
      */
-    public void setPrior(Prior prior)
+    public void setPrior(final Prior prior)
     {
         this.prior = prior;
     }
@@ -297,7 +297,7 @@ public class BBR implements Classifier, Parameterized, SingleWeightVectorModel
     }
 
     @Override
-    public Vec getRawWeight(int index)
+    public Vec getRawWeight(final int index)
     {
         if(index < 1) {
           return getRawWeight();
@@ -307,7 +307,7 @@ public class BBR implements Classifier, Parameterized, SingleWeightVectorModel
     }
 
     @Override
-    public double getBias(int index)
+    public double getBias(final int index)
     {
         if (index < 1) {
           return getBias();
@@ -323,19 +323,19 @@ public class BBR implements Classifier, Parameterized, SingleWeightVectorModel
     }
     
     @Override
-    public CategoricalResults classify(DataPoint data)
+    public CategoricalResults classify(final DataPoint data)
     {
         return LogisticLoss.classify(w.dot(data.getNumericalValues()) + bias);
     }
 
     @Override
-    public void trainC(ClassificationDataSet dataSet, ExecutorService threadPool)
+    public void trainC(final ClassificationDataSet dataSet, final ExecutorService threadPool)
     {
         trainC(dataSet);
     }
 
     @Override
-    public void trainC(ClassificationDataSet dataSet)
+    public void trainC(final ClassificationDataSet dataSet)
     {
         final int D = dataSet.getNumNumericalVars();
         if (D <= 0) {
@@ -345,12 +345,12 @@ public class BBR implements Classifier, Parameterized, SingleWeightVectorModel
         final Vec[] columnMajor = dataSet.getNumericColumns();
         w = new DenseVector(D);
 
-        double[] delta = new double[useBias ? D + 1 : D];
+        final double[] delta = new double[useBias ? D + 1 : D];
         Arrays.fill(delta, 1.0);
 
         final int N = dataSet.getSampleSize();
-        double[] r = new double[N];
-        double[] y = new double[N];
+        final double[] r = new double[N];
+        final double[] y = new double[N];
         for (int i = 0; i < N; i++) {
           y[i] = dataSet.getDataPointCategory(i) * 2 - 1;
         }
@@ -363,7 +363,7 @@ public class BBR implements Classifier, Parameterized, SingleWeightVectorModel
               normSqrdSum += pow(dataSet.getDataPoint(i).getNumericalValues().pNorm(2), 2);
             }
 
-            double sigma = D * N / normSqrdSum;
+            final double sigma = D * N / normSqrdSum;
 
             //no regularization less than precision 
             if (prior == Prior.LAPLACE) {
@@ -376,7 +376,7 @@ public class BBR implements Classifier, Parameterized, SingleWeightVectorModel
           lambda = regularization;
         }
 
-        double[] r_change = new double[N];
+        final double[] r_change = new double[N];
 
         for (int iter = 0; iter < maxIterations; iter++)
         {
@@ -414,8 +414,8 @@ public class BBR implements Classifier, Parameterized, SingleWeightVectorModel
                     delta_vj = tenativeUpdate(columnMajor, j, w_jOrig, y, r, lambda, 0, delta);
                 }
 
-                double delta_wj = min(max(delta_vj, -delta[j]), delta[j]);//(limit step to trust region)
-                for (IndexValue iv : columnMajor[j])
+                final double delta_wj = min(max(delta_vj, -delta[j]), delta[j]);//(limit step to trust region)
+                for (final IndexValue iv : columnMajor[j])
                 {
                     final int i = iv.getIndex();
                     final double change = delta_wj * iv.getValue() * y[i];
@@ -459,7 +459,7 @@ public class BBR implements Classifier, Parameterized, SingleWeightVectorModel
                     }
                 }
 
-                double delta_wj = min(max(delta_vj, -delta[D]), delta[D]);//(limit step to trust region)
+                final double delta_wj = min(max(delta_vj, -delta[D]), delta[D]);//(limit step to trust region)
                 for (int i = 0; i < N; i++)
                 {
                     final double change = delta_wj * y[i];
@@ -493,7 +493,7 @@ public class BBR implements Classifier, Parameterized, SingleWeightVectorModel
         }
     }
 
-    private static double F(double r, double delta)
+    private static double F(final double r, final double delta)
     {
         if (abs(r) <= delta) {
           return 0.25;
@@ -534,11 +534,11 @@ public class BBR implements Classifier, Parameterized, SingleWeightVectorModel
         double numer = 0, denom = 0;
         if (columnMajor != null)
         {
-            Vec col_j = columnMajor[j];
+            final Vec col_j = columnMajor[j];
             if (col_j.nnz() == 0) {
               return 0;
             }
-            for (IndexValue iv : col_j)
+            for (final IndexValue iv : col_j)
             {
                 final double x_ij = iv.getValue();
                 final int i = iv.getIndex();
@@ -572,7 +572,7 @@ public class BBR implements Classifier, Parameterized, SingleWeightVectorModel
     }
 
     @Override
-    public Parameter getParameter(String paramName)
+    public Parameter getParameter(final String paramName)
     {
         return Parameter.toParameterMap(getParameters()).get(paramName);
     }

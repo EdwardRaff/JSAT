@@ -36,9 +36,9 @@ public abstract class Matrix implements Cloneable, Serializable
      * @param B the matrix to add this <i>this</i>
      * @return {@code A+B}
      */
-    public Matrix add(Matrix B)
+    public Matrix add(final Matrix B)
     {
-        Matrix toReturn = getThisSideMatrix(B);
+        final Matrix toReturn = getThisSideMatrix(B);
         toReturn.mutableAdd(1.0, B);
         return toReturn;
     }
@@ -49,9 +49,9 @@ public abstract class Matrix implements Cloneable, Serializable
      * @param threadPool the source of threads to do computation in parallel
      * @return {@code A+B}
      */
-    public Matrix add(Matrix B, ExecutorService threadPool)
+    public Matrix add(final Matrix B, final ExecutorService threadPool)
     {
-        Matrix toReturn = getThisSideMatrix(B);
+        final Matrix toReturn = getThisSideMatrix(B);
         toReturn.mutableAdd(1.0, B, threadPool);
         return toReturn;
     }
@@ -60,9 +60,9 @@ public abstract class Matrix implements Cloneable, Serializable
      * @param c the scalar to add to each value in <i>this</i>
      * @return {@code A+c}
      */
-    public Matrix add(double c)
+    public Matrix add(final double c)
     {
-        Matrix toReturn = getThisSideMatrix(null);
+        final Matrix toReturn = getThisSideMatrix(null);
         toReturn.mutableAdd(c);
         return toReturn;
     }
@@ -73,9 +73,9 @@ public abstract class Matrix implements Cloneable, Serializable
      * @param threadPool the source of threads to do computation in parallel
      * @return {@code A+B}
      */
-    public Matrix add(double c, ExecutorService threadPool)
+    public Matrix add(final double c, final ExecutorService threadPool)
     {
-        Matrix toReturn = getThisSideMatrix(null);
+        final Matrix toReturn = getThisSideMatrix(null);
         toReturn.mutableAdd(c, threadPool);
         return toReturn;
     }
@@ -84,7 +84,7 @@ public abstract class Matrix implements Cloneable, Serializable
      * Alters the current matrix to store the value <i>A+B</i>
      * @param B the matrix to add this <i>this</i>
      */
-    public void mutableAdd(Matrix B)
+    public void mutableAdd(final Matrix B)
     {
         this.mutableAdd(1.0, B);
     }
@@ -101,7 +101,7 @@ public abstract class Matrix implements Cloneable, Serializable
      * @param B the matrix to add to <i>this</i> 
      * @param threadpool the source of threads to do computation in parallel
      */
-    public void mutableAdd(Matrix B, ExecutorService threadpool)
+    public void mutableAdd(final Matrix B, final ExecutorService threadpool)
     {
         this.mutableAdd(1.0, B, threadpool);
     }
@@ -147,13 +147,13 @@ public abstract class Matrix implements Cloneable, Serializable
      * @param B the other matrix, may be null
      * @return a matrix that can be mutated to take the place of A
      */
-    private Matrix getThisSideMatrix(Matrix B)
+    private Matrix getThisSideMatrix(final Matrix B)
     {
         if(this.canBeMutated()) {
           return this.clone();
         } else//so far, only other option in JSAT is a dense matrix
         {
-            DenseMatrix dm = new DenseMatrix(rows(), cols());
+            final DenseMatrix dm = new DenseMatrix(rows(), cols());
             dm.mutableAdd(this);
             return dm;
         }
@@ -164,9 +164,9 @@ public abstract class Matrix implements Cloneable, Serializable
      * @param B the matrix to subtract from <i>this</i>. 
      * @return a new matrix equal to <i>A-B</i>
      */
-    public Matrix subtract(Matrix B)
+    public Matrix subtract(final Matrix B)
     {
-        Matrix toReturn = getThisSideMatrix(B);
+        final Matrix toReturn = getThisSideMatrix(B);
         toReturn.mutableSubtract(1.0, B);
         return toReturn;
     }
@@ -177,9 +177,9 @@ public abstract class Matrix implements Cloneable, Serializable
      * @param threadPool the source of threads to do computation in parallel
      * @return a new matrix equal to <i>A-B</i>
      */
-    public Matrix subtract(Matrix B, ExecutorService threadPool)
+    public Matrix subtract(final Matrix B, final ExecutorService threadPool)
     {
-        Matrix toReturn = getThisSideMatrix(B);
+        final Matrix toReturn = getThisSideMatrix(B);
         toReturn.mutableSubtract(1.0, B, threadPool);
         return toReturn;
     }
@@ -189,9 +189,9 @@ public abstract class Matrix implements Cloneable, Serializable
      * @param c the scalar constant to subtract from <i>this</i>
      * @return a new matrix equal to <i>A-B</i>
      */
-    public Matrix subtract(double c)
+    public Matrix subtract(final double c)
     {
-        Matrix toReturn = getThisSideMatrix(null);
+        final Matrix toReturn = getThisSideMatrix(null);
         toReturn.mutableSubtract(c);
         return toReturn;
     }
@@ -202,9 +202,9 @@ public abstract class Matrix implements Cloneable, Serializable
      * @param threadPool the source of threads to do computation in parallel
      * @return a new matrix equal to <i>A-B</i>
      */
-    public Matrix subtract(double c, ExecutorService threadPool)
+    public Matrix subtract(final double c, final ExecutorService threadPool)
     {
-        Matrix toReturn = getThisSideMatrix(null);
+        final Matrix toReturn = getThisSideMatrix(null);
         toReturn.mutableSubtract(c, threadPool);
         return toReturn;
     }
@@ -213,7 +213,7 @@ public abstract class Matrix implements Cloneable, Serializable
      * Alters the current matrix to store <i>A-B</i>
      * @param B the matrix to subtract from <i>this</i>.  
      */
-    public void mutableSubtract(Matrix B)
+    public void mutableSubtract(final Matrix B)
     {
         this.mutableSubtract(1.0, B);
     }
@@ -223,7 +223,7 @@ public abstract class Matrix implements Cloneable, Serializable
      * @param c the scalar constant to multiply <i>B</i> by
      * @param B the matrix to subtract from <i>this</i>.  
      */
-    public void mutableSubtract(double c, Matrix B)
+    public void mutableSubtract(final double c, final Matrix B)
     {
         mutableAdd(-c, B);
     }
@@ -233,7 +233,7 @@ public abstract class Matrix implements Cloneable, Serializable
      * @param B the matrix to subtract from <i>this</i>.  
      * @param threadpool the source of threads to do computation in parallel
      */
-    public void mutableSubtract(Matrix B, ExecutorService threadpool)
+    public void mutableSubtract(final Matrix B, final ExecutorService threadpool)
     {
         this.mutableSubtract(1.0, B, threadpool);
     }
@@ -244,7 +244,7 @@ public abstract class Matrix implements Cloneable, Serializable
      * @param B the matrix to subtract from <i>this</i>.  
      * @param threadPool the source of threads to do computation in parallel
      */
-    public void mutableSubtract(double c, Matrix B, ExecutorService threadPool)
+    public void mutableSubtract(final double c, final Matrix B, final ExecutorService threadPool)
     {
         mutableAdd(-c, B, threadPool);
     }
@@ -253,7 +253,7 @@ public abstract class Matrix implements Cloneable, Serializable
      * Alters the current matrix to store <i>A-c</i>
      * @param c the scalar constant to subtract from <i>this</i>
      */
-    public void mutableSubtract(double c)
+    public void mutableSubtract(final double c)
     {
         mutableAdd(-c);
     }
@@ -263,7 +263,7 @@ public abstract class Matrix implements Cloneable, Serializable
      * @param c the scalar constant to subtract from <i>this</i>
      * @param threadPool the source of threads to do computation in parallel
      */
-    public void mutableSubtract(double c, ExecutorService threadPool)
+    public void mutableSubtract(final double c, final ExecutorService threadPool)
     {
         mutableAdd(-c, threadPool);
     }
@@ -283,9 +283,9 @@ public abstract class Matrix implements Cloneable, Serializable
      * @param b the vector to multiply by
      * @return a new vector <i>A*<b>b</b> </i>
      */
-    public Vec multiply(Vec b)
+    public Vec multiply(final Vec b)
     {
-        DenseVector result = new  DenseVector(rows());
+        final DenseVector result = new  DenseVector(rows());
         multiply(b, 1.0, result);
         return result;
     }
@@ -295,9 +295,9 @@ public abstract class Matrix implements Cloneable, Serializable
      * @param B the matrix to multiply by
      * @return a new matrix <i>A*B</i>
      */
-    public Matrix multiply(Matrix B)
+    public Matrix multiply(final Matrix B)
     {
-        Matrix C = new DenseMatrix(this.rows(), B.cols());
+        final Matrix C = new DenseMatrix(this.rows(), B.cols());
         multiply(B, C);
         return C;
     }
@@ -308,9 +308,9 @@ public abstract class Matrix implements Cloneable, Serializable
      * @param threadPool the source of threads to do computation in parallel
      * @return a new matrix <i>A*B</i>
      */
-    public Matrix multiply(Matrix B, ExecutorService threadPool)
+    public Matrix multiply(final Matrix B, final ExecutorService threadPool)
     {
-        Matrix C = new DenseMatrix(this.rows(), B.cols());
+        final Matrix C = new DenseMatrix(this.rows(), B.cols());
         multiply(B, C, threadPool);
         return C;
     }
@@ -344,7 +344,7 @@ public abstract class Matrix implements Cloneable, Serializable
      */
     public Matrix multiplyTranspose(final Matrix B)
     {
-        Matrix C = new DenseMatrix(this.rows(), B.rows());
+        final Matrix C = new DenseMatrix(this.rows(), B.rows());
         multiplyTranspose(B, C);
         return C;
     }
@@ -363,9 +363,9 @@ public abstract class Matrix implements Cloneable, Serializable
      * @param threadPool the source of threads to do computation in parallel
      * @return the result C
      */
-    public Matrix multiplyTranspose(final Matrix B, ExecutorService threadPool)
+    public Matrix multiplyTranspose(final Matrix B, final ExecutorService threadPool)
     {
-        Matrix C = new DenseMatrix(this.rows(), B.rows());
+        final Matrix C = new DenseMatrix(this.rows(), B.rows());
         multiplyTranspose(B, C, threadPool);
         return C;
     }
@@ -375,9 +375,9 @@ public abstract class Matrix implements Cloneable, Serializable
      * @param c the scalar constant to multiply by
      * @return a new vector <i>A*c</i>
      */
-    public Matrix multiply(double c)
+    public Matrix multiply(final double c)
     {
-        Matrix toReturn = getThisSideMatrix(null);
+        final Matrix toReturn = getThisSideMatrix(null);
         toReturn.mutableMultiply(c);
         return toReturn;
     }
@@ -388,9 +388,9 @@ public abstract class Matrix implements Cloneable, Serializable
      * @param threadPool the source of threads to do computation in parallel
      * @return a new matrix equal to <i>A*c</i>
      */
-    public Matrix multiply(double c, ExecutorService threadPool)
+    public Matrix multiply(final double c, final ExecutorService threadPool)
     {
-        Matrix toReturn = getThisSideMatrix(null);
+        final Matrix toReturn = getThisSideMatrix(null);
         toReturn.mutableMultiply(c, threadPool);
         return toReturn;
     }
@@ -439,7 +439,7 @@ public abstract class Matrix implements Cloneable, Serializable
      */
     public Matrix transpose()
     {
-        Matrix toReturn = new DenseMatrix(cols(), rows());
+        final Matrix toReturn = new DenseMatrix(cols(), rows());
         this.transpose(toReturn);
         return toReturn;
     }
@@ -462,9 +462,9 @@ public abstract class Matrix implements Cloneable, Serializable
      * @param B the other Matrix
      * @return a new matrix equal to <i>A'*B</i>
      */
-    public Matrix transposeMultiply(Matrix B)
+    public Matrix transposeMultiply(final Matrix B)
     {
-        Matrix C = new DenseMatrix(this.cols(), B.cols());
+        final Matrix C = new DenseMatrix(this.cols(), B.cols());
         transposeMultiply(B, C);
         return C;
     }
@@ -486,9 +486,9 @@ public abstract class Matrix implements Cloneable, Serializable
      * @param threadPool the source of threads to do computation in parallel
      * @return a new matrix equal to <i>A'*B</i>
      */
-    public Matrix transposeMultiply(Matrix B, ExecutorService threadPool)
+    public Matrix transposeMultiply(final Matrix B, final ExecutorService threadPool)
     {
-        Matrix C = new DenseMatrix(this.cols(), B.cols());
+        final Matrix C = new DenseMatrix(this.cols(), B.cols());
         transposeMultiply(B, C, threadPool);
         return C;
     }
@@ -516,9 +516,9 @@ public abstract class Matrix implements Cloneable, Serializable
      * @param b the vector to multiply by
      * @return the new vector equal to <i>A'*b*c</i>
      */
-    public Vec transposeMultiply(double c, Vec b)
+    public Vec transposeMultiply(final double c, final Vec b)
     {
-        DenseVector toReturns = new DenseVector(this.cols());
+        final DenseVector toReturns = new DenseVector(this.cols());
         this.transposeMultiply(c, b, toReturns);
         return toReturns;
     }
@@ -546,7 +546,7 @@ public abstract class Matrix implements Cloneable, Serializable
      * @param j the column, starting from 0
      * @param value the value to add to the matrix coordinate 
      */
-    public void increment(int i, int j, double value)
+    public void increment(final int i, final int j, final double value)
     {
         if(Double.isNaN(value) || Double.isInfinite(value)) {
           throw new ArithmeticException("Can not add a value " + value);
@@ -608,12 +608,12 @@ public abstract class Matrix implements Cloneable, Serializable
      * @param j the column to copy
      * @return a clone of the column as a {@link Vec}
      */
-    public Vec getColumn(int j)
+    public Vec getColumn(final int j)
     {
         if(j < 0 || j >= cols()) {
           throw new ArithmeticException("Column was not a valid value " + j + " not in [0," + (cols()-1) + "]");
         }
-        DenseVector c = new DenseVector(rows());
+        final DenseVector c = new DenseVector(rows());
         for(int i =0; i < rows(); i++) {
           c.set(i, get(i, j));
         }
@@ -645,13 +645,13 @@ public abstract class Matrix implements Cloneable, Serializable
             }
 
             @Override
-            public double get(int index)
+            public double get(final int index)
             {
                 return M.get(index, j);
             }
 
             @Override
-            public void set(int index, double val)
+            public void set(final int index, final double val)
             {
                 M.set(index, j, val);
             }
@@ -680,12 +680,12 @@ public abstract class Matrix implements Cloneable, Serializable
      * @param r the row to copy
      * @return a clone of the row as a {@link Vec}
      */
-    public Vec getRow(int r)
+    public Vec getRow(final int r)
     {
         if(r < 0 || r >= rows()) {
           throw new ArithmeticException("Row was not a valid value " + r + " not in [0," + (rows()-1) + "]");
         }
-        DenseVector c = new DenseVector(cols());
+        final DenseVector c = new DenseVector(cols());
         for(int j =0; j < cols(); j++) {
           c.set(j, get(r, j));
         }
@@ -718,13 +718,13 @@ public abstract class Matrix implements Cloneable, Serializable
             }
 
             @Override
-            public double get(int index)
+            public double get(final int index)
             {
                 return M.get(r, index);
             }
 
             @Override
-            public void set(int index, double val)
+            public void set(final int index, final double val)
             {
                 M.set(r, index, val);
             }
@@ -750,7 +750,7 @@ public abstract class Matrix implements Cloneable, Serializable
     @Override
     public String toString()
     {
-        StringBuilder sb = new StringBuilder(rows()*cols());
+        final StringBuilder sb = new StringBuilder(rows()*cols());
         
         sb.append("[");
         
@@ -776,7 +776,7 @@ public abstract class Matrix implements Cloneable, Serializable
      * @return {@code true} if they have the exact same dimensions, 
      * {@code false} otherwise. 
      */
-    public static boolean sameDimensions(Matrix A, Matrix B)
+    public static boolean sameDimensions(final Matrix A, final Matrix B)
     {
         return A.rows() == B.rows() && A.cols() == B.cols();
     }
@@ -789,18 +789,18 @@ public abstract class Matrix implements Cloneable, Serializable
      * @return {@code true} if they have dimensions allowing multiplication,
      * {@code false} otherwise. 
      */
-    public static boolean canMultiply(Matrix A, Matrix B)
+    public static boolean canMultiply(final Matrix A, final Matrix B)
     {
         return A.cols() == B.rows();
     }
 
     @Override
-    public boolean equals(Object obj)
+    public boolean equals(final Object obj)
     {
         if(obj == null || !(obj instanceof Matrix)) {
           return false;
         }
-        Matrix that = (Matrix) obj;
+        final Matrix that = (Matrix) obj;
         
         if(this.rows() != that.rows() || this.cols() != that.cols()) {
           return false;
@@ -827,12 +827,12 @@ public abstract class Matrix implements Cloneable, Serializable
      * @return {@code true} if the difference between the values of each pair of
      * matrix elements are less than or equal to <i>range</i>
      */
-    public boolean equals(Object obj, double range)
+    public boolean equals(final Object obj, final double range)
     {
         if(obj == null || !(obj instanceof Matrix)) {
           return false;
         }
-        Matrix that = (Matrix) obj;
+        final Matrix that = (Matrix) obj;
         
         if(this.rows() != that.rows() || this.cols() != that.cols()) {
           return false;
@@ -858,7 +858,7 @@ public abstract class Matrix implements Cloneable, Serializable
      * Copes the values of this matrix into the other matrix of the same dimensions
      * @param other the matrix to overwrite the values of
      */
-    public void copyTo(Matrix other)
+    public void copyTo(final Matrix other)
     {
         if (this.rows() != other.rows() || this.cols() != other.cols()) {
           throw new ArithmeticException("Matrices are not of the same dimension");
@@ -875,13 +875,13 @@ public abstract class Matrix implements Cloneable, Serializable
      * @param c the scalar constant to multiply the vector by
      * @param b the vector to add to the specified row
      */
-    public void updateRow(int i, double c, Vec b)
+    public void updateRow(final int i, final double c, final Vec b)
     {
         if(b.length() != this.cols()) {
           throw new ArithmeticException("vector is not of the same column length");
         }
         if (b.isSparse()) {
-          for (IndexValue iv : b) {
+          for (final IndexValue iv : b) {
             this.increment(i, iv.getIndex(), c * iv.getValue());
           }
         } else {
@@ -902,19 +902,19 @@ public abstract class Matrix implements Cloneable, Serializable
      * @throws ArithmeticException if the vector dimensions are not compatible
      * with the matrix <i>A</i>
      */
-    public static void OuterProductUpdate(Matrix A, Vec x, Vec y, double c)
+    public static void OuterProductUpdate(final Matrix A, final Vec x, final Vec y, final double c)
     {
         if (x.length() != A.rows() || y.length() != A.cols()) {
           throw new ArithmeticException("Matrix dimensions do not agree with outer product");
         }
         if (x.isSparse()) {
-          for (IndexValue iv : x) {
+          for (final IndexValue iv : x) {
             A.updateRow(iv.getIndex(), iv.getValue() * c, y);
           }
         } else {
           for (int i = 0; i < x.length(); i++)
           {
-            double rowCosnt = c * x.get(i);
+            final double rowCosnt = c * x.get(i);
             A.updateRow(i, rowCosnt, y);
           }
         }
@@ -930,7 +930,7 @@ public abstract class Matrix implements Cloneable, Serializable
      * @param c the scalar constant to multiply the outer product by
      * @param threadpool the source of threads to do computation in parallel
      */
-    public static void OuterProductUpdate(final Matrix A, final Vec x, final Vec y, final double c, ExecutorService threadpool)
+    public static void OuterProductUpdate(final Matrix A, final Vec x, final Vec y, final double c, final ExecutorService threadpool)
     {
         if(x.length() != A.rows() || y.length() != A.cols()) {
           throw new ArithmeticException("Matrix dimensions do not agree with outer product");
@@ -957,7 +957,7 @@ public abstract class Matrix implements Cloneable, Serializable
             {
                 mcdl.await();
             }
-            catch (InterruptedException ex)
+            catch (final InterruptedException ex)
             {
                 Logger.getLogger(Matrix.class.getName()).log(Level.SEVERE, null, ex);
             }
@@ -976,7 +976,7 @@ public abstract class Matrix implements Cloneable, Serializable
                     {
                         for(int i = threadID; i < x.length(); i+=LogicalCores)
                         {
-                            double rowCosnt = c*x.get(i);
+                            final double rowCosnt = c*x.get(i);
                             A.updateRow(i, rowCosnt, y);
                         }
                         latch.countDown();
@@ -988,7 +988,7 @@ public abstract class Matrix implements Cloneable, Serializable
             {
                 latch.await();
             }
-            catch (InterruptedException ex)
+            catch (final InterruptedException ex)
             {
                 Logger.getLogger(Matrix.class.getName()).log(Level.SEVERE, null, ex);
             }
@@ -1000,9 +1000,9 @@ public abstract class Matrix implements Cloneable, Serializable
      * @param k the number of rows / columns
      * @return a new dense identity matrix <i>I<sub>k</sub></i>
      */
-    public static DenseMatrix eye(int k)
+    public static DenseMatrix eye(final int k)
     {
-        DenseMatrix eye = new DenseMatrix(k, k);
+        final DenseMatrix eye = new DenseMatrix(k, k);
         for(int i = 0; i < k; i++ ) {
           eye.set(i, i, 1);
         }
@@ -1018,9 +1018,9 @@ public abstract class Matrix implements Cloneable, Serializable
      * @param rand the source of randomness 
      * @return a new dense matrix full of random values
      */
-    public static DenseMatrix random(int rows, int cols, Random rand)
+    public static DenseMatrix random(final int rows, final int cols, final Random rand)
     {
-        DenseMatrix m = new DenseMatrix(rows, cols);
+        final DenseMatrix m = new DenseMatrix(rows, cols);
         for(int i = 0; i < rows; i++) {
           for (int j = 0; j < cols; j++) {
             m.set(i, j, rand.nextDouble());
@@ -1036,12 +1036,12 @@ public abstract class Matrix implements Cloneable, Serializable
      * @param a the diagonal values of a matrix
      * @return the diagonal matrix represent by <i>a</i>
      */
-    public static Matrix diag(Vec a)
+    public static Matrix diag(final Vec a)
     {
-        DenseMatrix A = new DenseMatrix(a.length(), a.length());
-        for(Iterator<IndexValue> iter = a.getNonZeroIterator(); iter.hasNext();)
+        final DenseMatrix A = new DenseMatrix(a.length(), a.length());
+        for(final Iterator<IndexValue> iter = a.getNonZeroIterator(); iter.hasNext();)
         {
-            IndexValue iv = iter.next();
+            final IndexValue iv = iter.next();
             A.set(iv.getIndex(), iv.getIndex(), iv.getValue());
         }
             
@@ -1059,7 +1059,7 @@ public abstract class Matrix implements Cloneable, Serializable
      * @param A the square matrix to update
      * @param b the diagonal value vector 
      */
-    public static void diagMult(Matrix A, Vec b)
+    public static void diagMult(final Matrix A, final Vec b)
     {
         if(A.cols() != b.length()) {
           throw new ArithmeticException("Could not multiply, matrix dimensions must agree");
@@ -1080,7 +1080,7 @@ public abstract class Matrix implements Cloneable, Serializable
      * @param b the diagonal value vector 
      * @param A the square matrix to update
      */
-    public static void diagMult(Vec b, Matrix A)
+    public static void diagMult(final Vec b, final Matrix A)
     {
         if(A.rows() != b.length()) {
           throw new ArithmeticException("Could not multiply, matrix dimensions must agree");
@@ -1100,7 +1100,7 @@ public abstract class Matrix implements Cloneable, Serializable
      * @param eps the maximum tolerable difference between two entries
      * @return {@code true} if the matrix is approximately symmetric 
      */
-    public static boolean isSymmetric(Matrix A, double eps)
+    public static boolean isSymmetric(final Matrix A, final double eps)
     {
         if(!A.isSquare()) {
           return false;
@@ -1120,7 +1120,7 @@ public abstract class Matrix implements Cloneable, Serializable
      * @param A the input matrix
      * @return {@code true} if it is perfectly symmetric. 
      */
-    public static boolean isSymmetric(Matrix A)
+    public static boolean isSymmetric(final Matrix A)
     {
         return isSymmetric(A, 0.0);
     }
@@ -1132,12 +1132,12 @@ public abstract class Matrix implements Cloneable, Serializable
      * @param size the number of rows and columns for the matrix
      * @return a pascal matrix of the desired size
      */
-    public static Matrix pascal(int size)
+    public static Matrix pascal(final int size)
     {
         if(size <= 0 ) {
           throw new ArithmeticException();
         }
-        DenseMatrix P = new DenseMatrix(size, size);
+        final DenseMatrix P = new DenseMatrix(size, size);
         RowColumnOps.fillRow(P, 0, 0, size, 1.0);
         RowColumnOps.fillCol(P, 0, 0, size, 1.0);
         for(int i = 1; i < size; i++) {

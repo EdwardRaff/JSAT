@@ -53,14 +53,14 @@ public class DUOLTest
     {
         System.out.println("trainC");
 
-        DUOL instance = new DUOL(new RBFKernel(0.5));
+        final DUOL instance = new DUOL(new RBFKernel(0.5));
 
-        ExecutorService ex = Executors.newFixedThreadPool(SystemInfo.LogicalCores);
+        final ExecutorService ex = Executors.newFixedThreadPool(SystemInfo.LogicalCores);
 
-        ClassificationDataSet train = FixedProblems.getInnerOuterCircle(200, new XORWOW());
-        ClassificationDataSet test = FixedProblems.getInnerOuterCircle(100, new XORWOW());
+        final ClassificationDataSet train = FixedProblems.getInnerOuterCircle(200, new XORWOW());
+        final ClassificationDataSet test = FixedProblems.getInnerOuterCircle(100, new XORWOW());
 
-        ClassificationModelEvaluation cme = new ClassificationModelEvaluation(instance, train, ex);
+        final ClassificationModelEvaluation cme = new ClassificationModelEvaluation(instance, train, ex);
         cme.evaluateTestSet(test);
 
         assertEquals(0, cme.getErrorRate(), 0.0);
@@ -74,12 +74,12 @@ public class DUOLTest
     {
         System.out.println("trainC");
 
-        DUOL instance = new DUOL(new RBFKernel(0.5));
+        final DUOL instance = new DUOL(new RBFKernel(0.5));
         
-        ClassificationDataSet train = FixedProblems.getInnerOuterCircle(200, new XORWOW());
-        ClassificationDataSet test = FixedProblems.getInnerOuterCircle(100, new XORWOW());
+        final ClassificationDataSet train = FixedProblems.getInnerOuterCircle(200, new XORWOW());
+        final ClassificationDataSet test = FixedProblems.getInnerOuterCircle(100, new XORWOW());
 
-        ClassificationModelEvaluation cme = new ClassificationModelEvaluation(instance, train);
+        final ClassificationModelEvaluation cme = new ClassificationModelEvaluation(instance, train);
         cme.evaluateTestSet(test);
 
         assertEquals(0, cme.getErrorRate(), 0.0);
@@ -93,14 +93,14 @@ public class DUOLTest
 
         DUOL instance = new DUOL(new RBFKernel(0.5));
         
-        ClassificationDataSet t1 = FixedProblems.getInnerOuterCircle(500, new XORWOW());
-        ClassificationDataSet t2 = FixedProblems.getInnerOuterCircle(500, new XORWOW(), 2.0, 10.0);
+        final ClassificationDataSet t1 = FixedProblems.getInnerOuterCircle(500, new XORWOW());
+        final ClassificationDataSet t2 = FixedProblems.getInnerOuterCircle(500, new XORWOW(), 2.0, 10.0);
 
         instance = instance.clone();
 
         instance.trainC(t1);
 
-        DUOL result = instance.clone();
+        final DUOL result = instance.clone();
         for (int i = 0; i < t1.getSampleSize(); i++) {
           assertEquals(t1.getDataPointCategory(i), result.classify(t1.getDataPoint(i)).mostLikely());
         }

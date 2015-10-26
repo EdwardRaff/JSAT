@@ -31,13 +31,13 @@ public class ARFFLoader
      * @param file the path to the ARFF file to load 
      * @return the data set from the ARFF file, or null if the file could not be loaded. 
      */
-    public static SimpleDataSet loadArffFile(File file) 
+    public static SimpleDataSet loadArffFile(final File file) 
     {
         try
         {
             return loadArffFile(new FileReader(file));
         }
-        catch (FileNotFoundException ex)
+        catch (final FileNotFoundException ex)
         {
             Logger.getLogger(ARFFLoader.class.getName()).log(Level.SEVERE, null, ex);
             return null;
@@ -50,17 +50,17 @@ public class ARFFLoader
      * @param input the reader to load the data set from
      * @return the data set from the stream, or null of the file could not be loaded 
      */
-    public static SimpleDataSet loadArffFile(Reader input) 
+    public static SimpleDataSet loadArffFile(final Reader input) 
     {
-        ArrayList<DataPoint> list = new ArrayList<DataPoint>();
+        final ArrayList<DataPoint> list = new ArrayList<DataPoint>();
         
-        BufferedReader br = new BufferedReader(input);
+        final BufferedReader br = new BufferedReader(input);
         
         int numOfVars = 0;
         int numReal = 0;
-        List<Boolean> isReal = new ArrayList<Boolean>();
-        List<String> variableNames = new ArrayList<String>();
-        List<HashMap<String, Integer>> catVals = new  ArrayList<HashMap<String, Integer>>();
+        final List<Boolean> isReal = new ArrayList<Boolean>();
+        final List<String> variableNames = new ArrayList<String>();
+        final List<HashMap<String, Integer>> catVals = new  ArrayList<HashMap<String, Integer>>();
         String line = null;
         CategoricalData[] categoricalData = null;
         try
@@ -90,7 +90,7 @@ public class ARFFLoader
                             {
                                 categoricalData[k] = new CategoricalData(catVals.get(i).size());
                                 categoricalData[k].setCategoryName(variableNames.get(i));
-                                for(Entry<String, Integer> entry : catVals.get(i).entrySet()) {
+                                for(final Entry<String, Integer> entry : catVals.get(i).entrySet()) {
                                   categoricalData[k].setOptionName(entry.getKey(), entry.getValue());
                                 }
                                 k++;
@@ -110,8 +110,8 @@ public class ARFFLoader
                     line = line.replace("\t", " ");
                     if(line.startsWith("'"))
                     {
-                        Pattern p = Pattern.compile("'.+?'");
-                        Matcher m = p.matcher(line);
+                        final Pattern p = Pattern.compile("'.+?'");
+                        final Matcher m = p.matcher(line);
                         m.find();
                         variableName = nameTrim(m.group());
                                 
@@ -121,7 +121,7 @@ public class ARFFLoader
                       variableName = nameTrim(line.trim().replaceAll("\\s+.*", ""));
                     }
                     variableNames.add(variableName);
-                    String[] tmp = line.split("\\s+", 2);
+                    final String[] tmp = line.split("\\s+", 2);
                     
                     
                     if(tmp[1].trim().equals("real") || tmp[1].trim().equals("numeric") || tmp[1].trim().startsWith("integer"))
@@ -137,8 +137,8 @@ public class ARFFLoader
                         if(cats.endsWith(",")) {
                           cats = cats.substring(0, cats.length()-1);
                         }
-                        String[] catValsRaw =  cats.split(",");
-                        HashMap<String, Integer> tempMap = new HashMap<String, Integer>();
+                        final String[] catValsRaw =  cats.split(",");
+                        final HashMap<String, Integer> tempMap = new HashMap<String, Integer>();
                         for(int i = 0; i < catValsRaw.length; i++)
                         {
                             catValsRaw[i] = nameTrim(catValsRaw[i]);
@@ -153,10 +153,10 @@ public class ARFFLoader
                       continue;
                     }
                     double weight = 1.0;
-                    String[] tmp = line.split(",");
+                    final String[] tmp = line.split(",");
                     if(tmp.length != isReal.size())
                     {
-                        String s = tmp[isReal.size()];
+                        final String s = tmp[isReal.size()];
                         if(tmp.length == isReal.size()+1)//{#} means the # is the weight
                         {
                             if(!s.matches("\\{\\d+(\\.\\d+)?\\}")) {
@@ -170,9 +170,9 @@ public class ARFFLoader
                         }
                     }
                         
-                    DenseVector vec = new DenseVector(numReal);
+                    final DenseVector vec = new DenseVector(numReal);
                     
-                    int[] cats = new int[numOfVars - numReal];
+                    final int[] cats = new int[numOfVars - numReal];
                     int k = 0;//Keeping track of position in cats
                     for(int i  = 0; i < isReal.size(); i++)
                     {
@@ -189,12 +189,12 @@ public class ARFFLoader
                 }
             }
         }
-        catch (IOException ex)
+        catch (final IOException ex)
         {
             
         }
         
-        SimpleDataSet dataSet =  new SimpleDataSet(list);
+        final SimpleDataSet dataSet =  new SimpleDataSet(list);
         int k = 0;
         for (int i = 0; i < isReal.size(); i++) {
           if (isReal.get(i)) {
@@ -205,7 +205,7 @@ public class ARFFLoader
         return dataSet;
     }
     
-    public static void writeArffFile(DataSet data, OutputStream os) {
+    public static void writeArffFile(final DataSet data, final OutputStream os) {
     	writeArffFile(data, os, "Default_Relation");
     }
     
@@ -218,23 +218,23 @@ public class ARFFLoader
      * @param os the output stream to write too
      * @param relation the relation label to write out
      */
-    public static void writeArffFile(DataSet data, OutputStream os, String relation)
+    public static void writeArffFile(final DataSet data, final OutputStream os, final String relation)
     {
-        PrintWriter writer = new PrintWriter(os);
+        final PrintWriter writer = new PrintWriter(os);
         //write out the relation tag
         writer.write(String.format("@relation %s\n", addQuotes(relation)));
 
         //write out attributes
         //first all categorical features
-        CategoricalData[] catInfo = data.getCategories();
-        for( CategoricalData cate : catInfo)
+        final CategoricalData[] catInfo = data.getCategories();
+        for( final CategoricalData cate : catInfo)
         {
             writeCatVar(writer, cate);
         }
         //write out all numeric features
         for(int i = 0; i < data.getNumNumericalVars(); i++)
         {
-            String name = data.getNumericName(i);
+            final String name = data.getNumericName(i);
             writer.write("@attribute " + (name == null ? "num" + i : name.replaceAll("\\s+", "-")) + " NUMERIC\n");
         }
         if(data instanceof ClassificationDataSet) {//also write out class variable
@@ -246,7 +246,7 @@ public class ARFFLoader
         writer.write("@DATA\n");
         for(int row = 0; row < data.getSampleSize(); row++)
         {
-            DataPoint dp = data.getDataPoint(row);
+            final DataPoint dp = data.getDataPoint(row);
             boolean firstFeature = true;
             //cat vars first
             for(int i = 0; i < catInfo.length; i++)
@@ -258,7 +258,7 @@ public class ARFFLoader
                 writer.write(addQuotes(catInfo[i].getOptionName(dp.getCategoricalValue(i))));
             }
             //numeric vars
-            Vec v = dp.getNumericalValues();
+            final Vec v = dp.getNumericalValues();
             for(int i = 0; i < v.length(); i++)
             {
                 if(!firstFeature) {
@@ -273,7 +273,7 @@ public class ARFFLoader
                   writer.write(",");
                 }
                 firstFeature = false;
-                ClassificationDataSet cdata = (ClassificationDataSet) data;
+                final ClassificationDataSet cdata = (ClassificationDataSet) data;
                 writer.write(addQuotes(cdata.getPredicting().getOptionName(cdata.getDataPointCategory(row))));
             }
             if (data instanceof RegressionDataSet)
@@ -289,7 +289,7 @@ public class ARFFLoader
         writer.flush();
     }
     
-    private static String addQuotes(String string)
+    private static String addQuotes(final String string)
     {
         if(string.contains(" ")) {
           return "\"" + string + "\"";
@@ -298,7 +298,7 @@ public class ARFFLoader
         }
     }
 
-    private static void writeCatVar(PrintWriter writer, CategoricalData cate)
+    private static void writeCatVar(final PrintWriter writer, final CategoricalData cate)
     {
         writer.write("@ATTRIBUTE " + cate.getCategoryName().replaceAll("\\s+", "-") + " {" );
         for(int i = 0; i < cate.getNumOfCategories(); i++)

@@ -65,14 +65,14 @@ public class MultivariateNormalsTest
     public void testTrainC_ClassificationDataSet_ExecutorService()
     {
         System.out.println("trainC");
-        MultivariateNormals instance = new MultivariateNormals();
+        final MultivariateNormals instance = new MultivariateNormals();
         
-        ClassificationDataSet train = FixedProblems.getCircles(1000, 3, 0.1, 1.0, 10.0);
-        ClassificationDataSet test = FixedProblems.getCircles(100, 3, 0.1, 1.0, 10.0);
+        final ClassificationDataSet train = FixedProblems.getCircles(1000, 3, 0.1, 1.0, 10.0);
+        final ClassificationDataSet test = FixedProblems.getCircles(100, 3, 0.1, 1.0, 10.0);
 
         
-        ExecutorService ex = Executors.newFixedThreadPool(SystemInfo.LogicalCores);
-        ClassificationModelEvaluation cme = new ClassificationModelEvaluation(instance, train);
+        final ExecutorService ex = Executors.newFixedThreadPool(SystemInfo.LogicalCores);
+        final ClassificationModelEvaluation cme = new ClassificationModelEvaluation(instance, train);
         cme.evaluateTestSet(test);
         
         assertTrue(cme.getErrorRate() <= 0.001);
@@ -84,12 +84,12 @@ public class MultivariateNormalsTest
     public void testTrainC_ClassificationDataSet()
     {
         System.out.println("trainC");
-        MultivariateNormals instance = new MultivariateNormals();
+        final MultivariateNormals instance = new MultivariateNormals();
         
-        ClassificationDataSet train = FixedProblems.getCircles(1000, 3, 0.1, 1.0, 10.0);
-        ClassificationDataSet test = FixedProblems.getCircles(100, 3, 0.1, 1.0, 10.0);
+        final ClassificationDataSet train = FixedProblems.getCircles(1000, 3, 0.1, 1.0, 10.0);
+        final ClassificationDataSet test = FixedProblems.getCircles(100, 3, 0.1, 1.0, 10.0);
 
-        ClassificationModelEvaluation cme = new ClassificationModelEvaluation(instance, train);
+        final ClassificationModelEvaluation cme = new ClassificationModelEvaluation(instance, train);
         cme.evaluateTestSet(test);
         
         assertTrue(cme.getErrorRate() <= 0.001);
@@ -100,8 +100,8 @@ public class MultivariateNormalsTest
     {
         System.out.println("clone");
         
-        ClassificationDataSet t1 = FixedProblems.getSimpleKClassLinear(1000, 3, new XOR96());
-        ClassificationDataSet t2 = FixedProblems.getSimpleKClassLinear(1000, 6, new XOR96());
+        final ClassificationDataSet t1 = FixedProblems.getSimpleKClassLinear(1000, 3, new XOR96());
+        final ClassificationDataSet t2 = FixedProblems.getSimpleKClassLinear(1000, 6, new XOR96());
         
         MultivariateNormals instance = new MultivariateNormals();
         
@@ -109,7 +109,7 @@ public class MultivariateNormalsTest
                 
         instance.trainC(t1);
 
-        MultivariateNormals result = instance.clone();
+        final MultivariateNormals result = instance.clone();
         result.trainC(t2);
         
         for(int i = 0; i < t1.getSampleSize(); i++) {

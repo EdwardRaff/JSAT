@@ -54,7 +54,7 @@ public abstract class BinaryCalibration implements Classifier, Parameterized
      * @param base the base learning algorithm 
      * @param mode the calibration mode to use
      */
-    public BinaryCalibration(BinaryScoreClassifier base, CalibrationMode mode)
+    public BinaryCalibration(final BinaryScoreClassifier base, final CalibrationMode mode)
     {
         this.base = base;
         setCalibrationMode(mode);
@@ -94,7 +94,7 @@ public abstract class BinaryCalibration implements Classifier, Parameterized
      * @param train the data set to train on
      * @param threadPool the source of threads, may be null
      */
-    private void train(ClassificationDataSet train, ExecutorService threadPool)
+    private void train(final ClassificationDataSet train, final ExecutorService threadPool)
     {
         if(threadPool == null || threadPool instanceof FakeExecutor) {
           base.trainC(train);
@@ -104,20 +104,20 @@ public abstract class BinaryCalibration implements Classifier, Parameterized
     }
     
     @Override
-    public void trainC(ClassificationDataSet dataSet, ExecutorService threadPool)
+    public void trainC(final ClassificationDataSet dataSet, final ExecutorService threadPool)
     {
-        double[] deci = new double[dataSet.getSampleSize()];//array of SVM decision values
-        boolean[] label = new boolean[deci.length];//array of booleans: is the example labeled +1?
+        final double[] deci = new double[dataSet.getSampleSize()];//array of SVM decision values
+        final boolean[] label = new boolean[deci.length];//array of booleans: is the example labeled +1?
         int len = label.length;
         
         if (mode == CalibrationMode.CV)
         {
-            List<ClassificationDataSet> foldList = dataSet.cvSet(folds);
+            final List<ClassificationDataSet> foldList = dataSet.cvSet(folds);
             int pos = 0;
             for(int i = 0; i < foldList.size(); i++)
             {
-                ClassificationDataSet test = foldList.get(i);
-                ClassificationDataSet train = ClassificationDataSet.comineAllBut(foldList, i);
+                final ClassificationDataSet test = foldList.get(i);
+                final ClassificationDataSet train = ClassificationDataSet.comineAllBut(foldList, i);
                 train(train, threadPool);
                 
                 for(int j = 0; j < test.getSampleSize(); j++)
@@ -132,12 +132,12 @@ public abstract class BinaryCalibration implements Classifier, Parameterized
         }
         else if (mode == CalibrationMode.HOLD_OUT)
         {
-            List<DataPointPair<Integer>> wholeSet = dataSet.getAsDPPList();
+            final List<DataPointPair<Integer>> wholeSet = dataSet.getAsDPPList();
             Collections.shuffle(wholeSet);
             
-            int splitMark = (int) (wholeSet.size()*(1-holdOut));
-            ClassificationDataSet train = new ClassificationDataSet(wholeSet.subList(0, splitMark), dataSet.getPredicting());
-            ClassificationDataSet test = new ClassificationDataSet(wholeSet.subList(splitMark, wholeSet.size()), dataSet.getPredicting());
+            final int splitMark = (int) (wholeSet.size()*(1-holdOut));
+            final ClassificationDataSet train = new ClassificationDataSet(wholeSet.subList(0, splitMark), dataSet.getPredicting());
+            final ClassificationDataSet test = new ClassificationDataSet(wholeSet.subList(splitMark, wholeSet.size()), dataSet.getPredicting());
             
             train(train, threadPool);
             for(int i = 0; i < test.getSampleSize(); i++)
@@ -156,7 +156,7 @@ public abstract class BinaryCalibration implements Classifier, Parameterized
 
             for (int i = 0; i < len; i++)
             {
-                DataPoint dp = dataSet.getDataPoint(i);
+                final DataPoint dp = dataSet.getDataPoint(i);
                 deci[i] = base.getScore(dp);
                 label[i] = dataSet.getDataPointCategory(i) == 1;
             }
@@ -166,7 +166,7 @@ public abstract class BinaryCalibration implements Classifier, Parameterized
     }
 
     @Override
-    public void trainC(ClassificationDataSet dataSet)
+    public void trainC(final ClassificationDataSet dataSet)
     {
         trainC(dataSet, null);
     }
@@ -189,7 +189,7 @@ public abstract class BinaryCalibration implements Classifier, Parameterized
      * 3. 
      * @param folds the number of cross validation folds to perform
      */
-    public void setCalibrationFolds(int folds)
+    public void setCalibrationFolds(final int folds)
     {
         if(folds < 1) {
           throw new IllegalArgumentException("Folds must be a positive value, not " + folds);
@@ -213,7 +213,7 @@ public abstract class BinaryCalibration implements Classifier, Parameterized
      * 
      * @param holdOut the portion in (0, 1) to hold out
      */
-    public void setCalibrationHoldOut(double holdOut)
+    public void setCalibrationHoldOut(final double holdOut)
     {
         if(Double.isNaN(holdOut) || holdOut <= 0 || holdOut >= 1) {
           throw new IllegalArgumentException("HoldOut must be in (0, 1), not " + holdOut);
@@ -234,7 +234,7 @@ public abstract class BinaryCalibration implements Classifier, Parameterized
      * Sets which calibration mode will be used during training
      * @param mode the calibration mode to use during training. 
      */
-    public void setCalibrationMode(CalibrationMode mode)
+    public void setCalibrationMode(final CalibrationMode mode)
     {
         this.mode = mode;
     }
@@ -258,7 +258,7 @@ public abstract class BinaryCalibration implements Classifier, Parameterized
     }
 
     @Override
-    public Parameter getParameter(String paramName)
+    public Parameter getParameter(final String paramName)
     {
         return Parameter.toParameterMap(getParameters()).get(paramName);
     }

@@ -42,18 +42,18 @@ public class KernelPointTest
     @Before
     public void setUp()
     {
-        Vec mean = new DenseVector(new double[]{2.0, -1.0, 3.0});
+        final Vec mean = new DenseVector(new double[]{2.0, -1.0, 3.0});
         
-        Matrix cov = new DenseMatrix(new double[][]
+        final Matrix cov = new DenseMatrix(new double[][]
         {
             {1.07142,   1.15924,   0.38842},
             {1.15924,   1.33071,   0.51373},
             {0.38842,   0.51373,   0.92986},
         });
         
-        NormalM normal = new NormalM(mean, cov);
+        final NormalM normal = new NormalM(mean, cov);
         
-        Random rand = new Random(42);
+        final Random rand = new Random(42);
         toAdd = normal.sample(10, rand);
         toTest = normal.sample(10, rand);
         coeff = new double[toAdd.size()];
@@ -79,13 +79,13 @@ public class KernelPointTest
     public void testGetSqrdNorm()
     {
         System.out.println("getSqrdNorm");
-        KernelPoint kpSimple = new KernelPoint(new LinearKernel(0), 1e-2);
-        KernelPoint kpCoeff = new KernelPoint(new LinearKernel(0), 1e-2);
+        final KernelPoint kpSimple = new KernelPoint(new LinearKernel(0), 1e-2);
+        final KernelPoint kpCoeff = new KernelPoint(new LinearKernel(0), 1e-2);
         
         for(int i = 0; i < toAdd.size(); i++)
         {
-            Vec sumSimple = toAdd.get(0).clone();
-            Vec sumCoeff = toAdd.get(0).multiply(coeff[0]);
+            final Vec sumSimple = toAdd.get(0).clone();
+            final Vec sumCoeff = toAdd.get(0).multiply(coeff[0]);
             for(int ii = 1; ii < i+1; ii++ )
             {
                 sumSimple.mutableAdd(toAdd.get(ii));
@@ -94,14 +94,14 @@ public class KernelPointTest
             kpSimple.mutableAdd(toAdd.get(i));
             kpCoeff.mutableAdd(coeff[i], toAdd.get(i));
             
-            double expectedSimple = Math.pow(sumSimple.pNorm(2), 2);
-            double expectedCoeff = Math.pow(sumCoeff.pNorm(2), 2);
+            final double expectedSimple = Math.pow(sumSimple.pNorm(2), 2);
+            final double expectedCoeff = Math.pow(sumCoeff.pNorm(2), 2);
             
             assertEquals(expectedSimple, kpSimple.getSqrdNorm(), 1e-2*4);
             assertEquals(expectedCoeff, kpCoeff.getSqrdNorm(), 1e-2*4);
             
-            KernelPoint kp0 = kpSimple.clone();
-            KernelPoint kp1 = kpCoeff.clone();
+            final KernelPoint kp0 = kpSimple.clone();
+            final KernelPoint kp1 = kpCoeff.clone();
             
             for(int j = i+1; j < coeff.length; j++ )
             {
@@ -131,13 +131,13 @@ public class KernelPointTest
     public void testDot_KernelPoint()
     {
         System.out.println("dot_KernelPoint");
-        KernelPoint kpSimple = new KernelPoint(new LinearKernel(0), 1e-2);
-        KernelPoint kpCoeff = new KernelPoint(new LinearKernel(0), 1e-2);
+        final KernelPoint kpSimple = new KernelPoint(new LinearKernel(0), 1e-2);
+        final KernelPoint kpCoeff = new KernelPoint(new LinearKernel(0), 1e-2);
         
         for(int i = 0; i < toAdd.size(); i++)
         {
-            Vec sumSimple = toAdd.get(0).clone();
-            Vec sumCoeff = toAdd.get(0).multiply(coeff[0]);
+            final Vec sumSimple = toAdd.get(0).clone();
+            final Vec sumCoeff = toAdd.get(0).multiply(coeff[0]);
             for(int ii = 1; ii < i+1; ii++ )
             {
                 sumSimple.mutableAdd(toAdd.get(ii));
@@ -146,16 +146,16 @@ public class KernelPointTest
             kpSimple.mutableAdd(toAdd.get(i));
             kpCoeff.mutableAdd(coeff[i], toAdd.get(i));
             
-            double expectedSimple = sumSimple.dot(sumSimple);
-            double expectedCoeff = sumCoeff.dot(sumCoeff);
-            double expectedSC = sumSimple.dot(sumCoeff);
+            final double expectedSimple = sumSimple.dot(sumSimple);
+            final double expectedCoeff = sumCoeff.dot(sumCoeff);
+            final double expectedSC = sumSimple.dot(sumCoeff);
             
             assertEquals(expectedSimple, kpSimple.dot(kpSimple), 1e-2*4);
             assertEquals(expectedCoeff, kpCoeff.dot(kpCoeff), 1e-2*4);
             assertEquals(expectedSC, kpSimple.dot(kpCoeff), 1e-2*4);
             
-            KernelPoint kp0 = kpSimple.clone();
-            KernelPoint kp1 = kpCoeff.clone();
+            final KernelPoint kp0 = kpSimple.clone();
+            final KernelPoint kp1 = kpCoeff.clone();
             
             for(int j = i+1; j < coeff.length; j++ )
             {
@@ -198,13 +198,13 @@ public class KernelPointTest
     public void testDot_Vec()
     {
         System.out.println("dot_Vec");
-        KernelPoint kpSimple = new KernelPoint(new LinearKernel(0), 1e-2);
-        KernelPoint kpCoeff = new KernelPoint(new LinearKernel(0), 1e-2);
+        final KernelPoint kpSimple = new KernelPoint(new LinearKernel(0), 1e-2);
+        final KernelPoint kpCoeff = new KernelPoint(new LinearKernel(0), 1e-2);
         
         for(int i = 0; i < toAdd.size(); i++)
         {
-            Vec sumSimple = toAdd.get(0).clone();
-            Vec sumCoeff = toAdd.get(0).multiply(coeff[0]);
+            final Vec sumSimple = toAdd.get(0).clone();
+            final Vec sumCoeff = toAdd.get(0).multiply(coeff[0]);
             for(int ii = 1; ii < i+1; ii++ )
             {
                 sumSimple.mutableAdd(toAdd.get(ii));
@@ -213,16 +213,16 @@ public class KernelPointTest
             kpSimple.mutableAdd(toAdd.get(i));
             kpCoeff.mutableAdd(coeff[i], toAdd.get(i));
             
-            for(Vec v : toTest)
+            for(final Vec v : toTest)
             {
-                double expectedSimple = sumSimple.dot(v);
-                double expectedCoeff = sumCoeff.dot(v);
+                final double expectedSimple = sumSimple.dot(v);
+                final double expectedCoeff = sumCoeff.dot(v);
 
                 assertEquals(expectedSimple, kpSimple.dot(v), 1e-2*4);
                 assertEquals(expectedCoeff, kpCoeff.dot(v), 1e-2*4);
 
-                KernelPoint kp0 = kpSimple.clone();
-                KernelPoint kp1 = kpCoeff.clone();
+                final KernelPoint kp0 = kpSimple.clone();
+                final KernelPoint kp1 = kpCoeff.clone();
 
                 for(int j = i+1; j < coeff.length; j++ )
                 {
@@ -255,15 +255,15 @@ public class KernelPointTest
     public void testDistance_Vec()
     {
         System.out.println("distance_Vec");
-        KernelPoint kpSimple = new KernelPoint(new LinearKernel(0), 1e-2);
-        KernelPoint kpCoeff = new KernelPoint(new LinearKernel(0), 1e-2);
+        final KernelPoint kpSimple = new KernelPoint(new LinearKernel(0), 1e-2);
+        final KernelPoint kpCoeff = new KernelPoint(new LinearKernel(0), 1e-2);
         
-        EuclideanDistance d = new EuclideanDistance();
+        final EuclideanDistance d = new EuclideanDistance();
         
         for(int i = 0; i < toAdd.size(); i++)
         {
-            Vec sumSimple = toAdd.get(0).clone();
-            Vec sumCoeff = toAdd.get(0).multiply(coeff[0]);
+            final Vec sumSimple = toAdd.get(0).clone();
+            final Vec sumCoeff = toAdd.get(0).multiply(coeff[0]);
             for(int ii = 1; ii < i+1; ii++ )
             {
                 sumSimple.mutableAdd(toAdd.get(ii));
@@ -272,16 +272,16 @@ public class KernelPointTest
             kpSimple.mutableAdd(toAdd.get(i));
             kpCoeff.mutableAdd(coeff[i], toAdd.get(i));
             
-            for(Vec v : toTest)
+            for(final Vec v : toTest)
             {
-                double expectedSimple = d.dist(sumSimple, v);
-                double expectedCoeff = d.dist(sumCoeff, v);
+                final double expectedSimple = d.dist(sumSimple, v);
+                final double expectedCoeff = d.dist(sumCoeff, v);
 
                 assertEquals(expectedSimple, kpSimple.dist(v), 1e-2*4);
                 assertEquals(expectedCoeff, kpCoeff.dist(v), 1e-2*4);
 
-                KernelPoint kp0 = kpSimple.clone();
-                KernelPoint kp1 = kpCoeff.clone();
+                final KernelPoint kp0 = kpSimple.clone();
+                final KernelPoint kp1 = kpCoeff.clone();
 
                 for(int j = i+1; j < coeff.length; j++ )
                 {
@@ -311,26 +311,26 @@ public class KernelPointTest
     public void testDistance_KernelPoint()
     {
         System.out.println("distance_KernelPoint");
-        KernelPoint kpSimpleA = new KernelPoint(new LinearKernel(0), 1e-2);
-        KernelPoint kpCoeffA = new KernelPoint(new LinearKernel(0), 1e-2);
+        final KernelPoint kpSimpleA = new KernelPoint(new LinearKernel(0), 1e-2);
+        final KernelPoint kpCoeffA = new KernelPoint(new LinearKernel(0), 1e-2);
         
-        KernelPoint kpSimpleB = new KernelPoint(new LinearKernel(0), 1e-2);
-        KernelPoint kpCoeffB = new KernelPoint(new LinearKernel(0), 1e-2);
+        final KernelPoint kpSimpleB = new KernelPoint(new LinearKernel(0), 1e-2);
+        final KernelPoint kpCoeffB = new KernelPoint(new LinearKernel(0), 1e-2);
         
-        EuclideanDistance d = new EuclideanDistance();
+        final EuclideanDistance d = new EuclideanDistance();
         
         for(int i = 0; i < toAdd.size(); i++)
         {
-            Vec sumSimpleA = toAdd.get(0).clone();
-            Vec sumCoeffA = toAdd.get(0).multiply(coeff[0]);
+            final Vec sumSimpleA = toAdd.get(0).clone();
+            final Vec sumCoeffA = toAdd.get(0).multiply(coeff[0]);
             for(int ii = 1; ii < i+1; ii++ )
             {
                 sumSimpleA.mutableAdd(toAdd.get(ii));
                 sumCoeffA.mutableAdd(coeff[ii], toAdd.get(ii));
             }
             
-            Vec sumSimpleB = toTest.get(0).clone();
-            Vec sumCoeffB = toTest.get(0).multiply(coeff[0]);
+            final Vec sumSimpleB = toTest.get(0).clone();
+            final Vec sumCoeffB = toTest.get(0).multiply(coeff[0]);
             for(int ii = 1; ii < i+1; ii++ )
             {
                 sumSimpleB.mutableAdd(toTest.get(ii));
@@ -356,8 +356,8 @@ public class KernelPointTest
             assertEquals(d.dist(sumCoeffA, sumSimpleB), kpCoeffA.dist(kpSimpleB), 1e-2*4);
             assertEquals(d.dist(sumCoeffB, sumSimpleB), kpCoeffB.dist(kpSimpleB), 1e-2*4);
             
-            KernelPoint kpSimpleAClone = kpSimpleA.clone();
-            KernelPoint kpSimpleBClone = kpSimpleB.clone();
+            final KernelPoint kpSimpleAClone = kpSimpleA.clone();
+            final KernelPoint kpSimpleBClone = kpSimpleB.clone();
             kpSimpleAClone.mutableMultiply(1.0/(i+1));
             kpSimpleBClone.mutableMultiply(1.0/(i+1));
             

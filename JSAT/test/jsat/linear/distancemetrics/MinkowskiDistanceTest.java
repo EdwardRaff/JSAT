@@ -115,10 +115,10 @@ public class MinkowskiDistanceTest
     {
         System.out.println("dist");
         
-        MinkowskiDistance dist = new MinkowskiDistance(2.5);
+        final MinkowskiDistance dist = new MinkowskiDistance(2.5);
         
-        List<Double> cache = dist.getAccelerationCache(vecs);
-        List<Double> cache2 = dist.getAccelerationCache(vecs, ex);
+        final List<Double> cache = dist.getAccelerationCache(vecs);
+        final List<Double> cache2 = dist.getAccelerationCache(vecs, ex);
         if(cache != null)
         {
             assertEquals(cache.size(), cache2.size());
@@ -138,7 +138,7 @@ public class MinkowskiDistanceTest
             dist.dist(half, new DenseVector(half.length()+1));
             fail("Distance between vecs should have erred");
         }
-        catch (Exception ex)
+        catch (final Exception ex)
         {
 
         }
@@ -159,7 +159,7 @@ public class MinkowskiDistanceTest
             for (int i = 0; i < vecs.size(); i++) {
               for (int j = 0; j < vecs.size(); j++)
               {
-                MinkowskiDistance d = dist.clone();
+                final MinkowskiDistance d = dist.clone();
                 
                 d.setP(2.0);
                 assertEquals(2.5, dist.getP(), 0.0);
@@ -189,7 +189,7 @@ public class MinkowskiDistanceTest
     public void testMetricProperties()
     {
         System.out.println("isSymmetric");
-        EuclideanDistance instance = new EuclideanDistance();
+        final EuclideanDistance instance = new EuclideanDistance();
         assertTrue(instance.isSymmetric());
         assertTrue(instance.isSubadditive());
         assertTrue(instance.isIndiscemible());
@@ -199,7 +199,7 @@ public class MinkowskiDistanceTest
     public void testMetricBound()
     {
         System.out.println("metricBound");
-        EuclideanDistance instance = new EuclideanDistance();
+        final EuclideanDistance instance = new EuclideanDistance();
         assertTrue(instance.metricBound() > 0);
         assertTrue(Double.isInfinite(instance.metricBound()));
     }

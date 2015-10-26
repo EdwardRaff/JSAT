@@ -69,7 +69,7 @@ public class StochasticGradientBoosting implements Regressor, Parameterized
      */
     private double trainingProportion;
     
-    private Regressor weakLearner;
+    private final Regressor weakLearner;
     
     private Regressor strongLearner;
     
@@ -96,7 +96,7 @@ public class StochasticGradientBoosting implements Regressor, Parameterized
      * @param trainingPortion the proportion of the data set to use for each iteration of learning
      */
     
-    public StochasticGradientBoosting(Regressor strongLearner, Regressor weakLearner, int maxIterations, double learningRate, double trainingPortion)
+    public StochasticGradientBoosting(final Regressor strongLearner, final Regressor weakLearner, final int maxIterations, final double learningRate, final double trainingPortion)
     {
         this.trainingProportion = trainingPortion;
         this.strongLearner = strongLearner;
@@ -114,7 +114,7 @@ public class StochasticGradientBoosting implements Regressor, Parameterized
      * @param trainingPortion the proportion of the data set to use for each iteration of learning
      */
     
-    public StochasticGradientBoosting(Regressor weakLearner, int maxIterations, double learningRate, double trainingPortion)
+    public StochasticGradientBoosting(final Regressor weakLearner, final int maxIterations, final double learningRate, final double trainingPortion)
     {
         this(null, weakLearner, maxIterations, learningRate, trainingPortion);
     }
@@ -126,7 +126,7 @@ public class StochasticGradientBoosting implements Regressor, Parameterized
      * @param maxIterations the maximum number of algorithm iterations to perform
      * @param learningRate the multiplier to apply to the weak learners
      */
-    public StochasticGradientBoosting(Regressor weakLearner, int maxIterations, double learningRate)
+    public StochasticGradientBoosting(final Regressor weakLearner, final int maxIterations, final double learningRate)
     {
         this(weakLearner, maxIterations, learningRate, DEFAULT_TRAINING_PROPORTION);
     }
@@ -137,7 +137,7 @@ public class StochasticGradientBoosting implements Regressor, Parameterized
      * @param weakLearner the weak learner to fit to the residuals in each iteration
      * @param maxIterations the maximum number of algorithm iterations to perform
      */
-    public StochasticGradientBoosting(Regressor weakLearner, int maxIterations)
+    public StochasticGradientBoosting(final Regressor weakLearner, final int maxIterations)
     {
         this(weakLearner, maxIterations, DEFAULT_LEARNING_RATE);
     }
@@ -147,7 +147,7 @@ public class StochasticGradientBoosting implements Regressor, Parameterized
      * 
      * @param maxIterations the maximum number of algorithm iterations to perform
      */
-    public void setMaxIterations(int maxIterations)
+    public void setMaxIterations(final int maxIterations)
     {
         this.maxIterations = maxIterations;
     }
@@ -170,7 +170,7 @@ public class StochasticGradientBoosting implements Regressor, Parameterized
      * @param learningRate the multiplier to apply to the weak learners
      * @throws ArithmeticException if the learning rate is not in the range (0, 1]
      */
-    public void setLearningRate(double learningRate)
+    public void setLearningRate(final double learningRate)
     {
         //+- Inf case captured in >1 <= 0 case
         if(learningRate > 1 || learningRate <= 0 || Double.isNaN(learningRate)) {
@@ -198,7 +198,7 @@ public class StochasticGradientBoosting implements Regressor, Parameterized
      * @throws ArithmeticException if the trainingPortion is not a valid 
      * fraction in (0, 1]
      */
-    public void setTrainingProportion(double trainingProportion)
+    public void setTrainingProportion(final double trainingProportion)
     {
         //+- Inf case captured in >1 <= 0 case
         if(trainingProportion > 1 || trainingProportion <= 0 || Double.isNaN(trainingProportion)) {
@@ -220,7 +220,7 @@ public class StochasticGradientBoosting implements Regressor, Parameterized
     }
 
     @Override
-    public double regress(DataPoint data)
+    public double regress(final DataPoint data)
     {
         if(F == null || F.isEmpty()) {
           throw new UntrainedModelException();
@@ -235,7 +235,7 @@ public class StochasticGradientBoosting implements Regressor, Parameterized
     }
     
     @Override
-    public void train(RegressionDataSet dataSet, ExecutorService threadPool)
+    public void train(final RegressionDataSet dataSet, final ExecutorService threadPool)
     {
         //use getAsDPPList to get coppies of the data points, so we can safely alter this set
         final List<DataPointPair<Double>> backingResidsList = dataSet.getAsDPPList();
@@ -264,7 +264,7 @@ public class StochasticGradientBoosting implements Regressor, Parameterized
         /**
          * The residuals
          */
-        RegressionDataSet resids = RegressionDataSet.usingDPPList(backingResidsList);
+        final RegressionDataSet resids = RegressionDataSet.usingDPPList(backingResidsList);
         
         
         final int randSampleSize = (int) Math.round(resids.getSampleSize()*trainingProportion);
@@ -280,7 +280,7 @@ public class StochasticGradientBoosting implements Regressor, Parameterized
             for(int j = 0; j < resids.getSampleSize(); j++)
             {
                 //Update the current total preduction values while we do this 
-                double lastFPred = lastF.regress(resids.getDataPoint(j));
+                final double lastFPred = lastF.regress(resids.getDataPoint(j));
                 currPredictions[j] += lastCoef*lastFPred;
                 
                 //The next set of residuals could be computed from the previous,
@@ -305,7 +305,7 @@ public class StochasticGradientBoosting implements Regressor, Parameterized
             }
             
             
-            double y = getMinimizingErrorConst( backingResidsList, h);
+            final double y = getMinimizingErrorConst( backingResidsList, h);
             
             F.add(h);
             coef.add(learningRate*y);
@@ -323,9 +323,9 @@ public class StochasticGradientBoosting implements Regressor, Parameterized
     private double getMinimizingErrorConst(final List<DataPointPair<Double>> backingResidsList, final Regressor h)
     {
         //Find the coeficent that minimized the residual error by finding the zero of its derivative (local minima)
-        Function fhPrime = getDerivativeFunc(backingResidsList, h);
-        RootFinder rf = new Zeroin();
-        double y = rf.root(1e-4, 50, new double[]{-2.5, 2.5}, fhPrime, 0, 1.0);
+        final Function fhPrime = getDerivativeFunc(backingResidsList, h);
+        final RootFinder rf = new Zeroin();
+        final double y = rf.root(1e-4, 50, new double[]{-2.5, 2.5}, fhPrime, 0, 1.0);
         return y;
     }
     
@@ -348,11 +348,11 @@ public class StochasticGradientBoosting implements Regressor, Parameterized
 			private static final long serialVersionUID = -2211642040228795719L;
 
 			@Override
-            public double f(Vec x)
+            public double f(final Vec x)
             {
-                double c1 = x.get(0);//c2=c1-eps
-                double eps = 1e-5;
-                double c1Pc2 = c1 * 2 - eps;//c1+c2 = c1+c1-eps
+                final double c1 = x.get(0);//c2=c1-eps
+                final double eps = 1e-5;
+                final double c1Pc2 = c1 * 2 - eps;//c1+c2 = c1+c1-eps
                 double result = 0;
                 /*
                  * Computing the estimate of the derivative directly, f'(x) approx = f(x)-f(x-eps)
@@ -379,10 +379,10 @@ public class StochasticGradientBoosting implements Regressor, Parameterized
                  * in one pass of the data
                  */
 
-                for (DataPointPair<Double> dpp : backingResidsList)
+                for (final DataPointPair<Double> dpp : backingResidsList)
                 {
-                    double hEst = h.regress(dpp.getDataPoint());
-                    double target = dpp.getPair();
+                    final double hEst = h.regress(dpp.getDataPoint());
+                    final double target = dpp.getPair();
 
                     result += hEst * (c1Pc2 * hEst - 2 * target);
                 }
@@ -395,7 +395,7 @@ public class StochasticGradientBoosting implements Regressor, Parameterized
     }
 
     @Override
-    public void train(RegressionDataSet dataSet)
+    public void train(final RegressionDataSet dataSet)
     {
         train(dataSet, null);
     }
@@ -413,19 +413,19 @@ public class StochasticGradientBoosting implements Regressor, Parameterized
     @Override
     public StochasticGradientBoosting clone()
     {
-        StochasticGradientBoosting clone = new StochasticGradientBoosting(weakLearner.clone(), maxIterations, learningRate, trainingProportion);
+        final StochasticGradientBoosting clone = new StochasticGradientBoosting(weakLearner.clone(), maxIterations, learningRate, trainingProportion);
         
         if(F != null)
         {
             clone.F = new ArrayList<Regressor>(F.size());
-            for(Regressor f : this.F) {
+            for(final Regressor f : this.F) {
               clone.F.add(f.clone());
             }
         }
         if(coef != null)
         {
             clone.coef = new DoubleList(this.coef.size());
-            for(double d : this.coef) {
+            for(final double d : this.coef) {
               clone.coef.add(d);
             }
         }
@@ -443,7 +443,7 @@ public class StochasticGradientBoosting implements Regressor, Parameterized
     }
 
     @Override
-    public Parameter getParameter(String paramName)
+    public Parameter getParameter(final String paramName)
     {
         return Parameter.toParameterMap(getParameters()).get(paramName);
     }

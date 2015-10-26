@@ -142,7 +142,7 @@ public class PorterStemmer extends Stemmer
         }
 
         //Step 2
-        for (Map.Entry<String, String> entry : step2_endings.entrySet()) {
+        for (final Map.Entry<String, String> entry : step2_endings.entrySet()) {
           if (s.endsWith(entry.getKey()))
           {
             tmp = s.replaceAll(entry.getKey() + "$", entry.getValue());
@@ -155,7 +155,7 @@ public class PorterStemmer extends Stemmer
         }
 
         //Step 3
-        for (Map.Entry<String, String> entry : step3_endings.entrySet()) {
+        for (final Map.Entry<String, String> entry : step3_endings.entrySet()) {
           if (s.endsWith(entry.getKey()))
           {
             tmp = s.replaceAll(entry.getKey() + "$", entry.getValue());
@@ -168,7 +168,7 @@ public class PorterStemmer extends Stemmer
         }
 
         //Step 4
-        for (Map.Entry<String, String> entry : step4_endings.entrySet()) {
+        for (final Map.Entry<String, String> entry : step4_endings.entrySet()) {
           if (s.endsWith(entry.getKey())) {
             if (s.endsWith("ion") && !(s.charAt(s.length()-4) == 's' || s.charAt(s.length()-4) == 't')) {
               continue;//special case on ion, and they didn't match
@@ -194,7 +194,7 @@ public class PorterStemmer extends Stemmer
         }
 
         //Step 5b
-        int lp = s.length()-1;
+        final int lp = s.length()-1;
         if(s.charAt(lp) == s.charAt(lp-1) && s.charAt(lp) == 'l')
         {
             tmp = s.substring(0, s.length() - 1);
@@ -207,12 +207,12 @@ public class PorterStemmer extends Stemmer
     }
     
     
-    private static int measure(String s)
+    private static int measure(final String s)
     {
         return measure(s, 0, s.length());
     }
     
-    private static int measure(String c, int start, int length)
+    private static int measure(final String c, final int start, final int length)
     {
         //[C](VC){m}[V]  
         //Measure == the value of m in the above exprsion
@@ -249,7 +249,7 @@ public class PorterStemmer extends Stemmer
         }
     }
 
-    private static boolean isVowel(String s, int pos)
+    private static boolean isVowel(final String s, final int pos)
     {
         /*
          * A \consonant\ in a word is a letter other than A, E, I, O or U, and other
@@ -280,9 +280,9 @@ public class PorterStemmer extends Stemmer
     /**
      * *o  - the stem ends cvc, where the second c is not W, X or Y (e.g. -WIL, -HOP).
      */
-    private static boolean oRule(String s)
+    private static boolean oRule(final String s)
     {
-        int pos = s.length()-1;
+        final int pos = s.length()-1;
         if(pos < 2) {
           return false;
         }
@@ -301,7 +301,7 @@ public class PorterStemmer extends Stemmer
         return false;
     }
     
-    private static boolean containsVowel(String s)
+    private static boolean containsVowel(final String s)
     {
         for (int i = 0; i < s.length(); i++) {
           if (isVowel(s, i)) {
@@ -311,7 +311,7 @@ public class PorterStemmer extends Stemmer
         return false;
     }
     
-    private static boolean doubleConstant(String s, char... except)
+    private static boolean doubleConstant(final String s, final char... except)
     {
         if (s.length() <= 1) {
           return false;
@@ -320,7 +320,7 @@ public class PorterStemmer extends Stemmer
         char c;
         if ((c = s.charAt(s.length() - 1)) == s.charAt(s.length() - 2))
         {
-            for (char e : except) {
+            for (final char e : except) {
               if (c == e) {
                 return false;
               }

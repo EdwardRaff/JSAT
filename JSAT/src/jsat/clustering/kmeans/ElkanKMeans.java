@@ -40,7 +40,7 @@ public class ElkanKMeans extends KMeans
      * @param rand the random number generator to use during seed selection
      * @param seedSelection the method of seed selection to use
      */
-    public ElkanKMeans(DistanceMetric dm, Random rand, SeedSelection seedSelection)
+    public ElkanKMeans(final DistanceMetric dm, final Random rand, final SeedSelection seedSelection)
     {
         super(dm, seedSelection, rand);
         if(!dm.isSubadditive()) {
@@ -53,7 +53,7 @@ public class ElkanKMeans extends KMeans
      * @param dm the distance metric to use, must support {@link DistanceMetric#isSubadditive() }.  
      * @param rand the random number generator to use during seed selection
      */
-    public ElkanKMeans(DistanceMetric dm, Random rand)
+    public ElkanKMeans(final DistanceMetric dm, final Random rand)
     {
         this(dm, rand, DEFAULT_SEED_SELECTION);
     }
@@ -62,7 +62,7 @@ public class ElkanKMeans extends KMeans
      * Creates a new KMeans instance
      * @param dm the distance metric to use, must support {@link DistanceMetric#isSubadditive() }.  
      */
-    public ElkanKMeans(DistanceMetric dm)
+    public ElkanKMeans(final DistanceMetric dm)
     {
         this(dm, new Random());
     }
@@ -75,7 +75,7 @@ public class ElkanKMeans extends KMeans
         this(new EuclideanDistance());
     }
 
-    public ElkanKMeans(ElkanKMeans toCopy)
+    public ElkanKMeans(final ElkanKMeans toCopy)
     {
         super(toCopy);
         if(toCopy.dmds != null) {
@@ -90,7 +90,7 @@ public class ElkanKMeans extends KMeans
      * @param useDenseSparse whether or not to compute the distance from dense
      * mean vectors to sparse ones using acceleration
      */
-    public void setUseDenseSparse(boolean useDenseSparse)
+    public void setUseDenseSparse(final boolean useDenseSparse)
     {
         this.useDenseSparse = useDenseSparse;
     }
@@ -112,7 +112,7 @@ public class ElkanKMeans extends KMeans
      */
     
     @Override
-    protected double cluster(final DataSet dataSet, List<Double> accelCache, final int k, final List<Vec> means, final int[] assignment, boolean exactTotal, ExecutorService threadpool, boolean returnError)
+    protected double cluster(final DataSet dataSet, final List<Double> accelCache, final int k, final List<Vec> means, final int[] assignment, final boolean exactTotal, final ExecutorService threadpool, final boolean returnError)
     {
         try
         {
@@ -171,7 +171,7 @@ public class ElkanKMeans extends KMeans
             final double[] sC = new double[k];
             calculateCentroidDistances(k, centroidSelfDistances, means, sC, null, threadpool);
             final AtomicLongArray meanCount = new AtomicLongArray(k);
-            Vec[] oldMeans = new Vec[k];//The means fromt he current step are needed when computing the new means
+            final Vec[] oldMeans = new Vec[k];//The means fromt he current step are needed when computing the new means
             final Vec[] meanSums = new Vec[k];
             for (int i = 0; i < k; i++)
             {
@@ -198,7 +198,7 @@ public class ElkanKMeans extends KMeans
                 @Override
                 protected Vec[] initialValue()
                 {
-                    Vec[] toRet = new Vec[k];
+                    final Vec[] toRet = new Vec[k];
                     for(int i = 0; i < toRet.length; i++) {
                       toRet[i] = new DenseVector(D);
                     }
@@ -286,7 +286,7 @@ public class ElkanKMeans extends KMeans
                     {
                         latch.await();
                     }
-                    catch (InterruptedException ex)
+                    catch (final InterruptedException ex)
                     {
                         throw new ClusterFailureException("Clustering failed");
                     }
@@ -310,7 +310,7 @@ public class ElkanKMeans extends KMeans
 
                 if (exactTotal == true) {
                   for (int i = 0; i < N; i++) {
-                    double dist = dm.dist(i, means.get(assignment[i]), meanQIs.get(assignment[i]), X, distAccelCache);
+                    final double dist = dm.dist(i, means.get(assignment[i]), meanQIs.get(assignment[i]), X, distAccelCache);
                     totalDistance += Math.pow(dist, 2);
                     if (saveCentroidDistance) {
                       nearestCentroidDist[i] = dist;
@@ -328,7 +328,7 @@ public class ElkanKMeans extends KMeans
             
             return totalDistance;
         }
-        catch (Exception ex)
+        catch (final Exception ex)
         {
             Logger.getLogger(ElkanKMeans.class.getName()).log(Level.SEVERE, null, ex);
         }
@@ -336,14 +336,14 @@ public class ElkanKMeans extends KMeans
     }
 
     private void initialClusterSetUp(final int k, final int N, final List<Vec> dataSet, final List<Vec> means, final double[][] lowerBound, 
-            final double[] upperBound, final double[][] centroidSelfDistances, final int[] assignment, AtomicLongArray meanCount,
-            final Vec[] meanSums, List<Double> distAccelCache, List<List<Double>> meanQIs)
+            final double[] upperBound, final double[][] centroidSelfDistances, final int[] assignment, final AtomicLongArray meanCount,
+            final Vec[] meanSums, final List<Double> distAccelCache, final List<List<Double>> meanQIs)
     {
         //Skip markers
         final boolean[] skip = new boolean[k];
         for (int q = 0; q < N; q++)
         {
-            Vec v = dataSet.get(q);
+            final Vec v = dataSet.get(q);
             double minDistance = Double.MAX_VALUE;
             int index = -1;
             //Default value is false, we cant skip anything yet
@@ -353,7 +353,7 @@ public class ElkanKMeans extends KMeans
                 if (skip[i]) {
                   continue;
                 }
-                double d = dm.dist(q, means.get(i), meanQIs.get(i), dataSet, distAccelCache);
+                final double d = dm.dist(q, means.get(i), meanQIs.get(i), dataSet, distAccelCache);
                 lowerBound[q][i] = d;
 
                 if (d < minDistance)
@@ -378,7 +378,7 @@ public class ElkanKMeans extends KMeans
     private void initialClusterSetUp(final int k, final int N, final List<Vec> dataSet, final List<Vec> means, final double[][] lowerBound, 
             final double[] upperBound, final double[][] centroidSelfDistances, final int[] assignment, final AtomicLongArray meanCount, 
             final Vec[] meanSums, final List<Double> distAccelCache, final List<List<Double>> meanQIs, 
-            final ThreadLocal<Vec[]> localDeltas, ExecutorService threadpool)
+            final ThreadLocal<Vec[]> localDeltas, final ExecutorService threadpool)
     {
         final int blockSize = N / SystemInfo.LogicalCores;
         int extra = N % SystemInfo.LogicalCores;
@@ -396,11 +396,11 @@ public class ElkanKMeans extends KMeans
                 @Override
                 public void run()
                 {
-                    Vec[] deltas = localDeltas.get();
+                    final Vec[] deltas = localDeltas.get();
                     final boolean[] skip = new boolean[k];
                     for (int q = from; q < to; q++)
                     {
-                        Vec v = dataSet.get(q);
+                        final Vec v = dataSet.get(q);
                         double minDistance = Double.MAX_VALUE;
                         int index = -1;
                         //Default value is false, we cant skip anything yet
@@ -410,7 +410,7 @@ public class ElkanKMeans extends KMeans
                             if (skip[i]) {
                               continue;
                             }
-                            double d = dm.dist(q, means.get(i), meanQIs.get(i), dataSet, distAccelCache);
+                            final double d = dm.dist(q, means.get(i), meanQIs.get(i), dataSet, distAccelCache);
                             lowerBound[q][i] = d;
 
                             if (d < minDistance)
@@ -450,15 +450,15 @@ public class ElkanKMeans extends KMeans
         {
             latch.await();
         }
-        catch (InterruptedException ex)
+        catch (final InterruptedException ex)
         {
             Logger.getLogger(ElkanKMeans.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
 
-    private void step4UpdateCentroids(Vec[] meanSums, ThreadLocal<Vec[]> localDeltas)
+    private void step4UpdateCentroids(final Vec[] meanSums, final ThreadLocal<Vec[]> localDeltas)
     {
-        Vec[] deltas = localDeltas.get();
+        final Vec[] deltas = localDeltas.get();
         for(int i = 0; i < deltas.length; i++)
         {
             if(deltas[i].nnz() == 0) {
@@ -474,7 +474,7 @@ public class ElkanKMeans extends KMeans
 
     private void step5_6_distanceMovedBoundsUpdate(final int k, final Vec[] oldMeans, final List<Vec> means, final Vec[] meanSums, 
             final AtomicLongArray meanCount, final int N, final double[][] lowerBound, final double[] upperBound, 
-            final int[] assignment, final boolean[] r, final List<List<Double>> meanQIs, ExecutorService threadpool)
+            final int[] assignment, final boolean[] r, final List<List<Double>> meanQIs, final ExecutorService threadpool)
     {
         final double[] distancesMoved = new double[k];
         
@@ -496,7 +496,7 @@ public class ElkanKMeans extends KMeans
                             means.get(c).copyTo(oldMeans[c]);
                             
                             meanSums[c].copyTo(means.get(c));
-                            long count = meanCount.get(c);
+                            final long count = meanCount.get(c);
                             if (count == 0) {
                               means.get(c).zeroOut();
                             } else {
@@ -542,7 +542,7 @@ public class ElkanKMeans extends KMeans
                 latch2.await();
                 return;
             }
-            catch (InterruptedException ex)
+            catch (final InterruptedException ex)
             {
                 Logger.getLogger(ElkanKMeans.class.getName()).log(Level.SEVERE, null, ex);
             }
@@ -557,7 +557,7 @@ public class ElkanKMeans extends KMeans
         for (int i = 0; i < k; i++)
         {
             meanSums[i].copyTo(means.get(i));
-            long count = meanCount.get(i);
+            final long count = meanCount.get(i);
             if (count == 0) {
               means.get(i).zeroOut();
             } else {
@@ -589,14 +589,14 @@ public class ElkanKMeans extends KMeans
         }
     }
 
-    private void step3aBoundsUpdate(List<Vec> X, boolean[] r, int q, Vec v, final List<Vec> means, final int[] assignment, double[] upperBound, double[][] lowerBound, double[] meanSummaryConsts, List<Double> distAccelCache, List<List<Double>> meanQIs)
+    private void step3aBoundsUpdate(final List<Vec> X, final boolean[] r, final int q, final Vec v, final List<Vec> means, final int[] assignment, final double[] upperBound, final double[][] lowerBound, final double[] meanSummaryConsts, final List<Double> distAccelCache, final List<List<Double>> meanQIs)
     {
         //3(a)
         if (r[q])
         {
             r[q] = false;
             double d;
-            int meanIndx = assignment[q];
+            final int meanIndx = assignment[q];
             if(dmds == null) {
               d = dm.dist(q, means.get(meanIndx), meanQIs.get(meanIndx), X, distAccelCache);
             } else {
@@ -607,9 +607,9 @@ public class ElkanKMeans extends KMeans
         }
     }
 
-    private void step3bUpdate(List<Vec> X, double[] upperBound, final int q, double[][] lowerBound, final int c, double[][] centroidSelfDistances, 
-            final int[] assignment, Vec v, final List<Vec> means, final ThreadLocal<Vec[]> localDeltas, AtomicLongArray meanCount, 
-            final AtomicBoolean changeOccurred, double[] meanSummaryConsts, List<Double> distAccelCache, List<List<Double>> meanQIs)
+    private void step3bUpdate(final List<Vec> X, final double[] upperBound, final int q, final double[][] lowerBound, final int c, final double[][] centroidSelfDistances, 
+            final int[] assignment, final Vec v, final List<Vec> means, final ThreadLocal<Vec[]> localDeltas, final AtomicLongArray meanCount, 
+            final AtomicBoolean changeOccurred, final double[] meanSummaryConsts, final List<Double> distAccelCache, final List<List<Double>> meanQIs)
     {
         //3(b)
         if (upperBound[q] > lowerBound[q][c] || upperBound[q] > centroidSelfDistances[assignment[q]][c] / 2)
@@ -623,7 +623,7 @@ public class ElkanKMeans extends KMeans
             lowerBound[q][c] = d;
             if (d < upperBound[q])
             {
-                Vec[] deltas = localDeltas.get();
+                final Vec[] deltas = localDeltas.get();
                 deltas[assignment[q]].mutableSubtract(v);
                 meanCount.decrementAndGet(assignment[q]);
                 
@@ -638,14 +638,14 @@ public class ElkanKMeans extends KMeans
         }
     }
 
-    private void calculateCentroidDistances(final int k, final double[][] centroidSelfDistances, final List<Vec> means, final double[] sC, final double[] meanSummaryConsts, ExecutorService threadpool)
+    private void calculateCentroidDistances(final int k, final double[][] centroidSelfDistances, final List<Vec> means, final double[] sC, final double[] meanSummaryConsts, final ExecutorService threadpool)
     {
         final List<Double> meanAccelCache = dm.supportsAcceleration() ? dm.getAccelerationCache(means) : null;
         
         if(threadpool != null)
         {
             //# of items in the upper triangle of a matrix excluding diagonal is (1+k)*k/2-k
-            int jobs = (1+k)*k/2-k;
+            final int jobs = (1+k)*k/2-k;
             final CountDownLatch latch = new CountDownLatch(jobs);
             for (int i = 0; i < k; i++)
             {
@@ -671,7 +671,7 @@ public class ElkanKMeans extends KMeans
             {
                 latch.await();
             }
-            catch (InterruptedException ex)
+            catch (final InterruptedException ex)
             {
                 Logger.getLogger(ElkanKMeans.class.getName()).log(Level.SEVERE, null, ex);
             }

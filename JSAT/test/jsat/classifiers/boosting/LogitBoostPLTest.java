@@ -70,14 +70,14 @@ public class LogitBoostPLTest
     {
         System.out.println("trainC");
 
-        LogitBoostPL instance = new LogitBoostPL(new DecisionStump(), 50);
+        final LogitBoostPL instance = new LogitBoostPL(new DecisionStump(), 50);
 
-        ExecutorService ex = Executors.newFixedThreadPool(SystemInfo.LogicalCores);
+        final ExecutorService ex = Executors.newFixedThreadPool(SystemInfo.LogicalCores);
 
-        ClassificationDataSet train = FixedProblems.getCircles(1000, .1, 10.0);
-        ClassificationDataSet test = FixedProblems.getCircles(100, .1, 10.0);
+        final ClassificationDataSet train = FixedProblems.getCircles(1000, .1, 10.0);
+        final ClassificationDataSet test = FixedProblems.getCircles(100, .1, 10.0);
 
-        ClassificationModelEvaluation cme = new ClassificationModelEvaluation(instance, train, ex);
+        final ClassificationModelEvaluation cme = new ClassificationModelEvaluation(instance, train, ex);
         cme.evaluateTestSet(test);
 
         assertTrue(cme.getErrorRate() <= 0.15);
@@ -90,12 +90,12 @@ public class LogitBoostPLTest
     {
         System.out.println("trainC");
 
-        LogitBoostPL instance = new LogitBoostPL(new DecisionStump(), 50);
+        final LogitBoostPL instance = new LogitBoostPL(new DecisionStump(), 50);
 
-        ClassificationDataSet train = FixedProblems.getCircles(1000, .1, 10.0);
-        ClassificationDataSet test = FixedProblems.getCircles(100, .1, 10.0);
+        final ClassificationDataSet train = FixedProblems.getCircles(1000, .1, 10.0);
+        final ClassificationDataSet test = FixedProblems.getCircles(100, .1, 10.0);
 
-        ClassificationModelEvaluation cme = new ClassificationModelEvaluation(instance, train);
+        final ClassificationModelEvaluation cme = new ClassificationModelEvaluation(instance, train);
         cme.evaluateTestSet(test);
 
         assertTrue(cme.getErrorRate() <= 0.15);
@@ -109,8 +109,8 @@ public class LogitBoostPLTest
 
         LogitBoostPL instance = new LogitBoostPL(new DecisionTree(10, 10, TreePruner.PruningMethod.NONE, 0.1), 50);
 
-        ClassificationDataSet t1 = FixedProblems.getCircles(1000, 0.1, 10.0);
-        ClassificationDataSet t2 = FixedProblems.getCircles(1000, 0.1, 10.0);
+        final ClassificationDataSet t1 = FixedProblems.getCircles(1000, 0.1, 10.0);
+        final ClassificationDataSet t2 = FixedProblems.getCircles(1000, 0.1, 10.0);
         
         t2.applyTransform(new LinearTransform(t2));
 
@@ -120,7 +120,7 @@ public class LogitBoostPLTest
 
         instance.trainC(t1);
 
-        LogitBoostPL result = instance.clone();
+        final LogitBoostPL result = instance.clone();
         
         errors = 0;
         for (int i = 0; i < t1.getSampleSize(); i++) {

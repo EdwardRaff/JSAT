@@ -72,7 +72,7 @@ public class SeedSelectionMethods
      * @param selectionMethod  The method of seed selection to use. 
      * @return a list of the copies of the chosen vectors. 
      */
-    static public List<Vec> selectIntialPoints(DataSet d, int k, DistanceMetric dm, Random rand, SeedSelection selectionMethod)
+    static public List<Vec> selectIntialPoints(final DataSet d, final int k, final DistanceMetric dm, final Random rand, final SeedSelection selectionMethod)
     {
         return selectIntialPoints(d, k, dm, null, rand, selectionMethod);
     }
@@ -87,12 +87,12 @@ public class SeedSelectionMethods
      * @param selectionMethod  The method of seed selection to use. 
      * @return a list of the copies of the chosen vectors. 
      */
-    static public List<Vec> selectIntialPoints(DataSet d, int k, DistanceMetric dm, List<Double> accelCache, Random rand, SeedSelection selectionMethod)
+    static public List<Vec> selectIntialPoints(final DataSet d, final int k, final DistanceMetric dm, final List<Double> accelCache, final Random rand, final SeedSelection selectionMethod)
     {
-        int[] indicies = new int[k];
+        final int[] indicies = new int[k];
         selectIntialPoints(d, indicies, dm, accelCache, rand, selectionMethod, null);
-        List<Vec> vecs = new ArrayList<Vec>(k);
-        for(Integer i : indicies) {
+        final List<Vec> vecs = new ArrayList<Vec>(k);
+        for(final Integer i : indicies) {
           vecs.add(d.getDataPoint(i).getNumericalValues().clone());
         }
         return vecs;
@@ -109,7 +109,7 @@ public class SeedSelectionMethods
      * @param threadpool the source of threads for parallel computation 
      * @return a list of the copies of the chosen vectors. 
      */
-    static public List<Vec> selectIntialPoints(DataSet d, int k, DistanceMetric dm, Random rand, SeedSelection selectionMethod, ExecutorService threadpool)
+    static public List<Vec> selectIntialPoints(final DataSet d, final int k, final DistanceMetric dm, final Random rand, final SeedSelection selectionMethod, final ExecutorService threadpool)
     {
         return selectIntialPoints(d, k, dm, null, rand, selectionMethod, threadpool);
     }
@@ -126,12 +126,12 @@ public class SeedSelectionMethods
      * @param threadpool the source of threads for parallel computation 
      * @return a list of the copies of the chosen vectors. 
      */
-    static public List<Vec> selectIntialPoints(DataSet d, int k, DistanceMetric dm, List<Double> accelCache, Random rand, SeedSelection selectionMethod, ExecutorService threadpool)
+    static public List<Vec> selectIntialPoints(final DataSet d, final int k, final DistanceMetric dm, final List<Double> accelCache, final Random rand, final SeedSelection selectionMethod, final ExecutorService threadpool)
     {
-        int[] indicies = new int[k];
+        final int[] indicies = new int[k];
         selectIntialPoints(d, indicies, dm, accelCache, rand, selectionMethod, threadpool);
-        List<Vec> vecs = new ArrayList<Vec>(k);
-        for(Integer i : indicies) {
+        final List<Vec> vecs = new ArrayList<Vec>(k);
+        for(final Integer i : indicies) {
           vecs.add(d.getDataPoint(i).getNumericalValues().clone());
         }
         return vecs;
@@ -146,7 +146,7 @@ public class SeedSelectionMethods
      * @param rand a source of randomness
      * @param selectionMethod  The method of seed selection to use. 
      */
-    static public void selectIntialPoints(DataSet d, int[] indices, DistanceMetric dm, Random rand, SeedSelection selectionMethod)
+    static public void selectIntialPoints(final DataSet d, final int[] indices, final DistanceMetric dm, final Random rand, final SeedSelection selectionMethod)
     {
         selectIntialPoints(d, indices, dm, null, rand, selectionMethod);
     }
@@ -161,7 +161,7 @@ public class SeedSelectionMethods
      * @param rand a source of randomness
      * @param selectionMethod  The method of seed selection to use. 
      */
-    static public void selectIntialPoints(DataSet d, int[] indices, DistanceMetric dm, List<Double> accelCache, Random rand, SeedSelection selectionMethod)
+    static public void selectIntialPoints(final DataSet d, final int[] indices, final DistanceMetric dm, final List<Double> accelCache, final Random rand, final SeedSelection selectionMethod)
     {
         selectIntialPoints(d, indices, dm, accelCache, rand, selectionMethod, null);
     }
@@ -176,7 +176,7 @@ public class SeedSelectionMethods
      * @param selectionMethod  The method of seed selection to use. 
      * @param threadpool the source of threads for parallel computation 
      */
-    static public void selectIntialPoints(DataSet d, int[] indices, DistanceMetric dm, Random rand, SeedSelection selectionMethod, ExecutorService threadpool)
+    static public void selectIntialPoints(final DataSet d, final int[] indices, final DistanceMetric dm, final Random rand, final SeedSelection selectionMethod, final ExecutorService threadpool)
     {
         selectIntialPoints(d, indices, dm, null, rand, selectionMethod, threadpool);
     }
@@ -192,22 +192,22 @@ public class SeedSelectionMethods
      * @param selectionMethod  The method of seed selection to use. 
      * @param threadpool the source of threads for parallel computation 
      */
-    static public void selectIntialPoints(DataSet d, int[] indices, DistanceMetric dm, List<Double> accelCache, Random rand, SeedSelection selectionMethod, ExecutorService threadpool)
+    static public void selectIntialPoints(final DataSet d, final int[] indices, final DistanceMetric dm, final List<Double> accelCache, final Random rand, final SeedSelection selectionMethod, final ExecutorService threadpool)
     {
         try
         {
-            int k = indices.length;
+            final int k = indices.length;
 
             if (selectionMethod == SeedSelection.RANDOM)
             {
-                Set<Integer> indecies = new IntSet(k);
+                final Set<Integer> indecies = new IntSet(k);
 
                 while (indecies.size() != k) {
                   indecies.add(rand.nextInt(d.getSampleSize()));//TODO create method to do uniform sampleling for a select range
                 }
 
                 int j = 0;
-                for (Integer i : indecies) {
+                for (final Integer i : indecies) {
                   indices[j++] = i;
                 }
             }
@@ -236,17 +236,17 @@ public class SeedSelectionMethods
                 }
             }
         }
-        catch (InterruptedException ex)
+        catch (final InterruptedException ex)
         {
             Logger.getLogger(SeedSelectionMethods.class.getName()).log(Level.SEVERE, null, ex);
         }
-        catch (ExecutionException ex)
+        catch (final ExecutionException ex)
         {
             Logger.getLogger(SeedSelectionMethods.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
 
-    private static void kppSelection(int[] indices, Random rand, DataSet d, int k, DistanceMetric dm, List<Double> accelCache)
+    private static void kppSelection(final int[] indices, final Random rand, final DataSet d, final int k, final DistanceMetric dm, final List<Double> accelCache)
     {
         /*
          * http://www.stanford.edu/~darthur/kMeansPlusPlus.pdf : k-means++: The Advantages of Careful Seeding
@@ -255,16 +255,16 @@ public class SeedSelectionMethods
         //Initial random point
         indices[0] = rand.nextInt(d.getSampleSize());
         
-        double[] closestDist = new double[d.getSampleSize()];
+        final double[] closestDist = new double[d.getSampleSize()];
         double sqrdDistSum = 0.0;
         double newDist;
         
-        List<Vec> vecs = d.getDataVectors();
+        final List<Vec> vecs = d.getDataVectors();
         
         for(int j = 1; j < k; j++)
         {
             //Compute the distance from each data point to the closest mean
-            int newMeanIndx = indices[j-1];//Only the most recently added mean needs to get distances computed. 
+            final int newMeanIndx = indices[j-1];//Only the most recently added mean needs to get distances computed. 
             for(int i = 0; i < d.getSampleSize(); i++)
             {
                 newDist = dm.dist(newMeanIndx, i, vecs, accelCache);
@@ -280,7 +280,7 @@ public class SeedSelectionMethods
             
             if(sqrdDistSum <= 1e-6)//everyone is too close, randomly fill rest
             {
-                Set<Integer> ind = new IntSet();
+                final Set<Integer> ind = new IntSet();
                 for(int i = 0;i <j; i++) {
                   ind.add(indices[i]);
                 }
@@ -288,14 +288,14 @@ public class SeedSelectionMethods
                   ind.add(rand.nextInt(closestDist.length));
                 }
                 int pos = 0;
-                for(int i : ind) {
+                for(final int i : ind) {
                   indices[pos++] = i;
                 }
                 return;
             }
             
             //Choose new x as weighted probablity by the squared distances
-            double rndX = rand.nextDouble()*sqrdDistSum;
+            final double rndX = rand.nextDouble()*sqrdDistSum;
             double searchSum = closestDist[0];
             int i = 0;
             while(searchSum < rndX && i < d.getSampleSize()-1) {
@@ -306,7 +306,7 @@ public class SeedSelectionMethods
         }
     }
     
-    private static void kppSelection(final int[] indices, Random rand, final DataSet d, final int k, final DistanceMetric dm, final List<Double> accelCache, ExecutorService threadpool) throws InterruptedException, ExecutionException
+    private static void kppSelection(final int[] indices, final Random rand, final DataSet d, final int k, final DistanceMetric dm, final List<Double> accelCache, final ExecutorService threadpool) throws InterruptedException, ExecutionException
     {
         /*
          * http://www.stanford.edu/~darthur/kMeansPlusPlus.pdf : k-means++: The Advantages of Careful Seeding
@@ -320,7 +320,7 @@ public class SeedSelectionMethods
         final List<Vec> X = d.getDataVectors();
 
         //Each future will return the local chance to the overal sqared distance. 
-        List<Future<Double>> futureChanges = new ArrayList<Future<Double>>(LogicalCores);
+        final List<Future<Double>> futureChanges = new ArrayList<Future<Double>>(LogicalCores);
 
         for (int j = 1; j < k; j++)
         {
@@ -334,7 +334,7 @@ public class SeedSelectionMethods
                 final int from = ParallelUtils.getStartBlock(X.size(), id, LogicalCores);
                 final int to = ParallelUtils.getEndBlock(X.size(), id, LogicalCores);
                 final boolean forceCompute = j == 1;
-                Future<Double> future = threadpool.submit(new Callable<Double>()
+                final Future<Double> future = threadpool.submit(new Callable<Double>()
                 {
 
                     @Override
@@ -361,13 +361,13 @@ public class SeedSelectionMethods
                 futureChanges.add(future);
             }
 
-            for (Double change : ListUtils.collectFutures(futureChanges)) {
+            for (final Double change : ListUtils.collectFutures(futureChanges)) {
               sqrdDistSum += change;
             }
             
             if(sqrdDistSum <= 1e-6)//everyone is too close, randomly fill rest
             {
-                Set<Integer> ind = new IntSet();
+                final Set<Integer> ind = new IntSet();
                 for(int i = 0;i <j; i++) {
                   ind.add(indices[i]);
                 }
@@ -375,14 +375,14 @@ public class SeedSelectionMethods
                   ind.add(rand.nextInt(closestDist.length));
                 }
                 int pos = 0;
-                for(int i : ind) {
+                for(final int i : ind) {
                   indices[pos++] = i;
                 }
                 return;
             }
 
             //Choose new x as weighted probablity by the squared distances
-            double rndX = rand.nextDouble() * sqrdDistSum;
+            final double rndX = rand.nextDouble() * sqrdDistSum;
             double searchSum = closestDist[0];
             int i = 0;
             while(searchSum < rndX && i < d.getSampleSize()-1) {
@@ -393,7 +393,7 @@ public class SeedSelectionMethods
         }
     }
     
-    private static void ffSelection(final int[] indices, Random rand, final DataSet d, final int k, final DistanceMetric dm, final List<Double> accelCache, ExecutorService threadpool) throws InterruptedException, ExecutionException
+    private static void ffSelection(final int[] indices, final Random rand, final DataSet d, final int k, final DistanceMetric dm, final List<Double> accelCache, final ExecutorService threadpool) throws InterruptedException, ExecutionException
     {
         //Initial random point
         indices[0] = rand.nextInt(d.getSampleSize());
@@ -403,7 +403,7 @@ public class SeedSelectionMethods
         final List<Vec> X = d.getDataVectors();
 
         //Each future will return the local chance to the overal sqared distance. 
-        List<Future<Integer>> futures = new ArrayList<Future<Integer>>(LogicalCores);
+        final List<Future<Integer>> futures = new ArrayList<Future<Integer>>(LogicalCores);
 
         for (int j = 1; j < k; j++)
         {
@@ -411,7 +411,7 @@ public class SeedSelectionMethods
             final int newMeanIndx = indices[j - 1];//Only the most recently added mean needs to get distances computed. 
             futures.clear();
 
-            int blockSize = d.getSampleSize() / LogicalCores;
+            final int blockSize = d.getSampleSize() / LogicalCores;
             int extra = d.getSampleSize() % LogicalCores;
             int pos = 0;
             while (pos < d.getSampleSize())
@@ -419,7 +419,7 @@ public class SeedSelectionMethods
                 final int from = pos;
                 final int to = Math.min(pos + blockSize + (extra-- > 0 ? 1 : 0), d.getSampleSize());
                 pos = to;
-                Future<Integer> future = threadpool.submit(new Callable<Integer>()
+                final Future<Integer> future = threadpool.submit(new Callable<Integer>()
                 {
 
                     @Override
@@ -429,7 +429,7 @@ public class SeedSelectionMethods
                         int max = -1;
                         for (int i = from; i < to; i++)
                         {
-                            double newDist = dm.dist(newMeanIndx, i, X, accelCache);
+                            final double newDist = dm.dist(newMeanIndx, i, X, accelCache);
                             closestDist[i] = Math.min(newDist, closestDist[i]);
                             
                             if (closestDist[i] > maxDist)
@@ -448,7 +448,7 @@ public class SeedSelectionMethods
 
             int max = -1;
             double maxDist = Double.NEGATIVE_INFINITY;
-            for (Integer localMax : ListUtils.collectFutures(futures)) {
+            for (final Integer localMax : ListUtils.collectFutures(futures)) {
               if(closestDist[localMax] > maxDist)
               {
                 max = localMax;
@@ -460,7 +460,7 @@ public class SeedSelectionMethods
         }
     }
     
-    private static void mqSelection(final int[] indices, final DataSet d, final int k, final DistanceMetric dm, final List<Double> accelCache, ExecutorService threadpool) throws InterruptedException, ExecutionException
+    private static void mqSelection(final int[] indices, final DataSet d, final int k, final DistanceMetric dm, final List<Double> accelCache, final ExecutorService threadpool) throws InterruptedException, ExecutionException
     {
         final double[] meanDist = new double[d.getSampleSize()];
 
@@ -470,7 +470,7 @@ public class SeedSelectionMethods
         final List<Vec> X = d.getDataVectors();
 
         final CountDownLatch latch = new CountDownLatch(LogicalCores);
-        int blockSize = d.getSampleSize() / LogicalCores;
+        final int blockSize = d.getSampleSize() / LogicalCores;
         int extra = d.getSampleSize() % LogicalCores;
         int pos = 0;
         while (pos < d.getSampleSize())
@@ -493,7 +493,7 @@ public class SeedSelectionMethods
         
         latch.await();
         
-        IndexTable indxTbl = new IndexTable(meanDist);
+        final IndexTable indxTbl = new IndexTable(meanDist);
         for(int l = 0; l < k; l++) {
           indices[l] = indxTbl.index(l*d.getSampleSize()/k);
         }

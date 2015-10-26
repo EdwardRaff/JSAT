@@ -56,7 +56,7 @@ public class KernelRidgeRegression implements Regressor, Parameterized
      * @param kernel the kernel to use
      * @see #setLambda(double) 
      */
-    public KernelRidgeRegression(double lambda, KernelTrick kernel)
+    public KernelRidgeRegression(final double lambda, final KernelTrick kernel)
     {
         setLambda(lambda);
         setKernel(kernel);
@@ -66,7 +66,7 @@ public class KernelRidgeRegression implements Regressor, Parameterized
      * Copy Constructor
      * @param toCopy the object to copy
      */
-    protected KernelRidgeRegression(KernelRidgeRegression toCopy)
+    protected KernelRidgeRegression(final KernelRidgeRegression toCopy)
     {
         this(toCopy.lambda, toCopy.getKernel().clone());
         if(toCopy.alphas != null) {
@@ -83,7 +83,7 @@ public class KernelRidgeRegression implements Regressor, Parameterized
      * @param d the dataset to get the guess for
      * @return the guess for the &lambda; parameter
      */
-    public static Distribution guessLambda(DataSet d)
+    public static Distribution guessLambda(final DataSet d)
     {
         return new LogUniform(1e-7, 1e-2);
     }
@@ -93,7 +93,7 @@ public class KernelRidgeRegression implements Regressor, Parameterized
      * the data set and kernel used, with easier problems using smaller lambdas. 
      * @param lambda the positive regularization constant in (0, Inf)
      */
-    public void setLambda(double lambda)
+    public void setLambda(final double lambda)
     {
         if(Double.isNaN(lambda) || Double.isInfinite(lambda) || lambda <= 0) {
           throw new IllegalArgumentException("lambda must be a positive constant, not " + lambda);
@@ -114,7 +114,7 @@ public class KernelRidgeRegression implements Regressor, Parameterized
      * Sets the kernel trick to use
      * @param k the kernel to use
      */
-    public void setKernel(KernelTrick k)
+    public void setKernel(final KernelTrick k)
     {
         this.k = k;
     }
@@ -129,9 +129,9 @@ public class KernelRidgeRegression implements Regressor, Parameterized
     }
 
     @Override
-    public double regress(DataPoint data)
+    public double regress(final DataPoint data)
     {
-        Vec x = data.getNumericalValues();
+        final Vec x = data.getNumericalValues();
         double score = 0;
         for(int i = 0; i < alphas.length; i++) {
           score += alphas[i] * k.eval(vecs.get(i), x);
@@ -140,12 +140,12 @@ public class KernelRidgeRegression implements Regressor, Parameterized
     }
 
     @Override
-    public void train(RegressionDataSet dataSet, ExecutorService threadPool)
+    public void train(final RegressionDataSet dataSet, final ExecutorService threadPool)
     {   
         final int N = dataSet.getSampleSize();
         vecs = new ArrayList<Vec>(N);
         //alphas initalized later
-        Vec Y = dataSet.getTargetValues();
+        final Vec Y = dataSet.getTargetValues();
         for(int i = 0; i < N; i++) {
           vecs.add(dataSet.getDataPoint(i).getNumericalValues());
         }
@@ -166,7 +166,7 @@ public class KernelRidgeRegression implements Regressor, Parameterized
                         K.set(i, i, k.eval(vecs.get(i), vecs.get(i))+lambda);//diagonal values
                         for(int j = i+1; j < N; j++)
                         {
-                            double K_ij = k.eval(vecs.get(i), vecs.get(j));
+                            final double K_ij = k.eval(vecs.get(i), vecs.get(j));
                             K.set(i, j, K_ij);
                             K.set(j, i, K_ij);
                         }
@@ -180,7 +180,7 @@ public class KernelRidgeRegression implements Regressor, Parameterized
         {
             cdl.await();
         }
-        catch (InterruptedException ex)
+        catch (final InterruptedException ex)
         {
             Logger.getLogger(KernelRidgeRegression.class.getName()).log(Level.SEVERE, null, ex);
         }
@@ -191,12 +191,12 @@ public class KernelRidgeRegression implements Regressor, Parameterized
         } else {
           cd = new CholeskyDecomposition(K, threadPool);
         }
-        Vec alphaTmp = cd.solve(Y);
+        final Vec alphaTmp = cd.solve(Y);
         alphas = alphaTmp.arrayCopy();
     }
 
     @Override
-    public void train(RegressionDataSet dataSet)
+    public void train(final RegressionDataSet dataSet)
     {
         train(dataSet, new FakeExecutor());
     }
@@ -220,7 +220,7 @@ public class KernelRidgeRegression implements Regressor, Parameterized
     }
 
     @Override
-    public Parameter getParameter(String paramName)
+    public Parameter getParameter(final String paramName)
     {
         return Parameter.toParameterMap(getParameters()).get(paramName);
     }

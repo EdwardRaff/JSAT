@@ -9,7 +9,7 @@ import jsat.math.Function;
  */
 public class Trapezoidal
 {
-    static public double trapz(Function f, double a, double b, int N)
+    static public double trapz(final Function f, final double a, final double b, final int N)
     {
         /*
          *    b               /              N - 1                 \

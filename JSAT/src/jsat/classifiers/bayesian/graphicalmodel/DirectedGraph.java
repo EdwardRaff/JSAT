@@ -21,7 +21,7 @@ public class DirectedGraph<N> implements Cloneable
         A incoming;
         B outgoing;
 
-        public Pair(A first, B second)
+        public Pair(final A first, final B second)
         {
             this.incoming = first;
             this.outgoing = second;
@@ -37,23 +37,23 @@ public class DirectedGraph<N> implements Cloneable
             return outgoing;
         }
         @SuppressWarnings("unused")
-        public void setIncoming(A first)
+        public void setIncoming(final A first)
         {
             this.incoming = first;
         }
         @SuppressWarnings("unused")
-        public void setOutgoing(B outgoing)
+        public void setOutgoing(final B outgoing)
         {
             this.outgoing = outgoing;
         }
 
         @Override
-        public boolean equals(Object obj)
+        public boolean equals(final Object obj)
         {
             if(obj == null || !(obj instanceof Pair)) {
               return false;
             }
-            Pair other = (Pair) obj;
+            final Pair other = (Pair) obj;
             return this.incoming.equals(other.incoming) && this.outgoing.equals(other.outgoing);
         }
 
@@ -76,7 +76,7 @@ public class DirectedGraph<N> implements Cloneable
      * point to N, and the second list contains all the nodes that N 
      * points to. 
      */
-    private Map<N, Pair<HashSet<N>, HashSet<N>>> nodes;
+    private final Map<N, Pair<HashSet<N>, HashSet<N>>> nodes;
 
     public DirectedGraph()
     {
@@ -96,9 +96,9 @@ public class DirectedGraph<N> implements Cloneable
      * Adds all the objects in <tt>c</tt> as nodes in the graph
      * @param c a collection of nodes to add
      */
-    public void addNodes(Collection<? extends N> c)
+    public void addNodes(final Collection<? extends N> c)
     {
-        for(N n : c) {
+        for(final N n : c) {
           addNode(n);
         }
     }
@@ -107,7 +107,7 @@ public class DirectedGraph<N> implements Cloneable
      * Adds a new node to the graph
      * @param node the object to make a node
      */
-    public void addNode(N node)
+    public void addNode(final N node)
     {
         if(!nodes.containsKey(node)) {
           nodes.put(node, new Pair<HashSet<N>, HashSet<N>>(new HashSet<N>(), new HashSet<N>()));
@@ -119,9 +119,9 @@ public class DirectedGraph<N> implements Cloneable
      * @param n the node to obtain the parents of
      * @return the set of parents, or null if the node is not in the graph
      */
-    public Set<N> getParents(N n)
+    public Set<N> getParents(final N n)
     {
-        Pair<HashSet<N>, HashSet<N>> p = nodes.get(n);
+        final Pair<HashSet<N>, HashSet<N>> p = nodes.get(n);
         
         if(p == null) {
           return null;
@@ -135,9 +135,9 @@ public class DirectedGraph<N> implements Cloneable
      * @param n the node to obtain the children of
      * @return the set of parents, or null if the node is not in the graph
      */
-    public Set<N> getChildren(N n)
+    public Set<N> getChildren(final N n)
     {
-        Pair<HashSet<N>, HashSet<N>> p = nodes.get(n);
+        final Pair<HashSet<N>, HashSet<N>> p = nodes.get(n);
         
         if(p == null) {
           return null;
@@ -150,15 +150,15 @@ public class DirectedGraph<N> implements Cloneable
      * Removes the specified node from the graph. If the node was not in the graph, not change occurs
      * @param node the node to remove from the graph
      */
-    public void removeNode(N node)
+    public void removeNode(final N node)
     {
-        Pair<HashSet<N>, HashSet<N>> p = nodes.remove(node);
+        final Pair<HashSet<N>, HashSet<N>> p = nodes.remove(node);
         if(p == null) {
           return;
         }
         //Outgoing edges we can ignore removint he node drops them. We need to avoid dangling incoming edges to this node we have removed
-        HashSet<N> incomingNodes = p.getIncoming();
-        for(N incomingNode : incomingNodes) {
+        final HashSet<N> incomingNodes = p.getIncoming();
+        for(final N incomingNode : incomingNodes) {
           nodes.get(incomingNode).getOutgoing().remove(node);
         }
     }
@@ -169,7 +169,7 @@ public class DirectedGraph<N> implements Cloneable
      * @param b the second value to check for
      * @return true if both <tt>a</tt> and <tt>b</tt> are in the graph, false otherwise
      */
-    private boolean containsBoth(N a, N b)
+    private boolean containsBoth(final N a, final N b)
     {
         return nodes.containsKey(a) && nodes.containsKey(b);
     }
@@ -180,7 +180,7 @@ public class DirectedGraph<N> implements Cloneable
      * @param a the parent node
      * @param b the child node
      */
-    public void addEdge(N a, N b)
+    public void addEdge(final N a, final N b)
     {
         if( !containsBoth(a, b) ) {
           return;//Cant add nodes to things that doing exist
@@ -195,7 +195,7 @@ public class DirectedGraph<N> implements Cloneable
      * @param a the parent node
      * @param b the child node
      */
-    public void removeEdge(N a, N b)
+    public void removeEdge(final N a, final N b)
     {
         if(!containsBoth(a, b)) {
           return;
@@ -209,7 +209,7 @@ public class DirectedGraph<N> implements Cloneable
      * @param a the node in question
      * @return <tt>true</tt> if the node exists, <tt>false</tt> otherwise
      */
-    public boolean containsNode(N a)
+    public boolean containsNode(final N a)
     {
         return nodes.containsKey(a);
     }
@@ -217,16 +217,16 @@ public class DirectedGraph<N> implements Cloneable
     @Override
     protected DirectedGraph<N> clone() 
     {
-        DirectedGraph<N> clone = new DirectedGraph<N>();
+        final DirectedGraph<N> clone = new DirectedGraph<N>();
         
         clone.addNodes(this.nodes.keySet());
-        for(N key : nodes.keySet())
+        for(final N key : nodes.keySet())
         {
-            Pair<HashSet<N>, HashSet<N>> p = nodes.get(key);
-            for(N n : p.getIncoming()) {
+            final Pair<HashSet<N>, HashSet<N>> p = nodes.get(key);
+            for(final N n : p.getIncoming()) {
               clone.nodes.get(key).getIncoming().add(n);
             }
-            for(N n : p.getOutgoing()) {
+            for(final N n : p.getOutgoing()) {
               clone.nodes.get(key).getOutgoing().add(n);
             }
             

@@ -15,7 +15,7 @@ public final class Cauchy extends ContinuousDistribution
 	private double location;
     private double scale;
 
-    public Cauchy(double x0, double y)
+    public Cauchy(final double x0, final double y)
     {
         setScale(y);
         setLocation(x0);
@@ -26,12 +26,12 @@ public final class Cauchy extends ContinuousDistribution
         this(0, 1);
     }
 
-    public void setLocation(double x0)
+    public void setLocation(final double x0)
     {
         this.location = x0;
     }
 
-    public void setScale(double y)
+    public void setScale(final double y)
     {
         if(y <= 0) {
           throw new ArithmeticException("The scale parameter must be > 0, not " + y);
@@ -50,19 +50,19 @@ public final class Cauchy extends ContinuousDistribution
     }
     
     @Override
-    public double pdf(double x)
+    public double pdf(final double x)
     {
         return 1.0 / ( Math.PI*scale*  (1 + Math.pow((x-location)/scale, 2))  );
     }
 
     @Override
-    public double cdf(double x)
+    public double cdf(final double x)
     {
         return Math.atan((x-location)/scale)/Math.PI + 0.5;
     }
 
     @Override
-    public double invCdf(double p)
+    public double invCdf(final double p)
     {
         return location + scale * Math.tan(  Math.PI * (p - 0.5) );
     }
@@ -98,7 +98,7 @@ public final class Cauchy extends ContinuousDistribution
     }
 
     @Override
-    public void setVariable(String var, double value)
+    public void setVariable(final String var, final double value)
     {
         if(var.equals("y")) {
           setScale(value);
@@ -119,7 +119,7 @@ public final class Cauchy extends ContinuousDistribution
         data = data.sortedCopy();
         
         //approximate y by taking | 1st quant - 3rd quantile|
-        int n = data.length();
+        final int n = data.length();
         setScale(Math.abs(data.get(n/4) - data.get(3*n/4)));
         
         //approximate x by taking the median value
@@ -188,7 +188,7 @@ public final class Cauchy extends ContinuousDistribution
 	}
 
 	@Override
-	public boolean equals(Object obj) {
+	public boolean equals(final Object obj) {
 		if (this == obj) {
 			return true;
 		}
@@ -198,7 +198,7 @@ public final class Cauchy extends ContinuousDistribution
 		if (getClass() != obj.getClass()) {
 			return false;
 		}
-		Cauchy other = (Cauchy) obj;
+		final Cauchy other = (Cauchy) obj;
 		if (Double.doubleToLongBits(location) != Double
 				.doubleToLongBits(other.location)) {
 			return false;

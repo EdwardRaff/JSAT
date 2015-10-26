@@ -51,21 +51,21 @@ public class NormalMTest
     public void testSetCovariance()
     {
         System.out.println("setCovariance");
-        NormalM normalM = new NormalM(mean, covariance);
+        final NormalM normalM = new NormalM(mean, covariance);
         
-        Matrix t1 = Matrix.eye(3);//Should fail, too big
-        Matrix t2 = new DenseMatrix(2, 3);//Should fail, not square
-        Matrix t3 = new DenseMatrix(3, 2);//Should fail, not square
+        final Matrix t1 = Matrix.eye(3);//Should fail, too big
+        final Matrix t2 = new DenseMatrix(2, 3);//Should fail, not square
+        final Matrix t3 = new DenseMatrix(3, 2);//Should fail, not square
         
-        Matrix[] shouldFail = new Matrix[] {t1, t2, t3};
+        final Matrix[] shouldFail = new Matrix[] {t1, t2, t3};
 
-        for (Matrix badMatrix : shouldFail) {
+        for (final Matrix badMatrix : shouldFail) {
           try
           {
             normalM.setCovariance(badMatrix);
             fail("Matrix was invalid, should have caused an exception");
           }
-          catch (ArithmeticException ex)
+          catch (final ArithmeticException ex)
           {
             //Good! Should fail
           }
@@ -80,8 +80,8 @@ public class NormalMTest
     public void testLogPdf()
     {
         System.out.println("logPdf");
-        NormalM normalM = new NormalM(mean, covariance);
-        Vec[] xVals = new Vec[] 
+        final NormalM normalM = new NormalM(mean, covariance);
+        final Vec[] xVals = new Vec[] 
         {
             DenseVector.toDenseVec(1, 0), DenseVector.toDenseVec(1, 1),
             DenseVector.toDenseVec(0, 1), DenseVector.toDenseVec(-1, 0),
@@ -90,7 +90,7 @@ public class NormalMTest
             DenseVector.toDenseVec(1, -1), DenseVector.toDenseVec(-1, 1),
         };
         
-        double[] pVals = new double[]
+        final double[] pVals = new double[]
         {
             -4.825148700723577e+000, -1.709787597345085e+001,
             -2.573423960981450e+001, -1.755242142799632e+001,
@@ -111,8 +111,8 @@ public class NormalMTest
     public void testPdf()
     {
         System.out.println("pdf");
-        NormalM normalM = new NormalM(mean, covariance);
-        Vec[] xVals = new Vec[] 
+        final NormalM normalM = new NormalM(mean, covariance);
+        final Vec[] xVals = new Vec[] 
         {
             DenseVector.toDenseVec(1, 0), DenseVector.toDenseVec(1, 1),
             DenseVector.toDenseVec(0, 1), DenseVector.toDenseVec(-1, 0),
@@ -121,7 +121,7 @@ public class NormalMTest
             DenseVector.toDenseVec(1, -1), DenseVector.toDenseVec(-1, 1),
         };
         
-        double[] pVals = new double[]
+        final double[] pVals = new double[]
         {
             8.025360404763595e-003, 3.753935553147029e-008,
             6.664410523370948e-012, 2.382759609937137e-008,

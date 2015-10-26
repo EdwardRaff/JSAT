@@ -22,7 +22,7 @@ public class BestClassDistribution implements Classifier, Parameterized
 {
 
 	private static final long serialVersionUID = -1746145372146154228L;
-	private MultivariateDistribution baseDist;
+	private final MultivariateDistribution baseDist;
     private List<MultivariateDistribution> dists;
     /**
      * The prior probabilities of each class
@@ -39,12 +39,12 @@ public class BestClassDistribution implements Classifier, Parameterized
      */
     public static final boolean USE_PRIORS = true;
     
-    public BestClassDistribution(MultivariateDistribution baseDist)
+    public BestClassDistribution(final MultivariateDistribution baseDist)
     {
         this(baseDist, USE_PRIORS);
     }
     
-    public BestClassDistribution(MultivariateDistribution baseDist, boolean usePriors)
+    public BestClassDistribution(final MultivariateDistribution baseDist, final boolean usePriors)
     {
         this.baseDist = baseDist;
         this.usePriors = usePriors;
@@ -54,7 +54,7 @@ public class BestClassDistribution implements Classifier, Parameterized
      * Copy constructor
      * @param toCopy the object to copy
      */
-    public BestClassDistribution(BestClassDistribution toCopy)
+    public BestClassDistribution(final BestClassDistribution toCopy)
     {
         if(toCopy.priors != null) {
           this.priors = Arrays.copyOf(toCopy.priors, toCopy.priors.length);
@@ -63,7 +63,7 @@ public class BestClassDistribution implements Classifier, Parameterized
         if(toCopy.dists  != null)
         {
             this.dists = new ArrayList<MultivariateDistribution>(toCopy.dists.size());
-            for(MultivariateDistribution md : toCopy.dists) {
+            for(final MultivariateDistribution md : toCopy.dists) {
               this.dists.add(md == null? null : md.clone());
             }
         }
@@ -75,7 +75,7 @@ public class BestClassDistribution implements Classifier, Parameterized
      * 
      * @param usePriors <tt>true</tt> to use the prior probabilities for each class, <tt>false</tt> to ignore them. 
      */
-    public void setUsePriors(boolean usePriors)
+    public void setUsePriors(final boolean usePriors)
     {
         this.usePriors = usePriors;
     }
@@ -92,9 +92,9 @@ public class BestClassDistribution implements Classifier, Parameterized
     
 
     @Override
-    public CategoricalResults classify(DataPoint data)
+    public CategoricalResults classify(final DataPoint data)
     {
-        CategoricalResults cr = new CategoricalResults(dists.size());
+        final CategoricalResults cr = new CategoricalResults(dists.size());
         
         for(int i = 0; i < dists.size(); i++)
         {
@@ -106,7 +106,7 @@ public class BestClassDistribution implements Classifier, Parameterized
             {
                 p = dists.get(i).pdf(data.getNumericalValues());
             }
-            catch(ArithmeticException ex)
+            catch(final ArithmeticException ex)
             {
                 
             }
@@ -120,18 +120,18 @@ public class BestClassDistribution implements Classifier, Parameterized
     }
 
     @Override
-    public void trainC(ClassificationDataSet dataSet, ExecutorService threadPool)
+    public void trainC(final ClassificationDataSet dataSet, final ExecutorService threadPool)
     {
         try
         {
             this.dists = new ArrayList<MultivariateDistribution>();
             this.priors = dataSet.getPriors();
-            List<Future<MultivariateDistribution>> newDists = new ArrayList<Future<MultivariateDistribution>>();
+            final List<Future<MultivariateDistribution>> newDists = new ArrayList<Future<MultivariateDistribution>>();
             final MultivariateDistribution sourceDist = baseDist;
             for (int i = 0; i < dataSet.getPredicting().getNumOfCategories(); i++)//Calculate the Multivariate normal for each category
             {
                 final List<DataPoint> class_i = dataSet.getSamples(i);
-                Future<MultivariateDistribution> tmp = threadPool.submit(new Callable<MultivariateDistribution>()
+                final Future<MultivariateDistribution> tmp = threadPool.submit(new Callable<MultivariateDistribution>()
                 {
 
                     public MultivariateDistribution call() throws Exception
@@ -139,7 +139,7 @@ public class BestClassDistribution implements Classifier, Parameterized
                         if (class_i.isEmpty()) {//Nowthing we can do
                           return null;
                         }
-                        MultivariateDistribution dist = sourceDist.clone();
+                        final MultivariateDistribution dist = sourceDist.clone();
                         dist.setUsingDataList(class_i);
                         return dist;
                     }
@@ -147,11 +147,11 @@ public class BestClassDistribution implements Classifier, Parameterized
 
                 newDists.add(tmp);
             }
-            for (Future<MultivariateDistribution> future : newDists) {
+            for (final Future<MultivariateDistribution> future : newDists) {
               this.dists.add(future.get());
             }
         }
-        catch (Exception ex)
+        catch (final Exception ex)
         {
             Logger.getLogger(MultivariateNormals.class.getName()).log(Level.SEVERE, null, ex);
             throw new FailedToFitException(ex);
@@ -159,15 +159,15 @@ public class BestClassDistribution implements Classifier, Parameterized
     }
 
     @Override
-    public void trainC(ClassificationDataSet dataSet)
+    public void trainC(final ClassificationDataSet dataSet)
     {
         priors = dataSet.getPriors();
         dists = new ArrayList<MultivariateDistribution>(dataSet.getClassSize());
         
         for(int i = 0; i < dataSet.getClassSize(); i++)
         {
-            MultivariateDistribution dist = baseDist.clone();
-            List<DataPoint> samp = dataSet.getSamples(i);
+            final MultivariateDistribution dist = baseDist.clone();
+            final List<DataPoint> samp = dataSet.getSamples(i);
             if(samp.isEmpty())
             {
                 dists.add(null);
@@ -197,7 +197,7 @@ public class BestClassDistribution implements Classifier, Parameterized
     }
 
     @Override
-    public Parameter getParameter(String paramName)
+    public Parameter getParameter(final String paramName)
     {
         return Parameter.toParameterMap(getParameters()).get(paramName);
     }

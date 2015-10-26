@@ -33,13 +33,13 @@ public class CosineDistance implements DistanceMetric
 	private static final long serialVersionUID = -6475546704095989078L;
 
 	@Override
-    public double dist(Vec a, Vec b)
+    public double dist(final Vec a, final Vec b)
     {
         /*
          * a dot b / (2Norm(a) * 2Norm(b)) will return a value in the range -1 to 1
          * -1 means they are completly opposite
          */
-        double denom = a.pNorm(2) * b.pNorm(2);
+        final double denom = a.pNorm(2) * b.pNorm(2);
         if(denom == 0) {
           return cosineToDistance(-1);
         }
@@ -89,18 +89,18 @@ public class CosineDistance implements DistanceMetric
     }
 
     @Override
-    public List<Double> getAccelerationCache(List<? extends Vec> vecs)
+    public List<Double> getAccelerationCache(final List<? extends Vec> vecs)
     {
         //Store the pnorms in the cache
-        DoubleList cache = new DoubleList(vecs.size());
-        for(Vec v : vecs) {
+        final DoubleList cache = new DoubleList(vecs.size());
+        for(final Vec v : vecs) {
           cache.add(v.pNorm(2));
         }
         return cache;
     }
     
     @Override
-    public List<Double> getAccelerationCache(final List<? extends Vec> vecs, ExecutorService threadpool)
+    public List<Double> getAccelerationCache(final List<? extends Vec> vecs, final ExecutorService threadpool)
     {
         if(threadpool == null || threadpool instanceof FakeExecutor) {
           return getAccelerationCache(vecs);
@@ -131,7 +131,7 @@ public class CosineDistance implements DistanceMetric
         {
             latch.await();
         }
-        catch (InterruptedException ex)
+        catch (final InterruptedException ex)
         {
             Logger.getLogger(CosineDistance.class.getName()).log(Level.SEVERE, null, ex);
         }
@@ -140,13 +140,13 @@ public class CosineDistance implements DistanceMetric
     }
 
     @Override
-    public double dist(int a, int b, List<? extends Vec> vecs, List<Double> cache)
+    public double dist(final int a, final int b, final List<? extends Vec> vecs, final List<Double> cache)
     {
         if(cache == null) {
           return dist(vecs.get(a), vecs.get(b));
         }
         
-        double denom = cache.get(a)*cache.get(b);
+        final double denom = cache.get(a)*cache.get(b);
         if(denom == 0) {
           return cosineToDistance(-1);
         }
@@ -154,13 +154,13 @@ public class CosineDistance implements DistanceMetric
     }
 
     @Override
-    public double dist(int a, Vec b, List<? extends Vec> vecs, List<Double> cache)
+    public double dist(final int a, final Vec b, final List<? extends Vec> vecs, final List<Double> cache)
     {
         if(cache == null) {
           return dist(vecs.get(a), b);
         }
         
-        double denom = cache.get(a)*b.pNorm(2);
+        final double denom = cache.get(a)*b.pNorm(2);
         if(denom == 0) {
           return cosineToDistance(-1);
         }
@@ -168,21 +168,21 @@ public class CosineDistance implements DistanceMetric
     }
 
     @Override
-    public List<Double> getQueryInfo(Vec q)
+    public List<Double> getQueryInfo(final Vec q)
     {
-        DoubleList qi = new DoubleList(1);
+        final DoubleList qi = new DoubleList(1);
         qi.add(q.pNorm(2));
         return qi;
     }
 
     @Override
-    public double dist(int a, Vec b, List<Double> qi, List<? extends Vec> vecs, List<Double> cache)
+    public double dist(final int a, final Vec b, final List<Double> qi, final List<? extends Vec> vecs, final List<Double> cache)
     {
         if(cache == null) {
           return dist(vecs.get(a), b);
         }
         
-        double denom = cache.get(a)*qi.get(0);
+        final double denom = cache.get(a)*qi.get(0);
         if(denom == 0) {
           return cosineToDistance(-1);
         }
@@ -195,7 +195,7 @@ public class CosineDistance implements DistanceMetric
      * @param cosAngle the cosine similarity in [-1, 1]
      * @return the distance metric for the cosine value
      */
-    public static double cosineToDistance(double cosAngle)
+    public static double cosineToDistance(final double cosAngle)
     {
         return Math.sqrt(0.5*(1-cosAngle));
     }
@@ -206,7 +206,7 @@ public class CosineDistance implements DistanceMetric
      * @param dist the distance value in [0, 1]
      * @return the cosine angle
      */
-    public static double distanceToCosine(double dist)
+    public static double distanceToCosine(final double dist)
     {
         return 1-2*(dist*dist);
     }

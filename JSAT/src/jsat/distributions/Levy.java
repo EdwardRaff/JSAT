@@ -20,7 +20,7 @@ public class Levy extends ContinuousDistribution
     private double scale;
     private double logScale;
 
-    public Levy(double scale, double location)
+    public Levy(final double scale, final double location)
     {
         setScale(scale);
         setLocation(location);
@@ -30,7 +30,7 @@ public class Levy extends ContinuousDistribution
      * Sets the scale of the Levy distribution
      * @param scale the new scale value, must be positive
      */
-    public void setScale(double scale)
+    public void setScale(final double scale)
     {
         if(scale <= 0 || Double.isNaN(scale) || Double.isInfinite(scale)) {
           throw new ArithmeticException("Scale must be a positive value, not " + scale);
@@ -52,7 +52,7 @@ public class Levy extends ContinuousDistribution
      * Sets location of the Levy distribution. 
      * @param location the new location 
      */
-    public void setLocation(double location)
+    public void setLocation(final double location)
     {
         if(Double.isNaN(location) || Double.isInfinite(location)) {
           throw new ArithmeticException("location must be a real number");
@@ -70,7 +70,7 @@ public class Levy extends ContinuousDistribution
     }
 
     @Override
-    public double pdf(double x)
+    public double pdf(final double x)
     {
         if(x < location) {
           return 0;
@@ -79,7 +79,7 @@ public class Levy extends ContinuousDistribution
     }
 
     @Override
-    public double logPdf(double x)
+    public double logPdf(final double x)
     {
         if(x < location) {
           return Double.NEGATIVE_INFINITY;
@@ -89,7 +89,7 @@ public class Levy extends ContinuousDistribution
     }
 
     @Override
-    public double cdf(double x)
+    public double cdf(final double x)
     {
         if(x < location) {
           return 0;
@@ -98,7 +98,7 @@ public class Levy extends ContinuousDistribution
     }
     
     @Override
-    public double invCdf(double p)
+    public double invCdf(final double p)
     {
         if(p < 0 || p > 1) {
           throw new ArithmeticException("Invalid probability " + p);
@@ -137,7 +137,7 @@ public class Levy extends ContinuousDistribution
     }
 
     @Override
-    public void setVariable(String var, double value)
+    public void setVariable(final String var, final double value)
     {
         if(var.equals(getVariables()[0])) {
           setScale(value);
@@ -153,7 +153,7 @@ public class Levy extends ContinuousDistribution
     }
 
     @Override
-    public void setUsingData(Vec data)
+    public void setUsingData(final Vec data)
     {
         setLocation(data.min());
         
@@ -204,7 +204,7 @@ public class Levy extends ContinuousDistribution
 	}
 
 	@Override
-	public boolean equals(Object obj) {
+	public boolean equals(final Object obj) {
 		if (this == obj) {
 			return true;
 		}
@@ -214,7 +214,7 @@ public class Levy extends ContinuousDistribution
 		if (getClass() != obj.getClass()) {
 			return false;
 		}
-		Levy other = (Levy) obj;
+		final Levy other = (Levy) obj;
 		if (Double.doubleToLongBits(location) != Double
 				.doubleToLongBits(other.location)) {
 			return false;

@@ -25,21 +25,21 @@ public class NormalizedMutualInformation implements ClusterEvaluation
 {
 
     @Override
-    public double evaluate(int[] designations, DataSet dataSet)
+    public double evaluate(final int[] designations, final DataSet dataSet)
     {
         if( !(dataSet instanceof ClassificationDataSet)) {
           throw new RuntimeException("NMI can only be calcuate for classification data sets");
         }
-        ClassificationDataSet cds = (ClassificationDataSet)dataSet;
+        final ClassificationDataSet cds = (ClassificationDataSet)dataSet;
         double nmiNumer = 0.0;
         double nmiC = 0.0;
         double nmiK = 0.0;
         
-        DoubleList kPriors = new DoubleList();
+        final DoubleList kPriors = new DoubleList();
         
         for(int i= 0; i < cds.getSampleSize(); i++)
         {
-            int ki = designations[i];
+            final int ki = designations[i];
             if(ki < 0) {//outlier, not clustered
               continue;
             }
@@ -56,21 +56,21 @@ public class NormalizedMutualInformation implements ClusterEvaluation
         for(int i = 0; i < kPriors.size(); i++)
         {
             kPriors.set(i, kPriors.get(i)/N);
-            double pKi = kPriors.get(i);
+            final double pKi = kPriors.get(i);
             if(pKi > 0) {
               nmiK += - pKi*Math.log(pKi);
             }
         }
             
         
-        double[] cPriors = cds.getPriors();
+        final double[] cPriors = cds.getPriors();
         
-        double[][] ck = new double[cPriors.length][kPriors.size()];
+        final double[][] ck = new double[cPriors.length][kPriors.size()];
         
         for(int i = 0; i < cds.getSampleSize(); i++)
         {
-            int ci = cds.getDataPointCategory(i);
-            int kj = designations[i];
+            final int ci = cds.getDataPointCategory(i);
+            final int kj = designations[i];
             if(kj < 0) {//outlier, ignore
               continue;
             }
@@ -80,18 +80,18 @@ public class NormalizedMutualInformation implements ClusterEvaluation
         
         for(int i = 0; i < cPriors.length; i++)
         {
-            double pCi = cPriors[i];
+            final double pCi = cPriors[i];
             if(pCi <= 0.0) {
               continue;
             }
-            double logPCi = Math.log(pCi);
+            final double logPCi = Math.log(pCi);
             for(int j = 0; j < kPriors.size(); j++)
             {
-                double pKj = kPriors.get(j);
+                final double pKj = kPriors.get(j);
                 if(pKj <= 0.0) {
                   continue;
                 }
-                double pCiKj = ck[i][j]/N;
+                final double pCiKj = ck[i][j]/N;
                 if(pCiKj <= 0.0) {
                   continue;
                 }
@@ -104,7 +104,7 @@ public class NormalizedMutualInformation implements ClusterEvaluation
     }
 
     @Override
-    public double evaluate(List<List<DataPoint>> dataSets)
+    public double evaluate(final List<List<DataPoint>> dataSets)
     {
         throw new UnsupportedOperationException("NMI requires the true data set"
                 + " labels, call evaluate(int[] designations, DataSet dataSet)"

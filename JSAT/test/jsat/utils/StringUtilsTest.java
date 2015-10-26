@@ -46,7 +46,7 @@ public class StringUtilsTest
     public void testParseInt()
     {
         System.out.println("parseInt");
-        Random rand = new Random();
+        final Random rand = new Random();
         for(int radix = Character.MIN_RADIX; radix <= Character.MAX_RADIX; radix++)
         {
             for(int trials = 0; trials < 1000; trials++)
@@ -54,8 +54,8 @@ public class StringUtilsTest
                 String preFix = "";
                 String postFix = "";
 
-                int prefixSize = rand.nextInt(3);
-                int postFixSize = rand.nextInt(3);
+                final int prefixSize = rand.nextInt(3);
+                final int postFixSize = rand.nextInt(3);
                 for(int i =0 ; i < prefixSize; i++) {
                   preFix += Character.toString((char) rand.nextInt(128));
                 }
@@ -85,11 +85,11 @@ public class StringUtilsTest
     public void testParseDouble()
     {
         System.out.println("parseDouble");
-        Random rand = new Random(42);
+        final Random rand = new Random(42);
         
-        String[] signOps = new String[]{"+", "-", ""};
-        String[] Es = new String[]{"e", "E"};
-        String[] zeros = new String[]{"","", "", "0", "00", "000", "0000"};
+        final String[] signOps = new String[]{"+", "-", ""};
+        final String[] Es = new String[]{"e", "E"};
+        final String[] zeros = new String[]{"","", "", "0", "00", "000", "0000"};
         
         double truth, attempt;
         String toTest;
@@ -99,8 +99,8 @@ public class StringUtilsTest
             String preFix = "";
             String postFix = "";
 
-            int prefixSize = 0;//rand.nextInt(3);
-            int postFixSize = 0;//rand.nextInt(3);
+            final int prefixSize = 0;//rand.nextInt(3);
+            final int postFixSize = 0;//rand.nextInt(3);
             for (int i = 0; i < prefixSize; i++) {
               preFix += Character.toString((char) rand.nextInt(128));
             }
@@ -152,9 +152,9 @@ public class StringUtilsTest
 
     }
 
-    protected void assertRelativeEquals(double truth, double attempt)
+    protected void assertRelativeEquals(final double truth, final double attempt)
     {
-        String message = "Expteced " + truth + " but was " + attempt;
+        final String message = "Expteced " + truth + " but was " + attempt;
         if (Double.isNaN(truth)) {
           assertTrue(message, Double.isNaN(attempt));
         } else if (Double.isInfinite(truth))
@@ -164,7 +164,7 @@ public class StringUtilsTest
         }
         else
         {
-            double relDiff = Math.abs(truth - attempt) / (Math.max(Math.abs(Math.max(truth, attempt)), 1e-14));
+            final double relDiff = Math.abs(truth - attempt) / (Math.max(Math.abs(Math.max(truth, attempt)), 1e-14));
             assertEquals(message, 0, relDiff, 1e-14);
         }
     }

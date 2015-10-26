@@ -62,14 +62,14 @@ public class SAMMETest
     {
         System.out.println("trainC");
 
-        SAMME instance = new SAMME(new DecisionTree(2, 2, TreePruner.PruningMethod.NONE, 0.1), 50);
+        final SAMME instance = new SAMME(new DecisionTree(2, 2, TreePruner.PruningMethod.NONE, 0.1), 50);
 
-        ExecutorService ex = Executors.newFixedThreadPool(SystemInfo.LogicalCores);
+        final ExecutorService ex = Executors.newFixedThreadPool(SystemInfo.LogicalCores);
 
-        ClassificationDataSet train = FixedProblems.getCircles(1000, .1, 10.0, 100.0);
-        ClassificationDataSet test = FixedProblems.getCircles(100, .1, 10.0, 100.0);
+        final ClassificationDataSet train = FixedProblems.getCircles(1000, .1, 10.0, 100.0);
+        final ClassificationDataSet test = FixedProblems.getCircles(100, .1, 10.0, 100.0);
 
-        ClassificationModelEvaluation cme = new ClassificationModelEvaluation(instance, train, ex);
+        final ClassificationModelEvaluation cme = new ClassificationModelEvaluation(instance, train, ex);
         cme.evaluateTestSet(test);
 
         assertTrue(cme.getErrorRate() <= 0.15);
@@ -82,12 +82,12 @@ public class SAMMETest
     {
         System.out.println("trainC");
 
-        SAMME instance = new SAMME(new DecisionTree(2, 2, TreePruner.PruningMethod.NONE, 0.1), 50);
+        final SAMME instance = new SAMME(new DecisionTree(2, 2, TreePruner.PruningMethod.NONE, 0.1), 50);
 
-        ClassificationDataSet train = FixedProblems.getCircles(1000, .1, 10.0, 100.0);
-        ClassificationDataSet test = FixedProblems.getCircles(100, .1, 10.0, 100.0);
+        final ClassificationDataSet train = FixedProblems.getCircles(1000, .1, 10.0, 100.0);
+        final ClassificationDataSet test = FixedProblems.getCircles(100, .1, 10.0, 100.0);
 
-        ClassificationModelEvaluation cme = new ClassificationModelEvaluation(instance, train);
+        final ClassificationModelEvaluation cme = new ClassificationModelEvaluation(instance, train);
         cme.evaluateTestSet(test);
         
         assertTrue(cme.getErrorRate() <= 0.15);
@@ -101,8 +101,8 @@ public class SAMMETest
 
         SAMME instance = new SAMME(new DecisionTree(10, 10, TreePruner.PruningMethod.NONE, 0.1), 50);
 
-        ClassificationDataSet t1 = FixedProblems.getCircles(1000, 0.1, 10.0, 100.0);
-        ClassificationDataSet t2 = FixedProblems.getCircles(1000, 0.1, 10.0);
+        final ClassificationDataSet t1 = FixedProblems.getCircles(1000, 0.1, 10.0, 100.0);
+        final ClassificationDataSet t2 = FixedProblems.getCircles(1000, 0.1, 10.0);
 
         int errors;
         
@@ -110,7 +110,7 @@ public class SAMMETest
 
         instance.trainC(t1);
 
-        SAMME result = instance.clone();
+        final SAMME result = instance.clone();
         
         errors = 0;
         for (int i = 0; i < t1.getSampleSize(); i++) {

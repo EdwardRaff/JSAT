@@ -50,9 +50,9 @@ public class MutualInfoFSTest
     {
 //        List<DataPoint> dps = new ArrayList<DataPoint>();
         
-        CategoricalData predicting = new CategoricalData(3);
+        final CategoricalData predicting = new CategoricalData(3);
         
-        CategoricalData[] catAtrs = new CategoricalData[]
+        final CategoricalData[] catAtrs = new CategoricalData[]
         {
             new CategoricalData(3),
             new CategoricalData(3),
@@ -61,7 +61,7 @@ public class MutualInfoFSTest
         };
         //Making numeric attributes at indecies 1 and 3 informative
         
-        ClassificationDataSet cds = new ClassificationDataSet(4, catAtrs, predicting);
+        final ClassificationDataSet cds = new ClassificationDataSet(4, catAtrs, predicting);
         
         cds.addDataPoint(toDenseVec(0.0, 0.0, 1.0, 1.0), new int[]{0, 1, 0, 0}, 0);
         cds.addDataPoint(toDenseVec(1.0, 0.0, 0.0, 1.0), new int[]{1, 2, 0, 0}, 0);
@@ -78,19 +78,19 @@ public class MutualInfoFSTest
         cds.addDataPoint(toDenseVec(0.0, 1.0, 1.0, 0.0), new int[]{1, 2, 1, 2}, 2);
         cds.addDataPoint(toDenseVec(1.0, 1.0, 0.0, 0.0), new int[]{2, 0, 1, 2}, 2);
         
-        MutualInfoFS minFS = new MutualInfoFS.MutualInfoFSFactory(4, MutualInfoFS.NumericalHandeling.BINARY).clone().getTransform(cds).clone();
+        final MutualInfoFS minFS = new MutualInfoFS.MutualInfoFSFactory(4, MutualInfoFS.NumericalHandeling.BINARY).clone().getTransform(cds).clone();
         
         for(int i = 0; i < cds.getSampleSize(); i++)
         {
-            DataPoint dp =  cds.getDataPoint(i);
+            final DataPoint dp =  cds.getDataPoint(i);
             
-            DataPoint trDp = minFS.transform(dp);
+            final DataPoint trDp = minFS.transform(dp);
             
-            int[] origCat = dp.getCategoricalValues();
-            int[] tranCat = trDp.getCategoricalValues();
+            final int[] origCat = dp.getCategoricalValues();
+            final int[] tranCat = trDp.getCategoricalValues();
             
-            Vec origVals = dp.getNumericalValues();
-            Vec tranVals = trDp.getNumericalValues();
+            final Vec origVals = dp.getNumericalValues();
+            final Vec tranVals = trDp.getNumericalValues();
             
             assertEquals(origCat[2], tranCat[0]);
             assertEquals(origCat[3], tranCat[1]);

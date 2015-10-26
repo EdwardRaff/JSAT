@@ -20,12 +20,12 @@ public class MeanSquaredError implements RegressionScore
         this(false);
     }
 
-    public MeanSquaredError(boolean rmse)
+    public MeanSquaredError(final boolean rmse)
     {
         setRMSE(rmse);
     }
 
-    public void setRMSE(boolean rmse)
+    public void setRMSE(final boolean rmse)
     {
         this.rmse = rmse;
     }
@@ -39,7 +39,7 @@ public class MeanSquaredError implements RegressionScore
      * Copy constructor
      * @param toCopy the object to copy
      */
-    public MeanSquaredError(MeanSquaredError toCopy)
+    public MeanSquaredError(final MeanSquaredError toCopy)
     {
         if(toCopy.meanError != null) {
           this.meanError = toCopy.meanError.clone();
@@ -54,7 +54,7 @@ public class MeanSquaredError implements RegressionScore
     }
     
     @Override
-    public void addResult(double prediction, double trueValue, double weight)
+    public void addResult(final double prediction, final double trueValue, final double weight)
     {
         if(meanError == null) {
           throw new RuntimeException("regression score has not been initialized");
@@ -63,9 +63,9 @@ public class MeanSquaredError implements RegressionScore
     }
 
     @Override
-    public void addResults(RegressionScore other)
+    public void addResults(final RegressionScore other)
     {
-        MeanSquaredError otherObj = (MeanSquaredError) other;
+        final MeanSquaredError otherObj = (MeanSquaredError) other;
         if(otherObj.meanError != null) {
           this.meanError.add(otherObj.meanError);
         }
@@ -94,7 +94,7 @@ public class MeanSquaredError implements RegressionScore
     }
     
     @Override
-    public boolean equals(Object obj)
+    public boolean equals(final Object obj)
     {//XXX check for equality of fields and obj == null
         if(this.getClass().isAssignableFrom(obj.getClass()) && obj.getClass().isAssignableFrom(this.getClass()))
         {
@@ -112,7 +112,7 @@ public class MeanSquaredError implements RegressionScore
     @Override
     public String getName()
     {
-        String prefix = rmse ? "Root " : "";
+        final String prefix = rmse ? "Root " : "";
         return prefix + "Mean Squared Error";
     }
     

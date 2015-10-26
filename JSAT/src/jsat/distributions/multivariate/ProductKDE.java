@@ -48,7 +48,7 @@ public class ProductKDE extends MultivariateKDE
      * Creates a new KDE that uses the specified kernel
      * @param k the kernel method to use 
      */
-    public ProductKDE(KernelFunction k)
+    public ProductKDE(final KernelFunction k)
     {
         this.k = k;
     }
@@ -56,7 +56,7 @@ public class ProductKDE extends MultivariateKDE
     @Override
     public ProductKDE clone()
     {
-        ProductKDE clone = new ProductKDE();
+        final ProductKDE clone = new ProductKDE();
         if(this.k != null) {
           clone.k = k;
         }
@@ -84,40 +84,40 @@ public class ProductKDE extends MultivariateKDE
     }
 
     @Override
-    public List<VecPaired<VecPaired<Vec, Integer>, Double>> getNearby(Vec x)
+    public List<VecPaired<VecPaired<Vec, Integer>, Double>> getNearby(final Vec x)
     {
         
-        SparseVector logProd = new SparseVector(sortedDimVals[0].length);
-        Set<Integer> validIndecies = new IntSet();
-        double logH = queryWork(x, validIndecies, logProd);
-        List<VecPaired<VecPaired<Vec, Integer>, Double>> results = new ArrayList<VecPaired<VecPaired<Vec, Integer>, Double>>(validIndecies.size());
+        final SparseVector logProd = new SparseVector(sortedDimVals[0].length);
+        final Set<Integer> validIndecies = new IntSet();
+        final double logH = queryWork(x, validIndecies, logProd);
+        final List<VecPaired<VecPaired<Vec, Integer>, Double>> results = new ArrayList<VecPaired<VecPaired<Vec, Integer>, Double>>(validIndecies.size());
         
-        for(int i : validIndecies)
+        for(final int i : validIndecies)
         {
-            Vec v = originalVecs.get(i);
+            final Vec v = originalVecs.get(i);
             results.add(new VecPaired<VecPaired<Vec, Integer>, Double>(new VecPaired<Vec, Integer>(v, i), exp(logProd.get(i))));
         }
         return results;
     }
     
     @Override
-    public List<VecPaired<VecPaired<Vec, Integer>, Double>> getNearbyRaw(Vec x)
+    public List<VecPaired<VecPaired<Vec, Integer>, Double>> getNearbyRaw(final Vec x)
     {
         //Not entirly sure how I'm going to fix this... but this isnt technically right
         throw new UnsupportedOperationException("Product KDE can not recover raw Score values");
     }
     
     @Override
-    public double pdf(Vec x)
+    public double pdf(final Vec x)
     {
         double PDF = 0;
-        int N = sortedDimVals[0].length;
+        final int N = sortedDimVals[0].length;
         
-        SparseVector logProd = new SparseVector(sortedDimVals[0].length);
-        Set<Integer> validIndecies = new IntSet();
-        double logH = queryWork(x, validIndecies, logProd);
+        final SparseVector logProd = new SparseVector(sortedDimVals[0].length);
+        final Set<Integer> validIndecies = new IntSet();
+        final double logH = queryWork(x, validIndecies, logProd);
         
-        for(int i : validIndecies) {
+        for(final int i : validIndecies) {
           PDF += exp(logProd.get(i)-logH);
         }
         
@@ -135,7 +135,7 @@ public class ProductKDE extends MultivariateKDE
      * zero values. <tt>validIndecies</tt> should be used to access the correct indices. 
      * @return The log product of the bandwidths that normalizes the values stored in the <tt>logProd</tt> vector. 
      */
-    private double queryWork(Vec x, Set<Integer> validIndecies, SparseVector logProd)
+    private double queryWork(final Vec x, final Set<Integer> validIndecies, final SparseVector logProd)
     {
         if(originalVecs == null) {
           throw new UntrainedModelException("Model has not yet been created, queries can not be perfomed");
@@ -143,10 +143,10 @@ public class ProductKDE extends MultivariateKDE
         double logH = 0;
         for(int i = 0; i < sortedDimVals.length; i++)
         {
-            double[] X = sortedDimVals[i];
-            double h = bandwidth[i];
+            final double[] X = sortedDimVals[i];
+            final double h = bandwidth[i];
             logH += log(h);
-            double xi = x.get(i);
+            final double xi = x.get(i);
 
             //Only values within a certain range will have an effect on the result, so we will skip to that range!
             int from = Arrays.binarySearch(X, xi-h*k.cutOff());
@@ -154,10 +154,10 @@ public class ProductKDE extends MultivariateKDE
             //Mostly likely the exact value of x is not in the list, so it retursn the inseration points
             from = from < 0 ? -from-1 : from;
             to = to < 0 ? -to-1 : to;
-            Set<Integer> subIndecies = new IntSet();
+            final Set<Integer> subIndecies = new IntSet();
             for(int j = max(0, from); j < min(X.length, to+1); j++)
             {
-                int trueIndex = sortedIndexVals[i][j];
+                final int trueIndex = sortedIndexVals[i][j];
                 
                 if(i == 0)
                 {
@@ -183,16 +183,16 @@ public class ProductKDE extends MultivariateKDE
     }
 
     @Override
-    public <V extends Vec> boolean setUsingData(List<V> dataSet)
+    public <V extends Vec> boolean setUsingData(final List<V> dataSet)
     {
-        int dimSize = dataSet.get(0).length();
+        final int dimSize = dataSet.get(0).length();
         sortedDimVals = new double[dimSize][dataSet.size()];
         sortedIndexVals = new int[dimSize][dataSet.size()];
         bandwidth = new double[dimSize];
         
         for(int i = 0; i < dataSet.size(); i++)
         {
-            Vec v = dataSet.get(i);
+            final Vec v = dataSet.get(i);
             for(int j = 0; j < v.length(); j++) {
               sortedDimVals[j][i] = v.get(j);
             }
@@ -201,7 +201,7 @@ public class ProductKDE extends MultivariateKDE
         
         for(int i = 0; i < dimSize; i++)
         {
-            IndexTable idt = new IndexTable(sortedDimVals[i]);
+            final IndexTable idt = new IndexTable(sortedDimVals[i]);
             for( int j = 0; j < idt.length(); j++) {
               sortedIndexVals[i][j] = idt.index(j);
             }
@@ -214,17 +214,17 @@ public class ProductKDE extends MultivariateKDE
     }
 
     @Override
-    public boolean setUsingDataList(List<DataPoint> dataPoints)
+    public boolean setUsingDataList(final List<DataPoint> dataPoints)
     {
-        List<Vec> dataSet = new ArrayList<Vec>(dataPoints.size());
-        for(DataPoint dp : dataPoints) {
+        final List<Vec> dataSet = new ArrayList<Vec>(dataPoints.size());
+        for(final DataPoint dp : dataPoints) {
           dataSet.add(dp.getNumericalValues());
         }
         return setUsingData(dataSet);
     }
 
     @Override
-    public List<Vec> sample(int count, Random rand)
+    public List<Vec> sample(final int count, final Random rand)
     {
         throw new UnsupportedOperationException("Not supported yet.");
     }
@@ -236,7 +236,7 @@ public class ProductKDE extends MultivariateKDE
     }
 
     @Override
-    public void scaleBandwidth(double scale)
+    public void scaleBandwidth(final double scale)
     {
         for(int i = 0; i < bandwidth.length; i++) {
           bandwidth[i] *= 2;

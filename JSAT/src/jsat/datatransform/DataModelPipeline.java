@@ -30,7 +30,7 @@ public class DataModelPipeline implements Classifier, Regressor, Parameterized
 
 	private static final long serialVersionUID = -2300996837897094414L;
 	@ParameterHolder(skipSelfNamePrefix = true)
-    private DataTransformProcess baseDtp;
+    private final DataTransformProcess baseDtp;
     private Classifier baseClassifier;
     private Regressor baseRegressor;
     
@@ -44,7 +44,7 @@ public class DataModelPipeline implements Classifier, Regressor, Parameterized
      * @param dtp the data transforms to apply
      * @param baseClassifier the classifier to learn with
      */
-    public DataModelPipeline(Classifier baseClassifier, DataTransformProcess dtp)
+    public DataModelPipeline(final Classifier baseClassifier, final DataTransformProcess dtp)
     {
         this.baseDtp = dtp;
         this.baseClassifier = baseClassifier;
@@ -59,7 +59,7 @@ public class DataModelPipeline implements Classifier, Regressor, Parameterized
      * @param factories the data transforms to apply
      * @param baseClassifier the classifier to learn with
      */
-    public DataModelPipeline(Classifier baseClassifier, DataTransformFactory... factories)
+    public DataModelPipeline(final Classifier baseClassifier, final DataTransformFactory... factories)
     {
         this(baseClassifier, new DataTransformProcess(factories));
     }
@@ -70,7 +70,7 @@ public class DataModelPipeline implements Classifier, Regressor, Parameterized
      * @param dtp the data transforms to apply
      * @param baseRegressor the regressor to learn with
      */
-    public DataModelPipeline(Regressor baseRegressor, DataTransformProcess dtp)
+    public DataModelPipeline(final Regressor baseRegressor, final DataTransformProcess dtp)
     {
         this.baseDtp = dtp;
         this.baseRegressor = baseRegressor;
@@ -85,7 +85,7 @@ public class DataModelPipeline implements Classifier, Regressor, Parameterized
      * @param factories the data transforms to apply
      * @param baseRegressor the regressor to learn with
      */
-    public DataModelPipeline(Regressor baseRegressor, DataTransformFactory... factories)
+    public DataModelPipeline(final Regressor baseRegressor, final DataTransformFactory... factories)
     {
         this(baseRegressor, new DataTransformProcess(factories));
     }
@@ -94,7 +94,7 @@ public class DataModelPipeline implements Classifier, Regressor, Parameterized
      * Copy constructor
      * @param toCopy the object to copy
      */
-    public DataModelPipeline(DataModelPipeline toCopy)
+    public DataModelPipeline(final DataModelPipeline toCopy)
     {
         this.baseDtp = toCopy.baseDtp.clone();
         if(toCopy.baseClassifier != null && toCopy.baseClassifier == toCopy.baseRegressor)//only possible if both a classifier and regressor
@@ -123,13 +123,13 @@ public class DataModelPipeline implements Classifier, Regressor, Parameterized
     }
     
     @Override
-    public CategoricalResults classify(DataPoint data)
+    public CategoricalResults classify(final DataPoint data)
     {
         return learnedClassifier.classify(learnedDtp.transform(data));
     }
 
     @Override
-    public void trainC(ClassificationDataSet dataSet, ExecutorService threadPool)
+    public void trainC(ClassificationDataSet dataSet, final ExecutorService threadPool)
     {
         learnedDtp = baseDtp.clone();
         dataSet = dataSet.shallowClone();//dont want to actually edit the data set they gave us
@@ -144,7 +144,7 @@ public class DataModelPipeline implements Classifier, Regressor, Parameterized
     }
 
     @Override
-    public void trainC(ClassificationDataSet dataSet)
+    public void trainC(final ClassificationDataSet dataSet)
     {
         trainC(dataSet, null);
     }
@@ -162,13 +162,13 @@ public class DataModelPipeline implements Classifier, Regressor, Parameterized
     }
 
     @Override
-    public double regress(DataPoint data)
+    public double regress(final DataPoint data)
     {
         return learnedRegressor.regress(learnedDtp.transform(data));
     }
 
     @Override
-    public void train(RegressionDataSet dataSet, ExecutorService threadPool)
+    public void train(RegressionDataSet dataSet, final ExecutorService threadPool)
     {
         learnedDtp = baseDtp.clone();
         dataSet = dataSet.shallowClone();//dont want to actually edit the data set they gave us
@@ -183,7 +183,7 @@ public class DataModelPipeline implements Classifier, Regressor, Parameterized
     }
 
     @Override
-    public void train(RegressionDataSet dataSet)
+    public void train(final RegressionDataSet dataSet)
     {
         train(dataSet, null);
     }
@@ -197,7 +197,7 @@ public class DataModelPipeline implements Classifier, Regressor, Parameterized
     @Override
     public List<Parameter> getParameters()
     {
-        List<Parameter> params = Parameter.getParamsFromMethods(this);
+        final List<Parameter> params = Parameter.getParamsFromMethods(this);
         if(baseClassifier != null && baseClassifier instanceof Parameterized) {
           params.addAll(((Parameterized)baseClassifier).getParameters());
         } else if(baseRegressor != null && baseRegressor instanceof Parameterized) {
@@ -207,7 +207,7 @@ public class DataModelPipeline implements Classifier, Regressor, Parameterized
     }
 
     @Override
-    public Parameter getParameter(String paramName)
+    public Parameter getParameter(final String paramName)
     {
         return Parameter.toParameterMap(getParameters()).get(paramName);
     }

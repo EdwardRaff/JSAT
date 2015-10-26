@@ -25,19 +25,19 @@ public class RegressorToClassifier implements BinaryScoreClassifier, Parameteriz
 {
 
 	private static final long serialVersionUID = -2607433019826385335L;
-	private Regressor regressor;
+	private final Regressor regressor;
 
     /**
      * Creates a new Binary Classifier by using the given regressor 
      * @param regressor the regressor to wrap as a binary classifier 
      */
-    public RegressorToClassifier(Regressor regressor)
+    public RegressorToClassifier(final Regressor regressor)
     {
         this.regressor = regressor;
     }
 
     @Override
-    public double getScore(DataPoint dp)
+    public double getScore(final DataPoint dp)
     {
         return regressor.regress(dp);
     }
@@ -49,9 +49,9 @@ public class RegressorToClassifier implements BinaryScoreClassifier, Parameteriz
     }
 
     @Override
-    public CategoricalResults classify(DataPoint data)
+    public CategoricalResults classify(final DataPoint data)
     {
-        CategoricalResults cr = new CategoricalResults(2);
+        final CategoricalResults cr = new CategoricalResults(2);
         if(getScore(data) > 0) {
           cr.setProb(1, 1.0);
         } else {
@@ -62,16 +62,16 @@ public class RegressorToClassifier implements BinaryScoreClassifier, Parameteriz
     }
 
     @Override
-    public void trainC(ClassificationDataSet dataSet, ExecutorService threadPool)
+    public void trainC(final ClassificationDataSet dataSet, final ExecutorService threadPool)
     {
-        RegressionDataSet rds = getRegressionDataSet(dataSet);
+        final RegressionDataSet rds = getRegressionDataSet(dataSet);
         regressor.train(rds, threadPool);
     }
 
     @Override
-    public void trainC(ClassificationDataSet dataSet)
+    public void trainC(final ClassificationDataSet dataSet)
     {
-        RegressionDataSet rds = getRegressionDataSet(dataSet);
+        final RegressionDataSet rds = getRegressionDataSet(dataSet);
         regressor.train(rds);
     }
 
@@ -81,9 +81,9 @@ public class RegressorToClassifier implements BinaryScoreClassifier, Parameteriz
         return regressor.supportsWeightedData();
     }
 
-    private RegressionDataSet getRegressionDataSet(ClassificationDataSet dataSet)
+    private RegressionDataSet getRegressionDataSet(final ClassificationDataSet dataSet)
     {
-        RegressionDataSet rds = new RegressionDataSet(dataSet.getNumNumericalVars(), dataSet.getCategories());
+        final RegressionDataSet rds = new RegressionDataSet(dataSet.getNumNumericalVars(), dataSet.getCategories());
         for(int i = 0; i < dataSet.getSampleSize(); i++) {
           rds.addDataPoint(dataSet.getDataPoint(i), dataSet.getDataPointCategory(i)*2-1);
         }
@@ -101,7 +101,7 @@ public class RegressorToClassifier implements BinaryScoreClassifier, Parameteriz
     }
 
     @Override
-    public Parameter getParameter(String paramName)
+    public Parameter getParameter(final String paramName)
     {
         if(regressor instanceof Parameterized) {
           return ((Parameterized)regressor).getParameter(paramName);

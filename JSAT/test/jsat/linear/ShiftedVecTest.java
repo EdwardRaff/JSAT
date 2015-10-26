@@ -79,7 +79,7 @@ public class ShiftedVecTest
         b_dense.mutableAdd(shift_b);
         b_sparse.mutableAdd(shift_b);
         
-        Random rand = new Random();
+        final Random rand = new Random();
         rand_x = new DenseVector(a_base.length());
         rand_y = new DenseVector(a_base.length());
         
@@ -102,7 +102,7 @@ public class ShiftedVecTest
     public void testSetShift()
     {
         System.out.println("setShift");
-        ShiftedVec a = new ShiftedVec(a_base, shift_a);
+        final ShiftedVec a = new ShiftedVec(a_base, shift_a);
         
         assertEquals(shift_a, a.getShift(), 0.0);
         
@@ -119,7 +119,7 @@ public class ShiftedVecTest
     {
         System.out.println("embedShift");
         
-        ShiftedVec a = new ShiftedVec(a_base, shift_a);
+        final ShiftedVec a = new ShiftedVec(a_base, shift_a);
         
         a.embedShift();
         
@@ -135,7 +135,7 @@ public class ShiftedVecTest
     public void testLength()
     {
         System.out.println("length");
-        ShiftedVec a = new ShiftedVec(a_base, shift_a);
+        final ShiftedVec a = new ShiftedVec(a_base, shift_a);
         assertEquals(a_base.length(), a.length());
     }
 
@@ -146,8 +146,8 @@ public class ShiftedVecTest
     public void testGet()
     {
         System.out.println("get");
-        ShiftedVec a = new ShiftedVec(a_base, shift_a);
-        ShiftedVec b = new ShiftedVec(b_base, shift_b);
+        final ShiftedVec a = new ShiftedVec(a_base, shift_a);
+        final ShiftedVec b = new ShiftedVec(b_base, shift_b);
         
         for(int i =0 ; i < a.length(); i++)
         {
@@ -163,13 +163,13 @@ public class ShiftedVecTest
     public void testSet()
     {
         System.out.println("set");
-        ShiftedVec a = new ShiftedVec(a_base, shift_a);
+        final ShiftedVec a = new ShiftedVec(a_base, shift_a);
         
-        Random rand = new Random();
+        final Random rand = new Random();
         for(int round = 0; round < 100; round++)
         {
-            int indx = rand.nextInt(a.length());
-            double tmp = rand.nextDouble();
+            final int indx = rand.nextInt(a.length());
+            final double tmp = rand.nextDouble();
             a.set(indx, tmp);
             assertEquals(tmp, a.get(indx), 1e-10);
             assertEquals(tmp-shift_a, a_base.get(indx), 1e-10);
@@ -183,7 +183,7 @@ public class ShiftedVecTest
     public void testIncrement()
     {
         System.out.println("increment");
-        ShiftedVec a = new ShiftedVec(a_base, shift_a);
+        final ShiftedVec a = new ShiftedVec(a_base, shift_a);
         
         for(int i =0 ; i < a.length(); i++)
         {
@@ -200,13 +200,13 @@ public class ShiftedVecTest
     public void testMutableAdd_Vec()
     {
         System.out.println("mutableAdd");
-        ShiftedVec a = new ShiftedVec(a_base, shift_a);
+        final ShiftedVec a = new ShiftedVec(a_base, shift_a);
         a.mutableAdd(rand_x);
         a_dense.mutableAdd(rand_x);
         
         assertTrue(a.equals(a_dense, 1e-10));
         
-        ShiftedVec b = new ShiftedVec(b_base, shift_b);
+        final ShiftedVec b = new ShiftedVec(b_base, shift_b);
         b.mutableAdd(a);
         b_dense.mutableAdd(a_dense);
         
@@ -221,13 +221,13 @@ public class ShiftedVecTest
     public void testMutableAdd_double()
     {
         System.out.println("mutableAdd");
-        ShiftedVec a = new ShiftedVec(a_base, shift_a);
+        final ShiftedVec a = new ShiftedVec(a_base, shift_a);
         a.mutableAdd(10);
         a_dense.mutableAdd(10);
         
         assertTrue(a.equals(a_dense, 1e-10));
         
-        ShiftedVec b = new ShiftedVec(b_base, shift_b);
+        final ShiftedVec b = new ShiftedVec(b_base, shift_b);
         b.mutableAdd(2);
         b_dense.mutableAdd(2);
         
@@ -241,13 +241,13 @@ public class ShiftedVecTest
     public void testMutableAdd_double_Vec()
     {
         System.out.println("mutableAdd");
-        ShiftedVec a = new ShiftedVec(a_base, shift_a);
+        final ShiftedVec a = new ShiftedVec(a_base, shift_a);
         a.mutableAdd(10, rand_x);
         a_dense.mutableAdd(10, rand_x);
         
         assertTrue(a.equals(a_dense, 1e-10));
         
-        ShiftedVec b = new ShiftedVec(b_base, shift_b);
+        final ShiftedVec b = new ShiftedVec(b_base, shift_b);
         b.mutableAdd(-3, a);
         b_dense.mutableAdd(-3, a_dense);
         
@@ -262,7 +262,7 @@ public class ShiftedVecTest
     public void testMutableDivide()
     {
         System.out.println("mutableDivide");
-        ShiftedVec a = new ShiftedVec(a_base, shift_a);
+        final ShiftedVec a = new ShiftedVec(a_base, shift_a);
         a.mutableDivide(10);
         a_dense.mutableDivide(10);
         
@@ -277,14 +277,14 @@ public class ShiftedVecTest
     {
         System.out.println("mutableMultiply");
         
-        ShiftedVec a = new ShiftedVec(a_base, shift_a);
+        final ShiftedVec a = new ShiftedVec(a_base, shift_a);
         a.mutableMultiply(10);
         a_dense.mutableMultiply(10);
         
         assertTrue(a.equals(a_dense, 1e-10));
         
         
-        ShiftedVec b = new ShiftedVec(b_base, shift_b);
+        final ShiftedVec b = new ShiftedVec(b_base, shift_b);
         b.mutableMultiply(0);
         b_dense.mutableMultiply(0);
         
@@ -300,7 +300,7 @@ public class ShiftedVecTest
     public void testMutablePairwiseDivide()
     {
         System.out.println("mutablePairwiseDivide");
-        ShiftedVec a = new ShiftedVec(a_base, shift_a);
+        final ShiftedVec a = new ShiftedVec(a_base, shift_a);
         a.mutablePairwiseDivide(rand_x.add(1));
         a_dense.mutablePairwiseDivide(rand_x.add(1));
         
@@ -314,7 +314,7 @@ public class ShiftedVecTest
     public void testMutablePairwiseMultiply()
     {
         System.out.println("mutablePairwiseMultiply");
-        ShiftedVec a = new ShiftedVec(a_base, shift_a);
+        final ShiftedVec a = new ShiftedVec(a_base, shift_a);
         a.mutablePairwiseDivide(rand_x);
         a_dense.mutablePairwiseDivide(rand_x);
         
@@ -328,8 +328,8 @@ public class ShiftedVecTest
     public void testDot()
     {
         System.out.println("dot");
-        ShiftedVec a = new ShiftedVec(a_base, shift_a);
-        ShiftedVec b = new ShiftedVec(b_base, shift_b);
+        final ShiftedVec a = new ShiftedVec(a_base, shift_a);
+        final ShiftedVec b = new ShiftedVec(b_base, shift_b);
         
         assertEquals(a_dense.dot(rand_x), a.dot(rand_x), 1e-10);
         assertEquals(a_dense.dot(rand_x), rand_x.dot(a), 1e-10);
@@ -348,7 +348,7 @@ public class ShiftedVecTest
     public void testZeroOut()
     {
         System.out.println("zeroOut");
-        ShiftedVec a = new ShiftedVec(a_base, shift_a);
+        final ShiftedVec a = new ShiftedVec(a_base, shift_a);
         a.zeroOut();
         
         for(int i = 0; i < a.length(); i++) {
@@ -364,10 +364,10 @@ public class ShiftedVecTest
     public void testPNorm()
     {
         System.out.println("pNorm");
-        ShiftedVec a = new ShiftedVec(a_base, shift_a);
-        double[] ps = {0.5, 1, 2, 2.5, 3, 10 };
+        final ShiftedVec a = new ShiftedVec(a_base, shift_a);
+        final double[] ps = {0.5, 1, 2, 2.5, 3, 10 };
         
-        for(double p : ps) {
+        for(final double p : ps) {
           assertEquals(a_dense.pNorm(p), a.pNorm(p), 1e-10);
         }
     }
@@ -379,7 +379,7 @@ public class ShiftedVecTest
     public void testMean()
     {
         System.out.println("mean");
-        ShiftedVec a = new ShiftedVec(a_base, shift_a);
+        final ShiftedVec a = new ShiftedVec(a_base, shift_a);
         assertEquals(a_dense.mean(), a.mean(), 1e-10);
     }
 
@@ -390,7 +390,7 @@ public class ShiftedVecTest
     public void testVariance()
     {
         System.out.println("variance");
-        ShiftedVec a = new ShiftedVec(a_base, shift_a);
+        final ShiftedVec a = new ShiftedVec(a_base, shift_a);
         assertEquals(a_dense.variance(), a.variance(), 1e-10);
     }
 
@@ -401,7 +401,7 @@ public class ShiftedVecTest
     public void testStandardDeviation()
     {
         System.out.println("standardDeviation");
-        ShiftedVec a = new ShiftedVec(a_base, shift_a);
+        final ShiftedVec a = new ShiftedVec(a_base, shift_a);
         assertEquals(a_dense.standardDeviation(), a.standardDeviation(), 1e-10);
     }
 
@@ -412,7 +412,7 @@ public class ShiftedVecTest
     public void testKurtosis()
     {
         System.out.println("kurtosis");
-        ShiftedVec a = new ShiftedVec(a_base, shift_a);
+        final ShiftedVec a = new ShiftedVec(a_base, shift_a);
         assertEquals(a_dense.kurtosis(), a.kurtosis(), 1e-10);
     }
 
@@ -423,7 +423,7 @@ public class ShiftedVecTest
     public void testMax()
     {
         System.out.println("max");
-        ShiftedVec a = new ShiftedVec(a_base, shift_a);
+        final ShiftedVec a = new ShiftedVec(a_base, shift_a);
         assertEquals(a_dense.max(), a.max(), 1e-10);
     }
 
@@ -434,7 +434,7 @@ public class ShiftedVecTest
     public void testMin()
     {
         System.out.println("min");
-        ShiftedVec a = new ShiftedVec(a_base, shift_a);
+        final ShiftedVec a = new ShiftedVec(a_base, shift_a);
         assertEquals(a_dense.min(), a.min(), 1e-10);
     }
 
@@ -445,7 +445,7 @@ public class ShiftedVecTest
     public void testMedian()
     {
         System.out.println("median");
-        ShiftedVec a = new ShiftedVec(a_base, shift_a);
+        final ShiftedVec a = new ShiftedVec(a_base, shift_a);
         assertEquals(a_dense.median(), a.median(), 1e-10);
     }
 
@@ -456,9 +456,9 @@ public class ShiftedVecTest
     public void testGetNonZeroIterator()
     {
         System.out.println("getNonZeroIterator");
-        ShiftedVec a = new ShiftedVec(a_base, shift_a);
-        ShiftedVec b = new ShiftedVec(b_base, shift_b);
-        ShiftedVec c = new ShiftedVec(new ConstantVector(1.0, 12), -1);
+        final ShiftedVec a = new ShiftedVec(a_base, shift_a);
+        final ShiftedVec b = new ShiftedVec(b_base, shift_b);
+        final ShiftedVec c = new ShiftedVec(new ConstantVector(1.0, 12), -1);
         
         for(int start = 0; start < a.length(); start++)
         {
@@ -469,8 +469,8 @@ public class ShiftedVecTest
             
             while(expIter.hasNext())
             {
-                IndexValue expIV = expIter.next();
-                IndexValue actIV = actIter.next();
+                final IndexValue expIV = expIter.next();
+                final IndexValue actIV = actIter.next();
                 
                 assertEquals(expIV.getIndex(), actIV.getIndex());
                 assertEquals(expIV.getValue(), actIV.getValue(), 1e-10);
@@ -486,8 +486,8 @@ public class ShiftedVecTest
             
             while(expIter.hasNext())
             {
-                IndexValue expIV = expIter.next();
-                IndexValue actIV = actIter.next();
+                final IndexValue expIV = expIter.next();
+                final IndexValue actIV = actIter.next();
                 
                 assertEquals(expIV.getIndex(), actIV.getIndex());
                 assertEquals(expIV.getValue(), actIV.getValue(), 1e-10);
@@ -506,8 +506,8 @@ public class ShiftedVecTest
             
             while(expIter.hasNext())
             {
-                IndexValue expIV = expIter.next();
-                IndexValue actIV = actIter.next();
+                final IndexValue expIV = expIter.next();
+                final IndexValue actIV = actIter.next();
                 
                 assertEquals(expIV.getIndex(), actIV.getIndex());
                 assertEquals(expIV.getValue(), actIV.getValue(), 1e-10);
@@ -537,8 +537,8 @@ public class ShiftedVecTest
     public void testClone()
     {
         System.out.println("clone");
-        ShiftedVec a = new ShiftedVec(a_base, shift_a);
-        ShiftedVec a_clone = a.clone();
+        final ShiftedVec a = new ShiftedVec(a_base, shift_a);
+        final ShiftedVec a_clone = a.clone();
         assertTrue(a.equals(a_dense, 1e-10));
         assertTrue(a_clone.equals(a_dense, 1e-10));
         

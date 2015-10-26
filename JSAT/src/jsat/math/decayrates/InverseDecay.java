@@ -30,7 +30,7 @@ public class InverseDecay implements DecayRate, Parameterized
      * @param tau the initial time offset
      * @param alpha the time scaling 
      */
-    public InverseDecay(double tau, double alpha)
+    public InverseDecay(final double tau, final double alpha)
     {
         setTau(tau);
         setAlpha(alpha);
@@ -52,7 +52,7 @@ public class InverseDecay implements DecayRate, Parameterized
      * value.
      * @param alpha the scaling parameter
      */
-    public void setAlpha(double alpha)
+    public void setAlpha(final double alpha)
     {
         if(alpha <= 0 || Double.isInfinite(alpha) || Double.isNaN(alpha)) {
           throw new IllegalArgumentException("alpha must be a positive constant, not " + alpha);
@@ -76,7 +76,7 @@ public class InverseDecay implements DecayRate, Parameterized
      * 
      * @param tau the early rate dampening parameter
      */
-    public void setTau(double tau)
+    public void setTau(final double tau)
     {
         if(tau <= 0 || Double.isInfinite(tau) || Double.isNaN(tau)) {
           throw new IllegalArgumentException("tau must be a positive constant, not " + tau);
@@ -94,13 +94,13 @@ public class InverseDecay implements DecayRate, Parameterized
     }
     
     @Override
-    public double rate(double time, double maxTime, double initial)
+    public double rate(final double time, final double maxTime, final double initial)
     {
         return rate(time, initial);
     }
     
     @Override
-    public double rate(double time, double initial)
+    public double rate(final double time, final double initial)
     {
         return initial/(alpha*(tau+time));
     }
@@ -124,7 +124,7 @@ public class InverseDecay implements DecayRate, Parameterized
     }
 
     @Override
-    public Parameter getParameter(String paramName)
+    public Parameter getParameter(final String paramName)
     {
         return Parameter.toParameterMap(getParameters()).get(paramName);
     }

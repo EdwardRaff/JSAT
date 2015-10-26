@@ -18,7 +18,7 @@ public class Precision extends SimpleBinaryClassMetric
         super();
     }
     
-    public Precision(Precision toClone)
+    public Precision(final Precision toClone)
     {
         super(toClone);
     }
@@ -30,7 +30,7 @@ public class Precision extends SimpleBinaryClassMetric
     }
     
     @Override
-    public boolean equals(Object obj)
+    public boolean equals(final Object obj)
     {
         if(this.getClass().isAssignableFrom(obj.getClass()) && obj.getClass().isAssignableFrom(this.getClass()))
         {

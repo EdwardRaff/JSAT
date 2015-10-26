@@ -70,8 +70,8 @@ public class LongDoubleMapTest
             key = rand.nextLong();
             value = Double.valueOf(rand.nextInt(1000));
             
-            Double prevTruth = truthMap.put(key, value);
-            Double prev = ldMap.put(key, value);
+            final Double prevTruth = truthMap.put(key, value);
+            final Double prev = ldMap.put(key, value);
             assertEquals(prevTruth, prev);
             assertEquals(truthMap.size(), ldMap.size());
         }
@@ -84,10 +84,10 @@ public class LongDoubleMapTest
         
         assertEntriesAreEqual(truthMap, ldMap);
         
-        for(Entry<Long, Double> entry : ldMap.entrySet()) {
+        for(final Entry<Long, Double> entry : ldMap.entrySet()) {
           entry.setValue(1.0);
         }
-        for(Entry<Long, Double> entry : truthMap.entrySet()) {
+        for(final Entry<Long, Double> entry : truthMap.entrySet()) {
           entry.setValue(1.0);
         }
         
@@ -104,8 +104,8 @@ public class LongDoubleMapTest
             key = Long.valueOf(rand.nextInt(50000));
             value = Double.valueOf(rand.nextInt(1000));
             
-            Double prevTruth = truthMap.put(key, value);
-            Double prev = ldMap.put(key, value);
+            final Double prevTruth = truthMap.put(key, value);
+            final Double prev = ldMap.put(key, value);
             assertEquals(prevTruth, prev);
             assertEquals(truthMap.size(), ldMap.size());
         }
@@ -118,39 +118,39 @@ public class LongDoubleMapTest
         
         assertEntriesAreEqual(truthMap, ldMap);
         
-        for(Entry<Long, Double> entry : ldMap.entrySet()) {
+        for(final Entry<Long, Double> entry : ldMap.entrySet()) {
           entry.setValue(1.0);
         }
-        for(Entry<Long, Double> entry : truthMap.entrySet()) {
+        for(final Entry<Long, Double> entry : truthMap.entrySet()) {
           entry.setValue(1.0);
         }
         
         assertEntriesAreEqual(truthMap, ldMap);
     }
 
-    private void removeEvenByIterator(Iterator<Entry<Long, Double>> iterator)
+    private void removeEvenByIterator(final Iterator<Entry<Long, Double>> iterator)
     {
         while(iterator.hasNext())
         {
-            Entry<Long, Double> entry = iterator.next();
+            final Entry<Long, Double> entry = iterator.next();
             if(entry.getKey() % 2 == 0) {
               iterator.remove();
             }
         }
     }
 
-    private void assertEntriesAreEqual(Map<Long, Double> truthMap, LongDoubleMap ldMap)
+    private void assertEntriesAreEqual(final Map<Long, Double> truthMap, final LongDoubleMap ldMap)
     {
         assertEquals(truthMap.size(), ldMap.size());
         
-        Map<Long, Double> copy = new HashMap<Long, Double>();
+        final Map<Long, Double> copy = new HashMap<Long, Double>();
         
-        for(Entry<Long, Double> entry : truthMap.entrySet()) {
+        for(final Entry<Long, Double> entry : truthMap.entrySet()) {
           assertEquals(entry.getValue(), ldMap.get(entry.getKey()));
         }
         
         int observed = 0;
-        for(Entry<Long, Double> entry : ldMap.entrySet())
+        for(final Entry<Long, Double> entry : ldMap.entrySet())
         {
             copy.put(entry.getKey(), entry.getValue());
             observed++;
@@ -160,7 +160,7 @@ public class LongDoubleMapTest
         assertEquals(truthMap.size(), observed);
         
         //make sure we put every value into the copy!
-        for(Entry<Long, Double> entry : truthMap.entrySet()) {
+        for(final Entry<Long, Double> entry : truthMap.entrySet()) {
           assertEquals(truthMap.get(entry.getKey()), copy.get(entry.getKey()));
         }
     }
@@ -183,7 +183,7 @@ public class LongDoubleMapTest
             key = rand.nextLong();
             value = Double.valueOf(rand.nextInt(1000));
             
-            Double prevTruth = truthMap.put(key, value);
+            final Double prevTruth = truthMap.put(key, value);
             Double prev = ldMap.put(key, value);
             if(prev.isNaN()) {
               prev = null;
@@ -200,10 +200,10 @@ public class LongDoubleMapTest
         
         assertEntriesAreEqual(truthMap, ldMap);
         
-        for(Entry<Long, Double> entry : ldMap.entrySet()) {
+        for(final Entry<Long, Double> entry : ldMap.entrySet()) {
           entry.setValue(1.0);
         }
-        for(Entry<Long, Double> entry : truthMap.entrySet()) {
+        for(final Entry<Long, Double> entry : truthMap.entrySet()) {
           entry.setValue(1.0);
         }
         
@@ -220,7 +220,7 @@ public class LongDoubleMapTest
             key = Long.valueOf(rand.nextInt(50000));
             value = Double.valueOf(rand.nextInt(1000));
             
-            Double prevTruth = truthMap.put(key, value);
+            final Double prevTruth = truthMap.put(key, value);
             Double prev = ldMap.put(key, value);
             if(prev.isNaN()) {
               prev = null;
@@ -237,10 +237,10 @@ public class LongDoubleMapTest
         
         assertEntriesAreEqual(truthMap, ldMap);
         
-        for(Entry<Long, Double> entry : ldMap.entrySet()) {
+        for(final Entry<Long, Double> entry : ldMap.entrySet()) {
           entry.setValue(1.0);
         }
-        for(Entry<Long, Double> entry : truthMap.entrySet()) {
+        for(final Entry<Long, Double> entry : truthMap.entrySet()) {
           entry.setValue(1.0);
         }
         
@@ -257,10 +257,10 @@ public class LongDoubleMapTest
         Long key = null;
         Double value = null;
         
-        Map<Long, Double> truthMap = new HashMap<Long, Double>();
-        LongDoubleMap ldMap = new LongDoubleMap();
+        final Map<Long, Double> truthMap = new HashMap<Long, Double>();
+        final LongDoubleMap ldMap = new LongDoubleMap();
         
-        int MAX = TEST_SIZE/2;
+        final int MAX = TEST_SIZE/2;
         int times =0;
         for(int i = 0; i < MAX; i++)
         {
@@ -269,8 +269,8 @@ public class LongDoubleMapTest
             if(truthMap.containsKey(key)) {
               times++;
             }
-            Double prevTruth = truthMap.put(key, value);
-            Double prev = ldMap.put(key, value);
+            final Double prevTruth = truthMap.put(key, value);
+            final Double prev = ldMap.put(key, value);
             
             if(prev == null && prevTruth != null) {
               System.out.println(ldMap.put(key, value));
@@ -285,12 +285,12 @@ public class LongDoubleMapTest
         
         assertEntriesAreEqual(truthMap, ldMap);
         
-        for(Entry<Long, Double> entry : truthMap.entrySet())
+        for(final Entry<Long, Double> entry : truthMap.entrySet())
         {
-            double delta = Double.valueOf(rand.nextInt(100));
-            double trueNewValue =entry.getValue()+delta;
+            final double delta = Double.valueOf(rand.nextInt(100));
+            final double trueNewValue =entry.getValue()+delta;
             entry.setValue(trueNewValue);
-            double newValue = ldMap.increment(entry.getKey(), delta);
+            final double newValue = ldMap.increment(entry.getKey(), delta);
             assertEquals(trueNewValue, newValue, 0.0);
         }
         
@@ -300,7 +300,7 @@ public class LongDoubleMapTest
             value = Double.valueOf(rand.nextInt(1000));
             
             truthMap.put(key, value);
-            double ldNew =ldMap.increment(key, value);
+            final double ldNew =ldMap.increment(key, value);
             assertEquals(value.doubleValue(), ldNew, 0.0);
         }
         
@@ -317,17 +317,17 @@ public class LongDoubleMapTest
         Long key = null;
         Double value = null;
         
-        Map<Long, Double> truthMap = new HashMap<Long, Double>();
-        LongDoubleMap ldMap = new LongDoubleMap();
+        final Map<Long, Double> truthMap = new HashMap<Long, Double>();
+        final LongDoubleMap ldMap = new LongDoubleMap();
         
-        int MAX = TEST_SIZE/2;
+        final int MAX = TEST_SIZE/2;
         for(int i = 0; i < MAX; i++)
         {
             key = Long.valueOf(rand.nextInt(MAX));
             value = Double.valueOf(rand.nextInt(1000));
             
-            Double prevTruth = truthMap.put(key, value);
-            Double prev = ldMap.put(key, value);
+            final Double prevTruth = truthMap.put(key, value);
+            final Double prev = ldMap.put(key, value);
             assertEquals(prevTruth, prev);
             assertEquals(truthMap.size(), ldMap.size());
         }
@@ -339,7 +339,7 @@ public class LongDoubleMapTest
         {
             key = Long.valueOf(rand.nextInt(MAX));
             
-            Double prevTruth = truthMap.remove(key);
+            final Double prevTruth = truthMap.remove(key);
             Double prev = ldMap.remove(key);
             if(prevTruth == null && prev != null) {
               prev = ldMap.remove(key);
@@ -362,17 +362,17 @@ public class LongDoubleMapTest
         Long key = null;
         Double value = null;
         
-        Map<Long, Double> truthMap = new HashMap<Long, Double>();
-        LongDoubleMap ldMap = new LongDoubleMap();
+        final Map<Long, Double> truthMap = new HashMap<Long, Double>();
+        final LongDoubleMap ldMap = new LongDoubleMap();
         
-        int MAX = TEST_SIZE/2;
+        final int MAX = TEST_SIZE/2;
         for(int i = 0; i < MAX; i++)
         {
             key = Long.valueOf(rand.nextInt(MAX));
             value = Double.valueOf(rand.nextInt(1000));
             
-            Double prevTruth = truthMap.put(key, value);
-            Double prev = ldMap.put(key, value);
+            final Double prevTruth = truthMap.put(key, value);
+            final Double prev = ldMap.put(key, value);
             assertEquals(prevTruth, prev);
             assertEquals(truthMap.size(), ldMap.size());
         }
@@ -384,7 +384,7 @@ public class LongDoubleMapTest
         {
             key = Long.valueOf(rand.nextInt(MAX));
             
-            Double prevTruth = truthMap.remove(key);
+            final Double prevTruth = truthMap.remove(key);
             Double prev = ldMap.remove(key.longValue());
             if(prev.isNaN()) {
               prev = null;
@@ -407,24 +407,24 @@ public class LongDoubleMapTest
         Long key = null;
         Double value = null;
         
-        Map<Long, Double> truthMap = new HashMap<Long, Double>();
-        LongDoubleMap ldMap = new LongDoubleMap();
+        final Map<Long, Double> truthMap = new HashMap<Long, Double>();
+        final LongDoubleMap ldMap = new LongDoubleMap();
         
-        int MAX = TEST_SIZE/2;
+        final int MAX = TEST_SIZE/2;
         for(int i = 0; i < MAX; i++)
         {
             key = Long.valueOf(rand.nextInt(MAX));
             value = Double.valueOf(rand.nextInt(1000));
             
-            Double prevTruth = truthMap.put(key, value);
-            Double prev = ldMap.put(key, value);
+            final Double prevTruth = truthMap.put(key, value);
+            final Double prev = ldMap.put(key, value);
             assertEquals(prevTruth, prev);
             assertEquals(truthMap.size(), ldMap.size());
         }
         
         assertEntriesAreEqual(truthMap, ldMap);
         
-        for(Long keyInSet : truthMap.keySet()) {
+        for(final Long keyInSet : truthMap.keySet()) {
           assertTrue(ldMap.containsKey(keyInSet));
         }
         
@@ -443,24 +443,24 @@ public class LongDoubleMapTest
         Long key = null;
         Double value = null;
         
-        Map<Long, Double> truthMap = new HashMap<Long, Double>();
-        LongDoubleMap ldMap = new LongDoubleMap();
+        final Map<Long, Double> truthMap = new HashMap<Long, Double>();
+        final LongDoubleMap ldMap = new LongDoubleMap();
         
-        int MAX = TEST_SIZE/2;
+        final int MAX = TEST_SIZE/2;
         for(int i = 0; i < MAX; i++)
         {
             key = Long.valueOf(rand.nextInt(MAX));
             value = Double.valueOf(rand.nextInt(1000));
             
-            Double prevTruth = truthMap.put(key, value);
-            Double prev = ldMap.put(key, value);
+            final Double prevTruth = truthMap.put(key, value);
+            final Double prev = ldMap.put(key, value);
             assertEquals(prevTruth, prev);
             assertEquals(truthMap.size(), ldMap.size());
         }
         
         assertEntriesAreEqual(truthMap, ldMap);
         
-        for(Long keyInSet : truthMap.keySet()) {
+        for(final Long keyInSet : truthMap.keySet()) {
           assertTrue(ldMap.containsKey(keyInSet.longValue()));
         }
         

@@ -53,7 +53,7 @@ public class NaiveBayesUpdateable extends BaseUpdateableClassifier
      * Creates a new Naive Bayes classifier
      * @param sparse whether or not to assume input vectors are sparce
      */
-    public NaiveBayesUpdateable(boolean sparse)
+    public NaiveBayesUpdateable(final boolean sparse)
     {
         setSparse(sparse);
     }
@@ -62,7 +62,7 @@ public class NaiveBayesUpdateable extends BaseUpdateableClassifier
      * Copy Constructor
      * @param other the classifier to make a copy of
      */
-    protected NaiveBayesUpdateable(NaiveBayesUpdateable other)
+    protected NaiveBayesUpdateable(final NaiveBayesUpdateable other)
     {
         this(other.sparseInput);
         if(other.apriori != null)
@@ -97,9 +97,9 @@ public class NaiveBayesUpdateable extends BaseUpdateableClassifier
     }
 
     @Override
-    public void setUp(CategoricalData[] categoricalAttributes, int numericAttributes, CategoricalData predicting)
+    public void setUp(final CategoricalData[] categoricalAttributes, final int numericAttributes, final CategoricalData predicting)
     {
-        int nCat = predicting.getNumOfCategories();
+        final int nCat = predicting.getNumOfCategories();
         apriori = new double[nCat][categoricalAttributes.length][];
         valueStats = new OnLineStatistics[nCat][numericAttributes];
         priors = new double[nCat];
@@ -125,12 +125,12 @@ public class NaiveBayesUpdateable extends BaseUpdateableClassifier
     }
 
     @Override
-    public void update(DataPoint dataPoint, int targetClass)
+    public void update(final DataPoint dataPoint, final int targetClass)
     {
-        double weight = dataPoint.getWeight();
-        Vec x = dataPoint.getNumericalValues();
+        final double weight = dataPoint.getWeight();
+        final Vec x = dataPoint.getNumericalValues();
         if (sparseInput) {
-          for (IndexValue iv : x) {
+          for (final IndexValue iv : x) {
             valueStats[targetClass][iv.getIndex()].add(iv.getValue(), weight);
           }
         } else {
@@ -140,7 +140,7 @@ public class NaiveBayesUpdateable extends BaseUpdateableClassifier
         }
         
         //Categorical value updates
-        int[] catValues = dataPoint.getCategoricalValues();
+        final int[] catValues = dataPoint.getCategoricalValues();
         for(int j = 0; j < apriori[targetClass].length; j++) {
           apriori[targetClass][j][catValues[j]]++;
         }
@@ -149,27 +149,27 @@ public class NaiveBayesUpdateable extends BaseUpdateableClassifier
     }
 
     @Override
-    public CategoricalResults classify(DataPoint data)
+    public CategoricalResults classify(final DataPoint data)
     {
         if(apriori == null) {
           throw new UntrainedModelException("Model has not been intialized");
         }
-        CategoricalResults results = new CategoricalResults(apriori.length);
-        double[] logProbs = new double[apriori.length];
+        final CategoricalResults results = new CategoricalResults(apriori.length);
+        final double[] logProbs = new double[apriori.length];
         double maxLogProg = Double.NEGATIVE_INFINITY;
         
-        Vec numVals = data.getNumericalValues();
+        final Vec numVals = data.getNumericalValues();
         for( int i = 0; i < valueStats.length; i++)
         {
             double logProb = 0;
             if(sparseInput)
             {
-                for(IndexValue iv : numVals)
+                for(final IndexValue iv : numVals)
                 {
-                    int indx = iv.getIndex();
-                    double mean = valueStats[i][indx].getMean();
-                    double stndDev = valueStats[i][indx].getStandardDeviation();
-                    double logPDF = Normal.logPdf(iv.getValue(), mean, stndDev);
+                    final int indx = iv.getIndex();
+                    final double mean = valueStats[i][indx].getMean();
+                    final double stndDev = valueStats[i][indx].getStandardDeviation();
+                    final double logPDF = Normal.logPdf(iv.getValue(), mean, stndDev);
                     if(Double.isNaN(logPDF)) {
                       logProb += Math.log(1e-16);
                     } else if(Double.isInfinite(logPDF)) {//Avoid propigation -infinty when the probability is zero
@@ -183,9 +183,9 @@ public class NaiveBayesUpdateable extends BaseUpdateableClassifier
             {
                 for(int j = 0; j < valueStats[i].length; j++)
                 {
-                    double mean = valueStats[i][j].getMean();
-                    double stdDev = valueStats[i][j].getStandardDeviation();
-                    double logPDF = Normal.logPdf(numVals.get(j), mean, stdDev);
+                    final double mean = valueStats[i][j].getMean();
+                    final double stdDev = valueStats[i][j].getStandardDeviation();
+                    final double logPDF = Normal.logPdf(numVals.get(j), mean, stdDev);
                     if(Double.isInfinite(logPDF)) {//Avoid propigation -infinty when the probability is zero
                       logProb += Math.log(1e-16);//
                     } else {
@@ -201,7 +201,7 @@ public class NaiveBayesUpdateable extends BaseUpdateableClassifier
                 for(int z = 0; z < apriori[i][j].length; z++) {
                   sum += apriori[i][j][z];
                 }
-                double p = apriori[i][j][data.getCategoricalValue(j)];
+                final double p = apriori[i][j][data.getCategoricalValue(j)];
                 logProb += Math.log(p/sum);
             }
             logProb += Math.log(priors[i]/priorSum);
@@ -209,7 +209,7 @@ public class NaiveBayesUpdateable extends BaseUpdateableClassifier
             maxLogProg = Math.max(maxLogProg, logProb);
         }
         
-        double denom =MathTricks.logSumExp(logProbs, maxLogProg);
+        final double denom =MathTricks.logSumExp(logProbs, maxLogProg);
         
         for(int i = 0; i < results.size(); i++) {
           results.setProb(i, exp(logProbs[i]-denom));
@@ -240,7 +240,7 @@ public class NaiveBayesUpdateable extends BaseUpdateableClassifier
      * 
      * @param sparseInput <tt>true</tt> to use a sparse model
      */
-    public void setSparse(boolean sparseInput)
+    public void setSparse(final boolean sparseInput)
     {
         this.sparseInput = sparseInput;
     }

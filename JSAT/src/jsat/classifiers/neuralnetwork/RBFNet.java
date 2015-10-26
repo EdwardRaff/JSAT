@@ -101,7 +101,7 @@ public class RBFNet implements Classifier, Regressor, DataTransform, Parameteriz
      * @param numCentroids the number of centroids or neurons to use in the 
      * network's hidden layer
      */
-    public RBFNet(int numCentroids)
+    public RBFNet(final int numCentroids)
     {
         this(numCentroids, Phase1Learner.K_MEANS, Phase2Learner.NEAREST_OTHER_CENTROID_AVERAGE, 3, 3, new EuclideanDistance(), (Classifier) new DCDs());
     }
@@ -122,7 +122,7 @@ public class RBFNet implements Classifier, Regressor, DataTransform, Parameteriz
      * @param baseClassifier the base classifier to learn on top of the hidden 
      * layer activations. 
      */
-    public RBFNet(int numCentroids, Phase1Learner cl, Phase2Learner bl, double alpha, int p, DistanceMetric dm, Classifier baseClassifier)
+    public RBFNet(final int numCentroids, final Phase1Learner cl, final Phase2Learner bl, final double alpha, final int p, final DistanceMetric dm, final Classifier baseClassifier)
     {
         setNumCentroids(numCentroids);
         setPhase1Learner(cl);
@@ -152,7 +152,7 @@ public class RBFNet implements Classifier, Regressor, DataTransform, Parameteriz
      * @param baseRegressor the base regressor to learn on op of the hidden 
      * layer activations. 
      */
-    public RBFNet(int numCentroids, Phase1Learner cl, Phase2Learner bl, double alpha, int p, DistanceMetric dm, Regressor baseRegressor)
+    public RBFNet(final int numCentroids, final Phase1Learner cl, final Phase2Learner bl, final double alpha, final int p, final DistanceMetric dm, final Regressor baseRegressor)
     {
         setNumCentroids(numCentroids);
         setPhase1Learner(cl);
@@ -170,7 +170,7 @@ public class RBFNet implements Classifier, Regressor, DataTransform, Parameteriz
      * Copy constructor
      * @param toCopy the network to copy
      */
-    public RBFNet(RBFNet toCopy)
+    public RBFNet(final RBFNet toCopy)
     {
         setNumCentroids(toCopy.getNumCentroids());
         setPhase1Learner(toCopy.getPhase1Learner());
@@ -195,7 +195,7 @@ public class RBFNet implements Classifier, Regressor, DataTransform, Parameteriz
         if(toCopy.centroids != null)
         {
             this.centroids = new ArrayList<Vec>(toCopy.centroids.size());
-            for(Vec v : toCopy.centroids) {
+            for(final Vec v : toCopy.centroids) {
               this.centroids.add(v.clone());
             }
             if(toCopy.centroidDistCache != null) {
@@ -209,7 +209,7 @@ public class RBFNet implements Classifier, Regressor, DataTransform, Parameteriz
     }
 
     @Override
-    public DataPoint transform(DataPoint dp)
+    public DataPoint transform(final DataPoint dp)
     {
         final Vec x = dp.getNumericalValues();
         final List<Double> qi = dm.getQueryInfo(x);
@@ -225,9 +225,9 @@ public class RBFNet implements Classifier, Regressor, DataTransform, Parameteriz
                 
         for(int i = 0; i < centroids.size(); i++)
         {
-            double dist = dm.dist(i, x, qi, centroids, centroidDistCache);
-            double sig = bandwidths[i];
-            double activation = Math.exp(-(dist*dist)/(sig*sig*2));
+            final double dist = dm.dist(i, x, qi, centroids, centroidDistCache);
+            final double sig = bandwidths[i];
+            final double activation = Math.exp(-(dist*dist)/(sig*sig*2));
             
             if(activation > maxActivation)
             {
@@ -270,17 +270,17 @@ public class RBFNet implements Classifier, Regressor, DataTransform, Parameteriz
         RANDOM
         {
             @Override
-            protected List<Vec> getCentroids(DataSet data, int centroids, DistanceMetric dm, ExecutorService ex)
+            protected List<Vec> getCentroids(final DataSet data, final int centroids, final DistanceMetric dm, final ExecutorService ex)
             {
-                Random rand = new XORWOW();
-                List<Vec> toRet = new ArrayList<Vec>();
-                Set<Integer> points = new IntSet();
+                final Random rand = new XORWOW();
+                final List<Vec> toRet = new ArrayList<Vec>();
+                final Set<Integer> points = new IntSet();
                 
                 while (points.size() < centroids) {
                   points.add(rand.nextInt(data.getSampleSize()));
                 }
                     
-                for (int i : points) {
+                for (final int i : points) {
                   toRet.add(data.getDataPoint(i).getNumericalValues());
                 }
                 
@@ -293,9 +293,9 @@ public class RBFNet implements Classifier, Regressor, DataTransform, Parameteriz
         K_MEANS
         {
             @Override
-            protected List<Vec> getCentroids(DataSet data, int centroids, DistanceMetric dm, ExecutorService ex)
+            protected List<Vec> getCentroids(final DataSet data, final int centroids, final DistanceMetric dm, final ExecutorService ex)
             {
-                HamerlyKMeans kmeans = new HamerlyKMeans(dm, SeedSelectionMethods.SeedSelection.KPP);
+                final HamerlyKMeans kmeans = new HamerlyKMeans(dm, SeedSelectionMethods.SeedSelection.KPP);
                 
                 if(ex == null || ex instanceof FakeExecutor) {
                   kmeans.cluster(data, centroids);
@@ -336,7 +336,7 @@ public class RBFNet implements Classifier, Regressor, DataTransform, Parameteriz
         CENTROID_DISTANCE
         {
             @Override
-            protected double[] estimateBandwidths(double alpha, int p, DataSet data, final List<Vec> centroids, final List<Double> centroidDistCache, final DistanceMetric dm, ExecutorService threadpool)
+            protected double[] estimateBandwidths(final double alpha, final int p, final DataSet data, final List<Vec> centroids, final List<Double> centroidDistCache, final DistanceMetric dm, final ExecutorService threadpool)
             {
                 final double[] bandwidths = new double[centroids.size()];
                 final OnLineStatistics[] averages = new OnLineStatistics[bandwidths.length];
@@ -351,7 +351,7 @@ public class RBFNet implements Classifier, Regressor, DataTransform, Parameteriz
                  */
                 for (final List<Vec> subList : ListUtils.splitList((List< Vec>) data.getDataVectors(), SystemInfo.LogicalCores))
                 {
-                    Future<OnLineStatistics[]> future = threadpool.submit(new Callable<OnLineStatistics[]>() 
+                    final Future<OnLineStatistics[]> future = threadpool.submit(new Callable<OnLineStatistics[]>() 
                     {
 
                         @Override
@@ -362,13 +362,13 @@ public class RBFNet implements Classifier, Regressor, DataTransform, Parameteriz
                               localAverages[i] = new OnLineStatistics();
                             }
                             
-                            for(Vec x : subList)
+                            for(final Vec x : subList)
                             {
                                 double minDist = Double.POSITIVE_INFINITY;
                                 int minI = 0;
                                 for(int i = 0; i < centroids.size(); i++)
                                 {
-                                    double dist = dm.dist(i, x, centroids, centroidDistCache);
+                                    final double dist = dm.dist(i, x, centroids, centroidDistCache);
                                     if(dist < minDist)
                                     {
                                         minDist = dist;
@@ -385,7 +385,7 @@ public class RBFNet implements Classifier, Regressor, DataTransform, Parameteriz
                 try
                 {
                     ///Wait for all the work to finish
-                    for (OnLineStatistics[] localAverages : ListUtils.collectFutures(futures))
+                    for (final OnLineStatistics[] localAverages : ListUtils.collectFutures(futures))
                     {
                         for (int i = 0; i < localAverages.length; i++)
                         {
@@ -400,11 +400,11 @@ public class RBFNet implements Classifier, Regressor, DataTransform, Parameteriz
                       bandwidths[i] = averages[i].getMean()+averages[i].getStandardDeviation()*alpha;
                     }
                 }
-                catch (InterruptedException ex)
+                catch (final InterruptedException ex)
                 {
                     throw new FailedToFitException(ex);
                 }
-                catch (ExecutionException ex)
+                catch (final ExecutionException ex)
                 {
                     throw new FailedToFitException(ex);
                 }
@@ -425,7 +425,7 @@ public class RBFNet implements Classifier, Regressor, DataTransform, Parameteriz
         CLOSEST_OPPOSITE_CENTROID
         {
             @Override
-            protected double[] estimateBandwidths(final double alpha, int p, DataSet data, final List<Vec> centroids, final List<Double> centroidDistCache, final DistanceMetric dm, ExecutorService threadpool)
+            protected double[] estimateBandwidths(final double alpha, final int p, final DataSet data, final List<Vec> centroids, final List<Double> centroidDistCache, final DistanceMetric dm, final ExecutorService threadpool)
             {
                 final ClassificationDataSet cds;
                 if(data instanceof ClassificationDataSet ) {
@@ -445,7 +445,7 @@ public class RBFNet implements Classifier, Regressor, DataTransform, Parameteriz
                 for(int i =0; i < classLabels.length; i++) {
                   classLabels[i] = new AtomicIntegerArray(cds.getClassSize());
                 }
-                IntList indices = new IntList(data.getSampleSize());
+                final IntList indices = new IntList(data.getSampleSize());
                 ListUtils.addRange(indices, 0, data.getSampleSize(), 1);
                 for(final List<Integer> subList : ListUtils.splitList(indices, SystemInfo.LogicalCores))
                 {
@@ -454,14 +454,14 @@ public class RBFNet implements Classifier, Regressor, DataTransform, Parameteriz
                         @Override
                         public void run()
                         {
-                            for(int id : subList)
+                            for(final int id : subList)
                             {
                                 final Vec x = cds.getDataPoint(id).getNumericalValues();
                                 double minDist = Double.POSITIVE_INFINITY;
                                 int minI = 0;
                                 for(int i = 0; i < centroids.size(); i++)
                                 {
-                                    double dist = dm.dist(i, x, centroids, centroidDistCache);
+                                    final double dist = dm.dist(i, x, centroids, centroidDistCache);
                                     if(dist < minDist)
                                     {
                                         minDist = dist;
@@ -481,7 +481,7 @@ public class RBFNet implements Classifier, Regressor, DataTransform, Parameteriz
                     ///Wait for all the work to finish
                     latch0.await();
                 }
-                catch (InterruptedException ex)
+                catch (final InterruptedException ex)
                 {
                     throw new FailedToFitException(ex);
                 }
@@ -538,7 +538,7 @@ public class RBFNet implements Classifier, Regressor, DataTransform, Parameteriz
                 {
                     latch1.await();
                 }
-                catch (InterruptedException ex)
+                catch (final InterruptedException ex)
                 {
                     throw new FailedToFitException(ex);
                 }
@@ -555,7 +555,7 @@ public class RBFNet implements Classifier, Regressor, DataTransform, Parameteriz
         NEAREST_OTHER_CENTROID_AVERAGE
         {
             @Override
-            protected double[] estimateBandwidths(final double alpha, final int p, DataSet data, final List<Vec> centroids, final List<Double> centroidDistCache, final DistanceMetric dm, ExecutorService threadpool)
+            protected double[] estimateBandwidths(final double alpha, final int p, final DataSet data, final List<Vec> centroids, final List<Double> centroidDistCache, final DistanceMetric dm, final ExecutorService threadpool)
             {
                 final double[] bandwidths = new double[centroids.size()];
                 final CountDownLatch latch = new CountDownLatch(centroids.size());
@@ -567,14 +567,14 @@ public class RBFNet implements Classifier, Regressor, DataTransform, Parameteriz
                         @Override
                         public void run()
                         {
-                            BoundedSortedList<Double> closestDistances = new BoundedSortedList<Double>(p);
+                            final BoundedSortedList<Double> closestDistances = new BoundedSortedList<Double>(p);
                             for(int i = 0; i < centroids.size(); i++) {
                               if (i != center) {
                                 closestDistances.add(dm.dist(i, center, centroids, centroidDistCache));
                               }
                             }
-                            OnLineStatistics stats = new OnLineStatistics();
-                            for(double dist : closestDistances) {
+                            final OnLineStatistics stats = new OnLineStatistics();
+                            for(final double dist : closestDistances) {
                               stats.add(dist);
                             }
                             bandwidths[center] = stats.getMean()+alpha*stats.getStandardDeviation();
@@ -597,7 +597,7 @@ public class RBFNet implements Classifier, Regressor, DataTransform, Parameteriz
      * @param alpha a non negative value that controls the width of the learned
      * bandwidths.
      */
-    public void setAlpha(double alpha)
+    public void setAlpha(final double alpha)
     {
         if(alpha < 0 || Double.isInfinite(alpha) || Double.isNaN(alpha)) {
           throw new IllegalArgumentException("Alpha must be a positive value, not " + alpha);
@@ -625,7 +625,7 @@ public class RBFNet implements Classifier, Regressor, DataTransform, Parameteriz
      * @param p the positive integer used that controls the width of the learned
      * bandwidths
      */
-    public void setP(int p)
+    public void setP(final int p)
     {
         if(p < 1) {
           throw new IllegalArgumentException("neighbors parameter must be positive, not "+p);
@@ -655,7 +655,7 @@ public class RBFNet implements Classifier, Regressor, DataTransform, Parameteriz
      *
      * @param numCentroids the number of centroids to use in the model
      */
-    public void setNumCentroids(int numCentroids)
+    public void setNumCentroids(final int numCentroids)
     {
         if(numCentroids < 1) {
           throw new IllegalArgumentException("Number of centroids must be positive, not " + numCentroids);
@@ -676,7 +676,7 @@ public class RBFNet implements Classifier, Regressor, DataTransform, Parameteriz
      * Sets the distance metric used to determine neuron activations. 
      * @param dm the distance metric to use
      */
-    public void setDistanceMetric(DistanceMetric dm)
+    public void setDistanceMetric(final DistanceMetric dm)
     {
         this.dm = dm;
     }
@@ -696,7 +696,7 @@ public class RBFNet implements Classifier, Regressor, DataTransform, Parameteriz
      *
      * @param p1l the learning method to use
      */
-    public void setPhase1Learner(Phase1Learner p1l)
+    public void setPhase1Learner(final Phase1Learner p1l)
     {
         this.p1l = p1l;
     }
@@ -718,7 +718,7 @@ public class RBFNet implements Classifier, Regressor, DataTransform, Parameteriz
      *
      * @param p2l the learning method to use
      */
-    public void setPhase2Learner(Phase2Learner p2l)
+    public void setPhase2Learner(final Phase2Learner p2l)
     {
         this.p2l = p2l;
     }
@@ -742,7 +742,7 @@ public class RBFNet implements Classifier, Regressor, DataTransform, Parameteriz
      * @param normalize {@code true} to normalize the neuron outputs,
      * {@code false} to use the raw activation values.
      */
-    public void setNormalize(boolean normalize)
+    public void setNormalize(final boolean normalize)
     {
         this.normalize = normalize;
     }
@@ -759,13 +759,13 @@ public class RBFNet implements Classifier, Regressor, DataTransform, Parameteriz
     }
 
     @Override
-    public CategoricalResults classify(DataPoint data)
+    public CategoricalResults classify(final DataPoint data)
     {
         return baseClassifier.classify(transform(data));
     }
 
     @Override
-    public void trainC(ClassificationDataSet dataSet, ExecutorService threadPool)
+    public void trainC(final ClassificationDataSet dataSet, ExecutorService threadPool)
     {
         if(baseClassifier == null) {
           throw new FailedToFitException("RBFNet was not given a base classifier");
@@ -781,7 +781,7 @@ public class RBFNet implements Classifier, Regressor, DataTransform, Parameteriz
         bandwidths = p2l.estimateBandwidths(alpha, p, dataSet, centroids, centroidDistCache, dm, threadPool);
         
         //apply transform
-        ClassificationDataSet transformedData = dataSet.shallowClone();
+        final ClassificationDataSet transformedData = dataSet.shallowClone();
         transformedData.applyTransform(this, threadPool);
         
         //learn final model on transformed inputs
@@ -790,7 +790,7 @@ public class RBFNet implements Classifier, Regressor, DataTransform, Parameteriz
     }
 
     @Override
-    public void trainC(ClassificationDataSet dataSet)
+    public void trainC(final ClassificationDataSet dataSet)
     {
         trainC(dataSet, null);
     }
@@ -806,13 +806,13 @@ public class RBFNet implements Classifier, Regressor, DataTransform, Parameteriz
     }
 
     @Override
-    public double regress(DataPoint data)
+    public double regress(final DataPoint data)
     {
         return baseRegressor.regress(transform(data));
     }
 
     @Override
-    public void train(RegressionDataSet dataSet, ExecutorService threadPool)
+    public void train(final RegressionDataSet dataSet, ExecutorService threadPool)
     {
         if(baseRegressor == null) {
           throw new FailedToFitException("RBFNet was not given a base classifier");
@@ -828,7 +828,7 @@ public class RBFNet implements Classifier, Regressor, DataTransform, Parameteriz
         bandwidths = p2l.estimateBandwidths(alpha, p, dataSet, centroids, centroidDistCache, dm, threadPool);
         
         //apply transform
-        RegressionDataSet transformedData = dataSet.shallowClone();
+        final RegressionDataSet transformedData = dataSet.shallowClone();
         transformedData.applyTransform(this, threadPool);
         
         //learn final model on transformed inputs
@@ -836,7 +836,7 @@ public class RBFNet implements Classifier, Regressor, DataTransform, Parameteriz
     }
 
     @Override
-    public void train(RegressionDataSet dataSet)
+    public void train(final RegressionDataSet dataSet)
     {
         train(dataSet, null);
     }
@@ -854,7 +854,7 @@ public class RBFNet implements Classifier, Regressor, DataTransform, Parameteriz
     }
 
     @Override
-    public Parameter getParameter(String paramName)
+    public Parameter getParameter(final String paramName)
     {
         return Parameter.toParameterMap(getParameters()).get(paramName);
     }

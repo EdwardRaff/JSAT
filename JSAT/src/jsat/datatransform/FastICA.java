@@ -85,13 +85,13 @@ public class FastICA implements InvertibleTransform
         {
 
             @Override
-            public double deriv1(double x)
+            public double deriv1(final double x)
             {
                 return tanh(x);
             }
 
             @Override
-            public double deriv2(double x, double d1)
+            public double deriv2(final double x, final double d1)
             {
                 return 1-d1*d1;
             }
@@ -105,13 +105,13 @@ public class FastICA implements InvertibleTransform
         EXP 
         {
             @Override
-            public double deriv1(double x)
+            public double deriv1(final double x)
             {
                 return x*exp(-x*x/2);
             }
 
             @Override
-            public double deriv2(double x, double d1)
+            public double deriv2(final double x, final double d1)
             {
                 //calling exp is more expensive than just dividing to get back e(-x^2/2)
                 if(x == 0) {
@@ -129,13 +129,13 @@ public class FastICA implements InvertibleTransform
         KURTOSIS
         {
             @Override
-            public double deriv1(double x)
+            public double deriv1(final double x)
             {
                 return x*x*x;//x^3
             }
 
             @Override
-            public double deriv2(double x, double d1)
+            public double deriv2(final double x, final double d1)
             {
                 return x*x*3;//3 x^2
             }
@@ -153,7 +153,7 @@ public class FastICA implements InvertibleTransform
      * @param data the data set to transform
      * @param C the number of base components to assume and try to discover
      */
-    public FastICA(DataSet data, int C)
+    public FastICA(final DataSet data, final int C)
     {
         this(data, C, DefaultNegEntropyFunc.LOG_COSH, false);
     }
@@ -167,13 +167,13 @@ public class FastICA implements InvertibleTransform
      * whitened before being given to the transform, {@code false} and the 
      * FastICA implementation will perform its own whitening. 
      */
-    public FastICA(DataSet data, int C, NegEntropyFunc G, boolean preWhitened)
+    public FastICA(DataSet data, final int C, final NegEntropyFunc G, final boolean preWhitened)
     {
-        int N = data.getSampleSize();
+        final int N = data.getSampleSize();
         
-        Vec tmp = new DenseVector(N);
+        final Vec tmp = new DenseVector(N);
              
-        List<Vec> ws = new ArrayList<Vec>(C);
+        final List<Vec> ws = new ArrayList<Vec>(C);
         
         Matrix X;
         WhitenedPCA whiten = null;
@@ -194,14 +194,14 @@ public class FastICA implements InvertibleTransform
           X = data.getDataMatrixView();
         }
         
-        int subD = X.cols();//projected space may be smaller if low rank
-        Vec w_tmp = new DenseVector(subD);//used to check for convergence
+        final int subD = X.cols();//projected space may be smaller if low rank
+        final Vec w_tmp = new DenseVector(subD);//used to check for convergence
         
-        int maxIter = 500;//TODO make this configurable
+        final int maxIter = 500;//TODO make this configurable
                 
         for(int  p  = 0; p < C; p++)
         {
-            Vec w_p = Vec.random(subD);
+            final Vec w_p = Vec.random(subD);
             w_p.normalize();
             
             int iter = 0;
@@ -236,7 +236,7 @@ public class FastICA implements InvertibleTransform
                 X.transposeMultiply(1.0/N, tmp, w_p);
                 
                 //reorthoganalization by w_p = w_p - sum_{i=0}^{p-1} w_p^T w_j w_j 
-                double[] coefs = new double[ws.size()];
+                final double[] coefs = new double[ws.size()];
                 for(int i= 0; i < coefs.length; i++) {
                   coefs[i] = w_p.dot(ws.get(i));
                 }
@@ -265,7 +265,7 @@ public class FastICA implements InvertibleTransform
         
         if(!preWhitened)
         {
-            Matrix W = new MatrixOfVecs(ws);
+            final Matrix W = new MatrixOfVecs(ws);
             
             unmixing = W.multiply(whiten.transform).transpose();
         }
@@ -280,7 +280,7 @@ public class FastICA implements InvertibleTransform
      * Copy constructor
      * @param toCopy the object to copy
      */
-    public FastICA(FastICA toCopy)
+    public FastICA(final FastICA toCopy)
     {
         if (toCopy.zeroMean != null) {
           this.zeroMean = toCopy.zeroMean.clone();
@@ -294,7 +294,7 @@ public class FastICA implements InvertibleTransform
     }
     
     @Override
-    public DataPoint transform(DataPoint dp)
+    public DataPoint transform(final DataPoint dp)
     {
         Vec x;
         if (zeroMean != null) {
@@ -303,19 +303,19 @@ public class FastICA implements InvertibleTransform
           x = dp.getNumericalValues();
         }
 
-        Vec newX = x.multiply(unmixing);
+        final Vec newX = x.multiply(unmixing);
 
         //we know that zeroMean wont impact cat values or weight
         return new DataPoint(newX, dp.getCategoricalValues(), dp.getCategoricalData(), dp.getWeight());
     }
     
     @Override
-    public DataPoint inverse(DataPoint dp)
+    public DataPoint inverse(final DataPoint dp)
     {
         Vec x = dp.getNumericalValues();
         x = x.multiply(mixing);
         
-        DataPoint toRet = new DataPoint(x, dp.getCategoricalValues(), dp.getCategoricalData(), dp.getWeight());
+        final DataPoint toRet = new DataPoint(x, dp.getCategoricalValues(), dp.getCategoricalData(), dp.getWeight());
         if(zeroMean != null) {
           zeroMean.mutableInverse(toRet);
         }
@@ -341,13 +341,13 @@ public class FastICA implements InvertibleTransform
          * 
          * @param C the number of base components to assume and try to discover
          */
-        public FastICATransformFactory(int C)
+        public FastICATransformFactory(final int C)
         {
             this.C = C;
         }
         
         @Override
-        public DataTransform getTransform(DataSet dataset)
+        public DataTransform getTransform(final DataSet dataset)
         {
             return new FastICA(dataset, C);
         }

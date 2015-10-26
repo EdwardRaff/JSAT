@@ -23,26 +23,26 @@ public class NadarayaWatson implements Regressor, Parameterized
 
 	private static final long serialVersionUID = 8632599345930394763L;
 	@ParameterHolder
-    private MultivariateKDE kde;
+    private final MultivariateKDE kde;
 
-    public NadarayaWatson(MultivariateKDE kde)
+    public NadarayaWatson(final MultivariateKDE kde)
     {
         this.kde = kde;
     }
     
-    public double regress(DataPoint data)
+    public double regress(final DataPoint data)
     {
-        List<? extends VecPaired<VecPaired<Vec, Integer>, Double>> nearBy = kde.getNearby(data.getNumericalValues());
+        final List<? extends VecPaired<VecPaired<Vec, Integer>, Double>> nearBy = kde.getNearby(data.getNumericalValues());
         if(nearBy.isEmpty()) {
           return 0;///hmmm... what should be retruned in this case?
         }
         double weightSum = 0;
         double sum = 0;
         
-        for(VecPaired<VecPaired<Vec, Integer>, Double> v : nearBy)
+        for(final VecPaired<VecPaired<Vec, Integer>, Double> v : nearBy)
         {
-            double weight = v.getPair();
-            double regressionValue = ( (VecPaired<Vec, Double>) v.getVector().getVector()).getPair();
+            final double weight = v.getPair();
+            final double regressionValue = ( (VecPaired<Vec, Double>) v.getVector().getVector()).getPair();
             weightSum += weight;
             sum += weight*regressionValue;
         }
@@ -51,16 +51,16 @@ public class NadarayaWatson implements Regressor, Parameterized
     }
 
     @Override
-    public void train(RegressionDataSet dataSet, ExecutorService threadPool)
+    public void train(final RegressionDataSet dataSet, final ExecutorService threadPool)
     {
-        List<VecPaired<Vec, Double>> vectors = collectVectors(dataSet);
+        final List<VecPaired<Vec, Double>> vectors = collectVectors(dataSet);
         
         kde.setUsingData(vectors, threadPool);
     }
 
-    private List<VecPaired<Vec, Double>> collectVectors(RegressionDataSet dataSet)
+    private List<VecPaired<Vec, Double>> collectVectors(final RegressionDataSet dataSet)
     {
-        List<VecPaired<Vec, Double>> vectors = new ArrayList<VecPaired<Vec, Double>>(dataSet.getSampleSize());
+        final List<VecPaired<Vec, Double>> vectors = new ArrayList<VecPaired<Vec, Double>>(dataSet.getSampleSize());
         for(int i = 0; i < dataSet.getSampleSize(); i++) {
           vectors.add(new VecPaired<Vec, Double>(dataSet.getDataPoint(i).getNumericalValues(), dataSet.getTargetValue(i)));
         }
@@ -68,9 +68,9 @@ public class NadarayaWatson implements Regressor, Parameterized
     }
 
     @Override
-    public void train(RegressionDataSet dataSet)
+    public void train(final RegressionDataSet dataSet)
     {
-        List<VecPaired<Vec, Double>> vectors = collectVectors(dataSet);;
+        final List<VecPaired<Vec, Double>> vectors = collectVectors(dataSet);;
         
         kde.setUsingData(vectors);
     }
@@ -94,7 +94,7 @@ public class NadarayaWatson implements Regressor, Parameterized
     }
 
     @Override
-    public Parameter getParameter(String paramName)
+    public Parameter getParameter(final String paramName)
     {
         return Parameter.toParameterMap(getParameters()).get(paramName);
     }

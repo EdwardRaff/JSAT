@@ -44,7 +44,7 @@ public class RFF_RBF implements DataTransform
      * memory. If {@code false}, the memory will be re-computed as needed, 
      * increasing computation cost but uses no extra memory. 
      */
-    public RFF_RBF(int featurSize, double sigma, int dim, Random rand, boolean inMemory)
+    public RFF_RBF(final int featurSize, final double sigma, final int dim, final Random rand, final boolean inMemory)
     {
         if(featurSize <= 0) {
           throw new IllegalArgumentException("The number of numeric features must be positive, not " + featurSize);
@@ -69,17 +69,17 @@ public class RFF_RBF implements DataTransform
      * Copy constructor
      * @param toCopy the object to copy
      */
-    protected RFF_RBF(RFF_RBF toCopy)
+    protected RFF_RBF(final RFF_RBF toCopy)
     {
         this.transform = toCopy.transform.clone();
         this.offsets = toCopy.offsets.clone();
     }
     
     @Override
-    public DataPoint transform(DataPoint dp)
+    public DataPoint transform(final DataPoint dp)
     {
-        Vec oldX = dp.getNumericalValues();
-        Vec newX = oldX.multiply(transform);
+        final Vec oldX = dp.getNumericalValues();
+        final Vec newX = oldX.multiply(transform);
         
         final double coef = Math.sqrt(2.0/transform.cols());
         for(int i = 0; i < newX.length(); i++) {
@@ -99,16 +99,16 @@ public class RFF_RBF implements DataTransform
     {
 
         private static final long serialVersionUID = 4702514384718636893L;
-        private double coef;
+        private final double coef;
 
-        public RandomMatrixRFF_RBF(double coef, int rows, int cols, long seedMult)
+        public RandomMatrixRFF_RBF(final double coef, final int rows, final int cols, final long seedMult)
         {
             super(rows, cols, seedMult);
             this.coef = coef;
         }
         
         @Override
-        protected double getVal(Random rand)
+        protected double getVal(final Random rand)
         {
             return coef*rand.nextGaussian();
         }
@@ -119,13 +119,13 @@ public class RFF_RBF implements DataTransform
 
         private static final long serialVersionUID = -6132378281909907937L;
 
-        public RandomVectorRFF_RBF(int length, long seedMult)
+        public RandomVectorRFF_RBF(final int length, final long seedMult)
         {
             super(length, seedMult);
         }
         
         @Override
-        protected double getVal(Random rand)
+        protected double getVal(final Random rand)
         {
             return rand.nextDouble()*2*Math.PI;
         }
@@ -145,7 +145,7 @@ public class RFF_RBF implements DataTransform
     {
         private double sigma;
         private int dimensions;
-        private boolean inMemory;
+        private final boolean inMemory;
 
         /**
          * 
@@ -155,7 +155,7 @@ public class RFF_RBF implements DataTransform
          * memory. If {@code false}, the memory will be re-computed as needed, 
          * increasing computation cost but uses no extra memory. 
          */
-        public RFF_RBFTransformFactory(double sigma, int dimensions, boolean inMemory)
+        public RFF_RBFTransformFactory(final double sigma, final int dimensions, final boolean inMemory)
         {
             setSigma(sigma);
             setDimensions(dimensions);
@@ -166,7 +166,7 @@ public class RFF_RBF implements DataTransform
          * Copy constructor
          * @param toCopy the object to copy
          */
-        public RFF_RBFTransformFactory(RFF_RBFTransformFactory toCopy)
+        public RFF_RBFTransformFactory(final RFF_RBFTransformFactory toCopy)
         {
             this(toCopy.sigma, toCopy.dimensions, toCopy.inMemory);
         }
@@ -178,7 +178,7 @@ public class RFF_RBF implements DataTransform
         }
         
         @Override
-        public DataTransform getTransform(DataSet dataset)
+        public DataTransform getTransform(final DataSet dataset)
         {
             return new RFF_RBF(dataset.getNumNumericalVars(), sigma, dimensions, new Random(), inMemory);
         }
@@ -189,7 +189,7 @@ public class RFF_RBF implements DataTransform
          * and larger values increase the accuracy of the approximation. 
          * @param dimensions 
          */
-        public void setDimensions(int dimensions) 
+        public void setDimensions(final int dimensions) 
         {
             if(dimensions < 1) {
               throw new ArithmeticException("Number of dimensions must be a positive value, not " + dimensions);
@@ -211,7 +211,7 @@ public class RFF_RBF implements DataTransform
          * @param sigma the positive value to use for &sigma;
          * @see RBFKernel#setSigma(double) 
          */
-        public void setSigma(double sigma)
+        public void setSigma(final double sigma)
         {
             if(sigma <= 0.0 || Double.isInfinite(sigma) || Double.isNaN(sigma)) {
               throw new IllegalArgumentException("Sigma must be a positive value, not " + sigma);
@@ -235,7 +235,7 @@ public class RFF_RBF implements DataTransform
          * @param d the data set to get the guess for
          * @return the guess for the &sigma; parameter in the RBF Kernel
          */
-        public Distribution guessSigma(DataSet d)
+        public Distribution guessSigma(final DataSet d)
         {
             return RBFKernel.guessSigma(d);
         }

@@ -61,7 +61,7 @@ public class LogisticRegressionDCD implements Classifier, Parameterized, SingleW
      * training iterations. 
      * @param C the regularization tradeoff term
      */
-    public LogisticRegressionDCD(double C)
+    public LogisticRegressionDCD(final double C)
     {
         this(C, 100);
     }
@@ -71,7 +71,7 @@ public class LogisticRegressionDCD implements Classifier, Parameterized, SingleW
      * @param C the regularization tradeoff term
      * @param maxIterations the maximum number of iterations through the data set
      */
-    public LogisticRegressionDCD(double C, int maxIterations)
+    public LogisticRegressionDCD(final double C, final int maxIterations)
     {
         setC(C);
         setMaxIterations(maxIterations);
@@ -81,7 +81,7 @@ public class LogisticRegressionDCD implements Classifier, Parameterized, SingleW
      * Copy constructor 
      * @param toCopy the object to copy
      */
-    protected LogisticRegressionDCD(LogisticRegressionDCD toCopy)
+    protected LogisticRegressionDCD(final LogisticRegressionDCD toCopy)
     {
         this(toCopy.C, toCopy.maxIterations);
         if(toCopy.w != null) {
@@ -97,7 +97,7 @@ public class LogisticRegressionDCD implements Classifier, Parameterized, SingleW
      * 
      * @param C the positive regularization tradeoff value 
      */
-    public void setC(double C)
+    public void setC(final double C)
     {
         if(C <= 0 || Double.isInfinite(C) || Double.isNaN(C)) {
           throw new IllegalArgumentException("C must be a positive constant, not " + C);
@@ -119,7 +119,7 @@ public class LogisticRegressionDCD implements Classifier, Parameterized, SingleW
      * for. 
      * @param maxIterations the maximum number of iterations
      */
-    public void setMaxIterations(int maxIterations)
+    public void setMaxIterations(final int maxIterations)
     {
         if(maxIterations < 1) {
           throw new IllegalArgumentException("iterations must be a positive value, not " + maxIterations);
@@ -141,7 +141,7 @@ public class LogisticRegressionDCD implements Classifier, Parameterized, SingleW
      * @param useBias {@code true} to add a bias term, {@code false} to exclude
      * the bias term. 
      */
-    public void setUseBias(boolean useBias)
+    public void setUseBias(final boolean useBias)
     {
         this.useBias = useBias;
     }
@@ -168,7 +168,7 @@ public class LogisticRegressionDCD implements Classifier, Parameterized, SingleW
     }
     
     @Override
-    public Vec getRawWeight(int index)
+    public Vec getRawWeight(final int index)
     {
         if(index < 1) {
           return getRawWeight();
@@ -178,7 +178,7 @@ public class LogisticRegressionDCD implements Classifier, Parameterized, SingleW
     }
 
     @Override
-    public double getBias(int index)
+    public double getBias(final int index)
     {
         if (index < 1) {
           return getBias();
@@ -194,29 +194,29 @@ public class LogisticRegressionDCD implements Classifier, Parameterized, SingleW
     }
     
     @Override
-    public CategoricalResults classify(DataPoint data)
+    public CategoricalResults classify(final DataPoint data)
     {
         return LogisticLoss.classify(w.dot(data.getNumericalValues())+bias);
     }
 
     @Override
-    public void trainC(ClassificationDataSet dataSet, ExecutorService threadPool)
+    public void trainC(final ClassificationDataSet dataSet, final ExecutorService threadPool)
     {
         trainC(dataSet);
     }
 
     @Override
-    public void trainC(ClassificationDataSet dataSet)
+    public void trainC(final ClassificationDataSet dataSet)
     {
         if(dataSet.getClassSize() != 2) {
           throw new FailedToFitException("Logistic Regression is a binary classifier, can can not handle " + dataSet.getClassSize() + " class problems");
         }
         final int N = dataSet.getSampleSize();
-        List<Vec> x = dataSet.getDataVectors();
-        double[] alpha = new double[N];
-        double[] alphaPrime = new double[N];
-        double[] Q_ii = new double[N];
-        int[] y = new int[N];
+        final List<Vec> x = dataSet.getDataVectors();
+        final double[] alpha = new double[N];
+        final double[] alphaPrime = new double[N];
+        final double[] Q_ii = new double[N];
+        final int[] y = new int[N];
         
         /*
          * All points start will small eps, because LR dosn't tend to zero out
@@ -231,7 +231,7 @@ public class LogisticRegressionDCD implements Classifier, Parameterized, SingleW
         for(int i = 0; i < N; i++)
         {
             y[i] = dataSet.getDataPointCategory(i)*2-1;
-            Vec x_i = x.get(i);
+            final Vec x_i = x.get(i);
             Q_ii[i] = x_i.dot(x_i);
             w.mutableAdd(alpha[0]*y[i], x_i);//all alpha are the same right now
             if(useBias) {
@@ -239,7 +239,7 @@ public class LogisticRegressionDCD implements Classifier, Parameterized, SingleW
             }
         }
         
-        IntList permutation = new IntList(N);
+        final IntList permutation = new IntList(N);
         ListUtils.addRange(permutation, 0, N, 1);
         
         for(int iter = 0; iter < maxIterations; iter++)
@@ -248,14 +248,14 @@ public class LogisticRegressionDCD implements Classifier, Parameterized, SingleW
             
             double maxChange = 0;
             
-            for(int i : permutation)
+            for(final int i : permutation)
             {
-                Vec x_i = x.get(i);
+                final Vec x_i = x.get(i);
                 //Step 1.
                 final double c1 = alpha[i], c2 = alphaPrime[i];
-                double a = Q_ii[i], b = y[i] * (w.dot(x_i) + bias);
-                double z_m = (c2 - c1) / 2, s = c1 + c2;
-                boolean case1 = z_m >= -b / a;
+                final double a = Q_ii[i], b = y[i] * (w.dot(x_i) + bias);
+                final double z_m = (c2 - c1) / 2, s = c1 + c2;
+                final boolean case1 = z_m >= -b / a;
 
                 double z;//see eq (35)
                 if (case1)
@@ -296,8 +296,8 @@ public class LogisticRegressionDCD implements Classifier, Parameterized, SingleW
                       break;
                     }
                     
-                    double gPP= a + s/(z*(s-z));
-                    double d = -gP/gPP;
+                    final double gPP= a + s/(z*(s-z));
+                    final double d = -gP/gPP;
                     
                     if(z + d <= 0) {
                       z *= 0.1;//unsepcified shrinkage term: just use 0.1
@@ -319,7 +319,7 @@ public class LogisticRegressionDCD implements Classifier, Parameterized, SingleW
                 }
                 
                 //Step 3. w = w + (Z1 −alpha_i) yi xi
-                double change = (alpha[i]-c1);
+                final double change = (alpha[i]-c1);
                 w.mutableAdd(change*y[i], x_i);
                 if(useBias) {
                   bias += change*y[i];
@@ -364,7 +364,7 @@ public class LogisticRegressionDCD implements Classifier, Parameterized, SingleW
     }
 
     @Override
-    public Parameter getParameter(String paramName)
+    public Parameter getParameter(final String paramName)
     {
         return Parameter.toParameterMap(getParameters()).get(paramName);
     }
@@ -376,7 +376,7 @@ public class LogisticRegressionDCD implements Classifier, Parameterized, SingleW
      * @param d the data set to get the guess for
      * @return the guess for the C parameter 
      */
-    public static Distribution guessC(DataSet d)
+    public static Distribution guessC(final DataSet d)
     {
         return PlatSMO.guessC(d);
     }

@@ -20,7 +20,7 @@ public class FisherSendor extends ContinuousDistribution
 	double v1;
     double v2;
 
-    public FisherSendor(double v1, double v2)
+    public FisherSendor(final double v1, final double v2)
     {
         if(v1 <= 0) {
           throw new ArithmeticException("v1 must be > 0 not " + v1 );
@@ -33,20 +33,20 @@ public class FisherSendor extends ContinuousDistribution
     }
 
     @Override
-    public double logPdf(double x)
+    public double logPdf(final double x)
     {
         if(x <= 0) {
           return 0;
         }
-        double leftSide = v1/2 * log(v1) + v2/2*log(v2) - lnBeta(v1/2, v2/2); 
-        double rightSide = (v1/2-1)*log(x) - (v1+v2)/2*log(v2+v1*x);
+        final double leftSide = v1/2 * log(v1) + v2/2*log(v2) - lnBeta(v1/2, v2/2); 
+        final double rightSide = (v1/2-1)*log(x) - (v1+v2)/2*log(v2+v1*x);
         return leftSide+rightSide;
     }
     
     
 
     @Override
-    public double pdf(double x)
+    public double pdf(final double x)
     {
         if(x <= 0) {
           return 0;
@@ -56,7 +56,7 @@ public class FisherSendor extends ContinuousDistribution
 
 
     @Override
-    public double cdf(double x)
+    public double cdf(final double x)
     {
         if(x <= 0) {
           return 0;
@@ -65,12 +65,12 @@ public class FisherSendor extends ContinuousDistribution
     }
 
     @Override
-    public double invCdf(double p)
+    public double invCdf(final double p)
     {
         if(p < 0 || p > 1) {
           throw new ArithmeticException("Probability must be in the range [0,1], not" + p);
         }
-        double u = invBetaIncReg(p, v1/2, v2/2);
+        final double u = invBetaIncReg(p, v1/2, v2/2);
         return v2*u/(v1*(1-u));
     }
 
@@ -105,7 +105,7 @@ public class FisherSendor extends ContinuousDistribution
     }
 
     @Override
-    public void setVariable(String var, double value)
+    public void setVariable(final String var, final double value)
     {
         if (var.equals("v1")) {
           if (value > 0) {
@@ -129,12 +129,12 @@ public class FisherSendor extends ContinuousDistribution
     }
 
     @Override
-    public void setUsingData(Vec data)
+    public void setUsingData(final Vec data)
     {
-        double mu = data.mean();
+        final double mu = data.mean();
         
         //Only true if v2 >  2
-        double tmp = 2*mu / (-1 + mu);
+        final double tmp = 2*mu / (-1 + mu);
         
         
         if(tmp < 2)
@@ -151,9 +151,9 @@ public class FisherSendor extends ContinuousDistribution
         }
         
         //only true if v2 > 4
-        double v2sqr = v2*v2;
-        double var = data.variance();
-        double denom = -2*v2sqr - 16*var + 20*v2*var - 8*v2sqr*var + v2sqr*v2*var;
+        final double v2sqr = v2*v2;
+        final double var = data.variance();
+        final double denom = -2*v2sqr - 16*var + 20*v2*var - 8*v2sqr*var + v2sqr*v2*var;
         
         v1 = 2*(-2*v2sqr + v2sqr*v2)/denom;
     }
@@ -201,8 +201,8 @@ public class FisherSendor extends ContinuousDistribution
         if(v2 <= 6) {//Does not have a skewness for d2 <= 6
           return Double.NaN;
         }
-        double num = (2*v1+v2-2)*sqrt(8*(v2-4));
-        double denom = (v2-6)*sqrt(v1*(v1+v2-2));
+        final double num = (2*v1+v2-2)*sqrt(8*(v2-4));
+        final double denom = (v2-6)*sqrt(v1*(v1+v2-2));
         
         return num/denom;
     }
@@ -220,7 +220,7 @@ public class FisherSendor extends ContinuousDistribution
 	}
 
 	@Override
-	public boolean equals(Object obj) {
+	public boolean equals(final Object obj) {
 		if (this == obj) {
 			return true;
 		}
@@ -230,7 +230,7 @@ public class FisherSendor extends ContinuousDistribution
 		if (getClass() != obj.getClass()) {
 			return false;
 		}
-		FisherSendor other = (FisherSendor) obj;
+		final FisherSendor other = (FisherSendor) obj;
 		if (Double.doubleToLongBits(v1) != Double.doubleToLongBits(other.v1)) {
 			return false;
 		}

@@ -16,13 +16,13 @@ public class SortedArrayList<T extends Comparable<T>> extends ArrayList<T> imple
 
 	private static final long serialVersionUID = -8728381865616791954L;
 
-	public SortedArrayList(Collection<? extends T> c)
+	public SortedArrayList(final Collection<? extends T> c)
     {
         super(c);
         Collections.sort(this);
     }
 
-    public SortedArrayList(int initialCapacity)
+    public SortedArrayList(final int initialCapacity)
     {
         super(initialCapacity);
     }
@@ -33,7 +33,7 @@ public class SortedArrayList<T extends Comparable<T>> extends ArrayList<T> imple
     }
 
     @Override
-    public boolean add(T e)
+    public boolean add(final T e)
     {
         if(isEmpty())
         {
@@ -56,7 +56,7 @@ public class SortedArrayList<T extends Comparable<T>> extends ArrayList<T> imple
     }
 
     @Override
-    public void add(int index, T element)
+    public void add(final int index, final T element)
     {
         this.add(element);
     }
@@ -78,13 +78,13 @@ public class SortedArrayList<T extends Comparable<T>> extends ArrayList<T> imple
     }
 
     @Override
-    public boolean addAll(Collection<? extends T> c)
+    public boolean addAll(final Collection<? extends T> c)
     {
         if(c.isEmpty()) {
           return false;
         } else if(c.size() > this.size()*3/2)//heuristic when is it faster to just add them all and sort the whole thing?
         {
-            boolean did = super.addAll(c);
+            final boolean did = super.addAll(c);
             if(did) {
               Collections.sort(this);
           }
@@ -92,7 +92,7 @@ public class SortedArrayList<T extends Comparable<T>> extends ArrayList<T> imple
         }
         else
         {
-            for(T t : c) {
+            for(final T t : c) {
               this.add(t);
           }
             return true;
@@ -100,7 +100,7 @@ public class SortedArrayList<T extends Comparable<T>> extends ArrayList<T> imple
     }
 
     @Override
-    public boolean addAll(int index, Collection<? extends T> c)
+    public boolean addAll(final int index, final Collection<? extends T> c)
     {
         return this.addAll(c);
     }

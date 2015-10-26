@@ -112,7 +112,7 @@ public class OnlineLDAsvi implements Parameterized
      * @param D the expected number of documents to see
      * @param W the vocabulary size
      */
-    public OnlineLDAsvi(int K, int D ,int W)
+    public OnlineLDAsvi(final int K, final int D ,final int W)
     {
         setK(K);
         setD(D);
@@ -211,7 +211,7 @@ public class OnlineLDAsvi implements Parameterized
      * Sets the approximate number of documents that will be observed
      * @param D the number of documents that will be observed
      */
-    public void setD(int D)
+    public void setD(final int D)
     {
         if(D < 1) {
           throw new IllegalArgumentException("The number of documents must be positive, not " + D);
@@ -235,7 +235,7 @@ public class OnlineLDAsvi implements Parameterized
      * 
      * @param W the vocabulary size for LDA
      */
-    public void setVocabSize(int W)
+    public void setVocabSize(final int W)
     {
         if(W < 1) {
           throw new IllegalArgumentException("Vocabulary size must be positive, not " + W);
@@ -258,7 +258,7 @@ public class OnlineLDAsvi implements Parameterized
      * a common choice. 
      * @param alpha the positive prior value
      */
-    public void setAlpha(double alpha)
+    public void setAlpha(final double alpha)
     {
         if(alpha <= 0 || Double.isInfinite(alpha) || Double.isNaN(alpha)) {
           throw new IllegalArgumentException("Alpha must be a positive constant, not " + alpha);
@@ -279,7 +279,7 @@ public class OnlineLDAsvi implements Parameterized
      * Prior on topics. 1/{@link #setK(int) K} is  a common choice. 
      * @param eta the positive prior for topics
      */
-    public void setEta(double eta)
+    public void setEta(final double eta)
     {
         if(eta <= 0 || Double.isInfinite(eta) || Double.isNaN(eta)) {
           throw new IllegalArgumentException("Eta must be a positive constant, not " + eta);
@@ -302,7 +302,7 @@ public class OnlineLDAsvi implements Parameterized
      * smaller values increase the weight of earlier iterations. 
      * @param tau0 a learning rate parameter that must be greater than 0 (usually at least 1)
      */
-    public void setTau0(double tau0)
+    public void setTau0(final double tau0)
     {
         if(tau0 <= 0 || Double.isInfinite(tau0) || Double.isNaN(tau0)) {
           throw new IllegalArgumentException("Eta must be a positive constant, not " + tau0);
@@ -314,7 +314,7 @@ public class OnlineLDAsvi implements Parameterized
      * Sets the number of training epochs when learning in a "batch" setting
      * @param epochs the number of iterations to go over the data set
      */
-    public void setEpochs(int epochs)
+    public void setEpochs(final int epochs)
     {
         this.epochs = epochs;
     }
@@ -335,7 +335,7 @@ public class OnlineLDAsvi implements Parameterized
      * the rate at which old information is "forgotten" 
      * @param kappa the forgetfulness factor in [0.5, 1]
      */
-    public void setKappa(double kappa)
+    public void setKappa(final double kappa)
     {
         if(kappa < 0.5 || kappa > 1.0 || Double.isNaN(kappa)) {
           throw new IllegalArgumentException("Kapp must be in [0.5, 1], not " + kappa);
@@ -357,7 +357,7 @@ public class OnlineLDAsvi implements Parameterized
      * the model parameters
      * @param miniBatchSize the batch size to use 
      */
-    public void setMiniBatchSize(int miniBatchSize)
+    public void setMiniBatchSize(final int miniBatchSize)
     {
         if(miniBatchSize < 1) {
           throw new IllegalArgumentException("the batch size must be a positive constant, not " + miniBatchSize);
@@ -371,7 +371,7 @@ public class OnlineLDAsvi implements Parameterized
      * @param k the topic to get the vector for
      * @return the raw topic vector for the requested topic. 
      */
-    public Vec getTopicVec(int k)
+    public Vec getTopicVec(final int k)
     {
         return new ScaledVector(1.0/lambda.get(k).sum(), lambda.get(k));
     }
@@ -385,9 +385,9 @@ public class OnlineLDAsvi implements Parameterized
      * @param sum the sum of the {@code input} vector
      * @param output the vector to store the transformed inputs in
      */
-    private void expandPsiMinusPsiSum(Vec input, double sum, Vec output)
+    private void expandPsiMinusPsiSum(final Vec input, final double sum, final Vec output)
     {
-        double psiSum = FastMath.digamma(sum);
+        final double psiSum = FastMath.digamma(sum);
         for(int i = 0; i < input.length(); i++) {
           output.set(i, FastMath.digamma(input.get(i))-psiSum);
         }
@@ -401,7 +401,7 @@ public class OnlineLDAsvi implements Parameterized
      * @param p the random value in [0, 1)
      * @return a sample from the exponential distribution
      */
-    private static double sampleExpoDist(double lambdaInv, double p)
+    private static double sampleExpoDist(final double lambdaInv, final double p)
     {
         return -lambdaInv* FastMath.log(1-p);
     }
@@ -411,7 +411,7 @@ public class OnlineLDAsvi implements Parameterized
      * mini-batch of documents.  
      * @param docs the list of document vectors to update from
      */
-    public void update(List<Vec> docs)
+    public void update(final List<Vec> docs)
     {
         update(docs, new FakeExecutor());
     }
@@ -422,7 +422,7 @@ public class OnlineLDAsvi implements Parameterized
      * @param docs the list of document vectors to update from
      * @param ex the source of threads for parallel execution
      */
-    public void update(final List<Vec> docs, ExecutorService ex)
+    public void update(final List<Vec> docs, final ExecutorService ex)
     {
         //need to init structure?
         if(lambda == null) {
@@ -476,7 +476,7 @@ public class OnlineLDAsvi implements Parameterized
                 @Override
                 public void run()
                 {
-                    Random rand = new XORWOW();
+                    final Random rand = new XORWOW();
                     for(int d = ParallelUtils.getStartBlock(docs.size(), ID, P); d < ParallelUtils.getEndBlock(docs.size(), ID, P); d++)
                     {
                         final Vec doc = docs.get(d);
@@ -492,20 +492,20 @@ public class OnlineLDAsvi implements Parameterized
                          */
                         prepareGammaTheta(gamma_d, ELogTheta_d, ExpELogTheta_d, rand);
 
-                        int[] indexMap = new int[doc.nnz()];
-                        double[] phiCols = new double[doc.nnz()];
+                        final int[] indexMap = new int[doc.nnz()];
+                        final double[] phiCols = new double[doc.nnz()];
 
                         //φ^k_dn ∝ exp{E[logθdk]+E[logβk,wdn ]}, k ∈ {1, . . . ,K}
                         computePhi(doc, indexMap, phiCols, K, gamma_d, ELogTheta_d, ExpELogTheta_d);
 
                         //accumulate updates, the "M" step
-                        IntList toUpdate = new IntList(K);
+                        final IntList toUpdate = new IntList(K);
                         ListUtils.addRange(toUpdate, 0, K, 1);
                         Collections.shuffle(toUpdate, rand);//helps reduce contention caused by shared iteration order
                         int updatePos = 0;
                         while(!toUpdate.isEmpty())
                         {
-                            int k = toUpdate.getI(updatePos);
+                            final int k = toUpdate.getI(updatePos);
                             
                             if(lambdaLocks.get(k).tryLock())
                             {
@@ -520,8 +520,8 @@ public class OnlineLDAsvi implements Parameterized
                                  */
                                 for(int i = 0; i < doc.nnz(); i++)
                                 {
-                                    int indx = indexMap[i];
-                                    double toAdd = coeff*phiCols[i]*ExpELogBeta_k.get(indx);
+                                    final int indx = indexMap[i];
+                                    final double toAdd = coeff*phiCols[i]*ExpELogBeta_k.get(indx);
                                     lambda_k.increment(indx, toAdd);
                                     lambdaSum_k += toAdd;
                                 }
@@ -548,7 +548,7 @@ public class OnlineLDAsvi implements Parameterized
         {
             latch.await();
         }
-        catch (InterruptedException ex1)
+        catch (final InterruptedException ex1)
         {
             Logger.getLogger(OnlineLDAsvi.class.getName()).log(Level.SEVERE, null, ex1);
         }
@@ -559,7 +559,7 @@ public class OnlineLDAsvi implements Parameterized
      * @param dataSet the data set to learn a topic model for
      * @param topics the number of topics to learn 
      */
-    public void model(DataSet dataSet, int topics)
+    public void model(final DataSet dataSet, final int topics)
     {
         model(dataSet, topics, new FakeExecutor());
     }
@@ -570,7 +570,7 @@ public class OnlineLDAsvi implements Parameterized
      * @param topics the number of topics to learn 
      * @param ex the source of threads for parallel execution
      */
-    public void model(DataSet dataSet, int topics, ExecutorService ex)
+    public void model(final DataSet dataSet, final int topics, ExecutorService ex)
     {
         if(ex == null) {
           ex = new FakeExecutor();
@@ -587,7 +587,7 @@ public class OnlineLDAsvi implements Parameterized
             Collections.shuffle(docs);
             for(int i = 0; i < D; i+=miniBatchSize)
             {
-                int to = Math.min(i+miniBatchSize, D);
+                final int to = Math.min(i+miniBatchSize, D);
                 update(docs.subList(i, to), ex);
             }
             
@@ -602,19 +602,19 @@ public class OnlineLDAsvi implements Parameterized
      * @param doc the document to find the topics for
      * @return a vector of the topic distribution for the given document
      */
-    public Vec getTopics(Vec doc)
+    public Vec getTopics(final Vec doc)
     {
-        Vec gamma = new DenseVector(K);
+        final Vec gamma = new DenseVector(K);
 
-        Random rand = new XOR96();
-        double lambdaInv = (W * K) / (D * 100.0);
+        final Random rand = new XOR96();
+        final double lambdaInv = (W * K) / (D * 100.0);
 
         for (int j = 0; j < gamma.length(); j++) {
           gamma.set(j, sampleExpoDist(lambdaInv, rand.nextDouble()) + eta);
         }
 
-        Vec eLogTheta_i = new DenseVector(K);
-        Vec expLogTheta_i = new DenseVector(K);
+        final Vec eLogTheta_i = new DenseVector(K);
+        final Vec expLogTheta_i = new DenseVector(K);
         expandPsiMinusPsiSum(gamma, gamma.sum(), eLogTheta_i);
         for (int j = 0; j < eLogTheta_i.length(); j++) {
           expLogTheta_i.set(j, FastMath.exp(eLogTheta_i.get(j)));
@@ -634,13 +634,13 @@ public class OnlineLDAsvi implements Parameterized
      * 
      * @param docs the mini batch of documents to update from
      */
-    private void updateBetas(final List<Vec> docs, ExecutorService ex)
+    private void updateBetas(final List<Vec> docs, final ExecutorService ex)
     {
         final double[] digammaLambdaSum = new double[K];//TODO may want to move this out & reuse
         for(int k = 0; k < K; k++) {
           digammaLambdaSum[k] = FastMath.digamma(W*eta+lambdaSums.getD(k));
         }
-        List<List<Vec>> docSplits = ListUtils.splitList(docs, SystemInfo.LogicalCores);
+        final List<List<Vec>> docSplits = ListUtils.splitList(docs, SystemInfo.LogicalCores);
         final CountDownLatch latch = new CountDownLatch(docSplits.size());
         for(final List<Vec> docsSub :  docSplits)
         {
@@ -650,18 +650,18 @@ public class OnlineLDAsvi implements Parameterized
                 @Override
                 public void run()
                 {
-                    for(Vec doc : docsSub) {
+                    for(final Vec doc : docsSub) {
                       //make sure out ELogBeta is up to date
-                      for(IndexValue iv : doc)
+                      for(final IndexValue iv : doc)
                       {
-                        int indx = iv.getIndex();
+                        final int indx = iv.getIndex();
                         if(lastUsed[indx] != t)
                         {
                           for(int k = 0; k < K; k++)
                           {
-                            double lambda_kj = lambda.get(k).get(indx);
+                            final double lambda_kj = lambda.get(k).get(indx);
                             
-                            double logBeta_kj = FastMath.digamma(eta+lambda_kj)-digammaLambdaSum[k];
+                            final double logBeta_kj = FastMath.digamma(eta+lambda_kj)-digammaLambdaSum[k];
                             ELogBeta.get(k).set(indx, logBeta_kj);
                             ExpELogBeta.get(k).set(indx, FastMath.exp(logBeta_kj));
                           }
@@ -679,7 +679,7 @@ public class OnlineLDAsvi implements Parameterized
         {
             latch.await();
         }
-        catch (InterruptedException ex1)
+        catch (final InterruptedException ex1)
         {
             Logger.getLogger(OnlineLDAsvi.class.getName()).log(Level.SEVERE, null, ex1);
         }
@@ -694,7 +694,7 @@ public class OnlineLDAsvi implements Parameterized
      * @param expLogTheta_i will be completely overwritten 
      * @param rand the source of randomness
      */
-    private void prepareGammaTheta(Vec gamma_i, Vec eLogTheta_i, Vec expLogTheta_i, Random rand)
+    private void prepareGammaTheta(final Vec gamma_i, final Vec eLogTheta_i, final Vec expLogTheta_i, final Random rand)
     {
         final double lambdaInv = (W * K) / (D * 100.0);
         for (int j = 0; j < gamma_i.length(); j++) {
@@ -723,7 +723,7 @@ public class OnlineLDAsvi implements Parameterized
      * @param ELogTheta_d the expectation from γ per topic
      * @param ExpELogTheta_d the exponentiated vector for {@code ELogTheta_d}
      */
-    private void computePhi(final Vec doc, int[] indexMap, double[] phiCols, int K, final Vec gamma_d, final Vec ELogTheta_d, final Vec ExpELogTheta_d)
+    private void computePhi(final Vec doc, final int[] indexMap, final double[] phiCols, final int K, final Vec gamma_d, final Vec ELogTheta_d, final Vec ExpELogTheta_d)
     {
         //φ^k_dn ∝ exp{E[logθdk]+E[logβk,wdn ]}, k ∈ {1, . . . ,K}
         /*
@@ -747,9 +747,9 @@ public class OnlineLDAsvi implements Parameterized
         
         int pos = 0;
         final SparseVector updateVec = new SparseVector(indexMap, phiCols, W, doc.nnz());
-        for(IndexValue iv : doc)
+        for(final IndexValue iv : doc)
         {
-            int wordIndex = iv.getIndex();
+            final int wordIndex = iv.getIndex();
             double sum = 0;
             for(int i = 0; i < ExpELogTheta_d.length(); i++) {
               sum += ExpELogTheta_d.get(i)*ExpELogBeta.get(i).get(wordIndex);
@@ -784,9 +784,9 @@ public class OnlineLDAsvi implements Parameterized
             
             //update our column norm norms 
             int indx = 0;
-            for(IndexValue iv : doc)
+            for(final IndexValue iv : doc)
             {
-                int wordIndex = iv.getIndex();
+                final int wordIndex = iv.getIndex();
                 double sum = 0;
                 for(int i = 0; i < ExpELogTheta_d.length(); i++) {
                   sum += ExpELogTheta_d.get(i)*ExpELogBeta.get(i).get(wordIndex);
@@ -828,10 +828,10 @@ public class OnlineLDAsvi implements Parameterized
         Arrays.fill(lastUsed, -1);
         
         final double lambdaInv = (K*W)/(D*100.0);
-        Random rand = new XORWOW();
+        final Random rand = new XORWOW();
         for(int i = 0; i < K; i++)
         {
-            Vec lambda_i = new DenseVector(W);
+            final Vec lambda_i = new DenseVector(W);
             lambda.add(new ScaledVector(lambda_i));
             lambdaLocks.add(new ReentrantLock());
             ELogBeta.add(new DenseVector(W));
@@ -839,7 +839,7 @@ public class OnlineLDAsvi implements Parameterized
             double rowSum = 0;
             for(int j = 0; j < W; j++)
             {
-                double sample = sampleExpoDist(lambdaInv, rand.nextDouble())+eta;
+                final double sample = sampleExpoDist(lambdaInv, rand.nextDouble())+eta;
                 lambda_i.set(j, sample);
                 rowSum += sample;
             }
@@ -855,7 +855,7 @@ public class OnlineLDAsvi implements Parameterized
     }
 
     @Override
-    public Parameter getParameter(String paramName)
+    public Parameter getParameter(final String paramName)
     {
         return Parameter.toParameterMap(getParameters()).get(paramName);
     }

@@ -228,18 +228,18 @@ public class LovinsStemmer extends Stemmer
     
     
     
-    private static String removeEnding(String word)
+    private static String removeEnding(final String word)
     {
         //The stem must contain at least 2 characters, so word-2 is the min
         for(int i = Math.min(11, word.length()-2); i > 0; i--)
         {
-            String ending = word.substring(word.length()-i);
-            String condition = endings.get(ending);
+            final String ending = word.substring(word.length()-i);
+            final String condition = endings.get(ending);
             if(condition == null) {
               continue;
             }
             
-            String stem = word.substring(0, word.length()-i);
+            final String stem = word.substring(0, word.length()-i);
             switch(condition.charAt(0))
             {
                 case 'A'://No restrictions on stem
@@ -404,7 +404,7 @@ public class LovinsStemmer extends Stemmer
     private static String fixStem(String stem)
     {
         //Rule 1 remove one of double b, d, g, l, m, n, p, r, s, t
-        char lastChar = stem.charAt(stem.length()-1);
+        final char lastChar = stem.charAt(stem.length()-1);
         stem = stem.replaceFirst("(dd|bb|gg|ll|mm|nn|pp|rr|ss|tt)$", "" + lastChar);
         //Rule 2
         stem = stem.replaceFirst("iev$", "ief");
@@ -485,7 +485,7 @@ public class LovinsStemmer extends Stemmer
 
         return stem;
     }
-    public String stem(String word)
+    public String stem(final String word)
     {
         return fixStem(removeEnding(word));
     }

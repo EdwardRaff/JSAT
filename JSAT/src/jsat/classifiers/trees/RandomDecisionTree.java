@@ -24,7 +24,7 @@ public class RandomDecisionTree extends DecisionTree
      * Creates a new Random Decision Tree 
      * @param numFeatures the number of random features to use
      */
-    public RandomDecisionTree(int numFeatures)
+    public RandomDecisionTree(final int numFeatures)
     {
         setRandomFeatureCount(numFeatures);
     }
@@ -37,7 +37,7 @@ public class RandomDecisionTree extends DecisionTree
      * @param pruningMethod the method of pruning to use after construction 
      * @param testProportion the proportion of the data set to put aside to use for pruning
      */
-    public RandomDecisionTree(int numFeatures, int maxDepth, int minSamples, TreePruner.PruningMethod pruningMethod, double testProportion)
+    public RandomDecisionTree(final int numFeatures, final int maxDepth, final int minSamples, final TreePruner.PruningMethod pruningMethod, final double testProportion)
     {
         super(maxDepth, minSamples, pruningMethod, testProportion);
         setRandomFeatureCount(numFeatures);
@@ -47,7 +47,7 @@ public class RandomDecisionTree extends DecisionTree
      * Copy constructor
      * @param toCopy the object to copy
      */
-    public RandomDecisionTree(RandomDecisionTree toCopy)
+    public RandomDecisionTree(final RandomDecisionTree toCopy)
     {
         super(toCopy);
         this.numFeatures = toCopy.numFeatures;
@@ -58,7 +58,7 @@ public class RandomDecisionTree extends DecisionTree
      * the decision tree
      * @param numFeatures the number of random features
      */
-    public void setRandomFeatureCount(int numFeatures)
+    public void setRandomFeatureCount(final int numFeatures)
     {
         if(numFeatures < 1) {
           throw new IllegalArgumentException("Number of features must be positive, not " + numFeatures);
@@ -76,7 +76,7 @@ public class RandomDecisionTree extends DecisionTree
     }
     
     @Override
-    protected Node makeNodeC(List<DataPointPair<Integer>> dataPoints, Set<Integer> options, int depth, ExecutorService threadPool, ModifiableCountDownLatch mcdl)
+    protected Node makeNodeC(final List<DataPointPair<Integer>> dataPoints, final Set<Integer> options, final int depth, final ExecutorService threadPool, final ModifiableCountDownLatch mcdl)
     {
         if(dataPoints.isEmpty())
         {
@@ -89,7 +89,7 @@ public class RandomDecisionTree extends DecisionTree
     }
 
     @Override
-    protected Node makeNodeR(List<DataPointPair<Double>> dataPoints, Set<Integer> options, int depth, ExecutorService threadPool, ModifiableCountDownLatch mcdl)
+    protected Node makeNodeR(final List<DataPointPair<Double>> dataPoints, final Set<Integer> options, final int depth, final ExecutorService threadPool, final ModifiableCountDownLatch mcdl)
     {
         if(dataPoints.isEmpty())
         {
@@ -101,10 +101,10 @@ public class RandomDecisionTree extends DecisionTree
         return super.makeNodeR(dataPoints, options, depth, threadPool, mcdl); //To change body of generated methods, choose Tools | Templates.
     }
 
-    private void fillWithRandomFeatures(Set<Integer> options, final int featureCount)
+    private void fillWithRandomFeatures(final Set<Integer> options, final int featureCount)
     {
         options.clear();
-        Random rand = new Random();
+        final Random rand = new Random();
         
         while(options.size() < numFeatures)
         {

@@ -18,7 +18,7 @@ public class KernelDistance implements DistanceMetric
 {
 
 	private static final long serialVersionUID = -1553315486668768024L;
-	private KernelTrick kf;
+	private final KernelTrick kf;
 
     /**
      * Creates a distane metric from the given kernel. For the metric to be valid, the kernel must be positive definite. This means that
@@ -27,7 +27,7 @@ public class KernelDistance implements DistanceMetric
      * &sum;<sub>i, j = 1</sub><sup>m</sup> c<sub>i</sub> c<sub>j</sub> K(x<sub>i</sub>, x<sub>j</sub>) &ge; 0
      * @param kf 
      */
-    public KernelDistance(KernelTrick kf)
+    public KernelDistance(final KernelTrick kf)
     {
         this.kf = kf;
     }
@@ -48,7 +48,7 @@ public class KernelDistance implements DistanceMetric
      * @return the distance metric based on a kernel function
      */
     @Override
-    public double dist(Vec a, Vec b)
+    public double dist(final Vec a, final Vec b)
     {
         return kf.eval(a, a) - 2*kf.eval(a, b) + kf.eval(b, b);
     }
@@ -98,37 +98,37 @@ public class KernelDistance implements DistanceMetric
     }
 
     @Override
-    public List<Double> getAccelerationCache(List<? extends Vec> vecs)
+    public List<Double> getAccelerationCache(final List<? extends Vec> vecs)
     {
         return null;
     }
 
     @Override
-    public double dist(int a, int b, List<? extends Vec> vecs, List<Double> cache)
+    public double dist(final int a, final int b, final List<? extends Vec> vecs, final List<Double> cache)
     {
         return dist(vecs.get(a), vecs.get(b));
     }
 
     @Override
-    public double dist(int a, Vec b, List<? extends Vec> vecs, List<Double> cache)
+    public double dist(final int a, final Vec b, final List<? extends Vec> vecs, final List<Double> cache)
     {
         return dist(vecs.get(a), b);
     }
 
     @Override
-    public List<Double> getQueryInfo(Vec q)
+    public List<Double> getQueryInfo(final Vec q)
     {
         return null;
     }
     
     @Override
-    public List<Double> getAccelerationCache(List<? extends Vec> vecs, ExecutorService threadpool)
+    public List<Double> getAccelerationCache(final List<? extends Vec> vecs, final ExecutorService threadpool)
     {
         return null;
     }
 
     @Override
-    public double dist(int a, Vec b, List<Double> qi, List<? extends Vec> vecs, List<Double> cache)
+    public double dist(final int a, final Vec b, final List<Double> qi, final List<? extends Vec> vecs, final List<Double> cache)
     {
         return dist(vecs.get(a), b);
     }

@@ -43,7 +43,7 @@ public class ArcX4 implements Classifier, Parameterized
      * @param weakLearner the weak learner to use
      * @param iterations the number of iterations to perform
      */
-    public ArcX4(Classifier weakLearner, int iterations)
+    public ArcX4(final Classifier weakLearner, final int iterations)
     {
         setWeakLearner(weakLearner);
         setIterations(iterations);
@@ -53,7 +53,7 @@ public class ArcX4 implements Classifier, Parameterized
      * Sets the weak learner used at each iteration of learning
      * @param weakLearner the weak learner to use
      */
-    public void setWeakLearner(Classifier weakLearner)
+    public void setWeakLearner(final Classifier weakLearner)
     {
         if(!weakLearner.supportsWeightedData()) {
           throw new RuntimeException("Weak learners must support weighted data samples");
@@ -74,7 +74,7 @@ public class ArcX4 implements Classifier, Parameterized
      * Sets the number of iterations to perform
      * @param iterations the number of iterations to do
      */
-    public void setIterations(int iterations)
+    public void setIterations(final int iterations)
     {
         this.iterations = iterations;
     }
@@ -94,7 +94,7 @@ public class ArcX4 implements Classifier, Parameterized
      * 
      * @param coef the multiplicative factor on the errors in weight construction
      */
-    public void setCoefficient(double coef)
+    public void setCoefficient(final double coef)
     {
         if(coef <= 0 || Double.isInfinite(coef) || Double.isNaN(coef)) {
           throw new ArithmeticException("The coefficient must be a positive constant");
@@ -116,7 +116,7 @@ public class ArcX4 implements Classifier, Parameterized
      * exponent used to update the errors
      * @param expo the exponent to use
      */
-    public void setExponent(double expo)
+    public void setExponent(final double expo)
     {
         if(expo <= 0 || Double.isInfinite(expo) || Double.isNaN(expo)) {
           throw new ArithmeticException("The exponent must be a positive constant");
@@ -134,11 +134,11 @@ public class ArcX4 implements Classifier, Parameterized
     }
     
     @Override
-    public CategoricalResults classify(DataPoint data)
+    public CategoricalResults classify(final DataPoint data)
     {
-        CategoricalResults cr = new CategoricalResults(predicing.getNumOfCategories());
+        final CategoricalResults cr = new CategoricalResults(predicing.getNumOfCategories());
         
-        for(Classifier hypoth : hypoths) {
+        for(final Classifier hypoth : hypoths) {
           cr.incProb(hypoth.classify(data).mostLikely(), 1.0);
         }
         
@@ -156,7 +156,7 @@ public class ArcX4 implements Classifier, Parameterized
         final Classifier hypoth;
         final CountDownLatch latch;
 
-        public Tester(ClassificationDataSet cds, int[] errors, int start, int end, Classifier hypoth, CountDownLatch latch)
+        public Tester(final ClassificationDataSet cds, final int[] errors, final int start, final int end, final Classifier hypoth, final CountDownLatch latch)
         {
             this.cds = cds;
             this.errors = errors;
@@ -180,18 +180,18 @@ public class ArcX4 implements Classifier, Parameterized
     }
 
     @Override
-    public void trainC(ClassificationDataSet dataSet, ExecutorService threadPool)
+    public void trainC(final ClassificationDataSet dataSet, final ExecutorService threadPool)
     {
         //Create a low memory clone that only has different dataPoint Objects to save space
-        ClassificationDataSet cds = dataSet.shallowClone();
+        final ClassificationDataSet cds = dataSet.shallowClone();
         for(int i = 0; i < cds.getSampleSize(); i++)
         {
-            DataPoint dp = cds.getDataPoint(i);
+            final DataPoint dp = cds.getDataPoint(i);
             cds.setDataPoint(i, new DataPoint(dp.getNumericalValues(), dp.getCategoricalValues(), dp.getCategoricalData()));
         }
         
         //Everyone starts with no errors
-        int[] errors = new int[cds.getSampleSize()];
+        final int[] errors = new int[cds.getSampleSize()];
         
         final int blockSize = errors.length / SystemInfo.LogicalCores;
         
@@ -202,7 +202,7 @@ public class ArcX4 implements Classifier, Parameterized
               cds.getDataPoint(i).setWeight(1+coef*Math.pow(errors[i], expo));
             }
             
-            Classifier hypoth = weakLearner.clone();
+            final Classifier hypoth = weakLearner.clone();
             
             if(threadPool == null || threadPool instanceof FakeExecutor) {
               hypoth.trainC(cds);
@@ -214,7 +214,7 @@ public class ArcX4 implements Classifier, Parameterized
             if(blockSize > 0)
             {
                 int extra = errors.length % SystemInfo.LogicalCores;
-                CountDownLatch latch = new CountDownLatch(SystemInfo.LogicalCores);
+                final CountDownLatch latch = new CountDownLatch(SystemInfo.LogicalCores);
                 int start = 0;
                 while(start < errors.length)
                 {
@@ -229,7 +229,7 @@ public class ArcX4 implements Classifier, Parameterized
                 {
                     latch.await();
                 }
-                catch (InterruptedException ex)
+                catch (final InterruptedException ex)
                 {
                     Logger.getLogger(ArcX4.class.getName()).log(Level.SEVERE, null, ex);
                 }
@@ -245,7 +245,7 @@ public class ArcX4 implements Classifier, Parameterized
     }
 
     @Override
-    public void trainC(ClassificationDataSet dataSet)
+    public void trainC(final ClassificationDataSet dataSet)
     {
         trainC(dataSet, new FakeExecutor());
     }
@@ -259,7 +259,7 @@ public class ArcX4 implements Classifier, Parameterized
     @Override
     public ArcX4 clone()
     {
-        ArcX4 clone = new ArcX4(weakLearner.clone(), iterations);
+        final ArcX4 clone = new ArcX4(weakLearner.clone(), iterations);
         
         clone.coef = this.coef;
         clone.expo = this.expo;
@@ -285,7 +285,7 @@ public class ArcX4 implements Classifier, Parameterized
     }
 
     @Override
-    public Parameter getParameter(String paramName)
+    public Parameter getParameter(final String paramName)
     {
         return Parameter.toParameterMap(getParameters()).get(paramName);
     }

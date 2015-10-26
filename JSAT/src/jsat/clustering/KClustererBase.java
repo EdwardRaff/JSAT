@@ -16,31 +16,31 @@ public abstract class KClustererBase extends ClustererBase implements KClusterer
 	private static final long serialVersionUID = 2542432122353325407L;
 
 	@Override
-    public List<List<DataPoint>> cluster(DataSet dataSet, int clusters, ExecutorService threadpool)
+    public List<List<DataPoint>> cluster(final DataSet dataSet, final int clusters, final ExecutorService threadpool)
     {
-        int[] assignments = cluster(dataSet, clusters, threadpool, (int[]) null);
+        final int[] assignments = cluster(dataSet, clusters, threadpool, (int[]) null);
         return createClusterListFromAssignmentArray(assignments, dataSet);
     }
 
     @Override
-    public List<List<DataPoint>> cluster(DataSet dataSet, int clusters)
+    public List<List<DataPoint>> cluster(final DataSet dataSet, final int clusters)
     {
-        int[] assignments = cluster(dataSet, clusters, (int[]) null);
+        final int[] assignments = cluster(dataSet, clusters, (int[]) null);
         return createClusterListFromAssignmentArray(assignments, dataSet);
     }
 
 
     @Override
-    public List<List<DataPoint>> cluster(DataSet dataSet, int lowK, int highK, ExecutorService threadpool)
+    public List<List<DataPoint>> cluster(final DataSet dataSet, final int lowK, final int highK, final ExecutorService threadpool)
     {
-        int[] assignments = cluster(dataSet, lowK, highK, threadpool, (int[]) null);
+        final int[] assignments = cluster(dataSet, lowK, highK, threadpool, (int[]) null);
         return createClusterListFromAssignmentArray(assignments, dataSet);
     }
 
     @Override
-    public List<List<DataPoint>> cluster(DataSet dataSet, int lowK, int highK)
+    public List<List<DataPoint>> cluster(final DataSet dataSet, final int lowK, final int highK)
     {
-        int[] assignments = cluster(dataSet, lowK, highK, (int[]) null);
+        final int[] assignments = cluster(dataSet, lowK, highK, (int[]) null);
         return createClusterListFromAssignmentArray(assignments, dataSet);
     }
     

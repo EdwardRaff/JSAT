@@ -18,14 +18,14 @@ public class PolynomialTransform implements DataTransform
 {
 
 	private static final long serialVersionUID = -5332216444253168283L;
-	private int degree;
+	private final int degree;
 
     /**
      * Creates a new polynomial transform of the given degree
      * @param degree the degree of the polynomial
      * @throws ArithmeticException if the degree is not greater than 1
      */
-    public PolynomialTransform(int degree)
+    public PolynomialTransform(final int degree)
     {
         if(degree < 2) {
           throw new ArithmeticException("The degree of the polynomial was a nonsense value: " + degree);
@@ -34,10 +34,10 @@ public class PolynomialTransform implements DataTransform
     }
     
     @Override
-    public DataPoint transform(DataPoint dp)
+    public DataPoint transform(final DataPoint dp)
     {
-        Vec x = dp.getNumericalValues();
-        int[] setTo = new int[x.length()];
+        final Vec x = dp.getNumericalValues();
+        final int[] setTo = new int[x.length()];
         
         //TODO compute final size directly isntead of doing a pre loop
         int finalSize = 0;
@@ -53,7 +53,7 @@ public class PolynomialTransform implements DataTransform
         
         
         
-        double[] newVec = new double[finalSize];
+        final double[] newVec = new double[finalSize];
         Arrays.fill(newVec, 1.0);
         int index = 0;
         
@@ -85,7 +85,7 @@ public class PolynomialTransform implements DataTransform
      * @param curCount the current sum of all counts in the array <tt>setTo</tt>
      * @return the new value of <tt>curCount</tt>
      */
-    private int increment(int[] setTo, int max, int curCount)
+    private int increment(final int[] setTo, final int max, int curCount)
     {
         setTo[0]++;
         curCount++;
@@ -124,7 +124,7 @@ public class PolynomialTransform implements DataTransform
          * Creates a new polynomial transform factory of the given degree
          * @param degree 
          */
-        public PolyTransformFactory(int degree)
+        public PolyTransformFactory(final int degree)
         {
             setDegree(degree);
         }
@@ -133,7 +133,7 @@ public class PolynomialTransform implements DataTransform
          * Sets the degree of the polynomial to transform the input vector into
          * @param degree the positive degree to use
          */
-        public void setDegree(int degree)
+        public void setDegree(final int degree)
         {
             if(degree < 1) {
               throw new IllegalArgumentException("Degree must be a positive value, not " + degree);
@@ -151,7 +151,7 @@ public class PolynomialTransform implements DataTransform
         }
         
         @Override
-        public PolynomialTransform getTransform(DataSet dataset)
+        public PolynomialTransform getTransform(final DataSet dataset)
         {
             return new PolynomialTransform(degree);
         }

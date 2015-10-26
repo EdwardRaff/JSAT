@@ -51,9 +51,9 @@ public class SumOfSqrdPairwiseDistancesTest
     public void testEvaluate_3args()
     {
         System.out.println("evaluate");
-        int[] designations = new int[10];
-        SimpleDataSet dataSet = new SimpleDataSet(new CategoricalData[0], 1);
-        int clusterID = 2;
+        final int[] designations = new int[10];
+        final SimpleDataSet dataSet = new SimpleDataSet(new CategoricalData[0], 1);
+        final int clusterID = 2;
         for(int i = 0; i < 10; i++) {
           dataSet.add(new DataPoint(new DenseVector(new double[]{i})));
         }
@@ -61,7 +61,7 @@ public class SumOfSqrdPairwiseDistancesTest
         
         
         SumOfSqrdPairwiseDistances instance = new SumOfSqrdPairwiseDistances();
-        double expResult = 280/(2*4);
+        final double expResult = 280/(2*4);
         double result = instance.evaluate(designations, dataSet, clusterID);
         assertEquals(expResult, result, 1e-14);
         
@@ -81,13 +81,13 @@ public class SumOfSqrdPairwiseDistancesTest
     public void testEvaluate_List()
     {
         System.out.println("evaluate");
-        SimpleDataSet dataSet = new SimpleDataSet(new CategoricalData[0], 1);
+        final SimpleDataSet dataSet = new SimpleDataSet(new CategoricalData[0], 1);
         for(int i = 0; i < 10; i++) {
           dataSet.add(new DataPoint(new DenseVector(new double[]{i})));
         }
-        List<DataPoint> dataPoints = dataSet.getBackingList();
+        final List<DataPoint> dataPoints = dataSet.getBackingList();
         SumOfSqrdPairwiseDistances instance = new SumOfSqrdPairwiseDistances();
-        double expResult = 1650.0/(2*10);
+        final double expResult = 1650.0/(2*10);
         double result = instance.evaluate(dataPoints);
         assertEquals(expResult, result, 1e-14);
         

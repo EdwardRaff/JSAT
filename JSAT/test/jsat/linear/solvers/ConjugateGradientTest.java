@@ -125,7 +125,7 @@ public class ConjugateGradientTest
     public void testSolveCGNR_4args()
     {
         System.out.println("solveCGNR");
-        double eps = 1e-14;
+        final double eps = 1e-14;
         
         DenseMatrix A = new DenseMatrix(new double[][]
         {
@@ -136,7 +136,7 @@ public class ConjugateGradientTest
             {1 ,    2,     6,     5,     4,     8,     0,     5},
         });
         
-        DenseVector b = DenseVector.toDenseVec(1, 4, 3, 5, 2);
+        final DenseVector b = DenseVector.toDenseVec(1, 4, 3, 5, 2);
         Vec x = new DenseVector(A.cols());
         
         x = ConjugateGradient.solveCGNR(eps, A, x, b);
@@ -157,7 +157,7 @@ public class ConjugateGradientTest
         x = new DenseVector(A.cols());
         x = ConjugateGradient.solveCGNR(eps, A, x, b);
         
-        double error = A.multiply(x).subtract(b).pNorm(2);
+        final double error = A.multiply(x).subtract(b).pNorm(2);
         assertEquals(1.0125, error, 1e-4);//True result computed with matlab
     }
 
@@ -174,7 +174,7 @@ public class ConjugateGradientTest
             {1 ,    2,     6,     5,     4,     8,     0,     5},
         });
         
-        DenseVector b = DenseVector.toDenseVec(1, 4, 3, 5, 2);
+        final DenseVector b = DenseVector.toDenseVec(1, 4, 3, 5, 2);
         Vec x;
         
         x = ConjugateGradient.solveCGNR(A, b);
@@ -194,7 +194,7 @@ public class ConjugateGradientTest
         
         x = ConjugateGradient.solveCGNR(A, b);
         
-        double error = A.multiply(x).subtract(b).pNorm(2);
+        final double error = A.multiply(x).subtract(b).pNorm(2);
         assertEquals(1.0125, error, 1e-4);//True result computed with matlab
     }
 
@@ -205,7 +205,7 @@ public class ConjugateGradientTest
         
         
         //Test for a 5x5 matrix symmetric positive definite 
-        DenseMatrix A = new DenseMatrix(new double[][]
+        final DenseMatrix A = new DenseMatrix(new double[][]
         {
             {1,     1,     1,     1,     1},
             {1,     8,     1,     8,     1},
@@ -214,7 +214,7 @@ public class ConjugateGradientTest
             {1,     1,     1,     1,   125}
         });
         
-        DenseVector b = DenseVector.toDenseVec(1, 4, 3, 5, 2);
+        final DenseVector b = DenseVector.toDenseVec(1, 4, 3, 5, 2);
         
         DenseMatrix Minv = new DenseMatrix(new double[][]
         {

@@ -14,7 +14,7 @@ abstract public class ClusterEvaluationBase implements ClusterEvaluation
 {
 
     @Override
-    public double evaluate(int[] designations, DataSet dataSet) 
+    public double evaluate(final int[] designations, final DataSet dataSet) 
     {
         return evaluate(ClustererBase.createClusterListFromAssignmentArray(designations, dataSet));
     }

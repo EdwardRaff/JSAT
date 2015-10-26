@@ -20,20 +20,20 @@ public class RosenbrockFunction implements Function
 	private static final long serialVersionUID = -5573482950045304948L;
 
 	@Override
-    public double f(double... x)
+    public double f(final double... x)
     {
         return f(DenseVector.toDenseVec(x));
     }
 
     @Override
-    public double f(Vec x)
+    public double f(final Vec x)
     {
-        int N = x.length();
+        final int N = x.length();
         double f = 0.0;
         for(int i = 1; i < N; i++)
         {
-            double x_p = x.get(i-1);
-            double xi = x.get(i);
+            final double x_p = x.get(i-1);
+            final double xi = x.get(i);
             f += pow(1.0-x_p, 2)+100.0*pow(xi-x_p*x_p, 2);
         }
         
@@ -55,23 +55,23 @@ public class RosenbrockFunction implements Function
     public static final FunctionVec GRADIENT = new FunctionVec()
     {
         @Override
-        public Vec f(double... x)
+        public Vec f(final double... x)
         {
             return f(DenseVector.toDenseVec(x));
         }
 
         @Override
-        public Vec f(Vec x)
+        public Vec f(final Vec x)
         {
-            Vec s = x.clone();
+            final Vec s = x.clone();
             f(x, s);
             return s;
         }
 
         @Override
-        public Vec f(Vec x, Vec drv)
+        public Vec f(final Vec x, Vec drv)
         {
-            int N = x.length();
+            final int N = x.length();
 
             if (drv == null) {
               drv = x.clone();
@@ -82,9 +82,9 @@ public class RosenbrockFunction implements Function
 
             for (int i = 1; i < N - 1; i++)
             {
-                double x_p = x.get(i - 1);
-                double x_i = x.get(i);
-                double x_n = x.get(i + 1);
+                final double x_p = x.get(i - 1);
+                final double x_i = x.get(i);
+                final double x_n = x.get(i + 1);
                 drv.set(i, 200 * (x_i - x_p * x_p) - 400 * x_i * (x_n - x_i * x_i) - 2 * (1 - x_i));
             }
 
@@ -94,7 +94,7 @@ public class RosenbrockFunction implements Function
         }
 
         @Override
-        public Vec f(Vec x, Vec s, ExecutorService ex)
+        public Vec f(final Vec x, final Vec s, final ExecutorService ex)
         {
             return f(x, s);
         }

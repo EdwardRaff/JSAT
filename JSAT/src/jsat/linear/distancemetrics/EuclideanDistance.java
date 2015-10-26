@@ -25,7 +25,7 @@ public class EuclideanDistance implements DenseSparseMetric
 	private static final long serialVersionUID = 8155062933851345574L;
 
 	@Override
-    public double dist(Vec a, Vec b)
+    public double dist(final Vec a, final Vec b)
     {
         return a.pNormDist(2, b);
     }
@@ -67,7 +67,7 @@ public class EuclideanDistance implements DenseSparseMetric
     }
 
     @Override
-    public double getVectorConstant(Vec vec)
+    public double getVectorConstant(final Vec vec)
     {
         /* Returns the sum of squarred differences if the other vec had been all 
          * zeros. That means this is one sqrt away from being the euclidean 
@@ -77,7 +77,7 @@ public class EuclideanDistance implements DenseSparseMetric
     }
 
     @Override
-    public double dist(double summaryConst, Vec main, Vec target)
+    public double dist(final double summaryConst, final Vec main, final Vec target)
     {
         if(!target.isSparse()) {
           return dist(main, target);
@@ -88,10 +88,10 @@ public class EuclideanDistance implements DenseSparseMetric
          */
         double addBack = 0.0;
         double takeOut = 0.0;
-        for(IndexValue iv : target)
+        for(final IndexValue iv : target)
         {
-            int i = iv.getIndex();
-            double mainVal = main.get(i);
+            final int i = iv.getIndex();
+            final double mainVal = main.get(i);
             takeOut += Math.pow(main.get(i), 2);
             addBack += Math.pow(main.get(i)-iv.getValue(), 2.0);
         }
@@ -105,17 +105,17 @@ public class EuclideanDistance implements DenseSparseMetric
     }
 
     @Override
-    public List<Double> getAccelerationCache(List<? extends Vec> vecs)
+    public List<Double> getAccelerationCache(final List<? extends Vec> vecs)
     {
-        DoubleList cache = new DoubleList(vecs.size());
-        for(Vec v : vecs) {
+        final DoubleList cache = new DoubleList(vecs.size());
+        for(final Vec v : vecs) {
           cache.add(v.dot(v));
         }
         return cache;
     }
     
     @Override
-    public List<Double> getAccelerationCache(final List<? extends Vec> vecs, ExecutorService threadpool)
+    public List<Double> getAccelerationCache(final List<? extends Vec> vecs, final ExecutorService threadpool)
     {
         if(threadpool == null || threadpool instanceof FakeExecutor) {
           return getAccelerationCache(vecs);
@@ -146,7 +146,7 @@ public class EuclideanDistance implements DenseSparseMetric
         {
             latch.await();
         }
-        catch (InterruptedException ex)
+        catch (final InterruptedException ex)
         {
             Logger.getLogger(EuclideanDistance.class.getName()).log(Level.SEVERE, null, ex);
         }
@@ -155,7 +155,7 @@ public class EuclideanDistance implements DenseSparseMetric
     }
 
     @Override
-    public double dist(int a, int b, List<? extends Vec> vecs, List<Double> cache)
+    public double dist(final int a, final int b, final List<? extends Vec> vecs, final List<Double> cache)
     {
         if(cache == null) {
           return dist(vecs.get(a), vecs.get(b));
@@ -165,7 +165,7 @@ public class EuclideanDistance implements DenseSparseMetric
     }
 
     @Override
-    public double dist(int a, Vec b, List<? extends Vec> vecs, List<Double> cache)
+    public double dist(final int a, final Vec b, final List<? extends Vec> vecs, final List<Double> cache)
     {
         if(cache == null) {
           return dist(vecs.get(a), b);
@@ -175,15 +175,15 @@ public class EuclideanDistance implements DenseSparseMetric
     }
 
     @Override
-    public List<Double> getQueryInfo(Vec q)
+    public List<Double> getQueryInfo(final Vec q)
     {
-        DoubleList qi = new DoubleList(1);
+        final DoubleList qi = new DoubleList(1);
         qi.add(q.dot(q));
         return qi;
     }
 
     @Override
-    public double dist(int a, Vec b, List<Double> qi, List<? extends Vec> vecs, List<Double> cache)
+    public double dist(final int a, final Vec b, final List<Double> qi, final List<? extends Vec> vecs, final List<Double> cache)
     {
         if(cache == null) {
           return dist(vecs.get(a), b);

@@ -51,12 +51,12 @@ public class RidgeRegression implements Regressor, Parameterized
         this(1e-2);
     }
     
-    public RidgeRegression(double regularization)
+    public RidgeRegression(final double regularization)
     {
         this(regularization, SolverMode.EXACT_CHOLESKY);
     }
     
-    public RidgeRegression(double regularization, SolverMode mode)
+    public RidgeRegression(final double regularization, final SolverMode mode)
     {
         setLambda(regularization);
         setSolverMode(mode);
@@ -66,7 +66,7 @@ public class RidgeRegression implements Regressor, Parameterized
      * Sets the regularization parameter used.  
      * @param lambda the positive regularization constant in (0, Inf)
      */
-    public void setLambda(double lambda)
+    public void setLambda(final double lambda)
     {
         if(Double.isNaN(lambda) || Double.isInfinite(lambda) || lambda <= 0) {
           throw new IllegalArgumentException("lambda must be a positive constant, not " + lambda);
@@ -87,7 +87,7 @@ public class RidgeRegression implements Regressor, Parameterized
      * Sets which solver is to be used
      * @param mode the solver mode to use 
      */
-    public void setSolverMode(SolverMode mode)
+    public void setSolverMode(final SolverMode mode)
     {
         this.mode = mode;
     }
@@ -102,22 +102,22 @@ public class RidgeRegression implements Regressor, Parameterized
     }
     
     @Override
-    public double regress(DataPoint data)
+    public double regress(final DataPoint data)
     {
-        Vec x = data.getNumericalValues();
+        final Vec x = data.getNumericalValues();
         
         return w.dot(x)+bias;
     }
 
     @Override
-    public void train(RegressionDataSet dataSet, ExecutorService threadPool)
+    public void train(final RegressionDataSet dataSet, final ExecutorService threadPool)
     {
         final int dim = dataSet.getNumNumericalVars()+1;
-        DenseMatrix X = new DenseMatrix(dataSet.getSampleSize(), dim);
+        final DenseMatrix X = new DenseMatrix(dataSet.getSampleSize(), dim);
 
         for(int i = 0; i < dataSet.getSampleSize(); i++)
         {
-            Vec from = dataSet.getDataPoint(i).getNumericalValues();
+            final Vec from = dataSet.getDataPoint(i).getNumericalValues();
             X.set(i, 0, 1.0);
             for(int j = 0; j < from.length(); j++) {
               X.set(i, j+1, from.get(j));
@@ -130,14 +130,14 @@ public class RidgeRegression implements Regressor, Parameterized
 
         if(mode == SolverMode.EXACT_SVD)
         {
-            SingularValueDecomposition svd = new SingularValueDecomposition(X);
+            final SingularValueDecomposition svd = new SingularValueDecomposition(X);
             double[] ridgeD;
             ridgeD = Arrays.copyOf(svd.getSingularValues(), dim);
             for(int i = 0; i < ridgeD.length; i++) {
               ridgeD[i] = 1 / (Math.pow(ridgeD[i], 2)+lambda);
             }
-            Matrix U = svd.getU();
-            Matrix V = svd.getV();
+            final Matrix U = svd.getU();
+            final Matrix V = svd.getV();
 
 
             // w = V (D^2 + lambda I)^(-1) D U^T y
@@ -148,18 +148,18 @@ public class RidgeRegression implements Regressor, Parameterized
         else//cholesky
         {
             
-            Matrix H = serial ? X.transposeMultiply(X) : X.transposeMultiply(X, threadPool);
+            final Matrix H = serial ? X.transposeMultiply(X) : X.transposeMultiply(X, threadPool);
             //H + I * reg     equiv to H.mutableAdd(Matrix.eye(H.rows()).multiply(regularization));
             for(int i = 0; i < H.rows(); i++) {
               H.increment(i, i, lambda);
             }
-            CholeskyDecomposition cd = serial ? new CholeskyDecomposition(H) : new CholeskyDecomposition(H, threadPool);
+            final CholeskyDecomposition cd = serial ? new CholeskyDecomposition(H) : new CholeskyDecomposition(H, threadPool);
             w = cd.solve(Matrix.eye(H.rows())).multiply(X.transpose()).multiply(Y);
         }
         
         //reformat w and seperate out bias term
         bias = w.get(0);
-        Vec newW = new DenseVector(w.length()-1);
+        final Vec newW = new DenseVector(w.length()-1);
         for(int i = 0; i < newW.length(); i++) {
           newW.set(i, w.get(i+1));
         }
@@ -167,7 +167,7 @@ public class RidgeRegression implements Regressor, Parameterized
     }
 
     @Override
-    public void train(RegressionDataSet dataSet)
+    public void train(final RegressionDataSet dataSet)
     {
         train(dataSet, new FakeExecutor());
     }
@@ -181,7 +181,7 @@ public class RidgeRegression implements Regressor, Parameterized
     @Override
     public RidgeRegression clone()
     {
-        RidgeRegression clone = new RidgeRegression(lambda);
+        final RidgeRegression clone = new RidgeRegression(lambda);
         if(this.w != null) {
           clone.w = this.w.clone();
         }
@@ -196,7 +196,7 @@ public class RidgeRegression implements Regressor, Parameterized
     }
 
     @Override
-    public Parameter getParameter(String paramName)
+    public Parameter getParameter(final String paramName)
     {
         return Parameter.toParameterMap(getParameters()).get(paramName);
     }

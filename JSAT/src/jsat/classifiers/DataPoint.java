@@ -30,7 +30,7 @@ public class DataPoint implements Cloneable, Serializable
      * @param categoricalValues an array of the category values for this data point
      * @param categoricalData an array of the category information of this data point
      */
-    public DataPoint(Vec numericalValues, int[] categoricalValues, CategoricalData[] categoricalData)
+    public DataPoint(final Vec numericalValues, final int[] categoricalValues, final CategoricalData[] categoricalData)
     {
         this(numericalValues, categoricalValues, categoricalData, 1);
     }
@@ -45,7 +45,7 @@ public class DataPoint implements Cloneable, Serializable
      * being the standard weight. Not all algorithms make use of data points that
      * have different weights. 
      */
-    public DataPoint(Vec numericalValues, int[] categoricalValues, CategoricalData[] categoricalData, double weight)
+    public DataPoint(final Vec numericalValues, final int[] categoricalValues, final CategoricalData[] categoricalData, final double weight)
     {
         this.numericalValues = numericalValues;
         this.categoricalValues = categoricalValues;
@@ -61,7 +61,7 @@ public class DataPoint implements Cloneable, Serializable
      * being the standard weight. Not all algorithms make use of data points that
      * have different weights. 
      */
-    public DataPoint(Vec numericalValues, double weight)
+    public DataPoint(final Vec numericalValues, final double weight)
     {
         this(numericalValues, emptyInt, emptyData, weight);
     }
@@ -71,7 +71,7 @@ public class DataPoint implements Cloneable, Serializable
      * 
      * @param numericalValues a vector containing the numerical values for this data point
      */
-    public DataPoint(Vec numericalValues)
+    public DataPoint(final Vec numericalValues)
     {
         this(numericalValues, emptyInt, emptyData);
     }
@@ -90,7 +90,7 @@ public class DataPoint implements Cloneable, Serializable
      * @param weight the new weight value
      * @throws ArithmeticException if the weight value is not a number &gt; 0
      */
-    public void setWeight(double weight)
+    public void setWeight(final double weight)
     {
         if(Double.isNaN(weight) || Double.isInfinite(weight) || weight <= 0) {
           throw new ArithmeticException("Invalid weight assignment of  " + weight);
@@ -163,7 +163,7 @@ public class DataPoint implements Cloneable, Serializable
      * @return the value of the i'th categorical variable
      * 
      */
-    public int getCategoricalValue(int i)
+    public int getCategoricalValue(final int i)
     {
         return categoricalValues[i];
     }
@@ -180,7 +180,7 @@ public class DataPoint implements Cloneable, Serializable
     @Override
     public String toString()
     {
-        StringBuilder sb = new StringBuilder();
+        final StringBuilder sb = new StringBuilder();
         if(containsNumericalData())
         {
             sb.append("Numerical: ");

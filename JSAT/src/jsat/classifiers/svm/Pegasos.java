@@ -67,7 +67,7 @@ public class Pegasos implements BinaryScoreClassifier, Parameterized, SingleWeig
      * @param reg the regularization term
      * @param batchSize the batch size 
      */
-    public Pegasos(int epochs, double reg, int batchSize)
+    public Pegasos(final int epochs, final double reg, final int batchSize)
     {
         setEpochs(epochs);
         setRegularization(reg);
@@ -78,7 +78,7 @@ public class Pegasos implements BinaryScoreClassifier, Parameterized, SingleWeig
      * Copy constructor
      * @param toCopy the object to copy
      */
-    public Pegasos(Pegasos toCopy)
+    public Pegasos(final Pegasos toCopy)
     {
         this.epochs = toCopy.epochs;
         this.reg = toCopy.reg;
@@ -96,7 +96,7 @@ public class Pegasos implements BinaryScoreClassifier, Parameterized, SingleWeig
      * 
      * @param batchSize the number of data points to use when updating 
      */
-    public void setBatchSize(int batchSize)
+    public void setBatchSize(final int batchSize)
     {
         if(batchSize < 1) {
           throw new ArithmeticException("At least one sample must be take at each iteration");
@@ -118,7 +118,7 @@ public class Pegasos implements BinaryScoreClassifier, Parameterized, SingleWeig
      * performed. 
      * @param epochs the number of iterations
      */
-    public void setEpochs(int epochs)
+    public void setEpochs(final int epochs)
     {
         if(epochs < 1) {
           throw new ArithmeticException("Must perform a positive number of epochs");
@@ -141,7 +141,7 @@ public class Pegasos implements BinaryScoreClassifier, Parameterized, SingleWeig
      * 
      * @param projectionStep whether or not to use the projection step
      */
-    public void setProjectionStep(boolean projectionStep)
+    public void setProjectionStep(final boolean projectionStep)
     {
         this.projectionStep = projectionStep;
     }
@@ -163,7 +163,7 @@ public class Pegasos implements BinaryScoreClassifier, Parameterized, SingleWeig
      * 
      * @param reg the regularization to apply
      */
-    public void setRegularization(double reg)
+    public void setRegularization(final double reg)
     {
         if(Double.isInfinite(reg) || Double.isNaN(reg) || reg <= 0.0) {
           throw new ArithmeticException("Pegasos requires a positive regularization cosntant");
@@ -193,7 +193,7 @@ public class Pegasos implements BinaryScoreClassifier, Parameterized, SingleWeig
     }
     
     @Override
-    public Vec getRawWeight(int index)
+    public Vec getRawWeight(final int index)
     {
         if(index < 1) {
           return getRawWeight();
@@ -203,7 +203,7 @@ public class Pegasos implements BinaryScoreClassifier, Parameterized, SingleWeig
     }
 
     @Override
-    public double getBias(int index)
+    public double getBias(final int index)
     {
         if (index < 1) {
           return getBias();
@@ -225,9 +225,9 @@ public class Pegasos implements BinaryScoreClassifier, Parameterized, SingleWeig
     }
 
     @Override
-    public CategoricalResults classify(DataPoint data)
+    public CategoricalResults classify(final DataPoint data)
     {
-        CategoricalResults cr = new CategoricalResults(2);
+        final CategoricalResults cr = new CategoricalResults(2);
         
         if(getScore(data) < 0) {
           cr.setProb(0, 1.0);
@@ -239,19 +239,19 @@ public class Pegasos implements BinaryScoreClassifier, Parameterized, SingleWeig
     }
 
     @Override
-    public double getScore(DataPoint dp)
+    public double getScore(final DataPoint dp)
     {
         return w.dot(dp.getNumericalValues())+bias;
     }
 
     @Override
-    public void trainC(ClassificationDataSet dataSet, ExecutorService threadPool)
+    public void trainC(final ClassificationDataSet dataSet, final ExecutorService threadPool)
     {
         trainC(dataSet);
     }
 
     @Override
-    public void trainC(ClassificationDataSet dataSet)
+    public void trainC(final ClassificationDataSet dataSet)
     {
         if(dataSet.getClassSize() != 2) {
           throw new FailedToFitException("SVM only supports binary classificaiton problems");
@@ -265,8 +265,8 @@ public class Pegasos implements BinaryScoreClassifier, Parameterized, SingleWeig
         bias = 0;
         
         
-        IntList miniBatch = new IntList(batchSize);
-        IntList randOrder = new IntList(m);
+        final IntList miniBatch = new IntList(batchSize);
+        final IntList randOrder = new IntList(m);
         ListUtils.addRange(randOrder, 0, m, 1);
         
         int t = 0;
@@ -280,10 +280,10 @@ public class Pegasos implements BinaryScoreClassifier, Parameterized, SingleWeig
                 miniBatch.clear();
                 miniBatch.addAll(randOrder.subList(indx, Math.min(indx+batchSize, m)));
                 //Filter to only the points that have the correct label
-                Iterator<Integer> iter = miniBatch.iterator();
+                final Iterator<Integer> iter = miniBatch.iterator();
                 while (iter.hasNext())
                 {
-                    int i = iter.next();
+                    final int i = iter.next();
                     if (getSign(dataSet, i) * (w.dot(getX(dataSet, i)) + bias) >= 1) {
                       iter.remove();
                     }
@@ -293,10 +293,10 @@ public class Pegasos implements BinaryScoreClassifier, Parameterized, SingleWeig
 
                 w.mutableMultiply(1.0 - nt * reg);
 
-                for (int i : miniBatch)
+                for (final int i : miniBatch)
                 {
-                    double sign = getSign(dataSet, i);
-                    Vec x = getX(dataSet, i);
+                    final double sign = getSign(dataSet, i);
+                    final Vec x = getX(dataSet, i);
                     final double s = sign * nt /batchSize;
                     w.mutableAdd(s, x);
                     bias += s;
@@ -304,8 +304,8 @@ public class Pegasos implements BinaryScoreClassifier, Parameterized, SingleWeig
 
                 if (projectionStep)
                 {
-                    double norm = w.pNorm(2);
-                    double mult = Math.min(1, 1.0 / (Math.sqrt(reg) * norm));
+                    final double norm = w.pNorm(2);
+                    final double mult = Math.min(1, 1.0 / (Math.sqrt(reg) * norm));
                     w.mutableMultiply(mult);
                     bias *= mult;
                 }
@@ -319,12 +319,12 @@ public class Pegasos implements BinaryScoreClassifier, Parameterized, SingleWeig
         return false;
     }
 
-    private Vec getX(ClassificationDataSet dataSet, int i)
+    private Vec getX(final ClassificationDataSet dataSet, final int i)
     {
         return dataSet.getDataPoint(i).getNumericalValues();
     }
 
-    private double getSign(ClassificationDataSet dataSet, int i)
+    private double getSign(final ClassificationDataSet dataSet, final int i)
     {
         return dataSet.getDataPointCategory(i) == 1 ? 1.0 : -1.0;
     }
@@ -336,7 +336,7 @@ public class Pegasos implements BinaryScoreClassifier, Parameterized, SingleWeig
     }
 
     @Override
-    public Parameter getParameter(String paramName)
+    public Parameter getParameter(final String paramName)
     {
         return Parameter.toParameterMap(getParameters()).get(paramName);
     }
@@ -348,7 +348,7 @@ public class Pegasos implements BinaryScoreClassifier, Parameterized, SingleWeig
      * @param d the data set to get the guess for
      * @return the guess for the &lambda; parameter
      */
-    public static Distribution guessRegularization(DataSet d)
+    public static Distribution guessRegularization(final DataSet d)
     {
         return new LogUniform(1e-7, 1e-2);
     }

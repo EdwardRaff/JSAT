@@ -42,7 +42,7 @@ public class GeneralRBFKernel extends DistanceMetricBasedKernel
      * @param d the distance metric to use
      * @param sigma the standard deviation to use
      */
-    public GeneralRBFKernel(DistanceMetric d, double sigma)
+    public GeneralRBFKernel(final DistanceMetric d, final double sigma)
     {
         super(d);
         setSigma(sigma);
@@ -54,7 +54,7 @@ public class GeneralRBFKernel extends DistanceMetricBasedKernel
      * 
      * @param sigma the sigma value
      */
-    public void setSigma(double sigma)
+    public void setSigma(final double sigma)
     {
         if(sigma <= 0 || Double.isNaN(sigma) || Double.isInfinite(sigma)) {
           throw new IllegalArgumentException("Sigma must be a positive constant, not " + sigma);
@@ -79,24 +79,24 @@ public class GeneralRBFKernel extends DistanceMetricBasedKernel
     }
 
     @Override
-    public double eval(Vec a, Vec b)
+    public double eval(final Vec a, final Vec b)
     {
-        double dist = d.dist(a, b);
+        final double dist = d.dist(a, b);
         return Math.exp(-dist*dist * sigmaSqrd2Inv);
     }
 
     @Override
-    public double eval(int a, Vec b, List<Double> qi, List<? extends Vec> vecs, List<Double> cache)
+    public double eval(final int a, final Vec b, final List<Double> qi, final List<? extends Vec> vecs, final List<Double> cache)
     {
-        double dist = d.dist(a, b, qi, vecs, cache);
+        final double dist = d.dist(a, b, qi, vecs, cache);
         return Math.exp(-dist*dist * sigmaSqrd2Inv);
         
     }
 
     @Override
-    public double eval(int a, int b, List<? extends Vec> vecs, List<Double> cache)
+    public double eval(final int a, final int b, final List<? extends Vec> vecs, final List<Double> cache)
     {
-        double dist = d.dist(a, b, vecs, cache);
+        final double dist = d.dist(a, b, vecs, cache);
         return Math.exp(-dist*dist * sigmaSqrd2Inv);
     }
     
@@ -107,7 +107,7 @@ public class GeneralRBFKernel extends DistanceMetricBasedKernel
      * @param d the data set to get the guess for
      * @return the guess for the &sigma; parameter in the General RBF Kernel 
      */
-    public Distribution guessSigma(DataSet d)
+    public Distribution guessSigma(final DataSet d)
     {
         return guessSigma(d, this.d);
     }
@@ -120,7 +120,7 @@ public class GeneralRBFKernel extends DistanceMetricBasedKernel
      * @param dist the distance metric to assume is being used in the kernel
      * @return the guess for the &sigma; parameter in the General RBF Kernel 
      */
-    public static Distribution guessSigma(DataSet d, DistanceMetric dist)
+    public static Distribution guessSigma(final DataSet d, final DistanceMetric dist)
     {
         //we will use a simple strategy of estimating the mean sigma to test based on the pair wise distances of random points
 
@@ -132,20 +132,20 @@ public class GeneralRBFKernel extends DistanceMetricBasedKernel
           toSample = 5000 + (int) Math.floor(Math.sqrt(d.getSampleSize() - 5000));
         }
 
-        DoubleList vals = new DoubleList(toSample*toSample);
+        final DoubleList vals = new DoubleList(toSample*toSample);
 
         if (d instanceof ClassificationDataSet && ((ClassificationDataSet) d).getPredicting().getNumOfCategories() == 2)
         {
-            ClassificationDataSet cdata = (ClassificationDataSet) d;
-            List<Vec> class0 = new ArrayList<Vec>(toSample / 2);
-            List<Vec> class1 = new ArrayList<Vec>(toSample / 2);
-            IntList randOrder = new IntList(d.getSampleSize());
+            final ClassificationDataSet cdata = (ClassificationDataSet) d;
+            final List<Vec> class0 = new ArrayList<Vec>(toSample / 2);
+            final List<Vec> class1 = new ArrayList<Vec>(toSample / 2);
+            final IntList randOrder = new IntList(d.getSampleSize());
             ListUtils.addRange(randOrder, 0, d.getSampleSize(), 1);
             Collections.shuffle(randOrder);
             //collet a random sample of data
             for (int i = 0; i < randOrder.size(); i++)
             {
-                int indx = randOrder.getI(i);
+                final int indx = randOrder.getI(i);
                 if (cdata.getDataPointCategory(indx) == 0 && class0.size() < toSample / 2) {
                   class0.add(cdata.getDataPoint(indx).getNumericalValues());
                 } else if (cdata.getDataPointCategory(indx) == 1 && class0.size() < toSample / 2) {
@@ -153,9 +153,9 @@ public class GeneralRBFKernel extends DistanceMetricBasedKernel
                 }
             }
 
-            int j_start = class0.size();
+            final int j_start = class0.size();
             class0.addAll(class1);
-            List<Double> cache = dist.getAccelerationCache(class0);
+            final List<Double> cache = dist.getAccelerationCache(class0);
             for (int i = 0; i < j_start; i++) {
               for (int j = j_start; j < class0.size(); j++) {
                 vals.add(dist.dist(i, j, allVecs, cache));
@@ -169,7 +169,7 @@ public class GeneralRBFKernel extends DistanceMetricBasedKernel
               allVecs = allVecs.subList(0, toSample);
             }
 
-            List<Double> cache = dist.getAccelerationCache(allVecs);
+            final List<Double> cache = dist.getAccelerationCache(allVecs);
             for (int i = 0; i < allVecs.size(); i++) {
               for (int j = i + 1; j < allVecs.size(); j++) {
                 vals.add(dist.dist(i, j, allVecs, cache));
@@ -178,7 +178,7 @@ public class GeneralRBFKernel extends DistanceMetricBasedKernel
         }
         
         Collections.sort(vals);
-        double median = vals.get(vals.size()/2);
+        final double median = vals.get(vals.size()/2);
         return new LogUniform(Math.exp(Math.log(median)-4), Math.exp(Math.log(median)+4));
     }
 }

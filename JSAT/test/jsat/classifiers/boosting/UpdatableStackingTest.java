@@ -49,15 +49,15 @@ public class UpdatableStackingTest
         
         UpdatableStacking stacking = new UpdatableStacking((UpdateableClassifier)new PassiveAggressive(), new LinearSGD(new SoftmaxLoss(), 1e-15, 0), new LinearSGD(new SoftmaxLoss(), 100, 0), new LinearSGD(new SoftmaxLoss(), 0, 100));
         
-        ClassificationDataSet train = FixedProblems.get2ClassLinear(500, new Random());
+        final ClassificationDataSet train = FixedProblems.get2ClassLinear(500, new Random());
         
         stacking = stacking.clone();
         stacking.trainC(train);
         stacking = stacking.clone();
         
-        ClassificationDataSet test = FixedProblems.get2ClassLinear(200, new Random());
+        final ClassificationDataSet test = FixedProblems.get2ClassLinear(200, new Random());
         
-        for(DataPointPair<Integer> dpp : test.getAsDPPList()) {
+        for(final DataPointPair<Integer> dpp : test.getAsDPPList()) {
           assertEquals(dpp.getPair().longValue(), stacking.classify(dpp.getDataPoint()).mostLikely());
         }
     }
@@ -68,15 +68,15 @@ public class UpdatableStackingTest
     {
         UpdatableStacking stacking = new UpdatableStacking(new SPA(), new LinearSGD(new SoftmaxLoss(), 1e-15, 0), new LinearSGD(new SoftmaxLoss(), 100, 0), new LinearSGD(new SoftmaxLoss(), 0, 100));
         
-        ClassificationDataSet train = FixedProblems.getSimpleKClassLinear(500, 6, new Random());
+        final ClassificationDataSet train = FixedProblems.getSimpleKClassLinear(500, 6, new Random());
         
         stacking = stacking.clone();
         stacking.trainC(train);
         stacking = stacking.clone();
         
-        ClassificationDataSet test = FixedProblems.getSimpleKClassLinear(200, 6, new Random());
+        final ClassificationDataSet test = FixedProblems.getSimpleKClassLinear(200, 6, new Random());
         
-        for(DataPointPair<Integer> dpp : test.getAsDPPList()) {
+        for(final DataPointPair<Integer> dpp : test.getAsDPPList()) {
           assertEquals(dpp.getPair().longValue(), stacking.classify(dpp.getDataPoint()).mostLikely());
         }
     }
@@ -86,10 +86,10 @@ public class UpdatableStackingTest
     {
         System.out.println("regression");
         
-        Vec coef = DenseVector.toDenseVec(2.5, 1.5, 1, 0.2);
+        final Vec coef = DenseVector.toDenseVec(2.5, 1.5, 1, 0.2);
         
-        List<UpdateableRegressor> models = new ArrayList<UpdateableRegressor>();
-        LinearSGD tmp = new LinearSGD(new SquaredLoss(), 1e-15, 0);
+        final List<UpdateableRegressor> models = new ArrayList<UpdateableRegressor>();
+        final LinearSGD tmp = new LinearSGD(new SquaredLoss(), 1e-15, 0);
         tmp.setUseBias(false);
         models.add(tmp.clone());
         tmp.setLambda1(0.9);
@@ -99,18 +99,18 @@ public class UpdatableStackingTest
         models.add(tmp.clone());
         
         UpdatableStacking stacking = new UpdatableStacking(new PassiveAggressive(), models);
-        RegressionDataSet train = FixedProblems.getLinearRegression(15000, new Random(), coef);
+        final RegressionDataSet train = FixedProblems.getLinearRegression(15000, new Random(), coef);
         
         stacking = stacking.clone();
         stacking.train(train);
         stacking = stacking.clone();
         
-        RegressionDataSet test = FixedProblems.getLinearRegression(500, new Random(), coef);
+        final RegressionDataSet test = FixedProblems.getLinearRegression(500, new Random(), coef);
         
-        for(DataPointPair<Double> dpp : test.getAsDPPList())
+        for(final DataPointPair<Double> dpp : test.getAsDPPList())
         {
-            double truth = dpp.getPair();
-            double pred = stacking.regress(dpp.getDataPoint());
+            final double truth = dpp.getPair();
+            final double pred = stacking.regress(dpp.getDataPoint());
             assertEquals(0, (truth-pred), 0.3);
         }
     }

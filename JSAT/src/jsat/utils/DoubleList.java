@@ -26,7 +26,7 @@ public class DoubleList extends AbstractList<Double> implements Serializable
     //Exclusive
     private int end;
 
-    private DoubleList(double[] array, int end)
+    private DoubleList(final double[] array, final int end)
     {
         this.array = array;
         this.end = end;
@@ -51,7 +51,7 @@ public class DoubleList extends AbstractList<Double> implements Serializable
      * 
      * @param capacity the starting internal capacity of the list
      */
-    public DoubleList(int capacity)
+    public DoubleList(final int capacity)
     {
         this(new double[capacity], 0);
     }
@@ -60,7 +60,7 @@ public class DoubleList extends AbstractList<Double> implements Serializable
      * Creates a new DoubleList containing the values of the given collection
      * @param c the collection of values to fill this double list with
      */
-    public DoubleList(Collection<Double> c)
+    public DoubleList(final Collection<Double> c)
     {
         this(c.size());
         this.addAll(c);
@@ -77,7 +77,7 @@ public class DoubleList extends AbstractList<Double> implements Serializable
      * @param e the value to add
      * @return true if it was added, false otherwise
      */
-    public boolean add(double e)
+    public boolean add(final double e)
     {
         enlageIfNeeded(1);
         array[end] = e;
@@ -89,7 +89,7 @@ public class DoubleList extends AbstractList<Double> implements Serializable
      * Makes the changes indicating that a number of items have been removed
      * @param removed the number of items that were removed 
      */
-    private void decreaseSize(int removed)
+    private void decreaseSize(final int removed)
     {
         end-=removed;
     }
@@ -97,12 +97,12 @@ public class DoubleList extends AbstractList<Double> implements Serializable
     /**
      * Marks the increase of size of this list, and reflects the change in the parent 
      */
-    private void increasedSize(int added)
+    private void increasedSize(final int added)
     {
         end+=added;
     }
 
-    private void boundsCheck(int index) throws IndexOutOfBoundsException
+    private void boundsCheck(final int index) throws IndexOutOfBoundsException
     {
         if(index >= size()) {
           throw new IndexOutOfBoundsException("List is of size " + size() + ", index requested " + index);
@@ -113,7 +113,7 @@ public class DoubleList extends AbstractList<Double> implements Serializable
      * Enlarge the storage array if needed
      * @param i the amount of elements we will need to add
      */
-    private void enlageIfNeeded(int i)
+    private void enlageIfNeeded(final int i)
     {
         while(end+i > array.length) {
           array = Arrays.copyOf(array, Math.max(array.length*2, 8));
@@ -121,7 +121,7 @@ public class DoubleList extends AbstractList<Double> implements Serializable
     }
     
     @Override
-    public boolean add(Double e)
+    public boolean add(final Double e)
     {
         if(e == null) {
           return false;
@@ -134,14 +134,14 @@ public class DoubleList extends AbstractList<Double> implements Serializable
      * @param index the index of the value to get
      * @return the value at the given index
      */
-    public double getD(int index)
+    public double getD(final int index)
     {
         boundsCheck(index);
         return array[index];
     }
     
     @Override
-    public Double get(int index)
+    public Double get(final int index)
     {
         return getD(index);
     }
@@ -152,16 +152,16 @@ public class DoubleList extends AbstractList<Double> implements Serializable
      * @param element the value to set
      * @return the previous value at said index
      */
-    public double set(int index, double element)
+    public double set(final int index, final double element)
     {
         boundsCheck(index);
-        double ret = get(index);
+        final double ret = get(index);
         array[index] = element;
         return ret;
     }
 
     @Override
-    public Double set(int index, Double element)
+    public Double set(final int index, final Double element)
     {
         return set(index, element.doubleValue());
     }
@@ -171,7 +171,7 @@ public class DoubleList extends AbstractList<Double> implements Serializable
      * @param index the index to add at
      * @param element the value to add
      */
-    public void add(int index, double element)
+    public void add(final int index, final double element)
     {
         if(index == size())//special case, just appending
         {
@@ -188,7 +188,7 @@ public class DoubleList extends AbstractList<Double> implements Serializable
     }
     
     @Override
-    public void add(int index, Double element)
+    public void add(final int index, final Double element)
     {
         add(index, element.doubleValue());
     }
@@ -198,10 +198,10 @@ public class DoubleList extends AbstractList<Double> implements Serializable
      * @param index the index to remove
      * @return the value removed
      */
-    public double removeD(int index)
+    public double removeD(final int index)
     {
         boundsCheck(index);
-        double ret = array[index];
+        final double ret = array[index];
         for(int i = index; i < end-1; i++) {
           array[i] = array[i+1];
         }
@@ -210,7 +210,7 @@ public class DoubleList extends AbstractList<Double> implements Serializable
     }
  
     @Override
-    public Double remove(int index)
+    public Double remove(final int index)
     {
         return removeD(index);
     }
@@ -252,7 +252,7 @@ public class DoubleList extends AbstractList<Double> implements Serializable
      * @param length the number of values of the array to use, starting from zero
      * @return an unmodifiable list view of the array
      */
-    public static List<Double> unmodifiableView(double[] array, int length)
+    public static List<Double> unmodifiableView(final double[] array, final int length)
     {
         return Collections.unmodifiableList(view(array, length));
     }
@@ -269,7 +269,7 @@ public class DoubleList extends AbstractList<Double> implements Serializable
      * @return a DoubleList backed by the given array, unless modified to the 
      * point of requiring the allocation of a new array
      */
-    public static DoubleList view(double[] array, int length)
+    public static DoubleList view(final double[] array, final int length)
     {
         if(length > array.length || length < 0) {
           throw new IllegalArgumentException("length must be non-negative and no more than the size of the array("+array.length+"), not " + length);

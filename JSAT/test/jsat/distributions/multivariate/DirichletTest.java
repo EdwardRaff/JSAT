@@ -83,14 +83,14 @@ public class DirichletTest
     {
         System.out.println("setUsingData");
         List<Vec> dataSet = null;
-        Dirichlet instance = new Dirichlet(DenseVector.toDenseVec(2.5, 2.5, 2.5));
+        final Dirichlet instance = new Dirichlet(DenseVector.toDenseVec(2.5, 2.5, 2.5));
         dataSet = instance.sample(500, new Random(1));
         
-        Dirichlet setI = new Dirichlet(DenseVector.toDenseVec(2.0, 2.0, 2.0));
+        final Dirichlet setI = new Dirichlet(DenseVector.toDenseVec(2.0, 2.0, 2.0));
         setI.setUsingData(dataSet);
         
         //5% error would be fine 
-        Vec alpha = setI.getAlphas();
+        final Vec alpha = setI.getAlphas();
         for(int i = 0; i < alpha.length(); i++ ) {
           assertEquals(0, Math.abs(alpha.get(i)-2.5)/2.5, 0.05);
         }

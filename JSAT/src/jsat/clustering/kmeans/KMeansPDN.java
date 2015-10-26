@@ -29,7 +29,7 @@ public class KMeansPDN extends KMeans
 {
 
 	private static final long serialVersionUID = -2358377567814606959L;
-	private KMeans kmeans;
+	private final KMeans kmeans;
     private double[] fKs;
     
     /**
@@ -44,7 +44,7 @@ public class KMeansPDN extends KMeans
      * Creates a new clustered that uses the specified object to perform clustering for all {@code k}. 
      * @param kmeans the k-means object to use for clustering
      */
-    public KMeansPDN(KMeans kmeans)
+    public KMeansPDN(final KMeans kmeans)
     {
         super(kmeans.dm, kmeans.seedSelection, kmeans.rand);
         this.kmeans = kmeans;
@@ -54,7 +54,7 @@ public class KMeansPDN extends KMeans
      * Copy constructor
      * @param toCopy the object to copy
      */
-    public KMeansPDN(KMeansPDN toCopy)
+    public KMeansPDN(final KMeansPDN toCopy)
     {
         super(toCopy);
         this.kmeans = toCopy.kmeans.clone();
@@ -77,19 +77,19 @@ public class KMeansPDN extends KMeans
     }
     
     @Override
-    public int[] cluster(DataSet dataSet, int[] designations)
+    public int[] cluster(final DataSet dataSet, final int[] designations)
     {
         return cluster(dataSet, null, designations);
     }
 
     @Override
-    public int[] cluster(DataSet dataSet, ExecutorService threadpool, int[] designations)
+    public int[] cluster(final DataSet dataSet, final ExecutorService threadpool, final int[] designations)
     {
         return cluster(dataSet, 1, (int) Math.min(Math.max(Math.sqrt(dataSet.getSampleSize()), 10), 100), threadpool, designations);
     }
 
     @Override
-    public int[] cluster(DataSet dataSet, int lowK, int highK, ExecutorService threadpool, int[] designations)
+    public int[] cluster(final DataSet dataSet, final int lowK, final int highK, final ExecutorService threadpool, int[] designations)
     {
         if(highK == lowK) {
           return cluster(dataSet, lowK, threadpool, designations);
@@ -101,7 +101,7 @@ public class KMeansPDN extends KMeans
         fKs = new double[highK-1];//we HAVE to start from k=2
         fKs[0] = 1.0;//see eq(2)
         
-        int[] bestCluster = new int[N];
+        final int[] bestCluster = new int[N];
         double minFk = lowK == 1 ? 1.0 : Double.POSITIVE_INFINITY;//If our low k is > 1, force the check later to kick in at the first candidate k by making fK appear Inf
         
         if(designations == null || designations.length < N) {
@@ -112,16 +112,16 @@ public class KMeansPDN extends KMeans
         double alphaKprev = 0, S_k_prev = 0;
         
         //re used every iteration
-        List<Vec> curMeans = new ArrayList<Vec>(highK);
+        final List<Vec> curMeans = new ArrayList<Vec>(highK);
         means = new ArrayList<Vec>();//the best set of means
         //pre-compute cache instead of re-computing every time
-        List<Double> accelCache = dm.getAccelerationCache(dataSet.getDataVectors(), threadpool);
+        final List<Double> accelCache = dm.getAccelerationCache(dataSet.getDataVectors(), threadpool);
         
         for(int k = 2; k < highK; k++)
         {
             curMeans.clear();
             //kmeans objective function result is the same as S_k
-            double S_k = cluster(dataSet, accelCache, k, curMeans, designations, true, threadpool, true);//TODO could add a flag to make approximate S_k an option. Though it dosn't seem to work great on toy problems, might be fine on more realistic data
+            final double S_k = cluster(dataSet, accelCache, k, curMeans, designations, true, threadpool, true);//TODO could add a flag to make approximate S_k an option. Though it dosn't seem to work great on toy problems, might be fine on more realistic data
 
 
             double alpha_k;
@@ -146,7 +146,7 @@ public class KMeansPDN extends KMeans
                 System.arraycopy(designations, 0, bestCluster, 0, N);
                 minFk = fK;
                 means.clear();
-                for(Vec mean : curMeans) {
+                for(final Vec mean : curMeans) {
                   means.add(mean.clone());
                 }
             }
@@ -158,13 +158,13 @@ public class KMeansPDN extends KMeans
     }
 
     @Override
-    public int[] cluster(DataSet dataSet, int lowK, int highK, int[] designations)
+    public int[] cluster(final DataSet dataSet, final int lowK, final int highK, final int[] designations)
     {
         return cluster(dataSet, lowK, highK, null, designations);
     }
 
     @Override
-    protected double cluster(DataSet dataSet, List<Double> accelCache, int k, List<Vec> means, int[] assignment, boolean exactTotal, ExecutorService threadpool, boolean returnError)
+    protected double cluster(final DataSet dataSet, final List<Double> accelCache, final int k, final List<Vec> means, final int[] assignment, final boolean exactTotal, final ExecutorService threadpool, final boolean returnError)
     {
         return kmeans.cluster(dataSet, accelCache, k, means, assignment, exactTotal, threadpool, returnError);
     }

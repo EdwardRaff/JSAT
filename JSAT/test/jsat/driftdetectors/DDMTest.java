@@ -49,8 +49,8 @@ public class DDMTest
     public void testAddSample_double_GenericType()
     {
         System.out.println("addSample");
-        Random rand = new XORWOW(123);
-        DDM<Integer> ddm = new DDM<Integer>();
+        final Random rand = new XORWOW(123);
+        final DDM<Integer> ddm = new DDM<Integer>();
         //Start should not ever observe a false positive
         for(int i = 0; i < 50; i++) {
           if (ddm.addSample(rand.nextDouble() < 0.8, i)) {
@@ -77,7 +77,7 @@ public class DDMTest
               assertTrue(i < 40); //got to detect it fast enought
               assertFalse(seenDrift);
               assertTrue(seenWarning);
-              List<Integer> drifted = ddm.getDriftedHistory();
+              final List<Integer> drifted = ddm.getDriftedHistory();
               assertTrue(drifted.size() > 5);
               assertTrue(ddm.getDriftAge() > 5);
               assertTrue(ddm.getDriftAge() == drifted.size());

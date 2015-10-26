@@ -70,7 +70,7 @@ public class CSKLRBatch extends SupportVectorLearner implements Parameterized, C
      * @param mode the mode to use
      * @param cacheMode the kernel caching mode to use
      */
-    public CSKLRBatch(double eta, KernelTrick kernel, double R, CSKLR.UpdateMode mode, CacheMode cacheMode)
+    public CSKLRBatch(final double eta, final KernelTrick kernel, final double R, final CSKLR.UpdateMode mode, final CacheMode cacheMode)
     {
         super(kernel, cacheMode);
         setEta(eta);
@@ -82,7 +82,7 @@ public class CSKLRBatch extends SupportVectorLearner implements Parameterized, C
      * Copy constructor
      * @param toClone the object to copy
      */
-    protected CSKLRBatch(CSKLRBatch toClone)
+    protected CSKLRBatch(final CSKLRBatch toClone)
     {
         super(toClone);
         
@@ -106,7 +106,7 @@ public class CSKLRBatch extends SupportVectorLearner implements Parameterized, C
      * Sets the number of training epochs (passes) through the data set
      * @param epochs the number of passes through the data set
      */
-    public void setEpochs(int epochs)
+    public void setEpochs(final int epochs)
     {
         this.epochs = epochs;
     }
@@ -129,7 +129,7 @@ public class CSKLRBatch extends SupportVectorLearner implements Parameterized, C
      * 
      * @param eta the positive learning rate to use
      */
-    public void setEta(double eta)
+    public void setEta(final double eta)
     {
         if(eta < 0 || Double.isNaN(eta) || Double.isInfinite(eta)) {
           throw new IllegalArgumentException("The learning rate should be in (0, Inf), not " + eta);
@@ -155,7 +155,7 @@ public class CSKLRBatch extends SupportVectorLearner implements Parameterized, C
      * &forall; x &isin; {0, 1, 2, 3, 4, 5}
      * @param R 
      */
-    public void setR(double R)
+    public void setR(final double R)
     {
         if(R < 0 || Double.isNaN(R) || Double.isInfinite(R)) {
           throw new IllegalArgumentException("The max norm should be in (0, Inf), not " + R);
@@ -177,7 +177,7 @@ public class CSKLRBatch extends SupportVectorLearner implements Parameterized, C
      * sparsity of the mode, and the behavior of {@link #setGamma(double) }
      * @param mode the update mode to use
      */
-    public void setMode(CSKLR.UpdateMode mode)
+    public void setMode(final CSKLR.UpdateMode mode)
     {
         this.mode = mode;
     }
@@ -196,7 +196,7 @@ public class CSKLRBatch extends SupportVectorLearner implements Parameterized, C
      * {@link CSKLR.UpdateMode} is used, controls the sparsity of the model.
      * @param gamma the gamma parameter, which is at least always positive
      */
-    public void setGamma(double gamma)
+    public void setGamma(final double gamma)
     {
         if(gamma < 0 || Double.isNaN(gamma) || Double.isInfinite(gamma)) {
           throw new IllegalArgumentException("Gamma must be in (0, Infity), not " + gamma);
@@ -220,7 +220,7 @@ public class CSKLRBatch extends SupportVectorLearner implements Parameterized, C
      * @return the guess for the R parameter
      * @see #setR(double) 
      */
-    public static Distribution guessR(DataSet d)
+    public static Distribution guessR(final DataSet d)
     {
         return new LogUniform(1, 1e5);
     }
@@ -232,17 +232,17 @@ public class CSKLRBatch extends SupportVectorLearner implements Parameterized, C
     }
 
     @Override
-    public Parameter getParameter(String paramName)
+    public Parameter getParameter(final String paramName)
     {
         return Parameter.toParameterMap(getParameters()).get(paramName);
     }
 
     @Override
-    public CategoricalResults classify(DataPoint data)
+    public CategoricalResults classify(final DataPoint data)
     {
-        CategoricalResults cr = new CategoricalResults(2);
+        final CategoricalResults cr = new CategoricalResults(2);
         
-        double p_0 = CSKLR.getScore(-1, getPreScore(data.getNumericalValues()));
+        final double p_0 = CSKLR.getScore(-1, getPreScore(data.getNumericalValues()));
 
         cr.setProb(0, p_0);
         cr.setProb(1, 1-p_0);
@@ -251,13 +251,13 @@ public class CSKLRBatch extends SupportVectorLearner implements Parameterized, C
     }
 
     @Override
-    public void trainC(ClassificationDataSet dataSet, ExecutorService threadPool)
+    public void trainC(final ClassificationDataSet dataSet, final ExecutorService threadPool)
     {
         trainC(dataSet);
     }
 
     @Override
-    public void trainC(ClassificationDataSet dataSet)
+    public void trainC(final ClassificationDataSet dataSet)
     {
         if(dataSet.getClassSize() != 2) {
           throw new FailedToFitException("CSKLR supports only binary classification");
@@ -273,9 +273,9 @@ public class CSKLRBatch extends SupportVectorLearner implements Parameterized, C
         
         curNorm = 0;
         T = 0;
-        Random rand = new XORWOW();
+        final Random rand = new XORWOW();
         
-        IntList sampleOrder = new IntList(N);
+        final IntList sampleOrder = new IntList(N);
         ListUtils.addRange(sampleOrder, 0, N, 1);
         
         setCacheMode(getCacheMode());//Initiates the cahce
@@ -284,7 +284,7 @@ public class CSKLRBatch extends SupportVectorLearner implements Parameterized, C
         {
             Collections.shuffle(sampleOrder);
             
-            for(int i : sampleOrder)
+            for(final int i : sampleOrder)
             {
                 final double weight = dataSet.getDataPoint(i).getWeight();
                 final double y_t = dataSet.getDataPointCategory(i)*2-1;
@@ -297,7 +297,7 @@ public class CSKLRBatch extends SupportVectorLearner implements Parameterized, C
                     case NC:
                         break;
                     default:
-                        double pt = mode.pt(y_t, score, pre, eta, gamma);
+                        final double pt = mode.pt(y_t, score, pre, eta, gamma);
                         if(rand.nextDouble() > pt) {
                           continue;
                 }
@@ -305,7 +305,7 @@ public class CSKLRBatch extends SupportVectorLearner implements Parameterized, C
                 }
 
 
-                double alpha_i = -eta*y_t*mode.grad(y_t, score, pre, gamma)*weight;
+                final double alpha_i = -eta*y_t*mode.grad(y_t, score, pre, gamma)*weight;
         
                 alphas[i] += alpha_i;
 
@@ -314,7 +314,7 @@ public class CSKLRBatch extends SupportVectorLearner implements Parameterized, C
                 //projection step
                 if(curNorm > R)
                 {
-                    double coef = R/curNorm;
+                    final double coef = R/curNorm;
                     for(int j = 0; j < alphas.length; j++) {
                       alphas[j] *= coef;
                     }
@@ -339,7 +339,7 @@ public class CSKLRBatch extends SupportVectorLearner implements Parameterized, C
         setAlphas(alphas);
     }
     
-    private double getPreScore(Vec x)
+    private double getPreScore(final Vec x)
     {
         return kEvalSum(x);
     }

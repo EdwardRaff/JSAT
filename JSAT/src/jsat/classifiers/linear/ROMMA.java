@@ -41,7 +41,7 @@ public class ROMMA extends BaseUpdateableClassifier implements BinaryScoreClassi
      * Creates a new ROMMA classifier
      * @param aggressive whether or not to use the aggressive variant
      */
-    public ROMMA(boolean aggressive)
+    public ROMMA(final boolean aggressive)
     {
         setAggressive(aggressive);
     }
@@ -50,7 +50,7 @@ public class ROMMA extends BaseUpdateableClassifier implements BinaryScoreClassi
      * Copy constructor
      * @param other the ROMMA object to copy
      */
-    protected ROMMA(ROMMA other)
+    protected ROMMA(final ROMMA other)
     {
         this.aggressive = other.aggressive;
         if(other.w != null) {
@@ -71,7 +71,7 @@ public class ROMMA extends BaseUpdateableClassifier implements BinaryScoreClassi
      * Determines whether the normal or aggressive ROMMA algorithm will be used. 
      * @param aggressive {@code true} to use the aggressive variant
      */
-    public void setAggressive(boolean aggressive)
+    public void setAggressive(final boolean aggressive)
     {
         this.aggressive = aggressive;
     }
@@ -89,7 +89,7 @@ public class ROMMA extends BaseUpdateableClassifier implements BinaryScoreClassi
      * Sets whether or not an implicit bias term will be added to the data set
      * @param useBias {@code true} to add an implicit bias term
      */
-    public void setUseBias(boolean useBias)
+    public void setUseBias(final boolean useBias)
     {
         this.useBias = useBias;
     }
@@ -126,7 +126,7 @@ public class ROMMA extends BaseUpdateableClassifier implements BinaryScoreClassi
     }
     
     @Override
-    public Vec getRawWeight(int index)
+    public Vec getRawWeight(final int index)
     {
         if(index < 1) {
           return getRawWeight();
@@ -136,7 +136,7 @@ public class ROMMA extends BaseUpdateableClassifier implements BinaryScoreClassi
     }
 
     @Override
-    public double getBias(int index)
+    public double getBias(final int index)
     {
         if (index < 1) {
           return getBias();
@@ -152,7 +152,7 @@ public class ROMMA extends BaseUpdateableClassifier implements BinaryScoreClassi
     }
     
     @Override
-    public void setUp(CategoricalData[] categoricalAttributes, int numericAttributes, CategoricalData predicting)
+    public void setUp(final CategoricalData[] categoricalAttributes, final int numericAttributes, final CategoricalData predicting)
     {
         if(numericAttributes <= 0) {
           throw new FailedToFitException("ROMMA requires numerical features");
@@ -164,12 +164,12 @@ public class ROMMA extends BaseUpdateableClassifier implements BinaryScoreClassi
     }
 
     @Override
-    public void update(DataPoint dataPoint, int targetClass)
+    public void update(final DataPoint dataPoint, final int targetClass)
     {
-        Vec x = dataPoint.getNumericalValues();
-        double wx = w.dot(x)+bias;
-        double y = targetClass*2-1;
-        double pred = y*wx;
+        final Vec x = dataPoint.getNumericalValues();
+        final double wx = w.dot(x)+bias;
+        final double y = targetClass*2-1;
+        final double pred = y*wx;
         if(pred < 1)
         {
             final double ww = w.dot(w);
@@ -188,9 +188,9 @@ public class ROMMA extends BaseUpdateableClassifier implements BinaryScoreClassi
                 }
             }
             //else / normal
-            double denom = wwxx - wx * wx;
-            double c = (wwxx - pred) / denom;
-            double d = (ww * (y - wx)) / denom;
+            final double denom = wwxx - wx * wx;
+            final double c = (wwxx - pred) / denom;
+            final double d = (ww * (y - wx)) / denom;
             w.mutableMultiply(c);
             w.mutableAdd(d, x);
             if(useBias) {
@@ -200,13 +200,13 @@ public class ROMMA extends BaseUpdateableClassifier implements BinaryScoreClassi
     }
 
     @Override
-    public CategoricalResults classify(DataPoint data)
+    public CategoricalResults classify(final DataPoint data)
     {
         if(w == null) {
           throw new UntrainedModelException("Model has not been trained");
         }
-        double wx = getScore(data);
-        CategoricalResults cr = new CategoricalResults(2);
+        final double wx = getScore(data);
+        final CategoricalResults cr = new CategoricalResults(2);
         if(wx < 0) {
           cr.setProb(0, 1.0);
         } else {
@@ -216,7 +216,7 @@ public class ROMMA extends BaseUpdateableClassifier implements BinaryScoreClassi
     }
 
     @Override
-    public double getScore(DataPoint dp)
+    public double getScore(final DataPoint dp)
     {
         return w.dot(dp.getNumericalValues())+bias;
     }

@@ -19,7 +19,7 @@ public class LongList extends AbstractList<Long> implements Serializable
 	private long[] array;
     private int end;
     
-    private LongList(long[] array, int end)
+    private LongList(final long[] array, final int end)
     {
         this.array = array;
         this.end = end;
@@ -43,13 +43,13 @@ public class LongList extends AbstractList<Long> implements Serializable
      * Creates a new LongList with the given initial capacity 
      * @param capacity the starting internal storage space size 
      */
-    public LongList(int capacity)
+    public LongList(final int capacity)
     {
         array = new long[capacity];
         end = 0;
     }
     
-    public LongList(Collection<Long> c)
+    public LongList(final Collection<Long> c)
     {
         this(c.size());
         addAll(c);
@@ -61,16 +61,16 @@ public class LongList extends AbstractList<Long> implements Serializable
      * @param element the value to set
      * @return the previous value at the index
      */
-    public long set(int index, long element)
+    public long set(final int index, final long element)
     {
         boundsCheck(index);
-        long prev = array[index];
+        final long prev = array[index];
         array[index] = element;
         return prev;
     }
     
     @Override
-    public Long set(int index, Long element)
+    public Long set(final int index, final Long element)
     {
         return set(index, element.longValue());
     }
@@ -80,7 +80,7 @@ public class LongList extends AbstractList<Long> implements Serializable
      * @param index the index to add the value into
      * @param element the value to add
      */
-    public void add(int index, long element)
+    public void add(final int index, final long element)
     {
         boundsCheck(index);
         enlargeIfNeeded(1);
@@ -89,7 +89,7 @@ public class LongList extends AbstractList<Long> implements Serializable
     }
 
     @Override
-    public void add(int index, Long element)
+    public void add(final int index, final Long element)
     {
         add(index, element.longValue());
     }
@@ -99,7 +99,7 @@ public class LongList extends AbstractList<Long> implements Serializable
      * @param e the value to add
      * @return true if it was added, false otherwise
      */
-    public boolean add(long e)
+    public boolean add(final long e)
     {
         enlargeIfNeeded(1);
         array[end++] = e;
@@ -107,7 +107,7 @@ public class LongList extends AbstractList<Long> implements Serializable
     }
     
     @Override
-    public boolean add(Long e)
+    public boolean add(final Long e)
     {
         if(e == null) {
           return false;
@@ -120,19 +120,19 @@ public class LongList extends AbstractList<Long> implements Serializable
      * @param index the index of the value to get
      * @return the value at the index
      */
-    public long getL(int index)
+    public long getL(final int index)
     {
         boundsCheck(index);
         return array[index];
     }
     
     @Override
-    public Long get(int index)
+    public Long get(final int index)
     {
         return getL(index);
     }
 
-    private void boundsCheck(int index) throws IndexOutOfBoundsException
+    private void boundsCheck(final int index) throws IndexOutOfBoundsException
     {
         if(index >= end) {
           throw new IndexOutOfBoundsException("List of of size " + size() + ", index requested was " + index);
@@ -146,12 +146,12 @@ public class LongList extends AbstractList<Long> implements Serializable
     }
 
     @Override
-    public Long remove(int index)
+    public Long remove(final int index)
     {
         if(index < 0 || index > size()) {
           throw new IndexOutOfBoundsException("Can not remove invalid index " + index);
         }
-        long removed = array[index];
+        final long removed = array[index];
         
         for(int i = index; i < end-1; i++) {
           array[i] = array[i+1];
@@ -160,7 +160,7 @@ public class LongList extends AbstractList<Long> implements Serializable
         return removed;
     }
 
-    private void enlargeIfNeeded(int i)
+    private void enlargeIfNeeded(final int i)
     {
         while(end+i > array.length) {
           array = Arrays.copyOf(array, Math.max(array.length*2, 8));
@@ -175,7 +175,7 @@ public class LongList extends AbstractList<Long> implements Serializable
      * @param length the number of values of the array to use, starting from zero
      * @return a list view of the array
      */
-    public static List<Long> view(long[] array, int length)
+    public static List<Long> view(final long[] array, final int length)
     {
         return new LongList(array, length);
     }

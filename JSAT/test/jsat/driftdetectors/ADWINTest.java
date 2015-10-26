@@ -47,11 +47,11 @@ public class ADWINTest
     {
         System.out.println("addSample");
         
-        Normal normal_0_1 = new Normal(0, 1);
-        Normal normal_1_1 = new Normal(1, 1);
-        Normal normal_2_1 = new Normal(2, 1);
+        final Normal normal_0_1 = new Normal(0, 1);
+        final Normal normal_1_1 = new Normal(1, 1);
+        final Normal normal_2_1 = new Normal(2, 1);
         
-        Random rand = new XORWOW(123);
+        final Random rand = new XORWOW(123);
         ADWIN<Integer> adwin = new ADWIN<Integer>(0.01, 100);
         //Start should not ever observe a false positive
         for(int i = 0; i < 400; i++) {
@@ -71,7 +71,7 @@ public class ADWINTest
                 assertFalse(drifted);
                 assertEquals(normal_0_1.mean(), adwin.getOldMean(), 0.25);
                 assertEquals(normal_1_1.mean(), adwin.getNewMean(), 1.5); //few samples, lose bound
-                List<Integer> driftedHistory = adwin.getDriftedHistory();
+                final List<Integer> driftedHistory = adwin.getDriftedHistory();
                 assertEquals(Math.min(adwin.getMaxHistory(), adwin.getDriftAge()), driftedHistory.size());
                 for (int j = 1; j <driftedHistory.size(); j++) {
                   assertTrue(driftedHistory.get(j-1) > driftedHistory.get(j));
@@ -97,7 +97,7 @@ public class ADWINTest
                 assertFalse(drifted);
                 assertEquals(normal_1_1.mean(), adwin.getOldMean(), 0.35);
                 assertEquals(normal_0_1.mean(), adwin.getNewMean(), 1.5); //few samples, lose bound
-                List<Integer> driftedHistory = adwin.getDriftedHistory();
+                final List<Integer> driftedHistory = adwin.getDriftedHistory();
                 assertEquals(Math.min(adwin.getMaxHistory(), adwin.getDriftAge()), driftedHistory.size());
                 for (int j = 1; j <driftedHistory.size(); j++) {
                   assertTrue(driftedHistory.get(j-1) > driftedHistory.get(j));
@@ -121,7 +121,7 @@ public class ADWINTest
                 assertFalse(drifted);
                 assertEquals(normal_1_1.mean(), adwin.getOldMean(), 0.35);
                 assertEquals(normal_2_1.mean(), adwin.getNewMean(), 1.5); //few samples, lose bound
-                List<Integer> driftedHistory = adwin.getDriftedHistory();
+                final List<Integer> driftedHistory = adwin.getDriftedHistory();
                 assertEquals(Math.min(adwin.getMaxHistory(), adwin.getDriftAge()), driftedHistory.size());
                 for (int j = 1; j <driftedHistory.size(); j++) {
                   assertTrue(driftedHistory.get(j-1) > driftedHistory.get(j));
