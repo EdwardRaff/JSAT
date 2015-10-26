@@ -256,11 +256,8 @@ public class Weibull extends ContinuousDistribution
 				.doubleToLongBits(other.alpha)) {
 			return false;
 		}
-		if (Double.doubleToLongBits(beta) != Double
-				.doubleToLongBits(other.beta)) {
-			return false;
-		}
-		return true;
+		return Double.doubleToLongBits(beta) == Double
+            .doubleToLongBits(other.beta);
 	}
     
 }

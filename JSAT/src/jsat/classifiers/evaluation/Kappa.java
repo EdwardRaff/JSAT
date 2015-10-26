@@ -82,11 +82,7 @@ public class Kappa implements ClassificationScore
     @Override
     public boolean equals(final Object obj)
     {
-        if(this.getClass().isAssignableFrom(obj.getClass()) && obj.getClass().isAssignableFrom(this.getClass()))
-        {
-            return true;
-        }
-        return false;
+        return this.getClass().isAssignableFrom(obj.getClass()) && obj.getClass().isAssignableFrom(this.getClass());
     }
 
     @Override

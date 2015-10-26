@@ -42,11 +42,7 @@ public class CategoricalData implements Cloneable, Serializable
     
     public boolean isValidCategory(final int i)
     {
-        if (i < 0 || i >= n) {
-          return false;
-        }
-        
-        return true;
+        return !(i < 0 || i >= n);
     }
     
     public String getOptionName(final int i)

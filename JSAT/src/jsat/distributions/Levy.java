@@ -219,11 +219,8 @@ public class Levy extends ContinuousDistribution
 				.doubleToLongBits(other.location)) {
 			return false;
 		}
-		if (Double.doubleToLongBits(scale) != Double
-				.doubleToLongBits(other.scale)) {
-			return false;
-		}
-		return true;
+		return Double.doubleToLongBits(scale) == Double
+            .doubleToLongBits(other.scale);
 	}
     
 }

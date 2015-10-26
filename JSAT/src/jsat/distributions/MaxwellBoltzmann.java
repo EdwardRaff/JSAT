@@ -176,11 +176,8 @@ public class MaxwellBoltzmann extends ContinuousDistribution
 			return false;
 		}
 		final MaxwellBoltzmann other = (MaxwellBoltzmann) obj;
-		if (Double.doubleToLongBits(sigma) != Double
-				.doubleToLongBits(other.sigma)) {
-			return false;
-		}
-		return true;
+		return Double.doubleToLongBits(sigma) == Double
+            .doubleToLongBits(other.sigma);
 	}
     
 }

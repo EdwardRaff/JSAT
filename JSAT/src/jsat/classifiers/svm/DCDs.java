@@ -471,11 +471,8 @@ public class DCDs implements BinaryScoreClassifier, Regressor, Parameterized, Si
                     noShrinking = true;
                 }
             }
-            else if(M <= 0 || m >= 0) {//technically less agressive then the original paper
-              noShrinking = true;
-            } else {
-              noShrinking = false;
-            }
+            else noShrinking = M <= 0 || m >= 0; //technically less agressive then the original paper
+            
         }
         
         //dual problem variables are no longer needed

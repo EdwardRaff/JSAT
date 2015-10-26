@@ -182,11 +182,8 @@ public class Exponential extends ContinuousDistribution
 			return false;
 		}
 		final Exponential other = (Exponential) obj;
-		if (Double.doubleToLongBits(lambda) != Double
-				.doubleToLongBits(other.lambda)) {
-			return false;
-		}
-		return true;
+		return Double.doubleToLongBits(lambda) == Double
+            .doubleToLongBits(other.lambda);
 	}
 
 }

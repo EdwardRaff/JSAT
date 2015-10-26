@@ -200,10 +200,7 @@ public class Pareto extends ContinuousDistribution
 				.doubleToLongBits(other.alpha)) {
 			return false;
 		}
-		if (Double.doubleToLongBits(xm) != Double.doubleToLongBits(other.xm)) {
-			return false;
-		}
-		return true;
+		return Double.doubleToLongBits(xm) == Double.doubleToLongBits(other.xm);
 	}
     
 }

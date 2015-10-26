@@ -63,11 +63,7 @@ public class Accuracy implements ClassificationScore
     @Override
     public boolean equals(final Object obj)
     {
-        if(obj instanceof Accuracy)
-        {
-            return true;
-        }
-        return false;
+        return obj instanceof Accuracy;
     }
 
     @Override

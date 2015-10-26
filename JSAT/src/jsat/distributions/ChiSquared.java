@@ -170,10 +170,7 @@ public class ChiSquared extends ContinuousDistribution
 			return false;
 		}
 		final ChiSquared other = (ChiSquared) obj;
-		if (Double.doubleToLongBits(df) != Double.doubleToLongBits(other.df)) {
-			return false;
-		}
-		return true;
+		return Double.doubleToLongBits(df) == Double.doubleToLongBits(other.df);
 	}
     
 }

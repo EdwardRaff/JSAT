@@ -234,10 +234,7 @@ public class FisherSendor extends ContinuousDistribution
 		if (Double.doubleToLongBits(v1) != Double.doubleToLongBits(other.v1)) {
 			return false;
 		}
-		if (Double.doubleToLongBits(v2) != Double.doubleToLongBits(other.v2)) {
-			return false;
-		}
-		return true;
+		return Double.doubleToLongBits(v2) == Double.doubleToLongBits(other.v2);
 	}
     
 }

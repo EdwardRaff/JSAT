@@ -332,11 +332,8 @@ public class Normal extends ContinuousDistribution
 				.doubleToLongBits(other.mean)) {
 			return false;
 		}
-		if (Double.doubleToLongBits(stndDev) != Double
-				.doubleToLongBits(other.stndDev)) {
-			return false;
-		}
-		return true;
+		return Double.doubleToLongBits(stndDev) == Double
+            .doubleToLongBits(other.stndDev);
 	}
     
 }

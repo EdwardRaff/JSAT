@@ -131,7 +131,6 @@ public class AODE extends BaseUpdateableClassifier
             double prob = 0.0;
             for (final ODE ode : odes) {
               if (ode.priors[c][catVals[ode.dependent]] < m) {
-                continue;
               } else {
                 prob += Math.exp(ode.getLogPrb(catVals, c));
               }

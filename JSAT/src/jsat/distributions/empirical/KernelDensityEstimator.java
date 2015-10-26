@@ -484,10 +484,7 @@ public class KernelDensityEstimator extends ContinuousDistribution
 		if (!Arrays.equals(X, other.X)) {
 			return false;
 		}
-		if (!Arrays.equals(weights, other.weights)) {
-			return false;
-		}
-		return true;
+		return Arrays.equals(weights, other.weights);
 	}
     
     

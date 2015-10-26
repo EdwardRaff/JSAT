@@ -62,12 +62,9 @@ public class RelativeAbsoluteError extends TotalHistoryRegressionScore
     
     @Override
     public boolean equals(final Object obj)
-    {//XXX check for equality of fields and obj == null
-        if(this.getClass().isAssignableFrom(obj.getClass()) && obj.getClass().isAssignableFrom(this.getClass()))
-        {
-            return true;
-        }
-        return false;
+    {
+    //XXX check for equality of fields and obj == null
+            return this.getClass().isAssignableFrom(obj.getClass()) && obj.getClass().isAssignableFrom(this.getClass());
     }
     
     @Override

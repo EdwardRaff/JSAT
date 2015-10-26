@@ -131,7 +131,6 @@ public class RegressionDataSet extends DataSet<RegressionDataSet>
         //The list of data sets
         for (int i = 0; i < list.size(); i++) {
           if (i == exception) {
-            continue;
           } else {
             rds.dataPoints.addAll(list.get(i).dataPoints);
           }
