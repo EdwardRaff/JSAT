@@ -106,11 +106,13 @@ public class SymmetricDirichlet extends MultivariateDistributionSkeleton
         return logVal;
     }
 
+  @Override
     public double pdf(final Vec x)
     {
         return exp(logPdf(x));
     }
 
+  @Override
     public <V extends Vec> boolean setUsingData(final List<V> dataSet)
     {
         final Function logLike = new Function() 
@@ -121,11 +123,13 @@ public class SymmetricDirichlet extends MultivariateDistributionSkeleton
 			 */
 			private static final long serialVersionUID = -3591420776536183583L;
 
+      @Override
 			public double f(final double... x)
             {
                 return f(DenseVector.toDenseVec(x));
             }
 
+      @Override
             public double f(final Vec x)
             {
                 final double a = x.get(0);
@@ -154,6 +158,7 @@ public class SymmetricDirichlet extends MultivariateDistributionSkeleton
         return true;
     }
 
+  @Override
     public boolean setUsingDataList(final List<DataPoint> dataPoint)
     {
         final Function logLike = new Function() 
@@ -164,11 +169,13 @@ public class SymmetricDirichlet extends MultivariateDistributionSkeleton
 			 */
 			private static final long serialVersionUID = -1145407955317879017L;
 
+      @Override
 			public double f(final double... x)
             {
                 return f(DenseVector.toDenseVec(x));
             }
 
+      @Override
             public double f(final Vec x)
             {
                 final double a = x.get(0);
@@ -200,6 +207,7 @@ public class SymmetricDirichlet extends MultivariateDistributionSkeleton
         return true;
     }
     
+  @Override
     public List<Vec> sample(final int count, final Random rand)
     {
         final List<Vec> samples = new ArrayList<Vec>(count);

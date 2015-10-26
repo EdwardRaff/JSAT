@@ -485,6 +485,7 @@ public class LovinsStemmer extends Stemmer
 
         return stem;
     }
+  @Override
     public String stem(final String word)
     {
         return fixStem(removeEnding(word));

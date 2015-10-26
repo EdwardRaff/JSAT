@@ -61,6 +61,7 @@ public class ConditionalProbabilityTable implements Classifier
      */
     private int predictingIndex;
     
+  @Override
     public CategoricalResults classify(final DataPoint data)
     {
         if(catIndexToRealIndex[predictingIndex] < 0) {
@@ -127,11 +128,13 @@ public class ConditionalProbabilityTable implements Classifier
         return skipVal;
     }
 
+  @Override
     public void trainC(final ClassificationDataSet dataSet, final ExecutorService threadPool)
     {
         trainC(dataSet);
     }
 
+  @Override
     public void trainC(final ClassificationDataSet dataSet)
     {
         final Set<Integer> all = new IntSet();
@@ -291,6 +294,7 @@ public class ConditionalProbabilityTable implements Classifier
         return index;
     }
 
+  @Override
     public boolean supportsWeightedData()
     {
         throw new UnsupportedOperationException("Not supported yet.");

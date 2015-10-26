@@ -383,6 +383,7 @@ public class DenseMatrix extends GenericMatrix
             final int threadID = threadNum;
             threadPool.submit(new Runnable() {
 
+                @Override
                 public void run()
                 {
                     final DenseMatrix BB = (DenseMatrix) b;
@@ -494,6 +495,7 @@ public class DenseMatrix extends GenericMatrix
             this.threadID = threadID;
         }
         
+        @Override
         public void run()
         {
 
@@ -756,6 +758,7 @@ public class DenseMatrix extends GenericMatrix
         /**
          * Returns the index of the row with the largest absolute value we ever saw in column k+1
          */
+        @Override
         public Integer call() throws Exception
         {
             for(int i = k+1+threadNumber; i < U.rows(); i+=LogicalCores)
@@ -954,6 +957,7 @@ public class DenseMatrix extends GenericMatrix
             this.M = A.cols();
         }
         
+        @Override
         public void run()
         {
             //Computing Q

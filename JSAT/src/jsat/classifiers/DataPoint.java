@@ -205,6 +205,7 @@ public class DataPoint implements Cloneable, Serializable
      * Creates a deep clone of this data point, such that altering either data point does not effect the other one. 
      * @return a deep clone of this data point. 
      */
+  @Override
     public DataPoint clone()
     {
         return new DataPoint(numericalValues.clone(), 

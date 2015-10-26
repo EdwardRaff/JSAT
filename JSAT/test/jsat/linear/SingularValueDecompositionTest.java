@@ -47,6 +47,7 @@ public class SingularValueDecompositionTest
         
     static ExecutorService threadpool = Executors.newFixedThreadPool(SystemInfo.LogicalCores+1, new ThreadFactory() {
 
+        @Override
         public Thread newThread(final Runnable r)
         {
             final Thread thread = new Thread(r);

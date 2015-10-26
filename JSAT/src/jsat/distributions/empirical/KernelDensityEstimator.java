@@ -267,11 +267,13 @@ public class KernelDensityEstimator extends ContinuousDistribution
 		 */
 		private static final long serialVersionUID = -4100975560125048798L;
 
+    @Override
 		public double f(final double... x)
         {
             return cdf(x[0]);
         }
 
+    @Override
         public double f(final Vec x)
         {
             return f(x.get(0));

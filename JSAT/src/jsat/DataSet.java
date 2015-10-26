@@ -369,16 +369,19 @@ public abstract class DataSet<Type extends DataSet>
             int cur = 0;
             int to = getSampleSize();
 
+            @Override
             public boolean hasNext()
             {
                 return cur < to;
             }
 
+            @Override
             public DataPoint next()
             {
                 return getDataPoint(cur++);
             }
 
+            @Override
             public void remove()
             {
                 throw new UnsupportedOperationException("This operation is not supported for DataSet");

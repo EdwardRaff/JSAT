@@ -300,11 +300,13 @@ public class DecisionStump implements Classifier, Regressor, Parameterized
 			 */
 			private static final long serialVersionUID = -8587449421333790319L;
 
+      @Override
 			public double f(final double... x)
             {
                 return dist1.pdf(x[0]) - dist2.pdf(x[0]);
             }
 
+      @Override
             public double f(final Vec x)
             {
                 return dist1.pdf(x.get(0)) - dist2.pdf(x.get(0));
@@ -397,11 +399,13 @@ public class DecisionStump implements Classifier, Regressor, Parameterized
 					 */
 					private static final long serialVersionUID = 2620160933085186146L;
 
+          @Override
 					public double f(final double... x)
                     {
                         return dists.get(belongsTo.get(belongsTo.size()-1)).pdf(x[0]) - dists.get(newMax).pdf(x[0]);
                     }
 
+          @Override
                     public double f(final Vec x)
                     {
                         return dists.get(belongsTo.get(belongsTo.size()-1)).pdf(x.get(0)) - dists.get(newMax).pdf(x.get(0));

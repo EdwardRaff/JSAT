@@ -121,11 +121,13 @@ public class Dirichlet extends MultivariateDistributionSkeleton
         return logVal - logNormalizer;
     }
 
+  @Override
     public double pdf(final Vec x)
     {
         return exp(logPdf(x));
     }
     
+  @Override
     public <V extends Vec> boolean setUsingData(final List<V> dataSet)
     {
         final Function logLike = new Function() 
@@ -133,11 +135,13 @@ public class Dirichlet extends MultivariateDistributionSkeleton
 
 			private static final long serialVersionUID = -2341982303993570445L;
 
+      @Override
 			public double f(final double... x)
             {
                 return f(DenseVector.toDenseVec(x));
             }
 
+      @Override
             public double f(final Vec x)
             {
                 double constantTerm = lnGamma(x.sum());
@@ -168,6 +172,7 @@ public class Dirichlet extends MultivariateDistributionSkeleton
         return true;
     }
 
+  @Override
     public boolean setUsingDataList(final List<DataPoint> dataPoint)
     {
         final Function logLike = new Function() 
@@ -175,11 +180,13 @@ public class Dirichlet extends MultivariateDistributionSkeleton
 
 			private static final long serialVersionUID = 1597787004137999603L;
 
+      @Override
 			public double f(final double... x)
             {
                 return f(DenseVector.toDenseVec(x));
             }
 
+      @Override
             public double f(final Vec x)
             {
                 double constantTerm = lnGamma(x.sum());
@@ -214,6 +221,7 @@ public class Dirichlet extends MultivariateDistributionSkeleton
         return true;
     }
     
+  @Override
     public List<Vec> sample(final int count, final Random rand)
     {
         final List<Vec> samples = new ArrayList<Vec>(count);

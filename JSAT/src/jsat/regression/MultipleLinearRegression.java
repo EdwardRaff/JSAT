@@ -40,11 +40,13 @@ public class MultipleLinearRegression implements Regressor, SingleWeightVectorMo
         this.useWeights = useWeights;
     }
     
+  @Override
     public double regress(final DataPoint data)
     {
         return B.dot(data.getNumericalValues())+a;
     }
 
+  @Override
     public void train(final RegressionDataSet dataSet, final ExecutorService threadPool)
     {
         if(dataSet.getNumCategoricalVars() > 0) {
@@ -93,11 +95,13 @@ public class MultipleLinearRegression implements Regressor, SingleWeightVectorMo
         
     }
 
+  @Override
     public void train(final RegressionDataSet dataSet)
     {
         train(dataSet, new FakeExecutor());
     }
 
+  @Override
     public boolean supportsWeightedData()
     {
         return useWeights;

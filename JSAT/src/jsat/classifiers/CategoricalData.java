@@ -87,6 +87,7 @@ public class CategoricalData implements Cloneable, Serializable
         
         return true;
     }
+  @Override
     public CategoricalData clone()
     {
         final CategoricalData copy = new CategoricalData(n);

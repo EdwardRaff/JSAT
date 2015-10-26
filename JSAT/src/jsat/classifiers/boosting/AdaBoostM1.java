@@ -97,6 +97,7 @@ public class AdaBoostM1 implements Classifier, Parameterized
         this.weakLearner = weakLearner;
     }
     
+  @Override
     public CategoricalResults classify(final DataPoint data)
     {
         if(predicting == null) {
@@ -113,6 +114,7 @@ public class AdaBoostM1 implements Classifier, Parameterized
         return cr;
     }
 
+  @Override
     public void trainC(final ClassificationDataSet dataSet, final ExecutorService threadPool)
     {
         /*
@@ -183,11 +185,13 @@ public class AdaBoostM1 implements Classifier, Parameterized
         }
     }
 
+  @Override
     public void trainC(final ClassificationDataSet dataSet)
     {
         trainC(dataSet, null);
     }
 
+  @Override
     public boolean supportsWeightedData()
     {
         return false;

@@ -134,6 +134,7 @@ public class BestClassDistribution implements Classifier, Parameterized
                 final Future<MultivariateDistribution> tmp = threadPool.submit(new Callable<MultivariateDistribution>()
                 {
 
+                    @Override
                     public MultivariateDistribution call() throws Exception
                     {
                         if (class_i.isEmpty()) {//Nowthing we can do

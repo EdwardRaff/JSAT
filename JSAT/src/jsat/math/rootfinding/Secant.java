@@ -59,16 +59,19 @@ public class Secant implements RootFinder
         return x1;
     }
 
+  @Override
     public double root(final double eps, final int maxIterations, final double[] initialGuesses, final Function f, final int pos, final double... args)
     {
         return root(eps, maxIterations, initialGuesses[0], initialGuesses[1], pos, f, args);
     }
 
+  @Override
     public double root(final double eps, final int maxIterations, final double[] initialGuesses, final Function f, final int pos, final Vec args)
     {
         return root(eps, maxIterations, initialGuesses[0], initialGuesses[1], pos, f, args.arrayCopy());
     }
 
+  @Override
     public int guessesNeeded()
     {
         return 2;

@@ -41,11 +41,13 @@ public class IterativelyReweightedLeastSquares implements Optimizer
         
     }
     
+  @Override
     public Vec optimize(final double eps, final int iterationLimit, final Function f, final Function fd, final Vec vars, final List<Vec> inputs, final Vec outputs)
     {
         return optimize(eps, iterationLimit, f, fd, vars, inputs, outputs, null);
     }
     
+  @Override
     public Vec optimize(final double eps, int iterationLimit, final Function f, final Function fd, final Vec vars, final List<Vec> inputs, final Vec outputs, final ExecutorService threadpool)
     {
         //TODO make it actually use the threadpool!
@@ -158,6 +160,7 @@ public class IterativelyReweightedLeastSquares implements Optimizer
             start = TO;
             threadpool.submit(new Runnable() {
 
+                @Override
                 public void run()
                 {
                     for (int j = START; j < TO; j++)
