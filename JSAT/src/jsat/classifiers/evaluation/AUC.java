@@ -115,7 +115,7 @@ public class AUC implements ClassificationScore
           }
         }
 
-        return sum / (double) (pos * neg);
+        return sum / (pos * neg);
     }
 
     @Override

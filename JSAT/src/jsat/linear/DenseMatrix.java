@@ -895,7 +895,7 @@ public class DenseMatrix extends GenericMatrix
             A = this;
         }
         else {
-          A = (DenseMatrix) this.transpose();
+          A = this.transpose();
         }
         final int to = cols() > rows() ? M : N;
         final double[] vk = new double[M];
@@ -1017,7 +1017,7 @@ public class DenseMatrix extends GenericMatrix
             A = this;
         }
         else {
-          A = (DenseMatrix) this.transpose();
+          A = this.transpose();
         }
         
         final double[] vk = new double[M];

@@ -381,7 +381,7 @@ public class IntPriorityQueue extends AbstractQueue<Integer> implements Serializ
         {
             if( o instanceof Integer)
             {
-                final int val = ((Integer) o).intValue();
+                final int val = ((Number) o).intValue();
                 return val >= 0 && valueIndexStore[val] >= 0;
             }
             return false;
@@ -417,7 +417,7 @@ public class IntPriorityQueue extends AbstractQueue<Integer> implements Serializ
         {
             if(o instanceof Integer)
             {
-                final int val = ((Integer) o).intValue();
+                final int val = ((Number) o).intValue();
                 if(val <0 || val >= valueIndexStore.length) {
                   return false;
                 }
