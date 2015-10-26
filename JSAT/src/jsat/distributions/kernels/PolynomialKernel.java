@@ -4,10 +4,8 @@ package jsat.distributions.kernels;
 import java.util.*;
 import jsat.DataSet;
 import jsat.distributions.Distribution;
-import jsat.distributions.LogUniform;
 import jsat.distributions.discrete.UniformDiscrete;
 import jsat.linear.Vec;
-import jsat.parameters.DoubleParameter;
 import jsat.parameters.Parameter;
 
 /**

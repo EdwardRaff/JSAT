@@ -3,7 +3,6 @@ package jsat.classifiers;
 
 import java.util.*;
 import jsat.DataSet;
-import jsat.SimpleDataSet;
 import jsat.linear.DenseVector;
 import jsat.linear.Vec;
 import jsat.utils.IntList;

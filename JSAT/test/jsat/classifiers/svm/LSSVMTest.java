@@ -5,7 +5,6 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import jsat.FixedProblems;
 import jsat.classifiers.*;
-import jsat.distributions.kernels.LinearKernel;
 import jsat.distributions.kernels.RBFKernel;
 import jsat.regression.RegressionDataSet;
 import jsat.utils.SystemInfo;

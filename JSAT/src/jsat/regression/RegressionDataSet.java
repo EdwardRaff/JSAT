@@ -6,8 +6,6 @@ import jsat.DataSet;
 import jsat.classifiers.*;
 import jsat.linear.DenseVector;
 import jsat.linear.Vec;
-import jsat.utils.IntList;
-import jsat.utils.ListUtils;
 
 /**
  * A RegressionDataSet is a data set specifically for the task of performing regression. 

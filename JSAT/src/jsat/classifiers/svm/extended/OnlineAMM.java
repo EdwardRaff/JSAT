@@ -7,7 +7,6 @@ import jsat.classifiers.CategoricalData;
 import jsat.classifiers.CategoricalResults;
 import jsat.classifiers.DataPoint;
 import jsat.distributions.Distribution;
-import jsat.distributions.Gamma;
 import jsat.distributions.LogUniform;
 import jsat.exceptions.FailedToFitException;
 import jsat.linear.DenseVector;

@@ -22,7 +22,6 @@ import jsat.utils.random.XORWOW;
 import java.util.*;
 import jsat.DataSet;
 import jsat.distributions.Distribution;
-import jsat.distributions.Exponential;
 
 /**
  * Implements Dual Coordinate Descent with shrinking (DCDs) training algorithms

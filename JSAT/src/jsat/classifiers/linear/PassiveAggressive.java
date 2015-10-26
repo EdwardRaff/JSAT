@@ -7,7 +7,6 @@ import jsat.SingleWeightVectorModel;
 import jsat.classifiers.*;
 import jsat.classifiers.calibration.BinaryScoreClassifier;
 import jsat.distributions.Distribution;
-import jsat.distributions.Exponential;
 import jsat.distributions.LogUniform;
 import jsat.exceptions.FailedToFitException;
 import jsat.linear.DenseVector;

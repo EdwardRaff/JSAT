@@ -20,7 +20,6 @@ import jsat.FixedProblems;
 import jsat.classifiers.CategoricalData;
 import jsat.classifiers.ClassificationDataSet;
 import jsat.classifiers.DataPoint;
-import jsat.classifiers.linear.LogisticRegressionDCD;
 import jsat.classifiers.svm.DCDs;
 import jsat.datatransform.LinearTransform;
 import jsat.linear.DenseVector;

@@ -1,23 +1,12 @@
 
 package jsat.distributions.kernels;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 import jsat.DataSet;
-import jsat.classifiers.ClassificationDataSet;
 import jsat.distributions.Distribution;
-import jsat.distributions.Exponential;
-import jsat.distributions.LogUniform;
-import jsat.distributions.Uniform;
 import jsat.linear.Vec;
 import jsat.linear.distancemetrics.EuclideanDistance;
-import jsat.math.OnLineStatistics;
 import jsat.text.GreekLetters;
-import jsat.utils.DoubleList;
-import jsat.utils.IntList;
-import jsat.utils.ListUtils;
 
 /**
  * Provides a kernel for the Radial Basis Function, which is of the form
