@@ -68,10 +68,12 @@ public class MeanSquaredErrorTest
         scorer.prepare();
         otherHalf.prepare();
         
-        for(int i = 0; i < pred.length/2; i++)
-            scorer.addResult(pred[i], truth[i], 1);
-        for(int i = pred.length/2; i < pred.length; i++)
-            otherHalf.addResult(pred[i], truth[i], 1);
+        for(int i = 0; i < pred.length/2; i++) {
+          scorer.addResult(pred[i], truth[i], 1);
+        }
+        for(int i = pred.length/2; i < pred.length; i++) {
+          otherHalf.addResult(pred[i], truth[i], 1);
+        }
         
         scorer.addResults(otherHalf);
         

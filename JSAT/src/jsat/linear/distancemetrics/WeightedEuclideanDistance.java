@@ -58,8 +58,9 @@ public class WeightedEuclideanDistance implements DistanceMetric
      */
     public void setWeight(Vec w)
     {
-        if(w == null)
-            throw new NullPointerException();
+        if(w == null) {
+          throw new NullPointerException();
+        }
         this.w = w;
     }
 
@@ -118,8 +119,9 @@ public class WeightedEuclideanDistance implements DistanceMetric
     {
         DoubleList cache = new DoubleList(vecs.size());
         
-        for(Vec v : vecs)
-            cache.add(VecOps.weightedDot(w, v, v));
+        for(Vec v : vecs) {
+          cache.add(VecOps.weightedDot(w, v, v));
+        }
         
         return cache;
     }
@@ -127,8 +129,9 @@ public class WeightedEuclideanDistance implements DistanceMetric
     @Override
     public List<Double> getAccelerationCache(final List<? extends Vec> vecs, ExecutorService threadpool)
     {
-        if(threadpool == null || threadpool instanceof FakeExecutor)
-            return getAccelerationCache(vecs);
+        if(threadpool == null || threadpool instanceof FakeExecutor) {
+          return getAccelerationCache(vecs);
+        }
         final double[] cache = new double[vecs.size()];
         
         final int P = Math.min(SystemInfo.LogicalCores, vecs.size());
@@ -143,8 +146,9 @@ public class WeightedEuclideanDistance implements DistanceMetric
                 @Override
                 public void run()
                 {
-                    for(int i = start; i < end; i++)
-                        cache[i] = VecOps.weightedDot(w, vecs.get(i), vecs.get(i));
+                    for(int i = start; i < end; i++) {
+                      cache[i] = VecOps.weightedDot(w, vecs.get(i), vecs.get(i));
+                    }
                     latch.countDown();
                 }
             });
@@ -165,8 +169,9 @@ public class WeightedEuclideanDistance implements DistanceMetric
     @Override
     public double dist(int a, int b, List<? extends Vec> vecs, List<Double> cache)
     {
-        if(cache == null)
-            return dist(vecs.get(a), vecs.get(b));
+        if(cache == null) {
+          return dist(vecs.get(a), vecs.get(b));
+        }
         
         return Math.sqrt(cache.get(a)+cache.get(b)-2*VecOps.weightedDot(w, vecs.get(a), vecs.get(b)));
     }
@@ -174,8 +179,9 @@ public class WeightedEuclideanDistance implements DistanceMetric
     @Override
     public double dist(int a, Vec b, List<? extends Vec> vecs, List<Double> cache)
     {
-        if(cache == null)
-            return dist(vecs.get(a), b);
+        if(cache == null) {
+          return dist(vecs.get(a), b);
+        }
         
         return Math.sqrt(cache.get(a)+VecOps.weightedDot(w, b, b)-2*VecOps.weightedDot(w, vecs.get(a), b));
     }
@@ -191,8 +197,9 @@ public class WeightedEuclideanDistance implements DistanceMetric
     @Override
     public double dist(int a, Vec b, List<Double> qi, List<? extends Vec> vecs, List<Double> cache)
     {
-        if(cache == null)
-            return dist(vecs.get(a), b);
+        if(cache == null) {
+          return dist(vecs.get(a), b);
+        }
         
         return Math.sqrt(cache.get(a)+qi.get(0)-2*VecOps.weightedDot(w, vecs.get(a), b));
     }

@@ -68,8 +68,9 @@ public class KernelRLS implements UpdateableRegressor, Parameterized
         if(toCopy.vecs != null)
         {
             this.vecs = new ArrayList<Vec>(toCopy.vecs.size());
-            for(Vec vec : toCopy.vecs)
-                this.vecs.add(vec.clone());
+            for(Vec vec : toCopy.vecs) {
+              this.vecs.add(vec.clone());
+            }
         }
         
         if(toCopy.KExpanded != null)
@@ -87,8 +88,9 @@ public class KernelRLS implements UpdateableRegressor, Parameterized
             this.PExpanded = toCopy.PExpanded.clone();
             this.P = new SubMatrix(PExpanded, 0, 0, vecs.size(), vecs.size());
         }
-        if(toCopy.alphaExpanded != null)
-            this.alphaExpanded = Arrays.copyOf(toCopy.alphaExpanded, toCopy.alphaExpanded.length);
+        if(toCopy.alphaExpanded != null) {
+          this.alphaExpanded = Arrays.copyOf(toCopy.alphaExpanded, toCopy.alphaExpanded.length);
+        }
     }
 
     /**
@@ -103,8 +105,9 @@ public class KernelRLS implements UpdateableRegressor, Parameterized
      */
     public void setErrorTolerance(double v)
     {
-        if(Double.isNaN(v) || Double.isInfinite(v) || v <= 0)
-            throw new IllegalArgumentException("The error tolerance must be a positive constant, not " + v);
+        if(Double.isNaN(v) || Double.isInfinite(v) || v <= 0) {
+          throw new IllegalArgumentException("The error tolerance must be a positive constant, not " + v);
+        }
         this.errorTolerance = v;
     }
 
@@ -123,8 +126,9 @@ public class KernelRLS implements UpdateableRegressor, Parameterized
      */
     public int getModelSize()
     {
-        if(vecs == null)
-            return 0;
+        if(vecs == null) {
+          return 0;
+        }
         return vecs.size();
     }
     
@@ -163,8 +167,9 @@ public class KernelRLS implements UpdateableRegressor, Parameterized
         setUp(dataSet.getCategories(), dataSet.getNumNumericalVars());
         IntList randOrder = new IntList(dataSet.getSampleSize());
         ListUtils.addRange(randOrder, 0, dataSet.getSampleSize(), 1);
-        for(int i : randOrder)
-            update(dataSet.getDataPoint(i), dataSet.getTargetValue(i));
+        for(int i : randOrder) {
+          update(dataSet.getDataPoint(i), dataSet.getTargetValue(i));
+        }
     }
 
     @Override
@@ -183,10 +188,11 @@ public class KernelRLS implements UpdateableRegressor, Parameterized
     public void setUp(CategoricalData[] categoricalAttributes, int numericAttributes)
     {
         vecs = new ArrayList<Vec>();
-        if(k.supportsAcceleration())
-            kernelAccel = new DoubleList();
-        else
-            kernelAccel = null;
+        if(k.supportsAcceleration()) {
+          kernelAccel = new DoubleList();
+        } else {
+          kernelAccel = null;
+        }
 
         K = null;
         InvK = null;
@@ -220,8 +226,9 @@ public class KernelRLS implements UpdateableRegressor, Parameterized
             P.set(0, 0, 1);
             alphaExpanded[0] = y_t/k_tt;
             vecs.add(x_t);
-            if(kernelAccel != null)
-                kernelAccel.addAll(qi);
+            if(kernelAccel != null) {
+              kernelAccel.addAll(qi);
+            }
             return;
         }
         
@@ -229,8 +236,9 @@ public class KernelRLS implements UpdateableRegressor, Parameterized
         //Normal case
         DenseVector kxt = new DenseVector(K.rows());
 
-        for (int i = 0; i < kxt.length(); i++)
-            kxt.set(i, k.eval(i, x_t, qi, vecs, kernelAccel));
+        for (int i = 0; i < kxt.length(); i++) {
+          kxt.set(i, k.eval(i, x_t, qi, vecs, kernelAccel));
+        }
 
         //ALD test
         final Vec alphas_t = InvK.multiply(kxt);
@@ -240,8 +248,9 @@ public class KernelRLS implements UpdateableRegressor, Parameterized
         if(delta_t > errorTolerance)//add to the dictionary
         {
             vecs.add(x_t);
-            if(kernelAccel != null)
-                kernelAccel.addAll(qi);
+            if(kernelAccel != null) {
+              kernelAccel.addAll(qi);
+            }
             
             if(size == KExpanded.rows())//we need to grow first
             {
@@ -274,8 +283,9 @@ public class KernelRLS implements UpdateableRegressor, Parameterized
             P.set(size, size, 1.0);
             
             
-            for(int i = 0; i < size; i++)
-                alphaExpanded[i] -= alphas_t.get(i)*(y_t-alphaConst)/delta_t;
+            for(int i = 0; i < size; i++) {
+              alphaExpanded[i] -= alphas_t.get(i)*(y_t-alphaConst)/delta_t;
+            }
             alphaExpanded[size] = (y_t-alphaConst)/delta_t;
         }
         else//project onto dictionary
@@ -286,8 +296,9 @@ public class KernelRLS implements UpdateableRegressor, Parameterized
             Matrix.OuterProductUpdate(P, q_t, alphas_t.multiply(P), -1);
             
             Vec InvKqt = InvK.multiply(q_t);
-            for(int i = 0; i < size; i++)
-                alphaExpanded[i] += InvKqt.get(i)*(y_t-alphaConst);
+            for(int i = 0; i < size; i++) {
+              alphaExpanded[i] += InvKqt.get(i)*(y_t-alphaConst);
+            }
         }
     }
 

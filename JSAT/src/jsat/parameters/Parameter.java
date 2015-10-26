@@ -155,10 +155,12 @@ public abstract class Parameter implements Serializable
     @Override
     public boolean equals(Object obj)
     {
-        if (obj == null)
-            return false;
-        if (getClass() != obj.getClass())
-            return false;
+        if (obj == null) {
+          return false;
+        }
+        if (getClass() != obj.getClass()) {
+          return false;
+        }
         final Parameter other = (Parameter) obj;
         return this.getName().equals(other.getName());
     }
@@ -174,11 +176,14 @@ public abstract class Parameter implements Serializable
         Map<String, Parameter> map = new HashMap<String, Parameter>(params.size());
         for(Parameter param : params)
         {
-            if(map.put(param.getASCIIName(), param) != null)
-                throw new RuntimeException("Name collision, two parameters use the name '" + param.getASCIIName() + "'");
-            if(!param.getName().equals(param.getASCIIName()))//Dont put it in again
-                if(map.put(param.getName(), param) != null)
-                    throw new RuntimeException("Name collision, two parameters use the name '" + param.getName() + "'");
+            if(map.put(param.getASCIIName(), param) != null) {
+              throw new RuntimeException("Name collision, two parameters use the name '" + param.getASCIIName() + "'");
+            }
+            if(!param.getName().equals(param.getASCIIName())) {//Dont put it in again
+              if (map.put(param.getName(), param) != null) {
+                throw new RuntimeException("Name collision, two parameters use the name '" + param.getName() + "'");
+              }
+            }
         }
         return map;
     }
@@ -220,15 +225,17 @@ public abstract class Parameter implements Serializable
         for(Method method : obj.getClass().getMethods())
         {
             int paramCount = method.getParameterTypes().length;
-            if(method.isVarArgs() || paramCount > 1)
-                continue;
+            if(method.isVarArgs() || paramCount > 1) {
+              continue;
+            }
             String name = method.getName();
-            if(name.startsWith("get") && paramCount == 0)
-                getMethods.put(name.substring(3), method);
-            else if(name.startsWith("is") && paramCount == 0)
-                getMethods.put(name.substring(2), method);
-            else if(name.startsWith("set") && paramCount == 1)
-                setMethods.put(name.substring(3), method);
+            if(name.startsWith("get") && paramCount == 0) {
+              getMethods.put(name.substring(3), method);
+            } else if(name.startsWith("is") && paramCount == 0) {
+              getMethods.put(name.substring(2), method);
+            } else if(name.startsWith("set") && paramCount == 1) {
+              setMethods.put(name.substring(3), method);
+            }
         }
         
         //Find pairings and add to list
@@ -237,20 +244,23 @@ public abstract class Parameter implements Serializable
         {
             final Method setMethod = entry.getValue();
             final Method getMethod = getMethods.get(entry.getKey());
-            if(getMethod == null)
-                continue;
+            if(getMethod == null) {
+              continue;
+            }
             
             final Class retClass = getMethod.getReturnType();
             final Class argClass = entry.getValue().getParameterTypes()[0];
-            if(!retClass.equals(argClass))
-                continue;
+            if(!retClass.equals(argClass)) {
+              continue;
+            }
             final String name = spaceCamelCase(entry.getKey());
             //Found a match do we know how to handle it?
             Parameter param = getParam(obj, argClass, getMethod, setMethod, prefix + name);
             
             
-            if(param != null)
-                params.add(param);
+            if(param != null) {
+              params.add(param);
+            }
         }
         
         //Find params from field objects
@@ -289,10 +299,11 @@ public abstract class Parameter implements Serializable
                             {
                                 String subPreFix = paramHolderSub.getClass().getSimpleName() + "_";
                                 
-                                if(annotationPH.skipSelfNamePrefix())
-                                    subPreFix = prefix.replace(simpleObjName+"_", "") + subPreFix;
-                                else
-                                    subPreFix = prefix + subPreFix;
+                                if(annotationPH.skipSelfNamePrefix()) {
+                                  subPreFix = prefix.replace(simpleObjName+"_", "") + subPreFix;
+                                } else {
+                                  subPreFix = prefix + subPreFix;
+                                }
 
                                 params.addAll(Parameter.getParamsFromMethods(paramHolderSub, subPreFix));
                             }
@@ -301,10 +312,11 @@ public abstract class Parameter implements Serializable
                         {
                             String subPreFix = paramHolder.getClass().getSimpleName() + "_";
 
-                            if (annotationPH.skipSelfNamePrefix())
-                                subPreFix = prefix.replace(simpleObjName + "_", "") + subPreFix;
-                            else
-                                subPreFix = prefix + subPreFix;
+                            if (annotationPH.skipSelfNamePrefix()) {
+                              subPreFix = prefix.replace(simpleObjName + "_", "") + subPreFix;
+                            } else {
+                              subPreFix = prefix + subPreFix;
+                            }
 
                             params.addAll(Parameter.getParamsFromMethods(paramHolder, subPreFix));
                         }
@@ -338,8 +350,9 @@ public abstract class Parameter implements Serializable
         //lets find out if this paramter is a "warm" parameter
         Parameter.WarmParameter warmAna = null;
         warmAna = setMethod.getAnnotation(Parameter.WarmParameter.class);
-        if(warmAna == null)
-            warmAna = getMethod.getAnnotation(Parameter.WarmParameter.class);
+        if(warmAna == null) {
+          warmAna = getMethod.getAnnotation(Parameter.WarmParameter.class);
+        }
         if(warmAna != null)
         {
             warm = true;
@@ -423,17 +436,19 @@ public abstract class Parameter implements Serializable
                 @Override
                 public String getName()
                 {
-                    if (uniName == null)
-                        return super.getName();
-                    else
-                        return uniName;
+                    if (uniName == null) {
+                      return super.getName();
+                    } else {
+                      return uniName;
+                    }
                 }
 
                 @Override
                 public Distribution getGuess(DataSet data)
                 {
-                    if (guessMethod == null)
-                        return null;
+                    if (guessMethod == null) {
+                      return null;
+                    }
                     try
                     {
                         return (Distribution) guessMethod.invoke(targetObject, data);
@@ -486,8 +501,9 @@ public abstract class Parameter implements Serializable
                 @Override
                 public Distribution getGuess(DataSet data)
                 {
-                    if (guessMethod == null)
-                        return null;
+                    if (guessMethod == null) {
+                      return null;
+                    }
                     try
                     {
                         return (Distribution) guessMethod.invoke(targetObject, data);
@@ -519,10 +535,11 @@ public abstract class Parameter implements Serializable
                 @Override
                 public String getName()
                 {
-                    if (uniName == null)
-                        return super.getName();
-                    else
-                        return uniName;
+                    if (uniName == null) {
+                      return super.getName();
+                    } else {
+                      return uniName;
+                    }
                 }
             };
         }
@@ -572,10 +589,11 @@ public abstract class Parameter implements Serializable
                 @Override
                 public String getName()
                 {
-                    if (uniName == null)
-                        return super.getName();
-                    else
-                        return uniName;
+                    if (uniName == null) {
+                      return super.getName();
+                    } else {
+                      return uniName;
+                    }
                 }
             };
         }
@@ -700,10 +718,11 @@ public abstract class Parameter implements Serializable
                 @Override
                 public String getName()
                 {
-                    if (uniName == null)
-                        return super.getName();
-                    else
-                        return uniName;
+                    if (uniName == null) {
+                      return super.getName();
+                    } else {
+                      return uniName;
+                    }
                 }
             };
         }
@@ -758,10 +777,11 @@ public abstract class Parameter implements Serializable
                 @Override
                 public String getName()
                 {
-                    if (uniName == null)
-                        return super.getName();
-                    else
-                        return uniName;
+                    if (uniName == null) {
+                      return super.getName();
+                    } else {
+                      return uniName;
+                    }
                 }
             };
         }
@@ -780,8 +800,9 @@ public abstract class Parameter implements Serializable
         for(int i = 0; i < in.length(); i++)
         {
             char c = in.charAt(i);
-            if(Character.isUpperCase(c))
-                sb.append(' ');
+            if(Character.isUpperCase(c)) {
+              sb.append(' ');
+            }
             sb.append(c);
         }
         return sb.toString().trim();

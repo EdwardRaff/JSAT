@@ -61,17 +61,21 @@ public class CauchyTest
         double[] paramTwo3 = new double[]{0.02122065907891938,0.02270263675605045,0.02432941805226426,0.026117734250977697,0.028086166427981528,0.030255197102617728,0.03264716781372212,0.035286084380651166,0.03819718634205488,0.04140616405642805,0.04493786628477045,0.048814295644798576,0.05305164769729845,0.057656130327630006,0.06261833826566374,0.067906109052542,0.07345612758087477,0.07916515304052826,0.08488263631567752,0.0904075416379997,0.09549296585513718,0.09986192507726767,0.1032356387623105,0.10537154852980657,0.1061032953945969};
         
         instance = new Cauchy(0.5, 0.5);
-        for(int i = 0; i < range.length; i++)
-            assertEquals(parmTwo0[i], instance.pdf(range[i]), 1e-10);
+        for(int i = 0; i < range.length; i++) {
+          assertEquals(parmTwo0[i], instance.pdf(range[i]), 1e-10);
+        }
         instance = new Cauchy(0.5, 3);
-        for(int i = 0; i < range.length; i++)
-            assertEquals(paramTwo1[i], instance.pdf(range[i]), 1e-10);
+        for(int i = 0; i < range.length; i++) {
+          assertEquals(paramTwo1[i], instance.pdf(range[i]), 1e-10);
+        }
         instance = new Cauchy(3, 0.5);
-        for(int i = 0; i < range.length; i++)
-            assertEquals(paramTwo2[i], instance.pdf(range[i]), 1e-10);
+        for(int i = 0; i < range.length; i++) {
+          assertEquals(paramTwo2[i], instance.pdf(range[i]), 1e-10);
+        }
         instance = new Cauchy(3, 3);
-        for(int i = 0; i < range.length; i++)
-            assertEquals(paramTwo3[i], instance.pdf(range[i]), 1e-10);
+        for(int i = 0; i < range.length; i++) {
+          assertEquals(paramTwo3[i], instance.pdf(range[i]), 1e-10);
+        }
     }
 
     /**
@@ -89,17 +93,21 @@ public class CauchyTest
         double[] paramTwo3 = new double[]{0.14758361765043326,0.15307117542621002,0.15894699814425117,0.16524934053856788,0.17202086962263063,0.17930913508098678,0.1871670418109988,0.1956532942677373,0.20483276469913347,0.21477671252272273,0.22556274802780257,0.23727438865200817,0.25,0.2638308495666619,0.27885793837630446,0.2951672353008665,0.3128329581890012,0.3319086824248374,0.35241638234956674,0.3743340836219976,0.39758361765043326,0.4220208696226307,0.44743154328874657,0.47353532394041015,0.5};
         
         instance = new Cauchy(0.5, 0.5);
-        for(int i = 0; i < range.length; i++)
-            assertEquals(parmTwo0[i], instance.cdf(range[i]), 1e-10);
+        for(int i = 0; i < range.length; i++) {
+          assertEquals(parmTwo0[i], instance.cdf(range[i]), 1e-10);
+        }
         instance = new Cauchy(0.5, 3);
-        for(int i = 0; i < range.length; i++)
-            assertEquals(paramTwo1[i], instance.cdf(range[i]), 1e-10);
+        for(int i = 0; i < range.length; i++) {
+          assertEquals(paramTwo1[i], instance.cdf(range[i]), 1e-10);
+        }
         instance = new Cauchy(3, 0.5);
-        for(int i = 0; i < range.length; i++)
-            assertEquals(paramTwo2[i], instance.cdf(range[i]), 1e-10);
+        for(int i = 0; i < range.length; i++) {
+          assertEquals(paramTwo2[i], instance.cdf(range[i]), 1e-10);
+        }
         instance = new Cauchy(3, 3);
-        for(int i = 0; i < range.length; i++)
-            assertEquals(paramTwo3[i], instance.cdf(range[i]), 1e-10);
+        for(int i = 0; i < range.length; i++) {
+          assertEquals(paramTwo3[i], instance.cdf(range[i]), 1e-10);
+        }
     }
 
     /**
@@ -117,17 +125,21 @@ public class CauchyTest
         double[] paramTwo3 = new double[]{-113.47566644538239,-16.26215205479177,-7.306252851042434,-3.8645870964607987,-1.996075851654818,-0.7904019977320758,0.07627443095959441,0.7487440714026694,1.3021150604455751,1.7799261169514367,2.2099364463531215,2.6115899379075915,3.,3.388410062092409,3.7900635536468785,4.220073883048563,4.697884939554425,5.251255928597331,5.923725569040405,6.790401997732075,7.996075851654818,9.864587096460804,13.306252851042434,22.26215205479177,119.47566644538338};
         
         instance = new Cauchy(0.5, 0.5);
-        for(int i = 0; i < range.length; i++)
-            assertEquals(parmTwo0[i], instance.invCdf(range[i]/6.1+0.5), 1e-10);
+        for(int i = 0; i < range.length; i++) {
+          assertEquals(parmTwo0[i], instance.invCdf(range[i]/6.1+0.5), 1e-10);
+        }
         instance = new Cauchy(0.5, 3);
-        for(int i = 0; i < range.length; i++)
-            assertEquals(paramTwo1[i], instance.invCdf(range[i]/6.1+0.5), 1e-10);
+        for(int i = 0; i < range.length; i++) {
+          assertEquals(paramTwo1[i], instance.invCdf(range[i]/6.1+0.5), 1e-10);
+        }
         instance = new Cauchy(3, 0.5);
-        for(int i = 0; i < range.length; i++)
-            assertEquals(paramTwo2[i], instance.invCdf(range[i]/6.1+0.5), 1e-10);
+        for(int i = 0; i < range.length; i++) {
+          assertEquals(paramTwo2[i], instance.invCdf(range[i]/6.1+0.5), 1e-10);
+        }
         instance = new Cauchy(3, 3);
-        for(int i = 0; i < range.length; i++)
-            assertEquals(paramTwo3[i], instance.invCdf(range[i]/6.1+0.5), 1e-10);
+        for(int i = 0; i < range.length; i++) {
+          assertEquals(paramTwo3[i], instance.invCdf(range[i]/6.1+0.5), 1e-10);
+        }
     }
 
     /**

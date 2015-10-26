@@ -98,8 +98,9 @@ public class GMeans extends KMeans
      */
     public void setMinClusterSize(int minClusterSize)
     {
-        if(minClusterSize < 2)
-            throw new IllegalArgumentException("min cluster size that could be split is 2, not " + minClusterSize);
+        if(minClusterSize < 2) {
+          throw new IllegalArgumentException("min cluster size that could be split is 2, not " + minClusterSize);
+        }
         this.minClusterSize = minClusterSize;
     }
 
@@ -161,10 +162,11 @@ public class GMeans extends KMeans
         }
         else//1 mean of all the data
         {
-            if(designations == null || designations.length < N)
-                designations = new int[N];
-            else
-                Arrays.fill(designations, 0);
+            if(designations == null || designations.length < N) {
+              designations = new int[N];
+            } else {
+              Arrays.fill(designations, 0);
+            }
             means = new ArrayList<Vec>(Arrays.asList(MatrixStatistics.meanVector(dataSet)));
         }
         
@@ -188,15 +190,17 @@ public class GMeans extends KMeans
             origMeans = means.size();
             for(int c = 0; c < origMeans; c++)
             {
-                if(dontRedo.get(c))
-                    continue;
+                if(dontRedo.get(c)) {
+                  continue;
+                }
                 //2. Initialize two centers, called “children” of c. 
                 //for now lets just let k-means decide
                 List<DataPoint> X = getDatapointsFromCluster(c, designations, dataSet, subS);
                 final int n = X.size();//NOTE, not the same as N. PAY ATENTION
                 
-                if(X.size() < minClusterSize || means.size() == highK)
-                    continue;//this loop with force it to exit when we hit max K
+                if(X.size() < minClusterSize || means.size() == highK) {
+                  continue;//this loop with force it to exit when we hit max K
+                }
                 SimpleDataSet subSet = new SimpleDataSet(X);
                 //3. Run k-means on these two centers in X. Let c1, c2 be the child centers chosen by k-means
                 subC = kmeans.cluster(subSet, 2, threadpool, subC);
@@ -216,10 +220,12 @@ public class GMeans extends KMeans
                 c1.copyTo(v);
                 v.mutableSubtract(c2);
                 double vNrmSqrd = Math.pow(v.pNorm(2), 2);
-                if(Double.isNaN(vNrmSqrd) || vNrmSqrd < 1e-6)
-                    continue;//can happen when cluster is all the same item (or nearly so)
-                for(int i = 0; i < X.size(); i++)
-                    xp[i] = X.get(i).getNumericalValues().dot(v)/vNrmSqrd;
+                if(Double.isNaN(vNrmSqrd) || vNrmSqrd < 1e-6) {
+                  continue;//can happen when cluster is all the same item (or nearly so)
+                }
+                for(int i = 0; i < X.size(); i++) {
+                  xp[i] = X.get(i).getNumericalValues().dot(v)/vNrmSqrd;
+                }
                 //we need this in sorted order later, so lets just sort them now
                 Arrays.sort(xp, 0, X.size());
                 DenseVector Xp = new DenseVector(xp, 0, X.size());
@@ -229,8 +235,9 @@ public class GMeans extends KMeans
                 
 
                 //5. 
-                for(int i = 0; i < Xp.length(); i++)
-                    Xp.set(i, Normal.cdf(Xp.get(i), 0, 1));
+                for(int i = 0; i < Xp.length(); i++) {
+                  Xp.set(i, Normal.cdf(Xp.get(i), 0, 1));
+                }
                 double A = 0;
                 for(int i = 1; i <= Xp.length(); i++)
                 {
@@ -245,29 +252,34 @@ public class GMeans extends KMeans
 
                 if(A <= thresh)
                 {
-                    if(trustH0)//if we are going to trust that H0 is true forever, mark it
-                        dontRedo.set(c, true);
+                    if(trustH0) {//if we are going to trust that H0 is true forever, mark it
+                      dontRedo.set(c, true);
+                    }
                     continue;//passed the test, do not split
                 }
                 //else, accept the split
 
                 //first, update assignment array. Cluster '0' stays as is, re-set cluster '1'
-                for(int i = 0; i < X.size(); i++)
-                    if(subC[i] == 1)
-                        designations[subS[i]] = means.size();
+                for(int i = 0; i < X.size(); i++) {
+                  if (subC[i] == 1) {
+                    designations[subS[i]] = means.size();
+                  }
+                }
                 //replace current mean and add new one
                 means.set(c, c1.clone());//cur index in dontRedo stays false
                 means.add(c2.clone());//add a 'false' for new center
                 dontRedo.add(false);
             }
             //"Between each round of splitting, we run k-means on the entire dataset and all the centers to refine the current solution"
-            if(iterativeRefine && means.size() > 1)
-                kmeans.cluster(dataSet, accelCache, means.size(), means, designations, false, threadpool, false);
+            if(iterativeRefine && means.size() > 1) {
+              kmeans.cluster(dataSet, accelCache, means.size(), means, designations, false, threadpool, false);
+            }
         }
         while (origMeans < means.size());
         
-        if(!iterativeRefine && means.size() > 1)//if we havn't been refining we need to do so now!
-            kmeans.cluster(dataSet, accelCache, means.size(), means, designations, false, threadpool, false);
+        if(!iterativeRefine && means.size() > 1) {//if we havn't been refining we need to do so now!
+          kmeans.cluster(dataSet, accelCache, means.size(), means, designations, false, threadpool, false);
+        }
         return designations;
     }
     
@@ -293,8 +305,9 @@ public class GMeans extends KMeans
     public void setSeedSelection(SeedSelectionMethods.SeedSelection seedSelection)
     {
     	//XXX when called from constructor in superclass seed is ignored
-        if(kmeans != null)//needed when initing
-            kmeans.setSeedSelection(seedSelection);
+        if(kmeans != null) {//needed when initing
+          kmeans.setSeedSelection(seedSelection);
+        }
     }
 
     @Override

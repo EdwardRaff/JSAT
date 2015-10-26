@@ -58,14 +58,17 @@ public class ExponentialTest
         double[] param12 = new double[]{0,0,2.4849066497880004,-0.5150933502119998,-3.5150933502119996,-6.515093350211999,-9.515093350212,-12.515093350212,-15.515093350212,-18.515093350212,-21.515093350212,-24.515093350212,-27.515093350212,-30.515093350212,-33.515093350212,-36.515093350212,-39.515093350212,-42.515093350212,-45.515093350212,-48.515093350212,-51.515093350212,-54.515093350212,-57.515093350212,-60.515093350212,-63.515093350212};
         
         instance = new Exponential(0.5);
-        for(int i = 0; i < range.length; i++)
-            assertEquals(param0p5[i], instance.logPdf(range[i]+2.5), 1e-10);
+        for(int i = 0; i < range.length; i++) {
+          assertEquals(param0p5[i], instance.logPdf(range[i]+2.5), 1e-10);
+        }
         instance = new Exponential(2);
-        for(int i = 0; i < range.length; i++)
-            assertEquals(param2[i], instance.logPdf(range[i]+2.5), 1e-10);
+        for(int i = 0; i < range.length; i++) {
+          assertEquals(param2[i], instance.logPdf(range[i]+2.5), 1e-10);
+        }
         instance = new Exponential(12);
-        for(int i = 0; i < range.length; i++)
-            assertEquals(param12[i], instance.logPdf(range[i]+2.5), 1e-10);
+        for(int i = 0; i < range.length; i++) {
+          assertEquals(param12[i], instance.logPdf(range[i]+2.5), 1e-10);
+        }
     }
 
     /**
@@ -82,14 +85,17 @@ public class ExponentialTest
         double[] param12 = new double[]{0,0,12.,0.5974448204143673,0.029745026119996302,0.0014809176490401547,0.00007373054823993851,3.6708278460219094e-6,1.8275975693655156e-7,9.099072513494288e-9,4.5301614531349173e-10,2.2554345798469e-11,1.122914756260821e-12,5.590663374124077e-14,2.7834273962922836e-15,1.3857869007618943e-16,6.899426717152272e-18,3.4350222966592726e-19,1.7101968992891223e-20,8.514568994741645e-22,4.2391542866409685e-23,2.110550642909174e-24,1.0507812915235825e-25,5.231532000075697e-27,2.6046264135643672e-28};
         
         instance = new Exponential(0.5);
-        for(int i = 0; i < range.length; i++)
-            assertEquals(param0p5[i], instance.pdf(range[i]+2.5), 1e-10);
+        for(int i = 0; i < range.length; i++) {
+          assertEquals(param0p5[i], instance.pdf(range[i]+2.5), 1e-10);
+        }
         instance = new Exponential(2);
-        for(int i = 0; i < range.length; i++)
-            assertEquals(param2[i], instance.pdf(range[i]+2.5), 1e-10);
+        for(int i = 0; i < range.length; i++) {
+          assertEquals(param2[i], instance.pdf(range[i]+2.5), 1e-10);
+        }
         instance = new Exponential(12);
-        for(int i = 0; i < range.length; i++)
-            assertEquals(param12[i], instance.pdf(range[i]+2.5), 1e-10);
+        for(int i = 0; i < range.length; i++) {
+          assertEquals(param12[i], instance.pdf(range[i]+2.5), 1e-10);
+        }
     }
 
     /**
@@ -106,14 +112,17 @@ public class ExponentialTest
         double[] param12 = new double[]{0,0,0.,0.950212931632136,0.9975212478233336,0.9998765901959134,0.9999938557876467,0.9999996940976795,0.9999999847700203,0.999999999241744,0.9999999999622486,0.9999999999981205,0.9999999999999064,0.9999999999999953,0.9999999999999998,1.,1.,1.,1.,1.,1.,1.,1.,1.,1.};
         
         instance = new Exponential(0.5);
-        for(int i = 0; i < range.length; i++)
-            assertEquals(param0p5[i], instance.cdf(range[i]+2.5), 1e-10);
+        for(int i = 0; i < range.length; i++) {
+          assertEquals(param0p5[i], instance.cdf(range[i]+2.5), 1e-10);
+        }
         instance = new Exponential(2);
-        for(int i = 0; i < range.length; i++)
-            assertEquals(param2[i], instance.cdf(range[i]+2.5), 1e-10);
+        for(int i = 0; i < range.length; i++) {
+          assertEquals(param2[i], instance.cdf(range[i]+2.5), 1e-10);
+        }
         instance = new Exponential(12);
-        for(int i = 0; i < range.length; i++)
-            assertEquals(param12[i], instance.cdf(range[i]+2.5), 1e-10);
+        for(int i = 0; i < range.length; i++) {
+          assertEquals(param12[i], instance.cdf(range[i]+2.5), 1e-10);
+        }
     }
 
     /**
@@ -133,14 +142,18 @@ public class ExponentialTest
         {0.0006858749280429472,0.004202571135574321,0.007874236951743534,0.011715162551765777,0.01574171065766642,0.01997273777211836,0.024430128184700535,0.029139479039979065,0.03413099083840149,0.03944064203724378,0.04511176397432843,0.05119719189223593,0.057762265046662105,0.06488911283317561,0.07268295100074422,0.08128163735368013,0.09087074816907904,0.10170850885642888,0.11416948668734253,0.12882704222598118,0.14662488391748613,0.16928602687445632,0.20051048099457383,0.2510217979587669,0.40033508706110577};
 
         instance = new Exponential(0.5);
-        for(int i = 0; i < range.length-2; i++)//-2 b/c it enters a numerically unstable range that isnt fair
-            assertEquals(param0p5[i], instance.invCdf(range[i]/6.1+0.5), 1e-10);
+        for(int i = 0; i < range.length-2; i++) {
+          //-2 b/c it enters a numerically unstable range that isnt fair
+          assertEquals(param0p5[i], instance.invCdf(range[i]/6.1+0.5), 1e-10);
+        }
         instance = new Exponential(2);
-        for(int i = 0; i < range.length; i++)
-            assertEquals(param2[i], instance.invCdf(range[i]/6.1+0.5), 1e-10);
+        for(int i = 0; i < range.length; i++) {
+          assertEquals(param2[i], instance.invCdf(range[i]/6.1+0.5), 1e-10);
+        }
         instance = new Exponential(12);
-        for(int i = 0; i < range.length; i++)
-            assertEquals(param12[i], instance.invCdf(range[i]/6.1+0.5), 1e-10);
+        for(int i = 0; i < range.length; i++) {
+          assertEquals(param12[i], instance.invCdf(range[i]/6.1+0.5), 1e-10);
+        }
     }
 
     /**

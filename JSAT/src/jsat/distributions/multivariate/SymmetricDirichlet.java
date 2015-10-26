@@ -44,8 +44,9 @@ public class SymmetricDirichlet extends MultivariateDistributionSkeleton
      */
     public void setDimension(int dim)
     {
-        if(dim <= 0)
-            throw new ArithmeticException("A positive number of dimensions must be given");
+        if(dim <= 0) {
+          throw new ArithmeticException("A positive number of dimensions must be given");
+        }
         this.dim = dim;
     }
 
@@ -65,8 +66,9 @@ public class SymmetricDirichlet extends MultivariateDistributionSkeleton
      */
     public void setAlpha(double alpha) throws ArithmeticException
     {
-        if(alpha <= 0 || Double.isNaN(alpha) || Double.isInfinite(alpha))
-            throw new ArithmeticException("Symmetric Dirichlet Distribution parameters must be positive, " + alpha + " is invalid");
+        if(alpha <= 0 || Double.isNaN(alpha) || Double.isInfinite(alpha)) {
+          throw new ArithmeticException("Symmetric Dirichlet Distribution parameters must be positive, " + alpha + " is invalid");
+        }
         this.alpha = alpha;
     }
 
@@ -88,16 +90,19 @@ public class SymmetricDirichlet extends MultivariateDistributionSkeleton
     @Override
     public double logPdf(Vec x)
     {
-        if(x.length() != dim)
-            throw new ArithmeticException( dim + " variable distribution can not awnser a " + x.length() + " dimension variable");
+        if(x.length() != dim) {
+          throw new ArithmeticException( dim + " variable distribution can not awnser a " + x.length() + " dimension variable");
+        }
         double logVal = 0;
         int K = x.length();
-        for(int i = 0; i < K; i++)
-            logVal += log(x.get(i))*(alpha-1);
+        for(int i = 0; i < K; i++) {
+          logVal += log(x.get(i))*(alpha-1);
+        }
         
         logVal = logVal + lnGamma(alpha*K) - lnGamma(alpha)*K;
-        if(Double.isInfinite(logVal) || Double.isNaN(logVal) || abs(x.sum() - 1.0) > 1e-14)
-            return -Double.MAX_VALUE;
+        if(Double.isInfinite(logVal) || Double.isNaN(logVal) || abs(x.sum() - 1.0) > 1e-14) {
+          return -Double.MAX_VALUE;
+        }
         return logVal;
     }
 
@@ -131,8 +136,9 @@ public class SymmetricDirichlet extends MultivariateDistributionSkeleton
                 for(int i = 0; i < dataSet.size(); i++)
                 {
                     Vec s = dataSet.get(i);
-                    for(int j = 0; j < s.length(); j++)
-                        sum += log(s.get(j))*(a-1.0);
+                    for(int j = 0; j < s.length(); j++) {
+                      sum += log(s.get(j))*(a-1.0);
+                    }
                 }
                 
                 return -(sum+constantTerm*dataSet.size());
@@ -176,8 +182,9 @@ public class SymmetricDirichlet extends MultivariateDistributionSkeleton
                     DataPoint dp = dataPoint.get(i);
                     weightSum += dp.getWeight();
                     Vec s = dp.getNumericalValues();
-                    for(int j = 0; j < s.length(); j++)
-                        sum += log(s.get(j))*(a-1.0)*dp.getWeight();
+                    for(int j = 0; j < s.length(); j++) {
+                      sum += log(s.get(j))*(a-1.0)*dp.getWeight();
+                    }
                 }
                 
                 return -(sum+constantTerm*weightSum);
@@ -202,8 +209,9 @@ public class SymmetricDirichlet extends MultivariateDistributionSkeleton
         for(int i = 0; i < count; i++)
         {
             Vec sample = new DenseVector(dim);
-            for(int j = 0; j < dim; j++)
-                sample.set(j, gammaSamples[samplePos++]);
+            for(int j = 0; j < dim; j++) {
+              sample.set(j, gammaSamples[samplePos++]);
+            }
             sample.mutableDivide(sample.sum());
             samples.add(sample);
         }

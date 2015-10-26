@@ -42,8 +42,9 @@ public class NGramTokenizer implements Tokenizer
      */
     public NGramTokenizer(int n, Tokenizer base, boolean allSubN)
     {
-        if(n <= 0)
-            throw new IllegalArgumentException("Number of n-grams must be positive, not " + n);
+        if(n <= 0) {
+          throw new IllegalArgumentException("Number of n-grams must be positive, not " + n);
+        }
         this.n = n;
         this.base = base;
         this.allSubN = allSubN;
@@ -63,8 +64,9 @@ public class NGramTokenizer implements Tokenizer
     {
         base.tokenize(input, workSpace, storageSpace);//the "1-grams"
         int origSize = storageSpace.size();
-        if(n == 1)
-            return;//nothing more to do
+        if(n == 1) {
+          return;//nothing more to do
+        }
 
         for (int i = 1; i < origSize; i++)//slide from left to right on the 1-grams
         {
@@ -73,12 +75,14 @@ public class NGramTokenizer implements Tokenizer
             {
                 workSpace.setLength(0);
                 int j = i - (gramSize - 1);
-                if(j < 0)//means we are going past what we have, and we would be adding duplicates
-                    continue;
+                if(j < 0) {//means we are going past what we have, and we would be adding duplicates
+                  continue;
+                }
                 for(; j < i; j++)
                 {
-                    if (workSpace.length() > 0)
-                        workSpace.append(' ');
+                    if (workSpace.length() > 0) {
+                      workSpace.append(' ');
+                    }
                     workSpace.append(storageSpace.get(j));
                 }
                 workSpace.append(' ').append(storageSpace.get(i));
@@ -86,8 +90,9 @@ public class NGramTokenizer implements Tokenizer
             }
         }
         
-        if(!allSubN)//dont generate subs! get rid of those dirty 1-grams
-            storageSpace.subList(0, origSize).clear();
+        if(!allSubN) {//dont generate subs! get rid of those dirty 1-grams
+          storageSpace.subList(0, origSize).clear();
+        }
     }
     
 }

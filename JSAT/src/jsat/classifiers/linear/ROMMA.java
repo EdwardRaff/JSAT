@@ -53,8 +53,9 @@ public class ROMMA extends BaseUpdateableClassifier implements BinaryScoreClassi
     protected ROMMA(ROMMA other)
     {
         this.aggressive = other.aggressive;
-        if(other.w != null)
-            this.w = other.w;
+        if(other.w != null) {
+          this.w = other.w;
+        }
         this.bias = other.bias;
         this.useBias = other.useBias;
     }
@@ -127,19 +128,21 @@ public class ROMMA extends BaseUpdateableClassifier implements BinaryScoreClassi
     @Override
     public Vec getRawWeight(int index)
     {
-        if(index < 1)
-            return getRawWeight();
-        else
-            throw new IndexOutOfBoundsException("Model has only 1 weight vector");
+        if(index < 1) {
+          return getRawWeight();
+        } else {
+          throw new IndexOutOfBoundsException("Model has only 1 weight vector");
+        }
     }
 
     @Override
     public double getBias(int index)
     {
-        if (index < 1)
-            return getBias();
-        else
-            throw new IndexOutOfBoundsException("Model has only 1 weight vector");
+        if (index < 1) {
+          return getBias();
+        } else {
+          throw new IndexOutOfBoundsException("Model has only 1 weight vector");
+        }
     }
     
     @Override
@@ -151,10 +154,11 @@ public class ROMMA extends BaseUpdateableClassifier implements BinaryScoreClassi
     @Override
     public void setUp(CategoricalData[] categoricalAttributes, int numericAttributes, CategoricalData predicting)
     {
-        if(numericAttributes <= 0)
-            throw new FailedToFitException("ROMMA requires numerical features");
-        else if(predicting.getNumOfCategories() != 2)
-            throw new FailedToFitException("ROMMA only supports binary classification");
+        if(numericAttributes <= 0) {
+          throw new FailedToFitException("ROMMA requires numerical features");
+        } else if(predicting.getNumOfCategories() != 2) {
+          throw new FailedToFitException("ROMMA only supports binary classification");
+        }
         w = new DenseVector(numericAttributes);
         bias = 0;
     }
@@ -177,8 +181,9 @@ public class ROMMA extends BaseUpdateableClassifier implements BinaryScoreClassi
                 {
                     w.zeroOut();
                     w.mutableAdd(y/xx, x);
-                    if(useBias)
-                        bias = y/xx;
+                    if(useBias) {
+                      bias = y/xx;
+                    }
                     return;
                 }
             }
@@ -188,22 +193,25 @@ public class ROMMA extends BaseUpdateableClassifier implements BinaryScoreClassi
             double d = (ww * (y - wx)) / denom;
             w.mutableMultiply(c);
             w.mutableAdd(d, x);
-            if(useBias)
-                bias = c*bias + d;
+            if(useBias) {
+              bias = c*bias + d;
+            }
         }
     }
 
     @Override
     public CategoricalResults classify(DataPoint data)
     {
-        if(w == null)
-            throw new UntrainedModelException("Model has not been trained");
+        if(w == null) {
+          throw new UntrainedModelException("Model has not been trained");
+        }
         double wx = getScore(data);
         CategoricalResults cr = new CategoricalResults(2);
-        if(wx < 0)
-            cr.setProb(0, 1.0);
-        else
-            cr.setProb(1, 1.0);
+        if(wx < 0) {
+          cr.setProb(0, 1.0);
+        } else {
+          cr.setProb(1, 1.0);
+        }
         return cr;
     }
 

@@ -48,9 +48,11 @@ public class GridDataGenerator
         this.noiseSource = noiseSource;
         this.rand = rand;
         this.dimensions = dimensions;
-        for(int i = 0; i < dimensions.length; i++)
-            if(dimensions[i] <= 0)
-                throw new ArithmeticException("The " + i + "'th dimensino contains the non positive value " + dimensions[i]);
+        for(int i = 0; i < dimensions.length; i++) {
+          if (dimensions[i] <= 0) {
+            throw new ArithmeticException("The " + i + "'th dimensino contains the non positive value " + dimensions[i]);
+          }
+        }
     }
 
     /**
@@ -88,20 +90,21 @@ public class GridDataGenerator
      */
     private void addSamples(int[] curClass, int curDim, int samples, List<DataPoint> dataPoints, int[] dim)
     {
-        if(curDim < dimensions.length-1)
-            for(int i = 0; i < dimensions[curDim+1]; i++ )
-            {
-                int[] nextDim = Arrays.copyOf(dim, dim.length);
-                nextDim[curDim+1] = i;
-                addSamples(curClass, curDim+1, samples, dataPoints, nextDim);
-            }
-        else//Add data points!
+        if(curDim < dimensions.length-1) {
+          for(int i = 0; i < dimensions[curDim+1]; i++ )
+          {
+            int[] nextDim = Arrays.copyOf(dim, dim.length);
+            nextDim[curDim+1] = i;
+            addSamples(curClass, curDim+1, samples, dataPoints, nextDim);
+          }
+        } else//Add data points!
         {
             for(int i = 0; i < samples; i++)
             {
                 DenseVector dv = new DenseVector(dim.length);
-                for(int j = 0; j < dim.length; j++)
-                    dv.set(j, dim[j]+noiseSource.invCdf(rand.nextDouble()));
+                for(int j = 0; j < dim.length; j++) {
+                  dv.set(j, dim[j]+noiseSource.invCdf(rand.nextDouble()));
+            }
                 dataPoints.add(new DataPoint(dv, new int[]{ curClass[0] }, catDataInfo));
             }
             curClass[0]++;
@@ -117,8 +120,9 @@ public class GridDataGenerator
     public SimpleDataSet generateData(int samples)
     {
         int totalClasses = 1;
-        for(int d : dimensions)
-            totalClasses *= d;
+        for(int d : dimensions) {
+          totalClasses *= d;
+        }
         catDataInfo = new CategoricalData[] { new CategoricalData(totalClasses) } ;
         List<DataPoint> dataPoints = new ArrayList<DataPoint>(totalClasses*samples);
         int[] curClassPointer = new int[1];

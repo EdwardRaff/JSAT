@@ -21,8 +21,9 @@ public class FbetaScore extends SimpleBinaryClassMetric
     public FbetaScore(double beta)
     {
         super();
-        if(beta <= 0 || Double.isInfinite(beta) || Double.isNaN(beta))
-            throw new IllegalArgumentException("beta must be in (0, inf), not " + beta);
+        if(beta <= 0 || Double.isInfinite(beta) || Double.isNaN(beta)) {
+          throw new IllegalArgumentException("beta must be in (0, inf), not " + beta);
+        }
         this.beta = beta;
     }
     

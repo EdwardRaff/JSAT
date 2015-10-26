@@ -34,8 +34,9 @@ public class BacktrackingArmijoLineSearch implements LineSearch
      */
     public BacktrackingArmijoLineSearch(double rho, double c1)
     {
-        if(!(rho > 0 && rho < 1))
-            throw new IllegalArgumentException("rho must be in (0,1), not " + rho);
+        if(!(rho > 0 && rho < 1)) {
+          throw new IllegalArgumentException("rho must be in (0,1), not " + rho);
+        }
         this.rho = rho;
         setC1(c1);
     }
@@ -47,8 +48,9 @@ public class BacktrackingArmijoLineSearch implements LineSearch
      */
     public void setC1(double c1)
     {
-        if(c1 <= 0 || c1 >= 0.5)
-            throw new IllegalArgumentException("c1 must be in (0, 1/2) not " + c1);
+        if(c1 <= 0 || c1 >= 0.5) {
+          throw new IllegalArgumentException("c1 must be in (0, 1/2) not " + c1);
+        }
         this.c1 = c1;
     }
 
@@ -70,20 +72,24 @@ public class BacktrackingArmijoLineSearch implements LineSearch
     @Override
     public double lineSearch(double alpha_max, Vec x_k, Vec x_grad, Vec p_k, Function f, FunctionVec fp, double f_x, double gradP, Vec x_alpha_pk, double[] fxApRet, Vec grad_x_alpha_pk, ExecutorService ex)
     {
-        if(Double.isNaN(f_x))
-            f_x = (ex != null && f instanceof FunctionP) ? ((FunctionP)f).f(x_k, ex): f.f(x_k);
-        if(Double.isNaN(gradP))
-            gradP = x_grad.dot(p_k);
+        if(Double.isNaN(f_x)) {
+          f_x = (ex != null && f instanceof FunctionP) ? ((FunctionP)f).f(x_k, ex): f.f(x_k);
+        }
+        if(Double.isNaN(gradP)) {
+          gradP = x_grad.dot(p_k);
+        }
         
         double alpha = alpha_max;
-        if(x_alpha_pk == null)
-            x_alpha_pk = x_k.clone();
-        else
-            x_k.copyTo(x_alpha_pk);
+        if(x_alpha_pk == null) {
+          x_alpha_pk = x_k.clone();
+        } else {
+          x_k.copyTo(x_alpha_pk);
+        }
         x_alpha_pk.mutableAdd(alpha, p_k);
         double f_xap = (ex != null && f instanceof FunctionP) ? ((FunctionP)f).f(x_alpha_pk, ex): f.f(x_alpha_pk);
-        if(fxApRet != null)
-            fxApRet[0] = f_xap;
+        if(fxApRet != null) {
+          fxApRet[0] = f_xap;
+        }
         double oldAlpha = 0;
         double oldF_xap = f_x;
         
@@ -134,13 +140,15 @@ public class BacktrackingArmijoLineSearch implements LineSearch
                 
             }
 
-            if(alpha < 1e-20)
-                return oldAlpha;
+            if(alpha < 1e-20) {
+              return oldAlpha;
+            }
             x_alpha_pk.mutableSubtract(oldAlpha - alpha, p_k);
             oldF_xap = f_xap;
             f_xap = (ex != null && f instanceof FunctionP) ? ((FunctionP)f).f(x_alpha_pk, ex): f.f(x_alpha_pk);
-            if(fxApRet != null)
-                fxApRet[0] = f_xap;
+            if(fxApRet != null) {
+              fxApRet[0] = f_xap;
+            }
         }
         
         return alpha;

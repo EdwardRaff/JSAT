@@ -71,8 +71,9 @@ public class E2LSHTest
             {
                 DenseVector newVec = new DenseVector(dim);
                 newVec.set(i, dim*dim);
-                for(int k = 0; k < newVec.length(); k++)
-                    newVec.increment(k, rand.nextDouble());
+                for(int k = 0; k < newVec.length(); k++) {
+                  newVec.increment(k, rand.nextDouble());
+                }
                 extraVecs.add(newVec);
             }
         }
@@ -84,8 +85,9 @@ public class E2LSHTest
         
         E2LSH<Vec> e2lsh = new E2LSH<Vec>(allVecs, dim, 0.1, 4, 5, 0.1, new EuclideanDistance());
         
-        for(Vec v : mainVecs)
-            assertEquals(dim+1, e2lsh.searchR(v).size());
+        for(Vec v : mainVecs) {
+          assertEquals(dim+1, e2lsh.searchR(v).size());
+        }
     }
 
 }

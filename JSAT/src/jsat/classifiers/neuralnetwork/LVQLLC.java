@@ -107,13 +107,15 @@ public class LVQLLC extends LVQ
     protected LVQLLC(LVQLLC toCopy)
     {
         super(toCopy);
-        if(toCopy.localClassifier != null)
-            this.localClassifier = toCopy.localClassifier.clone();
+        if(toCopy.localClassifier != null) {
+          this.localClassifier = toCopy.localClassifier.clone();
+        }
         if(toCopy.localClassifeirs != null)
         {
             this.localClassifeirs = new Classifier[toCopy.localClassifeirs.length];
-            for(int i = 0; i < this.localClassifeirs.length; i++)
-                this.localClassifeirs[i] = toCopy.localClassifeirs[i].clone();
+            for(int i = 0; i < this.localClassifeirs.length; i++) {
+              this.localClassifeirs[i] = toCopy.localClassifeirs[i].clone();
+            }
         }
     }
 
@@ -164,8 +166,9 @@ public class LVQLLC extends LVQ
             result.normalize();
             return result;
         }
-        else
-            return r1;
+        else {
+          return r1;
+        }
     }
 
     @Override
@@ -174,8 +177,9 @@ public class LVQLLC extends LVQ
         super.trainC(dataSet, threadPool);
         
         List<List<DataPointPair<Integer>>> listOfLocalPoints = new ArrayList<List<DataPointPair<Integer>>>(weights.length);
-        for (int i = 0; i < weights.length; i++)
-            listOfLocalPoints.add(new ArrayList<DataPointPair<Integer>>(wins[i] * 3 / 2));
+        for (int i = 0; i < weights.length; i++) {
+          listOfLocalPoints.add(new ArrayList<DataPointPair<Integer>>(wins[i] * 3 / 2));
+        }
         for (DataPointPair<Integer> dpp : dataSet.getAsDPPList())
         {
             Vec x = dpp.getVector();
@@ -206,8 +210,9 @@ public class LVQLLC extends LVQ
         localClassifeirs = new Classifier[weights.length];
         for(int i = 0; i < weights.length; i++)
         {
-            if(wins[i] == 0)
-                continue;
+            if(wins[i] == 0) {
+              continue;
+            }
             ClassificationDataSet localSet = new ClassificationDataSet(listOfLocalPoints.get(i), dataSet.getPredicting());
             if(wins[i] < 10)
             {

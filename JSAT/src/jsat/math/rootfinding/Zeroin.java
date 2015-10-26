@@ -60,13 +60,16 @@ public class Zeroin implements RootFinder
         args[pos] = b;
         double fb = f.f(args);
         
-        if(abs(fa-0) < 2*eps)
-            return a;
-        if(abs(fb-0) < 2*eps)
-            return b;
+        if(abs(fa-0) < 2*eps) {
+          return a;
+        }
+        if(abs(fb-0) < 2*eps) {
+          return b;
+        }
         
-        if(fa * fb >= 0)
-            throw new ArithmeticException("The given search interval does not appear to contain the root ");
+        if(fa * fb >= 0) {
+          throw new ArithmeticException("The given search interval does not appear to contain the root ");
+        }
         
         if(abs(fa) < abs(fb)) //swap
         {
@@ -113,8 +116,9 @@ public class Zeroin implements RootFinder
                 s = (a+b)/2;
                 mflag = true;
             }
-            else
-                mflag = false;
+            else {
+              mflag = false;
+            }
             
             args[pos] = s;
             fs = f.f(args);

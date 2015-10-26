@@ -122,10 +122,12 @@ public class LSSVM extends SupportVectorLearner implements BinaryScoreClassifier
         this.i_up = toCopy.i_up;
         this.i_low = toCopy.i_low;
         this.C = toCopy.C;
-        if(toCopy.alphas != null)
-            this.alphas = Arrays.copyOf(toCopy.alphas, toCopy.alphas.length);
-        if(toCopy.fcache != null)
-            this.fcache = Arrays.copyOf(toCopy.fcache, toCopy.fcache.length);
+        if(toCopy.alphas != null) {
+          this.alphas = Arrays.copyOf(toCopy.alphas, toCopy.alphas.length);
+        }
+        if(toCopy.fcache != null) {
+          this.fcache = Arrays.copyOf(toCopy.fcache, toCopy.fcache.length);
+        }
     }
     
 
@@ -137,8 +139,9 @@ public class LSSVM extends SupportVectorLearner implements BinaryScoreClassifier
     @WarmParameter(prefLowToHigh = true)
     public void setC(double C)
     {
-        if(C <= 0 || Double.isNaN(C) || Double.isInfinite(C))
-            throw new IllegalArgumentException("C must be in (0, Infty), not " + C);
+        if(C <= 0 || Double.isNaN(C) || Double.isInfinite(C)) {
+          throw new IllegalArgumentException("C must be in (0, Infty), not " + C);
+        }
         this.C = C;
     }
 
@@ -167,8 +170,9 @@ public class LSSVM extends SupportVectorLearner implements BinaryScoreClassifier
         
         final double eta = 2*k12-k11-k22;
         final double a2 = alph2-(F1-F2)/eta;
-        if(abs(a2-alph2) < epsilon*(a2+alph2+epsilon))
-            return false;
+        if(abs(a2-alph2) < epsilon*(a2+alph2+epsilon)) {
+          return false;
+        }
         final double a1 = gamma-a2;
         alphas[i1] = a1;
         alphas[i2] = a2;
@@ -277,8 +281,9 @@ public class LSSVM extends SupportVectorLearner implements BinaryScoreClassifier
         public Double call() throws Exception
         {
             double B = 0;
-            for(int i = from; i < to; i++)
-                B += fcache[i]-alphas[i]/C;
+            for(int i = from; i < to; i++) {
+              B += fcache[i]-alphas[i]/C;
+            }
             return B;
         }
     }
@@ -310,24 +315,28 @@ public class LSSVM extends SupportVectorLearner implements BinaryScoreClassifier
     {
         double gap = 0;
         //set b using (3.16) or (3.17)
-        if(fast)
-            b = (b_up+b_low)/2;
-        else
+        if(fast) {
+          b = (b_up+b_low)/2;
+        } else
         {
             b = 0;
             List<Future<Double>> bParts = new ArrayList<Future<Double>>(P);
-            for(int id = 0; id < P; id++)
-                bParts.add(ex.submit(new BiasGapCallable(getStartBlock(alphas.length, id, P), getEndBlock(alphas.length, id, P))));
-            for(Future<Double> bPart : bParts)
-                b += bPart.get();
+            for(int id = 0; id < P; id++) {
+              bParts.add(ex.submit(new BiasGapCallable(getStartBlock(alphas.length, id, P), getEndBlock(alphas.length, id, P))));
+          }
+            for(Future<Double> bPart : bParts) {
+              b += bPart.get();
+          }
             b /= alphas.length;
         }
         
         List<Future<Double>> gapParts = new ArrayList<Future<Double>>(P);
-        for (int id = 0; id < P; id++)
-            gapParts.add(ex.submit(new DualityGapCallable(getStartBlock(alphas.length, id, P), getEndBlock(alphas.length, id, P))));
-        for(Future<Double> gapPart : gapParts)
-            gap += gapPart.get();
+        for (int id = 0; id < P; id++) {
+          gapParts.add(ex.submit(new DualityGapCallable(getStartBlock(alphas.length, id, P), getEndBlock(alphas.length, id, P))));
+        }
+        for(Future<Double> gapPart : gapParts) {
+          gap += gapPart.get();
+        }
 
         return gap;
     }
@@ -339,8 +348,9 @@ public class LSSVM extends SupportVectorLearner implements BinaryScoreClassifier
         dualObjective = 0;
         if(warmSolution != null)
         {
-            if(warmSolution.alphas.length != this.alphas.length)
-                throw new FailedToFitException("Warm LS-SVM solution could not have been trained on the sama data, different number of alpha values present");
+            if(warmSolution.alphas.length != this.alphas.length) {
+              throw new FailedToFitException("Warm LS-SVM solution could not have been trained on the sama data, different number of alpha values present");
+            }
             double C_ratio = this.C/warmSolution.C;
             for(int i = 0; i < targets.length; i++)
             {
@@ -352,8 +362,9 @@ public class LSSVM extends SupportVectorLearner implements BinaryScoreClassifier
         }
         else
         {
-            for(int i = 0; i < targets.length; i++)
-                fcache[i] = -targets[i];
+            for(int i = 0; i < targets.length; i++) {
+              fcache[i] = -targets[i];
+            }
         }
         
         //Compute (i_low, b_low) and (i_up, b_up) using (3.4)
@@ -391,10 +402,11 @@ public class LSSVM extends SupportVectorLearner implements BinaryScoreClassifier
     public CategoricalResults classify(DataPoint data)
     {
         CategoricalResults cr = new CategoricalResults(2);
-        if(regress(data) > 0)
-            cr.setProb(1, 1.0);
-        else
-            cr.setProb(0, 1.0);
+        if(regress(data) > 0) {
+          cr.setProb(1, 1.0);
+        } else {
+          cr.setProb(0, 1.0);
+        }
         return cr;
     }
 
@@ -413,8 +425,9 @@ public class LSSVM extends SupportVectorLearner implements BinaryScoreClassifier
     @Override
     public void train(RegressionDataSet dataSet, Regressor warmSolution, ExecutorService threadPool)
     {
-        if(warmSolution != null && !(warmSolution instanceof LSSVM))
-            throw new FailedToFitException("Warm solution must be an implementation of LS-SVM, not " + warmSolution.getClass());
+        if(warmSolution != null && !(warmSolution instanceof LSSVM)) {
+          throw new FailedToFitException("Warm solution must be an implementation of LS-SVM, not " + warmSolution.getClass());
+        }
         double[] targets = dataSet.getTargetValues().arrayCopy();
         mainLoop(dataSet, (LSSVM)warmSolution, targets, threadPool);
     }
@@ -428,13 +441,16 @@ public class LSSVM extends SupportVectorLearner implements BinaryScoreClassifier
     @Override
     public void trainC(ClassificationDataSet dataSet, Classifier warmSolution, ExecutorService threadPool)
     {
-        if(dataSet.getClassSize() != 2)
-            throw new FailedToFitException("LS-SVM only supports binary classification problems");
-        if(warmSolution != null && !(warmSolution instanceof LSSVM))
-            throw new FailedToFitException("Warm solution must be an implementation of LS-SVM, not " + warmSolution.getClass());
+        if(dataSet.getClassSize() != 2) {
+          throw new FailedToFitException("LS-SVM only supports binary classification problems");
+        }
+        if(warmSolution != null && !(warmSolution instanceof LSSVM)) {
+          throw new FailedToFitException("Warm solution must be an implementation of LS-SVM, not " + warmSolution.getClass());
+        }
         double[] targets = new double[dataSet.getSampleSize()];
-        for(int i = 0; i < dataSet.getSampleSize(); i++)
-            targets[i] = dataSet.getDataPointCategory(i)*2-1;
+        for(int i = 0; i < dataSet.getSampleSize(); i++) {
+          targets[i] = dataSet.getDataPointCategory(i)*2-1;
+        }
         mainLoop(dataSet, (LSSVM) warmSolution , targets, threadPool);
     }
 
@@ -494,8 +510,9 @@ public class LSSVM extends SupportVectorLearner implements BinaryScoreClassifier
             ex = new FakeExecutor();
             P = 1;
         }
-        else
-            P = SystemInfo.LogicalCores;
+        else {
+          P = SystemInfo.LogicalCores;
+        }
         
         try
         {

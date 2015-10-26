@@ -41,9 +41,11 @@ public class MatrixOfVecs extends GenericMatrix
     {
         this.rows = new ArrayList<Vec>(rows);
         int cols = rows.get(0).length();
-        for(Vec v : rows)
-            if(cols != v.length())
-                throw new IllegalArgumentException("Row vectors must all be of the same length");
+        for(Vec v : rows) {
+          if (cols != v.length()) {
+            throw new IllegalArgumentException("Row vectors must all be of the same length");
+          }
+        }
     }
 
     /**
@@ -56,8 +58,9 @@ public class MatrixOfVecs extends GenericMatrix
     public MatrixOfVecs(int rows, int cols, boolean sparse)
     {
         this.rows = new ArrayList<Vec>(rows);
-        for(int i = 0; i < rows; i++)
-            this.rows.add(sparse ? new SparseVector(cols) : new DenseVector(cols));
+        for(int i = 0; i < rows; i++) {
+          this.rows.add(sparse ? new SparseVector(cols) : new DenseVector(cols));
+        }
     }
     
     @Override
@@ -69,8 +72,9 @@ public class MatrixOfVecs extends GenericMatrix
     @Override
     public void changeSize(int newRows, int newCols)
     {
-        if(newRows <= 0 || newCols <= 0)
-            throw new IllegalArgumentException("Rows and columns must be positive, new dimension of [" + newRows + "," + newCols + "] is invalid");
+        if(newRows <= 0 || newCols <= 0) {
+          throw new IllegalArgumentException("Rows and columns must be positive, new dimension of [" + newRows + "," + newCols + "] is invalid");
+        }
         //change cols first, add new rows of the correct size after
         if(newCols != cols())
         {
@@ -78,52 +82,57 @@ public class MatrixOfVecs extends GenericMatrix
             {
                 Vec orig = rows.get(i);
                 Vec newV = orig.isSparse() ? new SparseVector(newCols) : new DenseVector(newCols);
-                if(newCols < orig.length())
-                    new SubVector(0, newCols, orig).copyTo(newV);
-                else
-                    orig.copyTo(new SubVector(0, orig.length(), newV));
+                if(newCols < orig.length()) {
+                  new SubVector(0, newCols, orig).copyTo(newV);
+                } else {
+                  orig.copyTo(new SubVector(0, orig.length(), newV));
+                }
                 rows.set(i, newV);
             }
         }
         
-        if(newRows < rows())
-            rows.subList(newRows, rows()).clear();
-        else if(newRows > rows())
-            while(rows.size() <  newRows)
-            {
-                Vec newV = rows.get(rows.size()-1).clone();
-                newV.zeroOut();
-                rows.add(newV);
-            }
+        if(newRows < rows()) {
+          rows.subList(newRows, rows()).clear();
+        } else if(newRows > rows()) {
+          while(rows.size() <  newRows)
+          {
+            Vec newV = rows.get(rows.size()-1).clone();
+            newV.zeroOut();
+            rows.add(newV);
+          }
+        }
     }
 
     @Override
     public double get(int i, int j)
     {
-        if(i >= rows() || i < 0)
-            throw new IndexOutOfBoundsException("row " + i + " is not a valid index");
-        else if(j >= cols() || j < 0)
-            throw new IndexOutOfBoundsException("column " + j + " is not a valid index");
+        if(i >= rows() || i < 0) {
+          throw new IndexOutOfBoundsException("row " + i + " is not a valid index");
+        } else if(j >= cols() || j < 0) {
+          throw new IndexOutOfBoundsException("column " + j + " is not a valid index");
+        }
         return rows.get(i).get(j);
     }
 
     @Override
     public void set(int i, int j, double value)
     {
-        if(i >= rows() || i < 0)
-            throw new IndexOutOfBoundsException("row " + i + " is not a valid index");
-        else if(j >= cols() || j < 0)
-            throw new IndexOutOfBoundsException("column " + j + " is not a valid index");
+        if(i >= rows() || i < 0) {
+          throw new IndexOutOfBoundsException("row " + i + " is not a valid index");
+        } else if(j >= cols() || j < 0) {
+          throw new IndexOutOfBoundsException("column " + j + " is not a valid index");
+        }
         rows.get(i).set(j, value);
     }
 
     @Override
     public void increment(int i, int j, double value)
     {
-        if(i >= rows() || i < 0)
-            throw new IndexOutOfBoundsException("row " + i + " is not a valid index");
-        else if(j >= cols() || j < 0)
-            throw new IndexOutOfBoundsException("column " + j + " is not a valid index");
+        if(i >= rows() || i < 0) {
+          throw new IndexOutOfBoundsException("row " + i + " is not a valid index");
+        } else if(j >= cols() || j < 0) {
+          throw new IndexOutOfBoundsException("column " + j + " is not a valid index");
+        }
         rows.get(i).increment(j, value);
     }
 
@@ -142,8 +151,9 @@ public class MatrixOfVecs extends GenericMatrix
     @Override
     public Vec getRowView(int r)
     {
-        if(r >= rows() || r < 0)
-            throw new IndexOutOfBoundsException("row " + r + " is not a valid index");
+        if(r >= rows() || r < 0) {
+          throw new IndexOutOfBoundsException("row " + r + " is not a valid index");
+        }
         return rows.get(r);
     }
 
@@ -156,30 +166,34 @@ public class MatrixOfVecs extends GenericMatrix
     @Override
     public void mutableMultiply(double c)
     {
-        for(Vec row : rows)
-            row.mutableMultiply(c);
+        for(Vec row : rows) {
+          row.mutableMultiply(c);
+        }
     }
 
     @Override
     public void mutableAdd(double c)
     {
-        for(Vec row : rows)
-            row.mutableAdd(c);
+        for(Vec row : rows) {
+          row.mutableAdd(c);
+        }
     }
 
     @Override
     public void zeroOut()
     {
-        for(Vec row : rows)
-            row.zeroOut();
+        for(Vec row : rows) {
+          row.zeroOut();
+        }
     }
 
     @Override
     public MatrixOfVecs clone()
     {
         MatrixOfVecs clone = new MatrixOfVecs(rows);
-        for(int i = 0; i < clone.rows.size(); i++)
-            clone.rows.set(i, clone.rows.get(i).clone());
+        for(int i = 0; i < clone.rows.size(); i++) {
+          clone.rows.set(i, clone.rows.get(i).clone());
+        }
         return clone;
     }
     
@@ -187,9 +201,11 @@ public class MatrixOfVecs extends GenericMatrix
     @Override
     public boolean isSparce()
     {
-        for(Vec v : rows)//TODO probably keep this in a bool
-            if(v.isSparse())
-                return true;
+        for(Vec v : rows) {
+          if (v.isSparse()) {
+            return true;
+          }
+        }
         return false;
     }
     

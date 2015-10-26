@@ -77,12 +77,15 @@ public final class PoisonRunnable implements Runnable
     {
         try
         {
-            if(lastStep != null)
-                lastStep.run();
-            if(latch != null)
-                latch.countDown();
-            if(barrier != null)
-                barrier.await();
+            if(lastStep != null) {
+              lastStep.run();
+            }
+            if(latch != null) {
+              latch.countDown();
+            }
+            if(barrier != null) {
+              barrier.await();
+            }
         }
         catch (InterruptedException ex)
         {

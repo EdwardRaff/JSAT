@@ -115,8 +115,9 @@ public class IntList extends AbstractList<Integer> implements Serializable
     @Override
     public boolean add(Integer e)
     {
-        if(e == null)
-            return false;
+        if(e == null) {
+          return false;
+        }
         return add(e.intValue());
     }
     
@@ -139,8 +140,9 @@ public class IntList extends AbstractList<Integer> implements Serializable
 
     private void boundsCheck(int index) throws IndexOutOfBoundsException
     {
-        if(index >= end)
-            throw new IndexOutOfBoundsException("List of of size " + size() + ", index requested was " + index);
+        if(index >= end) {
+          throw new IndexOutOfBoundsException("List of of size " + size() + ", index requested was " + index);
+        }
     }
 
     @Override
@@ -152,20 +154,23 @@ public class IntList extends AbstractList<Integer> implements Serializable
     @Override
     public Integer remove(int index)
     {
-        if(index < 0 || index > size())
-            throw new IndexOutOfBoundsException("Can not remove invalid index " + index);
+        if(index < 0 || index > size()) {
+          throw new IndexOutOfBoundsException("Can not remove invalid index " + index);
+        }
         int removed = array[index];
         
-        for(int i = index; i < end-1; i++)
-            array[i] = array[i+1];
+        for(int i = index; i < end-1; i++) {
+          array[i] = array[i+1];
+        }
         end--;
         return removed;
     }
 
     private void enlargeIfNeeded(int i)
     {
-        while(end+i > array.length)
-            array = Arrays.copyOf(array, Math.max(array.length*2, 8));
+        while(end+i > array.length) {
+          array = Arrays.copyOf(array, Math.max(array.length*2, 8));
+        }
     }
     
     /**
@@ -195,8 +200,9 @@ public class IntList extends AbstractList<Integer> implements Serializable
      */
     public static IntList view(int[] array, int length)
     {
-        if(length > array.length || length < 0)
-            throw new IllegalArgumentException("length must be non-negative and no more than the size of the array("+array.length+"), not " + length);
+        if(length > array.length || length < 0) {
+          throw new IllegalArgumentException("length must be non-negative and no more than the size of the array("+array.length+"), not " + length);
+        }
         return new IntList(array, length);
     }
 }

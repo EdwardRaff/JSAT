@@ -44,8 +44,9 @@ public class NHERDTest
             NHERD nherd0 = new NHERD(1, mode);
             nherd0.trainC(train);
             
-            for (DataPointPair<Integer> dpp : test.getAsDPPList())
-                assertEquals(dpp.getPair().longValue(), nherd0.classify(dpp.getDataPoint()).mostLikely());
+            for (DataPointPair<Integer> dpp : test.getAsDPPList()) {
+              assertEquals(dpp.getPair().longValue(), nherd0.classify(dpp.getDataPoint()).mostLikely());
+            }
         }
 
     }

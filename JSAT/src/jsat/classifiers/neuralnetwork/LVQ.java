@@ -170,14 +170,16 @@ public class LVQ implements Classifier, Parameterized
             weights = new Vec[toCopy.weights.length];
             weightClass = Arrays.copyOf(toCopy.weightClass, toCopy.weightClass.length);
 
-            for(int i = 0; i < toCopy.weights.length; i++)
-                this.weights[i] = toCopy.weights[i].clone();
+            for(int i = 0; i < toCopy.weights.length; i++) {
+              this.weights[i] = toCopy.weights[i].clone();
+            }
         }
         setEpsilonDistance(toCopy.eps);
         setMScale(toCopy.getMScale());
         setSeedSelection(toCopy.getSeedSelection());
-        if(toCopy.vc != null)
-            this.vc = toCopy.vc.clone();
+        if(toCopy.vc != null) {
+          this.vc = toCopy.vc.clone();
+        }
         setVecCollectionFactory(toCopy.vcf.clone());
         
     }
@@ -193,8 +195,9 @@ public class LVQ implements Classifier, Parameterized
      */
     public void setMScale(double mScale)
     {
-        if(mScale <= 0 || Double.isInfinite(mScale) || Double.isNaN(mScale))
-            throw new ArithmeticException("Scale factor must be a positive constant, not " + mScale);
+        if(mScale <= 0 || Double.isInfinite(mScale) || Double.isNaN(mScale)) {
+          throw new ArithmeticException("Scale factor must be a positive constant, not " + mScale);
+        }
         this.mScale = mScale;
     }
 
@@ -218,8 +221,9 @@ public class LVQ implements Classifier, Parameterized
      */
     public void setEpsilonDistance(double eps)
     {
-        if(eps <= 0 || Double.isInfinite(eps) || Double.isNaN(eps))
-            throw new ArithmeticException("eps factor must be a positive constant, not " + eps);
+        if(eps <= 0 || Double.isInfinite(eps) || Double.isNaN(eps)) {
+          throw new ArithmeticException("eps factor must be a positive constant, not " + eps);
+        }
         this.eps = eps;
     }
 
@@ -243,8 +247,9 @@ public class LVQ implements Classifier, Parameterized
      */
     public void setLearningRate(double learningRate)
     {
-        if(learningRate <= 0 || Double.isInfinite(learningRate) || Double.isNaN(learningRate))
-            throw new ArithmeticException("learning rate must be a positive constant, not " + learningRate);
+        if(learningRate <= 0 || Double.isInfinite(learningRate) || Double.isNaN(learningRate)) {
+          throw new ArithmeticException("learning rate must be a positive constant, not " + learningRate);
+        }
         this.learningRate = learningRate;
     }
 
@@ -284,8 +289,9 @@ public class LVQ implements Classifier, Parameterized
      */
     public void setIterations(int iterations)
     {
-        if(iterations < 0)
-            throw new ArithmeticException("Can not perform a negative number of iterations");
+        if(iterations < 0) {
+          throw new ArithmeticException("Can not perform a negative number of iterations");
+        }
         this.iterations = iterations;
     }
 
@@ -368,8 +374,9 @@ public class LVQ implements Classifier, Parameterized
      */
     public void setStoppingDist(double stoppingDist)
     {
-        if(stoppingDist < 0 || Double.isInfinite(stoppingDist) || Double.isNaN(stoppingDist))
-            throw new ArithmeticException("stopping dist must be a zero or positive constant, not " + stoppingDist);
+        if(stoppingDist < 0 || Double.isInfinite(stoppingDist) || Double.isNaN(stoppingDist)) {
+          throw new ArithmeticException("stopping dist must be a zero or positive constant, not " + stoppingDist);
+        }
         this.stoppingDist = stoppingDist;
     }
 
@@ -477,10 +484,11 @@ public class LVQ implements Classifier, Parameterized
     @Override
     public void trainC(ClassificationDataSet dataSet, ExecutorService threadPool)
     {
-        if(threadPool == null || threadPool instanceof FakeExecutor)
-            TrainableDistanceMetric.trainIfNeeded(dm, dataSet);
-        else
-            TrainableDistanceMetric.trainIfNeeded(dm, dataSet, threadPool);
+        if(threadPool == null || threadPool instanceof FakeExecutor) {
+          TrainableDistanceMetric.trainIfNeeded(dm, dataSet);
+        } else {
+          TrainableDistanceMetric.trainIfNeeded(dm, dataSet, threadPool);
+        }
         Random rand = new Random();
         int classCount = dataSet.getPredicting().getNumOfCategories();
         weights = new Vec[classCount*representativesPerClass];
@@ -497,8 +505,9 @@ public class LVQ implements Classifier, Parameterized
             List<DataPoint> origSubList = dataSet.getSamples(curClass);
             List<DataPointPair<Integer>> subList =
                     new ArrayList<DataPointPair<Integer>>(origSubList.size());
-            for(DataPoint dp : origSubList)
-                subList.add(new DataPointPair<Integer>(dp, curClass));
+            for(DataPoint dp : origSubList) {
+              subList.add(new DataPointPair<Integer>(dp, curClass));
+            }
             ClassificationDataSet subSet = 
                     new ClassificationDataSet(subList, dataSet.getPredicting());
             List<Vec> classSeeds = 
@@ -516,8 +525,9 @@ public class LVQ implements Classifier, Parameterized
 
         for(int iteration = 0; iteration < iterations; iteration++)
         {
-            for(int j = 0; j < weights.length; j++)
-                weights[j].copyTo(weightsPrev[j]);
+            for(int j = 0; j < weights.length; j++) {
+              weights[j].copyTo(weightsPrev[j]);
+            }
             Arrays.fill(wins, 0);
             double alpha = learningDecay.rate(iteration, iterations, learningRate);
             for(int i = 0; i < dataSet.getSampleSize(); i++)
@@ -606,23 +616,29 @@ public class LVQ implements Classifier, Parameterized
             }
             //Check for early convergence
             boolean stopEarly = true;
-            for(int j = 0; j < weights.length; j++)
-                if(stopEarly && dm.dist(weights[j], weightsPrev[j]) > stoppingDist)
-                    stopEarly = false;
-            if(stopEarly)
-                break;
+            for(int j = 0; j < weights.length; j++) {
+              if (stopEarly && dm.dist(weights[j], weightsPrev[j]) > stoppingDist) {
+                stopEarly = false;
+              }
+            }
+            if(stopEarly) {
+              break;
+            }
         }
         
         List<VecPaired<Vec, Integer>> finalLVs = new ArrayList<VecPaired<Vec, Integer>>(weights.length);
-        for(int i = 0; i < weights.length; i++)
-            if(wins[i] == 0)
-                continue;
-            else
-                finalLVs.add(new VecPaired<Vec, Integer>(weights[i], i));
-        if(threadPool == null || threadPool instanceof FakeExecutor)
-            vc = vcf.getVectorCollection(finalLVs, dm);
-        else
-            vc = vcf.getVectorCollection(finalLVs, dm, threadPool);
+        for(int i = 0; i < weights.length; i++) {
+          if (wins[i] == 0) {
+            continue;
+          } else {
+            finalLVs.add(new VecPaired<Vec, Integer>(weights[i], i));
+          }
+        }
+        if(threadPool == null || threadPool instanceof FakeExecutor) {
+          vc = vcf.getVectorCollection(finalLVs, dm);
+        } else {
+          vc = vcf.getVectorCollection(finalLVs, dm, threadPool);
+        }
     }
 
     @Override

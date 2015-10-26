@@ -67,8 +67,9 @@ public class FastMath
      */
     public static double log2_2pd1(double x)
     {
-        if(x < 0)
-            return Double.NaN;
+        if(x < 0) {
+          return Double.NaN;
+        }
         long rawBits = doubleToLongBits(x);
         long mantissa = getMantissa(rawBits);
         int e = Math.getExponent(x);
@@ -100,8 +101,9 @@ public class FastMath
      */
     public static double log2_c11(double x)
     {
-        if(x < 0)
-            return Double.NaN;
+        if(x < 0) {
+          return Double.NaN;
+        }
         long rawBits = doubleToLongBits(x);
         long mantissa = getMantissa(rawBits);
         int e = Math.getExponent(x);
@@ -116,10 +118,12 @@ public class FastMath
      */
     public static double pow2(int x)
     {
-        if(x > Double.MAX_EXPONENT)
-            return Double.POSITIVE_INFINITY;
-        if(x < Double.MIN_EXPONENT)
-            return 0;
+        if(x > Double.MAX_EXPONENT) {
+          return Double.POSITIVE_INFINITY;
+        }
+        if(x < Double.MIN_EXPONENT) {
+          return 0;
+        }
         return longBitsToDouble((x+1023L)<<52);
     }
     
@@ -133,13 +137,14 @@ public class FastMath
      */
     public static double pow2(double x)
     {
-        if(x > Double.MAX_EXPONENT)
-            return Double.POSITIVE_INFINITY;
-        else if(x < Double.MIN_EXPONENT)
-            return 0;
-        else if(x < 0)
-            return 1.0/pow2(-x);
-        //x is positive at this point
+        if(x > Double.MAX_EXPONENT) {
+          return Double.POSITIVE_INFINITY;
+        } else if(x < Double.MIN_EXPONENT) {
+          return 0;
+        } else if(x < 0) {
+          return 1.0/pow2(-x);
+          //x is positive at this point
+        }
 
         double floorXd = Math.floor(x);
         int floorX = (int) floorXd;
@@ -169,8 +174,9 @@ public class FastMath
          * m & e are by IEEE defintion positive 
          */
 
-        if (b < 0)
-            return 1 / pow(a, -b);//b is now made positive
+        if (b < 0) {
+          return 1 / pow(a, -b);//b is now made positive
+        }
 
         long rawBits_a = doubleToLongBits(a);
         long mantissa_a = getMantissa(rawBits_a);
@@ -204,12 +210,13 @@ public class FastMath
      */
     public static double digamma(double x)
     {
-        if(x == 0)
-            return Double.NaN;//complex infinity
-        else if(x < 0)//digamma(1-x) == digamma(x)+pi/tan(pi*x), to make x positive
+        if(x == 0) {
+          return Double.NaN;//complex infinity
+        } else if(x < 0)//digamma(1-x) == digamma(x)+pi/tan(pi*x), to make x positive
         {
-            if(Math.rint(x) == x)
-                return Double.NaN;//the zeros are complex infinity
+            if(Math.rint(x) == x) {
+              return Double.NaN;//the zeros are complex infinity
+          }
             return digamma(1-x)-PI/tan(PI*x); 
         }
         

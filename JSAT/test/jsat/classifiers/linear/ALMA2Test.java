@@ -62,8 +62,9 @@ public class ALMA2Test
         
         ClassificationDataSet test = FixedProblems.get2ClassLinear(200, new Random());
         
-        for(DataPointPair<Integer> dpp : test.getAsDPPList())
-            assertEquals(dpp.getPair().longValue(), alma.classify(dpp.getDataPoint()).mostLikely());
+        for(DataPointPair<Integer> dpp : test.getAsDPPList()) {
+          assertEquals(dpp.getPair().longValue(), alma.classify(dpp.getDataPoint()).mostLikely());
+        }
         
     }
 

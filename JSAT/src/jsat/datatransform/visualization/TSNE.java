@@ -87,8 +87,9 @@ public class TSNE implements VisualizationTransform
      */
     public void setAlpha(double alpha)
     {
-        if(alpha <= 0 || Double.isNaN(alpha) || Double.isInfinite(alpha))
-            throw new IllegalArgumentException("alpha must be positive, not " + alpha);
+        if(alpha <= 0 || Double.isNaN(alpha) || Double.isInfinite(alpha)) {
+          throw new IllegalArgumentException("alpha must be positive, not " + alpha);
+        }
         this.alpha = alpha;
     }
 
@@ -113,8 +114,9 @@ public class TSNE implements VisualizationTransform
      */
     public void setPerplexity(double perplexity)
     {
-        if(perplexity <= 0 || Double.isNaN(perplexity) || Double.isInfinite(perplexity))
-            throw new IllegalArgumentException("perplexity must be positive, not " + perplexity);
+        if(perplexity <= 0 || Double.isNaN(perplexity) || Double.isInfinite(perplexity)) {
+          throw new IllegalArgumentException("perplexity must be positive, not " + perplexity);
+        }
         this.perplexity = perplexity;
     }
 
@@ -133,8 +135,9 @@ public class TSNE implements VisualizationTransform
      */
     public void setIterations(int T)
     {
-        if(T <= 1)
-            throw new IllegalArgumentException("number of iterations must be positive, not " + T);
+        if(T <= 1) {
+          throw new IllegalArgumentException("number of iterations must be positive, not " + T);
+        }
         this.T = T;
     }
 
@@ -174,8 +177,9 @@ public class TSNE implements VisualizationTransform
         final VPTreeMV<Vec> vp = new VPTreeMV<Vec>(vecs, dm, VPTree.VPSelection.Random, rand, 2, 1, ex);
         
         final List<List<? extends VecPaired<Vec, Double>>> neighbors = new ArrayList<List<? extends VecPaired<Vec, Double>>>(N);
-        for(int i = 0; i < N; i++)
-            neighbors.add(null);
+        for(int i = 0; i < N; i++) {
+          neighbors.add(null);
+        }
         
         /**
          * Each row is the set of 3*u indices returned by the NN search
@@ -186,8 +190,9 @@ public class TSNE implements VisualizationTransform
         {
             //Used to map vecs back to their index so we can store only the ones we need in nearMe
             final IdentityHashMap<Vec, Integer> vecIndex = new IdentityHashMap<Vec, Integer>(N);
-            for(int i = 0; i < N; i++)
-                vecIndex.put(vecs.get(i), i);
+            for(int i = 0; i < N; i++) {
+              vecIndex.put(vecs.get(i), i);
+            }
         
             final CountDownLatch latch = new CountDownLatch(SystemInfo.LogicalCores);
         
@@ -204,8 +209,9 @@ public class TSNE implements VisualizationTransform
                             Vec x_i = vecs.get(i);
                             List<? extends VecPaired<Vec, Double>> closest = vp.search(x_i, knn+1);//+1 b/c self is closest
                             neighbors.set(i, closest);
-                            for (int j = 1; j < closest.size(); j++)
-                                nearMe[i][j - 1] = vecIndex.get(closest.get(j).getVector());
+                            for (int j = 1; j < closest.size(); j++) {
+                              nearMe[i][j - 1] = vecIndex.get(closest.get(j).getVector());
+                            }
                         }
                         latch.countDown();
                     }
@@ -372,8 +378,9 @@ public class TSNE implements VisualizationTransform
                             local_Z += computeF_rep(qt.root, i, y, workSpace);
 
                             //should be multiplied by 4, rolling it into the normalization by Z after
-                            for (int k = 0; k < s; k++)
-                                inc_z_ij(workSpace[k], i, k, y_grad, s);
+                            for (int k = 0; k < s; k++) {
+                              inc_z_ij(workSpace[k], i, k, y_grad, s);
+                            }
                         }
                         Z.addAndGet(local_Z);
                         latch_g0.countDown();
@@ -392,8 +399,9 @@ public class TSNE implements VisualizationTransform
             
             //normalize by Z
             final double zNorm = 4.0/(Z.get()+1e-13);
-            for(int i = 0; i < y.length; i++)
-                y_grad[i] *= zNorm;
+            for(int i = 0; i < y.length; i++) {
+              y_grad[i] *= zNorm;
+            }
             
             //This second loops computes the F_attr forces
             final CountDownLatch latch_g1 = new CountDownLatch(SystemInfo.LogicalCores);
@@ -413,11 +421,13 @@ public class TSNE implements VisualizationTransform
                             for(int j_indx = 0; j_indx < knn; j_indx ++) //O(u)
                             {
                                 int j = nearMe[i][j_indx];
-                                if(i == j)//this should never happen b/c we skipped that when creating nearMe
-                                    continue;
+                                if(i == j) {//this should never happen b/c we skipped that when creating nearMe
+                                  continue;
+                                }
                                 double pij = nearMePij[i][j_indx];
-                                if(ITER < T*exageratedPortion)
-                                    pij *= alpha;
+                                if(ITER < T*exageratedPortion) {
+                                  pij *= alpha;
+                                }
                                 double cnst = pij*q_ijZ(i, j, y, s)*4;
 
                                 for(int k = 0; k < s; k++)
@@ -451,8 +461,9 @@ public class TSNE implements VisualizationTransform
         DataSet<Type> transformed = d.shallowClone();
         
         final IdentityHashMap<DataPoint, Integer> indexMap = new IdentityHashMap<DataPoint, Integer>(N);
-        for(int i = 0; i < N; i++)
-            indexMap.put(d.getDataPoint(i), i);
+        for(int i = 0; i < N; i++) {
+          indexMap.put(d.getDataPoint(i), i);
+        }
         
         transformed.applyTransform(new DataTransform()
         {
@@ -462,8 +473,9 @@ public class TSNE implements VisualizationTransform
             {
                 int i = indexMap.get(dp);
                 DenseVector dv = new DenseVector(s);
-                for(int k = 0; k < s; k++)
-                    dv.set(k, y[i*2+k]);
+                for(int k = 0; k < s; k++) {
+                  dv.set(k, y[i*2+k]);
+                }
                 
                 return new DataPoint(dv, dp.getCategoricalValues(), dp.getCategoricalData(), dp.getWeight());
             }
@@ -489,8 +501,9 @@ public class TSNE implements VisualizationTransform
      */
     private double computeF_rep(Quadtree.Node node, int i, double[] z, double[] workSpace)
     {
-        if(node == null || node.N_cell == 0 || node.indx == i)
-            return 0;
+        if(node == null || node.N_cell == 0 || node.indx == i) {
+          return 0;
+        }
         /*
          * Original paper says to use the diagonal divided by the squared 2 
          * norm. This dosn't seem to work at all. Tried some different ideas 
@@ -509,8 +522,9 @@ public class TSNE implements VisualizationTransform
 
         if(node.NW == null || r_cell < theta*dot)//good enough! 
         {
-            if(node.indx == i)
-                return 0;
+            if(node.indx == i) {
+              return 0;
+            }
             
             double Z = 1.0/(1.0 + dot);
             double q_cell_Z_sqrd = -node.N_cell*(Z*Z);
@@ -522,8 +536,9 @@ public class TSNE implements VisualizationTransform
         else//further subdivide
         {
             double Z_sum = 0;
-            for(Quadtree.Node child : node)
-                Z_sum += computeF_rep(child, i, z, workSpace);
+            for(Quadtree.Node child : node) {
+              Z_sum += computeF_rep(child, i, z, workSpace);
+            }
             return Z_sum;
         }
     }
@@ -580,8 +595,9 @@ public class TSNE implements VisualizationTransform
          * "Because we are only interested in modeling pairwise similarities, we
          * set the value of pi|i to zero" from Visualizing Data using t-SNE
          */
-        if(i == j)
-            return 0;
+        if(i == j) {
+          return 0;
+        }
         //nearest is self, use taht to get indexed values
         Vec x_j = neighbors.get(j).get(0).getVector();
 //        Vec x_i = neighbors.get(i).get(0).getVector();
@@ -635,8 +651,9 @@ public class TSNE implements VisualizationTransform
         {
             double p_ji = p_j_i(nearMe[i][j_indx], i, sigma, neighbors, vecs, accelCache);
 
-            if (p_ji > 0)
-                hp += p_ji * FastMath.log2(p_ji);
+            if (p_ji > 0) {
+              hp += p_ji * FastMath.log2(p_ji);
+            }
         }
         hp *= -1;
         
@@ -669,8 +686,9 @@ public class TSNE implements VisualizationTransform
             this.root.maxY = Math.nextUp(this.root.maxY);
             
             //nowe start inserting everything
-            for(int i = 0; i < z.length/2; i++)
-                root.insert(1, i, z);
+            for(int i = 0; i < z.length/2; i++) {
+              root.insert(1, i, z);
+            }
         }
         
         
@@ -714,9 +732,9 @@ public class TSNE implements VisualizationTransform
                 x_mass += z[i*2];
                 y_mass += z[i*2+1];
                 N_cell+=weight;
-                if(NW == null && indx < 0)//was empy, just set
-                    indx = i;
-                else
+                if(NW == null && indx < 0) {//was empy, just set
+                  indx = i;
+                } else
                 {
                     if(indx >=0)
                     {
@@ -738,21 +756,23 @@ public class TSNE implements VisualizationTransform
                         SW = new Node(minX,       minX + w2,  minY,       minY + h2);
                         SE = new Node(minX + w2,  maxX,       minY,       minY + h2);
 
-                        for(Node child : this)
-                            if(child.contains(this.indx, z))
-                            {
-                                child.insert(this.N_cell, this.indx, z);
-                                break;
-                            }
+                        for(Node child : this) {
+                          if(child.contains(this.indx, z))
+                          {
+                            child.insert(this.N_cell, this.indx, z);
+                            break;
+                          }
+                    }
                         indx = -1;
                     }
                     //and pass this along to our children
-                    for(Node child : this)
-                        if(child.contains(i, z))
-                        {
-                            child.insert(weight, i, z);
-                            break;
-                        }
+                    for(Node child : this) {
+                      if(child.contains(i, z))
+                      {
+                        child.insert(weight, i, z);
+                        break;
+                      }
+                  }
                     
                 }
             }
@@ -767,10 +787,11 @@ public class TSNE implements VisualizationTransform
             @Override
             public Iterator<Node> iterator()
             {
-                if(NW == null)
-                    return Collections.emptyIterator();
-                else
-                    return Arrays.asList(NW, NE, SW, SE).iterator();
+                if(NW == null) {
+                  return Collections.emptyIterator();
+                } else {
+                  return Arrays.asList(NW, NE, SW, SE).iterator();
+                }
             }
             
         }

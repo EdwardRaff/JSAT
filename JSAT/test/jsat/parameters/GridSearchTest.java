@@ -67,16 +67,20 @@ public class GridSearchTest
     public void setUp()
     {
         classData = new ClassificationDataSet(1, new CategoricalData[0], new CategoricalData(2));
-        for(int i = 0; i < 100; i++)
-            classData.addDataPoint(DenseVector.toDenseVec(1.0*i), 0);
-        for(int i = 0; i < 100; i++)
-            classData.addDataPoint(DenseVector.toDenseVec(-1.0*i), 1);
+        for(int i = 0; i < 100; i++) {
+          classData.addDataPoint(DenseVector.toDenseVec(1.0*i), 0);
+        }
+        for(int i = 0; i < 100; i++) {
+          classData.addDataPoint(DenseVector.toDenseVec(-1.0*i), 1);
+        }
         
         regData = new RegressionDataSet(1, new CategoricalData[0]);
-        for(int i = 0; i < 100; i++)
-            regData.addDataPoint(DenseVector.toDenseVec(1.0*i), 0);
-        for(int i = 0; i < 100; i++)
-            regData.addDataPoint(DenseVector.toDenseVec(-1.0*i), 1);
+        for(int i = 0; i < 100; i++) {
+          regData.addDataPoint(DenseVector.toDenseVec(1.0*i), 0);
+        }
+        for(int i = 0; i < 100; i++) {
+          regData.addDataPoint(DenseVector.toDenseVec(-1.0*i), 1);
+        }
         
     }
     
@@ -361,9 +365,11 @@ public class GridSearchTest
         {
             //range check done so that RandomSearch can re-use this class for its own test
             boolean param2InRange = 1.5 < param2 && param2 < 2.5;
-            if(param1 == 1 && param2InRange && param3 == 3)
-                if(data.getNumericalValues().get(0) < 0)
-                    return new CategoricalResults(new double[]{0.0, 1.0});
+            if(param1 == 1 && param2InRange && param3 == 3) {
+              if (data.getNumericalValues().get(0) < 0) {
+                return new CategoricalResults(new double[]{0.0, 1.0});
+              }
+            }
             return new CategoricalResults(new double[]{1.0, 0.0});
         }
 
@@ -402,9 +408,11 @@ public class GridSearchTest
         {
             //range check done so that RandomSearch can re-use this class for its own test
             boolean param2InRange = 1.5 < param2 && param2 < 2.5;
-            if(param1 == 1 && param2InRange && param3 == 3)
-                if (data.getNumericalValues().get(0) < 0)
-                    return 1;
+            if(param1 == 1 && param2InRange && param3 == 3) {
+              if (data.getNumericalValues().get(0) < 0) {
+                return 1;
+              }
+            }
             return 0;
         }
 

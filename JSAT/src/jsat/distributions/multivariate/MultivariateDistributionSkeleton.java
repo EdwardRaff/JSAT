@@ -32,8 +32,9 @@ public abstract class MultivariateDistributionSkeleton implements MultivariateDi
     public double logPdf(Vec x)
     {
         double logPDF = Math.log(pdf(x));
-        if(Double.isInfinite(logPDF) && logPDF < 0)//log(0) == -Infinty
-            return -Double.MAX_VALUE;
+        if(Double.isInfinite(logPDF) && logPDF < 0) {//log(0) == -Infinty
+          return -Double.MAX_VALUE;
+        }
         return logPDF;
     }
     

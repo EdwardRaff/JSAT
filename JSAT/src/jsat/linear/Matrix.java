@@ -149,9 +149,9 @@ public abstract class Matrix implements Cloneable, Serializable
      */
     private Matrix getThisSideMatrix(Matrix B)
     {
-        if(this.canBeMutated())
-            return this.clone();
-        else//so far, only other option in JSAT is a dense matrix
+        if(this.canBeMutated()) {
+          return this.clone();
+        } else//so far, only other option in JSAT is a dense matrix
         {
             DenseMatrix dm = new DenseMatrix(rows(), cols());
             dm.mutableAdd(this);
@@ -548,8 +548,9 @@ public abstract class Matrix implements Cloneable, Serializable
      */
     public void increment(int i, int j, double value)
     {
-        if(Double.isNaN(value) || Double.isInfinite(value))
-            throw new ArithmeticException("Can not add a value " + value);
+        if(Double.isNaN(value) || Double.isInfinite(value)) {
+          throw new ArithmeticException("Can not add a value " + value);
+        }
         set(i, j, get(i, j)+value);
     }
     
@@ -609,11 +610,13 @@ public abstract class Matrix implements Cloneable, Serializable
      */
     public Vec getColumn(int j)
     {
-        if(j < 0 || j >= cols())
-            throw new ArithmeticException("Column was not a valid value " + j + " not in [0," + (cols()-1) + "]");
+        if(j < 0 || j >= cols()) {
+          throw new ArithmeticException("Column was not a valid value " + j + " not in [0," + (cols()-1) + "]");
+        }
         DenseVector c = new DenseVector(rows());
-        for(int i =0; i < rows(); i++)
-            c.set(i, get(i, j));
+        for(int i =0; i < rows(); i++) {
+          c.set(i, get(i, j));
+        }
         return c;
     }
     
@@ -662,10 +665,11 @@ public abstract class Matrix implements Cloneable, Serializable
             @Override
             public Vec clone()
             {
-                if(M.isSparce())
-                    return new SparseVector(this);
-                else
-                    return new DenseVector(this);
+                if(M.isSparce()) {
+                  return new SparseVector(this);
+                } else {
+                  return new DenseVector(this);
+                }
             }
         };
     }
@@ -678,11 +682,13 @@ public abstract class Matrix implements Cloneable, Serializable
      */
     public Vec getRow(int r)
     {
-        if(r < 0 || r >= rows())
-            throw new ArithmeticException("Row was not a valid value " + r + " not in [0," + (rows()-1) + "]");
+        if(r < 0 || r >= rows()) {
+          throw new ArithmeticException("Row was not a valid value " + r + " not in [0," + (rows()-1) + "]");
+        }
         DenseVector c = new DenseVector(cols());
-        for(int j =0; j < cols(); j++)
-            c.set(j, get(r, j));
+        for(int j =0; j < cols(); j++) {
+          c.set(j, get(r, j));
+        }
         return c;
     }
     
@@ -732,10 +738,11 @@ public abstract class Matrix implements Cloneable, Serializable
             @Override
             public Vec clone()
             {
-                if(M.isSparce())
-                    return new SparseVector(this);
-                else
-                    return new DenseVector(this);
+                if(M.isSparce()) {
+                  return new SparseVector(this);
+                } else {
+                  return new DenseVector(this);
+                }
             }
         };
     }
@@ -790,17 +797,22 @@ public abstract class Matrix implements Cloneable, Serializable
     @Override
     public boolean equals(Object obj)
     {
-        if(obj == null || !(obj instanceof Matrix))
-            return false;
+        if(obj == null || !(obj instanceof Matrix)) {
+          return false;
+        }
         Matrix that = (Matrix) obj;
         
-        if(this.rows() != that.rows() || this.cols() != that.cols())
-            return false;
+        if(this.rows() != that.rows() || this.cols() != that.cols()) {
+          return false;
+        }
         
-        for(int i = 0; i < rows(); i++)
-            for(int j = 0; j < cols(); j++)
-                if(this.get(i, j) != that.get(i, j))
-                    return false;
+        for(int i = 0; i < rows(); i++) {
+          for (int j = 0; j < cols(); j++) {
+            if (this.get(i, j) != that.get(i, j)) {
+              return false;
+            }
+          }
+        }
         
         return true;
     }
@@ -817,17 +829,22 @@ public abstract class Matrix implements Cloneable, Serializable
      */
     public boolean equals(Object obj, double range)
     {
-        if(obj == null || !(obj instanceof Matrix))
-            return false;
+        if(obj == null || !(obj instanceof Matrix)) {
+          return false;
+        }
         Matrix that = (Matrix) obj;
         
-        if(this.rows() != that.rows() || this.cols() != that.cols())
-            return false;
+        if(this.rows() != that.rows() || this.cols() != that.cols()) {
+          return false;
+        }
         
-        for(int i = 0; i < rows(); i++)
-            for(int j = 0; j < cols(); j++)
-                if(Math.abs(this.get(i, j)-that.get(i, j)) > range)
-                    return false;
+        for(int i = 0; i < rows(); i++) {
+          for (int j = 0; j < cols(); j++) {
+            if (Math.abs(this.get(i, j)-that.get(i, j)) > range) {
+              return false;
+            }
+          }
+        }
         
         return true;
     }
@@ -843,10 +860,12 @@ public abstract class Matrix implements Cloneable, Serializable
      */
     public void copyTo(Matrix other)
     {
-        if (this.rows() != other.rows() || this.cols() != other.cols())
-            throw new ArithmeticException("Matrices are not of the same dimension");
-        for(int i = 0; i < rows(); i++)
-            this.getRowView(i).copyTo(other.getRowView(i));
+        if (this.rows() != other.rows() || this.cols() != other.cols()) {
+          throw new ArithmeticException("Matrices are not of the same dimension");
+        }
+        for(int i = 0; i < rows(); i++) {
+          this.getRowView(i).copyTo(other.getRowView(i));
+        }
     }
     
     /**
@@ -858,14 +877,18 @@ public abstract class Matrix implements Cloneable, Serializable
      */
     public void updateRow(int i, double c, Vec b)
     {
-        if(b.length() != this.cols())
-            throw new ArithmeticException("vector is not of the same column length");
-        if (b.isSparse())
-            for (IndexValue iv : b)
-                this.increment(i, iv.getIndex(), c * iv.getValue());
-        else
-            for (int j = 0; j < b.length(); j++)
-                this.increment(i, j, c * b.get(j));
+        if(b.length() != this.cols()) {
+          throw new ArithmeticException("vector is not of the same column length");
+        }
+        if (b.isSparse()) {
+          for (IndexValue iv : b) {
+            this.increment(i, iv.getIndex(), c * iv.getValue());
+          }
+        } else {
+          for (int j = 0; j < b.length(); j++) {
+            this.increment(i, j, c * b.get(j));
+          }
+        }
     }
 
     /**
@@ -881,17 +904,20 @@ public abstract class Matrix implements Cloneable, Serializable
      */
     public static void OuterProductUpdate(Matrix A, Vec x, Vec y, double c)
     {
-        if (x.length() != A.rows() || y.length() != A.cols())
-            throw new ArithmeticException("Matrix dimensions do not agree with outer product");
-        if (x.isSparse())
-            for (IndexValue iv : x)
-                A.updateRow(iv.getIndex(), iv.getValue() * c, y);
-        else
-            for (int i = 0; i < x.length(); i++)
-            {
-                double rowCosnt = c * x.get(i);
-                A.updateRow(i, rowCosnt, y);
-            }
+        if (x.length() != A.rows() || y.length() != A.cols()) {
+          throw new ArithmeticException("Matrix dimensions do not agree with outer product");
+        }
+        if (x.isSparse()) {
+          for (IndexValue iv : x) {
+            A.updateRow(iv.getIndex(), iv.getValue() * c, y);
+          }
+        } else {
+          for (int i = 0; i < x.length(); i++)
+          {
+            double rowCosnt = c * x.get(i);
+            A.updateRow(i, rowCosnt, y);
+          }
+        }
     }
 
     /**
@@ -906,8 +932,9 @@ public abstract class Matrix implements Cloneable, Serializable
      */
     public static void OuterProductUpdate(final Matrix A, final Vec x, final Vec y, final double c, ExecutorService threadpool)
     {
-        if(x.length() != A.rows() || y.length() != A.cols())
-            throw new ArithmeticException("Matrix dimensions do not agree with outer product");
+        if(x.length() != A.rows() || y.length() != A.cols()) {
+          throw new ArithmeticException("Matrix dimensions do not agree with outer product");
+        }
         
         if (x.isSparse())
         {
@@ -976,8 +1003,9 @@ public abstract class Matrix implements Cloneable, Serializable
     public static DenseMatrix eye(int k)
     {
         DenseMatrix eye = new DenseMatrix(k, k);
-        for(int i = 0; i < k; i++ )
-            eye.set(i, i, 1);
+        for(int i = 0; i < k; i++ ) {
+          eye.set(i, i, 1);
+        }
         return eye;
     }
     
@@ -993,9 +1021,11 @@ public abstract class Matrix implements Cloneable, Serializable
     public static DenseMatrix random(int rows, int cols, Random rand)
     {
         DenseMatrix m = new DenseMatrix(rows, cols);
-        for(int i = 0; i < rows; i++)
-            for(int j = 0; j < cols; j++)
-                m.set(i, j, rand.nextDouble());
+        for(int i = 0; i < rows; i++) {
+          for (int j = 0; j < cols; j++) {
+            m.set(i, j, rand.nextDouble());
+          }
+        }
         
         return m;
     }
@@ -1031,10 +1061,12 @@ public abstract class Matrix implements Cloneable, Serializable
      */
     public static void diagMult(Matrix A, Vec b)
     {
-        if(A.cols() != b.length())
-            throw new ArithmeticException("Could not multiply, matrix dimensions must agree");
-        for(int i = 0; i < A.rows(); i++)
-            RowColumnOps.multRow(A, i, b);
+        if(A.cols() != b.length()) {
+          throw new ArithmeticException("Could not multiply, matrix dimensions must agree");
+        }
+        for(int i = 0; i < A.rows(); i++) {
+          RowColumnOps.multRow(A, i, b);
+        }
     }
     
     /**
@@ -1050,10 +1082,12 @@ public abstract class Matrix implements Cloneable, Serializable
      */
     public static void diagMult(Vec b, Matrix A)
     {
-        if(A.rows() != b.length())
-            throw new ArithmeticException("Could not multiply, matrix dimensions must agree");
-        for(int i = 0; i < A.rows(); i++)
-            RowColumnOps.multRow(A, i, b.get(i));
+        if(A.rows() != b.length()) {
+          throw new ArithmeticException("Could not multiply, matrix dimensions must agree");
+        }
+        for(int i = 0; i < A.rows(); i++) {
+          RowColumnOps.multRow(A, i, b.get(i));
+        }
     }
     
     /**
@@ -1068,12 +1102,16 @@ public abstract class Matrix implements Cloneable, Serializable
      */
     public static boolean isSymmetric(Matrix A, double eps)
     {
-        if(!A.isSquare())
-            return false;
-        for(int i = 0; i < A.rows(); i++)
-            for(int j = i+1; j < A.cols(); j++)
-                if( Math.abs(A.get(i, j)-A.get(j, i)) > eps)
-                    return false;
+        if(!A.isSquare()) {
+          return false;
+        }
+        for(int i = 0; i < A.rows(); i++) {
+          for (int j = i+1; j < A.cols(); j++) {
+            if (Math.abs(A.get(i, j)-A.get(j, i)) > eps) {
+              return false;
+            }
+          }
+        }
         return true;
     }
     
@@ -1096,14 +1134,17 @@ public abstract class Matrix implements Cloneable, Serializable
      */
     public static Matrix pascal(int size)
     {
-        if(size <= 0 )
-            throw new ArithmeticException();
+        if(size <= 0 ) {
+          throw new ArithmeticException();
+        }
         DenseMatrix P = new DenseMatrix(size, size);
         RowColumnOps.fillRow(P, 0, 0, size, 1.0);
         RowColumnOps.fillCol(P, 0, 0, size, 1.0);
-        for(int i = 1; i < size; i++)
-            for(int j = 1; j < size; j++)
-                P.set(i, j, P.get(i-1, j) + P.get(i, j-1));
+        for(int i = 1; i < size; i++) {
+          for (int j = 1; j < size; j++) {
+            P.set(i, j, P.get(i-1, j) + P.get(i, j-1));
+          }
+        }
         return P;
     }
 

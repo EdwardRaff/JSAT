@@ -59,8 +59,9 @@ public class DecisionTree implements Classifier, Regressor, Parameterized, TreeL
     public void train(RegressionDataSet dataSet, ExecutorService threadPool)
     {
         Set<Integer> options = new IntSet(dataSet.getNumFeatures());
-        for(int i = 0; i < dataSet.getNumFeatures(); i++)
-            options.add(i);
+        for(int i = 0; i < dataSet.getNumFeatures(); i++) {
+          options.add(i);
+        }
         train(dataSet, options, threadPool);
     }
     
@@ -134,10 +135,12 @@ public class DecisionTree implements Classifier, Regressor, Parameterized, TreeL
     {
         this.maxDepth = toCopy.maxDepth;
         this.minSamples = toCopy.minSamples;
-        if(toCopy.root != null)
-            this.root = toCopy.root.clone();
-        if(toCopy.predicting != null)
-            this.predicting = toCopy.predicting.clone();
+        if(toCopy.root != null) {
+          this.root = toCopy.root.clone();
+        }
+        if(toCopy.predicting != null) {
+          this.predicting = toCopy.predicting.clone();
+        }
         this.pruningMethod = toCopy.pruningMethod;
         this.testProportion = toCopy.testProportion;
         this.baseStump = toCopy.baseStump.clone();
@@ -231,8 +234,9 @@ public class DecisionTree implements Classifier, Regressor, Parameterized, TreeL
      */
     public void setMaxDepth(int maxDepth)
     {
-        if(maxDepth < 0)
-            throw new RuntimeException("The maximum depth must be a positive number");
+        if(maxDepth < 0) {
+          throw new RuntimeException("The maximum depth must be a positive number");
+        }
         this.maxDepth = maxDepth;
     }
 
@@ -301,8 +305,9 @@ public class DecisionTree implements Classifier, Regressor, Parameterized, TreeL
      */
     public void setTestProportion(double testProportion)
     {
-        if(testProportion < 0 || testProportion > 1 || Double.isInfinite(testProportion) || Double.isNaN(testProportion))
-            throw new ArithmeticException("Proportion must be in the range [0, 1], not " + testProportion);
+        if(testProportion < 0 || testProportion > 1 || Double.isInfinite(testProportion) || Double.isNaN(testProportion)) {
+          throw new ArithmeticException("Proportion must be in the range [0, 1], not " + testProportion);
+        }
         this.testProportion = testProportion;
     }
 
@@ -317,8 +322,9 @@ public class DecisionTree implements Classifier, Regressor, Parameterized, TreeL
     public void trainC(ClassificationDataSet dataSet, ExecutorService threadPool)
     {
         Set<Integer> options = new IntSet(dataSet.getNumFeatures());
-        for(int i = 0; i < dataSet.getNumFeatures(); i++)
-            options.add(i);
+        for(int i = 0; i < dataSet.getNumFeatures(); i++) {
+          options.add(i);
+        }
         trainC(dataSet, options, threadPool);
     }
     /**
@@ -332,11 +338,12 @@ public class DecisionTree implements Classifier, Regressor, Parameterized, TreeL
      */
     protected void trainC(ClassificationDataSet dataSet, Set<Integer> options, ExecutorService threadPool)
     {
-        if(dataSet.getSampleSize() < minSamples)
-            throw new FailedToFitException("There are only " + 
-                    dataSet.getSampleSize() + 
-                    " data points in the sample set, at least " + minSamples + 
-                    " are needed to make a tree");
+        if(dataSet.getSampleSize() < minSamples) {
+          throw new FailedToFitException("There are only " +
+                  dataSet.getSampleSize() +
+                  " data points in the sample set, at least " + minSamples +
+                  " are needed to make a tree");
+        }
         this.predicting = dataSet.getPredicting();
         
         ModifiableCountDownLatch mcdl = new ModifiableCountDownLatch(1);
@@ -350,11 +357,13 @@ public class DecisionTree implements Classifier, Regressor, Parameterized, TreeL
             {
                 int testSize = (int) (dataPoints.size()*testProportion);
                 Random rand = new Random(testSize);
-                for(int i = 0; i < testSize; i++)
-                    testPoints.add(dataPoints.remove(rand.nextInt(dataPoints.size())));
+                for(int i = 0; i < testSize; i++) {
+                  testPoints.add(dataPoints.remove(rand.nextInt(dataPoints.size())));
+                }
             }
-            else
-                testPoints.addAll(dataPoints);
+            else {
+              testPoints.addAll(dataPoints);
+            }
         }
         
         this.root = makeNodeC(dataPoints, options, 0, threadPool, mcdl);
@@ -394,20 +403,21 @@ public class DecisionTree implements Classifier, Regressor, Parameterized, TreeL
         final List<List<DataPointPair<Integer>>> splits = stump.trainC(dataPoints, options);
         
         final Node node = new Node(stump);
-        if(stump.getNumberOfPaths() > 1)//If there is 1 path, we are perfectly classifier - nothing more to do 
-            for(int i = 0; i < node.paths.length; i++)
-            {
-                final int ii = i;
-                final List<DataPointPair<Integer>> splitI = splits.get(i);
-                mcdl.countUp();
-                threadPool.submit(new Runnable() {
-
-                    public void run()
-                    {
-                        node.paths[ii] = makeNodeC(splitI, new IntSet(options), depth+1, threadPool, mcdl);
-                    }
-                });
-            }
+        if(stump.getNumberOfPaths() > 1) {//If there is 1 path, we are perfectly classifier - nothing more to do
+          for(int i = 0; i < node.paths.length; i++)
+          {
+            final int ii = i;
+            final List<DataPointPair<Integer>> splitI = splits.get(i);
+            mcdl.countUp();
+            threadPool.submit(new Runnable() {
+              
+              public void run()
+              {
+                node.paths[ii] = makeNodeC(splitI, new IntSet(options), depth+1, threadPool, mcdl);
+              }
+            });
+          }
+        }
         
         mcdl.countDown();
         return node;
@@ -439,21 +449,22 @@ public class DecisionTree implements Classifier, Regressor, Parameterized, TreeL
         }
         
         final Node node = new Node(stump);
-        if(stump.getNumberOfPaths() > 1)//If there is 1 path, we are perfectly classifier - nothing more to do 
-            for(int i = 0; i < node.paths.length; i++)
-            {
-                final int ii = i;
-                final List<DataPointPair<Double>> splitI = splits.get(i);
-                mcdl.countUp();
-                threadPool.submit(new Runnable() {
-
-                    @Override
-                    public void run()
-                    {
-                        node.paths[ii] = makeNodeR(splitI, new IntSet(options), depth+1, threadPool, mcdl);
-                    }
-                });
-            }
+        if(stump.getNumberOfPaths() > 1) {//If there is 1 path, we are perfectly classifier - nothing more to do
+          for(int i = 0; i < node.paths.length; i++)
+          {
+            final int ii = i;
+            final List<DataPointPair<Double>> splitI = splits.get(i);
+            mcdl.countUp();
+            threadPool.submit(new Runnable() {
+              
+              @Override
+              public void run()
+              {
+                node.paths[ii] = makeNodeR(splitI, new IntSet(options), depth+1, threadPool, mcdl);
+              }
+            });
+          }
+        }
         
         mcdl.countDown();
         return node;
@@ -480,10 +491,12 @@ public class DecisionTree implements Classifier, Regressor, Parameterized, TreeL
     public DecisionTree clone()
     {
         DecisionTree copy = new DecisionTree(maxDepth, minSamples, pruningMethod, testProportion);
-        if(this.predicting != null)
-            copy.predicting = this.predicting.clone();
-        if(this.root != null)
-            copy.root = this.root.clone();
+        if(this.predicting != null) {
+          copy.predicting = this.predicting.clone();
+        }
+        if(this.root != null) {
+          copy.root = this.root.clone();
+        }
         copy.baseStump = this.baseStump.clone();
         return copy;
     }
@@ -512,11 +525,14 @@ public class DecisionTree implements Classifier, Regressor, Parameterized, TreeL
         @Override
         public boolean isLeaf()
         {
-            if(paths == null )
-                return true;
-            for(int i = 0; i < paths.length; i++)
-                if(paths[i] != null)
-                    return false;
+            if(paths == null ) {
+              return true;
+            }
+            for(int i = 0; i < paths.length; i++) {
+              if (paths[i] != null) {
+                return false;
+              }
+            }
             return true;
         }
         
@@ -542,8 +558,9 @@ public class DecisionTree implements Classifier, Regressor, Parameterized, TreeL
         public Node clone()
         {
             Node copy = new Node( (DecisionStump)this.stump.clone());
-            for(int i = 0; i < this.paths.length; i++)
-                copy.paths[i] = this.paths[i] == null ? null : this.paths[i].clone();
+            for(int i = 0; i < this.paths.length; i++) {
+              copy.paths[i] = this.paths[i] == null ? null : this.paths[i].clone();
+            }
             
             return copy;
         }
@@ -551,19 +568,21 @@ public class DecisionTree implements Classifier, Regressor, Parameterized, TreeL
         @Override
         public TreeNodeVisitor getChild(int child)
         {
-            if(isLeaf())
-                return null;
-            else
-                return paths[child];
+            if(isLeaf()) {
+              return null;
+            } else {
+              return paths[child];
+            }
         }
 
         @Override
         public void setPath(int child, TreeNodeVisitor node)
         {
-            if(node instanceof Node)
-                paths[child] = (Node) node;
-            else
-                super.setPath(child, node);
+            if(node instanceof Node) {
+              paths[child] = (Node) node;
+            } else {
+              super.setPath(child, node);
+            }
         }
 
         @Override
@@ -581,8 +600,9 @@ public class DecisionTree implements Classifier, Regressor, Parameterized, TreeL
         @Override
         public boolean isPathDisabled(int child)
         {
-            if(isLeaf())
-                return true;
+            if(isLeaf()) {
+              return true;
+            }
             return paths[child] == null;
         }
     }
@@ -595,9 +615,11 @@ public class DecisionTree implements Classifier, Regressor, Parameterized, TreeL
     public List<Parameter> getParameters()
     {
         List<Parameter> toRet = new ArrayList<Parameter>(params);
-        for (Parameter param : baseStump.getParameters())//We kno the two setGainMethods will colide
-            if(!param.getName().contains("Gain Method") && !param.getName().contains("Numeric Handling"))
-                toRet.add(param);
+        for (Parameter param : baseStump.getParameters()) {
+          if (!param.getName().contains("Gain Method") && !param.getName().contains("Numeric Handling")) {
+            toRet.add(param);
+          }
+        }
         return Collections.unmodifiableList(toRet);
     }
 

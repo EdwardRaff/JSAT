@@ -107,8 +107,9 @@ public class Isomap implements VisualizationTransform
      */
     public void setNeighbors(int searchNeighbors)
     {
-        if(searchNeighbors < 2)
-            throw new IllegalArgumentException("number of neighbors considered must be at least 2, not " + searchNeighbors);
+        if(searchNeighbors < 2) {
+          throw new IllegalArgumentException("number of neighbors considered must be at least 2, not " + searchNeighbors);
+        }
         this.searchNeighbors = searchNeighbors;
     }
 
@@ -155,17 +156,21 @@ public class Isomap implements VisualizationTransform
     {
         final int N = d.getSampleSize();
         final Matrix delta = new DenseMatrix(N, N);
-        for (int i = 0; i < N; i++)
-            for (int j = 0; j < N; j++)
-                if (i == j)
-                    delta.set(i, j, 0);
-                else
-                    delta.set(i, j, Double.MAX_VALUE);
+        for (int i = 0; i < N; i++) {
+          for (int j = 0; j < N; j++) {
+            if (i == j) {
+              delta.set(i, j, 0);
+            } else {
+              delta.set(i, j, Double.MAX_VALUE);
+            }
+          }
+        }
 
         
         final List<VecPaired<Vec, Integer>> vecs = new ArrayList<VecPaired<Vec, Integer>>(N);
-        for(int i = 0; i < N; i++)
-            vecs.add(new VecPaired<Vec, Integer>(d.getDataPoint(i).getNumericalValues(), i));
+        for(int i = 0; i < N; i++) {
+          vecs.add(new VecPaired<Vec, Integer>(d.getDataPoint(i).getNumericalValues(), i));
+        }
         final VectorCollection<VecPaired<Vec, Integer>> vc = vcf.getVectorCollection(vecs, dm, ex);
         final List<Double> cache = dm.getAccelerationCache(vecs, ex);
                 
@@ -173,8 +178,9 @@ public class Isomap implements VisualizationTransform
         
         //bleh, ugly generics...
         final List<List<? extends VecPaired<VecPaired<Vec, Integer>, Double>>> neighborGraph = new ArrayList<List<? extends VecPaired<VecPaired<Vec, Integer>, Double>>>();
-        for (int i = 0; i < N; i++)
-            neighborGraph.add(null);
+        for (int i = 0; i < N; i++) {
+          neighborGraph.add(null);
+        }
             
         final double[] avgNeighborDist = new double[N];
         
@@ -221,8 +227,9 @@ public class Isomap implements VisualizationTransform
             int i = 0;
             for(List<? extends VecPaired<VecPaired<Vec, Integer>, Double>> neighbors : neighborGraph)
             {
-                for(VecPaired<VecPaired<Vec, Integer>, Double> neighbor : neighbors)
-                    neighbor.setPair(neighbor.getPair()/Math.sqrt(avgNeighborDist[neighbor.getVector().getPair()]+avgNeighborDist[i]+1e-6));
+                for(VecPaired<VecPaired<Vec, Integer>, Double> neighbor : neighbors) {
+                  neighbor.setPair(neighbor.getPair()/Math.sqrt(avgNeighborDist[neighbor.getVector().getPair()]+avgNeighborDist[i]+1e-6));
+                }
                 i++;
             }
         }
@@ -266,10 +273,13 @@ public class Isomap implements VisualizationTransform
         //lets check for any disjoint groupings, replace them with something reasonable
         //we will use the largest obtainable distance to be an offset for our infinity distances
         double largest_natural_dist_tmp = 0;
-        for (int i = 0; i < N; i++)
-            for (int j = i + 1; j < N; j++)
-                if(delta.get(i, j) < Double.MAX_VALUE)
-                    largest_natural_dist_tmp = Math.max(largest_natural_dist_tmp, delta.get(i, j));
+        for (int i = 0; i < N; i++) {
+          for (int j = i + 1; j < N; j++) {
+            if (delta.get(i, j) < Double.MAX_VALUE) {
+              largest_natural_dist_tmp = Math.max(largest_natural_dist_tmp, delta.get(i, j));
+            }
+          }
+        }
         final double largest_natural_dist = largest_natural_dist_tmp;
         
         final CountDownLatch latch3 = new CountDownLatch(SystemInfo.LogicalCores);
@@ -326,8 +336,9 @@ public class Isomap implements VisualizationTransform
         List<FibHeap.FibNode<Integer>> nodes = new ArrayList<FibHeap.FibNode<Integer>>(N);
 
         FibHeap<Integer> Q = new FibHeap<Integer>();
-        for (int i = 0; i < N; i++)
-            nodes.add(null);
+        for (int i = 0; i < N; i++) {
+          nodes.add(null);
+        }
         nodes.set(sourceIndex, Q.insert(sourceIndex, dist[sourceIndex]));
 
         while (Q.size() > 0)
@@ -347,10 +358,11 @@ public class Isomap implements VisualizationTransform
                 {
                     dist[j] = alt;
                     //prev[j] ← u
-                    if(nodes.get(j) == null)
-                        nodes.set(j, Q.insert(j, alt));
-                    else
-                        Q.decreaseKey(nodes.get(j), alt);
+                    if(nodes.get(j) == null) {
+                      nodes.set(j, Q.insert(j, alt));
+                    } else {
+                      Q.decreaseKey(nodes.get(j), alt);
+                    }
                 }
             }
         }

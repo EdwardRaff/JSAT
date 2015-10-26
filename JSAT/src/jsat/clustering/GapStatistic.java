@@ -128,14 +128,18 @@ public class GapStatistic extends KClustererBase implements Parameterized
         this.B = toCopy.B;
         this.dm = toCopy.dm.clone();
         this.PCSampling = toCopy.PCSampling;
-        if(toCopy.ElogW != null)
-            this.ElogW = Arrays.copyOf(toCopy.ElogW, toCopy.ElogW.length);
-        if(toCopy.logW != null)
-            this.logW = Arrays.copyOf(toCopy.logW, toCopy.logW.length);
-        if(toCopy.gap != null)
-            this.gap = Arrays.copyOf(toCopy.gap, toCopy.gap.length);
-        if(toCopy.s_k != null)
-            this.s_k = Arrays.copyOf(toCopy.s_k, toCopy.s_k.length);
+        if(toCopy.ElogW != null) {
+          this.ElogW = Arrays.copyOf(toCopy.ElogW, toCopy.ElogW.length);
+        }
+        if(toCopy.logW != null) {
+          this.logW = Arrays.copyOf(toCopy.logW, toCopy.logW.length);
+        }
+        if(toCopy.gap != null) {
+          this.gap = Arrays.copyOf(toCopy.gap, toCopy.gap.length);
+        }
+        if(toCopy.s_k != null) {
+          this.s_k = Arrays.copyOf(toCopy.s_k, toCopy.s_k.length);
+        }
     }
     
     
@@ -191,8 +195,9 @@ public class GapStatistic extends KClustererBase implements Parameterized
      */
     public void setSamples(int B)
     {
-        if(B <= 0)
-            throw new IllegalArgumentException("sample size must be positive, not " + B);
+        if(B <= 0) {
+          throw new IllegalArgumentException("sample size must be positive, not " + B);
+        }
         this.B = B;
     }
 
@@ -290,9 +295,10 @@ public class GapStatistic extends KClustererBase implements Parameterized
         final int D = dataSet.getNumNumericalVars();
         final int N = dataSet.getSampleSize();
         
-        if(designations == null || designations.length < N)
-            designations = new int[N];
-        //TODO we dont need all values in [1, lowK-1)  in order to get the gap statistic for [lowK, highK]. So lets not do that extra work. 
+        if(designations == null || designations.length < N) {
+          designations = new int[N];
+          //TODO we dont need all values in [1, lowK-1)  in order to get the gap statistic for [lowK, highK]. So lets not do that extra work. 
+        }
         
         logW = new double[highK-1];
         ElogW = new double[highK-1];
@@ -312,13 +318,15 @@ public class GapStatistic extends KClustererBase implements Parameterized
         //Step 2: 
         //use online statistics and run through all K for each B, so that we minimize the memory use
         OnLineStatistics[] expected = new OnLineStatistics[highK-1];
-        for(int i = 0; i < expected.length; i++)
-            expected[i] = new OnLineStatistics();
+        for(int i = 0; i < expected.length; i++) {
+          expected[i] = new OnLineStatistics();
+        }
         
         //dataset object we will reuse
         SimpleDataSet Xp = new SimpleDataSet(new CategoricalData[0], D);
-        for(int i = 0; i < N; i++)
-            Xp.add(new DataPoint(new DenseVector(D)));
+        for(int i = 0; i < N; i++) {
+          Xp.add(new DataPoint(new DenseVector(D)));
+        }
         
         Random rand = new XORWOW();
         
@@ -335,12 +343,13 @@ public class GapStatistic extends KClustererBase implements Parameterized
             //X' = X V , from generation strategy (b)
             Matrix tmp = dataSet.getDataMatrixView().multiply(svd.getV());
             
-            for(int i = 0; i < tmp.rows(); i++)
-                for(int j = 0; j < tmp.cols(); j++)
-                {
-                    min[j] = Math.min(tmp.get(i, j), min[j]);
-                    max[j] = Math.max(tmp.get(i, j), max[j]);
-                }
+            for(int i = 0; i < tmp.rows(); i++) {
+              for(int j = 0; j < tmp.cols(); j++)
+              {
+                min[j] = Math.min(tmp.get(i, j), min[j]);
+                max[j] = Math.max(tmp.get(i, j), max[j]);
+              }
+            }
             V_T = svd.getV().transpose();
         }
         else
@@ -360,8 +369,9 @@ public class GapStatistic extends KClustererBase implements Parameterized
             for (int i = 0; i < N; i++)//sample
             {
                 Vec xp = Xp.getDataPoint(i).getNumericalValues();
-                for (int j = 0; j < D; j++)
-                    xp.set(j, (max[j] - min[j]) * rand.nextDouble() + min[j]);
+                for (int j = 0; j < D; j++) {
+                  xp.set(j, (max[j] - min[j]) * rand.nextDouble() + min[j]);
+                }
             }
             
             if(PCSampling)//project if wanted
@@ -397,16 +407,20 @@ public class GapStatistic extends KClustererBase implements Parameterized
             s_k[i] = expected[i].getStandardDeviation() * Math.sqrt(1 + 1.0 / B);
             //check original condition first
             int k = i + 1;
-            if (i > 0 && lowK <= k && k <= highK)
-                if (k_first == -1 && gap[i - 1] >= gap[i] - s_k[i] && gap[i-1] > 0)
-                    k_first = k - 1;
+            if (i > 0 && lowK <= k && k <= highK) {
+              if (k_first == -1 && gap[i - 1] >= gap[i] - s_k[i] && gap[i-1] > 0) {
+                k_first = k - 1;
+              }
+            }
             //check backup
-            if(gap[i] > biggestGap && lowK <= k && k <= highK)
-                biggestGap = i;
+            if(gap[i] > biggestGap && lowK <= k && k <= highK) {
+              biggestGap = i;
+            }
         }
 
-        if(k_first == -1)//never satisfied our conditions?
-            k_first = biggestGap+1;//Maybe we should go back and pick the best gap k we can find?
+        if(k_first == -1) {//never satisfied our conditions?
+          k_first = biggestGap+1;//Maybe we should go back and pick the best gap k we can find?
+        }
         if(k_first == 1)//easy case
         {
             Arrays.fill(designations, 0);

@@ -86,8 +86,9 @@ public class ADWIN<V> extends BaseDriftDetector<V>
         this.leftVariance = toCopy.leftVariance;
         this.rightVariance = toCopy.rightVariance;
         this.windows = new LinkedList<OnLineStatistics>();
-        for(OnLineStatistics stats : toCopy.windows)
-            this.windows.add(stats.clone());
+        for(OnLineStatistics stats : toCopy.windows) {
+          this.windows.add(stats.clone());
+        }
     }
 
     /**
@@ -97,8 +98,9 @@ public class ADWIN<V> extends BaseDriftDetector<V>
      */
     public void setDelta(double delta)
     {
-        if(delta <= 0 || delta >= 1 || Double.isNaN(delta))
-            throw new IllegalArgumentException("delta must be in (0,1), not " + delta);
+        if(delta <= 0 || delta >= 1 || Double.isNaN(delta)) {
+          throw new IllegalArgumentException("delta must be in (0,1), not " + delta);
+        }
         this.delta = delta;
     }
 
@@ -119,8 +121,9 @@ public class ADWIN<V> extends BaseDriftDetector<V>
      */
     public void setM(int M)
     {
-        if(M < 1)
-            throw new IllegalArgumentException("M must be positive, not " + M);
+        if(M < 1) {
+          throw new IllegalArgumentException("M must be positive, not " + M);
+        }
         this.M = M;
     }
     
@@ -136,8 +139,9 @@ public class ADWIN<V> extends BaseDriftDetector<V>
     @Override
     public boolean addSample(double value, V obj)
     {
-        if(drifting)
-            throw new UnhandledDriftException("Drift must be handled before continuing");
+        if(drifting) {
+          throw new UnhandledDriftException("Drift must be handled before continuing");
+        }
         time++;
         addToHistory(obj);
         //add to the window
@@ -215,8 +219,9 @@ public class ADWIN<V> extends BaseDriftDetector<V>
                     listIter.previous();
                     window.add(listIter.previous());
                     listIter.remove();//remove the preivous
-                    if(listIter.hasNext())
-                        listIter.next();//back to where we were, which has been modified
+                    if(listIter.hasNext()) {
+                      listIter.next();//back to where we were, which has been modified
+                    }
                     //so nowe we must be looking at a new range since we just promoted a window
                     lastSizeSeen = window.getSumOfWeights();
                     lastSizeCount = 1;
@@ -371,20 +376,23 @@ public class ADWIN<V> extends BaseDriftDetector<V>
             if(leftStats.getSumOfWeights() < driftStart)
             {
                 leftStats.add(windowItem);
-                if(dropOld)
-                    testIter.remove();
+                if(dropOld) {
+                  testIter.remove();
+                }
             }
             else
             {
-                if(!dropOld)
-                    testIter.remove();
+                if(!dropOld) {
+                  testIter.remove();
+                }
             }
         }
         
-        if(dropOld)
-            allStats.remove(leftStats);
-        else
-            allStats = leftStats;
+        if(dropOld) {
+          allStats.remove(leftStats);
+        } else {
+          allStats = leftStats;
+        }
         time = (int) allStats.getSumOfWeights();
 
         leftMean = leftVariance = rightMean = rightVariance = Double.NaN;

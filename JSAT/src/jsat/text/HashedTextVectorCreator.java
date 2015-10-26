@@ -28,8 +28,9 @@ public class HashedTextVectorCreator implements TextVectorCreator
      */
     public HashedTextVectorCreator(int dimensionSize, Tokenizer tokenizer, WordWeighting weighting)
     {
-        if(dimensionSize <= 1)
-            throw new ArithmeticException("Vector dimension must be a positive value");
+        if(dimensionSize <= 1) {
+          throw new ArithmeticException("Vector dimension must be a positive value");
+        }
         this.dimensionSize = dimensionSize;
         this.tokenizer = tokenizer;
         this.weighting = weighting;

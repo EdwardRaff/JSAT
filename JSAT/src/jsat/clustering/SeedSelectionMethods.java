@@ -92,8 +92,9 @@ public class SeedSelectionMethods
         int[] indicies = new int[k];
         selectIntialPoints(d, indicies, dm, accelCache, rand, selectionMethod, null);
         List<Vec> vecs = new ArrayList<Vec>(k);
-        for(Integer i : indicies)
-            vecs.add(d.getDataPoint(i).getNumericalValues().clone());
+        for(Integer i : indicies) {
+          vecs.add(d.getDataPoint(i).getNumericalValues().clone());
+        }
         return vecs;
     }
     
@@ -130,8 +131,9 @@ public class SeedSelectionMethods
         int[] indicies = new int[k];
         selectIntialPoints(d, indicies, dm, accelCache, rand, selectionMethod, threadpool);
         List<Vec> vecs = new ArrayList<Vec>(k);
-        for(Integer i : indicies)
-            vecs.add(d.getDataPoint(i).getNumericalValues().clone());
+        for(Integer i : indicies) {
+          vecs.add(d.getDataPoint(i).getNumericalValues().clone());
+        }
         return vecs;
     }
     
@@ -200,33 +202,38 @@ public class SeedSelectionMethods
             {
                 Set<Integer> indecies = new IntSet(k);
 
-                while (indecies.size() != k)//Keep sampling, we cant use the same point twice. 
-                    indecies.add(rand.nextInt(d.getSampleSize()));//TODO create method to do uniform sampleling for a select range
+                while (indecies.size() != k) {
+                  indecies.add(rand.nextInt(d.getSampleSize()));//TODO create method to do uniform sampleling for a select range
+                }
 
                 int j = 0;
-                for (Integer i : indecies)
-                    indices[j++] = i;
+                for (Integer i : indecies) {
+                  indices[j++] = i;
+                }
             }
             else if (selectionMethod == SeedSelection.KPP)
             {
-                if (threadpool == null || threadpool instanceof FakeExecutor)
-                    kppSelection(indices, rand, d, k, dm, accelCache);
-                else
-                    kppSelection(indices, rand, d, k, dm, accelCache, threadpool);
+                if (threadpool == null || threadpool instanceof FakeExecutor) {
+                  kppSelection(indices, rand, d, k, dm, accelCache);
+                } else {
+                  kppSelection(indices, rand, d, k, dm, accelCache, threadpool);
+                }
             }
             else if(selectionMethod == SeedSelection.FARTHEST_FIRST)
             {
-                if(threadpool == null)
-                    ffSelection(indices, rand, d, k, dm, accelCache, new FakeExecutor());
-                else
-                    ffSelection(indices, rand, d, k, dm, accelCache, threadpool);
+                if(threadpool == null) {
+                  ffSelection(indices, rand, d, k, dm, accelCache, new FakeExecutor());
+                } else {
+                  ffSelection(indices, rand, d, k, dm, accelCache, threadpool);
+                }
             }
             else if(selectionMethod == SeedSelection.MEAN_QUANTILES)
             {
-                if(threadpool == null)
-                    mqSelection(indices, d, k, dm, accelCache, new FakeExecutor());
-                else
-                    mqSelection(indices, d, k, dm, accelCache, threadpool);
+                if(threadpool == null) {
+                  mqSelection(indices, d, k, dm, accelCache, new FakeExecutor());
+                } else {
+                  mqSelection(indices, d, k, dm, accelCache, threadpool);
+                }
             }
         }
         catch (InterruptedException ex)
@@ -274,13 +281,16 @@ public class SeedSelectionMethods
             if(sqrdDistSum <= 1e-6)//everyone is too close, randomly fill rest
             {
                 Set<Integer> ind = new IntSet();
-                for(int i = 0;i <j; i++)
-                    ind.add(indices[i]);
-                while(ind.size() < k)
-                    ind.add(rand.nextInt(closestDist.length));
+                for(int i = 0;i <j; i++) {
+                  ind.add(indices[i]);
+                }
+                while(ind.size() < k) {
+                  ind.add(rand.nextInt(closestDist.length));
+                }
                 int pos = 0;
-                for(int i : ind)
-                    indices[pos++] = i;
+                for(int i : ind) {
+                  indices[pos++] = i;
+                }
                 return;
             }
             
@@ -288,8 +298,9 @@ public class SeedSelectionMethods
             double rndX = rand.nextDouble()*sqrdDistSum;
             double searchSum = closestDist[0];
             int i = 0;
-            while(searchSum < rndX && i < d.getSampleSize()-1)
-                searchSum += closestDist[++i];
+            while(searchSum < rndX && i < d.getSampleSize()-1) {
+              searchSum += closestDist[++i];
+            }
             
             indices[j] = i;
         }
@@ -350,19 +361,23 @@ public class SeedSelectionMethods
                 futureChanges.add(future);
             }
 
-            for (Double change : ListUtils.collectFutures(futureChanges))
-                sqrdDistSum += change;
+            for (Double change : ListUtils.collectFutures(futureChanges)) {
+              sqrdDistSum += change;
+            }
             
             if(sqrdDistSum <= 1e-6)//everyone is too close, randomly fill rest
             {
                 Set<Integer> ind = new IntSet();
-                for(int i = 0;i <j; i++)
-                    ind.add(indices[i]);
-                while(ind.size() < k)
-                    ind.add(rand.nextInt(closestDist.length));
+                for(int i = 0;i <j; i++) {
+                  ind.add(indices[i]);
+                }
+                while(ind.size() < k) {
+                  ind.add(rand.nextInt(closestDist.length));
+                }
                 int pos = 0;
-                for(int i : ind)
-                    indices[pos++] = i;
+                for(int i : ind) {
+                  indices[pos++] = i;
+                }
                 return;
             }
 
@@ -370,8 +385,9 @@ public class SeedSelectionMethods
             double rndX = rand.nextDouble() * sqrdDistSum;
             double searchSum = closestDist[0];
             int i = 0;
-            while(searchSum < rndX && i < d.getSampleSize()-1)
-                searchSum += closestDist[++i];
+            while(searchSum < rndX && i < d.getSampleSize()-1) {
+              searchSum += closestDist[++i];
+            }
             
             indices[j] = i;
         }
@@ -432,12 +448,13 @@ public class SeedSelectionMethods
 
             int max = -1;
             double maxDist = Double.NEGATIVE_INFINITY;
-            for (Integer localMax : ListUtils.collectFutures(futures))
-                if(closestDist[localMax] > maxDist)
-                {
-                    max = localMax;
-                    maxDist = closestDist[localMax];
-                }
+            for (Integer localMax : ListUtils.collectFutures(futures)) {
+              if(closestDist[localMax] > maxDist)
+              {
+                max = localMax;
+                maxDist = closestDist[localMax];
+              }
+            }
             
             indices[j] = max;
         }
@@ -466,8 +483,9 @@ public class SeedSelectionMethods
                 @Override
                 public void run()
                 {
-                    for (int i = from; i < to; i++)
-                        meanDist[i] = dm.dist(i, newMean, meanQI, X, accelCache);
+                    for (int i = from; i < to; i++) {
+                      meanDist[i] = dm.dist(i, newMean, meanQI, X, accelCache);
+                    }
                     latch.countDown();
                 }
             });
@@ -476,8 +494,9 @@ public class SeedSelectionMethods
         latch.await();
         
         IndexTable indxTbl = new IndexTable(meanDist);
-        for(int l = 0; l < k; l++)
-            indices[l] = indxTbl.index(l*d.getSampleSize()/k);
+        for(int l = 0; l < k; l++) {
+          indices[l] = indxTbl.index(l*d.getSampleSize()/k);
+        }
     }
     
 }

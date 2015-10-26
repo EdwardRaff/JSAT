@@ -78,16 +78,18 @@ public class KernelPCA implements DataTransform
         if(ds.getSampleSize() <= basisSize)
         {
             vecs = new Vec[ds.getSampleSize()];
-            for(int i = 0; i < vecs.length; i++)
-                vecs[i] = ds.getDataPoint(i).getNumericalValues();
+            for(int i = 0; i < vecs.length; i++) {
+              vecs[i] = ds.getDataPoint(i).getNumericalValues();
+            }
         }
         else
         {
             int i = 0;
             List<Vec> sample = Nystrom.sampleBasisVectors(k, ds, ds.getDataVectors(), samplingMethod, basisSize, false, new XOR96());
             vecs = new Vec[sample.size()];
-            for(Vec v : sample)
-                vecs[i++] = v;
+            for(Vec v : sample) {
+              vecs[i++] = v;
+            }
         }
         Matrix K = new DenseMatrix(vecs.length, vecs.length);
         
@@ -109,9 +111,11 @@ public class KernelPCA implements DataTransform
         
         //Get row / col info to perform centering. Since K is symetric, the row 
         //and col info are the same
-        for(int i = 0; i < K.rows(); i++)
-            for(int j = 0; j < K.cols(); j++)
-                rowAvg[i] += K.get(i, j);
+        for(int i = 0; i < K.rows(); i++) {
+          for (int j = 0; j < K.cols(); j++) {
+            rowAvg[i] += K.get(i, j);
+          }
+        }
         
         for (int i = 0; i < K.rows(); i++)
         {
@@ -125,9 +129,11 @@ public class KernelPCA implements DataTransform
         //Centered version of the marix
         //K_c(i, j) = K_ij - sum_z K_zj / m - sum_z K_iz / m + sum_{z,y} K_zy / m^2
         
-        for(int i = 0; i < K.rows(); i++)
-            for(int j = 0; j < K.cols(); j++)
-                K.set(i, j, K.get(i, j) - rowAvg[i] - rowAvg[j] + allAvg);
+        for(int i = 0; i < K.rows(); i++) {
+          for (int j = 0; j < K.cols(); j++) {
+            K.set(i, j, K.get(i, j) - rowAvg[i] - rowAvg[j] + allAvg);
+          }
+        }
         
         
         EigenValueDecomposition evd = new EigenValueDecomposition(K);
@@ -142,8 +148,10 @@ public class KernelPCA implements DataTransform
         
         eigenVals = evd.getRealEigenvalues();
         eigenVecs = evd.getV();
-        for(int j = 0; j < eigenVals.length; j++)//TODO row order would be more cache friendly 
-            RowColumnOps.divCol(eigenVecs, j, Math.sqrt(eigenVals[j]));
+        for(int j = 0; j < eigenVals.length; j++) {
+          //TODO row order would be more cache friendly
+          RowColumnOps.divCol(eigenVecs, j, Math.sqrt(eigenVals[j]));
+        }
     }
 
     /**
@@ -157,8 +165,9 @@ public class KernelPCA implements DataTransform
         this.eigenVals = Arrays.copyOf(toCopy.eigenVals, toCopy.eigenVals.length);
         this.eigenVecs = toCopy.eigenVecs.clone();
         this.vecs = new Vec[toCopy.vecs.length];
-        for(int i = 0; i < vecs.length; i++)
-            this.vecs[i] = toCopy.vecs[i].clone();
+        for(int i = 0; i < vecs.length; i++) {
+          this.vecs[i] = toCopy.vecs[i].clone();
+        }
         this.rowAvg = Arrays.copyOf(toCopy.rowAvg, toCopy.rowAvg.length);
         this.allAvg = toCopy.allAvg;
     }
@@ -174,16 +183,18 @@ public class KernelPCA implements DataTransform
 
         double tAvg = 0;
 
-        for (int j = 0; j < vecs.length; j++)
-            tAvg += (kEvals[j] = k.eval(vecs[j], oldVec));
+        for (int j = 0; j < vecs.length; j++) {
+          tAvg += (kEvals[j] = k.eval(vecs[j], oldVec));
+        }
 
         tAvg /= vecs.length;
 
         for (int i = 0; i < dimensions; i++)
         {
             double val = 0;
-            for (int j = 0; j < vecs.length; j++)
-                val += eigenVecs.get(j, i) * (kEvals[j] - tAvg - rowAvg[i] + allAvg);
+            for (int j = 0; j < vecs.length; j++) {
+              val += eigenVecs.get(j, i) * (kEvals[j] - tAvg - rowAvg[i] + allAvg);
+            }
             newVec.set(i, val);
         }
 
@@ -242,8 +253,9 @@ public class KernelPCA implements DataTransform
          */
         public void setBasisSize(int basisSize)
         {
-            if(basisSize < 1)
-                throw new IllegalArgumentException("The basis size must be positive, not " + basisSize);
+            if(basisSize < 1) {
+              throw new IllegalArgumentException("The basis size must be positive, not " + basisSize);
+            }
             this.basisSize = basisSize;
         }
 
@@ -264,8 +276,9 @@ public class KernelPCA implements DataTransform
          */
         public void setDimension(int dimension)
         {
-            if(dimension < 1)
-                throw new IllegalArgumentException("The number of dimensions must be positive, not " + dimension);
+            if(dimension < 1) {
+              throw new IllegalArgumentException("The number of dimensions must be positive, not " + dimension);
+            }
             this.dimension = dimension;
         }
 

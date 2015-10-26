@@ -56,17 +56,21 @@ public abstract class Vec implements Cloneable, Iterable<IndexValue>, Serializab
      */
     private Vec getThisSide(Vec other)
     {
-        if (this.canBeMutated())
-            return this.clone();
-        if (other == null)
-            if (this.isSparse())
-                return new SparseVector(this);
-            else
-                return new DenseVector(this);
-        if (this.isSparse() && other.isSparse())
+        if (this.canBeMutated()) {
+          return this.clone();
+        }
+        if (other == null) {
+          if (this.isSparse()) {
             return new SparseVector(this);
-        else
+          } else {
             return new DenseVector(this);
+          }
+        }
+        if (this.isSparse() && other.isSparse()) {
+          return new SparseVector(this);
+        } else {
+          return new DenseVector(this);
+        }
     }
 
     /**
@@ -76,8 +80,9 @@ public abstract class Vec implements Cloneable, Iterable<IndexValue>, Serializab
     public int nnz()
     {
         int nnz = 0;
-        for(IndexValue i : this)
-            nnz++;
+        for(IndexValue i : this) {
+          nnz++;
+        }
         return nnz;
     }
 
@@ -214,18 +219,21 @@ public abstract class Vec implements Cloneable, Iterable<IndexValue>, Serializab
      */
     public void multiply(double c, Matrix A, Vec b)
     {
-        if (this.length() != A.rows())
-            throw new ArithmeticException("Vector x Matrix dimensions do not agree [1," + this.length() + "] x [" + A.rows() + ", " + A.cols() + "]");
-        if (b.length() != A.cols())
-            throw new ArithmeticException("Destination vector is not the right size");
+        if (this.length() != A.rows()) {
+          throw new ArithmeticException("Vector x Matrix dimensions do not agree [1," + this.length() + "] x [" + A.rows() + ", " + A.cols() + "]");
+        }
+        if (b.length() != A.cols()) {
+          throw new ArithmeticException("Destination vector is not the right size");
+        }
         
         if (!isSparse())
         {
             for (int i = 0; i < this.length(); i++)
             {
                 double this_i = c * get(i);
-                for (int j = 0; j < A.cols(); j++)
-                    b.increment(j, this_i * A.get(i, j));
+                for (int j = 0; j < A.cols(); j++) {
+                  b.increment(j, this_i * A.get(i, j));
+                }
             }
         }
         else
@@ -234,8 +242,9 @@ public abstract class Vec implements Cloneable, Iterable<IndexValue>, Serializab
             {
                 final int i = iv.getIndex();
                 double this_i = c * iv.getValue();
-                for (int j = 0; j < A.cols(); j++)
-                    b.increment(j, this_i * A.get(i, j));
+                for (int j = 0; j < A.cols(); j++) {
+                  b.increment(j, this_i * A.get(i, j));
+                }
             }
         }
     }
@@ -275,8 +284,9 @@ public abstract class Vec implements Cloneable, Iterable<IndexValue>, Serializab
      */
     public void mutableAdd(double c)
     {
-        for(int i = 0; i < length(); i++)
-            increment(i, c);
+        for(int i = 0; i < length(); i++) {
+          increment(i, c);
+        }
     }
     /**
      * Alters this vector such that 
@@ -289,14 +299,18 @@ public abstract class Vec implements Cloneable, Iterable<IndexValue>, Serializab
      */
     public void mutableAdd(double c, Vec b)
     {
-        if(length() != b.length())
-            throw new ArithmeticException("Vectors must have the same length, not " + length() + " and " + b.length());
-        if(b.isSparse())
-            for(IndexValue iv : b)
-                increment(iv.getIndex(), c*iv.getValue());
-        else
-            for(int i = 0; i < length(); i++)
-                increment(i, c*b.get(i));
+        if(length() != b.length()) {
+          throw new ArithmeticException("Vectors must have the same length, not " + length() + " and " + b.length());
+        }
+        if(b.isSparse()) {
+          for (IndexValue iv : b) {
+            increment(iv.getIndex(), c*iv.getValue());
+          }
+        } else {
+          for (int i = 0; i < length(); i++) {
+            increment(i, c*b.get(i));
+          }
+        }
     }
     
     /**
@@ -353,10 +367,12 @@ public abstract class Vec implements Cloneable, Iterable<IndexValue>, Serializab
      */
     public void mutablePairwiseMultiply(Vec b)
     {
-        if(length() != b.length())
-            throw new ArithmeticException("Vector lengths do not agree " + length() + " vs " + b.length());
-        for(int i = 0; i < length(); i++)
-            set(i, get(i)*b.get(i));
+        if(length() != b.length()) {
+          throw new ArithmeticException("Vector lengths do not agree " + length() + " vs " + b.length());
+        }
+        for(int i = 0; i < length(); i++) {
+          set(i, get(i)*b.get(i));
+        }
     }
     
     /**
@@ -368,8 +384,9 @@ public abstract class Vec implements Cloneable, Iterable<IndexValue>, Serializab
      */
     public void mutableMultiply(double c)
     {
-        for(int i = 0; i < length(); i++)
-            set(i, get(i)*c);
+        for(int i = 0; i < length(); i++) {
+          set(i, get(i)*c);
+        }
     }
     
     /**
@@ -382,10 +399,12 @@ public abstract class Vec implements Cloneable, Iterable<IndexValue>, Serializab
      */
     public void mutablePairwiseDivide(Vec b)
     {
-        if(length() != b.length())
-            throw new ArithmeticException("Vector lengths do not agree " + length() + " vs " + b.length());
-        for(int i = 0; i < length(); i++)
-            set(i, get(i)/b.get(i));
+        if(length() != b.length()) {
+          throw new ArithmeticException("Vector lengths do not agree " + length() + " vs " + b.length());
+        }
+        for(int i = 0; i < length(); i++) {
+          set(i, get(i)/b.get(i));
+        }
     }
     
     /**
@@ -397,8 +416,9 @@ public abstract class Vec implements Cloneable, Iterable<IndexValue>, Serializab
      */
     public void mutableDivide(double c)
     {
-        for(int i = 0; i < length(); i++)
-            set(i, get(i)/c);
+        for(int i = 0; i < length(); i++) {
+          set(i, get(i)/c);
+        }
     }
 
     /**
@@ -422,15 +442,17 @@ public abstract class Vec implements Cloneable, Iterable<IndexValue>, Serializab
         if (isSparse() && nnz() < length())
         {
             double min = 0.0;
-            for (IndexValue iv : this)
-                min = Math.min(min, iv.getValue());
+            for (IndexValue iv : this) {
+              min = Math.min(min, iv.getValue());
+            }
             return min;
         }
         else
         {
             double min = get(0);
-            for (int i = 1; i < length(); i++)
-                min = Math.min(min, get(i));
+            for (int i = 1; i < length(); i++) {
+              min = Math.min(min, get(i));
+            }
             return min;
         }
     }
@@ -445,15 +467,17 @@ public abstract class Vec implements Cloneable, Iterable<IndexValue>, Serializab
         if (isSparse() && nnz() < length())
         {
             double max = 0.0;
-            for (IndexValue iv : this)
-                max = Math.max(max, iv.getValue());
+            for (IndexValue iv : this) {
+              max = Math.max(max, iv.getValue());
+            }
             return max;
         }
         else
         {
             double max = get(0);
-            for (int i = 1; i < length(); i++)
-                max = Math.max(max, get(i));
+            for (int i = 1; i < length(); i++) {
+              max = Math.max(max, get(i));
+            }
             return max;
         }
     }
@@ -536,10 +560,11 @@ public abstract class Vec implements Cloneable, Iterable<IndexValue>, Serializab
     public double median()
     {
         Vec copy = sortedCopy();
-        if(copy.length() % 2 != 0)
-            return copy.get(copy.length()/2);
-        else
-            return copy.get(copy.length()/2)/2+copy.get(copy.length()/2+1)/2;
+        if(copy.length() % 2 != 0) {
+          return copy.get(copy.length()/2);
+        } else {
+          return copy.get(copy.length()/2)/2+copy.get(copy.length()/2+1)/2;
+        }
     }
     
     /**
@@ -565,8 +590,9 @@ public abstract class Vec implements Cloneable, Iterable<IndexValue>, Serializab
         
         double s1 = tmp / (pow(standardDeviation(), 3) * (length-1) );
         
-        if(length >= 3)//We can use the bias corrected formula
-            return sqrt(length*(length-1))/(length-2)*s1;
+        if(length >= 3) {//We can use the bias corrected formula
+          return sqrt(length*(length-1))/(length-2)*s1;
+        }
         
         return s1;
     }
@@ -611,18 +637,21 @@ public abstract class Vec implements Cloneable, Iterable<IndexValue>, Serializab
      */
     public void copyTo(Vec destination)
     {
-        if(this.length() != destination.length())
-            throw new ArithmeticException("Source and destination must be the same size");
+        if(this.length() != destination.length()) {
+          throw new ArithmeticException("Source and destination must be the same size");
+        }
         if (this.isSparse())
         {
             destination.zeroOut();
-            for (IndexValue iv : this)
-                destination.set(iv.getIndex(), iv.getValue());
+            for (IndexValue iv : this) {
+              destination.set(iv.getIndex(), iv.getValue());
+            }
         }
         else
         {
-            for (int i = 0; i < length(); i++)
-                destination.set(i, this.get(i));
+            for (int i = 0; i < length(); i++) {
+              destination.set(i, this.get(i));
+            }
         }
     }
     
@@ -634,10 +663,12 @@ public abstract class Vec implements Cloneable, Iterable<IndexValue>, Serializab
      */
     public void copyToRow(Matrix A, int row)
     {
-        if(this.length() != A.cols())
-            throw new ArithmeticException("Destination matrix does not have the same number of columns as this has rows");
-        for(int i = 0; i < length(); i++)
-            A.set(row, i, get(i));
+        if(this.length() != A.cols()) {
+          throw new ArithmeticException("Destination matrix does not have the same number of columns as this has rows");
+        }
+        for(int i = 0; i < length(); i++) {
+          A.set(row, i, get(i));
+        }
     }
     
     /**
@@ -647,10 +678,12 @@ public abstract class Vec implements Cloneable, Iterable<IndexValue>, Serializab
      */
     public void copyToCol(Matrix A, int col)
     {
-        if(this.length() != A.rows())
-            throw new ArithmeticException("Destination matrix does not have the same number of rows as this has rows");
-        for(int i = 0; i < length(); i++)
-            A.set(i, col, get(i));
+        if(this.length() != A.rows()) {
+          throw new ArithmeticException("Destination matrix does not have the same number of rows as this has rows");
+        }
+        for(int i = 0; i < length(); i++) {
+          A.set(i, col, get(i));
+        }
     }
     
     @Override
@@ -685,8 +718,9 @@ public abstract class Vec implements Cloneable, Iterable<IndexValue>, Serializab
      */
     public void applyFunction(Function f)
     {
-        for(int i = 0; i < length(); i++)
-            set(i, f.f(get(i)));
+        for(int i = 0; i < length(); i++) {
+          set(i, f.f(get(i)));
+        }
     }
     
     /**
@@ -709,8 +743,9 @@ public abstract class Vec implements Cloneable, Iterable<IndexValue>, Serializab
      */
     public void applyIndexFunction(IndexFunction f)
     {
-        for(int i = 0; i < length(); i++)
-            set(i, f.indexFunc(get(i), i));
+        for(int i = 0; i < length(); i++) {
+          set(i, f.indexFunc(get(i), i));
+        }
     }
     
     /**
@@ -723,13 +758,15 @@ public abstract class Vec implements Cloneable, Iterable<IndexValue>, Serializab
     {
         Iterator<IndexValue> thisIter = this.iterator();
         Iterator<IndexValue> otherIter = y.iterator();
-        if (!thisIter.hasNext())
-            if (!otherIter.hasNext())
-                return 0;
-            else
-                return y.pNorm(p);
-        else if (!otherIter.hasNext())
-            return this.pNorm(p);
+        if (!thisIter.hasNext()) {
+          if (!otherIter.hasNext()) {
+            return 0;
+          } else {
+            return y.pNorm(p);
+          }
+        } else if (!otherIter.hasNext()) {
+          return this.pNorm(p);
+        }
 
         double result = 0;
         
@@ -755,10 +792,12 @@ public abstract class Vec implements Cloneable, Iterable<IndexValue>, Serializab
                 nextB = true;
             }
             
-            if(nextA)
-                av = thisIter.hasNext() ? thisIter.next() : null;
-            if(nextB)
-                bv = otherIter.hasNext() ? otherIter.next() : null;
+            if(nextA) {
+              av = thisIter.hasNext() ? thisIter.next() : null;
+            }
+            if(nextB) {
+              bv = otherIter.hasNext() ? otherIter.next() : null;
+            }
         }
         while (av != null && bv != null);
         
@@ -786,29 +825,34 @@ public abstract class Vec implements Cloneable, Iterable<IndexValue>, Serializab
      */
     public double pNorm(double p)
     {
-        if (p <= 0)
-            throw new IllegalArgumentException("norm must be a positive value, not " + p);
+        if (p <= 0) {
+          throw new IllegalArgumentException("norm must be a positive value, not " + p);
+        }
         double result = 0;
         if (p == 1)
         {
-            for (IndexValue iv : this)
-                result += abs(iv.getValue());
+            for (IndexValue iv : this) {
+              result += abs(iv.getValue());
+            }
         }
         else if (p == 2)
         {
-            for (IndexValue iv : this)
-                result += iv.getValue() * iv.getValue();
+            for (IndexValue iv : this) {
+              result += iv.getValue() * iv.getValue();
+            }
             result = Math.sqrt(result);
         }
         else if (Double.isInfinite(p))
         {
-            for (IndexValue iv : this)
-                result = Math.max(result, abs(iv.getValue()));
+            for (IndexValue iv : this) {
+              result = Math.max(result, abs(iv.getValue()));
+            }
         }
         else
         {
-            for (IndexValue iv : this)
-                result += pow(abs(iv.getValue()), p);
+            for (IndexValue iv : this) {
+              result += pow(abs(iv.getValue()), p);
+            }
             result = pow(result, 1 / p);
         }
         return result;
@@ -826,19 +870,22 @@ public abstract class Vec implements Cloneable, Iterable<IndexValue>, Serializab
     public double dot(Vec v)
     {
         double dot = 0;
-        if(!this.isSparse() && v.isSparse())
-            for(IndexValue iv : v)
-                dot += get(iv.getIndex())*iv.getValue();
-        else if(this.isSparse() && !v.isSparse())
-            for(IndexValue iv : this)
-                dot += iv.getValue()*v.get(iv.getIndex());
-        else if(this.isSparse() && v.isSparse())
+        if(!this.isSparse() && v.isSparse()) {
+          for (IndexValue iv : v) {
+            dot += get(iv.getIndex())*iv.getValue();
+          }
+        } else if(this.isSparse() && !v.isSparse()) {
+          for (IndexValue iv : this) {
+            dot += iv.getValue()*v.get(iv.getIndex());
+          }
+        } else if(this.isSparse() && v.isSparse())
         {
             Iterator<IndexValue> aIter = this.getNonZeroIterator();
             Iterator<IndexValue> bIter = v.getNonZeroIterator();
             
-            if(this.nnz() == 0 || v.nnz() == 0)
-                return 0;//All zeros? dot is zer
+            if(this.nnz() == 0 || v.nnz() == 0) {
+              return 0;//All zeros? dot is zer
+          }
             
             //each must have at least one
             IndexValue aCur = aIter.next();
@@ -849,37 +896,43 @@ public abstract class Vec implements Cloneable, Iterable<IndexValue>, Serializab
                 if(aCur.getIndex() == bCur.getIndex())
                 {
                     dot += aCur.getValue()*bCur.getValue();
-                    if(aIter.hasNext())
-                        aCur = aIter.next();
-                    else
-                        aCur = null;
+                    if(aIter.hasNext()) {
+                      aCur = aIter.next();
+              } else {
+                      aCur = null;
+              }
                     
-                    if(bIter.hasNext())
-                        bCur = bIter.next();
-                    else
-                        bCur = null;
+                    if(bIter.hasNext()) {
+                      bCur = bIter.next();
+              } else {
+                      bCur = null;
+              }
                 }
                 else if(aCur.getIndex() < bCur.getIndex())
                 {
                     //Move a over to try and get the indecies equal
-                    if(aIter.hasNext())
-                        aCur = aIter.next();
-                    else
-                        aCur = null;
+                    if(aIter.hasNext()) {
+                      aCur = aIter.next();
+              } else {
+                      aCur = null;
+              }
                 }
                 else//b is too small, move it over and try to get them lined up
                 {
-                    if(bIter.hasNext())
-                        bCur = bIter.next();
-                    else
-                        bCur = null;
+                    if(bIter.hasNext()) {
+                      bCur = bIter.next();
+              } else {
+                      bCur = null;
+              }
                 }
             }
             
         }
-        else
-            for(int i = 0; i < length(); i++)
-                dot += get(i)*v.get(i);
+        else {
+          for (int i = 0; i < length(); i++) {
+            dot += get(i)*v.get(i);
+          }
+        }
         
         return dot;
     }
@@ -889,8 +942,9 @@ public abstract class Vec implements Cloneable, Iterable<IndexValue>, Serializab
     {
         StringBuilder sb = new StringBuilder("[");
         sb.append(get(0));
-        for(int i = 1; i < length(); i++)
-            sb.append(",").append(get(i));
+        for(int i = 1; i < length(); i++) {
+          sb.append(",").append(get(i));
+        }
         sb.append("]");
         return sb.toString();
     }
@@ -903,20 +957,23 @@ public abstract class Vec implements Cloneable, Iterable<IndexValue>, Serializab
     
     public boolean equals(Object obj, double range)
     {
-        if(!(obj instanceof Vec))
-            return false;
+        if(!(obj instanceof Vec)) {
+          return false;
+        }
         Vec other = (Vec) obj;
         range = abs(range);
         
         Iterator<IndexValue> thisIter = this.iterator();
         Iterator<IndexValue> otherIter = other.iterator();
-        if (!thisIter.hasNext())
-            if (!otherIter.hasNext())
-                return true;
-            else
-                return false;
-        else if (!otherIter.hasNext())
+        if (!thisIter.hasNext()) {
+          if (!otherIter.hasNext()) {
+            return true;
+          } else {
             return false;
+          }
+        } else if (!otherIter.hasNext()) {
+          return false;
+        }
         
         IndexValue av = thisIter.next();
         IndexValue bv = otherIter.next();
@@ -926,41 +983,48 @@ public abstract class Vec implements Cloneable, Iterable<IndexValue>, Serializab
             boolean nextA = false, nextB = false;
             if (av.getIndex() == bv.getIndex())
             {
-                if(abs(av.getValue() - bv.getValue()) > range)
-                    return false;
+                if(abs(av.getValue() - bv.getValue()) > range) {
+                  return false;
+                }
                 nextA = nextB = true;
             }
             else if(av.getIndex() < bv.getIndex())
             {
-                if(abs(av.getValue()) > range)
-                    return false;
+                if(abs(av.getValue()) > range) {
+                  return false;
+                }
                 nextA = true;
             }
             else if(av.getIndex() > bv.getIndex())
             {
-                if(abs(bv.getValue()) > range)
-                    return false;
+                if(abs(bv.getValue()) > range) {
+                  return false;
+                }
                 nextB = true;
             }
             
-            if(nextA)
-                av = thisIter.hasNext() ? thisIter.next() : null;
-            if(nextB)
-                bv = otherIter.hasNext() ? otherIter.next() : null;
+            if(nextA) {
+              av = thisIter.hasNext() ? thisIter.next() : null;
+            }
+            if(nextB) {
+              bv = otherIter.hasNext() ? otherIter.next() : null;
+            }
         }
         while (av != null && bv != null);
         
         while(av != null)
         {
-            if(abs(av.getValue()) > range)
-                return false;
+            if(abs(av.getValue()) > range) {
+              return false;
+            }
             av = thisIter.hasNext() ? thisIter.next() : null;
         }
         
         while(bv != null)
         {
-            if(abs(bv.getValue()) > range)
-                return false;
+            if(abs(bv.getValue()) > range) {
+              return false;
+            }
             bv = otherIter.hasNext() ? otherIter.next() : null;
         }
         
@@ -975,8 +1039,9 @@ public abstract class Vec implements Cloneable, Iterable<IndexValue>, Serializab
     public double[] arrayCopy()
     {
         double[] array = new double[length()];
-        for(IndexValue iv : this)
-            array[iv.getIndex()] = iv.getValue();
+        for(IndexValue iv : this) {
+          array[iv.getIndex()] = iv.getValue();
+        }
         return array;
     }
 
@@ -1014,9 +1079,11 @@ public abstract class Vec implements Cloneable, Iterable<IndexValue>, Serializab
         //Need a little class magic
         final Vec magic = this;
         int i;
-        for(i = start; i < magic.length(); i++)
-            if(magic.get(i) != 0.0)
-                break;
+        for(i = start; i < magic.length(); i++) {
+          if (magic.get(i) != 0.0) {
+            break;
+          }
+        }
         final int fnz = (magic.length() == 0 || magic.length() <= i || magic.get(i) == 0.0 ) ? -1 : i;
         Iterator<IndexValue> itor = new Iterator<IndexValue>() 
         {
@@ -1034,19 +1101,21 @@ public abstract class Vec implements Cloneable, Iterable<IndexValue>, Serializab
             @Override
             public IndexValue next()
             {
-                if(nextNonZero == -1)
-                    return null;
+                if(nextNonZero == -1) {
+                  return null;
+                }
                 indexValue.setIndex(nextNonZero);
                 indexValue.setValue(get(nextNonZero));
                 
                 int i = nextNonZero+1;
                 nextNonZero = -1;
-                for(; i < magic.length(); i++ )
-                    if(get(i) != 0.0)
-                    {
-                        nextNonZero = i;
-                        break;
-                    }
+                for(; i < magic.length(); i++ ) {
+                  if(get(i) != 0.0)
+                  {
+                    nextNonZero = i;
+                    break;
+                  }
+                }
                 
                 return indexValue;
             }
@@ -1068,8 +1137,9 @@ public abstract class Vec implements Cloneable, Iterable<IndexValue>, Serializab
      */
     public void zeroOut()
     {
-        for(int i = 0; i < length(); i++)
-            set(i, 0.0);
+        for(int i = 0; i < length(); i++) {
+          set(i, 0.0);
+        }
     }
 
     /**
@@ -1132,8 +1202,9 @@ public abstract class Vec implements Cloneable, Iterable<IndexValue>, Serializab
     public static Vec random(int length, Random rand)
     {
         Vec v = new DenseVector(length);
-        for(int i = 0; i < length; i++)
-            v.set(i, rand.nextDouble());
+        for(int i = 0; i < length; i++) {
+          v.set(i, rand.nextDouble());
+        }
         return v;
     }
     

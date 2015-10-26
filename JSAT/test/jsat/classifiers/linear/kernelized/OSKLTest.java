@@ -52,21 +52,22 @@ public class OSKLTest
 
         ExecutorService ex = Executors.newFixedThreadPool(SystemInfo.LogicalCores);
         
-        for(boolean useAverageModel : new boolean[]{true, false})
-            for(int burnin : new int[]{0, 50, 100, 250})
-            {
-                OSKL instance = new OSKL(new RBFKernel(0.5), 1.5);
-                instance.setBurnIn(burnin);
-                instance.setUseAverageModel(useAverageModel);
-
-                ClassificationDataSet train = FixedProblems.getInnerOuterCircle(200, new XORWOW());
-                ClassificationDataSet test = FixedProblems.getInnerOuterCircle(100, new XORWOW());
-
-                ClassificationModelEvaluation cme = new ClassificationModelEvaluation(instance, train, ex);
-                cme.evaluateTestSet(test);
-
-                assertEquals(0, cme.getErrorRate(), 0.0);
-            }
+        for(boolean useAverageModel : new boolean[]{true, false}) {
+          for(int burnin : new int[]{0, 50, 100, 250})
+          {
+            OSKL instance = new OSKL(new RBFKernel(0.5), 1.5);
+            instance.setBurnIn(burnin);
+            instance.setUseAverageModel(useAverageModel);
+            
+            ClassificationDataSet train = FixedProblems.getInnerOuterCircle(200, new XORWOW());
+            ClassificationDataSet test = FixedProblems.getInnerOuterCircle(100, new XORWOW());
+            
+            ClassificationModelEvaluation cme = new ClassificationModelEvaluation(instance, train, ex);
+            cme.evaluateTestSet(test);
+            
+            assertEquals(0, cme.getErrorRate(), 0.0);
+          }
+        }
         ex.shutdownNow();
         
 
@@ -77,21 +78,22 @@ public class OSKLTest
     {
         System.out.println("trainC");
 
-        for(boolean useAverageModel : new boolean[]{true, false})
-            for(int burnin : new int[]{0, 50, 100, 250})
-            {
-                OSKL instance = new OSKL(new RBFKernel(0.5), 1.5);
-                instance.setBurnIn(burnin);
-                instance.setUseAverageModel(useAverageModel);
-        
-                ClassificationDataSet train = FixedProblems.getInnerOuterCircle(200, new XORWOW());
-                ClassificationDataSet test = FixedProblems.getInnerOuterCircle(100, new XORWOW());
-
-                ClassificationModelEvaluation cme = new ClassificationModelEvaluation(instance, train);
-                cme.evaluateTestSet(test);
-
-                assertEquals(0, cme.getErrorRate(), 0.0);
-            }
+        for(boolean useAverageModel : new boolean[]{true, false}) {
+          for(int burnin : new int[]{0, 50, 100, 250})
+          {
+            OSKL instance = new OSKL(new RBFKernel(0.5), 1.5);
+            instance.setBurnIn(burnin);
+            instance.setUseAverageModel(useAverageModel);
+            
+            ClassificationDataSet train = FixedProblems.getInnerOuterCircle(200, new XORWOW());
+            ClassificationDataSet test = FixedProblems.getInnerOuterCircle(100, new XORWOW());
+            
+            ClassificationModelEvaluation cme = new ClassificationModelEvaluation(instance, train);
+            cme.evaluateTestSet(test);
+            
+            assertEquals(0, cme.getErrorRate(), 0.0);
+          }
+        }
 
     }
 
@@ -112,15 +114,18 @@ public class OSKLTest
         instance.setUseAverageModel(true);
         OSKL result = instance.clone();
         assertTrue(result.isUseAverageModel());
-        for (int i = 0; i < t1.getSampleSize(); i++)
-            assertEquals(t1.getDataPointCategory(i), result.classify(t1.getDataPoint(i)).mostLikely());
+        for (int i = 0; i < t1.getSampleSize(); i++) {
+          assertEquals(t1.getDataPointCategory(i), result.classify(t1.getDataPoint(i)).mostLikely());
+        }
         result.trainC(t2);
 
-        for (int i = 0; i < t1.getSampleSize(); i++)
-            assertEquals(t1.getDataPointCategory(i), instance.classify(t1.getDataPoint(i)).mostLikely());
+        for (int i = 0; i < t1.getSampleSize(); i++) {
+          assertEquals(t1.getDataPointCategory(i), instance.classify(t1.getDataPoint(i)).mostLikely());
+        }
 
-        for (int i = 0; i < t2.getSampleSize(); i++)
-            assertEquals(t2.getDataPointCategory(i), result.classify(t2.getDataPoint(i)).mostLikely());
+        for (int i = 0; i < t2.getSampleSize(); i++) {
+          assertEquals(t2.getDataPointCategory(i), result.classify(t2.getDataPoint(i)).mostLikely());
+        }
 
     }
 }

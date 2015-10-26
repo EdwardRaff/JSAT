@@ -63,8 +63,9 @@ public class ConditionalProbabilityTable implements Classifier
     
     public CategoricalResults classify(DataPoint data)
     {
-        if(catIndexToRealIndex[predictingIndex] < 0)
-            throw new UntrainedModelException("CPT has not been trained for a classification problem");
+        if(catIndexToRealIndex[predictingIndex] < 0) {
+          throw new UntrainedModelException("CPT has not been trained for a classification problem");
+        }
         CategoricalResults cr = new CategoricalResults(predicting.getNumOfCategories());
         
         int[] cord = new int[dimSize.length];
@@ -101,8 +102,9 @@ public class ConditionalProbabilityTable implements Classifier
      */
     public int dataPointToCord(DataPointPair<Integer> dataPoint, int targetClass, int[] cord)
     {
-        if(cord.length != getDimensionSize())
-            throw new ArithmeticException("Storage space and CPT dimension miss match");
+        if(cord.length != getDimensionSize()) {
+          throw new ArithmeticException("Storage space and CPT dimension miss match");
+        }
         DataPoint dp = dataPoint.getDataPoint();
         int skipVal = -1;
         //Set up cord
@@ -110,15 +112,17 @@ public class ConditionalProbabilityTable implements Classifier
         {
             if(realIndexToCatIndex[i] == targetClass)
             {
-                if(targetClass == dp.numCategoricalValues())
-                    skipVal = dataPoint.getPair();
-                else
-                    skipVal = dp.getCategoricalValue(realIndexToCatIndex[i]);
+                if(targetClass == dp.numCategoricalValues()) {
+                  skipVal = dataPoint.getPair();
+                } else {
+                  skipVal = dp.getCategoricalValue(realIndexToCatIndex[i]);
+                }
             }
-            if(realIndexToCatIndex[i] == predictingIndex)
-                cord[i] = dataPoint.getPair();
-            else
-                cord[i] =  dp.getCategoricalValue(realIndexToCatIndex[i]);
+            if(realIndexToCatIndex[i] == predictingIndex) {
+              cord[i] = dataPoint.getPair();
+            } else {
+              cord[i] =  dp.getCategoricalValue(realIndexToCatIndex[i]);
+            }
         }
         return skipVal;
     }
@@ -131,8 +135,9 @@ public class ConditionalProbabilityTable implements Classifier
     public void trainC(ClassificationDataSet dataSet)
     {
         Set<Integer> all = new IntSet();
-        for(int i = 0; i < dataSet.getNumCategoricalVars()+1; i++)
-            all.add(i);
+        for(int i = 0; i < dataSet.getNumCategoricalVars()+1; i++) {
+          all.add(i);
+        }
         trainC(dataSet, all);
     }
     
@@ -147,9 +152,10 @@ public class ConditionalProbabilityTable implements Classifier
      */
     public void trainC(ClassificationDataSet dataSet, Set<Integer> categoriesToUse)
     {
-        if(categoriesToUse.size() > dataSet.getNumFeatures()+1)
-            throw new FailedToFitException("CPT can not train on a number of features greater then the dataset's feature count. "
-                    + "Specified " + categoriesToUse.size() + " but data set has only " + dataSet.getNumFeatures());
+        if(categoriesToUse.size() > dataSet.getNumFeatures()+1) {
+          throw new FailedToFitException("CPT can not train on a number of features greater then the dataset's feature count. "
+                  + "Specified " + categoriesToUse.size() + " but data set has only " + dataSet.getNumFeatures());
+        }
         CategoricalData[] tmp = dataSet.getCategories();
         predicting = dataSet.getPredicting();
         predictingIndex = dataSet.getNumCategoricalVars();
@@ -162,8 +168,9 @@ public class ConditionalProbabilityTable implements Classifier
         int k = 0;
         for(int i : categoriesToUse)
         {
-            if(i == predictingIndex)//The predicint class is treated seperatly
-                continue;
+            if(i == predictingIndex) {//The predicint class is treated seperatly
+              continue;
+            }
             CategoricalData dataInfo = tmp[i];
             flatSize *= dataInfo.getNumOfCategories();
             valid.put(i, dataInfo);
@@ -189,11 +196,13 @@ public class ConditionalProbabilityTable implements Classifier
         for(int i = 0; i < dataSet.getSampleSize(); i++)
         {
             DataPoint dp = dataSet.getDataPoint(i);
-            for (int j = 0; j < realIndexToCatIndex.length; j++)
-                if (realIndexToCatIndex[j] != predictingIndex)
-                    cordinate[j] = dp.getCategoricalValue(realIndexToCatIndex[j]);
-                else
-                    cordinate[j] = dataSet.getDataPointCategory(i);
+            for (int j = 0; j < realIndexToCatIndex.length; j++) {
+              if (realIndexToCatIndex[j] != predictingIndex) {
+                cordinate[j] = dp.getCategoricalValue(realIndexToCatIndex[j]);
+              } else {
+                cordinate[j] = dataSet.getDataPointCategory(i);
+              }
+            }
             countArray[cordToIndex(cordinate)]+= dp.getWeight();
         }
     }
@@ -239,8 +248,9 @@ public class ConditionalProbabilityTable implements Classifier
                 
             double tmp =  countArray[cordToIndex(cord)];
             sumVal += tmp;
-            if (i == targetValue)
-                targetVal = tmp;
+            if (i == targetValue) {
+              targetVal = tmp;
+            }
         }
 
         
@@ -254,8 +264,9 @@ public class ConditionalProbabilityTable implements Classifier
      */
     private int cordToIndex(int... cords)
     {
-        if(cords.length != realIndexToCatIndex.length)
-            throw new RuntimeException("Something bad");
+        if(cords.length != realIndexToCatIndex.length) {
+          throw new RuntimeException("Something bad");
+        }
         int index = 0;
         for(int i = 0; i < cords.length; i++)
         {
@@ -274,8 +285,9 @@ public class ConditionalProbabilityTable implements Classifier
     {
         DataPoint dp = dataPoint.getDataPoint();
         int index = 0;
-        for(int i = 0; i < dimSize.length; i++)
-            index = dp.getCategoricalValue(realIndexToCatIndex[i]) + dimSize[i]*index;
+        for(int i = 0; i < dimSize.length; i++) {
+          index = dp.getCategoricalValue(realIndexToCatIndex[i]) + dimSize[i]*index;
+        }
         return index;
     }
 

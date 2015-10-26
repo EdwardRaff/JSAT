@@ -171,8 +171,9 @@ public class ClassificationModelEvaluation
      */
     public void evaluateCrossValidation(int folds, Random rand)
     {
-        if(folds < 2)
-            throw new UntrainedModelException("Model could not be evaluated because " + folds + " is < 2, and not valid for cross validation");
+        if(folds < 2) {
+          throw new UntrainedModelException("Model could not be evaluated because " + folds + " is < 2, and not valid for cross validation");
+        }
         List<ClassificationDataSet> lcds = dataSet.cvSet(folds, rand);
         evaluateCrossValidation(lcds);
     }
@@ -195,8 +196,9 @@ public class ClassificationModelEvaluation
     public void evaluateCrossValidation(List<ClassificationDataSet> lcds)
     {
         List<ClassificationDataSet> trainCombinations = new ArrayList<ClassificationDataSet>(lcds.size());
-        for (int i = 0; i < lcds.size(); i++)
-            trainCombinations.add(ClassificationDataSet.comineAllBut(lcds, i));
+        for (int i = 0; i < lcds.size(); i++) {
+          trainCombinations.add(ClassificationDataSet.comineAllBut(lcds, i));
+        }
         evaluateCrossValidation(lcds, trainCombinations);
     }
     
@@ -232,8 +234,9 @@ public class ClassificationModelEvaluation
         confusionMatrix = new double[numOfClasses][numOfClasses];
         totalTrainingTime = 0;
         totalClassificationTime = 0;
-        if(keepModels)
-            keptModels = new Classifier[lcds.size()];
+        if(keepModels) {
+          keptModels = new Classifier[lcds.size()];
+        }
         
         setUpResults(dataSet.getSampleSize());
         int end = dataSet.getSampleSize();
@@ -259,8 +262,9 @@ public class ClassificationModelEvaluation
      */
     public void evaluateTestSet(ClassificationDataSet testSet)
     {
-        if(keepModels)
-            keptModels = new Classifier[1];
+        if(keepModels) {
+          keptModels = new Classifier[1];
+        }
         int numOfClasses = dataSet.getClassSize();
         sumOfWeights = 0.0;
         confusionMatrix = new double[numOfClasses][numOfClasses];
@@ -282,22 +286,25 @@ public class ClassificationModelEvaluation
         if(warmModels != null && classifier instanceof WarmClassifier)//train from the warm model
         {
             WarmClassifier wc = (WarmClassifier) classifier;
-            if(threadpool != null)
-                wc.trainC(trainSet, warmModels[index], threadpool);
-            else
-                wc.trainC(trainSet, warmModels[index]);
+            if(threadpool != null) {
+              wc.trainC(trainSet, warmModels[index], threadpool);
+            } else {
+              wc.trainC(trainSet, warmModels[index]);
+            }
         }
         else//do the normal thing
         {
-            if(threadpool != null)
-                classifier.trainC(trainSet, threadpool);
-            else
-                classifier.trainC(trainSet);
+            if(threadpool != null) {
+              classifier.trainC(trainSet, threadpool);
+            } else {
+              classifier.trainC(trainSet);
+            }
         }
         totalTrainingTime += (System.currentTimeMillis() - startTrain);
         
-        if(keptModels != null)
-            keptModels[index] = classifier.clone();
+        if(keptModels != null) {
+          keptModels[index] = classifier.clone();
+        }
         
         CountDownLatch latch;
         final double[] evalErrorStats = new double[2];//first index is correct, 2nd is total
@@ -325,8 +332,9 @@ public class ClassificationModelEvaluation
             while(start < testSet.getSampleSize())
             {
                 int end = start+blockSize;
-                if(extra-- > 0)
-                    end++;
+                if(extra-- > 0) {
+                  end++;
+                }
                 threadpool.submit(new Evaluator(testSet, curProcess, start, end, evalErrorStats, scoresToUpdate, latch));
                 start = end;
             }
@@ -417,8 +425,9 @@ public class ClassificationModelEvaluation
             {
                 //create a local set of scores to update
                 Set<ClassificationScore> localScores = new HashSet<ClassificationScore>();
-                for (Entry<ClassificationScore, ClassificationScore> entry : scoresToUpdate.entrySet())
-                    localScores.add(entry.getKey().clone());
+                for (Entry<ClassificationScore, ClassificationScore> entry : scoresToUpdate.entrySet()) {
+                  localScores.add(entry.getKey().clone());
+                }
                 for (int i = start; i < end; i++)
                 {
                     DataPoint dp = testSet.getDataPoint(i);
@@ -427,8 +436,9 @@ public class ClassificationModelEvaluation
                     CategoricalResults result = classifier.classify(dp);
                     localClassificationTime += (System.currentTimeMillis() - stratClass);
 
-                    for (ClassificationScore score : localScores)
-                        score.addResult(result, testSet.getDataPointCategory(i), dp.getWeight());
+                    for (ClassificationScore score : localScores) {
+                      score.addResult(result, testSet.getDataPointCategory(i), dp.getWeight());
+                    }
 
                     if (predictions != null)
                     {
@@ -441,8 +451,9 @@ public class ClassificationModelEvaluation
                     {
                         confusionMatrix[trueCat][result.mostLikely()] += dp.getWeight();
                     }
-                    if(trueCat == result.mostLikely())
-                        localCorrect += dp.getWeight();
+                    if(trueCat == result.mostLikely()) {
+                      localCorrect += dp.getWeight();
+                    }
                     localSumOfWeights += dp.getWeight();
                 }
 
@@ -453,8 +464,9 @@ public class ClassificationModelEvaluation
                     errorStats[0] += localSumOfWeights-localCorrect;
                     errorStats[1] += localSumOfWeights;
 
-                    for (ClassificationScore score : localScores)
-                        scoresToUpdate.get(score).addResults(score);
+                    for (ClassificationScore score : localScores) {
+                      scoresToUpdate.get(score).addResults(score);
+                    }
                 }
 
                 latch.countDown();
@@ -537,20 +549,23 @@ public class ClassificationModelEvaluation
         CategoricalData predicting = dataSet.getPredicting();
         int classCount = predicting.getNumOfCategories();
         int nameLength = 10;
-        for(int i = 0; i < classCount; i++)
-            nameLength = Math.max(nameLength, predicting.getOptionName(i).length()+2);
+        for(int i = 0; i < classCount; i++) {
+          nameLength = Math.max(nameLength, predicting.getOptionName(i).length()+2);
+        }
         final String pfx = "%-" + nameLength;//prefix
         
         System.out.printf(pfx+"s ", "Matrix");
-        for(int i = 0; i < classCount-1; i++)
-            System.out.printf(pfx+"s ", predicting.getOptionName(i).toUpperCase());
+        for(int i = 0; i < classCount-1; i++) {
+          System.out.printf(pfx+"s ", predicting.getOptionName(i).toUpperCase());
+        }
         System.out.printf(pfx+"s\n", predicting.getOptionName(classCount-1).toUpperCase());
         //Now the rows that have data! 
         for(int i = 0; i <confusionMatrix.length; i++)
         {
             System.out.printf(pfx+"s ", predicting.getOptionName(i).toUpperCase());
-            for(int j = 0; j < classCount-1; j++)
-                System.out.printf(pfx+"f ", confusionMatrix[i][j]);
+            for(int j = 0; j < classCount-1; j++) {
+              System.out.printf(pfx+"f ", confusionMatrix[i][j]);
+            }
             System.out.printf(pfx+"f\n", confusionMatrix[i][classCount-1]);
         }
 
@@ -565,11 +580,13 @@ public class ClassificationModelEvaluation
     public void prettyPrintClassificationScores()
     {
         int nameLength = 10;
-        for(Entry<ClassificationScore, OnLineStatistics> entry : scoreMap.entrySet())
-            nameLength = Math.max(nameLength, entry.getKey().getName().length()+2);
+        for(Entry<ClassificationScore, OnLineStatistics> entry : scoreMap.entrySet()) {
+          nameLength = Math.max(nameLength, entry.getKey().getName().length()+2);
+        }
         final String pfx = "%-" + nameLength;//prefix
-        for(Entry<ClassificationScore, OnLineStatistics> entry : scoreMap.entrySet())
-            System.out.printf(pfx+"s %-5f (%-5f)\n", entry.getKey().getName(), entry.getValue().getMean(), entry.getValue().getStandardDeviation());
+        for(Entry<ClassificationScore, OnLineStatistics> entry : scoreMap.entrySet()) {
+          System.out.printf(pfx+"s %-5f (%-5f)\n", entry.getKey().getName(), entry.getValue().getMean(), entry.getValue().getStandardDeviation());
+        }
     }
     
     /**
@@ -579,8 +596,9 @@ public class ClassificationModelEvaluation
     public double getCorrectWeights()
     {
         double val = 0.0;
-        for(int i = 0; i < confusionMatrix.length; i++)
-            val += confusionMatrix[i][i];
+        for(int i = 0; i < confusionMatrix.length; i++) {
+          val += confusionMatrix[i][i];
+        }
         return val;
     }
 

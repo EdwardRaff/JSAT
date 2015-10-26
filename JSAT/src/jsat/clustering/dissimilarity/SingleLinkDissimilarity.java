@@ -54,10 +54,13 @@ public class SingleLinkDissimilarity extends DistanceMetricDissimilarity impleme
         double minDiss = Double.MAX_VALUE;
 
         double tmpDist;
-        for (DataPoint ai : a)
-            for (DataPoint bi : b)
-                if ((tmpDist = distance(ai, bi)) < minDiss)
-                    minDiss = tmpDist;
+        for (DataPoint ai : a) {
+          for (DataPoint bi : b) {
+            if ((tmpDist = distance(ai, bi)) < minDiss) {
+              minDiss = tmpDist;
+            }
+          }
+        }
 
         return minDiss;
     }
@@ -67,10 +70,13 @@ public class SingleLinkDissimilarity extends DistanceMetricDissimilarity impleme
     {
         double minDiss = Double.MAX_VALUE;
 
-        for (int ai : a)
-            for (int bi : b)
-                if (getDistance(distanceMatrix, ai, bi) < minDiss)
-                    minDiss = getDistance(distanceMatrix, ai, bi);
+        for (int ai : a) {
+          for (int bi : b) {
+            if (getDistance(distanceMatrix, ai, bi) < minDiss) {
+              minDiss = getDistance(distanceMatrix, ai, bi);
+            }
+          }
+        }
 
         return minDiss;
     }

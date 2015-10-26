@@ -42,8 +42,9 @@ public final class Laplace extends ContinuousDistribution
 
     public void setB(double b)
     {
-        if (b <= 0)
-            throw new ArithmeticException("The scale parameter must be > 0");
+        if (b <= 0) {
+          throw new ArithmeticException("The scale parameter must be > 0");
+        }
         this.b = b;
     }
 
@@ -104,10 +105,11 @@ public final class Laplace extends ContinuousDistribution
     @Override
     public void setVariable(String var, double value)
     {
-        if(var.equals(GreekLetters.mu))
-            setMu(value);
-        else if(var.equals("b"))
-            setB(value);
+        if(var.equals(GreekLetters.mu)) {
+          setMu(value);
+        } else if(var.equals("b")) {
+          setB(value);
+        }
     }
 
     @Override
@@ -124,8 +126,9 @@ public final class Laplace extends ContinuousDistribution
         
         double newB = 0;
         //TODO add APIs so that sparce vector can do this more efficiently
-        for(int i = 0; i < data.length(); i++)
-            newB += abs(data.get(i) - tmpMu);
+        for(int i = 0; i < data.length(); i++) {
+          newB += abs(data.get(i) - tmpMu);
+        }
         newB /= data.length();
         
         setB(newB);

@@ -31,12 +31,13 @@ public class BinaryWordPresent extends WordWeighting
     @Override
     public double indexFunc(double value, int index)
     {
-        if(index < 0)
-            return 0.0;
-        else if(value > 0.0)
-            return 1.0;
-        else
-            return 0.0;
+        if(index < 0) {
+          return 0.0;
+        } else if(value > 0.0) {
+          return 1.0;
+        } else {
+          return 0.0;
+        }
     }
     
 }

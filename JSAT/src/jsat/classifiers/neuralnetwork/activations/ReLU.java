@@ -21,16 +21,19 @@ public class ReLU implements ActivationLayer
 	@Override
     public void activate(Vec input, Vec output)
     {
-        for(int i = 0; i < input.length(); i++)
-            output.set(i, Math.max(0, input.get(i)));
+        for(int i = 0; i < input.length(); i++) {
+          output.set(i, Math.max(0, input.get(i)));
+        }
     }
     
     @Override
     public void activate(Matrix input, Matrix output, boolean rowMajor)
     {
-        for(int i = 0; i < input.rows(); i++)
-            for(int j = 0; j < input.cols(); j++)
-                output.set(i, j, Math.max(0, input.get(i, j)));
+        for(int i = 0; i < input.rows(); i++) {
+          for (int j = 0; j < input.cols(); j++) {
+            output.set(i, j, Math.max(0, input.get(i, j)));
+          }
+        }
     }
 
     @Override
@@ -39,22 +42,26 @@ public class ReLU implements ActivationLayer
         for(int i = 0; i < input.length(); i++)
         {
             double out_i = output.get(i);
-            if(out_i != 0)
-                errout.set(i, delta_partial.get(i));
-            else
-                errout.set(i, 0.0);
+            if(out_i != 0) {
+              errout.set(i, delta_partial.get(i));
+            } else {
+              errout.set(i, 0.0);
+            }
         }
     }
 
     @Override
     public void backprop(Matrix input, Matrix output, Matrix delta_partial, Matrix errout, boolean rowMajor)
     {
-        for (int i = 0; i < input.rows(); i++)
-            for (int j = 0; j < input.cols(); j++)
-                if (output.get(i, j) != 0)
-                    errout.set(i, j, delta_partial.get(i, j));
-                else
-                    errout.set(i, j, 0.0);
+        for (int i = 0; i < input.rows(); i++) {
+          for (int j = 0; j < input.cols(); j++) {
+            if (output.get(i, j) != 0) {
+              errout.set(i, j, delta_partial.get(i, j));
+            } else {
+              errout.set(i, j, 0.0);
+            }
+          }
+        }
     }
 
     @Override

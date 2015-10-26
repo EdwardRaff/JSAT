@@ -56,10 +56,12 @@ public class StringUtilsTest
 
                 int prefixSize = rand.nextInt(3);
                 int postFixSize = rand.nextInt(3);
-                for(int i =0 ; i < prefixSize; i++)
-                    preFix += Character.toString((char) rand.nextInt(128));
-                for(int i =0 ; i < postFixSize; i++)
-                    postFix += Character.toString((char) rand.nextInt(128));
+                for(int i =0 ; i < prefixSize; i++) {
+                  preFix += Character.toString((char) rand.nextInt(128));
+                }
+                for(int i =0 ; i < postFixSize; i++) {
+                  postFix += Character.toString((char) rand.nextInt(128));
+                }
 
 
                 //first test a large int
@@ -99,10 +101,12 @@ public class StringUtilsTest
 
             int prefixSize = 0;//rand.nextInt(3);
             int postFixSize = 0;//rand.nextInt(3);
-            for (int i = 0; i < prefixSize; i++)
-                preFix += Character.toString((char) rand.nextInt(128));
-            for (int i = 0; i < postFixSize; i++)
-                postFix += Character.toString((char) rand.nextInt(128));
+            for (int i = 0; i < prefixSize; i++) {
+              preFix += Character.toString((char) rand.nextInt(128));
+            }
+            for (int i = 0; i < postFixSize; i++) {
+              postFix += Character.toString((char) rand.nextInt(128));
+            }
 
             //easy cases that should all be exact
             
@@ -151,9 +155,9 @@ public class StringUtilsTest
     protected void assertRelativeEquals(double truth, double attempt)
     {
         String message = "Expteced " + truth + " but was " + attempt;
-        if (Double.isNaN(truth))
-            assertTrue(message, Double.isNaN(attempt));
-        else if (Double.isInfinite(truth))
+        if (Double.isNaN(truth)) {
+          assertTrue(message, Double.isNaN(attempt));
+        } else if (Double.isInfinite(truth))
         {
             assertTrue(message, Double.isInfinite(attempt));
             assertTrue(Double.doubleToRawLongBits(truth) == Double.doubleToRawLongBits(attempt));//get the signs right

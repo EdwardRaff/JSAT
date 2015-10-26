@@ -48,8 +48,9 @@ public class AutoDeskewTransform implements InPlaceTransform
 		@Override
         public double indexFunc(double value, int index)
         {
-            if(index < 0)
-                return 0.0;
+            if(index < 0) {
+              return 0.0;
+            }
             return transform(value, finalLambdas[index], mins[index]);
         }
     };
@@ -96,13 +97,16 @@ public class AutoDeskewTransform implements InPlaceTransform
     public AutoDeskewTransform(DataSet dataSet, boolean ignorZeros, final List<Double> lambdas)
     {
         //going to try leaving things alone nomatter what
-        if (!lambdas.contains(1.0))
-            lambdas.add(1.0);
+        if (!lambdas.contains(1.0)) {
+          lambdas.add(1.0);
+        }
 
         OnLineStatistics[][] stats = new OnLineStatistics[lambdas.size()][dataSet.getNumNumericalVars()];
-        for (int i = 0; i < stats.length; i++)
-            for (int j = 0; j < stats[i].length; j++)
-                stats[i][j] = new OnLineStatistics();
+        for (int i = 0; i < stats.length; i++) {
+          for (int j = 0; j < stats[i].length; j++) {
+            stats[i][j] = new OnLineStatistics();
+          }
+        }
         mins = new double[dataSet.getNumNumericalVars()];
         Arrays.fill(mins, Double.POSITIVE_INFINITY);
 
@@ -111,8 +115,9 @@ public class AutoDeskewTransform implements InPlaceTransform
         for (int i = 0; i < dataSet.getSampleSize(); i++)
         {
             Vec x = dataSet.getDataPoint(i).getNumericalValues();
-            if (x.isSparse())
-                containsSparseVecs = true;
+            if (x.isSparse()) {
+              containsSparseVecs = true;
+            }
             for (IndexValue iv : x)
             {
                 final int indx = iv.getIndex();
@@ -121,9 +126,12 @@ public class AutoDeskewTransform implements InPlaceTransform
                 mins[indx] = Math.min(val, mins[indx]);
             }
         }
-        if (containsSparseVecs)
-            for (int i = 0; i < mins.length; i++)//done b/c we only iterated the non-zeros
-                mins[i] = Math.min(0, mins[i]);
+        if (containsSparseVecs) {
+          for (int i = 0; i < mins.length; i++) {
+            //done b/c we only iterated the non-zeros
+            mins[i] = Math.min(0, mins[i]);
+          }
+        }
 
         //Second pass, find the best skew transform
         for (int i = 0; i < dataSet.getSampleSize(); i++)
@@ -138,17 +146,21 @@ public class AutoDeskewTransform implements InPlaceTransform
                 double val = iv.getValue();
                 updateStats(lambdas, stats, indx, val, mins, weight);
 
-                if (!ignorZeros)//we have to do this here instead of bulk insert at the end b/c of different weight value combinations
-                    for (int prevIndx = lastIndx + 1; prevIndx < indx; prevIndx++)
-                        updateStats(lambdas, stats, prevIndx, 0.0, mins, weight);
+                if (!ignorZeros) {//we have to do this here instead of bulk insert at the end b/c of different weight value combinations
+                  for (int prevIndx = lastIndx + 1; prevIndx < indx; prevIndx++) {
+                    updateStats(lambdas, stats, prevIndx, 0.0, mins, weight);
+                  }
+                }
 
                 lastIndx = indx;
             }
 
             //Catch trailing zero values
-            if (!ignorZeros)//we have to do this here instead of bulk insert at the end b/c of different weight value combinations
-                for (int prevIndx = lastIndx + 1; prevIndx < mins.length; prevIndx++)
-                    updateStats(lambdas, stats, prevIndx, 0.0, mins, weight);
+            if (!ignorZeros) {//we have to do this here instead of bulk insert at the end b/c of different weight value combinations
+              for (int prevIndx = lastIndx + 1; prevIndx < mins.length; prevIndx++) {
+                updateStats(lambdas, stats, prevIndx, 0.0, mins, weight);
+              }
+            }
         }
 
         //Finish by figureing out which did best
@@ -171,10 +183,11 @@ public class AutoDeskewTransform implements InPlaceTransform
 
             double origSkew = Math.abs(stats[lambdaOneIndex][d].getSkewness());
 
-            if (origSkew > minSkew * 1.05)//only change if there is a reasonable improvment
-                finalLambdas[d] = bestLambda;
-            else
-                finalLambdas[d] = 1.0;
+            if (origSkew > minSkew * 1.05) {//only change if there is a reasonable improvment
+              finalLambdas[d] = bestLambda;
+            } else {
+              finalLambdas[d] = 1.0;
+            }
         }
     }
 
@@ -191,8 +204,9 @@ public class AutoDeskewTransform implements InPlaceTransform
 
     private static double transform(final double val, final double lambda, final double min)
     {
-        if (val == 0)
-            return 0;
+        if (val == 0) {
+          return 0;
+        }
         //special cases
         if (lambda == 2)
         {
@@ -263,8 +277,9 @@ public class AutoDeskewTransform implements InPlaceTransform
      */
     private void updateStats(final List<Double> lambdas, OnLineStatistics[][] stats, int indx, double val, double[] mins, double weight)
     {
-        for (int k = 0; k < lambdas.size(); k++)
-            stats[k][indx].add(transform(val, lambdas.get(k), mins[indx]), weight);
+        for (int k = 0; k < lambdas.size(); k++) {
+          stats[k][indx].add(transform(val, lambdas.get(k), mins[indx]), weight);
+        }
     }
 
     @Override

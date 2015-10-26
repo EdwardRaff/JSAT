@@ -109,8 +109,9 @@ public class OneVSAll implements Classifier, Parameterized
             {
                 CategoricalResults oneVsAllCR = oneVsAlls[i].classify(data);
                 double tmp = oneVsAllCR.getProb(0);
-                if(tmp > 0)
-                    cr.setProb(i, tmp);
+                if(tmp > 0) {
+                  cr.setProb(i, tmp);
+                }
             }
             
             cr.normalize();
@@ -143,21 +144,27 @@ public class OneVSAll implements Classifier, Parameterized
         {
             final ClassificationDataSet cds = 
                     new ClassificationDataSet(numer, categories, new CategoricalData(2));
-            for(DataPoint dp : categorized.get(i))//add the ones
-                cds.addDataPoint(dp.getNumericalValues(), dp.getCategoricalValues(), 0);
+            for(DataPoint dp : categorized.get(i)) {
+              //add the ones
+              cds.addDataPoint(dp.getNumericalValues(), dp.getCategoricalValues(), 0);
+            }
             //Add all the 'others'
-            for(int j = 0; j < categorized.size(); j++)
-                if(j != i)
-                    for(DataPoint dp: categorized.get(j))
-                        cds.addDataPoint(dp.getNumericalValues(), dp.getCategoricalValues(), 1);
+            for(int j = 0; j < categorized.size(); j++) {
+              if (j != i) {
+                for (DataPoint dp : categorized.get(j)) {
+                  cds.addDataPoint(dp.getNumericalValues(), dp.getCategoricalValues(), 1);
+                }
+              }
+            }
 
             if(!concurrentTraining)
             {
                 oneVsAlls[i] = baseClassifier.clone();
-                if(threadPool == null || threadPool instanceof FakeExecutor)
-                    oneVsAlls[i].trainC(cds);
-                else
-                    oneVsAlls[i].trainC(cds, threadPool);
+                if(threadPool == null || threadPool instanceof FakeExecutor) {
+                  oneVsAlls[i].trainC(cds);
+                } else {
+                  oneVsAlls[i].trainC(cds, threadPool);
+                }
             }
             else
             {
@@ -177,15 +184,16 @@ public class OneVSAll implements Classifier, Parameterized
             
         }
 
-        if (concurrentTraining)
-            try
-            {
-                latch.await();
-            }
-            catch (InterruptedException ex)
-            {
-                Logger.getLogger(OneVSAll.class.getName()).log(Level.SEVERE, null, ex);
-            }
+        if (concurrentTraining) {
+          try
+          {
+            latch.await();
+          }
+          catch (InterruptedException ex)
+          {
+            Logger.getLogger(OneVSAll.class.getName()).log(Level.SEVERE, null, ex);
+          }
+        }
 
         
     }
@@ -200,14 +208,17 @@ public class OneVSAll implements Classifier, Parameterized
     public OneVSAll clone()
     {
         OneVSAll clone = new OneVSAll(baseClassifier.clone(), concurrentTraining);
-        if(this.predicting != null)
-            clone.predicting = this.predicting.clone();
+        if(this.predicting != null) {
+          clone.predicting = this.predicting.clone();
+        }
         if(this.oneVsAlls != null)
         {
             clone.oneVsAlls = new Classifier[this.oneVsAlls.length];
-            for(int i = 0; i < oneVsAlls.length; i++)
-                if(this.oneVsAlls[i] != null)
-                    clone.oneVsAlls[i] = this.oneVsAlls[i].clone();
+            for(int i = 0; i < oneVsAlls.length; i++) {
+              if (this.oneVsAlls[i] != null) {
+                clone.oneVsAlls[i] = this.oneVsAlls[i].clone();
+              }
+            }
         }
         return clone;
     }

@@ -104,14 +104,17 @@ public class DUOL extends BaseUpdateableClassifier implements BinaryScoreClassif
         if(other.S != null)
         {
             this.S = new ArrayList<Vec>(other.S.size());
-            for(Vec v : other.S)
-                this.S.add(v.clone());
+            for(Vec v : other.S) {
+              this.S.add(v.clone());
+            }
             this.f_s = new DoubleList(other.f_s);
             this.alphas = new DoubleList(other.alphas);
-            if(other.accelCache != null)
-                this.accelCache = new DoubleList(other.accelCache);
-            if(other.kTmp != null)
-                this.kTmp = new DoubleList(other.kTmp);
+            if(other.accelCache != null) {
+              this.accelCache = new DoubleList(other.accelCache);
+            }
+            if(other.kTmp != null) {
+              this.kTmp = new DoubleList(other.kTmp);
+            }
         }
         this.rho = other.rho;
         this.C = other.C;
@@ -132,8 +135,9 @@ public class DUOL extends BaseUpdateableClassifier implements BinaryScoreClassif
      */
     public void setC(double C)
     {
-        if(Double.isNaN(C) || C <= 0 || Double.isInfinite(C))
-            throw new IllegalArgumentException("C parameter must be in range (0, inf) not " + C);
+        if(Double.isNaN(C) || C <= 0 || Double.isInfinite(C)) {
+          throw new IllegalArgumentException("C parameter must be in range (0, inf) not " + C);
+        }
         this.C = C;
     }
 
@@ -188,10 +192,11 @@ public class DUOL extends BaseUpdateableClassifier implements BinaryScoreClassif
     @Override
     public void setUp(CategoricalData[] categoricalAttributes, int numericAttributes, CategoricalData predicting)
     {
-        if(numericAttributes <= 0)
-            throw new FailedToFitException("DUOL requires numeric features");
-        else if(predicting.getNumOfCategories() != 2)
-            throw new FailedToFitException("DUOL supports only binnary classification");
+        if(numericAttributes <= 0) {
+          throw new FailedToFitException("DUOL requires numeric features");
+        } else if(predicting.getNumOfCategories() != 2) {
+          throw new FailedToFitException("DUOL supports only binnary classification");
+        }
         
         this.S = new ArrayList<Vec>();
         this.f_s = new DoubleList();
@@ -210,8 +215,9 @@ public class DUOL extends BaseUpdateableClassifier implements BinaryScoreClassif
 
         final double loss_t = max(0, 1-y_t*score);
         
-        if(loss_t <= 0)
-            return;
+        if(loss_t <= 0) {
+          return;
+        }
 
         //start of line 8:
         int b = -1;
@@ -315,14 +321,16 @@ public class DUOL extends BaseUpdateableClassifier implements BinaryScoreClassif
     
     private double score(Vec x, List<Double> qi, boolean store)
     {
-        if(store)
-            kTmp.clear();
+        if(store) {
+          kTmp.clear();
+        }
         double score = 0;
         for(int i = 0; i < S.size(); i++)
         {
             double tmp = k.eval(i, x, qi, S, accelCache);
-            if(store)
-                kTmp.add(tmp);
+            if(store) {
+              kTmp.add(tmp);
+            }
             score += alphas.get(i)*tmp;
         }
         return score;
@@ -336,14 +344,16 @@ public class DUOL extends BaseUpdateableClassifier implements BinaryScoreClassif
     @Override
     public CategoricalResults classify(DataPoint data)
     {
-        if(alphas == null)
-            throw new UntrainedModelException("Model has not yet been trained");
+        if(alphas == null) {
+          throw new UntrainedModelException("Model has not yet been trained");
+        }
         CategoricalResults cr = new CategoricalResults(2);
         double score = getScore(data);
-        if(score < 0)
-            cr.setProb(0, 1.0);
-        else
-            cr.setProb(1, 1.0);
+        if(score < 0) {
+          cr.setProb(0, 1.0);
+        } else {
+          cr.setProb(1, 1.0);
+        }
         return cr;
     }
 

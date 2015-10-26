@@ -42,13 +42,15 @@ public class SortedArrayList<T extends Comparable<T>> extends ArrayList<T> imple
         else
         {
             int ind = Collections.binarySearch(this, e);
-            if (ind < 0)
-                ind = -(ind + 1);//Now it is the point where it should be inserted
+            if (ind < 0) {
+              ind = -(ind + 1);//Now it is the point where it should be inserted
+            }
 
-            if (ind > size())
-                super.add(e);
-            else
-                super.add(ind, e);
+            if (ind > size()) {
+              super.add(e);
+            } else {
+              super.add(ind, e);
+            }
             return true;
         }
     }
@@ -61,34 +63,38 @@ public class SortedArrayList<T extends Comparable<T>> extends ArrayList<T> imple
     
     public T first()
     {
-        if(isEmpty())
-            return null;
+        if(isEmpty()) {
+          return null;
+        }
         return get(0);
     }
     
     public T last()
     {
-        if(isEmpty())
-            return null;
+        if(isEmpty()) {
+          return null;
+        }
         return get(size()-1);
     }
 
     @Override
     public boolean addAll(Collection<? extends T> c)
     {
-        if(c.isEmpty())
-            return false;
-        else if(c.size() > this.size()*3/2)//heuristic when is it faster to just add them all and sort the whole thing?
+        if(c.isEmpty()) {
+          return false;
+        } else if(c.size() > this.size()*3/2)//heuristic when is it faster to just add them all and sort the whole thing?
         {
             boolean did = super.addAll(c);
-            if(did)
-                Collections.sort(this);
+            if(did) {
+              Collections.sort(this);
+          }
             return did;
         }
         else
         {
-            for(T t : c)
-                this.add(t);
+            for(T t : c) {
+              this.add(t);
+          }
             return true;
         }
     }

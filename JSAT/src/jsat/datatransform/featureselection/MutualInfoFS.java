@@ -83,18 +83,21 @@ public class MutualInfoFS extends RemoveAttributeTransform
     public MutualInfoFS(ClassificationDataSet dataSet, int featureCount, NumericalHandeling numericHandling)
     {
         super();
-        if(featureCount <= 0)
-            throw new RuntimeException("Number of features to select must be positive");
+        if(featureCount <= 0) {
+          throw new RuntimeException("Number of features to select must be positive");
+        }
         final int N = dataSet.getSampleSize();
         double[] classPriors = dataSet.getPriors();
         double[] logClassPriors = new double[classPriors.length];
-        for(int i = 0; i < logClassPriors.length; i++)
-            logClassPriors[i] = log(classPriors[i]);
+        for(int i = 0; i < logClassPriors.length; i++) {
+          logClassPriors[i] = log(classPriors[i]);
+        }
         
         int numCatVars;
         int consideredCount = numCatVars = dataSet.getNumCategoricalVars();
-        if(numericHandling != NumericalHandeling.NONE)
-            consideredCount = dataSet.getNumFeatures();
+        if(numericHandling != NumericalHandeling.NONE) {
+          consideredCount = dataSet.getNumFeatures();
+        }
         
         /**
          * 1st index is the feature
@@ -166,14 +169,16 @@ public class MutualInfoFS extends RemoveAttributeTransform
                 for(int tVal = 0; tVal < jointProb[i].length; tVal++)
                 {
                     double featPrior = featPriors[i][tVal]/weightSum;
-                    if(featPrior == 0.0)
-                        continue;
+                    if(featPrior == 0.0) {
+                      continue;
+                    }
                     double logFeatPrior = log(featPrior);
                     for (int tClass = 0; tClass < logClassPriors.length; tClass++)
                     {
                         double jp = jointProb[i][tVal][tClass] / weightSum;
-                        if (jp == 0)
-                            continue;
+                        if (jp == 0) {
+                          continue;
+                        }
                         mi += jp * (log(jp) - logFeatPrior - logClassPriors[tClass]);
                     }
                 }
@@ -187,10 +192,12 @@ public class MutualInfoFS extends RemoveAttributeTransform
                     double posPrio = featPriors[i][0]/weightSum;
                     double negPrio = 1.0-posPrio;
                     
-                    if (jpNeg != 0 && negPrio != 0)
-                        mi += jpNeg * (log(jpNeg) - log(negPrio) - logClassPriors[tClass]);
-                    if (jpPos != 0 && posPrio != 0)
-                        mi += jpPos * (log(jpPos) - log(posPrio) - logClassPriors[tClass]);
+                    if (jpNeg != 0 && negPrio != 0) {
+                      mi += jpNeg * (log(jpNeg) - log(negPrio) - logClassPriors[tClass]);
+                    }
+                    if (jpPos != 0 && posPrio != 0) {
+                      mi += jpPos * (log(jpPos) - log(posPrio) - logClassPriors[tClass]);
+                    }
                 }
             }
             mis[i] = mi;
@@ -205,10 +212,11 @@ public class MutualInfoFS extends RemoveAttributeTransform
         for(int i = 0; i < consideredCount-featureCount; i++)
         {
             int removingIndex = sortedOrder.index(i);
-            if(removingIndex < numCatVars)
-                catToRemove.add(removingIndex);
-            else
-                numToRemove.add(removingIndex-numCatVars);
+            if(removingIndex < numCatVars) {
+              catToRemove.add(removingIndex);
+            } else {
+              numToRemove.add(removingIndex-numCatVars);
+            }
         }
         
         setUp(dataSet, catToRemove, numToRemove);
@@ -266,8 +274,9 @@ public class MutualInfoFS extends RemoveAttributeTransform
          */
         public void setFeatureCount(int featureCount)
         {
-            if(featureCount < 1)
-                throw new IllegalArgumentException("Number of features must be positive, not " + featureCount);
+            if(featureCount < 1) {
+              throw new IllegalArgumentException("Number of features must be positive, not " + featureCount);
+            }
             this.featureCount = featureCount;
         }
 
@@ -302,8 +311,9 @@ public class MutualInfoFS extends RemoveAttributeTransform
         @Override
         public MutualInfoFS getTransform(DataSet dataset)
         {
-            if(!(dataset instanceof ClassificationDataSet))
-                throw new FailedToFitException("The given data set was not a classification data set");
+            if(!(dataset instanceof ClassificationDataSet)) {
+              throw new FailedToFitException("The given data set was not a classification data set");
+            }
             ClassificationDataSet cds = (ClassificationDataSet) dataset;
             return new MutualInfoFS(cds, featureCount, handling);
         }

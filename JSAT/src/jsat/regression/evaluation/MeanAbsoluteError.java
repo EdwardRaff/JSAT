@@ -23,8 +23,9 @@ public class MeanAbsoluteError implements RegressionScore
      */
     public MeanAbsoluteError(MeanAbsoluteError toCopy)
     {
-        if(toCopy.absError != null)
-            this.absError = toCopy.absError.clone();
+        if(toCopy.absError != null) {
+          this.absError = toCopy.absError.clone();
+        }
     }
     
     @Override
@@ -36,8 +37,9 @@ public class MeanAbsoluteError implements RegressionScore
     @Override
     public void addResult(double prediction, double trueValue, double weight)
     {
-        if(absError == null)
-            throw new RuntimeException("regression score has not been initialized");
+        if(absError == null) {
+          throw new RuntimeException("regression score has not been initialized");
+        }
         absError.add(Math.abs(prediction-trueValue), weight);
     }
 
@@ -45,8 +47,9 @@ public class MeanAbsoluteError implements RegressionScore
     public void addResults(RegressionScore other)
     {
         MeanAbsoluteError otherObj = (MeanAbsoluteError) other;
-        if(otherObj.absError != null)
-            this.absError.add(otherObj.absError);
+        if(otherObj.absError != null) {
+          this.absError.add(otherObj.absError);
+        }
     }
 
     @Override

@@ -82,8 +82,9 @@ public class LogitBoostPL extends LogitBoost
             this.baseLearners = new ArrayList<Regressor>(LogicalCores * getMaxIterations());
             this.fScaleConstant = 1.0 / LogicalCores;
             //We now collect all our regressors
-            for(Future<LogitBoost> boost :  futuerBoosts)
-                this.baseLearners.addAll(boost.get().baseLearners);
+            for(Future<LogitBoost> boost :  futuerBoosts) {
+              this.baseLearners.addAll(boost.get().baseLearners);
+            }
             
         }
         catch (InterruptedException interruptedException)
@@ -102,13 +103,15 @@ public class LogitBoostPL extends LogitBoost
     {
         LogitBoostPL clone = new LogitBoostPL(getMaxIterations());
         clone.setzMax(getzMax());
-        if(this.baseLearner != null) 
-            clone.baseLearner = this.baseLearner.clone();
+        if(this.baseLearner != null) {
+          clone.baseLearner = this.baseLearner.clone();
+        }
         if(this.baseLearners != null)
         {
             clone.baseLearners = new ArrayList<Regressor>(this.baseLearners.size());
-            for(Regressor r :  baseLearners)
-                clone.baseLearners.add(r.clone());
+            for(Regressor r :  baseLearners) {
+              clone.baseLearners.add(r.clone());
+            }
         }
         return clone;
     }

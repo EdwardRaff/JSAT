@@ -55,8 +55,9 @@ public class NGramTokenizerTest
         List<String> result = instance.tokenize(input);
         
         assertEquals(expResult.size(), result.size());
-        for(int i = 0; i < expResult.size(); i++)
-            assertEquals(expResult.get(i), result.get(i));
+        for(int i = 0; i < expResult.size(); i++) {
+          assertEquals(expResult.get(i), result.get(i));
+        }
     }
     
 }

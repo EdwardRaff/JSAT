@@ -52,8 +52,9 @@ public class PolynomialKernel extends BaseKernelTrick
      */
     public void setAlpha(double alpha)
     {
-        if(Double.isInfinite(alpha) || Double.isNaN(alpha) || alpha == 0)
-            throw new IllegalArgumentException("alpha must be a real non zero value, not " + alpha);
+        if(Double.isInfinite(alpha) || Double.isNaN(alpha) || alpha == 0) {
+          throw new IllegalArgumentException("alpha must be a real non zero value, not " + alpha);
+        }
         this.alpha = alpha;
     }
 
@@ -65,8 +66,9 @@ public class PolynomialKernel extends BaseKernelTrick
      */
     public void setC(double c)
     {
-        if(c < 0 || Double.isNaN(c) || Double.isInfinite(c))
-            throw new IllegalArgumentException("C must be non negative, not " + c);
+        if(c < 0 || Double.isNaN(c) || Double.isInfinite(c)) {
+          throw new IllegalArgumentException("C must be non negative, not " + c);
+        }
         this.c = c;
     }
 

@@ -64,8 +64,9 @@ public class AUC implements ClassificationScore
         if(toClone.scores != null)
         {
             this.scores = new ArrayList<Tuple>(toClone.scores);
-            for(int i = 0; i < this.scores.size(); i++)
-                this.scores.set(i, new Tuple(this.scores.get(i).score, this.scores.get(i).positiveClass, this.scores.get(i).weight));
+            for(int i = 0; i < this.scores.size(); i++) {
+              this.scores.set(i, new Tuple(this.scores.get(i).score, this.scores.get(i).positiveClass, this.scores.get(i).weight));
+            }
         }
     }
     
@@ -85,8 +86,9 @@ public class AUC implements ClassificationScore
     @Override
     public void prepare(CategoricalData toPredict)
     {
-        if(toPredict.getNumOfCategories() != 2)
-            throw new IllegalArgumentException("AUC is only defined for binary classification problems");
+        if(toPredict.getNumOfCategories() != 2) {
+          throw new IllegalArgumentException("AUC is only defined for binary classification problems");
+        }
         scores = new ArrayList<Tuple>();
     }
 
@@ -96,17 +98,22 @@ public class AUC implements ClassificationScore
         Collections.sort(scores);
 
         double pos = 0, neg = 0, sum = 0;
-        for (Tuple i : scores)
-            if (i.positiveClass)
-                pos += i.weight;
-            else
-                neg += i.weight;
+        for (Tuple i : scores) {
+          if (i.positiveClass) {
+            pos += i.weight;
+          } else {
+            neg += i.weight;
+          }
+        }
         double posLeft = pos;
-        for (Tuple i : scores)
-            if (i.positiveClass)//oh no, saw the wrong thing
-                posLeft -= i.weight;
-            else//posLeft instances of the positive class were correctly above the negative class
-                sum += posLeft;
+        for (Tuple i : scores) {
+          if (i.positiveClass) {
+            posLeft -= i.weight;
+          } else {
+            //posLeft instances of the positive class were correctly above the negative class
+            sum += posLeft;
+          }
+        }
 
         return sum / (double) (pos * neg);
     }

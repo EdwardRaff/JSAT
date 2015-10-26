@@ -95,10 +95,11 @@ public class OneVSOne implements Classifier, Parameterized
             {
                 CategoricalResults subRes = oneVone[i][j].classify(data);
                 int mostLikely = subRes.mostLikely();
-                if(mostLikely == 0)
-                    cr.incProb(i, 1.0);
-                else
-                    cr.incProb(i+j+1, 1.0);
+                if(mostLikely == 0) {
+                  cr.incProb(i, 1.0);
+                } else {
+                  cr.incProb(i+j+1, 1.0);
+                }
             }
         }
         
@@ -112,8 +113,9 @@ public class OneVSOne implements Classifier, Parameterized
         oneVone = new Classifier[dataSet.getClassSize()][];
         
         List<List<DataPoint>> dataByCategory = new ArrayList<List<DataPoint>>(dataSet.getClassSize());
-        for(int i = 0; i < dataSet.getClassSize(); i++)
-            dataByCategory.add(dataSet.getSamples(i));
+        for(int i = 0; i < dataSet.getClassSize(); i++) {
+          dataByCategory.add(dataSet.getSamples(i));
+        }
         
         final CountDownLatch latch = new CountDownLatch(oneVone.length*(oneVone.length-1)/2);
         
@@ -134,17 +136,20 @@ public class OneVSOne implements Classifier, Parameterized
                 final ClassificationDataSet subDataSet = new ClassificationDataSet(dataSet.getNumNumericalVars(), dataSet.getCategories(), subPred); 
                 
                 //Fill sub data set with the two classes
-                for(DataPoint dp : dataByCategory.get(i))
-                    subDataSet.addDataPoint(dp.getNumericalValues(), dp.getCategoricalValues(), 0);
-                for(DataPoint dp : dataByCategory.get(otherClass))
-                    subDataSet.addDataPoint(dp.getNumericalValues(), dp.getCategoricalValues(), 1);
+                for(DataPoint dp : dataByCategory.get(i)) {
+                  subDataSet.addDataPoint(dp.getNumericalValues(), dp.getCategoricalValues(), 0);
+                }
+                for(DataPoint dp : dataByCategory.get(otherClass)) {
+                  subDataSet.addDataPoint(dp.getNumericalValues(), dp.getCategoricalValues(), 1);
+                }
 
                 if(!concurrentTrain)
                 {
-                    if(threadPool != null && !(threadPool instanceof FakeExecutor))
-                        curClassifier.trainC(subDataSet, threadPool);
-                    else
-                        curClassifier.trainC(subDataSet);
+                    if(threadPool != null && !(threadPool instanceof FakeExecutor)) {
+                      curClassifier.trainC(subDataSet, threadPool);
+                    } else {
+                      curClassifier.trainC(subDataSet);
+                    }
                     continue;
                 }
                 //Else, concurrent
@@ -160,14 +165,15 @@ public class OneVSOne implements Classifier, Parameterized
             }
         }
         
-        if(concurrentTrain)
-            try
-        {
+        if(concurrentTrain) {
+          try
+          {
             latch.await();
-        }
-        catch (InterruptedException ex)
-        {
+          }
+          catch (InterruptedException ex)
+          {
             Logger.getLogger(OneVSOne.class.getName()).log(Level.SEVERE, null, ex);
+          }
         }
         
         predicting = dataSet.getPredicting();
@@ -196,12 +202,14 @@ public class OneVSOne implements Classifier, Parameterized
             for (int i = 0; i < oneVone.length; i++)
             {
                 clone.oneVone[i] = new Classifier[oneVone[i].length];
-                for (int j = 0; j < oneVone[i].length; j++)
-                    clone.oneVone[i][j] = oneVone[i][j].clone();
+                for (int j = 0; j < oneVone[i].length; j++) {
+                  clone.oneVone[i][j] = oneVone[i][j].clone();
+                }
             }
         }
-        if(predicting != null)
-            clone.predicting = predicting.clone();
+        if(predicting != null) {
+          clone.predicting = predicting.clone();
+        }
 
         return clone;
     }

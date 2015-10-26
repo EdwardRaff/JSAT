@@ -54,16 +54,19 @@ public class Stacking implements Classifier, Regressor
      */
     public Stacking(int folds, Classifier aggregatingClassifier, List<Classifier> baseClassifiers)
     {
-        if(baseClassifiers.size() < 2)
-            throw new IllegalArgumentException("base classifiers must contain at least 2 elements, not " + baseClassifiers.size());
+        if(baseClassifiers.size() < 2) {
+          throw new IllegalArgumentException("base classifiers must contain at least 2 elements, not " + baseClassifiers.size());
+        }
         setFolds(folds);
         this.aggregatingClassifier = aggregatingClassifier;
         this.baseClassifiers = baseClassifiers;
         
         boolean allRegressors = aggregatingClassifier instanceof Regressor;
-        for(Classifier cl : baseClassifiers)
-            if(!(cl instanceof Regressor))
-                allRegressors = false;
+        for(Classifier cl : baseClassifiers) {
+          if (!(cl instanceof Regressor)) {
+            allRegressors = false;
+          }
+        }
         
         if(allRegressors)
         {
@@ -116,9 +119,11 @@ public class Stacking implements Classifier, Regressor
         this.baseRegressors = baseRegressors;
         
         boolean allClassifiers = aggregatingRegressor instanceof Classifier;
-        for(Regressor reg : baseRegressors)
-            if(!(reg instanceof Classifier))
-                allClassifiers = false;
+        for(Regressor reg : baseRegressors) {
+          if (!(reg instanceof Classifier)) {
+            allClassifiers = false;
+          }
+        }
         
         if(allClassifiers)
         {
@@ -170,8 +175,9 @@ public class Stacking implements Classifier, Regressor
         {
             this.aggregatingClassifier = toCopy.aggregatingClassifier.clone();
             this.baseClassifiers = new ArrayList<Classifier>(toCopy.baseClassifiers.size());
-            for(Classifier bc : toCopy.baseClassifiers)
-                this.baseClassifiers.add(bc.clone());
+            for(Classifier bc : toCopy.baseClassifiers) {
+              this.baseClassifiers.add(bc.clone());
+            }
             
             if(toCopy.aggregatingRegressor == toCopy.aggregatingClassifier)//supports both
             {
@@ -183,8 +189,9 @@ public class Stacking implements Classifier, Regressor
         {
             this.aggregatingRegressor = toCopy.aggregatingRegressor.clone();
             this.baseRegressors = new ArrayList<Regressor>(toCopy.baseRegressors.size());
-            for(Regressor br : toCopy.baseRegressors)
-                this.baseRegressors.add(br.clone());
+            for(Regressor br : toCopy.baseRegressors) {
+              this.baseRegressors.add(br.clone());
+            }
         }
     }
     
@@ -198,8 +205,9 @@ public class Stacking implements Classifier, Regressor
      */
     public void setFolds(int folds)
     {
-        if(folds < 1)
-            throw new IllegalArgumentException("Folds must be a positive integer, not " + folds);
+        if(folds < 1) {
+          throw new IllegalArgumentException("Folds must be a positive integer, not " + folds);
+        }
         this.folds = folds;
     }
 
@@ -217,16 +225,18 @@ public class Stacking implements Classifier, Regressor
     public CategoricalResults classify(DataPoint data)
     {
         Vec w = new DenseVector(weightsPerModel*baseClassifiers.size());
-        if(weightsPerModel == 1)
-            for(int i = 0; i < baseClassifiers.size(); i++)
-                w.set(i, baseClassifiers.get(i).classify(data).getProb(0)*2-1);
-        else
+        if(weightsPerModel == 1) {
+          for (int i = 0; i < baseClassifiers.size(); i++) {
+            w.set(i, baseClassifiers.get(i).classify(data).getProb(0)*2-1);
+          }
+        } else
         {
             for(int i = 0; i < baseClassifiers.size(); i++)
             {
                 CategoricalResults pred = baseClassifiers.get(i).classify(data);
-                for(int j = 0; j < weightsPerModel; j++)
-                    w.set(i*weightsPerModel+j, pred.getProb(j));
+                for(int j = 0; j < weightsPerModel; j++) {
+                  w.set(i*weightsPerModel+j, pred.getProb(j));
+            }
             }
                     
         }
@@ -244,9 +254,11 @@ public class Stacking implements Classifier, Regressor
         
         List<ClassificationDataSet> dataFolds = dataSet.cvSet(folds);
         //iterate in the order of the folds so we get the right dataum weights
-        for(ClassificationDataSet cds : dataFolds)
-            for(int i = 0; i < cds.getSampleSize(); i++)
-                metaSet.addDataPoint(new DenseVector(weightsPerModel*models), cds.getDataPointCategory(i), cds.getDataPoint(i).getWeight());
+        for(ClassificationDataSet cds : dataFolds) {
+          for (int i = 0; i < cds.getSampleSize(); i++) {
+            metaSet.addDataPoint(new DenseVector(weightsPerModel*models), cds.getDataPointCategory(i), cds.getDataPoint(i).getWeight());
+          }
+        }
         
         //create the meta training set
         for(int c = 0; c < baseClassifiers.size(); c++)
@@ -257,20 +269,22 @@ public class Stacking implements Classifier, Regressor
             {
                 ClassificationDataSet train = ClassificationDataSet.comineAllBut(dataFolds, f);
                 ClassificationDataSet test = dataFolds.get(f);
-                if(threadPool == null)
-                    cl.trainC(train);
-                else
-                    cl.trainC(train, threadPool);
+                if(threadPool == null) {
+                  cl.trainC(train);
+                } else {
+                  cl.trainC(train, threadPool);
+                }
                 for(int i = 0; i < test.getSampleSize(); i++)//evaluate and mark each point in the held out fold.
                 {
                     CategoricalResults pred  = cl.classify(test.getDataPoint(i));
-                    if(C == 2)
-                        metaSet.getDataPoint(pos).getNumericalValues().set(c, pred.getProb(0)*2-1);
-                    else
+                    if(C == 2) {
+                      metaSet.getDataPoint(pos).getNumericalValues().set(c, pred.getProb(0)*2-1);
+                    } else
                     {
                         Vec toSet = metaSet.getDataPoint(pos).getNumericalValues();
-                        for(int j = weightsPerModel*c; j < weightsPerModel*(c+1); j++)
-                            toSet.set(j, pred.getProb(j-weightsPerModel*c));
+                        for(int j = weightsPerModel*c; j < weightsPerModel*(c+1); j++) {
+                          toSet.set(j, pred.getProb(j-weightsPerModel*c));
+                      }
                     }
                     
                     pos++;
@@ -279,19 +293,22 @@ public class Stacking implements Classifier, Regressor
         }
         
         //train the meta model
-        if(threadPool == null)
-            aggregatingClassifier.trainC(metaSet);
-        else
-            aggregatingClassifier.trainC(metaSet, threadPool);
+        if(threadPool == null) {
+          aggregatingClassifier.trainC(metaSet);
+        } else {
+          aggregatingClassifier.trainC(metaSet, threadPool);
+        }
         
         //train the final classifiers, unless folds=1. In that case they are already trained
         if(folds != 1)
         {
-            for(Classifier cl : baseClassifiers)
-                if(threadPool == null)
-                    cl.trainC(dataSet);
-                else
-                    cl.trainC(dataSet, threadPool);
+            for(Classifier cl : baseClassifiers) {
+              if (threadPool == null) {
+                cl.trainC(dataSet);
+              } else {
+                cl.trainC(dataSet, threadPool);
+              }
+            }
         }
     }
 
@@ -304,18 +321,20 @@ public class Stacking implements Classifier, Regressor
     @Override
     public boolean supportsWeightedData()
     {
-        if(aggregatingClassifier != null)
-            return aggregatingClassifier.supportsWeightedData();
-        else 
-            return aggregatingRegressor.supportsWeightedData();
+        if(aggregatingClassifier != null) {
+          return aggregatingClassifier.supportsWeightedData();
+        } else {
+          return aggregatingRegressor.supportsWeightedData();
+        }
     }
 
     @Override
     public double regress(DataPoint data)
     {
         Vec w = new DenseVector(baseRegressors.size());
-        for (int i = 0; i < baseRegressors.size(); i++)
-            w.set(i, baseRegressors.get(i).regress(data));
+        for (int i = 0; i < baseRegressors.size(); i++) {
+          w.set(i, baseRegressors.get(i).regress(data));
+        }
 
         return aggregatingRegressor.regress(new DataPoint(w));
     }
@@ -329,9 +348,11 @@ public class Stacking implements Classifier, Regressor
         
         List<RegressionDataSet> dataFolds = dataSet.cvSet(folds);
         //iterate in the order of the folds so we get the right dataum weights
-        for(RegressionDataSet rds : dataFolds)
-            for(int i = 0; i < rds.getSampleSize(); i++)
-                metaSet.addDataPoint(new DataPoint(new DenseVector(weightsPerModel*models), rds.getDataPoint(i).getWeight()), rds.getTargetValue(i));
+        for(RegressionDataSet rds : dataFolds) {
+          for (int i = 0; i < rds.getSampleSize(); i++) {
+            metaSet.addDataPoint(new DataPoint(new DenseVector(weightsPerModel*models), rds.getDataPoint(i).getWeight()), rds.getTargetValue(i));
+          }
+        }
         
         //create the meta training set
         for(int c = 0; c < baseRegressors.size(); c++)
@@ -342,10 +363,11 @@ public class Stacking implements Classifier, Regressor
             {
                 RegressionDataSet train = RegressionDataSet.comineAllBut(dataFolds, f);
                 RegressionDataSet test = dataFolds.get(f);
-                if(threadPool == null)
-                    reg.train(train);
-                else
-                    reg.train(train, threadPool);
+                if(threadPool == null) {
+                  reg.train(train);
+                } else {
+                  reg.train(train, threadPool);
+                }
                 for(int i = 0; i < test.getSampleSize(); i++)//evaluate and mark each point in the held out fold.
                 {
                     double pred  = reg.regress(test.getDataPoint(i));
@@ -356,19 +378,22 @@ public class Stacking implements Classifier, Regressor
         }
         
         //train the meta model
-        if(threadPool == null)
-            aggregatingRegressor.train(metaSet);
-        else
-            aggregatingRegressor.train(metaSet, threadPool);
+        if(threadPool == null) {
+          aggregatingRegressor.train(metaSet);
+        } else {
+          aggregatingRegressor.train(metaSet, threadPool);
+        }
         
         //train the final classifiers, unless folds=1. In that case they are already trained
         if(folds != 1)
         {
-            for(Regressor reg : baseRegressors)
-                if(threadPool == null)
-                    reg.train(dataSet);
-                else
-                    reg.train(dataSet, threadPool);
+            for(Regressor reg : baseRegressors) {
+              if (threadPool == null) {
+                reg.train(dataSet);
+              } else {
+                reg.train(dataSet, threadPool);
+              }
+            }
         }
     }
 

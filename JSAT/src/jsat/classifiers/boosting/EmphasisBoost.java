@@ -85,8 +85,9 @@ public class EmphasisBoost implements Classifier, Parameterized, BinaryScoreClas
         {
             this.hypWeights = new DoubleList(toClone.hypWeights);
             this.hypoths = new ArrayList<Classifier>(toClone.maxIterations);
-            for(Classifier weak : toClone.hypoths)
-                this.hypoths.add(weak.clone());
+            for(Classifier weak : toClone.hypoths) {
+              this.hypoths.add(weak.clone());
+            }
             this.predicting = toClone.predicting.clone();
         }
     }
@@ -106,8 +107,9 @@ public class EmphasisBoost implements Classifier, Parameterized, BinaryScoreClas
      */
     public void setMaxIterations(int maxIterations)
     {
-        if(maxIterations < 1)
-            throw new IllegalArgumentException("Iterations must be positive, not " + maxIterations);
+        if(maxIterations < 1) {
+          throw new IllegalArgumentException("Iterations must be positive, not " + maxIterations);
+        }
         this.maxIterations = maxIterations;
     }
 
@@ -126,8 +128,9 @@ public class EmphasisBoost implements Classifier, Parameterized, BinaryScoreClas
      */
     public void setWeakLearner(Classifier weakLearner)
     {
-        if(!weakLearner.supportsWeightedData())
-            throw new IllegalArgumentException("WeakLearner must support weighted data to be boosted");
+        if(!weakLearner.supportsWeightedData()) {
+          throw new IllegalArgumentException("WeakLearner must support weighted data to be boosted");
+        }
         this.weakLearner = weakLearner;
     }
     
@@ -179,24 +182,27 @@ public class EmphasisBoost implements Classifier, Parameterized, BinaryScoreClas
     public double getScore(DataPoint dp)
     {
         double score = 0;
-        for(int i = 0; i < hypoths.size(); i++)
-            score += H(hypoths.get(i), dp)*hypWeights.get(i);
+        for(int i = 0; i < hypoths.size(); i++) {
+          score += H(hypoths.get(i), dp)*hypWeights.get(i);
+        }
         return score;
     }
 
     @Override
     public CategoricalResults classify(DataPoint data)
     {
-        if(predicting == null)
-            throw new RuntimeException("Classifier has not been trained yet");
+        if(predicting == null) {
+          throw new RuntimeException("Classifier has not been trained yet");
+        }
         
         CategoricalResults cr = new CategoricalResults(predicting.getNumOfCategories());
         
         double score = getScore(data); 
-        if(score < 0)
-            cr.setProb(0, 1.0);
-        else
-            cr.setProb(1, 1.0);
+        if(score < 0) {
+          cr.setProb(0, 1.0);
+        } else {
+          cr.setProb(1, 1.0);
+        }
         return cr;
     }
     
@@ -217,8 +223,9 @@ public class EmphasisBoost implements Classifier, Parameterized, BinaryScoreClas
         
         List<DataPointPair<Integer>> dataPoints = dataSet.getTwiceShallowClone().getAsDPPList();
         //Initialization step, set up the weights  so they are all 1 / size of dataset
-        for(DataPointPair<Integer> dpp : dataPoints)
-            dpp.getDataPoint().setWeight(1.0/N);//Scaled, they are all 1 
+        for(DataPointPair<Integer> dpp : dataPoints) {
+          dpp.getDataPoint().setWeight(1.0/N);//Scaled, they are all 1 
+        }
         double weightSum = 1;
         
         
@@ -229,10 +236,11 @@ public class EmphasisBoost implements Classifier, Parameterized, BinaryScoreClas
         for(int t = 0; t < maxIterations; t++)
         {
             Classifier weak = weakLearner.clone();
-            if(threadPool != null && !(threadPool instanceof FakeExecutor))
-                weak.trainC(new ClassificationDataSet(dataPoints, predicting), threadPool);
-            else
-                weak.trainC(new ClassificationDataSet(dataPoints, predicting));
+            if(threadPool != null && !(threadPool instanceof FakeExecutor)) {
+              weak.trainC(new ClassificationDataSet(dataPoints, predicting), threadPool);
+            } else {
+              weak.trainC(new ClassificationDataSet(dataPoints, predicting));
+            }
 
             double error = 0.0;
             for(int i = 0; i < dataPoints.size(); i++)
@@ -244,8 +252,9 @@ public class EmphasisBoost implements Classifier, Parameterized, BinaryScoreClas
             }
             
             
-            if(error < 0)
-                return;
+            if(error < 0) {
+              return;
+            }
             
             double alpha_m = Math.log((1+error)/(1-error))/2;
             
@@ -261,8 +270,9 @@ public class EmphasisBoost implements Classifier, Parameterized, BinaryScoreClas
                 double y_true = dpp.getPair()*2-1;
 
                 double w_i = Math.exp(lambda*Math.pow(f_t-y_true, 2) - (1-lambda)*f_t*f_t);
-                if(Double.isInfinite(w_i))
-                    w_i = 50;//Let it grow back isntead of bizaro huge values
+                if(Double.isInfinite(w_i)) {
+                  w_i = 50;//Let it grow back isntead of bizaro huge values
+                }
                 weightSum += w_i;
                 dp.setWeight(w_i);
             }

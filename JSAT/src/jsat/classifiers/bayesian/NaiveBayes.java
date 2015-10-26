@@ -212,14 +212,16 @@ public class NaiveBayes implements Classifier, Parameterized
                     IndexValue indexValue = iter.next();
                     int j = indexValue.getIndex();
                     double logPDF;
-                    if(distributions[i][j] == null)
-                        logPDF = Double.NEGATIVE_INFINITY;//Should not occur
-                    else
-                        logPDF = distributions[i][j].logPdf(indexValue.getValue());
-                    if(Double.isInfinite(logPDF))//Avoid propigation -infinty when the probability is zero
-                        logProb += log(1e-16);//
-                    else
-                        logProb += logPDF;
+                    if(distributions[i][j] == null) {
+                      logPDF = Double.NEGATIVE_INFINITY;//Should not occur
+                    } else {
+                      logPDF = distributions[i][j].logPdf(indexValue.getValue());
+                    }
+                    if(Double.isInfinite(logPDF)) {//Avoid propigation -infinty when the probability is zero
+                      logProb += log(1e-16);//
+                    } else {
+                      logProb += logPDF;
+                    }
                 }
             }
             else
@@ -227,14 +229,16 @@ public class NaiveBayes implements Classifier, Parameterized
                 for(int j = 0; j < distributions[i].length; j++)
                 {
                     double logPDF;
-                    if(distributions[i][j] == null)
-                        logPDF = Double.NEGATIVE_INFINITY;//Should not occur
-                    else
-                        logPDF = distributions[i][j].logPdf(numVals.get(j));
-                    if(Double.isInfinite(logPDF))//Avoid propigation -infinty when the probability is zero
-                        logProb += log(1e-16);//
-                    else
-                        logProb += logPDF;
+                    if(distributions[i][j] == null) {
+                      logPDF = Double.NEGATIVE_INFINITY;//Should not occur
+                    } else {
+                      logPDF = distributions[i][j].logPdf(numVals.get(j));
+                    }
+                    if(Double.isInfinite(logPDF)) {//Avoid propigation -infinty when the probability is zero
+                      logProb += log(1e-16);//
+                    } else {
+                      logProb += logPDF;
+                    }
                 }
             }
             
@@ -252,15 +256,17 @@ public class NaiveBayes implements Classifier, Parameterized
         
         if(maxLogProg == Double.NEGATIVE_INFINITY)//Everything reported no!
         {
-            for(int i = 0; i < results.size(); i++)
-                results.setProb(i, 1.0/results.size());
+            for(int i = 0; i < results.size(); i++) {
+              results.setProb(i, 1.0/results.size());
+            }
             return results;
         }
         
         double denom = MathTricks.logSumExp(logProbs, maxLogProg);
         
-        for(int i = 0; i < results.size(); i++)
-            results.setProb(i, exp(logProbs[i]-denom));
+        for(int i = 0; i < results.size(); i++) {
+          results.setProb(i, exp(logProbs[i]-denom));
+        }
         results.normalize();
         return results;
     }
@@ -295,8 +301,9 @@ public class NaiveBayes implements Classifier, Parameterized
             for(int i = 0; i < this.apriori.length; i++)
             {
                 newBayes.apriori[i] = new double[this.apriori[i].length][];
-                for(int j = 0; this.apriori[i].length > 0 && j < this.apriori[i][j].length; j++)
-                    newBayes.apriori[i][j] = Arrays.copyOf(this.apriori[i][j], this.apriori[i][j].length);
+                for(int j = 0; this.apriori[i].length > 0 && j < this.apriori[i][j].length; j++) {
+                  newBayes.apriori[i][j] = Arrays.copyOf(this.apriori[i][j], this.apriori[i][j].length);
+                }
             }
         }
         
@@ -306,13 +313,15 @@ public class NaiveBayes implements Classifier, Parameterized
             for(int i = 0; i < this.distributions.length; i++)
             {
                 newBayes.distributions[i] = new ContinuousDistribution[this.distributions[i].length];
-                for(int j = 0; j < this.distributions[i].length; j++)
-                    newBayes.distributions[i][j] = this.distributions[i][j].clone();
+                for(int j = 0; j < this.distributions[i].length; j++) {
+                  newBayes.distributions[i][j] = this.distributions[i][j].clone();
+                }
             }
         }
         
-        if(this.priors != null)
-            newBayes.priors = Arrays.copyOf(priors, priors.length);
+        if(this.priors != null) {
+          newBayes.priors = Arrays.copyOf(priors, priors.length);
+        }
         
         return newBayes;
     }
@@ -383,10 +392,12 @@ public class NaiveBayes implements Classifier, Parameterized
 
             //Convert the coutns to apriori probablities by dividing the count by the total occurances
             double sum = 0;
-            for (int z = 0; z < apriori[i][j].length; z++)
-                sum += apriori[i][j][z];
-            for (int z = 0; z < apriori[i][j].length; z++)
-                apriori[i][j][z] /= sum;
+            for (int z = 0; z < apriori[i][j].length; z++) {
+              sum += apriori[i][j][z];
+            }
+            for (int z = 0; z < apriori[i][j].length; z++) {
+              apriori[i][j][z] /= sum;
+            }
             latch.countDown();
         }
         
@@ -399,9 +410,11 @@ public class NaiveBayes implements Classifier, Parameterized
         if(sparceInput)
         {
             List<Double> nonZeroVals = new DoubleList();
-            for(int i = 0; i < vals.length(); i++)
-                if(vals.get(i) != 0)
-                    nonZeroVals.add(vals.get(i));
+            for(int i = 0; i < vals.length(); i++) {
+              if (vals.get(i) != 0) {
+                nonZeroVals.add(vals.get(i));
+              }
+            }
             vals = new DenseVector(nonZeroVals);
         }
         
@@ -438,8 +451,9 @@ public class NaiveBayes implements Classifier, Parameterized
                 apriori[i][j] = new double[dataSet.getCategories()[j].getNumOfCategories()];
                 
                 //Laplace correction, put in an extra occurance for each variable
-                for(int z = 0; z < apriori[i][j].length; z++)
-                    apriori[i][j][z] = 1;
+                for(int z = 0; z < apriori[i][j].length; z++) {
+                  apriori[i][j][z] = 1;
+                }
                     
                 Runnable rn = new AprioriCounterRunable(i, j, dataSamples, latch);
                 threadPool.submit(rn);

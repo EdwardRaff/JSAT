@@ -43,8 +43,9 @@ public abstract class RandomVector extends Vec
      */
     public RandomVector(int length, long seedMult)
     {
-        if(length<= 0)
-            throw new IllegalArgumentException("Vector length must be positive, not " + length);
+        if(length<= 0) {
+          throw new IllegalArgumentException("Vector length must be positive, not " + length);
+        }
         this.length = length;
         this.seedMult = seedMult;
     }
@@ -102,16 +103,19 @@ public abstract class RandomVector extends Vec
     @Override
     public void multiply(double c, Matrix A, Vec b)
     {
-        if(this.length() != A.rows())
-            throw new ArithmeticException("Vector x Matrix dimensions do not agree [1," + this.length() + "] x [" + A.rows() + ", " + A.cols() + "]");
-        if(b.length() != A.cols())
-            throw new ArithmeticException("Destination vector is not the right size");
+        if(this.length() != A.rows()) {
+          throw new ArithmeticException("Vector x Matrix dimensions do not agree [1," + this.length() + "] x [" + A.rows() + ", " + A.cols() + "]");
+        }
+        if(b.length() != A.cols()) {
+          throw new ArithmeticException("Destination vector is not the right size");
+        }
         
         for(int i = 0; i < this.length(); i++)
         {
             double this_i = c*get(i);
-            for(int j = 0; j < A.cols(); j++)
-                b.increment(j, this_i*A.get(i, j));
+            for(int j = 0; j < A.cols(); j++) {
+              b.increment(j, this_i*A.get(i, j));
+            }
         }
     }
 
@@ -162,8 +166,9 @@ public abstract class RandomVector extends Vec
     public double min()
     {
         double min = Double.MAX_VALUE;
-        for(IndexValue iv : this)
-            min = Math.min(iv.getValue(), min);
+        for(IndexValue iv : this) {
+          min = Math.min(iv.getValue(), min);
+        }
         return min;
     }
 
@@ -171,8 +176,9 @@ public abstract class RandomVector extends Vec
     public double max()
     {
         double max = -Double.MAX_VALUE;
-        for(IndexValue iv : this)
-            max = Math.min(iv.getValue(), max);
+        for(IndexValue iv : this) {
+          max = Math.min(iv.getValue(), max);
+        }
         return max;
     }
 
@@ -190,8 +196,9 @@ public abstract class RandomVector extends Vec
     {
         double dot = 0;
 
-        for (IndexValue iv : v)
-            dot += get(iv.getIndex()) * iv.getValue();
+        for (IndexValue iv : v) {
+          dot += get(iv.getIndex()) * iv.getValue();
+        }
         return dot;
     }
 

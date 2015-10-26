@@ -226,8 +226,9 @@ public class Complex implements Cloneable, Serializable
             /* |z| < 2^-909 and 2^-215 <= |w| < 2^114 */
             hs = (((0x47100000 - hw) >> 1) & 0xfff00000) + 0x3ff00000;
         }
-        else
-            hs = (((hw >> 2) - hw) + 0x6fd7ffff) & 0xfff00000;
+        else {
+          hs = (((hw >> 2) - hw) + 0x6fd7ffff) & 0xfff00000;
+        }
         ss = ((long) hs) << 32;
         
         /* scale c and d, and compute the quotient */
@@ -320,12 +321,13 @@ public class Complex implements Cloneable, Serializable
     @Override
     public String toString()
     {
-        if(imag == 0)
-            return Double.toString(real);
-        else if(real == 0)
-            return imag + "i";
-        else
-            return "("+real + " + " + imag + "i)";
+        if(imag == 0) {
+          return Double.toString(real);
+        } else if(real == 0) {
+          return imag + "i";
+        } else {
+          return "("+real + " + " + imag + "i)";
+        }
     }
 
     @Override
@@ -361,10 +363,11 @@ public class Complex implements Cloneable, Serializable
         if( obj instanceof Complex)
         {
             Complex other = (Complex) obj;
-            if(Math.abs(this.real-other.real) > eps)
-                return false;
-            else if(Math.abs((this.imag - other.imag)) > eps)
-                return false;
+            if(Math.abs(this.real-other.real) > eps) {
+              return false;
+            } else if(Math.abs((this.imag - other.imag)) > eps) {
+              return false;
+            }
             return true;
         }
         return false;

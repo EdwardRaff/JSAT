@@ -56,8 +56,9 @@ public class VecWithNorm extends Vec
     @Override
     public double pNorm(double p)
     {
-        if(p == 2)
-            return Math.sqrt(normSqrd);
+        if(p == 2) {
+          return Math.sqrt(normSqrd);
+        }
         return base.pNorm(p);
     }
 

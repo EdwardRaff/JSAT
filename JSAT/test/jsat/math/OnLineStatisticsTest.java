@@ -56,8 +56,9 @@ public class OnLineStatisticsTest
     {
         System.out.println("add(double)");
         OnLineStatistics stats = new OnLineStatistics();
-        for(double x :  data)
-            stats.add(x);
+        for(double x :  data) {
+          stats.add(x);
+        }
         assertEquals(mean, stats.getMean(), 1e-8);
         assertEquals(variance, stats.getVarance(), 1e-8);
         assertEquals(skewness, stats.getSkewness(), 1e-8);
@@ -99,25 +100,28 @@ public class OnLineStatisticsTest
             for(int i = 0; i < data.length; i++)
             {
                 total.add(data[i]);
-                if( i < j)
-                    A.add(data[i]);
-                else
-                    B.add(data[i]);
+                if( i < j) {
+                  A.add(data[i]);
+                } else {
+                  B.add(data[i]);
+                }
             }
             OnLineStatistics stats = OnLineStatistics.remove(total, B);
             assertEquals(A.getSumOfWeights(), stats.getSumOfWeights(), 1e-8);
             assertEquals(A.getMean(), stats.getMean(), 1e-8);
-            if(!Double.isNaN(A.getVarance()))
-                assertEquals(A.getVarance(), stats.getVarance(), 1e-8);
-            //skewness and kurtosis aren't stable any more
-            //min & max are not possible
+            if(!Double.isNaN(A.getVarance())) {
+              assertEquals(A.getVarance(), stats.getVarance(), 1e-8);
+              //skewness and kurtosis aren't stable any more
+              //min & max are not possible
+            }
             
             
             stats = OnLineStatistics.remove(total, A);
             assertEquals(B.getSumOfWeights(), stats.getSumOfWeights(), 1e-8);
             assertEquals(B.getMean(), stats.getMean(), 1e-8);
-            if(!Double.isNaN(B.getVarance()))
-                assertEquals(B.getVarance(), stats.getVarance(), 1e-8);
+            if(!Double.isNaN(B.getVarance())) {
+              assertEquals(B.getVarance(), stats.getVarance(), 1e-8);
+            }
         }
     }
     
@@ -134,10 +138,11 @@ public class OnLineStatisticsTest
         
             for(int i = 0; i < data.length; i++)
             {
-                if( i < j)
-                    A.add(data[i]);
-                else
-                    B.add(data[i]);
+                if( i < j) {
+                  A.add(data[i]);
+                } else {
+                  B.add(data[i]);
+                }
             }
             OnLineStatistics stats = OnLineStatistics.add(A, B);
             assertEquals(mean, stats.getMean(), 1e-8);

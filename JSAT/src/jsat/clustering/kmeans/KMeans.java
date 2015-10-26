@@ -87,13 +87,15 @@ public abstract class KMeans extends KClustererBase implements Parameterized
         this.dm = toCopy.dm.clone();
         this.seedSelection = toCopy.seedSelection;
         this.rand = new XORWOW();
-        if (toCopy.nearestCentroidDist != null)
-            this.nearestCentroidDist = Arrays.copyOf(toCopy.nearestCentroidDist, toCopy.nearestCentroidDist.length);
+        if (toCopy.nearestCentroidDist != null) {
+          this.nearestCentroidDist = Arrays.copyOf(toCopy.nearestCentroidDist, toCopy.nearestCentroidDist.length);
+        }
         if (toCopy.means != null)
         {
             this.means = new ArrayList<Vec>(toCopy.means.size());
-            for (Vec v : toCopy.means)
-                this.means.add(v.clone());
+            for (Vec v : toCopy.means) {
+              this.means.add(v.clone());
+            }
         }
     }
     
@@ -103,8 +105,9 @@ public abstract class KMeans extends KClustererBase implements Parameterized
      */
     public void setIterationLimit(int iterLimit)
     {
-        if(iterLimit < 1)
-            throw new IllegalArgumentException("Iterations must be a positive value, not " + iterLimit);
+        if(iterLimit < 1) {
+          throw new IllegalArgumentException("Iterations must be a positive value, not " + iterLimit);
+        }
         this.MaxIterLimit = iterLimit;
     }
 
@@ -197,8 +200,9 @@ public abstract class KMeans extends KClustererBase implements Parameterized
     static protected List<List<DataPoint>> getListOfLists(int k)
     {
         List<List<DataPoint>> ks = new ArrayList<List<DataPoint>>(k);
-        for(int i = 0; i < k; i++)
-            ks.add(new ArrayList<DataPoint>());
+        for(int i = 0; i < k; i++) {
+          ks.add(new ArrayList<DataPoint>());
+        }
         return ks;
     }
 
@@ -217,29 +221,35 @@ public abstract class KMeans extends KClustererBase implements Parameterized
     @Override
     public int[] cluster(DataSet dataSet, int clusters, ExecutorService threadpool, int[] designations)
     {
-        if(designations == null)
-            designations = new int[dataSet.getSampleSize()];
-        if(dataSet.getSampleSize() < clusters)
-            throw new ClusterFailureException("Fewer data points then desired clusters, decrease cluster size");
+        if(designations == null) {
+          designations = new int[dataSet.getSampleSize()];
+        }
+        if(dataSet.getSampleSize() < clusters) {
+          throw new ClusterFailureException("Fewer data points then desired clusters, decrease cluster size");
+        }
         
         means = new ArrayList<Vec>(clusters);
         cluster(dataSet, null, clusters, means, designations, false, threadpool, false);
-        if(!storeMeans)
-            means = null;
+        if(!storeMeans) {
+          means = null;
+        }
         return designations;
     }
 
     @Override
     public int[] cluster(DataSet dataSet, int clusters, int[] designations)
     {
-        if(designations == null)
-            designations = new int[dataSet.getSampleSize()];
-        if(dataSet.getSampleSize() < clusters)
-            throw new ClusterFailureException("Fewer data points then desired clusters, decrease cluster size");
+        if(designations == null) {
+          designations = new int[dataSet.getSampleSize()];
+        }
+        if(dataSet.getSampleSize() < clusters) {
+          throw new ClusterFailureException("Fewer data points then desired clusters, decrease cluster size");
+        }
         means = new ArrayList<Vec>(clusters);
         cluster(dataSet, null, clusters, means, designations, false, null, false);
-        if(!storeMeans)
-            means = null;
+        if(!storeMeans) {
+          means = null;
+        }
         
         return designations;
     }
@@ -295,14 +305,16 @@ public abstract class KMeans extends KClustererBase implements Parameterized
     @Override
     public int[] cluster(DataSet dataSet, int lowK, int highK, ExecutorService threadpool, int[] designations)
     {
-        if(dataSet.getSampleSize() < highK)
-            throw new ClusterFailureException("Fewer data points then desired clusters, decrease cluster size");
+        if(dataSet.getSampleSize() < highK) {
+          throw new ClusterFailureException("Fewer data points then desired clusters, decrease cluster size");
+        }
         
         double[] totDistances = new double[highK-lowK+1];
         
         BlockingQueue<ClusterWorker> workerQue = new ArrayBlockingQueue<ClusterWorker>(SystemInfo.LogicalCores);
-        for(int i = 0; i < SystemInfo.LogicalCores; i++)
-            workerQue.add(new ClusterWorker(dataSet, workerQue));
+        for(int i = 0; i < SystemInfo.LogicalCores; i++) {
+          workerQue.add(new ClusterWorker(dataSet, workerQue));
+        }
         
         int k = lowK;
         int received = 0;
@@ -337,15 +349,18 @@ public abstract class KMeans extends KClustererBase implements Parameterized
         /**
          * Stores the cluster ids associated with each data point
          */
-        if(designations == null)
-            designations = new int[dataSet.getSampleSize()];
-        if(dataSet.getSampleSize() < highK)
-            throw new ClusterFailureException("Fewer data points then desired clusters, decrease cluster size");
+        if(designations == null) {
+          designations = new int[dataSet.getSampleSize()];
+        }
+        if(dataSet.getSampleSize() < highK) {
+          throw new ClusterFailureException("Fewer data points then desired clusters, decrease cluster size");
+        }
         
         double[] totDistances = new double[highK-lowK+1];
 
-        for(int i = lowK; i <= highK; i++)
-            totDistances[i-lowK] = cluster(dataSet, null, i, new ArrayList<Vec>(), designations, true, null, true);
+        for(int i = lowK; i <= highK; i++) {
+          totDistances[i-lowK] = cluster(dataSet, null, i, new ArrayList<Vec>(), designations, true, null, true);
+        }
 
         return findK(lowK, highK, totDistances, dataSet, designations);
     }
@@ -380,9 +395,9 @@ public abstract class KMeans extends KClustererBase implements Parameterized
         double changeDev = stats.getStandardDeviation();
         
         //If we havent had any huge drops in total distance, assume that there are onlu to clusts
-        if(maxChange < changeDev*2+changeMean)
-            maxChangeK = lowK;
-        else
+        if(maxChange < changeDev*2+changeMean) {
+          maxChangeK = lowK;
+        } else
         {
             double tmp;
             for(int i = 1; i < totDistances.length; i++)

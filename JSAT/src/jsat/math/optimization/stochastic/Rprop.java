@@ -63,12 +63,15 @@ public class Rprop implements GradientUpdater
      */
     public Rprop(Rprop toCopy)
     {
-        if (toCopy.prev_grad != null)
-            this.prev_grad = Arrays.copyOf(toCopy.prev_grad, toCopy.prev_grad.length);
-        if (toCopy.cur_eta != null)
-            this.cur_eta = Arrays.copyOf(toCopy.cur_eta, toCopy.cur_eta.length);
-        if (toCopy.prev_w != null)
-            this.prev_w = Arrays.copyOf(toCopy.prev_w, toCopy.prev_w.length);
+        if (toCopy.prev_grad != null) {
+          this.prev_grad = Arrays.copyOf(toCopy.prev_grad, toCopy.prev_grad.length);
+        }
+        if (toCopy.cur_eta != null) {
+          this.cur_eta = Arrays.copyOf(toCopy.cur_eta, toCopy.cur_eta.length);
+        }
+        if (toCopy.prev_w != null) {
+          this.prev_w = Arrays.copyOf(toCopy.prev_w, toCopy.prev_w.length);
+        }
         this.prev_grad_bias = toCopy.prev_grad_bias;
         this.cur_eta_bias = toCopy.cur_eta_bias;
         this.prev_bias = toCopy.prev_bias;

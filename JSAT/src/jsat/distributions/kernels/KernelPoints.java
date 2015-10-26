@@ -49,16 +49,18 @@ public class KernelPoints
      */
     public KernelPoints(KernelTrick k, int points, double errorTolerance, boolean mergeGrams)
     {
-        if(points < 1)
-            throw new IllegalArgumentException("Number of points must be positive, not " + points);
+        if(points < 1) {
+          throw new IllegalArgumentException("Number of points must be positive, not " + points);
+        }
         this.k = k;
         this.errorTolerance = errorTolerance;
         this.points = new ArrayList<KernelPoint>(points);
         this.points.add(new KernelPoint(k, errorTolerance));
         this.points.get(0).setMaxBudget(maxBudget);
         this.points.get(0).setBudgetStrategy(budgetStrategy);
-        for(int i = 1; i < points; i++)
-            addNewKernelPoint();
+        for(int i = 1; i < points; i++) {
+          addNewKernelPoint();
+        }
     }
 
     /**
@@ -72,8 +74,9 @@ public class KernelPoints
         this.points = new ArrayList<KernelPoint>(toCopy.points.size());
         if(toCopy.points.get(0).getBasisSize() == 0)//special case, nothing has been added
         {
-            for(int i = 0; i < toCopy.points.size(); i++)
-                this.points.add(new KernelPoint(k, errorTolerance));
+            for(int i = 0; i < toCopy.points.size(); i++) {
+              this.points.add(new KernelPoint(k, errorTolerance));
+            }
         }
         else
         {
@@ -101,8 +104,9 @@ public class KernelPoints
     public void setBudgetStrategy(KernelPoint.BudgetStrategy budgetStrategy)
     {
         this.budgetStrategy = budgetStrategy;
-        for(KernelPoint kp : points)
-            kp.setBudgetStrategy(budgetStrategy);
+        for(KernelPoint kp : points) {
+          kp.setBudgetStrategy(budgetStrategy);
+        }
     }
 
     /**
@@ -126,11 +130,13 @@ public class KernelPoints
      */
     public void setErrorTolerance(double errorTolerance)
     {
-        if(Double.isNaN(errorTolerance) || errorTolerance < 0 || errorTolerance > 1)
-            throw new IllegalArgumentException("Error tolerance must be in [0, 1], not " + errorTolerance);
+        if(Double.isNaN(errorTolerance) || errorTolerance < 0 || errorTolerance > 1) {
+          throw new IllegalArgumentException("Error tolerance must be in [0, 1], not " + errorTolerance);
+        }
         this.errorTolerance = errorTolerance;
-        for(KernelPoint kp : points)
-            kp.setErrorTolerance(errorTolerance);
+        for(KernelPoint kp : points) {
+          kp.setErrorTolerance(errorTolerance);
+        }
     }
     
     /**
@@ -154,11 +160,13 @@ public class KernelPoints
      */
     public void setMaxBudget(int maxBudget)
     {
-        if(maxBudget < 1)
-            throw new IllegalArgumentException("Budget must be positive, not " + maxBudget);
+        if(maxBudget < 1) {
+          throw new IllegalArgumentException("Budget must be positive, not " + maxBudget);
+        }
         this.maxBudget = maxBudget;
-        for(KernelPoint kp : points)
-            kp.setMaxBudget(maxBudget);
+        for(KernelPoint kp : points) {
+          kp.setMaxBudget(maxBudget);
+        }
     }
 
     /**
@@ -221,8 +229,9 @@ public class KernelPoints
             for(int j = 0; j < points.size(); j++)
             {
                 double alpha = points.get(j).alpha.getD(i);
-                if(alpha != 0)
-                    dots[j] += k_ix*alpha;
+                if(alpha != 0) {
+                  dots[j] += k_ix*alpha;
+                }
             }
         }
         return dots;
@@ -324,8 +333,9 @@ public class KernelPoints
      */
     public void mutableMultiply(double c)
     {
-        for(KernelPoint kp : points)
-            kp.mutableMultiply(c);
+        for(KernelPoint kp : points) {
+          kp.mutableMultiply(c);
+        }
     }
     
     /**
@@ -354,8 +364,9 @@ public class KernelPoints
     public void mutableAdd(Vec x_t, Vec cs, final List<Double> qi)
     {
         int origSize = getBasisSize();
-        if(cs.nnz() == 0)
-            return;
+        if(cs.nnz() == 0) {
+          return;
+        }
         
         if(budgetStrategy == KernelPoint.BudgetStrategy.PROJECTION)
         {
@@ -370,8 +381,9 @@ public class KernelPoints
                     //That initializes the structure, now we need to make people point to the same ones
                     for(int i = 0; i < points.size(); i++)
                     {
-                        if(i == k)
-                            continue;
+                        if(i == k) {
+                          continue;
+                        }
                         KernelPoint kp_i = points.get(i);
                         standardMove(kp_i, kp_k);
 
@@ -388,13 +400,14 @@ public class KernelPoints
                     kp_k.mutableAdd(c, x_t, qi);
                     if(origSize != kp_k.getBasisSize())//update kernels & add alpha
                     {
-                        for(int i = 0; i < points.size(); i++)
-                            if(i != k)
-                            {
-                                KernelPoint kp_i = points.get(i);
-                                standardMove(kp_i, kp_k);
-                                kp_i.alpha.add(0.0);
-                            }
+                        for(int i = 0; i < points.size(); i++) {
+                          if(i != k)
+                          {
+                            KernelPoint kp_i = points.get(i);
+                            standardMove(kp_i, kp_k);
+                            kp_i.alpha.add(0.0);
+                          }
+                        }
                     }
                 }
                 
@@ -423,10 +436,12 @@ public class KernelPoints
 
                 //inser the new vector before merging
                 kp_k.vecs.add(x_t);
-                if (kp_k.kernelAccel != null)
-                    kp_k.kernelAccel.addAll(qi);
-                for (IndexValue iv : cs)
-                    points.get(iv.getIndex()).alpha.add(iv.getValue());
+                if (kp_k.kernelAccel != null) {
+                  kp_k.kernelAccel.addAll(qi);
+                }
+                for (IndexValue iv : cs) {
+                  points.get(iv.getIndex()).alpha.add(iv.getValue());
+                }
                 addMissingZeros();
 
                 //now go through and merge
@@ -437,13 +452,15 @@ public class KernelPoints
                  */
                 int m = 0;
                 double alpha_m = 0;
-                for (KernelPoint kp : points)
-                    alpha_m += pow(kp.alpha.getD(m), 2);
+                for (KernelPoint kp : points) {
+                  alpha_m += pow(kp.alpha.getD(m), 2);
+                }
                 for (int i = 1; i < kp_k.alpha.size(); i++)
                 {
                     double tmp = 0;
-                    for (KernelPoint kp : points)
-                        tmp += pow(kp.alpha.getD(i), 2);
+                    for (KernelPoint kp : points) {
+                      tmp += pow(kp.alpha.getD(i), 2);
+                    }
                     if (tmp < alpha_m)
                     {
                         alpha_m = tmp;
@@ -462,21 +479,24 @@ public class KernelPoints
                 {
                     for (int i = 0; i < kp_k.alpha.size(); i++)
                     {
-                        if (i == m)
-                            continue;
+                        if (i == m) {
+                          continue;
+                        }
                         double a_m = 0, a_n = 0;
                         for (KernelPoint kp : points)
                         {
                             double a1 = kp.alpha.getD(m);
                             double a2 = kp.alpha.getD(i);
                             double normalize = a1 + a2;
-                            if (normalize < 1e-7)
-                                continue;
+                            if (normalize < 1e-7) {
+                              continue;
+                            }
                             a_m += a1 / normalize;
                             a_n += a2 / normalize;
                         }
-                        if (abs(a_m + a_n) < tol)//avoid alphas that nearly cancle out
-                            break;
+                        if (abs(a_m + a_n) < tol) {//avoid alphas that nearly cancle out
+                          break;
+                        }
                         double k_mn = this.k.eval(i, m, kp_k.vecs, kp_k.kernelAccel);
 
                         double h = getH(k_mn, a_m, a_n);
@@ -541,10 +561,12 @@ public class KernelPoints
             if(getBasisSize() < maxBudget)
             {
                 this.points.get(0).vecs.add(x_t);
-                if(this.points.get(0).kernelAccel != null)
-                    this.points.get(0).kernelAccel.addAll(qi);
-                for(IndexValue iv : cs)
-                    this.points.get(iv.getIndex()).alpha.add(iv.getValue());
+                if(this.points.get(0).kernelAccel != null) {
+                  this.points.get(0).kernelAccel.addAll(qi);
+                }
+                for(IndexValue iv : cs) {
+                  this.points.get(iv.getIndex()).alpha.add(iv.getValue());
+                }
                 addMissingZeros();
             }
         }
@@ -553,21 +575,26 @@ public class KernelPoints
             if(getBasisSize() >= maxBudget)
             {
                 int toRemove = new Random().nextInt(getBasisSize());
-                if (getBasisSize() == maxBudget)
-                    this.points.get(0).removeIndex(toRemove);//now remove alpha from others
-                for (int i = 1; i < this.points.size(); i++)
-                    this.points.get(i).removeIndex(toRemove);
+                if (getBasisSize() == maxBudget) {
+                  this.points.get(0).removeIndex(toRemove);//now remove alpha from others
+                }
+                for (int i = 1; i < this.points.size(); i++) {
+                  this.points.get(i).removeIndex(toRemove);
+                }
             }
             //now add the point 
             this.points.get(0).vecs.add(x_t);
-            if (this.points.get(0).kernelAccel != null)
-                this.points.get(0).kernelAccel.addAll(qi);
-            for (IndexValue iv : cs)
-                this.points.get(iv.getIndex()).alpha.add(iv.getValue());
+            if (this.points.get(0).kernelAccel != null) {
+              this.points.get(0).kernelAccel.addAll(qi);
+            }
+            for (IndexValue iv : cs) {
+              this.points.get(iv.getIndex()).alpha.add(iv.getValue());
+            }
             addMissingZeros();
         }
-        else
-            throw new RuntimeException("BUG: Report Me!");
+        else {
+          throw new RuntimeException("BUG: Report Me!");
+        }
     }
     
     /**
@@ -586,8 +613,9 @@ public class KernelPoints
         toAdd.kernelAccel = source.kernelAccel;
         toAdd.vecs = source.vecs;
         toAdd.alpha = new DoubleList(source.alpha.size());
-        for (int i = 0; i < source.alpha.size(); i++)
-            toAdd.alpha.add(0.0);
+        for (int i = 0; i < source.alpha.size(); i++) {
+          toAdd.alpha.add(0.0);
+        }
         points.add(toAdd);
     }
 
@@ -653,9 +681,11 @@ public class KernelPoints
     private void addMissingZeros()
     {
         //go back and add 0s for the onces we missed
-        for (int i = 0; i < points.size(); i++)
-            while(points.get(i).alpha.size() < this.points.get(0).vecs.size())
-                points.get(i).alpha.add(0.0);
+        for (int i = 0; i < points.size(); i++) {
+          while (points.get(i).alpha.size() < this.points.get(0).vecs.size()) {
+            points.get(i).alpha.add(0.0);
+          }
+        }
     }
     
 }

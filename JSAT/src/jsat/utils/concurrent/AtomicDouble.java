@@ -35,8 +35,9 @@ final public class AtomicDouble
         {
             double orig = get();
             double newVal = orig + delta;
-            if(compareAndSet(orig, newVal))
-                return orig;
+            if(compareAndSet(orig, newVal)) {
+              return orig;
+            }
         }
     }
     
@@ -52,8 +53,9 @@ final public class AtomicDouble
         {
             double orig = get();
             double newVal = orig + delta;
-            if (compareAndSet(orig, newVal))
-                return newVal;
+            if (compareAndSet(orig, newVal)) {
+              return newVal;
+            }
         }
     }
     

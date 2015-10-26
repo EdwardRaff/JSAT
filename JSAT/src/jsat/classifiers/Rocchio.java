@@ -47,17 +47,19 @@ public class Rocchio implements Classifier
         for(int i = 0; i < rocVecs.size(); i++)
         {
             double distance;
-            if (summaryConsts == null)
-                distance = dm.dist(rocVecs.get(i), target);
-            else
-                distance = dsdm.dist(summaryConsts[i], rocVecs.get(i), target);
+            if (summaryConsts == null) {
+              distance = dm.dist(rocVecs.get(i), target);
+            } else {
+              distance = dsdm.dist(summaryConsts[i], rocVecs.get(i), target);
+            }
             sum += distance;
             cr.setProb(i, distance);
         }
         
         //now scale, set them all to 1-distance/sumOfDistances. We will call that out probablity
-        for(int i = 0; i < rocVecs.size(); i++)
-            cr.setProb(i, 1.0 - cr.getProb(i) / sum);
+        for(int i = 0; i < rocVecs.size(); i++) {
+          cr.setProb(i, 1.0 - cr.getProb(i) / sum);
+        }
         
         return cr;
     }
@@ -97,8 +99,9 @@ public class Rocchio implements Classifier
             }
             
             rocchioVec.mutableDivide(weightSum);
-            if(dsdm != null)
-                summaryConsts[index] = dsdm.getVectorConstant(rocchioVec);
+            if(dsdm != null) {
+              summaryConsts[index] = dsdm.getVectorConstant(rocchioVec);
+            }
             latch.countDown();
         }
 
@@ -107,8 +110,9 @@ public class Rocchio implements Classifier
     @Override
     public void trainC(ClassificationDataSet dataSet, ExecutorService threadPool)
     {
-        if(dataSet.getNumCategoricalVars() != 0)
-            throw new FailedToFitException("Classifier requires all variables be numerical");
+        if(dataSet.getNumCategoricalVars() != 0) {
+          throw new FailedToFitException("Classifier requires all variables be numerical");
+        }
         int N = dataSet.getClassSize();
         rocVecs = new ArrayList<Vec>(N);
         
@@ -158,11 +162,13 @@ public class Rocchio implements Classifier
         if(this.rocVecs != null)
         {
             copy.rocVecs = new ArrayList<Vec>(this.rocVecs.size());
-            for(Vec v : this.rocVecs)
-                copy.rocVecs.add(v.clone());
+            for(Vec v : this.rocVecs) {
+              copy.rocVecs.add(v.clone());
+            }
         }
-        if(this.summaryConsts != null)
-            copy.summaryConsts = Arrays.copyOf(summaryConsts, summaryConsts.length);
+        if(this.summaryConsts != null) {
+          copy.summaryConsts = Arrays.copyOf(summaryConsts, summaryConsts.length);
+        }
         return copy;
     }
     

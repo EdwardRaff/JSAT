@@ -31,8 +31,9 @@ public abstract class BaseUpdateableClassifier implements UpdateableClassifier
      */
     public void setEpochs(int epochs)
     {
-        if(epochs < 1)
-            throw new IllegalArgumentException("epochs must be a positive value");
+        if(epochs < 1) {
+          throw new IllegalArgumentException("epochs must be a positive value");
+        }
         this.epochs = epochs;
     }
 
@@ -67,8 +68,9 @@ public abstract class BaseUpdateableClassifier implements UpdateableClassifier
      */
     public static void trainEpochs(ClassificationDataSet dataSet, UpdateableClassifier toTrain, int epochs)
     {
-        if(epochs < 1)
-            throw new IllegalArgumentException("epochs must be positive");
+        if(epochs < 1) {
+          throw new IllegalArgumentException("epochs must be positive");
+        }
         toTrain.setUp(dataSet.getCategories(), dataSet.getNumNumericalVars(), 
                 dataSet.getPredicting());
         IntList randomOrder = new IntList(dataSet.getSampleSize());
@@ -76,8 +78,9 @@ public abstract class BaseUpdateableClassifier implements UpdateableClassifier
         for (int epoch = 0; epoch < epochs; epoch++)
         {
             Collections.shuffle(randomOrder);
-            for (int i : randomOrder)
-                toTrain.update(dataSet.getDataPoint(i), dataSet.getDataPointCategory(i));
+            for (int i : randomOrder) {
+              toTrain.update(dataSet.getDataPoint(i), dataSet.getDataPointCategory(i));
+            }
         }
     }
 

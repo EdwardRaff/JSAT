@@ -82,24 +82,29 @@ public class Wagging implements Classifier, Regressor, Parameterized
     {
         this.dist = clone.dist.clone();
         this.iterations = clone.iterations;
-        if(clone.weakL != null)
-            setWeakLearner(clone.weakL.clone());
-        if(clone.weakR != null)
-            setWeakLearner(clone.weakR.clone());
-        if(clone.predicting != null)
-            this.predicting = clone.predicting.clone();
+        if(clone.weakL != null) {
+          setWeakLearner(clone.weakL.clone());
+        }
+        if(clone.weakR != null) {
+          setWeakLearner(clone.weakR.clone());
+        }
+        if(clone.predicting != null) {
+          this.predicting = clone.predicting.clone();
+        }
         
         if(clone.hypotsL != null)
         {
             hypotsL = new Classifier[clone.hypotsL.length];
-            for(int i = 0; i < hypotsL.length; i++)
-                hypotsL[i] = clone.hypotsL[i].clone();
+            for(int i = 0; i < hypotsL.length; i++) {
+              hypotsL[i] = clone.hypotsL[i].clone();
+            }
         }
         if(clone.hypotsR != null)
         {
             hypotsR = new Regressor[clone.hypotsR.length];
-            for(int i = 0; i < hypotsR.length; i++)
-                hypotsR[i] = clone.hypotsR[i].clone();
+            for(int i = 0; i < hypotsR.length; i++) {
+              hypotsR[i] = clone.hypotsR[i].clone();
+            }
         }
     }
 
@@ -110,11 +115,13 @@ public class Wagging implements Classifier, Regressor, Parameterized
      */
     public void setWeakLearner(Classifier weakL)
     {
-        if(weakL == null)
-            throw new NullPointerException();
+        if(weakL == null) {
+          throw new NullPointerException();
+        }
         this.weakL = weakL;
-        if(weakL instanceof Regressor)
-            this.weakR = (Regressor) weakL;
+        if(weakL instanceof Regressor) {
+          this.weakR = (Regressor) weakL;
+        }
     }
 
     /**
@@ -133,11 +140,13 @@ public class Wagging implements Classifier, Regressor, Parameterized
      */
     public void setWeakLearner(Regressor weakR)
     {
-        if(weakR == null)
-            throw new NullPointerException();
+        if(weakR == null) {
+          throw new NullPointerException();
+        }
         this.weakR = weakR;
-        if(weakR instanceof Classifier)
-            this.weakL = (Classifier) weakR;
+        if(weakR instanceof Classifier) {
+          this.weakL = (Classifier) weakR;
+        }
     }
 
     /**
@@ -155,8 +164,9 @@ public class Wagging implements Classifier, Regressor, Parameterized
      */
     public void setIterations(int iterations)
     {
-        if(iterations < 1)
-            throw new ArithmeticException("The number of iterations must be positive");
+        if(iterations < 1) {
+          throw new ArithmeticException("The number of iterations must be positive");
+        }
         this.iterations = iterations;
     }
 
@@ -175,8 +185,9 @@ public class Wagging implements Classifier, Regressor, Parameterized
      */
     public void setDistribution(ContinuousDistribution dist)
     {
-        if(dist == null)
-            throw new NullPointerException();
+        if(dist == null) {
+          throw new NullPointerException();
+        }
         this.dist = dist;
     }
 
@@ -239,15 +250,17 @@ public class Wagging implements Classifier, Regressor, Parameterized
                 RegressionDataSet rds = (RegressionDataSet) ds;
                 for (int i = start; i < end; i++)
                 {
-                    for (int j = 0; j < ds.getSampleSize(); j++)
-                        ds.getDataPoint(i).setWeight(Math.max(1e-6, dist.invCdf(rand.nextDouble())));
+                    for (int j = 0; j < ds.getSampleSize(); j++) {
+                      ds.getDataPoint(i).setWeight(Math.max(1e-6, dist.invCdf(rand.nextDouble())));
+                    }
                     Regressor hypot = weakR.clone();
                     hypot.train(rds);
                     hypotsR[i] = hypot;
                 }
             }
-            else
-                throw new RuntimeException("BUG: please report");
+            else {
+              throw new RuntimeException("BUG: please report");
+            }
             
             latch.countDown();
         }
@@ -265,8 +278,9 @@ public class Wagging implements Classifier, Regressor, Parameterized
         {
             int start = used;
             int end = start+chunkSize;
-            if(extra-- > 0)
-                end++;
+            if(extra-- > 0) {
+              end++;
+            }
             used = end;
             threadPool.submit(new WagFill(start, end, dataSet, new Random(rand.nextInt()), latch));
         }
@@ -283,13 +297,15 @@ public class Wagging implements Classifier, Regressor, Parameterized
     @Override
     public CategoricalResults classify(DataPoint data)
     {
-        if(hypotsL == null)
-            throw new UntrainedModelException("Model has not been trained for classification");
+        if(hypotsL == null) {
+          throw new UntrainedModelException("Model has not been trained for classification");
+        }
         
         CategoricalResults results = new CategoricalResults(predicting.getNumOfCategories());
         
-        for(Classifier hypot : hypotsL)
-            results.incProb(hypot.classify(data).mostLikely(), 1);
+        for(Classifier hypot : hypotsL) {
+          results.incProb(hypot.classify(data).mostLikely(), 1);
+        }
         results.normalize();
         return results;
     }
@@ -297,8 +313,9 @@ public class Wagging implements Classifier, Regressor, Parameterized
     @Override
     public void trainC(ClassificationDataSet dataSet, ExecutorService threadPool)
     {
-        if(weakL == null)
-            throw new FailedToFitException("No classification weak learner was provided");
+        if(weakL == null) {
+          throw new FailedToFitException("No classification weak learner was provided");
+        }
         predicting = dataSet.getPredicting();
         hypotsL = new Classifier[iterations];
         hypotsR = null;
@@ -321,12 +338,14 @@ public class Wagging implements Classifier, Regressor, Parameterized
     @Override
     public double regress(DataPoint data)
     {
-        if(hypotsR == null)
-            throw new UntrainedModelException("Model has not been trained for regression");
+        if(hypotsR == null) {
+          throw new UntrainedModelException("Model has not been trained for regression");
+        }
         
         double avg = 0.0;
-        for(Regressor hypot : hypotsR)
-            avg += hypot.regress(data);
+        for(Regressor hypot : hypotsR) {
+          avg += hypot.regress(data);
+        }
         avg /= hypotsR.length;
         return avg;
     }
@@ -334,8 +353,9 @@ public class Wagging implements Classifier, Regressor, Parameterized
     @Override
     public void train(RegressionDataSet dataSet, ExecutorService threadPool)
     {
-        if(weakR == null)
-            throw new FailedToFitException("No regression weak learner was provided");
+        if(weakR == null) {
+          throw new FailedToFitException("No regression weak learner was provided");
+        }
         hypotsL = null;
         hypotsR = new Regressor[iterations];
         

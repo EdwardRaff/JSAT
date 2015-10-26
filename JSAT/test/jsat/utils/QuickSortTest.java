@@ -54,15 +54,18 @@ public class QuickSortTest
         for(int size = 2; size < 10000; size*=2)
         {
             double[] x = new double[size];
-            for(int i = 0; i < x.length; i++)
-                if(rand.nextInt(10) == 0)//force behavrio of multiple pivots with exact same value
-                    x[i] = rand.nextInt(10);
-                else
-                    x[i] = rand.nextDouble();
+            for(int i = 0; i < x.length; i++) {
+              if (rand.nextInt(10) == 0) {
+                x[i] = rand.nextInt(10);
+              } else {
+                x[i] = rand.nextDouble();
+              }
+            }
             QuickSort.sort(x, 0, size);
             
-            for(int i = 0; i < x.length-1; i++)
-                assertTrue(x[i] <= x[i+1]);
+            for(int i = 0; i < x.length-1; i++) {
+              assertTrue(x[i] <= x[i+1]);
+            }
         }
     }
     

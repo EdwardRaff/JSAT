@@ -120,8 +120,9 @@ public class CLARA extends PAM
             autoSampleSize = false;
             this.sampleSize = sampleSize;
         }
-        else 
-            autoSampleSize = true;
+        else {
+          autoSampleSize = true;
+        }
     }
     
     @Override
@@ -166,8 +167,9 @@ public class CLARA extends PAM
             while (samplePoints.size() < sampSize)
             {
                 int indx = rand.nextInt(data.getSampleSize());
-                if (!samplePoints.containsValue(indx))
-                    samplePoints.put(samplePoints.size(), indx);
+                if (!samplePoints.containsValue(indx)) {
+                  samplePoints.put(samplePoints.size(), indx);
+                }
             }
             for (Integer j : samplePoints.values())
             {
@@ -182,8 +184,9 @@ public class CLARA extends PAM
             super.cluster(sampleSet, false, medioids, sampleAssignments, subCache);
             
             //Map the sample medoids back to the full data set
-            for(int j = 0; j < medioids.length; j++)
-                medioids[j] = samplePoints.get(medioids[j]);
+            for(int j = 0; j < medioids.length; j++) {
+              medioids[j] = samplePoints.get(medioids[j]);
+            }
             
             //Now apply the sample medoids to the full data set
             double sqrdDist = 0.0;
@@ -222,13 +225,15 @@ public class CLARA extends PAM
     @Override
     public int[] cluster(DataSet dataSet, int clusters, int[] designations)
     {
-        if(designations == null)
-            designations = new int[dataSet.getSampleSize()];
+        if(designations == null) {
+          designations = new int[dataSet.getSampleSize()];
+        }
         medoids = new int[clusters];
         
         this.cluster(dataSet, true, medoids, designations, null);
-        if(!storeMedoids)
-            medoids = null;
+        if(!storeMedoids) {
+          medoids = null;
+        }
         
         return designations;
     }

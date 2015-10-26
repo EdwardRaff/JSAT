@@ -60,8 +60,9 @@ public abstract class ContinuedFraction
     public double lentz(double... args)
     {
         double f_n = getB(0, args);
-        if(f_n == 0.0)
-            f_n = 1e-30;
+        if(f_n == 0.0) {
+          f_n = 1e-30;
+        }
         double c_n, c_0 = f_n;
         double d_n, d_0 = 0;
         
@@ -73,12 +74,14 @@ public abstract class ContinuedFraction
             
             j++;
             d_n = getB(j, args) + getA(j, args)*d_0;
-            if(d_n == 0.0)
-                d_n = 1e-30;
+            if(d_n == 0.0) {
+              d_n = 1e-30;
+            }
             
             c_n = getB(j, args) + getA(j, args)/c_0;
-            if(c_n == 0.0)
-                c_n = 1e-30;
+            if(c_n == 0.0) {
+              c_n = 1e-30;
+            }
             
             d_n = 1/d_n;
             delta = c_n*d_n;

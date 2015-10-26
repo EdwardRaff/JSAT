@@ -76,22 +76,26 @@ abstract public class ModelSearch implements Classifier, Regressor
 
     public ModelSearch(Regressor baseRegressor, int folds)
     {
-        if (!(baseRegressor instanceof Parameterized))
-            throw new FailedToFitException("Given regressor does not support parameterized alterations");
+        if (!(baseRegressor instanceof Parameterized)) {
+          throw new FailedToFitException("Given regressor does not support parameterized alterations");
+        }
         this.baseRegressor = baseRegressor;
-        if (baseRegressor instanceof Classifier)
-            this.baseClassifier = (Classifier) baseRegressor;
+        if (baseRegressor instanceof Classifier) {
+          this.baseClassifier = (Classifier) baseRegressor;
+        }
         searchParams = new ArrayList<Parameter>();
         this.folds = folds;
     }
 
     public ModelSearch(Classifier baseClassifier, int folds)
     {
-        if (!(baseClassifier instanceof Parameterized))
-            throw new FailedToFitException("Given classifier does not support parameterized alterations");
+        if (!(baseClassifier instanceof Parameterized)) {
+          throw new FailedToFitException("Given classifier does not support parameterized alterations");
+        }
         this.baseClassifier = baseClassifier;
-        if (baseClassifier instanceof Regressor)
-            this.baseRegressor = (Regressor) baseClassifier;
+        if (baseClassifier instanceof Regressor) {
+          this.baseRegressor = (Regressor) baseClassifier;
+        }
         searchParams = new ArrayList<Parameter>();
         this.folds = folds;
     }
@@ -105,22 +109,27 @@ abstract public class ModelSearch implements Classifier, Regressor
         if (toCopy.baseClassifier != null)
         {
             this.baseClassifier = toCopy.baseClassifier.clone();
-            if (this.baseClassifier instanceof Regressor)
-                this.baseRegressor = (Regressor) this.baseClassifier;
+            if (this.baseClassifier instanceof Regressor) {
+              this.baseRegressor = (Regressor) this.baseClassifier;
+            }
         }
         else
         {
             this.baseRegressor = toCopy.baseRegressor.clone();
-            if (this.baseRegressor instanceof Classifier)
-                this.baseClassifier = (Classifier) this.baseRegressor;
+            if (this.baseRegressor instanceof Classifier) {
+              this.baseClassifier = (Classifier) this.baseRegressor;
+            }
         }
-        if (toCopy.trainedClassifier != null)
-            this.trainedClassifier = toCopy.trainedClassifier.clone();
-        if (toCopy.trainedRegressor != null)
-            this.trainedRegressor = toCopy.trainedRegressor.clone();
+        if (toCopy.trainedClassifier != null) {
+          this.trainedClassifier = toCopy.trainedClassifier.clone();
+        }
+        if (toCopy.trainedRegressor != null) {
+          this.trainedRegressor = toCopy.trainedRegressor.clone();
+        }
         this.searchParams = new ArrayList<Parameter>();
-        for (Parameter p : toCopy.searchParams)
-            this.searchParams.add(getParameterByName(p.getName()));
+        for (Parameter p : toCopy.searchParams) {
+          this.searchParams.add(getParameterByName(p.getName()));
+        }
         this.folds = toCopy.folds;
     }
 
@@ -319,28 +328,32 @@ abstract public class ModelSearch implements Classifier, Regressor
     protected Parameter getParameterByName(String name) throws IllegalArgumentException
     {
         Parameter param;
-        if (baseClassifier != null)
-            param = ((Parameterized) baseClassifier).getParameter(name);
-        else
-            param = ((Parameterized) baseRegressor).getParameter(name);
-        if (param == null)
-            throw new IllegalArgumentException("Parameter " + name + " does not exist");
+        if (baseClassifier != null) {
+          param = ((Parameterized) baseClassifier).getParameter(name);
+        } else {
+          param = ((Parameterized) baseRegressor).getParameter(name);
+        }
+        if (param == null) {
+          throw new IllegalArgumentException("Parameter " + name + " does not exist");
+        }
         return param;
     }
 
     @Override
     public CategoricalResults classify(DataPoint data)
     {
-        if (trainedClassifier == null)
-            throw new UntrainedModelException("Model has not yet been trained");
+        if (trainedClassifier == null) {
+          throw new UntrainedModelException("Model has not yet been trained");
+        }
         return trainedClassifier.classify(data);
     }
 
     @Override
     public double regress(DataPoint data)
     {
-        if (trainedRegressor == null)
-            throw new UntrainedModelException("Model has not yet been trained");
+        if (trainedRegressor == null) {
+          throw new UntrainedModelException("Model has not yet been trained");
+        }
         return trainedRegressor.regress(data);
     }
 

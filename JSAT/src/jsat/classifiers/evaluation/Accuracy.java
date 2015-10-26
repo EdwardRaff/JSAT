@@ -27,8 +27,9 @@ public class Accuracy implements ClassificationScore
     @Override
     public void addResult(CategoricalResults prediction, int trueLabel, double weight)
     {
-        if(prediction.mostLikely() == trueLabel)
-            correct += weight;
+        if(prediction.mostLikely() == trueLabel) {
+          correct += weight;
+        }
         total += weight;
     }
 

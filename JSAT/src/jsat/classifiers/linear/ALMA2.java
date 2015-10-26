@@ -60,8 +60,9 @@ public class ALMA2 extends BaseUpdateableClassifier implements BinaryScoreClassi
      */
     protected ALMA2(ALMA2 other)
     {
-        if(other.w != null)
-            this.w = other.w.clone();
+        if(other.w != null) {
+          this.w = other.w.clone();
+        }
         this.alpha = other.alpha;
         this.B = other.B;
         this.C = other.C;
@@ -93,8 +94,9 @@ public class ALMA2 extends BaseUpdateableClassifier implements BinaryScoreClassi
      */
     public void setAlpha(double alpha)
     {
-        if(alpha <= 0 || alpha > 1 || Double.isNaN(alpha))
-            throw new ArithmeticException("alpha must be in (0, 1], not " + alpha);
+        if(alpha <= 0 || alpha > 1 || Double.isNaN(alpha)) {
+          throw new ArithmeticException("alpha must be in (0, 1], not " + alpha);
+        }
         this.alpha = alpha;
         setB(1.0/alpha);
     }
@@ -134,8 +136,9 @@ public class ALMA2 extends BaseUpdateableClassifier implements BinaryScoreClassi
      */
     public void setC(double C)
     {
-        if(C <= 0 || Double.isInfinite(C) || Double.isNaN(C))
-            throw new ArithmeticException("C must be a posative cosntant");
+        if(C <= 0 || Double.isInfinite(C) || Double.isNaN(C)) {
+          throw new ArithmeticException("C must be a posative cosntant");
+        }
         this.C = C;
     }
 
@@ -171,10 +174,12 @@ public class ALMA2 extends BaseUpdateableClassifier implements BinaryScoreClassi
     @Override
     public void setUp(CategoricalData[] categoricalAttributes, int numericAttributes, CategoricalData predicting)
     {
-        if(numericAttributes <= 0)
-            throw new FailedToFitException("ALMA2 requires numeric features");
-        if(predicting.getNumOfCategories() != 2)
-            throw new FailedToFitException("ALMA2 works only for binary classification");
+        if(numericAttributes <= 0) {
+          throw new FailedToFitException("ALMA2 requires numeric features");
+        }
+        if(predicting.getNumOfCategories() != 2) {
+          throw new FailedToFitException("ALMA2 works only for binary classification");
+        }
         w = new DenseVector(numericAttributes);
         k = 1;
     }
@@ -191,25 +196,29 @@ public class ALMA2 extends BaseUpdateableClassifier implements BinaryScoreClassi
         {
             double eta = C/Math.sqrt(p-1)/Math.sqrt(k++);
             w.mutableAdd(eta*y_t, x_t);
-            if(useBias)
-                bias += eta*y_t;
+            if(useBias) {
+              bias += eta*y_t;
+            }
             final double norm = w.pNorm(2)+bias;
-            if(norm > 1)
-                w.mutableDivide(norm);
+            if(norm > 1) {
+              w.mutableDivide(norm);
+            }
         }
     }
 
     @Override
     public CategoricalResults classify(DataPoint data)
     {
-        if(w == null)
-            throw new UntrainedModelException("The model has not yet been trained");
+        if(w == null) {
+          throw new UntrainedModelException("The model has not yet been trained");
+        }
         double wx = getScore(data);
         CategoricalResults cr =new CategoricalResults(2);
-        if(wx < 0)
-            cr.setProb(0, 1.0);
-        else
-            cr.setProb(1, 1.0);
+        if(wx < 0) {
+          cr.setProb(0, 1.0);
+        } else {
+          cr.setProb(1, 1.0);
+        }
         return cr;
     }
 
@@ -240,19 +249,21 @@ public class ALMA2 extends BaseUpdateableClassifier implements BinaryScoreClassi
     @Override
     public Vec getRawWeight(int index)
     {
-        if(index < 1)
-            return getRawWeight();
-        else
-            throw new IndexOutOfBoundsException("Model has only 1 weight vector");
+        if(index < 1) {
+          return getRawWeight();
+        } else {
+          throw new IndexOutOfBoundsException("Model has only 1 weight vector");
+        }
     }
 
     @Override
     public double getBias(int index)
     {
-        if (index < 1)
-            return getBias();
-        else
-            throw new IndexOutOfBoundsException("Model has only 1 weight vector");
+        if (index < 1) {
+          return getBias();
+        } else {
+          throw new IndexOutOfBoundsException("Model has only 1 weight vector");
+        }
     }
     
     @Override

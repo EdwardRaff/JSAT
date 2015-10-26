@@ -44,29 +44,33 @@ public class Poly2VecTest
         truePolyDense = new DenseVector(15);
         truePolyDense.set(0, 1.0);
         truePolyVec.set(0, 1.0);
-        for(int i = 0; i < baseVec.length(); i++)
-            truePolyVec.set(i+1, baseVec.get(i));
-        for(int i = 0; i < denseBase.length(); i++)
-            truePolyDense.set(i+1, denseBase.get(i));
+        for(int i = 0; i < baseVec.length(); i++) {
+          truePolyVec.set(i+1, baseVec.get(i));
+        }
+        for(int i = 0; i < denseBase.length(); i++) {
+          truePolyDense.set(i+1, denseBase.get(i));
+        }
         int offSet = baseVec.length()+1;
         int pos = 0;
         x = new int[truePolyVec.length()];
         y = new int[truePolyVec.length()];
-        for(int i = 0; i < baseVec.length(); i++)
-            for(int j = i; j < baseVec.length(); j++)
-            {
-                x[pos] = i;
-                y[pos] = j;
-                truePolyVec.set(offSet + (pos++), baseVec.get(i)*baseVec.get(j));
-            }
+        for(int i = 0; i < baseVec.length(); i++) {
+          for(int j = i; j < baseVec.length(); j++)
+          {
+            x[pos] = i;
+            y[pos] = j;
+            truePolyVec.set(offSet + (pos++), baseVec.get(i)*baseVec.get(j));
+          }
+        }
         
         offSet = denseBase.length()+1;
         pos = 0;
-        for(int i = 0; i < denseBase.length(); i++)
-            for(int j = i; j < denseBase.length(); j++)
-            {
-                truePolyDense.set(offSet + (pos++), denseBase.get(i)*denseBase.get(j));
-            }
+        for(int i = 0; i < denseBase.length(); i++) {
+          for(int j = i; j < denseBase.length(); j++)
+          {
+            truePolyDense.set(offSet + (pos++), denseBase.get(i)*denseBase.get(j));
+          }
+        }
     }
     
     @After
@@ -110,12 +114,14 @@ public class Poly2VecTest
     {
         System.out.println("get");
         Poly2Vec polyDense = new Poly2Vec(denseBase);
-        for(int i = 0; i < truePolyDense.length(); i++)
-            assertEquals(truePolyDense.get(i), polyDense.get(i), 0.0);
+        for(int i = 0; i < truePolyDense.length(); i++) {
+          assertEquals(truePolyDense.get(i), polyDense.get(i), 0.0);
+        }
         
         Poly2Vec polyVec = new Poly2Vec(baseVec);
-        for(int i = 0; i < truePolyVec.length(); i++)
-            assertEquals(truePolyVec.get(i), polyVec.get(i), 0.0);
+        for(int i = 0; i < truePolyVec.length(); i++) {
+          assertEquals(truePolyVec.get(i), polyVec.get(i), 0.0);
+        }
         try
         {
             polyVec.get(-1);

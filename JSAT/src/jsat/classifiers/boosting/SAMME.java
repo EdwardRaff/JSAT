@@ -44,8 +44,9 @@ public class SAMME implements Classifier, Parameterized
 
     public SAMME(Classifier weakLearner, int maxIterations)
     {
-        if(!weakLearner.supportsWeightedData())
-            throw new RuntimeException("WeakLearner must support weighted data to be boosted");
+        if(!weakLearner.supportsWeightedData()) {
+          throw new RuntimeException("WeakLearner must support weighted data to be boosted");
+        }
         this.weakLearner = weakLearner;
         this.maxIterations = maxIterations;
     }
@@ -53,12 +54,14 @@ public class SAMME implements Classifier, Parameterized
     @Override
     public CategoricalResults classify(DataPoint data)
     {
-        if(predicting == null)
-            throw new RuntimeException("Classifier has not been trained yet");
+        if(predicting == null) {
+          throw new RuntimeException("Classifier has not been trained yet");
+        }
         CategoricalResults cr = new CategoricalResults(predicting.getNumOfCategories());
         
-        for(int i=0; i < hypoths.size(); i++)
-            cr.incProb(hypoths.get(i).classify(data).mostLikely(), hypWeights.get(i));
+        for(int i=0; i < hypoths.size(); i++) {
+          cr.incProb(hypoths.get(i).classify(data).mostLikely(), hypWeights.get(i));
+        }
         
         cr.normalize();
         return cr;
@@ -78,8 +81,9 @@ public class SAMME implements Classifier, Parameterized
         
         List<DataPointPair<Integer>> dataPoints = dataSet.getAsDPPList();
         //Initialization step, set up the weights  so they are all 1 / size of dataset
-        for(DataPointPair<Integer> dpp : dataPoints)
-            dpp.getDataPoint().setWeight(1.0);//Scaled, they are all 1 
+        for(DataPointPair<Integer> dpp : dataPoints) {
+          dpp.getDataPoint().setWeight(1.0);//Scaled, they are all 1 
+        }
         double sumOfWeights = dataPoints.size();
         
         
@@ -88,19 +92,23 @@ public class SAMME implements Classifier, Parameterized
         
         for(int t = 0; t < maxIterations; t++)
         {
-            if(threadPool == null || threadPool instanceof FakeExecutor)
-                weakLearner.trainC(new ClassificationDataSet(dataPoints, predicting));
-            else
-                weakLearner.trainC(new ClassificationDataSet(dataPoints, predicting), threadPool);
+            if(threadPool == null || threadPool instanceof FakeExecutor) {
+              weakLearner.trainC(new ClassificationDataSet(dataPoints, predicting));
+            } else {
+              weakLearner.trainC(new ClassificationDataSet(dataPoints, predicting), threadPool);
+            }
 
             //Error is the same as in AdaBoost.M1
             double error = 0.0;
-            for(int i = 0; i < dataPoints.size(); i++)
-                if( !(wasCorrect[i] = weakLearner.classify(dataPoints.get(i).getDataPoint()).mostLikely() == dataPoints.get(i).getPair()) )
-                    error += dataPoints.get(i).getDataPoint().getWeight();
+            for(int i = 0; i < dataPoints.size(); i++) {
+              if (!(wasCorrect[i] = weakLearner.classify(dataPoints.get(i).getDataPoint()).mostLikely() == dataPoints.get(i).getPair())) {
+                error += dataPoints.get(i).getDataPoint().getWeight();
+              }
+            }
             error /= sumOfWeights;
-            if(error >= (1.0-1.0/K) || error == 0.0)///Diference, we only need to be better then random guessing classes 
-                return;
+            if(error >= (1.0-1.0/K) || error == 0.0) {///Diference, we only need to be better then random guessing classes
+              return;
+            }
             //The main difference - a different error term
             double am = Math.log((1.0-error)/error)/Math.log(2) +logK;
             
@@ -138,16 +146,19 @@ public class SAMME implements Classifier, Parameterized
     public SAMME clone()
     {
         SAMME clone = new SAMME(weakLearner.clone(), maxIterations);
-        if(this.hypWeights != null)
-            clone.hypWeights = new DoubleList(this.hypWeights);
+        if(this.hypWeights != null) {
+          clone.hypWeights = new DoubleList(this.hypWeights);
+        }
         if(this.hypoths != null)
         {
             clone.hypoths = new ArrayList<Classifier>(this.hypoths.size());
-            for(int i = 0; i < this.hypoths.size(); i++)
-                clone.hypoths.add(this.hypoths.get(i).clone());
+            for(int i = 0; i < this.hypoths.size(); i++) {
+              clone.hypoths.add(this.hypoths.get(i).clone());
+            }
         }
-        if(this.predicting != null)
-            clone.predicting = this.predicting.clone();
+        if(this.predicting != null) {
+          clone.predicting = this.predicting.clone();
+        }
         
         return clone;
     }

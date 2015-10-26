@@ -78,7 +78,8 @@ public class STGDTest
         
         ClassificationDataSet test = FixedProblems.get2ClassLinear(400, new Random());
         
-        for(DataPointPair<Integer> dpp : test.getAsDPPList())
-            assertEquals(dpp.getPair().longValue(), scd.classify(dpp.getDataPoint()).mostLikely());
+        for(DataPointPair<Integer> dpp : test.getAsDPPList()) {
+          assertEquals(dpp.getPair().longValue(), scd.classify(dpp.getDataPoint()).mostLikely());
+        }
     }
 }

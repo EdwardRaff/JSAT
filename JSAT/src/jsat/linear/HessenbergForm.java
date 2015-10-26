@@ -24,8 +24,9 @@ public class HessenbergForm implements Serializable
      */
     public static void hess(Matrix A, ExecutorService threadpool)
     {
-        if(!A.isSquare())
-            throw new ArithmeticException("Only square matrices can be converted to Upper Hessenberg form");
+        if(!A.isSquare()) {
+          throw new ArithmeticException("Only square matrices can be converted to Upper Hessenberg form");
+        }
         int m = A.rows();
         /**
          * Space used to store the vector for updating the columns of A
@@ -62,8 +63,9 @@ public class HessenbergForm implements Serializable
             vk[i+1] -= s1;
             s += vk[i+1]*vk[i+1];
             double s1Inv = 1.0/Math.sqrt(s);//Re use to store the norm of vk. Do the inverse to multiply quickly instead of divide
-            for(int j = i+1; j < m; j++)
-                vk[j] *= s1Inv;
+            for(int j = i+1; j < m; j++) {
+              vk[j] *= s1Inv;
+            }
             
             //Update sub sub matrix A[i+1:m, i:m]
             //NOTE: The first column that will be altered can be done ourslves, since we know the value set (s1) and that all below it will ber zero
@@ -73,25 +75,28 @@ public class HessenbergForm implements Serializable
             tmpV.zeroOut();
             vVec.multiply(subA, tmpV);
             
-            if(threadpool == null)
-                OuterProductUpdate(subA, vVec, tmpV, -2.0);
-            else
-                OuterProductUpdate(subA, vVec, tmpV, -2.0, threadpool);
+            if(threadpool == null) {
+              OuterProductUpdate(subA, vVec, tmpV, -2.0);
+            } else {
+              OuterProductUpdate(subA, vVec, tmpV, -2.0, threadpool);
+            }
             //Zero out ourselves after.
             //TODO implement so we dont compute the first row
             A.set(i+1, i, s1);
-            for(int j = i+2; j < m; j++)
-                A.set(j, i, 0.0);
+            for(int j = i+2; j < m; j++) {
+              A.set(j, i, 0.0);
+            }
             
             
             //Update the columns of A[0:m, i+1:m] 
             subA = new SubMatrix(A, 0, i+1, m, m);
             columnUpdateTmp.zeroOut();
             subA.multiply(vVec, 1.0, columnUpdateTmp);
-            if(threadpool == null)
-                OuterProductUpdate(subA, columnUpdateTmp, vVec, -2.0);
-            else
-                OuterProductUpdate(subA, columnUpdateTmp, vVec, -2.0, threadpool);
+            if(threadpool == null) {
+              OuterProductUpdate(subA, columnUpdateTmp, vVec, -2.0);
+            } else {
+              OuterProductUpdate(subA, columnUpdateTmp, vVec, -2.0, threadpool);
+            }
         }
     }
 }

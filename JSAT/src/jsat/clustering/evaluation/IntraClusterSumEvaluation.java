@@ -37,8 +37,9 @@ public class IntraClusterSumEvaluation extends ClusterEvaluationBase
     public double evaluate(List<List<DataPoint>> dataSets)
     {
         double score = 0;
-        for(List<DataPoint> list : dataSets)
-            score += ice.evaluate(list);
+        for(List<DataPoint> list : dataSets) {
+          score += ice.evaluate(list);
+        }
         return score;
     }
 

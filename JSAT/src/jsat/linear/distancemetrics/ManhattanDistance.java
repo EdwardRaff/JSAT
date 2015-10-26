@@ -68,8 +68,9 @@ public class ManhattanDistance implements DenseSparseMetric
     @Override
     public double dist(double summaryConst, Vec main, Vec target)
     {
-        if(!target.isSparse())
-            return dist(main, target);
+        if(!target.isSparse()) {
+          return dist(main, target);
+        }
         /**
          * Summary contains the differences to the zero vec, only a few 
          * of the indices are actually non zero -  we correct those values

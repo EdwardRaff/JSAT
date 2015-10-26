@@ -115,10 +115,11 @@ public abstract class StochasticSTLinearL1 implements Classifier, Regressor, Par
                 
                 a = (a+1)/2;
                 
-                if(a > 1)
-                    a = 1;
-                else if(a < 0)
-                    a = 0;
+                if(a > 1) {
+                  a = 1;
+                } else if(a < 0) {
+                  a = 0;
+                }
                 
                 cr.setProb(1, a);
                 cr.setProb(0, 1-a);
@@ -213,8 +214,9 @@ public abstract class StochasticSTLinearL1 implements Classifier, Regressor, Par
      */
     public void setEpochs(int epochs)
     {
-        if(epochs < 1)
-            throw new ArithmeticException("A positive amount of iterations must be performed");
+        if(epochs < 1) {
+          throw new ArithmeticException("A positive amount of iterations must be performed");
+        }
         this.epochs = epochs;
     }
 
@@ -234,12 +236,13 @@ public abstract class StochasticSTLinearL1 implements Classifier, Regressor, Par
      */
     public void setMaxScaled(double maxFeature)
     {
-        if(Double.isNaN(maxFeature))
-            throw new ArithmeticException("NaN is not a valid feature value");
-        else if(maxFeature > 1)
-            throw new ArithmeticException("Maximum possible feature value is 1, can not use " + maxFeature);
-        else if(maxFeature <= minScaled)
-            throw new ArithmeticException("Maximum feature value must be learger than the minimum");
+        if(Double.isNaN(maxFeature)) {
+          throw new ArithmeticException("NaN is not a valid feature value");
+        } else if(maxFeature > 1) {
+          throw new ArithmeticException("Maximum possible feature value is 1, can not use " + maxFeature);
+        } else if(maxFeature <= minScaled) {
+          throw new ArithmeticException("Maximum feature value must be learger than the minimum");
+        }
         this.maxScaled = maxFeature;
     }
 
@@ -259,12 +262,13 @@ public abstract class StochasticSTLinearL1 implements Classifier, Regressor, Par
      */
     public void setMinScaled(double minFeature)
     {
-        if(Double.isNaN(minFeature))
-            throw new ArithmeticException("NaN is not a valid feature value");
-        else if(minFeature < -1)
-            throw new ArithmeticException("Minimum possible feature value is -1, can not use " + minFeature);
-        else if(minFeature >= maxScaled)
-            throw new ArithmeticException("Minimum feature value must be smaller than the maximum");
+        if(Double.isNaN(minFeature)) {
+          throw new ArithmeticException("NaN is not a valid feature value");
+        } else if(minFeature < -1) {
+          throw new ArithmeticException("Minimum possible feature value is -1, can not use " + minFeature);
+        } else if(minFeature >= maxScaled) {
+          throw new ArithmeticException("Minimum feature value must be smaller than the maximum");
+        }
         this.minScaled = minFeature;
     }
 
@@ -287,8 +291,9 @@ public abstract class StochasticSTLinearL1 implements Classifier, Regressor, Par
      */
     public void setLambda(double lambda)
     {
-        if(Double.isInfinite(lambda) || Double.isNaN(lambda) || lambda <= 0)
-            throw new ArithmeticException("A positive amount of regularization must be performed");
+        if(Double.isInfinite(lambda) || Double.isNaN(lambda) || lambda <= 0) {
+          throw new ArithmeticException("A positive amount of regularization must be performed");
+        }
         this.lambda = lambda;
     }
 
@@ -372,8 +377,9 @@ public abstract class StochasticSTLinearL1 implements Classifier, Regressor, Par
             Iterator<IndexValue> xIter = x.getNonZeroIterator();
             
 
-            if(!wIter.hasNext() || !xIter.hasNext())
-                return a;
+            if(!wIter.hasNext() || !xIter.hasNext()) {
+              return a;
+            }
 
             IndexValue wIV = wIter.next();
             IndexValue xIV = xIter.next();
@@ -388,26 +394,31 @@ public abstract class StochasticSTLinearL1 implements Classifier, Regressor, Par
                     //Scaled, now add to result
                     a += wIV.getValue() * xV;
 
-                    if (!wIter.hasNext() || !xIter.hasNext())
-                        break;
+                    if (!wIter.hasNext() || !xIter.hasNext()) {
+                      break;
+                    }
                     wIV = wIter.next();
                     xIV = xIter.next();
                 }
-                else if (wIV.getIndex() < xIV.getIndex())
-                    if (wIter.hasNext())
-                        wIV = wIter.next();
-                    else
-                        break;
-                else if (wIV.getIndex() > xIV.getIndex())
-                    if (xIter.hasNext())
-                        xIV = xIter.next();
-                    else
-                        break;
+                else if (wIV.getIndex() < xIV.getIndex()) {
+                  if (wIter.hasNext()) {
+                    wIV = wIter.next();
+                  } else {
+                    break;
+                  }
+                } else if (wIV.getIndex() > xIV.getIndex()) {
+                  if (xIter.hasNext()) {
+                    xIV = xIter.next();
+                  } else {
+                    break;
+                  }
+                }
             }
             while (wIV != null && xIV != null);
         }
-        else
-            a = w.dot(x) + bias;
+        else {
+          a = w.dot(x) + bias;
+        }
         return a;
     }
     
@@ -428,10 +439,11 @@ public abstract class StochasticSTLinearL1 implements Classifier, Regressor, Par
      */
     public Vec getW()
     {
-        if(w == null)
-            return w;
-        else
-            return w.clone();
+        if(w == null) {
+          return w;
+        } else {
+          return w.clone();
+        }
     }
 
     @Override
@@ -449,19 +461,21 @@ public abstract class StochasticSTLinearL1 implements Classifier, Regressor, Par
     @Override
     public Vec getRawWeight(int index)
     {
-        if(index < 1)
-            return getRawWeight();
-        else
-            throw new IndexOutOfBoundsException("Model has only 1 weight vector");
+        if(index < 1) {
+          return getRawWeight();
+        } else {
+          throw new IndexOutOfBoundsException("Model has only 1 weight vector");
+        }
     }
 
     @Override
     public double getBias(int index)
     {
-        if (index < 1)
-            return getBias();
-        else
-            throw new IndexOutOfBoundsException("Model has only 1 weight vector");
+        if (index < 1) {
+          return getBias();
+        } else {
+          throw new IndexOutOfBoundsException("Model has only 1 weight vector");
+        }
     }
 
     @Override

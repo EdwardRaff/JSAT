@@ -22,8 +22,9 @@ public class PNormNormalization implements InPlaceTransform
      */
     public PNormNormalization(double p)
     {
-        if(p <= 0 || Double.isNaN(p))
-            throw new IllegalArgumentException("p must be greater than zero, not " + p);
+        if(p <= 0 || Double.isNaN(p)) {
+          throw new IllegalArgumentException("p must be greater than zero, not " + p);
+        }
         this.p = p;
     }
     
@@ -41,8 +42,9 @@ public class PNormNormalization implements InPlaceTransform
     {
         Vec vec = dp.getNumericalValues();
         double norm = vec.pNorm(p);
-        if(norm != 0)
-            vec.mutableDivide(norm);
+        if(norm != 0) {
+          vec.mutableDivide(norm);
+        }
     }
      
     @Override
@@ -88,8 +90,9 @@ public class PNormNormalization implements InPlaceTransform
          */
         public void setPNorm(double p)
         {
-            if(p <= 0 || Double.isNaN(p))
-                throw new IllegalArgumentException("p must be greater than zero, not " + p);
+            if(p <= 0 || Double.isNaN(p)) {
+              throw new IllegalArgumentException("p must be greater than zero, not " + p);
+            }
             this.p = p;
         }
 

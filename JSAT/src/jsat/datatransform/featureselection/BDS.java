@@ -192,8 +192,9 @@ public class BDS implements DataTransform
         public BDSFactory(Classifier evaluater, int featureCount)
         {
             this.classifier = evaluater;
-            if(evaluater instanceof Regressor)
-                regressor = (Regressor) evaluater;
+            if(evaluater instanceof Regressor) {
+              regressor = (Regressor) evaluater;
+            }
             setFeatureCount(featureCount);
         }
 
@@ -206,8 +207,9 @@ public class BDS implements DataTransform
         public BDSFactory(Regressor evaluater, int featureCount)
         {
             this.regressor = evaluater;
-            if(evaluater instanceof Classifier)
-                this.classifier = (Classifier) evaluater;
+            if(evaluater instanceof Classifier) {
+              this.classifier = (Classifier) evaluater;
+            }
             setFeatureCount(featureCount);
         }
         
@@ -222,12 +224,13 @@ public class BDS implements DataTransform
                 this.classifier = toCopy.classifier.clone();
                 this.regressor = (Regressor) this.classifier;
             }
-            else if(toCopy.classifier != null)
-                this.classifier = toCopy.classifier.clone();
-            else if(toCopy.regressor != null)
-                this.regressor = toCopy.regressor.clone();
-            else
-                throw new RuntimeException("BUG: Please report");
+            else if(toCopy.classifier != null) {
+              this.classifier = toCopy.classifier.clone();
+            } else if(toCopy.regressor != null) {
+              this.regressor = toCopy.regressor.clone();
+            } else {
+              throw new RuntimeException("BUG: Please report");
+            }
             this.featureCount = toCopy.featureCount;
         }
         
@@ -237,8 +240,9 @@ public class BDS implements DataTransform
          */
         public void setFeatureCount(int featureCount)
         {
-            if(featureCount < 1)
-                throw new IllegalArgumentException("Number of features to select must be positive, not " + featureCount);
+            if(featureCount < 1) {
+              throw new IllegalArgumentException("Number of features to select must be positive, not " + featureCount);
+            }
             this.featureCount = featureCount;
         }
 
@@ -254,12 +258,13 @@ public class BDS implements DataTransform
         @Override
         public BDS getTransform(DataSet dataset)
         {
-            if(dataset instanceof ClassificationDataSet)
-                return new BDS(featureCount, (ClassificationDataSet)dataset, 
-                        classifier, 5);
-            else
-                return new BDS(featureCount, (RegressionDataSet)dataset,
-                        regressor, featureCount);
+            if(dataset instanceof ClassificationDataSet) {
+              return new BDS(featureCount, (ClassificationDataSet)dataset,
+                      classifier, 5);
+            } else {
+              return new BDS(featureCount, (RegressionDataSet)dataset,
+                      regressor, featureCount);
+            }
         }
 
         @Override

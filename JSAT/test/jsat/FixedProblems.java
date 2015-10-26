@@ -35,10 +35,12 @@ public class FixedProblems
     {
         ClassificationDataSet train = new ClassificationDataSet(c2l_m0.length(), new CategoricalData[0], new CategoricalData(2));
         
-        for(Vec s : c2l_c0.sample(dataSetSize, rand))
-            train.addDataPoint(s, new int[0], 0);
-        for(Vec s : c2l_c1.sample(dataSetSize, rand))
-            train.addDataPoint(s, new int[0], 1);
+        for(Vec s : c2l_c0.sample(dataSetSize, rand)) {
+          train.addDataPoint(s, new int[0], 0);
+        }
+        for(Vec s : c2l_c1.sample(dataSetSize, rand)) {
+          train.addDataPoint(s, new int[0], 1);
+        }
         
         return train;
     }
@@ -100,8 +102,9 @@ public class FixedProblems
         for(int i = 0; i < dataSetSize; i++)
         {
             Vec s = new DenseVector(coef.length());
-            for(int j = 0; j < s.length(); j++)
-                s.set(j, rand.nextDouble());
+            for(int j = 0; j < s.length(); j++) {
+              s.set(j, rand.nextDouble());
+            }
             rds.addDataPoint(s, new int[0], s.dot(coef));
         }
         
@@ -162,14 +165,15 @@ public class FixedProblems
         
         int n = dataSetSize / 2;
 
-        for(int r_i = 0; r_i < radi.length; r_i++)
-            for (int i = 0; i < n; i++)
-            {
-                double t = 2 * Math.PI * i / n;
-                double x = radi[r_i] * Math.cos(t) + (rand.nextDouble() - 0.5) * randNoiseMultiplier;
-                double y = radi[r_i] * Math.sin(t) + (rand.nextDouble() - 0.5) * randNoiseMultiplier;
-                train.addDataPoint(DenseVector.toDenseVec(x, y), new int[0], r_i);
-            }
+        for(int r_i = 0; r_i < radi.length; r_i++) {
+          for (int i = 0; i < n; i++)
+          {
+            double t = 2 * Math.PI * i / n;
+            double x = radi[r_i] * Math.cos(t) + (rand.nextDouble() - 0.5) * randNoiseMultiplier;
+            double y = radi[r_i] * Math.sin(t) + (rand.nextDouble() - 0.5) * randNoiseMultiplier;
+            train.addDataPoint(DenseVector.toDenseVec(x, y), new int[0], r_i);
+          }
+        }
 
         return train;
     }
@@ -180,14 +184,15 @@ public class FixedProblems
         
         int n = dataSetSize/2 ;
 
-        for(int r_i = 0; r_i < radi.length; r_i++)
-            for (int i = 0; i < n; i++)
-            {
-                double t = 2 * Math.PI * (i/2) / n;
-                double x = radi[r_i] * Math.cos(t) + (rand.nextDouble() - 0.5) / 5;
-                double y = radi[r_i] * Math.sin(t) + (rand.nextDouble() - 0.5) / 5;
-                train.addDataPoint(DenseVector.toDenseVec(x, y), new int[0], r_i);
-            }
+        for(int r_i = 0; r_i < radi.length; r_i++) {
+          for (int i = 0; i < n; i++)
+          {
+            double t = 2 * Math.PI * (i/2) / n;
+            double x = radi[r_i] * Math.cos(t) + (rand.nextDouble() - 0.5) / 5;
+            double y = radi[r_i] * Math.sin(t) + (rand.nextDouble() - 0.5) / 5;
+            train.addDataPoint(DenseVector.toDenseVec(x, y), new int[0], r_i);
+          }
+        }
 
         return train;
     }

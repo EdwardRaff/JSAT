@@ -96,8 +96,9 @@ public class NaiveKMeans extends KMeans
     {
         TrainableDistanceMetric.trainIfNeeded(dm, dataSet, threadpool);
         
-        if(threadpool == null)
-            threadpool = new FakeExecutor();
+        if(threadpool == null) {
+          threadpool = new FakeExecutor();
+        }
         
         final int blockSize = dataSet.getSampleSize() / SystemInfo.LogicalCores;
         final List<Vec> X = dataSet.getDataVectors();
@@ -105,21 +106,24 @@ public class NaiveKMeans extends KMeans
         final List<Double> accelCache;
         if (accelCacheInit == null)
         {
-            if (threadpool instanceof FakeExecutor)
-                accelCache = dm.getAccelerationCache(X);
-            else
-                accelCache = dm.getAccelerationCache(X, threadpool);
+            if (threadpool instanceof FakeExecutor) {
+              accelCache = dm.getAccelerationCache(X);
+            } else {
+              accelCache = dm.getAccelerationCache(X, threadpool);
+            }
         }
-        else
-            accelCache = accelCacheInit;
+        else {
+          accelCache = accelCacheInit;
+        }
         
         if (means.size() != k)
         {
             means.clear();
-            if (threadpool instanceof FakeExecutor)
-                means.addAll(selectIntialPoints(dataSet, k, dm, accelCache, rand, seedSelection));
-            else
-                means.addAll(selectIntialPoints(dataSet, k, dm, accelCache, rand, seedSelection, threadpool));
+            if (threadpool instanceof FakeExecutor) {
+              means.addAll(selectIntialPoints(dataSet, k, dm, accelCache, rand, seedSelection));
+            } else {
+              means.addAll(selectIntialPoints(dataSet, k, dm, accelCache, rand, seedSelection, threadpool));
+            }
         }
         
         final List<List<Double>> meanQIs = new ArrayList<List<Double>>(k);
@@ -127,19 +131,22 @@ public class NaiveKMeans extends KMeans
         //Use dense mean objects
         for(int i = 0; i < means.size(); i++)
         {
-            if(dm.supportsAcceleration())
-                meanQIs.add(dm.getQueryInfo(means.get(i)));
-            else
-                meanQIs.add(Collections.EMPTY_LIST);
+            if(dm.supportsAcceleration()) {
+              meanQIs.add(dm.getQueryInfo(means.get(i)));
+            } else {
+              meanQIs.add(Collections.EMPTY_LIST);
+            }
             
-            if(means.get(i).isSparse())
-                means.set(i, new DenseVector(means.get(i)));
+            if(means.get(i).isSparse()) {
+              means.set(i, new DenseVector(means.get(i)));
+            }
         }
         
         final List<Vec> meanSum = new ArrayList<Vec>(means.size());
         final AtomicIntegerArray meanCounts = new AtomicIntegerArray(means.size());
-        for(int i = 0; i < k; i++)
-            meanSum.add(new DenseVector(means.get(0).length()));
+        for(int i = 0; i < k; i++) {
+          meanSum.add(new DenseVector(means.get(0).length()));
+        }
         final AtomicInteger changes = new AtomicInteger();
         
         //used to store local changes to the means and accumulated at the end
@@ -149,8 +156,9 @@ public class NaiveKMeans extends KMeans
             protected Vec[] initialValue()
             {
                 Vec[] deltas = new Vec[k];
-                for(int i = 0; i < k; i++)
-                    deltas[i] = new DenseVector(means.get(0).length());
+                for(int i = 0; i < k; i++) {
+                  deltas[i] = new DenseVector(means.get(0).length());
+                }
                 return deltas;
             }
         };
@@ -187,8 +195,9 @@ public class NaiveKMeans extends KMeans
                                     min = j;
                                 }
                             }
-                            if(assignment[i] == min)
-                                continue;
+                            if(assignment[i] == min) {
+                              continue;
+                            }
                             
                             //add change
                             deltas[min].mutableAdd(x);
@@ -204,12 +213,13 @@ public class NaiveKMeans extends KMeans
                         }
                         
                         //accumulate deltas into globals
-                        for(int i = 0; i < deltas.length; i++)
-                            synchronized(meanSum.get(i))
-                            {
-                                meanSum.get(i).mutableAdd(deltas[i]);
-                                deltas[i].zeroOut();
-                            }
+                        for(int i = 0; i < deltas.length; i++) {
+                          synchronized(meanSum.get(i))
+                          {
+                            meanSum.get(i).mutableAdd(deltas[i]);
+                            deltas[i].zeroOut();
+                          }
+                        }
                         
                         latch.countDown();
                     }
@@ -221,14 +231,16 @@ public class NaiveKMeans extends KMeans
             try
             {
                 latch.await();
-                if(changes.get() == 0)
-                    break;
+                if(changes.get() == 0) {
+                  break;
+                }
                 for(int i = 0; i < k; i++)
                 {
                     meanSum.get(i).copyTo(means.get(i));
                     means.get(i).mutableDivide(meanCounts.get(i));
-                    if(dm.supportsAcceleration())
-                        meanQIs.set(i, dm.getQueryInfo(means.get(i)));
+                    if(dm.supportsAcceleration()) {
+                      meanQIs.set(i, dm.getQueryInfo(means.get(i)));
+                    }
                 }
             }
             catch (InterruptedException ex)
@@ -241,23 +253,26 @@ public class NaiveKMeans extends KMeans
         if (returnError)
         {
             double totalDistance = 0;
-            if (saveCentroidDistance)
-                nearestCentroidDist = new double[X.size()];
-            else
-                nearestCentroidDist = null;
+            if (saveCentroidDistance) {
+              nearestCentroidDist = new double[X.size()];
+            } else {
+              nearestCentroidDist = null;
+            }
             
             for (int i = 0; i < dataSet.getSampleSize(); i++)
             {
                 double dist = dm.dist(i, means.get(assignment[i]), meanQIs.get(assignment[i]), X, accelCache);
                 totalDistance += Math.pow(dist, 2);
-                if(saveCentroidDistance)
-                    nearestCentroidDist[i] = dist;
+                if(saveCentroidDistance) {
+                  nearestCentroidDist[i] = dist;
+                }
             }
 
             return totalDistance;
         }
-        else
-            return 0;//who cares
+        else {
+          return 0;//who cares
+        }
     }
 
     @Override

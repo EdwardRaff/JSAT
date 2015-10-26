@@ -46,8 +46,9 @@ public class PukKernel extends BaseL2Kernel implements Parameterized
      */
     public void setOmega(double omega)
     {
-        if(omega <= 0 || Double.isNaN(omega) || Double.isInfinite(omega))
-            throw new ArithmeticException("omega must be positive, not " + omega);
+        if(omega <= 0 || Double.isNaN(omega) || Double.isInfinite(omega)) {
+          throw new ArithmeticException("omega must be positive, not " + omega);
+        }
         this.omega = omega;
         this.cnst = Math.sqrt(Math.pow(2, 1/omega)-1);
     }
@@ -63,8 +64,9 @@ public class PukKernel extends BaseL2Kernel implements Parameterized
      */
     public void setSigma(double sigma)
     {
-        if(sigma <= 0 || Double.isNaN(sigma) || Double.isInfinite(sigma))
-            throw new ArithmeticException("sigma must be positive, not " + sigma);
+        if(sigma <= 0 || Double.isNaN(sigma) || Double.isInfinite(sigma)) {
+          throw new ArithmeticException("sigma must be positive, not " + sigma);
+        }
         this.sigma = sigma;
     }
 

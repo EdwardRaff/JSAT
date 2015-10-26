@@ -60,8 +60,9 @@ public class SBP extends SupportVectorLearner implements BinaryScoreClassifier, 
     protected SBP(SBP other)
     {
         this(other.getKernel().clone(), other.getCacheMode(), other.iterations, other.nu);
-        if(other.alphas != null)
-            this.alphas = Arrays.copyOf(other.alphas, other.alphas.length);
+        if(other.alphas != null) {
+          this.alphas = Arrays.copyOf(other.alphas, other.alphas.length);
+        }
     }
     
     @Override
@@ -104,8 +105,9 @@ public class SBP extends SupportVectorLearner implements BinaryScoreClassifier, 
      */
     public void setNu(double nu)
     {
-        if(Double.isNaN(nu) || nu <= 0 || nu >= 1)
-            throw new IllegalArgumentException("nu must be in the range (0, 1)");
+        if(Double.isNaN(nu) || nu <= 0 || nu >= 1) {
+          throw new IllegalArgumentException("nu must be in the range (0, 1)");
+        }
         this.nu = nu;
     }
 
@@ -130,8 +132,9 @@ public class SBP extends SupportVectorLearner implements BinaryScoreClassifier, 
      */
     public void setBurnIn(double burnIn)
     {
-        if(Double.isNaN(burnIn) || burnIn < 0 || burnIn >= 1)
-            throw new IllegalArgumentException("BurnInFraction must be in [0, 1), not " + burnIn);
+        if(Double.isNaN(burnIn) || burnIn < 0 || burnIn >= 1) {
+          throw new IllegalArgumentException("BurnInFraction must be in [0, 1), not " + burnIn);
+        }
         this.burnIn = burnIn;
     }
 
@@ -147,18 +150,20 @@ public class SBP extends SupportVectorLearner implements BinaryScoreClassifier, 
     @Override
     public CategoricalResults classify(DataPoint data)
     {
-        if(vecs == null)
-            throw new UntrainedModelException("Classifier has yet to be trained");
+        if(vecs == null) {
+          throw new UntrainedModelException("Classifier has yet to be trained");
+        }
         
         CategoricalResults cr = new CategoricalResults(2);
         
         double sum = getScore(data);
 
         //SVM only says yess / no, can not give a percentage
-        if(sum < 0)
-            cr.setProb(0, 1.0);
-        else
-            cr.setProb(1, 1.0);
+        if(sum < 0) {
+          cr.setProb(0, 1.0);
+        } else {
+          cr.setProb(1, 1.0);
+        }
         
         return cr;
     }
@@ -178,8 +183,9 @@ public class SBP extends SupportVectorLearner implements BinaryScoreClassifier, 
     @Override
     public void trainC(ClassificationDataSet dataSet)
     {
-        if(dataSet.getClassSize() != 2)
-            throw new FailedToFitException("SBP supports only binary classification");
+        if(dataSet.getClassSize() != 2) {
+          throw new FailedToFitException("SBP supports only binary classification");
+        }
         
         final int n = dataSet.getSampleSize();
         /**
@@ -206,8 +212,9 @@ public class SBP extends SupportVectorLearner implements BinaryScoreClassifier, 
         
         Random rand = new XORWOW();
         double maxKii = 0;
-        for(int i = 0; i < n; i++)
-            maxKii = Math.max(maxKii, kEval(i, i));
+        for(int i = 0; i < n; i++) {
+          maxKii = Math.max(maxKii, kEval(i, i));
+        }
         
         final double eta_0 = 1/Math.sqrt(maxKii);
         
@@ -227,12 +234,13 @@ public class SBP extends SupportVectorLearner implements BinaryScoreClassifier, 
             
             rSqrd = projectionStep(rSqrd, n, C);
 
-            if(t >= T_0)
-                for(int j = 0; j < n; j++)
-                {
-                    alphasSum[j] += alphas[j];
-                    CSum[j] += C[j];
-                }
+            if(t >= T_0) {
+              for(int j = 0; j < n; j++)
+              {
+                alphasSum[j] += alphas[j];
+                CSum[j] += C[j];
+              }
+            }
         }
         
         //Take the averages
@@ -242,17 +250,19 @@ public class SBP extends SupportVectorLearner implements BinaryScoreClassifier, 
             C[j] = CSum[j]/(iterations-T_0);
         }
         double gamma = findGamma(C, n*nu);
-        for (int j = 0; j < n; j++)
-            alphas[j] /= gamma;
+        for (int j = 0; j < n; j++) {
+          alphas[j] /= gamma;
+        }
         
         //Clean up to only the SVs
         int supportVectorCount = 0;
-        for(int i = 0; i < vecs.size(); i++)
-            if(alphas[i] != 0)//its a support vector
-            {
-                ListUtils.swap(vecs, supportVectorCount, i);
-                alphas[supportVectorCount++] = alphas[i]*y[i];
-            }
+        for(int i = 0; i < vecs.size(); i++) {
+          if(alphas[i] != 0)//its a support vector
+          {
+            ListUtils.swap(vecs, supportVectorCount, i);
+            alphas[supportVectorCount++] = alphas[i]*y[i];
+          }
+        }
 
         vecs = new ArrayList<Vec>(vecs.subList(0, supportVectorCount));
         alphas = Arrays.copyOfRange(alphas, 0, supportVectorCount);
@@ -295,18 +305,22 @@ public class SBP extends SupportVectorLearner implements BinaryScoreClassifier, 
             int candidates = 0;
             for(int j = 0; j < C.length; j++)
             {
-                if(C[j] < gamma)
-                    candidates++;
+                if(C[j] < gamma) {
+                  candidates++;
+                }
             }
             
-            if(candidates == 0)
-                throw new FailedToFitException("BUG: please report");
+            if(candidates == 0) {
+              throw new FailedToFitException("BUG: please report");
+            }
             
             int randCand = rand.nextInt(candidates);
             i = 0;
-            for(int j = 0; j < C.length && i < randCand; j++)
-                if(C[i] < gamma)
-                    i++;
+            for(int j = 0; j < C.length && i < randCand; j++) {
+              if (C[i] < gamma) {
+                i++;
+              }
+            }
         }
         return i;
     }
@@ -315,8 +329,9 @@ public class SBP extends SupportVectorLearner implements BinaryScoreClassifier, 
     {
         rSqrd += 2*eta*C[i]+eta*eta*kEval(i, i);
         final double y_i = y[i];
-        for(int j = 0; j < n; j++)
-            C[j] += eta*y_i*y[j]*kEval(i, j);
+        for(int j = 0; j < n; j++) {
+          C[j] += eta*y_i*y[j]*kEval(i, j);
+        }
         return rSqrd;
     }
 
@@ -332,10 +347,11 @@ public class SBP extends SupportVectorLearner implements BinaryScoreClassifier, 
     
     private double findGamma(double[] C, double d)
     {
-        if(it == null )
-            it = new IndexTable(C);
-        else
-            it.sort(C);//few will change from iteration to iteration, Java's TimSort should be able to exploit this 
+        if(it == null ) {
+          it = new IndexTable(C);
+        } else {
+          it.sort(C);//few will change from iteration to iteration, Java's TimSort should be able to exploit this 
+        }
         
         double sum = 0;
         double max;
@@ -351,8 +367,9 @@ public class SBP extends SupportVectorLearner implements BinaryScoreClassifier, 
             prevScore = finalScore;
             finalScore = (d-max*i+sum)/i+max;
             
-            if(score >= d)
-                break;
+            if(score >= d) {
+              break;
+            }
         }
         
         return prevScore;

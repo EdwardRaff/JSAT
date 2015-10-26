@@ -39,10 +39,11 @@ public class EpsilonInsensitiveLoss implements LossR
     public static double deriv(double pred, double y, double eps)
     {
         final double x = pred - y;
-        if(eps < Math.abs(x))
-            return Math.signum(x);
-        else
-            return 0;
+        if(eps < Math.abs(x)) {
+          return Math.signum(x);
+        } else {
+          return 0;
+        }
     }
     
     private double eps;
@@ -53,8 +54,9 @@ public class EpsilonInsensitiveLoss implements LossR
      */
     public EpsilonInsensitiveLoss(double eps)
     {
-        if(eps < 0 || Double.isNaN(eps) || Double.isInfinite(eps))
-            throw new IllegalArgumentException("Epsilon must be non-negative, not " + eps);
+        if(eps < 0 || Double.isNaN(eps) || Double.isInfinite(eps)) {
+          throw new IllegalArgumentException("Epsilon must be non-negative, not " + eps);
+        }
         this.eps = eps;
     }
 

@@ -50,8 +50,9 @@ public class DirectedGraph<N> implements Cloneable
         @Override
         public boolean equals(Object obj)
         {
-            if(obj == null || !(obj instanceof Pair))
-                return false;
+            if(obj == null || !(obj instanceof Pair)) {
+              return false;
+            }
             Pair other = (Pair) obj;
             return this.incoming.equals(other.incoming) && this.outgoing.equals(other.outgoing);
         }
@@ -97,8 +98,9 @@ public class DirectedGraph<N> implements Cloneable
      */
     public void addNodes(Collection<? extends N> c)
     {
-        for(N n : c)
-            addNode(n);
+        for(N n : c) {
+          addNode(n);
+        }
     }
     
     /**
@@ -107,8 +109,9 @@ public class DirectedGraph<N> implements Cloneable
      */
     public void addNode(N node)
     {
-        if(!nodes.containsKey(node))
-            nodes.put(node, new Pair<HashSet<N>, HashSet<N>>(new HashSet<N>(), new HashSet<N>()));
+        if(!nodes.containsKey(node)) {
+          nodes.put(node, new Pair<HashSet<N>, HashSet<N>>(new HashSet<N>(), new HashSet<N>()));
+        }
     }
     
     /**
@@ -120,8 +123,9 @@ public class DirectedGraph<N> implements Cloneable
     {
         Pair<HashSet<N>, HashSet<N>> p = nodes.get(n);
         
-        if(p == null)
-            return null;
+        if(p == null) {
+          return null;
+        }
         
         return p.getIncoming();
     }
@@ -135,8 +139,9 @@ public class DirectedGraph<N> implements Cloneable
     {
         Pair<HashSet<N>, HashSet<N>> p = nodes.get(n);
         
-        if(p == null)
-            return null;
+        if(p == null) {
+          return null;
+        }
         
         return p.getOutgoing();
     }
@@ -148,12 +153,14 @@ public class DirectedGraph<N> implements Cloneable
     public void removeNode(N node)
     {
         Pair<HashSet<N>, HashSet<N>> p = nodes.remove(node);
-        if(p == null)
-            return;
+        if(p == null) {
+          return;
+        }
         //Outgoing edges we can ignore removint he node drops them. We need to avoid dangling incoming edges to this node we have removed
         HashSet<N> incomingNodes = p.getIncoming();
-        for(N incomingNode : incomingNodes)
-            nodes.get(incomingNode).getOutgoing().remove(node);
+        for(N incomingNode : incomingNodes) {
+          nodes.get(incomingNode).getOutgoing().remove(node);
+        }
     }
     
     /**
@@ -175,8 +182,9 @@ public class DirectedGraph<N> implements Cloneable
      */
     public void addEdge(N a, N b)
     {
-        if( !containsBoth(a, b) )
-            return;//Cant add nodes to things that doing exist
+        if( !containsBoth(a, b) ) {
+          return;//Cant add nodes to things that doing exist
+        }
         nodes.get(a).getOutgoing().add(b);
         nodes.get(b).getIncoming().add(a);
     }
@@ -189,8 +197,9 @@ public class DirectedGraph<N> implements Cloneable
      */
     public void removeEdge(N a, N b)
     {
-        if(!containsBoth(a, b))
-            return;
+        if(!containsBoth(a, b)) {
+          return;
+        }
         nodes.get(a).getOutgoing().remove(b);
         nodes.get(b).getIncoming().remove(a);
     }
@@ -214,10 +223,12 @@ public class DirectedGraph<N> implements Cloneable
         for(N key : nodes.keySet())
         {
             Pair<HashSet<N>, HashSet<N>> p = nodes.get(key);
-            for(N n : p.getIncoming())
-                clone.nodes.get(key).getIncoming().add(n);
-            for(N n : p.getOutgoing())
-                clone.nodes.get(key).getOutgoing().add(n);
+            for(N n : p.getIncoming()) {
+              clone.nodes.get(key).getIncoming().add(n);
+            }
+            for(N n : p.getOutgoing()) {
+              clone.nodes.get(key).getOutgoing().add(n);
+            }
             
         }
         

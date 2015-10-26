@@ -120,8 +120,9 @@ public class BBR implements Classifier, Parameterized, SingleWeightVectorModel
      */
     protected BBR(BBR toCopy)
     {
-        if (toCopy.w != null)
-            this.w = toCopy.w.clone();
+        if (toCopy.w != null) {
+          this.w = toCopy.w.clone();
+        }
         this.maxIterations = toCopy.maxIterations;
         this.regularization = toCopy.regularization;
         this.autoSetRegularization = toCopy.autoSetRegularization;
@@ -139,8 +140,9 @@ public class BBR implements Classifier, Parameterized, SingleWeightVectorModel
      */
     public void setRegularization(double regularization)
     {
-        if (Double.isNaN(regularization) || Double.isNaN(regularization) || regularization <= 0)
-            throw new IllegalArgumentException("Regularization must be positive, not " + regularization);
+        if (Double.isNaN(regularization) || Double.isNaN(regularization) || regularization <= 0) {
+          throw new IllegalArgumentException("Regularization must be positive, not " + regularization);
+        }
         this.regularization = regularization;
     }
 
@@ -215,8 +217,9 @@ public class BBR implements Classifier, Parameterized, SingleWeightVectorModel
      */
     public void setTolerance(double tolerance)
     {
-        if (Double.isNaN(tolerance) || Double.isInfinite(tolerance) || tolerance <= 0)
-            throw new IllegalArgumentException("Tolerance must be positive, not " + tolerance);
+        if (Double.isNaN(tolerance) || Double.isInfinite(tolerance) || tolerance <= 0) {
+          throw new IllegalArgumentException("Tolerance must be positive, not " + tolerance);
+        }
         this.tolerance = tolerance;
     }
 
@@ -296,19 +299,21 @@ public class BBR implements Classifier, Parameterized, SingleWeightVectorModel
     @Override
     public Vec getRawWeight(int index)
     {
-        if(index < 1)
-            return getRawWeight();
-        else
-            throw new IndexOutOfBoundsException("Model has only 1 weight vector");
+        if(index < 1) {
+          return getRawWeight();
+        } else {
+          throw new IndexOutOfBoundsException("Model has only 1 weight vector");
+        }
     }
 
     @Override
     public double getBias(int index)
     {
-        if (index < 1)
-            return getBias();
-        else
-            throw new IndexOutOfBoundsException("Model has only 1 weight vector");
+        if (index < 1) {
+          return getBias();
+        } else {
+          throw new IndexOutOfBoundsException("Model has only 1 weight vector");
+        }
     }
 
     @Override
@@ -333,8 +338,9 @@ public class BBR implements Classifier, Parameterized, SingleWeightVectorModel
     public void trainC(ClassificationDataSet dataSet)
     {
         final int D = dataSet.getNumNumericalVars();
-        if (D <= 0)
-            throw new FailedToFitException("Data set contains no numeric features");
+        if (D <= 0) {
+          throw new FailedToFitException("Data set contains no numeric features");
+        }
 
         final Vec[] columnMajor = dataSet.getNumericColumns();
         w = new DenseVector(D);
@@ -345,26 +351,30 @@ public class BBR implements Classifier, Parameterized, SingleWeightVectorModel
         final int N = dataSet.getSampleSize();
         double[] r = new double[N];
         double[] y = new double[N];
-        for (int i = 0; i < N; i++)
-            y[i] = dataSet.getDataPointCategory(i) * 2 - 1;
+        for (int i = 0; i < N; i++) {
+          y[i] = dataSet.getDataPointCategory(i) * 2 - 1;
+        }
         final double lambda;
         if (autoSetRegularization)
         {
             //see equation (21)
             double normSqrdSum = 0;
-            for (int i = 0; i < N; i++)
-                normSqrdSum += pow(dataSet.getDataPoint(i).getNumericalValues().pNorm(2), 2);
+            for (int i = 0; i < N; i++) {
+              normSqrdSum += pow(dataSet.getDataPoint(i).getNumericalValues().pNorm(2), 2);
+            }
 
             double sigma = D * N / normSqrdSum;
 
             //no regularization less than precision 
-            if (prior == Prior.LAPLACE)
-                lambda = max(sqrt(2) / sigma, 1e-15);
-            else
-                lambda = max(sigma * sigma, 1e-15);
+            if (prior == Prior.LAPLACE) {
+              lambda = max(sqrt(2) / sigma, 1e-15);
+            } else {
+              lambda = max(sigma * sigma, 1e-15);
+            }
         }
-        else
-            lambda = regularization;
+        else {
+          lambda = regularization;
+        }
 
         double[] r_change = new double[N];
 
@@ -385,16 +395,18 @@ public class BBR implements Classifier, Parameterized, SingleWeightVectorModel
                         {
                             //(try negative direction)
                             delta_vj = tenativeUpdate(columnMajor, j, w_jOrig, y, r, lambda, -1.0, delta);
-                            if (delta_vj >= 0)//(negative direction failed)
-                                delta_vj = 0;
+                            if (delta_vj >= 0) {//(negative direction failed)
+                              delta_vj = 0;
+                            }
                         }
                     }
                     else
                     {
                         final double sign = signum(w_jOrig);
                         delta_vj = tenativeUpdate(columnMajor, j, w_jOrig, y, r, lambda, sign, delta);
-                        if (sign * (w_jOrig + delta_vj) < 0)//(cross over 0)
-                            delta_vj = -w_jOrig;//Done soe that w_j+-w_j = 0
+                        if (sign * (w_jOrig + delta_vj) < 0) {//(cross over 0)
+                          delta_vj = -w_jOrig;//Done soe that w_j+-w_j = 0
+                        }
                     }
                 }
                 else//Guassian prior
@@ -413,8 +425,9 @@ public class BBR implements Classifier, Parameterized, SingleWeightVectorModel
 
                 double newW_j = w_jOrig + delta_wj;
                 //make tiny value zero
-                if (abs(newW_j) < 1e-15)//Less than precions? its zero
-                    newW_j = 0;
+                if (abs(newW_j) < 1e-15) {//Less than precions? its zero
+                  newW_j = 0;
+                }
                 w.set(j, newW_j);
 
                 delta[j] = max(2 * abs(delta_wj), delta[j] / 2); //(update size of trust region)
@@ -432,16 +445,18 @@ public class BBR implements Classifier, Parameterized, SingleWeightVectorModel
                     {
                         //(try negative direction)
                         delta_vj = tenativeUpdate(null, D, bias, y, r, lambda, -1.0, delta);
-                        if (delta_vj >= 0)//(negative direction failed)
-                            delta_vj = 0;
+                        if (delta_vj >= 0) {//(negative direction failed)
+                          delta_vj = 0;
+                        }
                     }
                 }
                 else
                 {
                     final double sign = signum(bias);
                     delta_vj = tenativeUpdate(null, D, bias, y, r, lambda, sign, delta);
-                    if (sign * (bias + delta_vj) < 0)//(cross over 0)
-                        delta_vj = -bias;//Done soe that w_j+-w_j = 0
+                    if (sign * (bias + delta_vj) < 0) {//(cross over 0)
+                      delta_vj = -bias;//Done soe that w_j+-w_j = 0
+                    }
                 }
 
                 double delta_wj = min(max(delta_vj, -delta[D]), delta[D]);//(limit step to trust region)
@@ -454,8 +469,9 @@ public class BBR implements Classifier, Parameterized, SingleWeightVectorModel
 
                 double newW_j = bias + delta_wj;
                 //make tiny value zero
-                if (abs(newW_j) < 1e-15)//Less than precions? its zero
-                    newW_j = 0;
+                if (abs(newW_j) < 1e-15) {//Less than precions? its zero
+                  newW_j = 0;
+                }
 
                 bias = newW_j;
 
@@ -470,18 +486,20 @@ public class BBR implements Classifier, Parameterized, SingleWeightVectorModel
                 rSum += abs(r[i]);
             }
 
-            if (changeSum / (1 + rSum) <= tolerance)//converged!
-                break;
+            if (changeSum / (1 + rSum) <= tolerance) {//converged!
+              break;
+            }
             Arrays.fill(r_change, 0.0);//resent changes for the next iteration
         }
     }
 
     private static double F(double r, double delta)
     {
-        if (abs(r) <= delta)
-            return 0.25;
-        else
-            return 1 / (2 + exp(abs(r) - delta) + exp(delta - abs(r)));
+        if (abs(r) <= delta) {
+          return 0.25;
+        } else {
+          return 1 / (2 + exp(abs(r) - delta) + exp(delta - abs(r)));
+        }
     }
 
     @Override
@@ -517,29 +535,32 @@ public class BBR implements Classifier, Parameterized, SingleWeightVectorModel
         if (columnMajor != null)
         {
             Vec col_j = columnMajor[j];
-            if (col_j.nnz() == 0)
-                return 0;
+            if (col_j.nnz() == 0) {
+              return 0;
+            }
             for (IndexValue iv : col_j)
             {
                 final double x_ij = iv.getValue();
                 final int i = iv.getIndex();
                 numer += x_ij * y[i] / (1 + exp(r[i]));
                 denom += x_ij * x_ij * F(r[i], delta[j] * abs(x_ij));
-                if (prior == Prior.LAPLACE)
-                    numer -= lambda * s;
-                else
+                if (prior == Prior.LAPLACE) {
+                  numer -= lambda * s;
+                } else
                 {
                     numer -= w_j / lambda;
                     denom += 1 / lambda;
                 }
             }
         }
-        else//bias term, all x_ij = 1
-            for (int i = 0; i < y.length; i++)
-            {
-                numer += y[i] / (1 + exp(r[i])) - lambda * s;
-                denom += F(r[i], delta[j]);
-            }
+        else {
+          //bias term, all x_ij = 1
+          for (int i = 0; i < y.length; i++)
+          {
+            numer += y[i] / (1 + exp(r[i])) - lambda * s;
+            denom += F(r[i], delta[j]);
+          }
+        }
 
         return numer / denom;
     }

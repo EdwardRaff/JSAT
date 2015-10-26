@@ -45,8 +45,9 @@ public final class Logistic extends ContinuousDistribution
 
     public void setS(double s)
     {
-        if(s <= 0)
-            throw new ArithmeticException("The scale parameter must be > 0, not " + s);
+        if(s <= 0) {
+          throw new ArithmeticException("The scale parameter must be > 0, not " + s);
+        }
         this.s = s;
     }
     
@@ -101,10 +102,11 @@ public final class Logistic extends ContinuousDistribution
     @Override
     public void setVariable(String var, double value)
     {
-        if(var.equals(GreekLetters.mu))
-            setMu(value);
-        else if(var.equals("s"))
-            setS(value);
+        if(var.equals(GreekLetters.mu)) {
+          setMu(value);
+        } else if(var.equals("s")) {
+          setS(value);
+        }
     }
 
     @Override

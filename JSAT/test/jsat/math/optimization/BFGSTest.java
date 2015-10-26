@@ -51,8 +51,9 @@ public class BFGSTest
         System.out.println("optimize");
         Random rand = new Random();
         Vec x0 = new DenseVector(20);
-        for(int i = 0; i < x0.length(); i++)
-            x0.set(i, rand.nextDouble());
+        for(int i = 0; i < x0.length(); i++) {
+          x0.set(i, rand.nextDouble());
+        }
 
         RosenbrockFunction f = new RosenbrockFunction();
         FunctionVec fp = f.getDerivative();
@@ -64,8 +65,9 @@ public class BFGSTest
             Vec w = new DenseVector(x0.length());
             instance.optimize(1e-4, w, x0, f, fp, null);
 
-            for(int i = 0; i <w.length(); i++)
-                assertEquals(1.0, w.get(i), 1e-4);
+            for(int i = 0; i <w.length(); i++) {
+              assertEquals(1.0, w.get(i), 1e-4);
+            }
             assertEquals(0.0, f.f(w), 1e-4);
         }
     }

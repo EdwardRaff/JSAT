@@ -146,8 +146,9 @@ public class DANN implements Classifier, Parameterized
      */
     public void setK(int k)
     {
-        if(k < 1)
-            throw new ArithmeticException("Number of neighbors must be positive");
+        if(k < 1) {
+          throw new ArithmeticException("Number of neighbors must be positive");
+        }
         this.k = k;
     }
 
@@ -170,8 +171,9 @@ public class DANN implements Classifier, Parameterized
      */
     public void setKn(int kn)
     {
-        if(kn < 2)
-            throw new ArithmeticException("At least 2 neighbors are needed to adapat the metric");
+        if(kn < 2) {
+          throw new ArithmeticException("At least 2 neighbors are needed to adapat the metric");
+        }
         this.kn = kn;
     }
 
@@ -195,8 +197,9 @@ public class DANN implements Classifier, Parameterized
      */
     public void setMaxIterations(int maxIterations)
     {
-        if(maxIterations < 1)
-            throw new RuntimeException("At least one iteration must be performed");
+        if(maxIterations < 1) {
+          throw new RuntimeException("At least one iteration must be performed");
+        }
         this.maxIterations = maxIterations;
     }
 
@@ -217,8 +220,9 @@ public class DANN implements Classifier, Parameterized
      */
     public void setEpsilon(double eps)
     {
-        if(eps < 0 || Double.isInfinite(eps) || Double.isNaN(eps))
-            throw new ArithmeticException("Regularization must be a positive value");
+        if(eps < 0 || Double.isInfinite(eps) || Double.isNaN(eps)) {
+          throw new ArithmeticException("Regularization must be a positive value");
+        }
         this.eps = eps;
     }
 
@@ -254,8 +258,9 @@ public class DANN implements Classifier, Parameterized
         double sumOfWeights;
         Vec mean = new DenseVector(sigma.rows());
         Vec[] classMeans = new Vec[predicting.getNumOfCategories()];
-        for(int i = 0; i < classMeans.length; i++)
-            classMeans[i] = new DenseVector(mean.length());
+        for(int i = 0; i < classMeans.length; i++) {
+          classMeans[i] = new DenseVector(mean.length());
+        }
         
         for(int iter = 0; iter < maxIterations; iter++)
         {
@@ -263,8 +268,9 @@ public class DANN implements Classifier, Parameterized
             mean.zeroOut();
             Arrays.fill(priors, 0);
             Arrays.fill(classCount, 0);
-            for(int i = 0; i < classMeans.length; i++)
-                classMeans[i].zeroOut();
+            for(int i = 0; i < classMeans.length; i++) {
+              classMeans[i].zeroOut();
+            }
             sumOfWeights = 0;
             B.zeroOut();
             W.zeroOut();
@@ -292,8 +298,9 @@ public class DANN implements Classifier, Parameterized
             mean.mutableDivide(kn);
             for(int i = 0; i < classMeans.length; i++)
             {
-                if(classCount[i] != 0.0)
-                    classMeans[i].mutableDivide(classCount[i]);
+                if(classCount[i] != 0.0) {
+                  classMeans[i].mutableDivide(classCount[i]);
+                }
                 priors[i] /= sumOfWeights;
             }
             
@@ -330,18 +337,20 @@ public class DANN implements Classifier, Parameterized
             
             //Check, if there is a prior of 1, nothing will ever be updated. 
             //Might as well return
-            for(int i = 0; i < priors.length; i++)
-                if(priors[i] == 1.0)
-                {
-                    cr.setProb(i, 1.0);
-                    return cr;
-                }
+            for(int i = 0; i < priors.length; i++) {
+              if(priors[i] == 1.0)
+              {
+                cr.setProb(i, 1.0);
+                return cr;
+              }
+            }
             
             
             EigenValueDecomposition evd = new EigenValueDecomposition(W);
             Matrix D = evd.getD();
-            for(int i = 0; i < D.rows(); i++)
-                D.set(i, i, pow(D.get(i, i), -0.5));
+            for(int i = 0; i < D.rows(); i++) {
+              D.set(i, i, pow(D.get(i, i), -0.5));
+            }
             Matrix VT =evd.getVT();
             Matrix WW = VT.transposeMultiply(D).multiply(VT);
             
@@ -352,8 +361,9 @@ public class DANN implements Classifier, Parameterized
         List<? extends VecPaired<? extends VecPaired<Vec, Integer>, Double>> knn = 
                 brute(query, sigma, k);
         
-        for(VecPaired<? extends VecPaired<Vec, Integer>, Double> nn : knn)
-            cr.incProb(nn.getVector().getPair(), 1.0);
+        for(VecPaired<? extends VecPaired<Vec, Integer>, Double> nn : knn) {
+          cr.incProb(nn.getVector().getPair(), 1.0);
+        }
         
         cr.normalize();
         return cr;
@@ -364,12 +374,14 @@ public class DANN implements Classifier, Parameterized
     {
         predicting = dataSet.getPredicting();
         vecList = new ArrayList<VecPaired<Vec, Integer>>(dataSet.getSampleSize());
-        for(int i = 0; i < dataSet.getSampleSize(); i++)
-            vecList.add(new VecPaired<Vec, Integer>(dataSet.getDataPoint(i).getNumericalValues(), dataSet.getDataPointCategory(i)));
-        if(threadPool == null || threadPool instanceof FakeExecutor)
-            vc = vcf.getVectorCollection(vecList, new EuclideanDistance());
-        else
-            vc = vcf.getVectorCollection(vecList, new EuclideanDistance(), threadPool);
+        for(int i = 0; i < dataSet.getSampleSize(); i++) {
+          vecList.add(new VecPaired<Vec, Integer>(dataSet.getDataPoint(i).getNumericalValues(), dataSet.getDataPointCategory(i)));
+        }
+        if(threadPool == null || threadPool instanceof FakeExecutor) {
+          vc = vcf.getVectorCollection(vecList, new EuclideanDistance());
+        } else {
+          vc = vcf.getVectorCollection(vecList, new EuclideanDistance(), threadPool);
+        }
     }
 
     @Override
@@ -389,12 +401,15 @@ public class DANN implements Classifier, Parameterized
     {
         DANN clone = new DANN(kn, k, maxIterations, vcf.clone());
                 
-        if(this.predicting != null)
-            clone.predicting = this.predicting.clone();
-        if(this.vc != null)
-            clone.vc = this.vc.clone();
-        if(this.vecList != null)
-            clone.vecList = new ArrayList<VecPaired<Vec, Integer>>(this.vecList);
+        if(this.predicting != null) {
+          clone.predicting = this.predicting.clone();
+        }
+        if(this.vc != null) {
+          clone.vc = this.vc.clone();
+        }
+        if(this.vecList != null) {
+          clone.vecList = new ArrayList<VecPaired<Vec, Integer>>(this.vecList);
+        }
         
         return clone;
     }

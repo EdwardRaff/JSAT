@@ -133,8 +133,9 @@ public class RANSAC implements Regressor, Parameterized
                 //Create sub data set sample
                 maybe_inliers.clear();
                 Arrays.fill(working_set, false);
-                while(maybe_inliers.size() < initialTrainSize)
-                    maybe_inliers.add(rand.nextInt(working_set.length));
+                while(maybe_inliers.size() < initialTrainSize) {
+                  maybe_inliers.add(rand.nextInt(working_set.length));
+                }
                 int consensusSize = maybe_inliers.size();
                 RegressionDataSet subDataSet = new RegressionDataSet(dataset.getNumNumericalVars(), dataset.getCategories());
                 for(int i : maybe_inliers)
@@ -148,8 +149,9 @@ public class RANSAC implements Regressor, Parameterized
                 //Build consensus set
                 for(int i = 0; i < working_set.length; i++)
                 {
-                    if(working_set[i])
-                        continue;//Already part of the model
+                    if(working_set[i]) {
+                      continue;//Already part of the model
+                    }
                     
                     DataPointPair<Double> dpp = dataset.getDataPointPair(i);
                     double guess = maybeModel.regress(dpp.getDataPoint());
@@ -164,16 +166,18 @@ public class RANSAC implements Regressor, Parameterized
                 }
                 
                 
-                if(consensusSize < minResultSize )
-                    continue;//We did not fit enough points to be considered
+                if(consensusSize < minResultSize ) {
+                  continue;//We did not fit enough points to be considered
+                }
                 //Build final model
                 maybeModel.train(subDataSet);
                 //Copmute final model error on the consenus set
                 double thisError = 0;
                 for(int i = 0; i < working_set.length; i++)
                 {
-                    if(!working_set[i])
-                        continue;
+                    if(!working_set[i]) {
+                      continue;
+                    }
                     DataPointPair<Double> dpp = dataset.getDataPointPair(i);
                     double guess = maybeModel.regress(dpp.getDataPoint());
                     double diff = Math.abs(guess - dpp.getPair());
@@ -219,8 +223,9 @@ public class RANSAC implements Regressor, Parameterized
      */
     public void setInitialTrainSize(int initialTrainSize)
     {
-        if(initialTrainSize < 1)
-            throw new RuntimeException("Can not train on an empty data set");
+        if(initialTrainSize < 1) {
+          throw new RuntimeException("Can not train on an empty data set");
+        }
         this.initialTrainSize = initialTrainSize;
     }
 
@@ -240,8 +245,9 @@ public class RANSAC implements Regressor, Parameterized
      */
     public void setIterations(int iterations)
     {
-        if(iterations < 1)
-            throw new RuntimeException("Must perform a positive number of iterations");
+        if(iterations < 1) {
+          throw new RuntimeException("Must perform a positive number of iterations");
+        }
         this.iterations = iterations;
     }
 
@@ -267,8 +273,9 @@ public class RANSAC implements Regressor, Parameterized
      */
     public void setMaxPointError(double maxPointError)
     {
-        if(maxPointError < 0 || Double.isInfinite(maxPointError) || Double.isNaN(maxPointError))
-            throw new ArithmeticException("The error must be a positive value, not " + maxPointError );
+        if(maxPointError < 0 || Double.isInfinite(maxPointError) || Double.isNaN(maxPointError)) {
+          throw new ArithmeticException("The error must be a positive value, not " + maxPointError );
+        }
         this.maxPointError = maxPointError;
     }
 
@@ -295,8 +302,9 @@ public class RANSAC implements Regressor, Parameterized
      */
     public void setMinResultSize(int minResultSize)
     {
-        if(minResultSize < getInitialTrainSize())
-            throw new RuntimeException("The min result size must be larger than the intial train size");
+        if(minResultSize < getInitialTrainSize()) {
+          throw new RuntimeException("The min result size must be larger than the intial train size");
+        }
         this.minResultSize = minResultSize;
     }
 
@@ -317,21 +325,25 @@ public class RANSAC implements Regressor, Parameterized
             int leftOver = iterations%SystemInfo.LogicalCores;
             
             List<Future<RANSACWorker>> futures = new ArrayList<Future<RANSACWorker>>(SystemInfo.LogicalCores+1);
-            if(leftOver != 0)
-                futures.add(threadPool.submit(new RANSACWorker(baseRegressor, leftOver, dataSet)));
-            for(int i = 0; i < SystemInfo.LogicalCores; i++)
-                futures.add(threadPool.submit(new RANSACWorker(baseRegressor, workSize, dataSet)));
+            if(leftOver != 0) {
+              futures.add(threadPool.submit(new RANSACWorker(baseRegressor, leftOver, dataSet)));
+            }
+            for(int i = 0; i < SystemInfo.LogicalCores; i++) {
+              futures.add(threadPool.submit(new RANSACWorker(baseRegressor, workSize, dataSet)));
+            }
             
             PriorityQueue<RANSACWorker> results = new PriorityQueue<RANSACWorker>(SystemInfo.LogicalCores+1);
             
-            for( Future<RANSACWorker> futureWorker : futures )
-                results.add(futureWorker.get());
+            for( Future<RANSACWorker> futureWorker : futures ) {
+              results.add(futureWorker.get());
+            }
             
             RANSACWorker bestResult = results.peek();
             
             modelError = bestResult.bestError;
-            if(Double.isInfinite(modelError))
-                throw new FailedToFitException("Model could not be fit, inlier set never reach minimum size");
+            if(Double.isInfinite(modelError)) {
+              throw new FailedToFitException("Model could not be fit, inlier set never reach minimum size");
+            }
             baseRegressor = bestResult.bestModel;
             consensusSet = bestResult.bestConsensusSet;
             

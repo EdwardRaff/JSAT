@@ -43,9 +43,11 @@ public class CentroidDissimilarity extends DistanceMetricDissimilarity implement
     {
         double sumDIss = 0;
 
-        for (DataPoint ai : a)
-            for (DataPoint bi : b)
-                sumDIss += distance(ai, bi);
+        for (DataPoint ai : a) {
+          for (DataPoint bi : b) {
+            sumDIss += distance(ai, bi);
+          }
+        }
 
         return sumDIss/(a.size()*b.size());
     }
@@ -55,9 +57,11 @@ public class CentroidDissimilarity extends DistanceMetricDissimilarity implement
     {
         double sumDiss = 0;
 
-        for (int ai : a)
-            for (int bi : b)
-                sumDiss += getDistance(distanceMatrix, ai, bi);
+        for (int ai : a) {
+          for (int bi : b) {
+            sumDiss += getDistance(distanceMatrix, ai, bi);
+          }
+        }
 
         return sumDiss/(a.size()*b.size());
     }

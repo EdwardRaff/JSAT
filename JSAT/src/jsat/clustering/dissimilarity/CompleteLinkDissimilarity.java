@@ -54,10 +54,13 @@ public class CompleteLinkDissimilarity extends DistanceMetricDissimilarity imple
         double maxDiss = Double.MIN_VALUE;
 
         double tmpDist;
-        for (DataPoint ai : a)
-            for (DataPoint bi : b)
-                if ((tmpDist = distance(ai, bi)) > maxDiss)
-                    maxDiss = tmpDist;
+        for (DataPoint ai : a) {
+          for (DataPoint bi : b) {
+            if ((tmpDist = distance(ai, bi)) > maxDiss) {
+              maxDiss = tmpDist;
+            }
+          }
+        }
 
         return maxDiss;
     }
@@ -67,10 +70,13 @@ public class CompleteLinkDissimilarity extends DistanceMetricDissimilarity imple
     {
         double maxDiss = Double.MIN_VALUE;
 
-        for (int ai : a)
-            for (int bi : b)
-                if (getDistance(distanceMatrix, ai, bi) > maxDiss)
-                    maxDiss = getDistance(distanceMatrix, ai, bi);
+        for (int ai : a) {
+          for (int bi : b) {
+            if (getDistance(distanceMatrix, ai, bi) > maxDiss) {
+              maxDiss = getDistance(distanceMatrix, ai, bi);
+            }
+          }
+        }
 
         return maxDiss;
     }

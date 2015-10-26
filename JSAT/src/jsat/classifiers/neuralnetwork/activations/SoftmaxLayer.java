@@ -27,26 +27,31 @@ public class SoftmaxLayer implements ActivationLayer
     @Override
     public void backprop(Vec input, Vec output, Vec delta_partial, Vec errout)
     {
-        if(delta_partial != errout)//if the same object, nothing to do
-            delta_partial.copyTo(errout);
+        if(delta_partial != errout) {//if the same object, nothing to do
+          delta_partial.copyTo(errout);
+        }
     }
 
     @Override
     public void activate(Matrix input, Matrix output, boolean rowMajor)
     {
-        if(rowMajor)//easy
-            for(int i = 0; i < input.rows(); i++)
-                activate(input.getRowView(i), output.getRowView(i));
-        else//TODO, do this more efficently
-            for(int j = 0; j < input.cols(); j++)
-                activate(input.getColumnView(j), output.getColumnView(j));
+        if(rowMajor) {//easy
+          for (int i = 0; i < input.rows(); i++) {
+            activate(input.getRowView(i), output.getRowView(i));
+          }
+        } else {
+          for (int j = 0; j < input.cols(); j++) {
+            activate(input.getColumnView(j), output.getColumnView(j));
+          }
+        }
     }
 
     @Override
     public void backprop(Matrix input, Matrix output, Matrix delta_partial, Matrix errout, boolean rowMajor)
     {
-        if(delta_partial != errout)//if the same object, nothing to do
-            delta_partial.copyTo(errout);
+        if(delta_partial != errout) {//if the same object, nothing to do
+          delta_partial.copyTo(errout);
+        }
     }
 
     @Override

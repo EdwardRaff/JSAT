@@ -69,10 +69,11 @@ public class RandomBallCoverOneShot<V extends Vec> implements VectorCollection<V
         this.dm = dm;
         this.s = s;
         this.allVecs = new ArrayList<V>(vecs);
-        if(execServ instanceof FakeExecutor)
-            distCache = dm.getAccelerationCache(allVecs);
-        else
-            distCache = dm.getAccelerationCache(vecs, execServ);
+        if(execServ instanceof FakeExecutor) {
+          distCache = dm.getAccelerationCache(allVecs);
+        } else {
+          distCache = dm.getAccelerationCache(vecs, execServ);
+        }
         IntList allIndices = new IntList(allVecs.size());
         ListUtils.addRange(allIndices, 0, allVecs.size(), 1);
         try
@@ -139,10 +140,12 @@ public class RandomBallCoverOneShot<V extends Vec> implements VectorCollection<V
         this.R = new IntList(other.R);
         this.repRadius = Arrays.copyOf(other.repRadius, other.repRadius.length);
         this.s = other.s;
-        if(other.distCache != null)
-            this.distCache = new DoubleList(other.distCache);
-        if(other.allVecs != null)
-            this.allVecs = new ArrayList<V>(other.allVecs);
+        if(other.distCache != null) {
+          this.distCache = new DoubleList(other.distCache);
+        }
+        if(other.allVecs != null) {
+          this.allVecs = new ArrayList<V>(other.allVecs);
+        }
     }
 
     private void setUp(List<Integer> allIndices, ExecutorService execServ) throws InterruptedException
@@ -173,11 +176,13 @@ public class RandomBallCoverOneShot<V extends Vec> implements VectorCollection<V
                 {
                     BoundedSortedList<ProbailityMatch<VecPaired<V, Integer>>> nearest =
                             new BoundedSortedList<ProbailityMatch<VecPaired<V, Integer>>>(s, s);
-                    for(int v : allRemainingVecs)
-                        nearest.add(new ProbailityMatch<VecPaired<V, Integer>>(dm.dist(v, Ri, allVecs, distCache), new VecPaired<V, Integer>(allVecs.get(v), v)));
+                    for(int v : allRemainingVecs) {
+                      nearest.add(new ProbailityMatch<VecPaired<V, Integer>>(dm.dist(v, Ri, allVecs, distCache), new VecPaired<V, Integer>(allVecs.get(v), v)));
+                    }
                     
-                    for(ProbailityMatch<VecPaired<V, Integer>> pmv : nearest)
-                        ROwned.add(pmv.getMatch().getPair());
+                    for(ProbailityMatch<VecPaired<V, Integer>> pmv : nearest) {
+                      ROwned.add(pmv.getMatch().getPair());
+                    }
 
                     latch.countDown();
                 }
@@ -199,18 +204,22 @@ public class RandomBallCoverOneShot<V extends Vec> implements VectorCollection<V
         double tmp;
         double bestDist = Double.POSITIVE_INFINITY;
         int bestRep = 0;
-        for (int i = 0; i < R.size(); i++)
-            if ((tmp = dm.dist(R.get(i), query, qi, allVecs, distCache)  ) < bestDist)
-            {
-                bestRep = i;
-                bestDist = tmp;
-            }
-        if(bestDist <= range)
-            knn.add(new VecPairedComparable<V, Double>(allVecs.get(R.get(bestRep)), bestDist));
+        for (int i = 0; i < R.size(); i++) {
+          if ((tmp = dm.dist(R.get(i), query, qi, allVecs, distCache)  ) < bestDist)
+          {
+            bestRep = i;
+            bestDist = tmp;
+          }
+        }
+        if(bestDist <= range) {
+          knn.add(new VecPairedComparable<V, Double>(allVecs.get(R.get(bestRep)), bestDist));
+        }
 
-        for (int v : ownedVecs.get(bestRep))
-            if((tmp = dm.dist(v, query, qi, allVecs, distCache) ) <= range)
+        for (int v : ownedVecs.get(bestRep)) {
+          if ((tmp = dm.dist(v, query, qi, allVecs, distCache) ) <= range) {
             knn.add(new VecPairedComparable<V, Double>(allVecs.get(v), tmp));
+          }
+        }
 
         Collections.sort(knn);
         return knn;
@@ -227,16 +236,18 @@ public class RandomBallCoverOneShot<V extends Vec> implements VectorCollection<V
         double tmp;
         double bestDist = Double.POSITIVE_INFINITY;
         int bestRep = 0;
-        for (int i = 0; i < R.size(); i++)
-            if ((tmp = dm.dist(R.get(i), query, qi, allVecs, distCache) ) < bestDist)
-            {
-                bestRep = i;
-                bestDist = tmp;
-            }
+        for (int i = 0; i < R.size(); i++) {
+          if ((tmp = dm.dist(R.get(i), query, qi, allVecs, distCache) ) < bestDist)
+          {
+            bestRep = i;
+            bestDist = tmp;
+          }
+        }
         knn.add(new VecPairedComparable<V, Double>(allVecs.get(R.get(bestRep)), bestDist));
 
-        for (int v : ownedVecs.get(bestRep))
-            knn.add(new VecPairedComparable<V, Double>(allVecs.get(v), dm.dist(v, query, qi, allVecs, distCache)));
+        for (int v : ownedVecs.get(bestRep)) {
+          knn.add(new VecPairedComparable<V, Double>(allVecs.get(v), dm.dist(v, query, qi, allVecs, distCache)));
+        }
 
 
         return knn;

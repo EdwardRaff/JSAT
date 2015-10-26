@@ -29,8 +29,9 @@ public class ConstantInit implements BiastInitializer
      */
     public void setConstant(double c)
     {
-        if(Double.isNaN(c) || Double.isInfinite(c))
-            throw new IllegalArgumentException("Constant must be a real value, not " + c);
+        if(Double.isNaN(c) || Double.isInfinite(c)) {
+          throw new IllegalArgumentException("Constant must be a real value, not " + c);
+        }
         this.c = c;
     }
 

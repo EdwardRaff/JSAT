@@ -63,10 +63,12 @@ abstract public class RandomMatrix extends GenericMatrix
      */
     public RandomMatrix(int rows, int cols, long seedMult)
     {
-        if(rows <= 0)
-            throw new IllegalArgumentException("rows must be positive, not " + rows);
-        if(cols <= 0)
-            throw new IllegalArgumentException("cols must be positive, not " + cols);
+        if(rows <= 0) {
+          throw new IllegalArgumentException("rows must be positive, not " + rows);
+        }
+        if(cols <= 0) {
+          throw new IllegalArgumentException("cols must be positive, not " + cols);
+        }
         this.rows = rows;
         this.cols = cols;
         this.seedMult = seedMult;

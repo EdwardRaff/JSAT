@@ -76,8 +76,9 @@ public class SystemInfo
                     BufferedReader br = new BufferedReader(new InputStreamReader(pr.getInputStream()));
                     StringBuilder sb = new StringBuilder();
                     String line = null;
-                    while( (line = br.readLine()) != null)
-                        sb.append(line).append("\n");
+                    while( (line = br.readLine()) != null) {
+                      sb.append(line).append("\n");
+                    }
 
                     output = sb.toString();
                 }
@@ -87,8 +88,9 @@ public class SystemInfo
                 }
 
                 output = output.replaceAll("L2CacheSize\\s+NumberOfCores", "").trim();//Remove header
-                if(output.indexOf("\n") > 0)//Multi line is bad!
-                    output = output.substring(0, output.indexOf("\n")).trim();//Get first line
+                if(output.indexOf("\n") > 0) {//Multi line is bad!
+                  output = output.substring(0, output.indexOf("\n")).trim();//Get first line
+                }
                 String[] vals = output.split("\\s+");//Seperate into 2 seperate numbers, first is total L2 cahce, 2nd is # CPU cores
                 sizeToUse = (Integer.valueOf(vals[0]) / Integer.valueOf(vals[1]))*1024 ; //the value is in KB, we want it in bytes
             }
@@ -103,9 +105,11 @@ public class SystemInfo
                     BufferedReader br = new BufferedReader(new InputStreamReader(pr.getInputStream()));
 
                     String line = null;
-                    while( (line = br.readLine()) != null)
-                        if(line.startsWith("cache size") && output == null)//We just need one line that says "cache size" 
-                            output = line;
+                    while( (line = br.readLine()) != null) {
+                      if (line.startsWith("cache size") && output == null) {
+                        output = line;
+                      }
+                    }
 
 
                 }
@@ -117,10 +121,11 @@ public class SystemInfo
                 output = output.substring(output.indexOf(":")+1);
                 String[] vals = output.trim().split(" ");
                 int size = Integer.parseInt(vals[0]);
-                if(vals[1].equals("KB"))
-                    size*=1024;
-                else if(vals[1].equals("MB"))
-                    size*=1024*1024;
+                if(vals[1].equals("KB")) {
+                  size*=1024;
+                } else if(vals[1].equals("MB")) {
+                  size*=1024*1024;
+                }
 
                 sizeToUse = size;
             }
@@ -138,8 +143,9 @@ public class SystemInfo
     //                StringBuilder sb = new StringBuilder();
                     while( (line = br.readLine()) != null)
                     {
-                        if(line.contains("l1icachesize") && output == null)//We just need one line that says "cache size" 
-                            output = line;
+                        if(line.contains("l1icachesize") && output == null) {//We just need one line that says "cache size"
+                          output = line;
+                        }
                     }
 
                 }
@@ -152,18 +158,21 @@ public class SystemInfo
                 sizeToUse = Integer.parseInt(vals[1]);
 
             }
-            else//We dont know what we are running on. 
-                sizeToUse = 0;
+            else {
+              //We dont know what we are running on.
+              sizeToUse = 0;
+            }
         }
         catch(Exception ex)
         {
             //make sure we at least set the default by avoiding any possible weird exception 
         }
         //TODO is there a good way to approximate this? 
-        if(sizeToUse == 0)//we couldn't set it for some reason? 256KB seems to be a good default (modern P4 to i7s use this size, Anthalon 64 used this as the min size too)
-            sizeToUse = 256*1024;
-        else if(sizeToUse < 128*1024)//A weird value? 128KB would be very small for an L2 - the P2 had more than that!
-            sizeToUse = 128*1024;
+        if(sizeToUse == 0) {//we couldn't set it for some reason? 256KB seems to be a good default (modern P4 to i7s use this size, Anthalon 64 used this as the min size too)
+          sizeToUse = 256*1024;
+        } else if(sizeToUse < 128*1024) {//A weird value? 128KB would be very small for an L2 - the P2 had more than that!
+          sizeToUse = 128*1024;
+        }
         
         L2CacheSize = sizeToUse;
     }

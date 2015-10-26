@@ -60,8 +60,9 @@ public class NaiveBayesTest
     {
         System.out.println("trainC");
         nb.trainC(easyTrain);
-        for(int i = 0; i < easyTest.getSampleSize(); i++)
-            assertEquals(easyTest.getDataPointCategory(i), nb.classify(easyTest.getDataPoint(i)).mostLikely());
+        for(int i = 0; i < easyTest.getSampleSize(); i++) {
+          assertEquals(easyTest.getDataPointCategory(i), nb.classify(easyTest.getDataPoint(i)).mostLikely());
+        }
     }
 
     /**
@@ -73,8 +74,9 @@ public class NaiveBayesTest
         System.out.println("clone");
         nb.trainC(easyTrain);
         Classifier clone = nb.clone();
-        for(int i = 0; i < easyTest.getSampleSize(); i++)
-            assertEquals(easyTest.getDataPointCategory(i), clone.classify(easyTest.getDataPoint(i)).mostLikely());
+        for(int i = 0; i < easyTest.getSampleSize(); i++) {
+          assertEquals(easyTest.getDataPointCategory(i), clone.classify(easyTest.getDataPoint(i)).mostLikely());
+        }
     }
 
     /**
@@ -85,7 +87,8 @@ public class NaiveBayesTest
     {
         System.out.println("trainC");
         nb.trainC(easyTrain, ex);
-        for(int i = 0; i < easyTest.getSampleSize(); i++)
-            assertEquals(easyTest.getDataPointCategory(i), nb.classify(easyTest.getDataPoint(i)).mostLikely());
+        for(int i = 0; i < easyTest.getSampleSize(); i++) {
+          assertEquals(easyTest.getDataPointCategory(i), nb.classify(easyTest.getDataPoint(i)).mostLikely());
+        }
     }
 }

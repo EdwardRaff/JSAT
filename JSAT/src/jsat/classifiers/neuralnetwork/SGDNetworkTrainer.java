@@ -161,20 +161,24 @@ public class SGDNetworkTrainer implements Serializable
         if(toCopy.W != null)
         {
             this.W = new ArrayList<Matrix>();
-            for(Matrix w : toCopy.W)
-                this.W.add(w.clone());
+            for(Matrix w : toCopy.W) {
+              this.W.add(w.clone());
+            }
             this.B = new ArrayList<Vec>();
-            for(Vec b : toCopy.B)
-                this.B.add(b.clone());
+            for(Vec b : toCopy.B) {
+              this.B.add(b.clone());
+            }
         }
         if(toCopy.W_deltas != null)
         {
             this.W_deltas = new ArrayList<Matrix>();
-            for(Matrix w : toCopy.W_deltas)
-                this.W_deltas.add(w.clone());
+            for(Matrix w : toCopy.W_deltas) {
+              this.W_deltas.add(w.clone());
+            }
             this.B_deltas = new ArrayList<Vec>();
-            for(Vec b : toCopy.B_deltas)
-                this.B_deltas.add(b.clone());
+            for(Vec b : toCopy.B_deltas) {
+              this.B_deltas.add(b.clone());
+            }
         }
         if(toCopy.W_updaters != null)
         {
@@ -183,16 +187,19 @@ public class SGDNetworkTrainer implements Serializable
             {
                 List<GradientUpdater> copyUpdaters = new ArrayList<GradientUpdater>(updaters.size());
                 this.W_updaters.add(copyUpdaters);
-                for(GradientUpdater item : updaters)
-                    copyUpdaters.add(item.clone());
+                for(GradientUpdater item : updaters) {
+                  copyUpdaters.add(item.clone());
+                }
             }
             this.B_updaters = new ArrayList<GradientUpdater>(toCopy.B_updaters);
-            for(GradientUpdater item : toCopy.B_updaters)
-                    this.B_updaters.add(item.clone());
+            for(GradientUpdater item : toCopy.B_updaters) {
+              this.B_updaters.add(item.clone());
+            }
         }
         this.layersActivation = new ArrayList<ActivationLayer>(toCopy.layersActivation.size());
-        for(ActivationLayer activation : toCopy.layersActivation)
-            this.layersActivation.add(activation.clone());
+        for(ActivationLayer activation : toCopy.layersActivation) {
+          this.layersActivation.add(activation.clone());
+        }
     }
     
     /**
@@ -201,8 +208,9 @@ public class SGDNetworkTrainer implements Serializable
      */
     public void setDropoutInput(double p)
     {
-        if(p < 0 || p >= 1 || Double.isNaN(p))
-            throw new IllegalArgumentException("Dropout probability must be in [0,1) not " + p);
+        if(p < 0 || p >= 1 || Double.isNaN(p)) {
+          throw new IllegalArgumentException("Dropout probability must be in [0,1) not " + p);
+        }
         p_i = p;
         p_i_intThresh = (int) (0xffffffffL*p_i+Integer.MIN_VALUE);
     }
@@ -223,8 +231,9 @@ public class SGDNetworkTrainer implements Serializable
      */
     public void setDropoutHidden(double p)
     {
-        if(p < 0 || p >= 1 || Double.isNaN(p))
-            throw new IllegalArgumentException("Dropout probability must be in [0,1) not " + p);
+        if(p < 0 || p >= 1 || Double.isNaN(p)) {
+          throw new IllegalArgumentException("Dropout probability must be in [0,1) not " + p);
+        }
         p_o = p;
         p_o_intThresh = (int) (0xffffffffL*p_o+Integer.MIN_VALUE);
     }
@@ -262,8 +271,9 @@ public class SGDNetworkTrainer implements Serializable
      */
     public void setEta(double eta)
     {
-        if(eta <= 0 || Double.isNaN(eta) || Double.isInfinite(eta))
-            throw new IllegalArgumentException("eta must be a positive constant, not " + eta);
+        if(eta <= 0 || Double.isNaN(eta) || Double.isInfinite(eta)) {
+          throw new IllegalArgumentException("eta must be a positive constant, not " + eta);
+        }
         this.eta = eta;
     }
 
@@ -490,28 +500,35 @@ public class SGDNetworkTrainer implements Serializable
     public double updateMiniBatch(List<Vec> x, List<Vec> y, ExecutorService ex)
     {
         Random rand = new XORWOW();
-        for(Matrix w : W_deltas)
-            w.zeroOut();
-        for(Vec b : B_deltas)
-            b.zeroOut();
+        for(Matrix w : W_deltas) {
+          w.zeroOut();
+        }
+        for(Vec b : B_deltas) {
+          b.zeroOut();
+        }
         
         for(int i = 0; i < layersActivation.size(); i++)
         {
             //TODO isntead of making a whole new matrix every time, use a submatrix when bigger and enlarge when too small
-            if(activations[i] == null || activations[i].cols() != x.size())
-                activations[i] = new DenseMatrix(layerSizes[i+1], x.size());
-            if(unactivated[i] == null || unactivated[i].cols() != x.size())
-                unactivated[i] = new DenseMatrix(layerSizes[i+1], x.size());
-            if(deltas[i] == null || deltas[i].cols() != x.size())
-                deltas[i] = new DenseMatrix(layerSizes[i+1], x.size());
+            if(activations[i] == null || activations[i].cols() != x.size()) {
+              activations[i] = new DenseMatrix(layerSizes[i+1], x.size());
+            }
+            if(unactivated[i] == null || unactivated[i].cols() != x.size()) {
+              unactivated[i] = new DenseMatrix(layerSizes[i+1], x.size());
+            }
+            if(deltas[i] == null || deltas[i].cols() != x.size()) {
+              deltas[i] = new DenseMatrix(layerSizes[i+1], x.size());
+            }
         }
         
         Matrix X = new DenseMatrix(layerSizes[0], x.size());
-        for (int j = 0; j < x.size(); j++)
-            x.get(j).copyTo(X.getColumnView(j));
+        for (int j = 0; j < x.size(); j++) {
+          x.get(j).copyTo(X.getColumnView(j));
+        }
         
-        if(p_i > 0)
-            applyDropout(X, p_i_intThresh, rand, ex);
+        if(p_i > 0) {
+          applyDropout(X, p_i_intThresh, rand, ex);
+        }
         
         
         double errorMade = 0;
@@ -523,10 +540,11 @@ public class SGDNetworkTrainer implements Serializable
         accumulateUpdates(X, activations, deltas, ex, x);
 
         double eta_cur = etaDecay.rate(time++, eta);
-        if(ex == null)
-            applyGradient(eta_cur);
-        else
-            applyGradient(eta_cur, ex);
+        if(ex == null) {
+          applyGradient(eta_cur);
+        } else {
+          applyGradient(eta_cur, ex);
+        }
         
         return errorMade;
     }
@@ -540,10 +558,11 @@ public class SGDNetworkTrainer implements Serializable
             final Matrix a_l = activationsM[l];
             final Matrix z_l = unactivatedM[(l)];
             z_l.zeroOut();
-            if(ex == null)
-                W.get(l).multiply(a_lprev, z_l);
-            else
-                W.get(l).multiply(a_lprev, z_l, ex);
+            if(ex == null) {
+              W.get(l).multiply(a_lprev, z_l);
+            } else {
+              W.get(l).multiply(a_lprev, z_l, ex);
+            }
 
             //add the bias term back in
             final Vec B_l = B.get(l);
@@ -552,8 +571,9 @@ public class SGDNetworkTrainer implements Serializable
                 for (int i = 0; i < z_l.rows(); i++)
                 {
                     final double B_li = B_l.get(i);
-                    for (int j = 0; j < z_l.cols(); j++)
-                        z_l.increment(i, j, B_li);
+                    for (int j = 0; j < z_l.cols(); j++) {
+                      z_l.increment(i, j, B_li);
+                    }
                 }
             }
             else
@@ -571,8 +591,9 @@ public class SGDNetworkTrainer implements Serializable
                             for (int i = ID; i < z_l.rows(); i += SystemInfo.LogicalCores)
                             {
                                 final double B_li = B_l.get(i);
-                                for (int j = 0; j < z_l.cols(); j++)
-                                    z_l.increment(i, j, B_li);
+                                for (int j = 0; j < z_l.cols(); j++) {
+                                  z_l.increment(i, j, B_li);
+                                }
                             }
                             latch.countDown();
                         }
@@ -590,8 +611,9 @@ public class SGDNetworkTrainer implements Serializable
                 }
             }
 
-            if (p_o > 0 && l != layersActivation.size() - 1)
-                applyDropout(z_l, p_o_intThresh, rand, ex);
+            if (p_o > 0 && l != layersActivation.size() - 1) {
+              applyDropout(z_l, p_o_intThresh, rand, ex);
+            }
             
             layersActivation.get(l).activate(z_l, a_l, false);
         }
@@ -642,10 +664,11 @@ public class SGDNetworkTrainer implements Serializable
             else//any other layer
             {
                 delta_l.zeroOut();
-                if(ex == null)
-                    W.get(l+1).transposeMultiply(deltasM[l+1], delta_l);
-                else
-                    W.get(l+1).transposeMultiply(deltasM[l+1], delta_l, ex);
+                if(ex == null) {
+                  W.get(l+1).transposeMultiply(deltasM[l+1], delta_l);
+                } else {
+                  W.get(l+1).transposeMultiply(deltasM[l+1], delta_l, ex);
+                }
                 
                 layersActivation.get(l).backprop(unactivatedM[l], activationsM[l], delta_l, delta_l, false);
             }
@@ -661,22 +684,23 @@ public class SGDNetworkTrainer implements Serializable
         {
             final Matrix a_lprev = (l == 0 ? X : activationsM[(l - 1)]);
             final Matrix delta_l = deltasM[l];
-            if(ex == null)
-                delta_l.multiplyTranspose(a_lprev, W_deltas.get(l));
-            else
-                delta_l.multiplyTranspose(a_lprev, W_deltas.get(l), ex);
+            if(ex == null) {
+              delta_l.multiplyTranspose(a_lprev, W_deltas.get(l));
+            } else {
+              delta_l.multiplyTranspose(a_lprev, W_deltas.get(l), ex);
+            }
             W_deltas.get(l).mutableMultiply(invXsize);
             
             final Vec B_delta_l = B_deltas.get(l);
-            if(ex == null)
-                for(int i = 0; i < delta_l.rows(); i++)
-                {
-                    double change = 0;
-                    for(int j = 0; j < delta_l.cols(); j++)
-                        change += delta_l.get(i, j);
-                    B_delta_l.increment(i, change*invXsize);
+            if(ex == null) {
+              for (int i = 0; i < delta_l.rows(); i++) {
+                double change = 0;
+                for (int j = 0; j < delta_l.cols(); j++) {
+                  change += delta_l.get(i, j);
                 }
-            else
+                B_delta_l.increment(i, change*invXsize);
+              }
+            } else
             {
                 final CountDownLatch latch = new CountDownLatch(Math.min(SystemInfo.LogicalCores, delta_l.rows()));
                 for(int id = 0; id < SystemInfo.LogicalCores; id++)
@@ -690,8 +714,9 @@ public class SGDNetworkTrainer implements Serializable
                             for(int i = ID; i < delta_l.rows(); i+=SystemInfo.LogicalCores)
                             {
                                 double change = 0;
-                                for(int j = 0; j < delta_l.cols(); j++)
-                                    change += delta_l.get(i, j);
+                                for(int j = 0; j < delta_l.cols(); j++) {
+                                  change += delta_l.get(i, j);
+                      }
                                 B_delta_l.increment(i, change*invXsize);
                             }
                             latch.countDown();
@@ -757,8 +782,9 @@ public class SGDNetworkTrainer implements Serializable
         
         try
         {
-            for(Future<?> future : futures)
-                future.get();
+            for(Future<?> future : futures) {
+              future.get();
+            }
         }
         catch (InterruptedException e)
         {
@@ -779,10 +805,13 @@ public class SGDNetworkTrainer implements Serializable
     {
         if (ex == null)
         {
-            for (int i = 0; i < X.rows(); i++)
-                for (int j = 0; j < X.cols(); j++)
-                    if (rand.nextInt() < randThresh)
-                        X.set(i, j, 0.0);
+            for (int i = 0; i < X.rows(); i++) {
+              for (int j = 0; j < X.cols(); j++) {
+                if (rand.nextInt() < randThresh) {
+                  X.set(i, j, 0.0);
+                }
+              }
+            }
         }
         else
         {
@@ -796,10 +825,13 @@ public class SGDNetworkTrainer implements Serializable
                     @Override
                     public void run()
                     {
-                        for (int i = ID; i < X.rows(); i+=SystemInfo.LogicalCores)
-                            for (int j = 0; j < X.cols(); j++)
-                                if (rand.nextInt() < randThresh)
-                                    X.set(i, j, 0.0);
+                        for (int i = ID; i < X.rows(); i+=SystemInfo.LogicalCores) {
+                          for (int j = 0; j < X.cols(); j++) {
+                            if (rand.nextInt() < randThresh) {
+                              X.set(i, j, 0.0);
+                            }
+                          }
+                        }
                         latch.countDown();
                     }
                 });

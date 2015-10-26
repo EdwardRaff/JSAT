@@ -251,8 +251,9 @@ public class CSKLR extends BaseUpdateableClassifier implements Parameterized
      */
     protected CSKLR(CSKLR toClone)
     {
-        if(toClone.alpha != null)
-            this.alpha = new DoubleList(toClone.alpha);
+        if(toClone.alpha != null) {
+          this.alpha = new DoubleList(toClone.alpha);
+        }
         if(toClone.vecs != null)
         {
             this.vecs = new ArrayList<Vec>(toClone.vecs);
@@ -262,8 +263,9 @@ public class CSKLR extends BaseUpdateableClassifier implements Parameterized
         this.R = toClone.R;
         this.eta = toClone.eta;
         this.setKernel(toClone.k.clone());
-        if(toClone.accelCache != null)
-            this.accelCache = new DoubleList(toClone.accelCache);
+        if(toClone.accelCache != null) {
+          this.accelCache = new DoubleList(toClone.accelCache);
+        }
         this.gamma = toClone.gamma;
         this.rand = new XORWOW();
         this.setEpochs(toClone.getEpochs());
@@ -280,8 +282,9 @@ public class CSKLR extends BaseUpdateableClassifier implements Parameterized
      */
     public void setEta(double eta)
     {
-        if(eta < 0 || Double.isNaN(eta) || Double.isInfinite(eta))
-            throw new IllegalArgumentException("The learning rate should be in (0, Inf), not " + eta);
+        if(eta < 0 || Double.isNaN(eta) || Double.isInfinite(eta)) {
+          throw new IllegalArgumentException("The learning rate should be in (0, Inf), not " + eta);
+        }
         this.eta = eta;
     }
 
@@ -305,8 +308,9 @@ public class CSKLR extends BaseUpdateableClassifier implements Parameterized
      */
     public void setR(double R)
     {
-        if(R < 0 || Double.isNaN(R) || Double.isInfinite(R))
-            throw new IllegalArgumentException("The max norm should be in (0, Inf), not " + R);
+        if(R < 0 || Double.isNaN(R) || Double.isInfinite(R)) {
+          throw new IllegalArgumentException("The max norm should be in (0, Inf), not " + R);
+        }
         this.R = R;
     }
 
@@ -345,8 +349,9 @@ public class CSKLR extends BaseUpdateableClassifier implements Parameterized
      */
     public void setGamma(double gamma)
     {
-        if(gamma < 0 || Double.isNaN(gamma) || Double.isInfinite(gamma))
-            throw new IllegalArgumentException("Gamma must be in (0, Infity), not " + gamma);
+        if(gamma < 0 || Double.isNaN(gamma) || Double.isInfinite(gamma)) {
+          throw new IllegalArgumentException("Gamma must be in (0, Infity), not " + gamma);
+        }
         this.gamma = gamma;
     }
 
@@ -407,14 +412,16 @@ public class CSKLR extends BaseUpdateableClassifier implements Parameterized
     @Override
     public void setUp(CategoricalData[] categoricalAttributes, int numericAttributes, CategoricalData predicting)
     {
-        if(predicting.getNumOfCategories() != 2)
-            throw new FailedToFitException("CSKLR supports only binary classification");
+        if(predicting.getNumOfCategories() != 2) {
+          throw new FailedToFitException("CSKLR supports only binary classification");
+        }
         alpha = new DoubleList();
         vecs = new ArrayList<Vec>();
         curNorm = 0;
         rand = new XORWOW();
-        if(k.supportsAcceleration())
-            accelCache = new DoubleList();
+        if(k.supportsAcceleration()) {
+          accelCache = new DoubleList();
+        }
     }
 
     @Override
@@ -431,8 +438,9 @@ public class CSKLR extends BaseUpdateableClassifier implements Parameterized
                 break;
             default:
                 double pt = mode.pt(y_t, score, pre, eta, gamma);
-                if(rand.nextDouble() > pt)
-                    return;
+                if(rand.nextDouble() > pt) {
+                  return;
+        }
              break;   
         }
         
@@ -448,8 +456,9 @@ public class CSKLR extends BaseUpdateableClassifier implements Parameterized
         if (curNorm > R)
         {
             double coef = R/curNorm;
-            for(int i = 0; i < alpha.size(); i++)
-                alpha.set(i, alpha.get(i)*coef);
+            for(int i = 0; i < alpha.size(); i++) {
+              alpha.set(i, alpha.get(i)*coef);
+            }
             curNorm = coef;
         }
         

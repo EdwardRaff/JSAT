@@ -1058,9 +1058,11 @@ public class SparseMatrixTest
         System.out.println("zeroOut");
         A.zeroOut();
         assertEquals(0, A.nnz());
-        for(int i = 0; i < A.rows(); i++)
-            for(int j = 0; j < A.cols(); j++)
-                assertEquals(0.0, A.get(i, j), 1e-20);
+        for(int i = 0; i < A.rows(); i++) {
+          for (int j = 0; j < A.cols(); j++) {
+            assertEquals(0.0, A.get(i, j), 1e-20);
+          }
+        }
     }
 
     /**
@@ -1098,20 +1100,25 @@ public class SparseMatrixTest
         assertEquals(Acpy.rows(), A.rows()-1);
         assertEquals(Acpy.cols(), A.cols()-1);
         
-        for(int i = 0; i < Acpy.rows(); i++)
-            for(int j = 0; j < Acpy.cols(); j++)
-                assertEquals(Acpy.get(i, j), A.get(i, j), 0.0);
+        for(int i = 0; i < Acpy.rows(); i++) {
+          for (int j = 0; j < Acpy.cols(); j++) {
+            assertEquals(Acpy.get(i, j), A.get(i, j), 0.0);
+          }
+        }
         //Expand back out and make sure the values are zero on the sides
         Acpy.changeSize(Acpy.rows()+2, Acpy.cols()+2);
         assertEquals(Acpy.rows(), A.rows()+1);
         assertEquals(Acpy.cols(), A.cols()+1);
         
-        for(int i = 0; i < Acpy.rows(); i++)
-            for(int j = 0; j < Acpy.cols(); j++)
-                if(i < A.rows()-1 && j < A.cols()-1)
-                    assertEquals(A.get(i, j), Acpy.get(i, j), 0.0);
-                else
-                    assertEquals(0.0, Acpy.get(i, j), 0.0);
+        for(int i = 0; i < Acpy.rows(); i++) {
+          for (int j = 0; j < Acpy.cols(); j++) {
+            if (i < A.rows()-1 && j < A.cols()-1) {
+              assertEquals(A.get(i, j), Acpy.get(i, j), 0.0);
+            } else {
+              assertEquals(0.0, Acpy.get(i, j), 0.0);
+            }
+          }
+        }
     }
 
     /**
@@ -1124,7 +1131,8 @@ public class SparseMatrixTest
     private void checkAgainstRCV(Matrix tmp, double[] v, int[] r, int[] c)
     {
         assertEquals(v.length, tmp.nnz());
-        for(int i = 0; i < v.length; i++)
-            assertEquals(v[i], tmp.get(r[i]-1, c[i]-1), 1e-20);
+        for(int i = 0; i < v.length; i++) {
+          assertEquals(v[i], tmp.get(r[i]-1, c[i]-1), 1e-20);
+        }
     }
 }

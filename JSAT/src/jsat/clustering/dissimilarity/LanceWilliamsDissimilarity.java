@@ -85,8 +85,9 @@ public abstract class LanceWilliamsDissimilarity extends DistanceMetricDissimila
     @Override
     public double dissimilarity(List<DataPoint> a, List<DataPoint> b)
     {
-        if(a.size() == 1 && b.size() == 1)
-            return dm.dist(a.get(0).getNumericalValues(), b.get(0).getNumericalValues());
+        if(a.size() == 1 && b.size() == 1) {
+          return dm.dist(a.get(0).getNumericalValues(), b.get(0).getNumericalValues());
+        }
         
         List<DataPoint> CI;
         List<DataPoint> CJ;
@@ -116,8 +117,9 @@ public abstract class LanceWilliamsDissimilarity extends DistanceMetricDissimila
     @Override
     public double dissimilarity(Set<Integer> a, Set<Integer> b, double[][] distanceMatrix)
     {
-        if(a.size() == 1 && b.size() == 1)
-            return getDistance(distanceMatrix, getVal(a), getVal(b));
+        if(a.size() == 1 && b.size() == 1) {
+          return getDistance(distanceMatrix, getVal(a), getVal(b));
+        }
         
         Set<Integer> CI;
         Set<Integer> CJ;
@@ -156,8 +158,9 @@ public abstract class LanceWilliamsDissimilarity extends DistanceMetricDissimila
      */
     private static int getVal(Set<Integer> a)
     {
-        for(int i : a)
-            return i;
+        for(int i : a) {
+          return i;
+        }
         return -1;
     }
 

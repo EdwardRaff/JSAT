@@ -41,10 +41,12 @@ public class SFS implements DataTransform
         }
 
         this.maxIncrease = toClone.maxIncrease;
-        if (toClone.classifier != null)
-            this.classifier = toClone.classifier.clone();
-        if (toClone.regressor != null)
-            this.regressor = toClone.regressor.clone();
+        if (toClone.classifier != null) {
+          this.classifier = toClone.classifier.clone();
+        }
+        if (toClone.regressor != null) {
+          this.regressor = toClone.regressor.clone();
+        }
     }
     
     /**
@@ -106,15 +108,17 @@ public class SFS implements DataTransform
         double[] bestScore = new double[]{Double.POSITIVE_INFINITY};
         
         Object learner = regressor;
-        if (dataSet instanceof ClassificationDataSet)
-            learner = classifier;
+        if (dataSet instanceof ClassificationDataSet) {
+          learner = classifier;
+        }
             
         while (catSelected.size() + numSelected.size() < maxFeatures)
         {
             if (SFSSelectFeature(available, dataSet,
                     catToRemove, numToRemove, catSelected, numSelected,
-                    learner, folds, rand, bestScore, minFeatures) < 0)
-                break;
+                    learner, folds, rand, bestScore, minFeatures) < 0) {
+              break;
+            }
 
         }
         
@@ -130,10 +134,11 @@ public class SFS implements DataTransform
      */
     static protected void addFeature(int curBest, int nCat, Set<Integer> catF, Set<Integer> numF)
     {
-        if(curBest >= nCat)
-            numF.add(curBest-nCat);
-        else
-            catF.add(curBest);
+        if(curBest >= nCat) {
+          numF.add(curBest-nCat);
+        } else {
+          catF.add(curBest);
+        }
     }
 
     /**
@@ -145,10 +150,11 @@ public class SFS implements DataTransform
      */
     static protected void removeFeature(int feature, int nCat, Set<Integer> catF, Set<Integer> numF)
     {
-        if(feature >= nCat)
-            numF.remove(feature-nCat);
-        else
-            catF.remove(feature);
+        if(feature >= nCat) {
+          numF.remove(feature-nCat);
+        } else {
+          catF.remove(feature);
+        }
     }
 
     @Override
@@ -231,8 +237,9 @@ public class SFS implements DataTransform
             addFeature(feature, nCat, catToRemove, numToRemove);
         }
         if(curBestScore <= 1e-14 && PbestScore[0] <= 1e-14
-                && catSelecteed.size() + numSelected.size() >= minFeatures )
-            return -1;
+                && catSelecteed.size() + numSelected.size() >= minFeatures ) {
+          return -1;
+        }
         if (curBestScore < PbestScore[0] 
                  || catSelecteed.size() + numSelected.size() < minFeatures 
                  || Math.abs(PbestScore[0]-curBestScore) < 1e-3)
@@ -243,8 +250,9 @@ public class SFS implements DataTransform
             available.remove(curBest);
             return curBest;
         }
-        else
-            return -1; //No possible improvment & weve got enough
+        else {
+          return -1; //No possible improvment & weve got enough
+        }
     }
     
     /**
@@ -303,8 +311,9 @@ public class SFS implements DataTransform
         {
             setMaxDecrease(maxDecrease);
             this.classifier = evaluater;
-            if(evaluater instanceof Regressor)
-                this.regressor = (Regressor) evaluater;
+            if(evaluater instanceof Regressor) {
+              this.regressor = (Regressor) evaluater;
+            }
             setMinFeatures(minFeatures);
             setMaxFeatures(maxFeatures);
         }
@@ -321,8 +330,9 @@ public class SFS implements DataTransform
         {
             setMaxDecrease(maxDecrease);
             this.regressor = evaluater;
-            if(evaluater instanceof Classifier)
-                this.classifier = (Classifier) evaluater;
+            if(evaluater instanceof Classifier) {
+              this.classifier = (Classifier) evaluater;
+            }
             setMinFeatures(minFeatures);
             setMaxFeatures(maxFeatures);
         }
@@ -338,12 +348,13 @@ public class SFS implements DataTransform
                 this.classifier = toCopy.classifier.clone();
                 this.regressor = (Regressor) this.classifier;
             }
-            else if(toCopy.classifier != null)
-                this.classifier = toCopy.classifier.clone();
-            else if(toCopy.regressor != null)
-                this.regressor = toCopy.regressor.clone();
-            else
-                throw new RuntimeException("BUG: Please report");
+            else if(toCopy.classifier != null) {
+              this.classifier = toCopy.classifier.clone();
+            } else if(toCopy.regressor != null) {
+              this.regressor = toCopy.regressor.clone();
+            } else {
+              throw new RuntimeException("BUG: Please report");
+            }
             this.maxDecrease = toCopy.maxDecrease;
             this.minFeatures = toCopy.minFeatures;
             this.maxFeatures = toCopy.maxFeatures;
@@ -358,8 +369,9 @@ public class SFS implements DataTransform
          */
         public void setMaxDecrease(double maxDecrease)
         {
-            if(maxDecrease < 0)
-                throw new IllegalArgumentException("Decarese must be a positive value, not " + maxDecrease);
+            if(maxDecrease < 0) {
+              throw new IllegalArgumentException("Decarese must be a positive value, not " + maxDecrease);
+            }
             this.maxDecrease = maxDecrease;
         }
 
@@ -413,10 +425,11 @@ public class SFS implements DataTransform
         @Override
         public SFS getTransform(DataSet dataset)
         {
-            if(dataset instanceof ClassificationDataSet)
-                return new SFS(minFeatures, maxFeatures, (ClassificationDataSet)dataset, classifier, 5, maxDecrease);
-            else
-                return new SFS(minFeatures, maxFeatures, (RegressionDataSet)dataset, regressor, 5, maxDecrease);
+            if(dataset instanceof ClassificationDataSet) {
+              return new SFS(minFeatures, maxFeatures, (ClassificationDataSet)dataset, classifier, 5, maxDecrease);
+            } else {
+              return new SFS(minFeatures, maxFeatures, (RegressionDataSet)dataset, regressor, 5, maxDecrease);
+            }
         }
 
         @Override

@@ -54,8 +54,9 @@ public class DunnIndex implements ClusterEvaluation
         
         for(int i = 0; i < dataSets.size(); i++)
         {
-            for(int j = i+1; j <dataSets.size(); j++)
-                minVal = Math.min(minVal, cd.dissimilarity(dataSets.get(i), dataSets.get(j)));
+            for(int j = i+1; j <dataSets.size(); j++) {
+              minVal = Math.min(minVal, cd.dissimilarity(dataSets.get(i), dataSets.get(j)));
+            }
             maxIntra = Math.max(maxIntra, ice.evaluate(dataSets.get(i)));
         }
         

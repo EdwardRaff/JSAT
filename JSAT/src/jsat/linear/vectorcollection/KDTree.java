@@ -67,21 +67,23 @@ public class KDTree<V extends Vec> implements VectorCollection<V>
     public KDTree(List<V> vecs, DistanceMetric distanceMetric, PivotSelection pvSelection, ExecutorService threadpool)
     {
         if(!( distanceMetric instanceof EuclideanDistance || distanceMetric instanceof ChebyshevDistance || 
-              distanceMetric instanceof ManhattanDistance || distanceMetric instanceof MinkowskiDistance) )
-            throw new ArithmeticException("KD Trees are not compatible with the given distance metric.");
+              distanceMetric instanceof ManhattanDistance || distanceMetric instanceof MinkowskiDistance) ) {
+          throw new ArithmeticException("KD Trees are not compatible with the given distance metric.");
+        }
         this.distanceMetric = distanceMetric;
         this.pvSelection = pvSelection;
         this.size = vecs.size();
         allVecs = vecs = new ArrayList<V>(vecs);//copy to avoid altering the input set
-        if(threadpool == null || threadpool instanceof FakeExecutor)
-            distCache = distanceMetric.getAccelerationCache(allVecs);
-        else
-            distCache = distanceMetric.getAccelerationCache(vecs, threadpool);
+        if(threadpool == null || threadpool instanceof FakeExecutor) {
+          distCache = distanceMetric.getAccelerationCache(allVecs);
+        } else {
+          distCache = distanceMetric.getAccelerationCache(vecs, threadpool);
+        }
         List<Integer> vecIndices = new IntList(size);
         ListUtils.addRange(vecIndices, 0, size, 1);
-        if(threadpool == null)
-            this.root = buildTree(vecIndices, 0, null, null);
-        else
+        if(threadpool == null) {
+          this.root = buildTree(vecIndices, 0, null, null);
+        } else
         {
             ModifiableCountDownLatch mcdl = new ModifiableCountDownLatch(1);
             this.root = buildTree(vecIndices, 0, threadpool, mcdl);
@@ -196,10 +198,12 @@ public class KDTree<V extends Vec> implements VectorCollection<V>
         protected KDNode clone() 
         {
             KDNode clone = new KDNode(locatin, axis);
-            if(this.left != null)
-                clone.left = this.left.clone();
-            if(this.right != null)
-                clone.right = this.right.clone();
+            if(this.left != null) {
+              clone.left = this.left.clone();
+            }
+            if(this.right != null) {
+              clone.right = this.right.clone();
+            }
             return clone;
         }
     }
@@ -233,33 +237,38 @@ public class KDTree<V extends Vec> implements VectorCollection<V>
     {
         if(data == null || data.isEmpty())
         {
-            if(threadpool != null)//Threadpool null checks since no thread pool means do single threaded
-                mcdl.countDown();
+            if(threadpool != null) {//Threadpool null checks since no thread pool means do single threaded
+              mcdl.countDown();
+            }
             return null;
         }
         int mod = allVecs.get(0).length();
         
         if(data.size() == 1)
         {
-            if(threadpool != null)
-                mcdl.countDown();
+            if(threadpool != null) {
+              mcdl.countDown();
+            }
             return new KDNode(data.get(0), depth % mod);
         }
         
         int pivot = -1;
-        if(pvSelection == PivotSelection.Incremental)
-            pivot = depth % mod;
-        else//Variance 
+        if(pvSelection == PivotSelection.Incremental) {
+          pivot = depth % mod;
+        } else//Variance 
         {
             OnLineStatistics[] allStats = new OnLineStatistics[mod];
-            for(int j = 0; j < allStats.length; j++)
-                allStats[j] = new OnLineStatistics();
+            for(int j = 0; j < allStats.length; j++) {
+              allStats[j] = new OnLineStatistics();
+          }
             
             for(int i = 0; i < data.size(); i++)//For each data point
             {
                 V vec = allVecs.get(data.get(i));
-                for(int j = 0; j < allStats.length; j++)//For each dimension 
-                    allStats[j].add(vec.get(j));
+                for(int j = 0; j < allStats.length; j++) {
+                  //For each dimension
+                  allStats[j].add(vec.get(j));
+            }
             }
             
             double maxVariance = -1;
@@ -272,8 +281,9 @@ public class KDTree<V extends Vec> implements VectorCollection<V>
                     pivot = j;
                 }
             }
-            if(pivot < 0)//All dims had NaN as variance? Fall back to incremental selection
-                pivot = depth % mod;
+            if(pivot < 0) {//All dims had NaN as variance? Fall back to incremental selection
+              pivot = depth % mod;
+          }
         }
         
         Collections.sort(data, new VecIndexComparator(pivot));
@@ -321,8 +331,9 @@ public class KDTree<V extends Vec> implements VectorCollection<V>
         while(!stack.isEmpty())
         {
             KDNode node = stack.pop();
-            if(node == null)
-                continue;
+            if(node == null) {
+              continue;
+            }
             V curData = allVecs.get(node.locatin);
             double distance = distanceMetric.dist(node.locatin, query, qi, allVecs, distCache);
             
@@ -333,17 +344,21 @@ public class KDTree<V extends Vec> implements VectorCollection<V>
 
             if(diff <= 0)
             {
-                if(qVal - knns.last().getProbability() <= cVal || knns.size() < knns.maxSize())
-                    stack.push(node.left);
-                if(qVal + knns.last().getProbability() > cVal || knns.size() < knns.maxSize())
-                    stack.push(node.right);
+                if(qVal - knns.last().getProbability() <= cVal || knns.size() < knns.maxSize()) {
+                  stack.push(node.left);
+                }
+                if(qVal + knns.last().getProbability() > cVal || knns.size() < knns.maxSize()) {
+                  stack.push(node.right);
+                }
             }
             else
             {
-                if(qVal + knns.last().getProbability() > cVal || knns.size() < knns.maxSize())
-                    stack.push(node.right);
-                if(qVal - knns.last().getProbability() <= cVal || knns.size() < knns.maxSize())
-                    stack.push(node.left);
+                if(qVal + knns.last().getProbability() > cVal || knns.size() < knns.maxSize()) {
+                  stack.push(node.right);
+                }
+                if(qVal - knns.last().getProbability() <= cVal || knns.size() < knns.maxSize()) {
+                  stack.push(node.left);
+                }
             }
                         
         }
@@ -352,8 +367,9 @@ public class KDTree<V extends Vec> implements VectorCollection<V>
     @Override
     public List<? extends VecPaired<V, Double>> search(Vec query, int neighbors)
     {
-        if(neighbors < 1)
-            throw new RuntimeException("Invalid number of neighbors to search for");
+        if(neighbors < 1) {
+          throw new RuntimeException("Invalid number of neighbors to search for");
+        }
         
         BoundedSortedList<ProbailityMatch<V>> knns = new BoundedSortedList<ProbailityMatch<V>>(neighbors);
         
@@ -371,13 +387,15 @@ public class KDTree<V extends Vec> implements VectorCollection<V>
     
     private void distanceSearch(Vec query, List<Double> qi, KDNode node, List<VecPairedComparable<V, Double>> knns, double range)
     {
-        if(node == null)
-            return;
+        if(node == null) {
+          return;
+        }
         V curData = allVecs.get(node.locatin);
         double distance = distanceMetric.dist(node.locatin, query, qi, allVecs, distCache);
         
-        if(distance <= range)
-            knns.add( new VecPairedComparable<V, Double>(curData, distance) );
+        if(distance <= range) {
+          knns.add( new VecPairedComparable<V, Double>(curData, distance) );
+        }
         
         double diff = query.get(node.axis) - curData.get(node.axis);
         
@@ -389,8 +407,9 @@ public class KDTree<V extends Vec> implements VectorCollection<V>
         }
         
         distanceSearch(query, qi, close, knns, range);
-        if(diff*diff <= range)
-            distanceSearch(query, qi, far, knns, range);
+        if(diff*diff <= range) {
+          distanceSearch(query, qi, far, knns, range);
+        }
     }
     
     @Override
@@ -402,8 +421,9 @@ public class KDTree<V extends Vec> implements VectorCollection<V>
     @Override
     public List<? extends VecPaired<V, Double>> search(Vec query, double range)
     {
-        if(range <= 0)
-            throw new RuntimeException("Range must be a positive number");
+        if(range <= 0) {
+          throw new RuntimeException("Range must be a positive number");
+        }
         ArrayList<VecPairedComparable<V, Double>> vecs = new ArrayList<VecPairedComparable<V, Double>>();
         
         List<Double> qi = distanceMetric.supportsAcceleration() ? distanceMetric.getQueryInfo(query) : null;
@@ -420,13 +440,16 @@ public class KDTree<V extends Vec> implements VectorCollection<V>
     public KDTree<V> clone()
     {
         KDTree<V> clone = new KDTree<V>(distanceMetric, pvSelection);
-        if(this.distCache != null)
-            clone.distCache = new DoubleList(this.distCache);
-        if(this.allVecs != null)
-            clone.allVecs = new ArrayList<V>(this.allVecs);
+        if(this.distCache != null) {
+          clone.distCache = new DoubleList(this.distCache);
+        }
+        if(this.allVecs != null) {
+          clone.allVecs = new ArrayList<V>(this.allVecs);
+        }
         clone.size = this.size;
-        if(this.root != null)
-            clone.root = this.root.clone();
+        if(this.root != null) {
+          clone.root = this.root.clone();
+        }
         return clone;
     }
     

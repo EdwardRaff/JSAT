@@ -65,11 +65,13 @@ public class EMGaussianMixture extends ElkanKMeans implements MultivariateDistri
         if(gm.gaussians != null && !gm.gaussians.isEmpty())
         {
             this.gaussians = new ArrayList<NormalM>(gm.gaussians.size());
-            for(NormalM gaussian : gm.gaussians)
-                this.gaussians.add(gaussian.clone());
+            for(NormalM gaussian : gm.gaussians) {
+              this.gaussians.add(gaussian.clone());
+            }
         }
-        if(gm.a_k != null)
-            this.a_k = Arrays.copyOf(gm.a_k, gm.a_k.length);
+        if(gm.a_k != null) {
+          this.a_k = Arrays.copyOf(gm.a_k, gm.a_k.length);
+        }
         this.MaxIterLimit = gm.MaxIterLimit;
         this.tolerance = gm.tolerance;
     }
@@ -101,8 +103,9 @@ public class EMGaussianMixture extends ElkanKMeans implements MultivariateDistri
         //Use the ElkanKMeans result to initalize GuassianMixture 
         List<Matrix> covariances = new ArrayList<Matrix>(K);
         int dimension = dataSet.getNumNumericalVars();
-        for(int k = 0; k < means.size(); k++)
-            covariances.add(new DenseMatrix(dimension, dimension));
+        for(int k = 0; k < means.size(); k++) {
+          covariances.add(new DenseMatrix(dimension, dimension));
+        }
         
         a_k = new double[K];
         double sum = dataSet.getSampleSize();
@@ -139,8 +142,9 @@ public class EMGaussianMixture extends ElkanKMeans implements MultivariateDistri
         gaussians = new ArrayList<NormalM>(K);
         
         //Set up initial covariance matrices
-        for(int k = 0; k < means.size(); k++)
-            gaussians.add(new NormalM(means.get(k), covs.get(k)));
+        for(int k = 0; k < means.size(); k++) {
+          gaussians.add(new NormalM(means.get(k), covs.get(k)));
+        }
         
         double[][] p_ik = new double[dataPoints.size()][K];
         
@@ -155,10 +159,11 @@ public class EMGaussianMixture extends ElkanKMeans implements MultivariateDistri
 
                 //Convergence check! 
                 double logDifference = Math.abs(currentLogLike - logLike);
-                if(logDifference < tolerance)
-                    break;//We accept this as converged. Probablities could be refined, but no one should be changing class anymore
-                else
-                    currentLogLike = logLike;
+                if(logDifference < tolerance) {
+                  break;//We accept this as converged. Probablities could be refined, but no one should be changing class anymore
+                } else {
+                  currentLogLike = logLike;
+                }
                 
                 mStep(means, N, dataPoints, K, p_ik, covs, execServ);
             }
@@ -173,10 +178,13 @@ public class EMGaussianMixture extends ElkanKMeans implements MultivariateDistri
         }
         
         //Hard asignments based on most probable outcome
-        for(int i = 0; i < p_ik.length; i++)
-            for(int k = 0; k < K; k++)
-                if(p_ik[i][k] > p_ik[i][assignment[i]])
-                    assignment[i] = k;
+        for(int i = 0; i < p_ik.length; i++) {
+          for (int k = 0; k < K; k++) {
+            if (p_ik[i][k] > p_ik[i][assignment[i]]) {
+              assignment[i] = k;
+            }
+          }
+        }
         
         return -currentLogLike;
     }
@@ -202,8 +210,9 @@ public class EMGaussianMixture extends ElkanKMeans implements MultivariateDistri
          */
         //Recompute a_k and update means in the same loop
 
-        for(Vec mean : means)
-            mean.zeroOut();
+        for(Vec mean : means) {
+          mean.zeroOut();
+        }
 
         Arrays.fill(a_k, 0.0);
         
@@ -236,8 +245,9 @@ public class EMGaussianMixture extends ElkanKMeans implements MultivariateDistri
                     public void run()
                     {
                         Vec[] partialMean = new Vec[means.size()];
-                        for(int i = 0; i < partialMean.length; i++)
-                            partialMean[i] = new DenseVector(means.get(i).length());
+                        for(int i = 0; i < partialMean.length; i++) {
+                          partialMean[i] = new DenseVector(means.get(i).length());
+                        }
                         double[] partial_a_k = new double[a_k.length];
                         
                         for(int i = Start; i < to; i++)
@@ -268,13 +278,15 @@ public class EMGaussianMixture extends ElkanKMeans implements MultivariateDistri
         }
 
         //We can now dived all the means by their sums, which are stored in a_k, and then normalized a_k after
-        for(int k = 0; k < a_k.length; k++)
-            means.get(k).mutableDivide(a_k[k]);
+        for(int k = 0; k < a_k.length; k++) {
+          means.get(k).mutableDivide(a_k[k]);
+        }
 
         //We hold off on nomralized a_k, becase we will use its values to update the covariances
 
-        for(Matrix cov : covs)
-            cov.zeroOut();
+        for(Matrix cov : covs) {
+          cov.zeroOut();
+        }
 
         if(execServ == null)
         {
@@ -311,8 +323,9 @@ public class EMGaussianMixture extends ElkanKMeans implements MultivariateDistri
                     public void run()
                     {
                         Matrix[] partialCovs = new Matrix[K];
-                        for(int i = 0; i < partialCovs.length; i++)
-                            partialCovs[i] = new DenseMatrix(D, D);
+                        for(int i = 0; i < partialCovs.length; i++) {
+                          partialCovs[i] = new DenseMatrix(D, D);
+                        }
                         
                         for(int i = Start; i < to; i++)
                         {
@@ -334,8 +347,9 @@ public class EMGaussianMixture extends ElkanKMeans implements MultivariateDistri
                         
                         synchronized(covs)
                         {
-                            for(int  k = 0; k < K; k++)
-                                covs.get(k).mutableAdd(partialCovs[k]);
+                            for(int  k = 0; k < K; k++) {
+                              covs.get(k).mutableAdd(partialCovs[k]);
+                            }
                         }
                         
                         
@@ -345,18 +359,21 @@ public class EMGaussianMixture extends ElkanKMeans implements MultivariateDistri
             }
             latch.await();
             
-            for(int k = 0; k < K; k++)
-                covs.get(k).mutableMultiply(1.0/a_k[k]);
+            for(int k = 0; k < K; k++) {
+              covs.get(k).mutableMultiply(1.0/a_k[k]);
+            }
             
         }
 
         //Finaly, normalize the coefficents
-        for(int k = 0; k < K; k++)
-            a_k[k] /= N;
+        for(int k = 0; k < K; k++) {
+          a_k[k] /= N;
+        }
         
         //And update the Normals
-        for(int k = 0; k < means.size(); k++)
-            gaussians.get(k).setMeanCovariance(means.get(k), covs.get(k));
+        for(int k = 0; k < means.size(); k++) {
+          gaussians.get(k).setMeanCovariance(means.get(k), covs.get(k));
+        }
     }
 
     private double eStep(final int N, final List<DataPoint> dataPoints, final int K, final double[][] p_ik, final ExecutorService execServ) throws InterruptedException, ExecutionException
@@ -403,8 +420,9 @@ public class EMGaussianMixture extends ElkanKMeans implements MultivariateDistri
                 }
 
                 //Normalize previous values
-                for(int k = 0; k < K; k++)
-                    p_ik[i][k] /= p_ikNormalizer;
+                for(int k = 0; k < K; k++) {
+                  p_ik[i][k] /= p_ikNormalizer;
+                }
 
                 //Add to part of the log likelyhood 
                 logLike += Math.log(p_ikNormalizer);
@@ -442,8 +460,9 @@ public class EMGaussianMixture extends ElkanKMeans implements MultivariateDistri
                             }
 
                             //Normalize previous values
-                            for(int k = 0; k < K; k++)
-                                p_ik[i][k] /= p_ikNormalizer;
+                            for(int k = 0; k < K; k++) {
+                              p_ik[i][k] /= p_ikNormalizer;
+                            }
 
                             //Add to part of the log likelyhood 
                             partialLog += Math.log(p_ikNormalizer);
@@ -454,8 +473,9 @@ public class EMGaussianMixture extends ElkanKMeans implements MultivariateDistri
                 }));
             }
             
-            for(double partialLogLike : ListUtils.collectFutures(partialLogLikes))
-                logLike += partialLogLike;
+            for(double partialLogLike : ListUtils.collectFutures(partialLogLikes)) {
+              logLike += partialLogLike;
+            }
         }
         return logLike;
     }
@@ -470,8 +490,9 @@ public class EMGaussianMixture extends ElkanKMeans implements MultivariateDistri
     public double logPdf(Vec x)
     {
         double pdf = pdf(x);
-        if(pdf == 0)
-            return -Double.MAX_VALUE;
+        if(pdf == 0) {
+          return -Double.MAX_VALUE;
+        }
         return log(pdf);
     }
 
@@ -485,8 +506,9 @@ public class EMGaussianMixture extends ElkanKMeans implements MultivariateDistri
     public double pdf(Vec x)
     {
         double PDF = 0.0;
-        for(int i = 0; i < a_k.length; i++)
-            PDF += a_k[i] * gaussians.get(i).pdf(x);
+        for(int i = 0; i < a_k.length; i++) {
+          PDF += a_k[i] * gaussians.get(i).pdf(x);
+        }
         return PDF;
     }
 
@@ -494,8 +516,9 @@ public class EMGaussianMixture extends ElkanKMeans implements MultivariateDistri
     public <V extends Vec> boolean setUsingData(List<V> dataSet)
     {
         List<DataPoint> dataPoints = new ArrayList<DataPoint>(dataSet.size());
-        for(Vec x :  dataSet)
-            dataPoints.add(new DataPoint(x, new int[0], new CategoricalData[0]));
+        for(Vec x :  dataSet) {
+          dataPoints.add(new DataPoint(x, new int[0], new CategoricalData[0]));
+        }
         return setUsingDataList(dataPoints);
     }
 
@@ -551,8 +574,9 @@ public class EMGaussianMixture extends ElkanKMeans implements MultivariateDistri
         //First we need the figure out which of the mixtures to sample from
         //So generate [0,1] uniform values to determine 
         double[] priorTargets = new double[count];
-        for(int i = 0; i < count; i++)
-            priorTargets[i] = rand.nextDouble();
+        for(int i = 0; i < count; i++) {
+          priorTargets[i] = rand.nextDouble();
+        }
         Arrays.sort(priorTargets);
         int subSampleSize = 0;
         int currentGaussian = 0;
@@ -561,8 +585,9 @@ public class EMGaussianMixture extends ElkanKMeans implements MultivariateDistri
         while(currentGaussian < a_k.length)
         {
             a_kSum += a_k[currentGaussian];
-            while(pos < count && priorTargets[pos++] < a_kSum)
-                subSampleSize++;
+            while(pos < count && priorTargets[pos++] < a_kSum) {
+              subSampleSize++;
+            }
             samples.addAll(gaussians.get(currentGaussian++).sample(subSampleSize, rand));
         }
         

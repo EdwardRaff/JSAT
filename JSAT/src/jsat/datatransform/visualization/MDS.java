@@ -63,8 +63,9 @@ public class MDS implements VisualizationTransform
      */
     public void setTolerance(double tolerance)
     {
-        if(tolerance < 0 || Double.isInfinite(tolerance) || Double.isNaN(tolerance))
-            throw new IllegalArgumentException("tolerance must be a non-negative value, not " + tolerance);
+        if(tolerance < 0 || Double.isInfinite(tolerance) || Double.isNaN(tolerance)) {
+          throw new IllegalArgumentException("tolerance must be a non-negative value, not " + tolerance);
+        }
         this.tolerance = tolerance;
     }
 
@@ -145,19 +146,20 @@ public class MDS implements VisualizationTransform
             }));
         }
         
-        for (Future<OnLineStatistics> fut : futureStats)
-            try
-            {
-                avg.add(fut.get());
-            }
-            catch (InterruptedException ex1)
-            {
-                Logger.getLogger(MDS.class.getName()).log(Level.SEVERE, null, ex1);
-            }
-            catch (ExecutionException ex1)
-            {
-                Logger.getLogger(MDS.class.getName()).log(Level.SEVERE, null, ex1);
-            }
+        for (Future<OnLineStatistics> fut : futureStats) {
+          try
+          {
+            avg.add(fut.get());
+          }
+          catch (InterruptedException ex1)
+          {
+            Logger.getLogger(MDS.class.getName()).log(Level.SEVERE, null, ex1);
+          }
+          catch (ExecutionException ex1)
+          {
+            Logger.getLogger(MDS.class.getName()).log(Level.SEVERE, null, ex1);
+          }
+        }
 
 
         SimpleDataSet embeded = transform(delta, ex);
@@ -182,22 +184,24 @@ public class MDS implements VisualizationTransform
         final List<Vec> X_views = new ArrayList<Vec>();
         for(int i = 0; i < N; i++)
         {
-            for(int j = 0; j < targetSize; j++)
-                X.set(i, j, rand.nextDouble());
+            for(int j = 0; j < targetSize; j++) {
+              X.set(i, j, rand.nextDouble());
+            }
             X_views.add(X.getRowView(i));
         }
         final List<Double> X_rowCache = embedMetric.getAccelerationCache(X_views, ex);
         
         //TODO, special case solution when all weights are the same, want to add general case as well
         Matrix V_inv = new DenseMatrix(N, N);
-        for(int i = 0; i < N; i++)
-            for(int j = 0; j < N; j++)
-            {
-                if(i == j)
-                    V_inv.set(i, j, (1.0-1.0/N)/N);
-                else
-                    V_inv.set(i, j, (0.0-1.0/N)/N);
+        for(int i = 0; i < N; i++) {
+          for (int j = 0; j < N; j++) {
+            if (i == j) {
+              V_inv.set(i, j, (1.0-1.0/N)/N);
+            } else {
+              V_inv.set(i, j, (0.0-1.0/N)/N);
             }
+          }
+        }
         
         double stressChange = Double.POSITIVE_INFINITY;
         double oldStress = stress(X_views, X_rowCache, delta, ex);
@@ -221,23 +225,24 @@ public class MDS implements VisualizationTransform
                     public void run()
                     {
                         //we need to set B correctly
-                        for (int i = ID; i < B.rows(); i += SystemInfo.LogicalCores)
-                            for (int j = i + 1; j < B.rows(); j++)
+                        for (int i = ID; i < B.rows(); i += SystemInfo.LogicalCores) {
+                          for (int j = i + 1; j < B.rows(); j++)
+                          {
+                            double d_ij = embedMetric.dist(i, j, X_views, X_rowCache);
+                            
+                            if(d_ij > 1e-5)//avoid creating silly huge values
                             {
-                                double d_ij = embedMetric.dist(i, j, X_views, X_rowCache);
-
-                                if(d_ij > 1e-5)//avoid creating silly huge values
-                                {
-                                    double b_ij = -delta.get(i, j)/d_ij;//-w_ij if we support weights in the future
-                                    B.set(i, j, b_ij);
-                                    B.set(j, i, b_ij);
-                                }
-                                else
-                                {
-                                    B.set(i, j, 0);
-                                    B.set(j, i, 0);
-                                }
+                              double b_ij = -delta.get(i, j)/d_ij;//-w_ij if we support weights in the future
+                              B.set(i, j, b_ij);
+                              B.set(j, i, b_ij);
                             }
+                            else
+                            {
+                              B.set(i, j, 0);
+                              B.set(j, i, 0);
+                            }
+                          }
+                        }
                         latch.countDown();
                     }
                 });
@@ -257,9 +262,11 @@ public class MDS implements VisualizationTransform
             for(int i = 0; i < B.rows(); i++)
             {   
                 B.set(i, i, 0);
-                for (int k = 0; k < B.cols(); k++)
-                    if (k != i)
-                        B.increment(i, i, -B.get(i, k));
+                for (int k = 0; k < B.cols(); k++) {
+                  if (k != i) {
+                    B.increment(i, i, -B.get(i, k));
+                  }
+                }
             }
             
 //            Matrix X_new = V_inv.multiply(B, ex).multiply(X, ex);
@@ -277,8 +284,9 @@ public class MDS implements VisualizationTransform
         }
         
         SimpleDataSet sds = new SimpleDataSet(new CategoricalData[0], targetSize);
-        for(Vec v : X_views)
-            sds.add(new DataPoint(v));
+        for(Vec v : X_views) {
+          sds.add(new DataPoint(v));
+        }
         return sds;
     }
     
@@ -335,8 +343,9 @@ public class MDS implements VisualizationTransform
     @Override
     public boolean setTargetDimension(int target)
     {
-        if(target < 1)
-            return false;
+        if(target < 1) {
+          return false;
+        }
         this.targetSize = target;
         return true;
     }

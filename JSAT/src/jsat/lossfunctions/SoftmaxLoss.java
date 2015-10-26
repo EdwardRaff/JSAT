@@ -24,19 +24,22 @@ public class SoftmaxLoss extends LogisticLoss implements LossMC
     @Override
     public void process(Vec pred, Vec processed)
     {
-        if(pred != processed)
-            pred.copyTo(processed);
+        if(pred != processed) {
+          pred.copyTo(processed);
+        }
         MathTricks.softmax(processed, false);
     }
 
     @Override
     public void deriv(Vec processed, Vec derivs, int y)
     {
-        for(int i = 0; i < processed.length(); i++)
-            if(i == y)
-                derivs.set(i, processed.get(i)-1);//-(1-p)
-            else
-                derivs.set(i, processed.get(i));//-(0-p)
+        for(int i = 0; i < processed.length(); i++) {
+          if (i == y) {
+            derivs.set(i, processed.get(i)-1);//-(1-p)
+          } else {
+            derivs.set(i, processed.get(i));//-(0-p)
+          }
+        }
     }
 
     @Override

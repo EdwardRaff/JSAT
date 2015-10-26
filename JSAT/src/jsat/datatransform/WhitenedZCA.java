@@ -63,8 +63,9 @@ public class WhitenedZCA extends WhitenedPCA implements InPlaceTransform
         double[] s = svd.getSingularValues();
         Vec diag = new DenseVector(s.length);
 
-        for(int i = 0; i < s.length; i++)
-            diag.set(i, 1.0/Math.sqrt(s[i]+regularization));
+        for(int i = 0; i < s.length; i++) {
+          diag.set(i, 1.0/Math.sqrt(s[i]+regularization));
+        }
         
         Matrix U = svd.getU();
         
@@ -151,8 +152,9 @@ public class WhitenedZCA extends WhitenedPCA implements InPlaceTransform
          */
         public void setRegularization(double reg)
         {
-            if(reg <= 0 || Double.isNaN(reg) || Double.isInfinite(reg))
-                throw new IllegalArgumentException("Regularization must be a positive value, not " + reg);
+            if(reg <= 0 || Double.isNaN(reg) || Double.isInfinite(reg)) {
+              throw new IllegalArgumentException("Regularization must be a positive value, not " + reg);
+            }
             this.reg = reg;
         }
 
@@ -169,8 +171,9 @@ public class WhitenedZCA extends WhitenedPCA implements InPlaceTransform
         @Override
         public DataTransform getTransform(DataSet dataset)
         {
-            if(autoReg)
-                return new WhitenedZCA(dataset);
+            if(autoReg) {
+              return new WhitenedZCA(dataset);
+            }
             return new WhitenedZCA(dataset, reg);
         }
 

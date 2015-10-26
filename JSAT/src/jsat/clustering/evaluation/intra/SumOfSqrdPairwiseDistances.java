@@ -83,8 +83,9 @@ public class SumOfSqrdPairwiseDistances implements IntraClusterEvaluation
             Vec mean = new DenseVector(X.get(0).length());
             for (int i = 0; i < dataSet.getSampleSize(); i++)
             {
-                if (designations[i] != clusterID)
-                    continue;
+                if (designations[i] != clusterID) {
+                  continue;
+                }
                 mean.mutableAdd(X.get(i));
                 N++;
             }
@@ -93,8 +94,9 @@ public class SumOfSqrdPairwiseDistances implements IntraClusterEvaluation
             List<Double> qi = dm.getQueryInfo(mean);
             for (int i = 0; i < dataSet.getSampleSize(); i++)
             {
-                if (designations[i] == clusterID)
-                    sum += Math.pow(dm.dist(i, mean, qi, X, cache), 2);
+                if (designations[i] == clusterID) {
+                  sum += Math.pow(dm.dist(i, mean, qi, X, cache), 2);
+                }
             }
 
             return sum;
@@ -103,14 +105,16 @@ public class SumOfSqrdPairwiseDistances implements IntraClusterEvaluation
 
         for (int i = 0; i < dataSet.getSampleSize(); i++)
         {
-            if (designations[i] != clusterID)
-                continue;
+            if (designations[i] != clusterID) {
+              continue;
+            }
             N++;
 
             for (int j = i + 1; j < dataSet.getSampleSize(); j++)
             {
-                if (designations[j] == clusterID)
-                    sum += 2*Math.pow(dm.dist(i, j, X, cache), 2);
+                if (designations[j] == clusterID) {
+                  sum += 2*Math.pow(dm.dist(i, j, X, cache), 2);
+                }
             }
         }
 

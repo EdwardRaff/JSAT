@@ -38,14 +38,16 @@ public class QuickSort
 
     protected static void vecswap(double[] x, int a, int b, int n)
     {
-        for (int i = 0; i < n; i++)
-            swap(x, a++, b++);
+        for (int i = 0; i < n; i++) {
+          swap(x, a++, b++);
+        }
     }
 
     protected static void vecswap(float[] x, int a, int b, int n)
     {
-        for (int i = 0; i < n; i++)
-            swap(x, a++, b++);
+        for (int i = 0; i < n; i++) {
+          swap(x, a++, b++);
+        }
     }
 
 
@@ -53,8 +55,9 @@ public class QuickSort
     {
         for (int i = 0; i < n; i++)
         {
-            for (List l : paired)
-                Collections.swap(l, a, b);
+            for (List l : paired) {
+              Collections.swap(l, a, b);
+            }
             swap(x, a++, b++);
         }
     }
@@ -63,8 +66,9 @@ public class QuickSort
     {
         for (int i = 0; i < n; i++)
         {
-            for (List l : paired)
-                Collections.swap(l, a, b);
+            for (List l : paired) {
+              Collections.swap(l, a, b);
+            }
             swap(x, a++, b++);
         }
     }
@@ -113,8 +117,9 @@ public class QuickSort
         double t = array[i];
         array[i] = array[j];
         array[j] = t;
-        for(List l : paired)
-            Collections.swap(l, i, j);
+        for(List l : paired) {
+          Collections.swap(l, i, j);
+        }
     }
 
         /**
@@ -129,8 +134,9 @@ public class QuickSort
         float t = array[i];
         array[i] = array[j];
         array[j] = t;
-        for(List l : paired)
-            Collections.swap(l, i, j);
+        for(List l : paired) {
+          Collections.swap(l, i, j);
+        }
     }
 
     /**
@@ -172,18 +178,21 @@ public class QuickSort
         {
             while (pb <= pc && x[pb] <= pivotValue)
             {
-                if (x[pb] == pivotValue)
-                    swap(x, pa++, pb);
+                if (x[pb] == pivotValue) {
+                  swap(x, pa++, pb);
+                }
                 pb++;
             }
             while (pc >= pb && x[pc] >= pivotValue)
             {
-                if (x[pc] == pivotValue)
-                    swap(x, pc, pd--);
+                if (x[pc] == pivotValue) {
+                  swap(x, pc, pd--);
+                }
                 pc--;
             }
-            if (pb > pc)
-                break;
+            if (pb > pc) {
+              break;
+            }
             swap(x, pb++, pc--);
         }
 
@@ -196,10 +205,12 @@ public class QuickSort
         vecswap(x, pb, pn - s, s);
 
         //recurse 
-        if ((s = pb - pa) > 1)
-            sort(x, a, a+s);
-        if ((s = pd - pc) > 1)
-            sort(x, pn - s, pn);
+        if ((s = pb - pa) > 1) {
+          sort(x, a, a+s);
+        }
+        if ((s = pd - pc) > 1) {
+          sort(x, pn - s, pn);
+        }
         
     }
 
@@ -211,9 +222,11 @@ public class QuickSort
      */
     public static void insertionSort(double[] x, int start, int end)
     {
-        for (int i = start; i < end; i++)
-            for (int j = i; j > start && x[j - 1] > x[j]; j--)
-                swap(x, j, j - 1);
+        for (int i = start; i < end; i++) {
+          for (int j = i; j > start && x[j - 1] > x[j]; j--) {
+            swap(x, j, j - 1);
+          }
+        }
     }
     
     /**
@@ -231,9 +244,11 @@ public class QuickSort
         int n = end-start;
         if (n < 7)/* Insertion sort on smallest arrays */
         {
-            for (int i = a; i < end; i++)
-                for (int j = i; j > a && x[j - 1] > x[j]; j--)
-                    swap(x, j, j - 1, paired);
+            for (int i = a; i < end; i++) {
+              for (int j = i; j > a && x[j - 1] > x[j]; j--) {
+                swap(x, j, j - 1, paired);
+              }
+            }
             return;
         }
         
@@ -258,18 +273,21 @@ public class QuickSort
         {
             while (pb <= pc && x[pb] <= pivotValue)
             {
-                if (x[pb] == pivotValue)
-                    swap(x, pa++, pb, paired);
+                if (x[pb] == pivotValue) {
+                  swap(x, pa++, pb, paired);
+                }
                 pb++;
             }
             while (pc >= pb && x[pc] >= pivotValue)
             {
-                if (x[pc] == pivotValue)
-                    swap(x, pc, pd--, paired);
+                if (x[pc] == pivotValue) {
+                  swap(x, pc, pd--, paired);
+                }
                 pc--;
             }
-            if (pb > pc)
-                break;
+            if (pb > pc) {
+              break;
+            }
             swap(x, pb++, pc--, paired);
         }
 
@@ -282,10 +300,12 @@ public class QuickSort
         vecswap(x, pb, pn - s, s, paired);
 
         //recurse 
-        if ((s = pb - pa) > 1)
-            sort(x, a, a+s, paired);
-        if ((s = pd - pc) > 1)
-            sort(x, pn - s, pn, paired);
+        if ((s = pb - pa) > 1) {
+          sort(x, a, a+s, paired);
+        }
+        if ((s = pd - pc) > 1) {
+          sort(x, pn - s, pn, paired);
+        }
         
     }
     
@@ -304,9 +324,11 @@ public class QuickSort
         int n = end-start;
         if (n < 7)/* Insertion sort on smallest arrays */
         {
-            for (int i = a; i < end; i++)
-                for (int j = i; j > a && x[j - 1] > x[j]; j--)
-                    swap(x, j, j - 1, paired);
+            for (int i = a; i < end; i++) {
+              for (int j = i; j > a && x[j - 1] > x[j]; j--) {
+                swap(x, j, j - 1, paired);
+              }
+            }
             return;
         }
         
@@ -331,18 +353,21 @@ public class QuickSort
         {
             while (pb <= pc && x[pb] <= pivotValue)
             {
-                if (x[pb] == pivotValue)
-                    swap(x, pa++, pb, paired);
+                if (x[pb] == pivotValue) {
+                  swap(x, pa++, pb, paired);
+                }
                 pb++;
             }
             while (pc >= pb && x[pc] >= pivotValue)
             {
-                if (x[pc] == pivotValue)
-                    swap(x, pc, pd--, paired);
+                if (x[pc] == pivotValue) {
+                  swap(x, pc, pd--, paired);
+                }
                 pc--;
             }
-            if (pb > pc)
-                break;
+            if (pb > pc) {
+              break;
+            }
             swap(x, pb++, pc--, paired);
         }
 
@@ -355,10 +380,12 @@ public class QuickSort
         vecswap(x, pb, pn - s, s, paired);
 
         //recurse 
-        if ((s = pb - pa) > 1)
-            sort(x, a, a+s, paired);
-        if ((s = pd - pc) > 1)
-            sort(x, pn - s, pn, paired);
+        if ((s = pb - pa) > 1) {
+          sort(x, a, a+s, paired);
+        }
+        if ((s = pd - pc) > 1) {
+          sort(x, pn - s, pn, paired);
+        }
         
     }
 }

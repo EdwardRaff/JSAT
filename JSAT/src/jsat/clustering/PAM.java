@@ -70,8 +70,9 @@ public class PAM extends KClustererBase
         this.dm = toCopy.dm.clone();
         this.rand = new XORWOW();
         this.seedSelection = toCopy.seedSelection;
-        if(toCopy.medoids != null)
-            this.medoids = Arrays.copyOf(toCopy.medoids, toCopy.medoids.length);
+        if(toCopy.medoids != null) {
+          this.medoids = Arrays.copyOf(toCopy.medoids, toCopy.medoids.length);
+        }
         this.storeMedoids = toCopy.storeMedoids;
         this.iterLimit = toCopy.iterLimit;
         this.repeats = toCopy.repeats;
@@ -187,8 +188,9 @@ public class PAM extends KClustererBase
                 final int medCandadate = i;
                 for(int j = 0; j < data.getSampleSize(); j++)
                 {
-                    if(j == i || assignments[j] != clusterID)
-                        continue;
+                    if(j == i || assignments[j] != clusterID) {
+                      continue;
+                    }
                     thisCandidateDistance += Math.pow(dm.dist(medCandadate, j, X, cacheAccel), 2);
                 }
                 
@@ -226,14 +228,16 @@ public class PAM extends KClustererBase
     @Override
     public int[] cluster(DataSet dataSet, int clusters, int[] designations)
     {
-        if(designations == null)
-            designations = new int[dataSet.getSampleSize()];
+        if(designations == null) {
+          designations = new int[dataSet.getSampleSize()];
+        }
         medoids = new int[clusters];
         
         cluster(dataSet, true, medoids, designations, null);
         
-        if(!storeMedoids)
-            medoids = null;
+        if(!storeMedoids) {
+          medoids = null;
+        }
         
         return designations;
     }
@@ -301,8 +305,9 @@ public class PAM extends KClustererBase
         double[] totDistances = new double[highK-lowK+1];
         
         BlockingQueue<ClusterWorker> workerQue = new ArrayBlockingQueue<ClusterWorker>(SystemInfo.LogicalCores);
-        for(int i = 0; i < SystemInfo.LogicalCores; i++)
-            workerQue.add(new ClusterWorker(dataSet, workerQue));
+        for(int i = 0; i < SystemInfo.LogicalCores; i++) {
+          workerQue.add(new ClusterWorker(dataSet, workerQue));
+        }
         
         int k = lowK;
         int received = 0;
@@ -348,8 +353,9 @@ public class PAM extends KClustererBase
             }
         }
         
-        if(maxChange < stats.getStandardDeviation()*2+stats.getMean())
-            maxChangeK = lowK;
+        if(maxChange < stats.getStandardDeviation()*2+stats.getMean()) {
+          maxChangeK = lowK;
+        }
         
         return cluster(dataSet, maxChangeK, designations);
     }

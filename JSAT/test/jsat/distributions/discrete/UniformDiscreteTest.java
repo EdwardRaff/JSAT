@@ -109,18 +109,20 @@ public class UniformDiscreteTest
             
             //its hard to get the right value for the probabilities right on the line, so lets nudge them a little to make sure we map to the right spot
             double val;
-            if(i == 0)
-                val = instance.invCdf(expected_7[i]*.99);
-            else
-                val = instance.invCdf(expected_7[i-1]+(expected_7[i]-expected_7[i-1])*0.95);
+            if(i == 0) {
+              val = instance.invCdf(expected_7[i]*.99);
+            } else {
+              val = instance.invCdf(expected_7[i-1]+(expected_7[i]-expected_7[i-1])*0.95);
+            }
             
             double expected;
-            if(testVals[i] >= instance.max())
-                expected = instance.max();
-            else if(testVals[i] <= instance.min())
-                expected = instance.min();
-            else
-                expected = testVals[i];
+            if(testVals[i] >= instance.max()) {
+              expected = instance.max();
+            } else if(testVals[i] <= instance.min()) {
+              expected = instance.min();
+            } else {
+              expected = testVals[i];
+            }
             assertEquals(expected, val, 1e-3);
         }
     }

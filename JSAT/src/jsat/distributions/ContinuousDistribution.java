@@ -40,8 +40,9 @@ public abstract class ContinuousDistribution extends Distribution
     public double logPdf(double x)
     {
         double pdf = pdf(x);
-        if(pdf <= 0)
-            return -Double.MAX_VALUE;
+        if(pdf <= 0) {
+          return -Double.MAX_VALUE;
+        }
         return Math.log(pdf);
     }
     
@@ -63,8 +64,9 @@ public abstract class ContinuousDistribution extends Distribution
     @Override
     public double invCdf(final double p)
     {
-        if (p < 0 || p > 1)
-            throw new ArithmeticException("Value of p must be in the range [0,1], not " + p);
+        if (p < 0 || p > 1) {
+          throw new ArithmeticException("Value of p must be in the range [0,1], not " + p);
+        }
         double a = getIntegrationMin();
         double b = getIntegrationMax();
 
@@ -157,10 +159,11 @@ public abstract class ContinuousDistribution extends Distribution
             for(int i = 0; i < 8; i++)
             {
                 double sqrt = Math.sqrt(-intMin);
-                if(pdf(sqrt) < 1e-5)
-                    intMin = -sqrt;
-                else
-                    break;//no more big steps
+                if(pdf(sqrt) < 1e-5) {
+                  intMin = -sqrt;
+                } else {
+                  break;//no more big steps
+                }
             }
             
             //keep going until it looks like we should switch signs
@@ -169,8 +172,9 @@ public abstract class ContinuousDistribution extends Distribution
                 intMin/=2;
             }
             
-            if(pdf(intMin) < 1e-5)//still?
-                intMin *=-1;
+            if(pdf(intMin) < 1e-5) {//still?
+              intMin *=-1;
+            }
             //ok, search positive... keep multiplying till we get there
             while(pdf(intMin) < 1e-5)
             {
@@ -191,10 +195,11 @@ public abstract class ContinuousDistribution extends Distribution
             for (int i = 0; i < 8; i++)
             {
                 double sqrt = Math.sqrt(intMax);
-                if (pdf(sqrt) < 1e-5)
-                    intMax = sqrt;
-                else
-                    break;//no more big steps
+                if (pdf(sqrt) < 1e-5) {
+                  intMax = sqrt;
+                } else {
+                  break;//no more big steps
+                }
             }
 
             //keep going until it looks like we should switch signs
@@ -203,8 +208,9 @@ public abstract class ContinuousDistribution extends Distribution
                 intMax /= 2;
             }
 
-            if (pdf(intMax) < 1e-5)//still?
-                intMax *= -1;
+            if (pdf(intMax) < 1e-5) {//still?
+              intMax *= -1;
+            }
             //ok, search negative... keep multiplying till we get there
             while (pdf(intMax) < 1e-5)
             {
@@ -227,8 +233,9 @@ public abstract class ContinuousDistribution extends Distribution
         
         sb.append(vars[0]).append(" = ").append(vals[0]);
         
-        for(int i  = 1; i < vars.length; i++)
-            sb.append(", ").append(vars[i]).append(" = ").append(vals[i]);
+        for(int i  = 1; i < vars.length; i++) {
+          sb.append(", ").append(vars[i]).append(" = ").append(vals[i]);
+        }
         
         sb.append(")");
         

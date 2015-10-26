@@ -34,12 +34,13 @@ public class SoftSignLayer implements ActivationLayer
     @Override
     public void activate(Matrix input, Matrix output, boolean rowMajor)
     {
-        for(int i = 0; i < input.rows(); i++)
-            for(int j = 0; j < input.cols(); j++)
-            {
-                double in_ij = input.get(i, j);
-                output.set(i, j, in_ij/(1.0+Math.abs(in_ij)));
-            }
+        for(int i = 0; i < input.rows(); i++) {
+          for(int j = 0; j < input.cols(); j++)
+          {
+            double in_ij = input.get(i, j);
+            output.set(i, j, in_ij/(1.0+Math.abs(in_ij)));
+          }
+        }
     }
     
     @Override
@@ -56,13 +57,14 @@ public class SoftSignLayer implements ActivationLayer
     @Override
     public void backprop(Matrix input, Matrix output, Matrix delta_partial, Matrix errout, boolean rowMajor)
     {
-        for(int i = 0; i < input.rows(); i++)
-            for (int j = 0; j < input.cols(); j++)
-            {
-                double tmp_ij = (1 - Math.abs(output.get(i, j)));
-                double errin_ij = delta_partial.get(i, j);
-                errout.set(i, j, tmp_ij*tmp_ij*errin_ij);
-            }
+        for(int i = 0; i < input.rows(); i++) {
+          for (int j = 0; j < input.cols(); j++)
+          {
+            double tmp_ij = (1 - Math.abs(output.get(i, j)));
+            double errin_ij = delta_partial.get(i, j);
+            errout.set(i, j, tmp_ij*tmp_ij*errin_ij);
+          }
+        }
     }
 
     @Override

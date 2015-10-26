@@ -70,8 +70,9 @@ public class ConcatenatedVecTest
     public void testGet()
     {
         System.out.println("get");
-        for(int i = 0; i < dvec.length(); i++)
-            assertEquals(dvec.get(i), cvec.get(i), 0.0);
+        for(int i = 0; i < dvec.length(); i++) {
+          assertEquals(dvec.get(i), cvec.get(i), 0.0);
+        }
         
         try
         {
@@ -99,8 +100,9 @@ public class ConcatenatedVecTest
             cvec.set(i, nv);
         }
         
-        for(int i = 0; i < dvec.length(); i++)
-            assertEquals(dvec.get(i), cvec.get(i), 0.0);
+        for(int i = 0; i < dvec.length(); i++) {
+          assertEquals(dvec.get(i), cvec.get(i), 0.0);
+        }
     }
     
     @Test
@@ -108,8 +110,9 @@ public class ConcatenatedVecTest
     {
         System.out.println("mutableAdd");
         cvec.mutableAdd(-1, dvec);
-        for(int i = 0; i < dvec.length(); i++)
-            assertEquals(0.0, cvec.get(i), 0.0);
+        for(int i = 0; i < dvec.length(); i++) {
+          assertEquals(0.0, cvec.get(i), 0.0);
+        }
     }
     
     @Test
@@ -156,10 +159,12 @@ public class ConcatenatedVecTest
         System.out.println("clone");
         ConcatenatedVec cloned = cvec.clone();
         cvec.mutableAdd(-1, dvec);
-        for(int i = 0; i < dvec.length(); i++)
-            assertEquals(0.0, cvec.get(i), 0.0);
+        for(int i = 0; i < dvec.length(); i++) {
+          assertEquals(0.0, cvec.get(i), 0.0);
+        }
         
-        for(int i = 0; i < dvec.length(); i++)
-            assertEquals(dvec.get(i), cloned.get(i), 0.0);
+        for(int i = 0; i < dvec.length(); i++) {
+          assertEquals(dvec.get(i), cloned.get(i), 0.0);
+        }
     }
 }

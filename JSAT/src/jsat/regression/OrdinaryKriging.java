@@ -93,8 +93,9 @@ public class OrdinaryKriging implements Regressor, Parameterized
         Vec x = data.getNumericalValues();
         int npt = X.length()-1;
         double[] distVals = new double[npt+1];
-        for (int i = 0; i < npt; i++)
-            distVals[i] = vari.val(x.pNormDist(2, dataSet.getDataPoint(i).getNumericalValues()));
+        for (int i = 0; i < npt; i++) {
+          distVals[i] = vari.val(x.pNormDist(2, dataSet.getDataPoint(i).getNumericalValues()));
+        }
         distVals[npt] = 1.0;
        
         return X.dot(toDenseVec(distVals));
@@ -117,19 +118,22 @@ public class OrdinaryKriging implements Regressor, Parameterized
         
         vari.train(dataSet, nugget);
         
-        if(threadPool == null)
-            setUpVectorMatrix(N, dataSet, V, Y);
-        else
-            setUpVectorMatrix(N, dataSet, V, Y, threadPool);
+        if(threadPool == null) {
+          setUpVectorMatrix(N, dataSet, V, Y);
+        } else {
+          setUpVectorMatrix(N, dataSet, V, Y, threadPool);
+        }
         
-        for(int i = 0; i < N; i++)
-            V.increment(i, i, -errorSqrd);
+        for(int i = 0; i < N; i++) {
+          V.increment(i, i, -errorSqrd);
+        }
         
         LUPDecomposition lup;
-        if(threadPool == null)
-            lup = new LUPDecomposition(V);
-        else
-            lup = new LUPDecomposition(V, threadPool);
+        if(threadPool == null) {
+          lup = new LUPDecomposition(V);
+        } else {
+          lup = new LUPDecomposition(V, threadPool);
+        }
         
         X = lup.solve(Y);
         if(Double.isNaN(lup.det()) || Math.abs(lup.det()) < 1e-5)
@@ -195,8 +199,9 @@ public class OrdinaryKriging implements Regressor, Parameterized
         
         V.set(N, N, 0);
         
-        while(pos++ < SystemInfo.LogicalCores)
-            latch.countDown();
+        while(pos++ < SystemInfo.LogicalCores) {
+          latch.countDown();
+        }
         
         try
         {
@@ -227,10 +232,12 @@ public class OrdinaryKriging implements Regressor, Parameterized
         
         clone.setMeasurementError(getMeasurementError());
         clone.setNugget(getNugget());
-        if(this.X != null)
-            clone.X = this.X.clone();
-        if(this.dataSet != null)
-            clone.dataSet = this.dataSet;
+        if(this.X != null) {
+          clone.X = this.X.clone();
+        }
+        if(this.dataSet != null) {
+          clone.dataSet = this.dataSet;
+        }
         
         return clone;
     }
@@ -276,8 +283,9 @@ public class OrdinaryKriging implements Regressor, Parameterized
      */
     public void setNugget(double nugget)
     {
-        if(nugget < 0 || Double.isNaN(nugget) || Double.isInfinite(nugget))
-            throw new ArithmeticException("Nugget must be a positive value");
+        if(nugget < 0 || Double.isNaN(nugget) || Double.isInfinite(nugget)) {
+          throw new ArithmeticException("Nugget must be a positive value");
+        }
         this.nugget = nugget;
     }
 

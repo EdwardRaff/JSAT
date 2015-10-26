@@ -81,8 +81,9 @@ public abstract class ClassificationHashedTextDataLoader extends HashedTextDataL
      */
     protected void addOriginalDocument(String text, int label)
     {
-        if(label >= labelInfo.getNumOfCategories())
-            throw new RuntimeException("Invalid label given");
+        if(label >= labelInfo.getNumOfCategories()) {
+          throw new RuntimeException("Invalid label given");
+        }
         super.addOriginalDocument(text);
         classLabels.add(label);
     }
@@ -100,8 +101,9 @@ public abstract class ClassificationHashedTextDataLoader extends HashedTextDataL
         ClassificationDataSet cds = 
                 new ClassificationDataSet(vectors.get(0).length(), 
                 new CategoricalData[]{}, labelInfo);
-        for(int i = 0; i < vectors.size(); i++)
-            cds.addDataPoint(vectors.get(i), new int[]{}, classLabels.get(i));
+        for(int i = 0; i < vectors.size(); i++) {
+          cds.addDataPoint(vectors.get(i), new int[]{}, classLabels.get(i));
+        }
         
         return cds;
     }

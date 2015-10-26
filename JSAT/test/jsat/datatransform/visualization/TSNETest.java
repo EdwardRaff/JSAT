@@ -105,19 +105,22 @@ public class TSNETest
         Matrix proj_data = orig_dim.multiply(s);
         
         SimpleDataSet proj = new SimpleDataSet(new CategoricalData[0], proj_data.cols());
-        for(int i = 0; i < proj_data.rows(); i++)
-            proj.add(new DataPoint(proj_data.getRow(i)));
+        for(int i = 0; i < proj_data.rows(); i++) {
+          proj.add(new DataPoint(proj_data.getRow(i)));
+        }
         
         List<Set<Integer>> origNNs = new ArrayList<Set<Integer>>();
         VectorArray<VecPaired<Vec, Integer>> proj_vc = new VectorArray<VecPaired<Vec, Integer>>(new EuclideanDistance());
-        for(int i = 0; i < proj.getSampleSize(); i++)
-            proj_vc.add(new VecPaired<Vec, Integer>(proj.getDataPoint(i).getNumericalValues(), i));
+        for(int i = 0; i < proj.getSampleSize(); i++) {
+          proj_vc.add(new VecPaired<Vec, Integer>(proj.getDataPoint(i).getNumericalValues(), i));
+        }
         
         for(int i = 0; i < proj.getSampleSize(); i++)
         {
             Set<Integer> nns = new HashSet<Integer>();
-            for(VecPaired<VecPaired<Vec, Integer>, Double> neighbor : proj_vc.search(proj_vc.get(i), K))
-                nns.add(neighbor.getVector().getPair());
+            for(VecPaired<VecPaired<Vec, Integer>, Double> neighbor : proj_vc.search(proj_vc.get(i), K)) {
+              nns.add(neighbor.getVector().getPair());
+            }
             origNNs.add(nns);
         }
         
@@ -129,14 +132,17 @@ public class TSNETest
         {
             double sameNN = 0;
             VectorArray<VecPaired<Vec, Integer>> trans_vc = new VectorArray<VecPaired<Vec, Integer>>(new EuclideanDistance());
-            for (int i = 0; i < transformed.getSampleSize(); i++)
-                trans_vc.add(new VecPaired<Vec, Integer>(transformed.getDataPoint(i).getNumericalValues(), i));
+            for (int i = 0; i < transformed.getSampleSize(); i++) {
+              trans_vc.add(new VecPaired<Vec, Integer>(transformed.getDataPoint(i).getNumericalValues(), i));
+            }
 
             for(int i = 0; i < orig_dim.rows(); i++)
             {
-                for(VecPaired<VecPaired<Vec, Integer>, Double> neighbor : trans_vc.search(trans_vc.get(i), K*3))
-                    if(origNNs.get(i).contains(neighbor.getVector().getPair()))
-                        sameNN++;
+                for(VecPaired<VecPaired<Vec, Integer>, Double> neighbor : trans_vc.search(trans_vc.get(i), K*3)) {
+                  if (origNNs.get(i).contains(neighbor.getVector().getPair())) {
+                    sameNN++;
+                  }
+                }
             }
             
             double score = sameNN/(transformed.getSampleSize()*K);

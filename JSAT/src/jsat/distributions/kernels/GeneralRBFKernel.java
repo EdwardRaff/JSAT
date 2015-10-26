@@ -56,8 +56,9 @@ public class GeneralRBFKernel extends DistanceMetricBasedKernel
      */
     public void setSigma(double sigma)
     {
-        if(sigma <= 0 || Double.isNaN(sigma) || Double.isInfinite(sigma))
-            throw new IllegalArgumentException("Sigma must be a positive constant, not " + sigma);
+        if(sigma <= 0 || Double.isNaN(sigma) || Double.isInfinite(sigma)) {
+          throw new IllegalArgumentException("Sigma must be a positive constant, not " + sigma);
+        }
         this.sigma = sigma;
         this.sigmaSqrd2Inv = 0.5/(sigma*sigma);
     }
@@ -127,8 +128,9 @@ public class GeneralRBFKernel extends DistanceMetricBasedKernel
         List<Vec> allVecs = d.getDataVectors();
 
         int toSample = d.getSampleSize();
-        if (toSample > 5000)
-            toSample = 5000 + (int) Math.floor(Math.sqrt(d.getSampleSize() - 5000));
+        if (toSample > 5000) {
+          toSample = 5000 + (int) Math.floor(Math.sqrt(d.getSampleSize() - 5000));
+        }
 
         DoubleList vals = new DoubleList(toSample*toSample);
 
@@ -144,29 +146,35 @@ public class GeneralRBFKernel extends DistanceMetricBasedKernel
             for (int i = 0; i < randOrder.size(); i++)
             {
                 int indx = randOrder.getI(i);
-                if (cdata.getDataPointCategory(indx) == 0 && class0.size() < toSample / 2)
-                    class0.add(cdata.getDataPoint(indx).getNumericalValues());
-                else if (cdata.getDataPointCategory(indx) == 1 && class0.size() < toSample / 2)
-                    class1.add(cdata.getDataPoint(indx).getNumericalValues());
+                if (cdata.getDataPointCategory(indx) == 0 && class0.size() < toSample / 2) {
+                  class0.add(cdata.getDataPoint(indx).getNumericalValues());
+                } else if (cdata.getDataPointCategory(indx) == 1 && class0.size() < toSample / 2) {
+                  class1.add(cdata.getDataPoint(indx).getNumericalValues());
+                }
             }
 
             int j_start = class0.size();
             class0.addAll(class1);
             List<Double> cache = dist.getAccelerationCache(class0);
-            for (int i = 0; i < j_start; i++)
-                for (int j = j_start; j < class0.size(); j++)
-                    vals.add(dist.dist(i, j, allVecs, cache));
+            for (int i = 0; i < j_start; i++) {
+              for (int j = j_start; j < class0.size(); j++) {
+                vals.add(dist.dist(i, j, allVecs, cache));
+              }
+            }
         }
         else
         {
             Collections.shuffle(allVecs);
-            if (d.getSampleSize() > 5000)
-                allVecs = allVecs.subList(0, toSample);
+            if (d.getSampleSize() > 5000) {
+              allVecs = allVecs.subList(0, toSample);
+            }
 
             List<Double> cache = dist.getAccelerationCache(allVecs);
-            for (int i = 0; i < allVecs.size(); i++)
-                for (int j = i + 1; j < allVecs.size(); j++)
-                    vals.add(dist.dist(i, j, allVecs, cache));
+            for (int i = 0; i < allVecs.size(); i++) {
+              for (int j = i + 1; j < allVecs.size(); j++) {
+                vals.add(dist.dist(i, j, allVecs, cache));
+              }
+            }
         }
         
         Collections.sort(vals);

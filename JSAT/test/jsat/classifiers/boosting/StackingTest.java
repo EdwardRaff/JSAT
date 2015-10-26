@@ -73,8 +73,9 @@ public class StackingTest
         
         ClassificationDataSet test = FixedProblems.get2ClassLinear(200, new Random());
         
-        for(DataPointPair<Integer> dpp : test.getAsDPPList())
-            assertEquals(dpp.getPair().longValue(), stacking.classify(dpp.getDataPoint()).mostLikely());
+        for(DataPointPair<Integer> dpp : test.getAsDPPList()) {
+          assertEquals(dpp.getPair().longValue(), stacking.classify(dpp.getDataPoint()).mostLikely());
+        }
     }
     
     @Test
@@ -92,8 +93,9 @@ public class StackingTest
         
         ClassificationDataSet test = FixedProblems.get2ClassLinear(200, new Random());
         
-        for(DataPointPair<Integer> dpp : test.getAsDPPList())
-            assertEquals(dpp.getPair().longValue(), stacking.classify(dpp.getDataPoint()).mostLikely());
+        for(DataPointPair<Integer> dpp : test.getAsDPPList()) {
+          assertEquals(dpp.getPair().longValue(), stacking.classify(dpp.getDataPoint()).mostLikely());
+        }
     }
     
     @Test
@@ -109,8 +111,9 @@ public class StackingTest
         
         ClassificationDataSet test = FixedProblems.getSimpleKClassLinear(200, 6, new Random());
         
-        for(DataPointPair<Integer> dpp : test.getAsDPPList())
-            assertEquals(dpp.getPair().longValue(), stacking.classify(dpp.getDataPoint()).mostLikely());
+        for(DataPointPair<Integer> dpp : test.getAsDPPList()) {
+          assertEquals(dpp.getPair().longValue(), stacking.classify(dpp.getDataPoint()).mostLikely());
+        }
     }
     
     @Test
@@ -128,8 +131,9 @@ public class StackingTest
         
         ClassificationDataSet test = FixedProblems.getSimpleKClassLinear(200, 6, new Random());
         
-        for(DataPointPair<Integer> dpp : test.getAsDPPList())
-            assertEquals(dpp.getPair().longValue(), stacking.classify(dpp.getDataPoint()).mostLikely());
+        for(DataPointPair<Integer> dpp : test.getAsDPPList()) {
+          assertEquals(dpp.getPair().longValue(), stacking.classify(dpp.getDataPoint()).mostLikely());
+        }
     }
     
     @Test

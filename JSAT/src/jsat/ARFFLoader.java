@@ -68,8 +68,9 @@ public class ARFFLoader
             boolean atData = false;
             while( (line = br.readLine()) != null )
             {
-                if(line.startsWith("%") || line.trim().isEmpty())
-                    continue;///Its a comment, skip
+                if(line.startsWith("%") || line.trim().isEmpty()) {
+                  continue;///Its a comment, skip
+                }
                 
                 line = line.trim();
                 
@@ -89,8 +90,9 @@ public class ARFFLoader
                             {
                                 categoricalData[k] = new CategoricalData(catVals.get(i).size());
                                 categoricalData[k].setCategoryName(variableNames.get(i));
-                                for(Entry<String, Integer> entry : catVals.get(i).entrySet())
-                                    categoricalData[k].setOptionName(entry.getKey(), entry.getValue());
+                                for(Entry<String, Integer> entry : catVals.get(i).entrySet()) {
+                                  categoricalData[k].setOptionName(entry.getKey(), entry.getValue());
+                                }
                                 k++;
                             }
                         }
@@ -98,8 +100,9 @@ public class ARFFLoader
                         atData = true;
                         continue;
                     }
-                    else if(!line.toLowerCase().startsWith("attribute"))
-                        continue;
+                    else if(!line.toLowerCase().startsWith("attribute")) {
+                      continue;
+                    }
                     numOfVars++;
                     line = line.substring("attribute".length()).trim();//Remove the space, it could be multiple spaces
                     
@@ -114,8 +117,9 @@ public class ARFFLoader
                                 
                         line = line.replaceFirst("'.+?'", "placeHolder");
                     }
-                    else
-                        variableName = nameTrim(line.trim().replaceAll("\\s+.*", ""));
+                    else {
+                      variableName = nameTrim(line.trim().replaceAll("\\s+.*", ""));
+                    }
                     variableNames.add(variableName);
                     String[] tmp = line.split("\\s+", 2);
                     
@@ -130,8 +134,9 @@ public class ARFFLoader
                     {
                         isReal.add(false);
                         String cats = tmp[1].replace("{", "").replace("}", "").trim();
-                        if(cats.endsWith(","))
-                            cats = cats.substring(0, cats.length()-1);
+                        if(cats.endsWith(",")) {
+                          cats = cats.substring(0, cats.length()-1);
+                        }
                         String[] catValsRaw =  cats.split(",");
                         HashMap<String, Integer> tempMap = new HashMap<String, Integer>();
                         for(int i = 0; i < catValsRaw.length; i++)
@@ -144,8 +149,9 @@ public class ARFFLoader
                 }
                 else if(atData && !line.isEmpty())
                 {
-                    if(line.contains("?"))//We dont handle missing data
-                        continue;
+                    if(line.contains("?")) {//We dont handle missing data
+                      continue;
+                    }
                     double weight = 1.0;
                     String[] tmp = line.split(",");
                     if(tmp.length != isReal.size())
@@ -153,8 +159,9 @@ public class ARFFLoader
                         String s = tmp[isReal.size()];
                         if(tmp.length == isReal.size()+1)//{#} means the # is the weight
                         {
-                            if(!s.matches("\\{\\d+(\\.\\d+)?\\}"))
-                                throw new RuntimeException("extra column must indicate a data point weigh in the form of \"{#}\", instead bad token " + s + " was found");
+                            if(!s.matches("\\{\\d+(\\.\\d+)?\\}")) {
+                              throw new RuntimeException("extra column must indicate a data point weigh in the form of \"{#}\", instead bad token " + s + " was found");
+                            }
                             weight = Double.parseDouble(s.substring(1, s.length()-1));
                         }
                         else
@@ -169,9 +176,9 @@ public class ARFFLoader
                     int k = 0;//Keeping track of position in cats
                     for(int i  = 0; i < isReal.size(); i++)
                     {
-                        if(isReal.get(i))
-                            vec.set(i - k, Double.parseDouble(tmp[i].trim()));
-                        else//Categorical
+                        if(isReal.get(i)) {
+                          vec.set(i - k, Double.parseDouble(tmp[i].trim()));
+                        } else//Categorical
                         {
                             tmp[i] = nameTrim(tmp[i]);
                             cats[k++] = catVals.get(i).get(tmp[i].trim().toLowerCase());
@@ -189,9 +196,11 @@ public class ARFFLoader
         
         SimpleDataSet dataSet =  new SimpleDataSet(list);
         int k = 0;
-        for (int i = 0; i < isReal.size(); i++)
-            if (isReal.get(i))
-                dataSet.setNumericName(variableNames.get(k), k++);
+        for (int i = 0; i < isReal.size(); i++) {
+          if (isReal.get(i)) {
+            dataSet.setNumericName(variableNames.get(k), k++);
+          }
+        }
         
         return dataSet;
     }
@@ -228,10 +237,12 @@ public class ARFFLoader
             String name = data.getNumericName(i);
             writer.write("@attribute " + (name == null ? "num" + i : name.replaceAll("\\s+", "-")) + " NUMERIC\n");
         }
-        if(data instanceof ClassificationDataSet)//also write out class variable
-            writeCatVar(writer, ((ClassificationDataSet)data).getPredicting());
-        if(data instanceof RegressionDataSet)
-            writer.write("@ATTRIBUTE target NUMERIC\n");
+        if(data instanceof ClassificationDataSet) {//also write out class variable
+          writeCatVar(writer, ((ClassificationDataSet)data).getPredicting());
+        }
+        if(data instanceof RegressionDataSet) {
+          writer.write("@ATTRIBUTE target NUMERIC\n");
+        }
         writer.write("@DATA\n");
         for(int row = 0; row < data.getSampleSize(); row++)
         {
@@ -240,8 +251,9 @@ public class ARFFLoader
             //cat vars first
             for(int i = 0; i < catInfo.length; i++)
             {
-                if(!firstFeature)
-                    writer.write(",");
+                if(!firstFeature) {
+                  writer.write(",");
+                }
                 firstFeature = false;
                 writer.write(addQuotes(catInfo[i].getOptionName(dp.getCategoricalValue(i))));
             }
@@ -249,23 +261,26 @@ public class ARFFLoader
             Vec v = dp.getNumericalValues();
             for(int i = 0; i < v.length(); i++)
             {
-                if(!firstFeature)
-                    writer.write(",");
+                if(!firstFeature) {
+                  writer.write(",");
+                }
                 firstFeature = false;
                 writer.write(Double.toString(v.get(i)));
             }
             if (data instanceof ClassificationDataSet)//also write out class variable
             {
-                if(!firstFeature)
-                    writer.write(",");
+                if(!firstFeature) {
+                  writer.write(",");
+                }
                 firstFeature = false;
                 ClassificationDataSet cdata = (ClassificationDataSet) data;
                 writer.write(addQuotes(cdata.getPredicting().getOptionName(cdata.getDataPointCategory(row))));
             }
             if (data instanceof RegressionDataSet)
             {
-                if(!firstFeature)
-                    writer.write(",");
+                if(!firstFeature) {
+                  writer.write(",");
+                }
                 firstFeature = false;
                 writer.write(Double.toString(((RegressionDataSet)data).getTargetValue(row)));
             }
@@ -276,10 +291,11 @@ public class ARFFLoader
     
     private static String addQuotes(String string)
     {
-        if(string.contains(" "))
-            return "\"" + string + "\"";
-        else
-            return string;
+        if(string.contains(" ")) {
+          return "\"" + string + "\"";
+        } else {
+          return string;
+        }
     }
 
     private static void writeCatVar(PrintWriter writer, CategoricalData cate)
@@ -287,8 +303,9 @@ public class ARFFLoader
         writer.write("@ATTRIBUTE " + cate.getCategoryName().replaceAll("\\s+", "-") + " {" );
         for(int i = 0; i < cate.getNumOfCategories(); i++)
         {
-            if(i != 0)
-                writer.write(",");
+            if(i != 0) {
+              writer.write(",");
+            }
             writer.write(addQuotes(cate.getOptionName(i)));
         }
         writer.write("}\n");
@@ -303,10 +320,12 @@ public class ARFFLoader
     private static String nameTrim(String in)
     {
         in = in.trim();
-        if(in.startsWith("'") || in.startsWith("\""))
-            in = in.substring(1);
-        if(in.endsWith("'") || in.startsWith("\""))
-            in = in.substring(0, in.length()-1);
+        if(in.startsWith("'") || in.startsWith("\"")) {
+          in = in.substring(1);
+        }
+        if(in.endsWith("'") || in.startsWith("\"")) {
+          in = in.substring(0, in.length()-1);
+        }
         return in.trim();
     }
 }

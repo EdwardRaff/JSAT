@@ -81,8 +81,9 @@ public class LinearL1SCD extends StochasticSTLinearL1
     @Override
     public CategoricalResults classify(DataPoint data)
     {
-        if(w == null)
-            throw new UntrainedModelException("Model has not been trained");
+        if(w == null) {
+          throw new UntrainedModelException("Model has not been trained");
+        }
         Vec x = data.getNumericalValues();
         return loss.classify(wDot(x));
     }
@@ -90,8 +91,9 @@ public class LinearL1SCD extends StochasticSTLinearL1
     @Override
     public double regress(DataPoint data)
     {
-        if(w == null)
-            throw new UntrainedModelException("Model has not been trained");
+        if(w == null) {
+          throw new UntrainedModelException("Model has not been trained");
+        }
         Vec x = data.getNumericalValues();
         return loss.regress(wDot(x));
     }
@@ -105,28 +107,29 @@ public class LinearL1SCD extends StochasticSTLinearL1
      */
     private void featureScaleCheck(Vec[] featureVals, int m) throws FailedToFitException
     {
-        if(reScale)
-            for(int j = 0; j < featureVals.length; j++)
+        if(reScale) {
+          for (int j = 0; j < featureVals.length; j++) {
+            if(obvMin[j] == 0 && minScaled == 0)//We can skip 1st and last step
             {
-                if(obvMin[j] == 0 && minScaled == 0)//We can skip 1st and last step
-                {
-                    featureVals[j].mutableMultiply(maxScaled/obvMax[j]);
-                }
-                else//do all steps
-                {
-                    featureVals[j].mutableSubtract(obvMin[j]);
-                    featureVals[j].mutableMultiply((maxScaled-minScaled)/(obvMax[j]-obvMin[j]));
-                    featureVals[j].mutableAdd(minScaled);
-                }
-                //If we are not sparse enough after re-scaling, transform back
-                if(featureVals[j].isSparse() && featureVals[j].nnz() > m*0.75)
-                    featureVals[j] = new DenseVector(featureVals[j]);
-                
+              featureVals[j].mutableMultiply(maxScaled/obvMax[j]);
             }
-        else //Check for violations
-            for(int j = 0; j < obvMin.length; j++)
-                if(obvMax[j] > 1 || obvMin[j] < -1)
-                    throw new FailedToFitException("All feature values must be in the range [-1,1]");
+            else//do all steps
+            {
+              featureVals[j].mutableSubtract(obvMin[j]);
+              featureVals[j].mutableMultiply((maxScaled-minScaled)/(obvMax[j]-obvMin[j]));
+              featureVals[j].mutableAdd(minScaled);
+            }
+            if (featureVals[j].isSparse() && featureVals[j].nnz() > m*0.75) {
+              featureVals[j] = new DenseVector(featureVals[j]);
+            }
+          }
+        } else {
+          for (int j = 0; j < obvMin.length; j++) {
+            if (obvMax[j] > 1 || obvMin[j] < -1) {
+              throw new FailedToFitException("All feature values must be in the range [-1,1]");
+            }
+          }
+        }
     }
 
     private void setUpFeatureVals(Vec[] featureVals, boolean sparse, int m, DataSet dataSet)
@@ -136,10 +139,12 @@ public class LinearL1SCD extends StochasticSTLinearL1
         Arrays.fill(obvMin, Double.POSITIVE_INFINITY);
         obvMax = new double[featureVals.length];
         Arrays.fill(obvMax, Double.NEGATIVE_INFINITY);
-        for(int i = 0; i < featureVals.length; i++)
-            featureVals[i] = sparse ? new SparseVector(m) : new DenseVector(m);
-        if(sparse)
-            Arrays.fill(obvMin, 0.0);
+        for(int i = 0; i < featureVals.length; i++) {
+          featureVals[i] = sparse ? new SparseVector(m) : new DenseVector(m);
+        }
+        if(sparse) {
+          Arrays.fill(obvMin, 0.0);
+        }
         
         for(int i = 0; i < dataSet.getSampleSize(); i++)
         {
@@ -168,16 +173,18 @@ public class LinearL1SCD extends StochasticSTLinearL1
         int m = dataSet.getSampleSize();
         
         Vec[] featureVals = new Vec[dataSet.getNumNumericalVars()];
-        for(int i = 0; i < featureVals.length; i++)
-            featureVals[i] = sparse ? new SparseVector(m) : new DenseVector(m);
+        for(int i = 0; i < featureVals.length; i++) {
+          featureVals[i] = sparse ? new SparseVector(m) : new DenseVector(m);
+        }
         
         setUpFeatureVals(featureVals, sparse, m, dataSet);
         
         featureScaleCheck(featureVals, m);
         
         double[] target = new double[m];
-        for(int i = 0; i < dataSet.getSampleSize(); i++)
-            target[i] = dataSet.getTargetValue(i);
+        for(int i = 0; i < dataSet.getSampleSize(); i++) {
+          target[i] = dataSet.getTargetValue(i);
+        }
         
         train(featureVals, target);
     }
@@ -191,8 +198,9 @@ public class LinearL1SCD extends StochasticSTLinearL1
     @Override
     public void trainC(ClassificationDataSet dataSet)
     {
-        if(dataSet.getClassSize() != 2)
-            throw new FailedToFitException("Only binary classification problems are supported");
+        if(dataSet.getClassSize() != 2) {
+          throw new FailedToFitException("Only binary classification problems are supported");
+        }
         boolean sparse = dataSet.getDataPoint(0).getNumericalValues().isSparse();
         int m = dataSet.getSampleSize();
         Vec[] featureVals = new Vec[dataSet.getNumNumericalVars()];
@@ -202,8 +210,9 @@ public class LinearL1SCD extends StochasticSTLinearL1
         featureScaleCheck(featureVals, m);
         
         double[] target = new double[m];
-        for(int i = 0; i < dataSet.getSampleSize(); i++)
-            target[i] = dataSet.getDataPointCategory(i)*2-1;
+        for(int i = 0; i < dataSet.getSampleSize(); i++) {
+          target[i] = dataSet.getDataPointCategory(i)*2-1;
+        }
 
         train(featureVals, target);
     }
@@ -238,31 +247,37 @@ public class LinearL1SCD extends StochasticSTLinearL1
             }
             else//Bias term update, all x[i]_j = 1
             {
-                for (int i = 0; i < target.length; i++)
-                    g += loss.deriv(z[i], target[i]);
+                for (int i = 0; i < target.length; i++) {
+                  g += loss.deriv(z[i], target[i]);
+                }
             }
             g /= m;
 
             double eta;
             double w_j = j == d ? bias : w.get(j);
-            if (w_j - g / beta > lambda / beta)
-                eta = -g / beta - lambda / beta;
-            else if (w_j - g / beta < -lambda / beta)
-                eta = -g / beta + lambda / beta;
-            else
-                eta = -w_j;
+            if (w_j - g / beta > lambda / beta) {
+              eta = -g / beta - lambda / beta;
+            } else if (w_j - g / beta < -lambda / beta) {
+              eta = -g / beta + lambda / beta;
+            } else {
+              eta = -w_j;
+            }
 
-            if (j < d)
-                w.increment(j, eta);
-            else
-                bias += eta;
+            if (j < d) {
+              w.increment(j, eta);
+            } else {
+              bias += eta;
+            }
 
-            if (j < d)
-                for (IndexValue iv : featureVals[j])
-                    z[iv.getIndex()] += eta * iv.getValue();
-            else//Bias update, all x[i]_j = 1
-                for (int i = 0; i < target.length; i++)
-                    z[i] += eta;
+            if (j < d) {
+              for (IndexValue iv : featureVals[j]) {
+                z[iv.getIndex()] += eta * iv.getValue();
+              }
+            } else {
+              for (int i = 0; i < target.length; i++) {
+                z[i] += eta;
+              }
+            }
         }
     }
 
@@ -277,15 +292,18 @@ public class LinearL1SCD extends StochasticSTLinearL1
     {
         LinearL1SCD clone = new LinearL1SCD(epochs, lambda, loss, reScale);
         
-        if(this.w != null)
-            clone.w = this.w.clone();
+        if(this.w != null) {
+          clone.w = this.w.clone();
+        }
         clone.bias = this.bias;
         clone.minScaled = this.minScaled;
         clone.maxScaled = this.maxScaled;
-        if(this.obvMin != null)
-            clone.obvMin = Arrays.copyOf(this.obvMin, this.obvMin.length);
-        if(this.obvMax != null)
-            clone.obvMax = Arrays.copyOf(this.obvMax, this.obvMax.length);
+        if(this.obvMin != null) {
+          clone.obvMin = Arrays.copyOf(this.obvMin, this.obvMin.length);
+        }
+        if(this.obvMax != null) {
+          clone.obvMax = Arrays.copyOf(this.obvMax, this.obvMax.length);
+        }
         
         return clone;
     }

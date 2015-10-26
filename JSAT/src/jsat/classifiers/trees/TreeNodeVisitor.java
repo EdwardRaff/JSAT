@@ -114,8 +114,9 @@ public abstract class TreeNodeVisitor implements Serializable, Cloneable
         while(!node.isLeaf())
         {
             int path = node.getPath(dp);
-            if(node.isPathDisabled(path))
-                break;
+            if(node.isPathDisabled(path)) {
+              break;
+            }
             node = node.getChild(path);
         }
         return node.localClassify(dp);
@@ -148,8 +149,9 @@ public abstract class TreeNodeVisitor implements Serializable, Cloneable
         while(!node.isLeaf())
         {
             int path = node.getPath(dp);
-            if(node.isPathDisabled(path))
-                break;
+            if(node.isPathDisabled(path)) {
+              break;
+            }
             node = node.getChild(path);
         }
         return node.localRegress(dp);

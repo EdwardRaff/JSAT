@@ -51,8 +51,9 @@ public class PowerDecay implements DecayRate, Parameterized
      */
     public void setAlpha(double alpha)
     {
-        if(alpha < 0 || Double.isInfinite(alpha) || Double.isNaN(alpha))
-            throw new IllegalArgumentException("alpha must be a non negative constant, not " + alpha);
+        if(alpha < 0 || Double.isInfinite(alpha) || Double.isNaN(alpha)) {
+          throw new IllegalArgumentException("alpha must be a non negative constant, not " + alpha);
+        }
         this.alpha = alpha;
     }
 
@@ -74,8 +75,9 @@ public class PowerDecay implements DecayRate, Parameterized
      */
     public void setTau(double tau)
     {
-        if(tau <= 0 || Double.isInfinite(tau) || Double.isNaN(tau))
-            throw new IllegalArgumentException("tau must be a positive constant, not " + tau);
+        if(tau <= 0 || Double.isInfinite(tau) || Double.isNaN(tau)) {
+          throw new IllegalArgumentException("tau must be a positive constant, not " + tau);
+        }
         this.tau = tau;
     }
 

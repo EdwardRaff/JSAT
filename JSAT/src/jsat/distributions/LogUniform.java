@@ -58,10 +58,11 @@ public class LogUniform extends ContinuousDistribution
      */
     public void setMinMax(double min, double max)
     {
-        if(min <= 0 || Double.isNaN(min) || Double.isInfinite(min))
-            throw new IllegalArgumentException("min value must be positive, not " + min);
-        else if(min >= max || Double.isNaN(max) || Double.isInfinite(max))
-            throw new IllegalArgumentException("max (" + max + ") must be larger than min (" + min+")" );
+        if(min <= 0 || Double.isNaN(min) || Double.isInfinite(min)) {
+          throw new IllegalArgumentException("min value must be positive, not " + min);
+        } else if(min >= max || Double.isNaN(max) || Double.isInfinite(max)) {
+          throw new IllegalArgumentException("max (" + max + ") must be larger than min (" + min+")" );
+        }
         this.max = max;
         this.min = min;
         this.logMax = Math.log(max);
@@ -73,12 +74,13 @@ public class LogUniform extends ContinuousDistribution
     @Override
     public double pdf(double x)
     {
-        if(x < min)
-            return 0;
-        else if(x > max)
-            return 0;
-        else
-            return 1.0/(x*(logMax-logMin));
+        if(x < min) {
+          return 0;
+        } else if(x > max) {
+          return 0;
+        } else {
+          return 1.0/(x*(logMax-logMin));
+        }
     }
 
     @Override
@@ -102,10 +104,11 @@ public class LogUniform extends ContinuousDistribution
     @Override
     public void setVariable(String var, double value)
     {
-        if(var.equals("min"))
-            setMinMax(value, max);
-        else if(var.equals("max"))
-            setMinMax(min, value);
+        if(var.equals("min")) {
+          setMinMax(value, max);
+        } else if(var.equals("max")) {
+          setMinMax(min, value);
+        }
     }
 
     @Override
@@ -126,19 +129,21 @@ public class LogUniform extends ContinuousDistribution
     @Override
     public double cdf(double x)
     {
-        if(x < min)
-            return 0;
-        else if(x > max)
-            return 1;
-        else
-            return (Math.log(x)-logMin)/(logDiff);
+        if(x < min) {
+          return 0;
+        } else if(x > max) {
+          return 1;
+        } else {
+          return (Math.log(x)-logMin)/(logDiff);
+        }
     }
 
     @Override
     public double invCdf(double p)
     {
-        if(p < 0 || p > 1 || Double.isNaN(p))
-            throw new IllegalArgumentException("p must be in [0,1], not " + p);
+        if(p < 0 || p > 1 || Double.isNaN(p)) {
+          throw new IllegalArgumentException("p must be in [0,1], not " + p);
+        }
         return Math.exp(p*logMax-p*logMin)*min;
     }
 

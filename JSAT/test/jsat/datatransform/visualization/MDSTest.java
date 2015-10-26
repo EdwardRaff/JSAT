@@ -99,8 +99,9 @@ public class MDSTest
         Matrix proj_data = orig_dim.multiply(s);
         
         SimpleDataSet proj = new SimpleDataSet(new CategoricalData[0], proj_data.cols());
-        for(int i = 0; i < proj_data.rows(); i++)
-            proj.add(new DataPoint(proj_data.getRow(i)));
+        for(int i = 0; i < proj_data.rows(); i++) {
+          proj.add(new DataPoint(proj_data.getRow(i)));
+        }
         
         SimpleDataSet transformed_0 = instance.transform(proj, ex);
         SimpleDataSet transformed_1 = instance.transform(proj);
@@ -110,24 +111,22 @@ public class MDSTest
         
             EuclideanDistance dist = new EuclideanDistance();
 
-            for(int i = 0; i < orig_dim.rows(); i++)
-                for(int j = 0; j < orig_dim.rows(); j++)
-                {
-                    Vec orig_i = orig_dim.getRowView(i);
-                    Vec orig_j = orig_dim.getRowView(j);
-
-                    Vec new_i = transformed.getDataPoint(i).getNumericalValues();
-                    Vec new_j = transformed.getDataPoint(j).getNumericalValues();
-
-                    double d_o = dist.dist(orig_i, orig_j);
-                    double d_n = dist.dist(new_i, new_j);
-
-                    //assert the magnitudes are about the same
-                    if(d_o > 6)
-                        assertTrue(d_n > 6);
-                    else//do is small, we should also be small
-                        assertTrue(d_o < 2);
+            for(int i = 0; i < orig_dim.rows(); i++) {
+              for (int j = 0; j < orig_dim.rows(); j++) {
+                Vec orig_i = orig_dim.getRowView(i);
+                Vec orig_j = orig_dim.getRowView(j);
+                Vec new_i = transformed.getDataPoint(i).getNumericalValues();
+                Vec new_j = transformed.getDataPoint(j).getNumericalValues();
+                double d_o = dist.dist(orig_i, orig_j);
+                double d_n = dist.dist(new_i, new_j);
+                if (d_o > 6) {
+                  assertTrue(d_n > 6);
+                } else {
+                  //do is small, we should also be small
+                  assertTrue(d_o < 2);
                 }
+              }
+            }
         }
         
         ex.shutdown();

@@ -127,17 +127,20 @@ abstract public class TrainableDistanceMetric implements DistanceMetric
      */
     public static void trainIfNeeded(DistanceMetric dm, DataSet dataset)
     {
-        if(!(dm instanceof TrainableDistanceMetric))
-            return;
+        if(!(dm instanceof TrainableDistanceMetric)) {
+          return;
+        }
         TrainableDistanceMetric tdm = (TrainableDistanceMetric) dm;
-        if(!tdm.needsTraining())
-            return;
-        if(dataset instanceof RegressionDataSet)
-            tdm.train((RegressionDataSet) dataset);
-        else if(dataset instanceof ClassificationDataSet)
-            tdm.train((ClassificationDataSet) dataset);
-        else
-            tdm.train(dataset);
+        if(!tdm.needsTraining()) {
+          return;
+        }
+        if(dataset instanceof RegressionDataSet) {
+          tdm.train((RegressionDataSet) dataset);
+        } else if(dataset instanceof ClassificationDataSet) {
+          tdm.train((ClassificationDataSet) dataset);
+        } else {
+          tdm.train(dataset);
+        }
     }
     
     /**
@@ -157,17 +160,20 @@ abstract public class TrainableDistanceMetric implements DistanceMetric
             trainIfNeeded(dm, dataset);
             return;
         }
-        if(!(dm instanceof TrainableDistanceMetric))
-            return;
+        if(!(dm instanceof TrainableDistanceMetric)) {
+          return;
+        }
         TrainableDistanceMetric tdm = (TrainableDistanceMetric) dm;
-        if(!tdm.needsTraining())
-            return;
-        if(dataset instanceof RegressionDataSet)
-            tdm.train((RegressionDataSet) dataset, threadpool);
-        else if(dataset instanceof ClassificationDataSet)
-            tdm.train((ClassificationDataSet) dataset, threadpool);
-        else
-            tdm.train(dataset, threadpool);
+        if(!tdm.needsTraining()) {
+          return;
+        }
+        if(dataset instanceof RegressionDataSet) {
+          tdm.train((RegressionDataSet) dataset, threadpool);
+        } else if(dataset instanceof ClassificationDataSet) {
+          tdm.train((ClassificationDataSet) dataset, threadpool);
+        } else {
+          tdm.train(dataset, threadpool);
+        }
     }
     
     /**
@@ -180,17 +186,20 @@ abstract public class TrainableDistanceMetric implements DistanceMetric
      */
     public static <V extends Vec> void trainIfNeeded(DistanceMetric dm, List<V> dataset)
     {
-        if(!(dm instanceof TrainableDistanceMetric))
-            return;
+        if(!(dm instanceof TrainableDistanceMetric)) {
+          return;
+        }
         TrainableDistanceMetric tdm = (TrainableDistanceMetric) dm;
-        if(!tdm.needsTraining())
-            return;
-        if(dataset instanceof RegressionDataSet)
-            tdm.train((RegressionDataSet) dataset);
-        else if(dataset instanceof ClassificationDataSet)
-            tdm.train((ClassificationDataSet) dataset);
-        else
-            tdm.train(dataset);
+        if(!tdm.needsTraining()) {
+          return;
+        }
+        if(dataset instanceof RegressionDataSet) {
+          tdm.train((RegressionDataSet) dataset);
+        } else if(dataset instanceof ClassificationDataSet) {
+          tdm.train((ClassificationDataSet) dataset);
+        } else {
+          tdm.train(dataset);
+        }
     }
     
     /**
@@ -209,16 +218,19 @@ abstract public class TrainableDistanceMetric implements DistanceMetric
             trainIfNeeded(dm, dataset);
             return;
         }
-        if(!(dm instanceof TrainableDistanceMetric))
-            return;
+        if(!(dm instanceof TrainableDistanceMetric)) {
+          return;
+        }
         TrainableDistanceMetric tdm = (TrainableDistanceMetric) dm;
-        if(!tdm.needsTraining())
-            return;
-        if(dataset instanceof RegressionDataSet)
-            tdm.train((RegressionDataSet) dataset, threadpool);
-        else if(dataset instanceof ClassificationDataSet)
-            tdm.train((ClassificationDataSet) dataset, threadpool);
-        else
-            tdm.train(dataset, threadpool);
+        if(!tdm.needsTraining()) {
+          return;
+        }
+        if(dataset instanceof RegressionDataSet) {
+          tdm.train((RegressionDataSet) dataset, threadpool);
+        } else if(dataset instanceof ClassificationDataSet) {
+          tdm.train((ClassificationDataSet) dataset, threadpool);
+        } else {
+          tdm.train(dataset, threadpool);
+        }
     }
 }

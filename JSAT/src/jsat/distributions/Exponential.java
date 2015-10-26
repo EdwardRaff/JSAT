@@ -20,16 +20,18 @@ public class Exponential extends ContinuousDistribution
 
     public Exponential(double lambda)
     {
-        if(lambda <= 0)
-            throw new RuntimeException("The rate parameter must be greater than zero, not " + lambda);
+        if(lambda <= 0) {
+          throw new RuntimeException("The rate parameter must be greater than zero, not " + lambda);
+        }
         this.lambda = lambda;
     }
 
     @Override
     public double logPdf(double x)
     {
-        if(x < 0)
-            return 0;
+        if(x < 0) {
+          return 0;
+        }
         return log(lambda) + -lambda*x;
     }
 
@@ -37,8 +39,9 @@ public class Exponential extends ContinuousDistribution
     @Override
     public double pdf(double d)
     {
-        if(d < 0)
-            return 0;
+        if(d < 0) {
+          return 0;
+        }
         return lambda*exp(-lambda*d);
     }
 
@@ -46,16 +49,18 @@ public class Exponential extends ContinuousDistribution
     @Override
     public double cdf(double d)
     {
-        if(d < 0)
-            return 0;
+        if(d < 0) {
+          return 0;
+        }
         return 1-exp(-lambda*d);
     }
 
     @Override
     public double invCdf(double d)
     {
-        if(d < 0 || d > 1)
-            throw new ArithmeticException("Inverse CDF only exists on the range [0,1]");
+        if(d < 0 || d > 1) {
+          throw new ArithmeticException("Inverse CDF only exists on the range [0,1]");
+        }
         return -log(1-d)/lambda;
     }
 
@@ -94,8 +99,9 @@ public class Exponential extends ContinuousDistribution
     {
         if(var.equals("\u03BB"))
         {
-            if (value <= 0)
-                throw new RuntimeException("The rate parameter must be greater than zero");
+            if (value <= 0) {
+              throw new RuntimeException("The rate parameter must be greater than zero");
+            }
             lambda = value;
         }
     }
@@ -113,8 +119,9 @@ public class Exponential extends ContinuousDistribution
          * mean of an exponential distribution is lambda^-1
          */
         lambda = 1/data.mean();
-        if(lambda <= 0)
-            lambda = 1;
+        if(lambda <= 0) {
+          lambda = 1;
+        }
     }
 
     @Override

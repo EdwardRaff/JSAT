@@ -57,11 +57,14 @@ public class KernelPointTest
         toAdd = normal.sample(10, rand);
         toTest = normal.sample(10, rand);
         coeff = new double[toAdd.size()];
-        for(int i = 0; i < coeff.length; i++)
-            coeff[i] = Math.round(rand.nextDouble()*9+0.5);
-        for(int i = 0; i < coeff.length; i++)
-            if(i % 2 != 0)
-                coeff[i] *= -1;
+        for(int i = 0; i < coeff.length; i++) {
+          coeff[i] = Math.round(rand.nextDouble()*9+0.5);
+        }
+        for(int i = 0; i < coeff.length; i++) {
+          if (i % 2 != 0) {
+            coeff[i] *= -1;
+          }
+        }
     }
     
     @After

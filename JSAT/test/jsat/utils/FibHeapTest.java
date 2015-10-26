@@ -70,8 +70,9 @@ public class FibHeapTest
             expectedOrder.add(0, c);
         }
         Collections.shuffle(nodes);
-        for(FibHeap.FibNode<Character> node : nodes)
-            h1.decreaseKey(node, -node.value);
+        for(FibHeap.FibNode<Character> node : nodes) {
+          h1.decreaseKey(node, -node.value);
+        }
         
         assertEquals(expectedOrder.size(), h1.size());
         int pos = 0;
@@ -99,10 +100,11 @@ public class FibHeapTest
         {
             counter++;
             String s = Character.toString(c);
-            if(c % 2 == 0)
-                h1.insert(s, value--);
-            else
-                h2.insert(s, value--);
+            if(c % 2 == 0) {
+              h1.insert(s, value--);
+            } else {
+              h2.insert(s, value--);
+            }
             added.add(0, s);
             
 //            if(c % 2 == 0)
@@ -172,82 +174,70 @@ public class FibHeapTest
         
         Random rand = new XORWOW();
         
-        for(int trials = 0; trials < 10; trials++)
-        for(int maxSize = 1; maxSize < 2000; maxSize*=2)
-        {
-            while(map.size() < maxSize)
-            {
-                
-                if(map.size() > 0 && rand.nextDouble() < 0.1)
-                {//ocasionally remove the min eliment
-                    long entry = map.firstKey();
-                    double value = map.get(entry);
-                    for( Map.Entry<Long, Double> mapEntry : map.entrySet())
-                        if(mapEntry.getValue() < value)
-                        {
-                            entry = mapEntry.getKey();
-                            value = mapEntry.getValue();
-                        }
-                    map.remove(entry);
-                    
-                    FibHeap.FibNode<Long> min = heap.removeMin();
-                    heapNodes.remove(entry);
-                    
-                    assertEquals(entry, min.value.longValue());
-                    assertEquals(value, min.key, 0.0);
-
-                }
-                else if(map.size() > 0 && rand.nextDouble() < 0.4)
-                {//lest decrease a random key's value
-                    long partitioner = rand.nextLong();
-                    SortedMap<Long, Double> subMap = map.tailMap(partitioner);
-                    
-                    long valToDecrease;
-                    if(subMap.isEmpty())
-                    {
-                        subMap = map.headMap(partitioner);
-                        valToDecrease = map.lastKey();
-                    }
-                    else
-                    {
-                        valToDecrease = map.firstKey();
-                    }
-                    
-                    double newVal = map.get(valToDecrease)/2;
-                    map.put(valToDecrease, newVal);
-                    heap.decreaseKey(heapNodes.get(valToDecrease), newVal);
-                    
-                }
-                //then add something
-                long entry = rand.nextLong();
-                double value = rand.nextDouble();
-                while(map.containsKey(entry))
-                    entry = rand.nextLong();
-                map.put(entry, value);
-                heapNodes.put(entry, heap.insert(entry, value));
-                
-            }
-            
-            //its full, now lets remove everything!
-            while(map.size() > 0)
-            {
+        for(int trials = 0; trials < 10; trials++) {
+          for (int maxSize = 1; maxSize < 2000; maxSize*=2) {
+            while (map.size() < maxSize) {
+              if (map.size() > 0 && rand.nextDouble() < 0.1) {
                 long entry = map.firstKey();
                 double value = map.get(entry);
-                for (Map.Entry<Long, Double> mapEntry : map.entrySet())
-                    if (mapEntry.getValue() < value)
-                    {
-                        entry = mapEntry.getKey();
-                        value = mapEntry.getValue();
-                    }
+                for (Map.Entry<Long, Double> mapEntry : map.entrySet()) {
+                  if(mapEntry.getValue() < value)
+                  {
+                    entry = mapEntry.getKey();
+                    value = mapEntry.getValue();
+                  }
+                }
                 map.remove(entry);
-
                 FibHeap.FibNode<Long> min = heap.removeMin();
                 heapNodes.remove(entry);
-
                 assertEquals(entry, min.value.longValue());
                 assertEquals(value, min.key, 0.0);
-
+              } else if(map.size() > 0 && rand.nextDouble() < 0.4)
+              {//lest decrease a random key's value
+                long partitioner = rand.nextLong();
+                SortedMap<Long, Double> subMap = map.tailMap(partitioner);
+                
+                long valToDecrease;
+                if(subMap.isEmpty())
+                {
+                  subMap = map.headMap(partitioner);
+                  valToDecrease = map.lastKey();
+                }
+                else
+                {
+                  valToDecrease = map.firstKey();
+                }
+                
+                double newVal = map.get(valToDecrease)/2;
+                map.put(valToDecrease, newVal);
+                heap.decreaseKey(heapNodes.get(valToDecrease), newVal);
+                
+              }
+              long entry = rand.nextLong();
+              double value = rand.nextDouble();
+              while (map.containsKey(entry)) {
+                entry = rand.nextLong();
+              }
+              map.put(entry, value);
+              heapNodes.put(entry, heap.insert(entry, value));
             }
+            while (map.size() > 0) {
+              long entry = map.firstKey();
+              double value = map.get(entry);
+              for (Map.Entry<Long, Double> mapEntry : map.entrySet()) {
+                if (mapEntry.getValue() < value)
+                {
+                  entry = mapEntry.getKey();
+                  value = mapEntry.getValue();
+                }
+              }
+              map.remove(entry);
+              FibHeap.FibNode<Long> min = heap.removeMin();
+              heapNodes.remove(entry);
+              assertEquals(entry, min.value.longValue());
+              assertEquals(value, min.key, 0.0);
+            }
+          }
         }
         
     }

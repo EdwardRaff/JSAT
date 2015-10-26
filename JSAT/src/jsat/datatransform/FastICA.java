@@ -114,8 +114,9 @@ public class FastICA implements InvertibleTransform
             public double deriv2(double x, double d1)
             {
                 //calling exp is more expensive than just dividing to get back e(-x^2/2)
-                if(x == 0)
-                    return 1;
+                if(x == 0) {
+                  return 1;
+                }
                 return (1-x*x)*(d1/x);
             }
         },
@@ -189,8 +190,9 @@ public class FastICA implements InvertibleTransform
             data.applyTransform(whiten);
             X = data.getDataMatrixView();
         }
-        else
-            X = data.getDataMatrixView();
+        else {
+          X = data.getDataMatrixView();
+        }
         
         int subD = X.cols();//projected space may be smaller if low rank
         Vec w_tmp = new DenseVector(subD);//used to check for convergence
@@ -220,8 +222,9 @@ public class FastICA implements InvertibleTransform
                     final double g = G.deriv1(x);
                     final double gp = G.deriv2(x, g);
                     if(Double.isNaN(g) || Double.isInfinite(g) || 
-                            Double.isNaN(gp) || Double.isNaN(gp))
-                        throw new FailedToFitException("Encountered NaN or Inf in calculation");
+                            Double.isNaN(gp) || Double.isNaN(gp)) {
+                      throw new FailedToFitException("Encountered NaN or Inf in calculation");
+                    }
                     tmp.set(i, g);
                     gwx_avg += gp;
                 }
@@ -234,10 +237,12 @@ public class FastICA implements InvertibleTransform
                 
                 //reorthoganalization by w_p = w_p - sum_{i=0}^{p-1} w_p^T w_j w_j 
                 double[] coefs = new double[ws.size()];
-                for(int i= 0; i < coefs.length; i++)
-                    coefs[i] = w_p.dot(ws.get(i));
-                for(int i= 0; i < coefs.length; i++)
-                    w_p.mutableAdd(-coefs[i], ws.get(i));
+                for(int i= 0; i < coefs.length; i++) {
+                  coefs[i] = w_p.dot(ws.get(i));
+                }
+                for(int i= 0; i < coefs.length; i++) {
+                  w_p.mutableAdd(-coefs[i], ws.get(i));
+                }
                 
                 //re normalize
                 w_p.normalize();
@@ -264,8 +269,9 @@ public class FastICA implements InvertibleTransform
             
             unmixing = W.multiply(whiten.transform).transpose();
         }
-        else
-            unmixing = new DenseMatrix(new MatrixOfVecs(ws)).transpose();
+        else {
+          unmixing = new DenseMatrix(new MatrixOfVecs(ws)).transpose();
+        }
         
         mixing = new SingularValueDecomposition(unmixing.clone()).getPseudoInverse();
     }
@@ -276,22 +282,26 @@ public class FastICA implements InvertibleTransform
      */
     public FastICA(FastICA toCopy)
     {
-        if (toCopy.zeroMean != null)
-            this.zeroMean = toCopy.zeroMean.clone();
-        if (toCopy.unmixing != null)
-            this.unmixing = toCopy.unmixing.clone();
-        if (toCopy.mixing != null)
-            this.mixing = toCopy.mixing.clone();
+        if (toCopy.zeroMean != null) {
+          this.zeroMean = toCopy.zeroMean.clone();
+        }
+        if (toCopy.unmixing != null) {
+          this.unmixing = toCopy.unmixing.clone();
+        }
+        if (toCopy.mixing != null) {
+          this.mixing = toCopy.mixing.clone();
+        }
     }
     
     @Override
     public DataPoint transform(DataPoint dp)
     {
         Vec x;
-        if (zeroMean != null)
-            x = zeroMean.transform(dp).getNumericalValues();
-        else
-            x = dp.getNumericalValues();
+        if (zeroMean != null) {
+          x = zeroMean.transform(dp).getNumericalValues();
+        } else {
+          x = dp.getNumericalValues();
+        }
 
         Vec newX = x.multiply(unmixing);
 
@@ -306,8 +316,9 @@ public class FastICA implements InvertibleTransform
         x = x.multiply(mixing);
         
         DataPoint toRet = new DataPoint(x, dp.getCategoricalValues(), dp.getCategoricalData(), dp.getWeight());
-        if(zeroMean != null)
-            zeroMean.mutableInverse(toRet);
+        if(zeroMean != null) {
+          zeroMean.mutableInverse(toRet);
+        }
         
         return toRet;
     }

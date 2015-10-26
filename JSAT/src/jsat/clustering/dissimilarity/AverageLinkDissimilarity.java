@@ -48,9 +48,11 @@ public class AverageLinkDissimilarity extends DistanceMetricDissimilarity implem
         allPoints.addAll(a);
         allPoints.addAll(b);
         
-        for(int i = 0; i < allPoints.size(); i++)
-            for(int j = i+1; j < allPoints.size(); j++)
-                disSum += distance(allPoints.get(i), allPoints.get(j));
+        for(int i = 0; i < allPoints.size(); i++) {
+          for (int j = i+1; j < allPoints.size(); j++) {
+            disSum += distance(allPoints.get(i), allPoints.get(j));
+          }
+        }
         
         return disSum/(allSize*(allSize-1));
     }
@@ -64,14 +66,18 @@ public class AverageLinkDissimilarity extends DistanceMetricDissimilarity implem
         
         int[] allPoints = new int[allSize];
         int z = 0;
-        for(int val : a)
-            allPoints[z++] = val;
-        for(int val : b)
-            allPoints[z++] = val;
+        for(int val : a) {
+          allPoints[z++] = val;
+        }
+        for(int val : b) {
+          allPoints[z++] = val;
+        }
         
-        for(int i = 0; i < allPoints.length; i++)
-            for(int j = i+1; j < allPoints.length; j++)
-                disSum += getDistance(distanceMatrix, allPoints[i], allPoints[j]);
+        for(int i = 0; i < allPoints.length; i++) {
+          for (int j = i+1; j < allPoints.length; j++) {
+            disSum += getDistance(distanceMatrix, allPoints[i], allPoints[j]);
+          }
+        }
         
         return disSum/(allSize*(allSize-1));
     }

@@ -121,10 +121,12 @@ public class NormalTest
             0.646169766672724, 0.691462461274013, 0.7340144709513, 0.773372647623132
         };
         
-        for(int i = 0; i < range.length; i++)
-            assertEquals(cdfMean0Stnd1[i], Normal.cdf(range[i], 0, 1), 1e-10);
-        for(int i = 0; i < range.length; i++)
-            assertEquals(cdfMean1p5Stnd2[i], Normal.cdf(range[i], 1.5, 2), 1e-10);
+        for(int i = 0; i < range.length; i++) {
+          assertEquals(cdfMean0Stnd1[i], Normal.cdf(range[i], 0, 1), 1e-10);
+        }
+        for(int i = 0; i < range.length; i++) {
+          assertEquals(cdfMean1p5Stnd2[i], Normal.cdf(range[i], 1.5, 2), 1e-10);
+        }
     }
 
     /**
@@ -154,11 +156,13 @@ public class NormalTest
         };
         
         Normal dist = new Normal(0, 1);
-        for(int i = 0; i < range.length; i++)
-            assertEquals(cdfMean0Stnd1[i], dist.cdf(range[i]), 1e-10);
+        for(int i = 0; i < range.length; i++) {
+          assertEquals(cdfMean0Stnd1[i], dist.cdf(range[i]), 1e-10);
+        }
         dist = new Normal(1.5, 2);
-        for(int i = 0; i < range.length; i++)
-            assertEquals(cdfMean1p5Stnd2[i], dist.cdf(range[i]), 1e-10);
+        for(int i = 0; i < range.length; i++) {
+          assertEquals(cdfMean1p5Stnd2[i], dist.cdf(range[i]), 1e-10);
+        }
         
                 
     }
@@ -179,8 +183,9 @@ public class NormalTest
             3.741966078705394, 4.179492418782196, 4.805707265034015, 6.300072754254788
         };
         
-        for(int i = 0; i < range.length; i++)
-            assertEquals(inCDF[i], Normal.invcdf(range[i]/6.1+0.5, 1.5, 2), 1e-10);
+        for(int i = 0; i < range.length; i++) {
+          assertEquals(inCDF[i], Normal.invcdf(range[i]/6.1+0.5, 1.5, 2), 1e-10);
+        }
     }
 
     /**
@@ -200,8 +205,9 @@ public class NormalTest
             3.741966078705394, 4.179492418782196, 4.805707265034015, 6.300072754254788
         };
         
-        for(int i = 0; i < range.length; i++)
-            assertEquals(inCDF[i], instance.invCdf(range[i]/6.1+0.5), 1e-10);
+        for(int i = 0; i < range.length; i++) {
+          assertEquals(inCDF[i], instance.invCdf(range[i]/6.1+0.5), 1e-10);
+        }
     }
 
     /**
@@ -228,10 +234,12 @@ public class NormalTest
             0.193334058401425, 0.185927546934885, 0.17603266338215, 0.164080484275188, 0.150568716077402
         };
         
-        for(int i = 0; i < range.length; i++)
-            assertEquals(pdfMean0Stnd1[i], Normal.pdf(range[i], 0, 1), 1e-10);
-        for(int i = 0; i < range.length; i++)
-            assertEquals(pdfMean1p5Stnd2[i], Normal.pdf(range[i], 1.5, 2), 1e-10);
+        for(int i = 0; i < range.length; i++) {
+          assertEquals(pdfMean0Stnd1[i], Normal.pdf(range[i], 0, 1), 1e-10);
+        }
+        for(int i = 0; i < range.length; i++) {
+          assertEquals(pdfMean1p5Stnd2[i], Normal.pdf(range[i], 1.5, 2), 1e-10);
+        }
     }
 
     /**
@@ -259,11 +267,13 @@ public class NormalTest
         };
         
         Normal dist = new Normal(0, 1);
-        for(int i = 0; i < range.length; i++)
-            assertEquals(pdfMean0Stnd1[i], dist.pdf(range[i]), 1e-10);
+        for(int i = 0; i < range.length; i++) {
+          assertEquals(pdfMean0Stnd1[i], dist.pdf(range[i]), 1e-10);
+        }
         dist = new Normal(1.5, 2);
-        for(int i = 0; i < range.length; i++)
-            assertEquals(pdfMean1p5Stnd2[i], dist.pdf(range[i]), 1e-10);
+        for(int i = 0; i < range.length; i++) {
+          assertEquals(pdfMean1p5Stnd2[i], dist.pdf(range[i]), 1e-10);
+        }
     }
     
     @Test
@@ -296,11 +306,13 @@ public class NormalTest
         };
         
         Normal dist = new Normal(0, 1);
-        for(int i = 0; i < range.length; i++)
-            assertEquals(logPdfMean0Std1[i], dist.logPdf(range[i]), 1e-8);
+        for(int i = 0; i < range.length; i++) {
+          assertEquals(logPdfMean0Std1[i], dist.logPdf(range[i]), 1e-8);
+        }
         dist = new Normal(1.5, 2);
-        for(int i = 0; i < range.length; i++)
-            assertEquals(logPdfMean1p5Std2[i], dist.logPdf(range[i]), 1e-8);
+        for(int i = 0; i < range.length; i++) {
+          assertEquals(logPdfMean1p5Std2[i], dist.logPdf(range[i]), 1e-8);
+        }
     }
 
 

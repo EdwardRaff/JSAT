@@ -120,11 +120,13 @@ public class LinearBatch implements Classifier, Regressor, Parameterized, Simple
         if(toCopy.ws != null)
         {
             this.ws = new Vec[toCopy.ws.length];
-            for(int i = 0; i < toCopy.ws.length; i++)
-                this.ws[i] = toCopy.ws[i].clone();
+            for(int i = 0; i < toCopy.ws.length; i++) {
+              this.ws[i] = toCopy.ws[i].clone();
+            }
         }
-        if(toCopy.bs != null)
-            this.bs = Arrays.copyOf(toCopy.bs, toCopy.bs.length);
+        if(toCopy.bs != null) {
+          this.bs = Arrays.copyOf(toCopy.bs, toCopy.bs.length);
+        }
     }
 
     public void setUseBiasTerm(boolean useBiasTerm)
@@ -143,8 +145,9 @@ public class LinearBatch implements Classifier, Regressor, Parameterized, Simple
      */
     public void setLambda0(double lambda0)
     {
-        if(lambda0 < 0 || Double.isNaN(lambda0) || Double.isInfinite(lambda0))
-            throw new IllegalArgumentException("Lambda0 must be non-negative, not " + lambda0);
+        if(lambda0 < 0 || Double.isNaN(lambda0) || Double.isInfinite(lambda0)) {
+          throw new IllegalArgumentException("Lambda0 must be non-negative, not " + lambda0);
+        }
         this.lambda0 = lambda0;
     }
 
@@ -212,8 +215,9 @@ public class LinearBatch implements Classifier, Regressor, Parameterized, Simple
      */
     public void setTolerance(double tolerance)
     {
-        if(tolerance < 0 || Double.isNaN(tolerance) || Double.isInfinite(tolerance))
-            throw new IllegalArgumentException("Tolerance must be a non-negative constant, not " + tolerance);
+        if(tolerance < 0 || Double.isNaN(tolerance) || Double.isInfinite(tolerance)) {
+          throw new IllegalArgumentException("Tolerance must be a non-negative constant, not " + tolerance);
+        }
         this.tolerance = tolerance;
     }
 
@@ -230,13 +234,14 @@ public class LinearBatch implements Classifier, Regressor, Parameterized, Simple
     public CategoricalResults classify(DataPoint data)
     {
         final Vec x = data.getNumericalValues();
-        if(ws.length == 1)
-            return ((LossC)loss).getClassification(ws[0].dot(x)+bs[0]);
-        else
+        if(ws.length == 1) {
+          return ((LossC)loss).getClassification(ws[0].dot(x)+bs[0]);
+        } else
         {
             Vec pred = new DenseVector(ws.length);
-            for(int i = 0; i < ws.length; i++)
-                pred.set(i, ws[i].dot(x)+bs[i]);
+            for(int i = 0; i < ws.length; i++) {
+              pred.set(i, ws[i].dot(x)+bs[i]);
+          }
             ((LossMC)loss).process(pred, pred);
             return ((LossMC)loss).getClassification(pred);
         }
@@ -265,31 +270,34 @@ public class LinearBatch implements Classifier, Regressor, Parameterized, Simple
     @Override
     public void trainC(ClassificationDataSet D, Classifier warmSolution, ExecutorService threadPool)
     {
-        if(D.getNumNumericalVars() <= 0)
-            throw new FailedToFitException("LinearBath requires numeric features to work");
-        if(!(loss instanceof LossC))
-            throw new FailedToFitException("Loss function " + loss.getClass().getSimpleName() + " does not support classification");
-        if(D.getClassSize() > 2)
-            if (!(loss instanceof LossMC))
-                throw new FailedToFitException("Loss function " + loss.getClass().getSimpleName() + " does not support multi-class classification");
-            else
-            {
-                ws = new Vec[D.getClassSize()];
-                bs = new double[ws.length];
-            }
-        else
+        if(D.getNumNumericalVars() <= 0) {
+          throw new FailedToFitException("LinearBath requires numeric features to work");
+        }
+        if(!(loss instanceof LossC)) {
+          throw new FailedToFitException("Loss function " + loss.getClass().getSimpleName() + " does not support classification");
+        }
+        if(D.getClassSize() > 2) {
+          if (!(loss instanceof LossMC)) {
+            throw new FailedToFitException("Loss function " + loss.getClass().getSimpleName() + " does not support multi-class classification");
+          } else {
+            ws = new Vec[D.getClassSize()];
+            bs = new double[ws.length];
+          }
+        } else
         {
             ws = new Vec[1];
             bs = new double[1];
         }
-        for (int i = 0; i < ws.length; i++)
-            ws[i] = new DenseVector(D.getNumNumericalVars());
+        for (int i = 0; i < ws.length; i++) {
+          ws[i] = new DenseVector(D.getNumNumericalVars());
+        }
 
         Optimizer2 optimizerToUse;
-        if(optimizer == null)
-            optimizerToUse = new LBFGS(10);
-        else
-            optimizerToUse = optimizer.clone();
+        if(optimizer == null) {
+          optimizerToUse = new LBFGS(10);
+        } else {
+          optimizerToUse = optimizer.clone();
+        }
         
         doWarmStartIfNotNull(warmSolution);
         
@@ -301,8 +309,9 @@ public class LinearBatch implements Classifier, Regressor, Parameterized, Simple
                 Vec w_tmp = new VecWithBias(ws[0], bs);
                 optimizerToUse.optimize(tolerance, w_tmp, w_tmp, new LossFunction(D, loss), new GradFunction(D, loss), null, threadPool);
             }
-            else
-                optimizerToUse.optimize(tolerance, ws[0], ws[0], new LossFunction(D, loss), new GradFunction(D, loss), null, threadPool);
+            else {
+              optimizerToUse.optimize(tolerance, ws[0], ws[0], new LossFunction(D, loss), new GradFunction(D, loss), null, threadPool);
+            }
         }
         else
         {
@@ -314,8 +323,9 @@ public class LinearBatch implements Classifier, Regressor, Parameterized, Simple
                 vecs.add(DenseVector.toDenseVec(bs));
                 wAll = new ConcatenatedVec(vecs);
             }
-            else
-                wAll = new ConcatenatedVec(Arrays.asList(ws));
+            else {
+              wAll = new ConcatenatedVec(Arrays.asList(ws));
+            }
             optimizerToUse.optimize(tolerance, wAll, new DenseVector(wAll), new LossMCFunction(D, lossMC), new GradMCFunction(D, lossMC), null, threadPool);
         }
         
@@ -335,17 +345,20 @@ public class LinearBatch implements Classifier, Regressor, Parameterized, Simple
             if(warmSolution instanceof SimpleWeightVectorModel)
             {
                 SimpleWeightVectorModel warm = (SimpleWeightVectorModel) warmSolution;
-                if(warm.numWeightsVecs() != ws.length)
-                    throw new FailedToFitException("Warm solution has " + warm.numWeightsVecs() + " weight vectors instead of " + ws.length);
+                if(warm.numWeightsVecs() != ws.length) {
+                  throw new FailedToFitException("Warm solution has " + warm.numWeightsVecs() + " weight vectors instead of " + ws.length);
+                }
                 for(int i = 0; i < ws.length; i++)
                 {
                     warm.getRawWeight(i).copyTo(ws[i]);
-                    if(useBiasTerm)
-                        bs[i] = warm.getBias(i);
+                    if(useBiasTerm) {
+                      bs[i] = warm.getBias(i);
+                    }
                 }
             }
-            else
-                throw new FailedToFitException("Can not warm warm from " + warmSolution.getClass().getCanonicalName());
+            else {
+              throw new FailedToFitException("Can not warm warm from " + warmSolution.getClass().getCanonicalName());
+            }
         }
     }
     
@@ -370,18 +383,21 @@ public class LinearBatch implements Classifier, Regressor, Parameterized, Simple
     @Override
     public void train(RegressionDataSet D, Regressor warmSolution, ExecutorService threadPool)
     {
-        if(D.getNumNumericalVars() <= 0)
-            throw new FailedToFitException("LinearBath requires numeric features to work");
-        if(!(loss instanceof LossR))
-            throw new FailedToFitException("Loss function " + loss.getClass().getSimpleName() + " does not regression");
+        if(D.getNumNumericalVars() <= 0) {
+          throw new FailedToFitException("LinearBath requires numeric features to work");
+        }
+        if(!(loss instanceof LossR)) {
+          throw new FailedToFitException("Loss function " + loss.getClass().getSimpleName() + " does not regression");
+        }
         ws = new Vec[]{ new DenseVector(D.getNumNumericalVars()) };
         bs = new double[1];
         
         Optimizer2 optimizerToUse;
-        if(optimizer == null)
-            optimizerToUse = new LBFGS(10);
-        else
-            optimizerToUse = optimizer.clone();
+        if(optimizer == null) {
+          optimizerToUse = new LBFGS(10);
+        } else {
+          optimizerToUse = optimizer.clone();
+        }
         
         doWarmStartIfNotNull(warmSolution);
         
@@ -390,8 +406,9 @@ public class LinearBatch implements Classifier, Regressor, Parameterized, Simple
             Vec w_tmp = new VecWithBias(ws[0], bs);
             optimizerToUse.optimize(tolerance, w_tmp, w_tmp, new LossFunction(D, loss), new GradFunction(D, loss), null, threadPool);
         }
-        else
-            optimizerToUse.optimize(tolerance, ws[0], ws[0], new LossFunction(D, loss), new GradFunction(D, loss), null, threadPool);
+        else {
+          optimizerToUse.optimize(tolerance, ws[0], ws[0], new LossFunction(D, loss), new GradFunction(D, loss), null, threadPool);
+        }
     }
 
     @Override
@@ -403,10 +420,11 @@ public class LinearBatch implements Classifier, Regressor, Parameterized, Simple
     private static double getTargetY(DataSet D, int i)
     {
         double y;
-        if (D instanceof ClassificationDataSet)
-            y = ((ClassificationDataSet) D).getDataPointCategory(i) * 2 - 1;
-        else
-            y = ((RegressionDataSet) D).getTargetValue(i);
+        if (D instanceof ClassificationDataSet) {
+          y = ((ClassificationDataSet) D).getDataPointCategory(i) * 2 - 1;
+        } else {
+          y = ((RegressionDataSet) D).getTargetValue(i);
+        }
         return y;
     }
 
@@ -462,8 +480,9 @@ public class LinearBatch implements Classifier, Regressor, Parameterized, Simple
         @Override
         public double dot(Vec v)
         {
-            if(v.length() == w.length())
-                return w.dot(v)+b[0];
+            if(v.length() == w.length()) {
+              return w.dot(v)+b[0];
+            }
             return super.dot(v); 
         }
 
@@ -475,8 +494,9 @@ public class LinearBatch implements Classifier, Regressor, Parameterized, Simple
                 w.mutableAdd(c, b);
                 this.b[0] += c;
             }
-            else
-                super.mutableAdd(c, b);
+            else {
+              super.mutableAdd(c, b);
+            }
         }
 
         
@@ -489,23 +509,25 @@ public class LinearBatch implements Classifier, Regressor, Parameterized, Simple
         @Override
         public double get(int index)
         {
-            if(index < w.length())
-                return w.get(index);
-            else if (index == w.length())
-                return b[0];
-            else
-                throw new IndexOutOfBoundsException();
+            if(index < w.length()) {
+              return w.get(index);
+            } else if (index == w.length()) {
+              return b[0];
+            } else {
+              throw new IndexOutOfBoundsException();
+            }
         }
 
         @Override
         public void set(int index, double val)
         {
-            if(index < w.length())
-                w.set(index, val);
-            else if (index == w.length())
-                b[0] = val;
-            else
-                throw new IndexOutOfBoundsException();
+            if(index < w.length()) {
+              w.set(index, val);
+            } else if (index == w.length()) {
+              b[0] = val;
+            } else {
+              throw new IndexOutOfBoundsException();
+            }
         }
 
         @Override
@@ -550,10 +572,11 @@ public class LinearBatch implements Classifier, Regressor, Parameterized, Simple
                 sum += loss.getLoss(w.dot(x), y)*dp.getWeight();
                 weightSum += dp.getWeight();
             }
-            if(lambda0 > 0)
-                return sum/weightSum + lambda0*w.dot(w);
-            else
-                return sum/weightSum;
+            if(lambda0 > 0) {
+              return sum/weightSum + lambda0*w.dot(w);
+            } else {
+              return sum/weightSum;
+            }
         }
             
         @Override
@@ -589,8 +612,9 @@ public class LinearBatch implements Classifier, Regressor, Parameterized, Simple
             double sum = 0;
             try
             {
-                for (Double partial : ListUtils.collectFutures(partialSums))
-                    sum += partial;
+                for (Double partial : ListUtils.collectFutures(partialSums)) {
+                  sum += partial;
+                }
             }
             catch (ExecutionException ex1)
             {
@@ -602,12 +626,14 @@ public class LinearBatch implements Classifier, Regressor, Parameterized, Simple
             }
 
             double weightSum = 0;
-            for(double ws : weightSums)
-                weightSum += ws;
-            if(lambda0 > 0)
-                return sum/weightSum + lambda0*w.dot(w);
-            else
-                return sum/weightSum;
+            for(double ws : weightSums) {
+              weightSum += ws;
+            }
+            if(lambda0 > 0) {
+              return sum/weightSum + lambda0*w.dot(w);
+            } else {
+              return sum/weightSum;
+            }
         }
 
         @Override
@@ -651,8 +677,9 @@ public class LinearBatch implements Classifier, Regressor, Parameterized, Simple
         @Override
         public Vec f(Vec w, Vec s)
         {
-            if(s == null)
-                s = w.clone();
+            if(s == null) {
+              s = w.clone();
+            }
             s.zeroOut();
             double weightSum = 0;
             for (int i = 0; i < D.getSampleSize(); i++)
@@ -664,26 +691,29 @@ public class LinearBatch implements Classifier, Regressor, Parameterized, Simple
                 weightSum += dp.getWeight();
             }
             s.mutableDivide(weightSum);
-            if(lambda0 > 0)
-                s.mutableSubtract(lambda0, w);
+            if(lambda0 > 0) {
+              s.mutableSubtract(lambda0, w);
+            }
             return s;
         }
 
         @Override
         public Vec f(final Vec w, Vec s, ExecutorService ex)
         {
-            if (s == null)
-                s = w.clone();
+            if (s == null) {
+              s = w.clone();
+            }
             s.zeroOut();
-            if (tempVecs == null)
-                tempVecs = new ThreadLocal<Vec>()
+            if (tempVecs == null) {
+              tempVecs = new ThreadLocal<Vec>()
+              {
+                @Override
+                protected Vec initialValue()
                 {
-                    @Override
-                    protected Vec initialValue()
-                    {
-                        return w.clone();
-                    }
-                };
+                  return w.clone();
+                }
+              };
+            }
             final Vec store = s;
             final int N = D.getSampleSize();
             final int P = SystemInfo.LogicalCores;
@@ -728,11 +758,13 @@ public class LinearBatch implements Classifier, Regressor, Parameterized, Simple
             }
 
             double weightSum = 0;
-            for(double ws : weightSums)
-                weightSum += ws;
+            for(double ws : weightSums) {
+              weightSum += ws;
+            }
             s.mutableDivide(weightSum);
-            if(lambda0 > 0)
-                s.mutableSubtract(lambda0, w);
+            if(lambda0 > 0) {
+              s.mutableSubtract(lambda0, w);
+            }
             return s;
         }
     }
@@ -761,17 +793,20 @@ public class LinearBatch implements Classifier, Regressor, Parameterized, Simple
             {
                 DataPoint dp = D.getDataPoint(i);
                 Vec x = dp.getNumericalValues();
-                for(int k = 0; k < pred.length(); k++)
-                    pred.set(k, new SubVector(k*subWSize, subWSize, w).dot(x));
-                if(useBiasTerm)
-                    pred.mutableAdd(new SubVector(w.length()-bs.length, bs.length, w));
+                for(int k = 0; k < pred.length(); k++) {
+                  pred.set(k, new SubVector(k*subWSize, subWSize, w).dot(x));
+                }
+                if(useBiasTerm) {
+                  pred.mutableAdd(new SubVector(w.length()-bs.length, bs.length, w));
+                }
                 loss.process(pred, pred);
                 int y = D.getDataPointCategory(i);
                 sum += loss.getLoss(pred, y)*dp.getWeight();
                 weightSum += dp.getWeight();
             }
-            if(lambda0 > 0 )
-                return sum/weightSum + lambda0*w.dot(w);
+            if(lambda0 > 0 ) {
+              return sum/weightSum + lambda0*w.dot(w);
+            }
             return sum;
         }
 
@@ -798,10 +833,12 @@ public class LinearBatch implements Classifier, Regressor, Parameterized, Simple
                         {
                             DataPoint dp = D.getDataPoint(i);
                             Vec x = dp.getNumericalValues();
-                            for(int k = 0; k < pred.length(); k++)
-                                pred.set(k, new SubVector(k * subWSize, subWSize, w).dot(x));
-                            if(useBiasTerm)
-                                pred.mutableAdd(new SubVector(w.length()-bs.length, bs.length, w));
+                            for(int k = 0; k < pred.length(); k++) {
+                              pred.set(k, new SubVector(k * subWSize, subWSize, w).dot(x));
+                            }
+                            if(useBiasTerm) {
+                              pred.mutableAdd(new SubVector(w.length()-bs.length, bs.length, w));
+                            }
                             loss.process(pred, pred);
                             int y = D.getDataPointCategory(i);
                             sum += loss.getLoss(pred, y)*dp.getWeight();
@@ -817,8 +854,9 @@ public class LinearBatch implements Classifier, Regressor, Parameterized, Simple
             
             try
             {
-                for (Double partial : ListUtils.collectFutures(partialSums))
-                    sum += partial;
+                for (Double partial : ListUtils.collectFutures(partialSums)) {
+                  sum += partial;
+                }
             }
             catch (ExecutionException ex1)
             {
@@ -830,8 +868,9 @@ public class LinearBatch implements Classifier, Regressor, Parameterized, Simple
             }
 
             double weightSum = 0;
-            for(double ws : weightSums)
-                weightSum += ws;
+            for(double ws : weightSums) {
+              weightSum += ws;
+            }
 
             return sum/weightSum + lambda0*w.dot(w);
         }
@@ -873,8 +912,9 @@ public class LinearBatch implements Classifier, Regressor, Parameterized, Simple
         @Override
         public Vec f(Vec w, Vec s)
         {
-            if(s == null)
-                s = w.clone();
+            if(s == null) {
+              s = w.clone();
+            }
             s.zeroOut();
             
             Vec pred = new DenseVector(D.getClassSize());//store the predictions in
@@ -884,38 +924,44 @@ public class LinearBatch implements Classifier, Regressor, Parameterized, Simple
             {
                 DataPoint dp = D.getDataPoint(i);
                 Vec x = dp.getNumericalValues();
-                for(int k = 0; k < pred.length(); k++)
-                    pred.set(k, new SubVector(k*subWSize, subWSize, w).dot(x));
-                if(useBiasTerm)
-                    pred.mutableAdd(new SubVector(w.length()-bs.length, bs.length, w));
+                for(int k = 0; k < pred.length(); k++) {
+                  pred.set(k, new SubVector(k*subWSize, subWSize, w).dot(x));
+                }
+                if(useBiasTerm) {
+                  pred.mutableAdd(new SubVector(w.length()-bs.length, bs.length, w));
+                }
                 loss.process(pred, pred);
                 int y = D.getDataPointCategory(i);
                 loss.deriv(pred, pred, y);
-                for(int k = 0; k < pred.length(); k++)
-                    new SubVector(k*subWSize, subWSize, s).mutableAdd(pred.get(k)*dp.getWeight(), x);
+                for(int k = 0; k < pred.length(); k++) {
+                  new SubVector(k*subWSize, subWSize, s).mutableAdd(pred.get(k)*dp.getWeight(), x);
+                }
                 weightSum += dp.getWeight();
             }
             s.mutableDivide(weightSum);
-            if(lambda0 > 0)
-                s.mutableSubtract(lambda0, w);
+            if(lambda0 > 0) {
+              s.mutableSubtract(lambda0, w);
+            }
             return s;
         }
 
         @Override
         public Vec f(final Vec w, Vec s, ExecutorService ex)
         {
-            if (s == null)
-                s = w.clone();
+            if (s == null) {
+              s = w.clone();
+            }
             s.zeroOut();
-            if (tempVecs == null)
-                tempVecs = new ThreadLocal<Vec>()
+            if (tempVecs == null) {
+              tempVecs = new ThreadLocal<Vec>()
+              {
+                @Override
+                protected Vec initialValue()
                 {
-                    @Override
-                    protected Vec initialValue()
-                    {
-                        return w.clone();
-                    }
-                };
+                  return w.clone();
+                }
+              };
+            }
             final Vec store = s;
             final int N = D.getSampleSize();
             final int P = SystemInfo.LogicalCores;
@@ -938,15 +984,18 @@ public class LinearBatch implements Classifier, Regressor, Parameterized, Simple
                         {
                             DataPoint dp = D.getDataPoint(i);
                             Vec x = dp.getNumericalValues();
-                            for (int k = 0; k < pred.length(); k++)
-                                pred.set(k, new SubVector(k * subWSize, subWSize, w).dot(x));
-                            if(useBiasTerm)
-                                pred.mutableAdd(new SubVector(w.length()-bs.length, bs.length, w));
+                            for (int k = 0; k < pred.length(); k++) {
+                              pred.set(k, new SubVector(k * subWSize, subWSize, w).dot(x));
+                            }
+                            if(useBiasTerm) {
+                              pred.mutableAdd(new SubVector(w.length()-bs.length, bs.length, w));
+                            }
                             loss.process(pred, pred);
                             int y = D.getDataPointCategory(i);
                             loss.deriv(pred, pred, y);
-                            for(IndexValue iv : pred)
-                                new SubVector(iv.getIndex() * subWSize, subWSize, temp).mutableAdd(iv.getValue()*dp.getWeight(), x);
+                            for(IndexValue iv : pred) {
+                              new SubVector(iv.getIndex() * subWSize, subWSize, temp).mutableAdd(iv.getValue()*dp.getWeight(), x);
+                            }
                             weightSum += dp.getWeight();
                         }
                         synchronized (store)
@@ -969,12 +1018,14 @@ public class LinearBatch implements Classifier, Regressor, Parameterized, Simple
             }
             
             double weightSum = 0;
-            for(double ws : weightSums)
-                weightSum += ws;
+            for(double ws : weightSums) {
+              weightSum += ws;
+            }
 
             s.mutableDivide(weightSum);
-            if(lambda0 > 0)
-                s.mutableSubtract(lambda0, w);
+            if(lambda0 > 0) {
+              s.mutableSubtract(lambda0, w);
+            }
             return s;
         }
     }

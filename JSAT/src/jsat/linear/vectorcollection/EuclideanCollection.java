@@ -111,8 +111,9 @@ public class EuclideanCollection<V extends Vec> implements VectorCollection<V>
         for(int i = 0; i < dotCache.length; i++)
         {
             double v = dotCache[i]-2*query.dot(source.get(i));
-            if(v <= cmpRange)
-                list.add(new VecPairedComparable<V, Double>(source.get(i), Math.sqrt(xx+v)));
+            if(v <= cmpRange) {
+              list.add(new VecPairedComparable<V, Double>(source.get(i), Math.sqrt(xx+v)));
+            }
         }
         Collections.sort(list);
         return list;
@@ -125,14 +126,16 @@ public class EuclideanCollection<V extends Vec> implements VectorCollection<V>
         for(int i = 0; i < dotCache.length; i++)
         {
             double v = dotCache[i]-2*query.dot(source.get(i));
-            if(boundedList.size() < neighbors || v < boundedList.get(neighbors-1).getProbability())
-                boundedList.add(new ProbailityMatch<V>(v, source.get(i)));
+            if(boundedList.size() < neighbors || v < boundedList.get(neighbors-1).getProbability()) {
+              boundedList.add(new ProbailityMatch<V>(v, source.get(i)));
+            }
         }
         
         double xx = query.dot(query);
         List<VecPaired<V, Double>> list = new ArrayList<VecPaired<V, Double>>(boundedList.size());
-        for(ProbailityMatch<V> pm : boundedList)
-            list.add(new VecPaired<V, Double>(pm.getMatch(), Math.sqrt(xx+pm.getProbability())));
+        for(ProbailityMatch<V> pm : boundedList) {
+          list.add(new VecPaired<V, Double>(pm.getMatch(), Math.sqrt(xx+pm.getProbability())));
+        }
         return list;
     }
 
@@ -158,16 +161,18 @@ public class EuclideanCollection<V extends Vec> implements VectorCollection<V>
 		@Override
         public VectorCollection<V> getVectorCollection(List<V> source, DistanceMetric distanceMetric)
         {
-            if(!(distanceMetric instanceof EuclideanDistance))
-                throw new IllegalArgumentException("EuclideanCollection only supports Euclidean Distanse");
+            if(!(distanceMetric instanceof EuclideanDistance)) {
+              throw new IllegalArgumentException("EuclideanCollection only supports Euclidean Distanse");
+            }
             return new EuclideanCollection<V>(source);
         }
 
         @Override
         public VectorCollection<V> getVectorCollection(List<V> source, DistanceMetric distanceMetric, ExecutorService threadpool)
         {
-            if(!(distanceMetric instanceof EuclideanDistance))
-                throw new IllegalArgumentException("EuclideanCollection only supports Euclidean Distanse");
+            if(!(distanceMetric instanceof EuclideanDistance)) {
+              throw new IllegalArgumentException("EuclideanCollection only supports Euclidean Distanse");
+            }
             return new EuclideanCollection<V>(source, threadpool);
         }
 

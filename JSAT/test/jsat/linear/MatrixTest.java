@@ -73,9 +73,11 @@ public class MatrixTest
         
         Matrix.OuterProductUpdate(A, x, y, c);
         
-        for(int i = 0; i < expected.length; i++)
-            for(int j = 0; j < expected.length; j++)
-                assertEquals(expected[i][j], A.get(i, j), 0.0);
+        for(int i = 0; i < expected.length; i++) {
+          for (int j = 0; j < expected.length; j++) {
+            assertEquals(expected[i][j], A.get(i, j), 0.0);
+          }
+        }
     }
 
     /**
@@ -99,9 +101,11 @@ public class MatrixTest
         };
         Matrix.OuterProductUpdate(A, x, y, c, ex);
         
-        for(int i = 0; i < expected.length; i++)
-            for(int j = 0; j < expected.length; j++)
-                assertEquals(expected[i][j], A.get(i, j), 0.0);
+        for(int i = 0; i < expected.length; i++) {
+          for (int j = 0; j < expected.length; j++) {
+            assertEquals(expected[i][j], A.get(i, j), 0.0);
+          }
+        }
     }
 
 
@@ -116,12 +120,15 @@ public class MatrixTest
         for(int k = 1; k < 10; k++)
         {
             Matrix I = Matrix.eye(k);
-            for(int i = 0; i < I.rows(); i++)
-                for(int j = 0; j < I.cols(); j++)
-                    if(i == j)
-                        assertEquals(1.0, I.get(i, j), 0.0);
-                    else
-                        assertEquals(0.0, I.get(i, j), 0.0);
+            for(int i = 0; i < I.rows(); i++) {
+              for (int j = 0; j < I.cols(); j++) {
+                if (i == j) {
+                  assertEquals(1.0, I.get(i, j), 0.0);
+                } else {
+                  assertEquals(0.0, I.get(i, j), 0.0);
+                }
+              }
+            }
         }
     }
 
@@ -138,9 +145,11 @@ public class MatrixTest
 
         DenseMatrix result = Matrix.random(rows, cols, rand);
         OnLineStatistics stats = new OnLineStatistics();
-        for (int i = 0; i < result.rows(); i++)
-            for (int j = 0; j < result.cols(); j++)
-                stats.add(result.get(i, j));
+        for (int i = 0; i < result.rows(); i++) {
+          for (int j = 0; j < result.cols(); j++) {
+            stats.add(result.get(i, j));
+          }
+        }
         //if its all random from [0, 1], the mean should be 0.5
         assertEquals(0.5, stats.getMean(), 0.05);
     }
@@ -280,9 +289,11 @@ public class MatrixTest
             assertEquals(1.0, P.get(0, i), 0.0);
         }
         
-        for(int i = 1; i < P.rows(); i++)
-            for(int j = 1; j < P.cols(); j++)
-                assertEquals(P.get(i-1, j)+P.get(i, j-1), P.get(i, j), 0.0);
+        for(int i = 1; i < P.rows(); i++) {
+          for (int j = 1; j < P.cols(); j++) {
+            assertEquals(P.get(i-1, j)+P.get(i, j-1), P.get(i, j), 0.0);
+          }
+        }
         
     }
 

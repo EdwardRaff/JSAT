@@ -25,8 +25,9 @@ public class CategoricalData implements Cloneable, Serializable
     {
         this.n = n;
         catNames = new ArrayList<String>(n);
-        for(int i = 0; i < n; i++)
-            catNames.add("Option " + (i+1));
+        for(int i = 0; i < n; i++) {
+          catNames.add("Option " + (i+1));
+        }
         categoryName = "No Name";
     }
 
@@ -41,18 +42,20 @@ public class CategoricalData implements Cloneable, Serializable
     
     public boolean isValidCategory(int i)
     {
-        if (i < 0 || i >= n)
-            return false;
+        if (i < 0 || i >= n) {
+          return false;
+        }
         
         return true;
     }
     
     public String getOptionName(int i)
     {
-        if(catNames != null)
-            return catNames.get(i);
-        else
-            return Integer.toString(i);
+        if(catNames != null) {
+          return catNames.get(i);
+        } else {
+          return Integer.toString(i);
+        }
     }
 
     public String getCategoryName()
@@ -79,10 +82,11 @@ public class CategoricalData implements Cloneable, Serializable
     public boolean setOptionName(String name, int i)
     {
         name = name.toLowerCase();
-        if(i < 0 || i >= n)
-            return false;
-        else if(catNames.contains(name))
-            return false;
+        if(i < 0 || i >= n) {
+          return false;
+        } else if(catNames.contains(name)) {
+          return false;
+        }
         catNames.set(i, name);
         
         return true;
@@ -91,8 +95,9 @@ public class CategoricalData implements Cloneable, Serializable
     {
         CategoricalData copy = new CategoricalData(n);
         
-        if(this.catNames != null)
-            copy.catNames = new ArrayList<String>(this.catNames);
+        if(this.catNames != null) {
+          copy.catNames = new ArrayList<String>(this.catNames);
+        }
         
         return copy;
     }
@@ -100,8 +105,9 @@ public class CategoricalData implements Cloneable, Serializable
     public static CategoricalData[] copyOf(CategoricalData[] orig)
     {
         CategoricalData[] copy = new CategoricalData[orig.length];
-        for(int i = 0; i < copy.length; i++)
-            copy[i] = orig[i].clone();
+        for(int i = 0; i < copy.length; i++) {
+          copy[i] = orig[i].clone();
+        }
         return copy;
     }
     

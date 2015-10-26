@@ -60,16 +60,21 @@ public class Adam implements GradientUpdater
     
     public Adam(double alpha, double beta_1, double beta_2, double eps, double lambda)
     {
-        if(alpha <= 0 || Double.isInfinite(alpha) || Double.isNaN(alpha))
-            throw new IllegalArgumentException("alpha must be a positive value, not " + alpha);
-        if(beta_1 <= 0 || beta_1 > 1 || Double.isInfinite(beta_1) || Double.isNaN(beta_1))
-            throw new IllegalArgumentException("beta_1 must be in (0, 1], not " + beta_1);
-        if(beta_2 <= 0 || beta_2 > 1 || Double.isInfinite(beta_2) || Double.isNaN(beta_2))
-            throw new IllegalArgumentException("beta_2 must be in (0, 1], not " + beta_2);
-        if(pow(1-beta_1, 2) / sqrt(1-beta_2) >= 1)
-            throw new IllegalArgumentException("the required property (1-beta_1)^2 / sqrt(1-beta_2) < 1, is not held by beta_1=" + beta_1 + " and beta_2=" + beta_2 );
-        if(lambda <= 0 || lambda >= 1 || Double.isInfinite(lambda) || Double.isNaN(lambda))
-            throw new IllegalArgumentException("lambda must be in (0, 1), not " + lambda);
+        if(alpha <= 0 || Double.isInfinite(alpha) || Double.isNaN(alpha)) {
+          throw new IllegalArgumentException("alpha must be a positive value, not " + alpha);
+        }
+        if(beta_1 <= 0 || beta_1 > 1 || Double.isInfinite(beta_1) || Double.isNaN(beta_1)) {
+          throw new IllegalArgumentException("beta_1 must be in (0, 1], not " + beta_1);
+        }
+        if(beta_2 <= 0 || beta_2 > 1 || Double.isInfinite(beta_2) || Double.isNaN(beta_2)) {
+          throw new IllegalArgumentException("beta_2 must be in (0, 1], not " + beta_2);
+        }
+        if(pow(1-beta_1, 2) / sqrt(1-beta_2) >= 1) {
+          throw new IllegalArgumentException("the required property (1-beta_1)^2 / sqrt(1-beta_2) < 1, is not held by beta_1=" + beta_1 + " and beta_2=" + beta_2 );
+        }
+        if(lambda <= 0 || lambda >= 1 || Double.isInfinite(lambda) || Double.isNaN(lambda)) {
+          throw new IllegalArgumentException("lambda must be in (0, 1), not " + lambda);
+        }
         this.alpha = alpha;
         this.beta_1 = beta_1;
         this.beta_2 = beta_2;
@@ -136,8 +141,9 @@ public class Adam implements GradientUpdater
         double cnst = eta*alpha*sqrt(1-pow((1-beta_2), t))/(1-pow((1-beta_1), t));
         
         //while the algorithm may converge well with sparse data, m and v are likely to all be non-zero after observing lots of data. 
-        for(int i = 0; i < m.length(); i++)
-            x.increment(i, -cnst * m.get(i)/(sqrt(v.get(i))+eps));
+        for(int i = 0; i < m.length(); i++) {
+          x.increment(i, -cnst * m.get(i)/(sqrt(v.get(i))+eps));
+        }
         return cnst * mBias/(sqrt(vBias)+eps);
     }
 

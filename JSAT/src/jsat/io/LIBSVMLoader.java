@@ -251,8 +251,9 @@ public class LIBSVMLoader
                 position = 0;
                 
                 int read = reader.read(buffer);
-                if(read < 0)
-                    break;
+                if(read < 0) {
+                  break;
+                }
                 charBuffer.append(buffer, 0, read);
             }
             
@@ -262,8 +263,9 @@ public class LIBSVMLoader
                 {
                     double label = Double.parseDouble(processBuffer.toString());
 
-                    if (!possibleCats.containsKey(label) && classification)
-                        possibleCats.put(label, possibleCats.size());
+                    if (!possibleCats.containsKey(label) && classification) {
+                      possibleCats.put(label, possibleCats.size());
+                    }
                     labelVals.add(label);
                     
                     sparceVecs.add(new SparseVector(maxLen, 0));
@@ -280,8 +282,9 @@ public class LIBSVMLoader
 
                     maxLen = Math.max(maxLen, indexProcessing+1);
                     tempVec.setLength(maxLen);
-                    if (value != 0)
-                        tempVec.set(indexProcessing, value);
+                    if (value != 0) {
+                      tempVec.set(indexProcessing, value);
+                    }
                     sparceVecs.add(tempVec.clone());
                 }
                 else if(state == STATE.NEWLINE)
@@ -289,8 +292,9 @@ public class LIBSVMLoader
                     //nothing to do and everything already processed, just return
                     break;
                 }
-                else
-                    throw new RuntimeException();
+                else {
+                  throw new RuntimeException();
+                }
                 //we may have ended on a line, and have a sparse vec to add before returning
                 break;
             }
@@ -311,8 +315,9 @@ public class LIBSVMLoader
                     {
                         double label = Double.parseDouble(processBuffer.toString());
 
-                        if (!possibleCats.containsKey(label) && classification)
-                            possibleCats.put(label, possibleCats.size());
+                        if (!possibleCats.containsKey(label) && classification) {
+                          possibleCats.put(label, possibleCats.size());
+                        }
                         labelVals.add(label);
 
                         //clean up and move to new state
@@ -330,8 +335,9 @@ public class LIBSVMLoader
                             state = STATE.WHITESPACE_AFTER_LABEL;
                         }
                     }
-                    else
-                        throw new RuntimeException("Invalid LIBSVM file");
+                    else {
+                      throw new RuntimeException("Invalid LIBSVM file");
+            }
                     break;
                 case WHITESPACE_AFTER_LABEL:
                     if (Character.isDigit(ch))//move to next state
@@ -346,11 +352,14 @@ public class LIBSVMLoader
                             sparceVecs.add(new SparseVector(maxLen, 0));///no features again, add zero vec
                             state = STATE.NEWLINE;
                         }
-                        else//normal whie space
-                            position++;
+                        else {
+                          //normal whie space
+                          position++;
+                        }
                     }
-                    else
-                        throw new RuntimeException();
+                    else {
+                      throw new RuntimeException();
+            }
                     break;
                 case FEATURE_INDEX:
                     if (Character.isDigit(ch))
@@ -367,8 +376,9 @@ public class LIBSVMLoader
                         state = STATE.FEATURE_VALUE;
                         position++;
                     }
-                    else
-                        throw new RuntimeException();
+                    else {
+                      throw new RuntimeException();
+            }
                     break;
                 case FEATURE_VALUE:
                     //we need to accept all the values that may be part of a float value
@@ -384,20 +394,22 @@ public class LIBSVMLoader
    
                         maxLen = Math.max(maxLen, indexProcessing+1);
                         tempVec.setLength(maxLen);
-                        if (value != 0)
-                            tempVec.set(indexProcessing, value);
+                        if (value != 0) {
+                          tempVec.set(indexProcessing, value);
+                        }
                         
-                        if (Character.isWhitespace(ch))
-                            state = STATE.WHITESPACE_AFTER_FEATURE;
-                        else
-                            throw new RuntimeException();
+                        if (Character.isWhitespace(ch)) {
+                          state = STATE.WHITESPACE_AFTER_FEATURE;
+                        } else {
+                          throw new RuntimeException();
+                        }
                     }
                     
                     break;
                 case WHITESPACE_AFTER_FEATURE:
-                    if (Character.isDigit(ch))
-                        state = STATE.FEATURE_INDEX;
-                    else if (Character.isWhitespace(ch))
+                    if (Character.isDigit(ch)) {
+                      state = STATE.FEATURE_INDEX;
+            } else if (Character.isWhitespace(ch))
                     {
                         if (ch == '\n' || ch == '\r')
                         {
@@ -405,14 +417,15 @@ public class LIBSVMLoader
                             tempVec.zeroOut();
                             state = STATE.NEWLINE;
                         }
-                        else
-                            position++;
+                        else {
+                          position++;
+              }
                     }
                     break;
                 case NEWLINE:
-                    if (ch == '\n' || ch == '\r')
-                        position++;
-                    else
+                    if (ch == '\n' || ch == '\r') {
+                      position++;
+            } else
                     {
                         state = STATE.LABEL;
                     }
@@ -420,11 +433,13 @@ public class LIBSVMLoader
             }
         }
         
-        if (vectorLength > 0)
-            if (maxLen > vectorLength)
-                throw new RuntimeException("Length given was " + vectorLength + ", but observed length was " + maxLen);
-            else
-                maxLen = vectorLength;
+        if (vectorLength > 0) {
+          if (maxLen > vectorLength) {
+            throw new RuntimeException("Length given was " + vectorLength + ", but observed length was " + maxLen);
+          } else {
+            maxLen = vectorLength;
+          }
+        }
 
         if(classification)
         {
@@ -433,8 +448,9 @@ public class LIBSVMLoader
             //Give categories a unique ordering to avoid loading issues based on the order categories are presented
             List<Double> allCatKeys = new DoubleList(possibleCats.keySet());
             Collections.sort(allCatKeys);
-            for(int i = 0; i < allCatKeys.size(); i++)
-                possibleCats.put(allCatKeys.get(i), i);
+            for(int i = 0; i < allCatKeys.size(); i++) {
+              possibleCats.put(allCatKeys.get(i), i);
+            }
 
             ClassificationDataSet cds = new ClassificationDataSet(maxLen, new CategoricalData[0], predicting);
             for(int i = 0; i < labelVals.size(); i++)
@@ -478,8 +494,9 @@ public class LIBSVMLoader
             int pred = data.getDataPointCategory(i);
             Vec vals = data.getDataPoint(i).getNumericalValues();
             writer.write(pred + " ");
-            for(IndexValue iv : vals)
-                writer.write((iv.getIndex()+1) + ":" + iv.getValue() + " ");//+1 b/c 1 based indexing
+            for(IndexValue iv : vals) {
+              writer.write((iv.getIndex()+1) + ":" + iv.getValue() + " ");//+1 b/c 1 based indexing
+            }
             writer.write("\n");
         }
     }
@@ -498,8 +515,9 @@ public class LIBSVMLoader
             double pred = data.getTargetValue(i);
             Vec vals = data.getDataPoint(i).getNumericalValues();
             writer.write(pred + " ");
-            for(IndexValue iv : vals)
-                writer.write((iv.getIndex()+1) + ":" + iv.getValue() + " ");//+1 b/c 1 based indexing
+            for(IndexValue iv : vals) {
+              writer.write((iv.getIndex()+1) + ":" + iv.getValue() + " ");//+1 b/c 1 based indexing
+            }
             writer.write("\n");
         }
     }

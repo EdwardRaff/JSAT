@@ -22,10 +22,12 @@ public class FisherSendor extends ContinuousDistribution
 
     public FisherSendor(double v1, double v2)
     {
-        if(v1 <= 0)
-            throw new ArithmeticException("v1 must be > 0 not " + v1 );
-        if(v2 <= 0)
-            throw new ArithmeticException("v2 must be > 0 not " + v2 );
+        if(v1 <= 0) {
+          throw new ArithmeticException("v1 must be > 0 not " + v1 );
+        }
+        if(v2 <= 0) {
+          throw new ArithmeticException("v2 must be > 0 not " + v2 );
+        }
         this.v1 = v1;
         this.v2 = v2;
     }
@@ -33,8 +35,9 @@ public class FisherSendor extends ContinuousDistribution
     @Override
     public double logPdf(double x)
     {
-        if(x <= 0)
-            return 0;
+        if(x <= 0) {
+          return 0;
+        }
         double leftSide = v1/2 * log(v1) + v2/2*log(v2) - lnBeta(v1/2, v2/2); 
         double rightSide = (v1/2-1)*log(x) - (v1+v2)/2*log(v2+v1*x);
         return leftSide+rightSide;
@@ -45,8 +48,9 @@ public class FisherSendor extends ContinuousDistribution
     @Override
     public double pdf(double x)
     {
-        if(x <= 0)
-            return 0;
+        if(x <= 0) {
+          return 0;
+        }
         return exp(logPdf(x));
     }
 
@@ -54,16 +58,18 @@ public class FisherSendor extends ContinuousDistribution
     @Override
     public double cdf(double x)
     {
-        if(x <= 0)
-            return 0;
+        if(x <= 0) {
+          return 0;
+        }
         return betaIncReg(v1*x / (v1*x + v2), v1/2, v2/2);
     }
 
     @Override
     public double invCdf(double p)
     {
-        if(p < 0 || p > 1)
-            throw new ArithmeticException("Probability must be in the range [0,1], not" + p);
+        if(p < 0 || p > 1) {
+          throw new ArithmeticException("Probability must be in the range [0,1], not" + p);
+        }
         double u = invBetaIncReg(p, v1/2, v2/2);
         return v2*u/(v1*(1-u));
     }
@@ -101,16 +107,19 @@ public class FisherSendor extends ContinuousDistribution
     @Override
     public void setVariable(String var, double value)
     {
-        if (var.equals("v1"))
-            if (value > 0)
-                v1 = value;
-            else
-                throw new ArithmeticException("v1 must be > 0 not " + value);
-        else if (var.equals("v2"))
-            if (value > 0)
-                v2 = value;
-            else
-                throw new ArithmeticException("v2 must be > 0 not " + value );
+        if (var.equals("v1")) {
+          if (value > 0) {
+            v1 = value;
+          } else {
+            throw new ArithmeticException("v1 must be > 0 not " + value);
+          }
+        } else if (var.equals("v2")) {
+          if (value > 0) {
+            v2 = value;
+          } else {
+            throw new ArithmeticException("v2 must be > 0 not " + value );
+          }
+        }
     }
 
     @Override
@@ -136,8 +145,9 @@ public class FisherSendor extends ContinuousDistribution
         else
         {
             v2 = tmp;
-            if(v2 < 4)
-                return;//We cant approximate v1
+            if(v2 < 4) {
+              return;//We cant approximate v1
+            }
         }
         
         //only true if v2 > 4
@@ -151,8 +161,9 @@ public class FisherSendor extends ContinuousDistribution
     @Override
     public double mean()
     {
-        if(v2 <= 2)
-            return Double.NaN;
+        if(v2 <= 2) {
+          return Double.NaN;
+        }
         
         return v2/(v2-2);
     }
@@ -166,8 +177,9 @@ public class FisherSendor extends ContinuousDistribution
     @Override
     public double mode()
     {
-        if(v1 <= 2)
-            return Double.NaN;
+        if(v1 <= 2) {
+          return Double.NaN;
+        }
         
         return (v1-2)/v1*v2/(v2+2);
     }
@@ -175,8 +187,9 @@ public class FisherSendor extends ContinuousDistribution
     @Override
     public double variance()
     {
-        if(v2 <= 4)
-            return Double.NaN;
+        if(v2 <= 4) {
+          return Double.NaN;
+        }
         
         return 2 * v2*v2*(v1+v2-2) / (v1*pow(v2-2,2)*(v2-4));
     }
@@ -185,8 +198,9 @@ public class FisherSendor extends ContinuousDistribution
     public double skewness()
     {
         
-        if(v2 <= 6)//Does not have a skewness for d2 <= 6
-            return Double.NaN;
+        if(v2 <= 6) {//Does not have a skewness for d2 <= 6
+          return Double.NaN;
+        }
         double num = (2*v1+v2-2)*sqrt(8*(v2-4));
         double denom = (v2-6)*sqrt(v1*(v1+v2-2));
         

@@ -100,8 +100,9 @@ public class ExtraTree implements Classifier, Regressor, TreeLearner, Parameteri
      */
     public void setStopSize(int stopSize)
     {
-        if(stopSize <= 0)
-            throw new ArithmeticException("The stopping size must be a positive value");
+        if(stopSize <= 0) {
+          throw new ArithmeticException("The stopping size must be a positive value");
+        }
         this.stopSize = stopSize;
     }
 
@@ -182,8 +183,9 @@ public class ExtraTree implements Classifier, Regressor, TreeLearner, Parameteri
         
         predicting = dataSet.getPredicting();
         ImpurityScore score = new ImpurityScore(predicting.getNumOfCategories(), impMeasure);
-        for(DataPointPair<Integer> dpp : data)
-            score.addPoint(dpp.getDataPoint(), dpp.getPair());
+        for(DataPointPair<Integer> dpp : data) {
+          score.addPoint(dpp.getDataPoint(), dpp.getPair());
+        }
         
         root = trainC(score, data, features, dataSet.getCategories(), rand, reusableLists);
     }
@@ -203,8 +205,9 @@ public class ExtraTree implements Classifier, Regressor, TreeLearner, Parameteri
         //Should we stop? Stop split(S)
         if(subSet.size() < stopSize || setScore.getScore() == 0.0)
         {
-            if(subSet.isEmpty())
-                return null;
+            if(subSet.isEmpty()) {
+              return null;
+            }
             return new NodeC(setScore.getResults());
         }
         
@@ -243,10 +246,12 @@ public class ExtraTree implements Classifier, Regressor, TreeLearner, Parameteri
                 {
                     scores = createScores(2);
                     Set<Integer> catsValsInUse = new IntSet(vals*2);
-                    for(DataPointPair<Integer> dpp : subSet)
-                        catsValsInUse.add(dpp.getDataPoint().getCategoricalValue(a));
-                    if(catsValsInUse.size() == 1)
-                        return new NodeC(setScore.getResults());
+                    for(DataPointPair<Integer> dpp : subSet) {
+                      catsValsInUse.add(dpp.getDataPoint().getCategoricalValue(a));
+                    }
+                    if(catsValsInUse.size() == 1) {
+                      return new NodeC(setScore.getResults());
+                    }
                     leftSide = new IntSet(vals);
                     int toUse = rand.nextInt(catsValsInUse.size()-1)+1;
                     ListUtils.randomSample(catsValsInUse, leftSide, toUse, rand);
@@ -313,13 +318,15 @@ public class ExtraTree implements Classifier, Regressor, TreeLearner, Parameteri
                 bestAttribute = a;
                 bestThreshold = threshold;
                 bestScores = scores;
-                if(bestSplit != null)
-                    fillStack(reusableLists, bestSplit);
+                if(bestSplit != null) {
+                  fillStack(reusableLists, bestSplit);
+                }
                 bestSplit = aSplit;
                 bestLeftSide = leftSide;
             }
-            else
-                fillStack(reusableLists, aSplit);
+            else {
+              fillStack(reusableLists, aSplit);
+            }
             
         }
         
@@ -327,16 +334,16 @@ public class ExtraTree implements Classifier, Regressor, TreeLearner, Parameteri
         //We are no longer using the full array of all values
         fillStack(reusableLists, Arrays.asList(subSet));
         NodeBase toReturn;
-        if(bestAttribute < catInfo.length)
-            if(bestSplit.size() == 2)//2 paths only
-                toReturn = new NodeCCat(bestAttribute, bestLeftSide, setScore.getResults());
-            else
-            {
-                toReturn = new NodeCCat(goTo, bestSplit.size(), setScore.getResults());
-                features.remove(new Integer(bestAttribute));//Feature nolonger viable in this case
-            }
-        else
-            toReturn = new NodeCNum(bestAttribute-catInfo.length, bestThreshold, setScore.getResults());
+        if(bestAttribute < catInfo.length) {
+          if (bestSplit.size() == 2) {
+            toReturn = new NodeCCat(bestAttribute, bestLeftSide, setScore.getResults());
+          } else {
+            toReturn = new NodeCCat(goTo, bestSplit.size(), setScore.getResults());
+            features.remove(new Integer(bestAttribute));//Feature nolonger viable in this case
+          }
+        } else {
+          toReturn = new NodeCNum(bestAttribute-catInfo.length, bestThreshold, setScore.getResults());
+        }
         for(int i = 0; i < toReturn.children.length; i++)
         {
             toReturn.children[i] = trainC(bestScores[i], bestSplit.get(i), features, catInfo, rand, reusableLists);
@@ -357,8 +364,9 @@ public class ExtraTree implements Classifier, Regressor, TreeLearner, Parameteri
     private TreeNodeVisitor train(OnLineStatistics setScore, List<DataPointPair<Double>> subSet, List<Integer> features, CategoricalData[] catInfo, Random rand, Stack<List<DataPointPair<Double>>> reusableLists)
     {
         //Should we stop? Stop split(S)
-        if(subSet.size() < stopSize || setScore.getVarance() <= 0.0 || Double.isNaN(setScore.getVarance()))
-            return new NodeR(setScore.getMean());
+        if(subSet.size() < stopSize || setScore.getVarance() <= 0.0 || Double.isNaN(setScore.getVarance())) {
+          return new NodeR(setScore.getMean());
+        }
         
         double bestGain = Double.NEGATIVE_INFINITY;
         double bestThreshold = Double.NaN;
@@ -395,10 +403,12 @@ public class ExtraTree implements Classifier, Regressor, TreeLearner, Parameteri
                 {
                     stats = createStats(2);
                     Set<Integer> catsValsInUse = new IntSet(vals*2);
-                    for(DataPointPair<Double> dpp : subSet)
-                        catsValsInUse.add(dpp.getDataPoint().getCategoricalValue(a));
-                    if(catsValsInUse.size() == 1)
-                        return new NodeR(setScore.getMean());
+                    for(DataPointPair<Double> dpp : subSet) {
+                      catsValsInUse.add(dpp.getDataPoint().getCategoricalValue(a));
+                    }
+                    if(catsValsInUse.size() == 1) {
+                      return new NodeR(setScore.getMean());
+                    }
                     leftSide = new IntSet(vals);
                     int toUse = rand.nextInt(catsValsInUse.size()-1)+1;
                     ListUtils.randomSample(catsValsInUse, leftSide, toUse, rand);
@@ -461,21 +471,24 @@ public class ExtraTree implements Classifier, Regressor, TreeLearner, Parameteri
             gain = 1;
             double varNorm = setScore.getVarance();
             double varSum = setScore.getSumOfWeights();
-            for(OnLineStatistics stat : stats)
-                gain -= stat.getSumOfWeights()/varSum*(stat.getVarance()/varNorm);
+            for(OnLineStatistics stat : stats) {
+              gain -= stat.getSumOfWeights()/varSum*(stat.getVarance()/varNorm);
+            }
             if(gain > bestGain)
             {
                 bestGain = gain;
                 bestAttribute = a;
                 bestThreshold = threshold;
                 bestScores = stats;
-                if(bestSplit != null)
-                    fillStack(reusableLists, bestSplit);
+                if(bestSplit != null) {
+                  fillStack(reusableLists, bestSplit);
+                }
                 bestSplit = aSplit;
                 bestLeftSide = leftSide;
             }
-            else
-                fillStack(reusableLists, aSplit);
+            else {
+              fillStack(reusableLists, aSplit);
+            }
             
         }
         
@@ -485,16 +498,16 @@ public class ExtraTree implements Classifier, Regressor, TreeLearner, Parameteri
         NodeBase toReturn;
         if (bestAttribute >= 0)
         {
-            if (bestAttribute < catInfo.length)
-                if (bestSplit.size() == 2)//2 paths only
-                    toReturn = new NodeRCat(bestAttribute, bestLeftSide, setScore.getMean());
-                else
-                {
-                    toReturn = new NodeRCat(goTo, bestSplit.size(), setScore.getMean());
-                    features.remove(new Integer(bestAttribute));//Feature nolonger viable in this case
-                }
-            else
-                toReturn = new NodeRNum(bestAttribute - catInfo.length, bestThreshold, setScore.getMean());
+            if (bestAttribute < catInfo.length) {
+              if (bestSplit.size() == 2) {
+                toReturn = new NodeRCat(bestAttribute, bestLeftSide, setScore.getMean());
+              } else {
+                toReturn = new NodeRCat(goTo, bestSplit.size(), setScore.getMean());
+                features.remove(new Integer(bestAttribute));//Feature nolonger viable in this case
+              }
+            } else {
+              toReturn = new NodeRNum(bestAttribute - catInfo.length, bestThreshold, setScore.getMean());
+            }
 
             for (int i = 0; i < toReturn.children.length; i++)
             {
@@ -517,10 +530,12 @@ public class ExtraTree implements Classifier, Regressor, TreeLearner, Parameteri
         ExtraTree clone = new ExtraTree(selectionCount, stopSize);
         clone.impMeasure = this.impMeasure;
         clone.binaryCategoricalSplitting = this.binaryCategoricalSplitting;
-        if(this.predicting != null)
-            clone.predicting = this.predicting.clone();
-        if(this.root != null)
-            clone.root = this.root.clone();
+        if(this.predicting != null) {
+          clone.predicting = this.predicting.clone();
+        }
+        if(this.root != null) {
+          clone.root = this.root.clone();
+        }
         return clone;
     }
 
@@ -539,11 +554,13 @@ public class ExtraTree implements Classifier, Regressor, TreeLearner, Parameteri
      */
     static private <T>  void fillList(final int listsToAdd, Stack<List<T>> reusableLists, List<List<T>> aSplit)
     {
-        for(int j = 0; j < listsToAdd; j++)
-            if(reusableLists.isEmpty())
-                aSplit.add(new ArrayList<T>());
-            else
-                aSplit.add(reusableLists.pop());
+        for(int j = 0; j < listsToAdd; j++) {
+          if (reusableLists.isEmpty()) {
+            aSplit.add(new ArrayList<T>());
+          } else {
+            aSplit.add(reusableLists.pop());
+          }
+        }
     }
     
     /**
@@ -568,8 +585,9 @@ public class ExtraTree implements Classifier, Regressor, TreeLearner, Parameteri
     private ImpurityScore[] createScores(int count)
     {
         ImpurityScore[] scores = new ImpurityScore[count];
-        for(int j = 0; j < scores.length; j++)
-            scores[j] = new ImpurityScore(predicting.getNumOfCategories(), impMeasure);
+        for(int j = 0; j < scores.length; j++) {
+          scores[j] = new ImpurityScore(predicting.getNumOfCategories(), impMeasure);
+        }
         
         return scores;
     }
@@ -597,8 +615,9 @@ public class ExtraTree implements Classifier, Regressor, TreeLearner, Parameteri
         List<DataPointPair<Double>> data = dataSet.getAsDPPList();
         
         OnLineStatistics score = new OnLineStatistics();
-        for(DataPointPair<Double> dpp : data)
-            score.add(dpp.getPair(), dpp.getDataPoint().getWeight());
+        for(DataPointPair<Double> dpp : data) {
+          score.add(dpp.getPair(), dpp.getDataPoint().getWeight());
+        }
         
         root = train(score, data, features, dataSet.getCategories(), rand, reusableLists);
     }
@@ -606,8 +625,9 @@ public class ExtraTree implements Classifier, Regressor, TreeLearner, Parameteri
     private OnLineStatistics[] createStats(int count)
     {
         OnLineStatistics[] stats = new OnLineStatistics[count];
-        for(int i = 0; i < stats.length; i++)
-            stats[i] = new OnLineStatistics();
+        for(int i = 0; i < stats.length; i++) {
+          stats[i] = new OnLineStatistics();
+        }
         return stats;
     }
 
@@ -654,8 +674,9 @@ public class ExtraTree implements Classifier, Regressor, TreeLearner, Parameteri
             this.catAtt = catAtt;
             this.leftBranch = new int[left.size()];
             int pos = 0;
-            for(int i : left)
-                leftBranch[pos++] = i;
+            for(int i : left) {
+              leftBranch[pos++] = i;
+            }
             Arrays.sort(leftBranch);
         }
 
@@ -663,22 +684,24 @@ public class ExtraTree implements Classifier, Regressor, TreeLearner, Parameteri
         {
             super(toClone);
             this.catAtt = toClone.catAtt;
-            if(toClone.leftBranch != null)
-                this.leftBranch = Arrays.copyOf(toClone.leftBranch, toClone.leftBranch.length);
+            if(toClone.leftBranch != null) {
+              this.leftBranch = Arrays.copyOf(toClone.leftBranch, toClone.leftBranch.length);
+            }
         }
         
         @Override
         public int getPath(DataPoint dp)
         {
             int[] catVals = dp.getCategoricalValues();
-            if (leftBranch == null)
-                return catVals[catAtt];
-            else
+            if (leftBranch == null) {
+              return catVals[catAtt];
+            } else
             {
-                if (Arrays.binarySearch(leftBranch, catVals[catAtt]) < 0)
-                    return 1;
-                else
-                    return 0;
+                if (Arrays.binarySearch(leftBranch, catVals[catAtt]) < 0) {
+                  return 1;
+              } else {
+                  return 0;
+              }
             }
         }
 
@@ -722,10 +745,11 @@ public class ExtraTree implements Classifier, Regressor, TreeLearner, Parameteri
         public int getPath(DataPoint dp)
         {
             double val = dp.getNumericalValues().get(numerAtt);
-            if( val <= threshold)
-                return 0;
-            else
-                return 1;
+            if( val <= threshold) {
+              return 0;
+            } else {
+              return 1;
+            }
         }
 
         @Override
@@ -818,9 +842,11 @@ public class ExtraTree implements Classifier, Regressor, TreeLearner, Parameteri
             if(toClone.children != null)
             {
                 children = new TreeNodeVisitor[toClone.children.length];
-                for(int i = 0; i < toClone.children.length; i++)
-                    if(toClone.children[i] != null)
-                        children[i] = toClone.children[i].clone();
+                for(int i = 0; i < toClone.children.length; i++) {
+                  if (toClone.children[i] != null) {
+                    children[i] = toClone.children[i].clone();
+                  }
+                }
             }
         }
         
@@ -833,34 +859,40 @@ public class ExtraTree implements Classifier, Regressor, TreeLearner, Parameteri
         @Override
         public boolean isLeaf()
         {
-            if(children == null)
-                return true;
-            for(int i = 0; i < children.length; i++)
-                if(children[i] != null)
-                    return false;
+            if(children == null) {
+              return true;
+            }
+            for(int i = 0; i < children.length; i++) {
+              if (children[i] != null) {
+                return false;
+              }
+            }
             return true;
         }
 
         @Override
         public TreeNodeVisitor getChild(int child)
         {
-            if(child < 0 || child > childrenCount())
-                return null;
+            if(child < 0 || child > childrenCount()) {
+              return null;
+            }
             return children[child];
         }
 
         @Override
         public void disablePath(int child)
         {
-            if(!isLeaf())
-                children[child] = null;
+            if(!isLeaf()) {
+              children[child] = null;
+            }
         }
 
         @Override
         public boolean isPathDisabled(int child)
         {
-            if(isLeaf())
-                return true;
+            if(isLeaf()) {
+              return true;
+            }
             return children[child] == null;
         }
     }
@@ -953,10 +985,11 @@ public class ExtraTree implements Classifier, Regressor, TreeLearner, Parameteri
         public int getPath(DataPoint dp)
         {
             double val = dp.getNumericalValues().get(numerAtt);
-            if( val <= threshold)
-                return 0;
-            else
-                return 1;
+            if( val <= threshold) {
+              return 0;
+            } else {
+              return 1;
+            }
         }
 
         @Override
@@ -994,8 +1027,9 @@ public class ExtraTree implements Classifier, Regressor, TreeLearner, Parameteri
             this.catAtt = catAtt;
             this.leftBranch = new int[left.size()];
             int pos = 0;
-            for(int i : left)
-                leftBranch[pos++] = i;
+            for(int i : left) {
+              leftBranch[pos++] = i;
+            }
             Arrays.sort(leftBranch);
         }
 
@@ -1003,22 +1037,24 @@ public class ExtraTree implements Classifier, Regressor, TreeLearner, Parameteri
         {
             super(toClone);
             this.catAtt = toClone.catAtt;
-            if(toClone.leftBranch != null)
-                this.leftBranch = Arrays.copyOf(toClone.leftBranch, toClone.leftBranch.length);
+            if(toClone.leftBranch != null) {
+              this.leftBranch = Arrays.copyOf(toClone.leftBranch, toClone.leftBranch.length);
+            }
         }
         
         @Override
         public int getPath(DataPoint dp)
         {
             int[] catVals = dp.getCategoricalValues();
-            if (leftBranch == null)
-                return catVals[catAtt];
-            else
+            if (leftBranch == null) {
+              return catVals[catAtt];
+            } else
             {
-                if (Arrays.binarySearch(leftBranch, catVals[catAtt]) < 0)
-                    return 1;
-                else
-                    return 0;
+                if (Arrays.binarySearch(leftBranch, catVals[catAtt]) < 0) {
+                  return 1;
+              } else {
+                  return 0;
+              }
             }
         }
 

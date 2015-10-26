@@ -79,8 +79,9 @@ public class ALMA2K extends BaseUpdateableClassifier implements BinaryScoreClass
         if(other.supports != null)
         {
             this.supports = new ArrayList<Vec>(other.supports.size());
-            for(Vec v : other.supports)
-                this.supports.add(v.clone());
+            for(Vec v : other.supports) {
+              this.supports.add(v.clone());
+            }
             this.signedEtas = new DoubleList(other.signedEtas);
             this.associatedScores = new DoubleList(other.associatedScores);
             this.normalizers = new DoubleList(other.normalizers);
@@ -154,8 +155,9 @@ public class ALMA2K extends BaseUpdateableClassifier implements BinaryScoreClass
      */
     public void setAlpha(double alpha)
     {
-        if(alpha <= 0 || alpha > 1 || Double.isNaN(alpha))
-            throw new ArithmeticException("alpha must be in (0, 1], not " + alpha);
+        if(alpha <= 0 || alpha > 1 || Double.isNaN(alpha)) {
+          throw new ArithmeticException("alpha must be in (0, 1], not " + alpha);
+        }
         this.alpha = alpha;
         setB(1.0/alpha);
     }
@@ -195,8 +197,9 @@ public class ALMA2K extends BaseUpdateableClassifier implements BinaryScoreClass
      */
     public void setC(double C)
     {
-        if(C <= 0 || Double.isInfinite(C) || Double.isNaN(C))
-            throw new ArithmeticException("C must be a posative cosntant");
+        if(C <= 0 || Double.isInfinite(C) || Double.isNaN(C)) {
+          throw new ArithmeticException("C must be a posative cosntant");
+        }
         this.C = C;
     }
 
@@ -208,10 +211,12 @@ public class ALMA2K extends BaseUpdateableClassifier implements BinaryScoreClass
     @Override
     public void setUp(CategoricalData[] categoricalAttributes, int numericAttributes, CategoricalData predicting)
     {
-        if(numericAttributes <= 0)
-            throw new FailedToFitException("ALMA2 requires numeric features");
-        if(predicting.getNumOfCategories() != 2)
-            throw new FailedToFitException("ALMA2 works only for binary classification");
+        if(numericAttributes <= 0) {
+          throw new FailedToFitException("ALMA2 requires numeric features");
+        }
+        if(predicting.getNumOfCategories() != 2) {
+          throw new FailedToFitException("ALMA2 works only for binary classification");
+        }
         
         supports = new ArrayList<Vec>();
         signedEtas = new DoubleList();
@@ -243,8 +248,9 @@ public class ALMA2K extends BaseUpdateableClassifier implements BinaryScoreClass
             rounds.add(curRounds);
             curRounds = 0;
         }
-        else
-            curRounds++;
+        else {
+          curRounds++;
+        }
     }
     
     /**
@@ -273,13 +279,15 @@ public class ALMA2K extends BaseUpdateableClassifier implements BinaryScoreClass
             double denom_tmp = 2*eta_s*associatedScores.get(i)+eta_s*eta_s;
             denom += denom/Math.max(1, denom)+ denom_tmp;
             score += tmp/Math.max(1, denom);
-            if(averaged)
-                finalScore += score*rounds.get(i);
+            if(averaged) {
+              finalScore += score*rounds.get(i);
+            }
         }
-        if(averaged)
-            return finalScore;
-        else
-            return score;
+        if(averaged) {
+          return finalScore;
+        } else {
+          return score;
+        }
     }
 
     @Override
@@ -287,10 +295,11 @@ public class ALMA2K extends BaseUpdateableClassifier implements BinaryScoreClass
     {
         double wx = getScore(data);
         CategoricalResults cr =new CategoricalResults(2);
-        if(wx < 0)
-            cr.setProb(0, 1.0);
-        else
-            cr.setProb(1, 1.0);
+        if(wx < 0) {
+          cr.setProb(0, 1.0);
+        } else {
+          cr.setProb(1, 1.0);
+        }
         return cr;
     }
 

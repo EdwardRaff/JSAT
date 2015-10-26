@@ -119,8 +119,9 @@ public class NormalizedEuclideanDistance extends TrainableDistanceMetric
     public NormalizedEuclideanDistance clone()
     {
         NormalizedEuclideanDistance clone = new NormalizedEuclideanDistance();
-        if(this.invStndDevs != null)
-            clone.invStndDevs = this.invStndDevs.clone();
+        if(this.invStndDevs != null) {
+          clone.invStndDevs = this.invStndDevs.clone();
+        }
         return clone;
     }
 
@@ -181,8 +182,9 @@ public class NormalizedEuclideanDistance extends TrainableDistanceMetric
     {
         DoubleList cache = new DoubleList(vecs.size());
         
-        for(Vec v : vecs)
-            cache.add(VecOps.weightedDot(invStndDevs, v, v));
+        for(Vec v : vecs) {
+          cache.add(VecOps.weightedDot(invStndDevs, v, v));
+        }
         
         return cache;
     }
@@ -190,8 +192,9 @@ public class NormalizedEuclideanDistance extends TrainableDistanceMetric
     @Override
     public List<Double> getAccelerationCache(final List<? extends Vec> vecs, ExecutorService threadpool)
     {
-        if(threadpool == null || threadpool instanceof FakeExecutor)
-            return getAccelerationCache(vecs);
+        if(threadpool == null || threadpool instanceof FakeExecutor) {
+          return getAccelerationCache(vecs);
+        }
         final double[] cache = new double[vecs.size()];
         
         final int P = Math.min(SystemInfo.LogicalCores, vecs.size());
@@ -206,8 +209,9 @@ public class NormalizedEuclideanDistance extends TrainableDistanceMetric
                 @Override
                 public void run()
                 {
-                    for(int i = start; i < end; i++)
-                        cache[i] = VecOps.weightedDot(invStndDevs, vecs.get(i), vecs.get(i));
+                    for(int i = start; i < end; i++) {
+                      cache[i] = VecOps.weightedDot(invStndDevs, vecs.get(i), vecs.get(i));
+                    }
                     latch.countDown();
                 }
             });
@@ -228,8 +232,9 @@ public class NormalizedEuclideanDistance extends TrainableDistanceMetric
     @Override
     public double dist(int a, int b, List<? extends Vec> vecs, List<Double> cache)
     {
-        if(cache == null)
-            return dist(vecs.get(a), vecs.get(b));
+        if(cache == null) {
+          return dist(vecs.get(a), vecs.get(b));
+        }
         
         return Math.sqrt(cache.get(a)+cache.get(b)-2*VecOps.weightedDot(invStndDevs, vecs.get(a), vecs.get(b)));
     }
@@ -237,8 +242,9 @@ public class NormalizedEuclideanDistance extends TrainableDistanceMetric
     @Override
     public double dist(int a, Vec b, List<? extends Vec> vecs, List<Double> cache)
     {
-        if(cache == null)
-            return dist(vecs.get(a), b);
+        if(cache == null) {
+          return dist(vecs.get(a), b);
+        }
         
         return Math.sqrt(cache.get(a)+VecOps.weightedDot(invStndDevs, b, b)-2*VecOps.weightedDot(invStndDevs, vecs.get(a), b));
     }
@@ -254,8 +260,9 @@ public class NormalizedEuclideanDistance extends TrainableDistanceMetric
     @Override
     public double dist(int a, Vec b, List<Double> qi, List<? extends Vec> vecs, List<Double> cache)
     {
-        if(cache == null)
-            return dist(vecs.get(a), b);
+        if(cache == null) {
+          return dist(vecs.get(a), b);
+        }
         
         return Math.sqrt(cache.get(a)+qi.get(0)-2*VecOps.weightedDot(invStndDevs, vecs.get(a), b));
     }

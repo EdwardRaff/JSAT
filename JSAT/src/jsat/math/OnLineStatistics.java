@@ -51,8 +51,9 @@ public class OnLineStatistics implements Serializable, Cloneable
      */
     public OnLineStatistics(double n, double mean, double variance, double skew, double kurt)
     {
-        if(n < 0)
-            throw new ArithmeticException("Can not have a negative set of weights");
+        if(n < 0) {
+          throw new ArithmeticException("Can not have a negative set of weights");
+        }
         this.n = n;
         if(n != 0)
         {
@@ -61,8 +62,9 @@ public class OnLineStatistics implements Serializable, Cloneable
             this.m3 = Math.pow(m2, 3.0/2.0)*skew/Math.sqrt(n); 
             this.m4 = (3+kurt)*m2*m2/n;
         }
-        else
-            this.mean = m2 = m3 = m4 = 0;
+        else {
+          this.mean = m2 = m3 = m4 = 0;
+        }
         min = max  = null;
     }
    
@@ -106,10 +108,11 @@ public class OnLineStatistics implements Serializable, Cloneable
    {
        //See http://en.wikipedia.org/wiki/Algorithms_for_calculating_variance
        
-       if(weight < 0)
-           throw new ArithmeticException("Can not add a negative weight");
-       else if(weight == 0)
-           return;
+       if(weight < 0) {
+         throw new ArithmeticException("Can not add a negative weight");
+       } else if(weight == 0) {
+         return;
+       }
        
        double n1 = n;
        n+=weight;
@@ -124,9 +127,9 @@ public class OnLineStatistics implements Serializable, Cloneable
        m3 += term1 * delta_n * (n - 2) - 3 * delta_n * m2;
        m2 += weight*delta*(x-mean);
        
-       if(min == null)
-           min = max = x;
-       else
+       if(min == null) {
+         min = max = x;
+       } else
        {
            min = Math.min(min, x);
            max = Math.max(max, x);
@@ -145,10 +148,11 @@ public class OnLineStatistics implements Serializable, Cloneable
     */
    public void remove(double x, double weight)
    {
-       if(weight < 0)
-           throw new ArithmeticException("Can not remove a negative weight");
-       else if(weight == 0)
-           return;
+       if(weight < 0) {
+         throw new ArithmeticException("Can not remove a negative weight");
+       } else if(weight == 0) {
+         return;
+       }
        
        double n1 = n;
        n-=weight;
@@ -207,10 +211,11 @@ public class OnLineStatistics implements Serializable, Cloneable
            min = max  = null;
            return;
        }
-       else if(B.n == 0)
-           return;//removed nothing!
-       else if(A.n < B.n)
-           throw new ArithmeticException("Can not have negative samples");
+       else if(B.n == 0) {
+         return;//removed nothing!
+       } else if(A.n < B.n) {
+         throw new ArithmeticException("Can not have negative samples");
+       }
        
        double nX = A.n-B.n;
        double nXsqrd = nX*nX;
@@ -268,11 +273,11 @@ public class OnLineStatistics implements Serializable, Cloneable
    {
        final OnLineStatistics A = this;
        //XXX double compare.
-       if(A.n == B.n && B.n == 0)
-           return;//nothing to do!
-       else if(B.n == 0)
-           return;//still nothing!
-       else if (A.n == 0)
+       if(A.n == B.n && B.n == 0) {
+         return;//nothing to do!
+       } else if(B.n == 0) {
+         return;//still nothing!
+       } else if (A.n == 0)
        {
            this.n = B.n;
            this.mean = B.mean;

@@ -60,8 +60,9 @@ public class RandomDecisionTree extends DecisionTree
      */
     public void setRandomFeatureCount(int numFeatures)
     {
-        if(numFeatures < 1)
-            throw new IllegalArgumentException("Number of features must be positive, not " + numFeatures);
+        if(numFeatures < 1) {
+          throw new IllegalArgumentException("Number of features must be positive, not " + numFeatures);
+        }
         this.numFeatures = numFeatures;
     }
 

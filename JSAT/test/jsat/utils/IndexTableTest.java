@@ -53,24 +53,27 @@ public class IndexTableTest
     public void testSortD()
     {
         IndexTable idt = new IndexTable(array);
-        for(int i = 0; i < idt.length()-1; i++)
-            assertTrue(array[idt.index(i)] <= array[idt.index(i+1)]);
+        for(int i = 0; i < idt.length()-1; i++) {
+          assertTrue(array[idt.index(i)] <= array[idt.index(i+1)]);
+        }
     }
     
     @Test
     public void testSortG()
     {
         IndexTable idt = new IndexTable(arrayD);
-        for(int i = 0; i < idt.length()-1; i++)
-            assertTrue(arrayD[idt.index(i)].compareTo(arrayD[idt.index(i+1)]) <= 0);
+        for(int i = 0; i < idt.length()-1; i++) {
+          assertTrue(arrayD[idt.index(i)].compareTo(arrayD[idt.index(i+1)]) <= 0);
+        }
     }
     
     @Test
     public void testSortList()
     {
         IndexTable idt = new IndexTable(list);
-        for(int i = 0; i < idt.length()-1; i++)
-            assertTrue(list.get(idt.index(i)).compareTo(list.get(idt.index(i+1))) <= 0);
+        for(int i = 0; i < idt.length()-1; i++) {
+          assertTrue(list.get(idt.index(i)).compareTo(list.get(idt.index(i+1))) <= 0);
+        }
     }
     
     @Test
@@ -84,8 +87,9 @@ public class IndexTableTest
                 return -o1.compareTo(o2);
             }
         });
-        for(int i = 0; i < idt.length()-1; i++)
-            assertTrue(list.get(idt.index(i)).compareTo(list.get(idt.index(i+1))) >= 0);
+        for(int i = 0; i < idt.length()-1; i++) {
+          assertTrue(list.get(idt.index(i)).compareTo(list.get(idt.index(i+1))) >= 0);
+        }
     }
     
     @Test
@@ -94,8 +98,9 @@ public class IndexTableTest
         IndexTable idt = new IndexTable(array);
         double[] test = Arrays.copyOf(array, array.length);
         idt.apply(test);
-        for(int i = 0; i < test.length-1; i++)
-            assertTrue(test[i] <= test[i+1]);
+        for(int i = 0; i < test.length-1; i++) {
+          assertTrue(test[i] <= test[i+1]);
+        }
     }
     
     @Test
@@ -103,12 +108,14 @@ public class IndexTableTest
     {
         IndexTable idt = new IndexTable(array);
         List<Double> test = new DoubleList();
-        for(double d : array)
-            test.add(d);
+        for(double d : array) {
+          test.add(d);
+        }
         
         idt.apply(test);
-        for(int i = 0; i < test.size()-1; i++)
-            assertTrue(test.get(i) <= test.get(i+1));
+        for(int i = 0; i < test.size()-1; i++) {
+          assertTrue(test.get(i) <= test.get(i+1));
+        }
     }
     
     @Test

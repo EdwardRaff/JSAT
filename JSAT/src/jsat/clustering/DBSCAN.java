@@ -90,8 +90,9 @@ public class DBSCAN extends ClustererBase
         VectorCollection<VecPaired<Vec, Integer>> vc = vecFactory.getVectorCollection(getVecIndexPairs(dataSet), dm);
         
         List<DataPoint> dps = dataSet.getDataPoints();
-        for(DataPoint dp :  dps)
-            stats.add(vc.search(dp.getNumericalValues(), minPts+1).get(minPts).getPair());
+        for(DataPoint dp :  dps) {
+          stats.add(vc.search(dp.getNumericalValues(), minPts+1).get(minPts).getPair());
+        }
         
         
         
@@ -136,8 +137,9 @@ public class DBSCAN extends ClustererBase
             {
                 DataPoint dp = queue.take();
                 
-                if(dp.numNumericalValues() == 0 && dp.numCategoricalValues() == 0)
-                    break;//Posion value, nonsense data point used to signal end
+                if(dp.numNumericalValues() == 0 && dp.numCategoricalValues() == 0) {
+                  break;//Posion value, nonsense data point used to signal end
+                }
                 stats.add(vc.search(dp.getNumericalValues(), minPts+1).get(minPts).getPair());
             }
             return stats;
@@ -160,23 +162,27 @@ public class DBSCAN extends ClustererBase
         List<Future<OnLineStatistics>> futures = new ArrayList<Future<OnLineStatistics>>(SystemInfo.LogicalCores);
         
         //Setup
-        for(int i = 0; i < SystemInfo.LogicalCores; i++)
-            futures.add(threadpool.submit(new StatsWorker(queue, vc, minPts)));
+        for(int i = 0; i < SystemInfo.LogicalCores; i++) {
+          futures.add(threadpool.submit(new StatsWorker(queue, vc, minPts)));
+        }
         //Feed data
-        for(int i = 0; i < dataSet.getSampleSize(); i++)
-            queue.add(dataSet.getDataPoint(i));
+        for(int i = 0; i < dataSet.getSampleSize(); i++) {
+          queue.add(dataSet.getDataPoint(i));
+        }
         //Posion stop
-        for(int i = 0; i < SystemInfo.LogicalCores; i++)
-            queue.add(new DataPoint(new DenseVector(0), new int[0], new CategoricalData[0]));
+        for(int i = 0; i < SystemInfo.LogicalCores; i++) {
+          queue.add(new DataPoint(new DenseVector(0), new int[0], new CategoricalData[0]));
+        }
         
         for( Future<OnLineStatistics> future : futures)
         {
             try
             {
-                if(stats == null)
-                    stats = future.get();
-                else 
-                    stats = OnLineStatistics.add(stats, future.get());
+                if(stats == null) {
+                  stats = future.get();
+                } else {
+                  stats = OnLineStatistics.add(stats, future.get());
+                }
             }
             catch (InterruptedException ex)
             {
@@ -196,8 +202,9 @@ public class DBSCAN extends ClustererBase
     private List<VecPaired<Vec, Integer>> getVecIndexPairs(DataSet dataSet)
     {
         List<VecPaired<Vec, Integer>> vecs = new ArrayList<VecPaired<Vec, Integer>>(dataSet.getSampleSize());
-        for(int i = 0; i < dataSet.getSampleSize(); i++)
-            vecs.add(new VecPaired<Vec, Integer>(dataSet.getDataPoint(i).getNumericalValues(), i));
+        for(int i = 0; i < dataSet.getSampleSize(); i++) {
+          vecs.add(new VecPaired<Vec, Integer>(dataSet.getDataPoint(i).getNumericalValues(), i));
+        }
         return vecs;
     }
     
@@ -225,8 +232,9 @@ public class DBSCAN extends ClustererBase
     
     private int[] cluster(DataSet dataSet, double eps, int minPts, VectorCollection<VecPaired<Vec, Integer>> vc, int[] pointCats )
     {
-        if (pointCats == null)
-            pointCats = new int[dataSet.getSampleSize()];
+        if (pointCats == null) {
+          pointCats = new int[dataSet.getSampleSize()];
+        }
         Arrays.fill(pointCats, UNCLASSIFIED);
         
         int curClusterID = 0;
@@ -235,8 +243,9 @@ public class DBSCAN extends ClustererBase
             if(pointCats[i] == UNCLASSIFIED)
             {
                 //All assignments are done by expandCluster
-                if(expandCluster(pointCats, dataSet, i, curClusterID, eps, minPts, vc))
-                    curClusterID++;
+                if(expandCluster(pointCats, dataSet, i, curClusterID, eps, minPts, vc)) {
+                  curClusterID++;
+                }
             }
         }
         
@@ -245,8 +254,9 @@ public class DBSCAN extends ClustererBase
     
     private int[] cluster(DataSet dataSet, double eps, int minPts, VectorCollection<VecPaired<Vec, Integer>> vc, ExecutorService threadpool, int[] pointCats)
     {
-        if(pointCats == null)
-            pointCats = new int[dataSet.getSampleSize()];
+        if(pointCats == null) {
+          pointCats = new int[dataSet.getSampleSize()];
+        }
         Arrays.fill(pointCats, UNCLASSIFIED);
         
         
@@ -254,8 +264,9 @@ public class DBSCAN extends ClustererBase
         BlockingQueue<Vec> sourceQ = new LinkedBlockingQueue<Vec>();
 
         //Set up workers
-        for(int i = 0; i < SystemInfo.LogicalCores; i++)
-            threadpool.submit(new ClusterWorker(vc, eps, resultQ, sourceQ));
+        for(int i = 0; i < SystemInfo.LogicalCores; i++) {
+          threadpool.submit(new ClusterWorker(vc, eps, resultQ, sourceQ));
+        }
         
         int curClusterID = 0;
         for(int i = 0; i < pointCats.length; i++)
@@ -263,16 +274,18 @@ public class DBSCAN extends ClustererBase
             if(pointCats[i] == UNCLASSIFIED)
             {
                 //All assignments are done by expandCluster
-                if(expandCluster(pointCats, dataSet, i, curClusterID, eps, minPts, vc, threadpool, resultQ, sourceQ))
-                    curClusterID++;
+                if(expandCluster(pointCats, dataSet, i, curClusterID, eps, minPts, vc, threadpool, resultQ, sourceQ)) {
+                  curClusterID++;
+                }
             }
         }
         
         //Kill workers
         try
         {
-            for (int i = 0; i < SystemInfo.LogicalCores; i++)
-                sourceQ.put(new DenseVector(0));
+            for (int i = 0; i < SystemInfo.LogicalCores; i++) {
+              sourceQ.put(new DenseVector(0));
+            }
         }
         catch (InterruptedException interruptedException)
         {
@@ -313,17 +326,17 @@ public class DBSCAN extends ClustererBase
             VecPaired<VecPaired<Vec, Integer>, Double> currentP = workQue.poll();
             results = vc.search(currentP, eps);
             
-            if(results.size() >= minPts)
-                for(VecPaired<VecPaired<Vec, Integer>, Double> resultP :  results)
-                {
-                    int resultPIndx = resultP.getVector().getPair();
-                    if(pointCats[resultPIndx] < 0)// is UNCLASSIFIED or NOISE
-                    {
-                        if(pointCats[resultPIndx] == UNCLASSIFIED)
-                            workQue.add(resultP);
-                        pointCats[resultPIndx] = clId;
-                    }
-                }   
+            if(results.size() >= minPts) {
+              for (VecPaired<VecPaired<Vec, Integer>, Double> resultP : results) {
+                int resultPIndx = resultP.getVector().getPair();
+                if (pointCats[resultPIndx] < 0) {
+                  if (pointCats[resultPIndx] == UNCLASSIFIED) {
+                    workQue.add(resultP);
+                  }
+                  pointCats[resultPIndx] = clId;
+                }
+              }
+            }   
         }
         
         return true;
@@ -364,8 +377,9 @@ public class DBSCAN extends ClustererBase
                 while(true)
                 {
                     searchPoint = sourceQ.take();
-                    if(searchPoint.length() == 0)
-                        break;
+                    if(searchPoint.length() == 0) {
+                      break;
+                    }
                     results = vc.search(searchPoint, range);
                     resultQ.put(results);
                 }
@@ -411,28 +425,30 @@ public class DBSCAN extends ClustererBase
         {
             pointCats[point] = clId;
             int out = seeds.size();
-            for (VecPaired<VecPaired<Vec, Integer>,Double> v : seeds)
-                sourceQ.put(v.getVector().getVector());
+            for (VecPaired<VecPaired<Vec, Integer>,Double> v : seeds) {
+              sourceQ.put(v.getVector().getVector());
+            }
             
             while (out > 0)
             {
                 results = resultQ.take();
                 out--;
                 
-                if (results.size() >= minPts)
-                    for (VecPaired<VecPaired<Vec, Integer>,Double> resultP : results)
+                if (results.size() >= minPts) {
+                  for (VecPaired<VecPaired<Vec, Integer>,Double> resultP : results)
+                  {
+                    int resultPIndx = resultP.getVector().getPair();
+                    if (pointCats[resultPIndx] < 0)// is UNCLASSIFIED or NOISE
                     {
-                        int resultPIndx = resultP.getVector().getPair();
-                        if (pointCats[resultPIndx] < 0)// is UNCLASSIFIED or NOISE
-                        {
-                            if (pointCats[resultPIndx] == UNCLASSIFIED)
-                            {
-                                sourceQ.put(resultP.getVector().getVector());
-                                out++;
-                            }
-                            pointCats[resultPIndx] = clId;
-                        }
-                    }                
+                      if (pointCats[resultPIndx] == UNCLASSIFIED)
+                      {
+                        sourceQ.put(resultP.getVector().getVector());
+                        out++;
+                      }
+                      pointCats[resultPIndx] = clId;
+                    }
+                  }
+                }                
             }
         }
         catch (InterruptedException interruptedException)

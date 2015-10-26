@@ -45,8 +45,9 @@ public class DDAG extends OneVSOne
         
         //Use a priority que so that we always pick the two lowest value class labels, makes indexing into the oneVsOne array simple
         PriorityQueue<Integer> options = new PriorityQueue<Integer>(predicting.getNumOfCategories());
-        for(int i = 0; i < cr.size(); i++)
-            options.add(i);
+        for(int i = 0; i < cr.size(); i++) {
+          options.add(i);
+        }
         
         
         CategoricalResults subRes;
@@ -59,10 +60,12 @@ public class DDAG extends OneVSOne
             
             subRes = oneVone[c1][c2-c1-1].classify(data);
             
-            if(subRes.mostLikely() == 0)//c1 wins, c2 no longer a candidate
-                options.add(c1);
-            else//c2 wins, c1 no onger a candidate
-                options.add(c2);
+            if(subRes.mostLikely() == 0) {//c1 wins, c2 no longer a candidate
+              options.add(c1);
+            } else {
+              //c2 wins, c1 no onger a candidate
+              options.add(c2);
+            }
         }
         
         cr.setProb(options.peek(), 1.0);
@@ -81,12 +84,14 @@ public class DDAG extends OneVSOne
             for (int i = 0; i < oneVone.length; i++)
             {
                 clone.oneVone[i] = new Classifier[oneVone[i].length];
-                for (int j = 0; j < oneVone[i].length; j++)
-                    clone.oneVone[i][j] = oneVone[i][j].clone();
+                for (int j = 0; j < oneVone[i].length; j++) {
+                  clone.oneVone[i][j] = oneVone[i][j].clone();
+                }
             }
         }
-        if(predicting != null)
-            clone.predicting = predicting.clone();
+        if(predicting != null) {
+          clone.predicting = predicting.clone();
+        }
 
         return clone;
     }

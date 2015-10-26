@@ -40,8 +40,9 @@ public class CosineDistance implements DistanceMetric
          * -1 means they are completly opposite
          */
         double denom = a.pNorm(2) * b.pNorm(2);
-        if(denom == 0)
-            return cosineToDistance(-1);
+        if(denom == 0) {
+          return cosineToDistance(-1);
+        }
         return cosineToDistance(Math.min(a.dot(b) / denom, 1));
     }
 
@@ -92,16 +93,18 @@ public class CosineDistance implements DistanceMetric
     {
         //Store the pnorms in the cache
         DoubleList cache = new DoubleList(vecs.size());
-        for(Vec v : vecs)
-            cache.add(v.pNorm(2));
+        for(Vec v : vecs) {
+          cache.add(v.pNorm(2));
+        }
         return cache;
     }
     
     @Override
     public List<Double> getAccelerationCache(final List<? extends Vec> vecs, ExecutorService threadpool)
     {
-        if(threadpool == null || threadpool instanceof FakeExecutor)
-            return getAccelerationCache(vecs);
+        if(threadpool == null || threadpool instanceof FakeExecutor) {
+          return getAccelerationCache(vecs);
+        }
         final double[] cache = new double[vecs.size()];
         
         final int P = Math.min(SystemInfo.LogicalCores, vecs.size());
@@ -116,8 +119,9 @@ public class CosineDistance implements DistanceMetric
                 @Override
                 public void run()
                 {
-                    for(int i = start; i < end; i++)
-                        cache[i] = vecs.get(i).pNorm(2);
+                    for(int i = start; i < end; i++) {
+                      cache[i] = vecs.get(i).pNorm(2);
+                    }
                     latch.countDown();
                 }
             });
@@ -138,24 +142,28 @@ public class CosineDistance implements DistanceMetric
     @Override
     public double dist(int a, int b, List<? extends Vec> vecs, List<Double> cache)
     {
-        if(cache == null)
-            return dist(vecs.get(a), vecs.get(b));
+        if(cache == null) {
+          return dist(vecs.get(a), vecs.get(b));
+        }
         
         double denom = cache.get(a)*cache.get(b);
-        if(denom == 0)
-            return cosineToDistance(-1);
+        if(denom == 0) {
+          return cosineToDistance(-1);
+        }
         return cosineToDistance(Math.min(vecs.get(a).dot(vecs.get(b)) / denom, 1));
     }
 
     @Override
     public double dist(int a, Vec b, List<? extends Vec> vecs, List<Double> cache)
     {
-        if(cache == null)
-            return dist(vecs.get(a), b);
+        if(cache == null) {
+          return dist(vecs.get(a), b);
+        }
         
         double denom = cache.get(a)*b.pNorm(2);
-        if(denom == 0)
-            return cosineToDistance(-1);
+        if(denom == 0) {
+          return cosineToDistance(-1);
+        }
         return cosineToDistance(Math.min(vecs.get(a).dot(b) / denom, 1));
     }
 
@@ -170,12 +178,14 @@ public class CosineDistance implements DistanceMetric
     @Override
     public double dist(int a, Vec b, List<Double> qi, List<? extends Vec> vecs, List<Double> cache)
     {
-        if(cache == null)
-            return dist(vecs.get(a), b);
+        if(cache == null) {
+          return dist(vecs.get(a), b);
+        }
         
         double denom = cache.get(a)*qi.get(0);
-        if(denom == 0)
-            return cosineToDistance(-1);
+        if(denom == 0) {
+          return cosineToDistance(-1);
+        }
         return cosineToDistance(Math.min(vecs.get(a).dot(b) / denom, 1));
     }
     

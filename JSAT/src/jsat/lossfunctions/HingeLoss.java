@@ -38,19 +38,21 @@ public class HingeLoss implements LossMC
      */
     public static double deriv(double pred, double y)
     {
-        if (pred * y > 1)
-            return 0;
-        else
-            return -y;
+        if (pred * y > 1) {
+          return 0;
+        } else {
+          return -y;
+        }
     }
     
     public static CategoricalResults classify(double score)
     {
         CategoricalResults cr = new CategoricalResults(2);
-        if(score > 0)
-            cr.setProb(1, 1.0);
-        else
-            cr.setProb(0, 1.0);
+        if(score > 0) {
+          cr.setProb(1, 1.0);
+        } else {
+          cr.setProb(0, 1.0);
+        }
         return cr;
     }
 
@@ -94,17 +96,20 @@ public class HingeLoss implements LossMC
     public double getLoss(Vec processed, int y)
     {
         double max_not_y = Double.NEGATIVE_INFINITY;
-        for(int i = 0; i < processed.length(); i++)
-            if(i != y)
-                max_not_y = Math.max(max_not_y, processed.get(i));
+        for(int i = 0; i < processed.length(); i++) {
+          if (i != y) {
+            max_not_y = Math.max(max_not_y, processed.get(i));
+          }
+        }
         return Math.max(0, 1.0+max_not_y-processed.get(y));
     }
 
     @Override
     public void process(Vec pred, Vec processed)
     {
-        if(pred != processed)
-            pred.copyTo(processed);
+        if(pred != processed) {
+          pred.copyTo(processed);
+        }
     }
 
     @Override
@@ -113,12 +118,13 @@ public class HingeLoss implements LossMC
         final double proccessed_y = processed.get(y);
         double maxVal_not_y = Double.NEGATIVE_INFINITY;
         int maxIndx = -1;
-        for(int i = 0; i < processed.length(); i++)
-            if(i != y && processed.get(i) > maxVal_not_y)
-            {
-                maxIndx = i;
-                maxVal_not_y = processed.get(i);
-            }
+        for(int i = 0; i < processed.length(); i++) {
+          if(i != y && processed.get(i) > maxVal_not_y)
+          {
+            maxIndx = i;
+            maxVal_not_y = processed.get(i);
+          }
+        }
         
         derivs.zeroOut();
         if(1.0 + maxVal_not_y - proccessed_y  > 0)
@@ -133,12 +139,13 @@ public class HingeLoss implements LossMC
     {
         int maxIndx = 0;
         double maxVal_not_y = processed.get(maxIndx);
-        for(int i = 1; i < processed.length(); i++)
-            if(processed.get(i) > maxVal_not_y)
-            {
-                maxIndx = i;
-                maxVal_not_y = processed.get(i);
-            }
+        for(int i = 1; i < processed.length(); i++) {
+          if(processed.get(i) > maxVal_not_y)
+          {
+            maxIndx = i;
+            maxVal_not_y = processed.get(i);
+          }
+        }
         CategoricalResults toRet = new CategoricalResults(processed.length());
         toRet.setProb(maxIndx, 1.0);
         return toRet;

@@ -74,8 +74,9 @@ public class EuclideanDistanceTest
         half.mutableAdd(0.5);
         
         inc = new DenseVector(5);
-        for(int i = 0; i < inc.length(); i++)
-            inc.set(i, i);
+        for(int i = 0; i < inc.length(); i++) {
+          inc.set(i, i);
+        }
         
         vecs = Arrays.asList(zero, ones, half, inc);
         expected = new double[][]
@@ -104,8 +105,9 @@ public class EuclideanDistanceTest
         if(cache != null)
         {
             assertEquals(cache.size(), cache2.size());
-            for(int i = 0; i < cache.size(); i++)
-                assertEquals(cache.get(i), cache2.get(i), 0.0);
+            for(int i = 0; i < cache.size(); i++) {
+              assertEquals(cache.get(i), cache2.get(i), 0.0);
+            }
             assertTrue(dist.supportsAcceleration());
         }
         else
@@ -124,15 +126,16 @@ public class EuclideanDistanceTest
 
         }
         
-        for (int i = 0; i < vecs.size(); i++)
-            for (int j = 0; j < vecs.size(); j++)
-            {
-                EuclideanDistance d = dist.clone();
-                assertEquals(expected[i][j], d.dist(vecs.get(i), vecs.get(j)), 1e-8);
-                assertEquals(expected[i][j], d.dist(i, j, vecs, cache), 1e-8);
-                assertEquals(expected[i][j], d.dist(i, vecs.get(j), vecs, cache), 1e-8);
-                assertEquals(expected[i][j], d.dist(i, vecs.get(j), dist.getQueryInfo(vecs.get(j)), vecs, cache), 1e-8);
-            }
+        for (int i = 0; i < vecs.size(); i++) {
+          for (int j = 0; j < vecs.size(); j++)
+          {
+            EuclideanDistance d = dist.clone();
+            assertEquals(expected[i][j], d.dist(vecs.get(i), vecs.get(j)), 1e-8);
+            assertEquals(expected[i][j], d.dist(i, j, vecs, cache), 1e-8);
+            assertEquals(expected[i][j], d.dist(i, vecs.get(j), vecs, cache), 1e-8);
+            assertEquals(expected[i][j], d.dist(i, vecs.get(j), dist.getQueryInfo(vecs.get(j)), vecs, cache), 1e-8);
+          }
+        }
     }
 
     @Test

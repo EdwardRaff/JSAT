@@ -31,12 +31,13 @@ public class Kolmogorov extends ContinuousDistribution
     @Override
     public double cdf(double x)
     {
-        if(x < 0)
-            throw new ArithmeticException("Invalid value of x, x must be > 0, not " + x);
-        else if(x == 0)
-            return 0;
-        else if(x >= 5)//By this point, floating point isnt accurate enough to distinguish between 1.0 and the true value.
-            return 1;
+        if(x < 0) {
+          throw new ArithmeticException("Invalid value of x, x must be > 0, not " + x);
+        } else if(x == 0) {
+          return 0;
+        } else if(x >= 5) {//By this point, floating point isnt accurate enough to distinguish between 1.0 and the true value.
+          return 1;
+        }
         
         /* 
          * Uses 2 formulas, see http://en.wikipedia.org/wiki/Kolmogorov%E2%80%93Smirnov_test#Kolmogorov_distribution
@@ -50,8 +51,9 @@ public class Kolmogorov extends ContinuousDistribution
         if(x < 1.18)
         {
             
-            for(int j = 1; j <= 3; j++ )
-                tmp += exp( -pow(2*j-1,2)*PI*PI / (8*x2) );
+            for(int j = 1; j <= 3; j++ ) {
+              tmp += exp( -pow(2*j-1,2)*PI*PI / (8*x2) );
+            }
             
             return sqrt(2*PI)/x *tmp;
         }

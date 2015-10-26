@@ -76,11 +76,12 @@ public class NormalM extends MultivariateDistributionSkeleton
      */
     public void setMeanCovariance(Vec mean, Matrix covariance)
     {
-        if(!covariance.isSquare())
-            throw new ArithmeticException("Covariance matrix must be square");
-        else if(mean.length() != covariance.rows())
-            throw new ArithmeticException("The mean vector and matrix must have the same dimension," +
-                    mean.length() + " does not match [" + covariance.rows() + ", " + covariance.rows() +"]" );
+        if(!covariance.isSquare()) {
+          throw new ArithmeticException("Covariance matrix must be square");
+        } else if(mean.length() != covariance.rows()) {
+          throw new ArithmeticException("The mean vector and matrix must have the same dimension," +
+                  mean.length() + " does not match [" + covariance.rows() + ", " + covariance.rows() +"]" );
+        }
         //Else, we are good!
         this.mean = mean.clone();
         setCovariance(covariance);
@@ -95,10 +96,11 @@ public class NormalM extends MultivariateDistributionSkeleton
      */
     public void setCovariance(Matrix covMatrix)
     {
-        if(!covMatrix.isSquare())
-            throw new ArithmeticException("Covariance matrix must be square");
-        else if(covMatrix.rows() != this.mean.length())
-            throw new ArithmeticException("Covariance matrix does not agree with the mean");
+        if(!covMatrix.isSquare()) {
+          throw new ArithmeticException("Covariance matrix must be square");
+        } else if(covMatrix.rows() != this.mean.length()) {
+          throw new ArithmeticException("Covariance matrix does not agree with the mean");
+        }
         
         CholeskyDecomposition cd = new CholeskyDecomposition(covMatrix.clone());
         L = cd.getLT();
@@ -125,8 +127,9 @@ public class NormalM extends MultivariateDistributionSkeleton
     @Override
     public double logPdf(Vec x)
     {
-        if(mean == null)
-            throw new ArithmeticException("No mean or variance set");
+        if(mean == null) {
+          throw new ArithmeticException("No mean or variance set");
+        }
         Vec xMinusMean = x.subtract(mean);
         //Compute the part that is depdentent on x
         double xDependent = xMinusMean.dot(invCovariance.multiply(xMinusMean))*-0.5;
@@ -137,8 +140,9 @@ public class NormalM extends MultivariateDistributionSkeleton
     public double pdf(Vec x)
     {
         double pdf = exp(logPdf(x));
-        if(Double.isInfinite(pdf) || Double.isNaN(pdf))//Ugly numerical error has occured
-            return 0;
+        if(Double.isInfinite(pdf) || Double.isNaN(pdf)) {//Ugly numerical error has occured
+          return 0;
+        }
         return pdf;
     }
 
@@ -198,10 +202,12 @@ public class NormalM extends MultivariateDistributionSkeleton
     public NormalM clone()
     {
         NormalM clone = new NormalM();
-        if(this.invCovariance != null)
-            clone.invCovariance = this.invCovariance.clone();
-        if(this.mean != null)
-            clone.mean = this.mean.clone();
+        if(this.invCovariance != null) {
+          clone.invCovariance = this.invCovariance.clone();
+        }
+        if(this.mean != null) {
+          clone.mean = this.mean.clone();
+        }
         clone.logPDFConst = this.logPDFConst;
         return clone;
     }
@@ -213,8 +219,9 @@ public class NormalM extends MultivariateDistributionSkeleton
         
         for(int i = 0; i < count; i++)
         {
-            for(int j = 0; j < Z.length(); j++)
-                Z.set(j, rand.nextGaussian());
+            for(int j = 0; j < Z.length(); j++) {
+              Z.set(j, rand.nextGaussian());
+            }
             Vec sample = L.multiply(Z);
             sample.mutableAdd(mean);
             samples.add(sample);

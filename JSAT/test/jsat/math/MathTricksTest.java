@@ -84,11 +84,13 @@ public class MathTricksTest
         double[] x2Expected = new double[]{0.64391425988797231, 0.087144318742032567489, 0.23688281808991013};
         
         MathTricks.softmax(x, false);
-        for(int i = 0; i < x.length; i++)
-            assertEquals(xExpected[i], x[i], 1e-15);
+        for(int i = 0; i < x.length; i++) {
+          assertEquals(xExpected[i], x[i], 1e-15);
+        }
         MathTricks.softmax(x2, true);
-        for(int i = 0; i < x2.length; i++)
-            assertEquals(x2Expected[i], x2[i], 1e-15);
+        for(int i = 0; i < x2.length; i++) {
+          assertEquals(x2Expected[i], x2[i], 1e-15);
+        }
     }
 
     /**
@@ -105,11 +107,13 @@ public class MathTricksTest
         Vec x2Expected = new DenseVector(new double[]{0.64391425988797231, 0.087144318742032567489, 0.23688281808991013});
         
         MathTricks.softmax(x, false);
-        for(int i = 0; i < x.length(); i++)
-            assertEquals(xExpected.get(i), x.get(i), 1e-15);
+        for(int i = 0; i < x.length(); i++) {
+          assertEquals(xExpected.get(i), x.get(i), 1e-15);
+        }
         MathTricks.softmax(x2, true);
-        for(int i = 0; i < x2.length(); i++)
-            assertEquals(x2Expected.get(i), x2.get(i), 1e-15);
+        for(int i = 0; i < x2.length(); i++) {
+          assertEquals(x2Expected.get(i), x2.get(i), 1e-15);
+        }
     }
 
     /**

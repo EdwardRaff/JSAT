@@ -155,8 +155,9 @@ public class RegressionModelEvaluation
      */
     public void evaluateCrossValidation(int folds, Random rand)
     {
-        if(folds < 2)
-            throw new UntrainedModelException("Model could not be evaluated because " + folds + " is < 2, and not valid for cross validation");
+        if(folds < 2) {
+          throw new UntrainedModelException("Model could not be evaluated because " + folds + " is < 2, and not valid for cross validation");
+        }
         
         List<RegressionDataSet> lcds = dataSet.cvSet(folds, rand);
         evaluateCrossValidation(lcds);
@@ -180,8 +181,9 @@ public class RegressionModelEvaluation
     public void evaluateCrossValidation(List<RegressionDataSet> lcds)
     {
         List<RegressionDataSet> trainCombinations = new ArrayList<RegressionDataSet>(lcds.size());
-        for (int i = 0; i < lcds.size(); i++)
-            trainCombinations.add(RegressionDataSet.comineAllBut(lcds, i));
+        for (int i = 0; i < lcds.size(); i++) {
+          trainCombinations.add(RegressionDataSet.comineAllBut(lcds, i));
+        }
         evaluateCrossValidation(lcds, trainCombinations);
     }
     
@@ -246,21 +248,24 @@ public class RegressionModelEvaluation
         if(warmModels != null && regressor instanceof WarmRegressor)//train from the warm model
         {
             WarmRegressor wr = (WarmRegressor) regressor;
-            if(threadpool != null)
-                wr.train(trainSet, warmModels[index], threadpool);
-            else
-                wr.train(trainSet, warmModels[index]);
+            if(threadpool != null) {
+              wr.train(trainSet, warmModels[index], threadpool);
+            } else {
+              wr.train(trainSet, warmModels[index]);
+            }
         }
         else//do the normal thing
         {
-            if(threadpool != null)
-                regressor.train(trainSet, threadpool);
-            else
-                regressor.train(trainSet);
+            if(threadpool != null) {
+              regressor.train(trainSet, threadpool);
+            } else {
+              regressor.train(trainSet);
+            }
         }
         totalTrainingTime += (System.currentTimeMillis() - startTrain);
-        if(keptModels != null)
-            keptModels[index] = regressor.clone();
+        if(keptModels != null) {
+          keptModels[index] = regressor.clone();
+        }
         
         //place to store the scores that may get updated by several threads
         final Map<RegressionScore, RegressionScore> scoresToUpdate = new HashMap<RegressionScore, RegressionScore>();
@@ -287,8 +292,9 @@ public class RegressionModelEvaluation
             while(start < testSet.getSampleSize())
             {
                 int end = start+blockSize;
-                if(extra-- > 0)
-                    end++;
+                if(extra-- > 0) {
+                  end++;
+                }
                 threadpool.submit(new Evaluator(testSet, curProccess, start, end, scoresToUpdate, latch));
                 start = end;
             }
@@ -372,8 +378,9 @@ public class RegressionModelEvaluation
             {
                 //create a local set of scores to update
                 Set<RegressionScore> localScores = new HashSet<RegressionScore>();
-                for (Entry<RegressionScore, RegressionScore> entry : scoresToUpdate.entrySet())
-                    localScores.add(entry.getKey().clone());
+                for (Entry<RegressionScore, RegressionScore> entry : scoresToUpdate.entrySet()) {
+                  localScores.add(entry.getKey().clone());
+                }
                 for (int i = start; i < end; i++)
                 {
                     DataPoint di = testSet.getDataPoint(i);
@@ -385,8 +392,9 @@ public class RegressionModelEvaluation
 
                     double sqrdError = pow(trueVal - predVal, 2);
                     
-                    for (RegressionScore score : localScores)
-                        score.addResult(predVal, trueVal, di.getWeight());
+                    for (RegressionScore score : localScores) {
+                      score.addResult(predVal, trueVal, di.getWeight());
+                    }
 
                     synchronized (sqrdErrorStats)
                     {
@@ -397,8 +405,9 @@ public class RegressionModelEvaluation
                 synchronized (sqrdErrorStats)
                 {
                     totalClassificationTime += localPredictionTime;
-                    for (RegressionScore score : localScores)
-                        scoresToUpdate.get(score).addResults(score);
+                    for (RegressionScore score : localScores) {
+                      scoresToUpdate.get(score).addResults(score);
+                    }
                 }
                 latch.countDown();
             }
@@ -419,11 +428,13 @@ public class RegressionModelEvaluation
     public void prettyPrintRegressionScores()
     {
         int nameLength = 10;
-        for(Entry<RegressionScore, OnLineStatistics> entry : scoreMap.entrySet())
-            nameLength = Math.max(nameLength, entry.getKey().getName().length()+2);
+        for(Entry<RegressionScore, OnLineStatistics> entry : scoreMap.entrySet()) {
+          nameLength = Math.max(nameLength, entry.getKey().getName().length()+2);
+        }
         final String pfx = "%-" + nameLength;//prefix
-        for(Entry<RegressionScore, OnLineStatistics> entry : scoreMap.entrySet())
-            System.out.printf(pfx+"s %-5f (%-5f)\n", entry.getKey().getName(), entry.getValue().getMean(), entry.getValue().getStandardDeviation());
+        for(Entry<RegressionScore, OnLineStatistics> entry : scoreMap.entrySet()) {
+          System.out.printf(pfx+"s %-5f (%-5f)\n", entry.getKey().getName(), entry.getValue().getMean(), entry.getValue().getStandardDeviation());
+        }
     }
     
     /**

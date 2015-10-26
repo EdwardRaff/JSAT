@@ -103,8 +103,9 @@ public class PegasosK extends SupportVectorLearner implements BinaryScoreClassif
      */
     public void setRegularization(double regularization)
     {
-        if(Double.isNaN(regularization) || Double.isInfinite(regularization) || regularization <= 0)
-            throw new ArithmeticException("Regularization must be a positive constant, not " + regularization);
+        if(Double.isNaN(regularization) || Double.isInfinite(regularization) || regularization <= 0) {
+          throw new ArithmeticException("Regularization must be a positive constant, not " + regularization);
+        }
         this.regularization = regularization;
     }
 
@@ -139,18 +140,20 @@ public class PegasosK extends SupportVectorLearner implements BinaryScoreClassif
     @Override
     public CategoricalResults classify(DataPoint data)
     {
-        if(alphas == null)
-            throw new UntrainedModelException("Model has not been trained");
+        if(alphas == null) {
+          throw new UntrainedModelException("Model has not been trained");
+        }
         
         CategoricalResults cr = new CategoricalResults(2);
         
         double sum = getScore(data);
 
         //SVM only says yess / no, can not give a percentage
-        if(sum > 0)
-            cr.setProb(1, 1);
-        else
-            cr.setProb(0, 1);
+        if(sum > 0) {
+          cr.setProb(1, 1);
+        } else {
+          cr.setProb(0, 1);
+        }
         
         return cr;
     }
@@ -186,8 +189,9 @@ public class PegasosK extends SupportVectorLearner implements BinaryScoreClassif
             double val = 0;
             for(int j = start; j < end; j++)
             {
-                if(j == i || alphas[j] == 0)
-                    continue;
+                if(j == i || alphas[j] == 0) {
+                  continue;
+                }
                 val += alphas[j]*sign_i* kEval(i, j);
             }
             return val;
@@ -198,8 +202,9 @@ public class PegasosK extends SupportVectorLearner implements BinaryScoreClassif
     @Override
     public void trainC(ClassificationDataSet dataSet, ExecutorService threadPool)
     {
-        if (dataSet.getClassSize() != 2)
-            throw new FailedToFitException("Pegasos only supports binary classification problems");
+        if (dataSet.getClassSize() != 2) {
+          throw new FailedToFitException("Pegasos only supports binary classification problems");
+        }
         try
         {
             Random rand = new Random();
@@ -234,24 +239,27 @@ public class PegasosK extends SupportVectorLearner implements BinaryScoreClassif
                     start += blockSize;
                 }
                 //collect
-                for(Future<Double> partialVal : futures)
-                    val += partialVal.get();
+                for(Future<Double> partialVal : futures) {
+                  val += partialVal.get();
+                }
                 val *= sign_i / (regularization * t);
 
-                if (val < 1)
-                    alphas[i]++;
+                if (val < 1) {
+                  alphas[i]++;
+                }
 
             }
 
             //Collect the non zero alphas
             int pos = 0;
-            for (int i = 0; i < alphas.length; i++)
-                if (alphas[i] != 0)
-                {
-                    alphas[pos] = alphas[i] * sign[i];
-                    ListUtils.swap(vecs, pos, i);
-                    pos++;
-                }
+            for (int i = 0; i < alphas.length; i++) {
+              if (alphas[i] != 0)
+              {
+                alphas[pos] = alphas[i] * sign[i];
+                ListUtils.swap(vecs, pos, i);
+                pos++;
+              }
+            }
             
             alphas = Arrays.copyOf(alphas, pos);
             vecs = new ArrayList<Vec>(vecs.subList(0, pos));

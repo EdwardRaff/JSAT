@@ -85,14 +85,18 @@ public class AROW extends BaseUpdateableClassifier implements BinaryScoreClassif
     {
         this.r = other.r;
         this.diagonalOnly = other.diagonalOnly;
-        if(other.w != null)
-            this.w = other.w.clone();
-        if(other.sigmaM != null)
-            this.sigmaM = other.sigmaM.clone();
-        if(other.sigmaV != null)
-            this.sigmaV = other.sigmaV.clone();
-        if(other.Sigma_xt != null)
-            this.Sigma_xt = other.Sigma_xt.clone();
+        if(other.w != null) {
+          this.w = other.w.clone();
+        }
+        if(other.sigmaM != null) {
+          this.sigmaM = other.sigmaM.clone();
+        }
+        if(other.sigmaV != null) {
+          this.sigmaV = other.sigmaV.clone();
+        }
+        if(other.Sigma_xt != null) {
+          this.Sigma_xt = other.Sigma_xt.clone();
+        }
     }
 
     /**
@@ -124,8 +128,9 @@ public class AROW extends BaseUpdateableClassifier implements BinaryScoreClassif
      */
     public void setR(double r)
     {
-        if(Double.isNaN(r) || Double.isInfinite(r) || r <= 0)
-            throw new IllegalArgumentException("r must be a postive constant, not " + r);
+        if(Double.isNaN(r) || Double.isInfinite(r) || r <= 0) {
+          throw new IllegalArgumentException("r must be a postive constant, not " + r);
+        }
         this.r = r;
     }
 
@@ -157,10 +162,11 @@ public class AROW extends BaseUpdateableClassifier implements BinaryScoreClassif
     @Override
     public void setUp(CategoricalData[] categoricalAttributes, int numericAttributes, CategoricalData predicting)
     {
-        if(numericAttributes <= 0)
-            throw new FailedToFitException("AROW requires numeric attributes to perform classification");
-        else if(predicting.getNumOfCategories() != 2)
-            throw new FailedToFitException("AROW is a binary classifier");
+        if(numericAttributes <= 0) {
+          throw new FailedToFitException("AROW requires numeric attributes to perform classification");
+        } else if(predicting.getNumOfCategories() != 2) {
+          throw new FailedToFitException("AROW is a binary classifier");
+        }
         w = new DenseVector(numericAttributes);
         Sigma_xt = new DenseVector(numericAttributes);
         if(diagonalOnly)
@@ -168,8 +174,9 @@ public class AROW extends BaseUpdateableClassifier implements BinaryScoreClassif
             sigmaV = new DenseVector(numericAttributes);
             sigmaV.mutableAdd(1);
         }
-        else
-            sigmaM = Matrix.eye(numericAttributes);
+        else {
+          sigmaM = Matrix.eye(numericAttributes);
+        }
     }
     
     
@@ -181,8 +188,9 @@ public class AROW extends BaseUpdateableClassifier implements BinaryScoreClassif
         final double y_t = targetClass*2-1;
         
         double m_t = x_t.dot(w);
-        if(y_t == Math.signum(m_t))
-            return;//no update needed
+        if(y_t == Math.signum(m_t)) {
+          return;//no update needed
+        }
         
         double v_t = 0;
         
@@ -203,11 +211,13 @@ public class AROW extends BaseUpdateableClassifier implements BinaryScoreClassif
         double b_t_inv = v_t+r;
         
         double alpha_t = Math.max(0, 1-y_t*m_t)/b_t_inv;
-        if(!diagonalOnly)
-            w.mutableAdd(alpha_t * y_t, Sigma_xt);
-        else
-            for (IndexValue iv : x_t)
-                w.increment(iv.getIndex(), alpha_t * y_t * iv.getValue() * sigmaV.get(iv.getIndex()));
+        if(!diagonalOnly) {
+          w.mutableAdd(alpha_t * y_t, Sigma_xt);
+        } else {
+          for (IndexValue iv : x_t) {
+            w.increment(iv.getIndex(), alpha_t * y_t * iv.getValue() * sigmaV.get(iv.getIndex()));
+          }
+        }
 
         if(diagonalOnly)
         {
@@ -231,21 +241,24 @@ public class AROW extends BaseUpdateableClassifier implements BinaryScoreClassif
         }
         
         //Zero out temp store
-        if(diagonalOnly)
-            Sigma_xt.zeroOut();
+        if(diagonalOnly) {
+          Sigma_xt.zeroOut();
+        }
     }
 
     @Override
     public CategoricalResults classify(DataPoint data)
     {
-        if(w == null)
-            throw new UntrainedModelException("Model has not yet ben trained");
+        if(w == null) {
+          throw new UntrainedModelException("Model has not yet ben trained");
+        }
         CategoricalResults cr = new CategoricalResults(2);
         double score = getScore(data);
-        if(score < 0)
-            cr.setProb(0, 1.0);
-        else
-            cr.setProb(1, 1.0);
+        if(score < 0) {
+          cr.setProb(0, 1.0);
+        } else {
+          cr.setProb(1, 1.0);
+        }
         return cr;
     }
 
@@ -288,19 +301,21 @@ public class AROW extends BaseUpdateableClassifier implements BinaryScoreClassif
     @Override
     public Vec getRawWeight(int index)
     {
-        if(index < 1)
-            return getRawWeight();
-        else
-            throw new IndexOutOfBoundsException("Model has only 1 weight vector");
+        if(index < 1) {
+          return getRawWeight();
+        } else {
+          throw new IndexOutOfBoundsException("Model has only 1 weight vector");
+        }
     }
 
     @Override
     public double getBias(int index)
     {
-        if (index < 1)
-            return getBias();
-        else
-            throw new IndexOutOfBoundsException("Model has only 1 weight vector");
+        if (index < 1) {
+          return getBias();
+        } else {
+          throw new IndexOutOfBoundsException("Model has only 1 weight vector");
+        }
     }
     
     @Override

@@ -46,8 +46,9 @@ public class Weibull extends ContinuousDistribution
     @Override
     public double logPdf(double x)
     {
-        if(x <= 0)
-            return -Double.MAX_VALUE;
+        if(x <= 0) {
+          return -Double.MAX_VALUE;
+        }
         return logAlpha-logBeta+(alpha-1)*log(x/beta) -pow(x/beta, alpha) ;
     }
 
@@ -56,8 +57,9 @@ public class Weibull extends ContinuousDistribution
     @Override
     public double pdf(double x)
     {
-        if(x < 0)
-            return 0;
+        if(x < 0) {
+          return 0;
+        }
         
         return alpha/beta * pow(x/beta, alpha-1)*exp(-pow(x/beta, alpha));
         
@@ -108,10 +110,11 @@ public class Weibull extends ContinuousDistribution
     @Override
     public void setVariable(String var, double value)
     {
-        if (var.equals("alpha") || var.equals(GreekLetters.alpha))
-            setAlpha(value);
-        else if (var.equals("beta") || var.equals(GreekLetters.beta))
-            setBeta(value);
+        if (var.equals("alpha") || var.equals(GreekLetters.alpha)) {
+          setAlpha(value);
+        } else if (var.equals("beta") || var.equals(GreekLetters.beta)) {
+          setBeta(value);
+        }
     }
 
     final public void setAlpha(double alpha)
@@ -121,8 +124,9 @@ public class Weibull extends ContinuousDistribution
             this.alpha = alpha;
             logAlpha = log(alpha);
         }
-        else
-            throw new ArithmeticException("alpha must be > 0 not " + alpha);
+        else {
+          throw new ArithmeticException("alpha must be > 0 not " + alpha);
+        }
     }
 
     final public void setBeta(double beta)
@@ -132,8 +136,9 @@ public class Weibull extends ContinuousDistribution
             this.beta = beta;
             logBeta = log(beta);
         }
-        else
-            throw new ArithmeticException("beta must be > 0 not " + beta);
+        else {
+          throw new ArithmeticException("beta must be > 0 not " + beta);
+        }
     }
     
     
@@ -200,8 +205,9 @@ public class Weibull extends ContinuousDistribution
     @Override
     public double mode()
     {
-        if(alpha <= 1)
-            throw new ArithmeticException("Mode only exists for k > 1");
+        if(alpha <= 1) {
+          throw new ArithmeticException("Mode only exists for k > 1");
+        }
         
         return beta * pow( (alpha-1)/alpha, 1/alpha);
     }

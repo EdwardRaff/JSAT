@@ -34,8 +34,9 @@ public class AdaGrad implements GradientUpdater
      */
     public AdaGrad(AdaGrad toCopy)
     {
-        if(toCopy.daigG != null)
-            this.daigG = toCopy.daigG.clone();
+        if(toCopy.daigG != null) {
+          this.daigG = toCopy.daigG.clone();
+        }
         this.biasG = toCopy.biasG;
     }
     

@@ -132,8 +132,9 @@ public class LinearSGD extends BaseUpdateableClassifier implements UpdateableReg
         if(toClone.l1Q != null)
         {
             this.l1Q = new double[toClone.l1Q.length][];
-            for(int i = 0; i < toClone.l1Q.length; i++)
-                this.l1Q[i] = Arrays.copyOf(toClone.l1Q[i], toClone.l1Q[i].length);
+            for(int i = 0; i < toClone.l1Q.length; i++) {
+              this.l1Q[i] = Arrays.copyOf(toClone.l1Q[i], toClone.l1Q[i].length);
+            }
         }
         if(toClone.ws != null)
         {
@@ -157,8 +158,9 @@ public class LinearSGD extends BaseUpdateableClassifier implements UpdateableReg
      */
     public void setGradientUpdater(GradientUpdater gradientUpdater)
     {
-        if(gradientUpdater == null )
-            throw new IllegalArgumentException("Gradient updater must be non-null");
+        if(gradientUpdater == null ) {
+          throw new IllegalArgumentException("Gradient updater must be non-null");
+        }
         this.gradientUpdater = gradientUpdater;
     }
 
@@ -198,8 +200,9 @@ public class LinearSGD extends BaseUpdateableClassifier implements UpdateableReg
      */
     public void setEta(double eta)
     {
-        if(eta <= 0 || Double.isNaN(eta) || Double.isInfinite(eta))
-            throw new IllegalArgumentException("eta must be a positive constant, not " + eta);
+        if(eta <= 0 || Double.isNaN(eta) || Double.isInfinite(eta)) {
+          throw new IllegalArgumentException("eta must be a positive constant, not " + eta);
+        }
         this.eta = eta;
     }
 
@@ -238,8 +241,9 @@ public class LinearSGD extends BaseUpdateableClassifier implements UpdateableReg
      */
     public void setLambda0(double lambda0)
     {
-        if(lambda0 < 0 || Double.isNaN(lambda0) || Double.isInfinite(lambda0))
-            throw new IllegalArgumentException("Lambda0 must be non-negative, not " + lambda0);
+        if(lambda0 < 0 || Double.isNaN(lambda0) || Double.isInfinite(lambda0)) {
+          throw new IllegalArgumentException("Lambda0 must be non-negative, not " + lambda0);
+        }
         this.lambda0 = lambda0;
     }
 
@@ -258,8 +262,9 @@ public class LinearSGD extends BaseUpdateableClassifier implements UpdateableReg
      */
     public void setLambda1(double lambda1)
     {
-        if(lambda1 < 0 || Double.isNaN(lambda1) || Double.isInfinite(lambda1))
-            throw new IllegalArgumentException("Lambda1 must be non-negative, not " + lambda1);
+        if(lambda1 < 0 || Double.isNaN(lambda1) || Double.isInfinite(lambda1)) {
+          throw new IllegalArgumentException("Lambda1 must be non-negative, not " + lambda1);
+        }
         this.lambda1 = lambda1;
     }
 
@@ -299,8 +304,9 @@ public class LinearSGD extends BaseUpdateableClassifier implements UpdateableReg
     @Override
     public void setUp(CategoricalData[] categoricalAttributes, int numericAttributes, CategoricalData predicting)
     {
-        if(!(loss instanceof LossC))
-            throw new FailedToFitException("Loss function " + loss.getClass().getSimpleName() + " only supports regression");
+        if(!(loss instanceof LossC)) {
+          throw new FailedToFitException("Loss function " + loss.getClass().getSimpleName() + " only supports regression");
+        }
         if(predicting.getNumOfCategories() == 2)
         {
             ws = new Vec[1];
@@ -309,8 +315,9 @@ public class LinearSGD extends BaseUpdateableClassifier implements UpdateableReg
         }
         else
         {
-            if(!(loss instanceof LossMC))
-                throw new FailedToFitException("Loss function " + loss.getClass().getSimpleName() + " only supports binary classification");
+            if(!(loss instanceof LossMC)) {
+              throw new FailedToFitException("Loss function " + loss.getClass().getSimpleName() + " only supports binary classification");
+            }
             ws = new Vec[predicting.getNumOfCategories()];
             bs = new double[predicting.getNumOfCategories()];
             gus = new GradientUpdater[predicting.getNumOfCategories()];
@@ -321,8 +328,9 @@ public class LinearSGD extends BaseUpdateableClassifier implements UpdateableReg
     @Override
     public void setUp(CategoricalData[] categoricalAttributes, int numericAttributes)
     {
-        if(!(loss instanceof LossR))
-            throw new FailedToFitException("Loss function " + loss.getClass().getSimpleName() + "does not support regression");
+        if(!(loss instanceof LossR)) {
+          throw new FailedToFitException("Loss function " + loss.getClass().getSimpleName() + "does not support regression");
+        }
         
         ws = new Vec[1];
         bs = new double[1];
@@ -332,8 +340,9 @@ public class LinearSGD extends BaseUpdateableClassifier implements UpdateableReg
     
     private void setUpShared(int numericAttributes)
     {
-        if(numericAttributes <= 0 )
-            throw new FailedToFitException("LinearSGD requires numeric features to use");
+        if(numericAttributes <= 0 ) {
+          throw new FailedToFitException("LinearSGD requires numeric features to use");
+        }
         for(int i = 0; i < ws.length; i++)
         {
             ws[i] = new ScaledVector(new DenseVector(numericAttributes));
@@ -342,10 +351,11 @@ public class LinearSGD extends BaseUpdateableClassifier implements UpdateableReg
         }
         time = 0;
         l1U = 0;
-        if(lambda1 > 0)
-            l1Q = new double[ws.length][ws[0].length()];
-        else
-            l1Q = null;
+        if(lambda1 > 0) {
+          l1Q = new double[ws.length][ws[0].length()];
+        } else {
+          l1Q = null;
+        }
     }
 
     @Override
@@ -367,8 +377,9 @@ public class LinearSGD extends BaseUpdateableClassifier implements UpdateableReg
         else
         {
             Vec pred = new DenseVector(ws.length);
-            for(int i = 0; i < ws.length; i++)
-                pred.set(i, ws[i].dot(x)+bs[i]);
+            for(int i = 0; i < ws.length; i++) {
+              pred.set(i, ws[i].dot(x)+bs[i]);
+            }
             ((LossMC)loss).process(pred, pred);
             ((LossMC)loss).deriv(pred, pred, targetClass);
             for(IndexValue iv : pred)
@@ -392,10 +403,11 @@ public class LinearSGD extends BaseUpdateableClassifier implements UpdateableReg
     private void performGradientUpdate(final int i, final double eta_t, final double lossD, Vec x)
     {
         final Vec grad = new ScaledVector(lossD, x);
-        if (useBias)
-            bs[i] -= gus[i].update(ws[i], grad, eta_t, bs[i], lossD);
-        else
-            gus[i].update(ws[i], grad, eta_t);
+        if (useBias) {
+          bs[i] -= gus[i].update(ws[i], grad, eta_t, bs[i], lossD);
+        } else {
+          gus[i].update(ws[i], grad, eta_t);
+        }
     }
     
     @Override
@@ -417,13 +429,14 @@ public class LinearSGD extends BaseUpdateableClassifier implements UpdateableReg
     public CategoricalResults classify(DataPoint data)
     {
         Vec x = data.getNumericalValues();
-        if(ws.length == 1)
-            return ((LossC)loss).getClassification(ws[0].dot(x)+bs[0]);
-        else
+        if(ws.length == 1) {
+          return ((LossC)loss).getClassification(ws[0].dot(x)+bs[0]);
+        } else
         {
             Vec pred = new DenseVector(ws.length);
-            for(int i = 0; i < ws.length; i++)
-                pred.set(i, ws[i].dot(x)+bs[i]);
+            for(int i = 0; i < ws.length; i++) {
+              pred.set(i, ws[i].dot(x)+bs[i]);
+          }
             ((LossMC)loss).process(pred, pred);
             return ((LossMC)loss).getClassification(pred);
         }
@@ -448,9 +461,11 @@ public class LinearSGD extends BaseUpdateableClassifier implements UpdateableReg
      */
     private void applyL2Reg(final double eta_t)
     {
-        if(lambda0 > 0)//apply L2 regularization
-            for(Vec v : ws)
-                v.mutableMultiply(1-eta_t*lambda0);
+        if(lambda0 > 0) {//apply L2 regularization
+          for (Vec v : ws) {
+            v.mutableMultiply(1-eta_t*lambda0);
+          }
+        }
     }
 
     /**
@@ -474,10 +489,11 @@ public class LinearSGD extends BaseUpdateableClassifier implements UpdateableReg
                     //see "APPLYPENALTY(i)" on line 15: from Figure 2 in Tsuruoka et al paper
                     final double z = w_k.get(i);
                     double newW_i;
-                    if (z > 0)
-                        newW_i = Math.max(0, z - (l1U + l1Q_k[i]));
-                    else
-                        newW_i = Math.min(0, z + (l1U - l1Q_k[i]));
+                    if (z > 0) {
+                      newW_i = Math.max(0, z - (l1U + l1Q_k[i]));
+                    } else {
+                      newW_i = Math.min(0, z + (l1U - l1Q_k[i]));
+                    }
                     l1Q_k[i] += (newW_i - z);
                     w_k.set(i, newW_i);
                 }

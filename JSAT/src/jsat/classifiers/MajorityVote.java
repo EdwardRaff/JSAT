@@ -48,24 +48,25 @@ public class MajorityVote implements Classifier
     {
         CategoricalResults toReturn = null;
 
-        for (Classifier classifier : voters)
-            if (classifier != null)
-                if (toReturn == null)
-                {
-                    toReturn = classifier.classify(data);
-                    //Instead of allocating a new catResult, reuse the given one. Set the non likely to zero, and most to 1. 
-                    for (int i = 0; i < toReturn.size(); i++)
-                        if (i != toReturn.mostLikely())
-                            toReturn.setProb(i, 0);
-                        else
-                            toReturn.setProb(i, 1.0);
+        for (Classifier classifier : voters) {
+          if (classifier != null) {
+            if (toReturn == null) {
+              toReturn = classifier.classify(data);
+              for (int i = 0; i < toReturn.size(); i++) {
+                if (i != toReturn.mostLikely()) {
+                  toReturn.setProb(i, 0);
+                } else {
+                  toReturn.setProb(i, 1.0);
                 }
-                else
-                {
-                    CategoricalResults vote = classifier.classify(data);
-                    for (int i = 0; i < toReturn.size(); i++)
-                        toReturn.incProb(vote.mostLikely(), 1.0);
-                }
+              }
+            } else {
+              CategoricalResults vote = classifier.classify(data);
+              for (int i = 0; i < toReturn.size(); i++) {
+                toReturn.incProb(vote.mostLikely(), 1.0);
+              }
+            }
+          }
+        }
 
         toReturn.normalize();
         return toReturn;
@@ -74,15 +75,17 @@ public class MajorityVote implements Classifier
     @Override
     public void trainC(ClassificationDataSet dataSet, ExecutorService threadPool)
     {
-        for(Classifier classifier : voters)
-            classifier.trainC(dataSet, threadPool);
+        for(Classifier classifier : voters) {
+          classifier.trainC(dataSet, threadPool);
+        }
     }
 
     @Override
     public void trainC(ClassificationDataSet dataSet)
     {
-        for(Classifier classifier : voters)
-            classifier.trainC(dataSet);
+        for(Classifier classifier : voters) {
+          classifier.trainC(dataSet);
+        }
     }
 
     @Override
@@ -95,9 +98,11 @@ public class MajorityVote implements Classifier
     public Classifier clone()
     {
         Classifier[] votersClone = new Classifier[this.voters.length];
-        for(int i = 0; i < voters.length; i++)
-            if(voters[i] != null)
-                votersClone[i] = voters[i].clone();
+        for(int i = 0; i < voters.length; i++) {
+          if (voters[i] != null) {
+            votersClone[i] = voters[i].clone();
+          }
+        }
         return new MajorityVote(voters);
     }
     

@@ -51,10 +51,12 @@ public class IsotonicCalibration extends BinaryCalibration
     protected IsotonicCalibration(IsotonicCalibration toCopy)
     {
         super(toCopy.base.clone(), toCopy.mode);
-        if (toCopy.outputs != null)
-            this.outputs = Arrays.copyOf(toCopy.outputs, toCopy.outputs.length);
-        if (toCopy.scores != null)
-            this.scores = Arrays.copyOf(toCopy.scores, toCopy.scores.length);
+        if (toCopy.outputs != null) {
+          this.outputs = Arrays.copyOf(toCopy.outputs, toCopy.outputs.length);
+        }
+        if (toCopy.scores != null) {
+          this.scores = Arrays.copyOf(toCopy.scores, toCopy.scores.length);
+        }
     }
     
     private static class Point implements Comparable<Point>
@@ -100,8 +102,9 @@ public class IsotonicCalibration extends BinaryCalibration
     protected void calibrate(boolean[] label, double[] deci, int len)
     {
         List<Point> points = new ArrayList<Point>(len);
-        for(int i = 0; i < len; i++)
-            points.add(new Point(deci[i], label[i] ? 1 : 0));
+        for(int i = 0; i < len; i++) {
+          points.add(new Point(deci[i], label[i] ? 1 : 0));
+        }
         Collections.sort(points);
         boolean violators = true;
         while(violators)
@@ -145,15 +148,16 @@ public class IsotonicCalibration extends BinaryCalibration
         
         CategoricalResults cr = new CategoricalResults(2);
         int indx = Arrays.binarySearch(scores, score);
-        if(indx < 0)
-            indx = (-(indx) - 1);
+        if(indx < 0) {
+          indx = (-(indx) - 1);
+        }
         
         if(indx == scores.length)
         {
             double maxScore = scores[scores.length-1];
-            if(score > maxScore*3)
-                cr.setProb(1, 1.0);
-            else
+            if(score > maxScore*3) {
+              cr.setProb(1, 1.0);
+            } else
             {
                 double p = (maxScore*3-score)/(maxScore*2)*outputs[scores.length-1];
                 cr.setProb(0, 1-p);
@@ -163,9 +167,9 @@ public class IsotonicCalibration extends BinaryCalibration
         else if(indx == 0)
         {
             double minScore = scores[0];
-            if(score < minScore/3)
-                cr.setProb(0, 1.0);
-            else
+            if(score < minScore/3) {
+              cr.setProb(0, 1.0);
+            } else
             {
                 double p = (minScore-score)/(minScore-minScore/3)*outputs[0];
                 cr.setProb(0, 1-p);

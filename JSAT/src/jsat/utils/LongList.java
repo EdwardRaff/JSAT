@@ -109,8 +109,9 @@ public class LongList extends AbstractList<Long> implements Serializable
     @Override
     public boolean add(Long e)
     {
-        if(e == null)
-            return false;
+        if(e == null) {
+          return false;
+        }
         return add(e.longValue());
     }
     
@@ -133,8 +134,9 @@ public class LongList extends AbstractList<Long> implements Serializable
 
     private void boundsCheck(int index) throws IndexOutOfBoundsException
     {
-        if(index >= end)
-            throw new IndexOutOfBoundsException("List of of size " + size() + ", index requested was " + index);
+        if(index >= end) {
+          throw new IndexOutOfBoundsException("List of of size " + size() + ", index requested was " + index);
+        }
     }
 
     @Override
@@ -146,20 +148,23 @@ public class LongList extends AbstractList<Long> implements Serializable
     @Override
     public Long remove(int index)
     {
-        if(index < 0 || index > size())
-            throw new IndexOutOfBoundsException("Can not remove invalid index " + index);
+        if(index < 0 || index > size()) {
+          throw new IndexOutOfBoundsException("Can not remove invalid index " + index);
+        }
         long removed = array[index];
         
-        for(int i = index; i < end-1; i++)
-            array[i] = array[i+1];
+        for(int i = index; i < end-1; i++) {
+          array[i] = array[i+1];
+        }
         end--;
         return removed;
     }
 
     private void enlargeIfNeeded(int i)
     {
-        while(end+i > array.length)
-            array = Arrays.copyOf(array, Math.max(array.length*2, 8));
+        while(end+i > array.length) {
+          array = Arrays.copyOf(array, Math.max(array.length*2, 8));
+        }
     }
     
     /**

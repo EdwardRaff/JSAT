@@ -21,14 +21,16 @@ public class SimpleDataSet extends DataSet<SimpleDataSet>
 
     public SimpleDataSet(List<DataPoint> dataPoints)
     {
-        if(dataPoints.isEmpty())
-            throw new RuntimeException("Can not create empty data set");
+        if(dataPoints.isEmpty()) {
+          throw new RuntimeException("Can not create empty data set");
+        }
         this.dataPoints = dataPoints;
         this.categories =  dataPoints.get(0).getCategoricalData();
         this.numNumerVals = dataPoints.get(0).numNumericalValues();
         this.numericalVariableNames = new ArrayList<String>(this.numNumerVals);
-        for(int i = 0; i < getNumNumericalVars(); i++)
-            this.numericalVariableNames.add("Numeric Input " + (i+1));
+        for(int i = 0; i < getNumNumericalVars(); i++) {
+          this.numericalVariableNames.add("Numeric Input " + (i+1));
+        }
     }
 
     public SimpleDataSet(CategoricalData[] categories, int numNumericalValues)
@@ -71,8 +73,9 @@ public class SimpleDataSet extends DataSet<SimpleDataSet>
     protected SimpleDataSet getSubset(List<Integer> indicies)
     {
         SimpleDataSet newData = new SimpleDataSet(categories, numNumerVals);
-        for(int i : indicies)
-            newData.add(getDataPoint(i));
+        for(int i : indicies) {
+          newData.add(getDataPoint(i));
+        }
         return newData;
     }
     

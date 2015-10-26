@@ -71,16 +71,17 @@ public class AODETest
         
         instance.setM(0.1);
         assertEquals(0.1, instance.getM(), 0.0);
-        for (int i = -3; i < 0; i++)
-            try
-            {
-                instance.setM(i);
-                fail("Invalid value should have thrown an error");
-            }
-            catch (Exception ex)
-            {
-
-            }
+        for (int i = -3; i < 0; i++) {
+          try
+          {
+            instance.setM(i);
+            fail("Invalid value should have thrown an error");
+          }
+          catch (Exception ex)
+          {
+            
+          }
+        }
     }
     
     @Test
@@ -138,11 +139,13 @@ public class AODETest
         AODE result = instance.clone();
         result.trainC(t2);
         
-        for(int i = 0; i < t1.getSampleSize(); i++)
-            assertEquals(t1.getDataPointCategory(i), instance.classify(t1.getDataPoint(i)).mostLikely());
+        for(int i = 0; i < t1.getSampleSize(); i++) {
+          assertEquals(t1.getDataPointCategory(i), instance.classify(t1.getDataPoint(i)).mostLikely());
+        }
         
-        for(int i = 0; i < t2.getSampleSize(); i++)
-            assertEquals(t2.getDataPointCategory(i), result.classify(t2.getDataPoint(i)).mostLikely());
+        for(int i = 0; i < t2.getSampleSize(); i++) {
+          assertEquals(t2.getDataPointCategory(i), result.classify(t2.getDataPoint(i)).mostLikely());
+        }
     }
     
 }

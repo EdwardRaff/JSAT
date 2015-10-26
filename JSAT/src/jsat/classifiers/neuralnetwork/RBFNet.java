@@ -131,8 +131,9 @@ public class RBFNet implements Classifier, Regressor, DataTransform, Parameteriz
         setP(p);
         setDistanceMetric(dm);
         this.baseClassifier = baseClassifier;
-        if(baseClassifier instanceof Regressor)
-            baseRegressor = (Regressor) baseClassifier;
+        if(baseClassifier instanceof Regressor) {
+          baseRegressor = (Regressor) baseClassifier;
+        }
     }
     /**
      * Creates a new RBF Network for regression tasks. If the regressor can
@@ -160,8 +161,9 @@ public class RBFNet implements Classifier, Regressor, DataTransform, Parameteriz
         setP(p);
         setDistanceMetric(dm);
         this.baseRegressor = baseRegressor;
-        if(baseRegressor instanceof Classifier)
-            baseClassifier = (Classifier) baseRegressor;
+        if(baseRegressor instanceof Classifier) {
+          baseClassifier = (Classifier) baseRegressor;
+        }
     }
 
     /**
@@ -179,26 +181,31 @@ public class RBFNet implements Classifier, Regressor, DataTransform, Parameteriz
         if(toCopy.baseRegressor != null)
         {
             this.baseRegressor = toCopy.baseRegressor.clone();
-            if(baseRegressor instanceof Classifier)
-                baseClassifier = (Classifier) baseRegressor;
+            if(baseRegressor instanceof Classifier) {
+              baseClassifier = (Classifier) baseRegressor;
+            }
         }
         else if(toCopy.baseClassifier != null)
         {
             this.baseClassifier = toCopy.baseClassifier.clone();
-            if(baseClassifier instanceof Regressor)
-                baseRegressor = (Regressor) baseClassifier;
+            if(baseClassifier instanceof Regressor) {
+              baseRegressor = (Regressor) baseClassifier;
+            }
         }
         if(toCopy.centroids != null)
         {
             this.centroids = new ArrayList<Vec>(toCopy.centroids.size());
-            for(Vec v : toCopy.centroids)
-                this.centroids.add(v.clone());
-            if(toCopy.centroidDistCache != null)
-                this.centroidDistCache = new DoubleList(toCopy.centroidDistCache);
+            for(Vec v : toCopy.centroids) {
+              this.centroids.add(v.clone());
+            }
+            if(toCopy.centroidDistCache != null) {
+              this.centroidDistCache = new DoubleList(toCopy.centroidDistCache);
+            }
         }
         
-        if(toCopy.bandwidths != null)
-            this.bandwidths = Arrays.copyOf(toCopy.bandwidths, toCopy.bandwidths.length);
+        if(toCopy.bandwidths != null) {
+          this.bandwidths = Arrays.copyOf(toCopy.bandwidths, toCopy.bandwidths.length);
+        }
     }
 
     @Override
@@ -242,10 +249,12 @@ public class RBFNet implements Classifier, Regressor, DataTransform, Parameteriz
         }
             
         
-        if(normalize && sum != 0.0)//-0.0 not an issue with rbf kernel
-            sv.mutableDivide(sum);
-        if(sv.nnz() > sv.length()/2)//at this point we would be using more memory than needed. Just switch to dense
-            sv = new DenseVector(sv);
+        if(normalize && sum != 0.0) {//-0.0 not an issue with rbf kernel
+          sv.mutableDivide(sum);
+        }
+        if(sv.nnz() > sv.length()/2) {//at this point we would be using more memory than needed. Just switch to dense
+          sv = new DenseVector(sv);
+        }
         
         return new DataPoint(sv, dp.getCategoricalValues(), dp.getCategoricalData(), dp.getWeight());
     }
@@ -267,11 +276,13 @@ public class RBFNet implements Classifier, Regressor, DataTransform, Parameteriz
                 List<Vec> toRet = new ArrayList<Vec>();
                 Set<Integer> points = new IntSet();
                 
-                while (points.size() < centroids)
-                    points.add(rand.nextInt(data.getSampleSize()));
+                while (points.size() < centroids) {
+                  points.add(rand.nextInt(data.getSampleSize()));
+                }
                     
-                for (int i : points)
-                    toRet.add(data.getDataPoint(i).getNumericalValues());
+                for (int i : points) {
+                  toRet.add(data.getDataPoint(i).getNumericalValues());
+                }
                 
                 return toRet;
             }
@@ -286,10 +297,11 @@ public class RBFNet implements Classifier, Regressor, DataTransform, Parameteriz
             {
                 HamerlyKMeans kmeans = new HamerlyKMeans(dm, SeedSelectionMethods.SeedSelection.KPP);
                 
-                if(ex == null || ex instanceof FakeExecutor)
-                    kmeans.cluster(data, centroids);
-                else
-                    kmeans.cluster(data, centroids, ex);
+                if(ex == null || ex instanceof FakeExecutor) {
+                  kmeans.cluster(data, centroids);
+                } else {
+                  kmeans.cluster(data, centroids, ex);
+                }
                 
                 return kmeans.getMeans();
             }
@@ -328,8 +340,9 @@ public class RBFNet implements Classifier, Regressor, DataTransform, Parameteriz
             {
                 final double[] bandwidths = new double[centroids.size()];
                 final OnLineStatistics[] averages = new OnLineStatistics[bandwidths.length];
-                for(int i = 0; i < averages.length; i++)
-                    averages[i] = new OnLineStatistics();
+                for(int i = 0; i < averages.length; i++) {
+                  averages[i] = new OnLineStatistics();
+                }
                 
                 final List<Future<OnLineStatistics[]>> futures = new ArrayList<Future<OnLineStatistics[]>>(SystemInfo.LogicalCores);
                 
@@ -345,8 +358,9 @@ public class RBFNet implements Classifier, Regressor, DataTransform, Parameteriz
                         public OnLineStatistics[] call()
                         {
                             final OnLineStatistics[] localAverages = new OnLineStatistics[bandwidths.length];
-                            for (int i = 0; i < localAverages.length; i++)
-                                localAverages[i] = new OnLineStatistics();
+                            for (int i = 0; i < localAverages.length; i++) {
+                              localAverages[i] = new OnLineStatistics();
+                            }
                             
                             for(Vec x : subList)
                             {
@@ -375,14 +389,16 @@ public class RBFNet implements Classifier, Regressor, DataTransform, Parameteriz
                     {
                         for (int i = 0; i < localAverages.length; i++)
                         {
-                            if (localAverages[i].getSumOfWeights() == 0)
-                                continue;
+                            if (localAverages[i].getSumOfWeights() == 0) {
+                              continue;
+                            }
                             averages[i] = OnLineStatistics.add(averages[i], localAverages[i]);
                         }
                     }
 
-                    for(int i = 0; i < bandwidths.length; i++)
-                        bandwidths[i] = averages[i].getMean()+averages[i].getStandardDeviation()*alpha;
+                    for(int i = 0; i < bandwidths.length; i++) {
+                      bandwidths[i] = averages[i].getMean()+averages[i].getStandardDeviation()*alpha;
+                    }
                 }
                 catch (InterruptedException ex)
                 {
@@ -412,10 +428,11 @@ public class RBFNet implements Classifier, Regressor, DataTransform, Parameteriz
             protected double[] estimateBandwidths(final double alpha, int p, DataSet data, final List<Vec> centroids, final List<Double> centroidDistCache, final DistanceMetric dm, ExecutorService threadpool)
             {
                 final ClassificationDataSet cds;
-                if(data instanceof ClassificationDataSet )
-                    cds = (ClassificationDataSet) data;
-                else
-                    throw new FailedToFitException("CLOSEST_OPPOSITE_CENTROID only works for classification data sets");
+                if(data instanceof ClassificationDataSet ) {
+                  cds = (ClassificationDataSet) data;
+                } else {
+                  throw new FailedToFitException("CLOSEST_OPPOSITE_CENTROID only works for classification data sets");
+                }
                 
                 final double[] bandwidths = new double[centroids.size()];
                 final CountDownLatch latch0 = new CountDownLatch(SystemInfo.LogicalCores);
@@ -425,8 +442,9 @@ public class RBFNet implements Classifier, Regressor, DataTransform, Parameteriz
                  * where each value indicates how many objects of class is stored. 
                  */
                 final AtomicIntegerArray[] classLabels = new AtomicIntegerArray[centroids.size()];
-                for(int i =0; i < classLabels.length; i++)
-                    classLabels[i] = new AtomicIntegerArray(cds.getClassSize());
+                for(int i =0; i < classLabels.length; i++) {
+                  classLabels[i] = new AtomicIntegerArray(cds.getClassSize());
+                }
                 IntList indices = new IntList(data.getSampleSize());
                 ListUtils.addRange(indices, 0, data.getSampleSize(), 1);
                 for(final List<Integer> subList : ListUtils.splitList(indices, SystemInfo.LogicalCores))
@@ -496,14 +514,19 @@ public class RBFNet implements Classifier, Regressor, DataTransform, Parameteriz
                         public void run()
                         {
                             double minDist = Double.POSITIVE_INFINITY;
-                            for (int i = 0; i < centroids.size(); i++)
-                                if (neuronClass[center] != neuronClass[i])//dont check for ourselves b/c we have the same class as ourselves, so no need
-                                    minDist = Math.min(minDist, dm.dist(i, center, centroids, centroidDistCache));
+                            for (int i = 0; i < centroids.size(); i++) {
+                              if (neuronClass[center] != neuronClass[i]) {
+                                minDist = Math.min(minDist, dm.dist(i, center, centroids, centroidDistCache));
+                              }
+                            }
 
-                            if (Double.isInfinite(minDist))//possible if there is high class imbalance, run again but lie
-                                for (int i = 0; i < centroids.size(); i++)
-                                    if (center != i)
-                                        minDist = Math.min(minDist, dm.dist(i, center, centroids, centroidDistCache));
+                            if (Double.isInfinite(minDist)) {//possible if there is high class imbalance, run again but lie
+                              for (int i = 0; i < centroids.size(); i++) {
+                                if (center != i) {
+                                  minDist = Math.min(minDist, dm.dist(i, center, centroids, centroidDistCache));
+                                }
+                              }
+                            }
 
                             bandwidths[center] = alpha * minDist;
                             latch1.countDown();
@@ -545,12 +568,15 @@ public class RBFNet implements Classifier, Regressor, DataTransform, Parameteriz
                         public void run()
                         {
                             BoundedSortedList<Double> closestDistances = new BoundedSortedList<Double>(p);
-                            for(int i = 0; i < centroids.size(); i++)
-                                if(i != center)
-                                    closestDistances.add(dm.dist(i, center, centroids, centroidDistCache));
+                            for(int i = 0; i < centroids.size(); i++) {
+                              if (i != center) {
+                                closestDistances.add(dm.dist(i, center, centroids, centroidDistCache));
+                              }
+                            }
                             OnLineStatistics stats = new OnLineStatistics();
-                            for(double dist : closestDistances)
-                                stats.add(dist);
+                            for(double dist : closestDistances) {
+                              stats.add(dist);
+                            }
                             bandwidths[center] = stats.getMean()+alpha*stats.getStandardDeviation();
                             latch.countDown();
                         }
@@ -573,8 +599,9 @@ public class RBFNet implements Classifier, Regressor, DataTransform, Parameteriz
      */
     public void setAlpha(double alpha)
     {
-        if(alpha < 0 || Double.isInfinite(alpha) || Double.isNaN(alpha))
-            throw new IllegalArgumentException("Alpha must be a positive value, not " + alpha);
+        if(alpha < 0 || Double.isInfinite(alpha) || Double.isNaN(alpha)) {
+          throw new IllegalArgumentException("Alpha must be a positive value, not " + alpha);
+        }
         this.alpha = alpha;
     }
 
@@ -600,8 +627,9 @@ public class RBFNet implements Classifier, Regressor, DataTransform, Parameteriz
      */
     public void setP(int p)
     {
-        if(p < 1)
-            throw new IllegalArgumentException("neighbors parameter must be positive, not "+p);
+        if(p < 1) {
+          throw new IllegalArgumentException("neighbors parameter must be positive, not "+p);
+        }
         this.p = p;
     }
 
@@ -629,8 +657,9 @@ public class RBFNet implements Classifier, Regressor, DataTransform, Parameteriz
      */
     public void setNumCentroids(int numCentroids)
     {
-        if(numCentroids < 1)
-            throw new IllegalArgumentException("Number of centroids must be positive, not " + numCentroids);
+        if(numCentroids < 1) {
+          throw new IllegalArgumentException("Number of centroids must be positive, not " + numCentroids);
+        }
         this.numCentroids = numCentroids;
     }
 
@@ -738,10 +767,12 @@ public class RBFNet implements Classifier, Regressor, DataTransform, Parameteriz
     @Override
     public void trainC(ClassificationDataSet dataSet, ExecutorService threadPool)
     {
-        if(baseClassifier == null)
-            throw new FailedToFitException("RBFNet was not given a base classifier");
-        if(threadPool == null)
-            threadPool = new FakeExecutor();
+        if(baseClassifier == null) {
+          throw new FailedToFitException("RBFNet was not given a base classifier");
+        }
+        if(threadPool == null) {
+          threadPool = new FakeExecutor();
+        }
         //Learn Centroids
         centroids = p1l.getCentroids(dataSet, numCentroids, dm, threadPool);
         centroidDistCache = dm.getAccelerationCache(centroids, threadPool);
@@ -767,10 +798,11 @@ public class RBFNet implements Classifier, Regressor, DataTransform, Parameteriz
     @Override
     public boolean supportsWeightedData()
     {
-        if(baseClassifier != null)
-            return baseClassifier.supportsWeightedData();
-        else 
-            return baseRegressor.supportsWeightedData();
+        if(baseClassifier != null) {
+          return baseClassifier.supportsWeightedData();
+        } else {
+          return baseRegressor.supportsWeightedData();
+        }
     }
 
     @Override
@@ -782,10 +814,12 @@ public class RBFNet implements Classifier, Regressor, DataTransform, Parameteriz
     @Override
     public void train(RegressionDataSet dataSet, ExecutorService threadPool)
     {
-        if(baseRegressor == null)
-            throw new FailedToFitException("RBFNet was not given a base classifier");
-        if(threadPool == null)
-            threadPool = new FakeExecutor();
+        if(baseRegressor == null) {
+          throw new FailedToFitException("RBFNet was not given a base classifier");
+        }
+        if(threadPool == null) {
+          threadPool = new FakeExecutor();
+        }
         //Learn Centroids
         centroids = p1l.getCentroids(dataSet, numCentroids, dm, threadPool);
         centroidDistCache = dm.getAccelerationCache(centroids, threadPool);

@@ -65,8 +65,9 @@ public class DivisiveLocalClusterer extends KClustererBase
     @Override
     public int[] cluster(DataSet dataSet, int clusters, ExecutorService threadpool, int[] designations) 
     {
-        if(designations == null)
-            designations = new int[dataSet.getSampleSize()];
+        if(designations == null) {
+          designations = new int[dataSet.getSampleSize()];
+        }
         /**
          * For each current cluster, we store the clustering results if we 
          * attempt to split it into two.
@@ -98,13 +99,15 @@ public class DivisiveLocalClusterer extends KClustererBase
         
         
         //Create initial split we will start from
-        if(threadpool == null)
-            baseClusterer.cluster(dataSet, 2, designations);
-        else
-            baseClusterer.cluster(dataSet, 2, threadpool, designations);
+        if(threadpool == null) {
+          baseClusterer.cluster(dataSet, 2, designations);
+        } else {
+          baseClusterer.cluster(dataSet, 2, threadpool, designations);
+        }
         subDesignation[0] = Arrays.copyOf(designations, designations.length);
-        for(int i = 0; i < originalPositions[0].length; i++)
-            originalPositions[0][i] = i;
+        for(int i = 0; i < originalPositions[0].length; i++) {
+          originalPositions[0][i] = i;
+        }
         
         
         List<DataPoint> dpSubC1 = new ArrayList<DataPoint>();
@@ -183,18 +186,20 @@ public class DivisiveLocalClusterer extends KClustererBase
         int pos = 0;
         for(int i = 0; i < fullDataSet.getSampleSize(); i++)
         {
-            if(fullDesignations[i] != originalCluster)
-                continue;
+            if(fullDesignations[i] != originalCluster) {
+              continue;
+            }
             originalPositions[originalCluster][pos++] = i;
         }
         //Cluster the sub cluster
         SimpleDataSet dpSubC1DataSet = new SimpleDataSet(listOfDataPointsInCluster);
         try
         {
-            if (threadpool == null)
-                baseClusterer.cluster(dpSubC1DataSet, 2, subDesignation[originalCluster]);
-            else
-                baseClusterer.cluster(dpSubC1DataSet, 2, threadpool, subDesignation[originalCluster]);
+            if (threadpool == null) {
+              baseClusterer.cluster(dpSubC1DataSet, 2, subDesignation[originalCluster]);
+            } else {
+              baseClusterer.cluster(dpSubC1DataSet, 2, threadpool, subDesignation[originalCluster]);
+            }
             splitEvaluation[originalCluster] = clusterEvaluation.evaluate(subDesignation[originalCluster], dpSubC1DataSet);
             clusterToSplit.add(originalCluster);
         }

@@ -113,15 +113,18 @@ public class BOGDTest
         BOGD result = instance.clone();
         assertFalse(result.isUniformSampling());
         
-        for (int i = 0; i < t1.getSampleSize(); i++)
-            assertEquals(t1.getDataPointCategory(i), result.classify(t1.getDataPoint(i)).mostLikely());
+        for (int i = 0; i < t1.getSampleSize(); i++) {
+          assertEquals(t1.getDataPointCategory(i), result.classify(t1.getDataPoint(i)).mostLikely());
+        }
         result.trainC(t2);
 
-        for (int i = 0; i < t1.getSampleSize(); i++)
-            assertEquals(t1.getDataPointCategory(i), instance.classify(t1.getDataPoint(i)).mostLikely());
+        for (int i = 0; i < t1.getSampleSize(); i++) {
+          assertEquals(t1.getDataPointCategory(i), instance.classify(t1.getDataPoint(i)).mostLikely());
+        }
 
-        for (int i = 0; i < t2.getSampleSize(); i++)
-            assertEquals(t2.getDataPointCategory(i), result.classify(t2.getDataPoint(i)).mostLikely());
+        for (int i = 0; i < t2.getSampleSize(); i++) {
+          assertEquals(t2.getDataPointCategory(i), result.classify(t2.getDataPoint(i)).mostLikely());
+        }
 
     }
 }

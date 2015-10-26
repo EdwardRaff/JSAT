@@ -69,8 +69,9 @@ public class AdaDelta implements GradientUpdater
      */
     public void setRho(double rho)
     {
-        if(rho <= 0 || rho >= 1 || Double.isNaN(rho))
-            throw new IllegalArgumentException("Rho must be in (0, 1)");
+        if(rho <= 0 || rho >= 1 || Double.isNaN(rho)) {
+          throw new IllegalArgumentException("Rho must be in (0, 1)");
+        }
         this.rho = rho;
     }
 

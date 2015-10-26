@@ -43,8 +43,9 @@ public class PriorityHAC extends KClustererBase
     public PriorityHAC(PriorityHAC toCopy)
     {
         this.distMeasure = toCopy.distMeasure.clone();
-        if(toCopy.merges != null)
-            this.merges = Arrays.copyOf(toCopy.merges, toCopy.merges.length);
+        if(toCopy.merges != null) {
+          this.merges = Arrays.copyOf(toCopy.merges, toCopy.merges.length);
+        }
         this.curDataSet = toCopy.curDataSet.shallowClone();
     }
     
@@ -86,8 +87,9 @@ public class PriorityHAC extends KClustererBase
         IntPriorityQueue Pk1 = P.get(k1);
         for(int i = 0; i < P.size(); i++)
         {
-            if(I[i] == 0 || i == k2 || i == k1)
-                continue;
+            if(I[i] == 0 || i == k2 || i == k1) {
+              continue;
+            }
             IntPriorityQueue curTargetQ = P.get(i);
             
             curTargetQ.remove(k1);
@@ -123,8 +125,9 @@ public class PriorityHAC extends KClustererBase
             //Fill up the priority que
             for(int j = 0; j < I.length; j++ )
             {
-                if(i == j)
-                    continue;
+                if(i == j) {
+                  continue;
+                }
                 pq.add(j);
             }
             
@@ -172,13 +175,14 @@ public class PriorityHAC extends KClustererBase
             int k1 = -1, k2 = -1;
             double dk1 = Double.MAX_VALUE, tmp;
             
-            for(int i = 0; i < P.size(); i++)
-                if( I[i] > 0 &&  (tmp = getDistance(distanceMatrix, i, P.get(i).element())) < dk1)
-                {
-                    dk1 = tmp;
-                    k1 = i;
-                    k2 = P.get(i).element();
-                }
+            for(int i = 0; i < P.size(); i++) {
+              if( I[i] > 0 &&  (tmp = getDistance(distanceMatrix, i, P.get(i).element())) < dk1)
+              {
+                dk1 = tmp;
+                k1 = i;
+                k2 = P.get(i).element();
+              }
+            }
             
             //Keep track of the changes in cluster size, and mark if this one was abnormall large
             distChange.add(dk1);
@@ -210,8 +214,9 @@ public class PriorityHAC extends KClustererBase
             I[k2] = 0;
         }
         reverseMergeArray();
-        if(designations == null)
-            designations = new int[dataSet.getSampleSize()];
+        if(designations == null) {
+          designations = new int[dataSet.getSampleSize()];
+        }
         designations = assignClusterDesignations(designations, clusterSize);
         
         
@@ -260,8 +265,9 @@ public class PriorityHAC extends KClustererBase
      */
     public int[] getClusterDesignations(int[] designations, int clusters)
     {
-        if(!hasStoredClustering())
-            return null;
+        if(!hasStoredClustering()) {
+          return null;
+        }
         return assignClusterDesignations(designations, clusters);
     }
     
@@ -276,8 +282,9 @@ public class PriorityHAC extends KClustererBase
      */
     public List<List<DataPoint>> getClusterDesignations(int clusters)
     {
-        if(!hasStoredClustering())
-            return null;
+        if(!hasStoredClustering()) {
+          return null;
+        }
         int[] assignments = new int[curDataSet.getSampleSize()];
         return createClusterListFromAssignmentArray(assignments, curDataSet);
     }
@@ -296,10 +303,11 @@ public class PriorityHAC extends KClustererBase
         {
             if(designations[merges[i]] == -1)//it has not been assigned
             {
-                if(curCluster < clusters)//It will be a top level cluster
-                    designations[merges[i]] = curCluster++;
-                else
-                    designations[merges[i]] = designations[merges[i-1]];//The new cluster is always in an odd index, so its parrent is the even index to the left 
+                if(curCluster < clusters) {//It will be a top level cluster
+                  designations[merges[i]] = curCluster++;
+                } else {
+                  designations[merges[i]] = designations[merges[i-1]];//The new cluster is always in an odd index, so its parrent is the even index to the left 
+                }
             }
         }
         return designations;

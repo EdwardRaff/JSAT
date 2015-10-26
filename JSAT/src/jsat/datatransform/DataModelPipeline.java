@@ -48,8 +48,9 @@ public class DataModelPipeline implements Classifier, Regressor, Parameterized
     {
         this.baseDtp = dtp;
         this.baseClassifier = baseClassifier;
-        if(baseClassifier instanceof Regressor)
-            this.baseRegressor = (Regressor) baseClassifier;
+        if(baseClassifier instanceof Regressor) {
+          this.baseRegressor = (Regressor) baseClassifier;
+        }
     }
     
     /**
@@ -73,8 +74,9 @@ public class DataModelPipeline implements Classifier, Regressor, Parameterized
     {
         this.baseDtp = dtp;
         this.baseRegressor = baseRegressor;
-        if(baseRegressor instanceof Classifier)
-            this.baseClassifier = (Classifier) baseRegressor;
+        if(baseRegressor instanceof Classifier) {
+          this.baseClassifier = (Classifier) baseRegressor;
+        }
     }
     
     /**
@@ -100,20 +102,24 @@ public class DataModelPipeline implements Classifier, Regressor, Parameterized
             this.baseClassifier = toCopy.baseClassifier.clone();
             this.baseRegressor = (Regressor) this.baseClassifier;
         }
-        else if(toCopy.baseClassifier != null)
-            this.baseClassifier = toCopy.baseClassifier.clone();
-        else if(toCopy.baseRegressor != null)
-            this.baseRegressor = toCopy.baseRegressor.clone();
-        else
-            throw new RuntimeException("BUG: Report Me!");
+        else if(toCopy.baseClassifier != null) {
+          this.baseClassifier = toCopy.baseClassifier.clone();
+        } else if(toCopy.baseRegressor != null) {
+          this.baseRegressor = toCopy.baseRegressor.clone();
+        } else {
+          throw new RuntimeException("BUG: Report Me!");
+        }
                     
         
-        if(toCopy.learnedDtp != null)
-            this.learnedDtp = toCopy.learnedDtp.clone();
-        if(toCopy.learnedClassifier != null)
-            this.learnedClassifier = toCopy.learnedClassifier.clone();
-        if(toCopy.learnedRegressor != null)
-            this.learnedRegressor = toCopy.learnedRegressor.clone();
+        if(toCopy.learnedDtp != null) {
+          this.learnedDtp = toCopy.learnedDtp.clone();
+        }
+        if(toCopy.learnedClassifier != null) {
+          this.learnedClassifier = toCopy.learnedClassifier.clone();
+        }
+        if(toCopy.learnedRegressor != null) {
+          this.learnedRegressor = toCopy.learnedRegressor.clone();
+        }
     }
     
     @Override
@@ -130,10 +136,11 @@ public class DataModelPipeline implements Classifier, Regressor, Parameterized
         learnedDtp.learnApplyTransforms(dataSet);
         
         learnedClassifier = baseClassifier.clone();
-        if(threadPool == null)
-            learnedClassifier.trainC(dataSet);
-        else
-            learnedClassifier.trainC(dataSet, threadPool);
+        if(threadPool == null) {
+          learnedClassifier.trainC(dataSet);
+        } else {
+          learnedClassifier.trainC(dataSet, threadPool);
+        }
     }
 
     @Override
@@ -145,12 +152,13 @@ public class DataModelPipeline implements Classifier, Regressor, Parameterized
     @Override
     public boolean supportsWeightedData()
     {
-        if(baseClassifier != null)
-            return baseClassifier.supportsWeightedData();
-        else if(baseRegressor != null)
-            return baseRegressor.supportsWeightedData();
-        else
-            throw new RuntimeException("BUG: Report Me! This should not have happened");
+        if(baseClassifier != null) {
+          return baseClassifier.supportsWeightedData();
+        } else if(baseRegressor != null) {
+          return baseRegressor.supportsWeightedData();
+        } else {
+          throw new RuntimeException("BUG: Report Me! This should not have happened");
+        }
     }
 
     @Override
@@ -167,10 +175,11 @@ public class DataModelPipeline implements Classifier, Regressor, Parameterized
         learnedDtp.learnApplyTransforms(dataSet);
         
         learnedRegressor = baseRegressor.clone();
-        if(threadPool == null)
-            learnedRegressor.train(dataSet);
-        else
-            learnedRegressor.train(dataSet, threadPool);
+        if(threadPool == null) {
+          learnedRegressor.train(dataSet);
+        } else {
+          learnedRegressor.train(dataSet, threadPool);
+        }
     }
 
     @Override
@@ -189,10 +198,11 @@ public class DataModelPipeline implements Classifier, Regressor, Parameterized
     public List<Parameter> getParameters()
     {
         List<Parameter> params = Parameter.getParamsFromMethods(this);
-        if(baseClassifier != null && baseClassifier instanceof Parameterized)
-            params.addAll(((Parameterized)baseClassifier).getParameters());
-        else if(baseRegressor != null && baseRegressor instanceof Parameterized)
-            params.addAll(((Parameterized)baseRegressor).getParameters());
+        if(baseClassifier != null && baseClassifier instanceof Parameterized) {
+          params.addAll(((Parameterized)baseClassifier).getParameters());
+        } else if(baseRegressor != null && baseRegressor instanceof Parameterized) {
+          params.addAll(((Parameterized)baseRegressor).getParameters());
+        }
         return params;
     }
 

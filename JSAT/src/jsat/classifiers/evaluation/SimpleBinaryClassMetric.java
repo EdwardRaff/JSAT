@@ -50,17 +50,19 @@ public abstract class SimpleBinaryClassMetric implements ClassificationScore
     public void addResult(CategoricalResults prediction, int trueLabel, double weight)
     {
         int pred = prediction.mostLikely();
-        if(pred == trueLabel)
-            if(pred == 0)
-                tp += weight;
-            else
-                tn += weight;
-        else
+        if(pred == trueLabel) {
+          if (pred == 0) {
+            tp += weight;
+          } else {
+            tn += weight;
+          }
+        } else
         {
-            if(pred == 0)
-                fp += weight;
-            else
-                fn += weight;
+            if(pred == 0) {
+              fp += weight;
+          } else {
+              fn += weight;
+          }
         }
         
     }

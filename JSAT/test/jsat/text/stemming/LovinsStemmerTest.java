@@ -70,8 +70,9 @@ public class LovinsStemmerTest
                 + "vari in th individu gen and can lead to a pictur of expres that is mor "
                 + "biolog transpar and acces to interpres").split(" ");
         
-        for(int i = 0; i < origSent.length; i++)
-            assertEquals(expResult[i], instance.stem(origSent[i]));
+        for(int i = 0; i < origSent.length; i++) {
+          assertEquals(expResult[i], instance.stem(origSent[i]));
+        }
     }
     
 }

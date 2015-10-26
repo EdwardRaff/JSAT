@@ -760,9 +760,11 @@ public class GenericMatrixTest
     {
         TestImp toSet = new TestImp(A.rows(), A.cols());
         
-        for(int i = 0; i < A.rows(); i++)
-            for(int j = 0; j < A.cols(); j++)
-                toSet.set(i, j, A.get(i, j));
+        for(int i = 0; i < A.rows(); i++) {
+          for (int j = 0; j < A.cols(); j++) {
+            toSet.set(i, j, A.get(i, j));
+          }
+        }
         
         assertEquals(A, toSet);
     }
@@ -869,9 +871,11 @@ public class GenericMatrixTest
         Matrix test = C.clone();
         test.zeroOut();
         
-        for(int i = 0; i < test.rows(); i++)
-            for(int j = 0; j < test.cols(); j++)
-                assertEquals(0, test.get(i, j), 0);
+        for(int i = 0; i < test.rows(); i++) {
+          for (int j = 0; j < test.cols(); j++) {
+            assertEquals(0, test.get(i, j), 0);
+          }
+        }
     }
 
     /**

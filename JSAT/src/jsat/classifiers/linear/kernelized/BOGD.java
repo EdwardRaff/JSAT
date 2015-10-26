@@ -107,15 +107,18 @@ public class BOGD extends BaseUpdateableClassifier implements BinaryScoreClassif
         if(toCopy.vecs != null)
         {
             this.vecs = new ArrayList<Vec>(budget);
-            for(Vec v : toCopy.vecs)
-                this.vecs.add(v.clone());
+            for(Vec v : toCopy.vecs) {
+              this.vecs.add(v.clone());
+            }
             this.selfK = new DoubleList(toCopy.selfK);
             this.alphas = new DoubleList(toCopy.alphas);
         }
-        if(toCopy.accelCache != null)
-            this.accelCache = new DoubleList(toCopy.accelCache);
-        if(toCopy.dist != null)
-            this.dist = Arrays.copyOf(toCopy.dist, toCopy.dist.length);
+        if(toCopy.accelCache != null) {
+          this.accelCache = new DoubleList(toCopy.accelCache);
+        }
+        if(toCopy.dist != null) {
+          this.dist = Arrays.copyOf(toCopy.dist, toCopy.dist.length);
+        }
     }
     
     /**
@@ -128,8 +131,9 @@ public class BOGD extends BaseUpdateableClassifier implements BinaryScoreClassif
      */
     public void setRegularization(double regularization)
     {
-        if(regularization <= 0 || Double.isNaN(regularization) || Double.isInfinite(regularization))
-            throw new IllegalArgumentException("Regularization must be positive, not " + regularization);
+        if(regularization <= 0 || Double.isNaN(regularization) || Double.isInfinite(regularization)) {
+          throw new IllegalArgumentException("Regularization must be positive, not " + regularization);
+        }
         this.reg = regularization;
     }
 
@@ -150,8 +154,9 @@ public class BOGD extends BaseUpdateableClassifier implements BinaryScoreClassif
      */
     public void setEta(double eta)
     {
-        if(eta <= 0 || Double.isNaN(eta) || Double.isInfinite(eta))
-            throw new IllegalArgumentException("Eta must be positive, not " + eta);
+        if(eta <= 0 || Double.isNaN(eta) || Double.isInfinite(eta)) {
+          throw new IllegalArgumentException("Eta must be positive, not " + eta);
+        }
         this.eta = eta;
     }
 
@@ -172,8 +177,9 @@ public class BOGD extends BaseUpdateableClassifier implements BinaryScoreClassif
      */
     public void setMaxCoeff(double maxCoeff)
     {
-        if(maxCoeff <= 0 || Double.isNaN(maxCoeff) || Double.isInfinite(maxCoeff))
-            throw new IllegalArgumentException("MaxCoeff must be positive, not " + maxCoeff);
+        if(maxCoeff <= 0 || Double.isNaN(maxCoeff) || Double.isInfinite(maxCoeff)) {
+          throw new IllegalArgumentException("MaxCoeff must be positive, not " + maxCoeff);
+        }
         this.maxCoeff = maxCoeff;
     }
 
@@ -192,8 +198,9 @@ public class BOGD extends BaseUpdateableClassifier implements BinaryScoreClassif
      */
     public void setBudget(int budget)
     {
-        if(budget <= 0 )
-            throw new IllegalArgumentException("Budget must be positive, not " + budget);
+        if(budget <= 0 ) {
+          throw new IllegalArgumentException("Budget must be positive, not " + budget);
+        }
         this.budget = budget;
     }
 
@@ -258,12 +265,14 @@ public class BOGD extends BaseUpdateableClassifier implements BinaryScoreClassif
         vecs = new ArrayList<Vec>(budget);
         alphas = new DoubleList(budget);
         selfK = new DoubleList(budget);
-        if(k.supportsAcceleration())
-            accelCache = new DoubleList(budget);
-        else
-            accelCache = null;
-        if(!uniformSampling)
-            dist = new double[budget];
+        if(k.supportsAcceleration()) {
+          accelCache = new DoubleList(budget);
+        } else {
+          accelCache = null;
+        }
+        if(!uniformSampling) {
+          dist = new double[budget];
+        }
         rand = new XORWOW();
     }
     
@@ -300,8 +309,9 @@ public class BOGD extends BaseUpdateableClassifier implements BinaryScoreClassif
                 alphas.getVecView().mutableMultiply(1-eta*reg);
                 alphas.add(-eta*lossD);
                 selfK.add(Math.sqrt(k.eval(0, 0, Arrays.asList(x_t), qi)));
-                if(k.supportsAcceleration())
-                    accelCache.addAll(qi);
+                if(k.supportsAcceleration()) {
+                  accelCache.addAll(qi);
+                }
                 vecs.add(x_t);
             }
             else//budget maintinance
@@ -316,8 +326,9 @@ public class BOGD extends BaseUpdateableClassifier implements BinaryScoreClassif
                 else
                 {
                     double s = 0;
-                    for(int i = 0; i < budget; i++)
-                        s += Math.abs(alphas.get(i))*selfK.get(i);
+                    for(int i = 0; i < budget; i++) {
+                      s += Math.abs(alphas.get(i))*selfK.get(i);
+                    }
                     s = (budget-1)/s;
                     final double target = rand.nextDouble();
                     double cur = 0;
@@ -328,15 +339,17 @@ public class BOGD extends BaseUpdateableClassifier implements BinaryScoreClassif
                         cur += dist[i] = 1-s*alphas.get(i)*selfK.get(i);
                     }
                     toRemove = i++;
-                    while(i < budget)
-                        cur += dist[i] = 1-s*alphas.get(i)*selfK.get(i++);
+                    while(i < budget) {
+                      cur += dist[i] = 1-s*alphas.get(i)*selfK.get(i++);
+                    }
                     normalize = cur;
                 }
                 
                 for(int i = 0; i < budget; i++)
                 {
-                    if(i == toRemove)
-                        continue;
+                    if(i == toRemove) {
+                      continue;
+                    }
                     double alpha_i = alphas.getD(i);
                     double sign = Math.signum(alpha_i);
                     alpha_i = Math.abs(alpha_i);
@@ -348,8 +361,9 @@ public class BOGD extends BaseUpdateableClassifier implements BinaryScoreClassif
                 if(k.supportsAcceleration())
                 {
                     int catToRet = accelCache.size()/budget;
-                    for(int i = 0; i < catToRet; i++)
-                        accelCache.remove(toRemove*catToRet);
+                    for(int i = 0; i < catToRet; i++) {
+                      accelCache.remove(toRemove*catToRet);
+                    }
                 }
                 alphas.remove(toRemove);
                 vecs.remove(toRemove);

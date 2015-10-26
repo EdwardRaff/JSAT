@@ -100,15 +100,17 @@ public class FastICATest
                 for(int i = 0; i < x_c.length(); i++)
                 {
                     double cmp = abs(x_c.get(i))-abs(t_c.get(i));
-                    if(abs(cmp) > 1e-3)
-                        continue SearchLoop;
+                    if(abs(cmp) > 1e-3) {
+                      continue SearchLoop;
+                    }
                 }
                 //we made it! 
                 found_match = true;
             }
             
-            if(!found_match)
-                fail("The " + found_c + " component didn't match any of the true components");
+            if(!found_match) {
+              fail("The " + found_c + " component didn't match any of the true components");
+            }
         }
         
         X.applyTransform(new InverseOfTransform(linearX));
@@ -131,15 +133,17 @@ public class FastICATest
                 for(int i = 0; i < x_c.length(); i++)
                 {
                     double cmp = abs(x_c.get(i))-abs(t_c.get(i));
-                    if(abs(cmp) > 1e-3)
-                        continue SearchLoop;
+                    if(abs(cmp) > 1e-3) {
+                      continue SearchLoop;
+                    }
                 }
                 //we made it! 
                 found_match = true;
             }
             
-            if(!found_match)
-                fail("The " + inverted_c + " component didn't match any of the true components");
+            if(!found_match) {
+              fail("The " + inverted_c + " component didn't match any of the true components");
+            }
         }
     }
     
@@ -203,15 +207,17 @@ public class FastICATest
                 for(int i = 0; i < x_c.length(); i++)
                 {
                     double cmp = abs(x_c.get(i))-abs(t_c.get(i));
-                    if(abs(cmp) > 1e-3)
-                        continue SearchLoop;
+                    if(abs(cmp) > 1e-3) {
+                      continue SearchLoop;
+                    }
                 }
                 //we made it! 
                 found_match = true;
             }
             
-            if(!found_match)
-                fail("The " + found_c + " component didn't match any of the true components");
+            if(!found_match) {
+              fail("The " + found_c + " component didn't match any of the true components");
+            }
         }
         
         X.applyTransform(new InverseOfTransform(linearX));
@@ -235,15 +241,17 @@ public class FastICATest
                 for(int i = 0; i < x_c.length(); i++)
                 {
                     double cmp = abs(x_c.get(i))-abs(t_c.get(i));
-                    if(abs(cmp) > 1e-3)
-                        continue SearchLoop;
+                    if(abs(cmp) > 1e-3) {
+                      continue SearchLoop;
+                    }
                 }
                 //we made it! 
                 found_match = true;
             }
             
-            if(!found_match)
-                fail("The " + inverted_c + " component didn't match any of the true components");
+            if(!found_match) {
+              fail("The " + inverted_c + " component didn't match any of the true components");
+            }
         }
     }
     
@@ -303,15 +311,17 @@ public class FastICATest
                 for(int i = 0; i < x_c.length(); i++)
                 {
                     double cmp = abs(x_c.get(i))-abs(t_c.get(i));
-                    if(abs(cmp) > 1e-3)
-                        continue SearchLoop;
+                    if(abs(cmp) > 1e-3) {
+                      continue SearchLoop;
+                    }
                 }
                 //we made it! 
                 found_match = true;
             }
             
-            if(!found_match)
-                fail("The " + found_c + " component didn't match any of the true components");
+            if(!found_match) {
+              fail("The " + found_c + " component didn't match any of the true components");
+            }
         }
         
         X.applyTransform(new InverseOfTransform(linearX));
@@ -335,15 +345,17 @@ public class FastICATest
                 for(int i = 0; i < x_c.length(); i++)
                 {
                     double cmp = abs(x_c.get(i))-abs(t_c.get(i));
-                    if(abs(cmp) > 1e-3)
-                        continue SearchLoop;
+                    if(abs(cmp) > 1e-3) {
+                      continue SearchLoop;
+                    }
                 }
                 //we made it! 
                 found_match = true;
             }
             
-            if(!found_match)
-                fail("The " + inverted_c + " component didn't match any of the true components");
+            if(!found_match) {
+              fail("The " + inverted_c + " component didn't match any of the true components");
+            }
         }
     }
 }

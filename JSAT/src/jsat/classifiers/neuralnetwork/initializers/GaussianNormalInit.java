@@ -45,17 +45,20 @@ public class GaussianNormalInit implements WeightInitializer, BiastInitializer
     @Override
     public void init(Matrix w, Random rand)
     {
-        for(int i = 0; i < w.rows(); i++)
-            for(int j = 0; j < w.cols(); j++)
-                w.set(i, j, rand.nextGaussian()*stndDev);
+        for(int i = 0; i < w.rows(); i++) {
+          for (int j = 0; j < w.cols(); j++) {
+            w.set(i, j, rand.nextGaussian()*stndDev);
+          }
+        }
         
     }
 
     @Override
     public void init(Vec b, int fanIn, Random rand)
     {
-        for(int i = 0; i < b.length(); i++)
-            b.set(i, rand.nextGaussian()*stndDev);
+        for(int i = 0; i < b.length(); i++) {
+          b.set(i, rand.nextGaussian()*stndDev);
+        }
     }
 
     @Override

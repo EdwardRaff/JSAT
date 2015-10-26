@@ -351,8 +351,9 @@ public class ShiftedVecTest
         ShiftedVec a = new ShiftedVec(a_base, shift_a);
         a.zeroOut();
         
-        for(int i = 0; i < a.length(); i++)
-            assertEquals(0.0, a.get(i), 0.0);
+        for(int i = 0; i < a.length(); i++) {
+          assertEquals(0.0, a.get(i), 0.0);
+        }
         assertEquals(0.0, a.getShift(), 0.0);
     }
 
@@ -366,8 +367,9 @@ public class ShiftedVecTest
         ShiftedVec a = new ShiftedVec(a_base, shift_a);
         double[] ps = {0.5, 1, 2, 2.5, 3, 10 };
         
-        for(double p : ps)
-            assertEquals(a_dense.pNorm(p), a.pNorm(p), 1e-10);
+        for(double p : ps) {
+          assertEquals(a_dense.pNorm(p), a.pNorm(p), 1e-10);
+        }
     }
 
     /**

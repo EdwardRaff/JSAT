@@ -106,8 +106,9 @@ public class FibHeap<T>
         }
         while(runner != startingNode);//Yes, intentionally comparing objects. Circular link list. So once we reach the starting object we are done
         
-        for(FibNode<T> w : rootListCopy)
-            delink(w);//we will fix this later by re-merging at the end
+        for(FibNode<T> w : rootListCopy) {
+          delink(w);//we will fix this later by re-merging at the end
+        }
         
         //4| for each node w in the root list of H
         for(FibNode<T> w : rootListCopy)
@@ -116,8 +117,9 @@ public class FibHeap<T>
             int d = x.degree;//6
             
             //7| while A[d] != NIL
-            while(A.size() <= d)
-                A.add(null);
+            while(A.size() <= d) {
+              A.add(null);
+            }
             while(A.get(d) != null)
             {
                 //8| y = A[d]  // another node with the same degree as x
@@ -138,8 +140,9 @@ public class FibHeap<T>
                 A.set(d, null);
                 //13| d=d+1
                 d++;
-                while(A.size() <= d)
-                    A.add(null);
+                while(A.size() <= d) {
+                  A.add(null);
+                }
             }
             //14| A[d] = x
             A.set(d, x);
@@ -147,8 +150,9 @@ public class FibHeap<T>
         
         //15| H.min = NIL
         min = null;
-        for(FibNode<T> x : A)
-            min = merge(min, x);
+        for(FibNode<T> x : A) {
+          min = merge(min, x);
+        }
         
     }
     
@@ -212,8 +216,9 @@ public class FibHeap<T>
                 min = null;
             }
            
-            if(min != null)
-                consolidate();//this will set min correctly no matter what
+            if(min != null) {
+              consolidate();//this will set min correctly no matter what
+            }
             n--;
         }
 
@@ -222,8 +227,9 @@ public class FibHeap<T>
     
     public void decreaseKey(FibNode<T> x, double k)
     {
-        if(k > x.key)
-            throw new RuntimeException("new key is greater than current key");
+        if(k > x.key) {
+          throw new RuntimeException("new key is greater than current key");
+        }
         x.key = k;
         FibNode<T> y = x.p;
         if(y != null && x.key < y.key)
@@ -231,8 +237,9 @@ public class FibHeap<T>
             cut(x, y);
             cascadingCut(y);
         }
-        if(x.key < min.key)
-            min = x;
+        if(x.key < min.key) {
+          min = x;
+        }
     }
     
     /**
@@ -243,10 +250,11 @@ public class FibHeap<T>
     private void cut(FibNode<T> x, FibNode<T> y)
     {
         //1| remove x from the child list of y, decrementing y.degree
-        if(y.child == x)//if we removed but x was the child pointer, we would get messed up
-            y.child = delink(x);
-        else
-            delink(x);
+        if(y.child == x) {//if we removed but x was the child pointer, we would get messed up
+          y.child = delink(x);
+        } else {
+          delink(x);
+        }
         y.degree--;//removal of 'x' from y
         y.degree-= x.degree;//removal of everyone x owned from y
         //2| add x to the root list of H
@@ -263,9 +271,9 @@ public class FibHeap<T>
         FibNode<T> z = y.p;
         if(z != null)//2.
         {
-            if(y.mark == false)//3.
-                y.mark = true;//4.
-            else
+            if(y.mark == false) {//3.
+              y.mark = true;//4.
+            } else
             {
                 cut(y, z);
                 cascadingCut(z);
@@ -333,10 +341,11 @@ public class FibHeap<T>
          */
         public void addChild(FibNode<T> x)
         {
-            if(this.child == null)
-                this.child = x;
-            else
-                this.child = merge(this.child, x);
+            if(this.child == null) {
+              this.child = x;
+            } else {
+              this.child = merge(this.child, x);
+            }
             x.p = this;
         }
 
@@ -358,9 +367,10 @@ public class FibHeap<T>
      */
     private static <T> FibNode<T> delink(FibNode<T> a)
     {
-        if(a.left == a)//a is on its own, nothing to return
-            return null;
-        //else, a is in a list
+        if(a.left == a) {//a is on its own, nothing to return
+          return null;
+          //else, a is in a list
+        }
         
         FibNode<T> a_left_orig = a.left;//link to the rest of the list that we can return
         
@@ -383,12 +393,15 @@ public class FibHeap<T>
      */
     private static <T> FibNode<T> merge(FibNode<T> a, FibNode<T> b)
     {
-        if(a == b)//handles a and b == null (returns null) or a and b are the same object (return the obj, don't make weird cycles
-            return a;
-        if(a == null)
-            return b;
-        if(b == null)
-            return a;
+        if(a == b) {//handles a and b == null (returns null) or a and b are the same object (return the obj, don't make weird cycles
+          return a;
+        }
+        if(a == null) {
+          return b;
+        }
+        if(b == null) {
+          return a;
+        }
         
         //else, two different non-null nodes, make a the smaller priority one so we always return smallest priority
         if(a.key > b.key)

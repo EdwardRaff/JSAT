@@ -28,8 +28,9 @@ public class SquaredEuclideanDistance implements DistanceMetric
 	@Override
     public double dist(Vec a, Vec b)
     {
-        if(a.length() != b.length())
-            throw new ArithmeticException("Length miss match, vectors must have the same length");
+        if(a.length() != b.length()) {
+          throw new ArithmeticException("Length miss match, vectors must have the same length");
+        }
         double d = 0;
         
         if( a instanceof SparseVector && b instanceof SparseVector)
@@ -96,16 +97,18 @@ public class SquaredEuclideanDistance implements DistanceMetric
     public List<Double> getAccelerationCache(List<? extends Vec> vecs)
     {
         DoubleList cache = new DoubleList(vecs.size());
-        for(Vec v : vecs)
-            cache.add(v.dot(v));
+        for(Vec v : vecs) {
+          cache.add(v.dot(v));
+        }
         return cache;
     }
     
     @Override
     public List<Double> getAccelerationCache(final List<? extends Vec> vecs, ExecutorService threadpool)
     {
-        if(threadpool == null || threadpool instanceof FakeExecutor)
-            return getAccelerationCache(vecs);
+        if(threadpool == null || threadpool instanceof FakeExecutor) {
+          return getAccelerationCache(vecs);
+        }
         final double[] cache = new double[vecs.size()];
         
         final int P = Math.min(SystemInfo.LogicalCores, vecs.size());
@@ -120,8 +123,9 @@ public class SquaredEuclideanDistance implements DistanceMetric
                 @Override
                 public void run()
                 {
-                    for(int i = start; i < end; i++)
-                        cache[i] = vecs.get(i).dot(vecs.get(i));
+                    for(int i = start; i < end; i++) {
+                      cache[i] = vecs.get(i).dot(vecs.get(i));
+                    }
                     latch.countDown();
                 }
             });
@@ -142,8 +146,9 @@ public class SquaredEuclideanDistance implements DistanceMetric
     @Override
     public double dist(int a, int b, List<? extends Vec> vecs, List<Double> cache)
     {
-        if(cache == null)
-            return dist(vecs.get(a), vecs.get(b));
+        if(cache == null) {
+          return dist(vecs.get(a), vecs.get(b));
+        }
         
         return (cache.get(a)+cache.get(b)-2*vecs.get(a).dot(vecs.get(b)));
     }
@@ -151,8 +156,9 @@ public class SquaredEuclideanDistance implements DistanceMetric
     @Override
     public double dist(int a, Vec b, List<? extends Vec> vecs, List<Double> cache)
     {
-        if(cache == null)
-            return dist(vecs.get(a), b);
+        if(cache == null) {
+          return dist(vecs.get(a), b);
+        }
         
         return (cache.get(a)+b.dot(b)-2*vecs.get(a).dot(b));
     }
@@ -168,8 +174,9 @@ public class SquaredEuclideanDistance implements DistanceMetric
     @Override
     public double dist(int a, Vec b, List<Double> qi, List<? extends Vec> vecs, List<Double> cache)
     {
-        if(cache == null)
-            return dist(vecs.get(a), b);
+        if(cache == null) {
+          return dist(vecs.get(a), b);
+        }
         
         return (cache.get(a)+qi.get(0)-2*vecs.get(a).dot(b));
     }

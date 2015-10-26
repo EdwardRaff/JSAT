@@ -38,10 +38,11 @@ public class ConjugateGradient
      */
     public static Vec solve(double eps, Matrix A, Vec x, Vec b)
     {
-        if(!A.isSquare())
-            throw new ArithmeticException("A must be a square (symmetric & positive definite) matrix");
-        else if(A.rows() != b.length() || A.rows() != x.length())
-            throw new ArithmeticException("Matrix A dimensions do not agree with x and b");
+        if(!A.isSquare()) {
+          throw new ArithmeticException("A must be a square (symmetric & positive definite) matrix");
+        } else if(A.rows() != b.length() || A.rows() != x.length()) {
+          throw new ArithmeticException("Matrix A dimensions do not agree with x and b");
+        }
         int k = 0;
         Vec r_k = b.subtract(A.multiply(x));
         Vec p_k = r_k.clone();
@@ -60,8 +61,9 @@ public class ConjugateGradient
             double newRdR = r_k.dot(r_k);
             
             //Stop when we are close enough
-            if(newRdR < eps*eps)
-                return x;
+            if(newRdR < eps*eps) {
+              return x;
+            }
             
             double beta_k = newRdR/RdR;
             
@@ -106,12 +108,13 @@ public class ConjugateGradient
      */
     public static Vec solve(double eps, Matrix A, Vec x, Vec b, Matrix Minv)
     {
-        if(!A.isSquare() || !Minv.isSquare())
-            throw new ArithmeticException("A and Minv must be square (symmetric & positive definite) matrix");
-        else if(A.rows() != b.length() || A.rows() != x.length())
-            throw new ArithmeticException("Matrix A dimensions do not agree with x and b");
-        else if(A.rows() != Minv.rows() || A.cols() != Minv.cols())
-            throw new ArithmeticException("Matrix A and Minv do not have the same dimmentions");
+        if(!A.isSquare() || !Minv.isSquare()) {
+          throw new ArithmeticException("A and Minv must be square (symmetric & positive definite) matrix");
+        } else if(A.rows() != b.length() || A.rows() != x.length()) {
+          throw new ArithmeticException("Matrix A dimensions do not agree with x and b");
+        } else if(A.rows() != Minv.rows() || A.cols() != Minv.cols()) {
+          throw new ArithmeticException("Matrix A and Minv do not have the same dimmentions");
+        }
         
         int k = 0;
         Vec r_k = b.subtract(A.multiply(x));
@@ -128,8 +131,9 @@ public class ConjugateGradient
             x.mutableAdd(alpha, p_k);
             r_k.mutableSubtract(alpha, Apk);
             
-            if(r_k.dot(r_k) < eps*eps)
-                return x;
+            if(r_k.dot(r_k) < eps*eps) {
+              return x;
+            }
             
             z_k = Minv.multiply(r_k);//TODO implement method so we can reuse z_k space, instead of creating a new vector
             
@@ -166,10 +170,11 @@ public class ConjugateGradient
      */
     public static Vec solveCGNR(double eps, Matrix A, Vec x, Vec b)
     {
-        if(A.rows() != b.length())
-            throw new ArithmeticException("Dimensions do not agree for Matrix A and Vector b");
-        else if(A.cols() != x.length())
-            throw new ArithmeticException("Dimensions do not agree for Matrix A and Vector x");
+        if(A.rows() != b.length()) {
+          throw new ArithmeticException("Dimensions do not agree for Matrix A and Vector b");
+        } else if(A.cols() != x.length()) {
+          throw new ArithmeticException("Dimensions do not agree for Matrix A and Vector x");
+        }
         
         //TODO write a version that does not explicityly form the transpose matrix
         Matrix At = A.transpose();

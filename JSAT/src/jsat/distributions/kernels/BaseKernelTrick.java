@@ -68,8 +68,9 @@ public abstract class BaseKernelTrick implements KernelTrick
     {
         double sum = 0;
         
-        for(int i = start; i < end; i++)
-            sum += alpha[i] * eval(i, y, qi, finalSet, cache);
+        for(int i = start; i < end; i++) {
+          sum += alpha[i] * eval(i, y, qi, finalSet, cache);
+        }
         
         return sum;
     }

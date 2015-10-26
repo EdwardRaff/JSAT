@@ -189,20 +189,24 @@ public class OPTICS extends ClustererBase implements Parameterized
         this.dm = toCopy.dm.clone();
         this.vc = toCopy.vc.clone();
         this.minPts = toCopy.minPts;
-        if(toCopy.core_distance != null )
-            this.core_distance = Arrays.copyOf(toCopy.core_distance, toCopy.core_distance.length);
+        if(toCopy.core_distance != null ) {
+          this.core_distance = Arrays.copyOf(toCopy.core_distance, toCopy.core_distance.length);
+        }
         
-        if(toCopy.reach_d != null )
-            this.reach_d = Arrays.copyOf(toCopy.reach_d, toCopy.reach_d.length);
+        if(toCopy.reach_d != null ) {
+          this.reach_d = Arrays.copyOf(toCopy.reach_d, toCopy.reach_d.length);
+        }
         
-        if(toCopy.processed != null )
-            this.processed = Arrays.copyOf(toCopy.processed, toCopy.processed.length);
+        if(toCopy.processed != null ) {
+          this.processed = Arrays.copyOf(toCopy.processed, toCopy.processed.length);
+        }
         
         if(toCopy.allVecs != null )
         {
             this.allVecs = new Vec[toCopy.allVecs.length];
-            for(int i = 0; i < toCopy.allVecs.length; i++)
-                this.allVecs[i] = toCopy.allVecs[i].clone();
+            for(int i = 0; i < toCopy.allVecs.length; i++) {
+              this.allVecs[i] = toCopy.allVecs[i].clone();
+            }
         }
         this.xi = toCopy.xi;
         this.orderdSeeds = toCopy.orderdSeeds;
@@ -239,8 +243,9 @@ public class OPTICS extends ClustererBase implements Parameterized
      */
     public void setXi(double xi)
     {
-        if(xi <= 0 || xi >= 1 || Double.isNaN(xi))
-            throw new ArithmeticException("xi must be in the range (0, 1) not " + xi);
+        if(xi <= 0 || xi >= 1 || Double.isNaN(xi)) {
+          throw new ArithmeticException("xi must be in the range (0, 1) not " + xi);
+        }
         this.xi = xi;
         this.one_min_xi = 1.0 - xi;
     }
@@ -315,8 +320,9 @@ public class OPTICS extends ClustererBase implements Parameterized
         
         for(int i = 0; i < orderedFile.size(); i++)
         {
-            if(designations[i] != NOISE)
-                continue;
+            if(designations[i] != NOISE) {
+              continue;
+            }
             //Check if all the neighbors have a consensus on the cluster class (ignoring noise)
             List<? extends VecPaired<VecPaired<Vec, Integer>, Double>> neighbors = vc.search(allVecs[i], minPts/2+1);
             int CLASS = -1;//-1 for not set, -2 for conflic
@@ -324,16 +330,18 @@ public class OPTICS extends ClustererBase implements Parameterized
             for(VecPaired<VecPaired<Vec, Integer>, Double> v : neighbors)
             {
                 int subC = designations[v.getVector().getPair()];
-                if(subC == NOISE)//ignore
-                    continue;
-                else if(CLASS == -1)//First class set
-                    CLASS = subC;
-                else if (CLASS != subC)//Conflict
-                    CLASS = -2;//No consensus, we wont change the noise label
+                if(subC == NOISE) {//ignore
+                  continue;
+                } else if(CLASS == -1) {//First class set
+                  CLASS = subC;
+                } else if (CLASS != subC) {//Conflict
+                  CLASS = -2;//No consensus, we wont change the noise label
+                }
             }
             
-            if(CLASS != -2)
-                designations[i]= CLASS;
+            if(CLASS != -2) {
+              designations[i]= CLASS;
+            }
         }
         
         return clustersFound;
@@ -349,21 +357,26 @@ public class OPTICS extends ClustererBase implements Parameterized
     {
         int clustersFound = 0;
         OnLineStatistics stats = new OnLineStatistics();
-        for(double r : reach_d)
-            if(!Double.isInfinite(r))
-                stats.add(r);
+        for(double r : reach_d) {
+          if (!Double.isInfinite(r)) {
+            stats.add(r);
+          }
+        }
         
         double thresh = stats.getMean()+stats.getStandardDeviation();
         for(int i = 0; i < orderedFile.size(); i++)
         {
-            if(reach_d[orderedFile.get(i)] >= thresh)
-                continue;
+            if(reach_d[orderedFile.get(i)] >= thresh) {
+              continue;
+            }
             //Everything in between is part of the cluster
-            while(i < orderedFile.size() && reach_d[orderedFile.get(i)] < thresh)
-                designations[i++] = clustersFound;
+            while(i < orderedFile.size() && reach_d[orderedFile.get(i)] < thresh) {
+              designations[i++] = clustersFound;
+            }
             //Climb up to the top of the hill, everything we climbed over is part of the cluster
-            while(i+1 < orderedFile.size() && reach_d[orderedFile.get(i)] < reach_d[orderedFile.get(i+1)])
-                designations[i++] = clustersFound;
+            while(i+1 < orderedFile.size() && reach_d[orderedFile.get(i)] < reach_d[orderedFile.get(i+1)]) {
+              designations[i++] = clustersFound;
+            }
             clustersFound++;
         }
         return clustersFound;
@@ -414,11 +427,13 @@ public class OPTICS extends ClustererBase implements Parameterized
                     {
                         orderIndex++;
                         curIndex = nextIndex;
-                        if(orderIndex+1 >= orderedFile.size())
-                            break;
+                        if(orderIndex+1 >= orderedFile.size()) {
+                          break;
+                        }
                         nextIndex = orderedFile.get(orderIndex+1);
-                        if(downPoint(curIndex, nextIndex))
-                            break;
+                        if(downPoint(curIndex, nextIndex)) {
+                          break;
+                        }
                     }
 
                     mib = reach_d[curIndex];
@@ -427,18 +442,21 @@ public class OPTICS extends ClustererBase implements Parameterized
                 {
                     
                     filterSDASet(sdaSet, mib, mibVals, orderedFile);
-                    if(!sdaSet.isEmpty())
-                        allSteepUp.add(orderIndex);
+                    if(!sdaSet.isEmpty()) {
+                      allSteepUp.add(orderIndex);
+                    }
                     
                     while(orderIndex+1 < orderedFile.size())
                     {
                         orderIndex++;
                         curIndex = nextIndex;
-                        if(orderIndex+1 >= orderedFile.size())
-                            break;
+                        if(orderIndex+1 >= orderedFile.size()) {
+                          break;
+                        }
                         nextIndex = orderedFile.get(orderIndex+1);
-                        if(upPoint(curIndex, nextIndex))
-                            break;
+                        if(upPoint(curIndex, nextIndex)) {
+                          break;
+                        }
                     }
                     
                     mib = reach_d[curIndex];
@@ -447,14 +465,15 @@ public class OPTICS extends ClustererBase implements Parameterized
                     {
                         int sdaOrdered = iter.next();
                         int sdaIndx = orderedFile.get(sdaOrdered);
-                        if(!(orderIndex-sdaOrdered >= minPts))//Fail 3a
-                            continue;
-                        else if(mib * one_min_xi < mibVals[sdaIndx])
+                        if(!(orderIndex-sdaOrdered >= minPts)) {//Fail 3a
+                          continue;
+                        } else if(mib * one_min_xi < mibVals[sdaIndx])
                         {
                             continue;
                         }
-                        if(sdaOrdered > orderIndex)
-                            continue;
+                        if(sdaOrdered > orderIndex) {
+                          continue;
+                        }
                         OPTICSCluster newClust = new OPTICSCluster(sdaOrdered, orderIndex+1);
                         OPTICSCluster tmp;
                         for(Iterator<OPTICSCluster> clustIter = clusters.iterator(); clustIter.hasNext();)
@@ -470,20 +489,24 @@ public class OPTICS extends ClustererBase implements Parameterized
                     }
                     
                 }
-                else
-                    orderIndex++;
+                else {
+                  orderIndex++;
+                }
                 
                 
             }
-            else 
-                orderIndex++;
+            else {
+              orderIndex++;
+            }
             
         }
         for(OPTICSCluster oc : clusters)
         {
-            for(int i : orderedFile.subList(oc.start, oc.end))
-                if(designations[i] < 0)
-                    designations[i] = clustersFound;
+            for(int i : orderedFile.subList(oc.start, oc.end)) {
+              if (designations[i] < 0) {
+                designations[i] = clustersFound;
+              }
+            }
             clustersFound++;
         }
         return clustersFound;
@@ -526,12 +549,14 @@ public class OPTICS extends ClustererBase implements Parameterized
     @Override
     public int[] cluster(DataSet dataSet, int[] designations)
     {
-        if(dataSet.getNumNumericalVars() < 1)
-            throw new ClusterFailureException("OPTICS requires numeric features, and non are present.");
+        if(dataSet.getNumNumericalVars() < 1) {
+          throw new ClusterFailureException("OPTICS requires numeric features, and non are present.");
+        }
         
         final int n = dataSet.getSampleSize();
-        if(designations == null)
-            designations = new int[n];
+        if(designations == null) {
+          designations = new int[n];
+        }
         
         Arrays.fill(designations, NOISE);
         orderdSeeds = new PriorityQueue<Integer>(n, new Comparator<Integer>() {
@@ -567,27 +592,30 @@ public class OPTICS extends ClustererBase implements Parameterized
         //Main clustering loop
         for(int i = 0; i < dataSet.getSampleSize(); i++)
         {
-            if(processed[i])
-                continue;
+            if(processed[i]) {
+              continue;
+            }
             Vec vec = dataSet.getDataPoint(i).getNumericalValues();
             expandClusterOrder(i, vec, orderedFile);
         }
         
         int clustersFound;
-        if(extractionMethod == ExtractionMethod.THRESHHOLD)
-            clustersFound = threshHoldExtractCluster(orderedFile, designations);
-        else if(extractionMethod == ExtractionMethod.THRESHHOLD_FIXUP)
-            clustersFound = threshHoldFixExtractCluster(orderedFile, designations);
-        else if(extractionMethod == ExtractionMethod.XI_STEEP_ORIGINAL)
-            clustersFound = xiSteepClusterExtract(n, orderedFile, designations);
+        if(extractionMethod == ExtractionMethod.THRESHHOLD) {
+          clustersFound = threshHoldExtractCluster(orderedFile, designations);
+        } else if(extractionMethod == ExtractionMethod.THRESHHOLD_FIXUP) {
+          clustersFound = threshHoldFixExtractCluster(orderedFile, designations);
+        } else if(extractionMethod == ExtractionMethod.XI_STEEP_ORIGINAL) {
+          clustersFound = xiSteepClusterExtract(n, orderedFile, designations);
+        }
         
         
         //Sort reachability values 
         
         double[] newReach = new double[reach_d.length];
         Arrays.fill(newReach, Double.POSITIVE_INFINITY);
-        for(int i = 0; i < orderedFile.size(); i++)
-            newReach[i] = reach_d[orderedFile.get(i)];
+        for(int i = 0; i < orderedFile.size(); i++) {
+          newReach[i] = reach_d[orderedFile.get(i)];
+        }
         reach_d = newReach;
         
         return designations;
@@ -598,10 +626,11 @@ public class OPTICS extends ClustererBase implements Parameterized
         for(Iterator<Integer> iter = sdaSet.iterator(); iter.hasNext(); )
         {
             int sdaIndx = orderedFile.get(iter.next());
-            if(reach_d[sdaIndx]*one_min_xi <= mib)
-                iter.remove();
-            else
-                mibVals[sdaIndx] = Math.max(mib, mibVals[sdaIndx]);//TODO mibFill?
+            if(reach_d[sdaIndx]*one_min_xi <= mib) {
+              iter.remove();
+            } else {
+              mibVals[sdaIndx] = Math.max(mib, mibVals[sdaIndx]);//TODO mibFill?
+            }
         }
     }
     
@@ -641,8 +670,9 @@ public class OPTICS extends ClustererBase implements Parameterized
                 processed[curObjectIndex] = true;
                 setCoreDistance(neighbors, curObjectIndex);
                 orderedFile.add(curObjectIndex);
-                if(!Double.isInfinite(core_distance[curObjectIndex]))
-                    orderedSeedsUpdate(neighbors, curObjectIndex);
+                if(!Double.isInfinite(core_distance[curObjectIndex])) {
+                  orderedSeedsUpdate(neighbors, curObjectIndex);
+                }
             }
         }
         
@@ -650,10 +680,12 @@ public class OPTICS extends ClustererBase implements Parameterized
 
     private void setCoreDistance(List<? extends VecPaired<VecPaired<Vec, Integer>, Double>> neighbors, int curIndex)
     {
-        if(neighbors.size() < minPts+1)//+1 b/c we dont count oursleves, which will get returned
-            core_distance[curIndex] = UNDEFINED;
-        else//0 is us, 1 is the nearest neighbor
-            core_distance[curIndex] = neighbors.get(minPts).getPair();
+        if(neighbors.size() < minPts+1) {//+1 b/c we dont count oursleves, which will get returned
+          core_distance[curIndex] = UNDEFINED;
+        } else {
+          //0 is us, 1 is the nearest neighbor
+          core_distance[curIndex] = neighbors.get(minPts).getPair();
+        }
     }
 
     private void orderedSeedsUpdate(List<? extends VecPaired<VecPaired<Vec, Integer>, Double>> neighbors, int centerObjectIndex)
@@ -663,8 +695,9 @@ public class OPTICS extends ClustererBase implements Parameterized
         {
             VecPaired<VecPaired<Vec, Integer>, Double> neighbor = neighbors.get(i);
             int objIndex = neighbor.getVector().getPair();
-            if(processed[objIndex])
-               continue;
+            if(processed[objIndex]) {
+              continue;
+            }
             double new_r_dist = Math.max(c_dist, neighbor.getPair());
             if(Double.isInfinite(reach_d[objIndex]))
             {
@@ -697,11 +730,13 @@ public class OPTICS extends ClustererBase implements Parameterized
                     clusterID++;
                     designations[trueObjIndex] = clusterID;
                 }
-                else
-                    designations[trueObjIndex] = NOISE;
+                else {
+                  designations[trueObjIndex] = NOISE;
+                }
             }
-            else
-                designations[trueObjIndex] = clusterID;
+            else {
+              designations[trueObjIndex] = clusterID;
+            }
         }
         throw new UnsupportedOperationException("Not yet implemented");
     }

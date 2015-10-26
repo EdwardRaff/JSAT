@@ -25,8 +25,9 @@ public class MatthewsCorrelationCoefficient extends SimpleBinaryClassMetric
     public double getScore()
     {
         double denom = (tp+fp)*(tp+fn)*(tn+fp)*(tn+fn);
-        if(denom <= 1e-16)
-            return 0;
+        if(denom <= 1e-16) {
+          return 0;
+        }
         return (tp*tn-fp*fn)/Math.sqrt(denom);
     }
     

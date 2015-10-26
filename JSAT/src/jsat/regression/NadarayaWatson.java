@@ -33,8 +33,9 @@ public class NadarayaWatson implements Regressor, Parameterized
     public double regress(DataPoint data)
     {
         List<? extends VecPaired<VecPaired<Vec, Integer>, Double>> nearBy = kde.getNearby(data.getNumericalValues());
-        if(nearBy.isEmpty())
-            return 0;///hmmm... what should be retruned in this case?
+        if(nearBy.isEmpty()) {
+          return 0;///hmmm... what should be retruned in this case?
+        }
         double weightSum = 0;
         double sum = 0;
         
@@ -60,8 +61,9 @@ public class NadarayaWatson implements Regressor, Parameterized
     private List<VecPaired<Vec, Double>> collectVectors(RegressionDataSet dataSet)
     {
         List<VecPaired<Vec, Double>> vectors = new ArrayList<VecPaired<Vec, Double>>(dataSet.getSampleSize());
-        for(int i = 0; i < dataSet.getSampleSize(); i++)
-            vectors.add(new VecPaired<Vec, Double>(dataSet.getDataPoint(i).getNumericalValues(), dataSet.getTargetValue(i)));
+        for(int i = 0; i < dataSet.getSampleSize(); i++) {
+          vectors.add(new VecPaired<Vec, Double>(dataSet.getDataPoint(i).getNumericalValues(), dataSet.getTargetValue(i)));
+        }
         return vectors;
     }
 

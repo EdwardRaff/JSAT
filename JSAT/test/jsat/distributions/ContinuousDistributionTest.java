@@ -126,8 +126,9 @@ public class ContinuousDistributionTest
     {
         System.out.println("logPdf");
         Normal norm = new Normal();
-        for(double i = -3; i < 3; i += 0.1)
-            assertEquals(norm.logPdf(i), dumbNormal_0_1.logPdf(i), 0.01);
+        for(double i = -3; i < 3; i += 0.1) {
+          assertEquals(norm.logPdf(i), dumbNormal_0_1.logPdf(i), 0.01);
+        }
     }
 
 

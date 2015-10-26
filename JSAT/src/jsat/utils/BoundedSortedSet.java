@@ -32,8 +32,9 @@ public class BoundedSortedSet<V> extends TreeSet<V>
     {
         super.add(e);
         
-        if(size() > maxSize)
-            remove(last());
+        if(size() > maxSize) {
+          remove(last());
+        }
         return true;
     }
 
@@ -41,8 +42,9 @@ public class BoundedSortedSet<V> extends TreeSet<V>
     public boolean addAll(Collection<? extends V> clctn)
     {
         super.addAll(clctn);
-        while (size() > maxSize)
-            remove(last());
+        while (size() > maxSize) {
+          remove(last());
+        }
         return true;
     }
 

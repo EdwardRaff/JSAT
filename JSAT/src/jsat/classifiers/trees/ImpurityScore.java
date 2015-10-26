@@ -126,8 +126,9 @@ public class ImpurityScore implements Cloneable
             for (Double count : counts)
             {
                 double p = count / sumOfWeights;
-                if (p > 0)
-                    score += p * log(p) / log(2);
+                if (p > 0) {
+                  score += p * log(p) / log(2);
+                }
             }
         }
         else if (impurityMeasure == ImpurityMeasure.GINI)
@@ -142,8 +143,9 @@ public class ImpurityScore implements Cloneable
         else if (impurityMeasure == ImpurityMeasure.CLASSIFICATION_ERROR)
         {
             double maxClass = 0;
-            for (double count : counts)
-                maxClass = Math.max(maxClass, count / sumOfWeights);
+            for (double count : counts) {
+              maxClass = Math.max(maxClass, count / sumOfWeights);
+            }
             score = 1.0 - maxClass;
         }
 
@@ -177,8 +179,9 @@ public class ImpurityScore implements Cloneable
     public CategoricalResults getResults()
     {
         CategoricalResults cr = new CategoricalResults(counts.length);
-        for(int i = 0; i < counts.length; i++)
-            cr.setProb(i, counts[i]/sumOfWeights);
+        for(int i = 0; i < counts.length; i++) {
+          cr.setProb(i, counts[i]/sumOfWeights);
+        }
         return cr;
     }
     
@@ -225,8 +228,9 @@ public class ImpurityScore implements Cloneable
             for(int c = 0; c < wholeData.counts.length; c++)//c: class
             {
                 final double p_c = wholeData.counts[c]/sumOfAllSums;
-                if(p_c <= 0.0)
-                    continue;
+                if(p_c <= 0.0) {
+                  continue;
+                }
                 
                 double logP_c = log(p_c);
                 
@@ -235,16 +239,19 @@ public class ImpurityScore implements Cloneable
                 for(int s = 0; s < splits.length; s++)//s: split
                 {
                     final double p_s = splits[s].sumOfWeights/sumOfAllSums;
-                    if(p_s <= 0)
-                        continue;
+                    if(p_s <= 0) {
+                      continue;
+                    }
                     final double p_cs = splits[s].counts[c]/sumOfAllSums;
-                    if(p_cs <= 0)
-                        continue;
+                    if(p_cs <= 0) {
+                      continue;
+                    }
                     
                     mi += p_cs * (log(p_cs) - logP_c - log(p_s));
                     
-                    if(c == 0)
-                        splitEntropy += p_s * log(p_s);
+                    if(c == 0) {
+                      splitEntropy += p_s * log(p_s);
+                    }
                 }
             }
             
@@ -280,8 +287,9 @@ public class ImpurityScore implements Cloneable
             for(ImpurityScore split : splits)
             {
                 double p = split.getSumOfWeights()/wholeData.getSumOfWeights();
-                if(p <= 0)//log(0) is -Inft, so skip and treat as zero
-                    continue;
+                if(p <= 0) {//log(0) is -Inft, so skip and treat as zero
+                  continue;
+                }
                 splitScore += p * split.getScore();
                 splitInfo += p * -log(p);
             }
@@ -293,8 +301,9 @@ public class ImpurityScore implements Cloneable
             for(ImpurityScore split : splits)
             {
                 double p = split.getSumOfWeights()/wholeData.getSumOfWeights();
-                if(p <= 0)//log(0) is -Inft, so skip and treat as zero
-                    continue;
+                if(p <= 0) {//log(0) is -Inft, so skip and treat as zero
+                  continue;
+                }
                 splitScore += p*split.getScore();
             }
 

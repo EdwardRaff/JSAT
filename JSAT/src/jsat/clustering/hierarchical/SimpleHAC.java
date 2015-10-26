@@ -82,8 +82,9 @@ public class SimpleHAC extends KClustererBase
     @Override
     public int[] cluster(DataSet dataSet, int lowK, int highK, int[] designations)
     {
-        if(designations == null)
-            designations = new int[dataSet.getSampleSize()];
+        if(designations == null) {
+          designations = new int[dataSet.getSampleSize()];
+        }
         
         //Keep track of the average dis when merging, stop when it becomes abnormaly large
         OnLineStatistics disChange = new OnLineStatistics();
@@ -104,21 +105,23 @@ public class SimpleHAC extends KClustererBase
             double lowestDiss = Double.MAX_VALUE, tmp;
             int a = 0, b = 1;
             //N^2 search for the most similar pairing of clusters
-            for(int i = 0; i < clusters.size(); i++)
-                for(int j = i+1; j < clusters.size(); j++)
+            for(int i = 0; i < clusters.size(); i++) {
+              for(int j = i+1; j < clusters.size(); j++)
+              {
+                if( (tmp = dissMeasure.dissimilarity(clusters.get(i), clusters.get(j), distanceMatrix)) < lowestDiss)
                 {
-                    if( (tmp = dissMeasure.dissimilarity(clusters.get(i), clusters.get(j), distanceMatrix)) < lowestDiss)
-                    {
-                        lowestDiss = tmp;
-                        a = i;
-                        b = j;
-                    }
+                  lowestDiss = tmp;
+                  a = i;
+                  b = j;
                 }
+              }
+            }
             
             if(clusters.size() <= highK)//Then we check if we should stop early
             {
-                if(disChange.getMean() + disChange.getStandardDeviation() * stndDevs < lowestDiss)
-                    break;//Abnormaly large difference, we assume we are forcing two real & sperate clusters into one group
+                if(disChange.getMean() + disChange.getStandardDeviation() * stndDevs < lowestDiss) {
+                  break;//Abnormaly large difference, we assume we are forcing two real & sperate clusters into one group
+                }
             }
             
             disChange.add(lowestDiss);
@@ -131,8 +134,9 @@ public class SimpleHAC extends KClustererBase
         int curClusterID = 0;
         for(Set<Integer> clustering : clusters)
         {
-            for(int index : clustering)
-                designations[index] = curClusterID;
+            for(int index : clustering) {
+              designations[index] = curClusterID;
+            }
             curClusterID++;
         }
         

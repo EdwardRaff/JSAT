@@ -73,8 +73,9 @@ public class VecWithNormTest
     public void testGet()
     {
         System.out.println("get");
-        for(int i = 0; i < x.length(); i++)
-            assertEquals(x.get(i), xNrmd.get(i), 0.0);
+        for(int i = 0; i < x.length(); i++) {
+          assertEquals(x.get(i), xNrmd.get(i), 0.0);
+        }
     }
 
     /**

@@ -80,8 +80,9 @@ public class DaviesBouldinIndex implements ClusterEvaluation
             Vec mean = MatrixStatistics.meanVector(new SimpleDataSet(dataSets.get(i)));
             centroids.add(mean);
         
-            for(DataPoint dp : dataSets.get(i))
-                avrgCentriodDist[i] += dm.dist(dp.getNumericalValues(), mean);
+            for(DataPoint dp : dataSets.get(i)) {
+              avrgCentriodDist[i] += dm.dist(dp.getNumericalValues(), mean);
+            }
             avrgCentriodDist[i]/=dataSets.get(i).size();
         }
         
@@ -92,8 +93,9 @@ public class DaviesBouldinIndex implements ClusterEvaluation
             double maxPenalty = Double.NEGATIVE_INFINITY;
             for(int j = 0; j < dataSets.size(); j++)
             {
-                if(j == i)
-                    continue;
+                if(j == i) {
+                  continue;
+                }
                 double penalty = (avrgCentriodDist[i] + avrgCentriodDist[j])/dm.dist(centroids.get(i), centroids.get(j));
                 maxPenalty = Math.max(maxPenalty, penalty);
             }

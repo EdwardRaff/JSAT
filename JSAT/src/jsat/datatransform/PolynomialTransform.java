@@ -27,8 +27,9 @@ public class PolynomialTransform implements DataTransform
      */
     public PolynomialTransform(int degree)
     {
-        if(degree < 2)
-            throw new ArithmeticException("The degree of the polynomial was a nonsense value: " + degree);
+        if(degree < 2) {
+          throw new ArithmeticException("The degree of the polynomial was a nonsense value: " + degree);
+        }
         this.degree = degree;
     }
     
@@ -60,9 +61,11 @@ public class PolynomialTransform implements DataTransform
         curCount = increment(setTo, degree, 0);
         do
         {
-            for(int i = 0; i < setTo.length; i++)
-                if(setTo[i] > 0)
-                    newVec[index] *= Math.pow(x.get(i), setTo[i]);
+            for(int i = 0; i < setTo.length; i++) {
+              if (setTo[i] > 0) {
+                newVec[index] *= Math.pow(x.get(i), setTo[i]);
+              }
+            }
             index++;
             curCount = increment(setTo, degree, curCount);
         }
@@ -87,8 +90,9 @@ public class PolynomialTransform implements DataTransform
         setTo[0]++;
         curCount++;
         
-        if(curCount <= max)
-            return curCount;
+        if(curCount <= max) {
+          return curCount;
+        }
         
         int carryPos = 0;
         
@@ -131,8 +135,9 @@ public class PolynomialTransform implements DataTransform
          */
         public void setDegree(int degree)
         {
-            if(degree < 1)
-                throw new IllegalArgumentException("Degree must be a positive value, not " + degree);
+            if(degree < 1) {
+              throw new IllegalArgumentException("Degree must be a positive value, not " + degree);
+            }
             this.degree = degree;
         }
 

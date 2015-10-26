@@ -109,8 +109,9 @@ public class ReliefF extends RemoveAttributeTransform
     protected ReliefF(ReliefF toCopy)
     {
         super(toCopy);
-        if(toCopy.w != null)
-            this.w = Arrays.copyOf(toCopy.w, toCopy.w.length);
+        if(toCopy.w != null) {
+          this.w = Arrays.copyOf(toCopy.w, toCopy.w.length);
+        }
     }
     
     /**
@@ -137,14 +138,16 @@ public class ReliefF extends RemoveAttributeTransform
         
         final double[] priors = cds.getPriors();
         final List<Vec> allVecs = cds.getDataVectors();
-        for(Vec v : allVecs)
-            for(int i = 0; i < v.length(); i++)
-            {
-                minVals[i] = Math.min(minVals[i], v.get(i));
-                normalizer[i] = Math.max(normalizer[i], v.get(i));
-            }
-        for(int i = 0; i < normalizer.length; i++)
-            normalizer[i] -= minVals[i];
+        for(Vec v : allVecs) {
+          for(int i = 0; i < v.length(); i++)
+          {
+            minVals[i] = Math.min(minVals[i], v.get(i));
+            normalizer[i] = Math.max(normalizer[i], v.get(i));
+          }
+        }
+        for(int i = 0; i < normalizer.length; i++) {
+          normalizer[i] -= minVals[i];
+        }
 
         final List<VectorCollection< Vec>> classVC = new ArrayList<VectorCollection< Vec>>(priors.length);
         
@@ -156,16 +159,18 @@ public class ReliefF extends RemoveAttributeTransform
         for (int i = 0; i < priors.length; i++)
         {
             int classCount = cds.classSampleCount(i);
-            if(threadPool == null)
-                classVC.add(vcf.getVectorCollection(allVecs.subList(curStart, curStart+classCount), dm));
-            else
-                classVC.add(vcf.getVectorCollection(allVecs.subList(curStart, curStart+classCount), dm, threadPool));
+            if(threadPool == null) {
+              classVC.add(vcf.getVectorCollection(allVecs.subList(curStart, curStart+classCount), dm));
+            } else {
+              classVC.add(vcf.getVectorCollection(allVecs.subList(curStart, curStart+classCount), dm, threadPool));
+            }
             curStart += classCount;
         }
         
         final int toUse = threadPool == null ? 1 : SystemInfo.LogicalCores;
-        if(threadPool == null)
-            threadPool = new FakeExecutor();
+        if(threadPool == null) {
+          threadPool = new FakeExecutor();
+        }
         final int blockSize = m/toUse;
         
         
@@ -173,10 +178,11 @@ public class ReliefF extends RemoveAttributeTransform
         for(int id = 0; id < toUse; id++)
         {
             final int mm;
-            if(id < m%toUse)
-                mm = blockSize+1;
-            else
-                mm = blockSize;
+            if(id < m%toUse) {
+              mm = blockSize+1;
+            } else {
+              mm = blockSize;
+            }
             threadPool.submit(new Runnable() 
             {
 
@@ -195,23 +201,27 @@ public class ReliefF extends RemoveAttributeTransform
                         {
                             int searchFor = y == y_k ? n + 1 : n;//+1 so we dont search for ourselves
                             List<? extends VecPaired<Vec, Double>> nNearestC = classVC.get(y).search(x_k, searchFor);
-                            if (searchFor != n)
-                                nNearestC = nNearestC.subList(1, searchFor);//chop off the first value which is ourselves
-                            for (int i = 0; i < w.length; i++)
-                                for (VecPaired<Vec, Double> x_jy : nNearestC)// j loop
-                                {
-                                    if (y == y_k)
-                                        wLocal[i] -= diff(i, x_k, x_jy.getVector(), normalizer)/(m*n);
-                                    else
-                                        wLocal[i] += priors[y]/(1-priors[y_k])*diff(i, x_k, x_jy.getVector(), normalizer)/(m*n);
+                            if (searchFor != n) {
+                              nNearestC = nNearestC.subList(1, searchFor);//chop off the first value which is ourselves
+                            }
+                            for (int i = 0; i < w.length; i++) {
+                              for (VecPaired<Vec, Double> x_jy : nNearestC) // j loop
+                              {
+                                if (y == y_k) {
+                                  wLocal[i] -= diff(i, x_k, x_jy.getVector(), normalizer)/(m*n);
+                                } else {
+                                  wLocal[i] += priors[y]/(1-priors[y_k])*diff(i, x_k, x_jy.getVector(), normalizer)/(m*n);
                                 }
+                              }
+                            }
                         }
                     }
                     
                     synchronized(w)
                     {
-                        for(int i = 0; i < w.length; i++)
-                            w[i] += wLocal[i];
+                        for(int i = 0; i < w.length; i++) {
+                          w[i] += wLocal[i];
+                        }
                     }
                     latch.countDown();
                 }
@@ -230,8 +240,9 @@ public class ReliefF extends RemoveAttributeTransform
         
         Set<Integer> numericalToRemove = new IntSet(w.length*2);
         
-        for(int i = 0; i < w.length-featureCount; i++)
-            numericalToRemove.add(it.index(i));
+        for(int i = 0; i < w.length-featureCount; i++) {
+          numericalToRemove.add(it.index(i));
+        }
         setUp(cds, Collections.EMPTY_SET, numericalToRemove);
     }
     
@@ -247,8 +258,9 @@ public class ReliefF extends RemoveAttributeTransform
 
     private double diff(int i, Vec xj, Vec xk, double[] normalzer)
     {
-        if(normalzer[i] == 0)
-            return 0;
+        if(normalzer[i] == 0) {
+          return 0;
+        }
         return Math.abs(xj.get(i) - xk.get(i))/normalzer[i];
     }
 
@@ -303,8 +315,9 @@ public class ReliefF extends RemoveAttributeTransform
          */
         public void setFeatureCount(int featureCount)
         {
-            if(featureCount < 1)
-                throw new IllegalArgumentException("Number of features to select must be positive, not " + featureCount);
+            if(featureCount < 1) {
+              throw new IllegalArgumentException("Number of features to select must be positive, not " + featureCount);
+            }
             this.featureCount = featureCount;
         }
 
@@ -324,8 +337,9 @@ public class ReliefF extends RemoveAttributeTransform
          */
         public void setIterations(int iterations)
         {
-            if(iterations < 1)
-                throw new IllegalArgumentException("Number of iterations must be positive, not " + iterations);
+            if(iterations < 1) {
+              throw new IllegalArgumentException("Number of iterations must be positive, not " + iterations);
+            }
             this.iterations = iterations;
         }
 
@@ -344,8 +358,9 @@ public class ReliefF extends RemoveAttributeTransform
          */
         public void setNeighbors(int neighbors)
         {
-            if(neighbors < 1)
-                throw new IllegalArgumentException("Number of neighbors must be positive, not " + neighbors);
+            if(neighbors < 1) {
+              throw new IllegalArgumentException("Number of neighbors must be positive, not " + neighbors);
+            }
             this.neighbors = neighbors;
         }
 
@@ -380,8 +395,9 @@ public class ReliefF extends RemoveAttributeTransform
         @Override
         public ReliefF getTransform(DataSet dataset)
         {
-            if(!(dataset instanceof ClassificationDataSet))
-                throw new FailedToFitException("ReliefF transforms can only be learned from classification data sets");
+            if(!(dataset instanceof ClassificationDataSet)) {
+              throw new FailedToFitException("ReliefF transforms can only be learned from classification data sets");
+            }
             return new ReliefF((ClassificationDataSet)dataset, featureCount, iterations, neighbors, dm);
         }
 

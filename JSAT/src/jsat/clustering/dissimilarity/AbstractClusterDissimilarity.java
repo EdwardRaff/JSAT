@@ -80,8 +80,9 @@ public abstract class AbstractClusterDissimilarity implements ClusterDissimilari
         for (int i = 0; i < distances.length; i++)
         {
             distances[i] = new double[dataSet.getSampleSize() - i - 1];
-            for (int j = i + 1; j < distances.length; j++)
-                distances[i][j - i - 1] = cd.distance(dataSet.getDataPoint(i), dataSet.getDataPoint(j));
+            for (int j = i + 1; j < distances.length; j++) {
+              distances[i][j - i - 1] = cd.distance(dataSet.getDataPoint(i), dataSet.getDataPoint(j));
+            }
         }
 
         return distances;

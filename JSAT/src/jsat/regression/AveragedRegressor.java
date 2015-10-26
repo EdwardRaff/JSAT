@@ -27,8 +27,9 @@ public class AveragedRegressor implements Regressor
      */
     public AveragedRegressor(Regressor... voters)
     {
-        if(voters == null ||voters.length == 0)
-            throw new RuntimeException("No voters given for construction");
+        if(voters == null ||voters.length == 0) {
+          throw new RuntimeException("No voters given for construction");
+        }
         this.voters = voters;
     }
     
@@ -40,29 +41,33 @@ public class AveragedRegressor implements Regressor
      */
     public AveragedRegressor(List<Regressor> voters)
     {
-        if(voters == null || voters.isEmpty())
-            throw new RuntimeException("No voters given for construction");
+        if(voters == null || voters.isEmpty()) {
+          throw new RuntimeException("No voters given for construction");
+        }
         this.voters = voters.toArray(new Regressor[0]);
     }
     
     public double regress(DataPoint data)
     {
         double r = 0.0;
-        for(Regressor vote : voters)
-            r += vote.regress(data);
+        for(Regressor vote : voters) {
+          r += vote.regress(data);
+        }
         return r / voters.length;
     }
 
     public void train(RegressionDataSet dataSet, ExecutorService threadPool)
     {
-        for(Regressor voter : voters)
-            voter.train(dataSet, threadPool);
+        for(Regressor voter : voters) {
+          voter.train(dataSet, threadPool);
+        }
     }
 
     public void train(RegressionDataSet dataSet)
     {
-        for(Regressor voter :  voters)
-            voter.train(dataSet);
+        for(Regressor voter :  voters) {
+          voter.train(dataSet);
+        }
     }
 
     public boolean supportsWeightedData()
@@ -74,8 +79,9 @@ public class AveragedRegressor implements Regressor
     public AveragedRegressor clone()
     {
         Regressor[] clone = new Regressor[this.voters.length];
-        for(int i = 0; i < clone.length; i++)
-            clone[i] = voters[i].clone();
+        for(int i = 0; i < clone.length; i++) {
+          clone[i] = voters[i].clone();
+        }
         return new AveragedRegressor(clone);
     }
     

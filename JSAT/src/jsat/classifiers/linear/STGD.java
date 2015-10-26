@@ -66,15 +66,17 @@ public class STGD extends BaseUpdateableClassifier implements UpdateableRegresso
      */
     protected STGD(STGD toCopy)
     {
-        if(toCopy.w != null)
-            this.w = toCopy.w.clone();
+        if(toCopy.w != null) {
+          this.w = toCopy.w.clone();
+        }
         this.K = toCopy.K;
         this.learningRate = toCopy.learningRate;
         this.threshold = toCopy.threshold;
         this.gravity = toCopy.gravity;
         this.time = toCopy.time;
-        if(toCopy.t != null)
-            this.t = Arrays.copyOf(toCopy.t, toCopy.t.length);
+        if(toCopy.t != null) {
+          this.t = Arrays.copyOf(toCopy.t, toCopy.t.length);
+        }
     }
 
     /**
@@ -87,8 +89,9 @@ public class STGD extends BaseUpdateableClassifier implements UpdateableRegresso
      */
     public void setK(int K)
     {
-        if(K < 1)
-            throw new IllegalArgumentException("K must be positive, not " + K);
+        if(K < 1) {
+          throw new IllegalArgumentException("K must be positive, not " + K);
+        }
         this.K = K;
     }
 
@@ -107,8 +110,9 @@ public class STGD extends BaseUpdateableClassifier implements UpdateableRegresso
      */
     public void setLearningRate(double learningRate)
     {
-        if(Double.isInfinite(learningRate) || Double.isNaN(learningRate) || learningRate <= 0)
-            throw new IllegalArgumentException("Learning rate must be positive, not " + learningRate);
+        if(Double.isInfinite(learningRate) || Double.isNaN(learningRate) || learningRate <= 0) {
+          throw new IllegalArgumentException("Learning rate must be positive, not " + learningRate);
+        }
         this.learningRate = learningRate;
     }
 
@@ -129,8 +133,9 @@ public class STGD extends BaseUpdateableClassifier implements UpdateableRegresso
      */
     public void setThreshold(double threshold)
     {
-        if(Double.isNaN(threshold) || threshold <= 0)
-            throw new IllegalArgumentException("Threshold must be positive, not " + threshold);
+        if(Double.isNaN(threshold) || threshold <= 0) {
+          throw new IllegalArgumentException("Threshold must be positive, not " + threshold);
+        }
         this.threshold = threshold;
     }
 
@@ -152,8 +157,9 @@ public class STGD extends BaseUpdateableClassifier implements UpdateableRegresso
      */
     public void setGravity(double gravity)
     {
-        if(Double.isInfinite(gravity) || Double.isNaN(gravity) || gravity <= 0)
-            throw new IllegalArgumentException("Gravity must be positive, not " + gravity);
+        if(Double.isInfinite(gravity) || Double.isNaN(gravity) || gravity <= 0) {
+          throw new IllegalArgumentException("Gravity must be positive, not " + gravity);
+        }
         this.gravity = gravity;
     }
 
@@ -181,19 +187,21 @@ public class STGD extends BaseUpdateableClassifier implements UpdateableRegresso
     @Override
     public Vec getRawWeight(int index)
     {
-        if(index < 1)
-            return getRawWeight();
-        else
-            throw new IndexOutOfBoundsException("Model has only 1 weight vector");
+        if(index < 1) {
+          return getRawWeight();
+        } else {
+          throw new IndexOutOfBoundsException("Model has only 1 weight vector");
+        }
     }
 
     @Override
     public double getBias(int index)
     {
-        if (index < 1)
-            return getBias();
-        else
-            throw new IndexOutOfBoundsException("Model has only 1 weight vector");
+        if (index < 1) {
+          return getBias();
+        } else {
+          throw new IndexOutOfBoundsException("Model has only 1 weight vector");
+        }
     }
     
     @Override
@@ -211,16 +219,18 @@ public class STGD extends BaseUpdateableClassifier implements UpdateableRegresso
     @Override
     public void setUp(CategoricalData[] categoricalAttributes, int numericAttributes, CategoricalData predicting)
     {
-        if(predicting.getNumOfCategories() != 2)
-            throw new FailedToFitException("STGD supports only binary classification");
+        if(predicting.getNumOfCategories() != 2) {
+          throw new FailedToFitException("STGD supports only binary classification");
+        }
         setUp(categoricalAttributes, numericAttributes);
     }
     
     @Override
     public void setUp(CategoricalData[] categoricalAttributes, int numericAttributes)
     {
-        if(numericAttributes < 1)
-            throw new FailedToFitException("STGD requires numeric features");
+        if(numericAttributes < 1) {
+          throw new FailedToFitException("STGD requires numeric features");
+        }
         w = new DenseVector(numericAttributes);
         t = new int[numericAttributes];
     }
@@ -239,12 +249,13 @@ public class STGD extends BaseUpdateableClassifier implements UpdateableRegresso
     
     private static double T(double v_j, double a, double theta)
     {
-        if(v_j >= 0 && v_j <= theta)
-            return Math.max(0, v_j-a);
-        else if(v_j <= 0 && v_j >= -theta)
-            return Math.min(0, v_j+a);
-        else
-            return v_j;
+        if(v_j >= 0 && v_j <= theta) {
+          return Math.max(0, v_j-a);
+        } else if(v_j <= 0 && v_j >= -theta) {
+          return Math.min(0, v_j+a);
+        } else {
+          return v_j;
+        }
     }
 
     @Override
@@ -254,8 +265,9 @@ public class STGD extends BaseUpdateableClassifier implements UpdateableRegresso
         final Vec x = dataPoint.getNumericalValues();
         final int y = targetClass*2-1;
         final int yHat = (int) Math.signum(w.dot(x));
-        if(yHat == y)//Not part of the described algorithm (using signum), but needed
-            return;
+        if(yHat == y) {//Not part of the described algorithm (using signum), but needed
+          return;
+        }
         performUpdate(x, y, yHat);
     }
     
@@ -292,10 +304,11 @@ public class STGD extends BaseUpdateableClassifier implements UpdateableRegresso
     public CategoricalResults classify(DataPoint data)
     {
         CategoricalResults cr = new CategoricalResults(2);
-        if(getScore(data) > 0)
-            cr.setProb(1, 1.0);
-        else
-            cr.setProb(0, 1.0);
+        if(getScore(data) > 0) {
+          cr.setProb(1, 1.0);
+        } else {
+          cr.setProb(0, 1.0);
+        }
         return cr;
     }
     

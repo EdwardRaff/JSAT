@@ -84,8 +84,9 @@ public class LogisticRegressionDCD implements Classifier, Parameterized, SingleW
     protected LogisticRegressionDCD(LogisticRegressionDCD toCopy)
     {
         this(toCopy.C, toCopy.maxIterations);
-        if(toCopy.w != null)
-            this.w = toCopy.w.clone();
+        if(toCopy.w != null) {
+          this.w = toCopy.w.clone();
+        }
         this.bias = toCopy.bias;
         this.useBias = toCopy.useBias;
     }
@@ -98,8 +99,9 @@ public class LogisticRegressionDCD implements Classifier, Parameterized, SingleW
      */
     public void setC(double C)
     {
-        if(C <= 0 || Double.isInfinite(C) || Double.isNaN(C))
-            throw new IllegalArgumentException("C must be a positive constant, not " + C);
+        if(C <= 0 || Double.isInfinite(C) || Double.isNaN(C)) {
+          throw new IllegalArgumentException("C must be a positive constant, not " + C);
+        }
         this.C = C;
     }
 
@@ -119,8 +121,9 @@ public class LogisticRegressionDCD implements Classifier, Parameterized, SingleW
      */
     public void setMaxIterations(int maxIterations)
     {
-        if(maxIterations < 1)
-            throw new IllegalArgumentException("iterations must be a positive value, not " + maxIterations);
+        if(maxIterations < 1) {
+          throw new IllegalArgumentException("iterations must be a positive value, not " + maxIterations);
+        }
         this.maxIterations = maxIterations;
     }
 
@@ -167,19 +170,21 @@ public class LogisticRegressionDCD implements Classifier, Parameterized, SingleW
     @Override
     public Vec getRawWeight(int index)
     {
-        if(index < 1)
-            return getRawWeight();
-        else
-            throw new IndexOutOfBoundsException("Model has only 1 weight vector");
+        if(index < 1) {
+          return getRawWeight();
+        } else {
+          throw new IndexOutOfBoundsException("Model has only 1 weight vector");
+        }
     }
 
     @Override
     public double getBias(int index)
     {
-        if (index < 1)
-            return getBias();
-        else
-            throw new IndexOutOfBoundsException("Model has only 1 weight vector");
+        if (index < 1) {
+          return getBias();
+        } else {
+          throw new IndexOutOfBoundsException("Model has only 1 weight vector");
+        }
     }
     
     @Override
@@ -203,8 +208,9 @@ public class LogisticRegressionDCD implements Classifier, Parameterized, SingleW
     @Override
     public void trainC(ClassificationDataSet dataSet)
     {
-        if(dataSet.getClassSize() != 2)
-            throw new FailedToFitException("Logistic Regression is a binary classifier, can can not handle " + dataSet.getClassSize() + " class problems");
+        if(dataSet.getClassSize() != 2) {
+          throw new FailedToFitException("Logistic Regression is a binary classifier, can can not handle " + dataSet.getClassSize() + " class problems");
+        }
         final int N = dataSet.getSampleSize();
         List<Vec> x = dataSet.getDataVectors();
         double[] alpha = new double[N];
@@ -228,8 +234,9 @@ public class LogisticRegressionDCD implements Classifier, Parameterized, SingleW
             Vec x_i = x.get(i);
             Q_ii[i] = x_i.dot(x_i);
             w.mutableAdd(alpha[0]*y[i], x_i);//all alpha are the same right now
-            if(useBias)
-                bias += alpha[0]*y[i];
+            if(useBias) {
+              bias += alpha[0]*y[i];
+            }
         }
         
         IntList permutation = new IntList(N);
@@ -253,22 +260,25 @@ public class LogisticRegressionDCD implements Classifier, Parameterized, SingleW
                 double z;//see eq (35)
                 if (case1)
                 {
-                    if (c1 >= s / 2)
-                        z = 0.1 * c1;
-                    else
-                        z = c1;
+                    if (c1 >= s / 2) {
+                      z = 0.1 * c1;
+                    } else {
+                      z = c1;
+                    }
                 }
                 else
                 {
-                    if (c2 >= s / 2)
-                        z = 0.1 * c2;
-                    else
-                        z = c2;
+                    if (c2 >= s / 2) {
+                      z = 0.1 * c2;
+                    } else {
+                      z = c2;
+                    }
                 }
 
                 //what if z is very small? Leave it alone..
-                if(z < 1e-20)
-                    continue;
+                if(z < 1e-20) {
+                  continue;
+                }
 
                 //Step 2.
                 //Algorithm 4 solving equation (18)
@@ -276,21 +286,24 @@ public class LogisticRegressionDCD implements Classifier, Parameterized, SingleW
                 for(int subIter = 0; subIter < 100; subIter++)
                 {
                     double gP = Math.log(z/(C-z));
-                    if(case1)
-                        gP += a*(z-c1)+ b;
-                    else
-                        gP += a*(z-c2)-b;
+                    if(case1) {
+                      gP += a*(z-c1)+ b;
+                    } else {
+                      gP += a*(z-c2)-b;
+                    }
                     //check if "0"
-                    if(Math.abs(gP) < 1e-6)
-                        break;
+                    if(Math.abs(gP) < 1e-6) {
+                      break;
+                    }
                     
                     double gPP= a + s/(z*(s-z));
                     double d = -gP/gPP;
                     
-                    if(z + d <= 0)
-                        z *= 0.1;//unsepcified shrinkage term: just use 0.1
-                    else
-                        z += d;   
+                    if(z + d <= 0) {
+                      z *= 0.1;//unsepcified shrinkage term: just use 0.1
+                    } else {
+                      z += d;
+                    }   
                 }
                 
                 //Step 4. alpha_i  = Z1, alpha'_i = Z2.
@@ -308,14 +321,16 @@ public class LogisticRegressionDCD implements Classifier, Parameterized, SingleW
                 //Step 3. w = w + (Z1 −alpha_i) yi xi
                 double change = (alpha[i]-c1);
                 w.mutableAdd(change*y[i], x_i);
-                if(useBias)
-                    bias += change*y[i];
+                if(useBias) {
+                  bias += change*y[i];
+                }
                 maxChange = Math.max(maxChange, change);
             }
             
             //Convergence check
-            if(Math.abs(maxChange) < 1e-4)
-                return;
+            if(Math.abs(maxChange) < 1e-4) {
+              return;
+            }
         }
         
     }

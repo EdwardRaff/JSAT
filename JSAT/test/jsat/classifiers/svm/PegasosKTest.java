@@ -62,8 +62,9 @@ public class PegasosKTest
             PegasosK classifier = new PegasosK(1e-6, trainSet.getSampleSize(), new RBFKernel(0.5), cacheMode);
             classifier.trainC(trainSet, ex);
 
-            for (int i = 0; i < testSet.getSampleSize(); i++)
-                assertEquals(testSet.getDataPointCategory(i), classifier.classify(testSet.getDataPoint(i)).mostLikely());
+            for (int i = 0; i < testSet.getSampleSize(); i++) {
+              assertEquals(testSet.getDataPointCategory(i), classifier.classify(testSet.getDataPoint(i)).mostLikely());
+            }
         }
     }
     
@@ -80,8 +81,9 @@ public class PegasosKTest
             PegasosK classifier = new PegasosK(1e-6, trainSet.getSampleSize(), new RBFKernel(0.5), cacheMode);
             classifier.trainC(trainSet);
 
-            for (int i = 0; i < testSet.getSampleSize(); i++)
-                assertEquals(testSet.getDataPointCategory(i), classifier.classify(testSet.getDataPoint(i)).mostLikely());
+            for (int i = 0; i < testSet.getSampleSize(); i++) {
+              assertEquals(testSet.getDataPointCategory(i), classifier.classify(testSet.getDataPoint(i)).mostLikely());
+            }
         }
     }
 }

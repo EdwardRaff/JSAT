@@ -73,10 +73,11 @@ public class MahalanobisDistance extends TrainableDistanceMetric
         Matrix covariance = MatrixStatistics.covarianceMatrix(mean, dataSet);
         LUPDecomposition lup;
         SingularValueDecomposition svd;
-        if(threadpool != null)
-            lup = new LUPDecomposition(covariance.clone(), threadpool);
-        else
-            lup = new LUPDecomposition(covariance.clone());
+        if(threadpool != null) {
+          lup = new LUPDecomposition(covariance.clone(), threadpool);
+        } else {
+          lup = new LUPDecomposition(covariance.clone());
+        }
         double det = lup.det();
         if(Double.isNaN(det) || Double.isInfinite(det) || Math.abs(det) <= 1e-13)//Bad problem, use the SVD instead
         {
@@ -84,10 +85,11 @@ public class MahalanobisDistance extends TrainableDistanceMetric
             svd = new SingularValueDecomposition(covariance);
             S = svd.getPseudoInverse();
         }
-        else if(threadpool != null)
-            S = lup.solve(Matrix.eye(covariance.cols()), threadpool);
-        else
-            S = lup.solve(Matrix.eye(covariance.cols()));
+        else if(threadpool != null) {
+          S = lup.solve(Matrix.eye(covariance.cols()), threadpool);
+        } else {
+          S = lup.solve(Matrix.eye(covariance.cols()));
+        }
     }
     
     @Override
@@ -141,10 +143,11 @@ public class MahalanobisDistance extends TrainableDistanceMetric
     @Override
     public boolean needsTraining()
     {
-        if(S == null)
-            return true;
-        else
-            return isReTrain();
+        if(S == null) {
+          return true;
+        } else {
+          return isReTrain();
+        }
     }
 
     @Override
@@ -189,8 +192,9 @@ public class MahalanobisDistance extends TrainableDistanceMetric
     {
         MahalanobisDistance clone = new MahalanobisDistance();
         clone.reTrain = this.reTrain;
-        if(this.S != null)
-            clone.S = this.S.clone();
+        if(this.S != null) {
+          clone.S = this.S.clone();
+        }
         return clone;
     }
 
