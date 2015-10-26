@@ -46,7 +46,7 @@ public class IntSetTest
     public void testAdd()
     {
         System.out.println("add");
-        IntSet set = new IntSet();
+        final IntSet set = new IntSet();
         assertFalse(set.add(null));
         assertTrue(set.add(1));
         assertTrue(set.add(2));
@@ -62,7 +62,7 @@ public class IntSetTest
     public void testIterator()
     {
         System.out.println("iterator");
-        IntSet set = new IntSet();
+        final IntSet set = new IntSet();
         set.add(5);
         set.add(3);
         set.add(4);
@@ -73,7 +73,7 @@ public class IntSetTest
         int count = 0;
         while(iter.hasNext())
         {
-            int val = iter.next();
+            final int val = iter.next();
             count++;
             assertTrue(prev < val);
             prev = val;
@@ -85,9 +85,10 @@ public class IntSetTest
         iter = set.iterator();
         while(iter.hasNext())
         {
-            int val = iter.next();
-            if(val == 2 || val == 4)
-                iter.remove();
+            final int val = iter.next();
+            if(val == 2 || val == 4) {
+              iter.remove();
+            }
         }
         assertEquals(3, set.size());
         
@@ -96,7 +97,7 @@ public class IntSetTest
         count = 0;
         while(iter.hasNext())
         {
-            int val = iter.next();
+            final int val = iter.next();
             assertFalse(val == 2 || val == 4);
             count++;
         }
@@ -111,7 +112,7 @@ public class IntSetTest
     public void testSize()
     {
         System.out.println("size");
-        IntSet set = new IntSet();
+        final IntSet set = new IntSet();
         assertEquals(0, set.size());
         set.add(1);
         assertEquals(1, set.size());

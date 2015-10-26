@@ -20,7 +20,7 @@ public class AbsoluteLoss implements LossR
      * @param y the target value
      * @return the loss for the functions
      */
-    public static double loss(double pred, double y)
+    public static double loss(final double pred, final double y)
     {
         return Math.abs(y - pred);
     }
@@ -32,30 +32,30 @@ public class AbsoluteLoss implements LossR
      * @param y the target value
      * @return the derivative of the loss function
      */
-    public static double deriv(double pred, double y)
+    public static double deriv(final double pred, final double y)
     {
         return Math.signum(pred - y);
     }
     
-    public static double regress(double score)
+    public static double regress(final double score)
     {
         return score;
     }
 
     @Override
-    public double getLoss(double pred, double y)
+    public double getLoss(final double pred, final double y)
     {
         return loss(pred, y);
     }
 
     @Override
-    public double getDeriv(double pred, double y)
+    public double getDeriv(final double pred, final double y)
     {
         return deriv(pred, y);
     }
 
     @Override
-    public double getDeriv2(double pred, double y)
+    public double getDeriv2(final double pred, final double y)
     {
         return 0;
     }
@@ -73,7 +73,7 @@ public class AbsoluteLoss implements LossR
     }
 
     @Override
-    public double getRegression(double score)
+    public double getRegression(final double score)
     {
         return score;
     }

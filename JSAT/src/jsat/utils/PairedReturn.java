@@ -12,7 +12,7 @@ public class PairedReturn<T, V>
     private final T firstItem;
     private final V secondItem;
 
-    public PairedReturn(T t, V v)
+    public PairedReturn(final T t, final V v)
     {
         this.firstItem = t;
         this.secondItem = v;

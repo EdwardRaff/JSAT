@@ -28,13 +28,14 @@ public class LogisticLoss implements LossC
      * @param y the true value
      * @return the logistic loss
      */
-    public static double loss(double pred, double y)
+    public static double loss(final double pred, final double y)
     {
         final double x = -y * pred;
-        if (x >= 30)//as x -> inf, L(x) -> x. At 30 exp(x) is O(10^13), getting unstable. L(x)-x at this value is O(10^-14), also avoids exp and log ops
-            return x;
-        else if (x <= -30)
-            return 0;
+        if (x >= 30) {//as x -> inf, L(x) -> x. At 30 exp(x) is O(10^13), getting unstable. L(x)-x at this value is O(10^-14), also avoids exp and log ops
+          return x;
+        } else if (x <= -30) {
+          return 0;
+        }
         return log(1 + exp(x));
     }
 
@@ -45,13 +46,14 @@ public class LogisticLoss implements LossC
      * @param y the true value
      * @return the first derivative of the logistic loss
      */
-    public static double deriv(double pred, double y)
+    public static double deriv(final double pred, final double y)
     {
         final double x = y * pred;
-        if (x >= 30)
-            return 0;
-        else if (x <= -30)
-            return y;
+        if (x >= 30) {
+          return 0;
+        } else if (x <= -30) {
+          return y;
+        }
 
         return -y / (1 + exp(y * pred));
     }
@@ -63,48 +65,50 @@ public class LogisticLoss implements LossC
      * @param y the true value
      * @return the second derivative of the logistic loss
      */
-    public static double deriv2(double pred, double y)
+    public static double deriv2(final double pred, final double y)
     {
         final double x = y * pred;
-        if (x >= 30)
-            return 0;
-        else if (x <= -30)
-            return 0;
+        if (x >= 30) {
+          return 0;
+        } else if (x <= -30) {
+          return 0;
+        }
 
         final double p = 1 / (1 + exp(y * pred));
 
         return p * (1 - p);
     }
     
-    public static CategoricalResults classify(double score)
+    public static CategoricalResults classify(final double score)
     {
-        CategoricalResults cr = new CategoricalResults(2);
+        final CategoricalResults cr = new CategoricalResults(2);
         final double p;
-        if (score > 30)
-            p = 1.0;
-        else if (score < -30)
-            p = 0.0;
-        else
-            p = 1 / (1 + Math.exp(-score));
+        if (score > 30) {
+          p = 1.0;
+        } else if (score < -30) {
+          p = 0.0;
+        } else {
+          p = 1 / (1 + Math.exp(-score));
+        }
         cr.setProb(0, 1 - p);
         cr.setProb(1, p);
         return cr;
     }
 
     @Override
-    public double getLoss(double pred, double y)
+    public double getLoss(final double pred, final double y)
     {
         return loss(pred, y);
     }
 
     @Override
-    public double getDeriv(double pred, double y)
+    public double getDeriv(final double pred, final double y)
     {
         return deriv(pred, y);
     }
 
     @Override
-    public double getDeriv2(double pred, double y)
+    public double getDeriv2(final double pred, final double y)
     {
         return deriv2(pred, y);
     }
@@ -122,7 +126,7 @@ public class LogisticLoss implements LossC
     }
 
     @Override
-    public CategoricalResults getClassification(double score)
+    public CategoricalResults getClassification(final double score)
     {
         return classify(score);
     }

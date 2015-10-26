@@ -38,7 +38,7 @@ public class LBFGS implements Optimizer2
      * search. 
      * @param m the number of history items
      */
-    public LBFGS(int m)
+    public LBFGS(final int m)
     {
         this(m, 500, new BacktrackingArmijoLineSearch());
     }
@@ -49,7 +49,7 @@ public class LBFGS implements Optimizer2
      * @param maxIterations the maximum number of iterations before stopping
      * @param lineSearch the line search method to use for optimization
      */
-    public LBFGS(int m, int maxIterations, LineSearch lineSearch)
+    public LBFGS(final int m, final int maxIterations, final LineSearch lineSearch)
     {
         setM(m);
         setMaximumIterations(maxIterations);
@@ -65,18 +65,19 @@ public class LBFGS implements Optimizer2
      * @param q the location to store the value of H<sub>k</sub> &nabla; f<sub>k</sub>
      * @param alphas temp space to do work, should be as large as the number of history vectors
      */
-    public static void twoLoopHp(Vec x_grad, List<Double> rho, List<Vec> s, List<Vec> y, Vec q, double[] alphas)
+    public static void twoLoopHp(final Vec x_grad, final List<Double> rho, final List<Vec> s, final List<Vec> y, final Vec q, final double[] alphas)
     {
         //q ← ∇ fk;
         x_grad.copyTo(q);
-        if(s.isEmpty())
-            return;//identity, we are done
+        if(s.isEmpty()) {
+          return;//identity, we are done
+        }
         //for i = k−1,k−2,...,k−m
         for(int i = 0; i < s.size(); i++)
         {
-            Vec s_i = s.get(i);
-            Vec y_i = y.get(i);
-            double alpha_i = alphas[i] = rho.get(i)*s_i.dot(q);
+            final Vec s_i = s.get(i);
+            final Vec y_i = y.get(i);
+            final double alpha_i = alphas[i] = rho.get(i)*s_i.dot(q);
             q.mutableSubtract(alpha_i, y_i);
         }
         
@@ -86,44 +87,44 @@ public class LBFGS implements Optimizer2
         for(int i = s.size()-1; i >= 0; i--)
         {
             //β ← ρ_i y_i^T r ;
-            double beta = rho.get(i)*y.get(i).dot(q);
+            final double beta = rho.get(i)*y.get(i).dot(q);
             //r ← r + si (αi − β)
             q.mutableAdd(alphas[i]-beta, s.get(i));
         }
     }
 
     @Override
-    public void optimize(double tolerance, Vec w, Vec x0, Function f, FunctionVec fp, FunctionVec fpp)
+    public void optimize(final double tolerance, final Vec w, final Vec x0, final Function f, final FunctionVec fp, final FunctionVec fpp)
     {
         optimize(tolerance, w, x0, f, fp, fpp, null);
     }
     
     @Override
-    public void optimize(double tolerance, Vec w, Vec x0, Function f, FunctionVec fp, FunctionVec fpp, ExecutorService ex)
+    public void optimize(final double tolerance, final Vec w, final Vec x0, final Function f, final FunctionVec fp, final FunctionVec fpp, final ExecutorService ex)
     {
-        LineSearch search = lineSearch.clone();
+        final LineSearch search = lineSearch.clone();
         final double[] f_xVal = new double[1];//store place for f_x
         
         //history for implicit H
-        List<Double> Rho = new DoubleList(m);
-        List<Vec> S = new ArrayList<Vec>(m);
-        List<Vec> Y = new ArrayList<Vec>(m);
+        final List<Double> Rho = new DoubleList(m);
+        final List<Vec> S = new ArrayList<Vec>(m);
+        final List<Vec> Y = new ArrayList<Vec>(m);
         
-        Vec x_prev = x0.clone();
-        Vec x_cur = x0.clone();
+        final Vec x_prev = x0.clone();
+        final Vec x_cur = x0.clone();
         f_xVal[0] = (ex != null && f instanceof FunctionP) ? ((FunctionP)f).f(x_prev, ex) : f.f(x_prev);
         //graidnet
         Vec x_grad = x0.clone();
         x_grad.zeroOut();
-        Vec x_gradPrev = x_grad.clone();
+        final Vec x_gradPrev = x_grad.clone();
         //p_l
-        Vec p_k = x_grad.clone();
-        Vec s_k = x_grad.clone();
-        Vec y_k = x_grad.clone();
+        final Vec p_k = x_grad.clone();
+        final Vec s_k = x_grad.clone();
+        final Vec y_k = x_grad.clone();
         
         x_grad = (ex != null) ? fp.f(x_cur, x_grad, ex) : fp.f(x_cur, x_grad);
        
-        double[] alphas = new double[m];
+        final double[] alphas = new double[m];
         int iter = 0;
         
         while(gradConvgHelper(x_grad) > tolerance && iter < maxIterations)
@@ -136,15 +137,18 @@ public class LBFGS implements Optimizer2
             x_cur.copyTo(x_prev);
             x_grad.copyTo(x_gradPrev);
             
-            double alpha_k = search.lineSearch(1.0, x_prev, x_gradPrev, p_k, f, fp, f_xVal[0], x_gradPrev.dot(p_k), x_cur, f_xVal, x_grad, ex);
-            if(alpha_k < 1e-12 && iter > 25)//if we are making near epsilon steps consider it done
-                break;
+            final double alpha_k = search.lineSearch(1.0, x_prev, x_gradPrev, p_k, f, fp, f_xVal[0], x_gradPrev.dot(p_k), x_cur, f_xVal, x_grad, ex);
+            if(alpha_k < 1e-12 && iter > 25) {//if we are making near epsilon steps consider it done
+              break;
+            }
             
-            if(!search.updatesGrad())
-                if (ex != null)
-                    fp.f(x_cur, x_grad, ex);
-                else
-                    fp.f(x_cur, x_grad);
+            if(!search.updatesGrad()) {
+              if (ex != null) {
+                fp.f(x_cur, x_grad, ex);
+              } else {
+                fp.f(x_cur, x_grad);
+              }
+            }
             
             //Define s_k =x_k+1 −x_k and y_k = ∇f_k+1 −∇f_k;
             x_cur.copyTo(s_k);
@@ -180,7 +184,7 @@ public class LBFGS implements Optimizer2
      * {@code false}, the 2 norm will be used instead. 
      * @param inftNormCriterion 
      */
-    public void setInftNormCriterion(boolean inftNormCriterion)
+    public void setInftNormCriterion(final boolean inftNormCriterion)
     {
         this.inftNormCriterion = inftNormCriterion;
     }
@@ -196,13 +200,15 @@ public class LBFGS implements Optimizer2
         return inftNormCriterion;
     }
     
-    private double gradConvgHelper(Vec grad)
+    private double gradConvgHelper(final Vec grad)
     {
-        if(!inftNormCriterion)
-            return grad.pNorm(2);
+        if(!inftNormCriterion) {
+          return grad.pNorm(2);
+        }
         double max = 0;
-        for(IndexValue iv : grad)
-            max = Math.max(max, Math.abs(iv.getValue()));
+        for(final IndexValue iv : grad) {
+          max = Math.max(max, Math.abs(iv.getValue()));
+        }
         return max;
     }
 
@@ -211,10 +217,11 @@ public class LBFGS implements Optimizer2
      * Hessian of the problem
      * @param m the number of history items to keep
      */
-    public void setM(int m)
+    public void setM(final int m)
     {
-        if(m < 1)
-            throw new IllegalArgumentException("m must be positive, not " + m);
+        if(m < 1) {
+          throw new IllegalArgumentException("m must be positive, not " + m);
+        }
         this.m = m;
     }
 
@@ -231,7 +238,7 @@ public class LBFGS implements Optimizer2
      * Sets the line search method used at each iteration
      * @param lineSearch the line search method used at each iteration
      */
-    public void setLineSearch(LineSearch lineSearch)
+    public void setLineSearch(final LineSearch lineSearch)
     {
         this.lineSearch = lineSearch;
     }
@@ -246,10 +253,11 @@ public class LBFGS implements Optimizer2
     }
     
     @Override
-    public void setMaximumIterations(int iterations)
+    public void setMaximumIterations(final int iterations)
     {
-        if(iterations < 1)
-            throw new IllegalArgumentException("Number of iterations must be positive, not " + iterations);
+        if(iterations < 1) {
+          throw new IllegalArgumentException("Number of iterations must be positive, not " + iterations);
+        }
         this.maxIterations = iterations;
     }
 

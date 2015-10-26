@@ -50,12 +50,12 @@ public abstract class Distribution implements Cloneable, Serializable
      * @param p the probability value
      * @return the value such that the CDF would return <tt>p</tt>
      */
-    public double invCdf(double p)
+    public double invCdf(final double p)
     {
         return invCdf(p, new FunctionBase()
         {
             @Override
-            public double f(Vec x)
+            public double f(final Vec x)
             {
                 return cdf(x.get(0));
             }
@@ -75,22 +75,23 @@ public abstract class Distribution implements Cloneable, Serializable
      */
     protected double invCdf(final double p, final Function cdf)
     {
-        if (p < 0 || p > 1)
-            throw new ArithmeticException("Value of p must be in the range [0,1], not " + p);
-        double a = Double.isInfinite(min()) ? Double.MIN_VALUE : min();
-        double b = Double.isInfinite(max()) ? Double.MAX_VALUE : max();
+        if (p < 0 || p > 1) {
+          throw new ArithmeticException("Value of p must be in the range [0,1], not " + p);
+        }
+        final double a = Double.isInfinite(min()) ? Double.MIN_VALUE : min();
+        final double b = Double.isInfinite(max()) ? Double.MAX_VALUE : max();
 
-        Function newCDF = new Function()
+        final Function newCDF = new Function()
         {
 
             @Override
-            public double f(double... x)
+            public double f(final double... x)
             {
                 return cdf.f(x) - p;
             }
 
             @Override
-            public double f(Vec x)
+            public double f(final Vec x)
             {
                 return f(x.get(0));
             }
@@ -185,11 +186,12 @@ public abstract class Distribution implements Cloneable, Serializable
      * @param rand the source of randomness
      * @return an array of the random sample values
      */
-    public double[] sample(int numSamples, Random rand)
+    public double[] sample(final int numSamples, final Random rand)
     {
-        double[] samples = new double[numSamples];
-        for(int i = 0; i < samples.length; i++)
-            samples[i] = invCdf(rand.nextDouble());
+        final double[] samples = new double[numSamples];
+        for(int i = 0; i < samples.length; i++) {
+          samples[i] = invCdf(rand.nextDouble());
+        }
         
         return samples;
     }
@@ -201,7 +203,7 @@ public abstract class Distribution implements Cloneable, Serializable
      * @param rand the source of randomness
      * @return a vector of the random sample values
      */
-    public DenseVector sampleVec(int numSamples, Random rand)
+    public DenseVector sampleVec(final int numSamples, final Random rand)
     {
         return DenseVector.toDenseVec(sample(numSamples, rand));
     }
@@ -223,13 +225,13 @@ public abstract class Distribution implements Cloneable, Serializable
             private static final long serialVersionUID = -3794266180670489168L;
 
             @Override
-            public double f(double... x)
+            public double f(final double... x)
             {
                 return f(DenseVector.toDenseVec(x));
             }
 
             @Override
-            public double f(Vec x)
+            public double f(final Vec x)
             {
                 return dist.cdf(x.get(0));
             }

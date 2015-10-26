@@ -25,10 +25,11 @@ public class AveragedRegressor implements Regressor
      * Constructs a new averaged regressor using the given array of voters
      * @param voters the array of voters to use
      */
-    public AveragedRegressor(Regressor... voters)
+    public AveragedRegressor(final Regressor... voters)
     {
-        if(voters == null ||voters.length == 0)
-            throw new RuntimeException("No voters given for construction");
+        if(voters == null ||voters.length == 0) {
+          throw new RuntimeException("No voters given for construction");
+        }
         this.voters = voters;
     }
     
@@ -38,33 +39,41 @@ public class AveragedRegressor implements Regressor
      * safely be reused. 
      * @param voters the array of voters to use 
      */
-    public AveragedRegressor(List<Regressor> voters)
+    public AveragedRegressor(final List<Regressor> voters)
     {
-        if(voters == null || voters.isEmpty())
-            throw new RuntimeException("No voters given for construction");
+        if(voters == null || voters.isEmpty()) {
+          throw new RuntimeException("No voters given for construction");
+        }
         this.voters = voters.toArray(new Regressor[0]);
     }
     
-    public double regress(DataPoint data)
+  @Override
+    public double regress(final DataPoint data)
     {
         double r = 0.0;
-        for(Regressor vote : voters)
-            r += vote.regress(data);
+        for(final Regressor vote : voters) {
+          r += vote.regress(data);
+        }
         return r / voters.length;
     }
 
-    public void train(RegressionDataSet dataSet, ExecutorService threadPool)
+  @Override
+    public void train(final RegressionDataSet dataSet, final ExecutorService threadPool)
     {
-        for(Regressor voter : voters)
-            voter.train(dataSet, threadPool);
+        for(final Regressor voter : voters) {
+          voter.train(dataSet, threadPool);
+        }
     }
 
-    public void train(RegressionDataSet dataSet)
+  @Override
+    public void train(final RegressionDataSet dataSet)
     {
-        for(Regressor voter :  voters)
-            voter.train(dataSet);
+        for(final Regressor voter :  voters) {
+          voter.train(dataSet);
+        }
     }
 
+  @Override
     public boolean supportsWeightedData()
     {
         return false;
@@ -73,9 +82,10 @@ public class AveragedRegressor implements Regressor
     @Override
     public AveragedRegressor clone()
     {
-        Regressor[] clone = new Regressor[this.voters.length];
-        for(int i = 0; i < clone.length; i++)
-            clone[i] = voters[i].clone();
+        final Regressor[] clone = new Regressor[this.voters.length];
+        for(int i = 0; i < clone.length; i++) {
+          clone[i] = voters[i].clone();
+        }
         return new AveragedRegressor(clone);
     }
     

@@ -12,14 +12,14 @@ import jsat.clustering.evaluation.intra.IntraClusterEvaluation;
  */
 public class IntraClusterSumEvaluation extends ClusterEvaluationBase
 {
-    private IntraClusterEvaluation ice;
+    private final IntraClusterEvaluation ice;
 
     /**
      * Creates a new cluster evaluation that returns the sum of the intra 
      * cluster evaluations
      * @param ice the intra cluster evaluation to use
      */
-    public IntraClusterSumEvaluation(IntraClusterEvaluation ice)
+    public IntraClusterSumEvaluation(final IntraClusterEvaluation ice)
     {
         this.ice = ice;
     }
@@ -28,17 +28,18 @@ public class IntraClusterSumEvaluation extends ClusterEvaluationBase
      * Copy constructor
      * @param toCopy the object to copy
      */
-    public IntraClusterSumEvaluation(IntraClusterSumEvaluation toCopy)
+    public IntraClusterSumEvaluation(final IntraClusterSumEvaluation toCopy)
     {
         this(toCopy.ice.clone());
     }
 
     @Override
-    public double evaluate(List<List<DataPoint>> dataSets)
+    public double evaluate(final List<List<DataPoint>> dataSets)
     {
         double score = 0;
-        for(List<DataPoint> list : dataSets)
-            score += ice.evaluate(list);
+        for(final List<DataPoint> list : dataSets) {
+          score += ice.evaluate(list);
+        }
         return score;
     }
 

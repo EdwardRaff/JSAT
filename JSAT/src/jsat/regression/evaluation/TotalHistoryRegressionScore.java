@@ -33,7 +33,7 @@ public abstract class TotalHistoryRegressionScore implements RegressionScore
      * Copy constructor
      * @param toCopy the object to copy
      */
-    public TotalHistoryRegressionScore(TotalHistoryRegressionScore toCopy)
+    public TotalHistoryRegressionScore(final TotalHistoryRegressionScore toCopy)
     {
         if(toCopy.truths != null)
         {
@@ -52,7 +52,7 @@ public abstract class TotalHistoryRegressionScore implements RegressionScore
     }
 
     @Override
-    public void addResult(double prediction, double trueValue, double weight)
+    public void addResult(final double prediction, final double trueValue, final double weight)
     {
         truths.add(trueValue);
         predictions.add(prediction);
@@ -60,9 +60,9 @@ public abstract class TotalHistoryRegressionScore implements RegressionScore
     }
 
     @Override
-    public void addResults(RegressionScore other)
+    public void addResults(final RegressionScore other)
     {
-        TotalHistoryRegressionScore otherObj = (TotalHistoryRegressionScore) other;
+        final TotalHistoryRegressionScore otherObj = (TotalHistoryRegressionScore) other;
         this.truths.addAll(otherObj.truths);
         this.predictions.addAll(otherObj.predictions);
         this.weights.addAll(otherObj.weights);

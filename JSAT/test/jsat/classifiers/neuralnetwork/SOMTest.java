@@ -65,15 +65,15 @@ public class SOMTest
     {
         System.out.println("trainC");
 
-        SOM instance = new SOM(5, 5);
+        final SOM instance = new SOM(5, 5);
         instance.setMaxIterations(200);
 
-        ExecutorService ex = Executors.newFixedThreadPool(SystemInfo.LogicalCores);
+        final ExecutorService ex = Executors.newFixedThreadPool(SystemInfo.LogicalCores);
 
-        ClassificationDataSet train = FixedProblems.getCircles(1000, 1.0, 10.0, 100.0);
-        ClassificationDataSet test = FixedProblems.getCircles(100, 1.0, 10.0, 100.0);
+        final ClassificationDataSet train = FixedProblems.getCircles(1000, 1.0, 10.0, 100.0);
+        final ClassificationDataSet test = FixedProblems.getCircles(100, 1.0, 10.0, 100.0);
 
-        ClassificationModelEvaluation cme = new ClassificationModelEvaluation(instance, train, ex);
+        final ClassificationModelEvaluation cme = new ClassificationModelEvaluation(instance, train, ex);
         cme.evaluateTestSet(test);
 
         assertEquals(0, cme.getErrorRate(), 0.1);
@@ -88,13 +88,13 @@ public class SOMTest
         System.out.println("trainC");
 
         
-        SOM instance = new SOM(5, 5);
+        final SOM instance = new SOM(5, 5);
         instance.setMaxIterations(50);
         
-        ClassificationDataSet train = FixedProblems.getCircles(1000, 1.0, 10.0, 100.0);
-        ClassificationDataSet test = FixedProblems.getCircles(100, 1.0, 10.0, 100.0);
+        final ClassificationDataSet train = FixedProblems.getCircles(1000, 1.0, 10.0, 100.0);
+        final ClassificationDataSet test = FixedProblems.getCircles(100, 1.0, 10.0, 100.0);
 
-        ClassificationModelEvaluation cme = new ClassificationModelEvaluation(instance, train);
+        final ClassificationModelEvaluation cme = new ClassificationModelEvaluation(instance, train);
         cme.evaluateTestSet(test);
 
         assertEquals(0, cme.getErrorRate(), 0.1);
@@ -109,23 +109,26 @@ public class SOMTest
         SOM instance = new SOM(5, 5);
         instance.setMaxIterations(50);
         
-        ClassificationDataSet t1 = FixedProblems.getSimpleKClassLinear(500, 3);
-        ClassificationDataSet t2 = FixedProblems.getSimpleKClassLinear(500, 6);
+        final ClassificationDataSet t1 = FixedProblems.getSimpleKClassLinear(500, 3);
+        final ClassificationDataSet t2 = FixedProblems.getSimpleKClassLinear(500, 6);
 
         instance = instance.clone();
 
         instance.trainC(t1);
 
-        SOM result = instance.clone();
-        for (int i = 0; i < t1.getSampleSize(); i++)
-            assertEquals(t1.getDataPointCategory(i), result.classify(t1.getDataPoint(i)).mostLikely());
+        final SOM result = instance.clone();
+        for (int i = 0; i < t1.getSampleSize(); i++) {
+          assertEquals(t1.getDataPointCategory(i), result.classify(t1.getDataPoint(i)).mostLikely());
+        }
         result.trainC(t2);
 
-        for (int i = 0; i < t1.getSampleSize(); i++)
-            assertEquals(t1.getDataPointCategory(i), instance.classify(t1.getDataPoint(i)).mostLikely());
+        for (int i = 0; i < t1.getSampleSize(); i++) {
+          assertEquals(t1.getDataPointCategory(i), instance.classify(t1.getDataPoint(i)).mostLikely());
+        }
 
-        for (int i = 0; i < t2.getSampleSize(); i++)
-            assertEquals(t2.getDataPointCategory(i), result.classify(t2.getDataPoint(i)).mostLikely());
+        for (int i = 0; i < t2.getSampleSize(); i++) {
+          assertEquals(t2.getDataPointCategory(i), result.classify(t2.getDataPoint(i)).mostLikely());
+        }
 
     }
     

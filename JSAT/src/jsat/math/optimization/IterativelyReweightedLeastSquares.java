@@ -41,22 +41,25 @@ public class IterativelyReweightedLeastSquares implements Optimizer
         
     }
     
-    public Vec optimize(double eps, int iterationLimit, Function f, Function fd, Vec vars, List<Vec> inputs, Vec outputs)
+  @Override
+    public Vec optimize(final double eps, final int iterationLimit, final Function f, final Function fd, final Vec vars, final List<Vec> inputs, final Vec outputs)
     {
         return optimize(eps, iterationLimit, f, fd, vars, inputs, outputs, null);
     }
     
-    public Vec optimize(double eps, int iterationLimit, Function f, Function fd, Vec vars, List<Vec> inputs, Vec outputs, ExecutorService threadpool)
+  @Override
+    public Vec optimize(final double eps, int iterationLimit, final Function f, final Function fd, final Vec vars, final List<Vec> inputs, final Vec outputs, final ExecutorService threadpool)
     {
         //TODO make it actually use the threadpool!
         hessian = new DenseMatrix(vars.length(), vars.length());
         coefficentMatrix = new DenseMatrix(inputs.size(), vars.length());
         for(int i = 0; i < inputs.size(); i++)
         {
-            Vec x_i = inputs.get(i);
+            final Vec x_i = inputs.get(i);
             coefficentMatrix.set(i, 0, 1.0);
-            for(int j = 1; j < vars.length(); j++)
-                coefficentMatrix.set(i, j, x_i.get(j-1));
+            for(int j = 1; j < vars.length(); j++) {
+              coefficentMatrix.set(i, j, x_i.get(j-1));
+            }
         }
         
         derivatives = new DenseVector(inputs.size());
@@ -85,14 +88,14 @@ public class IterativelyReweightedLeastSquares implements Optimizer
         return vars;
     }
     
-    private double iterationStep(Function f,  Function fd, Vec vars, List<Vec> inputs, Vec outputs)
+    private double iterationStep(final Function f,  final Function fd, final Vec vars, final List<Vec> inputs, final Vec outputs)
     {
         Vec delta = null;
         for(int i = 0; i < inputs.size(); i++)
         {
-            Vec x_i = inputs.get(i);
-            double y = f.f(x_i);
-            double error = y - outputs.get(i);
+            final Vec x_i = inputs.get(i);
+            final double y = f.f(x_i);
+            final double error = y - outputs.get(i);
             errors.set(i, error);
             
             derivatives.set(i, fd.f(x_i));
@@ -104,19 +107,20 @@ public class IterativelyReweightedLeastSquares implements Optimizer
             double gradTmp = 0;
             for (int k = 0; k < coefficentMatrix.rows(); k++)
             {
-                double coefficient_kj = coefficentMatrix.get(k, j);
+                final double coefficient_kj = coefficentMatrix.get(k, j);
                 gradTmp+= coefficient_kj*errors.get(k);
                 
-                double multFactor = derivatives.get(k) * coefficient_kj;
+                final double multFactor = derivatives.get(k) * coefficient_kj;
                 
-                for (int i = 0; i < hessian.rows(); i++)
-                    hessian.increment(j, i, coefficentMatrix.get(k, i) * multFactor);
+                for (int i = 0; i < hessian.rows(); i++) {
+                  hessian.increment(j, i, coefficentMatrix.get(k, i) * multFactor);
+                }
             }
             
             gradiant.set(j, gradTmp);
         }
         
-        LUPDecomposition lupDecomp = new LUPDecomposition(hessian.clone());//We sent a clone of the hessian b/c we make incremental updates every iteration
+        final LUPDecomposition lupDecomp = new LUPDecomposition(hessian.clone());//We sent a clone of the hessian b/c we make incremental updates every iteration
         if(Math.abs(lupDecomp.det()) < 1e-14 )
         {
             //TODO use a pesudo inverse instead of giving up
@@ -133,20 +137,20 @@ public class IterativelyReweightedLeastSquares implements Optimizer
     }
     
     
-    private double iterationStep(Function f,  Function fd, Vec vars, List<Vec> inputs, Vec outputs, ExecutorService threadpool)
+    private double iterationStep(final Function f,  final Function fd, final Vec vars, final List<Vec> inputs, final Vec outputs, final ExecutorService threadpool)
     {
         Vec delta = null;
         for(int i = 0; i < inputs.size(); i++)
         {
-            Vec x_i = inputs.get(i);
-            double y = f.f(x_i);
-            double error = y - outputs.get(i);
+            final Vec x_i = inputs.get(i);
+            final double y = f.f(x_i);
+            final double error = y - outputs.get(i);
             errors.set(i, error);
             
             derivatives.set(i, fd.f(x_i));
         }
         int overFlow = hessian.rows()%SystemInfo.LogicalCores;
-        int size = hessian.rows()/SystemInfo.LogicalCores;
+        final int size = hessian.rows()/SystemInfo.LogicalCores;
         int start  = 0;
         final CountDownLatch latch = new CountDownLatch(SystemInfo.LogicalCores);
         for(int t = 0; t < SystemInfo.LogicalCores; t++)
@@ -156,6 +160,7 @@ public class IterativelyReweightedLeastSquares implements Optimizer
             start = TO;
             threadpool.submit(new Runnable() {
 
+                @Override
                 public void run()
                 {
                     for (int j = START; j < TO; j++)
@@ -163,13 +168,14 @@ public class IterativelyReweightedLeastSquares implements Optimizer
                         double gradTmp = 0;
                         for (int k = 0; k < coefficentMatrix.rows(); k++)
                         {
-                            double coefficient_kj = coefficentMatrix.get(k, j);
+                            final double coefficient_kj = coefficentMatrix.get(k, j);
                             gradTmp += coefficient_kj * errors.get(k);
 
-                            double multFactor = derivatives.get(k) * coefficient_kj;
+                            final double multFactor = derivatives.get(k) * coefficient_kj;
 
-                            for (int i = 0; i < hessian.rows(); i++)
-                                hessian.increment(j, i, coefficentMatrix.get(k, i) * multFactor);
+                            for (int i = 0; i < hessian.rows(); i++) {
+                              hessian.increment(j, i, coefficentMatrix.get(k, i) * multFactor);
+                            }
                         }
 
                         gradiant.set(j, gradTmp);
@@ -182,12 +188,12 @@ public class IterativelyReweightedLeastSquares implements Optimizer
         {
             latch.await();
         }
-        catch (InterruptedException ex)
+        catch (final InterruptedException ex)
         {
             ex.printStackTrace();
         }
 
-        LUPDecomposition lupDecomp = new LUPDecomposition(hessian.clone(), threadpool);//We sent a clone of the hessian b/c we make incremental updates every iteration
+        final LUPDecomposition lupDecomp = new LUPDecomposition(hessian.clone(), threadpool);//We sent a clone of the hessian b/c we make incremental updates every iteration
         if (Math.abs(lupDecomp.det()) < 1e-14)
         {
             //TODO use a pesudo inverse instead of giving up

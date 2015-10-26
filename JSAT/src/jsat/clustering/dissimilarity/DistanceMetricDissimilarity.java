@@ -16,13 +16,13 @@ public abstract class DistanceMetricDissimilarity extends AbstractClusterDissimi
      */
     protected final DistanceMetric dm;
 
-    public DistanceMetricDissimilarity(DistanceMetric dm)
+    public DistanceMetricDissimilarity(final DistanceMetric dm)
     {
         this.dm = dm;
     }
 
     @Override
-    public double distance(DataPoint a, DataPoint b)
+    public double distance(final DataPoint a, final DataPoint b)
     {
         return dm.dist(a.getNumericalValues(), b.getNumericalValues());
     }    

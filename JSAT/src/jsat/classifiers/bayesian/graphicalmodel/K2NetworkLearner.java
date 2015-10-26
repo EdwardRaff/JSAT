@@ -43,7 +43,7 @@ public class K2NetworkLearner extends DiscreteBayesNetwork
      * Sets the maximum number of parents to allow a node when learning the network structure. If a non zero value is supplied, nodes will be allowed any number of parents. 
      * @param maxParents sets the maximum number of parents a node may learn
      */
-    public void setMaxParents(int maxParents)
+    public void setMaxParents(final int maxParents)
     {
         this.maxParents = maxParents;
     }
@@ -61,36 +61,40 @@ public class K2NetworkLearner extends DiscreteBayesNetwork
      * Learns the network structure from the given data set. 
      * @param D the data set to learn the network from 
      */
-    public void learnNetwork(ClassificationDataSet D)
+    public void learnNetwork(final ClassificationDataSet D)
     {
-        IntList varOrder = new IntList(D.getNumCategoricalVars()+1);
+        final IntList varOrder = new IntList(D.getNumCategoricalVars()+1);
         varOrder.add(D.getNumCategoricalVars());//Classification target will be evaluated first
         ListUtils.addRange(varOrder, 0, D.getNumCategoricalVars(), 1);
         ri = new int[varOrder.size()];
-        for(int i : varOrder)
-            if(i == D.getNumCategoricalVars())
-                ri[i] = D.getClassSize();
-            else
-                ri[i] = D.getCategories()[i].getNumOfCategories();
+        for(final int i : varOrder) {
+          if (i == D.getNumCategoricalVars()) {
+            ri[i] = D.getClassSize();
+          } else {
+            ri[i] = D.getCategories()[i].getNumOfCategories();
+          }
+        }
         
         int u = maxParents;
-        if(u <= 0)
-            u = ri.length;
+        if(u <= 0) {
+          u = ri.length;
+        }
         
         /**
          * Stores the set of variables preceding the current one being evaluated
          */
-        Set<Integer> preceding = new IntSet();
-        for(int i : varOrder)//Loop of the variables in the intended order
+        final Set<Integer> preceding = new IntSet();
+        for(final int i : varOrder)//Loop of the variables in the intended order
         {
-            Set<Integer> pi = new IntSet();//The current parrents of variable i
+            final Set<Integer> pi = new IntSet();//The current parrents of variable i
             double pOld = f(i, pi, D);
             boolean OKToProceed = true;
-            Set<Integer> candidates = new IntSet(preceding);
+            final Set<Integer> candidates = new IntSet(preceding);
             while(OKToProceed && pi.size() < u)
             {
-                if(candidates.isEmpty())
-                    break;//Break out of the loop, no candidates left. 
+                if(candidates.isEmpty()) {
+                  break;//Break out of the loop, no candidates left. 
+                }
                 
                 //Best candidate solution
                 double pNew = Double.NEGATIVE_INFINITY;
@@ -98,10 +102,10 @@ public class K2NetworkLearner extends DiscreteBayesNetwork
                 int z = -1;
                 candidates.removeAll(pi);
                 //Find the variable that maximizes our gain 
-                for(int candidate : candidates)
+                for(final int candidate : candidates)
                 {
                     pi.add(candidate);
-                    double tmp = f(i, pi, D);
+                    final double tmp = f(i, pi, D);
                     if(tmp > pNew)
                     {
                         pNew = tmp;
@@ -115,12 +119,14 @@ public class K2NetworkLearner extends DiscreteBayesNetwork
                     pOld = pNew;
                     pi.add(z);
                 }
-                else
-                    OKToProceed = false;
+                else {
+                  OKToProceed = false;
+                }
             }
             
-            for(int parrent : pi)
-                depends(parrent, i);
+            for(final int parrent : pi) {
+              depends(parrent, i);
+            }
             
             preceding.add(i);
         }
@@ -129,10 +135,11 @@ public class K2NetworkLearner extends DiscreteBayesNetwork
     }
 
     @Override
-    public void trainC(ClassificationDataSet dataSet)
+    public void trainC(final ClassificationDataSet dataSet)
     {
-        if(dag.getNodes().isEmpty() || dag.getParents(dataSet.getNumCategoricalVars()).isEmpty())
-            learnNetwork(dataSet);
+        if(dag.getNodes().isEmpty() || dag.getParents(dataSet.getNumCategoricalVars()).isEmpty()) {
+          learnNetwork(dataSet);
+        }
             
         super.trainC(dataSet);
     }
@@ -151,46 +158,49 @@ public class K2NetworkLearner extends DiscreteBayesNetwork
      * @param D the data set to search
      * @return the number of times the value constraints are satisfied in the data set
      */
-    private double query(int[] classes, int[] values, ClassificationDataSet D)
+    private double query(final int[] classes, final int[] values, final ClassificationDataSet D)
     {
         double count = 1;
         
         for(int i = 0; i < D.getSampleSize(); i++)
         {
-            DataPoint dp = D.getDataPoint(i);
+            final DataPoint dp = D.getDataPoint(i);
             //Use j to break early (set value) or indicate success (j == classes.length)
             int j;
             for(j = 0; j < classes.length; j++)
             {
                 if(classes[j] == D.getNumCategoricalVars())//Special case
                 {
-                    if(D.getDataPointCategory(i) != values[j])
-                        j = classes.length+1;
+                    if(D.getDataPointCategory(i) != values[j]) {
+                      j = classes.length+1;
+                    }
                 }
-                else if(dp.getCategoricalValue(j) != values[j])
-                    j = classes.length+1;
+                else if(dp.getCategoricalValue(j) != values[j]) {
+                  j = classes.length+1;
+                }
             }
             
-            if(j == classes.length)
-                count+=dp.getWeight();
+            if(j == classes.length) {
+              count+=dp.getWeight();
+            }
         }
         
         return count;
     }
     
-    public double f(int i, Set<Integer> pi, ClassificationDataSet D)
+    public double f(final int i, final Set<Integer> pi, final ClassificationDataSet D)
     {
         double term2 = 0.0;
         double Nijk = 0.0;
         
         if(pi.isEmpty())//Special case
         {
-            int[] classes = new int[] {i};
-            int[] values = new int[1];
+            final int[] classes = new int[] {i};
+            final int[] values = new int[1];
             for(int k = 0; k < ri[i]; k++)
             {
                 values[0] = k;
-                double count = query(classes, values, D);
+                final double count = query(classes, values, D);
                 Nijk += count;
                 term2 += lnGamma(count+1);
             }
@@ -200,11 +210,12 @@ public class K2NetworkLearner extends DiscreteBayesNetwork
         
         double fullProduct = 0.0;
         //General case
-        int[] classes = new int[pi.size()+1];
-        int[] values = new int[pi.size()+1];
+        final int[] classes = new int[pi.size()+1];
+        final int[] values = new int[pi.size()+1];
         int c = 0;
-        for(int clas : pi)
-            classes[c++] = clas;
+        for(final int clas : pi) {
+          classes[c++] = clas;
+        }
         classes[c] = i;//Last one is the one we are currently evaluating
         //Default all values to zero, which is fine
         
@@ -217,7 +228,7 @@ public class K2NetworkLearner extends DiscreteBayesNetwork
             for(int k = 0; k < ri[i]; k++)
             {
                 values[pi.size()] = k;
-                double count = query(classes, values, D);
+                final double count = query(classes, values, D);
                 Nijk += count;
                 term2 += lnGamma(count+1);
             }
@@ -236,8 +247,9 @@ public class K2NetworkLearner extends DiscreteBayesNetwork
                 values[pos++] = 0;
                 values[pos]++;
             }
-            if(values[pi.size()] != 0)
-                break;
+            if(values[pi.size()] != 0) {
+              break;
+            }
         }
         
         return (fullProduct);

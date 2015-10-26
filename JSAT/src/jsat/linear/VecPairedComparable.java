@@ -14,13 +14,13 @@ public class VecPairedComparable<V extends Vec, P extends Comparable<P>> extends
 
 	private static final long serialVersionUID = -7061543870162459467L;
 
-	public VecPairedComparable(V v, P p)
+	public VecPairedComparable(final V v, final P p)
     {
         super(v, p);
     }
 
     @Override
-    public int compareTo(VecPairedComparable<V, P> o)
+    public int compareTo(final VecPairedComparable<V, P> o)
     {
         return this.getPair().compareTo(o.getPair());
     }

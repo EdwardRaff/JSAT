@@ -48,8 +48,8 @@ public class MatthewsCorrelationCoefficientTest
     public void testGetScore()
     {
         System.out.println("getScore");
-        MatthewsCorrelationCoefficient scorer = new MatthewsCorrelationCoefficient();
-        MatthewsCorrelationCoefficient otherHalf = scorer.clone();
+        final MatthewsCorrelationCoefficient scorer = new MatthewsCorrelationCoefficient();
+        final MatthewsCorrelationCoefficient otherHalf = scorer.clone();
         
         assertEquals(scorer, otherHalf);
         assertEquals(scorer.hashCode(), otherHalf.hashCode());
@@ -70,7 +70,7 @@ public class MatthewsCorrelationCoefficientTest
         otherHalf.addResult(new CategoricalResults(new double[]{0.9, 0.1}), 1, 1.0);
         
         scorer.addResults(otherHalf);
-        double tp = 2, tn = 3, fp = 2, fn = 2;
+        final double tp = 2, tn = 3, fp = 2, fn = 2;
         assertEquals((tp*tn-fp*fn)/Math.sqrt((tp+fp)*(tp+fn)*(tn+fp)*(tn+fn)), scorer.getScore(), 1e-2);
         assertEquals((tp*tn-fp*fn)/Math.sqrt((tp+fp)*(tp+fn)*(tn+fp)*(tn+fn)), scorer.clone().getScore(), 1e-2);
     }

@@ -30,20 +30,23 @@ public class UniformKF implements KernelFunction
     }
 
     @Override
-    public double k(double u)
+    public double k(final double u)
     {
-        if(Math.abs(u) > 1)
-            return 0;
+        if(Math.abs(u) > 1) {
+          return 0;
+        }
         return 0.5;
     }
 
     @Override
-    public double intK(double u)
+    public double intK(final double u)
     {
-        if(u < -1)
-            return 0;
-        if (u > 1)
-            return 1;
+        if(u < -1) {
+          return 0;
+        }
+        if (u > 1) {
+          return 1;
+        }
         return (u+1)/2;
     }
 
@@ -60,7 +63,7 @@ public class UniformKF implements KernelFunction
     }
 
     @Override
-    public double kPrime(double u)
+    public double kPrime(final double u)
     {
         return 0;
     }

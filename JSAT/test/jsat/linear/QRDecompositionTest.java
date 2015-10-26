@@ -32,9 +32,10 @@ public class QRDecompositionTest
     
     static ExecutorService threadpool = Executors.newFixedThreadPool(SystemInfo.LogicalCores+1, new ThreadFactory() {
 
-        public Thread newThread(Runnable r)
+        @Override
+        public Thread newThread(final Runnable r)
         {
-            Thread thread = new Thread(r);
+            final Thread thread = new Thread(r);
             thread.setDaemon(true);
             return thread;
         }
@@ -106,7 +107,7 @@ public class QRDecompositionTest
             instance.absDet();
             fail("Can not take the determinant of a non square matrix");
         }
-        catch(ArithmeticException ex)
+        catch(final ArithmeticException ex)
         {
             
         }
@@ -119,7 +120,7 @@ public class QRDecompositionTest
     public void testSolve_Vec()
     {
         System.out.println("solve");
-        Vec b = new DenseVector(Arrays.asList(1.0, 2.0, 3.0, 4.0, 5.0 ));
+        final Vec b = new DenseVector(Arrays.asList(1.0, 2.0, 3.0, 4.0, 5.0 ));
         QRDecomposition instance = null;
         
         instance = new QRDecomposition(A);
@@ -159,7 +160,7 @@ public class QRDecompositionTest
             instance.solve(A);
             fail("The matrix dimensions do not agree!");
         }
-        catch(ArithmeticException ex)
+        catch(final ArithmeticException ex)
         {
             
         }
@@ -170,7 +171,7 @@ public class QRDecompositionTest
             instance.solve(C.transpose());
             fail("The matrix dimensions do not agree!");
         }
-        catch(ArithmeticException ex)
+        catch(final ArithmeticException ex)
         {
             
         }
@@ -204,7 +205,7 @@ public class QRDecompositionTest
             instance.solve(A, threadpool);
             fail("The matrix dimensions do not agree!");
         }
-        catch(ArithmeticException ex)
+        catch(final ArithmeticException ex)
         {
             
         }
@@ -215,7 +216,7 @@ public class QRDecompositionTest
             instance.solve(C.transpose(), threadpool);
             fail("The matrix dimensions do not agree!");
         }
-        catch(ArithmeticException ex)
+        catch(final ArithmeticException ex)
         {
             
         }

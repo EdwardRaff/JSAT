@@ -13,7 +13,7 @@ public class CategoricalData implements Cloneable, Serializable
 {
 
 	private static final long serialVersionUID = 5783467611963064930L;
-	private int n;//Number of different categories
+	private final int n;//Number of different categories
     private List<String> catNames;
     private String categoryName;
 
@@ -21,12 +21,13 @@ public class CategoricalData implements Cloneable, Serializable
      * 
      * @param n the number of categories
      */
-    public CategoricalData(int n)
+    public CategoricalData(final int n)
     {
         this.n = n;
         catNames = new ArrayList<String>(n);
-        for(int i = 0; i < n; i++)
-            catNames.add("Option " + (i+1));
+        for(int i = 0; i < n; i++) {
+          catNames.add("Option " + (i+1));
+        }
         categoryName = "No Name";
     }
 
@@ -39,20 +40,18 @@ public class CategoricalData implements Cloneable, Serializable
         return n;
     }
     
-    public boolean isValidCategory(int i)
+    public boolean isValidCategory(final int i)
     {
-        if (i < 0 || i >= n)
-            return false;
-        
-        return true;
+        return !(i < 0 || i >= n);
     }
     
-    public String getOptionName(int i)
+    public String getOptionName(final int i)
     {
-        if(catNames != null)
-            return catNames.get(i);
-        else
-            return Integer.toString(i);
+        if(catNames != null) {
+          return catNames.get(i);
+        } else {
+          return Integer.toString(i);
+        }
     }
 
     public String getCategoryName()
@@ -60,7 +59,7 @@ public class CategoricalData implements Cloneable, Serializable
         return categoryName;
     }
 
-    public void setCategoryName(String categoryName)
+    public void setCategoryName(final String categoryName)
     {
         this.categoryName = categoryName;
     }
@@ -76,32 +75,36 @@ public class CategoricalData implements Cloneable, Serializable
      * @param i  the ith index to set. 
      * @return true if the name was set. False if the name could not be set. 
      */
-    public boolean setOptionName(String name, int i)
+    public boolean setOptionName(String name, final int i)
     {
         name = name.toLowerCase();
-        if(i < 0 || i >= n)
-            return false;
-        else if(catNames.contains(name))
-            return false;
+        if(i < 0 || i >= n) {
+          return false;
+        } else if(catNames.contains(name)) {
+          return false;
+        }
         catNames.set(i, name);
         
         return true;
     }
+  @Override
     public CategoricalData clone()
     {
-        CategoricalData copy = new CategoricalData(n);
+        final CategoricalData copy = new CategoricalData(n);
         
-        if(this.catNames != null)
-            copy.catNames = new ArrayList<String>(this.catNames);
+        if(this.catNames != null) {
+          copy.catNames = new ArrayList<String>(this.catNames);
+        }
         
         return copy;
     }
     
-    public static CategoricalData[] copyOf(CategoricalData[] orig)
+    public static CategoricalData[] copyOf(final CategoricalData[] orig)
     {
-        CategoricalData[] copy = new CategoricalData[orig.length];
-        for(int i = 0; i < copy.length; i++)
-            copy[i] = orig[i].clone();
+        final CategoricalData[] copy = new CategoricalData[orig.length];
+        for(int i = 0; i < copy.length; i++) {
+          copy[i] = orig[i].clone();
+        }
         return copy;
     }
     

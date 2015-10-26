@@ -23,7 +23,7 @@ abstract public class DataTransformFactoryParm implements DataTransformFactory, 
     }
 
     @Override
-    public Parameter getParameter(String paramName)
+    public Parameter getParameter(final String paramName)
     {
         return Parameter.toParameterMap(getParameters()).get(paramName);
     }

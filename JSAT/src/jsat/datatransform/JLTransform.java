@@ -54,7 +54,7 @@ public class JLTransform implements DataTransform
         SPARSE
     }
     
-    private TransformMode mode;
+    private final TransformMode mode;
     
     private Matrix R;
 
@@ -62,7 +62,7 @@ public class JLTransform implements DataTransform
      * Copy constructor
      * @param transform the transform to copy 
      */
-    protected JLTransform(JLTransform transform)
+    protected JLTransform(final JLTransform transform)
     {
         this.mode = transform.mode;
         this.R = transform.R.clone();
@@ -75,7 +75,7 @@ public class JLTransform implements DataTransform
      * @param mode how to construct the transform
      * @param rand the source of randomness
      */
-    public JLTransform(final int k, final int d, final TransformMode mode, Random rand)
+    public JLTransform(final int k, final int d, final TransformMode mode, final Random rand)
     {
         this(k, d, mode, rand, true);
     }
@@ -89,11 +89,11 @@ public class JLTransform implements DataTransform
      * @param inMemory if {@code false}, the matrix will be stored in O(1) 
      * memory at the cost of execution time. 
      */
-    public JLTransform(final int k, final int d, final TransformMode mode, Random rand, boolean inMemory)
+    public JLTransform(final int k, final int d, final TransformMode mode, final Random rand, final boolean inMemory)
     {
         this.mode = mode;
         
-        Matrix oldR = R = new RandomMatrixJL(k, d, rand.nextLong(), mode);
+        final Matrix oldR = R = new RandomMatrixJL(k, d, rand.nextLong(), mode);
 
         if(inMemory)
         {
@@ -103,12 +103,12 @@ public class JLTransform implements DataTransform
     }
 
     @Override
-    public DataPoint transform(DataPoint dp)
+    public DataPoint transform(final DataPoint dp)
     {
         Vec newVec = dp.getNumericalValues();
         newVec = R.multiply(newVec);
 
-        DataPoint newDP = new DataPoint(newVec, dp.getCategoricalValues(), 
+        final DataPoint newDP = new DataPoint(newVec, dp.getCategoricalValues(), 
                 dp.getCategoricalData(), dp.getWeight());
         
         return newDP;
@@ -127,21 +127,22 @@ public class JLTransform implements DataTransform
 		 */
 		private static final long serialVersionUID = 2009377824896155918L;
 		private double cnst; 
-        private TransformMode mode;
+        private final TransformMode mode;
         
-        public RandomMatrixJL(int rows, int cols, long XORSeed, TransformMode mode)
+        public RandomMatrixJL(final int rows, final int cols, final long XORSeed, final TransformMode mode)
         {
             super(rows, cols, XORSeed);
             this.mode = mode;
-            int k = rows;
-            if (mode == TransformMode.GAUSS || mode == TransformMode.BINARY)
-                cnst = 1.0 / Math.sqrt(k);
-            else if (mode == TransformMode.SPARSE)
-                cnst = Math.sqrt(3) / Math.sqrt(k);
+            final int k = rows;
+            if (mode == TransformMode.GAUSS || mode == TransformMode.BINARY) {
+              cnst = 1.0 / Math.sqrt(k);
+            } else if (mode == TransformMode.SPARSE) {
+              cnst = Math.sqrt(3) / Math.sqrt(k);
+            }
         }
         
         @Override
-        protected double getVal(Random rand)
+        protected double getVal(final Random rand)
         {
             if (mode == TransformMode.GAUSS)
             {
@@ -153,17 +154,20 @@ public class JLTransform implements DataTransform
             }
             else if (mode == TransformMode.SPARSE)
             {
-                int val = rand.nextInt(6);
+                final int val = rand.nextInt(6);
                 //1 with prob 1/6, -1 with prob 1/6
-                if(val == 0)
-                    return -cnst;
-                else if(val == 1)
-                    return cnst;
-                else //0 with prob 2/3
-                    return 0;
+                if(val == 0) {
+                  return -cnst;
+                } else if(val == 1) {
+                  return cnst;
+                } else {
+                  //0 with prob 2/3
+                  return 0;
+                }
             }
-            else
-                throw new RuntimeException("BUG: Please report");
+            else {
+              throw new RuntimeException("BUG: Please report");
+            }
         }
         
     }

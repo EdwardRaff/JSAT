@@ -16,17 +16,17 @@ public class ClusterFailureException extends RuntimeException
     {
     }
 
-    public ClusterFailureException(String string)
+    public ClusterFailureException(final String string)
     {
         super(string);
     }
 
-    public ClusterFailureException(Throwable thrwbl)
+    public ClusterFailureException(final Throwable thrwbl)
     {
         super(thrwbl);
     }
 
-    public ClusterFailureException(String string, Throwable thrwbl)
+    public ClusterFailureException(final String string, final Throwable thrwbl)
     {
         super(string, thrwbl);
     }

@@ -59,7 +59,7 @@ public class PearsonDistanceTest
     {
         System.out.println("correlation");
         
-        Vec[][] pairs = new Vec[][]
+        final Vec[][] pairs = new Vec[][]
         {
             {x1, x2},
             {x2, x1},
@@ -71,7 +71,7 @@ public class PearsonDistanceTest
             {x4, x5},
         };
         
-        double[] expectedVals = new double[]
+        final double[] expectedVals = new double[]
         {
             0.5298089018901744,
             0.5298089018901744,
@@ -86,7 +86,7 @@ public class PearsonDistanceTest
         for(int i = 0; i < pairs.length; i++)
         {
             double result = PearsonDistance.correlation(pairs[i][0], pairs[i][1], false);
-            double expected = expectedVals[i];
+            final double expected = expectedVals[i];
             assertEquals(expected, result, 1e-14);
             result = PearsonDistance.correlation(pairs[i][1], pairs[i][0], false);
             assertEquals(expected, result, 1e-14);
@@ -95,7 +95,7 @@ public class PearsonDistanceTest
         for(int i = 0; i < pairs.length; i++)
         {
             double result = PearsonDistance.correlation(new SparseVector(pairs[i][0]), new SparseVector(pairs[i][1]), false);
-            double expected = expectedVals[i];
+            final double expected = expectedVals[i];
             assertEquals(expected, result, 1e-14);
             result = PearsonDistance.correlation(new SparseVector(pairs[i][1]), new SparseVector(pairs[i][0]), false);
             assertEquals(expected, result, 1e-14);
@@ -108,7 +108,7 @@ public class PearsonDistanceTest
     {
         System.out.println("correlation");
         
-        Vec[][] pairs = new Vec[][]
+        final Vec[][] pairs = new Vec[][]
         {
             {x1, x2},
             {x2, x1},
@@ -120,7 +120,7 @@ public class PearsonDistanceTest
             {x4, x5},
         };
         
-        double[] expectedVals = new double[]
+        final double[] expectedVals = new double[]
         {
             0.5298089018901744,
             0.5298089018901744,
@@ -135,7 +135,7 @@ public class PearsonDistanceTest
         for(int i = 0; i < pairs.length; i++)
         {
             double result = PearsonDistance.correlation(pairs[i][0], pairs[i][1], true);
-            double expected = expectedVals[i];
+            final double expected = expectedVals[i];
             assertEquals(expected, result, 1e-14);
             result = PearsonDistance.correlation(pairs[i][1], pairs[i][0], true);
             assertEquals(expected, result, 1e-14);
@@ -144,7 +144,7 @@ public class PearsonDistanceTest
         for(int i = 0; i < pairs.length; i++)
         {
             double result = PearsonDistance.correlation(new SparseVector(pairs[i][0]), new SparseVector(pairs[i][1]), true);
-            double expected = expectedVals[i];
+            final double expected = expectedVals[i];
             assertEquals(expected, result, 1e-14);
             result = PearsonDistance.correlation(new SparseVector(pairs[i][1]), new SparseVector(pairs[i][0]), true);
             assertEquals(expected, result, 1e-14);

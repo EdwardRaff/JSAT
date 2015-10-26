@@ -56,7 +56,7 @@ public class LIBSVMLoader
      * @throws FileNotFoundException if the file was not found
      * @throws IOException if an error occurred reading the input stream
      */
-    public static RegressionDataSet loadR(File file) throws FileNotFoundException, IOException
+    public static RegressionDataSet loadR(final File file) throws FileNotFoundException, IOException
     {
         return loadR(file, 0.5);
     }
@@ -72,7 +72,7 @@ public class LIBSVMLoader
      * @throws FileNotFoundException if the file was not found
      * @throws IOException if an error occurred reading the input stream
      */
-    public static RegressionDataSet loadR(File file, double sparseRatio) throws FileNotFoundException, IOException
+    public static RegressionDataSet loadR(final File file, final double sparseRatio) throws FileNotFoundException, IOException
     {
         return loadR(file, sparseRatio, -1);
     }
@@ -91,7 +91,7 @@ public class LIBSVMLoader
      * @throws FileNotFoundException if the file was not found
      * @throws IOException if an error occurred reading the input stream
      */
-    public static RegressionDataSet loadR(File file, double sparseRatio, int vectorLength) throws FileNotFoundException, IOException
+    public static RegressionDataSet loadR(final File file, final double sparseRatio, final int vectorLength) throws FileNotFoundException, IOException
     {
         return loadR(new FileReader(file), sparseRatio, vectorLength);
     }
@@ -106,7 +106,7 @@ public class LIBSVMLoader
      * @return a regression data set
      * @throws IOException if an error occurred reading the input stream
      */
-    public static RegressionDataSet loadR(InputStreamReader isr, double sparseRatio) throws IOException
+    public static RegressionDataSet loadR(final InputStreamReader isr, final double sparseRatio) throws IOException
     {
         return loadR(isr, sparseRatio, -1);
     }
@@ -124,7 +124,7 @@ public class LIBSVMLoader
      * @return a regression data set
      * @throws IOException 
      */
-    public static RegressionDataSet loadR(Reader reader, double sparseRatio, int vectorLength) throws IOException
+    public static RegressionDataSet loadR(final Reader reader, final double sparseRatio, final int vectorLength) throws IOException
     {
         return (RegressionDataSet) loadG(reader, sparseRatio, vectorLength, false);
     }
@@ -138,7 +138,7 @@ public class LIBSVMLoader
      * @throws FileNotFoundException if the file was not found
      * @throws IOException if an error occurred reading the input stream
      */
-    public static ClassificationDataSet loadC(File file) throws FileNotFoundException, IOException
+    public static ClassificationDataSet loadC(final File file) throws FileNotFoundException, IOException
     {
         return loadC(new FileReader(file), 0.5);
     }
@@ -154,7 +154,7 @@ public class LIBSVMLoader
      * @throws FileNotFoundException if the file was not found
      * @throws IOException if an error occurred reading the input stream
      */
-    public static ClassificationDataSet loadC(File file, double sparseRatio) throws FileNotFoundException, IOException
+    public static ClassificationDataSet loadC(final File file, final double sparseRatio) throws FileNotFoundException, IOException
     {
         return loadC(file, sparseRatio, -1);
     }
@@ -173,7 +173,7 @@ public class LIBSVMLoader
      * @throws FileNotFoundException if the file was not found
      * @throws IOException if an error occurred reading the input stream
      */
-    public static ClassificationDataSet loadC(File file, double sparseRatio, int vectorLength) throws FileNotFoundException, IOException
+    public static ClassificationDataSet loadC(final File file, final double sparseRatio, final int vectorLength) throws FileNotFoundException, IOException
     {
         return loadC(new FileReader(file), sparseRatio, vectorLength);
     }
@@ -188,7 +188,7 @@ public class LIBSVMLoader
      * @return a classification data set
      * @throws IOException if an error occurred reading the input stream
      */
-    public static ClassificationDataSet loadC(InputStreamReader isr, double sparseRatio) throws IOException
+    public static ClassificationDataSet loadC(final InputStreamReader isr, final double sparseRatio) throws IOException
     {
         return loadC(isr, sparseRatio, -1);
     }
@@ -206,7 +206,7 @@ public class LIBSVMLoader
      * @return a classification data set
      * @throws IOException if an error occurred reading the input stream
      */
-    public static ClassificationDataSet loadC(Reader reader, double sparseRatio, int vectorLength) throws IOException
+    public static ClassificationDataSet loadC(final Reader reader, final double sparseRatio, final int vectorLength) throws IOException
     {
         return (ClassificationDataSet) loadG(reader, sparseRatio, vectorLength, true);
     }
@@ -221,22 +221,22 @@ public class LIBSVMLoader
      * @return
      * @throws IOException 
      */
-    private static DataSet loadG(Reader reader, double sparseRatio, int vectorLength, boolean classification) throws IOException
+    private static DataSet loadG(final Reader reader, final double sparseRatio, final int vectorLength, final boolean classification) throws IOException
     {
-        StringBuilder processBuffer = new StringBuilder(20);
-        StringBuilder charBuffer = new StringBuilder(1024);
-        char[] buffer = new char[1024];
-        List<SparseVector> sparceVecs = new ArrayList<SparseVector>();
+        final StringBuilder processBuffer = new StringBuilder(20);
+        final StringBuilder charBuffer = new StringBuilder(1024);
+        final char[] buffer = new char[1024];
+        final List<SparseVector> sparceVecs = new ArrayList<SparseVector>();
         /**
          * The category "label" for each value loaded in
          */
-        List<Double> labelVals = new DoubleList();
-        Map<Double, Integer> possibleCats = new HashMap<Double, Integer>();
+        final List<Double> labelVals = new DoubleList();
+        final Map<Double, Integer> possibleCats = new HashMap<Double, Integer>();
         int maxLen= 1;
         
         STATE state = STATE.INITIAL;
         int position = 0;
-        SparseVector tempVec = new SparseVector(1, 1);
+        final SparseVector tempVec = new SparseVector(1, 1);
         /**
          * The index that we have parse out of a non zero pair
          */
@@ -250,9 +250,10 @@ public class LIBSVMLoader
                 charBuffer.delete(0, position);
                 position = 0;
                 
-                int read = reader.read(buffer);
-                if(read < 0)
-                    break;
+                final int read = reader.read(buffer);
+                if(read < 0) {
+                  break;
+                }
                 charBuffer.append(buffer, 0, read);
             }
             
@@ -260,10 +261,11 @@ public class LIBSVMLoader
             {
                 if(state == STATE.LABEL)//last line was empty
                 {
-                    double label = Double.parseDouble(processBuffer.toString());
+                    final double label = Double.parseDouble(processBuffer.toString());
 
-                    if (!possibleCats.containsKey(label) && classification)
-                        possibleCats.put(label, possibleCats.size());
+                    if (!possibleCats.containsKey(label) && classification) {
+                      possibleCats.put(label, possibleCats.size());
+                    }
                     labelVals.add(label);
                     
                     sparceVecs.add(new SparseVector(maxLen, 0));
@@ -275,13 +277,14 @@ public class LIBSVMLoader
                 else if(state == STATE.FEATURE_VALUE || state == STATE.WHITESPACE_AFTER_FEATURE)//line ended after a value pair
                 {
                     //process the last value pair & insert into vec
-                    double value = StringUtils.parseDouble(processBuffer, 0, processBuffer.length());
+                    final double value = StringUtils.parseDouble(processBuffer, 0, processBuffer.length());
                     processBuffer.delete(0, processBuffer.length());
 
                     maxLen = Math.max(maxLen, indexProcessing+1);
                     tempVec.setLength(maxLen);
-                    if (value != 0)
-                        tempVec.set(indexProcessing, value);
+                    if (value != 0) {
+                      tempVec.set(indexProcessing, value);
+                    }
                     sparceVecs.add(tempVec.clone());
                 }
                 else if(state == STATE.NEWLINE)
@@ -289,13 +292,14 @@ public class LIBSVMLoader
                     //nothing to do and everything already processed, just return
                     break;
                 }
-                else
-                    throw new RuntimeException();
+                else {
+                  throw new RuntimeException();
+                }
                 //we may have ended on a line, and have a sparse vec to add before returning
                 break;
             }
             
-            char ch = charBuffer.charAt(position);
+            final char ch = charBuffer.charAt(position);
             switch(state)
             {
                 case INITIAL:
@@ -309,10 +313,11 @@ public class LIBSVMLoader
                     }
                     else if (Character.isWhitespace(ch))//this gets spaces and new lines
                     {
-                        double label = Double.parseDouble(processBuffer.toString());
+                        final double label = Double.parseDouble(processBuffer.toString());
 
-                        if (!possibleCats.containsKey(label) && classification)
-                            possibleCats.put(label, possibleCats.size());
+                        if (!possibleCats.containsKey(label) && classification) {
+                          possibleCats.put(label, possibleCats.size());
+                        }
                         labelVals.add(label);
 
                         //clean up and move to new state
@@ -330,8 +335,9 @@ public class LIBSVMLoader
                             state = STATE.WHITESPACE_AFTER_LABEL;
                         }
                     }
-                    else
-                        throw new RuntimeException("Invalid LIBSVM file");
+                    else {
+                      throw new RuntimeException("Invalid LIBSVM file");
+            }
                     break;
                 case WHITESPACE_AFTER_LABEL:
                     if (Character.isDigit(ch))//move to next state
@@ -346,11 +352,14 @@ public class LIBSVMLoader
                             sparceVecs.add(new SparseVector(maxLen, 0));///no features again, add zero vec
                             state = STATE.NEWLINE;
                         }
-                        else//normal whie space
-                            position++;
+                        else {
+                          //normal whie space
+                          position++;
+                        }
                     }
-                    else
-                        throw new RuntimeException();
+                    else {
+                      throw new RuntimeException();
+            }
                     break;
                 case FEATURE_INDEX:
                     if (Character.isDigit(ch))
@@ -367,8 +376,9 @@ public class LIBSVMLoader
                         state = STATE.FEATURE_VALUE;
                         position++;
                     }
-                    else
-                        throw new RuntimeException();
+                    else {
+                      throw new RuntimeException();
+            }
                     break;
                 case FEATURE_VALUE:
                     //we need to accept all the values that may be part of a float value
@@ -379,25 +389,27 @@ public class LIBSVMLoader
                     }
                     else
                     {
-                        double value = StringUtils.parseDouble(processBuffer, 0, processBuffer.length());
+                        final double value = StringUtils.parseDouble(processBuffer, 0, processBuffer.length());
                         processBuffer.delete(0, processBuffer.length());
    
                         maxLen = Math.max(maxLen, indexProcessing+1);
                         tempVec.setLength(maxLen);
-                        if (value != 0)
-                            tempVec.set(indexProcessing, value);
+                        if (value != 0) {
+                          tempVec.set(indexProcessing, value);
+                        }
                         
-                        if (Character.isWhitespace(ch))
-                            state = STATE.WHITESPACE_AFTER_FEATURE;
-                        else
-                            throw new RuntimeException();
+                        if (Character.isWhitespace(ch)) {
+                          state = STATE.WHITESPACE_AFTER_FEATURE;
+                        } else {
+                          throw new RuntimeException();
+                        }
                     }
                     
                     break;
                 case WHITESPACE_AFTER_FEATURE:
-                    if (Character.isDigit(ch))
-                        state = STATE.FEATURE_INDEX;
-                    else if (Character.isWhitespace(ch))
+                    if (Character.isDigit(ch)) {
+                      state = STATE.FEATURE_INDEX;
+            } else if (Character.isWhitespace(ch))
                     {
                         if (ch == '\n' || ch == '\r')
                         {
@@ -405,14 +417,15 @@ public class LIBSVMLoader
                             tempVec.zeroOut();
                             state = STATE.NEWLINE;
                         }
-                        else
-                            position++;
+                        else {
+                          position++;
+              }
                     }
                     break;
                 case NEWLINE:
-                    if (ch == '\n' || ch == '\r')
-                        position++;
-                    else
+                    if (ch == '\n' || ch == '\r') {
+                      position++;
+            } else
                     {
                         state = STATE.LABEL;
                     }
@@ -420,26 +433,29 @@ public class LIBSVMLoader
             }
         }
         
-        if (vectorLength > 0)
-            if (maxLen > vectorLength)
-                throw new RuntimeException("Length given was " + vectorLength + ", but observed length was " + maxLen);
-            else
-                maxLen = vectorLength;
+        if (vectorLength > 0) {
+          if (maxLen > vectorLength) {
+            throw new RuntimeException("Length given was " + vectorLength + ", but observed length was " + maxLen);
+          } else {
+            maxLen = vectorLength;
+          }
+        }
 
         if(classification)
         {
-            CategoricalData predicting = new CategoricalData(possibleCats.size());
+            final CategoricalData predicting = new CategoricalData(possibleCats.size());
 
             //Give categories a unique ordering to avoid loading issues based on the order categories are presented
-            List<Double> allCatKeys = new DoubleList(possibleCats.keySet());
+            final List<Double> allCatKeys = new DoubleList(possibleCats.keySet());
             Collections.sort(allCatKeys);
-            for(int i = 0; i < allCatKeys.size(); i++)
-                possibleCats.put(allCatKeys.get(i), i);
+            for(int i = 0; i < allCatKeys.size(); i++) {
+              possibleCats.put(allCatKeys.get(i), i);
+            }
 
-            ClassificationDataSet cds = new ClassificationDataSet(maxLen, new CategoricalData[0], predicting);
+            final ClassificationDataSet cds = new ClassificationDataSet(maxLen, new CategoricalData[0], predicting);
             for(int i = 0; i < labelVals.size(); i++)
             {
-                SparseVector vec = sparceVecs.get(i);
+                final SparseVector vec = sparceVecs.get(i);
                 vec.setLength(maxLen);
                 cds.addDataPoint(vec, new int[0], possibleCats.get(labelVals.get(i)));
             }
@@ -450,10 +466,10 @@ public class LIBSVMLoader
         }
         else//regression
         {
-            RegressionDataSet rds = new RegressionDataSet(maxLen, new CategoricalData[0]);
+            final RegressionDataSet rds = new RegressionDataSet(maxLen, new CategoricalData[0]);
             for(int i = 0; i < sparceVecs.size(); i++)
             {
-                SparseVector sv = sparceVecs.get(i);
+                final SparseVector sv = sparceVecs.get(i);
                 sv.setLength(maxLen);
                 rds.addDataPoint(sv, new int[0], labelVals.get(i));
             }
@@ -470,16 +486,17 @@ public class LIBSVMLoader
      * @param os the output stream to write to. The stream will not be closed or
      * flushed by this method
      */
-    public static void write(ClassificationDataSet data, OutputStream os)
+    public static void write(final ClassificationDataSet data, final OutputStream os)
     {
-        PrintWriter writer = new PrintWriter(os);
+        final PrintWriter writer = new PrintWriter(os);
         for(int i = 0; i < data.getSampleSize(); i++)
         {
-            int pred = data.getDataPointCategory(i);
-            Vec vals = data.getDataPoint(i).getNumericalValues();
+            final int pred = data.getDataPointCategory(i);
+            final Vec vals = data.getDataPoint(i).getNumericalValues();
             writer.write(pred + " ");
-            for(IndexValue iv : vals)
-                writer.write((iv.getIndex()+1) + ":" + iv.getValue() + " ");//+1 b/c 1 based indexing
+            for(final IndexValue iv : vals) {
+              writer.write((iv.getIndex()+1) + ":" + iv.getValue() + " ");//+1 b/c 1 based indexing
+            }
             writer.write("\n");
         }
     }
@@ -490,16 +507,17 @@ public class LIBSVMLoader
      * @param os the output stream to write to. The stream will not be closed or
      * flushed by this method
      */
-    public static void write(RegressionDataSet data, OutputStream os)
+    public static void write(final RegressionDataSet data, final OutputStream os)
     {
-        PrintWriter writer = new PrintWriter(os);
+        final PrintWriter writer = new PrintWriter(os);
         for(int i = 0; i < data.getSampleSize(); i++)
         {
-            double pred = data.getTargetValue(i);
-            Vec vals = data.getDataPoint(i).getNumericalValues();
+            final double pred = data.getTargetValue(i);
+            final Vec vals = data.getDataPoint(i).getNumericalValues();
             writer.write(pred + " ");
-            for(IndexValue iv : vals)
-                writer.write((iv.getIndex()+1) + ":" + iv.getValue() + " ");//+1 b/c 1 based indexing
+            for(final IndexValue iv : vals) {
+              writer.write((iv.getIndex()+1) + ":" + iv.getValue() + " ");//+1 b/c 1 based indexing
+            }
             writer.write("\n");
         }
     }

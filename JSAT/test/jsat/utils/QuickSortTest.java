@@ -50,19 +50,22 @@ public class QuickSortTest
     public void testSortD()
     {
         System.out.println("sort");
-        Random rand = new XORWOW();
+        final Random rand = new XORWOW();
         for(int size = 2; size < 10000; size*=2)
         {
-            double[] x = new double[size];
-            for(int i = 0; i < x.length; i++)
-                if(rand.nextInt(10) == 0)//force behavrio of multiple pivots with exact same value
-                    x[i] = rand.nextInt(10);
-                else
-                    x[i] = rand.nextDouble();
+            final double[] x = new double[size];
+            for(int i = 0; i < x.length; i++) {
+              if (rand.nextInt(10) == 0) {
+                x[i] = rand.nextInt(10);
+              } else {
+                x[i] = rand.nextDouble();
+              }
+            }
             QuickSort.sort(x, 0, size);
             
-            for(int i = 0; i < x.length-1; i++)
-                assertTrue(x[i] <= x[i+1]);
+            for(int i = 0; i < x.length-1; i++) {
+              assertTrue(x[i] <= x[i+1]);
+            }
         }
     }
     
@@ -71,13 +74,13 @@ public class QuickSortTest
     {
         System.out.println("sort");
         
-        IntList ints = new IntList();
-        Collection<List<?>> paired = new ArrayList<List<?>>();
+        final IntList ints = new IntList();
+        final Collection<List<?>> paired = new ArrayList<List<?>>();
         paired.add(ints);
         for(int size = 2; size < 10000; size*=2)
         {
             ints.clear();
-            double[] x = new double[size];
+            final double[] x = new double[size];
             for(int i = 0; i < x.length; i++)
             {
                 x[i] = x.length-i;
@@ -99,13 +102,13 @@ public class QuickSortTest
     {
         System.out.println("sort");
         
-        IntList ints = new IntList();
-        Collection<List<?>> paired = new ArrayList<List<?>>();
+        final IntList ints = new IntList();
+        final Collection<List<?>> paired = new ArrayList<List<?>>();
         paired.add(ints);
         for(int size = 2; size < 10000; size*=2)
         {
             ints.clear();
-            float[] x = new float[size];
+            final float[] x = new float[size];
             for(int i = 0; i < x.length; i++)
             {
                 x[i] = x.length-i;

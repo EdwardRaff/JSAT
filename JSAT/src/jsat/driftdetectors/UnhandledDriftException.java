@@ -17,7 +17,7 @@ public class UnhandledDriftException extends RuntimeException
         super();
     }
 
-    public UnhandledDriftException(String message)
+    public UnhandledDriftException(final String message)
     {
         super(message);
     }

@@ -58,7 +58,7 @@ public class ComplexTest
     public void testI()
     {
         System.out.println("I");
-        Complex result = Complex.I();
+        final Complex result = Complex.I();
         assertEquals(0.0, result.getReal(), 0.0);
         assertEquals(1.0, result.getImag(), 0.0);
     }
@@ -190,11 +190,11 @@ public class ComplexTest
     public void testCMul()
     {
         System.out.println("cMul");
-        double r0 = a.getReal();
-        double i0 = a.getImag();
-        double r1 = b.getReal();
-        double i1 = b.getImag();
-        double[] results = new double[2];
+        final double r0 = a.getReal();
+        final double i0 = a.getImag();
+        final double r1 = b.getReal();
+        final double i1 = b.getImag();
+        final double[] results = new double[2];
         Complex.cMul(r0, i0, r1, i1, results);
         assertEquals(-1.0, results[0], 0.0);
         assertEquals(17.0, results[1], 0.0);
@@ -254,11 +254,11 @@ public class ComplexTest
     public void testCDiv()
     {
         System.out.println("cDiv");
-        double r0 = a.getReal();
-        double i0 = a.getImag();
-        double r1 = b.getReal();
-        double i1 = b.getImag();
-        double[] results = new double[2];
+        final double r0 = a.getReal();
+        final double i0 = a.getImag();
+        final double r1 = b.getReal();
+        final double i1 = b.getImag();
+        final double[] results = new double[2];
         Complex.cDiv(r0, i0, r1, i1, results);
         assertEquals( 0.224137931034483, results[0], 1e-14);
         assertEquals(-0.189655172413793, results[1], 1e-14);
@@ -382,7 +382,7 @@ public class ComplexTest
     public void testClone()
     {
         System.out.println("clone");
-        Complex clone = a.clone();
+        final Complex clone = a.clone();
         assertEquals(aClone, a);
         assertEquals(aClone, clone);
         clone.setReal(100);

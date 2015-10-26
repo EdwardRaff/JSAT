@@ -19,7 +19,7 @@ public class IndexValue
      * @param index the index for the given value
      * @param value the value at the specified index
      */
-    public IndexValue(int index, double value)
+    public IndexValue(final int index, final double value)
     {
         this.index = index;
         this.value = value;
@@ -29,7 +29,7 @@ public class IndexValue
      * Sets the index associated with the value. 
      * @param index the new index
      */
-    public void setIndex(int index)
+    public void setIndex(final int index)
     {
         this.index = index;
     }
@@ -38,7 +38,7 @@ public class IndexValue
      * Sets the value associated with the index
      * @param value the new value
      */
-    public void setValue(double value)
+    public void setValue(final double value)
     {
         this.value = value;
     }

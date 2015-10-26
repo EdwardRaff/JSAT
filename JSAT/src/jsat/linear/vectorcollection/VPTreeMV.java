@@ -25,48 +25,50 @@ public class VPTreeMV<V extends Vec> extends VPTree<V>
 
 	private static final long serialVersionUID = 6668184445206226077L;
 
-	public VPTreeMV(List<V> list, DistanceMetric dm, VPSelection vpSelection, Random rand, int sampleSize, int searchIterations, ExecutorService threadpool)
+	public VPTreeMV(final List<V> list, final DistanceMetric dm, final VPSelection vpSelection, final Random rand, final int sampleSize, final int searchIterations, final ExecutorService threadpool)
     {
         super(list, dm, vpSelection, rand, sampleSize, searchIterations, threadpool);
     }
 
-    public VPTreeMV(List<V> list, DistanceMetric dm, VPSelection vpSelection, Random rand, int sampleSize, int searchIterations)
+    public VPTreeMV(final List<V> list, final DistanceMetric dm, final VPSelection vpSelection, final Random rand, final int sampleSize, final int searchIterations)
     {
         super(list, dm, vpSelection, rand, sampleSize, searchIterations);
     }
 
-    public VPTreeMV(List<V> list, DistanceMetric dm, VPSelection vpSelection)
+    public VPTreeMV(final List<V> list, final DistanceMetric dm, final VPSelection vpSelection)
     {
         super(list, dm, vpSelection);
     }
 
-    public VPTreeMV(List<V> list, DistanceMetric dm)
+    public VPTreeMV(final List<V> list, final DistanceMetric dm)
     {
         super(list, dm);
     }
 
     @Override
-    protected int splitListIndex(List<Pair<Double, Integer>> S)
+    protected int splitListIndex(final List<Pair<Double, Integer>> S)
     {
         int splitIndex = S.size()/2;
-        int maxLeafSize = getMaxLeafSize();
+        final int maxLeafSize = getMaxLeafSize();
         
         if(S.size() >= maxLeafSize*4)
         {
-            OnLineStatistics rightV = new OnLineStatistics();
-            OnLineStatistics leftV = new OnLineStatistics();
-            for(int i = 0; i < maxLeafSize; i++)
-                leftV.add(S.get(i).getFirstItem());
-            for(int i = maxLeafSize; i < S.size(); i++)
-                rightV.add(S.get(i).getFirstItem());
+            final OnLineStatistics rightV = new OnLineStatistics();
+            final OnLineStatistics leftV = new OnLineStatistics();
+            for(int i = 0; i < maxLeafSize; i++) {
+              leftV.add(S.get(i).getFirstItem());
+            }
+            for(int i = maxLeafSize; i < S.size(); i++) {
+              rightV.add(S.get(i).getFirstItem());
+            }
             splitIndex = maxLeafSize;
             double bestVar = leftV.getVarance()*maxLeafSize+rightV.getVarance()*(S.size()-maxLeafSize);
             for(int i = maxLeafSize+1; i < S.size()-maxLeafSize; i++)
             {
-                double tmp = S.get(i).getFirstItem();
+                final double tmp = S.get(i).getFirstItem();
                 leftV.add(tmp);
                 rightV.remove(tmp, 1.0);
-                double testVar = leftV.getVarance()*i + rightV.getVarance()*(S.size()-i);
+                final double testVar = leftV.getVarance()*i + rightV.getVarance()*(S.size()-i);
                 if(testVar < bestVar)
                 {
                     splitIndex = i;
@@ -86,7 +88,7 @@ public class VPTreeMV<V extends Vec> extends VPTree<V>
 		private static final long serialVersionUID = 4265451324896792148L;
 		private VPSelection vpSelectionMethod;
 
-        public VPTreeMVFactory(VPSelection vpSelectionMethod)
+        public VPTreeMVFactory(final VPSelection vpSelectionMethod)
         {
             this.vpSelectionMethod = vpSelectionMethod;
         }
@@ -97,13 +99,13 @@ public class VPTreeMV<V extends Vec> extends VPTree<V>
         }
         
         @Override
-        public VectorCollection<V> getVectorCollection(List<V> source, DistanceMetric distanceMetric)
+        public VectorCollection<V> getVectorCollection(final List<V> source, final DistanceMetric distanceMetric)
         {
             return new VPTreeMV<V>(source, distanceMetric, vpSelectionMethod);
         }
 
         @Override
-        public VectorCollection<V> getVectorCollection(List<V> source, DistanceMetric distanceMetric, ExecutorService threadpool)
+        public VectorCollection<V> getVectorCollection(final List<V> source, final DistanceMetric distanceMetric, final ExecutorService threadpool)
         {
             return new VPTreeMV<V>(source, distanceMetric, vpSelectionMethod, new Random(10), 80, 40, threadpool);
         }

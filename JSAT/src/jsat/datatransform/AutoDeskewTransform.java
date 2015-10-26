@@ -46,10 +46,11 @@ public class AutoDeskewTransform implements InPlaceTransform
 		private static final long serialVersionUID = -404316813485246422L;
 
 		@Override
-        public double indexFunc(double value, int index)
+        public double indexFunc(final double value, final int index)
         {
-            if(index < 0)
-                return 0.0;
+            if(index < 0) {
+              return 0.0;
+            }
             return transform(value, finalLambdas[index], mins[index]);
         }
     };
@@ -69,7 +70,7 @@ public class AutoDeskewTransform implements InPlaceTransform
      *
      * @param dataSet the data set to deskew
      */
-    public AutoDeskewTransform(DataSet dataSet)
+    public AutoDeskewTransform(final DataSet dataSet)
     {
         this(dataSet, defaultList);
     }
@@ -80,7 +81,7 @@ public class AutoDeskewTransform implements InPlaceTransform
      * @param dataSet the data set to deskew
      * @param lambdas the list of lambda values to evaluate
      */
-    public AutoDeskewTransform(DataSet dataSet, final List<Double> lambdas)
+    public AutoDeskewTransform(final DataSet dataSet, final List<Double> lambdas)
     {
         this(dataSet, true, lambdas);
     }
@@ -93,16 +94,19 @@ public class AutoDeskewTransform implements InPlaceTransform
      * skewness, {@code false} to include them.
      * @param lambdas the list of lambda values to evaluate
      */
-    public AutoDeskewTransform(DataSet dataSet, boolean ignorZeros, final List<Double> lambdas)
+    public AutoDeskewTransform(final DataSet dataSet, final boolean ignorZeros, final List<Double> lambdas)
     {
         //going to try leaving things alone nomatter what
-        if (!lambdas.contains(1.0))
-            lambdas.add(1.0);
+        if (!lambdas.contains(1.0)) {
+          lambdas.add(1.0);
+        }
 
-        OnLineStatistics[][] stats = new OnLineStatistics[lambdas.size()][dataSet.getNumNumericalVars()];
-        for (int i = 0; i < stats.length; i++)
-            for (int j = 0; j < stats[i].length; j++)
-                stats[i][j] = new OnLineStatistics();
+        final OnLineStatistics[][] stats = new OnLineStatistics[lambdas.size()][dataSet.getNumNumericalVars()];
+        for (int i = 0; i < stats.length; i++) {
+          for (int j = 0; j < stats[i].length; j++) {
+            stats[i][j] = new OnLineStatistics();
+          }
+        }
         mins = new double[dataSet.getNumNumericalVars()];
         Arrays.fill(mins, Double.POSITIVE_INFINITY);
 
@@ -110,10 +114,11 @@ public class AutoDeskewTransform implements InPlaceTransform
         //First pass, get min/max values
         for (int i = 0; i < dataSet.getSampleSize(); i++)
         {
-            Vec x = dataSet.getDataPoint(i).getNumericalValues();
-            if (x.isSparse())
-                containsSparseVecs = true;
-            for (IndexValue iv : x)
+            final Vec x = dataSet.getDataPoint(i).getNumericalValues();
+            if (x.isSparse()) {
+              containsSparseVecs = true;
+            }
+            for (final IndexValue iv : x)
             {
                 final int indx = iv.getIndex();
                 final double val = iv.getValue();
@@ -121,39 +126,46 @@ public class AutoDeskewTransform implements InPlaceTransform
                 mins[indx] = Math.min(val, mins[indx]);
             }
         }
-        if (containsSparseVecs)
-            for (int i = 0; i < mins.length; i++)//done b/c we only iterated the non-zeros
-                mins[i] = Math.min(0, mins[i]);
+        if (containsSparseVecs) {
+          for (int i = 0; i < mins.length; i++) {
+            //done b/c we only iterated the non-zeros
+            mins[i] = Math.min(0, mins[i]);
+          }
+        }
 
         //Second pass, find the best skew transform
         for (int i = 0; i < dataSet.getSampleSize(); i++)
         {
-            Vec x = dataSet.getDataPoint(i).getNumericalValues();
-            double weight = dataSet.getDataPoint(i).getWeight();
+            final Vec x = dataSet.getDataPoint(i).getNumericalValues();
+            final double weight = dataSet.getDataPoint(i).getWeight();
 
             int lastIndx = -1;
-            for (IndexValue iv : x)
+            for (final IndexValue iv : x)
             {
-                int indx = iv.getIndex();
-                double val = iv.getValue();
+                final int indx = iv.getIndex();
+                final double val = iv.getValue();
                 updateStats(lambdas, stats, indx, val, mins, weight);
 
-                if (!ignorZeros)//we have to do this here instead of bulk insert at the end b/c of different weight value combinations
-                    for (int prevIndx = lastIndx + 1; prevIndx < indx; prevIndx++)
-                        updateStats(lambdas, stats, prevIndx, 0.0, mins, weight);
+                if (!ignorZeros) {//we have to do this here instead of bulk insert at the end b/c of different weight value combinations
+                  for (int prevIndx = lastIndx + 1; prevIndx < indx; prevIndx++) {
+                    updateStats(lambdas, stats, prevIndx, 0.0, mins, weight);
+                  }
+                }
 
                 lastIndx = indx;
             }
 
             //Catch trailing zero values
-            if (!ignorZeros)//we have to do this here instead of bulk insert at the end b/c of different weight value combinations
-                for (int prevIndx = lastIndx + 1; prevIndx < mins.length; prevIndx++)
-                    updateStats(lambdas, stats, prevIndx, 0.0, mins, weight);
+            if (!ignorZeros) {//we have to do this here instead of bulk insert at the end b/c of different weight value combinations
+              for (int prevIndx = lastIndx + 1; prevIndx < mins.length; prevIndx++) {
+                updateStats(lambdas, stats, prevIndx, 0.0, mins, weight);
+              }
+            }
         }
 
         //Finish by figureing out which did best
         finalLambdas = new double[mins.length];
-        int lambdaOneIndex = lambdas.indexOf(1.0);
+        final int lambdaOneIndex = lambdas.indexOf(1.0);
         for (int d = 0; d < finalLambdas.length; d++)
         {
             double minSkew = Double.POSITIVE_INFINITY;
@@ -161,7 +173,7 @@ public class AutoDeskewTransform implements InPlaceTransform
 
             for (int k = 0; k < lambdas.size(); k++)
             {
-                double skew = Math.abs(stats[k][d].getSkewness());
+                final double skew = Math.abs(stats[k][d].getSkewness());
                 if (skew < minSkew)
                 {
                     minSkew = skew;
@@ -169,12 +181,13 @@ public class AutoDeskewTransform implements InPlaceTransform
                 }
             }
 
-            double origSkew = Math.abs(stats[lambdaOneIndex][d].getSkewness());
+            final double origSkew = Math.abs(stats[lambdaOneIndex][d].getSkewness());
 
-            if (origSkew > minSkew * 1.05)//only change if there is a reasonable improvment
-                finalLambdas[d] = bestLambda;
-            else
-                finalLambdas[d] = 1.0;
+            if (origSkew > minSkew * 1.05) {//only change if there is a reasonable improvment
+              finalLambdas[d] = bestLambda;
+            } else {
+              finalLambdas[d] = 1.0;
+            }
         }
     }
 
@@ -183,7 +196,7 @@ public class AutoDeskewTransform implements InPlaceTransform
      *
      * @param toCopy the object to copy
      */
-    protected AutoDeskewTransform(AutoDeskewTransform toCopy)
+    protected AutoDeskewTransform(final AutoDeskewTransform toCopy)
     {
         this.finalLambdas = Arrays.copyOf(toCopy.finalLambdas, toCopy.finalLambdas.length);
         this.mins = Arrays.copyOf(toCopy.mins, toCopy.mins.length);
@@ -191,8 +204,9 @@ public class AutoDeskewTransform implements InPlaceTransform
 
     private static double transform(final double val, final double lambda, final double min)
     {
-        if (val == 0)
-            return 0;
+        if (val == 0) {
+          return 0;
+        }
         //special cases
         if (lambda == 2)
         {
@@ -232,15 +246,15 @@ public class AutoDeskewTransform implements InPlaceTransform
     }
 
     @Override
-    public DataPoint transform(DataPoint dp)
+    public DataPoint transform(final DataPoint dp)
     {
-        DataPoint newDP = dp.clone();
+        final DataPoint newDP = dp.clone();
         mutableTransform(newDP);
         return newDP;
     }
     
     @Override
-    public void mutableTransform(DataPoint dp)
+    public void mutableTransform(final DataPoint dp)
     {
         dp.getNumericalValues().applyIndexFunction(transform);
     }
@@ -261,10 +275,11 @@ public class AutoDeskewTransform implements InPlaceTransform
      * @param mins the minimum value array
      * @param weight the weight to the given update
      */
-    private void updateStats(final List<Double> lambdas, OnLineStatistics[][] stats, int indx, double val, double[] mins, double weight)
+    private void updateStats(final List<Double> lambdas, final OnLineStatistics[][] stats, final int indx, final double val, final double[] mins, final double weight)
     {
-        for (int k = 0; k < lambdas.size(); k++)
-            stats[k][indx].add(transform(val, lambdas.get(k), mins[indx]), weight);
+        for (int k = 0; k < lambdas.size(); k++) {
+          stats[k][indx].add(transform(val, lambdas.get(k), mins[indx]), weight);
+        }
     }
 
     @Override
@@ -278,7 +293,7 @@ public class AutoDeskewTransform implements InPlaceTransform
      */
     static public class AutoDeskewTransformFactory implements DataTransformFactory
     {
-        private List<Double> lambdas;
+        private final List<Double> lambdas;
 
         /**
          * Creates a new deskewing factory using the default values
@@ -293,7 +308,7 @@ public class AutoDeskewTransform implements InPlaceTransform
          *
          * @param lambdas the list of lambda values to use
          */
-        public AutoDeskewTransformFactory(List<Double> lambdas)
+        public AutoDeskewTransformFactory(final List<Double> lambdas)
         {
             this.lambdas = lambdas;
         }
@@ -303,7 +318,7 @@ public class AutoDeskewTransform implements InPlaceTransform
          *
          * @param lambdas the list of lambda values to use
          */
-        public AutoDeskewTransformFactory(double... lambdas)
+        public AutoDeskewTransformFactory(final double... lambdas)
         {
             this(DoubleList.unmodifiableView(lambdas, lambdas.length));
         }
@@ -312,13 +327,13 @@ public class AutoDeskewTransform implements InPlaceTransform
          * Copy constructor
          * @param toClone the object to copy
          */
-        public AutoDeskewTransformFactory(AutoDeskewTransformFactory toClone)
+        public AutoDeskewTransformFactory(final AutoDeskewTransformFactory toClone)
         {
             this(new DoubleList(toClone.lambdas));
         }
         
         @Override
-        public AutoDeskewTransform getTransform(DataSet dataset)
+        public AutoDeskewTransform getTransform(final DataSet dataset)
         {
             return new AutoDeskewTransform(dataset, true, lambdas);
         }

@@ -29,10 +29,11 @@ public abstract class BaseUpdateableClassifier implements UpdateableClassifier
      * performed for training
      * @param epochs the number of whole iterations through the data set
      */
-    public void setEpochs(int epochs)
+    public void setEpochs(final int epochs)
     {
-        if(epochs < 1)
-            throw new IllegalArgumentException("epochs must be a positive value");
+        if(epochs < 1) {
+          throw new IllegalArgumentException("epochs must be a positive value");
+        }
         this.epochs = epochs;
     }
 
@@ -46,13 +47,13 @@ public abstract class BaseUpdateableClassifier implements UpdateableClassifier
     }
 
     @Override
-    public void trainC(ClassificationDataSet dataSet, ExecutorService threadPool)
+    public void trainC(final ClassificationDataSet dataSet, final ExecutorService threadPool)
     {
         trainC(dataSet);
     }
 
     @Override
-    public void trainC(ClassificationDataSet dataSet)
+    public void trainC(final ClassificationDataSet dataSet)
     {
         trainEpochs(dataSet, this, epochs);
     }
@@ -65,19 +66,21 @@ public abstract class BaseUpdateableClassifier implements UpdateableClassifier
      * @param toTrain the classifier to train
      * @param epochs the number of passes through the data set
      */
-    public static void trainEpochs(ClassificationDataSet dataSet, UpdateableClassifier toTrain, int epochs)
+    public static void trainEpochs(final ClassificationDataSet dataSet, final UpdateableClassifier toTrain, final int epochs)
     {
-        if(epochs < 1)
-            throw new IllegalArgumentException("epochs must be positive");
+        if(epochs < 1) {
+          throw new IllegalArgumentException("epochs must be positive");
+        }
         toTrain.setUp(dataSet.getCategories(), dataSet.getNumNumericalVars(), 
                 dataSet.getPredicting());
-        IntList randomOrder = new IntList(dataSet.getSampleSize());
+        final IntList randomOrder = new IntList(dataSet.getSampleSize());
         ListUtils.addRange(randomOrder, 0, dataSet.getSampleSize(), 1);
         for (int epoch = 0; epoch < epochs; epoch++)
         {
             Collections.shuffle(randomOrder);
-            for (int i : randomOrder)
-                toTrain.update(dataSet.getDataPoint(i), dataSet.getDataPointCategory(i));
+            for (final int i : randomOrder) {
+              toTrain.update(dataSet.getDataPoint(i), dataSet.getDataPointCategory(i));
+            }
         }
     }
 

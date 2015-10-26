@@ -52,7 +52,7 @@ public class ODE extends BaseUpdateableClassifier
      * Creates a new ODE classifier 
      * @param dependent the categorical feature to be dependent of
      */
-    public ODE(int dependent)
+    public ODE(final int dependent)
     {
         this.dependent = dependent;
     }
@@ -61,7 +61,7 @@ public class ODE extends BaseUpdateableClassifier
      * Copy constructor
      * @param toClone the ODE to copy
      */
-    protected ODE(ODE toClone)
+    protected ODE(final ODE toClone)
     {
         this(toClone.dependent);
         this.predTargets = toClone.predTargets;
@@ -85,21 +85,22 @@ public class ODE extends BaseUpdateableClassifier
             }
             
             this.priors = new double[toClone.priors.length][];
-            for(int i = 0; i < this.priors.length; i++)
-                this.priors[i] = Arrays.copyOf(toClone.priors[i], toClone.priors[i].length);
+            for(int i = 0; i < this.priors.length; i++) {
+              this.priors[i] = Arrays.copyOf(toClone.priors[i], toClone.priors[i].length);
+            }
             this.priorSum = toClone.priorSum;
         }
     }
 
     @Override
-    public CategoricalResults classify(DataPoint data)
+    public CategoricalResults classify(final DataPoint data)
     {
-        CategoricalResults cr = new CategoricalResults(predTargets);
+        final CategoricalResults cr = new CategoricalResults(predTargets);
         
-        int[] catVals = data.getCategoricalValues();
+        final int[] catVals = data.getCategoricalValues();
         for (int c = 0; c < predTargets; c++)
         {
-            double logProb = getLogPrb(catVals, c);
+            final double logProb = getLogPrb(catVals, c);
             
             cr.setProb(c, Math.exp(logProb)); 
         }
@@ -121,21 +122,24 @@ public class ODE extends BaseUpdateableClassifier
     }
 
     @Override
-    public void setUp(CategoricalData[] categoricalAttributes, int numericAttributes, CategoricalData predicting)
+    public void setUp(final CategoricalData[] categoricalAttributes, final int numericAttributes, final CategoricalData predicting)
     {
-        if(categoricalAttributes.length < 1)
-            throw new FailedToFitException("At least 2 categorical varaibles are needed for ODE");
-        CategoricalData[] catData = categoricalAttributes;
+        if(categoricalAttributes.length < 1) {
+          throw new FailedToFitException("At least 2 categorical varaibles are needed for ODE");
+        }
+        final CategoricalData[] catData = categoricalAttributes;
         predTargets = predicting.getNumOfCategories();
         depTargets = catData[dependent].getNumOfCategories();
         counts = new double[predTargets][depTargets][catData.length][];
-        for(int i = 0; i < counts.length; i++)
-            for(int j = 0; j < counts[i].length; j++)
-                for(int z = 0; z < counts[i][j].length; z++)
-                {
-                    counts[i][j][z] = new double[catData[z].getNumOfCategories()];
-                    Arrays.fill(counts[i][j][z], 1.0);//Fill will laplace
-                }
+        for(int i = 0; i < counts.length; i++) {
+          for (int j = 0; j < counts[i].length; j++) {
+            for(int z = 0; z < counts[i][j].length; z++)
+            {
+              counts[i][j][z] = new double[catData[z].getNumOfCategories()];
+              Arrays.fill(counts[i][j][z], 1.0);//Fill will laplace
+            }
+          }
+        }
         
         priors = new double[predTargets][depTargets];
         for(int i = 0; i < priors.length; i++)
@@ -146,15 +150,16 @@ public class ODE extends BaseUpdateableClassifier
     }
 
     @Override
-    public void update(DataPoint dataPoint, int targetClass)
+    public void update(final DataPoint dataPoint, final int targetClass)
     {
-        int[] catVals = dataPoint.getCategoricalValues();
-        double weight = dataPoint.getWeight();
-        for (int j = 0; j < catVals.length; j++)
-            if (j == dependent)
-                continue;
-            else
-                counts[targetClass][catVals[dependent]][j][catVals[j]] += weight;
+        final int[] catVals = dataPoint.getCategoricalValues();
+        final double weight = dataPoint.getWeight();
+        for (int j = 0; j < catVals.length; j++) {
+          if (j == dependent) {
+          } else {
+            counts[targetClass][catVals[dependent]][j][catVals[j]] += weight;
+          }
+        }
         priors[targetClass][catVals[dependent]] += weight;
         priorSum += weight;
     }
@@ -166,17 +171,19 @@ public class ODE extends BaseUpdateableClassifier
      * @return the non normalized log probability of the data point belonging to
      * the target class <tt>c</tt>
      */
-    protected double getLogPrb(int[] catVals, int c)
+    protected double getLogPrb(final int[] catVals, final int c)
     {
         double logProb = 0.0;
-        int xi = catVals[dependent];
+        final int xi = catVals[dependent];
         for (int j = 0; j < catVals.length; j++)
         {
-            if(j == dependent)
-                continue;
+            if(j == dependent) {
+              continue;
+            }
             double sum = 0;
-            for(int z = 0; z < counts[c][xi][j].length; z++)
-                sum += counts[c][xi][j][z];
+            for(int z = 0; z < counts[c][xi][j].length; z++) {
+              sum += counts[c][xi][j][z];
+            }
             logProb += Math.log(counts[c][xi][j][catVals[j]]/sum);
         }
         

@@ -27,30 +27,32 @@ public class RTree<V extends Vec> implements VectorCollection<V>
 	private static final long serialVersionUID = -7067110612346062800L;
 
 	@Override
-    public List<? extends VecPaired<V, Double>> search(Vec query, double range)
+    public List<? extends VecPaired<V, Double>> search(final Vec query, final double range)
     {
-        Rectangle searchSpace = new Rectangle(dim, range, query);
+        final Rectangle searchSpace = new Rectangle(dim, range, query);
         
-        List<V> inSearchSpace= new ArrayList<V>();
+        final List<V> inSearchSpace= new ArrayList<V>();
         search(searchSpace, root, inSearchSpace);
-        List<VecPaired<V, Double>> inRange = new ArrayList<VecPaired<V, Double>>(inSearchSpace.size());
+        final List<VecPaired<V, Double>> inRange = new ArrayList<VecPaired<V, Double>>(inSearchSpace.size());
         double dist;
-        for(V v : inSearchSpace)
-            if( (dist = dm.dist(query, extractTrueVec(v))) <= range)
-                inRange.add(new VecPaired<V, Double>(v, dist));
+        for(final V v : inSearchSpace) {
+          if ((dist = dm.dist(query, extractTrueVec(v))) <= range) {
+            inRange.add(new VecPaired<V, Double>(v, dist));
+          }
+        }
         
         return inRange;
     }
 
     @Override
-    public List<? extends VecPaired<V, Double>> search(Vec query, int neighbors)
+    public List<? extends VecPaired<V, Double>> search(final Vec query, final int neighbors)
     {
         /**
          * Match up nodes with the minDist from the query to that node
          */
-        Stack<ProbailityMatch<RNode<V>>> stack = new Stack<ProbailityMatch<RNode<V>>>();
+        final Stack<ProbailityMatch<RNode<V>>> stack = new Stack<ProbailityMatch<RNode<V>>>();
         
-        BoundedSortedList<ProbailityMatch<V>> curBest = new BoundedSortedList<ProbailityMatch<V>>(neighbors);
+        final BoundedSortedList<ProbailityMatch<V>> curBest = new BoundedSortedList<ProbailityMatch<V>>(neighbors);
         curBest.add( new ProbailityMatch<V>(Double.MAX_VALUE, null));//add a fake just to make life easy coding
         
         stack.push(new ProbailityMatch<RNode<V>>(minDist(query, root.bound), root));
@@ -58,20 +60,20 @@ public class RTree<V extends Vec> implements VectorCollection<V>
         /**
          * Active Branch list
          */
-        List<ProbailityMatch<RNode<V>>> ABL = new ArrayList<ProbailityMatch<RNode<V>>>();
+        final List<ProbailityMatch<RNode<V>>> ABL = new ArrayList<ProbailityMatch<RNode<V>>>();
         
         while(!stack.isEmpty())
         {
-            ProbailityMatch<RNode<V>> poped = stack.pop();
-            RNode<V> N = poped.getMatch();
-            double minDistN = poped.getProbability();
+            final ProbailityMatch<RNode<V>> poped = stack.pop();
+            final RNode<V> N = poped.getMatch();
+            final double minDistN = poped.getProbability();
             if(minDistN <= curBest.last().getProbability())
             {
                 if(N.isLeaf())
                 {
-                    for(V v : N.points)
+                    for(final V v : N.points)
                     {
-                        double dist = dm.dist(query, extractTrueVec(v));
+                        final double dist = dm.dist(query, extractTrueVec(v));
                         curBest.add(new ProbailityMatch<V>(dist, v));
                     }
                 }
@@ -79,9 +81,10 @@ public class RTree<V extends Vec> implements VectorCollection<V>
                 {
                     for(int i = 0; i < N.size(); i++)
                     {
-                        double i_min = minDist(query, N.getChild(i).bound);
-                        if(i_min <= curBest.last().getProbability())
-                            ABL.add(new ProbailityMatch<RNode<V>>(i_min, N.getChild(i)));
+                        final double i_min = minDist(query, N.getChild(i).bound);
+                        if(i_min <= curBest.last().getProbability()) {
+                          ABL.add(new ProbailityMatch<RNode<V>>(i_min, N.getChild(i)));
+                        }
                     }
                     Collections.sort(ABL, Collections.reverseOrder());
                     stack.addAll(ABL);
@@ -92,10 +95,10 @@ public class RTree<V extends Vec> implements VectorCollection<V>
         
         
         //Now prepare to return 
-        List<VecPaired<V, Double>> knnsList = new ArrayList<VecPaired<V, Double>>(neighbors);
+        final List<VecPaired<V, Double>> knnsList = new ArrayList<VecPaired<V, Double>>(neighbors);
         for(int i = 0; i < curBest.size(); i++)
         {
-            ProbailityMatch<V> pm = curBest.get(i);
+            final ProbailityMatch<V> pm = curBest.get(i);
             knnsList.add(new VecPaired<V, Double>(pm.getMatch(), pm.getProbability()));
         }
         
@@ -108,18 +111,23 @@ public class RTree<V extends Vec> implements VectorCollection<V>
      * @param node the current node to search
      * @param list the place to store the nodes
      */
-    private void search(Rectangle query, RNode<V> node, List<V> list)
+    private void search(final Rectangle query, final RNode<V> node, final List<V> list)
     {
         if(!node.isLeaf())
         {
-            for(int i = 0; i < node.size(); i++)
-                if(node.getChild(i).bound.intersects(query))
-                    search(query, node.getChild(i), list);
+            for(int i = 0; i < node.size(); i++) {
+              if (node.getChild(i).bound.intersects(query)) {
+                search(query, node.getChild(i), list);
+              }
+            }
         }
-        else
-            for(int i = 0; i < node.size(); i++)
-                if(query.contains(node.points.get(i)))
-                    list.add(node.points.get(i));
+        else {
+          for (int i = 0; i < node.size(); i++) {
+            if (query.contains(node.points.get(i))) {
+              list.add(node.points.get(i));
+            }
+          }
+        }
     }
 
     @Override
@@ -145,7 +153,7 @@ public class RTree<V extends Vec> implements VectorCollection<V>
          * Creating a new leaf node
          * @param points 
          */
-        public RNode(List<V> points)
+        public RNode(final List<V> points)
         {
             this.points = points;
             children = new ArrayList<RNode<V>>();
@@ -159,17 +167,18 @@ public class RTree<V extends Vec> implements VectorCollection<V>
             bound = null;
         }
         
-        RNode<V> getChild(int n)
+        RNode<V> getChild(final int n)
         {
             return children.get(n);
         }
         
-        Rectangle nthBound(int n)
+        Rectangle nthBound(final int n)
         {
-            if(isLeaf())
-                return new Rectangle(points.get(n));
-            else
-                return children.get(n).bound;
+            if(isLeaf()) {
+              return new Rectangle(points.get(n));
+            } else {
+              return children.get(n).bound;
+            }
         }
         @SuppressWarnings("unused")
         boolean isFull()
@@ -182,13 +191,14 @@ public class RTree<V extends Vec> implements VectorCollection<V>
          * @param v point to add
          * @return true if this node needs to be split
          */
-        boolean add(V v)
+        boolean add(final V v)
         {
             points.add(v);
-            if(bound == null)
-                bound = new Rectangle(v);
-            else
-                bound.adjustToContain(v);
+            if(bound == null) {
+              bound = new Rectangle(v);
+            } else {
+              bound.adjustToContain(v);
+            }
             return size() > M;
         }
         
@@ -197,14 +207,15 @@ public class RTree<V extends Vec> implements VectorCollection<V>
          * @param node
          * @return true if this node needs to be split
          */
-        boolean add(RNode<V> node)
+        boolean add(final RNode<V> node)
         {
             node.parent = this;
             children.add(node);
-            if(bound == null)
-                bound = new Rectangle(node.bound);
-            else
-                bound.adjustToContain(node.bound);
+            if(bound == null) {
+              bound = new Rectangle(node.bound);
+            } else {
+              bound.adjustToContain(node.bound);
+            }
             return size() > M;
         }
         
@@ -213,7 +224,8 @@ public class RTree<V extends Vec> implements VectorCollection<V>
             return children.isEmpty();
         }
 
-        public int compareTo(RNode<V> o)
+        @Override
+        public int compareTo(final RNode<V> o)
         {
             return Double.compare(this.bound.area(), o.bound.area());
         }
@@ -227,26 +239,29 @@ public class RTree<V extends Vec> implements VectorCollection<V>
          */
         private int size()
         {
-            if(isLeaf())
-                return points.size();
-            else
-                return children.size();
+            if(isLeaf()) {
+              return points.size();
+            } else {
+              return children.size();
+            }
         }
 
         @Override
         protected RNode<V> clone()
         {
-            RNode<V> clone = new RNode<V>();
-            for(RNode<V> child : this.children)
+            final RNode<V> clone = new RNode<V>();
+            for(final RNode<V> child : this.children)
             {
-                RNode<V> cloneChild = child.clone();
+                final RNode<V> cloneChild = child.clone();
                 cloneChild.parent = clone;
                 clone.children.add(cloneChild);
             }
-            for(V v : points)
-                clone.points.add(v);
-            if(this.bound != null)
-                clone.bound = this.bound.clone();
+            for(final V v : points) {
+              clone.points.add(v);
+            }
+            if(this.bound != null) {
+              clone.bound = this.bound.clone();
+            }
             
             return clone;
         }
@@ -263,13 +278,13 @@ public class RTree<V extends Vec> implements VectorCollection<V>
          */
         private Vec lB;
 
-        public Rectangle(Vec upperBound, Vec lowerBound)
+        public Rectangle(final Vec upperBound, final Vec lowerBound)
         {
             this.uB = upperBound;
             this.lB = lowerBound;
         }
         
-        public Rectangle(int dimensions, double distance, Vec center)
+        public Rectangle(final int dimensions, final double distance, final Vec center)
         {
             uB = new DenseVector(dimensions);
             lB = new DenseVector(dimensions);
@@ -281,19 +296,19 @@ public class RTree<V extends Vec> implements VectorCollection<V>
             }
         }
         @SuppressWarnings("unused")
-        public Rectangle(int dimensions)
+        public Rectangle(final int dimensions)
         {
             uB = new DenseVector(dimensions);
             lB = new DenseVector(dimensions);
         }
         
-        public Rectangle(Vec point)
+        public Rectangle(final Vec point)
         {
             uB = point.clone();
             lB = point.clone();
         }
         @SuppressWarnings("unused")
-        public Rectangle(Vec... points)
+        public Rectangle(final Vec... points)
         {
             this(Arrays.asList(points));
         }
@@ -302,7 +317,7 @@ public class RTree<V extends Vec> implements VectorCollection<V>
          * Creates a rectangle that covers all the given points tightly
          * @param points 
          */
-        public Rectangle(List<Vec> points)
+        public Rectangle(final List<Vec> points)
         {
             uB = new DenseVector(points.get(0).length());
             lB = new DenseVector(uB.length());
@@ -325,7 +340,7 @@ public class RTree<V extends Vec> implements VectorCollection<V>
          * Creates a new rectangle that contains all the given rectangles
          * @param recs 
          */
-        public Rectangle(Rectangle... recs)
+        public Rectangle(final Rectangle... recs)
         {
             uB = new DenseVector(recs[0].uB.length());
             lB = new DenseVector(uB.length());
@@ -344,36 +359,37 @@ public class RTree<V extends Vec> implements VectorCollection<V>
             }
         }
         
-        double increasedArea(Vec v)
+        double increasedArea(final Vec v)
         {
             double newArea = 1;
             double curArea = 1;
             for(int i = 0; i < uB.length(); i++)
             {
-                double curAreaTerm = uB.get(i)-lB.get(i);
-                double vi = v.get(i);
-                if(vi < lB.get(i))
-                    newArea *= uB.get(i)-vi;
-                else if(vi > uB.get(i))
-                    newArea *= vi-lB.get(i);
-                else
-                    newArea *= curAreaTerm;
+                final double curAreaTerm = uB.get(i)-lB.get(i);
+                final double vi = v.get(i);
+                if(vi < lB.get(i)) {
+                  newArea *= uB.get(i)-vi;
+                } else if(vi > uB.get(i)) {
+                  newArea *= vi-lB.get(i);
+                } else {
+                  newArea *= curAreaTerm;
+                }
                 curArea *= curAreaTerm;
             }
             return newArea-curArea;
         }
         
-        double increasedArea(Rectangle r)
+        double increasedArea(final Rectangle r)
         {
             double newArea = 1;
             double curArea = 1;
             for(int i = 0; i < uB.length(); i++)
             {
-                double curAreaTerm = uB.get(i)-lB.get(i);
+                final double curAreaTerm = uB.get(i)-lB.get(i);
                 curArea *= curAreaTerm;
                 
-                double newUBi = Math.max(uB.get(i), r.uB.get(i));
-                double newLBi = Math.min(lB.get(i), r.lB.get(i));
+                final double newUBi = Math.max(uB.get(i), r.uB.get(i));
+                final double newLBi = Math.min(lB.get(i), r.lB.get(i));
                 
                 newArea *= (newUBi-newLBi);
                 
@@ -384,43 +400,48 @@ public class RTree<V extends Vec> implements VectorCollection<V>
         double area()
         {
             double area = 1;
-            for(int i = 0; i < uB.length(); i++)
-                area *= uB.get(i)-lB.get(i);
+            for(int i = 0; i < uB.length(); i++) {
+              area *= uB.get(i)-lB.get(i);
+            }
             return area;
         }
         
-        boolean intersects(Rectangle rect)
+        boolean intersects(final Rectangle rect)
         {
             for(int i = 0; i < uB.length(); i++)
             {
-                if(this.uB.get(i) < rect.lB.get(i) || this.lB.get(i) > rect.uB.get(i))
-                    return false;
+                if(this.uB.get(i) < rect.lB.get(i) || this.lB.get(i) > rect.uB.get(i)) {
+                  return false;
+                }
             }
             
             return true;
         }
         
-        boolean contains(Vec point)
+        boolean contains(final Vec point)
         {
-            for(int i = 0; i < uB.length(); i++)
-                if(this.uB.get(i) < point.get(i) || this.lB.get(i) > point.get(i))
-                    return false;
+            for(int i = 0; i < uB.length(); i++) {
+              if (this.uB.get(i) < point.get(i) || this.lB.get(i) > point.get(i)) {
+                return false;
+              }
+            }
             return true;
         }
         
-        void adjustToContain(Vec point)
+        void adjustToContain(final Vec point)
         {
             for(int i = 0; i < uB.length(); i++)
             {
-                double vi = point.get(i);
-                if(vi > uB.get(i))
-                    uB.set(i, vi);
-                else if(vi < lB.get(i))
-                    lB.set(i, vi);
+                final double vi = point.get(i);
+                if(vi > uB.get(i)) {
+                  uB.set(i, vi);
+                } else if(vi < lB.get(i)) {
+                  lB.set(i, vi);
+                }
             }
         }
         
-        void adjustToContain(Rectangle r)
+        void adjustToContain(final Rectangle r)
         {
             adjustToContain(r.uB);
             adjustToContain(r.lB);
@@ -429,11 +450,12 @@ public class RTree<V extends Vec> implements VectorCollection<V>
         @Override
         public String toString()
         {
-            StringBuilder sb = new StringBuilder();
+            final StringBuilder sb = new StringBuilder();
             sb.append("[");
             sb.append(lB.get(0)).append(":").append(uB.get(0));
-            for(int i = 1; i < uB.length(); i++)
-                sb.append(",").append(lB.get(i)).append(":").append(uB.get(i));
+            for(int i = 1; i < uB.length(); i++) {
+              sb.append(",").append(lB.get(i)).append(":").append(uB.get(i));
+            }
             sb.append("]");
             return sb.toString();
         }
@@ -444,10 +466,10 @@ public class RTree<V extends Vec> implements VectorCollection<V>
             return new Rectangle(uB.clone(), lB.clone());
         }
         
-        static <V extends Vec> Rectangle contains(List<V> points)
+        static <V extends Vec> Rectangle contains(final List<V> points)
         {
-            DenseVector uB = new DenseVector(points.get(0).length());
-            DenseVector lB = new DenseVector(uB.length());
+            final DenseVector uB = new DenseVector(points.get(0).length());
+            final DenseVector lB = new DenseVector(uB.length());
             
             for(int i = 0; i < uB.length(); i++)
             {
@@ -488,28 +510,29 @@ public class RTree<V extends Vec> implements VectorCollection<V>
     
     private DistanceMetric dm;
 
-    public RTree(int dimensions)
+    public RTree(final int dimensions)
     {
         this(dimensions, new EuclideanDistance());
     }
     
-    public RTree(int dimensions, DistanceMetric dm)
+    public RTree(final int dimensions, final DistanceMetric dm)
     {
         this(dimensions, dm, 5);
     }
     
-    public RTree(int dimensions, DistanceMetric dm, int max)
+    public RTree(final int dimensions, final DistanceMetric dm, final int max)
     {
         this(dimensions, dm, max, (int)(max*0.4));
     }
 
-    public RTree(int dimensions, DistanceMetric dm, int max, int min)
+    public RTree(final int dimensions, final DistanceMetric dm, final int max, final int min)
     {
         this.root = new RNode();
-        if(max < 2)
-            throw new RuntimeException("The maximum number of elements per node must be at least 2");
-        else if(min > max/2 || min < 1)
-            throw new RuntimeException("Invalid minumum, min must be in the range[1, " + max/2 + "]");
+        if(max < 2) {
+          throw new RuntimeException("The maximum number of elements per node must be at least 2");
+        } else if(min > max/2 || min < 1) {
+          throw new RuntimeException("Invalid minumum, min must be in the range[1, " + max/2 + "]");
+        }
         this.M = max;
         this.m = min;
         this.dim = dimensions;
@@ -521,17 +544,18 @@ public class RTree<V extends Vec> implements VectorCollection<V>
      * Copy constructor
      * @param toCopy 
      */
-    public RTree(RTree toCopy)
+    public RTree(final RTree toCopy)
     {
         this(toCopy.dim, toCopy.dm.clone(), toCopy.M, toCopy.m);
         this.size = toCopy.size;
-        if(toCopy.root != null)
-            this.root = toCopy.root;
+        if(toCopy.root != null) {
+          this.root = toCopy.root;
+        }
     }
     
     
     
-    private RNode<V> chooseLeaf(Vec v)
+    private RNode<V> chooseLeaf(final Vec v)
     {
         /*
          * CL1 [Intialize ] Set N to be the root node
@@ -559,7 +583,7 @@ public class RTree<V extends Vec> implements VectorCollection<V>
             for(int i = 1; i < N.children.size(); i++)
             {
                 //Part (1) of CL3
-                double nb = N.children.get(i).bound.increasedArea(v);
+                final double nb = N.children.get(i).bound.increasedArea(v);
                 if(nb < leastEnlargment)//Found a better one 
                 {
                     leastEnlargment = nb;
@@ -587,7 +611,7 @@ public class RTree<V extends Vec> implements VectorCollection<V>
         return N;
     }
     
-    private RNode<V> splitNode(RNode<V> toSplit)
+    private RNode<V> splitNode(final RNode<V> toSplit)
     {
         //Quadratic Split
         /*
@@ -607,41 +631,41 @@ public class RTree<V extends Vec> implements VectorCollection<V>
          * J including El I and E2 I Calculate
          * d = area(J) - area(El I) - area(E2 I)
          */
-        for(int i = 0; i < toSplit.size(); i++)
-            for(int j = 0; j < toSplit.size(); j++)
-            {
-                if(j == i)
-                    continue;
-                Rectangle E1Bound = toSplit.nthBound(i);
-                Rectangle E2Bound = toSplit.nthBound(j);
-                Rectangle J = new Rectangle(E1Bound, E2Bound);
-                double dCandidate = J.area() - E1Bound.area() - E2Bound.area();
-                if(dCandidate > d)//PS2 [Choose the most wasteful pm ] Choose the pair with the largest d
-                {
-                    e1 = i;
-                    e2 = j;
-                    d = dCandidate;
-                }
-                
+        for(int i = 0; i < toSplit.size(); i++) {
+          for (int j = 0; j < toSplit.size(); j++) {
+            if (j == i) {
+              continue;
             }
+            final Rectangle E1Bound = toSplit.nthBound(i);
+            final Rectangle E2Bound = toSplit.nthBound(j);
+            final Rectangle J = new Rectangle(E1Bound, E2Bound);
+            final double dCandidate = J.area() - E1Bound.area() - E2Bound.area();
+            if(dCandidate > d)//PS2 [Choose the most wasteful pm ] Choose the pair with the largest d
+            {
+              e1 = i;
+              e2 = j;
+              d = dCandidate;
+            }
+          }
+        }
         {//Make sure that e1 < e2, makes removing easier 
-            int maxE = Math.max(e1, e2);
+            final int maxE = Math.max(e1, e2);
             e1 = Math.min(e1, e2);
             e2 = maxE;
         }
         
         if(toSplit.isLeaf())
         {
-            List<V> group1 = new ArrayList<V>(m+1);
-            List<V> group2 = new ArrayList<V>(m+1);
+            final List<V> group1 = new ArrayList<V>(m+1);
+            final List<V> group2 = new ArrayList<V>(m+1);
             
-            List<V> toAsign = toSplit.points;//toSplit.points will get overwritten
+            final List<V> toAsign = toSplit.points;//toSplit.points will get overwritten
             
             group2.add(toAsign.remove(e2));
             group1.add(toAsign.remove(e1));
             
-            Rectangle rec2 = new Rectangle(group2.get(0));
-            Rectangle rec1 = new Rectangle(group1.get(0));
+            final Rectangle rec2 = new Rectangle(group2.get(0));
+            final Rectangle rec1 = new Rectangle(group1.get(0));
             
             while(!toAsign.isEmpty())
             {
@@ -685,10 +709,10 @@ public class RTree<V extends Vec> implements VectorCollection<V>
                 boolean toG1 = false;//whether it should be placed into group 1 or group 2
                 for(int i = 0; i < toAsign.size(); i++)
                 {
-                    double enlarg1 = rec1.increasedArea(toAsign.get(i));
-                    double enlarg2 = rec2.increasedArea(toAsign.get(i));
-                    boolean thisToG1 = enlarg1 < enlarg2;
-                    double enlarg = Math.min(enlarg1, enlarg2);
+                    final double enlarg1 = rec1.increasedArea(toAsign.get(i));
+                    final double enlarg2 = rec2.increasedArea(toAsign.get(i));
+                    final boolean thisToG1 = enlarg1 < enlarg2;
+                    final double enlarg = Math.min(enlarg1, enlarg2);
                     
                     if(enlarg < minEnlargment)
                     {
@@ -707,21 +731,21 @@ public class RTree<V extends Vec> implements VectorCollection<V>
         }
         else//TODO handles rectangles... very similar, 
         {
-            List<RNode<V>> toAsign = toSplit.children;
+            final List<RNode<V>> toAsign = toSplit.children;
             
             toSplit.children = new ArrayList<RNode<V>>();
             toSplit.bound = null;
             
-            RNode<V> group1 = toSplit;
-            RNode<V> group2 = new RNode<V>();
+            final RNode<V> group1 = toSplit;
+            final RNode<V> group2 = new RNode<V>();
             
             
             
             group2.add(toAsign.remove(e2));
             group1.add(toAsign.remove(e1));
             
-            Rectangle rec2 = group2.bound;
-            Rectangle rec1 = group1.bound;
+            final Rectangle rec2 = group2.bound;
+            final Rectangle rec1 = group1.bound;
             
             while(!toAsign.isEmpty())
             {
@@ -734,15 +758,17 @@ public class RTree<V extends Vec> implements VectorCollection<V>
                 
                 if(group1.size() >=m && group2.size() < m &&  toAsign.size() - group2.size() == 0)
                 {
-                    for( RNode<V> node : toAsign)
-                        group2.add(node);
+                    for( final RNode<V> node : toAsign) {
+                      group2.add(node);
+                    }
                     toAsign.clear();
                     continue;
                 }
                 else if(group2.size() >=m && group1.size() < m && toAsign.size() - group1.size() == 0)
                 {
-                    for( RNode<V> node : toAsign)
-                        group1.add(node);
+                    for( final RNode<V> node : toAsign) {
+                      group1.add(node);
+                    }
                     toAsign.clear();
                     continue;
                 }
@@ -753,10 +779,10 @@ public class RTree<V extends Vec> implements VectorCollection<V>
                 boolean toG1 = false;//whether it should be placed into group 1 or group 2
                 for(int i = 0; i < toAsign.size(); i++)
                 {
-                    double enlarg1 = rec1.increasedArea(toAsign.get(i).bound);
-                    double enlarg2 = rec2.increasedArea(toAsign.get(i).bound);
-                    boolean thisToG1 = enlarg1 < enlarg2;
-                    double enlarg = Math.min(enlarg1, enlarg2);
+                    final double enlarg1 = rec1.increasedArea(toAsign.get(i).bound);
+                    final double enlarg2 = rec2.increasedArea(toAsign.get(i).bound);
+                    final boolean thisToG1 = enlarg1 < enlarg2;
+                    final double enlarg = Math.min(enlarg1, enlarg2);
                     
                     if(enlarg < minEnlargment)
                     {
@@ -773,7 +799,7 @@ public class RTree<V extends Vec> implements VectorCollection<V>
         }
     }
     
-    private void AdjustTree(RNode<V> L, RNode<V> LL)
+    private void AdjustTree(final RNode<V> L, final RNode<V> LL)
     {
         /*
          * AT1 [Imtlahze.] Set N=L If L was split
@@ -791,7 +817,7 @@ public class RTree<V extends Vec> implements VectorCollection<V>
              * Adjust EN I so that it tightly encloses
              * all entry rectangles in N.
              */
-            RNode<V> P = N.parent;
+            final RNode<V> P = N.parent;
             P.bound.adjustToContain(N.bound);//P alread contains us, so we dont add ourselves again!
             if(NN != null)
             {
@@ -802,10 +828,11 @@ public class RTree<V extends Vec> implements VectorCollection<V>
                  * invoke SplitNode to produce P and PP containing Em and all P’s old
                  * entries
                  */
-                if(P.add(NN))
-                    NN = splitNode(P); //Asignment is part of step AT5 below
-                else
-                    NN = null;
+                if(P.add(NN)) {
+                  NN = splitNode(P); //Asignment is part of step AT5 below
+                } else {
+                  NN = null;
+                }
             }
             /*
              * AT5 [Move up to next level.] Set N=P and
@@ -825,14 +852,15 @@ public class RTree<V extends Vec> implements VectorCollection<V>
         
     }
     
-    public void add(V v)
+    public void add(final V v)
     {
         /*
          * I1 [Find position for new record ]
          * Invoke ChooseLeaf to select a leaf
          * node L in which to place E
          */
-        RNode<V> L = chooseLeaf(v), LL = null;
+        final RNode<V> L = chooseLeaf(v);
+        RNode<V> LL = null;
         
         /*
          * I2 [Add record to leaf node ] If L has
@@ -841,8 +869,9 @@ public class RTree<V extends Vec> implements VectorCollection<V>
          * L and U contammg E and all the
          * old entrees of L 
          */
-        if(L.add(v))//true if we need to split
-            LL = splitNode(L);
+        if(L.add(v)) {//true if we need to split
+          LL = splitNode(L);
+        }
         /*
          * I3 [Propagate changes upward] Invoke
          * AdjustTree on L, also passmg U If a
@@ -860,20 +889,22 @@ public class RTree<V extends Vec> implements VectorCollection<V>
      * @param r the rectangle compute the distance to
      * @return the minimum distance from the point to the rectangle
      */
-    private double minDist(Vec p, Rectangle r)
+    private double minDist(final Vec p, final Rectangle r)
     {
-        if(r.contains(p))
-            return 0;
+        if(r.contains(p)) {
+          return 0;
+        }
         //Set up sctach vector
         for(int i = 0; i < dim; i++)
         {
-            double pi = p.get(i);
-            if(pi <r.lB.get(i))
-                dcScratch.set(i, r.lB.get(i));
-            else if(pi > r.uB.get(i))
-                dcScratch.set(i, r.uB.get(i));
-            else
-                dcScratch.set(i, pi);
+            final double pi = p.get(i);
+            if(pi <r.lB.get(i)) {
+              dcScratch.set(i, r.lB.get(i));
+            } else if(pi > r.uB.get(i)) {
+              dcScratch.set(i, r.uB.get(i));
+            } else {
+              dcScratch.set(i, pi);
+            }
         }
         
         return dm.dist(p, dcScratch);
@@ -886,15 +917,16 @@ public class RTree<V extends Vec> implements VectorCollection<V>
      * @return the minimum of the maximum distance from the point to the rectangle
      */
     @SuppressWarnings("unused")
-    private double minMaxDist(Vec p, Rectangle r)
+    private double minMaxDist(final Vec p, final Rectangle r)
     {
-        if(r.contains(p))
-            return 0;
-        /*
-         * MinMaxDist is usualy describe with the minimum over another loop, explicisty as the euclidant distance
-         * Instead, we prepare a single vector for each loop (k), and set its values accordinly (with index k being an exception in the value set)
-         * We then compute the distance metric and select the min for each k 
-         */
+        if(r.contains(p)) {
+          return 0;
+          /*
+          * MinMaxDist is usualy describe with the minimum over another loop, explicisty as the euclidant distance
+          * Instead, we prepare a single vector for each loop (k), and set its values accordinly (with index k being an exception in the value set)
+          * We then compute the distance metric and select the min for each k
+          */
+        }
         
         double minDist = Double.MAX_VALUE;
         for(int k = 0; k < dim; k++)
@@ -902,24 +934,26 @@ public class RTree<V extends Vec> implements VectorCollection<V>
             //setUp vector
             for(int j = 0; j < dim; j++)
             {
-                double pj = p.get(j);
-                double sj = r.lB.get(j);
-                double tj = r.uB.get(j);
-                if (j == k)//rm_k
-                    if (pj <= (sj + tj) * 0.5)
-                        dcScratch.set(j, sj);
-                    else
-                        dcScratch.set(j, tj);
-                else
+                final double pj = p.get(j);
+                final double sj = r.lB.get(j);
+                final double tj = r.uB.get(j);
+                if (j == k) {//rm_k
+                  if (pj <= (sj + tj) * 0.5) {
+                    dcScratch.set(j, sj);
+                  } else {
+                    dcScratch.set(j, tj);
+                  }
+                } else
                 {
-                    if(pj >= (sj+tj)*0.5)
-                        dcScratch.set(j, sj);
-                    else
-                        dcScratch.set(j, tj);
+                    if(pj >= (sj+tj)*0.5) {
+                      dcScratch.set(j, sj);
+                  } else {
+                      dcScratch.set(j, tj);
+                  }
                 }
             }
             //Now just compute distance
-            double dist = dm.dist(p, dcScratch);
+            final double dist = dm.dist(p, dcScratch);
             minDist = Math.min(dist, minDist);
         }
         
@@ -933,23 +967,25 @@ public class RTree<V extends Vec> implements VectorCollection<V>
      * @return the maximum distance from the point to the rectangle
      */
     @SuppressWarnings("unused")
-    private double maxDist(Vec p, Rectangle r)
+    private double maxDist(final Vec p, final Rectangle r)
     {
-        if(r.contains(p))
-            return 0;
+        if(r.contains(p)) {
+          return 0;
+        }
         //set up vector
         for(int i = 0; i < dim; i++)
         {
-            double pi = p.get(i);
-            double si = r.lB.get(i);
-            double ti = r.uB.get(i);
+            final double pi = p.get(i);
+            final double si = r.lB.get(i);
+            final double ti = r.uB.get(i);
             
-            if(pi < si)
-                dcScratch.set(i, ti);
-            else if(pi > ti)
-                dcScratch.set(i, si);
-            else
-                dcScratch.set(i, pi);
+            if(pi < si) {
+              dcScratch.set(i, ti);
+            } else if(pi > ti) {
+              dcScratch.set(i, si);
+            } else {
+              dcScratch.set(i, pi);
+            }
         }
         
         return dm.dist(p, dcScratch);
@@ -963,18 +999,19 @@ public class RTree<V extends Vec> implements VectorCollection<V>
 		private static final long serialVersionUID = 5690819734453191098L;
 
 		@Override
-        public VectorCollection<V> getVectorCollection(List<V> source, DistanceMetric distanceMetric)
+        public VectorCollection<V> getVectorCollection(final List<V> source, final DistanceMetric distanceMetric)
         {
             
-            RTree<V> newTree = new RTree<V>(source.get(0).length(), distanceMetric, 50);
+            final RTree<V> newTree = new RTree<V>(source.get(0).length(), distanceMetric, 50);
             
-            for(V v : source)
-                newTree.add(v);
+            for(final V v : source) {
+              newTree.add(v);
+            }
             return newTree;
         }
 
         @Override
-        public VectorCollection<V> getVectorCollection(List<V> source, DistanceMetric distanceMetric, ExecutorService threadpool)
+        public VectorCollection<V> getVectorCollection(final List<V> source, final DistanceMetric distanceMetric, final ExecutorService threadpool)
         {
             return getVectorCollection(source, distanceMetric);
         }

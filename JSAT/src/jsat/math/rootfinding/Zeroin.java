@@ -13,17 +13,17 @@ public class Zeroin implements RootFinder
 
 	private static final long serialVersionUID = -8359510619103768778L;
 
-	public static double root(double a, double b, Function f, double... args)
+	public static double root(final double a, final double b, final Function f, final double... args)
     {
         return root(1e-15, 1000, a, b, 0, f, args);
     }
     
-    public static double root(double eps, double a, double b, Function f, double... args)
+    public static double root(final double eps, final double a, final double b, final Function f, final double... args)
     {
         return root(eps, 1000, a, b, 0, f, args);
     }
     
-    public static double root(double eps, double a, double b, int pos, Function f, double... args)
+    public static double root(final double eps, final double a, final double b, final int pos, final Function f, final double... args)
     {
         return root(eps, 1000, a, b, pos, f, args);
     }
@@ -39,7 +39,7 @@ public class Zeroin implements RootFinder
      * @param args the array of variable values for the function, one of which will be altered in the search
      * @return the value of variable {@code pos} that produces a zero value output 
      */
-    public static double root(double eps, int maxIterations, double a, double b, int pos, Function f, double... args)
+    public static double root(final double eps, int maxIterations, double a, double b, int pos, final Function f, double... args)
     {
         //We assume 1 dimensional function then 
         if(args == null ||args.length == 0)
@@ -60,13 +60,16 @@ public class Zeroin implements RootFinder
         args[pos] = b;
         double fb = f.f(args);
         
-        if(abs(fa-0) < 2*eps)
-            return a;
-        if(abs(fb-0) < 2*eps)
-            return b;
+        if(abs(fa-0) < 2*eps) {
+          return a;
+        }
+        if(abs(fb-0) < 2*eps) {
+          return b;
+        }
         
-        if(fa * fb >= 0)
-            throw new ArithmeticException("The given search interval does not appear to contain the root ");
+        if(fa * fb >= 0) {
+          throw new ArithmeticException("The given search interval does not appear to contain the root ");
+        }
         
         if(abs(fa) < abs(fb)) //swap
         {
@@ -81,7 +84,7 @@ public class Zeroin implements RootFinder
         
         
         double c = a;
-        double fc = fa;
+        final double fc = fa;
         boolean mflag = true;
         double s;
         double d = 0;//inital value dosnt matter, and will not be used
@@ -102,19 +105,20 @@ public class Zeroin implements RootFinder
             
             //Determin wethor or not we must use bisection
             
-            boolean cond1 = (s - ( 3 * a + b) / 4 ) * ( s - b) >= 0;
-            boolean cond2 = mflag && (abs(s - b) >= (abs(b - c) / 2));
-            boolean cond3 = !mflag && (abs(s - b) >= (abs(c - d) / 2));
-            boolean cond4 = mflag && (abs(b-c) < 2*eps);
-            boolean cond5 = !mflag && abs(c-d) < 2*eps;
+            final boolean cond1 = (s - ( 3 * a + b) / 4 ) * ( s - b) >= 0;
+            final boolean cond2 = mflag && (abs(s - b) >= (abs(b - c) / 2));
+            final boolean cond3 = !mflag && (abs(s - b) >= (abs(c - d) / 2));
+            final boolean cond4 = mflag && (abs(b-c) < 2*eps);
+            final boolean cond5 = !mflag && abs(c-d) < 2*eps;
             
             if(cond1 || cond2 || cond3 || cond4 || cond5)//Bisection must be used
             {
                 s = (a+b)/2;
                 mflag = true;
             }
-            else
-                mflag = false;
+            else {
+              mflag = false;
+            }
             
             args[pos] = s;
             fs = f.f(args);
@@ -152,16 +156,19 @@ public class Zeroin implements RootFinder
         return b;
     }
 
-    public double root(double eps, int maxIterations, double[] initialGuesses, Function f, int pos, double... args)
+  @Override
+    public double root(final double eps, final int maxIterations, final double[] initialGuesses, final Function f, final int pos, final double... args)
     {
         return root(eps, maxIterations, initialGuesses[0], initialGuesses[1], pos, f, args);
     }
 
-    public double root(double eps, int maxIterations, double[] initialGuesses, Function f, int pos, Vec args)
+  @Override
+    public double root(final double eps, final int maxIterations, final double[] initialGuesses, final Function f, final int pos, final Vec args)
     {
         return root(eps, maxIterations, initialGuesses[0], initialGuesses[1], pos, f, args.arrayCopy());
     }
 
+  @Override
     public int guessesNeeded()
     {
         return 2;

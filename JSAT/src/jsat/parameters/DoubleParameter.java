@@ -44,7 +44,7 @@ public abstract class DoubleParameter extends Parameter
      * @return a distribution that represents a reasonable guess of a good value
      * for this parameter given the input data
      */
-    public Distribution getGuess(DataSet data)
+    public Distribution getGuess(final DataSet data)
     {
         return null;
     }

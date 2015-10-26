@@ -45,11 +45,11 @@ public class DBSCAN extends ClustererBase
      * Factory used to create a vector space of the inputs. 
      * The paired Integer is the vector's index in the original dataset
      */
-    private VectorCollectionFactory<VecPaired<Vec, Integer> > vecFactory;
-    private DistanceMetric dm;
+    private final VectorCollectionFactory<VecPaired<Vec, Integer> > vecFactory;
+    private final DistanceMetric dm;
     private double stndDevs = 2.0;
 
-    public DBSCAN(DistanceMetric dm, VectorCollectionFactory<VecPaired<Vec, Integer>> vecFactory)
+    public DBSCAN(final DistanceMetric dm, final VectorCollectionFactory<VecPaired<Vec, Integer>> vecFactory)
     {
         this.dm = dm;
         this.vecFactory = vecFactory;
@@ -60,7 +60,7 @@ public class DBSCAN extends ClustererBase
         this(new EuclideanDistance());
     }
     
-    public DBSCAN(DistanceMetric dm)
+    public DBSCAN(final DistanceMetric dm)
     {
         this(dm ,new KDTree.KDTreeFactory<VecPaired<Vec, Integer>>());
     }
@@ -69,7 +69,7 @@ public class DBSCAN extends ClustererBase
      * Copy constructor
      * @param toCopy the object to copy
      */
-    public DBSCAN(DBSCAN toCopy)
+    public DBSCAN(final DBSCAN toCopy)
     {
         this.vecFactory = toCopy.vecFactory.clone();
         this.dm = toCopy.dm.clone();
@@ -78,34 +78,37 @@ public class DBSCAN extends ClustererBase
     
     
     
-    public List<List<DataPoint>> cluster(DataSet dataSet, int minPts)
+    public List<List<DataPoint>> cluster(final DataSet dataSet, final int minPts)
     {
         return createClusterListFromAssignmentArray(cluster(dataSet, minPts, (int[])null), dataSet);
     }
     
-    public int[] cluster(DataSet dataSet, int minPts, int[] designations)
+    public int[] cluster(final DataSet dataSet, final int minPts, final int[] designations)
     {
-        OnLineStatistics stats = new OnLineStatistics();
+        final OnLineStatistics stats = new OnLineStatistics();
         TrainableDistanceMetric.trainIfNeeded(dm, dataSet);
-        VectorCollection<VecPaired<Vec, Integer>> vc = vecFactory.getVectorCollection(getVecIndexPairs(dataSet), dm);
+        final VectorCollection<VecPaired<Vec, Integer>> vc = vecFactory.getVectorCollection(getVecIndexPairs(dataSet), dm);
         
-        List<DataPoint> dps = dataSet.getDataPoints();
-        for(DataPoint dp :  dps)
-            stats.add(vc.search(dp.getNumericalValues(), minPts+1).get(minPts).getPair());
+        final List<DataPoint> dps = dataSet.getDataPoints();
+        for(final DataPoint dp :  dps) {
+          stats.add(vc.search(dp.getNumericalValues(), minPts+1).get(minPts).getPair());
+        }
         
         
         
-        double eps = stats.getMean() + stats.getStandardDeviation()*stndDevs;
+        final double eps = stats.getMean() + stats.getStandardDeviation()*stndDevs;
         
         return cluster(dataSet, eps, minPts, vc, designations);
     }
 
-    public int[] cluster(DataSet dataSet, int[] designations)
+  @Override
+    public int[] cluster(final DataSet dataSet, final int[] designations)
     {
         return cluster(dataSet, 3, designations);
     }
 
-    public int[] cluster(DataSet dataSet, ExecutorService threadpool, int[] designations)
+  @Override
+    public int[] cluster(final DataSet dataSet, final ExecutorService threadpool, final int[] designations)
     {
         return cluster(dataSet, 3, threadpool, designations);
     }
@@ -122,22 +125,24 @@ public class DBSCAN extends ClustererBase
         final VectorCollection<VecPaired<Vec, Integer>> vc;
         final int minPts;
 
-        public StatsWorker(BlockingQueue<DataPoint> queue, VectorCollection<VecPaired<Vec, Integer>> vc, int minPts)
+        public StatsWorker(final BlockingQueue<DataPoint> queue, final VectorCollection<VecPaired<Vec, Integer>> vc, final int minPts)
         {
             this.queue = queue;
             this.vc = vc;
             this.minPts = minPts;
         }
 
+        @Override
         public OnLineStatistics call() throws Exception
         {
-            OnLineStatistics stats = new OnLineStatistics();
+            final OnLineStatistics stats = new OnLineStatistics();
             while(true)
             {
-                DataPoint dp = queue.take();
+                final DataPoint dp = queue.take();
                 
-                if(dp.numNumericalValues() == 0 && dp.numCategoricalValues() == 0)
-                    break;//Posion value, nonsense data point used to signal end
+                if(dp.numNumericalValues() == 0 && dp.numCategoricalValues() == 0) {
+                  break;//Posion value, nonsense data point used to signal end
+                }
                 stats.add(vc.search(dp.getNumericalValues(), minPts+1).get(minPts).getPair());
             }
             return stats;
@@ -145,88 +150,94 @@ public class DBSCAN extends ClustererBase
         
     }
     
-    public List<List<DataPoint>> cluster(DataSet dataSet, int minPts, ExecutorService threadpool)
+    public List<List<DataPoint>> cluster(final DataSet dataSet, final int minPts, final ExecutorService threadpool)
     {
         return createClusterListFromAssignmentArray(cluster(dataSet, minPts, threadpool, null), dataSet);
     }
     
-    public int[] cluster(DataSet dataSet, int minPts, ExecutorService threadpool, int[] designations)
+    public int[] cluster(final DataSet dataSet, final int minPts, final ExecutorService threadpool, final int[] designations)
     {
         OnLineStatistics stats = null;
         TrainableDistanceMetric.trainIfNeeded(dm, dataSet, threadpool);
-        VectorCollection<VecPaired<Vec, Integer>> vc = vecFactory.getVectorCollection(getVecIndexPairs(dataSet), dm);
+        final VectorCollection<VecPaired<Vec, Integer>> vc = vecFactory.getVectorCollection(getVecIndexPairs(dataSet), dm);
         
-        BlockingQueue<DataPoint> queue = new ArrayBlockingQueue<DataPoint>(SystemInfo.L2CacheSize*2);
-        List<Future<OnLineStatistics>> futures = new ArrayList<Future<OnLineStatistics>>(SystemInfo.LogicalCores);
+        final BlockingQueue<DataPoint> queue = new ArrayBlockingQueue<DataPoint>(SystemInfo.L2CacheSize*2);
+        final List<Future<OnLineStatistics>> futures = new ArrayList<Future<OnLineStatistics>>(SystemInfo.LogicalCores);
         
         //Setup
-        for(int i = 0; i < SystemInfo.LogicalCores; i++)
-            futures.add(threadpool.submit(new StatsWorker(queue, vc, minPts)));
+        for(int i = 0; i < SystemInfo.LogicalCores; i++) {
+          futures.add(threadpool.submit(new StatsWorker(queue, vc, minPts)));
+        }
         //Feed data
-        for(int i = 0; i < dataSet.getSampleSize(); i++)
-            queue.add(dataSet.getDataPoint(i));
+        for(int i = 0; i < dataSet.getSampleSize(); i++) {
+          queue.add(dataSet.getDataPoint(i));
+        }
         //Posion stop
-        for(int i = 0; i < SystemInfo.LogicalCores; i++)
-            queue.add(new DataPoint(new DenseVector(0), new int[0], new CategoricalData[0]));
+        for(int i = 0; i < SystemInfo.LogicalCores; i++) {
+          queue.add(new DataPoint(new DenseVector(0), new int[0], new CategoricalData[0]));
+        }
         
-        for( Future<OnLineStatistics> future : futures)
+        for( final Future<OnLineStatistics> future : futures)
         {
             try
             {
-                if(stats == null)
-                    stats = future.get();
-                else 
-                    stats = OnLineStatistics.add(stats, future.get());
+                if(stats == null) {
+                  stats = future.get();
+                } else {
+                  stats = OnLineStatistics.add(stats, future.get());
+                }
             }
-            catch (InterruptedException ex)
+            catch (final InterruptedException ex)
             {
                 Logger.getLogger(DBSCAN.class.getName()).log(Level.SEVERE, null, ex);
             }
-            catch (ExecutionException ex)
+            catch (final ExecutionException ex)
             {
                 Logger.getLogger(DBSCAN.class.getName()).log(Level.SEVERE, null, ex);
             }
         }
         
-        double eps = stats.getMean() + stats.getStandardDeviation()*stndDevs;
+        final double eps = stats.getMean() + stats.getStandardDeviation()*stndDevs;
         
         return cluster(dataSet, eps, minPts, vc, threadpool, designations);
     }
 
-    private List<VecPaired<Vec, Integer>> getVecIndexPairs(DataSet dataSet)
+    private List<VecPaired<Vec, Integer>> getVecIndexPairs(final DataSet dataSet)
     {
-        List<VecPaired<Vec, Integer>> vecs = new ArrayList<VecPaired<Vec, Integer>>(dataSet.getSampleSize());
-        for(int i = 0; i < dataSet.getSampleSize(); i++)
-            vecs.add(new VecPaired<Vec, Integer>(dataSet.getDataPoint(i).getNumericalValues(), i));
+        final List<VecPaired<Vec, Integer>> vecs = new ArrayList<VecPaired<Vec, Integer>>(dataSet.getSampleSize());
+        for(int i = 0; i < dataSet.getSampleSize(); i++) {
+          vecs.add(new VecPaired<Vec, Integer>(dataSet.getDataPoint(i).getNumericalValues(), i));
+        }
         return vecs;
     }
     
-    public List<List<DataPoint>> cluster(DataSet dataSet, double eps, int minPts)
+    public List<List<DataPoint>> cluster(final DataSet dataSet, final double eps, final int minPts)
     {
         return createClusterListFromAssignmentArray(cluster(dataSet, eps, minPts, (int[]) null), dataSet);
     }
     
-    public int[] cluster(DataSet dataSet, double eps, int minPts, int[] designations)
+    public int[] cluster(final DataSet dataSet, final double eps, final int minPts, final int[] designations)
     {
         TrainableDistanceMetric.trainIfNeeded(dm, dataSet);
         return cluster(dataSet, eps, minPts, vecFactory.getVectorCollection(getVecIndexPairs(dataSet), dm), designations);
     }
     
-    public List<List<DataPoint>> cluster(DataSet dataSet, double eps, int minPts, ExecutorService threadpool)
+    public List<List<DataPoint>> cluster(final DataSet dataSet, final double eps, final int minPts, final ExecutorService threadpool)
     {
         return createClusterListFromAssignmentArray(cluster(dataSet, eps, minPts, threadpool, null), dataSet);
     }
     
-    public int[] cluster(DataSet dataSet, double eps, int minPts, ExecutorService threadpool, int[] designations)
+    public int[] cluster(final DataSet dataSet, final double eps, final int minPts, final ExecutorService threadpool, final int[] designations)
     {
         TrainableDistanceMetric.trainIfNeeded(dm, dataSet, threadpool);
         return cluster(dataSet, eps, minPts, vecFactory.getVectorCollection(getVecIndexPairs(dataSet), dm), threadpool, designations);
     }
     
-    private int[] cluster(DataSet dataSet, double eps, int minPts, VectorCollection<VecPaired<Vec, Integer>> vc, int[] pointCats )
+    private int[] cluster(final DataSet dataSet, final double eps, final int minPts, final VectorCollection<VecPaired<Vec, Integer>> vc, int[] pointCats )
     {
-        if (pointCats == null)
-            pointCats = new int[dataSet.getSampleSize()];
+        if (pointCats == null) {
+          pointCats = new int[dataSet.getSampleSize()];
+        }
         Arrays.fill(pointCats, UNCLASSIFIED);
         
         int curClusterID = 0;
@@ -235,27 +246,30 @@ public class DBSCAN extends ClustererBase
             if(pointCats[i] == UNCLASSIFIED)
             {
                 //All assignments are done by expandCluster
-                if(expandCluster(pointCats, dataSet, i, curClusterID, eps, minPts, vc))
-                    curClusterID++;
+                if(expandCluster(pointCats, dataSet, i, curClusterID, eps, minPts, vc)) {
+                  curClusterID++;
+                }
             }
         }
         
         return pointCats;
     }
     
-    private int[] cluster(DataSet dataSet, double eps, int minPts, VectorCollection<VecPaired<Vec, Integer>> vc, ExecutorService threadpool, int[] pointCats)
+    private int[] cluster(final DataSet dataSet, final double eps, final int minPts, final VectorCollection<VecPaired<Vec, Integer>> vc, final ExecutorService threadpool, int[] pointCats)
     {
-        if(pointCats == null)
-            pointCats = new int[dataSet.getSampleSize()];
+        if(pointCats == null) {
+          pointCats = new int[dataSet.getSampleSize()];
+        }
         Arrays.fill(pointCats, UNCLASSIFIED);
         
         
-        BlockingQueue<List<? extends VecPaired<VecPaired<Vec, Integer>,Double>>> resultQ = new SynchronousQueue<List<? extends VecPaired<VecPaired<Vec, Integer>,Double>>>();
-        BlockingQueue<Vec> sourceQ = new LinkedBlockingQueue<Vec>();
+        final BlockingQueue<List<? extends VecPaired<VecPaired<Vec, Integer>,Double>>> resultQ = new SynchronousQueue<List<? extends VecPaired<VecPaired<Vec, Integer>,Double>>>();
+        final BlockingQueue<Vec> sourceQ = new LinkedBlockingQueue<Vec>();
 
         //Set up workers
-        for(int i = 0; i < SystemInfo.LogicalCores; i++)
-            threadpool.submit(new ClusterWorker(vc, eps, resultQ, sourceQ));
+        for(int i = 0; i < SystemInfo.LogicalCores; i++) {
+          threadpool.submit(new ClusterWorker(vc, eps, resultQ, sourceQ));
+        }
         
         int curClusterID = 0;
         for(int i = 0; i < pointCats.length; i++)
@@ -263,18 +277,20 @@ public class DBSCAN extends ClustererBase
             if(pointCats[i] == UNCLASSIFIED)
             {
                 //All assignments are done by expandCluster
-                if(expandCluster(pointCats, dataSet, i, curClusterID, eps, minPts, vc, threadpool, resultQ, sourceQ))
-                    curClusterID++;
+                if(expandCluster(pointCats, dataSet, i, curClusterID, eps, minPts, vc, threadpool, resultQ, sourceQ)) {
+                  curClusterID++;
+                }
             }
         }
         
         //Kill workers
         try
         {
-            for (int i = 0; i < SystemInfo.LogicalCores; i++)
-                sourceQ.put(new DenseVector(0));
+            for (int i = 0; i < SystemInfo.LogicalCores; i++) {
+              sourceQ.put(new DenseVector(0));
+            }
         }
-        catch (InterruptedException interruptedException)
+        catch (final InterruptedException interruptedException)
         {
         }
         
@@ -292,10 +308,10 @@ public class DBSCAN extends ClustererBase
      * @param vc the collection to use to search with 
      * @return true if a cluster was expanded, false if the point was marked as noise
      */
-    private boolean expandCluster(int[] pointCats, DataSet dataSet, int point, int clId, double eps, int minPts, VectorCollection<VecPaired<Vec, Integer>> vc)
+    private boolean expandCluster(final int[] pointCats, final DataSet dataSet, final int point, final int clId, final double eps, final int minPts, final VectorCollection<VecPaired<Vec, Integer>> vc)
     {
-        Vec queryPoint = dataSet.getDataPoint(point).getNumericalValues();
-        List<? extends VecPaired<VecPaired<Vec, Integer>, Double>> seeds = vc.search(queryPoint, eps);
+        final Vec queryPoint = dataSet.getDataPoint(point).getNumericalValues();
+        final List<? extends VecPaired<VecPaired<Vec, Integer>, Double>> seeds = vc.search(queryPoint, eps);
         
         if(seeds.size() < minPts)// no core point
         {
@@ -307,23 +323,23 @@ public class DBSCAN extends ClustererBase
         List<? extends VecPaired<VecPaired<Vec, Integer>, Double>> results;
         
         pointCats[point] = clId;
-        Queue<VecPaired<VecPaired<Vec, Integer>, Double>> workQue = new ArrayDeque<VecPaired<VecPaired<Vec, Integer>,Double>>(seeds);
+        final Queue<VecPaired<VecPaired<Vec, Integer>, Double>> workQue = new ArrayDeque<VecPaired<VecPaired<Vec, Integer>,Double>>(seeds);
         while(!workQue.isEmpty())
         {
-            VecPaired<VecPaired<Vec, Integer>, Double> currentP = workQue.poll();
+            final VecPaired<VecPaired<Vec, Integer>, Double> currentP = workQue.poll();
             results = vc.search(currentP, eps);
             
-            if(results.size() >= minPts)
-                for(VecPaired<VecPaired<Vec, Integer>, Double> resultP :  results)
-                {
-                    int resultPIndx = resultP.getVector().getPair();
-                    if(pointCats[resultPIndx] < 0)// is UNCLASSIFIED or NOISE
-                    {
-                        if(pointCats[resultPIndx] == UNCLASSIFIED)
-                            workQue.add(resultP);
-                        pointCats[resultPIndx] = clId;
-                    }
-                }   
+            if(results.size() >= minPts) {
+              for (final VecPaired<VecPaired<Vec, Integer>, Double> resultP : results) {
+                final int resultPIndx = resultP.getVector().getPair();
+                if (pointCats[resultPIndx] < 0) {
+                  if (pointCats[resultPIndx] == UNCLASSIFIED) {
+                    workQue.add(resultP);
+                  }
+                  pointCats[resultPIndx] = clId;
+                }
+              }
+            }   
         }
         
         return true;
@@ -331,7 +347,7 @@ public class DBSCAN extends ClustererBase
     
     private class ClusterWorker implements Runnable
     {
-        private VectorCollection<VecPaired<Vec, Integer>> vc;
+        private final VectorCollection<VecPaired<Vec, Integer>> vc;
         private volatile List<? extends VecPaired<VecPaired<Vec, Integer>,Double>> results;
         private final double range;
         private final BlockingQueue<List<? extends VecPaired<VecPaired<Vec, Integer>,Double>>> resultQ;
@@ -343,7 +359,7 @@ public class DBSCAN extends ClustererBase
          * @param range the range to search <tt>tt</tt> with
          * @param resultQ The que to place this worker object into on completion
          */
-        public ClusterWorker(VectorCollection<VecPaired<Vec, Integer>> vc, double range, BlockingQueue<List<? extends VecPaired<VecPaired<Vec, Integer>,Double>>> resultQ, BlockingQueue<Vec> sourceQ)
+        public ClusterWorker(final VectorCollection<VecPaired<Vec, Integer>> vc, final double range, final BlockingQueue<List<? extends VecPaired<VecPaired<Vec, Integer>,Double>>> resultQ, final BlockingQueue<Vec> sourceQ)
         {
             this.vc = vc;
             this.range = range;
@@ -356,6 +372,7 @@ public class DBSCAN extends ClustererBase
             return results;
         }
         
+        @Override
         public void run()
         {
             Vec searchPoint;
@@ -364,13 +381,14 @@ public class DBSCAN extends ClustererBase
                 while(true)
                 {
                     searchPoint = sourceQ.take();
-                    if(searchPoint.length() == 0)
-                        break;
+                    if(searchPoint.length() == 0) {
+                      break;
+                    }
                     results = vc.search(searchPoint, range);
                     resultQ.put(results);
                 }
             }
-            catch (InterruptedException ex)
+            catch (final InterruptedException ex)
             {
                 Logger.getLogger(DBSCAN.class.getName()).log(Level.SEVERE, null, ex);
             }
@@ -393,10 +411,10 @@ public class DBSCAN extends ClustererBase
      * @param sourceQ blocking queue used to store points that need to be processed
      * @return true if a cluster was expanded, false if the point was marked as noise
      */
-    private boolean expandCluster(int[] pointCats, DataSet dataSet, int point, int clId, double eps, int minPts, VectorCollection<VecPaired<Vec, Integer>> vc, ExecutorService threadpool, BlockingQueue<List<? extends VecPaired<VecPaired<Vec, Integer>,Double>>> resultQ, BlockingQueue<Vec> sourceQ )
+    private boolean expandCluster(final int[] pointCats, final DataSet dataSet, final int point, final int clId, final double eps, final int minPts, final VectorCollection<VecPaired<Vec, Integer>> vc, final ExecutorService threadpool, final BlockingQueue<List<? extends VecPaired<VecPaired<Vec, Integer>,Double>>> resultQ, final BlockingQueue<Vec> sourceQ )
     {
-        Vec queryPoint = dataSet.getDataPoint(point).getNumericalValues();
-        List<? extends VecPaired<VecPaired<Vec, Integer>, Double>> seeds = vc.search(queryPoint, eps);
+        final Vec queryPoint = dataSet.getDataPoint(point).getNumericalValues();
+        final List<? extends VecPaired<VecPaired<Vec, Integer>, Double>> seeds = vc.search(queryPoint, eps);
         
         if(seeds.size() < minPts)// no core point
         {
@@ -411,31 +429,33 @@ public class DBSCAN extends ClustererBase
         {
             pointCats[point] = clId;
             int out = seeds.size();
-            for (VecPaired<VecPaired<Vec, Integer>,Double> v : seeds)
-                sourceQ.put(v.getVector().getVector());
+            for (final VecPaired<VecPaired<Vec, Integer>,Double> v : seeds) {
+              sourceQ.put(v.getVector().getVector());
+            }
             
             while (out > 0)
             {
                 results = resultQ.take();
                 out--;
                 
-                if (results.size() >= minPts)
-                    for (VecPaired<VecPaired<Vec, Integer>,Double> resultP : results)
+                if (results.size() >= minPts) {
+                  for (final VecPaired<VecPaired<Vec, Integer>,Double> resultP : results)
+                  {
+                    final int resultPIndx = resultP.getVector().getPair();
+                    if (pointCats[resultPIndx] < 0)// is UNCLASSIFIED or NOISE
                     {
-                        int resultPIndx = resultP.getVector().getPair();
-                        if (pointCats[resultPIndx] < 0)// is UNCLASSIFIED or NOISE
-                        {
-                            if (pointCats[resultPIndx] == UNCLASSIFIED)
-                            {
-                                sourceQ.put(resultP.getVector().getVector());
-                                out++;
-                            }
-                            pointCats[resultPIndx] = clId;
-                        }
-                    }                
+                      if (pointCats[resultPIndx] == UNCLASSIFIED)
+                      {
+                        sourceQ.put(resultP.getVector().getVector());
+                        out++;
+                      }
+                      pointCats[resultPIndx] = clId;
+                    }
+                  }
+                }                
             }
         }
-        catch (InterruptedException interruptedException)
+        catch (final InterruptedException interruptedException)
         {
         }
         

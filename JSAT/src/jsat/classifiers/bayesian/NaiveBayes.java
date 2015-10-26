@@ -70,7 +70,8 @@ public class NaiveBayes implements Classifier, Parameterized
          */
         NORMAL
         {
-            protected ContinuousDistribution fit(Vec v)
+            @Override
+            protected ContinuousDistribution fit(final Vec v)
             {
                 return getBestDistribution(v, new Normal(0, 1));
             }
@@ -82,7 +83,8 @@ public class NaiveBayes implements Classifier, Parameterized
         BEST_FIT
         {
 
-            protected ContinuousDistribution fit(Vec v)
+            @Override
+            protected ContinuousDistribution fit(final Vec v)
             {
                 return getBestDistribution(v);
             }
@@ -95,7 +97,7 @@ public class NaiveBayes implements Classifier, Parameterized
         BEST_FIT_KDE
         {
 
-            private double cutOff = 0.9;
+            private final double cutOff = 0.9;
             //XXX these methods are never and cannot be used
 //            /**
 //             * Sets the cut off value used before fitting an empirical distribution
@@ -115,7 +117,8 @@ public class NaiveBayes implements Classifier, Parameterized
 //                return cutOff;
 //            }
            
-            protected ContinuousDistribution fit(Vec v)
+            @Override
+            protected ContinuousDistribution fit(final Vec v)
             {
                 return getBestDistribution(v, cutOff);
             }
@@ -129,7 +132,7 @@ public class NaiveBayes implements Classifier, Parameterized
      * handling numeric features.
      * @param numericalHandling the method to use for numeric features
      */
-    public NaiveBayes(NumericalHandeling numericalHandling)
+    public NaiveBayes(final NumericalHandeling numericalHandling)
     {
         this.numericalHandling = numericalHandling;
     }
@@ -148,7 +151,7 @@ public class NaiveBayes implements Classifier, Parameterized
      * 
      * @param numericalHandling the method to use for numerical attributes
      */
-    public void setNumericalHandling(NumericalHandeling numericalHandling)
+    public void setNumericalHandling(final NumericalHandeling numericalHandling)
     {
         this.numericalHandling = numericalHandling;
     }
@@ -188,38 +191,40 @@ public class NaiveBayes implements Classifier, Parameterized
      * @param sparceInput <tt>true</tt> to assume sparseness in the data, <tt>false</tt> to ignore it and assume zeros are meaningful values. 
      * @see #isSparceInput() 
      */
-    public void setSparceInput(boolean sparceInput)
+    public void setSparceInput(final boolean sparceInput)
     {
         this.sparceInput = sparceInput;
     }
     
     @Override
-    public CategoricalResults classify(DataPoint data)
+    public CategoricalResults classify(final DataPoint data)
     {
         
-        CategoricalResults results = new CategoricalResults(distributions.length);
-        double[] logProbs = new double[distributions.length];
-        Vec numVals = data.getNumericalValues();
+        final CategoricalResults results = new CategoricalResults(distributions.length);
+        final double[] logProbs = new double[distributions.length];
+        final Vec numVals = data.getNumericalValues();
         double maxLogProg = Double.NEGATIVE_INFINITY;
         for( int i = 0; i < distributions.length; i++)
         {
             double logProb = 0;
             if(sparceInput)
             {
-                Iterator<IndexValue> iter = numVals.getNonZeroIterator();
+                final Iterator<IndexValue> iter = numVals.getNonZeroIterator();
                 while(iter.hasNext())
                 {
-                    IndexValue indexValue = iter.next();
-                    int j = indexValue.getIndex();
+                    final IndexValue indexValue = iter.next();
+                    final int j = indexValue.getIndex();
                     double logPDF;
-                    if(distributions[i][j] == null)
-                        logPDF = Double.NEGATIVE_INFINITY;//Should not occur
-                    else
-                        logPDF = distributions[i][j].logPdf(indexValue.getValue());
-                    if(Double.isInfinite(logPDF))//Avoid propigation -infinty when the probability is zero
-                        logProb += log(1e-16);//
-                    else
-                        logProb += logPDF;
+                    if(distributions[i][j] == null) {
+                      logPDF = Double.NEGATIVE_INFINITY;//Should not occur
+                    } else {
+                      logPDF = distributions[i][j].logPdf(indexValue.getValue());
+                    }
+                    if(Double.isInfinite(logPDF)) {//Avoid propigation -infinty when the probability is zero
+                      logProb += log(1e-16);//
+                    } else {
+                      logProb += logPDF;
+                    }
                 }
             }
             else
@@ -227,21 +232,23 @@ public class NaiveBayes implements Classifier, Parameterized
                 for(int j = 0; j < distributions[i].length; j++)
                 {
                     double logPDF;
-                    if(distributions[i][j] == null)
-                        logPDF = Double.NEGATIVE_INFINITY;//Should not occur
-                    else
-                        logPDF = distributions[i][j].logPdf(numVals.get(j));
-                    if(Double.isInfinite(logPDF))//Avoid propigation -infinty when the probability is zero
-                        logProb += log(1e-16);//
-                    else
-                        logProb += logPDF;
+                    if(distributions[i][j] == null) {
+                      logPDF = Double.NEGATIVE_INFINITY;//Should not occur
+                    } else {
+                      logPDF = distributions[i][j].logPdf(numVals.get(j));
+                    }
+                    if(Double.isInfinite(logPDF)) {//Avoid propigation -infinty when the probability is zero
+                      logProb += log(1e-16);//
+                    } else {
+                      logProb += logPDF;
+                    }
                 }
             }
             
             //the i goes up to the number of categories, same for aprioror
             for(int j = 0; j < apriori[i].length; j++)
             {
-                double p = apriori[i][j][data.getCategoricalValue(j)];
+                final double p = apriori[i][j][data.getCategoricalValue(j)];
                 logProb += log(p);
             }
             
@@ -252,22 +259,24 @@ public class NaiveBayes implements Classifier, Parameterized
         
         if(maxLogProg == Double.NEGATIVE_INFINITY)//Everything reported no!
         {
-            for(int i = 0; i < results.size(); i++)
-                results.setProb(i, 1.0/results.size());
+            for(int i = 0; i < results.size(); i++) {
+              results.setProb(i, 1.0/results.size());
+            }
             return results;
         }
         
-        double denom = MathTricks.logSumExp(logProbs, maxLogProg);
+        final double denom = MathTricks.logSumExp(logProbs, maxLogProg);
         
-        for(int i = 0; i < results.size(); i++)
-            results.setProb(i, exp(logProbs[i]-denom));
+        for(int i = 0; i < results.size(); i++) {
+          results.setProb(i, exp(logProbs[i]-denom));
+        }
         results.normalize();
         return results;
     }
 
         
     @Override
-    public void trainC(ClassificationDataSet dataSet)
+    public void trainC(final ClassificationDataSet dataSet)
     {
         trainC(dataSet, new FakeExecutor());
     }
@@ -279,7 +288,7 @@ public class NaiveBayes implements Classifier, Parameterized
     }
 
     @Override
-    public Parameter getParameter(String paramName)
+    public Parameter getParameter(final String paramName)
     {
         return Parameter.toParameterMap(getParameters()).get(paramName);
     }
@@ -287,7 +296,7 @@ public class NaiveBayes implements Classifier, Parameterized
     @Override
     public Classifier clone()
     {
-        NaiveBayes newBayes = new NaiveBayes(numericalHandling);
+        final NaiveBayes newBayes = new NaiveBayes(numericalHandling);
         
         if(this.apriori != null)
         {
@@ -295,8 +304,9 @@ public class NaiveBayes implements Classifier, Parameterized
             for(int i = 0; i < this.apriori.length; i++)
             {
                 newBayes.apriori[i] = new double[this.apriori[i].length][];
-                for(int j = 0; this.apriori[i].length > 0 && j < this.apriori[i][j].length; j++)
-                    newBayes.apriori[i][j] = Arrays.copyOf(this.apriori[i][j], this.apriori[i][j].length);
+                for(int j = 0; this.apriori[i].length > 0 && j < this.apriori[i][j].length; j++) {
+                  newBayes.apriori[i][j] = Arrays.copyOf(this.apriori[i][j], this.apriori[i][j].length);
+                }
             }
         }
         
@@ -306,13 +316,15 @@ public class NaiveBayes implements Classifier, Parameterized
             for(int i = 0; i < this.distributions.length; i++)
             {
                 newBayes.distributions[i] = new ContinuousDistribution[this.distributions[i].length];
-                for(int j = 0; j < this.distributions[i].length; j++)
-                    newBayes.distributions[i][j] = this.distributions[i][j].clone();
+                for(int j = 0; j < this.distributions[i].length; j++) {
+                  newBayes.distributions[i][j] = this.distributions[i][j].clone();
+                }
             }
         }
         
-        if(this.priors != null)
-            newBayes.priors = Arrays.copyOf(priors, priors.length);
+        if(this.priors != null) {
+          newBayes.priors = Arrays.copyOf(priors, priors.length);
+        }
         
         return newBayes;
     }
@@ -333,7 +345,7 @@ public class NaiveBayes implements Classifier, Parameterized
         Vec v;
         CountDownLatch countDown;
 
-        public DistributionSelectRunable(int i, int j, Vec v, CountDownLatch countDown)
+        public DistributionSelectRunable(final int i, final int j, final Vec v, final CountDownLatch countDown)
         {
             this.i = i;
             this.j = j;
@@ -341,13 +353,14 @@ public class NaiveBayes implements Classifier, Parameterized
             this.countDown = countDown;
         }
 
+        @Override
         public void run()
         {
             try
             {
                 distributions[i][j] = numericalHandling.fit(v);
             }
-            catch (ArithmeticException e)
+            catch (final ArithmeticException e)
             {
                 distributions[i][j] = null;
             }
@@ -363,7 +376,7 @@ public class NaiveBayes implements Classifier, Parameterized
         List<DataPoint> dataSamples;
         CountDownLatch latch;
 
-        public AprioriCounterRunable(int i, int j, List<DataPoint> dataSamples, CountDownLatch latch)
+        public AprioriCounterRunable(final int i, final int j, final List<DataPoint> dataSamples, final CountDownLatch latch)
         {
             this.i = i;
             this.j = j;
@@ -376,32 +389,36 @@ public class NaiveBayes implements Classifier, Parameterized
         @Override
         public void run()
         {
-            for (DataPoint point : dataSamples)//Count each occurance
+            for (final DataPoint point : dataSamples)//Count each occurance
             {
                 apriori[i][j][point.getCategoricalValue(j)]++;
             }
 
             //Convert the coutns to apriori probablities by dividing the count by the total occurances
             double sum = 0;
-            for (int z = 0; z < apriori[i][j].length; z++)
-                sum += apriori[i][j][z];
-            for (int z = 0; z < apriori[i][j].length; z++)
-                apriori[i][j][z] /= sum;
+            for (int z = 0; z < apriori[i][j].length; z++) {
+              sum += apriori[i][j][z];
+            }
+            for (int z = 0; z < apriori[i][j].length; z++) {
+              apriori[i][j][z] /= sum;
+            }
             latch.countDown();
         }
         
     }
 
-    private Vec getSampleVariableVector(ClassificationDataSet dataSet, int category, int j)
+    private Vec getSampleVariableVector(final ClassificationDataSet dataSet, final int category, final int j)
     {
         Vec vals =  dataSet.getSampleVariableVector(category, j);
         
         if(sparceInput)
         {
-            List<Double> nonZeroVals = new DoubleList();
-            for(int i = 0; i < vals.length(); i++)
-                if(vals.get(i) != 0)
-                    nonZeroVals.add(vals.get(i));
+            final List<Double> nonZeroVals = new DoubleList();
+            for(int i = 0; i < vals.length(); i++) {
+              if (vals.get(i) != 0) {
+                nonZeroVals.add(vals.get(i));
+              }
+            }
             vals = new DenseVector(nonZeroVals);
         }
         
@@ -409,15 +426,15 @@ public class NaiveBayes implements Classifier, Parameterized
     }
     
     @Override
-    public void trainC(ClassificationDataSet dataSet, ExecutorService threadPool)
+    public void trainC(final ClassificationDataSet dataSet, final ExecutorService threadPool)
     {
-        int nCat = dataSet.getPredicting().getNumOfCategories();
+        final int nCat = dataSet.getPredicting().getNumOfCategories();
         apriori = new double[nCat][dataSet.getNumCategoricalVars()][];
         distributions = new ContinuousDistribution[nCat][dataSet.getNumNumericalVars()] ;
         priors = dataSet.getPriors();
         
-        int totalWorkers = nCat*(dataSet.getNumNumericalVars() + dataSet.getNumCategoricalVars());
-        CountDownLatch latch = new CountDownLatch(totalWorkers);
+        final int totalWorkers = nCat*(dataSet.getNumNumericalVars() + dataSet.getNumCategoricalVars());
+        final CountDownLatch latch = new CountDownLatch(totalWorkers);
         
         
         //Go through each classification
@@ -426,11 +443,11 @@ public class NaiveBayes implements Classifier, Parameterized
             //Set ditribution for the numerical values
             for(int j = 0; j < dataSet.getNumNumericalVars(); j++)
             {
-                Runnable rn = new DistributionSelectRunable(i, j, getSampleVariableVector(dataSet, i, j), latch);
+                final Runnable rn = new DistributionSelectRunable(i, j, getSampleVariableVector(dataSet, i, j), latch);
                 threadPool.submit(rn);
             }
             
-            List<DataPoint> dataSamples = dataSet.getSamples(i);
+            final List<DataPoint> dataSamples = dataSet.getSamples(i);
             
             //Iterate through the categorical variables
             for(int j = 0; j < dataSet.getNumCategoricalVars(); j++)
@@ -438,10 +455,11 @@ public class NaiveBayes implements Classifier, Parameterized
                 apriori[i][j] = new double[dataSet.getCategories()[j].getNumOfCategories()];
                 
                 //Laplace correction, put in an extra occurance for each variable
-                for(int z = 0; z < apriori[i][j].length; z++)
-                    apriori[i][j][z] = 1;
+                for(int z = 0; z < apriori[i][j].length; z++) {
+                  apriori[i][j][z] = 1;
+                }
                     
-                Runnable rn = new AprioriCounterRunable(i, j, dataSamples, latch);
+                final Runnable rn = new AprioriCounterRunable(i, j, dataSamples, latch);
                 threadPool.submit(rn);
             }
         }
@@ -452,7 +470,7 @@ public class NaiveBayes implements Classifier, Parameterized
         {
             latch.await();
         }
-        catch (InterruptedException ex)
+        catch (final InterruptedException ex)
         {
             ex.printStackTrace();
         }

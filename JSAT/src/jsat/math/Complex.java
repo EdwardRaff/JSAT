@@ -27,7 +27,7 @@ public class Complex implements Cloneable, Serializable
      * @param real the real part of the number 
      * @param imag the imaginary part of the number
      */
-    public Complex(double real, double imag)
+    public Complex(final double real, final double imag)
     {
         this.real = real;
         this.imag = imag;
@@ -46,7 +46,7 @@ public class Complex implements Cloneable, Serializable
      * Sets the real value part of this complex number
      * @param r the new real value
      */
-    public void setReal(double r)
+    public void setReal(final double r)
     {
         this.real = r;
     }
@@ -55,7 +55,7 @@ public class Complex implements Cloneable, Serializable
      * Sets the imaginary value part of this complex number
      * @param imag the new imaginary value
      */
-    public void setImag(double imag)
+    public void setImag(final double imag)
     {
         this.imag = imag;
     }
@@ -75,7 +75,7 @@ public class Complex implements Cloneable, Serializable
      * @param r the real part of the other number
      * @param i the imaginary part of the other number
      */
-    public void mutableAdd(double r, double i)
+    public void mutableAdd(final double r, final double i)
     {
         this.real += r;
         this.imag += i;
@@ -85,7 +85,7 @@ public class Complex implements Cloneable, Serializable
      * Alters this complex number to contain the result of the addition of another
      * @param c the complex value to add to this
      */
-    public void mutableAdd(Complex c)
+    public void mutableAdd(final Complex c)
     {
         mutableAdd(c.real, c.imag);
     }
@@ -95,9 +95,9 @@ public class Complex implements Cloneable, Serializable
      * @param c the number to add
      * @return <tt>this</tt>+c
      */
-    public Complex add(Complex c)
+    public Complex add(final Complex c)
     {
-        Complex ret = new Complex(real, imag);
+        final Complex ret = new Complex(real, imag);
         ret.mutableAdd(c);
         return ret;
     }
@@ -107,7 +107,7 @@ public class Complex implements Cloneable, Serializable
      * @param r the real part of the other number
      * @param i the imaginary part of the other number
      */
-    public void mutableSubtract(double r, double i)
+    public void mutableSubtract(final double r, final double i)
     {
         mutableAdd(-r, -i);
     }
@@ -116,7 +116,7 @@ public class Complex implements Cloneable, Serializable
      * Alters this complex number to contain the result of the subtraction of another
      * @param c the number to subtract
      */
-    public void mutableSubtract(Complex c)
+    public void mutableSubtract(final Complex c)
     {
         mutableSubtract(c.real, c.imag);
     }
@@ -126,9 +126,9 @@ public class Complex implements Cloneable, Serializable
      * @param c the number to subtract
      * @return <tt>this</tt>-c
      */
-    public Complex subtract(Complex c)
+    public Complex subtract(final Complex c)
     {
-        Complex ret = new Complex(real, imag);
+        final Complex ret = new Complex(real, imag);
         ret.mutableSubtract(c);
         return ret;
     }
@@ -142,7 +142,7 @@ public class Complex implements Cloneable, Serializable
      * @param d the imaginary part of the second number 
      * @param results an array to store the real and imaginary results in. First index is the real, 2nd is the imaginary. 
      */
-    public static void cMul(double a, double b, double c, double d, double[] results)
+    public static void cMul(final double a, final double b, final double c, final double d, final double[] results)
     {
         results[0] = a*c-b*d;
         results[1] = b*c+a*d;
@@ -153,10 +153,10 @@ public class Complex implements Cloneable, Serializable
      * @param c the real part of the other number
      * @param d the imaginary part of the other number
      */
-    public void mutableMultiply(double c, double d)
+    public void mutableMultiply(final double c, final double d)
     {
-        double newR = this.real*c-this.imag*d;
-        double newI = this.imag*c+this.real*d;
+        final double newR = this.real*c-this.imag*d;
+        final double newI = this.imag*c+this.real*d;
         this.real = newR;
         this.imag = newI;
     }
@@ -165,7 +165,7 @@ public class Complex implements Cloneable, Serializable
      * Alters this complex number to contain the result of the multiplication of another
      * @param c the number to multiply by
      */
-    public void mutableMultiply(Complex c)
+    public void mutableMultiply(final Complex c)
     {
         mutableMultiply(c.real, c.imag);
     }
@@ -175,9 +175,9 @@ public class Complex implements Cloneable, Serializable
      * @param c the number to multiply by
      * @return <tt>this</tt>*c
      */
-    public Complex multiply(Complex c)
+    public Complex multiply(final Complex c)
     {
-        Complex ret = new Complex(real, imag);
+        final Complex ret = new Complex(real, imag);
         ret.mutableMultiply(c);
         return ret;
     }
@@ -195,7 +195,7 @@ public class Complex implements Cloneable, Serializable
      * @param results an array to store the real and imaginary results in. First
      * index is the real, 2nd is the imaginary. 
      */
-    public static void cDiv(double a, double b, double c, double d, double[] results)
+    public static void cDiv(final double a, final double b, double c, double d, final double[] results)
     {
         /**
          * Douglas M. Priest. Efficient scaling for complex division. ACM Trans. 
@@ -226,12 +226,13 @@ public class Complex implements Cloneable, Serializable
             /* |z| < 2^-909 and 2^-215 <= |w| < 2^114 */
             hs = (((0x47100000 - hw) >> 1) & 0xfff00000) + 0x3ff00000;
         }
-        else
-            hs = (((hw >> 2) - hw) + 0x6fd7ffff) & 0xfff00000;
+        else {
+          hs = (((hw >> 2) - hw) + 0x6fd7ffff) & 0xfff00000;
+        }
         ss = ((long) hs) << 32;
         
         /* scale c and d, and compute the quotient */
-        double ssd = Double.longBitsToDouble(ss);
+        final double ssd = Double.longBitsToDouble(ss);
         c *= ssd;
         d *= ssd;
         t = 1.0 / (c * c + d * d);
@@ -246,7 +247,7 @@ public class Complex implements Cloneable, Serializable
      * @param c the real part of the other number
      * @param d the imaginary part of the other number
      */
-    public void mutableDivide(double c, double d)
+    public void mutableDivide(final double c, final double d)
     {
         final double[] r = new double[2];
         cDiv(real, imag, c, d, r);
@@ -258,7 +259,7 @@ public class Complex implements Cloneable, Serializable
      * Alters this complex number to contain the result of the division by another
      * @param c the number to divide by
      */
-    public void mutableDivide(Complex c)
+    public void mutableDivide(final Complex c)
     {
         mutableDivide(c.real, c.imag);
     }
@@ -270,9 +271,9 @@ public class Complex implements Cloneable, Serializable
      * @param c the number to divide by
      * @return <tt>this</tt>/c
      */
-    public Complex divide(Complex c)
+    public Complex divide(final Complex c)
     {
-        Complex ret = new Complex(real, imag);
+        final Complex ret = new Complex(real, imag);
         ret.mutableDivide(c);
         return ret;
     }
@@ -320,12 +321,13 @@ public class Complex implements Cloneable, Serializable
     @Override
     public String toString()
     {
-        if(imag == 0)
-            return Double.toString(real);
-        else if(real == 0)
-            return imag + "i";
-        else
-            return "("+real + " + " + imag + "i)";
+        if(imag == 0) {
+          return Double.toString(real);
+        } else if(real == 0) {
+          return imag + "i";
+        } else {
+          return "("+real + " + " + imag + "i)";
+        }
     }
 
     @Override
@@ -335,7 +337,7 @@ public class Complex implements Cloneable, Serializable
     }
 
     @Override
-    public boolean equals(Object obj)
+    public boolean equals(final Object obj)
     {
         return equals(obj, 0.0);
     }
@@ -356,15 +358,16 @@ public class Complex implements Cloneable, Serializable
      * considered equal
      * @return <tt>true</tt> if the objects are approximately equal
      */
-    public boolean equals(Object obj, double eps)
+    public boolean equals(final Object obj, final double eps)
     {
         if( obj instanceof Complex)
         {
-            Complex other = (Complex) obj;
-            if(Math.abs(this.real-other.real) > eps)
-                return false;
-            else if(Math.abs((this.imag - other.imag)) > eps)
-                return false;
+            final Complex other = (Complex) obj;
+            if(Math.abs(this.real-other.real) > eps) {
+              return false;
+            } else if(Math.abs((this.imag - other.imag)) > eps) {
+              return false;
+            }
             return true;
         }
         return false;

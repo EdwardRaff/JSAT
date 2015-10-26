@@ -48,8 +48,8 @@ public class RecallTest
     public void testGetScore()
     {
         System.out.println("getScore");
-        Recall scorer = new Recall();
-        Recall otherHalf = scorer.clone();
+        final Recall scorer = new Recall();
+        final Recall otherHalf = scorer.clone();
         
         assertEquals(scorer, otherHalf);
         assertEquals(scorer.hashCode(), otherHalf.hashCode());
@@ -69,7 +69,7 @@ public class RecallTest
         scorer.addResult(new CategoricalResults(new double[]{0.4, 0.6}), 0, 2.0);
         otherHalf.addResult(new CategoricalResults(new double[]{0.9, 0.1}), 1, 1.0);
         
-        double tp = 2, tn = 3, fp = 2, fn = 2;
+        final double tp = 2, tn = 3, fp = 2, fn = 2;
         assertEquals(tp/(tp*+fn), scorer.getScore(), 1e-2);
         assertEquals(tp/(tp*+fn), scorer.clone().getScore(), 1e-2);
     }

@@ -14,10 +14,11 @@ public class RowColumnOps
      * @param to the last index of the diagonals to update (exclusive)
      * @param c the constant to add to the diagonal
      */
-    public static void addDiag(Matrix A, int start, int to, double c)
+    public static void addDiag(final Matrix A, final int start, final int to, final double c)
     {
-        for(int i = start; i < to; i++)
-            A.increment(i, i, c);
+        for(int i = start; i < to; i++) {
+          A.increment(i, i, c);
+        }
     }
     
     /**
@@ -29,10 +30,11 @@ public class RowColumnOps
      * @param to the last index of the row to update (exclusive)
      * @param c the constant to add to each element
      */
-    public static void addRow(Matrix A, int i, int start, int to, double c)
+    public static void addRow(final Matrix A, final int i, final int start, final int to, final double c)
     {
-        for(int j = start; j < to; j++)
-            A.increment(i, j, c);
+        for(int j = start; j < to; j++) {
+          A.increment(i, j, c);
+        }
     }
     
     /**
@@ -42,7 +44,7 @@ public class RowColumnOps
      * @param i the row to update
      * @param c the constant to add to each element
      */
-    public static void addRow(Matrix A, int i, double c)
+    public static void addRow(final Matrix A, final int i, final double c)
     {
         addRow(A, i, 0, A.cols(), c);
     }
@@ -56,10 +58,11 @@ public class RowColumnOps
      * @param to the last index of the row to update (exclusive)
      * @param c the constant to multiply each element by
      */
-    public static void multRow(Matrix A, int i, int start, int to, double c)
+    public static void multRow(final Matrix A, final int i, final int start, final int to, final double c)
     {
-        for(int j = start; j < to; j++)
-            A.set(i, j, A.get(i, j)*c);
+        for(int j = start; j < to; j++) {
+          A.set(i, j, A.get(i, j)*c);
+        }
     }
     
     /**
@@ -69,7 +72,7 @@ public class RowColumnOps
      * @param i the row to update
      * @param c the constant to multiply each element by
      */
-    public static void multRow(Matrix A, int i, double c)
+    public static void multRow(final Matrix A, final int i, final double c)
     {
         multRow(A, i, 0, A.cols(), c);
     }
@@ -85,10 +88,11 @@ public class RowColumnOps
      * @param to the last index of the row to update (exclusive)
      * @param c the vector of values to multiple the elements of <tt>A</tt> by
      */
-    public static void multRow(Matrix A, int i, int start, int to, Vec c)
+    public static void multRow(final Matrix A, final int i, final int start, final int to, final Vec c)
     {
-        for(int j = start; j < to; j++)
-            A.set(i, j, A.get(i, j)*c.get(j));
+        for(int j = start; j < to; j++) {
+          A.set(i, j, A.get(i, j)*c.get(j));
+        }
     }
     
     /**
@@ -100,10 +104,11 @@ public class RowColumnOps
      * @param i the row to update
      * @param c the vector of values to multiple the elements of <tt>A</tt> by
      */
-    public static void multRow(Matrix A, int i, Vec c)
+    public static void multRow(final Matrix A, final int i, final Vec c)
     {
-        if(A.cols() != c.length())
-            throw new ArithmeticException("Can not perform row update, length miss match " + A.cols() + " and " + c.length());
+        if(A.cols() != c.length()) {
+          throw new ArithmeticException("Can not perform row update, length miss match " + A.cols() + " and " + c.length());
+        }
         multRow(A, i, 0, c.length(), c);
     }
     
@@ -118,10 +123,11 @@ public class RowColumnOps
      * @param to the last index of the row to update (exclusive)
      * @param c the array of values to multiple the elements of <tt>A</tt> by
      */
-    public static void multRow(Matrix A, int i, int start, int to, double[] c)
+    public static void multRow(final Matrix A, final int i, final int start, final int to, final double[] c)
     {
-        for(int j = start; j < to; j++)
-            A.set(i, j, A.get(i, j)*c[j]);
+        for(int j = start; j < to; j++) {
+          A.set(i, j, A.get(i, j)*c[j]);
+        }
     }
     
     /**
@@ -131,10 +137,11 @@ public class RowColumnOps
      * @param i the row to update 
      * @param c the array of values to multiple the elements of <tt>A</tt> by
      */
-    public static void multRow(Matrix A, int i, double[] c)
+    public static void multRow(final Matrix A, final int i, final double[] c)
     {
-        if(A.cols() != c.length)
-            throw new ArithmeticException("Can not perform row update, length miss match " + A.cols() + " and " + c.length);
+        if(A.cols() != c.length) {
+          throw new ArithmeticException("Can not perform row update, length miss match " + A.cols() + " and " + c.length);
+        }
         multRow(A, i, 0, c.length, c);
     }
     
@@ -147,10 +154,11 @@ public class RowColumnOps
      * @param to the last index of the row to update (exclusive)
      * @param c the constant to divide each element by
      */
-    public static void divRow(Matrix A, int i, int start, int to, double c)
+    public static void divRow(final Matrix A, final int i, final int start, final int to, final double c)
     {
-        for(int j = start; j < to; j++)
-            A.set(i, j, A.get(i, j)/c);
+        for(int j = start; j < to; j++) {
+          A.set(i, j, A.get(i, j)/c);
+        }
     }
     
     /**
@@ -160,7 +168,7 @@ public class RowColumnOps
      * @param i the row to update
      * @param c the constant to divide each element by
      */
-    public static void divRow(Matrix A, int i, double c)
+    public static void divRow(final Matrix A, final int i, final double c)
     {
         divRow(A, i, 0, A.cols(), c);
     }
@@ -174,10 +182,11 @@ public class RowColumnOps
      * @param to the last index of the row to update (exclusive)
      * @param c the constant to add to each element
      */
-    public static void addCol(Matrix A, int j, int start, int to, double c)
+    public static void addCol(final Matrix A, final int j, final int start, final int to, final double c)
     {
-        for(int i = start; i < to; i++)
-            A.increment(i, j, c);
+        for(int i = start; i < to; i++) {
+          A.increment(i, j, c);
+        }
     }
     
     /**
@@ -187,7 +196,7 @@ public class RowColumnOps
      * @param j the row to update
      * @param c the constant to add to each element
      */
-    public static void addCol(Matrix A, int j, double c)
+    public static void addCol(final Matrix A, final int j, final double c)
     {
         addCol(A, j, 0, A.rows(), c);
     }
@@ -201,10 +210,11 @@ public class RowColumnOps
      * @param to the last index of the row to update (exclusive)
      * @param c the constant to multiply each element by
      */
-    public static void multCol(Matrix A, int j, int start, int to, double c)
+    public static void multCol(final Matrix A, final int j, final int start, final int to, final double c)
     {
-        for(int i = start; i < to; i++)
-            A.set(i, j, A.get(i, j)*c);
+        for(int i = start; i < to; i++) {
+          A.set(i, j, A.get(i, j)*c);
+        }
     }
     
     /**
@@ -214,7 +224,7 @@ public class RowColumnOps
      * @param j the row to update
      * @param c the constant to multiply each element by
      */
-    public static void multCol(Matrix A, int j, double c)
+    public static void multCol(final Matrix A, final int j, final double c)
     {
         multCol(A, j, 0, A.rows(), c);
     }
@@ -228,10 +238,11 @@ public class RowColumnOps
      * @param to the last index of the row to update (exclusive)
      * @param c the constant to divide each element by
      */
-    public static void divCol(Matrix A, int j, int start, int to, double c)
+    public static void divCol(final Matrix A, final int j, final int start, final int to, final double c)
     {
-        for(int i = start; i < to; i++)
-            A.set(i, j, A.get(i, j)/c);
+        for(int i = start; i < to; i++) {
+          A.set(i, j, A.get(i, j)/c);
+        }
     }
     
     /**
@@ -241,7 +252,7 @@ public class RowColumnOps
      * @param j the row to update
      * @param c the constant to divide each element by
      */
-    public static void divCol(Matrix A, int j, double c)
+    public static void divCol(final Matrix A, final int j, final double c)
     {
         divCol(A, j, 0, A.rows(), c);
     }
@@ -257,10 +268,11 @@ public class RowColumnOps
      * @param to the last index of the row to update (exclusive)
      * @param c the vector of values to pairwise divide the elements of A by 
      */
-    public static void divCol(Matrix A, int j, int start, int to, Vec c)
+    public static void divCol(final Matrix A, final int j, final int start, final int to, final Vec c)
     {
-        for(int i = start; i < to; i++)
-            A.set(i, j, A.get(i, j)/c.get(i));
+        for(int i = start; i < to; i++) {
+          A.set(i, j, A.get(i, j)/c.get(i));
+        }
     }
     
     /**
@@ -273,10 +285,11 @@ public class RowColumnOps
      * @param to the last index of the row to update (exclusive)
      * @param c the array of values to pairwise divide the elements of A by 
      */
-    public static void divCol(Matrix A, int j, int start, int to, double[] c)
+    public static void divCol(final Matrix A, final int j, final int start, final int to, final double[] c)
     {
-        for(int i = start; i < to; i++)
-            A.set(i, j, A.get(i, j)/c[i]);
+        for(int i = start; i < to; i++) {
+          A.set(i, j, A.get(i, j)/c[i]);
+        }
     }
 
     /**
@@ -290,10 +303,11 @@ public class RowColumnOps
      * @param t the constant to multiply all elements of <tt>c</tt> by
      * @param c the array of values to pairwise multiply by <tt>t</tt> before adding to the elements of A
      */
-    public static void addMultRow(Matrix A, int i, int start, int to, double t, double[] c)
+    public static void addMultRow(final Matrix A, final int i, final int start, final int to, final double t, final double[] c)
     {
-        for(int j = start; j < to; j++)
-            A.increment(i, j, c[j]*t);
+        for(int j = start; j < to; j++) {
+          A.increment(i, j, c[j]*t);
+        }
     }
     
     /**
@@ -307,10 +321,11 @@ public class RowColumnOps
      * @param t the constant to multiply all elements of <tt>c</tt> by
      * @param c the array of values to pairwise multiply by <tt>t</tt> before adding to the elements of A
      */
-    public static void addMultRow(Matrix A, int i, int start, int to, double t, Vec c)
+    public static void addMultRow(final Matrix A, final int i, final int start, final int to, final double t, final Vec c)
     {
-        for(int j = start; j < to; j++)
-            A.increment(i, j, c.get(j)*t);
+        for(int j = start; j < to; j++) {
+          A.increment(i, j, c.get(j)*t);
+        }
     }
     
     /**
@@ -324,10 +339,11 @@ public class RowColumnOps
      * @param t the constant to multiply all elements of <tt>c</tt> by
      * @param c the array of values to pairwise multiply by <tt>t</tt> before adding to the elements of A
      */
-    public static void addMultCol(Matrix A, int j, int start, int to, double t, double[] c)
+    public static void addMultCol(final Matrix A, final int j, final int start, final int to, final double t, final double[] c)
     {
-        for(int i = start; i < to; i++)
-            A.increment(i, j, c[i]*t);
+        for(int i = start; i < to; i++) {
+          A.increment(i, j, c[i]*t);
+        }
     }
     
     /**
@@ -341,10 +357,11 @@ public class RowColumnOps
      * @param t the constant to multiply all elements of <tt>c</tt> by
      * @param c the vector of values to pairwise multiply by <tt>t</tt> before adding to the elements of A
      */
-    public static void addMultCol(Matrix A, int j, int start, int to, double t, Vec c)
+    public static void addMultCol(final Matrix A, final int j, final int start, final int to, final double t, final Vec c)
     {
-        for(int i = start; i < to; i++)
-            A.increment(i, j, c.get(i)*t);
+        for(int i = start; i < to; i++) {
+          A.increment(i, j, c.get(i)*t);
+        }
     }
     
     /**
@@ -355,7 +372,7 @@ public class RowColumnOps
      * @param start the first row that will be included in the swap (inclusive)
      * @param to the last row to be included in the swap (exclusive)
      */
-    public static void swapCol(Matrix A, int j, int k, int start, int to)
+    public static void swapCol(final Matrix A, final int j, final int k, final int start, final int to)
     {
         double t;
         for(int i = start; i < to; i++)
@@ -372,7 +389,7 @@ public class RowColumnOps
      * @param j the first column to swap 
      * @param k the second column to swap 
      */
-    public static void swapCol(Matrix A, int j, int k)
+    public static void swapCol(final Matrix A, final int j, final int k)
     {
         swapCol(A, j, k, 0, A.rows());
     }
@@ -385,7 +402,7 @@ public class RowColumnOps
      * @param start the first column that will be included in the swap (inclusive)
      * @param to the last column to be included in the swap (exclusive)
      */
-    public static void swapRow(Matrix A, int j, int k, int start, int to)
+    public static void swapRow(final Matrix A, final int j, final int k, final int start, final int to)
     {
         double t;
         for(int i = start; i < to; i++)
@@ -402,7 +419,7 @@ public class RowColumnOps
      * @param j the first column to swap 
      * @param k the second column to swap 
      */
-    public static void swapRow(Matrix A, int j, int k)
+    public static void swapRow(final Matrix A, final int j, final int k)
     {
         swapCol(A, j, k, 0, A.cols());
     }
@@ -415,10 +432,11 @@ public class RowColumnOps
      * @param to the last column index to fill (exclusive)
      * @param val the value to fill into the matrix
      */
-    public static void fillRow(Matrix A, int i, int from, int to, double val)
+    public static void fillRow(final Matrix A, final int i, final int from, final int to, final double val)
     {
-        for(int j = from; j < to; j++)
-            A.set(i, j, val);
+        for(int j = from; j < to; j++) {
+          A.set(i, j, val);
+        }
     }
     
     /**
@@ -429,9 +447,10 @@ public class RowColumnOps
      * @param to the last row index to fill (exclusive)
      * @param val the value to fill into the matrix
      */
-    public static void fillCol(Matrix A, int j, int from, int to, double val)
+    public static void fillCol(final Matrix A, final int j, final int from, final int to, final double val)
     {
-        for(int i = from; i < to; i++)
-            A.set(i, j, val);
+        for(int i = from; i < to; i++) {
+          A.set(i, j, val);
+        }
     }
 }

@@ -33,7 +33,7 @@ public class LinearTools
      * @param cds the data set that the model would be trained from
      * @return the smallest value of &lambda; that should produce all zeros. 
      */
-    public static double maxLambdaLogisticL1(ClassificationDataSet cds)
+    public static double maxLambdaLogisticL1(final ClassificationDataSet cds)
     {
         /**
          * This code was ripped out/modified from NewGLMNET. It follows the
@@ -47,12 +47,12 @@ public class LinearTools
          */
         final double D_part_i = 0.5;
         final int n = cds.getNumNumericalVars();
-        Vec delta_L = new DenseVector(n);
-        List<Vec> X = cds.getDataVectors();
+        final Vec delta_L = new DenseVector(n);
+        final List<Vec> X = cds.getDataVectors();
         for (int i = 0; i < X.size(); i++)
         {
-            double y_i = cds.getDataPointCategory(i) * 2 - 1;
-            Vec x = X.get(i);
+            final double y_i = cds.getDataPointCategory(i) * 2 - 1;
+            final Vec x = X.get(i);
             delta_L.mutableAdd(D_part_i * y_i, x);
         }
         return max(abs(delta_L.max()), abs(delta_L.min())) / (cds.getSampleSize());

@@ -1,23 +1,12 @@
 
 package jsat.distributions.kernels;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 import jsat.DataSet;
-import jsat.classifiers.ClassificationDataSet;
 import jsat.distributions.Distribution;
-import jsat.distributions.Exponential;
-import jsat.distributions.LogUniform;
-import jsat.distributions.Uniform;
 import jsat.linear.Vec;
 import jsat.linear.distancemetrics.EuclideanDistance;
-import jsat.math.OnLineStatistics;
 import jsat.text.GreekLetters;
-import jsat.utils.DoubleList;
-import jsat.utils.IntList;
-import jsat.utils.ListUtils;
 
 /**
  * Provides a kernel for the Radial Basis Function, which is of the form
@@ -45,29 +34,31 @@ public class RBFKernel extends BaseL2Kernel
      * Creates a new RBF kernel
      * @param sigma the sigma parameter
      */
-    public RBFKernel(double sigma)
+    public RBFKernel(final double sigma)
     {
         setSigma(sigma);
     }
 
     @Override
-    public double eval(Vec a, Vec b)
+    public double eval(final Vec a, final Vec b)
     {
-        if(a == b)//Same refrence means dist of 0, exp(0) = 1
-            return 1;
+        if(a == b) {//Same refrence means dist of 0, exp(0) = 1
+          return 1;
+        }
         return Math.exp(-Math.pow(a.pNormDist(2, b),2) * sigmaSqrd2Inv);
     }
 
     @Override
-    public double eval(int a, int b, List<? extends Vec> trainingSet, List<Double> cache)
+    public double eval(final int a, final int b, final List<? extends Vec> trainingSet, final List<Double> cache)
     {
-        if(a == b)
-            return 1; 
+        if(a == b) {
+          return 1;
+        } 
         return Math.exp(-getSqrdNorm(a, b, trainingSet, cache)* sigmaSqrd2Inv);
     }
     
     @Override
-    public double eval(int a, Vec b, List<Double> qi, List<? extends Vec> vecs, List<Double> cache)
+    public double eval(final int a, final Vec b, final List<Double> qi, final List<? extends Vec> vecs, final List<Double> cache)
     {
         return Math.exp(-getSqrdNorm(a, b, qi, vecs, cache)* sigmaSqrd2Inv);
     }
@@ -76,10 +67,11 @@ public class RBFKernel extends BaseL2Kernel
      * Sets the sigma parameter, which must be a positive value
      * @param sigma the sigma value
      */
-    public void setSigma(double sigma)
+    public void setSigma(final double sigma)
     {
-        if(sigma <= 0)
-            throw new IllegalArgumentException("Sigma must be a positive constant, not " + sigma);
+        if(sigma <= 0) {
+          throw new IllegalArgumentException("Sigma must be a positive constant, not " + sigma);
+        }
         this.sigma = sigma;
         this.sigmaSqrd2Inv = 0.5/(sigma*sigma);
     }
@@ -108,10 +100,11 @@ public class RBFKernel extends BaseL2Kernel
      * @param sigma the value of &sigma;
      * @return the equivalent &gamma; value. 
      */
-    public static double sigmaToGamma(double sigma)
+    public static double sigmaToGamma(final double sigma)
     {
-        if(sigma <= 0 || Double.isNaN(sigma) || Double.isInfinite(sigma))
-            throw new IllegalArgumentException("sigma must be positive, not " + sigma);
+        if(sigma <= 0 || Double.isNaN(sigma) || Double.isInfinite(sigma)) {
+          throw new IllegalArgumentException("sigma must be positive, not " + sigma);
+        }
         return 1/(2*sigma*sigma);
     }
     
@@ -122,10 +115,11 @@ public class RBFKernel extends BaseL2Kernel
      * @param gamma the value of &gamma;
      * @return the equivalent &sigma; value
      */
-    public static double gammToSigma(double gamma)
+    public static double gammToSigma(final double gamma)
     {
-        if(gamma <= 0 || Double.isNaN(gamma) || Double.isInfinite(gamma))
-            throw new IllegalArgumentException("gamma must be positive, not " + gamma);
+        if(gamma <= 0 || Double.isNaN(gamma) || Double.isInfinite(gamma)) {
+          throw new IllegalArgumentException("gamma must be positive, not " + gamma);
+        }
         return 1/Math.sqrt(2*gamma);
     }
     
@@ -136,7 +130,7 @@ public class RBFKernel extends BaseL2Kernel
      * @param d the data set to get the guess for
      * @return the guess for the &sigma; parameter in the RBF Kernel 
      */
-    public static Distribution guessSigma(DataSet d)
+    public static Distribution guessSigma(final DataSet d)
     {
         return GeneralRBFKernel.guessSigma(d, new EuclideanDistance());
     }

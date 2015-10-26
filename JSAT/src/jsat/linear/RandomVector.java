@@ -23,14 +23,14 @@ public abstract class RandomVector extends Vec
      * used if it requires too many words of state, as the initalization will 
      * then dominate the computation of every index. 
      */
-    private int length;
-    private long seedMult;
+    private final int length;
+    private final long seedMult;
 
     /**
      * Creates a new Random Vector object
      * @param length the length of the vector
      */
-    public RandomVector(int length)
+    public RandomVector(final int length)
     {
         this(length, new Random().nextLong());
     }
@@ -41,10 +41,11 @@ public abstract class RandomVector extends Vec
      * @param seedMult a value to multiply with the seed used for each 
      * individual index. It should be a large value
      */
-    public RandomVector(int length, long seedMult)
+    public RandomVector(final int length, final long seedMult)
     {
-        if(length<= 0)
-            throw new IllegalArgumentException("Vector length must be positive, not " + length);
+        if(length<= 0) {
+          throw new IllegalArgumentException("Vector length must be positive, not " + length);
+        }
         this.length = length;
         this.seedMult = seedMult;
     }
@@ -53,12 +54,12 @@ public abstract class RandomVector extends Vec
      * Copy constructor
      * @param toCopy the object to copy
      */
-    protected RandomVector(RandomVector toCopy)
+    protected RandomVector(final RandomVector toCopy)
     {
         this(toCopy.length, toCopy.seedMult);
     }
     
-    private ThreadLocal<Random> localRand = new ThreadLocal<Random>()
+    private final ThreadLocal<Random> localRand = new ThreadLocal<Random>()
     {
         @Override
         protected Random initialValue()
@@ -79,16 +80,16 @@ public abstract class RandomVector extends Vec
     abstract protected double getVal(Random rand);
     
     @Override
-    public double get(int index)
+    public double get(final int index)
     {
-        long seed = (index+length)*seedMult;
-        Random rand = localRand.get();
+        final long seed = (index+length)*seedMult;
+        final Random rand = localRand.get();
         rand.setSeed(seed);
         return getVal(rand);
     }
 
     @Override
-    public void set(int index, double val)
+    public void set(final int index, final double val)
     {
         throw new UnsupportedOperationException("RandomVector can not be altered");
     }
@@ -100,53 +101,56 @@ public abstract class RandomVector extends Vec
     }
 
     @Override
-    public void multiply(double c, Matrix A, Vec b)
+    public void multiply(final double c, final Matrix A, final Vec b)
     {
-        if(this.length() != A.rows())
-            throw new ArithmeticException("Vector x Matrix dimensions do not agree [1," + this.length() + "] x [" + A.rows() + ", " + A.cols() + "]");
-        if(b.length() != A.cols())
-            throw new ArithmeticException("Destination vector is not the right size");
+        if(this.length() != A.rows()) {
+          throw new ArithmeticException("Vector x Matrix dimensions do not agree [1," + this.length() + "] x [" + A.rows() + ", " + A.cols() + "]");
+        }
+        if(b.length() != A.cols()) {
+          throw new ArithmeticException("Destination vector is not the right size");
+        }
         
         for(int i = 0; i < this.length(); i++)
         {
-            double this_i = c*get(i);
-            for(int j = 0; j < A.cols(); j++)
-                b.increment(j, this_i*A.get(i, j));
+            final double this_i = c*get(i);
+            for(int j = 0; j < A.cols(); j++) {
+              b.increment(j, this_i*A.get(i, j));
+            }
         }
     }
 
     @Override
-    public void mutableAdd(double c)
+    public void mutableAdd(final double c)
     {
         throw new UnsupportedOperationException("RandomVector can not be altered");
     }
 
     @Override
-    public void mutableAdd(double c, Vec b)
+    public void mutableAdd(final double c, final Vec b)
     {
         throw new UnsupportedOperationException("RandomVector can not be altered");
     }
 
     @Override
-    public void mutablePairwiseMultiply(Vec b)
+    public void mutablePairwiseMultiply(final Vec b)
     {
         throw new UnsupportedOperationException("RandomVector can not be altered");
     }
 
     @Override
-    public void mutableMultiply(double c)
+    public void mutableMultiply(final double c)
     {
         throw new UnsupportedOperationException("RandomVector can not be altered");
     }
 
     @Override
-    public void mutablePairwiseDivide(Vec b)
+    public void mutablePairwiseDivide(final Vec b)
     {
         throw new UnsupportedOperationException("RandomVector can not be altered");
     }
 
     @Override
-    public void mutableDivide(double c)
+    public void mutableDivide(final double c)
     {
         throw new UnsupportedOperationException("RandomVector can not be altered");
     }
@@ -154,7 +158,7 @@ public abstract class RandomVector extends Vec
     @Override
     public Vec sortedCopy()
     {
-        DenseVector dv = new DenseVector(this);
+        final DenseVector dv = new DenseVector(this);
         return dv.sortedCopy();
     }
 
@@ -162,8 +166,9 @@ public abstract class RandomVector extends Vec
     public double min()
     {
         double min = Double.MAX_VALUE;
-        for(IndexValue iv : this)
-            min = Math.min(iv.getValue(), min);
+        for(final IndexValue iv : this) {
+          min = Math.min(iv.getValue(), min);
+        }
         return min;
     }
 
@@ -171,8 +176,9 @@ public abstract class RandomVector extends Vec
     public double max()
     {
         double max = -Double.MAX_VALUE;
-        for(IndexValue iv : this)
-            max = Math.min(iv.getValue(), max);
+        for(final IndexValue iv : this) {
+          max = Math.min(iv.getValue(), max);
+        }
         return max;
     }
 
@@ -186,12 +192,13 @@ public abstract class RandomVector extends Vec
     abstract public Vec clone();
 
     @Override
-    public double dot(Vec v)
+    public double dot(final Vec v)
     {
         double dot = 0;
 
-        for (IndexValue iv : v)
-            dot += get(iv.getIndex()) * iv.getValue();
+        for (final IndexValue iv : v) {
+          dot += get(iv.getIndex()) * iv.getValue();
+        }
         return dot;
     }
 

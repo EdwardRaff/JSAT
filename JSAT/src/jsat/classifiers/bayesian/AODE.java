@@ -44,13 +44,14 @@ public class AODE extends BaseUpdateableClassifier
      * Creates a copy of an AODE classifier
      * @param toClone the classifier to clone
      */
-    protected AODE(AODE toClone)
+    protected AODE(final AODE toClone)
     {
         if(toClone.odes != null)
         {
             this.odes = new ODE[toClone.odes.length];
-            for(int i = 0; i < this.odes.length; i++)
-                this.odes[i] = toClone.odes[i].clone();
+            for(int i = 0; i < this.odes.length; i++) {
+              this.odes[i] = toClone.odes[i].clone();
+            }
             this.predicting = toClone.predicting.clone();
         }
         this.m = toClone.m;
@@ -63,10 +64,11 @@ public class AODE extends BaseUpdateableClassifier
     }
 
     @Override
-    public void setUp(CategoricalData[] categoricalAttributes, int numericAttributes, CategoricalData predicting)
+    public void setUp(final CategoricalData[] categoricalAttributes, final int numericAttributes, final CategoricalData predicting)
     {
-        if(categoricalAttributes.length < 1)
-            throw new FailedToFitException("At least 2 categorical varaibles are needed for AODE");
+        if(categoricalAttributes.length < 1) {
+          throw new FailedToFitException("At least 2 categorical varaibles are needed for AODE");
+        }
         this.predicting = predicting;
         odes = new ODE[categoricalAttributes.length];
         
@@ -78,7 +80,7 @@ public class AODE extends BaseUpdateableClassifier
     }
     
     @Override
-    public void trainC(final ClassificationDataSet dataSet, ExecutorService threadPool)
+    public void trainC(final ClassificationDataSet dataSet, final ExecutorService threadPool)
     {
         setUp(dataSet.getCategories(), dataSet.getNumNumericalVars(), 
                 dataSet.getPredicting());
@@ -93,8 +95,9 @@ public class AODE extends BaseUpdateableClassifier
                 @Override
                 public void run()
                 {
-                    for (int i = 0; i < dataSet.getSampleSize(); i++)
-                        ode.update(dataSet.getDataPoint(i), dataSet.getDataPointCategory(i));
+                    for (int i = 0; i < dataSet.getSampleSize(); i++) {
+                      ode.update(dataSet.getDataPoint(i), dataSet.getDataPointCategory(i));
+                    }
                     latch.countDown();
                 }
             });
@@ -103,33 +106,35 @@ public class AODE extends BaseUpdateableClassifier
         {
             latch.await();
         }
-        catch (InterruptedException ex)
+        catch (final InterruptedException ex)
         {
             trainC(dataSet);
         }
     }
 
     @Override
-    public void update(DataPoint dataPoint, int targetClass)
+    public void update(final DataPoint dataPoint, final int targetClass)
     {
-        for(ODE ode : odes)
-            ode.update(dataPoint, targetClass);
+        for(final ODE ode : odes) {
+          ode.update(dataPoint, targetClass);
+        }
     }
 
     @Override
-    public CategoricalResults classify(DataPoint data)
+    public CategoricalResults classify(final DataPoint data)
     {
-        CategoricalResults cr = new CategoricalResults(predicting.getNumOfCategories());
+        final CategoricalResults cr = new CategoricalResults(predicting.getNumOfCategories());
         
-        int[] catVals = data.getCategoricalValues();
+        final int[] catVals = data.getCategoricalValues();
         for(int c = 0; c < cr.size(); c++)
         {
             double prob = 0.0;
-            for (ODE ode : odes)
-                if (ode.priors[c][catVals[ode.dependent]] < m)
-                    continue;
-                else
-                    prob += Math.exp(ode.getLogPrb(catVals, c));
+            for (final ODE ode : odes) {
+              if (ode.priors[c][catVals[ode.dependent]] < m) {
+              } else {
+                prob += Math.exp(ode.getLogPrb(catVals, c));
+              }
+            }
             cr.setProb(c, prob);
         }
         cr.normalize();
@@ -149,10 +154,11 @@ public class AODE extends BaseUpdateableClassifier
      * 
      * @param m the minimum needed score
      */
-    public void setM(double m)
+    public void setM(final double m)
     {
-        if(m < 0 || Double.isInfinite(m) || Double.isNaN(m))
-            throw new ArithmeticException("The minimum count must be a non negative number");
+        if(m < 0 || Double.isInfinite(m) || Double.isNaN(m)) {
+          throw new ArithmeticException("The minimum count must be a non negative number");
+        }
         this.m = m;
     }
 

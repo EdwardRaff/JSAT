@@ -11,7 +11,7 @@ import jsat.text.GreekLetters;
  */
 public class ZTest implements OneSampleTest
 {
-    private Normal norm;
+    private final Normal norm;
     
     private double sampleMean;
     private double sampleDev;
@@ -30,12 +30,12 @@ public class ZTest implements OneSampleTest
 
     
     
-    public ZTest(double sampleMean, double sampleDev, int sampleSize)
+    public ZTest(final double sampleMean, final double sampleDev, final int sampleSize)
     {
         this(H1.NOT_EQUAL, sampleMean, sampleDev, sampleSize);
     }
     
-    public ZTest(H1 h1, double sampleMean, double sampleDev, int sampleSize)
+    public ZTest(final H1 h1, final double sampleMean, final double sampleDev, final int sampleSize)
     {
         this.h1 = h1;
         this.hypoMean = 0;
@@ -45,16 +45,17 @@ public class ZTest implements OneSampleTest
         this.norm = new Normal();
     }
 
-    public ZTest(Vec data)
+    public ZTest(final Vec data)
     {
         this(data.mean(), data.standardDeviation(), data.length());
     }
     
-    public ZTest(H1 h1, Vec data)
+    public ZTest(final H1 h1, final Vec data)
     {
         this(h1, data.mean(), data.standardDeviation(), data.length());
     }
 
+    @Override
     public H1[] validAlternate()
     {
         return new H1[]
@@ -63,59 +64,69 @@ public class ZTest implements OneSampleTest
                 };
     }
 
+    @Override
     public String testName()
     {
         return "One Sample Z-Test";
     }
 
-    public void setTestUsingData(Vec data)
+    @Override
+    public void setTestUsingData(final Vec data)
     {
         this.sampleMean = data.mean();
         this.sampleDev = data.standardDeviation();
         this.sampleSize = data.length();
     }
 
+    @Override
     public String[] getTestVars()
     {
         return new String[]{GreekLetters.bar("x"), GreekLetters.sigma, "n"};
     }
 
-    public void setTestVars(double[] testVars)
+    @Override
+    public void setTestVars(final double[] testVars)
     {
         this.sampleMean = testVars[0];
         this.sampleDev = testVars[1];
         this.sampleSize = (int) testVars[2];
     }
 
+    @Override
     public String getAltVar()
     {
         return GreekLetters.mu + "0";
     }
 
-    public void setAltVar(double altVar)
+    @Override
+    public void setAltVar(final double altVar)
     {
         this.hypoMean = altVar;
     }
 
+    @Override
     public double pValue()
     {
-        double se = sampleDev/Math.sqrt(sampleSize);
+        final double se = sampleDev/Math.sqrt(sampleSize);
         
-        double zScore = (sampleMean-hypoMean)/se;
+        final double zScore = (sampleMean-hypoMean)/se;
         
-        if(h1 == H1.NOT_EQUAL)
-            return norm.cdf(-Math.abs(zScore))*2;
-        else if(h1 == H1.LESS_THAN)
-            return norm.cdf(zScore);
-        else
-            return 1-norm.cdf(zScore);
+        if(h1 == H1.NOT_EQUAL) {
+          return norm.cdf(-Math.abs(zScore))*2;
+        } else if(h1 == H1.LESS_THAN) {
+          return norm.cdf(zScore);
+        } else {
+          return 1-norm.cdf(zScore);
+        }
     }
 
-    public void setAltHypothesis(H1 h1)
+    @Override
+    public void setAltHypothesis(final H1 h1)
     {
         this.h1 = h1;
     }
 
+    @Override
     public String getNullVar()
     {
         return GreekLetters.mu;

@@ -34,7 +34,7 @@ public class ContinuousDistributionTest
     {
 
         @Override
-        public double pdf(double x)
+        public double pdf(final double x)
         {
             return Normal.pdf(x, 0, 1);
         }
@@ -58,7 +58,7 @@ public class ContinuousDistributionTest
         }
 
         @Override
-        public void setVariable(String var, double value)
+        public void setVariable(final String var, final double value)
         {
             throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
         }
@@ -70,7 +70,7 @@ public class ContinuousDistributionTest
         }
 
         @Override
-        public void setUsingData(Vec data)
+        public void setUsingData(final Vec data)
         {
             throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
         }
@@ -125,9 +125,10 @@ public class ContinuousDistributionTest
     public void testLogPdf()
     {
         System.out.println("logPdf");
-        Normal norm = new Normal();
-        for(double i = -3; i < 3; i += 0.1)
-            assertEquals(norm.logPdf(i), dumbNormal_0_1.logPdf(i), 0.01);
+        final Normal norm = new Normal();
+        for(double i = -3; i < 3; i += 0.1) {
+          assertEquals(norm.logPdf(i), dumbNormal_0_1.logPdf(i), 0.01);
+        }
     }
 
 
@@ -138,7 +139,7 @@ public class ContinuousDistributionTest
     public void testCdf()
     {
         System.out.println("cdf");
-        Normal norm = new Normal();
+        final Normal norm = new Normal();
         for(double i = -3; i < 3; i += 0.1)
         {
             assertEquals(norm.cdf(i), dumbNormal_0_1.cdf(i), 0.01);
@@ -149,7 +150,7 @@ public class ContinuousDistributionTest
     public void testInvCdf()
     {
         System.out.println("invCdf");
-        Normal norm = new Normal();
+        final Normal norm = new Normal();
         for(double p = 0.01; p < 1; p += 0.1)
         {
             assertEquals(norm.invCdf(p), dumbNormal_0_1.invCdf(p), 0.01);
@@ -163,7 +164,7 @@ public class ContinuousDistributionTest
     public void testMean()
     {
         System.out.println("mean");
-        Normal norm = new Normal();
+        final Normal norm = new Normal();
         assertEquals(norm.mean(), dumbNormal_0_1.mean(), 0.01);
     }
 
@@ -174,7 +175,7 @@ public class ContinuousDistributionTest
     public void testVariance()
     {
         System.out.println("variance");
-        Normal norm = new Normal();
+        final Normal norm = new Normal();
         assertEquals(norm.variance(), dumbNormal_0_1.variance(), 0.01);
     }
 
@@ -185,7 +186,7 @@ public class ContinuousDistributionTest
     public void testSkewness()
     {
         System.out.println("skewness");
-        Normal norm = new Normal();
+        final Normal norm = new Normal();
         assertEquals(norm.skewness(), dumbNormal_0_1.skewness(), 0.01);
     }
     

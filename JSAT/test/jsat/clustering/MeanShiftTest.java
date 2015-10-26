@@ -40,7 +40,7 @@ public class MeanShiftTest
     public static void setUpClass() throws Exception
     {
         meanShift = new MeanShift();
-        GridDataGenerator gdg = new GridDataGenerator(new Normal(0, 0.10), new Random(12), 2, 5);
+        final GridDataGenerator gdg = new GridDataGenerator(new Normal(0, 0.10), new Random(12), 2, 5);
         easyData10 = gdg.generateData(40);
         ex = Executors.newFixedThreadPool(SystemInfo.LogicalCores);
     }
@@ -61,15 +61,16 @@ public class MeanShiftTest
     public void testCluster_DataSet()
     {
         System.out.println("cluster(dataset)");
-        List<List<DataPoint>> clusters = meanShift.cluster(easyData10);
+        final List<List<DataPoint>> clusters = meanShift.cluster(easyData10);
         assertEquals(10, clusters.size());
-        Set<Integer> seenBefore = new IntSet();
-        for(List<DataPoint> cluster :  clusters)
+        final Set<Integer> seenBefore = new IntSet();
+        for(final List<DataPoint> cluster :  clusters)
         {
-            int thisClass = cluster.get(0).getCategoricalValue(0);
+            final int thisClass = cluster.get(0).getCategoricalValue(0);
             assertFalse(seenBefore.contains(thisClass));
-            for(DataPoint dp : cluster)
-                assertEquals(thisClass, dp.getCategoricalValue(0));
+            for(final DataPoint dp : cluster) {
+              assertEquals(thisClass, dp.getCategoricalValue(0));
+            }
         }
     }
     
@@ -77,15 +78,16 @@ public class MeanShiftTest
     public void testCluster_DataSet_ExecutorService()
     {
         System.out.println("cluster(dataset, ExecutorService)");
-        List<List<DataPoint>> clusters = meanShift.cluster(easyData10, ex);
+        final List<List<DataPoint>> clusters = meanShift.cluster(easyData10, ex);
         assertEquals(10, clusters.size());
-        Set<Integer> seenBefore = new IntSet();
-        for(List<DataPoint> cluster :  clusters)
+        final Set<Integer> seenBefore = new IntSet();
+        for(final List<DataPoint> cluster :  clusters)
         {
-            int thisClass = cluster.get(0).getCategoricalValue(0);
+            final int thisClass = cluster.get(0).getCategoricalValue(0);
             assertFalse(seenBefore.contains(thisClass));
-            for(DataPoint dp : cluster)
-                assertEquals(thisClass, dp.getCategoricalValue(0));
+            for(final DataPoint dp : cluster) {
+              assertEquals(thisClass, dp.getCategoricalValue(0));
+            }
         }
     }
 }

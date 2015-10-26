@@ -50,16 +50,17 @@ public class SMIDASTest
     {
         System.out.println("trainC");
         
-        ClassificationDataSet train = FixedProblems.get2ClassLinear(400, new Random());
+        final ClassificationDataSet train = FixedProblems.get2ClassLinear(400, new Random());
         
-        SMIDAS smidas = new SMIDAS(0.1);
+        final SMIDAS smidas = new SMIDAS(0.1);
         smidas.setLoss(StochasticSTLinearL1.Loss.LOG);
         smidas.trainC(train);
         
-        ClassificationDataSet test = FixedProblems.get2ClassLinear(400, new Random());
+        final ClassificationDataSet test = FixedProblems.get2ClassLinear(400, new Random());
         
-        for(DataPointPair<Integer> dpp : test.getAsDPPList())
-            assertEquals(dpp.getPair().longValue(), smidas.classify(dpp.getDataPoint()).mostLikely());
+        for(final DataPointPair<Integer> dpp : test.getAsDPPList()) {
+          assertEquals(dpp.getPair().longValue(), smidas.classify(dpp.getDataPoint()).mostLikely());
+        }
         
     }
 
@@ -70,19 +71,19 @@ public class SMIDASTest
     public void testTrain_RegressionDataSet()
     {
         System.out.println("train");
-        Random rand = new Random(123);
+        final Random rand = new Random(123);
         
-        SMIDAS smidas = new SMIDAS(0.02);
+        final SMIDAS smidas = new SMIDAS(0.02);
         smidas.setMinScaled(-1);
         smidas.setLoss(StochasticSTLinearL1.Loss.SQUARED);
         smidas.train(FixedProblems.getLinearRegression(500, rand));
         
-        for(DataPointPair<Double> dpp : FixedProblems.getLinearRegression(100, rand).getAsDPPList())
+        for(final DataPointPair<Double> dpp : FixedProblems.getLinearRegression(100, rand).getAsDPPList())
         {
-            double truth = dpp.getPair();
-            double pred = smidas.regress(dpp.getDataPoint());
+            final double truth = dpp.getPair();
+            final double pred = smidas.regress(dpp.getDataPoint());
             
-            double relErr = (truth-pred)/truth;
+            final double relErr = (truth-pred)/truth;
             assertEquals(0.0, relErr, 0.1);//Give it a decent wiggle room b/c of regularization
         }
     }

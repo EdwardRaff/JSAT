@@ -55,17 +55,19 @@ public class AdjustedRandIndexTest
     {
         System.out.println("evaluate");
         //using example from http://www.otlet-institute.org/wikics/Clustering_Problems.html
-        ClassificationDataSet cds = new ClassificationDataSet(1, new CategoricalData[0], new CategoricalData(3));
-        for(int i = 0; i < 3; i++)
-            for(int j = 0; j < 3; j++)
-                cds.addDataPoint(Vec.random(1), new int[0], i);
-        int[] d = new int[9];
+        final ClassificationDataSet cds = new ClassificationDataSet(1, new CategoricalData[0], new CategoricalData(3));
+        for(int i = 0; i < 3; i++) {
+          for (int j = 0; j < 3; j++) {
+            cds.addDataPoint(Vec.random(1), new int[0], i);
+          }
+        }
+        final int[] d = new int[9];
         d[0] = d[1] = 0;
         d[2] = d[3] = d[4] = d[5] = 1;
         d[6] = d[7] = 2;
         d[8] = 3;
         
-        AdjustedRandIndex ari = new AdjustedRandIndex();
+        final AdjustedRandIndex ari = new AdjustedRandIndex();
         double score = ari.evaluate(d, cds);
         //conver tot ARI
         score = 1.0-score;

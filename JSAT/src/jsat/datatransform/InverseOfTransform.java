@@ -19,7 +19,7 @@ public class InverseOfTransform implements DataTransform
 {
 
 	private static final long serialVersionUID = 2565737661260748018L;
-	private InvertibleTransform transform;
+	private final InvertibleTransform transform;
 
     /**
      * Creates a new transform that uses the 
@@ -27,7 +27,7 @@ public class InverseOfTransform implements DataTransform
      * transform} of the given transform
      * @param transform the transform to use the inverse function of
      */
-    public InverseOfTransform(InvertibleTransform transform)
+    public InverseOfTransform(final InvertibleTransform transform)
     {
         this.transform = transform;
     }
@@ -36,13 +36,13 @@ public class InverseOfTransform implements DataTransform
      * Copy constructor
      * @param toClone the object to copy
      */
-    public InverseOfTransform(InverseOfTransform toClone)
+    public InverseOfTransform(final InverseOfTransform toClone)
     {
         this(toClone.transform.clone());
     }
 
     @Override
-    public DataPoint transform(DataPoint dp)
+    public DataPoint transform(final DataPoint dp)
     {
         return transform.inverse(dp);
     }

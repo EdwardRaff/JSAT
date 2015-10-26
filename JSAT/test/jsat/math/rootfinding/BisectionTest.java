@@ -30,12 +30,14 @@ public class BisectionTest
 		 */
 		private static final long serialVersionUID = -5830265331948124543L;
 
-		public double f(double... x)
+    @Override
+		public double f(final double... x)
         {
             return sin(x[0]);
         }
 
-        public double f(Vec x)
+    @Override
+        public double f(final Vec x)
         {
             return f(x.arrayCopy());
         }
@@ -51,12 +53,14 @@ public class BisectionTest
 		 */
 		private static final long serialVersionUID = -8881811957419055036L;
 
-		public double f(double... x)
+    @Override
+		public double f(final double... x)
         {
             return sin(x[0]+x[1]);
         }
 
-        public double f(Vec x)
+    @Override
+        public double f(final Vec x)
         {
             return f(x.arrayCopy());
         }
@@ -72,14 +76,16 @@ public class BisectionTest
 		 */
 		private static final long serialVersionUID = -6863811831444846780L;
 
-		public double f(double... x)
+    @Override
+		public double f(final double... x)
         {
-            double xp = x[0];
+            final double xp = x[0];
             
             return pow(xp, 3)+5*pow(xp,2)+xp+2;
         }
 
-        public double f(Vec x)
+    @Override
+        public double f(final Vec x)
         {
             return f(x.arrayCopy());
         }
@@ -111,7 +117,7 @@ public class BisectionTest
     public void testRoot_4args()
     {
         System.out.println("root");
-        double eps = 1e-15;
+        final double eps = 1e-15;
         double result = Bisection.root(-PI/2, PI/2, sinF);
         assertEquals(0, result, eps);
         
@@ -130,7 +136,7 @@ public class BisectionTest
             result = Bisection.root(-PI / 2, PI / 2, sinFp1);
             fail("Should not have run");
         }
-        catch (Exception ex)
+        catch (final Exception ex)
         {
         }
     }
@@ -142,7 +148,7 @@ public class BisectionTest
     public void testRoot_5args()
     {
         System.out.println("root");
-        double eps = 1e-15;
+        final double eps = 1e-15;
         double result = Bisection.root(eps, -PI/2, PI/2, sinF);
         assertEquals(0, result, eps);
         
@@ -161,7 +167,7 @@ public class BisectionTest
             result = Bisection.root(eps, -PI / 2, PI / 2, sinFp1);
             fail("Should not have run");
         }
-        catch (Exception ex)
+        catch (final Exception ex)
         {
         }
     }
@@ -170,7 +176,7 @@ public class BisectionTest
     public void testRoot_6args()
     {
         System.out.println("root");
-        double eps = 1e-15;
+        final double eps = 1e-15;
         double result = Bisection.root(eps, -PI/2, PI/2, 0, sinF);
         assertEquals(0, result, eps);
         
@@ -191,8 +197,8 @@ public class BisectionTest
     public void testRoot_7args()
     {
         System.out.println("root");
-        double eps = 1e-13;
-        int maxIterations = 1000;
+        final double eps = 1e-13;
+        final int maxIterations = 1000;
         double result = Bisection.root(eps, maxIterations, -PI/2, PI/2, 0, sinF);
         assertEquals(0, result, eps);
         

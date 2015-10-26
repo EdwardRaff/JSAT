@@ -48,8 +48,8 @@ public class AccuracyTest
     public void testGetScore()
     {
         System.out.println("getScore");
-        Accuracy scorer = new Accuracy();
-        Accuracy otherHalf = scorer.clone();
+        final Accuracy scorer = new Accuracy();
+        final Accuracy otherHalf = scorer.clone();
         
         assertEquals(scorer, otherHalf);
         assertEquals(scorer.hashCode(), otherHalf.hashCode());

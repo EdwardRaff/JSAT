@@ -20,41 +20,44 @@ public class Kappa implements ClassificationScore
     {
     }
 
-    public Kappa(Kappa toClone)
+    public Kappa(final Kappa toClone)
     {
-        if(toClone.errorMatrix != null)
-            this.errorMatrix = toClone.errorMatrix.clone();
+        if(toClone.errorMatrix != null) {
+          this.errorMatrix = toClone.errorMatrix.clone();
+        }
     }
     
     @Override
-    public void addResult(CategoricalResults prediction, int trueLabel, double weight)
+    public void addResult(final CategoricalResults prediction, final int trueLabel, final double weight)
     {
         errorMatrix.increment(prediction.mostLikely(), trueLabel, weight);
     }
 
     @Override
-    public void addResults(ClassificationScore other)
+    public void addResults(final ClassificationScore other)
     {
-        Kappa otherObj = (Kappa) other;
-        if(otherObj.errorMatrix == null)
-            return;
-        if(this.errorMatrix == null)
-            throw new RuntimeException("KappaScore has not been prepared");
+        final Kappa otherObj = (Kappa) other;
+        if(otherObj.errorMatrix == null) {
+          return;
+        }
+        if(this.errorMatrix == null) {
+          throw new RuntimeException("KappaScore has not been prepared");
+        }
         this.errorMatrix.mutableAdd(otherObj.errorMatrix);
     }
 
     @Override
-    public void prepare(CategoricalData toPredict)
+    public void prepare(final CategoricalData toPredict)
     {
-        int N = toPredict.getNumOfCategories();
+        final int N = toPredict.getNumOfCategories();
         errorMatrix = new DenseMatrix(N, N);
     }
 
     @Override
     public double getScore()
     {
-        double[] rowTotals = new double[errorMatrix.rows()];
-        double[] colTotals = new double[errorMatrix.rows()];
+        final double[] rowTotals = new double[errorMatrix.rows()];
+        final double[] colTotals = new double[errorMatrix.rows()];
         for(int i = 0; i < errorMatrix.rows(); i++)
         {
             rowTotals[i] = errorMatrix.getRowView(i).sum();
@@ -77,13 +80,9 @@ public class Kappa implements ClassificationScore
     }
     
     @Override
-    public boolean equals(Object obj)
+    public boolean equals(final Object obj)
     {
-        if(this.getClass().isAssignableFrom(obj.getClass()) && obj.getClass().isAssignableFrom(this.getClass()))
-        {
-            return true;
-        }
-        return false;
+        return this.getClass().isAssignableFrom(obj.getClass()) && obj.getClass().isAssignableFrom(this.getClass());
     }
 
     @Override

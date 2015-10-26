@@ -34,36 +34,36 @@ public class BFGS implements Optimizer2
      * stopping
      * @param lineSearch the line search method to use on updates
      */
-    public BFGS(int maxIterations, LineSearch lineSearch)
+    public BFGS(final int maxIterations, final LineSearch lineSearch)
     {
         setMaximumIterations(maxIterations);
         setLineSearch(lineSearch);
     }
     
     @Override
-    public void optimize(double tolerance, Vec w, Vec x0, Function f, FunctionVec fp, FunctionVec fpp)
+    public void optimize(final double tolerance, final Vec w, final Vec x0, final Function f, final FunctionVec fp, final FunctionVec fpp)
     {
         optimize(tolerance, w, x0, f, fp, fpp, null);
     }
     
     @Override
-    public void optimize(double tolerance, Vec w, Vec x0, Function f, FunctionVec fp, FunctionVec fpp, ExecutorService ex)
+    public void optimize(final double tolerance, final Vec w, final Vec x0, final Function f, final FunctionVec fp, final FunctionVec fpp, final ExecutorService ex)
     {
-        LineSearch search = lineSearch.clone();
+        final LineSearch search = lineSearch.clone();
         
-        Matrix H = Matrix.eye(x0.length());
-        Vec x_prev = x0.clone();
-        Vec x_cur = x0.clone();
+        final Matrix H = Matrix.eye(x0.length());
+        final Vec x_prev = x0.clone();
+        final Vec x_cur = x0.clone();
         final double[] f_xVal = new double[1];//store place for f_x
         
         //graidnet
         Vec x_grad = x0.clone();
         x_grad.zeroOut();
-        Vec x_gradPrev = x_grad.clone();
+        final Vec x_gradPrev = x_grad.clone();
         //p_l
-        Vec p_k = x_grad.clone();
-        Vec s_k = x_grad.clone();
-        Vec y_k = x_grad.clone();
+        final Vec p_k = x_grad.clone();
+        final Vec s_k = x_grad.clone();
+        final Vec y_k = x_grad.clone();
         
         f_xVal[0] = (ex != null && f instanceof FunctionP) ? ((FunctionP)f).f(x_cur, ex) : f.f(x_cur);
         x_grad = (ex != null) ? fp.f(x_cur, x_grad, ex) : fp.f(x_cur, x_grad);
@@ -79,15 +79,18 @@ public class BFGS implements Optimizer2
             x_cur.copyTo(x_prev);
             x_grad.copyTo(x_gradPrev);
             
-            double alpha_k = search.lineSearch(1.0, x_prev, x_gradPrev, p_k, f, fp, f_xVal[0], x_gradPrev.dot(p_k), x_cur, f_xVal, x_grad, ex);
-            if(alpha_k < 1e-12 && iter > 5)//if we are making near epsilon steps consider it done
-                break;
+            final double alpha_k = search.lineSearch(1.0, x_prev, x_gradPrev, p_k, f, fp, f_xVal[0], x_gradPrev.dot(p_k), x_cur, f_xVal, x_grad, ex);
+            if(alpha_k < 1e-12 && iter > 5) {//if we are making near epsilon steps consider it done
+              break;
+            }
 
-            if(!search.updatesGrad())
-                if (ex != null)
-                    fp.f(x_cur, x_grad, ex);
-                else
-                    fp.f(x_cur, x_grad);
+            if(!search.updatesGrad()) {
+              if (ex != null) {
+                fp.f(x_cur, x_grad, ex);
+              } else {
+                fp.f(x_cur, x_grad);
+              }
+            }
             
             //Define s_k =x_k+1 −x_k and y_k = ∇f_k+1 −∇f_k;
             x_cur.copyTo(s_k);
@@ -97,17 +100,20 @@ public class BFGS implements Optimizer2
             y_k.mutableSubtract(x_gradPrev);
             //Compute H_k+1 by means of (6.17);
             
-            double skyk = s_k.dot(y_k);
+            final double skyk = s_k.dot(y_k);
             if(skyk <= 0)
             {
                 H.zeroOut();
-                for(int i = 0; i < H.rows(); i++)
-                    H.set(i, i, 1);
+                for(int i = 0; i < H.rows(); i++) {
+                  H.set(i, i, 1);
+                }
                 continue;
             }
-            if(iter == 0 && skyk > 1e-12)
-                for(int i = 0; i < H.rows(); i++)
-                    H.set(i, i, skyk/y_k.dot(y_k));
+            if(iter == 0 && skyk > 1e-12) {
+              for (int i = 0; i < H.rows(); i++) {
+                H.set(i, i, skyk/y_k.dot(y_k));
+              }
+            }
             
             /*
              * From "A Perfect Example for The BFGS Method" equation 1.5
@@ -125,9 +131,9 @@ public class BFGS implements Optimizer2
              * TODO: exploit the symetry of H_k
              */
             
-            Vec Hkyk = H.multiply(y_k);
-            Vec ykHk = y_k.multiply(H);
-            double b = (1+y_k.dot(Hkyk)/skyk)/skyk;//coef for right rank update
+            final Vec Hkyk = H.multiply(y_k);
+            final Vec ykHk = y_k.multiply(H);
+            final double b = (1+y_k.dot(Hkyk)/skyk)/skyk;//coef for right rank update
 
             //update
             Matrix.OuterProductUpdate(H, s_k, ykHk, -1/skyk);
@@ -143,7 +149,7 @@ public class BFGS implements Optimizer2
      * {@code false}, the 2 norm will be used instead. 
      * @param inftNormCriterion 
      */
-    public void setInftNormCriterion(boolean inftNormCriterion)
+    public void setInftNormCriterion(final boolean inftNormCriterion)
     {
         this.inftNormCriterion = inftNormCriterion;
     }
@@ -159,21 +165,24 @@ public class BFGS implements Optimizer2
         return inftNormCriterion;
     }
     
-    private double gradConvgHelper(Vec grad)
+    private double gradConvgHelper(final Vec grad)
     {
-        if(!inftNormCriterion)
-            return grad.pNorm(2);
+        if(!inftNormCriterion) {
+          return grad.pNorm(2);
+        }
         double max = 0;
-        for(IndexValue iv : grad)
-            max = Math.max(max, Math.abs(iv.getValue()));
+        for(final IndexValue iv : grad) {
+          max = Math.max(max, Math.abs(iv.getValue()));
+        }
         return max;
     }
 
     @Override
-    public void setMaximumIterations(int iterations)
+    public void setMaximumIterations(final int iterations)
     {
-        if(iterations < 1)
-            throw new IllegalArgumentException("Iterations must be a positive value, not " + iterations);
+        if(iterations < 1) {
+          throw new IllegalArgumentException("Iterations must be a positive value, not " + iterations);
+        }
         this.maxIterations = iterations;
     }
 
@@ -187,7 +196,7 @@ public class BFGS implements Optimizer2
      * Sets the line search method used at each iteration
      * @param lineSearch the line search method used at each iteration
      */
-    public void setLineSearch(LineSearch lineSearch)
+    public void setLineSearch(final LineSearch lineSearch)
     {
         this.lineSearch = lineSearch;
     }

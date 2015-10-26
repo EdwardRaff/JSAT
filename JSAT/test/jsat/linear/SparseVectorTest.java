@@ -92,7 +92,7 @@ public class SparseVectorTest
             y.setLength(5);
             fail("Set length should have been too small");
         }
-        catch(Exception ex)
+        catch(final Exception ex)
         {
             
         }
@@ -222,7 +222,7 @@ public class SparseVectorTest
     public void testSortedCopy()
     {
         System.out.println("sortedCopy");
-        Vec sorted = x.sortedCopy();
+        final Vec sorted = x.sortedCopy();
         double lastVal = Double.NEGATIVE_INFINITY;
         for(int i = 0; i < sorted.length(); i++)
         {
@@ -343,13 +343,13 @@ public class SparseVectorTest
     public void testMultiply()
     {
         System.out.println("multiply");
-        double c = 0.5;
-        Matrix A = Matrix.pascal(20);
-        Vec b = new DenseVector(20);
+        final double c = 0.5;
+        final Matrix A = Matrix.pascal(20);
+        final Vec b = new DenseVector(20);
         
         x.multiply(c, A, b);
         
-        DenseVector truth = new DenseVector(new double[]
+        final DenseVector truth = new DenseVector(new double[]
         {
             9.50000000000000e+00,
             1.17000000000000e+02,
@@ -386,7 +386,7 @@ public class SparseVectorTest
         
         x.mutableAdd(1.0);
         
-        DenseVector truth = new DenseVector(new double[]{
+        final DenseVector truth = new DenseVector(new double[]{
             3.00000000000000e+00,
             1.00000000000000e+00,
             1.00000000000000e+00,
@@ -418,11 +418,11 @@ public class SparseVectorTest
     public void testMutableAdd_double_Vec()
     {
         System.out.println("mutableAdd");
-        double c = 0.5;
+        final double c = 0.5;
         
         x.mutableAdd(c, y);
         
-        DenseVector truth = new DenseVector(new double[]{
+        final DenseVector truth = new DenseVector(new double[]{
             2.00000000000000e+00,
             1.00000000000000e+00,
             0.00000000000000e+00,
@@ -457,7 +457,7 @@ public class SparseVectorTest
         System.out.println("mutableMultiply");
         
         x.mutableMultiply(2);
-        DenseVector truth = new DenseVector(new double[]{
+        final DenseVector truth = new DenseVector(new double[]{
             4.00000000000000e+00,
             0.00000000000000e+00,
             0.00000000000000e+00,
@@ -492,7 +492,7 @@ public class SparseVectorTest
         System.out.println("mutableDivide");
 
         x.mutableDivide(2);
-        DenseVector truth = new DenseVector(new double[]{
+        final DenseVector truth = new DenseVector(new double[]{
             1.00000000000000e+00,
             0.00000000000000e+00,
             0.00000000000000e+00,
@@ -571,7 +571,7 @@ public class SparseVectorTest
     {
         System.out.println("clone");
         
-        SparseVector yClone = y.clone();
+        final SparseVector yClone = y.clone();
         yClone.mutableSubtract(y);
         yClone.mutableAdd(x);
         
@@ -588,7 +588,7 @@ public class SparseVectorTest
         
         x.normalize();
         
-        DenseVector truth = new DenseVector(new double[]{
+        final DenseVector truth = new DenseVector(new double[]{
             2.51976315339485e-01,
             0.00000000000000e+00,
             0.00000000000000e+00,
@@ -622,7 +622,7 @@ public class SparseVectorTest
     {
         System.out.println("mutablePairwiseMultiply");
         
-        DenseVector truth = new DenseVector(new double[]{
+        final DenseVector truth = new DenseVector(new double[]{
             0.00000000000000e+00,
             0.00000000000000e+00,
             0.00000000000000e+00,
@@ -645,7 +645,7 @@ public class SparseVectorTest
             0.00000000000000e+00,
         });
         
-        Vec result = x.pairwiseMultiply(y);
+        final Vec result = x.pairwiseMultiply(y);
         
         assertTrue(truth.equals(result, 1e-14));
     }
@@ -657,7 +657,7 @@ public class SparseVectorTest
     public void testMutablePairwiseDivide()
     {
         System.out.println("mutablePairwiseDivide");
-        DenseVector truth = new DenseVector(new double[]{
+        final DenseVector truth = new DenseVector(new double[]{
             2.00000000000000e+00,
             0.00000000000000e+00,
             0.00000000000000e+00,
@@ -728,10 +728,11 @@ public class SparseVectorTest
     {
         System.out.println("arrayCopy");
         
-        double[] xArray = x.arrayCopy();
+        final double[] xArray = x.arrayCopy();
         
-        for(int i = 0; i < x.length(); i++)
-            assertEquals(x.get(i), xArray[i], 0.0);
+        for(int i = 0; i < x.length(); i++) {
+          assertEquals(x.get(i), xArray[i], 0.0);
+        }
     }
 
     /**
@@ -741,7 +742,7 @@ public class SparseVectorTest
     public void testApplyFunction()
     {
         System.out.println("applyFunction");
-        Function f = new FunctionBase() {
+        final Function f = new FunctionBase() {
 
             /**
 			 * 
@@ -749,7 +750,7 @@ public class SparseVectorTest
 			private static final long serialVersionUID = 5260043973153571531L;
 
 			@Override
-            public double f(Vec x)
+            public double f(final Vec x)
             {
                 return -x.get(0);
             }
@@ -757,7 +758,7 @@ public class SparseVectorTest
         
         x.applyFunction(f);
         
-        DenseVector truth = new DenseVector(new double[]{
+        final DenseVector truth = new DenseVector(new double[]{
             -2.00000000000000e+00,
             -0.00000000000000e+00,
             -0.00000000000000e+00,
@@ -790,7 +791,7 @@ public class SparseVectorTest
     public void testApplyIndexFunction()
     {
         System.out.println("applyIndexFunction");
-        IndexFunction f = new IndexFunction() {
+        final IndexFunction f = new IndexFunction() {
 
             /**
 			 * 
@@ -798,17 +799,18 @@ public class SparseVectorTest
 			private static final long serialVersionUID = 2804170945957432993L;
 
 			@Override
-            public double indexFunc(double value, int index)
+            public double indexFunc(final double value, final int index)
             {
-                if(index < 0)
-                    return 0;
+                if(index < 0) {
+                  return 0;
+                }
                 return value*index;
             }
         };
         
         x.applyIndexFunction(f);
         
-        DenseVector truth = new DenseVector(new double[]{
+        final DenseVector truth = new DenseVector(new double[]{
             0.00000000000000e+00,
             0.00000000000000e+00,
             0.00000000000000e+00,
@@ -844,8 +846,9 @@ public class SparseVectorTest
         
         x.zeroOut();
         
-        for(int i = 0; i < x.length(); i++)
-            assertEquals(0.0, x.get(i), 0.0);
+        for(int i = 0; i < x.length(); i++) {
+          assertEquals(0.0, x.get(i), 0.0);
+        }
     }
 
     /**

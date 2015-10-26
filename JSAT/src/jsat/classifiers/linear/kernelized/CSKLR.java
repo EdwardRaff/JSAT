@@ -68,7 +68,7 @@ public class CSKLR extends BaseUpdateableClassifier implements Parameterized
      * @param R the maximal norm of the surface 
      * @param mode the mode to use
      */
-    public CSKLR(double eta, KernelTrick k, double R, UpdateMode mode)
+    public CSKLR(final double eta, final KernelTrick k, final double R, final UpdateMode mode)
     {
         setEta(eta);
         setKernel(k);
@@ -83,7 +83,7 @@ public class CSKLR extends BaseUpdateableClassifier implements Parameterized
      * @return the guess for the R parameter
      * @see #setR(double) 
      */
-    public static Distribution guessR(DataSet d)
+    public static Distribution guessR(final DataSet d)
     {
         return new LogUniform(1, 1e5);
     }
@@ -95,7 +95,7 @@ public class CSKLR extends BaseUpdateableClassifier implements Parameterized
     }
 
     @Override
-    public Parameter getParameter(String paramName)
+    public Parameter getParameter(final String paramName)
     {
         return Parameter.toParameterMap(getParameters()).get(paramName);
     }
@@ -121,13 +121,13 @@ public class CSKLR extends BaseUpdateableClassifier implements Parameterized
         NC
         {
             @Override
-            protected double pt(double y, double score, double preScore, double eta, double gamma)
+            protected double pt(final double y, final double score, final double preScore, final double eta, final double gamma)
             {
                 return 1;
             }
 
             @Override
-            protected double grad(double y, double score, double preScore, double gamma)
+            protected double grad(final double y, final double score, final double preScore, final double gamma)
             {
                 return score-1;
             }
@@ -141,13 +141,13 @@ public class CSKLR extends BaseUpdateableClassifier implements Parameterized
         MARGIN
         {
             @Override
-            protected double pt(double y, double score, double preScore, double eta, double gamma)
+            protected double pt(final double y, final double score, final double preScore, final double eta, final double gamma)
             {
                 return (2-eta)/(2-eta+eta*score);
             }
 
             @Override
-            protected double grad(double y, double score, double preScore, double gamma)
+            protected double grad(final double y, final double score, final double preScore, final double gamma)
             {
                 return score-1;
             }
@@ -165,16 +165,16 @@ public class CSKLR extends BaseUpdateableClassifier implements Parameterized
         AUXILIARY_1
         {
             @Override
-            protected double pt(double y, double score, double preScore, double eta, double gamma)
+            protected double pt(final double y, final double score, final double preScore, final double eta, final double gamma)
             {
-                double z = y*preScore;
+                final double z = y*preScore;
                 return log(1+exp(-z))/log(gamma+exp(-z));
             }
 
             @Override
-            protected double grad(double y, double score, double preScore, double gamma)
+            protected double grad(final double y, final double score, final double preScore, final double gamma)
             {
-                double z = y*preScore;
+                final double z = y*preScore;
                 return -1/(1+gamma*exp(z));
             }
         },
@@ -187,16 +187,16 @@ public class CSKLR extends BaseUpdateableClassifier implements Parameterized
         AUXILIARY_2
         {
             @Override
-            protected double pt(double y, double score, double preScore, double eta, double gamma)
+            protected double pt(final double y, final double score, final double preScore, final double eta, final double gamma)
             {
-                double z = y*preScore;
+                final double z = y*preScore;
                 return log(1+exp(-z))/log(1+gamma*exp(-z));
             }
 
             @Override
-            protected double grad(double y, double score, double preScore, double gamma)
+            protected double grad(final double y, final double score, final double preScore, final double gamma)
             {
-                double z = y*preScore;
+                final double z = y*preScore;
                 return -gamma/(gamma+exp(z));
             }
         },
@@ -209,14 +209,14 @@ public class CSKLR extends BaseUpdateableClassifier implements Parameterized
         AUXILIARY_3
         {
             @Override
-            protected double pt(double y, double score, double preScore, double eta, double gamma)
+            protected double pt(final double y, final double score, final double preScore, final double eta, final double gamma)
             {
-                double z = y*preScore;
+                final double z = y*preScore;
                 return log(1+exp(-z))/log(1+exp(-gamma));
             }
 
             @Override
-            protected double grad(double y, double score, double preScore, double gamma)
+            protected double grad(final double y, final double score, final double preScore, final double gamma)
             {
                 return score-1;
             }
@@ -249,10 +249,11 @@ public class CSKLR extends BaseUpdateableClassifier implements Parameterized
      * Copy constructor
      * @param toClone the object to copy
      */
-    protected CSKLR(CSKLR toClone)
+    protected CSKLR(final CSKLR toClone)
     {
-        if(toClone.alpha != null)
-            this.alpha = new DoubleList(toClone.alpha);
+        if(toClone.alpha != null) {
+          this.alpha = new DoubleList(toClone.alpha);
+        }
         if(toClone.vecs != null)
         {
             this.vecs = new ArrayList<Vec>(toClone.vecs);
@@ -262,8 +263,9 @@ public class CSKLR extends BaseUpdateableClassifier implements Parameterized
         this.R = toClone.R;
         this.eta = toClone.eta;
         this.setKernel(toClone.k.clone());
-        if(toClone.accelCache != null)
-            this.accelCache = new DoubleList(toClone.accelCache);
+        if(toClone.accelCache != null) {
+          this.accelCache = new DoubleList(toClone.accelCache);
+        }
         this.gamma = toClone.gamma;
         this.rand = new XORWOW();
         this.setEpochs(toClone.getEpochs());
@@ -278,10 +280,11 @@ public class CSKLR extends BaseUpdateableClassifier implements Parameterized
      * 
      * @param eta the positive learning rate to use
      */
-    public void setEta(double eta)
+    public void setEta(final double eta)
     {
-        if(eta < 0 || Double.isNaN(eta) || Double.isInfinite(eta))
-            throw new IllegalArgumentException("The learning rate should be in (0, Inf), not " + eta);
+        if(eta < 0 || Double.isNaN(eta) || Double.isInfinite(eta)) {
+          throw new IllegalArgumentException("The learning rate should be in (0, Inf), not " + eta);
+        }
         this.eta = eta;
     }
 
@@ -303,10 +306,11 @@ public class CSKLR extends BaseUpdateableClassifier implements Parameterized
      * &forall; x &isin; {0, 1, 2, 3, 4, 5}
      * @param R 
      */
-    public void setR(double R)
+    public void setR(final double R)
     {
-        if(R < 0 || Double.isNaN(R) || Double.isInfinite(R))
-            throw new IllegalArgumentException("The max norm should be in (0, Inf), not " + R);
+        if(R < 0 || Double.isNaN(R) || Double.isInfinite(R)) {
+          throw new IllegalArgumentException("The max norm should be in (0, Inf), not " + R);
+        }
         this.R = R;
     }
 
@@ -324,7 +328,7 @@ public class CSKLR extends BaseUpdateableClassifier implements Parameterized
      * sparsity of the mode, and the behavior of {@link #setGamma(double) }
      * @param mode the update mode to use
      */
-    public void setMode(UpdateMode mode)
+    public void setMode(final UpdateMode mode)
     {
         this.mode = mode;
     }
@@ -343,10 +347,11 @@ public class CSKLR extends BaseUpdateableClassifier implements Parameterized
      * {@link UpdateMode} is used, controls the sparsity of the model.
      * @param gamma the gamma parameter, which is at least always positive
      */
-    public void setGamma(double gamma)
+    public void setGamma(final double gamma)
     {
-        if(gamma < 0 || Double.isNaN(gamma) || Double.isInfinite(gamma))
-            throw new IllegalArgumentException("Gamma must be in (0, Infity), not " + gamma);
+        if(gamma < 0 || Double.isNaN(gamma) || Double.isInfinite(gamma)) {
+          throw new IllegalArgumentException("Gamma must be in (0, Infity), not " + gamma);
+        }
         this.gamma = gamma;
     }
 
@@ -363,7 +368,7 @@ public class CSKLR extends BaseUpdateableClassifier implements Parameterized
      * Set which kernel trick to use 
      * @param k the kernel to use
      */
-    public void setKernel(KernelTrick k)
+    public void setKernel(final KernelTrick k)
     {
         this.k = k;
     }
@@ -382,7 +387,7 @@ public class CSKLR extends BaseUpdateableClassifier implements Parameterized
      * @param x the input vector
      * @return the margin score
      */
-    private double getPreScore(Vec x)
+    private double getPreScore(final Vec x)
     {
         return k.evalSum(vecs, accelCache, alpha.getBackingArray(), x, 0, alpha.size());
     }
@@ -393,7 +398,7 @@ public class CSKLR extends BaseUpdateableClassifier implements Parameterized
      * @param pre the raw coefficient score
      * @return the probability in [0, 1] that the score is of the desired class
      */
-    protected static double getScore(double y, double pre)
+    protected static double getScore(final double y, final double pre)
     {
         return 1/(1+Math.exp(-y*pre));
     }
@@ -405,39 +410,42 @@ public class CSKLR extends BaseUpdateableClassifier implements Parameterized
     }
 
     @Override
-    public void setUp(CategoricalData[] categoricalAttributes, int numericAttributes, CategoricalData predicting)
+    public void setUp(final CategoricalData[] categoricalAttributes, final int numericAttributes, final CategoricalData predicting)
     {
-        if(predicting.getNumOfCategories() != 2)
-            throw new FailedToFitException("CSKLR supports only binary classification");
+        if(predicting.getNumOfCategories() != 2) {
+          throw new FailedToFitException("CSKLR supports only binary classification");
+        }
         alpha = new DoubleList();
         vecs = new ArrayList<Vec>();
         curNorm = 0;
         rand = new XORWOW();
-        if(k.supportsAcceleration())
-            accelCache = new DoubleList();
+        if(k.supportsAcceleration()) {
+          accelCache = new DoubleList();
+        }
     }
 
     @Override
-    public void update(DataPoint dataPoint, int targetClass)
+    public void update(final DataPoint dataPoint, final int targetClass)
     {
-        double y_t = targetClass*2-1;
-        Vec x_t = dataPoint.getNumericalValues();
-        double pre = getPreScore(x_t);
-        double score = getScore(y_t, pre);
+        final double y_t = targetClass*2-1;
+        final Vec x_t = dataPoint.getNumericalValues();
+        final double pre = getPreScore(x_t);
+        final double score = getScore(y_t, pre);
         
         switch(mode)
         {
             case NC:
                 break;
             default:
-                double pt = mode.pt(y_t, score, pre, eta, gamma);
-                if(rand.nextDouble() > pt)
-                    return;
+                final double pt = mode.pt(y_t, score, pre, eta, gamma);
+                if(rand.nextDouble() > pt) {
+                  return;
+        }
              break;   
         }
         
         
-        double alpha_i = -eta*y_t*mode.grad(y_t, score, pre, gamma)*dataPoint.getWeight();
+        final double alpha_i = -eta*y_t*mode.grad(y_t, score, pre, gamma)*dataPoint.getWeight();
 
         alpha.add(alpha_i);
         vecs.add(x_t);
@@ -447,20 +455,21 @@ public class CSKLR extends BaseUpdateableClassifier implements Parameterized
         //projection step
         if (curNorm > R)
         {
-            double coef = R/curNorm;
-            for(int i = 0; i < alpha.size(); i++)
-                alpha.set(i, alpha.get(i)*coef);
+            final double coef = R/curNorm;
+            for(int i = 0; i < alpha.size(); i++) {
+              alpha.set(i, alpha.get(i)*coef);
+            }
             curNorm = coef;
         }
         
     }
 
     @Override
-    public CategoricalResults classify(DataPoint data)
+    public CategoricalResults classify(final DataPoint data)
     {
-        CategoricalResults cr = new CategoricalResults(2);
+        final CategoricalResults cr = new CategoricalResults(2);
         
-        double p_0 = getScore(-1, getPreScore(data.getNumericalValues()));
+        final double p_0 = getScore(-1, getPreScore(data.getNumericalValues()));
 
         cr.setProb(0, p_0);
         cr.setProb(1, 1-p_0);

@@ -54,7 +54,7 @@ public class MeanShift extends ClustererBase
      * The default value of {@link #getScaleBandwidthFactor() } is {@value #DefaultScaleBandwidthFactor}
      */
     public static final double DefaultScaleBandwidthFactor = 1.0;
-    private MultivariateKDE mkde;
+    private final MultivariateKDE mkde;
     private int maxIterations = DefaultMaxIterations;
     private double scaleBandwidthFactor = DefaultScaleBandwidthFactor;
 
@@ -72,7 +72,7 @@ public class MeanShift extends ClustererBase
      * the {@link GaussKF}.
      * @param dm the distance metric to use
      */
-    public MeanShift(DistanceMetric dm)
+    public MeanShift(final DistanceMetric dm)
     {
         this(new MetricKDE(GaussKF.getInstance(), dm));
     }
@@ -84,7 +84,7 @@ public class MeanShift extends ClustererBase
      * NOTE: {@link ProductKDE} does not currently support the functions needed to work with MeanShift. 
      * @param mkde the KDE to use in the clustering process. 
      */
-    public MeanShift(MultivariateKDE mkde)
+    public MeanShift(final MultivariateKDE mkde)
     {
         this.mkde = mkde;
     }
@@ -93,7 +93,7 @@ public class MeanShift extends ClustererBase
      * Copy constructor
      * @param toCopy the object to copy
      */
-    public MeanShift(MeanShift toCopy)
+    public MeanShift(final MeanShift toCopy)
     {
         this.mkde = toCopy.mkde.clone();
         this.maxIterations = toCopy.maxIterations;
@@ -106,10 +106,11 @@ public class MeanShift extends ClustererBase
      * @param maxIterations the maximum number of iterations
      * @throws ArithmeticException if a value less than 1 is given
      */
-    public void setMaxIterations(int maxIterations)
+    public void setMaxIterations(final int maxIterations)
     {
-        if(maxIterations <= 0)
-            throw new ArithmeticException("Invalid iteration count, " + maxIterations);
+        if(maxIterations <= 0) {
+          throw new ArithmeticException("Invalid iteration count, " + maxIterations);
+        }
         this.maxIterations = maxIterations;
     }
 
@@ -130,10 +131,11 @@ public class MeanShift extends ClustererBase
      * @throws ArithmeticException if the value given is {@link Double#NaN NaN }
      * or {@link Double#POSITIVE_INFINITY infinity}
      */
-    public void setScaleBandwidthFactor(double scaleBandwidthFactor)
+    public void setScaleBandwidthFactor(final double scaleBandwidthFactor)
     {
-        if(Double.isNaN(scaleBandwidthFactor) || Double.isInfinite(scaleBandwidthFactor))
-            throw new ArithmeticException("Invalid scale factor, " + scaleBandwidthFactor);
+        if(Double.isNaN(scaleBandwidthFactor) || Double.isInfinite(scaleBandwidthFactor)) {
+          throw new ArithmeticException("Invalid scale factor, " + scaleBandwidthFactor);
+        }
         this.scaleBandwidthFactor = scaleBandwidthFactor;
     }
 
@@ -148,54 +150,58 @@ public class MeanShift extends ClustererBase
     }
     
     @Override
-    public int[] cluster(DataSet dataSet, int[] designations)
+    public int[] cluster(final DataSet dataSet, final int[] designations)
     {
         return cluster(dataSet, null, designations);
     }
 
     @Override
-    public int[] cluster(DataSet dataSet, ExecutorService threadpool, int[] designations)
+    public int[] cluster(final DataSet dataSet, final ExecutorService threadpool, int[] designations)
     {
         try
         {
-            if(designations == null || designations.length < dataSet.getSampleSize())
-                designations = new int[dataSet.getSampleSize()];
-            boolean[] converged = new boolean[dataSet.getSampleSize()];
+            if(designations == null || designations.length < dataSet.getSampleSize()) {
+              designations = new int[dataSet.getSampleSize()];
+            }
+            final boolean[] converged = new boolean[dataSet.getSampleSize()];
             Arrays.fill(converged, false);
             
             final KernelFunction k = mkde.getKernelFunction();
-            if(threadpool == null)
-                mkde.setUsingData(dataSet);
-            else
-                mkde.setUsingData(dataSet, threadpool);
+            if(threadpool == null) {
+              mkde.setUsingData(dataSet);
+            } else {
+              mkde.setUsingData(dataSet, threadpool);
+            }
             mkde.scaleBandwidth(scaleBandwidthFactor);
             
-            Vec scratch = new DenseVector(dataSet.getNumNumericalVars());
-            Vec[] xit = new Vec[converged.length];
-            for(int i = 0; i < xit.length; i++)
-                xit[i] = dataSet.getDataPoint(i).getNumericalValues().clone();
-            if(threadpool == null)
-                mainLoop(converged, xit, designations, scratch, k);
-            else
-                mainLoop(converged, xit, designations, k, threadpool);
+            final Vec scratch = new DenseVector(dataSet.getNumNumericalVars());
+            final Vec[] xit = new Vec[converged.length];
+            for(int i = 0; i < xit.length; i++) {
+              xit[i] = dataSet.getDataPoint(i).getNumericalValues().clone();
+            }
+            if(threadpool == null) {
+              mainLoop(converged, xit, designations, scratch, k);
+            } else {
+              mainLoop(converged, xit, designations, k, threadpool);
+            }
             
             assignmentStep(converged, xit, designations);
             
             return designations;
         }
-        catch (InterruptedException ex)
+        catch (final InterruptedException ex)
         {
             Logger.getLogger(MeanShift.class.getName()).log(Level.SEVERE, null, ex);
             throw new FailedToFitException(ex);
         }
-        catch (BrokenBarrierException ex)
+        catch (final BrokenBarrierException ex)
         {
             Logger.getLogger(MeanShift.class.getName()).log(Level.SEVERE, null, ex);
             throw new FailedToFitException(ex);
         }
     }
 
-    private void assignmentStep(boolean[] converged, Vec[] xit, int[] designations)
+    private void assignmentStep(final boolean[] converged, final Vec[] xit, final int[] designations)
     {
         //We now repurpose the 'converged' array to indicate if the point has not yet been asigned to a cluster
         
@@ -206,12 +212,14 @@ public class MeanShift extends ClustererBase
         {
             progress = false;
             int basePos = 0;//This will be the mode of our cluster
-            while(basePos < converged.length && !converged[basePos])
-                basePos++;
+            while(basePos < converged.length && !converged[basePos]) {
+              basePos++;
+            }
             for(int i = basePos; i < converged.length; i++)
             {
-                if(!converged[i] || designations[i] == -1)
-                    continue;//Already assigned
+                if(!converged[i] || designations[i] == -1) {
+                  continue;//Already assigned
+                }
                 progress = true;
                 if(Math.abs(xit[basePos].pNormDist(2, xit[i])) < 1e-3)
                 {
@@ -224,7 +232,7 @@ public class MeanShift extends ClustererBase
         }
     }
 
-    private void mainLoop(boolean[] converged, Vec[] xit, int[] designations, Vec scratch, final KernelFunction k)
+    private void mainLoop(final boolean[] converged, final Vec[] xit, final int[] designations, final Vec scratch, final KernelFunction k)
     {
         boolean progress = true;
         
@@ -236,8 +244,9 @@ public class MeanShift extends ClustererBase
             
             for(int i = 0; i < converged.length; i++)
             {
-                if(converged[i])
-                    continue;
+                if(converged[i]) {
+                  continue;
+                }
                 progress = true;
                 
                 convergenceStep(xit, i, converged, designations, scratch, k);
@@ -248,7 +257,7 @@ public class MeanShift extends ClustererBase
         Arrays.fill(converged, true);
     }
     
-    private void mainLoop(final boolean[] converged, final Vec[] xit, final int[] designations, final KernelFunction k, ExecutorService ex) throws InterruptedException, BrokenBarrierException
+    private void mainLoop(final boolean[] converged, final Vec[] xit, final int[] designations, final KernelFunction k, final ExecutorService ex) throws InterruptedException, BrokenBarrierException
     {
         boolean progress = true;
         
@@ -257,7 +266,7 @@ public class MeanShift extends ClustererBase
          * +1 b/c we have to wait for the worker threads, but we also want this 
          * calling thread to wait with them. Hence, +1
          */
-        CyclicBarrier barrier = new CyclicBarrier(LogicalCores+1);
+        final CyclicBarrier barrier = new CyclicBarrier(LogicalCores+1);
         
         final BlockingQueue<Runnable> jobs = new ArrayBlockingQueue<Runnable>(LogicalCores*2);
         
@@ -274,13 +283,15 @@ public class MeanShift extends ClustererBase
         {
             progress = false;
             
-            for(int i = 0; i < LogicalCores; i++)
-                ex.submit(new RunnableConsumer(jobs));
+            for(int i = 0; i < LogicalCores; i++) {
+              ex.submit(new RunnableConsumer(jobs));
+            }
             
             for(int i = 0; i < converged.length; i++)
             {
-                if(converged[i])
-                    continue;
+                if(converged[i]) {
+                  continue;
+                }
                 progress = true;
                 final int ii = i;
                 
@@ -295,8 +306,9 @@ public class MeanShift extends ClustererBase
                 
             }
             
-            for(int i = 0; i < LogicalCores; i++)
-                jobs.put(new PoisonRunnable(barrier));
+            for(int i = 0; i < LogicalCores; i++) {
+              jobs.put(new PoisonRunnable(barrier));
+            }
             barrier.await();
             barrier.reset();
         }
@@ -314,11 +326,11 @@ public class MeanShift extends ClustererBase
      * @param scratch the vector to compute work with
      * @param k the kernel function to use
      */
-    private void convergenceStep(final Vec[] xit, int i, final boolean[] converged, final int[] designations, final Vec scratch, final KernelFunction k)
+    private void convergenceStep(final Vec[] xit, final int i, final boolean[] converged, final int[] designations, final Vec scratch, final KernelFunction k)
     {
         double denom = 0.0;
-        Vec xCur = xit[i];
-        List<? extends VecPaired<VecPaired<Vec, Integer>, Double>> contrib = mkde.getNearbyRaw(xCur);
+        final Vec xCur = xit[i];
+        final List<? extends VecPaired<VecPaired<Vec, Integer>, Double>> contrib = mkde.getNearbyRaw(xCur);
         
         if(contrib.size() == 1)
         {
@@ -329,16 +341,17 @@ public class MeanShift extends ClustererBase
         else
         {
             scratch.zeroOut();
-            for(VecPaired<VecPaired<Vec, Integer>, Double> v : contrib)
+            for(final VecPaired<VecPaired<Vec, Integer>, Double> v : contrib)
             {
-                double g = - k.kPrime(v.getPair());
+                final double g = - k.kPrime(v.getPair());
                 denom += g;
                 scratch.mutableAdd(g, v);
             }
             scratch.mutableDivide(denom);
 
-            if( Math.abs(scratch.pNormDist(2, xCur)) < 1e-5)
-                converged[i] = true;
+            if( Math.abs(scratch.pNormDist(2, xCur)) < 1e-5) {
+              converged[i] = true;
+            }
 
             scratch.copyTo(xCur);
         }

@@ -18,7 +18,7 @@ public class ConstantInit implements BiastInitializer
      * 
      * @param c the constant to set all biases to
      */
-    public ConstantInit(double c)
+    public ConstantInit(final double c)
     {
         this.c = c;
     }
@@ -27,10 +27,11 @@ public class ConstantInit implements BiastInitializer
      * 
      * @param c the constant value to use
      */
-    public void setConstant(double c)
+    public void setConstant(final double c)
     {
-        if(Double.isNaN(c) || Double.isInfinite(c))
-            throw new IllegalArgumentException("Constant must be a real value, not " + c);
+        if(Double.isNaN(c) || Double.isInfinite(c)) {
+          throw new IllegalArgumentException("Constant must be a real value, not " + c);
+        }
         this.c = c;
     }
 
@@ -44,7 +45,7 @@ public class ConstantInit implements BiastInitializer
     }
     
     @Override
-    public void init(Vec b, int fanIn, Random rand)
+    public void init(final Vec b, final int fanIn, final Random rand)
     {
         new ConstantVector(c, b.length()).copyTo(b);
     }

@@ -11,10 +11,10 @@ import java.util.concurrent.atomic.AtomicInteger;
  */
 public class ModifiableCountDownLatch
 {
-    private Semaphore awaitSemaphore;
-    private AtomicInteger count;
+    private final Semaphore awaitSemaphore;
+    private final AtomicInteger count;
 
-    public ModifiableCountDownLatch(int count)
+    public ModifiableCountDownLatch(final int count)
     {
         this.count = new AtomicInteger(count);
         awaitSemaphore = new Semaphore(0);
@@ -36,10 +36,11 @@ public class ModifiableCountDownLatch
      */
     public void countDown()
     {
-        if(count.get() == 0)
-            return;
-        else if( count.decrementAndGet() == 0)
-            awaitSemaphore.release();
+        if(count.get() == 0) {
+          return;
+        } else if( count.decrementAndGet() == 0) {
+          awaitSemaphore.release();
+        }
     }
     
     /**

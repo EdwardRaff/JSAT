@@ -41,14 +41,14 @@ public class XMeans extends KMeans
     private boolean iterativeRefine = true;
     
     private int minClusterSize = 25;
-    private KMeans kmeans;
+    private final KMeans kmeans;
 
     public XMeans()
     {
         this(new HamerlyKMeans());
     }
     
-    public XMeans(KMeans kmeans)
+    public XMeans(final KMeans kmeans)
     {
         super(kmeans.dm, kmeans.seedSelection, kmeans.rand);
         this.kmeans = kmeans;
@@ -60,7 +60,7 @@ public class XMeans extends KMeans
      * Copy constructor
      * @param toCopy the object to copy
      */
-    public XMeans(XMeans toCopy)
+    public XMeans(final XMeans toCopy)
     {
         super(toCopy);
         this.kmeans = toCopy.kmeans.clone();
@@ -85,7 +85,7 @@ public class XMeans extends KMeans
      * @param stopAfterFail {@code true} if a centroid shouldn't be re-tested once it 
      * fails to split. 
      */
-    public void setStopAfterFail(boolean stopAfterFail)
+    public void setStopAfterFail(final boolean stopAfterFail)
     {
         this.stopAfterFail = stopAfterFail;
     }
@@ -105,10 +105,11 @@ public class XMeans extends KMeans
      * @param minClusterSize the minimum number of data points that must be present in a 
      * cluster to consider splitting it
      */
-    public void setMinClusterSize(int minClusterSize)
+    public void setMinClusterSize(final int minClusterSize)
     {
-        if(minClusterSize < 2)
-            throw new IllegalArgumentException("min cluster size that could be split is 2, not " + minClusterSize);
+        if(minClusterSize < 2) {
+          throw new IllegalArgumentException("min cluster size that could be split is 2, not " + minClusterSize);
+        }
         this.minClusterSize = minClusterSize;
     }
 
@@ -130,7 +131,7 @@ public class XMeans extends KMeans
      * @param refineCenters {@code true} to refine the cluster centers at every 
      * step, {@code false} to skip this step of the algorithm. 
      */
-    public void setIterativeRefine(boolean refineCenters)
+    public void setIterativeRefine(final boolean refineCenters)
     {
         this.iterativeRefine = refineCenters;
     }
@@ -147,13 +148,13 @@ public class XMeans extends KMeans
     
 
     @Override
-    public int[] cluster(DataSet dataSet, int[] designations)
+    public int[] cluster(final DataSet dataSet, final int[] designations)
     {
         return cluster(dataSet, 2, Math.max(dataSet.getSampleSize()/20, 10), designations);
     }
 
     @Override
-    public int[] cluster(DataSet dataSet, ExecutorService threadpool, int[] designations)
+    public int[] cluster(final DataSet dataSet, final ExecutorService threadpool, final int[] designations)
     {
         return cluster(dataSet, 2, Math.max(dataSet.getSampleSize()/20, 10), threadpool, designations);
     }
@@ -166,28 +167,29 @@ public class XMeans extends KMeans
      * @param D the number of dimensions
      * @return the number of free parameters
      */
-    private static int freeParameters(int K, int D)
+    private static int freeParameters(final int K, final int D)
     {
         return (K - 1) + (D * K) + 1;
     }
 
     @Override
-    public int[] cluster(DataSet dataSet, int lowK, int highK, ExecutorService threadpool, int[] designations)
+    public int[] cluster(final DataSet dataSet, final int lowK, final int highK, final ExecutorService threadpool, int[] designations)
     {
         final int N = dataSet.getSampleSize();
         final int D = dataSet.getNumNumericalVars();//"M" in orig paper
         
-        if(designations == null || designations.length < dataSet.getSampleSize())
-            designations = new int[N];
+        if(designations == null || designations.length < dataSet.getSampleSize()) {
+          designations = new int[N];
+        }
         
-        List<Vec> data = dataSet.getDataVectors();
+        final List<Vec> data = dataSet.getDataVectors();
         final List<Double> accelCache = dm.getAccelerationCache(data, threadpool);
         
         /**
          * The sum of ||x - \mu_i||^2 for each cluster currently kept
          */
-        double[] localVar = new double[highK];
-        int[] localOwned = new int[highK];
+        final double[] localVar = new double[highK];
+        final int[] localOwned = new int[highK];
         //initiate
         if(lowK >= 2)
         {
@@ -201,22 +203,24 @@ public class XMeans extends KMeans
         }
         else//1 mean of all the data
         {
-            if(designations == null || designations.length < N)
-                designations = new int[N];
-            else
-                Arrays.fill(designations, 0);
+            if(designations == null || designations.length < N) {
+              designations = new int[N];
+            } else {
+              Arrays.fill(designations, 0);
+            }
             means = new ArrayList<Vec>(Arrays.asList(MatrixStatistics.meanVector(dataSet)));
             localOwned[0] = N;
-            List<Double> qi = dm.getQueryInfo(means.get(0));
-            for(int i = 0; i < data.size(); i++)
-                localVar[0] += Math.pow(dm.dist(i, means.get(0), qi, data, accelCache), 2);
+            final List<Double> qi = dm.getQueryInfo(means.get(0));
+            for(int i = 0; i < data.size(); i++) {
+              localVar[0] += Math.pow(dm.dist(i, means.get(0), qi, data, accelCache), 2);
+            }
         }
         
-        int[] subS = new int[designations.length];
+        final int[] subS = new int[designations.length];
         int[] subC = new int[designations.length];
         
         //tract if we should stop testing a mean or not
-        List<Boolean> dontRedo = new ArrayList<Boolean>(Collections.nCopies(means.size(), false));
+        final List<Boolean> dontRedo = new ArrayList<Boolean>(Collections.nCopies(means.size(), false));
         
         int origMeans;
         do
@@ -225,28 +229,30 @@ public class XMeans extends KMeans
             
             for(int c = 0; c < origMeans; c++)
             {
-                if(dontRedo.get(c))
-                    continue;
-                /*
-                 * Next, in each parent region we run a local K-means (with 
-                 * K = 2) for each pair of children. It is local in that the 
-                 * children are fighting each other for the points in the 
-                 * parent's region: no others
-                 */
+                if(dontRedo.get(c)) {
+                  continue;
+                  /*
+                  * Next, in each parent region we run a local K-means (with
+                  * K = 2) for each pair of children. It is local in that the
+                  * children are fighting each other for the points in the
+                  * parent's region: no others
+                  */
+                }
                 
-                List<DataPoint> X = getDatapointsFromCluster(c, designations, dataSet, subS);
+                final List<DataPoint> X = getDatapointsFromCluster(c, designations, dataSet, subS);
                 final int n = X.size();//NOTE, not the same as N. PAY ATENTION
                 //TODO add the optimization in the paper where we check for movment, and dont test means that haven't mvoed much
-                if(X.size() < minClusterSize || means.size() == highK)
-                    continue;//this loop with force it to exit when we hit max K
+                if(X.size() < minClusterSize || means.size() == highK) {
+                  continue;//this loop with force it to exit when we hit max K
+                }
                 
                 subC = kmeans.cluster(new SimpleDataSet(X), 2, threadpool, subC);
                 //call explicitly to force that distance to nearest center is saved
-                List<Vec> subMean = new ArrayList<Vec>(2);
+                final List<Vec> subMean = new ArrayList<Vec>(2);
                 kmeans.cluster(new SimpleDataSet(X), null, 2, subMean, subC, true, threadpool, true);
-                double[] nearDist = kmeans.nearestCentroidDist;
-                Vec c1 = subMean.get(0);
-                Vec c2 = subMean.get(1);
+                final double[] nearDist = kmeans.nearestCentroidDist;
+                final Vec c1 = subMean.get(0);
+                final Vec c2 = subMean.get(1);
                 
                 /*
                  * "it determines which one to explore by improving the BIC 
@@ -259,37 +265,41 @@ public class XMeans extends KMeans
                 for(int i = 0; i < X.size(); i++)
                 {
                     newSigma += Math.pow(nearDist[i], 2);
-                    if(subC[i] == 0)
-                        size_c1++;
+                    if(subC[i] == 0) {
+                      size_c1++;
+                    }
                 }
                 newSigma /= D*(n-2);
-                int size_c2 = n-size_c1;
+                final int size_c2 = n-size_c1;
     
                 //have needed values, now compute BIC for LOCAL models
                 
-                double localNewBic = size_c1*log(size_c1) + size_c2*log(size_c2)
+                final double localNewBic = size_c1*log(size_c1) + size_c2*log(size_c2)
                         - n*log(n)
                         - n*D/2.0*log(2*PI*newSigma)
                         - D/2.0*(n-2)//that gets us the log like, last line to penalize for bic
                         -freeParameters(2, D)/2.0*log(n);
                 
-                double localOldBic = 
+                final double localOldBic = 
                         - n*D/2.0*log(2*PI*localVar[c]/(D*(n-1)))
                         - D/2.0*(n-1)//that gets us the log like, last line to penalize for bic
                         -freeParameters(1, D)/2.0*log(n);
 
                 if(localOldBic > localNewBic)
                 {
-                    if(stopAfterFail)//if we are going to trust that H0 is true forever, mark it
-                        dontRedo.set(c, true);
+                    if(stopAfterFail) {//if we are going to trust that H0 is true forever, mark it
+                      dontRedo.set(c, true);
+                    }
                     continue;//passed the test, do not split
                 }
                 //else, accept the split
 
                 //first, update assignment array. Cluster '0' stays as is, re-set cluster '1'
-                for(int i = 0; i < X.size(); i++)
-                    if(subC[i] == 1)
-                        designations[subS[i]] = means.size();
+                for(int i = 0; i < X.size(); i++) {
+                  if (subC[i] == 1) {
+                    designations[subS[i]] = means.size();
+                  }
+                }
                 //replace current mean and add new one
                 means.set(c, c1.clone());//cur index in dontRedo stays false
                 means.add(c2.clone());//add a 'false' for new center
@@ -310,13 +320,14 @@ public class XMeans extends KMeans
         }
         while (origMeans < means.size());
         
-        if(!iterativeRefine)//if we havn't been refining we need to do so now!
-            kmeans.cluster(dataSet, accelCache, means.size(), means, designations, false, threadpool, false);
+        if(!iterativeRefine) {//if we havn't been refining we need to do so now!
+          kmeans.cluster(dataSet, accelCache, means.size(), means, designations, false, threadpool, false);
+        }
         return designations;
     }
     
     @Override
-    public int[] cluster(DataSet dataSet, int lowK, int highK, int[] designations)
+    public int[] cluster(final DataSet dataSet, final int lowK, final int highK, final int[] designations)
     {
         return cluster(dataSet, lowK, highK, null, designations);
     }
@@ -328,16 +339,17 @@ public class XMeans extends KMeans
     }
 
     @Override
-    public void setIterationLimit(int iterLimit)
+    public void setIterationLimit(final int iterLimit)
     {
         kmeans.setIterationLimit(iterLimit);
     }
 
     @Override
-    public void setSeedSelection(SeedSelectionMethods.SeedSelection seedSelection)
+    public void setSeedSelection(final SeedSelectionMethods.SeedSelection seedSelection)
     {
-        if(kmeans != null)//needed when initing
-            kmeans.setSeedSelection(seedSelection);
+        if(kmeans != null) {//needed when initing
+          kmeans.setSeedSelection(seedSelection);
+        }
     }
 
     @Override
@@ -348,7 +360,7 @@ public class XMeans extends KMeans
     
 
     @Override
-    protected double cluster(DataSet dataSet, List<Double> accelCache, int k, List<Vec> means, int[] assignment, boolean exactTotal, ExecutorService threadpool, boolean returnError)
+    protected double cluster(final DataSet dataSet, final List<Double> accelCache, final int k, final List<Vec> means, final int[] assignment, final boolean exactTotal, final ExecutorService threadpool, final boolean returnError)
     {
         return kmeans.cluster(dataSet, accelCache, k, means, assignment, exactTotal, threadpool, returnError);
     }

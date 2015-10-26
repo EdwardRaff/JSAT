@@ -29,7 +29,7 @@ public class ConstantVector extends Vec
      * @param constant the constant to use as the single value for all indices
      * @param length the length of this vector
      */
-    public ConstantVector(double constant, int length)
+    public ConstantVector(final double constant, final int length)
     {
         setConstant(constant);
         setLength(length);
@@ -40,7 +40,7 @@ public class ConstantVector extends Vec
      * index of this vector. 
      * @param constant the constant value to represent as a vector
      */
-    public void setConstant(double constant)
+    public void setConstant(final double constant)
     {
         this.constant = constant;
     }
@@ -49,10 +49,11 @@ public class ConstantVector extends Vec
      * Sets the length of this vector. The length must be a non zero value
      * @param length the new length for this vector
      */
-    public void setLength(int length)
+    public void setLength(final int length)
     {
-        if(length < 1)
-            throw new ArithmeticException("Vector length must be a positive constant");
+        if(length < 1) {
+          throw new ArithmeticException("Vector length must be a positive constant");
+        }
         this.length = length;
     }
 
@@ -63,7 +64,7 @@ public class ConstantVector extends Vec
     }
 
     @Override
-    public double get(int index)
+    public double get(final int index)
     {
         return constant;
     }
@@ -99,7 +100,7 @@ public class ConstantVector extends Vec
     }
 
     @Override
-    public double pNorm(double p)
+    public double pNorm(final double p)
     {
         return Math.pow(length*Math.pow(Math.abs(constant), p), 1/p);
     }
@@ -111,7 +112,7 @@ public class ConstantVector extends Vec
     }
 
     @Override
-    public void set(int index, double val)
+    public void set(final int index, final double val)
     {
         throw new ArithmeticException("ConstantVector does not support mutation");
     }

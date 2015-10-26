@@ -22,14 +22,14 @@ import jsat.utils.SystemInfo;
  */
 public class RegressionModelEvaluation
 {
-    private Regressor regressor;
+    private final Regressor regressor;
     
-    private RegressionDataSet dataSet;
+    private final RegressionDataSet dataSet;
     
     /**
      * The source of threads
      */
-    private ExecutorService threadpool;
+    private final ExecutorService threadpool;
     
     private OnLineStatistics sqrdErrorStats;
     
@@ -37,7 +37,7 @@ public class RegressionModelEvaluation
     
     private DataTransformProcess dtp;
     
-    private Map<RegressionScore, OnLineStatistics> scoreMap;
+    private final Map<RegressionScore, OnLineStatistics> scoreMap;
     private boolean keepModels = false;
     /**
      * This holds models for each index that will be kept. If using a test set,
@@ -56,7 +56,7 @@ public class RegressionModelEvaluation
      * @param dataSet the data set to train or perform cross validation from
      * @param threadpool the source of threads for training of models
      */
-    public RegressionModelEvaluation(Regressor regressor, RegressionDataSet dataSet, ExecutorService threadpool)
+    public RegressionModelEvaluation(final Regressor regressor, final RegressionDataSet dataSet, final ExecutorService threadpool)
     {
         this.regressor = regressor;
         this.dataSet = dataSet;
@@ -71,7 +71,7 @@ public class RegressionModelEvaluation
      * @param regressor the regressor model to evaluate
      * @param dataSet the data set to train or perform cross validation from
      */
-    public RegressionModelEvaluation(Regressor regressor, RegressionDataSet dataSet)
+    public RegressionModelEvaluation(final Regressor regressor, final RegressionDataSet dataSet)
     {
         this(regressor, dataSet, null);
     }
@@ -84,7 +84,7 @@ public class RegressionModelEvaluation
      * @param keepModels {@code true} to keep the trained models after
      * evaluation, {@code false} to discard them.
      */
-    public void setKeepModels(boolean keepModels)
+    public void setKeepModels(final boolean keepModels)
     {
         this.keepModels = keepModels;
     }
@@ -120,7 +120,7 @@ public class RegressionModelEvaluation
      *
      * @param warmModels the models to use for warm start training
      */
-    public void setWarmModels(Regressor... warmModels)
+    public void setWarmModels(final Regressor... warmModels)
     {
         this.warmModels = warmModels;
     }
@@ -130,7 +130,7 @@ public class RegressionModelEvaluation
      * By default, no transforms are applied
      * @param dtp the transformation process to clone for use during evaluation
      */
-    public void setDataTransformProcess(DataTransformProcess dtp)
+    public void setDataTransformProcess(final DataTransformProcess dtp)
     {
         this.dtp = dtp.clone();
     }
@@ -141,7 +141,7 @@ public class RegressionModelEvaluation
      * @param folds the number of folds for cross validation
      * @throws UntrainedModelException if the number of folds given is less than 2
      */
-    public void evaluateCrossValidation(int folds)
+    public void evaluateCrossValidation(final int folds)
     {
         evaluateCrossValidation(folds, new Random());
     }
@@ -153,12 +153,13 @@ public class RegressionModelEvaluation
      * @param rand the source of randomness for generating the cross validation sets
      * @throws UntrainedModelException if the number of folds given is less than 2
      */
-    public void evaluateCrossValidation(int folds, Random rand)
+    public void evaluateCrossValidation(final int folds, final Random rand)
     {
-        if(folds < 2)
-            throw new UntrainedModelException("Model could not be evaluated because " + folds + " is < 2, and not valid for cross validation");
+        if(folds < 2) {
+          throw new UntrainedModelException("Model could not be evaluated because " + folds + " is < 2, and not valid for cross validation");
+        }
         
-        List<RegressionDataSet> lcds = dataSet.cvSet(folds, rand);
+        final List<RegressionDataSet> lcds = dataSet.cvSet(folds, rand);
         evaluateCrossValidation(lcds);
     }
     
@@ -177,11 +178,12 @@ public class RegressionModelEvaluation
      *
      * @param lcds the training data set already split into folds
      */
-    public void evaluateCrossValidation(List<RegressionDataSet> lcds)
+    public void evaluateCrossValidation(final List<RegressionDataSet> lcds)
     {
-        List<RegressionDataSet> trainCombinations = new ArrayList<RegressionDataSet>(lcds.size());
-        for (int i = 0; i < lcds.size(); i++)
-            trainCombinations.add(RegressionDataSet.comineAllBut(lcds, i));
+        final List<RegressionDataSet> trainCombinations = new ArrayList<RegressionDataSet>(lcds.size());
+        for (int i = 0; i < lcds.size(); i++) {
+          trainCombinations.add(RegressionDataSet.comineAllBut(lcds, i));
+        }
         evaluateCrossValidation(lcds, trainCombinations);
     }
     
@@ -210,7 +212,7 @@ public class RegressionModelEvaluation
      * @param trainCombinations each index contains the training data sans the
      * data stored in the fold associated with that index
      */
-    public void evaluateCrossValidation(List<RegressionDataSet> lcds, List<RegressionDataSet> trainCombinations)
+    public void evaluateCrossValidation(final List<RegressionDataSet> lcds, final List<RegressionDataSet> trainCombinations)
     {
         
         sqrdErrorStats = new OnLineStatistics();
@@ -218,8 +220,8 @@ public class RegressionModelEvaluation
         
         for(int i = 0; i < lcds.size(); i++)
         {
-            RegressionDataSet trainSet = trainCombinations.get(i);
-            RegressionDataSet testSet = lcds.get(i);
+            final RegressionDataSet trainSet = trainCombinations.get(i);
+            final RegressionDataSet testSet = lcds.get(i);
             evaluationWork(trainSet, testSet, i);
         }
     }
@@ -229,44 +231,47 @@ public class RegressionModelEvaluation
      * train, and testing on the given data set. 
      * @param testSet the data set to perform testing on
      */
-    public void evaluateTestSet(RegressionDataSet testSet)
+    public void evaluateTestSet(final RegressionDataSet testSet)
     {
         sqrdErrorStats = new OnLineStatistics();
         totalTrainingTime = totalClassificationTime = 0;
         evaluationWork(dataSet, testSet, 0);
     }
     
-    private void evaluationWork(RegressionDataSet trainSet, RegressionDataSet testSet, int index)
+    private void evaluationWork(RegressionDataSet trainSet, final RegressionDataSet testSet, final int index)
     {
         trainSet = trainSet.shallowClone();
-        DataTransformProcess curProccess = dtp.clone();
+        final DataTransformProcess curProccess = dtp.clone();
         curProccess.learnApplyTransforms(trainSet);
         
-        long startTrain = System.currentTimeMillis();
+        final long startTrain = System.currentTimeMillis();
         if(warmModels != null && regressor instanceof WarmRegressor)//train from the warm model
         {
-            WarmRegressor wr = (WarmRegressor) regressor;
-            if(threadpool != null)
-                wr.train(trainSet, warmModels[index], threadpool);
-            else
-                wr.train(trainSet, warmModels[index]);
+            final WarmRegressor wr = (WarmRegressor) regressor;
+            if(threadpool != null) {
+              wr.train(trainSet, warmModels[index], threadpool);
+            } else {
+              wr.train(trainSet, warmModels[index]);
+            }
         }
         else//do the normal thing
         {
-            if(threadpool != null)
-                regressor.train(trainSet, threadpool);
-            else
-                regressor.train(trainSet);
+            if(threadpool != null) {
+              regressor.train(trainSet, threadpool);
+            } else {
+              regressor.train(trainSet);
+            }
         }
         totalTrainingTime += (System.currentTimeMillis() - startTrain);
-        if(keptModels != null)
-            keptModels[index] = regressor.clone();
+        if(keptModels != null) {
+          keptModels[index] = regressor.clone();
+        }
         
         //place to store the scores that may get updated by several threads
         final Map<RegressionScore, RegressionScore> scoresToUpdate = new HashMap<RegressionScore, RegressionScore>();
-        for(Entry<RegressionScore, OnLineStatistics> entry : scoreMap.entrySet())
+        for(final Entry<RegressionScore, OnLineStatistics> entry : scoreMap.entrySet())
         {
-            RegressionScore score = entry.getKey().clone();
+            final RegressionScore score = entry.getKey().clone();
             score.prepare();
             scoresToUpdate.put(score, score);
         }
@@ -287,8 +292,9 @@ public class RegressionModelEvaluation
             while(start < testSet.getSampleSize())
             {
                 int end = start+blockSize;
-                if(extra-- > 0)
-                    end++;
+                if(extra-- > 0) {
+                  end++;
+                }
                 threadpool.submit(new Evaluator(testSet, curProccess, start, end, scoresToUpdate, latch));
                 start = end;
             }
@@ -297,15 +303,15 @@ public class RegressionModelEvaluation
         {
             latch.await();
             //accumulate score info
-            for(Entry<RegressionScore, OnLineStatistics> entry : scoreMap.entrySet())
+            for(final Entry<RegressionScore, OnLineStatistics> entry : scoreMap.entrySet())
             {
-                RegressionScore score = entry.getKey().clone();
+                final RegressionScore score = entry.getKey().clone();
                 score.prepare();
                 score.addResults(scoresToUpdate.get(score));
                 entry.getValue().add(score.getScore());
             }
         }
-        catch (InterruptedException ex)
+        catch (final InterruptedException ex)
         {
             Logger.getLogger(ClassificationModelEvaluation.class.getName()).log(Level.SEVERE, null, ex);
         }
@@ -324,7 +330,7 @@ public class RegressionModelEvaluation
      * 
      * @param scorer the score method to keep track of. 
      */
-    public void addScorer(RegressionScore scorer)
+    public void addScorer(final RegressionScore scorer)
     {
         scoreMap.put(scorer, new OnLineStatistics());
     }
@@ -340,7 +346,7 @@ public class RegressionModelEvaluation
      * @return the result statistics for the given score, or {@code null} if the 
      * score is not in th evaluation set
      */
-    public OnLineStatistics getScoreStats(RegressionScore score)
+    public OnLineStatistics getScoreStats(final RegressionScore score)
     {
         return scoreMap.get(score);
     }
@@ -354,7 +360,7 @@ public class RegressionModelEvaluation
         long localPredictionTime;
         final Map<RegressionScore, RegressionScore> scoresToUpdate;
 
-        public Evaluator(RegressionDataSet testSet, DataTransformProcess curProccess, int start, int end, Map<RegressionScore, RegressionScore> scoresToUpdate, CountDownLatch latch)
+        public Evaluator(final RegressionDataSet testSet, final DataTransformProcess curProccess, final int start, final int end, final Map<RegressionScore, RegressionScore> scoresToUpdate, final CountDownLatch latch)
         {
             this.testSet = testSet;
             this.curProccess = curProccess;
@@ -371,22 +377,24 @@ public class RegressionModelEvaluation
             try
             {
                 //create a local set of scores to update
-                Set<RegressionScore> localScores = new HashSet<RegressionScore>();
-                for (Entry<RegressionScore, RegressionScore> entry : scoresToUpdate.entrySet())
-                    localScores.add(entry.getKey().clone());
+                final Set<RegressionScore> localScores = new HashSet<RegressionScore>();
+                for (final Entry<RegressionScore, RegressionScore> entry : scoresToUpdate.entrySet()) {
+                  localScores.add(entry.getKey().clone());
+                }
                 for (int i = start; i < end; i++)
                 {
-                    DataPoint di = testSet.getDataPoint(i);
-                    double trueVal = testSet.getTargetValue(i);
-                    DataPoint tranDP = curProccess.transform(di);
-                    long startTime = System.currentTimeMillis();
-                    double predVal = regressor.regress(tranDP);
+                    final DataPoint di = testSet.getDataPoint(i);
+                    final double trueVal = testSet.getTargetValue(i);
+                    final DataPoint tranDP = curProccess.transform(di);
+                    final long startTime = System.currentTimeMillis();
+                    final double predVal = regressor.regress(tranDP);
                     localPredictionTime += (System.currentTimeMillis() - startTime);
 
-                    double sqrdError = pow(trueVal - predVal, 2);
+                    final double sqrdError = pow(trueVal - predVal, 2);
                     
-                    for (RegressionScore score : localScores)
-                        score.addResult(predVal, trueVal, di.getWeight());
+                    for (final RegressionScore score : localScores) {
+                      score.addResult(predVal, trueVal, di.getWeight());
+                    }
 
                     synchronized (sqrdErrorStats)
                     {
@@ -397,12 +405,13 @@ public class RegressionModelEvaluation
                 synchronized (sqrdErrorStats)
                 {
                     totalClassificationTime += localPredictionTime;
-                    for (RegressionScore score : localScores)
-                        scoresToUpdate.get(score).addResults(score);
+                    for (final RegressionScore score : localScores) {
+                      scoresToUpdate.get(score).addResults(score);
+                    }
                 }
                 latch.countDown();
             }
-            catch (Exception ex)
+            catch (final Exception ex)
             {
                 ex.printStackTrace();
             }
@@ -419,11 +428,13 @@ public class RegressionModelEvaluation
     public void prettyPrintRegressionScores()
     {
         int nameLength = 10;
-        for(Entry<RegressionScore, OnLineStatistics> entry : scoreMap.entrySet())
-            nameLength = Math.max(nameLength, entry.getKey().getName().length()+2);
+        for(final Entry<RegressionScore, OnLineStatistics> entry : scoreMap.entrySet()) {
+          nameLength = Math.max(nameLength, entry.getKey().getName().length()+2);
+        }
         final String pfx = "%-" + nameLength;//prefix
-        for(Entry<RegressionScore, OnLineStatistics> entry : scoreMap.entrySet())
-            System.out.printf(pfx+"s %-5f (%-5f)\n", entry.getKey().getName(), entry.getValue().getMean(), entry.getValue().getStandardDeviation());
+        for(final Entry<RegressionScore, OnLineStatistics> entry : scoreMap.entrySet()) {
+          System.out.printf(pfx+"s %-5f (%-5f)\n", entry.getKey().getName(), entry.getValue().getMean(), entry.getValue().getStandardDeviation());
+        }
     }
     
     /**

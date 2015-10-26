@@ -58,7 +58,7 @@ public class AMM extends OnlineAMM
      * Creates a new batch AMM learner
      * @param lambda the regularization value to use
      */
-    public AMM(double lambda)
+    public AMM(final double lambda)
     {
         this(lambda, DEFAULT_CLASS_BUDGET);
     }
@@ -68,7 +68,7 @@ public class AMM extends OnlineAMM
      * @param lambda the regularization value to use
      * @param classBudget the maximum number of weight vectors for each class
      */
-    public AMM(double lambda, int classBudget)
+    public AMM(final double lambda, final int classBudget)
     {
         super(lambda, classBudget);
         setEpochs(10);
@@ -78,7 +78,7 @@ public class AMM extends OnlineAMM
      * Copy constructor
      * @param toCopy the object to copy
      */
-    public AMM(AMM toCopy)
+    public AMM(final AMM toCopy)
     {
         super(toCopy);
         this.subEpochs = toCopy.subEpochs;
@@ -92,10 +92,11 @@ public class AMM extends OnlineAMM
      * @param subEpochs the number passes through the training set done on each 
      * iteration of training
      */
-    public void setSubEpochs(int subEpochs)
+    public void setSubEpochs(final int subEpochs)
     {
-        if(subEpochs < 1)
-            throw new IllegalArgumentException("subEpochs must be positive, not " + subEpochs);
+        if(subEpochs < 1) {
+          throw new IllegalArgumentException("subEpochs must be positive, not " + subEpochs);
+        }
         this.subEpochs = subEpochs;
     }
 
@@ -109,19 +110,19 @@ public class AMM extends OnlineAMM
     }
 
     @Override
-    public void trainC(ClassificationDataSet dataSet, ExecutorService threadPool)
+    public void trainC(final ClassificationDataSet dataSet, final ExecutorService threadPool)
     {
         trainC(dataSet);
     }
 
     @Override
-    public void trainC(ClassificationDataSet dataSet)
+    public void trainC(final ClassificationDataSet dataSet)
     {   
-        IntList randOrder = new IntList(dataSet.getSampleSize());
+        final IntList randOrder = new IntList(dataSet.getSampleSize());
         ListUtils.addRange(randOrder, 0, dataSet.getSampleSize(), 1);
-        Random rand = new XORWOW();
+        final Random rand = new XORWOW();
         
-        int[] Z = new int[randOrder.size()];
+        final int[] Z = new int[randOrder.size()];
         
         /*
          * For Algorithm 1, instead of a random assignment, we initialized z(1) 
@@ -130,8 +131,9 @@ public class AMM extends OnlineAMM
         setUp(dataSet.getCategories(), dataSet.getNumNumericalVars(), dataSet.getPredicting());
         Collections.shuffle(randOrder, rand);
         //also perform step 1: initialize z(1)
-        for(int i : randOrder)
-            Z[i] = update(dataSet.getDataPoint(i), dataSet.getDataPointCategory(i), Integer.MIN_VALUE);
+        for(final int i : randOrder) {
+          Z[i] = update(dataSet.getDataPoint(i), dataSet.getDataPointCategory(i), Integer.MIN_VALUE);
+        }
         
         time = 1;//rest the time since we are "Starting" now, and before was just a better than random intial state
         
@@ -142,21 +144,22 @@ public class AMM extends OnlineAMM
             for(int subEpoch = 0; subEpoch < subEpochs; subEpoch++)
             {
                 Collections.shuffle(randOrder, rand);
-                for(int i : randOrder)
-                    Z[i] = update(dataSet.getDataPoint(i), dataSet.getDataPointCategory(i), Z[i]);//only changing value in certain valid cases
+                for(final int i : randOrder) {
+                  Z[i] = update(dataSet.getDataPoint(i), dataSet.getDataPointCategory(i), Z[i]);//only changing value in certain valid cases
+                }
             }
             // 8: compute z(++r) using (9); /* Reassign z */
             int changed = 0;
             for(int i = 0; i < randOrder.size(); i++)
             {
-                Vec x_t = dataSet.getDataPoint(i).getNumericalValues();
+                final Vec x_t = dataSet.getDataPoint(i).getNumericalValues();
                 double z_t_val = 0.0;//infinte implicit zero weight vectors, so max is always at least 0
                 int z_t = -1;//negative value used to indicate the implicit was largest
-                Map<Integer, Vec> w_yt = weightMatrix.get(dataSet.getDataPointCategory(i));
-                for(Map.Entry<Integer, Vec> w_yt_entry : w_yt.entrySet())
+                final Map<Integer, Vec> w_yt = weightMatrix.get(dataSet.getDataPointCategory(i));
+                for(final Map.Entry<Integer, Vec> w_yt_entry : w_yt.entrySet())
                 {
-                    Vec v = w_yt_entry.getValue();
-                    double tmp = x_t.dot(v);
+                    final Vec v = w_yt_entry.getValue();
+                    final double tmp = x_t.dot(v);
                     if(tmp >= z_t_val)
                     {
                         z_t = w_yt_entry.getKey();
@@ -171,8 +174,9 @@ public class AMM extends OnlineAMM
                 }
             }
             
-            if(changed == 0)
-                break;
+            if(changed == 0) {
+              break;
+            }
         }
         while(++outerEpoch < getEpochs());
     }

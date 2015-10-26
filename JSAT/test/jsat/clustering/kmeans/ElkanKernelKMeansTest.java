@@ -65,17 +65,20 @@ public class ElkanKernelKMeansTest
     public void testCluster_4args()
     {
         System.out.println("cluster");
-        ElkanKernelKMeans kmeans = new ElkanKernelKMeans(new RBFKernel(0.1));
-        ClassificationDataSet toCluster = FixedProblems.getCircles(1000, new XOR96(), 1e-3, 1.0);
-        int[] result = kmeans.cluster(toCluster, 2, ex, (int[])null);
+        final ElkanKernelKMeans kmeans = new ElkanKernelKMeans(new RBFKernel(0.1));
+        final ClassificationDataSet toCluster = FixedProblems.getCircles(1000, new XOR96(), 1e-3, 1.0);
+        final int[] result = kmeans.cluster(toCluster, 2, ex, (int[])null);
         //make sure each cluster has points from only 1 class. If true then everyone is good
-        Map<Integer, Set<Integer>> tmp = new HashMap<Integer, Set<Integer>>();
-        for(int c = 0; c< toCluster.getClassSize(); c++)
-            tmp.put(c, new IntSet());
-        for(int i = 0; i < result.length; i++)
-            tmp.get(toCluster.getDataPointCategory(i)).add(result[i]);
-        for(Set<Integer> set : tmp.values())
-            assertEquals(1, set.size());
+        final Map<Integer, Set<Integer>> tmp = new HashMap<Integer, Set<Integer>>();
+        for(int c = 0; c< toCluster.getClassSize(); c++) {
+          tmp.put(c, new IntSet());
+        }
+        for(int i = 0; i < result.length; i++) {
+          tmp.get(toCluster.getDataPointCategory(i)).add(result[i]);
+        }
+        for(final Set<Integer> set : tmp.values()) {
+          assertEquals(1, set.size());
+        }
     }
 
     /**
@@ -85,17 +88,20 @@ public class ElkanKernelKMeansTest
     public void testCluster_3args()
     {
         System.out.println("cluster");
-        ElkanKernelKMeans kmeans = new ElkanKernelKMeans(new RBFKernel(0.1));
-        ClassificationDataSet toCluster = FixedProblems.getCircles(1000, new XOR96(), 1e-3, 1.0);
-        int[] result = kmeans.cluster(toCluster, 2, (int[])null);
+        final ElkanKernelKMeans kmeans = new ElkanKernelKMeans(new RBFKernel(0.1));
+        final ClassificationDataSet toCluster = FixedProblems.getCircles(1000, new XOR96(), 1e-3, 1.0);
+        final int[] result = kmeans.cluster(toCluster, 2, (int[])null);
         //make sure each cluster has points from only 1 class. If true then everyone is good
-        Map<Integer, Set<Integer>> tmp = new HashMap<Integer, Set<Integer>>();
-        for(int c = 0; c< toCluster.getClassSize(); c++)
-            tmp.put(c, new IntSet());
-        for(int i = 0; i < result.length; i++)
-            tmp.get(toCluster.getDataPointCategory(i)).add(result[i]);
-        for(Set<Integer> set : tmp.values())
-            assertEquals(1, set.size());
+        final Map<Integer, Set<Integer>> tmp = new HashMap<Integer, Set<Integer>>();
+        for(int c = 0; c< toCluster.getClassSize(); c++) {
+          tmp.put(c, new IntSet());
+        }
+        for(int i = 0; i < result.length; i++) {
+          tmp.get(toCluster.getDataPointCategory(i)).add(result[i]);
+        }
+        for(final Set<Integer> set : tmp.values()) {
+          assertEquals(1, set.size());
+        }
     }
     
 }

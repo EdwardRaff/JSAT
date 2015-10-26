@@ -108,32 +108,35 @@ public class E2LSH<V extends Vec>
      * redundant calculation when initializing multiple LSH tables using the 
      * same data set. 
      */
-    public E2LSH(List<V> vecs, double radius, double eps, int w, int k, double delta, DistanceMetric dm, List<Double> distCache)
+    public E2LSH(final List<V> vecs, final double radius, final double eps, final int w, final int k, final double delta, final DistanceMetric dm, final List<Double> distCache)
     {
         this.vecs = vecs;
         setRadius(radius);
         this.delta = delta;
         setEps(eps);
-        if(w <= 0)
-            this.w = 4;
-        else
-            this.w = w;
+        if(w <= 0) {
+          this.w = 4;
+        } else {
+          this.w = w;
+        }
         setDistanceMetric(dm);
         this.distCache = distCache;
 
-        if(k <= 0)
-            this.k = (int) ceil(log(vecs.size())/log(1/p2));
-        else
-            this.k = k;
+        if(k <= 0) {
+          this.k = (int) ceil(log(vecs.size())/log(1/p2));
+        } else {
+          this.k = k;
+        }
         
-        if(delta <= 0 || delta >= 1)
-            throw new IllegalArgumentException("dleta must be in range (0,1)");
+        if(delta <= 0 || delta >= 1) {
+          throw new IllegalArgumentException("dleta must be in range (0,1)");
+        }
         L = (int)ceil(log(1/delta)/-log(1-pow(p1, this.k)));
         
         
 //        L = (int) ceil(pow(vecs.size(), log(1/p1)/log(1/p2)));
         
-        Random rand = new XORWOW();
+        final Random rand = new XORWOW();
         createTablesAndHashes(rand);
     }
     
@@ -155,7 +158,7 @@ public class E2LSH<V extends Vec>
      * @param dm the distance metric to use, must be {@link EuclideanDistance}
      * or {@link ManhattanDistance}. 
      */
-    public E2LSH(List<V> vecs, double radius, double eps, int w, int k, double delta, DistanceMetric dm)
+    public E2LSH(final List<V> vecs, final double radius, final double eps, final int w, final int k, final double delta, final DistanceMetric dm)
     {
         this(vecs, radius, eps, w, k, delta, dm, dm.getAccelerationCache(vecs));
     }
@@ -167,7 +170,7 @@ public class E2LSH<V extends Vec>
      * @return a list of vectors paired with their true distance from the query 
      * point that are within the desired radius of the query point
      */
-    public List<? extends VecPaired<Vec, Double>> searchR(Vec q)
+    public List<? extends VecPaired<Vec, Double>> searchR(final Vec q)
     {
         return searchR(q, false);
     }
@@ -181,43 +184,46 @@ public class E2LSH<V extends Vec>
      * @return a list of vectors paired with their true distance from the query 
      * point that are within the desired radius of the query point
      */
-    public List<? extends VecPaired<Vec, Double>> searchR(Vec q, boolean approx)
+    public List<? extends VecPaired<Vec, Double>> searchR(final Vec q, final boolean approx)
     {
-        List<VecPairedComparable<Vec, Double>> toRet = new ArrayList<VecPairedComparable<Vec, Double>>();
+        final List<VecPairedComparable<Vec, Double>> toRet = new ArrayList<VecPairedComparable<Vec, Double>>();
         
-        Set<Integer> candidates = new IntSet();
+        final Set<Integer> candidates = new IntSet();
         for (int l = 0; l < L; l++)
         {
-            int hash = hash(l, q);
-            List<Integer> list = tables.get(l).get(hash);
-            for(int id : list)
-                candidates.add(id);
+            final int hash = hash(l, q);
+            final List<Integer> list = tables.get(l).get(hash);
+            for(final int id : list) {
+              candidates.add(id);
+            }
         }
         
         final List<Double> q_qi = dm.getQueryInfo(q);
         
         final double R = approx ? radius*getC() : radius;
-        for(int id : candidates)
+        for(final int id : candidates)
         {
-            double trueDist = dm.dist(id, q, q_qi, vecs, distCache);
-            if(trueDist <= R)
-                toRet.add(new VecPairedComparable<Vec, Double>(vecs.get(id), trueDist));
+            final double trueDist = dm.dist(id, q, q_qi, vecs, distCache);
+            if(trueDist <= R) {
+              toRet.add(new VecPairedComparable<Vec, Double>(vecs.get(id), trueDist));
+            }
         }
         Collections.sort(toRet);
         return toRet;
     }
     
-    private int hash(int l, Vec v)
+    private int hash(final int l, final Vec v)
     {
         final int[] vals = new int[k];
         
-        for(int i = 0; i < k; i++)
-            vals[i] = (int) floor(  ( (v.dot(h[l][i])/radius)+b[l][i])/w  );
+        for(int i = 0; i < k; i++) {
+          vals[i] = (int) floor(  ( (v.dot(h[l][i])/radius)+b[l][i])/w  );
+        }
 
         return Arrays.hashCode(vals);
     }
 
-    private void setEps(double eps)
+    private void setEps(final double eps)
     {
         this.eps = eps;
         this.c = eps+1;
@@ -259,7 +265,7 @@ public class E2LSH<V extends Vec>
      * @param c the approximation constant &gt; > 1
      * @return the exact P2 value to use
      */
-    private static double getP2L2(double w, double c)
+    private static double getP2L2(final double w, final double c)
     {
         return 1 - 2 * Normal.cdf(-w/c, 0, 1)-2/(sqrt(2*PI)*w/c)*(1-exp(-w*w/(2*c*c)));
     }
@@ -271,7 +277,7 @@ public class E2LSH<V extends Vec>
      * @param c the approximation constant &gt; > 1
      * @return the exact P2 value to use
      */
-    private static double getP2L1(double w, double c)
+    private static double getP2L1(final double w, final double c)
     {
         return 2*atan(w/c)/PI-log(1+pow(w/c, 2))/(PI*w/c);
     }
@@ -281,21 +287,22 @@ public class E2LSH<V extends Vec>
      * {@link #b}
      * @param rand source of randomness
      */
-    private void createTablesAndHashes(Random rand)
+    private void createTablesAndHashes(final Random rand)
     {
-        int D = vecs.get(0).length();
+        final int D = vecs.get(0).length();
         h = new Vec[L][k];
         b = new double[L][k];
         
-        for(int l = 0; l < L; l++)
-            for(int i = 0; i < k; i++)
-            {
-                DenseVector dv = new DenseVector(D);
-                for(int j = 0; j < D; j++)
-                    dv.set(j, rand.nextGaussian());
-                h[l][i] = dv;
-                b[l][i] = rand.nextDouble()*w;
+        for(int l = 0; l < L; l++) {
+          for (int i = 0; i < k; i++) {
+            final DenseVector dv = new DenseVector(D);
+            for (int j = 0; j < D; j++) {
+              dv.set(j, rand.nextGaussian());
             }
+            h[l][i] = dv;
+            b[l][i] = rand.nextDouble()*w;
+          }
+        }
         
         tables = new ArrayList<Map<Integer, List<Integer>>>(L);
         for(int l = 0; l < L; l++)
@@ -303,7 +310,7 @@ public class E2LSH<V extends Vec>
             tables.add(new HashMap<Integer, List<Integer>>());
             for(int id = 0; id < vecs.size(); id++)
             {
-                int hash = hash(l, vecs.get(id));
+                final int hash = hash(l, vecs.get(id));
                 List<Integer> ints = tables.get(l).get(hash);
                 if(ints == null)
                 {
@@ -320,7 +327,7 @@ public class E2LSH<V extends Vec>
      * after {@link #setEps(double) } and {@link #w} are set. 
      * @param dm the distance metric to use
      */
-    private void setDistanceMetric(DistanceMetric dm)
+    private void setDistanceMetric(final DistanceMetric dm)
     {
         if(dm instanceof EuclideanDistance || dm instanceof ManhattanDistance)
         {
@@ -336,14 +343,16 @@ public class E2LSH<V extends Vec>
                 p2 = getP2L1(w, c);
             }
         }
-        else
-            throw new IllegalArgumentException("only Euclidean and Manhatan (L1 and L2 norm) distances are supported");
+        else {
+          throw new IllegalArgumentException("only Euclidean and Manhatan (L1 and L2 norm) distances are supported");
+        }
     }
 
-    private void setRadius(double radius)
+    private void setRadius(final double radius)
     {
-        if(Double.isInfinite(radius) || Double.isNaN(radius) || radius <= 0)
-            throw new IllegalArgumentException("Radius must be a positive constant, not " + radius);
+        if(Double.isInfinite(radius) || Double.isNaN(radius) || radius <= 0) {
+          throw new IllegalArgumentException("Radius must be a positive constant, not " + radius);
+        }
         this.radius = radius;
     }
     

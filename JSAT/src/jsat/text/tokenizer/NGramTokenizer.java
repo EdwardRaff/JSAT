@@ -22,15 +22,15 @@ public class NGramTokenizer implements Tokenizer
 	/**
      * The number of n-grams to generate
      */
-    private int n;
+    private final int n;
     /**
      * The base tokenizer
      */
-    private Tokenizer base;
+    private final Tokenizer base;
     /**
      * whether or not to generate all sub n-grams
      */
-    private boolean allSubN;
+    private final boolean allSubN;
 
     /**
      * Creates a new n-gramer 
@@ -40,10 +40,11 @@ public class NGramTokenizer implements Tokenizer
      * @param allSubN {@code true} to generate all sub n-grams, {@code false} to 
      * only return the n-grams specified
      */
-    public NGramTokenizer(int n, Tokenizer base, boolean allSubN)
+    public NGramTokenizer(final int n, final Tokenizer base, final boolean allSubN)
     {
-        if(n <= 0)
-            throw new IllegalArgumentException("Number of n-grams must be positive, not " + n);
+        if(n <= 0) {
+          throw new IllegalArgumentException("Number of n-grams must be positive, not " + n);
+        }
         this.n = n;
         this.base = base;
         this.allSubN = allSubN;
@@ -51,20 +52,21 @@ public class NGramTokenizer implements Tokenizer
 
     
     @Override
-    public List<String> tokenize(String input)
+    public List<String> tokenize(final String input)
     {
-        List<String> storageSpace = new ArrayList<String>();
+        final List<String> storageSpace = new ArrayList<String>();
         tokenize(input, new StringBuilder(), storageSpace);
         return storageSpace;
     }
 
     @Override
-    public void tokenize(String input, StringBuilder workSpace, List<String> storageSpace)
+    public void tokenize(final String input, final StringBuilder workSpace, final List<String> storageSpace)
     {
         base.tokenize(input, workSpace, storageSpace);//the "1-grams"
-        int origSize = storageSpace.size();
-        if(n == 1)
-            return;//nothing more to do
+        final int origSize = storageSpace.size();
+        if(n == 1) {
+          return;//nothing more to do
+        }
 
         for (int i = 1; i < origSize; i++)//slide from left to right on the 1-grams
         {
@@ -73,12 +75,14 @@ public class NGramTokenizer implements Tokenizer
             {
                 workSpace.setLength(0);
                 int j = i - (gramSize - 1);
-                if(j < 0)//means we are going past what we have, and we would be adding duplicates
-                    continue;
+                if(j < 0) {//means we are going past what we have, and we would be adding duplicates
+                  continue;
+                }
                 for(; j < i; j++)
                 {
-                    if (workSpace.length() > 0)
-                        workSpace.append(' ');
+                    if (workSpace.length() > 0) {
+                      workSpace.append(' ');
+                    }
                     workSpace.append(storageSpace.get(j));
                 }
                 workSpace.append(' ').append(storageSpace.get(i));
@@ -86,8 +90,9 @@ public class NGramTokenizer implements Tokenizer
             }
         }
         
-        if(!allSubN)//dont generate subs! get rid of those dirty 1-grams
-            storageSpace.subList(0, origSize).clear();
+        if(!allSubN) {//dont generate subs! get rid of those dirty 1-grams
+          storageSpace.subList(0, origSize).clear();
+        }
     }
     
 }

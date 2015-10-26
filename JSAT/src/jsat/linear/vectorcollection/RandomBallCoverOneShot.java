@@ -64,28 +64,29 @@ public class RandomBallCoverOneShot<V extends Vec> implements VectorCollection<V
      * @param s the number of points to be claimed by each representative. 
      * @param execServ the source of threads for parallel construction
      */
-    public RandomBallCoverOneShot(List<V> vecs, DistanceMetric dm, int s, ExecutorService execServ)
+    public RandomBallCoverOneShot(final List<V> vecs, final DistanceMetric dm, final int s, final ExecutorService execServ)
     {
         this.dm = dm;
         this.s = s;
         this.allVecs = new ArrayList<V>(vecs);
-        if(execServ instanceof FakeExecutor)
-            distCache = dm.getAccelerationCache(allVecs);
-        else
-            distCache = dm.getAccelerationCache(vecs, execServ);
-        IntList allIndices = new IntList(allVecs.size());
+        if(execServ instanceof FakeExecutor) {
+          distCache = dm.getAccelerationCache(allVecs);
+        } else {
+          distCache = dm.getAccelerationCache(vecs, execServ);
+        }
+        final IntList allIndices = new IntList(allVecs.size());
         ListUtils.addRange(allIndices, 0, allVecs.size(), 1);
         try
         {
             setUp(allIndices, execServ);
         }
-        catch (InterruptedException ex)
+        catch (final InterruptedException ex)
         {
             try
             {
                 setUp(allIndices, new FakeExecutor());
             }
-            catch (InterruptedException ex1)
+            catch (final InterruptedException ex1)
             {
                 //Wont happen with a fake executor, nothing to through the interupted exception in that case
             }
@@ -98,7 +99,7 @@ public class RandomBallCoverOneShot<V extends Vec> implements VectorCollection<V
      * @param dm the distance metric to use
      * @param execServ the source of threads for parallel construction
      */
-    public RandomBallCoverOneShot(List<V> vecs, DistanceMetric dm, ExecutorService execServ)
+    public RandomBallCoverOneShot(final List<V> vecs, final DistanceMetric dm, final ExecutorService execServ)
     {
         this(vecs, dm, (int)Math.sqrt(vecs.size()), execServ);
     }
@@ -109,7 +110,7 @@ public class RandomBallCoverOneShot<V extends Vec> implements VectorCollection<V
      * @param dm the distance metric to use
      * @param s the number of points to be claimed by each representative. 
      */
-    public RandomBallCoverOneShot(List<V> vecs, DistanceMetric dm, int s)
+    public RandomBallCoverOneShot(final List<V> vecs, final DistanceMetric dm, final int s)
     {
         this(vecs, dm, s, new FakeExecutor());
     }
@@ -119,7 +120,7 @@ public class RandomBallCoverOneShot<V extends Vec> implements VectorCollection<V
      * @param vecs the vectors to place into the RBC
      * @param dm the distance metric to use
      */
-    public RandomBallCoverOneShot(List<V> vecs, DistanceMetric dm)
+    public RandomBallCoverOneShot(final List<V> vecs, final DistanceMetric dm)
     {
         this(vecs, dm, (int)Math.sqrt(vecs.size()));
     }
@@ -128,7 +129,7 @@ public class RandomBallCoverOneShot<V extends Vec> implements VectorCollection<V
      * Copy constructor
      * @param other the RandomBallCover to create a copy of
      */
-    private RandomBallCoverOneShot(RandomBallCoverOneShot<V> other)
+    private RandomBallCoverOneShot(final RandomBallCoverOneShot<V> other)
     {
         this.dm = other.dm.clone();
         this.ownedVecs = new ArrayList<List<Integer>>(other.ownedVecs.size());
@@ -139,15 +140,17 @@ public class RandomBallCoverOneShot<V extends Vec> implements VectorCollection<V
         this.R = new IntList(other.R);
         this.repRadius = Arrays.copyOf(other.repRadius, other.repRadius.length);
         this.s = other.s;
-        if(other.distCache != null)
-            this.distCache = new DoubleList(other.distCache);
-        if(other.allVecs != null)
-            this.allVecs = new ArrayList<V>(other.allVecs);
+        if(other.distCache != null) {
+          this.distCache = new DoubleList(other.distCache);
+        }
+        if(other.allVecs != null) {
+          this.allVecs = new ArrayList<V>(other.allVecs);
+        }
     }
 
-    private void setUp(List<Integer> allIndices, ExecutorService execServ) throws InterruptedException
+    private void setUp(final List<Integer> allIndices, final ExecutorService execServ) throws InterruptedException
     {
-        int repCount = (int) Math.max(1, Math.sqrt(allIndices.size()));;
+        final int repCount = (int) Math.max(1, Math.sqrt(allIndices.size()));;
         Collections.shuffle(allIndices);
         
         R = allIndices.subList(0, repCount);
@@ -171,13 +174,15 @@ public class RandomBallCoverOneShot<V extends Vec> implements VectorCollection<V
                 @Override
                 public void run()
                 {
-                    BoundedSortedList<ProbailityMatch<VecPaired<V, Integer>>> nearest =
+                    final BoundedSortedList<ProbailityMatch<VecPaired<V, Integer>>> nearest =
                             new BoundedSortedList<ProbailityMatch<VecPaired<V, Integer>>>(s, s);
-                    for(int v : allRemainingVecs)
-                        nearest.add(new ProbailityMatch<VecPaired<V, Integer>>(dm.dist(v, Ri, allVecs, distCache), new VecPaired<V, Integer>(allVecs.get(v), v)));
+                    for(final int v : allRemainingVecs) {
+                      nearest.add(new ProbailityMatch<VecPaired<V, Integer>>(dm.dist(v, Ri, allVecs, distCache), new VecPaired<V, Integer>(allVecs.get(v), v)));
+                    }
                     
-                    for(ProbailityMatch<VecPaired<V, Integer>> pmv : nearest)
-                        ROwned.add(pmv.getMatch().getPair());
+                    for(final ProbailityMatch<VecPaired<V, Integer>> pmv : nearest) {
+                      ROwned.add(pmv.getMatch().getPair());
+                    }
 
                     latch.countDown();
                 }
@@ -190,53 +195,59 @@ public class RandomBallCoverOneShot<V extends Vec> implements VectorCollection<V
     }
 
     @Override
-    public List<? extends VecPaired<V, Double>> search(Vec query, double range)
+    public List<? extends VecPaired<V, Double>> search(final Vec query, final double range)
     {
-        List<VecPairedComparable<V, Double>> knn = new ArrayList<VecPairedComparable<V, Double>>();
+        final List<VecPairedComparable<V, Double>> knn = new ArrayList<VecPairedComparable<V, Double>>();
 
-        List<Double> qi = dm.getQueryInfo(query);
+        final List<Double> qi = dm.getQueryInfo(query);
         //Find the best representative r_q
         double tmp;
         double bestDist = Double.POSITIVE_INFINITY;
         int bestRep = 0;
-        for (int i = 0; i < R.size(); i++)
-            if ((tmp = dm.dist(R.get(i), query, qi, allVecs, distCache)  ) < bestDist)
-            {
-                bestRep = i;
-                bestDist = tmp;
-            }
-        if(bestDist <= range)
-            knn.add(new VecPairedComparable<V, Double>(allVecs.get(R.get(bestRep)), bestDist));
+        for (int i = 0; i < R.size(); i++) {
+          if ((tmp = dm.dist(R.get(i), query, qi, allVecs, distCache)  ) < bestDist)
+          {
+            bestRep = i;
+            bestDist = tmp;
+          }
+        }
+        if(bestDist <= range) {
+          knn.add(new VecPairedComparable<V, Double>(allVecs.get(R.get(bestRep)), bestDist));
+        }
 
-        for (int v : ownedVecs.get(bestRep))
-            if((tmp = dm.dist(v, query, qi, allVecs, distCache) ) <= range)
+        for (final int v : ownedVecs.get(bestRep)) {
+          if ((tmp = dm.dist(v, query, qi, allVecs, distCache) ) <= range) {
             knn.add(new VecPairedComparable<V, Double>(allVecs.get(v), tmp));
+          }
+        }
 
         Collections.sort(knn);
         return knn;
     }
 
     @Override
-    public List<? extends VecPaired<V, Double>> search(Vec query, int neighbors)
+    public List<? extends VecPaired<V, Double>> search(final Vec query, final int neighbors)
     {
-        BoundedSortedList<VecPairedComparable<V,Double>> knn =
+        final BoundedSortedList<VecPairedComparable<V,Double>> knn =
                 new BoundedSortedList<VecPairedComparable<V,Double>>(neighbors);
 
-        List<Double> qi = dm.getQueryInfo(query);
+        final List<Double> qi = dm.getQueryInfo(query);
         //Find the best representative r_q
         double tmp;
         double bestDist = Double.POSITIVE_INFINITY;
         int bestRep = 0;
-        for (int i = 0; i < R.size(); i++)
-            if ((tmp = dm.dist(R.get(i), query, qi, allVecs, distCache) ) < bestDist)
-            {
-                bestRep = i;
-                bestDist = tmp;
-            }
+        for (int i = 0; i < R.size(); i++) {
+          if ((tmp = dm.dist(R.get(i), query, qi, allVecs, distCache) ) < bestDist)
+          {
+            bestRep = i;
+            bestDist = tmp;
+          }
+        }
         knn.add(new VecPairedComparable<V, Double>(allVecs.get(R.get(bestRep)), bestDist));
 
-        for (int v : ownedVecs.get(bestRep))
-            knn.add(new VecPairedComparable<V, Double>(allVecs.get(v), dm.dist(v, query, qi, allVecs, distCache)));
+        for (final int v : ownedVecs.get(bestRep)) {
+          knn.add(new VecPairedComparable<V, Double>(allVecs.get(v), dm.dist(v, query, qi, allVecs, distCache)));
+        }
 
 
         return knn;
@@ -263,13 +274,13 @@ public class RandomBallCoverOneShot<V extends Vec> implements VectorCollection<V
 		private static final long serialVersionUID = 7658115337969827371L;
 
 		@Override
-        public VectorCollection<V> getVectorCollection(List<V> source, DistanceMetric distanceMetric)
+        public VectorCollection<V> getVectorCollection(final List<V> source, final DistanceMetric distanceMetric)
         {
             return new RandomBallCoverOneShot<V>(source, distanceMetric);
         }
 
         @Override
-        public VectorCollection<V> getVectorCollection(List<V> source, DistanceMetric distanceMetric, ExecutorService threadpool)
+        public VectorCollection<V> getVectorCollection(final List<V> source, final DistanceMetric distanceMetric, final ExecutorService threadpool)
         {
             return new RandomBallCoverOneShot<V>(source, distanceMetric, threadpool);
         }

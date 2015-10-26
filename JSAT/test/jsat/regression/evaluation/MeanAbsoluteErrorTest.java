@@ -45,9 +45,9 @@ public class MeanAbsoluteErrorTest
     public void testGetScore()
     {
         System.out.println("getScore");
-        MeanAbsoluteError scorer = new MeanAbsoluteError();
+        final MeanAbsoluteError scorer = new MeanAbsoluteError();
         
-        MeanAbsoluteError otherHalf = scorer.clone();
+        final MeanAbsoluteError otherHalf = scorer.clone();
         
         assertEquals(scorer, otherHalf);
         assertEquals(scorer.hashCode(), otherHalf.hashCode());
@@ -56,12 +56,12 @@ public class MeanAbsoluteErrorTest
         assertFalse(scorer.equals(""));
         assertFalse(scorer.hashCode() == "".hashCode());
         
-        double[] pred = new double[]
+        final double[] pred = new double[]
         {
             0, 2, 4, 6, 8, 9
         };
         
-        double[] truth = new double[]
+        final double[] truth = new double[]
         {
             0.5, 2, 3, 1, 8.5, 10
         };
@@ -69,10 +69,12 @@ public class MeanAbsoluteErrorTest
         scorer.prepare();
         otherHalf.prepare();
         
-        for(int i = 0; i < pred.length/2; i++)
-            scorer.addResult(pred[i], truth[i], 1);
-        for(int i = pred.length/2; i < pred.length; i++)
-            otherHalf.addResult(pred[i], truth[i], 1);
+        for(int i = 0; i < pred.length/2; i++) {
+          scorer.addResult(pred[i], truth[i], 1);
+        }
+        for(int i = pred.length/2; i < pred.length; i++) {
+          otherHalf.addResult(pred[i], truth[i], 1);
+        }
         
         scorer.addResults(otherHalf);
         assertEquals((0.5+1+5+0.5+1)/6, scorer.getScore(), 1e-4);

@@ -15,9 +15,9 @@ public class UnitVarianceTransform implements InPlaceTransform
 {
 
 	private static final long serialVersionUID = 3645532503475641917L;
-	private Vec stndDevs;
+	private final Vec stndDevs;
     
-    public UnitVarianceTransform(DataSet d)
+    public UnitVarianceTransform(final DataSet d)
     {
         stndDevs = d.getColumnMeanVariance()[1];
     }
@@ -26,21 +26,21 @@ public class UnitVarianceTransform implements InPlaceTransform
      * Copy constructor 
      * @param other the transform to make a copy of
      */
-    private UnitVarianceTransform(UnitVarianceTransform other)
+    private UnitVarianceTransform(final UnitVarianceTransform other)
     {
         this.stndDevs = other.stndDevs.clone();
     }
 
     @Override
-    public DataPoint transform(DataPoint dp)
+    public DataPoint transform(final DataPoint dp)
     {
-        DataPoint newDp = dp.clone();
+        final DataPoint newDp = dp.clone();
         mutableTransform(newDp);
         return newDp;
     }
     
     @Override
-    public void mutableTransform(DataPoint dp)
+    public void mutableTransform(final DataPoint dp)
     {
         dp.getNumericalValues().mutablePairwiseDivide(stndDevs);
     }
@@ -63,7 +63,7 @@ public class UnitVarianceTransform implements InPlaceTransform
     static public class UnitVarianceTransformFactory implements DataTransformFactory
     {
         @Override
-        public DataTransform getTransform(DataSet dataset)
+        public DataTransform getTransform(final DataSet dataset)
         {
             return new UnitVarianceTransform(dataset);
         }

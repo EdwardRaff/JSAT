@@ -58,7 +58,7 @@ public class LSDBC extends ClustererBase implements Parameterized
      * @param alpha the scale factor to use when forming clusters
      * @param neighbors the number of neighbors to consider when determining clusters
      */
-    public LSDBC(DistanceMetric dm, double alpha, int neighbors)
+    public LSDBC(final DistanceMetric dm, final double alpha, final int neighbors)
     {
         setDistanceMetric(dm);
         setAlpha(alpha);
@@ -70,7 +70,7 @@ public class LSDBC extends ClustererBase implements Parameterized
      * @param dm the distance metric to use 
      * @param alpha the scale factor to use when forming clusters
      */
-    public LSDBC(DistanceMetric dm, double alpha)
+    public LSDBC(final DistanceMetric dm, final double alpha)
     {
         this(dm, alpha, DEFAULT_NEIGHBORS);
     }
@@ -79,7 +79,7 @@ public class LSDBC extends ClustererBase implements Parameterized
      * Creates a new LSDBC clustering object using the given distance metric
      * @param dm the distance metric to use 
      */
-    public LSDBC(DistanceMetric dm)
+    public LSDBC(final DistanceMetric dm)
     {
         this(dm, DEFAULT_ALPHA);
     }
@@ -97,7 +97,7 @@ public class LSDBC extends ClustererBase implements Parameterized
      * Copy constructor
      * @param toCopy the object to copy
      */
-    public LSDBC(LSDBC toCopy)
+    public LSDBC(final LSDBC toCopy)
     {
         this.alpha = toCopy.alpha;
         this.dm = toCopy.dm.clone();
@@ -109,7 +109,7 @@ public class LSDBC extends ClustererBase implements Parameterized
      * Sets the vector collection factory used for acceleration of neighbor searches. 
      * @param vectorCollectionFactory the vector collection factory to use
      */
-    public void setVectorCollectionFactory(VectorCollectionFactory<VecPaired<Vec, Integer>> vectorCollectionFactory)
+    public void setVectorCollectionFactory(final VectorCollectionFactory<VecPaired<Vec, Integer>> vectorCollectionFactory)
     {
         this.vectorCollectionFactory = vectorCollectionFactory;
     }
@@ -119,10 +119,11 @@ public class LSDBC extends ClustererBase implements Parameterized
      * Sets the distance metric used when performing clustering. 
      * @param dm the distance metric to use. 
      */
-    public void setDistanceMetric(DistanceMetric dm)
+    public void setDistanceMetric(final DistanceMetric dm)
     {
-        if(dm != null)
-            this.dm = dm;
+        if(dm != null) {
+          this.dm = dm;
+        }
     }
     
     /**
@@ -140,10 +141,11 @@ public class LSDBC extends ClustererBase implements Parameterized
      * data points
      * @param neighbors the number of neighbors the algorithm will use
      */
-    public void setNeighbors(int neighbors)
+    public void setNeighbors(final int neighbors)
     {
-        if(neighbors <= 0)
-            throw new ArithmeticException("Can not use a non positive number of neighbors");
+        if(neighbors <= 0) {
+          throw new ArithmeticException("Can not use a non positive number of neighbors");
+        }
         this.k = neighbors;
     }
 
@@ -165,10 +167,11 @@ public class LSDBC extends ClustererBase implements Parameterized
      * 
      * @param alpha the scale value to use
      */
-    public void setAlpha(double alpha)
+    public void setAlpha(final double alpha)
     {
-        if(alpha <= 0 || Double.isNaN(alpha) || Double.isInfinite(alpha))
-            throw new ArithmeticException("Can not use the non positive scale value " + alpha );
+        if(alpha <= 0 || Double.isNaN(alpha) || Double.isInfinite(alpha)) {
+          throw new ArithmeticException("Can not use the non positive scale value " + alpha );
+        }
         this.alpha = alpha;
     }
 
@@ -187,16 +190,17 @@ public class LSDBC extends ClustererBase implements Parameterized
     
     
     @Override
-    public int[] cluster(DataSet dataSet, int[] designations)
+    public int[] cluster(final DataSet dataSet, final int[] designations)
     {
         return cluster(dataSet, null, designations);
     }
 
     @Override
-    public int[] cluster(DataSet dataSet, ExecutorService threadpool, int[] designations)
+    public int[] cluster(final DataSet dataSet, final ExecutorService threadpool, int[] designations)
     {
-        if(designations == null)
-            designations = new int[dataSet.getSampleSize()];
+        if(designations == null) {
+          designations = new int[dataSet.getSampleSize()];
+        }
      
         //Compute all k-NN 
         final VectorCollection<VecPaired<Vec, Integer>> vc;
@@ -206,10 +210,11 @@ public class LSDBC extends ClustererBase implements Parameterized
         try
         {
             //Set up
-            List<VecPaired<Vec, Integer>> vecs = new ArrayList<VecPaired<Vec, Integer>>(dataSet.getSampleSize());
+            final List<VecPaired<Vec, Integer>> vecs = new ArrayList<VecPaired<Vec, Integer>>(dataSet.getSampleSize());
 
-            for (int i = 0; i < dataSet.getSampleSize(); i++)
-                vecs.add(new VecPaired<Vec, Integer>(dataSet.getDataPoint(i).getNumericalValues(), i));
+            for (int i = 0; i < dataSet.getSampleSize(); i++) {
+              vecs.add(new VecPaired<Vec, Integer>(dataSet.getDataPoint(i).getNumericalValues(), i));
+            }
 
             if (threadpool == null || threadpool instanceof FakeExecutor)
             {
@@ -225,26 +230,26 @@ public class LSDBC extends ClustererBase implements Parameterized
             }
 
         }
-        catch (InterruptedException ex)
+        catch (final InterruptedException ex)
         {
             Logger.getLogger(LSDBC.class.getName()).log(Level.SEVERE, null, ex);
         }
-        catch (ExecutionException ex)
+        catch (final ExecutionException ex)
         {
             Logger.getLogger(LSDBC.class.getName()).log(Level.SEVERE, null, ex);
         }
 
 
         //Sort
-        IndexTable indexTable = new IndexTable(knnVecList, new Comparator()
+        final IndexTable indexTable = new IndexTable(knnVecList, new Comparator()
         {
 
             @Override
-            public int compare(Object o1, Object o2)
+            public int compare(final Object o1, final Object o2)
             {
-                List<VecPaired<VecPaired<Vec, Integer>, Double>> l1 = 
+                final List<VecPaired<VecPaired<Vec, Integer>, Double>> l1 = 
                         (List<VecPaired<VecPaired<Vec, Integer>, Double>>) o1;
-                List<VecPaired<VecPaired<Vec, Integer>, Double>> l2 = 
+                final List<VecPaired<VecPaired<Vec, Integer>, Double>> l2 = 
                         (List<VecPaired<VecPaired<Vec, Integer>, Double>>) o2;
                 
                 return Double.compare(getEps(l1), getEps(l2));
@@ -256,9 +261,10 @@ public class LSDBC extends ClustererBase implements Parameterized
         int clusterID = 0;
         for(int i = 0; i < indexTable.length(); i++)
         {
-            int p = indexTable.index(i);
-            if(designations[p] == UNCLASSIFIED && localMax(p, knnVecList))
-                expandCluster(p, clusterID++, knnVecList, designations);
+            final int p = indexTable.index(i);
+            if(designations[p] == UNCLASSIFIED && localMax(p, knnVecList)) {
+              expandCluster(p, clusterID++, knnVecList, designations);
+            }
         }
         
         return designations;
@@ -272,11 +278,12 @@ public class LSDBC extends ClustererBase implements Parameterized
      * @param clusterID the current clusterID to assign
      * @param seeds the stack to hold all seeds in
      */
-    private void addSeed(List<? extends VecPaired<VecPaired<Vec, Integer>, Double>> neighbors, int i, int[] designations, int clusterID, Stack<Integer> seeds)
+    private void addSeed(final List<? extends VecPaired<VecPaired<Vec, Integer>, Double>> neighbors, final int i, final int[] designations, final int clusterID, final Stack<Integer> seeds)
     {
-        int index = neighbors.get(i).getVector().getPair();
-        if (designations[index] != UNCLASSIFIED)
-            return;
+        final int index = neighbors.get(i).getVector().getPair();
+        if (designations[index] != UNCLASSIFIED) {
+          return;
+        }
         designations[index] = clusterID;
         seeds.add(index);
     }
@@ -286,7 +293,7 @@ public class LSDBC extends ClustererBase implements Parameterized
      * @param neighbors the set of neighbors, with index 0 being the point itself
      * @return the eps of the <tt>k</tt><sup>th</sup> neighbor
      */
-    private double getEps(List<? extends VecPaired<VecPaired<Vec, Integer>, Double>> neighbors)
+    private double getEps(final List<? extends VecPaired<VecPaired<Vec, Integer>, Double>> neighbors)
     {
         return neighbors.get(k).getPair();
     }
@@ -297,16 +304,17 @@ public class LSDBC extends ClustererBase implements Parameterized
      * @param knnVecList the neighbor list
      * @return <tt>true</tt> if it is a local max, <tt> false</tt> otherwise. 
      */
-    private boolean localMax(int p, List<List<? extends VecPaired<VecPaired<Vec, Integer>, Double>>> knnVecList)
+    private boolean localMax(final int p, final List<List<? extends VecPaired<VecPaired<Vec, Integer>, Double>>> knnVecList)
     {
-        List<? extends VecPaired<VecPaired<Vec, Integer>, Double>> neighbors = knnVecList.get(p);
-        double myEps = getEps(neighbors);
+        final List<? extends VecPaired<VecPaired<Vec, Integer>, Double>> neighbors = knnVecList.get(p);
+        final double myEps = getEps(neighbors);
         
         for(int i = 1; i < neighbors.size(); i++)
         {
-            int neighborP = neighbors.get(i).getVector().getPair();
-            if(getEps(knnVecList.get(neighborP)) < myEps)
-                return false;
+            final int neighborP = neighbors.get(i).getVector().getPair();
+            if(getEps(knnVecList.get(neighborP)) < myEps) {
+              return false;
+            }
         }
         
         return true;
@@ -319,16 +327,17 @@ public class LSDBC extends ClustererBase implements Parameterized
      * @param knnVecList the in order list of every index and its nearest neighbors
      * @param designations the array to store cluster designations in
      */
-    private void expandCluster(int p, int clusterID, List<List<? extends VecPaired<VecPaired<Vec, Integer>, Double>>> knnVecList, int[] designations)
+    private void expandCluster(final int p, final int clusterID, final List<List<? extends VecPaired<VecPaired<Vec, Integer>, Double>>> knnVecList, final int[] designations)
     {
         designations[p] = clusterID;
         double pointEps;
         int n;
-        Stack<Integer> seeds = new Stack<Integer>();
+        final Stack<Integer> seeds = new Stack<Integer>();
         {
-            List<? extends VecPaired<VecPaired<Vec, Integer>, Double>> neighbors = knnVecList.get(p);
-            for (int i = 1; i < neighbors.size(); i++)
-                addSeed(neighbors, i, designations, clusterID, seeds);
+            final List<? extends VecPaired<VecPaired<Vec, Integer>, Double>> neighbors = knnVecList.get(p);
+            for (int i = 1; i < neighbors.size(); i++) {
+              addSeed(neighbors, i, designations, clusterID, seeds);
+            }
             pointEps = getEps(neighbors);
             n = neighbors.get(k).length();
         }
@@ -337,13 +346,14 @@ public class LSDBC extends ClustererBase implements Parameterized
 
         while (!seeds.isEmpty())
         {
-            int currentP = seeds.pop();
-            List<? extends VecPaired<VecPaired<Vec, Integer>, Double>> neighbors = knnVecList.get(currentP);
-            double currentPEps = getEps(neighbors);
+            final int currentP = seeds.pop();
+            final List<? extends VecPaired<VecPaired<Vec, Integer>, Double>> neighbors = knnVecList.get(currentP);
+            final double currentPEps = getEps(neighbors);
             if (currentPEps <= scale * pointEps)
             {
-                for (int i = 1; i < neighbors.size(); i++)
-                    addSeed(neighbors, i, designations, clusterID, seeds);
+                for (int i = 1; i < neighbors.size(); i++) {
+                  addSeed(neighbors, i, designations, clusterID, seeds);
+                }
             }
         }
     }
@@ -355,7 +365,7 @@ public class LSDBC extends ClustererBase implements Parameterized
     }
 
     @Override
-    public Parameter getParameter(String paramName)
+    public Parameter getParameter(final String paramName)
     {
         return Parameter.toParameterMap(getParameters()).get(paramName);
     }

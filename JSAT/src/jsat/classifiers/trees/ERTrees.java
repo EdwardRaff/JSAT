@@ -56,7 +56,7 @@ public class ERTrees extends ExtraTree
      * Creates a new Extremely Randomized Trees learner
      * @param forrestSize the number of trees to construct
      */
-    public ERTrees(int forrestSize)
+    public ERTrees(final int forrestSize)
     {
         this.forrestSize = forrestSize;
     }
@@ -70,7 +70,7 @@ public class ERTrees extends ExtraTree
      * @param useDefaultSelectionCount whether or not to use the heuristic 
      * version
      */
-    public void setUseDefaultSelectionCount(boolean useDefaultSelectionCount)
+    public void setUseDefaultSelectionCount(final boolean useDefaultSelectionCount)
     {
         this.useDefaultSelectionCount = useDefaultSelectionCount;
     }
@@ -91,7 +91,7 @@ public class ERTrees extends ExtraTree
      * regression. Otherwise, whatever value set beforehand will be used. 
      * @param useDefaultStopSize whether or not to use the heuristic version
      */
-    public void setUseDefaultStopSize(boolean useDefaultStopSize)
+    public void setUseDefaultStopSize(final boolean useDefaultStopSize)
     {
         this.useDefaultStopSize = useDefaultStopSize;
     }
@@ -105,7 +105,7 @@ public class ERTrees extends ExtraTree
         return useDefaultStopSize;
     }
 
-    public void setForrestSize(int forrestSize)
+    public void setForrestSize(final int forrestSize)
     {
         this.forrestSize = forrestSize;
     }
@@ -116,32 +116,34 @@ public class ERTrees extends ExtraTree
     }
 
     @Override
-    public CategoricalResults classify(DataPoint data)
+    public CategoricalResults classify(final DataPoint data)
     {
-        CategoricalResults cr = new CategoricalResults(predicting.getNumOfCategories());
+        final CategoricalResults cr = new CategoricalResults(predicting.getNumOfCategories());
         
-        for(ExtraTree tree : forrest)
-            cr.incProb(tree.classify(data).mostLikely(), 1.0);
+        for(final ExtraTree tree : forrest) {
+          cr.incProb(tree.classify(data).mostLikely(), 1.0);
+        }
         cr.normalize();
         return cr;
                 
     }
 
-    private void doTraining(ExecutorService threadPool, DataSet dataSet) throws FailedToFitException
+    private void doTraining(final ExecutorService threadPool, final DataSet dataSet) throws FailedToFitException
     {
         forrest = new ExtraTree[forrestSize];
-        int chunkSize = forrestSize/SystemInfo.LogicalCores;
+        final int chunkSize = forrestSize/SystemInfo.LogicalCores;
         int extra = forrestSize%SystemInfo.LogicalCores;
         
         int planted = 0;
         
-        CountDownLatch latch = new CountDownLatch(SystemInfo.LogicalCores);
+        final CountDownLatch latch = new CountDownLatch(SystemInfo.LogicalCores);
         while(planted < forrestSize)
         {
-            int start = planted;
+            final int start = planted;
             int end = start+chunkSize;
-            if(extra-- > 0)
-                end++;
+            if(extra-- > 0) {
+              end++;
+            }
             planted = end;
             threadPool.submit(new ForrestPlanter(start, end, dataSet, latch));
         }
@@ -150,7 +152,7 @@ public class ERTrees extends ExtraTree
         {
             latch.await();
         }
-        catch (InterruptedException ex)
+        catch (final InterruptedException ex)
         {
             throw new FailedToFitException(ex);
         }
@@ -164,7 +166,7 @@ public class ERTrees extends ExtraTree
         DataSet dataSet;
         CountDownLatch latch;
 
-        public ForrestPlanter(int start, int end, DataSet dataSet, CountDownLatch latch)
+        public ForrestPlanter(final int start, final int end, final DataSet dataSet, final CountDownLatch latch)
         {
             this.start = start;
             this.end = end;
@@ -177,7 +179,7 @@ public class ERTrees extends ExtraTree
         {
             if(dataSet instanceof ClassificationDataSet)
             {
-                ClassificationDataSet cds = (ClassificationDataSet) dataSet;
+                final ClassificationDataSet cds = (ClassificationDataSet) dataSet;
                 for(int i = start; i < end; i++)
                 {
                     forrest[i] = baseTree.clone();
@@ -186,27 +188,30 @@ public class ERTrees extends ExtraTree
             }
             else if(dataSet instanceof RegressionDataSet)
             {
-                RegressionDataSet rds = (RegressionDataSet)dataSet;
+                final RegressionDataSet rds = (RegressionDataSet)dataSet;
                 for(int i = start; i < end; i++)
                 {
                     forrest[i] = baseTree.clone();
                     forrest[i].train(rds);
                 }
             }
-            else
-                throw new RuntimeException("BUG: Please report");
+            else {
+              throw new RuntimeException("BUG: Please report");
+            }
             
             latch.countDown();
         }
     }
 
     @Override
-    public void trainC(ClassificationDataSet dataSet, ExecutorService threadPool)
+    public void trainC(final ClassificationDataSet dataSet, final ExecutorService threadPool)
     {
-        if(useDefaultSelectionCount)
-            baseTree.setSelectionCount((int)max(round(sqrt(dataSet.getNumFeatures())), 1));
-        if(useDefaultStopSize)
-            baseTree.setStopSize(2);
+        if(useDefaultSelectionCount) {
+          baseTree.setSelectionCount((int)max(round(sqrt(dataSet.getNumFeatures())), 1));
+        }
+        if(useDefaultStopSize) {
+          baseTree.setStopSize(2);
+        }
         
         predicting = dataSet.getPredicting();
         
@@ -214,7 +219,7 @@ public class ERTrees extends ExtraTree
     }
 
     @Override
-    public void trainC(ClassificationDataSet dataSet)
+    public void trainC(final ClassificationDataSet dataSet)
     {
         trainC(dataSet, new FakeExecutor());
     }
@@ -226,27 +231,30 @@ public class ERTrees extends ExtraTree
     }
 
     @Override
-    public double regress(DataPoint data)
+    public double regress(final DataPoint data)
     {
         double mean = 0.0;
-        for(ExtraTree tree : forrest)
-            mean += tree.regress(data);
+        for(final ExtraTree tree : forrest) {
+          mean += tree.regress(data);
+        }
         return mean/forrest.length;
     }
 
     @Override
-    public void train(RegressionDataSet dataSet, ExecutorService threadPool)
+    public void train(final RegressionDataSet dataSet, final ExecutorService threadPool)
     {
-        if(useDefaultSelectionCount)
-            baseTree.setSelectionCount(dataSet.getNumFeatures());
-        if(useDefaultStopSize)
-            baseTree.setStopSize(5);
+        if(useDefaultSelectionCount) {
+          baseTree.setSelectionCount(dataSet.getNumFeatures());
+        }
+        if(useDefaultStopSize) {
+          baseTree.setStopSize(5);
+        }
         
         doTraining(threadPool, dataSet);
     }
 
     @Override
-    public void train(RegressionDataSet dataSet)
+    public void train(final RegressionDataSet dataSet)
     {
         train(dataSet, new FakeExecutor());
     }
@@ -254,18 +262,20 @@ public class ERTrees extends ExtraTree
     @Override
     public ERTrees clone()
     {
-        ERTrees clone = new ERTrees();
+        final ERTrees clone = new ERTrees();
         clone.forrestSize = this.forrestSize;
         clone.useDefaultSelectionCount = this.useDefaultSelectionCount;
         clone.useDefaultStopSize = this.useDefaultStopSize;
         clone.baseTree = this.baseTree.clone();
-        if(this.predicting != null)
-            clone.predicting = this.predicting.clone();
+        if(this.predicting != null) {
+          clone.predicting = this.predicting.clone();
+        }
         if (this.forrest != null)
         {
             clone.forrest = new ExtraTree[this.forrest.length];
-            for (int i = 0; i < this.forrest.length; i++)
-                clone.forrest[i] = this.forrest[i].clone();
+            for (int i = 0; i < this.forrest.length; i++) {
+              clone.forrest[i] = this.forrest[i].clone();
+            }
         }
         
         return clone;

@@ -12,25 +12,25 @@ public class StemmingTokenizer implements Tokenizer
 {
 
 	private static final long serialVersionUID = 2883247633791522390L;
-	private Stemmer stemmer;
-    private Tokenizer baseTokenizer;
+	private final Stemmer stemmer;
+    private final Tokenizer baseTokenizer;
 
-    public StemmingTokenizer(Stemmer stemmer, Tokenizer baseTokenizer)
+    public StemmingTokenizer(final Stemmer stemmer, final Tokenizer baseTokenizer)
     {
         this.stemmer = stemmer;
         this.baseTokenizer = baseTokenizer;
     }
     
     @Override
-    public List<String> tokenize(String input)
+    public List<String> tokenize(final String input)
     {
-        List<String> tokens = baseTokenizer.tokenize(input);
+        final List<String> tokens = baseTokenizer.tokenize(input);
         stemmer.applyTo(tokens);
         return tokens;
     }
 
     @Override
-    public void tokenize(String input, StringBuilder workSpace, List<String> storageSpace)
+    public void tokenize(final String input, final StringBuilder workSpace, final List<String> storageSpace)
     {
         baseTokenizer.tokenize(input, workSpace, storageSpace);
         stemmer.applyTo(storageSpace);

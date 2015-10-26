@@ -17,10 +17,10 @@ public class ParallelUtils
      * @return the starting index (inclusive) of the blocks owned by the 
      * {@code ID}'th process. 
      */
-    public static int getStartBlock(int N, int ID, int P)
+    public static int getStartBlock(final int N, final int ID, final int P)
     {
-        int rem = N%P;
-        int start = (N/P)*ID+min(rem, ID);
+        final int rem = N%P;
+        final int start = (N/P)*ID+min(rem, ID);
         return start;
     }
     
@@ -34,10 +34,10 @@ public class ParallelUtils
      * @return the ending index (exclusive) of the blocks owned by the 
      * {@code ID}'th process. 
      */
-    public static int getEndBlock(int N, int ID, int P)
+    public static int getEndBlock(final int N, final int ID, final int P)
     {
-        int rem = N%P;
-        int start = (N/P)*(ID+1)+min(rem, ID+1);
+        final int rem = N%P;
+        final int start = (N/P)*(ID+1)+min(rem, ID+1);
         return start;
     }
 }

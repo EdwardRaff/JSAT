@@ -15,7 +15,7 @@ public abstract class FunctionBase implements Function
 	private static final long serialVersionUID = 424945317407895409L;
 
 	@Override
-    public double f(double... x)
+    public double f(final double... x)
     {
         return f(DenseVector.toDenseVec(x));
     }

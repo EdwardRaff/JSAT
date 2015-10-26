@@ -46,13 +46,13 @@ public class EigenValueDecomposition implements Serializable
      *
      * @serial matrix dimension.
      */
-    private int n;
+    private final int n;
     /**
      * Arrays for internal storage of eigenvalues.
      *
      * @serial internal storage of eigenvalues.
      */
-    private double[] d, e;
+    private final double[] d, e;
     /**
      * Array for internal storage of eigenvectors.
      *
@@ -75,8 +75,9 @@ public class EigenValueDecomposition implements Serializable
      */
     private void tred2()
     {
-        for(int j = 0; j < n; j++)
-            d[j] = V.get(n-1, j);
+        for(int j = 0; j < n; j++) {
+          d[j] = V.get(n-1, j);
+        }
 
         // Householder reduction to tridiagonal form.
 
@@ -113,8 +114,9 @@ public class EigenValueDecomposition implements Serializable
                 }
                 double f = d[i - 1];
                 double g = sqrt(h);
-                if (f > 0)
-                    g = -g;
+                if (f > 0) {
+                  g = -g;
+                }
                 e[i] = scale * g;
                 h -= f * g;
                 d[i - 1] = f - g;
@@ -140,7 +142,7 @@ public class EigenValueDecomposition implements Serializable
                     e[j] /= h;
                     f += e[j] * d[j];
                 }
-                double hh = f / (h + h);
+                final double hh = f / (h + h);
                 for (int j = 0; j < i; j++)
                 {
                     e[j] -= hh * d[j];
@@ -168,7 +170,7 @@ public class EigenValueDecomposition implements Serializable
         {
             V.set(n-1, i, V.get(i, i));
             V.set(i, i, 1.0);
-            double h = d[i + 1];
+            final double h = d[i + 1];
             if (h != 0.0)
             {
                 for (int k = 0; k <= i; k++)
@@ -218,7 +220,7 @@ public class EigenValueDecomposition implements Serializable
 
         double f = 0.0;
         double tst1 = 0.0;
-        double eps = pow(2.0, -52.0);
+        final double eps = pow(2.0, -52.0);
         for (int l = 0; l < n; l++)
         {
 
@@ -256,7 +258,7 @@ public class EigenValueDecomposition implements Serializable
                     }
                     d[l] = e[l] / (p + r);
                     d[l + 1] = e[l] * (p + r);
-                    double dl1 = d[l + 1];
+                    final double dl1 = d[l + 1];
                     double h = g - d[l];
                     for (int i = l + 2; i < n; i++)
                     {
@@ -270,7 +272,7 @@ public class EigenValueDecomposition implements Serializable
                     double c = 1.0;
                     double c2 = c;
                     double c3 = c;
-                    double el1 = e[l + 1];
+                    final double el1 = e[l + 1];
                     double s = 0.0;
                     double s2 = 0.0;
                     for (int i = m - 1; i >= l; i--)
@@ -339,8 +341,8 @@ public class EigenValueDecomposition implements Serializable
         //  Vol.ii-Linear Algebra, and the corresponding
         //  Fortran subroutines in EISPACK.
 
-        int low = 0;
-        int high = n - 1;
+        final int low = 0;
+        final int high = n - 1;
 
         for (int m = low + 1; m <= high - 1; m++)
         {
@@ -348,8 +350,9 @@ public class EigenValueDecomposition implements Serializable
             // Scale column.
 
             double scale = 0.0;
-            for (int i = m; i <= high; i++)
-                scale = scale + abs(H.get(i, m-1));
+            for (int i = m; i <= high; i++) {
+              scale = scale + abs(H.get(i, m-1));
+            }
 
             if (scale != 0.0)
             {
@@ -364,8 +367,9 @@ public class EigenValueDecomposition implements Serializable
                     h += tmp*tmp;
                 }
                 double g = sqrt(h);
-                if ((tmp = ort[m]) > 0)
-                    g = -g;
+                if ((tmp = ort[m]) > 0) {
+                  g = -g;
+                }
                 
                 h = h - tmp * g;
                 ort[m] = tmp - g;
@@ -402,18 +406,20 @@ public class EigenValueDecomposition implements Serializable
 
         // Initialize
 
-        int nn = this.n;
+        final int nn = this.n;
         int n = nn - 1;
-        int low = 0;
-        int high = nn - 1;
-        double eps = pow(2.0, -52.0);
+        final int low = 0;
+        final int high = nn - 1;
+        final double eps = pow(2.0, -52.0);
         double exshift = 0.0;
-        double p = 0, q = 0, r = 0, s = 0, z = 0, t, w, x, y;
+        double p = 0, q = 0, r = 0, s = 0, z = 0;
+        final double t;
+        double w, x, y;
         /**
          * Output from complex division
          */
         final double[] cr = new double[2];
-        double norm = hqr2GetNormStart(nn, low, high);
+        final double norm = hqr2GetNormStart(nn, low, high);
 
         // Outer loop over eigenvalue index
 
@@ -545,7 +551,7 @@ public class EigenValueDecomposition implements Serializable
 
                 for (int k = m; k <= n - 1; k++)
                 {
-                    boolean notlast = (k != n - 1);
+                    final boolean notlast = (k != n - 1);
                     if (k != m)
                     {
                         p = H.get(k, k-1);
@@ -560,8 +566,9 @@ public class EigenValueDecomposition implements Serializable
                         }
                     }
                     
-                    if (x == 0.0)
-                        break;
+                    if (x == 0.0) {
+                      break;
+                    }
                     
                     s = sqrt(p * p + q * q + r * r);
                     if (p < 0)
@@ -601,19 +608,21 @@ public class EigenValueDecomposition implements Serializable
         
         // Backsubstitute to find vectors of upper triangular form
 
-        if (norm == 0.0)
-            return;
+        if (norm == 0.0) {
+          return;
+        }
         
         backsubtituteFindVectors(nn, z, s, eps, norm, cr);
         
         // Vectors of isolated roots
 
-        for (int i = 0; i < nn; i++)
-            if (i < low | i > high)
-            {
-                for(int j = i; j < nn-1; j++)
-                    H.set(i, j, V.get(i, j));
+        for (int i = 0; i < nn; i++) {
+          if (i < low | i > high) {
+            for (int j = i; j < nn-1; j++) {
+              H.set(i, j, V.get(i, j));
             }
+          }
+        }
         backtransform(nn, low, high);
     }
     
@@ -624,7 +633,7 @@ public class EigenValueDecomposition implements Serializable
      * 
      * @param A the square matrix to work on.
      */
-    public EigenValueDecomposition(Matrix A)
+    public EigenValueDecomposition(final Matrix A)
     {
         this(A, 1e-15);
     }
@@ -638,10 +647,11 @@ public class EigenValueDecomposition implements Serializable
      * @param eps the numerical tolerance for differences in value to be 
      * considered the same. 
      */
-    public EigenValueDecomposition(Matrix A, double eps)
+    public EigenValueDecomposition(final Matrix A, final double eps)
     {
-        if (!A.isSquare())
-            throw new ArithmeticException("");
+        if (!A.isSquare()) {
+          throw new ArithmeticException("");
+        }
         n = A.cols();
         d = new double[n];
         e = new double[n];
@@ -649,7 +659,7 @@ public class EigenValueDecomposition implements Serializable
         if (Matrix.isSymmetric(A, eps) )
         {
             //Would give it the transpose, but the input is symmetric. So its the same thing
-            Matrix VWork = A.clone();
+            final Matrix VWork = A.clone();
             V = new TransposeView(VWork);
 
             // Tridiagonalize.
@@ -663,9 +673,9 @@ public class EigenValueDecomposition implements Serializable
         }
         else
         {
-            Matrix HWork = A.transpose();
+            final Matrix HWork = A.transpose();
             H = new TransposeView(HWork);
-            Matrix VWork = new DenseMatrix(n, n);
+            final Matrix VWork = new DenseMatrix(n, n);
             V = new TransposeView(VWork);
 
             // Reduce to Hessenberg form.
@@ -676,9 +686,11 @@ public class EigenValueDecomposition implements Serializable
             
             complexResult = false;
             //Check if the result has complex eigen values
-            for (int i = 0; i < n; i++)
-                if (e[i] != 0)
-                    complexResult = true;
+            for (int i = 0; i < n; i++) {
+              if (e[i] != 0) {
+                complexResult = true;
+              }
+            }
             V = VWork.transpose();
         }
     }
@@ -689,16 +701,17 @@ public class EigenValueDecomposition implements Serializable
      * present. 
      * @param cmp the comparator to use to sort the eigen values
      */
-    public void sortByEigenValue(Comparator<Double> cmp)
+    public void sortByEigenValue(final Comparator<Double> cmp)
     {
-        if(isComplex())
-            throw new ArithmeticException("Eigen values can not be sorted due to complex results");
-        IndexTable it = new IndexTable(DoubleList.unmodifiableView(d, d.length), cmp);
+        if(isComplex()) {
+          throw new ArithmeticException("Eigen values can not be sorted due to complex results");
+        }
+        final IndexTable it = new IndexTable(DoubleList.unmodifiableView(d, d.length), cmp);
         
         for(int i = 0; i < d.length; i++)
         {
             RowColumnOps.swapCol(V, i, it.index(i));
-            double tmp = d[i];
+            final double tmp = d[i];
             d[i] = d[it.index(i)];
             d[it.index(i)] = tmp;
             
@@ -777,7 +790,7 @@ public class EigenValueDecomposition implements Serializable
      * @param shift the direction to perform the computation. Either 1 for after
      * the current column, or -1 for before the current column.
      */
-    private static void columnOpTransform(Matrix M, int low, int high, int n, double q, double p, int shift)
+    private static void columnOpTransform(final Matrix M, final int low, final int high, final int n, final double q, final double p, final int shift)
     {
         double z;
         for (int i = low; i <= high; i++)
@@ -803,7 +816,7 @@ public class EigenValueDecomposition implements Serializable
      * @param q the first constant
      * @param p the second constant
      */
-    private static void rowOpTransform(Matrix M, int low, int high, int n, double q, double p)
+    private static void rowOpTransform(final Matrix M, final int low, final int high, final int n, final double q, final double p)
     {
         double z;
         for (int j = low; j <= high; j++)
@@ -842,7 +855,7 @@ public class EigenValueDecomposition implements Serializable
      * @param r fourth constant
      * @param q fifth constant
      */
-    private void columnOpTransform2(Matrix M, int low, int high, double x, int k, double y, boolean notlast, double z, double r, double q)
+    private void columnOpTransform2(final Matrix M, final int low, final int high, final double x, final int k, final double y, final boolean notlast, final double z, final double r, final double q)
     {
         double p;
         for (int i = low; i <= high; i++)
@@ -884,7 +897,7 @@ public class EigenValueDecomposition implements Serializable
      * @param r fourth constant
      * @param q fifth constant
      */
-    private void rowOpTransform2(Matrix M, int low, int high, double x, int k, double y, boolean notlast, double z, double r, double q)
+    private void rowOpTransform2(final Matrix M, final int low, final int high, final double x, final int k, final double y, final boolean notlast, final double z, final double r, final double q)
     {
         double p;
         for (int j = low; j <= high; j++)
@@ -907,15 +920,16 @@ public class EigenValueDecomposition implements Serializable
      */
     public Matrix getD()
     {
-        Matrix X = new DenseMatrix(n, n);
+        final Matrix X = new DenseMatrix(n, n);
         for (int i = 0; i < n; i++)
         {
             X.set(i, i, d[i]);
             
-            if (e[i] > 0)
-                X.set(i, i+1, e[i]);
-            else if (e[i] < 0)
-                X.set(i, i-1, e[i]);
+            if (e[i] > 0) {
+              X.set(i, i+1, e[i]);
+            } else if (e[i] < 0) {
+              X.set(i, i-1, e[i]);
+            }
         }
         return X;
     }
@@ -970,7 +984,7 @@ public class EigenValueDecomposition implements Serializable
         }
     }
 
-    private void backsubtituteFindVectors(int nn, double z, double s, double eps, double norm, final double[] cr)
+    private void backsubtituteFindVectors(final int nn, double z, double s, final double eps, final double norm, final double[] cr)
     {
         double p;
         double q;
@@ -1071,7 +1085,8 @@ public class EigenValueDecomposition implements Serializable
                 H.set(n, n, 1.0);
                 for (int i = n - 2; i >= 0; i--)
                 {
-                    double ra, sa, vr, vi;
+                    double ra, sa;
+                    final double vr, vi;
                     ra = 0.0;
                     sa = 0.0;
                     for (int j = l; j <= n; j++)
@@ -1115,7 +1130,7 @@ public class EigenValueDecomposition implements Serializable
         }
     }
 
-    private double hqr2GetNormStart(int nn, int low, int high)
+    private double hqr2GetNormStart(final int nn, final int low, final int high)
     {
         // Store roots isolated by balanc and compute matrix norm
         double norm = 0.0;
@@ -1134,7 +1149,7 @@ public class EigenValueDecomposition implements Serializable
         return norm;
     }
 
-    private void backtransform(int nn, int low, int high)
+    private void backtransform(final int nn, final int low, final int high)
     {
         double z;
         // Back transformation to get eigenvectors of original matrix
@@ -1152,7 +1167,7 @@ public class EigenValueDecomposition implements Serializable
         }
     }
 
-    private void hqr2FoundTwoRoots(double exshift, int n, int nn, int low, int high)
+    private void hqr2FoundTwoRoots(final double exshift, final int n, final int nn, final int low, final int high)
     {
         double w, p, q, z, x, s, r;
         w = H.get(n, n - 1) * H.get(n - 1, n);
@@ -1167,15 +1182,17 @@ public class EigenValueDecomposition implements Serializable
 
         if (q >= 0)
         {
-            if (p >= 0)
-                z = p + z;
-            else
-                z = p - z;
+            if (p >= 0) {
+              z = p + z;
+            } else {
+              z = p - z;
+            }
 
             d[n - 1] = x + z;
             d[n] = d[n - 1];
-            if (z != 0.0)
-                d[n] = x - w / z;
+            if (z != 0.0) {
+              d[n] = x - w / z;
+            }
 
             e[n - 1] = 0.0;
             e[n] = 0.0;
@@ -1206,7 +1223,7 @@ public class EigenValueDecomposition implements Serializable
         }
     }
 
-    private void orthesAccumulateTransforamtions(int high, int low, final double[] ort)
+    private void orthesAccumulateTransforamtions(final int high, final int low, final double[] ort)
     {
         for (int m = high - 1; m >= low + 1; m--)
         {
@@ -1231,7 +1248,7 @@ public class EigenValueDecomposition implements Serializable
         }
     }
 
-    private void orthesApplyHouseholder(int m, int high, final double[] ort, double h)
+    private void orthesApplyHouseholder(final int m, final int high, final double[] ort, final double h)
     {
         // Apply Householder similarity transformation
         // H = (I-u*u'/h)*H*(I-u*u')/h)

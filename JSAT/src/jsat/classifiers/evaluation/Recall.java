@@ -25,7 +25,7 @@ public class Recall extends SimpleBinaryClassMetric
      * Copy constructor
      * @param toClone the object to copy
      */
-    public Recall(Recall toClone)
+    public Recall(final Recall toClone)
     {
         super(toClone);
     }
@@ -37,13 +37,9 @@ public class Recall extends SimpleBinaryClassMetric
     }
     
     @Override
-    public boolean equals(Object obj)
+    public boolean equals(final Object obj)
     {
-        if(this.getClass().isAssignableFrom(obj.getClass()) && obj.getClass().isAssignableFrom(this.getClass()))
-        {
-            return true;
-        }
-        return false;
+        return this.getClass().isAssignableFrom(obj.getClass()) && obj.getClass().isAssignableFrom(this.getClass());
     }
 
     @Override

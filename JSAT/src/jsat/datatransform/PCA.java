@@ -49,7 +49,7 @@ public class PCA implements DataTransform
      * 
      * @param dataSet the data set to learn from
      */
-    public PCA(DataSet dataSet)
+    public PCA(final DataSet dataSet)
     {
         this(dataSet, Integer.MAX_VALUE);
     }
@@ -63,7 +63,7 @@ public class PCA implements DataTransform
      * Note, the computable maximum number of PCs is limited to the minimum of the number of samples and the
      * number of dimensions. 
      */
-    public PCA(DataSet dataSet, int maxPCs)
+    public PCA(final DataSet dataSet, final int maxPCs)
     {
         this(dataSet, maxPCs, 1e-4);
     }
@@ -80,14 +80,14 @@ public class PCA implements DataTransform
      * not produce more accurate results, but may make the algorithm take longer if it would 
      * have terminated before <tt>maxPCs</tt> was reached.  
      */
-    public PCA(DataSet dataSet, int maxPCs, double threshold)
+    public PCA(final DataSet dataSet, final int maxPCs, final double threshold)
     {
-        List<Vec> scores = new ArrayList<Vec>();
-        List<Vec> loadings = new ArrayList<Vec>();
+        final List<Vec> scores = new ArrayList<Vec>();
+        final List<Vec> loadings = new ArrayList<Vec>();
         //E(0) = X The E-matrix for the zero-th PC
 
         //Contains the unexplained variance in the data at each step. 
-        Matrix E = dataSet.getDataMatrix();
+        final Matrix E = dataSet.getDataMatrix();
         
         //This is the MAX number of possible Principlal Components
         int PCs = Math.min(dataSet.getSampleSize(), dataSet.getNumNumericalVars());
@@ -100,7 +100,7 @@ public class PCA implements DataTransform
         {
             //1. Project X onto t to and the corresponding loading p
             //p = (E[i-1]' * t) / (t'*t) 
-            Vec p = E.transposeMultiply(1.0, t);
+            final Vec p = E.transposeMultiply(1.0, t);
             p.mutableDivide(tauOld);
             
             //2. Normalise loading vector p to length 1
@@ -115,9 +115,10 @@ public class PCA implements DataTransform
             scores.add(t);///t is a new vector each time from step 3, and does not get altered after this. So no clone needed
             loadings.add(p);//p is a new vecor each time created at step 1, and does not get altered after this. So no clone needed
             //4. Check for convergence.
-            double tauNew = t.dot(t);
-            if(Math.abs(tauNew-tauOld) <= threshold*tauNew)
-                return;
+            final double tauNew = t.dot(t);
+            if(Math.abs(tauNew-tauOld) <= threshold*tauNew) {
+              return;
+            }
             tauOld =  tauNew;
             
             //5. Remove the estimated PC component from E[i-1]
@@ -127,9 +128,10 @@ public class PCA implements DataTransform
         P  = new DenseMatrix(loadings.size(), loadings.get(0).length());
         for(int i = 0; i < loadings.size(); i++)
         {
-            Vec pi = loadings.get(i);
-            for(int j = 0; j < pi.length(); j++)
-                P.set(i, j, pi.get(j));
+            final Vec pi = loadings.get(i);
+            for(int j = 0; j < pi.length(); j++) {
+              P.set(i, j, pi.get(j));
+            }
         }
     }
     
@@ -137,10 +139,11 @@ public class PCA implements DataTransform
      * Copy constructor
      * @param other the transform to copy
      */
-    private PCA(PCA other)
+    private PCA(final PCA other)
     {
-        if(other.P != null)
-            this.P = other.P.clone();
+        if(other.P != null) {
+          this.P = other.P.clone();
+        }
     }
     
     /**
@@ -148,24 +151,25 @@ public class PCA implements DataTransform
      * @param x the matrix to get a column from
      * @return the first non zero column
      */
-    private static Vec getColumn(Matrix x)
+    private static Vec getColumn(final Matrix x)
     {
         Vec t;
         
         for(int i = 0; i < x.cols(); i++)
         {
             t = x.getColumn(i);
-            if(t.dot(t) > 0 )
-                return t;
+            if(t.dot(t) > 0 ) {
+              return t;
+            }
         }
         
         throw new ArithmeticException("Matrix is essentially zero");
     }
 
     @Override
-    public DataPoint transform(DataPoint dp)
+    public DataPoint transform(final DataPoint dp)
     {
-        DataPoint newDP = new DataPoint(
+        final DataPoint newDP = new DataPoint(
                 P.multiply(dp.getNumericalValues()), 
                 Arrays.copyOf(dp.getCategoricalValues(), dp.numCategoricalValues()), 
                 CategoricalData.copyOf(dp.getCategoricalData()),
@@ -196,7 +200,7 @@ public class PCA implements DataTransform
          * Creates a new PCA Factory
          * @param maxPCs the maximum number of principal components to take
          */
-        public PCAFactory(int maxPCs)
+        public PCAFactory(final int maxPCs)
         {
             this(maxPCs, 1e-4);
         }
@@ -206,7 +210,7 @@ public class PCA implements DataTransform
          * @param maxPCs the maximum number of principal components to take
          * @param threshold  the stopping value for numerical stability
          */
-        public PCAFactory(int maxPCs, double threshold)
+        public PCAFactory(final int maxPCs, final double threshold)
         {
             setMaxPCs(maxPCs);
             setThreshold(threshold);
@@ -216,7 +220,7 @@ public class PCA implements DataTransform
          * Copy constructor
          * @param toCopy the object to copy
          */
-        public PCAFactory(PCAFactory toCopy)
+        public PCAFactory(final PCAFactory toCopy)
         {
             this(toCopy.maxPCs, toCopy.threshold);
         }
@@ -225,10 +229,11 @@ public class PCA implements DataTransform
          * Sets the maximum number of Principal Components to let the algorithm learn
          * @param maxPCs the maximum number of Principal Components to let the algorithm learn
          */
-        public void setMaxPCs(int maxPCs)
+        public void setMaxPCs(final int maxPCs)
         {
-            if(maxPCs < 1)
-                throw new IllegalArgumentException("Number of PCs must be positive, not " + maxPCs);
+            if(maxPCs < 1) {
+              throw new IllegalArgumentException("Number of PCs must be positive, not " + maxPCs);
+            }
             this.maxPCs = maxPCs;
         }
 
@@ -245,7 +250,7 @@ public class PCA implements DataTransform
          * Sets the convergence threshold for each principal component
          * @param threshold the positive convergence threshold
          */
-        public void setThreshold(double threshold)
+        public void setThreshold(final double threshold)
         {
             this.threshold = threshold;
         }
@@ -260,7 +265,7 @@ public class PCA implements DataTransform
         }
         
         @Override
-        public DataTransform getTransform(DataSet dataset)
+        public DataTransform getTransform(final DataSet dataset)
         {
             return new PCA(dataset, maxPCs, threshold);
         }

@@ -19,12 +19,12 @@ public class StandardizeTransform implements InPlaceTransform
 {
 
 	private static final long serialVersionUID = -2349721113741805955L;
-	private Vec means;
-    private Vec stdDevs;
+	private final Vec means;
+    private final Vec stdDevs;
 
-    public StandardizeTransform(DataSet dataset)
+    public StandardizeTransform(final DataSet dataset)
     {
-        Vec[] vecs = dataset.getColumnMeanVariance();
+        final Vec[] vecs = dataset.getColumnMeanVariance();
         means = vecs[0];
         stdDevs = vecs[1];
     }
@@ -33,24 +33,24 @@ public class StandardizeTransform implements InPlaceTransform
      * Copy constructor
      * @param toCopy the object to copy
      */
-    public StandardizeTransform(StandardizeTransform toCopy)
+    public StandardizeTransform(final StandardizeTransform toCopy)
     {
         this.means = toCopy.means.clone();
         this.stdDevs = toCopy.stdDevs.clone();
     }
     
     @Override
-    public DataPoint transform(DataPoint dp)
+    public DataPoint transform(final DataPoint dp)
     {
-        DataPoint newDP = dp.clone();
+        final DataPoint newDP = dp.clone();
         mutableTransform(newDP);
         return newDP;
     }
     
     @Override
-    public void mutableTransform(DataPoint dp)
+    public void mutableTransform(final DataPoint dp)
     {
-        Vec toAlter = dp.getNumericalValues();
+        final Vec toAlter = dp.getNumericalValues();
         toAlter.mutableSubtract(means);
         toAlter.mutablePairwiseDivide(stdDevs);
     }
@@ -78,7 +78,7 @@ public class StandardizeTransform implements InPlaceTransform
         }
         
         @Override
-        public DataTransform getTransform(DataSet dataset)
+        public DataTransform getTransform(final DataSet dataset)
         {
             return new StandardizeTransform(dataset);
         }

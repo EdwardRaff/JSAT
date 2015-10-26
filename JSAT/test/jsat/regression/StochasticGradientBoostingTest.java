@@ -67,12 +67,12 @@ public class StochasticGradientBoostingTest
     {
         System.out.println("train");
 
-        StochasticGradientBoosting instance = new StochasticGradientBoosting(new DecisionTree(), 50);
+        final StochasticGradientBoosting instance = new StochasticGradientBoosting(new DecisionTree(), 50);
 
-        RegressionDataSet train = FixedProblems.getLinearRegression(500, new XORWOW());
-        RegressionDataSet test = FixedProblems.getLinearRegression(100, new XORWOW());
+        final RegressionDataSet train = FixedProblems.getLinearRegression(500, new XORWOW());
+        final RegressionDataSet test = FixedProblems.getLinearRegression(100, new XORWOW());
 
-        RegressionModelEvaluation rme = new RegressionModelEvaluation(instance, train);
+        final RegressionModelEvaluation rme = new RegressionModelEvaluation(instance, train);
         rme.evaluateTestSet(test);
 
         assertTrue(rme.getMeanError() <= test.getTargetValues().mean() * 0.25);
@@ -84,14 +84,14 @@ public class StochasticGradientBoostingTest
     {
         System.out.println("train");
 
-        StochasticGradientBoosting instance = new StochasticGradientBoosting(new DecisionTree(), 50);
+        final StochasticGradientBoosting instance = new StochasticGradientBoosting(new DecisionTree(), 50);
 
-        ExecutorService ex = Executors.newFixedThreadPool(SystemInfo.LogicalCores);
+        final ExecutorService ex = Executors.newFixedThreadPool(SystemInfo.LogicalCores);
 
-        RegressionDataSet train = FixedProblems.getLinearRegression(500, new XORWOW());
-        RegressionDataSet test = FixedProblems.getLinearRegression(100, new XORWOW());
+        final RegressionDataSet train = FixedProblems.getLinearRegression(500, new XORWOW());
+        final RegressionDataSet test = FixedProblems.getLinearRegression(100, new XORWOW());
 
-        RegressionModelEvaluation rme = new RegressionModelEvaluation(instance, train, ex);
+        final RegressionModelEvaluation rme = new RegressionModelEvaluation(instance, train, ex);
         rme.evaluateTestSet(test);
 
         assertTrue(rme.getMeanError() <= test.getTargetValues().mean() * 0.25);
@@ -106,24 +106,27 @@ public class StochasticGradientBoostingTest
 
         StochasticGradientBoosting instance = new StochasticGradientBoosting(new DecisionTree(), 50);
 
-        RegressionDataSet t1 = FixedProblems.getLinearRegression(100, new XORWOW());
-        RegressionDataSet t2 = FixedProblems.getLinearRegression(100, new XORWOW());
+        final RegressionDataSet t1 = FixedProblems.getLinearRegression(100, new XORWOW());
+        final RegressionDataSet t2 = FixedProblems.getLinearRegression(100, new XORWOW());
         t2.applyTransform(new LinearTransform(t2, 1, 10));
 
         instance = instance.clone();
 
         instance.train(t1);
 
-        StochasticGradientBoosting result = instance.clone();
-        for (int i = 0; i < t1.getSampleSize(); i++)
-            assertEquals(t1.getTargetValue(i), result.regress(t1.getDataPoint(i)), t1.getTargetValues().mean()*0.5);
+        final StochasticGradientBoosting result = instance.clone();
+        for (int i = 0; i < t1.getSampleSize(); i++) {
+          assertEquals(t1.getTargetValue(i), result.regress(t1.getDataPoint(i)), t1.getTargetValues().mean()*0.5);
+        }
         result.train(t2);
 
-        for (int i = 0; i < t1.getSampleSize(); i++)
-            assertEquals(t1.getTargetValue(i), instance.regress(t1.getDataPoint(i)), t1.getTargetValues().mean()*0.5);
+        for (int i = 0; i < t1.getSampleSize(); i++) {
+          assertEquals(t1.getTargetValue(i), instance.regress(t1.getDataPoint(i)), t1.getTargetValues().mean()*0.5);
+        }
 
-        for (int i = 0; i < t2.getSampleSize(); i++)
-            assertEquals(t2.getTargetValue(i), result.regress(t2.getDataPoint(i)), t2.getTargetValues().mean()*0.5);
+        for (int i = 0; i < t2.getSampleSize(); i++) {
+          assertEquals(t2.getTargetValue(i), result.regress(t2.getDataPoint(i)), t2.getTargetValues().mean()*0.5);
+        }
 
     }
     

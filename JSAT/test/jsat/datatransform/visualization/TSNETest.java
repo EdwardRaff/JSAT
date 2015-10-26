@@ -19,7 +19,6 @@ package jsat.datatransform.visualization;
 import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import jsat.DataSet;
 import jsat.SimpleDataSet;
 import jsat.classifiers.CategoricalData;
 import jsat.classifiers.DataPoint;
@@ -78,10 +77,10 @@ public class TSNETest
     {
         System.out.println("transform");
         
-        ExecutorService ex = Executors.newFixedThreadPool(SystemInfo.LogicalCores);
+        final ExecutorService ex = Executors.newFixedThreadPool(SystemInfo.LogicalCores);
         
-        Random rand = new XORWOW();
-        TSNE instance = new TSNE();
+        final Random rand = new XORWOW();
+        final TSNE instance = new TSNE();
         
         
         //create a small data set, and apply a random projection to a higher dimension
@@ -89,10 +88,10 @@ public class TSNETest
         final int K = 5;//num neighbors we want to see stay the same
         instance.setPerplexity(K*3);
         
-        Matrix orig_dim = new DenseMatrix(200, 2);
+        final Matrix orig_dim = new DenseMatrix(200, 2);
         for (int i = 0; i < orig_dim.rows(); i++)
         {
-            int offset = i % 2 == 0 ? -5 : 5;
+            final int offset = i % 2 == 0 ? -5 : 5;
             for (int j = 0; j < orig_dim.cols(); j++)
             {
                 orig_dim.set(i, j, rand.nextGaussian()+offset);
@@ -100,46 +99,52 @@ public class TSNETest
         }
         
         
-        Matrix s = Matrix.random(2, 10, rand);
+        final Matrix s = Matrix.random(2, 10, rand);
         
-        Matrix proj_data = orig_dim.multiply(s);
+        final Matrix proj_data = orig_dim.multiply(s);
         
-        SimpleDataSet proj = new SimpleDataSet(new CategoricalData[0], proj_data.cols());
-        for(int i = 0; i < proj_data.rows(); i++)
-            proj.add(new DataPoint(proj_data.getRow(i)));
+        final SimpleDataSet proj = new SimpleDataSet(new CategoricalData[0], proj_data.cols());
+        for(int i = 0; i < proj_data.rows(); i++) {
+          proj.add(new DataPoint(proj_data.getRow(i)));
+        }
         
-        List<Set<Integer>> origNNs = new ArrayList<Set<Integer>>();
-        VectorArray<VecPaired<Vec, Integer>> proj_vc = new VectorArray<VecPaired<Vec, Integer>>(new EuclideanDistance());
-        for(int i = 0; i < proj.getSampleSize(); i++)
-            proj_vc.add(new VecPaired<Vec, Integer>(proj.getDataPoint(i).getNumericalValues(), i));
+        final List<Set<Integer>> origNNs = new ArrayList<Set<Integer>>();
+        final VectorArray<VecPaired<Vec, Integer>> proj_vc = new VectorArray<VecPaired<Vec, Integer>>(new EuclideanDistance());
+        for(int i = 0; i < proj.getSampleSize(); i++) {
+          proj_vc.add(new VecPaired<Vec, Integer>(proj.getDataPoint(i).getNumericalValues(), i));
+        }
         
         for(int i = 0; i < proj.getSampleSize(); i++)
         {
-            Set<Integer> nns = new HashSet<Integer>();
-            for(VecPaired<VecPaired<Vec, Integer>, Double> neighbor : proj_vc.search(proj_vc.get(i), K))
-                nns.add(neighbor.getVector().getPair());
+            final Set<Integer> nns = new HashSet<Integer>();
+            for(final VecPaired<VecPaired<Vec, Integer>, Double> neighbor : proj_vc.search(proj_vc.get(i), K)) {
+              nns.add(neighbor.getVector().getPair());
+            }
             origNNs.add(nns);
         }
         
-        SimpleDataSet transformed_0 = instance.transform(proj, ex);
-        SimpleDataSet transformed_1 = instance.transform(proj);
+        final SimpleDataSet transformed_0 = instance.transform(proj, ex);
+        final SimpleDataSet transformed_1 = instance.transform(proj);
         
         
-        for(SimpleDataSet transformed : new SimpleDataSet[]{transformed_0, transformed_1})
+        for(final SimpleDataSet transformed : new SimpleDataSet[]{transformed_0, transformed_1})
         {
             double sameNN = 0;
-            VectorArray<VecPaired<Vec, Integer>> trans_vc = new VectorArray<VecPaired<Vec, Integer>>(new EuclideanDistance());
-            for (int i = 0; i < transformed.getSampleSize(); i++)
-                trans_vc.add(new VecPaired<Vec, Integer>(transformed.getDataPoint(i).getNumericalValues(), i));
+            final VectorArray<VecPaired<Vec, Integer>> trans_vc = new VectorArray<VecPaired<Vec, Integer>>(new EuclideanDistance());
+            for (int i = 0; i < transformed.getSampleSize(); i++) {
+              trans_vc.add(new VecPaired<Vec, Integer>(transformed.getDataPoint(i).getNumericalValues(), i));
+            }
 
             for(int i = 0; i < orig_dim.rows(); i++)
             {
-                for(VecPaired<VecPaired<Vec, Integer>, Double> neighbor : trans_vc.search(trans_vc.get(i), K*3))
-                    if(origNNs.get(i).contains(neighbor.getVector().getPair()))
-                        sameNN++;
+                for(final VecPaired<VecPaired<Vec, Integer>, Double> neighbor : trans_vc.search(trans_vc.get(i), K*3)) {
+                  if (origNNs.get(i).contains(neighbor.getVector().getPair())) {
+                    sameNN++;
+                  }
+                }
             }
             
-            double score = sameNN/(transformed.getSampleSize()*K);
+            final double score = sameNN/(transformed.getSampleSize()*K);
             assertTrue("was " + score, score >= 0.50);
         }
         

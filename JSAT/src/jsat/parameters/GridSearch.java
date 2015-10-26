@@ -55,7 +55,7 @@ public class GridSearch extends ModelSearch
      * @throws FailedToFitException if the base regressor does not implement 
      * {@link Parameterized}
      */
-    public GridSearch(Regressor baseRegressor, int folds)
+    public GridSearch(final Regressor baseRegressor, final int folds)
     {
         super(baseRegressor, folds);
         searchValues = new ArrayList<List<Double>>();
@@ -73,7 +73,7 @@ public class GridSearch extends ModelSearch
      * @throws FailedToFitException if the base classifier does not implement 
      * {@link Parameterized}
      */
-    public GridSearch(Classifier baseClassifier, int folds)
+    public GridSearch(final Classifier baseClassifier, final int folds)
     {
         super(baseClassifier, folds);
         searchValues = new ArrayList<List<Double>>();
@@ -83,7 +83,7 @@ public class GridSearch extends ModelSearch
      * Copy constructor
      * @param toCopy the object to copy
      */
-    public GridSearch(GridSearch toCopy)
+    public GridSearch(final GridSearch toCopy)
     {
         super(toCopy);
         this.useWarmStarts = toCopy.useWarmStarts;
@@ -91,9 +91,9 @@ public class GridSearch extends ModelSearch
         if(toCopy.searchValues != null)
         {
             this.searchValues = new ArrayList<List<Double>>();
-            for(List<Double> ld : toCopy.searchValues)
+            for(final List<Double> ld : toCopy.searchValues)
             {
-                List<Double> newVals = new DoubleList(ld);
+                final List<Double> newVals = new DoubleList(ld);
                 this.searchValues.add(newVals);
             }
         }
@@ -111,7 +111,7 @@ public class GridSearch extends ModelSearch
      * @param data the data set to get parameter estimates from
      * @return the number of parameters added
      */
-    public int autoAddParameters(DataSet data)
+    public int autoAddParameters(final DataSet data)
     {
         return autoAddParameters(data, 10);
     }
@@ -128,47 +128,54 @@ public class GridSearch extends ModelSearch
      * @param paramsEach the number of parameters value to try for each parameter found
      * @return the number of parameters added
      */
-    public int autoAddParameters(DataSet data, int paramsEach)
+    public int autoAddParameters(final DataSet data, final int paramsEach)
     {
         Parameterized obj;
-        if(baseClassifier != null)
-            obj = (Parameterized) baseClassifier;
-        else 
-            obj = (Parameterized) baseRegressor;
+        if(baseClassifier != null) {
+          obj = (Parameterized) baseClassifier;
+        } else {
+          obj = (Parameterized) baseRegressor;
+        }
         int totalParms = 0;
-        for(Parameter param : obj.getParameters())
+        for(final Parameter param : obj.getParameters())
         {
             Distribution dist;
             if (param instanceof DoubleParameter)
             {
                 dist = ((DoubleParameter) param).getGuess(data);
-                if (dist != null)
-                    totalParms++;
+                if (dist != null) {
+                  totalParms++;
+                }
             }
             else if (param instanceof IntParameter)
             {
                 dist = ((IntParameter) param).getGuess(data);
-                if (dist != null)
-                    totalParms++;
+                if (dist != null) {
+                  totalParms++;
+                }
             }
         }
-        if(totalParms < 1)
-            return 0;
+        if(totalParms < 1) {
+          return 0;
+        }
         
-        double[] quantiles = new double[paramsEach];
-        for(int i = 0; i < quantiles.length; i++)
-            quantiles[i] = (i+1.0)/(paramsEach+1.0);
-        for(Parameter param : obj.getParameters())
+        final double[] quantiles = new double[paramsEach];
+        for(int i = 0; i < quantiles.length; i++) {
+          quantiles[i] = (i+1.0)/(paramsEach+1.0);
+        }
+        for(final Parameter param : obj.getParameters())
         {
             Distribution dist;
             if (param instanceof DoubleParameter)
             {
                 dist = ((DoubleParameter) param).getGuess(data);
-                if (dist == null)
-                    continue;
-                double[] vals = new double[paramsEach];
-                for (int i = 0; i < vals.length; i++)
-                    vals[i] = dist.invCdf(quantiles[i]);
+                if (dist == null) {
+                  continue;
+                }
+                final double[] vals = new double[paramsEach];
+                for (int i = 0; i < vals.length; i++) {
+                  vals[i] = dist.invCdf(quantiles[i]);
+                }
 
                 addParameter((DoubleParameter) param, vals);
 
@@ -176,11 +183,13 @@ public class GridSearch extends ModelSearch
             else if (param instanceof IntParameter)
             {
                 dist = ((IntParameter) param).getGuess(data);
-                if (dist == null)
-                    continue;
-                int[] vals = new int[paramsEach];
-                for (int i = 0; i < vals.length; i++)
-                    vals[i] = (int) Math.round(dist.invCdf(quantiles[i]));
+                if (dist == null) {
+                  continue;
+                }
+                final int[] vals = new int[paramsEach];
+                for (int i = 0; i < vals.length; i++) {
+                  vals[i] = (int) Math.round(dist.invCdf(quantiles[i]));
+                }
 
                 addParameter((IntParameter) param, vals);
             }
@@ -196,7 +205,7 @@ public class GridSearch extends ModelSearch
      * @param useWarmStarts {@code true} if warm starts should be used when 
      * possible, {@code false} otherwise. 
      */
-    public void setUseWarmStarts(boolean useWarmStarts)
+    public void setUseWarmStarts(final boolean useWarmStarts)
     {
         this.useWarmStarts = useWarmStarts;
     }
@@ -217,21 +226,25 @@ public class GridSearch extends ModelSearch
      * @param param the model parameter
      * @param initialSearchValues the values to try for the specified parameter
      */
-    public void addParameter(DoubleParameter param, double... initialSearchValues)
+    public void addParameter(final DoubleParameter param, final double... initialSearchValues)
     {
-        if(param == null)
-            throw new IllegalArgumentException("null not allowed for parameter");
+        if(param == null) {
+          throw new IllegalArgumentException("null not allowed for parameter");
+        }
         searchParams.add(param);
-        DoubleList dl = new DoubleList(initialSearchValues.length);
-        for(double d : initialSearchValues)
-            dl.add(d);
+        final DoubleList dl = new DoubleList(initialSearchValues.length);
+        for(final double d : initialSearchValues) {
+          dl.add(d);
+        }
         Arrays.sort(dl.getBackingArray());//convience, only really needed if param is warm
-        if (param.isWarmParameter() && !param.preferredLowToHigh())
-            Collections.reverse(dl);//put it in the prefered order
-        if (param.isWarmParameter())//put it at the front!
-            searchValues.add(0, dl);
-        else
-            searchValues.add(dl);
+        if (param.isWarmParameter() && !param.preferredLowToHigh()) {
+          Collections.reverse(dl);//put it in the prefered order
+        }
+        if (param.isWarmParameter()) {//put it at the front!
+          searchValues.add(0, dl);
+        } else {
+          searchValues.add(dl);
+        }
     }
 
     /**
@@ -240,12 +253,13 @@ public class GridSearch extends ModelSearch
      * @param name the name of the parameter
      * @param initialSearchValues the values to try for the specified parameter
      */
-    public void addParameter(String name, double... initialSearchValues)
+    public void addParameter(final String name, final double... initialSearchValues)
     {
         Parameter param;
         param = getParameterByName(name);
-        if (!(param instanceof DoubleParameter))
-            throw new IllegalArgumentException("Parameter " + name + " is not for double values");
+        if (!(param instanceof DoubleParameter)) {
+          throw new IllegalArgumentException("Parameter " + name + " is not for double values");
+        }
 
         addParameter((DoubleParameter) param, initialSearchValues);
     }
@@ -256,19 +270,22 @@ public class GridSearch extends ModelSearch
      * @param param the model parameter
      * @param initialSearchValues the values to try for the specified parameter
      */
-    public void addParameter(IntParameter param, int... initialSearchValues)
+    public void addParameter(final IntParameter param, final int... initialSearchValues)
     {
         searchParams.add(param);
-        DoubleList dl = new DoubleList(initialSearchValues.length);
-        for(double d : initialSearchValues)
-            dl.add(d);
+        final DoubleList dl = new DoubleList(initialSearchValues.length);
+        for(final double d : initialSearchValues) {
+          dl.add(d);
+        }
         Arrays.sort(dl.getBackingArray());//convience, only really needed if param is warm
-        if (param.isWarmParameter() && !param.preferredLowToHigh())
-            Collections.reverse(dl);//put it in the prefered order
-        if (param.isWarmParameter())//put it at the front!
-            searchValues.add(0, dl);
-        else
-            searchValues.add(dl);
+        if (param.isWarmParameter() && !param.preferredLowToHigh()) {
+          Collections.reverse(dl);//put it in the prefered order
+        }
+        if (param.isWarmParameter()) {//put it at the front!
+          searchValues.add(0, dl);
+        } else {
+          searchValues.add(dl);
+        }
     }
     
     /**
@@ -277,12 +294,13 @@ public class GridSearch extends ModelSearch
      * @param name the name of the parameter
      * @param initialSearchValues the values to try for the specified parameter
      */
-    public void addParameter(String name, int... initialSearchValues)
+    public void addParameter(final String name, final int... initialSearchValues)
     {
         Parameter param;
         param = getParameterByName(name);
-        if (!(param instanceof IntParameter))
-            throw new IllegalArgumentException("Parameter " + name + " is not for int values");
+        if (!(param instanceof IntParameter)) {
+          throw new IllegalArgumentException("Parameter " + name + " is not for int values");
+        }
 
         addParameter((IntParameter) param, initialSearchValues);
     }
@@ -295,11 +313,11 @@ public class GridSearch extends ModelSearch
                                                                  new Comparator<RegressionModelEvaluation>()
         {
             @Override
-            public int compare(RegressionModelEvaluation t, RegressionModelEvaluation t1)
+            public int compare(final RegressionModelEvaluation t, final RegressionModelEvaluation t1)
             {
-                double v0 = t.getScoreStats(regressionTargetScore).getMean();
-                double v1 = t1.getScoreStats(regressionTargetScore).getMean();
-                int order = regressionTargetScore.lowerIsBetter() ? 1 : -1;
+                final double v0 = t.getScoreStats(regressionTargetScore).getMean();
+                final double v1 = t1.getScoreStats(regressionTargetScore).getMean();
+                final int order = regressionTargetScore.lowerIsBetter() ? 1 : -1;
                 return order*Double.compare(v0, v1);
             }
         });
@@ -311,7 +329,7 @@ public class GridSearch extends ModelSearch
          * value has been used. Increment and carry counts to iterate over all 
          * possible combinations. 
          */
-        int[] setTo = new int[searchParams.size()];
+        final int[] setTo = new int[searchParams.size()];
         /**
          * Each model is set to have different combination of parameters. We 
          * then train each model to determine the best one. 
@@ -324,8 +342,9 @@ public class GridSearch extends ModelSearch
            
             paramsToEval.add(baseRegressor.clone());
             
-            if(incrementCombination(setTo))
-                break;
+            if(incrementCombination(setTo)) {
+              break;
+            }
         }
         /*
          * This is the Executor used for training the models in parallel. If we 
@@ -333,10 +352,11 @@ public class GridSearch extends ModelSearch
          * them sequentually. 
          */
         final ExecutorService modelService;
-        if(trainModelsInParallel)
-            modelService = threadPool;
-        else
-            modelService = new FakeExecutor();
+        if(trainModelsInParallel) {
+          modelService = threadPool;
+        } else {
+          modelService = new FakeExecutor();
+        }
         
         final CountDownLatch latch;//used for stopping in both cases
         
@@ -353,8 +373,9 @@ public class GridSearch extends ModelSearch
         {
             preFolded = dataSet.cvSet(folds);
             trainCombinations = new ArrayList<RegressionDataSet>(preFolded.size());
-            for (int i = 0; i < preFolded.size(); i++)
-                trainCombinations.add(RegressionDataSet.comineAllBut(preFolded, i));
+            for (int i = 0; i < preFolded.size(); i++) {
+              trainCombinations.add(RegressionDataSet.comineAllBut(preFolded, i));
+            }
         }
         else
         {
@@ -362,7 +383,7 @@ public class GridSearch extends ModelSearch
             trainCombinations = null;
         }
         
-        boolean considerWarm = useWarmStarts && baseRegressor instanceof WarmRegressor;
+        final boolean considerWarm = useWarmStarts && baseRegressor instanceof WarmRegressor;
         /**
          * make sure we don't do a warm start if its only supported when trained
          * on the same data but we aren't reuse-ing the same CV splits So we get
@@ -388,8 +409,8 @@ public class GridSearch extends ModelSearch
              * we wanted to try
              */
             
-            int stepSize = searchValues.get(0).size();
-            int totalJobs = paramsToEval.size()/stepSize;
+            final int stepSize = searchValues.get(0).size();
+            final int totalJobs = paramsToEval.size()/stepSize;
             latch = new CountDownLatch(totalJobs);
             for(int startPos = 0; startPos < paramsToEval.size(); startPos += stepSize)
             {
@@ -401,18 +422,19 @@ public class GridSearch extends ModelSearch
                     public void run()
                     {
                         Regressor[] prevModels = null;
-                        for(Regressor r : subSet)
+                        for(final Regressor r : subSet)
                         {
-                            RegressionModelEvaluation rme = trainModelsInParallel ?
+                            final RegressionModelEvaluation rme = trainModelsInParallel ?
                                     new RegressionModelEvaluation(r, dataSet) 
                                     : new RegressionModelEvaluation(r, dataSet, threadPool);
                             rme.setKeepModels(true);//we need these to do warm starts!
                             rme.setWarmModels(prevModels);
                             rme.addScorer(regressionTargetScore.clone());
-                            if(reuseSameCVFolds)
-                                rme.evaluateCrossValidation(preFolded, trainCombinations);
-                            else
-                                rme.evaluateCrossValidation(folds);
+                            if(reuseSameCVFolds) {
+                              rme.evaluateCrossValidation(preFolded, trainCombinations);
+                            } else {
+                              rme.evaluateCrossValidation(folds);
+                            }
                             prevModels = rme.getKeptModels();
                             synchronized(bestModels)
                             {
@@ -437,14 +459,15 @@ public class GridSearch extends ModelSearch
                     @Override
                     public void run()
                     {
-                        RegressionModelEvaluation rme = trainModelsInParallel ?
+                        final RegressionModelEvaluation rme = trainModelsInParallel ?
                                     new RegressionModelEvaluation(toTrain, dataSet) 
                                     : new RegressionModelEvaluation(toTrain, dataSet, threadPool);
                         rme.addScorer(regressionTargetScore.clone());
-                        if (reuseSameCVFolds)
-                            rme.evaluateCrossValidation(preFolded, trainCombinations);
-                        else
-                            rme.evaluateCrossValidation(folds);
+                        if (reuseSameCVFolds) {
+                          rme.evaluateCrossValidation(preFolded, trainCombinations);
+                        } else {
+                          rme.evaluateCrossValidation(folds);
+                        }
                         synchronized (bestModels)
                         {
                             bestModels.add(rme);
@@ -461,38 +484,40 @@ public class GridSearch extends ModelSearch
         {
             latch.await();
             //Now we know the best classifier, we need to train one on the whole data set. 
-            Regressor bestRegressor = bestModels.peek().getRegressor();//Just re-train it on the whole set
+            final Regressor bestRegressor = bestModels.peek().getRegressor();//Just re-train it on the whole set
             if(trainFinalModel)
             {
                 //try and warm start the final model if we can
                 if(useWarmStarts && bestRegressor instanceof WarmRegressor && 
                         !((WarmRegressor)bestRegressor).warmFromSameDataOnly())//last line here needed to make sure we can do this warm train
                 {
-                    WarmRegressor wr = (WarmRegressor) bestRegressor;
-                    if(threadPool instanceof FakeExecutor)
-                        wr.train(dataSet, wr.clone());
-                    else
-                        wr.train(dataSet, wr.clone(), threadPool);
+                    final WarmRegressor wr = (WarmRegressor) bestRegressor;
+                    if(threadPool instanceof FakeExecutor) {
+                      wr.train(dataSet, wr.clone());
+                    } else {
+                      wr.train(dataSet, wr.clone(), threadPool);
+                    }
                 }
                 else
                 {
-                    if (threadPool instanceof FakeExecutor)
-                        bestRegressor.train(dataSet);
-                    else
-                        bestRegressor.train(dataSet, threadPool);
+                    if (threadPool instanceof FakeExecutor) {
+                      bestRegressor.train(dataSet);
+                    } else {
+                      bestRegressor.train(dataSet, threadPool);
+                    }
                 }
             }
             trainedRegressor = bestRegressor;
             
         }
-        catch (InterruptedException ex)
+        catch (final InterruptedException ex)
         {
             Logger.getLogger(GridSearch.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
 
     @Override
-    public void train(RegressionDataSet dataSet)
+    public void train(final RegressionDataSet dataSet)
     {
         train(dataSet, new FakeExecutor());
     }
@@ -505,11 +530,11 @@ public class GridSearch extends ModelSearch
                                                                  new Comparator<ClassificationModelEvaluation>()
         {
             @Override
-            public int compare(ClassificationModelEvaluation t, ClassificationModelEvaluation t1)
+            public int compare(final ClassificationModelEvaluation t, final ClassificationModelEvaluation t1)
             {
-                double v0 = t.getScoreStats(classificationTargetScore).getMean();
-                double v1 = t1.getScoreStats(classificationTargetScore).getMean();
-                int order = classificationTargetScore.lowerIsBetter() ? 1 : -1;
+                final double v0 = t.getScoreStats(classificationTargetScore).getMean();
+                final double v1 = t1.getScoreStats(classificationTargetScore).getMean();
+                final int order = classificationTargetScore.lowerIsBetter() ? 1 : -1;
                 return order*Double.compare(v0, v1);
             }
         });
@@ -521,7 +546,7 @@ public class GridSearch extends ModelSearch
          * value has been used. Increment and carry counts to iterate over all 
          * possible combinations. 
          */
-        int[] setTo = new int[searchParams.size()];
+        final int[] setTo = new int[searchParams.size()];
         
         /**
          * Each model is set to have different combination of parameters. We 
@@ -535,8 +560,9 @@ public class GridSearch extends ModelSearch
            
             paramsToEval.add(baseClassifier.clone());
             
-            if(incrementCombination(setTo))
-                break;
+            if(incrementCombination(setTo)) {
+              break;
+            }
         }
         /*
          * This is the Executor used for training the models in parallel. If we 
@@ -544,10 +570,11 @@ public class GridSearch extends ModelSearch
          * them sequentually. 
          */
         final ExecutorService modelService;
-        if(trainModelsInParallel)
-            modelService = threadPool;
-        else
-            modelService = new FakeExecutor();
+        if(trainModelsInParallel) {
+          modelService = threadPool;
+        } else {
+          modelService = new FakeExecutor();
+        }
         
         final CountDownLatch latch;//used for stopping in both cases
         
@@ -564,8 +591,9 @@ public class GridSearch extends ModelSearch
         {
             preFolded = dataSet.cvSet(folds);
             trainCombinations = new ArrayList<ClassificationDataSet>(preFolded.size());
-            for (int i = 0; i < preFolded.size(); i++)
-                trainCombinations.add(ClassificationDataSet.comineAllBut(preFolded, i));
+            for (int i = 0; i < preFolded.size(); i++) {
+              trainCombinations.add(ClassificationDataSet.comineAllBut(preFolded, i));
+            }
         }
         else
         {
@@ -573,7 +601,7 @@ public class GridSearch extends ModelSearch
             trainCombinations = null;
         }
         
-        boolean considerWarm = useWarmStarts && baseClassifier instanceof WarmClassifier;
+        final boolean considerWarm = useWarmStarts && baseClassifier instanceof WarmClassifier;
         
         /**
          * make sure we don't do a warm start if its only supported when trained
@@ -600,8 +628,8 @@ public class GridSearch extends ModelSearch
              * we wanted to try
              */
             
-            int stepSize = searchValues.get(0).size();
-            int totalJobs = paramsToEval.size()/stepSize;
+            final int stepSize = searchValues.get(0).size();
+            final int totalJobs = paramsToEval.size()/stepSize;
             latch = new CountDownLatch(totalJobs);
             for(int startPos = 0; startPos < paramsToEval.size(); startPos += stepSize)
             {
@@ -614,18 +642,19 @@ public class GridSearch extends ModelSearch
                     {
                         Classifier[] prevModels = null;
                         
-                        for(Classifier c : subSet)
+                        for(final Classifier c : subSet)
                         {
-                            ClassificationModelEvaluation cme = trainModelsInParallel ?
+                            final ClassificationModelEvaluation cme = trainModelsInParallel ?
                                     new ClassificationModelEvaluation(c, dataSet) 
                                     : new ClassificationModelEvaluation(c, dataSet, threadPool);
                             cme.setKeepModels(true);//we need these to do warm starts!
                             cme.setWarmModels(prevModels);
                             cme.addScorer(classificationTargetScore.clone());
-                            if(reuseSameCVFolds)
-                                cme.evaluateCrossValidation(preFolded, trainCombinations);
-                            else
-                                cme.evaluateCrossValidation(folds);
+                            if(reuseSameCVFolds) {
+                              cme.evaluateCrossValidation(preFolded, trainCombinations);
+                            } else {
+                              cme.evaluateCrossValidation(folds);
+                            }
                             prevModels = cme.getKeptModels();
                             synchronized(bestModels)
                             {
@@ -650,14 +679,15 @@ public class GridSearch extends ModelSearch
                     @Override
                     public void run()
                     {
-                        ClassificationModelEvaluation cme = trainModelsInParallel ?
+                        final ClassificationModelEvaluation cme = trainModelsInParallel ?
                                     new ClassificationModelEvaluation(toTrain, dataSet) 
                                     : new ClassificationModelEvaluation(toTrain, dataSet, threadPool);
                         cme.addScorer(classificationTargetScore.clone());
-                        if(reuseSameCVFolds)
-                            cme.evaluateCrossValidation(preFolded, trainCombinations);
-                        else
-                            cme.evaluateCrossValidation(folds);
+                        if(reuseSameCVFolds) {
+                          cme.evaluateCrossValidation(preFolded, trainCombinations);
+                        } else {
+                          cme.evaluateCrossValidation(folds);
+                        }
                         synchronized (bestModels)
                         {
                             bestModels.add(cme);
@@ -674,38 +704,40 @@ public class GridSearch extends ModelSearch
         {
             latch.await();
             //Now we know the best classifier, we need to train one on the whole data set. 
-            Classifier bestClassifier = bestModels.peek().getClassifier();//Just re-train it on the whole set
+            final Classifier bestClassifier = bestModels.peek().getClassifier();//Just re-train it on the whole set
             if(trainFinalModel)
             {
                 //try and warm start the final model if we can
                 if(useWarmStarts && bestClassifier instanceof WarmClassifier && 
                         !((WarmClassifier)bestClassifier).warmFromSameDataOnly())//last line here needed to make sure we can do this warm train
                 {
-                    WarmClassifier wc = (WarmClassifier) bestClassifier;
-                    if(threadPool instanceof FakeExecutor)
-                        wc.trainC(dataSet, wc.clone());
-                    else
-                        wc.trainC(dataSet, wc.clone(), threadPool);
+                    final WarmClassifier wc = (WarmClassifier) bestClassifier;
+                    if(threadPool instanceof FakeExecutor) {
+                      wc.trainC(dataSet, wc.clone());
+                    } else {
+                      wc.trainC(dataSet, wc.clone(), threadPool);
+                    }
                 }
                 else
                 {
-                    if(threadPool instanceof FakeExecutor)
-                        bestClassifier.trainC(dataSet);
-                    else
-                        bestClassifier.trainC(dataSet, threadPool);
+                    if(threadPool instanceof FakeExecutor) {
+                      bestClassifier.trainC(dataSet);
+                    } else {
+                      bestClassifier.trainC(dataSet, threadPool);
+                    }
                 }
             }
             trainedClassifier = bestClassifier;
             
         }
-        catch (InterruptedException ex)
+        catch (final InterruptedException ex)
         {
             Logger.getLogger(GridSearch.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
 
     @Override
-    public void trainC(ClassificationDataSet dataSet)
+    public void trainC(final ClassificationDataSet dataSet)
     {
         trainC(dataSet, new FakeExecutor());
     }
@@ -724,7 +756,7 @@ public class GridSearch extends ModelSearch
      * @return a boolean indicating <tt>true</tt> if all combinations have been 
      * tried, or <tt>false</tt> if combinations remain to be attempted. 
      */
-    private boolean incrementCombination(int[] setTo)
+    private boolean incrementCombination(final int[] setTo)
     {
         setTo[0]++;
         
@@ -744,15 +776,16 @@ public class GridSearch extends ModelSearch
      * @param setTo the index corresponds to the parameters, and the value which
      * parameter value to use. 
      */
-    private void setParameters(int[] setTo)
+    private void setParameters(final int[] setTo)
     {
         for(int i = 0; i < setTo.length; i++)
         {
-            Parameter param = searchParams.get(i);
-            if(param instanceof DoubleParameter)
-                ((DoubleParameter)param).setValue(searchValues.get(i).get(setTo[i]));
-            else if(param instanceof IntParameter)
-                ((IntParameter)param).setValue(searchValues.get(i).get(setTo[i]).intValue());
+            final Parameter param = searchParams.get(i);
+            if(param instanceof DoubleParameter) {
+              ((DoubleParameter)param).setValue(searchValues.get(i).get(setTo[i]));
+            } else if(param instanceof IntParameter) {
+              ((IntParameter)param).setValue(searchValues.get(i).get(setTo[i]).intValue());
+            }
         }
     }
 }

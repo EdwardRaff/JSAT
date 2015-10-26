@@ -19,42 +19,49 @@ public class ReLU implements ActivationLayer
 	private static final long serialVersionUID = -6691240473485759789L;
 
 	@Override
-    public void activate(Vec input, Vec output)
+    public void activate(final Vec input, final Vec output)
     {
-        for(int i = 0; i < input.length(); i++)
-            output.set(i, Math.max(0, input.get(i)));
+        for(int i = 0; i < input.length(); i++) {
+          output.set(i, Math.max(0, input.get(i)));
+        }
     }
     
     @Override
-    public void activate(Matrix input, Matrix output, boolean rowMajor)
+    public void activate(final Matrix input, final Matrix output, final boolean rowMajor)
     {
-        for(int i = 0; i < input.rows(); i++)
-            for(int j = 0; j < input.cols(); j++)
-                output.set(i, j, Math.max(0, input.get(i, j)));
-    }
-
-    @Override
-    public void backprop(Vec input, Vec output, Vec delta_partial, Vec errout)
-    {
-        for(int i = 0; i < input.length(); i++)
-        {
-            double out_i = output.get(i);
-            if(out_i != 0)
-                errout.set(i, delta_partial.get(i));
-            else
-                errout.set(i, 0.0);
+        for(int i = 0; i < input.rows(); i++) {
+          for (int j = 0; j < input.cols(); j++) {
+            output.set(i, j, Math.max(0, input.get(i, j)));
+          }
         }
     }
 
     @Override
-    public void backprop(Matrix input, Matrix output, Matrix delta_partial, Matrix errout, boolean rowMajor)
+    public void backprop(final Vec input, final Vec output, final Vec delta_partial, final Vec errout)
     {
-        for (int i = 0; i < input.rows(); i++)
-            for (int j = 0; j < input.cols(); j++)
-                if (output.get(i, j) != 0)
-                    errout.set(i, j, delta_partial.get(i, j));
-                else
-                    errout.set(i, j, 0.0);
+        for(int i = 0; i < input.length(); i++)
+        {
+            final double out_i = output.get(i);
+            if(out_i != 0) {
+              errout.set(i, delta_partial.get(i));
+            } else {
+              errout.set(i, 0.0);
+            }
+        }
+    }
+
+    @Override
+    public void backprop(final Matrix input, final Matrix output, final Matrix delta_partial, final Matrix errout, final boolean rowMajor)
+    {
+        for (int i = 0; i < input.rows(); i++) {
+          for (int j = 0; j < input.cols(); j++) {
+            if (output.get(i, j) != 0) {
+              errout.set(i, j, delta_partial.get(i, j));
+            } else {
+              errout.set(i, j, 0.0);
+            }
+          }
+        }
     }
 
     @Override

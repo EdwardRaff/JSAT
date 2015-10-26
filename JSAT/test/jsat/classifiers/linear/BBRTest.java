@@ -59,17 +59,18 @@ public class BBRTest
     public void testTrainC_ClassificationDataSet_ExecutorService()
     {
         System.out.println("trainC");
-        ClassificationDataSet train = FixedProblems.get2ClassLinear(200, new Random());
+        final ClassificationDataSet train = FixedProblems.get2ClassLinear(200, new Random());
         
-        for (BBR.Prior prior : BBR.Prior.values())
+        for (final BBR.Prior prior : BBR.Prior.values())
         {
-            BBR lr = new BBR(0.01, 1000, prior);
+            final BBR lr = new BBR(0.01, 1000, prior);
             lr.trainC(train, ex);
 
-            ClassificationDataSet test = FixedProblems.get2ClassLinear(200, new Random());
+            final ClassificationDataSet test = FixedProblems.get2ClassLinear(200, new Random());
 
-            for (DataPointPair<Integer> dpp : test.getAsDPPList())
-                assertEquals(dpp.getPair().longValue(), lr.classify(dpp.getDataPoint()).mostLikely());
+            for (final DataPointPair<Integer> dpp : test.getAsDPPList()) {
+              assertEquals(dpp.getPair().longValue(), lr.classify(dpp.getDataPoint()).mostLikely());
+            }
         }
     }
 
@@ -80,17 +81,18 @@ public class BBRTest
     public void testTrainC_ClassificationDataSet()
     {
         System.out.println("trainC");
-        ClassificationDataSet train = FixedProblems.get2ClassLinear(200, new Random());
+        final ClassificationDataSet train = FixedProblems.get2ClassLinear(200, new Random());
 
-        for (BBR.Prior prior : BBR.Prior.values())
+        for (final BBR.Prior prior : BBR.Prior.values())
         {
-            BBR lr = new BBR(0.01, 1000, prior);
+            final BBR lr = new BBR(0.01, 1000, prior);
             lr.trainC(train);
 
-            ClassificationDataSet test = FixedProblems.get2ClassLinear(200, new Random());
+            final ClassificationDataSet test = FixedProblems.get2ClassLinear(200, new Random());
 
-            for (DataPointPair<Integer> dpp : test.getAsDPPList())
-                assertEquals(dpp.getPair().longValue(), lr.classify(dpp.getDataPoint()).mostLikely());
+            for (final DataPointPair<Integer> dpp : test.getAsDPPList()) {
+              assertEquals(dpp.getPair().longValue(), lr.classify(dpp.getDataPoint()).mostLikely());
+            }
         }
     }
 }

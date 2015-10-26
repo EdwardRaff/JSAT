@@ -32,13 +32,13 @@ public class GaussKF implements KernelFunction
     }
     
     @Override
-    public double k(double u)
+    public double k(final double u)
     {
         return Normal.pdf(u, 0, 1);
     }
 
     @Override
-    public double intK(double u)
+    public double intK(final double u)
     {
         return Normal.cdf(u, 0, 1);
     }
@@ -62,7 +62,7 @@ public class GaussKF implements KernelFunction
     }
 
     @Override
-    public double kPrime(double u)
+    public double kPrime(final double u)
     {
         return -exp(-pow(u, 2)/2)*u/sqrt(2 * PI);
     }

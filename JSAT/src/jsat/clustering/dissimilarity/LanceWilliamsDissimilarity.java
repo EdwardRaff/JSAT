@@ -36,7 +36,7 @@ public abstract class LanceWilliamsDissimilarity extends DistanceMetricDissimila
      * Creates a new LW dissimilarity measure using the given metric as the base distance between individual points. 
      * @param dm the base metric to measure dissimilarity from. 
      */
-    public LanceWilliamsDissimilarity(DistanceMetric dm)
+    public LanceWilliamsDissimilarity(final DistanceMetric dm)
     {
         super(dm);
     }
@@ -45,7 +45,7 @@ public abstract class LanceWilliamsDissimilarity extends DistanceMetricDissimila
      * Copy constructor
      * @param toCopy the object to copy
      */
-    public LanceWilliamsDissimilarity(LanceWilliamsDissimilarity toCopy)
+    public LanceWilliamsDissimilarity(final LanceWilliamsDissimilarity toCopy)
     {
         this(toCopy.dm.clone());
     }
@@ -83,10 +83,11 @@ public abstract class LanceWilliamsDissimilarity extends DistanceMetricDissimila
     protected abstract double cConst(int ni, int nj, int nk);
 
     @Override
-    public double dissimilarity(List<DataPoint> a, List<DataPoint> b)
+    public double dissimilarity(final List<DataPoint> a, final List<DataPoint> b)
     {
-        if(a.size() == 1 && b.size() == 1)
-            return dm.dist(a.get(0).getNumericalValues(), b.get(0).getNumericalValues());
+        if(a.size() == 1 && b.size() == 1) {
+          return dm.dist(a.get(0).getNumericalValues(), b.get(0).getNumericalValues());
+        }
         
         List<DataPoint> CI;
         List<DataPoint> CJ;
@@ -104,9 +105,9 @@ public abstract class LanceWilliamsDissimilarity extends DistanceMetricDissimila
             CK = a;
         }
             
-        double d_ik = dissimilarity(CI, CK);
-        double d_jk = dissimilarity(CJ, CK);
-        double d_ij = dissimilarity(CI, CJ);
+        final double d_ik = dissimilarity(CI, CK);
+        final double d_jk = dissimilarity(CJ, CK);
+        final double d_ij = dissimilarity(CI, CJ);
         return  aConst(true, CI.size(), CJ.size(), CK.size())  * d_ik + 
                 aConst(false, CI.size(), CJ.size(), CK.size()) * d_jk + 
                 bConst(CI.size(), CJ.size(), CK.size())        * d_ij + 
@@ -114,10 +115,11 @@ public abstract class LanceWilliamsDissimilarity extends DistanceMetricDissimila
     }
 
     @Override
-    public double dissimilarity(Set<Integer> a, Set<Integer> b, double[][] distanceMatrix)
+    public double dissimilarity(final Set<Integer> a, final Set<Integer> b, final double[][] distanceMatrix)
     {
-        if(a.size() == 1 && b.size() == 1)
-            return getDistance(distanceMatrix, getVal(a), getVal(b));
+        if(a.size() == 1 && b.size() == 1) {
+          return getDistance(distanceMatrix, getVal(a), getVal(b));
+        }
         
         Set<Integer> CI;
         Set<Integer> CJ;
@@ -140,9 +142,9 @@ public abstract class LanceWilliamsDissimilarity extends DistanceMetricDissimila
             CK = a;
         }
         
-        double d_ik = dissimilarity(CI, CK, distanceMatrix);
-        double d_jk = dissimilarity(CJ, CK, distanceMatrix);
-        double d_ij = dissimilarity(CI, CJ, distanceMatrix);
+        final double d_ik = dissimilarity(CI, CK, distanceMatrix);
+        final double d_jk = dissimilarity(CJ, CK, distanceMatrix);
+        final double d_ij = dissimilarity(CI, CJ, distanceMatrix);
         return  aConst(true, CI.size(), CJ.size(), CK.size())  * d_ik + 
                 aConst(false, CI.size(), CJ.size(), CK.size()) * d_jk + 
                 bConst(CI.size(), CJ.size(), CK.size())        * d_ij + 
@@ -154,25 +156,26 @@ public abstract class LanceWilliamsDissimilarity extends DistanceMetricDissimila
      * @param a the set to get a value of
      * @return a value from the set, or -1 if empty
      */
-    private static int getVal(Set<Integer> a)
+    private static int getVal(final Set<Integer> a)
     {
-        for(int i : a)
-            return i;
+        for(final int i : a) {
+          return i;
+        }
         return -1;
     }
 
     @Override
-    public double dissimilarity(int i, int ni, int j, int nj, double[][] distanceMatrix)
+    public double dissimilarity(final int i, final int ni, final int j, final int nj, final double[][] distanceMatrix)
     {
         return getDistance(distanceMatrix, i, j);
     }
 
     @Override
-    public double dissimilarity(int i, int ni, int j, int nj, int k, int nk, double[][] distanceMatrix)
+    public double dissimilarity(final int i, final int ni, final int j, final int nj, final int k, final int nk, final double[][] distanceMatrix)
     {
-        double d_ik = getDistance(distanceMatrix, i, k);
-        double d_jk = getDistance(distanceMatrix, j, k);
-        double d_ij = getDistance(distanceMatrix, i, j);
+        final double d_ik = getDistance(distanceMatrix, i, k);
+        final double d_jk = getDistance(distanceMatrix, j, k);
+        final double d_ij = getDistance(distanceMatrix, i, j);
         return  aConst(true, ni, nj, nk)  * d_ik  +
                 aConst(false, ni, nj, nk) * d_jk  + 
                 bConst(ni, nj, nk)        * d_ij  + 

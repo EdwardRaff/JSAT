@@ -15,9 +15,9 @@ public class SubVector extends Vec
 {
 
 	private static final long serialVersionUID = -873882618035700676L;
-	private int startPosition;
-    private int length;
-    private Vec vec;
+	private final int startPosition;
+    private final int length;
+    private final Vec vec;
 
     /**
      * Creates a new sub vector of the input vector
@@ -27,12 +27,13 @@ public class SubVector extends Vec
      * @param length the length of the new sub vector
      * @param vec the original vector to back this sub vector. 
      */
-    public SubVector(int startPosition, int length, Vec vec)
+    public SubVector(final int startPosition, final int length, final Vec vec)
     {
-        if(startPosition < 0 || startPosition >= vec.length())
-            throw new IndexOutOfBoundsException("Start position out of bounds for input vector");
-        else if(length+startPosition > vec.length())
-            throw new IndexOutOfBoundsException("Length too long for start position for the given vector");
+        if(startPosition < 0 || startPosition >= vec.length()) {
+          throw new IndexOutOfBoundsException("Start position out of bounds for input vector");
+        } else if(length+startPosition > vec.length()) {
+          throw new IndexOutOfBoundsException("Length too long for start position for the given vector");
+        }
         
         this.startPosition = startPosition;
         this.length = length;
@@ -46,18 +47,20 @@ public class SubVector extends Vec
     }
 
     @Override
-    public double get(int index)
+    public double get(final int index)
     {
-        if(index >= length)
-            throw new IndexOutOfBoundsException("Index of " + index + " can not be accessed for length of " + length);
+        if(index >= length) {
+          throw new IndexOutOfBoundsException("Index of " + index + " can not be accessed for length of " + length);
+        }
         return vec.get(startPosition+index);
     }
 
     @Override
-    public void set(int index, double val)
+    public void set(final int index, final double val)
     {
-        if(index >= length)
-            throw new IndexOutOfBoundsException("Index of " + index + " can not be accessed for length of " + length);
+        if(index >= length) {
+          throw new IndexOutOfBoundsException("Index of " + index + " can not be accessed for length of " + length);
+        }
         vec.set(startPosition+index, val);
     }
 
@@ -68,11 +71,11 @@ public class SubVector extends Vec
     }
 
     @Override
-    public Iterator<IndexValue> getNonZeroIterator(int start)
+    public Iterator<IndexValue> getNonZeroIterator(final int start)
     {
         final Iterator<IndexValue> origIter = vec.getNonZeroIterator(startPosition+start);
 
-        Iterator<IndexValue> newIter = new Iterator<IndexValue>()
+        final Iterator<IndexValue> newIter = new Iterator<IndexValue>()
         {
             IndexValue nextVal = origIter.hasNext() ? origIter.next() : new IndexValue(Integer.MAX_VALUE, Double.NaN);
             IndexValue curVal = new IndexValue(-1, Double.NaN);
@@ -85,14 +88,16 @@ public class SubVector extends Vec
             @Override
             public IndexValue next()
             {
-                if(!hasNext())
-                    throw new NoSuchElementException();
+                if(!hasNext()) {
+                  throw new NoSuchElementException();
+                }
                 curVal.setIndex(nextVal.getIndex()-startPosition);
                 curVal.setValue(nextVal.getValue());
-                if(origIter.hasNext())
-                    nextVal = origIter.next();
-                else
-                    nextVal.setIndex(Integer.MAX_VALUE);
+                if(origIter.hasNext()) {
+                  nextVal = origIter.next();
+                } else {
+                  nextVal.setIndex(Integer.MAX_VALUE);
+                }
                 
                 return curVal;
             }
@@ -110,10 +115,11 @@ public class SubVector extends Vec
     @Override
     public Vec clone()
     {
-        if(vec.isSparse())
-            return new SparseVector(this);
-        else
-            return new DenseVector(this);
+        if(vec.isSparse()) {
+          return new SparseVector(this);
+        } else {
+          return new DenseVector(this);
+        }
     }
 
 }

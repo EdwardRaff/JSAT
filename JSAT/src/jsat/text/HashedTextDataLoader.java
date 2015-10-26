@@ -23,8 +23,8 @@ abstract public class HashedTextDataLoader implements TextVectorCreator
 
 	private static final long serialVersionUID = 8513621180409278670L;
 	private final int dimensionSize;
-    private Tokenizer tokenizer;
-    private WordWeighting weighting;
+    private final Tokenizer tokenizer;
+    private final WordWeighting weighting;
     
     protected List<SparseVector> vectors;
     private int[] termDocumentFrequencys;
@@ -44,14 +44,14 @@ abstract public class HashedTextDataLoader implements TextVectorCreator
      */
     protected Map<String, Integer> wordCounts;
     
-    private TextVectorCreator tvc;
+    private final TextVectorCreator tvc;
     
-    public HashedTextDataLoader(Tokenizer tokenizer, WordWeighting weighting)
+    public HashedTextDataLoader(final Tokenizer tokenizer, final WordWeighting weighting)
     {
         this(1<<22, tokenizer, weighting);
     }
 
-    public HashedTextDataLoader(int dimensionSize, Tokenizer tokenizer, WordWeighting weighting)
+    public HashedTextDataLoader(final int dimensionSize, final Tokenizer tokenizer, final WordWeighting weighting)
     {
         this.dimensionSize = dimensionSize;
         this.tokenizer = tokenizer;
@@ -84,10 +84,11 @@ abstract public class HashedTextDataLoader implements TextVectorCreator
      * 
      * @param text the text of the document to add
      */
-    protected void addOriginalDocument(String text)
+    protected void addOriginalDocument(final String text)
     {
-        if(noMoreAdding)
-            throw new RuntimeException("Initial data set has been finalized");
+        if(noMoreAdding) {
+          throw new RuntimeException("Initial data set has been finalized");
+        }
         if(workSpace == null)
         {
             workSpace = new StringBuilder();
@@ -104,25 +105,27 @@ abstract public class HashedTextDataLoader implements TextVectorCreator
          * on many null elements when we occasionally load in an abnormally
          * large document 
          */
-        if(documents % 50 == 0)
-            wordCounts = new HashMap<String, Integer>(storageSpace.size());
-        
-        for(String word : storageSpace)
-        {
-            Integer count = wordCounts.get(word);
-            if(count == null)
-                wordCounts.put(word, 1);
-            else
-                wordCounts.put(word, count+1);
+        if(documents % 50 == 0) {
+          wordCounts = new HashMap<String, Integer>(storageSpace.size());
         }
         
-        SparseVector vec = new SparseVector(dimensionSize, wordCounts.size());
-        for(Iterator<Entry<String, Integer>> iter = wordCounts.entrySet().iterator(); iter.hasNext();)
+        for(final String word : storageSpace)
         {
-            Entry<String, Integer> entry = iter.next();
-            String word = entry.getKey();
+            final Integer count = wordCounts.get(word);
+            if(count == null) {
+              wordCounts.put(word, 1);
+            } else {
+              wordCounts.put(word, count+1);
+            }
+        }
+        
+        final SparseVector vec = new SparseVector(dimensionSize, wordCounts.size());
+        for(final Iterator<Entry<String, Integer>> iter = wordCounts.entrySet().iterator(); iter.hasNext();)
+        {
+            final Entry<String, Integer> entry = iter.next();
+            final String word = entry.getKey();
             //XXX This code generates a hashcode and then computes the absolute value of that hashcode. If the hashcode is Integer.MIN_VALUE, then the result will be negative as well (since Math.abs(Integer.MIN_VALUE) == Integer.MIN_VALUE). 
-            int index = Math.abs(word.hashCode()) % dimensionSize;
+            final int index = Math.abs(word.hashCode()) % dimensionSize;
             vec.set(index, entry.getValue());
             termDocumentFrequencys[index] += entry.getValue();
             iter.remove();
@@ -145,8 +148,9 @@ abstract public class HashedTextDataLoader implements TextVectorCreator
         wordCounts = null;
         
         weighting.setWeight(vectors, IntList.unmodifiableView(termDocumentFrequencys, dimensionSize));
-        for(SparseVector vec : vectors)
-            weighting.applyTo(vec);
+        for(final SparseVector vec : vectors) {
+          weighting.applyTo(vec);
+        }
         termDocumentFrequencys = null;
     }
     
@@ -164,22 +168,23 @@ abstract public class HashedTextDataLoader implements TextVectorCreator
             finishAdding();
         }
         
-        List<DataPoint> dataPoints= new ArrayList<DataPoint>(vectors.size());
+        final List<DataPoint> dataPoints= new ArrayList<DataPoint>(vectors.size());
         
-        for(SparseVector vec : vectors)
-            dataPoints.add(new DataPoint(vec, new int[0], new CategoricalData[0]));
+        for(final SparseVector vec : vectors) {
+          dataPoints.add(new DataPoint(vec, new int[0], new CategoricalData[0]));
+        }
         
         return new SimpleDataSet(dataPoints);
     }
 
     @Override
-    public Vec newText(String input)
+    public Vec newText(final String input)
     {
         return getTextVectorCreator().newText(input);
     }
 
     @Override
-    public Vec newText(String input, StringBuilder workSpace, List<String> storageSpace)
+    public Vec newText(final String input, final StringBuilder workSpace, final List<String> storageSpace)
     {
         return getTextVectorCreator().newText(input, workSpace, storageSpace);
     }
@@ -192,8 +197,9 @@ abstract public class HashedTextDataLoader implements TextVectorCreator
      */
     public TextVectorCreator getTextVectorCreator()
     {
-        if(!noMoreAdding)
-            throw new RuntimeException("Initial documents have not yet loaded");
+        if(!noMoreAdding) {
+          throw new RuntimeException("Initial documents have not yet loaded");
+        }
         return tvc;
     }
     

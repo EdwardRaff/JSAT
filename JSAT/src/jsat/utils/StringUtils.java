@@ -6,40 +6,44 @@ package jsat.utils;
  */
 public class StringUtils
 {
-    public static int parseInt(CharSequence s, int start, int end, int radix)
+    public static int parseInt(final CharSequence s, final int start, final int end, final int radix)
     {
         boolean negative = false;
         int val = 0;
         
         for(int i = start; i < end; i++)
         {
-            char c = s.charAt(i);
-            if (c == '-')
-                if (i == start)
-                    negative = true;
-                else
-                    throw new NumberFormatException("Negative sign did not occur at begining of sequence");
-            else if (c == '+')
-                if (i == start)
-                    negative = false;//do nothing really
-                else
-                    throw new NumberFormatException("Positive sign did not occur at begining of sequence");
-            else
+            final char c = s.charAt(i);
+            if (c == '-') {
+              if (i == start) {
+                negative = true;
+              } else {
+                throw new NumberFormatException("Negative sign did not occur at begining of sequence");
+              }
+            } else if (c == '+') {
+              if (i == start) {
+                negative = false;//do nothing really
+              } else {
+                throw new NumberFormatException("Positive sign did not occur at begining of sequence");
+              }
+            } else
             {
-                int digit = Character.digit(c, radix);
-                if(digit < 0)
-                    throw new NumberFormatException("Non digit character '" + c + "' encountered");
+                final int digit = Character.digit(c, radix);
+                if(digit < 0) {
+                  throw new NumberFormatException("Non digit character '" + c + "' encountered");
+              }
                 val *= radix;
                 val += digit;
             }
         }
-        if(negative)
-            return -val;
-        else
-            return val;
+        if(negative) {
+          return -val;
+        } else {
+          return val;
+        }
     }
 
-    public static int parseInt(CharSequence s, int start, int end)
+    public static int parseInt(final CharSequence s, final int start, final int end)
     {
         return parseInt(s, start, end, 10);
     }
@@ -83,7 +87,7 @@ public class StringUtils
         EXPO,
     }
     
-    public static double parseDouble(CharSequence s, int start, int end)
+    public static double parseDouble(final CharSequence s, final int start, final int end)
     {
         States state = States.SIGN;
         int pos = start;
@@ -102,7 +106,7 @@ public class StringUtils
         
         while(pos < end)//run the state machine
         {
-            char c = s.charAt(pos);
+            final char c = s.charAt(pos);
             switch(state)
             {
                 case SIGN:
@@ -111,26 +115,28 @@ public class StringUtils
                         sign = -1;
                         pos++;
                     }
-                    else if(c == '+')
-                        pos++;
-                    else if (!Character.isDigit(c))//not a '-', '+', or digit, so error
-                        throw new NumberFormatException();
+                    else if(c == '+') {
+                      pos++;
+            } else if (!Character.isDigit(c)) {//not a '-', '+', or digit, so error
+              throw new NumberFormatException();
+            }
                     state = States.LEADING_ZEROS_MANTISSA;
                     continue;
                 case LEADING_ZEROS_MANTISSA:
-                    if(c == '0')
-                        pos++;
-                    else if(c == '.')
+                    if(c == '0') {
+                      pos++;
+            } else if(c == '.')
                     {
                         pos++;
                         state = States.LEADING_ZEROS_FRAC;
                     }
-                    else if (Character.isDigit(c))
-                        state = States.MANTISSA_INT_PART;
-                    else if(c == 'e' || c == 'E')//could be something like +0e0
-                        state = States.MANTISSA_FRAC_PART;//this is where that case is handeled
-                    else
-                        throw new NumberFormatException();
+                    else if (Character.isDigit(c)) {
+                      state = States.MANTISSA_INT_PART;
+            } else if(c == 'e' || c == 'E') {//could be something like +0e0
+              state = States.MANTISSA_FRAC_PART;//this is where that case is handeled
+            } else {
+              throw new NumberFormatException();
+            }
                     continue;
                 case LEADING_ZEROS_FRAC:
                     if(c == '0')
@@ -138,10 +144,11 @@ public class StringUtils
                         pos++;
                         implicitExponent--;
                     }
-                    else if(Character.isDigit(c))
-                        state = States.MANTISSA_FRAC_PART;
-                    else
-                        throw new NumberFormatException();
+                    else if(Character.isDigit(c)) {
+                      state = States.MANTISSA_FRAC_PART;
+            } else {
+                      throw new NumberFormatException();
+            }
                     continue;
                 case MANTISSA_INT_PART:
                     if (c == '.')
@@ -156,12 +163,15 @@ public class StringUtils
                             mantissa = mantissa * 10 + Character.digit(c, 10);
                             mantisaIncrements++;
                         }
-                        else//we are going to lose these, compencate with an implicit *= 10
-                            implicitExponent++;
+                        else {
+                          //we are going to lose these, compencate with an implicit *= 10
+                          implicitExponent++;
+                        }
                         pos++;
                     }
-                    else
-                        state = States.MANTISSA_FRAC_PART;
+                    else {
+                      state = States.MANTISSA_FRAC_PART;
+            }
                     //if we hit a invalid char it will get erred on in FRAC_PART
                     continue;
                 case MANTISSA_FRAC_PART:
@@ -186,8 +196,9 @@ public class StringUtils
                         pos++;
                         state = States.EXPO_SIGN;
                     }
-                    else
-                        throw new NumberFormatException();
+                    else {
+                      throw new NumberFormatException();
+            }
                     continue;
                 case EXPO_SIGN:
                     if (c == '-')
@@ -195,10 +206,11 @@ public class StringUtils
                         expoSign = -1;
                         pos++;
                     }
-                    else if(c == '+')
-                        pos++;
-                    else if (!Character.isDigit(c))//not a '-', '+', or digit, so error
-                        throw new NumberFormatException();
+                    else if(c == '+') {
+                      pos++;
+            } else if (!Character.isDigit(c)) {//not a '-', '+', or digit, so error
+              throw new NumberFormatException();
+            }
                     state = States.EXPO_LEADING_ZERO;
                     continue;
                 case EXPO_LEADING_ZERO:
@@ -206,10 +218,11 @@ public class StringUtils
                     {
                         pos++;
                     }
-                    else if(Character.isDigit(c))
-                        state = States.EXPO;
-                    else
-                        throw new NumberFormatException();
+                    else if(Character.isDigit(c)) {
+                      state = States.EXPO;
+            } else {
+                      throw new NumberFormatException();
+            }
                     continue;
                 case EXPO:
                     if(Character.isDigit(c))
@@ -217,20 +230,23 @@ public class StringUtils
                         explicitExponent = explicitExponent * 10 + Character.digit(c, 10);
                         pos++;
                     }
-                    else 
-                        throw new NumberFormatException();
-                    continue;
+                    else {
+                      throw new NumberFormatException();
+            }
             }
         }
         
-        int finalExpo = expoSign*explicitExponent + implicitExponent;
-        if(mantissa == 0)//easiest case!
-            if (sign == -1)
-                return -0.0;
-            else
-                return 0.0;
-        if(finalExpo == 0)//easy case! 
-            return sign*mantissa;
+        final int finalExpo = expoSign*explicitExponent + implicitExponent;
+        if(mantissa == 0) {//easiest case!
+          if (sign == -1) {
+            return -0.0;
+          } else {
+            return 0.0;
+          }
+        }
+        if(finalExpo == 0) {//easy case!
+          return sign*mantissa;
+        }
         
         return sign * (mantissa*Math.pow(10, finalExpo));
     }

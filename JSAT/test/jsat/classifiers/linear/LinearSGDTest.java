@@ -61,22 +61,23 @@ public class LinearSGDTest
     {
         System.out.println("binary classifiation");
         
-        for(boolean useBias : useBiasOptions)
+        for(final boolean useBias : useBiasOptions)
         {
-            for(GradientUpdater gu : updaters)
+            for(final GradientUpdater gu : updaters)
             {
-                LinearSGD linearsgd = new LinearSGD(new HingeLoss(), 1e-4, 1e-5);
+                final LinearSGD linearsgd = new LinearSGD(new HingeLoss(), 1e-4, 1e-5);
                 linearsgd.setUseBias(useBias);
                 linearsgd.setGradientUpdater(gu);
 
-                ClassificationDataSet train = FixedProblems.get2ClassLinear(500, new Random());
+                final ClassificationDataSet train = FixedProblems.get2ClassLinear(500, new Random());
 
                 linearsgd.trainC(train);
 
-                ClassificationDataSet test = FixedProblems.get2ClassLinear(200, new Random());
+                final ClassificationDataSet test = FixedProblems.get2ClassLinear(200, new Random());
 
-                for(DataPointPair<Integer> dpp : test.getAsDPPList())
-                    assertEquals(dpp.getPair().longValue(), linearsgd.classify(dpp.getDataPoint()).mostLikely());
+                for(final DataPointPair<Integer> dpp : test.getAsDPPList()) {
+                  assertEquals(dpp.getPair().longValue(), linearsgd.classify(dpp.getDataPoint()).mostLikely());
+                }
             }
         }
     }
@@ -85,22 +86,23 @@ public class LinearSGDTest
     public void testClassifyMulti()
     {
         System.out.println("multi class classification");
-        for(boolean useBias : useBiasOptions)
+        for(final boolean useBias : useBiasOptions)
         {
-            for(GradientUpdater gu : updaters)
+            for(final GradientUpdater gu : updaters)
             {
-                LinearSGD linearsgd = new LinearSGD(new HingeLoss(), 1e-4, 1e-5);
+                final LinearSGD linearsgd = new LinearSGD(new HingeLoss(), 1e-4, 1e-5);
                 linearsgd.setUseBias(useBias);
                 linearsgd.setGradientUpdater(gu);
 
-                ClassificationDataSet train = FixedProblems.getSimpleKClassLinear(500, 6, new Random());
+                final ClassificationDataSet train = FixedProblems.getSimpleKClassLinear(500, 6, new Random());
 
                 linearsgd.trainC(train);
 
-                ClassificationDataSet test = FixedProblems.getSimpleKClassLinear(200, 6, new Random());
+                final ClassificationDataSet test = FixedProblems.getSimpleKClassLinear(200, 6, new Random());
 
-                for(DataPointPair<Integer> dpp : test.getAsDPPList())
-                    assertEquals(dpp.getPair().longValue(), linearsgd.classify(dpp.getDataPoint()).mostLikely());
+                for(final DataPointPair<Integer> dpp : test.getAsDPPList()) {
+                  assertEquals(dpp.getPair().longValue(), linearsgd.classify(dpp.getDataPoint()).mostLikely());
+                }
             }
         }
     }
@@ -109,17 +111,17 @@ public class LinearSGDTest
     public void testRegression()
     {
         System.out.println("regression");
-        for(boolean useBias : useBiasOptions)
+        for(final boolean useBias : useBiasOptions)
         {
-            for(GradientUpdater gu : updaters)
+            for(final GradientUpdater gu : updaters)
             {
-                LinearSGD linearsgd = new LinearSGD(new SquaredLoss(), 0.0, 0.0);
+                final LinearSGD linearsgd = new LinearSGD(new SquaredLoss(), 0.0, 0.0);
                 linearsgd.setUseBias(useBias);
                 linearsgd.setGradientUpdater(gu);
                 
                 //SGD needs more iterations/data to learn a really close fit
 
-                RegressionDataSet train = FixedProblems.getLinearRegression(10000, new Random());
+                final RegressionDataSet train = FixedProblems.getLinearRegression(10000, new Random());
 
                 linearsgd.setEpochs(50);
                 if(!(gu instanceof SimpleSGD))//the others need a higher learning rate than the default
@@ -129,13 +131,13 @@ public class LinearSGDTest
                 }
                 linearsgd.train(train);
 
-                RegressionDataSet test = FixedProblems.getLinearRegression(200, new Random());
+                final RegressionDataSet test = FixedProblems.getLinearRegression(200, new Random());
 
-                for(DataPointPair<Double> dpp : test.getAsDPPList())
+                for(final DataPointPair<Double> dpp : test.getAsDPPList())
                 {
-                    double truth = dpp.getPair();
-                    double pred = linearsgd.regress(dpp.getDataPoint());
-                    double relErr = (truth-pred)/truth;
+                    final double truth = dpp.getPair();
+                    final double pred = linearsgd.regress(dpp.getDataPoint());
+                    final double relErr = (truth-pred)/truth;
                     assertEquals(0, relErr, 0.1);
                 }
             }

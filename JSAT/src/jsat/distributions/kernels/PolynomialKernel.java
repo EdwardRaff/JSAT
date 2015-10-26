@@ -4,10 +4,8 @@ package jsat.distributions.kernels;
 import java.util.*;
 import jsat.DataSet;
 import jsat.distributions.Distribution;
-import jsat.distributions.LogUniform;
 import jsat.distributions.discrete.UniformDiscrete;
 import jsat.linear.Vec;
-import jsat.parameters.DoubleParameter;
 import jsat.parameters.Parameter;
 
 /**
@@ -29,7 +27,7 @@ public class PolynomialKernel extends BaseKernelTrick
      * @param alpha the term to scale the dot product by
      * @param c the additive term
      */
-    public PolynomialKernel(double degree, double alpha, double c)
+    public PolynomialKernel(final double degree, final double alpha, final double c)
     {
         this.degree = degree;
         this.alpha = alpha;
@@ -40,7 +38,7 @@ public class PolynomialKernel extends BaseKernelTrick
      * Defaults alpha = 1 and c = 1
      * @param degree the degree of the polynomial 
      */
-    public PolynomialKernel(double degree)
+    public PolynomialKernel(final double degree)
     {
         this(degree, 1, 1);
     }
@@ -50,10 +48,11 @@ public class PolynomialKernel extends BaseKernelTrick
      * multiplying each value in the data set by a constant factor 
      * @param alpha the scaling factor
      */
-    public void setAlpha(double alpha)
+    public void setAlpha(final double alpha)
     {
-        if(Double.isInfinite(alpha) || Double.isNaN(alpha) || alpha == 0)
-            throw new IllegalArgumentException("alpha must be a real non zero value, not " + alpha);
+        if(Double.isInfinite(alpha) || Double.isNaN(alpha) || alpha == 0) {
+          throw new IllegalArgumentException("alpha must be a real non zero value, not " + alpha);
+        }
         this.alpha = alpha;
     }
 
@@ -63,10 +62,11 @@ public class PolynomialKernel extends BaseKernelTrick
      * {@link #setAlpha(double) alpha}. 
      * @param c the non negative additive term
      */
-    public void setC(double c)
+    public void setC(final double c)
     {
-        if(c < 0 || Double.isNaN(c) || Double.isInfinite(c))
-            throw new IllegalArgumentException("C must be non negative, not " + c);
+        if(c < 0 || Double.isNaN(c) || Double.isInfinite(c)) {
+          throw new IllegalArgumentException("C must be non negative, not " + c);
+        }
         this.c = c;
     }
 
@@ -74,7 +74,7 @@ public class PolynomialKernel extends BaseKernelTrick
      * Sets the degree of the polynomial 
      * @param d the degree of the polynomial 
      */
-    public void setDegree(double d)
+    public void setDegree(final double d)
     {
         this.degree = d;
     }
@@ -107,7 +107,7 @@ public class PolynomialKernel extends BaseKernelTrick
     }
 
     @Override
-    public double eval(Vec a, Vec b)
+    public double eval(final Vec a, final Vec b)
     {
         return Math.pow(c+a.dot(b)*alpha, degree);
     }
@@ -125,7 +125,7 @@ public class PolynomialKernel extends BaseKernelTrick
      * @return the guess for the degree parameter
      * @see #setDegree(double) 
      */
-    public static Distribution guessDegree(DataSet d)
+    public static Distribution guessDegree(final DataSet d)
     {
         return new UniformDiscrete(2, 9);
     }
@@ -137,7 +137,7 @@ public class PolynomialKernel extends BaseKernelTrick
     }
 
     @Override
-    public Parameter getParameter(String paramName)
+    public Parameter getParameter(final String paramName)
     {
         return Parameter.toParameterMap(getParameters()).get(paramName);
     }

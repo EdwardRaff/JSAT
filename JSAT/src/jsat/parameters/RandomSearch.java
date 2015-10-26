@@ -58,7 +58,7 @@ public class RandomSearch extends ModelSearch
     /**
      * The matching list of distributions we will test.
      */
-    private List<Distribution> searchValues;
+    private final List<Distribution> searchValues;
 
     /**
      * Creates a new GridSearch to tune the specified parameters of a regression
@@ -71,7 +71,7 @@ public class RandomSearch extends ModelSearch
      * @throws FailedToFitException if the base regressor does not implement
      * {@link Parameterized}
      */
-    public RandomSearch(Regressor baseRegressor, int folds)
+    public RandomSearch(final Regressor baseRegressor, final int folds)
     {
         super(baseRegressor, folds);
         searchValues = new ArrayList<Distribution>();
@@ -88,7 +88,7 @@ public class RandomSearch extends ModelSearch
      * @throws FailedToFitException if the base classifier does not implement 
      * {@link Parameterized}
      */
-    public RandomSearch(Classifier baseClassifier, int folds)
+    public RandomSearch(final Classifier baseClassifier, final int folds)
     {
         super(baseClassifier, folds);
         searchValues = new ArrayList<Distribution>();
@@ -98,13 +98,14 @@ public class RandomSearch extends ModelSearch
      * Copy constructor
      * @param toCopy the object to copy
      */
-    public RandomSearch(RandomSearch toCopy)
+    public RandomSearch(final RandomSearch toCopy)
     {
         super(toCopy);
         this.trials = toCopy.trials;
         this.searchValues = new ArrayList<Distribution>(toCopy.searchValues.size());
-        for (Distribution d : toCopy.searchValues)
-            this.searchValues.add(d.clone());
+        for (final Distribution d : toCopy.searchValues) {
+          this.searchValues.add(d.clone());
+        }
     }
     
     /**
@@ -118,15 +119,16 @@ public class RandomSearch extends ModelSearch
      * @param data the data set to get parameter estimates from
      * @return the number of parameters added
      */
-    public int autoAddParameters(DataSet data)
+    public int autoAddParameters(final DataSet data)
     {
         Parameterized obj;
-        if (baseClassifier != null)
-            obj = (Parameterized) baseClassifier;
-        else
-            obj = (Parameterized) baseRegressor;
+        if (baseClassifier != null) {
+          obj = (Parameterized) baseClassifier;
+        } else {
+          obj = (Parameterized) baseRegressor;
+        }
         int totalParms = 0;
-        for (Parameter param : obj.getParameters())
+        for (final Parameter param : obj.getParameters())
         {
             Distribution dist;
             if (param instanceof DoubleParameter)
@@ -156,10 +158,11 @@ public class RandomSearch extends ModelSearch
      * Sets the number of trials or samples that will be taken. This value is the number of models that will be trained and evaluated for their performance
      * @param trials the number of models to build and evaluate
      */
-    public void setTrials(int trials)
+    public void setTrials(final int trials)
     {
-        if(trials < 1)
-            throw new IllegalArgumentException("number of trials must be positive, not " + trials);
+        if(trials < 1) {
+          throw new IllegalArgumentException("number of trials must be positive, not " + trials);
+        }
         this.trials = trials;
     }
 
@@ -178,10 +181,11 @@ public class RandomSearch extends ModelSearch
      * @param param the model parameter
      * @param initialSearchValues the distribution to sample from for this parameter
      */
-    public void addParameter(DoubleParameter param, Distribution dist)
+    public void addParameter(final DoubleParameter param, final Distribution dist)
     {
-        if (param == null)
-            throw new IllegalArgumentException("null not allowed for parameter");
+        if (param == null) {
+          throw new IllegalArgumentException("null not allowed for parameter");
+        }
         searchParams.add(param);
         searchValues.add(dist.clone());
     }
@@ -192,10 +196,11 @@ public class RandomSearch extends ModelSearch
      * @param param the model parameter
      * @param initialSearchValues the distribution to sample from for this parameter
      */
-    public void addParameter(IntParameter param, Distribution dist)
+    public void addParameter(final IntParameter param, final Distribution dist)
     {
-        if (param == null)
-            throw new IllegalArgumentException("null not allowed for parameter");
+        if (param == null) {
+          throw new IllegalArgumentException("null not allowed for parameter");
+        }
         searchParams.add(param);
         searchValues.add(dist.clone());
     }
@@ -206,16 +211,17 @@ public class RandomSearch extends ModelSearch
      * @param name the name of the parameter
      * @param initialSearchValues the values to try for the specified parameter
      */
-    public void addParameter(String name, Distribution dist)
+    public void addParameter(final String name, final Distribution dist)
     {
-        Parameter param = getParameterByName(name);
+        final Parameter param = getParameterByName(name);
 
-        if(param instanceof DoubleParameter)
-            addParameter((DoubleParameter) param, dist);
-        else if(param instanceof IntParameter)
-            addParameter((IntParameter) param, dist);
-        else
-            throw new IllegalArgumentException("Parameter " + name + " is not for double or int values");
+        if(param instanceof DoubleParameter) {
+          addParameter((DoubleParameter) param, dist);
+        } else if(param instanceof IntParameter) {
+          addParameter((IntParameter) param, dist);
+        } else {
+          throw new IllegalArgumentException("Parameter " + name + " is not for double or int values");
+        }
     }
 
     @Override
@@ -226,11 +232,11 @@ public class RandomSearch extends ModelSearch
                                                                  new Comparator<ClassificationModelEvaluation>()
         {
             @Override
-            public int compare(ClassificationModelEvaluation t, ClassificationModelEvaluation t1)
+            public int compare(final ClassificationModelEvaluation t, final ClassificationModelEvaluation t1)
             {
-                double v0 = t.getScoreStats(classificationTargetScore).getMean();
-                double v1 = t1.getScoreStats(classificationTargetScore).getMean();
-                int order = classificationTargetScore.lowerIsBetter() ? 1 : -1;
+                final double v0 = t.getScoreStats(classificationTargetScore).getMean();
+                final double v1 = t1.getScoreStats(classificationTargetScore).getMean();
+                final int order = classificationTargetScore.lowerIsBetter() ? 1 : -1;
                 return order*Double.compare(v0, v1);
             }
         });
@@ -241,18 +247,19 @@ public class RandomSearch extends ModelSearch
          */
         final List<Classifier> paramsToEval = new ArrayList<Classifier>();
         
-        Random rand = new XORWOW();
+        final Random rand = new XORWOW();
         for(int trial = 0; trial < trials; trial++)
         {
             for(int i = 0; i < searchParams.size(); i++)
             {
-                double sampledValue = searchValues.get(i).invCdf(rand.nextDouble());
+                final double sampledValue = searchValues.get(i).invCdf(rand.nextDouble());
                 
-                Parameter param = searchParams.get(i);
-                if(param instanceof DoubleParameter)
-                    ((DoubleParameter)param).setValue(sampledValue);
-                else if(param instanceof IntParameter)
-                    ((IntParameter)param).setValue((int) Math.round(sampledValue));
+                final Parameter param = searchParams.get(i);
+                if(param instanceof DoubleParameter) {
+                  ((DoubleParameter)param).setValue(sampledValue);
+                } else if(param instanceof IntParameter) {
+                  ((IntParameter)param).setValue((int) Math.round(sampledValue));
+                }
             }
             
             paramsToEval.add(baseClassifier.clone());
@@ -264,10 +271,11 @@ public class RandomSearch extends ModelSearch
          * them sequentually. 
          */
         final ExecutorService modelService;
-        if(trainModelsInParallel && threadPool != null)
-            modelService = threadPool;
-        else
-            modelService = new FakeExecutor();
+        if(trainModelsInParallel && threadPool != null) {
+          modelService = threadPool;
+        } else {
+          modelService = new FakeExecutor();
+        }
         
         //if we are doing our CV splits ahead of time, get them done now
         final List<ClassificationDataSet> preFolded;
@@ -282,8 +290,9 @@ public class RandomSearch extends ModelSearch
         {
             preFolded = dataSet.cvSet(folds);
             trainCombinations = new ArrayList<ClassificationDataSet>(preFolded.size());
-            for (int i = 0; i < preFolded.size(); i++)
-                trainCombinations.add(ClassificationDataSet.comineAllBut(preFolded, i));
+            for (int i = 0; i < preFolded.size(); i++) {
+              trainCombinations.add(ClassificationDataSet.comineAllBut(preFolded, i));
+            }
         }
         else
         {
@@ -291,56 +300,53 @@ public class RandomSearch extends ModelSearch
             trainCombinations = null;
         }
         final CountDownLatch latch = new CountDownLatch(paramsToEval.size());
-        for (final Classifier c : paramsToEval)
-            modelService.submit(new Runnable()
-            {
-
-                @Override
-                public void run()
-                {
-                    ClassificationModelEvaluation cme = trainModelsInParallel
-                            ? new ClassificationModelEvaluation(c, dataSet)
-                            : new ClassificationModelEvaluation(c, dataSet, threadPool);
-                    cme.addScorer(classificationTargetScore.clone());
-                    
-                    if (reuseSameCVFolds)
-                        cme.evaluateCrossValidation(preFolded, trainCombinations);
-                    else
-                        cme.evaluateCrossValidation(folds);
-
-                    synchronized (bestModels)
-                    {
-                        bestModels.add(cme);
-                    }
-                    
-                    latch.countDown();
-                }
-            });
+        for (final Classifier c : paramsToEval) {
+          modelService.submit(new Runnable() {
+            @Override
+            public void run() {
+              final ClassificationModelEvaluation cme = trainModelsInParallel
+                      ? new ClassificationModelEvaluation(c, dataSet)
+                      : new ClassificationModelEvaluation(c, dataSet, threadPool);
+              cme.addScorer(classificationTargetScore.clone());
+              if (reuseSameCVFolds) {
+                cme.evaluateCrossValidation(preFolded, trainCombinations);
+              } else {
+                cme.evaluateCrossValidation(folds);
+              }
+              synchronized (bestModels)
+              {
+                bestModels.add(cme);
+              }
+              latch.countDown();
+            }
+          });
+        }
         
         try
         {
             latch.await();
             
-            Classifier bestClassifier = bestModels.peek().getClassifier();//Just re-train it on the whole set
+            final Classifier bestClassifier = bestModels.peek().getClassifier();//Just re-train it on the whole set
             if (trainFinalModel)
             {
 
-                if (threadPool instanceof FakeExecutor)
-                    bestClassifier.trainC(dataSet);
-                else
-                    bestClassifier.trainC(dataSet, threadPool);
+                if (threadPool instanceof FakeExecutor) {
+                  bestClassifier.trainC(dataSet);
+                } else {
+                  bestClassifier.trainC(dataSet, threadPool);
+                }
 
             }
             trainedClassifier = bestClassifier;
         }
-        catch (InterruptedException ex)
+        catch (final InterruptedException ex)
         {
             throw new FailedToFitException(ex);
         }
     }
 
     @Override
-    public void trainC(ClassificationDataSet dataSet)
+    public void trainC(final ClassificationDataSet dataSet)
     {
         trainC(dataSet, null);
     }
@@ -353,11 +359,11 @@ public class RandomSearch extends ModelSearch
                                                                  new Comparator<RegressionModelEvaluation>()
         {
             @Override
-            public int compare(RegressionModelEvaluation t, RegressionModelEvaluation t1)
+            public int compare(final RegressionModelEvaluation t, final RegressionModelEvaluation t1)
             {
-                double v0 = t.getScoreStats(regressionTargetScore).getMean();
-                double v1 = t1.getScoreStats(regressionTargetScore).getMean();
-                int order = regressionTargetScore.lowerIsBetter() ? 1 : -1;
+                final double v0 = t.getScoreStats(regressionTargetScore).getMean();
+                final double v1 = t1.getScoreStats(regressionTargetScore).getMean();
+                final int order = regressionTargetScore.lowerIsBetter() ? 1 : -1;
                 return order*Double.compare(v0, v1);
             }
         });
@@ -368,18 +374,19 @@ public class RandomSearch extends ModelSearch
          */
         final List<Regressor> paramsToEval = new ArrayList<Regressor>();
         
-        Random rand = new XORWOW();
+        final Random rand = new XORWOW();
         for(int trial = 0; trial < trials; trial++)
         {
             for(int i = 0; i < searchParams.size(); i++)
             {
-                double sampledValue = searchValues.get(i).invCdf(rand.nextDouble());
+                final double sampledValue = searchValues.get(i).invCdf(rand.nextDouble());
                 
-                Parameter param = searchParams.get(i);
-                if(param instanceof DoubleParameter)
-                    ((DoubleParameter)param).setValue(sampledValue);
-                else if(param instanceof IntParameter)
-                    ((IntParameter)param).setValue((int) Math.round(sampledValue));
+                final Parameter param = searchParams.get(i);
+                if(param instanceof DoubleParameter) {
+                  ((DoubleParameter)param).setValue(sampledValue);
+                } else if(param instanceof IntParameter) {
+                  ((IntParameter)param).setValue((int) Math.round(sampledValue));
+                }
             }
             
             paramsToEval.add(baseRegressor.clone());
@@ -391,10 +398,11 @@ public class RandomSearch extends ModelSearch
          * them sequentually. 
          */
         final ExecutorService modelService;
-        if(trainModelsInParallel && threadPool != null)
-            modelService = threadPool;
-        else
-            modelService = new FakeExecutor();
+        if(trainModelsInParallel && threadPool != null) {
+          modelService = threadPool;
+        } else {
+          modelService = new FakeExecutor();
+        }
         
         //if we are doing our CV splits ahead of time, get them done now
         final List<RegressionDataSet> preFolded;
@@ -409,8 +417,9 @@ public class RandomSearch extends ModelSearch
         {
             preFolded = dataSet.cvSet(folds);
             trainCombinations = new ArrayList<RegressionDataSet>(preFolded.size());
-            for (int i = 0; i < preFolded.size(); i++)
-                trainCombinations.add(RegressionDataSet.comineAllBut(preFolded, i));
+            for (int i = 0; i < preFolded.size(); i++) {
+              trainCombinations.add(RegressionDataSet.comineAllBut(preFolded, i));
+            }
         }
         else
         {
@@ -418,56 +427,53 @@ public class RandomSearch extends ModelSearch
             trainCombinations = null;
         }
         final CountDownLatch latch = new CountDownLatch(paramsToEval.size());
-        for (final Regressor r : paramsToEval)
-            modelService.submit(new Runnable()
-            {
-
-                @Override
-                public void run()
-                {
-                    RegressionModelEvaluation cme = trainModelsInParallel
-                            ? new RegressionModelEvaluation(r, dataSet)
-                            : new RegressionModelEvaluation(r, dataSet, threadPool);
-                    cme.addScorer(regressionTargetScore.clone());
-                    
-                    if (reuseSameCVFolds)
-                        cme.evaluateCrossValidation(preFolded, trainCombinations);
-                    else
-                        cme.evaluateCrossValidation(folds);
-
-                    synchronized (bestModels)
-                    {
-                        bestModels.add(cme);
-                    }
-                    
-                    latch.countDown();
-                }
-            });
+        for (final Regressor r : paramsToEval) {
+          modelService.submit(new Runnable() {
+            @Override
+            public void run() {
+              final RegressionModelEvaluation cme = trainModelsInParallel
+                      ? new RegressionModelEvaluation(r, dataSet)
+                      : new RegressionModelEvaluation(r, dataSet, threadPool);
+              cme.addScorer(regressionTargetScore.clone());
+              if (reuseSameCVFolds) {
+                cme.evaluateCrossValidation(preFolded, trainCombinations);
+              } else {
+                cme.evaluateCrossValidation(folds);
+              }
+              synchronized (bestModels)
+              {
+                bestModels.add(cme);
+              }
+              latch.countDown();
+            }
+          });
+        }
         
         try
         {
             latch.await();
             
-            Regressor bestRegressor = bestModels.peek().getRegressor();//Just re-train it on the whole set
+            final Regressor bestRegressor = bestModels.peek().getRegressor();//Just re-train it on the whole set
             if (trainFinalModel)
             {
 
-                if (threadPool instanceof FakeExecutor)
-                    bestRegressor.train(dataSet);
-                else
-                    bestRegressor.train(dataSet, threadPool);
+                if (threadPool instanceof FakeExecutor) {
+                  bestRegressor.train(dataSet);
+                } else {
+                  bestRegressor.train(dataSet, threadPool);
+                }
 
             }
             trainedRegressor = bestRegressor;
         }
-        catch (InterruptedException ex)
+        catch (final InterruptedException ex)
         {
             throw new FailedToFitException(ex);
         }
     }
 
     @Override
-    public void train(RegressionDataSet dataSet)
+    public void train(final RegressionDataSet dataSet)
     {
         train(dataSet, null);
     }

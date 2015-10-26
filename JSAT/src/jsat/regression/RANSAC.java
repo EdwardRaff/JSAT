@@ -74,7 +74,7 @@ public class RANSAC implements Regressor, Parameterized
      * output of the model and the true value for the data point to be added to
      * the inlier set. 
      */
-    public RANSAC(Regressor baseRegressor, int iterations, int initialTrainSize, int minResultSize, double maxPointError)
+    public RANSAC(final Regressor baseRegressor, final int iterations, final int initialTrainSize, final int minResultSize, final double maxPointError)
     {
         setInitialTrainSize(initialTrainSize);
         setIterations(iterations);
@@ -90,7 +90,7 @@ public class RANSAC implements Regressor, Parameterized
     }
 
     @Override
-    public Parameter getParameter(String paramName)
+    public Parameter getParameter(final String paramName)
     {
         return Parameter.toParameterMap(getParameters()).get(paramName);
     }
@@ -105,7 +105,7 @@ public class RANSAC implements Regressor, Parameterized
         RegressionDataSet dataset;
         Random rand;
         Regressor baseModel;
-        public RANSACWorker(Regressor baseModel, int maxIterations, RegressionDataSet dataset)
+        public RANSACWorker(final Regressor baseModel, final int maxIterations, final RegressionDataSet dataset)
         {
             this.baseModel = baseModel;
             this.maxIterations = maxIterations;
@@ -124,36 +124,38 @@ public class RANSAC implements Regressor, Parameterized
         {
             bestConsensusSet = new boolean[dataset.getSampleSize()];
             
-            boolean[] working_set = new boolean[dataset.getSampleSize()];
+            final boolean[] working_set = new boolean[dataset.getSampleSize()];
             
-            Set<Integer> maybe_inliers = new IntSet(initialTrainSize*2);
+            final Set<Integer> maybe_inliers = new IntSet(initialTrainSize*2);
             
             for(int iter = 0; iter < maxIterations; iter++)
             {
                 //Create sub data set sample
                 maybe_inliers.clear();
                 Arrays.fill(working_set, false);
-                while(maybe_inliers.size() < initialTrainSize)
-                    maybe_inliers.add(rand.nextInt(working_set.length));
+                while(maybe_inliers.size() < initialTrainSize) {
+                  maybe_inliers.add(rand.nextInt(working_set.length));
+                }
                 int consensusSize = maybe_inliers.size();
-                RegressionDataSet subDataSet = new RegressionDataSet(dataset.getNumNumericalVars(), dataset.getCategories());
-                for(int i : maybe_inliers)
+                final RegressionDataSet subDataSet = new RegressionDataSet(dataset.getNumNumericalVars(), dataset.getCategories());
+                for(final int i : maybe_inliers)
                 {
                     subDataSet.addDataPointPair(dataset.getDataPointPair(i));
                     working_set[i] = true;
                 }
-                Regressor maybeModel = baseModel.clone();
+                final Regressor maybeModel = baseModel.clone();
                 maybeModel.train(subDataSet);
                 
                 //Build consensus set
                 for(int i = 0; i < working_set.length; i++)
                 {
-                    if(working_set[i])
-                        continue;//Already part of the model
+                    if(working_set[i]) {
+                      continue;//Already part of the model
+                    }
                     
-                    DataPointPair<Double> dpp = dataset.getDataPointPair(i);
-                    double guess = maybeModel.regress(dpp.getDataPoint());
-                    double diff = Math.abs(guess - dpp.getPair());
+                    final DataPointPair<Double> dpp = dataset.getDataPointPair(i);
+                    final double guess = maybeModel.regress(dpp.getDataPoint());
+                    final double diff = Math.abs(guess - dpp.getPair());
                     
                     if(diff < maxPointError)
                     {
@@ -164,19 +166,21 @@ public class RANSAC implements Regressor, Parameterized
                 }
                 
                 
-                if(consensusSize < minResultSize )
-                    continue;//We did not fit enough points to be considered
+                if(consensusSize < minResultSize ) {
+                  continue;//We did not fit enough points to be considered
+                }
                 //Build final model
                 maybeModel.train(subDataSet);
                 //Copmute final model error on the consenus set
                 double thisError = 0;
                 for(int i = 0; i < working_set.length; i++)
                 {
-                    if(!working_set[i])
-                        continue;
-                    DataPointPair<Double> dpp = dataset.getDataPointPair(i);
-                    double guess = maybeModel.regress(dpp.getDataPoint());
-                    double diff = Math.abs(guess - dpp.getPair());
+                    if(!working_set[i]) {
+                      continue;
+                    }
+                    final DataPointPair<Double> dpp = dataset.getDataPointPair(i);
+                    final double guess = maybeModel.regress(dpp.getDataPoint());
+                    final double diff = Math.abs(guess - dpp.getPair());
                     thisError += diff;
                 }
                 
@@ -193,7 +197,7 @@ public class RANSAC implements Regressor, Parameterized
         }
 
         @Override
-        public int compareTo(RANSACWorker o)
+        public int compareTo(final RANSACWorker o)
         {
             return Double.compare(this.bestError, o.bestError);
         }
@@ -217,10 +221,11 @@ public class RANSAC implements Regressor, Parameterized
      * 
      * @param initialTrainSize the number of data points to use to create models
      */
-    public void setInitialTrainSize(int initialTrainSize)
+    public void setInitialTrainSize(final int initialTrainSize)
     {
-        if(initialTrainSize < 1)
-            throw new RuntimeException("Can not train on an empty data set");
+        if(initialTrainSize < 1) {
+          throw new RuntimeException("Can not train on an empty data set");
+        }
         this.initialTrainSize = initialTrainSize;
     }
 
@@ -238,10 +243,11 @@ public class RANSAC implements Regressor, Parameterized
      * Sets the number models that will be tested on the data set. 
      * @param iterations the number of iterations to perform
      */
-    public void setIterations(int iterations)
+    public void setIterations(final int iterations)
     {
-        if(iterations < 1)
-            throw new RuntimeException("Must perform a positive number of iterations");
+        if(iterations < 1) {
+          throw new RuntimeException("Must perform a positive number of iterations");
+        }
         this.iterations = iterations;
     }
 
@@ -265,10 +271,11 @@ public class RANSAC implements Regressor, Parameterized
      * @param maxPointError the new maximum error a data point may have to be 
      * considered an inlier. 
      */
-    public void setMaxPointError(double maxPointError)
+    public void setMaxPointError(final double maxPointError)
     {
-        if(maxPointError < 0 || Double.isInfinite(maxPointError) || Double.isNaN(maxPointError))
-            throw new ArithmeticException("The error must be a positive value, not " + maxPointError );
+        if(maxPointError < 0 || Double.isInfinite(maxPointError) || Double.isNaN(maxPointError)) {
+          throw new ArithmeticException("The error must be a positive value, not " + maxPointError );
+        }
         this.maxPointError = maxPointError;
     }
 
@@ -293,56 +300,61 @@ public class RANSAC implements Regressor, Parameterized
      * 
      * @param minResultSize the minimum number of inliers to be considered
      */
-    public void setMinResultSize(int minResultSize)
+    public void setMinResultSize(final int minResultSize)
     {
-        if(minResultSize < getInitialTrainSize())
-            throw new RuntimeException("The min result size must be larger than the intial train size");
+        if(minResultSize < getInitialTrainSize()) {
+          throw new RuntimeException("The min result size must be larger than the intial train size");
+        }
         this.minResultSize = minResultSize;
     }
 
     
     @Override
-    public double regress(DataPoint data)
+    public double regress(final DataPoint data)
     {
         return baseRegressor.regress(data);
     }
 
     @Override
-    public void train(RegressionDataSet dataSet, ExecutorService threadPool)
+    public void train(final RegressionDataSet dataSet, final ExecutorService threadPool)
     {
         try
         {
             
-            int workSize = iterations/SystemInfo.LogicalCores;
-            int leftOver = iterations%SystemInfo.LogicalCores;
+            final int workSize = iterations/SystemInfo.LogicalCores;
+            final int leftOver = iterations%SystemInfo.LogicalCores;
             
-            List<Future<RANSACWorker>> futures = new ArrayList<Future<RANSACWorker>>(SystemInfo.LogicalCores+1);
-            if(leftOver != 0)
-                futures.add(threadPool.submit(new RANSACWorker(baseRegressor, leftOver, dataSet)));
-            for(int i = 0; i < SystemInfo.LogicalCores; i++)
-                futures.add(threadPool.submit(new RANSACWorker(baseRegressor, workSize, dataSet)));
+            final List<Future<RANSACWorker>> futures = new ArrayList<Future<RANSACWorker>>(SystemInfo.LogicalCores+1);
+            if(leftOver != 0) {
+              futures.add(threadPool.submit(new RANSACWorker(baseRegressor, leftOver, dataSet)));
+            }
+            for(int i = 0; i < SystemInfo.LogicalCores; i++) {
+              futures.add(threadPool.submit(new RANSACWorker(baseRegressor, workSize, dataSet)));
+            }
             
-            PriorityQueue<RANSACWorker> results = new PriorityQueue<RANSACWorker>(SystemInfo.LogicalCores+1);
+            final PriorityQueue<RANSACWorker> results = new PriorityQueue<RANSACWorker>(SystemInfo.LogicalCores+1);
             
-            for( Future<RANSACWorker> futureWorker : futures )
-                results.add(futureWorker.get());
+            for( final Future<RANSACWorker> futureWorker : futures ) {
+              results.add(futureWorker.get());
+            }
             
-            RANSACWorker bestResult = results.peek();
+            final RANSACWorker bestResult = results.peek();
             
             modelError = bestResult.bestError;
-            if(Double.isInfinite(modelError))
-                throw new FailedToFitException("Model could not be fit, inlier set never reach minimum size");
+            if(Double.isInfinite(modelError)) {
+              throw new FailedToFitException("Model could not be fit, inlier set never reach minimum size");
+            }
             baseRegressor = bestResult.bestModel;
             consensusSet = bestResult.bestConsensusSet;
             
             
         }
-        catch (InterruptedException ex)
+        catch (final InterruptedException ex)
         {
             Logger.getLogger(RANSAC.class.getName()).log(Level.SEVERE, null, ex);
             throw new FailedToFitException(ex);
         }
-        catch (ExecutionException ex)
+        catch (final ExecutionException ex)
         {
             Logger.getLogger(RANSAC.class.getName()).log(Level.SEVERE, null, ex);
             throw new FailedToFitException(ex);
@@ -351,7 +363,7 @@ public class RANSAC implements Regressor, Parameterized
     }
 
     @Override
-    public void train(RegressionDataSet dataSet)
+    public void train(final RegressionDataSet dataSet)
     {
         train(dataSet, new FakeExecutor());
     }
@@ -365,7 +377,7 @@ public class RANSAC implements Regressor, Parameterized
     @Override
     public RANSAC clone()
     {
-        RANSAC clone = new RANSAC(baseRegressor.clone(), iterations, initialTrainSize, minResultSize, maxPointError);
+        final RANSAC clone = new RANSAC(baseRegressor.clone(), iterations, initialTrainSize, minResultSize, maxPointError);
         
         return clone;
     }

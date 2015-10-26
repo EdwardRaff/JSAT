@@ -48,8 +48,8 @@ public class F1ScoreTest
     public void testGetScore()
     {
         System.out.println("getScore");
-        F1Score scorer = new F1Score();
-        F1Score otherHalf = scorer.clone();
+        final F1Score scorer = new F1Score();
+        final F1Score otherHalf = scorer.clone();
         
         assertEquals(scorer, otherHalf);
         assertEquals(scorer.hashCode(), otherHalf.hashCode());
@@ -71,7 +71,7 @@ public class F1ScoreTest
         
         scorer.addResults(otherHalf);
         
-        double tp = 2, tn = 3, fp = 2, fn = 2;
+        final double tp = 2, tn = 3, fp = 2, fn = 2;
         assertEquals(2*tp/(2*tp+fp+fn), scorer.getScore(), 1e-2);
         assertEquals(2*tp/(2*tp+fp+fn), scorer.clone().getScore(), 1e-2);
     }

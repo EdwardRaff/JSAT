@@ -24,7 +24,7 @@ public class HingeLoss implements LossMC
      * @param y the target value
      * @return the HingeLoss loss
      */
-    public static double loss(double pred, double y)
+    public static double loss(final double pred, final double y)
     {
         return Math.max(0, 1 - y * pred);
     }
@@ -36,38 +36,40 @@ public class HingeLoss implements LossMC
      * @param y the target value
      * @return the first derivative of the HingeLoss loss
      */
-    public static double deriv(double pred, double y)
+    public static double deriv(final double pred, final double y)
     {
-        if (pred * y > 1)
-            return 0;
-        else
-            return -y;
+        if (pred * y > 1) {
+          return 0;
+        } else {
+          return -y;
+        }
     }
     
-    public static CategoricalResults classify(double score)
+    public static CategoricalResults classify(final double score)
     {
-        CategoricalResults cr = new CategoricalResults(2);
-        if(score > 0)
-            cr.setProb(1, 1.0);
-        else
-            cr.setProb(0, 1.0);
+        final CategoricalResults cr = new CategoricalResults(2);
+        if(score > 0) {
+          cr.setProb(1, 1.0);
+        } else {
+          cr.setProb(0, 1.0);
+        }
         return cr;
     }
 
     @Override
-    public double getLoss(double pred, double y)
+    public double getLoss(final double pred, final double y)
     {
         return loss(pred, y);
     }
 
     @Override
-    public double getDeriv(double pred, double y)
+    public double getDeriv(final double pred, final double y)
     {
         return deriv(pred, y);
     }
 
     @Override
-    public double getDeriv2(double pred, double y)
+    public double getDeriv2(final double pred, final double y)
     {
         return 0;
     }
@@ -85,40 +87,44 @@ public class HingeLoss implements LossMC
     }
 
     @Override
-    public CategoricalResults getClassification(double score)
+    public CategoricalResults getClassification(final double score)
     {
         return classify(score);
     }
 
     @Override
-    public double getLoss(Vec processed, int y)
+    public double getLoss(final Vec processed, final int y)
     {
         double max_not_y = Double.NEGATIVE_INFINITY;
-        for(int i = 0; i < processed.length(); i++)
-            if(i != y)
-                max_not_y = Math.max(max_not_y, processed.get(i));
+        for(int i = 0; i < processed.length(); i++) {
+          if (i != y) {
+            max_not_y = Math.max(max_not_y, processed.get(i));
+          }
+        }
         return Math.max(0, 1.0+max_not_y-processed.get(y));
     }
 
     @Override
-    public void process(Vec pred, Vec processed)
+    public void process(final Vec pred, final Vec processed)
     {
-        if(pred != processed)
-            pred.copyTo(processed);
+        if(pred != processed) {
+          pred.copyTo(processed);
+        }
     }
 
     @Override
-    public void deriv(Vec processed, Vec derivs, int y)
+    public void deriv(final Vec processed, final Vec derivs, final int y)
     {
         final double proccessed_y = processed.get(y);
         double maxVal_not_y = Double.NEGATIVE_INFINITY;
         int maxIndx = -1;
-        for(int i = 0; i < processed.length(); i++)
-            if(i != y && processed.get(i) > maxVal_not_y)
-            {
-                maxIndx = i;
-                maxVal_not_y = processed.get(i);
-            }
+        for(int i = 0; i < processed.length(); i++) {
+          if(i != y && processed.get(i) > maxVal_not_y)
+          {
+            maxIndx = i;
+            maxVal_not_y = processed.get(i);
+          }
+        }
         
         derivs.zeroOut();
         if(1.0 + maxVal_not_y - proccessed_y  > 0)
@@ -129,17 +135,18 @@ public class HingeLoss implements LossMC
     }
 
     @Override
-    public CategoricalResults getClassification(Vec processed)
+    public CategoricalResults getClassification(final Vec processed)
     {
         int maxIndx = 0;
         double maxVal_not_y = processed.get(maxIndx);
-        for(int i = 1; i < processed.length(); i++)
-            if(processed.get(i) > maxVal_not_y)
-            {
-                maxIndx = i;
-                maxVal_not_y = processed.get(i);
-            }
-        CategoricalResults toRet = new CategoricalResults(processed.length());
+        for(int i = 1; i < processed.length(); i++) {
+          if(processed.get(i) > maxVal_not_y)
+          {
+            maxIndx = i;
+            maxVal_not_y = processed.get(i);
+          }
+        }
+        final CategoricalResults toRet = new CategoricalResults(processed.length());
         toRet.setProb(maxIndx, 1.0);
         return toRet;
     }

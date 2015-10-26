@@ -18,7 +18,7 @@ public class F1Score extends SimpleBinaryClassMetric
         super();
     }
     
-    public F1Score(F1Score toClone)
+    public F1Score(final F1Score toClone)
     {
         super(toClone);
     }
@@ -30,13 +30,9 @@ public class F1Score extends SimpleBinaryClassMetric
     }
     
     @Override
-    public boolean equals(Object obj)
+    public boolean equals(final Object obj)
     {
-        if(this.getClass().isAssignableFrom(obj.getClass()) && obj.getClass().isAssignableFrom(this.getClass()))
-        {
-            return true;
-        }
-        return false;
+        return this.getClass().isAssignableFrom(obj.getClass()) && obj.getClass().isAssignableFrom(this.getClass());
     }
 
     @Override

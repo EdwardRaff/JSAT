@@ -31,14 +31,16 @@ public class FixedProblems
      * @param rand the source of randomness 
      * @return a binary classification data set that is linearly separable
      */
-    public static ClassificationDataSet get2ClassLinear(int dataSetSize, Random rand)
+    public static ClassificationDataSet get2ClassLinear(final int dataSetSize, final Random rand)
     {
-        ClassificationDataSet train = new ClassificationDataSet(c2l_m0.length(), new CategoricalData[0], new CategoricalData(2));
+        final ClassificationDataSet train = new ClassificationDataSet(c2l_m0.length(), new CategoricalData[0], new CategoricalData(2));
         
-        for(Vec s : c2l_c0.sample(dataSetSize, rand))
-            train.addDataPoint(s, new int[0], 0);
-        for(Vec s : c2l_c1.sample(dataSetSize, rand))
-            train.addDataPoint(s, new int[0], 1);
+        for(final Vec s : c2l_c0.sample(dataSetSize, rand)) {
+          train.addDataPoint(s, new int[0], 0);
+        }
+        for(final Vec s : c2l_c1.sample(dataSetSize, rand)) {
+          train.addDataPoint(s, new int[0], 1);
+        }
         
         return train;
     }
@@ -49,7 +51,7 @@ public class FixedProblems
      * @param K the number of classes to generate
      * @return a new multi class data set
      */
-    public static ClassificationDataSet getSimpleKClassLinear(int dataSetSize, int K)
+    public static ClassificationDataSet getSimpleKClassLinear(final int dataSetSize, final int K)
     {
         return getSimpleKClassLinear(dataSetSize, K, new XORWOW());
     }
@@ -60,14 +62,14 @@ public class FixedProblems
      * @param rand the source of randomness 
      * @return a new multi class data set
      */
-    public static ClassificationDataSet getSimpleKClassLinear(int dataSetSize, int K, Random rand)
+    public static ClassificationDataSet getSimpleKClassLinear(final int dataSetSize, final int K, final Random rand)
     {
-        ClassificationDataSet train = new ClassificationDataSet(K, new CategoricalData[0], new CategoricalData(K));
+        final ClassificationDataSet train = new ClassificationDataSet(K, new CategoricalData[0], new CategoricalData(K));
         for(int k = 0; k < K; k++)
         {
             for(int i = 0; i <dataSetSize; i++)
             {
-                Vec dv = DenseVector.random(K, rand);
+                final Vec dv = DenseVector.random(K, rand);
                 dv.set(k, 10+rand.nextGaussian());
                 train.addDataPoint(dv, new int[0], k);
             }
@@ -81,7 +83,7 @@ public class FixedProblems
      * @param rand the randomness to use
      * @return a regression data set
      */
-    public static RegressionDataSet getLinearRegression(int dataSetSize, Random rand)
+    public static RegressionDataSet getLinearRegression(final int dataSetSize, final Random rand)
     {
         return getLinearRegression(dataSetSize, rand, c2l_m0);
     }
@@ -93,15 +95,16 @@ public class FixedProblems
      * @param coef the coefficients to use for the linear regression
      * @return a regression data set
      */
-    public static RegressionDataSet getLinearRegression(int dataSetSize, Random rand, Vec coef)
+    public static RegressionDataSet getLinearRegression(final int dataSetSize, final Random rand, final Vec coef)
     {
-        RegressionDataSet rds = new RegressionDataSet(coef.length(), new CategoricalData[0]);
+        final RegressionDataSet rds = new RegressionDataSet(coef.length(), new CategoricalData[0]);
         
         for(int i = 0; i < dataSetSize; i++)
         {
-            Vec s = new DenseVector(coef.length());
-            for(int j = 0; j < s.length(); j++)
-                s.set(j, rand.nextDouble());
+            final Vec s = new DenseVector(coef.length());
+            for(int j = 0; j < s.length(); j++) {
+              s.set(j, rand.nextDouble());
+            }
             rds.addDataPoint(s, new int[0], s.dot(coef));
         }
         
@@ -117,12 +120,12 @@ public class FixedProblems
      * @param rand the source of randomness
      * @return a new regression data set
      */
-    public static RegressionDataSet getSimpleRegression1(int dataSetSize, Random rand)
+    public static RegressionDataSet getSimpleRegression1(final int dataSetSize, final Random rand)
     {
-        RegressionDataSet rds = new RegressionDataSet(2, new CategoricalData[0]);
+        final RegressionDataSet rds = new RegressionDataSet(2, new CategoricalData[0]);
         for(int i = 0; i < dataSetSize; i++)
         {
-            Vec s = new DenseVector(new double[]{rand.nextDouble()*4, rand.nextDouble()*4});
+            final Vec s = new DenseVector(new double[]{rand.nextDouble()*4, rand.nextDouble()*4});
             rds.addDataPoint(s, new int[0], s.get(0)+4*Math.cos(s.get(1)));
         }
         return rds;
@@ -137,57 +140,59 @@ public class FixedProblems
      * @param rand the source of randomness
      * @return a classification data set with two classes 
      */
-    public static ClassificationDataSet getInnerOuterCircle(int dataSetSize, Random rand)
+    public static ClassificationDataSet getInnerOuterCircle(final int dataSetSize, final Random rand)
     {
         return getInnerOuterCircle(dataSetSize, rand, 1, 4);
     }
     
-    public static ClassificationDataSet getInnerOuterCircle(int dataSetSize, Random rand, double r1, double r2)
+    public static ClassificationDataSet getInnerOuterCircle(final int dataSetSize, final Random rand, final double r1, final double r2)
     {
         return getCircles(dataSetSize, rand, r1, r2);
     }
-    public static ClassificationDataSet getCircles(int dataSetSize, double... radi )
+    public static ClassificationDataSet getCircles(final int dataSetSize, final double... radi )
     {
         return getCircles(dataSetSize, new XORWOW(), radi);
     }
     
-    public static ClassificationDataSet getCircles(int dataSetSize, Random rand, double... radi )
+    public static ClassificationDataSet getCircles(final int dataSetSize, final Random rand, final double... radi )
     {
         return getCircles(dataSetSize, 1.0/5.0, rand, radi);
     }
     
-    public static ClassificationDataSet getCircles(int dataSetSize, double randNoiseMultiplier, Random rand, double... radi )
+    public static ClassificationDataSet getCircles(final int dataSetSize, final double randNoiseMultiplier, final Random rand, final double... radi )
     {
-        ClassificationDataSet train = new ClassificationDataSet(2, new CategoricalData[0], new CategoricalData(radi.length));
+        final ClassificationDataSet train = new ClassificationDataSet(2, new CategoricalData[0], new CategoricalData(radi.length));
         
-        int n = dataSetSize / 2;
+        final int n = dataSetSize / 2;
 
-        for(int r_i = 0; r_i < radi.length; r_i++)
-            for (int i = 0; i < n; i++)
-            {
-                double t = 2 * Math.PI * i / n;
-                double x = radi[r_i] * Math.cos(t) + (rand.nextDouble() - 0.5) * randNoiseMultiplier;
-                double y = radi[r_i] * Math.sin(t) + (rand.nextDouble() - 0.5) * randNoiseMultiplier;
-                train.addDataPoint(DenseVector.toDenseVec(x, y), new int[0], r_i);
-            }
+        for(int r_i = 0; r_i < radi.length; r_i++) {
+          for (int i = 0; i < n; i++)
+          {
+            final double t = 2 * Math.PI * i / n;
+            final double x = radi[r_i] * Math.cos(t) + (rand.nextDouble() - 0.5) * randNoiseMultiplier;
+            final double y = radi[r_i] * Math.sin(t) + (rand.nextDouble() - 0.5) * randNoiseMultiplier;
+            train.addDataPoint(DenseVector.toDenseVec(x, y), new int[0], r_i);
+          }
+        }
 
         return train;
     }
     
-    public static ClassificationDataSet getHalfCircles(int dataSetSize, Random rand, double... radi )
+    public static ClassificationDataSet getHalfCircles(final int dataSetSize, final Random rand, final double... radi )
     {
-        ClassificationDataSet train = new ClassificationDataSet(2, new CategoricalData[0], new CategoricalData(radi.length));
+        final ClassificationDataSet train = new ClassificationDataSet(2, new CategoricalData[0], new CategoricalData(radi.length));
         
-        int n = dataSetSize/2 ;
+        final int n = dataSetSize/2 ;
 
-        for(int r_i = 0; r_i < radi.length; r_i++)
-            for (int i = 0; i < n; i++)
-            {
-                double t = 2 * Math.PI * (i/2) / n;
-                double x = radi[r_i] * Math.cos(t) + (rand.nextDouble() - 0.5) / 5;
-                double y = radi[r_i] * Math.sin(t) + (rand.nextDouble() - 0.5) / 5;
-                train.addDataPoint(DenseVector.toDenseVec(x, y), new int[0], r_i);
-            }
+        for(int r_i = 0; r_i < radi.length; r_i++) {
+          for (int i = 0; i < n; i++)
+          {
+            final double t = 2 * Math.PI * (i/2) / n;
+            final double x = radi[r_i] * Math.cos(t) + (rand.nextDouble() - 0.5) / 5;
+            final double y = radi[r_i] * Math.sin(t) + (rand.nextDouble() - 0.5) / 5;
+            train.addDataPoint(DenseVector.toDenseVec(x, y), new int[0], r_i);
+          }
+        }
 
         return train;
     }

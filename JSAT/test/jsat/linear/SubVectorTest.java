@@ -57,10 +57,10 @@ public class SubVectorTest
     {
         System.out.println("length");
         
-        SubVector subX = new SubVector(2, 7, x);
+        final SubVector subX = new SubVector(2, 7, x);
         assertEquals(7, subX.length());
         
-        SubVector subY = new SubVector(2, 7, y);
+        final SubVector subY = new SubVector(2, 7, y);
         assertEquals(7, subY.length());
         
     }
@@ -72,7 +72,7 @@ public class SubVectorTest
     public void testGet()
     {
         System.out.println("get");
-        SubVector subX = new SubVector(2, 7, x);
+        final SubVector subX = new SubVector(2, 7, x);
         assertEquals(0.0, subX.get(2 - 2), 1e-20);
         assertEquals(1.0, subX.get(3 - 2), 1e-20);
         assertEquals(0.0, subX.get(4 - 2), 1e-20);
@@ -86,12 +86,12 @@ public class SubVectorTest
             assertEquals(0.0, subX.get(9 - 2), 1e-20);
             fail("Should not have been able to access value");
         }
-        catch (Exception ex)
+        catch (final Exception ex)
         {
         }
 
 
-        SubVector subY = new SubVector(2, 7, y);
+        final SubVector subY = new SubVector(2, 7, y);
         assertEquals(0.0, subY.get(2 - 2), 1e-20);
         assertEquals(1.0, subY.get(3 - 2), 1e-20);
         assertEquals(0.0, subY.get(4 - 2), 1e-20);
@@ -104,7 +104,7 @@ public class SubVectorTest
             assertEquals(0.0, subY.get(9 - 2), 1e-20);
             fail("Should not have been able to access value");
         }
-        catch (Exception ex)
+        catch (final Exception ex)
         {
         }
     }
@@ -116,7 +116,7 @@ public class SubVectorTest
     public void testSet()
     {
         System.out.println("set");
-        SubVector subX = new SubVector(2, 7, x);
+        final SubVector subX = new SubVector(2, 7, x);
         subX.set(2 - 2, -1.0);
         subX.set(3 - 2, -1.0);
         subX.set(4 - 2, -1.0);
@@ -134,12 +134,12 @@ public class SubVectorTest
             subX.set(9-2, -1.0);
             fail("Should not have been able to access value");
         }
-        catch (Exception ex)
+        catch (final Exception ex)
         {
         }
 
 
-        SubVector subY = new SubVector(2, 7, y);
+        final SubVector subY = new SubVector(2, 7, y);
         subY.set(2 - 2, -1.0);
         subY.set(3 - 2, -1.0);
         subY.set(4 - 2, -1.0);
@@ -157,7 +157,7 @@ public class SubVectorTest
             subY.set(9-2, -1.0);
             fail("Should not have been able to access value");
         }
-        catch (Exception ex)
+        catch (final Exception ex)
         {
         }
     }
@@ -169,10 +169,10 @@ public class SubVectorTest
     public void testIsSparse()
     {
         System.out.println("isSparse");
-        SubVector subX = new SubVector(2, 7, x);
+        final SubVector subX = new SubVector(2, 7, x);
         assertTrue(subX.isSparse());
         
-        SubVector subY = new SubVector(2, 7, y);
+        final SubVector subY = new SubVector(2, 7, y);
         assertFalse(subY.isSparse());
     }
 
@@ -186,21 +186,23 @@ public class SubVectorTest
         int firstSeen = -1;
         int lastSeen = -1;
         
-        SubVector subX = new SubVector(2, 13, x);
+        final SubVector subX = new SubVector(2, 13, x);
         
         firstSeen = subX.getNonZeroIterator(2).next().getIndex();
-        for(IndexValue iv : subX)
-            lastSeen = iv.getIndex();
+        for(final IndexValue iv : subX) {
+          lastSeen = iv.getIndex();
+        }
         assertEquals(6-2, firstSeen);
         assertEquals(12-2, lastSeen);
         
         firstSeen = -1;
         lastSeen = -1;
-        SubVector subY = new SubVector(2, 13, y);
+        final SubVector subY = new SubVector(2, 13, y);
         
         firstSeen = subY.getNonZeroIterator(2).next().getIndex();
-        for(IndexValue iv : subY)
-            lastSeen = iv.getIndex();
+        for(final IndexValue iv : subY) {
+          lastSeen = iv.getIndex();
+        }
         assertEquals(6-2, firstSeen);
         assertEquals(12-2, lastSeen);
     }
@@ -212,14 +214,14 @@ public class SubVectorTest
     public void testClone()
     {
         System.out.println("clone");
-        SubVector subX = new SubVector(2, 7, x);
-        Vec subXClone = subX.clone();
+        final SubVector subX = new SubVector(2, 7, x);
+        final Vec subXClone = subX.clone();
         
         assertTrue(subXClone.equals(subX));
         assertFalse(subX == subXClone);
         
-        SubVector subY = new SubVector(2, 7, y);
-        Vec subYClone = subY.clone();
+        final SubVector subY = new SubVector(2, 7, y);
+        final Vec subYClone = subY.clone();
         
         assertTrue(subYClone.equals(subY));
         assertFalse(subY == subYClone);

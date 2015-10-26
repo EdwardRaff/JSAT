@@ -56,7 +56,7 @@ public class SPA extends BaseUpdateableClassifier implements Parameterized, Simp
      * @param epochs the number of training epochs to use during batch training
      * @param mode which version of the update to perform 
      */
-    public SPA(int epochs, PassiveAggressive.Mode mode)
+    public SPA(final int epochs, final PassiveAggressive.Mode mode)
     {
         setEpochs(epochs);
         setMode(mode);
@@ -68,7 +68,7 @@ public class SPA extends BaseUpdateableClassifier implements Parameterized, Simp
      * @param useBias {@code true} to add an implicit bias term, {@code false} 
      * to use the data as given
      */
-    public void setUseBias(boolean useBias)
+    public void setUseBias(final boolean useBias)
     {
         this.useBias = useBias;
     }
@@ -93,10 +93,11 @@ public class SPA extends BaseUpdateableClassifier implements Parameterized, Simp
      * 
      * @param C the positive aggressiveness parameter
      */
-    public void setC(double C)
+    public void setC(final double C)
     {
-        if(Double.isNaN(C) || Double.isInfinite(C) || C <= 0)
-            throw new ArithmeticException("Aggressiveness must be a positive constant");
+        if(Double.isNaN(C) || Double.isInfinite(C) || C <= 0) {
+          throw new ArithmeticException("Aggressiveness must be a positive constant");
+        }
         this.C = C;
     }
     
@@ -113,7 +114,7 @@ public class SPA extends BaseUpdateableClassifier implements Parameterized, Simp
      * Sets which version of the PA update is used. 
      * @param mode which PA update style to perform
      */
-    public void setMode(PassiveAggressive.Mode mode)
+    public void setMode(final PassiveAggressive.Mode mode)
     {
         this.mode = mode;
     }
@@ -128,13 +129,13 @@ public class SPA extends BaseUpdateableClassifier implements Parameterized, Simp
     }
 
     @Override
-    public Vec getRawWeight(int index)
+    public Vec getRawWeight(final int index)
     {
         return w[index];
     }
 
     @Override
-    public double getBias(int index)
+    public double getBias(final int index)
     {
         return bias[index];
     }
@@ -148,31 +149,36 @@ public class SPA extends BaseUpdateableClassifier implements Parameterized, Simp
     @Override
     public SPA clone()
     {
-        SPA clone = new SPA();
+        final SPA clone = new SPA();
         if(this.w != null)
         {
             clone.w = new Vec[this.w.length];
-            for(int i = 0; i < w.length; i++)
-                clone.w[i] = this.w[i].clone();
+            for(int i = 0; i < w.length; i++) {
+              clone.w[i] = this.w[i].clone();
+            }
         }
-        if(this.it != null)
-            clone.it = new IndexTable(this.it.length());
-        if(this.loss != null)
-            clone.loss = Arrays.copyOf(this.loss, this.loss.length);
+        if(this.it != null) {
+          clone.it = new IndexTable(this.it.length());
+        }
+        if(this.loss != null) {
+          clone.loss = Arrays.copyOf(this.loss, this.loss.length);
+        }
         clone.C = this.C;
         clone.mode = this.mode;
-        if(this.bias != null)
-            clone.bias = Arrays.copyOf(this.bias, this.bias.length);
+        if(this.bias != null) {
+          clone.bias = Arrays.copyOf(this.bias, this.bias.length);
+        }
         clone.useBias = this.useBias;
         return clone;
     }
 
     @Override
-    public void setUp(CategoricalData[] categoricalAttributes, int numericAttributes, CategoricalData predicting)
+    public void setUp(final CategoricalData[] categoricalAttributes, final int numericAttributes, final CategoricalData predicting)
     {
         w = new Vec[predicting.getNumOfCategories()];
-        for(int i = 0; i < w.length; i++)
-            w[i] = new DenseVector(numericAttributes);
+        for(int i = 0; i < w.length; i++) {
+          w[i] = new DenseVector(numericAttributes);
+        }
         bias = new double[w.length];
         loss = new double[w.length];
         it = new IndexTable(w.length);
@@ -190,12 +196,13 @@ public class SPA extends BaseUpdateableClassifier implements Parameterized, Simp
      */
     private double getSupportClassGoal(final double xNorm, final int k, final double loss_k)
     {
-        if(mode == PassiveAggressive.Mode.PA1)
-            return min((k-1)*loss_k+C*xNorm, k*loss_k);
-        else if(mode == PassiveAggressive.Mode.PA2)
-            return ((k*xNorm+(k-1)/(2*C))/(xNorm+1.0/(2*C)))*loss_k;
-        else
-            return k*loss_k;
+        if(mode == PassiveAggressive.Mode.PA1) {
+          return min((k-1)*loss_k+C*xNorm, k*loss_k);
+        } else if(mode == PassiveAggressive.Mode.PA2) {
+          return ((k*xNorm+(k-1)/(2*C))/(xNorm+1.0/(2*C)))*loss_k;
+        } else {
+          return k*loss_k;
+        }
     }
     
     /**
@@ -206,26 +213,29 @@ public class SPA extends BaseUpdateableClassifier implements Parameterized, Simp
      * @param supLossSum the sum of the loss for the support classes
      * @return the update step size
      */
-    private double getStepSize(final double loss_cur, final double xNorm, int k, final double supLossSum)
+    private double getStepSize(final double loss_cur, final double xNorm, final int k, final double supLossSum)
     {
-        if(mode == PassiveAggressive.Mode.PA1)
-            return max(0, loss_cur-max(supLossSum/(k-1)-C/(k-1)*xNorm, supLossSum/k))/xNorm;
-        else if(mode == PassiveAggressive.Mode.PA2)
-            return max(0, loss_cur-(xNorm+1/(2*C))/(k*xNorm+(k-1)/(2*C))*supLossSum )/xNorm;
-        else
-            return max(0, loss_cur-supLossSum/k)/xNorm;
+        if(mode == PassiveAggressive.Mode.PA1) {
+          return max(0, loss_cur-max(supLossSum/(k-1)-C/(k-1)*xNorm, supLossSum/k))/xNorm;
+        } else if(mode == PassiveAggressive.Mode.PA2) {
+          return max(0, loss_cur-(xNorm+1/(2*C))/(k*xNorm+(k-1)/(2*C))*supLossSum )/xNorm;
+        } else {
+          return max(0, loss_cur-supLossSum/k)/xNorm;
+        }
     }
     
     @Override
-    public void update(DataPoint dataPoint, int targetClass)
+    public void update(final DataPoint dataPoint, final int targetClass)
     {
-        Vec x = dataPoint.getNumericalValues();
+        final Vec x = dataPoint.getNumericalValues();
         final double w_y_dot_x = w[targetClass].dot(x) + bias[targetClass];
-        for (int v = 0; v < w.length; v++)
-            if (v != targetClass)
-                loss[v] = max(0, 1 - (w_y_dot_x - w[v].dot(x) - bias[v]));
-            else
-                loss[v] = Double.POSITIVE_INFINITY;//set in Inft so its ends up in index 0, and gets skipped
+        for (int v = 0; v < w.length; v++) {
+          if (v != targetClass) {
+            loss[v] = max(0, 1 - (w_y_dot_x - w[v].dot(x) - bias[v]));
+          } else {
+            loss[v] = Double.POSITIVE_INFINITY;//set in Inft so its ends up in index 0, and gets skipped
+          }
+        }
         final double xNorm = pow(x.pNorm(2) + (useBias ? 1 : 0), 2);
 
         it.sortR(loss);
@@ -234,17 +244,19 @@ public class SPA extends BaseUpdateableClassifier implements Parameterized, Simp
 
         double T31 = 0;//Theorem 3.1 
 
-        while (k < loss.length && T31 < getSupportClassGoal(xNorm, k, loss[it.index(k)]))
-            T31 += loss[it.index(k++)];
+        while (k < loss.length && T31 < getSupportClassGoal(xNorm, k, loss[it.index(k)])) {
+          T31 += loss[it.index(k++)];
+        }
 
         double supportLossSum = 0;
-        for (int j = 1; j < k; j++)
-            supportLossSum += loss[it.index(j)];
+        for (int j = 1; j < k; j++) {
+          supportLossSum += loss[it.index(j)];
+        }
 
         for (int j = 1; j < k; j++)
         {
             final int v = it.index(j);
-            double tau = getStepSize(loss[v], xNorm, k, supportLossSum);
+            final double tau = getStepSize(loss[v], xNorm, k, supportLossSum);
             w[targetClass].mutableAdd(tau, x);
             w[v].mutableSubtract(tau, x);
             if (useBias)
@@ -256,15 +268,15 @@ public class SPA extends BaseUpdateableClassifier implements Parameterized, Simp
     }
 
     @Override
-    public CategoricalResults classify(DataPoint data)
+    public CategoricalResults classify(final DataPoint data)
     {
-        Vec x = data.getNumericalValues();
-        CategoricalResults cr = new CategoricalResults(w.length);
+        final Vec x = data.getNumericalValues();
+        final CategoricalResults cr = new CategoricalResults(w.length);
         int maxIdx = 0;
         double maxVAl = w[0].dot(x)+bias[0];
         for(int i = 1; i < w.length; i++)
         {
-            double val = w[i].dot(x)+bias[i];
+            final double val = w[i].dot(x)+bias[i];
             if(val > maxVAl)
             {
                 maxVAl = val;
@@ -288,7 +300,7 @@ public class SPA extends BaseUpdateableClassifier implements Parameterized, Simp
     }
 
     @Override
-    public Parameter getParameter(String paramName)
+    public Parameter getParameter(final String paramName)
     {
         return Parameter.toParameterMap(getParameters()).get(paramName);
     }
@@ -300,7 +312,7 @@ public class SPA extends BaseUpdateableClassifier implements Parameterized, Simp
      * @param d the data set to get the guess for
      * @return the guess for the C parameter 
      */
-    public static Distribution guessC(DataSet d)
+    public static Distribution guessC(final DataSet d)
     {
         return PassiveAggressive.guessC(d);
     }

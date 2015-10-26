@@ -67,12 +67,12 @@ public class LWLTest
     {
         System.out.println("train");
 
-        LWL instance = new LWL((Regressor)new DCDs(), 30, new EuclideanDistance());
+        final LWL instance = new LWL((Regressor)new DCDs(), 30, new EuclideanDistance());
 
-        RegressionDataSet train = FixedProblems.getLinearRegression(1000, new XORWOW());
-        RegressionDataSet test = FixedProblems.getLinearRegression(100, new XORWOW());
+        final RegressionDataSet train = FixedProblems.getLinearRegression(1000, new XORWOW());
+        final RegressionDataSet test = FixedProblems.getLinearRegression(100, new XORWOW());
 
-        RegressionModelEvaluation rme = new RegressionModelEvaluation(instance, train);
+        final RegressionModelEvaluation rme = new RegressionModelEvaluation(instance, train);
         rme.evaluateTestSet(test);
 
         assertTrue(rme.getMeanError() <= test.getTargetValues().mean() * 0.25);
@@ -84,14 +84,14 @@ public class LWLTest
     {
         System.out.println("train");
 
-        LWL instance = new LWL((Regressor)new DCDs(), 15, new EuclideanDistance());
+        final LWL instance = new LWL((Regressor)new DCDs(), 15, new EuclideanDistance());
 
-        ExecutorService ex = Executors.newFixedThreadPool(SystemInfo.LogicalCores);
+        final ExecutorService ex = Executors.newFixedThreadPool(SystemInfo.LogicalCores);
 
-        RegressionDataSet train = FixedProblems.getLinearRegression(1000, new XORWOW());
-        RegressionDataSet test = FixedProblems.getLinearRegression(100, new XORWOW());
+        final RegressionDataSet train = FixedProblems.getLinearRegression(1000, new XORWOW());
+        final RegressionDataSet test = FixedProblems.getLinearRegression(100, new XORWOW());
 
-        RegressionModelEvaluation rme = new RegressionModelEvaluation(instance, train, ex);
+        final RegressionModelEvaluation rme = new RegressionModelEvaluation(instance, train, ex);
         rme.evaluateTestSet(test);
 
         assertTrue(rme.getMeanError() <= test.getTargetValues().mean() * 0.25);
@@ -104,14 +104,14 @@ public class LWLTest
     {
         System.out.println("trainC");
 
-        LWL instance = new LWL(new NaiveBayesUpdateable(), 15, new EuclideanDistance());
+        final LWL instance = new LWL(new NaiveBayesUpdateable(), 15, new EuclideanDistance());
 
-        ExecutorService ex = Executors.newFixedThreadPool(SystemInfo.LogicalCores);
+        final ExecutorService ex = Executors.newFixedThreadPool(SystemInfo.LogicalCores);
 
-        ClassificationDataSet train = FixedProblems.getCircles(1000, 1.0, 10.0, 100.0);
-        ClassificationDataSet test = FixedProblems.getCircles(100, 1.0, 10.0, 100.0);
+        final ClassificationDataSet train = FixedProblems.getCircles(1000, 1.0, 10.0, 100.0);
+        final ClassificationDataSet test = FixedProblems.getCircles(100, 1.0, 10.0, 100.0);
 
-        ClassificationModelEvaluation cme = new ClassificationModelEvaluation(instance, train, ex);
+        final ClassificationModelEvaluation cme = new ClassificationModelEvaluation(instance, train, ex);
         cme.evaluateTestSet(test);
 
         assertTrue(cme.getErrorRate() <= 0.001);
@@ -124,12 +124,12 @@ public class LWLTest
     {
         System.out.println("trainC");
 
-        LWL instance = new LWL(new NaiveBayesUpdateable(), 15, new EuclideanDistance());
+        final LWL instance = new LWL(new NaiveBayesUpdateable(), 15, new EuclideanDistance());
 
-        ClassificationDataSet train = FixedProblems.getCircles(1000, 1.0, 10.0, 100.0);
-        ClassificationDataSet test = FixedProblems.getCircles(100, 1.0, 10.0, 100.0);
+        final ClassificationDataSet train = FixedProblems.getCircles(1000, 1.0, 10.0, 100.0);
+        final ClassificationDataSet test = FixedProblems.getCircles(100, 1.0, 10.0, 100.0);
 
-        ClassificationModelEvaluation cme = new ClassificationModelEvaluation(instance, train);
+        final ClassificationModelEvaluation cme = new ClassificationModelEvaluation(instance, train);
         cme.evaluateTestSet(test);
 
         assertTrue(cme.getErrorRate() <= 0.001);
@@ -143,23 +143,26 @@ public class LWLTest
 
         LWL instance = new LWL(new NaiveBayesUpdateable(), 15, new EuclideanDistance());
 
-        ClassificationDataSet t1 = FixedProblems.getSimpleKClassLinear(100, 3);
-        ClassificationDataSet t2 = FixedProblems.getSimpleKClassLinear(100, 6);
+        final ClassificationDataSet t1 = FixedProblems.getSimpleKClassLinear(100, 3);
+        final ClassificationDataSet t2 = FixedProblems.getSimpleKClassLinear(100, 6);
 
         instance = instance.clone();
 
         instance.trainC(t1);
 
-        LWL result = instance.clone();
-        for (int i = 0; i < t1.getSampleSize(); i++)
-            assertEquals(t1.getDataPointCategory(i), result.classify(t1.getDataPoint(i)).mostLikely());
+        final LWL result = instance.clone();
+        for (int i = 0; i < t1.getSampleSize(); i++) {
+          assertEquals(t1.getDataPointCategory(i), result.classify(t1.getDataPoint(i)).mostLikely());
+        }
         result.trainC(t2);
 
-        for (int i = 0; i < t1.getSampleSize(); i++)
-            assertEquals(t1.getDataPointCategory(i), instance.classify(t1.getDataPoint(i)).mostLikely());
+        for (int i = 0; i < t1.getSampleSize(); i++) {
+          assertEquals(t1.getDataPointCategory(i), instance.classify(t1.getDataPoint(i)).mostLikely());
+        }
 
-        for (int i = 0; i < t2.getSampleSize(); i++)
-            assertEquals(t2.getDataPointCategory(i), result.classify(t2.getDataPoint(i)).mostLikely());
+        for (int i = 0; i < t2.getSampleSize(); i++) {
+          assertEquals(t2.getDataPointCategory(i), result.classify(t2.getDataPoint(i)).mostLikely());
+        }
 
     }
 

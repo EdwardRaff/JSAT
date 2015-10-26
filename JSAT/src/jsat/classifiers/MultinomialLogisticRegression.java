@@ -20,10 +20,12 @@ public class MultinomialLogisticRegression implements Classifier
 
 	private static final long serialVersionUID = -9168502043850569017L;
 	private Vec[] classCoefficents;
-    public CategoricalResults classify(DataPoint data)
+  @Override
+    public CategoricalResults classify(final DataPoint data)
     {
-        if(classCoefficents == null)
-            throw new UntrainedModelException("Model has not yet been trained");
+        if(classCoefficents == null) {
+          throw new UntrainedModelException("Model has not yet been trained");
+        }
         /**
          * The probabilities for the MLR for a class k != 0 are
          * 
@@ -51,16 +53,17 @@ public class MultinomialLogisticRegression implements Classifier
          *                 =====
          *                 j = 1
          */
-        CategoricalResults results = new CategoricalResults(classCoefficents.length+1);
+        final CategoricalResults results = new CategoricalResults(classCoefficents.length+1);
         double sum = 0.0;
         results.setProb(0, 1.0);
-        Vec b = data.getNumericalValues();
+        final Vec b = data.getNumericalValues();
         for(int i = 0; i < classCoefficents.length; i++)
         {
-            Vec coefs = classCoefficents[i];
+            final Vec coefs = classCoefficents[i];
             double exp = coefs.get(0);
-            for(int j = 1; j < coefs.length(); j++)
-                exp += b.get(j-1)*coefs.get(j);
+            for(int j = 1; j < coefs.length(); j++) {
+              exp += b.get(j-1)*coefs.get(j);
+            }
             exp = Math.exp(exp);
             sum += exp;
             results.setProb(i+1, exp);
@@ -71,29 +74,33 @@ public class MultinomialLogisticRegression implements Classifier
         return results;
     }
 
-    public void trainC(ClassificationDataSet dataSet, ExecutorService threadPool)
+  @Override
+    public void trainC(final ClassificationDataSet dataSet, final ExecutorService threadPool)
     {
-        LogisticRegression logit = new LogisticRegression();
+        final LogisticRegression logit = new LogisticRegression();
         
         classCoefficents = new Vec[dataSet.getClassSize()-1];
         
         
         for(int k = 1; k < dataSet.getClassSize(); k++)
         {
-            RegressionDataSet rds = new RegressionDataSet(dataSet.getNumNumericalVars(), dataSet.getCategories());
-            for(int i = 0; i < dataSet.getSampleSize(); i++)
-                rds.addDataPoint(dataSet.getDataPoint(i), (dataSet.getDataPointCategory(i) == k ? 1.0 : 0.0 ) );
+            final RegressionDataSet rds = new RegressionDataSet(dataSet.getNumNumericalVars(), dataSet.getCategories());
+            for(int i = 0; i < dataSet.getSampleSize(); i++) {
+              rds.addDataPoint(dataSet.getDataPoint(i), (dataSet.getDataPointCategory(i) == k ? 1.0 : 0.0 ) );
+            }
 
             logit.train(rds, threadPool);
             classCoefficents[k-1] = logit.getCoefficents();
         }
     }
 
-    public void trainC(ClassificationDataSet dataSet)
+  @Override
+    public void trainC(final ClassificationDataSet dataSet)
     {
         trainC(dataSet, new FakeExecutor());
     }
 
+  @Override
     public boolean supportsWeightedData()
     {
         return false;
@@ -102,12 +109,13 @@ public class MultinomialLogisticRegression implements Classifier
     @Override
     public MultinomialLogisticRegression clone()
     {
-        MultinomialLogisticRegression clone = new MultinomialLogisticRegression();
+        final MultinomialLogisticRegression clone = new MultinomialLogisticRegression();
         if(this.classCoefficents != null)
         {
             clone.classCoefficents = new Vec[this.classCoefficents.length];
-            for(int i = 0; i < this.classCoefficents.length; i++)
-                clone.classCoefficents[i] = this.classCoefficents[i].clone();
+            for(int i = 0; i < this.classCoefficents.length; i++) {
+              clone.classCoefficents[i] = this.classCoefficents[i].clone();
+            }
         }
         
         return clone;

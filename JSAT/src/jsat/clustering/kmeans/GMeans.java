@@ -38,21 +38,21 @@ public class GMeans extends KMeans
     private boolean iterativeRefine = true;
     
     private int minClusterSize = 25;
-    private KMeans kmeans;
+    private final KMeans kmeans;
 
     public GMeans()
     {
         this(new HamerlyKMeans());
     }
     
-    public GMeans(KMeans kmeans)
+    public GMeans(final KMeans kmeans)
     {
         super(kmeans.dm, kmeans.seedSelection, kmeans.rand);
         this.kmeans = kmeans;
         kmeans.setStoreMeans(true);
     }
 
-    public GMeans(GMeans toCopy)
+    public GMeans(final GMeans toCopy)
     {
         super(toCopy);
         this.kmeans = toCopy.kmeans.clone();
@@ -76,7 +76,7 @@ public class GMeans extends KMeans
      * @param trustH0 {@code true} if a centroid shouldn't be re-tested once it 
      * fails to split. 
      */
-    public void setTrustH0(boolean trustH0)
+    public void setTrustH0(final boolean trustH0)
     {
         this.trustH0 = trustH0;
     }
@@ -96,10 +96,11 @@ public class GMeans extends KMeans
      * @param minClusterSize the minimum number of data points that must be present in a 
      * cluster to consider splitting it
      */
-    public void setMinClusterSize(int minClusterSize)
+    public void setMinClusterSize(final int minClusterSize)
     {
-        if(minClusterSize < 2)
-            throw new IllegalArgumentException("min cluster size that could be split is 2, not " + minClusterSize);
+        if(minClusterSize < 2) {
+          throw new IllegalArgumentException("min cluster size that could be split is 2, not " + minClusterSize);
+        }
         this.minClusterSize = minClusterSize;
     }
 
@@ -121,7 +122,7 @@ public class GMeans extends KMeans
      * @param refineCenters {@code true} to refine the cluster centers at every 
      * step, {@code false} to skip this step of the algorithm. 
      */
-    public void setIterativeRefine(boolean refineCenters)
+    public void setIterativeRefine(final boolean refineCenters)
     {
         this.iterativeRefine = refineCenters;
     }
@@ -138,19 +139,19 @@ public class GMeans extends KMeans
     
 
     @Override
-    public int[] cluster(DataSet dataSet, int[] designations)
+    public int[] cluster(final DataSet dataSet, final int[] designations)
     {
         return cluster(dataSet, 1, Math.max(dataSet.getSampleSize()/20, 10), designations);
     }
 
     @Override
-    public int[] cluster(DataSet dataSet, ExecutorService threadpool, int[] designations)
+    public int[] cluster(final DataSet dataSet, final ExecutorService threadpool, final int[] designations)
     {
         return cluster(dataSet, 1, Math.max(dataSet.getSampleSize()/20, 10), threadpool, designations);
     }
 
     @Override
-    public int[] cluster(DataSet dataSet, int lowK, int highK, ExecutorService threadpool, int[] designations)
+    public int[] cluster(final DataSet dataSet, final int lowK, final int highK, final ExecutorService threadpool, int[] designations)
     {
         final int N = dataSet.getSampleSize();
         //initiate
@@ -161,26 +162,27 @@ public class GMeans extends KMeans
         }
         else//1 mean of all the data
         {
-            if(designations == null || designations.length < N)
-                designations = new int[N];
-            else
-                Arrays.fill(designations, 0);
+            if(designations == null || designations.length < N) {
+              designations = new int[N];
+            } else {
+              Arrays.fill(designations, 0);
+            }
             means = new ArrayList<Vec>(Arrays.asList(MatrixStatistics.meanVector(dataSet)));
         }
         
         
-        int[] subS = new int[designations.length];
+        final int[] subS = new int[designations.length];
         int[] subC = new int[designations.length];
         
-        Vec v = new DenseVector(dataSet.getNumNumericalVars());
-        double[] xp = new double[N];
+        final Vec v = new DenseVector(dataSet.getNumNumericalVars());
+        final double[] xp = new double[N];
         //tract if we should stop testing a mean or not
-        List<Boolean> dontRedo = new ArrayList<Boolean>(Collections.nCopies(means.size(), false));
+        final List<Boolean> dontRedo = new ArrayList<Boolean>(Collections.nCopies(means.size(), false));
         
         //pre-compute acceleration cache instead of re-computing every refine call
-        List<Double> accelCache = dm.getAccelerationCache(dataSet.getDataVectors(), threadpool);
+        final List<Double> accelCache = dm.getAccelerationCache(dataSet.getDataVectors(), threadpool);
         
-        double thresh = 1.8692;//TODO make this configurable
+        final double thresh = 1.8692;//TODO make this configurable
         int origMeans;
         do
         {
@@ -188,21 +190,23 @@ public class GMeans extends KMeans
             origMeans = means.size();
             for(int c = 0; c < origMeans; c++)
             {
-                if(dontRedo.get(c))
-                    continue;
+                if(dontRedo.get(c)) {
+                  continue;
+                }
                 //2. Initialize two centers, called “children” of c. 
                 //for now lets just let k-means decide
-                List<DataPoint> X = getDatapointsFromCluster(c, designations, dataSet, subS);
+                final List<DataPoint> X = getDatapointsFromCluster(c, designations, dataSet, subS);
                 final int n = X.size();//NOTE, not the same as N. PAY ATENTION
                 
-                if(X.size() < minClusterSize || means.size() == highK)
-                    continue;//this loop with force it to exit when we hit max K
-                SimpleDataSet subSet = new SimpleDataSet(X);
+                if(X.size() < minClusterSize || means.size() == highK) {
+                  continue;//this loop with force it to exit when we hit max K
+                }
+                final SimpleDataSet subSet = new SimpleDataSet(X);
                 //3. Run k-means on these two centers in X. Let c1, c2 be the child centers chosen by k-means
                 subC = kmeans.cluster(subSet, 2, threadpool, subC);
-                List<Vec> subMean = kmeans.getMeans();
-                Vec c1 = subMean.get(0);
-                Vec c2 = subMean.get(1);
+                final List<Vec> subMean = kmeans.getMeans();
+                final Vec c1 = subMean.get(0);
+                final Vec c2 = subMean.get(1);
                 
 
                 /* 4. 
@@ -215,26 +219,29 @@ public class GMeans extends KMeans
                  */
                 c1.copyTo(v);
                 v.mutableSubtract(c2);
-                double vNrmSqrd = Math.pow(v.pNorm(2), 2);
-                if(Double.isNaN(vNrmSqrd) || vNrmSqrd < 1e-6)
-                    continue;//can happen when cluster is all the same item (or nearly so)
-                for(int i = 0; i < X.size(); i++)
-                    xp[i] = X.get(i).getNumericalValues().dot(v)/vNrmSqrd;
+                final double vNrmSqrd = Math.pow(v.pNorm(2), 2);
+                if(Double.isNaN(vNrmSqrd) || vNrmSqrd < 1e-6) {
+                  continue;//can happen when cluster is all the same item (or nearly so)
+                }
+                for(int i = 0; i < X.size(); i++) {
+                  xp[i] = X.get(i).getNumericalValues().dot(v)/vNrmSqrd;
+                }
                 //we need this in sorted order later, so lets just sort them now
                 Arrays.sort(xp, 0, X.size());
-                DenseVector Xp = new DenseVector(xp, 0, X.size());
+                final DenseVector Xp = new DenseVector(xp, 0, X.size());
                 
                 Xp.mutableSubtract(Xp.mean());
                 Xp.mutableDivide(Math.max(Xp.standardDeviation(), 1e-6));
                 
 
                 //5. 
-                for(int i = 0; i < Xp.length(); i++)
-                    Xp.set(i, Normal.cdf(Xp.get(i), 0, 1));
+                for(int i = 0; i < Xp.length(); i++) {
+                  Xp.set(i, Normal.cdf(Xp.get(i), 0, 1));
+                }
                 double A = 0;
                 for(int i = 1; i <= Xp.length(); i++)
                 {
-                    double phi = Xp.get(i-1);
+                    final double phi = Xp.get(i-1);
                     A += (2*i-1)*log(phi) + (2*(n-i)+1)*log(1-phi);
                 }
                 
@@ -245,34 +252,39 @@ public class GMeans extends KMeans
 
                 if(A <= thresh)
                 {
-                    if(trustH0)//if we are going to trust that H0 is true forever, mark it
-                        dontRedo.set(c, true);
+                    if(trustH0) {//if we are going to trust that H0 is true forever, mark it
+                      dontRedo.set(c, true);
+                    }
                     continue;//passed the test, do not split
                 }
                 //else, accept the split
 
                 //first, update assignment array. Cluster '0' stays as is, re-set cluster '1'
-                for(int i = 0; i < X.size(); i++)
-                    if(subC[i] == 1)
-                        designations[subS[i]] = means.size();
+                for(int i = 0; i < X.size(); i++) {
+                  if (subC[i] == 1) {
+                    designations[subS[i]] = means.size();
+                  }
+                }
                 //replace current mean and add new one
                 means.set(c, c1.clone());//cur index in dontRedo stays false
                 means.add(c2.clone());//add a 'false' for new center
                 dontRedo.add(false);
             }
             //"Between each round of splitting, we run k-means on the entire dataset and all the centers to refine the current solution"
-            if(iterativeRefine && means.size() > 1)
-                kmeans.cluster(dataSet, accelCache, means.size(), means, designations, false, threadpool, false);
+            if(iterativeRefine && means.size() > 1) {
+              kmeans.cluster(dataSet, accelCache, means.size(), means, designations, false, threadpool, false);
+            }
         }
         while (origMeans < means.size());
         
-        if(!iterativeRefine && means.size() > 1)//if we havn't been refining we need to do so now!
-            kmeans.cluster(dataSet, accelCache, means.size(), means, designations, false, threadpool, false);
+        if(!iterativeRefine && means.size() > 1) {//if we havn't been refining we need to do so now!
+          kmeans.cluster(dataSet, accelCache, means.size(), means, designations, false, threadpool, false);
+        }
         return designations;
     }
     
     @Override
-    public int[] cluster(DataSet dataSet, int lowK, int highK, int[] designations)
+    public int[] cluster(final DataSet dataSet, final int lowK, final int highK, final int[] designations)
     {
         return cluster(dataSet, lowK, highK, null, designations);
     }
@@ -284,17 +296,18 @@ public class GMeans extends KMeans
     }
 
     @Override
-    public void setIterationLimit(int iterLimit)
+    public void setIterationLimit(final int iterLimit)
     {
         kmeans.setIterationLimit(iterLimit);
     }
 
     @Override
-    public void setSeedSelection(SeedSelectionMethods.SeedSelection seedSelection)
+    public void setSeedSelection(final SeedSelectionMethods.SeedSelection seedSelection)
     {
     	//XXX when called from constructor in superclass seed is ignored
-        if(kmeans != null)//needed when initing
-            kmeans.setSeedSelection(seedSelection);
+        if(kmeans != null) {//needed when initing
+          kmeans.setSeedSelection(seedSelection);
+        }
     }
 
     @Override
@@ -305,7 +318,7 @@ public class GMeans extends KMeans
     
 
     @Override
-    protected double cluster(DataSet dataSet, List<Double> accelCache, int k, List<Vec> means, int[] assignment, boolean exactTotal, ExecutorService threadpool, boolean returnError)
+    protected double cluster(final DataSet dataSet, final List<Double> accelCache, final int k, final List<Vec> means, final int[] assignment, final boolean exactTotal, final ExecutorService threadpool, final boolean returnError)
     {
         return kmeans.cluster(dataSet, accelCache, k, means, assignment, exactTotal, threadpool, returnError);
     }

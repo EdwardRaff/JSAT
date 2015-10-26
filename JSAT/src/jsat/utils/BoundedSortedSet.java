@@ -15,34 +15,36 @@ public class BoundedSortedSet<V> extends TreeSet<V>
 	private static final long serialVersionUID = -4774987058243433217L;
 	private final int maxSize;
 
-    public BoundedSortedSet(int max)
+    public BoundedSortedSet(final int max)
     {
         super();
         this.maxSize = max;
     }
 
-    public BoundedSortedSet(int max, Comparator<? super  V> cmp)
+    public BoundedSortedSet(final int max, final Comparator<? super  V> cmp)
     {
         super(cmp);
         this.maxSize = max;
     }
     
     @Override
-    public boolean add(V e)
+    public boolean add(final V e)
     {
         super.add(e);
         
-        if(size() > maxSize)
-            remove(last());
+        if(size() > maxSize) {
+          remove(last());
+        }
         return true;
     }
 
     @Override
-    public boolean addAll(Collection<? extends V> clctn)
+    public boolean addAll(final Collection<? extends V> clctn)
     {
         super.addAll(clctn);
-        while (size() > maxSize)
-            remove(last());
+        while (size() > maxSize) {
+          remove(last());
+        }
         return true;
     }
 

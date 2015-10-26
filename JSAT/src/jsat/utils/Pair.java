@@ -9,13 +9,13 @@ public class Pair<X, Y>
     private X firstItem;
     private Y secondItem;
 
-    public Pair(X firstItem, Y secondItem)
+    public Pair(final X firstItem, final Y secondItem)
     {
         setFirstItem(firstItem);
         setSecondItem(secondItem);
     }
 
-    public void setFirstItem(X firstItem)
+    public void setFirstItem(final X firstItem)
     {
         this.firstItem = firstItem;
     }
@@ -25,7 +25,7 @@ public class Pair<X, Y>
         return firstItem;
     }
 
-    public void setSecondItem(Y secondItem)
+    public void setSecondItem(final Y secondItem)
     {
         this.secondItem = secondItem;
     }

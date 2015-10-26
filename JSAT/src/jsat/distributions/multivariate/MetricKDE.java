@@ -34,7 +34,7 @@ public class MetricKDE extends MultivariateKDE implements Parameterized
 	private KernelFunction kf;
     private double bandwidth;
     private DistanceMetric distanceMetric;
-    private VectorCollectionFactory<VecPaired<Vec, Integer>> vcf;
+    private final VectorCollectionFactory<VecPaired<Vec, Integer>> vcf;
     private VectorCollection<VecPaired<Vec, Integer>> vecCollection;
     private int defaultK;
     private double defaultStndDev;
@@ -81,7 +81,7 @@ public class MetricKDE extends MultivariateKDE implements Parameterized
                 }
 
                 @Override
-                public boolean setObject(KernelFunction obj)
+                public boolean setObject(final KernelFunction obj)
                 {
                     setKernelFunction(obj);
                     return true;
@@ -93,7 +93,7 @@ public class MetricKDE extends MultivariateKDE implements Parameterized
 			private static final long serialVersionUID = 1506569342529820853L;
 
 				@Override
-                public boolean setMetric(DistanceMetric val)
+                public boolean setMetric(final DistanceMetric val)
                 {
                     setDistanceMetric(val);
                     return true;
@@ -117,10 +117,11 @@ public class MetricKDE extends MultivariateKDE implements Parameterized
                 }
 
                 @Override
-                public boolean setValue(int val)
+                public boolean setValue(final int val)
                 {
-                    if(val < 1)
-                        return false;
+                    if(val < 1) {
+                      return false;
+                    }
                     setDefaultK(val);
                     return true;
                 }
@@ -143,14 +144,14 @@ public class MetricKDE extends MultivariateKDE implements Parameterized
                 }
 
                 @Override
-                public boolean setValue(double val)
+                public boolean setValue(final double val)
                 {
                     try
                     {
                         setDefaultStndDev(val);
                         return true;
                     }
-                    catch (ArithmeticException e)
+                    catch (final ArithmeticException e)
                     {
                         return false;
                     }
@@ -179,7 +180,7 @@ public class MetricKDE extends MultivariateKDE implements Parameterized
      * 
      * @param distanceMetric the distance metric to use
      */
-    public MetricKDE(DistanceMetric distanceMetric)    
+    public MetricKDE(final DistanceMetric distanceMetric)    
     {
         this(DEFAULT_KF, distanceMetric, defaultVCF);
     }
@@ -189,12 +190,12 @@ public class MetricKDE extends MultivariateKDE implements Parameterized
      * @param distanceMetric the distance metric to use
      * @param vcf a factory to generate vector collection from
      */
-    public MetricKDE(DistanceMetric distanceMetric, VectorCollectionFactory<VecPaired<Vec, Integer>> vcf)    
+    public MetricKDE(final DistanceMetric distanceMetric, final VectorCollectionFactory<VecPaired<Vec, Integer>> vcf)    
     {
         this(DEFAULT_KF, distanceMetric, vcf);
     }
 
-    public MetricKDE(KernelFunction kf, DistanceMetric distanceMetric)
+    public MetricKDE(final KernelFunction kf, final DistanceMetric distanceMetric)
     {
         this(kf, distanceMetric, new DefaultVectorCollectionFactory<VecPaired<Vec, Integer>>());
     }
@@ -205,7 +206,7 @@ public class MetricKDE extends MultivariateKDE implements Parameterized
      * @param distanceMetric the distance metric to use
      * @param vcf a factory to generate vector collection from
      */
-    public MetricKDE(KernelFunction kf, DistanceMetric distanceMetric, VectorCollectionFactory<VecPaired<Vec, Integer>> vcf)
+    public MetricKDE(final KernelFunction kf, final DistanceMetric distanceMetric, final VectorCollectionFactory<VecPaired<Vec, Integer>> vcf)
     {
         this(kf, distanceMetric, vcf, DEFAULT_K, DEFAULT_STND_DEV);
     }
@@ -218,7 +219,7 @@ public class MetricKDE extends MultivariateKDE implements Parameterized
      * @param defaultK the default neighbor to use when estimating the bandwidth
      * @param defaultStndDev the default multiple of standard deviations to add when estimating the bandwidth
      */
-    public MetricKDE(KernelFunction kf, DistanceMetric distanceMetric, VectorCollectionFactory<VecPaired<Vec, Integer>> vcf, int defaultK, double defaultStndDev)
+    public MetricKDE(final KernelFunction kf, final DistanceMetric distanceMetric, final VectorCollectionFactory<VecPaired<Vec, Integer>> vcf, final int defaultK, final double defaultStndDev)
     {
         setKernelFunction(kf);
         this.distanceMetric = distanceMetric;
@@ -234,10 +235,11 @@ public class MetricKDE extends MultivariateKDE implements Parameterized
      * @param bandwidth the bandwidth to use for estimation
      * @throws ArithmeticException if the bandwidth given is not a positive number 
      */
-    public void setBandwith(double bandwidth)
+    public void setBandwith(final double bandwidth)
     {
-        if(bandwidth <= 0 || Double.isNaN(bandwidth) || Double.isInfinite(bandwidth))
-            throw new ArithmeticException("Invalid bandwith given, bandwith must be a positive number, not " + bandwidth);
+        if(bandwidth <= 0 || Double.isNaN(bandwidth) || Double.isInfinite(bandwidth)) {
+          throw new ArithmeticException("Invalid bandwith given, bandwith must be a positive number, not " + bandwidth);
+        }
         this.bandwidth = bandwidth;
     }
 
@@ -256,10 +258,11 @@ public class MetricKDE extends MultivariateKDE implements Parameterized
      * 
      * @param defaultK 
      */
-    public void setDefaultK(int defaultK)
+    public void setDefaultK(final int defaultK)
     {
-        if(defaultK <= 0)
-            throw new ArithmeticException("At least one neighbor must be taken into acount, " + defaultK + " is invalid");
+        if(defaultK <= 0) {
+          throw new ArithmeticException("At least one neighbor must be taken into acount, " + defaultK + " is invalid");
+        }
         this.defaultK = defaultK;
     }
 
@@ -279,10 +282,11 @@ public class MetricKDE extends MultivariateKDE implements Parameterized
      * 
      * @param defaultStndDev the multiple of the standard deviation to add the to bandwidth estimate
      */
-    public void setDefaultStndDev(double defaultStndDev)
+    public void setDefaultStndDev(final double defaultStndDev)
     {
-        if(Double.isInfinite(defaultStndDev) || Double.isNaN(defaultStndDev) || defaultStndDev <= 0)
-            throw new ArithmeticException("The number of standard deviations to remove must bea postive number, not " + defaultStndDev);
+        if(Double.isInfinite(defaultStndDev) || Double.isNaN(defaultStndDev) || defaultStndDev <= 0) {
+          throw new ArithmeticException("The number of standard deviations to remove must bea postive number, not " + defaultStndDev);
+        }
         this.defaultStndDev = defaultStndDev;
     }
 
@@ -308,7 +312,7 @@ public class MetricKDE extends MultivariateKDE implements Parameterized
      * Sets the distance metric that is used for density estimation
      * @param distanceMetric the metric to use
      */
-    public void setDistanceMetric(DistanceMetric distanceMetric)
+    public void setDistanceMetric(final DistanceMetric distanceMetric)
     {
         this.distanceMetric = distanceMetric;
     }
@@ -316,48 +320,55 @@ public class MetricKDE extends MultivariateKDE implements Parameterized
     @Override
     public MetricKDE clone()
     {
-        MetricKDE clone = new MetricKDE(kf, distanceMetric.clone(), vcf.clone(), defaultK, defaultStndDev);
+        final MetricKDE clone = new MetricKDE(kf, distanceMetric.clone(), vcf.clone(), defaultK, defaultStndDev);
         clone.bandwidth = this.bandwidth;
-        if(this.vecCollection != null)
-            clone.vecCollection = this.vecCollection.clone();
+        if(this.vecCollection != null) {
+          clone.vecCollection = this.vecCollection.clone();
+        }
         return clone;
     }
 
     @Override
-    public List<? extends VecPaired<VecPaired<Vec, Integer>, Double>> getNearby(Vec x)
+    public List<? extends VecPaired<VecPaired<Vec, Integer>, Double>> getNearby(final Vec x)
     {
-        if(vecCollection == null)
-            throw new UntrainedModelException("Model has not yet been created");
-        List<? extends VecPaired<VecPaired<Vec, Integer>, Double>> nearBy = getNearbyRaw(x);
+        if(vecCollection == null) {
+          throw new UntrainedModelException("Model has not yet been created");
+        }
+        final List<? extends VecPaired<VecPaired<Vec, Integer>, Double>> nearBy = getNearbyRaw(x);
         //Normalize from their distances to their weights by kernel function
-        for(VecPaired<VecPaired<Vec, Integer>, Double> result : nearBy)
-            result.setPair(kf.k(result.getPair()));
+        for(final VecPaired<VecPaired<Vec, Integer>, Double> result : nearBy) {
+          result.setPair(kf.k(result.getPair()));
+        }
         return nearBy;
     }
     
     @Override
-    public List<? extends VecPaired<VecPaired<Vec, Integer>, Double>> getNearbyRaw(Vec x)
+    public List<? extends VecPaired<VecPaired<Vec, Integer>, Double>> getNearbyRaw(final Vec x)
     {
-        if(vecCollection == null)
-            throw new UntrainedModelException("Model has not yet been created");
-        List<? extends VecPaired<VecPaired<Vec, Integer>, Double>> nearBy = vecCollection.search(x, bandwidth*kf.cutOff());
+        if(vecCollection == null) {
+          throw new UntrainedModelException("Model has not yet been created");
+        }
+        final List<? extends VecPaired<VecPaired<Vec, Integer>, Double>> nearBy = vecCollection.search(x, bandwidth*kf.cutOff());
 
-        for(VecPaired<VecPaired<Vec, Integer>, Double> result : nearBy)
-            result.setPair(result.getPair()/bandwidth);
+        for(final VecPaired<VecPaired<Vec, Integer>, Double> result : nearBy) {
+          result.setPair(result.getPair()/bandwidth);
+        }
         return nearBy;
     }
         
     @Override
-    public double pdf(Vec x)
+    public double pdf(final Vec x)
     {
-        List<? extends VecPaired<VecPaired<Vec, Integer>, Double>> nearBy = getNearby(x);
+        final List<? extends VecPaired<VecPaired<Vec, Integer>, Double>> nearBy = getNearby(x);
         
-        if(nearBy.isEmpty())
-            return 0;
+        if(nearBy.isEmpty()) {
+          return 0;
+        }
         
         double PDF = 0;
-        for(VecPaired<VecPaired<Vec, Integer>, Double> result : nearBy)
-            PDF+= result.getPair();
+        for(final VecPaired<VecPaired<Vec, Integer>, Double> result : nearBy) {
+          PDF+= result.getPair();
+        }
         
         return PDF / (vecCollection.size() * Math.pow(bandwidth, nearBy.get(0).length()));
     }
@@ -368,7 +379,7 @@ public class MetricKDE extends MultivariateKDE implements Parameterized
      * @param bandwith the bandwidth 
      * @return <tt>true</tt> if the model was fit, <tt>false</tt> if it could not be fit. 
      */
-    public <V extends Vec> boolean setUsingData(List<V> dataSet, double bandwith)
+    public <V extends Vec> boolean setUsingData(final List<V> dataSet, final double bandwith)
     {
         return setUsingData(dataSet, bandwith, null);
     }
@@ -380,19 +391,21 @@ public class MetricKDE extends MultivariateKDE implements Parameterized
      * @param threadpool the source of threads for parallel construction
      * @return <tt>true</tt> if the model was fit, <tt>false</tt> if it could not be fit. 
      */
-    public <V extends Vec> boolean setUsingData(List<V> dataSet, double bandwith, ExecutorService threadpool)
+    public <V extends Vec> boolean setUsingData(final List<V> dataSet, final double bandwith, final ExecutorService threadpool)
     {
         setBandwith(bandwith);
-        List<VecPaired<Vec, Integer>> indexVectorPair = new ArrayList<VecPaired<Vec, Integer>>(dataSet.size());
-        for(int i = 0; i < dataSet.size(); i++)
-            indexVectorPair.add(new VecPaired<Vec, Integer>(dataSet.get(i), i));
+        final List<VecPaired<Vec, Integer>> indexVectorPair = new ArrayList<VecPaired<Vec, Integer>>(dataSet.size());
+        for(int i = 0; i < dataSet.size(); i++) {
+          indexVectorPair.add(new VecPaired<Vec, Integer>(dataSet.get(i), i));
+        }
         
         TrainableDistanceMetric.trainIfNeeded(distanceMetric, dataSet, threadpool);
         
-        if(threadpool == null)
-            vecCollection = vcf.getVectorCollection(indexVectorPair, distanceMetric);
-        else
-            vecCollection = vcf.getVectorCollection(indexVectorPair, distanceMetric, threadpool);
+        if(threadpool == null) {
+          vecCollection = vcf.getVectorCollection(indexVectorPair, distanceMetric);
+        } else {
+          vecCollection = vcf.getVectorCollection(indexVectorPair, distanceMetric, threadpool);
+        }
         
         return true;
     }
@@ -404,7 +417,7 @@ public class MetricKDE extends MultivariateKDE implements Parameterized
      * @param k the number of neighbors to use to estimate the bandwidth
      * @return <tt>true</tt> if the model was fit, <tt>false</tt> if it could not be fit. 
      */
-    public <V extends Vec> boolean setUsingData(List<V> dataSet, int k)
+    public <V extends Vec> boolean setUsingData(final List<V> dataSet, final int k)
     {
         return setUsingData(dataSet, k, defaultStndDev);
     }
@@ -417,7 +430,7 @@ public class MetricKDE extends MultivariateKDE implements Parameterized
      * @param threadpool the source of threads for computation
      * @return <tt>true</tt> if the model was fit, <tt>false</tt> if it could not be fit. 
      */
-    public <V extends Vec> boolean setUsingData(List<V> dataSet, int k, ExecutorService threadpool)
+    public <V extends Vec> boolean setUsingData(final List<V> dataSet, final int k, final ExecutorService threadpool)
     {
         return setUsingData(dataSet, k, defaultStndDev, threadpool);
     }
@@ -433,7 +446,7 @@ public class MetricKDE extends MultivariateKDE implements Parameterized
      * @param stndDevs the multiple of the standard deviation to add to the mean of the distances
      * @return <tt>true</tt> if the model was fit, <tt>false</tt> if it could not be fit. 
      */
-    public <V extends Vec> boolean setUsingData(List<V> dataSet, int k, double stndDevs)
+    public <V extends Vec> boolean setUsingData(final List<V> dataSet, final int k, final double stndDevs)
     {
         return setUsingData(dataSet, k, stndDevs, null);
     }
@@ -450,33 +463,35 @@ public class MetricKDE extends MultivariateKDE implements Parameterized
      * @param threadpool the source of threads to use for computation
      * @return <tt>true</tt> if the model was fit, <tt>false</tt> if it could not be fit. 
      */
-    public <V extends Vec> boolean setUsingData(List<V> dataSet, int k, double stndDevs, ExecutorService threadpool)
+    public <V extends Vec> boolean setUsingData(final List<V> dataSet, final int k, final double stndDevs, final ExecutorService threadpool)
     {
-        List<VecPaired<Vec, Integer>> indexVectorPair = new ArrayList<VecPaired<Vec, Integer>>(dataSet.size());
-        for(int i = 0; i < dataSet.size(); i++)
-            indexVectorPair.add(new VecPaired<Vec, Integer>(dataSet.get(i), i));
+        final List<VecPaired<Vec, Integer>> indexVectorPair = new ArrayList<VecPaired<Vec, Integer>>(dataSet.size());
+        for(int i = 0; i < dataSet.size(); i++) {
+          indexVectorPair.add(new VecPaired<Vec, Integer>(dataSet.get(i), i));
+        }
         TrainableDistanceMetric.trainIfNeeded(distanceMetric, dataSet, threadpool);
         vecCollection = vcf.getVectorCollection(indexVectorPair, distanceMetric);
         
         //Take the average of the k'th neighbor distance to use as the bandwith
         OnLineStatistics stats;
-        if(threadpool == null)//k+1 b/c the first nearest neighbor will be itself
-            stats = VectorCollectionUtils.getKthNeighborStats(vecCollection, dataSet, k + 1);
-        else
-            try
-            {
-                stats = VectorCollectionUtils.getKthNeighborStats(vecCollection, dataSet, k + 1, threadpool);
-            }
-            catch (InterruptedException ex)
-            {
-                Logger.getLogger(MetricKDE.class.getName()).log(Level.SEVERE, null, ex);
-                return false;
-            }
-            catch (ExecutionException ex)
-            {
-                Logger.getLogger(MetricKDE.class.getName()).log(Level.SEVERE, null, ex);
-                return false;
-            }
+        if(threadpool == null) {//k+1 b/c the first nearest neighbor will be itself
+          stats = VectorCollectionUtils.getKthNeighborStats(vecCollection, dataSet, k + 1);
+        } else {
+          try
+          {
+            stats = VectorCollectionUtils.getKthNeighborStats(vecCollection, dataSet, k + 1, threadpool);
+          }
+          catch (final InterruptedException ex)
+          {
+            Logger.getLogger(MetricKDE.class.getName()).log(Level.SEVERE, null, ex);
+            return false;
+          }
+          catch (final ExecutionException ex)
+          {
+            Logger.getLogger(MetricKDE.class.getName()).log(Level.SEVERE, null, ex);
+            return false;
+          }
+        }
 
         setBandwith(stats.getMean() + stats.getStandardDeviation() * stndDevs);
 
@@ -484,32 +499,34 @@ public class MetricKDE extends MultivariateKDE implements Parameterized
     }
     
     @Override
-    public <V extends Vec> boolean setUsingData(List<V> dataSet)
+    public <V extends Vec> boolean setUsingData(final List<V> dataSet)
     {
         return setUsingData(dataSet, defaultK);
     }
 
     @Override
-    public <V extends Vec> boolean setUsingData(List<V> dataSet, ExecutorService threadpool)
+    public <V extends Vec> boolean setUsingData(final List<V> dataSet, final ExecutorService threadpool)
     {
         return setUsingData(dataSet, defaultK, threadpool);
     }
     
     @Override
-    public boolean setUsingDataList(List<DataPoint> dataPoints)
+    public boolean setUsingDataList(final List<DataPoint> dataPoints)
     {
-        List<Vec> dataSet = new ArrayList<Vec>(dataPoints.size());
-        for(DataPoint dp : dataPoints)
-            dataSet.add(dp.getNumericalValues());
+        final List<Vec> dataSet = new ArrayList<Vec>(dataPoints.size());
+        for(final DataPoint dp : dataPoints) {
+          dataSet.add(dp.getNumericalValues());
+        }
         return setUsingData(dataSet);
     }
 
     @Override
-    public boolean setUsingDataList(List<DataPoint> dataPoints, ExecutorService threadpool)
+    public boolean setUsingDataList(final List<DataPoint> dataPoints, final ExecutorService threadpool)
     {
-        List<Vec> dataSet = new ArrayList<Vec>(dataPoints.size());
-        for(DataPoint dp : dataPoints)
-            dataSet.add(dp.getNumericalValues());
+        final List<Vec> dataSet = new ArrayList<Vec>(dataPoints.size());
+        for(final DataPoint dp : dataPoints) {
+          dataSet.add(dp.getNumericalValues());
+        }
         return setUsingData(dataSet, threadpool);
     }
 
@@ -521,7 +538,7 @@ public class MetricKDE extends MultivariateKDE implements Parameterized
      * @throws UnsupportedOperationException not yet implemented
      */
     @Override
-    public List<Vec> sample(int count, Random rand)
+    public List<Vec> sample(final int count, final Random rand)
     {
         //TODO implement sampling
         throw new UnsupportedOperationException("Not supported yet.");
@@ -533,13 +550,13 @@ public class MetricKDE extends MultivariateKDE implements Parameterized
         return kf;
     }
 
-    public void setKernelFunction(KernelFunction kf)
+    public void setKernelFunction(final KernelFunction kf)
     {
         this.kf = kf;
     }
 
     @Override
-    public void scaleBandwidth(double scale)
+    public void scaleBandwidth(final double scale)
     {
         bandwidth *= scale;
     }
@@ -551,7 +568,7 @@ public class MetricKDE extends MultivariateKDE implements Parameterized
     }
 
     @Override
-    public Parameter getParameter(String paramName)
+    public Parameter getParameter(final String paramName)
     {
         return paramMap.get(paramName);
     }

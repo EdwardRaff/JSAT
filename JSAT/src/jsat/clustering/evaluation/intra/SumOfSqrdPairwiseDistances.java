@@ -37,7 +37,7 @@ public class SumOfSqrdPairwiseDistances implements IntraClusterEvaluation
      *
      * @param dm the distance metric to use
      */
-    public SumOfSqrdPairwiseDistances(DistanceMetric dm)
+    public SumOfSqrdPairwiseDistances(final DistanceMetric dm)
     {
         this.dm = dm;
     }
@@ -46,7 +46,7 @@ public class SumOfSqrdPairwiseDistances implements IntraClusterEvaluation
      * Copy constructor
      * @param toCopy the object to copy
      */
-    public SumOfSqrdPairwiseDistances(SumOfSqrdPairwiseDistances toCopy)
+    public SumOfSqrdPairwiseDistances(final SumOfSqrdPairwiseDistances toCopy)
     {
         this(toCopy.dm.clone());
     }
@@ -56,7 +56,7 @@ public class SumOfSqrdPairwiseDistances implements IntraClusterEvaluation
      * evaluate a cluster
      * @param dm the distance metric to use
      */
-    public void setDistanceMetric(DistanceMetric dm)
+    public void setDistanceMetric(final DistanceMetric dm)
     {
         this.dm = dm;
     }
@@ -71,30 +71,32 @@ public class SumOfSqrdPairwiseDistances implements IntraClusterEvaluation
     }
     
     @Override
-    public double evaluate(int[] designations, DataSet dataSet, int clusterID)
+    public double evaluate(final int[] designations, final DataSet dataSet, final int clusterID)
     {
         int N = 0;
         double sum = 0;
-        List<Vec> X = dataSet.getDataVectors();
-        List<Double> cache = dm.getAccelerationCache(X);
+        final List<Vec> X = dataSet.getDataVectors();
+        final List<Double> cache = dm.getAccelerationCache(X);
 
         if (dm instanceof EuclideanDistance)//special case, can compute in O(N) isntead
         {
-            Vec mean = new DenseVector(X.get(0).length());
+            final Vec mean = new DenseVector(X.get(0).length());
             for (int i = 0; i < dataSet.getSampleSize(); i++)
             {
-                if (designations[i] != clusterID)
-                    continue;
+                if (designations[i] != clusterID) {
+                  continue;
+                }
                 mean.mutableAdd(X.get(i));
                 N++;
             }
             mean.mutableDivide((N + 1e-10));//1e-10 incase N=0
 
-            List<Double> qi = dm.getQueryInfo(mean);
+            final List<Double> qi = dm.getQueryInfo(mean);
             for (int i = 0; i < dataSet.getSampleSize(); i++)
             {
-                if (designations[i] == clusterID)
-                    sum += Math.pow(dm.dist(i, mean, qi, X, cache), 2);
+                if (designations[i] == clusterID) {
+                  sum += Math.pow(dm.dist(i, mean, qi, X, cache), 2);
+                }
             }
 
             return sum;
@@ -103,14 +105,16 @@ public class SumOfSqrdPairwiseDistances implements IntraClusterEvaluation
 
         for (int i = 0; i < dataSet.getSampleSize(); i++)
         {
-            if (designations[i] != clusterID)
-                continue;
+            if (designations[i] != clusterID) {
+              continue;
+            }
             N++;
 
             for (int j = i + 1; j < dataSet.getSampleSize(); j++)
             {
-                if (designations[j] == clusterID)
-                    sum += 2*Math.pow(dm.dist(i, j, X, cache), 2);
+                if (designations[j] == clusterID) {
+                  sum += 2*Math.pow(dm.dist(i, j, X, cache), 2);
+                }
             }
         }
 
@@ -118,7 +122,7 @@ public class SumOfSqrdPairwiseDistances implements IntraClusterEvaluation
     }
 
     @Override
-    public double evaluate(List<DataPoint> dataPoints)
+    public double evaluate(final List<DataPoint> dataPoints)
     {
         return evaluate(new int[dataPoints.size()], new SimpleDataSet(dataPoints), 0);
     }

@@ -38,7 +38,7 @@ public abstract class SimpleBinaryClassMetric implements ClassificationScore
     {
     }
 
-    public SimpleBinaryClassMetric(SimpleBinaryClassMetric toClone)
+    public SimpleBinaryClassMetric(final SimpleBinaryClassMetric toClone)
     {
         this.tp = toClone.tp;
         this.tn = toClone.tn;
@@ -47,34 +47,36 @@ public abstract class SimpleBinaryClassMetric implements ClassificationScore
     }
     
     @Override
-    public void addResult(CategoricalResults prediction, int trueLabel, double weight)
+    public void addResult(final CategoricalResults prediction, final int trueLabel, final double weight)
     {
-        int pred = prediction.mostLikely();
-        if(pred == trueLabel)
-            if(pred == 0)
-                tp += weight;
-            else
-                tn += weight;
-        else
+        final int pred = prediction.mostLikely();
+        if(pred == trueLabel) {
+          if (pred == 0) {
+            tp += weight;
+          } else {
+            tn += weight;
+          }
+        } else
         {
-            if(pred == 0)
-                fp += weight;
-            else
-                fn += weight;
+            if(pred == 0) {
+              fp += weight;
+          } else {
+              fn += weight;
+          }
         }
         
     }
 
     @Override
-    public void prepare(CategoricalData toPredict)
+    public void prepare(final CategoricalData toPredict)
     {
         tp = tn = fp = fn = 0;
     }
 
     @Override
-    public void addResults(ClassificationScore other)
+    public void addResults(final ClassificationScore other)
     {
-        SimpleBinaryClassMetric otherObj = (SimpleBinaryClassMetric) other;
+        final SimpleBinaryClassMetric otherObj = (SimpleBinaryClassMetric) other;
         this.tp += otherObj.tp;
         this.tn += otherObj.tn;
         this.fp += otherObj.fp;

@@ -33,12 +33,13 @@ public class ListUtils
      * @param count the number of lists to partition the source into. 
      * @return a lists of lists, each of with the same size with at most a difference of 1. 
      */
-    public static <T> List<List<T>> splitList(List<T> source, int count)
+    public static <T> List<List<T>> splitList(final List<T> source, final int count)
     {
-        if(count <= 0)
-            throw new RuntimeException("Chunks must be greater then 0, not " + count);
-        List<List<T>> chunks = new ArrayList<List<T>>(count);
-        int baseSize = source.size() / count;
+        if(count <= 0) {
+          throw new RuntimeException("Chunks must be greater then 0, not " + count);
+        }
+        final List<List<T>> chunks = new ArrayList<List<T>>(count);
+        final int baseSize = source.size() / count;
         int remainder = source.size() % count;
         int start = 0;
         
@@ -46,8 +47,9 @@ public class ListUtils
         for(int i = 0; i < count; i++)
         {
             int end = start+baseSize;
-            if(remainder-- > 0)
-                end++;
+            if(remainder-- > 0) {
+              end++;
+            }
             chunks.add(source.subList(start, end));
             start = end;
         }
@@ -64,18 +66,19 @@ public class ListUtils
      */
     public static <T> List<T> mergedView(final List<T> left, final List<T> right)
     {
-        List<T> merged = new AbstractList<T>() 
+        final List<T> merged = new AbstractList<T>() 
         {
 
             @Override
-            public T get(int index)
+            public T get(final int index)
             {
-                if(index < left.size())
-                    return left.get(index);
-                else if(index-left.size() < right.size())
-                    return right.get(index-left.size());
-                else
-                    throw new IndexOutOfBoundsException("List of lengt " + size() + " has no index " + index);
+                if(index < left.size()) {
+                  return left.get(index);
+                } else if(index-left.size() < right.size()) {
+                  return right.get(index-left.size());
+                } else {
+                  throw new IndexOutOfBoundsException("List of lengt " + size() + " has no index " + index);
+                }
             }
 
             @Override
@@ -93,9 +96,9 @@ public class ListUtils
      * @param i the first position to swap
      * @param j the second position to swap
      */
-    public static void swap(List list, int i, int j)
+    public static void swap(final List list, final int i, final int j)
     {
-        Object tmp = list.get(i);
+        final Object tmp = list.get(i);
         list.set(i, list.get(j));
         list.set(j, tmp);
     }
@@ -108,12 +111,13 @@ public class ListUtils
      * @throws ExecutionException 
      * @throws InterruptedException 
      */
-    public static <T> List<T> collectFutures(Collection<Future<T>> futures) throws ExecutionException, InterruptedException
+    public static <T> List<T> collectFutures(final Collection<Future<T>> futures) throws ExecutionException, InterruptedException
     {
-        ArrayList<T> collected = new ArrayList<T>(futures.size());
+        final ArrayList<T> collected = new ArrayList<T>(futures.size());
 
-        for (Future<T> future : futures)
-                collected.add(future.get());
+        for (final Future<T> future : futures) {
+          collected.add(future.get());
+        }
 
         return collected;
     }
@@ -129,13 +133,15 @@ public class ListUtils
      * @param step the step size. 
      * @throws RuntimeException if the step size is zero or negative.
      */
-    public static void addRange(Collection<Integer> c, int start, int to, int step)
+    public static void addRange(final Collection<Integer> c, final int start, final int to, final int step)
     {
-        if(step <= 0)
-            throw new RuntimeException("Would create an infinite loop");
+        if(step <= 0) {
+          throw new RuntimeException("Would create an infinite loop");
+        }
         
-        for(int i = start; i < to; i+= step)
-            c.add(i);
+        for(int i = start; i < to; i+= step) {
+          c.add(i);
+        }
     }
     
     /**
@@ -151,7 +157,7 @@ public class ListUtils
      * @throws IllegalArgumentException if the sample size is not positive or l
      * arger than the source population. 
      */
-    public static <T> void randomSample(List<T> source, List<T> dest, int samples, Random rand)
+    public static <T> void randomSample(final List<T> source, final List<T> dest, final int samples, final Random rand)
     {
         randomSample((Collection<T>)source, dest, samples, rand);
     }
@@ -172,15 +178,16 @@ public class ListUtils
      * @throws IllegalArgumentException if the sample size is not positive or l
      * arger than the source population. 
      */
-    public static <T> void randomSample(Collection<T> source, Collection<T> dest, int samples, Random rand)
+    public static <T> void randomSample(final Collection<T> source, final Collection<T> dest, int samples, final Random rand)
     {
-        if(samples > source.size())
-            throw new IllegalArgumentException("Can not obtain a number of samples larger than the source population");
-        else if(samples <= 0)
-            throw new IllegalArgumentException("Sample size must be positive");
+        if(samples > source.size()) {
+          throw new IllegalArgumentException("Can not obtain a number of samples larger than the source population");
+        } else if(samples <= 0) {
+          throw new IllegalArgumentException("Sample size must be positive");
+        }
         //Use samples to keep track of how many more samples we need
         int remainingPopulation = source.size();
-        for(T member : source)
+        for(final T member : source)
         {
             if(rand.nextInt(remainingPopulation) < samples)
             {
@@ -203,7 +210,7 @@ public class ListUtils
      * @throws IllegalArgumentException if the sample size is not positive or l
      * arger than the source population. 
      */
-    public static <T> void randomSample(List<T> source, List<T> dest, int samples)
+    public static <T> void randomSample(final List<T> source, final List<T> dest, final int samples)
     {
         randomSample(source, dest, samples, new Random());
     }

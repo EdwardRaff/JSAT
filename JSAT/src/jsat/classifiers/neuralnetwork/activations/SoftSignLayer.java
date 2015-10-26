@@ -22,47 +22,49 @@ public class SoftSignLayer implements ActivationLayer
 	private static final long serialVersionUID = 9137125423044227288L;
 
 	@Override
-    public void activate(Vec input, Vec output)
+    public void activate(final Vec input, final Vec output)
     {
         for(int i = 0; i < input.length(); i++)
         {
-            double in_i = input.get(i);
+            final double in_i = input.get(i);
             output.set(i, in_i/(1.0+Math.abs(in_i)));
         }
     }
 
     @Override
-    public void activate(Matrix input, Matrix output, boolean rowMajor)
+    public void activate(final Matrix input, final Matrix output, final boolean rowMajor)
     {
-        for(int i = 0; i < input.rows(); i++)
-            for(int j = 0; j < input.cols(); j++)
-            {
-                double in_ij = input.get(i, j);
-                output.set(i, j, in_ij/(1.0+Math.abs(in_ij)));
-            }
+        for(int i = 0; i < input.rows(); i++) {
+          for(int j = 0; j < input.cols(); j++)
+          {
+            final double in_ij = input.get(i, j);
+            output.set(i, j, in_ij/(1.0+Math.abs(in_ij)));
+          }
+        }
     }
     
     @Override
-    public void backprop(Vec input, Vec output, Vec delta_partial, Vec errout)
+    public void backprop(final Vec input, final Vec output, final Vec delta_partial, final Vec errout)
     {
         for(int i = 0; i < input.length(); i++)
         {
-            double tmp_i = (1-Math.abs(output.get(i)));
-            double errin_i = delta_partial.get(i);
+            final double tmp_i = (1-Math.abs(output.get(i)));
+            final double errin_i = delta_partial.get(i);
             errout.set(i, tmp_i*tmp_i*errin_i);
         }
     }
 
     @Override
-    public void backprop(Matrix input, Matrix output, Matrix delta_partial, Matrix errout, boolean rowMajor)
+    public void backprop(final Matrix input, final Matrix output, final Matrix delta_partial, final Matrix errout, final boolean rowMajor)
     {
-        for(int i = 0; i < input.rows(); i++)
-            for (int j = 0; j < input.cols(); j++)
-            {
-                double tmp_ij = (1 - Math.abs(output.get(i, j)));
-                double errin_ij = delta_partial.get(i, j);
-                errout.set(i, j, tmp_ij*tmp_ij*errin_ij);
-            }
+        for(int i = 0; i < input.rows(); i++) {
+          for (int j = 0; j < input.cols(); j++)
+          {
+            final double tmp_ij = (1 - Math.abs(output.get(i, j)));
+            final double errin_ij = delta_partial.get(i, j);
+            errout.set(i, j, tmp_ij*tmp_ij*errin_ij);
+          }
+        }
     }
 
     @Override

@@ -51,35 +51,35 @@ public class FastICATest
     {
         System.out.println("transform");
         
-        SimpleDataSet source = new SimpleDataSet(new CategoricalData[0], 2);
-        SimpleDataSet X = new SimpleDataSet(new CategoricalData[0], 2);
+        final SimpleDataSet source = new SimpleDataSet(new CategoricalData[0], 2);
+        final SimpleDataSet X = new SimpleDataSet(new CategoricalData[0], 2);
         
-        Matrix mixing_true = new DenseMatrix(new double[][]
+        final Matrix mixing_true = new DenseMatrix(new double[][]
         {
             {2, -1.5}, 
             {0.5, 0}
         });
         
-        DenseVector time = new DenseVector(200);
+        final DenseVector time = new DenseVector(200);
         for(int i = 0; i < time.length(); i++)
         {
-            double t = i/(time.length()+0.0);
+            final double t = i/(time.length()+0.0);
             time.set(i, t);
-            Vec s = DenseVector.toDenseVec(Math.cos(4*t*3.14) , Math.sin(12*t*3.14));
+            final Vec s = DenseVector.toDenseVec(Math.cos(4*t*3.14) , Math.sin(12*t*3.14));
             source.add(new DataPoint(s));
             X.add(new DataPoint(s.multiply(mixing_true.transpose())));
         }
         
         
-        SimpleDataSet origX = X.shallowClone();
+        final SimpleDataSet origX = X.shallowClone();
         
-        FastICA ica = new FastICA(X, 2);
+        final FastICA ica = new FastICA(X, 2);
         
         X.applyTransform(ica);
         
         //make sure scales match up. Keep 0 as the axis around which the sign changes so comparisons work when ICA acidently gest the wrong sign
-        LinearTransform linearX = new LinearTransform(X, -1, 1);
-        LinearTransform linearS = new LinearTransform(source, -1, 1);
+        final LinearTransform linearX = new LinearTransform(X, -1, 1);
+        final LinearTransform linearS = new LinearTransform(source, -1, 1);
         
         X.applyTransform(linearX);
         source.applyTransform(linearS);
@@ -89,26 +89,28 @@ public class FastICATest
         
         for(int found_c= 0; found_c < X.getNumNumericalVars(); found_c++)
         {
-            Vec x_c = X.getNumericColumn(found_c);
+            final Vec x_c = X.getNumericColumn(found_c);
             boolean found_match = false;
             //It has to match up to ONE of the true components
             SearchLoop:
             for(int true_c = 0; true_c < source.getNumNumericalVars(); true_c++)
             {
-                Vec t_c = source.getNumericColumn(true_c);
+                final Vec t_c = source.getNumericColumn(true_c);
                 
                 for(int i = 0; i < x_c.length(); i++)
                 {
-                    double cmp = abs(x_c.get(i))-abs(t_c.get(i));
-                    if(abs(cmp) > 1e-3)
-                        continue SearchLoop;
+                    final double cmp = abs(x_c.get(i))-abs(t_c.get(i));
+                    if(abs(cmp) > 1e-3) {
+                      continue SearchLoop;
+                    }
                 }
                 //we made it! 
                 found_match = true;
             }
             
-            if(!found_match)
-                fail("The " + found_c + " component didn't match any of the true components");
+            if(!found_match) {
+              fail("The " + found_c + " component didn't match any of the true components");
+            }
         }
         
         X.applyTransform(new InverseOfTransform(linearX));
@@ -120,26 +122,28 @@ public class FastICATest
         
         for(int inverted_c= 0; inverted_c < X.getNumNumericalVars(); inverted_c++)
         {
-            Vec x_c = X.getNumericColumn(inverted_c);
+            final Vec x_c = X.getNumericColumn(inverted_c);
             boolean found_match = false;
             //It has to match up to ONE of the true components
             SearchLoop:
             for(int true_x = 0; true_x < origX.getNumNumericalVars(); true_x++)
             {
-                Vec t_c = origX.getNumericColumn(true_x);
+                final Vec t_c = origX.getNumericColumn(true_x);
 
                 for(int i = 0; i < x_c.length(); i++)
                 {
-                    double cmp = abs(x_c.get(i))-abs(t_c.get(i));
-                    if(abs(cmp) > 1e-3)
-                        continue SearchLoop;
+                    final double cmp = abs(x_c.get(i))-abs(t_c.get(i));
+                    if(abs(cmp) > 1e-3) {
+                      continue SearchLoop;
+                    }
                 }
                 //we made it! 
                 found_match = true;
             }
             
-            if(!found_match)
-                fail("The " + inverted_c + " component didn't match any of the true components");
+            if(!found_match) {
+              fail("The " + inverted_c + " component didn't match any of the true components");
+            }
         }
     }
     
@@ -151,38 +155,38 @@ public class FastICATest
     {
         System.out.println("transform");
         
-        SimpleDataSet source = new SimpleDataSet(new CategoricalData[0], 2);
-        SimpleDataSet X = new SimpleDataSet(new CategoricalData[0], 2);
+        final SimpleDataSet source = new SimpleDataSet(new CategoricalData[0], 2);
+        final SimpleDataSet X = new SimpleDataSet(new CategoricalData[0], 2);
         
-        Matrix mixing_true = new DenseMatrix(new double[][]
+        final Matrix mixing_true = new DenseMatrix(new double[][]
         {
             {2, -1.5}, 
             {0.5, 1}
         });
         
-        DenseVector time = new DenseVector(200);
+        final DenseVector time = new DenseVector(200);
         for(int i = 0; i < time.length(); i++)
         {
-            double t = i/(time.length()+0.0);
+            final double t = i/(time.length()+0.0);
             time.set(i, t);
-            Vec s = DenseVector.toDenseVec(Math.cos(4*t*3.14) , Math.sin(12*t*3.14));
+            final Vec s = DenseVector.toDenseVec(Math.cos(4*t*3.14) , Math.sin(12*t*3.14));
             source.add(new DataPoint(s));
             X.add(new DataPoint(s.multiply(mixing_true.transpose())));
         }
-        ZeroMeanTransform zeroMean = new ZeroMeanTransform(X);
+        final ZeroMeanTransform zeroMean = new ZeroMeanTransform(X);
         X.applyTransform(zeroMean);
-        WhitenedPCA whiten = new WhitenedPCA(X);
+        final WhitenedPCA whiten = new WhitenedPCA(X);
         X.applyTransform(whiten);
         
-        SimpleDataSet origX = X.shallowClone();
+        final SimpleDataSet origX = X.shallowClone();
         
-        FastICA ica = new FastICA(X, 2, FastICA.DefaultNegEntropyFunc.LOG_COSH, true);
+        final FastICA ica = new FastICA(X, 2, FastICA.DefaultNegEntropyFunc.LOG_COSH, true);
         
         X.applyTransform(ica);
         
         //make sure scales match up. Keep 0 as the axis around which the sign changes so comparisons work when ICA acidently gest the wrong sign
-        LinearTransform linearX = new LinearTransform(X, -1, 1);
-        LinearTransform linearS = new LinearTransform(source, -1, 1);
+        final LinearTransform linearX = new LinearTransform(X, -1, 1);
+        final LinearTransform linearS = new LinearTransform(source, -1, 1);
         
         X.applyTransform(linearX);
         source.applyTransform(linearS);
@@ -192,26 +196,28 @@ public class FastICATest
         
         for(int found_c= 0; found_c < X.getNumNumericalVars(); found_c++)
         {
-            Vec x_c = X.getNumericColumn(found_c);
+            final Vec x_c = X.getNumericColumn(found_c);
             boolean found_match = false;
             //It has to match up to ONE of the true components
             SearchLoop:
             for(int true_c = 0; true_c < source.getNumNumericalVars(); true_c++)
             {
-                Vec t_c = source.getNumericColumn(true_c);
+                final Vec t_c = source.getNumericColumn(true_c);
                 
                 for(int i = 0; i < x_c.length(); i++)
                 {
-                    double cmp = abs(x_c.get(i))-abs(t_c.get(i));
-                    if(abs(cmp) > 1e-3)
-                        continue SearchLoop;
+                    final double cmp = abs(x_c.get(i))-abs(t_c.get(i));
+                    if(abs(cmp) > 1e-3) {
+                      continue SearchLoop;
+                    }
                 }
                 //we made it! 
                 found_match = true;
             }
             
-            if(!found_match)
-                fail("The " + found_c + " component didn't match any of the true components");
+            if(!found_match) {
+              fail("The " + found_c + " component didn't match any of the true components");
+            }
         }
         
         X.applyTransform(new InverseOfTransform(linearX));
@@ -224,26 +230,28 @@ public class FastICATest
         
         for(int inverted_c= 0; inverted_c < X.getNumNumericalVars(); inverted_c++)
         {
-            Vec x_c = X.getNumericColumn(inverted_c);
+            final Vec x_c = X.getNumericColumn(inverted_c);
             boolean found_match = false;
             //It has to match up to ONE of the true components
             SearchLoop:
             for(int true_x = 0; true_x < origX.getNumNumericalVars(); true_x++)
             {
-                Vec t_c = origX.getNumericColumn(true_x);
+                final Vec t_c = origX.getNumericColumn(true_x);
 
                 for(int i = 0; i < x_c.length(); i++)
                 {
-                    double cmp = abs(x_c.get(i))-abs(t_c.get(i));
-                    if(abs(cmp) > 1e-3)
-                        continue SearchLoop;
+                    final double cmp = abs(x_c.get(i))-abs(t_c.get(i));
+                    if(abs(cmp) > 1e-3) {
+                      continue SearchLoop;
+                    }
                 }
                 //we made it! 
                 found_match = true;
             }
             
-            if(!found_match)
-                fail("The " + inverted_c + " component didn't match any of the true components");
+            if(!found_match) {
+              fail("The " + inverted_c + " component didn't match any of the true components");
+            }
         }
     }
     
@@ -255,34 +263,34 @@ public class FastICATest
     {
         System.out.println("transform");
 
-        SimpleDataSet source = new SimpleDataSet(new CategoricalData[0], 2);
-        SimpleDataSet X = new SimpleDataSet(new CategoricalData[0], 3);
+        final SimpleDataSet source = new SimpleDataSet(new CategoricalData[0], 2);
+        final SimpleDataSet X = new SimpleDataSet(new CategoricalData[0], 3);
         
-        Matrix mixing_true = new DenseMatrix(new double[][]
+        final Matrix mixing_true = new DenseMatrix(new double[][]
         {
             {2, 1.5, -1}, 
             {-0.5, 1, 2},
         });
         
-        DenseVector time = new DenseVector(200);
+        final DenseVector time = new DenseVector(200);
         for(int i = 0; i < time.length(); i++)
         {
-            double t = i/(time.length()+0.0);
+            final double t = i/(time.length()+0.0);
             time.set(i, t);
-            Vec s = DenseVector.toDenseVec(Math.cos(4*t*3.14) , Math.sin(12*t*3.14));
+            final Vec s = DenseVector.toDenseVec(Math.cos(4*t*3.14) , Math.sin(12*t*3.14));
             source.add(new DataPoint(s));
             X.add(new DataPoint(mixing_true.transpose().multiply(s)));
         }
 
-        SimpleDataSet origX = X.shallowClone();
+        final SimpleDataSet origX = X.shallowClone();
         
-        FastICA ica = new FastICA(X, 2);
+        final FastICA ica = new FastICA(X, 2);
         
         X.applyTransform(ica);
         
         //make sure scales match up. Keep 0 as the axis around which the sign changes so comparisons work when ICA acidently gest the wrong sign
-        LinearTransform linearX = new LinearTransform(X, -1, 1);
-        LinearTransform linearS = new LinearTransform(source, -1, 1);
+        final LinearTransform linearX = new LinearTransform(X, -1, 1);
+        final LinearTransform linearS = new LinearTransform(source, -1, 1);
         
         X.applyTransform(linearX);
         source.applyTransform(linearS);
@@ -292,26 +300,28 @@ public class FastICATest
         
         for(int found_c= 0; found_c < X.getNumNumericalVars(); found_c++)
         {
-            Vec x_c = X.getNumericColumn(found_c);
+            final Vec x_c = X.getNumericColumn(found_c);
             boolean found_match = false;
             //It has to match up to ONE of the true components
             SearchLoop:
             for(int true_c = 0; true_c < source.getNumNumericalVars(); true_c++)
             {
-                Vec t_c = source.getNumericColumn(true_c);
+                final Vec t_c = source.getNumericColumn(true_c);
                 
                 for(int i = 0; i < x_c.length(); i++)
                 {
-                    double cmp = abs(x_c.get(i))-abs(t_c.get(i));
-                    if(abs(cmp) > 1e-3)
-                        continue SearchLoop;
+                    final double cmp = abs(x_c.get(i))-abs(t_c.get(i));
+                    if(abs(cmp) > 1e-3) {
+                      continue SearchLoop;
+                    }
                 }
                 //we made it! 
                 found_match = true;
             }
             
-            if(!found_match)
-                fail("The " + found_c + " component didn't match any of the true components");
+            if(!found_match) {
+              fail("The " + found_c + " component didn't match any of the true components");
+            }
         }
         
         X.applyTransform(new InverseOfTransform(linearX));
@@ -324,26 +334,28 @@ public class FastICATest
         
         for(int inverted_c= 0; inverted_c < X.getNumNumericalVars(); inverted_c++)
         {
-            Vec x_c = X.getNumericColumn(inverted_c);
+            final Vec x_c = X.getNumericColumn(inverted_c);
             boolean found_match = false;
             //It has to match up to ONE of the true components
             SearchLoop:
             for(int true_x = 0; true_x < origX.getNumNumericalVars(); true_x++)
             {
-                Vec t_c = origX.getNumericColumn(true_x);
+                final Vec t_c = origX.getNumericColumn(true_x);
 
                 for(int i = 0; i < x_c.length(); i++)
                 {
-                    double cmp = abs(x_c.get(i))-abs(t_c.get(i));
-                    if(abs(cmp) > 1e-3)
-                        continue SearchLoop;
+                    final double cmp = abs(x_c.get(i))-abs(t_c.get(i));
+                    if(abs(cmp) > 1e-3) {
+                      continue SearchLoop;
+                    }
                 }
                 //we made it! 
                 found_match = true;
             }
             
-            if(!found_match)
-                fail("The " + inverted_c + " component didn't match any of the true components");
+            if(!found_match) {
+              fail("The " + inverted_c + " component didn't match any of the true components");
+            }
         }
     }
 }

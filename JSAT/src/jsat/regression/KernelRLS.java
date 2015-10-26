@@ -32,7 +32,7 @@ public class KernelRLS implements UpdateableRegressor, Parameterized
 
 	private static final long serialVersionUID = -7292074388953854317L;
 	@ParameterHolder
-    private KernelTrick k;
+    private final KernelTrick k;
     private double errorTolerance;
     
     private List<Vec> vecs;
@@ -51,7 +51,7 @@ public class KernelRLS implements UpdateableRegressor, Parameterized
      * @param k the kernel trick to use
      * @param errorTolerance the tolerance for errors in the projection
      */
-    public KernelRLS(KernelTrick k, double errorTolerance)
+    public KernelRLS(final KernelTrick k, final double errorTolerance)
     {
         this.k = k;
         setErrorTolerance(errorTolerance);
@@ -61,15 +61,16 @@ public class KernelRLS implements UpdateableRegressor, Parameterized
      * Copy constructor
      * @param toCopy the object to copy
      */
-    protected KernelRLS(KernelRLS toCopy)
+    protected KernelRLS(final KernelRLS toCopy)
     {
         this.k = toCopy.k.clone();
         this.errorTolerance = toCopy.errorTolerance;
         if(toCopy.vecs != null)
         {
             this.vecs = new ArrayList<Vec>(toCopy.vecs.size());
-            for(Vec vec : toCopy.vecs)
-                this.vecs.add(vec.clone());
+            for(final Vec vec : toCopy.vecs) {
+              this.vecs.add(vec.clone());
+            }
         }
         
         if(toCopy.KExpanded != null)
@@ -87,8 +88,9 @@ public class KernelRLS implements UpdateableRegressor, Parameterized
             this.PExpanded = toCopy.PExpanded.clone();
             this.P = new SubMatrix(PExpanded, 0, 0, vecs.size(), vecs.size());
         }
-        if(toCopy.alphaExpanded != null)
-            this.alphaExpanded = Arrays.copyOf(toCopy.alphaExpanded, toCopy.alphaExpanded.length);
+        if(toCopy.alphaExpanded != null) {
+          this.alphaExpanded = Arrays.copyOf(toCopy.alphaExpanded, toCopy.alphaExpanded.length);
+        }
     }
 
     /**
@@ -101,10 +103,11 @@ public class KernelRLS implements UpdateableRegressor, Parameterized
      * 
      * @param v the approximation tolerance
      */
-    public void setErrorTolerance(double v)
+    public void setErrorTolerance(final double v)
     {
-        if(Double.isNaN(v) || Double.isInfinite(v) || v <= 0)
-            throw new IllegalArgumentException("The error tolerance must be a positive constant, not " + v);
+        if(Double.isNaN(v) || Double.isInfinite(v) || v <= 0) {
+          throw new IllegalArgumentException("The error tolerance must be a positive constant, not " + v);
+        }
         this.errorTolerance = v;
     }
 
@@ -123,8 +126,9 @@ public class KernelRLS implements UpdateableRegressor, Parameterized
      */
     public int getModelSize()
     {
-        if(vecs == null)
-            return 0;
+        if(vecs == null) {
+          return 0;
+        }
         return vecs.size();
     }
     
@@ -144,7 +148,7 @@ public class KernelRLS implements UpdateableRegressor, Parameterized
     }
     
     @Override
-    public double regress(DataPoint data)
+    public double regress(final DataPoint data)
     {
         final Vec y = data.getNumericalValues();
         
@@ -152,19 +156,20 @@ public class KernelRLS implements UpdateableRegressor, Parameterized
     }
 
     @Override
-    public void train(RegressionDataSet dataSet, ExecutorService threadPool)
+    public void train(final RegressionDataSet dataSet, final ExecutorService threadPool)
     {
         train(dataSet);
     }
 
     @Override
-    public void train(RegressionDataSet dataSet)
+    public void train(final RegressionDataSet dataSet)
     {
         setUp(dataSet.getCategories(), dataSet.getNumNumericalVars());
-        IntList randOrder = new IntList(dataSet.getSampleSize());
+        final IntList randOrder = new IntList(dataSet.getSampleSize());
         ListUtils.addRange(randOrder, 0, dataSet.getSampleSize(), 1);
-        for(int i : randOrder)
-            update(dataSet.getDataPoint(i), dataSet.getTargetValue(i));
+        for(final int i : randOrder) {
+          update(dataSet.getDataPoint(i), dataSet.getTargetValue(i));
+        }
     }
 
     @Override
@@ -180,13 +185,14 @@ public class KernelRLS implements UpdateableRegressor, Parameterized
     }
 
     @Override
-    public void setUp(CategoricalData[] categoricalAttributes, int numericAttributes)
+    public void setUp(final CategoricalData[] categoricalAttributes, final int numericAttributes)
     {
         vecs = new ArrayList<Vec>();
-        if(k.supportsAcceleration())
-            kernelAccel = new DoubleList();
-        else
-            kernelAccel = null;
+        if(k.supportsAcceleration()) {
+          kernelAccel = new DoubleList();
+        } else {
+          kernelAccel = null;
+        }
 
         K = null;
         InvK = null;
@@ -199,13 +205,13 @@ public class KernelRLS implements UpdateableRegressor, Parameterized
     }
 
     @Override
-    public void update(DataPoint dataPoint, final double y_t)
+    public void update(final DataPoint dataPoint, final double y_t)
     {
         /*
          * TODO a lot of temporary allocations are done in this code, but 
          * potentially change size - investigate storing them as well. 
          */
-        Vec x_t = dataPoint.getNumericalValues();
+        final Vec x_t = dataPoint.getNumericalValues();
         
         final List<Double> qi = k.getQueryInfo(x_t);
         final double k_tt = k.eval(0, 0, Arrays.asList(x_t), qi);
@@ -220,17 +226,19 @@ public class KernelRLS implements UpdateableRegressor, Parameterized
             P.set(0, 0, 1);
             alphaExpanded[0] = y_t/k_tt;
             vecs.add(x_t);
-            if(kernelAccel != null)
-                kernelAccel.addAll(qi);
+            if(kernelAccel != null) {
+              kernelAccel.addAll(qi);
+            }
             return;
         }
         
         
         //Normal case
-        DenseVector kxt = new DenseVector(K.rows());
+        final DenseVector kxt = new DenseVector(K.rows());
 
-        for (int i = 0; i < kxt.length(); i++)
-            kxt.set(i, k.eval(i, x_t, qi, vecs, kernelAccel));
+        for (int i = 0; i < kxt.length(); i++) {
+          kxt.set(i, k.eval(i, x_t, qi, vecs, kernelAccel));
+        }
 
         //ALD test
         final Vec alphas_t = InvK.multiply(kxt);
@@ -240,8 +248,9 @@ public class KernelRLS implements UpdateableRegressor, Parameterized
         if(delta_t > errorTolerance)//add to the dictionary
         {
             vecs.add(x_t);
-            if(kernelAccel != null)
-                kernelAccel.addAll(qi);
+            if(kernelAccel != null) {
+              kernelAccel.addAll(qi);
+            }
             
             if(size == KExpanded.rows())//we need to grow first
             {
@@ -274,20 +283,22 @@ public class KernelRLS implements UpdateableRegressor, Parameterized
             P.set(size, size, 1.0);
             
             
-            for(int i = 0; i < size; i++)
-                alphaExpanded[i] -= alphas_t.get(i)*(y_t-alphaConst)/delta_t;
+            for(int i = 0; i < size; i++) {
+              alphaExpanded[i] -= alphas_t.get(i)*(y_t-alphaConst)/delta_t;
+            }
             alphaExpanded[size] = (y_t-alphaConst)/delta_t;
         }
         else//project onto dictionary
         {
-            Vec q_t =P.multiply(alphas_t);
+            final Vec q_t =P.multiply(alphas_t);
             q_t.mutableDivide(1+alphas_t.dot(q_t));
             
             Matrix.OuterProductUpdate(P, q_t, alphas_t.multiply(P), -1);
             
-            Vec InvKqt = InvK.multiply(q_t);
-            for(int i = 0; i < size; i++)
-                alphaExpanded[i] += InvKqt.get(i)*(y_t-alphaConst);
+            final Vec InvKqt = InvK.multiply(q_t);
+            for(int i = 0; i < size; i++) {
+              alphaExpanded[i] += InvKqt.get(i)*(y_t-alphaConst);
+            }
         }
     }
 
@@ -298,7 +309,7 @@ public class KernelRLS implements UpdateableRegressor, Parameterized
     }
 
     @Override
-    public Parameter getParameter(String paramName)
+    public Parameter getParameter(final String paramName)
     {
         return Parameter.toParameterMap(getParameters()).get(paramName);
     }

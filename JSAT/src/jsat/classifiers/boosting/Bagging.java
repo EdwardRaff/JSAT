@@ -38,7 +38,7 @@ public class Bagging implements Classifier, Regressor, Parameterized
     private int extraSamples;
     private int rounds;
     private boolean simultaniousTraining;
-    private Random random;
+    private final Random random;
     private List learners;
     
     /**
@@ -59,7 +59,7 @@ public class Bagging implements Classifier, Regressor, Parameterized
      * 
      * @param baseClassifier the base learner to use.
      */
-    public Bagging(Classifier baseClassifier)
+    public Bagging(final Classifier baseClassifier)
     {
         this(baseClassifier, DEFAULT_EXTRA_SAMPLES, DEFAULT_SIMULTANIOUS_TRAINING);
     }
@@ -71,7 +71,7 @@ public class Bagging implements Classifier, Regressor, Parameterized
      * @param extraSamples how many extra samples past the training size to take
      * @param simultaniousTraining controls whether base learners are trained sequentially or simultaneously 
      */
-    public Bagging(Classifier baseClassifier, int extraSamples, boolean simultaniousTraining)
+    public Bagging(final Classifier baseClassifier, final int extraSamples, final boolean simultaniousTraining)
     {
         this(baseClassifier, extraSamples, simultaniousTraining, DEFAULT_ROUNDS, new Random(1));
     }
@@ -85,7 +85,7 @@ public class Bagging implements Classifier, Regressor, Parameterized
      * @param rounds how many rounds of bagging to perform. 
      * @param random the source of randomness for sampling 
      */
-    public Bagging(Classifier baseClassifier, int extraSamples, boolean simultaniousTraining, int rounds, Random random)
+    public Bagging(final Classifier baseClassifier, final int extraSamples, final boolean simultaniousTraining, final int rounds, final Random random)
     {
         this(extraSamples, simultaniousTraining, rounds, random);
         this.baseClassifier = baseClassifier;
@@ -96,7 +96,7 @@ public class Bagging implements Classifier, Regressor, Parameterized
      * 
      * @param baseRegressor the base learner to use.
      */
-    public Bagging(Regressor baseRegressor)
+    public Bagging(final Regressor baseRegressor)
     {
         this(baseRegressor, DEFAULT_EXTRA_SAMPLES, DEFAULT_SIMULTANIOUS_TRAINING);
     }
@@ -108,7 +108,7 @@ public class Bagging implements Classifier, Regressor, Parameterized
      * @param extraSamples how many extra samples past the training size to take
      * @param simultaniousTraining controls whether base learners are trained sequentially or simultaneously 
      */
-    public Bagging(Regressor baseRegressor, int extraSamples, boolean simultaniousTraining)
+    public Bagging(final Regressor baseRegressor, final int extraSamples, final boolean simultaniousTraining)
     {
         this(baseRegressor, extraSamples, simultaniousTraining, DEFAULT_ROUNDS, new Random(1));
     }
@@ -122,14 +122,14 @@ public class Bagging implements Classifier, Regressor, Parameterized
      * @param rounds how many rounds of bagging to perform. 
      * @param random the source of randomness for sampling 
      */
-    public Bagging(Regressor baseRegressor, int extraSamples, boolean simultaniousTraining, int rounds, Random random)
+    public Bagging(final Regressor baseRegressor, final int extraSamples, final boolean simultaniousTraining, final int rounds, final Random random)
     {
         this(extraSamples, simultaniousTraining, rounds, random);
         this.baseRegressor = baseRegressor;
     }
     
     //For internal use
-    private Bagging(int extraSamples, boolean simultaniousTraining, int rounds, Random random)
+    private Bagging(final int extraSamples, final boolean simultaniousTraining, final int rounds, final Random random)
     {
         setExtraSamples(extraSamples);
         setSimultaniousTraining(simultaniousTraining);
@@ -144,7 +144,7 @@ public class Bagging implements Classifier, Regressor, Parameterized
      * 
      * @param i how many extra samples to take
      */
-    public void setExtraSamples(int i)
+    public void setExtraSamples(final int i)
     {
         extraSamples = i;
     }
@@ -159,10 +159,11 @@ public class Bagging implements Classifier, Regressor, Parameterized
      * @param rounds the number of base learners to train
      * @throws ArithmeticException if the number specified is not a positive value
      */
-    public void setRounds(int rounds)
+    public void setRounds(final int rounds)
     {
-        if(rounds <= 0)
-            throw new ArithmeticException("Must train a positive number of learners");
+        if(rounds <= 0) {
+          throw new ArithmeticException("Must train a positive number of learners");
+        }
         this.rounds = rounds;
     }
 
@@ -182,22 +183,23 @@ public class Bagging implements Classifier, Regressor, Parameterized
      * 
      * @param simultaniousTraining true to train all learners at the same time, false to train them sequentially 
      */
-    public void setSimultaniousTraining(boolean simultaniousTraining)
+    public void setSimultaniousTraining(final boolean simultaniousTraining)
     {
         this.simultaniousTraining = simultaniousTraining;
     }
 
     @Override
-    public CategoricalResults classify(DataPoint data)
+    public CategoricalResults classify(final DataPoint data)
     {
-        if(baseClassifier == null)
-            throw new RuntimeException("Bagging instance created for regression, not classification");
-        else if(learners == null || learners.isEmpty())
-            throw new RuntimeException("Classifier has not yet been trained");
-        CategoricalResults totalResult = new CategoricalResults(predicting.getNumOfCategories());
+        if(baseClassifier == null) {
+          throw new RuntimeException("Bagging instance created for regression, not classification");
+        } else if(learners == null || learners.isEmpty()) {
+          throw new RuntimeException("Classifier has not yet been trained");
+        }
+        final CategoricalResults totalResult = new CategoricalResults(predicting.getNumOfCategories());
         for(int i = 0; i < learners.size(); i++)
         {
-            CategoricalResults result = ((Classifier) learners.get(i)).classify(data);
+            final CategoricalResults result = ((Classifier) learners.get(i)).classify(data);
             totalResult.incProb(result.mostLikely(), 1.0);
         }
         
@@ -242,7 +244,7 @@ public class Bagging implements Classifier, Regressor, Parameterized
                         }
                     });
                 }
-                catch (InterruptedException ex)
+                catch (final InterruptedException ex)
                 {
                     Logger.getLogger(Bagging.class.getName()).log(Level.SEVERE, null, ex);
                     System.err.println(ex.getMessage());
@@ -251,28 +253,30 @@ public class Bagging implements Classifier, Regressor, Parameterized
             }
             else
             {
-                if(threadPool != null)
-                    learner.trainC(sampleSet, threadPool);
-                else
-                    learner.trainC(sampleSet);
+                if(threadPool != null) {
+                  learner.trainC(sampleSet, threadPool);
+                } else {
+                  learner.trainC(sampleSet);
+                }
                 learners.add(learner);
             }
         }
 
-        if (simultaniousTraining && threadPool != null)
-            try
-            {
-                waitForFinish.await();
-            }
-            catch (InterruptedException ex)
-            {
-                Logger.getLogger(Bagging.class.getName()).log(Level.SEVERE, null, ex);
-                System.err.println(ex.getMessage());
-            }
+        if (simultaniousTraining && threadPool != null) {
+          try
+          {
+            waitForFinish.await();
+          }
+          catch (final InterruptedException ex)
+          {
+            Logger.getLogger(Bagging.class.getName()).log(Level.SEVERE, null, ex);
+            System.err.println(ex.getMessage());
+          }
+        }
     }
 
     @Override
-    public void trainC(ClassificationDataSet dataSet)
+    public void trainC(final ClassificationDataSet dataSet)
     {
         trainC(dataSet, null);
     }
@@ -285,16 +289,17 @@ public class Bagging implements Classifier, Regressor, Parameterized
      * {@link #sampleWithReplacement(int[], int, java.util.Random) }
      * @return a new sampled classification data set
      */
-    public static ClassificationDataSet getSampledDataSet(ClassificationDataSet dataSet, int[] sampledCounts)
+    public static ClassificationDataSet getSampledDataSet(final ClassificationDataSet dataSet, final int[] sampledCounts)
     {
-        ClassificationDataSet destination = new ClassificationDataSet(dataSet.getNumNumericalVars(), dataSet.getCategories(), dataSet.getPredicting());
+        final ClassificationDataSet destination = new ClassificationDataSet(dataSet.getNumNumericalVars(), dataSet.getCategories(), dataSet.getPredicting());
             
-            for (int i = 0; i < sampledCounts.length; i++)
-                for(int j = 0; j < sampledCounts[i]; j++)
-                {
-                    DataPoint dp = dataSet.getDataPoint(i);
-                    destination.addDataPoint(dp.getNumericalValues(), dp.getCategoricalValues(), dataSet.getDataPointCategory(i));
-                }
+            for (int i = 0; i < sampledCounts.length; i++) {
+              for(int j = 0; j < sampledCounts[i]; j++)
+              {
+                final DataPoint dp = dataSet.getDataPoint(i);
+                destination.addDataPoint(dp.getNumericalValues(), dp.getCategoricalValues(), dataSet.getDataPointCategory(i));
+              }
+        }
             
             return destination;
     }
@@ -308,15 +313,16 @@ public class Bagging implements Classifier, Regressor, Parameterized
      * {@link #sampleWithReplacement(int[], int, java.util.Random) }
      * @return a new sampled classification data set
      */
-    public static ClassificationDataSet getWeightSampledDataSet(ClassificationDataSet dataSet, int[] sampledCounts)
+    public static ClassificationDataSet getWeightSampledDataSet(final ClassificationDataSet dataSet, final int[] sampledCounts)
     {
-        ClassificationDataSet destination = new ClassificationDataSet(dataSet.getNumNumericalVars(), dataSet.getCategories(), dataSet.getPredicting());
+        final ClassificationDataSet destination = new ClassificationDataSet(dataSet.getNumNumericalVars(), dataSet.getCategories(), dataSet.getPredicting());
 
         for (int i = 0; i < sampledCounts.length; i++)
         {
-            if(sampledCounts[i] <= 0)
-                continue;
-            DataPoint dp = dataSet.getDataPoint(i);
+            if(sampledCounts[i] <= 0) {
+              continue;
+            }
+            final DataPoint dp = dataSet.getDataPoint(i);
             destination.addDataPoint(dp.getNumericalValues(), dp.getCategoricalValues(), dataSet.getDataPointCategory(i), dp.getWeight()*sampledCounts[i]);
         }
 
@@ -331,15 +337,16 @@ public class Bagging implements Classifier, Regressor, Parameterized
      * {@link #sampleWithReplacement(int[], int, java.util.Random) }
      * @return a new sampled classification data set
      */
-    public static RegressionDataSet getSampledDataSet(RegressionDataSet dataSet, int[] sampledCounts)
+    public static RegressionDataSet getSampledDataSet(final RegressionDataSet dataSet, final int[] sampledCounts)
     {
-        RegressionDataSet destination = new RegressionDataSet(dataSet.getNumNumericalVars(), dataSet.getCategories());
-        for (int i = 0; i < sampledCounts.length; i++)
-            for (int j = 0; j < sampledCounts[i]; j++)
-            {
-                DataPoint dp = dataSet.getDataPoint(i);
-                destination.addDataPoint(dp, dataSet.getTargetValue(i));
-            }
+        final RegressionDataSet destination = new RegressionDataSet(dataSet.getNumNumericalVars(), dataSet.getCategories());
+        for (int i = 0; i < sampledCounts.length; i++) {
+          for (int j = 0; j < sampledCounts[i]; j++)
+          {
+            final DataPoint dp = dataSet.getDataPoint(i);
+            destination.addDataPoint(dp, dataSet.getTargetValue(i));
+          }
+        }
         return destination;
     }
     
@@ -352,16 +359,17 @@ public class Bagging implements Classifier, Regressor, Parameterized
      * {@link #sampleWithReplacement(int[], int, java.util.Random) }
      * @return a new sampled classification data set
      */
-    public static RegressionDataSet getWeightSampledDataSet(RegressionDataSet dataSet, int[] sampledCounts)
+    public static RegressionDataSet getWeightSampledDataSet(final RegressionDataSet dataSet, final int[] sampledCounts)
     {
-        RegressionDataSet destination = new RegressionDataSet(dataSet.getNumNumericalVars(), dataSet.getCategories());
+        final RegressionDataSet destination = new RegressionDataSet(dataSet.getNumNumericalVars(), dataSet.getCategories());
 
         for (int i = 0; i < sampledCounts.length; i++)
         {
-            if(sampledCounts[i] <= 0)
-                continue;
-            DataPoint dp = dataSet.getDataPoint(i);
-            DataPoint reWeighted = new DataPoint(dp.getNumericalValues(), dp.getCategoricalValues(), dp.getCategoricalData(), dp.getWeight()*sampledCounts[i]);
+            if(sampledCounts[i] <= 0) {
+              continue;
+            }
+            final DataPoint dp = dataSet.getDataPoint(i);
+            final DataPoint reWeighted = new DataPoint(dp.getNumericalValues(), dp.getCategoricalValues(), dp.getCategoricalData(), dp.getWeight()*sampledCounts[i]);
             destination.addDataPoint(reWeighted, dataSet.getTargetValue(i));
         }
 
@@ -377,11 +385,12 @@ public class Bagging implements Classifier, Regressor, Parameterized
      * @param samples the number of samples to take from the data set
      * @param rand the source of randomness
      */
-    static public void sampleWithReplacement(int[] sampleCounts, int samples, Random rand)
+    static public void sampleWithReplacement(final int[] sampleCounts, final int samples, final Random rand)
     {
         Arrays.fill(sampleCounts, 0);
-        for(int i = 0; i < samples; i++)
-            sampleCounts[rand.nextInt(sampleCounts.length)]++;
+        for(int i = 0; i < samples; i++) {
+          sampleCounts[rand.nextInt(sampleCounts.length)]++;
+        }
     }
 
     @Override
@@ -391,16 +400,17 @@ public class Bagging implements Classifier, Regressor, Parameterized
     }
 
     @Override
-    public double regress(DataPoint data)
+    public double regress(final DataPoint data)
     {
-        if(baseRegressor == null)
-            throw new RuntimeException("Bagging instance created for classification, not regression");
-        else if(learners == null || learners.isEmpty())
-            throw new RuntimeException("Regressor has not yet been trained");
-        OnLineStatistics stats = new OnLineStatistics();
+        if(baseRegressor == null) {
+          throw new RuntimeException("Bagging instance created for classification, not regression");
+        } else if(learners == null || learners.isEmpty()) {
+          throw new RuntimeException("Regressor has not yet been trained");
+        }
+        final OnLineStatistics stats = new OnLineStatistics();
         for(int i = 0; i < learners.size(); i++)
         {
-            double x = ((Regressor) learners.get(i)).regress(data);
+            final double x = ((Regressor) learners.get(i)).regress(data);
             stats.add(x);
         }
         
@@ -408,7 +418,7 @@ public class Bagging implements Classifier, Regressor, Parameterized
     }
 
     @Override
-    public void train(RegressionDataSet dataSet, final ExecutorService threadPool)
+    public void train(final RegressionDataSet dataSet, final ExecutorService threadPool)
     {
         learners = new ArrayList(rounds);
         //Used to make the main thread wait for the working threads to finish before submiting a new job so we dont waist too much memory then we can use at once
@@ -442,7 +452,7 @@ public class Bagging implements Classifier, Regressor, Parameterized
                         }
                     });
                 }
-                catch (InterruptedException ex)
+                catch (final InterruptedException ex)
                 {
                     Logger.getLogger(Bagging.class.getName()).log(Level.SEVERE, null, ex);
                     System.err.println(ex.getMessage());
@@ -451,28 +461,30 @@ public class Bagging implements Classifier, Regressor, Parameterized
             }
             else
             {
-                if(threadPool != null)
-                    learner.train(sampleSet, threadPool);
-                else
-                    learner.train(sampleSet);
+                if(threadPool != null) {
+                  learner.train(sampleSet, threadPool);
+                } else {
+                  learner.train(sampleSet);
+                }
                 learners.add(learner);
             }
         }
 
-        if (simultaniousTraining && threadPool != null)
-            try
-            {
-                waitForFinish.await();
-            }
-            catch (InterruptedException ex)
-            {
-                Logger.getLogger(Bagging.class.getName()).log(Level.SEVERE, null, ex);
-                System.err.println(ex.getMessage());
-            }
+        if (simultaniousTraining && threadPool != null) {
+          try
+          {
+            waitForFinish.await();
+          }
+          catch (final InterruptedException ex)
+          {
+            Logger.getLogger(Bagging.class.getName()).log(Level.SEVERE, null, ex);
+            System.err.println(ex.getMessage());
+          }
+        }
     }
 
     @Override
-    public void train(RegressionDataSet dataSet)
+    public void train(final RegressionDataSet dataSet)
     {
         train(dataSet, null);
     }
@@ -480,21 +492,26 @@ public class Bagging implements Classifier, Regressor, Parameterized
     @Override
     public Bagging clone()
     {
-        Bagging clone = new Bagging(extraSamples, simultaniousTraining, rounds, new Random(rounds));
-        if(baseClassifier != null)
-            clone.baseClassifier = baseClassifier.clone();
-        if(predicting != null)
-            clone.predicting = this.predicting.clone();
-        if(baseRegressor != null)
-            clone.baseRegressor = baseRegressor.clone();
+        final Bagging clone = new Bagging(extraSamples, simultaniousTraining, rounds, new Random(rounds));
+        if(baseClassifier != null) {
+          clone.baseClassifier = baseClassifier.clone();
+        }
+        if(predicting != null) {
+          clone.predicting = this.predicting.clone();
+        }
+        if(baseRegressor != null) {
+          clone.baseRegressor = baseRegressor.clone();
+        }
         if(learners != null && !learners.isEmpty())
         {
             clone.learners = new ArrayList(this.learners.size());
-            for(Object learner : learners)
-                if(learner instanceof Classifier)
-                    clone.learners.add( ((Classifier)learner).clone());
-                else
-                    clone.learners.add( ((Regressor)learner).clone());
+            for(final Object learner : learners) {
+              if (learner instanceof Classifier) {
+                clone.learners.add( ((Classifier)learner).clone());
+              } else {
+                clone.learners.add( ((Regressor)learner).clone());
+              }
+            }
         }
         return clone;
     }
@@ -506,7 +523,7 @@ public class Bagging implements Classifier, Regressor, Parameterized
     }
 
     @Override
-    public Parameter getParameter(String paramName)
+    public Parameter getParameter(final String paramName)
     {
         return Parameter.toParameterMap(getParameters()).get(paramName);
     }

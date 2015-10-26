@@ -20,7 +20,7 @@ import jsat.linear.distancemetrics.EuclideanDistance;
  */
 public class DaviesBouldinIndex implements ClusterEvaluation
 {
-    private DistanceMetric dm;
+    private final DistanceMetric dm;
 
     /**
      * Creates a new DaviesBouldinIndex using the {@link EuclideanDistance}.
@@ -34,7 +34,7 @@ public class DaviesBouldinIndex implements ClusterEvaluation
      * Copy constructor
      * @param toCopy the object to copy
      */
-    public DaviesBouldinIndex(DaviesBouldinIndex toCopy)
+    public DaviesBouldinIndex(final DaviesBouldinIndex toCopy)
     {
         this(toCopy.dm.clone());
     }
@@ -43,19 +43,19 @@ public class DaviesBouldinIndex implements ClusterEvaluation
      * Creates a new DaviesBouldinIndex 
      * @param dm the distance measure to use when computing 
      */
-    public DaviesBouldinIndex(DistanceMetric dm) 
+    public DaviesBouldinIndex(final DistanceMetric dm) 
     {
         this.dm = dm;
     }
     
     @Override
-    public double evaluate(int[] designations, DataSet dataSet) 
+    public double evaluate(final int[] designations, final DataSet dataSet) 
     {
         return evaluate(ClustererBase.createClusterListFromAssignmentArray(designations, dataSet));
     }
     
     @Override
-    public double evaluate(List<List<DataPoint>> dataSets) 
+    public double evaluate(final List<List<DataPoint>> dataSets) 
     {
         /**
          * Forumal for the DB measure
@@ -72,16 +72,17 @@ public class DaviesBouldinIndex implements ClusterEvaluation
          *   d(,) is a distance function
          *   n is the number of clusters
          */
-        List<Vec> centroids = new ArrayList<Vec>(dataSets.size());
-        double[] avrgCentriodDist = new double[dataSets.size()];
+        final List<Vec> centroids = new ArrayList<Vec>(dataSets.size());
+        final double[] avrgCentriodDist = new double[dataSets.size()];
         
         for(int i = 0; i < dataSets.size(); i++)
         {
-            Vec mean = MatrixStatistics.meanVector(new SimpleDataSet(dataSets.get(i)));
+            final Vec mean = MatrixStatistics.meanVector(new SimpleDataSet(dataSets.get(i)));
             centroids.add(mean);
         
-            for(DataPoint dp : dataSets.get(i))
-                avrgCentriodDist[i] += dm.dist(dp.getNumericalValues(), mean);
+            for(final DataPoint dp : dataSets.get(i)) {
+              avrgCentriodDist[i] += dm.dist(dp.getNumericalValues(), mean);
+            }
             avrgCentriodDist[i]/=dataSets.get(i).size();
         }
         
@@ -92,9 +93,10 @@ public class DaviesBouldinIndex implements ClusterEvaluation
             double maxPenalty = Double.NEGATIVE_INFINITY;
             for(int j = 0; j < dataSets.size(); j++)
             {
-                if(j == i)
-                    continue;
-                double penalty = (avrgCentriodDist[i] + avrgCentriodDist[j])/dm.dist(centroids.get(i), centroids.get(j));
+                if(j == i) {
+                  continue;
+                }
+                final double penalty = (avrgCentriodDist[i] + avrgCentriodDist[j])/dm.dist(centroids.get(i), centroids.get(j));
                 maxPenalty = Math.max(maxPenalty, penalty);
             }
             dbIndex += maxPenalty;

@@ -26,7 +26,7 @@ public class DDM<V> extends BaseDriftDetector<V>
      */
     private int fails;
 
-    private int minSamples = 30;
+    private final int minSamples = 30;
     
     private double p_min;
     private double s_min;
@@ -48,7 +48,7 @@ public class DDM<V> extends BaseDriftDetector<V>
      * @param warningThreshold the  threshold for starting a warning state
      * @param driftThreshold the threshold for recognizing a drift
      */
-    public DDM(double warningThreshold, double driftThreshold)
+    public DDM(final double warningThreshold, final double driftThreshold)
     {
         super();
         setWarningThreshold(warningThreshold);
@@ -60,7 +60,7 @@ public class DDM<V> extends BaseDriftDetector<V>
      * Copy constructor
      * @param toCopy the object to copy
      */
-    public DDM(DDM<V> toCopy)
+    public DDM(final DDM<V> toCopy)
     {
         super(toCopy);
         this.fails = toCopy.fails;
@@ -91,16 +91,19 @@ public class DDM<V> extends BaseDriftDetector<V>
      * @return {@code true} if we are in a warning or drift state, 
      * {@code false } if we are not
      */
-    public boolean addSample(boolean trial, V obj)
+    public boolean addSample(final boolean trial, final V obj)
     {
-        if(drifting)
-            throw new UnhandledDriftException();
-        if(!trial)
-            fails++;
+        if(drifting) {
+          throw new UnhandledDriftException();
+        }
+        if(!trial) {
+          fails++;
+        }
         time++;
         
-        if(time < minSamples)
-            return false;
+        if(time < minSamples) {
+          return false;
+        }
         
         final double p_i = fails/(double)time;
         final double s_i = Math.sqrt(p_i*(1-p_i)/time);
@@ -149,10 +152,11 @@ public class DDM<V> extends BaseDriftDetector<V>
      * @param warningThreshold the positive multiplier threshold for starting a 
      * warning state
      */
-    public void setWarningThreshold(double warningThreshold)
+    public void setWarningThreshold(final double warningThreshold)
     {
-        if(warningThreshold <= 0 || Double.isNaN(warningThreshold) || Double.isInfinite(warningThreshold))
-            throw new IllegalArgumentException("warning threshold must be positive, not " + warningThreshold);
+        if(warningThreshold <= 0 || Double.isNaN(warningThreshold) || Double.isInfinite(warningThreshold)) {
+          throw new IllegalArgumentException("warning threshold must be positive, not " + warningThreshold);
+        }
         this.warningThreshold = warningThreshold;
     }
 
@@ -174,10 +178,11 @@ public class DDM<V> extends BaseDriftDetector<V>
      * @param driftThreshold the positive multiplier threshold for detecting a
      * drift
      */
-    public void setDriftThreshold(double driftThreshold)
+    public void setDriftThreshold(final double driftThreshold)
     {
-        if(driftThreshold <= 0 || Double.isNaN(driftThreshold) || Double.isInfinite(driftThreshold))
-            throw new IllegalArgumentException("Dritf threshold must be positive, not " + driftThreshold);
+        if(driftThreshold <= 0 || Double.isNaN(driftThreshold) || Double.isInfinite(driftThreshold)) {
+          throw new IllegalArgumentException("Dritf threshold must be positive, not " + driftThreshold);
+        }
         this.driftThreshold = driftThreshold;
     }
 
@@ -192,7 +197,7 @@ public class DDM<V> extends BaseDriftDetector<V>
     }
 
     @Override
-    public boolean addSample(double value, V obj)
+    public boolean addSample(final double value, final V obj)
     {
         return addSample(value == 0.0, obj);
     }

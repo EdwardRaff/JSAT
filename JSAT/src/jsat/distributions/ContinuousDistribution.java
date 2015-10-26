@@ -37,11 +37,12 @@ public abstract class ContinuousDistribution extends Distribution
      * @param x the value to get the log(PDF) of
      * @return the value of log(PDF(x))
      */
-    public double logPdf(double x)
+    public double logPdf(final double x)
     {
-        double pdf = pdf(x);
-        if(pdf <= 0)
-            return -Double.MAX_VALUE;
+        final double pdf = pdf(x);
+        if(pdf <= 0) {
+          return -Double.MAX_VALUE;
+        }
         return Math.log(pdf);
     }
     
@@ -53,9 +54,9 @@ public abstract class ContinuousDistribution extends Distribution
     abstract public double pdf(double x);
 
     @Override
-    public double cdf(double x)
+    public double cdf(final double x)
     {
-        double intMin = getIntegrationMin();
+        final double intMin = getIntegrationMin();
         
         return Romberg.romb(getFunctionPDF(this), intMin, x);
     }
@@ -63,22 +64,23 @@ public abstract class ContinuousDistribution extends Distribution
     @Override
     public double invCdf(final double p)
     {
-        if (p < 0 || p > 1)
-            throw new ArithmeticException("Value of p must be in the range [0,1], not " + p);
-        double a = getIntegrationMin();
-        double b = getIntegrationMax();
+        if (p < 0 || p > 1) {
+          throw new ArithmeticException("Value of p must be in the range [0,1], not " + p);
+        }
+        final double a = getIntegrationMin();
+        final double b = getIntegrationMax();
 
-        Function newCDF = new Function()
+        final Function newCDF = new Function()
         {
 
             @Override
-            public double f(double... x)
+            public double f(final double... x)
             {
                 return cdf(x[0]) - p;
             }
 
             @Override
-            public double f(Vec x)
+            public double f(final Vec x)
             {
                 return f(x.get(0));
             }
@@ -89,15 +91,15 @@ public abstract class ContinuousDistribution extends Distribution
     @Override
     public double mean()
     {
-        double intMin = getIntegrationMin();
+        final double intMin = getIntegrationMin();
         
-        double intMax = getIntegrationMax();
+        final double intMax = getIntegrationMax();
 
         return Romberg.romb(new FunctionBase()
         {
 
             @Override
-            public double f(Vec x)
+            public double f(final Vec x)
             {
                 return x.get(0)*pdf(x.get(0));
             }
@@ -107,16 +109,16 @@ public abstract class ContinuousDistribution extends Distribution
     @Override
     public double variance()
     {
-        double intMin = getIntegrationMin();
+        final double intMin = getIntegrationMin();
         
-        double intMax = getIntegrationMax();
+        final double intMax = getIntegrationMax();
         final double mean = mean();
 
         return Romberg.romb(new FunctionBase()
         {
 
             @Override
-            public double f(Vec x)
+            public double f(final Vec x)
             {
                 
                 return Math.pow(x.get(0)-mean, 2)*pdf(x.get(0));
@@ -129,16 +131,16 @@ public abstract class ContinuousDistribution extends Distribution
     @Override
     public double skewness()
     {
-        double intMin = getIntegrationMin();
+        final double intMin = getIntegrationMin();
         
-        double intMax = getIntegrationMax();
+        final double intMax = getIntegrationMax();
         final double mean = mean();
 
         return Romberg.romb(new FunctionBase()
         {
 
             @Override
-            public double f(Vec x)
+            public double f(final Vec x)
             {
                 
                 return Math.pow((x.get(0)-mean), 3)*pdf(x.get(0));
@@ -156,11 +158,12 @@ public abstract class ContinuousDistribution extends Distribution
             //first, lets take big steps
             for(int i = 0; i < 8; i++)
             {
-                double sqrt = Math.sqrt(-intMin);
-                if(pdf(sqrt) < 1e-5)
-                    intMin = -sqrt;
-                else
-                    break;//no more big steps
+                final double sqrt = Math.sqrt(-intMin);
+                if(pdf(sqrt) < 1e-5) {
+                  intMin = -sqrt;
+                } else {
+                  break;//no more big steps
+                }
             }
             
             //keep going until it looks like we should switch signs
@@ -169,8 +172,9 @@ public abstract class ContinuousDistribution extends Distribution
                 intMin/=2;
             }
             
-            if(pdf(intMin) < 1e-5)//still?
-                intMin *=-1;
+            if(pdf(intMin) < 1e-5) {//still?
+              intMin *=-1;
+            }
             //ok, search positive... keep multiplying till we get there
             while(pdf(intMin) < 1e-5)
             {
@@ -190,11 +194,12 @@ public abstract class ContinuousDistribution extends Distribution
             //first, lets take big steps
             for (int i = 0; i < 8; i++)
             {
-                double sqrt = Math.sqrt(intMax);
-                if (pdf(sqrt) < 1e-5)
-                    intMax = sqrt;
-                else
-                    break;//no more big steps
+                final double sqrt = Math.sqrt(intMax);
+                if (pdf(sqrt) < 1e-5) {
+                  intMax = sqrt;
+                } else {
+                  break;//no more big steps
+                }
             }
 
             //keep going until it looks like we should switch signs
@@ -203,8 +208,9 @@ public abstract class ContinuousDistribution extends Distribution
                 intMax /= 2;
             }
 
-            if (pdf(intMax) < 1e-5)//still?
-                intMax *= -1;
+            if (pdf(intMax) < 1e-5) {//still?
+              intMax *= -1;
+            }
             //ok, search negative... keep multiplying till we get there
             while (pdf(intMax) < 1e-5)
             {
@@ -220,15 +226,16 @@ public abstract class ContinuousDistribution extends Distribution
      */
     public String getDescriptiveName()
     {
-        StringBuilder sb = new StringBuilder(getDistributionName());
+        final StringBuilder sb = new StringBuilder(getDistributionName());
         sb.append("(");
-        String[] vars = getVariables();
-        double[] vals = getCurrentVariableValues();
+        final String[] vars = getVariables();
+        final double[] vals = getCurrentVariableValues();
         
         sb.append(vars[0]).append(" = ").append(vals[0]);
         
-        for(int i  = 1; i < vars.length; i++)
-            sb.append(", ").append(vars[i]).append(" = ").append(vals[i]);
+        for(int i  = 1; i < vars.length; i++) {
+          sb.append(", ").append(vars[i]).append(" = ").append(vals[i]);
+        }
         
         sb.append(")");
         
@@ -295,13 +302,13 @@ public abstract class ContinuousDistribution extends Distribution
             private static final long serialVersionUID = -897452735980141746L;
 
             @Override
-            public double f(double... x)
+            public double f(final double... x)
             {
                 return f(DenseVector.toDenseVec(x));
             }
 
             @Override
-            public double f(Vec x)
+            public double f(final Vec x)
             {
                 return dist.pdf(x.get(0));
             }

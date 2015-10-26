@@ -15,7 +15,7 @@ public class MultivariateNormals extends BestClassDistribution
 
 	private static final long serialVersionUID = 5977979334930517655L;
 
-	public MultivariateNormals(boolean usePriors)
+	public MultivariateNormals(final boolean usePriors)
     {
         super(new NormalM(), usePriors);
     }
@@ -32,7 +32,7 @@ public class MultivariateNormals extends BestClassDistribution
      * Copy constructor
      * @param toCopy the object to copy
      */
-    public MultivariateNormals(MultivariateNormals toCopy)
+    public MultivariateNormals(final MultivariateNormals toCopy)
     {
         super(toCopy);
     }

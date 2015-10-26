@@ -20,12 +20,13 @@ public class MinkowskiDistance implements DenseSparseMetric
      * 
      * @param p the norm to use as the distance
      */
-    public MinkowskiDistance(double p)
+    public MinkowskiDistance(final double p)
     {
-        if (p <= 0 || Double.isNaN(p))
-            throw new ArithmeticException("The pNorm exists only for p > 0");
-        else if (Double.isInfinite(p))
-            throw new ArithmeticException("Infinity norm is a special case, use ChebyshevDistance for infinity norm");
+        if (p <= 0 || Double.isNaN(p)) {
+          throw new ArithmeticException("The pNorm exists only for p > 0");
+        } else if (Double.isInfinite(p)) {
+          throw new ArithmeticException("Infinity norm is a special case, use ChebyshevDistance for infinity norm");
+        }
 
         setP(p);
     }
@@ -34,10 +35,11 @@ public class MinkowskiDistance implements DenseSparseMetric
      * 
      * @param p the norm to use for this metric
      */
-    public void setP(double p)
+    public void setP(final double p)
     {
-        if(p <= 0 || Double.isNaN(p) || Double.isInfinite(p))
-            throw new IllegalArgumentException("p must be a positive value, not " + p);
+        if(p <= 0 || Double.isNaN(p) || Double.isInfinite(p)) {
+          throw new IllegalArgumentException("p must be a positive value, not " + p);
+        }
         this.p = p;
     }
 
@@ -51,7 +53,7 @@ public class MinkowskiDistance implements DenseSparseMetric
     }
     
     @Override
-    public double dist(Vec a, Vec b)
+    public double dist(final Vec a, final Vec b)
     {
         return a.pNormDist(p, b);
     }
@@ -93,26 +95,27 @@ public class MinkowskiDistance implements DenseSparseMetric
     }
 
     @Override
-    public double getVectorConstant(Vec vec)
+    public double getVectorConstant(final Vec vec)
     {
         return Math.pow(vec.pNorm(p), p);
     }
 
     @Override
-    public double dist(double summaryConst, Vec main, Vec target)
+    public double dist(final double summaryConst, final Vec main, final Vec target)
     {
-        if(!target.isSparse())
-            return dist(main, target);
+        if(!target.isSparse()) {
+          return dist(main, target);
+        }
         /**
          * Summary contains the differences^p to the zero vec, only a few 
          * of the indices are actually non zero -  we correct those values
          */
         double addBack = 0.0;
         double takeOut = 0.0;
-        for(IndexValue iv : target)
+        for(final IndexValue iv : target)
         {
-            int i = iv.getIndex();
-            double mainVal = main.get(i);
+            final int i = iv.getIndex();
+            final double mainVal = main.get(i);
             takeOut += Math.pow(mainVal, p);
             addBack += Math.pow(mainVal-iv.getValue(), p);
         }
@@ -126,37 +129,37 @@ public class MinkowskiDistance implements DenseSparseMetric
     }
 
     @Override
-    public List<Double> getAccelerationCache(List<? extends Vec> vecs)
+    public List<Double> getAccelerationCache(final List<? extends Vec> vecs)
     {
         return null;
     }
 
     @Override
-    public double dist(int a, int b, List<? extends Vec> vecs, List<Double> cache)
+    public double dist(final int a, final int b, final List<? extends Vec> vecs, final List<Double> cache)
     {
         return dist(vecs.get(a), vecs.get(b));
     }
 
     @Override
-    public double dist(int a, Vec b, List<? extends Vec> vecs, List<Double> cache)
+    public double dist(final int a, final Vec b, final List<? extends Vec> vecs, final List<Double> cache)
     {
         return dist(vecs.get(a), b);
     }
 
     @Override
-    public List<Double> getQueryInfo(Vec q)
+    public List<Double> getQueryInfo(final Vec q)
     {
         return null;
     }
 
     @Override
-    public List<Double> getAccelerationCache(List<? extends Vec> vecs, ExecutorService threadpool)
+    public List<Double> getAccelerationCache(final List<? extends Vec> vecs, final ExecutorService threadpool)
     {
         return null;
     }
     
     @Override
-    public double dist(int a, Vec b, List<Double> qi, List<? extends Vec> vecs, List<Double> cache)
+    public double dist(final int a, final Vec b, final List<Double> qi, final List<? extends Vec> vecs, final List<Double> cache)
     {
         return dist(vecs.get(a), b);
     }

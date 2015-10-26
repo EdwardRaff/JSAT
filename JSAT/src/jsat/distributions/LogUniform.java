@@ -46,7 +46,7 @@ public class LogUniform extends ContinuousDistribution
      * @param min the minimum value to be returned by this distribution 
      * @param max the maximum value to be returned by this distribution
      */
-    public LogUniform(double min, double max)
+    public LogUniform(final double min, final double max)
     {
         setMinMax(min, max);
     }
@@ -56,12 +56,13 @@ public class LogUniform extends ContinuousDistribution
      * @param min the minimum value, must be positive
      * @param max the maximum value, must be larger than {@code min}
      */
-    public void setMinMax(double min, double max)
+    public void setMinMax(final double min, final double max)
     {
-        if(min <= 0 || Double.isNaN(min) || Double.isInfinite(min))
-            throw new IllegalArgumentException("min value must be positive, not " + min);
-        else if(min >= max || Double.isNaN(max) || Double.isInfinite(max))
-            throw new IllegalArgumentException("max (" + max + ") must be larger than min (" + min+")" );
+        if(min <= 0 || Double.isNaN(min) || Double.isInfinite(min)) {
+          throw new IllegalArgumentException("min value must be positive, not " + min);
+        } else if(min >= max || Double.isNaN(max) || Double.isInfinite(max)) {
+          throw new IllegalArgumentException("max (" + max + ") must be larger than min (" + min+")" );
+        }
         this.max = max;
         this.min = min;
         this.logMax = Math.log(max);
@@ -71,14 +72,15 @@ public class LogUniform extends ContinuousDistribution
     }
     
     @Override
-    public double pdf(double x)
+    public double pdf(final double x)
     {
-        if(x < min)
-            return 0;
-        else if(x > max)
-            return 0;
-        else
-            return 1.0/(x*(logMax-logMin));
+        if(x < min) {
+          return 0;
+        } else if(x > max) {
+          return 0;
+        } else {
+          return 1.0/(x*(logMax-logMin));
+        }
     }
 
     @Override
@@ -100,12 +102,13 @@ public class LogUniform extends ContinuousDistribution
     }
 
     @Override
-    public void setVariable(String var, double value)
+    public void setVariable(final String var, final double value)
     {
-        if(var.equals("min"))
-            setMinMax(value, max);
-        else if(var.equals("max"))
-            setMinMax(min, value);
+        if(var.equals("min")) {
+          setMinMax(value, max);
+        } else if(var.equals("max")) {
+          setMinMax(min, value);
+        }
     }
 
     @Override
@@ -115,30 +118,32 @@ public class LogUniform extends ContinuousDistribution
     }
 
     @Override
-    public void setUsingData(Vec data)
+    public void setUsingData(final Vec data)
     {
         //probably could do way better, but whatever
-        double guessMin = data.min();
-        double guessMax = data.max();
+        final double guessMin = data.min();
+        final double guessMax = data.max();
         setMinMax(Math.max(guessMin, 1e-10), guessMax);
     }
 
     @Override
-    public double cdf(double x)
+    public double cdf(final double x)
     {
-        if(x < min)
-            return 0;
-        else if(x > max)
-            return 1;
-        else
-            return (Math.log(x)-logMin)/(logDiff);
+        if(x < min) {
+          return 0;
+        } else if(x > max) {
+          return 1;
+        } else {
+          return (Math.log(x)-logMin)/(logDiff);
+        }
     }
 
     @Override
-    public double invCdf(double p)
+    public double invCdf(final double p)
     {
-        if(p < 0 || p > 1 || Double.isNaN(p))
-            throw new IllegalArgumentException("p must be in [0,1], not " + p);
+        if(p < 0 || p > 1 || Double.isNaN(p)) {
+          throw new IllegalArgumentException("p must be in [0,1], not " + p);
+        }
         return Math.exp(p*logMax-p*logMin)*min;
     }
 

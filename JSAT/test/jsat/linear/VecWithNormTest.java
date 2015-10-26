@@ -34,7 +34,7 @@ public class VecWithNormTest
     @Before
     public void setUp()
     {
-        Random rand = new Random(546);
+        final Random rand = new Random(546);
         x = DenseVector.random(20, rand);
         xNrmd = new VecWithNorm(x.clone());
         
@@ -73,8 +73,9 @@ public class VecWithNormTest
     public void testGet()
     {
         System.out.println("get");
-        for(int i = 0; i < x.length(); i++)
-            assertEquals(x.get(i), xNrmd.get(i), 0.0);
+        for(int i = 0; i < x.length(); i++) {
+          assertEquals(x.get(i), xNrmd.get(i), 0.0);
+        }
     }
 
     /**
@@ -84,8 +85,8 @@ public class VecWithNormTest
     public void testSet()
     {
         System.out.println("set");
-        int index = 16;
-        double val = Math.PI;
+        final int index = 16;
+        final double val = Math.PI;
         x.set(index, val);
         xNrmd.set(index, val);
         
@@ -99,8 +100,8 @@ public class VecWithNormTest
     public void testClone()
     {
         System.out.println("clone");
-        Vec xN = x.clone();
-        Vec xNN = xNrmd.clone();
+        final Vec xN = x.clone();
+        final Vec xNN = xNrmd.clone();
         
         assertEquals(xN, x);
         assertEquals(xNN, xNrmd);
@@ -114,7 +115,7 @@ public class VecWithNormTest
     public void testMutableAdd_double()
     {
         System.out.println("mutableAdd");
-        double val = 3.9;
+        final double val = 3.9;
         
         x.mutableAdd(val);
         xNrmd.mutableAdd(val);
@@ -129,7 +130,7 @@ public class VecWithNormTest
     {
         System.out.println("mutableAdd");
         
-        double val = 2.555;
+        final double val = 2.555;
         
         x.mutableAdd(val, a);
         xNrmd.mutableAdd(val, a);
@@ -179,7 +180,7 @@ public class VecWithNormTest
     public void testMutableMultiply()
     {
         System.out.println("mutableMultiply");
-        double c = 1.6;
+        final double c = 1.6;
         x.mutableMultiply(c);
         xNrmd.mutableMultiply(c);
         
@@ -193,7 +194,7 @@ public class VecWithNormTest
     public void testMutableDivide()
     {
         System.out.println("mutableDivide");
-        double c = 2.54;
+        final double c = 2.54;
         
         x.mutableDivide(c);
         xNrmd.mutableDivide(c);

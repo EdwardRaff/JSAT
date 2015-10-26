@@ -67,7 +67,7 @@ public class EmphasisBoost implements Classifier, Parameterized, BinaryScoreClas
      * @param maxIterations the maximum number of boosting iterations
      * @param lambda the trade off parameter in [0, 1]
      */
-    public EmphasisBoost(Classifier weakLearner, int maxIterations, double lambda)
+    public EmphasisBoost(final Classifier weakLearner, final int maxIterations, final double lambda)
     {
         setWeakLearner(weakLearner);
         setMaxIterations(maxIterations);
@@ -78,15 +78,16 @@ public class EmphasisBoost implements Classifier, Parameterized, BinaryScoreClas
      * Copy constructor
      * @param toClone the object to clone
      */
-    protected EmphasisBoost(EmphasisBoost toClone)
+    protected EmphasisBoost(final EmphasisBoost toClone)
     {
         this(toClone.weakLearner.clone(), toClone.maxIterations, toClone.lambda);
         if(toClone.hypWeights != null)
         {
             this.hypWeights = new DoubleList(toClone.hypWeights);
             this.hypoths = new ArrayList<Classifier>(toClone.maxIterations);
-            for(Classifier weak : toClone.hypoths)
-                this.hypoths.add(weak.clone());
+            for(final Classifier weak : toClone.hypoths) {
+              this.hypoths.add(weak.clone());
+            }
             this.predicting = toClone.predicting.clone();
         }
     }
@@ -104,10 +105,11 @@ public class EmphasisBoost implements Classifier, Parameterized, BinaryScoreClas
      * Sets the maximal number of boosting iterations that may be performed 
      * @param maxIterations the maximum number of iterations
      */
-    public void setMaxIterations(int maxIterations)
+    public void setMaxIterations(final int maxIterations)
     {
-        if(maxIterations < 1)
-            throw new IllegalArgumentException("Iterations must be positive, not " + maxIterations);
+        if(maxIterations < 1) {
+          throw new IllegalArgumentException("Iterations must be positive, not " + maxIterations);
+        }
         this.maxIterations = maxIterations;
     }
 
@@ -124,10 +126,11 @@ public class EmphasisBoost implements Classifier, Parameterized, BinaryScoreClas
      * Sets the weak learner used during training. 
      * @param weakLearner the weak learner to use
      */
-    public void setWeakLearner(Classifier weakLearner)
+    public void setWeakLearner(final Classifier weakLearner)
     {
-        if(!weakLearner.supportsWeightedData())
-            throw new IllegalArgumentException("WeakLearner must support weighted data to be boosted");
+        if(!weakLearner.supportsWeightedData()) {
+          throw new IllegalArgumentException("WeakLearner must support weighted data to be boosted");
+        }
         this.weakLearner = weakLearner;
     }
     
@@ -138,7 +141,7 @@ public class EmphasisBoost implements Classifier, Parameterized, BinaryScoreClas
      * @return the guess for the &lambda; parameter
      * @see #setLambda(double) 
      */
-    public static Distribution guessLambda(DataSet d)
+    public static Distribution guessLambda(final DataSet d)
     {
         return new Uniform(0.25, 0.45);
     }
@@ -161,7 +164,7 @@ public class EmphasisBoost implements Classifier, Parameterized, BinaryScoreClas
      * 
      * @param lambda the trade off parameter in [0, 1]
      */
-    public void setLambda(double lambda)
+    public void setLambda(final double lambda)
     {
         this.lambda = lambda;
     }
@@ -176,101 +179,108 @@ public class EmphasisBoost implements Classifier, Parameterized, BinaryScoreClas
     }
 
     @Override
-    public double getScore(DataPoint dp)
+    public double getScore(final DataPoint dp)
     {
         double score = 0;
-        for(int i = 0; i < hypoths.size(); i++)
-            score += H(hypoths.get(i), dp)*hypWeights.get(i);
+        for(int i = 0; i < hypoths.size(); i++) {
+          score += H(hypoths.get(i), dp)*hypWeights.get(i);
+        }
         return score;
     }
 
     @Override
-    public CategoricalResults classify(DataPoint data)
+    public CategoricalResults classify(final DataPoint data)
     {
-        if(predicting == null)
-            throw new RuntimeException("Classifier has not been trained yet");
+        if(predicting == null) {
+          throw new RuntimeException("Classifier has not been trained yet");
+        }
         
-        CategoricalResults cr = new CategoricalResults(predicting.getNumOfCategories());
+        final CategoricalResults cr = new CategoricalResults(predicting.getNumOfCategories());
         
-        double score = getScore(data); 
-        if(score < 0)
-            cr.setProb(0, 1.0);
-        else
-            cr.setProb(1, 1.0);
+        final double score = getScore(data); 
+        if(score < 0) {
+          cr.setProb(0, 1.0);
+        } else {
+          cr.setProb(1, 1.0);
+        }
         return cr;
     }
     
-    private double H(Classifier weak, DataPoint dp )
+    private double H(final Classifier weak, final DataPoint dp )
     {
-        CategoricalResults catResult = weak.classify(dp);
+        final CategoricalResults catResult = weak.classify(dp);
         
         return catResult.getProb(1)*2-1;
     }
 
     @Override
-    public void trainC(ClassificationDataSet dataSet, ExecutorService threadPool)
+    public void trainC(final ClassificationDataSet dataSet, final ExecutorService threadPool)
     {
         predicting = dataSet.getPredicting();
         hypWeights = new DoubleList(maxIterations);
         hypoths = new ArrayList<Classifier>(maxIterations);
         final int N = dataSet.getSampleSize();
         
-        List<DataPointPair<Integer>> dataPoints = dataSet.getTwiceShallowClone().getAsDPPList();
+        final List<DataPointPair<Integer>> dataPoints = dataSet.getTwiceShallowClone().getAsDPPList();
         //Initialization step, set up the weights  so they are all 1 / size of dataset
-        for(DataPointPair<Integer> dpp : dataPoints)
-            dpp.getDataPoint().setWeight(1.0/N);//Scaled, they are all 1 
+        for(final DataPointPair<Integer> dpp : dataPoints) {
+          dpp.getDataPoint().setWeight(1.0/N);//Scaled, they are all 1 
+        }
         double weightSum = 1;
         
         
         //Keep track of the cumaltive score for everything
-        double[] H_cur = new double[N];
-        double[] curH_Result = new double[N];
+        final double[] H_cur = new double[N];
+        final double[] curH_Result = new double[N];
         
         for(int t = 0; t < maxIterations; t++)
         {
-            Classifier weak = weakLearner.clone();
-            if(threadPool != null && !(threadPool instanceof FakeExecutor))
-                weak.trainC(new ClassificationDataSet(dataPoints, predicting), threadPool);
-            else
-                weak.trainC(new ClassificationDataSet(dataPoints, predicting));
+            final Classifier weak = weakLearner.clone();
+            if(threadPool != null && !(threadPool instanceof FakeExecutor)) {
+              weak.trainC(new ClassificationDataSet(dataPoints, predicting), threadPool);
+            } else {
+              weak.trainC(new ClassificationDataSet(dataPoints, predicting));
+            }
 
             double error = 0.0;
             for(int i = 0; i < dataPoints.size(); i++)
             {
-                DataPointPair<Integer> dpp = dataPoints.get(i);
-                double y_hat = H_cur[i] = H(weak, dpp.getDataPoint());
-                double y_true = dpp.getPair()*2-1;//{-1 or 1}
+                final DataPointPair<Integer> dpp = dataPoints.get(i);
+                final double y_hat = H_cur[i] = H(weak, dpp.getDataPoint());
+                final double y_true = dpp.getPair()*2-1;//{-1 or 1}
                 error += dpp.getDataPoint().getWeight()*y_hat*y_true;
             }
             
             
-            if(error < 0)
-                return;
+            if(error < 0) {
+              return;
+            }
             
-            double alpha_m = Math.log((1+error)/(1-error))/2;
+            final double alpha_m = Math.log((1+error)/(1-error))/2;
             
             weightSum = 0;
             
             for(int i = 0; i < dataPoints.size(); i++)
             {
                 curH_Result[i] += alpha_m * H_cur[i];
-                double f_t = curH_Result[i];
+                final double f_t = curH_Result[i];
                 
-                DataPointPair<Integer> dpp = dataPoints.get(i);
-                DataPoint dp = dpp.getDataPoint();
-                double y_true = dpp.getPair()*2-1;
+                final DataPointPair<Integer> dpp = dataPoints.get(i);
+                final DataPoint dp = dpp.getDataPoint();
+                final double y_true = dpp.getPair()*2-1;
 
                 double w_i = Math.exp(lambda*Math.pow(f_t-y_true, 2) - (1-lambda)*f_t*f_t);
-                if(Double.isInfinite(w_i))
-                    w_i = 50;//Let it grow back isntead of bizaro huge values
+                if(Double.isInfinite(w_i)) {
+                  w_i = 50;//Let it grow back isntead of bizaro huge values
+                }
                 weightSum += w_i;
                 dp.setWeight(w_i);
             }
             
             for(int i = 0; i < dataPoints.size(); i++)
             {
-                DataPointPair<Integer> dpp = dataPoints.get(i);
-                DataPoint dp = dpp.getDataPoint();
+                final DataPointPair<Integer> dpp = dataPoints.get(i);
+                final DataPoint dp = dpp.getDataPoint();
                 dp.setWeight(dp.getWeight()/weightSum);
             }
             
@@ -280,7 +290,7 @@ public class EmphasisBoost implements Classifier, Parameterized, BinaryScoreClas
     }
 
     @Override
-    public void trainC(ClassificationDataSet dataSet)
+    public void trainC(final ClassificationDataSet dataSet)
     {
         trainC(dataSet, null);
     }
@@ -304,7 +314,7 @@ public class EmphasisBoost implements Classifier, Parameterized, BinaryScoreClas
     }
 
     @Override
-    public Parameter getParameter(String paramName)
+    public Parameter getParameter(final String paramName)
     {
         return Parameter.toParameterMap(getParameters()).get(paramName);
     }

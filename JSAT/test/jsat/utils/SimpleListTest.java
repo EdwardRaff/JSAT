@@ -46,13 +46,13 @@ public class SimpleListTest
     public void testGet()
     {
         System.out.println("get");
-        SimpleList instance = new SimpleList();
+        final SimpleList instance = new SimpleList();
         try
         {
-            Object obj = instance.get(0);
+            final Object obj = instance.get(0);
             fail("Should not have been able to obtain " + obj);
         }
-        catch(Exception ex)
+        catch(final Exception ex)
         {
             
         }
@@ -66,10 +66,10 @@ public class SimpleListTest
         assertEquals("b", instance.get(0));
         try
         {
-            Object obj = instance.get(1);
+            final Object obj = instance.get(1);
             fail("Should not have been able to obtain " + obj);
         }
-        catch(Exception ex)
+        catch(final Exception ex)
         {
             
         }
@@ -81,10 +81,10 @@ public class SimpleListTest
         assertEquals("d", instance.get(2));
         try
         {
-            Object obj = instance.get(3);
+            final Object obj = instance.get(3);
             fail("Should not have been able to obtain " + obj);
         }
-        catch(Exception ex)
+        catch(final Exception ex)
         {
             
         }
@@ -97,7 +97,7 @@ public class SimpleListTest
     public void testSize()
     {
         System.out.println("size");
-        SimpleList instance = new SimpleList();
+        final SimpleList instance = new SimpleList();
         assertEquals(0, instance.size());
         instance.add("a");
         instance.add("b");
@@ -113,7 +113,7 @@ public class SimpleListTest
     public void testAdd()
     {
         System.out.println("add");
-        SimpleList<String> instance = new SimpleList<String>();
+        final SimpleList<String> instance = new SimpleList<String>();
         instance.add("a");
         instance.add(0, "c");
         instance.add(1, "b");
@@ -129,13 +129,13 @@ public class SimpleListTest
     public void testSet()
     {
         System.out.println("set");
-        SimpleList<String> instance = new SimpleList<String>();
+        final SimpleList<String> instance = new SimpleList<String>();
         try
         {
-            Object obj = instance.get(0);
+            final Object obj = instance.get(0);
             fail("Should not have been able to obtain " + obj);
         }
-        catch(Exception ex)
+        catch(final Exception ex)
         {
             
         }
@@ -151,10 +151,10 @@ public class SimpleListTest
         assertEquals("b", instance.get(0));
         try
         {
-            Object obj = instance.get(1);
+            final Object obj = instance.get(1);
             fail("Should not have been able to obtain " + obj);
         }
-        catch(Exception ex)
+        catch(final Exception ex)
         {
             
         }
@@ -168,10 +168,10 @@ public class SimpleListTest
         assertEquals("d", instance.get(2));
         try
         {
-            Object obj = instance.get(3);
+            final Object obj = instance.get(3);
             fail("Should not have been able to obtain " + obj);
         }
-        catch(Exception ex)
+        catch(final Exception ex)
         {
             
         }

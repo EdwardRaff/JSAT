@@ -2,13 +2,9 @@
 package jsat;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
-import java.util.Random;
 import jsat.classifiers.CategoricalData;
 import jsat.classifiers.DataPoint;
-import jsat.utils.IntList;
-import jsat.utils.ListUtils;
 
 /**
  * SimpleData Set is a basic implementation of a data set. Has no assumptions about the task that is going to be performed. 
@@ -19,19 +15,21 @@ public class SimpleDataSet extends DataSet<SimpleDataSet>
 {
     protected List<DataPoint> dataPoints;
 
-    public SimpleDataSet(List<DataPoint> dataPoints)
+    public SimpleDataSet(final List<DataPoint> dataPoints)
     {
-        if(dataPoints.isEmpty())
-            throw new RuntimeException("Can not create empty data set");
+        if(dataPoints.isEmpty()) {
+          throw new RuntimeException("Can not create empty data set");
+        }
         this.dataPoints = dataPoints;
         this.categories =  dataPoints.get(0).getCategoricalData();
         this.numNumerVals = dataPoints.get(0).numNumericalValues();
         this.numericalVariableNames = new ArrayList<String>(this.numNumerVals);
-        for(int i = 0; i < getNumNumericalVars(); i++)
-            this.numericalVariableNames.add("Numeric Input " + (i+1));
+        for(int i = 0; i < getNumNumericalVars(); i++) {
+          this.numericalVariableNames.add("Numeric Input " + (i+1));
+        }
     }
 
-    public SimpleDataSet(CategoricalData[] categories, int numNumericalValues)
+    public SimpleDataSet(final CategoricalData[] categories, final int numNumericalValues)
     {
         this.categories = categories;
         this.numNumerVals = numNumericalValues;
@@ -39,13 +37,13 @@ public class SimpleDataSet extends DataSet<SimpleDataSet>
     }
     
     @Override
-    public DataPoint getDataPoint(int i)
+    public DataPoint getDataPoint(final int i)
     {
         return dataPoints.get(i);
     }
 
     @Override
-    public void setDataPoint(int i, DataPoint dp)
+    public void setDataPoint(final int i, final DataPoint dp)
     {
         dataPoints.set(i, dp);
         columnVecCache.clear();
@@ -55,7 +53,7 @@ public class SimpleDataSet extends DataSet<SimpleDataSet>
      * Adds a new datapoint to this set. 
      * @param dp the datapoint to add
      */
-    public void add(DataPoint dp)
+    public void add(final DataPoint dp)
     {
         dataPoints.add(dp);
         columnVecCache.clear();
@@ -68,11 +66,12 @@ public class SimpleDataSet extends DataSet<SimpleDataSet>
     }
     
     @Override
-    protected SimpleDataSet getSubset(List<Integer> indicies)
+    protected SimpleDataSet getSubset(final List<Integer> indicies)
     {
-        SimpleDataSet newData = new SimpleDataSet(categories, numNumerVals);
-        for(int i : indicies)
-            newData.add(getDataPoint(i));
+        final SimpleDataSet newData = new SimpleDataSet(categories, numNumerVals);
+        for(final int i : indicies) {
+          newData.add(getDataPoint(i));
+        }
         return newData;
     }
     

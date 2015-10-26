@@ -36,7 +36,7 @@ public class LSDBCTest
     public static void setUpClass() throws Exception
     {
         algo = new LSDBC();
-        GridDataGenerator gdg = new GridDataGenerator(new Normal(0, 0.10), new Random(12), 2, 5);
+        final GridDataGenerator gdg = new GridDataGenerator(new Normal(0, 0.10), new Random(12), 2, 5);
         easyData10 = gdg.generateData(40);
         ex = Executors.newFixedThreadPool(SystemInfo.LogicalCores);
     }
@@ -57,16 +57,17 @@ public class LSDBCTest
     public void testCluster_DataSet()
     {
         System.out.println("cluster(dataset)");
-        Clusterer toUse = algo.clone();
-        List<List<DataPoint>> clusters = toUse.cluster(easyData10);
+        final Clusterer toUse = algo.clone();
+        final List<List<DataPoint>> clusters = toUse.cluster(easyData10);
         assertEquals(10, clusters.size());
-        Set<Integer> seenBefore = new IntSet();
-        for(List<DataPoint> cluster :  clusters)
+        final Set<Integer> seenBefore = new IntSet();
+        for(final List<DataPoint> cluster :  clusters)
         {
-            int thisClass = cluster.get(0).getCategoricalValue(0);
+            final int thisClass = cluster.get(0).getCategoricalValue(0);
             assertFalse(seenBefore.contains(thisClass));
-            for(DataPoint dp : cluster)
-                assertEquals(thisClass, dp.getCategoricalValue(0));
+            for(final DataPoint dp : cluster) {
+              assertEquals(thisClass, dp.getCategoricalValue(0));
+            }
         }
     }
     
@@ -74,16 +75,17 @@ public class LSDBCTest
     public void testCluster_DataSet_ExecutorService()
     {
         System.out.println("cluster(dataset, ExecutorService)");
-        Clusterer toUse = algo.clone();
-        List<List<DataPoint>> clusters = toUse.cluster(easyData10, ex);
+        final Clusterer toUse = algo.clone();
+        final List<List<DataPoint>> clusters = toUse.cluster(easyData10, ex);
         assertEquals(10, clusters.size());
-        Set<Integer> seenBefore = new IntSet();
-        for(List<DataPoint> cluster :  clusters)
+        final Set<Integer> seenBefore = new IntSet();
+        for(final List<DataPoint> cluster :  clusters)
         {
-            int thisClass = cluster.get(0).getCategoricalValue(0);
+            final int thisClass = cluster.get(0).getCategoricalValue(0);
             assertFalse(seenBefore.contains(thisClass));
-            for(DataPoint dp : cluster)
-                assertEquals(thisClass, dp.getCategoricalValue(0));
+            for(final DataPoint dp : cluster) {
+              assertEquals(thisClass, dp.getCategoricalValue(0));
+            }
         }
     }
 }

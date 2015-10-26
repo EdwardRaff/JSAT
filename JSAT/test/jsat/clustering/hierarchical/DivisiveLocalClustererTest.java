@@ -35,9 +35,9 @@ public class DivisiveLocalClustererTest
     @BeforeClass
     public static void setUpClass() throws Exception 
     {
-        DistanceMetric dm = new EuclideanDistance();
+        final DistanceMetric dm = new EuclideanDistance();
         dlc = new DivisiveLocalClusterer(new ElkanKMeans(dm), new DaviesBouldinIndex(dm));
-        GridDataGenerator gdg = new GridDataGenerator(new Uniform(-0.15, 0.15), new Random(12), 2, 2);
+        final GridDataGenerator gdg = new GridDataGenerator(new Uniform(-0.15, 0.15), new Random(12), 2, 2);
         easyData = gdg.generateData(100);
         ex = Executors.newFixedThreadPool(10);
     }
@@ -61,15 +61,16 @@ public class DivisiveLocalClustererTest
     public void testCluster_DataSet_int()
     {
         System.out.println("cluster(dataset, int)");
-        List<List<DataPoint>> clusters = dlc.cluster(easyData, 10);
+        final List<List<DataPoint>> clusters = dlc.cluster(easyData, 10);
         assertEquals(10, clusters.size());
-        Set<Integer> seenBefore = new IntSet();
-        for (List<DataPoint> cluster : clusters)
+        final Set<Integer> seenBefore = new IntSet();
+        for (final List<DataPoint> cluster : clusters)
         {
-            int thisClass = cluster.get(0).getCategoricalValue(0);
+            final int thisClass = cluster.get(0).getCategoricalValue(0);
             assertFalse(seenBefore.contains(thisClass));
-            for (DataPoint dp : cluster)
-                assertEquals(thisClass, dp.getCategoricalValue(0));
+            for (final DataPoint dp : cluster) {
+              assertEquals(thisClass, dp.getCategoricalValue(0));
+            }
         }
     }
 
@@ -77,15 +78,16 @@ public class DivisiveLocalClustererTest
     public void testCluster_DataSet_int_ExecutorService()
     {
         System.out.println("cluster(dataset, int, ExecutorService)");
-        List<List<DataPoint>> clusters = dlc.cluster(easyData, 10, ex);
+        final List<List<DataPoint>> clusters = dlc.cluster(easyData, 10, ex);
         assertEquals(10, clusters.size());
-        Set<Integer> seenBefore = new IntSet();
-        for (List<DataPoint> cluster : clusters)
+        final Set<Integer> seenBefore = new IntSet();
+        for (final List<DataPoint> cluster : clusters)
         {
-            int thisClass = cluster.get(0).getCategoricalValue(0);
+            final int thisClass = cluster.get(0).getCategoricalValue(0);
             assertFalse(seenBefore.contains(thisClass));
-            for (DataPoint dp : cluster)
-                assertEquals(thisClass, dp.getCategoricalValue(0));
+            for (final DataPoint dp : cluster) {
+              assertEquals(thisClass, dp.getCategoricalValue(0));
+            }
         }
     }
 }

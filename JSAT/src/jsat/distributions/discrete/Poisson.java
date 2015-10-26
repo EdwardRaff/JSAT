@@ -42,7 +42,7 @@ public class Poisson extends DiscreteDistribution
      * Creates a new Poisson distribution 
      * @param lambda the average rate of the event
      */
-    public Poisson(double lambda)
+    public Poisson(final double lambda)
     {
         setLambda(lambda);
     }
@@ -52,10 +52,11 @@ public class Poisson extends DiscreteDistribution
      *
      * @param lambda the average rate of the event occurring
      */
-    public void setLambda(double lambda)
+    public void setLambda(final double lambda)
     {
-        if (Double.isNaN(lambda) || lambda <= 0 || Double.isInfinite(lambda))
-            throw new IllegalArgumentException("lambda must be positive, not " + lambda);
+        if (Double.isNaN(lambda) || lambda <= 0 || Double.isInfinite(lambda)) {
+          throw new IllegalArgumentException("lambda must be positive, not " + lambda);
+        }
         this.lambda = lambda;
     }
 
@@ -69,28 +70,31 @@ public class Poisson extends DiscreteDistribution
     }
 
     @Override
-    public double logPmf(int x)
+    public double logPmf(final int x)
     {
-        if(x < 0)
-            return -Double.MAX_VALUE;
+        if(x < 0) {
+          return -Double.MAX_VALUE;
+        }
         //log(e^-lambda lambda^x / x!)
         //log(x!) = log(Gamma(x+1))
         return -lnGamma(x+1) - lambda + x * log(lambda);
     }
     
     @Override
-    public double pmf(int x)
+    public double pmf(final int x)
     {
-        if(x < 0)
-            return 0;
+        if(x < 0) {
+          return 0;
+        }
         return Math.exp(logPmf(x));
     }
 
     @Override
-    public double cdf(int x)
+    public double cdf(final int x)
     {
-        if(x < 0)
-            return 0;
+        if(x < 0) {
+          return 0;
+        }
         return gammaQ(x+1, lambda);
     }
 
@@ -104,12 +108,14 @@ public class Poisson extends DiscreteDistribution
     public double mode()
     {
         //see https://math.stackexchange.com/questions/246496/the-mode-of-the-poisson-distribution/246507#246507
-        if(lambda < 1)
-            return 0;
-        else if(lambda > 1 && Math.rint(lambda) != lambda)
-            return Math.floor(lambda);
-        else//lambda is an integer
-            return lambda;//lamda-1 is also valid
+        if(lambda < 1) {
+          return 0;
+        } else if(lambda > 1 && Math.rint(lambda) != lambda) {
+          return Math.floor(lambda);
+        } else {
+          //lambda is an integer
+          return lambda;//lamda-1 is also valid
+        }
     }
 
     @Override

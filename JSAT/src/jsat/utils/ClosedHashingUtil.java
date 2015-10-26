@@ -52,13 +52,14 @@ public class ClosedHashingUtil
      * @param m the integer to get a twine prime larger than
      * @return the a twin prime greater than or equal to 
      */
-    public static int getNextPow2TwinPrime(int m)
+    public static int getNextPow2TwinPrime(final int m)
     {
-        int pos = Arrays.binarySearch(twinPrimesP2, m+1);
-        if(pos > 0)
-            return twinPrimesP2[pos];
-        else
-            return twinPrimesP2[-pos - 1];
+        final int pos = Arrays.binarySearch(twinPrimesP2, m+1);
+        if(pos > 0) {
+          return twinPrimesP2[pos];
+        } else {
+          return twinPrimesP2[-pos - 1];
+        }
     }
     
     /**

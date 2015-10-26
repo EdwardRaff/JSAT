@@ -30,8 +30,9 @@ public class VecOps
      */
     public static double accumulateSum(final Vec w, final Vec x, final Vec y, final Function f)
     {
-        if(w.length() != x.length() || x.length() != y.length())
-            throw new ArithmeticException("All 3 vector inputs must have equal lengths");
+        if(w.length() != x.length() || x.length() != y.length()) {
+          throw new ArithmeticException("All 3 vector inputs must have equal lengths");
+        }
         
         double val = 0;
         final boolean skipZeros = f.f(0) == 0;
@@ -43,7 +44,7 @@ public class VecOps
 
         if (wSparse && !xSparse && !ySparse)
         {
-            for (IndexValue wiv : w)
+            for (final IndexValue wiv : w)
             {
                 final int idx = wiv.getIndex();
                 val += wiv.getValue() * f.f(x.get(idx) - y.get(idx));
@@ -51,40 +52,46 @@ public class VecOps
         }
         else if (!wSparse && !xSparse && !ySparse)//w is dense
         {
-            for (int i = 0; i < w.length(); i++)
-                val += w.get(i) * f.f(x.get(i) - y.get(i));
+            for (int i = 0; i < w.length(); i++) {
+              val += w.get(i) * f.f(x.get(i) - y.get(i));
+            }
         }
         else //Best for all sparse, but also works well in general
         {
-            Iterator<IndexValue> xIter = x.iterator();
-            Iterator<IndexValue> yIter = y.iterator();
+            final Iterator<IndexValue> xIter = x.iterator();
+            final Iterator<IndexValue> yIter = y.iterator();
 
             IndexValue xiv = xIter.hasNext() ? xIter.next() : badIV;
             IndexValue yiv = yIter.hasNext() ? yIter.next() : badIV;
 
-            for (IndexValue wiv : w)
+            for (final IndexValue wiv : w)
             {
-                int index = wiv.getIndex();
-                double w_i = wiv.getValue();
+                final int index = wiv.getIndex();
+                final double w_i = wiv.getValue();
 
-                while (xiv.getIndex() < index && xIter.hasNext())
-                    xiv = xIter.next();
-                while (yiv.getIndex() < index && yIter.hasNext())
-                    yiv = yIter.next();
+                while (xiv.getIndex() < index && xIter.hasNext()) {
+                  xiv = xIter.next();
+                }
+                while (yiv.getIndex() < index && yIter.hasNext()) {
+                  yiv = yIter.next();
+                }
 
 
                 final double x_i, y_i;
-                if (xiv.getIndex() == index)
-                    x_i = xiv.getValue();
-                else
-                    x_i = 0;
-                if (yiv.getIndex() == index)
-                    y_i = yiv.getValue();
-                else
-                    y_i = 0;
+                if (xiv.getIndex() == index) {
+                  x_i = xiv.getValue();
+                } else {
+                  x_i = 0;
+                }
+                if (yiv.getIndex() == index) {
+                  y_i = yiv.getValue();
+                } else {
+                  y_i = 0;
+                }
 
-                if (skipZeros && x_i == 0 && y_i == 0)
-                    continue;
+                if (skipZeros && x_i == 0 && y_i == 0) {
+                  continue;
+                }
                 val += w_i * f.f(x_i - y_i);
             }
         }
@@ -101,26 +108,27 @@ public class VecOps
      */
     public static double weightedDot(final Vec w, final Vec x, final Vec y)
     {
-        if(w.length() != x.length() || x.length() != y.length())
-            throw new ArithmeticException("All 3 vector inputs must have equal lengths");
+        if(w.length() != x.length() || x.length() != y.length()) {
+          throw new ArithmeticException("All 3 vector inputs must have equal lengths");
+        }
         
         double sum = 0;
         
         if(x.isSparse() && y.isSparse())
         {
-            Iterator<IndexValue> xIter = x.iterator();
-            Iterator<IndexValue> yIter = y.iterator();
+            final Iterator<IndexValue> xIter = x.iterator();
+            final Iterator<IndexValue> yIter = y.iterator();
 
             IndexValue xiv = xIter.hasNext() ? xIter.next() : badIV;
             IndexValue yiv = yIter.hasNext() ? yIter.next() : badIV;
             
             while(xiv != badIV && yiv != badIV)
             {
-                if(xiv.getIndex() < yiv.getIndex())
-                    xiv = xIter.hasNext() ? xIter.next() : badIV;
-                else if(yiv.getIndex() > xiv.getIndex())
-                    yiv = yIter.hasNext() ? yIter.next() : badIV;
-                else//on the same page
+                if(xiv.getIndex() < yiv.getIndex()) {
+                  xiv = xIter.hasNext() ? xIter.next() : badIV;
+                } else if(yiv.getIndex() > xiv.getIndex()) {
+                  yiv = yIter.hasNext() ? yIter.next() : badIV;
+                } else//on the same page
                 {
                     sum += w.get(xiv.getIndex())*xiv.getValue()*yiv.getValue();
                     xiv = xIter.hasNext() ? xIter.next() : badIV;
@@ -130,18 +138,19 @@ public class VecOps
         }
         else if(x.isSparse())
         {
-            for(IndexValue iv : x)
+            for(final IndexValue iv : x)
             {
-                int indx = iv.getIndex();
+                final int indx = iv.getIndex();
                 sum += w.get(indx)*iv.getValue()*y.get(indx);
             }
         }
-        else if(y.isSparse())
-            return weightedDot(w, y, x);
-        else//all dense
+        else if(y.isSparse()) {
+          return weightedDot(w, y, x);
+        } else//all dense
         {
-            for(int i = 0; i < w.length(); i++)
-                sum += w.get(i)*x.get(i)*y.get(i);
+            for(int i = 0; i < w.length(); i++) {
+              sum += w.get(i)*x.get(i)*y.get(i);
+          }
         }
         
         return sum;

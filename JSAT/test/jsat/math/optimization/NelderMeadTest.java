@@ -46,10 +46,10 @@ public class NelderMeadTest
     {
         System.out.println("optimize");
         
-        NelderMead instance = new NelderMead();
-        Function banana = new RosenbrockFunction();
-        DenseVector search = DenseVector.toDenseVec(1.05, 0.95, 1.05);
-        Vec x = instance.optimize(1e-6, 1000, banana, banana, search, null, null, null);
+        final NelderMead instance = new NelderMead();
+        final Function banana = new RosenbrockFunction();
+        final DenseVector search = DenseVector.toDenseVec(1.05, 0.95, 1.05);
+        final Vec x = instance.optimize(1e-6, 1000, banana, banana, search, null, null, null);
         assertEquals(0.0, banana.f(x), 1e-3);//Its a hard function to get, we often get close 
     }
 
@@ -60,10 +60,10 @@ public class NelderMeadTest
     public void testOptimize_7args()
     {
         System.out.println("optimize");
-        NelderMead instance = new NelderMead();
-        Function banana = new RosenbrockFunction();
-        DenseVector search = DenseVector.toDenseVec(1.05, 0.95, 1.05);
-        Vec x = instance.optimize(1e-6, 10000, banana, banana, search, null, null);
+        final NelderMead instance = new NelderMead();
+        final Function banana = new RosenbrockFunction();
+        final DenseVector search = DenseVector.toDenseVec(1.05, 0.95, 1.05);
+        final Vec x = instance.optimize(1e-6, 10000, banana, banana, search, null, null);
         assertEquals(0.0, banana.f(x), 1e-3);//Its a hard function to get, we often get close 
     }
 
@@ -75,12 +75,12 @@ public class NelderMeadTest
     {
         System.out.println("optimize");
         
-        NelderMead instance = new NelderMead();
-        Function banana = new RosenbrockFunction();
-        DenseVector search = DenseVector.toDenseVec(1.05, 0.95, 1.05);
-        List<Vec> input = new ArrayList<Vec>();
+        final NelderMead instance = new NelderMead();
+        final Function banana = new RosenbrockFunction();
+        final DenseVector search = DenseVector.toDenseVec(1.05, 0.95, 1.05);
+        final List<Vec> input = new ArrayList<Vec>();
         input.add(search);
-        Vec x = instance.optimize(1e-6, 1000, banana, input);
+        final Vec x = instance.optimize(1e-6, 1000, banana, input);
         assertEquals(0.0, banana.f(x), 1e-3);//Its a hard function to get, we often get close 
     }
 }

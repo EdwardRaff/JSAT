@@ -18,44 +18,49 @@ public class Exponential extends ContinuousDistribution
         this(1);
     }
 
-    public Exponential(double lambda)
+    public Exponential(final double lambda)
     {
-        if(lambda <= 0)
-            throw new RuntimeException("The rate parameter must be greater than zero, not " + lambda);
+        if(lambda <= 0) {
+          throw new RuntimeException("The rate parameter must be greater than zero, not " + lambda);
+        }
         this.lambda = lambda;
     }
 
     @Override
-    public double logPdf(double x)
+    public double logPdf(final double x)
     {
-        if(x < 0)
-            return 0;
+        if(x < 0) {
+          return 0;
+        }
         return log(lambda) + -lambda*x;
     }
 
     
     @Override
-    public double pdf(double d)
+    public double pdf(final double d)
     {
-        if(d < 0)
-            return 0;
+        if(d < 0) {
+          return 0;
+        }
         return lambda*exp(-lambda*d);
     }
 
 
     @Override
-    public double cdf(double d)
+    public double cdf(final double d)
     {
-        if(d < 0)
-            return 0;
+        if(d < 0) {
+          return 0;
+        }
         return 1-exp(-lambda*d);
     }
 
     @Override
-    public double invCdf(double d)
+    public double invCdf(final double d)
     {
-        if(d < 0 || d > 1)
-            throw new ArithmeticException("Inverse CDF only exists on the range [0,1]");
+        if(d < 0 || d > 1) {
+          throw new ArithmeticException("Inverse CDF only exists on the range [0,1]");
+        }
         return -log(1-d)/lambda;
     }
 
@@ -90,12 +95,13 @@ public class Exponential extends ContinuousDistribution
     }
 
     @Override
-    public void setVariable(String var, double value)
+    public void setVariable(final String var, final double value)
     {
         if(var.equals("\u03BB"))
         {
-            if (value <= 0)
-                throw new RuntimeException("The rate parameter must be greater than zero");
+            if (value <= 0) {
+              throw new RuntimeException("The rate parameter must be greater than zero");
+            }
             lambda = value;
         }
     }
@@ -107,14 +113,15 @@ public class Exponential extends ContinuousDistribution
     }
 
     @Override
-    public void setUsingData(Vec data)
+    public void setUsingData(final Vec data)
     {
         /**
          * mean of an exponential distribution is lambda^-1
          */
         lambda = 1/data.mean();
-        if(lambda <= 0)
-            lambda = 1;
+        if(lambda <= 0) {
+          lambda = 1;
+        }
     }
 
     @Override
@@ -164,7 +171,7 @@ public class Exponential extends ContinuousDistribution
 	}
 
 	@Override
-	public boolean equals(Object obj) {
+	public boolean equals(final Object obj) {
 		if (this == obj) {
 			return true;
 		}
@@ -174,12 +181,9 @@ public class Exponential extends ContinuousDistribution
 		if (getClass() != obj.getClass()) {
 			return false;
 		}
-		Exponential other = (Exponential) obj;
-		if (Double.doubleToLongBits(lambda) != Double
-				.doubleToLongBits(other.lambda)) {
-			return false;
-		}
-		return true;
+		final Exponential other = (Exponential) obj;
+		return Double.doubleToLongBits(lambda) == Double
+            .doubleToLongBits(other.lambda);
 	}
 
 }

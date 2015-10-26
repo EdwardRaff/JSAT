@@ -127,14 +127,15 @@ public class KernelPoint
      * @param errorTolerance the maximum error in [0, 1] allowed for projecting 
      * a vector instead of adding it to the basis set
      */
-    public KernelPoint(KernelTrick k, double errorTolerance)
+    public KernelPoint(final KernelTrick k, final double errorTolerance)
     {
         this.k = k;
         setErrorTolerance(errorTolerance);
         setBudgetStrategy(BudgetStrategy.PROJECTION);
         setMaxBudget(Integer.MAX_VALUE);
-        if(k.supportsAcceleration())
-            kernelAccel = new DoubleList(16);
+        if(k.supportsAcceleration()) {
+          kernelAccel = new DoubleList(16);
+        }
         alpha = new DoubleList(16);
         vecs = new ArrayList<Vec>(16);
     }
@@ -143,17 +144,19 @@ public class KernelPoint
      * Copy constructor
      * @param toCopy the object to copy
      */
-    public KernelPoint(KernelPoint toCopy)
+    public KernelPoint(final KernelPoint toCopy)
     {
         this.k = toCopy.k.clone();
         this.errorTolerance = toCopy.errorTolerance;
         if(toCopy.vecs != null)
         {
             this.vecs = new ArrayList<Vec>(toCopy.vecs.size());
-            for(Vec v : toCopy.vecs)
-                this.vecs.add(v.clone());
-            if(toCopy.kernelAccel != null)
-                this.kernelAccel = new DoubleList(toCopy.kernelAccel);
+            for(final Vec v : toCopy.vecs) {
+              this.vecs.add(v.clone());
+            }
+            if(toCopy.kernelAccel != null) {
+              this.kernelAccel = new DoubleList(toCopy.kernelAccel);
+            }
             
             this.alpha = new DoubleList(toCopy.alpha);
         }
@@ -181,10 +184,11 @@ public class KernelPoint
      * 
      * @param maxBudget the maximum number of allowed support vectors
      */
-    public void setMaxBudget(int maxBudget)
+    public void setMaxBudget(final int maxBudget)
     {
-        if(maxBudget < 1)
-            throw new IllegalArgumentException("Budget must be positive, not " + maxBudget);
+        if(maxBudget < 1) {
+          throw new IllegalArgumentException("Budget must be positive, not " + maxBudget);
+        }
         this.maxBudget = maxBudget;
     }
 
@@ -206,10 +210,11 @@ public class KernelPoint
      * memory use of the model. 
      * @param budgetStrategy the budget maintenance strategy
      */
-    public void setBudgetStrategy(BudgetStrategy budgetStrategy)
+    public void setBudgetStrategy(final BudgetStrategy budgetStrategy)
     {
-        if(getBasisSize() > 0)
-            throw new RuntimeException("KerenlPoint already started, budget may not be changed");
+        if(getBasisSize() > 0) {
+          throw new RuntimeException("KerenlPoint already started, budget may not be changed");
+        }
         this.budgetStrategy = budgetStrategy;
     }
 
@@ -227,10 +232,11 @@ public class KernelPoint
      * as {@link BudgetStrategy#PROJECTION}
      * @param errorTolerance the error tolerance in [0, 1]
      */
-    public void setErrorTolerance(double errorTolerance)
+    public void setErrorTolerance(final double errorTolerance)
     {
-        if(Double.isNaN(errorTolerance) || errorTolerance < 0 || errorTolerance > 1)
-            throw new IllegalArgumentException("Error tolerance must be in [0, 1], not " + errorTolerance);
+        if(Double.isNaN(errorTolerance) || errorTolerance < 0 || errorTolerance > 1) {
+          throw new IllegalArgumentException("Error tolerance must be in [0, 1], not " + errorTolerance);
+        }
         this.errorTolerance = errorTolerance;
     }
     
@@ -260,14 +266,16 @@ public class KernelPoint
                 if(K != null)//we already know all the values of K
                 {
                     sqrdNorm += alpha.get(i)*alpha.get(i)*K.get(i, i);
-                    for(int j = i+1; j < alpha.size(); j++)
-                        sqrdNorm += 2*alpha.get(i)*alpha.get(j)*K.get(i, j);
+                    for(int j = i+1; j < alpha.size(); j++) {
+                      sqrdNorm += 2*alpha.get(i)*alpha.get(j)*K.get(i, j);
+                    }
                 }
                 else//nope, compute as needed
                 {
                     sqrdNorm += alpha.get(i)*alpha.get(i)*k.eval(i, i, vecs, kernelAccel);
-                    for(int j = i+1; j < alpha.size(); j++)
-                        sqrdNorm += 2*alpha.get(i)*alpha.get(j)*k.eval(i, j, vecs, kernelAccel);
+                    for(int j = i+1; j < alpha.size(); j++) {
+                      sqrdNorm += 2*alpha.get(i)*alpha.get(j)*k.eval(i, j, vecs, kernelAccel);
+                    }
                 }
             }
             normGood = true;
@@ -282,7 +290,7 @@ public class KernelPoint
      * @param x the input vector to work with
      * @return the dot product in the kernel space between this point and {@code x}
      */
-    public double dot(Vec x)
+    public double dot(final Vec x)
     {
         return dot(x, k.getQueryInfo(x));
     }
@@ -296,10 +304,11 @@ public class KernelPoint
      * the kernel in use does not support acceleration. 
      * @return the dot product in the kernel space between this point and {@code x}
      */
-    public double dot(Vec x, List<Double> qi)
+    public double dot(final Vec x, final List<Double> qi)
     {
-        if(getBasisSize() == 0)
-            return 0;
+        if(getBasisSize() == 0) {
+          return 0;
+        }
         return k.evalSum(vecs, kernelAccel, alpha.getBackingArray(), x, qi, 0, alpha.size());
     }
     
@@ -309,24 +318,27 @@ public class KernelPoint
      * @param x the point to take the dot product with
      * @return the dot product in the kernel space between this point and {@code x}
      */
-    public double dot(KernelPoint x)
+    public double dot(final KernelPoint x)
     {
-        if(getBasisSize() == 0 || x.getBasisSize() == 0) 
-            return 0;
-        int shift = this.alpha.size();
-        List<Vec> mergedVecs = ListUtils.mergedView(this.vecs, x.vecs);
+        if(getBasisSize() == 0 || x.getBasisSize() == 0) {
+          return 0;
+        }
+        final int shift = this.alpha.size();
+        final List<Vec> mergedVecs = ListUtils.mergedView(this.vecs, x.vecs);
         List<Double> mergedCache;
-        if(this.kernelAccel == null || x.kernelAccel == null)
-            mergedCache = null;
-        else
-            mergedCache = ListUtils.mergedView(this.kernelAccel, x.kernelAccel);
+        if(this.kernelAccel == null || x.kernelAccel == null) {
+          mergedCache = null;
+        } else {
+          mergedCache = ListUtils.mergedView(this.kernelAccel, x.kernelAccel);
+        }
         
         double dot = 0;
-        for(int i = 0; i < this.alpha.size(); i++)
-            for(int j = 0; j < x.alpha.size(); j++)
-            {
-                dot += this.alpha.get(i)*x.alpha.get(j)*k.eval(i, j+shift, mergedVecs, mergedCache);
-            }
+        for(int i = 0; i < this.alpha.size(); i++) {
+          for(int j = 0; j < x.alpha.size(); j++)
+          {
+            dot += this.alpha.get(i)*x.alpha.get(j)*k.eval(i, j+shift, mergedVecs, mergedCache);
+          }
+        }
         return dot;
     }
     
@@ -337,7 +349,7 @@ public class KernelPoint
      * @return the Euclidean distance between this point and {@code x} in the 
      * kernel space
      */
-    public double dist(Vec x)
+    public double dist(final Vec x)
     {
         return dist(x, k.getQueryInfo(x));
     }
@@ -351,9 +363,9 @@ public class KernelPoint
      * @return the Euclidean distance between this point and {@code x} in the 
      * kernel space
      */
-    public double dist(Vec x, List<Double> qi)
+    public double dist(final Vec x, final List<Double> qi)
     {
-        double k_xx = k.eval(0, 0, Arrays.asList(x), qi);
+        final double k_xx = k.eval(0, 0, Arrays.asList(x), qi);
         return Math.sqrt(k_xx+getSqrdNorm()-2*dot(x, qi));
     }
     
@@ -364,11 +376,12 @@ public class KernelPoint
      * @return the Euclidean distance between this point and {@code x} in the 
      * kernel space
      */
-    public double dist(KernelPoint x)
+    public double dist(final KernelPoint x)
     {
-        if(this == x)//dist to self is 0
-            return 0;
-        double d = this.getSqrdNorm() + x.getSqrdNorm() - 2 * dot(x);
+        if(this == x) {//dist to self is 0
+          return 0;
+        }
+        final double d = this.getSqrdNorm() + x.getSqrdNorm() - 2 * dot(x);
         return Math.sqrt(Math.max(0, d));//Avoid rare cases wehre 2*dot might be slightly larger
     }
     
@@ -376,12 +389,14 @@ public class KernelPoint
      * Alters this point to be multiplied by the given value
      * @param c the value to multiply by
      */
-    public void mutableMultiply(double c)
+    public void mutableMultiply(final double c)
     {
-        if(Double.isNaN(c) || Double.isInfinite(c))
-            throw new IllegalArgumentException("multiplier must be a real value, not " + c);
-        if(getBasisSize() == 0)
-            return;
+        if(Double.isNaN(c) || Double.isInfinite(c)) {
+          throw new IllegalArgumentException("multiplier must be a real value, not " + c);
+        }
+        if(getBasisSize() == 0) {
+          return;
+        }
         sqrdNorm *= c*c;
         alpha.getVecView().mutableMultiply(c);
     }
@@ -390,7 +405,7 @@ public class KernelPoint
      * Alters this point to contain the given input vector as well
      * @param x_t the vector to add
      */
-    public void mutableAdd(Vec x_t)
+    public void mutableAdd(final Vec x_t)
     {
         mutableAdd(1.0, x_t);
     }
@@ -400,7 +415,7 @@ public class KernelPoint
      * @param c the multiplicative constant to apply with the vector
      * @param x_t the vector to add
      */
-    public void mutableAdd(double c, Vec x_t)
+    public void mutableAdd(final double c, final Vec x_t)
     {
         mutableAdd(c, x_t, k.getQueryInfo(x_t));
     }
@@ -412,12 +427,13 @@ public class KernelPoint
      * @param qi the query information for the vector, or {@code null} only if 
      * the kernel in use does not support acceleration. 
      */
-    public void mutableAdd(double c, Vec x_t, final List<Double> qi)
+    public void mutableAdd(final double c, final Vec x_t, final List<Double> qi)
     {
-        if(c == 0)
-            return;
+        if(c == 0) {
+          return;
+        }
         normGood = false;
-        double y_t = c;
+        final double y_t = c;
         final double k_tt = k.eval(0, 0, Arrays.asList(x_t), qi);
         
         if(budgetStrategy == BudgetStrategy.PROJECTION)
@@ -432,16 +448,18 @@ public class KernelPoint
                 InvK.set(0, 0, 1/k_tt);
                 alpha.add(y_t);
                 vecs.add(x_t);
-                if(kernelAccel != null)
-                    kernelAccel.addAll(qi);
+                if(kernelAccel != null) {
+                  kernelAccel.addAll(qi);
+                }
                 return;
             }
 
             //Normal case
-            DenseVector kxt = new DenseVector(K.rows());
+            final DenseVector kxt = new DenseVector(K.rows());
 
-            for (int i = 0; i < kxt.length(); i++)
-                kxt.set(i, k.eval(i, x_t, qi, vecs, kernelAccel));
+            for (int i = 0; i < kxt.length(); i++) {
+              kxt.set(i, k.eval(i, x_t, qi, vecs, kernelAccel));
+            }
 
             //ALD test
             final Vec alphas_t = InvK.multiply(kxt);
@@ -451,8 +469,9 @@ public class KernelPoint
             if(delta_t > errorTolerance && size < maxBudget)//add to the dictionary
             {
                 vecs.add(x_t);
-                if(kernelAccel != null)
-                    kernelAccel.addAll(qi);
+                if(kernelAccel != null) {
+                  kernelAccel.addAll(qi);
+                }
 
                 if(size == KExpanded.rows())//we need to grow first
                 {
@@ -482,7 +501,7 @@ public class KernelPoint
             }
             else//project onto dictionary
             {
-                Vec alphaVec = alpha.getVecView();
+                final Vec alphaVec = alpha.getVecView();
                 alphaVec.mutableAdd(y_t, alphas_t);
                 normGood = false;
             }
@@ -501,12 +520,13 @@ public class KernelPoint
                  */
                 int m = 0;
                 double alpha_m = abs(alpha.get(m));
-                for(int i = 1; i < alpha.size(); i++)
-                    if(abs(alpha.getD(i)) < abs(alpha_m))
-                    {
-                        alpha_m = alpha.getD(i);
-                        m = i;
-                    }
+                for(int i = 1; i < alpha.size(); i++) {
+                  if(abs(alpha.getD(i)) < abs(alpha_m))
+                  {
+                    alpha_m = alpha.getD(i);
+                    m = i;
+                  }
+                }
                 
                 
                 double minLoss = Double.POSITIVE_INFINITY;
@@ -518,15 +538,17 @@ public class KernelPoint
                 {
                     for (int i = 0; i < alpha.size(); i++)
                     {
-                        if (i == m)
-                            continue;
-                        double a_m = alpha_m, a_n = alpha.getD(i);
-                        double normalize = a_m+a_n;
-                        if (abs(normalize) < tol)//avoid alphas that nearly cancle out
-                            continue;
+                        if (i == m) {
+                          continue;
+                        }
+                        final double a_m = alpha_m, a_n = alpha.getD(i);
+                        final double normalize = a_m+a_n;
+                        if (abs(normalize) < tol) {//avoid alphas that nearly cancle out
+                          continue;
+                        }
                         final double k_mn = k.eval(i, m, vecs, kernelAccel);
                         
-                        double h = getH(k_mn, a_m/normalize, a_n/normalize);
+                        final double h = getH(k_mn, a_m/normalize, a_n/normalize);
                         
                         /*
                          * we can get k(m, z) without forming z when using RBF
@@ -536,8 +558,8 @@ public class KernelPoint
                          * 
                          * and since: 0 < h < 1 (h-1)^2 = (1-h)^2
                          */
-                        double k_mz = pow(k_mn, (1 - h) * (1 - h));
-                        double k_nz = pow(k_mn, h * h);
+                        final double k_mz = pow(k_mn, (1 - h) * (1 - h));
+                        final double k_nz = pow(k_mn, h * h);
                         
                         //TODO should we fall back to forming z if we use a non RBF kernel?
 
@@ -546,9 +568,9 @@ public class KernelPoint
                          * Determin the best by the smallest change in norm, 2x2 
                          * matrix for the original alphs and alpha_z on its own
                          */
-                        double alpha_z = a_m * k_mz + a_n * k_nz;
+                        final double alpha_z = a_m * k_mz + a_n * k_nz;
 
-                        double loss = a_m * a_m + a_n * a_n
+                        final double loss = a_m * a_m + a_n * a_n
                                 + 2 * k_mn * a_m * a_n
                                 - alpha_z*alpha_z;
 
@@ -563,7 +585,7 @@ public class KernelPoint
                     tol /= 10;
                 }
 
-                Vec n_z = vecs.get(m).multiply(n_h);
+                final Vec n_z = vecs.get(m).multiply(n_h);
                 n_z.mutableAdd(1-n_h, vecs.get(n));
                 final List<Double> nz_qi = k.getQueryInfo(n_z);
                 
@@ -573,23 +595,25 @@ public class KernelPoint
         else if(budgetStrategy == BudgetStrategy.STOP)
         {
             normGood = false;
-            if(getBasisSize() < maxBudget)
-                addPoint(x_t, qi, y_t);
+            if(getBasisSize() < maxBudget) {
+              addPoint(x_t, qi, y_t);
+            }
         }
         else if(budgetStrategy == BudgetStrategy.RANDOM)
         {
             normGood = false;
             if(getBasisSize() >= maxBudget)
             {
-                Random rand = new Random();//TODO should probably move this out
-                int toRemove = rand.nextInt(vecs.size());
+                final Random rand = new Random();//TODO should probably move this out
+                final int toRemove = rand.nextInt(vecs.size());
                 removeIndex(toRemove);
             }
             
             addPoint(x_t, qi, y_t);
         }
-        else
-            throw new RuntimeException("BUG: report me!");
+        else {
+          throw new RuntimeException("BUG: report me!");
+        }
             
         
     }
@@ -600,11 +624,12 @@ public class KernelPoint
      * @param qi the query information for the value
      * @param y_t the constant value to add
      */
-    private void addPoint(Vec x_t, final List<Double> qi, double y_t)
+    private void addPoint(final Vec x_t, final List<Double> qi, final double y_t)
     {
         vecs.add(x_t);
-        if (kernelAccel != null)
-            kernelAccel.addAll(qi);
+        if (kernelAccel != null) {
+          kernelAccel.addAll(qi);
+        }
         alpha.add(y_t);
     }
     
@@ -617,10 +642,10 @@ public class KernelPoint
      * @param nz_qi the query info for the new vec
      * @param n_alpha_z the alpha value for the new merged vec
      */
-    protected void finalMergeStep(int m, int n, Vec n_z, final List<Double> nz_qi, double n_alpha_z, boolean alterVecs)
+    protected void finalMergeStep(final int m, final int n, final Vec n_z, final List<Double> nz_qi, final double n_alpha_z, final boolean alterVecs)
     {
-        int smallIndx = min(m, n);
-        int largeIndx = max(m, n);
+        final int smallIndx = min(m, n);
+        final int largeIndx = max(m, n);
         
         alpha.remove(largeIndx);
         alpha.remove(smallIndx);
@@ -655,8 +680,9 @@ public class KernelPoint
      */
     protected static double getH(final double k_mn, final double a_m, final double a_n)
     {
-        if(a_m == a_n)
-            return 0.5;
+        if(a_m == a_n) {
+          return 0.5;
+        }
         
         final Function f = new FunctionBase()
         {
@@ -666,7 +692,7 @@ public class KernelPoint
 			private static final long serialVersionUID = -6891301465754898634L;
 
 			@Override
-            public double f(Vec x)
+            public double f(final Vec x)
             {
                 final double h = x.get(0);
                 //negative to maximize isntead of minimize
@@ -689,17 +715,20 @@ public class KernelPoint
          * if one is pos and the other is negative, the minimum value is going 
          * to be near 0 or 1
          */
-        if(Math.signum(a_m) != Math.signum(a_n))
-            if(a_m < 0)//we give a 
-                return GoldenSearch.minimize(1e-3, 100, 0.0, 0.2, 0, f, 0.0);
-            else if(a_n < 0)
-                return GoldenSearch.minimize(1e-3, 100, 0.8, 1.0, 0, f, 0.0);
+        if(Math.signum(a_m) != Math.signum(a_n)) {
+          if (a_m < 0) {
+            return GoldenSearch.minimize(1e-3, 100, 0.0, 0.2, 0, f, 0.0);
+          } else if (a_n < 0) {
+            return GoldenSearch.minimize(1e-3, 100, 0.8, 1.0, 0, f, 0.0);
+          }
+        }
         
         
-        if(a_m > a_n)
-            return GoldenSearch.minimize(1e-3, 100, 0.5, 1.0, 0, f, 0.0);
-        else
-            return GoldenSearch.minimize(1e-3, 100, 0.0, 0.5, 0, f, 0.0);
+        if(a_m > a_n) {
+          return GoldenSearch.minimize(1e-3, 100, 0.5, 1.0, 0, f, 0.0);
+        } else {
+          return GoldenSearch.minimize(1e-3, 100, 0.0, 0.5, 0, f, 0.0);
+        }
             
     }
     
@@ -707,13 +736,14 @@ public class KernelPoint
      * Removes the vec, alpha, and kernel cache associate with the given index
      * @param toRemove the index to remove
      */
-    protected void removeIndex(int toRemove)
+    protected void removeIndex(final int toRemove)
     {
         if(kernelAccel != null)
         {
-            int num = this.kernelAccel.size()/vecs.size();
-            for(int i = 0; i < num; i++)
-                kernelAccel.remove(toRemove);
+            final int num = this.kernelAccel.size()/vecs.size();
+            for(int i = 0; i < num; i++) {
+              kernelAccel.remove(toRemove);
+            }
         }
         alpha.remove(toRemove);
         vecs.remove(toRemove);
@@ -725,8 +755,9 @@ public class KernelPoint
      */
     public int getBasisSize()
     {
-        if(vecs == null)
-            return 0;
+        if(vecs == null) {
+          return 0;
+        }
         return vecs.size();
     }
     

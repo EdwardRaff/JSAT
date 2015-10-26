@@ -14,7 +14,7 @@ import jsat.math.FunctionVec;
  */
 public class BacktrackingArmijoLineSearch implements LineSearch
 {
-    private double rho;
+    private final double rho;
     private double c1;
 
     /**
@@ -32,10 +32,11 @@ public class BacktrackingArmijoLineSearch implements LineSearch
      * @param c1 the <i>sufficient decrease condition</i>  condition constant in
      * (0, 1/2)
      */
-    public BacktrackingArmijoLineSearch(double rho, double c1)
+    public BacktrackingArmijoLineSearch(final double rho, final double c1)
     {
-        if(!(rho > 0 && rho < 1))
-            throw new IllegalArgumentException("rho must be in (0,1), not " + rho);
+        if(!(rho > 0 && rho < 1)) {
+          throw new IllegalArgumentException("rho must be in (0,1), not " + rho);
+        }
         this.rho = rho;
         setC1(c1);
     }
@@ -45,10 +46,11 @@ public class BacktrackingArmijoLineSearch implements LineSearch
      * f(x+&alpha; p) &le; f(x) + c<sub>1</sub> &alpha; p<sup>T</sup>&nabla;f(x)
      * @param c1 the <i>sufficient decrease condition</i> 
      */
-    public void setC1(double c1)
+    public void setC1(final double c1)
     {
-        if(c1 <= 0 || c1 >= 0.5)
-            throw new IllegalArgumentException("c1 must be in (0, 1/2) not " + c1);
+        if(c1 <= 0 || c1 >= 0.5) {
+          throw new IllegalArgumentException("c1 must be in (0, 1/2) not " + c1);
+        }
         this.c1 = c1;
     }
 
@@ -62,28 +64,32 @@ public class BacktrackingArmijoLineSearch implements LineSearch
     }
 
     @Override
-    public double lineSearch(double alpha_max, Vec x_k, Vec x_grad, Vec p_k, Function f, FunctionVec fp, double f_x, double gradP, Vec x_alpha_pk, double[] fxApRet, Vec grad_x_alpha_pk)
+    public double lineSearch(final double alpha_max, final Vec x_k, final Vec x_grad, final Vec p_k, final Function f, final FunctionVec fp, final double f_x, final double gradP, final Vec x_alpha_pk, final double[] fxApRet, final Vec grad_x_alpha_pk)
     {
         return lineSearch(alpha_max, x_k, x_grad, p_k, f, fp, f_x, gradP, x_alpha_pk, fxApRet, grad_x_alpha_pk, null);
     }
     
     @Override
-    public double lineSearch(double alpha_max, Vec x_k, Vec x_grad, Vec p_k, Function f, FunctionVec fp, double f_x, double gradP, Vec x_alpha_pk, double[] fxApRet, Vec grad_x_alpha_pk, ExecutorService ex)
+    public double lineSearch(final double alpha_max, final Vec x_k, final Vec x_grad, final Vec p_k, final Function f, final FunctionVec fp, double f_x, double gradP, Vec x_alpha_pk, final double[] fxApRet, final Vec grad_x_alpha_pk, final ExecutorService ex)
     {
-        if(Double.isNaN(f_x))
-            f_x = (ex != null && f instanceof FunctionP) ? ((FunctionP)f).f(x_k, ex): f.f(x_k);
-        if(Double.isNaN(gradP))
-            gradP = x_grad.dot(p_k);
+        if(Double.isNaN(f_x)) {
+          f_x = (ex != null && f instanceof FunctionP) ? ((FunctionP)f).f(x_k, ex): f.f(x_k);
+        }
+        if(Double.isNaN(gradP)) {
+          gradP = x_grad.dot(p_k);
+        }
         
         double alpha = alpha_max;
-        if(x_alpha_pk == null)
-            x_alpha_pk = x_k.clone();
-        else
-            x_k.copyTo(x_alpha_pk);
+        if(x_alpha_pk == null) {
+          x_alpha_pk = x_k.clone();
+        } else {
+          x_k.copyTo(x_alpha_pk);
+        }
         x_alpha_pk.mutableAdd(alpha, p_k);
         double f_xap = (ex != null && f instanceof FunctionP) ? ((FunctionP)f).f(x_alpha_pk, ex): f.f(x_alpha_pk);
-        if(fxApRet != null)
-            fxApRet[0] = f_xap;
+        if(fxApRet != null) {
+          fxApRet[0] = f_xap;
+        }
         double oldAlpha = 0;
         double oldF_xap = f_x;
         
@@ -95,7 +101,7 @@ public class BacktrackingArmijoLineSearch implements LineSearch
           //XXX double compare.
             if(alpha == alpha_max)//quadratic interpolation
             {
-                double alphaCandidate = -gradP*oldAlpha*oldAlpha/(2*(f_xap-f_x-gradP*oldAlpha));
+                final double alphaCandidate = -gradP*oldAlpha*oldAlpha/(2*(f_xap-f_x-gradP*oldAlpha));
                 oldAlpha = alpha;
                 if(alphaCandidate < tooSmall || alphaCandidate > tooLarge || Double.isNaN(alphaCandidate))
                 {
@@ -109,19 +115,19 @@ public class BacktrackingArmijoLineSearch implements LineSearch
             else//cubic interpoation
             {
                 //g = φ(α1)−φ(0)−φ'(0)α1
-                double g = f_xap-f_x-gradP*alpha;
+                final double g = f_xap-f_x-gradP*alpha;
                 //h = φ(α0) − φ(0) − φ'(0)α0
-                double h = oldF_xap-f_x-gradP*oldAlpha;
+                final double h = oldF_xap-f_x-gradP*oldAlpha;
                 
-                double a0Sqrd = oldAlpha*oldAlpha;
-                double a1Sqrd = alpha*alpha;
+                final double a0Sqrd = oldAlpha*oldAlpha;
+                final double a1Sqrd = alpha*alpha;
                 
                 double a = a0Sqrd*g-a1Sqrd*h;
                 a /= (a0Sqrd*a1Sqrd*(alpha-oldAlpha));
                 double b = -a0Sqrd*oldAlpha*g+a1Sqrd*alpha*h;
                 b /= (a0Sqrd*a1Sqrd*(alpha-oldAlpha));
                 
-                double alphaCandidate = (-b + Math.sqrt(b*b-3*a*gradP))/(3*a);
+                final double alphaCandidate = (-b + Math.sqrt(b*b-3*a*gradP))/(3*a);
                 oldAlpha = alpha;
                 if(alphaCandidate < tooSmall || alphaCandidate > tooLarge || Double.isNaN(alphaCandidate))
                 {
@@ -134,13 +140,15 @@ public class BacktrackingArmijoLineSearch implements LineSearch
                 
             }
 
-            if(alpha < 1e-20)
-                return oldAlpha;
+            if(alpha < 1e-20) {
+              return oldAlpha;
+            }
             x_alpha_pk.mutableSubtract(oldAlpha - alpha, p_k);
             oldF_xap = f_xap;
             f_xap = (ex != null && f instanceof FunctionP) ? ((FunctionP)f).f(x_alpha_pk, ex): f.f(x_alpha_pk);
-            if(fxApRet != null)
-                fxApRet[0] = f_xap;
+            if(fxApRet != null) {
+              fxApRet[0] = f_xap;
+            }
         }
         
         return alpha;

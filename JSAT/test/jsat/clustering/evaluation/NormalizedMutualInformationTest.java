@@ -53,13 +53,13 @@ public class NormalizedMutualInformationTest
     public void testEvaluate_intArr_DataSet()
     {
         System.out.println("evaluate");
-        ClassificationDataSet cds = new ClassificationDataSet(0, 
+        final ClassificationDataSet cds = new ClassificationDataSet(0, 
                 new CategoricalData[]{}, 
                 new CategoricalData(3));
         //Using example case from Manning's book http://nlp.stanford.edu/IR-book/html/htmledition/evaluation-of-clustering-1.html
-        Vec emptyVec = new DenseVector(0);
-        int[] clusterAssign = new int[17];
-        int X = 0, O = 1, D = 2;
+        final Vec emptyVec = new DenseVector(0);
+        final int[] clusterAssign = new int[17];
+        final int X = 0, O = 1, D = 2;
         clusterAssign[0] = 0; cds.addDataPoint(emptyVec, X);
         clusterAssign[1] = 0; cds.addDataPoint(emptyVec, X);
         clusterAssign[2] = 0; cds.addDataPoint(emptyVec, X);
@@ -81,7 +81,7 @@ public class NormalizedMutualInformationTest
         clusterAssign[16] = 2; cds.addDataPoint(emptyVec, D);
         
         //True NMI for this should be 0.36
-        NormalizedMutualInformation nmi = new NormalizedMutualInformation();
+        final NormalizedMutualInformation nmi = new NormalizedMutualInformation();
         assertEquals(0.36, 1.0-nmi.evaluate(clusterAssign, cds), 1e-2);
         
     }

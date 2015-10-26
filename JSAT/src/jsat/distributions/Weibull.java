@@ -26,51 +26,53 @@ public class Weibull extends ContinuousDistribution
     
     private double logAlpha, logBeta;
 
-    public Weibull(double alpha, double beta)
+    public Weibull(final double alpha, final double beta)
     {
         setAlpha(alpha);
         setBeta(beta);
     }
 
     
-    public double reliability(double x)
+    public double reliability(final double x)
     {
         return exp(-pow(x/alpha, beta));
     }
     
-    public double failureRate(double x)
+    public double failureRate(final double x)
     {
         return beta/alpha * pow(x/alpha, beta-1);
     }
 
     @Override
-    public double logPdf(double x)
+    public double logPdf(final double x)
     {
-        if(x <= 0)
-            return -Double.MAX_VALUE;
+        if(x <= 0) {
+          return -Double.MAX_VALUE;
+        }
         return logAlpha-logBeta+(alpha-1)*log(x/beta) -pow(x/beta, alpha) ;
     }
 
     
     
     @Override
-    public double pdf(double x)
+    public double pdf(final double x)
     {
-        if(x < 0)
-            return 0;
+        if(x < 0) {
+          return 0;
+        }
         
         return alpha/beta * pow(x/beta, alpha-1)*exp(-pow(x/beta, alpha));
         
     }
 
     @Override
-    public double cdf(double x)
+    public double cdf(final double x)
     {
         return 1 - exp(-pow(x/beta, alpha));
     }
 
     @Override
-    public double invCdf(double p)
+    public double invCdf(final double p)
     {
         return beta*pow(-log(1-p),1/alpha);
     }
@@ -106,34 +108,37 @@ public class Weibull extends ContinuousDistribution
     }
 
     @Override
-    public void setVariable(String var, double value)
+    public void setVariable(final String var, final double value)
     {
-        if (var.equals("alpha") || var.equals(GreekLetters.alpha))
-            setAlpha(value);
-        else if (var.equals("beta") || var.equals(GreekLetters.beta))
-            setBeta(value);
+        if (var.equals("alpha") || var.equals(GreekLetters.alpha)) {
+          setAlpha(value);
+        } else if (var.equals("beta") || var.equals(GreekLetters.beta)) {
+          setBeta(value);
+        }
     }
 
-    final public void setAlpha(double alpha)
+    final public void setAlpha(final double alpha)
     {
         if(alpha > 0)
         {
             this.alpha = alpha;
             logAlpha = log(alpha);
         }
-        else
-            throw new ArithmeticException("alpha must be > 0 not " + alpha);
+        else {
+          throw new ArithmeticException("alpha must be > 0 not " + alpha);
+        }
     }
 
-    final public void setBeta(double beta)
+    final public void setBeta(final double beta)
     {
         if(beta > 0)
         {
             this.beta = beta;
             logBeta = log(beta);
         }
-        else
-            throw new ArithmeticException("beta must be > 0 not " + beta);
+        else {
+          throw new ArithmeticException("beta must be > 0 not " + beta);
+        }
     }
     
     
@@ -145,7 +150,7 @@ public class Weibull extends ContinuousDistribution
     }
 
     @Override
-    public void setUsingData(Vec data)
+    public void setUsingData(final Vec data)
     {
         /* Method of parameter esstimation is more complex than for 
          * other distirbutions, see 
@@ -153,8 +158,8 @@ public class Weibull extends ContinuousDistribution
          * for the method used. NOTE the above article has alpha and beta in oposite order
          */
         
-        Vec sData = data.sortedCopy();
-        DenseVector ranks = new DenseVector(sData.length());
+        final Vec sData = data.sortedCopy();
+        final DenseVector ranks = new DenseVector(sData.length());
         for(int i = 0; i < sData.length(); i++)
         {
             //Get the median rank
@@ -170,7 +175,7 @@ public class Weibull extends ContinuousDistribution
         }
         
         
-        double[] s = SimpleLinearRegression.regres(sData, ranks);
+        final double[] s = SimpleLinearRegression.regres(sData, ranks);
         
         //The shape parameter is approximatly the slope
         
@@ -200,8 +205,9 @@ public class Weibull extends ContinuousDistribution
     @Override
     public double mode()
     {
-        if(alpha <= 1)
-            throw new ArithmeticException("Mode only exists for k > 1");
+        if(alpha <= 1) {
+          throw new ArithmeticException("Mode only exists for k > 1");
+        }
         
         return beta * pow( (alpha-1)/alpha, 1/alpha);
     }
@@ -215,8 +221,8 @@ public class Weibull extends ContinuousDistribution
     @Override
     public double skewness()
     {
-        double mu = mean();
-        double stnDev = standardDeviation();
+        final double mu = mean();
+        final double stnDev = standardDeviation();
         return (gamma(1 + 3/alpha)*pow(beta, 3)-3*mu*pow(stnDev, 2)-pow(mu, 3))/pow(stnDev, 3);
     }
 
@@ -235,7 +241,7 @@ public class Weibull extends ContinuousDistribution
 
 
 	@Override
-	public boolean equals(Object obj) {
+	public boolean equals(final Object obj) {
 		if (this == obj) {
 			return true;
 		}
@@ -245,16 +251,13 @@ public class Weibull extends ContinuousDistribution
 		if (getClass() != obj.getClass()) {
 			return false;
 		}
-		Weibull other = (Weibull) obj;
+		final Weibull other = (Weibull) obj;
 		if (Double.doubleToLongBits(alpha) != Double
 				.doubleToLongBits(other.alpha)) {
 			return false;
 		}
-		if (Double.doubleToLongBits(beta) != Double
-				.doubleToLongBits(other.beta)) {
-			return false;
-		}
-		return true;
+		return Double.doubleToLongBits(beta) == Double
+            .doubleToLongBits(other.beta);
 	}
     
 }

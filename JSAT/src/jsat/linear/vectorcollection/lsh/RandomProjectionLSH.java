@@ -66,12 +66,12 @@ public class RandomProjectionLSH<V extends Vec> implements VectorCollection<V>
      * {@code false} to construct the needed values on demand. This reduces 
      * memory use at increased CPU usage. 
      */
-    public RandomProjectionLSH(List<V> vecs, int ints, boolean inMemory)
+    public RandomProjectionLSH(final List<V> vecs, final int ints, final boolean inMemory)
     {
         randProjMatrix = new NormalMatrix(ints*Integer.SIZE, vecs.get(0).length(), NO_POOL);
         if(inMemory)
         {
-            Matrix dense = new DenseMatrix(randProjMatrix.rows(), randProjMatrix.cols());
+            final Matrix dense = new DenseMatrix(randProjMatrix.rows(), randProjMatrix.cols());
             dense.mutableAdd(randProjMatrix);
             randProjMatrix = dense;
         }
@@ -89,7 +89,7 @@ public class RandomProjectionLSH<V extends Vec> implements VectorCollection<V>
      * store. Matrix values will be pulled on demand from an index in the pool
      * of values. 
      */
-    public RandomProjectionLSH(List<V> vecs, int ints, int poolSize)
+    public RandomProjectionLSH(final List<V> vecs, final int ints, final int poolSize)
     {
         randProjMatrix = new NormalMatrix(ints*Integer.SIZE, vecs.get(0).length(), poolSize);
         setUpVecs(vecs);
@@ -99,7 +99,7 @@ public class RandomProjectionLSH<V extends Vec> implements VectorCollection<V>
      * Copy Constructor
      * @param toCopy the object to copy
      */
-    protected RandomProjectionLSH(RandomProjectionLSH<V> toCopy)
+    protected RandomProjectionLSH(final RandomProjectionLSH<V> toCopy)
     {
         this.randProjMatrix = toCopy.randProjMatrix.clone();
         this.projections = Arrays.copyOf(toCopy.projections, toCopy.projections.length);
@@ -134,7 +134,7 @@ public class RandomProjectionLSH<V extends Vec> implements VectorCollection<V>
         projections = new int[slotsPerEntry*vecs.size()];
         
         
-        Vec projected = tempVecs.get();
+        final Vec projected = tempVecs.get();
         
         for(int slot = 0; slot < vecs.size(); slot++)
         {
@@ -145,13 +145,13 @@ public class RandomProjectionLSH<V extends Vec> implements VectorCollection<V>
     }
     
     @Override
-    public List<? extends VecPaired<V, Double>> search(Vec query, double range)
+    public List<? extends VecPaired<V, Double>> search(final Vec query, final double range)
     {
-        List<VecPaired<V, Double>> toRet = new ArrayList<VecPaired<V, Double>>();
-        int minHammingDist = (int) cosineToHamming(CosineDistance.distanceToCosine(range));
+        final List<VecPaired<V, Double>> toRet = new ArrayList<VecPaired<V, Double>>();
+        final int minHammingDist = (int) cosineToHamming(CosineDistance.distanceToCosine(range));
         
         final int[] queryProj = new int[slotsPerEntry];
-        Vec tmpSapce = tempVecs.get();
+        final Vec tmpSapce = tempVecs.get();
         tmpSapce.zeroOut();
         projectVector(query, 0, queryProj, tmpSapce);
                 
@@ -159,23 +159,25 @@ public class RandomProjectionLSH<V extends Vec> implements VectorCollection<V>
         {
             int hamming = 0;
             int pos = 0;
-            while(pos < slotsPerEntry)
-                hamming += Integer.bitCount(projections[slot*slotsPerEntry+pos]^queryProj[pos++]);
+            while(pos < slotsPerEntry) {
+              hamming += Integer.bitCount(projections[slot*slotsPerEntry+pos]^queryProj[pos++]);
+            }
             
-            if(hamming <= minHammingDist)
-                toRet.add(new VecPaired<V, Double>(vecs.get(slot), CosineDistance.cosineToDistance(hammingToCosine(hamming))));
+            if(hamming <= minHammingDist) {
+              toRet.add(new VecPaired<V, Double>(vecs.get(slot), CosineDistance.cosineToDistance(hammingToCosine(hamming))));
+            }
         }
         
         return toRet;
     }
     
     @Override
-    public List<? extends VecPaired<V, Double>> search(Vec query, int neighbors)
+    public List<? extends VecPaired<V, Double>> search(final Vec query, final int neighbors)
     {
-        BoundedSortedList<VecPairedComparable<V, Double>> toRet = new BoundedSortedList<VecPairedComparable<V, Double>>(neighbors);
+        final BoundedSortedList<VecPairedComparable<V, Double>> toRet = new BoundedSortedList<VecPairedComparable<V, Double>>(neighbors);
         
         final int[] queryProj = new int[slotsPerEntry];
-        Vec tmpSapce = tempVecs.get();
+        final Vec tmpSapce = tempVecs.get();
         tmpSapce.zeroOut();
         projectVector(query, 0, queryProj, tmpSapce);
                 
@@ -183,16 +185,19 @@ public class RandomProjectionLSH<V extends Vec> implements VectorCollection<V>
         {
             int hamming = 0;
             int pos = 0;
-            while(pos < slotsPerEntry)
-                hamming += Integer.bitCount(projections[slot*slotsPerEntry+pos]^queryProj[pos++]);
+            while(pos < slotsPerEntry) {
+              hamming += Integer.bitCount(projections[slot*slotsPerEntry+pos]^queryProj[pos++]);
+            }
             
-            if(toRet.size() < neighbors || hamming < toRet.last().getPair())
-                toRet.add(new VecPairedComparable<V, Double>(vecs.get(slot), (double)hamming));
+            if(toRet.size() < neighbors || hamming < toRet.last().getPair()) {
+              toRet.add(new VecPairedComparable<V, Double>(vecs.get(slot), (double)hamming));
+            }
         }
         
         //now conver the hamming values to distance values
-        for(int i = 0; i < toRet.size(); i++)
-            toRet.get(i).setPair(CosineDistance.cosineToDistance(hammingToCosine(toRet.get(i).getPair())));
+        for(int i = 0; i < toRet.size(); i++) {
+          toRet.get(i).setPair(CosineDistance.cosineToDistance(hammingToCosine(toRet.get(i).getPair())));
+        }
         
         return toRet;
     }
@@ -215,7 +220,7 @@ public class RandomProjectionLSH<V extends Vec> implements VectorCollection<V>
      * @param projected a vector full of zeros of the same length as 
      * {@link #getSignatureBitLength() } to use as a temp space. 
      */
-    private void projectVector(Vec vec, int slot, int[] projLocation, Vec projected)
+    private void projectVector(final Vec vec, final int slot, final int[] projLocation, final Vec projected)
     {
         randProjMatrix.multiply(vec, 1.0, projected);
         int pos = 0;
@@ -227,8 +232,9 @@ public class RandomProjectionLSH<V extends Vec> implements VectorCollection<V>
             while(bitsLeft > 0)
             {
                 curVal <<= 1;
-                if(projected.get(pos*Integer.SIZE+(Integer.SIZE-bitsLeft)) >= 0)
-                    curVal |= 1;
+                if(projected.get(pos*Integer.SIZE+(Integer.SIZE-bitsLeft)) >= 0) {
+                  curVal |= 1;
+                }
                 bitsLeft--;
             }
             projLocation[slot+pos] = curVal;
@@ -262,50 +268,54 @@ public class RandomProjectionLSH<V extends Vec> implements VectorCollection<V>
 		private final double[] pool;
         private final long seedMult;
 
-        public NormalMatrix(int rows, int cols, int poolSize)
+        public NormalMatrix(final int rows, final int cols, final int poolSize)
         {
             super(rows, cols);
             if(poolSize > 0)
             {
                 pool = new double[poolSize];
-                Random rand = new XOR96();
-                for(int i = 0; i < pool.length; i++)
-                    pool[i] = rand.nextGaussian();
+                final Random rand = new XOR96();
+                for(int i = 0; i < pool.length; i++) {
+                  pool[i] = rand.nextGaussian();
+                }
             }
-            else
-                pool = null;
+            else {
+              pool = null;
+            }
             seedMult = new Random().nextLong();
         }
 
-        public NormalMatrix(NormalMatrix toCopy)
+        public NormalMatrix(final NormalMatrix toCopy)
         {
             super(toCopy);
-            if(toCopy.pool == null)
-                this.pool = null;
-            else
-                this.pool = Arrays.copyOf(toCopy.pool, toCopy.pool.length);
+            if(toCopy.pool == null) {
+              this.pool = null;
+            } else {
+              this.pool = Arrays.copyOf(toCopy.pool, toCopy.pool.length);
+            }
             seedMult = toCopy.seedMult;
         }
 
         @Override
-        public double get(int i, int j)
+        public double get(final int i, final int j)
         {
-            if(pool == null)
-                return super.get(i, j); 
-            else
+            if(pool == null) {
+              return super.get(i, j);
+            } else
             {
-                long index = ((i+1)*(j+cols())*seedMult) & Integer.MAX_VALUE;
+                final long index = ((i+1)*(j+cols())*seedMult) & Integer.MAX_VALUE;
                 return pool[(int)index % pool.length];
             }
         }
 
         @Override
-        protected double getVal(Random rand)
+        protected double getVal(final Random rand)
         {
-            if(pool == null)
-                return rand.nextGaussian();
-            else
-                return pool[rand.nextInt(pool.length)];
+            if(pool == null) {
+              return rand.nextGaussian();
+            } else {
+              return pool[rand.nextInt(pool.length)];
+            }
         }
 
         @Override
@@ -315,12 +325,12 @@ public class RandomProjectionLSH<V extends Vec> implements VectorCollection<V>
         }
     }
     
-    private double hammingToCosine(double ham)
+    private double hammingToCosine(final double ham)
     {
         return Math.cos(ham*Math.PI/randProjMatrix.rows());
     }
     
-    private double cosineToHamming(double cos)
+    private double cosineToHamming(final double cos)
     {
         return randProjMatrix.rows()*Math.acos(cos)/Math.PI;
     }
@@ -331,7 +341,7 @@ public class RandomProjectionLSH<V extends Vec> implements VectorCollection<V>
 		 * 
 		 */
 		private static final long serialVersionUID = 1805047681811290699L;
-		private int intsToUse;
+		private final int intsToUse;
         private boolean inMemory;
         private int poolSize = -1;
         
@@ -344,7 +354,7 @@ public class RandomProjectionLSH<V extends Vec> implements VectorCollection<V>
          * @param inMemory {@code true} to construct the full matrix in memory, or 
          * {@code false} to construct the needed values on demand. This reduces 
          */
-        public RandomProjectionLSHFactory(int intsToUse, boolean inMemory)
+        public RandomProjectionLSHFactory(final int intsToUse, final boolean inMemory)
         {
             this.intsToUse = intsToUse;
             this.inMemory = inMemory;
@@ -360,7 +370,7 @@ public class RandomProjectionLSH<V extends Vec> implements VectorCollection<V>
          * store. Matrix values will be pulled on demand from an index in the pool
          * of values. 
          */
-        public RandomProjectionLSHFactory(int intsToUse, int poolSize)
+        public RandomProjectionLSHFactory(final int intsToUse, final int poolSize)
         {
             this.intsToUse = intsToUse;
             this.poolSize = poolSize;
@@ -370,7 +380,7 @@ public class RandomProjectionLSH<V extends Vec> implements VectorCollection<V>
          * Copy constructor
          * @param toCopy the object to copy
          */
-        protected RandomProjectionLSHFactory(RandomProjectionLSHFactory<V> toCopy)
+        protected RandomProjectionLSHFactory(final RandomProjectionLSHFactory<V> toCopy)
         {
             this.inMemory = toCopy.inMemory;
             this.intsToUse = toCopy.intsToUse;
@@ -378,19 +388,21 @@ public class RandomProjectionLSH<V extends Vec> implements VectorCollection<V>
         }
 
         @Override
-        public VectorCollection<V> getVectorCollection(List<V> source, DistanceMetric distanceMetric)
+        public VectorCollection<V> getVectorCollection(final List<V> source, final DistanceMetric distanceMetric)
         {
-            if(!(distanceMetric instanceof CosineDistance || distanceMetric instanceof CosineDistanceNormalized))
-                throw new IllegalArgumentException("RandomProjectionLSH is only compatible with the Cosine Distance metric");
+            if(!(distanceMetric instanceof CosineDistance || distanceMetric instanceof CosineDistanceNormalized)) {
+              throw new IllegalArgumentException("RandomProjectionLSH is only compatible with the Cosine Distance metric");
+            }
             
-            if(poolSize > 0)
-                return new RandomProjectionLSH<V>(source, intsToUse, poolSize);
-            else
-                return new RandomProjectionLSH<V>(source, intsToUse, inMemory);
+            if(poolSize > 0) {
+              return new RandomProjectionLSH<V>(source, intsToUse, poolSize);
+            } else {
+              return new RandomProjectionLSH<V>(source, intsToUse, inMemory);
+            }
         }
 
         @Override
-        public VectorCollection<V> getVectorCollection(List<V> source, DistanceMetric distanceMetric, ExecutorService threadpool)
+        public VectorCollection<V> getVectorCollection(final List<V> source, final DistanceMetric distanceMetric, final ExecutorService threadpool)
         {
             return getVectorCollection(source, distanceMetric);
         }

@@ -47,22 +47,23 @@ public class IntSetFixedSizeTest
     public void testAdd_Integer()
     {
         System.out.println("add");
-        IntSetFixedSize set = new IntSetFixedSize(5);
+        final IntSetFixedSize set = new IntSetFixedSize(5);
         assertTrue(set.add(new Integer(1)));
         assertTrue(set.add(new Integer(2)));
         assertFalse(set.add( new Integer(1) ));
         assertTrue(set.add( new Integer(3) ));
 
-        for (int badVal : Arrays.asList(-1, 5, 10, -23))
-            try
-            {
-                set.add( new Integer(badVal));
-                fail("Should not have been added");
-            }
-            catch (Exception ex)
-            {
+        for (final int badVal : Arrays.asList(-1, 5, 10, -23)) {
+          try
+          {
+            set.add( new Integer(badVal));
+            fail("Should not have been added");
+          }
+          catch (final Exception ex)
+          {
             
-            }
+          }
+        }
     }
 
     /**
@@ -72,21 +73,22 @@ public class IntSetFixedSizeTest
     public void testAdd_int()
     {
         System.out.println("add");
-        IntSetFixedSize set = new IntSetFixedSize(5);
+        final IntSetFixedSize set = new IntSetFixedSize(5);
         assertTrue(set.add(1));
         assertTrue(set.add(2));
         assertFalse(set.add(1));
         assertTrue(set.add(3));
 
-        for (int badVal : Arrays.asList(-1, 5, 10, -23))
-            try
-            {
-                set.add(badVal);
-                fail("Should not have been added");
-            }
-            catch (Exception ex)
-            {
-            }
+        for (final int badVal : Arrays.asList(-1, 5, 10, -23)) {
+          try
+          {
+            set.add(badVal);
+            fail("Should not have been added");
+          }
+          catch (final Exception ex)
+          {
+          }
+        }
     }
 
     /**
@@ -96,16 +98,18 @@ public class IntSetFixedSizeTest
     public void testContains_Object()
     {
         System.out.println("contains");
-        IntSetFixedSize instance = new IntSetFixedSize(100);
-        List<Integer> intList = new IntList();
+        final IntSetFixedSize instance = new IntSetFixedSize(100);
+        final List<Integer> intList = new IntList();
         ListUtils.addRange(intList, 0, 100, 1);
         Collections.shuffle(intList);
         
         instance.addAll(intList.subList(0, 50));
-        for(int i : intList.subList(0, 50))
-            assertTrue(instance.contains(i));
-        for(int i : intList.subList(50, 100))
-            assertFalse(instance.contains(i));
+        for(final int i : intList.subList(0, 50)) {
+          assertTrue(instance.contains(i));
+        }
+        for(final int i : intList.subList(50, 100)) {
+          assertFalse(instance.contains(i));
+        }
         
     }
 
@@ -116,16 +120,18 @@ public class IntSetFixedSizeTest
     public void testContains_int()
     {
         System.out.println("contains");
-        IntSetFixedSize instance = new IntSetFixedSize(100);
-        List<Integer> intList = new IntList();
+        final IntSetFixedSize instance = new IntSetFixedSize(100);
+        final List<Integer> intList = new IntList();
         ListUtils.addRange(intList, 0, 100, 1);
         Collections.shuffle(intList);
         
         instance.addAll(intList.subList(0, 50));
-        for(int i : intList.subList(0, 50))
-            assertTrue(instance.contains(i));
-        for(int i : intList.subList(50, 100))
-            assertFalse(instance.contains(i));
+        for(final int i : intList.subList(0, 50)) {
+          assertTrue(instance.contains(i));
+        }
+        for(final int i : intList.subList(50, 100)) {
+          assertFalse(instance.contains(i));
+        }
     }
 
     /**
@@ -135,19 +141,19 @@ public class IntSetFixedSizeTest
     public void testIterator()
     {
         System.out.println("iterator");
-        IntSetFixedSize set = new IntSetFixedSize(10);
+        final IntSetFixedSize set = new IntSetFixedSize(10);
         set.add(5);
         set.add(3);
         set.add(4);
         set.add(1);
         set.add(2);
-        Set<Integer> copySet = new IntSet(set);
-        int prev = Integer.MIN_VALUE;
+        final Set<Integer> copySet = new IntSet(set);
+        final int prev = Integer.MIN_VALUE;
         Iterator<Integer> iter = set.iterator();
         int count = 0;
         while(iter.hasNext())
         {
-            int val = iter.next();
+            final int val = iter.next();
             copySet.remove(val);
             count++;
         }
@@ -159,9 +165,10 @@ public class IntSetFixedSizeTest
         iter = set.iterator();
         while(iter.hasNext())
         {
-            int val = iter.next();
-            if(val == 2 || val == 4)
-                iter.remove();
+            final int val = iter.next();
+            if(val == 2 || val == 4) {
+              iter.remove();
+            }
         }
         assertEquals(3, set.size());
         
@@ -170,7 +177,7 @@ public class IntSetFixedSizeTest
         count = 0;
         while(iter.hasNext())
         {
-            int val = iter.next();
+            final int val = iter.next();
             assertFalse(val == 2 || val == 4);
             count++;
         }
@@ -185,7 +192,7 @@ public class IntSetFixedSizeTest
     public void testSize()
     {
         System.out.println("size");
-        IntSetFixedSize set = new IntSetFixedSize(10);
+        final IntSetFixedSize set = new IntSetFixedSize(10);
         assertEquals(0, set.size());
         set.add(1);
         assertEquals(1, set.size());

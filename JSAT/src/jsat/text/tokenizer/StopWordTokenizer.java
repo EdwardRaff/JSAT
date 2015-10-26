@@ -12,8 +12,8 @@ public class StopWordTokenizer implements Tokenizer
 {    
 
 	private static final long serialVersionUID = 445704970760705567L;
-	private Tokenizer base;
-    private Set<String> stopWords;
+	private final Tokenizer base;
+    private final Set<String> stopWords;
 
     /**
      * Creates a new Stop Word tokenizer
@@ -21,7 +21,7 @@ public class StopWordTokenizer implements Tokenizer
      * @param stopWords the collection of stop words to remove from 
      * tokenizations. A copy of the collection will be made
      */
-    public StopWordTokenizer(Tokenizer base, Collection<String> stopWords)
+    public StopWordTokenizer(final Tokenizer base, final Collection<String> stopWords)
     {
         this.base = base;
         this.stopWords = new HashSet<String>(stopWords);
@@ -32,22 +32,22 @@ public class StopWordTokenizer implements Tokenizer
      * @param base the base tokenizer to use
      * @param stopWords the array of strings to use as stop words
      */
-    public StopWordTokenizer(Tokenizer base, String... stopWords)
+    public StopWordTokenizer(final Tokenizer base, final String... stopWords)
     {
         this(base, Arrays.asList(stopWords));
     }
 
     
     @Override
-    public List<String> tokenize(String input)
+    public List<String> tokenize(final String input)
     {
-        List<String> tokens = base.tokenize(input);
+        final List<String> tokens = base.tokenize(input);
         tokens.removeAll(stopWords);
         return tokens;
     }
 
     @Override
-    public void tokenize(String input, StringBuilder workSpace, List<String> storageSpace)
+    public void tokenize(final String input, final StringBuilder workSpace, final List<String> storageSpace)
     {
         base.tokenize(input, workSpace, storageSpace);
         storageSpace.removeAll(stopWords);

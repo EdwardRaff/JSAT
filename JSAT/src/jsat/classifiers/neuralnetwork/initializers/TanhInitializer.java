@@ -22,21 +22,24 @@ public class TanhInitializer implements WeightInitializer, BiastInitializer
 	private static final long serialVersionUID = -4770682311082616208L;
 
 	@Override
-    public void init(Matrix w, Random rand)
+    public void init(final Matrix w, final Random rand)
     {
-        double cnt = Math.sqrt(6)/Math.sqrt(w.rows()+w.cols());
-        for(int i = 0; i < w.rows(); i++)
-            for(int j = 0; j < w.cols(); j++)
-                w.set(i, j, rand.nextDouble()*cnt*2-cnt);
+        final double cnt = Math.sqrt(6)/Math.sqrt(w.rows()+w.cols());
+        for(int i = 0; i < w.rows(); i++) {
+          for (int j = 0; j < w.cols(); j++) {
+            w.set(i, j, rand.nextDouble()*cnt*2-cnt);
+          }
+        }
         
     }
 
     @Override
-    public void init(Vec b, int fanIn, Random rand)
+    public void init(final Vec b, final int fanIn, final Random rand)
     {
-        double cnt = Math.sqrt(6)/Math.sqrt(b.length()+fanIn);
-        for(int i = 0; i < b.length(); i++)
-            b.set(i, rand.nextDouble()*cnt*2-cnt);
+        final double cnt = Math.sqrt(6)/Math.sqrt(b.length()+fanIn);
+        for(int i = 0; i < b.length(); i++) {
+          b.set(i, rand.nextDouble()*cnt*2-cnt);
+        }
     }
 
     @Override

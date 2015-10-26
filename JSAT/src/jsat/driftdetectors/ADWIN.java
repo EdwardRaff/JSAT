@@ -51,7 +51,7 @@ public class ADWIN<V> extends BaseDriftDetector<V>
      * stream of inputs. It will use a not keep any object history by default. 
      * @param delta the desired false positive rate
      */
-    public ADWIN(double delta)
+    public ADWIN(final double delta)
     {
         this(delta, 0);
     }
@@ -62,7 +62,7 @@ public class ADWIN<V> extends BaseDriftDetector<V>
      * @param delta the desired false positive rate
      * @param maxHistory the maximum history of objects to keep
      */
-    public ADWIN(double delta, int maxHistory)
+    public ADWIN(final double delta, final int maxHistory)
     {
         super();
         setDelta(delta);
@@ -75,7 +75,7 @@ public class ADWIN<V> extends BaseDriftDetector<V>
      * Copy constructor
      * @param toCopy the object to copy
      */
-    public ADWIN(ADWIN<V> toCopy)
+    public ADWIN(final ADWIN<V> toCopy)
     {
         super(toCopy);
         this.delta = toCopy.delta;
@@ -86,8 +86,9 @@ public class ADWIN<V> extends BaseDriftDetector<V>
         this.leftVariance = toCopy.leftVariance;
         this.rightVariance = toCopy.rightVariance;
         this.windows = new LinkedList<OnLineStatistics>();
-        for(OnLineStatistics stats : toCopy.windows)
-            this.windows.add(stats.clone());
+        for(final OnLineStatistics stats : toCopy.windows) {
+          this.windows.add(stats.clone());
+        }
     }
 
     /**
@@ -95,10 +96,11 @@ public class ADWIN<V> extends BaseDriftDetector<V>
      * drifts
      * @param delta the upper bound on false positives in (0,1)
      */
-    public void setDelta(double delta)
+    public void setDelta(final double delta)
     {
-        if(delta <= 0 || delta >= 1 || Double.isNaN(delta))
-            throw new IllegalArgumentException("delta must be in (0,1), not " + delta);
+        if(delta <= 0 || delta >= 1 || Double.isNaN(delta)) {
+          throw new IllegalArgumentException("delta must be in (0,1), not " + delta);
+        }
         this.delta = delta;
     }
 
@@ -117,10 +119,11 @@ public class ADWIN<V> extends BaseDriftDetector<V>
      * window will be - but at the cost of execution speed. 
      * @param M the window space constant in [1, &infin;)
      */
-    public void setM(int M)
+    public void setM(final int M)
     {
-        if(M < 1)
-            throw new IllegalArgumentException("M must be positive, not " + M);
+        if(M < 1) {
+          throw new IllegalArgumentException("M must be positive, not " + M);
+        }
         this.M = M;
     }
     
@@ -134,43 +137,44 @@ public class ADWIN<V> extends BaseDriftDetector<V>
     }
     
     @Override
-    public boolean addSample(double value, V obj)
+    public boolean addSample(final double value, final V obj)
     {
-        if(drifting)
-            throw new UnhandledDriftException("Drift must be handled before continuing");
+        if(drifting) {
+          throw new UnhandledDriftException("Drift must be handled before continuing");
+        }
         time++;
         addToHistory(obj);
         //add to the window
         allStats.add(value);
-        OnLineStatistics w = new OnLineStatistics();
+        final OnLineStatistics w = new OnLineStatistics();
         
         w.add(value);
         windows.addFirst(w);
         //check if a change has occured
-        Iterator<OnLineStatistics> testIter = windows.descendingIterator();
-        OnLineStatistics leftStats = new OnLineStatistics();
-        OnLineStatistics rightStats = allStats.clone();
+        final Iterator<OnLineStatistics> testIter = windows.descendingIterator();
+        final OnLineStatistics leftStats = new OnLineStatistics();
+        final OnLineStatistics rightStats = allStats.clone();
         
         final double deltaPrime  = delta/Math.log(allStats.getSumOfWeights());//will be > 1 in log, no issues
         final double ln2delta = Math.log(2) - Math.log(deltaPrime);
         final double variance_W = allStats.getVarance();
         while(testIter.hasNext())
         {
-            OnLineStatistics windowItem = testIter.next();
+            final OnLineStatistics windowItem = testIter.next();
             
             //accumulate left side statistics
             leftStats.add(windowItem);
             //decrament right side stats
             rightStats.remove(windowItem);
             
-            double n_0 = leftStats.getSumOfWeights();
-            double n_1 = rightStats.getSumOfWeights();
-            double mu_0 = leftStats.getMean();
-            double mu_1 = rightStats.getMean();
+            final double n_0 = leftStats.getSumOfWeights();
+            final double n_1 = rightStats.getSumOfWeights();
+            final double mu_0 = leftStats.getMean();
+            final double mu_1 = rightStats.getMean();
             //  1/(1/x+1/y) = x y / (x + y), and then inverse so (x+y)/(xy)
-            double mInv = (n_0 + n_1) / (n_0 * n_1);
+            final double mInv = (n_0 + n_1) / (n_0 * n_1);
 
-            double e_cut = Math.sqrt(2 * mInv * variance_W * ln2delta) + 2.0 / 3.0 * mInv * ln2delta;
+            final double e_cut = Math.sqrt(2 * mInv * variance_W * ln2delta) + 2.0 / 3.0 * mInv * ln2delta;
 
             if(Math.abs(mu_0 - mu_1) > e_cut)//CHANGE! OMG
             {
@@ -200,14 +204,14 @@ public class ADWIN<V> extends BaseDriftDetector<V>
     private void compress()
     {
         //compress
-        ListIterator<OnLineStatistics> listIter = windows.listIterator();
+        final ListIterator<OnLineStatistics> listIter = windows.listIterator();
         double lastSizeSeen = -Double.MAX_VALUE;
         int lastSizeCount = 0;
         
         while(listIter.hasNext())
         {
-            OnLineStatistics window = listIter.next();
-            double n = window.getSumOfWeights();
+            final OnLineStatistics window = listIter.next();
+            final double n = window.getSumOfWeights();
             if(n == lastSizeSeen)
             {
                 if(++lastSizeCount > M)//compress, can only occur if there is a previous
@@ -215,8 +219,9 @@ public class ADWIN<V> extends BaseDriftDetector<V>
                     listIter.previous();
                     window.add(listIter.previous());
                     listIter.remove();//remove the preivous
-                    if(listIter.hasNext())
-                        listIter.next();//back to where we were, which has been modified
+                    if(listIter.hasNext()) {
+                      listIter.next();//back to where we were, which has been modified
+                    }
                     //so nowe we must be looking at a new range since we just promoted a window
                     lastSizeSeen = window.getSumOfWeights();
                     lastSizeCount = 1;
@@ -354,37 +359,40 @@ public class ADWIN<V> extends BaseDriftDetector<V>
      * that we drifted away from, or {@code false} to drop the newer values and
      * retain the old ones. 
      */
-    public void driftHandled(boolean dropOld)
+    public void driftHandled(final boolean dropOld)
     {
         /*
          * Iterate through and either drop everything to the left OR the right
          * Track statiscits so that we can update allStats
          */
-        Iterator<OnLineStatistics> testIter = windows.descendingIterator();
-        OnLineStatistics leftStats = new OnLineStatistics();
+        final Iterator<OnLineStatistics> testIter = windows.descendingIterator();
+        final OnLineStatistics leftStats = new OnLineStatistics();
      
         while (testIter.hasNext())
         {
-            OnLineStatistics windowItem = testIter.next();
+            final OnLineStatistics windowItem = testIter.next();
 
             //accumulate left side statistics
             if(leftStats.getSumOfWeights() < driftStart)
             {
                 leftStats.add(windowItem);
-                if(dropOld)
-                    testIter.remove();
+                if(dropOld) {
+                  testIter.remove();
+                }
             }
             else
             {
-                if(!dropOld)
-                    testIter.remove();
+                if(!dropOld) {
+                  testIter.remove();
+                }
             }
         }
         
-        if(dropOld)
-            allStats.remove(leftStats);
-        else
-            allStats = leftStats;
+        if(dropOld) {
+          allStats.remove(leftStats);
+        } else {
+          allStats = leftStats;
+        }
         time = (int) allStats.getSumOfWeights();
 
         leftMean = leftVariance = rightMean = rightVariance = Double.NaN;

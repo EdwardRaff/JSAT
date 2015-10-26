@@ -41,7 +41,7 @@ public class EMGaussianMixtureTest
     {
         //use normal distribution to match the Gausian assumption, uniform can cause weidness
         //unfirm for kMeans used 0.15, 3 sntd devs of 0.05 = 0.15
-        GridDataGenerator gdg = new GridDataGenerator(new Normal(0, 0.05), new Random(12), 2, 2);
+        final GridDataGenerator gdg = new GridDataGenerator(new Normal(0, 0.05), new Random(12), 2, 2);
         easyData = gdg.generateData(50);
         ex = Executors.newFixedThreadPool(SystemInfo.LogicalCores);
     }
@@ -67,16 +67,17 @@ public class EMGaussianMixtureTest
     public void testCluster_DataSet_int()
     {
         System.out.println("cluster(dataset, int)");
-        EMGaussianMixture em = new EMGaussianMixture(new EuclideanDistance(), new Random(), SeedSelectionMethods.SeedSelection.KPP);
-        List<List<DataPoint>> clusters = em.cluster(easyData, 4);
+        final EMGaussianMixture em = new EMGaussianMixture(new EuclideanDistance(), new Random(), SeedSelectionMethods.SeedSelection.KPP);
+        final List<List<DataPoint>> clusters = em.cluster(easyData, 4);
         assertEquals(4, clusters.size());
-        Set<Integer> seenBefore = new IntSet();
-        for(List<DataPoint> cluster :  clusters)
+        final Set<Integer> seenBefore = new IntSet();
+        for(final List<DataPoint> cluster :  clusters)
         {
-            int thisClass = cluster.get(0).getCategoricalValue(0);
+            final int thisClass = cluster.get(0).getCategoricalValue(0);
             assertFalse(seenBefore.contains(thisClass));
-            for(DataPoint dp : cluster)
-                assertEquals(thisClass, dp.getCategoricalValue(0));
+            for(final DataPoint dp : cluster) {
+              assertEquals(thisClass, dp.getCategoricalValue(0));
+            }
         }
     }
 
@@ -86,16 +87,17 @@ public class EMGaussianMixtureTest
     public void testCluster_3args_2()
     {
         System.out.println("cluster(dataset, int, threadpool)");
-        EMGaussianMixture em = new EMGaussianMixture(new EuclideanDistance(), new Random(), SeedSelectionMethods.SeedSelection.KPP);
-        List<List<DataPoint>> clusters = em.cluster(easyData, 4, ex);
+        final EMGaussianMixture em = new EMGaussianMixture(new EuclideanDistance(), new Random(), SeedSelectionMethods.SeedSelection.KPP);
+        final List<List<DataPoint>> clusters = em.cluster(easyData, 4, ex);
         assertEquals(4, clusters.size());
-        Set<Integer> seenBefore = new IntSet();
-        for(List<DataPoint> cluster :  clusters)
+        final Set<Integer> seenBefore = new IntSet();
+        for(final List<DataPoint> cluster :  clusters)
         {
-            int thisClass = cluster.get(0).getCategoricalValue(0);
+            final int thisClass = cluster.get(0).getCategoricalValue(0);
             assertFalse(seenBefore.contains(thisClass));
-            for(DataPoint dp : cluster)
-                assertEquals(thisClass, dp.getCategoricalValue(0));
+            for(final DataPoint dp : cluster) {
+              assertEquals(thisClass, dp.getCategoricalValue(0));
+            }
         }
     }
 

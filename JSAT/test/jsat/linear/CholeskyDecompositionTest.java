@@ -24,9 +24,10 @@ public class CholeskyDecompositionTest
     Matrix pascal5;
     static ExecutorService threadpool = Executors.newFixedThreadPool(SystemInfo.LogicalCores+1, new ThreadFactory() {
 
-        public Thread newThread(Runnable r)
+        @Override
+        public Thread newThread(final Runnable r)
         {
-            Thread thread = new Thread(r);
+            final Thread thread = new Thread(r);
             thread.setDaemon(true);
             return thread;
         }
@@ -64,7 +65,7 @@ public class CholeskyDecompositionTest
     @Test
     public void testGetL()
     {
-        Matrix p5L = new DenseMatrix(new double[][]
+        final Matrix p5L = new DenseMatrix(new double[][]
         {
             {1,     1,     1,     1,     1},
             {0,     1,     2,     3,     4},
@@ -73,7 +74,7 @@ public class CholeskyDecompositionTest
             {0,     0,     0,     0,     1}
         });
         
-        Matrix p4L = new DenseMatrix(new double[][]
+        final Matrix p4L = new DenseMatrix(new double[][]
         {
             {1,     1,     1,     1},
             {0,     1,     2,     3},
@@ -88,8 +89,8 @@ public class CholeskyDecompositionTest
     @Test
     public void testGetDet()
     {
-        double detP5 = 1.0;
-        double detP4 = 1.0;
+        final double detP5 = 1.0;
+        final double detP4 = 1.0;
         
         assertEquals(detP4, new CholeskyDecomposition(pascal4).getDet(), 1e-10);
         assertEquals(detP5, new CholeskyDecomposition(pascal5).getDet(), 1e-10);
@@ -98,10 +99,10 @@ public class CholeskyDecompositionTest
     @Test
     public void testSolveVec()
     {
-        Vec b5 = DenseVector.toDenseVec(5, 4, 1, 3, 2);
-        Vec b4 = DenseVector.toDenseVec(4, 2, 3, 1);
-        Vec x5 = DenseVector.toDenseVec(-18, 84, -113, 67, -15);
-        Vec x4 = DenseVector.toDenseVec(15, -26, 21, -6);
+        final Vec b5 = DenseVector.toDenseVec(5, 4, 1, 3, 2);
+        final Vec b4 = DenseVector.toDenseVec(4, 2, 3, 1);
+        final Vec x5 = DenseVector.toDenseVec(-18, 84, -113, 67, -15);
+        final Vec x4 = DenseVector.toDenseVec(15, -26, 21, -6);
         
         assertTrue(x5.equals(new CholeskyDecomposition(pascal5).solve(b5), 1e-10));
         assertTrue(x4.equals(new CholeskyDecomposition(pascal4).solve(b4), 1e-10));
@@ -110,7 +111,7 @@ public class CholeskyDecompositionTest
     @Test
     public void testSolveMatrix()
     {
-        Matrix B5 = new DenseMatrix(new double[][]{
+        final Matrix B5 = new DenseMatrix(new double[][]{
             {     2,     3,     5},
             {     1,     7,     1},
             {     4,     5,     5},
@@ -118,14 +119,14 @@ public class CholeskyDecompositionTest
             {     2,     3,     8}
         });
         
-        Matrix B4 = new DenseMatrix(new double[][]
+        final Matrix B4 = new DenseMatrix(new double[][]
         {
             {     4,     7,     6},
             {     3,     3,     5},
             {     5,     7,     3},
             {     7,     4,     6},
         });
-        Matrix X5 = new DenseMatrix(new double[][]{
+        final Matrix X5 = new DenseMatrix(new double[][]{
             {    27,   -47,    68},
             {   -81,   164,  -208},
             {   100,  -210,   266},
@@ -133,7 +134,7 @@ public class CholeskyDecompositionTest
             {    12,   -28,    35}
         });
         
-        Matrix X4 = new DenseMatrix(new double[][]
+        final Matrix X4 = new DenseMatrix(new double[][]
         {
             {	 11,   34,      0},
             {   -16,   -65,    19},
@@ -148,7 +149,7 @@ public class CholeskyDecompositionTest
     @Test
     public void testSolveMatrixExecutor()
     {
-        Matrix B5 = new DenseMatrix(new double[][]{
+        final Matrix B5 = new DenseMatrix(new double[][]{
             {     2,     3,     5},
             {     1,     7,     1},
             {     4,     5,     5},
@@ -156,14 +157,14 @@ public class CholeskyDecompositionTest
             {     2,     3,     8}
         });
         
-        Matrix B4 = new DenseMatrix(new double[][]
+        final Matrix B4 = new DenseMatrix(new double[][]
         {
             {     4,     7,     6},
             {     3,     3,     5},
             {     5,     7,     3},
             {     7,     4,     6},
         });
-        Matrix X5 = new DenseMatrix(new double[][]{
+        final Matrix X5 = new DenseMatrix(new double[][]{
             {    27,   -47,    68},
             {   -81,   164,  -208},
             {   100,  -210,   266},
@@ -171,7 +172,7 @@ public class CholeskyDecompositionTest
             {    12,   -28,    35}
         });
         
-        Matrix X4 = new DenseMatrix(new double[][]
+        final Matrix X4 = new DenseMatrix(new double[][]
         {
             {	 11,   34,      0},
             {   -16,   -65,    19},

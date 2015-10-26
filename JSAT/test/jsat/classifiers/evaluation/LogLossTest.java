@@ -48,8 +48,8 @@ public class LogLossTest
     public void testGetScore()
     {
         System.out.println("getScore");
-        LogLoss scorer = new LogLoss();
-        LogLoss otherHalf = scorer.clone();
+        final LogLoss scorer = new LogLoss();
+        final LogLoss otherHalf = scorer.clone();
         
         assertEquals(scorer, otherHalf);
         assertEquals(scorer.hashCode(), otherHalf.hashCode());

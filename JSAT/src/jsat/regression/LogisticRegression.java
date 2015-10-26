@@ -43,16 +43,17 @@ public class LogisticRegression implements Classifier, Regressor, SingleWeightVe
      */
     private double scale;
     
-    private static double logit(double z)
+    private static double logit(final double z)
     {
         return 1/(1+Math.exp(-z));
     }
     
-    private double logitReg(Vec input)
+    private double logitReg(final Vec input)
     {
         double z = coefficents.get(0);
-        for(int i = 1; i < coefficents.length(); i++)
-            z += input.get(i-1)*coefficents.get(i);
+        for(int i = 1; i < coefficents.length(); i++) {
+          z += input.get(i-1)*coefficents.get(i);
+        }
         return logit(z);
     }
     
@@ -63,12 +64,14 @@ public class LogisticRegression implements Classifier, Regressor, SingleWeightVe
 		 */
 		private static final long serialVersionUID = -653111120605227341L;
 
-		public double f(double... x)
+    @Override
+		public double f(final double... x)
         {
             return logitReg(DenseVector.toDenseVec(x));
         }
 
-        public double f(Vec x)
+    @Override
+        public double f(final Vec x)
         {
             return logitReg(x);
         }
@@ -81,14 +84,16 @@ public class LogisticRegression implements Classifier, Regressor, SingleWeightVe
 		 */
 		private static final long serialVersionUID = 4844651397674391691L;
 
-		public double f(double... x)
+    @Override
+		public double f(final double... x)
         {
             return logitReg(DenseVector.toDenseVec(x));
         }
 
-        public double f(Vec x)
+    @Override
+        public double f(final Vec x)
         {
-            double y = logitReg(x);
+            final double y = logitReg(x);
             return y*(1-y);
         }
     };
@@ -102,23 +107,27 @@ public class LogisticRegression implements Classifier, Regressor, SingleWeightVe
         return coefficents;
     }
 
-    public double regress(DataPoint data)
+  @Override
+    public double regress(final DataPoint data)
     {
-        if(coefficents == null)
-            throw new UntrainedModelException("Model has not been trained");
+        if(coefficents == null) {
+          throw new UntrainedModelException("Model has not been trained");
+        }
         return logitReg(data.getNumericalValues())*scale+shift;
     }
 
-    public void train(RegressionDataSet dataSet, ExecutorService threadPool)
+  @Override
+    public void train(final RegressionDataSet dataSet, final ExecutorService threadPool)
     {
-        List<Vec> inputs = new ArrayList<Vec>(dataSet.getSampleSize());
-        for(int i = 0; i < dataSet.getSampleSize(); i++)
-            inputs.add(dataSet.getDataPoint(i).getNumericalValues());
+        final List<Vec> inputs = new ArrayList<Vec>(dataSet.getSampleSize());
+        for(int i = 0; i < dataSet.getSampleSize(); i++) {
+          inputs.add(dataSet.getDataPoint(i).getNumericalValues());
+        }
         
         coefficents = new DenseVector(dataSet.getNumNumericalVars()+1);
-        Vec targetValues = dataSet.getTargetValues();
-        double minTarget = targetValues.min();
-        double maxTarget = targetValues.max();
+        final Vec targetValues = dataSet.getTargetValues();
+        final double minTarget = targetValues.min();
+        final double maxTarget = targetValues.max();
         shift = minTarget;
         scale = maxTarget-minTarget;
         
@@ -126,16 +135,18 @@ public class LogisticRegression implements Classifier, Regressor, SingleWeightVe
         targetValues.subtract(shift);
         targetValues.mutableDivide(scale);
         
-        Optimizer optimizer = new IterativelyReweightedLeastSquares();
+        final Optimizer optimizer = new IterativelyReweightedLeastSquares();
         
         coefficents = optimizer.optimize(1e-5, 100, logitFun, logitFunD, coefficents, inputs, targetValues, threadPool);
     }
 
-    public void train(RegressionDataSet dataSet)
+  @Override
+    public void train(final RegressionDataSet dataSet)
     {
         train(dataSet, new FakeExecutor());
     }
 
+  @Override
     public boolean supportsWeightedData()
     {
         return false;
@@ -154,21 +165,23 @@ public class LogisticRegression implements Classifier, Regressor, SingleWeightVe
     }
     
     @Override
-    public Vec getRawWeight(int index)
+    public Vec getRawWeight(final int index)
     {
-        if(index < 1)
-            return getRawWeight();
-        else
-            throw new IndexOutOfBoundsException("Model has only 1 weight vector");
+        if(index < 1) {
+          return getRawWeight();
+        } else {
+          throw new IndexOutOfBoundsException("Model has only 1 weight vector");
+        }
     }
 
     @Override
-    public double getBias(int index)
+    public double getBias(final int index)
     {
-        if (index < 1)
-            return getBias();
-        else
-            throw new IndexOutOfBoundsException("Model has only 1 weight vector");
+        if (index < 1) {
+          return getBias();
+        } else {
+          throw new IndexOutOfBoundsException("Model has only 1 weight vector");
+        }
     }
     
     @Override
@@ -180,21 +193,24 @@ public class LogisticRegression implements Classifier, Regressor, SingleWeightVe
     @Override
     public LogisticRegression clone()
     {
-        LogisticRegression clone = new LogisticRegression();
-        if(this.coefficents != null)
-            clone.coefficents = this.coefficents.clone();
+        final LogisticRegression clone = new LogisticRegression();
+        if(this.coefficents != null) {
+          clone.coefficents = this.coefficents.clone();
+        }
         clone.scale = this.scale;
         clone.shift = this.shift;
         return clone;
     }
 
-    public CategoricalResults classify(DataPoint data)
+  @Override
+    public CategoricalResults classify(final DataPoint data)
     {
-        if(coefficents == null)
-            throw new UntrainedModelException("Model has not yet been trained");
-        else if(shift != 0 || scale != 1)
-            throw new UntrainedModelException("Model was trained for regression, not classifiaction");
-        CategoricalResults results = new CategoricalResults(2);
+        if(coefficents == null) {
+          throw new UntrainedModelException("Model has not yet been trained");
+        } else if(shift != 0 || scale != 1) {
+          throw new UntrainedModelException("Model was trained for regression, not classifiaction");
+        }
+        final CategoricalResults results = new CategoricalResults(2);
         
         //It looks a little backwards. But if the true class is 0, and we are accurate, then we expect regress to return a value near zero. 
         results.setProb(1, regress(data));
@@ -202,12 +218,14 @@ public class LogisticRegression implements Classifier, Regressor, SingleWeightVe
         return results;
     }
 
-    public void trainC(ClassificationDataSet dataSet, ExecutorService threadPool)
+  @Override
+    public void trainC(final ClassificationDataSet dataSet, final ExecutorService threadPool)
     {
-        if(dataSet.getClassSize() != 2)
-            throw new FailedToFitException("Logistic Regression works only in the case of two classes, and can not handle " +
-                                           dataSet.getClassSize() + " classes");
-        RegressionDataSet rds = new RegressionDataSet(dataSet.getNumNumericalVars(), dataSet.getCategories());
+        if(dataSet.getClassSize() != 2) {
+          throw new FailedToFitException("Logistic Regression works only in the case of two classes, and can not handle " +
+                  dataSet.getClassSize() + " classes");
+        }
+        final RegressionDataSet rds = new RegressionDataSet(dataSet.getNumNumericalVars(), dataSet.getCategories());
         for(int i = 0; i < dataSet.getSampleSize(); i++)
         {
             //getDataPointCategory will return either 0 or 1, so it works perfectly 
@@ -219,7 +237,8 @@ public class LogisticRegression implements Classifier, Regressor, SingleWeightVe
         
     }
 
-    public void trainC(ClassificationDataSet dataSet)
+  @Override
+    public void trainC(final ClassificationDataSet dataSet)
     {
         trainC(dataSet, new FakeExecutor());
     }

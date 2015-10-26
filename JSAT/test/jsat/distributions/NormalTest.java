@@ -50,8 +50,8 @@ public class NormalTest
     public void testSetMean()
     {
         System.out.println("setMean");
-        double mean = 0.0;
-        Normal instance = new Normal();
+        final double mean = 0.0;
+        final Normal instance = new Normal();
         instance.setMean(mean);
         
         try
@@ -59,7 +59,7 @@ public class NormalTest
             instance.setMean(Double.POSITIVE_INFINITY);
             fail("Can not set mean to infinity");
         }
-        catch(Exception ex)
+        catch(final Exception ex)
         {
             
         }
@@ -72,14 +72,14 @@ public class NormalTest
     public void testSetStndDev()
     {
         System.out.println("setStndDev");
-        Normal instance = new Normal();
+        final Normal instance = new Normal();
         instance.setStndDev(1.0);
         try
         {
             instance.setStndDev(Double.POSITIVE_INFINITY);
             fail("Can not set stnd deviation to infinity");
         }
-        catch(Exception ex)
+        catch(final Exception ex)
         {
             
         }
@@ -89,7 +89,7 @@ public class NormalTest
             instance.setStndDev(0);
             fail("Can not set stnd deviation to 0");
         }
-        catch(Exception ex)
+        catch(final Exception ex)
         {
             
         }
@@ -102,7 +102,7 @@ public class NormalTest
     public void testCdf_3args()
     {
         System.out.println("cdf");
-        double[] cdfMean0Stnd1 = new double[]
+        final double[] cdfMean0Stnd1 = new double[]
         {
             0.0013498980316301, 0.00297976323505456, 0.00620966532577614, 0.0122244726550447,
             0.0227501319481792, 0.0400591568638171, 0.0668072012688581, 0.105649773666855, 
@@ -111,7 +111,7 @@ public class NormalTest
             0.894350226333145, 0.933192798731142, 0.959940843136183, 0.977249868051821, 
             0.987775527344955, 0.993790334674224, 0.997020236764945, 0.99865010196837
         };
-        double[] cdfMean1p5Stnd2 = new double[]
+        final double[] cdfMean1p5Stnd2 = new double[]
         {
             0.0122244726550447, 0.0167933064484488, 0.0227501319481792, 0.0303963617652614,
             0.0400591568638171, 0.0520812794152196, 0.0668072012688581, 0.0845657223513358,
@@ -121,10 +121,12 @@ public class NormalTest
             0.646169766672724, 0.691462461274013, 0.7340144709513, 0.773372647623132
         };
         
-        for(int i = 0; i < range.length; i++)
-            assertEquals(cdfMean0Stnd1[i], Normal.cdf(range[i], 0, 1), 1e-10);
-        for(int i = 0; i < range.length; i++)
-            assertEquals(cdfMean1p5Stnd2[i], Normal.cdf(range[i], 1.5, 2), 1e-10);
+        for(int i = 0; i < range.length; i++) {
+          assertEquals(cdfMean0Stnd1[i], Normal.cdf(range[i], 0, 1), 1e-10);
+        }
+        for(int i = 0; i < range.length; i++) {
+          assertEquals(cdfMean1p5Stnd2[i], Normal.cdf(range[i], 1.5, 2), 1e-10);
+        }
     }
 
     /**
@@ -134,7 +136,7 @@ public class NormalTest
     public void testCdf_double()
     {
         System.out.println("cdf");
-        double[] cdfMean0Stnd1 = new double[]
+        final double[] cdfMean0Stnd1 = new double[]
         {
             0.0013498980316301, 0.00297976323505456, 0.00620966532577614, 0.0122244726550447,
             0.0227501319481792, 0.0400591568638171, 0.0668072012688581, 0.105649773666855, 
@@ -143,7 +145,7 @@ public class NormalTest
             0.894350226333145, 0.933192798731142, 0.959940843136183, 0.977249868051821, 
             0.987775527344955, 0.993790334674224, 0.997020236764945, 0.99865010196837
         };
-        double[] cdfMean1p5Stnd2 = new double[]
+        final double[] cdfMean1p5Stnd2 = new double[]
         {
             0.0122244726550447, 0.0167933064484488, 0.0227501319481792, 0.0303963617652614,
             0.0400591568638171, 0.0520812794152196, 0.0668072012688581, 0.0845657223513358,
@@ -154,11 +156,13 @@ public class NormalTest
         };
         
         Normal dist = new Normal(0, 1);
-        for(int i = 0; i < range.length; i++)
-            assertEquals(cdfMean0Stnd1[i], dist.cdf(range[i]), 1e-10);
+        for(int i = 0; i < range.length; i++) {
+          assertEquals(cdfMean0Stnd1[i], dist.cdf(range[i]), 1e-10);
+        }
         dist = new Normal(1.5, 2);
-        for(int i = 0; i < range.length; i++)
-            assertEquals(cdfMean1p5Stnd2[i], dist.cdf(range[i]), 1e-10);
+        for(int i = 0; i < range.length; i++) {
+          assertEquals(cdfMean1p5Stnd2[i], dist.cdf(range[i]), 1e-10);
+        }
         
                 
     }
@@ -170,7 +174,7 @@ public class NormalTest
     public void testInvcdf()
     {
         System.out.println("invcdf");
-        double[] inCDF = new double[]
+        final double[] inCDF = new double[]
         {
             -3.3000727542547823, -1.8057072650340151, -1.1794924187821967, -0.7419660787053934, -0.39155417237863954, 
             -0.09132059856786046, 0.17670363698649716, 0.4228030336829398, 0.6535501073566241, 0.8735200785359454, 
@@ -179,8 +183,9 @@ public class NormalTest
             3.741966078705394, 4.179492418782196, 4.805707265034015, 6.300072754254788
         };
         
-        for(int i = 0; i < range.length; i++)
-            assertEquals(inCDF[i], Normal.invcdf(range[i]/6.1+0.5, 1.5, 2), 1e-10);
+        for(int i = 0; i < range.length; i++) {
+          assertEquals(inCDF[i], Normal.invcdf(range[i]/6.1+0.5, 1.5, 2), 1e-10);
+        }
     }
 
     /**
@@ -190,8 +195,8 @@ public class NormalTest
     public void testInvCdf()
     {
         System.out.println("invCdf");
-        Normal instance = new Normal(1.5, 2);
-        double[] inCDF = new double[]
+        final Normal instance = new Normal(1.5, 2);
+        final double[] inCDF = new double[]
         {
             -3.3000727542547823, -1.8057072650340151, -1.1794924187821967, -0.7419660787053934, -0.39155417237863954, 
             -0.09132059856786046, 0.17670363698649716, 0.4228030336829398, 0.6535501073566241, 0.8735200785359454, 
@@ -200,8 +205,9 @@ public class NormalTest
             3.741966078705394, 4.179492418782196, 4.805707265034015, 6.300072754254788
         };
         
-        for(int i = 0; i < range.length; i++)
-            assertEquals(inCDF[i], instance.invCdf(range[i]/6.1+0.5), 1e-10);
+        for(int i = 0; i < range.length; i++) {
+          assertEquals(inCDF[i], instance.invCdf(range[i]/6.1+0.5), 1e-10);
+        }
     }
 
     /**
@@ -211,7 +217,7 @@ public class NormalTest
     public void testPdf_3args()
     {
         System.out.println("pdf");
-        double[] pdfMean0Stnd1 = new double[]
+        final double[] pdfMean0Stnd1 = new double[]
         {
             0.00443184841193801, 0.00909356250159105, 0.0175283004935685, 0.0317396518356674, 0.0539909665131881, 
             0.0862773188265115, 0.129517595665892, 0.182649085389022, 0.241970724519143, 0.301137432154804, 
@@ -219,7 +225,7 @@ public class NormalTest
             0.301137432154804, 0.241970724519143, 0.182649085389022, 0.129517595665892, 0.0862773188265115, 
             0.0539909665131881, 0.0317396518356674, 0.0175283004935685, 0.00909356250159105, 0.00443184841193801
         };
-        double[] pdfMean1p5Stnd2 = new double[]
+        final double[] pdfMean1p5Stnd2 = new double[]
         {
             0.0158698259178337, 0.0208604926281693, 0.026995483256594, 0.034393137913346, 0.0431386594132558, 
             0.0532691340652925, 0.0647587978329459, 0.0775061327291466, 0.091324542694511, 0.10593832288785, 
@@ -228,10 +234,12 @@ public class NormalTest
             0.193334058401425, 0.185927546934885, 0.17603266338215, 0.164080484275188, 0.150568716077402
         };
         
-        for(int i = 0; i < range.length; i++)
-            assertEquals(pdfMean0Stnd1[i], Normal.pdf(range[i], 0, 1), 1e-10);
-        for(int i = 0; i < range.length; i++)
-            assertEquals(pdfMean1p5Stnd2[i], Normal.pdf(range[i], 1.5, 2), 1e-10);
+        for(int i = 0; i < range.length; i++) {
+          assertEquals(pdfMean0Stnd1[i], Normal.pdf(range[i], 0, 1), 1e-10);
+        }
+        for(int i = 0; i < range.length; i++) {
+          assertEquals(pdfMean1p5Stnd2[i], Normal.pdf(range[i], 1.5, 2), 1e-10);
+        }
     }
 
     /**
@@ -241,7 +249,7 @@ public class NormalTest
     public void testPdf_double()
     {
         System.out.println("pdf");
-        double[] pdfMean0Stnd1 = new double[]
+        final double[] pdfMean0Stnd1 = new double[]
         {
             0.00443184841193801, 0.00909356250159105, 0.0175283004935685, 0.0317396518356674, 0.0539909665131881, 
             0.0862773188265115, 0.129517595665892, 0.182649085389022, 0.241970724519143, 0.301137432154804, 
@@ -249,7 +257,7 @@ public class NormalTest
             0.301137432154804, 0.241970724519143, 0.182649085389022, 0.129517595665892, 0.0862773188265115, 
             0.0539909665131881, 0.0317396518356674, 0.0175283004935685, 0.00909356250159105, 0.00443184841193801
         };
-        double[] pdfMean1p5Stnd2 = new double[]
+        final double[] pdfMean1p5Stnd2 = new double[]
         {
             0.0158698259178337, 0.0208604926281693, 0.026995483256594, 0.034393137913346, 0.0431386594132558, 
             0.0532691340652925, 0.0647587978329459, 0.0775061327291466, 0.091324542694511, 0.10593832288785, 
@@ -259,17 +267,19 @@ public class NormalTest
         };
         
         Normal dist = new Normal(0, 1);
-        for(int i = 0; i < range.length; i++)
-            assertEquals(pdfMean0Stnd1[i], dist.pdf(range[i]), 1e-10);
+        for(int i = 0; i < range.length; i++) {
+          assertEquals(pdfMean0Stnd1[i], dist.pdf(range[i]), 1e-10);
+        }
         dist = new Normal(1.5, 2);
-        for(int i = 0; i < range.length; i++)
-            assertEquals(pdfMean1p5Stnd2[i], dist.pdf(range[i]), 1e-10);
+        for(int i = 0; i < range.length; i++) {
+          assertEquals(pdfMean1p5Stnd2[i], dist.pdf(range[i]), 1e-10);
+        }
     }
     
     @Test
     public void testLogPDF_double()
     {
-        double[] logPdfMean0Std1 = new double[]
+        final double[] logPdfMean0Std1 = new double[]
         {
             -5.4189385332046727418, -4.7001885332046727418, -4.0439385332046727418, 
             -3.4501885332046727418, -2.9189385332046727418, -2.4501885332046727418, 
@@ -282,7 +292,7 @@ public class NormalTest
             -5.4189385332046727418
         };
         
-        double[] logPdfMean1p5Std2 = new double[]
+        final double[] logPdfMean1p5Std2 = new double[]
         {
             -4.1433357137646180512, -3.8698982137646180512, -3.6120857137646180512, 
             -3.3698982137646180512, -3.1433357137646180512, -2.9323982137646180512,
@@ -296,11 +306,13 @@ public class NormalTest
         };
         
         Normal dist = new Normal(0, 1);
-        for(int i = 0; i < range.length; i++)
-            assertEquals(logPdfMean0Std1[i], dist.logPdf(range[i]), 1e-8);
+        for(int i = 0; i < range.length; i++) {
+          assertEquals(logPdfMean0Std1[i], dist.logPdf(range[i]), 1e-8);
+        }
         dist = new Normal(1.5, 2);
-        for(int i = 0; i < range.length; i++)
-            assertEquals(logPdfMean1p5Std2[i], dist.logPdf(range[i]), 1e-8);
+        for(int i = 0; i < range.length; i++) {
+          assertEquals(logPdfMean1p5Std2[i], dist.logPdf(range[i]), 1e-8);
+        }
     }
 
 
@@ -311,7 +323,7 @@ public class NormalTest
     public void testMin()
     {
         System.out.println("min");
-        Normal instance = new Normal();
+        final Normal instance = new Normal();
         assertTrue(instance.min() == Double.NEGATIVE_INFINITY);
     }
 
@@ -322,7 +334,7 @@ public class NormalTest
     public void testMax()
     {
         System.out.println("max");
-        Normal instance = new Normal();
+        final Normal instance = new Normal();
         assertTrue(instance.max() == Double.POSITIVE_INFINITY);
     }
 
@@ -333,7 +345,7 @@ public class NormalTest
     public void testMean()
     {
         System.out.println("mean");
-        Normal instance = new Normal(0, 1);
+        final Normal instance = new Normal(0, 1);
         assertEquals(0.0, instance.mean(), 1e-10);
     }
 
@@ -344,7 +356,7 @@ public class NormalTest
     public void testMedian()
     {
         System.out.println("median");
-        Normal instance = new Normal(0, 1);
+        final Normal instance = new Normal(0, 1);
         assertEquals(0.0, instance.median(), 1e-10);
     }
 
@@ -355,7 +367,7 @@ public class NormalTest
     public void testMode()
     {
         System.out.println("mode");
-        Normal instance = new Normal(0, 1);
+        final Normal instance = new Normal(0, 1);
         assertEquals(0.0, instance.mode(), 1e-10);
     }
 
@@ -403,11 +415,11 @@ public class NormalTest
     @Test
     public void testEquals(){
     	System.out.println("equals");
-    	ContinuousDistribution d1 = new Normal(0.5, 0.5);
-    	ContinuousDistribution d2 = new Normal(0.6, 0.5);
-    	ContinuousDistribution d3 = new Normal(0.5, 0.6);
-    	ContinuousDistribution d4 = new Normal(0.5, 0.5);
-    	Integer i = new Integer(1);
+    	final ContinuousDistribution d1 = new Normal(0.5, 0.5);
+    	final ContinuousDistribution d2 = new Normal(0.6, 0.5);
+    	final ContinuousDistribution d3 = new Normal(0.5, 0.6);
+    	final ContinuousDistribution d4 = new Normal(0.5, 0.5);
+    	final Integer i = new Integer(1);
     	assertFalse(d1.equals(d2));
     	assertFalse(d1.equals(d3));
     	assertFalse(d2.equals(d3));
@@ -421,9 +433,9 @@ public class NormalTest
     @Test
     public void testHashCode(){
     	System.out.println("hashCode");
-    	ContinuousDistribution d1 = new Normal(0.5, 0.5);
-    	ContinuousDistribution d2 = new Normal(0.6, 0.5);
-    	ContinuousDistribution d4 = new Normal(0.5, 0.5);
+    	final ContinuousDistribution d1 = new Normal(0.5, 0.5);
+    	final ContinuousDistribution d2 = new Normal(0.6, 0.5);
+    	final ContinuousDistribution d4 = new Normal(0.5, 0.5);
     	assertEquals(d1.hashCode(), d4.hashCode());
     	assertFalse(d1.hashCode()==d2.hashCode());
     }

@@ -161,9 +161,10 @@ public class PaiceHuskStemmerTest
     {
         System.out.println("stem");
         
-        PaiceHuskStemmer stemmer = new PaiceHuskStemmer();
+        final PaiceHuskStemmer stemmer = new PaiceHuskStemmer();
        
-        for (int i = 0; i < original.length; i++)
-            assertEquals("Stemming results incorrect for \"" + original[i] + "\"", expected[i], stemmer.stem(original[i]));
+        for (int i = 0; i < original.length; i++) {
+          assertEquals("Stemming results incorrect for \"" + original[i] + "\"", expected[i], stemmer.stem(original[i]));
+        }
     }
 }

@@ -28,7 +28,7 @@ public class CholeskyDecomposition implements Serializable
      * in a symmetric  copy so {@link LUPDecomposition#forwardSub(jsat.linear.Matrix, jsat.linear.Vec) }
      * and backSub can be done without copying. 
      */
-    private Matrix L;
+    private final Matrix L;
 
     /**
      * Computes the Cholesky Decomposition of the matrix A. The matrix 
@@ -43,15 +43,16 @@ public class CholeskyDecomposition implements Serializable
      */
     public CholeskyDecomposition(final Matrix A)
     {
-        if(!A.isSquare())
-            throw new ArithmeticException("Input matrix must be symmetric positive definite");
+        if(!A.isSquare()) {
+          throw new ArithmeticException("Input matrix must be symmetric positive definite");
+        }
         
         L = A;
         final int ROWS = A.rows();
 
         for (int j = 0; j < ROWS; j++)
         {
-            double L_jj = computeLJJ(A, j);
+            final double L_jj = computeLJJ(A, j);
             L.set(j, j, L_jj);
             updateRows(j, j + 1, ROWS, 1, A, L_jj);
         }
@@ -70,10 +71,11 @@ public class CholeskyDecomposition implements Serializable
      * @param A the matrix to create the Cholesky Decomposition of
      * @param threadpool the source of threads for computation
      */
-    public CholeskyDecomposition(final Matrix A, ExecutorService threadpool)
+    public CholeskyDecomposition(final Matrix A, final ExecutorService threadpool)
     {
-        if(!A.isSquare())
-            throw new ArithmeticException("Input matrix must be symmetric positive definite");
+        if(!A.isSquare()) {
+          throw new ArithmeticException("Input matrix must be symmetric positive definite");
+        }
         
         L = A;
         final int ROWS = A.rows();
@@ -100,11 +102,12 @@ public class CholeskyDecomposition implements Serializable
             try
             {
                 updateRows(J, J+1, ROWS, SystemInfo.LogicalCores, A, L_jj);
-                if(j+1 < ROWS)
-                    nextLJJ = computeLJJ(A, j+1);
+                if(j+1 < ROWS) {
+                  nextLJJ = computeLJJ(A, j+1);
+                }
                 latch.await();
             }
-            catch (InterruptedException ex)
+            catch (final InterruptedException ex)
             {
                 Logger.getLogger(CholeskyDecomposition.class.getName()).log(Level.SEVERE, null, ex);
             }
@@ -119,11 +122,13 @@ public class CholeskyDecomposition implements Serializable
      */
     public Matrix getLT()
     {
-        Matrix LT = new DenseMatrix(L.rows(), L.cols());
+        final Matrix LT = new DenseMatrix(L.rows(), L.cols());
         
-        for(int i = 0; i < L.rows(); i++)
-            for(int j = i; j < L.rows(); j++)
-                LT.set(i, j, L.get(i, j));
+        for(int i = 0; i < L.rows(); i++) {
+          for (int j = i; j < L.rows(); j++) {
+            LT.set(i, j, L.get(i, j));
+          }
+        }
         
         return LT;
     }
@@ -133,14 +138,14 @@ public class CholeskyDecomposition implements Serializable
      * @param b the vectors of values
      * @return the vector x such that A x = b
      */
-    public Vec solve(Vec b)
+    public Vec solve(final Vec b)
     {
         //Solve  A x = L L^T x = b, for x 
         
         //First solve L y = b
-        Vec y = forwardSub(L, b);
+        final Vec y = forwardSub(L, b);
         //Sole L^T x = y
-        Vec x = backSub(L, y);
+        final Vec x = backSub(L, y);
         
         return x;
     }
@@ -150,14 +155,14 @@ public class CholeskyDecomposition implements Serializable
      * @param B the matrix of values 
      * @return the matrix c such that A x = B
      */
-    public Matrix solve(Matrix B)
+    public Matrix solve(final Matrix B)
     {
         //Solve  A x = L L^T x = b, for x 
         
         //First solve L y = b
-        Matrix y = forwardSub(L, B);
+        final Matrix y = forwardSub(L, B);
         //Sole L^T x = y
-        Matrix x = backSub(L, y);
+        final Matrix x = backSub(L, y);
         
         return x;
     }
@@ -168,14 +173,14 @@ public class CholeskyDecomposition implements Serializable
      * @param threadpool the source of threads for parallel evaluation
      * @return the matrix c such that A x = B
      */
-    public Matrix solve(Matrix B, ExecutorService threadpool)
+    public Matrix solve(final Matrix B, final ExecutorService threadpool)
     {
         //Solve  A x = L L^T x = b, for x 
         
         //First solve L y = b
-        Matrix y = forwardSub(L, B, threadpool);
+        final Matrix y = forwardSub(L, B, threadpool);
         //Sole L^T x = y
-        Matrix x = backSub(L, y, threadpool);
+        final Matrix x = backSub(L, y, threadpool);
         
         return x;
     }
@@ -187,8 +192,9 @@ public class CholeskyDecomposition implements Serializable
     public double getDet()
     {
         double det = 1;
-        for(int i = 0; i < L.rows(); i++)
-            det *= L.get(i, i);
+        for(int i = 0; i < L.rows(); i++) {
+          det *= L.get(i, i);
+        }
         return det;
     }
 
@@ -205,11 +211,13 @@ public class CholeskyDecomposition implements Serializable
          *        \/             k = 1
          */
         double L_jj = A.get(j, j);
-        for(int k = 0; k < j; k++)
-            L_jj -= pow(L.get(j, k), 2);
+        for(int k = 0; k < j; k++) {
+          L_jj -= pow(L.get(j, k), 2);
+        }
         final double result = sqrt(L_jj);
-        if(Double.isNaN(result))
-            throw new ArithmeticException("input matrix is not positive definite");
+        if(Double.isNaN(result)) {
+          throw new ArithmeticException("input matrix is not positive definite");
+        }
         return result;
     }
 
@@ -228,8 +236,9 @@ public class CholeskyDecomposition implements Serializable
         for(int i = start; i < end; i+=skip)
         {
             double L_ij = A.get(i, j);
-            for(int k = 0; k < j; k++)
-                L_ij -= L.get(i, k)*L.get(j, k);
+            for(int k = 0; k < j; k++) {
+              L_ij -= L.get(i, k)*L.get(j, k);
+            }
             L.set(i, j, L_ij/L_jj);
         }
     }
@@ -237,8 +246,10 @@ public class CholeskyDecomposition implements Serializable
     private void copyUpperToLower(final int ROWS)
     {
         //Now copy so that All of L is filled 
-        for (int i = 0; i < ROWS; i++)
-            for (int j = 0; j < i; j++)
-                L.set(j, i, L.get(i, j));
+        for (int i = 0; i < ROWS; i++) {
+          for (int j = 0; j < i; j++) {
+            L.set(j, i, L.get(i, j));
+          }
+        }
     }
 }

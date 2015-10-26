@@ -9,7 +9,7 @@ import jsat.math.Function;
  */
 public class Trapezoidal
 {
-    static public double trapz(Function f, double a, double b, int N)
+    static public double trapz(final Function f, final double a, final double b, final int N)
     {
         /*
          *    b               /              N - 1                 \
@@ -21,8 +21,9 @@ public class Trapezoidal
          *  a                 \              k = 1                 /
          */
         double sum =0;
-        for(int k = 1; k < N; k++)
-            sum += f.f(a+k*(b-a)/N);
+        for(int k = 1; k < N; k++) {
+          sum += f.f(a+k*(b-a)/N);
+        }
 
         sum+= (f.f(a)+f.f(b))/2;
 

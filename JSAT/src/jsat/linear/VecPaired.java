@@ -20,7 +20,7 @@ public class VecPaired<V extends Vec, P> extends Vec
 	private V vector;
     private P pair;
 
-    public VecPaired(V v, P p)
+    public VecPaired(final V v, final P p)
     {
         this.vector = v;
         this.pair = p;
@@ -31,7 +31,7 @@ public class VecPaired<V extends Vec, P> extends Vec
         return pair;
     }
 
-    public void setPair(P pair)
+    public void setPair(final P pair)
     {
         this.pair = pair;
     }
@@ -41,7 +41,7 @@ public class VecPaired<V extends Vec, P> extends Vec
         return vector;
     }
 
-    public void setVector(V vector)
+    public void setVector(final V vector)
     {
         this.vector = vector;
     }
@@ -59,19 +59,19 @@ public class VecPaired<V extends Vec, P> extends Vec
     }
     
     @Override
-    public double get(int index)
+    public double get(final int index)
     {
         return vector.get(index);
     }
 
     @Override
-    public void set(int index, double val)
+    public void set(final int index, final double val)
     {
         vector.set(index, val);
     }
 
     @Override
-    public Vec add(double c)
+    public Vec add(final double c)
     {
         return vector.add(c);
     }
@@ -98,13 +98,13 @@ public class VecPaired<V extends Vec, P> extends Vec
     }
 
     @Override
-    public Vec multiply(double c)
+    public Vec multiply(final double c)
     {
         return vector.multiply(c);
     }
 
     @Override
-    public void multiply(double c, Matrix A, Vec b)
+    public void multiply(final double c, final Matrix A, final Vec b)
     {
         vector.multiply(c, A, b);
     }
@@ -117,13 +117,13 @@ public class VecPaired<V extends Vec, P> extends Vec
     }
 
     @Override
-    public Vec divide(double c)
+    public Vec divide(final double c)
     {
         return vector.divide(c);
     }
 
     @Override
-    public void mutableAdd(double c)
+    public void mutableAdd(final double c)
     {
         vector.mutableAdd(c);
     }
@@ -150,7 +150,7 @@ public class VecPaired<V extends Vec, P> extends Vec
     }
 
     @Override
-    public void mutableMultiply(double c)
+    public void mutableMultiply(final double c)
     {
         vector.mutableMultiply(c);
     }
@@ -163,7 +163,7 @@ public class VecPaired<V extends Vec, P> extends Vec
     }
 
     @Override
-    public void mutableDivide(double c)
+    public void mutableDivide(final double c)
     {
         vector.mutableDivide(c);
     }
@@ -247,14 +247,14 @@ public class VecPaired<V extends Vec, P> extends Vec
     }
 
     @Override
-    public double pNormDist(double p, Vec y)
+    public double pNormDist(final double p, Vec y)
     {
         y = extractTrueVec(y);
         return vector.pNormDist(p, y);
     }
 
     @Override
-    public double pNorm(double p)
+    public double pNorm(final double p)
     {
         return vector.pNorm(p);
     }
@@ -273,13 +273,13 @@ public class VecPaired<V extends Vec, P> extends Vec
     }
 
     @Override
-    public boolean equals(Object obj)
+    public boolean equals(final Object obj)
     {
         return vector.equals(obj);
     }
 
     @Override
-    public boolean equals(Object obj, double range)
+    public boolean equals(final Object obj, final double range)
     {
         return vector.equals(obj, range);
     }
@@ -291,7 +291,7 @@ public class VecPaired<V extends Vec, P> extends Vec
     }
 
     @Override
-    public void mutableAdd(double c, Vec b)
+    public void mutableAdd(final double c, Vec b)
     {
         b = extractTrueVec(b);
        
@@ -301,8 +301,9 @@ public class VecPaired<V extends Vec, P> extends Vec
     @Override
     public Iterator<IndexValue> getNonZeroIterator()
     {
-        if(extractTrueVec(vector) instanceof SparseVector)
-            return extractTrueVec(vector).getNonZeroIterator();
+        if(extractTrueVec(vector) instanceof SparseVector) {
+          return extractTrueVec(vector).getNonZeroIterator();
+        }
         return super.getNonZeroIterator();
     }
     
@@ -317,17 +318,18 @@ public class VecPaired<V extends Vec, P> extends Vec
      */
     public static Vec extractTrueVec(Vec b)
     {
-        while(b instanceof VecPaired)
-            b = ((VecPaired) b).getVector();
+        while(b instanceof VecPaired) {
+          b = ((VecPaired) b).getVector();
+        }
         return b;
     }
     
     public static <V extends Vec, P extends Comparable<P>> Comparator<VecPaired<V, P>>  vecPairedComparator()
     {
-        Comparator<VecPaired<V, P>> comp = new Comparator<VecPaired<V, P>>() {
+        final Comparator<VecPaired<V, P>> comp = new Comparator<VecPaired<V, P>>() {
 
             @Override
-            public int compare(VecPaired<V, P> o1, VecPaired<V, P> o2)
+            public int compare(final VecPaired<V, P> o1, final VecPaired<V, P> o2)
             {
                 return o1.getPair().compareTo(o2.getPair());
             }

@@ -30,20 +30,23 @@ public class EpanechnikovKF implements KernelFunction
     }
 
     @Override
-    public double k(double u)
+    public double k(final double u)
     {
-        if(Math.abs(u) > 1)
-            return 0;
+        if(Math.abs(u) > 1) {
+          return 0;
+        }
         return (1-u*u)*(3.0/4.0);
     }
 
     @Override
-    public double intK(double u)
+    public double intK(final double u)
     {
-        if(u < -1)
-            return 0;
-        if( u > 1)
-            return 1;
+        if(u < -1) {
+          return 0;
+        }
+        if( u > 1) {
+          return 1;
+        }
         return (-u*u*u + 3 *u + 2)/4;
     }
 
@@ -60,10 +63,11 @@ public class EpanechnikovKF implements KernelFunction
     }
 
     @Override
-    public double kPrime(double u)
+    public double kPrime(final double u)
     {
-        if(Math.abs(u) > 1)
-            return 0;
+        if(Math.abs(u) > 1) {
+          return 0;
+        }
         return - u *(3.0/2.0);
     }
 

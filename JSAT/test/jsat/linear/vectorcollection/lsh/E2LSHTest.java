@@ -54,38 +54,40 @@ public class E2LSHTest
         System.out.println("searchR");
         //Test case, create an easy data set of 10 clusters, get all the neighbors for each main cluster
         //use dimension as the number of clusters and how many poitns are in each cluster
-        int dim = 10;
-        List<Vec> mainVecs = new ArrayList<Vec>(dim);
+        final int dim = 10;
+        final List<Vec> mainVecs = new ArrayList<Vec>(dim);
         for(int i = 0; i < dim; i++)
         {
-            DenseVector dv = new DenseVector(dim);
+            final DenseVector dv = new DenseVector(dim);
             dv.set(i, dim*dim);
             mainVecs.add(dv);
         }
         
-        Random rand = new Random();
-        List<Vec> extraVecs = new ArrayList<Vec>();
+        final Random rand = new Random();
+        final List<Vec> extraVecs = new ArrayList<Vec>();
         for(int i = 0; i < mainVecs.size(); i++)
         {
             for(int j = 0; j < mainVecs.size(); j++)
             {
-                DenseVector newVec = new DenseVector(dim);
+                final DenseVector newVec = new DenseVector(dim);
                 newVec.set(i, dim*dim);
-                for(int k = 0; k < newVec.length(); k++)
-                    newVec.increment(k, rand.nextDouble());
+                for(int k = 0; k < newVec.length(); k++) {
+                  newVec.increment(k, rand.nextDouble());
+                }
                 extraVecs.add(newVec);
             }
         }
         
-        List<Vec> allVecs = new ArrayList<Vec>(mainVecs);
+        final List<Vec> allVecs = new ArrayList<Vec>(mainVecs);
         allVecs.addAll(extraVecs);
         Collections.shuffle(allVecs);
         
         
-        E2LSH<Vec> e2lsh = new E2LSH<Vec>(allVecs, dim, 0.1, 4, 5, 0.1, new EuclideanDistance());
+        final E2LSH<Vec> e2lsh = new E2LSH<Vec>(allVecs, dim, 0.1, 4, 5, 0.1, new EuclideanDistance());
         
-        for(Vec v : mainVecs)
-            assertEquals(dim+1, e2lsh.searchR(v).size());
+        for(final Vec v : mainVecs) {
+          assertEquals(dim+1, e2lsh.searchR(v).size());
+        }
     }
 
 }

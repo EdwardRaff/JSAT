@@ -40,8 +40,8 @@ public class ImpurityScore implements Cloneable
     }
     
     private double sumOfWeights;
-    private double[] counts;
-    private ImpurityMeasure impurityMeasure;
+    private final double[] counts;
+    private final ImpurityMeasure impurityMeasure;
     
     /**
      * Creates a new impurity score that can be updated
@@ -49,7 +49,7 @@ public class ImpurityScore implements Cloneable
      * @param classCount the number of target class values
      * @param impurityMeasure 
      */
-    public ImpurityScore(int classCount, ImpurityMeasure impurityMeasure)
+    public ImpurityScore(final int classCount, final ImpurityMeasure impurityMeasure)
     {
         sumOfWeights = 0.0;
         counts = new double[classCount];
@@ -60,7 +60,7 @@ public class ImpurityScore implements Cloneable
      * Copy constructor
      * @param toClone 
      */
-    private ImpurityScore(ImpurityScore toClone)
+    private ImpurityScore(final ImpurityScore toClone)
     {
         this.sumOfWeights = toClone.sumOfWeights;
         this.counts = Arrays.copyOf(toClone.counts, toClone.counts.length);
@@ -72,7 +72,7 @@ public class ImpurityScore implements Cloneable
      * @param dp the data point to add
      * @param targetClass the class of the point to add
      */
-    public void removePoint(DataPoint dp, int targetClass)
+    public void removePoint(final DataPoint dp, final int targetClass)
     {
         removePoint(dp.getWeight(), targetClass);
     }
@@ -82,7 +82,7 @@ public class ImpurityScore implements Cloneable
      * @param weight the weight of the point to add
      * @param targetClass the class of the point to add
      */
-    public void removePoint(double weight, int targetClass)
+    public void removePoint(final double weight, final int targetClass)
     {
         counts[targetClass] -= weight;
         sumOfWeights -= weight;
@@ -93,7 +93,7 @@ public class ImpurityScore implements Cloneable
      * @param dp the data point to add
      * @param targetClass the class of the point to add
      */
-    public void addPoint(DataPoint dp, int targetClass)
+    public void addPoint(final DataPoint dp, final int targetClass)
     {
         addPoint(dp.getWeight(), targetClass);
     }
@@ -103,7 +103,7 @@ public class ImpurityScore implements Cloneable
      * @param weight the weight of the point to add
      * @param targetClass the class of the point to add
      */
-    public void addPoint(double weight, int targetClass)
+    public void addPoint(final double weight, final int targetClass)
     {
         counts[targetClass] += weight;
         sumOfWeights += weight;
@@ -123,27 +123,29 @@ public class ImpurityScore implements Cloneable
                 || impurityMeasure == ImpurityMeasure.INFORMATION_GAIN
                 || impurityMeasure == ImpurityMeasure.NMI)
         {
-            for (Double count : counts)
+            for (final Double count : counts)
             {
-                double p = count / sumOfWeights;
-                if (p > 0)
-                    score += p * log(p) / log(2);
+                final double p = count / sumOfWeights;
+                if (p > 0) {
+                  score += p * log(p) / log(2);
+                }
             }
         }
         else if (impurityMeasure == ImpurityMeasure.GINI)
         {
             score = 1;
-            for (double count : counts)
+            for (final double count : counts)
             {
-                double p = count / sumOfWeights;
+                final double p = count / sumOfWeights;
                 score -= p * p;
             }
         }
         else if (impurityMeasure == ImpurityMeasure.CLASSIFICATION_ERROR)
         {
             double maxClass = 0;
-            for (double count : counts)
-                maxClass = Math.max(maxClass, count / sumOfWeights);
+            for (final double count : counts) {
+              maxClass = Math.max(maxClass, count / sumOfWeights);
+            }
             score = 1.0 - maxClass;
         }
 
@@ -176,9 +178,10 @@ public class ImpurityScore implements Cloneable
      */
     public CategoricalResults getResults()
     {
-        CategoricalResults cr = new CategoricalResults(counts.length);
-        for(int i = 0; i < counts.length; i++)
-            cr.setProb(i, counts[i]/sumOfWeights);
+        final CategoricalResults cr = new CategoricalResults(counts.length);
+        for(int i = 0; i < counts.length; i++) {
+          cr.setProb(i, counts[i]/sumOfWeights);
+        }
         return cr;
     }
     
@@ -215,36 +218,40 @@ public class ImpurityScore implements Cloneable
      * @param splits the scores for each of the splits
      * @return the gain for the values given
      */
-    public static double gain(ImpurityScore wholeData, ImpurityScore... splits)
+    public static double gain(final ImpurityScore wholeData, final ImpurityScore... splits)
     {
         if(splits[0].impurityMeasure == ImpurityMeasure.NMI)
         {
             double mi = 0, splitEntropy = 0.0, classEntropy = 0.0;
-            double sumOfAllSums = wholeData.sumOfWeights;
+            final double sumOfAllSums = wholeData.sumOfWeights;
             
             for(int c = 0; c < wholeData.counts.length; c++)//c: class
             {
                 final double p_c = wholeData.counts[c]/sumOfAllSums;
-                if(p_c <= 0.0)
-                    continue;
+                if(p_c <= 0.0) {
+                  continue;
+                }
                 
-                double logP_c = log(p_c);
+                final double logP_c = log(p_c);
                 
                 classEntropy += p_c*logP_c;
                         
                 for(int s = 0; s < splits.length; s++)//s: split
                 {
                     final double p_s = splits[s].sumOfWeights/sumOfAllSums;
-                    if(p_s <= 0)
-                        continue;
+                    if(p_s <= 0) {
+                      continue;
+                    }
                     final double p_cs = splits[s].counts[c]/sumOfAllSums;
-                    if(p_cs <= 0)
-                        continue;
+                    if(p_cs <= 0) {
+                      continue;
+                    }
                     
                     mi += p_cs * (log(p_cs) - logP_c - log(p_s));
                     
-                    if(c == 0)
-                        splitEntropy += p_s * log(p_s);
+                    if(c == 0) {
+                      splitEntropy += p_s * log(p_s);
+                    }
                 }
             }
             
@@ -257,7 +264,7 @@ public class ImpurityScore implements Cloneable
         //Else, normal cases
         double splitScore = 0.0;
         
-        boolean useSplitInfo = splits[0].impurityMeasure == ImpurityMeasure.INFORMATION_GAIN_RATIO;
+        final boolean useSplitInfo = splits[0].impurityMeasure == ImpurityMeasure.INFORMATION_GAIN_RATIO;
         
         if(useSplitInfo)
         {
@@ -277,11 +284,12 @@ public class ImpurityScore implements Cloneable
              * Using the same code with an if stament seperating the 2 (see old revision) was originally backwards. Changing the correct way revealed the behavior. I'm leaving them seperated to ease investiation later. 
              */
             double splitInfo = 1.0;
-            for(ImpurityScore split : splits)
+            for(final ImpurityScore split : splits)
             {
-                double p = split.getSumOfWeights()/wholeData.getSumOfWeights();
-                if(p <= 0)//log(0) is -Inft, so skip and treat as zero
-                    continue;
+                final double p = split.getSumOfWeights()/wholeData.getSumOfWeights();
+                if(p <= 0) {//log(0) is -Inft, so skip and treat as zero
+                  continue;
+                }
                 splitScore += p * split.getScore();
                 splitInfo += p * -log(p);
             }
@@ -290,11 +298,12 @@ public class ImpurityScore implements Cloneable
         }
         else
         {
-            for(ImpurityScore split : splits)
+            for(final ImpurityScore split : splits)
             {
-                double p = split.getSumOfWeights()/wholeData.getSumOfWeights();
-                if(p <= 0)//log(0) is -Inft, so skip and treat as zero
-                    continue;
+                final double p = split.getSumOfWeights()/wholeData.getSumOfWeights();
+                if(p <= 0) {//log(0) is -Inft, so skip and treat as zero
+                  continue;
+                }
                 splitScore += p*split.getScore();
             }
 

@@ -94,7 +94,7 @@ public class NHERD extends BaseUpdateableClassifier implements BinaryScoreClassi
      * @see #setC(double) 
      * @see #setCovMode(jsat.classifiers.linear.NHERD.CovMode) 
      */
-    public NHERD(double C, CovMode covMode)
+    public NHERD(final double C, final CovMode covMode)
     {
         setC(C);
         setCovMode(covMode);
@@ -104,18 +104,22 @@ public class NHERD extends BaseUpdateableClassifier implements BinaryScoreClassi
      * Copy constructor
      * @param other the object to copy
      */
-    protected NHERD(NHERD other)
+    protected NHERD(final NHERD other)
     {
         this.C = other.C;
         this.covMode = other.covMode;
-        if(other.w != null)
-            this.w = other.w.clone();
-        if(other.sigmaM != null)
-            this.sigmaM = other.sigmaM.clone();
-        if(other.sigmaV != null)
-            this.sigmaV = other.sigmaV.clone();
-        if(other.Sigma_xt != null)
-            this.Sigma_xt = other.Sigma_xt.clone();
+        if(other.w != null) {
+          this.w = other.w.clone();
+        }
+        if(other.sigmaM != null) {
+          this.sigmaM = other.sigmaM.clone();
+        }
+        if(other.sigmaV != null) {
+          this.sigmaV = other.sigmaV.clone();
+        }
+        if(other.Sigma_xt != null) {
+          this.Sigma_xt = other.Sigma_xt.clone();
+        }
         
     }
 
@@ -127,10 +131,11 @@ public class NHERD extends BaseUpdateableClassifier implements BinaryScoreClassi
      * 
      * @param C the positive aggressiveness parameter
      */
-    public void setC(double C)
+    public void setC(final double C)
     {
-        if(Double.isNaN(C) || Double.isInfinite(C) || C <= 0)
-            throw new IllegalArgumentException("C must be a postive constant, not " + C);
+        if(Double.isNaN(C) || Double.isInfinite(C) || C <= 0) {
+          throw new IllegalArgumentException("C must be a postive constant, not " + C);
+        }
         this.C = C;
     }
 
@@ -153,7 +158,7 @@ public class NHERD extends BaseUpdateableClassifier implements BinaryScoreClassi
      * 
      * @param covMode the way to form the covariance matrix
      */
-    public void setCovMode(CovMode covMode)
+    public void setCovMode(final CovMode covMode)
     {
         this.covMode = covMode;
     }
@@ -190,21 +195,23 @@ public class NHERD extends BaseUpdateableClassifier implements BinaryScoreClassi
     }
     
     @Override
-    public Vec getRawWeight(int index)
+    public Vec getRawWeight(final int index)
     {
-        if(index < 1)
-            return getRawWeight();
-        else
-            throw new IndexOutOfBoundsException("Model has only 1 weight vector");
+        if(index < 1) {
+          return getRawWeight();
+        } else {
+          throw new IndexOutOfBoundsException("Model has only 1 weight vector");
+        }
     }
 
     @Override
-    public double getBias(int index)
+    public double getBias(final int index)
     {
-        if (index < 1)
-            return getBias();
-        else
-            throw new IndexOutOfBoundsException("Model has only 1 weight vector");
+        if (index < 1) {
+          return getBias();
+        } else {
+          throw new IndexOutOfBoundsException("Model has only 1 weight vector");
+        }
     }
     
     @Override
@@ -220,12 +227,13 @@ public class NHERD extends BaseUpdateableClassifier implements BinaryScoreClassi
     }
 
     @Override
-    public void setUp(CategoricalData[] categoricalAttributes, int numericAttributes, CategoricalData predicting)
+    public void setUp(final CategoricalData[] categoricalAttributes, final int numericAttributes, final CategoricalData predicting)
     {
-        if(numericAttributes <= 0)
-            throw new FailedToFitException("AROW requires numeric attributes to perform classification");
-        else if(predicting.getNumOfCategories() != 2)
-            throw new FailedToFitException("AROW is a binary classifier");
+        if(numericAttributes <= 0) {
+          throw new FailedToFitException("AROW requires numeric attributes to perform classification");
+        } else if(predicting.getNumOfCategories() != 2) {
+          throw new FailedToFitException("AROW is a binary classifier");
+        }
         w = new DenseVector(numericAttributes);
         Sigma_xt = new DenseVector(numericAttributes);
         if(covMode != CovMode.FULL)
@@ -233,28 +241,30 @@ public class NHERD extends BaseUpdateableClassifier implements BinaryScoreClassi
             sigmaV = new DenseVector(numericAttributes);
             sigmaV.mutableAdd(1);
         }
-        else
-            sigmaM = Matrix.eye(numericAttributes);
+        else {
+          sigmaM = Matrix.eye(numericAttributes);
+        }
     }
 
     @Override
-    public void update(DataPoint dataPoint, int targetClass)
+    public void update(final DataPoint dataPoint, final int targetClass)
     {
-        Vec x_t = dataPoint.getNumericalValues();
-        double y_t = targetClass*2-1;
-        double pred = x_t.dot(w);
-        if(y_t*pred > 1)
-            return;//No update needed
-        //else, wrong label or margin too small
+        final Vec x_t = dataPoint.getNumericalValues();
+        final double y_t = targetClass*2-1;
+        final double pred = x_t.dot(w);
+        if(y_t*pred > 1) {
+          return;//No update needed
+          //else, wrong label or margin too small
+        }
         
         double alpha;
         if(covMode != CovMode.FULL)
         {
             alpha = 0;
             //Faster to set only the needed final values
-            for (IndexValue iv : x_t)
+            for (final IndexValue iv : x_t)
             {
-                double x_ti = iv.getValue();
+                final double x_ti = iv.getValue();
                 alpha += x_ti * x_ti * sigmaV.get(iv.getIndex());
             }
         }
@@ -267,14 +277,16 @@ public class NHERD extends BaseUpdateableClassifier implements BinaryScoreClassi
         final double loss = Math.max(0, 1 - y_t * pred);
         final double w_c = y_t * loss / (alpha + 1 / C);
         
-        if (covMode == CovMode.FULL)
-            w.mutableAdd(w_c, Sigma_xt);
-        else
-            for (IndexValue iv : x_t)
-                w.increment(iv.getIndex(), w_c * iv.getValue() * sigmaV.get(iv.getIndex()));
+        if (covMode == CovMode.FULL) {
+          w.mutableAdd(w_c, Sigma_xt);
+        } else {
+          for (final IndexValue iv : x_t) {
+            w.increment(iv.getIndex(), w_c * iv.getValue() * sigmaV.get(iv.getIndex()));
+          }
+        }
         
-        double numer = C*(C*alpha+2);
-        double denom = (1+C*alpha)*(1+C*alpha);
+        final double numer = C*(C*alpha+2);
+        final double denom = (1+C*alpha)*(1+C*alpha);
         switch (covMode)
         {
             
@@ -283,54 +295,57 @@ public class NHERD extends BaseUpdateableClassifier implements BinaryScoreClassi
                 break;
             case DROP:
                 final double c = -numer/denom;
-                for (IndexValue iv : x_t)
+                for (final IndexValue iv : x_t)
                 {
-                    int idx = iv.getIndex();
-                    double x_ti = iv.getValue()*sigmaV.get(idx);
+                    final int idx = iv.getIndex();
+                    final double x_ti = iv.getValue()*sigmaV.get(idx);
                     sigmaV.increment(idx, c*x_ti*x_ti);
                 }
                 break;
             case PROJECT:
-                for(IndexValue iv : x_t)//only the nonzero values in x_t will cause a change in value
+                for(final IndexValue iv : x_t)//only the nonzero values in x_t will cause a change in value
                 {
-                    int idx = iv.getIndex();
-                    double x_r = iv.getValue();
-                    double S_rr = sigmaV.get(idx);
+                    final int idx = iv.getIndex();
+                    final double x_r = iv.getValue();
+                    final double S_rr = sigmaV.get(idx);
                     sigmaV.set(idx, 1/(1/S_rr+numer*x_r*x_r));
                 }
                 break;
             case EXACT:
-                for(IndexValue iv : x_t)//only the nonzero values in x_t will cause a change in value
+                for(final IndexValue iv : x_t)//only the nonzero values in x_t will cause a change in value
                 {
-                    int idx = iv.getIndex();
-                    double x_r = iv.getValue();
-                    double S_rr = sigmaV.get(idx);
+                    final int idx = iv.getIndex();
+                    final double x_r = iv.getValue();
+                    final double S_rr = sigmaV.get(idx);
                     sigmaV.set(idx, S_rr/(Math.pow(S_rr*x_r*x_r*C+1, 2)));
                 }
                 break;
         }
 
         //zero out temp space
-        if(covMode == CovMode.FULL)
-            Sigma_xt.zeroOut();
+        if(covMode == CovMode.FULL) {
+          Sigma_xt.zeroOut();
+        }
     }
 
     @Override
-    public CategoricalResults classify(DataPoint data)
+    public CategoricalResults classify(final DataPoint data)
     {
-        if(w == null)
-            throw new UntrainedModelException("Model has not yet ben trained");
-        CategoricalResults cr = new CategoricalResults(2);
-        double score = getScore(data);
-        if(score < 0)
-            cr.setProb(0, 1.0);
-        else
-            cr.setProb(1, 1.0);
+        if(w == null) {
+          throw new UntrainedModelException("Model has not yet ben trained");
+        }
+        final CategoricalResults cr = new CategoricalResults(2);
+        final double score = getScore(data);
+        if(score < 0) {
+          cr.setProb(0, 1.0);
+        } else {
+          cr.setProb(1, 1.0);
+        }
         return cr;
     }
 
     @Override
-    public double getScore(DataPoint dp)
+    public double getScore(final DataPoint dp)
     {
         return w.dot(dp.getNumericalValues());
     }
@@ -348,7 +363,7 @@ public class NHERD extends BaseUpdateableClassifier implements BinaryScoreClassi
     }
 
     @Override
-    public Parameter getParameter(String paramName)
+    public Parameter getParameter(final String paramName)
     {
         return Parameter.toParameterMap(getParameters()).get(paramName);
     }
@@ -360,7 +375,7 @@ public class NHERD extends BaseUpdateableClassifier implements BinaryScoreClassi
      * @param d the data set to get the guess for
      * @return the guess for the C parameter
      */
-    public static Distribution guessC(DataSet d)
+    public static Distribution guessC(final DataSet d)
     {
         return new LogUniform(Math.pow(2, -4), Math.pow(2, 4));//from Exact Soft Confidence-Weighted Learning paper
     }

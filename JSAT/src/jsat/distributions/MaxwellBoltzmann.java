@@ -23,48 +23,53 @@ public class MaxwellBoltzmann extends ContinuousDistribution
         this(1);
     }
     
-    public MaxwellBoltzmann(double sigma)
+    public MaxwellBoltzmann(final double sigma)
     {
         setShape(sigma);
     }
     
-    final public void setShape(double sigma)
+    final public void setShape(final double sigma)
     {
-        if(sigma <= 0 || Double.isInfinite(sigma) || Double.isNaN(sigma))
-             throw new ArithmeticException("shape parameter must be > 0, not " + sigma);
+        if(sigma <= 0 || Double.isInfinite(sigma) || Double.isNaN(sigma)) {
+          throw new ArithmeticException("shape parameter must be > 0, not " + sigma);
+        }
         this.sigma = sigma;
     }
 
     @Override
-    public double logPdf(double x)
+    public double logPdf(final double x)
     {
-        if(x <=0 )
-            return 0.0;
+        if(x <=0 ) {
+          return 0.0;
+        }
         return (2*log(x) + (-x*x/(2*sigma*sigma)) - 3*log(sigma) )+ 0.5*(log(2)-log(PI));
     }
     
     @Override
-    public double pdf(double x)
+    public double pdf(final double x)
     {
-        if(x <= 0)
-            return 0;
-        double x2 = x*x;
+        if(x <= 0) {
+          return 0;
+        }
+        final double x2 = x*x;
         return sqrt(2/PI)*x2*exp(-x2/(2*sigma*sigma))/(sigma*sigma*sigma);
     }
 
     @Override
-    public double cdf(double x)
+    public double cdf(final double x)
     {
-        if(x <=0 )
-            return 0.0;
+        if(x <=0 ) {
+          return 0.0;
+        }
         return erf(x/(sqrt(2)*sigma))-sqrt(2/PI)*x*exp(-(x*x)/(2*sigma*sigma))/sigma;
     }
 
     @Override
-    public double invCdf(double p)
+    public double invCdf(final double p)
     {
-        if(p < 0 || p > 1)
-            throw new ArithmeticException("probability must be in the range [0,1], not " + p);
+        if(p < 0 || p > 1) {
+          throw new ArithmeticException("probability must be in the range [0,1], not " + p);
+        }
         
         return sqrt(2)*sigma*sqrt(invGammaP(p, 3.0/2.0));
     }
@@ -106,10 +111,11 @@ public class MaxwellBoltzmann extends ContinuousDistribution
     }
 
     @Override
-    public void setVariable(String var, double value)
+    public void setVariable(final String var, final double value)
     {
-        if(var.equals(GreekLetters.sigma))
-            setShape(value);
+        if(var.equals(GreekLetters.sigma)) {
+          setShape(value);
+        }
     }
 
     @Override
@@ -119,7 +125,7 @@ public class MaxwellBoltzmann extends ContinuousDistribution
     }
 
     @Override
-    public void setUsingData(Vec data)
+    public void setUsingData(final Vec data)
     {
         setShape(data.mean()/sqrt(2));
     }
@@ -159,7 +165,7 @@ public class MaxwellBoltzmann extends ContinuousDistribution
 	}
 
 	@Override
-	public boolean equals(Object obj) {
+	public boolean equals(final Object obj) {
 		if (this == obj) {
 			return true;
 		}
@@ -169,12 +175,9 @@ public class MaxwellBoltzmann extends ContinuousDistribution
 		if (getClass() != obj.getClass()) {
 			return false;
 		}
-		MaxwellBoltzmann other = (MaxwellBoltzmann) obj;
-		if (Double.doubleToLongBits(sigma) != Double
-				.doubleToLongBits(other.sigma)) {
-			return false;
-		}
-		return true;
+		final MaxwellBoltzmann other = (MaxwellBoltzmann) obj;
+		return Double.doubleToLongBits(sigma) == Double
+            .doubleToLongBits(other.sigma);
 	}
     
 }

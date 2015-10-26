@@ -38,7 +38,7 @@ public class NaiveTokenizer implements Tokenizer
      * @param useLowerCase {@code true} to convert everything to lower, 
      * {@code false} to leave the case as is
      */
-    public NaiveTokenizer(boolean useLowerCase)
+    public NaiveTokenizer(final boolean useLowerCase)
     {
         this.useLowerCase = useLowerCase;
     }
@@ -47,7 +47,7 @@ public class NaiveTokenizer implements Tokenizer
      * Sets whether or not characters are made to be lower case or not
      * @param useLowerCase 
      */
-    public void setUseLowerCase(boolean useLowerCase)
+    public void setUseLowerCase(final boolean useLowerCase)
     {
         this.useLowerCase = useLowerCase;
     }
@@ -73,7 +73,7 @@ public class NaiveTokenizer implements Tokenizer
      * @param otherToWhiteSpace {@code true} to treat all "other" characters as 
      * white space, {@code false} to ignore them
      */
-    public void setOtherToWhiteSpace(boolean otherToWhiteSpace)
+    public void setOtherToWhiteSpace(final boolean otherToWhiteSpace)
     {
         this.otherToWhiteSpace = otherToWhiteSpace;
     }
@@ -89,11 +89,11 @@ public class NaiveTokenizer implements Tokenizer
     }
     
     @Override
-    public List<String> tokenize(String input)
+    public List<String> tokenize(final String input)
     {
-        ArrayList<String> toRet = new ArrayList<String>();
+        final ArrayList<String> toRet = new ArrayList<String>();
         
-        StringBuilder sb = new StringBuilder(input.length()/10);
+        final StringBuilder sb = new StringBuilder(input.length()/10);
         
         tokenize(input, sb, toRet);
         
@@ -101,30 +101,32 @@ public class NaiveTokenizer implements Tokenizer
     }
 
     @Override
-    public void tokenize(String input, StringBuilder workSpace, List<String> storageSpace)
+    public void tokenize(final String input, final StringBuilder workSpace, final List<String> storageSpace)
     {
         for(int i = 0; i < input.length(); i++)
         {
-            char c = input.charAt(i);
-            if(Character.isLetter(c))
-                if (useLowerCase)
-                    workSpace.append(Character.toLowerCase(c));
-                else
-                    workSpace.append(c);
-            else if (!noDigits && Character.isDigit(c))
+            final char c = input.charAt(i);
+            if(Character.isLetter(c)) {
+              if (useLowerCase) {
+                workSpace.append(Character.toLowerCase(c));
+              } else {
                 workSpace.append(c);
-            else if(!otherToWhiteSpace && !Character.isWhitespace(c))
-                continue;
-            else //end of token
+              }
+            } else if (!noDigits && Character.isDigit(c)) {
+              workSpace.append(c);
+            } else if(!otherToWhiteSpace && !Character.isWhitespace(c)) {
+            } else //end of token
             {
-                if(workSpace.length() >= minTokenLength && workSpace.length() <= maxTokenLength)
-                    storageSpace.add(workSpace.toString());
+                if(workSpace.length() >= minTokenLength && workSpace.length() <= maxTokenLength) {
+                  storageSpace.add(workSpace.toString());
+              }
                 workSpace.setLength(0);
             }
         }
         
-        if(workSpace.length() >= minTokenLength && workSpace.length() <= maxTokenLength)
-            storageSpace.add(workSpace.toString());
+        if(workSpace.length() >= minTokenLength && workSpace.length() <= maxTokenLength) {
+          storageSpace.add(workSpace.toString());
+        }
     }
 
     /**
@@ -134,12 +136,14 @@ public class NaiveTokenizer implements Tokenizer
      * 
      * @param maxTokenLength the maximum token length to accept as a valid token
      */
-    public void setMaxTokenLength(int maxTokenLength)
+    public void setMaxTokenLength(final int maxTokenLength)
     {
-        if(maxTokenLength < 1)
-            throw new IllegalArgumentException("Max token length must be positive, not " + maxTokenLength);
-        if(maxTokenLength <= minTokenLength)
-            throw new IllegalArgumentException("Max token length must be larger than the min token length");
+        if(maxTokenLength < 1) {
+          throw new IllegalArgumentException("Max token length must be positive, not " + maxTokenLength);
+        }
+        if(maxTokenLength <= minTokenLength) {
+          throw new IllegalArgumentException("Max token length must be larger than the min token length");
+        }
         this.maxTokenLength = maxTokenLength;
     }
 
@@ -158,12 +162,14 @@ public class NaiveTokenizer implements Tokenizer
      * is 0. 
      * @param minTokenLength the minimum length for a token to be used 
      */
-    public void setMinTokenLength(int minTokenLength)
+    public void setMinTokenLength(final int minTokenLength)
     {
-        if(minTokenLength < 0)
-            throw new IllegalArgumentException("Minimum token length must be non negative, not " + minTokenLength);
-        if(minTokenLength > maxTokenLength)
-            throw new IllegalArgumentException("Minimum token length can not exced the maximum token length");
+        if(minTokenLength < 0) {
+          throw new IllegalArgumentException("Minimum token length must be non negative, not " + minTokenLength);
+        }
+        if(minTokenLength > maxTokenLength) {
+          throw new IllegalArgumentException("Minimum token length can not exced the maximum token length");
+        }
         this.minTokenLength = minTokenLength;
     }
 
@@ -184,7 +190,7 @@ public class NaiveTokenizer implements Tokenizer
      * @param noDigits {@code true} to disallow numeric digits, {@code false} to 
      * allow digits. 
      */
-    public void setNoDigits(boolean noDigits)
+    public void setNoDigits(final boolean noDigits)
     {
         this.noDigits = noDigits;
     }

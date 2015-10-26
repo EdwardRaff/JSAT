@@ -28,7 +28,7 @@ public class SingleLinkDissimilarity extends DistanceMetricDissimilarity impleme
      * Creates a new SingleLinkDissimilarity 
      * @param dm the distance metric to use between individual points
      */
-    public SingleLinkDissimilarity(DistanceMetric dm)
+    public SingleLinkDissimilarity(final DistanceMetric dm)
     {
         super(dm);
     }
@@ -37,7 +37,7 @@ public class SingleLinkDissimilarity extends DistanceMetricDissimilarity impleme
      * Copy constructor
      * @param toCopy the object to copy
      */
-    public SingleLinkDissimilarity(SingleLinkDissimilarity toCopy)
+    public SingleLinkDissimilarity(final SingleLinkDissimilarity toCopy)
     {
         this(toCopy.dm.clone());
     }
@@ -49,40 +49,46 @@ public class SingleLinkDissimilarity extends DistanceMetricDissimilarity impleme
     }
 
     @Override
-    public double dissimilarity(List<DataPoint> a, List<DataPoint> b)
+    public double dissimilarity(final List<DataPoint> a, final List<DataPoint> b)
     {
         double minDiss = Double.MAX_VALUE;
 
         double tmpDist;
-        for (DataPoint ai : a)
-            for (DataPoint bi : b)
-                if ((tmpDist = distance(ai, bi)) < minDiss)
-                    minDiss = tmpDist;
+        for (final DataPoint ai : a) {
+          for (final DataPoint bi : b) {
+            if ((tmpDist = distance(ai, bi)) < minDiss) {
+              minDiss = tmpDist;
+            }
+          }
+        }
 
         return minDiss;
     }
 
     @Override
-    public double dissimilarity(Set<Integer> a, Set<Integer> b, double[][] distanceMatrix)
+    public double dissimilarity(final Set<Integer> a, final Set<Integer> b, final double[][] distanceMatrix)
     {
         double minDiss = Double.MAX_VALUE;
 
-        for (int ai : a)
-            for (int bi : b)
-                if (getDistance(distanceMatrix, ai, bi) < minDiss)
-                    minDiss = getDistance(distanceMatrix, ai, bi);
+        for (final int ai : a) {
+          for (final int bi : b) {
+            if (getDistance(distanceMatrix, ai, bi) < minDiss) {
+              minDiss = getDistance(distanceMatrix, ai, bi);
+            }
+          }
+        }
 
         return minDiss;
     }
 
     @Override
-    public double dissimilarity(int i, int ni, int j, int nj, double[][] distanceMatrix)
+    public double dissimilarity(final int i, final int ni, final int j, final int nj, final double[][] distanceMatrix)
     {
         return getDistance(distanceMatrix, i, j);
     }
 
     @Override
-    public double dissimilarity(int i, int ni, int j, int nj, int k, int nk, double[][] distanceMatrix)
+    public double dissimilarity(final int i, final int ni, final int j, final int nj, final int k, final int nk, final double[][] distanceMatrix)
     {
         return Math.min(getDistance(distanceMatrix, i, k), getDistance(distanceMatrix, j, k));
     }

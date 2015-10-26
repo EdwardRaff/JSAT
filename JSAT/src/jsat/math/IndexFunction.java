@@ -26,12 +26,14 @@ public abstract class IndexFunction implements Function
      */
     abstract public double indexFunc(double value, int index);
 
-    public double f(double... x)
+  @Override
+    public double f(final double... x)
     {
         return indexFunc(x[0], (int)x[1]);
     }
 
-    public double f(Vec x)
+  @Override
+    public double f(final Vec x)
     {
         return indexFunc(x.get(0), (int)x.get(1));
     }    

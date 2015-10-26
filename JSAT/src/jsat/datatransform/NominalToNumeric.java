@@ -22,37 +22,40 @@ public class NominalToNumeric implements DataTransform
     private final CategoricalData[] categoricalData;
     private int addedNumers;
     
-    public NominalToNumeric(DataSet dataSet)
+    public NominalToNumeric(final DataSet dataSet)
     {
         this(dataSet.getNumNumericalVars(), dataSet.getCategories());
     }
 
-    public NominalToNumeric(int origNumericalCount, CategoricalData[] categoricalData)
+    public NominalToNumeric(final int origNumericalCount, final CategoricalData[] categoricalData)
     {
         this.origNumericalCount = origNumericalCount;
         this.categoricalData = categoricalData;
         addedNumers = 0;
         
-        for(CategoricalData cd : categoricalData)
-            addedNumers += cd.getNumOfCategories();
+        for(final CategoricalData cd : categoricalData) {
+          addedNumers += cd.getNumOfCategories();
+        }
     }
     
     @Override
-    public DataPoint transform(DataPoint dp)
+    public DataPoint transform(final DataPoint dp)
     {
         Vec v;
         
         //TODO we should detect if there are going to be so many sparce spaces added by the categorical data that we should just choose a sparce vector anyway
-        if(dp.getNumericalValues().isSparse())
-            v = new SparseVector(origNumericalCount+addedNumers);
-        else
-            v = new DenseVector(origNumericalCount+addedNumers);
+        if(dp.getNumericalValues().isSparse()) {
+          v = new SparseVector(origNumericalCount+addedNumers);
+        } else {
+          v = new DenseVector(origNumericalCount+addedNumers);
+        }
         
         
-        Vec oldV = dp.getNumericalValues();
+        final Vec oldV = dp.getNumericalValues();
         int i = 0;
-        for(i = 0; i < origNumericalCount; i++)
-            v.set(i, oldV.get(i)); 
+        for(i = 0; i < origNumericalCount; i++) {
+          v.set(i, oldV.get(i));
+        } 
         for(int j =0; j < categoricalData.length; j++)
         {
             v.set(i+dp.getCategoricalValue(j), 1.0);
@@ -79,7 +82,7 @@ public class NominalToNumeric implements DataTransform
         }
         
         @Override
-        public DataTransform getTransform(DataSet dataset)
+        public DataTransform getTransform(final DataSet dataset)
         {
             return new NominalToNumeric(dataset);
         }

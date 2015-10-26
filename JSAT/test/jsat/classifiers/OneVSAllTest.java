@@ -63,16 +63,16 @@ public class OneVSAllTest
     public void testTrainC_ClassificationDataSet_ExecutorService()
     {
         System.out.println("trainC");
-        for(boolean conc : new boolean[]{true, false})
+        for(final boolean conc : new boolean[]{true, false})
         {
-            OneVSAll instance = new OneVSAll(new DCDs(), conc);
+            final OneVSAll instance = new OneVSAll(new DCDs(), conc);
 
-            ClassificationDataSet train = FixedProblems.getSimpleKClassLinear(1000, 7);
-            ClassificationDataSet test = FixedProblems.getSimpleKClassLinear(100, 7);
+            final ClassificationDataSet train = FixedProblems.getSimpleKClassLinear(1000, 7);
+            final ClassificationDataSet test = FixedProblems.getSimpleKClassLinear(100, 7);
 
-            ExecutorService ex = Executors.newFixedThreadPool(SystemInfo.LogicalCores);
+            final ExecutorService ex = Executors.newFixedThreadPool(SystemInfo.LogicalCores);
 
-            ClassificationModelEvaluation cme = new ClassificationModelEvaluation(instance, train, ex);
+            final ClassificationModelEvaluation cme = new ClassificationModelEvaluation(instance, train, ex);
             cme.evaluateTestSet(test);
 
             assertTrue(cme.getErrorRate() <= 0.001);
@@ -83,14 +83,14 @@ public class OneVSAllTest
     public void testTrainC_ClassificationDataSet()
     {
         System.out.println("trainC");
-        for(boolean conc : new boolean[]{true, false})
+        for(final boolean conc : new boolean[]{true, false})
         {
-            OneVSAll instance = new OneVSAll(new DCDs(), conc);
+            final OneVSAll instance = new OneVSAll(new DCDs(), conc);
 
-            ClassificationDataSet train = FixedProblems.getSimpleKClassLinear(1000, 7);
-            ClassificationDataSet test = FixedProblems.getSimpleKClassLinear(100, 7);
+            final ClassificationDataSet train = FixedProblems.getSimpleKClassLinear(1000, 7);
+            final ClassificationDataSet test = FixedProblems.getSimpleKClassLinear(100, 7);
 
-            ClassificationModelEvaluation cme = new ClassificationModelEvaluation(instance, train);
+            final ClassificationModelEvaluation cme = new ClassificationModelEvaluation(instance, train);
             cme.evaluateTestSet(test);
 
             assertTrue(cme.getErrorRate() <= 0.001);
@@ -102,8 +102,8 @@ public class OneVSAllTest
     {
         System.out.println("clone");
         
-        ClassificationDataSet t1 = FixedProblems.getSimpleKClassLinear(1000, 7);
-        ClassificationDataSet t2 = FixedProblems.getSimpleKClassLinear(1000, 9);
+        final ClassificationDataSet t1 = FixedProblems.getSimpleKClassLinear(1000, 7);
+        final ClassificationDataSet t2 = FixedProblems.getSimpleKClassLinear(1000, 9);
         
         OneVSAll instance = new OneVSAll(new DCDs());
         
@@ -111,16 +111,19 @@ public class OneVSAllTest
                 
         instance.trainC(t1);
 
-        OneVSAll result = instance.clone();
-        for(int i = 0; i < t1.getSampleSize(); i++)
-            assertEquals(t1.getDataPointCategory(i), result.classify(t1.getDataPoint(i)).mostLikely());
+        final OneVSAll result = instance.clone();
+        for(int i = 0; i < t1.getSampleSize(); i++) {
+          assertEquals(t1.getDataPointCategory(i), result.classify(t1.getDataPoint(i)).mostLikely());
+        }
         result.trainC(t2);
         
-        for(int i = 0; i < t1.getSampleSize(); i++)
-            assertEquals(t1.getDataPointCategory(i), instance.classify(t1.getDataPoint(i)).mostLikely());
+        for(int i = 0; i < t1.getSampleSize(); i++) {
+          assertEquals(t1.getDataPointCategory(i), instance.classify(t1.getDataPoint(i)).mostLikely());
+        }
         
-        for(int i = 0; i < t2.getSampleSize(); i++)
-            assertEquals(t2.getDataPointCategory(i), result.classify(t2.getDataPoint(i)).mostLikely());
+        for(int i = 0; i < t2.getSampleSize(); i++) {
+          assertEquals(t2.getDataPointCategory(i), result.classify(t2.getDataPoint(i)).mostLikely());
+        }
     }
     
 }

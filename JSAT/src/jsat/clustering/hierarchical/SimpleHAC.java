@@ -32,9 +32,9 @@ public class SimpleHAC extends KClustererBase
      * bigger jump
      */
     private double stndDevs = 3.5;
-    private ClusterDissimilarity dissMeasure;
+    private final ClusterDissimilarity dissMeasure;
 
-    public SimpleHAC(ClusterDissimilarity disMeasure)
+    public SimpleHAC(final ClusterDissimilarity disMeasure)
     {
         this.dissMeasure = disMeasure;
     }
@@ -43,82 +43,85 @@ public class SimpleHAC extends KClustererBase
      * Copy constructor
      * @param toCopy the object to copy
      */
-    public SimpleHAC(SimpleHAC toCopy)
+    public SimpleHAC(final SimpleHAC toCopy)
     {
         this(toCopy.dissMeasure.clone());
         this.stndDevs = toCopy.stndDevs;
     }
     
     @Override
-    public int[] cluster(DataSet dataSet, int[] designations)
+    public int[] cluster(final DataSet dataSet, final int[] designations)
     {
         return cluster(dataSet, 2, (int)Math.sqrt(dataSet.getSampleSize()), designations);
     }
 
     @Override
-    public int[] cluster(DataSet dataSet, ExecutorService threadpool, int[] designations)
+    public int[] cluster(final DataSet dataSet, final ExecutorService threadpool, final int[] designations)
     {
         return cluster(dataSet, designations);
     }
 
     @Override
-    public int[] cluster(DataSet dataSet, int clusters, ExecutorService threadpool, int[] designations)
+    public int[] cluster(final DataSet dataSet, final int clusters, final ExecutorService threadpool, final int[] designations)
     {
         return cluster(dataSet, clusters, designations);
     }
 
     @Override
-    public int[] cluster(DataSet dataSet, int clusters, int[] designations)
+    public int[] cluster(final DataSet dataSet, final int clusters, final int[] designations)
     {
         return cluster(dataSet, clusters, clusters, designations);
     }
 
     @Override
-    public int[] cluster(DataSet dataSet, int lowK, int highK, ExecutorService threadpool, int[] designations)
+    public int[] cluster(final DataSet dataSet, final int lowK, final int highK, final ExecutorService threadpool, final int[] designations)
     {
         return cluster(dataSet, lowK, highK, designations);
     }
 
     @Override
-    public int[] cluster(DataSet dataSet, int lowK, int highK, int[] designations)
+    public int[] cluster(final DataSet dataSet, final int lowK, final int highK, int[] designations)
     {
-        if(designations == null)
-            designations = new int[dataSet.getSampleSize()];
+        if(designations == null) {
+          designations = new int[dataSet.getSampleSize()];
+        }
         
         //Keep track of the average dis when merging, stop when it becomes abnormaly large
-        OnLineStatistics disChange = new OnLineStatistics();
+        final OnLineStatistics disChange = new OnLineStatistics();
         
         //Represent each cluster by a set of indices, intialy each data point is its own cluster
-        List<Set<Integer>> clusters = new ArrayList<Set<Integer>>(dataSet.getSampleSize());
+        final List<Set<Integer>> clusters = new ArrayList<Set<Integer>>(dataSet.getSampleSize());
         for(int i =0; i < dataSet.getSampleSize(); i++)
         {
-            Set<Integer> set = new IntSet();
+            final Set<Integer> set = new IntSet();
             set.add(i);
             clusters.add(set);
         }
         
-        double[][] distanceMatrix = createDistanceMatrix(dataSet, dissMeasure);
+        final double[][] distanceMatrix = createDistanceMatrix(dataSet, dissMeasure);
         
         while( clusters.size() > lowK)
         {
             double lowestDiss = Double.MAX_VALUE, tmp;
             int a = 0, b = 1;
             //N^2 search for the most similar pairing of clusters
-            for(int i = 0; i < clusters.size(); i++)
-                for(int j = i+1; j < clusters.size(); j++)
+            for(int i = 0; i < clusters.size(); i++) {
+              for(int j = i+1; j < clusters.size(); j++)
+              {
+                if( (tmp = dissMeasure.dissimilarity(clusters.get(i), clusters.get(j), distanceMatrix)) < lowestDiss)
                 {
-                    if( (tmp = dissMeasure.dissimilarity(clusters.get(i), clusters.get(j), distanceMatrix)) < lowestDiss)
-                    {
-                        lowestDiss = tmp;
-                        a = i;
-                        b = j;
-                    }
+                  lowestDiss = tmp;
+                  a = i;
+                  b = j;
                 }
+              }
+            }
             
             if(clusters.size() <= highK)//Then we check if we should stop early
             {
-                if(disChange.getMean() + disChange.getStandardDeviation() * stndDevs < lowestDiss)
-                    break;//Abnormaly large difference, we assume we are forcing two real & sperate clusters into one group
+                if(disChange.getMean() + disChange.getStandardDeviation() * stndDevs < lowestDiss) {
+                  break;//Abnormaly large difference, we assume we are forcing two real & sperate clusters into one group
+                }
             }
             
             disChange.add(lowestDiss);
@@ -129,10 +132,11 @@ public class SimpleHAC extends KClustererBase
         
         //Now that we have the assigments, we must set them
         int curClusterID = 0;
-        for(Set<Integer> clustering : clusters)
+        for(final Set<Integer> clustering : clusters)
         {
-            for(int index : clustering)
-                designations[index] = curClusterID;
+            for(final int index : clustering) {
+              designations[index] = curClusterID;
+            }
             curClusterID++;
         }
         

@@ -15,49 +15,53 @@ public class ChiSquared extends ContinuousDistribution
 	private static final long serialVersionUID = 2446232102260721666L;
 	double df;//Degrees of freedom
 
-    public ChiSquared(double df)
+    public ChiSquared(final double df)
     {
         this.df = df;
     }
 
     
     @Override
-    public double pdf(double x)
+    public double pdf(final double x)
     {
-        if(x <= 0)
-            return 0;
-        /*
-         *   df      -x
-         *   -- - 1  --
-         *    2       2
-         *  x       e
-         * -------------
-         *  df
-         *  --
-         *   2      /df\
-         * 2   Gamma|--|
-         *          \ 2/
-         */
+        if(x <= 0) {
+          return 0;
+          /*
+          *   df      -x
+          *   -- - 1  --
+          *    2       2
+          *  x       e
+          * -------------
+          *  df
+          *  --
+          *   2      /df\
+          * 2   Gamma|--|
+          *          \ 2/
+          */
+        }
         
         return exp((df/2-1)*log(x)-x/2- (df/2*log(2)+lnGamma(df/2))  );
     }
 
 
     @Override
-    public double cdf(double x)
+    public double cdf(final double x)
     {
-        if(x <= 0)
-            return 0;
-        if(df == 2)//special case with a closed form that is more accurate to compute, we include it b/c df = 2 is not uncomon
-            return 1-exp(-x/2);
+        if(x <= 0) {
+          return 0;
+        }
+        if(df == 2) {//special case with a closed form that is more accurate to compute, we include it b/c df = 2 is not uncomon
+          return 1-exp(-x/2);
+        }
         return gammaP(df/2, x/2);
     }
 
     @Override
-    public double invCdf(double p)
+    public double invCdf(final double p)
     {
-        if(df == 2)//special case with a closed form that is more accurate to compute, we include it b/c df = 2 is not uncomon
-            return 2*abs(log(1-p));
+        if(df == 2) {//special case with a closed form that is more accurate to compute, we include it b/c df = 2 is not uncomon
+          return 2*abs(log(1-p));
+        }
         return 2* invGammaP(p, df/2);
     }
 
@@ -92,10 +96,11 @@ public class ChiSquared extends ContinuousDistribution
     }
 
     @Override
-    public void setVariable(String var, double value)
+    public void setVariable(final String var, final double value)
     {
-        if(var.equals("df"))
-            df = value;
+        if(var.equals("df")) {
+          df = value;
+        }
     }
 
     @Override
@@ -105,7 +110,7 @@ public class ChiSquared extends ContinuousDistribution
     }
 
     @Override
-    public void setUsingData(Vec data)
+    public void setUsingData(final Vec data)
     {
         df = ceil(data.variance()/2);
     }
@@ -154,7 +159,7 @@ public class ChiSquared extends ContinuousDistribution
 
 
 	@Override
-	public boolean equals(Object obj) {
+	public boolean equals(final Object obj) {
 		if (this == obj) {
 			return true;
 		}
@@ -164,11 +169,8 @@ public class ChiSquared extends ContinuousDistribution
 		if (getClass() != obj.getClass()) {
 			return false;
 		}
-		ChiSquared other = (ChiSquared) obj;
-		if (Double.doubleToLongBits(df) != Double.doubleToLongBits(other.df)) {
-			return false;
-		}
-		return true;
+		final ChiSquared other = (ChiSquared) obj;
+		return Double.doubleToLongBits(df) == Double.doubleToLongBits(other.df);
 	}
     
 }

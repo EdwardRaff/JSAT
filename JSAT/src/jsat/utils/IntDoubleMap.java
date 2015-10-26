@@ -18,7 +18,7 @@ import static jsat.utils.ClosedHashingUtil.*;
 public final class IntDoubleMap extends AbstractMap<Integer, Double>
 {
     
-    private float loadFactor;
+    private final float loadFactor;
 
     private int used = 0;
     private byte[] status;
@@ -30,20 +30,22 @@ public final class IntDoubleMap extends AbstractMap<Integer, Double>
         this(32);
     }
     
-    public IntDoubleMap(int capacity)
+    public IntDoubleMap(final int capacity)
     {
         this(capacity, 0.75f);
     }
     
-    public IntDoubleMap(int capacity, float loadFactor)
+    public IntDoubleMap(final int capacity, final float loadFactor)
     {
-        if(capacity < 1)
-            throw new IllegalArgumentException("Capacity must be a positive value, not " + capacity);
-        if(loadFactor <= 0 || loadFactor >= 1 || Float.isNaN(loadFactor))
-            throw new IllegalArgumentException("loadFactor must be in (0, 1), not " + loadFactor);
+        if(capacity < 1) {
+          throw new IllegalArgumentException("Capacity must be a positive value, not " + capacity);
+        }
+        if(loadFactor <= 0 || loadFactor >= 1 || Float.isNaN(loadFactor)) {
+          throw new IllegalArgumentException("loadFactor must be in (0, 1), not " + loadFactor);
+        }
         this.loadFactor = loadFactor;
         
-        int size = getNextPow2TwinPrime(Math.max(capacity, 4));
+        final int size = getNextPow2TwinPrime(Math.max(capacity, 4));
         status = new byte[size];
         keys = new int[size];
         table = new double[size];
@@ -71,22 +73,24 @@ public final class IntDoubleMap extends AbstractMap<Integer, Double>
     }
 
     @Override
-    public Double put(Integer key, Double value)
+    public Double put(final Integer key, final Double value)
     {
-        double prev = put(key.intValue(), value.doubleValue());
-        if(Double.isNaN(prev))
-            return null;
-        else
-            return prev;
+        final double prev = put(key.intValue(), value.doubleValue());
+        if(Double.isNaN(prev)) {
+          return null;
+        } else {
+          return prev;
+        }
     }
     
-    public double put(int key, double value)
+    public double put(final int key, final double value)
     {
-        if(Double.isNaN(value))
-            throw new IllegalArgumentException("NaN is not an allowable value");
-        long pair_index = getIndex(key);
-        int deletedIndex = (int) (pair_index >>> 32);
-        int valOrFreeIndex = (int) (pair_index & INT_MASK);
+        if(Double.isNaN(value)) {
+          throw new IllegalArgumentException("NaN is not an allowable value");
+        }
+        final long pair_index = getIndex(key);
+        final int deletedIndex = (int) (pair_index >>> 32);
+        final int valOrFreeIndex = (int) (pair_index & INT_MASK);
         
         double prev;
         if(status[valOrFreeIndex] == OCCUPIED)//easy case
@@ -98,8 +102,9 @@ public final class IntDoubleMap extends AbstractMap<Integer, Double>
         //else, not present
         prev = Double.NaN;
         int i = valOrFreeIndex;
-        if(deletedIndex >= 0)//use occupied spot instead
-            i = deletedIndex;
+        if(deletedIndex >= 0) {//use occupied spot instead
+          i = deletedIndex;
+        }
         
         status[i] = OCCUPIED;
         keys[i] = key;
@@ -117,22 +122,25 @@ public final class IntDoubleMap extends AbstractMap<Integer, Double>
      * @param delta
      * @return the new value stored for the given key
      */
-    public double increment(int key, double delta)
+    public double increment(final int key, final double delta)
     {
-        if(Double.isNaN(delta))
-            throw new IllegalArgumentException("NaN is not an allowable value");
+        if(Double.isNaN(delta)) {
+          throw new IllegalArgumentException("NaN is not an allowable value");
+        }
         
-        long pair_index = getIndex(key);
-        int deletedIndex = (int) (pair_index >>> 32);
-        int valOrFreeIndex = (int) (pair_index & INT_MASK);
+        final long pair_index = getIndex(key);
+        final int deletedIndex = (int) (pair_index >>> 32);
+        final int valOrFreeIndex = (int) (pair_index & INT_MASK);
         
-        if(status[valOrFreeIndex] == OCCUPIED)//easy case
-            return (table[valOrFreeIndex] += delta);
+        if(status[valOrFreeIndex] == OCCUPIED) {//easy case
+          return (table[valOrFreeIndex] += delta);
+        }
         //else, not present
         double toReturn;
         int i = valOrFreeIndex;
-        if(deletedIndex >= 0)//use occupied spot instead
-            i = deletedIndex;
+        if(deletedIndex >= 0) {//use occupied spot instead
+          i = deletedIndex;
+        }
         
         status[i] = OCCUPIED;
         keys[i] = key;
@@ -145,15 +153,16 @@ public final class IntDoubleMap extends AbstractMap<Integer, Double>
     }
 
     @Override
-    public Double remove(Object key)
+    public Double remove(final Object key)
     {
         if(key instanceof Integer)
         {
-            double oldValue = remove(((Integer)key).intValue());
-            if(Double.isNaN(oldValue))
-                return null;
-            else
-                return oldValue;
+            final double oldValue = remove(((Number)key).intValue());
+            if(Double.isNaN(oldValue)) {
+              return null;
+            } else {
+              return oldValue;
+            }
         }
         
         return null;
@@ -165,14 +174,15 @@ public final class IntDoubleMap extends AbstractMap<Integer, Double>
      * @return the old value stored for this key, or {@link Double#NaN} if the
      * key was not present in the map
      */
-    public double remove(int key)
+    public double remove(final int key)
     {
-        long pair_index = getIndex(key);
-        int valOrFreeIndex = (int) (pair_index & INT_MASK);
-        if(status[valOrFreeIndex] == EMPTY)//ret index is always EMPTY or OCCUPIED
-            return Double.NaN;
+        final long pair_index = getIndex(key);
+        final int valOrFreeIndex = (int) (pair_index & INT_MASK);
+        if(status[valOrFreeIndex] == EMPTY) {//ret index is always EMPTY or OCCUPIED
+          return Double.NaN;
+        }
         //else
-        double toRet = table[valOrFreeIndex];
+        final double toRet = table[valOrFreeIndex];
         status[valOrFreeIndex] = DELETED;
         used--;
         return toRet;
@@ -187,36 +197,40 @@ public final class IntDoubleMap extends AbstractMap<Integer, Double>
     
     private void enlargeIfNeeded()
     {
-        if(used < keys.length*loadFactor)
-            return;
+        if(used < keys.length*loadFactor) {
+          return;
+        }
         //enlarge
         final byte[] oldSatus = status;
         final int[] oldKeys = keys;
         final double[] oldTable = table;
         
-        int newSize = getNextPow2TwinPrime(status.length*3/2);//it will actually end up doubling in size since we have twin primes spaced that was
+        final int newSize = getNextPow2TwinPrime(status.length*3/2);//it will actually end up doubling in size since we have twin primes spaced that was
         status = new byte[newSize];
         keys = new int[newSize];
         table = new double[newSize];
         
         used = 0;
-        for(int oldIndex = 0; oldIndex < oldSatus.length; oldIndex++)
-            if(oldSatus[oldIndex] == OCCUPIED)
-                put(oldKeys[oldIndex], oldTable[oldIndex]);
+        for(int oldIndex = 0; oldIndex < oldSatus.length; oldIndex++) {
+          if (oldSatus[oldIndex] == OCCUPIED) {
+            put(oldKeys[oldIndex], oldTable[oldIndex]);
+          }
+        }
     }
     
     @Override
-    public boolean containsKey(Object key)
+    public boolean containsKey(final Object key)
     {
-        if(key instanceof Integer)
-            return containsKey( ((Integer)key).intValue());
-        else
-            return false;
+        if(key instanceof Integer) {
+          return containsKey( ((Number)key).intValue());
+        } else {
+          return false;
+        }
     }
     
-    public boolean containsKey(int key)
+    public boolean containsKey(final int key)
     {
-        int index = (int) (getIndex(key) & INT_MASK);
+        final int index = (int) (getIndex(key) & INT_MASK);
         return status[index] == OCCUPIED;//would be FREE if we didn't have the key
     }
     
@@ -238,7 +252,7 @@ public final class IntDoubleMap extends AbstractMap<Integer, Double>
      * @return the mixed long containing the index of the first DELETED position
      * and the position that the key is in or the first EMPTY position found
      */
-    private long getIndex(int key)
+    private long getIndex(final int key)
     {
         long extraInfo = EXTRA_INDEX_INFO;
         //D1 
@@ -247,10 +261,12 @@ public final class IntDoubleMap extends AbstractMap<Integer, Double>
         
         //D2
         int satus_i = status[i];
-        if((keys[i] == key && satus_i != DELETED) || satus_i == EMPTY)
-            return extraInfo | i;
-        if(extraInfo == EXTRA_INDEX_INFO && satus_i == DELETED)
-            extraInfo = ((long)i) << 32;
+        if((keys[i] == key && satus_i != DELETED) || satus_i == EMPTY) {
+          return extraInfo | i;
+        }
+        if(extraInfo == EXTRA_INDEX_INFO && satus_i == DELETED) {
+          extraInfo = ((long)i) << 32;
+        }
         
         //D3
         final int c = 1 + (hash % (keys.length -2));
@@ -259,14 +275,17 @@ public final class IntDoubleMap extends AbstractMap<Integer, Double>
         {
             //D4
             i -= c;
-            if(i < 0)
-                i += keys.length;
+            if(i < 0) {
+              i += keys.length;
+            }
             //D5
             satus_i = status[i];
-            if( (keys[i] == key && satus_i != DELETED) || satus_i == EMPTY)
-                return extraInfo | i;
-            if(extraInfo == EXTRA_INDEX_INFO && satus_i == DELETED)
-                extraInfo = ((long)i) << 32;
+            if( (keys[i] == key && satus_i != DELETED) || satus_i == EMPTY) {
+              return extraInfo | i;
+            }
+            if(extraInfo == EXTRA_INDEX_INFO && satus_i == DELETED) {
+              extraInfo = ((long)i) << 32;
+            }
         }
     }
     
@@ -298,7 +317,7 @@ public final class IntDoubleMap extends AbstractMap<Integer, Double>
     {
         final IntDoubleMap parentRef;
         
-        public EntrySet(IntDoubleMap parent)
+        public EntrySet(final IntDoubleMap parent)
         {
             this.parentRef = parent;
         }
@@ -308,10 +327,12 @@ public final class IntDoubleMap extends AbstractMap<Integer, Double>
         {
             //find the first starting inded
             int START = 0;
-            while(START < status.length && status[START] != OCCUPIED)
-                START++;
-            if(START == status.length)
-                return Collections.emptyIterator();
+            while(START < status.length && status[START] != OCCUPIED) {
+              START++;
+            }
+            if(START == status.length) {
+              return Collections.emptyIterator();
+            }
             final int startPos = START;
             
             return new Iterator<Entry<Integer, Double>>()
@@ -331,8 +352,9 @@ public final class IntDoubleMap extends AbstractMap<Integer, Double>
                     //final int make so that object remains good after we call next again
                     final int oldPos = prevPos = pos++;
                     //find next
-                    while (pos < status.length && status[pos] != OCCUPIED)
-                        pos++;
+                    while (pos < status.length && status[pos] != OCCUPIED) {
+                      pos++;
+                    }
                     //and return new object
                     return new Entry<Integer, Double>()
                     {
@@ -350,9 +372,9 @@ public final class IntDoubleMap extends AbstractMap<Integer, Double>
                         }
 
                         @Override
-                        public Double setValue(Double value)
+                        public Double setValue(final Double value)
                         {
-                            double old = table[oldPos];
+                            final double old = table[oldPos];
                             table[oldPos] = value;
                             return old;
                         }

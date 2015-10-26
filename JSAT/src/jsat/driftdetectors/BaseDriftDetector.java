@@ -53,7 +53,7 @@ public abstract class BaseDriftDetector<V> implements Cloneable, Serializable
      * Copy constructor
      * @param toCopy the object to copy
      */
-    protected BaseDriftDetector(BaseDriftDetector<V> toCopy)
+    protected BaseDriftDetector(final BaseDriftDetector<V> toCopy)
     {
         this.time = toCopy.time;
         this.maxHistory = toCopy.maxHistory;
@@ -62,8 +62,9 @@ public abstract class BaseDriftDetector<V> implements Cloneable, Serializable
         if(toCopy.history != null)
         {
             this.history = new ArrayDeque<V>(toCopy.history.size());
-            for(V v : toCopy.history)
-                this.history.add(v);
+            for(final V v : toCopy.history) {
+              this.history.add(v);
+            }
         }
     }
     
@@ -110,15 +111,18 @@ public abstract class BaseDriftDetector<V> implements Cloneable, Serializable
      * 
      * @param maxHistory the new maximum history size of objects added
      */
-    public void setMaxHistory(int maxHistory)
+    public void setMaxHistory(final int maxHistory)
     {
         this.maxHistory = maxHistory;
-        if(history != null)
-            if (this.maxHistory == 0)
-                history.clear();
-            else
-                while (history.size() > maxHistory)
-                    history.removeFirst();
+        if(history != null) {
+          if (this.maxHistory == 0) {
+            history.clear();
+          } else {
+            while (history.size() > maxHistory) {
+              history.removeFirst();
+            }
+          }
+        }
     }
     
     /**
@@ -127,28 +131,30 @@ public abstract class BaseDriftDetector<V> implements Cloneable, Serializable
      * and when the history is full (dropping the oldest)
      * @param obj the object to add to the history
      */
-    protected void addToHistory(V obj)
+    protected void addToHistory(final V obj)
     {
-        if(maxHistory < 1)
-            return;
-        if(history == null)
-            if (maxHistory != Integer.MAX_VALUE)//we probably set it to a reasonable value
+        if(maxHistory < 1) {
+          return;
+        }
+        if(history == null) {
+          if (maxHistory != Integer.MAX_VALUE) {
+            try
             {
-                try
-                {
-                    history = new ArrayDeque<V>(maxHistory);
-                }
-                catch (Exception ex)
-                {
-                    //what is we cause one of the many OOM exceptiosn b/c initial history was too big?
-                    //AKA we googed on being helpful
-                    history = new ArrayDeque<V>();
-                }
+              history = new ArrayDeque<V>(maxHistory);
             }
-            else
-                history = new ArrayDeque<V>();
-        if(history.size() == maxHistory)//make room
-            history.removeFirst();
+            catch (final Exception ex)
+            {
+              //what is we cause one of the many OOM exceptiosn b/c initial history was too big?
+              //AKA we googed on being helpful
+              history = new ArrayDeque<V>();
+            }
+          } else {
+            history = new ArrayDeque<V>();
+          }
+        }
+        if(history.size() == maxHistory) {//make room
+          history.removeFirst();
+        }
         history.add(obj);
     }
    
@@ -157,8 +163,9 @@ public abstract class BaseDriftDetector<V> implements Cloneable, Serializable
      */
     public void clearHistory()
     {
-        if(history != null)
-            history.clear();
+        if(history != null) {
+          history.clear();
+        }
     }
     
     /**
@@ -171,8 +178,9 @@ public abstract class BaseDriftDetector<V> implements Cloneable, Serializable
      */
     public int getDriftAge()
     {
-        if(driftStart == -1)
-            return -1;
+        if(driftStart == -1) {
+          return -1;
+        }
         return time-driftStart;
     }
     
@@ -187,8 +195,8 @@ public abstract class BaseDriftDetector<V> implements Cloneable, Serializable
     public List<V> getDriftedHistory()
     {
         int historyToGram = Math.min(time - driftStart, history.size());
-        ArrayList<V> histList = new ArrayList<V>(historyToGram);
-        Iterator<V> histIter = history.descendingIterator();
+        final ArrayList<V> histList = new ArrayList<V>(historyToGram);
+        final Iterator<V> histIter = history.descendingIterator();
         while(histIter.hasNext() && historyToGram > 0)
         {
             historyToGram--;

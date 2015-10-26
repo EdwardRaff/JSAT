@@ -61,24 +61,24 @@ public class RBFNetTest
     public void testTrainC_ClassificationDataSet_ExecutorService()
     {
         System.out.println("trainC");
-        ClassificationDataSet trainSet = FixedProblems.getInnerOuterCircle(2000, new XOR96());
-        ClassificationDataSet testSet = FixedProblems.getInnerOuterCircle(200, new XOR96());
+        final ClassificationDataSet trainSet = FixedProblems.getInnerOuterCircle(2000, new XOR96());
+        final ClassificationDataSet testSet = FixedProblems.getInnerOuterCircle(200, new XOR96());
         
-        ExecutorService threadPool = Executors.newFixedThreadPool(SystemInfo.LogicalCores);
+        final ExecutorService threadPool = Executors.newFixedThreadPool(SystemInfo.LogicalCores);
         
-        for(RBFNet.Phase1Learner p1l : RBFNet.Phase1Learner.values())
-            for(RBFNet.Phase2Learner p2l : RBFNet.Phase2Learner.values())
-            {
-                RBFNet net = new RBFNet(25).clone();
-                net.setAlpha(1);//CLOSEST_OPPOSITE_CENTROID needs a smaller value, shoudld be fine for others on this data set 
-                net.setPhase1Learner(p1l);
-                net.setPhase2Learner(p2l);
-                net.trainC(trainSet, threadPool);
-
-                net = net.clone();
-                for (int i = 0; i < testSet.getSampleSize(); i++)
-                    assertEquals(testSet.getDataPointCategory(i), net.classify(testSet.getDataPoint(i)).mostLikely());
+        for(final RBFNet.Phase1Learner p1l : RBFNet.Phase1Learner.values()) {
+          for (final RBFNet.Phase2Learner p2l : RBFNet.Phase2Learner.values()) {
+            RBFNet net = new RBFNet(25).clone();
+            net.setAlpha(1); //CLOSEST_OPPOSITE_CENTROID needs a smaller value, shoudld be fine for others on this data set
+            net.setPhase1Learner(p1l);
+            net.setPhase2Learner(p2l);
+            net.trainC(trainSet, threadPool);
+            net = net.clone();
+            for (int i = 0; i < testSet.getSampleSize(); i++) {
+              assertEquals(testSet.getDataPointCategory(i), net.classify(testSet.getDataPoint(i)).mostLikely());
             }
+          }
+        }
         
         threadPool.shutdown();
     }
@@ -90,23 +90,24 @@ public class RBFNetTest
     public void testTrainC_ClassificationDataSet()
     {
         System.out.println("trainC");
-        ClassificationDataSet trainSet = FixedProblems.getInnerOuterCircle(2000, new XOR96());
-        ClassificationDataSet testSet = FixedProblems.getInnerOuterCircle(200, new XOR96());
+        final ClassificationDataSet trainSet = FixedProblems.getInnerOuterCircle(2000, new XOR96());
+        final ClassificationDataSet testSet = FixedProblems.getInnerOuterCircle(200, new XOR96());
         
         
-        for(RBFNet.Phase1Learner p1l : RBFNet.Phase1Learner.values())
-            for(RBFNet.Phase2Learner p2l : RBFNet.Phase2Learner.values())
-            {
-                RBFNet net = new RBFNet(25);
-                net.setAlpha(1);//CLOSEST_OPPOSITE_CENTROID needs a smaller value, shoudld be fine for others on this data set
-                net.setPhase1Learner(p1l);
-                net.setPhase2Learner(p2l);
-                net = net.clone();
-                net.trainC(trainSet);
-                net = net.clone();
-                for (int i = 0; i < testSet.getSampleSize(); i++)
-                    assertEquals(testSet.getDataPointCategory(i), net.classify(testSet.getDataPoint(i)).mostLikely());
+        for(final RBFNet.Phase1Learner p1l : RBFNet.Phase1Learner.values()) {
+          for (final RBFNet.Phase2Learner p2l : RBFNet.Phase2Learner.values()) {
+            RBFNet net = new RBFNet(25);
+            net.setAlpha(1); //CLOSEST_OPPOSITE_CENTROID needs a smaller value, shoudld be fine for others on this data set
+            net.setPhase1Learner(p1l);
+            net.setPhase2Learner(p2l);
+            net = net.clone();
+            net.trainC(trainSet);
+            net = net.clone();
+            for (int i = 0; i < testSet.getSampleSize(); i++) {
+              assertEquals(testSet.getDataPointCategory(i), net.classify(testSet.getDataPoint(i)).mostLikely());
             }
+          }
+        }
         
     }
 
@@ -118,27 +119,27 @@ public class RBFNetTest
     {
         System.out.println("train");
         
-        RegressionDataSet trainSet =  FixedProblems.getSimpleRegression1(2000, new XORWOW());
-        RegressionDataSet testSet =  FixedProblems.getSimpleRegression1(200, new XORWOW());
+        final RegressionDataSet trainSet =  FixedProblems.getSimpleRegression1(2000, new XORWOW());
+        final RegressionDataSet testSet =  FixedProblems.getSimpleRegression1(200, new XORWOW());
         
-        ExecutorService threadPool = Executors.newFixedThreadPool(SystemInfo.LogicalCores);
+        final ExecutorService threadPool = Executors.newFixedThreadPool(SystemInfo.LogicalCores);
         
-        for(RBFNet.Phase1Learner p1l : RBFNet.Phase1Learner.values())
-            for(RBFNet.Phase2Learner p2l :  EnumSet.complementOf(EnumSet.of(RBFNet.Phase2Learner.CLOSEST_OPPOSITE_CENTROID)))
-            {
-                RBFNet net = new RBFNet(25);
-                net.setAlpha(1);//CLOSEST_OPPOSITE_CENTROID needs a smaller value, shoudld be fine for others on this data set 
-                net.setPhase1Learner(p1l);
-                net.setPhase2Learner(p2l);
-                net = net.clone();
-                net.train(trainSet, threadPool);
-                net = net.clone();
-                
-                double errors = 0;
-                for (int i = 0; i < testSet.getSampleSize(); i++)
-                    errors += Math.pow(testSet.getTargetValue(i) - net.regress(testSet.getDataPoint(i)), 2);
-                assertTrue(errors/testSet.getSampleSize() < 1);
+        for(final RBFNet.Phase1Learner p1l : RBFNet.Phase1Learner.values()) {
+          for (final RBFNet.Phase2Learner p2l : EnumSet.complementOf(EnumSet.of(RBFNet.Phase2Learner.CLOSEST_OPPOSITE_CENTROID))) {
+            RBFNet net = new RBFNet(25);
+            net.setAlpha(1); //CLOSEST_OPPOSITE_CENTROID needs a smaller value, shoudld be fine for others on this data set
+            net.setPhase1Learner(p1l);
+            net.setPhase2Learner(p2l);
+            net = net.clone();
+            net.train(trainSet, threadPool);
+            net = net.clone();
+            double errors = 0;
+            for (int i = 0; i < testSet.getSampleSize(); i++) {
+              errors += Math.pow(testSet.getTargetValue(i) - net.regress(testSet.getDataPoint(i)), 2);
             }
+            assertTrue(errors/testSet.getSampleSize() < 1);
+          }
+        }
         
         threadPool.shutdown();
     }
@@ -150,25 +151,25 @@ public class RBFNetTest
     public void testTrain_RegressionDataSet()
     {
         System.out.println("train");
-        RegressionDataSet trainSet =  FixedProblems.getSimpleRegression1(2000, new XORWOW());
-        RegressionDataSet testSet =  FixedProblems.getSimpleRegression1(200, new XORWOW());
+        final RegressionDataSet trainSet =  FixedProblems.getSimpleRegression1(2000, new XORWOW());
+        final RegressionDataSet testSet =  FixedProblems.getSimpleRegression1(200, new XORWOW());
         
-        for(RBFNet.Phase1Learner p1l : RBFNet.Phase1Learner.values())
-            for(RBFNet.Phase2Learner p2l :  EnumSet.complementOf(EnumSet.of(RBFNet.Phase2Learner.CLOSEST_OPPOSITE_CENTROID)))
-            {
-                RBFNet net = new RBFNet(25);
-                net.setAlpha(1);//CLOSEST_OPPOSITE_CENTROID needs a smaller value, shoudld be fine for others on this data set 
-                net.setPhase1Learner(p1l);
-                net.setPhase2Learner(p2l);
-                net = net.clone();
-                net.train(trainSet);
-                net = net.clone();
-                
-                double errors = 0;
-                for (int i = 0; i < testSet.getSampleSize(); i++)
-                    errors += Math.pow(testSet.getTargetValue(i) - net.regress(testSet.getDataPoint(i)), 2);
-                assertTrue(errors/testSet.getSampleSize() < 1);
+        for(final RBFNet.Phase1Learner p1l : RBFNet.Phase1Learner.values()) {
+          for (final RBFNet.Phase2Learner p2l : EnumSet.complementOf(EnumSet.of(RBFNet.Phase2Learner.CLOSEST_OPPOSITE_CENTROID))) {
+            RBFNet net = new RBFNet(25);
+            net.setAlpha(1); //CLOSEST_OPPOSITE_CENTROID needs a smaller value, shoudld be fine for others on this data set
+            net.setPhase1Learner(p1l);
+            net.setPhase2Learner(p2l);
+            net = net.clone();
+            net.train(trainSet);
+            net = net.clone();
+            double errors = 0;
+            for (int i = 0; i < testSet.getSampleSize(); i++) {
+              errors += Math.pow(testSet.getTargetValue(i) - net.regress(testSet.getDataPoint(i)), 2);
             }
+            assertTrue(errors/testSet.getSampleSize() < 1);
+          }
+        }
         
     }
 

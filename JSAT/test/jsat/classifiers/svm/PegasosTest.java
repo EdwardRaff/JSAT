@@ -56,16 +56,17 @@ public class PegasosTest
     public void testTrainC_ClassificationDataSet_ExecutorService()
     {
         System.out.println("trainC");
-        ExecutorService threadPool = Executors.newFixedThreadPool(SystemInfo.LogicalCores);
-        ClassificationDataSet train = FixedProblems.get2ClassLinear(200, new Random());
+        final ExecutorService threadPool = Executors.newFixedThreadPool(SystemInfo.LogicalCores);
+        final ClassificationDataSet train = FixedProblems.get2ClassLinear(200, new Random());
         
-        Pegasos instance = new Pegasos();
+        final Pegasos instance = new Pegasos();
         instance.trainC(train, threadPool);
         
-        ClassificationDataSet test = FixedProblems.get2ClassLinear(200, new Random());
+        final ClassificationDataSet test = FixedProblems.get2ClassLinear(200, new Random());
         
-        for(DataPointPair<Integer> dpp : test.getAsDPPList())
-            assertEquals(dpp.getPair().longValue(), instance.classify(dpp.getDataPoint()).mostLikely());
+        for(final DataPointPair<Integer> dpp : test.getAsDPPList()) {
+          assertEquals(dpp.getPair().longValue(), instance.classify(dpp.getDataPoint()).mostLikely());
+        }
         threadPool.shutdown();
     }
 
@@ -77,15 +78,16 @@ public class PegasosTest
     {
         System.out.println("trainC");
         
-        ClassificationDataSet train = FixedProblems.get2ClassLinear(200, new Random());
+        final ClassificationDataSet train = FixedProblems.get2ClassLinear(200, new Random());
         
-        Pegasos instance = new Pegasos();
+        final Pegasos instance = new Pegasos();
         instance.trainC(train);
         
-        ClassificationDataSet test = FixedProblems.get2ClassLinear(200, new Random());
+        final ClassificationDataSet test = FixedProblems.get2ClassLinear(200, new Random());
         
-        for(DataPointPair<Integer> dpp : test.getAsDPPList())
-            assertEquals(dpp.getPair().longValue(), instance.classify(dpp.getDataPoint()).mostLikely());
+        for(final DataPointPair<Integer> dpp : test.getAsDPPList()) {
+          assertEquals(dpp.getPair().longValue(), instance.classify(dpp.getDataPoint()).mostLikely());
+        }
     }
 
 }

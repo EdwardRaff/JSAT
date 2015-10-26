@@ -27,10 +27,11 @@ public abstract class BaseUpdateableRegressor implements UpdateableRegressor
      * performed for training
      * @param epochs the number of whole iterations through the data set
      */
-    public void setEpochs(int epochs)
+    public void setEpochs(final int epochs)
     {
-        if(epochs < 1)
-            throw new IllegalArgumentException("epochs must be a positive value");
+        if(epochs < 1) {
+          throw new IllegalArgumentException("epochs must be a positive value");
+        }
         this.epochs = epochs;
     }
 
@@ -44,13 +45,13 @@ public abstract class BaseUpdateableRegressor implements UpdateableRegressor
     }
 
     @Override
-    public void train(RegressionDataSet dataSet, ExecutorService threadPool)
+    public void train(final RegressionDataSet dataSet, final ExecutorService threadPool)
     {
         train(dataSet);
     }
 
     @Override
-    public void train(RegressionDataSet dataSet)
+    public void train(final RegressionDataSet dataSet)
     {
         trainEpochs(dataSet, this, epochs);
     }
@@ -63,18 +64,20 @@ public abstract class BaseUpdateableRegressor implements UpdateableRegressor
      * @param toTrain the classifier to train
      * @param epochs the number of passes through the data set
      */
-    public static void trainEpochs(RegressionDataSet dataSet, UpdateableRegressor toTrain, int epochs)
+    public static void trainEpochs(final RegressionDataSet dataSet, final UpdateableRegressor toTrain, final int epochs)
     {
-        if(epochs < 1)
-            throw new IllegalArgumentException("epochs must be positive");
+        if(epochs < 1) {
+          throw new IllegalArgumentException("epochs must be positive");
+        }
         toTrain.setUp(dataSet.getCategories(), dataSet.getNumNumericalVars());
-        IntList randomOrder = new IntList(dataSet.getSampleSize());
+        final IntList randomOrder = new IntList(dataSet.getSampleSize());
         ListUtils.addRange(randomOrder, 0, dataSet.getSampleSize(), 1);
         for (int epoch = 0; epoch < epochs; epoch++)
         {
             Collections.shuffle(randomOrder);
-            for (int i : randomOrder)
-                toTrain.update(dataSet.getDataPoint(i), dataSet.getTargetValue(i));
+            for (final int i : randomOrder) {
+              toTrain.update(dataSet.getDataPoint(i), dataSet.getTargetValue(i));
+            }
         }
     }
 

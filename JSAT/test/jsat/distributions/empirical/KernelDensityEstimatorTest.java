@@ -28,13 +28,13 @@ public class KernelDensityEstimatorTest {
 	private static final int vecSize = 1000;
 	@BeforeClass
 	public static void setUpBeforeClass() throws Exception {
-		Random r1 = new Random(5079392926462355615L);
-		Random r2 = new Random(7628304882101574242L);
-		double[] vec1 = new double[vecSize];
-		double[] vec2 = new double[vecSize];
-		double[] vec3 = new double[vecSize];
+		final Random r1 = new Random(5079392926462355615L);
+		final Random r2 = new Random(7628304882101574242L);
+		final double[] vec1 = new double[vecSize];
+		final double[] vec2 = new double[vecSize];
+		final double[] vec3 = new double[vecSize];
 		for(int i = 0;i<vecSize;i++){
-			double temp = r1.nextDouble();
+			final double temp = r1.nextDouble();
 			vec1[i]=temp;
 			vec2[i]=r2.nextDouble();
 			vec3[i]=temp;
@@ -74,7 +74,7 @@ public class KernelDensityEstimatorTest {
     @Test
     public void testEquals(){
     	System.out.println("equals");
-    	Integer k = new Integer(1);
+    	final Integer k = new Integer(1);
     	assertFalse(d1.equals(k));
     	assertFalse(d1.equals(null));
     	

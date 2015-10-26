@@ -56,12 +56,12 @@ public class LRSTest
     public void testTransformC()
     {
         System.out.println("transformC");
-        Random rand = new Random(13);
-        int t0 = 1, t1 = 5, t2 = 8;
-        Set<Integer> shouldHave = new IntSet();
+        final Random rand = new Random(13);
+        final int t0 = 1, t1 = 5, t2 = 8;
+        final Set<Integer> shouldHave = new IntSet();
         shouldHave.addAll(Arrays.asList(t0, t1, t2));
         
-        ClassificationDataSet cds = SFSTest.
+        final ClassificationDataSet cds = SFSTest.
                 generate3DimIn10(rand, t0, t1, t2);
         //L > R
         LRS lrs = new LRS.LRSFactory((Classifier)new NearestNeighbour(3), 6, 3).clone().getTransform(cds).clone();
@@ -69,7 +69,7 @@ public class LRSTest
         
         assertEquals(shouldHave.size(), found.size());
         assertTrue(shouldHave.containsAll(found));
-        ClassificationDataSet copyData = cds.getTwiceShallowClone();
+        final ClassificationDataSet copyData = cds.getTwiceShallowClone();
         copyData.applyTransform(lrs);
         assertEquals(shouldHave.size(), copyData.getNumFeatures());
         
@@ -87,12 +87,12 @@ public class LRSTest
     public void testTransformR()
     {
         System.out.println("transformR");
-        Random rand = new Random(13);
-        int t0 = 1, t1 = 5, t2 = 8;
-        Set<Integer> shouldHave = new IntSet();
+        final Random rand = new Random(13);
+        final int t0 = 1, t1 = 5, t2 = 8;
+        final Set<Integer> shouldHave = new IntSet();
         shouldHave.addAll(Arrays.asList(t0, t1, t2));
         
-        RegressionDataSet cds = SFSTest.
+        final RegressionDataSet cds = SFSTest.
                 generate3DimIn10R(rand, t0, t1, t2);
         //L > R
         LRS lrs = new LRS.LRSFactory(new MultipleLinearRegression(), 6, 3).clone().getTransform(cds).clone();
@@ -101,7 +101,7 @@ public class LRSTest
         
         assertEquals(shouldHave.size(), found.size());
         assertTrue(shouldHave.containsAll(found));
-        RegressionDataSet copyData = cds.getTwiceShallowClone();
+        final RegressionDataSet copyData = cds.getTwiceShallowClone();
         copyData.applyTransform(lrs);
         assertEquals(shouldHave.size(), copyData.getNumFeatures());
         

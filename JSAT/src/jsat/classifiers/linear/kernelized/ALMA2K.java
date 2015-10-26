@@ -57,7 +57,7 @@ public class ALMA2K extends BaseUpdateableClassifier implements BinaryScoreClass
      * @param kernel the kernel function to use
      * @param alpha the alpha parameter of ALMA
      */
-    public ALMA2K(KernelTrick kernel,  double alpha)
+    public ALMA2K(final KernelTrick kernel,  final double alpha)
     {
         setKernelTrick(kernel);
         setAlpha(alpha);
@@ -67,7 +67,7 @@ public class ALMA2K extends BaseUpdateableClassifier implements BinaryScoreClass
      * Copy constructor
      * @param other the ALMA2K object to copy
      */
-    protected ALMA2K(ALMA2K other)
+    protected ALMA2K(final ALMA2K other)
     {
         this.alpha = other.alpha;
         this.B = other.B;
@@ -79,8 +79,9 @@ public class ALMA2K extends BaseUpdateableClassifier implements BinaryScoreClass
         if(other.supports != null)
         {
             this.supports = new ArrayList<Vec>(other.supports.size());
-            for(Vec v : other.supports)
-                this.supports.add(v.clone());
+            for(final Vec v : other.supports) {
+              this.supports.add(v.clone());
+            }
             this.signedEtas = new DoubleList(other.signedEtas);
             this.associatedScores = new DoubleList(other.associatedScores);
             this.normalizers = new DoubleList(other.normalizers);
@@ -107,7 +108,7 @@ public class ALMA2K extends BaseUpdateableClassifier implements BinaryScoreClass
      * @param averaged {@code true} to use the averaged out, {@code false} to 
      * only use the last hypothesis 
      */
-    public void setAveraged(boolean averaged)
+    public void setAveraged(final boolean averaged)
     {
         this.averaged = averaged;
     }
@@ -125,7 +126,7 @@ public class ALMA2K extends BaseUpdateableClassifier implements BinaryScoreClass
      * Sets the kernel to use 
      * @param K the kernel to use 
      */
-    public void setKernelTrick(KernelTrick K)
+    public void setKernelTrick(final KernelTrick K)
     {
         this.K = K;
     }
@@ -152,10 +153,11 @@ public class ALMA2K extends BaseUpdateableClassifier implements BinaryScoreClass
      * 
      * @param alpha the approximation scale in (0.0, 1.0]
      */
-    public void setAlpha(double alpha)
+    public void setAlpha(final double alpha)
     {
-        if(alpha <= 0 || alpha > 1 || Double.isNaN(alpha))
-            throw new ArithmeticException("alpha must be in (0, 1], not " + alpha);
+        if(alpha <= 0 || alpha > 1 || Double.isNaN(alpha)) {
+          throw new ArithmeticException("alpha must be in (0, 1], not " + alpha);
+        }
         this.alpha = alpha;
         setB(1.0/alpha);
     }
@@ -174,7 +176,7 @@ public class ALMA2K extends BaseUpdateableClassifier implements BinaryScoreClass
      * {@link #setAlpha(double) }. 
      * @param B the value for B
      */
-    public void setB(double B)
+    public void setB(final double B)
     {
         this.B = B;
     }
@@ -193,10 +195,11 @@ public class ALMA2K extends BaseUpdateableClassifier implements BinaryScoreClass
      * suggested in the paper. 
      * @param C the C value of ALMA
      */
-    public void setC(double C)
+    public void setC(final double C)
     {
-        if(C <= 0 || Double.isInfinite(C) || Double.isNaN(C))
-            throw new ArithmeticException("C must be a posative cosntant");
+        if(C <= 0 || Double.isInfinite(C) || Double.isNaN(C)) {
+          throw new ArithmeticException("C must be a posative cosntant");
+        }
         this.C = C;
     }
 
@@ -206,12 +209,14 @@ public class ALMA2K extends BaseUpdateableClassifier implements BinaryScoreClass
     }
 
     @Override
-    public void setUp(CategoricalData[] categoricalAttributes, int numericAttributes, CategoricalData predicting)
+    public void setUp(final CategoricalData[] categoricalAttributes, final int numericAttributes, final CategoricalData predicting)
     {
-        if(numericAttributes <= 0)
-            throw new FailedToFitException("ALMA2 requires numeric features");
-        if(predicting.getNumOfCategories() != 2)
-            throw new FailedToFitException("ALMA2 works only for binary classification");
+        if(numericAttributes <= 0) {
+          throw new FailedToFitException("ALMA2 requires numeric features");
+        }
+        if(predicting.getNumOfCategories() != 2) {
+          throw new FailedToFitException("ALMA2 works only for binary classification");
+        }
         
         supports = new ArrayList<Vec>();
         signedEtas = new DoubleList();
@@ -223,18 +228,18 @@ public class ALMA2K extends BaseUpdateableClassifier implements BinaryScoreClass
     }
 
     @Override
-    public void update(DataPoint dataPoint, int targetClass)
+    public void update(final DataPoint dataPoint, final int targetClass)
     {
         final Vec x_t = dataPoint.getNumericalValues();
         final double y_t = targetClass*2-1;
         
-        double gamma = B * Math.sqrt(p-1) / k;
-        double wx = score(x_t, false);
+        final double gamma = B * Math.sqrt(p-1) / k;
+        final double wx = score(x_t, false);
         if(y_t*wx <= (1-alpha)*gamma)//update
         {
-            double eta = C/Math.sqrt(p-1)/Math.sqrt(k++);
+            final double eta = C/Math.sqrt(p-1)/Math.sqrt(k++);
             
-            double norm = Math.sqrt(K.eval(x_t, x_t));
+            final double norm = Math.sqrt(K.eval(x_t, x_t));
             
             associatedScores.add(score(new ScaledVector(1/norm, x_t), false));
             supports.add(x_t);
@@ -243,8 +248,9 @@ public class ALMA2K extends BaseUpdateableClassifier implements BinaryScoreClass
             rounds.add(curRounds);
             curRounds = 0;
         }
-        else
-            curRounds++;
+        else {
+          curRounds++;
+        }
     }
     
     /**
@@ -256,7 +262,7 @@ public class ALMA2K extends BaseUpdateableClassifier implements BinaryScoreClass
      * @return the score for the input indicating which side of the hyperplane
      * it is on
      */
-    private double score(Vec x, boolean averaged)
+    private double score(final Vec x, final boolean averaged)
     {
         /*
          * Score for the current dot procut with the weight vector, denom for
@@ -268,34 +274,37 @@ public class ALMA2K extends BaseUpdateableClassifier implements BinaryScoreClass
 
         for(int i = 0; i < supports.size(); i++)
         {
-            double eta_s = signedEtas.get(i);
-            double tmp = eta_s*K.eval(supports.get(i), x)/normalizers.get(i);
-            double denom_tmp = 2*eta_s*associatedScores.get(i)+eta_s*eta_s;
+            final double eta_s = signedEtas.get(i);
+            final double tmp = eta_s*K.eval(supports.get(i), x)/normalizers.get(i);
+            final double denom_tmp = 2*eta_s*associatedScores.get(i)+eta_s*eta_s;
             denom += denom/Math.max(1, denom)+ denom_tmp;
             score += tmp/Math.max(1, denom);
-            if(averaged)
-                finalScore += score*rounds.get(i);
+            if(averaged) {
+              finalScore += score*rounds.get(i);
+            }
         }
-        if(averaged)
-            return finalScore;
-        else
-            return score;
+        if(averaged) {
+          return finalScore;
+        } else {
+          return score;
+        }
     }
 
     @Override
-    public CategoricalResults classify(DataPoint data)
+    public CategoricalResults classify(final DataPoint data)
     {
-        double wx = getScore(data);
-        CategoricalResults cr =new CategoricalResults(2);
-        if(wx < 0)
-            cr.setProb(0, 1.0);
-        else
-            cr.setProb(1, 1.0);
+        final double wx = getScore(data);
+        final CategoricalResults cr =new CategoricalResults(2);
+        if(wx < 0) {
+          cr.setProb(0, 1.0);
+        } else {
+          cr.setProb(1, 1.0);
+        }
         return cr;
     }
 
     @Override
-    public double getScore(DataPoint dp)
+    public double getScore(final DataPoint dp)
     {
         return score(dp.getNumericalValues(), averaged);
     }
@@ -313,7 +322,7 @@ public class ALMA2K extends BaseUpdateableClassifier implements BinaryScoreClass
      * @return the guess for the &alpha; parameter
      * @see #setAlpha(double)
      */
-    public static Distribution guessAlpha(DataSet d)
+    public static Distribution guessAlpha(final DataSet d)
     {
         return new Uniform(1e-3, 1.0);
     }
@@ -325,7 +334,7 @@ public class ALMA2K extends BaseUpdateableClassifier implements BinaryScoreClass
     }
 
     @Override
-    public Parameter getParameter(String paramName)
+    public Parameter getParameter(final String paramName)
     {
         return Parameter.toParameterMap(getParameters()).get(paramName);
     }

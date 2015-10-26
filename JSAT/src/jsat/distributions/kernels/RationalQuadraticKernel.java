@@ -5,7 +5,6 @@ import java.util.List;
 import jsat.DataSet;
 import jsat.distributions.Distribution;
 import jsat.linear.Vec;
-import jsat.linear.distancemetrics.EuclideanDistance;
 
 /**
  * Provides an implementation of the Rational Quadratic Kernel, which is of the 
@@ -24,7 +23,7 @@ public class RationalQuadraticKernel extends BaseL2Kernel
      * Creates a new RQ Kernel
      * @param c the positive additive coefficient 
      */
-    public RationalQuadraticKernel(double c)
+    public RationalQuadraticKernel(final double c)
     {
         this.c = c;
     }
@@ -33,10 +32,11 @@ public class RationalQuadraticKernel extends BaseL2Kernel
      * Sets the positive additive coefficient
      * @param c the positive additive coefficient 
      */
-    public void setC(double c)
+    public void setC(final double c)
     {
-        if(c <= 0 || Double.isNaN(c) || Double.isInfinite(c))
-            throw new IllegalArgumentException("coefficient must be in (0, Inf), not " + c);
+        if(c <= 0 || Double.isNaN(c) || Double.isInfinite(c)) {
+          throw new IllegalArgumentException("coefficient must be in (0, Inf), not " + c);
+        }
         this.c = c;
     }
 
@@ -50,23 +50,23 @@ public class RationalQuadraticKernel extends BaseL2Kernel
     }
     
     @Override
-    public double eval(Vec a, Vec b)
+    public double eval(final Vec a, final Vec b)
     {
-        double dist = Math.pow(a.pNormDist(2, b), 2);
+        final double dist = Math.pow(a.pNormDist(2, b), 2);
         return 1-dist/(dist+c);
     }
 
     @Override
-    public double eval(int a, int b, List<? extends Vec> trainingSet, List<Double> cache)
+    public double eval(final int a, final int b, final List<? extends Vec> trainingSet, final List<Double> cache)
     {
-        double dist = getSqrdNorm(a, b, trainingSet, cache);
+        final double dist = getSqrdNorm(a, b, trainingSet, cache);
         return 1-dist/(dist+c);
     }
         
     @Override
-    public double eval(int a, Vec b, List<Double> qi, List<? extends Vec> vecs, List<Double> cache)
+    public double eval(final int a, final Vec b, final List<Double> qi, final List<? extends Vec> vecs, final List<Double> cache)
     {
-        double dist = getSqrdNorm(a, b, qi, vecs, cache);
+        final double dist = getSqrdNorm(a, b, qi, vecs, cache);
         return 1-dist/(dist+c);
     }
     
@@ -83,7 +83,7 @@ public class RationalQuadraticKernel extends BaseL2Kernel
      * @return the guess for the C parameter
      * @see #setC(double) 
      */
-    public static Distribution guessC(DataSet d)
+    public static Distribution guessC(final DataSet d)
     {
         //TODO come up with a better estiamte
         return RBFKernel.guessSigma(d);//suprisingly this seens to work well 

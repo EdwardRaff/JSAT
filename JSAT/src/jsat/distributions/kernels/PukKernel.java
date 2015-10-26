@@ -4,7 +4,6 @@ import java.util.List;
 import jsat.DataSet;
 import jsat.distributions.Distribution;
 import jsat.distributions.LogUniform;
-import jsat.distributions.Uniform;
 import jsat.linear.Vec;
 import jsat.parameters.Parameterized;
 
@@ -34,7 +33,7 @@ public class PukKernel extends BaseL2Kernel implements Parameterized
      * @param sigma the width parameter of the kernel
      * @param omega the shape parameter of the kernel
      */
-    public PukKernel(double sigma, double omega)
+    public PukKernel(final double sigma, final double omega)
     {
         setSigma(sigma);
         setOmega(omega);
@@ -44,10 +43,11 @@ public class PukKernel extends BaseL2Kernel implements Parameterized
      * Sets the omega parameter value, which controls the shape of the kernel
      * @param omega the positive parameter value
      */
-    public void setOmega(double omega)
+    public void setOmega(final double omega)
     {
-        if(omega <= 0 || Double.isNaN(omega) || Double.isInfinite(omega))
-            throw new ArithmeticException("omega must be positive, not " + omega);
+        if(omega <= 0 || Double.isNaN(omega) || Double.isInfinite(omega)) {
+          throw new ArithmeticException("omega must be positive, not " + omega);
+        }
         this.omega = omega;
         this.cnst = Math.sqrt(Math.pow(2, 1/omega)-1);
     }
@@ -61,10 +61,11 @@ public class PukKernel extends BaseL2Kernel implements Parameterized
      * Sets the sigma parameter value, which controls the width of the kernel
      * @param sigma the positive parameter value
      */
-    public void setSigma(double sigma)
+    public void setSigma(final double sigma)
     {
-        if(sigma <= 0 || Double.isNaN(sigma) || Double.isInfinite(sigma))
-            throw new ArithmeticException("sigma must be positive, not " + sigma);
+        if(sigma <= 0 || Double.isNaN(sigma) || Double.isInfinite(sigma)) {
+          throw new ArithmeticException("sigma must be positive, not " + sigma);
+        }
         this.sigma = sigma;
     }
 
@@ -74,7 +75,7 @@ public class PukKernel extends BaseL2Kernel implements Parameterized
     }
 
     @Override
-    public double eval(Vec a, Vec b)
+    public double eval(final Vec a, final Vec b)
     {
         return getVal(a.pNormDist(2.0, b));
     }
@@ -86,20 +87,20 @@ public class PukKernel extends BaseL2Kernel implements Parameterized
     }
 
     @Override
-    public double eval(int a, Vec b, List<Double> qi, List<? extends Vec> vecs, List<Double> cache)
+    public double eval(final int a, final Vec b, final List<Double> qi, final List<? extends Vec> vecs, final List<Double> cache)
     {
         return getVal(Math.sqrt(getSqrdNorm(a, b, qi, vecs, cache)));
     }
 
     @Override
-    public double eval(int a, int b, List<? extends Vec> trainingSet, List<Double> cache)
+    public double eval(final int a, final int b, final List<? extends Vec> trainingSet, final List<Double> cache)
     {
         return getVal(Math.sqrt(getSqrdNorm(b, b, trainingSet, cache)));
     }
 
-    private double getVal(double pNormDist)
+    private double getVal(final double pNormDist)
     {
-        double tmp = 2*pNormDist*cnst/sigma;
+        final double tmp = 2*pNormDist*cnst/sigma;
         return 1/Math.pow(1+tmp*tmp, omega);
     }
     
@@ -110,7 +111,7 @@ public class PukKernel extends BaseL2Kernel implements Parameterized
      * @return the guess for the &omega; parameter
      * @see #setOmega(double) 
      */
-    public static Distribution guessOmega(DataSet d)
+    public static Distribution guessOmega(final DataSet d)
     {
         return new LogUniform(0.25, 50);
     }
@@ -122,7 +123,7 @@ public class PukKernel extends BaseL2Kernel implements Parameterized
      * @return the guess for the &lambda; parameter
      * @see #setSigma(double) 
      */
-    public static Distribution guessSigma(DataSet d)
+    public static Distribution guessSigma(final DataSet d)
     {
         return RBFKernel.guessSigma(d);
     }

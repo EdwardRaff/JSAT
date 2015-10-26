@@ -22,63 +22,67 @@ public class QuickSort
     {
     }
 
-    private static int med3(double[] x, int a, int b, int c)
+    private static int med3(final double[] x, final int a, final int b, final int c)
     {
         return (x[a] < x[b]
                 ? (x[b] < x[c] ? b : x[a] < x[c] ? c : a)
                 : (x[b] > x[c] ? b : x[a] > x[c] ? c : a));
     }
     
-    private static int med3(float[] x, int a, int b, int c)
+    private static int med3(final float[] x, final int a, final int b, final int c)
     {
         return (x[a] < x[b]
                 ? (x[b] < x[c] ? b : x[a] < x[c] ? c : a)
                 : (x[b] > x[c] ? b : x[a] > x[c] ? c : a));
     }
 
-    protected static void vecswap(double[] x, int a, int b, int n)
+    protected static void vecswap(final double[] x, int a, int b, final int n)
     {
-        for (int i = 0; i < n; i++)
-            swap(x, a++, b++);
+        for (int i = 0; i < n; i++) {
+          swap(x, a++, b++);
+        }
     }
 
-    protected static void vecswap(float[] x, int a, int b, int n)
+    protected static void vecswap(final float[] x, int a, int b, final int n)
     {
-        for (int i = 0; i < n; i++)
-            swap(x, a++, b++);
+        for (int i = 0; i < n; i++) {
+          swap(x, a++, b++);
+        }
     }
 
 
-    private static void vecswap(double[] x, int a, int b, int n, Collection<List<?>> paired)
+    private static void vecswap(final double[] x, int a, int b, final int n, final Collection<List<?>> paired)
     {
         for (int i = 0; i < n; i++)
         {
-            for (List l : paired)
-                Collections.swap(l, a, b);
+            for (final List l : paired) {
+              Collections.swap(l, a, b);
+            }
             swap(x, a++, b++);
         }
     }
 
-    private static void vecswap(float[] x, int a, int b, int n, Collection<List<?>> paired)
+    private static void vecswap(final float[] x, int a, int b, final int n, final Collection<List<?>> paired)
     {
         for (int i = 0; i < n; i++)
         {
-            for (List l : paired)
-                Collections.swap(l, a, b);
+            for (final List l : paired) {
+              Collections.swap(l, a, b);
+            }
             swap(x, a++, b++);
         }
     }
 
-    public static void swap(double[] array, int i, int j)
+    public static void swap(final double[] array, final int i, final int j)
     {
-        double tmp = array[i];
+        final double tmp = array[i];
         array[i] = array[j];
         array[j] = tmp;
     }
     
-    public static void swap(float[] array, int i, int j)
+    public static void swap(final float[] array, final int i, final int j)
     {
-        float tmp = array[i];
+        final float tmp = array[i];
         array[i] = array[j];
         array[j] = tmp;
     }
@@ -89,11 +93,11 @@ public class QuickSort
      * @param i the 1st index
      * @param j the 2nd index
      */
-    public static void swapC(double[] array, int i, int j)
+    public static void swapC(final double[] array, final int i, final int j)
     {
         
-        double tmp_i= array[i];
-        double tmp_j = array[j];
+        final double tmp_i= array[i];
+        final double tmp_j = array[j];
         if(tmp_i > tmp_j)
         {
             array[i] = tmp_j;
@@ -108,13 +112,14 @@ public class QuickSort
      * @param j the 2nd index
      * @param paired a collection of lists, every list will have its indices swapped as well
      */
-    public static void swap(double[] array, int i, int j, Collection<List<?>> paired)
+    public static void swap(final double[] array, final int i, final int j, final Collection<List<?>> paired)
     {
-        double t = array[i];
+        final double t = array[i];
         array[i] = array[j];
         array[j] = t;
-        for(List l : paired)
-            Collections.swap(l, i, j);
+        for(final List l : paired) {
+          Collections.swap(l, i, j);
+        }
     }
 
         /**
@@ -124,13 +129,14 @@ public class QuickSort
      * @param j the 2nd index
      * @param paired a collection of lists, every list will have its indices swapped as well
      */
-    public static void swap(float[] array, int i, int j, Collection<List<?>> paired)
+    public static void swap(final float[] array, final int i, final int j, final Collection<List<?>> paired)
     {
-        float t = array[i];
+        final float t = array[i];
         array[i] = array[j];
         array[j] = t;
-        for(List l : paired)
-            Collections.swap(l, i, j);
+        for(final List l : paired) {
+          Collections.swap(l, i, j);
+        }
     }
 
     /**
@@ -141,10 +147,10 @@ public class QuickSort
      * @param start the starting index (inclusive) to sort
      * @param end the ending index (exclusive) to sort
      */
-    public static void sort(double[] x, int start, int end)
+    public static void sort(final double[] x, final int start, final int end)
     {
-        int a = start;
-        int n = end-start;
+        final int a = start;
+        final int n = end-start;
         if (n < 7)/* Insertion sort on smallest arrays */
         {
             insertionSort(x, a, end);
@@ -158,48 +164,53 @@ public class QuickSort
             int pn = a + n - 1;
             if (n > 40) /* Big arrays, pseudomedian of 9 */
             {        
-                int s = n / 8;
+                final int s = n / 8;
                 pl = med3(x, pl, pl + s, pl + 2 * s);
                 pm = med3(x, pm - s, pm, pm + s);
                 pn = med3(x, pn - 2 * s, pn - s, pn);
             }
             pm = med3(x, pl, pm, pn); /* Mid-size, med of 3 */
         }
-        double pivotValue = x[pm];
+        final double pivotValue = x[pm];
 
         int pa = a, pb = pa, pc = end - 1, pd = pc;
         while (true)
         {
             while (pb <= pc && x[pb] <= pivotValue)
             {
-                if (x[pb] == pivotValue)
-                    swap(x, pa++, pb);
+                if (x[pb] == pivotValue) {
+                  swap(x, pa++, pb);
+                }
                 pb++;
             }
             while (pc >= pb && x[pc] >= pivotValue)
             {
-                if (x[pc] == pivotValue)
-                    swap(x, pc, pd--);
+                if (x[pc] == pivotValue) {
+                  swap(x, pc, pd--);
+                }
                 pc--;
             }
-            if (pb > pc)
-                break;
+            if (pb > pc) {
+              break;
+            }
             swap(x, pb++, pc--);
         }
 
         
         int s;
-        int pn = end;
+        final int pn = end;
         s = Math.min(pa - a, pb - pa);
         vecswap(x, a, pb - s, s);
         s = Math.min(pd - pc, pn - pd - 1);
         vecswap(x, pb, pn - s, s);
 
         //recurse 
-        if ((s = pb - pa) > 1)
-            sort(x, a, a+s);
-        if ((s = pd - pc) > 1)
-            sort(x, pn - s, pn);
+        if ((s = pb - pa) > 1) {
+          sort(x, a, a+s);
+        }
+        if ((s = pd - pc) > 1) {
+          sort(x, pn - s, pn);
+        }
         
     }
 
@@ -209,11 +220,13 @@ public class QuickSort
      * @param start inclusive
      * @param end exclusive
      */
-    public static void insertionSort(double[] x, int start, int end)
+    public static void insertionSort(final double[] x, final int start, final int end)
     {
-        for (int i = start; i < end; i++)
-            for (int j = i; j > start && x[j - 1] > x[j]; j--)
-                swap(x, j, j - 1);
+        for (int i = start; i < end; i++) {
+          for (int j = i; j > start && x[j - 1] > x[j]; j--) {
+            swap(x, j, j - 1);
+          }
+        }
     }
     
     /**
@@ -225,15 +238,17 @@ public class QuickSort
      * @param end the ending index (exclusive) to sort
      * @param paired a collection of lists, every list will have its indices swapped as well
      */
-    public static void sort(double[] x, int start, int end, Collection<List<?>> paired)
+    public static void sort(final double[] x, final int start, final int end, final Collection<List<?>> paired)
     {
-        int a = start;
-        int n = end-start;
+        final int a = start;
+        final int n = end-start;
         if (n < 7)/* Insertion sort on smallest arrays */
         {
-            for (int i = a; i < end; i++)
-                for (int j = i; j > a && x[j - 1] > x[j]; j--)
-                    swap(x, j, j - 1, paired);
+            for (int i = a; i < end; i++) {
+              for (int j = i; j > a && x[j - 1] > x[j]; j--) {
+                swap(x, j, j - 1, paired);
+              }
+            }
             return;
         }
         
@@ -244,48 +259,53 @@ public class QuickSort
             int pn = a + n - 1;
             if (n > 40) /* Big arrays, pseudomedian of 9 */
             {        
-                int s = n / 8;
+                final int s = n / 8;
                 pl = med3(x, pl, pl + s, pl + 2 * s);
                 pm = med3(x, pm - s, pm, pm + s);
                 pn = med3(x, pn - 2 * s, pn - s, pn);
             }
             pm = med3(x, pl, pm, pn); /* Mid-size, med of 3 */
         }
-        double pivotValue = x[pm];
+        final double pivotValue = x[pm];
 
         int pa = a, pb = pa, pc = end - 1, pd = pc;
         while (true)
         {
             while (pb <= pc && x[pb] <= pivotValue)
             {
-                if (x[pb] == pivotValue)
-                    swap(x, pa++, pb, paired);
+                if (x[pb] == pivotValue) {
+                  swap(x, pa++, pb, paired);
+                }
                 pb++;
             }
             while (pc >= pb && x[pc] >= pivotValue)
             {
-                if (x[pc] == pivotValue)
-                    swap(x, pc, pd--, paired);
+                if (x[pc] == pivotValue) {
+                  swap(x, pc, pd--, paired);
+                }
                 pc--;
             }
-            if (pb > pc)
-                break;
+            if (pb > pc) {
+              break;
+            }
             swap(x, pb++, pc--, paired);
         }
 
         
         int s;
-        int pn = end;
+        final int pn = end;
         s = Math.min(pa - a, pb - pa);
         vecswap(x, a, pb - s, s, paired);
         s = Math.min(pd - pc, pn - pd - 1);
         vecswap(x, pb, pn - s, s, paired);
 
         //recurse 
-        if ((s = pb - pa) > 1)
-            sort(x, a, a+s, paired);
-        if ((s = pd - pc) > 1)
-            sort(x, pn - s, pn, paired);
+        if ((s = pb - pa) > 1) {
+          sort(x, a, a+s, paired);
+        }
+        if ((s = pd - pc) > 1) {
+          sort(x, pn - s, pn, paired);
+        }
         
     }
     
@@ -298,15 +318,17 @@ public class QuickSort
      * @param end the ending index (exclusive) to sort
      * @param paired a collection of lists, every list will have its indices swapped as well
      */
-    public static void sort(float[] x, int start, int end, Collection<List<?>> paired)
+    public static void sort(final float[] x, final int start, final int end, final Collection<List<?>> paired)
     {
-        int a = start;
-        int n = end-start;
+        final int a = start;
+        final int n = end-start;
         if (n < 7)/* Insertion sort on smallest arrays */
         {
-            for (int i = a; i < end; i++)
-                for (int j = i; j > a && x[j - 1] > x[j]; j--)
-                    swap(x, j, j - 1, paired);
+            for (int i = a; i < end; i++) {
+              for (int j = i; j > a && x[j - 1] > x[j]; j--) {
+                swap(x, j, j - 1, paired);
+              }
+            }
             return;
         }
         
@@ -317,48 +339,53 @@ public class QuickSort
             int pn = a + n - 1;
             if (n > 40) /* Big arrays, pseudomedian of 9 */
             {        
-                int s = n / 8;
+                final int s = n / 8;
                 pl = med3(x, pl, pl + s, pl + 2 * s);
                 pm = med3(x, pm - s, pm, pm + s);
                 pn = med3(x, pn - 2 * s, pn - s, pn);
             }
             pm = med3(x, pl, pm, pn); /* Mid-size, med of 3 */
         }
-        double pivotValue = x[pm];
+        final double pivotValue = x[pm];
 
         int pa = a, pb = pa, pc = end - 1, pd = pc;
         while (true)
         {
             while (pb <= pc && x[pb] <= pivotValue)
             {
-                if (x[pb] == pivotValue)
-                    swap(x, pa++, pb, paired);
+                if (x[pb] == pivotValue) {
+                  swap(x, pa++, pb, paired);
+                }
                 pb++;
             }
             while (pc >= pb && x[pc] >= pivotValue)
             {
-                if (x[pc] == pivotValue)
-                    swap(x, pc, pd--, paired);
+                if (x[pc] == pivotValue) {
+                  swap(x, pc, pd--, paired);
+                }
                 pc--;
             }
-            if (pb > pc)
-                break;
+            if (pb > pc) {
+              break;
+            }
             swap(x, pb++, pc--, paired);
         }
 
         
         int s;
-        int pn = end;
+        final int pn = end;
         s = Math.min(pa - a, pb - pa);
         vecswap(x, a, pb - s, s, paired);
         s = Math.min(pd - pc, pn - pd - 1);
         vecswap(x, pb, pn - s, s, paired);
 
         //recurse 
-        if ((s = pb - pa) > 1)
-            sort(x, a, a+s, paired);
-        if ((s = pd - pc) > 1)
-            sort(x, pn - s, pn, paired);
+        if ((s = pb - pa) > 1) {
+          sort(x, a, a+s, paired);
+        }
+        if ((s = pd - pc) > 1) {
+          sort(x, pn - s, pn, paired);
+        }
         
     }
 }

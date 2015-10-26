@@ -15,7 +15,7 @@ public class MajorityVote implements Classifier
 {
 
 	private static final long serialVersionUID = 7945429768861275845L;
-	private Classifier[] voters;
+	private final Classifier[] voters;
 
     /**
      * Creates a new Majority Vote classifier using the given voters. If already trained, the 
@@ -25,7 +25,7 @@ public class MajorityVote implements Classifier
      * 
      * @param voters the array of voters to use
      */
-    public MajorityVote(Classifier... voters)
+    public MajorityVote(final Classifier... voters)
     {
         this.voters = voters;
     }
@@ -38,51 +38,54 @@ public class MajorityVote implements Classifier
      * 
      * @param voters the list of voters to use
      */
-    public MajorityVote(List<Classifier> voters)
+    public MajorityVote(final List<Classifier> voters)
     {
         this.voters = voters.toArray(new Classifier[0]);
     }
     
     @Override
-    public CategoricalResults classify(DataPoint data)
+    public CategoricalResults classify(final DataPoint data)
     {
         CategoricalResults toReturn = null;
 
-        for (Classifier classifier : voters)
-            if (classifier != null)
-                if (toReturn == null)
-                {
-                    toReturn = classifier.classify(data);
-                    //Instead of allocating a new catResult, reuse the given one. Set the non likely to zero, and most to 1. 
-                    for (int i = 0; i < toReturn.size(); i++)
-                        if (i != toReturn.mostLikely())
-                            toReturn.setProb(i, 0);
-                        else
-                            toReturn.setProb(i, 1.0);
+        for (final Classifier classifier : voters) {
+          if (classifier != null) {
+            if (toReturn == null) {
+              toReturn = classifier.classify(data);
+              for (int i = 0; i < toReturn.size(); i++) {
+                if (i != toReturn.mostLikely()) {
+                  toReturn.setProb(i, 0);
+                } else {
+                  toReturn.setProb(i, 1.0);
                 }
-                else
-                {
-                    CategoricalResults vote = classifier.classify(data);
-                    for (int i = 0; i < toReturn.size(); i++)
-                        toReturn.incProb(vote.mostLikely(), 1.0);
-                }
+              }
+            } else {
+              final CategoricalResults vote = classifier.classify(data);
+              for (int i = 0; i < toReturn.size(); i++) {
+                toReturn.incProb(vote.mostLikely(), 1.0);
+              }
+            }
+          }
+        }
 
         toReturn.normalize();
         return toReturn;
     }
 
     @Override
-    public void trainC(ClassificationDataSet dataSet, ExecutorService threadPool)
+    public void trainC(final ClassificationDataSet dataSet, final ExecutorService threadPool)
     {
-        for(Classifier classifier : voters)
-            classifier.trainC(dataSet, threadPool);
+        for(final Classifier classifier : voters) {
+          classifier.trainC(dataSet, threadPool);
+        }
     }
 
     @Override
-    public void trainC(ClassificationDataSet dataSet)
+    public void trainC(final ClassificationDataSet dataSet)
     {
-        for(Classifier classifier : voters)
-            classifier.trainC(dataSet);
+        for(final Classifier classifier : voters) {
+          classifier.trainC(dataSet);
+        }
     }
 
     @Override
@@ -94,10 +97,12 @@ public class MajorityVote implements Classifier
     @Override
     public Classifier clone()
     {
-        Classifier[] votersClone = new Classifier[this.voters.length];
-        for(int i = 0; i < voters.length; i++)
-            if(voters[i] != null)
-                votersClone[i] = voters[i].clone();
+        final Classifier[] votersClone = new Classifier[this.voters.length];
+        for(int i = 0; i < voters.length; i++) {
+          if (voters[i] != null) {
+            votersClone[i] = voters[i].clone();
+          }
+        }
         return new MajorityVote(voters);
     }
     

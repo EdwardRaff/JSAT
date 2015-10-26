@@ -54,62 +54,64 @@ public class MahalanobisDistance extends TrainableDistanceMetric
      * 
      * @param reTrain <tt>true</tt> to make the metric always request retraining, <tt>false</tt> so it will not. 
      */
-    public void setReTrain(boolean reTrain)
+    public void setReTrain(final boolean reTrain)
     {
         this.reTrain = reTrain;
     }
     
     
     @Override
-    public <V extends Vec> void train(List<V> dataSet)
+    public <V extends Vec> void train(final List<V> dataSet)
     {
         train(dataSet, null);
     }
     
     @Override
-    public <V extends Vec> void train(List<V> dataSet, ExecutorService threadpool)
+    public <V extends Vec> void train(final List<V> dataSet, final ExecutorService threadpool)
     {
-        Vec mean = MatrixStatistics.meanVector(dataSet);
-        Matrix covariance = MatrixStatistics.covarianceMatrix(mean, dataSet);
+        final Vec mean = MatrixStatistics.meanVector(dataSet);
+        final Matrix covariance = MatrixStatistics.covarianceMatrix(mean, dataSet);
         LUPDecomposition lup;
         SingularValueDecomposition svd;
-        if(threadpool != null)
-            lup = new LUPDecomposition(covariance.clone(), threadpool);
-        else
-            lup = new LUPDecomposition(covariance.clone());
-        double det = lup.det();
+        if(threadpool != null) {
+          lup = new LUPDecomposition(covariance.clone(), threadpool);
+        } else {
+          lup = new LUPDecomposition(covariance.clone());
+        }
+        final double det = lup.det();
         if(Double.isNaN(det) || Double.isInfinite(det) || Math.abs(det) <= 1e-13)//Bad problem, use the SVD instead
         {
             lup = null;
             svd = new SingularValueDecomposition(covariance);
             S = svd.getPseudoInverse();
         }
-        else if(threadpool != null)
-            S = lup.solve(Matrix.eye(covariance.cols()), threadpool);
-        else
-            S = lup.solve(Matrix.eye(covariance.cols()));
+        else if(threadpool != null) {
+          S = lup.solve(Matrix.eye(covariance.cols()), threadpool);
+        } else {
+          S = lup.solve(Matrix.eye(covariance.cols()));
+        }
     }
     
     @Override
-    public void train(DataSet dataSet)
+    public void train(final DataSet dataSet)
     {
         train(dataSet, null);
     }
     
     @Override
-    public void train(DataSet dataSet, ExecutorService threadpool)
+    public void train(final DataSet dataSet, final ExecutorService threadpool)
     {
         train(dataSet.getDataVectors(), threadpool);
     }
 
     @Override
-    public void train(ClassificationDataSet dataSet)
+    public void train(final ClassificationDataSet dataSet)
     {
         train( (DataSet) dataSet);
     }
 
     @Override
-    public void train(ClassificationDataSet dataSet, ExecutorService threadpool)
+    public void train(final ClassificationDataSet dataSet, final ExecutorService threadpool)
     {
         train( (DataSet) dataSet, threadpool);
     }
@@ -121,13 +123,13 @@ public class MahalanobisDistance extends TrainableDistanceMetric
     }
 
     @Override
-    public void train(RegressionDataSet dataSet)
+    public void train(final RegressionDataSet dataSet)
     {
         train( (DataSet) dataSet);
     }
 
     @Override
-    public void train(RegressionDataSet dataSet, ExecutorService threadpool)
+    public void train(final RegressionDataSet dataSet, final ExecutorService threadpool)
     {
         train( (DataSet) dataSet, threadpool);
     }
@@ -141,16 +143,17 @@ public class MahalanobisDistance extends TrainableDistanceMetric
     @Override
     public boolean needsTraining()
     {
-        if(S == null)
-            return true;
-        else
-            return isReTrain();
+        if(S == null) {
+          return true;
+        } else {
+          return isReTrain();
+        }
     }
 
     @Override
-    public double dist(Vec a, Vec b)
+    public double dist(final Vec a, final Vec b)
     {
-        Vec aMb = a.subtract(b);
+        final Vec aMb = a.subtract(b);
         return Math.sqrt(aMb.dot(S.multiply(aMb)));
     }
 
@@ -187,10 +190,11 @@ public class MahalanobisDistance extends TrainableDistanceMetric
     @Override
     public MahalanobisDistance clone()
     {
-        MahalanobisDistance clone = new MahalanobisDistance();
+        final MahalanobisDistance clone = new MahalanobisDistance();
         clone.reTrain = this.reTrain;
-        if(this.S != null)
-            clone.S = this.S.clone();
+        if(this.S != null) {
+          clone.S = this.S.clone();
+        }
         return clone;
     }
 
@@ -201,37 +205,37 @@ public class MahalanobisDistance extends TrainableDistanceMetric
     }
 
     @Override
-    public List<Double> getAccelerationCache(List<? extends Vec> vecs)
+    public List<Double> getAccelerationCache(final List<? extends Vec> vecs)
     {
         return null;
     }
 
     @Override
-    public double dist(int a, int b, List<? extends Vec> vecs, List<Double> cache)
+    public double dist(final int a, final int b, final List<? extends Vec> vecs, final List<Double> cache)
     {
         return dist(vecs.get(a), vecs.get(b));
     }
 
     @Override
-    public double dist(int a, Vec b, List<? extends Vec> vecs, List<Double> cache)
+    public double dist(final int a, final Vec b, final List<? extends Vec> vecs, final List<Double> cache)
     {
         return dist(vecs.get(a), b);
     }
 
     @Override
-    public List<Double> getQueryInfo(Vec q)
+    public List<Double> getQueryInfo(final Vec q)
     {
         return null;
     }
     
     @Override
-    public List<Double> getAccelerationCache(List<? extends Vec> vecs, ExecutorService threadpool)
+    public List<Double> getAccelerationCache(final List<? extends Vec> vecs, final ExecutorService threadpool)
     {
         return null;
     }
 
     @Override
-    public double dist(int a, Vec b, List<Double> qi, List<? extends Vec> vecs, List<Double> cache)
+    public double dist(final int a, final Vec b, final List<Double> qi, final List<? extends Vec> vecs, final List<Double> cache)
     {
         return dist(vecs.get(a), b);
     }

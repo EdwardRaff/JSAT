@@ -13,16 +13,17 @@ public class NoDecay implements DecayRate
 	private static final long serialVersionUID = -4502356199281880268L;
 
 	@Override
-    public double rate(double time, double maxTime, double initial)
+    public double rate(final double time, final double maxTime, final double initial)
     {
         return rate(time, initial);
     }
     
     @Override
-    public double rate(double time, double initial)
+    public double rate(final double time, final double initial)
     {
-        if(time < 0)
-            throw new ArithmeticException("Negative time value given");
+        if(time < 0) {
+          throw new ArithmeticException("Negative time value given");
+        }
         return initial;
     }
 

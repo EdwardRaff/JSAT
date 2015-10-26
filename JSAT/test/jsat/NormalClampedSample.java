@@ -15,12 +15,12 @@ public class NormalClampedSample extends Normal
 	private static final long serialVersionUID = 3970933766374506189L;
 	double min, max;
 
-    public NormalClampedSample(double mean, double stndDev)
+    public NormalClampedSample(final double mean, final double stndDev)
     {
         this(mean, stndDev, mean-3*stndDev, mean+3*stndDev);
     }
 
-    public NormalClampedSample(double mean, double stndDev, double min, double max)
+    public NormalClampedSample(final double mean, final double stndDev, final double min, final double max)
     {
         super(mean, stndDev);
         this.min = Math.min(min, max);
@@ -28,26 +28,28 @@ public class NormalClampedSample extends Normal
     }
 
     @Override
-    public double invCdf(double d)
+    public double invCdf(final double d)
     {
         return Math.max(min, Math.min(max, super.invCdf(d)));
     }
     
     @Override
-    public double[] sample(int numSamples, Random rand)
+    public double[] sample(final int numSamples, final Random rand)
     {
-        double[] ret =  super.sample(numSamples, rand); 
-        for(int i = 0; i < ret.length; i++)
-            ret[i] = Math.max(min, Math.min(max, ret[i]));
+        final double[] ret =  super.sample(numSamples, rand); 
+        for(int i = 0; i < ret.length; i++) {
+          ret[i] = Math.max(min, Math.min(max, ret[i]));
+        }
         return ret;
     }
 
     @Override
-    public DenseVector sampleVec(int numSamples, Random rand)
+    public DenseVector sampleVec(final int numSamples, final Random rand)
     {
-        DenseVector ret =  super.sampleVec(numSamples, rand); 
-        for(int i = 0; i < ret.length(); i++)
-            ret.set(i, Math.max(min, Math.min(max, ret.get(i))));
+        final DenseVector ret =  super.sampleVec(numSamples, rand); 
+        for(int i = 0; i < ret.length(); i++) {
+          ret.set(i, Math.max(min, Math.min(max, ret.get(i))));
+        }
         return ret;
     }
     

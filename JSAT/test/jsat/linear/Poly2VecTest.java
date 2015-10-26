@@ -44,29 +44,33 @@ public class Poly2VecTest
         truePolyDense = new DenseVector(15);
         truePolyDense.set(0, 1.0);
         truePolyVec.set(0, 1.0);
-        for(int i = 0; i < baseVec.length(); i++)
-            truePolyVec.set(i+1, baseVec.get(i));
-        for(int i = 0; i < denseBase.length(); i++)
-            truePolyDense.set(i+1, denseBase.get(i));
+        for(int i = 0; i < baseVec.length(); i++) {
+          truePolyVec.set(i+1, baseVec.get(i));
+        }
+        for(int i = 0; i < denseBase.length(); i++) {
+          truePolyDense.set(i+1, denseBase.get(i));
+        }
         int offSet = baseVec.length()+1;
         int pos = 0;
         x = new int[truePolyVec.length()];
         y = new int[truePolyVec.length()];
-        for(int i = 0; i < baseVec.length(); i++)
-            for(int j = i; j < baseVec.length(); j++)
-            {
-                x[pos] = i;
-                y[pos] = j;
-                truePolyVec.set(offSet + (pos++), baseVec.get(i)*baseVec.get(j));
-            }
+        for(int i = 0; i < baseVec.length(); i++) {
+          for(int j = i; j < baseVec.length(); j++)
+          {
+            x[pos] = i;
+            y[pos] = j;
+            truePolyVec.set(offSet + (pos++), baseVec.get(i)*baseVec.get(j));
+          }
+        }
         
         offSet = denseBase.length()+1;
         pos = 0;
-        for(int i = 0; i < denseBase.length(); i++)
-            for(int j = i; j < denseBase.length(); j++)
-            {
-                truePolyDense.set(offSet + (pos++), denseBase.get(i)*denseBase.get(j));
-            }
+        for(int i = 0; i < denseBase.length(); i++) {
+          for(int j = i; j < denseBase.length(); j++)
+          {
+            truePolyDense.set(offSet + (pos++), denseBase.get(i)*denseBase.get(j));
+          }
+        }
     }
     
     @After
@@ -81,10 +85,10 @@ public class Poly2VecTest
     public void testLength()
     {
         System.out.println("length");
-        Poly2Vec polyDense = new Poly2Vec(denseBase);
+        final Poly2Vec polyDense = new Poly2Vec(denseBase);
         assertEquals(truePolyDense.length(), polyDense.length());
         
-        Poly2Vec polyVec = new Poly2Vec(baseVec);
+        final Poly2Vec polyVec = new Poly2Vec(baseVec);
         assertEquals(truePolyVec.length(), polyVec.length());
     }
 
@@ -95,10 +99,10 @@ public class Poly2VecTest
     public void testNnz()
     {
         System.out.println("nnz");
-        Poly2Vec polyDense = new Poly2Vec(denseBase);
+        final Poly2Vec polyDense = new Poly2Vec(denseBase);
         assertEquals(truePolyDense.nnz(), polyDense.nnz());
         
-        Poly2Vec polyVec = new Poly2Vec(baseVec);
+        final Poly2Vec polyVec = new Poly2Vec(baseVec);
         assertEquals(truePolyVec.nnz(), polyVec.nnz());
     }
 
@@ -109,19 +113,21 @@ public class Poly2VecTest
     public void testGet()
     {
         System.out.println("get");
-        Poly2Vec polyDense = new Poly2Vec(denseBase);
-        for(int i = 0; i < truePolyDense.length(); i++)
-            assertEquals(truePolyDense.get(i), polyDense.get(i), 0.0);
+        final Poly2Vec polyDense = new Poly2Vec(denseBase);
+        for(int i = 0; i < truePolyDense.length(); i++) {
+          assertEquals(truePolyDense.get(i), polyDense.get(i), 0.0);
+        }
         
-        Poly2Vec polyVec = new Poly2Vec(baseVec);
-        for(int i = 0; i < truePolyVec.length(); i++)
-            assertEquals(truePolyVec.get(i), polyVec.get(i), 0.0);
+        final Poly2Vec polyVec = new Poly2Vec(baseVec);
+        for(int i = 0; i < truePolyVec.length(); i++) {
+          assertEquals(truePolyVec.get(i), polyVec.get(i), 0.0);
+        }
         try
         {
             polyVec.get(-1);
             fail("Should not be able to access Index");
         }
-        catch(IndexOutOfBoundsException ex)
+        catch(final IndexOutOfBoundsException ex)
         {
             //good!
         }
@@ -131,7 +137,7 @@ public class Poly2VecTest
             polyVec.get(polyVec.length());
             fail("Should not be able to access Index");
         }
-        catch(IndexOutOfBoundsException ex)
+        catch(final IndexOutOfBoundsException ex)
         {
             //good!
         }
@@ -144,13 +150,13 @@ public class Poly2VecTest
     public void testSet()
     {
         System.out.println("set");
-        Poly2Vec polyVec = new Poly2Vec(baseVec);
+        final Poly2Vec polyVec = new Poly2Vec(baseVec);
         try
         {
             polyVec.set(2, Double.MAX_VALUE);
             fail("Should not be able to alter poly vec wrappers");
         }
-        catch(Exception ex)
+        catch(final Exception ex)
         {
             //good!
         }
@@ -188,19 +194,19 @@ public class Poly2VecTest
     public void testGetNonZeroIterator()
     {
         System.out.println("getNonZeroIterator");
-        Poly2Vec polyDense = new Poly2Vec(denseBase);
+        final Poly2Vec polyDense = new Poly2Vec(denseBase);
         for(int i = 0; i < truePolyDense.length(); i++)
         {
-            Iterator<IndexValue> trueIter = truePolyDense.getNonZeroIterator(i);
-            Iterator<IndexValue> polyIter = polyDense.getNonZeroIterator(i);
+            final Iterator<IndexValue> trueIter = truePolyDense.getNonZeroIterator(i);
+            final Iterator<IndexValue> polyIter = polyDense.getNonZeroIterator(i);
             
             assertTrue(trueIter.hasNext() == polyIter.hasNext());
             
             while(trueIter.hasNext())
             {
                 assertTrue(trueIter.hasNext() == polyIter.hasNext());
-                IndexValue trueIV = trueIter.next();
-                IndexValue polyIV = polyIter.next();
+                final IndexValue trueIV = trueIter.next();
+                final IndexValue polyIV = polyIter.next();
                 
                 assertEquals(trueIV.getIndex(), polyIV.getIndex());
                 assertEquals(trueIV.getValue(), polyIV.getValue(), 0.0);
@@ -211,19 +217,19 @@ public class Poly2VecTest
         }
         
         
-        Poly2Vec polyVec = new Poly2Vec(baseVec);
+        final Poly2Vec polyVec = new Poly2Vec(baseVec);
         for(int i = 0; i < truePolyVec.length(); i++)
         {
-            Iterator<IndexValue> trueIter = truePolyVec.getNonZeroIterator(i);
-            Iterator<IndexValue> polyIter = polyVec.getNonZeroIterator(i);
+            final Iterator<IndexValue> trueIter = truePolyVec.getNonZeroIterator(i);
+            final Iterator<IndexValue> polyIter = polyVec.getNonZeroIterator(i);
             
             assertTrue(trueIter.hasNext() == polyIter.hasNext());
             
             while(trueIter.hasNext())
             {
                 assertTrue(trueIter.hasNext() == polyIter.hasNext());
-                IndexValue trueIV = trueIter.next();
-                IndexValue polyIV = polyIter.next();
+                final IndexValue trueIV = trueIter.next();
+                final IndexValue polyIV = polyIter.next();
                 
                 assertEquals(trueIV.getIndex(), polyIV.getIndex());
                 assertEquals(trueIV.getValue(), polyIV.getValue(), 0.0);

@@ -76,7 +76,7 @@ public class ModifiedOWLQN implements Optimizer2
      * Creates a new mOWL-QN optimizer
      * @param lambda the regularization penalty to use
      */
-    public ModifiedOWLQN(double lambda)
+    public ModifiedOWLQN(final double lambda)
     {
         setLambda(lambda);
     }
@@ -85,11 +85,12 @@ public class ModifiedOWLQN implements Optimizer2
      * copy constructor
      * @param toCopy the object to copy
      */
-    protected ModifiedOWLQN(ModifiedOWLQN toCopy)
+    protected ModifiedOWLQN(final ModifiedOWLQN toCopy)
     {
         this(toCopy.lambda);
-        if(toCopy.lambdaMultipler != null)
-            this.lambdaMultipler = toCopy.lambdaMultipler.clone();
+        if(toCopy.lambdaMultipler != null) {
+          this.lambdaMultipler = toCopy.lambdaMultipler.clone();
+        }
         this.eps = toCopy.eps;
         this.m = toCopy.m;
         this.alpha_0 = toCopy.alpha_0;
@@ -103,10 +104,11 @@ public class ModifiedOWLQN implements Optimizer2
      * Sets the regularization term for the optimizer
      * @param lambda the regularization penalty
      */
-    public void setLambda(double lambda)
+    public void setLambda(final double lambda)
     {
-        if(lambda < 0 || Double.isInfinite(lambda) || Double.isNaN(lambda))
-            throw new IllegalArgumentException("lambda must be non-negative, not " + lambda);
+        if(lambda < 0 || Double.isInfinite(lambda) || Double.isNaN(lambda)) {
+          throw new IllegalArgumentException("lambda must be non-negative, not " + lambda);
+        }
         this.lambda = lambda;
     }
 
@@ -120,7 +122,7 @@ public class ModifiedOWLQN implements Optimizer2
      *
      * @param lambdaMultipler the per-dimension regularization multiplier, or {@code null}. 
      */
-    public void setLambdaMultipler(Vec lambdaMultipler)
+    public void setLambdaMultipler(final Vec lambdaMultipler)
     {
         this.lambdaMultipler = lambdaMultipler;
     }
@@ -136,10 +138,11 @@ public class ModifiedOWLQN implements Optimizer2
      *
      * @param m the number of history items to keep
      */
-    public void setM(int m)
+    public void setM(final int m)
     {
-        if (m < 1)
-            throw new IllegalArgumentException("m must be positive, not " + m);
+        if (m < 1) {
+          throw new IllegalArgumentException("m must be positive, not " + m);
+        }
         this.m = m;
     }
 
@@ -159,10 +162,11 @@ public class ModifiedOWLQN implements Optimizer2
      * more GD steps. You shouldn't need to alter this variable
      * @param eps tolerance term for GD steps
      */
-    public void setEps(double eps)
+    public void setEps(final double eps)
     {
-        if(eps < 0 || Double.isInfinite(eps) || Double.isNaN(eps))
-            throw new IllegalArgumentException("eps must be non-negative, not " + eps);
+        if(eps < 0 || Double.isInfinite(eps) || Double.isNaN(eps)) {
+          throw new IllegalArgumentException("eps must be non-negative, not " + eps);
+        }
         this.eps = eps;
     }
 
@@ -175,10 +179,11 @@ public class ModifiedOWLQN implements Optimizer2
      * Sets the shrinkage term used for the line search. 
      * @param beta the line search shrinkage term
      */
-    public void setBeta(double beta)
+    public void setBeta(final double beta)
     {
-        if(beta <= 0 || beta >= 1 || Double.isNaN(beta))
-            throw new IllegalArgumentException("shrinkage term must be in (0, 1), not " +  beta);
+        if(beta <= 0 || beta >= 1 || Double.isNaN(beta)) {
+          throw new IllegalArgumentException("shrinkage term must be in (0, 1), not " +  beta);
+        }
         this.beta = beta;
     }
 
@@ -190,44 +195,45 @@ public class ModifiedOWLQN implements Optimizer2
     
 
     @Override
-    public void optimize(double tolerance, Vec w, Vec x0, Function f, FunctionVec fp, FunctionVec fpp)
+    public void optimize(final double tolerance, final Vec w, final Vec x0, final Function f, final FunctionVec fp, final FunctionVec fpp)
     {
         optimize(tolerance, w, x0, f, fp, fpp, null);
     }
 
     @Override
-    public void optimize(double tolerance, Vec w, Vec x0, Function f, FunctionVec fp, FunctionVec fpp, ExecutorService ex)
+    public void optimize(final double tolerance, final Vec w, final Vec x0, final Function f, final FunctionVec fp, final FunctionVec fpp, final ExecutorService ex)
     {
         //Algorithm 2 mOWL-QN: modified Orthant-Wise Limited memory Quasi-Newton
         
         Vec lambdaMul = lambdaMultipler;
-        if(lambdaMultipler == null)
-            lambdaMul = new ConstantVector(1.0, x0.length());
+        if(lambdaMultipler == null) {
+          lambdaMul = new ConstantVector(1.0, x0.length());
+        }
         
         
-        Vec x_cur = x0.clone();
+        final Vec x_cur = x0.clone();
         
         Vec x_grad = x0.clone();
         Vec x_gradNext = x0.clone();
-        Vec x_grad_diff = x0.clone();
+        final Vec x_grad_diff = x0.clone();
         /**
          * This value is where <> f(x) lives
          */
-        Vec v_k = x0.clone();
-        Vec d_k = x0.clone();
-        Vec p_k = x0.clone();
-        Vec x_alpha = x0.clone();
+        final Vec v_k = x0.clone();
+        final Vec d_k = x0.clone();
+        final Vec p_k = x0.clone();
+        final Vec x_alpha = x0.clone();
         /**
          * Difference between x_alpha and x_cur
          */
-        Vec x_diff = x0.clone();
+        final Vec x_diff = x0.clone();
         
         
         //history for implicit H
-        List<Double> Rho = new DoubleList(m);
-        List<Vec> S = new ArrayList<Vec>(m);
-        List<Vec> Y = new ArrayList<Vec>(m);
-        double[] alphas = new double[m];
+        final List<Double> Rho = new DoubleList(m);
+        final List<Vec> S = new ArrayList<Vec>(m);
+        final List<Vec> Y = new ArrayList<Vec>(m);
+        final double[] alphas = new double[m];
         
         
         double f_x = (ex != null && f instanceof FunctionP) ? ((FunctionP)f).f(x_cur, ex) : f.f(x_cur);
@@ -242,20 +248,21 @@ public class ModifiedOWLQN implements Optimizer2
             
             for(int i = 0; i < x_grad.length(); i++)
             {
-                double x_i = x_cur.get(i);
-                double l_i = x_grad.get(i);
-                double lambda_i = lambda*lambdaMul.get(i);
+                final double x_i = x_cur.get(i);
+                final double l_i = x_grad.get(i);
+                final double lambda_i = lambda*lambdaMul.get(i);
                 double newVal;
-                if(x_i > 0)
-                    newVal = l_i+lambda_i;
-                else if(x_i < 0)
-                    newVal = l_i-lambda_i;
-                else if(l_i+lambda_i < 0)//x_i == 0 is implicit
-                    newVal = l_i+lambda_i;
-                else if(l_i-lambda_i > 0)//x_i == 0 is implicit
-                    newVal = l_i-lambda_i;
-                else
-                    newVal = 0;
+                if(x_i > 0) {
+                  newVal = l_i+lambda_i;
+                } else if(x_i < 0) {
+                  newVal = l_i-lambda_i;
+                } else if(l_i+lambda_i < 0) {//x_i == 0 is implicit
+                  newVal = l_i+lambda_i;
+                } else if(l_i-lambda_i > 0) {//x_i == 0 is implicit
+                  newVal = l_i-lambda_i;
+                } else {
+                  newVal = 0;
+                }
                 
                 v_k.set(i, -newVal);
                 v_k_norm += newVal*newVal;
@@ -264,16 +271,17 @@ public class ModifiedOWLQN implements Optimizer2
             
             //Ik = {i ∈ {1, · · · ,n} : 0 < |x^k_i | ≤ ϵk,xk i vk i < 0}, where ϵk = min(∥vk∥, ϵ);
             //we only really need to know if the set I_k is empty or not, the indicies are never used
-            double eps_k = Math.min(v_k_norm, eps);
+            final double eps_k = Math.min(v_k_norm, eps);
             
             boolean doGDstep = false;
             for(int i = 0; i < v_k.length() && !doGDstep; i++)
             {
-                double x_i = x_cur.get(i);
-                double v_i = v_k.get(i);
-                boolean isInI = 0 < abs(x_i) && abs(x_i) < eps_k && x_i*v_i < 0;
-                if(isInI)
-                    doGDstep = true;
+                final double x_i = x_cur.get(i);
+                final double v_i = v_k.get(i);
+                final boolean isInI = 0 < abs(x_i) && abs(x_i) < eps_k && x_i*v_i < 0;
+                if(isInI) {
+                  doGDstep = true;
+                }
             }
             
             //5: Initialize α←α0;
@@ -287,14 +295,16 @@ public class ModifiedOWLQN implements Optimizer2
                 LBFGS.twoLoopHp(v_k, Rho, S, Y, d_k, alphas);
                 
                 //9: Alignment: pk ←π(dk;vk);
-                for (int i = 0; i < p_k.length(); i++)
-                    if (Math.signum(d_k.get(i)) == Math.signum(v_k.get(i)))
-                        p_k.set(i, d_k.get(i));
-                    else
-                        p_k.set(i, 0.0);
+                for (int i = 0; i < p_k.length(); i++) {
+                  if (Math.signum(d_k.get(i)) == Math.signum(v_k.get(i))) {
+                    p_k.set(i, d_k.get(i));
+                  } else {
+                    p_k.set(i, 0.0);
+                  }
+                }
                 
                 //10: while Eq. (7) is not satisfied do
-                double rightSideMainTerm = gamma*v_k.dot(d_k);
+                final double rightSideMainTerm = gamma*v_k.dot(d_k);
 
                 alpha/=beta;//so when we multiply below we get the correct startng value
                 do
@@ -307,11 +317,12 @@ public class ModifiedOWLQN implements Optimizer2
                     //projection step
                     for (int i = 0; i < p_k.length(); i++)
                     {
-                        double x_i = x_cur.get(i);
-                        double v_i = v_k.get(i);
-                        double toUse = x_i != 0 ? x_i : v_i;
-                        if (Math.signum(x_alpha.get(i)) != Math.signum(toUse))
-                            x_alpha.set(i, 0.0);
+                        final double x_i = x_cur.get(i);
+                        final double v_i = v_k.get(i);
+                        final double toUse = x_i != 0 ? x_i : v_i;
+                        if (Math.signum(x_alpha.get(i)) != Math.signum(toUse)) {
+                          x_alpha.set(i, 0.0);
+                        }
 
                     }
                     f_x_alpha = (ex != null && f instanceof FunctionP) ? ((FunctionP) f).f(x_alpha, ex) : f.f(x_alpha);
@@ -369,11 +380,13 @@ public class ModifiedOWLQN implements Optimizer2
             
             //convergence check
             double maxGrad = 0;
-            for(int i = 0; i < x_gradNext.length(); i++)
-                maxGrad = max(maxGrad, abs(x_gradNext.get(i)));
+            for(int i = 0; i < x_gradNext.length(); i++) {
+              maxGrad = max(maxGrad, abs(x_gradNext.get(i)));
+            }
             
-            if(maxGrad < tolerance || f_x < tolerance || x_diff.pNorm(1) < tolerance )
-                break;
+            if(maxGrad < tolerance || f_x < tolerance || x_diff.pNorm(1) < tolerance ) {
+              break;
+            }
             
             x_gradNext.copyTo(x_grad_diff);
             x_grad_diff.mutableSubtract(x_grad);
@@ -403,21 +416,24 @@ public class ModifiedOWLQN implements Optimizer2
         x_cur.copyTo(w);
     }
 
-    private double getL1Penalty(Vec w, Vec lambdaMul)
+    private double getL1Penalty(final Vec w, final Vec lambdaMul)
     {
-        if(lambda <= 0)
-            return 0;
+        if(lambda <= 0) {
+          return 0;
+        }
         double pen = 0;
-        for(IndexValue iv : w)
-            pen += lambda*lambdaMul.get(iv.getIndex())*abs(iv.getValue());
+        for(final IndexValue iv : w) {
+          pen += lambda*lambdaMul.get(iv.getIndex())*abs(iv.getValue());
+        }
         return pen;
     }
     
     @Override
-    public void setMaximumIterations(int iterations)
+    public void setMaximumIterations(final int iterations)
     {
-        if(iterations < 1)
-            throw new IllegalArgumentException("Number of iterations must be positive, not " + iterations);
+        if(iterations < 1) {
+          throw new IllegalArgumentException("Number of iterations must be positive, not " + iterations);
+        }
         this.maxIterations = iterations;
     }
 

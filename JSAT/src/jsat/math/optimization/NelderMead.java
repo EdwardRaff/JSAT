@@ -44,10 +44,11 @@ public class NelderMead implements Optimizer
      * Sets the reflection constant, which must be greater than 0
      * @param reflection the reflection constant
      */
-    public void setReflection(double reflection)
+    public void setReflection(final double reflection)
     {
-        if(reflection <=0 || Double.isNaN(reflection) || Double.isInfinite(reflection) )
-            throw new ArithmeticException("Reflection constant must be > 0, not " + reflection);
+        if(reflection <=0 || Double.isNaN(reflection) || Double.isInfinite(reflection) ) {
+          throw new ArithmeticException("Reflection constant must be > 0, not " + reflection);
+        }
         this.reflection = reflection;
     }
 
@@ -55,12 +56,13 @@ public class NelderMead implements Optimizer
      * Sets the expansion constant, which must be greater than 1 and the reflection constant
      * @param expansion 
      */
-    public void setExpansion(double expansion) 
+    public void setExpansion(final double expansion) 
     {
-        if(expansion <= 1 || Double.isNaN(expansion) || Double.isInfinite(expansion) )
-            throw new ArithmeticException("Expansion constant must be > 1, not " + expansion);
-        else if(expansion <= reflection)
-            throw new ArithmeticException("Expansion constant must be less than the reflection constant");
+        if(expansion <= 1 || Double.isNaN(expansion) || Double.isInfinite(expansion) ) {
+          throw new ArithmeticException("Expansion constant must be > 1, not " + expansion);
+        } else if(expansion <= reflection) {
+          throw new ArithmeticException("Expansion constant must be less than the reflection constant");
+        }
         this.expansion = expansion;
     }
 
@@ -68,10 +70,11 @@ public class NelderMead implements Optimizer
      * Sets the contraction constant, which must be in the range (0, 1)
      * @param contraction the contraction constant
      */
-    public void setContraction(double contraction)
+    public void setContraction(final double contraction)
     {
-        if(contraction >= 1 || contraction <= 0 || Double.isNaN(contraction) || Double.isInfinite(contraction) )
-            throw new ArithmeticException("Contraction constant must be > 0 and < 1, not " + contraction);
+        if(contraction >= 1 || contraction <= 0 || Double.isNaN(contraction) || Double.isInfinite(contraction) ) {
+          throw new ArithmeticException("Contraction constant must be > 0 and < 1, not " + contraction);
+        }
         this.contraction = contraction;
     }
 
@@ -79,21 +82,24 @@ public class NelderMead implements Optimizer
      * Sets the shrinkage constant, which must be in the range (0, 1)
      * @param shrink 
      */
-    public void setShrink(double shrink)
+    public void setShrink(final double shrink)
     {
-        if(shrink >= 1 || shrink <= 0 || Double.isNaN(shrink) || Double.isInfinite(shrink) )
-            throw new ArithmeticException("Shrinkage constant must be > 0 and < 1, not " + shrink);
+        if(shrink >= 1 || shrink <= 0 || Double.isNaN(shrink) || Double.isInfinite(shrink) ) {
+          throw new ArithmeticException("Shrinkage constant must be > 0 and < 1, not " + shrink);
+        }
         this.shrink = shrink;
     }
     
-    public Vec optimize(double eps, int iterationLimit, Function f, Function fd, Vec vars, List<Vec> inputs, Vec outputs, ExecutorService threadpool)
+  @Override
+    public Vec optimize(final double eps, final int iterationLimit, final Function f, final Function fd, final Vec vars, final List<Vec> inputs, final Vec outputs, final ExecutorService threadpool)
     {
         return optimize(eps, iterationLimit, f, fd, vars, inputs, outputs);
     }
 
-    public Vec optimize(double eps, int iterationLimit, Function f, Function fd, Vec vars, List<Vec> inputs, Vec outputs)
+  @Override
+    public Vec optimize(final double eps, final int iterationLimit, final Function f, final Function fd, final Vec vars, final List<Vec> inputs, final Vec outputs)
     {
-        List<Vec> initialPoints = new ArrayList<Vec>();
+        final List<Vec> initialPoints = new ArrayList<Vec>();
         initialPoints.add(vars);
         
         return optimize(eps, iterationLimit, f, initialPoints);
@@ -109,55 +115,62 @@ public class NelderMead implements Optimizer
      * the extra ones will be ignored. This list may not be empty
      * @return the computed value for the optimization. 
      */
-    public Vec optimize(double eps, int iterationLimit, Function f, List<Vec> initalPoints)
+    public Vec optimize(final double eps, final int iterationLimit, final Function f, final List<Vec> initalPoints)
     {
-        if(initalPoints.isEmpty())
-            throw new ArithmeticException("Empty Initial list. Can not determin dimension of problem");
-        Vec init = initalPoints.get(0);
-        int N = initalPoints.get(0).length();
+        if(initalPoints.isEmpty()) {
+          throw new ArithmeticException("Empty Initial list. Can not determin dimension of problem");
+        }
+        final Vec init = initalPoints.get(0);
+        final int N = initalPoints.get(0).length();
         //The simplex verticies paired with their value from the objective function 
-        List<ProbailityMatch<Vec>> simplex = new ArrayList<ProbailityMatch<Vec>>(N);
-        for(Vec vars : initalPoints)
-            simplex.add(new ProbailityMatch<Vec>(f.f(vars), vars.clone()));
-        Random rand = new Random(initalPoints.hashCode());
+        final List<ProbailityMatch<Vec>> simplex = new ArrayList<ProbailityMatch<Vec>>(N);
+        for(final Vec vars : initalPoints) {
+          simplex.add(new ProbailityMatch<Vec>(f.f(vars), vars.clone()));
+        }
+        final Random rand = new Random(initalPoints.hashCode());
         
         while(simplex.size() < N+1)
         {
             //Better simplex geneartion?
-            DenseVector newSimplex = new DenseVector(N);
-            for(int i = 0; i < newSimplex.length(); i++)
-                if(init.get(i) != 0)
-                    newSimplex.set(i, init.get(i)*rand.nextGaussian());
-                else
-                    newSimplex.set(i, rand.nextGaussian());
+            final DenseVector newSimplex = new DenseVector(N);
+            for(int i = 0; i < newSimplex.length(); i++) {
+              if (init.get(i) != 0) {
+                newSimplex.set(i, init.get(i)*rand.nextGaussian());
+              } else {
+                newSimplex.set(i, rand.nextGaussian());
+              }
+            }
             
             simplex.add(new ProbailityMatch<Vec>(f.f(newSimplex), newSimplex));
         }
         
         Collections.sort(simplex);
         //Remove superfolusly given points
-        while(simplex.size() > N+1)
-            simplex.remove(simplex.size()-1);
+        while(simplex.size() > N+1) {
+          simplex.remove(simplex.size()-1);
+        }
         
         //Center of gravity point
-        Vec x0 = new DenseVector(N);
+        final Vec x0 = new DenseVector(N);
         //reflection point
-        Vec xr = new DenseVector(N);
+        final Vec xr = new DenseVector(N);
         //Extension point, also used for contraction
-        Vec xec = new DenseVector(N);
+        final Vec xec = new DenseVector(N);
         //Temp space for compuations
-        Vec tmp = new DenseVector(N);
+        final Vec tmp = new DenseVector(N);
         
         final int lastIndex = simplex.size()-1;
         for(int iterationCount = 0; iterationCount < iterationLimit; iterationCount++)
         {
             //Convergence check 
-            if(Math.abs(simplex.get(lastIndex).getProbability() - simplex.get(0).getProbability()) < eps)
-                break;
+            if(Math.abs(simplex.get(lastIndex).getProbability() - simplex.get(0).getProbability()) < eps) {
+              break;
+            }
             //Step 2: valculate x0
             x0.zeroOut();
-            for(ProbailityMatch<Vec> pm : simplex)
-                x0.mutableAdd(pm.getMatch());
+            for(final ProbailityMatch<Vec> pm : simplex) {
+              x0.mutableAdd(pm.getMatch());
+            }
             x0.mutableDivide(simplex.size());
             
             //Step 3: Reflection
@@ -165,7 +178,7 @@ public class NelderMead implements Optimizer
             x0.copyTo(tmp);
             tmp.mutableSubtract(simplex.get(lastIndex).getMatch());
             xr.mutableAdd(reflection, tmp);
-            double fxr = f.f(xr);
+            final double fxr = f.f(xr);
             if(simplex.get(0).getProbability() <= fxr && fxr < simplex.get(lastIndex-1).getProbability())
             {
                 insertIntoSimplex(simplex, xr, fxr);
@@ -177,29 +190,30 @@ public class NelderMead implements Optimizer
             {
                 x0.copyTo(xec);
                 xec.mutableAdd(expansion, tmp);//tmp still contains (x0-xWorst)
-                double fxec = f.f(xec);
-                if(fxec < fxr)
-                    insertIntoSimplex(simplex, xec, fxec);//Even better! Use this one
-                else
-                    insertIntoSimplex(simplex, xr, fxr);//Ehh, wasnt as good as we thought
+                final double fxec = f.f(xec);
+                if(fxec < fxr) {
+                  insertIntoSimplex(simplex, xec, fxec);//Even better! Use this one
+                } else {
+                  insertIntoSimplex(simplex, xr, fxr);//Ehh, wasnt as good as we thought
+                }
                 continue;
             }
             
             //Step 5: Contraction
             x0.copyTo(xec);
             xec.mutableAdd(contraction, tmp);
-            double fxec = f.f(xec);
+            final double fxec = f.f(xec);
             if(fxec < simplex.get(lastIndex).getProbability())
             {
                 insertIntoSimplex(simplex, xec, fxec);
                 continue;
             }
             //Step 6: Reduction
-            Vec xBest = simplex.get(0).getMatch();
+            final Vec xBest = simplex.get(0).getMatch();
             for(int i = 1; i < simplex.size(); i++)
             {
-                ProbailityMatch<Vec> pm = simplex.get(i);
-                Vec xi = pm.getMatch();
+                final ProbailityMatch<Vec> pm = simplex.get(i);
+                final Vec xi = pm.getMatch();
                 xi.mutableSubtract(xBest);
                 xi.mutableMultiply(shrink);
                 xi.mutableAdd(xBest);
@@ -211,24 +225,26 @@ public class NelderMead implements Optimizer
         return simplex.get(0).getMatch();
     }
 
-    private static void insertIntoSimplex(List<ProbailityMatch<Vec>> simplex, Vec x, double fx)
+    private static void insertIntoSimplex(final List<ProbailityMatch<Vec>> simplex, final Vec x, final double fx)
     {
         //We are removing the last element and inserting a new one that is better 
-        ProbailityMatch<Vec> pm = simplex.remove(simplex.size() - 1);
+        final ProbailityMatch<Vec> pm = simplex.remove(simplex.size() - 1);
         pm.setProbability(fx);
         x.copyTo(pm.getMatch());
 
         //Now put it in the correct place
         int sortInto = Collections.binarySearch(simplex, pm);
-        if (sortInto >= 0)
-            simplex.add(sortInto, pm);
-        else
+        if (sortInto >= 0) {
+          simplex.add(sortInto, pm);
+        } else
         {
             sortInto = -(sortInto)-1;
-            if(sortInto == simplex.size())//Then it was just better thne the last
-                simplex.add(pm);
-            else//It was a bit better then that
-                simplex.add(sortInto, pm);
+            if(sortInto == simplex.size()) {//Then it was just better thne the last
+              simplex.add(pm);
+          } else {
+              //It was a bit better then that
+              simplex.add(sortInto, pm);
+          }
         }
     }
     

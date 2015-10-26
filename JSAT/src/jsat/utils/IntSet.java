@@ -20,24 +20,26 @@ public class IntSet extends AbstractSet<Integer> implements Serializable
     private int[] store;
     private int size;
     
-    public IntSet(int initialSize)
+    public IntSet(final int initialSize)
     {
         store = new int[initialSize];
         size = 0;
     }
     
-    public IntSet(SortedSet<Integer> sortedSet)
+    public IntSet(final SortedSet<Integer> sortedSet)
     {
         this();
-        for(Integer integer : sortedSet)
-            this.add(integer);
+        for(final Integer integer : sortedSet) {
+          this.add(integer);
+        }
     }
     
-    public IntSet(Collection<Integer> collection)
+    public IntSet(final Collection<Integer> collection)
     {
         this();
-        for(Integer integer : collection)
-            this.add(integer);
+        for(final Integer integer : collection) {
+          this.add(integer);
+        }
     }
     
     public IntSet()
@@ -46,22 +48,26 @@ public class IntSet extends AbstractSet<Integer> implements Serializable
     }
 
     @Override
-    public boolean add(Integer e)
+    public boolean add(final Integer e)
     {
-        if(e == null)
-            return false;
+        if(e == null) {
+          return false;
+        }
         int insertionPoint = Arrays.binarySearch(store, 0, size, e);
-        if(insertionPoint >= 0 )
-            return false;//Already in the set
+        if(insertionPoint >= 0 ) {
+          return false;//Already in the set
+        }
         //Fix up to where we would like to place it
         insertionPoint = (-(insertionPoint) - 1);
         
         //Increase store size if needed
-        if(size >= store.length)
-            store = Arrays.copyOf(store, store.length*2);
+        if(size >= store.length) {
+          store = Arrays.copyOf(store, store.length*2);
+        }
         
-        for(int i = size; i > insertionPoint; i--)
-            store[i] = store[i-1];
+        for(int i = size; i > insertionPoint; i--) {
+          store[i] = store[i-1];
+        }
         store[insertionPoint] = e;
         size++;
         
@@ -87,8 +93,9 @@ public class IntSet extends AbstractSet<Integer> implements Serializable
             @Override
             public Integer next()
             {
-                if(!hasNext())
-                    throw new NoSuchElementException("The whole set has been iterated");
+                if(!hasNext()) {
+                  throw new NoSuchElementException("The whole set has been iterated");
+                }
                 canRemove = true;
                 return store[index++];
             }
@@ -96,11 +103,13 @@ public class IntSet extends AbstractSet<Integer> implements Serializable
             @Override
             public void remove()
             {
-                if(!canRemove)
-                    throw new IllegalStateException("Can not remove, remove can only occur after a successful call to next");
+                if(!canRemove) {
+                  throw new IllegalStateException("Can not remove, remove can only occur after a successful call to next");
+                }
                 
-                for(int i = index; i < size; i++ )
-                    store[i-1] = store[i];
+                for(int i = index; i < size; i++ ) {
+                  store[i-1] = store[i];
+                }
                 
                 index--;
                 size--;

@@ -67,7 +67,7 @@ public class MultinomialNaiveBayes extends BaseUpdateableClassifier implements P
      * Creates a new Multinomial model with the given amount of smoothing
      * @param smoothing the amount of smoothing to apply
      */
-    public MultinomialNaiveBayes(double smoothing)
+    public MultinomialNaiveBayes(final double smoothing)
     {
         setSmoothing(smoothing);
         setEpochs(1);
@@ -77,7 +77,7 @@ public class MultinomialNaiveBayes extends BaseUpdateableClassifier implements P
      * Copy constructor
      * @param other the one to copy
      */
-    protected MultinomialNaiveBayes(MultinomialNaiveBayes other)
+    protected MultinomialNaiveBayes(final MultinomialNaiveBayes other)
     {
         this(other.smoothing);
         if(other.apriori != null)
@@ -92,9 +92,10 @@ public class MultinomialNaiveBayes extends BaseUpdateableClassifier implements P
             for(int c = 0; c < other.apriori.length; c++)
             {
                 this.apriori[c] = new double[other.apriori[c].length][];
-                for(int j = 0; j < other.apriori[c].length; j++)
-                    this.apriori[c][j] = Arrays.copyOf(other.apriori[c][j], 
-                            other.apriori[c][j].length);
+                for(int j = 0; j < other.apriori[c].length; j++) {
+                  this.apriori[c][j] = Arrays.copyOf(other.apriori[c][j],
+                          other.apriori[c][j].length);
+                }
                 this.wordCounts[c] = Arrays.copyOf(other.wordCounts[c], other.wordCounts[c].length);
             }
             
@@ -114,10 +115,11 @@ public class MultinomialNaiveBayes extends BaseUpdateableClassifier implements P
      * 
      * @param smoothing the positive smoothing constant
      */
-    public void setSmoothing(double smoothing)
+    public void setSmoothing(final double smoothing)
     {
-        if(Double.isNaN(smoothing) || Double.isInfinite(smoothing) || smoothing <= 0)
-            throw new IllegalArgumentException("Smoothing constant must be in range (0,Inf), not " + smoothing);
+        if(Double.isNaN(smoothing) || Double.isInfinite(smoothing) || smoothing <= 0) {
+          throw new IllegalArgumentException("Smoothing constant must be in range (0,Inf), not " + smoothing);
+        }
         this.smoothing = smoothing;
     }
 
@@ -139,7 +141,7 @@ public class MultinomialNaiveBayes extends BaseUpdateableClassifier implements P
      * @param finalizeAfterTraining {@code true} to finalize after a call to 
      * train, {@code false} to keep the model updatable. 
      */
-    public void setFinalizeAfterTraining(boolean finalizeAfterTraining)
+    public void setFinalizeAfterTraining(final boolean finalizeAfterTraining)
     {
         this.finalizeAfterTraining = finalizeAfterTraining;
     }
@@ -161,19 +163,21 @@ public class MultinomialNaiveBayes extends BaseUpdateableClassifier implements P
     }
 
     @Override
-    public void trainC(ClassificationDataSet dataSet, ExecutorService threadPool)
+    public void trainC(final ClassificationDataSet dataSet, final ExecutorService threadPool)
     {
         super.trainC(dataSet, threadPool);
-        if(finalizeAfterTraining)
-            finalizeModel();
+        if(finalizeAfterTraining) {
+          finalizeModel();
+        }
     }
     
     @Override
-    public void trainC(ClassificationDataSet dataSet)
+    public void trainC(final ClassificationDataSet dataSet)
     {
         super.trainC(dataSet);
-        if(finalizeAfterTraining)
-            finalizeModel();
+        if(finalizeAfterTraining) {
+          finalizeModel();
+        }
     }
 
     /**
@@ -184,17 +188,18 @@ public class MultinomialNaiveBayes extends BaseUpdateableClassifier implements P
      */
     public void finalizeModel()
     {
-        if(finalized)
-            return;
+        if(finalized) {
+          return;
+        }
         final double priorSumSmooth = priorSum + priors.length * smoothing;
 
         for (int c = 0; c < priors.length; c++)
         {
-            double logProb = Math.log((priors[c] + smoothing) / priorSumSmooth);
+            final double logProb = Math.log((priors[c] + smoothing) / priorSumSmooth);
             priors[c] = logProb;
 
-            double[] counts = wordCounts[c];
-            double logTotalCounts = Math.log(totalWords[c] + smoothing * counts.length);
+            final double[] counts = wordCounts[c];
+            final double logTotalCounts = Math.log(totalWords[c] + smoothing * counts.length);
 
             for(int i = 0; i < counts.length; i++)
             {
@@ -205,10 +210,12 @@ public class MultinomialNaiveBayes extends BaseUpdateableClassifier implements P
             for (int j = 0; j < apriori[c].length; j++)
             {
                 double sum = 0;
-                for (int z = 0; z < apriori[c][j].length; z++)
-                    sum += apriori[c][j][z] + smoothing;
-                for (int z = 0; z < apriori[c][j].length; z++)
-                    apriori[c][j][z] = Math.log( (apriori[c][j][z]+smoothing)/sum);
+                for (int z = 0; z < apriori[c][j].length; z++) {
+                  sum += apriori[c][j][z] + smoothing;
+                }
+                for (int z = 0; z < apriori[c][j].length; z++) {
+                  apriori[c][j][z] = Math.log( (apriori[c][j][z]+smoothing)/sum);
+                }
             }
         }
         finalized = true;
@@ -216,7 +223,7 @@ public class MultinomialNaiveBayes extends BaseUpdateableClassifier implements P
     
     
     @Override
-    public void setUp(CategoricalData[] categoricalAttributes, int numericAttributes, CategoricalData predicting)
+    public void setUp(final CategoricalData[] categoricalAttributes, final int numericAttributes, final CategoricalData predicting)
     {
         final int nCat = predicting.getNumOfCategories();
         apriori = new double[nCat][categoricalAttributes.length][];
@@ -225,30 +232,35 @@ public class MultinomialNaiveBayes extends BaseUpdateableClassifier implements P
         priors = new double[nCat];
         priorSum = 0.0;
         
-        for (int i = 0; i < nCat; i++)
-            for (int j = 0; j < categoricalAttributes.length; j++)
-                apriori[i][j] = new double[categoricalAttributes[j].getNumOfCategories()];
+        for (int i = 0; i < nCat; i++) {
+          for (int j = 0; j < categoricalAttributes.length; j++) {
+            apriori[i][j] = new double[categoricalAttributes[j].getNumOfCategories()];
+          }
+        }
         finalized = false;
     }
 
     @Override
-    public void update(DataPoint dataPoint, int targetClass)
+    public void update(final DataPoint dataPoint, final int targetClass)
     {
-        if(finalized)
-            throw new FailedToFitException("Model has already been finalized, and can no longer be updated");
+        if(finalized) {
+          throw new FailedToFitException("Model has already been finalized, and can no longer be updated");
+        }
         final double weight = dataPoint.getWeight();
         final Vec x = dataPoint.getNumericalValues();
         
         //Categorical value updates
-        int[] catValues = dataPoint.getCategoricalValues();
-        for(int j = 0; j < apriori[targetClass].length; j++)
-            apriori[targetClass][j][catValues[j]]+=weight;
+        final int[] catValues = dataPoint.getCategoricalValues();
+        for(int j = 0; j < apriori[targetClass].length; j++) {
+          apriori[targetClass][j][catValues[j]]+=weight;
+        }
         double localCountsAdded = 0;
-        for(IndexValue iv : x)
+        for(final IndexValue iv : x)
         {
             final double v = iv.getValue();
-            if(v < 0)
-                continue;
+            if(v < 0) {
+              continue;
+            }
             wordCounts[targetClass][iv.getIndex()] += v*weight;
             localCountsAdded += v*weight;
         }
@@ -258,23 +270,24 @@ public class MultinomialNaiveBayes extends BaseUpdateableClassifier implements P
     }
 
     @Override
-    public CategoricalResults classify(DataPoint data)
+    public CategoricalResults classify(final DataPoint data)
     {
-        if(apriori == null)
-            throw new UntrainedModelException("Model has not been intialized");
-        CategoricalResults results = new CategoricalResults(apriori.length);
-        double[] logProbs = new double[apriori.length];
+        if(apriori == null) {
+          throw new UntrainedModelException("Model has not been intialized");
+        }
+        final CategoricalResults results = new CategoricalResults(apriori.length);
+        final double[] logProbs = new double[apriori.length];
         double maxLogProg = Double.NEGATIVE_INFINITY;
-        Vec numVals = data.getNumericalValues();
+        final Vec numVals = data.getNumericalValues();
         if(finalized)
         {
             for(int c = 0; c < priors.length; c++)
             {
                 double logProb = priors[c];
 
-                double[] counts = wordCounts[c];
+                final double[] counts = wordCounts[c];
 
-                for (IndexValue iv : numVals)
+                for (final IndexValue iv : numVals)
                 {
                     //(n/N)^obv
                     logProb += iv.getValue() * counts[iv.getIndex()];
@@ -296,10 +309,10 @@ public class MultinomialNaiveBayes extends BaseUpdateableClassifier implements P
             {
                 double logProb = Math.log((priors[c]+smoothing)/priorSumSmooth);
 
-                double[] counts = wordCounts[c];
-                double logTotalCounts = Math.log(totalWords[c]+smoothing*counts.length);
+                final double[] counts = wordCounts[c];
+                final double logTotalCounts = Math.log(totalWords[c]+smoothing*counts.length);
 
-                for (IndexValue iv : numVals)
+                for (final IndexValue iv : numVals)
                 {
                     //(n/N)^obv
                     logProb += iv.getValue() * (Math.log(counts[iv.getIndex()]+smoothing) - logTotalCounts);
@@ -308,9 +321,10 @@ public class MultinomialNaiveBayes extends BaseUpdateableClassifier implements P
                 for (int j = 0; j < apriori[c].length; j++)
                 {
                     double sum = 0;
-                    for (int z = 0; z < apriori[c][j].length; z++)
-                        sum += apriori[c][j][z]+smoothing;
-                    double p = apriori[c][j][data.getCategoricalValue(j)]+smoothing;
+                    for (int z = 0; z < apriori[c][j].length; z++) {
+                      sum += apriori[c][j][z]+smoothing;
+                    }
+                    final double p = apriori[c][j][data.getCategoricalValue(j)]+smoothing;
                     logProb += Math.log(p / sum);
                 }
 
@@ -318,10 +332,11 @@ public class MultinomialNaiveBayes extends BaseUpdateableClassifier implements P
                 maxLogProg = Math.max(maxLogProg, logProb);
             }
         }
-        double denom = MathTricks.logSumExp(logProbs, maxLogProg);
+        final double denom = MathTricks.logSumExp(logProbs, maxLogProg);
 
-        for (int i = 0; i < results.size(); i++)
-            results.setProb(i, exp(logProbs[i] - denom));
+        for (int i = 0; i < results.size(); i++) {
+          results.setProb(i, exp(logProbs[i] - denom));
+        }
         results.normalize();
         return results;
     }
@@ -339,7 +354,7 @@ public class MultinomialNaiveBayes extends BaseUpdateableClassifier implements P
     }
 
     @Override
-    public Parameter getParameter(String paramName)
+    public Parameter getParameter(final String paramName)
     {
         return Parameter.toParameterMap(getParameters()).get(paramName);
     }

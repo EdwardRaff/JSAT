@@ -125,19 +125,22 @@ abstract public class TrainableDistanceMetric implements DistanceMetric
      * @param dm the distance metric to train
      * @param dataset the data set to train from
      */
-    public static void trainIfNeeded(DistanceMetric dm, DataSet dataset)
+    public static void trainIfNeeded(final DistanceMetric dm, final DataSet dataset)
     {
-        if(!(dm instanceof TrainableDistanceMetric))
-            return;
-        TrainableDistanceMetric tdm = (TrainableDistanceMetric) dm;
-        if(!tdm.needsTraining())
-            return;
-        if(dataset instanceof RegressionDataSet)
-            tdm.train((RegressionDataSet) dataset);
-        else if(dataset instanceof ClassificationDataSet)
-            tdm.train((ClassificationDataSet) dataset);
-        else
-            tdm.train(dataset);
+        if(!(dm instanceof TrainableDistanceMetric)) {
+          return;
+        }
+        final TrainableDistanceMetric tdm = (TrainableDistanceMetric) dm;
+        if(!tdm.needsTraining()) {
+          return;
+        }
+        if(dataset instanceof RegressionDataSet) {
+          tdm.train((RegressionDataSet) dataset);
+        } else if(dataset instanceof ClassificationDataSet) {
+          tdm.train((ClassificationDataSet) dataset);
+        } else {
+          tdm.train(dataset);
+        }
     }
     
     /**
@@ -150,24 +153,27 @@ abstract public class TrainableDistanceMetric implements DistanceMetric
      * <tt>null</tt>, in which case {@link #trainIfNeeded(jsat.linear.distancemetrics.DistanceMetric, jsat.DataSet) } 
      * is used instead.
      */
-    public static void trainIfNeeded(DistanceMetric dm, DataSet dataset, ExecutorService threadpool)
+    public static void trainIfNeeded(final DistanceMetric dm, final DataSet dataset, final ExecutorService threadpool)
     {
         if(threadpool == null || threadpool instanceof FakeExecutor)
         {
             trainIfNeeded(dm, dataset);
             return;
         }
-        if(!(dm instanceof TrainableDistanceMetric))
-            return;
-        TrainableDistanceMetric tdm = (TrainableDistanceMetric) dm;
-        if(!tdm.needsTraining())
-            return;
-        if(dataset instanceof RegressionDataSet)
-            tdm.train((RegressionDataSet) dataset, threadpool);
-        else if(dataset instanceof ClassificationDataSet)
-            tdm.train((ClassificationDataSet) dataset, threadpool);
-        else
-            tdm.train(dataset, threadpool);
+        if(!(dm instanceof TrainableDistanceMetric)) {
+          return;
+        }
+        final TrainableDistanceMetric tdm = (TrainableDistanceMetric) dm;
+        if(!tdm.needsTraining()) {
+          return;
+        }
+        if(dataset instanceof RegressionDataSet) {
+          tdm.train((RegressionDataSet) dataset, threadpool);
+        } else if(dataset instanceof ClassificationDataSet) {
+          tdm.train((ClassificationDataSet) dataset, threadpool);
+        } else {
+          tdm.train(dataset, threadpool);
+        }
     }
     
     /**
@@ -178,19 +184,22 @@ abstract public class TrainableDistanceMetric implements DistanceMetric
      * @param dm the distance metric to train
      * @param dataset the data set to train from
      */
-    public static <V extends Vec> void trainIfNeeded(DistanceMetric dm, List<V> dataset)
+    public static <V extends Vec> void trainIfNeeded(final DistanceMetric dm, final List<V> dataset)
     {
-        if(!(dm instanceof TrainableDistanceMetric))
-            return;
-        TrainableDistanceMetric tdm = (TrainableDistanceMetric) dm;
-        if(!tdm.needsTraining())
-            return;
-        if(dataset instanceof RegressionDataSet)
-            tdm.train((RegressionDataSet) dataset);
-        else if(dataset instanceof ClassificationDataSet)
-            tdm.train((ClassificationDataSet) dataset);
-        else
-            tdm.train(dataset);
+        if(!(dm instanceof TrainableDistanceMetric)) {
+          return;
+        }
+        final TrainableDistanceMetric tdm = (TrainableDistanceMetric) dm;
+        if(!tdm.needsTraining()) {
+          return;
+        }
+        if(dataset instanceof RegressionDataSet) {
+          tdm.train((RegressionDataSet) dataset);
+        } else if(dataset instanceof ClassificationDataSet) {
+          tdm.train((ClassificationDataSet) dataset);
+        } else {
+          tdm.train(dataset);
+        }
     }
     
     /**
@@ -202,23 +211,26 @@ abstract public class TrainableDistanceMetric implements DistanceMetric
      * <tt>null</tt>, in which case {@link #trainIfNeeded(jsat.linear.distancemetrics.DistanceMetric, java.util.List) }
      * is used instead.
      */
-    public static <V extends Vec> void trainIfNeeded(DistanceMetric dm, List<V> dataset, ExecutorService threadpool)
+    public static <V extends Vec> void trainIfNeeded(final DistanceMetric dm, final List<V> dataset, final ExecutorService threadpool)
     {
         if(threadpool == null || threadpool instanceof FakeExecutor)
         {
             trainIfNeeded(dm, dataset);
             return;
         }
-        if(!(dm instanceof TrainableDistanceMetric))
-            return;
-        TrainableDistanceMetric tdm = (TrainableDistanceMetric) dm;
-        if(!tdm.needsTraining())
-            return;
-        if(dataset instanceof RegressionDataSet)
-            tdm.train((RegressionDataSet) dataset, threadpool);
-        else if(dataset instanceof ClassificationDataSet)
-            tdm.train((ClassificationDataSet) dataset, threadpool);
-        else
-            tdm.train(dataset, threadpool);
+        if(!(dm instanceof TrainableDistanceMetric)) {
+          return;
+        }
+        final TrainableDistanceMetric tdm = (TrainableDistanceMetric) dm;
+        if(!tdm.needsTraining()) {
+          return;
+        }
+        if(dataset instanceof RegressionDataSet) {
+          tdm.train((RegressionDataSet) dataset, threadpool);
+        } else if(dataset instanceof ClassificationDataSet) {
+          tdm.train((ClassificationDataSet) dataset, threadpool);
+        } else {
+          tdm.train(dataset, threadpool);
+        }
     }
 }

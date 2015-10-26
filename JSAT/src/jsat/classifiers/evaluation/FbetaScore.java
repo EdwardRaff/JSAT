@@ -11,18 +11,19 @@ public class FbetaScore extends SimpleBinaryClassMetric
 {
 
 	private static final long serialVersionUID = -7530404462591303694L;
-	private double beta;
+	private final double beta;
     
     /**
      * Creates a new F<sub>&beta;</sub> score
      * @param beta the weight to apply to precision over recall, must be in (0, 
      * &infin;)
      */
-    public FbetaScore(double beta)
+    public FbetaScore(final double beta)
     {
         super();
-        if(beta <= 0 || Double.isInfinite(beta) || Double.isNaN(beta))
-            throw new IllegalArgumentException("beta must be in (0, inf), not " + beta);
+        if(beta <= 0 || Double.isInfinite(beta) || Double.isNaN(beta)) {
+          throw new IllegalArgumentException("beta must be in (0, inf), not " + beta);
+        }
         this.beta = beta;
     }
     
@@ -30,7 +31,7 @@ public class FbetaScore extends SimpleBinaryClassMetric
      * Copy constructor
      * @param toClone the object to copy
      */
-    public FbetaScore(FbetaScore toClone)
+    public FbetaScore(final FbetaScore toClone)
     {
         super(toClone);
         this.beta = toClone.beta;
@@ -44,7 +45,7 @@ public class FbetaScore extends SimpleBinaryClassMetric
     }
     
     @Override
-    public boolean equals(Object obj)
+    public boolean equals(final Object obj)
     {
         if(this.getClass().isAssignableFrom(obj.getClass()) && obj.getClass().isAssignableFrom(this.getClass()))
         {

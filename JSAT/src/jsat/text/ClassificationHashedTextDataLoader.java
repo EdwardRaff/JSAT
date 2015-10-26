@@ -36,12 +36,12 @@ public abstract class ClassificationHashedTextDataLoader extends HashedTextDataL
      */
     protected CategoricalData labelInfo;
 
-    public ClassificationHashedTextDataLoader(Tokenizer tokenizer, WordWeighting weighting)
+    public ClassificationHashedTextDataLoader(final Tokenizer tokenizer, final WordWeighting weighting)
     {
         this(1<<22, tokenizer, weighting);
     }
 
-    public ClassificationHashedTextDataLoader(int dimensionSize, Tokenizer tokenizer, WordWeighting weighting)
+    public ClassificationHashedTextDataLoader(final int dimensionSize, final Tokenizer tokenizer, final WordWeighting weighting)
     {
         super(dimensionSize, tokenizer, weighting);
         classLabels = new IntList();
@@ -63,7 +63,7 @@ public abstract class ClassificationHashedTextDataLoader extends HashedTextDataL
      * @param text the text of the data to add
      */
     @Override
-    protected void addOriginalDocument(String text)
+    protected void addOriginalDocument(final String text)
     {
         throw new UnsupportedOperationException("addOriginalDocument(String"
                 + " text, int label) should be used instead");
@@ -79,10 +79,11 @@ public abstract class ClassificationHashedTextDataLoader extends HashedTextDataL
      * @param text the text of the document to add
      * @param label the classification label for this document
      */
-    protected void addOriginalDocument(String text, int label)
+    protected void addOriginalDocument(final String text, final int label)
     {
-        if(label >= labelInfo.getNumOfCategories())
-            throw new RuntimeException("Invalid label given");
+        if(label >= labelInfo.getNumOfCategories()) {
+          throw new RuntimeException("Invalid label given");
+        }
         super.addOriginalDocument(text);
         classLabels.add(label);
     }
@@ -97,11 +98,12 @@ public abstract class ClassificationHashedTextDataLoader extends HashedTextDataL
             finishAdding();
         }
         
-        ClassificationDataSet cds = 
+        final ClassificationDataSet cds = 
                 new ClassificationDataSet(vectors.get(0).length(), 
                 new CategoricalData[]{}, labelInfo);
-        for(int i = 0; i < vectors.size(); i++)
-            cds.addDataPoint(vectors.get(i), new int[]{}, classLabels.get(i));
+        for(int i = 0; i < vectors.size(); i++) {
+          cds.addDataPoint(vectors.get(i), new int[]{}, classLabels.get(i));
+        }
         
         return cds;
     }

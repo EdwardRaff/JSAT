@@ -27,17 +27,17 @@ public class Bisection implements RootFinder
      * 
      * @return a value that when given to <tt>f</tt> with additional values <tt>args</tt>, will return <tt>x</tt>
      */
-    public static double root(double a, double b, Function f, double... args)
+    public static double root(final double a, final double b, final Function f, final double... args)
     {
         return root(1e-15, 1000, a, b, 0, f, args);
     }
     
-    public static double root(double eps, double a, double b, Function f, double... args)
+    public static double root(final double eps, final double a, final double b, final Function f, final double... args)
     {
         return root(eps, 1000, a, b, 0, f, args);
     }
     
-    public static double root(double eps, double a, double b, int pos, Function f, double... args)
+    public static double root(final double eps, final double a, final double b, final int pos, final Function f, final double... args)
     {
         return root(eps, 1000, a, b, pos, f, args);
     }
@@ -58,10 +58,11 @@ public class Bisection implements RootFinder
      * 
      * @return the value of the <tt>pos</tt><sup>th</sup> variable that makes this function return 0. 
      */
-    public static double root(double eps, int maxIterations, double a, double b, int pos, Function f, double... args)
+    public static double root(final double eps, int maxIterations, double a, double b, int pos, final Function f, double... args)
     {
-        if(b <= a)
-            throw new ArithmeticException("a musbt be < b for Bisection to work");
+        if(b <= a) {
+          throw new ArithmeticException("a musbt be < b for Bisection to work");
+        }
         
         //We assume 1 dimensional function then 
         if(args == null ||args.length == 0)
@@ -75,13 +76,14 @@ public class Bisection implements RootFinder
         args[pos] = a;
         double fa = f.f(args);
         
-        if(fa* fb >= 0)
-            throw new ArithmeticException("The given interval does not appear to bracket the root");
+        if(fa* fb >= 0) {
+          throw new ArithmeticException("The given interval does not appear to bracket the root");
+        }
    
         while(b - a > 2*eps && maxIterations-- > 0)
         {
             args[pos] = (a+b)*0.5;
-            double ftmp = f.f(args);
+            final double ftmp = f.f(args);
             
             if(fa*ftmp < 0)
             {
@@ -93,23 +95,27 @@ public class Bisection implements RootFinder
                 a = args[pos];
                 fa = ftmp;
             }
-            else
-                break;//We converged
+            else {
+              break;//We converged
+            }
         }
         
         return (a+b)*0.5;
     }
 
-    public double root(double eps, int maxIterations, double[] initialGuesses, Function f, int pos, double... args)
+  @Override
+    public double root(final double eps, final int maxIterations, final double[] initialGuesses, final Function f, final int pos, final double... args)
     {
         return root(eps, maxIterations, initialGuesses[0], initialGuesses[1], pos, f, args);
     }
 
-    public double root(double eps, int maxIterations, double[] initialGuesses, Function f, int pos, Vec args)
+  @Override
+    public double root(final double eps, final int maxIterations, final double[] initialGuesses, final Function f, final int pos, final Vec args)
     {
         return root(eps, maxIterations, initialGuesses[0], initialGuesses[1], pos, f, args.arrayCopy());
     }
 
+  @Override
     public int guessesNeeded()
     {
         return 2;

@@ -49,8 +49,8 @@ public class AUCTest
     public void testGetScore()
     {
         System.out.println("getScore");
-        AUC scorer = new AUC();
-        AUC otherHalf = scorer.clone();
+        final AUC scorer = new AUC();
+        final AUC otherHalf = scorer.clone();
         
         assertEquals(scorer, otherHalf);
         assertEquals(scorer.hashCode(), otherHalf.hashCode());
@@ -71,8 +71,8 @@ public class AUCTest
         
         scorer.addResults(otherHalf);
         
-        double P = 2.0+1.0+1.0;
-        double N = 3.0+1.0+1.0;
+        final double P = 2.0+1.0+1.0;
+        final double N = 3.0+1.0+1.0;
         //AUC dosn't make as much sense with so few data points...
         assertEquals((3+2)/(P*N), scorer.getScore(), 1e-1);
         assertEquals((3+2)/(P*N), scorer.clone().getScore(), 1e-1);

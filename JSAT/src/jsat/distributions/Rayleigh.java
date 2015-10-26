@@ -19,17 +19,18 @@ public final class Rayleigh extends ContinuousDistribution
      */
     private double sig;
 
-    public Rayleigh(double sig)
+    public Rayleigh(final double sig)
     {
         setScale(sig);
     }
     
     
 
-    public void setScale(double sig)
+    public void setScale(final double sig)
     {
-        if(sig <=0 || Double.isInfinite(sig) || Double.isNaN(sig))
-            throw new ArithmeticException("The " + GreekLetters.sigma + " parameter must be > 0, not " + sig);
+        if(sig <=0 || Double.isInfinite(sig) || Double.isNaN(sig)) {
+          throw new ArithmeticException("The " + GreekLetters.sigma + " parameter must be > 0, not " + sig);
+        }
         this.sig = sig;
     }
 
@@ -39,23 +40,24 @@ public final class Rayleigh extends ContinuousDistribution
     }
     
     @Override
-    public double pdf(double x)
+    public double pdf(final double x)
     {
-        if (x < 0)
-            return 0;
-        double sigSqr = sig*sig;
+        if (x < 0) {
+          return 0;
+        }
+        final double sigSqr = sig*sig;
         return x / sigSqr * exp(-x*x/(2*sigSqr));
     }
 
     @Override
-    public double cdf(double x)
+    public double cdf(final double x)
     {
-        double sigSqr = sig*sig;
+        final double sigSqr = sig*sig;
         return 1 - exp(-x*x/(2*sigSqr));
     }
 
     @Override
-    public double invCdf(double p)
+    public double invCdf(final double p)
     {
         return sqrt(sig*sig*log(1/(1-p)))*sqrt(2.0);
     }
@@ -91,10 +93,11 @@ public final class Rayleigh extends ContinuousDistribution
     }
 
     @Override
-    public void setVariable(String var, double value)
+    public void setVariable(final String var, final double value)
     {
-        if(var.equals(GreekLetters.sigma))
-            setScale(value);
+        if(var.equals(GreekLetters.sigma)) {
+          setScale(value);
+        }
     }
 
     @Override
@@ -104,7 +107,7 @@ public final class Rayleigh extends ContinuousDistribution
     }
 
     @Override
-    public void setUsingData(Vec data)
+    public void setUsingData(final Vec data)
     {
         /**
          * 
@@ -122,8 +125,9 @@ public final class Rayleigh extends ContinuousDistribution
         
         //TODO Need to add some API to SparceVector to make this summation more efficient
         double tmp = 0;
-        for(int i = 0; i < data.length(); i++)
-            tmp += pow(data.get(i), 2);
+        for(int i = 0; i < data.length(); i++) {
+          tmp += pow(data.get(i), 2);
+        }
         
         tmp /= (2*data.length());
         tmp = sqrt(tmp);
@@ -176,7 +180,7 @@ public final class Rayleigh extends ContinuousDistribution
 
 
 	@Override
-	public boolean equals(Object obj) {
+	public boolean equals(final Object obj) {
 		if (this == obj) {
 			return true;
 		}
@@ -186,11 +190,8 @@ public final class Rayleigh extends ContinuousDistribution
 		if (getClass() != obj.getClass()) {
 			return false;
 		}
-		Rayleigh other = (Rayleigh) obj;
-		if (Double.doubleToLongBits(sig) != Double.doubleToLongBits(other.sig)) {
-			return false;
-		}
-		return true;
+		final Rayleigh other = (Rayleigh) obj;
+		return Double.doubleToLongBits(sig) == Double.doubleToLongBits(other.sig);
 	}
     
 }

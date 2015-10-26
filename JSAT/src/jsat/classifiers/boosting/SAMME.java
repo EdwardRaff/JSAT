@@ -30,8 +30,8 @@ public class SAMME implements Classifier, Parameterized
 {
 
 	private static final long serialVersionUID = -3584203799253810599L;
-	private Classifier weakLearner;
-    private int maxIterations;
+	private final Classifier weakLearner;
+    private final int maxIterations;
     /**
      * The list of weak hypothesis
      */
@@ -42,30 +42,33 @@ public class SAMME implements Classifier, Parameterized
     private List<Double> hypWeights;
     private CategoricalData predicting;
 
-    public SAMME(Classifier weakLearner, int maxIterations)
+    public SAMME(final Classifier weakLearner, final int maxIterations)
     {
-        if(!weakLearner.supportsWeightedData())
-            throw new RuntimeException("WeakLearner must support weighted data to be boosted");
+        if(!weakLearner.supportsWeightedData()) {
+          throw new RuntimeException("WeakLearner must support weighted data to be boosted");
+        }
         this.weakLearner = weakLearner;
         this.maxIterations = maxIterations;
     }
 
     @Override
-    public CategoricalResults classify(DataPoint data)
+    public CategoricalResults classify(final DataPoint data)
     {
-        if(predicting == null)
-            throw new RuntimeException("Classifier has not been trained yet");
-        CategoricalResults cr = new CategoricalResults(predicting.getNumOfCategories());
+        if(predicting == null) {
+          throw new RuntimeException("Classifier has not been trained yet");
+        }
+        final CategoricalResults cr = new CategoricalResults(predicting.getNumOfCategories());
         
-        for(int i=0; i < hypoths.size(); i++)
-            cr.incProb(hypoths.get(i).classify(data).mostLikely(), hypWeights.get(i));
+        for(int i=0; i < hypoths.size(); i++) {
+          cr.incProb(hypoths.get(i).classify(data).mostLikely(), hypWeights.get(i));
+        }
         
         cr.normalize();
         return cr;
     }
 
     @Override
-    public void trainC(ClassificationDataSet dataSet, ExecutorService threadPool)
+    public void trainC(final ClassificationDataSet dataSet, final ExecutorService threadPool)
     {
         predicting = dataSet.getPredicting();
         hypWeights = new DoubleList(maxIterations);
@@ -73,45 +76,50 @@ public class SAMME implements Classifier, Parameterized
         /**
          * The number of classes we are predicting
          */
-        int K = predicting.getNumOfCategories();
-        double logK = Math.log(K-1.0)/Math.log(2);
+        final int K = predicting.getNumOfCategories();
+        final double logK = Math.log(K-1.0)/Math.log(2);
         
-        List<DataPointPair<Integer>> dataPoints = dataSet.getAsDPPList();
+        final List<DataPointPair<Integer>> dataPoints = dataSet.getAsDPPList();
         //Initialization step, set up the weights  so they are all 1 / size of dataset
-        for(DataPointPair<Integer> dpp : dataPoints)
-            dpp.getDataPoint().setWeight(1.0);//Scaled, they are all 1 
+        for(final DataPointPair<Integer> dpp : dataPoints) {
+          dpp.getDataPoint().setWeight(1.0);//Scaled, they are all 1 
+        }
         double sumOfWeights = dataPoints.size();
         
         
         //Rather then reclasify points, we just save this list
-        boolean[] wasCorrect = new boolean[dataPoints.size()];
+        final boolean[] wasCorrect = new boolean[dataPoints.size()];
         
         for(int t = 0; t < maxIterations; t++)
         {
-            if(threadPool == null || threadPool instanceof FakeExecutor)
-                weakLearner.trainC(new ClassificationDataSet(dataPoints, predicting));
-            else
-                weakLearner.trainC(new ClassificationDataSet(dataPoints, predicting), threadPool);
+            if(threadPool == null || threadPool instanceof FakeExecutor) {
+              weakLearner.trainC(new ClassificationDataSet(dataPoints, predicting));
+            } else {
+              weakLearner.trainC(new ClassificationDataSet(dataPoints, predicting), threadPool);
+            }
 
             //Error is the same as in AdaBoost.M1
             double error = 0.0;
-            for(int i = 0; i < dataPoints.size(); i++)
-                if( !(wasCorrect[i] = weakLearner.classify(dataPoints.get(i).getDataPoint()).mostLikely() == dataPoints.get(i).getPair()) )
-                    error += dataPoints.get(i).getDataPoint().getWeight();
+            for(int i = 0; i < dataPoints.size(); i++) {
+              if (!(wasCorrect[i] = weakLearner.classify(dataPoints.get(i).getDataPoint()).mostLikely() == dataPoints.get(i).getPair())) {
+                error += dataPoints.get(i).getDataPoint().getWeight();
+              }
+            }
             error /= sumOfWeights;
-            if(error >= (1.0-1.0/K) || error == 0.0)///Diference, we only need to be better then random guessing classes 
-                return;
+            if(error >= (1.0-1.0/K) || error == 0.0) {///Diference, we only need to be better then random guessing classes
+              return;
+            }
             //The main difference - a different error term
-            double am = Math.log((1.0-error)/error)/Math.log(2) +logK;
+            final double am = Math.log((1.0-error)/error)/Math.log(2) +logK;
             
             //Update Distribution weights 
             for(int i = 0; i < wasCorrect.length; i++)
             {
-                DataPoint dp = dataPoints.get(i).getDataPoint();
+                final DataPoint dp = dataPoints.get(i).getDataPoint();
                 if(!wasCorrect[i])
                 {
-                    double w = dp.getWeight();
-                    double newW = w*Math.exp(am);
+                    final double w = dp.getWeight();
+                    final double newW = w*Math.exp(am);
                     sumOfWeights += (newW-w);
                     dp.setWeight(newW);
                 }
@@ -123,7 +131,7 @@ public class SAMME implements Classifier, Parameterized
     }
 
     @Override
-    public void trainC(ClassificationDataSet dataSet)
+    public void trainC(final ClassificationDataSet dataSet)
     {
         trainC(dataSet, null);
     }
@@ -137,17 +145,20 @@ public class SAMME implements Classifier, Parameterized
     @Override
     public SAMME clone()
     {
-        SAMME clone = new SAMME(weakLearner.clone(), maxIterations);
-        if(this.hypWeights != null)
-            clone.hypWeights = new DoubleList(this.hypWeights);
+        final SAMME clone = new SAMME(weakLearner.clone(), maxIterations);
+        if(this.hypWeights != null) {
+          clone.hypWeights = new DoubleList(this.hypWeights);
+        }
         if(this.hypoths != null)
         {
             clone.hypoths = new ArrayList<Classifier>(this.hypoths.size());
-            for(int i = 0; i < this.hypoths.size(); i++)
-                clone.hypoths.add(this.hypoths.get(i).clone());
+            for(int i = 0; i < this.hypoths.size(); i++) {
+              clone.hypoths.add(this.hypoths.get(i).clone());
+            }
         }
-        if(this.predicting != null)
-            clone.predicting = this.predicting.clone();
+        if(this.predicting != null) {
+          clone.predicting = this.predicting.clone();
+        }
         
         return clone;
     }
@@ -159,7 +170,7 @@ public class SAMME implements Classifier, Parameterized
     }
 
     @Override
-    public Parameter getParameter(String paramName)
+    public Parameter getParameter(final String paramName)
     {
         return Parameter.toParameterMap(getParameters()).get(paramName);
     }

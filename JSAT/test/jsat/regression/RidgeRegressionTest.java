@@ -51,20 +51,20 @@ public class RidgeRegressionTest
     public void testTrain_RegressionDataSet_Executor()
     {
         System.out.println("train");
-        Random rand = new Random(2);
+        final Random rand = new Random(2);
         
-        for(RidgeRegression.SolverMode mode : RidgeRegression.SolverMode.values())
+        for(final RidgeRegression.SolverMode mode : RidgeRegression.SolverMode.values())
         {
-            RidgeRegression regressor = new RidgeRegression(1e-9, mode);
+            final RidgeRegression regressor = new RidgeRegression(1e-9, mode);
 
             regressor.train(FixedProblems.getLinearRegression(400, rand), ex);
 
-            for(DataPointPair<Double> dpp : FixedProblems.getLinearRegression(100, new Random(3)).getAsDPPList())
+            for(final DataPointPair<Double> dpp : FixedProblems.getLinearRegression(100, new Random(3)).getAsDPPList())
             {
-                double truth = dpp.getPair();
-                double pred = regressor.regress(dpp.getDataPoint());
+                final double truth = dpp.getPair();
+                final double pred = regressor.regress(dpp.getDataPoint());
                 
-                double relErr = (truth-pred)/truth;
+                final double relErr = (truth-pred)/truth;
                 
                 assertEquals(0.0, relErr, 0.05);
             }
@@ -75,20 +75,20 @@ public class RidgeRegressionTest
     public void testTrain_RegressionDataSet()
     {
         System.out.println("train");
-        Random rand = new Random(2);
+        final Random rand = new Random(2);
         
-        for(RidgeRegression.SolverMode mode : RidgeRegression.SolverMode.values())
+        for(final RidgeRegression.SolverMode mode : RidgeRegression.SolverMode.values())
         {
-            RidgeRegression regressor = new RidgeRegression(1e-9, mode);
+            final RidgeRegression regressor = new RidgeRegression(1e-9, mode);
 
             regressor.train(FixedProblems.getLinearRegression(400, rand));
 
-            for(DataPointPair<Double> dpp : FixedProblems.getLinearRegression(100, new Random(3)).getAsDPPList())
+            for(final DataPointPair<Double> dpp : FixedProblems.getLinearRegression(100, new Random(3)).getAsDPPList())
             {
-                double truth = dpp.getPair();
-                double pred = regressor.regress(dpp.getDataPoint());
+                final double truth = dpp.getPair();
+                final double pred = regressor.regress(dpp.getDataPoint());
                 
-                double relErr = (truth-pred)/truth;
+                final double relErr = (truth-pred)/truth;
                 
                 assertEquals(0.0, relErr, 0.05);
             }

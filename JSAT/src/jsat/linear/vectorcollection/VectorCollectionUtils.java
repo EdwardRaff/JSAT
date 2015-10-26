@@ -25,11 +25,12 @@ public class VectorCollectionUtils
      * @param k the number of nearest neighbors
      * @return The list of lists for all nearest neighbors 
      */
-    public static <V0 extends Vec, V1 extends Vec> List<List<? extends VecPaired<V0, Double>>> allNearestNeighbors(VectorCollection<V0> collection, List<V1> search, int k)
+    public static <V0 extends Vec, V1 extends Vec> List<List<? extends VecPaired<V0, Double>>> allNearestNeighbors(final VectorCollection<V0> collection, final List<V1> search, final int k)
     {
-        List<List<? extends VecPaired<V0, Double>>> results = new ArrayList<List<? extends VecPaired<V0, Double>>>(search.size());
-        for(Vec v : search)
-            results.add(collection.search(v, k));
+        final List<List<? extends VecPaired<V0, Double>>> results = new ArrayList<List<? extends VecPaired<V0, Double>>>(search.size());
+        for(final Vec v : search) {
+          results.add(collection.search(v, k));
+        }
         return results;
     }
     
@@ -42,7 +43,7 @@ public class VectorCollectionUtils
      * @param k the number of nearest neighbors
      * @return The list of lists for all nearest neighbors 
      */
-    public static <V0 extends Vec, V1 extends Vec> List<List<? extends VecPaired<V0, Double>>> allNearestNeighbors(VectorCollection<V0> collection, V1[] search, int k)
+    public static <V0 extends Vec, V1 extends Vec> List<List<? extends VecPaired<V0, Double>>> allNearestNeighbors(final VectorCollection<V0> collection, final V1[] search, final int k)
     {
         return allNearestNeighbors(collection, Arrays.asList(search), k);
     }
@@ -57,11 +58,11 @@ public class VectorCollectionUtils
      * @param threadpool the source of threads to perform the computation in parallel 
      * @return The list of lists for all nearest neighbors 
      */
-    public static <V0 extends Vec, V1 extends Vec> List<List<? extends VecPaired<V0, Double>>> allNearestNeighbors(final VectorCollection<V0> collection, List<V1> search, final int k, ExecutorService threadpool)
+    public static <V0 extends Vec, V1 extends Vec> List<List<? extends VecPaired<V0, Double>>> allNearestNeighbors(final VectorCollection<V0> collection, final List<V1> search, final int k, final ExecutorService threadpool)
              throws InterruptedException, ExecutionException
     {
-        List<List<? extends VecPaired<V0, Double>>> results = new ArrayList<List<? extends VecPaired<V0, Double>>>(search.size());
-        List<Future<List<List<? extends VecPaired<V0, Double>>>>> subResults = new ArrayList<Future<List<List<? extends VecPaired<V0, Double>>>>>(LogicalCores);
+        final List<List<? extends VecPaired<V0, Double>>> results = new ArrayList<List<? extends VecPaired<V0, Double>>>(search.size());
+        final List<Future<List<List<? extends VecPaired<V0, Double>>>>> subResults = new ArrayList<Future<List<List<? extends VecPaired<V0, Double>>>>>(LogicalCores);
         
         for(final List<V1> subSearch : ListUtils.splitList(search, LogicalCores))
         {
@@ -70,18 +71,20 @@ public class VectorCollectionUtils
                 @Override
                 public List<List<? extends VecPaired<V0, Double>>> call() throws Exception
                 {
-                    List<List<? extends VecPaired<V0, Double>>> subResult = new ArrayList<List<? extends VecPaired<V0, Double>>>(subSearch.size());
+                    final List<List<? extends VecPaired<V0, Double>>> subResult = new ArrayList<List<? extends VecPaired<V0, Double>>>(subSearch.size());
                     
-                    for(Vec v : subSearch )
-                        subResult.add(collection.search(v, k));
+                    for(final Vec v : subSearch ) {
+                      subResult.add(collection.search(v, k));
+                    }
                     
                     return subResult;
                 }
             }));
         }
 
-        for (List<List<? extends VecPaired<V0, Double>>> subResult : ListUtils.collectFutures(subResults))
-            results.addAll(subResult);
+        for (final List<List<? extends VecPaired<V0, Double>>> subResult : ListUtils.collectFutures(subResults)) {
+          results.addAll(subResult);
+        }
 
         return results;
     }
@@ -96,7 +99,7 @@ public class VectorCollectionUtils
      * @param threadpool the source of threads to perform the computation in parallel 
      * @return The list of lists for all nearest neighbors 
      */
-    public static <V0 extends Vec, V1 extends Vec> List<List<? extends VecPaired<V0, Double>>> allNearestNeighbors(final VectorCollection<V0> collection, V1[] search, final int k, ExecutorService threadpool)
+    public static <V0 extends Vec, V1 extends Vec> List<List<? extends VecPaired<V0, Double>>> allNearestNeighbors(final VectorCollection<V0> collection, final V1[] search, final int k, final ExecutorService threadpool)
              throws InterruptedException, ExecutionException
     {
         return allNearestNeighbors(collection, Arrays.asList(search), k, threadpool);
@@ -112,11 +115,12 @@ public class VectorCollectionUtils
      * @param k the nearest neighbor to use
      * @return the statistics for the distance of the k'th nearest neighbor from the query point
      */
-    public static <V0 extends Vec, V1 extends Vec> OnLineStatistics getKthNeighborStats(VectorCollection<V0> collection, List<V1> search, int k)
+    public static <V0 extends Vec, V1 extends Vec> OnLineStatistics getKthNeighborStats(final VectorCollection<V0> collection, final List<V1> search, final int k)
     {
-        OnLineStatistics stats = new OnLineStatistics();
-        for(Vec v : search)
-            stats.add(collection.search(v, k).get(k-1).getPair());
+        final OnLineStatistics stats = new OnLineStatistics();
+        for(final Vec v : search) {
+          stats.add(collection.search(v, k).get(k-1).getPair());
+        }
         
         return stats;
     }
@@ -131,7 +135,7 @@ public class VectorCollectionUtils
      * @param k the nearest neighbor to use
      * @return the statistics for the distance of the k'th nearest neighbor from the query point
      */
-    public static <V0 extends Vec, V1 extends Vec> OnLineStatistics getKthNeighborStats(VectorCollection<V0> collection, V1[] search, int k)
+    public static <V0 extends Vec, V1 extends Vec> OnLineStatistics getKthNeighborStats(final VectorCollection<V0> collection, final V1[] search, final int k)
     {
         return getKthNeighborStats(collection, Arrays.asList(search), k);
     }
@@ -147,21 +151,23 @@ public class VectorCollectionUtils
      * @param threadpool the source of threads to perform the computation in parallel 
      * @return the statistics for the distance of the k'th nearest neighbor from the query point
      */
-    public static <V0 extends Vec, V1 extends Vec> OnLineStatistics getKthNeighborStats(final VectorCollection<V0> collection, List<V1> search, final int k, ExecutorService threadpool)
+    public static <V0 extends Vec, V1 extends Vec> OnLineStatistics getKthNeighborStats(final VectorCollection<V0> collection, final List<V1> search, final int k, final ExecutorService threadpool)
             throws InterruptedException, ExecutionException
     {
-        List<Future<OnLineStatistics>> futureStats = new ArrayList<Future<OnLineStatistics>>(LogicalCores);
+        final List<Future<OnLineStatistics>> futureStats = new ArrayList<Future<OnLineStatistics>>(LogicalCores);
         
         for(final List<V1> subSearch : ListUtils.splitList(search, LogicalCores))
         {
             futureStats.add(threadpool.submit(new Callable<OnLineStatistics>() {
 
+                @Override
                 public OnLineStatistics call() throws Exception
                 {
-                    OnLineStatistics stats = new OnLineStatistics();
+                    final OnLineStatistics stats = new OnLineStatistics();
                     
-                    for(Vec v: subSearch)
-                        stats.add(collection.search(v, k).get(k-1).getPair());
+                    for(final Vec v: subSearch) {
+                      stats.add(collection.search(v, k).get(k-1).getPair());
+                    }
                     
                     return stats;
                 }
@@ -169,8 +175,9 @@ public class VectorCollectionUtils
         }
 
         OnLineStatistics stats = new OnLineStatistics();
-        for (OnLineStatistics subResult : ListUtils.collectFutures(futureStats))
-            stats = OnLineStatistics.add(stats, subResult);
+        for (final OnLineStatistics subResult : ListUtils.collectFutures(futureStats)) {
+          stats = OnLineStatistics.add(stats, subResult);
+        }
 
         return stats;
     }
@@ -186,7 +193,7 @@ public class VectorCollectionUtils
      * @param threadpool the source of threads to perform the computation in parallel 
      * @return the statistics for the distance of the k'th nearest neighbor from the query point
      */
-    public static <V0 extends Vec, V1 extends Vec> OnLineStatistics getKthNeighborStats(final VectorCollection<V0> collection, V1[] search, final int k, ExecutorService threadpool)
+    public static <V0 extends Vec, V1 extends Vec> OnLineStatistics getKthNeighborStats(final VectorCollection<V0> collection, final V1[] search, final int k, final ExecutorService threadpool)
             throws InterruptedException, ExecutionException
     {
         return getKthNeighborStats(collection, Arrays.asList(search), k, threadpool);

@@ -91,13 +91,13 @@ public abstract class StochasticSTLinearL1 implements Classifier, Regressor, Par
         SQUARED
         {
             @Override
-            public double loss(double a, double y)
+            public double loss(final double a, final double y)
             {
                 return 0.5*Math.pow(a-y, 2);
             }
             
             @Override
-            public double deriv(double a, double y)
+            public double deriv(final double a, final double y)
             {
                 return a-y;
             }
@@ -111,14 +111,15 @@ public abstract class StochasticSTLinearL1 implements Classifier, Regressor, Par
             @Override
             public CategoricalResults classify(double a)
             {
-                CategoricalResults cr = new CategoricalResults(2);
+                final CategoricalResults cr = new CategoricalResults(2);
                 
                 a = (a+1)/2;
                 
-                if(a > 1)
-                    a = 1;
-                else if(a < 0)
-                    a = 0;
+                if(a > 1) {
+                  a = 1;
+                } else if(a < 0) {
+                  a = 0;
+                }
                 
                 cr.setProb(1, a);
                 cr.setProb(0, 1-a);
@@ -127,7 +128,7 @@ public abstract class StochasticSTLinearL1 implements Classifier, Regressor, Par
             }
             
             @Override
-            public double regress(double a)
+            public double regress(final double a)
             {
                 return a;
             }
@@ -136,13 +137,13 @@ public abstract class StochasticSTLinearL1 implements Classifier, Regressor, Par
         LOG
         {
             @Override
-            public double loss(double a, double y)
+            public double loss(final double a, final double y)
             {
                 return 1+Math.exp(-y*a);
             }
             
             @Override
-            public double deriv(double a, double y)
+            public double deriv(final double a, final double y)
             {
                 return -y/(1+Math.exp(a*y));
             }
@@ -154,9 +155,9 @@ public abstract class StochasticSTLinearL1 implements Classifier, Regressor, Par
             }
             
             @Override
-            public CategoricalResults classify(double a)
+            public CategoricalResults classify(final double a)
             {
-                CategoricalResults cr = new CategoricalResults(2);
+                final CategoricalResults cr = new CategoricalResults(2);
                 cr.setProb(1, regress(a));
                 cr.setProb(0, 1.0-cr.getProb(1));
 
@@ -164,7 +165,7 @@ public abstract class StochasticSTLinearL1 implements Classifier, Regressor, Par
             }
             
             @Override
-            public double regress(double a)
+            public double regress(final double a)
             {
                 return 1/(1+Math.exp(-a));
             }
@@ -211,10 +212,11 @@ public abstract class StochasticSTLinearL1 implements Classifier, Regressor, Par
      * Sets the number of iterations of training that will be performed. 
      * @param epochs the number of iterations
      */
-    public void setEpochs(int epochs)
+    public void setEpochs(final int epochs)
     {
-        if(epochs < 1)
-            throw new ArithmeticException("A positive amount of iterations must be performed");
+        if(epochs < 1) {
+          throw new ArithmeticException("A positive amount of iterations must be performed");
+        }
         this.epochs = epochs;
     }
 
@@ -232,14 +234,15 @@ public abstract class StochasticSTLinearL1 implements Classifier, Regressor, Par
      * value can be no greater than 1. 
      * @param maxFeature the maximum feature value after scaling
      */
-    public void setMaxScaled(double maxFeature)
+    public void setMaxScaled(final double maxFeature)
     {
-        if(Double.isNaN(maxFeature))
-            throw new ArithmeticException("NaN is not a valid feature value");
-        else if(maxFeature > 1)
-            throw new ArithmeticException("Maximum possible feature value is 1, can not use " + maxFeature);
-        else if(maxFeature <= minScaled)
-            throw new ArithmeticException("Maximum feature value must be learger than the minimum");
+        if(Double.isNaN(maxFeature)) {
+          throw new ArithmeticException("NaN is not a valid feature value");
+        } else if(maxFeature > 1) {
+          throw new ArithmeticException("Maximum possible feature value is 1, can not use " + maxFeature);
+        } else if(maxFeature <= minScaled) {
+          throw new ArithmeticException("Maximum feature value must be learger than the minimum");
+        }
         this.maxScaled = maxFeature;
     }
 
@@ -257,14 +260,15 @@ public abstract class StochasticSTLinearL1 implements Classifier, Regressor, Par
      * value can be no smaller than -1
      * @param minFeature the minimum feature value after scaling
      */
-    public void setMinScaled(double minFeature)
+    public void setMinScaled(final double minFeature)
     {
-        if(Double.isNaN(minFeature))
-            throw new ArithmeticException("NaN is not a valid feature value");
-        else if(minFeature < -1)
-            throw new ArithmeticException("Minimum possible feature value is -1, can not use " + minFeature);
-        else if(minFeature >= maxScaled)
-            throw new ArithmeticException("Minimum feature value must be smaller than the maximum");
+        if(Double.isNaN(minFeature)) {
+          throw new ArithmeticException("NaN is not a valid feature value");
+        } else if(minFeature < -1) {
+          throw new ArithmeticException("Minimum possible feature value is -1, can not use " + minFeature);
+        } else if(minFeature >= maxScaled) {
+          throw new ArithmeticException("Minimum feature value must be smaller than the maximum");
+        }
         this.minScaled = minFeature;
     }
 
@@ -285,10 +289,11 @@ public abstract class StochasticSTLinearL1 implements Classifier, Regressor, Par
      * 
      * @param lambda the regularization to apply
      */
-    public void setLambda(double lambda)
+    public void setLambda(final double lambda)
     {
-        if(Double.isInfinite(lambda) || Double.isNaN(lambda) || lambda <= 0)
-            throw new ArithmeticException("A positive amount of regularization must be performed");
+        if(Double.isInfinite(lambda) || Double.isNaN(lambda) || lambda <= 0) {
+          throw new ArithmeticException("A positive amount of regularization must be performed");
+        }
         this.lambda = lambda;
     }
 
@@ -306,7 +311,7 @@ public abstract class StochasticSTLinearL1 implements Classifier, Regressor, Par
      * unless the leaner is going to be trained again. 
      * @param loss the loss function to use
      */
-    public void setLoss(Loss loss)
+    public void setLoss(final Loss loss)
     {
         this.loss = loss;
     }
@@ -328,7 +333,7 @@ public abstract class StochasticSTLinearL1 implements Classifier, Regressor, Par
      * <br> Rescaling does not alter the data points passed in. 
      * @param reScale whether or not to rescale feature values
      */
-    public void setReScale(boolean reScale)
+    public void setReScale(final boolean reScale)
     {
         this.reScale = reScale;
     }
@@ -349,7 +354,7 @@ public abstract class StochasticSTLinearL1 implements Classifier, Regressor, Par
      * @param x the value to compute the dot product with
      * @return the dot produce of w and x with the bias term
      */
-    protected double wDot(Vec x)
+    protected double wDot(final Vec x)
     {
         double a;
         if (reScale)
@@ -357,9 +362,9 @@ public abstract class StochasticSTLinearL1 implements Classifier, Regressor, Par
             a = bias;
             if(!w.isSparse())//w is dense, jsut iterate over x
             {
-                for(IndexValue iv : x)
+                for(final IndexValue iv : x)
                 {
-                    int j = iv.getIndex();
+                    final int j = iv.getIndex();
                     double xV = iv.getValue() - obvMin[j];
                     xV *= (maxScaled - minScaled) / (obvMax[j] - obvMin[j]);
                     xV += minScaled;
@@ -368,12 +373,13 @@ public abstract class StochasticSTLinearL1 implements Classifier, Regressor, Par
                 return a;
             }
             //Compute the dot and rescale w/o extra spacein a sprase freindly way
-            Iterator<IndexValue> wIter = w.getNonZeroIterator();
-            Iterator<IndexValue> xIter = x.getNonZeroIterator();
+            final Iterator<IndexValue> wIter = w.getNonZeroIterator();
+            final Iterator<IndexValue> xIter = x.getNonZeroIterator();
             
 
-            if(!wIter.hasNext() || !xIter.hasNext())
-                return a;
+            if(!wIter.hasNext() || !xIter.hasNext()) {
+              return a;
+            }
 
             IndexValue wIV = wIter.next();
             IndexValue xIV = xIter.next();
@@ -381,33 +387,38 @@ public abstract class StochasticSTLinearL1 implements Classifier, Regressor, Par
             {
                 if (wIV.getIndex() == xIV.getIndex())
                 {
-                    int j = xIV.getIndex();
+                    final int j = xIV.getIndex();
                     double xV = xIV.getValue() - obvMin[j];
                     xV *= (maxScaled - minScaled) / (obvMax[j] - obvMin[j]);
                     xV += minScaled;
                     //Scaled, now add to result
                     a += wIV.getValue() * xV;
 
-                    if (!wIter.hasNext() || !xIter.hasNext())
-                        break;
+                    if (!wIter.hasNext() || !xIter.hasNext()) {
+                      break;
+                    }
                     wIV = wIter.next();
                     xIV = xIter.next();
                 }
-                else if (wIV.getIndex() < xIV.getIndex())
-                    if (wIter.hasNext())
-                        wIV = wIter.next();
-                    else
-                        break;
-                else if (wIV.getIndex() > xIV.getIndex())
-                    if (xIter.hasNext())
-                        xIV = xIter.next();
-                    else
-                        break;
+                else if (wIV.getIndex() < xIV.getIndex()) {
+                  if (wIter.hasNext()) {
+                    wIV = wIter.next();
+                  } else {
+                    break;
+                  }
+                } else if (wIV.getIndex() > xIV.getIndex()) {
+                  if (xIter.hasNext()) {
+                    xIV = xIter.next();
+                  } else {
+                    break;
+                  }
+                }
             }
             while (wIV != null && xIV != null);
         }
-        else
-            a = w.dot(x) + bias;
+        else {
+          a = w.dot(x) + bias;
+        }
         return a;
     }
     
@@ -428,10 +439,11 @@ public abstract class StochasticSTLinearL1 implements Classifier, Regressor, Par
      */
     public Vec getW()
     {
-        if(w == null)
-            return w;
-        else
-            return w.clone();
+        if(w == null) {
+          return w;
+        } else {
+          return w.clone();
+        }
     }
 
     @Override
@@ -447,21 +459,23 @@ public abstract class StochasticSTLinearL1 implements Classifier, Regressor, Par
     }
     
     @Override
-    public Vec getRawWeight(int index)
+    public Vec getRawWeight(final int index)
     {
-        if(index < 1)
-            return getRawWeight();
-        else
-            throw new IndexOutOfBoundsException("Model has only 1 weight vector");
+        if(index < 1) {
+          return getRawWeight();
+        } else {
+          throw new IndexOutOfBoundsException("Model has only 1 weight vector");
+        }
     }
 
     @Override
-    public double getBias(int index)
+    public double getBias(final int index)
     {
-        if (index < 1)
-            return getBias();
-        else
-            throw new IndexOutOfBoundsException("Model has only 1 weight vector");
+        if (index < 1) {
+          return getBias();
+        } else {
+          throw new IndexOutOfBoundsException("Model has only 1 weight vector");
+        }
     }
 
     @Override
@@ -477,7 +491,7 @@ public abstract class StochasticSTLinearL1 implements Classifier, Regressor, Par
     }
 
     @Override
-    public Parameter getParameter(String paramName)
+    public Parameter getParameter(final String paramName)
     {
         return Parameter.toParameterMap(getParameters()).get(paramName);
     }

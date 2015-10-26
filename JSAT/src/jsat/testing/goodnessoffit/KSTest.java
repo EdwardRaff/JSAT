@@ -23,7 +23,7 @@ public class KSTest
      * 
      * @param v the date to be one of the samples
      */
-    public KSTest(Vec v)
+    public KSTest(final Vec v)
     {
         this.v = v.sortedCopy();
     }
@@ -33,7 +33,7 @@ public class KSTest
      * Change the original sample to <tt>v</tt>
      * @param v the new original sample. 
      */
-    public void setBaseData(Vec v)
+    public void setBaseData(final Vec v)
     {
         this.v = v;
     }
@@ -46,7 +46,7 @@ public class KSTest
      * @param cd the distribution to compare against
      * @return the max difference between the empirical CDF and the 'true' CDF of the given distribution
      */
-    protected double dCalc(ContinuousDistribution cd)
+    protected double dCalc(final ContinuousDistribution cd)
     {
         double max = 0;
         
@@ -55,7 +55,7 @@ public class KSTest
             //ECDF(x) - F(x)
             if(v.get(i) >= cd.min() && v.get(i) <= cd.max() )
             {
-                double tmp = (i+1.0)/v.length() - cd.cdf(v.get(i));
+                final double tmp = (i+1.0)/v.length() - cd.cdf(v.get(i));
                 max = Math.max(max, Math.abs(tmp));
             }
             else//The data dose not fit in the rang eof the distribution
@@ -68,17 +68,18 @@ public class KSTest
         return max;
     }
     
-    private static double ECDF(Vec s, double x)
+    private static double ECDF(final Vec s, final double x)
     {
         int min = 0;
         int max = s.length()-1;
-        int mid = (min+max) /2;
+        final int mid = (min+max) /2;
         do
         {
-            if(x > s.get(mid))
-                min = mid+1;
-            else
-                max = mid-1;
+            if(x > s.get(mid)) {
+              min = mid+1;
+            } else {
+              max = mid-1;
+            }
         }
         while(s.get(mid) != x && min <= max);
         
@@ -90,21 +91,21 @@ public class KSTest
      * @param o the other data set
      * @return the max difrence in empirical CDF of the distributions.
      */
-    protected double dCaldO(Vec o)
+    protected double dCaldO(final Vec o)
     {
         double max = 0;
         
         for(int i = 0; i < v.length(); i++)
         {
             //ECDF(x) - F(x)
-            double tmp = (i+1.0)/v.length() - ECDF(o, v.get(i));
+            final double tmp = (i+1.0)/v.length() - ECDF(o, v.get(i));
             max = Math.max(max, Math.abs(tmp));
         }
         
         for(int i = 0; i < o.length(); i++)
         {
             //ECDF(x) - F(x)
-            double tmp = (i+1.0)/o.length() - ECDF(v, o.get(i));
+            final double tmp = (i+1.0)/o.length() - ECDF(v, o.get(i));
             max = Math.max(max, Math.abs(tmp));
         }
         
@@ -120,10 +121,10 @@ public class KSTest
      * @param cd the distribution to compare against
      * @return the p-value of the test against this distribution
      */
-    public double testDist(ContinuousDistribution cd)
+    public double testDist(final ContinuousDistribution cd)
     {
-        double d = dCalc(cd);
-        double n = v.length();
+        final double d = dCalc(cd);
+        final double n = v.length();
         
         return pValue(n, d);
     }
@@ -135,15 +136,15 @@ public class KSTest
      * @param data the other distribution to compare against
      * @return the p-value of the test against this data set
      */
-    public double testData(Vec data)
+    public double testData(final Vec data)
     {
-        double d = dCaldO(data);
-        double n = v.length()*data.length() / ((double) v.length() +data.length());
+        final double d = dCaldO(data);
+        final double n = v.length()*data.length() / ((double) v.length() +data.length());
         
         return pValue(n, d);
     }
     
-    private double pValue(double n, double d)
+    private double pValue(final double n, final double d)
     {
         return 1 - k.cdf( (Math.sqrt(n) + 0.12 + 0.11/Math.sqrt(n)) * d);
     }

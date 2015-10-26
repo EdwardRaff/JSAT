@@ -37,7 +37,7 @@ public class ConcatenatedVecTest
     @Before
     public void setUp()
     {
-        List<Vec> vecs = new ArrayList<Vec>();
+        final List<Vec> vecs = new ArrayList<Vec>();
         vecs.add(DenseVector.toDenseVec(0, 1, 2));
         vecs.add(DenseVector.toDenseVec(3, 4, 5));
         vecs.add(DenseVector.toDenseVec(6, 7, 8));
@@ -70,15 +70,16 @@ public class ConcatenatedVecTest
     public void testGet()
     {
         System.out.println("get");
-        for(int i = 0; i < dvec.length(); i++)
-            assertEquals(dvec.get(i), cvec.get(i), 0.0);
+        for(int i = 0; i < dvec.length(); i++) {
+          assertEquals(dvec.get(i), cvec.get(i), 0.0);
+        }
         
         try
         {
             cvec.get(cvec.length());
             fail("Index out of bounds should have occured");
         }
-        catch( IndexOutOfBoundsException ex)
+        catch( final IndexOutOfBoundsException ex)
         {
             //good, that was supposed to happen
         }
@@ -91,16 +92,17 @@ public class ConcatenatedVecTest
     public void testSet()
     {
         System.out.println("set");
-        Random rand = new Random();
+        final Random rand = new Random();
         for(int i = 0; i < dvec.length(); i++)
         {
-            double nv = rand.nextDouble();
+            final double nv = rand.nextDouble();
             dvec.set(i, nv);
             cvec.set(i, nv);
         }
         
-        for(int i = 0; i < dvec.length(); i++)
-            assertEquals(dvec.get(i), cvec.get(i), 0.0);
+        for(int i = 0; i < dvec.length(); i++) {
+          assertEquals(dvec.get(i), cvec.get(i), 0.0);
+        }
     }
     
     @Test
@@ -108,8 +110,9 @@ public class ConcatenatedVecTest
     {
         System.out.println("mutableAdd");
         cvec.mutableAdd(-1, dvec);
-        for(int i = 0; i < dvec.length(); i++)
-            assertEquals(0.0, cvec.get(i), 0.0);
+        for(int i = 0; i < dvec.length(); i++) {
+          assertEquals(0.0, cvec.get(i), 0.0);
+        }
     }
     
     @Test
@@ -118,15 +121,15 @@ public class ConcatenatedVecTest
         System.out.println("getNonZeroIterator");
         for(int i = 0; i < dvec.length(); i++)
         {
-            Iterator<IndexValue> diter = dvec.getNonZeroIterator(i);
-            Iterator<IndexValue> citer = cvec.getNonZeroIterator(i);
+            final Iterator<IndexValue> diter = dvec.getNonZeroIterator(i);
+            final Iterator<IndexValue> citer = cvec.getNonZeroIterator(i);
             
             assertTrue(diter.hasNext() == citer.hasNext());
             
             while(diter.hasNext())
             {
-                IndexValue dIV = diter.next();
-                IndexValue cIV = citer.next();
+                final IndexValue dIV = diter.next();
+                final IndexValue cIV = citer.next();
                 
                 assertEquals(dIV.getIndex(), cIV.getIndex());
                 assertEquals(dIV.getValue(), cIV.getValue(), 0.0);
@@ -154,12 +157,14 @@ public class ConcatenatedVecTest
     public void testClone()
     {
         System.out.println("clone");
-        ConcatenatedVec cloned = cvec.clone();
+        final ConcatenatedVec cloned = cvec.clone();
         cvec.mutableAdd(-1, dvec);
-        for(int i = 0; i < dvec.length(); i++)
-            assertEquals(0.0, cvec.get(i), 0.0);
+        for(int i = 0; i < dvec.length(); i++) {
+          assertEquals(0.0, cvec.get(i), 0.0);
+        }
         
-        for(int i = 0; i < dvec.length(); i++)
-            assertEquals(dvec.get(i), cloned.get(i), 0.0);
+        for(int i = 0; i < dvec.length(); i++) {
+          assertEquals(dvec.get(i), cloned.get(i), 0.0);
+        }
     }
 }

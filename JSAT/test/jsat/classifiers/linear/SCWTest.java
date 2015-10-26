@@ -47,17 +47,18 @@ public class SCWTest
     public void testTrainC_Full()
     {
         System.out.println("TrainC_Full");
-        ClassificationDataSet train = FixedProblems.get2ClassLinear(200, new Random());
+        final ClassificationDataSet train = FixedProblems.get2ClassLinear(200, new Random());
      
-        ClassificationDataSet test = FixedProblems.get2ClassLinear(200, new Random());
+        final ClassificationDataSet test = FixedProblems.get2ClassLinear(200, new Random());
 
-        for (SCW.Mode mode : SCW.Mode.values())
+        for (final SCW.Mode mode : SCW.Mode.values())
         {   
-            SCW scwFull = new SCW(0.9, mode, false);
+            final SCW scwFull = new SCW(0.9, mode, false);
             scwFull.trainC(train);
             
-            for (DataPointPair<Integer> dpp : test.getAsDPPList())
-                assertEquals(dpp.getPair().longValue(), scwFull.classify(dpp.getDataPoint()).mostLikely());
+            for (final DataPointPair<Integer> dpp : test.getAsDPPList()) {
+              assertEquals(dpp.getPair().longValue(), scwFull.classify(dpp.getDataPoint()).mostLikely());
+            }
         }
     }
     
@@ -65,17 +66,18 @@ public class SCWTest
     public void testTrainC_Diag()
     {
         System.out.println("TrainC_Diag");
-        ClassificationDataSet train = FixedProblems.get2ClassLinear(200, new Random());
+        final ClassificationDataSet train = FixedProblems.get2ClassLinear(200, new Random());
      
-        ClassificationDataSet test = FixedProblems.get2ClassLinear(200, new Random());
+        final ClassificationDataSet test = FixedProblems.get2ClassLinear(200, new Random());
 
-        for (SCW.Mode mode : SCW.Mode.values())
+        for (final SCW.Mode mode : SCW.Mode.values())
         {   
-            SCW scwDiag = new SCW(0.9, mode, true);
+            final SCW scwDiag = new SCW(0.9, mode, true);
             scwDiag.trainC(train);
             
-            for (DataPointPair<Integer> dpp : test.getAsDPPList())
-                assertEquals(dpp.getPair().longValue(), scwDiag.classify(dpp.getDataPoint()).mostLikely());
+            for (final DataPointPair<Integer> dpp : test.getAsDPPList()) {
+              assertEquals(dpp.getPair().longValue(), scwDiag.classify(dpp.getDataPoint()).mostLikely());
+            }
         }
     }
 }

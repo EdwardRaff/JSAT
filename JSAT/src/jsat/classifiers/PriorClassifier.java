@@ -28,31 +28,33 @@ public class PriorClassifier implements Classifier
      * 
      * @param cr the prior probabilities for classification
      */
-    public PriorClassifier(CategoricalResults cr)
+    public PriorClassifier(final CategoricalResults cr)
     {
         this.cr = cr;
     }
 
     @Override
-    public CategoricalResults classify(DataPoint data)
+    public CategoricalResults classify(final DataPoint data)
     {
-        if(cr == null)
-            throw new UntrainedModelException("PriorClassifier has not been trained");
+        if(cr == null) {
+          throw new UntrainedModelException("PriorClassifier has not been trained");
+        }
         return cr;
     }
 
     @Override
-    public void trainC(ClassificationDataSet dataSet, ExecutorService threadPool)
+    public void trainC(final ClassificationDataSet dataSet, final ExecutorService threadPool)
     {
         trainC(dataSet);
     }
 
     @Override
-    public void trainC(ClassificationDataSet dataSet)
+    public void trainC(final ClassificationDataSet dataSet)
     {
         cr = new CategoricalResults(dataSet.getPredicting().getNumOfCategories());
-        for(int i = 0; i < dataSet.getSampleSize(); i++)
-            cr.incProb(dataSet.getDataPointCategory(i), dataSet.getDataPoint(i).getWeight());
+        for(int i = 0; i < dataSet.getSampleSize(); i++) {
+          cr.incProb(dataSet.getDataPointCategory(i), dataSet.getDataPoint(i).getWeight());
+        }
         cr.normalize();
     }
 
@@ -65,9 +67,10 @@ public class PriorClassifier implements Classifier
     @Override
     public Classifier clone()
     {
-        PriorClassifier clone = new PriorClassifier();
-        if(this.cr != null)
-            clone.cr = this.cr.clone();
+        final PriorClassifier clone = new PriorClassifier();
+        if(this.cr != null) {
+          clone.cr = this.cr.clone();
+        }
         return clone;
     }
 }

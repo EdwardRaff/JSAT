@@ -36,7 +36,7 @@ public final class PoisonRunnable implements Runnable
      * Creates a new PoisonRunnable that will run the given runnable when it is called. 
      * @param lastStep the runnable to call when this runnable is finally called. 
      */
-    public PoisonRunnable(Runnable lastStep)
+    public PoisonRunnable(final Runnable lastStep)
     {
         this.lastStep = lastStep;
     }
@@ -48,7 +48,7 @@ public final class PoisonRunnable implements Runnable
      * 
      * @param latch the latch to decrement
      */
-    public PoisonRunnable(CountDownLatch latch)
+    public PoisonRunnable(final CountDownLatch latch)
     {
         this.latch = latch;
     }
@@ -59,7 +59,7 @@ public final class PoisonRunnable implements Runnable
      * method is finally called. 
      * @param barrier the barrier to wait on. 
      */
-    public PoisonRunnable(CyclicBarrier barrier)
+    public PoisonRunnable(final CyclicBarrier barrier)
     {
         this.barrier = barrier;
     }
@@ -77,18 +77,21 @@ public final class PoisonRunnable implements Runnable
     {
         try
         {
-            if(lastStep != null)
-                lastStep.run();
-            if(latch != null)
-                latch.countDown();
-            if(barrier != null)
-                barrier.await();
+            if(lastStep != null) {
+              lastStep.run();
+            }
+            if(latch != null) {
+              latch.countDown();
+            }
+            if(barrier != null) {
+              barrier.await();
+            }
         }
-        catch (InterruptedException ex)
+        catch (final InterruptedException ex)
         {
             Logger.getLogger(PoisonRunnable.class.getName()).log(Level.SEVERE, null, ex);
         }
-        catch (BrokenBarrierException ex)
+        catch (final BrokenBarrierException ex)
         {
             Logger.getLogger(PoisonRunnable.class.getName()).log(Level.SEVERE, null, ex);
         }

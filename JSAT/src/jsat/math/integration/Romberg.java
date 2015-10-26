@@ -10,17 +10,17 @@ import static java.lang.Math.*;
 public class Romberg
 {
 
-    public static double romb(Function f, double a, double b)
+    public static double romb(final Function f, final double a, final double b)
     {
         return romb(f, a, b, 20);
     }
 
-    public static double romb(Function f, double a, double b, int max)
+    public static double romb(final Function f, final double a, final double b, int max)
     {
         // see http://en.wikipedia.org/wiki/Romberg's_method
 
         max+=1;
-        double[] s = new double[max];//first index will not be used
+        final double[] s = new double[max];//first index will not be used
         double var = 0;//var is used to hold the value R(n-1,m-1), from the previous row so that 2 arrays are not needed
         double lastVal = Double.NEGATIVE_INFINITY;
         
@@ -42,9 +42,11 @@ public class Romberg
                 }
             }
 
-            if( abs(lastVal - s[k]) < 1e-15 )//there is only approximatly 15.955 accurate decimal digits in a double, this is as close as we will get
-                return s[k];
-            else lastVal = s[k];
+            if( abs(lastVal - s[k]) < 1e-15 ) {//there is only approximatly 15.955 accurate decimal digits in a double, this is as close as we will get
+              return s[k];
+            } else {
+              lastVal = s[k];
+            }
         }
 
 

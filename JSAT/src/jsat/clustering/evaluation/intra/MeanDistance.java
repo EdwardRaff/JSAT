@@ -14,7 +14,7 @@ import jsat.linear.distancemetrics.EuclideanDistance;
  */
 public class MeanDistance implements IntraClusterEvaluation
 {
-    private DistanceMetric dm;
+    private final DistanceMetric dm;
 
     /**
      * Creates a new MeanDistance using the {@link EuclideanDistance}
@@ -28,7 +28,7 @@ public class MeanDistance implements IntraClusterEvaluation
      * Creates a new MeanDistance
      * @param dm the metric to measure the distance between two points by
      */
-    public MeanDistance(DistanceMetric dm)
+    public MeanDistance(final DistanceMetric dm)
     {
         this.dm = dm;
     }
@@ -37,31 +37,36 @@ public class MeanDistance implements IntraClusterEvaluation
      * Copy constructor
      * @param toCopy the object to copy
      */
-    public MeanDistance(MeanDistance toCopy)
+    public MeanDistance(final MeanDistance toCopy)
     {
         this(toCopy.dm.clone());
     }
     
     @Override
-    public double evaluate(int[] designations, DataSet dataSet, int clusterID)
+    public double evaluate(final int[] designations, final DataSet dataSet, final int clusterID)
     {
         double distances = 0;
-        for (int i = 0; i < dataSet.getSampleSize(); i++)
-            for (int j = i + 1; j < dataSet.getSampleSize(); j++)
-                if (designations[i] == clusterID)
-                    distances += dm.dist(dataSet.getDataPoint(i).getNumericalValues(),
-                                         dataSet.getDataPoint(j).getNumericalValues());
+        for (int i = 0; i < dataSet.getSampleSize(); i++) {
+          for (int j = i + 1; j < dataSet.getSampleSize(); j++) {
+            if (designations[i] == clusterID) {
+              distances += dm.dist(dataSet.getDataPoint(i).getNumericalValues(),
+                      dataSet.getDataPoint(j).getNumericalValues());
+            }
+          }
+        }
         return distances/(dataSet.getSampleSize()*(dataSet.getSampleSize()-1));
     }
 
     @Override
-    public double evaluate(List<DataPoint> dataPoints)
+    public double evaluate(final List<DataPoint> dataPoints)
     {
         double distances = 0.0;
-        for(int i = 0; i < dataPoints.size(); i++)
-            for(int j = i+1; j < dataPoints.size(); j++ )
-                distances += dm.dist(dataPoints.get(i).getNumericalValues(),
-                                     dataPoints.get(j).getNumericalValues());
+        for(int i = 0; i < dataPoints.size(); i++) {
+          for (int j = i+1; j < dataPoints.size(); j++) {
+            distances += dm.dist(dataPoints.get(i).getNumericalValues(),
+                    dataPoints.get(j).getNumericalValues());
+          }
+        }
         
         return distances/(dataPoints.size()*(dataPoints.size()-1));
     }

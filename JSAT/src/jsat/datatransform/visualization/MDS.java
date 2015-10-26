@@ -52,19 +52,20 @@ import jsat.utils.random.XORWOW;
 public class MDS implements VisualizationTransform
 {
     private static DistanceMetric embedMetric = new EuclideanDistance();
-    private DistanceMetric dm = new EuclideanDistance();
+    private final DistanceMetric dm = new EuclideanDistance();
     private double tolerance = 1e-3;
-    private int maxIterations = 300;
+    private final int maxIterations = 300;
     private int targetSize = 2;
 
     /**
      * Sets the tolerance parameter for determining convergence. 
      * @param tolerance the tolerance for declaring convergence
      */
-    public void setTolerance(double tolerance)
+    public void setTolerance(final double tolerance)
     {
-        if(tolerance < 0 || Double.isInfinite(tolerance) || Double.isNaN(tolerance))
-            throw new IllegalArgumentException("tolerance must be a non-negative value, not " + tolerance);
+        if(tolerance < 0 || Double.isInfinite(tolerance) || Double.isNaN(tolerance)) {
+          throw new IllegalArgumentException("tolerance must be a non-negative value, not " + tolerance);
+        }
         this.tolerance = tolerance;
     }
 
@@ -86,7 +87,7 @@ public class MDS implements VisualizationTransform
      * @param embedMetric the distance metric to use when creating the
      * dissimilarity matrix.
      */
-    public void setEmbeddingMetric(DistanceMetric embedMetric)
+    public void setEmbeddingMetric(final DistanceMetric embedMetric)
     {
         this.embedMetric = embedMetric;
     }
@@ -102,13 +103,13 @@ public class MDS implements VisualizationTransform
     
     
     @Override
-    public <Type extends DataSet> Type transform(DataSet<Type> d)
+    public <Type extends DataSet> Type transform(final DataSet<Type> d)
     {
         return transform(d, new FakeExecutor());
     }
     
     @Override
-    public <Type extends DataSet> Type transform(final DataSet<Type> d, ExecutorService ex)
+    public <Type extends DataSet> Type transform(final DataSet<Type> d, final ExecutorService ex)
     {
         final List<Vec> orig_vecs = d.getDataVectors();
         final List<Double> orig_distCache = dm.getAccelerationCache(orig_vecs, ex);
@@ -118,8 +119,8 @@ public class MDS implements VisualizationTransform
         final Matrix delta = new DenseMatrix(N, N);
 
         
-        OnLineStatistics avg = new OnLineStatistics();
-        List<Future<OnLineStatistics>> futureStats = new ArrayList<Future<OnLineStatistics>>();
+        final OnLineStatistics avg = new OnLineStatistics();
+        final List<Future<OnLineStatistics>> futureStats = new ArrayList<Future<OnLineStatistics>>();
         for(int id = 0; id < SystemInfo.LogicalCores; id++)
         {
             final int ID = id;
@@ -129,12 +130,12 @@ public class MDS implements VisualizationTransform
                 @Override
                 public OnLineStatistics call() throws Exception
                 {
-                    OnLineStatistics local_avg = new OnLineStatistics();
+                    final OnLineStatistics local_avg = new OnLineStatistics();
                     for(int i = ID; i < d.getSampleSize(); i+=SystemInfo.LogicalCores)
                     {
                         for(int j = i+1; j < d.getSampleSize(); j++)
                         {
-                            double dist = dm.dist(i, j, orig_vecs, orig_distCache);
+                            final double dist = dm.dist(i, j, orig_vecs, orig_distCache);
                             local_avg.add(dist);
                             delta.set(i, j, dist);
                             delta.set(j, i, dist);
@@ -145,59 +146,62 @@ public class MDS implements VisualizationTransform
             }));
         }
         
-        for (Future<OnLineStatistics> fut : futureStats)
-            try
-            {
-                avg.add(fut.get());
-            }
-            catch (InterruptedException ex1)
-            {
-                Logger.getLogger(MDS.class.getName()).log(Level.SEVERE, null, ex1);
-            }
-            catch (ExecutionException ex1)
-            {
-                Logger.getLogger(MDS.class.getName()).log(Level.SEVERE, null, ex1);
-            }
+        for (final Future<OnLineStatistics> fut : futureStats) {
+          try
+          {
+            avg.add(fut.get());
+          }
+          catch (final InterruptedException ex1)
+          {
+            Logger.getLogger(MDS.class.getName()).log(Level.SEVERE, null, ex1);
+          }
+          catch (final ExecutionException ex1)
+          {
+            Logger.getLogger(MDS.class.getName()).log(Level.SEVERE, null, ex1);
+          }
+        }
 
 
-        SimpleDataSet embeded = transform(delta, ex);
+        final SimpleDataSet embeded = transform(delta, ex);
 
         //place the solution in a dataset of the correct type
-        DataSet<Type> transformed = d.shallowClone();
+        final DataSet<Type> transformed = d.shallowClone();
         transformed.replaceNumericFeatures(embeded.getDataVectors());
         return (Type) transformed;
     }
 
-    public SimpleDataSet transform(Matrix delta)
+    public SimpleDataSet transform(final Matrix delta)
     {
         return transform(delta, new FakeExecutor());
     }
     
-    public SimpleDataSet transform(final Matrix delta, ExecutorService ex)
+    public SimpleDataSet transform(final Matrix delta, final ExecutorService ex)
     {
         final int N = delta.rows();
-        Random rand = new XORWOW();
+        final Random rand = new XORWOW();
         
         final Matrix X = new DenseMatrix(N, targetSize);
         final List<Vec> X_views = new ArrayList<Vec>();
         for(int i = 0; i < N; i++)
         {
-            for(int j = 0; j < targetSize; j++)
-                X.set(i, j, rand.nextDouble());
+            for(int j = 0; j < targetSize; j++) {
+              X.set(i, j, rand.nextDouble());
+            }
             X_views.add(X.getRowView(i));
         }
         final List<Double> X_rowCache = embedMetric.getAccelerationCache(X_views, ex);
         
         //TODO, special case solution when all weights are the same, want to add general case as well
-        Matrix V_inv = new DenseMatrix(N, N);
-        for(int i = 0; i < N; i++)
-            for(int j = 0; j < N; j++)
-            {
-                if(i == j)
-                    V_inv.set(i, j, (1.0-1.0/N)/N);
-                else
-                    V_inv.set(i, j, (0.0-1.0/N)/N);
+        final Matrix V_inv = new DenseMatrix(N, N);
+        for(int i = 0; i < N; i++) {
+          for (int j = 0; j < N; j++) {
+            if (i == j) {
+              V_inv.set(i, j, (1.0-1.0/N)/N);
+            } else {
+              V_inv.set(i, j, (0.0-1.0/N)/N);
             }
+          }
+        }
         
         double stressChange = Double.POSITIVE_INFINITY;
         double oldStress = stress(X_views, X_rowCache, delta, ex);
@@ -221,23 +225,24 @@ public class MDS implements VisualizationTransform
                     public void run()
                     {
                         //we need to set B correctly
-                        for (int i = ID; i < B.rows(); i += SystemInfo.LogicalCores)
-                            for (int j = i + 1; j < B.rows(); j++)
+                        for (int i = ID; i < B.rows(); i += SystemInfo.LogicalCores) {
+                          for (int j = i + 1; j < B.rows(); j++)
+                          {
+                            final double d_ij = embedMetric.dist(i, j, X_views, X_rowCache);
+                            
+                            if(d_ij > 1e-5)//avoid creating silly huge values
                             {
-                                double d_ij = embedMetric.dist(i, j, X_views, X_rowCache);
-
-                                if(d_ij > 1e-5)//avoid creating silly huge values
-                                {
-                                    double b_ij = -delta.get(i, j)/d_ij;//-w_ij if we support weights in the future
-                                    B.set(i, j, b_ij);
-                                    B.set(j, i, b_ij);
-                                }
-                                else
-                                {
-                                    B.set(i, j, 0);
-                                    B.set(j, i, 0);
-                                }
+                              final double b_ij = -delta.get(i, j)/d_ij;//-w_ij if we support weights in the future
+                              B.set(i, j, b_ij);
+                              B.set(j, i, b_ij);
                             }
+                            else
+                            {
+                              B.set(i, j, 0);
+                              B.set(j, i, 0);
+                            }
+                          }
+                        }
                         latch.countDown();
                     }
                 });
@@ -248,7 +253,7 @@ public class MDS implements VisualizationTransform
             {
                 latch.await();
             }
-            catch (InterruptedException ex1)
+            catch (final InterruptedException ex1)
             {
                 Logger.getLogger(MDS.class.getName()).log(Level.SEVERE, null, ex1);
             }
@@ -257,9 +262,11 @@ public class MDS implements VisualizationTransform
             for(int i = 0; i < B.rows(); i++)
             {   
                 B.set(i, i, 0);
-                for (int k = 0; k < B.cols(); k++)
-                    if (k != i)
-                        B.increment(i, i, -B.get(i, k));
+                for (int k = 0; k < B.cols(); k++) {
+                  if (k != i) {
+                    B.increment(i, i, -B.get(i, k));
+                  }
+                }
             }
             
 //            Matrix X_new = V_inv.multiply(B, ex).multiply(X, ex);
@@ -271,18 +278,19 @@ public class MDS implements VisualizationTransform
             X_rowCache.clear();
             X_rowCache.addAll(embedMetric.getAccelerationCache(X_views, ex));
             
-            double newStress = stress(X_views, X_rowCache, delta, ex);
+            final double newStress = stress(X_views, X_rowCache, delta, ex);
             stressChange = Math.abs(oldStress-newStress);
             oldStress = newStress;
         }
         
-        SimpleDataSet sds = new SimpleDataSet(new CategoricalData[0], targetSize);
-        for(Vec v : X_views)
-            sds.add(new DataPoint(v));
+        final SimpleDataSet sds = new SimpleDataSet(new CategoricalData[0], targetSize);
+        for(final Vec v : X_views) {
+          sds.add(new DataPoint(v));
+        }
         return sds;
     }
     
-    private static double stress(final List<Vec> X_views, final List<Double> X_rowCache, final Matrix delta, ExecutorService ex)
+    private static double stress(final List<Vec> X_views, final List<Double> X_rowCache, final Matrix delta, final ExecutorService ex)
     {
         final AtomicDouble stress = new AtomicDouble(0);
         final CountDownLatch latch = new CountDownLatch(SystemInfo.LogicalCores);
@@ -302,7 +310,7 @@ public class MDS implements VisualizationTransform
 
                         for(int j = i+1; j < delta.rows(); j++)
                         {
-                            double tmp = embedMetric.dist(i, j, X_views, X_rowCache)-delta.get(i, j);
+                            final double tmp = embedMetric.dist(i, j, X_views, X_rowCache)-delta.get(i, j);
                             localStress += tmp*tmp;
                         }
                     }
@@ -318,7 +326,7 @@ public class MDS implements VisualizationTransform
         {
             latch.await();
         }
-        catch (InterruptedException ex1)
+        catch (final InterruptedException ex1)
         {
             Logger.getLogger(MDS.class.getName()).log(Level.SEVERE, null, ex1);
         }
@@ -333,10 +341,11 @@ public class MDS implements VisualizationTransform
     }
 
     @Override
-    public boolean setTargetDimension(int target)
+    public boolean setTargetDimension(final int target)
     {
-        if(target < 1)
-            return false;
+        if(target < 1) {
+          return false;
+        }
         this.targetSize = target;
         return true;
     }

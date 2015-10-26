@@ -26,11 +26,11 @@ public class GoldenSearch
      * @param args the array of variable values for the function, one of which will be altered in the search
      * @return the value of variable {@code pos} that produces the local minima
      */
-    public static double minimize(double eps, int maxIterations, double a, double b, int pos, Function f, double... args)
+    public static double minimize(final double eps, final int maxIterations, double a, double b, final int pos, final Function f, final double... args)
     {
         if (a > b)
         {
-            double tmp = b;
+            final double tmp = b;
             b = a;
             a = tmp;
         }

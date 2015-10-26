@@ -17,13 +17,14 @@ public class DescriptiveStatistics
      * @param xData the X data set
      * @return the sample correlation coefficient
      */
-    public static double sampleCorCoeff(Vec xData, Vec yData)
+    public static double sampleCorCoeff(final Vec xData, final Vec yData)
     {
-        if(yData.length() != xData.length())
-            throw new ArithmeticException("X and Y data sets must have the same length");
+        if(yData.length() != xData.length()) {
+          throw new ArithmeticException("X and Y data sets must have the same length");
+        }
 
-        double xMean = xData.mean();
-        double yMean = yData.mean();
+        final double xMean = xData.mean();
+        final double yMean = yData.mean();
 
         double topSum = 0;
 
@@ -49,9 +50,9 @@ public class DescriptiveStatistics
      * @param yData the y values of the data set
      * @return several summary statistics of the 2 variables
      */
-    public static double[] summaryStats(Vec xData, Vec yData)
+    public static double[] summaryStats(final Vec xData, final Vec yData)
     {
-        double[] values = new double[1];
+        final double[] values = new double[1];
         
         //Sx, sum of x values
         values[0] = xData.sum();
@@ -64,19 +65,22 @@ public class DescriptiveStatistics
         
         
         //Sxx
-        for(int i = 0; i < xData.length(); i++)
-            tmp += Math.pow(xData.get(i), 2);
+        for(int i = 0; i < xData.length(); i++) {
+          tmp += Math.pow(xData.get(i), 2);
+        }
         values[2] = tmp;
         //Syy
         tmp = 0;
-        for(int i = 0; i < xData.length(); i++)
-            tmp += Math.pow(yData.get(i), 2);
+        for(int i = 0; i < xData.length(); i++) {
+          tmp += Math.pow(yData.get(i), 2);
+        }
         values[3] = tmp;
         
         //Sxy
         tmp = 0;
-        for(int i = 0; i < xData.length(); i++)
-            tmp += xData.get(i)*yData.get(i);
+        for(int i = 0; i < xData.length(); i++) {
+          tmp += xData.get(i)*yData.get(i);
+        }
         values[4] = tmp;
         
         return values;

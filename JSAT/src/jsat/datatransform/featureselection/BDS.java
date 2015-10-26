@@ -37,7 +37,7 @@ public class BDS implements DataTransform
      * 
      * @param toClone 
      */
-    public BDS(BDS toClone)
+    public BDS(final BDS toClone)
     {
         if(toClone.finalTransform != null)
         {
@@ -56,7 +56,7 @@ public class BDS implements DataTransform
      * feature subset
      * @param folds the number of cross validation folds to use in selection
      */
-    public BDS(int featureCount, ClassificationDataSet dataSet, Classifier evaluator, int folds)
+    public BDS(final int featureCount, final ClassificationDataSet dataSet, final Classifier evaluator, final int folds)
     {
         search(dataSet, featureCount, folds, evaluator);
     }
@@ -70,13 +70,13 @@ public class BDS implements DataTransform
      * feature subset
      * @param folds the number of cross validation folds to use in selection
      */
-    public BDS(int featureCount, RegressionDataSet dataSet, Regressor evaluator, int folds)
+    public BDS(final int featureCount, final RegressionDataSet dataSet, final Regressor evaluator, final int folds)
     {
         search(dataSet, featureCount, folds, evaluator);
     }
 
     @Override
-    public DataPoint transform(DataPoint dp)
+    public DataPoint transform(final DataPoint dp)
     {
         return finalTransform.transform(dp);
     }
@@ -109,53 +109,53 @@ public class BDS implements DataTransform
         return new IntSet(numSelected);
     }
 
-    private void search(DataSet dataSet, int maxFeatures, int folds, Object evaluator)
+    private void search(final DataSet dataSet, final int maxFeatures, final int folds, final Object evaluator)
     {
-        Random rand = new Random();
-        int nF = dataSet.getNumFeatures();
-        int nCat = dataSet.getNumCategoricalVars();
+        final Random rand = new Random();
+        final int nF = dataSet.getNumFeatures();
+        final int nCat = dataSet.getNumCategoricalVars();
         
         //True selected, also used for SFS
         catSelected = new IntSet(dataSet.getNumCategoricalVars());
         numSelected = new IntSet(dataSet.getNumNumericalVars());
         
         //Structs for SFS side
-        Set<Integer> availableSFS = new IntSet();
+        final Set<Integer> availableSFS = new IntSet();
         ListUtils.addRange(availableSFS, 0, nF, 1);
         
         
-        Set<Integer> catToRemoveSFS = new IntSet(dataSet.getNumCategoricalVars());
-        Set<Integer> numToRemoveSFS = new IntSet(dataSet.getNumNumericalVars());
+        final Set<Integer> catToRemoveSFS = new IntSet(dataSet.getNumCategoricalVars());
+        final Set<Integer> numToRemoveSFS = new IntSet(dataSet.getNumNumericalVars());
         ListUtils.addRange(catToRemoveSFS, 0, nCat, 1);
         ListUtils.addRange(numToRemoveSFS, 0, nF-nCat, 1);
         
         ///Structes fro SBS side
-        Set<Integer> availableSBS = new IntSet();
+        final Set<Integer> availableSBS = new IntSet();
         ListUtils.addRange(availableSBS, 0, nF, 1);
-        Set<Integer> catSelecteedSBS = new IntSet(dataSet.getNumCategoricalVars());
-        Set<Integer> numSelectedSBS = new IntSet(dataSet.getNumNumericalVars());
+        final Set<Integer> catSelecteedSBS = new IntSet(dataSet.getNumCategoricalVars());
+        final Set<Integer> numSelectedSBS = new IntSet(dataSet.getNumNumericalVars());
         
-        Set<Integer> catToRemoveSBS = new IntSet(dataSet.getNumCategoricalVars());
-        Set<Integer> numToRemoveSBS = new IntSet(dataSet.getNumNumericalVars());
+        final Set<Integer> catToRemoveSBS = new IntSet(dataSet.getNumCategoricalVars());
+        final Set<Integer> numToRemoveSBS = new IntSet(dataSet.getNumNumericalVars());
 
         //Start will all selected, and prune them out
         ListUtils.addRange(catSelecteedSBS, 0, nCat, 1);
         ListUtils.addRange(numSelectedSBS, 0, nF-nCat, 1);
         
-        double[] pBestScore0 = new double[]{Double.POSITIVE_INFINITY};
-        double[] pBestScore1 = new double[]{Double.POSITIVE_INFINITY};
-        int max = Math.min(maxFeatures, nF/2);
+        final double[] pBestScore0 = new double[]{Double.POSITIVE_INFINITY};
+        final double[] pBestScore1 = new double[]{Double.POSITIVE_INFINITY};
+        final int max = Math.min(maxFeatures, nF/2);
         for(int i = 0; i < max; i++)
         {
             //Find and keep one good one
-            int mustKeep = SFS.SFSSelectFeature(availableSFS, dataSet, 
+            final int mustKeep = SFS.SFSSelectFeature(availableSFS, dataSet, 
                     catToRemoveSFS, numToRemoveSFS, catSelected, 
                     numSelected, evaluator, folds, rand, pBestScore0, max);
             availableSBS.remove(mustKeep);
             SFS.removeFeature(mustKeep, nCat, catToRemoveSBS, numToRemoveSBS);
             
             //Find and remove one bad one
-            int mustRemove = SBS.SBSRemoveFeature(availableSBS, dataSet, 
+            final int mustRemove = SBS.SBSRemoveFeature(availableSBS, dataSet, 
                     catToRemoveSBS, numToRemoveSBS, catSelecteedSBS, 
                     numSelectedSBS, evaluator, folds, rand, max, 
                     pBestScore1, 0.0);
@@ -189,11 +189,12 @@ public class BDS implements DataTransform
          * a feature subset
          * @param featureCount the number of features to select
          */
-        public BDSFactory(Classifier evaluater, int featureCount)
+        public BDSFactory(final Classifier evaluater, final int featureCount)
         {
             this.classifier = evaluater;
-            if(evaluater instanceof Regressor)
-                regressor = (Regressor) evaluater;
+            if(evaluater instanceof Regressor) {
+              regressor = (Regressor) evaluater;
+            }
             setFeatureCount(featureCount);
         }
 
@@ -203,11 +204,12 @@ public class BDS implements DataTransform
          * feature subset
          * @param featureCount the number of features to select 
          */
-        public BDSFactory(Regressor evaluater, int featureCount)
+        public BDSFactory(final Regressor evaluater, final int featureCount)
         {
             this.regressor = evaluater;
-            if(evaluater instanceof Classifier)
-                this.classifier = (Classifier) evaluater;
+            if(evaluater instanceof Classifier) {
+              this.classifier = (Classifier) evaluater;
+            }
             setFeatureCount(featureCount);
         }
         
@@ -215,19 +217,20 @@ public class BDS implements DataTransform
          * Copy constructor
          * @param toCopy the object to copy
          */
-        public BDSFactory(BDSFactory toCopy)
+        public BDSFactory(final BDSFactory toCopy)
         {
             if(toCopy.classifier == toCopy.regressor)
             {
                 this.classifier = toCopy.classifier.clone();
                 this.regressor = (Regressor) this.classifier;
             }
-            else if(toCopy.classifier != null)
-                this.classifier = toCopy.classifier.clone();
-            else if(toCopy.regressor != null)
-                this.regressor = toCopy.regressor.clone();
-            else
-                throw new RuntimeException("BUG: Please report");
+            else if(toCopy.classifier != null) {
+              this.classifier = toCopy.classifier.clone();
+            } else if(toCopy.regressor != null) {
+              this.regressor = toCopy.regressor.clone();
+            } else {
+              throw new RuntimeException("BUG: Please report");
+            }
             this.featureCount = toCopy.featureCount;
         }
         
@@ -235,10 +238,11 @@ public class BDS implements DataTransform
          * Sets the number of features to select for use from the set of all input features
          * @param featureCount the number of features to use
          */
-        public void setFeatureCount(int featureCount)
+        public void setFeatureCount(final int featureCount)
         {
-            if(featureCount < 1)
-                throw new IllegalArgumentException("Number of features to select must be positive, not " + featureCount);
+            if(featureCount < 1) {
+              throw new IllegalArgumentException("Number of features to select must be positive, not " + featureCount);
+            }
             this.featureCount = featureCount;
         }
 
@@ -252,14 +256,15 @@ public class BDS implements DataTransform
         }
 
         @Override
-        public BDS getTransform(DataSet dataset)
+        public BDS getTransform(final DataSet dataset)
         {
-            if(dataset instanceof ClassificationDataSet)
-                return new BDS(featureCount, (ClassificationDataSet)dataset, 
-                        classifier, 5);
-            else
-                return new BDS(featureCount, (RegressionDataSet)dataset,
-                        regressor, featureCount);
+            if(dataset instanceof ClassificationDataSet) {
+              return new BDS(featureCount, (ClassificationDataSet)dataset,
+                      classifier, 5);
+            } else {
+              return new BDS(featureCount, (RegressionDataSet)dataset,
+                      regressor, featureCount);
+            }
         }
 
         @Override

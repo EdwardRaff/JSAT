@@ -46,7 +46,7 @@ public abstract class TextDataLoader implements TextVectorCreator
      * The list of integer counts of how many times each word token was seen
      */
     protected List<Integer> termDocumentFrequencys;
-    private WordWeighting weighting;
+    private final WordWeighting weighting;
     
     /**
      * Temporary work space to use for tokenization
@@ -71,7 +71,7 @@ public abstract class TextDataLoader implements TextVectorCreator
     private int currentLength = 0;
     private int documents;
 
-    public TextDataLoader(Tokenizer tokenizer, WordWeighting weighting)
+    public TextDataLoader(final Tokenizer tokenizer, final WordWeighting weighting)
     {
         this.vectors = new ArrayList<SparseVector>();
         this.tokenizer = tokenizer;
@@ -104,10 +104,11 @@ public abstract class TextDataLoader implements TextVectorCreator
      * 
      * @param text the text of the document to add
      */
-    protected void addOriginalDocument(String text)
+    protected void addOriginalDocument(final String text)
     {
-        if(noMoreAdding)
-            throw new RuntimeException("Initial data set has been finalized");
+        if(noMoreAdding) {
+          throw new RuntimeException("Initial data set has been finalized");
+        }
         if(workSpace == null)
         {
             workSpace = new StringBuilder();
@@ -124,25 +125,27 @@ public abstract class TextDataLoader implements TextVectorCreator
          * on many null elements when we occasionally load in an abnormally
          * large document 
          */
-        if(documents % 50 == 0)
-            wordCounts = new HashMap<String, Integer>(storageSpace.size()*3/2);
-        
-        for(String word : storageSpace)
-        {
-            Integer count = wordCounts.get(word);
-            if(count == null)
-                wordCounts.put(word, 1);
-            else
-                wordCounts.put(word, count+1);
+        if(documents % 50 == 0) {
+          wordCounts = new HashMap<String, Integer>(storageSpace.size()*3/2);
         }
         
-        SparseVector vec = new SparseVector(currentLength+1, wordCounts.size());//+1 to avoid issues when its length is zero, will be corrected in finalization step anyway
-        for(Iterator<Map.Entry<String, Integer>> iter = wordCounts.entrySet().iterator(); iter.hasNext();)
+        for(final String word : storageSpace)
         {
-            Map.Entry<String, Integer> entry = iter.next();
-            String word = entry.getKey();
+            final Integer count = wordCounts.get(word);
+            if(count == null) {
+              wordCounts.put(word, 1);
+            } else {
+              wordCounts.put(word, count+1);
+            }
+        }
+        
+        final SparseVector vec = new SparseVector(currentLength+1, wordCounts.size());//+1 to avoid issues when its length is zero, will be corrected in finalization step anyway
+        for(final Iterator<Map.Entry<String, Integer>> iter = wordCounts.entrySet().iterator(); iter.hasNext();)
+        {
+            final Map.Entry<String, Integer> entry = iter.next();
+            final String word = entry.getKey();
             
-            Integer indx = wordIndex.get(word);
+            final Integer indx = wordIndex.get(word);
             if(indx == null)//this word has never been seen before!
             {
                 allWords.add(word);
@@ -176,7 +179,7 @@ public abstract class TextDataLoader implements TextVectorCreator
         wordCounts = null;
         
         weighting.setWeight(vectors, termDocumentFrequencys);
-        for(SparseVector vec : vectors)
+        for(final SparseVector vec : vectors)
         {
             //Make sure all the vectors have the same length
             vec.setLength(currentLength);
@@ -199,10 +202,11 @@ public abstract class TextDataLoader implements TextVectorCreator
             finishAdding();
         }
         
-        List<DataPoint> dataPoints= new ArrayList<DataPoint>(vectors.size());
+        final List<DataPoint> dataPoints= new ArrayList<DataPoint>(vectors.size());
         
-        for(SparseVector vec : vectors)
-            dataPoints.add(new DataPoint(vec, new int[0], new CategoricalData[0]));
+        for(final SparseVector vec : vectors) {
+          dataPoints.add(new DataPoint(vec, new int[0], new CategoricalData[0]));
+        }
         
         return new SimpleDataSet(dataPoints);
     }
@@ -214,18 +218,20 @@ public abstract class TextDataLoader implements TextVectorCreator
      * @return the sparce vector representing this document 
      */
     @Override
-    public Vec newText(String text)
+    public Vec newText(final String text)
     {
-        if(!noMoreAdding)
-            throw new RuntimeException("Initial documents have not yet loaded");
+        if(!noMoreAdding) {
+          throw new RuntimeException("Initial documents have not yet loaded");
+        }
         return getTextVectorCreator().newText(text);
     }
 
     @Override
-    public Vec newText(String input, StringBuilder workSpace, List<String> storageSpace)
+    public Vec newText(final String input, final StringBuilder workSpace, final List<String> storageSpace)
     {
-        if(!noMoreAdding)
-            throw new RuntimeException("Initial documents have not yet loaded");
+        if(!noMoreAdding) {
+          throw new RuntimeException("Initial documents have not yet loaded");
+        }
         return getTextVectorCreator().newText(input, workSpace, storageSpace);
     }
     
@@ -237,10 +243,11 @@ public abstract class TextDataLoader implements TextVectorCreator
      */
     public TextVectorCreator getTextVectorCreator()
     {
-        if(!noMoreAdding)
-            throw new RuntimeException("Initial documents have not yet loaded");
-        else if(tvc == null)
-            tvc = new BasicTextVectorCreator(tokenizer, wordIndex, weighting);
+        if(!noMoreAdding) {
+          throw new RuntimeException("Initial documents have not yet loaded");
+        } else if(tvc == null) {
+          tvc = new BasicTextVectorCreator(tokenizer, wordIndex, weighting);
+        }
         return tvc;
     }
     
@@ -249,12 +256,13 @@ public abstract class TextDataLoader implements TextVectorCreator
      * @param index the numeric feature index
      * @return the word token associated with the index
      */
-    public String getWordForIndex(int index)
+    public String getWordForIndex(final int index)
     {
-        if(index >= 0 && index < allWords.size())
-            return allWords.get(index);
-        else
-            return null;
+        if(index >= 0 && index < allWords.size()) {
+          return allWords.get(index);
+        } else {
+          return null;
+        }
     }
     
     /**
@@ -262,7 +270,7 @@ public abstract class TextDataLoader implements TextVectorCreator
      * @param index the numeric feature index 
      * @return the total occurrence count for the feature
      */
-    public int getTermFrequency(int index)
+    public int getTermFrequency(final int index)
     {
         return termDocumentFrequencys.get(index);
     }
@@ -275,13 +283,15 @@ public abstract class TextDataLoader implements TextVectorCreator
      * often enough
      */
     @SuppressWarnings("unchecked")
-    public RemoveAttributeTransformFactory getMinimumOccurrenceDTF(int minCount)
+    public RemoveAttributeTransformFactory getMinimumOccurrenceDTF(final int minCount)
     {
         
         final Set<Integer> numericToRemove = new IntSet();
-        for(int i = 0; i < termDocumentFrequencys.size(); i++)
-            if(termDocumentFrequencys.get(i) < minCount)
-                numericToRemove.add(i);
+        for(int i = 0; i < termDocumentFrequencys.size(); i++) {
+          if (termDocumentFrequencys.get(i) < minCount) {
+            numericToRemove.add(i);
+          }
+        }
         
         return new RemoveAttributeTransformFactory(Collections.EMPTY_SET, numericToRemove);
     }

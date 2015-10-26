@@ -44,8 +44,8 @@ public class SymmetricDirichletTest
     public void testClone()
     {
         System.out.println("clone");
-        SymmetricDirichlet first = new SymmetricDirichlet(2.5, 3);
-        SymmetricDirichlet clone = first.clone();
+        final SymmetricDirichlet first = new SymmetricDirichlet(2.5, 3);
+        final SymmetricDirichlet clone = first.clone();
         
         first.setAlpha(1.5);
         
@@ -97,10 +97,10 @@ public class SymmetricDirichletTest
     {
         System.out.println("setUsingData");
         List<Vec> dataSet = null;
-        SymmetricDirichlet instance = new SymmetricDirichlet(2.5, 3);
+        final SymmetricDirichlet instance = new SymmetricDirichlet(2.5, 3);
         dataSet = instance.sample(500, new Random(1));
         
-        SymmetricDirichlet setI = new SymmetricDirichlet(1.0, 3);
+        final SymmetricDirichlet setI = new SymmetricDirichlet(1.0, 3);
         setI.setUsingData(dataSet);
         
         //We will be happy with %5 accuracy

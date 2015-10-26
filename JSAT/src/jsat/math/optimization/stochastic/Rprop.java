@@ -33,11 +33,11 @@ import jsat.linear.Vec;
  */
 public class Rprop implements GradientUpdater
 {
-    private double eta_pos = 1.2;
-    private double eta_neg = 0.5;
-    private double eta_start = 0.1;
-    private double eta_max = 50;
-    private double eta_min = 1e-6;
+    private final double eta_pos = 1.2;
+    private final double eta_neg = 0.5;
+    private final double eta_start = 0.1;
+    private final double eta_max = 50;
+    private final double eta_min = 1e-6;
     
     
     /**
@@ -61,14 +61,17 @@ public class Rprop implements GradientUpdater
      * Copy constructor
      * @param toCopy the object to copy
      */
-    public Rprop(Rprop toCopy)
+    public Rprop(final Rprop toCopy)
     {
-        if (toCopy.prev_grad != null)
-            this.prev_grad = Arrays.copyOf(toCopy.prev_grad, toCopy.prev_grad.length);
-        if (toCopy.cur_eta != null)
-            this.cur_eta = Arrays.copyOf(toCopy.cur_eta, toCopy.cur_eta.length);
-        if (toCopy.prev_w != null)
-            this.prev_w = Arrays.copyOf(toCopy.prev_w, toCopy.prev_w.length);
+        if (toCopy.prev_grad != null) {
+          this.prev_grad = Arrays.copyOf(toCopy.prev_grad, toCopy.prev_grad.length);
+        }
+        if (toCopy.cur_eta != null) {
+          this.cur_eta = Arrays.copyOf(toCopy.cur_eta, toCopy.cur_eta.length);
+        }
+        if (toCopy.prev_w != null) {
+          this.prev_w = Arrays.copyOf(toCopy.prev_w, toCopy.prev_w.length);
+        }
         this.prev_grad_bias = toCopy.prev_grad_bias;
         this.cur_eta_bias = toCopy.cur_eta_bias;
         this.prev_bias = toCopy.prev_bias;
@@ -77,15 +80,15 @@ public class Rprop implements GradientUpdater
     
 
     @Override
-    public void update(Vec w, Vec grad, double eta)
+    public void update(final Vec w, final Vec grad, final double eta)
     {
         update(w, grad, eta, 0, 0);
     }
 
     @Override
-    public double update(Vec w, Vec grad, double eta, double bias, double biasGrad)
+    public double update(final Vec w, final Vec grad, final double eta, final double bias, final double biasGrad)
     {
-        for(IndexValue iv : grad)
+        for(final IndexValue iv : grad)
         {
             final int i = iv.getIndex();
             final double g_i = iv.getValue();
@@ -96,19 +99,19 @@ public class Rprop implements GradientUpdater
             final double sign_g_prev = Math.signum(g_prev);
             if(sign_g_i == 0 || sign_g_prev == 0)
             {
-                double eta_i = cur_eta[i];
+                final double eta_i = cur_eta[i];
 
                     w.increment(i, -sign_g_i*eta_i*eta);
             }
             else if(sign_g_i == sign_g_prev)
             {
-                double eta_i = cur_eta[i] = Math.min(cur_eta[i]*eta_pos, eta_max);
+                final double eta_i = cur_eta[i] = Math.min(cur_eta[i]*eta_pos, eta_max);
 
                     w.increment(i, -sign_g_i*eta_i*eta);
             }
             else//not equal, sign change
             {
-                double eta_i = cur_eta[i] = Math.max(cur_eta[i]*eta_neg, eta_min);
+                final double eta_i = cur_eta[i] = Math.max(cur_eta[i]*eta_neg, eta_min);
                 
                 w.increment(i, -prev_w[i]*eta_i*eta);
                 prev_grad[i] = 0;
@@ -129,17 +132,17 @@ public class Rprop implements GradientUpdater
             final double sign_g_prev = Math.signum(g_prev);
             if(sign_g_i == 0 || sign_g_prev == 0)
             {
-                double eta_i = cur_eta_bias;
+                final double eta_i = cur_eta_bias;
                 toRet = sign_g_i*eta_i;
             }
             else if(sign_g_i == sign_g_prev)
             {
-                double eta_i = cur_eta_bias = Math.min(cur_eta_bias*eta_pos, eta_max);
+                final double eta_i = cur_eta_bias = Math.min(cur_eta_bias*eta_pos, eta_max);
                 toRet = sign_g_i*eta_i;
             }
             else//not equal, sign change
             {
-                double eta_i = cur_eta_bias = Math.max(cur_eta_bias*eta_neg, eta_min);
+                final double eta_i = cur_eta_bias = Math.max(cur_eta_bias*eta_neg, eta_min);
                 
                 prev_grad_bias = 0;
                 toRet = -prev_bias*eta_i;
@@ -154,7 +157,7 @@ public class Rprop implements GradientUpdater
     }
 
     @Override
-    public void setup(int d)
+    public void setup(final int d)
     {
         prev_grad = new double[d];
         cur_eta = new double[d];

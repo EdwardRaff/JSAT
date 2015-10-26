@@ -16,18 +16,18 @@ public class DataPointPair<P> implements Serializable
 	DataPoint dataPoint;
     P pair;
 
-    public DataPointPair(DataPoint dataPoint, P pair)
+    public DataPointPair(final DataPoint dataPoint, final P pair)
     {
         this.dataPoint = dataPoint;
         this.pair = pair;
     }
 
-    public void setDataPoint(DataPoint dataPoint)
+    public void setDataPoint(final DataPoint dataPoint)
     {
         this.dataPoint = dataPoint;
     }
 
-    public void setPair(P pair)
+    public void setPair(final P pair)
     {
         this.pair = pair;
     }

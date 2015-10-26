@@ -38,7 +38,7 @@ public class PaiceHuskStemmer extends Stemmer
          */
         public final boolean terminal;
 
-        public Rule(String ending, int toRemove, String newEnding, boolean virgin, boolean terminal)
+        public Rule(final String ending, final int toRemove, final String newEnding, final boolean virgin, final boolean terminal)
         {
             this.ending = ending;
             this.toRemove = toRemove;
@@ -57,34 +57,42 @@ public class PaiceHuskStemmer extends Stemmer
          * @param input the unstemmed input
          * @return the stemmed output
          */
-        public String apply(String input)
+        public String apply(final String input)
         {
             if(input.endsWith(ending))
             {
                 if(isVowel(input.charAt(0)))
                 {
                     //Stats with a vowel, stemmed result must be at least 2 chars long
-                    if(input.length()-toRemove+newEnding.length() < 2)
-                        return input;
+                    if(input.length()-toRemove+newEnding.length() < 2) {
+                      return input;
+                    }
                 }
                 else//Starts with a consonant, 3 lets must remain
                 {
-                    if(input.length()-toRemove+newEnding.length() < 3)
-                        return input;//Not long enought
+                    if(input.length()-toRemove+newEnding.length() < 3) {
+                      return input;//Not long enought
+                    }
                     //Result must also contain at least one vowel
                     boolean noVowels = true;
-                    for(int i = 0; i < input.length()-toRemove && noVowels; i++)
-                        if(isVowel(input.charAt(i)) || input.charAt(i)== 'y')
-                            noVowels = false;
-                    for(int i = 0; i < newEnding.length() && noVowels; i++)
-                        if(isVowel(newEnding.charAt(i)) || newEnding.charAt(i)== 'y')
-                            noVowels = false;
-                    if(noVowels)
-                        return input;//No vowels left, stemmin is not valid to aply
+                    for(int i = 0; i < input.length()-toRemove && noVowels; i++) {
+                      if (isVowel(input.charAt(i)) || input.charAt(i)== 'y') {
+                        noVowels = false;
+                      }
+                    }
+                    for(int i = 0; i < newEnding.length() && noVowels; i++) {
+                      if (isVowel(newEnding.charAt(i)) || newEnding.charAt(i)== 'y') {
+                        noVowels = false;
+                      }
+                    }
+                    if(noVowels) {
+                      return input;//No vowels left, stemmin is not valid to aply
+                    }
                 }
                 //We made it, we can apply the stem and return a new string
-                if(toRemove == 0)//Proctected word, return a new string explicitly to be super sure
-                    return new String(input);
+                if(toRemove == 0) {//Proctected word, return a new string explicitly to be super sure
+                  return new String(input);
+                }
                 return input.substring(0, input.length()-toRemove) + newEnding;
             }
             return input;
@@ -310,7 +318,7 @@ public class PaiceHuskStemmer extends Stemmer
     };
     
     
-    private static boolean isVowel(char letter)
+    private static boolean isVowel(final char letter)
     {
         return letter == 'a' || letter == 'e' || letter == 'i' || letter == 'o' || letter == 'u';
     }
@@ -322,27 +330,30 @@ public class PaiceHuskStemmer extends Stemmer
         boolean stop;
         
         
-        int charOffset = "a".charAt(0);
+        final int charOffset = "a".charAt(0);
         do
         {
             stop = true;
             
-            int ruleIndex = word.charAt(word.length()-1)-charOffset;
-            if(ruleIndex < 0 || ruleIndex > rules.length)
-                continue;
-            for(Rule rule : rules[ruleIndex])
+            final int ruleIndex = word.charAt(word.length()-1)-charOffset;
+            if(ruleIndex < 0 || ruleIndex > rules.length) {
+              continue;
+            }
+            for(final Rule rule : rules[ruleIndex])
             {
-                if(rule.virgin && !virginRound)
-                    continue;
-                String test = rule.apply(word);
+                if(rule.virgin && !virginRound) {
+                  continue;
+                }
+                final String test = rule.apply(word);
                 if(test != word)//Rule was applied, is it acceptable?
                 {
                     word = test;
                     stop = false;
-                    if(rule.terminal)
-                        return word;
-                    else
-                        break;
+                    if(rule.terminal) {
+                      return word;
+                    } else {
+                      break;
+                    }
                 }
             }
             

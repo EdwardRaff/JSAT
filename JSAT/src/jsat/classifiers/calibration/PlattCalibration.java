@@ -43,50 +43,55 @@ public class PlattCalibration extends BinaryCalibration
      * @param base the base model to calibrate the outputs of
      * @param mode the calibration mode to use
      */
-    public PlattCalibration(BinaryScoreClassifier base, CalibrationMode mode)
+    public PlattCalibration(final BinaryScoreClassifier base, final CalibrationMode mode)
     {
         super(base, mode);
     }
     
     @Override
-    public CategoricalResults classify(DataPoint data)
+    public CategoricalResults classify(final DataPoint data)
     {
-        CategoricalResults cr = new CategoricalResults(2);
-        double p_1 = 1/(1+exp(A*base.getScore(data)+B));
+        final CategoricalResults cr = new CategoricalResults(2);
+        final double p_1 = 1/(1+exp(A*base.getScore(data)+B));
         cr.setProb(0, 1-p_1);
         cr.setProb(1, p_1);
         return cr;
     }
     
     @Override
-    protected void calibrate(boolean[] label, double[] deci, final int len)
+    protected void calibrate(final boolean[] label, final double[] deci, final int len)
     {
         int prior1 = 0;//number of positive examples
-        for (boolean positive : label)
-            if (positive)
-                prior1++;
+        for (final boolean positive : label) {
+          if (positive) {
+            prior1++;
+          }
+        }
         final int prior0 = label.length - prior1;//number of negative examples
 
         final double hiTarget = (prior1 + 1.0) / (prior1 + 2.0);
         final double loTarget = 1 / (prior0 + 2.0);
 
-        double[] t = new double[len];
-        for (int i = 0; i < len; i++)
-            if (label[i])
-                t[i] = hiTarget;
-            else
-                t[i] = loTarget;
+        final double[] t = new double[len];
+        for (int i = 0; i < len; i++) {
+          if (label[i]) {
+            t[i] = hiTarget;
+          } else {
+            t[i] = loTarget;
+          }
+        }
 
         A = 0.0;
         B = log((prior0 + 1.0) / (prior1 + 1.0));
         double fval = 0.0;
         for(int i = 0; i < len; i++)
         {
-            double fApB=deci[i]*A+B;
-            if(fApB >= 0)
-                fval += t[i]*fApB+log(1+exp(-fApB));
-            else
-                fval += (t[i]-1)*fApB+log(1+exp(-fApB));
+            final double fApB=deci[i]*A+B;
+            if(fApB >= 0) {
+              fval += t[i]*fApB+log(1+exp(-fApB));
+            } else {
+              fval += (t[i]-1)*fApB+log(1+exp(-fApB));
+            }
         }
 
         for (int it = 0; it < maxIter; it++)
@@ -97,7 +102,8 @@ public class PlattCalibration extends BinaryCalibration
             
             for(int i = 0; i < len; i++)
             {
-                double fApB = deci[i] * A + B, p, q;
+                final double fApB = deci[i] * A + B;
+                double p, q;
                 if (fApB >= 0)
                 {
                     p = exp(-fApB) / (1.0 + exp(-fApB));
@@ -109,34 +115,37 @@ public class PlattCalibration extends BinaryCalibration
                     q = exp(fApB) / (1.0 + exp(fApB));
                 }
                 
-                double d2 = p * q;
+                final double d2 = p * q;
                 h11 += deci[i] * deci[i] * d2;
                 h22 += d2;
                 h21 += deci[i] * d2;
-                double d1 = t[i] - p;
+                final double d1 = t[i] - p;
                 g1 += deci[i] * d1;
                 g2 += d1;
             }
             
-            if (Math.abs(g1)<1e-5 && Math.abs(g2)<1e-5) //Stopping criteria
-                break;
+            if (Math.abs(g1)<1e-5 && Math.abs(g2)<1e-5) { //Stopping criteria
+              break;
+            }
             //Compute modified Newton directions
-            double det = h11 * h22 - h21 * h21;
-            double dA = -(h22 * g1 - h21 * g2) / det;
-            double dB = -(-h21 * g1 + h11 * g2) / det;
-            double gd = g1 * dA + g2 * dB;
+            final double det = h11 * h22 - h21 * h21;
+            final double dA = -(h22 * g1 - h21 * g2) / det;
+            final double dB = -(-h21 * g1 + h11 * g2) / det;
+            final double gd = g1 * dA + g2 * dB;
             double stepsize = 1;
             
             while (stepsize >= minStep)//Line search
             {
-                double newA = A + stepsize * dA, newB = B + stepsize * dB, newf = 0.0;
+                final double newA = A + stepsize * dA, newB = B + stepsize * dB;
+                double newf = 0.0;
                 for (int i = 0; i < len; i++)
                 {
-                    double fApB = deci[i] * newA + newB;
-                    if (fApB >= 0)
-                        newf += t[i] * fApB + log(1 + exp(-fApB));
-                    else
-                        newf += (t[i] - 1) * fApB + log(1 + exp(fApB));
+                    final double fApB = deci[i] * newA + newB;
+                    if (fApB >= 0) {
+                      newf += t[i] * fApB + log(1 + exp(-fApB));
+                    } else {
+                      newf += (t[i] - 1) * fApB + log(1 + exp(fApB));
+                    }
                 }
                 
                 if (newf < fval + 0.0001 * stepsize * gd)
@@ -146,12 +155,14 @@ public class PlattCalibration extends BinaryCalibration
                     fval = newf;
                     break; //Sufficient decrease satisfied
                 }
-                else
-                    stepsize /= 2.0;
+                else {
+                  stepsize /= 2.0;
+                }
             }
             
-            if (stepsize < minStep)
-                break;
+            if (stepsize < minStep) {
+              break;
+            }
         }
     }
     
@@ -164,7 +175,7 @@ public class PlattCalibration extends BinaryCalibration
     @Override
     public PlattCalibration clone()
     {
-        PlattCalibration clone = new PlattCalibration(base.clone(), this.mode);
+        final PlattCalibration clone = new PlattCalibration(base.clone(), this.mode);
         
         clone.A = this.A;
         clone.B = this.B;

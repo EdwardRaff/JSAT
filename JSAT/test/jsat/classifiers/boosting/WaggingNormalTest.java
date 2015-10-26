@@ -73,12 +73,12 @@ public class WaggingNormalTest
     {
         System.out.println("train");
 
-        WaggingNormal instance = new WaggingNormal((Regressor)new DecisionTree(), 50);
+        final WaggingNormal instance = new WaggingNormal((Regressor)new DecisionTree(), 50);
 
-        RegressionDataSet train = FixedProblems.getLinearRegression(1000, new XORWOW());
-        RegressionDataSet test = FixedProblems.getLinearRegression(100, new XORWOW());
+        final RegressionDataSet train = FixedProblems.getLinearRegression(1000, new XORWOW());
+        final RegressionDataSet test = FixedProblems.getLinearRegression(100, new XORWOW());
 
-        RegressionModelEvaluation rme = new RegressionModelEvaluation(instance, train);
+        final RegressionModelEvaluation rme = new RegressionModelEvaluation(instance, train);
         rme.evaluateTestSet(test);
 
         assertTrue(rme.getMeanError() <= test.getTargetValues().mean() * 1.0);
@@ -90,14 +90,14 @@ public class WaggingNormalTest
     {
         System.out.println("train");
 
-        WaggingNormal instance = new WaggingNormal((Regressor)new DecisionTree(), 50);
+        final WaggingNormal instance = new WaggingNormal((Regressor)new DecisionTree(), 50);
 
-        ExecutorService ex = Executors.newFixedThreadPool(SystemInfo.LogicalCores);
+        final ExecutorService ex = Executors.newFixedThreadPool(SystemInfo.LogicalCores);
 
-        RegressionDataSet train = FixedProblems.getLinearRegression(1000, new XORWOW());
-        RegressionDataSet test = FixedProblems.getLinearRegression(100, new XORWOW());
+        final RegressionDataSet train = FixedProblems.getLinearRegression(1000, new XORWOW());
+        final RegressionDataSet test = FixedProblems.getLinearRegression(100, new XORWOW());
 
-        RegressionModelEvaluation rme = new RegressionModelEvaluation(instance, train, ex);
+        final RegressionModelEvaluation rme = new RegressionModelEvaluation(instance, train, ex);
         rme.evaluateTestSet(test);
 
         assertTrue(rme.getMeanError() <= test.getTargetValues().mean() * 1.0);
@@ -111,14 +111,14 @@ public class WaggingNormalTest
     {
         System.out.println("trainC");
 
-        WaggingNormal instance = new WaggingNormal((Classifier)new DecisionTree(), 50);
+        final WaggingNormal instance = new WaggingNormal((Classifier)new DecisionTree(), 50);
 
-        ExecutorService ex = Executors.newFixedThreadPool(SystemInfo.LogicalCores);
+        final ExecutorService ex = Executors.newFixedThreadPool(SystemInfo.LogicalCores);
 
-        ClassificationDataSet train = FixedProblems.getCircles(1000, .1, 10.0);
-        ClassificationDataSet test = FixedProblems.getCircles(100, .1, 10.0);
+        final ClassificationDataSet train = FixedProblems.getCircles(1000, .1, 10.0);
+        final ClassificationDataSet test = FixedProblems.getCircles(100, .1, 10.0);
 
-        ClassificationModelEvaluation cme = new ClassificationModelEvaluation(instance, train, ex);
+        final ClassificationModelEvaluation cme = new ClassificationModelEvaluation(instance, train, ex);
         cme.evaluateTestSet(test);
 
 
@@ -132,12 +132,12 @@ public class WaggingNormalTest
     {
         System.out.println("trainC");
 
-        WaggingNormal instance = new WaggingNormal((Classifier)new DecisionTree(), 50);
+        final WaggingNormal instance = new WaggingNormal((Classifier)new DecisionTree(), 50);
 
-        ClassificationDataSet train = FixedProblems.getCircles(1000, .1, 10.0);
-        ClassificationDataSet test = FixedProblems.getCircles(100, .1, 10.0);
+        final ClassificationDataSet train = FixedProblems.getCircles(1000, .1, 10.0);
+        final ClassificationDataSet test = FixedProblems.getCircles(100, .1, 10.0);
 
-        ClassificationModelEvaluation cme = new ClassificationModelEvaluation(instance, train);
+        final ClassificationModelEvaluation cme = new ClassificationModelEvaluation(instance, train);
         cme.evaluateTestSet(test);
 
         assertTrue(cme.getErrorRate() <= 0.05);
@@ -151,8 +151,8 @@ public class WaggingNormalTest
 
         WaggingNormal instance = new WaggingNormal((Classifier)new DecisionTree(), 50);
 
-        ClassificationDataSet t1 = FixedProblems.getCircles(1000, 0.1, 10.0);
-        ClassificationDataSet t2 = FixedProblems.getCircles(1000, 0.1, 10.0);
+        final ClassificationDataSet t1 = FixedProblems.getCircles(1000, 0.1, 10.0);
+        final ClassificationDataSet t2 = FixedProblems.getCircles(1000, 0.1, 10.0);
         
         t2.applyTransform(new LinearTransform(t2));
 
@@ -162,20 +162,23 @@ public class WaggingNormalTest
 
         instance.trainC(t1);
 
-        WaggingNormal result = instance.clone();
+        final WaggingNormal result = instance.clone();
         
         errors = 0;
-        for (int i = 0; i < t1.getSampleSize(); i++)
-            errors += Math.abs(t1.getDataPointCategory(i) -  result.classify(t1.getDataPoint(i)).mostLikely());
+        for (int i = 0; i < t1.getSampleSize(); i++) {
+          errors += Math.abs(t1.getDataPointCategory(i) -  result.classify(t1.getDataPoint(i)).mostLikely());
+        }
         assertTrue(errors < 100);
         result.trainC(t2);
 
-        for (int i = 0; i < t1.getSampleSize(); i++)
-            errors += Math.abs(t1.getDataPointCategory(i) -  instance.classify(t1.getDataPoint(i)).mostLikely());
+        for (int i = 0; i < t1.getSampleSize(); i++) {
+          errors += Math.abs(t1.getDataPointCategory(i) -  instance.classify(t1.getDataPoint(i)).mostLikely());
+        }
         assertTrue(errors < 100);
 
-        for (int i = 0; i < t2.getSampleSize(); i++)
-            errors += Math.abs(t2.getDataPointCategory(i) -  result.classify(t2.getDataPoint(i)).mostLikely());
+        for (int i = 0; i < t2.getSampleSize(); i++) {
+          errors += Math.abs(t2.getDataPointCategory(i) -  result.classify(t2.getDataPoint(i)).mostLikely());
+        }
         assertTrue(errors < 100);
     }
     

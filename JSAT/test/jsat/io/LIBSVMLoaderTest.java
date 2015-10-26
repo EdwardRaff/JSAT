@@ -72,9 +72,9 @@ public class LIBSVMLoaderTest
     {
         System.out.println("loadR");
         
-        List<String> testLines = new ArrayList<String>();
-        List<Double> expetedLabel = new DoubleList();
-        List<Vec> expectedVec = new ArrayList<Vec>();
+        final List<String> testLines = new ArrayList<String>();
+        final List<Double> expetedLabel = new DoubleList();
+        final List<Vec> expectedVec = new ArrayList<Vec>();
         
         testLines.add("-1 2:3.0");//normal line
         expetedLabel.add(-1.0);
@@ -117,28 +117,29 @@ public class LIBSVMLoaderTest
         expectedVec.add(DenseVector.toDenseVec( 0.0, 3.0, 3.0, 0.0, 1.0));
         
         
-        String[] newLines = new String[]{"\n", "\n\r", "\r\n", "\n\r\n"};
+        final String[] newLines = new String[]{"\n", "\n\r", "\r\n", "\n\r\n"};
 
-        for (boolean endInNewLines : new boolean[]{true, false })
-            for (String newLine : newLines)
-                for (int i = 0; i < testLines.size(); i++)
-                {
-                    StringBuilder input = new StringBuilder();
-                    for (int j = 0; j < i; j++)
-                        input.append(testLines.get(j)).append(newLine);
-                    input.append(testLines.get(i));
-                    if (endInNewLines)
-                        input.append(newLine);
-
-                    RegressionDataSet dataSet = LIBSVMLoader.loadR(new StringReader(input.toString()), 0.5, 5);
-
-                    assertEquals(i + 1, dataSet.getSampleSize());
-                    for (int j = 0; j < i + 1; j++)
-                    {
-                        assertEquals(expetedLabel.get(j), dataSet.getTargetValue(j), 0.0);
-                        assertTrue(expectedVec.get(j).equals(dataSet.getDataPoint(j).getNumericalValues()));
-                    }
-                }
+        for (final boolean endInNewLines : new boolean[]{true, false }) {
+          for (final String newLine : newLines) {
+            for (int i = 0; i < testLines.size(); i++) {
+              final StringBuilder input = new StringBuilder();
+              for (int j = 0; j < i; j++) {
+                input.append(testLines.get(j)).append(newLine);
+              }
+              input.append(testLines.get(i));
+              if (endInNewLines) {
+                input.append(newLine);
+              }
+              final RegressionDataSet dataSet = LIBSVMLoader.loadR(new StringReader(input.toString()), 0.5, 5);
+              assertEquals(i + 1, dataSet.getSampleSize());
+              for (int j = 0; j < i + 1; j++)
+              {
+                assertEquals(expetedLabel.get(j), dataSet.getTargetValue(j), 0.0);
+                assertTrue(expectedVec.get(j).equals(dataSet.getDataPoint(j).getNumericalValues()));
+              }
+            }
+          }
+        }
     }
 
 }

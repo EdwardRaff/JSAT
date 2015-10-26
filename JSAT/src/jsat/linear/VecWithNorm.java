@@ -28,7 +28,7 @@ public class VecWithNorm extends Vec
      * @param base the vector to use as the base value
      * @param norm the initial value of the norm
      */
-    public VecWithNorm(Vec base, double norm)
+    public VecWithNorm(final Vec base, final double norm)
     {
         this.base = base;
         this.normSqrd = norm*norm;
@@ -39,7 +39,7 @@ public class VecWithNorm extends Vec
      * vector 
      * @param base the vector to use as the base value
      */
-    public VecWithNorm(Vec base)
+    public VecWithNorm(final Vec base)
     {
         this(base, base.pNorm(2));
     }
@@ -54,10 +54,11 @@ public class VecWithNorm extends Vec
     }
 
     @Override
-    public double pNorm(double p)
+    public double pNorm(final double p)
     {
-        if(p == 2)
-            return Math.sqrt(normSqrd);
+        if(p == 2) {
+          return Math.sqrt(normSqrd);
+        }
         return base.pNorm(p);
     }
 
@@ -68,15 +69,15 @@ public class VecWithNorm extends Vec
     }
 
     @Override
-    public double get(int index)
+    public double get(final int index)
     {
         return base.get(index);
     }
 
     @Override
-    public void set(int index, double val)
+    public void set(final int index, final double val)
     {
-        double old = base.get(index);
+        final double old = base.get(index);
         
         normSqrd += -(old*old)+(val*val);
         base.set(index, val);
@@ -95,32 +96,32 @@ public class VecWithNorm extends Vec
     }
 
     @Override
-    public void mutableAdd(double c)
+    public void mutableAdd(final double c)
     {
         //TODO this can be improved for scenarios where the base vector is sparse, but that should be uncommon 
         for(int i = 0; i < base.length(); i++)
         {
-            double old = base.get(i);
-            double toAdd = c;
+            final double old = base.get(i);
+            final double toAdd = c;
             normSqrd += toAdd*(toAdd+2*old);
         }
         base.mutableAdd(c);
     }
 
     @Override
-    public void mutableAdd(double c, Vec b)
+    public void mutableAdd(final double c, final Vec b)
     {
-        for(IndexValue iv : b)
+        for(final IndexValue iv : b)
         {
-            double old = base.get(iv.getIndex());
-            double toAdd = c*iv.getValue();
+            final double old = base.get(iv.getIndex());
+            final double toAdd = c*iv.getValue();
             normSqrd += toAdd*(toAdd+2*old);
         }
         base.mutableAdd(c, b);
     }
 
     @Override
-    public void mutablePairwiseMultiply(Vec b)
+    public void mutablePairwiseMultiply(final Vec b)
     {
         //if b is sparse or dense its going to need updates to every value.
         //migth as well jsut refresh
@@ -129,14 +130,14 @@ public class VecWithNorm extends Vec
     }
 
     @Override
-    public void mutableMultiply(double c)
+    public void mutableMultiply(final double c)
     {
         normSqrd *= c*c;
         base.mutableMultiply(c);
     }
 
     @Override
-    public void mutablePairwiseDivide(Vec b)
+    public void mutablePairwiseDivide(final Vec b)
     {
         //if b is sparse or dense its going to need updates to every value.
         //migth as well just refresh
@@ -145,7 +146,7 @@ public class VecWithNorm extends Vec
     }
 
     @Override
-    public void mutableDivide(double c)
+    public void mutableDivide(final double c)
     {
         normSqrd /= c*c;
     }
@@ -170,7 +171,7 @@ public class VecWithNorm extends Vec
     }
 
     @Override
-    public Iterator<IndexValue> getNonZeroIterator(int start)
+    public Iterator<IndexValue> getNonZeroIterator(final int start)
     {
         return base.getNonZeroIterator(start);
     }

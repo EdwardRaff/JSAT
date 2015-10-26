@@ -38,11 +38,11 @@ public class Adam implements GradientUpdater
     private long t;
     
     //parameters of the algo
-    private double alpha;
-    private double beta_1;
-    private double beta_2;
-    private double eps;
-    private double lambda;
+    private final double alpha;
+    private final double beta_1;
+    private final double beta_2;
+    private final double eps;
+    private final double lambda;
     
     private double vBias;
     private double mBias;
@@ -58,18 +58,23 @@ public class Adam implements GradientUpdater
         this(DEFAULT_ALPHA, DEFAULT_BETA_1, DEFAULT_BETA_2, DEFAULT_EPS, DEFAULT_LAMBDA);
     }
     
-    public Adam(double alpha, double beta_1, double beta_2, double eps, double lambda)
+    public Adam(final double alpha, final double beta_1, final double beta_2, final double eps, final double lambda)
     {
-        if(alpha <= 0 || Double.isInfinite(alpha) || Double.isNaN(alpha))
-            throw new IllegalArgumentException("alpha must be a positive value, not " + alpha);
-        if(beta_1 <= 0 || beta_1 > 1 || Double.isInfinite(beta_1) || Double.isNaN(beta_1))
-            throw new IllegalArgumentException("beta_1 must be in (0, 1], not " + beta_1);
-        if(beta_2 <= 0 || beta_2 > 1 || Double.isInfinite(beta_2) || Double.isNaN(beta_2))
-            throw new IllegalArgumentException("beta_2 must be in (0, 1], not " + beta_2);
-        if(pow(1-beta_1, 2) / sqrt(1-beta_2) >= 1)
-            throw new IllegalArgumentException("the required property (1-beta_1)^2 / sqrt(1-beta_2) < 1, is not held by beta_1=" + beta_1 + " and beta_2=" + beta_2 );
-        if(lambda <= 0 || lambda >= 1 || Double.isInfinite(lambda) || Double.isNaN(lambda))
-            throw new IllegalArgumentException("lambda must be in (0, 1), not " + lambda);
+        if(alpha <= 0 || Double.isInfinite(alpha) || Double.isNaN(alpha)) {
+          throw new IllegalArgumentException("alpha must be a positive value, not " + alpha);
+        }
+        if(beta_1 <= 0 || beta_1 > 1 || Double.isInfinite(beta_1) || Double.isNaN(beta_1)) {
+          throw new IllegalArgumentException("beta_1 must be in (0, 1], not " + beta_1);
+        }
+        if(beta_2 <= 0 || beta_2 > 1 || Double.isInfinite(beta_2) || Double.isNaN(beta_2)) {
+          throw new IllegalArgumentException("beta_2 must be in (0, 1], not " + beta_2);
+        }
+        if(pow(1-beta_1, 2) / sqrt(1-beta_2) >= 1) {
+          throw new IllegalArgumentException("the required property (1-beta_1)^2 / sqrt(1-beta_2) < 1, is not held by beta_1=" + beta_1 + " and beta_2=" + beta_2 );
+        }
+        if(lambda <= 0 || lambda >= 1 || Double.isInfinite(lambda) || Double.isNaN(lambda)) {
+          throw new IllegalArgumentException("lambda must be in (0, 1), not " + lambda);
+        }
         this.alpha = alpha;
         this.beta_1 = beta_1;
         this.beta_2 = beta_2;
@@ -81,7 +86,7 @@ public class Adam implements GradientUpdater
      * Copy constructor
      * @param toCopy the object to copy
      */
-    public Adam(Adam toCopy)
+    public Adam(final Adam toCopy)
     {
         this.alpha = toCopy.alpha;
         this.beta_1 = toCopy.beta_1;
@@ -101,17 +106,17 @@ public class Adam implements GradientUpdater
     }
 
     @Override
-    public void update(Vec x, Vec grad, double eta)
+    public void update(final Vec x, final Vec grad, final double eta)
     {
         update(x, grad, eta, 0, 0);
     }
 
     @Override
-    public double update(Vec x, Vec grad, double eta, double bias, double biasGrad)
+    public double update(final Vec x, final Vec grad, final double eta, final double bias, final double biasGrad)
     {
         t++;
         //(Decay the first moment running average coefficient
-        double beta_1t = 1 - (1-beta_1)*pow(lambda, t-1);
+        final double beta_1t = 1 - (1-beta_1)*pow(lambda, t-1);
         //(Get gradients w.r.t. stochastic objective at timestep t) 
         //grad is already that value
         //(Update biased first moment estimate)
@@ -133,11 +138,12 @@ public class Adam implements GradientUpdater
          * line:"
          * θ_t = θ_{t−1} −[α ·√(1−(1−β_2)^t) · (1−(1−β_1)^t)−1] ·m_t/√v_t
          */
-        double cnst = eta*alpha*sqrt(1-pow((1-beta_2), t))/(1-pow((1-beta_1), t));
+        final double cnst = eta*alpha*sqrt(1-pow((1-beta_2), t))/(1-pow((1-beta_1), t));
         
         //while the algorithm may converge well with sparse data, m and v are likely to all be non-zero after observing lots of data. 
-        for(int i = 0; i < m.length(); i++)
-            x.increment(i, -cnst * m.get(i)/(sqrt(v.get(i))+eps));
+        for(int i = 0; i < m.length(); i++) {
+          x.increment(i, -cnst * m.get(i)/(sqrt(v.get(i))+eps));
+        }
         return cnst * mBias/(sqrt(vBias)+eps);
     }
 
@@ -148,7 +154,7 @@ public class Adam implements GradientUpdater
     }
 
     @Override
-    public void setup(int d)
+    public void setup(final int d)
     {
         t = 0;
         m = new ScaledVector(new DenseVector(d));

@@ -78,7 +78,7 @@ public class EigenvalueDecompositionTest
     public void testImageEigen5()
     {
         System.out.println("testImageEigen5");
-        EigenValueDecomposition evd = new EigenValueDecomposition(A);
+        final EigenValueDecomposition evd = new EigenValueDecomposition(A);
         assertTrue(evd.isComplex());
     }
     
@@ -86,7 +86,7 @@ public class EigenvalueDecompositionTest
     public void testRealEigen3()
     {
         System.out.println("testRealEigen3");
-        EigenValueDecomposition evd = new EigenValueDecomposition(B);
+        final EigenValueDecomposition evd = new EigenValueDecomposition(B);
         assertFalse(evd.isComplex());
         
         assertTrue(eigenResultsRight(evd, B, 1e-8));
@@ -96,7 +96,7 @@ public class EigenvalueDecompositionTest
     public void testPascal5()
     {
         System.out.println("testPascal5");
-        EigenValueDecomposition evd = new EigenValueDecomposition(pascal5);
+        final EigenValueDecomposition evd = new EigenValueDecomposition(pascal5);
         assertFalse(evd.isComplex());
         
         assertTrue(eigenResultsRight(evd, pascal5, 1e-8));
@@ -107,8 +107,8 @@ public class EigenvalueDecompositionTest
     {
         //Cant use pascal for large b/c it becomes unstable
         System.out.println("testSymmetric70");
-        Random rand = new Random(123);
-        Matrix SYM = new DenseMatrix(70, 70);
+        final Random rand = new Random(123);
+        final Matrix SYM = new DenseMatrix(70, 70);
         for(int i = 0; i < SYM.rows(); i++)
         {
             SYM.set(i, i, rand.nextDouble()*10);
@@ -118,7 +118,7 @@ public class EigenvalueDecompositionTest
                 SYM.set(j, i, SYM.get(i, j));
             }
         }
-        EigenValueDecomposition evd = new EigenValueDecomposition(SYM);
+        final EigenValueDecomposition evd = new EigenValueDecomposition(SYM);
         assertFalse(evd.isComplex());
         
         assertTrue(eigenResultsRight(evd, SYM, 1e-8));
@@ -129,13 +129,13 @@ public class EigenvalueDecompositionTest
     {
         System.out.println("testRealRandomGenerated");
         //Generate a eigen value decomposition backwards, randomly creating V and D and then working to A, then decompositing A and checking the results
-        Random rand = new Random(123);
+        final Random rand = new Random(123);
         
-        Matrix V = Matrix.random(7, 7, rand);
-        Matrix D = Matrix.diag(DenseVector.random(7, rand).multiply(10));
-        SingularValueDecomposition svd = new SingularValueDecomposition(V.clone());
-        Matrix A = V.multiply(D).multiply(svd.getPseudoInverse());
-        EigenValueDecomposition evd = new EigenValueDecomposition(A);
+        final Matrix V = Matrix.random(7, 7, rand);
+        final Matrix D = Matrix.diag(DenseVector.random(7, rand).multiply(10));
+        final SingularValueDecomposition svd = new SingularValueDecomposition(V.clone());
+        final Matrix A = V.multiply(D).multiply(svd.getPseudoInverse());
+        final EigenValueDecomposition evd = new EigenValueDecomposition(A);
         assertTrue(eigenResultsRight(evd, A, 1e-6));
     }
     
@@ -144,13 +144,13 @@ public class EigenvalueDecompositionTest
     {
         System.out.println("testRealRandomGeneratedLarge");
         //Generate a eigen value decomposition backwards, randomly creating V and D and then working to A, then decompositing A and checking the results
-        Random rand = new Random(123);
+        final Random rand = new Random(123);
         
-        Matrix V = Matrix.random(70, 70, rand);
-        Matrix D = Matrix.diag(DenseVector.random(70, rand).multiply(10));
-        SingularValueDecomposition svd = new SingularValueDecomposition(V.clone());
-        Matrix A = V.multiply(D).multiply(svd.getPseudoInverse());
-        EigenValueDecomposition evd = new EigenValueDecomposition(A);
+        final Matrix V = Matrix.random(70, 70, rand);
+        final Matrix D = Matrix.diag(DenseVector.random(70, rand).multiply(10));
+        final SingularValueDecomposition svd = new SingularValueDecomposition(V.clone());
+        final Matrix A = V.multiply(D).multiply(svd.getPseudoInverse());
+        final EigenValueDecomposition evd = new EigenValueDecomposition(A);
         assertTrue(eigenResultsRight(evd, A, 1e-6));
     }
     
@@ -164,7 +164,7 @@ public class EigenvalueDecompositionTest
             evd = new EigenValueDecomposition(new DenseMatrix(10, 12));
             fail("Can not take the EVD of a non square matrix");
         }
-        catch (Exception e)
+        catch (final Exception e)
         {
         }
     }
@@ -176,7 +176,7 @@ public class EigenvalueDecompositionTest
      * @param eps the allowable difference in results
      * @return <t>true</tt> if the decomposition was correct
      */
-    private boolean eigenResultsRight(EigenValueDecomposition evd, Matrix A, double eps)
+    private boolean eigenResultsRight(final EigenValueDecomposition evd, final Matrix A, final double eps)
     {
         return A.multiply(evd.getV()).equals(evd.getV().multiply(evd.getD()), eps);
     }

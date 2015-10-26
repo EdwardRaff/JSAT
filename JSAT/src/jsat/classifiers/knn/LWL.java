@@ -54,27 +54,31 @@ public class LWL implements Classifier, Regressor, Parameterized
     private int k;
     private DistanceMetric dm;
     private KernelFunction kf;
-    private VectorCollectionFactory<VecPaired<Vec, Double>> vcf;
+    private final VectorCollectionFactory<VecPaired<Vec, Double>> vcf;
     private VectorCollection<VecPaired<Vec, Double>> vc;
 
     /**
      * Copy constructor
      * @param toCopy the version to copy
      */
-    private LWL(LWL toCopy)
+    private LWL(final LWL toCopy)
     {
-        if(toCopy.predicting != null)
-            this.predicting = toCopy.predicting.clone();
-        if(toCopy.classifier != null)
-            setClassifier(toCopy.classifier);
-        if(toCopy.regressor != null)
-            setRegressor(toCopy.regressor);
+        if(toCopy.predicting != null) {
+          this.predicting = toCopy.predicting.clone();
+        }
+        if(toCopy.classifier != null) {
+          setClassifier(toCopy.classifier);
+        }
+        if(toCopy.regressor != null) {
+          setRegressor(toCopy.regressor);
+        }
         setNeighbors(toCopy.k);
         setDistanceMetric(toCopy.dm.clone());
         setKernelFunction(toCopy.kf);
         this.vcf = toCopy.vcf;
-        if(toCopy.vc != null)
-            this.vc = toCopy.vc.clone();
+        if(toCopy.vc != null) {
+          this.vc = toCopy.vc.clone();
+        }
     }
 
     /**
@@ -83,7 +87,7 @@ public class LWL implements Classifier, Regressor, Parameterized
      * @param k the number of neighbors to create a local classifier from
      * @param dm the metric to use when selecting the nearest points to a query
      */
-    public LWL(Classifier classifier, int k, DistanceMetric dm)
+    public LWL(final Classifier classifier, final int k, final DistanceMetric dm)
     {
         this(classifier, k, dm, EpanechnikovKF.getInstance());
     }
@@ -95,7 +99,7 @@ public class LWL implements Classifier, Regressor, Parameterized
      * @param dm the metric to use when selecting the nearest points to a query
      * @param kf the kernel function used to weight the local points
      */
-    public LWL(Classifier classifier, int k, DistanceMetric dm, KernelFunction kf)
+    public LWL(final Classifier classifier, final int k, final DistanceMetric dm, final KernelFunction kf)
     {
         this(classifier, k, dm, kf, new DefaultVectorCollectionFactory<VecPaired<Vec, Double>>());
     }
@@ -108,7 +112,7 @@ public class LWL implements Classifier, Regressor, Parameterized
      * @param kf the kernel function used to weight the local points
      * @param vcf the factory to create vector collections for storing the points
      */
-    public LWL(Classifier classifier, int k, DistanceMetric dm, KernelFunction kf, VectorCollectionFactory<VecPaired<Vec, Double>> vcf)
+    public LWL(final Classifier classifier, final int k, final DistanceMetric dm, final KernelFunction kf, final VectorCollectionFactory<VecPaired<Vec, Double>> vcf)
     {
         setClassifier(classifier);
         setNeighbors(k);
@@ -123,7 +127,7 @@ public class LWL implements Classifier, Regressor, Parameterized
      * @param k the number of neighbors to create a local classifier from
      * @param dm the metric to use when selecting the nearest points to a query
      */
-    public LWL(Regressor regressor, int k, DistanceMetric dm)
+    public LWL(final Regressor regressor, final int k, final DistanceMetric dm)
     {
         this(regressor, k, dm, EpanechnikovKF.getInstance());
     }
@@ -135,7 +139,7 @@ public class LWL implements Classifier, Regressor, Parameterized
      * @param dm the metric to use when selecting the nearest points to a query
      * @param kf the kernel function used to weight the local points
      */
-    public LWL(Regressor regressor, int k, DistanceMetric dm, KernelFunction kf)
+    public LWL(final Regressor regressor, final int k, final DistanceMetric dm, final KernelFunction kf)
     {
         this(regressor, k, dm, kf, new DefaultVectorCollectionFactory<VecPaired<Vec, Double>>());
     }
@@ -147,7 +151,7 @@ public class LWL implements Classifier, Regressor, Parameterized
      * @param kf the kernel function used to weight the local points
      * @param vcf the factory to create vector collections for storing the points
      */
-    public LWL(Regressor regressor, int k, DistanceMetric dm, KernelFunction kf, VectorCollectionFactory<VecPaired<Vec, Double>> vcf)
+    public LWL(final Regressor regressor, final int k, final DistanceMetric dm, final KernelFunction kf, final VectorCollectionFactory<VecPaired<Vec, Double>> vcf)
     {
         setRegressor(regressor);
         setNeighbors(k);
@@ -159,38 +163,39 @@ public class LWL implements Classifier, Regressor, Parameterized
     
     
     @Override
-    public CategoricalResults classify(DataPoint data)
+    public CategoricalResults classify(final DataPoint data)
     {
-        if(classifier == null || vc == null)
-            throw new UntrainedModelException("Model has not been trained");
+        if(classifier == null || vc == null) {
+          throw new UntrainedModelException("Model has not been trained");
+        }
         
-        List<? extends VecPaired<VecPaired<Vec, Double>, Double>> knn = 
+        final List<? extends VecPaired<VecPaired<Vec, Double>, Double>> knn = 
                 vc.search(data.getNumericalValues(), k);
        
-        List<DataPointPair<Integer>> localPoints = new ArrayList<DataPointPair<Integer>>(knn.size());
+        final List<DataPointPair<Integer>> localPoints = new ArrayList<DataPointPair<Integer>>(knn.size());
         
-        double maxD = knn.get(knn.size()-1).getPair();
+        final double maxD = knn.get(knn.size()-1).getPair();
         for(int i = 0; i < knn.size(); i++)
         {
-            VecPaired<VecPaired<Vec, Double>, Double> v = knn.get(i);
-            DataPoint dp = new DataPoint(v, new int[0], new CategoricalData[0], 
+            final VecPaired<VecPaired<Vec, Double>, Double> v = knn.get(i);
+            final DataPoint dp = new DataPoint(v, new int[0], new CategoricalData[0], 
                     kf.k(v.getPair()/maxD));
             
             localPoints.add(new DataPointPair<Integer>(dp, v.getVector().getPair().intValue()));
         }
 
-        ClassificationDataSet localSet = new ClassificationDataSet(localPoints, predicting);
+        final ClassificationDataSet localSet = new ClassificationDataSet(localPoints, predicting);
         
-        Classifier localClassifier = classifier.clone();
+        final Classifier localClassifier = classifier.clone();
         localClassifier.trainC(localSet);
         
         return localClassifier.classify(data);
     }
 
     @Override
-    public void trainC(ClassificationDataSet dataSet, ExecutorService threadPool)
+    public void trainC(final ClassificationDataSet dataSet, final ExecutorService threadPool)
     {
-        List<VecPaired<Vec, Double>> trainList = getVecList(dataSet);
+        final List<VecPaired<Vec, Double>> trainList = getVecList(dataSet);
         
         TrainableDistanceMetric.trainIfNeeded(dm, dataSet, threadPool);
         vc = vcf.getVectorCollection(trainList, dm, threadPool);
@@ -198,9 +203,9 @@ public class LWL implements Classifier, Regressor, Parameterized
     }
 
     @Override
-    public void trainC(ClassificationDataSet dataSet)
+    public void trainC(final ClassificationDataSet dataSet)
     {
-        List<VecPaired<Vec, Double>> trainList = getVecList(dataSet);
+        final List<VecPaired<Vec, Double>> trainList = getVecList(dataSet);
         
         TrainableDistanceMetric.trainIfNeeded(dm, dataSet);
         vc = vcf.getVectorCollection(trainList, dm);
@@ -214,45 +219,46 @@ public class LWL implements Classifier, Regressor, Parameterized
     }
 
     @Override
-    public double regress(DataPoint data)
+    public double regress(final DataPoint data)
     {
-        if(regressor == null || vc == null)
-            throw new UntrainedModelException("Model has not been trained");
+        if(regressor == null || vc == null) {
+          throw new UntrainedModelException("Model has not been trained");
+        }
         
-        List<? extends VecPaired<VecPaired<Vec, Double>, Double>> knn = 
+        final List<? extends VecPaired<VecPaired<Vec, Double>, Double>> knn = 
                 vc.search(data.getNumericalValues(), k);
        
-        List<DataPointPair<Double>> localPoints = new ArrayList<DataPointPair<Double>>(knn.size());
-        double maxD = knn.get(knn.size()-1).getPair();
+        final List<DataPointPair<Double>> localPoints = new ArrayList<DataPointPair<Double>>(knn.size());
+        final double maxD = knn.get(knn.size()-1).getPair();
         for(int i = 0; i < knn.size(); i++)
         {
-            VecPaired<VecPaired<Vec, Double>, Double> v = knn.get(i);
-            DataPoint dp = new DataPoint(v, new int[0], new CategoricalData[0], 
+            final VecPaired<VecPaired<Vec, Double>, Double> v = knn.get(i);
+            final DataPoint dp = new DataPoint(v, new int[0], new CategoricalData[0], 
                     kf.k(v.getPair()/maxD));
             localPoints.add(new DataPointPair<Double>(dp, v.getVector().getPair()));
         }
         
-        RegressionDataSet localSet = new RegressionDataSet(localPoints);
+        final RegressionDataSet localSet = new RegressionDataSet(localPoints);
         
-        Regressor localRegressor = regressor.clone();
+        final Regressor localRegressor = regressor.clone();
         localRegressor.train(localSet);
         
         return localRegressor.regress(data);
     }
 
     @Override
-    public void train(RegressionDataSet dataSet, ExecutorService threadPool)
+    public void train(final RegressionDataSet dataSet, final ExecutorService threadPool)
     {
-        List<VecPaired<Vec, Double>> trainList = getVecList(dataSet);
+        final List<VecPaired<Vec, Double>> trainList = getVecList(dataSet);
         
         TrainableDistanceMetric.trainIfNeeded(dm, dataSet, threadPool);
         vc = vcf.getVectorCollection(trainList, dm, threadPool);
     }
 
     @Override
-    public void train(RegressionDataSet dataSet)
+    public void train(final RegressionDataSet dataSet)
     {
-        List<VecPaired<Vec, Double>> trainList = getVecList(dataSet);
+        final List<VecPaired<Vec, Double>> trainList = getVecList(dataSet);
         
         TrainableDistanceMetric.trainIfNeeded(dm, dataSet);
         vc = vcf.getVectorCollection(trainList, dm);
@@ -264,50 +270,55 @@ public class LWL implements Classifier, Regressor, Parameterized
         return new LWL(this);
     }
 
-    private List<VecPaired<Vec, Double>> getVecList(ClassificationDataSet dataSet)
+    private List<VecPaired<Vec, Double>> getVecList(final ClassificationDataSet dataSet)
     {
-        List<VecPaired<Vec, Double>> trainList = 
+        final List<VecPaired<Vec, Double>> trainList = 
                 new ArrayList<VecPaired<Vec, Double>>(dataSet.getSampleSize());
-        for(int i = 0; i < dataSet.getSampleSize(); i++)
-            trainList.add(new VecPaired<Vec, Double>(
-                    dataSet.getDataPoint(i).getNumericalValues(), 
-                    new Double(dataSet.getDataPointCategory(i))));
+        for(int i = 0; i < dataSet.getSampleSize(); i++) {
+          trainList.add(new VecPaired<Vec, Double>(
+                  dataSet.getDataPoint(i).getNumericalValues(),
+                  new Double(dataSet.getDataPointCategory(i))));
+        }
         return trainList;
     }
     
-    private List<VecPaired<Vec, Double>> getVecList(RegressionDataSet dataSet)
+    private List<VecPaired<Vec, Double>> getVecList(final RegressionDataSet dataSet)
     {
-        List<VecPaired<Vec, Double>> trainList = 
+        final List<VecPaired<Vec, Double>> trainList = 
                 new ArrayList<VecPaired<Vec, Double>>(dataSet.getSampleSize());
-        for(int i = 0; i < dataSet.getSampleSize(); i++)
-            trainList.add(new VecPaired<Vec, Double>(
-                    dataSet.getDataPoint(i).getNumericalValues(), 
-                    dataSet.getTargetValue(i)));
+        for(int i = 0; i < dataSet.getSampleSize(); i++) {
+          trainList.add(new VecPaired<Vec, Double>(
+                  dataSet.getDataPoint(i).getNumericalValues(),
+                  dataSet.getTargetValue(i)));
+        }
         return trainList;
     }
 
-    private void setClassifier(Classifier classifier)
+    private void setClassifier(final Classifier classifier)
     {
         this.classifier = classifier;
-        if(classifier instanceof Regressor)
-            this.regressor = (Regressor) classifier;
+        if(classifier instanceof Regressor) {
+          this.regressor = (Regressor) classifier;
+        }
     }
 
-    private void setRegressor(Regressor regressor)
+    private void setRegressor(final Regressor regressor)
     {
         this.regressor = regressor;
-        if(regressor instanceof Classifier)
-            this.classifier = (Classifier)regressor;
+        if(regressor instanceof Classifier) {
+          this.classifier = (Classifier)regressor;
+        }
     }
 
     /**
      * Sets the number of neighbors that will be used to create the local model
      * @param k the number of neighbors to obtain
      */
-    public void setNeighbors(int k)
+    public void setNeighbors(final int k)
     {
-        if(k <= 1)
-            throw new RuntimeException("An average requires at least 2 neighbors to be taken into account");
+        if(k <= 1) {
+          throw new RuntimeException("An average requires at least 2 neighbors to be taken into account");
+        }
         this.k = k;
     }
 
@@ -324,7 +335,7 @@ public class LWL implements Classifier, Regressor, Parameterized
      * Sets the distance metric that will be used for the nearest neighbor search
      * @param dm the distance metric to use for nearest neighbor search
      */
-    public void setDistanceMetric(DistanceMetric dm)
+    public void setDistanceMetric(final DistanceMetric dm)
     {
         this.dm = dm;
     }
@@ -343,7 +354,7 @@ public class LWL implements Classifier, Regressor, Parameterized
      * data point in the local set
      * @param kf the kernel function to use for weighting
      */
-    public void setKernelFunction(KernelFunction kf)
+    public void setKernelFunction(final KernelFunction kf)
     {
         this.kf = kf;
     }
@@ -363,7 +374,7 @@ public class LWL implements Classifier, Regressor, Parameterized
      * @param d the dataset to get the guess for
      * @return the guess for the Neighbors parameter
      */
-    public static Distribution guessNeighbors(DataSet d)
+    public static Distribution guessNeighbors(final DataSet d)
     {
         return new UniformDiscrete(25, Math.min(200, d.getSampleSize()/5));
     }
@@ -375,7 +386,7 @@ public class LWL implements Classifier, Regressor, Parameterized
     }
 
     @Override
-    public Parameter getParameter(String paramName)
+    public Parameter getParameter(final String paramName)
     {
         return Parameter.toParameterMap(getParameters()).get(paramName);
     }

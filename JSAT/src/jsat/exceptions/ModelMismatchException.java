@@ -11,17 +11,17 @@ public class ModelMismatchException extends RuntimeException
 
 	private static final long serialVersionUID = 6962636868667470816L;
 
-	public ModelMismatchException(String message, Throwable cause)
+	public ModelMismatchException(final String message, final Throwable cause)
     {
         super(message, cause);
     }
 
-    public ModelMismatchException(Throwable cause)
+    public ModelMismatchException(final Throwable cause)
     {
         super(cause);
     }
 
-    public ModelMismatchException(String message)
+    public ModelMismatchException(final String message)
     {
         super(message);
     }

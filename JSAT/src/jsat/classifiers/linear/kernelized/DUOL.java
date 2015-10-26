@@ -86,7 +86,7 @@ public class DUOL extends BaseUpdateableClassifier implements BinaryScoreClassif
      * Creates a new DUOL learner
      * @param k the kernel to use
      */
-    public DUOL(KernelTrick k)
+    public DUOL(final KernelTrick k)
     {
         this.k = k;
         this.S = new ArrayList<Vec>();
@@ -98,20 +98,23 @@ public class DUOL extends BaseUpdateableClassifier implements BinaryScoreClassif
      * Copy constructor
      * @param other the object to copy
      */
-    protected DUOL(DUOL other)
+    protected DUOL(final DUOL other)
     {
         this.k = other.k.clone();
         if(other.S != null)
         {
             this.S = new ArrayList<Vec>(other.S.size());
-            for(Vec v : other.S)
-                this.S.add(v.clone());
+            for(final Vec v : other.S) {
+              this.S.add(v.clone());
+            }
             this.f_s = new DoubleList(other.f_s);
             this.alphas = new DoubleList(other.alphas);
-            if(other.accelCache != null)
-                this.accelCache = new DoubleList(other.accelCache);
-            if(other.kTmp != null)
-                this.kTmp = new DoubleList(other.kTmp);
+            if(other.accelCache != null) {
+              this.accelCache = new DoubleList(other.accelCache);
+            }
+            if(other.kTmp != null) {
+              this.kTmp = new DoubleList(other.kTmp);
+            }
         }
         this.rho = other.rho;
         this.C = other.C;
@@ -130,10 +133,11 @@ public class DUOL extends BaseUpdateableClassifier implements BinaryScoreClassif
      * the updates
      * @param C the aggressiveness parameter in (0, Inf)
      */
-    public void setC(double C)
+    public void setC(final double C)
     {
-        if(Double.isNaN(C) || C <= 0 || Double.isInfinite(C))
-            throw new IllegalArgumentException("C parameter must be in range (0, inf) not " + C);
+        if(Double.isNaN(C) || C <= 0 || Double.isInfinite(C)) {
+          throw new IllegalArgumentException("C parameter must be in range (0, inf) not " + C);
+        }
         this.C = C;
     }
 
@@ -153,7 +157,7 @@ public class DUOL extends BaseUpdateableClassifier implements BinaryScoreClassif
      * be in the range [0, 1]
      * @param rho the conflict parameter for when to update a second support vector
      */
-    public void setRho(double rho)
+    public void setRho(final double rho)
     {
         this.rho = rho;
     }
@@ -171,7 +175,7 @@ public class DUOL extends BaseUpdateableClassifier implements BinaryScoreClassif
      * Sets the kernel trick to use
      * @param k the kernel trick to use
      */
-    public void setKernel(KernelTrick k)
+    public void setKernel(final KernelTrick k)
     {
         this.k = k;
     }
@@ -186,12 +190,13 @@ public class DUOL extends BaseUpdateableClassifier implements BinaryScoreClassif
     }
 
     @Override
-    public void setUp(CategoricalData[] categoricalAttributes, int numericAttributes, CategoricalData predicting)
+    public void setUp(final CategoricalData[] categoricalAttributes, final int numericAttributes, final CategoricalData predicting)
     {
-        if(numericAttributes <= 0)
-            throw new FailedToFitException("DUOL requires numeric features");
-        else if(predicting.getNumOfCategories() != 2)
-            throw new FailedToFitException("DUOL supports only binnary classification");
+        if(numericAttributes <= 0) {
+          throw new FailedToFitException("DUOL requires numeric features");
+        } else if(predicting.getNumOfCategories() != 2) {
+          throw new FailedToFitException("DUOL supports only binnary classification");
+        }
         
         this.S = new ArrayList<Vec>();
         this.f_s = new DoubleList();
@@ -201,17 +206,18 @@ public class DUOL extends BaseUpdateableClassifier implements BinaryScoreClassif
     }
 
     @Override
-    public synchronized void update(DataPoint dataPoint, int targetClass)
+    public synchronized void update(final DataPoint dataPoint, final int targetClass)
     {
         final Vec x_t = dataPoint.getNumericalValues();
         final double y_t = targetClass*2-1;
         final List<Double> qi = k.getQueryInfo(x_t);
-        double score = score(x_t, qi, true);
+        final double score = score(x_t, qi, true);
 
         final double loss_t = max(0, 1-y_t*score);
         
-        if(loss_t <= 0)
-            return;
+        if(loss_t <= 0) {
+          return;
+        }
 
         //start of line 8:
         int b = -1;
@@ -220,7 +226,7 @@ public class DUOL extends BaseUpdateableClassifier implements BinaryScoreClassif
         {
             if(f_s.get(i) <= 1)
             {
-                double tmp = signum(alphas.get(i))*y_t*kTmp.get(i);
+                final double tmp = signum(alphas.get(i))*y_t*kTmp.get(i);
                 if(tmp <= w_min)
                 {
                     w_min = tmp;
@@ -308,49 +314,53 @@ public class DUOL extends BaseUpdateableClassifier implements BinaryScoreClassif
         }   
     }
     
-    private boolean isIn(double x, double a, double b)
+    private boolean isIn(final double x, final double a, final double b)
     {
         return a <= x && x <= b;
     }
     
-    private double score(Vec x, List<Double> qi, boolean store)
+    private double score(final Vec x, final List<Double> qi, final boolean store)
     {
-        if(store)
-            kTmp.clear();
+        if(store) {
+          kTmp.clear();
+        }
         double score = 0;
         for(int i = 0; i < S.size(); i++)
         {
-            double tmp = k.eval(i, x, qi, S, accelCache);
-            if(store)
-                kTmp.add(tmp);
+            final double tmp = k.eval(i, x, qi, S, accelCache);
+            if(store) {
+              kTmp.add(tmp);
+            }
             score += alphas.get(i)*tmp;
         }
         return score;
     }
     
-    private double score(Vec x, List<Double> qi)
+    private double score(final Vec x, final List<Double> qi)
     {
         return score(x, qi, false);
     }
 
     @Override
-    public CategoricalResults classify(DataPoint data)
+    public CategoricalResults classify(final DataPoint data)
     {
-        if(alphas == null)
-            throw new UntrainedModelException("Model has not yet been trained");
-        CategoricalResults cr = new CategoricalResults(2);
-        double score = getScore(data);
-        if(score < 0)
-            cr.setProb(0, 1.0);
-        else
-            cr.setProb(1, 1.0);
+        if(alphas == null) {
+          throw new UntrainedModelException("Model has not yet been trained");
+        }
+        final CategoricalResults cr = new CategoricalResults(2);
+        final double score = getScore(data);
+        if(score < 0) {
+          cr.setProb(0, 1.0);
+        } else {
+          cr.setProb(1, 1.0);
+        }
         return cr;
     }
 
     @Override
-    public double getScore(DataPoint dp)
+    public double getScore(final DataPoint dp)
     {
-        Vec x = dp.getNumericalValues();
+        final Vec x = dp.getNumericalValues();
         return score(x, k.getQueryInfo(x));
     }
 
@@ -367,7 +377,7 @@ public class DUOL extends BaseUpdateableClassifier implements BinaryScoreClassif
      * @return the guess for the C parameter
      * @see #setC(double)
      */
-    public static Distribution guessC(DataSet d)
+    public static Distribution guessC(final DataSet d)
     {
         return new LogUniform(1e-4, 1e5);
     }
@@ -379,7 +389,7 @@ public class DUOL extends BaseUpdateableClassifier implements BinaryScoreClassif
     }
 
     @Override
-    public Parameter getParameter(String paramName)
+    public Parameter getParameter(final String paramName)
     {
         return Parameter.toParameterMap(getParameters()).get(paramName);
     }

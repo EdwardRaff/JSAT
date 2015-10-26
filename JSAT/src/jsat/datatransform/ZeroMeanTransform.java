@@ -20,7 +20,7 @@ public class ZeroMeanTransform implements InPlaceInvertibleTransform
      */
     private Vec shiftVector;
 
-    public ZeroMeanTransform(DataSet dataset)
+    public ZeroMeanTransform(final DataSet dataset)
     {
         shiftVector = new DenseVector(dataset.getNumNumericalVars());
         shiftVector = dataset.getColumnMeanVariance()[0];
@@ -30,36 +30,36 @@ public class ZeroMeanTransform implements InPlaceInvertibleTransform
      * Copy constructor
      * @param other the transform to make a copy of
      */
-    private ZeroMeanTransform(ZeroMeanTransform other)
+    private ZeroMeanTransform(final ZeroMeanTransform other)
     {
         this.shiftVector = other.shiftVector.clone();
     }
 
     @Override
-    public DataPoint transform(DataPoint dp)
+    public DataPoint transform(final DataPoint dp)
     {
-        DataPoint newDP = dp.clone();
+        final DataPoint newDP = dp.clone();
         mutableTransform(newDP);
         return newDP;
     }
     
     
     @Override
-    public void mutableInverse(DataPoint dp)
+    public void mutableInverse(final DataPoint dp)
     {
         dp.getNumericalValues().mutableAdd(shiftVector);
     }
 
     @Override
-    public DataPoint inverse(DataPoint dp)
+    public DataPoint inverse(final DataPoint dp)
     {
-        DataPoint newDP = dp.clone();
+        final DataPoint newDP = dp.clone();
         mutableInverse(dp);
         return newDP;
     }
     
     @Override
-    public void mutableTransform(DataPoint dp)
+    public void mutableTransform(final DataPoint dp)
     {
         dp.getNumericalValues().mutableSubtract(shiftVector);
     }
@@ -87,7 +87,7 @@ public class ZeroMeanTransform implements InPlaceInvertibleTransform
         }
         
         @Override
-        public DataTransform getTransform(DataSet dataset)
+        public DataTransform getTransform(final DataSet dataset)
         {
             return new ZeroMeanTransform(dataset);
         }
