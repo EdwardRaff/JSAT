@@ -6,6 +6,7 @@ import jsat.linear.Vec;
 import jsat.math.Function;
 import jsat.math.FunctionBase;
 import jsat.math.integration.Romberg;
+import jsat.math.optimization.oned.GoldenSearch;
 import jsat.math.rootfinding.Zeroin;
 
 /**
@@ -144,6 +145,24 @@ public abstract class ContinuousDistribution extends Distribution
                 return Math.pow((x.get(0)-mean), 3)*pdf(x.get(0));
             }
         }, intMin, intMax)/Math.pow(variance(), 3.0/2);
+    }
+    
+    @Override
+    public double mode()
+    {
+        double intMin = getIntegrationMin();
+        
+        double intMax = getIntegrationMax();
+
+        return GoldenSearch.findMin(intMin, intMax, new FunctionBase()
+        {
+
+            @Override
+            public double f(Vec x)
+            {
+                return -pdf(x.get(0));
+            }
+        }, 1e-6, 1000);
     }
     
     protected double getIntegrationMin()

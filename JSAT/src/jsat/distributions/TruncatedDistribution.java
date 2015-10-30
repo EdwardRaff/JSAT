@@ -25,9 +25,7 @@ import jsat.linear.Vec;
  * <br>
  * The {@link #pdf(double) }, {@link #cdf(double) }, and the {@link #invCdf(double)
  * } methods are implemented efficiently, with little overhead per call. All
- * other methods are approximated numerically, and incur more overhead.<br>
- * <br>
- * Note: currently, the {@link #mode() } is not supported.
+ * other methods are approximated numerically, and incur more overhead.
  *
  * @author Edward Raff <Raff.Edward@gmail.com>
  */
@@ -144,13 +142,13 @@ public class TruncatedDistribution extends ContinuousDistribution
         double baseMode = base.mode();
         if(baseMode <= max && baseMode > min)
             return baseMode;
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        return super.mode();
     }
 
     @Override
     public double min()
     {
-        return Math.max(min, base.min());
+        return Math.max(Math.nextUp(min), base.min());
     }
 
     @Override

@@ -150,12 +150,12 @@ public class TruncatedDistributionTest
     }
     
     //Not sure I'm going to support this... well see
-//    @Test
-//    public void testMode()
-//    {
-//        System.out.println("median");
-//        assertEquals(Math.nextUp(0.0), test.mode(), 1e-5);
-//    }
+    @Test
+    public void testMode()
+    {
+        System.out.println("mode");
+        assertEquals(Math.nextUp(0.0), test.mode(), 1e-5);
+    }
 
     /**
      * Test of min method, of class TruncatedDistribution.
@@ -164,7 +164,7 @@ public class TruncatedDistributionTest
     public void testMin()
     {
         System.out.println("min");
-        assertEquals(0, test.min(), 0.0);
+        assertEquals(0, test.min(), 1e-16);//can't be zero, but should be very close to it!
     }
 
     /**
