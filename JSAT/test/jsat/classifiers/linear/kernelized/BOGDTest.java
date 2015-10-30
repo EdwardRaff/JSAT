@@ -58,11 +58,11 @@ public class BOGDTest
         
         for(boolean sampling : new boolean[]{true, false})
         {
-            BOGD instance = new BOGD(new RBFKernel(0.5), 30, 0.5, 1e-3, 10, new HingeLoss());
+            BOGD instance = new BOGD(new RBFKernel(0.5), 50, 0.5, 1e-3, 10, new HingeLoss());
             instance.setUniformSampling(sampling);
        
-            ClassificationDataSet train = FixedProblems.getInnerOuterCircle(200, new XORWOW());
-            ClassificationDataSet test = FixedProblems.getInnerOuterCircle(100, new XORWOW());
+            ClassificationDataSet train = FixedProblems.getInnerOuterCircle(200, new XORWOW(), 1, 4);
+            ClassificationDataSet test = FixedProblems.getCircles(100, 0.0, new XORWOW(), 1, 4);
 
             ClassificationModelEvaluation cme = new ClassificationModelEvaluation(instance, train, ex);
             cme.evaluateTestSet(test);
@@ -81,11 +81,11 @@ public class BOGDTest
         
         for(boolean sampling : new boolean[]{true, false})
         {
-            BOGD instance = new BOGD(new RBFKernel(0.5), 30, 0.5, 1e-3, 10, new HingeLoss());
+            BOGD instance = new BOGD(new RBFKernel(0.5), 50, 0.5, 1e-3, 10, new HingeLoss());
             instance.setUniformSampling(sampling);
         
-            ClassificationDataSet train = FixedProblems.getInnerOuterCircle(200, new XORWOW());
-            ClassificationDataSet test = FixedProblems.getInnerOuterCircle(100, new XORWOW());
+            ClassificationDataSet train = FixedProblems.getInnerOuterCircle(200, new XORWOW(), 1, 4);
+            ClassificationDataSet test = FixedProblems.getCircles(100, 0.0, new XORWOW(), 1, 4);
 
             ClassificationModelEvaluation cme = new ClassificationModelEvaluation(instance, train);
             cme.evaluateTestSet(test);
@@ -99,10 +99,10 @@ public class BOGDTest
     {
         System.out.println("clone");
 
-        BOGD instance = new BOGD(new RBFKernel(0.5), 30, 0.5, 1e-3, 10, new HingeLoss());
+        BOGD instance = new BOGD(new RBFKernel(0.5), 50, 0.5, 1e-3, 10, new HingeLoss());
         
-        ClassificationDataSet t1 = FixedProblems.getInnerOuterCircle(500, new XORWOW());
-        ClassificationDataSet t2 = FixedProblems.getInnerOuterCircle(500, new XORWOW(), 2.0, 10.0);
+        ClassificationDataSet t1 = FixedProblems.getCircles(500, 0.0, new XORWOW(), 1, 4);
+        ClassificationDataSet t2 = FixedProblems.getCircles(500, 0.0, new XORWOW(), 0.5, 3.0);
 
         instance.setUniformSampling(true);
         instance = instance.clone();
