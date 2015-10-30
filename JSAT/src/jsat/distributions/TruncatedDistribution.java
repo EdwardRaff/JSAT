@@ -23,11 +23,11 @@ import jsat.linear.Vec;
  * values in the range (min, max]. The {@link #pdf(double) pdf} for any value
  * outside that range will be 0.<br>
  * <br>
- * Both the {@link #pdf(double) } and the {@link #invCdf(double)  } methods are
- * implemented efficiently, with little overhead per call. All other methods are
- * approximated numerically, and incur more overhead.<br>
+ * The {@link #pdf(double) }, {@link #cdf(double) }, and the {@link #invCdf(double)
+ * } methods are implemented efficiently, with little overhead per call. All
+ * other methods are approximated numerically, and incur more overhead.<br>
  * <br>
- * Note: currently, the {@link #mode() } is not supported. 
+ * Note: currently, the {@link #mode() } is not supported.
  *
  * @author Edward Raff <Raff.Edward@gmail.com>
  */
@@ -65,6 +65,17 @@ public class TruncatedDistribution extends ContinuousDistribution
         if(x <= min || x > max) 
             return 0;
         return base.pdf(x)/probInOrigRange;
+    }
+
+    @Override
+    public double cdf(double x)
+    {
+        if(x <= min)
+            return 0;
+        else if (x >= max)
+            return 1;
+        else
+            return (base.cdf(x)-old_min_p)/probInOrigRange;
     }
 
     @Override
