@@ -263,9 +263,12 @@ public class VPTree<V extends Vec> implements VectorCollection<V>
             return leaf;
         }
         
-        VPNode node = new VPNode(selectVantagePoint(S));
+        int vpIndex = selectVantagePointIndex(S);
+        final VPNode node = new VPNode(S.get(vpIndex).getSecondItem());
         
-        int splitIndex = sortSplitSet(S, node);
+        //move VP to front, its self dist is zero and we dont want it used in computing bounds. 
+        Collections.swap(S, 0, vpIndex);
+        int splitIndex = sortSplitSet(S.subList(1, S.size()), node)+1;//ofset by 1 b/c we sckipped the VP, which was moved to the front
         
         /*
          * Re use the list and let it get altered. We must compute the right side first. 
@@ -273,7 +276,7 @@ public class VPTree<V extends Vec> implements VectorCollection<V>
          * would get thrown off or require aditonal book keeping. 
          */
         node.right = makeVPTree(S.subList(splitIndex+1, S.size()));
-        node.left  = makeVPTree(S.subList(0, splitIndex+1));
+        node.left  = makeVPTree(S.subList(1, splitIndex+1));
         
         return node;
     }
@@ -290,9 +293,12 @@ public class VPTree<V extends Vec> implements VectorCollection<V>
             return leaf;
         }
         
-        final VPNode node = new VPNode(selectVantagePoint(S));
+        int vpIndex = selectVantagePointIndex(S);
+        final VPNode node = new VPNode(S.get(vpIndex).getSecondItem());
         
-        int splitIndex = sortSplitSet(S, node);
+        //move VP to front, its self dist is zero and we dont want it used in computing bounds. 
+        Collections.swap(S, 0, vpIndex);
+        int splitIndex = sortSplitSet(S.subList(1, S.size()), node)+1;//ofset by 1 b/c we sckipped the VP, which was moved to the front
         
         
         //Start 2 threads, but only 1 of them is "new" 
@@ -300,18 +306,18 @@ public class VPTree<V extends Vec> implements VectorCollection<V>
         
 
         final List<Pair<Double, Integer>> rightS = S.subList(splitIndex+1, S.size());
-        final List<Pair<Double, Integer>> leftS = S.subList(0, splitIndex+1);
+        final List<Pair<Double, Integer>> leftS = S.subList(1, splitIndex+1);
         
         threadpool.submit(new Runnable() 
         {
             @Override
             public void run()
             {
-                node.right = makeVPTree(new ArrayList<Pair<Double, Integer>>(rightS), threadpool, mcdl);
+                node.right = makeVPTree(rightS, threadpool, mcdl);
                 mcdl.countDown();
             }
         });
-        node.left  = makeVPTree(new ArrayList<Pair<Double, Integer>>(leftS), threadpool, mcdl);
+        node.left  = makeVPTree(leftS, threadpool, mcdl);
 
         return node;
     }
@@ -372,7 +378,7 @@ public class VPTree<V extends Vec> implements VectorCollection<V>
     {
         int vpIndex = selectVantagePointIndex(S);
         
-        return S.remove(vpIndex).getSecondItem();
+        return S.get(vpIndex).getSecondItem();
     }
 
     @Override
