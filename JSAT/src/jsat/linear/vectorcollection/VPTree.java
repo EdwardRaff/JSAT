@@ -90,6 +90,7 @@ public class VPTree<V extends Vec> implements VectorCollection<V>
         {
             ModifiableCountDownLatch mcdl = new ModifiableCountDownLatch(1);
             this.root = makeVPTree(tmpList, threadpool, mcdl);
+            mcdl.countDown();
             try
             {
                 mcdl.await();
@@ -281,13 +282,11 @@ public class VPTree<V extends Vec> implements VectorCollection<V>
     {
         if(S.isEmpty())
         {
-            mcdl.countDown();
             return null;
         }
         else if(S.size() <= maxLeafSize)
         {
             VPLeaf leaf = new VPLeaf(S);
-            mcdl.countDown();
             return leaf;
         }
         
@@ -309,6 +308,7 @@ public class VPTree<V extends Vec> implements VectorCollection<V>
             public void run()
             {
                 node.right = makeVPTree(new ArrayList<Pair<Double, Integer>>(rightS), threadpool, mcdl);
+                mcdl.countDown();
             }
         });
         node.left  = makeVPTree(new ArrayList<Pair<Double, Integer>>(leftS), threadpool, mcdl);
