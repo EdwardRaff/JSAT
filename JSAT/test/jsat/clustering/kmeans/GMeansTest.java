@@ -9,6 +9,8 @@ import jsat.SimpleDataSet;
 import jsat.classifiers.DataPoint;
 import jsat.clustering.SeedSelectionMethods;
 import jsat.distributions.Normal;
+import jsat.distributions.TruncatedDistribution;
+import jsat.distributions.Uniform;
 import jsat.linear.distancemetrics.EuclideanDistance;
 import jsat.utils.GridDataGenerator;
 import jsat.utils.IntSet;
@@ -39,7 +41,7 @@ public class GMeansTest
     @BeforeClass
     public static void setUpClass()
     {
-        GridDataGenerator gdg = new GridDataGenerator(new Normal(0.0, 0.10), new XORWOW(12), 2, 2);
+        GridDataGenerator gdg = new GridDataGenerator(new TruncatedDistribution(new Normal(0, 0.01), -0.15, 0.15), new XORWOW(), 2, 2);
         easyData10 = gdg.generateData(50);
         ex = Executors.newFixedThreadPool(SystemInfo.LogicalCores);
     }
