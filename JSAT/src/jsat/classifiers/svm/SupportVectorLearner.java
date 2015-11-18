@@ -51,7 +51,7 @@ public abstract class SupportVectorLearner
     /**
      * Stores rows of a cache matrix. 
      */
-    private LinkedHashMap<Integer, double[]> partialCache;
+    private Map<Integer, double[]> partialCache;
     /**
      * Holds an available row for inserting into the cache, null if not 
      * available. All values already set to Nan
@@ -274,7 +274,7 @@ public abstract class SupportVectorLearner
         }
         else if(cacheMode == CacheMode.ROWS && vecs != null)
         {
-            partialCache = new LinkedHashMap<Integer, double[]>(N, 0.75f, true)
+            partialCache =  Collections.synchronizedMap(new LinkedHashMap<Integer, double[]>(N, 0.75f, true)
             {
                 private static final long serialVersionUID = 1553368345126287610L;
 
@@ -292,7 +292,7 @@ public abstract class SupportVectorLearner
                     }
                     return removeEldest;
                 }
-            };
+            });
         }
         else if(cacheMode == CacheMode.NONE)
             fullCache = null;

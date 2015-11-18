@@ -176,7 +176,7 @@ public class LSSVMTest
         end = System.currentTimeMillis();
         long normTime = (end-start);
         
-        assertTrue(warmTime < normTime*0.75);
+        assertTrue("Warm start wasn't faster? "+warmTime + " vs " + normTime,warmTime < normTime*0.95);
         
     }
     
@@ -213,7 +213,7 @@ public class LSSVMTest
         end = System.currentTimeMillis();
         long normTime = (end-start);
         
-        assertTrue(warmTime < normTime*0.75);
+        assertTrue("Warm start wasn't faster? "+warmTime + " vs " + normTime,warmTime < normTime*0.95);
         
     }
 

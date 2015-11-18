@@ -112,7 +112,7 @@ public class NewGLMNETTest
         assertEquals(-1, (int)Math.signum(w.get(1)));
         assertEquals( 1, (int)Math.signum(w.get(2)));
         //also want to make sure that they are all about equal in size
-        assertTrue(Math.abs((w.get(0)+w.get(1)*2+w.get(2))/3) < 0.2);
+        assertTrue(Math.abs((w.get(0)+w.get(1)*2+w.get(2))/3) < 0.4);
         
         glmnet.setC(1e-3);
         glmnet.setAlpha(0);//now everyone should turn on

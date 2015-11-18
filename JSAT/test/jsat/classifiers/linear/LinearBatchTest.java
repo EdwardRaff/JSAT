@@ -100,7 +100,7 @@ public class LinearBatchTest
         end = System.currentTimeMillis();
         long warmTime = (end-start);
         
-        assertTrue(warmTime < normTime*0.75);
+        assertTrue("Warm start wasn't faster? "+warmTime + " vs " + normTime,warmTime < normTime*0.95);
     }
     
     @Test
@@ -172,7 +172,7 @@ public class LinearBatchTest
         end = System.currentTimeMillis();
         long warmTime = (end-start);
         
-        assertTrue(warmTime < normTime*0.75);
+        assertTrue("Warm start wasn't faster? "+warmTime + " vs " + normTime,warmTime < normTime*0.95);
     }
     
     @Test
@@ -274,6 +274,6 @@ public class LinearBatchTest
         end = System.currentTimeMillis();
         long warmTime = (end-start);
         
-        assertTrue(warmTime < normTime*0.75);
+        assertTrue("Warm start wasn't faster? "+warmTime + " vs " + normTime,warmTime < normTime*0.95);
     }
 }
