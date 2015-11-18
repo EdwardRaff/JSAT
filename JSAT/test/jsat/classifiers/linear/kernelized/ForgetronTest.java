@@ -69,7 +69,7 @@ public class ForgetronTest
                 train.addDataPoint(dp, badY);
             }
 
-            ClassificationDataSet test = FixedProblems.getInnerOuterCircle(100, new XORWOW());
+            ClassificationDataSet test = FixedProblems.getCircles(100, 0.0, new XORWOW(), 1, 4);
 
             ClassificationModelEvaluation cme = new ClassificationModelEvaluation(instance, train, ex);
             cme.evaluateTestSet(test);
@@ -100,7 +100,7 @@ public class ForgetronTest
                 train.addDataPoint(dp, badY);
             }
 
-            ClassificationDataSet test = FixedProblems.getInnerOuterCircle(100, new XORWOW());
+            ClassificationDataSet test = FixedProblems.getCircles(100, 0.0, new XORWOW(), 1, 4);
             ClassificationModelEvaluation cme = new ClassificationModelEvaluation(instance, train);
             cme.evaluateTestSet(test);
 
@@ -115,8 +115,8 @@ public class ForgetronTest
 
         Forgetron instance = new Forgetron(new RBFKernel(0.5), 100);
         
-        ClassificationDataSet t1 = FixedProblems.getInnerOuterCircle(500, new XORWOW());
-        ClassificationDataSet t2 = FixedProblems.getInnerOuterCircle(500, new XORWOW(), 2.0, 10.0);
+        ClassificationDataSet t1 = FixedProblems.getCircles(500, 0.0, new XORWOW(), 1, 4);
+        ClassificationDataSet t2 = FixedProblems.getCircles(500, 0.0, new XORWOW(), 2.0, 10.0);
 
         instance = instance.clone();
 
