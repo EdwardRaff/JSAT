@@ -75,7 +75,7 @@ public class RegressionDataSet extends DataSet<RegressionDataSet>
                     newVec.set(i, origVec.get(i));
             }
             
-            DataPoint newDp = new DataPoint(newVec, dp.getCategoricalValues(), categories);
+            DataPoint newDp = new DataPoint(newVec, dp.getCategoricalValues(), categories, dp.getWeight());
             DataPointPair<Double> dpp = new DataPointPair<Double>(newDp, origVec.get(predicting));
             
             dataPoints.add(dpp);

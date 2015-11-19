@@ -81,7 +81,7 @@ public class ClassificationDataSet extends DataSet<ClassificationDataSet>
                 if(i != predicting)
                     newCats[k++] = prevCats[i];
             }
-            DataPoint newPoint = new DataPoint(dp.getNumericalValues(), newCats, categories);
+            DataPoint newPoint = new DataPoint(dp.getNumericalValues(), newCats, categories, dp.getWeight());
             datapoints.add(newPoint);
             category.add(prevCats[predicting]);
         }
