@@ -482,6 +482,8 @@ public class LIBSVMLoader
                 writer.write((iv.getIndex()+1) + ":" + iv.getValue() + " ");//+1 b/c 1 based indexing
             writer.write("\n");
         }
+        writer.flush();
+        writer.close();
     }
     
     /**
@@ -502,6 +504,8 @@ public class LIBSVMLoader
                 writer.write((iv.getIndex()+1) + ":" + iv.getValue() + " ");//+1 b/c 1 based indexing
             writer.write("\n");
         }
+        writer.flush();
+        writer.close();
     }
     
     /**
