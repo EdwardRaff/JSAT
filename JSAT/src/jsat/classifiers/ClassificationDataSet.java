@@ -1,13 +1,17 @@
 
 package jsat.classifiers;
 
-import java.util.*;
 import jsat.DataSet;
-import jsat.SimpleDataSet;
 import jsat.linear.DenseVector;
 import jsat.linear.Vec;
 import jsat.utils.IntList;
 import jsat.utils.ListUtils;
+
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Random;
 
 /**
  * ClassificationDataSet is a data set meant specifically for classification problems. 
@@ -17,8 +21,11 @@ import jsat.utils.ListUtils;
  * Additional functionality specific to classification problems is also available. 
  * @author Edward Raff
  */
-public class ClassificationDataSet extends DataSet<ClassificationDataSet>
+public class ClassificationDataSet extends DataSet<ClassificationDataSet> implements Serializable
 {
+
+    private static final long serialVersionUID = -1658909350787590538L;
+
     /**
      * The categories for the predicted value
      */

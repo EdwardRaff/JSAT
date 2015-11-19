@@ -1,12 +1,6 @@
 
 package jsat;
 
-import java.lang.ref.SoftReference;
-import java.util.*;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.ExecutorService;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import jsat.classifiers.CategoricalData;
 import jsat.classifiers.DataPoint;
 import jsat.datatransform.DataTransform;
@@ -19,6 +13,14 @@ import jsat.utils.ListUtils;
 import jsat.utils.SystemInfo;
 import jsat.utils.random.XORWOW;
 
+import java.io.Serializable;
+import java.lang.ref.SoftReference;
+import java.util.*;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
 /**
  * This is the base class for representing a data set. A data set contains multiple samples,
  * each of which should have the same number of attributes. Conceptually, each 
@@ -26,8 +28,10 @@ import jsat.utils.random.XORWOW;
  * 
  * @author Edward Raff
  */
-public abstract class DataSet<Type extends DataSet>
+public abstract class DataSet<Type extends DataSet> implements Serializable
 {
+    private static final long serialVersionUID = -3365668841180639154L;
+
     /**
      * The number of numerical values each data point must have
      */

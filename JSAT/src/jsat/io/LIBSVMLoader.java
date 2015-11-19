@@ -1,15 +1,18 @@
 package jsat.io;
 
-import java.io.*;
-import java.util.*;
 import jsat.DataSet;
 import jsat.classifiers.CategoricalData;
 import jsat.classifiers.ClassificationDataSet;
 import jsat.datatransform.DenseSparceTransform;
-import jsat.linear.*;
+import jsat.linear.IndexValue;
+import jsat.linear.SparseVector;
+import jsat.linear.Vec;
 import jsat.regression.RegressionDataSet;
 import jsat.utils.DoubleList;
 import jsat.utils.StringUtils;
+
+import java.io.*;
+import java.util.*;
 
 /**
  * Loads a LIBSVM data file into a {@link DataSet}. LIVSM files do not indicate 
@@ -482,6 +485,7 @@ public class LIBSVMLoader
                 writer.write((iv.getIndex()+1) + ":" + iv.getValue() + " ");//+1 b/c 1 based indexing
             writer.write("\n");
         }
+        writer.flush();
     }
     
     /**
@@ -502,6 +506,7 @@ public class LIBSVMLoader
                 writer.write((iv.getIndex()+1) + ":" + iv.getValue() + " ");//+1 b/c 1 based indexing
             writer.write("\n");
         }
+        writer.flush();
     }
     
     /**
