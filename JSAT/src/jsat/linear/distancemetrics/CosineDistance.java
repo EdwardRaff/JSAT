@@ -29,12 +29,13 @@ public class CosineDistance implements DistanceMetric
      * to avoid this.
      */
 
+    private static final long serialVersionUID = -6475546704095989078L;
 
-	private static final long serialVersionUID = -6475546704095989078L;
-
-	@Override
+    @Override
     public double dist(Vec a, Vec b)
     {
+        if(a.length() != b.length())
+            throw new ArithmeticException("vectors a and b are of differeing legnths " + a.length() + " and " + b.length());
         /*
          * a dot b / (2Norm(a) * 2Norm(b)) will return a value in the range -1 to 1
          * -1 means they are completly opposite
