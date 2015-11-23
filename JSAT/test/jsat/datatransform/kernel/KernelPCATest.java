@@ -115,8 +115,8 @@ public class KernelPCATest
 
         DataModelPipeline instance = new DataModelPipeline((Classifier)new DCDs(), new KernelPCA.KernelPCATransformFactory(new RBFKernel(0.5), 20, 100, Nystrom.SamplingMethod.KMEANS)); 
         
-        ClassificationDataSet t1 = FixedProblems.getInnerOuterCircle(500, new XORWOW());
-        ClassificationDataSet t2 = FixedProblems.getInnerOuterCircle(500, new XORWOW(), 2.0, 10.0);
+        ClassificationDataSet t1 = FixedProblems.getCircles(500, 0.0, new XORWOW(), 1.0, 4.0);
+        ClassificationDataSet t2 = FixedProblems.getCircles(500, 0.0, new XORWOW(), 2.0, 10.0);
 
         instance = instance.clone();
 
