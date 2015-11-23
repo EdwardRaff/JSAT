@@ -243,9 +243,10 @@ public class RegressionModelEvaluation
         curProccess.learnApplyTransforms(trainSet);
         
         long startTrain = System.currentTimeMillis();
-        if(warmModels != null && regressor instanceof WarmRegressor)//train from the warm model
+        final Regressor regressorTouse = regressor.clone();
+        if(warmModels != null && regressorTouse instanceof WarmRegressor)//train from the warm model
         {
-            WarmRegressor wr = (WarmRegressor) regressor;
+            WarmRegressor wr = (WarmRegressor) regressorTouse;
             if(threadpool != null)
                 wr.train(trainSet, warmModels[index], threadpool);
             else
@@ -254,13 +255,13 @@ public class RegressionModelEvaluation
         else//do the normal thing
         {
             if(threadpool != null)
-                regressor.train(trainSet, threadpool);
+                regressorTouse.train(trainSet, threadpool);
             else
-                regressor.train(trainSet);
+                regressorTouse.train(trainSet);
         }
         totalTrainingTime += (System.currentTimeMillis() - startTrain);
         if(keptModels != null)
-            keptModels[index] = regressor.clone();
+            keptModels[index] = regressorTouse;
         
         //place to store the scores that may get updated by several threads
         final Map<RegressionScore, RegressionScore> scoresToUpdate = new HashMap<RegressionScore, RegressionScore>();
@@ -275,7 +276,7 @@ public class RegressionModelEvaluation
         if(testSet.getSampleSize() < SystemInfo.LogicalCores || threadpool == null)
         {
             latch = new CountDownLatch(1);
-            new Evaluator(testSet, curProccess, 0, testSet.getSampleSize(), scoresToUpdate, latch).run();
+            new Evaluator(testSet, curProccess, 0, testSet.getSampleSize(), scoresToUpdate, regressorTouse, latch).run();
         }
         else//go parallel!
         {
@@ -289,7 +290,7 @@ public class RegressionModelEvaluation
                 int end = start+blockSize;
                 if(extra-- > 0)
                     end++;
-                threadpool.submit(new Evaluator(testSet, curProccess, start, end, scoresToUpdate, latch));
+                threadpool.submit(new Evaluator(testSet, curProccess, start, end, scoresToUpdate, regressorTouse, latch));
                 start = end;
             }
         }
@@ -352,9 +353,10 @@ public class RegressionModelEvaluation
         int start, end;
         CountDownLatch latch;
         long localPredictionTime;
+        Regressor toUse;
         final Map<RegressionScore, RegressionScore> scoresToUpdate;
 
-        public Evaluator(RegressionDataSet testSet, DataTransformProcess curProccess, int start, int end, Map<RegressionScore, RegressionScore> scoresToUpdate, CountDownLatch latch)
+        public Evaluator(RegressionDataSet testSet, DataTransformProcess curProccess, int start, int end, Map<RegressionScore, RegressionScore> scoresToUpdate, Regressor toUse, CountDownLatch latch)
         {
             this.testSet = testSet;
             this.curProccess = curProccess;
@@ -362,6 +364,7 @@ public class RegressionModelEvaluation
             this.end = end;
             this.latch = latch;
             localPredictionTime = 0;
+            this.toUse = toUse;
             this.scoresToUpdate = scoresToUpdate;
         }
 
@@ -380,7 +383,7 @@ public class RegressionModelEvaluation
                     double trueVal = testSet.getTargetValue(i);
                     DataPoint tranDP = curProccess.transform(di);
                     long startTime = System.currentTimeMillis();
-                    double predVal = regressor.regress(tranDP);
+                    double predVal = toUse.regress(tranDP);
                     localPredictionTime += (System.currentTimeMillis() - startTime);
 
                     double sqrdError = pow(trueVal - predVal, 2);

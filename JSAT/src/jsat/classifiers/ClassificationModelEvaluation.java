@@ -277,11 +277,12 @@ public class ClassificationModelEvaluation
             trainSet = trainSet.shallowClone();
             curProcess.learnApplyTransforms(trainSet);
         }
+        final Classifier classifierToUse = classifier.clone();
         
         long startTrain = System.currentTimeMillis();
-        if(warmModels != null && classifier instanceof WarmClassifier)//train from the warm model
+        if(warmModels != null && classifierToUse instanceof WarmClassifier)//train from the warm model
         {
-            WarmClassifier wc = (WarmClassifier) classifier;
+            WarmClassifier wc = (WarmClassifier) classifierToUse;
             if(threadpool != null)
                 wc.trainC(trainSet, warmModels[index], threadpool);
             else
@@ -290,14 +291,14 @@ public class ClassificationModelEvaluation
         else//do the normal thing
         {
             if(threadpool != null)
-                classifier.trainC(trainSet, threadpool);
+                classifierToUse.trainC(trainSet, threadpool);
             else
-                classifier.trainC(trainSet);
+                classifierToUse.trainC(trainSet);
         }
         totalTrainingTime += (System.currentTimeMillis() - startTrain);
         
         if(keptModels != null)
-            keptModels[index] = classifier.clone();
+            keptModels[index] = classifierToUse;
         
         CountDownLatch latch;
         final double[] evalErrorStats = new double[2];//first index is correct, 2nd is total
@@ -313,7 +314,7 @@ public class ClassificationModelEvaluation
         if(testSet.getSampleSize() < SystemInfo.LogicalCores || threadpool == null)
         {
             latch = new CountDownLatch(1);
-            new Evaluator(testSet, curProcess, 0, testSet.getSampleSize(), evalErrorStats, scoresToUpdate, latch).run();
+            new Evaluator(testSet, curProcess, 0, testSet.getSampleSize(), evalErrorStats, scoresToUpdate, classifierToUse ,latch).run();
         }
         else//go parallel!
         {
@@ -327,7 +328,7 @@ public class ClassificationModelEvaluation
                 int end = start+blockSize;
                 if(extra-- > 0)
                     end++;
-                threadpool.submit(new Evaluator(testSet, curProcess, start, end, evalErrorStats, scoresToUpdate, latch));
+                threadpool.submit(new Evaluator(testSet, curProcess, start, end, evalErrorStats, scoresToUpdate, classifierToUse , latch));
                 start = end;
             }
         }
@@ -387,6 +388,7 @@ public class ClassificationModelEvaluation
     private class Evaluator implements Runnable
     {
         ClassificationDataSet testSet;
+        Classifier toUse;
         DataTransformProcess curProcess;
         int start, end;
         CountDownLatch latch;
@@ -396,7 +398,7 @@ public class ClassificationModelEvaluation
         double[] errorStats;
         final Map<ClassificationScore, ClassificationScore> scoresToUpdate;
 
-        public Evaluator(ClassificationDataSet testSet, DataTransformProcess curProcess, int start, int end, double[] errorStats, Map<ClassificationScore, ClassificationScore> scoresToUpdate, CountDownLatch latch)
+        public Evaluator(ClassificationDataSet testSet, DataTransformProcess curProcess, int start, int end, double[] errorStats, Map<ClassificationScore, ClassificationScore> scoresToUpdate, Classifier toUse, CountDownLatch latch)
         {
             this.testSet = testSet;
             this.curProcess = curProcess;
@@ -407,6 +409,7 @@ public class ClassificationModelEvaluation
             this.localSumOfWeights = 0;
             this.localCorrect = 0;
             this.errorStats = errorStats;
+            this.toUse = toUse;
             this.scoresToUpdate = scoresToUpdate;
         }
 
@@ -424,7 +427,7 @@ public class ClassificationModelEvaluation
                     DataPoint dp = testSet.getDataPoint(i);
                     dp = curProcess.transform(dp);
                     long stratClass = System.currentTimeMillis();
-                    CategoricalResults result = classifier.classify(dp);
+                    CategoricalResults result = toUse.classify(dp);
                     localClassificationTime += (System.currentTimeMillis() - stratClass);
 
                     for (ClassificationScore score : localScores)
