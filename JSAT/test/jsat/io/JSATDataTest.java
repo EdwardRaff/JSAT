@@ -185,8 +185,12 @@ public class JSATDataTest
         
         ByteArrayInputStream bin = new ByteArrayInputStream(baos.toByteArray());
         
+        
         //check classificaiton is right
         DataSet readBack = JSATData.load(bin);
+        checkDataSet(cds, readBack);
+        bin.reset();
+        readBack = JSATData.loadClassification(bin);
         checkDataSet(cds, readBack);
         //check forcing as simple
         bin = new ByteArrayInputStream(baos.toByteArray());
@@ -203,6 +207,9 @@ public class JSATDataTest
         
         //check classificaiton is right
         readBack = JSATData.load(bin);
+        checkDataSet(cds, readBack);
+        bin.reset();
+        readBack = JSATData.loadClassification(bin);
         checkDataSet(cds, readBack);
         //check forcing as simple
         bin = new ByteArrayInputStream(baos.toByteArray());
@@ -227,6 +234,9 @@ public class JSATDataTest
         //check classificaiton is right
         DataSet readBack = JSATData.load(bin);
         checkDataSet(rds, readBack);
+        bin.reset();
+        readBack = JSATData.loadRegression(bin);
+        checkDataSet(rds, readBack);
         //check forcing as simple
         bin = new ByteArrayInputStream(baos.toByteArray());
         readBack = JSATData.load(bin, true);
@@ -242,6 +252,9 @@ public class JSATDataTest
         
         //check classificaiton is right
         readBack = JSATData.load(bin);
+        checkDataSet(rds, readBack);
+        bin.reset();
+        readBack = JSATData.loadRegression(bin);
         checkDataSet(rds, readBack);
         //check forcing as simple
         bin = new ByteArrayInputStream(baos.toByteArray());
