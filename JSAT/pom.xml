@@ -5,12 +5,33 @@
     <artifactId>JSAT</artifactId>
     <version>0.0.3-SNAPSHOT</version>
     <packaging>jar</packaging>
+    <name>Java Statistical Analysis Tool</name>
+    <description>A general purpose Machine Learning library.</description>
+    <url>https://github.com/EdwardRaff/JSAT</url>
+    <licenses>
+        <license>
+            <name>The GNU General Public License v3.0</name>
+            <url>https://www.gnu.org/licenses/gpl-3.0.txt</url>
+        </license>
+    </licenses>
+    <developers>
+        <developer>
+            <name>Edward Raff</name>
+            <email>raff.edward@gmail.com</email>
+            <url>edwardraff.com</url>
+        </developer>
+    </developers>
+    <scm>
+        <connection>scm:git:git@github.com:EdwardRaff/JSAT.git</connection>
+        <developerConnection>scm:git:git@github.com:EdwardRaff/JSAT.git</developerConnection>
+        <url>git@github.com:EdwardRaff/JSAT.git</url>
+    </scm>
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <maven.compiler.source>1.6</maven.compiler.source>
         <maven.compiler.target>1.6</maven.compiler.target>
         <skipTests>false</skipTests><!--configured netbeans to set this to true when we ask the IDE to build -->
-		<additionalparam>-Xdoclint:none</additionalparam>
+        <additionalparam>-Xdoclint:none</additionalparam>
     </properties>
     <build>
         <sourceDirectory>src</sourceDirectory>
