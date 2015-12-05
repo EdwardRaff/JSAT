@@ -428,7 +428,7 @@ public class JSATData
      * @return a dataset
      * @throws IOException 
      */
-    public static <Type extends DataSet<Type>> DataSet<Type> load(InputStream inRaw) throws IOException
+    public static DataSet<?> load(InputStream inRaw) throws IOException
     {
         return load(inRaw, false);
     }
@@ -494,7 +494,7 @@ public class JSATData
      * @throws IOException 
      */
     @SuppressWarnings("unchecked")
-    protected static <Type extends DataSet<Type>> DataSet<Type> load(InputStream inRaw, boolean forceAsStandard) throws IOException
+    protected static DataSet<?> load(InputStream inRaw, boolean forceAsStandard) throws IOException
     {
         DataInputStream in = new DataInputStream(inRaw);
         
@@ -550,7 +550,7 @@ public class JSATData
         }
         
         
-        DataSet data;
+        DataSet<?> data;
         
         switch(marker)
         {
