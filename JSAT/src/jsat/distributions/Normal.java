@@ -188,6 +188,10 @@ public class Normal extends ContinuousDistribution
 
     private static double cdfApproxMarsaglia2004(double x)
     {
+        if(x >= 8.22)//by 8.22 there are 16 sig figs of .999... 
+            return 1;
+        else if(x <= -8.22)
+            return 0;
         /*
          * Journal of Statistical Software (July 2004, Volume 11, Issue 5), George Marsaglia
          * Algorithum to compute the cdf of the normal distribution for some z score

@@ -427,4 +427,17 @@ public class NormalTest
     	assertEquals(d1.hashCode(), d4.hashCode());
     	assertFalse(d1.hashCode()==d2.hashCode());
     }
+    
+    @Test
+    public void testHugeRange()
+    {
+        Normal n = new Normal(811.4250871080139d, 1540.8594859716793d);
+        //original tests from TKlerx that failed 
+        assertTrue(n.cdf(44430.0d) <= 1);
+        assertFalse(Double.isNaN(n.cdf(67043.0)));
+        
+        //Some more tests 
+        assertTrue(n.cdf(-44430.0d) >= 0);
+        assertFalse(Double.isNaN(n.cdf(-67043.0)));
+    }
 }
