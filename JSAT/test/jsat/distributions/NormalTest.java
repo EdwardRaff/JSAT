@@ -439,5 +439,8 @@ public class NormalTest
         //Some more tests 
         assertTrue(n.cdf(-44430.0d) >= 0);
         assertFalse(Double.isNaN(n.cdf(-67043.0)));
+        
+        for(double v : new double[]{44430.0d, -44430.0d, 67043, -67043})
+        assertTrue(n.pdf(v) >= 0 && n.pdf(v) <= 1e-20);
     }
 }
