@@ -15,8 +15,8 @@ import java.util.NoSuchElementException;
 public class ConcatenatedVec extends Vec
 {
 
-	private static final long serialVersionUID = -1412322616974470550L;
-	private Vec[] vecs;
+    private static final long serialVersionUID = -1412322616974470550L;
+    private Vec[] vecs;
     private int[] lengthSums;
     private int totalLength;
 
@@ -38,6 +38,18 @@ public class ConcatenatedVec extends Vec
             this.vecs[i] = vecs.get(i);
             totalLength += vecs.get(i).length();
         }
+    }
+    
+    /**
+     * Creates a new Vector that is the concatenation of the given vectors in 
+     * the given order. The vector created is backed by the ones provided, and 
+     * any mutation to one is visible in the others. 
+     * 
+     * @param vecs the array of vectors to concatenate
+     */
+    public ConcatenatedVec(Vec... vecs)
+    {
+        this(Arrays.asList(vecs));
     }
 
     @Override
