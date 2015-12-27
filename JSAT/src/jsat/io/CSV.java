@@ -585,6 +585,21 @@ public class CSV
         
     }
     
+    /**
+     * Writes out the given dataset as a CSV file. If the given dataset is a
+     * regression or classification dataset, the target feature that is being
+     * predicted will always be written out as the first index in the CSV. <br>
+     * After that, all numeric features will be written out in order, followed
+     * by the categorical features.
+     *
+     * @param data the dataset object to save as a CSV file
+     * @param path the path to write the CSV to
+     * @throws IOException 
+     */
+    public static void write(DataSet<?> data, Path path) throws IOException
+    {
+        write(data, path, DEFAULT_DELIMITER);
+    }
     
     /**
      * Writes out the given dataset as a CSV file. If the given dataset is a
@@ -600,6 +615,25 @@ public class CSV
     public static void write(DataSet<?> data, Writer writer) throws IOException
     {
         write(data, writer, DEFAULT_DELIMITER);
+    }
+    
+    /**
+     * Writes out the given dataset as a CSV file. If the given dataset is a
+     * regression or classification dataset, the target feature that is being
+     * predicted will always be written out as the first index in the CSV. <br>
+     * After that, all numeric features will be written out in order, followed
+     * by the categorical features.
+     *
+     * @param data the dataset object to save as a CSV file
+     * @param path the path to write the CSV to
+     * @param delimiter the delimiter between column values, normally a comma
+     * @throws IOException 
+     */
+    public static void write(DataSet<?> data, Path path, char delimiter) throws IOException
+    {
+        BufferedWriter bw = Files.newBufferedWriter(path, Charset.defaultCharset());
+        write(data, bw, delimiter);
+        bw.close();
     }
     
     /**
