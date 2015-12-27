@@ -25,6 +25,9 @@ import jsat.regression.RegressionDataSet;
 import jsat.utils.DoubleList;
 import jsat.utils.StringUtils;
 import static java.lang.Character.isWhitespace;
+import java.nio.charset.Charset;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import jsat.SimpleDataSet;
 import jsat.linear.*;
 import jsat.utils.*;
@@ -55,6 +58,23 @@ public class CSV
      *
      * @param numeric_target_column the column index (starting from zero) of the
      * feature that will be the target regression value
+     * @param path the reader for the CSV content
+     * @param lines_to_skip the number of lines to skip when reading in the CSV
+     * (used to skip header information)
+     * @param cat_cols a set of the indices to treat as categorical features.
+     * @return the regression dataset from the given CSV file
+     * @throws IOException
+     */
+    public static RegressionDataSet readR(int numeric_target_column, Path path, int lines_to_skip, Set<Integer> cat_cols) throws IOException
+    {
+        return readR(numeric_target_column, path, DEFAULT_DELIMITER, lines_to_skip, DEFAULT_COMMENT, cat_cols);
+    }
+    
+    /**
+     * Reads in a CSV dataset as a regression dataset.
+     *
+     * @param numeric_target_column the column index (starting from zero) of the
+     * feature that will be the target regression value
      * @param reader the reader for the CSV content
      * @param lines_to_skip the number of lines to skip when reading in the CSV
      * (used to skip header information)
@@ -65,6 +85,30 @@ public class CSV
     public static RegressionDataSet readR(int numeric_target_column, Reader reader, int lines_to_skip, Set<Integer> cat_cols) throws IOException
     {
         return readR(numeric_target_column, reader, DEFAULT_DELIMITER, lines_to_skip, DEFAULT_COMMENT, cat_cols);
+    }
+    
+    /**
+     * Reads in a CSV dataset as a regression dataset.
+     *
+     * @param numeric_target_column the column index (starting from zero) of the
+     * feature that will be the target regression value
+     * @param path the CSV file to read
+     * @param delimiter the delimiter to separate columns, usually a comma
+     * @param lines_to_skip the number of lines to skip when reading in the CSV
+     * (used to skip header information)
+     * @param comment the character used to indicate the start of a comment.
+     * Once this character is reached, anything at and after the character will
+     * be ignored.
+     * @param cat_cols a set of the indices to treat as categorical features.
+     * @return the regression dataset from the given CSV file
+     * @throws IOException
+     */
+    public static RegressionDataSet readR(int numeric_target_column, Path path, char delimiter, int lines_to_skip, char comment, Set<Integer> cat_cols) throws IOException
+    {
+        BufferedReader br = Files.newBufferedReader(path, Charset.defaultCharset());
+        RegressionDataSet ret = readR(numeric_target_column, br, delimiter, lines_to_skip, comment, cat_cols);
+        br.close();
+        return ret;
     }
     
     /**
@@ -86,6 +130,24 @@ public class CSV
     public static RegressionDataSet readR(int numeric_target_column, Reader reader, char delimiter, int lines_to_skip, char comment, Set<Integer> cat_cols) throws IOException
     {
         return (RegressionDataSet) readCSV(reader, lines_to_skip, delimiter, comment, cat_cols, numeric_target_column, -1);
+    }
+    
+    /**
+     * Reads in a CSV dataset as a classification dataset. Comments assumed to
+     * start with the "#" symbol.
+     * 
+     * @param classification_target the column index (starting from zero) of the
+     * feature that will be the categorical target value
+     * @param path the CSV file to read
+     * @param lines_to_skip the number of lines to skip when reading in the CSV
+     * (used to skip header information)
+     * @param cat_cols a set of the indices to treat as categorical features.
+     * @return the classification dataset from the given CSV file
+     * @throws IOException 
+     */
+    public static ClassificationDataSet readC(int classification_target, Path path, int lines_to_skip, Set<Integer> cat_cols) throws IOException
+    {
+        return readC(classification_target, path, DEFAULT_DELIMITER, lines_to_skip, DEFAULT_COMMENT, cat_cols);
     }
     
     /**
@@ -128,6 +190,44 @@ public class CSV
     }
     
     /**
+     * Reads in a CSV dataset as a classification dataset.
+     * 
+     * @param classification_target the column index (starting from zero) of the
+     * feature that will be the categorical target value
+     * @param path the CSV file
+     * @param delimiter the delimiter to separate columns, usually a comma
+     * @param lines_to_skip the number of lines to skip when reading in the CSV
+     * (used to skip header information)
+     * @param comment the character used to indicate the start of a comment.
+     * Once this character is reached, anything at and after the character will
+     * be ignored.
+     * @param cat_cols a set of the indices to treat as categorical features.
+     * @return the classification dataset from the given CSV file
+     * @throws IOException 
+     */
+    public static ClassificationDataSet readC(int classification_target, Path path, char delimiter, int lines_to_skip, char comment, Set<Integer> cat_cols) throws IOException
+    {
+        BufferedReader br = Files.newBufferedReader(path, Charset.defaultCharset());
+        ClassificationDataSet ret = readC(classification_target, br, delimiter, lines_to_skip, comment, cat_cols);
+        br.close();
+        return ret;
+    }
+    
+    /**
+     * Reads in the given CSV dataset as a simple CSV file
+     * @param path the CSV file
+     * @param lines_to_skip the number of lines to skip when reading in the CSV
+     * (used to skip header information)
+     * @param cat_cols a set of the indices to treat as categorical features.
+     * @return a simple dataset of the given CSV file
+     * @throws IOException 
+     */
+    public static SimpleDataSet read(Path path, int lines_to_skip, Set<Integer> cat_cols) throws IOException
+    {
+        return read(path, DEFAULT_DELIMITER, lines_to_skip, DEFAULT_COMMENT, cat_cols);
+    }
+    
+    /**
      * Reads in the given CSV dataset as a simple CSV file
      * @param reader the reader for the CSV content
      * @param lines_to_skip the number of lines to skip when reading in the CSV
@@ -139,6 +239,27 @@ public class CSV
     public static SimpleDataSet read(Reader reader, int lines_to_skip, Set<Integer> cat_cols) throws IOException
     {
         return read(reader, DEFAULT_DELIMITER, lines_to_skip, DEFAULT_COMMENT, cat_cols);
+    }
+    
+    /**
+     * Reads in the given CSV dataset as a simple CSV file
+     * @param path the CSV file to read
+     * @param delimiter the delimiter to separate columns, usually a comma
+     * @param lines_to_skip the number of lines to skip when reading in the CSV
+     * (used to skip header information)
+     * @param comment the character used to indicate the start of a comment.
+     * Once this character is reached, anything at and after the character will
+     * be ignored.
+     * @param cat_cols a set of the indices to treat as categorical features.
+     * @return a simple dataset of the given CSV file
+     * @throws IOException 
+     */
+    public static SimpleDataSet read(Path path, char delimiter, int lines_to_skip, char comment, Set<Integer> cat_cols) throws IOException
+    {
+        BufferedReader br = Files.newBufferedReader(path, Charset.defaultCharset());
+        SimpleDataSet ret = read(br, delimiter, lines_to_skip, comment, cat_cols);
+        br.close();
+        return ret;
     }
     
     /**
