@@ -3,7 +3,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.edwardraff</groupId>
     <artifactId>JSAT</artifactId>
-    <version>0.0.3-SNAPSHOT</version>
+    <version>0.0.4-SNAPSHOT</version>
     <packaging>jar</packaging>
     <name>Java Statistical Analysis Tool</name>
     <description>A general purpose Machine Learning library.</description>
