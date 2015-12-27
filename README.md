@@ -9,18 +9,11 @@ JSAT is a library for quickly getting started with Machine Learning problems. It
 You can download JSAT from my maven repo, add the below to your pom file
 
 ```xml
-<repositories>
-  <repository>
-    <id>edwardraff-repo</id>
-    <url>http://www.edwardraff.com/maven-repo/</url>
-  </repository>
-</repositories>
-
 <dependencies>
   <dependency>
     <groupId>com.edwardraff</groupId>
     <artifactId>JSAT</artifactId>
-    <version>0.0.2</version>
+    <version>0.0.3</version>
   </dependency>
 </dependencies>
 ```
@@ -36,3 +29,7 @@ Additional, there are unfortunately not as many ML tools for Java as there are f
 If you want to use JSAT and the GPL is not something that will work for you, let me know and we can discuss the issue.
 
 See the [wiki](https://github.com/EdwardRaff/JSAT/wiki) for more information as well as some examples on how to use JSAT. 
+
+## Note
+
+Updates to JSAT may be slowed as I begin a PhD program in Computer Science. The project isn’t abandoned! I just have limited free time, and will be balancing my PhD work with a full time job. If you discover more hours in the day, please let me know!
