@@ -6,7 +6,7 @@ JSAT is a library for quickly getting started with Machine Learning problems. It
 
 ## Get JSAT
 
-You can download JSAT from my maven repo, add the below to your pom file
+You can download JSAT from maven central, add the below to your pom file
 
 ```xml
 <dependencies>
