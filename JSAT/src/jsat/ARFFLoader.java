@@ -252,7 +252,11 @@ public class ARFFLoader
                 if(!firstFeature)
                     writer.write(",");
                 firstFeature = false;
-                writer.write(Double.toString(v.get(i)));
+                double val = v.get(i);
+                if(Math.rint(val) == val)//cast to long before writting to save space
+                    writer.write(Long.toString((long) val));
+                else
+                    writer.write(Double.toString(val));
             }
             if (data instanceof ClassificationDataSet)//also write out class variable
             {

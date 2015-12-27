@@ -687,7 +687,12 @@ public class CSV
             {
                 if(!nothingWrittenYet)
                     writer.write(delimiter);
-                writer.write(Double.toString(v.get(j)));
+                
+                double val = v.get(j);
+                if(Math.rint(val) == val)//cast to long before writting to save space
+                    writer.write(Long.toString((long) val));
+                else
+                    writer.write(Double.toString(val));
                 nothingWrittenYet = false;
             }
             //then categorical features, useing the safe names we constructed earlier

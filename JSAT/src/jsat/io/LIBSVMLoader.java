@@ -479,7 +479,13 @@ public class LIBSVMLoader
             Vec vals = data.getDataPoint(i).getNumericalValues();
             writer.write(pred + " ");
             for(IndexValue iv : vals)
-                writer.write((iv.getIndex()+1) + ":" + iv.getValue() + " ");//+1 b/c 1 based indexing
+            {
+                double val = iv.getValue();
+                if(Math.rint(val) == val)//cast to long before writting to save space
+                    writer.write((iv.getIndex()+1) + ":" + (long)val + " ");//+1 b/c 1 based indexing
+                else
+                    writer.write((iv.getIndex()+1) + ":" + val + " ");//+1 b/c 1 based indexing
+            }
             writer.write("\n");
         }
         writer.flush();
@@ -501,7 +507,13 @@ public class LIBSVMLoader
             Vec vals = data.getDataPoint(i).getNumericalValues();
             writer.write(pred + " ");
             for(IndexValue iv : vals)
-                writer.write((iv.getIndex()+1) + ":" + iv.getValue() + " ");//+1 b/c 1 based indexing
+            {
+                double val = iv.getValue();
+                if(Math.rint(val) == val)//cast to long before writting to save space
+                    writer.write((iv.getIndex()+1) + ":" + (long)val + " ");//+1 b/c 1 based indexing
+                else
+                    writer.write((iv.getIndex()+1) + ":" + val + " ");//+1 b/c 1 based indexing
+            }
             writer.write("\n");
         }
         writer.flush();
