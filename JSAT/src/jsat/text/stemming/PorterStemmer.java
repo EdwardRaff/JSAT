@@ -187,6 +187,8 @@ public class PorterStemmer extends Stemmer
 
         //Step 5b
         int lp = s.length()-1;
+        if(lp < 1)
+            return s;
         if(s.charAt(lp) == s.charAt(lp-1) && s.charAt(lp) == 'l')
         {
             tmp = s.substring(0, s.length() - 1);

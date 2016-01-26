@@ -40,6 +40,7 @@ public class PorterStemmerTest
     @BeforeClass
     public static void setUpClass()
     {
+        testCases.put("a", "a");
         testCases.put("caresses", "caress");
         testCases.put("ponies", "poni");
         testCases.put("ties", "ti");
