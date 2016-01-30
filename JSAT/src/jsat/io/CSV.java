@@ -40,7 +40,12 @@ import jsat.utils.*;
  * <br>
  * When reading and writing a CSV, if the delimiter or comment markers are not
  * specified - the defaults will be used {@link #DEFAULT_DELIMITER} and
- * {@link #DEFAULT_COMMENT} respectively.
+ * {@link #DEFAULT_COMMENT} respectively.<br>
+ * <br>
+ * The CSV loader will treat empty columns as missing values for both numeric
+ * and categorical features. A value of "NaN" in a numeric column will also be
+ * treated as a missing value. Once loaded, missing values for numeric features
+ * are encoded as {@link Double#NaN} and as <i>-1</i> for categorical features.
  *
  * @author Edward Raff
  */
@@ -404,21 +409,36 @@ public class CSV
                             Map<String, Integer> map = (cur_column == cat_target) ? seenCats_target : seenCats.get(cur_column);
                             String cat_op = processBuffer.toString();
                             processBuffer.setLength(0);
-                            if(!map.containsKey(cat_op))
-                                map.put(cat_op, map.size());
-                            int val = map.get(cat_op);
                             
-                            if(cur_column == cat_target)
-                                catTargets.add(val);
+                            int val;
+                            if(cat_op.length() == 0)
+                                val = -1;
+                            else
+                            {
+                                if(!map.containsKey(cat_op))
+                                    map.put(cat_op, map.size());
+                                val = map.get(cat_op);
+                            }
+                       
+                            if (cur_column == cat_target)
+                                if (val == -1)
+                                    throw new RuntimeException("Categorical column can't have missing values!");
+                                else
+                                    catTargets.add(val);
                             else
                                 catFeats.add(val);
                             
+
                             if(cur_column != cat_target)
                                 cat_indx_to_csv_column.put(catFeats.size()-1, cur_column);
                         }
                         else//numeric feature
                         {
-                            double val = StringUtils.parseDouble(processBuffer, 0, processBuffer.length());
+                            double val;
+                            if(processBuffer.length() == 0)
+                                val = Double.NaN;
+                            else
+                                val = StringUtils.parseDouble(processBuffer, 0, processBuffer.length());
                             processBuffer.setLength(0);
                             if(cur_column == numeric_target)
                             {
@@ -542,7 +562,8 @@ public class CSV
         {
             for(int i = 0; i < cat_vals.length; i++)
             {
-                cat_vals[i] = cat_true_index.get(cat_indx_to_csv_column.get(i)).get(cat_vals[i]);
+                if(cat_vals[i] >= 0)//if -1 its a missing value
+                    cat_vals[i] = cat_true_index.get(cat_indx_to_csv_column.get(i)).get(cat_vals[i]);
             }
         }
         
@@ -688,6 +709,7 @@ public class CSV
                 if(!nothingWrittenYet)
                     writer.write(delimiter);
                 
+                //bellow handles NaN correctly, rint will just return NaN and then toString prints "NaN"
                 double val = v.get(j);
                 if(Math.rint(val) == val)//cast to long before writting to save space
                     writer.write(Long.toString((long) val));
@@ -700,7 +722,9 @@ public class CSV
             {
                 if(!nothingWrittenYet)
                     writer.write(delimiter);
-                writer.write(catNamesToUse[j][c[j]]);
+                if(c[j] >= 0)
+                    writer.write(catNamesToUse[j][c[j]]);
+                //else, its negative - which is missing, so not writing anything out should result in the correct behavior
                 nothingWrittenYet = false;
             }
         }

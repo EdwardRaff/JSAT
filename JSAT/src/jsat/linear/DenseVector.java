@@ -444,8 +444,11 @@ public class DenseVector extends Vec
         if(this.length() != otherVec.length())
             return false;
         for(int i = startIndex; i < endIndex; i++)
-            if(this.get(i) != otherVec.get(i))
-                return false;
+            if (this.get(i) != otherVec.get(i))
+                if (Double.isNaN(this.get(i)) && Double.isNaN(otherVec.get(i)))//NaN != NaN is always true, so check special
+                    return true;
+                else
+                    return false;
         
         return true;
     }
@@ -462,7 +465,10 @@ public class DenseVector extends Vec
             return false;
         for(int i = startIndex; i < endIndex; i++)
             if(Math.abs(this.get(i)-otherVec.get(i)) > range)
-                return false;
+                if (Double.isNaN(this.get(i)) && Double.isNaN(otherVec.get(i)))//NaN != NaN is always true, so check special
+                    return true;
+                else
+                    return false;
         
         return true;
     }

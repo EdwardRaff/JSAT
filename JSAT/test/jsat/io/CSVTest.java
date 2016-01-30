@@ -258,8 +258,25 @@ public class CSVTest
         expectedVec.add(DenseVector.toDenseVec( 0.0, 3.0, 3.0, 0.0, 1.0));
         expectedCats.add(new int[]{0, 2});
         
+        testLines.add("3,0.0, B, 0.0, 0.0, 0.0, d , NaN");//Nan numeric strng
+        expetedLabel.add(3.0);
+        expectedVec.add(DenseVector.toDenseVec( 0.0, 0.0, 0.0, 0.0, Double.NaN));
+        expectedCats.add(new int[]{1, 3});
+        
+        testLines.add("3,0.0, B, 0.0, 0.0, , d , 0.0");//Nan numeric empty string
+        expetedLabel.add(3.0);
+        expectedVec.add(DenseVector.toDenseVec( 0.0, 0.0, 0.0, Double.NaN, 0.0));
+        expectedCats.add(new int[]{1, 3});
+        
+        testLines.add("2, 0.0,    A,   3.0, 3.0, 0.0,  , 1.0");//missing cat feat
+        expetedLabel.add(2.0);
+        expectedVec.add(DenseVector.toDenseVec( 0.0, 3.0, 3.0, 0.0, 1.0));
+        expectedCats.add(new int[]{0, -1});
+        
         
         Set<Integer> cat_cols = new HashSet<Integer>(Arrays.asList(2, 6));
+        //when read back in, cat features are at the end b/c we always write out cats at the end
+        Set<Integer> cat_cols_reed_back = new HashSet<Integer>(Arrays.asList(6, 7));
         
         String[] newLines = new String[]{"\n", "\n\r", "\r\n", "\n\r\n"};
         
@@ -295,6 +312,12 @@ public class CSVTest
                     SimpleDataSet smpData = CSV.read(new StringReader(input.toString()), ',', 0, comment, cat_cols);
                     @SuppressWarnings("unchecked")
                     ClassificationDataSet catData = CSV.readC(0, new StringReader(input.toString()), ',', 0, comment, cat_cols);
+                    
+                    //Confirm that string -> data -> string -> data keeps everything the same
+                    StringWriter data_strng_out = new StringWriter();
+                    CSV.write(smpData, data_strng_out);
+                    SimpleDataSet readBackIn = CSV.read(new StringReader(data_strng_out.toString()), 0, cat_cols_reed_back);
+                    compareDataSetPoints(smpData, readBackIn);
 
                     assertEquals(i + 1, regData.getSampleSize());
                     for (int j = 0; j < i + 1; j++)

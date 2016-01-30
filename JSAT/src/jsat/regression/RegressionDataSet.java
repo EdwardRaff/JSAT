@@ -165,7 +165,7 @@ public class RegressionDataSet extends DataSet<RegressionDataSet>
             throw new RuntimeException("Data point does not contain enough categorical data points");
         
         for(int i = 0; i < categories.length; i++)
-            if(!this.categories[i].isValidCategory(categories[i]))
+            if(!this.categories[i].isValidCategory(categories[i]) && categories[i] >= 0) // >= so that missing values (negative) are allowed
                 throw new RuntimeException("Categoriy value given is invalid");
         
         DataPoint dp = new DataPoint(numerical, categories, this.categories);

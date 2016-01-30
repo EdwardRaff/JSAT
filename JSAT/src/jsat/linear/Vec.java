@@ -927,7 +927,10 @@ public abstract class Vec implements Cloneable, Iterable<IndexValue>, Serializab
             if (av.getIndex() == bv.getIndex())
             {
                 if(abs(av.getValue() - bv.getValue()) > range)
-                    return false;
+                    if (Double.isNaN(av.getValue()) && Double.isNaN(bv.getValue()))//NaN != NaN is always true, so check special
+                        return true;
+                    else
+                        return false;
                 nextA = nextB = true;
             }
             else if(av.getIndex() < bv.getIndex())

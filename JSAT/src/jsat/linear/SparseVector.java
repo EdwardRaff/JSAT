@@ -808,35 +808,6 @@ public class SparseVector extends  Vec
     }
     
     @Override
-    public boolean equals(Object obj)
-    {
-        if(!(obj instanceof Vec))
-            return false;
-        Vec otherVec = (Vec) obj;
-        
-        if(this.length() != otherVec.length())
-            return false;
-        
-        
-            int z = 0;
-            for(int i = 0; i < length(); i++)
-            {
-                //Move through until we hit the next null element, comparing the other vec to zero
-                while(z < used && indexes[z] > i)
-                    if(otherVec.get(i++) != 0)
-                        return false;
-                
-                //We made it! (or are at the end). Is our non zero value the same?
-                if(z < used && indexes[z] == i)
-                    if(values[z++] != otherVec.get(i))
-                        return false;
-            }
-        
-        
-        return true;
-    }
-
-    @Override
     public boolean equals(Object obj, double range)
     {
         if(!(obj instanceof Vec))
@@ -859,7 +830,10 @@ public class SparseVector extends  Vec
             //We made it! (or are at the end). Is our non zero value the same?
             if (z < used && indexes[z] == i)
                 if (Math.abs(values[z++] - otherVec.get(i)) > range)
-                    return false;
+                    if (Double.isNaN(values[z++]) && Double.isNaN(otherVec.get(i)))//NaN != NaN is always true, so check special
+                        return true;
+                    else
+                        return false;
         }
 
 
