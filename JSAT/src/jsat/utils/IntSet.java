@@ -13,10 +13,10 @@ import java.util.*;
 public class IntSet extends AbstractSet<Integer> implements Serializable
 {
 
-	private static final long serialVersionUID = -2675363824037596497L;
+    private static final long serialVersionUID = -2675363824037596497L;
 
-	private static final int defaultSize = 8;
-     
+    private static final int defaultSize = 8;
+
     private int[] store;
     private int size;
     
@@ -26,18 +26,36 @@ public class IntSet extends AbstractSet<Integer> implements Serializable
         size = 0;
     }
     
-    public IntSet(SortedSet<Integer> sortedSet)
+    /**
+     * Creates a new set of integers from the given set 
+     * @param set the set of integers to create a copy of
+     */
+    public IntSet(Set<Integer> set)
     {
-        this();
-        for(Integer integer : sortedSet)
+        this(set.size());
+        for(Integer integer : set)
             this.add(integer);
     }
     
+    /**
+     * Creates a set of integers from the given collection
+     * @param collection a collection of integers to create a set from
+     */
     public IntSet(Collection<Integer> collection)
     {
         this();
         for(Integer integer : collection)
             this.add(integer);
+    }
+    
+    /**
+     * Creates a set of integers from the given list of integers. 
+     * @param ints a list of integers to create a set from
+     * @return a set of integers of all the unique integers in the given list
+     */
+    public static IntSet from(int... ints)
+    {
+        return new IntSet(IntList.view(ints, ints.length));
     }
     
     public IntSet()
