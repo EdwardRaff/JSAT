@@ -34,6 +34,19 @@ public abstract class Vec implements Cloneable, Iterable<IndexValue>, Serializab
     abstract public int length();
     
     /**
+     * 
+     * @return the number of NaNs present in this vector
+     */
+    public int countNaNs()
+    {
+        int nans = 0;
+        for(IndexValue iv : this)
+            if(Double.isNaN(iv.getValue()))
+                nans++;
+        return nans;
+    }
+    
+    /**
      * Indicates whether or not this vector can be mutated. If 
      * {@code false}, any method that contains "mutate" will not work. 
      * <br><br>

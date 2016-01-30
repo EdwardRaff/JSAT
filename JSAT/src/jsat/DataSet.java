@@ -551,6 +551,24 @@ public abstract class DataSet<Type extends DataSet>
     }
     
     /**
+     * 
+     * @return the number of missing values in both numeric and categorical features
+     */
+    public long countMissingValues()
+    {
+        long missing = 0;
+        for (int i = 0; i < getSampleSize(); i++)
+        {
+            DataPoint dp = getDataPoint(i);
+            missing += dp.getNumericalValues().countNaNs();
+            for(int c : dp.getCategoricalValues())
+                if(c < 0)
+                    missing++;
+        }
+        return missing;
+    }
+    
+    /**
      * Creates an array of column vectors for every numeric variable in this 
      * data set. The index of the array corresponds to the numeric feature 
      * index. This method is faster and more efficient than calling 
