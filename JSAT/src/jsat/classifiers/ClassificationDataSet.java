@@ -316,7 +316,7 @@ public class ClassificationDataSet extends DataSet<ClassificationDataSet>
             throw new RuntimeException("Data point does not contain enough categorical data points");
         
         for(int i = 0; i < classes.length; i++)
-            if(!categories[i].isValidCategory(classes[i]))
+            if(!categories[i].isValidCategory(classes[i]) && classes[i] >= 0) // >= so that missing values (negative) are allowed
                 throw new IllegalArgumentException("Categoriy value given is invalid");
         
         datapoints.add(new DataPoint(v, classes, categories, weight));

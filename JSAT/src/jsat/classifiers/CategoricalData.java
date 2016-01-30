@@ -12,8 +12,8 @@ import java.util.List;
 public class CategoricalData implements Cloneable, Serializable
 {
 
-	private static final long serialVersionUID = 5783467611963064930L;
-	private int n;//Number of different categories
+    private static final long serialVersionUID = 5783467611963064930L;
+    private int n;//Number of different categories
     private List<String> catNames;
     private String categoryName;
 
@@ -39,6 +39,11 @@ public class CategoricalData implements Cloneable, Serializable
         return n;
     }
     
+    /**
+     * Returns true if the given input is a valid category index for this object. Missing values (negative categories) do not count. 
+     * @param i the index for a category in this object
+     * @return {@code true} if it was a valid category, {@code false} otherwise. 
+     */
     public boolean isValidCategory(int i)
     {
         if (i < 0 || i >= n)
@@ -49,7 +54,9 @@ public class CategoricalData implements Cloneable, Serializable
     
     public String getOptionName(int i)
     {
-        if(catNames != null)
+        if(i < 0)
+            return "Missing Value";
+        else if(catNames != null)
             return catNames.get(i);
         else
             return Integer.toString(i);
