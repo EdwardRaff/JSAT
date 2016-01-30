@@ -85,6 +85,10 @@ public class StringUtils
     
     public static double parseDouble(CharSequence s, int start, int end)
     {
+        //hack check for NaN at the start
+        if((end-start) == 3 && s.length() >= end && s.charAt(start) == 'N')
+            if(s.subSequence(start, end).toString().equals("NaN"))
+                return Double.NaN;
         States state = States.SIGN;
         int pos = start;
         
