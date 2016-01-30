@@ -217,14 +217,28 @@ public class ImpurityScore implements Cloneable
      */
     public static double gain(ImpurityScore wholeData, ImpurityScore... splits)
     {
+        return gain(wholeData, 1.0, splits);
+    }
+    
+    /**
+     * Computes the gain in score from a splitting of the data set
+     * 
+     * @param wholeData the score for the whole data set
+     * @param wholeScale a constant to scale the wholeData counts and sums by, useful for handling missing value cases
+     * @param splits the scores for each of the splits
+     * @return the gain for the values given
+     */
+    public static double gain(ImpurityScore wholeData, double wholeScale, ImpurityScore... splits)
+    {
+        double sumOfAllSums = wholeScale*wholeData.sumOfWeights;
+        
         if(splits[0].impurityMeasure == ImpurityMeasure.NMI)
         {
             double mi = 0, splitEntropy = 0.0, classEntropy = 0.0;
-            double sumOfAllSums = wholeData.sumOfWeights;
             
             for(int c = 0; c < wholeData.counts.length; c++)//c: class
             {
-                final double p_c = wholeData.counts[c]/sumOfAllSums;
+                final double p_c = wholeScale*wholeData.counts[c]/sumOfAllSums;
                 if(p_c <= 0.0)
                     continue;
                 
@@ -279,7 +293,7 @@ public class ImpurityScore implements Cloneable
             double splitInfo = 1.0;
             for(ImpurityScore split : splits)
             {
-                double p = split.getSumOfWeights()/wholeData.getSumOfWeights();
+                double p = split.getSumOfWeights()/sumOfAllSums;
                 if(p <= 0)//log(0) is -Inft, so skip and treat as zero
                     continue;
                 splitScore += p * split.getScore();
@@ -292,7 +306,7 @@ public class ImpurityScore implements Cloneable
         {
             for(ImpurityScore split : splits)
             {
-                double p = split.getSumOfWeights()/wholeData.getSumOfWeights();
+                double p = split.getSumOfWeights()/sumOfAllSums;
                 if(p <= 0)//log(0) is -Inft, so skip and treat as zero
                     continue;
                 splitScore += p*split.getScore();
