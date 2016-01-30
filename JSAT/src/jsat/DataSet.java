@@ -410,7 +410,38 @@ public abstract class DataSet<Type extends DataSet>
         return categories;
     }
     
+    /**
+     * Creates a new dataset that is a subset of this dataset. 
+     * @param indicies the indices of data points to insert into the new 
+     * dataset, and will be placed in the order listed. 
+     * @return a new dataset that is a specified subset of this dataset, and 
+     * backed by the same values
+     */
     abstract protected Type getSubset(List<Integer> indicies);
+    
+    /**
+     * This method returns a dataset that is a subset of this dataset, where
+     * only the rows that have no missing values are kept. The new dataset is
+     * backed by this dataset.
+     *
+     * @return a subset of this dataset that has all data points with missing 
+     * features dropped
+     */
+    public Type getMissingDropped()
+    {
+        List<Integer> hasNoMissing = new IntList();
+        for (int i = 0; i < getSampleSize(); i++)
+        {
+            DataPoint dp = getDataPoint(i);
+            boolean missing =  dp.getNumericalValues().countNaNs() > 0;
+            for(int c : dp.getCategoricalValues())
+                if(c < 0)
+                    missing = true;
+            if(!missing)
+                hasNoMissing.add(i);
+        }
+        return getSubset(hasNoMissing);
+    }
     
     /**
      * Splits the dataset randomly into proportionally sized partitions. 
