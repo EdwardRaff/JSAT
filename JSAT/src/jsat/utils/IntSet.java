@@ -76,7 +76,7 @@ public class IntSet extends AbstractSet<Integer> implements Serializable
         
         //Increase store size if needed
         if(size >= store.length)
-            store = Arrays.copyOf(store, store.length*2);
+            store = Arrays.copyOf(store, Math.max(1, store.length)*2);
         
         for(int i = size; i > insertionPoint; i--)
             store[i] = store[i-1];
