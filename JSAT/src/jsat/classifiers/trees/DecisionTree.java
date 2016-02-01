@@ -25,9 +25,11 @@ import jsat.utils.IntSet;
 import jsat.utils.ModifiableCountDownLatch;
 
 /**
- * Creates a decision tree from {@link DecisionStump DecisionStumps}. How this tree 
- * performs is controlled by pruning method selected, and the methods used in the stump. 
- * 
+ * Creates a decision tree from {@link DecisionStump DecisionStumps}. How this
+ * tree performs is controlled by pruning method selected, and the methods used
+ * in the stump.<br>
+ * A Decision Tree supports missing values in training and prediction. 
+ *
  * @author Edward Raff
  */
 public class DecisionTree implements Classifier, Regressor, Parameterized, TreeLearner
@@ -471,11 +473,8 @@ public class DecisionTree implements Classifier, Regressor, Parameterized, TreeL
     
     protected static class Node extends TreeNodeVisitor
     {
-        /**
-		 * 
-		 */
-		private static final long serialVersionUID = -7507748424627088734L;
-		final protected DecisionStump stump;
+        private static final long serialVersionUID = -7507748424627088734L;
+        final protected DecisionStump stump;
         protected Node[] paths;
         
         public Node(DecisionStump stump)

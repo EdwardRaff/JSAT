@@ -22,6 +22,7 @@ import jsat.FixedProblems;
 import jsat.classifiers.ClassificationDataSet;
 import jsat.classifiers.ClassificationModelEvaluation;
 import jsat.datatransform.DataTransformProcess;
+import jsat.datatransform.InsertMissingValuesTransform;
 import jsat.datatransform.NumericalToHistogram;
 import jsat.regression.RegressionDataSet;
 import jsat.regression.RegressionModelEvaluation;
@@ -174,6 +175,72 @@ public class DecisionTreeTest
                     cme.evaluateTestSet(test);
 
                     assertTrue(cme.getErrorRate() <= 0.05);
+                }
+    }
+    
+    @Test
+    public void testTrainC_ClassificationDataSet_missing()
+    {
+        System.out.println("trainC");
+        
+        for (TreePruner.PruningMethod pruneMethod : TreePruner.PruningMethod.values())
+            for (ImpurityScore.ImpurityMeasure gainMethod : ImpurityScore.ImpurityMeasure.values())
+                for(boolean useCatFeatures : new boolean[]{true, false})
+                {
+                    DecisionTree instance = new DecisionTree();
+                    instance.setGainMethod(gainMethod);
+                    instance.setTestProportion(0.3);
+                    instance.setPruningMethod(pruneMethod);
+
+                    ClassificationDataSet train =  FixedProblems.getCircles(5000, 0.1, 10.0, 100.0);
+                    ClassificationDataSet test = FixedProblems.getCircles(200, 0.1, 10.0, 100.0);
+                    
+                    train.applyTransform(new InsertMissingValuesTransform(0.01));
+
+                    ClassificationModelEvaluation cme = new ClassificationModelEvaluation(instance, train);
+                    if(useCatFeatures)
+                        cme.setDataTransformProcess(new DataTransformProcess(new NumericalToHistogram.NumericalToHistogramTransformFactory()));
+                    cme.evaluateTestSet(test);
+
+                    assertTrue(cme.getErrorRate() <= 0.10);
+                    
+                    instance.trainC(train);
+                    test.applyTransform(new InsertMissingValuesTransform(0.5));
+                    for(int i = 0; i < test.getSampleSize(); i++)
+                        instance.classify(test.getDataPoint(i));
+                }
+    }
+    
+    @Test
+    public void testTrain_RegressionDataSet_missing()
+    {
+        System.out.println("train");
+        for (TreePruner.PruningMethod pruneMethod : TreePruner.PruningMethod.values())
+            for (ImpurityScore.ImpurityMeasure gainMethod : ImpurityScore.ImpurityMeasure.values())
+                for(boolean useCatFeatures : new boolean[]{true, false})
+                {
+                    DecisionTree instance = new DecisionTree();
+                    instance.setGainMethod(gainMethod);
+                    instance.setTestProportion(0.3);
+                    instance.setPruningMethod(pruneMethod);
+
+
+                    RegressionDataSet train =  FixedProblems.getLinearRegression(3000, new XORWOW());
+                    RegressionDataSet test = FixedProblems.getLinearRegression(100, new XORWOW());
+                    
+                    train.applyTransform(new InsertMissingValuesTransform(0.01));
+
+                    RegressionModelEvaluation rme = new RegressionModelEvaluation(instance, train);
+                    if(useCatFeatures)
+                        rme.setDataTransformProcess(new DataTransformProcess(new NumericalToHistogram.NumericalToHistogramTransformFactory()));
+                    rme.evaluateTestSet(test);
+
+                    assertTrue(rme.getMeanError() <= test.getTargetValues().mean()*3);
+                    
+                    instance.train(train);
+                    test.applyTransform(new InsertMissingValuesTransform(0.5));
+                    for(int i = 0; i < test.getSampleSize(); i++)
+                        instance.regress(test.getDataPoint(i));
                 }
     }
 

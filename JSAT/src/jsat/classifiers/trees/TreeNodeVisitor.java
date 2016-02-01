@@ -102,7 +102,8 @@ public abstract class TreeNodeVisitor implements Serializable, Cloneable
     
     /**
      * Returns the path down the tree the given data point would have taken, or
-     * -1 if this node was a leaf node
+     * -1 if this node was a leaf node OR if a missing value prevent traversal
+     * down the path
      * @param dp the data point to send down the tree
      * @return the path that would be taken
      */
@@ -114,7 +115,8 @@ public abstract class TreeNodeVisitor implements Serializable, Cloneable
         while(!node.isLeaf())
         {
             int path = node.getPath(dp);
-            if(node.isPathDisabled(path))
+            //TODO improve missing value case
+            if(path < 0 || node.isPathDisabled(path))//if missing value makes path < 0, return local classification dec
                 break;
             node = node.getChild(path);
         }
@@ -148,7 +150,8 @@ public abstract class TreeNodeVisitor implements Serializable, Cloneable
         while(!node.isLeaf())
         {
             int path = node.getPath(dp);
-            if(node.isPathDisabled(path))
+            //TODO improve missing value case
+            if(path < 0 || node.isPathDisabled(path))//if missing value makes path < 0, return local regression dec
                 break;
             node = node.getChild(path);
         }
