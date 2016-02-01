@@ -70,27 +70,25 @@ public class DecisionTreeTest
     {
         System.out.println("train");
         for (TreePruner.PruningMethod pruneMethod : TreePruner.PruningMethod.values())
-            for (DecisionStump.NumericHandlingC numericHandling : DecisionStump.NumericHandlingC.values())
-                for (ImpurityScore.ImpurityMeasure gainMethod : ImpurityScore.ImpurityMeasure.values())
-                    for(boolean useCatFeatures : new boolean[]{true, false})
-                    {
-                        DecisionTree instance = new DecisionTree();
-                        instance.setGainMethod(gainMethod);
-                        instance.setTestProportion(0.3);
-                        instance.setNumericHandling(numericHandling);
-                        instance.setPruningMethod(pruneMethod);
+            for (ImpurityScore.ImpurityMeasure gainMethod : ImpurityScore.ImpurityMeasure.values())
+                for(boolean useCatFeatures : new boolean[]{true, false})
+                {
+                    DecisionTree instance = new DecisionTree();
+                    instance.setGainMethod(gainMethod);
+                    instance.setTestProportion(0.3);
+                    instance.setPruningMethod(pruneMethod);
 
 
-                        RegressionDataSet train =  FixedProblems.getLinearRegression(3000, new XORWOW());
-                        RegressionDataSet test = FixedProblems.getLinearRegression(100, new XORWOW());
+                    RegressionDataSet train =  FixedProblems.getLinearRegression(3000, new XORWOW());
+                    RegressionDataSet test = FixedProblems.getLinearRegression(100, new XORWOW());
 
-                        RegressionModelEvaluation rme = new RegressionModelEvaluation(instance, train);
-                        if(useCatFeatures)
-                            rme.setDataTransformProcess(new DataTransformProcess(new NumericalToHistogram.NumericalToHistogramTransformFactory()));
-                        rme.evaluateTestSet(test);
+                    RegressionModelEvaluation rme = new RegressionModelEvaluation(instance, train);
+                    if(useCatFeatures)
+                        rme.setDataTransformProcess(new DataTransformProcess(new NumericalToHistogram.NumericalToHistogramTransformFactory()));
+                    rme.evaluateTestSet(test);
 
-                        assertTrue(rme.getMeanError() <= test.getTargetValues().mean()*3);
-                    }
+                    assertTrue(rme.getMeanError() <= test.getTargetValues().mean()*3);
+                }
     }
     
     @Test
@@ -99,30 +97,28 @@ public class DecisionTreeTest
         System.out.println("train");
 
         for (TreePruner.PruningMethod pruneMethod : TreePruner.PruningMethod.values())
-            for (DecisionStump.NumericHandlingC numericHandling : DecisionStump.NumericHandlingC.values())
-                for (ImpurityScore.ImpurityMeasure gainMethod : ImpurityScore.ImpurityMeasure.values())
-                    for (boolean useCatFeatures : new boolean[]{true, false})
-                    {
-                        DecisionTree instance = new DecisionTree();
-                        instance.setGainMethod(gainMethod);
-                        instance.setTestProportion(0.3);
-                        instance.setNumericHandling(numericHandling);
-                        instance.setPruningMethod(pruneMethod);
+            for (ImpurityScore.ImpurityMeasure gainMethod : ImpurityScore.ImpurityMeasure.values())
+                for (boolean useCatFeatures : new boolean[]{true, false})
+                {
+                    DecisionTree instance = new DecisionTree();
+                    instance.setGainMethod(gainMethod);
+                    instance.setTestProportion(0.3);
+                    instance.setPruningMethod(pruneMethod);
 
-                        ExecutorService ex = Executors.newFixedThreadPool(SystemInfo.LogicalCores);
+                    ExecutorService ex = Executors.newFixedThreadPool(SystemInfo.LogicalCores);
 
-                        RegressionDataSet train = FixedProblems.getLinearRegression(3000, new XORWOW());
-                        RegressionDataSet test = FixedProblems.getLinearRegression(100, new XORWOW());
+                    RegressionDataSet train = FixedProblems.getLinearRegression(3000, new XORWOW());
+                    RegressionDataSet test = FixedProblems.getLinearRegression(100, new XORWOW());
 
-                        RegressionModelEvaluation rme = new RegressionModelEvaluation(instance, train, ex);
-                        if (useCatFeatures)
-                            rme.setDataTransformProcess(new DataTransformProcess(new NumericalToHistogram.NumericalToHistogramTransformFactory()));
-                        rme.evaluateTestSet(test);
+                    RegressionModelEvaluation rme = new RegressionModelEvaluation(instance, train, ex);
+                    if (useCatFeatures)
+                        rme.setDataTransformProcess(new DataTransformProcess(new NumericalToHistogram.NumericalToHistogramTransformFactory()));
+                    rme.evaluateTestSet(test);
 
-                        assertTrue(rme.getMeanError() <= test.getTargetValues().mean() * 3);
+                    assertTrue(rme.getMeanError() <= test.getTargetValues().mean() * 3);
 
-                        ex.shutdownNow();
-                    }
+                    ex.shutdownNow();
+                }
     }
     
     @Test
@@ -131,30 +127,28 @@ public class DecisionTreeTest
         System.out.println("trainC");
 
         for (TreePruner.PruningMethod pruneMethod : TreePruner.PruningMethod.values())
-            for (DecisionStump.NumericHandlingC numericHandling : DecisionStump.NumericHandlingC.values())
-                for (ImpurityScore.ImpurityMeasure gainMethod : ImpurityScore.ImpurityMeasure.values())
-                    for(boolean useCatFeatures : new boolean[]{true, false})
-                    {
-                        DecisionTree instance = new DecisionTree();
-                        instance.setGainMethod(gainMethod);
-                        instance.setTestProportion(0.3);
-                        instance.setNumericHandling(numericHandling);
-                        instance.setPruningMethod(pruneMethod);
+            for (ImpurityScore.ImpurityMeasure gainMethod : ImpurityScore.ImpurityMeasure.values())
+                for(boolean useCatFeatures : new boolean[]{true, false})
+                {
+                    DecisionTree instance = new DecisionTree();
+                    instance.setGainMethod(gainMethod);
+                    instance.setTestProportion(0.3);
+                    instance.setPruningMethod(pruneMethod);
 
-                        ExecutorService ex = Executors.newFixedThreadPool(SystemInfo.LogicalCores);
+                    ExecutorService ex = Executors.newFixedThreadPool(SystemInfo.LogicalCores);
 
-                        ClassificationDataSet train = FixedProblems.getCircles(5000, 1.0, 10.0, 100.0);
-                        ClassificationDataSet test = FixedProblems.getCircles(100, 1.0, 10.0, 100.0);
+                    ClassificationDataSet train = FixedProblems.getCircles(5000, 1.0, 10.0, 100.0);
+                    ClassificationDataSet test = FixedProblems.getCircles(100, 1.0, 10.0, 100.0);
 
-                        ClassificationModelEvaluation cme = new ClassificationModelEvaluation(instance, train, ex);
-                        if(useCatFeatures)
-                            cme.setDataTransformProcess(new DataTransformProcess(new NumericalToHistogram.NumericalToHistogramTransformFactory()));
-                        cme.evaluateTestSet(test);
+                    ClassificationModelEvaluation cme = new ClassificationModelEvaluation(instance, train, ex);
+                    if(useCatFeatures)
+                        cme.setDataTransformProcess(new DataTransformProcess(new NumericalToHistogram.NumericalToHistogramTransformFactory()));
+                    cme.evaluateTestSet(test);
 
-                        assertTrue(cme.getErrorRate() <= 0.05);
+                    assertTrue(cme.getErrorRate() <= 0.05);
 
-                        ex.shutdownNow();
-                    }
+                    ex.shutdownNow();
+                }
     }
 
     @Test
@@ -163,26 +157,24 @@ public class DecisionTreeTest
         System.out.println("trainC");
         
         for (TreePruner.PruningMethod pruneMethod : TreePruner.PruningMethod.values())
-            for (DecisionStump.NumericHandlingC numericHandling : DecisionStump.NumericHandlingC.values())
-                for (ImpurityScore.ImpurityMeasure gainMethod : ImpurityScore.ImpurityMeasure.values())
-                    for(boolean useCatFeatures : new boolean[]{true, false})
-                    {
-                        DecisionTree instance = new DecisionTree();
-                        instance.setGainMethod(gainMethod);
-                        instance.setTestProportion(0.3);
-                        instance.setNumericHandling(numericHandling);
-                        instance.setPruningMethod(pruneMethod);
+            for (ImpurityScore.ImpurityMeasure gainMethod : ImpurityScore.ImpurityMeasure.values())
+                for(boolean useCatFeatures : new boolean[]{true, false})
+                {
+                    DecisionTree instance = new DecisionTree();
+                    instance.setGainMethod(gainMethod);
+                    instance.setTestProportion(0.3);
+                    instance.setPruningMethod(pruneMethod);
 
-                        ClassificationDataSet train =  FixedProblems.getCircles(5000, 1.0, 10.0, 100.0);
-                        ClassificationDataSet test = FixedProblems.getCircles(100, 1.0, 10.0, 100.0);
+                    ClassificationDataSet train =  FixedProblems.getCircles(5000, 1.0, 10.0, 100.0);
+                    ClassificationDataSet test = FixedProblems.getCircles(100, 1.0, 10.0, 100.0);
 
-                        ClassificationModelEvaluation cme = new ClassificationModelEvaluation(instance, train);
-                        if(useCatFeatures)
-                            cme.setDataTransformProcess(new DataTransformProcess(new NumericalToHistogram.NumericalToHistogramTransformFactory()));
-                        cme.evaluateTestSet(test);
+                    ClassificationModelEvaluation cme = new ClassificationModelEvaluation(instance, train);
+                    if(useCatFeatures)
+                        cme.setDataTransformProcess(new DataTransformProcess(new NumericalToHistogram.NumericalToHistogramTransformFactory()));
+                    cme.evaluateTestSet(test);
 
-                        assertTrue(cme.getErrorRate() <= 0.05);
-                    }
+                    assertTrue(cme.getErrorRate() <= 0.05);
+                }
     }
 
     

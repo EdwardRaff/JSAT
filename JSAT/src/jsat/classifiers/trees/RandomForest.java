@@ -72,7 +72,6 @@ public class RandomForest implements Classifier, Regressor, Parameterized
         setMaxForestSize(maxForestSize);
         autoFeatureSample();
         baseLearner = new RandomDecisionTree(1, Integer.MAX_VALUE, 3, TreePruner.PruningMethod.NONE, 1e-15);
-        baseLearner.setNumericHandling(DecisionStump.NumericHandlingC.BINARY_BEST_GAIN);
         baseLearner.setGainMethod(ImpurityMeasure.GINI);
     }
     

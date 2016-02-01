@@ -6,7 +6,6 @@ package jsat.classifiers.trees;
 
 import java.util.Arrays;
 
-import jsat.distributions.Normal;
 
 import java.util.Random;
 import java.util.concurrent.Executors;
@@ -20,10 +19,9 @@ import java.util.concurrent.ExecutorService;
 import jsat.classifiers.ClassificationDataSet;
 import jsat.classifiers.Classifier;
 import jsat.classifiers.DataPointPair;
+import jsat.datatransform.InsertMissingValuesTransform;
 import jsat.datatransform.NumericalToHistogram;
-import jsat.distributions.ContinuousDistribution;
 import jsat.distributions.Uniform;
-import jsat.utils.PairedReturn;
 
 import org.junit.*;
 
@@ -60,7 +58,7 @@ public class DecisionStumpTest
     public void setUp()
     {
         stump = new DecisionStump();
-        GridDataGenerator gdg = new GridDataGenerator(new Uniform(-0.15, 0.15), new Random(12), 1);
+        GridDataGenerator gdg = new GridDataGenerator(new Uniform(-0.15, 0.15), new Random(12), 2);
         easyNumAtTrain = new ClassificationDataSet(gdg.generateData(40).getBackingList(), 0);
         easyNumAtTest = new ClassificationDataSet(gdg.generateData(40).getBackingList(), 0);
         
@@ -79,54 +77,6 @@ public class DecisionStumpTest
     }
 
     /**
-     * Test of threshholdSplit method, of class DecisionStump.
-     */
-    @Test
-    public void testThreshholdSplit()
-    {
-        System.out.println("threshholdSplit");
-        ContinuousDistribution dist1 = new Normal(0, 1);
-        ContinuousDistribution dist2 = new Normal(3, 2);
-        PairedReturn<Integer, Double> ret = DecisionStump.threshholdSplit(dist1, dist2);
-        assertEquals(0, (int) ret.getFirstItem());
-        assertEquals(1.418344988105127, ret.getSecondItem(), 1e-6);
-        
-        ret = DecisionStump.threshholdSplit(dist2, dist1);
-        assertEquals(1, (int) ret.getFirstItem());
-        assertEquals(1.418344988105127, ret.getSecondItem(), 1e-6);
-        
-        dist2 = new Normal(3, 1);
-        ret = DecisionStump.threshholdSplit(dist2, dist1);
-        assertEquals(1, (int) ret.getFirstItem());
-        assertEquals(1.5, ret.getSecondItem(), 1e-6);
-        
-        try
-        {
-            dist1 = new Normal(0, 2);
-            dist2 = new Normal(3, 10);
-            ret = DecisionStump.threshholdSplit(dist2, dist1);
-            assertEquals(1, (int) ret.getFirstItem());
-            assertEquals(4.896411863121647, ret.getSecondItem(), 1e-6);//This is the spliting point, but we dont expect it to get it 
-        }
-        catch(ArithmeticException ex)
-        {
-            
-        }
-        
-        dist1 = new Normal(0, 1);
-        dist2 = new Normal(100, 1);
-        ret = DecisionStump.threshholdSplit(dist1, dist2);
-        assertEquals(0, (int) ret.getFirstItem());
-        assertEquals(50, ret.getSecondItem(), 1e-6);
-        
-        dist1 = new Normal(0, 1);
-        dist2 = new Normal(100, 1);
-        ret = DecisionStump.threshholdSplit(dist2, dist1);
-        assertEquals(1, (int) ret.getFirstItem());
-        assertEquals(50, ret.getSecondItem(), 1e-6);
-    }
-
-    /**
      * Test of trainC method, of class DecisionStump.
      */
     @Test
@@ -137,7 +87,40 @@ public class DecisionStumpTest
         for(int i = 0; i < easyNumAtTest.getSampleSize(); i++)
             assertEquals(easyNumAtTest.getDataPointCategory(i), stump.classify(easyNumAtTest.getDataPoint(i)).mostLikely());
     }
-
+    
+    @Test
+    public void testTrainC_ClassificationDataSet_ExecutorService_missing()
+    {
+        System.out.println("trainC(ClassificationDataSet, ExecutorService)");
+        ClassificationDataSet toTrain = easyNumAtTrain.shallowClone();
+        toTrain.applyTransform(new InsertMissingValuesTransform(0.25));
+        stump.trainC(toTrain, ex);
+        for(int i = 0; i < easyNumAtTest.getSampleSize(); i++)
+            assertEquals(easyNumAtTest.getDataPointCategory(i), stump.classify(easyNumAtTest.getDataPoint(i)).mostLikely());
+        
+        //test applying missing values, just make sure no error since we can/t pred if only feat is missing
+        easyNumAtTest.applyTransform(new InsertMissingValuesTransform(0.5));
+        for(int i = 0; i < easyNumAtTest.getSampleSize(); i++)
+            stump.classify(easyNumAtTest.getDataPoint(i));
+    }
+    
+    @Test
+    public void testTrainC_ClassificationDataSet_ExecutorService_missing_cat()
+    {
+        System.out.println("trainC(ClassificationDataSet, ExecutorService)");
+        ClassificationDataSet toTrain = easyCatAtTrain.shallowClone();
+        toTrain.applyTransform(new InsertMissingValuesTransform(0.25));
+        stump.trainC(toTrain, ex);
+        for(int i = 0; i < easyCatAtTest.getSampleSize(); i++)
+            assertEquals(easyCatAtTest.getDataPointCategory(i), stump.classify(easyCatAtTest.getDataPoint(i)).mostLikely());
+        
+        
+        //test applying missing values, just make sure no error since we can/t pred if only feat is missing
+        easyCatAtTest.applyTransform(new InsertMissingValuesTransform(0.5));
+        for(int i = 0; i < easyCatAtTest.getSampleSize(); i++)
+            stump.classify(easyCatAtTest.getDataPoint(i));
+    }
+    
     /**
      * Test of trainC method, of class DecisionStump.
      */
@@ -198,13 +181,6 @@ public class DecisionStumpTest
         clone = stump.clone();
         for(int i = 0; i < easyNumAtTest.getSampleSize(); i++)
             assertEquals(easyNumAtTest.getDataPointCategory(i), clone.classify(easyNumAtTest.getDataPoint(i)).mostLikely());
-    }
-    
-    @Test
-    public void testIntersection(){
-    	ContinuousDistribution d = new Uniform(1, 2);
-    	//XXX create the test for double comparison
-    	DecisionStump.intersections(Arrays.asList(new ContinuousDistribution[]{d}));
     }
 
    
@@ -273,20 +249,6 @@ public class DecisionStumpTest
             assertEquals(dpp.getPair().longValue(),
                     instance.classify(dpp.getDataPoint()).mostLikely());
     }
-    
-    @Test
-    public void testNumericCKDEInter()
-    {
-        System.out.println("testNumericCKDEInter");
-        
-        DecisionStump instance = new DecisionStump();
-        instance.setNumericHandling(DecisionStump.NumericHandlingC.PDF_INTERSECTIONS);
-        
-        instance.trainC(easyNumAtTrain);
-        for(DataPointPair<Integer> dpp : easyNumAtTest.getAsDPPList())
-            assertEquals(dpp.getPair().longValue(),
-                    instance.classify(dpp.getDataPoint()).mostLikely());
-    }
 
     @Test
     public void testNumericCBinary()
@@ -294,7 +256,6 @@ public class DecisionStumpTest
         System.out.println("testNumericCBinary");
         
         DecisionStump instance = new DecisionStump();
-        instance.setNumericHandling(DecisionStump.NumericHandlingC.BINARY_BEST_GAIN);
         
         instance.trainC(easyNumAtTrain);
         for(DataPointPair<Integer> dpp : easyNumAtTest.getAsDPPList())

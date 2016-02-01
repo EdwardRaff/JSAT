@@ -97,7 +97,6 @@ public class DecisionTree implements Classifier, Regressor, Parameterized, TreeL
     public DecisionTree()
     {
         this(Integer.MAX_VALUE, 10, PruningMethod.REDUCED_ERROR, 0.1);
-        baseStump.setNumericHandling(DecisionStump.NumericHandlingC.BINARY_BEST_GAIN);
     }
 
     /**
@@ -107,7 +106,6 @@ public class DecisionTree implements Classifier, Regressor, Parameterized, TreeL
     public DecisionTree(int maxDepth)
     {
         this(maxDepth, 10, PruningMethod.NONE, 0.00001);
-        baseStump.setNumericHandling(DecisionStump.NumericHandlingC.BINARY_BEST_GAIN);
     }
 
     /**
@@ -167,30 +165,7 @@ public class DecisionTree implements Classifier, Regressor, Parameterized, TreeL
         tree.setTestProportion(1.0);
         tree.setPruningMethod(PruningMethod.ERROR_BASED);
         tree.baseStump.setGainMethod(ImpurityMeasure.INFORMATION_GAIN_RATIO);
-        tree.baseStump.setNumericHandling(DecisionStump.NumericHandlingC.BINARY_BEST_GAIN);
         return tree;
-    }
-    
-    /**
-     * Sets the method of attribute selection used when numeric attributes are 
-     * encountered during classification.
-     * @param handling the method of numeric attribute handling to use during 
-     * classification
-     */
-    public void setNumericHandling(DecisionStump.NumericHandlingC handling)
-    {
-        baseStump.setNumericHandling(handling);
-    }
-    
-    /**
-     * Returns the method of attribute selection used when numeric attributes 
-     * are encountered during classification.
-     * @return the method of numeric attribute handling to use during 
-     * classification 
-     */
-    public DecisionStump.NumericHandlingC getNumericHandling()
-    {
-        return baseStump.getNumericHandling();
     }
     
     public void setGainMethod(ImpurityMeasure gainMethod)
