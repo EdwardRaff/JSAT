@@ -11,15 +11,18 @@ import jsat.linear.Vec;
 /**
  * This transform converts numerical features into categorical ones via a simple
  * histogram. Bins will be created for each numeric feature of equal sizes. Each
- * numeric feature will be converted to the same number of bins. 
+ * numeric feature will be converted to the same number of bins. <br>
+ * This transform will handle missing values by simply ignoring them, and
+ * leaving the value missing in the transformed categorical variable.
+ *
  * 
  * @author Edward Raff
  */
 public class NumericalToHistogram implements DataTransform
 {
 
-	private static final long serialVersionUID = -2318706869393636074L;
-	private int n;
+    private static final long serialVersionUID = -2318706869393636074L;
+    private int n;
     //First index is the vector index, 2nd index is the min value then the increment value
     double[][] conversionArray;
     CategoricalData[] newDataArray;
@@ -61,8 +64,11 @@ public class NumericalToHistogram implements DataTransform
             Vec v = dataSet.getDataPoint(i).getNumericalValues();
             for(int j = 0; j < mins.length; j++)
             {
-                mins[j] = Math.min(mins[j], v.get(j));
-                maxs[j] = Math.max(maxs[j], v.get(j));
+                final double val = v.get(j);
+                if(Double.isNaN(val))
+                    continue;
+                mins[j] = Math.min(mins[j], val);
+                maxs[j] = Math.max(maxs[j], val);
             }
         }
         
@@ -104,6 +110,12 @@ public class NumericalToHistogram implements DataTransform
         {
             double val = v.get(i) - conversionArray[i][0];
             
+            if(Double.isNaN(val))
+            {
+                newCatVals[i] = -1;//missing
+                continue;
+            }
+            
             int catVal = (int) Math.floor(val / conversionArray[i][1]);
             if(catVal < 0)
                 catVal = 0;
@@ -118,7 +130,7 @@ public class NumericalToHistogram implements DataTransform
     }
 
     @Override
-    public DataTransform clone()
+    public NumericalToHistogram clone()
     {
         return new NumericalToHistogram(this);
     }
