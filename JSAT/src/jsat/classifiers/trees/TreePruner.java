@@ -171,10 +171,14 @@ public class TreePruner
         else if(current.isLeaf())//return number of errors
         {
             int errors = 0;
+            double N = 0;
             for(DataPointPair<Integer> dpp : testSet)
+            {
                 if(current.localClassify(dpp.getDataPoint()).mostLikely() != dpp.getPair())
-                    errors++;
-            return computeBinomialUpperBound(testSet.size(), alpha, errors);
+                    errors+=dpp.getDataPoint().getWeight();
+                N+=dpp.getDataPoint().getWeight();
+            }
+            return computeBinomialUpperBound(N, alpha, errors);
         }
         List<List<DataPointPair<Integer>>> splitSet = new ArrayList<List<DataPointPair<Integer>>>(current.childrenCount());
         List<DataPointPair<Integer>> hadMissing = new ArrayList<DataPointPair<Integer>>(0);
@@ -184,11 +188,13 @@ public class TreePruner
         int localErrors = 0;
         double subTreeScore = 0;
         
+        double N = 0.0;
         for(DataPointPair<Integer> dpp : testSet)
         {
             DataPoint dp = dpp.getDataPoint();
             if(current.localClassify(dp).mostLikely() != dpp.getPair())
-                localErrors++;
+                localErrors+=dp.getWeight();
+            N += dp.getWeight();
             
             int path = current.getPath(dp);
             if(path >= 0)
@@ -219,7 +225,6 @@ public class TreePruner
          * Instead, just compute exact using inverse beta
          * Upper Bound = 1.0 - BetaInv(alpha, n-k, k+1)
          */
-        final int N = testSet.size();
         final double prunedTreeScore = computeBinomialUpperBound(N, alpha, localErrors);
 
         double maxChildTreeScore;
@@ -232,10 +237,9 @@ public class TreePruner
             for (int path = 0; path < splitSet.size(); path++)
                     for (DataPointPair<Integer> dpp : splitSet.get(path))
                         if (maxChildNode.classify(dpp.getDataPoint()).mostLikely() != dpp.getPair())
-                            otherE++;
-            int otherN = testSet.size();
+                            otherE+=dpp.getDataPoint().getWeight();
 
-            maxChildTreeScore = computeBinomialUpperBound(otherN, alpha, otherE);
+            maxChildTreeScore = computeBinomialUpperBound(N, alpha, otherE);
         }
         
         
@@ -264,7 +268,7 @@ public class TreePruner
         
     }
     
-    private static double computeBinomialUpperBound(final int N, double alpha, int errors)
+    private static double computeBinomialUpperBound(final double N, double alpha, double errors)
     {
         return N * (1.0 - SpecialMath.invBetaIncReg(alpha, N - errors+1e-9, errors + 1.0));
     }
