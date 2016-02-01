@@ -613,10 +613,29 @@ public class DecisionStump implements Classifier, Regressor, Parameterized
     /**
      * Distributes a list of datapoints that had missing values to each split, re-weighted by the indicated fractions 
      * @param splits a list of lists, where each inner list is a split
+     * @param hadMissing the list of datapoints that had missing values
+     */
+    static protected <T> void distributMissing(List<List<DataPointPair<T>>> splits, List<DataPointPair<T>> hadMissing)
+    {
+        double[] fracs = new double[splits.size()];
+        for(int i = 0; i < splits.size(); i++)
+            for(DataPointPair<T> dpp : splits.get(i))
+                fracs[i] += dpp.getDataPoint().getWeight();
+        double sum = 0;
+        for(double d : fracs)
+            sum += d;
+        for(int i = 0; i < fracs.length; i++)
+            fracs[i] /= sum;
+        distributMissing(splits, fracs, hadMissing);
+    }
+    
+    /**
+     * Distributes a list of datapoints that had missing values to each split, re-weighted by the indicated fractions 
+     * @param splits a list of lists, where each inner list is a split
      * @param fracs the fraction of weight to each split, should sum to one
      * @param hadMissing the list of datapoints that had missing values
      */
-    private <T> void  distributMissing(List<List<DataPointPair<T>>> splits, double[] fracs, List<DataPointPair<T>> hadMissing)
+    static protected <T> void distributMissing(List<List<DataPointPair<T>>> splits, double[] fracs, List<DataPointPair<T>> hadMissing)
     {
         for (DataPointPair<T> dpp : hadMissing)
         {
