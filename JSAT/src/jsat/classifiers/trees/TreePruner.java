@@ -12,6 +12,8 @@ import jsat.math.SpecialMath;
  * using the {@link TreeNodeVisitor}. Pruning is done with a held out testing 
  * set
  * <br>
+ * All pruning methods handle missing values
+ * <br>
  * NOTE: API still under work, expect changes
  * 
  * @author Edward Raff
@@ -104,12 +106,21 @@ public class TreePruner
             //Each child should only be given testing points that would decend down that path
             int numSplits = current.childrenCount();
             List<List<DataPointPair<Integer>>> splits = new ArrayList<List<DataPointPair<Integer>>>(numSplits);
+            List<DataPointPair<Integer>> hadMissing = new ArrayList<DataPointPair<Integer>>(0);
             //TODO if splits = 2, reorder the original array and use subList to return memory efficent references
             for (int i = 0; i < numSplits; i++)
                 splits.add(new ArrayList<DataPointPair<Integer>>());
             for (DataPointPair<Integer> dpp : testSet)
-                splits.get(current.getPath(dpp.getDataPoint())).add(dpp);
+            {
+                int path = current.getPath(dpp.getDataPoint());
+                if(path >= 0)
+                    splits.get(path).add(dpp);
+                else//missing value
+                    hadMissing.add(dpp);
+            }
 
+            if(!hadMissing.isEmpty())
+                DecisionStump.distributMissing(splits, hadMissing);
             
             for (int i = numSplits - 1; i >= 0; i--)//Go backwards so child removals dont affect indices
                 nodesPruned += pruneReduceError(current, i, current.getChild(i), splits.get(i));
@@ -166,6 +177,7 @@ public class TreePruner
             return computeBinomialUpperBound(testSet.size(), alpha, errors);
         }
         List<List<DataPointPair<Integer>>> splitSet = new ArrayList<List<DataPointPair<Integer>>>(current.childrenCount());
+        List<DataPointPair<Integer>> hadMissing = new ArrayList<DataPointPair<Integer>>(0);
         for(int i = 0; i < current.childrenCount(); i++)
             splitSet.add(new ArrayList<DataPointPair<Integer>>());
         
@@ -181,7 +193,12 @@ public class TreePruner
             int path = current.getPath(dp);
             if(path >= 0)
                 splitSet.get(path).add(dpp);
+            else
+                hadMissing.add(dpp);
         }
+        
+        if(!hadMissing.isEmpty())
+            DecisionStump.distributMissing(splitSet, hadMissing);
         
         //Find child wich gets the most of the test set as the candidate for sub-tree replacement
         int maxChildCount = 0;
