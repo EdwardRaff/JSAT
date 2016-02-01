@@ -1,18 +1,13 @@
 
 package jsat.classifiers.trees;
 
-import static java.lang.Math.*;
-
 import java.util.*;
 import java.util.concurrent.ExecutorService;
 
 import jsat.classifiers.*;
 import jsat.classifiers.trees.ImpurityScore.ImpurityMeasure;
-import jsat.distributions.ContinuousDistribution;
 import jsat.linear.Vec;
-import jsat.math.Function;
 import jsat.math.OnLineStatistics;
-import jsat.math.rootfinding.Zeroin;
 import jsat.parameters.Parameter;
 import jsat.parameters.Parameterized;
 import jsat.regression.RegressionDataSet;
@@ -32,7 +27,9 @@ import jsat.utils.QuickSort;
  * During classification, numeric attributes are separated based on most 
  * likely probability into their classes. <br>
  * During regression, numeric attributes are done with only binary splits,
- * finding the split that minimizes the total squared error sum. 
+ * finding the split that minimizes the total squared error sum. <br>
+ * <br>
+ * The Decision Stump supports missing values in training and prediction. 
  * 
  * @author Edward Raff
  */
@@ -170,7 +167,14 @@ public class DecisionStump implements Classifier, Regressor, Parameterized
     {
         if(regressionResults == null)
             throw new RuntimeException("Decusion stump has not been trained for regression");
-        return regressionResults[whichPath(data)];
+        int path = whichPath(data);
+        if(path >= 0)
+            return regressionResults[path];
+        //else, was missing, average
+        double avg = 0;
+        for(int i = 0; i < pathRatio.length; i++)
+            avg += pathRatio[i]*regressionResults[i];
+        return avg;
     }
 
     @Override
@@ -612,9 +616,9 @@ public class DecisionStump implements Classifier, Regressor, Parameterized
      * @param fracs the fraction of weight to each split, should sum to one
      * @param hadMissing the list of datapoints that had missing values
      */
-    private void distributMissing(List<List<DataPointPair<Integer>>> splits, double[] fracs, List<DataPointPair<Integer>> hadMissing)
+    private <T> void  distributMissing(List<List<DataPointPair<T>>> splits, double[] fracs, List<DataPointPair<T>> hadMissing)
     {
-        for (DataPointPair<Integer> dpp : hadMissing)
+        for (DataPointPair<T> dpp : hadMissing)
         {
             DataPoint dp = dpp.getDataPoint();
             Vec vec = dp.getNumericalValues();
@@ -623,7 +627,7 @@ public class DecisionStump implements Classifier, Regressor, Parameterized
 
             for (int i = 0; i < fracs.length; i++)
             {
-                DataPointPair<Integer> dp_i = new DataPointPair<Integer>(new DataPoint(vec, cats, lab, fracs[i] * dp.getWeight()), dpp.getPair());
+                DataPointPair<T> dp_i = new DataPointPair<T>(new DataPoint(vec, cats, lab, fracs[i] * dp.getWeight()), dpp.getPair());
                 splits.get(i).add(dp_i);
             }
         }
@@ -663,27 +667,44 @@ public class DecisionStump implements Classifier, Regressor, Parameterized
             double thisSplitSqrdErr = Double.MAX_VALUE;
             //Contains the means of each split 
             double[] thisMeans = null;
+            double[] thisRatio;
             
             if(attribute < catAttributes.length)
             {
                 thisSplit = listOfListsD(catAttributes[attribute].getNumOfCategories());
                 OnLineStatistics[] stats = new OnLineStatistics[thisSplit.size()];
+                thisRatio = new double[thisSplit.size()];
                 for(int i = 0; i < thisSplit.size(); i++)
                     stats[i] = new OnLineStatistics();
                 //Now seperate the values in our current list into their proper split bins 
+                List<DataPointPair<Double>> wasMissing = new ArrayList<DataPointPair<Double>>(0);
                 for(DataPointPair<Double> dpp : dataPoints)
                 {
                     int category = dpp.getDataPoint().getCategoricalValue(attribute);
-                    thisSplit.get(category).add(dpp);
-                    stats[category].add(dpp.getPair(), dpp.getDataPoint().getWeight());
+                    if(category >= 0)
+                    {
+                        thisSplit.get(category).add(dpp);
+                        stats[category].add(dpp.getPair(), dpp.getDataPoint().getWeight());
+                    }
+                    else//was negative, missing value
+                    {
+                        wasMissing.add(dpp);
+                    }
                 }
                 thisMeans = new double[stats.length];
                 thisSplitSqrdErr = 0.0;
+                double sum = 0;
                 for(int i = 0; i < stats.length; i++)
                 {
+                    sum += (thisRatio[i] = stats[i].getSumOfWeights());
                     thisSplitSqrdErr += stats[i].getVarance()*stats[i].getSumOfWeights();
                     thisMeans[i] = stats[i].getMean();
                 }
+                for(int i = 0; i < stats.length; i++)
+                    thisRatio[i] /= sum;
+                
+                if(!wasMissing.isEmpty())
+                    distributMissing(thisSplit, thisRatio, wasMissing);
             }
             else//Findy a binary split that reduces the variance!
             {
@@ -697,20 +718,27 @@ public class DecisionStump implements Classifier, Regressor, Parameterized
                         return Double.compare(o1.getVector().get(numAttri), o2.getVector().get(numAttri));
                     }
                 };
-                Collections.sort(dataPoints, dppDoubleSorter);
+                Collections.sort(dataPoints, dppDoubleSorter);//this will put nans to the right
                 
                 //2 passes, first to sum up the right side, 2nd to move down the grow the left side 
                 OnLineStatistics rightSide = new OnLineStatistics();
                 OnLineStatistics leftSide = new OnLineStatistics();
                 
+                int nans = 0;
                 for(DataPointPair<Double> dpp : dataPoints)
-                    rightSide.add(dpp.getPair(), dpp.getDataPoint().getWeight());
+                    if(!Double.isNaN(dpp.getVector().get(numAttri)))
+                        rightSide.add(dpp.getPair(), dpp.getDataPoint().getWeight());
+                    else
+                        nans++;
+                    
                 int bestS = 0;
                 thisSplitSqrdErr = Double.POSITIVE_INFINITY;
                 
+                final double allWeight = rightSide.getSumOfWeights();
                 thisMeans = new double[3];
+                thisRatio = new double[2];
                 
-                for(int i = 0; i < dataPoints.size(); i++)
+                for(int i = 0; i < dataPoints.size()-nans; i++)
                 {
                     DataPointPair<Double> dpp = dataPoints.get(i);
                     double weight = dpp.getDataPoint().getWeight();
@@ -721,7 +749,7 @@ public class DecisionStump implements Classifier, Regressor, Parameterized
                     
                     if(i < minResultSplitSize)
                         continue;
-                    else if(i > dataPoints.size()-minResultSplitSize)
+                    else if(i > dataPoints.size()-minResultSplitSize-nans)
                         break;
                     
                     double tmpSVariance = rightSide.getVarance()*rightSide.getSumOfWeights() 
@@ -735,12 +763,16 @@ public class DecisionStump implements Classifier, Regressor, Parameterized
                         //Third spot contains the split value!
                         thisMeans[2] = (dataPoints.get(bestS).getVector().get(numAttri) 
                                 + dataPoints.get(bestS+1).getVector().get(numAttri))/2.0;
+                        thisRatio[0] = leftSide.getSumOfWeights()/allWeight;
+                        thisRatio[1] = rightSide.getSumOfWeights()/allWeight;
                     }
                 }
                 //Now we have the binary split that minimizes the variances of the 2 sets, 
                 thisSplit = listOfListsD(2);
                 thisSplit.get(0).addAll(dataPoints.subList(0, bestS+1));
-                thisSplit.get(1).addAll(dataPoints.subList(bestS+1, dataPoints.size()));
+                thisSplit.get(1).addAll(dataPoints.subList(bestS+1, dataPoints.size()-nans));
+                if(nans > 0)
+                    distributMissing(thisSplit, thisRatio, dataPoints.subList(dataPoints.size()-nans, dataPoints.size()));
             }
             //Now compare what weve done
             if(thisSplitSqrdErr < lowestSplitSqrdError)
@@ -749,6 +781,7 @@ public class DecisionStump implements Classifier, Regressor, Parameterized
                 bestSplit = thisSplit;
                 splittingAttribute = attribute;
                 regressionResults = thisMeans;
+                pathRatio = thisRatio;
             }
         }
         

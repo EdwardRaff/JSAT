@@ -22,6 +22,7 @@ import jsat.classifiers.DataPointPair;
 import jsat.datatransform.InsertMissingValuesTransform;
 import jsat.datatransform.NumericalToHistogram;
 import jsat.distributions.Uniform;
+import jsat.regression.RegressionDataSet;
 
 import org.junit.*;
 
@@ -37,6 +38,10 @@ public class DecisionStumpTest
     static private ClassificationDataSet easyNumAtTest;
     static private ClassificationDataSet easyCatAtTrain;
     static private ClassificationDataSet easyCatAtTest;
+    static private RegressionDataSet easyNumAtTrain_R;
+    static private RegressionDataSet easyNumAtTest_R;
+    static private RegressionDataSet easyCatAtTrain_R;
+    static private RegressionDataSet easyCatAtTest_R;
     static private ExecutorService ex;
     static private DecisionStump stump;
     
@@ -67,6 +72,12 @@ public class DecisionStumpTest
         NumericalToHistogram nth = new NumericalToHistogram(easyCatAtTrain, 2);
         easyCatAtTrain.applyTransform(nth);
         easyCatAtTest.applyTransform(nth);
+        
+        
+        easyNumAtTrain_R = new RegressionDataSet(easyNumAtTrain.getAsFloatDPPList());
+        easyNumAtTest_R = new RegressionDataSet(easyNumAtTest.getAsFloatDPPList());
+        easyCatAtTrain_R = new RegressionDataSet(easyCatAtTrain.getAsFloatDPPList());
+        easyCatAtTest_R = new RegressionDataSet(easyCatAtTest.getAsFloatDPPList());
         
         ex = Executors.newFixedThreadPool(SystemInfo.LogicalCores);
     }
@@ -131,6 +142,38 @@ public class DecisionStumpTest
         stump.trainC(easyNumAtTrain);
         for(int i = 0; i < easyNumAtTest.getSampleSize(); i++)
             assertEquals(easyNumAtTest.getDataPointCategory(i), stump.classify(easyNumAtTest.getDataPoint(i)).mostLikely());
+    }
+    
+    @Test
+    public void testTrainC_RegressionDataSet_ExecutorService_missing()
+    {
+        System.out.println("trainR(RegressionDataSet, ExecutorService)");
+        RegressionDataSet toTrain = easyNumAtTrain_R.shallowClone();
+        toTrain.applyTransform(new InsertMissingValuesTransform(0.25));
+        stump.train(toTrain, ex);
+        for(int i = 0; i < easyNumAtTest_R.getSampleSize(); i++)
+            assertEquals(easyNumAtTest_R.getTargetValue(i), stump.regress(easyNumAtTest_R.getDataPoint(i)), 0.2);
+        
+        //test applying missing values, just make sure no error since we can/t pred if only feat is missing
+        easyNumAtTest_R.applyTransform(new InsertMissingValuesTransform(0.5));
+        for(int i = 0; i < easyNumAtTest_R.getSampleSize(); i++)
+            stump.regress(easyNumAtTest_R.getDataPoint(i));
+    }
+    
+    @Test
+    public void testTrainC_RegressionDataSet_ExecutorService_missing_cat()
+    {
+        System.out.println("trainR(RegressionDataSet, ExecutorService)");
+        RegressionDataSet toTrain = easyCatAtTrain_R.shallowClone();
+        toTrain.applyTransform(new InsertMissingValuesTransform(0.25));
+        stump.train(toTrain, ex);
+        for(int i = 0; i < easyCatAtTest_R.getSampleSize(); i++)
+            assertEquals(easyCatAtTest_R.getTargetValue(i), stump.regress(easyCatAtTest_R.getDataPoint(i)), 0.2);
+        
+        //test applying missing values, just make sure no error since we can/t pred if only feat is missing
+        easyCatAtTest_R.applyTransform(new InsertMissingValuesTransform(0.5));
+        for(int i = 0; i < easyCatAtTest_R.getSampleSize(); i++)
+            stump.regress(easyCatAtTest_R.getDataPoint(i));
     }
 
     /**
