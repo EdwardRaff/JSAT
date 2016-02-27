@@ -263,6 +263,8 @@ public class PlattSMO extends SupportVectorLearner implements BinaryScoreClassif
 
                     //first, we need to make sure we were actually trained on the same data
                     //TODO find a better way to ensure this is true, it is POSSIBLE that we could have same labels and different data
+                    if(warmSMO.alphas == null)//whats going on? just break out
+                        break WarmScope;
                     boolean sameData = alphas.length == warmSMO.alphas.length;
                     if(sameData)
                         for(int i = 0; i < this.label.length && sameData; i++)
