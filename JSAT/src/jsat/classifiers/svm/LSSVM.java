@@ -38,7 +38,7 @@ import static jsat.utils.concurrent.ParallelUtils.*;
  * The LS-SVM algorithm may be warm started only from another LS-SVM object 
  * trained on the same data set. <br>
  * <br>
- * NOTE: A SMO implementation similar to {@link PlatSMO} is used. This is done 
+ * NOTE: A SMO implementation similar to {@link PlattSMO} is used. This is done 
  * because is can easily operate without explicitly forming the whole kernel 
  * matrix. However it is recommended to use the LS-SVM when the problem size is 
  * small enough such that {@link SupportVectorLearner.CacheMode#FULL} can be 
@@ -534,7 +534,7 @@ public class LSSVM extends SupportVectorLearner implements BinaryScoreClassifier
      */
     public static Distribution guessC(DataSet d)
     {
-        return PlatSMO.guessC(d);//LS-SVM isn't technically the same algo, but still a good search
+        return PlattSMO.guessC(d);//LS-SVM isn't technically the same algo, but still a good search
     }
     
 }

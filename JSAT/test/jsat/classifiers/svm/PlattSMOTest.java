@@ -23,11 +23,11 @@ import static org.junit.Assert.*;
  *
  * @author Edward Raff
  */
-public class PlatSMOTest
+public class PlattSMOTest
 {
     static private ExecutorService ex;
     
-    public PlatSMOTest()
+    public PlattSMOTest()
     {
     }
     
@@ -63,7 +63,7 @@ public class PlatSMOTest
         for (boolean modification1 : new boolean[] {true, false})
             for(SupportVectorLearner.CacheMode cacheMode : SupportVectorLearner.CacheMode.values())
             {
-                PlatSMO classifier = new PlatSMO(new RBFKernel(0.5));
+                PlattSMO classifier = new PlattSMO(new RBFKernel(0.5));
                 classifier.setCacheMode(cacheMode);
                 classifier.setC(10);
                 classifier.setModificationOne(modification1);
@@ -85,7 +85,7 @@ public class PlatSMOTest
         for (boolean modification1 : new boolean[] {true, false})
             for (SupportVectorLearner.CacheMode cacheMode : SupportVectorLearner.CacheMode.values())
             {
-                PlatSMO classifier = new PlatSMO(new RBFKernel(0.5));
+                PlattSMO classifier = new PlattSMO(new RBFKernel(0.5));
                 classifier.setCacheMode(cacheMode);
                 classifier.setC(10);
                 classifier.setModificationOne(modification1);
@@ -97,7 +97,7 @@ public class PlatSMOTest
     }
 
     /**
-     * Test of train method, of class PlatSMO.
+     * Test of train method, of class PlattSMO.
      */
     @Test
     public void testTrain_RegressionDataSet_ExecutorService()
@@ -109,7 +109,7 @@ public class PlatSMOTest
         for (boolean modification1 : new boolean[] {true, false})
             for (SupportVectorLearner.CacheMode cacheMode : SupportVectorLearner.CacheMode.values())
             {
-                PlatSMO smo = new PlatSMO(new RBFKernel(0.5));
+                PlattSMO smo = new PlattSMO(new RBFKernel(0.5));
                 smo.setCacheMode(cacheMode);
                 smo.setC(1);
                 smo.setEpsilon(0.1);
@@ -124,7 +124,7 @@ public class PlatSMOTest
     }
 
     /**
-     * Test of train method, of class PlatSMO.
+     * Test of train method, of class PlattSMO.
      */
     @Test
     public void testTrain_RegressionDataSet()
@@ -137,7 +137,7 @@ public class PlatSMOTest
         for (boolean modification1 : new boolean[] {true, false})
             for (SupportVectorLearner.CacheMode cacheMode : SupportVectorLearner.CacheMode.values())
             {
-                PlatSMO smo = new PlatSMO(new RBFKernel(0.5));
+                PlattSMO smo = new PlattSMO(new RBFKernel(0.5));
                 smo.setCacheMode(cacheMode);
                 smo.setC(1);
                 smo.setEpsilon(0.1);
@@ -158,12 +158,12 @@ public class PlatSMOTest
         ClassificationDataSet train = FixedProblems.getHalfCircles(250, new XORWOW(), 0.1, 0.2);
         
         
-        PlatSMO warmModel = new PlatSMO(new LinearKernel(1));
+        PlattSMO warmModel = new PlattSMO(new LinearKernel(1));
         warmModel.setC(1);
         warmModel.trainC(train);
         
         
-        PlatSMO warm = new PlatSMO(new LinearKernel(1));
+        PlattSMO warm = new PlattSMO(new LinearKernel(1));
         warm.setC(1e4);//too large to train efficently like noraml
         
         long start, end;
@@ -174,7 +174,7 @@ public class PlatSMOTest
         long warmTime = (end-start);
         
         
-        PlatSMO notWarm = new PlatSMO(new LinearKernel(1));
+        PlattSMO notWarm = new PlattSMO(new LinearKernel(1));
         notWarm.setC(1e4);//too large to train efficently like noraml
         
         start = System.currentTimeMillis();
@@ -198,7 +198,7 @@ public class PlatSMOTest
         warmModel.trainC(train);
         
         
-        PlatSMO warm = new PlatSMO(new LinearKernel(1));
+        PlattSMO warm = new PlattSMO(new LinearKernel(1));
         warm.setC(1e4);//too large to train efficently like noraml
         
         long start, end;
@@ -209,7 +209,7 @@ public class PlatSMOTest
         long warmTime = (end-start);
         
         
-        PlatSMO notWarm = new PlatSMO(new LinearKernel(1));
+        PlattSMO notWarm = new PlattSMO(new LinearKernel(1));
         notWarm.setC(1e4);//too large to train efficently like noraml
         
         start = System.currentTimeMillis();
@@ -237,7 +237,7 @@ public class PlatSMOTest
         long start, end;
         
         
-        PlatSMO notWarm = new PlatSMO(new LinearKernel(1));
+        PlattSMO notWarm = new PlattSMO(new LinearKernel(1));
         notWarm.setEpsilon(eps);
         notWarm.setC(1e2);
         
@@ -247,7 +247,7 @@ public class PlatSMOTest
         long normTime = (end-start);
         
         
-        PlatSMO warm = new PlatSMO(new LinearKernel(1));
+        PlattSMO warm = new PlattSMO(new LinearKernel(1));
         warm.setEpsilon(eps);
         warm.setC(1e2);
         

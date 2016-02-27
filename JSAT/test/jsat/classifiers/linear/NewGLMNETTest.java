@@ -6,7 +6,7 @@ import jsat.FixedProblems;
 import jsat.SimpleWeightVectorModel;
 import jsat.classifiers.*;
 import jsat.classifiers.svm.DCDs;
-import jsat.classifiers.svm.PlatSMO;
+import jsat.classifiers.svm.PlattSMO;
 import jsat.datatransform.PolynomialTransform;
 import jsat.distributions.kernels.LinearKernel;
 import jsat.linear.*;

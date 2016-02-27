@@ -29,10 +29,10 @@ import jsat.utils.ListUtils;
  * <br>
  * This algorithm can be warm started for classification problems by any
  * algorithm implementing the {@link BinaryScoreClassifier} interface. For
- * regression any algorithm can be used as a warms start. For best results, warm
- * starts should be from algorithms that will have a similar solution to
- * PlatSMO.
- * <br><br>
+ regression any algorithm can be used as a warms start. For best results, warm
+ starts should be from algorithms that will have a similar solution to
+ PlattSMO.
+ <br><br>
  * See:<br>
  * <ul>
  * <li>Platt, J. C. (1998). <i>Sequential Minimal Optimization: A Fast Algorithm
@@ -56,7 +56,7 @@ import jsat.utils.ListUtils;
  * 
  * @author Edward Raff
  */
-public class PlatSMO extends SupportVectorLearner implements BinaryScoreClassifier, WarmRegressor, Parameterized, WarmClassifier
+public class PlattSMO extends SupportVectorLearner implements BinaryScoreClassifier, WarmRegressor, Parameterized, WarmClassifier
 {
 
     private static final long serialVersionUID = 1533410993462673127L;
@@ -132,7 +132,7 @@ public class PlatSMO extends SupportVectorLearner implements BinaryScoreClassifi
      * mode.
      *
      */
-    public PlatSMO()
+    public PlattSMO()
     {
         this(new LinearKernel());
     }
@@ -142,7 +142,7 @@ public class PlatSMO extends SupportVectorLearner implements BinaryScoreClassifi
      * 
      * @param kf the kernel trick to use
      */
-    public PlatSMO(KernelTrick kf)
+    public PlattSMO(KernelTrick kf)
     {
         super(kf, SupportVectorLearner.CacheMode.NONE);
     }
@@ -250,16 +250,16 @@ public class PlatSMO extends SupportVectorLearner implements BinaryScoreClassifi
         boolean examinAll = true;
         
         //Now lets try and do some warm starting if applicable
-        if(warmSolution instanceof PlatSMO || warmSolution instanceof BinaryScoreClassifier)
+        if(warmSolution instanceof PlattSMO || warmSolution instanceof BinaryScoreClassifier)
         {
             examinAll = false;
             
             WarmScope://We need to use one of the methods to detemrine if the model is a fit
             {
-                if (warmSolution instanceof PlatSMO)
+                if (warmSolution instanceof PlattSMO)
                 {
                     //if this SMO object was learend on the same data, we can get a very good guess on C
-                    PlatSMO warmSMO = (PlatSMO) warmSolution;
+                    PlattSMO warmSMO = (PlattSMO) warmSolution;
 
                     //first, we need to make sure we were actually trained on the same data
                     //TODO find a better way to ensure this is true, it is POSSIBLE that we could have same labels and different data
@@ -1069,9 +1069,9 @@ public class PlatSMO extends SupportVectorLearner implements BinaryScoreClassifi
     }
 
     @Override
-    public PlatSMO clone()
+    public PlattSMO clone()
     {
-        PlatSMO copy = new PlatSMO(this.getKernel().clone());
+        PlattSMO copy = new PlattSMO(this.getKernel().clone());
         
         copy.C = this.C;
         if(this.alphas != null)

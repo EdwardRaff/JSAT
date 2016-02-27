@@ -7,7 +7,7 @@ import java.util.concurrent.ExecutorService;
 import jsat.DataSet;
 import jsat.SingleWeightVectorModel;
 import jsat.classifiers.*;
-import jsat.classifiers.svm.PlatSMO;
+import jsat.classifiers.svm.PlattSMO;
 import jsat.distributions.Distribution;
 import jsat.exceptions.FailedToFitException;
 import jsat.linear.DenseVector;
@@ -363,6 +363,6 @@ public class LogisticRegressionDCD implements Classifier, Parameterized, SingleW
      */
     public static Distribution guessC(DataSet d)
     {
-        return PlatSMO.guessC(d);
+        return PlattSMO.guessC(d);
     }
 }

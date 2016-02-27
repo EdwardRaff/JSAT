@@ -738,6 +738,6 @@ public class DCDs implements BinaryScoreClassifier, Regressor, Parameterized, Si
      */
     public static Distribution guessC(DataSet d)
     {
-        return PlatSMO.guessC(d);
+        return PlattSMO.guessC(d);
     }
 }
