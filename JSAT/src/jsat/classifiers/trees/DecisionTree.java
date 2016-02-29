@@ -83,6 +83,12 @@ public class DecisionTree implements Classifier, Regressor, Parameterized, TreeL
         {
             Logger.getLogger(DecisionTree.class.getName()).log(Level.SEVERE, null, ex);
         }
+        if(root == null)//fitting issure, most likely too few datums. try just a stump 
+        {
+            DecisionStump stump = new DecisionStump();
+            stump.train(dataSet, threadPool);
+            root = new Node(stump);
+        }
         //TODO add pruning for regression 
     }
 
@@ -346,7 +352,14 @@ public class DecisionTree implements Classifier, Regressor, Parameterized, TreeL
             Logger.getLogger(DecisionTree.class.getName()).log(Level.SEVERE, null, ex);
         }
         
-        prune(root, pruningMethod, testPoints);
+        if(root == null)//fitting issure, most likely too few datums. try just a stump 
+        {
+            DecisionStump stump = new DecisionStump();
+            stump.trainC(dataSet, threadPool);
+            root = new Node(stump);
+        }
+        else
+            prune(root, pruningMethod, testPoints);
     }
 
     /**
