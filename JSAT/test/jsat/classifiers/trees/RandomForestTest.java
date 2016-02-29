@@ -21,8 +21,7 @@ import java.util.concurrent.Executors;
 import jsat.FixedProblems;
 import jsat.classifiers.ClassificationDataSet;
 import jsat.classifiers.ClassificationModelEvaluation;
-import jsat.datatransform.DataTransformProcess;
-import jsat.datatransform.NumericalToHistogram;
+import jsat.datatransform.*;
 import jsat.linear.DenseVector;
 import jsat.regression.RegressionDataSet;
 import jsat.regression.RegressionModelEvaluation;
@@ -84,6 +83,29 @@ public class RandomForestTest
             rme.evaluateTestSet(test);
             
             assertTrue(rme.getMeanError() <= test.getTargetValues().mean()*2.5);
+        }
+    }
+    
+    @Test
+    public void testTrainC_RegressionDataSetMiingValue()
+    {
+        System.out.println("train");
+        for(boolean useCatFeatures : new boolean[]{true, false})
+        {
+            RandomForest instance = new RandomForest();
+
+            RegressionDataSet train =  FixedProblems.getLinearRegression(1000, new XORWOW(), coefs);
+            RegressionDataSet test = FixedProblems.getLinearRegression(1000, new XORWOW(), coefs);
+            
+            train.applyTransform(new InsertMissingValuesTransform(0.1));
+            test.applyTransform(new InsertMissingValuesTransform(0.01));
+
+            RegressionModelEvaluation rme = new RegressionModelEvaluation(instance, train);
+            if(useCatFeatures)
+                rme.setDataTransformProcess(new DataTransformProcess(new NumericalToHistogram.NumericalToHistogramTransformFactory()));
+            rme.evaluateTestSet(test);
+            
+            assertTrue(rme.getMeanError() <= test.getTargetValues().mean()*3.5);
         }
     }
     
@@ -156,6 +178,33 @@ public class RandomForestTest
             cme.evaluateTestSet(test);
 
             assertTrue(cme.getErrorRate() <= 0.001);
+        }
+    }
+    
+    @Test
+    public void testTrainC_ClassificationDataSetMissingFeat()
+    {
+        System.out.println("trainC");
+        for(boolean useCatFeatures : new boolean[]{true, false})
+        {
+            RandomForest instance = new RandomForest();
+
+            ClassificationDataSet train =  FixedProblems.getCircles(1000, 1.0, 10.0, 100.0);
+            //RF may not get boundry perfect, so use noiseless for testing
+            ClassificationDataSet test = FixedProblems.getCircles(1000, 0.0, new XORWOW(), 1.0, 10.0, 100.0);
+            
+            train.applyTransform(new InsertMissingValuesTransform(0.1));
+            test.applyTransform(new InsertMissingValuesTransform(0.01));
+
+            ClassificationModelEvaluation cme = new ClassificationModelEvaluation(instance, train);
+            if(useCatFeatures)
+                cme.setDataTransformProcess(new DataTransformProcess(new NumericalToHistogram.NumericalToHistogramTransformFactory()));
+            cme.evaluateTestSet(test);
+
+            if(useCatFeatures)//hard to get right with only 2 features like this
+                assertTrue(cme.getErrorRate() <= 0.17);
+            else
+                assertTrue(cme.getErrorRate() <= 0.1);
         }
     }
 

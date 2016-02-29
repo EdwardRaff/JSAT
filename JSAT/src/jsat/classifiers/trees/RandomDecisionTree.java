@@ -10,7 +10,9 @@ import jsat.utils.ModifiableCountDownLatch;
 
 /**
  * An extension of Decision Trees, it ignores the given set of features to use-
- * and selects a new random subset of features at each node for use. 
+ * and selects a new random subset of features at each node for use. <br>
+ * <br>
+ * The Random Decision Tree supports missing values in training and prediction. 
  * 
  * @author Edward Raff
  */

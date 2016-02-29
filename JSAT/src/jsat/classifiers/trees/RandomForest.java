@@ -30,9 +30,13 @@ import jsat.utils.SystemInfo;
 import jsat.utils.concurrent.AtomicDoubleArray;
 
 /**
- * Random Forest is an extension of {@link Bagging} that is applied only to {@link DecisionTree DecisionTrees}. 
- * It works in a similar manner, but also only uses a random sub set of the features for each tree trained. 
- * This provides increased performance in accuracy of predictions, and reduced training time over just Bagging. 
+ * Random Forest is an extension of {@link Bagging} that is applied only to
+ * {@link DecisionTree DecisionTrees}. It works in a similar manner, but also
+ * only uses a random sub set of the features for each tree trained. This
+ * provides increased performance in accuracy of predictions, and reduced
+ * training time over just Bagging.<br>
+ * <br>
+ * This class supports learning and predicting with missing values. 
  * 
  * @author Edward Raff
  * @see Bagging
@@ -41,9 +45,8 @@ public class RandomForest implements Classifier, Regressor, Parameterized
 {
     //TODO implement Out of Bag estimates of proximity, importance, and outlier detection 
     
-
-	private static final long serialVersionUID = 2725020584282958141L;
-	/**
+    private static final long serialVersionUID = 2725020584282958141L;
+    /**
      * Only used when training for a classification problem
      */
     private CategoricalData predicting;

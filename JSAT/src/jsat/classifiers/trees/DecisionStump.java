@@ -65,7 +65,7 @@ public class DecisionStump implements Classifier, Regressor, Parameterized
     /**
      * How much of the data went to each path  
      */
-    private double[] pathRatio;
+    protected double[] pathRatio;
     /**
      * Only used during regression. Contains the averages for each branch in 
      * the first and 2nd index. 3rd index contains the split value. 
@@ -415,6 +415,13 @@ public class DecisionStump implements Classifier, Regressor, Parameterized
                     }
                     
                 }
+                
+                int pathsTaken = 0;
+                for(List<DataPointPair<Integer>> split : aSplit)
+                    if(!split.isEmpty())
+                        pathsTaken++;
+                if(pathsTaken <= 1)//not a good path, avoid looping on this junk. Can be caused by missing data
+                    continue;
                 
                 if(missingSum > 0)//move missing values into others
                 {
@@ -789,6 +796,10 @@ public class DecisionStump implements Classifier, Regressor, Parameterized
                         thisRatio[1] = rightSide.getSumOfWeights()/allWeight;
                     }
                 }
+                
+                if(dataPoints.size() - nans < minResultSplitSize)
+                    continue;//not a good split, we can't trust it
+                
                 //Now we have the binary split that minimizes the variances of the 2 sets, 
                 thisSplit = listOfListsD(2);
                 thisSplit.get(0).addAll(dataPoints.subList(0, bestS+1));

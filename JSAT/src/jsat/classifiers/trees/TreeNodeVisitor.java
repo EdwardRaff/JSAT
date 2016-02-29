@@ -3,6 +3,7 @@ package jsat.classifiers.trees;
 import java.io.Serializable;
 import jsat.classifiers.CategoricalResults;
 import jsat.classifiers.DataPoint;
+import jsat.linear.DenseVector;
 
 /**
  * Provides an abstracted mechanism for traversing and predicting from nodes in 
@@ -28,9 +29,9 @@ import jsat.classifiers.DataPoint;
 public abstract class TreeNodeVisitor implements Serializable, Cloneable
 {
 
-	private static final long serialVersionUID = 4026847401940409114L;
+    private static final long serialVersionUID = 4026847401940409114L;
 
-	/**
+    /**
      * Returns the number of children this node of the tree has, and may return 
      * a non zero value even if the node is a leaf
      * @return the number of children this node has
@@ -109,14 +110,49 @@ public abstract class TreeNodeVisitor implements Serializable, Cloneable
      */
     abstract public int getPath(DataPoint dp);
     
+    /**
+     * Returns the relative weight of each path, which should be an indication
+     * of how much of the training data went down each path. By default, returns 1.0/{@link #childrenCount()
+     * }. The result should sum to one
+     *
+     * @param path the path to select
+     * @return the fraction of data estimated to travel the specified path, with
+     * respect to data that reaches this node.
+     */
+    public double getPathWeight(int path)
+    {
+        return 1.0/childrenCount();
+    }
+    
     public CategoricalResults classify(DataPoint dp)
     {
         TreeNodeVisitor node = this;
         while(!node.isLeaf())
         {
             int path = node.getPath(dp);
-            //TODO improve missing value case
-            if(path < 0 || node.isPathDisabled(path))//if missing value makes path < 0, return local classification dec
+            if(path < 0 )//missing value case
+            {
+                double sum = 0;
+                DenseVector resultSum = null;
+                for(int child = 0; child < childrenCount(); child++)
+                {
+                    if(node.isPathDisabled(child))
+                        continue;
+                    CategoricalResults child_result = node.getChild(child).classify(dp);
+                    if(resultSum == null)
+                        resultSum = new DenseVector(child_result.size());
+                    sum += node.getPathWeight(child);
+                    resultSum.mutableAdd(node.getPathWeight(child), child_result.getVecView());
+                }
+                
+                if(resultSum == null)//all paths disabled?
+                    break;//break out and do local classify
+                if(sum < 1.0-1e-5)//re-normalize our result
+                    resultSum.mutableDivide(sum+1e-6);
+                
+                return new CategoricalResults(resultSum.arrayCopy());
+            }
+            if(node.isPathDisabled(path))//return local classification dec
                 break;
             node = node.getChild(path);
         }
@@ -150,8 +186,27 @@ public abstract class TreeNodeVisitor implements Serializable, Cloneable
         while(!node.isLeaf())
         {
             int path = node.getPath(dp);
-            //TODO improve missing value case
-            if(path < 0 || node.isPathDisabled(path))//if missing value makes path < 0, return local regression dec
+            if(path < 0 )//missing value case
+            {
+                double sum = 0;
+                double resultSum = 0;
+                for(int child = 0; child < childrenCount(); child++)
+                {
+                    if(node.isPathDisabled(child))
+                        continue;
+                    double child_result = node.getChild(child).regress(dp);
+                    sum += node.getPathWeight(child);
+                    resultSum += node.getPathWeight(child)*child_result;
+                }
+                
+                if(sum == 0)//all paths disabled?
+                    break;//break out and do local classify
+                if(sum < 1.0-1e-5)//re-normalize our result
+                    resultSum /= (sum+1e-6);
+                
+                return resultSum;
+            }
+            if(node.isPathDisabled(path))//if missing value makes path < 0, return local regression dec
                 break;
             node = node.getChild(path);
         }

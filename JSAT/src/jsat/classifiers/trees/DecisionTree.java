@@ -482,6 +482,12 @@ public class DecisionTree implements Classifier, Regressor, Parameterized, TreeL
             this.stump = stump;
             paths = new Node[stump.getNumberOfPaths()];
         }
+
+        @Override
+        public double getPathWeight(int path)
+        {
+            return stump.pathRatio[path];
+        }
         
         @Override
         public boolean isLeaf()
