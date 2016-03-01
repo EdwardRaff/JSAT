@@ -473,10 +473,10 @@ public class LinearSGD extends BaseUpdateableClassifier implements UpdateableReg
                     final int i = iv.getIndex();
                     //see "APPLYPENALTY(i)" on line 15: from Figure 2 in Tsuruoka et al paper
                     final double z = w_k.get(i);
-                    double newW_i;
+                    double newW_i = 0;
                     if (z > 0)
                         newW_i = Math.max(0, z - (l1U + l1Q_k[i]));
-                    else
+                    else if(z < 0)
                         newW_i = Math.min(0, z + (l1U - l1Q_k[i]));
                     l1Q_k[i] += (newW_i - z);
                     w_k.set(i, newW_i);
