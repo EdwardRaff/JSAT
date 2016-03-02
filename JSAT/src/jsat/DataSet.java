@@ -264,7 +264,8 @@ public abstract class DataSet<Type extends DataSet>
     /**
      * Returns summary statistics computed in an online fashion for each numeric
      * variable. This returns all summary statistics, but can be less 
-     * numerically stable and uses more memory. 
+     * numerically stable and uses more memory. <br>
+     * NaNs / missing values will be ignored in the statistics for each column. 
      * 
      * @param useWeights {@code true} to return the weighted statistics, 
      * unweighted otherwise. 
@@ -278,23 +279,30 @@ public abstract class DataSet<Type extends DataSet>
         
         double totalSoW = 0.0;
         
+        /**
+         * We got to skip nans, count their weight in each column so that we can still fast count zeros
+         */
+        double[] nanWeight = new double[numNumerVals];
+        
         for(Iterator<DataPoint> iter = getDataPointIterator(); iter.hasNext(); )
         {
             DataPoint dp = iter.next();
-            totalSoW += dp.getWeight();
             
+            double weight = useWeights ? dp.getWeight() : 1;
+            totalSoW += weight;
+
             Vec v = dp.getNumericalValues();
-            for(IndexValue iv : v)
-                if(useWeights)
-                    stats[iv.getIndex()].add(iv.getValue(), dp.getWeight());
+            for (IndexValue iv : v)
+                if (Double.isNaN(iv.getValue()))//count it so we can fast count zeros right later
+                    nanWeight[iv.getIndex()] += weight;
                 else
-                    stats[iv.getIndex()].add(iv.getValue());
+                    stats[iv.getIndex()].add(iv.getValue(), weight);
         }
         
-        double expected = useWeights ? totalSoW : getSampleSize();
+        double expected = totalSoW;
         //Add zero counts back in
-        for(OnLineStatistics stat : stats)
-            stat.add(0.0, expected-stat.getSumOfWeights());
+        for(int i = 0; i < stats.length; i++)
+            stats[i].add(0.0, expected-stats[i].getSumOfWeights()-nanWeight[i]);
         
         return stats;
     }
