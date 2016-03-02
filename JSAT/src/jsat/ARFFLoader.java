@@ -14,11 +14,11 @@ import jsat.linear.Vec;
 import jsat.regression.RegressionDataSet;
 
 /**
- * Class for loading ARFF files. ARFF is a human readable file format used by Weka. 
- * The ARFF file formal allows for attributes that have missing information, which 
- * is not supported by JSAT. Any data point with missing information will be 
- * skipped in the loading process. 
- * 
+ * Class for loading ARFF files. ARFF is a human readable file format used by
+ * Weka. The ARFF file formal allows for attributes that have missing
+ * information, which are encoded in JSAT as {@link Double#NaN} for numeric
+ * features, and a {@code -1} for categorical features.
+ *
  * <br>
  * <a href="http://www.cs.waikato.ac.nz/ml/weka/arff.html">About Weka</a>
  * @author Edward Raff
@@ -144,8 +144,6 @@ public class ARFFLoader
                 }
                 else if(atData && !line.isEmpty())
                 {
-                    if(line.contains("?"))//We dont handle missing data
-                        continue;
                     double weight = 1.0;
                     String[] tmp = line.split(",");
                     if(tmp.length != isReal.size())
@@ -169,12 +167,19 @@ public class ARFFLoader
                     int k = 0;//Keeping track of position in cats
                     for(int i  = 0; i < isReal.size(); i++)
                     {
-                        if(isReal.get(i))
-                            vec.set(i - k, Double.parseDouble(tmp[i].trim()));
+                        String val_string = tmp[i].trim();
+                        if (isReal.get(i))
+                            if (val_string.equals("?"))//missing value, indicated by NaN
+                                vec.set(i - k, Double.NaN);
+                            else
+                                vec.set(i - k, Double.parseDouble(val_string));
                         else//Categorical
                         {
-                            tmp[i] = nameTrim(tmp[i]);
-                            cats[k++] = catVals.get(i).get(tmp[i].trim().toLowerCase());
+                            tmp[i] = nameTrim(tmp[i]).trim().toLowerCase();
+                            if(tmp[i].equals("?"))//missing value, indicated by -1
+                                cats[k++] = -1;
+                            else
+                                cats[k++] = catVals.get(i).get(tmp[i]);
                         }
                     }
                     
@@ -243,7 +248,11 @@ public class ARFFLoader
                 if(!firstFeature)
                     writer.write(",");
                 firstFeature = false;
-                writer.write(addQuotes(catInfo[i].getOptionName(dp.getCategoricalValue(i))));
+                int cat_val = dp.getCategoricalValue(i);
+                if(cat_val < 0)
+                    writer.write("?");
+                else
+                    writer.write(addQuotes(catInfo[i].getOptionName(cat_val)));
             }
             //numeric vars
             Vec v = dp.getNumericalValues();
@@ -253,7 +262,9 @@ public class ARFFLoader
                     writer.write(",");
                 firstFeature = false;
                 double val = v.get(i);
-                if(Math.rint(val) == val)//cast to long before writting to save space
+                if(Double.isNaN(val))//missing value case
+                    writer.write("?");
+                else if(Math.rint(val) == val)//cast to long before writting to save space
                     writer.write(Long.toString((long) val));
                 else
                     writer.write(Double.toString(val));
