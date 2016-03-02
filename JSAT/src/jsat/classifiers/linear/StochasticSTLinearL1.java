@@ -8,6 +8,8 @@ import jsat.classifiers.Classifier;
 import jsat.exceptions.FailedToFitException;
 import jsat.linear.IndexValue;
 import jsat.linear.Vec;
+import jsat.lossfunctions.LogisticLoss;
+import jsat.lossfunctions.SquaredLoss;
 import jsat.parameters.Parameter;
 import jsat.parameters.Parameterized;
 import jsat.regression.Regressor;
@@ -93,13 +95,13 @@ public abstract class StochasticSTLinearL1 implements Classifier, Regressor, Par
             @Override
             public double loss(double a, double y)
             {
-                return 0.5*Math.pow(a-y, 2);
+                return SquaredLoss.loss(a, y);
             }
             
             @Override
             public double deriv(double a, double y)
             {
-                return a-y;
+                return SquaredLoss.deriv(a, y);
             }
             
             @Override
@@ -138,13 +140,13 @@ public abstract class StochasticSTLinearL1 implements Classifier, Regressor, Par
             @Override
             public double loss(double a, double y)
             {
-                return 1+Math.exp(-y*a);
+                return LogisticLoss.loss(a, y);
             }
             
             @Override
             public double deriv(double a, double y)
             {
-                return -y/(1+Math.exp(a*y));
+                return LogisticLoss.deriv(a, y);
             }
             
             @Override
@@ -156,11 +158,7 @@ public abstract class StochasticSTLinearL1 implements Classifier, Regressor, Par
             @Override
             public CategoricalResults classify(double a)
             {
-                CategoricalResults cr = new CategoricalResults(2);
-                cr.setProb(1, regress(a));
-                cr.setProb(0, 1.0-cr.getProb(1));
-
-                return cr;
+                return LogisticLoss.classify(a);
             }
             
             @Override
