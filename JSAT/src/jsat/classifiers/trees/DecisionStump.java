@@ -394,7 +394,7 @@ public class DecisionStump implements Classifier, Regressor, Parameterized
                 aSplit = listOfLists(catAttributes[attribute].getNumOfCategories());
                 split_scores = new ImpurityScore[aSplit.size()];
                 for(int i=0; i < split_scores.length; i++)
-                    split_scores[i] = new ImpurityScore(aSplit.size(), gainMethod);
+                    split_scores[i] = new ImpurityScore(predicting.getNumOfCategories(), gainMethod);
                 
                 List<DataPointPair<Integer>> wasMissing = new ArrayList<DataPointPair<Integer>>(0);
                 double missingSum = 0.0;
