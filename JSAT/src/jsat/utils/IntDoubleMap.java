@@ -43,7 +43,7 @@ public final class IntDoubleMap extends AbstractMap<Integer, Double>
             throw new IllegalArgumentException("loadFactor must be in (0, 1), not " + loadFactor);
         this.loadFactor = loadFactor;
         
-        int size = getNextPow2TwinPrime(Math.max(capacity, 4));
+        int size = getNextPow2TwinPrime((int) Math.max(capacity/loadFactor, 4));
         status = new byte[size];
         keys = new int[size];
         table = new double[size];
@@ -113,8 +113,10 @@ public final class IntDoubleMap extends AbstractMap<Integer, Double>
 
     /**
      * 
-     * @param key
-     * @param delta
+     * @param key the key whose associated value is to be incremented. All
+     * non-present keys behave as having an implicit value of zero, in which
+     * case the delta value is directly inserted into the map.
+     * @param delta the amount by which to increment the key's stored value.
      * @return the new value stored for the given key
      */
     public double increment(int key, double delta)
@@ -143,7 +145,43 @@ public final class IntDoubleMap extends AbstractMap<Integer, Double>
         
         return toReturn;
     }
+    
+    /**
+     * Returns the value to which the specified key is mapped, or
+     * {@link Double#NaN} if this map contains no mapping for the key.
+     *
+     * @param key the key whose associated value is to be returned
+     * @return the value to which the specified key is mapped, or
+     * {@link Double#NaN} if this map contains no mapping for the key
+     */
+    public double get(int key)
+    {
+        long pair_index = getIndex(key);
+        int valOrFreeIndex = (int) (pair_index & INT_MASK);
+        
+        if(status[valOrFreeIndex] == OCCUPIED)//easy case
+            return table[valOrFreeIndex];
+        //else, return NaN for missing
+        return Double.NaN;
+    }
 
+    @Override
+    public Double get(Object key)
+    {
+        if(key == null)
+            return null;
+        
+        if(key instanceof Integer)
+        {
+            double d = get( ((Integer)key).intValue());
+            if(Double.isNaN(d))
+                return null;
+            return d;
+        }
+        else
+            throw new ClassCastException("Key not of integer type");
+    }
+    
     @Override
     public Double remove(Object key)
     {
