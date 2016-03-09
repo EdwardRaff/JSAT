@@ -173,6 +173,34 @@ public abstract class LanceWilliamsDissimilarity extends DistanceMetricDissimila
         double d_ik = getDistance(distanceMatrix, i, k);
         double d_jk = getDistance(distanceMatrix, j, k);
         double d_ij = getDistance(distanceMatrix, i, j);
+        return  dissimilarity(ni, nj, nk, d_ij, d_ik, d_jk);
+    }
+    
+    /**
+     * Provides the notion of dissimilarity between two sets of points, that may
+     * not have the same number of points. This is done using a matrix 
+     * containing all pairwise distance computations between all points. This 
+     * distance matrix will then be updated at each iteration and merging, 
+     * leaving empty space in the matrix. The updates will be done by the 
+     * clustering algorithm. Implementing this interface indicates that this 
+     * dissimilarity measure can be accurately computed in an updatable manner 
+     * that is compatible with a Lance–Williams update. <br>
+     * 
+     * This computes the dissimilarity of the union of clusters i and j, 
+     * (C<sub>i</sub> &cup; C<sub>j</sub>), with the cluster k. This method is 
+     * used by other algorithms to perform an update of the distance matrix in 
+     * an efficient manner. 
+     * 
+     * @param ni the number of items in the cluster represented by <tt>i</tt>
+     * @param nj the number of items in the cluster represented by <tt>j</tt>
+     * @param nk the number of items in the cluster represented by <tt>k</tt>
+     * @param d_ij the distance between clusters i and j
+     * @param d_ik the distance between clusters i and k
+     * @param d_jk the distance between clusters j and k
+     * @return the distance between the cluster formed from i and j, to the cluster k
+     */
+    public double dissimilarity(int ni, int nj, int nk, double d_ij, double d_ik, double d_jk)
+    {
         return  aConst(true, ni, nj, nk)  * d_ik  +
                 aConst(false, ni, nj, nk) * d_jk  + 
                 bConst(ni, nj, nk)        * d_ij  + 
