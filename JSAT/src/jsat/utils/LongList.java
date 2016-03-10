@@ -82,10 +82,18 @@ public class LongList extends AbstractList<Long> implements Serializable
      */
     public void add(int index, long element)
     {
-        boundsCheck(index);
-        enlargeIfNeeded(1);
-        System.arraycopy(array, index, array, index+1, end-index);
-        array[index] = element;
+        if (index == size())//special case, just appending
+        {
+            add(element);
+        }
+        else
+        {
+            boundsCheck(index);
+            enlargeIfNeeded(1);
+            System.arraycopy(array, index, array, index+1, end-index);
+            array[index] = element;
+            end++;
+        }
     }
 
     @Override

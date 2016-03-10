@@ -91,6 +91,7 @@ public class IntList extends AbstractList<Integer> implements Serializable
             enlargeIfNeeded(1);
             System.arraycopy(array, index, array, index+1, end-index);
             array[index] = element;
+            end++;
         }
     }
 
