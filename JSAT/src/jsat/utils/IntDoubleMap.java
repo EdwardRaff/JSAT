@@ -5,6 +5,7 @@ import java.util.AbstractSet;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Iterator;
+import java.util.Map;
 import java.util.Set;
 import static jsat.utils.ClosedHashingUtil.*;
 
@@ -33,6 +34,13 @@ public final class IntDoubleMap extends AbstractMap<Integer, Double>
     public IntDoubleMap(int capacity)
     {
         this(capacity, 0.75f);
+    }
+    
+    public IntDoubleMap(Map<Integer, Double> collection)
+    {
+        this(Math.max(1, collection.size()));
+        for(Entry<Integer, Double> entry : collection.entrySet())
+            put(entry.getKey(), entry.getValue());
     }
     
     public IntDoubleMap(int capacity, float loadFactor)

@@ -16,14 +16,17 @@
  */
 package jsat.clustering.hierarchical;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import jsat.DataSet;
 import jsat.classifiers.DataPoint;
 import static jsat.clustering.ClustererBase.createClusterListFromAssignmentArray;
 import jsat.clustering.KClustererBase;
 import jsat.clustering.dissimilarity.LanceWilliamsDissimilarity;
+import jsat.clustering.dissimilarity.WardsDissimilarity;
 import jsat.linear.Vec;
 import jsat.linear.distancemetrics.DistanceMetric;
 import jsat.linear.distancemetrics.EuclideanDistance;
@@ -31,6 +34,7 @@ import jsat.math.OnLineStatistics;
 import jsat.utils.FakeExecutor;
 import jsat.utils.IndexTable;
 import jsat.utils.IntDoubleMap;
+import jsat.utils.IntDoubleMapArray;
 import jsat.utils.IntList;
 import jsat.utils.ListUtils;
 
@@ -52,6 +56,11 @@ public class NNChainHAC extends KClustererBase
      * treated as no longer its own cluster. 
      */
     private int[] merges;
+    
+    public NNChainHAC()
+    {
+        this(new WardsDissimilarity());
+    }
     
     public NNChainHAC(LanceWilliamsDissimilarity distMeasure)
     {
@@ -94,25 +103,22 @@ public class NNChainHAC extends KClustererBase
         return cluster(dataSet, 2, (int) Math.sqrt(dataSet.getSampleSize()), threadpool, designations);
     }
 
-    private double getDist(int a, int j, int[] size, List<Vec> vecs, List<Double> cache, IntDoubleMap[] d_xk)
+    private double getDist(int a, int j, int[] size, List<Vec> vecs, List<Double> cache, List<Map<Integer, Double>> d_xk)
     {
         double dist = -1;//negative value nosense
         if (size[j] == 1 && size[a] == 1)
             dist = dm.dist(a, j, vecs, cache);
         else
         {
-            if(d_xk[j] != null)
+            if(d_xk.get(j) != null)
             {
-                Double tmp = d_xk[j].get(a);
+                Double tmp = d_xk.get(j).get(a);
                 if(tmp != null)
                     dist = tmp;
             }
             if(dist < 0)//wasn't found searching d_xk
-                dist = d_xk[a].get(j);//has to be found now
+                dist = d_xk.get(a).get(j);//has to be found now
         }
-        
-        if(Double.isNaN(dist))
-            return getDist(a, j, size, vecs, cache, d_xk);
         
         return dist;
     }
@@ -200,7 +206,9 @@ public class NNChainHAC extends KClustererBase
         ListUtils.addRange(S, 0, N, 1);
         
         
-        IntDoubleMap[] dist_map = new IntDoubleMap[N];
+        List<Map<Integer, Double>> dist_map = new ArrayList<Map<Integer, Double>>(N);
+        for(int i = 0; i < N; i++)
+            dist_map.add(null);
         
         List<Vec> vecs = dataSet.getDataVectors();
         List<Double> cache = dm.getAccelerationCache(vecs, threadpool);
@@ -262,8 +270,8 @@ public class NNChainHAC extends KClustererBase
             }
             while (chainPos < 3 || a != chain[chainPos-3]); //19: until length(chain) ≥ 3 and a = chain[−3]  > a, b are reciprocal
             
-            int n = Math.max(a, b);
-            int removed = Math.min(a, b);
+            int n = Math.min(a, b);
+            int removed = Math.max(a, b);
             
             // 20: Append (a, b, d[a, b]) to L  >  nearest neighbors.
             merges[merges.length-L_pos*2-1] = removed;
@@ -289,31 +297,39 @@ public class NNChainHAC extends KClustererBase
             
             // 24: Update d with the information d[n,x], for all x ∈ S.
             
-            IntDoubleMap map_n = S.isEmpty() ? null : new IntDoubleMap(S.size());
+            Map<Integer, Double> map_n; // = S.isEmpty() ? null : new IntDoubleMap(S.size());
+            if(S.isEmpty())
+                map_n = null;
+            else if(S.size()*100 >= N)// Wastefull, but faster and acceptable, acceptable
+                map_n = new IntDoubleMapArray(N);
+            else
+                map_n = new IntDoubleMap(S.size());
             for(int x : S)
             {
                 double d_ax = getDist(a, x, size, vecs, cache, dist_map);
                 double d_bx = getDist(b, x, size, vecs, cache, dist_map);
                 double d_xn = distMeasure.dissimilarity(size_a, size_b, size[x], dist_ab, d_ax, d_bx);
-                if(Double.isNaN(d_xn))
-                    d_xn = distMeasure.dissimilarity(size_a, size_b, size[x], dist_ab, d_ax, d_bx);
-                if(dist_map[x] == null)
+                
+                Map<Integer, Double> dist_map_x = dist_map.get(x);
+                if(dist_map_x == null)
                 {
 //                    dist_map[x] = new IntDoubleMap(1);
 //                    dist_map[x].put(n, d_xn);
                 }
                 else //if(dist_map[x] != null)
                 {
-                    dist_map[x].remove(b);
-                    dist_map[x].put(n, d_xn);
+                    dist_map_x.remove(b);
+                    dist_map_x.put(n, d_xn);
+                    if(dist_map_x.size()*50 < N && !(dist_map_x instanceof IntDoubleMap))//we are using such a small percentage, put it into a sparser map
+                        dist_map.set(x, new IntDoubleMap(dist_map_x));
                 }
                 
                 map_n.put(x, d_xn);
                 
             }
             
-            dist_map[removed] = null;//no longer in use no mater what
-            dist_map[n] = map_n;
+            dist_map.set(removed,  null);//no longer in use no mater what
+            dist_map.set(n,  map_n);
             
             // 25: S ← S ∪ {n}
             size[n] = size_a + size_b;
