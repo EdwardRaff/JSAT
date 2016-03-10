@@ -18,8 +18,9 @@ import jsat.utils.IntPriorityQueue;
 public class PriorityHAC extends KClustererBase
 {
 
-	private static final long serialVersionUID = -702489462117567542L;
-	private UpdatableClusterDissimilarity distMeasure;
+    private static final long serialVersionUID = -702489462117567542L;
+    private UpdatableClusterDissimilarity distMeasure;
+    
     /**
      * Stores the merge list, each merge is in a pair of 2 values. The final 
      * merge list should contain the last merged pairs at the front of the array
@@ -289,6 +290,18 @@ public class PriorityHAC extends KClustererBase
      * @return the array storing the designations. A new one will be created and returned if <tt>designations</tt> was null. 
      */
     private int[] assignClusterDesignations(int[] designations, int clusters)
+    {
+        return assignClusterDesignations(designations, clusters, merges);
+    }
+    
+    /**
+     * Goes through the <tt>merge</tt> array in order from last merge to first, and sets the cluster assignment for each data point based on the merge list. 
+     * @param designations the array to store the designations in, or null to have a new one created automatically. 
+     * @param clusters the number of clusters to assume
+     * @param merges the array of merge pairs
+     * @return the array storing the designations. A new one will be created and returned if <tt>designations</tt> was null. 
+     */
+    protected static int[] assignClusterDesignations(int[] designations, int clusters, int[] merges)
     {
         int curCluster = 0;
         Arrays.fill(designations, -1);
