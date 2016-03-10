@@ -12,7 +12,7 @@ import jsat.linear.distancemetrics.EuclideanDistance;
  * 
  * @author Edward Raff
  */
-public class AverageLinkDissimilarity extends DistanceMetricDissimilarity implements UpdatableClusterDissimilarity
+public class AverageLinkDissimilarity extends LanceWilliamsDissimilarity implements UpdatableClusterDissimilarity
 {
     /**
      * Creates a new AverageLinkDissimilarity using the {@link EuclideanDistance}
@@ -88,6 +88,28 @@ public class AverageLinkDissimilarity extends DistanceMetricDissimilarity implem
         double ai = ni/(double)(ni+nj);
         double aj = nj/(double)(ni+nj);
         return ai * getDistance(distanceMatrix, i, k) + aj * getDistance(distanceMatrix, j, k);
+    }
+
+    @Override
+    protected double aConst(boolean iFlag, int ni, int nj, int nk)
+    {
+        double denom = ni+nj;
+        if(iFlag)
+            return ni/denom;
+        else
+            return nj/denom;
+    }
+
+    @Override
+    protected double bConst(int ni, int nj, int nk)
+    {
+        return 0;
+    }
+
+    @Override
+    protected double cConst(int ni, int nj, int nk)
+    {
+        return 0;
     }
     
 }

@@ -14,7 +14,7 @@ import jsat.linear.distancemetrics.EuclideanDistance;
  * 
  * @author Edward Raff
  */
-public class CompleteLinkDissimilarity extends DistanceMetricDissimilarity implements UpdatableClusterDissimilarity
+public class CompleteLinkDissimilarity extends LanceWilliamsDissimilarity implements UpdatableClusterDissimilarity
 {
     /**
      * Creates a new CompleteLinkDissimilarity using the {@link EuclideanDistance}
@@ -85,6 +85,24 @@ public class CompleteLinkDissimilarity extends DistanceMetricDissimilarity imple
     public double dissimilarity(int i, int ni, int j, int nj, int k, int nk, double[][] distanceMatrix)
     {
         return Math.max(getDistance(distanceMatrix, i, k), getDistance(distanceMatrix, j, k));
+    }
+
+    @Override
+    protected double aConst(boolean iFlag, int ni, int nj, int nk)
+    {
+        return 0.5;
+    }
+
+    @Override
+    protected double bConst(int ni, int nj, int nk)
+    {
+        return 0;
+    }
+
+    @Override
+    protected double cConst(int ni, int nj, int nk)
+    {
+        return 0.5;
     }
 
 }

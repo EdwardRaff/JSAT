@@ -13,7 +13,7 @@ import jsat.linear.distancemetrics.EuclideanDistance;
  * 
  * @author Edward Raff
  */
-public class CentroidDissimilarity extends DistanceMetricDissimilarity implements UpdatableClusterDissimilarity
+public class CentroidDissimilarity extends LanceWilliamsDissimilarity implements UpdatableClusterDissimilarity
 {
     /**
      * Creates a new CentroidDissimilarity that used the {@link EuclideanDistance}
@@ -77,6 +77,29 @@ public class CentroidDissimilarity extends DistanceMetricDissimilarity implement
         double b = - ni * nj / iPj*iPj;
         
         return ai* getDistance(distanceMatrix, i, k) + aj * getDistance(distanceMatrix, j, k) + b * getDistance(distanceMatrix, i, j);
+    }
+
+    @Override
+    protected double aConst(boolean iFlag, int ni, int nj, int nk)
+    {
+        double denom = ni+nj;
+        if(iFlag)
+            return ni/denom;
+        else
+            return nj/denom;
+    }
+
+    @Override
+    protected double bConst(int ni, int nj, int nk)
+    {
+        double nipj = ni + nj;
+        return - ni*(double)nj/(nipj*nipj);
+    }
+
+    @Override
+    protected double cConst(int ni, int nj, int nk)
+    {
+        return 0;
     }
 
     
