@@ -88,6 +88,12 @@ public class CompleteLinkDissimilarity extends LanceWilliamsDissimilarity implem
     }
 
     @Override
+    public double dissimilarity(int ni, int nj, int nk, double d_ij, double d_ik, double d_jk)
+    {
+        return Math.max(d_ik, d_jk);
+    }
+
+    @Override
     protected double aConst(boolean iFlag, int ni, int nj, int nk)
     {
         return 0.5;

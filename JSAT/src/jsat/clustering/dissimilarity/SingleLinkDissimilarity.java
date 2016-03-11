@@ -88,6 +88,12 @@ public class SingleLinkDissimilarity extends LanceWilliamsDissimilarity implemen
     }
 
     @Override
+    public double dissimilarity(int ni, int nj, int nk, double d_ij, double d_ik, double d_jk)
+    {
+        return Math.min(d_ik, d_jk);
+    }
+
+    @Override
     protected double aConst(boolean iFlag, int ni, int nj, int nk)
     {
         return 0.5;

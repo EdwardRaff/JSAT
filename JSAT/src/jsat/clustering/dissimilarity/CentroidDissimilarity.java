@@ -9,7 +9,7 @@ import jsat.linear.distancemetrics.EuclideanDistance;
 
 /**
  * Average similarity of all data point pairs between clusters, inter-cluster 
- * pairs are ignored. 
+ * pairs are ignored. Also called UPGMC. 
  * 
  * @author Edward Raff
  */
