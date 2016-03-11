@@ -20,7 +20,11 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import jsat.DataSet;
 import jsat.classifiers.DataPoint;
 import static jsat.clustering.ClustererBase.createClusterListFromAssignmentArray;
@@ -37,6 +41,8 @@ import jsat.utils.IntDoubleMap;
 import jsat.utils.IntDoubleMapArray;
 import jsat.utils.IntList;
 import jsat.utils.ListUtils;
+import jsat.utils.SystemInfo;
+import jsat.utils.concurrent.AtomicDouble;
 
 /**
  *
@@ -102,25 +108,25 @@ public class NNChainHAC extends KClustererBase
     {
         return cluster(dataSet, 2, (int) Math.sqrt(dataSet.getSampleSize()), threadpool, designations);
     }
-
+    
     private double getDist(int a, int j, int[] size, List<Vec> vecs, List<Double> cache, List<Map<Integer, Double>> d_xk)
     {
-        double dist = -1;//negative value nosense
         if (size[j] == 1 && size[a] == 1)
-            dist = dm.dist(a, j, vecs, cache);
+            return dm.dist(a, j, vecs, cache);
         else
         {
-            if(d_xk.get(j) != null)
+            //a is the one we are using over and over, its more likely to have the valu - check it first
+            if(d_xk.get(a) != null)
             {
-                Double tmp = d_xk.get(j).get(a);
+                Double tmp = d_xk.get(a).get(j);
                 if(tmp != null)
-                    dist = tmp;
+                    return tmp;
+                else//wasn't found searching d_xk
+                    return d_xk.get(j).get(a);//has to be found now
             }
-            if(dist < 0)//wasn't found searching d_xk
-                dist = d_xk.get(a).get(j);//has to be found now
+            else
+                return d_xk.get(j).get(a);//has to be found now
         }
-        
-        return dist;
     }
 
     /**
@@ -176,23 +182,23 @@ public class NNChainHAC extends KClustererBase
         if(designations == null)
             designations = new int[dataSet.getSampleSize()];
         
-        int N = dataSet.getSampleSize();
+        final int N = dataSet.getSampleSize();
         
         merges = new int[N*2-2];
         /**
          * Keeps track of which index was removed from the list due to being
          * merged at the given point
          */
-        IntList merge_removed = new IntList();
+        IntList merge_removed = new IntList(N);
         /**
          * Keeps track of which index was kept and was in the merge at the given
          * point
          */
-        IntList merge_kept = new IntList();
+        IntList merge_kept = new IntList(N);
         /**
          * The number of items in the cluster denoted at the given index
          */
-        int[] size = new int[N];
+        final int[] size = new int[N];
         Arrays.fill(size, 1);
         
 
@@ -202,16 +208,16 @@ public class NNChainHAC extends KClustererBase
         double[] mergedDistance = new double[N-1];
         int L_pos = 0;
         
-        IntList S = new IntList(N);
+        final IntList S = new IntList(N);
         ListUtils.addRange(S, 0, N, 1);
         
         
-        List<Map<Integer, Double>> dist_map = new ArrayList<Map<Integer, Double>>(N);
+        final List<Map<Integer, Double>> dist_map = new ArrayList<Map<Integer, Double>>(N);
         for(int i = 0; i < N; i++)
             dist_map.add(null);
         
-        List<Vec> vecs = dataSet.getDataVectors();
-        List<Double> cache = dm.getAccelerationCache(vecs, threadpool);
+        final List<Vec> vecs = dataSet.getDataVectors();
+        final List<Double> cache = dm.getAccelerationCache(vecs, threadpool);
         
         int[] chain = new int[N];
         int chainPos = 0;
@@ -247,18 +253,83 @@ public class NNChainHAC extends KClustererBase
                 int c = b;
                 double minDist = getDist(a, c, size, vecs, cache, dist_map);
                 
-                for(int j : S)
+                if(threadpool == null || threadpool instanceof FakeExecutor || S.size() < SystemInfo.LogicalCores*2)
                 {
-                    if(j == a || j == c)
-                        continue;//we already have these guys! just not removed from S yet
-                    
-                    double dist = getDist(a, j, size, vecs, cache, dist_map);
-                    if(dist < minDist)
+                    for(int j : S)
                     {
+                        if(j == a || j == c)
+                            continue;//we already have these guys! just not removed from S yet
+
+                        double dist = getDist(a, j, size, vecs, cache, dist_map);
+                        if(dist < minDist)
+                        {
                         minDist = dist;
                         c = j;
+                        }
                     }
                 }
+                else//parallel search
+                {
+                    final AtomicInteger c_ = new AtomicInteger(b);
+                    final AtomicDouble minDist_ = new AtomicDouble(minDist);
+
+                    final CountDownLatch latch = new CountDownLatch(SystemInfo.LogicalCores);
+                    for(int id = 0; id < SystemInfo.LogicalCores; id++)
+                    {
+                        final int ID = id, A = a, B = b;
+
+                        threadpool.submit(new Runnable()
+                        {
+                            @Override
+                            public void run()
+                            {
+                                double localMinDist = Double.POSITIVE_INFINITY;
+                                int localC = -1;
+                                for(int indx = ID; indx < S.size(); indx+=SystemInfo.LogicalCores)
+                                {
+                                    int j = S.getI(indx);
+                                    if (j == A || j == B)
+                                        continue;//we already have these guys! just not removed from S yet
+
+                                    double dist = getDist(A, j, size, vecs, cache, dist_map);
+                                    if (dist < localMinDist)
+                                    {
+                                        localMinDist = dist;
+                                        localC = j;
+                                    }
+                                }
+                                
+                                if (localMinDist < minDist_.get())
+                                {
+                                    synchronized(S)
+                                    {
+                                        if (localMinDist < minDist_.get())
+                                        {
+                                            minDist_.set(localMinDist);
+                                            c_.set(localC);
+                                        }
+                                    }
+                                }
+
+                                latch.countDown();
+                            }
+                        });
+                    }
+                    
+                    
+                    
+                    try
+                    {
+                        latch.await();
+                        c = c_.get();
+                        minDist = minDist_.get();
+                    }
+                    catch (InterruptedException ex)
+                    {
+                        Logger.getLogger(NNChainHAC.class.getName()).log(Level.SEVERE, null, ex);
+                    }
+                }
+                
                 dist_ab = minDist;
                       
                 //17: a, b ← c, a
@@ -270,13 +341,10 @@ public class NNChainHAC extends KClustererBase
             }
             while (chainPos < 3 || a != chain[chainPos-3]); //19: until length(chain) ≥ 3 and a = chain[−3]  > a, b are reciprocal
             
-            int n = Math.min(a, b);
-            int removed = Math.max(a, b);
+            final int n = Math.min(a, b);
+            final int removed = Math.max(a, b);
             
             // 20: Append (a, b, d[a, b]) to L  >  nearest neighbors.
-            merges[merges.length-L_pos*2-1] = removed;
-            merges[merges.length-L_pos*2-2] = n;
-            
             merge_removed.add(removed);
             merge_kept.add(n);
             
@@ -288,44 +356,95 @@ public class NNChainHAC extends KClustererBase
 //            System.out.println("Removed " + a + " " + b + " S=" + S + " chain=" + IntList.view(chain, chainPos));
             // 22: n←(new node label)
             
-            for(int i = 0; i < chainPos; i++)//bug in paper? we end with [a, b, a] in the chain, but one of them is a bad index now
+            for(int i = Math.max(0, chainPos-5); i < chainPos; i++)//bug in paper? we end with [a, b, a] in the chain, but one of them is a bad index now
                 if(chain[i] == removed)
                     chain[i] = n;
             // 23: size[n]←size[a]+size[b]
-            int size_a = size[a], size_b = size[b];
+            final int size_a = size[a], size_b = size[b];
             //set defered till later to make sure we don't muck anything needed in computatoin
             
             // 24: Update d with the information d[n,x], for all x ∈ S.
             
-            Map<Integer, Double> map_n; // = S.isEmpty() ? null : new IntDoubleMap(S.size());
+            boolean singleThread = threadpool == null || threadpool instanceof FakeExecutor || S.size() <= SystemInfo.LogicalCores*10;
+            final Map<Integer, Double> map_n; // = S.isEmpty() ? null : new IntDoubleMap(S.size());
             if(S.isEmpty())
                 map_n = null;
-            else if(S.size()*100 >= N)// Wastefull, but faster and acceptable, acceptable
+            else if(S.size()*100 >= N || !singleThread)// Wastefull, but faster and acceptable
                 map_n = new IntDoubleMapArray(N);
             else
                 map_n = new IntDoubleMap(S.size());
-            for(int x : S)
+            if(singleThread)
+            {//single threaded if warnted or workign set is too small
+                for(final int x : S)
+                {
+                    double d_ax = getDist(a, x, size, vecs, cache, dist_map);
+                    double d_bx = getDist(b, x, size, vecs, cache, dist_map);
+                    double d_xn = distMeasure.dissimilarity(size_a, size_b, size[x], dist_ab, d_ax, d_bx);
+
+                    Map<Integer, Double> dist_map_x = dist_map.get(x);
+                    if(dist_map_x == null)
+                    {
+                        //                    dist_map[x] = new IntDoubleMap(1);
+                        //                    dist_map[x].put(n, d_xn);
+                    }
+                    else //if(dist_map[x] != null)
+                    {
+                        dist_map_x.remove(b);
+                        dist_map_x.put(n, d_xn);
+                        if(dist_map_x.size()*50 < N && !(dist_map_x instanceof IntDoubleMap))//we are using such a small percentage, put it into a sparser map
+                            dist_map.set(x, new IntDoubleMap(dist_map_x));
+                    }
+
+                    map_n.put(x, d_xn);
+
+                }
+            }
+            else//parallel  case
             {
-                double d_ax = getDist(a, x, size, vecs, cache, dist_map);
-                double d_bx = getDist(b, x, size, vecs, cache, dist_map);
-                double d_xn = distMeasure.dissimilarity(size_a, size_b, size[x], dist_ab, d_ax, d_bx);
-                
-                Map<Integer, Double> dist_map_x = dist_map.get(x);
-                if(dist_map_x == null)
+                final CountDownLatch latch = new CountDownLatch(SystemInfo.LogicalCores);
+                final int A = a, B = b;
+                final double dist_AB = dist_ab;
+                for(int id = 0; id < SystemInfo.LogicalCores; id++)
                 {
-//                    dist_map[x] = new IntDoubleMap(1);
-//                    dist_map[x].put(n, d_xn);
+                    final int ID = id;
+                    
+                    threadpool.submit(new Runnable()
+                    {
+                        @Override
+                        public void run()
+                        {
+                            for(int indx = ID; indx < S.size(); indx += SystemInfo.LogicalCores)
+                            {
+                                int x = S.getI(indx);
+                                double d_ax = getDist(A, x, size, vecs, cache, dist_map);
+                                double d_bx = getDist(B, x, size, vecs, cache, dist_map);
+                                double d_xn = distMeasure.dissimilarity(size_a, size_b, size[x], dist_AB, d_ax, d_bx);
+
+                                Map<Integer, Double> dist_map_x = dist_map.get(x);
+                                if(dist_map_x != null)
+                                {
+                                    dist_map_x.remove(B);
+                                    dist_map_x.put(n, d_xn);
+                                    if(dist_map_x.size()*50 < N && !(dist_map_x instanceof IntDoubleMap))//we are using such a small percentage, put it into a sparser map
+                                        dist_map.set(x, new IntDoubleMap(dist_map_x));
+                                }
+
+                                map_n.put(x, d_xn);
+                            }
+                            latch.countDown();
+                        }
+                    });
+
                 }
-                else //if(dist_map[x] != null)
+
+                try
                 {
-                    dist_map_x.remove(b);
-                    dist_map_x.put(n, d_xn);
-                    if(dist_map_x.size()*50 < N && !(dist_map_x instanceof IntDoubleMap))//we are using such a small percentage, put it into a sparser map
-                        dist_map.set(x, new IntDoubleMap(dist_map_x));
+                    latch.await();
                 }
-                
-                map_n.put(x, d_xn);
-                
+                catch (InterruptedException ex)
+                {
+                    Logger.getLogger(NNChainHAC.class.getName()).log(Level.SEVERE, null, ex);
+                }
             }
             
             dist_map.set(removed,  null);//no longer in use no mater what
@@ -336,6 +455,26 @@ public class NNChainHAC extends KClustererBase
             S.add(n);
         }
         
+        fixMergeOrderAndAssign(mergedDistance, merge_kept, merge_removed, lowK, N, highK, designations);
+        
+        return designations;
+    }
+
+    /**
+     * After clustering, we need to fix up the merge order - since the NNchain
+     * only gets the merges correct, not their ordering. This also figures out
+     * what number of clusters to use
+     * 
+     * @param mergedDistance
+     * @param merge_kept
+     * @param merge_removed
+     * @param lowK
+     * @param N
+     * @param highK
+     * @param designations 
+     */
+    private void fixMergeOrderAndAssign(double[] mergedDistance, IntList merge_kept, IntList merge_removed, int lowK, final int N, int highK, int[] designations)
+    {
         //Now that we are done clustering, we need to re-order the merges so that the smallest distances are mergered first
         IndexTable it = new IndexTable(mergedDistance);
         it.apply(merge_kept);
@@ -349,8 +488,8 @@ public class NNChainHAC extends KClustererBase
 
         //Now lets figure out a guess at the cluster size
         /*
-         * Keep track of the average dist when merging, mark when it becomes abnormaly large as a guess at K
-         */
+        * Keep track of the average dist when merging, mark when it becomes abnormaly large as a guess at K
+        */
         OnLineStatistics distChange = new OnLineStatistics();
         double maxStndDevs = Double.MIN_VALUE;
 
@@ -378,8 +517,6 @@ public class NNChainHAC extends KClustererBase
         }
         
         PriorityHAC.assignClusterDesignations(designations, clusterSize, merges);
-        
-        return designations;
     }
 
     @Override
