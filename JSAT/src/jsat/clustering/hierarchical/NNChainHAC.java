@@ -45,6 +45,20 @@ import jsat.utils.SystemInfo;
 import jsat.utils.concurrent.AtomicDouble;
 
 /**
+ * This class implements Hierarchical Agglomerative Clustering via the Nearest
+ * Neighbor Chain approach. This runs in O(n<sup>2</sup>) time for any
+ * {@link LanceWilliamsDissimilarity Lance Williams} dissimilarity and uses O(n)
+ * memory. <br> 
+ * This implementation also supports multi-threaded execution. 
+ *
+ * see:
+ * <ul>
+ * <li>Müllner, D. (2011). Modern hierarchical, agglomerative clustering
+ * algorithms. arXiv Preprint arXiv:1109.2378. Retrieved from
+ * <a href="http://arxiv.org/abs/1109.2378">here</a></li>
+ * <li>Murtagh, F., & Contreras, P. (2011). Methods of Hierarchical Clustering.
+ * In Data Mining and Knowledge Discovery. Wiley-Interscience.</li>
+ * </ul>
  *
  * @author Edward Raff <Raff.Edward@gmail.com>
  */
@@ -63,16 +77,32 @@ public class NNChainHAC extends KClustererBase
      */
     private int[] merges;
     
+    /**
+     * Creates a new NNChainHAC using the {@link WardsDissimilarity Ward} method. 
+     */
     public NNChainHAC()
     {
         this(new WardsDissimilarity());
     }
     
+    /**
+     * Creates a new NNChainHAC
+     * @param distMeasure the dissimilarity measure to use
+     */
     public NNChainHAC(LanceWilliamsDissimilarity distMeasure)
     {
         this(distMeasure, new EuclideanDistance());
     }
     
+    /**
+     * Creates a new NNChain using the given dissimilarity measure and distance
+     * metric. The correctness guarantees may not hold for distances other than
+     * the {@link EuclideanDistance Euclidean} distance, which is the norm for
+     * Hierarchical Cluster.
+     *
+     * @param distMeasure the dissimilarity measure to use
+     * @param distance the distance metric to use
+     */
     public NNChainHAC(LanceWilliamsDissimilarity distMeasure, DistanceMetric distance)
     {
         this.distMeasure = distMeasure;
