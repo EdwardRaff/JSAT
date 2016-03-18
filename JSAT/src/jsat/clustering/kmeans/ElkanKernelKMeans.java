@@ -28,9 +28,9 @@ import jsat.utils.concurrent.ParallelUtils;
 public class ElkanKernelKMeans extends KernelKMeans
 {
 
-	private static final long serialVersionUID = 4998832201379993827L;
+    private static final long serialVersionUID = 4998832201379993827L;
 
-	/**
+    /**
      * Creates a new Kernel K Means object
      * @param kernel the kernel to use
      */
@@ -339,6 +339,8 @@ public class ElkanKernelKMeans extends KernelKMeans
                 final CountDownLatch latch2 = new CountDownLatch(k);
                 //Step 5
                 for (int i = 0; i < k; i++)
+                    distancesMoved[i] = meanToMeanDistance(i, i, newDesignations, assignment, oldSqrdNorms[i], threadpool);
+                for (int i = 0; i < k; i++)
                 {
                     final int c = i;
                     threadpool.submit(new Runnable()
@@ -346,8 +348,6 @@ public class ElkanKernelKMeans extends KernelKMeans
                         @Override
                         public void run()
                         {
-                            distancesMoved[c] = meanToMeanDistance(c, c, newDesignations, assignment, oldSqrdNorms[c]);
-                            
                             for (int q = 0; q < N; q++)
                                 lowerBound[q][c] = Math.max(lowerBound[q][c] - distancesMoved[c], 0);
                             latch2.countDown();
@@ -449,39 +449,18 @@ public class ElkanKernelKMeans extends KernelKMeans
         }
     }
 
-    private void calculateCentroidDistances(final int k, final double[][] centroidSelfDistances, final double[] sC, final int[] curAssignments, ExecutorService threadpool)
+    private void calculateCentroidDistances(final int k, final double[][] centroidSelfDistances, final double[] sC, final int[] curAssignments, final ExecutorService threadpool)
     {
         if(threadpool != null)
         {
-            //# of items in the upper triangle of a matrix excluding diagonal is (1+k)*k/2-k
-            int jobs = (1+k)*k/2-k;
             //compute self distances
-            final CountDownLatch latch = new CountDownLatch(jobs);
             for (int i = 0; i < k; i++)
             {
-                final int ii = i;
                 for (int z = i + 1; z < k; z++)
                 {
                     centroidSelfDistances[i][i] = 0;
-                    final int zz = z;
-                    threadpool.submit(new Runnable()
-                    {
-                        @Override
-                        public void run()
-                        {
-                            centroidSelfDistances[ii][zz] = centroidSelfDistances[zz][ii] = meanToMeanDistance(ii, zz, curAssignments);
-                            latch.countDown();
-                        }
-                    });
+                    centroidSelfDistances[i][z] = centroidSelfDistances[z][i] = meanToMeanDistance(i, z, curAssignments, threadpool);
                 }
-            }
-            try
-            {
-                latch.await();
-            }
-            catch (InterruptedException ex)
-            {
-                Logger.getLogger(ElkanKernelKMeans.class.getName()).log(Level.SEVERE, null, ex);
             }
             
             //update sC
@@ -496,6 +475,7 @@ public class ElkanKernelKMeans extends KernelKMeans
         
             return;
         }
+        //else, single threaded case
         //compute self distances
         for (int i = 0; i < k; i++)
             for (int z = i + 1; z < k; z++)
