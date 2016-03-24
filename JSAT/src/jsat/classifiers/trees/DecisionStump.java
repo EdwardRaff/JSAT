@@ -354,7 +354,7 @@ public class DecisionStump implements Classifier, Regressor, Parameterized
         ImpurityScore origScoreObj = getClassGainScore(dataPoints);
         double origScore =  origScoreObj.getScore();
         
-        if(origScore == 0.0)//Then all data points belond to the same category!
+        if(origScore == 0.0 || dataPoints.size() < minResultSplitSize*2)//Then all data points belond to the same category!
         {
             results = new CategoricalResults[1];//Only one path! 
             results[0] = new CategoricalResults(predicting.getNumOfCategories());
@@ -567,6 +567,8 @@ public class DecisionStump implements Classifier, Regressor, Parameterized
 
         for(int i = 0; i < minResultSplitSize; i++)
         {
+            if(i >= dataPoints.size())
+                System.out.println("WHAT?");
             double weight = dataPoints.get(i).getDataPoint().getWeight();
             int truth = dataPoints.get(i).getPair();
 
