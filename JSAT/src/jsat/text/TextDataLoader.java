@@ -2,6 +2,10 @@
 package jsat.text;
 
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import jsat.DataSet;
 import jsat.SimpleDataSet;
@@ -24,11 +28,11 @@ import jsat.utils.IntSet;
 public abstract class TextDataLoader implements TextVectorCreator
 {
 
-	private static final long serialVersionUID = -657254682338792871L;
-	/**
+    private static final long serialVersionUID = -657253682338792871L;
+    /**
      * List of original vectors
      */
-    protected List<SparseVector> vectors;
+    protected final List<SparseVector> vectors;
     /**
      * Tokenizer to apply to input strings
      */
@@ -37,29 +41,32 @@ public abstract class TextDataLoader implements TextVectorCreator
     /**
      * Maps words to their associated index in an array
      */
-    protected Map<String, Integer> wordIndex;
+    protected ConcurrentHashMap<String, Integer> wordIndex;
     /**
      * list of all word tokens encountered in order of first observation
      */
     protected List<String> allWords;
     /**
-     * The list of integer counts of how many times each word token was seen
+     * The map of integer counts of how many times each word token was seen. Key
+     * is the index of the word, value is the number of times it was seen. Using
+     * a map instead of a list so that it can be updated in a efficient thread
+     * safe way
      */
-    protected List<Integer> termDocumentFrequencys;
+    protected ConcurrentHashMap<Integer, AtomicInteger> termDocumentFrequencys;
     private WordWeighting weighting;
     
     /**
      * Temporary work space to use for tokenization
      */
-    protected StringBuilder workSpace;
+    protected ThreadLocal<StringBuilder> workSpace;
     /**
      * Temporary storage space to use for tokenization
      */
-    protected List<String> storageSpace;
+    protected ThreadLocal<List<String>> storageSpace;
     /**
      * Temporary space to use when creating vectors
      */
-    protected Map<String, Integer> wordCounts;
+    protected ThreadLocal<Map<String, Integer>> wordCounts;
     
     private TextVectorCreator tvc;
     
@@ -68,19 +75,22 @@ public abstract class TextDataLoader implements TextVectorCreator
      * documents can be inserted
      */
     protected boolean noMoreAdding;
-    private int currentLength = 0;
-    private int documents;
+    private final AtomicInteger currentLength = new AtomicInteger(0);
+    private volatile int documents;
 
     public TextDataLoader(Tokenizer tokenizer, WordWeighting weighting)
     {
         this.vectors = new ArrayList<SparseVector>();
         this.tokenizer = tokenizer;
         
-        this.wordIndex = new HashMap<String, Integer>();
-        this.termDocumentFrequencys = new IntList();
+        this.wordIndex = new ConcurrentHashMap<String, Integer>();
+        this.termDocumentFrequencys = new ConcurrentHashMap<Integer, AtomicInteger>();
         this.weighting = weighting;
         this.allWords = new ArrayList<String>();
         noMoreAdding = false;
+        this.workSpace = new ThreadLocal<StringBuilder>();
+        this.storageSpace = new ThreadLocal<List<String>>();
+        this.wordCounts = new ThreadLocal<Map<String, Integer>>();
     }
     
     /**
@@ -100,67 +110,139 @@ public abstract class TextDataLoader implements TextVectorCreator
      * It will take in the text and add a new document 
      * vector to the data set. Once all text documents 
      * have been loaded, this method should never be 
-     * called again. 
+     * called again. <br>
+     * <br>
+     * This method is thread safe. 
      * 
      * @param text the text of the document to add
+     * @return the index of the created document for the given text. Starts from
+     * zero and counts up.
      */
-    protected void addOriginalDocument(String text)
+    protected int addOriginalDocument(String text)
     {
         if(noMoreAdding)
             throw new RuntimeException("Initial data set has been finalized");
-        if(workSpace == null)
+        StringBuilder localWorkSpace = workSpace.get();
+        List<String> localStorageSpace = storageSpace.get();
+        Map<String, Integer> localWordCounts = wordCounts.get();
+        if(localWorkSpace == null)
         {
-            workSpace = new StringBuilder();
-            storageSpace = new ArrayList<String>();
-            wordCounts = new HashMap<String, Integer>();
+            localWorkSpace = new StringBuilder();
+            localStorageSpace = new ArrayList<String>();
+            localWordCounts = new LinkedHashMap<String, Integer>();
+            workSpace.set(localWorkSpace);
+            storageSpace.set(localStorageSpace);
+            wordCounts.set(localWordCounts);
         }
 
-        workSpace.setLength(0);
-        storageSpace.clear();
+        localWorkSpace.setLength(0);
+        localStorageSpace.clear();
+        localWordCounts.clear();
         
-        tokenizer.tokenize(text, workSpace, storageSpace);
-        /**
-         * Create a new one every 50 so that we dont waist iteration time 
-         * on many null elements when we occasionally load in an abnormally
-         * large document 
-         */
-        if(documents % 50 == 0)
-            wordCounts = new HashMap<String, Integer>(storageSpace.size()*3/2);
+        tokenizer.tokenize(text, localWorkSpace, localStorageSpace);
         
-        for(String word : storageSpace)
+        for(String word : localStorageSpace)
         {
-            Integer count = wordCounts.get(word);
+            Integer count = localWordCounts.get(word);
             if(count == null)
-                wordCounts.put(word, 1);
+                localWordCounts.put(word, 1);
             else
-                wordCounts.put(word, count+1);
+                localWordCounts.put(word, count+1);
         }
         
-        SparseVector vec = new SparseVector(currentLength+1, wordCounts.size());//+1 to avoid issues when its length is zero, will be corrected in finalization step anyway
-        for(Iterator<Map.Entry<String, Integer>> iter = wordCounts.entrySet().iterator(); iter.hasNext();)
+        SparseVector vec = new SparseVector(currentLength.get()+1, localWordCounts.size());//+1 to avoid issues when its length is zero, will be corrected in finalization step anyway
+        for(Iterator<Map.Entry<String, Integer>> iter = localWordCounts.entrySet().iterator(); iter.hasNext();)
         {
             Map.Entry<String, Integer> entry = iter.next();
             String word = entry.getKey();
             
-            Integer indx = wordIndex.get(word);
-            if(indx == null)//this word has never been seen before!
+            int ms_to_sleep = 1;
+            while(!addWord(word, vec, entry.getValue()))//try in a loop, expoential back off 
             {
-                allWords.add(word);
-                wordIndex.put(word, currentLength++);
-                termDocumentFrequencys.add(1);
-                vec.setLength(currentLength);
-                vec.set(currentLength-1, entry.getValue());
+                try
+                {
+                    Thread.sleep(ms_to_sleep);
+                    ms_to_sleep = Math.min(100, ms_to_sleep*2);
+                }
+                catch (InterruptedException ex)
+                {
+                    Logger.getLogger(TextDataLoader.class.getName()).log(Level.SEVERE, null, ex);
+                }
             }
-            else//this word has been seen before
+        }
+        localWordCounts.clear();
+        
+        synchronized(vectors)
+        {
+            vectors.add(vec);
+            return documents++;
+        }
+    }
+
+    /**
+     * Does the work to add a given word to the sparse vector. May not succeed
+     * in race conditions when two ore more threads are trying to add a word at
+     * the same time.
+     *
+     * @param word the word to add to the vector
+     * @param vec the location to store the word occurrence
+     * @param entry the number of times the word occurred
+     * @return {@code true} if the word was successfully added. {@code false} if
+     * the word wasn't added due to a race- and should be tried again
+     */
+    private boolean addWord(String word, SparseVector vec, Integer value)
+    {
+        Integer indx = wordIndex.get(word);
+        if(indx == null)//this word has never been seen before!
+        {
+            Integer index_for_new_word;
+            if((index_for_new_word = wordIndex.putIfAbsent(word, -1)) == null)//I won the race to insert this word into the map
             {
-                termDocumentFrequencys.set(indx, termDocumentFrequencys.get(indx)+1);
-                vec.set(indx, entry.getValue());
+                /*
+                * we need to do this increment after words to avoid a race
+                * condition where two people incrment currentLength for the
+                * same word, as that will throw off other word additions
+                * before we can fix the problem
+                */
+                index_for_new_word = currentLength.getAndIncrement();
+                wordIndex.put(word, index_for_new_word);//overwrite with correct value
             }
-            iter.remove();
+            if(index_for_new_word < 0)
+                return false;
+            
+            //possible race on tdf as well when two threads found same new word at the same time
+            AtomicInteger termCount = new AtomicInteger(0), tmp = null;
+            tmp = termDocumentFrequencys.putIfAbsent(index_for_new_word, termCount);
+            if(tmp != null)
+                termCount = tmp;
+            termCount.incrementAndGet();
+            
+            int newLen = Math.max(index_for_new_word+1, vec.length());
+            vec.setLength(newLen);
+            vec.set(index_for_new_word, value);
+        }
+        else//this word has been seen before
+        {
+            if(indx < 0)
+                return false;
+            
+            AtomicInteger toInc = termDocumentFrequencys.get(indx);
+            if (toInc == null)
+            {
+                //wordIndex and termDocumnetFrequences are not updated
+                //atomicly together, so could get index but not have tDF ready
+                toInc = termDocumentFrequencys.putIfAbsent(indx, new AtomicInteger(1));
+                if (toInc == null)//other person finished adding before we "fixed" via putIfAbsent
+                    toInc = termDocumentFrequencys.get(indx);
+            }
+            toInc.incrementAndGet();
+            
+            if (vec.length() <= indx)//happens when another thread sees the word first and adds it, then get check and find it- but haven't increased our vector legnth
+                vec.setLength(indx+1);
+            vec.set(indx, value);
         }
         
-        vectors.add(vec);
-        documents++;
+        return true;
     }
     
     /**
@@ -175,11 +257,20 @@ public abstract class TextDataLoader implements TextVectorCreator
         storageSpace = null;
         wordCounts = null;
         
-        weighting.setWeight(vectors, termDocumentFrequencys);
+        int finalLength = currentLength.get();
+        int[] frqs = new int[finalLength];
+        for(Map.Entry<Integer, AtomicInteger> entry : termDocumentFrequencys.entrySet())
+            frqs[entry.getKey()] = entry.getValue().get();
         for(SparseVector vec : vectors)
         {
             //Make sure all the vectors have the same length
-            vec.setLength(currentLength);
+            vec.setLength(finalLength);
+        }
+        weighting.setWeight(vectors, IntList.view(frqs, finalLength));
+        
+        System.out.println("Final Length: " + finalLength);
+        for(SparseVector vec : vectors)
+        {
             //Unlike normal index functions, WordWeighting needs to use the vector to do some set up first
             weighting.applyTo(vec);
         }
@@ -251,6 +342,14 @@ public abstract class TextDataLoader implements TextVectorCreator
      */
     public String getWordForIndex(int index)
     {
+        //lazy population of allWords array
+        if(allWords.size() != wordIndex.size())//we added since this was done
+        {
+            while(allWords.size() < wordIndex.size())
+                allWords.add("");
+            for(Map.Entry<String, Integer> entry : wordIndex.entrySet())
+                allWords.set(entry.getValue(), entry.getKey());
+        }
         if(index >= 0 && index < allWords.size())
             return allWords.get(index);
         else
@@ -264,7 +363,7 @@ public abstract class TextDataLoader implements TextVectorCreator
      */
     public int getTermFrequency(int index)
     {
-        return termDocumentFrequencys.get(index);
+        return termDocumentFrequencys.get(index).get();
     }
     
     /**
@@ -280,7 +379,7 @@ public abstract class TextDataLoader implements TextVectorCreator
         
         final Set<Integer> numericToRemove = new IntSet();
         for(int i = 0; i < termDocumentFrequencys.size(); i++)
-            if(termDocumentFrequencys.get(i) < minCount)
+            if(termDocumentFrequencys.get(i).get() < minCount)
                 numericToRemove.add(i);
         
         return new RemoveAttributeTransformFactory(Collections.EMPTY_SET, numericToRemove);
