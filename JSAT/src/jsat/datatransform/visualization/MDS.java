@@ -51,7 +51,7 @@ import jsat.utils.random.XORWOW;
  */
 public class MDS implements VisualizationTransform
 {
-    private static DistanceMetric embedMetric = new EuclideanDistance();
+    private DistanceMetric embedMetric = new EuclideanDistance();
     private DistanceMetric dm = new EuclideanDistance();
     private double tolerance = 1e-3;
     private int maxIterations = 300;
@@ -282,7 +282,7 @@ public class MDS implements VisualizationTransform
         return sds;
     }
     
-    private static double stress(final List<Vec> X_views, final List<Double> X_rowCache, final Matrix delta, ExecutorService ex)
+    private double stress(final List<Vec> X_views, final List<Double> X_rowCache, final Matrix delta, ExecutorService ex)
     {
         final AtomicDouble stress = new AtomicDouble(0);
         final CountDownLatch latch = new CountDownLatch(SystemInfo.LogicalCores);

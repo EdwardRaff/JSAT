@@ -287,6 +287,7 @@ public class PAM extends KClustererBase
             return result;
         }
         
+        @Override
         public void run()
         {
             result = cluster(dataSet, true, medioids, assignments, null);

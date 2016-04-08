@@ -55,6 +55,7 @@ public class ZTest implements OneSampleTest
         this(h1, data.mean(), data.standardDeviation(), data.length());
     }
 
+    @Override
     public H1[] validAlternate()
     {
         return new H1[]
@@ -63,11 +64,13 @@ public class ZTest implements OneSampleTest
                 };
     }
 
+    @Override
     public String testName()
     {
         return "One Sample Z-Test";
     }
 
+    @Override
     public void setTestUsingData(Vec data)
     {
         this.sampleMean = data.mean();
@@ -75,11 +78,13 @@ public class ZTest implements OneSampleTest
         this.sampleSize = data.length();
     }
 
+    @Override
     public String[] getTestVars()
     {
         return new String[]{GreekLetters.bar("x"), GreekLetters.sigma, "n"};
     }
 
+    @Override
     public void setTestVars(double[] testVars)
     {
         this.sampleMean = testVars[0];
@@ -87,16 +92,19 @@ public class ZTest implements OneSampleTest
         this.sampleSize = (int) testVars[2];
     }
 
+    @Override
     public String getAltVar()
     {
         return GreekLetters.mu + "0";
     }
 
+    @Override
     public void setAltVar(double altVar)
     {
         this.hypoMean = altVar;
     }
 
+    @Override
     public double pValue()
     {
         double se = sampleDev/Math.sqrt(sampleSize);
@@ -111,11 +119,13 @@ public class ZTest implements OneSampleTest
             return 1-norm.cdf(zScore);
     }
 
+    @Override
     public void setAltHypothesis(H1 h1)
     {
         this.h1 = h1;
     }
 
+    @Override
     public String getNullVar()
     {
         return GreekLetters.mu;

@@ -32,6 +32,7 @@ public class ID3 implements Classifier
     private ID3Node root;
     private ModifiableCountDownLatch latch;
 
+    @Override
     public CategoricalResults classify(DataPoint data)
     {
         return walkTree(root, data);
@@ -45,6 +46,7 @@ public class ID3 implements Classifier
         return walkTree(node.getNode(data.getCategoricalValue(node.getAttributeId())), data);
     }
 
+    @Override
     public void trainC(ClassificationDataSet dataSet, ExecutorService threadPool)
     {
         if(dataSet.getNumNumericalVars() != 0)
@@ -69,6 +71,7 @@ public class ID3 implements Classifier
         }
     }
 
+    @Override
     public void trainC(ClassificationDataSet dataSet)
     {
         trainC(dataSet, new FakeExecutor());      
@@ -128,6 +131,7 @@ public class ID3 implements Classifier
             latch.countUp();
             threadPool.submit(new Runnable() {
 
+                @Override
                 public void run()
                 {
                     node.setNode(ii, buildTree(bestSplitII, newRemaining, threadPool));
@@ -234,11 +238,13 @@ public class ID3 implements Classifier
     }
     
 
+    @Override
     public boolean supportsWeightedData()
     {
         return false;
     }
 
+    @Override
     public Classifier clone()
     {
         ID3 copy = new ID3();

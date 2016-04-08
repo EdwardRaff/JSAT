@@ -89,7 +89,7 @@ public class EigenValueDecomposition implements Serializable
             double h = 0.0;
             for (int k = 0; k < i; k++)
             {
-                scale = scale + abs(d[k]);
+                scale += abs(d[k]);
             }
             if (scale == 0.0)
             {
@@ -243,7 +243,7 @@ public class EigenValueDecomposition implements Serializable
                 int iter = 0;
                 do
                 {
-                    iter = iter + 1;  // (Could check iteration count here.)
+                    iter += 1;  // (Could check iteration count here.)
 
                     // Compute implicit shift
 
@@ -262,7 +262,7 @@ public class EigenValueDecomposition implements Serializable
                     {
                         d[i] -= h;
                     }
-                    f = f + h;
+                    f += h;
 
                     // Implicit QL transformation.
 
@@ -300,7 +300,7 @@ public class EigenValueDecomposition implements Serializable
                 }
                 while (abs(e[l]) > eps * tst1);
             }
-            d[l] = d[l] + f;
+            d[l] += f;
             e[l] = 0.0;
         }
 
@@ -349,7 +349,7 @@ public class EigenValueDecomposition implements Serializable
 
             double scale = 0.0;
             for (int i = m; i <= high; i++)
-                scale = scale + abs(H.get(i, m-1));
+                scale += abs(H.get(i, m-1));
 
             if (scale != 0.0)
             {
@@ -367,7 +367,7 @@ public class EigenValueDecomposition implements Serializable
                 if ((tmp = ort[m]) > 0)
                     g = -g;
                 
-                h = h - tmp * g;
+                h -= tmp * g;
                 ort[m] = tmp - g;
                 orthesApplyHouseholder(m, high, ort, h);
                 ort[m] *= scale;
@@ -452,7 +452,7 @@ public class EigenValueDecomposition implements Serializable
             else if (l == n - 1) // Two roots found
             {
                 hqr2FoundTwoRoots(exshift, n, nn, low, high);
-                n = n - 2;
+                n -= 2;
                 iter = 0;
 
                 // No convergence yet
@@ -502,7 +502,7 @@ public class EigenValueDecomposition implements Serializable
                     }
                 }
 
-                iter = iter + 1;   // (Could check iteration count here.)
+                iter += 1;   // (Could check iteration count here.)
 
                 // Look for two consecutive small sub-diagonal elements
 
@@ -516,9 +516,9 @@ public class EigenValueDecomposition implements Serializable
                     q = H.get(m+1, m+1) - z - r - s;
                     r = H.get(m+2, m+1);
                     s = abs(p) + abs(q) + abs(r);
-                    p = p / s;
-                    q = q / s;
-                    r = r / s;
+                    p /= s;
+                    q /= s;
+                    r /= s;
                     if (m == l)
                     {
                         break;
@@ -554,9 +554,9 @@ public class EigenValueDecomposition implements Serializable
                         x = abs(p) + abs(q) + abs(r);
                         if (x != 0.0)
                         {
-                            p = p / x;
-                            q = q / x;
-                            r = r / x;
+                            p /= x;
+                            q /= x;
+                            r /= x;
                         }
                     }
                     
@@ -578,12 +578,12 @@ public class EigenValueDecomposition implements Serializable
                         {
                             H.set(k, k-1, -H.get(k, k-1));
                         }
-                        p = p + s;
+                        p += s;
                         x = p / s;
                         y = q / s;
                         z = r / s;
-                        q = q / p;
-                        r = r / p;
+                        q /= p;
+                        r /= p;
 
                         // Row modification
                         rowOpTransform2(H, k, nn - 1, x, k, y, notlast, z, r, q);
@@ -850,7 +850,7 @@ public class EigenValueDecomposition implements Serializable
             p = x * M.get(i, k) + y * M.get(i, k+1);
             if (notlast)
             {
-                p = p + z * M.get(i, k+2);
+                p += z * M.get(i, k+2);
                 M.set(i, k + 2,  M.get(i, k+2) - p * r);
             }
             M.increment(i, k,   -p);
@@ -892,7 +892,7 @@ public class EigenValueDecomposition implements Serializable
             p = M.get(k, j) + q * M.get(k + 1,j);
             if (notlast)
             {
-                p = p + r * M.get(k + 2,j);
+                p += r * M.get(k + 2,j);
                 M.set(k + 2,j,  M.get(k+2, j) - p * z);
             }
             M.increment(k,   j, -p*x);
@@ -996,7 +996,7 @@ public class EigenValueDecomposition implements Serializable
                     r = 0.0;
                     for (int j = l; j <= n; j++)
                     {
-                        r = r + H.get(i, j) * H.get(j, n);
+                        r += H.get(i, j) * H.get(j, n);
                     }
                     if (e[i] < 0.0)
                     {
@@ -1076,8 +1076,8 @@ public class EigenValueDecomposition implements Serializable
                     sa = 0.0;
                     for (int j = l; j <= n; j++)
                     {
-                        ra = ra + H.get(i, j) * H.get(j, n-1);
-                        sa = sa + H.get(i, j) * H.get(j, n);
+                        ra += H.get(i, j) * H.get(j, n-1);
+                        sa += H.get(i, j) * H.get(j, n);
                     }
                     w = H.get(i, i) - p;
 
@@ -1128,7 +1128,7 @@ public class EigenValueDecomposition implements Serializable
             }
             for (int j = max(i - 1, 0); j < nn; j++)
             {
-                norm = norm + abs(H.get(i, j));
+                norm += abs(H.get(i, j));
             }
         }
         return norm;
@@ -1145,7 +1145,7 @@ public class EigenValueDecomposition implements Serializable
                 z = 0.0;
                 for (int k = low; k <= min(j, high); k++)
                 {
-                    z = z + V.get(i, k) * H.get(k, j);
+                    z += V.get(i, k) * H.get(k, j);
                 }
                 V.set(i, j, z);
             }
@@ -1184,8 +1184,8 @@ public class EigenValueDecomposition implements Serializable
             p = x / s;
             q = z / s;
             r = sqrt(p * p + q * q);
-            p = p / r;
-            q = q / r;
+            p /= r;
+            q /= r;
 
             // Row modification
             rowOpTransform(H, n - 1, nn - 1, n, q, p);

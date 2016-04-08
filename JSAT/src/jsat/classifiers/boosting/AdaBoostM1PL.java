@@ -50,6 +50,7 @@ public class AdaBoostM1PL extends AdaBoostM1
             final ClassificationDataSet subDataSet = subSets.get(i);
             futureBoostings.add(threadPool.submit(new Callable<AdaBoostM1>() {
 
+                @Override
                 public AdaBoostM1 call() throws Exception
                 {
                     learner.trainC(subDataSet);

@@ -42,15 +42,15 @@ public class XOR96 extends Random
     {
         super.setSeed(seed);
         x = super.next(32);
-        x = x << 32;
+        x <<= 32;
         x += super.next(32);
         
         y = super.next(32);
-        y = y << 32;
+        y <<= 32;
         y += super.next(32);
         
         z = super.next(32);
-        z = z << 32;
+        z <<= 32;
         z += super.next(32);
     }
     

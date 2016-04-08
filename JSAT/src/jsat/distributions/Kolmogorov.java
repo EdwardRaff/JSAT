@@ -71,11 +71,13 @@ public class Kolmogorov extends ContinuousDistribution
 
 		private static final long serialVersionUID = -716553015542184045L;
 
+        @Override
 		public double f(double... x)
         {
             return cdf(x[0])-x[1];
         }
 
+        @Override
         public double f(Vec x)
         {
             return f(x.get(0), x.get(1));
