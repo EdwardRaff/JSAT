@@ -122,7 +122,7 @@ public class Normal extends ContinuousDistribution
 
         double e = cdf(result, 0, 1) - p;
         double u = e*sqrt(2*PI)*exp(result*result/2);
-        result = result - u / (1 + result*u/2);
+        result -= u / (1 + result*u/2);
 
         return result * sigma + mu;
     }

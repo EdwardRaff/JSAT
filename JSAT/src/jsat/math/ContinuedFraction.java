@@ -42,7 +42,7 @@ public abstract class ContinuedFraction
     {
         double term = getA(n, args)/getB(n,args);
         
-        for(n = n-1; n >0; n--)
+        for(n -= 1; n >0; n--)
         {
             term = getA(n, args)/(getB(n,args)+term);
         }
