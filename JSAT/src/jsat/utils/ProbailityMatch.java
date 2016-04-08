@@ -20,6 +20,7 @@ public class ProbailityMatch<T> implements Comparable<ProbailityMatch<T>>, Seria
         this.match = match;
     }
 
+    @Override
     public int compareTo(ProbailityMatch t)
     {
         return new Double(probability).compareTo(t.probability);

@@ -156,6 +156,7 @@ public class VectorCollectionUtils
         {
             futureStats.add(threadpool.submit(new Callable<OnLineStatistics>() {
 
+                @Override
                 public OnLineStatistics call() throws Exception
                 {
                     OnLineStatistics stats = new OnLineStatistics();

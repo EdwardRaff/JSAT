@@ -46,6 +46,7 @@ public class Pareto extends ContinuousDistribution
         this.xm = xm;
     }
     
+    @Override
     public double logPdf(double x)
     {
         if(x < xm )

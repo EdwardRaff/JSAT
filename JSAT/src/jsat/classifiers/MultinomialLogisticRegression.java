@@ -20,6 +20,7 @@ public class MultinomialLogisticRegression implements Classifier
 
 	private static final long serialVersionUID = -9168502043850569017L;
 	private Vec[] classCoefficents;
+    @Override
     public CategoricalResults classify(DataPoint data)
     {
         if(classCoefficents == null)
@@ -71,6 +72,7 @@ public class MultinomialLogisticRegression implements Classifier
         return results;
     }
 
+    @Override
     public void trainC(ClassificationDataSet dataSet, ExecutorService threadPool)
     {
         LogisticRegression logit = new LogisticRegression();
@@ -89,11 +91,13 @@ public class MultinomialLogisticRegression implements Classifier
         }
     }
 
+    @Override
     public void trainC(ClassificationDataSet dataSet)
     {
         trainC(dataSet, new FakeExecutor());
     }
 
+    @Override
     public boolean supportsWeightedData()
     {
         return false;

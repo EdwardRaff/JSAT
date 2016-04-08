@@ -152,16 +152,19 @@ public class Zeroin implements RootFinder
         return b;
     }
 
+    @Override
     public double root(double eps, int maxIterations, double[] initialGuesses, Function f, int pos, double... args)
     {
         return root(eps, maxIterations, initialGuesses[0], initialGuesses[1], pos, f, args);
     }
 
+    @Override
     public double root(double eps, int maxIterations, double[] initialGuesses, Function f, int pos, Vec args)
     {
         return root(eps, maxIterations, initialGuesses[0], initialGuesses[1], pos, f, args.arrayCopy());
     }
 
+    @Override
     public int guessesNeeded()
     {
         return 2;

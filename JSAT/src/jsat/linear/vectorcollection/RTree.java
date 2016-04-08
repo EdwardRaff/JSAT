@@ -213,6 +213,7 @@ public class RTree<V extends Vec> implements VectorCollection<V>
             return children.isEmpty();
         }
 
+        @Override
         public int compareTo(RNode<V> o)
         {
             return Double.compare(this.bound.area(), o.bound.area());

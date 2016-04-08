@@ -206,6 +206,7 @@ public class NormalM extends MultivariateDistributionSkeleton
         return clone;
     }
     
+    @Override
     public List<Vec> sample(int count, Random rand)
     {
         List<Vec> samples = new ArrayList<Vec>(count);

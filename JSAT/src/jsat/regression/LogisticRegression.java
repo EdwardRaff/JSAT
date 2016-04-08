@@ -63,11 +63,13 @@ public class LogisticRegression implements Classifier, Regressor, SingleWeightVe
 		 */
 		private static final long serialVersionUID = -653111120605227341L;
 
+        @Override
 		public double f(double... x)
         {
             return logitReg(DenseVector.toDenseVec(x));
         }
 
+        @Override
         public double f(Vec x)
         {
             return logitReg(x);
@@ -81,11 +83,13 @@ public class LogisticRegression implements Classifier, Regressor, SingleWeightVe
 		 */
 		private static final long serialVersionUID = 4844651397674391691L;
 
+        @Override
 		public double f(double... x)
         {
             return logitReg(DenseVector.toDenseVec(x));
         }
 
+        @Override
         public double f(Vec x)
         {
             double y = logitReg(x);
@@ -102,6 +106,7 @@ public class LogisticRegression implements Classifier, Regressor, SingleWeightVe
         return coefficents;
     }
 
+    @Override
     public double regress(DataPoint data)
     {
         if(coefficents == null)
@@ -109,6 +114,7 @@ public class LogisticRegression implements Classifier, Regressor, SingleWeightVe
         return logitReg(data.getNumericalValues())*scale+shift;
     }
 
+    @Override
     public void train(RegressionDataSet dataSet, ExecutorService threadPool)
     {
         List<Vec> inputs = new ArrayList<Vec>(dataSet.getSampleSize());
@@ -131,11 +137,13 @@ public class LogisticRegression implements Classifier, Regressor, SingleWeightVe
         coefficents = optimizer.optimize(1e-5, 100, logitFun, logitFunD, coefficents, inputs, targetValues, threadPool);
     }
 
+    @Override
     public void train(RegressionDataSet dataSet)
     {
         train(dataSet, new FakeExecutor());
     }
 
+    @Override
     public boolean supportsWeightedData()
     {
         return false;
@@ -188,6 +196,7 @@ public class LogisticRegression implements Classifier, Regressor, SingleWeightVe
         return clone;
     }
 
+    @Override
     public CategoricalResults classify(DataPoint data)
     {
         if(coefficents == null)
@@ -202,6 +211,7 @@ public class LogisticRegression implements Classifier, Regressor, SingleWeightVe
         return results;
     }
 
+    @Override
     public void trainC(ClassificationDataSet dataSet, ExecutorService threadPool)
     {
         if(dataSet.getClassSize() != 2)
@@ -219,6 +229,7 @@ public class LogisticRegression implements Classifier, Regressor, SingleWeightVe
         
     }
 
+    @Override
     public void trainC(ClassificationDataSet dataSet)
     {
         trainC(dataSet, new FakeExecutor());
