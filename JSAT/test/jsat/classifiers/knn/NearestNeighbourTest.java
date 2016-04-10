@@ -33,6 +33,7 @@ public class NearestNeighbourTest
     static private ClassificationDataSet easyTest;
     static private ExecutorService ex;
     static private NearestNeighbour nn;
+    static private NearestNeighbour nn2;
     
     public NearestNeighbourTest()
     {
@@ -55,7 +56,8 @@ public class NearestNeighbourTest
     @Before
     public void setUp()
     {
-        nn = new NearestNeighbour(1);
+        nn = new NearestNeighbour(1, false);
+        nn2 = new NearestNeighbour(1, true);
     }
     
     @After
@@ -78,6 +80,13 @@ public class NearestNeighbourTest
 
         assertTrue(rme.getMeanError() <= test.getTargetValues().mean() * 0.5);
 
+        //test weighted instances
+        instance = new NearestNeighbour(7, true);
+
+        rme = new RegressionModelEvaluation(instance, train);
+        rme.evaluateTestSet(test);
+
+        assertTrue(rme.getMeanError() <= test.getTargetValues().mean() * 0.5);
     }
 
     @Test
@@ -96,6 +105,14 @@ public class NearestNeighbourTest
         rme.evaluateTestSet(test);
 
         assertTrue(rme.getMeanError() <= test.getTargetValues().mean() * 0.5);
+        
+        //test weighted instances
+        instance = new NearestNeighbour(7, true);
+
+        rme = new RegressionModelEvaluation(instance, train, ex);
+        rme.evaluateTestSet(test);
+
+        assertTrue(rme.getMeanError() <= test.getTargetValues().mean() * 0.5);
 
         ex.shutdownNow();
     }
@@ -105,8 +122,11 @@ public class NearestNeighbourTest
     {
         System.out.println("trainC");
         nn.trainC(easyTrain);
+        nn2.trainC(easyTrain);
         for(int i = 0; i < easyTest.getSampleSize(); i++)
             assertEquals(easyTest.getDataPointCategory(i), nn.classify(easyTest.getDataPoint(i)).mostLikely());
+        for(int i = 0; i < easyTest.getSampleSize(); i++)
+            assertEquals(easyTest.getDataPointCategory(i), nn2.classify(easyTest.getDataPoint(i)).mostLikely());
     }
 
     @Test
@@ -114,7 +134,11 @@ public class NearestNeighbourTest
     {
         System.out.println("clone");
         nn.trainC(easyTrain);
+        nn2.trainC(easyTrain);
         Classifier clone = nn.clone();
+        for(int i = 0; i < easyTest.getSampleSize(); i++)
+            assertEquals(easyTest.getDataPointCategory(i), clone.classify(easyTest.getDataPoint(i)).mostLikely());
+        clone = nn2.clone();
         for(int i = 0; i < easyTest.getSampleSize(); i++)
             assertEquals(easyTest.getDataPointCategory(i), clone.classify(easyTest.getDataPoint(i)).mostLikely());
     }
@@ -124,7 +148,10 @@ public class NearestNeighbourTest
     {
         System.out.println("trainC");
         nn.trainC(easyTrain, ex);
+        nn2.trainC(easyTrain, ex);
         for(int i = 0; i < easyTest.getSampleSize(); i++)
             assertEquals(easyTest.getDataPointCategory(i), nn.classify(easyTest.getDataPoint(i)).mostLikely());
+        for(int i = 0; i < easyTest.getSampleSize(); i++)
+            assertEquals(easyTest.getDataPointCategory(i), nn2.classify(easyTest.getDataPoint(i)).mostLikely());
     }
 }

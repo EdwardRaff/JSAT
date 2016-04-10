@@ -13,6 +13,8 @@ import jsat.linear.Vec;
 import jsat.linear.VecPaired;
 import jsat.linear.distancemetrics.*;
 import jsat.linear.vectorcollection.*;
+import jsat.math.MathTricks;
+import jsat.math.SpecialMath;
 import jsat.parameters.*;
 import jsat.regression.RegressionDataSet;
 import jsat.regression.Regressor;
@@ -156,25 +158,45 @@ public class NearestNeighbour implements  Classifier, Regressor, Parameterized
         
         List<? extends VecPaired<VecPaired<Vec, Double>, Double>> knns = vecCollection.search(query, k);
         
-        CategoricalResults results = new CategoricalResults(predicting.getNumOfCategories());
-        
-        for(int i = 0; i < knns.size(); i++)
+        if(weighted)
         {
-            double distance = knns.get(i).getPair();
-            VecPaired<Vec, Double> pm = knns.get(i).getVector();
-            int index =  (int) Math.round(pm.getPair());
-            if(weighted)
+            double[] dists = new double[knns.size()];
+            for(int i = 0; i < knns.size(); i++)
+                dists[i] = knns.get(i).getPair();
+            //we want something like 1/dist to make closer values weighted higher
+            double offset = MathTricks.min(dists)*0.1+1e-15;
+            for(int i = 0; i < knns.size(); i++)
+                dists[i] = 1/(offset+dists[i]);
+            
+            MathTricks.softmax(dists, false);
+            
+            CategoricalResults results = new CategoricalResults(predicting.getNumOfCategories());
+            for(int i = 0; i < knns.size(); i++)
             {
-                double prob = -Math.exp(-distance);
-                results.setProb(index, results.getProb(index) + prob);//Sum weights
+                VecPaired<Vec, Double> pm = knns.get(i).getVector();
+                int index =  (int) Math.round(pm.getPair());
+
+                results.setProb(index, results.getProb(index) + dists[i]);//all weights are 1
             }
-            else
-                results.setProb(index, results.getProb(index) + 1.0);//all weights are 1
+            
+            return results;
         }
+        else
+        {
+            CategoricalResults results = new CategoricalResults(predicting.getNumOfCategories());
         
-        results.normalize();
-        
-        return results;
+            for(int i = 0; i < knns.size(); i++)
+            {
+                VecPaired<Vec, Double> pm = knns.get(i).getVector();
+                int index =  (int) Math.round(pm.getPair());
+
+                results.setProb(index, results.getProb(index) + 1.0);//all weights are 1
+            }
+
+            results.normalize();
+
+            return results;
+        }
     }
     
     @Override

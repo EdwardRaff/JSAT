@@ -16,6 +16,32 @@ public class MathTricks
     {
     }
     
+    /**
+     * 
+     * @param vals an array of values to get the maximum of 
+     * @return the maximum of all given values
+     */
+    public static double max(double... vals)
+    {
+        double m = Double.NEGATIVE_INFINITY;
+        for(double v : vals)
+            m = Math.max(v, m);
+        return m;
+    }
+    
+    /**
+     * 
+     * @param vals an array of values to get the maximum of 
+     * @return the maximum of all given values
+     */
+    public static double min(double... vals)
+    {
+        double m = Double.NEGATIVE_INFINITY;
+        for(double v : vals)
+            m = Math.min(v, m);
+        return m;
+    }
+    
     
     /**
      * Provides a numerically table way to perform the log of a sum of 
