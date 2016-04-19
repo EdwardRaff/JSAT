@@ -51,6 +51,10 @@ public class DecisionStump implements Classifier, Regressor, Parameterized
      */
     private CategoricalData[] catAttributes;
     /**
+     * The number of numeric features in the dataset that this Stump was trained from
+     */
+    private int numNumericFeatures;
+    /**
      * Used only in classification. Contains the numeric boundaries to split on
      */
     private List<Double> boundries;
@@ -141,12 +145,20 @@ public class DecisionStump implements Classifier, Regressor, Parameterized
     }
     
     /**
-     * Returns the attribute that this stump has decided to use to compute results. 
+     * Returns the attribute that this stump has decided to use to compute
+     * results. Numeric features start from 0, and categorical features start
+     * from the number of numeric features.
+     *
      * @return the attribute that this stump has decided to use to compute results.
      */
     public int getSplittingAttribute()
     {
-        return splittingAttribute;
+        //TODO refactor the splittingAttribute to just be in this order already
+        if(splittingAttribute < catAttributes.length)//categorical feature
+            return numNumericFeatures+splittingAttribute;
+        //else, is Numerical attribute
+        int numerAttribute = splittingAttribute - catAttributes.length;
+        return numerAttribute;
     }
 
     /**
@@ -351,6 +363,7 @@ public class DecisionStump implements Classifier, Regressor, Parameterized
         if(predicting == null)
             throw new RuntimeException("Predicting value has not been set");
         catAttributes = dataPoints.get(0).getDataPoint().getCategoricalData();
+        numNumericFeatures = dataPoints.get(0).getVector().length();
         ImpurityScore origScoreObj = getClassGainScore(dataPoints);
         double origScore =  origScoreObj.getScore();
         
@@ -667,7 +680,7 @@ public class DecisionStump implements Classifier, Regressor, Parameterized
     public List<List<DataPointPair<Double>>> trainR(List<DataPointPair<Double>> dataPoints, Set<Integer> options)
     {
         catAttributes = dataPoints.get(0).getDataPoint().getCategoricalData();
-        
+        numNumericFeatures = dataPoints.get(0).getVector().length();
         //Not enough points for a split to occur
         if(dataPoints.size() <= minResultSplitSize*2)
         {
@@ -888,6 +901,7 @@ public class DecisionStump implements Classifier, Regressor, Parameterized
             copy.pathRatio = Arrays.copyOf(this.pathRatio, this.pathRatio.length);
         copy.minResultSplitSize = this.minResultSplitSize;
         copy.gainMethod = this.gainMethod;
+        copy.numNumericFeatures = this.numNumericFeatures;
         return copy;
     }
     

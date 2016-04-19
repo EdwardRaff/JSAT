@@ -1,6 +1,8 @@
 package jsat.classifiers.trees;
 
 import java.io.Serializable;
+import java.util.Collection;
+import java.util.List;
 import jsat.classifiers.CategoricalResults;
 import jsat.classifiers.DataPoint;
 import jsat.linear.DenseVector;
@@ -212,6 +214,17 @@ public abstract class TreeNodeVisitor implements Serializable, Cloneable
         }
         return node.localRegress(dp);
     }
+    
+    /**
+     * Returns a collection of the indices of the features used by this node in
+     * the tree to make its decision about what branch to use next. Numeric
+     * features start from zero, and categorical features start from the number
+     * of numeric features.
+     *
+     * @return the integers indicating which features were used for this node in
+     * the tree.
+     */
+    abstract public Collection<Integer> featuresUsed();
     
     @Override
     abstract public TreeNodeVisitor clone();

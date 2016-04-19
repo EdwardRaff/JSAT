@@ -21,6 +21,7 @@ import jsat.parameters.Parameterized;
 import jsat.regression.RegressionDataSet;
 import jsat.regression.Regressor;
 import jsat.utils.FakeExecutor;
+import jsat.utils.IntList;
 import jsat.utils.IntSet;
 import jsat.utils.ModifiableCountDownLatch;
 
@@ -577,6 +578,14 @@ public class DecisionTree implements Classifier, Regressor, Parameterized, TreeL
             if(isLeaf())
                 return true;
             return paths[child] == null;
+        }
+
+        @Override
+        public Collection<Integer> featuresUsed()
+        {
+            IntList used = new IntList(1);
+            used.add(stump.getSplittingAttribute());
+            return used;
         }
     }
     

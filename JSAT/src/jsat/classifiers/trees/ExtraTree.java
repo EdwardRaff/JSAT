@@ -1,12 +1,6 @@
 package jsat.classifiers.trees;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.Random;
-import java.util.Set;
-import java.util.Stack;
+import java.util.*;
 import java.util.concurrent.ExecutorService;
 
 import jsat.classifiers.CategoricalData;
@@ -42,12 +36,18 @@ public class ExtraTree implements Classifier, Regressor, TreeLearner, Parameteri
     //TODO in both of the train methods, 2 passes are done for numeric features. This can be done in one pass by fiding the min/max when we split, and passing that info in the argument parameters
     
 
-	private static final long serialVersionUID = 7433728970041876327L;
-	private int stopSize;
+    private static final long serialVersionUID = 7433728970041876327L;
+    private int stopSize;
     private int selectionCount;
     private CategoricalData predicting;
     private boolean binaryCategoricalSplitting = true;
-    
+    /**
+     * Just stores the number of numeric features that were in the dataset for
+     * that the getFeatures method can be implemented correctly for categorical
+     * variables.
+     */
+    private int numNumericFeatures;
+
     private ImpurityScore.ImpurityMeasure impMeasure = ImpurityMeasure.NMI;
     
     private TreeNodeVisitor root;
@@ -185,6 +185,7 @@ public class ExtraTree implements Classifier, Regressor, TreeLearner, Parameteri
         for(DataPointPair<Integer> dpp : data)
             score.addPoint(dpp.getDataPoint(), dpp.getPair());
         
+        numNumericFeatures = dataSet.getNumNumericalVars();
         root = trainC(score, data, features, dataSet.getCategories(), rand, reusableLists);
     }
     
@@ -521,6 +522,7 @@ public class ExtraTree implements Classifier, Regressor, TreeLearner, Parameteri
             clone.predicting = this.predicting.clone();
         if(this.root != null)
             clone.root = this.root.clone();
+        clone.numNumericFeatures = this.numNumericFeatures;
         return clone;
     }
 
@@ -600,6 +602,7 @@ public class ExtraTree implements Classifier, Regressor, TreeLearner, Parameteri
         for(DataPointPair<Double> dpp : data)
             score.add(dpp.getPair(), dpp.getDataPoint().getWeight());
         
+        numNumericFeatures = dataSet.getNumNumericalVars();
         root = train(score, data, features, dataSet.getCategories(), rand, reusableLists);
     }
 
@@ -626,13 +629,11 @@ public class ExtraTree implements Classifier, Regressor, TreeLearner, Parameteri
     /**
      * Node for classification that splits on a categorical feature
      */
-    private static class NodeCCat extends NodeC
+    private class NodeCCat extends NodeC
     {
+
+        private static final long serialVersionUID = 7413428280703235600L;
         /**
-		 * 
-		 */
-		private static final long serialVersionUID = 7413428280703235600L;
-		/**
          * Categorical attribute to split on
          */
         private int catAtt;
@@ -688,7 +689,13 @@ public class ExtraTree implements Classifier, Regressor, TreeLearner, Parameteri
             return new NodeCCat(this);
         }
 
-        
+        @Override
+        public Collection<Integer> featuresUsed()
+        {
+            IntList used = new IntList(1);
+            used.add(catAtt+numNumericFeatures);
+            return used;
+        }
     }
     
     /**
@@ -696,11 +703,8 @@ public class ExtraTree implements Classifier, Regressor, TreeLearner, Parameteri
      */
     private static class NodeCNum extends NodeC
     {
-        /**
-		 * 
-		 */
-		private static final long serialVersionUID = 3967180517059509869L;
-		private int numerAtt;
+        private static final long serialVersionUID = 3967180517059509869L;
+        private int numerAtt;
         private double threshold;
 
         public NodeCNum(int numerAtt, double threshold, CategoricalResults crResult)
@@ -733,6 +737,14 @@ public class ExtraTree implements Classifier, Regressor, TreeLearner, Parameteri
         {
             return new NodeCNum(this);
         }
+        
+        @Override
+        public Collection<Integer> featuresUsed()
+        {
+            IntList used = new IntList(1);
+            used.add(numerAtt);
+            return used;
+        }
     }
     
     /**
@@ -740,12 +752,10 @@ public class ExtraTree implements Classifier, Regressor, TreeLearner, Parameteri
      */
     private static class NodeC extends NodeBase
     {
-        /**
-		 * 
-		 */
-		private static final long serialVersionUID = -3977497656918695759L;
-		private CategoricalResults crResult;
-        
+
+        private static final long serialVersionUID = -3977497656918695759L;
+        private CategoricalResults crResult;
+
         /**
          * Creates a new leaf node
          * @param crResult the results to return
@@ -791,6 +801,12 @@ public class ExtraTree implements Classifier, Regressor, TreeLearner, Parameteri
         {
             return new NodeC(this);
         }
+        
+        @Override
+        public Collection<Integer> featuresUsed()
+        {
+            return Collections.EMPTY_SET;
+        }
     }
     
     /**
@@ -798,11 +814,9 @@ public class ExtraTree implements Classifier, Regressor, TreeLearner, Parameteri
      */
     private static abstract class NodeBase extends TreeNodeVisitor
     {
-        /**
-		 * 
-		 */
-		private static final long serialVersionUID = 6783491817922690901L;
-		protected TreeNodeVisitor[] children;
+        
+        private static final long serialVersionUID = 6783491817922690901L;
+        protected TreeNodeVisitor[] children;
 
         public NodeBase()
         {
@@ -870,11 +884,8 @@ public class ExtraTree implements Classifier, Regressor, TreeLearner, Parameteri
      */
     private static class NodeR extends NodeBase
     {
-        /**
-		 * 
-		 */
-		private static final long serialVersionUID = -2461046505444129890L;
-		private double result;
+        private static final long serialVersionUID = -2461046505444129890L;
+        private double result;
         
         /**
          * Creates a new leaf node
@@ -920,6 +931,12 @@ public class ExtraTree implements Classifier, Regressor, TreeLearner, Parameteri
         {
             return new NodeR(this);
         }
+
+        @Override
+        public Collection<Integer> featuresUsed()
+        {
+            return Collections.EMPTY_SET;
+        }
     }
     
     /**
@@ -927,11 +944,8 @@ public class ExtraTree implements Classifier, Regressor, TreeLearner, Parameteri
      */
     private static class NodeRNum extends NodeR
     {
-        /**
-		 * 
-		 */
-		private static final long serialVersionUID = -6775472771777960211L;
-		private int numerAtt;
+        private static final long serialVersionUID = -6775472771777960211L;
+	private int numerAtt;
         private double threshold;
 
         public NodeRNum(int numerAtt, double threshold, double result)
@@ -964,15 +978,21 @@ public class ExtraTree implements Classifier, Regressor, TreeLearner, Parameteri
         {
             return new NodeRNum(this);
         }
+        
+        @Override
+        public Collection<Integer> featuresUsed()
+        {
+            IntList used = new IntList(1);
+            used.add(numerAtt);
+            return used;
+        }
     }
     
-    private static class NodeRCat extends NodeR
+    private class NodeRCat extends NodeR
     {
+        private static final long serialVersionUID = 5868393594474661054L;
+        
         /**
-		 * 
-		 */
-		private static final long serialVersionUID = 5868393594474661054L;
-		/**
          * Categorical attribute to split on
          */
         private int catAtt;
@@ -1020,6 +1040,14 @@ public class ExtraTree implements Classifier, Regressor, TreeLearner, Parameteri
                 else
                     return 0;
             }
+        }
+        
+        @Override
+        public Collection<Integer> featuresUsed()
+        {
+            IntList used = new IntList(1);
+            used.add(catAtt+numNumericFeatures);
+            return used;
         }
 
         @Override

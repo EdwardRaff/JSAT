@@ -202,7 +202,7 @@ public class DecisionTreeTest
                         cme.setDataTransformProcess(new DataTransformProcess(new NumericalToHistogram.NumericalToHistogramTransformFactory()));
                     cme.evaluateTestSet(test);
 
-                    assertTrue(cme.getErrorRate() <= 0.10);
+                    assertTrue(cme.getErrorRate() <= 0.15);
                     
                     instance.trainC(train);
                     test.applyTransform(new InsertMissingValuesTransform(0.5));
