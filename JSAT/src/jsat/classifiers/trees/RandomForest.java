@@ -60,6 +60,9 @@ public class RandomForest implements Classifier, Regressor, Parameterized
     private int featureSamples;
     private int maxForestSize;
     private boolean useOutOfBagError = false;
+    private boolean useOutOfBagImportance = false;
+    private TreeFeatureImportanceInference importanceMeasure = new VariableCorruptionImportance();
+    private OnLineStatistics[] feature_importance = null;
     private double outOfBagError;
     private RandomDecisionTree baseLearner;
     private List<DecisionTree> forest;
@@ -170,6 +173,47 @@ public class RandomForest implements Classifier, Regressor, Parameterized
     public boolean isUseOutOfBagError()
     {
         return useOutOfBagError;
+    }
+    
+    /**
+     * Random Forest can obtain an unbiased estimate of feature importance using
+     * a {@link TreeFeatureImportanceInference} method on the out-of-bag samples
+     * during training. Since each tree will produce a different importance
+     * score, we also get a set of statistics for each feature rather than just
+     * a single score value. These are only computed if {@link #setUseOutOfBagImportance(boolean)
+     * } is set to <tt>true</tt>.
+     * @return an array of size equal to the number of features, each
+     * {@link OnLineStatistics} describing the statistics for the importance of
+     * each feature. Numeric features start from index 0, and categorical
+     * features start from the index equal to the number of numeric features.
+     */
+    public OnLineStatistics[] getFeatureImportance()
+    {
+        return feature_importance;
+    }
+
+    /**
+     * Sets whether or not to compute the out of bag importance of each feature
+     * during training.
+     *
+     * @param useOutOfBagImportance <tt>true</tt> to compute the out of bag
+     * feature importance, <tt>false</tt> to skip it
+     */
+    public void setUseOutOfBagImportance(boolean useOutOfBagImportance)
+    {
+        this.useOutOfBagImportance = useOutOfBagImportance;
+    }
+
+    /**
+     * Indicates if the out of bag feature importance will be computed during
+     * training
+     *
+     * @return <tt>true</tt> if the out of bag importance will be computed,
+     * <tt>false</tt> otherwise
+     */
+    public boolean isUseOutOfBagImportance()
+    {
+        return useOutOfBagImportance;
     }
 
     /**
@@ -297,38 +341,53 @@ public class RandomForest implements Classifier, Regressor, Parameterized
         outOfBagError = 0;
         try
         {
-            for (LearningWorker worker : ListUtils.collectFutures(futures))
+            List<LearningWorker> workers = ListUtils.collectFutures(futures);
+            for (LearningWorker worker : workers)
                 forest.addAll(worker.learned);
+            
+            if (useOutOfBagError)
+            {
+                if (dataSet instanceof ClassificationDataSet)
+                {
+                    ClassificationDataSet cds = (ClassificationDataSet) dataSet;
+                    for (int i = 0; i < counts.length; i++)
+                    {
+                        int max = 0;
+                        for (int j = 1; j < counts[i].length; j++)
+                        if(counts[i][j] > counts[i][max])
+
+                            max = j;
+                        if(max != cds.getDataPointCategory(i))
+                            outOfBagError++;
+                    }
+                }
+                else
+                {
+                    RegressionDataSet rds = (RegressionDataSet) dataSet;
+                    for (int i = 0; i < counts.length; i++)
+                        outOfBagError += Math.pow(pred.get(i)/counts[i][0]-rds.getTargetValue(i), 2);
+                }
+                outOfBagError /= dataSet.getSampleSize();
+            }
+            
+            if(useOutOfBagImportance)//collect feature importance stats from each worker
+            {
+                feature_importance = new OnLineStatistics[dataSet.getNumFeatures()];
+                for(int j = 0; j < dataSet.getNumFeatures(); j++)
+                    feature_importance[j] = new OnLineStatistics();
+                
+                for(LearningWorker worker : workers)
+                    for(int j = 0; j < dataSet.getNumFeatures(); j++)
+                        feature_importance[j].add(worker.fi[j]);
+                    
+            }
         }
         catch (Exception ex)
         {
             Logger.getLogger(RandomForest.class.getName()).log(Level.SEVERE, null, ex);
         }
         
-        if (useOutOfBagError)
-        {
-            if (dataSet instanceof ClassificationDataSet)
-            {
-                ClassificationDataSet cds = (ClassificationDataSet) dataSet;
-                for (int i = 0; i < counts.length; i++)
-                {
-                    int max = 0;
-                    for (int j = 1; j < counts[i].length; j++)
-                    if(counts[i][j] > counts[i][max])
-                    
-                        max = j;
-                    if(max != cds.getDataPointCategory(i))
-                        outOfBagError++;
-                }
-            }
-            else
-            {
-                RegressionDataSet rds = (RegressionDataSet) dataSet;
-                for (int i = 0; i < counts.length; i++)
-                    outOfBagError += Math.pow(pred.get(i)/counts[i][0]-rds.getTargetValue(i), 2);
-            }
-            outOfBagError /= dataSet.getSampleSize();
-        }
+        
 
     }
 
@@ -347,6 +406,14 @@ public class RandomForest implements Classifier, Regressor, Parameterized
                 clone.forest.add(tree.clone());
         }
         clone.baseLearner = this.baseLearner.clone();
+        clone.useOutOfBagImportance = this.useOutOfBagImportance;
+        clone.useOutOfBagError = this.useOutOfBagError;
+        if(this.feature_importance != null)
+        {
+            clone.feature_importance = new OnLineStatistics[this.feature_importance.length];
+            for(int i = 0; i < this.feature_importance.length; i++)
+                clone.feature_importance[i] = this.feature_importance[i].clone();
+        }
         
         return clone;
     }
@@ -369,6 +436,7 @@ public class RandomForest implements Classifier, Regressor, Parameterized
         List<DecisionTree> learned;
         DataSet dataSet;
         Random random;
+        OnLineStatistics[] fi;
         /**
          * For regression: sum of predictions
          */
@@ -387,6 +455,12 @@ public class RandomForest implements Classifier, Regressor, Parameterized
                 votes = pred;
                 this.counts = counts;
             }
+            if(useOutOfBagImportance)
+            {
+                this.fi = new OnLineStatistics[dataSet.getNumFeatures()];
+                for(int i = 0; i < fi.length; i++)
+                    fi[i] = new OnLineStatistics();
+            }
         }
         
         @Override
@@ -403,7 +477,7 @@ public class RandomForest implements Classifier, Regressor, Parameterized
                 while(features.size() < Math.min(baseLearner.getRandomFeatureCount(), dataSet.getNumFeatures()))//The user could have specified too many
                     features.add(random.nextInt(dataSet.getNumFeatures()));
                                 
-                DecisionTree learner = baseLearner.clone();
+                RandomDecisionTree learner = baseLearner.clone();
                 
                 if(dataSet instanceof ClassificationDataSet)
                     learner.trainC(Bagging.getWeightSampledDataSet((ClassificationDataSet)dataSet, sampleCounts), features);
@@ -435,6 +509,33 @@ public class RandomForest implements Classifier, Regressor, Parameterized
                             }
                         }
                     }
+                }
+                
+                if(useOutOfBagImportance)
+                {
+                    DataSet oob;
+                    if(dataSet instanceof ClassificationDataSet)
+                    {
+                        ClassificationDataSet cds = (ClassificationDataSet)dataSet;
+                        ClassificationDataSet oob_ = new ClassificationDataSet(cds.getNumNumericalVars(), cds.getCategories(), cds.getPredicting());
+                        for(int j = 0; j < sampleCounts.length; j++)
+                            if(sampleCounts[j] == 0)
+                                oob_.addDataPoint(cds.getDataPoint(j), cds.getDataPointCategory(j));
+                        oob = oob_;
+                    }
+                    else//regression
+                    {
+                        RegressionDataSet rds = (RegressionDataSet)dataSet;
+                        RegressionDataSet oob_ = new RegressionDataSet(rds.getNumNumericalVars(), rds.getCategories());
+                        for(int j = 0; j < sampleCounts.length; j++)
+                            if(sampleCounts[j] == 0)
+                                oob_.addDataPoint(rds.getDataPoint(j), rds.getTargetValue(j));
+                        oob = oob_;
+                    }
+                    
+                    double[] oob_import = importanceMeasure.getImportanceStats(learner, oob);
+                    for(int j = 0; j < fi.length; j++)
+                        fi[j].add(oob_import[j]);
                 }
             }
             return this;

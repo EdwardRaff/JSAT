@@ -43,8 +43,8 @@ import jsat.utils.random.XORWOW;
 public class VariableCorruptionImportance implements TreeFeatureImportanceInference
 {
     
-    private ClassificationScore cs = new Accuracy();
-    private RegressionScore rs = new MeanSquaredError();
+    private ClassificationScore cs_base = new Accuracy();
+    private RegressionScore rs_base = new MeanSquaredError();
 
     @Override
     public <Type extends DataSet> double[] getImportanceStats(TreeLearner model, DataSet<Type> data)
@@ -58,6 +58,7 @@ public class VariableCorruptionImportance implements TreeFeatureImportanceInfere
         if(data instanceof ClassificationDataSet)
         {
             ClassificationDataSet cds = (ClassificationDataSet) data;
+            ClassificationScore cs = cs_base.clone();
             cs.prepare(cds.getPredicting());
             for(int i = 0; i < cds.getSampleSize(); i++)
             {
@@ -90,7 +91,7 @@ public class VariableCorruptionImportance implements TreeFeatureImportanceInfere
         else if(data instanceof RegressionDataSet)
         {
             RegressionDataSet rds = (RegressionDataSet) data;
-
+            RegressionScore rs = rs_base.clone();
             rs.prepare();
             for(int i = 0; i < rds.getSampleSize(); i++)
             {
