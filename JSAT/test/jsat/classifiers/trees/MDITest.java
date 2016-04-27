@@ -35,10 +35,10 @@ import static org.junit.Assert.*;
  *
  * @author Edward Raff <Raff.Edward@gmail.com>
  */
-public class ImportanceByUsesTest
+public class MDITest
 {
     
-    public ImportanceByUsesTest()
+    public MDITest()
     {
     }
     
@@ -70,9 +70,9 @@ public class ImportanceByUsesTest
     {
         System.out.println("getImportanceStats");
         
-        for(boolean weightByDepth : new boolean[]{true, false})
+        for(ImpurityScore.ImpurityMeasure im : ImpurityScore.ImpurityMeasure.values())
         {
-            ImportanceByUses instance = new ImportanceByUses(weightByDepth);
+            MDI instance = new MDI(im);
 
             int randomFeatures = 30;
 
@@ -105,7 +105,6 @@ public class ImportanceByUsesTest
 
             //categorical features, make space wider b/c we lose resolution 
             train = FixedProblems.getCircles(10000, new XORWOW(), 1.0, 1.5);
-    //        train.applyTransform(new PCA(train, 2, 0));
             good_featres = train.getNumNumericalVars();
             train_noise = new ClassificationDataSet(train.getNumNumericalVars()+randomFeatures, train.getCategories(), train.getPredicting());
 
@@ -127,7 +126,7 @@ public class ImportanceByUsesTest
             for(int i = good_featres; i < importances.length; i++)
             {
                 for(int j = 0; j < good_featres; j++)
-                    assertTrue(importances[j] > importances[i]);
+                    assertTrue(importances[j] >= importances[i]);
             }
         }
     }

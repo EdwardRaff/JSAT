@@ -25,30 +25,45 @@ import jsat.DataSet;
  */
 public class ImportanceByUses implements TreeFeatureImportanceInference
 {
+    private boolean weightByDepth;
+
+    public ImportanceByUses(boolean weightByDepth)
+    {
+        this.weightByDepth = weightByDepth;
+    }
+
+    public ImportanceByUses()
+    {
+        this(true);
+    }
+    
 
     @Override
     public <Type extends DataSet> double[] getImportanceStats(TreeLearner model, DataSet<Type> data)
     {
         double[] features = new double[data.getNumFeatures()];
         
-        Stack<TreeNodeVisitor> nodes = new Stack<TreeNodeVisitor>();
-        nodes.add(model.getTreeNodeVisitor());
-        
-        while(!nodes.isEmpty())//go through and count each feature used!
-        {
-            
-            TreeNodeVisitor node = nodes.pop();
-            if(node == null)//invalid path was added, skip
-                continue;
-            else if(!node.isLeaf())
-                for(int i = 0; i < node.childrenCount(); i++)
-                    nodes.add(node.getChild(i));
-            for(int feature : node.featuresUsed())
-                features[feature]++;
-        }
-           
+        visit(model.getTreeNodeVisitor(), 0, features);
         
         return features;
+    }
+    
+    private void visit(TreeNodeVisitor node, int curDepth, double[] features )
+    {
+        if (node == null)//invalid path was added, skip
+            return;
+        
+        for (int feature : node.featuresUsed())
+            if (weightByDepth)
+                features[feature] += Math.pow(2, -curDepth);
+            else
+                features[feature]++;
+
+        if (!node.isLeaf())
+        {
+            for (int i = 0; i < node.childrenCount(); i++)
+                visit(node.getChild(i), curDepth + 1, features);
+        }
     }
     
 }

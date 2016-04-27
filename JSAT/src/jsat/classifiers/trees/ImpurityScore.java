@@ -117,6 +117,8 @@ public class ImpurityScore implements Cloneable
      */
     public double getScore()
     {
+        if(sumOfWeights <= 0)
+            return 0;
         double score = 0.0;
 
         if (impurityMeasure == ImpurityMeasure.INFORMATION_GAIN_RATIO

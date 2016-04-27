@@ -10,6 +10,7 @@ import jsat.classifiers.CategoricalResults;
 import jsat.classifiers.ClassificationDataSet;
 import jsat.classifiers.DataPoint;
 import jsat.exceptions.FailedToFitException;
+import jsat.math.OnLineStatistics;
 import jsat.regression.RegressionDataSet;
 import jsat.utils.FakeExecutor;
 import jsat.utils.SystemInfo;
@@ -31,9 +32,9 @@ import jsat.utils.SystemInfo;
 public class ERTrees extends ExtraTree
 {
 
-	private static final long serialVersionUID = 7139392253403373132L;
+    private static final long serialVersionUID = 7139392253403373132L;
 
-	//NOTE ExtraTrees uses the dynamic reflection, so extening it the new getter/setter paris are automatically picked up
+    //NOTE ExtraTrees uses the dynamic reflection, so extening it the new getter/setter paris are automatically picked up
     private ExtraTree baseTree = new ExtraTree();
     
     private boolean useDefaultSelectionCount = true;
@@ -59,6 +60,56 @@ public class ERTrees extends ExtraTree
     public ERTrees(int forrestSize)
     {
         this.forrestSize = forrestSize;
+    }
+    
+    /**
+     * Measures the statistics of feature importance from the trees in this
+     * forest. For classification datasets, the {@link MDI} method with Gini
+     * impurity will be used. For others, the {@link ImportanceByUses} method
+     * will be used. This may change in the future.
+     *
+     * @param <Type>
+     * @param data the dataset to infer the feature importance from with respect
+     * to the current model.
+     * @return an array of statistics, which each index corresponds to a
+     * specific feature. Numeric features start from the zero index, categorical
+     * features start from the index equal to the number of numeric features.
+     */
+    public <Type extends DataSet> OnLineStatistics[] evaluateFeatureImportance(DataSet<Type> data)
+    {
+        if(data instanceof ClassificationDataSet)
+            return evaluateFeatureImportance(data, new MDI(ImpurityScore.ImpurityMeasure.GINI));
+        else
+            return evaluateFeatureImportance(data, new ImportanceByUses());
+    }
+    
+    /**
+     * Measures the statistics of feature importance from the trees in this
+     * forest.
+     *
+     * @param <Type>
+     * @param data the dataset to infer the feature importance from with respect
+     * to the current model.
+     * @param imp the method of determing the feature importance that will be
+     * applied to each tree in this model
+     * @return an array of statistics, which each index corresponds to a
+     * specific feature. Numeric features start from the zero index, categorical
+     * features start from the index equal to the number of numeric features.
+     */
+    public <Type extends DataSet> OnLineStatistics[] evaluateFeatureImportance(DataSet<Type> data, TreeFeatureImportanceInference imp)
+    {
+        OnLineStatistics[] importances = new OnLineStatistics[data.getNumFeatures()];
+        for(int i = 0; i < importances.length; i++)
+            importances[i] = new OnLineStatistics();
+        
+        for(ExtraTree tree :forrest)
+        {
+            double[] feats = imp.getImportanceStats(tree, data);
+            for(int i = 0; i < importances.length; i++)
+                importances[i].add(feats[i]);
+        }
+        
+        return importances;
     }
 
     /**
