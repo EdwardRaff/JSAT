@@ -17,7 +17,8 @@ public interface Tokenizer extends Serializable
      * features for a classifier. The returned tokens must be either new string
      * objects or interned strings. If a token is returned that is backed by 
      * the original document, memory may get leaked by processes consuming the
-     * token. 
+     * token. <br>
+     * This method should be thread safe
      * 
      * @param input the string to tokenize
      * @return an already allocated list to place the tokens into
@@ -29,7 +30,8 @@ public interface Tokenizer extends Serializable
      * features for a classifier. The returned tokens must be either new string
      * objects or interned strings. If a token is returned that is backed by 
      * the original document, memory may get leaked by processes consuming the
-     * token. 
+     * token. <br>
+     * This method should be thread safe
      * 
      * @param input the string to tokenize
      * @param workSpace an already allocated (but empty) string builder than can
