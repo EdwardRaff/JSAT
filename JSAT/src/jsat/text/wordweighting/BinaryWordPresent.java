@@ -6,15 +6,18 @@ import jsat.linear.Vec;
 /**
  * Provides a simple binary representation of bag-of-word vectors by simply 
  * marking a value 1.0 if the token is present, and 0.0 if the token is not 
- * present. Nothing else is taken into account. 
+ * present. Nothing else is taken into account.<br>
+ * <br>
+ * This class does not require any state or configuration, so it can be used
+ * without calling {@link #setWeight(java.util.List, java.util.List) }.
+ *
  * 
  * @author Edward Raff
  */
 public class BinaryWordPresent extends WordWeighting
 {
 
-
-	private static final long serialVersionUID = 5633647387188363706L;
+    private static final long serialVersionUID = 5633647387188363706L;
 
 	@Override
     public void setWeight(List<? extends Vec> allDocuments, List<Integer> df)

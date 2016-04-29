@@ -12,10 +12,10 @@ import jsat.linear.*;
 public class OkapiBM25 extends WordWeighting
 {
 
-	private static final long serialVersionUID = 6456657674702490465L;
-	private double k1;
+    private static final long serialVersionUID = 6456657674702490465L;
+    private double k1;
     private double b;
-    
+
     private double N;
     private double docAvg;
     /**
@@ -69,6 +69,8 @@ public class OkapiBM25 extends WordWeighting
     @Override
     public void applyTo(Vec vec)
     {
+        if(df == null)
+            throw new RuntimeException("OkapiBM25 weightings haven't been initialized, setWeight method must be called before first use.");
         double sum = vec.sum();
         for(IndexValue iv : vec)
         {

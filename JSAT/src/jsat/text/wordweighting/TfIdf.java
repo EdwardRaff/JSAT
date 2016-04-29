@@ -14,9 +14,9 @@ import jsat.linear.Vec;
 public class TfIdf extends WordWeighting
 {
 
-	private static final long serialVersionUID = 5749882005002311735L;
+    private static final long serialVersionUID = 5749882005002311735L;
 
-	public enum TermFrequencyWeight 
+    public enum TermFrequencyWeight
     {
         /**
          * BOOLEAN only takes into account whether or not the word is present in
@@ -100,6 +100,8 @@ public class TfIdf extends WordWeighting
     @Override
     public void applyTo(Vec vec)
     {
+        if(df == null)
+            throw new RuntimeException("TF-IDF weightings haven't been initialized, setWeight method must be called before first use.");
         if(tfWeighting == TermFrequencyWeight.DOC_NORMALIZED)
             docMax = vec.max();
         vec.applyIndexFunction(this);

@@ -4,22 +4,19 @@ import java.util.List;
 import jsat.linear.Vec;
 
 /**
- * Provides a simple representation of bag-of-word vectors by simply using the 
+ * Provides a simple representation of bag-of-word vectors by simply using the
  * number of occurrences for a word in a document as the weight for said word.
- * <br>
- * <br>
- * WordCount needs no initialization, and can be applied as soon as the object
- * is created. 
+ * <br><br>
+ * This class does not require any state or configuration, so it can be used
+ * without calling {@link #setWeight(java.util.List, java.util.List) }.
  * 
  * @author Edward Raff
  */
 public class WordCount extends WordWeighting
 {
+    private static final long serialVersionUID = 4665749166722300326L;
 
-
-	private static final long serialVersionUID = 4665749166722300326L;
-
-	@Override
+    @Override
     public void setWeight(List<? extends Vec> allDocuments, List<Integer> df)
     {
         //No work needed
