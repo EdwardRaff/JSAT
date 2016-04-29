@@ -36,11 +36,25 @@ public abstract class ClassificationHashedTextDataLoader extends HashedTextDataL
      */
     protected CategoricalData labelInfo;
 
+    /**
+     * Creates an new hashed text data loader for classification problems, it
+     * uses a relatively large default size of 2<sup>22</sup> for the dimension
+     * of the space.
+     *
+     * @param tokenizer the tokenization method to break up strings with
+     * @param weighting the scheme to set the weights for feature vectors. 
+     */
     public ClassificationHashedTextDataLoader(Tokenizer tokenizer, WordWeighting weighting)
     {
         this(1<<22, tokenizer, weighting);
     }
 
+    /**
+     * Creates an new hashed text data loader for classification problems. 
+     * @param dimensionSize the size of the hashed space to use. 
+     * @param tokenizer the tokenization method to break up strings with
+     * @param weighting the scheme to set the weights for feature vectors. 
+     */
     public ClassificationHashedTextDataLoader(int dimensionSize, Tokenizer tokenizer, WordWeighting weighting)
     {
         super(dimensionSize, tokenizer, weighting);
