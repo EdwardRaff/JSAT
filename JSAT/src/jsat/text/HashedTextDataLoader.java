@@ -13,19 +13,35 @@ import jsat.text.wordweighting.WordWeighting;
 import jsat.utils.IntList;
 
 /**
- * This class provides a framework for loading datasets made of Text documents 
- * as hashed feature vectors. 
+ * This class provides a framework for loading datasets made of Text documents
+ * as hashed feature vectors. Text is broken up into a sequence of tokens using
+ * a {@link Tokenizer}, that must be provided. The weights used will be
+ * determined by some {@link WordWeighting word weighting scheme}. <br>
+ * The user adds documents to the initial dataset using the {@link #addOriginalDocument(java.lang.String)
+ * } method. The {@link #finishAdding() } must be called when no more documents
+ * are left to add, at which point class will take care of calling the {@link WordWeighting#setWeight(java.util.List, java.util.List)
+ * } method to configure the word weighting used with the original data
+ * added.<br>
+ * <br>
+ * After the initial dataset is loaded, new strings can be converted to vectors
+ * using the {@link #newText(java.lang.String) } method. This should only be
+ * called after {@link #finishAdding() }.<br>
+ * <br>
+ * Instance of this class will keep a reference to all originally added vectors.
+ * To transform new texts into vectors without keeping references to all of the
+ * original vectors, the {@link #getTextVectorCreator() } will return an object
+ * that perform the transformation.
  * 
  * @author Edward Raff
  */
 abstract public class HashedTextDataLoader implements TextVectorCreator
 {
 
-	private static final long serialVersionUID = 8513621180409278670L;
-	private final int dimensionSize;
+    private static final long serialVersionUID = 8513621180409278670L;
+    private final int dimensionSize;
     private Tokenizer tokenizer;
     private WordWeighting weighting;
-    
+
     protected List<SparseVector> vectors;
     private int[] termDocumentFrequencys;
     protected boolean noMoreAdding;

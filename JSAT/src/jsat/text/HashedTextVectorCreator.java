@@ -5,18 +5,25 @@ import java.util.List;
 import jsat.linear.SparseVector;
 import jsat.linear.Vec;
 import jsat.text.tokenizer.Tokenizer;
+import jsat.text.wordweighting.BinaryWordPresent;
 import jsat.text.wordweighting.WordWeighting;
 
 /**
- * Text Vector creator to that uses hashed features. 
- * 
+ * Hashed Text Vector Creator exists to convert a text string into a 
+ * {@link Vec} using feature hashing. The {@link Tokenizer tokenization} and
+ * {@link WordWeighting word weighting} method must be provided and already set
+ * up. When constructed the user should make sure the 
+ * {@link WordWeighting#setWeight(java.util.List, java.util.List) }
+ * method has already been called, or is a stateless weighting (such as
+ * {@link BinaryWordPresent}).
+ *
  * @author Edward Raff
  */
 public class HashedTextVectorCreator implements TextVectorCreator
 {
 
-	private static final long serialVersionUID = 1081388790985568192L;
-	private int dimensionSize;
+    private static final long serialVersionUID = 1081388790985568192L;
+    private int dimensionSize;
     private Tokenizer tokenizer;
     private WordWeighting weighting;
 
@@ -46,9 +53,11 @@ public class HashedTextVectorCreator implements TextVectorCreator
     {
         tokenizer.tokenize(input, workSpace, storageSpace);
         SparseVector vec = new SparseVector(dimensionSize);
-        for(String word : storageSpace){
-        	 //XXX This code generates a hashcode and then computes the absolute value of that hashcode. If the hashcode is Integer.MIN_VALUE, then the result will be negative as well (since Math.abs(Integer.MIN_VALUE) == Integer.MIN_VALUE). 
-            vec.increment(Math.abs(word.hashCode())%dimensionSize, 1.0);}
+        for(String word : storageSpace)
+        {
+            //XXX This code generates a hashcode and then computes the absolute value of that hashcode. If the hashcode is Integer.MIN_VALUE, then the result will be negative as well (since Math.abs(Integer.MIN_VALUE) == Integer.MIN_VALUE). 
+            vec.increment(Math.abs(word.hashCode())%dimensionSize, 1.0);
+        }
         weighting.applyTo(vec);
         return vec;
     }

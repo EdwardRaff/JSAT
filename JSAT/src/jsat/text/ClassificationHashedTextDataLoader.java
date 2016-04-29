@@ -24,10 +24,10 @@ import jsat.utils.IntList;
 public abstract class ClassificationHashedTextDataLoader extends HashedTextDataLoader
 {
 
-	private static final long serialVersionUID = -1350008848821058696L;
-	/**
+    private static final long serialVersionUID = -1350008848821058696L;
+    /**
      * The list of the true class labels for the data that was loaded before 
-     * {@link #finishAdding() } was called. 
+     * {@link #finishAdding() } was called.
      */
     protected List<Integer> classLabels;
     /**
