@@ -16,6 +16,7 @@
  */
 package jsat.classifiers.trees;
 
+import java.io.Serializable;
 import jsat.DataSet;
 
 /**
@@ -24,7 +25,7 @@ import jsat.DataSet;
  *
  * @author Edward Raff <Raff.Edward@gmail.com>
  */
-public interface TreeFeatureImportanceInference
+public interface TreeFeatureImportanceInference extends Serializable
 {
 
     /**
