@@ -84,8 +84,10 @@ public abstract class ClassificationTextDataLoader extends TextDataLoader
      * 
      * @param text the text of the document to add
      * @param label the classification label for this document
+     * @return the index of the created document for the given text. Starts from
+     * zero and counts up.
      */
-    protected void addOriginalDocument(String text, int label)
+    protected int addOriginalDocument(String text, int label)
     {
         if(label >= labelInfo.getNumOfCategories())
             throw new RuntimeException("Invalid label given");
@@ -99,6 +101,7 @@ public abstract class ClassificationTextDataLoader extends TextDataLoader
             else//another thread beat us to the addition
                 classLabels.set(index, label);
         }
+        return index;
     }
     
     @Override

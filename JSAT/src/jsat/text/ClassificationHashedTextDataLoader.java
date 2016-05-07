@@ -75,9 +75,11 @@ public abstract class ClassificationHashedTextDataLoader extends HashedTextDataL
     /**
      * Should use {@link #addOriginalDocument(java.lang.String, int) } instead. 
      * @param text the text of the data to add
+     * @return the index of the created document for the given text. Starts from
+     * zero and counts up.
      */
     @Override
-    protected void addOriginalDocument(String text)
+    protected int addOriginalDocument(String text)
     {
         throw new UnsupportedOperationException("addOriginalDocument(String"
                 + " text, int label) should be used instead");
@@ -88,17 +90,29 @@ public abstract class ClassificationHashedTextDataLoader extends HashedTextDataL
      * It will take in the text and add a new document 
      * vector to the data set. Once all text documents 
      * have been loaded, this method should never be 
-     * called again. 
+     * called again. <br>
+     * This method is thread safe.
      * 
      * @param text the text of the document to add
      * @param label the classification label for this document
+     * @return the index of the created document for the given text. Starts from
+     * zero and counts up.
      */
-    protected void addOriginalDocument(String text, int label)
+    protected int addOriginalDocument(String text, int label)
     {
         if(label >= labelInfo.getNumOfCategories())
             throw new RuntimeException("Invalid label given");
-        super.addOriginalDocument(text);
-        classLabels.add(label);
+        int index = super.addOriginalDocument(text);
+        synchronized(classLabels)
+        {
+            while(classLabels.size() < index)
+                classLabels.add(-1);
+            if(classLabels.size() ==  index)//we are where we expect
+                classLabels.add(label);
+            else//another thread beat us to the addition
+                classLabels.set(index, label);
+        }
+        return index;
     }
     
     @Override

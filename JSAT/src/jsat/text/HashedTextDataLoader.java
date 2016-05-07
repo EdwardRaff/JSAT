@@ -2,6 +2,7 @@ package jsat.text;
 
 import java.util.*;
 import java.util.Map.Entry;
+import java.util.concurrent.atomic.AtomicIntegerArray;
 import jsat.DataSet;
 import jsat.SimpleDataSet;
 import jsat.classifiers.CategoricalData;
@@ -39,26 +40,32 @@ abstract public class HashedTextDataLoader implements TextVectorCreator
 
     private static final long serialVersionUID = 8513621180409278670L;
     private final int dimensionSize;
+    /**
+     * Tokenizer to apply to input strings
+     */
     private Tokenizer tokenizer;
     private WordWeighting weighting;
 
+    /**
+     * List of original vectors
+     */
     protected List<SparseVector> vectors;
-    private int[] termDocumentFrequencys;
+    private AtomicIntegerArray termDocumentFrequencys;
     protected boolean noMoreAdding;
-    private int documents;
+    private volatile int documents;
     
     /**
      * Temporary work space to use for tokenization
      */
-    protected StringBuilder workSpace;
+    protected ThreadLocal<StringBuilder> workSpace;
     /**
      * Temporary storage space to use for tokenization
      */
-    protected List<String> storageSpace;
+    protected ThreadLocal<List<String>> storageSpace;
     /**
      * Temporary space to use when creating vectors
      */
-    protected Map<String, Integer> wordCounts;
+    protected ThreadLocal<Map<String, Integer>> wordCounts;
     
     private TextVectorCreator tvc;
     
@@ -72,11 +79,14 @@ abstract public class HashedTextDataLoader implements TextVectorCreator
         this.dimensionSize = dimensionSize;
         this.tokenizer = tokenizer;
         this.weighting = weighting;
-        this.termDocumentFrequencys = new int[dimensionSize];
+        this.termDocumentFrequencys = new AtomicIntegerArray(dimensionSize);
         this.vectors = new ArrayList<SparseVector>();
         this.tvc = new HashedTextVectorCreator(dimensionSize, tokenizer, weighting);
         
         noMoreAdding = false;
+        this.workSpace = new ThreadLocal<StringBuilder>();
+        this.storageSpace = new ThreadLocal<List<String>>();
+        this.wordCounts = new ThreadLocal<Map<String, Integer>>();
     }
     
     /**
@@ -96,56 +106,62 @@ abstract public class HashedTextDataLoader implements TextVectorCreator
      * It will take in the text and add a new document 
      * vector to the data set. Once all text documents 
      * have been loaded, this method should never be 
-     * called again. 
+     * called again. <br>
+     * This method is thread safe.
      * 
      * @param text the text of the document to add
+     * @return the index of the created document for the given text. Starts from
+     * zero and counts up.
      */
-    protected void addOriginalDocument(String text)
+    protected int addOriginalDocument(String text)
     {
         if(noMoreAdding)
             throw new RuntimeException("Initial data set has been finalized");
-        if(workSpace == null)
+        StringBuilder localWorkSpace = workSpace.get();
+        List<String> localStorageSpace = storageSpace.get();
+        Map<String, Integer> localWordCounts = wordCounts.get();
+        if(localWorkSpace == null)
         {
-            workSpace = new StringBuilder();
-            storageSpace = new ArrayList<String>();
+            localWorkSpace = new StringBuilder();
+            localStorageSpace = new ArrayList<String>();
+            localWordCounts = new LinkedHashMap<String, Integer>();
+            workSpace.set(localWorkSpace);
+            storageSpace.set(localStorageSpace);
+            wordCounts.set(localWordCounts);
         }
         
-        workSpace.setLength(0);
-        storageSpace.clear();
+        localWorkSpace.setLength(0);
+        localStorageSpace.clear();
         
         
-        tokenizer.tokenize(text, workSpace, storageSpace);
-        /**
-         * Create a new one every 50 so that we dont waist iteration time 
-         * on many null elements when we occasionally load in an abnormally
-         * large document 
-         */
-        if(documents % 50 == 0)
-            wordCounts = new HashMap<String, Integer>(storageSpace.size());
+        tokenizer.tokenize(text, localWorkSpace, localStorageSpace);
         
-        for(String word : storageSpace)
+        for(String word : localStorageSpace)
         {
-            Integer count = wordCounts.get(word);
+            Integer count = localWordCounts.get(word);
             if(count == null)
-                wordCounts.put(word, 1);
+                localWordCounts.put(word, 1);
             else
-                wordCounts.put(word, count+1);
+                localWordCounts.put(word, count+1);
         }
         
-        SparseVector vec = new SparseVector(dimensionSize, wordCounts.size());
-        for(Iterator<Entry<String, Integer>> iter = wordCounts.entrySet().iterator(); iter.hasNext();)
+        SparseVector vec = new SparseVector(dimensionSize, localWordCounts.size());
+        for(Iterator<Entry<String, Integer>> iter = localWordCounts.entrySet().iterator(); iter.hasNext();)
         {
             Entry<String, Integer> entry = iter.next();
             String word = entry.getKey();
             //XXX This code generates a hashcode and then computes the absolute value of that hashcode. If the hashcode is Integer.MIN_VALUE, then the result will be negative as well (since Math.abs(Integer.MIN_VALUE) == Integer.MIN_VALUE). 
             int index = Math.abs(word.hashCode()) % dimensionSize;
             vec.set(index, entry.getValue());
-            termDocumentFrequencys[index] += entry.getValue();
+            termDocumentFrequencys.addAndGet(index, entry.getValue());
             iter.remove();
         }
         
-        vectors.add(vec);
-        documents++;
+        synchronized(vectors)
+        {
+            vectors.add(vec);
+            return documents++;
+        }
     }
     
     /**
@@ -160,7 +176,10 @@ abstract public class HashedTextDataLoader implements TextVectorCreator
         storageSpace = null;
         wordCounts = null;
         
-        weighting.setWeight(vectors, IntList.unmodifiableView(termDocumentFrequencys, dimensionSize));
+        final int[] frqs = new int[dimensionSize];
+        for(int i = 0; i < termDocumentFrequencys.length(); i++)
+            frqs[i] = termDocumentFrequencys.get(i);
+        weighting.setWeight(vectors, IntList.unmodifiableView(frqs, dimensionSize));
         for(SparseVector vec : vectors)
             weighting.applyTo(vec);
         termDocumentFrequencys = null;
