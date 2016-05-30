@@ -29,8 +29,8 @@ import jsat.utils.FakeExecutor;
 public class ModestAdaBoost  implements Classifier, Parameterized, BinaryScoreClassifier
 {
 
-	private static final long serialVersionUID = 8223388561185098909L;
-	private Classifier weakLearner;
+    private static final long serialVersionUID = 8223388561185098909L;
+    private Classifier weakLearner;
     private int maxIterations;
     /**
      * The list of weak hypothesis
@@ -68,6 +68,24 @@ public class ModestAdaBoost  implements Classifier, Parameterized, BinaryScoreCl
                 this.hypoths.add(weak.clone());
             this.predicting = toClone.predicting.clone();
         }
+    }
+    
+    /**
+     * 
+     * @return a list of the models that are in this ensemble. 
+     */
+    public List<Classifier> getModels()
+    {
+        return Collections.unmodifiableList(hypoths);
+    }
+    
+    /**
+     * 
+     * @return a list of the models weights that are in this ensemble. 
+     */
+    public List<Double> getModelWeights()
+    {
+        return Collections.unmodifiableList(hypWeights);
     }
     
     /**

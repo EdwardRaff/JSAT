@@ -2,6 +2,7 @@
 package jsat.classifiers.boosting;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import jsat.classifiers.CategoricalResults;
@@ -34,8 +35,8 @@ import jsat.regression.Regressor;
 public class LogitBoost implements Classifier, Parameterized
 {
 
-	private static final long serialVersionUID = 1621062168467402062L;
-	/**
+    private static final long serialVersionUID = 1621062168467402062L;
+    /**
      * The constant factor that the sum of regressors is scaled by. 
      */
     protected double fScaleConstant = 0.5;
@@ -73,6 +74,15 @@ public class LogitBoost implements Classifier, Parameterized
             throw new RuntimeException("Base Learner must support weighted data points to be boosted");
         this.baseLearner = baseLearner;
         this.maxIterations = M;
+    }
+    
+    /**
+     * 
+     * @return a list of the models that are in this ensemble. 
+     */
+    public List<Regressor> getModels()
+    {
+        return Collections.unmodifiableList(baseLearners);
     }
 
     /**

@@ -1,6 +1,7 @@
 package jsat.classifiers.boosting;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import jsat.DataSet;
@@ -89,6 +90,24 @@ public class EmphasisBoost implements Classifier, Parameterized, BinaryScoreClas
                 this.hypoths.add(weak.clone());
             this.predicting = toClone.predicting.clone();
         }
+    }
+    
+    /**
+     * 
+     * @return a list of the models that are in this ensemble. 
+     */
+    public List<Classifier> getModels()
+    {
+        return Collections.unmodifiableList(hypoths);
+    }
+    
+    /**
+     * 
+     * @return a list of the models weights that are in this ensemble. 
+     */
+    public List<Double> getModelWeights()
+    {
+        return Collections.unmodifiableList(hypWeights);
     }
     
     /**

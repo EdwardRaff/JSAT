@@ -2,6 +2,7 @@
 package jsat.classifiers.boosting;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import jsat.classifiers.CategoricalData;
@@ -29,8 +30,8 @@ import jsat.utils.FakeExecutor;
 public class SAMME implements Classifier, Parameterized
 {
 
-	private static final long serialVersionUID = -3584203799253810599L;
-	private Classifier weakLearner;
+    private static final long serialVersionUID = -3584203799253810599L;
+    private Classifier weakLearner;
     private int maxIterations;
     /**
      * The list of weak hypothesis
@@ -62,6 +63,24 @@ public class SAMME implements Classifier, Parameterized
         
         cr.normalize();
         return cr;
+    }
+    
+    /**
+     * 
+     * @return a list of the models that are in this ensemble. 
+     */
+    public List<Classifier> getModels()
+    {
+        return Collections.unmodifiableList(hypoths);
+    }
+    
+    /**
+     * 
+     * @return a list of the models weights that are in this ensemble. 
+     */
+    public List<Double> getModelWeights()
+    {
+        return Collections.unmodifiableList(hypWeights);
     }
 
     @Override

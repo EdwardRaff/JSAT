@@ -2,6 +2,7 @@
 package jsat.classifiers.boosting;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 
@@ -36,8 +37,8 @@ import jsat.utils.DoubleList;
 public class AdaBoostM1 implements Classifier, Parameterized
 {
 
-	private static final long serialVersionUID = 4205232097748332861L;
-	private Classifier weakLearner;
+    private static final long serialVersionUID = 4205232097748332861L;
+    private Classifier weakLearner;
     private int maxIterations;
     /**
      * The list of weak hypothesis
@@ -62,6 +63,24 @@ public class AdaBoostM1 implements Classifier, Parameterized
     public int getMaxIterations()
     {
         return maxIterations;
+    }
+
+    /**
+     * 
+     * @return a list of the models that are in this ensemble. 
+     */
+    public List<Classifier> getModels()
+    {
+        return Collections.unmodifiableList(hypoths);
+    }
+    
+    /**
+     * 
+     * @return a list of the models weights that are in this ensemble. 
+     */
+    public List<Double> getModelWeights()
+    {
+        return Collections.unmodifiableList(hypWeights);
     }
 
     /**
