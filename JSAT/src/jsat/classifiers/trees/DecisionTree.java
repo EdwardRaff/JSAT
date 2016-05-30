@@ -20,10 +20,7 @@ import jsat.parameters.Parameter;
 import jsat.parameters.Parameterized;
 import jsat.regression.RegressionDataSet;
 import jsat.regression.Regressor;
-import jsat.utils.FakeExecutor;
-import jsat.utils.IntList;
-import jsat.utils.IntSet;
-import jsat.utils.ModifiableCountDownLatch;
+import jsat.utils.*;
 
 /**
  * Creates a decision tree from {@link DecisionStump DecisionStumps}. How this
@@ -362,7 +359,7 @@ public class DecisionTree implements Classifier, Regressor, Parameterized, TreeL
         else
             prune(root, pruningMethod, testPoints);
     }
-
+    
     /**
      * Makes a new node for classification 
      * @param dataPoints the list of data points paired with their class
@@ -375,6 +372,10 @@ public class DecisionTree implements Classifier, Regressor, Parameterized, TreeL
     protected Node makeNodeC(List<DataPointPair<Integer>> dataPoints, final Set<Integer> options, final int depth,
             final ExecutorService threadPool, final ModifiableCountDownLatch mcdl)
     {
+        //figure out what level of parallelism we are going to use, feature wise or depth wise
+        boolean mePara = (1L<<depth) < SystemInfo.LogicalCores*2;//should THIS node use the Stump parallelism
+        boolean depthPara = (1L<<(depth+1)) >= SystemInfo.LogicalCores*2;//should the NEXT node use the stump parallelism
+
         if(depth > maxDepth || options.isEmpty() || dataPoints.size() < minSamples || dataPoints.isEmpty())
         {
             mcdl.countDown();
@@ -382,7 +383,11 @@ public class DecisionTree implements Classifier, Regressor, Parameterized, TreeL
         }
         DecisionStump stump = baseStump.clone();
         stump.setPredicting(this.predicting);
-        final List<List<DataPointPair<Integer>>> splits = stump.trainC(dataPoints, options);
+        final List<List<DataPointPair<Integer>>> splits;
+        if(mePara)
+            splits = stump.trainC(dataPoints, options, threadPool);
+        else 
+            splits = stump.trainC(dataPoints, options);
         
         final Node node = new Node(stump);
         if(stump.getNumberOfPaths() > 1)//If there is 1 path, we are perfectly classifier - nothing more to do 
@@ -391,13 +396,18 @@ public class DecisionTree implements Classifier, Regressor, Parameterized, TreeL
                 final int ii = i;
                 final List<DataPointPair<Integer>> splitI = splits.get(i);
                 mcdl.countUp();
-                threadPool.submit(new Runnable() {
+                if(depthPara)
+                {
+                    threadPool.submit(new Runnable() {
 
-                    public void run()
-                    {
-                        node.paths[ii] = makeNodeC(splitI, new IntSet(options), depth+1, threadPool, mcdl);
-                    }
-                });
+                        public void run()
+                        {
+                            node.paths[ii] = makeNodeC(splitI, new IntSet(options), depth+1, threadPool, mcdl);
+                        }
+                    });
+                }
+                else
+                    node.paths[ii] = makeNodeC(splitI, new IntSet(options), depth+1, threadPool, mcdl);
             }
         
         mcdl.countDown();
@@ -416,13 +426,21 @@ public class DecisionTree implements Classifier, Regressor, Parameterized, TreeL
     protected Node makeNodeR(List<DataPointPair<Double>> dataPoints, final Set<Integer> options, final int depth,
             final ExecutorService threadPool, final ModifiableCountDownLatch mcdl)
     {
+        //figure out what level of parallelism we are going to use, feature wise or depth wise
+        boolean mePara = (1L<<depth) < SystemInfo.LogicalCores*2;//should THIS node use the Stump parallelism
+        boolean depthPara = (1L<<(depth+1)) >= SystemInfo.LogicalCores*2;//should the NEXT node use the stump parallelism
+        
         if(depth > maxDepth || options.isEmpty() || dataPoints.size() < minSamples || dataPoints.isEmpty())
         {
             mcdl.countDown();
             return null;
         }
         DecisionStump stump = baseStump.clone();
-        final List<List<DataPointPair<Double>>> splits = stump.trainR(dataPoints, options);
+        final List<List<DataPointPair<Double>>> splits;
+        if(mePara)
+            splits = stump.trainR(dataPoints, options, threadPool);
+        else 
+            splits = stump.trainR(dataPoints, options);
         if(splits == null)//an error occured, probably not enough data for many categorical values
         {
             mcdl.countDown();
@@ -436,14 +454,19 @@ public class DecisionTree implements Classifier, Regressor, Parameterized, TreeL
                 final int ii = i;
                 final List<DataPointPair<Double>> splitI = splits.get(i);
                 mcdl.countUp();
-                threadPool.submit(new Runnable() {
+                if(depthPara)
+                {
+                    threadPool.submit(new Runnable() {
 
-                    @Override
-                    public void run()
-                    {
-                        node.paths[ii] = makeNodeR(splitI, new IntSet(options), depth+1, threadPool, mcdl);
-                    }
-                });
+                        @Override
+                        public void run()
+                        {
+                            node.paths[ii] = makeNodeR(splitI, new IntSet(options), depth+1, threadPool, mcdl);
+                        }
+                    });
+                }
+                else
+                    node.paths[ii] = makeNodeR(splitI, new IntSet(options), depth+1, threadPool, mcdl);
             }
         
         mcdl.countDown();

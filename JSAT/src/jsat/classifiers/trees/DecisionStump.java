@@ -2,21 +2,22 @@
 package jsat.classifiers.trees;
 
 import java.util.*;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import jsat.classifiers.*;
 import jsat.classifiers.trees.ImpurityScore.ImpurityMeasure;
+import jsat.exceptions.FailedToFitException;
 import jsat.linear.Vec;
 import jsat.math.OnLineStatistics;
 import jsat.parameters.Parameter;
 import jsat.parameters.Parameterized;
 import jsat.regression.RegressionDataSet;
 import jsat.regression.Regressor;
-import jsat.utils.DoubleList;
-import jsat.utils.IntList;
-import jsat.utils.IntSet;
-import jsat.utils.PairedReturn;
-import jsat.utils.QuickSort;
+import jsat.utils.*;
+import jsat.utils.concurrent.AtomicDouble;
 
 /**
  * This class is a 1-rule. It creates one rule that is used to classify all inputs, 
@@ -190,18 +191,18 @@ public class DecisionStump implements Classifier, Regressor, Parameterized
     }
 
     @Override
-    public void train(RegressionDataSet dataSet, ExecutorService threadPool)
+    public void train(RegressionDataSet dataSet)
     {
-        train(dataSet);
+        train(dataSet, new FakeExecutor());
     }
 
     @Override
-    public void train(RegressionDataSet dataSet)
+    public void train(RegressionDataSet dataSet, ExecutorService threadPool)
     {
         Set<Integer> options = new IntSet(dataSet.getNumFeatures());
         for(int i = 0; i < dataSet.getNumFeatures(); i++)
             options.add(i);
-        trainR(dataSet.getDPPList(), options);
+        trainR(dataSet.getDPPList(), options, threadPool);
     }
 
     /**
@@ -333,19 +334,19 @@ public class DecisionStump implements Classifier, Regressor, Parameterized
     @Override
     public void trainC(ClassificationDataSet dataSet, ExecutorService threadPool)
     {
-        trainC(dataSet);
-    }
-
-    @Override
-    public void trainC(ClassificationDataSet dataSet)
-    {
         Set<Integer> splitOptions = new IntSet(dataSet.getNumFeatures());
         for(int i = 0; i < dataSet.getNumFeatures(); i++)
             splitOptions.add(i);
         
         this.predicting = dataSet.getPredicting();
         
-        trainC(dataSet.getAsDPPList(), splitOptions);
+        trainC(dataSet.getAsDPPList(), splitOptions, threadPool);
+    }
+
+    @Override
+    public void trainC(ClassificationDataSet dataSet)
+    {
+        trainC(dataSet, null);
     }
     
     /**
@@ -359,12 +360,19 @@ public class DecisionStump implements Classifier, Regressor, Parameterized
      */
     public List<List<DataPointPair<Integer>>> trainC(List<DataPointPair<Integer>> dataPoints, Set<Integer> options)
     {
+        return trainC(dataPoints, options, null);
+    }
+    
+    public List<List<DataPointPair<Integer>>> trainC(final List<DataPointPair<Integer>> dataPoints, Set<Integer> options, ExecutorService ex)
+    {
         //TODO remove paths that have zero probability of occuring, so that stumps do not have an inflated branch value 
         if(predicting == null)
             throw new RuntimeException("Predicting value has not been set");
+        if(ex == null)
+            ex = new FakeExecutor();
         catAttributes = dataPoints.get(0).getDataPoint().getCategoricalData();
         numNumericFeatures = dataPoints.get(0).getVector().length();
-        ImpurityScore origScoreObj = getClassGainScore(dataPoints);
+        final ImpurityScore origScoreObj = getClassGainScore(dataPoints);
         double origScore =  origScoreObj.getScore();
         
         if(origScore == 0.0 || dataPoints.size() < minResultSplitSize*2)//Then all data points belond to the same category!
@@ -378,126 +386,180 @@ public class DecisionStump implements Classifier, Regressor, Parameterized
             return toReturn;
         }
         
+        
+        
         /**
          * The splitting for the split on the attribute with the best gain
          */
-        List<List<DataPointPair<Integer>>> bestSplit = null;
+        final List<List<DataPointPair<Integer>>> bestSplit = Collections.synchronizedList(new ArrayList<List<DataPointPair<Integer>>>());
         /**
          * best gain in information we have seen so far 
          */
-        double bestGain = -1;
-        double[] bestRatio = null;
+        final AtomicDouble bestGain = new AtomicDouble(-1);
+        final DoubleList bestRatio = new DoubleList();
         /**
          * The best attribute to split on
          */
         splittingAttribute = -1;
-        final double[] gainRet = new double[]{Double.NaN};
-        for(int attribute :  options)
+        final CountDownLatch latch = new CountDownLatch(options.size());
+        
+        
+        final ThreadLocal<List<DataPointPair<Integer>>> localList = new ThreadLocal<List<DataPointPair<Integer>>>(){
+
+            @Override
+            protected List<DataPointPair<Integer>> initialValue()
+            {
+                return new ArrayList<DataPointPair<Integer>>(dataPoints);
+            }
+            
+        };
+        
+        for(final int attribute_to_consider :  options)
         {
-            gainRet[0] = Double.NaN;
-            List<List<DataPointPair<Integer>>> aSplit;
-            PairedReturn<List<Double>, List<Integer>> tmp = null;//Used on numerical attributes
-            
-            ImpurityScore[] split_scores = null;//used for cat
-            double weightScale = 1.0;
-            
-            if(attribute < catAttributes.length)//Then we are doing a categorical split
+            ex.submit(new Runnable()
             {
-                //Create a list of lists to hold the split variables
-                aSplit = listOfLists(catAttributes[attribute].getNumOfCategories());
-                split_scores = new ImpurityScore[aSplit.size()];
-                for(int i=0; i < split_scores.length; i++)
-                    split_scores[i] = new ImpurityScore(predicting.getNumOfCategories(), gainMethod);
-                
-                List<DataPointPair<Integer>> wasMissing = new ArrayList<DataPointPair<Integer>>(0);
-                double missingSum = 0.0;
-                //Now seperate the values in our current list into their proper split bins 
-                for(DataPointPair<Integer> dpp :  dataPoints)
+
+                @Override
+                public void run()
                 {
-                    int val = dpp.getDataPoint().getCategoricalValue(attribute);
-                    double weight = dpp.getDataPoint().getWeight();
-                    if(val >= 0)
+                    List<DataPointPair<Integer>> DPs = localList.get();
+                    int attribute = attribute_to_consider;
+                    final double[] gainRet = new double[]{Double.NaN};
+                    gainRet[0] = Double.NaN;
+                    List<List<DataPointPair<Integer>>> aSplit;
+                    PairedReturn<List<Double>, List<Integer>> tmp = null;//Used on numerical attributes
+
+                    ImpurityScore[] split_scores = null;//used for cat
+                    double weightScale = 1.0;
+
+                    if(attribute < catAttributes.length)//Then we are doing a categorical split
                     {
-                        aSplit.get(val).add(dpp);
-                        split_scores[val].addPoint(weight, dpp.getPair());
+                        //Create a list of lists to hold the split variables
+                        aSplit = listOfLists(catAttributes[attribute].getNumOfCategories());
+                        split_scores = new ImpurityScore[aSplit.size()];
+                        for(int i=0; i < split_scores.length; i++)
+                            split_scores[i] = new ImpurityScore(predicting.getNumOfCategories(), gainMethod);
+
+                        List<DataPointPair<Integer>> wasMissing = new ArrayList<DataPointPair<Integer>>(0);
+                        double missingSum = 0.0;
+                        //Now seperate the values in our current list into their proper split bins 
+                        for(DataPointPair<Integer> dpp :  DPs)
+                        {
+                            int val = dpp.getDataPoint().getCategoricalValue(attribute);
+                            double weight = dpp.getDataPoint().getWeight();
+                            if(val >= 0)
+                            {
+                                aSplit.get(val).add(dpp);
+                                split_scores[val].addPoint(weight, dpp.getPair());
+                            }
+                            else
+                            {
+                                wasMissing.add(dpp);
+                                missingSum += weight;
+                            }
+
+                        }
+
+                        int pathsTaken = 0;
+                        for(List<DataPointPair<Integer>> split : aSplit)
+                            if(!split.isEmpty())
+                                pathsTaken++;
+                        if(pathsTaken <= 1)//not a good path, avoid looping on this junk. Can be caused by missing data
+                        {
+                            latch.countDown();
+                            return;
+                        }
+
+                        if(missingSum > 0)//move missing values into others
+                        {
+                            double newSum = (origScoreObj.getSumOfWeights()-missingSum);
+                            weightScale = newSum/origScoreObj.getSumOfWeights();
+                            double[] fracs = new double[split_scores.length];
+                            for(int i = 0; i < fracs.length; i++)
+                                fracs[i] = split_scores[i].getSumOfWeights()/newSum;
+
+                            distributMissing(aSplit, fracs, wasMissing);
+                        }
                     }
-                    else
+                    else//Spliting on a numerical value
                     {
-                        wasMissing.add(dpp);
-                        missingSum += weight;
+                        attribute -= catAttributes.length;
+                        int N = predicting.getNumOfCategories();
+
+                        //Create a list of lists to hold the split variables
+                        aSplit = listOfLists(2);//Size at least 2
+                        split_scores = new ImpurityScore[2];
+                        tmp = createNumericCSplit(DPs, N, attribute, aSplit, 
+                                origScoreObj, gainRet, split_scores);
+                        if(tmp == null)
+                        {
+                            latch.countDown();
+                            return;
+                        }
+
+                        //Fix it back so it can be used below
+                        attribute+= catAttributes.length;
+                    }
+
+                    //Now everything is seperated!
+                    double gain;//= Double.isNaN(gainRet[0]) ?  : gainRet[0];
+                    if(!Double.isNaN(gainRet[0]))
+                        gain = gainRet[0];
+                    else 
+                    {
+                        if(split_scores == null)
+                            split_scores = getSplitScores(aSplit);
+                        gain = ImpurityScore.gain(origScoreObj, weightScale, split_scores);
+                    }
+
+                    if(gain > bestGain.get())
+                    {
+                        synchronized(bestRatio)
+                        {
+                            if(gain > bestGain.get())//double check incase changed
+                            {
+                                bestGain.set(gain);
+                                splittingAttribute = attribute;
+                                bestSplit.clear();
+                                bestSplit.addAll(aSplit);
+                                bestRatio.clear();
+
+                                double sum = 1e-8;
+                                for(int i = 0; i < split_scores.length; i++)
+                                {
+                                    sum += split_scores[i].getSumOfWeights();
+                                    bestRatio.add(split_scores[i].getSumOfWeights());
+                                }
+                                for(int i = 0; i < split_scores.length; i++)
+                                    bestRatio.set(i, bestRatio.getD(i)/sum);
+
+                                if(attribute >= catAttributes.length)
+                                {
+                                    boundries = tmp.getFirstItem();
+                                    owners = tmp.getSecondItem();
+                                }
+                            }
+                        }
                     }
                     
+                    latch.countDown();
                 }
-                
-                int pathsTaken = 0;
-                for(List<DataPointPair<Integer>> split : aSplit)
-                    if(!split.isEmpty())
-                        pathsTaken++;
-                if(pathsTaken <= 1)//not a good path, avoid looping on this junk. Can be caused by missing data
-                    continue;
-                
-                if(missingSum > 0)//move missing values into others
-                {
-                    double newSum = (origScoreObj.getSumOfWeights()-missingSum);
-                    weightScale = newSum/origScoreObj.getSumOfWeights();
-                    double[] fracs = new double[split_scores.length];
-                    for(int i = 0; i < fracs.length; i++)
-                        fracs[i] = split_scores[i].getSumOfWeights()/newSum;
-                    
-                    distributMissing(aSplit, fracs, wasMissing);
-                }
-            }
-            else//Spliting on a numerical value
-            {
-                attribute -= catAttributes.length;
-                int N = predicting.getNumOfCategories();
-                
-                //Create a list of lists to hold the split variables
-                aSplit = listOfLists(2);//Size at least 2
-                split_scores = new ImpurityScore[2];
-                tmp = createNumericCSplit(dataPoints, N, attribute, aSplit, 
-                        origScoreObj, gainRet, split_scores);
-                if(tmp == null)
-                    continue;
-                
-                //Fix it back so it can be used below
-                attribute+= catAttributes.length;
-            }
-            
-            //Now everything is seperated!
-            double gain;//= Double.isNaN(gainRet[0]) ?  : gainRet[0];
-            if(!Double.isNaN(gainRet[0]))
-                gain = gainRet[0];
-            else 
-            {
-                if(split_scores == null)
-                    split_scores = getSplitScores(aSplit);
-                gain = ImpurityScore.gain(origScoreObj, weightScale, split_scores);
-            }
-            
-            if(gain > bestGain)
-            {
-                bestGain = gain;
-                splittingAttribute = attribute;
-                bestSplit = aSplit;
-                bestRatio = new double[split_scores.length];
-                double sum = 0;
-                for(int i = 0; i < bestRatio.length; i++)
-                    sum += (bestRatio[i] = split_scores[i].getSumOfWeights());
-                for(int i = 0; i < bestRatio.length; i++)
-                    bestRatio[i] /= sum;
-               
-                if(attribute >= catAttributes.length)
-                {
-                    boundries = tmp.getFirstItem();
-                    owners = tmp.getSecondItem();
-                }
-            }
+            });
         }
         
-        if(bestGain <= 1e-9 || splittingAttribute == -1)//We could not find a good split at all (as good as zero)
+        try
         {
-            bestSplit = new ArrayList<List<DataPointPair<Integer>>>(1);
+            latch.await();
+        }
+        catch (InterruptedException ex1)
+        {
+            Logger.getLogger(DecisionStump.class.getName()).log(Level.SEVERE, null, ex1);
+            throw new FailedToFitException(ex1);
+        }
+        
+        if(bestGain.get() <= 1e-9 || splittingAttribute == -1)//We could not find a good split at all (as good as zero)
+        {
+            bestSplit.clear();
             bestSplit.add(dataPoints);
             CategoricalResults badResult = new CategoricalResults(predicting.getNumOfCategories());
             for(DataPointPair<Integer> dpp : dataPoints)
@@ -510,7 +572,7 @@ public class DecisionStump implements Classifier, Regressor, Parameterized
         if(splittingAttribute < catAttributes.length || removeContinuousAttributes)
             options.remove(splittingAttribute);
         results = new CategoricalResults[bestSplit.size()];
-        pathRatio = bestRatio;
+        pathRatio = bestRatio.getVecView().arrayCopy();
         for(int i = 0; i < bestSplit.size(); i++)
         {
             results[i] = new CategoricalResults(predicting.getNumOfCategories());
@@ -677,7 +739,12 @@ public class DecisionStump implements Classifier, Regressor, Parameterized
         }
     }
     
-    public List<List<DataPointPair<Double>>> trainR(List<DataPointPair<Double>> dataPoints, Set<Integer> options)
+    public List<List<DataPointPair<Double>>> trainR(final List<DataPointPair<Double>> dataPoints, Set<Integer> options)
+    {
+        return trainR(dataPoints, options, new FakeExecutor());
+    }
+    
+    public List<List<DataPointPair<Double>>> trainR(final List<DataPointPair<Double>> dataPoints, Set<Integer> options, ExecutorService ex)
     {
         catAttributes = dataPoints.get(0).getDataPoint().getCategoricalData();
         numNumericFeatures = dataPoints.get(0).getVector().length();
@@ -701,143 +768,186 @@ public class DecisionStump implements Classifier, Regressor, Parameterized
             return toRet;
         }
         
-        List<List<DataPointPair<Double>>> bestSplit = null;
-        double lowestSplitSqrdError = Double.MAX_VALUE;
+        final List<List<DataPointPair<Double>>> bestSplit = new ArrayList<List<DataPointPair<Double>>>();
+        final AtomicDouble lowestSplitSqrdError = new AtomicDouble(Double.MAX_VALUE);
         
-        for(int attribute :  options)
-        {
-            List<List<DataPointPair<Double>>> thisSplit = null;
-            //The squared error for this split 
-            double thisSplitSqrdErr = Double.MAX_VALUE;
-            //Contains the means of each split 
-            double[] thisMeans = null;
-            double[] thisRatio;
+        final ThreadLocal<List<DataPointPair<Double>>> localList = new ThreadLocal<List<DataPointPair<Double>>>(){
+
+            @Override
+            protected List<DataPointPair<Double>> initialValue()
+            {
+                return new ArrayList<DataPointPair<Double>>(dataPoints);
+            }
             
-            if(attribute < catAttributes.length)
+        };
+        
+        final CountDownLatch latch = new CountDownLatch(options.size());
+        for(int attribute_to_consider :  options)
+        {
+            final int attribute = attribute_to_consider;
+            ex.submit(new Runnable()
             {
-                thisSplit = listOfListsD(catAttributes[attribute].getNumOfCategories());
-                OnLineStatistics[] stats = new OnLineStatistics[thisSplit.size()];
-                thisRatio = new double[thisSplit.size()];
-                for(int i = 0; i < thisSplit.size(); i++)
-                    stats[i] = new OnLineStatistics();
-                //Now seperate the values in our current list into their proper split bins 
-                List<DataPointPair<Double>> wasMissing = new ArrayList<DataPointPair<Double>>(0);
-                for(DataPointPair<Double> dpp : dataPoints)
+
+                @Override
+                public void run()
                 {
-                    int category = dpp.getDataPoint().getCategoricalValue(attribute);
-                    if(category >= 0)
+                    final List<DataPointPair<Double>> DPs =  localList.get();
+                    List<List<DataPointPair<Double>>> thisSplit = null;
+                    //The squared error for this split 
+                    double thisSplitSqrdErr = Double.MAX_VALUE;
+                    //Contains the means of each split 
+                    double[] thisMeans = null;
+                    double[] thisRatio;
+
+                    if(attribute < catAttributes.length)
                     {
-                        thisSplit.get(category).add(dpp);
-                        stats[category].add(dpp.getPair(), dpp.getDataPoint().getWeight());
+                        thisSplit = listOfListsD(catAttributes[attribute].getNumOfCategories());
+                        OnLineStatistics[] stats = new OnLineStatistics[thisSplit.size()];
+                        thisRatio = new double[thisSplit.size()];
+                        for(int i = 0; i < thisSplit.size(); i++)
+                            stats[i] = new OnLineStatistics();
+                        //Now seperate the values in our current list into their proper split bins 
+                        List<DataPointPair<Double>> wasMissing = new ArrayList<DataPointPair<Double>>(0);
+                        for(DataPointPair<Double> dpp : DPs)
+                        {
+                            int category = dpp.getDataPoint().getCategoricalValue(attribute);
+                            if(category >= 0)
+                            {
+                                thisSplit.get(category).add(dpp);
+                                stats[category].add(dpp.getPair(), dpp.getDataPoint().getWeight());
+                            }
+                            else//was negative, missing value
+                            {
+                                wasMissing.add(dpp);
+                            }
+                        }
+                        thisMeans = new double[stats.length];
+                        thisSplitSqrdErr = 0.0;
+                        double sum = 0;
+                        for(int i = 0; i < stats.length; i++)
+                        {
+                            sum += (thisRatio[i] = stats[i].getSumOfWeights());
+                            thisSplitSqrdErr += stats[i].getVarance()*stats[i].getSumOfWeights();
+                            thisMeans[i] = stats[i].getMean();
+                        }
+                        for(int i = 0; i < stats.length; i++)
+                            thisRatio[i] /= sum;
+
+                        if(!wasMissing.isEmpty())
+                            distributMissing(thisSplit, thisRatio, wasMissing);
                     }
-                    else//was negative, missing value
+                    else//Findy a binary split that reduces the variance!
                     {
-                        wasMissing.add(dpp);
+                        final int numAttri = attribute - catAttributes.length;
+                        //We need our list in sorted order by attribute!
+                        Comparator<DataPointPair<Double>> dppDoubleSorter = new Comparator<DataPointPair<Double>>()
+                        {
+                            @Override
+                            public int compare(DataPointPair<Double> o1, DataPointPair<Double> o2)
+                            {
+                                return Double.compare(o1.getVector().get(numAttri), o2.getVector().get(numAttri));
+                            }
+                        };
+                        Collections.sort(DPs, dppDoubleSorter);//this will put nans to the right
+
+                        //2 passes, first to sum up the right side, 2nd to move down the grow the left side 
+                        OnLineStatistics rightSide = new OnLineStatistics();
+                        OnLineStatistics leftSide = new OnLineStatistics();
+
+                        int nans = 0;
+                        for(DataPointPair<Double> dpp : DPs)
+                            if(!Double.isNaN(dpp.getVector().get(numAttri)))
+                                rightSide.add(dpp.getPair(), dpp.getDataPoint().getWeight());
+                            else
+                                nans++;
+
+                        int bestS = 0;
+                        thisSplitSqrdErr = Double.POSITIVE_INFINITY;
+
+                        final double allWeight = rightSide.getSumOfWeights();
+                        thisMeans = new double[3];
+                        thisRatio = new double[2];
+
+                        for(int i = 0; i < DPs.size()-nans; i++)
+                        {
+                            DataPointPair<Double> dpp = DPs.get(i);
+                            double weight = dpp.getDataPoint().getWeight();
+                            double val = dpp.getPair();
+                            rightSide.remove(val, weight);
+                            leftSide.add(val, weight);
+
+
+                            if(i < minResultSplitSize)
+                                continue;
+                            else if(i > DPs.size()-minResultSplitSize-nans)
+                                break;
+
+                            double tmpSVariance = rightSide.getVarance()*rightSide.getSumOfWeights() 
+                                    + leftSide.getVarance()*leftSide.getSumOfWeights();
+                            if(tmpSVariance < thisSplitSqrdErr && !Double.isInfinite(tmpSVariance))//Infinity can occur once the weights get REALY small
+                            {
+                                thisSplitSqrdErr = tmpSVariance;
+                                bestS = i;
+                                thisMeans[0] = leftSide.getMean();
+                                thisMeans[1] = rightSide.getMean();
+                                //Third spot contains the split value!
+                                thisMeans[2] = (DPs.get(bestS).getVector().get(numAttri) 
+                                        + DPs.get(bestS+1).getVector().get(numAttri))/2.0;
+                                thisRatio[0] = leftSide.getSumOfWeights()/allWeight;
+                                thisRatio[1] = rightSide.getSumOfWeights()/allWeight;
+                            }
+                        }
+
+                        if(DPs.size() - nans >= minResultSplitSize)
+                        {
+                            //Now we have the binary split that minimizes the variances of the 2 sets, 
+                            thisSplit = listOfListsD(2);
+                            thisSplit.get(0).addAll(DPs.subList(0, bestS+1));
+                            thisSplit.get(1).addAll(DPs.subList(bestS+1, DPs.size()-nans));
+                            if(nans > 0)
+                                distributMissing(thisSplit, thisRatio, DPs.subList(DPs.size()-nans, DPs.size()));
+                        }
+                        else//not a good split, we can't trust it
+                            thisSplitSqrdErr = Double.NEGATIVE_INFINITY;
                     }
+                    //Now compare what weve done
+                    if(thisSplitSqrdErr < lowestSplitSqrdError.get())
+                    {
+                        synchronized(bestSplit)
+                        {
+                            if(thisSplitSqrdErr < lowestSplitSqrdError.get())
+                            {
+                                lowestSplitSqrdError.set(thisSplitSqrdErr);
+                                bestSplit.clear();
+                                bestSplit.addAll(thisSplit);
+                                splittingAttribute = attribute;
+                                regressionResults = thisMeans;
+                                pathRatio = thisRatio;
+                            }
+                        }
+                    }
+                    
+                    latch.countDown();
                 }
-                thisMeans = new double[stats.length];
-                thisSplitSqrdErr = 0.0;
-                double sum = 0;
-                for(int i = 0; i < stats.length; i++)
-                {
-                    sum += (thisRatio[i] = stats[i].getSumOfWeights());
-                    thisSplitSqrdErr += stats[i].getVarance()*stats[i].getSumOfWeights();
-                    thisMeans[i] = stats[i].getMean();
-                }
-                for(int i = 0; i < stats.length; i++)
-                    thisRatio[i] /= sum;
-                
-                if(!wasMissing.isEmpty())
-                    distributMissing(thisSplit, thisRatio, wasMissing);
-            }
-            else//Findy a binary split that reduces the variance!
-            {
-                final int numAttri = attribute - catAttributes.length;
-                //We need our list in sorted order by attribute!
-                Comparator<DataPointPair<Double>> dppDoubleSorter = new Comparator<DataPointPair<Double>>()
-                {
-                    @Override
-                    public int compare(DataPointPair<Double> o1, DataPointPair<Double> o2)
-                    {
-                        return Double.compare(o1.getVector().get(numAttri), o2.getVector().get(numAttri));
-                    }
-                };
-                Collections.sort(dataPoints, dppDoubleSorter);//this will put nans to the right
-                
-                //2 passes, first to sum up the right side, 2nd to move down the grow the left side 
-                OnLineStatistics rightSide = new OnLineStatistics();
-                OnLineStatistics leftSide = new OnLineStatistics();
-                
-                int nans = 0;
-                for(DataPointPair<Double> dpp : dataPoints)
-                    if(!Double.isNaN(dpp.getVector().get(numAttri)))
-                        rightSide.add(dpp.getPair(), dpp.getDataPoint().getWeight());
-                    else
-                        nans++;
-                    
-                int bestS = 0;
-                thisSplitSqrdErr = Double.POSITIVE_INFINITY;
-                
-                final double allWeight = rightSide.getSumOfWeights();
-                thisMeans = new double[3];
-                thisRatio = new double[2];
-                
-                for(int i = 0; i < dataPoints.size()-nans; i++)
-                {
-                    DataPointPair<Double> dpp = dataPoints.get(i);
-                    double weight = dpp.getDataPoint().getWeight();
-                    double val = dpp.getPair();
-                    rightSide.remove(val, weight);
-                    leftSide.add(val, weight);
-                    
-                    
-                    if(i < minResultSplitSize)
-                        continue;
-                    else if(i > dataPoints.size()-minResultSplitSize-nans)
-                        break;
-                    
-                    double tmpSVariance = rightSide.getVarance()*rightSide.getSumOfWeights() 
-                            + leftSide.getVarance()*leftSide.getSumOfWeights();
-                    if(tmpSVariance < thisSplitSqrdErr && !Double.isInfinite(tmpSVariance))//Infinity can occur once the weights get REALY small
-                    {
-                        thisSplitSqrdErr = tmpSVariance;
-                        bestS = i;
-                        thisMeans[0] = leftSide.getMean();
-                        thisMeans[1] = rightSide.getMean();
-                        //Third spot contains the split value!
-                        thisMeans[2] = (dataPoints.get(bestS).getVector().get(numAttri) 
-                                + dataPoints.get(bestS+1).getVector().get(numAttri))/2.0;
-                        thisRatio[0] = leftSide.getSumOfWeights()/allWeight;
-                        thisRatio[1] = rightSide.getSumOfWeights()/allWeight;
-                    }
-                }
-                
-                if(dataPoints.size() - nans < minResultSplitSize)
-                    continue;//not a good split, we can't trust it
-                
-                //Now we have the binary split that minimizes the variances of the 2 sets, 
-                thisSplit = listOfListsD(2);
-                thisSplit.get(0).addAll(dataPoints.subList(0, bestS+1));
-                thisSplit.get(1).addAll(dataPoints.subList(bestS+1, dataPoints.size()-nans));
-                if(nans > 0)
-                    distributMissing(thisSplit, thisRatio, dataPoints.subList(dataPoints.size()-nans, dataPoints.size()));
-            }
-            //Now compare what weve done
-            if(thisSplitSqrdErr < lowestSplitSqrdError)
-            {
-                lowestSplitSqrdError = thisSplitSqrdErr;
-                bestSplit = thisSplit;
-                splittingAttribute = attribute;
-                regressionResults = thisMeans;
-                pathRatio = thisRatio;
-            }
+            });
+        }
+        
+        try
+        {
+            latch.await();
+        }
+        catch (InterruptedException ex1)
+        {
+            Logger.getLogger(DecisionStump.class.getName()).log(Level.SEVERE, null, ex1);
+            throw new FailedToFitException(ex1);
         }
         
         //Removal of attribute from list if needed
         if(splittingAttribute < catAttributes.length || removeContinuousAttributes)
             options.remove(splittingAttribute);
         
-        
+        if(bestSplit.size() == 0)//no good option selected. Keep old behavior, return null in that case
+            return null;
         return bestSplit;
     }
     
