@@ -30,17 +30,18 @@ import jsat.regression.evaluation.RegressionScore;
 import jsat.utils.random.XORWOW;
 
 /**
- * Measures feature importance by applying the classifier for each feature, and
- * corruption one feature at a time as each dataum its pushed through the tree.
- * The importance of a feature is them measured as the percent change in the
- * target score when that feature was corrupted. <br>
+ * Mean Decrease in Accuracy (MDA) measures feature importance by applying the
+ * classifier for each feature, and corruption one feature at a time as each
+ * dataum its pushed through the tree. The importance of a feature is them
+ * measured as the percent change in the target score when that feature was
+ * corrupted. <br>
  * <br>
  * This approach is based off of Breiman, L. (2001). <i>Random forests</i>.
  * Machine Learning, 45(1), 5–32.
  *
  * @author Edward Raff <Raff.Edward@gmail.com>
  */
-public class VariableCorruptionImportance implements TreeFeatureImportanceInference
+public class MDA implements TreeFeatureImportanceInference
 {
     
     private ClassificationScore cs_base = new Accuracy();

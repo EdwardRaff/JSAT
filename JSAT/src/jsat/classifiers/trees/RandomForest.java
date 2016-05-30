@@ -61,7 +61,7 @@ public class RandomForest implements Classifier, Regressor, Parameterized
     private int maxForestSize;
     private boolean useOutOfBagError = false;
     private boolean useOutOfBagImportance = false;
-    private TreeFeatureImportanceInference importanceMeasure = new VariableCorruptionImportance();
+    private TreeFeatureImportanceInference importanceMeasure = new MDI();
     private OnLineStatistics[] feature_importance = null;
     private double outOfBagError;
     private RandomDecisionTree baseLearner;

@@ -38,10 +38,10 @@ import static org.junit.Assert.*;
  *
  * @author Edward Raff <Raff.Edward@gmail.com>
  */
-public class VariableCorruptionImportanceTest
+public class MDATest
 {
     
-    public VariableCorruptionImportanceTest()
+    public MDATest()
     {
     }
     
@@ -106,13 +106,13 @@ public class VariableCorruptionImportanceTest
     }
 
     /**
-     * Test of getImportanceStats method, of class VariableCorruptionImportance.
+     * Test of getImportanceStats method, of class MDA.
      */
     @Test
     public void testGetImportanceStats()
     {
         System.out.println("getImportanceStats");
-        VariableCorruptionImportance instance = new VariableCorruptionImportance();
+        MDA instance = new MDA();
         
         
         //make the circles close to force tree to do lots of splits / make it harder
@@ -158,7 +158,7 @@ public class VariableCorruptionImportanceTest
     public void testGetImportanceStatsR()
     {
         System.out.println("getImportanceStatsR");
-        VariableCorruptionImportance instance = new VariableCorruptionImportance();
+        MDA instance = new MDA();
         
         
         //make the circles close to force tree to do lots of splits / make it harder
