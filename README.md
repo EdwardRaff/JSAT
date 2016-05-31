@@ -13,7 +13,7 @@ You can download JSAT from maven central, add the below to your pom file
   <dependency>
     <groupId>com.edwardraff</groupId>
     <artifactId>JSAT</artifactId>
-    <version>0.0.4</version>
+    <version>0.0.5</version>
   </dependency>
 </dependencies>
 ```
